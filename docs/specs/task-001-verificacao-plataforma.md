@@ -95,8 +95,8 @@ Publicado em `https://albora-spike.albora-dev.workers.dev/spike`.
 | 4 | Encerrar o navegador | ⏳ Exige reiniciar o Chrome; fica para a rodada nos aparelhos |
 | 5 | Presign + PUT de 800 KB | ✅ `200` pelo navegador, local **e publicado**. Objeto de 800 KB no bucket |
 | 6 | Log do Worker durante o PUT | ✅ Ver abaixo — a evidência mais forte da tarefa |
-| 7 | iPhone e Android antigo | ⏳ Aparelho na mão |
-| 8 | Background Sync | ⏳ Android |
+| 7 | iPhone e Android antigo | ⏳ Aparelho na mão. Piso de compatibilidade calculado abaixo |
+| 8 | Background Sync | 🟡 **Código provado**, comportamento de aparelho não. Ver abaixo |
 
 **A prova 6, no Worker publicado.** `wrangler tail` durante um PUT de 819 200 bytes registrou **um único evento**:
 
@@ -118,6 +118,28 @@ Um detalhe que custou uma investigação: o preflight `OPTIONS` já respondia `2
 A prova 2 merece uma nota de método. A primeira tentativa usou `Network.emulateNetworkConditions` do CDP e **deu falso positivo**: a página abriu, mas o log do Worker mostrou uma requisição nova. A emulação do CDP é do renderizador e não alcança o Service Worker, que tem contexto de rede próprio. A prova só vale com o servidor derrubado.
 
 `SignedHeaders: host` é o que importa na prova 5: o `content-type` **não** entra na assinatura, então o navegador pode mandar o dele sem quebrar o PUT.
+
+### Sem Android à mão: o que foi possível separar
+
+Não havia aparelho Android. Em vez de deixar a prova 8 em branco, ela foi **partida em duas perguntas**, e uma delas se responde no desktop.
+
+**O código do Background Sync está provado.** Chrome desktop implementa a mesma API. Com três itens na fila e `sync.register('albora-fila')`, o Service Worker acordou sozinho e devolveu:
+
+```
+{ tipo: "drenagem", origem: "sync", enviados: 3, restantes: 0 }
+```
+
+Presign, PUT e remoção da fila rodaram dentro do SW, sem página envolvida. Se algo estivesse errado no handler, na fila ou no fluxo de upload de dentro do worker, teria falhado aqui.
+
+**O que continua em aberto é o comportamento do aparelho, não o código:** se o Android acorda o Service Worker com a tela apagada e o app fora de foco, sob Doze e economia de bateria. Isso não tem substituto em desktop nem em emulador — só um telefone de verdade, com a tela apagada, responde.
+
+A distinção importa para o produto: a primeira pergunta é "o upload em segundo plano existe"; a segunda é "ele funciona quando o convidado guardou o celular no bolso" — que é a única situação em que ele importa.
+
+**Piso de compatibilidade, no lugar do "Android antigo".** Sem aparelho velho, dá para calcular o que o código exige em vez de adivinhar: o bundle emitido usa `?.` e `??`, que pedem **Chrome 80** (2020); o alvo mais antigo que o Next compila por padrão é **Chrome 109**, última versão para Android 6 e 7. Ou seja, o piso é o do Next, não o do nosso código — não há nada aqui que precise de motor recente.
+
+Isso não substitui a prova 7: reduz a pergunta de "funciona num Android antigo?" para "o motor do aparelho é Chrome 109 ou maior?", que é verificável em um toque em Configurações → Sobre o Chrome.
+
+**O emulador foi tentado e descartado.** O AVD Android 16 subiu, mas o Chrome 134 da imagem entra em ANR e crasha antes de abrir a página. E mesmo funcionando responderia a pergunta errada: Chrome 134 em Android 16 é mais novo que o desktop que já testamos — o que a prova 7 quer é o aparelho de quatro anos que aparece na festa.
 
 ### Achados
 
