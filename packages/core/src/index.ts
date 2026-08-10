@@ -27,3 +27,6 @@ export { presignExpirou, VALIDADE_PRESIGN_SEGUNDOS } from "./upload";
 
 export type { Orientacao, Transformacao } from "./exif";
 export { dimensoesCorrigidas, lerOrientacao, temExif, temGeolocalizacao, transformacaoParaOrientacao } from "./exif";
+
+export type { Alvo, Aparelho, Plano } from "./redimensionar";
+export { alvoFull, alvoParaLadoMaior, alvoQueCabe, alvoThumb, LADO_THUMB, planejarProcessamento, QUALIDADE, TETO_PIXELS, tetoParaAparelho } from "./redimensionar";
