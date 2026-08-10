@@ -91,12 +91,16 @@ Instrumento em [`spike/plataforma/`](../../spike/plataforma/README.md). O `/spik
 | 2 | Recarregar com a rede desligada | ✅ **Com o Worker morto de verdade**, a página abriu completa e hidratada |
 | 3 | 3 itens, fechar a aba, reabrir | ✅ 3 itens, 2 457 600 bytes — número idêntico ao enfileirado |
 | 4 | Encerrar o navegador | ⏳ Exige reiniciar o Chrome; fica para a rodada nos aparelhos |
-| 5 | Presign + PUT de 800 KB | ⚠️ **Parcial.** Ver abaixo |
-| 6 | Log do Worker durante o PUT | ✅ Três requisições: `GET /spike`, `POST /presign` (42 ms), `GET /objetos`. **Nenhum PUT** |
+| 5 | Presign + PUT de 800 KB | ✅ `200` pelo navegador, objeto de 800 KB no bucket. Ver nota de CORS |
+| 6 | Log do Worker durante o PUT | ✅ 15 requisições no Worker, **`PUT: 0`**. Só presign, casca e assets |
 | 7 | iPhone e Android antigo | ⏳ Aparelho na mão |
 | 8 | Background Sync | ⏳ Android |
 
-**Prova 5, os dois lados.** Por `curl`: `200`, 819 200 bytes, objeto no bucket com o tamanho certo. Credencial, assinatura e escrita funcionam. **Pelo navegador: `TypeError: Failed to fetch`** — o `fetch` rejeita antes de qualquer resposta, assinatura de bloqueio de CORS. É o risco que a spec previa, e só aparece no navegador: CORS é regra de cliente, e o `curl` passa por cima dela. A política do bucket precisa ser aplicada no painel; ver achado 5.
+**A prova 5 falhou primeiro, e o modo da falha importa.** Antes do CORS, `curl` dava `200` e o navegador dava `TypeError: Failed to fetch` — rejeição antes de qualquer resposta. CORS é regra de cliente e o `curl` passa por cima dela, então **a única prova que vale é a do navegador**. Com a política aplicada, os dois passam: 800 KB em `200`, e um controle de 2 bytes junto para separar "CORS resolvido" de "upload grande quebrado".
+
+Um detalhe que custou uma investigação: o preflight `OPTIONS` já respondia `204` com os cabeçalhos certos enquanto o navegador ainda recusava. Era preflight negativo em cache do Chrome. Ao diagnosticar CORS, sondar com `curl -X OPTIONS -H 'Origin: …'` separa configuração errada de cache velho — e só a segunda some sozinha.
+
+`--upload-file` de 800 KB no `curl` devolve `200` **sem** `Access-Control-Allow-Origin`, mas com `-d` de 2 bytes devolve com. É o `Expect: 100-continue`, que o navegador não usa. Ou seja: `curl` grande dá falso negativo de CORS, além do falso positivo já citado. Não é ferramenta para essa pergunta.
 
 A prova 2 merece uma nota de método. A primeira tentativa usou `Network.emulateNetworkConditions` do CDP e **deu falso positivo**: a página abriu, mas o log do Worker mostrou uma requisição nova. A emulação do CDP é do renderizador e não alcança o Service Worker, que tem contexto de rede próprio. A prova só vale com o servidor derrubado.
 
@@ -105,7 +109,9 @@ A prova 2 merece uma nota de método. A primeira tentativa usou `Network.emulate
 ### Achados
 
 **1. Node ≥ 20 é obrigatório, e a máquina tem 16 como padrão.**
-`next@15` e `@opennextjs/cloudflare` recusam a 16. A 22.21.1 já existe via nvm. Isso vira decisão de `.nvmrc` e de imagem do CI na task 002 — não é detalhe de ambiente local.
+`next@15` e `@opennextjs/cloudflare` recusam a 16. O padrão da máquina fica na 16 por decisão do mantenedor; a exceção é **por projeto**, em três camadas: `.nvmrc` na raiz (`nvm use` sobe os diretórios e acha), `engines: node >=20.9.0` com `engine-strict=true` no `.npmrc`, e o próprio pnpm 10, que não sobe abaixo da 18.
+
+Verificado: sob a 16, `pnpm install` para com mensagem explícita em vez de quebrar num erro críptico três passos adiante. Isso vira imagem do CI na task 002.
 
 **2. 🔴 O `headers()` do `next.config` não alcança `/public` sob OpenNext.**
 O Workers Assets serve esses arquivos **antes** do Worker do Next, então a regra do `next.config` nunca roda. Descoberto justamente no `/sw.js`, onde o cabeçalho errado de cache é o que congela um Service Worker antigo em produção. Corrigido com `public/_headers`, que o build copia para os assets.

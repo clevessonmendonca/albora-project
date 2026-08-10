@@ -13,12 +13,20 @@ Ver [`docs/specs/task-001-verificacao-plataforma.md`](../../docs/specs/task-001-
 
 ## Antes de rodar
 
-Node **≥ 20**. A máquina tem 16 como padrão; use a 22:
+Node **≥ 20**, sem mexer no padrão da máquina. O `.nvmrc` da raiz do repositório
+fixa a 22 só aqui dentro:
 
 ```sh
-nvm use 22            # ou: export PATH="$HOME/.nvm/versions/node/v22.21.1/bin:$PATH"
+nvm use               # lê o .nvmrc subindo os diretórios → 22
 corepack enable
 ```
+
+Três camadas garantem que ninguém rode sob a versão errada por engano: o `.nvmrc`
+diz qual é, o `engines` do `package.json` com `engine-strict` recusa a instalação,
+e o próprio pnpm 10 não sobe abaixo da 18.
+
+Para o `nvm use` acontecer sozinho ao entrar na pasta, o hook de auto-troca do nvm
+no `.zshrc` resolve — mas isso é configuração da sua máquina, não do repositório.
 
 Preencha no `.env` da **raiz do repositório** — nunca aqui:
 
