@@ -24,3 +24,6 @@ export { detectarTipo, LADO_MAIOR, MAX_BYTES, TIPOS_ACEITOS, tipoAceito, validar
 
 export type { PedidoConfirm, PedidoPresign, RespostaPresign } from "./upload";
 export { presignExpirou, VALIDADE_PRESIGN_SEGUNDOS } from "./upload";
+
+export type { Orientacao, Transformacao } from "./exif";
+export { dimensoesCorrigidas, lerOrientacao, temExif, temGeolocalizacao, transformacaoParaOrientacao } from "./exif";
