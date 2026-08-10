@@ -1,4 +1,4 @@
-import { acentoLegivel } from "./resolvedor";
+import { resolverEscala } from "./resolvedor";
 import type { Tokens } from "./tipos";
 
 /**
@@ -9,17 +9,29 @@ import type { Tokens } from "./tipos";
  * lado tivesse o seu formato, seriam dois temas com um nome só.
  */
 export function paraVariaveis(tokens: Tokens): Record<string, string> {
+  const e = resolverEscala(tokens);
+
   return {
-    "--tinta": tokens.cores.tinta,
-    "--papel": tokens.cores.papel,
-    "--acento": acentoLegivel(tokens),
-    "--realce": tokens.cores.realce,
+    "--bg": e.bg,
+    "--superficie": e.superficie,
+    "--superficie-alta": e.superficieAlta,
+    "--linha": e.linha,
+    "--ink": e.ink,
+    "--ink-2": e.ink2,
+    "--ink-3": e.ink3,
+    "--acento": e.acento,
+    "--acento-texto": e.acentoTexto,
+    "--critico": e.critico,
+
     "--fonte-titulo": tokens.fontes.titulo,
     "--fonte-corpo": tokens.fontes.corpo,
     "--raio": tokens.escala.raio,
     "--espaco": tokens.escala.espaco,
-    "--frente": tokens.fundo === "escuro" ? tokens.cores.papel : tokens.cores.tinta,
-    "--fundo": tokens.fundo === "escuro" ? tokens.cores.tinta : tokens.cores.papel,
+
+    // Ponte para as telas escritas antes da escala semântica existir. Sai na
+    // passada de tela — não escreva componente novo contra elas.
+    "--fundo": e.bg,
+    "--frente": e.ink,
   };
 }
 

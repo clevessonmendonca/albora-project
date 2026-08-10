@@ -1,18 +1,22 @@
 import type { Tokens } from "./tipos";
 
 /**
- * O piso da cadeia. Um evento sem identidade nenhuma resolve para isto,
- * e o resultado precisa ser um produto apresentável — não um placeholder.
+ * O piso da cadeia. Um evento sem identidade nenhuma resolve para isto, e o
+ * resultado precisa ser um produto apresentável — não um placeholder.
+ *
+ * Os valores são os de `brand/LEIA-ME.md` — o pacote de marca é o artefato
+ * produzido, e é a ele que os 46 SVGs obedecem. Se divergirem, a placa
+ * impressa deixa de combinar com o telão, que é a coerência que o produto
+ * vende — e a divergência entra por aqui, não por outro lugar.
  */
 export const MARCA_ALBORA: Tokens = {
   cores: {
-    tinta: "#16110D",
-    papel: "#F2EAE1",
-    acento: "#E8873A",
-    // O mesmo âmbar sobre papel não alcança contraste de texto.
-    // Re-derivado, não clareado: é a mesma cor com luminância de leitura.
-    acentoSobreClaro: "#A34F16",
-    realce: "#8FCB9B",
+    papel: "#F4F0E9",
+    // Preto quente, nunca #000: preto puro sobre foto de festa vira buraco.
+    tinta: "#1A1613",
+    noite: "#0C0A09",
+    acento: "#D9793C",
+    critico: "#C2410C",
   },
   fontes: {
     titulo: "Fraunces, Georgia, serif",
@@ -22,5 +26,7 @@ export const MARCA_ALBORA: Tokens = {
     raio: "0.6rem",
     espaco: "0.25rem",
   },
+  // Escuro por física, não por estética: tela branca às 22h contrai a pupila e
+  // a pessoa perde a festa de vista. Ver `DESIGN.md` §2.
   fundo: "escuro",
 };

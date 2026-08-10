@@ -1,4 +1,5 @@
-import type { CamadaTokens, EntradaResolucao, Tokens } from "./tipos";
+import { escalaDoFundo } from "./escalas";
+import type { CamadaTokens, EntradaResolucao, EscalaSemantica, Tokens } from "./tipos";
 
 /**
  * O resolvedor. Um só, para todos os renderizadores — web, nativo, telão,
@@ -28,14 +29,14 @@ export function resolverTokens(entrada: EntradaResolucao): Tokens {
 }
 
 /**
- * A cor de acento correta para o fundo resolvido.
+ * A escala que o componente consome, já resolvida para o chão escolhido.
  *
- * Existe porque errar isto é invisível em revisão e óbvio no salão: âmbar
- * sobre papel claro não alcança contraste de texto. Quem escolhe o fundo é o
- * casal, então a escolha do acento não pode ficar na mão do componente.
+ * **Trocar o chão re-deriva o acento.** Não é trocar uma cor, é trocar um
+ * conjunto: o mesmo âmbar que é seguro sobre noite reprova contraste sobre
+ * papel, e deixar o casal escolher a cor sem re-derivar entregaria uma
+ * interface ilegível às 22h num salão escuro. A validação é trabalho do
+ * sistema, nunca escolha de quem paga.
  */
-export function acentoLegivel(tokens: Tokens): string {
-  return tokens.fundo === "claro"
-    ? tokens.cores.acentoSobreClaro
-    : tokens.cores.acento;
+export function resolverEscala(tokens: Tokens): EscalaSemantica {
+  return escalaDoFundo(tokens.cores, tokens.fundo);
 }
