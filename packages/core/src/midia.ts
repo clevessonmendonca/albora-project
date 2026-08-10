@@ -10,6 +10,16 @@
 export const TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp"] as const;
 export type TipoAceito = (typeof TIPOS_ACEITOS)[number];
 
+/**
+ * O que o cliente pode **tentar decodificar** — não o que pode subir.
+ *
+ * HEIC entra e sai JPEG no aparelho (N5.2). Ele nunca entra em
+ * `TIPOS_ACEITOS`: bastava isso para o servidor passar a assinar upload do
+ * arquivo exato que a galeria e o telão não exibem.
+ */
+export const TIPOS_ENTRADA = [...TIPOS_ACEITOS, "image/heic", "image/heif"] as const;
+export type TipoEntrada = (typeof TIPOS_ENTRADA)[number];
+
 /** Teto por foto. Acima disso o cliente redimensiona antes de enfileirar. */
 export const MAX_BYTES = 12 * 1024 * 1024;
 
@@ -51,8 +61,58 @@ export function detectarTipo(inicio: Uint8Array): TipoAceito | null {
   return null;
 }
 
+/**
+ * Contêiner ISO-BMFF: `ftyp` nos bytes 4..7, e a marca do formato em 8..11.
+ * HEIC, MP4 e o `.mov` do iPhone são todos o mesmo contêiner — o que os
+ * separa é só a marca.
+ */
+const FTYP = [0x66, 0x74, 0x79, 0x70];
+
+const MARCAS_HEIC = [
+  "heic",
+  "heix",
+  "hevc",
+  "hevx",
+  "mif1",
+  "msf1",
+  "heim",
+  "heis",
+  "hevm",
+  "hevs",
+];
+
+const MARCAS_VIDEO = ["isom", "iso2", "iso4", "mp41", "mp42", "avc1", "qt  ", "M4V "];
+
+function marcaIsoBmff(inicio: Uint8Array): string | null {
+  if (!FTYP.every((b, i) => inicio[4 + i] === b)) return null;
+
+  let marca = "";
+  for (let i = 8; i < 12; i += 1) {
+    const b = inicio[i];
+    if (b === undefined) return null;
+    marca += String.fromCharCode(b);
+  }
+  return marca;
+}
+
+/**
+ * Detecta HEIC/HEIF pelos bytes, nunca pelo `File.type` — no iOS ele vem
+ * vazio ou mentiroso, e é o convidado de iPhone que a N5.2 protege.
+ */
+export function ehHeic(inicio: Uint8Array): boolean {
+  const marca = marcaIsoBmff(inicio);
+  return marca !== null && MARCAS_HEIC.includes(marca);
+}
+
+/** Vídeo em contêiner ISO-BMFF, incluindo o `.mov` do iPhone (marca `qt  `). */
+export function ehVideo(inicio: Uint8Array): boolean {
+  const marca = marcaIsoBmff(inicio);
+  return marca !== null && MARCAS_VIDEO.includes(marca);
+}
+
 export type ErroMidia =
   | { code: "midia.tipo_recusado"; details: { recebido: string } }
+  | { code: "midia.formato_nao_suportado"; details: { detectado: string } }
   | { code: "midia.grande_demais"; details: { bytes: number; limite: number } }
   | { code: "midia.conteudo_nao_confere"; details: { declarado: string; detectado: string | null } };
 

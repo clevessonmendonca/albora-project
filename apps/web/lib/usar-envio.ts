@@ -2,14 +2,18 @@
 
 import {
   drenar,
+  ehHeic,
+  ehVideo,
   processarFoto,
   type DetalhesItem,
   type FiltroAplicado,
+  type Plano,
   type ResumoDrenagem,
 } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
 import { desenhistaWeb } from "./desenhista";
 import { ErroCotaEsgotada, filaWeb, resumoDaFila } from "./fila";
+import { aparelhoDecodifica } from "./imagem";
 import { transporteWeb } from "./transporte";
 
 /**
@@ -19,6 +23,18 @@ import { transporteWeb } from "./transporte";
  * Um caminho rápido que pula a fila é um caminho que se comporta diferente
  * quando o sinal cai — e o sinal cai. Uma fonte da verdade, um caminho.
  */
+
+/**
+ * Fixo enquanto não há cobrança. Vive aqui, e não espalhado em literais,
+ * porque é ele que a tela consulta para avisar do vídeo **antes** da captura
+ * (N5.3) — o aviso e a recusa têm de sair da mesma fonte.
+ */
+export const PLANO_ATUAL: Plano = "gratis";
+
+export const AVISO_VIDEO = "Vídeo é do plano pago. Por aqui, só foto.";
+
+const AVISO_HEIC =
+  "Este aparelho não abre fotos HEIC. No iPhone: Ajustes → Câmera → Formatos → “Mais compatível”.";
 
 export type EstadoEnvio = {
   pendentes: number;
@@ -73,11 +89,33 @@ export function usarEnvio(eventoId: string) {
     async ({ arquivo, filtro, desafioId }: PedidoEnvio) => {
       setEstado((e) => ({ ...e, processando: true, ultimoErro: null }));
 
+      const recusar = (mensagem: string) => {
+        setEstado((e) => ({ ...e, ultimoErro: mensagem }));
+        return { ok: false as const, erro: mensagem };
+      };
+
       try {
+        // Assinatura antes de tudo: o `type` do arquivo vem vazio ou mentiroso
+        // no iOS, e ler o arquivo inteiro para descobrir que é um vídeo de 300
+        // MB é o próprio travamento que a recusa deveria evitar.
+        const inicio = new Uint8Array(await arquivo.slice(0, 16).arrayBuffer());
+
+        if (PLANO_ATUAL === "gratis" && ehVideo(inicio)) return recusar(AVISO_VIDEO);
+
         const bytes = new Uint8Array(await arquivo.arrayBuffer());
 
-        const foto = await processarFoto(bytes, arquivo.type, desenhistaWeb, {
-          plano: "gratis",
+        // HEIC que o aparelho decodifica sai JPEG do `processarFoto` sem etapa
+        // extra. O que ele não decodifica não tem conversão possível aqui — e
+        // subir o original contaminaria o acervo com o que o telão não exibe.
+        const heic = ehHeic(inicio);
+        if (heic && !(await aparelhoDecodifica(bytes, "image/heic"))) {
+          return recusar(AVISO_HEIC);
+        }
+
+        // O mesmo MIME da sonda: provar a decodificação com um tipo e decodificar
+        // com outro invalidaria a prova, e no iOS o `type` do arquivo vem vazio.
+        const foto = await processarFoto(bytes, heic ? "image/heic" : arquivo.type, desenhistaWeb, {
+          plano: PLANO_ATUAL,
           aparelho: {
             memoriaGb: (navigator as { deviceMemory?: number }).deviceMemory,
             nucleos: navigator.hardwareConcurrency,

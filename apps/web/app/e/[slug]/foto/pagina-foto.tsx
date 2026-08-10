@@ -2,7 +2,7 @@
 
 import type { FiltroAplicado } from "@albora/core";
 import { useEffect, useRef, useState } from "react";
-import { usarEnvio } from "@/lib/usar-envio";
+import { AVISO_VIDEO, PLANO_ATUAL, usarEnvio } from "@/lib/usar-envio";
 import { Detalhes, type Lugar } from "./detalhes";
 import { Editor } from "./editor";
 
@@ -174,26 +174,38 @@ export function PaginaFoto({
 
       <input ref={entrada} type="file" accept="image/*" capture="environment" hidden onChange={escolheu} />
 
-      <button
-        onClick={() => abrirCamera(null)}
-        disabled={estado.processando}
-        style={{
-          font: "inherit",
-          fontSize: "1.05rem",
-          fontWeight: 500,
-          // Alvo grande de propósito: é o único botão que importa, e a mão que
-          // o aperta às 23h segura uma taça na outra.
-          minHeight: "64px",
-          borderRadius: "var(--raio)",
-          border: "none",
-          background: "var(--frente)",
-          color: "var(--fundo)",
-          opacity: estado.processando ? 0.5 : 1,
-          cursor: estado.processando ? "default" : "pointer",
-        }}
-      >
-        {estado.processando ? "Preparando…" : textos.missaoLivre}
-      </button>
+      <div style={{ display: "grid", gap: "0.55rem" }}>
+        <button
+          onClick={() => abrirCamera(null)}
+          disabled={estado.processando}
+          style={{
+            font: "inherit",
+            fontSize: "1.05rem",
+            fontWeight: 500,
+            // Alvo grande de propósito: é o único botão que importa, e a mão que
+            // o aperta às 23h segura uma taça na outra.
+            minHeight: "64px",
+            borderRadius: "var(--raio)",
+            border: "none",
+            background: "var(--frente)",
+            color: "var(--fundo)",
+            opacity: estado.processando ? 0.5 : 1,
+            cursor: estado.processando ? "default" : "pointer",
+          }}
+        >
+          {estado.processando ? "Preparando…" : textos.missaoLivre}
+        </button>
+
+        {/*
+          Antes da captura, nunca depois: deixar gravar e recusar no envio
+          destrói o momento, e o brinde não se refaz (N5.3).
+        */}
+        {PLANO_ATUAL === "gratis" && (
+          <p style={{ margin: 0, fontSize: "0.78rem", opacity: 0.5, textAlign: "center" }}>
+            {AVISO_VIDEO}
+          </p>
+        )}
+      </div>
     </main>
   );
 }
