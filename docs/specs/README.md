@@ -38,9 +38,42 @@ Seis semanas, uma pessoa, noites e fins de semana. A data do casamento não move
 | [008](./task-008-telao.md) | Telão | Roda 4h sem intervenção, sobrevive a queda de rede e a reload | 4 |
 | [009](./task-009-moderacao.md) | Moderação, denúncia e botão de pânico | Foto sai da parede em menos de 5s | 4 |
 | [010](./task-010-carga-e-pwa.md) | Teste de carga e PWA instalável | **150 uploads em 20 min** · instala no Android e no iOS | 5 |
+| [011](./task-011-landing-e-conversao.md) | Landing e conversão | LCP < 2s em 4G · demo escaneia e entra num evento real | 5 |
 | — | **Casamento real** | A métrica que decide o negócio | 6 |
 
 > A tarefa 001 é **spike descartável**. O código dela não vai para produção — ela existe só para responder sim ou não. Se der não, o ADR 0005 é reaberto antes de qualquer outra linha.
+
+## Depois do MVP — Fase 2
+
+| # | Tarefa | Origem |
+|---|---|---|
+| [012](./task-012-recados.md) | Recados | Sem thread, abrindo depois da cerimônia |
+| [013](./task-013-compartilhar.md) | Compartilhar com moldura | O único canal viral gratuito. ~1 dia |
+| [014](./task-014-album-da-noite.md) | Álbum da noite | A linha do tempo por hora |
+
+Fora de spec por decisão de roadmap: entrega por WhatsApp, agrupamento facial (bloqueado em parecer jurídico), export para Drive, livro de fotos, portal do fornecedor, multi-evento, checkout.
+
+## A stack, concreta
+
+Decidida nos ADRs [0005](../adr/0005-runtime-stack.md) e [0006](../adr/0006-hosting-platform.md). As escolhas de biblioteca abaixo são default — trocar exige justificativa na spec, não na conversa.
+
+| Camada | Escolha | Nota |
+|---|---|---|
+| Framework | **Next.js App Router** + TypeScript | `/e/[slug]` é client-heavy por decisão |
+| Runtime | **Cloudflare Workers** via `@opennextjs/cloudflare` | Sem cold start; escala a zero |
+| Banco | **Neon** (Postgres 16) | 🔴 Driver **com transação** em todo caminho de evento — `SET LOCAL` exige uma |
+| ORM | **Drizzle** | Migrations versionadas, leve, tipos do schema |
+| Storage | **Cloudflare R2** | Egress zero. PUT presigned direto |
+| Fila | **Cloudflare Queues** + Cron Triggers | Retenção, entrega, export |
+| Estilo | **Tailwind 4** com `@theme` no `packages/ui` | Tokens do evento em custom properties |
+| Fila no cliente | **IndexedDB** direto, sem wrapper | A fila é a fonte da verdade; abstração aqui é risco |
+| Imagem | **Canvas 2D** | Compressão, EXIF, thumb, filtros. Zero IA |
+| PDF | **SVG → PDF** (Satori/resvg) | Em fila, nunca em request |
+| Testes | **Vitest** + **Playwright** | Isolamento contra banco real, nunca mock |
+| E-mail | **Resend** | Magic link e avisos |
+| Pacotes | **pnpm** workspace | |
+
+**O que não entra, e por quê:** biblioteca de estado global (o estado vive na fila e no servidor), biblioteca de componentes pronta (o `packages/ui` é o sistema), wrapper de IndexedDB, SDK de IA generativa.
 
 ## Formato
 
