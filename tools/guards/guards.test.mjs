@@ -75,6 +75,13 @@ describe("cobertura das fixtures", () => {
     expect(motivos.some((m) => m.includes("PII"))).toBe(true);
   });
 
+  it("a fixture de sessão NÃO reprova log de id de sessão", () => {
+    const linhas = sessao(fixture("sessao")).map((v) => v.linha);
+    // As violações estão nas três primeiras linhas do corpo; o log seguro,
+    // no fim do arquivo, precisa passar.
+    expect(Math.max(...linhas)).toBeLessThanOrEqual(4);
+  });
+
   it("a fixture de packs pega import invertido e string de domínio", () => {
     const motivos = packs(fixture("packs")).map((v) => v.motivo);
     expect(motivos.some((m) => m.includes("pack → core"))).toBe(true);

@@ -14,11 +14,15 @@
     "@albora/ui-web": "workspace:*",
     "next": "^15.5.4",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "@albora/db": "workspace:*",
+    "aws4fetch": "^1.0.20",
+    "pg": "^8.13.1"
   },
   "devDependencies": {
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@types/pg": "^8.11.10"
   }
 }

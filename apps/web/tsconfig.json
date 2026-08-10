@@ -16,7 +16,12 @@
       }
     ],
     "incremental": true,
-    "strict": true
+    "strict": true,
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
   },
   "include": [
     "next-env.d.ts",

@@ -1,5 +1,3 @@
-import type { EventoId } from "./tipos";
-
 /**
  * A chave de storage é derivada no servidor. Sempre.
  *
@@ -9,7 +7,7 @@ import type { EventoId } from "./tipos";
  * precisar dela vai copiar, e a cópia vai divergir.
  */
 export function derivarChaveMidia(
-  eventoId: EventoId,
+  eventoId: string,
   uuid: string,
   variante: "full" | "thumb",
 ): string {
@@ -20,6 +18,6 @@ export function derivarChaveMidia(
 }
 
 /** Toda chave do produto começa aqui. Usado pelo guard de isolamento. */
-export function prefixoDoEvento(eventoId: EventoId): string {
+export function prefixoDoEvento(eventoId: string): string {
   return `events/${eventoId}/`;
 }

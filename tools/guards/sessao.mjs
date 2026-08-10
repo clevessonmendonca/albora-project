@@ -15,7 +15,12 @@ const PADROES = [
   [/[?&](?:token|sessao|session|sid)=/i, "token em querystring — vaza por referrer, histórico e log de proxy"],
   [/searchParams\.set\(\s*["'](?:token|sessao|session|sid)["']/i, "token em querystring — use cookie HttpOnly"],
   [
-    /console\.(log|info|warn|error|debug)\([^)]*\b(token|sessao|session|cookie|secret|senha|password)\b/i,
+    // `sessao` e `session` ficaram de fora: o **id** da sessão não é
+    // credencial — é o que correlaciona log com upload, e o ADR 0004 já o
+    // devolve no corpo da resposta. Credencial é o token. Manter as duas na
+    // mesma lista reprovava `console.log("sessao.criada", { sessaoId })`, que
+    // é exatamente o log que se quer ter.
+    /console\.(log|info|warn|error|debug)\([^)]*\b(token|cookie|secret|senha|password|authorization)\b/i,
     "credencial em log",
   ],
   [
