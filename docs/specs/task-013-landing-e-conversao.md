@@ -1,4 +1,4 @@
-# Task 011 — Landing e conversão
+# Task 013 — Landing e conversão
 
 > **Origem:** `albora-landing-planos.md` · [`../product/README.md`](../product/README.md)
 > **Depende de:** 002. **Bloqueia o lançamento** — sem porta de entrada não há funil.

@@ -1,7 +1,7 @@
-# Task 009 — Moderação, denúncia e botão de pânico
+# Task 011 — Moderação, denúncia e botão de pânico
 
 > **Origem:** [`../flows.md` §4](../flows.md) · [`../security.md` §4.5](../security.md)
-> **Depende de:** 008.
+> **Depende de:** 010.
 
 ## Objetivo
 

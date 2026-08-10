@@ -1,4 +1,4 @@
-# Task 007 — Admin: evento, missões e geração de peças
+# Task 009 — Admin: evento, missões e geração de peças
 
 > **Origem:** [`../flows.md` §2](../flows.md) · [`../architecture.md` §6](../architecture.md)
 > **Depende de:** 003.

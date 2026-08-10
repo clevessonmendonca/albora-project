@@ -38,7 +38,7 @@ A H1 continua sendo **≥40% dos convidados enviando ao menos uma foto**. O app 
 
 **O aplicativo do convidado é uma rede social do evento, a serviço do álbum dos noivos.** Feed, stories, reações, comentários, galeria pessoal e compartilhamento externo são funcionalidades de primeira classe, não concessões.
 
-Três coisas o delimitam.
+Quatro coisas o delimitam.
 
 ### 1. A porta de entrada não muda
 
@@ -127,7 +127,7 @@ O [`../security.md`](../security.md) marca o ator **A5, o perseguidor**, como me
 - Bloqueio entre convidados dentro do evento — que não existia no modelo anterior
 - Moderação de texto no mesmo lugar da moderação de imagem
 
-**A [task 009](../specs/task-009-moderacao.md) cresce e sobe na fila.** Ela era sobre imagem. Agora é sobre imagem e texto, e não pode ficar depois do feed.
+**A [task 009](../specs/task-011-moderacao.md) cresce e sobe na fila.** Ela era sobre imagem. Agora é sobre imagem e texto, e não pode ficar depois do feed.
 
 **O modelo de dados ganha quatro entidades** — reação, comentário, item de feed e story — todas com `event_id`, todas sob a mesma política de RLS, todas com o mesmo guard de isolamento rodando bloqueante desde o primeiro commit.
 

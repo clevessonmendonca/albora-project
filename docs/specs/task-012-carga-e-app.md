@@ -1,7 +1,7 @@
-# Task 010 — Teste de carga e PWA instalável
+# Task 012 — Teste de carga e PWA instalável
 
 > **Origem:** [`../architecture.md` §15](../architecture.md) · [`../flows.md` §3.7](../flows.md)
-> **Depende de:** 004 a 009. **Último portão antes do casamento real.**
+> **Depende de:** 004 a 011. **Último portão antes do casamento real.**
 
 ## Objetivo
 
