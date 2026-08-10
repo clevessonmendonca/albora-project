@@ -37,5 +37,5 @@ export { alvoFull, alvoParaLadoMaior, alvoQueCabe, alvoThumb, LADO_THUMB, planej
 export type { Resultado, ResumoDrenagem, Transporte } from "./envio";
 export { drenar, enviarItem } from "./envio";
 
-export type { Bitmap, Desenhista, FotoProcessada, OpcoesProcessamento } from "./processar";
+export type { Bitmap, Desenhista, FiltroAplicado, FotoProcessada, OpcoesProcessamento } from "./processar";
 export { processarFoto } from "./processar";

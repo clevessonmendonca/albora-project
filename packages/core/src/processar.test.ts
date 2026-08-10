@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { processarFoto, type Bitmap, type Desenhista } from "./processar";
+import { NEUTRO } from "./luts";
 import { QUALIDADE } from "./redimensionar";
 
 type Img = Bitmap & { rotulo: string };
@@ -29,6 +30,12 @@ function desenhistaFalso(original: Bitmap) {
     async codificar(imagem, mime, qualidade) {
       chamadas.push(`codificar:${imagem.rotulo}:${mime}:q${qualidade}`);
       return `${imagem.rotulo}@${qualidade}`;
+    },
+    async filtrar(imagem, filtro) {
+      chamadas.push(
+        `filtrar:${imagem.rotulo}:${filtro.porPixel ? "pixel" : "css"}:i${filtro.intensidade}`,
+      );
+      return { ...imagem, rotulo: `${imagem.rotulo}+filtro` };
     },
   };
 
@@ -67,6 +74,40 @@ describe("a ordem das operações", () => {
       // A miniatura sai do resultado, não do original: reprocessar o original
       // dobraria o pico de memória no aparelho mais fraco.
       "desenhar:2500x1875→320x240:girar0",
+      "codificar:320x240:image/jpeg:q0.7",
+    ]);
+  });
+
+  it("sem filtro escolhido, o desenhista de cor nem é chamado", () => {
+    // O preset é escolha do convidado. Aplicar sozinho tiraria a escolha de
+    // quem tirou a foto (N5.9).
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
+
+    return processarFoto(semExif, "image/jpeg", desenhista, {
+      plano: "gratis",
+      aparelho: aparelhoComum,
+    }).then(() => {
+      expect(chamadas.some((c) => c.startsWith("filtrar:"))).toBe(false);
+    });
+  });
+
+  it("o filtro entra depois de endireitar, e a miniatura sai dele", async () => {
+    // Se a miniatura saísse da imagem sem filtro, a tira do telão teria uma
+    // cor e o álbum outra — e coerência entre as fotos é o produto.
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
+
+    await processarFoto(semExif, "image/jpeg", desenhista, {
+      plano: "gratis",
+      aparelho: aparelhoComum,
+      filtro: { ajustes: NEUTRO, porPixel: true, intensidade: 0.6 },
+    });
+
+    expect(chamadas).toEqual([
+      "decodificar:image/jpeg:8b",
+      "desenhar:original→2500x1875:girar0",
+      "filtrar:2500x1875:pixel:i0.6",
+      "codificar:2500x1875+filtro:image/jpeg:q0.82",
+      "desenhar:2500x1875+filtro→320x240:girar0",
       "codificar:320x240:image/jpeg:q0.7",
     ]);
   });

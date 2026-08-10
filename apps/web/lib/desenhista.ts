@@ -1,4 +1,11 @@
-import type { Alvo, Bitmap, Desenhista } from "@albora/core";
+import {
+  aplicarIntensidade,
+  aplicarPorPixel,
+  paraFiltroCss,
+  type Alvo,
+  type Bitmap,
+  type Desenhista,
+} from "@albora/core";
 
 /**
  * O `Desenhista` da web. Camada fina de propósito.
@@ -32,6 +39,16 @@ function contexto(largura: number, altura: number) {
   return { canvas: canvas as OffscreenCanvas, ctx };
 }
 
+/**
+ * `transferToImageBitmap` só existe no `OffscreenCanvas`. No Safari antigo,
+ * onde `contexto` cai para um `<canvas>` de elemento, o caminho é o assíncrono.
+ */
+function paraBitmap(canvas: OffscreenCanvas): Promise<ImageBitmap> {
+  return canvas.transferToImageBitmap
+    ? Promise.resolve(canvas.transferToImageBitmap())
+    : createImageBitmap(canvas as unknown as ImageBitmapSource);
+}
+
 export const desenhistaWeb: Desenhista<Img, Blob> = {
   async decodificar(bytes, mime) {
     const bitmap = await createImageBitmap(new Blob([bytes as BufferSource], { type: mime }));
@@ -61,11 +78,7 @@ export const desenhistaWeb: Desenhista<Img, Blob> = {
     );
     ctx.restore();
 
-    const bitmap = canvas.transferToImageBitmap
-      ? canvas.transferToImageBitmap()
-      : await createImageBitmap(canvas as unknown as ImageBitmapSource);
-
-    return { largura: alvo.largura, altura: alvo.altura, bitmap };
+    return { largura: alvo.largura, altura: alvo.altura, bitmap: await paraBitmap(canvas) };
   },
 
   async codificar(imagem, mime, qualidade) {
@@ -76,6 +89,23 @@ export const desenhistaWeb: Desenhista<Img, Blob> = {
     // EXIF, e o GPS junto. A remoção não é uma etapa separada que alguém pode
     // esquecer de chamar: ela é consequência de existir uma saída.
     return canvas.convertToBlob({ type: mime, quality: qualidade });
+  },
+
+  async filtrar(imagem, filtro) {
+    const { canvas, ctx } = contexto(imagem.largura, imagem.altura);
+
+    if (filtro.porPixel) {
+      ctx.drawImage(imagem.bitmap, 0, 0);
+
+      const quadro = ctx.getImageData(0, 0, imagem.largura, imagem.altura);
+      aplicarPorPixel(quadro.data, imagem.largura, imagem.altura, filtro.intensidade);
+      ctx.putImageData(quadro, 0, 0);
+    } else {
+      ctx.filter = paraFiltroCss(aplicarIntensidade(filtro.ajustes, filtro.intensidade));
+      ctx.drawImage(imagem.bitmap, 0, 0);
+    }
+
+    return { largura: imagem.largura, altura: imagem.altura, bitmap: await paraBitmap(canvas) };
   },
 };
 

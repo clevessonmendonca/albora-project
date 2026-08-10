@@ -1,3 +1,4 @@
+import type { Ajustes } from "./luts";
 import {
   lerOrientacao,
   temGeolocalizacao,
@@ -29,6 +30,22 @@ export type Desenhista<TImagem extends Bitmap, TSaida> = {
     transformacao: { girar: 0 | 90 | 180 | 270; espelhar: boolean },
   ): Promise<TImagem>;
   codificar(imagem: TImagem, mime: string, qualidade: number): Promise<TSaida>;
+  /**
+   * Aplica cor. Recebe a decisão pronta — não escolhe preset nem decide
+   * degradar. Ausente, o preset simplesmente não sai do preview.
+   */
+  filtrar?(imagem: TImagem, filtro: FiltroAplicado): Promise<TImagem>;
+};
+
+export type FiltroAplicado = {
+  ajustes: Ajustes;
+  /**
+   * `false` manda usar `ajustes` como filtro de cor. `true` manda usar a
+   * passagem por pixel, e aí `ajustes` é ignorado — é assim que o 35 mm
+   * degrada para CSS sem precisar de um segundo preset.
+   */
+  porPixel: boolean;
+  intensidade: number;
 };
 
 export type FotoProcessada<TSaida> = {
@@ -46,6 +63,8 @@ export type OpcoesProcessamento = {
   aparelho: Aparelho;
   /** Saída sempre em JPEG: é o que o iPhone não entrega e todo mundo abre. */
   mimeSaida?: string;
+  /** Ausente = sem filtro. O preset é escolha do convidado, nunca padrão. */
+  filtro?: FiltroAplicado;
 };
 
 /**
@@ -89,9 +108,18 @@ export async function processarFoto<TImagem extends Bitmap, TSaida>(
   });
 
   const emPe = await desenhista.desenhar(original, plano.full, { girar, espelhar });
-  const full = await desenhista.codificar(emPe, mimeSaida, QUALIDADE.full);
 
-  const reduzida = await desenhista.desenhar(emPe, plano.thumb, { girar: 0, espelhar: false });
+  // O filtro entra depois de a foto estar em pé e no tamanho final, e a
+  // miniatura sai DELE. Filtrar as duas em separado deixaria a tira do telão
+  // com uma cor e a foto do álbum com outra.
+  const colorida =
+    opcoes.filtro && desenhista.filtrar
+      ? await desenhista.filtrar(emPe, opcoes.filtro)
+      : emPe;
+
+  const full = await desenhista.codificar(colorida, mimeSaida, QUALIDADE.full);
+
+  const reduzida = await desenhista.desenhar(colorida, plano.thumb, { girar: 0, espelhar: false });
   const thumb = await desenhista.codificar(reduzida, mimeSaida, QUALIDADE.thumb);
 
   return {

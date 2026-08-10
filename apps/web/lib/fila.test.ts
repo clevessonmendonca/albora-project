@@ -104,6 +104,38 @@ describe("contagem de tentativas", () => {
   });
 });
 
+describe("anotar enquanto a foto ainda está na fila", () => {
+  it("guarda legenda, lugar e missão sem tocar no resto do item", async () => {
+    await filaWeb.enfileirar(item("a", 1000));
+
+    const anotado = await filaWeb.anotar("a", {
+      legenda: "a pista cheia",
+      lugar: "pista",
+      desafioId: "22222222-2222-2222-2222-222222222222",
+    });
+    const [guardado] = await filaWeb.listar();
+
+    expect(anotado).toBe(true);
+    expect(guardado?.legenda).toBe("a pista cheia");
+    expect(guardado?.lugar).toBe("pista");
+    expect(guardado?.corpo).toEqual({ tipo: "arquivo", caminho: "/tmp/a", bytes: 800_000 });
+  });
+
+  it("devolve false quando o item já saiu da fila", async () => {
+    // É o sinal de "a anotação é do banco, não da fila". Sem ele, a legenda de
+    // uma foto que subiu rápido sumiria em silêncio.
+    expect(await filaWeb.anotar("nunca-existiu", { legenda: "oi" })).toBe(false);
+  });
+
+  it("não ressuscita item removido", async () => {
+    await filaWeb.enfileirar(item("a", 1000));
+    await filaWeb.remover("a");
+    await filaWeb.anotar("a", { legenda: "tarde demais" });
+
+    expect(await filaWeb.listar()).toHaveLength(0);
+  });
+});
+
 describe("resumo para a tela", () => {
   it("conta itens e bytes pendentes", async () => {
     await filaWeb.enfileirar(item("a", 1000, 800_000));

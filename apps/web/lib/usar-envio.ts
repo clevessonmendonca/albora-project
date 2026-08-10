@@ -1,6 +1,12 @@
 "use client";
 
-import { drenar, processarFoto, type ResumoDrenagem } from "@albora/core";
+import {
+  drenar,
+  processarFoto,
+  type DetalhesItem,
+  type FiltroAplicado,
+  type ResumoDrenagem,
+} from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
 import { desenhistaWeb } from "./desenhista";
 import { ErroCotaEsgotada, filaWeb, resumoDaFila } from "./fila";
@@ -30,6 +36,12 @@ const INICIAL: EstadoEnvio = {
   online: true,
 };
 
+export type PedidoEnvio = {
+  arquivo: File;
+  filtro?: FiltroAplicado | undefined;
+  desafioId?: string | null | undefined;
+};
+
 export function usarEnvio(eventoId: string) {
   const [estado, setEstado] = useState<EstadoEnvio>(INICIAL);
 
@@ -54,9 +66,11 @@ export function usarEnvio(eventoId: string) {
    * Processa e enfileira. Devolve quando o item está **na fila**, não quando
    * subiu: o convidado precisa poder tirar a próxima foto imediatamente, e a
    * subida acontece atrás dele.
+   *
+   * O `id` devolvido é o que a tela de detalhes usa para anotar depois.
    */
   const enfileirarFoto = useCallback(
-    async (arquivo: File) => {
+    async ({ arquivo, filtro, desafioId }: PedidoEnvio) => {
       setEstado((e) => ({ ...e, processando: true, ultimoErro: null }));
 
       try {
@@ -68,21 +82,25 @@ export function usarEnvio(eventoId: string) {
             memoriaGb: (navigator as { deviceMemory?: number }).deviceMemory,
             nucleos: navigator.hardwareConcurrency,
           },
+          ...(filtro ? { filtro } : {}),
         });
 
+        const id = crypto.randomUUID();
+
         await filaWeb.enfileirar({
-          id: crypto.randomUUID(),
+          id,
           eventoId,
           corpo: { tipo: "blob", blob: foto.full },
           mime: "image/jpeg",
           criadoEm: Date.now(),
           tentativas: 0,
+          desafioId: desafioId ?? null,
         });
 
         await atualizarResumo();
         void drenarAgora();
 
-        return { ok: true as const, tinhaGeolocalizacao: foto.tinhaGeolocalizacao };
+        return { ok: true as const, id, tinhaGeolocalizacao: foto.tinhaGeolocalizacao };
       } catch (e) {
         // Cota estourada não é erro genérico: a nuance N6.6 manda avisar e
         // subir na hora em vez de enfileirar.
@@ -99,6 +117,30 @@ export function usarEnvio(eventoId: string) {
     },
     [eventoId, atualizarResumo, drenarAgora],
   );
+
+  /**
+   * Legenda e lugar, escritos enquanto a foto sobe.
+   *
+   * Duas portas para o mesmo dado, porque o item pode estar dos dois lados da
+   * linha: ainda na fila, e aí quem guarda é a fila; ou já confirmado, e aí
+   * quem guarda é o banco. Nunca falha de forma visível — a foto já está no
+   * álbum, e é ela que importa.
+   */
+  const anotar = useCallback(async (id: string, detalhes: DetalhesItem): Promise<void> => {
+    try {
+      if (await filaWeb.anotar(id, detalhes)) return;
+
+      await fetch("/api/uploads/detalhes", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ uploadId: id, ...detalhes }),
+      });
+    } catch {
+      // Silêncio de propósito: o convidado escreveu uma legenda opcional numa
+      // foto que já está salva. Um erro aqui só o assustaria à toa.
+    }
+  }, []);
 
   useEffect(() => {
     setEstado((e) => ({ ...e, online: navigator.onLine }));
@@ -127,5 +169,5 @@ export function usarEnvio(eventoId: string) {
     };
   }, [atualizarResumo, drenarAgora]);
 
-  return { estado, enfileirarFoto, drenarAgora };
+  return { estado, enfileirarFoto, anotar, drenarAgora };
 }

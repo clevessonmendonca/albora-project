@@ -54,6 +54,23 @@ export async function sessaoDaRequisicao(req: Request): Promise<SessaoResolvida 
   }
 }
 
+/**
+ * A mesma resolução, a partir do cookie já lido pelo servidor.
+ *
+ * Existe para o componente de servidor, que não recebe `Request`. Uma segunda
+ * forma de ler o token seria uma segunda chance de errar — por isso as duas
+ * terminam em `resolverSessao`.
+ */
+export async function sessaoDoToken(token: string | undefined): Promise<SessaoResolvida | null> {
+  if (!token) return null;
+
+  try {
+    return await resolverSessao(banco(), config().sessionSecret, token);
+  } catch {
+    return null;
+  }
+}
+
 /** Chave de rate limit. Cai para o IP quando ainda não há sessão. */
 export function identidadeParaLimite(req: Request, sessao: SessaoResolvida | null): string {
   if (sessao) return `s:${sessao.sessaoId}`;
