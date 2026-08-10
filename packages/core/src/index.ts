@@ -30,3 +30,6 @@ export { dimensoesCorrigidas, lerOrientacao, temExif, temGeolocalizacao, transfo
 
 export type { Alvo, Aparelho, Plano } from "./redimensionar";
 export { alvoFull, alvoParaLadoMaior, alvoQueCabe, alvoThumb, LADO_THUMB, planejarProcessamento, QUALIDADE, TETO_PIXELS, tetoParaAparelho } from "./redimensionar";
+
+export type { Resultado, ResumoDrenagem, Transporte } from "./envio";
+export { drenar, enviarItem } from "./envio";
