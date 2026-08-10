@@ -1,0 +1,25 @@
+# `set -e` não é detalhe: sem ele o hook roda tudo e sai 0 mesmo com
+# typecheck e lint quebrados. Husky v9 executa shell puro, e um comando que
+# falha no meio não aborta o script — o hook parece guardar e não guarda nada.
+# Verificado por tools/hooks/pre-push.test.mjs, que quebra o código de
+# propósito e exige que este arquivo reprove.
+set -e
+
+# Os guards primeiro: são baratos e são os que, se quebrarem em produção,
+# quebram irreversivelmente.
+node tools/guards/todos.mjs
+pnpm typecheck
+pnpm lint
+pnpm test
+
+# O isolamento exige Postgres. Se ele não estiver de pé aqui, o push segue e
+# o CI verifica — mas o aviso é alto de propósito: silêncio faria parecer que
+# a suíte passou.
+if pg_isready -h localhost -p 55432 >/dev/null 2>&1; then
+  pnpm test:isolamento
+else
+  echo ""
+  echo "⚠  Isolamento NÃO verificado: sem Postgres em localhost:55432."
+  echo "   Suba com \`pnpm db:up\`. O CI roda esta suíte de qualquer forma."
+  echo ""
+fi

@@ -4,5 +4,11 @@
 node_modules/
 .omc/
 .DS_Store
-.wrangler/
+
+# Build
 .next/
+.open-next/
+.wrangler/
+dist/
+*.tsbuildinfo
+next-env.d.ts

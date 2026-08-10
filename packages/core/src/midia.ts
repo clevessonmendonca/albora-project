@@ -1,0 +1,88 @@
+/**
+ * Validação de mídia. Compartilhada pelas duas superfícies e pelo servidor.
+ *
+ * O cliente usa para não enfileirar o que vai ser recusado; o servidor usa
+ * porque **cliente não é fonte de verdade**. A mesma regra nos dois lados é o
+ * que evita a divergência clássica: o app aceita, o servidor recusa, e o
+ * convidado vê a foto sumir sem explicação.
+ */
+
+export const TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp"] as const;
+export type TipoAceito = (typeof TIPOS_ACEITOS)[number];
+
+/** Teto por foto. Acima disso o cliente redimensiona antes de enfileirar. */
+export const MAX_BYTES = 12 * 1024 * 1024;
+
+export const LADO_MAIOR = {
+  gratis: 2500,
+  pago: 3500,
+} as const;
+
+export function tipoAceito(mime: string): mime is TipoAceito {
+  return (TIPOS_ACEITOS as readonly string[]).includes(mime);
+}
+
+/**
+ * Assinaturas de arquivo. O `Content-Type` é declarado pelo cliente e não
+ * vale nada: um "JPEG" que na verdade é HTML servido da origem do app é XSS
+ * armazenado com alcance de festa inteira.
+ *
+ * Isto é a primeira camada; a segunda é o domínio próprio de mídia. As duas
+ * juntas, nunca uma só.
+ */
+const ASSINATURAS: { mime: TipoAceito; bytes: number[]; deslocamento: number }[] = [
+  { mime: "image/jpeg", bytes: [0xff, 0xd8, 0xff], deslocamento: 0 },
+  { mime: "image/png", bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], deslocamento: 0 },
+  // WEBP: "RIFF" .... "WEBP" — o tamanho fica entre os dois.
+  { mime: "image/webp", bytes: [0x52, 0x49, 0x46, 0x46], deslocamento: 0 },
+];
+
+export function detectarTipo(inicio: Uint8Array): TipoAceito | null {
+  for (const a of ASSINATURAS) {
+    const casa = a.bytes.every((b, i) => inicio[a.deslocamento + i] === b);
+    if (!casa) continue;
+
+    if (a.mime === "image/webp") {
+      const webp = [0x57, 0x45, 0x42, 0x50];
+      if (!webp.every((b, i) => inicio[8 + i] === b)) continue;
+    }
+    return a.mime;
+  }
+  return null;
+}
+
+export type ErroMidia =
+  | { code: "midia.tipo_recusado"; details: { recebido: string } }
+  | { code: "midia.grande_demais"; details: { bytes: number; limite: number } }
+  | { code: "midia.conteudo_nao_confere"; details: { declarado: string; detectado: string | null } };
+
+/**
+ * Valida o que o cliente declarou, **antes** de assinar a URL.
+ * Rate limit e recusa acontecem no portão: um pedido condenado não deve
+ * consumir assinatura, nem cota, nem espaço no bucket.
+ */
+export function validarDeclaracao(mime: string, bytes: number): ErroMidia | null {
+  if (!tipoAceito(mime)) {
+    return { code: "midia.tipo_recusado", details: { recebido: mime } };
+  }
+  if (bytes <= 0 || bytes > MAX_BYTES) {
+    return { code: "midia.grande_demais", details: { bytes, limite: MAX_BYTES } };
+  }
+  return null;
+}
+
+/**
+ * Valida o objeto que **de fato** chegou no storage. Roda no confirm, e é o
+ * que transforma "o cliente disse que era JPEG" em "os primeiros bytes são
+ * de um JPEG".
+ */
+export function validarConteudo(mimeDeclarado: string, inicio: Uint8Array): ErroMidia | null {
+  const detectado = detectarTipo(inicio);
+  if (detectado === null || detectado !== mimeDeclarado) {
+    return {
+      code: "midia.conteudo_nao_confere",
+      details: { declarado: mimeDeclarado, detectado },
+    };
+  }
+  return null;
+}
