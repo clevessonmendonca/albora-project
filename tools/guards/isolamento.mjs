@@ -20,8 +20,17 @@ const ALVOS = ["packages/", "apps/"];
 
 const PADROES = [
   [
-    /\bSET\s+(?!LOCAL\b)(?!TRANSACTION\b)[a-z_]+\.?[a-z_]*\s*(?:=|TO)\s/i,
+    // Exige GUC com namespace (`app.event_id`). Sem isso o padrão pegava o
+    // `SET` de um `UPDATE ... SET coluna = ...`, que não tem nada a ver — e
+    // falso positivo em guard é o que ensina o time a afrouxar a regra.
+    /\bSET\s+(?!LOCAL\b)[a-z_]+\.[a-z_]+\s*(?:=|TO)\s/i,
     "SET de sessão — use SET LOCAL; o pooling devolve a conexão a cada COMMIT e o setting vaza para o próximo evento",
+  ],
+  [
+    // A forma que mais aparece em código de aplicação, e a que passava
+    // despercebida: o terceiro argumento é `is_local`. Com `false`, é `SET`.
+    /\bset_config\s*\([^)]*,\s*false\s*\)/i,
+    "set_config com is_local=false é SET de sessão — o terceiro argumento tem de ser true",
   ],
   [
     /\bpg_advisory_lock\b/,

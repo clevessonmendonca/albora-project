@@ -58,7 +58,14 @@ describe("cobertura das fixtures", () => {
   it("a fixture de isolamento pega SET de sessão e lock de sessão", () => {
     const motivos = isolamento(fixture("isolamento")).map((v) => v.motivo);
     expect(motivos.some((m) => m.includes("SET LOCAL"))).toBe(true);
+    expect(motivos.some((m) => m.includes("is_local"))).toBe(true);
     expect(motivos.some((m) => m.includes("xact"))).toBe(true);
+  });
+
+  it("a fixture de isolamento NÃO reprova UPDATE...SET nem as formas corretas", () => {
+    const linhasRuins = isolamento(fixture("isolamento")).map((v) => v.linha);
+    // As três primeiras linhas violam; as três últimas são as formas certas.
+    expect(Math.max(...linhasRuins)).toBeLessThanOrEqual(3);
   });
 
   it("a fixture de sessão pega token em log, token em querystring e PII", () => {

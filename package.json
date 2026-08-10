@@ -13,7 +13,10 @@
     "lint": "eslint .",
     "test": "vitest run",
     "guards": "node tools/guards/todos.mjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:isolamento": "vitest run --config vitest.isolamento.config.ts",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:down": "docker compose down -v"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.6.0",

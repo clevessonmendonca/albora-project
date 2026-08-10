@@ -36,6 +36,41 @@ jobs:
       - name: sessao
         run: node tools/guards/sessao.mjs
 
+  # Job separado, com nome próprio, de propósito. Se o isolamento reprovasse
+  # dentro de "testes", a falha apareceria como "testes falharam" — e a
+  # diferença entre isso e "um evento leu dado de outro" é a diferença entre
+  # um bug e um incidente. Também é o que impede um refactor de apagar a rede
+  # de segurança em silêncio: sumir com o job é visível na lista de checks.
+  isolamento:
+    name: Isolamento entre eventos
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: albora
+          POSTGRES_PASSWORD: albora
+          POSTGRES_DB: albora
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U albora"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Contra banco real, nunca mock: testar isolamento contra mock prova que
+      # o mock está isolado.
+      - run: pnpm test:isolamento
+        env:
+          TEST_DATABASE_URL: postgres://albora:albora@localhost:55432/albora
+
   verificar:
     name: Typecheck, lint e testes
     runs-on: ubuntu-latest
