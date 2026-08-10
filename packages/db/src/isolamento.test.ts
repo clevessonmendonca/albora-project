@@ -220,7 +220,38 @@ describe("6 — agregação cruza eventos, e fica auditada", () => {
   });
 });
 
+/**
+ * A única tabela com `event_id` que fica fora da RLS, e por quê.
+ *
+ * Resolver o token do convidado exige descobrir o `event_id`, e descobrir o
+ * `event_id` exige o token resolvido. Circular. A saída é uma porta pequena
+ * fora da política — e a disciplina é mantê-la pequena, o que o teste abaixo
+ * impõe: qualquer coluna nova aqui reprova o CI.
+ */
+const FORA_DA_RLS = new Map([
+  ["session_tokens", "porta de entrada: resolve token → event_id, antes de haver contexto"],
+]);
+
 describe("7 — nenhuma tabela nova escapa da política", () => {
+  it("a porta fora da RLS não cresce", async () => {
+    const { rows } = await admin.query<{ coluna: string }>(
+      `SELECT column_name AS coluna FROM information_schema.columns
+       WHERE table_name = 'session_tokens' ORDER BY column_name`,
+    );
+
+    // Sem PII, sem nome de convidado, sem conteúdo de evento. Quem ler esta
+    // tabela inteira sabe que existem sessões e a quais eventos pertencem —
+    // e nada mais. Toda coluna a mais aqui está pedindo para sair da RLS.
+    expect(rows.map((r) => r.coluna)).toEqual([
+      "created_at",
+      "event_id",
+      "expires_at",
+      "revoked_at",
+      "session_id",
+      "token_hash",
+    ]);
+  });
+
   it("toda tabela com event_id tem RLS habilitado E forçado", async () => {
     const { rows } = await admin.query<{ tabela: string; ativo: boolean; forcado: boolean }>(`
       SELECT c.relname AS tabela, c.relrowsecurity AS ativo, c.relforcerowsecurity AS forcado
@@ -236,6 +267,7 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
 
     expect(rows.length).toBeGreaterThan(0);
     for (const t of rows) {
+      if (FORA_DA_RLS.has(t.tabela)) continue;
       expect(t.ativo, `${t.tabela} sem RLS habilitado`).toBe(true);
       // ENABLE sozinho não vale para o dono da tabela, e a aplicação costuma
       // conectar como dono. É o FORCE que fecha.

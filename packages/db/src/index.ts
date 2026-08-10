@@ -16,3 +16,7 @@ export { migrar } from "./migrar";
 
 export type { LinhaUpload, ResultadoConfirm } from "./uploads";
 export { confirmarUpload, ErroUploadDeOutroEvento } from "./uploads";
+
+export type { MotivoSessaoInvalida, NovaSessao, SessaoResolvida } from "./sessoes";
+export { comSessao, criarSessao, ErroNomeInvalido, ErroSessaoInvalida, resolverSessao, revogarSessoesDoEvento } from "./sessoes";
+export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from "./token";
