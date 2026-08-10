@@ -1,11 +1,16 @@
 "use client";
 
 import {
+  AJUSTES_NEUTROS,
+  aplicarAjustes,
   aplicarIntensidade,
   aplicarPorPixel,
+  NEUTRO,
   ordenarComRecomendado,
   paraFiltroCss,
+  saoNeutros,
   TETO_POR_PIXEL_MS,
+  type AjustesManuais,
   type FiltroAplicado,
   type Preset,
 } from "@albora/core";
@@ -18,13 +23,24 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
  * amostra genérica: escolher filtro olhando a foto de outra pessoa é escolher
  * no escuro. E as miniaturas saem de uma redução de 150 px feita uma vez —
  * oito cópias do original travaram o aparelho no protótipo.
+ *
+ * Filtro e ajustes se alternam em duas abas porque a tira de oito miniaturas e
+ * os quatro controles não cabem juntos na tela de um celular sem empurrar a
+ * prévia para fora — e é a prévia que decide a escolha.
  */
 
 const LADO_PREVIA = 1000;
 const LADO_TIRA = 150;
 const SEM_FILTRO = "__sem";
 
+/** Escala visível de luz, calor e contraste. O contrato é −1 a 1. */
+const PASSOS_BIPOLAR = 50;
+/** Escala visível de vinheta e intensidade. O contrato é 0 a 1. */
+const PASSOS_UNIPOLAR = 100;
+
 export type Escolha = { preset: Preset | null; intensidade: number };
+
+type Aba = "filtros" | "ajustes";
 
 export function Editor({
   arquivo,
@@ -42,10 +58,17 @@ export function Editor({
   const [tiras, setTiras] = useState<Map<string, string>>(new Map());
   const [escolhido, setEscolhido] = useState<Preset | null>(null);
   const [intensidade, setIntensidade] = useState(1);
+  const [ajustes, setAjustes] = useState<AjustesManuais>(AJUSTES_NEUTROS);
+  const [aba, setAba] = useState<Aba>("filtros");
   const [degradar, setDegradar] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
+  const comPreset = useRef<{ chave: string; quadro: ImageData } | null>(null);
+  const rascunho = useRef<ImageData | null>(null);
+  const quadroAgendado = useRef<number | null>(null);
+
   const presets = useMemo(() => ordenarComRecomendado(recomendadoId), [recomendadoId]);
+  const podeZerar = !saoNeutros(ajustes);
 
   useEffect(() => {
     let vivo = true;
@@ -94,60 +117,112 @@ export function Editor({
     };
   }, [arquivo, presets]);
 
+  useEffect(() => {
+    comPreset.current = null;
+    rascunho.current = null;
+  }, [previa]);
+
   const desenharPrevia = useCallback(() => {
     const tela = telaPrevia.current;
     if (!tela || !previa) return;
 
-    tela.width = previa.width;
-    tela.height = previa.height;
+    if (tela.width !== previa.width || tela.height !== previa.height) {
+      tela.width = previa.width;
+      tela.height = previa.height;
+      comPreset.current = null;
+      rascunho.current = null;
+    }
 
     const ctx = tela.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
     const porPixel = !!escolhido?.porPixel && !degradar;
+    const chave = `${escolhido?.id ?? SEM_FILTRO}|${porPixel}|${intensidade}`;
+    const guardado = comPreset.current;
 
-    if (!escolhido) {
+    let fonte: ImageData;
+
+    // O resultado do preset fica guardado porque arrastar Vinheta não muda o
+    // preset: sem isto, cada quadro refaria também a passagem por pixel do
+    // 35 mm, que é uma varredura inteira da imagem por nada.
+    if (guardado && guardado.chave === chave) {
+      fonte = guardado.quadro;
+    } else {
+      ctx.filter =
+        escolhido && !porPixel
+          ? paraFiltroCss(aplicarIntensidade(escolhido.ajustes, intensidade))
+          : "none";
+      ctx.drawImage(previa, 0, 0);
       ctx.filter = "none";
-      ctx.drawImage(previa, 0, 0);
+
+      fonte = ctx.getImageData(0, 0, previa.width, previa.height);
+
+      if (porPixel) {
+        const antes = performance.now();
+        aplicarPorPixel(fonte.data, previa.width, previa.height, intensidade);
+        const gasto = performance.now() - antes;
+
+        // A medida é do trabalho de verdade, não de uma sonda à parte. Se a
+        // projeção para o tamanho cheio passa do teto, o preset cai para a
+        // aproximação em CSS e a foto sai parecida em vez de sair tarde.
+        const projecao = (gasto * 2500 * 1875) / (previa.width * previa.height);
+        if (projecao > TETO_POR_PIXEL_MS) setDegradar(true);
+      }
+
+      comPreset.current = { chave, quadro: fonte };
+    }
+
+    if (saoNeutros(ajustes)) {
+      ctx.putImageData(fonte, 0, 0);
       return;
     }
 
-    if (!porPixel) {
-      ctx.filter = paraFiltroCss(aplicarIntensidade(escolhido.ajustes, intensidade));
-      ctx.drawImage(previa, 0, 0);
-      return;
+    let sobre = rascunho.current;
+    if (!sobre || sobre.width !== fonte.width || sobre.height !== fonte.height) {
+      sobre = new ImageData(fonte.width, fonte.height);
+      rascunho.current = sobre;
     }
 
-    ctx.filter = "none";
-    ctx.drawImage(previa, 0, 0);
+    sobre.data.set(fonte.data);
+    aplicarAjustes(sobre.data, fonte.width, fonte.height, ajustes);
+    ctx.putImageData(sobre, 0, 0);
+  }, [previa, escolhido, intensidade, degradar, ajustes]);
 
-    const quadro = ctx.getImageData(0, 0, previa.width, previa.height);
-    const antes = performance.now();
-    aplicarPorPixel(quadro.data, previa.width, previa.height, intensidade);
-    const gasto = performance.now() - antes;
-    ctx.putImageData(quadro, 0, 0);
+  useEffect(() => {
+    // Um desenho por quadro, sempre o último. Arrastar um slider dispara
+    // dezenas de eventos por segundo e cada desenho varre a imagem inteira:
+    // sem a coalescência o Android de entrada acumula trabalho e a prévia
+    // parece morta, que é o convidado desistindo da foto.
+    quadroAgendado.current = requestAnimationFrame(() => {
+      quadroAgendado.current = null;
+      desenharPrevia();
+    });
 
-    // A medida é do trabalho de verdade, não de uma sonda à parte. Se a
-    // projeção para o tamanho cheio passa do teto, o preset cai para a
-    // aproximação em CSS e a foto sai parecida em vez de sair tarde.
-    const projecao = (gasto * 2500 * 1875) / (previa.width * previa.height);
-    if (projecao > TETO_POR_PIXEL_MS) setDegradar(true);
-  }, [previa, escolhido, intensidade, degradar]);
-
-  useEffect(desenharPrevia, [desenharPrevia]);
+    return () => {
+      if (quadroAgendado.current !== null) {
+        cancelAnimationFrame(quadroAgendado.current);
+        quadroAgendado.current = null;
+      }
+    };
+  }, [desenharPrevia]);
 
   function enviar() {
-    if (!escolhido) return onEnviar(undefined);
+    const manuais = saoNeutros(ajustes) ? null : ajustes;
+
+    if (!escolhido && !manuais) return onEnviar(undefined);
 
     onEnviar({
-      ajustes: escolhido.ajustes,
-      porPixel: !!escolhido.porPixel && !degradar,
-      intensidade,
+      ajustes: escolhido ? escolhido.ajustes : NEUTRO,
+      porPixel: !!escolhido?.porPixel && !degradar,
+      intensidade: escolhido ? intensidade : 0,
+      ...(manuais ? { manuais } : {}),
     });
   }
 
   return (
     <div style={{ display: "grid", gridTemplateRows: "auto 1fr auto", height: "100dvh", gap: "0.75rem" }}>
+      <style>{ESTILO}</style>
+
       <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 1.25rem 0" }}>
         <button onClick={onDescartar} style={estiloTexto}>
           Tirar outra
@@ -161,7 +236,7 @@ export function Editor({
 
       <section style={{ display: "grid", placeItems: "center", overflow: "hidden", padding: "0 1rem" }}>
         {erro ? (
-          <p role="alert" style={{ color: "var(--acento)", textAlign: "center" }}>
+          <p role="alert" style={{ color: "var(--critico)", textAlign: "center" }}>
             {erro}
           </p>
         ) : (
@@ -172,52 +247,100 @@ export function Editor({
         )}
       </section>
 
-      <footer style={{ display: "grid", gap: "0.9rem", padding: "0 1.25rem 1.25rem" }}>
-        {escolhido && (
-          <label style={{ display: "grid", gap: "0.35rem" }}>
-            <span style={{ fontSize: "0.78rem", opacity: 0.55 }}>
-              Intensidade {Math.round(intensidade * 100)}%
-            </span>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={Math.round(intensidade * 100)}
-              onChange={(e) => setIntensidade(Number(e.target.value) / 100)}
-              style={{ width: "100%", accentColor: "var(--frente)" }}
-            />
-          </label>
-        )}
-
-        <div
-          style={{
-            display: "flex",
-            gap: "0.6rem",
-            overflowX: "auto",
-            paddingBottom: "0.25rem",
-            scrollbarWidth: "none",
-          }}
-        >
-          <Chip
-            rotulo="Original"
-            miniatura={tiras.get(SEM_FILTRO)}
-            ativo={escolhido === null}
-            onClick={() => setEscolhido(null)}
-          />
-          {presets.map((p) => (
-            <Chip
-              key={p.id}
-              rotulo={p.nome}
-              miniatura={tiras.get(p.id)}
-              ativo={escolhido?.id === p.id}
-              sugerido={p.id === recomendadoId}
-              onClick={() => {
-                setEscolhido(p);
-                setIntensidade(1);
-              }}
-            />
-          ))}
+      <footer style={{ display: "grid", gap: "0.6rem", padding: "0 1.25rem 1.25rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
+          <span />
+          <div style={{ display: "flex", gap: "1.5rem" }}>
+            <BotaoAba rotulo="Filtros" ativa={aba === "filtros"} onClick={() => setAba("filtros")} />
+            <BotaoAba rotulo="Ajustes" ativa={aba === "ajustes"} onClick={() => setAba("ajustes")} />
+          </div>
+          {podeZerar ? (
+            <button
+              className="ed-zerar"
+              aria-label="Zerar os ajustes"
+              onClick={() => setAjustes(AJUSTES_NEUTROS)}
+            >
+              Zerar
+            </button>
+          ) : (
+            <span />
+          )}
         </div>
+
+        {aba === "filtros" ? (
+          <>
+            <div
+              style={{
+                display: "flex",
+                gap: "0.6rem",
+                overflowX: "auto",
+                paddingBottom: "0.25rem",
+                scrollbarWidth: "none",
+              }}
+            >
+              <Chip
+                rotulo="Original"
+                miniatura={tiras.get(SEM_FILTRO)}
+                ativo={escolhido === null}
+                onClick={() => setEscolhido(null)}
+              />
+              {presets.map((p) => (
+                <Chip
+                  key={p.id}
+                  rotulo={p.nome}
+                  miniatura={tiras.get(p.id)}
+                  ativo={escolhido?.id === p.id}
+                  sugerido={p.id === recomendadoId}
+                  onClick={() => {
+                    setEscolhido(p);
+                    setIntensidade(1);
+                  }}
+                />
+              ))}
+            </div>
+
+            {escolhido && (
+              <Deslizante
+                rotulo="Intensidade"
+                min={0}
+                max={PASSOS_UNIPOLAR}
+                valor={intensidade}
+                onMudar={setIntensidade}
+              />
+            )}
+          </>
+        ) : (
+          <div>
+            <Deslizante
+              rotulo="Luz"
+              min={-PASSOS_BIPOLAR}
+              max={PASSOS_BIPOLAR}
+              valor={ajustes.luz}
+              onMudar={(v) => setAjustes((a) => ({ ...a, luz: v }))}
+            />
+            <Deslizante
+              rotulo="Calor"
+              min={-PASSOS_BIPOLAR}
+              max={PASSOS_BIPOLAR}
+              valor={ajustes.calor}
+              onMudar={(v) => setAjustes((a) => ({ ...a, calor: v }))}
+            />
+            <Deslizante
+              rotulo="Contraste"
+              min={-PASSOS_BIPOLAR}
+              max={PASSOS_BIPOLAR}
+              valor={ajustes.contraste}
+              onMudar={(v) => setAjustes((a) => ({ ...a, contraste: v }))}
+            />
+            <Deslizante
+              rotulo="Vinheta"
+              min={0}
+              max={PASSOS_UNIPOLAR}
+              valor={ajustes.vinheta}
+              onMudar={(v) => setAjustes((a) => ({ ...a, vinheta: v }))}
+            />
+          </div>
+        )}
 
         <button onClick={enviar} disabled={!previa} style={estiloPrimario(!previa)}>
           Enviar
@@ -259,6 +382,77 @@ async function miniatura(base: ImageBitmap, preset: Preset | null): Promise<stri
   );
 }
 
+function BotaoAba({
+  rotulo,
+  ativa,
+  onClick,
+}: {
+  rotulo: string;
+  ativa: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className="ed-aba"
+      aria-pressed={ativa}
+      onClick={onClick}
+      style={{
+        color: ativa ? "var(--acento-texto)" : "var(--ink-3)",
+        borderBottomColor: ativa ? "var(--acento)" : "transparent",
+      }}
+    >
+      {rotulo}
+    </button>
+  );
+}
+
+/**
+ * Um controle contínuo. `valor` chega e sai em unidade de contrato (−1 a 1 ou
+ * 0 a 1); `min` e `max` são a escala que o convidado lê.
+ */
+function Deslizante({
+  rotulo,
+  min,
+  max,
+  valor,
+  onMudar,
+}: {
+  rotulo: string;
+  min: number;
+  max: number;
+  valor: number;
+  onMudar: (valor: number) => void;
+}) {
+  const bruto = Math.round(valor * max);
+  const posicao = ((bruto - min) / (max - min)) * 100;
+  // O preenchimento nasce no neutro, não na ponta esquerda: num controle que
+  // vai de −50 a 50 é o desvio que interessa, e é ele que a barra mostra.
+  const neutro = min < 0 ? ((0 - min) / (max - min)) * 100 : 0;
+
+  const de = Math.min(neutro, posicao);
+  const ate = Math.max(neutro, posicao);
+
+  return (
+    <label className="ed-linha">
+      <span className="ed-rotulo">{rotulo}</span>
+      <input
+        className="ed-faixa"
+        type="range"
+        min={min}
+        max={max}
+        value={bruto}
+        onChange={(e) => onMudar(Number(e.target.value) / max)}
+        style={
+          {
+            "--trilho": `linear-gradient(to right, var(--linha) 0 ${de}%, var(--acento) ${de}% ${ate}%, var(--linha) ${ate}% 100%)`,
+          } as React.CSSProperties
+        }
+      />
+      <output className="ed-valor">{bruto}</output>
+    </label>
+  );
+}
+
 function Chip({
   rotulo,
   miniatura,
@@ -286,29 +480,41 @@ function Chip({
         border: "none",
         padding: 0,
         cursor: "pointer",
-        color: "var(--frente)",
-        opacity: ativo ? 1 : 0.62,
+        color: ativo || sugerido ? "var(--acento-texto)" : "var(--ink-2)",
       }}
     >
       <span
         style={{
+          position: "relative",
           width: "56px",
           height: "56px",
           borderRadius: "var(--raio)",
           overflow: "hidden",
           display: "block",
-          background: "color-mix(in srgb, var(--frente) 10%, transparent)",
-          outline: ativo ? "2px solid var(--frente)" : "none",
+          background: "var(--superficie-alta)",
+          outline: ativo ? "2px solid var(--acento)" : "none",
           outlineOffset: "2px",
           backgroundImage: miniatura ? `url(${miniatura})` : undefined,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
-      />
-      <span style={{ fontSize: "0.68rem", whiteSpace: "nowrap" }}>
-        {sugerido && "★ "}
-        {rotulo}
+      >
+        {sugerido && (
+          <span
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              top: "5px",
+              right: "5px",
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              background: "var(--acento)",
+            }}
+          />
+        )}
       </span>
+      <span style={{ fontSize: "0.68rem", whiteSpace: "nowrap" }}>{rotulo}</span>
     </button>
   );
 }
@@ -318,9 +524,9 @@ const estiloTexto: React.CSSProperties = {
   fontSize: "0.9rem",
   background: "none",
   border: "none",
+  minHeight: "48px",
   padding: "0.4rem 0",
-  color: "var(--frente)",
-  opacity: 0.7,
+  color: "var(--ink-2)",
   cursor: "pointer",
 };
 
@@ -332,9 +538,128 @@ function estiloPrimario(desabilitado: boolean): React.CSSProperties {
     minHeight: "56px",
     borderRadius: "var(--raio)",
     border: "none",
-    background: "var(--frente)",
-    color: "var(--fundo)",
+    background: "var(--ink)",
+    color: "var(--bg)",
     opacity: desabilitado ? 0.5 : 1,
     cursor: desabilitado ? "default" : "pointer",
   };
 }
+
+/**
+ * Vive num `<style>` e não em estilo inline porque trilho e botão do controle
+ * só existem como pseudo-elemento. As regras `-webkit-` e `-moz-` ficam
+ * separadas de propósito: juntas, o pseudo-elemento desconhecido invalidaria a
+ * regra inteira nos dois navegadores.
+ */
+const ESTILO = `
+  .ed-aba {
+    font: inherit;
+    font-family: var(--fonte-titulo);
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid transparent;
+    min-height: 48px;
+    padding: 0 0.25rem;
+    cursor: pointer;
+    transition: color 200ms ease, border-color 200ms ease;
+  }
+
+  .ed-zerar {
+    font: inherit;
+    font-family: var(--fonte-titulo);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: none;
+    border: 0;
+    color: var(--ink-2);
+    min-height: 48px;
+    padding: 0 0.25rem;
+    justify-self: end;
+    cursor: pointer;
+  }
+
+  .ed-linha {
+    display: grid;
+    grid-template-columns: 5.4rem 1fr 2.4rem;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .ed-rotulo {
+    font-family: var(--fonte-titulo);
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+  }
+
+  .ed-valor {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.68rem;
+    color: var(--ink-3);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ed-faixa {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 48px;
+    margin: 0;
+    background: transparent;
+    outline: none;
+  }
+
+  .ed-faixa::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: 3px;
+    background: var(--trilho);
+  }
+
+  .ed-faixa::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 26px;
+    height: 26px;
+    margin-top: -11.5px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--ink);
+    cursor: pointer;
+  }
+
+  .ed-faixa::-moz-range-track {
+    height: 3px;
+    border-radius: 3px;
+    background: var(--trilho);
+  }
+
+  .ed-faixa::-moz-range-thumb {
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--ink);
+    cursor: pointer;
+  }
+
+  .ed-faixa:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--acento);
+    outline-offset: 2px;
+  }
+
+  .ed-faixa:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--acento);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ed-aba { transition: none; }
+  }
+`;

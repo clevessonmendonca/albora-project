@@ -1,3 +1,4 @@
+import { saoNeutros, type AjustesManuais } from "./ajustes";
 import type { Ajustes } from "./luts";
 import {
   lerOrientacao,
@@ -46,7 +47,24 @@ export type FiltroAplicado = {
    */
   porPixel: boolean;
   intensidade: number;
+  /**
+   * Os quatro ajustes manuais, aplicados DEPOIS do preset. Ausente ou neutro
+   * não custa passagem nenhuma — o caso comum é escolher filtro e enviar.
+   */
+  manuais?: AjustesManuais | undefined;
 };
+
+/**
+ * Se a passagem de cor mudaria algum pixel.
+ *
+ * Intensidade 0 é o neutro por definição dos dois caminhos — `aplicarIntensidade`
+ * devolve `NEUTRO` e `aplicarPorPixel` sai na entrada. Sem esta porta, escolher
+ * um preset e voltar atrás custaria um `getImageData` da imagem inteira no
+ * aparelho mais fraco, para devolver os mesmos bytes.
+ */
+function precisaDeCor(filtro: FiltroAplicado): boolean {
+  return filtro.intensidade > 0 || (filtro.manuais !== undefined && !saoNeutros(filtro.manuais));
+}
 
 export type FotoProcessada<TSaida> = {
   full: TSaida;
@@ -109,11 +127,12 @@ export async function processarFoto<TImagem extends Bitmap, TSaida>(
 
   const emPe = await desenhista.desenhar(original, plano.full, { girar, espelhar });
 
-  // O filtro entra depois de a foto estar em pé e no tamanho final, e a
-  // miniatura sai DELE. Filtrar as duas em separado deixaria a tira do telão
-  // com uma cor e a foto do álbum com outra.
+  // A cor entra depois de a foto estar em pé e no tamanho final, e a miniatura
+  // sai DELA. Preset e ajustes manuais vão na mesma chamada — separá-los daria
+  // duas varreduras da imagem, e filtrar full e thumb em separado deixaria a
+  // tira do telão com uma cor e a foto do álbum com outra.
   const colorida =
-    opcoes.filtro && desenhista.filtrar
+    opcoes.filtro && desenhista.filtrar && precisaDeCor(opcoes.filtro)
       ? await desenhista.filtrar(emPe, opcoes.filtro)
       : emPe;
 

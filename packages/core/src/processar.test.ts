@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { processarFoto, type Bitmap, type Desenhista } from "./processar";
+import { AJUSTES_NEUTROS, saoNeutros } from "./ajustes";
 import { NEUTRO } from "./luts";
 import { QUALIDADE } from "./redimensionar";
 
@@ -32,10 +33,13 @@ function desenhistaFalso(original: Bitmap) {
       return `${imagem.rotulo}@${qualidade}`;
     },
     async filtrar(imagem, filtro) {
+      const m = filtro.manuais;
+      const ajustes = m && !saoNeutros(m) ? `+ajustes(${m.luz},${m.calor},${m.contraste},${m.vinheta})` : "";
+
       chamadas.push(
-        `filtrar:${imagem.rotulo}:${filtro.porPixel ? "pixel" : "css"}:i${filtro.intensidade}`,
+        `filtrar:${imagem.rotulo}:${filtro.porPixel ? "pixel" : "css"}:i${filtro.intensidade}${ajustes}`,
       );
-      return { ...imagem, rotulo: `${imagem.rotulo}+filtro` };
+      return { ...imagem, rotulo: `${imagem.rotulo}+filtro${ajustes ? "+ajustes" : ""}` };
     },
   };
 
@@ -110,6 +114,65 @@ describe("a ordem das operações", () => {
       "desenhar:2500x1875+filtro→320x240:girar0",
       "codificar:320x240:image/jpeg:q0.7",
     ]);
+  });
+
+  it("os ajustes manuais entram na mesma passagem do preset, e a miniatura sai dela", async () => {
+    // Uma segunda passagem só para os ajustes custaria outra varredura da
+    // imagem inteira; e uma miniatura tirada de antes deles deixaria a tira do
+    // telão com uma cor e o álbum com outra.
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
+
+    await processarFoto(semExif, "image/jpeg", desenhista, {
+      plano: "gratis",
+      aparelho: aparelhoComum,
+      filtro: {
+        ajustes: NEUTRO,
+        porPixel: false,
+        intensidade: 0.4,
+        manuais: { luz: 0.3, calor: -0.2, contraste: 0, vinheta: 0.5 },
+      },
+    });
+
+    expect(chamadas).toEqual([
+      "decodificar:image/jpeg:8b",
+      "desenhar:original→2500x1875:girar0",
+      "filtrar:2500x1875:css:i0.4+ajustes(0.3,-0.2,0,0.5)",
+      "codificar:2500x1875+filtro+ajustes:image/jpeg:q0.82",
+      "desenhar:2500x1875+filtro+ajustes→320x240:girar0",
+      "codificar:320x240:image/jpeg:q0.7",
+    ]);
+  });
+
+  it("ajuste sem preset ainda passa pelo desenhista de cor", async () => {
+    // O convidado pode corrigir a luz do salão sem escolher preset nenhum. Se
+    // a intensidade zerada bloqueasse a passagem, o ajuste sumiria no envio.
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
+
+    await processarFoto(semExif, "image/jpeg", desenhista, {
+      plano: "gratis",
+      aparelho: aparelhoComum,
+      filtro: {
+        ajustes: NEUTRO,
+        porPixel: false,
+        intensidade: 0,
+        manuais: { luz: -0.4, calor: 0, contraste: 0, vinheta: 0 },
+      },
+    });
+
+    expect(chamadas[2]).toBe("filtrar:2500x1875:css:i0+ajustes(-0.4,0,0,0)");
+    expect(chamadas[3]).toBe("codificar:2500x1875+filtro+ajustes:image/jpeg:q0.82");
+  });
+
+  it("preset zerado e ajuste neutro não pagam passagem de cor nenhuma", async () => {
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
+
+    await processarFoto(semExif, "image/jpeg", desenhista, {
+      plano: "gratis",
+      aparelho: aparelhoComum,
+      filtro: { ajustes: NEUTRO, porPixel: true, intensidade: 0, manuais: AJUSTES_NEUTROS },
+    });
+
+    expect(chamadas.some((c) => c.startsWith("filtrar:"))).toBe(false);
   });
 
   it("a miniatura parte da imagem já reduzida", async () => {

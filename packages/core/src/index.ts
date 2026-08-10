@@ -14,6 +14,9 @@ export { deveDesistir, esperaAntesDeRetentar, MAX_TENTATIVAS } from "./fila";
 export type { ModoInteracao } from "./interacao";
 export { interacaoAberta, modoInteracao } from "./interacao";
 
+export type { AjustesManuais } from "./ajustes";
+export { AJUSTES_NEUTROS, aplicarAjustes, saoNeutros } from "./ajustes";
+
 export type { Ajustes, Filtro } from "./luts";
 export { aplicarIntensidade, NEUTRO, paraFiltroCss } from "./luts";
 

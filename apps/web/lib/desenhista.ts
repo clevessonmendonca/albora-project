@@ -1,7 +1,9 @@
 import {
+  aplicarAjustes,
   aplicarIntensidade,
   aplicarPorPixel,
   paraFiltroCss,
+  saoNeutros,
   type Alvo,
   type Bitmap,
   type Desenhista,
@@ -94,15 +96,25 @@ export const desenhistaWeb: Desenhista<Img, Blob> = {
   async filtrar(imagem, filtro) {
     const { canvas, ctx } = contexto(imagem.largura, imagem.altura);
 
-    if (filtro.porPixel) {
-      ctx.drawImage(imagem.bitmap, 0, 0);
+    const manuais = filtro.manuais && !saoNeutros(filtro.manuais) ? filtro.manuais : undefined;
 
-      const quadro = ctx.getImageData(0, 0, imagem.largura, imagem.altura);
-      aplicarPorPixel(quadro.data, imagem.largura, imagem.altura, filtro.intensidade);
-      ctx.putImageData(quadro, 0, 0);
-    } else {
+    if (!filtro.porPixel) {
       ctx.filter = paraFiltroCss(aplicarIntensidade(filtro.ajustes, filtro.intensidade));
-      ctx.drawImage(imagem.bitmap, 0, 0);
+    }
+    ctx.drawImage(imagem.bitmap, 0, 0);
+
+    // Preset e ajustes dividem um único `getImageData`/`putImageData`. Duas
+    // varreduras da imagem inteira num Android de entrada é o que faz o
+    // convidado achar que travou.
+    if (filtro.porPixel || manuais) {
+      const quadro = ctx.getImageData(0, 0, imagem.largura, imagem.altura);
+
+      if (filtro.porPixel) {
+        aplicarPorPixel(quadro.data, imagem.largura, imagem.altura, filtro.intensidade);
+      }
+      if (manuais) aplicarAjustes(quadro.data, imagem.largura, imagem.altura, manuais);
+
+      ctx.putImageData(quadro, 0, 0);
     }
 
     return { largura: imagem.largura, altura: imagem.altura, bitmap: await paraBitmap(canvas) };
