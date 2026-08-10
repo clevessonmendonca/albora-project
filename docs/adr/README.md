@@ -15,6 +15,7 @@ Um ADR aceito **não é editado**. Se a decisão muda, escreve-se um novo que o 
 | [0005](./0005-runtime-stack.md) | Runtime e stack: TypeScript ponta a ponta com Next.js no Cloudflare | Accepted |
 | [0006](./0006-hosting-platform.md) | Plataforma de hospedagem: Cloudflare Workers + R2 + Neon | Accepted |
 | [0007](./0007-ai-policy-luts-not-generation.md) | IA: classificação sim, geração não. O visual sai de LUT | Accepted |
+| [0008](./0008-app-nativo-como-segunda-porta.md) | App nativo como segunda porta, nunca como a primeira | Accepted |
 
 ## Status
 

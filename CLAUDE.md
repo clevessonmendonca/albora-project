@@ -40,6 +40,7 @@ Não podem ser quebradas sem discussão prévia. Se uma tarefa pedir para quebra
 ### Sessão do convidado
 
 - **O convidado não tem login e nunca terá.** A primeira foto nunca passa por loja de aplicativos nem por tela de autenticação. Isso decide a H1 (≥40% de participação) e a H1 decide se o negócio existe.
+- **A regra acima restringe o caminho da primeira foto, não a existência de app.** Existe app instalável, e o convite para ele aparece **na confirmação da primeira foto**, nunca antes. Ver [ADR 0008](./docs/adr/0008-app-nativo-como-segunda-porta.md).
 - **O token de sessão do convidado é opaco, assinado e escopado a UM evento.** Não é transferível. Autoriza exatamente: subir mídia naquele evento, reagir, remover a própria mídia. Nada além.
 - **Consentimento é versionado e datado** por sessão, antes de qualquer captura.
 
