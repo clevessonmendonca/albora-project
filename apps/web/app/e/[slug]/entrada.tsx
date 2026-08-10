@@ -108,7 +108,7 @@ export function Entrada({
           </Botao>
         </div>
 
-        <p style={{ marginTop: "1.25rem", fontSize: "0.78rem", opacity: 0.45 }}>
+        <p style={{ marginTop: "1.25rem", fontSize: "0.78rem", color: "var(--ink-3)" }}>
           Consentimento {CONSENTIMENTO} · pack {packId}
         </p>
       </Tela>
@@ -135,9 +135,9 @@ export function Entrada({
             fontSize: "1.05rem",
             padding: "0.85rem 1rem",
             borderRadius: "var(--raio)",
-            border: "1px solid color-mix(in srgb, var(--frente) 22%, transparent)",
+            border: "1px solid var(--linha)",
             background: "transparent",
-            color: "var(--frente)",
+            color: "var(--ink)",
             minHeight: "48px",
           }}
         />
@@ -147,7 +147,7 @@ export function Entrada({
         </Botao>
 
         {erro && (
-          <p role="alert" style={{ margin: 0, fontSize: "0.85rem", color: "var(--acento)" }}>
+          <p role="alert" style={{ margin: 0, fontSize: "0.85rem", color: "var(--critico)" }}>
             {erro}
           </p>
         )}
@@ -164,8 +164,8 @@ function Tela({ children }: { children: React.ReactNode }) {
         display: "grid",
         placeItems: "center",
         padding: "2rem 1.5rem",
-        background: "var(--fundo)",
-        color: "var(--frente)",
+        background: "var(--bg)",
+        color: "var(--ink)",
         fontFamily: "var(--fonte-corpo)",
       }}
     >
@@ -196,7 +196,7 @@ function Titulo({ children }: { children: React.ReactNode }) {
 }
 
 function Texto({ children }: { children: React.ReactNode }) {
-  return <p style={{ margin: 0, opacity: 0.65, lineHeight: 1.6 }}>{children}</p>;
+  return <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.6 }}>{children}</p>;
 }
 
 function Botao({
@@ -230,11 +230,11 @@ function Botao({
         borderRadius: "var(--raio)",
         cursor: desabilitado ? "default" : "pointer",
         opacity: desabilitado ? 0.45 : 1,
-        background: primario ? "var(--frente)" : "transparent",
-        color: primario ? "var(--fundo)" : "var(--frente)",
+        background: primario ? "var(--ink)" : "transparent",
+        color: primario ? "var(--bg)" : "var(--ink)",
         border: primario
           ? "none"
-          : "1px solid color-mix(in srgb, var(--frente) 22%, transparent)",
+          : "1px solid var(--linha)",
       }}
     >
       {children}

@@ -37,8 +37,8 @@ export function Detalhes({
         alignContent: "start",
         gap: "1.5rem",
         padding: "2rem 1.5rem",
-        background: "var(--fundo)",
-        color: "var(--frente)",
+        background: "var(--bg)",
+        color: "var(--ink)",
         fontFamily: "var(--fonte-corpo)",
       }}
     >
@@ -53,13 +53,13 @@ export function Detalhes({
         >
           Já está subindo
         </h1>
-        <p style={{ margin: 0, opacity: 0.6, lineHeight: 1.6 }}>
+        <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.6 }}>
           Se quiser, conte alguma coisa sobre ela.
         </p>
       </div>
 
       <label style={{ display: "grid", gap: "0.4rem" }}>
-        <span style={{ fontSize: "0.78rem", opacity: 0.55 }}>Legenda</span>
+        <span style={{ fontSize: "0.78rem", color: "var(--ink-3)" }}>Legenda</span>
         <textarea
           value={legenda}
           onChange={(e) => setLegenda(e.target.value.slice(0, MAX_LEGENDA))}
@@ -70,16 +70,16 @@ export function Detalhes({
             fontSize: "1rem",
             padding: "0.75rem 0.9rem",
             borderRadius: "var(--raio)",
-            border: "1px solid color-mix(in srgb, var(--frente) 22%, transparent)",
+            border: "1px solid var(--linha)",
             background: "transparent",
-            color: "var(--frente)",
+            color: "var(--ink)",
             resize: "none",
           }}
         />
       </label>
 
       <div style={{ display: "grid", gap: "0.5rem" }}>
-        <span style={{ fontSize: "0.78rem", opacity: 0.55 }}>{perguntaDoLugar}</span>
+        <span style={{ fontSize: "0.78rem", color: "var(--ink-3)" }}>{perguntaDoLugar}</span>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem" }}>
           {lugares.map((l) => (
             <button
@@ -89,13 +89,13 @@ export function Detalhes({
               style={{
                 font: "inherit",
                 fontSize: "0.9rem",
-                minHeight: "44px",
+                minHeight: "48px",
                 padding: "0 1rem",
                 borderRadius: "999px",
                 cursor: "pointer",
-                background: lugar === l.id ? "var(--frente)" : "transparent",
-                color: lugar === l.id ? "var(--fundo)" : "var(--frente)",
-                border: "1px solid color-mix(in srgb, var(--frente) 22%, transparent)",
+                background: lugar === l.id ? "var(--ink)" : "transparent",
+                color: lugar === l.id ? "var(--bg)" : "var(--ink)",
+                border: "1px solid var(--linha)",
               }}
             >
               {l.titulo}
@@ -124,8 +124,8 @@ function botao(primario: boolean): React.CSSProperties {
     minHeight: "48px",
     borderRadius: "var(--raio)",
     cursor: "pointer",
-    background: primario ? "var(--frente)" : "transparent",
-    color: primario ? "var(--fundo)" : "var(--frente)",
-    border: primario ? "none" : "1px solid color-mix(in srgb, var(--frente) 22%, transparent)",
+    background: primario ? "var(--ink)" : "transparent",
+    color: primario ? "var(--bg)" : "var(--ink)",
+    border: primario ? "none" : "1px solid var(--linha)",
   };
 }
