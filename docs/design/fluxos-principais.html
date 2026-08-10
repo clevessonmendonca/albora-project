@@ -1,0 +1,2739 @@
+<title>Albora — Fluxos</title>
+
+<style>
+  :root{
+    --papel:#FAF7F2; --tinta:#171310; --noite:#100C0A;
+    --ambar:#E8873A; --brasa:#C2410C;
+    --serif:ui-serif,"New York","Iowan Old Style","Hoefler Text",Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;
+    --mono:ui-monospace,"SF Mono",Menlo,monospace;
+    --ease:cubic-bezier(.32,.72,0,1); --spring:cubic-bezier(.34,1.4,.5,1);
+    --ink:#F5EEE5; --ink2:#A29486; --ink3:#6F6358; --hair:rgba(245,238,229,.12);
+    --acc:var(--ambar);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:#EDE7DE; color:var(--ink);
+    font-family:var(--sans); font-size:16px; line-height:1.7;
+    -webkit-font-smoothing:antialiased; overflow-x:hidden;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 30px}
+  /* casca arredondada recuada — o fundo aparece em volta */
+  .shell{margin:16px;border-radius:28px;overflow:hidden;background:var(--noite);
+    box-shadow:0 2px 6px rgba(23,19,16,.18),0 30px 60px -24px rgba(23,19,16,.42)}
+  @media(max-width:700px){.shell{margin:8px;border-radius:20px}}
+  .lab{font-family:var(--serif);font-size:10.5px;font-weight:400;letter-spacing:.3em;text-transform:uppercase;color:var(--ink3)}
+  .rule{height:1px;border:0;margin:0;background:linear-gradient(90deg,var(--acc),transparent)}
+  em{font-style:italic}
+
+  /* ── faixas: a noite progride ─────────────────────── */
+  .band{padding:132px 0;position:relative}
+  .band.t1{padding-top:112px}
+  .band.t3{padding:150px 0}
+  .band.light{padding-bottom:0}
+  .band::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(72% 40% at 50% 0%,rgba(232,135,58,.09),transparent 60%)}
+  .band>*{position:relative}
+  .band.t0{background:#0B0807}
+  .band.t1{background:#100C0A}
+  .band.t2{background:#141010}
+  .band.t3{background:#191312}
+  .band.t4{background:#1E1614}
+  .band.light{
+    background:#F7F5F1;color:var(--tinta);
+    --ink:#171310;--ink2:#544A43;--ink3:#8E8175;--hair:#E6DFD4;--acc:#A34F16;
+  }
+  .band.light::before{background:none}
+
+  .hour{display:flex;align-items:baseline;gap:18px;margin:0 0 26px}
+  .hour b{font-family:var(--serif);font-weight:300;font-size:38px;line-height:1;color:var(--acc);font-variant-numeric:tabular-nums}
+  .hour span{font-family:var(--serif);font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink3)}
+  h2{font-family:var(--serif);font-weight:300;font-size:clamp(32px,5vw,58px);line-height:1.08;letter-spacing:-.018em;margin:0 0 22px;max-width:17ch;text-wrap:balance}
+  .lede{font-family:var(--serif);font-weight:300;font-size:clamp(17px,1.9vw,21px);line-height:1.56;color:var(--ink2);max-width:40ch;margin:0 0 66px}
+  .lede em{color:var(--ink)}
+
+  /* ── hero ─────────────────────────────────────────── */
+  .hero{min-height:min(94vh,860px);display:flex;flex-direction:column;justify-content:center;padding:120px 0 0;position:relative;background:#0B0807}
+  .hero::before{content:"";position:absolute;inset:0;background:radial-gradient(64% 44% at 50% 8%,rgba(232,135,58,.16),transparent 58%)}
+  .hero>*{position:relative}
+  .mk{display:flex;align-items:center;gap:12px;margin-bottom:64px}
+  .mklogo{width:196px;height:auto;display:block}
+  h1{font-family:var(--serif);font-weight:300;font-size:clamp(46px,9.4vw,116px);line-height:.98;letter-spacing:-.03em;margin:0 0 34px;max-width:13ch}
+  h1 em{color:var(--acc)}
+  .hero .sub{font-family:var(--serif);font-weight:300;font-size:clamp(17px,2vw,22px);line-height:1.5;color:var(--ink2);max-width:42ch;margin:0}
+  .strip{margin:78px 0 0;display:flex;overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+    mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+  .strip-track{display:flex;gap:14px;animation:drift 58s linear infinite}
+  @keyframes drift{to{transform:translateX(-50%)}}
+  .strip .sh{flex:none;width:min(30vw,290px);aspect-ratio:3/4;border-radius:16px;overflow:hidden;background:#000;box-shadow:0 26px 48px -22px rgba(0,0,0,.9)}
+  .strip .sh img{width:100%;height:100%;object-fit:cover;display:block}
+
+  /* ── telefone ─────────────────────────────────────── */
+  .stage{display:grid;grid-template-columns:394px minmax(0,1fr);gap:92px;align-items:start;justify-content:start}
+  .side>*{max-width:46ch}
+  @media(max-width:900px){.stage{grid-template-columns:1fr;gap:48px}}
+  .phone{width:394px;max-width:100%;aspect-ratio:9/19.3;border-radius:60px;padding:12px;
+    background:linear-gradient(158deg,#3A332E,#0A0806 44%,#221C18);
+    box-shadow:0 0 0 1px rgba(0,0,0,.7),0 3px 5px rgba(0,0,0,.5),0 60px 100px -34px rgba(0,0,0,.92);
+    position:sticky;top:34px}
+  .screen{position:relative;width:100%;height:100%;border-radius:49px;overflow:hidden;background:#0E0A08;color:#F5EEE5;display:flex;flex-direction:column}
+  .screen::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;background:radial-gradient(116% 42% at 50% -12%,rgba(232,135,58,.13),transparent 58%)}
+  .screen::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E")}
+  .statusbar{display:flex;justify-content:space-between;align-items:center;padding:20px 32px 0;font-size:13.5px;font-weight:600;color:rgba(245,238,229,.5);font-variant-numeric:tabular-nums;flex:none;position:relative;z-index:5}
+  .statusbar .dots{display:flex;gap:3px;align-items:flex-end}
+  .statusbar i{display:block;width:3px;border-radius:2px;background:currentColor}
+  .pane{flex:1;display:none;flex-direction:column;padding:0 32px 34px;min-height:0;overflow:hidden;position:relative;z-index:2}
+  .pane.live{display:flex;animation:paneFwd .44s var(--ease) both}
+  .screen[data-dir="back"] .pane.live{animation-name:paneBack}
+  @keyframes paneFwd{from{opacity:0;transform:translateX(30px)}}
+  @keyframes paneBack{from{opacity:0;transform:translateX(-30px)}}
+  @keyframes in{from{opacity:0;transform:translateY(9px)}}
+
+  /* entrada do herói, escalonada */
+  .hero .mk,.hero h1,.hero .sub{animation:heroIn .9s var(--ease) both}
+  .hero h1{animation-delay:.1s}
+  .hero .sub{animation-delay:.2s}
+  .strip{animation:heroIn 1.1s var(--ease) .3s both}
+  @keyframes heroIn{from{opacity:0;transform:translateY(26px)}}
+
+  /* seleção de filtro com mola */
+  .fchip .th{transition:box-shadow .2s,transform .3s var(--spring)}
+  .fchip.on .th{transform:scale(1.06)}
+  .fchip:active .th{transform:scale(.94)}
+
+  /* obturador pulsa ao disparar */
+  .shutter.fire i{animation:fire .34s var(--ease)}
+  @keyframes fire{40%{transform:scale(.8)}100%{transform:scale(1)}}
+
+  /* missão responde ao toque antes de trocar de tela */
+  .mission:active{background:rgba(245,238,229,.06)}
+
+  @media(prefers-reduced-motion:reduce){
+    .hero .mk,.hero h1,.hero .sub,.strip{animation:none}
+    .pane.live{animation:none}
+    .shutter.fire i{animation:none}
+  }
+  .crown{padding:30px 0 0;flex:none}
+  .crown .lab{color:rgba(245,238,229,.5)}
+  .display{font-family:var(--serif);font-weight:500;letter-spacing:-.016em;line-height:1.14;margin:0}
+  .d-xl{font-size:34px}.d-lg{font-size:27px}
+  .display em{font-weight:400}
+  .body-s{font-size:15px;line-height:1.6;color:rgba(245,238,229,.78)}
+  .spacer{flex:1;min-height:14px}
+
+  .btn{display:block;width:100%;min-height:56px;padding:16px 24px;border:0;border-radius:100px;
+    background:var(--ambar);color:#150F0A;font-family:var(--sans);font-size:15.5px;font-weight:500;letter-spacing:0;
+    cursor:pointer;flex:none;transition:transform .22s var(--spring),filter .2s,opacity .2s}
+  .btn:hover{filter:brightness(1.06)}
+  .btn:active{transform:scale(.972)}
+  .btn:disabled{opacity:.2;cursor:default}
+  .btn:focus-visible{outline:1px solid var(--ambar);outline-offset:5px}
+  .btn.hair{background:transparent;color:rgba(245,238,229,.72);border:1px solid rgba(245,238,229,.18);min-height:52px;font-weight:400}
+
+  .consent{display:flex;gap:16px;align-items:flex-start;padding:22px 4px;border-top:1px solid rgba(245,238,229,.16);border-bottom:1px solid rgba(245,238,229,.16);cursor:pointer;margin-bottom:28px;flex:none}
+  .box{width:24px;height:24px;flex:none;margin-top:2px;border:1.5px solid rgba(245,238,229,.46);border-radius:50%;display:grid;place-items:center;transition:border-color .26s var(--ease)}
+  .consent.checked .box{border-color:var(--ambar)}
+  .box i{width:10px;height:10px;border-radius:50%;background:var(--ambar);transform:scale(0);transition:transform .34s var(--spring)}
+  .consent.checked .box i{transform:scale(1)}
+
+  .field{width:100%;background:transparent;border:0;border-bottom:1.5px solid rgba(245,238,229,.3);border-radius:0;padding:12px 2px 16px;color:#F5EEE5;font-family:var(--serif);font-weight:400;font-size:30px;letter-spacing:-.012em;outline:none;flex:none;transition:border-color .3s var(--ease)}
+  .field::placeholder{color:rgba(245,238,229,.28);font-style:italic}
+  .field:focus{border-bottom-color:var(--ambar)}
+
+  .missions{display:flex;flex-direction:column;overflow-y:auto;margin:0 -4px;padding:0 4px}
+  .mission{text-align:left;width:100%;background:none;border:0;border-bottom:1px solid rgba(245,238,229,.13);padding:20px 2px;color:inherit;cursor:pointer;min-height:62px;display:grid;grid-template-columns:42px 1fr 12px;gap:12px;align-items:baseline;transition:opacity .2s}
+  .mission:last-child{border-bottom:0}
+  .mission .num{font-family:var(--serif);font-size:11.5px;letter-spacing:.2em;color:var(--ambar)}
+  .mission .txt{font-family:var(--serif);font-weight:500;font-size:17px;line-height:1.32;letter-spacing:-.012em}
+  .mission .arw{color:rgba(245,238,229,.4);font-size:14px;transition:transform .26s var(--ease),color .26s}
+  .mission:hover .arw{transform:translateX(4px);color:var(--ambar)}
+  .mission.done{opacity:.3}
+  .mission.done .num{color:rgba(245,238,229,.4)}
+
+  .viewfinder{flex:1 1 0;border-radius:24px;overflow:hidden;position:relative;min-height:120px;background:#0A0706}
+  .viewfinder video,.viewfinder img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+  .vf-hint{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:30px;text-align:center}
+  .vf-hint p{margin:0;font-size:13px;line-height:1.55;color:rgba(245,238,229,.66);max-width:26ch}
+  .vf-hint .lab{font-size:10px;letter-spacing:.26em;color:rgba(245,238,229,.42)}
+  .vf-hint{overflow:hidden}
+  .vf-grid{position:absolute;inset:0;pointer-events:none;opacity:.15;
+    background:linear-gradient(rgba(255,255,255,.6) 1px,transparent 1px) 0 33.33%/100% 33.33%,
+               linear-gradient(90deg,rgba(255,255,255,.6) 1px,transparent 1px) 33.33% 0/33.33% 100%}
+  .flash{position:absolute;inset:0;background:#FFF3E2;opacity:0;pointer-events:none}
+  .flash.go{animation:pop .42s ease-out}
+  @keyframes pop{0%{opacity:.92}100%{opacity:0}}
+  .pickrow{display:flex;gap:11px;margin:18px 0 0;flex:none}
+  /* o dock troca de conteúdo conforme o estado da captura */
+  .pane[data-cam="live"] .pickrow,.pane[data-cam="shot"] .pickrow{display:none}
+  .pane[data-cam="idle"] .shutter-row,.pane[data-cam="shot"] .shutter-row{display:none}
+  .pane[data-cam="idle"] #b3,.pane[data-cam="live"] #b3{display:none}
+  .pane[data-cam="live"] .rolo{display:block}
+  .rolo{display:none;flex:none;background:none;border:0;cursor:pointer;margin:2px auto 0;
+    font-family:var(--serif);font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:rgba(245,238,229,.42);transition:color .22s}
+  .rolo:hover{color:rgba(245,238,229,.76)}
+  .pick{flex:1;min-height:54px;border-radius:100px;border:1px solid rgba(245,238,229,.24);background:transparent;color:rgba(245,238,229,.84);font-family:var(--sans);font-size:14px;cursor:pointer;transition:border-color .22s,color .22s}
+  .pick:hover{border-color:rgba(245,238,229,.46);color:#F5EEE5}
+  .shutter-row{display:flex;justify-content:center;margin:18px 0 6px;flex:none}
+  .shutter{width:88px;height:88px;flex:none;border-radius:50%;border:2px solid rgba(245,238,229,.55);background:transparent;display:grid;place-items:center;cursor:pointer;padding:0;transition:transform .22s var(--spring),border-color .22s}
+  .shutter i{width:70px;height:70px;border-radius:50%;background:#F5EEE5;display:block;transition:transform .18s var(--ease)}
+  .shutter:hover{border-color:var(--ambar)}
+  .shutter:active i{transform:scale(.86)}
+  .shutter:disabled{opacity:.24;cursor:default}
+  /* ── modelos de identidade do evento ── */
+  .idbar{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start;margin:0 0 46px;
+    padding:0 0 26px;border-bottom:1px solid var(--hair)}
+  .idchip{background:none;border:0;padding:0;cursor:pointer;text-align:center;width:78px}
+  .idchip .sw{width:52px;height:52px;border-radius:50%;margin:0 auto;position:relative;
+    box-shadow:inset 0 0 0 1px rgba(245,238,229,.14);transition:box-shadow .24s,transform .24s var(--spring)}
+  .idchip:hover .sw{transform:scale(1.06)}
+  .idchip.on .sw{box-shadow:0 0 0 2px var(--pg-bg,#100C0A),0 0 0 3.5px currentColor}
+  .idchip .nm{display:block;margin-top:11px;font-family:var(--serif);font-size:9.5px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);transition:color .24s}
+  .idchip.on .nm{color:var(--ink)}
+  .idbar .hint{flex:1;min-width:200px;font-size:14px;line-height:1.62;color:var(--ink2);padding-top:4px}
+  .idbar .hint b{color:var(--ink);font-weight:500}
+
+  .ground{display:flex;gap:0;background:rgba(245,238,229,.07);border-radius:9px;padding:3px;align-self:center}
+  .gbtn{border:0;background:none;padding:8px 16px;border-radius:7px;cursor:pointer;
+    font-family:var(--serif);font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ink3);transition:background .2s,color .2s}
+  .gbtn.on{background:rgba(245,238,229,.12);color:var(--ink)}
+
+  /* chão claro no fluxo do convidado — o acento se re-deriva sozinho */
+  .screen.papel{background:#FAF7F2;color:#171310}
+  .screen.papel::before{background:radial-gradient(116% 42% at 50% -12%,rgba(232,135,58,.1),transparent 58%)}
+  .screen.papel .crown .lab{color:rgba(23,19,16,.5)}
+  .screen.papel .body-s{color:rgba(23,19,16,.72)}
+  .screen.papel .statusbar{color:rgba(23,19,16,.5)}
+  .screen.papel .consent{border-color:rgba(23,19,16,.16)}
+  .screen.papel .box{border-color:rgba(23,19,16,.34)}
+  .screen.papel .field{color:#171310;border-bottom-color:rgba(23,19,16,.26)}
+  .screen.papel .field::placeholder{color:rgba(23,19,16,.3)}
+  .screen.papel .mission{border-bottom-color:rgba(23,19,16,.12)}
+  .screen.papel .mission .arw{color:rgba(23,19,16,.36)}
+  .screen.papel .btn.hair{color:rgba(23,19,16,.7);border-color:rgba(23,19,16,.2)}
+  .screen.papel .pick{color:rgba(23,19,16,.8);border-color:rgba(23,19,16,.22)}
+  .screen.papel .shutter{border-color:rgba(23,19,16,.5)}
+  .screen.papel .shutter i{background:#171310}
+  .screen.papel .progress i{background:rgba(23,19,16,.14)}
+  .screen.papel .upbar,.screen.papel .rec-write,.screen.papel .cap-field{border-color:rgba(23,19,16,.14)}
+  .screen.papel .where{border-color:rgba(23,19,16,.16);color:rgba(23,19,16,.66)}
+  .screen.papel .ed-tab{color:rgba(23,19,16,.44)}
+  .screen.papel .slid label,.screen.papel .slid output{color:rgba(23,19,16,.5)}
+
+  /* selo do filtro escolhido pelos noivos */
+  .fchip .rec{position:absolute;top:5px;right:5px;width:16px;height:16px;border-radius:50%;
+    background:var(--ambar);display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+  .fchip .rec svg{display:block}
+  .fstrip .fchip.recd .nm{color:var(--ambar)}
+
+  /* ── editor de foto, no padrão do Instagram ── */
+  .editor{flex:none;margin-top:14px;display:none;flex-direction:column;max-height:230px;overflow-y:auto}
+  .pane[data-cam="shot"] .editor{display:flex}
+  .ed-tabs{display:flex;gap:26px;justify-content:center;margin-bottom:14px}
+  .ed-tab{font-family:var(--serif);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+    background:none;border:0;border-bottom:1px solid transparent;padding:0 0 6px;
+    color:rgba(245,238,229,.44);cursor:pointer;transition:color .2s,border-color .2s}
+  .ed-tab.on{color:var(--ambar);border-bottom-color:var(--ambar)}
+  .ed-panel{display:none}.ed-panel.on{display:block}
+
+  .fstrip{display:flex;gap:10px;overflow-x:auto;padding:2px 0 8px;
+    scrollbar-width:none;-ms-overflow-style:none}
+  .fstrip::-webkit-scrollbar{display:none}
+  .fchip{flex:none;width:62px;background:none;border:0;padding:0;cursor:pointer}
+  .fchip .th{width:62px;height:62px;border-radius:10px;overflow:hidden;position:relative;
+    box-shadow:inset 0 0 0 1px rgba(245,238,229,.1);transition:box-shadow .2s}
+  .fchip .th img{width:100%;height:100%;object-fit:cover;display:block}
+  .fchip.on .th{box-shadow:inset 0 0 0 2px var(--ambar)}
+  .fchip .nm{display:block;margin-top:7px;font-family:var(--serif);font-size:9px;
+    letter-spacing:.18em;text-transform:uppercase;color:rgba(245,238,229,.44);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .fchip.on .nm{color:var(--ambar)}
+
+  .slid{display:grid;grid-template-columns:66px 1fr 34px;gap:12px;align-items:center;padding:9px 0}
+  .slid label{font-family:var(--serif);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:rgba(245,238,229,.5)}
+  .slid output{font-family:var(--mono);font-size:10.5px;color:rgba(245,238,229,.44);text-align:right;font-variant-numeric:tabular-nums}
+  .slid input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:1.5px;
+    background:rgba(245,238,229,.18);border-radius:2px;outline:none}
+  .slid input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;
+    border-radius:50%;background:#F5EEE5;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+  .slid input[type=range]::-moz-range-thumb{width:17px;height:17px;border:0;border-radius:50%;
+    background:#F5EEE5;cursor:pointer}
+  .vig{position:absolute;inset:0;pointer-events:none;opacity:0;
+    background:radial-gradient(72% 62% at 50% 50%,transparent 42%,rgba(6,4,3,.9) 100%)}
+
+  /* presets sobre a imagem, como câmera de verdade — não mais uma fileira
+     de controle empilhada embaixo do visor */
+  .presets{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;gap:22px;
+    justify-content:center;padding:26px 18px 16px;
+    background:linear-gradient(to top,rgba(8,6,5,.86),transparent)}
+  .preset{font-family:var(--serif);font-size:11px;letter-spacing:.2em;text-transform:uppercase;padding:0 0 7px;border:0;border-bottom:1px solid transparent;background:none;color:rgba(245,238,229,.46);cursor:pointer;transition:color .24s,border-color .24s}
+  .preset.on{color:var(--ambar);border-bottom-color:var(--ambar)}
+
+  .upbar{display:flex;align-items:center;gap:13px;flex:none;padding:15px 0;border-bottom:1px solid rgba(245,238,229,.1)}
+  .uploader{position:relative;width:56px;height:56px;flex:none;display:grid;place-items:center}
+  .uparc{position:absolute;inset:0;width:100%;height:100%}
+  .uploader img{width:30px;height:30px;border-radius:50%;object-fit:cover;display:block}
+  .upbar .txt{font-size:13px;color:rgba(245,238,229,.66);line-height:1.4}
+  .upbar .txt b{display:block;color:#F5EEE5;font-weight:400;font-family:var(--serif);font-size:15.5px}
+  .uptrack{height:1.5px;background:rgba(245,238,229,.14);margin-top:7px;overflow:hidden}
+  .uptrack i{display:block;height:100%;width:0;background:var(--ambar);transition:width .3s linear}
+  .cap-field{width:100%;background:transparent;border:0;resize:none;border-bottom:1px solid rgba(245,238,229,.14);padding:13px 2px;color:#F5EEE5;font-family:var(--serif);font-weight:400;font-size:17.5px;line-height:1.42;outline:none;flex:none;transition:border-color .3s var(--ease)}
+  .cap-field::placeholder{color:rgba(245,238,229,.24);font-style:italic}
+  .cap-field:focus{border-bottom-color:var(--ambar)}
+  .wheres{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px;flex:none}
+  .where{font-family:var(--serif);font-size:13px;padding:9px 16px;border-radius:100px;border:1px solid rgba(245,238,229,.15);background:transparent;color:rgba(245,238,229,.66);cursor:pointer;transition:border-color .22s,color .22s,background .22s}
+  .where:hover{border-color:rgba(245,238,229,.34);color:#F5EEE5}
+  .where.on{border-color:var(--ambar);color:var(--ambar);background:rgba(232,135,58,.08)}
+  .skip{background:none;border:0;padding:13px 0 0;cursor:pointer;flex:none;font-family:var(--serif);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:rgba(245,238,229,.38);transition:color .22s}
+  .skip:hover{color:rgba(245,238,229,.68)}
+
+  .confirm-photo{height:222px;border-radius:24px;overflow:hidden;position:relative;flex:none;margin-bottom:26px;background:#0A0706}
+  .confirm-photo img{width:100%;height:100%;object-fit:cover;display:block}
+  .sweep{position:absolute;inset:0;background:linear-gradient(102deg,transparent 28%,rgba(255,212,152,.46) 47%,rgba(232,135,58,.2) 56%,transparent 72%);transform:translateX(-118%)}
+  .live .sweep{animation:dawn 1.5s cubic-bezier(.38,0,.2,1) .2s both}
+  @keyframes dawn{to{transform:translateX(118%)}}
+  .progress{display:flex;gap:4px;margin:26px 0 0;flex:none}
+  .progress i{height:2px;flex:1;background:rgba(245,238,229,.14);transition:background .5s var(--ease)}
+  .progress i.on{background:var(--ambar)}
+  .cta-app{border-top:1px solid rgba(232,135,58,.26);padding:22px 2px 0;margin-top:4px;display:flex;gap:15px;align-items:baseline;flex:none}
+
+  .rec-photo{height:200px;border-radius:18px;overflow:hidden;flex:none;margin-bottom:20px;position:relative}
+  .rec-photo img{width:100%;height:100%;object-fit:cover;display:block}
+  .rec-photo .by{position:absolute;left:14px;bottom:12px;font-family:var(--serif);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,248,240,.9);text-shadow:0 1px 8px rgba(0,0,0,.8)}
+  .rec-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:13px;margin:0 -2px;padding:2px}
+  .rec-card{background:rgba(245,238,229,.06);border-radius:3px;padding:17px 17px 14px;border-top:1px solid rgba(232,135,58,.26)}
+  .rec-card p{font-family:var(--serif);font-weight:400;font-size:14.5px;line-height:1.46;color:rgba(245,238,229,.94);margin:0}
+  .rec-card .sig{font-family:var(--serif);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:rgba(245,238,229,.46);display:block;margin-top:12px}
+  .rec-write{flex:none;margin-top:15px;padding-top:15px;border-top:1px solid rgba(245,238,229,.14);display:flex;gap:11px;align-items:center}
+  .rec-write input{flex:1;background:transparent;border:0;outline:none;color:#F5EEE5;font-family:var(--serif);font-weight:400;font-size:16px;padding:9px 0}
+  .rec-write input::placeholder{color:rgba(245,238,229,.36);font-style:italic}
+  .rec-write button{flex:none;background:var(--ambar);color:#150F0A;border:0;border-radius:100px;padding:12px 22px;cursor:pointer;font-family:var(--sans);font-size:13.5px;font-weight:500;letter-spacing:0}
+  .rec-write button:disabled{opacity:.24;cursor:default}
+  .rec-lock{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:18px;padding:22px}
+  .rec-lock .ring{width:58px;height:58px;border-radius:50%;border:1px solid rgba(232,135,58,.44);display:grid;place-items:center}
+  .rec-lock .ring i{width:8px;height:8px;border-radius:50%;background:var(--ambar)}
+
+  /* ── coluna lateral ───────────────────────────────── */
+  .side{padding-top:6px}
+  .taps{display:flex;align-items:baseline;gap:18px;padding-bottom:32px}
+  .taps .n{font-family:var(--serif);font-weight:300;font-size:82px;line-height:.86;color:var(--acc);font-variant-numeric:tabular-nums}
+  .taps .lbl{font-size:15px;color:var(--ink2);line-height:1.46}
+  .steps{list-style:none;padding:0;margin:36px 0}
+  .steps li{display:grid;grid-template-columns:38px 1fr;gap:15px;padding:17px 0;border-bottom:1px solid var(--hair);font-size:16px;color:var(--ink3);transition:color .34s}
+  .steps li .idx{font-family:var(--serif);font-size:11px;letter-spacing:.2em;padding-top:5px}
+  .steps li.on{color:var(--ink)}
+  .steps li.on .idx{color:var(--acc)}
+  .steps li.past{color:var(--ink2)}
+  .note{padding:5px 0 5px 24px;border-left:1px solid var(--acc);margin:0 0 34px;font-size:15.5px;color:var(--ink2);line-height:1.7}
+  .note strong{color:var(--ink);font-weight:500}
+  .reset{font-family:var(--serif);font-size:11px;letter-spacing:.22em;text-transform:uppercase;background:none;border:0;border-bottom:1px solid var(--hair);color:var(--ink2);padding:0 0 7px;cursor:pointer;transition:color .22s,border-color .22s}
+  .reset:hover{color:var(--acc);border-bottom-color:var(--ambar)}
+
+  /* ── telão ────────────────────────────────────────── */
+  .telao-frame{border-radius:8px;overflow:hidden;background:#080605;aspect-ratio:16/9;position:relative;
+    box-shadow:0 0 0 1px rgba(245,238,229,.08),0 60px 110px -40px rgba(0,0,0,.95)}
+  .telao-slide{position:absolute;inset:0;opacity:0;transition:opacity 1.15s var(--ease);display:flex;align-items:center;justify-content:center;gap:2.4%}
+  .telao-slide.on{opacity:1}
+  .telao-slide[data-m="cheio"] img{width:100%;height:100%;object-fit:cover;display:block}
+  .telao-slide[data-m="cheio"].on img{animation:kb 9s linear both}
+  @keyframes kb{from{transform:scale(1.04)}to{transform:scale(1.13) translate(-1.4%,-1%)}}
+  .telao-slide[data-m="polaroid"]{padding:4% 0}
+  .telao-slide[data-m="polaroid"] .pol{height:92%;background:#FDFBF7;padding:1.4% 1.4% 5.4%;border-radius:2px;transform:rotate(-1.4deg);box-shadow:0 2px 3px rgba(0,0,0,.5),0 40px 70px -20px rgba(0,0,0,.85);display:flex;flex-direction:column}
+  .telao-slide[data-m="polaroid"] .pol img{height:100%;width:auto;display:block;object-fit:contain}
+  .telao-slide[data-m="polaroid"] .pol .sign{font-family:var(--serif);font-size:clamp(8px,1.05vw,16px);letter-spacing:.22em;text-transform:uppercase;color:#8A7C6F;text-align:center;margin-top:auto;padding-top:2%}
+  .telao-slide[data-m="mural"]{padding:5% 4%}
+  .telao-slide[data-m="mural"] .mp{height:100%;background:#FDFBF7;padding:1% 1% 3%;border-radius:2px;box-shadow:0 2px 3px rgba(0,0,0,.45),0 28px 50px -18px rgba(0,0,0,.8);display:flex;flex-direction:column}
+  .telao-slide[data-m="mural"] .mp:nth-child(1){transform:rotate(-2.2deg) translateY(1.5%)}
+  .telao-slide[data-m="mural"] .mp:nth-child(2){transform:rotate(1deg)}
+  .telao-slide[data-m="mural"] .mp:nth-child(3){transform:rotate(2.6deg) translateY(2%)}
+  .telao-slide[data-m="mural"] .mp img{height:100%;width:auto;display:block;object-fit:contain}
+  .telao-slide[data-m="mural"] .mp .sign{font-family:var(--serif);font-size:clamp(6px,.7vw,11px);letter-spacing:.2em;text-transform:uppercase;color:#A99C90;text-align:center;margin-top:auto;padding-top:3%}
+  .telao-slide[data-m="ambiente"]{padding:0}
+  .telao-slide[data-m="ambiente"] .amb-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(50px) brightness(.4) saturate(1.2);transform:scale(1.22)}
+  .telao-slide[data-m="ambiente"] .amb-fg{position:relative;height:94%;width:auto;object-fit:contain;box-shadow:0 34px 66px -22px rgba(0,0,0,.8)}
+  .telao-slide[data-m="colagem"]{padding:3.4% 3%;display:grid;gap:1.5%;align-items:stretch}
+  .telao-slide[data-m="colagem"] .cc{border-radius:8px;overflow:hidden;background:#0A0706;box-shadow:0 16px 30px -14px rgba(0,0,0,.75);position:relative}
+  .telao-slide[data-m="colagem"] .cc img{width:100%;height:100%;object-fit:cover;display:block}
+  .telao-slide[data-m="colagem"] .cc .nm{position:absolute;left:9px;bottom:7px;font-family:var(--serif);font-size:clamp(6px,.7vw,11px);letter-spacing:.2em;text-transform:uppercase;color:rgba(255,248,240,.86);text-shadow:0 1px 6px rgba(0,0,0,.9)}
+  .telao-slide[data-m="colagem"][data-p="a"]{grid-template-columns:1.35fr 1fr;grid-template-rows:1fr 1fr}
+  .telao-slide[data-m="colagem"][data-p="a"] .cc:first-child{grid-row:1/3}
+  .telao-slide[data-m="colagem"][data-p="b"]{grid-template-columns:1fr 1.35fr;grid-template-rows:1fr 1fr}
+  .telao-slide[data-m="colagem"][data-p="b"] .cc:last-child{grid-row:1/3;grid-column:2}
+  .telao-slide[data-m="colagem"][data-p="c"]{grid-template-columns:repeat(4,1fr)}
+  .telao-slide[data-m="colagem"][data-p="d"]{grid-template-columns:1fr 1fr}
+  .telao-veil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(8,6,5,.84) 0%,rgba(8,6,5,.12) 34%,transparent 58%);transition:opacity .5s}
+  .telao-sweep{position:absolute;inset:0;pointer-events:none;background:linear-gradient(102deg,transparent 30%,rgba(255,212,152,.4) 48%,rgba(232,135,58,.16) 57%,transparent 72%);transform:translateX(-118%)}
+  .telao-sweep.go{animation:dawn 1.8s cubic-bezier(.38,0,.2,1)}
+  .telao-credit{position:absolute;left:40px;bottom:34px;display:flex;align-items:baseline;gap:14px}
+  .telao-credit .who{font-family:var(--serif);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:rgba(245,238,229,.76)}
+  .telao-credit .what{font-family:var(--serif);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:rgba(245,238,229,.44)}
+  .telao-id{position:absolute;right:40px;top:32px;font-family:var(--serif);font-weight:300;font-style:italic;font-size:22px;color:rgba(245,238,229,.46)}
+  .telao-dots{position:absolute;right:40px;bottom:38px;display:flex;gap:6px}
+  .telao-dots i{width:18px;height:1.5px;background:rgba(245,238,229,.22);display:block;transition:background .5s}
+  .telao-dots i.on{background:var(--ambar)}
+  .telao-models{display:flex;gap:30px;margin-top:34px;flex-wrap:wrap}
+  .tmodel{font-family:var(--serif);font-size:12px;letter-spacing:.2em;text-transform:uppercase;padding:0 0 7px;border:0;border-bottom:1px solid transparent;background:none;color:var(--ink3);cursor:pointer;transition:color .22s,border-color .22s;text-align:left}
+  .tmodel.on{color:var(--acc);border-bottom-color:var(--ambar)}
+  .tmodel span{display:block;font-size:10px;letter-spacing:.06em;text-transform:none;color:var(--ink3);margin-top:6px}
+  .lanes{display:grid;grid-template-columns:repeat(3,1fr);margin-top:72px;padding-top:44px;border-top:1px solid var(--hair)}
+  @media(max-width:760px){.lanes{grid-template-columns:1fr;gap:26px}}
+  .lane{padding:0 34px;border-left:1px solid var(--hair)}
+  .lane:first-child{padding-left:0;border-left:0}
+  .lane .pct{font-family:var(--serif);font-weight:300;font-size:46px;line-height:1;color:var(--acc);font-variant-numeric:tabular-nums;margin:0 0 16px}
+  .lane .nm{font-family:var(--serif);font-size:11px;letter-spacing:.2em;text-transform:uppercase;margin:0 0 12px;color:var(--ink)}
+  .lane .dsc{font-size:15px;color:var(--ink2);line-height:1.66;margin:0}
+
+  /* ── estados ──────────────────────────────────────── */
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:34px}
+  @media(max-width:900px){.tiles{grid-template-columns:repeat(2,1fr);gap:24px}}
+  @media(max-width:560px){.tiles{grid-template-columns:1fr}}
+  .tile figcaption{margin-top:18px;font-size:14px;line-height:1.6;color:var(--ink2)}
+  .tile figcaption b{display:block;margin-bottom:6px;font-family:var(--serif);font-weight:400;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink)}
+  .tile-screen{position:relative;aspect-ratio:9/16;border-radius:24px;overflow:hidden;background:#0E0A08;color:#F5EEE5;padding:26px 22px;display:flex;flex-direction:column;box-shadow:0 0 0 1px rgba(245,238,229,.07),0 30px 50px -26px rgba(0,0,0,.9)}
+  .tile-screen::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(126% 42% at 50% -14%,rgba(232,135,58,.1),transparent 60%)}
+  .tile-screen>*{position:relative;z-index:1}
+  .tile-screen .lb{font-family:var(--serif);font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:rgba(245,238,229,.36);margin:0}
+  .tile-screen .hd{font-family:var(--serif);font-weight:500;font-size:22px;line-height:1.2;letter-spacing:-.014em;margin:0}
+  .tile-screen .hd em{font-weight:400}
+  .tile-screen .bd{font-size:13px;line-height:1.58;color:rgba(245,238,229,.74);margin:11px 0 0}
+  .tile-screen .gap{flex:1;min-height:10px}
+  .tile-screen .act{font-family:var(--sans);font-size:12.5px;font-weight:500;letter-spacing:0;text-align:center;padding:14px;border-radius:100px;background:var(--ambar);color:#150F0A}
+  .tile-screen .act.hair{background:transparent;color:rgba(245,238,229,.6);border:1px solid rgba(245,238,229,.16);font-weight:400}
+  .queued{display:flex;align-items:center;gap:10px;padding:13px 0;border-top:1px solid rgba(245,238,229,.1)}
+  .queued:last-of-type{border-bottom:1px solid rgba(245,238,229,.1)}
+  .queued .thumb{width:34px;height:34px;border-radius:8px;flex:none;overflow:hidden}
+  .queued .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .queued .st{font-family:var(--serif);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(245,238,229,.38);margin-left:auto}
+  .queued .st.amber{color:var(--ambar)}
+  .pulse{width:6px;height:6px;border-radius:50%;background:var(--ambar);animation:breathe 2.4s ease-in-out infinite}
+  @keyframes breathe{0%,100%{opacity:.3}50%{opacity:1}}
+
+  /* ── objetos claros sobre fundo escuro ────────────── */
+  /* a janela ocupa a linha inteira; a peça impressa vem depois,
+     como o objeto físico que sai dela */
+  .objects{display:block}
+  .objects .placa{width:322px;margin:70px auto 0}
+  .objects .cap-obj{text-align:center;margin:22px auto 0;max-width:34ch;
+    font-family:var(--serif);font-size:13.5px;line-height:1.6;color:var(--ink2)}
+  .adm-wrap{background:var(--papel);color:var(--tinta);border-radius:22px;border:1px solid rgba(0,0,0,.06);box-shadow:0 50px 90px -34px rgba(0,0,0,.85);overflow:hidden}
+  .adm-top{padding:30px 36px;border-bottom:1px solid #EFE8DC;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .adm-top .nm{font-family:var(--serif);font-weight:300;font-size:27px;letter-spacing:-.014em;margin:0}
+  .adm-top .live{display:inline-flex;align-items:center;gap:8px;margin-left:auto;font-family:var(--serif);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--brasa)}
+  .adm-top .live i{width:6px;height:6px;border-radius:50%;background:var(--brasa);animation:breathe 2s ease-in-out infinite}
+  .adm-tabs{display:flex;gap:30px;padding:0 36px;border-bottom:1px solid #EFE8DC}
+  .adm-tab{font-family:var(--serif);font-size:14.5px;padding:16px 0;border:0;border-bottom:1px solid transparent;background:none;color:#8A7C6F;cursor:pointer;transition:color .22s,border-color .22s}
+  .adm-tab.on{color:var(--tinta);border-bottom-color:var(--brasa)}
+  .adm-body{padding:36px}
+  .adm-view{display:none}
+  .adm-view.on{display:block;animation:in .38s var(--ease) both}
+  .adm-label{font-family:var(--serif);font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:#A99C90;margin:0 0 16px}
+  .hero-metric{display:flex;align-items:flex-end;gap:24px;margin-bottom:8px}
+  .hero-metric .big{font-family:var(--serif);font-weight:300;font-size:92px;line-height:.84;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .hero-metric .side{padding-bottom:10px}
+  .hero-metric .side .l{font-family:var(--serif);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#A99C90;margin:0 0 6px}
+  .hero-metric .side .v{font-size:14.5px;color:#5A5049;margin:0}
+  .goal{margin:20px 0 34px}
+  .goal .track{height:3px;background:#E9E1D5;position:relative}
+  .goal .fill{height:100%;background:var(--brasa);width:0;transition:width 1.4s var(--ease)}
+  .goal .mark{position:absolute;top:-5px;width:1px;height:13px;background:var(--tinta);left:40%}
+  .goal .cap{display:flex;justify-content:space-between;margin-top:10px;font-family:var(--serif);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#A99C90}
+  .funnel{display:grid;grid-template-columns:repeat(5,1fr);margin:0 0 38px}
+  @media(max-width:760px){.funnel{grid-template-columns:repeat(2,1fr);gap:20px}}
+  .funnel div{border-left:1px solid #EFE8DC;padding:0 18px}
+  .funnel div:first-child{border-left:0;padding-left:0}
+  .funnel .n{font-family:var(--serif);font-weight:300;font-size:30px;line-height:1;font-variant-numeric:tabular-nums;margin:0 0 8px}
+  .funnel .s{font-family:var(--serif);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#A99C90;margin:0}
+  .funnel .d{font-size:12px;color:#B4A899;margin:6px 0 0}
+  .feed-head{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid #EFE8DC;margin-bottom:18px}
+  .feed-head .t{font-family:var(--serif);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#A99C90}
+  .panic{font-family:var(--serif);font-size:10px;letter-spacing:.2em;text-transform:uppercase;border:1px solid var(--brasa);color:var(--brasa);background:transparent;padding:9px 17px;border-radius:100px;cursor:pointer;transition:background .22s,color .22s}
+  .panic:hover,.panic.on{background:var(--brasa);color:var(--papel)}
+  .feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:11px}
+  .fcell{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:#EFE8DC}
+  .fcell img{width:100%;height:100%;object-fit:cover;display:block;transition:filter .3s,opacity .3s}
+  .fcell .who{position:absolute;left:0;right:0;bottom:0;padding:16px 8px 6px;font-family:var(--serif);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:#FFF;background:linear-gradient(to top,rgba(12,8,6,.84),transparent)}
+  .fcell .kill{position:absolute;top:6px;right:6px;width:23px;height:23px;border-radius:50%;border:0;background:rgba(12,8,6,.66);color:#FFF;cursor:pointer;font-size:13px;line-height:1;opacity:0;transition:opacity .22s}
+  .fcell:hover .kill{opacity:1}
+  .fcell.gone img{filter:grayscale(1);opacity:.22}
+  .fcell.gone .kill{opacity:1;background:var(--brasa)}
+  .fcell.held::after{content:"retida";position:absolute;inset:0;display:grid;place-items:center;background:rgba(250,247,242,.92);color:var(--brasa);font-family:var(--serif);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase}
+  .mission-rows{border-top:1px solid #EFE8DC}
+  .mrow{display:grid;grid-template-columns:38px 1fr 82px 56px;gap:16px;align-items:center;padding:16px 0;border-bottom:1px solid #EFE8DC}
+  @media(max-width:640px){.mrow{grid-template-columns:30px 1fr 56px}.mrow .bar{display:none}}
+  .mrow .rn{font-family:var(--serif);font-size:10.5px;letter-spacing:.18em;color:var(--brasa)}
+  .mrow .rt{font-family:var(--serif);font-weight:300;font-size:17px;line-height:1.3}
+  .mrow .bar{height:2px;background:#E9E1D5}
+  .mrow .bar i{display:block;height:100%;background:var(--brasa)}
+  .mrow .rc{font-family:var(--mono);font-size:12px;color:#8A7C6F;text-align:right;font-variant-numeric:tabular-nums}
+  .formats{display:flex;gap:28px;margin-bottom:40px}
+  .fmt{font-family:var(--serif);font-size:14.5px;padding:0 0 8px;border:0;border-bottom:1px solid transparent;background:none;color:#7A6C60;cursor:pointer;transition:color .22s,border-color .22s}
+  .fmt.on{color:var(--brasa);border-bottom-color:var(--brasa)}
+  .adm-rows{margin-bottom:40px}
+  .adm-row{display:flex;justify-content:space-between;align-items:baseline;padding:15px 0;border-bottom:1px solid #EFE8DC;font-size:15px}
+  .adm-row .k{color:#5A5049}
+  .adm-row .v{font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:12.5px}
+  .adm-row .v.warn{color:var(--brasa)}
+  .btn-adm{min-height:48px;padding:0 30px;border:0;border-radius:100px;background:var(--tinta);color:var(--papel);font-family:var(--sans);font-size:14px;font-weight:500;letter-spacing:0;cursor:pointer;transition:background .26s var(--ease),color .26s}
+  .btn-adm:hover{background:#2C2520}
+  /* ══ Admin como janela de macOS ══
+     A superfície do anfitrião é a única com forma de aplicativo:
+     uso prolongado, sentado, teclado por perto. Barra lateral,
+     barra de ferramentas unificada, conteúdo, inspetor. */
+  .macwin{
+    background:#F2EEE8;color:var(--tinta);border-radius:13px;overflow:hidden;
+    border:1px solid rgba(0,0,0,.1);
+    box-shadow:0 0 0 .5px rgba(0,0,0,.18),0 60px 110px -34px rgba(0,0,0,.88),0 12px 28px -12px rgba(0,0,0,.5);
+    display:grid;grid-template-columns:214px 1fr 238px;min-height:600px}
+  @media(max-width:1040px){.macwin{grid-template-columns:190px 1fr}.mac-insp{display:none}}
+  @media(max-width:720px){.macwin{grid-template-columns:1fr}.mac-side{display:none}}
+
+  .mac-side{background:#E9E4DC;border-right:1px solid rgba(0,0,0,.09);padding:0 0 18px;display:flex;flex-direction:column}
+  .mac-lights{display:flex;gap:8px;padding:15px 16px 22px}
+  .mac-lights i{width:11.5px;height:11.5px;border-radius:50%;display:block}
+  .mac-lights i:nth-child(1){background:#EC6A5E}
+  .mac-lights i:nth-child(2){background:#F4BF4F}
+  .mac-lights i:nth-child(3){background:#61C554}
+  .mac-group{font-family:var(--serif);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:#A2968A;padding:0 18px;margin:14px 0 8px}
+  .mac-item{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;
+    padding:8px 12px;margin:0 8px;border-radius:7px;cursor:pointer;color:#463D36;
+    font-family:var(--sans);font-size:13.5px;transition:background .16s,color .16s}
+  .mac-item:hover{background:rgba(0,0,0,.045)}
+  .mac-item.on{background:var(--brasa);color:#FBF7F1}
+  .mac-item .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.4;flex:none}
+  .mac-item.on .dot{opacity:1}
+  .mac-item .ct{margin-left:auto;font-family:var(--mono);font-size:10.5px;opacity:.5;font-variant-numeric:tabular-nums}
+  .mac-side .foot{margin-top:auto;padding:14px 20px 0;border-top:1px solid rgba(0,0,0,.07);
+    font-family:var(--serif);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#A2968A}
+
+  .mac-main{display:flex;flex-direction:column;min-width:0;background:#FBF8F3}
+  .mac-bar{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid rgba(0,0,0,.08);
+    background:#F5F1EB;flex-wrap:wrap}
+  .mac-bar .ttl{font-family:var(--sans);font-size:13.5px;font-weight:600;letter-spacing:-.005em}
+  .mac-bar .sub{font-family:var(--sans);font-size:12px;color:#8A7C6F}
+  .seg{display:flex;background:rgba(0,0,0,.055);border-radius:8px;padding:2px;margin-left:auto}
+  .seg button{border:0;background:none;padding:5px 13px;border-radius:6px;cursor:pointer;
+    font-family:var(--sans);font-size:12.5px;color:#5C5149;transition:background .18s,box-shadow .18s,color .18s}
+  .seg button.on{background:#FFF;color:var(--tinta);box-shadow:0 .5px 1px rgba(0,0,0,.16),0 1px 3px rgba(0,0,0,.08)}
+  .kbd{font-family:var(--mono);font-size:10.5px;color:#A2968A;border:1px solid rgba(0,0,0,.12);
+    border-radius:5px;padding:3px 7px;background:rgba(255,255,255,.7)}
+  .mac-content{padding:28px 26px;overflow:auto}
+
+  .mac-insp{background:#F0ECE5;border-left:1px solid rgba(0,0,0,.09);padding:18px 20px}
+  .mac-insp h5{font-family:var(--serif);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:#A2968A;margin:0 0 14px;font-weight:400}
+  .insp-row{display:flex;justify-content:space-between;align-items:baseline;padding:9px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:12.5px}
+  .insp-row:last-of-type{border-bottom:0}
+  .insp-row .k{color:#8A7C6F}
+  .insp-row .v{color:var(--tinta);font-weight:500;font-variant-numeric:tabular-nums}
+  .insp-row .v.live{color:#2E9E4A;display:inline-flex;align-items:center;gap:6px}
+  .insp-row .v.live::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;animation:breathe 2s ease-in-out infinite}
+  .insp-note{margin-top:18px;padding:12px 13px;background:rgba(232,135,58,.1);border-radius:7px;
+    font-size:11.5px;line-height:1.54;color:#6B5B4E}
+  .insp-note b{color:var(--tinta);display:block;margin-bottom:3px;font-weight:600}
+  .insp-swatches{display:flex;gap:7px;margin-top:12px}
+  .insp-swatches i{width:22px;height:22px;border-radius:5px;display:block;border:1px solid rgba(0,0,0,.1)}
+  .glist{border-top:1px solid rgba(0,0,0,.07)}
+  .grow{display:grid;grid-template-columns:32px 1fr auto 44px;gap:12px;align-items:center;
+    padding:11px 0;border-bottom:1px solid rgba(0,0,0,.07)}
+  .grow .ga{width:32px;height:32px;border-radius:50%;background:rgba(194,65,12,.12);color:var(--brasa);
+    display:grid;place-items:center;font-family:var(--serif);font-size:10.5px;letter-spacing:.08em}
+  .grow .gn{font-family:var(--serif);font-weight:400;font-size:15px}
+  .grow .gm{font-family:var(--serif);font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#A2968A}
+  .grow .gc{font-family:var(--mono);font-size:12px;text-align:right;color:#5C5149;font-variant-numeric:tabular-nums}
+  .placa{background:var(--papel);color:var(--tinta);aspect-ratio:210/297;border-radius:3px;padding:44px 38px 34px;display:flex;flex-direction:column;box-shadow:0 50px 90px -30px rgba(0,0,0,.9);transform:rotate(1.2deg)}
+  .placa .couple{font-family:var(--serif);font-weight:300;font-size:28px;line-height:1.14;letter-spacing:-.012em;margin:0 0 9px}
+  .placa .date{font-family:var(--serif);font-size:9.5px;letter-spacing:.32em;color:#A99C90;margin:0 0 7px}
+  .placa hr{height:1px;border:0;background:var(--ambar);width:30px;margin:0 0 24px}
+  .placa .call{font-family:var(--serif);font-weight:300;font-size:21px;line-height:1.3;margin:0 0 26px;letter-spacing:-.01em}
+  .qr-holder{align-self:center;margin-bottom:13px}
+  .qr-holder canvas{display:block}
+  .placa .url{font-family:var(--mono);font-size:9px;letter-spacing:.06em;text-align:center;color:#8A7C6F;margin:0 0 26px}
+  .placa .ms{border-top:1px solid #EFE8DC;padding-top:18px;margin-top:auto}
+  .placa .ms-item{display:grid;grid-template-columns:28px 1fr;gap:7px;margin-bottom:10px;align-items:baseline}
+  .placa .ms-item .n{font-family:var(--serif);font-size:8.5px;letter-spacing:.2em;color:var(--brasa)}
+  .placa .ms-item .t{font-family:var(--serif);font-size:12px;line-height:1.34}
+  .placa .sig{font-family:var(--serif);font-size:9px;letter-spacing:.32em;text-transform:uppercase;color:#B0A294;text-align:center;margin:18px 0 0}
+
+  /* ── álbum da noite ───────────────────────────────── */
+  .album{display:flex;flex-direction:column;height:100%}
+  .cover{position:relative;height:252px;flex:none;overflow:hidden}
+  .cover img{width:100%;height:100%;object-fit:cover;display:block}
+  .cover::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(14,10,8,.3) 0%,rgba(14,10,8,0) 26%,rgba(14,10,8,.5) 62%,#0E0A08 97%)}
+  .cover-txt{position:absolute;left:0;right:0;bottom:18px;text-align:center;z-index:1}
+  .cover-txt .ttl{font-family:var(--serif);font-weight:300;font-size:30px;letter-spacing:-.014em;margin:0;color:#F5EEE5}
+  .cover-txt .dt{font-family:var(--serif);font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:rgba(245,238,229,.54);margin:9px 0 0}
+  .album-stats{display:flex;justify-content:center;flex:none;padding:0 28px 20px}
+  .album-stats div{flex:1;text-align:center;border-left:1px solid rgba(245,238,229,.1)}
+  .album-stats div:first-child{border-left:0}
+  .album-stats .k{font-family:var(--serif);font-weight:300;font-size:25px;color:#F5EEE5;display:block;font-variant-numeric:tabular-nums}
+  .album-stats .u{font-family:var(--serif);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:rgba(245,238,229,.4);display:block;margin-top:5px}
+  .timeline{flex:1;overflow-y:auto;padding:6px 28px 26px}
+  .tl-row{display:grid;grid-template-columns:72px 1fr;gap:14px;padding:18px 0;border-top:1px solid rgba(245,238,229,.09)}
+  .tl-row:first-child{border-top:0}
+  .tl-hour{font-family:var(--serif);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:rgba(245,238,229,.44);padding-top:12px}
+  .tl-row.dawn .tl-hour{color:var(--ambar)}
+  .tl-thumbs{display:flex;flex-wrap:wrap;gap:8px}
+  .tl-dot{width:44px;height:44px;border-radius:50%;overflow:hidden;flex:none;position:relative;cursor:pointer;transition:transform .26s var(--spring)}
+  .tl-dot img{width:100%;height:100%;object-fit:cover;display:block}
+  .tl-dot:hover{transform:scale(1.14);z-index:2}
+  .tl-dot.more{display:grid;place-items:center;background:rgba(245,238,229,.07);font-family:var(--serif);font-size:12px;color:rgba(245,238,229,.64)}
+  .tl-row.dawn .tl-dot::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 0 0 1px var(--ambar)}
+  .album-cta{flex:none;padding:16px 28px 26px;border-top:1px solid rgba(245,238,229,.1);display:flex;gap:14px;align-items:center}
+  .album-cta .lnk{font-family:var(--serif);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:rgba(245,238,229,.48)}
+  .album-cta .go{margin-left:auto;font-family:var(--sans);font-size:13.5px;font-weight:500;letter-spacing:0;padding:13px 24px;border-radius:100px;background:var(--ambar);color:#150F0A}
+
+  /* ── compartilhar ─────────────────────────────────── */
+  .share-row{display:flex;gap:30px;align-items:flex-start;flex-wrap:wrap;margin-top:8px}
+  .share-row .story{width:214px}
+  .story{width:280px;aspect-ratio:9/16;flex:none;position:relative;border-radius:18px;overflow:hidden;background:#0E0A08;box-shadow:0 3px 5px rgba(0,0,0,.5),0 50px 80px -30px rgba(0,0,0,.9);display:flex;flex-direction:column}
+  .story .sbg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(44px) brightness(.36) saturate(1.2);transform:scale(1.25)}
+  .story .shead{position:relative;text-align:center;padding:28px 20px 16px}
+  .story .mono{font-family:var(--serif);font-weight:300;font-size:30px;color:#F5EEE5;margin:0;letter-spacing:.02em}
+  .story .dt{font-family:var(--serif);font-size:8.5px;letter-spacing:.3em;text-transform:uppercase;color:rgba(245,238,229,.54);margin:8px 0 0}
+  .story .sfoto{position:relative;margin:0 18px;border-radius:7px;overflow:hidden;background:#0A0706;flex:none}
+  .story .sfoto img{width:100%;display:block}
+  .story .snote{position:relative;margin:14px 18px 0;background:#F6F0E4;padding:13px 14px;border-radius:2px;transform:rotate(-1.2deg);box-shadow:0 8px 18px -8px rgba(0,0,0,.6)}
+  .story .snote p{font-family:var(--serif);font-weight:400;font-size:11px;line-height:1.42;color:var(--tinta);margin:0}
+  .story .snote .sb{font-family:var(--serif);font-size:7px;letter-spacing:.24em;text-transform:uppercase;color:#A99C90;display:block;margin-top:8px}
+  .story .ssig{position:relative;margin-top:auto;text-align:center;padding:16px 0 24px}
+  .story .ssig b{font-family:var(--serif);font-weight:400;font-size:9.5px;letter-spacing:.28em;text-transform:uppercase;color:rgba(245,238,229,.66);display:block}
+  .story .ssig span{font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;color:rgba(245,238,229,.36);display:block;margin-top:6px}
+  .story.collage .grid{position:relative;margin:0 16px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .story.collage .grid div{border-radius:5px;overflow:hidden;background:#0A0706}
+  .story.collage .grid div:first-child{grid-column:1/-1}
+  .story.collage .grid img{width:100%;height:100%;object-fit:cover;display:block}
+  .story.collage .grid div:first-child img{aspect-ratio:4/3}
+  .story.collage .grid div:not(:first-child) img{aspect-ratio:1}
+  .share-note{flex:1;min-width:250px}
+  .share-note h4{font-family:var(--serif);font-weight:400;font-size:19px;margin:0 0 14px}
+  .share-note p{font-size:15px;line-height:1.7;color:var(--ink2);margin:0 0 16px}
+  .share-note ul{margin:0;padding-left:18px}
+  .share-note li{font-size:14.5px;line-height:1.64;color:var(--ink2);margin-bottom:9px}
+  .share-note li b{color:var(--ink);font-weight:500}
+
+  /* ── landing por vertical ─────────────────────────── */
+  .verticals{display:flex;gap:34px;margin:0 0 44px;flex-wrap:wrap}
+  .vtab{font-family:var(--serif);font-size:15px;padding:0 0 9px;border:0;border-bottom:1px solid transparent;background:none;color:var(--ink3);cursor:pointer;transition:color .24s,border-color .24s;text-align:left}
+  .vtab.on{color:var(--acc);border-bottom-color:var(--acc)}
+  .vtab span{display:block;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink3);margin-top:6px}
+  /* a landing é a própria seção, em largura total — página clara
+     espremida dentro de moldura dentro de outra página nunca funciona */
+  .browser{margin:0}
+  .landing{background:var(--papel);color:var(--tinta);padding:104px 30px 90px;max-width:none}
+  @media(max-width:700px){.landing{padding:56px 26px 48px}}
+  .landing>*{max-width:1120px;margin-left:auto;margin-right:auto}
+  .addr-line{font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--ink3);margin:0 0 44px}
+  .addr-line span{border-bottom:1px solid var(--hair);padding-bottom:5px}
+  .landing .nav{display:flex;justify-content:space-between;align-items:center;padding-bottom:78px}
+  .landing .nav .lg{font-family:var(--serif);font-size:18px;letter-spacing:.1em}
+  .landing .nav .lk{display:flex;gap:8px;flex-wrap:wrap}
+  .landing .nav .lk{align-items:center;gap:26px}
+  .landing .nav .lk b{font-family:var(--sans);font-weight:400;font-size:14px;color:#544A43}
+  .landing .nav .lk b.solid{background:var(--tinta);color:var(--papel);
+    padding:11px 22px;border-radius:100px;font-size:13.5px;font-weight:500}
+  .l-hero{position:relative;margin:0;border-radius:8px;overflow:hidden;aspect-ratio:16/10;background:#0E0A08}
+  @media(max-width:700px){.l-hero{aspect-ratio:4/5}}
+  .l-hero img{width:100%;height:100%;object-fit:cover;display:block}
+  .l-hero .scrim{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,7,6,.44),rgba(10,7,6,.1) 40%,rgba(10,7,6,.6))}
+  .l-hero .inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:36px}
+  .l-hero .brow{font-family:var(--serif);font-size:11px;letter-spacing:.44em;text-transform:uppercase;color:rgba(255,248,240,.82);margin:0 0 24px}
+  .l-hero .ttl{font-family:var(--serif);font-weight:300;font-size:clamp(30px,4.6vw,56px);line-height:1.06;letter-spacing:-.02em;color:#FFF8F0;margin:0;max-width:16ch;text-wrap:balance;text-shadow:0 1px 26px rgba(10,7,6,.4)}
+  .landing .sub{font-size:17px;line-height:1.74;color:#544A43;max-width:46ch;margin:48px 0 42px}
+  /* No fundo claro o primário é sólido escuro, não âmbar.
+     Âmbar continua sendo metal — filete, não superfície grande. */
+  .ctas{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .ctas.center{justify-content:center}
+  .btn-p,.btn-s{
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--sans);font-size:14.5px;font-weight:500;letter-spacing:0;
+    padding:0 34px;min-height:50px;border-radius:100px;border:0;cursor:pointer;
+    transition:transform .2s var(--spring),background .2s,box-shadow .2s}
+  .btn-p{background:var(--tinta);color:var(--papel)}
+  .btn-p:hover{background:#2C2520}
+  .btn-s{background:transparent;color:var(--tinta);box-shadow:inset 0 0 0 1px rgba(23,19,16,.16)}
+  .btn-s:hover{box-shadow:inset 0 0 0 1px rgba(23,19,16,.4)}
+  .btn-p:active,.btn-s:active{transform:scale(.975)}
+  .cta-hint{font-family:var(--sans);font-size:13px;color:#8E8175;margin:16px 0 0;letter-spacing:0}
+
+  /* barra fixa no mobile — o CTA precisa estar alcançável em qualquer scroll */
+  .cta-dock{display:none}
+  @media(max-width:700px){
+    .cta-dock{display:flex;position:sticky;bottom:0;z-index:20;gap:10px;align-items:center;
+      margin:0 -26px;padding:14px 22px calc(14px + env(safe-area-inset-bottom));
+      background:rgba(250,247,242,.94);border-top:1px solid #E6DFD4}
+    .cta-dock .btn-p{flex:1;justify-content:center;min-height:52px}
+    .cta-dock .price{font-family:var(--serif);font-size:12px;color:#8A7C6F;flex:none}
+  }
+  .pile{display:flex;justify-content:center;align-items:flex-start;padding:44px 0 30px;flex-wrap:wrap}
+  .print{background:#FDFBF7;padding:10px 10px 34px;border-radius:2px;box-shadow:0 1px 1px rgba(23,19,16,.16),0 18px 32px -14px rgba(23,19,16,.36);width:168px;flex:none;margin:0 -16px;transition:transform .5s var(--ease),box-shadow .5s var(--ease)}
+  .print img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+  .print .cap{font-family:var(--serif);font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:#A99C90;text-align:center;margin:12px 0 0;display:block}
+  /* planos diferentes: as de trás ficam menores e fora de foco,
+     como profundidade de campo real — não como vidro */
+  .print:nth-child(1){transform:rotate(-7deg) translateY(16px) scale(.84);z-index:1;filter:blur(1.6px);opacity:.82}
+  .print:nth-child(5){filter:blur(1.1px);opacity:.9}
+  .print:nth-child(2){transform:rotate(3.5deg) translateY(-7px);z-index:3}
+  .print:nth-child(3){transform:rotate(-2deg) scale(1.1);z-index:5}
+  .print:nth-child(4){transform:rotate(5.5deg) translateY(-2px);z-index:4}
+  .print:nth-child(5){transform:rotate(-4.5deg) translateY(18px) scale(.9);z-index:2}
+  .print:hover{transform:rotate(0) translateY(-12px) scale(1.12);z-index:9;filter:none;opacity:1;box-shadow:0 1px 1px rgba(23,19,16,.16),0 32px 52px -16px rgba(23,19,16,.44)}
+  @media(max-width:640px){.print{width:126px;margin:0 -11px}}
+  .l-sec{padding:82px 0 0}
+  .l-eyebrow{font-family:var(--serif);font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--brasa);margin:0 0 20px}
+  .l-h{font-family:var(--serif);font-weight:300;font-size:37px;line-height:1.16;letter-spacing:-.016em;margin:0 0 20px;max-width:20ch}
+  .l-p{font-size:16px;line-height:1.76;color:#544A43;max-width:52ch;margin:0}
+  .demo{margin-top:38px;background:#0E0A08;border-radius:12px;padding:48px 44px;display:grid;grid-template-columns:auto 1fr;gap:44px;align-items:center;position:relative;overflow:hidden}
+  @media(max-width:640px){.demo{grid-template-columns:1fr;gap:28px;padding:34px 28px;text-align:center;justify-items:center}}
+  .demo::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(88% 60% at 16% 0%,rgba(232,135,58,.16),transparent 62%)}
+  .demo>*{position:relative}
+  .demo .qrwrap{background:#FAF7F2;padding:14px;border-radius:6px;flex:none}
+  .demo .qrwrap canvas{display:block}
+  .demo .lead{font-family:var(--serif);font-weight:300;font-size:30px;line-height:1.2;color:#F5EEE5;margin:0 0 16px;letter-spacing:-.014em}
+  .demo .lead em{color:var(--ambar)}
+  .demo .txt{font-size:15px;line-height:1.7;color:rgba(245,238,229,.7);margin:0 0 20px;max-width:44ch}
+  .demo .alt{font-family:var(--serif);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--ambar);border-bottom:1px solid rgba(232,135,58,.44);padding-bottom:5px}
+  .note-card{background:#F6F0E4;padding:22px 24px;border-radius:2px;width:250px;transform:rotate(1.6deg);box-shadow:0 1px 1px rgba(23,19,16,.12),0 16px 30px -16px rgba(23,19,16,.34);position:relative;margin:30px auto 0}
+  .note-card::before{content:"";position:absolute;top:-10px;left:50%;transform:translateX(-50%) rotate(-2deg);width:68px;height:21px;background:rgba(232,135,58,.24);box-shadow:inset 0 0 0 1px rgba(232,135,58,.18)}
+  .note-card p{font-family:var(--serif);font-weight:300;font-size:15px;line-height:1.5;color:var(--tinta);margin:0}
+  .note-card .by{font-family:var(--serif);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:#A99C90;display:block;margin-top:14px}
+  .l-qa{border-top:1px solid #E9E1D5;margin-top:50px}
+  .l-qa div{padding:26px 0;border-bottom:1px solid #E9E1D5}
+  .l-qa .q{font-family:var(--serif);font-weight:300;font-size:20px;margin:0 0 10px}
+  .l-qa .a{font-size:15px;line-height:1.72;color:#544A43;margin:0;max-width:58ch}
+  .anchor{border-left:1px solid var(--brasa);padding:6px 0 6px 26px;margin:0 0 38px}
+  .anchor .strike{font-family:var(--serif);font-weight:300;font-size:23px;color:#A99C90;margin:0 0 10px;text-decoration:line-through;text-decoration-thickness:1px}
+  .anchor .real{font-family:var(--serif);font-weight:300;font-size:32px;color:var(--tinta);margin:0;letter-spacing:-.016em}
+  .l-price{margin-top:42px;display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #E9E1D5;align-items:start}
+  @media(max-width:820px){.l-price{grid-template-columns:1fr}}
+  .l-plan{padding:32px 28px 32px 0;border-left:1px solid #E9E1D5;position:relative}
+  .l-plan:first-child{border-left:0}
+  .l-plan:not(:first-child){padding-left:28px}
+  @media(max-width:820px){.l-plan{border-left:0;border-top:1px solid #E9E1D5;padding-left:0!important}.l-plan:first-child{border-top:0}}
+  .l-plan.hero{background:rgba(232,135,58,.055);padding-left:28px;padding-right:28px}
+  .l-plan .tagme{font-family:var(--serif);font-size:9px;letter-spacing:.24em;text-transform:uppercase;color:var(--brasa);display:block;margin:0 0 12px}
+  .l-plan .pn{font-family:var(--serif);font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:#A99C90;margin:0 0 12px}
+  .l-plan .pv{font-family:var(--serif);font-weight:300;font-size:38px;line-height:1;margin:0 0 5px;letter-spacing:-.018em}
+  .l-plan .pu{font-family:var(--serif);font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:#A99C90;margin:0 0 20px}
+  .l-plan ul{list-style:none;margin:0;padding:0}
+  .l-plan li{font-size:14px;line-height:1.56;color:#544A43;padding:8px 0 8px 18px;position:relative}
+  .l-plan li::before{content:"";position:absolute;left:0;top:15px;width:7px;height:1px;background:var(--ambar)}
+  .l-plan li b{color:var(--tinta);font-weight:500}
+  .l-plan li.soon{color:#A99C90}
+  .l-plan li.soon::before{background:#D3C7B8}
+  .per-guest{margin-top:28px;padding-top:24px;border-top:1px solid #E9E1D5;font-family:var(--serif);font-weight:300;font-size:20px;line-height:1.5;color:#544A43}
+  .per-guest b{color:var(--tinta);font-weight:400}
+  .l-close{margin-top:70px;padding:56px 0;border-top:1px solid #E9E1D5;text-align:center}
+  .l-close p{font-family:var(--serif);font-weight:300;font-size:clamp(23px,3.4vw,36px);line-height:1.28;letter-spacing:-.014em;margin:0 auto 32px;max-width:24ch}
+  .l-foot{border-top:1px solid #E9E1D5;padding:30px 0 90px;margin-top:52px;display:flex;justify-content:space-between;align-items:center;font-family:var(--serif);font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#A99C90;flex-wrap:wrap;gap:12px}
+
+  /* revelação por scroll — sobe e ganha foco, sem exagero */
+  .rv{opacity:0;transform:translateY(22px);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+  .rv.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}}
+
+  /* contador de slide do telão */
+  .telao-count{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);
+    display:flex;align-items:center;gap:18px;font-family:var(--serif);
+    font-size:11px;letter-spacing:.24em;color:rgba(245,238,229,.5)}
+  .telao-count i{display:block;width:34px;height:1px;background:rgba(245,238,229,.34)}
+
+  footer{padding:90px 0 120px;border-top:1px solid var(--hair);color:var(--ink3);font-size:14.5px;max-width:62ch;line-height:1.76}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  @media(prefers-reduced-motion:reduce){
+    .strip-track,.telao-sweep.go,.live .sweep,.pulse,.adm-top .live i{animation:none}
+    .pane.live,.adm-view.on{animation:none}
+    .telao-slide[data-m="cheio"].on img{animation:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+
+<!-- ══════════ HERO ══════════ -->
+<div class="shell">
+<header class="hero">
+  <div class="wrap">
+    <div class="mk">
+      <svg class="mklogo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 64" role="img" aria-label="Albora"><defs><linearGradient id="alb-a" gradientUnits="userSpaceOnUse" x1="32" y1="44" x2="32" y2="19"><stop offset="0" stop-color="#9E4A22"/><stop offset=".5" stop-color="#D9793C"/><stop offset="1" stop-color="#EFA463"/></linearGradient><clipPath id="alb-hz"><rect x="0" y="0" width="64" height="43"/></clipPath><style>.alb-arco{stroke-dasharray:65.97;stroke-dashoffset:65.97;animation:alb-tracar .9s cubic-bezier(.3,.7,.3,1) .1s forwards}
+.alb-sobe{transform:translateY(11px);animation:alb-subir .55s cubic-bezier(.2,.8,.3,1) .85s forwards}
+.alb-sol{transform:scale(.5);opacity:0;animation:alb-assentar .5s cubic-bezier(.2,.9,.3,1) .95s forwards}
+@keyframes alb-tracar{to{stroke-dashoffset:0}}
+@keyframes alb-subir{to{transform:translateY(0)}}
+@keyframes alb-assentar{0%{transform:scale(.5);opacity:0}30%{opacity:1}55%{transform:scale(1.35)}100%{transform:scale(1);opacity:1}}
+.alb-nome{opacity:0;transform:translateY(7px);animation:alb-surgir .6s cubic-bezier(.2,.75,.3,1) 1.3s forwards}
+@keyframes alb-surgir{to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.alb-arco{animation:none;stroke-dashoffset:0}.alb-sobe{animation:none;transform:none}.alb-sol{animation:none;transform:none;opacity:1}.alb-flash{animation:none;opacity:0}.alb-nome{animation:none;opacity:1;transform:none}}</style></defs><path class="alb-arco" d="M11 42 A21 21 0 0 1 53 42" fill="none" stroke="url(#alb-a)" stroke-width="2.4" stroke-linecap="round"/><g clip-path="url(#alb-hz)"><g transform="translate(32 39.4)"><g class="alb-sobe"><circle class="alb-sol" r="2.9" fill="#D9793C"/></g></g></g><text class="alb-nome" x="86" y="46" font-family="Fraunces, Georgia, serif" font-weight="400" font-size="42" letter-spacing="3.4" fill="#F4F0E9">Albora</text></svg>
+    </div>
+    <h1>A festa até o <em>amanhecer</em>, em fotos.</h1>
+    <p class="sub">Protótipo funcional. A câmera é a sua — tire uma foto de verdade e veja ela entrar no telão.</p>
+  </div>
+  <div class="strip" aria-hidden="true"><div class="strip-track" id="strip"></div></div>
+</header>
+
+<!-- ══════════ 19h — ANTES ══════════ -->
+<section class="band t0">
+  <div class="wrap">
+    <p class="hour"><b>19h</b><span>Antes de todo mundo chegar</span></p>
+    <h2>O casal não desenha <em>nada.</em></h2>
+    <p class="lede">Escolhe as missões e recebe o PDF pronto para gráfica. <em>É a primeira materialização da identidade</em> — a mesma paleta que volta no telão e no álbum.</p>
+
+    <div class="objects">
+      <div class="macwin">
+        <aside class="mac-side">
+          <div class="mac-lights" aria-hidden="true"><i></i><i></i><i></i></div>
+          <p class="mac-group">Evento</p>
+          <button class="mac-item adm-tab on" data-v="live"><span class="dot"></span>Ao vivo<span class="ct">847</span></button>
+          <button class="mac-item adm-tab" data-v="miss"><span class="dot"></span>Missões<span class="ct">10</span></button>
+          <button class="mac-item adm-tab" data-v="guests"><span class="dot"></span>Convidados<span class="ct">94</span></button>
+          <button class="mac-item adm-tab" data-v="pecas"><span class="dot"></span>Peças<span class="ct">3</span></button>
+          <p class="mac-group">Depois</p>
+          <button class="mac-item adm-tab" data-v="album"><span class="dot"></span>Álbum</button>
+          <p class="foot">Ana &amp; João<br>14 nov 2026</p>
+        </aside>
+
+        <main class="mac-main">
+          <div class="mac-bar">
+            <span class="ttl">Ana &amp; João</span>
+            <span class="sub">Salão Vila Real</span>
+            <div class="seg" id="segPeriod">
+              <button class="on">Agora</button><button>Noite</button><button>Tudo</button>
+            </div>
+            <span class="kbd">⌘K</span>
+          </div>
+
+          <div class="mac-content">
+            <div class="adm-view on" data-view="live">
+              <div class="hero-metric">
+                <span class="big" id="partPct">0%</span>
+                <span class="side"><p class="l">Participação</p><p class="v"><span id="partN">0</span> de 150 convidados mandaram foto</p></span>
+              </div>
+              <div class="goal">
+                <div class="track"><span class="fill" id="goalFill"></span><span class="mark"></span></div>
+                <div class="cap"><span>0</span><span>meta 40%</span><span>100</span></div>
+              </div>
+              <div class="funnel">
+                <div><p class="n">138</p><p class="s">Escanearam</p><p class="d">92% dos presentes</p></div>
+                <div><p class="n">126</p><p class="s">Consentiram</p><p class="d">−12 saíram</p></div>
+                <div><p class="n">112</p><p class="s">Capturaram</p><p class="d">−14</p></div>
+                <div><p class="n">94</p><p class="s">Enviaram</p><p class="d">−18 na fila</p></div>
+                <div><p class="n">847</p><p class="s">Fotos</p><p class="d">9 por pessoa</p></div>
+              </div>
+              <div class="feed-head"><span class="t">Chegando agora</span><button class="panic" id="panic">Pausar telão</button></div>
+              <div class="feed" id="feed"></div>
+            </div>
+
+            <div class="adm-view" data-view="miss">
+              <p class="adm-label">Conclusão por missão</p>
+              <div class="mission-rows" id="mrows"></div>
+            </div>
+
+            <div class="adm-view" data-view="guests">
+              <p class="adm-label">Quem mandou foto</p>
+              <div class="glist">
+                <div class="grow"><span class="ga">TJ</span><span class="gn">Tio João</span><span class="gm">Pista · 01h47</span><span class="gc">31</span></div>
+                <div class="grow"><span class="ga">BI</span><span class="gn">Bia</span><span class="gm">Mesa 4 · 23h12</span><span class="gc">28</span></div>
+                <div class="grow"><span class="ga">MA</span><span class="gn">Marcos</span><span class="gm">Bar · 00h38</span><span class="gc">22</span></div>
+                <div class="grow"><span class="ga">DC</span><span class="gn">Dona Célia</span><span class="gm">Jardim · 20h04</span><span class="gc">17</span></div>
+                <div class="grow"><span class="ga">RA</span><span class="gn">Rafa</span><span class="gm">Pista · 02h21</span><span class="gc">14</span></div>
+                <div class="grow"><span class="ga">LU</span><span class="gn">Lu</span><span class="gm">Altar · 19h50</span><span class="gc">9</span></div>
+              </div>
+              <p style="font-size:12.5px;color:#8A7C6F;line-height:1.66;margin:20px 0 0;max-width:52ch">
+                O nome é obrigatório na entrada justamente para esta tela existir — sem
+                atribuição não há “suas fotos” depois da festa, nem responsabilização na
+                moderação.
+              </p>
+            </div>
+
+            <div class="adm-view" data-view="pecas">
+              <p class="adm-label">Formato</p>
+              <div class="formats">
+                <button class="fmt on">Placa A4</button><button class="fmt">Card de mesa</button><button class="fmt">Card de missão</button>
+              </div>
+              <p class="adm-label">Verificações</p>
+              <div class="adm-rows">
+                <div class="adm-row"><span class="k">Contraste do QR</span><span class="v">alto ✓</span></div>
+                <div class="adm-row"><span class="k">Tamanho do QR</span><span class="v">38 mm ✓</span></div>
+                <div class="adm-row"><span class="k">Correção de erro</span><span class="v">nível H ✓</span></div>
+                <div class="adm-row"><span class="k">Sangria</span><span class="v">3 mm ✓</span></div>
+                <div class="adm-row"><span class="k">Conversão de cor</span><span class="v warn">RGB → CMYK</span></div>
+              </div>
+              <button class="btn-adm">Baixar PDF para gráfica</button>
+            </div>
+
+            <div class="adm-view" data-view="album">
+              <p class="adm-label">Depois da festa</p>
+              <div class="adm-rows">
+                <div class="adm-row"><span class="k">Baixar tudo (ZIP)</span><span class="v">847 fotos · 1,2 GB</span></div>
+                <div class="adm-row"><span class="k">Entrega individual</span><span class="v">62 com opt-in</span></div>
+                <div class="adm-row"><span class="k">Export para o Drive</span><span class="v">dia 330</span></div>
+                <div class="adm-row"><span class="k">Exclusão</span><span class="v warn">dia 365</span></div>
+              </div>
+              <button class="btn-adm">Montar o livro de fotos</button>
+            </div>
+          </div>
+        </main>
+
+        <aside class="mac-insp">
+          <h5>Detalhes</h5>
+          <div class="insp-row"><span class="k">Data</span><span class="v">14 nov 2026</span></div>
+          <div class="insp-row"><span class="k">Esperados</span><span class="v">150</span></div>
+          <div class="insp-row"><span class="k">Plano</span><span class="v">Celebração</span></div>
+          <div class="insp-row"><span class="k">Telão</span><span class="v live">rodando</span></div>
+          <div class="insp-row"><span class="k">Moderação</span><span class="v">aberta</span></div>
+          <div class="insp-row"><span class="k">Recados</span><span class="v">abertos</span></div>
+
+          <h5 style="margin-top:26px">Identidade</h5>
+          <div class="insp-swatches" aria-label="Paleta do evento">
+            <i style="background:#14100E"></i><i style="background:#E8873A"></i>
+            <i style="background:#FAF7F2"></i><i style="background:#C2410C"></i>
+          </div>
+          <div class="insp-row" style="margin-top:12px"><span class="k">Display</span><span class="v">Fraunces</span></div>
+          <div class="insp-row"><span class="k">Modelo do telão</span><span class="v">Polaroide</span></div>
+
+          <div class="insp-note">
+            <b>Participação em 63%</b>
+            Acima da meta de 40%. O anúncio no microfone às 21h40 foi o que virou a curva.
+          </div>
+        </aside>
+      </div>
+
+      <div class="placa">
+        <p class="couple">Ana &amp; João</p>
+        <p class="date">XIV · XI · MMXXVI</p>
+        <hr>
+        <p class="call">Tira foto.<br><em>A gente cuida do resto.</em></p>
+        <div class="qr-holder"><canvas id="qr" width="134" height="134" aria-label="QR do evento"></canvas></div>
+        <p class="url">albora.com.br/anaejoao</p>
+        <div class="ms">
+          <div class="ms-item"><span class="n">III</span><span class="t">Uma foto com os noivos antes da meia-noite</span></div>
+          <div class="ms-item"><span class="n">VII</span><span class="t">O detalhe que ninguém reparou</span></div>
+          <div class="ms-item"><span class="n">XIX</span><span class="t">A pista depois das 2h</span></div>
+        </div>
+        <p class="sig">Albora</p>
+      </div>
+      <p class="cap-obj">O PDF que sai da aba <em>Peças</em> — sangria de 3 mm, QR em alto contraste e nível H de correção de erro.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 21h — CONVIDADO ══════════ -->
+<section class="band t1">
+  <div class="wrap">
+    <p class="hour"><b>21h</b><span>O caminho crítico</span></p>
+    <h2>Cinco toques até a <em>primeira foto.</em></h2>
+    <p class="lede">Uma ação por tela, alvo alto, muito espaço vazio. <em>Quem está usando isso está de pé, no escuro, com um copo na outra mão.</em></p>
+
+    <div class="idbar" id="idbar">
+      <button class="idchip on" data-id="amanhecer"><span class="sw"></span><span class="nm">Amanhecer</span></button>
+      <button class="idchip" data-id="jardim"><span class="sw"></span><span class="nm">Jardim</span></button>
+      <button class="idchip" data-id="ameixa"><span class="sw"></span><span class="nm">Ameixa</span></button>
+      <button class="idchip" data-id="marinho"><span class="sw"></span><span class="nm">Marinho</span></button>
+      <div class="ground" id="ground">
+        <button class="gbtn on" data-g="noite">Noite</button>
+        <button class="gbtn" data-g="papel">Papel</button>
+      </div>
+      <p class="hint"><b>A identidade do casal assume o app.</b> Troque o modelo e veja o acento, a tipografia, o filtro recomendado e o modelo do telão mudarem juntos — sem que nenhum componente saiba disso.</p>
+    </div>
+
+    <div class="stage">
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar"><span>22:47</span><span class="dots" aria-hidden="true"><i style="height:4px"></i><i style="height:7px"></i><i style="height:11px"></i><i style="height:5px;opacity:.3"></i></span></div>
+
+          <div class="pane live" data-pane="0">
+            <div class="crown"><p class="lab">Ana &amp; João</p></div>
+            <div class="spacer"></div>
+            <h3 class="display d-xl">Tira foto.<br><em>A gente cuida do resto.</em></h3>
+            <p class="body-s" style="margin:22px 0 36px">Suas fotos entram no álbum da festa e podem aparecer no telão. Você pode tirar qualquer uma delas depois.</p>
+            <div class="consent" id="consent" role="checkbox" aria-checked="false" tabindex="0">
+              <span class="box"><i></i></span>
+              <span class="body-s" style="color:rgba(245,238,229,.86)">Tudo bem, pode usar minhas fotos na festa</span>
+            </div>
+            <button class="btn" id="b0" disabled>Começar</button>
+          </div>
+
+          <div class="pane" data-pane="1">
+            <div class="crown"><p class="lab">Ana &amp; João</p></div>
+            <div class="spacer"></div>
+            <h3 class="display d-xl">Como te chamamos?</h3>
+            <p class="body-s" style="margin:20px 0 44px">Aparece junto das suas fotos, no telão e no álbum. Apelido serve.</p>
+            <input class="field" id="nome" placeholder="Tio João" autocomplete="off" aria-label="Seu nome">
+            <div class="spacer"></div>
+            <button class="btn" id="b1" disabled>Continuar</button>
+          </div>
+
+          <div class="pane" data-pane="2">
+            <div class="crown"><p class="lab">Missões</p></div>
+            <h3 class="display d-lg" style="margin:22px 0 8px">Escolhe uma.</h3>
+            <p class="body-s" style="margin:0 0 22px">Ou manda o que quiser.</p>
+            <div class="missions" id="missions"></div>
+            <button class="btn hair" id="freeShot" style="margin-top:18px">Mandar sem missão</button>
+          </div>
+
+          <div class="pane" data-cam="idle" data-pane="3">
+            <div class="crown"><p class="lab" id="capLabel">Missão III</p></div>
+            <p class="display" id="capText" style="font-weight:400;font-size:21px;line-height:1.3;margin:14px 0 18px">Uma foto com os noivos antes da meia-noite</p>
+            <div class="viewfinder" id="vf">
+              <video id="cam" playsinline muted autoplay style="display:none"></video>
+              <img id="shot" alt="" style="display:none">
+              <div class="vf-grid" id="vfgrid" style="display:none"></div>
+              <div class="vf-hint" id="vfhint">
+                <p class="lab">Câmera</p>
+                <p>Toque em <strong>Abrir câmera</strong> para usar a do seu aparelho, ou escolha uma foto do rolo.</p>
+              </div>
+              <span class="vig" id="vig"></span>
+              <div class="flash" id="flash"></div>
+            </div>
+            <div class="editor" id="presets">
+              <div class="ed-tabs">
+                <button class="ed-tab on" data-p="filtros">Filtros</button>
+                <button class="ed-tab" data-p="ajustes">Ajustes</button>
+              </div>
+              <div class="ed-panel on" data-panel="filtros">
+                <div class="fstrip" id="fstrip"></div>
+                <div class="slid"><label>Intensidade</label><input type="range" id="sInt" min="0" max="100" value="100"><output id="oInt">100</output></div>
+              </div>
+              <div class="ed-panel" data-panel="ajustes">
+                <div class="slid"><label>Luz</label><input type="range" id="sLuz" min="-50" max="50" value="0"><output id="oLuz">0</output></div>
+                <div class="slid"><label>Calor</label><input type="range" id="sCal" min="-50" max="50" value="0"><output id="oCal">0</output></div>
+                <div class="slid"><label>Contraste</label><input type="range" id="sCon" min="-50" max="50" value="0"><output id="oCon">0</output></div>
+                <div class="slid"><label>Vinheta</label><input type="range" id="sVig" min="0" max="100" value="0"><output id="oVig">0</output></div>
+              </div>
+            </div>
+
+            <div class="pickrow">
+              <button class="pick" id="openCam">Abrir câmera</button>
+              <button class="pick" id="pickBtn">Escolher do rolo</button>
+            </div>
+            <div class="shutter-row"><button class="shutter" id="shutter" aria-label="Tirar foto" disabled><i></i></button></div>
+            <button class="rolo" id="roloLink">ou escolher do rolo</button>
+            <input type="file" accept="image/*" id="file" class="sr" aria-label="Escolher foto">
+            <button class="btn" id="b3" style="margin-top:16px" disabled>Enviar</button>
+          </div>
+
+          <div class="pane" data-pane="4">
+            <div class="crown"><p class="lab">Enquanto sobe</p></div>
+            <div style="height:10px"></div>
+            <div class="upbar">
+              <span class="uploader"><svg class="uparc" viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="upg" gradientUnits="userSpaceOnUse" x1="32" y1="44" x2="32" y2="19"><stop offset="0" stop-color="#9E4A22"/><stop offset=".5" stop-color="#D9793C"/><stop offset="1" stop-color="#EFA463"/></linearGradient></defs><path d="M11 42 A21 21 0 0 1 53 42" fill="none" stroke="#F4F0E9" stroke-width="2.4" stroke-linecap="round" opacity=".16"/><path id="upProg" d="M11 42 A21 21 0 0 1 53 42" fill="none" stroke="url(#upg)" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="65.97" stroke-dashoffset="65.97" style="transition:stroke-dashoffset .3s ease-out"/></svg><img id="upMini" alt=""></span>
+              <span class="txt"><b>Sua foto já está subindo</b><span id="upPct">enviando… 0%</span><span class="uptrack"><i id="upFill"></i></span></span>
+            </div>
+            <div style="height:22px"></div>
+            <p class="lab" style="color:rgba(245,238,229,.34)">Legenda</p>
+            <textarea class="cap-field" id="capField" rows="2" placeholder="Escreve alguma coisa…" aria-label="Legenda"></textarea>
+            <div style="height:26px"></div>
+            <p class="lab" style="color:rgba(245,238,229,.34)">Onde na festa</p>
+            <div class="wheres" id="wheres">
+              <button class="where">Pista</button><button class="where">Mesa</button><button class="where">Jardim</button>
+              <button class="where">Altar</button><button class="where">Bar</button><button class="where">Varanda</button>
+            </div>
+            <div class="spacer"></div>
+            <button class="btn" id="b4b">Pronto</button>
+            <button class="skip" id="skip">Pular — já está subindo</button>
+          </div>
+
+          <div class="pane" data-pane="5">
+            <div class="crown"><p class="lab">Enviada</p></div>
+            <div style="height:22px"></div>
+            <div class="confirm-photo"><img id="confShot" alt=""><span class="sweep"></span></div>
+            <h3 class="display d-lg" id="confTitle">Foto 1.<br><em>Já tá no telão.</em></h3>
+            <div class="progress" id="prog"></div>
+            <div class="spacer"></div>
+            <div class="cta-app">
+              <span class="lab" style="color:var(--ambar);flex:none">App</span>
+              <span class="body-s" style="color:rgba(245,238,229,.8)">Instale e receba suas fotos depois da festa</span>
+            </div>
+            <div style="height:18px"></div>
+            <button class="btn hair" id="b4">Continuar tirando</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="taps"><span class="n" id="tapn">0</span><span class="lbl">de cinco toques<br>até a foto subir</span></div>
+        <hr class="rule">
+        <ol class="steps" id="steps">
+          <li class="on"><span class="idx">I</span><span>Consentimento</span></li>
+          <li><span class="idx">II</span><span>Nome — obrigatório, e nunca pedido de novo</span></li>
+          <li><span class="idx">III</span><span>Missões — ou envio livre</span></li>
+          <li><span class="idx">IV</span><span>Câmera nativa — ou o rolo, se negar permissão</span></li>
+          <li><span class="idx">V</span><span>Envia — a subida começa na hora</span></li>
+          <li><span class="idx">·</span><span>Legenda e lugar, opcionais, <em>enquanto sobe</em></span></li>
+        </ol>
+        <p class="note" id="note"><strong>Sem login, nunca.</strong> Login é a tela mais cara entre o QR e a câmera, e a H1 é aritmética.</p>
+        <button class="reset" id="reset">Recomeçar</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 22h — ESTADOS ══════════ -->
+<section class="band t1" style="padding-top:0">
+  <div class="wrap">
+    <p class="hour"><b>22h</b><span>O caso normal, não a exceção</span></p>
+    <h2>Sinal ruim <em>é o cenário.</em></h2>
+    <p class="lede">Erro nunca expõe código, nunca culpa o convidado, nunca alarma.</p>
+    <div class="tiles">
+      <figure class="tile" style="margin:0">
+        <div class="tile-screen">
+          <p class="lb">Enviando</p><div style="height:18px"></div>
+          <p class="hd">Sem sinal.<br><em>Suas fotos sobem sozinhas.</em></p>
+          <p class="bd">Pode fechar. A gente cuida.</p><div style="height:20px"></div>
+          <div class="queued"><span class="thumb" data-ph="1"></span><span class="pulse"></span><span class="st amber">na fila</span></div>
+          <div class="queued"><span class="thumb" data-ph="2"></span><span class="pulse" style="animation-delay:.8s"></span><span class="st">aguardando</span></div>
+          <div class="gap"></div>
+        </div>
+        <figcaption><b>Sem rede</b>A fila em IndexedDB é a fonte da verdade. Sem isso, sinal ruim vira participação zero.</figcaption>
+      </figure>
+      <figure class="tile" style="margin:0">
+        <div class="tile-screen">
+          <p class="lb">Enviando</p><div style="height:18px"></div>
+          <p class="hd">Não subiu ainda.<br><em>A gente tenta de novo.</em></p>
+          <p class="bd">Terceira tentativa em instantes.</p>
+          <div class="gap"></div><div class="act hair">Tentar agora</div>
+        </div>
+        <figcaption><b>Falhou</b>O sujeito da frase é o produto, nunca o convidado — ele não fez nada errado.</figcaption>
+      </figure>
+      <figure class="tile" style="margin:0">
+        <div class="tile-screen">
+          <p class="lb">Ana &amp; João</p><div class="gap"></div>
+          <p class="hd">A festa começa<br><em>às 19h.</em></p>
+          <p class="bd">As missões já estão aqui.</p><div style="height:20px"></div>
+          <p class="lb" style="color:rgba(232,135,58,.74)">III · Uma foto com os noivos</p>
+          <div class="gap"></div>
+        </div>
+        <figcaption><b>Ainda não começou</b>"Evento não encontrado" aqui queima a única primeira impressão.</figcaption>
+      </figure>
+      <figure class="tile" style="margin:0">
+        <div class="tile-screen">
+          <p class="lb">Missões</p><div class="gap"></div>
+          <p class="hd">Você fez todas as dez.<br><em>Manda o que quiser.</em></p>
+          <div style="height:22px"></div><div style="display:flex;gap:4px" id="fullbar"></div>
+          <div class="gap"></div><div class="act">Tirar mais uma</div>
+        </div>
+        <figcaption><b>Missões concluídas</b>A madrugada é onde saem as melhores fotos.</figcaption>
+      </figure>
+      <figure class="tile" style="margin:0">
+        <div class="tile-screen">
+          <p class="lb">Ana &amp; João</p><div class="gap"></div>
+          <p class="hd">Tudo bem.<br><em>Se mudar de ideia, é só voltar.</em></p>
+          <p class="bd">Você não vai aparecer no álbum nem no telão.</p>
+          <div class="gap"></div><div class="act hair">Voltar</div>
+        </div>
+        <figcaption><b>Consentimento recusado</b>Saída com dignidade. Muita recusa é toque errado, não decisão.</figcaption>
+      </figure>
+      <figure class="tile" style="margin:0">
+        <div class="tile-screen">
+          <p class="lb">Álbum</p><div class="gap"></div>
+          <p class="hd">Ainda não tem foto.<br><em>Seja o primeiro.</em></p>
+          <div class="gap"></div><div class="act">Tirar foto</div>
+        </div>
+        <figcaption><b>Galeria vazia</b>Estado vazio é convite, nunca aviso.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 23h — TELÃO ══════════ -->
+<section class="band t2">
+  <div class="wrap">
+    <p class="hour"><b>23h</b><span>A tela que todo mundo olha</span></p>
+    <h2>Três de cada quatro fotos são <em>verticais.</em></h2>
+    <p class="lede">Encaixar 9:16 em 16:9 com recorte descartaria dois terços da imagem — <em>e o topo é onde estão as cabeças.</em> Nenhum modelo corta na vertical.</p>
+
+    <div class="telao-frame" id="telao">
+      <div class="telao-veil" id="tVeil"></div>
+      <p class="telao-id">Ana &amp; João</p>
+      <div class="telao-credit" id="tCredit"><span class="who" id="tWho">—</span><span class="what" id="tWhat">—</span></div>
+      <div class="telao-dots" id="tDots"></div>
+      <div class="telao-count"><i></i><span id="tCount">1 / 5</span><i></i></div>
+      <div class="telao-sweep" id="tSweep"></div>
+    </div>
+
+    <div class="telao-models" id="tModels">
+      <button class="tmodel on" data-m="polaroid">Polaroide<span>uma cópia por vez</span></button>
+      <button class="tmodel" data-m="mural">Mural<span>três lado a lado</span></button>
+      <button class="tmodel" data-m="colagem">Colagem<span>arranjos que alternam</span></button>
+      <button class="tmodel" data-m="ambiente">Ambiente<span>fundo estendido</span></button>
+      <button class="tmodel" data-m="cheio">Cheio<span>só horizontal</span></button>
+    </div>
+
+    <div class="lanes">
+      <div class="lane"><p class="pct">50</p><p class="nm">Nunca exibida</p><p class="dsc">Quem manda uma foto e nunca a vê na parede para de mandar — e conta para a mesa.</p></div>
+      <div class="lane"><p class="pct">25</p><p class="nm">Recente</p><p class="dsc">"Olha, é a minha" é o mecanismo de recrutamento do produto.</p></div>
+      <div class="lane"><p class="pct">25</p><p class="nm">Popular, com decaimento</p><p class="dsc">Decai por exibições, não só por tempo. Senão a foto das 21h fica na parede até as 3h.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 02h — RECADOS ══════════ -->
+<section class="band t3">
+  <div class="wrap">
+    <p class="hour"><b>02h</b><span>A voz dos convidados</span></p>
+    <h2>Recados, <em>não comentários.</em></h2>
+    <p class="lede">Todo casamento já tem livro de recados. <em>A diferença que resolve tudo: recado não tem resposta.</em> Discussão precisa de ida e volta para existir.</p>
+
+    <div class="stage">
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar"><span>01h47</span><span class="dots" aria-hidden="true"><i style="height:4px"></i><i style="height:7px"></i><i style="height:11px"></i><i style="height:5px;opacity:.3"></i></span></div>
+          <div class="pane live">
+            <div class="crown"><p class="lab">Recados</p></div>
+            <div style="height:16px"></div>
+            <div class="rec-photo"><img id="recPhoto" alt=""><span class="by">Tio João · Pista</span></div>
+            <div class="rec-list" id="recList"></div>
+            <div class="rec-write">
+              <input id="recIn" placeholder="Deixa um recado…" aria-label="Escrever recado">
+              <button id="recGo" disabled>Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="side">
+        <p class="note"><strong>Abrem depois da cerimônia.</strong> Durante ela a tela diz por quê e devolve para as missões — ninguém deveria estar escrevendo nada ali.</p>
+        <p class="note"><strong>Nenhuma notificação durante o evento.</strong> Escrever e ler se a pessoa for atrás, tudo bem. O produto puxar ela de volta pra tela, não — é o laço de checagem que o anti-engajamento protege, não o gesto.</p>
+        <p class="note" style="border-left-color:var(--hair)"><strong>Sem responder, sem curtir recado, sem notificar citação.</strong> O autor da foto remove qualquer recado em um toque, sem justificar. Num casamento tem ex-cônjuge e briga de dez anos — o thread é o vetor, e ele não existe aqui.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ AMANHECER — ÁLBUM ══════════ -->
+<section class="band t4">
+  <div class="wrap">
+    <p class="hour"><b>06h</b><span>Amanhecer</span></p>
+    <h2>O álbum <em>da noite.</em></h2>
+    <p class="lede">O concorrente organiza memórias num calendário mensal. Mas ele é app de casal ao longo de meses — <em>o Albora é uma noite.</em> Então a unidade não é o dia: é a hora.</p>
+
+    <div class="stage">
+      <div class="phone">
+        <div class="screen">
+          <div class="statusbar"><span>09:12</span><span class="dots" aria-hidden="true"><i style="height:4px"></i><i style="height:7px"></i><i style="height:11px"></i><i style="height:5px"></i></span></div>
+          <div class="album">
+            <div class="cover">
+              <img id="coverImg" alt="">
+              <div class="cover-txt"><p class="ttl">Ana &amp; <em>João</em></p><p class="dt">XIV · XI · MMXXVI</p></div>
+            </div>
+            <div class="album-stats">
+              <div><span class="k">847</span><span class="u">fotos</span></div>
+              <div><span class="k">94</span><span class="u">convidados</span></div>
+              <div><span class="k">10</span><span class="u">missões</span></div>
+            </div>
+            <div class="timeline" id="timeline"></div>
+            <div class="album-cta"><span class="lnk">Baixar tudo</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="side">
+        <h3 style="font-family:var(--serif);font-weight:300;font-size:27px;margin:0 0 20px;letter-spacing:-.014em">Compartilhar com a <em>moldura do evento</em></h3>
+        <p class="note" style="border-left-color:var(--hair);margin-bottom:34px">Publicar em story por API é impossível. O compartilhamento nativo não precisa de API nenhuma — e o que sai dele já carrega a identidade. É o quinto renderizador dos mesmos tokens.</p>
+        <div class="share-row">
+          <div class="story" id="story1">
+            <img class="sbg" alt="">
+            <div class="shead"><p class="mono">A&nbsp;&amp;&nbsp;J</p><p class="dt">XIV · XI · MMXXVI</p></div>
+            <div class="sfoto"><img alt=""></div>
+            <div class="snote"><p>“A tia Cida rindo antes de derrubar o copo. Foi a melhor parte da noite.”</p><span class="sb">Bia · 02h14</span></div>
+            <div class="ssig"><b>Albora</b><span>albora.com.br/anaejoao</span></div>
+          </div>
+          <div class="story collage" id="story2">
+            <img class="sbg" alt="">
+            <div class="shead"><p class="mono">A noite inteira</p><p class="dt">Ana &amp; João · 12 fotos</p></div>
+            <div class="grid"><div><img alt=""></div><div><img alt=""></div><div><img alt=""></div><div><img alt=""></div><div><img alt=""></div></div>
+            <div class="ssig"><b>Albora</b><span>albora.com.br/anaejoao</span></div>
+          </div>
+        </div>
+        <p class="note" style="margin-top:32px"><strong>A marca fica fora da foto.</strong> Marca d'água sobre a imagem estraga a memória e some no recorte. A assinatura vive na moldura, que é descartável — a foto que o casal guarda continua limpa.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ LANDING ══════════ -->
+<section class="band light">
+  <div class="wrap">
+    <p class="hour"><b>—</b><span>A porta da frente</span></p>
+    <h2>Uma landing <em>por vertical.</em></h2>
+    <p class="lede">Mesmo esqueleto, vocabulário e acento trocados pelo pack. <em>É o teste de sanidade da arquitetura, visível a olho nu:</em> trocar o pack muda toda a página sem tocar no núcleo.</p>
+
+    <div class="verticals" id="verticals">
+      <button class="vtab on" data-v="casamento">Casamento<span>O herói</span></button>
+      <button class="vtab" data-v="quince">15 anos<span>Mesmo canal, CAC ≈ 0</span></button>
+      <button class="vtab" data-v="formatura">Formatura<span>Preenche o vale sazonal</span></button>
+    </div>
+
+    <p class="addr-line"><span id="vAddr">albora.com.br</span></p>
+  </div>
+
+  <div class="browser">
+      <div class="landing">
+        <div class="nav"><span class="lg">Albora</span><span class="lk"><b>Como funciona</b><b>Preço</b><b class="solid">Criar álbum</b></span></div>
+
+        <div class="l-hero">
+          <img id="lHero" alt=""><span class="scrim"></span>
+          <div class="inner">
+            <p class="brow" id="vBrow">O álbum coletivo da sua festa</p>
+            <p class="ttl" id="vTtl">Seu fotógrafo não pode estar em todo lugar.<br><em>Seus convidados podem.</em></p>
+          </div>
+        </div>
+
+        <p class="sub" id="vSub">O Albora reúne as fotos e os vídeos de todos os convidados em um álbum só. Eles escaneiam um QR na mesa e já começam — sem baixar nada.</p>
+        <div class="ctas">
+          <button class="btn-p">Criar meu álbum grátis</button>
+          <button class="btn-s">Ver como funciona</button>
+        </div>
+        <p class="cta-hint">Grátis para começar · Sem cartão · Leva 2 minutos</p>
+
+        <div class="l-sec">
+          <p class="l-eyebrow">Não acredita que é rápido?</p>
+          <h2 class="l-h">Testa agora, <em>no seu celular.</em></h2>
+          <p class="l-p">Você não precisa acreditar na promessa — dá pra conferir em cinco segundos.</p>
+          <div class="demo">
+            <div class="qrwrap"><canvas id="qr3" width="132" height="132" aria-label="QR da demonstração"></canvas></div>
+            <div>
+              <p class="lead">Aponta a câmera.<br><em>Três segundos e você está dentro.</em></p>
+              <p class="txt">Sem instalar, sem cadastro, sem senha. Você cai num álbum de demonstração de verdade, tira uma foto e vê ela aparecer no telão.</p>
+              <button class="btn-s" style="background:rgba(245,238,229,.1);color:#F5EEE5">Abrir a demonstração</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="l-sec">
+          <p class="l-eyebrow">O que sobra da festa</p>
+          <h2 class="l-h" id="vPileH">Centenas de cópias que <em>ninguém contratou pra tirar.</em></h2>
+          <p class="l-p" id="vPileP">Cada convidado volta pra casa com dez fotos suas no rolo. Juntas, elas são o outro álbum — o dos bastidores, da pista às duas da manhã.</p>
+          <div class="pile" id="pile"></div>
+          <div class="note-card">
+            <p>“A tia Cida rindo antes de derrubar o copo. Foi a melhor parte da noite.”</p>
+            <span class="by">Tio João · Pista · 01h47</span>
+          </div>
+        </div>
+
+        <div class="l-sec">
+          <p class="l-eyebrow">O telão</p>
+          <h2 class="l-h">As fotos aparecem <em>enquanto a festa acontece.</em></h2>
+          <p class="l-p">Cada foto que entra aparece na TV com o nome de quem mandou. É o que faz a mesa inteira pegar o celular.</p>
+          <div style="margin-top:36px;border-radius:10px;overflow:hidden;aspect-ratio:16/9;position:relative;background:#0E0A08;box-shadow:0 30px 56px -24px rgba(23,19,16,.5)">
+            <img id="lTelao" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
+            <span style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,7,6,.82),transparent 52%)"></span>
+            <span style="position:absolute;left:26px;bottom:22px;font-family:var(--serif);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,248,240,.84)">Tio João · Missão III</span>
+          </div>
+        </div>
+
+        <div class="l-sec">
+          <p class="l-eyebrow">O que todo mundo pergunta</p>
+          <div class="l-qa">
+            <div><p class="q" id="vQ1">Meus convidados vão ter que baixar um app?</p><p class="a">Não precisa. Eles escaneiam o QR e já tiram a primeira foto pelo navegador. Instalar é opcional, e o convite só aparece depois que a primeira foto já subiu.</p></div>
+            <div><p class="q">E se a internet do salão for ruim?</p><p class="a">As fotos ficam salvas no celular e sobem sozinhas quando o sinal voltar. Pode fechar o navegador e ir dançar. Ninguém perde nada.</p></div>
+            <div><p class="q">E se alguém mandar uma foto inadequada?</p><p class="a">Por padrão tudo aparece — porque no dia da festa ninguém vai ficar aprovando fila. O que protege é automático: um filtro segura o impróprio antes da parede, qualquer convidado denuncia, e você tira do telão em um toque. Se preferir, dá pra ligar a aprovação manual.</p></div>
+            <div><p class="q">As fotos ficam comigo?</p><p class="a">Ficam. No fim do período a gente exporta tudo para o seu Google Drive e some do nosso lado. Sem assinatura mensal para guardar memória.</p></div>
+          </div>
+        </div>
+
+        <div class="l-sec">
+          <p class="l-eyebrow">Preço</p>
+          <div class="anchor">
+            <p class="strike" id="vAnchor">Um álbum de casamento profissional: R$ 1.500 a R$ 2.600</p>
+            <p class="real">O Albora custa <em>R$ 199</em> — e traz as fotos que o fotógrafo não tirou.</p>
+          </div>
+          <div class="l-price">
+            <div class="l-plan">
+              <span class="tagme">Para experimentar</span><p class="pn">Grátis</p><p class="pv">R$ 0</p><p class="pu">Para sempre</p>
+              <ul><li><b>Convidados ilimitados</b></li><li><b>Fotos ilimitadas</b></li><li>8 missões padrão</li><li>Álbum e reações</li><li>Resolução reduzida</li><li>Guarda por 30 dias</li></ul>
+            </div>
+            <div class="l-plan hero">
+              <span class="tagme">O mais escolhido</span><p class="pn">Celebração</p><p class="pv">R$ 199</p><p class="pu">Pagamento único</p>
+              <ul><li><b>Tudo do Grátis</b></li><li><b>Resolução original</b></li><li><b>Telão ao vivo</b></li><li><b>Vídeo</b></li><li>Missões e identidade personalizadas</li><li>Guarda por 12 meses</li><li>Export para o seu Drive</li></ul>
+            </div>
+            <div class="l-plan">
+              <span class="tagme">Nada de fora</span><p class="pn">Completo</p><p class="pv">R$ 349</p><p class="pu">Pagamento único</p>
+              <ul><li><b>Tudo do Celebração</b></li><li><b>Livro de fotos</b> pronto para gráfica</li><li>Guarda por 24 meses</li><li>Suporte no dia por WhatsApp</li><li class="soon">Fotos entregues por WhatsApp</li><li class="soon">Cada convidado recebe as dele</li></ul>
+            </div>
+          </div>
+          <div class="ctas" style="margin-top:34px">
+            <button class="btn-p">Começar grátis</button>
+            <button class="btn-s">Comparar os planos</button>
+          </div>
+          <p class="per-guest" id="vPer">A lembrancinha sai por uns <b>R$ 15 por convidado</b> — e quase ninguém leva pra casa. As fotos que todos eles tiraram saem por <b>R$ 1,33</b>.</p>
+        </div>
+
+        <div class="l-close">
+          <p id="vClose">No dia seguinte, você acorda com centenas de fotos que <em>ninguém contratou pra tirar.</em></p>
+          <div class="ctas center">
+            <button class="btn-p">Criar meu álbum grátis</button>
+            <button class="btn-s">Falar com a gente</button>
+          </div>
+          <p class="cta-hint">Você só paga se quiser baixar em alta e usar o telão</p>
+        </div>
+
+        <div class="cta-dock">
+          <span class="price">R$ 0 para começar</span>
+          <button class="btn-p">Criar meu álbum</button>
+        </div>
+
+        <div class="l-foot"><span>Albora · o álbum coletivo da sua festa</span><span id="vFoot">Casamento · 15 anos · Formatura</span></div>
+      </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Protótipo de fluxo — não é código de produção. Tipografia com stand-in do sistema: no produto é <strong>Fraunces</strong> e <strong>Inter</strong>, ambas OFL e liberadas para impressão. As fotos de exemplo são geradas em canvas seguindo a direção de imagem — luz baixa e quente, contraluz frio, grão. Nada sai deste navegador: a foto que você tirar não é enviada a lugar nenhum.</p>
+  </div>
+</footer>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  /* ─────────── Gerador de foto de festa ───────────
+     Luz baixa e quente, bokeh, vinheta, grão.
+     Determinístico por índice para não mudar a cada render. */
+
+  function rng(seed) {
+    var s = seed * 2654435761 % 2147483647;
+    return function () { s = (s * 1103515245 + 12345) % 2147483647; return s / 2147483647; };
+  }
+
+  /* Fotos de festa geradas: luz quente dominante com UM contraluz frio
+     (palco, LED, janela), silhuetas com ombro e cabeça, bokeh com anel
+     como lente aberta de verdade, e curva de tom no fim.
+     O contraluz frio é o que tira a imagem do marrom chapado. */
+
+  function makePhoto(seed, w, h) {
+    w = w || 900; h = h || 600;
+    var c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    var g = c.getContext("2d"), r = rng(seed + 3);
+    var S = Math.min(w, h);
+
+    /* ambiente noturno, levemente dessaturado */
+    var base = g.createLinearGradient(0, 0, w * .35, h);
+    base.addColorStop(0, "#241812");
+    base.addColorStop(.5, "#140D09");
+    base.addColorStop(1, "#080505");
+    g.fillStyle = base; g.fillRect(0, 0, w, h);
+
+    g.globalCompositeOperation = "lighter";
+
+    /* fonte quente principal — a luz da festa */
+    var kx = (.2 + r() * .6) * w, ky = (.12 + r() * .3) * h;
+    var kg = g.createRadialGradient(kx, ky, 0, kx, ky, S * (.7 + r() * .5));
+    kg.addColorStop(0, "rgba(255,190,112,.62)");
+    kg.addColorStop(.3, "rgba(228,128,54,.24)");
+    kg.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = kg; g.fillRect(0, 0, w, h);
+
+    /* UM contraluz frio — magenta, azul ou verde-água */
+    var cools = [[126,92,196], [58,124,196], [64,168,166]];
+    var cool = cools[Math.floor(r() * 3)];
+    var cx2 = (r() > .5 ? .82 : .18) * w, cy2 = (.5 + r() * .42) * h;
+    var cg = g.createRadialGradient(cx2, cy2, 0, cx2, cy2, S * (.5 + r() * .4));
+    cg.addColorStop(0, "rgba(" + cool.join(",") + ",.4)");
+    cg.addColorStop(.4, "rgba(" + cool.join(",") + ",.13)");
+    cg.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = cg; g.fillRect(0, 0, w, h);
+
+    /* bokeh com anel — luzinha fora de foco tem borda mais clara que o centro */
+    var n = 16 + Math.floor(r() * 16);
+    for (var i = 0; i < n; i++) {
+      var x = r() * w, y = r() * h * .82, rad = S * (.012 + Math.pow(r(), 2.4) * .1);
+      var pick = r();
+      var col = pick > .78 ? cool.join(",") : pick > .4 ? "255,214,150" : "255,168,86";
+      var a = .16 + r() * .4;
+      var bg = g.createRadialGradient(x, y, rad * .1, x, y, rad);
+      bg.addColorStop(0, "rgba(" + col + "," + (a * .7) + ")");
+      bg.addColorStop(.72, "rgba(" + col + "," + (a * .55) + ")");
+      bg.addColorStop(.92, "rgba(" + col + "," + a + ")");
+      bg.addColorStop(1, "rgba(" + col + ",0)");
+      g.fillStyle = bg;
+      g.beginPath(); g.arc(x, y, rad, 0, 6.2832); g.fill();
+    }
+    g.globalCompositeOperation = "source-over";
+
+    /* silhuetas com cabeça e ombro — leem como pessoas contra a luz */
+    var figs = 2 + Math.floor(r() * 3);
+    for (var f = 0; f < figs; f++) {
+      var fx = (.08 + r() * .84) * w;
+      var scale = .5 + r() * .75;
+      var headR = S * .062 * scale;
+      var shW = headR * 2.5, shH = headR * 3.4;
+      var baseY = h * (.72 + r() * .3);
+      g.fillStyle = "rgba(9,6,5," + (.72 + r() * .24) + ")";
+      g.beginPath();
+      g.ellipse(fx, baseY, shW, shH, 0, Math.PI, 0);
+      g.fill();
+      g.beginPath();
+      g.arc(fx, baseY - shH * .92, headR, 0, 6.2832);
+      g.fill();
+      /* recorte de luz na borda da silhueta */
+      g.globalCompositeOperation = "lighter";
+      g.strokeStyle = "rgba(255,196,124,.3)";
+      g.lineWidth = Math.max(1, S * .004);
+      g.beginPath();
+      g.arc(fx, baseY - shH * .92, headR, Math.PI * 1.1, Math.PI * 1.75);
+      g.stroke();
+      g.globalCompositeOperation = "source-over";
+    }
+
+    /* vinheta suave */
+    var vg = g.createRadialGradient(w / 2, h * .44, S * .3, w / 2, h * .52, Math.max(w, h) * .82);
+    vg.addColorStop(0, "rgba(0,0,0,0)");
+    vg.addColorStop(1, "rgba(4,3,2,.78)");
+    g.fillStyle = vg; g.fillRect(0, 0, w, h);
+
+    /* curva de tom + grão: contraste real e pretos com densidade */
+    var img = g.getImageData(0, 0, w, h), d = img.data;
+    for (var p = 0; p < d.length; p += 4) {
+      var noise = (r() - .5) * 13;
+      for (var ch = 0; ch < 3; ch++) {
+        var v = d[p + ch] / 255;
+        v = v / (1 + v * .22) * 1.22;              /* ombro nas altas */
+        v = .5 + (v - .5) * 1.16;                   /* contraste */
+        v = v * (1 - .028) + .028;                  /* piso de densidade */
+        v += noise / 255;
+        d[p + ch] = v < 0 ? 0 : v > 1 ? 255 : v * 255;
+      }
+    }
+    g.putImageData(img, 0, 0);
+
+    return c.toDataURL("image/jpeg", .88);
+  }
+
+  /* ─────────── Dados ─────────── */
+
+  var NAMES = ["Tio João", "Bia", "Marcos", "Dona Célia", "Rafa", "Os primos", "Lu", "Vovó Terezinha"];
+  var MISSIONS = [
+    { n: "I",    t: "Uma foto com quem veio com você",        done: true },
+    { n: "III",  t: "Uma foto com os noivos antes da meia-noite" },
+    { n: "VII",  t: "O detalhe da decoração que ninguém reparou" },
+    { n: "XI",   t: "A mesa do doce, antes do ataque" },
+    { n: "XVI",  t: "Alguém dançando muito mal" },
+    { n: "XIX",  t: "A pista depois das 2h" }
+  ];
+
+  /* Proporção realista: em festa, ~3 de cada 4 fotos saem verticais.
+     O acervo de exemplo precisa refletir isso, senão o telão é
+     testado contra um caso que não acontece. */
+  var VERT = [true, true, false, true, true, false, true, true];
+
+  var PHOTOS = [];
+  for (var i = 0; i < 8; i++) {
+    var v = VERT[i];
+    PHOTOS.push({
+      src: v ? makePhoto(i + 1, 540, 960) : makePhoto(i + 1, 960, 540),
+      ar: v ? "v" : "h",
+      who: NAMES[i % NAMES.length],
+      what: "Missão " + MISSIONS[(i % (MISSIONS.length - 1)) + 1].n,
+      shown: i < 4 ? 1 : 0,
+      hot: 0
+    });
+  }
+
+  /* faixa do hero */
+  var strip = document.getElementById("strip");
+  if (strip) {
+    for (var pass = 0; pass < 2; pass++) {
+      PHOTOS.forEach(function (p) {
+        var d = document.createElement("div");
+        d.className = "sh";
+        var im = document.createElement("img");
+        im.src = p.src; im.alt = "";
+        d.appendChild(im); strip.appendChild(d);
+      });
+    }
+  }
+
+  /* landing: herói e a pilha de cópias impressas */
+  var lHero = document.getElementById("lHero");
+  if (lHero) lHero.src = PHOTOS[6].src;
+
+  var pile = document.getElementById("pile");
+  if (pile) {
+    var PILE = [
+      { i: 0, c: "Bia · 21h" },
+      { i: 3, c: "Tio João · 23h" },
+      { i: 5, c: "Marcos · Meia-noite" },
+      { i: 2, c: "Rafa · 02h" },
+      { i: 7, c: "Lu · Amanhecer" }
+    ];
+    PILE.forEach(function (item) {
+      var fig = document.createElement("figure");
+      fig.className = "print";
+      var im = document.createElement("img");
+      im.src = PHOTOS[item.i].src; im.alt = "";
+      var cap = document.createElement("figcaption");
+      cap.className = "cap"; cap.textContent = item.c;
+      fig.appendChild(im); fig.appendChild(cap);
+      pile.appendChild(fig);
+    });
+  }
+
+  /* thumbs da fila */
+  document.querySelectorAll(".thumb[data-ph]").forEach(function (el, k) {
+    var im = document.createElement("img"); im.src = PHOTOS[k + 2].src; im.alt = "";
+    el.appendChild(im);
+  });
+
+  /* barra cheia do tile de missões concluídas */
+  var fullbar = document.getElementById("fullbar");
+  if (fullbar) for (var b = 0; b < 10; b++) {
+    var el = document.createElement("i");
+    el.style.cssText = "height:1.5px;flex:1;background:#E8873A";
+    fullbar.appendChild(el);
+  }
+
+  /* progresso do convidado */
+  var prog = document.getElementById("prog");
+  for (var q = 0; q < 10; q++) prog.appendChild(document.createElement("i"));
+
+  /* missões */
+  var missionsEl = document.getElementById("missions");
+  MISSIONS.forEach(function (m, k) {
+    var btn = document.createElement("button");
+    btn.className = "mission" + (m.done ? " done" : "");
+    btn.innerHTML = '<span class="num">' + m.n + '</span><span class="txt">' + m.t +
+      '</span><span class="arw">' + (m.done ? "✓" : "›") + "</span>";
+    if (!m.done) btn.addEventListener("click", function () {
+      chosen = m; bump(); show(3);
+      document.getElementById("capLabel").textContent = "Missão " + m.n;
+      document.getElementById("capText").textContent = m.t;
+    });
+    missionsEl.appendChild(btn);
+  });
+
+  /* Missão é convite, não requisito — o envio livre é caminho de
+     primeira classe, não escape. Exigir escolher transformaria um
+     gesto espontâneo em tarefa. */
+  document.getElementById("freeShot").addEventListener("click", function () {
+    chosen = { n: "—", t: "" };
+    bump(); show(3);
+    document.getElementById("capLabel").textContent = "Foto livre";
+    document.getElementById("capText").textContent = "Manda o que você quiser.";
+  });
+
+  /* ─────────── Navegação do fluxo ─────────── */
+
+  var panes = [].slice.call(document.querySelectorAll(".pane"));
+  var steps = [].slice.call(document.querySelectorAll("#steps li"));
+  var tapn = document.getElementById("tapn");
+  var note = document.getElementById("note");
+  var chosen = MISSIONS[1];
+  var sent = 0, taps = 0;
+
+  var notes = [
+    "<strong>Sem login, nunca.</strong> Login é a tela mais cara entre o QR e a câmera, e a H1 é aritmética: cada tela a mais derruba a participação.",
+    "<strong>O nome é obrigatório.</strong> Custa um toque e paga três coisas: atribuição no telão, “suas fotos” depois da festa, e responsabilização na moderação.",
+    "<strong>Missão é convite, não requisito.</strong> Dá para pular e mandar qualquer foto — exigir escolher transformaria um gesto espontâneo em tarefa.",
+    "<strong>Permissão negada não é erro.</strong> Cai direto no seletor de arquivos, sem tela intermediária: metade das fotos boas já está no rolo.",
+    "<strong>Legenda e lugar custam zero no caminho crítico.</strong> A subida já começou — esse tempo ia passar de qualquer jeito. E “onde na festa” substitui a localização por GPS, que o §6.9 bane: pista e mesa dizem mais num evento, e não expõem ninguém.",
+    "<strong>O CTA espera a confirmação.</strong> Se a foto ainda está na fila offline, prometer “receba suas fotos” seria prometer sobre algo que ainda pode falhar."
+  ];
+
+  function show(i) {
+    panes.forEach(function (p, k) { p.classList.toggle("live", k === i); });
+    steps.forEach(function (s, k) {
+      s.classList.toggle("on", k === i);
+      s.classList.toggle("past", k < i);
+    });
+    note.innerHTML = notes[i];
+    if (i !== 3) stopCam();
+  }
+  function bump() { taps++; tapn.textContent = String(Math.min(taps, 5)); }
+
+  var consent = document.getElementById("consent");
+  var b0 = document.getElementById("b0");
+  function toggle() {
+    var on = consent.classList.toggle("checked");
+    consent.setAttribute("aria-checked", on ? "true" : "false");
+    b0.disabled = !on;
+  }
+  consent.addEventListener("click", toggle);
+  consent.addEventListener("keydown", function (e) {
+    if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggle(); }
+  });
+  b0.addEventListener("click", function () { bump(); show(1); document.getElementById("nome").focus(); });
+
+  var nome = document.getElementById("nome");
+  var b1 = document.getElementById("b1");
+  nome.addEventListener("input", function () { b1.disabled = nome.value.trim().length < 2; });
+  b1.addEventListener("click", function () { bump(); show(2); });
+
+  /* ─────────── Câmera de verdade ─────────── */
+
+  var cam = document.getElementById("cam");
+  var shotImg = document.getElementById("shot");
+  var vfhint = document.getElementById("vfhint");
+  var vfgrid = document.getElementById("vfgrid");
+  var flash = document.getElementById("flash");
+  var shutter = document.getElementById("shutter");
+  var openCam = document.getElementById("openCam");
+  var pickBtn = document.getElementById("pickBtn");
+  var fileIn = document.getElementById("file");
+  var presetsEl = document.getElementById("presets");
+  var b3 = document.getElementById("b3");
+  var stream = null, original = null, captured = null, filter = "none";
+
+  /* ── Filtros paramétricos ──
+     Cada um é um conjunto de curvas e canais, não um preset opaco.
+     Isso permite intensidade contínua — e é o que ADR 0007 chama de
+     LUT: grátis, instantâneo, offline e idêntico em todas as fotos. */
+  var FX = {
+    none:   { nm: "Original" },
+    film:   { nm: "35 mm",     sep:.24, sat:1.16, hue:-8,  bri:1.07, con:1.02, canvas:true },
+    dawn:   { nm: "Amanhecer", sep:.30, sat:1.20, hue:-6,  bri:1.10, con:1.00 },
+    ember:  { nm: "Brasa",     sep:.45, sat:1.45, hue:-14, bri:.97,  con:1.10 },
+    prata:  { nm: "Prata",     gry:1,               bri:1.04, con:1.14 },
+    nevoa:  { nm: "Névoa",     sep:.12, sat:.84,             bri:1.12, con:.84 },
+    vinho:  { nm: "Vinho",     sep:.32, sat:1.32, hue:-24, bri:.94,  con:1.10 },
+    fria:   { nm: "Madrugada", sep:.10, sat:.94,  hue:16,  bri:.98,  con:1.08 }
+  };
+  var adj = { luz: 0, cal: 0, con: 0, vig: 0 }, intens = 1;
+
+  function mix(v, k) { return 1 + (v - 1) * k; }
+
+  function curCSS() {
+    var f = FX[filter] || FX.none, k = intens, out = [];
+    if (f.sep) out.push("sepia(" + (f.sep * k).toFixed(3) + ")");
+    if (f.gry) out.push("grayscale(" + (f.gry * k).toFixed(3) + ")");
+    if (f.hue) out.push("hue-rotate(" + (f.hue * k).toFixed(1) + "deg)");
+    var sat = f.sat ? mix(f.sat, k) : 1;
+    var bri = f.bri ? mix(f.bri, k) : 1;
+    var con = f.con ? mix(f.con, k) : 1;
+    /* ajustes manuais entram por cima do filtro */
+    bri *= 1 + adj.luz / 160;
+    con *= 1 + adj.con / 130;
+    sat *= 1 + adj.cal / 260;
+    out.push("saturate(" + sat.toFixed(3) + ")");
+    out.push("brightness(" + bri.toFixed(3) + ")");
+    out.push("contrast(" + con.toFixed(3) + ")");
+    if (adj.cal) out.push("hue-rotate(" + (-adj.cal / 6).toFixed(1) + "deg)");
+    return out.length ? out.join(" ") : "none";
+  }
+
+  /* ─────────── Negativo 35 mm — LUT, não IA ───────────
+     Cada operação abaixo corresponde a uma frase do prompt de restyle
+     que a categoria usa. Nenhuma delas exige geração: são curvas,
+     canais e ruído. Roda no cliente, offline, em milissegundos,
+     e — o que mais importa — aplica a MESMA transformação em todas as
+     3.000 fotos, o que é a coerência que o produto vende. */
+
+  function filmize(src, done) {
+    var im = new Image();
+    im.onload = function () {
+      var MAX = 1400;
+      var s = Math.min(1, MAX / Math.max(im.width, im.height));
+      var w = Math.round(im.width * s), h = Math.round(im.height * s);
+      var c = document.createElement("canvas");
+      c.width = w; c.height = h;
+      var g = c.getContext("2d");
+      g.drawImage(im, 0, 0, w, h);
+
+      var d = g.getImageData(0, 0, w, h), px = d.data;
+      var LIFT = .055;      /* flash fill: abre as sombras */
+      var FLOOR_COOL = .014;/* density floor neutro-frio */
+      var CONTRAST = .88;   /* near-field com contraste reduzido */
+      var GREEN_MID = .022; /* viés verde-frio nos médios (mistura fluorescente) */
+      var SAT = .93;        /* saturação moderada */
+      var RED_WARM = 1.045; /* vermelhos levemente quentes */
+      var GRAIN = 15;       /* grão visível, controlado */
+
+      for (var i = 0; i < px.length; i += 4) {
+        var r = px[i] / 255, gr = px[i + 1] / 255, b = px[i + 2] / 255;
+
+        /* ombro nas altas — a latitude do negativo */
+        r = r / (1 + r * .2) * 1.2;
+        gr = gr / (1 + gr * .2) * 1.2;
+        b = b / (1 + b * .2) * 1.2;
+
+        /* flash fill: levanta o preto */
+        r = r * (1 - LIFT) + LIFT;
+        gr = gr * (1 - LIFT) + LIFT;
+        b = b * (1 - LIFT) + LIFT;
+
+        /* contraste reduzido */
+        r = .5 + (r - .5) * CONTRAST;
+        gr = .5 + (gr - .5) * CONTRAST;
+        b = .5 + (b - .5) * CONTRAST;
+
+        var lum = r * .2126 + gr * .7152 + b * .0722;
+
+        /* viés verde-frio só nos médios (peso máximo em 0.5) */
+        var mid = 4 * lum * (1 - lum);
+        gr += GREEN_MID * mid;
+        b += GREEN_MID * .5 * mid;
+
+        /* piso de densidade frio nas sombras */
+        var shade = Math.max(0, 1 - lum * 2.6);
+        b += FLOOR_COOL * shade;
+        gr += FLOOR_COOL * .4 * shade;
+
+        /* saturação moderada, vermelhos quentes */
+        r = lum + (r - lum) * SAT * RED_WARM;
+        gr = lum + (gr - lum) * SAT;
+        b = lum + (b - lum) * SAT * 1.02;
+
+        /* grão — mais visível nos médios, como filme de verdade */
+        var n = (Math.random() - .5) * GRAIN * (.45 + mid) / 255;
+        r += n; gr += n; b += n;
+
+        px[i]     = r < 0 ? 0 : r > 1 ? 255 : r * 255;
+        px[i + 1] = gr < 0 ? 0 : gr > 1 ? 255 : gr * 255;
+        px[i + 2] = b < 0 ? 0 : b > 1 ? 255 : b * 255;
+      }
+      g.putImageData(d, 0, 0);
+
+      /* halação: brilho especular sangrando quente */
+      var hi = document.createElement("canvas");
+      hi.width = w; hi.height = h;
+      var hg = hi.getContext("2d");
+      hg.filter = "brightness(2.4) contrast(3.2) blur(9px)";
+      hg.drawImage(c, 0, 0);
+
+      g.globalCompositeOperation = "lighter";
+      g.globalAlpha = .14;
+      g.drawImage(hi, 0, 0);
+      g.globalAlpha = 1;
+      g.globalCompositeOperation = "source-over";
+
+      done(c.toDataURL("image/jpeg", .9));
+    };
+    im.src = src;
+  }
+
+  var camPane = document.querySelector('.pane[data-cam]');
+  function camState(v) { if (camPane) camPane.setAttribute("data-cam", v); }
+
+  function stopCam() {
+    if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+    cam.style.display = "none";
+    shutter.disabled = true;
+  }
+
+  function hintFallback(msg) {
+    vfhint.style.display = "flex";
+    vfhint.innerHTML = '<p class="lab">Câmera indisponível</p><p>' + msg + "</p>";
+  }
+
+  openCam.addEventListener("click", function () {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      hintFallback("Este navegador não expõe a câmera aqui. Use <strong>Escolher do rolo</strong>.");
+      return;
+    }
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false })
+      .then(function (s) {
+        stream = s; cam.srcObject = s;
+        cam.style.display = "block";
+        shotImg.style.display = "none";
+        vfhint.style.display = "none";
+        vfgrid.style.display = "block";
+        shutter.disabled = false;
+        camState("live");
+      })
+      .catch(function () {
+        hintFallback("Permissão negada ou câmera bloqueada nesta janela. Use <strong>Escolher do rolo</strong>.");
+      });
+  });
+
+  /* Reduz na entrada, como o pipeline real: sem isso, oito miniaturas
+     com a foto original de celular decodificam dezenas de MB e travam. */
+  function reduzir(src, max, q, done) {
+    var im = new Image();
+    im.onload = function () {
+      var k = Math.min(1, max / Math.max(im.width, im.height));
+      var c = document.createElement("canvas");
+      c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      done(c.toDataURL("image/jpeg", q));
+    };
+    im.onerror = function () { done(src); };
+    im.src = src;
+  }
+
+  var thumbSrc = null;
+
+  function usePhoto(raw) {
+    reduzir(raw, 1600, .86, function (src) { usePhotoReduzida(src); });
+  }
+
+  function usePhotoReduzida(src) {
+    original = src;
+    captured = src;
+    filter = "none"; intens = 1;
+    adj = { luz: 0, cal: 0, con: 0, vig: 0 };
+    ["sInt:100", "sLuz:0", "sCal:0", "sCon:0", "sVig:0"].forEach(function (pair) {
+      var a = pair.split(":"), el = document.getElementById(a[0]);
+      if (el) { el.value = a[1]; document.getElementById("o" + a[0].slice(1)).textContent = a[1]; }
+    });
+    if (vig) vig.style.opacity = 0;
+    reduzir(src, 150, .74, function (t) { thumbSrc = t; buildStrip(); });
+    shotImg.src = src;
+    shotImg.style.display = "block";
+    shotImg.style.filter = "none";
+    cam.style.display = "none";
+    vfhint.style.display = "none";
+    vfgrid.style.display = "none";
+    b3.disabled = false;
+    camState("shot");
+    stopCam();
+  }
+
+  shutter.addEventListener("click", function () {
+    if (!stream) return;
+    var w = cam.videoWidth || 900, h = cam.videoHeight || 600;
+    var c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    c.getContext("2d").drawImage(cam, 0, 0, w, h);
+    flash.classList.remove("go"); void flash.offsetWidth; flash.classList.add("go");
+    usePhoto(c.toDataURL("image/jpeg", .88));
+  });
+
+  pickBtn.addEventListener("click", function () { fileIn.click(); });
+  document.getElementById("roloLink").addEventListener("click", function () { fileIn.click(); });
+  fileIn.addEventListener("change", function () {
+    var f = fileIn.files && fileIn.files[0];
+    if (!f) return;
+    var fr = new FileReader();
+    fr.onload = function () { usePhoto(fr.result); };
+    fr.readAsDataURL(f);
+  });
+
+  var fstrip = document.getElementById("fstrip");
+  var vig = document.getElementById("vig");
+
+  function paint() {
+    var css = curCSS();
+    shotImg.style.filter = css;
+    if (vig) vig.style.opacity = (adj.vig / 100 * .85).toFixed(2);
+    fstrip.querySelectorAll(".fchip").forEach(function (c) {
+      c.classList.toggle("on", c.getAttribute("data-f") === filter);
+    });
+  }
+
+  /* cada miniatura mostra a SUA foto com aquele filtro — como no Instagram */
+  function buildStrip() {
+    if (!fstrip || !(thumbSrc || original)) return;
+    fstrip.innerHTML = "";
+    Object.keys(FX).forEach(function (key) {
+      var f = FX[key];
+      var b = document.createElement("button");
+      b.className = "fchip" + (key === filter ? " on" : "");
+      b.setAttribute("data-f", key);
+      var th = document.createElement("span"); th.className = "th";
+      var im = document.createElement("img"); im.src = thumbSrc || original; im.alt = "";
+      var save = filter, saveI = intens, saveA = adj;
+      filter = key; intens = 1; adj = { luz: 0, cal: 0, con: 0, vig: 0 };
+      im.style.filter = curCSS();
+      filter = save; intens = saveI; adj = saveA;
+      th.appendChild(im);
+      var nm = document.createElement("span"); nm.className = "nm"; nm.textContent = f.nm;
+      b.appendChild(th); b.appendChild(nm);
+      b.addEventListener("click", function () {
+        filter = key;
+        if (f.canvas) {
+          nm.textContent = "revelando…";
+          filmize(original, function (out) {
+            captured = out; shotImg.src = out;
+            shotImg.style.filter = "none"; nm.textContent = f.nm;
+            fstrip.querySelectorAll(".fchip").forEach(function (c) {
+              c.classList.toggle("on", c.getAttribute("data-f") === key);
+            });
+          });
+          return;
+        }
+        captured = original; shotImg.src = original;
+        paint();
+      });
+      fstrip.appendChild(b);
+    });
+  }
+
+  /* abas do editor */
+  presetsEl.addEventListener("click", function (e) {
+    var t = e.target.closest(".ed-tab");
+    if (!t) return;
+    var v = t.getAttribute("data-p");
+    presetsEl.querySelectorAll(".ed-tab").forEach(function (x) { x.classList.toggle("on", x === t); });
+    presetsEl.querySelectorAll(".ed-panel").forEach(function (x) {
+      x.classList.toggle("on", x.getAttribute("data-panel") === v);
+    });
+  });
+
+  function bindSlider(id, out, apply) {
+    var el = document.getElementById(id), o = document.getElementById(out);
+    if (!el) return;
+    el.addEventListener("input", function () {
+      o.textContent = el.value; apply(+el.value); paint();
+    });
+  }
+  bindSlider("sInt", "oInt", function (v) { intens = v / 100; });
+  bindSlider("sLuz", "oLuz", function (v) { adj.luz = v; });
+  bindSlider("sCal", "oCal", function (v) { adj.cal = v; });
+  bindSlider("sCon", "oCon", function (v) { adj.con = v; });
+  bindSlider("sVig", "oVig", function (v) { adj.vig = v; });
+
+  /* ─────────── Detalhes enquanto sobe ───────────
+     A subida começa no toque de Enviar. Legenda e lugar são oferecidos
+     durante o upload, então custam zero no caminho crítico.
+     "Onde na festa" no lugar de GPS: mais significativo num evento,
+     e sem a exposição de localização que o EXIF removido evita. */
+
+  var upMini = document.getElementById("upMini");
+  var upPct = document.getElementById("upPct");
+  var upFill = document.getElementById("upFill");
+  var capField = document.getElementById("capField");
+  var wheresEl = document.getElementById("wheres");
+  var where = null, upTimer = null;
+
+  wheresEl.addEventListener("click", function (e) {
+    var t = e.target.closest(".where");
+    if (!t) return;
+    var was = t.classList.contains("on");
+    wheresEl.querySelectorAll(".where").forEach(function (w) { w.classList.remove("on"); });
+    if (!was) { t.classList.add("on"); where = t.textContent; } else { where = null; }
+  });
+
+  function startUpload() {
+    var pct = 0;
+    upFill.style.width = "0%";
+    var a0 = document.getElementById("upProg");
+    if (a0) a0.style.strokeDashoffset = "65.97";
+    upPct.textContent = "enviando… 0%";
+    clearInterval(upTimer);
+    upTimer = setInterval(function () {
+      pct += 6 + Math.random() * 11;
+      if (pct >= 100) {
+        pct = 100; clearInterval(upTimer);
+        upPct.textContent = "enviada ✓";
+      } else {
+        upPct.textContent = "enviando… " + Math.round(pct) + "%";
+      }
+      upFill.style.width = pct + "%";
+      var arco = document.getElementById("upProg");
+      if (arco) arco.style.strokeDashoffset = (65.97 * (1 - pct / 100)).toFixed(2);
+    }, 260);
+  }
+
+  b3.addEventListener("click", function () {
+    if (!captured) return;
+    bump(); bump();
+    upMini.src = captured;
+    upMini.style.filter = curCSS();
+    capField.value = ""; where = null;
+    wheresEl.querySelectorAll(".where").forEach(function (w) { w.classList.remove("on"); });
+    startUpload();
+    show(4);
+  });
+
+  function finalize() {
+    clearInterval(upTimer);
+    sent++;
+
+    var cap = capField.value.trim();
+    confShot.src = captured;
+    confShot.style.filter = curCSS();
+    confTitle.innerHTML = "Foto " + sent + ".<br><em>Já tá no telão.</em>";
+    prog.querySelectorAll("i").forEach(function (el, k) { el.classList.toggle("on", k < sent + 1); });
+
+    PHOTOS.push({
+      src: captured,
+      who: (nome.value.trim() || "Você"),
+      what: cap ? cap
+          : chosen.n === "—" ? (where || "Foto livre")
+          : (where ? where + " · Missão " + chosen.n : "Missão " + chosen.n),
+      where: where,
+      shown: 0, hot: 1,
+      filter: curCSS()
+    });
+    queueNew = PHOTOS.length - 1;
+    show(5);
+  }
+
+  document.getElementById("b4b").addEventListener("click", finalize);
+  document.getElementById("skip").addEventListener("click", finalize);
+
+  document.getElementById("b4").addEventListener("click", function () {
+    captured = null; original = null; filter = "none"; b3.disabled = true;
+    shotImg.style.display = "none";
+    camState("idle");
+    vfhint.style.display = "flex";
+    vfhint.innerHTML = '<p class="lab">Câmera</p><p>Toque em <strong>Abrir câmera</strong> para usar a do seu aparelho, ou escolha uma foto do rolo.</p>';
+    show(2);
+  });
+
+  document.getElementById("reset").addEventListener("click", function () {
+    taps = 0; tapn.textContent = "0";
+    consent.classList.remove("checked"); consent.setAttribute("aria-checked", "false");
+    b0.disabled = true; nome.value = ""; b1.disabled = true;
+    captured = null; original = null; filter = "none"; b3.disabled = true;
+    shotImg.style.display = "none";
+    camState("idle");
+    show(0);
+  });
+
+  /* ─────────── Carrossel do telão ───────────
+     Fila de três faixas: nunca exibida (50%), recente (25%), popular (25%). */
+
+  var telao = document.getElementById("telao");
+  var tWho = document.getElementById("tWho");
+  var tWhat = document.getElementById("tWhat");
+  var tDots = document.getElementById("tDots");
+  var tSweep = document.getElementById("tSweep");
+  var slides = [], slot = 0, tick = 0, queueNew = -1;
+
+  var tCredit = document.getElementById("tCredit");
+  var tVeil = document.getElementById("tVeil");
+  var model = "polaroid", collageTick = 0;
+
+  for (var d0 = 0; d0 < 2; d0++) {
+    var sl = document.createElement("div");
+    sl.className = "telao-slide";
+    telao.insertBefore(sl, telao.firstChild);
+    slides.push(sl);
+  }
+  for (var d1 = 0; d1 < 3; d1++) tDots.appendChild(document.createElement("i"));
+
+  /* Fila de três faixas. onlyH restringe ao acervo horizontal,
+     porque o modelo "cheio" é o único que pode sangrar sem cortar. */
+  function pickNext(onlyH) {
+    if (!onlyH && queueNew >= 0) { var q = queueNew; queueNew = -1; PHOTOS[q].shown++; return q; }
+
+    var never = [], recent = [], pop = [], any = [];
+    PHOTOS.forEach(function (p, k) {
+      if (onlyH && p.ar !== "h") return;
+      any.push(k);
+      if (!p.shown) never.push(k);
+      else if (k >= PHOTOS.length - 3) recent.push(k);
+      else pop.push(k);
+    });
+
+    var lane = tick % 4;               /* 0,1 → nunca · 2 → recente · 3 → popular */
+    var pool = (lane < 2 && never.length) ? never
+             : (lane === 2 && recent.length) ? recent
+             : (pop.length ? pop : (never.length ? never : recent));
+    if (!pool || !pool.length) pool = any.length ? any : PHOTOS.map(function (_, k) { return k; });
+
+    /* dentro da faixa, menos exibida primeiro — o decaimento */
+    pool = pool.slice().sort(function (a, b) { return PHOTOS[a].shown - PHOTOS[b].shown; });
+    var idx = pool[0];
+    PHOTOS[idx].shown++;
+    return idx;
+  }
+
+  function mkImg(p, cls) {
+    var im = document.createElement("img");
+    im.src = p.src; im.alt = "";
+    if (cls) im.className = cls;
+    if (p.filter) im.style.filter = p.filter;
+    return im;
+  }
+
+  function mkPrint(p, wrapCls, small) {
+    var box = document.createElement("div");
+    box.className = wrapCls;
+    box.appendChild(mkImg(p));
+    var sign = document.createElement("span");
+    sign.className = "sign";
+    sign.textContent = small ? p.who : p.who + " · " + p.what;
+    box.appendChild(sign);
+    return box;
+  }
+
+  function advance() {
+    var incoming = slides[slot % 2];
+    incoming.innerHTML = "";
+    incoming.setAttribute("data-m", model);
+    tick++;
+
+    var lead;
+
+    if (model === "mural") {
+      for (var i = 0; i < 3; i++) {
+        var pm = PHOTOS[pickNext(false)];
+        if (i === 0) lead = pm;
+        incoming.appendChild(mkPrint(pm, "mp", true));
+      }
+    } else if (model === "colagem") {
+      /* o arranjo alterna a cada volta — telão com grade fixa
+         vira papel de parede depois de vinte minutos */
+      var PATTERNS = [
+        { p: "a", n: 3 }, { p: "c", n: 4 },
+        { p: "b", n: 3 }, { p: "d", n: 2 }
+      ];
+      var pat = PATTERNS[collageTick % PATTERNS.length];
+      collageTick++;
+      incoming.setAttribute("data-p", pat.p);
+      for (var j = 0; j < pat.n; j++) {
+        var pc = PHOTOS[pickNext(false)];
+        if (j === 0) lead = pc;
+        var cell = document.createElement("div");
+        cell.className = "cc";
+        cell.appendChild(mkImg(pc));
+        var nm = document.createElement("span");
+        nm.className = "nm"; nm.textContent = pc.who;
+        cell.appendChild(nm);
+        incoming.appendChild(cell);
+      }
+    } else if (model === "polaroid") {
+      lead = PHOTOS[pickNext(false)];
+      incoming.appendChild(mkPrint(lead, "pol", false));
+    } else if (model === "ambiente") {
+      lead = PHOTOS[pickNext(false)];
+      incoming.appendChild(mkImg(lead, "amb-bg"));
+      incoming.appendChild(mkImg(lead, "amb-fg"));
+    } else {
+      lead = PHOTOS[pickNext(true)];
+      incoming.appendChild(mkImg(lead));
+    }
+
+    slides.forEach(function (s) { s.classList.remove("on"); });
+    void incoming.offsetWidth;
+    incoming.classList.add("on");
+    slot++;
+
+    /* onde a própria composição já credita, o rodapé sai */
+    var printed = (model === "polaroid" || model === "mural" || model === "colagem");
+    tCredit.style.display = printed ? "none" : "flex";
+    tVeil.style.opacity = printed ? "0" : "1";
+    tWho.textContent = lead.who;
+    tWhat.textContent = lead.what;
+
+    tDots.querySelectorAll("i").forEach(function (el, k) {
+      el.classList.toggle("on", k === (tick - 1) % 3);
+    });
+
+    if (lead.hot) {
+      lead.hot = 0;
+      tSweep.classList.remove("go"); void tSweep.offsetWidth; tSweep.classList.add("go");
+    }
+  }
+
+  var segP = document.getElementById("segPeriod");
+  if (segP) segP.addEventListener("click", function (e) {
+    if (e.target.tagName !== "BUTTON") return;
+    segP.querySelectorAll("button").forEach(function (b) { b.classList.toggle("on", b === e.target); });
+  });
+
+  var tModels = document.getElementById("tModels");
+  if (tModels) tModels.addEventListener("click", function (e) {
+    var t = e.target.closest(".tmodel");
+    if (!t) return;
+    tModels.querySelectorAll(".tmodel").forEach(function (b) { b.classList.remove("on"); });
+    t.classList.add("on");
+    model = t.getAttribute("data-m");
+    advance();
+  });
+
+  advance();
+  setInterval(advance, 4200);
+
+  /* ─────────── Álbum da noite ───────────
+     Linha do tempo da festa. O concorrente organiza por dia ao longo de meses;
+     aqui a unidade é a hora, porque o evento é uma noite só. */
+
+  var coverImg = document.getElementById("coverImg");
+  if (coverImg) coverImg.src = PHOTOS[1].src;
+  var lTelao = document.getElementById("lTelao");
+  if (lTelao) lTelao.src = PHOTOS[4].src;
+
+  var HOURS = [
+    { h: "19h",         n: 3,  extra: 0 },
+    { h: "Cerimônia",   n: 4,  extra: 0 },
+    { h: "21h",         n: 5,  extra: 12 },
+    { h: "Meia-noite",  n: 4,  extra: 31 },
+    { h: "2h",          n: 3,  extra: 8 },
+    { h: "Amanhecer",   n: 2,  extra: 0, dawn: true }
+  ];
+
+  var tl = document.getElementById("timeline");
+  if (tl) {
+    var pi = 0;
+    HOURS.forEach(function (row) {
+      var r = document.createElement("div");
+      r.className = "tl-row" + (row.dawn ? " dawn" : "");
+
+      var lab = document.createElement("span");
+      lab.className = "tl-hour";
+      lab.textContent = row.h;
+      r.appendChild(lab);
+
+      var box = document.createElement("div");
+      box.className = "tl-thumbs";
+      for (var k = 0; k < row.n; k++) {
+        var dot = document.createElement("span");
+        dot.className = "tl-dot";
+        var im = document.createElement("img");
+        im.src = PHOTOS[pi % PHOTOS.length].src;
+        im.alt = "";
+        pi++;
+        dot.appendChild(im);
+        box.appendChild(dot);
+      }
+      if (row.extra) {
+        var more = document.createElement("span");
+        more.className = "tl-dot more";
+        more.textContent = "+" + row.extra;
+        box.appendChild(more);
+      }
+      r.appendChild(box);
+      tl.appendChild(r);
+    });
+  }
+
+  /* ─────────── Admin: painel ao vivo ─────────── */
+
+  var admTabs = [].slice.call(document.querySelectorAll(".adm-tab"));
+  var admViews = [].slice.call(document.querySelectorAll(".adm-view"));
+  admTabs.forEach(function (tab) {
+    tab.addEventListener("click", function () {
+      var v = tab.getAttribute("data-v");
+      admTabs.forEach(function (t) { t.classList.toggle("on", t === tab); });
+      admViews.forEach(function (x) { x.classList.toggle("on", x.getAttribute("data-view") === v); });
+    });
+  });
+
+  /* a métrica que decide o negócio, contando até 63% */
+  var partPct = document.getElementById("partPct");
+  var partN = document.getElementById("partN");
+  var goalFill = document.getElementById("goalFill");
+  if (partPct) {
+    var target = 63, cur = 0;
+    var count = setInterval(function () {
+      cur += 1;
+      if (cur >= target) { cur = target; clearInterval(count); }
+      partPct.textContent = cur + "%";
+      partN.textContent = Math.round(cur * 1.5);
+    }, 26);
+    setTimeout(function () { goalFill.style.width = target + "%"; }, 260);
+  }
+
+  /* feed de moderação — remoção em um toque */
+  var feed = document.getElementById("feed");
+  if (feed) {
+    var FEED = [
+      { i: 0, w: "Bia" }, { i: 3, w: "Tio João" }, { i: 5, w: "Marcos" },
+      { i: 1, w: "Rafa" }, { i: 6, w: "Dona Célia", held: true }, { i: 2, w: "Lu" },
+      { i: 7, w: "Os primos" }, { i: 4, w: "Vovó Terezinha" }
+    ];
+    FEED.forEach(function (f) {
+      var cell = document.createElement("div");
+      cell.className = "fcell" + (f.held ? " held" : "");
+      var im = document.createElement("img"); im.src = PHOTOS[f.i].src; im.alt = "";
+      var who = document.createElement("span"); who.className = "who"; who.textContent = f.w;
+      var kill = document.createElement("button");
+      kill.className = "kill"; kill.textContent = "×";
+      kill.setAttribute("aria-label", "Remover foto de " + f.w);
+      kill.addEventListener("click", function () { cell.classList.toggle("gone"); });
+      cell.appendChild(im); cell.appendChild(who); cell.appendChild(kill);
+      feed.appendChild(cell);
+    });
+  }
+
+  var panic = document.getElementById("panic");
+  if (panic) panic.addEventListener("click", function () {
+    var on = panic.classList.toggle("on");
+    panic.textContent = on ? "Telão pausado" : "Pausar telão";
+  });
+
+  /* conclusão por missão */
+  var mrows = document.getElementById("mrows");
+  if (mrows) {
+    var MSTAT = [
+      { n: "I",    t: "Uma foto com quem veio com você",            p: 78 },
+      { n: "III",  t: "Uma foto com os noivos antes da meia-noite", p: 64 },
+      { n: "VII",  t: "O detalhe da decoração que ninguém reparou", p: 41 },
+      { n: "XI",   t: "A mesa do doce, antes do ataque",            p: 55 },
+      { n: "XVI",  t: "Alguém dançando muito mal",                  p: 12 },
+      { n: "XIX",  t: "A pista depois das 2h",                      p: 29 }
+    ];
+    MSTAT.forEach(function (m) {
+      var row = document.createElement("div");
+      row.className = "mrow";
+      row.innerHTML =
+        '<span class="rn">' + m.n + '</span>' +
+        '<span class="rt">' + m.t + '</span>' +
+        '<span class="bar"><i style="width:' + m.p + '%"></i></span>' +
+        '<span class="rc">' + m.p + '%</span>';
+      mrows.appendChild(row);
+    });
+  }
+
+  /* ─────────── Recados ───────────
+     Um por pessoa, por foto. Sem thread: nenhuma resposta, nenhuma
+     curtida em recado, nenhuma notificação durante o evento. */
+
+  var recPhoto = document.getElementById("recPhoto");
+  if (recPhoto) recPhoto.src = PHOTOS[3].src;
+
+  var recList = document.getElementById("recList");
+  var recIn = document.getElementById("recIn");
+  var recGo = document.getElementById("recGo");
+
+  function addRecado(txt, who, hora) {
+    var c = document.createElement("div");
+    c.className = "rec-card";
+    var p = document.createElement("p");
+    p.textContent = "“" + txt + "”";
+    var s = document.createElement("span");
+    s.className = "sig";
+    s.textContent = who + " · " + hora;
+    c.appendChild(p); c.appendChild(s);
+    recList.appendChild(c);
+    return c;
+  }
+
+  if (recList) {
+    addRecado("A tia Cida rindo antes de derrubar o copo. Foi a melhor parte da noite.", "Bia", "02h14");
+    addRecado("Eu não tinha visto essa. Obrigado por tirar.", "Ana", "09h02");
+    addRecado("A cara do seu Nilton no fundo é impagável.", "Marcos", "02h41");
+  }
+
+  if (recIn) {
+    recIn.addEventListener("input", function () {
+      recGo.disabled = recIn.value.trim().length < 2;
+    });
+    recGo.addEventListener("click", function () {
+      var v = recIn.value.trim();
+      if (v.length < 2) return;
+      var card = addRecado(v, (nome.value.trim() || "Você"), "agora");
+      recIn.value = ""; recGo.disabled = true;
+      recList.scrollTop = recList.scrollHeight;
+      card.animate(
+        [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }],
+        { duration: 420, easing: "cubic-bezier(.32,.72,0,1)" }
+      );
+    });
+  }
+
+  /* ─────────── Composição de compartilhamento ───────────
+     Quinto renderizador dos mesmos tokens: web, telão, PDF, preset, moldura. */
+
+  var s1 = document.getElementById("story1");
+  if (s1) {
+    var hero = PHOTOS[3];
+    s1.querySelector(".sbg").src = hero.src;
+    s1.querySelector(".sfoto img").src = hero.src;
+  }
+  var s2 = document.getElementById("story2");
+  if (s2) {
+    s2.querySelector(".sbg").src = PHOTOS[0].src;
+    var cells = s2.querySelectorAll(".grid img");
+    [0, 6, 1, 4, 7].forEach(function (idx, k) {
+      if (cells[k]) cells[k].src = PHOTOS[idx].src;
+    });
+  }
+
+  /* ─────────── QR ─────────── */
+
+  function drawQR(el) {
+    if (!el || !el.getContext) return;
+    var g = el.getContext("2d"), N = 25, cell = el.width / N, h = 2166136261;
+    function nx() { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return (h >>> 0) / 4294967296; }
+    g.fillStyle = "#FAF7F2"; g.fillRect(0, 0, el.width, el.height);
+    g.fillStyle = "#1A1613";
+    function finder(cx, cy) {
+      g.fillRect(cx * cell, cy * cell, 7 * cell, 7 * cell);
+      g.clearRect((cx + 1) * cell, (cy + 1) * cell, 5 * cell, 5 * cell);
+      g.fillRect((cx + 2) * cell, (cy + 2) * cell, 3 * cell, 3 * cell);
+    }
+    for (var y = 0; y < N; y++) for (var x = 0; x < N; x++) {
+      if ((x < 8 && y < 8) || (x > N - 9 && y < 8) || (x < 8 && y > N - 9)) continue;
+      if (nx() > .52) g.fillRect(x * cell, y * cell, cell, cell);
+    }
+    finder(0, 0); finder(N - 7, 0); finder(0, N - 7);
+  }
+  drawQR(document.getElementById("qr"));
+  drawQR(document.getElementById("qr2"));
+  drawQR(document.getElementById("qr3"));
+})();
+</script>
+
+<script>
+/* ─────────── Landing por vertical ───────────
+   Mesmo esqueleto, pack trocado. O acento vem dos identity_tokens
+   do evento — trocar para ameixa ou verde-mar não quebra componente
+   nenhum, que é exatamente o teste de sanidade da arquitetura. */
+(function () {
+  "use strict";
+  var PACKS = {
+    casamento: {
+      acc: "#E8873A", addr: "albora.com.br",
+      brow: "O álbum coletivo da sua festa",
+      ttl: "Seu fotógrafo não pode estar em todo lugar.<br><em>Seus convidados podem.</em>",
+      sub: "O Albora reúne as fotos e os vídeos de todos os convidados em um álbum só. Eles escaneiam um QR na mesa e já começam — sem baixar nada.",
+      pileH: "Centenas de cópias que <em>ninguém contratou pra tirar.</em>",
+      pileP: "Cada convidado volta pra casa com dez fotos suas no rolo. Juntas, elas são o outro álbum — o dos bastidores, da pista às duas da manhã.",
+      q1: "Meus convidados vão ter que baixar um app?",
+      anchor: "Um álbum de casamento profissional: R$ 1.500 a R$ 2.600",
+      per: "A lembrancinha sai por uns <b>R$ 15 por convidado</b> — e quase ninguém leva pra casa. As fotos que todos eles tiraram saem por <b>R$ 1,33</b>.",
+      close: "No dia seguinte, você acorda com centenas de fotos que <em>ninguém contratou pra tirar.</em>",
+      foot: "Casamento · 15 anos · Formatura"
+    },
+    quince: {
+      acc: "#9B5DA8", addr: "albora.com.br/15-anos",
+      brow: "O álbum coletivo da sua festa",
+      ttl: "A festa é sua.<br><em>As fotos são de todo mundo.</em>",
+      sub: "O Albora junta as fotos e os vídeos de todos os convidados da sua festa de 15 num álbum só. Eles escaneiam um QR na mesa e já começam — sem baixar nada.",
+      pileH: "As fotos que os seus amigos tiraram <em>e você nunca viu.</em>",
+      pileP: "O fotógrafo cobre a valsa e a entrada. Ninguém cobre a mesa dos seus amigos às duas da manhã — e é de lá que saem as melhores.",
+      q1: "Meus convidados vão ter que baixar um app?",
+      anchor: "Um álbum de 15 anos profissional: R$ 900 a R$ 1.800",
+      per: "A lembrancinha sai por uns <b>R$ 12 por convidado</b>. As fotos que todo mundo tirou saem por <b>R$ 1,33</b>.",
+      close: "No dia seguinte, você acorda com centenas de fotos que <em>ninguém contratou pra tirar.</em>",
+      foot: "15 anos · Casamento · Formatura"
+    },
+    formatura: {
+      acc: "#2E8C87", addr: "albora.com.br/formatura",
+      brow: "O álbum coletivo da sua turma",
+      ttl: "Cinco anos de turma.<br><em>Uma noite. Todas as fotos.</em>",
+      sub: "O Albora junta as fotos e os vídeos de toda a turma numa galeria só. Cada formando escaneia um QR na mesa e já começa — sem baixar nada.",
+      pileH: "A turma inteira fotografou. <em>Ninguém juntou.</em>",
+      pileP: "São trezentas pessoas com o celular na mão a noite toda, e o acervo termina espalhado em trezentos rolos que nunca mais se encontram.",
+      q1: "A turma toda vai ter que baixar um app?",
+      anchor: "Um álbum de formatura profissional: R$ 1.200 a R$ 2.400",
+      per: "O convite sai por uns <b>R$ 20 por formando</b>. As fotos que a turma inteira tirou saem por <b>R$ 1,33</b>.",
+      close: "No dia seguinte, a turma acorda com centenas de fotos que <em>ninguém contratou pra tirar.</em>",
+      foot: "Formatura · Casamento · 15 anos"
+    }
+  };
+
+  var el = {
+    addr: "vAddr", brow: "vBrow", ttl: "vTtl", sub: "vSub",
+    pileH: "vPileH", pileP: "vPileP", q1: "vQ1",
+    anchor: "vAnchor", per: "vPer", close: "vClose", foot: "vFoot"
+  };
+  var browser = document.querySelector(".browser");
+  var tabs = document.getElementById("verticals");
+  if (!tabs || !browser) return;
+
+  function apply(key) {
+    var p = PACKS[key];
+    if (!p) return;
+    Object.keys(el).forEach(function (k) {
+      var node = document.getElementById(el[k]);
+      if (node) node.innerHTML = p[k];
+    });
+    /* o acento do EVENTO sobrescreve o da marca — nenhum componente sabe disso */
+    browser.style.setProperty("--ambar", p.acc);
+    browser.style.setProperty("--brasa", p.acc);
+  }
+
+  tabs.addEventListener("click", function (e) {
+    var t = e.target.closest(".vtab");
+    if (!t) return;
+    tabs.querySelectorAll(".vtab").forEach(function (b) { b.classList.remove("on"); });
+    t.classList.add("on");
+    apply(t.getAttribute("data-v"));
+  });
+})();
+</script>
+
+<script>
+/* Movimento: revelação por scroll e contador do telão.
+   Um observador só, desligado por prefers-reduced-motion. */
+(function () {
+  "use strict";
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (!reduce && "IntersectionObserver" in window) {
+    var alvos = document.querySelectorAll(
+      ".band .hour, .band h2, .band .lede, .tiles, .telao-frame, " +
+      ".telao-models, .lanes, .macwin, .objects .placa, .l-hero, .pile, .l-price, .ctas"
+    );
+    alvos.forEach(function (el, i) {
+      el.classList.add("rv");
+      el.style.transitionDelay = Math.min(i % 4, 3) * 70 + "ms";
+    });
+    var io = new IntersectionObserver(function (ents) {
+      ents.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { rootMargin: "0px 0px -12% 0px", threshold: .08 });
+    alvos.forEach(function (el) { io.observe(el); });
+  }
+
+  /* contador do telão, no registro do convite: 1 / 5 entre filetes */
+  var count = document.getElementById("tCount");
+  var dots = document.getElementById("tDots");
+  if (count && dots) {
+    var n = 0;
+    new MutationObserver(function () {
+      var on = dots.querySelector("i.on");
+      if (!on) return;
+      n = Array.prototype.indexOf.call(dots.children, on) + 1;
+      count.textContent = n + " / 3";
+    }).observe(dots, { attributes: true, subtree: true, attributeFilter: ["class"] });
+  }
+})();
+</script>
+
+<script>
+/* ─────────── Modelos de identidade do evento ───────────
+   Isto é a tese do produto executada: os identity_tokens do casal
+   assumem a interface. Acento, tipografia de display, filtro
+   recomendado e modelo de telão saem todos da mesma fonte —
+   e nenhum componente sabe que isso mudou. */
+(function () {
+  "use strict";
+  var MODELOS = {
+    amanhecer: { acc:"#E8873A", ser:'ui-serif,"New York",Georgia,serif',      filtro:"film",  telao:"polaroid" },
+    jardim:    { acc:"#5C8262", ser:'Georgia,"Iowan Old Style",serif',        filtro:"nevoa", telao:"mural"    },
+    ameixa:    { acc:"#9B6BA8", ser:'"Hoefler Text",Baskerville,Georgia,serif',filtro:"vinho", telao:"colagem"  },
+    marinho:   { acc:"#4E8CA0", ser:'Palatino,"Palatino Linotype",Georgia,serif', filtro:"fria", telao:"ambiente" }
+  };
+
+  var bar = document.getElementById("idbar");
+  if (!bar) return;
+  var alvos = ".screen, .telao-frame, .tile-screen, .story, .cover, .l-hero";
+
+  function aplicar(chave) {
+    var m = MODELOS[chave];
+    if (!m) return;
+    document.querySelectorAll(alvos).forEach(function (el) {
+      el.style.setProperty("--ambar", m.acc);
+      el.style.setProperty("--serif", m.ser);
+    });
+    /* o modelo de telão escolhido pelo casal */
+    var tb = document.querySelector('.tmodel[data-m="' + m.telao + '"]');
+    if (tb) tb.click();
+    /* o filtro recomendado — marcado na tira do editor */
+    marcarRecomendado(m.filtro);
+    window.__recFiltro = m.filtro;
+  }
+
+  function marcarRecomendado(key) {
+    var strip = document.getElementById("fstrip");
+    if (!strip) return;
+    strip.querySelectorAll(".fchip").forEach(function (c) {
+      var eh = c.getAttribute("data-f") === key;
+      c.classList.toggle("recd", eh);
+      var velho = c.querySelector(".rec");
+      if (velho) velho.remove();
+      if (eh) {
+        var s = document.createElement("span");
+        s.className = "rec";
+        s.title = "Escolhido pelos noivos";
+        s.innerHTML = '<svg width="8" height="8" viewBox="0 0 8 8" aria-hidden="true"><path d="M4 0l1 2.6L7.8 3 5.6 4.7 6.3 7.5 4 6 1.7 7.5l.7-2.8L.2 3l2.8-.4z" fill="#150F0A"/></svg>';
+        c.querySelector(".th").appendChild(s);
+        /* o recomendado vem primeiro na tira */
+        strip.insertBefore(c, strip.firstChild);
+      }
+    });
+  }
+
+  /* pinta as amostras do seletor */
+  bar.querySelectorAll(".idchip").forEach(function (b) {
+    var m = MODELOS[b.getAttribute("data-id")];
+    b.querySelector(".sw").style.background =
+      "linear-gradient(150deg," + m.acc + ",#14100E)";
+    b.style.color = m.acc;
+  });
+
+  bar.addEventListener("click", function (e) {
+    var t = e.target.closest(".idchip");
+    if (!t) return;
+    bar.querySelectorAll(".idchip").forEach(function (b) { b.classList.toggle("on", b === t); });
+    aplicar(t.getAttribute("data-id"));
+  });
+
+  /* a tira do editor é reconstruída a cada foto — remarcar quando isso ocorre */
+  var strip = document.getElementById("fstrip");
+  if (strip) new MutationObserver(function () {
+    if (window.__recFiltro) marcarRecomendado(window.__recFiltro);
+  }).observe(strip, { childList: true });
+
+  window.__recFiltro = "film";
+})();
+</script>
+
+<script>
+/* Chão do evento: os noivos escolhem, o convidado nunca alterna.
+   Trocar o chão re-deriva o acento — âmbar reprova contraste sobre
+   papel (~2,4:1), então o claro usa a variante escurecida. O telão
+   fica de fora: projetor branco em salão escuro cega e lava a foto. */
+(function () {
+  "use strict";
+  var g = document.getElementById("ground");
+  if (!g) return;
+  var ESCURO = { amanhecer:"#E8873A", jardim:"#5C8262", ameixa:"#9B6BA8", marinho:"#4E8CA0" };
+  var CLARO  = { amanhecer:"#A34F16", jardim:"#3C5C42", ameixa:"#6E3F78", marinho:"#2F6070" };
+
+  function atual() {
+    var on = document.querySelector(".idchip.on");
+    return on ? on.getAttribute("data-id") : "amanhecer";
+  }
+  function aplicar(chao) {
+    var k = atual();
+    document.querySelectorAll(".screen").forEach(function (el) {
+      el.classList.toggle("papel", chao === "papel");
+      el.style.setProperty("--ambar", (chao === "papel" ? CLARO : ESCURO)[k]);
+    });
+  }
+  g.addEventListener("click", function (e) {
+    var t = e.target.closest(".gbtn");
+    if (!t) return;
+    g.querySelectorAll(".gbtn").forEach(function (b) { b.classList.toggle("on", b === t); });
+    aplicar(t.getAttribute("data-g"));
+  });
+  var bar = document.getElementById("idbar");
+  if (bar) bar.addEventListener("click", function () {
+    setTimeout(function () {
+      var on = g.querySelector(".gbtn.on");
+      aplicar(on ? on.getAttribute("data-g") : "noite");
+    }, 0);
+  });
+})();
+</script>
+
+<script>
+/* Movimento com direção: avançar entra pela direita, voltar pela esquerda.
+   Um observador lê qual pane ficou vivo e deduz o sentido — sem tocar
+   no closure que controla o fluxo. */
+(function () {
+  "use strict";
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  document.querySelectorAll(".screen").forEach(function (screen) {
+    var panes = [].slice.call(screen.querySelectorAll(".pane[data-pane]"));
+    if (panes.length < 2) return;
+    var ultimo = 0;
+    new MutationObserver(function () {
+      var viva = screen.querySelector(".pane.live[data-pane]");
+      if (!viva) return;
+      var i = +viva.getAttribute("data-pane");
+      if (i === ultimo) return;
+      screen.setAttribute("data-dir", i > ultimo ? "fwd" : "back");
+      ultimo = i;
+    }).observe(screen, { attributes: true, subtree: true, attributeFilter: ["class"] });
+  });
+
+  /* pulso do obturador */
+  var sh = document.getElementById("shutter");
+  if (sh) sh.addEventListener("click", function () {
+    sh.classList.remove("fire"); void sh.offsetWidth; sh.classList.add("fire");
+  });
+
+  /* números do funil contam ao entrar na tela */
+  var nums = document.querySelectorAll(".funnel .n, .lane .pct, .album-stats .k");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (ents) {
+      ents.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        io.unobserve(e.target);
+        var alvo = parseInt(e.target.textContent.replace(/\D/g, ""), 10);
+        if (!alvo || alvo > 9999) return;
+        var t0 = null, dur = 900;
+        requestAnimationFrame(function loop(t) {
+          if (!t0) t0 = t;
+          var k = Math.min(1, (t - t0) / dur);
+          e.target.textContent = Math.round(alvo * (1 - Math.pow(1 - k, 3)));
+          if (k < 1) requestAnimationFrame(loop);
+        });
+      });
+    }, { threshold: .5 });
+    nums.forEach(function (n) { io.observe(n); });
+  }
+})();
+</script>
