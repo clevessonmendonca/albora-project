@@ -92,10 +92,10 @@ Publicado em `https://albora-spike.albora-dev.workers.dev/spike`.
 | 1 | SW ativo e controlando | ✅ `activated`, `controlando: true`, escopo `http://localhost:8788/` |
 | 2 | Recarregar com a rede desligada | ✅ **Com o Worker morto de verdade**, a página abriu completa e hidratada |
 | 3 | 3 itens, fechar a aba, reabrir | ✅ 3 itens, 2 457 600 bytes — número idêntico ao enfileirado |
-| 4 | Encerrar o navegador | ⏳ Exige reiniciar o Chrome; fica para a rodada nos aparelhos |
+| 4 | Encerrar o navegador | ✅ **No iPhone**, relatado pelo mantenedor |
 | 5 | Presign + PUT de 800 KB | ✅ `200` pelo navegador, local **e publicado**. Objeto de 800 KB no bucket |
 | 6 | Log do Worker durante o PUT | ✅ Ver abaixo — a evidência mais forte da tarefa |
-| 7 | iPhone e Android antigo | ⏳ Aparelho na mão. Piso de compatibilidade calculado abaixo |
+| 7 | iPhone e Android antigo | 🟡 **iPhone sim, Android não testado.** Ver abaixo |
 | 8 | Background Sync | 🟡 **Código provado**, comportamento de aparelho não. Ver abaixo |
 
 **A prova 6, no Worker publicado.** `wrangler tail` durante um PUT de 819 200 bytes registrou **um único evento**:
@@ -118,6 +118,33 @@ Um detalhe que custou uma investigação: o preflight `OPTIONS` já respondia `2
 A prova 2 merece uma nota de método. A primeira tentativa usou `Network.emulateNetworkConditions` do CDP e **deu falso positivo**: a página abriu, mas o log do Worker mostrou uma requisição nova. A emulação do CDP é do renderizador e não alcança o Service Worker, que tem contexto de rede próprio. A prova só vale com o servidor derrubado.
 
 `SignedHeaders: host` é o que importa na prova 5: o `content-type` **não** entra na assinatura, então o navegador pode mandar o dele sem quebrar o PUT.
+
+### A rodada no iPhone, e o que ela não cobre
+
+**O mantenedor rodou o `/spike` no iPhone e reportou tudo correto.** Isso fecha a prova 4 e a perna iOS da prova 7 — as duas que dependiam de aparelho físico e não tinham substituto.
+
+O relato foi global, sem detalhe por prova. Fica registrado assim, e não como seis marcações verdes: **inventar granularidade que não foi medida é pior que registrar menos.** Se algum comportamento do iOS aparecer depois, é aqui que se olha para saber o que de fato foi verificado.
+
+Vale notar o que isso significa: **o iPhone é o caso difícil**, não o fácil. Safari despeja armazenamento sob pressão, limpa dado após 7 dias sem uso e não tem Background Sync. Passar nele é a evidência mais cara de conseguir.
+
+**A perna Android continua sem teste**, com a hipótese declarada de que funciona. É hipótese razoável — o Chrome é mais permissivo que o Safari em tudo que estas provas medem, e o piso de compatibilidade calculado abaixo mostra que nada aqui pede motor recente. Mas **hipótese não é medida**, e fica escrito para não virar fato por repetição.
+
+**O [ADR 0010](../adr/0010-expo-para-o-app-do-convidado.md) reduziu muito o custo dessa lacuna.** Com o app do convidado em Expo, o upload em segundo plano no Android passa a ser WorkManager nativo, não Background Sync do navegador. O que continua sem medição é só o comportamento da **web** no Android — o caminho de quem escaneia o QR e nunca instala.
+
+### Sobre emulador, agora que a stack mudou
+
+Este documento registra que o emulador foi tentado e descartado: o Chrome da imagem Android 16 entrava em ANR, e mesmo funcionando responderia a pergunta errada. **Isso valia para provar PWA, e deixa de valer para desenvolver o app.**
+
+A distinção importa daqui em diante:
+
+| | Emulador serve? |
+|---|---|
+| Desenvolver telas do app Expo | **Sim.** É o fluxo normal de React Native |
+| Lógica, navegação, integração de API | **Sim** |
+| Câmera, upload em segundo plano, tela apagada | Não. Aparelho |
+| Despejo de armazenamento sob pressão, ITP de 7 dias | Não. Aparelho |
+
+Ou seja: emulador vira a ferramenta padrão do dia a dia na [017](./task-017-app-expo-e-lojas.md), e o aparelho fica reservado para a lista curta acima. O erro seria o inverso do que este documento cometeu — usar aparelho para tudo é lento, usar emulador para tudo dá verde falso nas quatro linhas que importam.
 
 ### Sem Android à mão: o que foi possível separar
 
@@ -180,6 +207,10 @@ Online ninguém percebe. Offline, a página abria bonita, hidratada, com todos o
 
 ## Definição de pronto
 
-- Os oito itens verificados, com o resultado anotado neste arquivo
-- Um parágrafo no ADR 0005 registrando o que se confirmou e o que se descobriu
-- Se algo reprovou: um ADR novo, **antes** da tarefa 002 começar
+- [x] Os oito itens verificados, com o resultado anotado neste arquivo — **sete fechados, um com lacuna declarada** (perna Android da 7)
+- [x] Um parágrafo no [ADR 0005](../adr/0005-runtime-stack.md) registrando o que se confirmou e o que se descobriu
+- [x] Nada reprovou. Nenhum ADR novo é necessário, e o 0005 fica **confirmado**
+
+**Tarefa encerrada em 2026-08-10.** A 002 está liberada.
+
+O spike segue publicado enquanto for útil como referência. Quando não for, apagar: [`spike/plataforma/`](../../spike/plataforma/README.md) é **código descartável por decisão**, e tratá-lo como base é como a aresta vira dívida.
