@@ -20,3 +20,6 @@ export { confirmarUpload, ErroUploadDeOutroEvento } from "./uploads";
 export type { MotivoSessaoInvalida, NovaSessao, SessaoResolvida } from "./sessoes";
 export { comSessao, criarSessao, ErroNomeInvalido, ErroSessaoInvalida, resolverSessao, revogarSessoesDoEvento } from "./sessoes";
 export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from "./token";
+
+export type { EstadoDoEvento, EventoPublico, Resolucao } from "./eventos";
+export { HORAS_APOS_EVENTO, resolverSlug, rotacionarSlug } from "./eventos";

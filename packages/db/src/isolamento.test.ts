@@ -230,6 +230,7 @@ describe("6 — agregação cruza eventos, e fica auditada", () => {
  */
 const FORA_DA_RLS = new Map([
   ["session_tokens", "porta de entrada: resolve token → event_id, antes de haver contexto"],
+  ["event_slugs", "porta do QR: resolve slug → event_id. O slug não é segredo — está impresso na mesa"],
 ]);
 
 describe("7 — nenhuma tabela nova escapa da política", () => {

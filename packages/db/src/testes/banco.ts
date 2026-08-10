@@ -62,6 +62,13 @@ export async function semear(admin: pg.Pool) {
     );
     const eventoId = rows[0].id as string;
 
+    // O slug vive na porta fora da RLS (migration 0004); a migration faz
+    // backfill de quem já existia, e quem nasce depois precisa da linha.
+    await admin.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [
+      slug,
+      eventoId,
+    ]);
+
     const { rows: sessao } = await admin.query(
       `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
        VALUES ($1, $2, 'v1', now()) RETURNING id`,
