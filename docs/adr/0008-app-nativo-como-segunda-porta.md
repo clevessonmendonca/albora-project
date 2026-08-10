@@ -4,7 +4,9 @@
 - **Data:** 2026-08-10
 - **Relaciona-se com:** [0004](./0004-anonymous-guest-session.md), [0005](./0005-runtime-stack.md)
 
-> **Superado no mesmo dia.** Este ADR tratava o app como "segunda porta" e o acompanhamento como espelho passivo do telão, sem reação e sem contagem. Isso vinha de uma leitura errada do produto, não do dono dele. O [ADR 0009](./0009-app-social-do-convidado.md) corrige. O que sobrevive daqui: a porta de entrada pela web, a recusa do Expo em favor de casca sobre o mesmo app web, e a restrição do `URLSession` que obriga a fila a aceitar referência de arquivo.
+> **Superado no mesmo dia, em duas frentes.** Este ADR tratava o app como "segunda porta" e o acompanhamento como espelho passivo do telão, sem reação e sem contagem — leitura errada do produto, corrigida pelo [ADR 0009](./0009-app-social-do-convidado.md). E recusava o Expo em favor de casca sobre o mesmo app web; o [ADR 0010](./0010-expo-para-o-app-do-convidado.md) reverteu isso, por decisão do dono do produto e depois de o argumento original se mostrar parcialmente falso.
+>
+> **O que sobrevive:** a porta de entrada pela web e a restrição do `URLSession`, que obriga a fila a aceitar referência de arquivo. **Nada mais deste documento é vinculante.**
 
 ## Contexto
 

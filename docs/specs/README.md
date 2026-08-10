@@ -29,7 +29,7 @@ Seis semanas, uma pessoa, noites e fins de semana. A data do casamento não move
 | # | Tarefa | Entrega verificável | Sem. |
 |---|---|---|---|
 | **001** | [Verificação de plataforma](./task-001-verificacao-plataforma.md) | SW registra sob OpenNext · IndexedDB persiste · PUT presigned chega no R2 | 1 |
-| [002](./task-002-monorepo-e-guards.md) | Monorepo, esqueleto e guards de CI | `pnpm dev` sobe · os quatro guards bloqueiam de propósito | 1 |
+| [002](./task-002-monorepo-e-guards.md) | Monorepo, esqueleto e guards de CI | `pnpm dev` sobe · os cinco guards bloqueiam de propósito | 1 |
 | [003](./task-003-schema-rls-isolamento.md) | Schema, RLS e testes de isolamento | Evento A não lê o B contra banco real, com id mal configurado | 1 |
 | [004](./task-004-pipeline-upload.md) | Pipeline de upload ponta a ponta | Foto do celular chega no R2, com a rede caindo no meio | 2 |
 | [005](./task-005-sessao-convidado.md) | Sessão do convidado e passagem web→app | QR → sessão em ≤ 3 toques · a sessão da web chega no app instalado | 2 |
@@ -62,7 +62,7 @@ Seis semanas, uma pessoa, noites e fins de semana. A data do casamento não move
 | [014](./task-014-comentarios.md) | Comentários | Com thread. Exige a 011 pronta |
 | [015](./task-015-compartilhar.md) | Compartilhar com moldura | O único canal viral gratuito. Tem pendência de consentimento |
 | [016](./task-016-album-da-noite.md) | Álbum da noite | A linha do tempo por hora |
-| [017](./task-017-casca-nativa-e-lojas.md) | Casca nativa e lojas | Capacitor, não Expo. **US$ 99/ano + US$ 25** — a primeira linha de custo fixo |
+| [017](./task-017-app-expo-e-lojas.md) | App Expo e lojas | Nativo, com o domínio vindo de `packages/core`. **US$ 99/ano + US$ 25** |
 
 Fora de spec por decisão de roadmap: entrega por WhatsApp, agrupamento facial (bloqueado em parecer jurídico), export para Drive, livro de fotos, portal do fornecedor, multi-evento, checkout.
 
