@@ -18,3 +18,9 @@ export type { Ajustes, Filtro } from "./luts";
 export { aplicarIntensidade, NEUTRO, paraFiltroCss } from "./luts";
 
 export { derivarChaveMidia, prefixoDoEvento } from "./chaves";
+
+export type { ErroMidia, TipoAceito } from "./midia";
+export { detectarTipo, LADO_MAIOR, MAX_BYTES, TIPOS_ACEITOS, tipoAceito, validarConteudo, validarDeclaracao } from "./midia";
+
+export type { PedidoConfirm, PedidoPresign, RespostaPresign } from "./upload";
+export { presignExpirou, VALIDADE_PRESIGN_SEGUNDOS } from "./upload";
