@@ -5,11 +5,20 @@
  * nem cota, nem espaço no bucket. Por isso a checagem vem **antes** do
  * presign, e não depois do upload.
  *
- * ⚠️ **Contrato desta implementação: a janela é por instância, em memória.**
- * Ela segura o convidado que segura o botão, e não segura um ataque
- * distribuído — cada isolate do Worker tem a sua contagem. Antes do primeiro
- * evento real isto precisa de um backend durável (Durable Object ou KV);
- * está registrado na spec da task 004 como pendência, não como pronto.
+ * **Duas camadas, e cada uma faz o que a outra não faz.**
+ *
+ * A camada grossa é a do Cloudflare, configurada no painel: durável,
+ * distribuída, e a única que segura enchente de verdade vinda de fora.
+ *
+ * Esta é a fina, por instância e em memória. Ela existe porque a do
+ * Cloudflare conta **por IP** — e num casamento os 200 convidados estão no
+ * mesmo WiFi, atrás de um IP só. Uma regra de borda apertada o bastante para
+ * conter um abusador estrangularia a festa inteira como se fosse uma pessoa.
+ *
+ * Por isso: a regra do Cloudflare fica generosa, dimensionada para o salão
+ * inteiro; esta aqui é a que dá justiça **entre convidados**, contando por
+ * sessão. Ela não segura ataque distribuído e não precisa — esse é o trabalho
+ * da outra.
  */
 
 type Janela = { ate: number; usos: number };

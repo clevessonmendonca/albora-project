@@ -56,16 +56,33 @@ export async function enviarItem(
 
     return { estado: "enviado", id: item.id };
   } catch (e) {
+    const motivo = e instanceof Error ? e.message : String(e);
+
+    // Erro que não melhora com retry — sessão expirada, chave recusada,
+    // arquivo inválido. Insistir seis vezes contra uma parede só atrasa as
+    // fotos seguintes da fila e esconde do convidado que aquela precisa da
+    // atenção dele.
+    if (ehDefinitivo(e)) {
+      return { estado: "desistiu", id: item.id, motivo };
+    }
+
     await fila.marcarTentativa(item.id);
-    const tentativas = item.tentativas + 1;
 
     return {
       estado: "retentar",
       id: item.id,
-      esperaSegundos: esperaAntesDeRetentar(tentativas),
-      motivo: e instanceof Error ? e.message : String(e),
+      esperaSegundos: esperaAntesDeRetentar(item.tentativas + 1),
+      motivo,
     };
   }
+}
+
+/**
+ * Estrutural, não por `instanceof`: o erro nasce no transporte, que é do app,
+ * e `core` não conhece as classes de nenhum dos dois.
+ */
+function ehDefinitivo(e: unknown): boolean {
+  return typeof e === "object" && e !== null && (e as { definitivo?: unknown }).definitivo === true;
 }
 
 export type ResumoDrenagem = {

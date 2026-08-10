@@ -61,3 +61,17 @@ O HEIC não é caso de borda: é o padrão do iOS, e sem conversão um pedaço g
 | Android antigo sem memória para canvas em 3500px | Degradar resolução por aparelho, não falhar |
 | Quota de IndexedDB estourada | Detectar, avisar e subir na hora em vez de enfileirar (N6.6) |
 | Aba anônima sem IndexedDB | Detectar na entrada e avisar que fechar perde o pendente (N6.7) |
+
+---
+
+## Rate limit — decidido em 2026-08-10
+
+**Duas camadas, porque nenhuma sozinha serve.**
+
+A grossa é a do **Cloudflare**, configurada no painel. Durável, distribuída, e a única que segura enchente vinda de fora. Decisão do mantenedor: usar o padrão da plataforma em vez de construir Durable Object.
+
+A fina é por sessão, em memória, na aplicação. Ela existe por um motivo específico deste produto: **a regra do Cloudflare conta por IP, e num casamento os 200 convidados estão no mesmo WiFi**, atrás de um IP só. Uma regra de borda apertada o bastante para conter um abusador estrangularia a festa inteira como se fosse uma pessoa — e o sintoma seria "o Albora parou de funcionar às 22h", justamente no pico.
+
+Então: a regra do Cloudflare fica **generosa, dimensionada para o salão inteiro**; a da aplicação é a que dá justiça **entre convidados**, contando por sessão. Ela não segura ataque distribuído, e não precisa.
+
+**A configurar no painel antes do primeiro evento:** regra em `/api/uploads/presign` com teto compatível com 200 convidados subindo em rajada — a referência é o teste de carga da task 012, 150 uploads em 20 minutos, com folga para o pico da hora da dança.

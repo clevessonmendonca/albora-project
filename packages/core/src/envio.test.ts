@@ -137,6 +137,34 @@ describe("a foto não se perde quando algo falha", () => {
   });
 });
 
+describe("erro definitivo não vira retry", () => {
+  it("sessão recusada não queima as seis tentativas", async () => {
+    await ctx.fila.enfileirar(item("a1"));
+    const transporte: Transporte = {
+      async presign() {
+        throw Object.assign(new Error("presign 401"), { definitivo: true });
+      },
+      async enviarBytes() {},
+      async confirmar() {},
+    };
+
+    const r = await enviarItem(item("a1"), transporte, ctx.fila);
+
+    // Insistir contra uma parede atrasa as fotos seguintes e esconde do
+    // convidado que aquela precisa da atenção dele.
+    expect(r.estado).toBe("desistiu");
+    expect(ctx.itens.get("a1")?.tentativas).toBe(0);
+    expect(await ctx.fila.listar()).toHaveLength(1);
+  });
+
+  it("erro comum continua sendo retry", async () => {
+    await ctx.fila.enfileirar(item("a1"));
+    const { transporte } = transporteFalso("bytes");
+
+    expect((await enviarItem(item("a1"), transporte, ctx.fila)).estado).toBe("retentar");
+  });
+});
+
 describe("desistir não é apagar", () => {
   it("item no teto de tentativas vira falha visível, e continua na fila", async () => {
     await ctx.fila.enfileirar(item("a1", MAX_TENTATIVAS));

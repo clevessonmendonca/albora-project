@@ -1,0 +1,173 @@
+import { describe, expect, it } from "vitest";
+import { processarFoto, type Bitmap, type Desenhista } from "./processar";
+import { QUALIDADE } from "./redimensionar";
+
+type Img = Bitmap & { rotulo: string };
+
+/**
+ * Canvas falso que **registra a ordem** das operações.
+ *
+ * Não prova que os pixels saem certos — isso só um olho num aparelho prova.
+ * Prova o que de fato quebra nesta função: a sequência. Ler o EXIF depois de
+ * reencodar, ou planejar o tamanho sobre as dimensões cruas, são bugs de
+ * ordem, e ordem é verificável aqui.
+ */
+function desenhistaFalso(original: Bitmap) {
+  const chamadas: string[] = [];
+
+  const desenhista: Desenhista<Img, string> = {
+    async decodificar(bytes, mime) {
+      chamadas.push(`decodificar:${mime}:${bytes.length}b`);
+      return { ...original, rotulo: "original" };
+    },
+    async desenhar(imagem, alvo, t) {
+      chamadas.push(
+        `desenhar:${imagem.rotulo}→${alvo.largura}x${alvo.altura}:girar${t.girar}${t.espelhar ? ":espelhar" : ""}`,
+      );
+      return { largura: alvo.largura, altura: alvo.altura, rotulo: `${alvo.largura}x${alvo.altura}` };
+    },
+    async codificar(imagem, mime, qualidade) {
+      chamadas.push(`codificar:${imagem.rotulo}:${mime}:q${qualidade}`);
+      return `${imagem.rotulo}@${qualidade}`;
+    },
+  };
+
+  return { desenhista, chamadas };
+}
+
+/** JPEG mínimo com orientação 6 — o caso do iPhone em paisagem. */
+function jpegOrientacao6(): Uint8Array {
+  const tiff = [
+    0x49, 0x49, 0x2a, 0x00, 8, 0, 0, 0,
+    1, 0,
+    0x12, 0x01, 3, 0, 1, 0, 0, 0, 6, 0, 0, 0,
+    0, 0, 0, 0,
+  ];
+  const corpo = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00, ...tiff];
+  const tam = corpo.length + 2;
+  return new Uint8Array([0xff, 0xd8, 0xff, 0xe1, (tam >> 8) & 0xff, tam & 0xff, ...corpo]);
+}
+
+const semExif = new Uint8Array([0xff, 0xd8, 0xff, 0xdb, 0x00, 0x04, 0x00, 0x00]);
+const aparelhoComum = { memoriaGb: 8, nucleos: 8 };
+
+describe("a ordem das operações", () => {
+  it("decodifica, endireita, codifica, e só então faz a miniatura", async () => {
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
+
+    await processarFoto(semExif, "image/jpeg", desenhista, {
+      plano: "gratis",
+      aparelho: aparelhoComum,
+    });
+
+    expect(chamadas).toEqual([
+      "decodificar:image/jpeg:8b",
+      "desenhar:original→2500x1875:girar0",
+      "codificar:2500x1875:image/jpeg:q0.82",
+      // A miniatura sai do resultado, não do original: reprocessar o original
+      // dobraria o pico de memória no aparelho mais fraco.
+      "desenhar:2500x1875→320x240:girar0",
+      "codificar:320x240:image/jpeg:q0.7",
+    ]);
+  });
+
+  it("a miniatura parte da imagem já reduzida", async () => {
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 8000, altura: 6000 });
+
+    await processarFoto(semExif, "image/jpeg", desenhista, {
+      plano: "gratis",
+      aparelho: aparelhoComum,
+    });
+
+    const origemDaThumb = chamadas.find((c) => c.includes("→320x"));
+    expect(origemDaThumb).toContain("desenhar:2500x1875→");
+  });
+});
+
+describe("orientação, antes de o reencode apagar o EXIF", () => {
+  it("a foto do iPhone em paisagem é girada e os eixos trocam", async () => {
+    // Pixels gravados de lado: 4032 de largura por 3024, com a tag dizendo
+    // para girar. Sem isso a foto entra deitada no álbum.
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
+
+    const r = await processarFoto(jpegOrientacao6(), "image/jpeg", desenhista, {
+      plano: "gratis",
+      aparelho: aparelhoComum,
+    });
+
+    expect(r.orientacaoOriginal).toBe(6);
+    expect(chamadas[1]).toBe("desenhar:original→1875x2500:girar90");
+    // Em pé: o lado maior passa a ser a altura.
+    expect(r.altura).toBeGreaterThan(r.largura);
+  });
+
+  it("o plano é calculado sobre a imagem em pé, não sobre os pixels crus", async () => {
+    const { desenhista } = desenhistaFalso({ largura: 4032, altura: 3024 });
+
+    const r = await processarFoto(jpegOrientacao6(), "image/jpeg", desenhista, {
+      plano: "gratis",
+      aparelho: aparelhoComum,
+    });
+
+    // Planejar sobre as dimensões cruas encolheria pelo lado errado.
+    expect(Math.max(r.largura, r.altura)).toBe(2500);
+    expect(r.largura / r.altura).toBeCloseTo(3024 / 4032, 2);
+  });
+
+  it("sem EXIF, não gira nada", async () => {
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 1000, altura: 800 });
+
+    const r = await processarFoto(semExif, "image/jpeg", desenhista, {
+      plano: "gratis",
+      aparelho: aparelhoComum,
+    });
+
+    expect(r.orientacaoOriginal).toBe(1);
+    expect(chamadas[1]).toContain("girar0");
+    expect(chamadas[1]).not.toContain("espelhar");
+  });
+});
+
+describe("saída", () => {
+  it("sai em JPEG, independente do que entrou", async () => {
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 1000, altura: 800 });
+
+    // É o que o iPhone não entrega e todo mundo abre — inclusive o telão.
+    await processarFoto(semExif, "image/heic", desenhista, {
+      plano: "gratis",
+      aparelho: aparelhoComum,
+    });
+
+    expect(chamadas[0]).toContain("image/heic");
+    expect(chamadas.filter((c) => c.startsWith("codificar")).every((c) => c.includes("image/jpeg"))).toBe(true);
+  });
+
+  it("a miniatura é mais comprimida que a foto", async () => {
+    expect(QUALIDADE.thumb).toBeLessThan(QUALIDADE.full);
+  });
+
+  it("num aparelho modesto, o teto reduz mais e a foto ainda sai", async () => {
+    const { desenhista } = desenhistaFalso({ largura: 4032, altura: 3024 });
+
+    const r = await processarFoto(semExif, "image/jpeg", desenhista, {
+      plano: "pago",
+      aparelho: { memoriaGb: 2 },
+    });
+
+    expect(r.largura * r.altura).toBeLessThanOrEqual(2048 * 2048);
+    expect(r.full).toBeTruthy();
+  });
+
+  it("relata se a foto trazia GPS — verificação, não decisão", async () => {
+    const { desenhista } = desenhistaFalso({ largura: 1000, altura: 800 });
+
+    const r = await processarFoto(semExif, "image/jpeg", desenhista, {
+      plano: "gratis",
+      aparelho: aparelhoComum,
+    });
+
+    // O EXIF sai de toda foto, sempre. Este campo serve para o cliente poder
+    // afirmar que a remoção aconteceu, não para condicioná-la.
+    expect(r.tinhaGeolocalizacao).toBe(false);
+  });
+});
