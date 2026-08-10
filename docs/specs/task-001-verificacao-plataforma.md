@@ -83,21 +83,24 @@ O item 7 não é opcional. O produto roda em 200 aparelhos alheios num salão de
 
 Instrumento em [`spike/plataforma/`](../../spike/plataforma/README.md). O `/spike` é o painel: cada seção é uma prova, na ordem desta tabela.
 
-**Verificado em 2026-08-10, antes dos aparelhos:**
+**Rodado em 2026-08-10, Chrome 1633×810 no macOS, contra o Worker local do OpenNext:**
 
-| O que | Resultado |
-|---|---|
-| `opennextjs-cloudflare build` | ✅ Passa. Worker de 2,2 KB, first load JS de 106 KB em `/spike` |
-| `/sw.js` servido no escopo `/` | ✅ Sai como asset estático na raiz de `.open-next/assets`, fora do pipeline de render |
-| Cabeçalhos do SW | ✅ `Cache-Control: no-cache` e `Service-Worker-Allowed: /` — **via `public/_headers`**, ver achado 2 |
-| Presign fecha na ausência de credencial | ✅ `503 config.missing`, com a lista do que falta em `details` |
-| Forma da assinatura SigV4 | ✅ `AWS4-HMAC-SHA256`, credencial `/auto/s3/aws4_request`, `SignedHeaders: host` |
+| # | Prova | Resultado |
+|---|---|---|
+| 1 | SW ativo e controlando | ✅ `activated`, `controlando: true`, escopo `http://localhost:8788/` |
+| 2 | Recarregar com a rede desligada | ✅ **Com o Worker morto de verdade**, a página abriu completa e hidratada |
+| 3 | 3 itens, fechar a aba, reabrir | ✅ 3 itens, 2 457 600 bytes — número idêntico ao enfileirado |
+| 4 | Encerrar o navegador | ⏳ Exige reiniciar o Chrome; fica para a rodada nos aparelhos |
+| 5 | Presign + PUT de 800 KB | ⚠️ **Parcial.** Ver abaixo |
+| 6 | Log do Worker durante o PUT | ✅ Três requisições: `GET /spike`, `POST /presign` (42 ms), `GET /objetos`. **Nenhum PUT** |
+| 7 | iPhone e Android antigo | ⏳ Aparelho na mão |
+| 8 | Background Sync | ⏳ Android |
+
+**Prova 5, os dois lados.** Por `curl`: `200`, 819 200 bytes, objeto no bucket com o tamanho certo. Credencial, assinatura e escrita funcionam. **Pelo navegador: `TypeError: Failed to fetch`** — o `fetch` rejeita antes de qualquer resposta, assinatura de bloqueio de CORS. É o risco que a spec previa, e só aparece no navegador: CORS é regra de cliente, e o `curl` passa por cima dela. A política do bucket precisa ser aplicada no painel; ver achado 5.
+
+A prova 2 merece uma nota de método. A primeira tentativa usou `Network.emulateNetworkConditions` do CDP e **deu falso positivo**: a página abriu, mas o log do Worker mostrou uma requisição nova. A emulação do CDP é do renderizador e não alcança o Service Worker, que tem contexto de rede próprio. A prova só vale com o servidor derrubado.
 
 `SignedHeaders: host` é o que importa na prova 5: o `content-type` **não** entra na assinatura, então o navegador pode mandar o dele sem quebrar o PUT.
-
-**Pendente — exige aparelho na mão:**
-
-Provas 1 a 8. Nenhuma roda daqui: as 1–4 precisam de navegador de verdade, e as 5–8 precisam do deploy com as credenciais do R2 preenchidas. Anotar o resultado nesta tabela.
 
 ### Achados
 
@@ -111,6 +114,18 @@ O Workers Assets serve esses arquivos **antes** do Worker do Next, então a regr
 
 **3. O risco "OpenNext não serve o SW no escopo certo" não se materializou.**
 O plano B da tabela abaixo — servir o SW fora do pipeline do Next — já é o comportamento padrão. Não houve o que contornar.
+
+**4. 🔴 O bug que só a prova offline pega: precachear não é servir.**
+O `/fila-idb.js` estava no `PRECACHE` desde o primeiro commit e **nunca era lido**. O `fetch` do SW só tratava dois casos, `/_next/static/` e `navigate`. Um `<script src>` não é nenhum dos dois: caía direto na rede.
+
+Online ninguém percebe. Offline, a página abria bonita, hidratada, com todos os botões — **e `window.FilaIDB` era `undefined`**. O convidado abriria a tela sem sinal, tiraria a foto e ela não entraria em fila nenhuma.
+
+É o pior modo de falha que existe neste produto: não parece quebrado. Uma tela de erro o convidado tolera; uma tela que aceita a foto e a joga fora é a H1 indo a zero sem sinal nenhum no monitoramento. Corrigido com um terceiro ramo, cache-primeiro, para o que sobra.
+
+**Este achado sozinho paga a task 001.** Nenhuma prova unitária pegaria: o arquivo estava no cache, o teste do cache passaria. Só quebrou porque a prova 2 foi rodada com o servidor derrubado de verdade e alguém olhou se a fila existia — e não só se a página apareceu.
+
+**5. A credencial de upload não consegue configurar CORS, e isso é a propriedade certa.**
+`PutBucketCors` com o token Object Read & Write devolve `403 AccessDenied`. O token que assina URL para cliente não autenticado não muda política de bucket. A configuração sai do painel, na mão, uma vez por ambiente — e entra no runbook da task 002.
 
 ## Riscos, e o plano para cada
 

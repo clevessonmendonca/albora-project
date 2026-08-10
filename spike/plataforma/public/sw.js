@@ -9,7 +9,7 @@
 
 importScripts("/fila-idb.js");
 
-var VERSAO = "spike-v1";
+var VERSAO = "spike-v2";
 var CASCA = VERSAO + "-casca";
 var ESTATICO = VERSAO + "-estatico";
 
@@ -79,7 +79,26 @@ self.addEventListener("fetch", function (evento) {
         });
       })
     );
+    return;
   }
+
+  // Achado do spike: sem este ramo, /fila-idb.js era precacheado e nunca lido.
+  // Um <script src> não é `navigate` nem mora em /_next/static/, então caía
+  // direto na rede — e offline a fila simplesmente não existia. A página abria
+  // e o convidado não conseguia enfileirar nada, que é o pior modo de falha
+  // possível: parece funcionando.
+  evento.respondWith(
+    caches.match(req).then(function (hit) {
+      if (hit) return hit;
+      return fetch(req).then(function (res) {
+        if (res && res.ok && res.type === "basic") {
+          var copia = res.clone();
+          caches.open(CASCA).then(function (c) { c.put(req, copia); });
+        }
+        return res;
+      });
+    })
+  );
 });
 
 /* ── Background Sync — prova 8 ─────────────────────────────────
