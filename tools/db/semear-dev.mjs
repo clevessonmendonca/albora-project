@@ -51,6 +51,29 @@ async function migrar() {
 
 const SLUG = "festa-demo";
 
+/** O selo de "sugerido" só é verificável na tela se algum evento tiver um. */
+const FILTRO_RECOMENDADO = "dourado";
+
+/**
+ * As chaves são as mesmas do pack `casamento`. Quem cria missão de verdade é o
+ * admin (task 009); aqui é só para a tela ter o que mostrar.
+ */
+const MISSOES = ["missao.chegada", "missao.mesa", "missao.danca", "missao.brinde"];
+
+async function semearMissoes(eventoId) {
+  const { rows } = await pool.query("SELECT count(*)::int AS n FROM challenges WHERE event_id = $1", [
+    eventoId,
+  ]);
+  if (rows[0].n > 0) return;
+
+  for (const [i, chave] of MISSOES.entries()) {
+    await pool.query(
+      "INSERT INTO challenges (event_id, title_key, position) VALUES ($1, $2, $3)",
+      [eventoId, chave, i + 1],
+    );
+  }
+}
+
 async function semear() {
   const { rows: existente } = await pool.query(
     "SELECT event_id FROM event_slugs WHERE slug = $1",
@@ -61,9 +84,14 @@ async function semear() {
     // Reexecutar precisa ser seguro: quem está mexendo em tela roda isto
     // várias vezes por hora.
     await pool.query(
-      "UPDATE events SET starts_at = now() - interval '1 hour', ends_at = now() + interval '6 hours' WHERE id = $1",
-      [existente[0].event_id],
+      `UPDATE events
+          SET starts_at = now() - interval '1 hour',
+              ends_at = now() + interval '6 hours',
+              recommended_filter = $2
+        WHERE id = $1`,
+      [existente[0].event_id, FILTRO_RECOMENDADO],
     );
+    await semearMissoes(existente[0].event_id);
     return existente[0].event_id;
   }
 
@@ -76,14 +104,15 @@ async function semear() {
   );
 
   const { rows: evento } = await pool.query(
-    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, interaction_opens_at)
-     VALUES ($1, 'casamento', $2, now() - interval '1 hour', now() + interval '6 hours', now() + interval '2 hours')
+    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, interaction_opens_at, recommended_filter)
+     VALUES ($1, 'casamento', $2, now() - interval '1 hour', now() + interval '6 hours', now() + interval '2 hours', $3)
      RETURNING id`,
-    [conta[0].id, SLUG],
+    [conta[0].id, SLUG, FILTRO_RECOMENDADO],
   );
   const eventoId = evento[0].id;
 
   await pool.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [SLUG, eventoId]);
+  await semearMissoes(eventoId);
 
   // Um segundo evento, já encerrado, para conferir a tela de "já foi" sem
   // ter de mexer no relógio.

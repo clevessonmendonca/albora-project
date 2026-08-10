@@ -1,4 +1,4 @@
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import { comEvento } from "./evento";
 
 export type EstadoDoEvento =
@@ -15,6 +15,8 @@ export type EventoPublico = {
   terminaEm: Date;
   interacaoAbreEm: Date | null;
   identityTokens: Record<string, unknown>;
+  /** Id de preset sugerido pelo anfitrião. `null` = tira na ordem do catálogo. */
+  filtroRecomendado: string | null;
 };
 
 export type Resolucao =
@@ -51,7 +53,8 @@ export async function resolverSlug(
 
   const evento = await comEvento(pool, encontrado.event_id, async (c) => {
     const { rows: e } = await c.query(
-      `SELECT id, pack_id, starts_at, ends_at, interaction_opens_at, identity_tokens
+      `SELECT id, pack_id, starts_at, ends_at, interaction_opens_at, identity_tokens,
+              recommended_filter
        FROM events WHERE id = $1`,
       [encontrado.event_id],
     );
@@ -65,6 +68,7 @@ export async function resolverSlug(
       terminaEm: linha.ends_at as Date,
       interacaoAbreEm: linha.interaction_opens_at as Date | null,
       identityTokens: (linha.identity_tokens ?? {}) as Record<string, unknown>,
+      filtroRecomendado: (linha.recommended_filter ?? null) as string | null,
     };
   });
 
@@ -80,6 +84,22 @@ export async function resolverSlug(
   if (agora < evento.comecaEm) return { estado: "nao_comecou", evento };
 
   return { estado: "aberto", evento };
+}
+
+/**
+ * O pack do evento, de dentro de uma transação já escopada.
+ *
+ * Existe para o servidor validar contra conjunto fechado o que o cliente
+ * manda — lugar, missão, filtro. Whitelist vinda do banco, não do corpo da
+ * requisição.
+ */
+export async function packDoEvento(cliente: PoolClient, eventoId: string): Promise<string | null> {
+  const { rows } = await cliente.query<{ pack_id: string }>(
+    "SELECT pack_id FROM events WHERE id = $1",
+    [eventoId],
+  );
+
+  return rows[0]?.pack_id ?? null;
 }
 
 /**

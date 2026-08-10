@@ -15,11 +15,14 @@ export { comAgregacao, comEvento, ErroEventoAusente } from "./evento";
 export { migrar } from "./migrar";
 
 export type { LinhaUpload, ResultadoConfirm } from "./uploads";
-export { confirmarUpload, ErroUploadDeOutroEvento } from "./uploads";
+export { anotarUpload, confirmarUpload, ErroUploadDeOutroEvento } from "./uploads";
+
+export type { Desafio } from "./desafios";
+export { desafioDoEvento, listarDesafios } from "./desafios";
 
 export type { MotivoSessaoInvalida, NovaSessao, SessaoResolvida } from "./sessoes";
 export { comSessao, criarSessao, ErroNomeInvalido, ErroSessaoInvalida, resolverSessao, revogarSessoesDoEvento } from "./sessoes";
 export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from "./token";
 
 export type { EstadoDoEvento, EventoPublico, Resolucao } from "./eventos";
-export { HORAS_APOS_EVENTO, resolverSlug, rotacionarSlug } from "./eventos";
+export { HORAS_APOS_EVENTO, packDoEvento, resolverSlug, rotacionarSlug } from "./eventos";

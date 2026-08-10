@@ -1,14 +1,28 @@
 import { prefixoDoEvento, validarConteudo } from "@albora/core";
-import { comEvento, confirmarUpload, ErroUploadDeOutroEvento } from "@albora/db";
+import {
+  comEvento,
+  confirmarUpload,
+  desafioDoEvento,
+  ErroUploadDeOutroEvento,
+  packDoEvento,
+} from "@albora/db";
 import { banco } from "@/lib/banco";
 import { config, ErroConfig } from "@/lib/config";
+import { legendaLimpa, lugarAceito } from "@/lib/detalhes";
 import { inspecionarObjeto } from "@/lib/r2";
 import { erro, erroInesperado, ok } from "@/lib/resposta";
 import { sessaoDaRequisicao } from "@/lib/sessao";
 
 export const dynamic = "force-dynamic";
 
-type Corpo = { uploadId?: unknown; chave?: unknown; mime?: unknown; legenda?: unknown };
+type Corpo = {
+  uploadId?: unknown;
+  chave?: unknown;
+  mime?: unknown;
+  legenda?: unknown;
+  lugar?: unknown;
+  desafioId?: unknown;
+};
 
 /**
  * Persiste o upload — **validando, não confiando**.
@@ -38,7 +52,7 @@ export async function POST(req: Request) {
     return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
   }
 
-  const { uploadId, chave, mime, legenda } = corpo;
+  const { uploadId, chave, mime, legenda, lugar, desafioId } = corpo;
   if (typeof uploadId !== "string" || typeof chave !== "string" || typeof mime !== "string") {
     return erro(422, "validation_error", "Dados incompletos", {
       campos: ["uploadId", "chave", "mime"],
@@ -78,18 +92,29 @@ export async function POST(req: Request) {
       return erro(422, conteudoInvalido.code, "Arquivo recusado", conteudoInvalido.details);
     }
 
-    const resultado = await comEvento(banco(), sessao.eventoId, (c) =>
-      confirmarUpload(c, {
+    const resultado = await comEvento(banco(), sessao.eventoId, async (c) => {
+      // Missão e lugar são conjuntos fechados, e os dois conjuntos vêm do
+      // servidor: a missão do banco, o lugar do pack do evento. O que o
+      // cliente manda é uma escolha dentro deles, nunca a lista.
+      const daMissao =
+        typeof desafioId === "string" && (await desafioDoEvento(c, sessao.eventoId, desafioId))
+          ? desafioId
+          : null;
+
+      const packId = await packDoEvento(c, sessao.eventoId);
+
+      return confirmarUpload(c, {
         uploadId,
         eventId: sessao.eventoId,
         sessionId: sessao.sessaoId,
-        challengeId: null,
+        challengeId: daMissao,
         storageKey: `${chave}/full`,
         mime,
         bytes: objeto.bytes,
-        caption: typeof legenda === "string" ? legenda.slice(0, 280) : null,
-      }),
-    );
+        caption: legendaLimpa(legenda),
+        place: lugarAceito(packId, lugar),
+      });
+    });
 
     console.log("confirm.ok", {
       eventoId: sessao.eventoId,

@@ -8,7 +8,7 @@ export type {
   SessaoId,
 } from "./tipos";
 
-export type { CorpoItem, Fila, ItemFila } from "./fila";
+export type { CorpoItem, DetalhesItem, Fila, ItemFila } from "./fila";
 export { deveDesistir, esperaAntesDeRetentar, MAX_TENTATIVAS } from "./fila";
 
 export type { ModoInteracao } from "./interacao";
@@ -16,6 +16,9 @@ export { interacaoAberta, modoInteracao } from "./interacao";
 
 export type { Ajustes, Filtro } from "./luts";
 export { aplicarIntensidade, NEUTRO, paraFiltroCss } from "./luts";
+
+export type { Preset } from "./presets";
+export { aplicarPorPixel, ordenarComRecomendado, preset, PRESETS, TETO_POR_PIXEL_MS } from "./presets";
 
 export { derivarChaveMidia, prefixoDoEvento } from "./chaves";
 

@@ -20,6 +20,12 @@ function filaEmMemoria(iniciais: ItemFila[] = []) {
       const i = itens.get(id);
       if (i) i.tentativas += 1;
     },
+    async anotar(id, detalhes) {
+      const i = itens.get(id);
+      if (!i) return false;
+      itens.set(id, { ...i, ...detalhes });
+      return true;
+    },
   };
 
   return { fila, itens };

@@ -2,7 +2,7 @@ import { MARCA_ALBORA, resolverTokens } from "@albora/tokens";
 import { describe, expect, it } from "vitest";
 import { CASAMENTO } from "./casamento";
 import { QUINZE_ANOS } from "./quinze-anos";
-import { PACKS, texto } from "./index";
+import { lugarValido, PACKS, problemasDoPack, texto } from "./index";
 
 /**
  * O teste de sanidade do CLAUDE.md: trocar o pack de um evento muda toda a UI
@@ -17,11 +17,29 @@ describe("trocar o pack muda a UI, não o núcleo", () => {
     expect(texto(QUINZE_ANOS, "anfitriao.plural")).toBe("a aniversariante");
   });
 
-  it("os dois packs cobrem exatamente as mesmas chaves", () => {
-    // Chave faltando num pack é tela em português de outro evento.
-    expect(Object.keys(CASAMENTO.vocabulario).sort()).toEqual(
-      Object.keys(QUINZE_ANOS.vocabulario).sort(),
-    );
+  it("todo pack registrado responde ao que o núcleo pede", () => {
+    // Antes este teste exigia conjuntos de chaves idênticos. Isso deixou de
+    // valer quando missão e lugar entraram no vocabulário: um casamento tem
+    // altar e um aniversário não, e igualar os conjuntos forçaria um pack a
+    // inventar lugares que a festa não tem. O que precisa bater é o que o
+    // núcleo desenha — e isso `problemasDoPack` verifica por chave.
+    for (const [id, pack] of Object.entries(PACKS)) {
+      expect(problemasDoPack(pack), id).toEqual([]);
+    }
+  });
+
+  it("missão e lugar podem divergir entre packs", () => {
+    expect(CASAMENTO.lugares.map((l) => l.id)).toContain("altar");
+    expect(QUINZE_ANOS.lugares.map((l) => l.id)).not.toContain("altar");
+  });
+
+  it("lugar fora da lista do pack é recusado", () => {
+    // É a validação de conjunto fechado que o confirm usa. Campo livre aqui
+    // seria a mesma superfície de abuso do nome, projetada no telão.
+    expect(lugarValido(CASAMENTO, "altar")).toBe(true);
+    expect(lugarValido(QUINZE_ANOS, "altar")).toBe(false);
+    expect(lugarValido(CASAMENTO, "-22.9068,-43.1729")).toBe(false);
+    expect(lugarValido(CASAMENTO, null)).toBe(false);
   });
 
   it("chave ausente devolve a própria chave, nunca vazio", () => {

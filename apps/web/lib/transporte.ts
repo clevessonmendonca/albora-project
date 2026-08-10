@@ -53,7 +53,17 @@ export const transporteWeb: Transporte = {
       method: "POST",
       headers: { "content-type": "application/json" },
       credentials: "same-origin",
-      body: JSON.stringify({ uploadId: item.id, chave: presign.chave, mime: item.mime }),
+      // Os detalhes vão junto do confirm quando já existem. Se o convidado
+      // ainda estiver digitando quando a foto subir, eles chegam pela rota de
+      // anotação — a foto nunca espera o texto (§3.6).
+      body: JSON.stringify({
+        uploadId: item.id,
+        chave: presign.chave,
+        mime: item.mime,
+        desafioId: item.desafioId ?? null,
+        legenda: item.legenda ?? null,
+        lugar: item.lugar ?? null,
+      }),
     });
 
     if (!res.ok) throw new ErroDeApi("confirm", res.status, await corpoDeErro(res));

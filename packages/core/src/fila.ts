@@ -18,7 +18,21 @@ export type CorpoItem =
   | { tipo: "blob"; blob: Blob }
   | { tipo: "arquivo"; caminho: string; bytes: number };
 
-export type ItemFila = {
+/**
+ * O que o convidado escreve **depois** de a subida começar (§3.6).
+ *
+ * Mora no item da fila, e não numa chamada à parte, porque enquanto a foto
+ * está pendente não existe linha no banco para anotar. `lugar` é id de lista
+ * fechada do pack, nunca texto livre e nunca coordenada — reintroduzir
+ * localização aqui desfaria a remoção de EXIF da 004 (N6.9).
+ */
+export type DetalhesItem = {
+  desafioId?: string | null;
+  legenda?: string | null;
+  lugar?: string | null;
+};
+
+export type ItemFila = DetalhesItem & {
   /** uuid do cliente. É a chave de idempotência do confirm. */
   id: string;
   eventoId: string;
@@ -33,6 +47,11 @@ export interface Fila {
   listar(): Promise<ItemFila[]>;
   remover(id: string): Promise<void>;
   marcarTentativa(id: string): Promise<void>;
+  /**
+   * Anota um item que ainda está na fila. Devolve `false` quando o item já
+   * saiu — aí a anotação é do banco, não da fila, e quem chama decide.
+   */
+  anotar(id: string, detalhes: DetalhesItem): Promise<boolean>;
 }
 
 /** Teto de tentativas antes de o item virar falha visível para o convidado. */

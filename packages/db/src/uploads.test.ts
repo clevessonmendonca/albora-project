@@ -29,6 +29,7 @@ const entrada = (uploadId: string, d: { eventoId: string; sessaoId: string }) =>
   mime: "image/jpeg",
   bytes: 812_345,
   caption: null,
+  place: null,
 });
 
 describe("confirm é idempotente — retry é o caminho normal", () => {

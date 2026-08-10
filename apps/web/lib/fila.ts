@@ -1,4 +1,4 @@
-import type { Fila, ItemFila } from "@albora/core";
+import type { DetalhesItem, Fila, ItemFila } from "@albora/core";
 
 /**
  * Adaptador web da fila: IndexedDB direto, sem wrapper.
@@ -125,6 +125,23 @@ export const filaWeb: Fila = {
         // sobrescreveria a contagem e o item nunca alcançaria o teto de
         // tentativas — retentaria para sempre.
         if (item) loja.put({ ...item, tentativas: (item.tentativas ?? 0) + 1 });
+      };
+    });
+  },
+
+  anotar(id: string, detalhes: DetalhesItem): Promise<boolean> {
+    // Mesma transação, mesmo motivo do `marcarTentativa`: o drenador pode
+    // estar mexendo neste item enquanto o convidado digita a legenda.
+    return transacionar<boolean>("readwrite", (loja, devolve) => {
+      devolve(false);
+
+      const req = loja.get(id);
+      req.onsuccess = () => {
+        const item = req.result as ItemFila | undefined;
+        if (!item) return;
+
+        loja.put({ ...item, ...detalhes });
+        devolve(true);
       };
     });
   },
