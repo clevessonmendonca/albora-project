@@ -1,18 +1,27 @@
+import { Resgate } from "./scanner";
+
 /**
  * Saída com dignidade.
  *
  * Todo estado que não abre a festa passa por aqui, e nenhum deles é um erro
  * do convidado. Ele escaneou um QR numa mesa: a tela diz o que aconteceu e
  * qual é o próximo passo, sem código de erro e sem culpa.
+ *
+ * `resgate` liga o campo de código e o escaneamento. Só entra onde a pessoa
+ * está no endereço **errado** — código desconhecido e slug rotacionado. Em
+ * "já foi" e "ainda não começou" o código está certo, e oferecer um scanner
+ * ali seria mentir sobre o que resolve o problema.
  */
 export function Aviso({
   titulo,
   texto,
   quando,
+  resgate,
 }: {
   titulo: string;
   texto: string;
-  quando?: Date;
+  quando?: Date | undefined;
+  resgate?: boolean | undefined;
 }) {
   return (
     <main
@@ -21,12 +30,12 @@ export function Aviso({
         display: "grid",
         placeItems: "center",
         padding: "2rem 1.5rem",
-        background: "var(--fundo)",
-        color: "var(--frente)",
+        background: "var(--bg)",
+        color: "var(--ink)",
         fontFamily: "var(--fonte-corpo)",
       }}
     >
-      <div style={{ maxWidth: "28rem", textAlign: "center" }}>
+      <div style={{ width: "100%", maxWidth: "28rem", textAlign: "center" }}>
         <h1
           style={{
             fontFamily: "var(--fonte-titulo)",
@@ -38,10 +47,10 @@ export function Aviso({
         >
           {titulo}
         </h1>
-        <p style={{ margin: 0, opacity: 0.65, lineHeight: 1.6 }}>{texto}</p>
+        <p style={{ margin: 0, lineHeight: 1.6, color: "var(--ink-2)" }}>{texto}</p>
 
         {quando && (
-          <p style={{ marginTop: "1.25rem", opacity: 0.5, fontSize: "0.9rem" }}>
+          <p style={{ marginTop: "1.25rem", fontSize: "0.9rem", color: "var(--ink-3)" }}>
             {quando.toLocaleString("pt-BR", {
               day: "2-digit",
               month: "long",
@@ -50,6 +59,8 @@ export function Aviso({
             })}
           </p>
         )}
+
+        {resgate && <Resgate />}
       </div>
     </main>
   );

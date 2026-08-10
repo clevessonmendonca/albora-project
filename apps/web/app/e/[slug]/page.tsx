@@ -40,18 +40,21 @@ export default async function Pagina({ params }: Props) {
     return (
       <Aviso
         titulo="Esse endereço não abre nenhuma festa"
-        texto="Confira se o código foi digitado certo, ou escaneie o QR da mesa de novo."
+        texto="Pode ser uma letra trocada. Tente de novo pelo código da mesa."
+        resgate
       />
     );
   }
 
   if (r.estado === "slug_rotacionado") {
-    // A placa já saiu da gráfica. Quem escaneou a antiga precisa de
-    // orientação, nunca de um erro seco (N1.5).
+    // A placa já saiu da gráfica e o QR na mão da pessoa é o velho. Quem
+    // escaneou a antiga precisa de orientação e de um caminho, nunca de um
+    // erro seco (N1.5).
     return (
       <Aviso
         titulo="Esse código foi trocado"
-        texto="A festa existe, mas o endereço mudou. Procure o QR mais recente na mesa ou peça o link a quem te convidou."
+        texto="A festa existe, mas o endereço mudou. Use o QR mais novo da mesa, ou peça o link a quem te convidou."
+        resgate
       />
     );
   }
