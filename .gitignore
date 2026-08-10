@@ -12,3 +12,6 @@ node_modules/
 dist/
 *.tsbuildinfo
 next-env.d.ts
+
+# Artefato de `apps/web/scripts/construir-sw.mjs`. A fonte é apps/web/sw/sw.ts.
+apps/web/public/sw.js

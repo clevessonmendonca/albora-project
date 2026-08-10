@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { registrarServiceWorker } from "@/lib/registrar-sw";
 
 /**
  * Do QR à sessão em três toques: consentir, digitar o nome, entrar.
@@ -28,6 +29,13 @@ export function Entrada({
   const [nome, setNome] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Passo 2 do §3.1: em segundo plano, sem `await` e sem estado na tela. O
+    // que decide o negócio é a primeira foto — ela não espera pelo registro,
+    // e uma falha aqui não pode virar erro visível (N6.2).
+    void registrarServiceWorker();
+  }, []);
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault();
@@ -161,6 +169,10 @@ function Tela({ children }: { children: React.ReactNode }) {
         fontFamily: "var(--fonte-corpo)",
       }}
     >
+      {/* O React 19 iça isto para o `<head>`. Fica na rota do convidado, e não
+          no layout raiz, porque o manifesto descreve o PWA do convidado — o
+          admin e o telão não devem ser instaláveis como ele. */}
+      <link rel="manifest" href="/manifest.webmanifest" />
       <div style={{ width: "100%", maxWidth: "24rem" }}>{children}</div>
     </main>
   );

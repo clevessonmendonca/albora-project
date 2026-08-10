@@ -3,26 +3,30 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "sw:build": "node scripts/construir-sw.mjs",
+    "predev": "pnpm sw:build",
     "dev": "next dev",
+    "prebuild": "pnpm sw:build --producao",
     "build": "next build",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@albora/core": "workspace:*",
+    "@albora/db": "workspace:*",
     "@albora/packs": "workspace:*",
     "@albora/tokens": "workspace:*",
     "@albora/ui-web": "workspace:*",
-    "next": "^15.5.4",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "@albora/db": "workspace:*",
     "aws4fetch": "^1.0.20",
-    "pg": "^8.13.1"
+    "next": "^15.5.4",
+    "pg": "^8.13.1",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
   },
   "devDependencies": {
+    "@types/pg": "^8.11.10",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "typescript": "^5.8.3",
-    "@types/pg": "^8.11.10"
+    "esbuild": "^0.28.2",
+    "typescript": "^5.8.3"
   }
 }
