@@ -10,18 +10,46 @@ O mesmo app web, distribuído pela App Store e pelo Google Play, com upload em s
 
 ## A tecnologia: Capacitor, não Expo
 
-**Expo com React Native foi avaliado e recusado.** Não por qualidade — por arquitetura.
+### O que o Expo faz melhor, e é bastante
 
-React Native exige reescrever toda a interface. Isso duplicaria o sistema de componentes, e o [ADR 0003](../adr/0003-runtime-token-resolution.md) depende de **um** resolvedor de tokens alimentando todos os renderizadores. Dois conjuntos de componentes significam a identidade do casal propagando num e não no outro — exatamente o bug que o guard de tokens roda bloqueante para impedir. O mesmo vale para os packs: `pack → core` só se sustenta com um núcleo.
+A escolha não é entre uma ferramenta boa e uma ruim. Para **construir um app nativo**, o Expo é melhor:
 
-Capacitor carrega **os mesmos assets** num `WKWebView` (iOS) e num `WebView` (Android), e expõe as APIs nativas por plugin. Um código, um design system, um conjunto de packs, um deploy de conteúdo.
+- **EAS Build compila para iOS sem Mac**, cuida de assinatura e submete às lojas
+- **EAS Update publica correção sem passar por revisão** — OTA de primeira parte
+- **Um app React Native não é rejeitado pela Guideline 4.2.** A rota escolhida aqui carrega um risco de reprovação que o Expo não tem
+- Ecossistema maior, documentação melhor, mais gente para perguntar
+
+Nada disso é motivo para escolher Capacitor. O motivo é outro, e é único.
+
+### O motivo: são duas superfícies ricas, e elas são a mesma
+
+O produto tem duas entregas, e ambas fazem quase tudo:
+
+- **A web é a porta de entrada, mas não é uma casca.** Câmera, missões, editor, upload, feed. Quem escaneia o QR e nunca instala nada precisa conseguir participar a noite inteira — é a regra que decide a H1
+- **O app é o produto completo**, com o mesmo conteúdo mais o que só o nativo dá
+
+Se a web fosse mínima — só a primeira foto, e todo o resto no app — o Expo seria a escolha certa: haveria **uma** interface rica a construir. Não é o caso. As duas são ricas, o que significa que **são a mesma interface**.
+
+React Native não compartilha interface com a web: não tem CSS, não tem Tailwind, tem primitivas de layout próprias. Escolher Expo é decidir escrever cada tela duas vezes, para sempre — câmera, editor, missões, feed, stories, galeria — e manter as duas em sincronia enquanto o produto muda toda semana.
+
+Com uma pessoa, seis semanas e uma data de casamento que não move, **é isso que não cabe.** Não é preferência de arquitetura, é aritmética de calendário.
+
+E há o efeito de segunda ordem: o [ADR 0003](../adr/0003-runtime-token-resolution.md) depende de **um** resolvedor de tokens alimentando todos os renderizadores. Dois conjuntos de componentes significam a identidade do casal propagando num e não no outro — o bug que o guard de tokens roda bloqueante para impedir. O mesmo vale para os packs: `pack → core` só se sustenta com um núcleo.
+
+Capacitor carrega **os mesmos assets** num `WKWebView` (iOS) e num `WebView` (Android), e expõe as APIs nativas por plugin.
 
 | | Expo / React Native | Capacitor |
 |---|---|---|
-| Interface | Reescrita | A mesma |
+| Superfície web do convidado | Uma, própria | A mesma |
+| Superfície do app | **Outra, do zero** | **A mesma** |
 | Sistema de tokens | Dois | Um |
-| Packs | Dois núcleos | Um |
-| Correção urgente | Passa por revisão de loja | Sai pela web, na hora |
+| Cada tela nova | Escrita duas vezes | Uma |
+| Paridade entre web e app | Trabalho contínuo | **Por construção** |
+| Risco de Guideline 4.2 | Nenhum | Real — ver abaixo |
+
+A linha da paridade é a que resolve o pedido "o app tem que ser completo": aqui ele é completo porque **é** o app web, mais as capacidades nativas. Não existem duas implementações para divergirem.
+
+**Reabrir se** a web do convidado encolher para só a primeira foto. Aí passa a existir uma superfície rica só, e o Expo vira a resposta certa.
 
 ## A hospedagem: já está feita
 
