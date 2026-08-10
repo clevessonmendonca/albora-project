@@ -1,0 +1,8 @@
+{
+  "name": "@albora/mobile",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "echo 'app Expo entra na task 017' && exit 0"
+  }
+}

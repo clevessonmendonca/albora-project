@@ -78,13 +78,15 @@ Não podem ser quebradas sem discussão prévia. Se uma tarefa pedir para quebra
 ### Processo
 
 - **Nunca faça merge de uma MR sem pedido explícito.** Review aprovado e pipeline verde são necessários, não suficientes.
-- **Verifique todo artefato que você declara ter produzido.** "Branch pushed" → `git ls-remote origin <branch>` retorna o SHA local. "MR aberta" → `glab mr view`. "Arquivos escritos" → `git status`. Se a verificação falha, **pare e reporte a lacuna**.
+- **Verifique todo artefato que você declara ter produzido.** "Branch pushed" → `git ls-remote origin <branch>` retorna o SHA local. "PR aberto" → `gh pr view`. "Arquivos escritos" → `git status`. Se a verificação falha, **pare e reporte a lacuna**.
 - **Por padrão, NENHUM comentário.** Mantenha um comentário só se for (a) invariante de segurança/correção invisível no código, (b) workaround de bug upstream com link rastreável, (c) supressão (`eslint-disable`, `type: ignore`, `noqa`) com motivo, ou (d) docstring que adiciona contrato que nome e assinatura não carregam. Na dúvida: **apague**.
 
 ## Convenções de ferramenta (Sea Tecnologia)
 
-- **SCM e CI/CD: GitLab self-hosted.** Pipeline em `.gitlab-ci.yml` na raiz. Segredos são variáveis CI/CD do GitLab, nunca arquivos no repo.
-- **CLI de review: `glab`.** `glab mr create`, `glab mr view`, `glab ci status`. Nunca `hub` nem API do GitHub.
+- **SCM e CI/CD: GitHub.** Pipeline em `.github/workflows/ci.yml`. Segredos são GitHub Actions secrets, nunca arquivos no repo.
+
+  A convenção da Sea é GitLab self-hosted, e ela continua valendo nos projetos da empresa. **O Albora é a exceção**, decidida na task 002: o repositório já nasceu no GitHub, e manter os dois seria ter um CI que ninguém olha. Um só, não os dois.
+- **CLI de review: `gh`.** `gh pr create`, `gh pr view`, `gh run list`. Nunca `glab` neste repositório.
 - **Commits: Conventional Commits** com escopo — `feat(upload):`, `fix(telao):`, `docs(adr):`.
 
 ## Ladder de deploy
