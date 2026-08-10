@@ -77,5 +77,5 @@ export default async function Pagina({ params }: Props) {
     );
   }
 
-  return <Entrada eventoId={r.evento.eventoId} packId={r.evento.packId} />;
+  return <Entrada eventoId={r.evento.eventoId} packId={r.evento.packId} slug={slug} />;
 }

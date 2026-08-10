@@ -13,9 +13,17 @@ import { useState } from "react";
 const CONSENTIMENTO = "v1";
 const NOME_SALVO = "albora:nome";
 
-type Etapa = "consentimento" | "nome" | "recusou" | "pronto";
+type Etapa = "consentimento" | "nome" | "recusou";
 
-export function Entrada({ eventoId, packId }: { eventoId: string; packId: string }) {
+export function Entrada({
+  eventoId,
+  packId,
+  slug,
+}: {
+  eventoId: string;
+  packId: string;
+  slug: string;
+}) {
   const [etapa, setEtapa] = useState<Etapa>("consentimento");
   const [nome, setNome] = useState("");
   const [enviando, setEnviando] = useState(false);
@@ -52,7 +60,9 @@ export function Entrada({ eventoId, packId }: { eventoId: string; packId: string
         // Navegação privada bloqueia. Não é motivo para impedir a entrada.
       }
 
-      setEtapa("pronto");
+      // Direto para a câmera: o terceiro toque termina com a foto podendo
+      // ser tirada, não com uma tela de parabéns.
+      window.location.href = `/e/${slug}/foto`;
     } catch {
       setErro("Sem conexão. Chegue mais perto do roteador e tente de novo.");
     } finally {
@@ -70,15 +80,6 @@ export function Entrada({ eventoId, packId }: { eventoId: string; packId: string
         </Texto>
         {/* Sem insistência, sem "tem certeza?", sem segunda tentativa
             disfarçada. Recusar é uma escolha legítima. */}
-      </Tela>
-    );
-  }
-
-  if (etapa === "pronto") {
-    return (
-      <Tela>
-        <Titulo>Pronto, {nome}</Titulo>
-        <Texto>Agora é só fotografar. Suas fotos entram no álbum de quem te convidou.</Texto>
       </Tela>
     );
   }
