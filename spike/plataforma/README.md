@@ -81,6 +81,10 @@ O script imprime o `https://albora-spike.<subdomínio>.workers.dev`. **Acrescent
 ao CORS do bucket** antes de tentar a prova 5 no celular — é a mesma configuração de antes,
 e a origem do deploy não é a mesma do preview.
 
+**No primeiro deploy de um subdomínio novo, a URL fica ~2 minutos fora do ar.** O DNS resolve
+na hora, mas o certificado TLS ainda não foi emitido, e o erro é de handshake — no celular
+aparece como "não foi possível conectar". Parece falha da plataforma e é só espera.
+
 Para levar a URL ao aparelho sem digitar, gere um QR dela — que é, aliás, exatamente o
 gesto do produto.
 
@@ -97,6 +101,14 @@ Ele registra tudo na seção **Registro**, no fim da página — não precisa de
 | 4 | Encerrar o navegador de vez e reabrir | Os 3 continuam lá |
 | 5 | Tirar o modo avião, "Subir 800 KB" | `✓ PUT 200` no registro, objeto na lista do bucket |
 | 6 | `npx wrangler tail albora-spike` no Mac durante o 5 | Só `presign.emitido`. Nenhum PUT |
+
+Na prova 6, o número que interessa não é o `presign.emitido` aparecer — é o `content-length`
+do evento. Ele tem de ficar na casa das dezenas de bytes enquanto a foto tem centenas de
+milhares. Se um dia aparecer um evento de `PUT`, o caminho crítico regrediu.
+
+Se for canalizar o `tail` para arquivo, use `--format json`: o `pretty` bufferiza quando a
+saída não é um terminal e o arquivo fica vazio, o que parece "nenhuma requisição chegou" —
+exatamente a conclusão errada nesta prova.
 
 A prova 3 **offline** é a que mais importa, e a que quase passou batida no desktop: o bug era
 a página abrir inteira e a fila não existir. `✗ FilaIDB indisponível` no registro é a

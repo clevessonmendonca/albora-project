@@ -83,7 +83,9 @@ O item 7 não é opcional. O produto roda em 200 aparelhos alheios num salão de
 
 Instrumento em [`spike/plataforma/`](../../spike/plataforma/README.md). O `/spike` é o painel: cada seção é uma prova, na ordem desta tabela.
 
-**Rodado em 2026-08-10, Chrome 1633×810 no macOS, contra o Worker local do OpenNext:**
+Publicado em `https://albora-spike.albora-dev.workers.dev/spike`.
+
+**Rodado em 2026-08-10, Chrome no macOS, contra o Worker local e depois contra o publicado:**
 
 | # | Prova | Resultado |
 |---|---|---|
@@ -91,10 +93,21 @@ Instrumento em [`spike/plataforma/`](../../spike/plataforma/README.md). O `/spik
 | 2 | Recarregar com a rede desligada | ✅ **Com o Worker morto de verdade**, a página abriu completa e hidratada |
 | 3 | 3 itens, fechar a aba, reabrir | ✅ 3 itens, 2 457 600 bytes — número idêntico ao enfileirado |
 | 4 | Encerrar o navegador | ⏳ Exige reiniciar o Chrome; fica para a rodada nos aparelhos |
-| 5 | Presign + PUT de 800 KB | ✅ `200` pelo navegador, objeto de 800 KB no bucket. Ver nota de CORS |
-| 6 | Log do Worker durante o PUT | ✅ 15 requisições no Worker, **`PUT: 0`**. Só presign, casca e assets |
+| 5 | Presign + PUT de 800 KB | ✅ `200` pelo navegador, local **e publicado**. Objeto de 800 KB no bucket |
+| 6 | Log do Worker durante o PUT | ✅ Ver abaixo — a evidência mais forte da tarefa |
 | 7 | iPhone e Android antigo | ⏳ Aparelho na mão |
 | 8 | Background Sync | ⏳ Android |
+
+**A prova 6, no Worker publicado.** `wrangler tail` durante um PUT de 819 200 bytes registrou **um único evento**:
+
+```
+POST /api/spike/presign     content-length: 21     cpuTime: 71 ms
+logs: presign.emitido { chave, tipo, validadeSegundos: 600 }
+```
+
+`"method": "PUT"` aparece **zero vezes** no log. O corpo inteiro que tocou o servidor foram os 21 bytes de `{"tipo":"image/jpeg"}` — proporção de cerca de 39 000 para 1 contra o que foi para o R2.
+
+Isso é a regra do `CLAUDE.md` — *"o servidor nunca toca nos bytes de mídia"* — deixando de ser intenção e virando medida. E é o que faz a conta de custo do produto fechar: 150 convidados subindo 20 fotos cada custam 3 000 invocações de 71 ms, não 3 000 × 4 MB de tráfego.
 
 **A prova 5 falhou primeiro, e o modo da falha importa.** Antes do CORS, `curl` dava `200` e o navegador dava `TypeError: Failed to fetch` — rejeição antes de qualquer resposta. CORS é regra de cliente e o `curl` passa por cima dela, então **a única prova que vale é a do navegador**. Com a política aplicada, os dois passam: 800 KB em `200`, e um controle de 2 bytes junto para separar "CORS resolvido" de "upload grande quebrado".
 
