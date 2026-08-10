@@ -1,8 +1,10 @@
 # 0008 — App nativo como segunda porta, nunca como a primeira
 
-- **Status:** Accepted
+- **Status:** Superseded por [0009](./0009-app-social-do-convidado.md)
 - **Data:** 2026-08-10
 - **Relaciona-se com:** [0004](./0004-anonymous-guest-session.md), [0005](./0005-runtime-stack.md)
+
+> **Superado no mesmo dia.** Este ADR tratava o app como "segunda porta" e o acompanhamento como espelho passivo do telão, sem reação e sem contagem. Isso vinha de uma leitura errada do produto, não do dono dele. O [ADR 0009](./0009-app-social-do-convidado.md) corrige. O que sobrevive daqui: a porta de entrada pela web, a recusa do Expo em favor de casca sobre o mesmo app web, e a restrição do `URLSession` que obriga a fila a aceitar referência de arquivo.
 
 ## Contexto
 

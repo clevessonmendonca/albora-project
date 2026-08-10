@@ -12,7 +12,7 @@ O núcleo é genérico (`event`, `host`, `guest`, `challenge`, `upload`); casame
 
 ## O que este projeto NÃO é
 
-- Não é um app social. Engajamento durante o evento é **anti-objetivo** — feed durante a festa estraga a festa.
+- Não é uma rede social **entre eventos**. O feed, as reações e os comentários existem e são de primeira classe, mas vivem dentro de um evento e morrem com ele. Não há conta Albora, e a interação abre num horário que os noivos escolhem. Ver [ADR 0009](./docs/adr/0009-app-social-do-convidado.md).
 - Não é um editor de canvas. Diagramação é por slots, nunca posicionamento livre.
 - Não é um site de casamento. Site, convite, RSVP e lista de presentes estão fora até a Fase 4, com condições de entrada explícitas.
 - Não é armazenamento. Não competimos em "ilimitado grátis".
@@ -58,7 +58,8 @@ Não podem ser quebradas sem discussão prévia. Se uma tarefa pedir para quebra
 - **Um resolvedor de tokens, N renderizadores.** Web, telão e PDF de impressão consomem o mesmo resolvedor. Se divergirem, a placa impressa não combina com o telão — e essa coerência é o produto.
 - **Anti-padrões visuais são bloqueantes:** glassmorphism, neon, gradiente roxo, dark mode "tech", fonte script, verde sage, rosa blush, ícone de aliança/pombinha/coração.
 - **O telão nunca corta na vertical.** Três de cada quatro fotos de festa são verticais; encaixar 9:16 em 16:9 com recorte descarta dois terços da imagem pelo topo e pela base — e o topo é onde estão as cabeças. Quatro modelos resolvem o enquadramento sem cortar rosto ([`docs/flows.md` §5.0](./docs/flows.md)). Vale igual para vídeo.
-- **Recado não tem resposta.** Nem curtida em recado, nem notificação de citação, nem notificação de qualquer tipo durante o evento. O thread é o vetor do drama familiar, não o texto — e o laço de checagem é o que estraga a festa, não o gesto de escrever.
+- **A interação abre por gate, e quem define é o casal.** Feed, reação e comentário existem; o padrão é liberarem **após a cerimônia**, configurável no admin. Antes do gate o app sobe foto e espelha o telão. Notificação fica **desligada** até ter decisão própria. Ver [ADR 0009](./docs/adr/0009-app-social-do-convidado.md).
+- **O convidado nunca digita senha, nunca recebe e-mail, nunca espera SMS.** A identidade dele é o QR (qual evento) + primeiro nome (quem) + token do aparelho. A única coisa que ele pode digitar na vida é o código de quatro dígitos que passa a sessão da web para o app instalado.
 
 ### Packs (verticais)
 
