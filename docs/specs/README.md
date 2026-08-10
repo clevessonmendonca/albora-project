@@ -29,15 +29,15 @@ Seis semanas, uma pessoa, noites e fins de semana. A data do casamento não move
 | # | Tarefa | Entrega verificável | Sem. |
 |---|---|---|---|
 | **001** | [Verificação de plataforma](./task-001-verificacao-plataforma.md) | SW registra sob OpenNext · IndexedDB persiste · PUT presigned chega no R2 | 1 |
-| 002 | Monorepo, esqueleto e guards de CI | `pnpm dev` sobe · os quatro guards bloqueiam de propósito | 1 |
-| 003 | Schema, RLS e testes de isolamento | Evento A não lê o B contra banco real, com id mal configurado | 1 |
-| 004 | Pipeline de upload ponta a ponta | Foto do celular chega no R2 e aparece na galeria, com a rede caindo no meio | 2 |
-| 005 | Sessão do convidado e consentimento | QR → consentimento → nome → sessão, em ≤ 3 toques | 2 |
-| 006 | Missões, captura e editor | Cinco toques do QR à foto no telão | 3 |
-| 007 | Admin: evento, missões, geração de peças | PDF sai pronto para gráfica, com QR que escaneia impresso | 3–4 |
-| 008 | Telão | Roda 4h sem intervenção, sobrevive a queda de rede e a reload | 4 |
-| 009 | Moderação, denúncia e botão de pânico | Foto sai da parede em menos de 5s | 4 |
-| 010 | Teste de carga e PWA instalável | **150 uploads em 20 min** · instala no Android e no iOS | 5 |
+| [002](./task-002-monorepo-e-guards.md) | Monorepo, esqueleto e guards de CI | `pnpm dev` sobe · os quatro guards bloqueiam de propósito | 1 |
+| [003](./task-003-schema-rls-isolamento.md) | Schema, RLS e testes de isolamento | Evento A não lê o B contra banco real, com id mal configurado | 1 |
+| [004](./task-004-pipeline-upload.md) | Pipeline de upload ponta a ponta | Foto do celular chega no R2 e aparece na galeria, com a rede caindo no meio | 2 |
+| [005](./task-005-sessao-convidado.md) | Sessão do convidado e consentimento | QR → consentimento → nome → sessão, em ≤ 3 toques | 2 |
+| [006](./task-006-missoes-captura-editor.md) | Missões, captura e editor | Cinco toques do QR à foto no telão | 3 |
+| [007](./task-007-admin-e-pecas.md) | Admin: evento, missões, geração de peças | PDF sai pronto para gráfica, com QR que escaneia impresso | 3–4 |
+| [008](./task-008-telao.md) | Telão | Roda 4h sem intervenção, sobrevive a queda de rede e a reload | 4 |
+| [009](./task-009-moderacao.md) | Moderação, denúncia e botão de pânico | Foto sai da parede em menos de 5s | 4 |
+| [010](./task-010-carga-e-pwa.md) | Teste de carga e PWA instalável | **150 uploads em 20 min** · instala no Android e no iOS | 5 |
 | — | **Casamento real** | A métrica que decide o negócio | 6 |
 
 > A tarefa 001 é **spike descartável**. O código dela não vai para produção — ela existe só para responder sim ou não. Se der não, o ADR 0005 é reaberto antes de qualquer outra linha.
