@@ -24,6 +24,18 @@ export type Textos = {
   lugarPergunta: string;
 };
 
+/**
+ * Escondido do olho, presente no layout. `display: none` num input de arquivo
+ * clicado por código já custou `capture` ignorado em Safari.
+ */
+const ESCONDIDO: React.CSSProperties = {
+  position: "absolute",
+  width: "1px",
+  height: "1px",
+  opacity: 0,
+  pointerEvents: "none",
+};
+
 type Etapa =
   | { nome: "missoes" }
   | { nome: "editor"; arquivo: File }
@@ -44,22 +56,46 @@ export function PaginaFoto({
   filtroRecomendado: string | null;
 }) {
   const { estado, enfileirarFoto, anotar } = usarEnvio(eventoId);
-  const entrada = useRef<HTMLInputElement>(null);
+  const entradaCamera = useRef<HTMLInputElement>(null);
+  const entradaRolo = useRef<HTMLInputElement>(null);
   const [etapa, setEtapa] = useState<Etapa>({ nome: "missoes" });
   const [missoes, setMissoes] = useState(missoesIniciais);
   const [escolhida, setEscolhida] = useState<string | null>(null);
+  const [emLote, setEmLote] = useState(0);
 
   function abrirCamera(missaoId: string | null) {
     setEscolhida(missaoId);
-    entrada.current?.click();
+    entradaCamera.current?.click();
   }
 
-  function escolheu(ev: React.ChangeEvent<HTMLInputElement>) {
-    const arquivo = ev.target.files?.[0];
+  function abrirRolo(missaoId: string | null) {
+    setEscolhida(missaoId);
+    entradaRolo.current?.click();
+  }
+
+  async function escolheu(ev: React.ChangeEvent<HTMLInputElement>) {
+    const arquivos = [...(ev.target.files ?? [])];
     // Zera antes de seguir: sem isso, fotografar a mesma coisa duas vezes
     // seguidas não dispara o evento na segunda.
     ev.target.value = "";
-    if (arquivo) setEtapa({ nome: "editor", arquivo });
+
+    const primeiro = arquivos[0];
+    if (!primeiro) return;
+
+    // Uma foto passa pelo editor. Um lote não: quem sobe dez do rolo no
+    // domingo de manhã não quer escolher filtro dez vezes, e uma entrada de
+    // fila por arquivo é o que a N5.6 pede.
+    if (arquivos.length === 1) {
+      setEtapa({ nome: "editor", arquivo: primeiro });
+      return;
+    }
+
+    setEmLote(arquivos.length);
+    for (const arquivo of arquivos) {
+      await enfileirarFoto({ arquivo, desafioId: escolhida });
+      setEmLote((n) => n - 1);
+    }
+    setEtapa({ nome: "pronto", arquivo: primeiro });
   }
 
   async function enviar(arquivo: File, filtro: FiltroAplicado | undefined) {
@@ -117,8 +153,8 @@ export function PaginaFoto({
         gridTemplateRows: "auto 1fr auto",
         padding: "1.5rem",
         gap: "1.25rem",
-        background: "var(--fundo)",
-        color: "var(--frente)",
+        background: "var(--bg)",
+        color: "var(--ink)",
         fontFamily: "var(--fonte-corpo)",
       }}
     >
@@ -133,46 +169,97 @@ export function PaginaFoto({
         {restantes.length === 0 && missoes.length > 0 && (
           // Terminar a lista não pode parecer o fim do produto: a madrugada é
           // onde saem as melhores fotos (N5.5).
-          <p style={{ margin: "0 0 0.5rem", opacity: 0.6, lineHeight: 1.6 }}>
+          <p style={{ margin: "0 0 0.5rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
             Você fez todas as {missoes.length}. Agora manda o que quiser.
           </p>
         )}
 
         {missoes.map((m) => (
-          <button
+          <div
             key={m.id}
-            onClick={() => abrirCamera(m.id)}
             style={{
-              font: "inherit",
-              fontSize: "1rem",
-              textAlign: "left",
-              minHeight: "56px",
-              padding: "0.9rem 1rem",
-              borderRadius: "var(--raio)",
-              cursor: "pointer",
-              background: "transparent",
-              color: "var(--frente)",
-              border: "1px solid color-mix(in srgb, var(--frente) 18%, transparent)",
-              opacity: m.feito ? 0.4 : 1,
               display: "flex",
-              justifyContent: "space-between",
-              gap: "0.75rem",
-              alignItems: "center",
+              alignItems: "stretch",
+              gap: "0.4rem",
+              opacity: m.feito ? 0.4 : 1,
             }}
           >
-            <span>{m.titulo}</span>
-            {m.feito && <span style={{ fontSize: "0.78rem" }}>feita</span>}
-          </button>
+            <button
+              onClick={() => abrirCamera(m.id)}
+              style={{
+                font: "inherit",
+                fontSize: "1rem",
+                textAlign: "left",
+                flex: 1,
+                minHeight: "56px",
+                padding: "0.9rem 1rem",
+                borderRadius: "var(--raio)",
+                cursor: "pointer",
+                background: "transparent",
+                color: "var(--ink)",
+                border: "1px solid var(--linha)",
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "0.75rem",
+                alignItems: "center",
+              }}
+            >
+              <span>{m.titulo}</span>
+              {m.feito && <span style={{ fontSize: "0.78rem" }}>feita</span>}
+            </button>
+
+            {/* A missão abre a câmera num toque — o caminho crítico não comporta
+                uma folha de escolha no meio. Esta porta existe para quem já tem
+                a foto no rolo cumprir a missão mesmo assim. */}
+            <button
+              onClick={() => abrirRolo(m.id)}
+              aria-label={`Escolher do rolo para: ${m.titulo}`}
+              style={{
+                font: "inherit",
+                fontSize: "1.1rem",
+                width: "56px",
+                minHeight: "56px",
+                borderRadius: "var(--raio)",
+                cursor: "pointer",
+                background: "transparent",
+                color: "var(--ink-3)",
+                border: "1px solid var(--linha)",
+              }}
+            >
+              ⌸
+            </button>
+          </div>
         ))}
 
         {estado.ultimoErro && (
-          <p role="alert" style={{ margin: "0.5rem 0 0", fontSize: "0.85rem", color: "var(--acento)" }}>
+          <p role="alert" style={{ margin: "0.5rem 0 0", fontSize: "0.85rem", color: "var(--critico)" }}>
             {estado.ultimoErro}
           </p>
         )}
       </section>
 
-      <input ref={entrada} type="file" accept="image/*" capture="environment" hidden onChange={escolheu} />
+      {/* `hidden` é `display: none`, e input escondido assim tem histórico de
+          ignorar `capture` quando o clique vem de código. Escondido no visual,
+          presente no layout. */}
+      <input
+        ref={entradaCamera}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style={ESCONDIDO}
+        onChange={escolheu}
+      />
+      {/* Sem `capture`: é a porta do rolo. Metade das fotos boas foi tirada
+          antes de alguém abrir isto (N5.1), e quem sobe no dia seguinte sobe
+          em lote (N5.6). */}
+      <input
+        ref={entradaRolo}
+        type="file"
+        accept="image/*"
+        multiple
+        style={ESCONDIDO}
+        onChange={escolheu}
+      />
 
       <div style={{ display: "grid", gap: "0.55rem" }}>
         <button
@@ -187,13 +274,34 @@ export function PaginaFoto({
             minHeight: "64px",
             borderRadius: "var(--raio)",
             border: "none",
-            background: "var(--frente)",
-            color: "var(--fundo)",
+            background: "var(--ink)",
+            color: "var(--bg)",
             opacity: estado.processando ? 0.5 : 1,
             cursor: estado.processando ? "default" : "pointer",
           }}
         >
-          {estado.processando ? "Preparando…" : textos.missaoLivre}
+          {estado.processando
+            ? "Preparando…"
+            : emLote > 0
+              ? `Guardando ${emLote}…`
+              : textos.missaoLivre}
+        </button>
+
+        <button
+          onClick={() => abrirRolo(null)}
+          disabled={estado.processando}
+          style={{
+            font: "inherit",
+            fontSize: "0.95rem",
+            minHeight: "48px",
+            borderRadius: "var(--raio)",
+            border: "1px solid var(--linha)",
+            background: "transparent",
+            color: "var(--ink-2)",
+            cursor: estado.processando ? "default" : "pointer",
+          }}
+        >
+          Escolher do rolo
         </button>
 
         {/*
@@ -243,8 +351,8 @@ function Confirmacao({
         gap: "1.25rem",
         padding: "2rem 1.5rem",
         textAlign: "center",
-        background: "var(--fundo)",
-        color: "var(--frente)",
+        background: "var(--bg)",
+        color: "var(--ink)",
         fontFamily: "var(--fonte-corpo)",
       }}
     >
@@ -294,8 +402,8 @@ function Confirmacao({
           padding: "0 1.75rem",
           borderRadius: "var(--raio)",
           border: "none",
-          background: "var(--frente)",
-          color: "var(--fundo)",
+          background: "var(--ink)",
+          color: "var(--bg)",
           cursor: "pointer",
         }}
       >
