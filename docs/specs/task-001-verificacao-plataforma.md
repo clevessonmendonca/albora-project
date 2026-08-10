@@ -79,6 +79,39 @@ Cada item roda numa aba de verdade, num aparelho de verdade. Nenhum passa por "f
 
 O item 7 não é opcional. O produto roda em 200 aparelhos alheios num salão de festas — Chrome no desktop não é evidência de nada. O item 8 pode falhar no iOS sem reprovar a tarefa; ele é o que define se o app instalado tem vantagem honesta a comunicar.
 
+### Resultado
+
+Instrumento em [`spike/plataforma/`](../../spike/plataforma/README.md). O `/spike` é o painel: cada seção é uma prova, na ordem desta tabela.
+
+**Verificado em 2026-08-10, antes dos aparelhos:**
+
+| O que | Resultado |
+|---|---|
+| `opennextjs-cloudflare build` | ✅ Passa. Worker de 2,2 KB, first load JS de 106 KB em `/spike` |
+| `/sw.js` servido no escopo `/` | ✅ Sai como asset estático na raiz de `.open-next/assets`, fora do pipeline de render |
+| Cabeçalhos do SW | ✅ `Cache-Control: no-cache` e `Service-Worker-Allowed: /` — **via `public/_headers`**, ver achado 2 |
+| Presign fecha na ausência de credencial | ✅ `503 config.missing`, com a lista do que falta em `details` |
+| Forma da assinatura SigV4 | ✅ `AWS4-HMAC-SHA256`, credencial `/auto/s3/aws4_request`, `SignedHeaders: host` |
+
+`SignedHeaders: host` é o que importa na prova 5: o `content-type` **não** entra na assinatura, então o navegador pode mandar o dele sem quebrar o PUT.
+
+**Pendente — exige aparelho na mão:**
+
+Provas 1 a 8. Nenhuma roda daqui: as 1–4 precisam de navegador de verdade, e as 5–8 precisam do deploy com as credenciais do R2 preenchidas. Anotar o resultado nesta tabela.
+
+### Achados
+
+**1. Node ≥ 20 é obrigatório, e a máquina tem 16 como padrão.**
+`next@15` e `@opennextjs/cloudflare` recusam a 16. A 22.21.1 já existe via nvm. Isso vira decisão de `.nvmrc` e de imagem do CI na task 002 — não é detalhe de ambiente local.
+
+**2. 🔴 O `headers()` do `next.config` não alcança `/public` sob OpenNext.**
+O Workers Assets serve esses arquivos **antes** do Worker do Next, então a regra do `next.config` nunca roda. Descoberto justamente no `/sw.js`, onde o cabeçalho errado de cache é o que congela um Service Worker antigo em produção. Corrigido com `public/_headers`, que o build copia para os assets.
+
+É exatamente a categoria de aresta que o ADR 0005 assumiu como custo — e o custo se pagou: apareceu na semana 1, num spike, e não no sábado às 20h.
+
+**3. O risco "OpenNext não serve o SW no escopo certo" não se materializou.**
+O plano B da tabela abaixo — servir o SW fora do pipeline do Next — já é o comportamento padrão. Não houve o que contornar.
+
 ## Riscos, e o plano para cada
 
 | Risco | Sinal | Plano |
