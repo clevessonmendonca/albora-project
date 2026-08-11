@@ -16,8 +16,11 @@ import {
 const item = (id: string): ItemVisivel => ({
   id,
   chaveThumb: `events/e/${id}/thumb`,
+  chaveFull: `events/e/${id}/full`,
   autor: "Ana",
   legenda: null,
+  lugar: null,
+  criadaEm: "2026-08-11T23:10:00.000Z",
 });
 
 const url = (chave: string, expiraEm: number, valor = `https://r2/${chave}`): UrlDeMidia => ({
@@ -132,6 +135,36 @@ describe("URLs de mídia em lote", () => {
     expect(chavesSemUrl(e, 1_000_000)).toEqual(["events/e/x/thumb"]);
   });
 
+  it("a janela do visualizador entra no mesmo lote das miniaturas", () => {
+    const e = comItens(["a"]);
+
+    expect(chavesSemUrl(e, 1_000_000, ["events/e/a/full"])).toEqual([
+      "events/e/a/thumb",
+      "events/e/a/full",
+    ]);
+  });
+
+  it("chave da janela que já tem URL viva não volta ao servidor", () => {
+    const e = comUrls(
+      comItens(["a"]),
+      new Map([["events/e/a/full", url("events/e/a/full", 9_000_000)]]),
+    );
+
+    expect(chavesSemUrl(e, 1_000_000, ["events/e/a/full"])).toEqual(["events/e/a/thumb"]);
+  });
+
+  it("miniatura pedida pelas duas vias vira uma chave só", () => {
+    const e = comItens(["a"]);
+
+    expect(chavesSemUrl(e, 1_000_000, ["events/e/a/thumb"])).toEqual(["events/e/a/thumb"]);
+  });
+
+  it("sem janela aberta o lote é só o das miniaturas", () => {
+    const e = comItens(["a"]);
+
+    expect(chavesSemUrl(e, 1_000_000)).toEqual(["events/e/a/thumb"]);
+  });
+
   it("resposta sem informação nova devolve o mesmo estado", () => {
     const mesma = new Map([["events/e/a/thumb", url("events/e/a/thumb", 9_000_000)]]);
     const um = comUrls(comItens(["a"]), mesma);
@@ -188,8 +221,13 @@ describe("degradação quando a rota de mídia não responde", () => {
 describe("contrato com a rota do feed", () => {
   afterEach(() => vi.unstubAllGlobals());
 
+  // Os argumentos entram na assinatura porque o teste confere a URL pedida:
+  // um `vi.fn()` sem parâmetros tipa `mock.calls` como tupla vazia, e aí
+  // `calls[0][0]` não compila.
   const responder = (corpo: unknown, status = 200) =>
-    vi.fn(() => Promise.resolve(new Response(JSON.stringify(corpo), { status })));
+    vi.fn<(...args: unknown[]) => Promise<Response>>(() =>
+      Promise.resolve(new Response(JSON.stringify(corpo), { status })),
+    );
 
   it("manda missão e cursor na querystring, e nunca um deslocamento", async () => {
     const buscar = responder({ itens: [], proximoCursor: null });
@@ -212,7 +250,7 @@ describe("contrato com a rota do feed", () => {
     expect(String(buscar.mock.calls[0]?.[0])).toBe("/api/feed");
   });
 
-  it("projeta o item: sem contagem e sem a chave do arquivo cheio", async () => {
+  it("projeta o item sem a contagem, mesmo quando ela vem na resposta", async () => {
     vi.stubGlobal(
       "fetch",
       responder({
@@ -223,6 +261,9 @@ describe("contrato com a rota do feed", () => {
             chaveFull: "events/e/a/full",
             autor: "Ana",
             legenda: "no brinde",
+            lugar: "Pista",
+            criadaEm: "2026-08-11T23:10:00.000Z",
+            missaoId: "11111111-1111-1111-1111-111111111111",
             reacoes: 12,
           },
         ],
@@ -237,9 +278,29 @@ describe("contrato com a rota do feed", () => {
     expect(r.pagina.itens[0]).toEqual({
       id: "a",
       chaveThumb: "events/e/a/thumb",
+      chaveFull: "events/e/a/full",
       autor: "Ana",
       legenda: "no brinde",
+      lugar: "Pista",
+      criadaEm: "2026-08-11T23:10:00.000Z",
     });
+  });
+
+  it("instante ilegível não derruba a foto do feed", async () => {
+    vi.stubGlobal(
+      "fetch",
+      responder({
+        itens: [{ id: "a", chaveThumb: "t", chaveFull: "f", autor: "Ana", legenda: null }],
+        proximoCursor: null,
+      }),
+    );
+
+    const r = await buscarPagina(null, null);
+
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.pagina.itens[0]?.criadaEm).toBe("");
+    expect(r.pagina.itens[0]?.lugar).toBeNull();
   });
 
   it("422 de cursor vira falha de cursor, não de rede", async () => {

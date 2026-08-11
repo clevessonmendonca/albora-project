@@ -20,7 +20,15 @@ import { useEffect, useState } from "react";
 const COMPRIMENTO = 65.97;
 
 const ESTILO = `
-.arco-envio-traco { transition: stroke-dashoffset 300ms ease-out; }
+.arco-envio-traco { transition: stroke-dashoffset var(--tempo-rapido) var(--curva); }
+.arco-envio-rotulo {
+  font-family: var(--fonte-titulo);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
 @media (prefers-reduced-motion: reduce) {
   .arco-envio-traco { transition: none; }
 }
@@ -79,7 +87,7 @@ export function ArcoDeEnvio({
           />
         </svg>
 
-        {!online && <span style={{ fontSize: "0.78rem", color: "var(--ink-3)" }}>sem sinal</span>}
+        {!online && <span className="arco-envio-rotulo">sem sinal</span>}
       </span>
     </>
   );

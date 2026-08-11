@@ -80,29 +80,43 @@ export function Entrada({
   }
 
   if (etapa === "recusou") {
+    // Sem insistência, sem "tem certeza?", sem segunda tentativa disfarçada. A
+    // volta é dela, e a frase do título promete que existe.
     return (
-      <Tela>
+      <Tela
+        rodape={
+          <Botao variante="secundario" onClick={() => setEtapa("consentimento")}>
+            Voltar
+          </Botao>
+        }
+      >
         <Titulo>
           Tudo bem.
           <br />
           <em>Se mudar de ideia, é só voltar.</em>
         </Titulo>
         <Texto>Você não vai aparecer no álbum nem no telão.</Texto>
-
-        {/* Sem insistência, sem "tem certeza?", sem segunda tentativa
-            disfarçada. A volta é dela, e a frase acima promete que existe. */}
-        <div style={{ display: "grid", marginTop: "1.75rem" }}>
-          <Botao variante="secundario" onClick={() => setEtapa("consentimento")}>
-            Voltar
-          </Botao>
-        </div>
       </Tela>
     );
   }
 
   if (etapa === "consentimento") {
     return (
-      <Tela>
+      <Tela
+        rodape={
+          <>
+            <div style={{ display: "grid", gap: "0.6rem" }}>
+              <Botao onClick={() => setEtapa("nome")}>Combinado</Botao>
+              <Botao variante="secundario" onClick={() => setEtapa("recusou")}>
+                Prefiro não
+              </Botao>
+            </div>
+            <p style={META}>
+              Consentimento {CONSENTIMENTO} · pack {packId}
+            </p>
+          </>
+        }
+      >
         <Titulo>
           Tira foto.
           <br />
@@ -114,108 +128,186 @@ export function Entrada({
           O que você fotografar aqui vai para o álbum de quem te convidou, e pode aparecer no
           telão. Você pode apagar as suas a qualquer momento.
         </Texto>
-
-        <div style={{ display: "grid", gap: "0.6rem", marginTop: "1.75rem" }}>
-          <Botao onClick={() => setEtapa("nome")}>Combinado</Botao>
-          <Botao variante="secundario" onClick={() => setEtapa("recusou")}>
-            Prefiro não
-          </Botao>
-        </div>
-
-        <p style={{ marginTop: "1.25rem", fontSize: "0.78rem", color: "var(--ink-3)" }}>
-          Consentimento {CONSENTIMENTO} · pack {packId}
-        </p>
       </Tela>
     );
   }
 
   return (
-    <Tela>
+    <Tela
+      onSubmit={entrar}
+      rodape={
+        <>
+          <Botao tipo="submit" desabilitado={enviando || nome.trim().length === 0}>
+            {enviando ? "Entrando…" : "Continuar"}
+          </Botao>
+
+          {erro && (
+            <p role="alert" style={RECADO}>
+              {erro}
+            </p>
+          )}
+        </>
+      }
+    >
       <Titulo>Como te chamamos?</Titulo>
       <Texto>Aparece junto das suas fotos, no telão e no álbum. Apelido serve.</Texto>
 
-      <style>{ESTILO_CAMPO}</style>
-
-      <form onSubmit={entrar} style={{ display: "grid", gap: "0.75rem", marginTop: "1.5rem" }}>
-        <input
-          className="entrada-campo"
-          value={nome}
-          onChange={(ev) => setNome(ev.target.value)}
-          placeholder="Tio João"
-          maxLength={40}
-          required
-          autoFocus
-          autoComplete="given-name"
-          enterKeyHint="go"
-          style={{
-            font: "inherit",
-            fontSize: "1.05rem",
-            padding: "0.85rem 1rem",
-            borderRadius: "var(--raio)",
-            border: "1px solid var(--linha)",
-            background: "transparent",
-            color: "var(--ink)",
-            minHeight: "48px",
-          }}
-        />
-
-        <Botao tipo="submit" desabilitado={enviando || nome.trim().length === 0}>
-          {enviando ? "Entrando…" : "Continuar"}
-        </Botao>
-
-        {erro && (
-          <p role="alert" style={{ margin: 0, fontSize: "0.85rem", color: "var(--critico)" }}>
-            {erro}
-          </p>
-        )}
-      </form>
+      {/* Serifada grande sobre um filete: escrever o próprio nome aqui parece
+          assinar, não preencher cadastro. */}
+      <input
+        className="entrada-campo"
+        value={nome}
+        onChange={(ev) => setNome(ev.target.value)}
+        placeholder="Tio João"
+        maxLength={40}
+        required
+        autoFocus
+        autoComplete="given-name"
+        enterKeyHint="go"
+      />
     </Tela>
   );
 }
 
-function Tela({ children }: { children: React.ReactNode }) {
+function Tela({
+  children,
+  rodape,
+  onSubmit,
+}: {
+  children: React.ReactNode;
+  rodape?: React.ReactNode | undefined;
+  onSubmit?: ((e: React.FormEvent) => void) | undefined;
+}) {
+  const miolo = (
+    <>
+      {/* Único lugar do fluxo do convidado onde a marca aparece: é o primeiro
+          contato, e daqui em diante a foto é a interface. */}
+      <div style={{ flex: "none" }}>
+        <Logotipo />
+      </div>
+      <span style={ESPACADOR} />
+      <div>{children}</div>
+      <span style={ESPACADOR} />
+      <div style={{ flex: "none" }}>{rodape}</div>
+    </>
+  );
+
   return (
-    <main
-      style={{
-        minHeight: "100dvh",
-        display: "grid",
-        placeItems: "center",
-        padding: "2rem 1.5rem",
-        background: "var(--bg)",
-        color: "var(--ink)",
-        fontFamily: "var(--fonte-corpo)",
-      }}
-    >
+    <main style={TELA}>
+      <style>{ESTILO}</style>
+
       {/* O React 19 iça isto para o `<head>`. Fica na rota do convidado, e não
           no layout raiz, porque o manifesto descreve o PWA do convidado — o
           admin e o telão não devem ser instaláveis como ele. */}
       <link rel="manifest" href="/manifest.webmanifest" />
-      <div style={{ width: "100%", maxWidth: "24rem" }}>
-        {/* Único lugar do fluxo do convidado onde a marca aparece: é o primeiro
-            contato, e daqui em diante a foto é a interface. */}
-        <div style={{ marginBottom: "2.25rem" }}>
-          <Logotipo />
-        </div>
-        {children}
-      </div>
+
+      {onSubmit ? (
+        <form onSubmit={onSubmit} style={COLUNA}>
+          {miolo}
+        </form>
+      ) : (
+        <div style={COLUNA}>{miolo}</div>
+      )}
     </main>
   );
 }
 
-const ESTILO_CAMPO = `
+const TELA: React.CSSProperties = {
+  minHeight: "100dvh",
+  display: "flex",
+  justifyContent: "center",
+  padding: "2.5rem 2rem 2.25rem",
+  background: "var(--bg)",
+  color: "var(--ink)",
+  fontFamily: "var(--fonte-corpo)",
+};
+
+/**
+ * Conteúdo no topo, ação no rodapé, vazio elástico no meio: é o que faz o alvo
+ * ser inconfundível e o polegar chegar sem esticar.
+ */
+const COLUNA: React.CSSProperties = {
+  flex: "1 1 auto",
+  width: "100%",
+  maxWidth: "26rem",
+  display: "flex",
+  flexDirection: "column",
+};
+
+const ESPACADOR: React.CSSProperties = { flex: "1 1 auto", minHeight: "1.5rem" };
+
+const META: React.CSSProperties = {
+  margin: "1.5rem 0 0",
+  fontFamily: "var(--fonte-titulo)",
+  fontSize: "0.62rem",
+  fontWeight: 400,
+  letterSpacing: "0.2em",
+  textTransform: "uppercase",
+  textAlign: "center",
+  color: "var(--ink-3)",
+};
+
+const RECADO: React.CSSProperties = {
+  margin: "0.9rem 0 0",
+  fontSize: "0.85rem",
+  lineHeight: 1.6,
+  color: "var(--critico)",
+};
+
+const ESTILO = `
+.entrada-titulo em { font-weight: 400; }
+
+.entrada-campo {
+  width: 100%;
+  margin-top: 1.75rem;
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.6rem, 7.4vw, 1.875rem);
+  font-weight: 400;
+  letter-spacing: var(--tracking-titulo);
+  line-height: 1.2;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1.5px solid var(--linha);
+  padding: 0.7rem 0.125rem 0.9rem;
+  min-height: 56px;
+  outline: none;
+  transition: border-color var(--tempo-rapido) var(--curva);
+}
 .entrada-campo::placeholder { color: var(--ink-3); font-style: italic; }
-.entrada-campo:focus-visible { outline: 1px solid var(--acento); outline-offset: 3px; }
+.entrada-campo:focus { border-bottom-color: var(--acento); }
+
+.entrada-botao {
+  font: inherit;
+  font-size: 0.97rem;
+  letter-spacing: var(--tracking-rotulo);
+  border-radius: var(--raio-pilula);
+  padding: 0 1.5rem;
+  cursor: pointer;
+  transition: transform var(--tempo-rapido) var(--curva), opacity var(--tempo-rapido) var(--curva);
+}
+.entrada-botao:disabled { cursor: default; }
+.entrada-botao:active:not(:disabled) { transform: scale(0.972); }
+.entrada-botao:focus-visible { outline: 1px solid var(--acento); outline-offset: 5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .entrada-campo, .entrada-botao { transition: none; }
+  .entrada-botao:active:not(:disabled) { transform: none; }
+}
 `;
 
 function Titulo({ children }: { children: React.ReactNode }) {
   return (
     <h1
+      className="entrada-titulo"
       style={{
         fontFamily: "var(--fonte-titulo)",
-        fontSize: "1.7rem",
+        fontSize: "clamp(1.75rem, 8.2vw, 2.125rem)",
         fontWeight: 500,
-        lineHeight: 1.2,
-        margin: "0 0 0.75rem",
+        lineHeight: 1.14,
+        letterSpacing: "var(--tracking-titulo)",
+        margin: "0 0 0.85rem",
         textWrap: "balance",
       }}
     >
@@ -225,7 +317,11 @@ function Titulo({ children }: { children: React.ReactNode }) {
 }
 
 function Texto({ children }: { children: React.ReactNode }) {
-  return <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.6 }}>{children}</p>;
+  return (
+    <p style={{ margin: 0, maxWidth: "34ch", color: "var(--ink-2)", fontSize: "0.94rem", lineHeight: 1.68 }}>
+      {children}
+    </p>
+  );
 }
 
 function Botao({
@@ -245,25 +341,20 @@ function Botao({
 
   return (
     <button
+      className="entrada-botao"
       type={tipo}
       onClick={onClick}
       disabled={desabilitado}
       style={{
-        font: "inherit",
-        fontSize: "1rem",
-        fontWeight: 500,
-        // 48px: o alvo de toque tem de funcionar para a tia de 58 anos, às
-        // 22h, de salto, com o celular numa mão só.
-        minHeight: "48px",
-        padding: "0 1.25rem",
-        borderRadius: "var(--raio)",
-        cursor: desabilitado ? "default" : "pointer",
-        opacity: desabilitado ? 0.45 : 1,
+        fontWeight: primario ? 500 : 400,
+        // O alvo de toque tem de funcionar para a tia de 58 anos, às 22h, de
+        // salto, com o celular numa mão só.
+        minHeight: primario ? "56px" : "52px",
+        width: "100%",
+        opacity: desabilitado ? 0.4 : 1,
         background: primario ? "var(--ink)" : "transparent",
-        color: primario ? "var(--bg)" : "var(--ink)",
-        border: primario
-          ? "none"
-          : "1px solid var(--linha)",
+        color: primario ? "var(--bg)" : "var(--ink-2)",
+        border: primario ? "none" : "1px solid var(--linha)",
       }}
     >
       {children}

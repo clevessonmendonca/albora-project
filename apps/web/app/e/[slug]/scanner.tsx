@@ -276,18 +276,19 @@ const ESTILO = `
 .resgate-campo {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 54px;
+  min-height: 56px;
   font-family: var(--fonte-titulo);
-  font-size: 1.3rem;
-  font-weight: 300;
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: var(--tracking-titulo);
   color: var(--ink);
   background: transparent;
   border: none;
   border-radius: 0;
-  border-bottom: 1px solid var(--linha);
+  border-bottom: 1.5px solid var(--linha);
   padding: calc(var(--espaco) * 2) 2px calc(var(--espaco) * 3);
   outline: none;
-  transition: border-color 300ms ease;
+  transition: border-color var(--tempo-rapido) var(--curva);
 }
 .resgate-campo::placeholder {
   color: var(--ink-3);
@@ -299,34 +300,41 @@ const ESTILO = `
 .resgate-primario {
   flex: 0 0 auto;
   font: inherit;
-  font-size: 1rem;
+  font-size: 0.97rem;
   font-weight: 500;
-  min-height: 54px;
-  padding: 0 calc(var(--espaco) * 6);
+  letter-spacing: var(--tracking-rotulo);
+  min-height: 56px;
+  padding: 0 calc(var(--espaco) * 7);
   border: none;
-  border-radius: var(--raio);
+  border-radius: var(--raio-pilula);
   background: var(--ink);
   color: var(--bg);
   cursor: pointer;
-  transition: transform 200ms cubic-bezier(0.32, 0.72, 0, 1);
+  transition: transform var(--tempo-rapido) var(--curva);
 }
 .resgate-primario:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: default;
 }
 .resgate-primario:active:not(:disabled) {
-  transform: scale(0.977);
+  transform: scale(0.972);
 }
 .resgate-fino {
   font: inherit;
-  font-size: 0.95rem;
-  min-height: 54px;
-  padding: 0 calc(var(--espaco) * 5);
+  font-size: 0.97rem;
+  font-weight: 400;
+  letter-spacing: var(--tracking-rotulo);
+  min-height: 52px;
+  padding: 0 calc(var(--espaco) * 6);
   background: transparent;
   color: var(--ink-2);
   border: 1px solid var(--linha);
-  border-radius: var(--raio);
+  border-radius: var(--raio-pilula);
   cursor: pointer;
+  transition: transform var(--tempo-rapido) var(--curva);
+}
+.resgate-fino:active {
+  transform: scale(0.972);
 }
 .resgate-primario:focus-visible,
 .resgate-fino:focus-visible {
@@ -348,7 +356,7 @@ const ESTILO = `
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: var(--raio);
+  border-radius: var(--raio-superficie);
   overflow: hidden;
   background: var(--superficie);
 }
@@ -367,10 +375,12 @@ const ESTILO = `
 }
 @media (prefers-reduced-motion: reduce) {
   .resgate-campo,
-  .resgate-primario {
+  .resgate-primario,
+  .resgate-fino {
     transition: none;
   }
-  .resgate-primario:active:not(:disabled) {
+  .resgate-primario:active:not(:disabled),
+  .resgate-fino:active {
     transform: none;
   }
 }

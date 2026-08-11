@@ -33,73 +33,41 @@ export function Detalhes({
     <main
       style={{
         minHeight: "100dvh",
-        display: "grid",
-        alignContent: "start",
-        gap: "1.5rem",
-        padding: "2rem 1.5rem",
+        display: "flex",
+        flexDirection: "column",
+        padding: "2.5rem 2rem 2.25rem",
         background: "var(--bg)",
         color: "var(--ink)",
         fontFamily: "var(--fonte-corpo)",
       }}
     >
-      <div>
-        <h1
-          style={{
-            fontFamily: "var(--fonte-titulo)",
-            fontSize: "1.5rem",
-            fontWeight: 500,
-            margin: "0 0 0.4rem",
-          }}
-        >
-          Sua foto já está subindo
-        </h1>
-        <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.6 }}>
-          Se quiser, conte alguma coisa sobre ela.
-        </p>
+      <style>{ESTILO}</style>
+
+      <div style={{ flex: "none" }}>
+        <h1 className="det-titulo">Sua foto já está subindo</h1>
+        <p className="det-lede">Se quiser, conte alguma coisa sobre ela.</p>
       </div>
 
-      <style>{ESTILO_LEGENDA}</style>
-
-      <label style={{ display: "grid", gap: "0.4rem" }}>
+      <label style={{ display: "grid", gap: "0.3rem", marginTop: "2rem", flex: "none" }}>
         <span style={ROTULO}>Legenda</span>
         <textarea
-          className="detalhes-legenda"
+          className="det-legenda"
           value={legenda}
           onChange={(e) => setLegenda(e.target.value.slice(0, MAX_LEGENDA))}
           rows={2}
           placeholder="Escreve alguma coisa…"
-          style={{
-            font: "inherit",
-            fontSize: "1rem",
-            padding: "0.75rem 0.9rem",
-            borderRadius: "var(--raio)",
-            border: "1px solid var(--linha)",
-            background: "transparent",
-            color: "var(--ink)",
-            resize: "none",
-          }}
         />
       </label>
 
-      <div style={{ display: "grid", gap: "0.5rem" }}>
+      <div style={{ display: "grid", gap: "0.75rem", marginTop: "2rem", flex: "none" }}>
         <span style={ROTULO}>{perguntaDoLugar}</span>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
           {lugares.map((l) => (
             <button
               key={l.id}
+              className={lugar === l.id ? "det-lugar ativo" : "det-lugar"}
               onClick={() => setLugar(lugar === l.id ? null : l.id)}
               aria-pressed={lugar === l.id}
-              style={{
-                font: "inherit",
-                fontSize: "0.9rem",
-                minHeight: "48px",
-                padding: "0 1rem",
-                borderRadius: "999px",
-                cursor: "pointer",
-                background: lugar === l.id ? "var(--ink)" : "transparent",
-                color: lugar === l.id ? "var(--bg)" : "var(--ink)",
-                border: "1px solid var(--linha)",
-              }}
             >
               {l.titulo}
             </button>
@@ -107,11 +75,13 @@ export function Detalhes({
         </div>
       </div>
 
-      <div style={{ display: "grid", gap: "0.6rem", marginTop: "0.5rem" }}>
-        <button onClick={concluir} style={botao(true)}>
+      <span style={{ flex: "1 1 auto", minHeight: "2rem" }} />
+
+      <div style={{ display: "grid", gap: "0.25rem", flex: "none" }}>
+        <button className="det-primario" onClick={concluir}>
           Pronto
         </button>
-        <button onClick={concluir} style={botao(false)}>
+        <button className="det-pular" onClick={concluir}>
           Pular — já está subindo
         </button>
       </div>
@@ -128,21 +98,107 @@ const ROTULO: React.CSSProperties = {
   color: "var(--ink-3)",
 };
 
-const ESTILO_LEGENDA = `
-.detalhes-legenda::placeholder { color: var(--ink-3); font-style: italic; }
-.detalhes-legenda:focus-visible { outline: 1px solid var(--acento); outline-offset: 3px; }
-`;
-
-function botao(primario: boolean): React.CSSProperties {
-  return {
-    font: "inherit",
-    fontSize: "1rem",
-    fontWeight: 500,
-    minHeight: "48px",
-    borderRadius: "var(--raio)",
-    cursor: "pointer",
-    background: primario ? "var(--ink)" : "transparent",
-    color: primario ? "var(--bg)" : "var(--ink)",
-    border: primario ? "none" : "1px solid var(--linha)",
-  };
+const ESTILO = `
+.det-titulo {
+  font-family: var(--fonte-titulo);
+  font-size: clamp(1.5rem, 7vw, 1.75rem);
+  font-weight: 500;
+  line-height: 1.16;
+  letter-spacing: var(--tracking-titulo);
+  margin: 0 0 0.5rem;
+  text-wrap: balance;
 }
+
+.det-lede {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 0.94rem;
+  line-height: 1.68;
+  color: var(--ink-2);
+}
+
+.det-legenda {
+  width: 100%;
+  font-family: var(--fonte-titulo);
+  font-size: 1.1rem;
+  font-weight: 400;
+  line-height: 1.42;
+  color: var(--ink);
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid var(--linha);
+  padding: 0.8rem 0.125rem;
+  resize: none;
+  outline: none;
+  transition: border-color var(--tempo-rapido) var(--curva);
+}
+.det-legenda::placeholder { color: var(--ink-3); font-style: italic; }
+.det-legenda:focus { border-bottom-color: var(--acento); }
+
+/*
+  Pílula de filete, nunca preenchida: âmbar é metal, não tinta — o estado ativo
+  ganha borda e texto de acento, não um bloco de cor (DESIGN.md §6).
+*/
+.det-lugar {
+  font: inherit;
+  font-family: var(--fonte-titulo);
+  font-size: 0.9rem;
+  font-weight: 400;
+  min-height: 48px;
+  padding: 0 1.15rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio-pilula);
+  background: transparent;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: color var(--tempo-rapido) var(--curva), border-color var(--tempo-rapido) var(--curva);
+}
+.det-lugar.ativo {
+  border-color: var(--acento);
+  color: var(--acento-texto);
+}
+
+.det-primario {
+  font: inherit;
+  font-size: 0.97rem;
+  font-weight: 500;
+  letter-spacing: var(--tracking-rotulo);
+  min-height: 56px;
+  padding: 0 1.5rem;
+  border: none;
+  border-radius: var(--raio-pilula);
+  background: var(--ink);
+  color: var(--bg);
+  cursor: pointer;
+  transition: transform var(--tempo-rapido) var(--curva);
+}
+.det-primario:active { transform: scale(0.972); }
+
+.det-pular {
+  font: inherit;
+  font-family: var(--fonte-titulo);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  min-height: 48px;
+  background: none;
+  border: 0;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: color var(--tempo-rapido) var(--curva);
+}
+
+.det-lugar:focus-visible,
+.det-primario:focus-visible,
+.det-pular:focus-visible {
+  outline: 1px solid var(--acento);
+  outline-offset: 5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .det-legenda, .det-lugar, .det-primario, .det-pular { transition: none; }
+  .det-primario:active { transform: none; }
+}
+`;

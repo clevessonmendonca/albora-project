@@ -1,23 +1,22 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import type { UrlDeMidia } from "@/lib/midia";
 import { rotuloDeHora } from "@/lib/agrupar-por-hora";
+import type { UrlDeMidia } from "@/lib/midia";
+import type { ItemVisivel } from "@/lib/usar-feed";
 import { Quadro } from "./quadro";
-import type { ItemDoFeed } from "./usar-stories";
 
 /**
- * A hora correndo em tela cheia.
+ * A hora correndo em tela cheia, aberta pela tira do feed.
  *
  * O avanço é por **toque**: direita avança, esquerda volta. Deslizar existe
  * junto — nunca no lugar — porque quem está de pé com um copo na outra mão
  * toca, não desliza. Toque longo segura a foto onde está.
  *
- * A tela acaba de propósito. Quando a hora termina, ela devolve a pessoa para a
- * lista, onde a ação primária é a câmera: stories existe para disparar a próxima
- * foto ([ADR 0009](../../../../docs/adr/0009-app-social-do-convidado.md)), não
- * para prender.
+ * A tela acaba de propósito. Quando a hora termina, ela devolve a pessoa para o
+ * feed, onde a ação primária é a câmera: o social existe para disparar a próxima
+ * foto ([ADR 0009](../../../../../docs/adr/0009-app-social-do-convidado.md)),
+ * não para prender.
  */
 
 const DURACAO_MS = 5_000;
@@ -28,21 +27,47 @@ const DESLIZE_MIN_PX = 44;
 /** Deslize e toque longo abafam o clique que vem logo atrás — só ele. */
 const SUPRESSAO_MS = 600;
 
+/**
+ * A janela do reprodutor, em ordem de urgência: o que está na tela, o que
+ * chega no próximo toque, e só então a vizinhança.
+ *
+ * Chave vazia fica de fora — item cuja resposta veio sem o arquivo cheio não
+ * pode virar um pedido de assinatura para a string vazia.
+ */
+export function chavesDoReprodutor(itens: readonly ItemVisivel[], indice: number): string[] {
+  const chaves: string[] = [];
+  const atual = itens[indice];
+
+  if (atual) chaves.push(atual.chaveThumb, atual.chaveFull);
+
+  for (const passo of [1, 2]) {
+    const proximo = itens[indice + passo];
+    if (proximo) chaves.push(proximo.chaveThumb, proximo.chaveFull);
+  }
+
+  for (const passo of [-1, 3, 4]) {
+    const vizinho = itens[indice + passo];
+    if (vizinho) chaves.push(vizinho.chaveThumb);
+  }
+
+  return [...new Set(chaves.filter(Boolean))];
+}
+
 export function Reprodutor({
   itens,
   indice,
   hora,
   urls,
-  slug,
+  caminhoDaCamera,
   movimentoReduzido,
   onIr,
   onSair,
 }: {
-  itens: ItemDoFeed[];
+  itens: ItemVisivel[];
   indice: number;
   hora: number;
   urls: Map<string, UrlDeMidia>;
-  slug: string;
+  caminhoDaCamera: string;
   movimentoReduzido: boolean;
   onIr: (indice: number) => void;
   onSair: () => void;
@@ -200,13 +225,17 @@ export function Reprodutor({
   const sombraDeTexto = "0 1px 4px var(--bg)";
 
   return (
-    <main
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Fotos das ${rotuloDeHora(hora)}`}
       onPointerDown={pressionou}
       onPointerUp={largou}
       onPointerCancel={soltar}
       style={{
         position: "fixed",
         inset: 0,
+        zIndex: 10,
         display: "grid",
         gridTemplateRows: "auto 1fr auto",
         overflow: "hidden",
@@ -261,6 +290,9 @@ export function Reprodutor({
                   transform: i < indice || (i === indice && (movimentoReduzido || !temImagem))
                     ? "scaleX(1)"
                     : "scaleX(0)",
+                  // `linear` de propósito, e não `var(--curva)`: o segmento
+                  // relata a passagem de cinco segundos, e uma curva faria o
+                  // tempo restante mentir no meio do trajeto.
                   animation:
                     i === indice && !movimentoReduzido && temImagem
                       ? `st-correr ${DURACAO_MS}ms linear forwards`
@@ -297,8 +329,8 @@ export function Reprodutor({
               fontSize: "0.9rem",
               minHeight: "48px",
               minWidth: "48px",
-              padding: "0 0.75rem",
-              borderRadius: "var(--raio)",
+              padding: "0 1.1rem",
+              borderRadius: "var(--raio-pilula)",
               border: "1px solid var(--linha)",
               background: "transparent",
               color: "var(--ink)",
@@ -364,24 +396,25 @@ export function Reprodutor({
 
         {/* Fixo e sempre visível — é o plano de risco da própria task 007: esta
             tela não otimiza tempo de tela, ela devolve a pessoa para a câmera. */}
-        <Link
-          href={`/e/${slug}/foto`}
+        <a
+          href={caminhoDaCamera}
           style={{
             display: "grid",
             placeItems: "center",
             minHeight: "54px",
-            padding: "0 1.75rem",
-            borderRadius: "var(--raio)",
+            padding: "0 2.1rem",
+            borderRadius: "var(--raio-pilula)",
             background: "var(--acento)",
             color: "var(--bg)",
             fontSize: "1.02rem",
             fontWeight: 500,
+            letterSpacing: "var(--tracking-rotulo)",
             textDecoration: "none",
           }}
         >
           Tirar foto
-        </Link>
+        </a>
       </footer>
-    </main>
+    </div>
   );
 }

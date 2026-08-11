@@ -24,8 +24,40 @@ export type Fontes = {
 };
 
 export type Escala = {
+  /** O raio padrão. Card, campo, botão retangular. */
   raio: string;
+  /**
+   * Pílula. É a forma dominante da identidade — na landing dos designers ela
+   * aparece 22 vezes contra 6 do raio de card. Botão, chip e selo usam esta.
+   */
+  raioPilula: string;
+  /**
+   * Superfície grande. Cresce com a tela: num celular um raio de 48px comeria
+   * a foto, e num telão um de 28px some.
+   */
+  raioSuperficie: string;
   espaco: string;
+};
+
+/**
+ * Uma curva, três durações. A landing usa exatamente isso, e é o que faz o
+ * conjunto parecer uma coisa só em vez de nove animações independentes.
+ */
+export type Movimento = {
+  curva: string;
+  rapido: string;
+  medio: string;
+  lento: string;
+};
+
+/**
+ * Tracking muda de sinal com o tamanho: título grande fecha, rótulo pequeno
+ * abre. É a diferença entre tipografia ajustada e tipografia padrão do
+ * navegador — e ela aparece antes de qualquer outra coisa.
+ */
+export type Tracking = {
+  titulo: string;
+  rotulo: string;
 };
 
 export type Fundo = "escuro" | "claro";
@@ -34,6 +66,8 @@ export type Tokens = {
   cores: Cores;
   fontes: Fontes;
   escala: Escala;
+  movimento: Movimento;
+  tracking: Tracking;
   fundo: Fundo;
 };
 
@@ -72,6 +106,8 @@ export type CamadaTokens = {
   cores?: Partial<Cores>;
   fontes?: Partial<Fontes>;
   escala?: Partial<Escala>;
+  movimento?: Partial<Movimento>;
+  tracking?: Partial<Tracking>;
   fundo?: Fundo;
 };
 

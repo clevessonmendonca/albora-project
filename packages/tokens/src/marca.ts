@@ -25,8 +25,23 @@ export const MARCA_ALBORA: Tokens = {
     corpo: "\"Instrument Sans\", ui-sans-serif, system-ui, -apple-system, sans-serif",
   },
   escala: {
-    raio: "0.6rem",
+    raio: "1rem",
+    raioPilula: "999px",
+    // Cresce com a tela: 48px num celular comeria a foto; 28px num telão some.
+    raioSuperficie: "clamp(1.75rem, 4vw, 3rem)",
     espaco: "0.25rem",
+  },
+  movimento: {
+    // Uma curva só, em tudo. Nove curvas diferentes é o que faz uma interface
+    // parecer nove interfaces.
+    curva: "cubic-bezier(0.2, 0, 0, 1)",
+    rapido: "0.3s",
+    medio: "0.35s",
+    lento: "0.5s",
+  },
+  tracking: {
+    titulo: "-0.02em",
+    rotulo: "0.05em",
   },
   // Escuro por física, não por estética: tela branca às 22h contrai a pupila e
   // a pessoa perde a festa de vista. Ver `DESIGN.md` §2.

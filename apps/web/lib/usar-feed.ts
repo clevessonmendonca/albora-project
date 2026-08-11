@@ -16,17 +16,25 @@ import { expirou, urlsDeMidia, type UrlDeMidia } from "./midia";
  */
 
 /**
- * A projeção que a grade enxerga.
+ * A projeção que a tela enxerga.
  *
- * 🔴 Sem `reacoes` e sem `chaveFull` de propósito. A contagem nem é calculada
- * antes do gate, e mantê-la fora do tipo é o lugar mais barato de torná-la
- * inalcançável na tela; a chave do arquivo cheio é peso que a grade não usa.
+ * 🔴 Sem `reacoes`, e isso não muda: a contagem nem é calculada antes do gate, e
+ * mantê-la fora do tipo é o lugar mais barato de torná-la inalcançável na tela.
+ *
+ * `chaveFull` e `criadaEm` **entram**, porque o visualizador em tela cheia e a
+ * tira de horas passaram a viver nesta mesma tela: o arquivo cheio é o que a
+ * tela cheia mostra, e o instante é o que forma a hora. Buscá-los por um segundo
+ * caminho seria pedir a mesma página do feed duas vezes por aparelho.
  */
 export type ItemVisivel = {
   id: string;
   chaveThumb: string;
+  chaveFull: string;
   autor: string;
   legenda: string | null;
+  lugar: string | null;
+  /** Instante do JSON, não `Date`: quem agrupa por hora converte. */
+  criadaEm: string;
 };
 
 /** O cliente ramifica no motivo, nunca no texto da mensagem. */
@@ -121,14 +129,25 @@ export function reiniciado(estado: EstadoFeed): EstadoFeed {
  * Uma requisição por foto no meio de uma rolagem é a própria travada — daí o
  * lote. `expirou` conta a folga de renovação: pedir no instante da expiração
  * já chega tarde.
+ *
+ * `extras` é a janela do visualizador em tela cheia — o arquivo cheio da foto
+ * aberta e das próximas. Entra no mesmo lote de propósito: são as mesmas chaves,
+ * do mesmo evento, e dois lotes seriam duas requisições para a mesma resposta.
  */
-export function chavesSemUrl(estado: EstadoFeed, agora: number): string[] {
+export function chavesSemUrl(
+  estado: EstadoFeed,
+  agora: number,
+  extras: readonly string[] = [],
+): string[] {
   const faltando = new Set<string>();
 
-  for (const item of estado.itens) {
-    const url = estado.urls.get(item.chaveThumb);
-    if (!url || expirou(url, agora)) faltando.add(item.chaveThumb);
-  }
+  const conferir = (chave: string) => {
+    const url = estado.urls.get(chave);
+    if (!url || expirou(url, agora)) faltando.add(chave);
+  };
+
+  for (const item of estado.itens) conferir(item.chaveThumb);
+  for (const chave of extras) conferir(chave);
 
   return [...faltando];
 }
@@ -171,8 +190,11 @@ export type RespostaFeed = { ok: true; pagina: PaginaVisivel } | { ok: false; fa
 type ItemDaRede = {
   id: string;
   chaveThumb: string;
+  chaveFull: string;
   autor: string;
   legenda: string | null;
+  lugar: string | null;
+  criadaEm: string;
 };
 
 /**
@@ -216,8 +238,13 @@ export async function buscarPagina(missaoId: string | null, cursor: string | nul
       itens: (corpo.itens ?? []).map((i) => ({
         id: i.id,
         chaveThumb: i.chaveThumb,
+        chaveFull: typeof i.chaveFull === "string" ? i.chaveFull : "",
         autor: i.autor,
-        legenda: i.legenda,
+        legenda: i.legenda ?? null,
+        lugar: i.lugar ?? null,
+        // Instante ilegível vira string vazia e some do agrupamento por hora, em
+        // vez de derrubar a foto do feed: a foto existe, o relógio é que falhou.
+        criadaEm: typeof i.criadaEm === "string" ? i.criadaEm : "",
       })),
       proximoCursor: corpo.proximoCursor ?? null,
     },
@@ -242,6 +269,25 @@ export function usarFeed(missaoId: string | null) {
   const buscandoPagina = useRef(false);
   const buscandoUrls = useRef(false);
   const ultimoLote = useRef("");
+  const refazer = useRef(false);
+
+  /**
+   * A janela do visualizador em tela cheia, pedida pela tela em vez de recebida
+   * por parâmetro: ela é derivada dos itens que este mesmo gancho devolve, e
+   * passá-la de volta como argumento fecharia um ciclo em cima do render.
+   *
+   * A assinatura mora no estado para reabrir o efeito; a lista mora numa ref
+   * porque o relógio de renovação vive dentro dele — sem isso, o tique de 30s
+   * continuaria pedindo a janela de uma foto que a pessoa já passou.
+   */
+  const [janela, setJanela] = useState("");
+  const janelaViva = useRef<readonly string[]>([]);
+
+  const pedirChaves = useCallback((chaves: readonly string[]) => {
+    janelaViva.current = chaves;
+    const assinatura = chaves.join(" ");
+    setJanela((antes) => (antes === assinatura ? antes : assinatura));
+  }, []);
 
   const carregar = useCallback(
     async (cursor: string | null) => {
@@ -274,9 +320,15 @@ export function usarFeed(missaoId: string | null) {
     let vivo = true;
 
     async function renovar(porRelogio: boolean) {
-      if (buscandoUrls.current) return;
+      // Um pedido em voo não é motivo para desistir da janela nova: ela chegou
+      // depois, e sem esta marca a foto aberta ficaria sem o arquivo cheio até
+      // o tique seguinte.
+      if (buscandoUrls.current) {
+        refazer.current = true;
+        return;
+      }
 
-      const faltando = chavesSemUrl(estado, Date.now());
+      const faltando = chavesSemUrl(estado, Date.now(), janelaViva.current);
       if (faltando.length === 0) return;
 
       // O mesmo lote só volta ao servidor no tique seguinte. Sem este teto, uma
@@ -295,6 +347,10 @@ export function usarFeed(missaoId: string | null) {
         if (vivo) setEstado(comFalhaDeMidia);
       } finally {
         buscandoUrls.current = false;
+        if (refazer.current && vivo) {
+          refazer.current = false;
+          void renovar(false);
+        }
       }
     }
 
@@ -305,7 +361,7 @@ export function usarFeed(missaoId: string | null) {
       vivo = false;
       clearInterval(relogio);
     };
-  }, [estado]);
+  }, [estado, janela]);
 
   const carregarMais = useCallback(() => {
     if (estado.fim || estado.cursor === null || estado.carregando) return;
@@ -319,5 +375,5 @@ export function usarFeed(missaoId: string | null) {
     void carregar(null);
   }, [carregar]);
 
-  return { estado, carregarMais, recomecar };
+  return { estado, carregarMais, recomecar, pedirChaves };
 }

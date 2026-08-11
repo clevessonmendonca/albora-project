@@ -26,7 +26,17 @@ export function paraVariaveis(tokens: Tokens): Record<string, string> {
     "--fonte-titulo": tokens.fontes.titulo,
     "--fonte-corpo": tokens.fontes.corpo,
     "--raio": tokens.escala.raio,
+    "--raio-pilula": tokens.escala.raioPilula,
+    "--raio-superficie": tokens.escala.raioSuperficie,
     "--espaco": tokens.escala.espaco,
+
+    "--curva": tokens.movimento.curva,
+    "--tempo-rapido": tokens.movimento.rapido,
+    "--tempo": tokens.movimento.medio,
+    "--tempo-lento": tokens.movimento.lento,
+
+    "--tracking-titulo": tokens.tracking.titulo,
+    "--tracking-rotulo": tokens.tracking.rotulo,
 
     // Ponte para as telas escritas antes da escala semântica existir. Sai na
     // passada de tela — não escreva componente novo contra elas.

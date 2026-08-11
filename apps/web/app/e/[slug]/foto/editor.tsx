@@ -223,31 +223,31 @@ export function Editor({
     <div style={{ display: "grid", gridTemplateRows: "auto 1fr auto", height: "100dvh", gap: "0.75rem" }}>
       <style>{ESTILO}</style>
 
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 1.25rem 0" }}>
-        <button onClick={onDescartar} style={estiloTexto}>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 1.5rem 0" }}>
+        <button className="ed-texto" onClick={onDescartar}>
           Tirar outra
         </button>
         {escolhido && (
-          <button onClick={() => setEscolhido(null)} style={estiloTexto}>
+          <button className="ed-texto" onClick={() => setEscolhido(null)}>
             Sem filtro
           </button>
         )}
       </header>
 
-      <section style={{ display: "grid", placeItems: "center", overflow: "hidden", padding: "0 1rem" }}>
+      <section style={{ display: "grid", placeItems: "center", overflow: "hidden", padding: "0 1.25rem" }}>
         {erro ? (
-          <p role="alert" style={{ color: "var(--critico)", textAlign: "center" }}>
+          <p role="alert" style={{ color: "var(--critico)", textAlign: "center", lineHeight: 1.68 }}>
             {erro}
           </p>
         ) : (
           <canvas
             ref={telaPrevia}
-            style={{ maxWidth: "100%", maxHeight: "100%", borderRadius: "var(--raio)" }}
+            style={{ maxWidth: "100%", maxHeight: "100%", borderRadius: "var(--raio-superficie)" }}
           />
         )}
       </section>
 
-      <footer style={{ display: "grid", gap: "0.6rem", padding: "0 1.25rem 1.25rem" }}>
+      <footer style={{ display: "grid", gap: "0.7rem", padding: "0 1.5rem 1.5rem" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center" }}>
           <span />
           <div style={{ display: "flex", gap: "1.5rem" }}>
@@ -342,7 +342,7 @@ export function Editor({
           </div>
         )}
 
-        <button onClick={enviar} disabled={!previa} style={estiloPrimario(!previa)}>
+        <button className="ed-primario" onClick={enviar} disabled={!previa}>
           Enviar
         </button>
       </footer>
@@ -468,81 +468,24 @@ function Chip({
 }) {
   return (
     <button
+      className={ativo ? "ed-chip ativo" : "ed-chip"}
       onClick={onClick}
       aria-pressed={ativo}
-      style={{
-        font: "inherit",
-        flex: "0 0 auto",
-        display: "grid",
-        gap: "0.3rem",
-        justifyItems: "center",
-        background: "none",
-        border: "none",
-        padding: 0,
-        cursor: "pointer",
-        color: ativo || sugerido ? "var(--acento-texto)" : "var(--ink-2)",
-      }}
+      style={{ color: ativo || sugerido ? "var(--acento-texto)" : "var(--ink-3)" }}
     >
       <span
+        className="ed-mini"
         style={{
-          position: "relative",
-          width: "56px",
-          height: "56px",
-          borderRadius: "var(--raio)",
-          overflow: "hidden",
-          display: "block",
-          background: "var(--superficie-alta)",
-          outline: ativo ? "2px solid var(--acento)" : "none",
-          outlineOffset: "2px",
           backgroundImage: miniatura ? `url(${miniatura})` : undefined,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
         }}
       >
-        {sugerido && (
-          <span
-            aria-hidden="true"
-            style={{
-              position: "absolute",
-              top: "5px",
-              right: "5px",
-              width: "8px",
-              height: "8px",
-              borderRadius: "50%",
-              background: "var(--acento)",
-            }}
-          />
-        )}
+        {/* O selo do filtro que os noivos sugerem. Disco pequeno, não etiqueta:
+            âmbar entra como metal, e o primeiro lugar na tira já é o destaque. */}
+        {sugerido && <span className="ed-selo" aria-hidden="true" />}
       </span>
-      <span style={{ fontSize: "0.68rem", whiteSpace: "nowrap" }}>{rotulo}</span>
+      <span className="ed-nome">{rotulo}</span>
     </button>
   );
-}
-
-const estiloTexto: React.CSSProperties = {
-  font: "inherit",
-  fontSize: "0.9rem",
-  background: "none",
-  border: "none",
-  minHeight: "48px",
-  padding: "0.4rem 0",
-  color: "var(--ink-2)",
-  cursor: "pointer",
-};
-
-function estiloPrimario(desabilitado: boolean): React.CSSProperties {
-  return {
-    font: "inherit",
-    fontSize: "1.05rem",
-    fontWeight: 500,
-    minHeight: "56px",
-    borderRadius: "var(--raio)",
-    border: "none",
-    background: "var(--ink)",
-    color: "var(--bg)",
-    opacity: desabilitado ? 0.5 : 1,
-    cursor: desabilitado ? "default" : "pointer",
-  };
 }
 
 /**
@@ -552,6 +495,22 @@ function estiloPrimario(desabilitado: boolean): React.CSSProperties {
  * regra inteira nos dois navegadores.
  */
 const ESTILO = `
+  .ed-texto {
+    font: inherit;
+    font-family: var(--fonte-titulo);
+    font-size: 0.68rem;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    background: none;
+    border: 0;
+    min-height: 48px;
+    padding: 0 0.125rem;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: color var(--tempo-rapido) var(--curva);
+  }
+
   .ed-aba {
     font: inherit;
     font-family: var(--fonte-titulo);
@@ -565,7 +524,7 @@ const ESTILO = `
     min-height: 48px;
     padding: 0 0.25rem;
     cursor: pointer;
-    transition: color 200ms ease, border-color 200ms ease;
+    transition: color var(--tempo-rapido) var(--curva), border-color var(--tempo-rapido) var(--curva);
   }
 
   .ed-zerar {
@@ -576,11 +535,87 @@ const ESTILO = `
     text-transform: uppercase;
     background: none;
     border: 0;
-    color: var(--ink-2);
+    color: var(--ink-3);
     min-height: 48px;
     padding: 0 0.25rem;
     justify-self: end;
     cursor: pointer;
+  }
+
+  .ed-chip {
+    font: inherit;
+    flex: 0 0 auto;
+    width: 62px;
+    display: grid;
+    gap: 0.4rem;
+    justify-items: center;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .ed-mini {
+    position: relative;
+    display: block;
+    width: 62px;
+    height: 62px;
+    border-radius: var(--raio);
+    overflow: hidden;
+    background-color: var(--superficie-alta);
+    background-size: cover;
+    background-position: center;
+    box-shadow: inset 0 0 0 1px var(--linha);
+    transition: box-shadow var(--tempo-rapido) var(--curva);
+  }
+  .ed-chip.ativo .ed-mini { box-shadow: inset 0 0 0 2px var(--acento); }
+
+  .ed-selo {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 9px;
+    height: 9px;
+    border-radius: var(--raio-pilula);
+    background: var(--acento);
+  }
+
+  .ed-nome {
+    max-width: 100%;
+    font-family: var(--fonte-titulo);
+    font-size: 0.58rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ed-primario {
+    font: inherit;
+    font-size: 0.97rem;
+    font-weight: 500;
+    letter-spacing: var(--tracking-rotulo);
+    min-height: 56px;
+    padding: 0 1.5rem;
+    border: 0;
+    border-radius: var(--raio-pilula);
+    background: var(--ink);
+    color: var(--bg);
+    cursor: pointer;
+    transition: transform var(--tempo-rapido) var(--curva), opacity var(--tempo-rapido) var(--curva);
+  }
+  .ed-primario:disabled { opacity: 0.4; cursor: default; }
+  .ed-primario:active:not(:disabled) { transform: scale(0.972); }
+
+  .ed-texto:focus-visible,
+  .ed-aba:focus-visible,
+  .ed-zerar:focus-visible,
+  .ed-chip:focus-visible,
+  .ed-primario:focus-visible {
+    outline: 1px solid var(--acento);
+    outline-offset: 5px;
   }
 
   .ed-linha {
@@ -616,35 +651,38 @@ const ESTILO = `
     outline: none;
   }
 
+  /*
+    Trilho de 1,5px: progresso é filete, não barra. O botão continua largo
+    porque quem arrasta está de pé, no escuro — a área de toque é o input
+    inteiro, de 48px de altura.
+  */
   .ed-faixa::-webkit-slider-runnable-track {
-    height: 3px;
-    border-radius: 3px;
+    height: 1.5px;
     background: var(--trilho);
   }
 
   .ed-faixa::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 26px;
-    height: 26px;
-    margin-top: -11.5px;
+    width: 24px;
+    height: 24px;
+    margin-top: -11.25px;
     border: 0;
-    border-radius: 50%;
+    border-radius: var(--raio-pilula);
     background: var(--ink);
     cursor: pointer;
   }
 
   .ed-faixa::-moz-range-track {
-    height: 3px;
-    border-radius: 3px;
+    height: 1.5px;
     background: var(--trilho);
   }
 
   .ed-faixa::-moz-range-thumb {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     border: 0;
-    border-radius: 50%;
+    border-radius: var(--raio-pilula);
     background: var(--ink);
     cursor: pointer;
   }
@@ -660,6 +698,7 @@ const ESTILO = `
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ed-aba { transition: none; }
+    .ed-texto, .ed-aba, .ed-mini, .ed-primario { transition: none; }
+    .ed-primario:active:not(:disabled) { transform: none; }
   }
 `;

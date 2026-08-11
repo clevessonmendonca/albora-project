@@ -28,46 +28,84 @@ export function Aviso({
     <main
       style={{
         minHeight: "100dvh",
-        display: "grid",
-        placeItems: "center",
-        padding: "2rem 1.5rem",
+        display: "flex",
+        justifyContent: "center",
+        padding: "2.5rem 2rem 2.25rem",
         background: "var(--bg)",
         color: "var(--ink)",
         fontFamily: "var(--fonte-corpo)",
       }}
     >
-      <div style={{ width: "100%", maxWidth: "28rem", textAlign: "center" }}>
+      <div
+        style={{
+          flex: "1 1 auto",
+          width: "100%",
+          maxWidth: "26rem",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
         {/* Esta tela também é chegada de QR, e é a única coisa em cena que
             identifica o produto. */}
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: "2.25rem" }}>
+        <div style={{ flex: "none" }}>
           <Logotipo />
         </div>
 
-        <h1
-          style={{
-            fontFamily: "var(--fonte-titulo)",
-            fontSize: "1.6rem",
-            fontWeight: 500,
-            margin: "0 0 0.75rem",
-            textWrap: "balance",
-          }}
-        >
-          {titulo}
-        </h1>
-        <p style={{ margin: 0, lineHeight: 1.6, color: "var(--ink-2)" }}>{texto}</p>
+        <span style={{ flex: "1 1 auto", minHeight: "1.5rem" }} />
 
-        {quando && (
-          <p style={{ marginTop: "1.25rem", fontSize: "0.9rem", color: "var(--ink-3)" }}>
-            {quando.toLocaleString("pt-BR", {
-              day: "2-digit",
-              month: "long",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+        <div>
+          <h1
+            style={{
+              fontFamily: "var(--fonte-titulo)",
+              fontSize: "clamp(1.6rem, 7.6vw, 1.9375rem)",
+              fontWeight: 500,
+              lineHeight: 1.14,
+              letterSpacing: "var(--tracking-titulo)",
+              margin: "0 0 0.85rem",
+              textWrap: "balance",
+            }}
+          >
+            {titulo}
+          </h1>
+          <p
+            style={{
+              margin: 0,
+              maxWidth: "34ch",
+              fontSize: "0.94rem",
+              lineHeight: 1.68,
+              color: "var(--ink-2)",
+            }}
+          >
+            {texto}
           </p>
-        )}
 
-        {resgate && <Resgate />}
+          {/* Numa tela que só existe para dizer "ainda não", a hora é a única
+              informação que resolve alguma coisa — e é ela que ganha o acento. */}
+          {quando && (
+            <p
+              style={{
+                margin: "1.5rem 0 0",
+                fontFamily: "var(--fonte-titulo)",
+                fontSize: "0.78rem",
+                fontWeight: 400,
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                color: "var(--acento-texto)",
+              }}
+            >
+              {quando.toLocaleString("pt-BR", {
+                day: "2-digit",
+                month: "long",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+          )}
+        </div>
+
+        <span style={{ flex: "1 1 auto", minHeight: "1.5rem" }} />
+
+        <div style={{ flex: "none" }}>{resgate && <Resgate />}</div>
       </div>
     </main>
   );

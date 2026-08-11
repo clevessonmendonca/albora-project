@@ -5,6 +5,8 @@ export type {
   Escala,
   EscalaSemantica,
   Fontes,
+  Movimento,
+  Tracking,
   Fundo,
   Tokens,
 } from "./tipos";

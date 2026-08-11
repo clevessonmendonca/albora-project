@@ -1,21 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { usarFeed } from "@/lib/usar-feed";
-import { Moldura, MolduraCarregando } from "./moldura";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { agruparPorHora, type GrupoDeHora } from "@/lib/agrupar-por-hora";
+import { usarFeed, type ItemVisivel } from "@/lib/usar-feed";
+import { Publicacao, PublicacaoCarregando } from "./publicacao";
+import { chavesDoReprodutor, Reprodutor } from "./reprodutor";
+import { Tira, TiraCarregando } from "./tira";
 
 /**
- * O feed do convidado.
+ * O feed do convidado: a tira de horas no topo e as fotos em coluna única
+ * embaixo, numa tela só.
  *
  * Ele existe para uma coisa só: o convidado ver o que os outros mandaram e,
- * por isso, mandar mais (ADR 0009). Duas decisões de tela saem direto daí, e
+ * por isso, mandar mais (ADR 0009). Três decisões de tela saem direto daí, e
  * nenhuma é estética:
  *
  * - **A próxima página só vem a pedido.** Rolagem infinita é o desenho que
  *   prende, e prender é o oposto do que esta tela serve. Aqui ela termina, e
  *   quem quiser mais toca.
- * - **O botão de câmera é fixo.** Ele não sai da tela em nenhum estado — nem
- *   no vazio, nem no erro, nem no fim da lista.
+ * - **A barra da câmera é fixa.** Em coluna única cada foto ocupa quase a tela
+ *   inteira, e o fim da lista fica longe: uma ação primária que só aparece lá
+ *   embaixo não existe. Ela não sai da tela em nenhum estado — nem no vazio,
+ *   nem no erro, nem com o visualizador aberto, que carrega a sua.
+ * - **A tela cheia devolve para o feed.** A hora acaba, e o que sobra é a
+ *   câmera.
  *
  * Nada de contagem: antes do gate ela nem chega do servidor, e depois dele
  * quem a mostra é outra tarefa.
@@ -29,6 +37,13 @@ export type TextosDoFeed = {
 };
 
 const TOQUE_MINIMO = "48px";
+const TOQUE_PRIMARIO = "54px";
+
+/** Identidade estável: `[]` novo a cada render reabriria o efeito à toa. */
+const SEM_CHAVES: string[] = [];
+const SEM_ITENS: ItemVisivel[] = [];
+
+type Aberto = { inicio: number; itemId: string };
 
 export function PaginaFeed({
   missoes,
@@ -40,102 +55,222 @@ export function PaginaFeed({
   caminhoDaCamera: string;
 }) {
   const [missaoId, setMissaoId] = useState<string | null>(null);
-  const { estado, carregarMais, recomecar } = usarFeed(missaoId);
+  const { estado, carregarMais, recomecar, pedirChaves } = usarFeed(missaoId);
+
+  const [aberto, setAberto] = useState<Aberto | null>(null);
+  const [preparando, setPreparando] = useState<number | null>(null);
+  const [vistos, setVistos] = useState<ReadonlySet<number>>(() => new Set());
+  const movimentoReduzido = usarMovimentoReduzido();
 
   const primeiraCarga = !estado.jaCarregou && estado.carregando;
   const vazio = estado.jaCarregou && estado.itens.length === 0 && estado.falha === null;
 
+  /**
+   * Uma hora só está fechada quando não há mais página **e** nada falhou. Falha
+   * que ainda promete "vem mais" faria quem espera a hora fechar esperar para
+   * sempre.
+   */
+  const temMais = !estado.fim && estado.falha === null;
+  const grupos = useMemo(
+    () => agruparPorHora(estado.itens, { temMais }),
+    [estado.itens, temMais],
+  );
+
+  const grupoAberto = aberto
+    ? grupos.find((g) => g.inicio.getTime() === aberto.inicio)
+    : undefined;
+
+  const itensAbertos = grupoAberto?.itens ?? SEM_ITENS;
+  const achado = grupoAberto ? itensAbertos.findIndex((i) => i.id === aberto?.itemId) : -1;
+  const indice = achado >= 0 ? achado : 0;
+
+  const janela = useMemo(
+    () => (grupoAberto ? chavesDoReprodutor(itensAbertos, indice) : SEM_CHAVES),
+    [grupoAberto, itensAbertos, indice],
+  );
+
+  useEffect(() => {
+    pedirChaves(janela);
+  }, [pedirChaves, janela]);
+
+  const irPara = useCallback(
+    (i: number) => {
+      const alvo = itensAbertos[i];
+      if (!alvo) return;
+      setAberto((atual) => (atual ? { inicio: atual.inicio, itemId: alvo.id } : atual));
+    },
+    [itensAbertos],
+  );
+
+  const sair = useCallback(() => setAberto(null), []);
+
+  /**
+   * Uma hora incompleta é fechada **antes** de abrir.
+   *
+   * O feed vem do mais novo para o mais velho, então a hora mais antiga da lista
+   * é a única que ainda pode receber foto. Começar a tocar no meio dela faria a
+   * fila reordenar embaixo do dedo enquanto a próxima página chega.
+   */
+  useEffect(() => {
+    if (preparando === null) return;
+
+    const grupo = grupos.find((g) => g.inicio.getTime() === preparando);
+    if (!grupo) {
+      setPreparando(null);
+      return;
+    }
+
+    if (!grupo.completo) {
+      if (!estado.carregando) carregarMais();
+      return;
+    }
+
+    const primeiro = grupo.itens[0];
+    setPreparando(null);
+    if (primeiro) setAberto({ inicio: preparando, itemId: primeiro.id });
+  }, [preparando, grupos, estado.carregando, carregarMais]);
+
+  // A foto pode sair do feed pelo botão de pânico enquanto alguém a olha. Some
+  // do grupo, o grupo some da lista, e a tela volta para onde há saída.
+  useEffect(() => {
+    if (aberto && !grupoAberto) setAberto(null);
+  }, [aberto, grupoAberto]);
+
+  // Sem isto o dedo atravessa a tela cheia e rola o feed atrás dela — e a pessoa
+  // fecha a hora num lugar da lista que não é o que ela deixou.
+  useEffect(() => {
+    if (!grupoAberto) return;
+
+    const antes = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = antes;
+    };
+  }, [grupoAberto]);
+
+  function abrir(grupo: GrupoDeHora<ItemVisivel>) {
+    const inicio = grupo.inicio.getTime();
+    const primeiro = grupo.itens[0];
+
+    setVistos((antes) => (antes.has(inicio) ? antes : new Set(antes).add(inicio)));
+
+    if (grupo.completo && primeiro) setAberto({ inicio, itemId: primeiro.id });
+    else setPreparando(inicio);
+  }
+
   return (
-    <main
-      style={{
-        minHeight: "100dvh",
-        padding: "calc(var(--espaco) * 6) calc(var(--espaco) * 5)",
-        paddingBottom: "calc(7rem + env(safe-area-inset-bottom))",
-        background: "var(--bg)",
-        color: "var(--ink)",
-        fontFamily: "var(--fonte-corpo)",
-      }}
-    >
-      <style>{`
-        @keyframes feed-amanhecer {
-          from { opacity: 0; filter: brightness(0.4) saturate(0.6); }
-          to   { opacity: 1; filter: none; }
-        }
-        @keyframes feed-respirar {
-          0%, 100% { opacity: 1; }
-          50%      { opacity: 0.55; }
-        }
-        .feed-amanhece { animation: feed-amanhecer 620ms ease-out both; }
-        .feed-esperando { animation: feed-respirar 1900ms ease-in-out infinite; }
-        @media (prefers-reduced-motion: reduce) {
-          .feed-amanhece, .feed-esperando { animation: none !important; }
-        }
-      `}</style>
+    <>
+      <main
+        style={{
+          minHeight: "100dvh",
+          padding: "calc(var(--espaco) * 5) calc(var(--espaco) * 5)",
+          paddingBottom: "calc(8rem + env(safe-area-inset-bottom))",
+          background: "var(--bg)",
+          color: "var(--ink)",
+          fontFamily: "var(--fonte-corpo)",
+        }}
+      >
+        <style>{`
+          @keyframes feed-amanhecer {
+            from { opacity: 0; filter: brightness(0.4) saturate(0.6); }
+            to   { opacity: 1; filter: none; }
+          }
+          @keyframes feed-respirar {
+            0%, 100% { opacity: 1; }
+            50%      { opacity: 0.55; }
+          }
+          .feed-amanhece { animation: feed-amanhecer var(--tempo-lento) var(--curva) both; }
+          /* O ciclo é mais longo que --tempo-lento de propósito: em laço
+             infinito, meio segundo não respira, pisca. */
+          .feed-esperando { animation: feed-respirar 1900ms var(--curva) infinite; }
+          @media (prefers-reduced-motion: reduce) {
+            .feed-amanhece, .feed-esperando { animation: none !important; }
+          }
+        `}</style>
 
-      <header style={{ marginBottom: "calc(var(--espaco) * 6)" }}>
-        <h1
-          style={{
-            fontFamily: "var(--fonte-titulo)",
-            fontSize: "1.7rem",
-            fontWeight: 500,
-            lineHeight: 1.2,
-            margin: "0 0 0.35rem",
-            textWrap: "balance",
-          }}
-        >
-          Olha o que já chegou.
-        </h1>
-        <p style={{ margin: 0, lineHeight: 1.6, color: "var(--ink-2)" }}>
-          A sua próxima entra aqui do lado.
-        </p>
-      </header>
+        <header style={{ marginBottom: "calc(var(--espaco) * 3)" }}>
+          <p
+            style={{
+              margin: 0,
+              fontFamily: "var(--fonte-titulo)",
+              fontSize: "0.68rem",
+              fontWeight: 400,
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              color: "var(--ink-3)",
+            }}
+          >
+            A festa agora
+          </p>
+        </header>
 
-      {missoes.length > 0 && (
-        <Filtro
-          rotulo={textos.missaoTitulo}
-          missoes={missoes}
-          escolhida={missaoId}
-          onEscolher={setMissaoId}
+        {primeiraCarga && <TiraCarregando />}
+
+        {grupos.length > 0 && (
+          <Tira
+            grupos={grupos}
+            urls={estado.urls}
+            vistos={vistos}
+            preparando={preparando}
+            rotulo="Horas da festa"
+            onAbrir={abrir}
+          />
+        )}
+
+        {missoes.length > 0 && (
+          <Filtro
+            rotulo={textos.missaoTitulo}
+            missoes={missoes}
+            escolhida={missaoId}
+            onEscolher={setMissaoId}
+          />
+        )}
+
+        {estado.midiaIndisponivel && (
+          <p style={{ margin: "0 0 1rem", fontSize: "0.85rem", color: "var(--ink-3)" }}>
+            As fotos ainda não abriram. Elas aparecem sozinhas.
+          </p>
+        )}
+
+        {primeiraCarga && (
+          <Coluna>
+            {[0, 1].map((i) => (
+              <PublicacaoCarregando key={i} />
+            ))}
+          </Coluna>
+        )}
+
+        {vazio && <Vazio comFiltro={missaoId !== null} />}
+
+        {estado.itens.length > 0 && (
+          <Coluna>
+            {estado.itens.map((item) => (
+              <Publicacao
+                key={item.id}
+                url={estado.urls.get(item.chaveThumb)?.url ?? null}
+                autor={item.autor}
+                legenda={item.legenda}
+              />
+            ))}
+          </Coluna>
+        )}
+
+        <Rodape
+          estado={estado}
+          temItens={estado.itens.length > 0}
+          onVerMais={carregarMais}
+          onRecomecar={recomecar}
         />
-      )}
+      </main>
 
-      {estado.midiaIndisponivel && (
-        <p style={{ margin: "0 0 1rem", fontSize: "0.85rem", color: "var(--ink-3)" }}>
-          As fotos ainda não abriram. Elas aparecem sozinhas.
-        </p>
-      )}
-
-      {primeiraCarga && <Grade>{[0, 1, 2, 3, 4, 5].map((i) => <MolduraCarregando key={i} />)}</Grade>}
-
-      {vazio && <Vazio comFiltro={missaoId !== null} />}
-
-      {estado.itens.length > 0 && (
-        <Grade>
-          {estado.itens.map((item) => (
-            <Moldura
-              key={item.id}
-              url={estado.urls.get(item.chaveThumb)?.url ?? null}
-              autor={item.autor}
-              legenda={item.legenda}
-            />
-          ))}
-        </Grade>
-      )}
-
-      <Rodape
-        estado={estado}
-        temItens={estado.itens.length > 0}
-        onVerMais={carregarMais}
-        onRecomecar={recomecar}
-      />
-
-      {/* Fixo em todos os estados: a tela não pode terminar sem a porta de volta
+      {/* Fixa em todos os estados: a tela não pode terminar sem a porta de volta
           para a câmera, que é a única coisa que ela existe para provocar. */}
       <div
         style={{
           position: "fixed",
           insetInline: 0,
           bottom: 0,
+          zIndex: 5,
           padding: "calc(var(--espaco) * 3) calc(var(--espaco) * 5)",
           paddingBottom: "calc(var(--espaco) * 3 + env(safe-area-inset-bottom))",
           borderTop: "1px solid var(--linha)",
@@ -148,35 +283,39 @@ export function PaginaFeed({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            minHeight: "56px",
-            borderRadius: "var(--raio)",
+            minHeight: TOQUE_PRIMARIO,
+            borderRadius: "var(--raio-pilula)",
             fontSize: "1.05rem",
             fontWeight: 500,
+            letterSpacing: "var(--tracking-rotulo)",
             textDecoration: "none",
-            background: "var(--ink)",
+            background: "var(--acento)",
             color: "var(--bg)",
           }}
         >
           Mandar uma foto
         </a>
       </div>
-    </main>
+
+      {grupoAberto && (
+        <Reprodutor
+          itens={itensAbertos}
+          indice={indice}
+          hora={grupoAberto.hora}
+          urls={estado.urls}
+          caminhoDaCamera={caminhoDaCamera}
+          movimentoReduzido={movimentoReduzido}
+          onIr={irPara}
+          onSair={sair}
+        />
+      )}
+    </>
   );
 }
 
-function Grade({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(8.5rem, 1fr))",
-        gap: "calc(var(--espaco) * 3)",
-        alignItems: "start",
-      }}
-    >
-      {children}
-    </div>
-  );
+/** Uma foto por vez, em destaque. Grade é tela de perfil; isto aqui é a casa. */
+function Coluna({ children }: { children: React.ReactNode }) {
+  return <div style={{ display: "grid", gap: "calc(var(--espaco) * 6)" }}>{children}</div>;
 }
 
 function Filtro({
@@ -191,50 +330,40 @@ function Filtro({
   onEscolher: (id: string | null) => void;
 }) {
   return (
-    <section style={{ marginBottom: "calc(var(--espaco) * 5)" }}>
-      <p
-        style={{
-          margin: "0 0 calc(var(--espaco) * 2)",
-          fontFamily: "var(--fonte-titulo)",
-          fontSize: "0.68rem",
-          fontWeight: 400,
-          letterSpacing: "0.28em",
-          textTransform: "uppercase",
-          color: "var(--ink-3)",
-        }}
-      >
-        {rotulo}
-      </p>
+    <div
+      role="group"
+      // O nome que esta festa dá às missões fica na etiqueta acessível: com a
+      // tira de horas logo acima, mais uma linha de rótulo visível empurraria a
+      // primeira foto para fora da tela.
+      aria-label={rotulo}
+      style={{
+        display: "flex",
+        gap: "calc(var(--espaco) * 6)",
+        overflowX: "auto",
+        scrollbarWidth: "none",
+        margin: "calc(var(--espaco) * 3) calc(var(--espaco) * -5) calc(var(--espaco) * 5)",
+        padding: "0 calc(var(--espaco) * 5)",
+        borderBottom: "1px solid var(--linha)",
+      }}
+    >
+      <Etiqueta ativa={escolhida === null} onClick={() => onEscolher(null)}>
+        Tudo
+      </Etiqueta>
 
-      <div
-        style={{
-          display: "flex",
-          gap: "calc(var(--espaco) * 2)",
-          overflowX: "auto",
-          scrollbarWidth: "none",
-          // A faixa sangra até a borda da tela para o último item não parecer o fim.
-          margin: "0 calc(var(--espaco) * -5)",
-          padding: "0 calc(var(--espaco) * 5)",
-        }}
-      >
-        <Etiqueta ativa={escolhida === null} onClick={() => onEscolher(null)}>
-          Tudo
+      {missoes.map((m) => (
+        <Etiqueta
+          key={m.id}
+          ativa={escolhida === m.id}
+          onClick={() => onEscolher(escolhida === m.id ? null : m.id)}
+        >
+          {m.titulo}
         </Etiqueta>
-
-        {missoes.map((m) => (
-          <Etiqueta
-            key={m.id}
-            ativa={escolhida === m.id}
-            onClick={() => onEscolher(escolhida === m.id ? null : m.id)}
-          >
-            {m.titulo}
-          </Etiqueta>
-        ))}
-      </div>
-    </section>
+      ))}
+    </div>
   );
 }
 
+/** Sublinhado, nunca pílula preenchida: é vocabulário de menu impresso. */
 function Etiqueta({
   ativa,
   onClick,
@@ -254,19 +383,21 @@ function Etiqueta({
         flex: "none",
         maxWidth: "14rem",
         minHeight: TOQUE_MINIMO,
-        padding: "0 calc(var(--espaco) * 4)",
-        borderRadius: "var(--raio)",
+        padding: 0,
         cursor: "pointer",
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
-        fontSize: "0.9rem",
-        // O acento entra como filete, nunca como preenchimento, e o estado
-        // ativo não copia o botão da câmera: só um alvo desta tela é o
-        // principal, e não é o filtro.
-        border: ativa ? "1px solid var(--acento)" : "1px solid var(--linha)",
-        background: ativa ? "var(--superficie-alta)" : "transparent",
-        color: ativa ? "var(--ink)" : "var(--ink-2)",
+        fontFamily: "var(--fonte-titulo)",
+        fontSize: "0.68rem",
+        fontWeight: 400,
+        letterSpacing: "0.2em",
+        textTransform: "uppercase",
+        background: "transparent",
+        border: "none",
+        borderBottom: ativa ? "1px solid var(--acento)" : "1px solid transparent",
+        color: ativa ? "var(--ink)" : "var(--ink-3)",
+        transition: "color var(--tempo-rapido) var(--curva)",
       }}
     >
       {children}
@@ -276,21 +407,22 @@ function Etiqueta({
 
 function Vazio({ comFiltro }: { comFiltro: boolean }) {
   return (
-    <div style={{ padding: "calc(var(--espaco) * 10) 0", textAlign: "center" }}>
+    <div style={{ padding: "calc(var(--espaco) * 12) 0", textAlign: "center" }}>
       <p
         style={{
           margin: "0 0 0.4rem",
           fontFamily: "var(--fonte-titulo)",
-          fontSize: "1.3rem",
+          fontSize: "1.6rem",
           fontWeight: 500,
           lineHeight: 1.25,
+          letterSpacing: "var(--tracking-titulo)",
           textWrap: "balance",
         }}
       >
-        {comFiltro ? "Ninguém mandou essa ainda." : "Ainda não tem nada aqui."}
+        {comFiltro ? "Ninguém mandou essa ainda." : "Ainda não tem foto."}
       </p>
       <p style={{ margin: 0, lineHeight: 1.6, color: "var(--ink-2)" }}>
-        A sua pode ser a primeira.
+        {comFiltro ? "A sua pode ser a primeira." : "Seja o primeiro."}
       </p>
     </div>
   );
@@ -373,7 +505,7 @@ function Secundario({
         font: "inherit",
         width: "100%",
         minHeight: TOQUE_MINIMO,
-        borderRadius: "var(--raio)",
+        borderRadius: "var(--raio-pilula)",
         border: "1px solid var(--linha)",
         background: "transparent",
         color: "var(--ink-2)",
@@ -385,4 +517,19 @@ function Secundario({
       {children}
     </button>
   );
+}
+
+function usarMovimentoReduzido(): boolean {
+  const [reduzido, setReduzido] = useState(false);
+
+  useEffect(() => {
+    const consulta = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const aplicar = () => setReduzido(consulta.matches);
+
+    aplicar();
+    consulta.addEventListener("change", aplicar);
+    return () => consulta.removeEventListener("change", aplicar);
+  }, []);
+
+  return reduzido;
 }

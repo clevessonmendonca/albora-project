@@ -42,6 +42,7 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
   return (
     <PaginaFoto
       eventoId={eventoId}
+      caminhoDoFeed={`/e/${encodeURIComponent(slug)}/feed`}
       filtroRecomendado={filtroRecomendado}
       missoes={desafios.map((d) => ({
         id: d.id,

@@ -58,7 +58,7 @@ export function Quadro({
     objectFit: "contain",
   };
 
-  const transicao = movimentoReduzido ? undefined : "opacity 260ms ease-out";
+  const transicao = movimentoReduzido ? undefined : "opacity var(--tempo-rapido) var(--curva)";
 
   return (
     <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "var(--bg)" }}>
@@ -113,39 +113,5 @@ export function Quadro({
         />
       )}
     </div>
-  );
-}
-
-/**
- * A miniatura da lista de horas. Mesma regra do quadro: `contain`, porque não
- * existe tamanho a partir do qual cortar rosto passa a ser aceitável, e moldura
- * vazia quando o arquivo não vem.
- */
-export function Capa({ url }: { url: string | undefined }) {
-  const [caiu, setCaiu] = useState(false);
-
-  useEffect(() => setCaiu(false), [url]);
-
-  return (
-    <span
-      style={{
-        display: "block",
-        width: "44px",
-        height: "58px",
-        borderRadius: "var(--raio)",
-        overflow: "hidden",
-        background: "var(--superficie)",
-        border: "1px solid var(--linha)",
-      }}
-    >
-      {url && !caiu && (
-        <img
-          src={url}
-          alt=""
-          onError={() => setCaiu(true)}
-          style={{ width: "100%", height: "100%", objectFit: "contain" }}
-        />
-      )}
-    </span>
   );
 }

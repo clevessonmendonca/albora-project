@@ -22,6 +22,8 @@ export function resolverTokens(entrada: EntradaResolucao): Tokens {
       cores: { ...acumulado.cores, ...camada.cores },
       fontes: { ...acumulado.fontes, ...camada.fontes },
       escala: { ...acumulado.escala, ...camada.escala },
+      movimento: { ...acumulado.movimento, ...camada.movimento },
+      tracking: { ...acumulado.tracking, ...camada.tracking },
       fundo: camada.fundo ?? acumulado.fundo,
     }),
     entrada.marca,
