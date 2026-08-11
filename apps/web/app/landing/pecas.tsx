@@ -96,9 +96,11 @@ export function Realce({ children }: { children: ReactNode }) {
 export function Moldura({ rotulo, raio: curvatura }: { rotulo: string; raio: string }) {
   return (
     <div
+      className="brilho"
       style={{
         position: "absolute",
         inset: 0,
+        overflow: "hidden",
         ...raio(curvatura),
         backgroundImage:
           "linear-gradient(160deg, color-mix(in srgb, var(--acento) 24%, var(--superficie-alta)), var(--superficie))",

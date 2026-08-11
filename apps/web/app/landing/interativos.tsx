@@ -7,7 +7,7 @@ import {
   resolverTokens,
 } from "@albora/tokens";
 import { useEffect, useRef, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { CHAO_QUENTE, Moldura, RAIO_CASCA, Realce, Rotulo, Titulo, raio, transicao } from "./pecas";
 
 /**
@@ -723,6 +723,74 @@ export function Missoes({ missoes }: { missoes: { id: string; titulo: string }[]
           );
         })}
       </div>
+    </div>
+  );
+}
+
+
+/**
+ * Entra quando chega à vista, uma vez só.
+ *
+ * Três decisões que não são estilo:
+ *
+ * - **Começa visível e o JS esconde.** O contrário deixaria a página inteira
+ *   em branco para quem tem JS desligado ou lento, e a verificação 2 da spec
+ *   013 é justamente que a página funcione sem JS. Quem não hidrata vê tudo.
+ * - **Desconecta ao revelar.** Observador vivo depois de cumprir o papel é
+ *   trabalho por quadro que ninguém vê, numa página que já tem uma demo de
+ *   300vh escutando rolagem.
+ * - **Respeita `prefers-reduced-motion` no próprio JS.** A regra em CSS zera a
+ *   transição, mas o elemento ainda partiria de `opacity: 0` até o observador
+ *   disparar — e num Android velho isso é um piscar. Aqui ele nem começa
+ *   escondido.
+ */
+export function Revelar({
+  children,
+  atraso = 0,
+  className,
+}: {
+  children: ReactNode;
+  atraso?: number;
+  className?: string;
+}) {
+  const alvo = useRef<HTMLDivElement>(null);
+  const [visivel, setVisivel] = useState(true);
+
+  useEffect(() => {
+    const elemento = alvo.current;
+    if (!elemento) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    setVisivel(false);
+
+    const observador = new IntersectionObserver(
+      ([entrada]) => {
+        if (!entrada?.isIntersecting) return;
+        setVisivel(true);
+        observador.disconnect();
+      },
+      { rootMargin: "0px 0px -12% 0px" },
+    );
+
+    observador.observe(elemento);
+    return () => observador.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={alvo}
+      {...(className ? { className } : {})}
+      style={{
+        opacity: visivel ? 1 : 0,
+        transform: visivel ? "none" : "translateY(1.25rem)",
+        transitionProperty: "opacity, transform",
+        transitionDuration: "var(--tempo-lento)",
+        transitionTimingFunction: "var(--curva)",
+        transitionDelay: `${atraso}ms`,
+      }}
+    >
+      {children}
     </div>
   );
 }

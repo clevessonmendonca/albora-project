@@ -2,7 +2,7 @@ import "./landing.css";
 import { MARCA_ALBORA, MODELOS_DE_IDENTIDADE, paraVariaveis, resolverTokens } from "@albora/tokens";
 import { texto, type Pack } from "@albora/packs";
 import type { CSSProperties } from "react";
-import { DemoRolagem, Missoes, TelaoComIdentidade } from "./interativos";
+import { DemoRolagem, Missoes, Revelar, TelaoComIdentidade } from "./interativos";
 import { Marca } from "./marca";
 import {
   CHAO_QUENTE,
@@ -38,23 +38,23 @@ const PADDING_LATERAL = "clamp(1.125rem, 4vw, 2.75rem)";
 
 const PASSOS = [
   {
-    titulo: "Escanear o QR da mesa",
-    desc: "A gente gera a placa e os cards com a cara do seu evento. Você só imprime.",
+    titulo: "O QR já chega pronto",
+    desc: "A placa da mesa e os cards saem com as cores e a fonte do seu evento. Você imprime e põe na mesa.",
   },
   {
-    titulo: "Cumprir as missões",
-    desc: "Convites curtos guiam o convidado: uma foto com quem chegou, o detalhe que ninguém reparou, um vídeo de dez segundos.",
+    titulo: "A festa fotografa sozinha",
+    desc: "Missões curtas aparecem no celular de quem escaneia: o brinde no instante do brinde, a mesa do jeito que ela está agora.",
   },
   {
-    titulo: "Receber o álbum",
-    desc: "Tudo cai num álbum só, em tempo real. No fim da festa é seu, em resolução original.",
+    titulo: "O álbum já está lá",
+    desc: "As fotos entram enquanto a festa acontece. No fim, é seu — em resolução original, sem ninguém precisar mandar nada no dia seguinte.",
   },
 ] as const;
 
 const NUMEROS = [
   { n: "4", o: "toques do QR até a primeira foto" },
   { n: "0", o: "downloads até a primeira foto" },
-  { n: "3s", o: "da foto tirada até o feed" },
+  { n: "48h", o: "de envio aberto depois da festa" },
   { n: "∞", o: "convidados e fotos, em todos os planos" },
 ] as const;
 
@@ -96,10 +96,12 @@ function Secao({
   children,
   id,
   padding,
+  revelar,
 }: {
   children: React.ReactNode;
   id?: string;
   padding?: string;
+  revelar?: boolean;
 }) {
   return (
     <section
@@ -110,7 +112,9 @@ function Secao({
         padding: padding ?? `clamp(2.5rem, 6vw, 5.5rem) ${PADDING_LATERAL}`,
       }}
     >
-      {children}
+      {/* A demo **não** revela: `transform` cria bloco de contenção e o
+          `position: sticky` do cartão dela para de funcionar. */}
+      {revelar ? <Revelar>{children}</Revelar> : children}
     </section>
   );
 }
@@ -167,7 +171,13 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
           borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "var(--linha)",
         }}
       >
-        <span style={{ display: "flex", alignItems: "center", gap: "0.6875rem" }}>
+        {/* O logo do pacote de marca, desenhado com os tokens do chão em que
+            está. A versão **animada** do pacote (`logo-animado-estrela`) ficou
+            de fora: as animações CSS de dentro do SVG não rodam quando ele é
+            servido por `<img>`, e como todo elemento dela começa em
+            `opacity: 0`, o resultado é um cabeçalho vazio. Entra quando for
+            inlinado como componente, para o CSS viver no documento. */}
+        <span className="entra" style={{ display: "flex", alignItems: "center", gap: "0.6875rem" }}>
           <Marca id="marca-topo" />
           <span
             style={{
@@ -181,24 +191,24 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
         </span>
 
         <nav className="nav-topo" style={{ display: "flex", gap: "1.625rem", color: "var(--ink-2)" }}>
-          <a href="#experiencia" style={{ color: "inherit", textDecoration: "none" }}>
+          <a href="#experiencia" className="elo" style={{ color: "inherit", textDecoration: "none" }}>
             A experiência
           </a>
-          <a href="#momentos" style={{ color: "inherit", textDecoration: "none" }}>
+          <a href="#momentos" className="elo" style={{ color: "inherit", textDecoration: "none" }}>
             As fotos
           </a>
-          <a href="#telao" style={{ color: "inherit", textDecoration: "none" }}>
+          <a href="#telao" className="elo" style={{ color: "inherit", textDecoration: "none" }}>
             Telão
           </a>
-          <a href="#livro" style={{ color: "inherit", textDecoration: "none" }}>
+          <a href="#livro" className="elo" style={{ color: "inherit", textDecoration: "none" }}>
             Livro
           </a>
-          <a href="#planos" style={{ color: "inherit", textDecoration: "none" }}>
+          <a href="#planos" className="elo" style={{ color: "inherit", textDecoration: "none" }}>
             Planos
           </a>
         </nav>
 
-        <a href="#planos" style={{ ...PILULA, padding: "0.6875rem 1.375rem", fontSize: "0.875rem" }}>
+        <a href="#planos" className="pilula" style={{ ...PILULA, padding: "0.6875rem 1.375rem", fontSize: "0.875rem" }}>
           {t("landing.cta")}
         </a>
       </header>
@@ -224,6 +234,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
           >
             <div>
               <span
+                className="entra"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -250,7 +261,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
               </span>
 
               <h1
-                className="heroi-titulo"
+                className="heroi-titulo entra-2"
                 style={{
                   margin: "1.5rem 0 0",
                   fontFamily: "var(--fonte-titulo)",
@@ -265,6 +276,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
               </h1>
 
               <p
+                className="entra-3"
                 style={{
                   margin: "1.625rem 0 0",
                   maxWidth: "30rem",
@@ -279,10 +291,10 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
               <div
                 style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", marginTop: "2.125rem" }}
               >
-                <a href="#planos" style={PILULA}>
+                <a href="#planos" className="pilula" style={PILULA}>
                   {t("landing.cta")}
                 </a>
-                <a href="#momentos" style={PILULA_CLARA}>
+                <a href="#momentos" className="pilula" style={PILULA_CLARA}>
                   Ver as fotos
                 </a>
               </div>
@@ -352,7 +364,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
         <DemoRolagem />
       </Secao>
 
-      <Secao id="experiencia">
+      <Secao id="experiencia" revelar>
         <div
           style={{
             padding: "clamp(1.75rem, 4vw, 3.75rem)",
@@ -419,7 +431,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
 
               <a
                 href="#demo"
-                style={{ display: "inline-block", margin: "1.25rem 0 0", color: "var(--acento-texto)" }}
+                className="elo" style={{ display: "inline-block", margin: "1.25rem 0 0", color: "var(--acento-texto)" }}
               >
                 Ver a experiência acontecendo
               </a>
@@ -435,6 +447,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
               {NUMEROS.map((x) => (
                 <div
                   key={x.o}
+                  className="cartao"
                   style={{
                     padding: "1.625rem 1.5rem",
                     ...raio("var(--raio-superficie)"),
@@ -465,7 +478,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
         </div>
       </Secao>
 
-      <Secao id="momentos">
+      <Secao id="momentos" revelar>
         <Rotulo>Durante e depois da festa</Rotulo>
         <Titulo tamanho="clamp(1.875rem, 4.4vw, 3.5rem)">
           {t("landing.momentos.titulo")} <Realce>{t("landing.momentos.destaque")}</Realce>
@@ -493,6 +506,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
           {MOMENTOS.map((m) => (
             <figure
               key={m.rotulo}
+              className="cartao"
               style={{ margin: 0, marginTop: m.recuo, transform: `rotate(${m.giro})` }}
             >
               <div style={{ position: "relative", aspectRatio: "9 / 16" }}>
@@ -515,11 +529,11 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
         </div>
       </Secao>
 
-      <Secao>
+      <Secao revelar>
         <Missoes missoes={missoes} />
       </Secao>
 
-      <Secao id="telao">
+      <Secao id="telao" revelar>
         <div
           style={{
             display: "flex",
@@ -547,7 +561,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
         </p>
       </Secao>
 
-      <Secao id="livro">
+      <Secao id="livro" revelar>
         <div
           style={{
             display: "grid",
@@ -582,7 +596,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
         </div>
       </Secao>
 
-      <Secao id="planos">
+      <Secao id="planos" revelar>
         <Titulo
           tamanho="clamp(1.75rem, 4.2vw, 3.25rem)"
           style={{ margin: "0 0 clamp(1.625rem, 3.5vw, 2.875rem)", maxWidth: "41.25rem" }}
@@ -640,6 +654,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
           ].map((plano) => (
             <div
               key={plano.nome}
+              className="cartao"
               style={{
                 padding: "2rem",
                 ...raio("var(--raio-superficie)"),
@@ -704,6 +719,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
 
               <a
                 href="#"
+                className="pilula"
                 style={{
                   ...(plano.destaque ? PILULA : PILULA_CLARA),
                   ...(plano.destaque
@@ -786,10 +802,10 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
                 marginTop: "2.25rem",
               }}
             >
-              <a href="#planos" style={PILULA}>
+              <a href="#planos" className="pilula" style={PILULA}>
                 {t("landing.cta")}
               </a>
-              <a href="#planos" style={PILULA_CLARA}>
+              <a href="#planos" className="pilula" style={PILULA_CLARA}>
                 Sou cerimonialista
               </a>
             </div>
@@ -839,6 +855,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
         </span>
         <a
           href="#planos"
+          className="pilula"
           style={{ ...PILULA, backgroundColor: "var(--bg)", color: "var(--ink)", padding: "0.75rem 1.375rem" }}
         >
           Criar álbum

@@ -1,13 +1,16 @@
 /*
- * O que precisa de media query, keyframe ou pseudo-elemento.
+ * O que precisa de media query, keyframe, pseudo-elemento ou estado.
  *
  * O resto da landing é style inline de propósito — um componente, um pack, sem
- * folha paralela para sair de sincronia. Estas regras não cabem lá.
+ * folha paralela para sair de sincronia. Nada aqui inventa cor ou tempo: tudo
+ * sai dos mesmos tokens, inclusive a curva, que é uma só no produto inteiro.
  */
 
+/* ── responsivo ──────────────────────────────────────────────────────── */
+
 /*
- * A barra fixa é do celular. No desktop o CTA já está no cabeçalho e no fim da
- * página; uma terceira cópia rouba altura de tela sem ganhar nada.
+ * A barra fixa é do celular. No desktop o CTA já está no herói, nos planos e
+ * no fechamento; uma quarta cópia rouba altura de tela sem ganhar nada.
  */
 .cta-fixo {
   display: none;
@@ -46,7 +49,61 @@
   }
 }
 
-/* O ponto de "ao vivo". É o único movimento contínuo da página. */
+/* ── estados ─────────────────────────────────────────────────────────── */
+
+/*
+ * O que é clicável parece clicável, e responde. Sem isto a página inteira é
+ * uma imagem: nada afunda ao toque, nada muda ao passar o mouse, e o teclado
+ * não sabe onde está.
+ */
+.pilula {
+  transition:
+    transform var(--tempo-rapido) var(--curva),
+    filter var(--tempo-rapido) var(--curva);
+}
+
+.pilula:hover {
+  filter: brightness(1.08);
+}
+
+.pilula:active {
+  transform: scale(0.97);
+}
+
+.elo {
+  transition: color var(--tempo-rapido) var(--curva);
+}
+
+.elo:hover {
+  color: var(--ink);
+}
+
+/*
+ * Cartão que sobe um fio ao passar o mouse. Um fio: quatro pixels de subida
+ * lêem como resposta, doze lêem como brinquedo.
+ */
+.cartao {
+  transition:
+    transform var(--tempo) var(--curva),
+    box-shadow var(--tempo) var(--curva);
+}
+
+.cartao:hover {
+  transform: translateY(-0.25rem);
+}
+
+/* Foco visível em tudo que recebe teclado — nunca `outline: none` sem troca. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 3px;
+  border-radius: var(--raio-pilula);
+}
+
+/* ── movimento ───────────────────────────────────────────────────────── */
+
+/* O ponto de "ao vivo", no mesmo ritmo do loader da marca. */
 .pulso {
   animation: pulso 2.4s var(--curva) infinite;
 }
@@ -54,10 +111,55 @@
 @keyframes pulso {
   0%,
   100% {
-    opacity: 0.4;
+    opacity: 0.35;
   }
   50% {
     opacity: 1;
+  }
+}
+
+/*
+ * O brilho que atravessa a moldura enquanto a foto não existe — o mesmo gesto
+ * do `loader-progresso` da marca, que é o vocabulário de espera do produto.
+ */
+.brilho::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 35%,
+    color-mix(in srgb, var(--acento) 22%, transparent) 50%,
+    transparent 65%
+  );
+  transform: translateX(-100%);
+  animation: brilho 3.2s var(--curva) infinite;
+  pointer-events: none;
+}
+
+@keyframes brilho {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* A entrada do herói, escalonada — o mesmo tempo do logo animado da marca. */
+.entra {
+  animation: entra 0.9s var(--curva) both;
+}
+
+.entra-2 {
+  animation: entra 0.9s var(--curva) 0.12s both;
+}
+
+.entra-3 {
+  animation: entra 0.9s var(--curva) 0.24s both;
+}
+
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
   }
 }
 
