@@ -43,6 +43,22 @@ export { drenar, enviarItem } from "./envio";
 export type { Bitmap, Desenhista, FiltroAplicado, FotoProcessada, OpcoesProcessamento } from "./processar";
 export { processarFoto } from "./processar";
 
+export type {
+  CodigoDeModeracao,
+  Decisao,
+  EntradaDeAuditoria,
+  EstadoDaMidia,
+  EstadoDoEvento,
+  Superficie,
+  VeredictoDoClassificador,
+} from "./moderacao";
+export {
+  DENUNCIAS_PARA_SEGURAR,
+  decidirExibicao,
+  precisaDeRevisao,
+  registrarDecisao,
+} from "./moderacao";
+
 export type { EscolhaDoTelao, Faixa, ItemDoTelao, ModeloDeTelao } from "./telao";
 export {
   ehVertical,
