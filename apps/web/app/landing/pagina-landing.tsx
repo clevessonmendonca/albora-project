@@ -4,6 +4,7 @@ import { texto, type Pack } from "@albora/packs";
 import type { CSSProperties } from "react";
 import { DemoRolagem, Missoes, Revelar, TelaoComIdentidade } from "./interativos";
 import { Marca } from "./marca";
+import { MarcaAnimada } from "./marca-animada";
 import {
   CHAO_QUENTE,
   Moldura,
@@ -171,23 +172,8 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
           borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "var(--linha)",
         }}
       >
-        {/* O logo do pacote de marca, desenhado com os tokens do chão em que
-            está. A versão **animada** do pacote (`logo-animado-estrela`) ficou
-            de fora: as animações CSS de dentro do SVG não rodam quando ele é
-            servido por `<img>`, e como todo elemento dela começa em
-            `opacity: 0`, o resultado é um cabeçalho vazio. Entra quando for
-            inlinado como componente, para o CSS viver no documento. */}
-        <span className="entra" style={{ display: "flex", alignItems: "center", gap: "0.6875rem" }}>
-          <Marca id="marca-topo" />
-          <span
-            style={{
-              fontFamily: "var(--fonte-titulo)",
-              fontSize: "1.3125rem",
-              letterSpacing: "var(--tracking-rotulo)",
-            }}
-          >
-            Albora
-          </span>
+        <span className="entra">
+          <MarcaAnimada />
         </span>
 
         <nav className="nav-topo" style={{ display: "flex", gap: "1.625rem", color: "var(--ink-2)" }}>
