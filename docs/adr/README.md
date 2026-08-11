@@ -18,6 +18,7 @@ Um ADR aceito **não é editado**. Se a decisão muda, escreve-se um novo que o 
 | [0008](./0008-app-nativo-como-segunda-porta.md) | App nativo como segunda porta, nunca como a primeira | Superseded por [0009](./0009-app-social-do-convidado.md) |
 | [0009](./0009-app-social-do-convidado.md) | O app do convidado é social, e o social vive dentro do evento | Accepted |
 | [0010](./0010-expo-para-o-app-do-convidado.md) | Expo para o app do convidado, com o domínio compartilhado | Accepted |
+| [0011](./0011-musica-do-evento-sem-direito-de-sincronizacao.md) | Música do evento: link e sugestão sim, áudio embutido não | Accepted |
 
 ## Status
 

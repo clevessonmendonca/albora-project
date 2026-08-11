@@ -63,6 +63,7 @@ Seis semanas, uma pessoa, noites e fins de semana. A data do casamento não move
 | [015](./task-015-compartilhar.md) | Compartilhar com moldura | O único canal viral gratuito. Tem pendência de consentimento |
 | [016](./task-016-album-da-noite.md) | Álbum da noite | A linha do tempo por hora |
 | [017](./task-017-app-expo-e-lojas.md) | App Expo e lojas | Nativo, com o domínio vindo de `packages/core`. **US$ 99/ano + US$ 25** |
+| [018](./task-018-musica-do-casal.md) | A música do casal | Link e sugestão. Áudio embutido **não** — [ADR 0011](../adr/0011-musica-do-evento-sem-direito-de-sincronizacao.md) |
 
 Fora de spec por decisão de roadmap: entrega por WhatsApp, agrupamento facial (bloqueado em parecer jurídico), export para Drive, livro de fotos, portal do fornecedor, multi-evento, checkout.
 
