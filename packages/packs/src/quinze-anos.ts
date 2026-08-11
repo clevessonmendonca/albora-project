@@ -32,7 +32,7 @@ export const QUINZE_ANOS: Pack = {
     "landing.titulo": "Quem estava lá",
     "landing.titulo.destaque": "viu primeiro.",
     "landing.lede":
-      "A festa inteira fotografa e cada um guarda no próprio celular. A Albora junta tudo num álbum só, na hora.",
+      "A festa inteira fotografa e cada foto some no celular de quem tirou. A Albora junta tudo num álbum só, enquanto ainda está acontecendo.",
     "landing.cta": "Criar meu álbum",
     "landing.momentos.titulo": "Todo mundo vendo as fotos",
     "landing.momentos.destaque": "enquanto a festa acontece.",

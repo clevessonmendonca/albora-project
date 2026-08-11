@@ -77,11 +77,11 @@ const MOMENTOS = [
 const PERGUNTAS = [
   {
     q: "Meus convidados vão baixar um aplicativo?",
-    a: "Não para a primeira foto: eles escaneiam o QR e fotografam pelo navegador, sem login e sem download. O aplicativo aparece depois, na confirmação do primeiro envio, para quem quiser feed, stories e a própria galeria.",
+    a: "Não para a primeira foto. Escaneiam o QR e já fotografam pelo navegador. O aplicativo é convidado depois do primeiro envio, para quem quiser feed, stories e a própria galeria.",
   },
   {
     q: "E se a internet do salão for ruim?",
-    a: "As fotos ficam na fila dentro do celular e sobem sozinhas quando o sinal voltar. Vale para quem fechou a tela e para quem foi embora antes de o envio terminar.",
+    a: "As fotos entram numa fila dentro do celular e sobem sozinhas quando o sinal voltar. Vale mesmo se a pessoa fechar a tela ou for embora no meio do envio.",
   },
   {
     q: "E se alguém mandar uma foto inadequada?",
@@ -89,7 +89,7 @@ const PERGUNTAS = [
   },
   {
     q: "As fotos ficam com vocês?",
-    a: "Ficam com você. No plano pago a exportação para a sua nuvem acontece por rotina no dia 330, e o que estiver conosco é apagado no dia 365.",
+    a: "São suas. No plano pago, a exportação para a sua nuvem roda sozinha no dia 330 — e no dia 365 apagamos o que estiver conosco.",
   },
 ] as const;
 
@@ -286,7 +286,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
               </div>
 
               <p style={{ margin: "1.375rem 0 0", color: "var(--ink-3)" }}>
-                Montar é grátis · convidados sem limite · você decide antes de imprimir o QR
+                Montar é grátis · não pedimos cartão · você decide antes de imprimir o QR
               </p>
             </div>
 
@@ -571,9 +571,9 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
                 color: "var(--ink-2)",
               }}
             >
-              Bastidores, ângulos que ninguém cobriu, a pista às 2h. Você escolhe o formato, arrasta
-              as fotos nos espaços e o livro sai pronto para a gráfica — no mesmo desenho da placa,
-              dos cards e do telão.
+              Bastidores, ângulos que ninguém cobriu, a pista às 2h. Você arrasta as fotos nos
+              espaços e o arquivo sai pronto para a gráfica — no mesmo desenho da placa, dos cards
+              e do telão, sem precisar de designer.
             </p>
             <p style={{ margin: "1.375rem 0 0", color: "var(--ink-3)" }}>
               Montar é grátis. O arquivo é seu.
