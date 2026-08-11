@@ -26,6 +26,18 @@ describe("vocabulário de landing", () => {
     expect(new Set(titulos).size).toBe(titulos.length);
   });
 
+  it("cada pack conta o próprio arco da noite", () => {
+    // Um casamento tem cerimônia e um aniversário tem valsa de entrada. Dois
+    // packs com o mesmo arco significariam que os capítulos são decoração, e
+    // não o vocabulário da festa que o pack existe para carregar.
+    const arcos = packs.map(([, p]) =>
+      (p.momentos ?? []).map((m) => texto(p, m.chaveTitulo)).join(" · "),
+    );
+
+    expect(new Set(arcos).size).toBe(arcos.length);
+    for (const arco of arcos) expect(arco).not.toBe("");
+  });
+
   it("nenhum pack nomeia a missão de desafio", () => {
     // O produto chama de missão em toda superfície. Um pack que escreve
     // "desafio" deixa a marca incoerente dentro da própria página, e a palavra

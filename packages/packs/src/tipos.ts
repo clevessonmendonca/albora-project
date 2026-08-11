@@ -20,6 +20,15 @@ export type Pack = {
    * um texto livre projetado no telão para 150 pessoas.
    */
   lugares: { id: string; chaveTitulo: string }[];
+  /**
+   * Os capítulos da noite, na ordem em que ela acontece.
+   *
+   * Opcional pelo mesmo motivo das chaves de landing: um vertical de
+   * fornecedor white-label não tem página de venda própria, e exigir o arco
+   * da festa de todo pack acoplaria o núcleo ao funil. Quem cobra é a rota
+   * da landing.
+   */
+  momentos?: { id: string; chaveTitulo: string; chaveDesc: string }[];
   tokens?: CamadaTokens;
 };
 
@@ -89,9 +98,24 @@ export const CHAVES_DA_LANDING = [
  * `landing.titulo` em corpo 74px na frente de quem ia pagar.
  */
 export function problemasDaLanding(pack: Pack): string[] {
-  return CHAVES_DA_LANDING.filter((chave) => !pack.vocabulario[chave]).map(
+  const problemas = CHAVES_DA_LANDING.filter((chave) => !pack.vocabulario[chave]).map(
     (chave) => `falta a chave de landing ${chave}`,
   );
+
+  if (!pack.momentos || pack.momentos.length === 0) {
+    problemas.push("falta o arco da festa em momentos");
+    return problemas;
+  }
+
+  for (const { id, chaveTitulo, chaveDesc } of pack.momentos) {
+    for (const chave of [chaveTitulo, chaveDesc]) {
+      if (!pack.vocabulario[chave]) {
+        problemas.push(`o momento ${id} aponta para ${chave}, que o vocabulário não tem`);
+      }
+    }
+  }
+
+  return problemas;
 }
 
 /** Vazio quando o pack está íntegro. Cada string é um defeito de tela. */

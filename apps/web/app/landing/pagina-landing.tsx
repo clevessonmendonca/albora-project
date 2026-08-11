@@ -3,7 +3,7 @@ import { MARCA_ALBORA, MODELOS_DE_IDENTIDADE, paraVariaveis, resolverTokens } fr
 import { texto, type Pack } from "@albora/packs";
 import type { CSSProperties } from "react";
 import { DemoRolagem, Missoes, Revelar, TelaoComIdentidade } from "./interativos";
-import { AlbumAberto, LinhaDoTempo } from "./vitrines";
+import { AlbumAberto, LequeDePolaroides, LinhaDoTempo, SlotDeNoite } from "./vitrines";
 import { Marca } from "./marca";
 import { MarcaAnimada } from "./marca-animada";
 import {
@@ -39,14 +39,21 @@ import {
 const LARGURA = "78rem";
 const PADDING_LATERAL = "clamp(1.125rem, 4vw, 2.75rem)";
 
+/**
+ * Os três passos, do lado de quem chega na festa.
+ *
+ * Escritos do ponto de vista do convidado e não do anfitrião: é o convidado
+ * que precisa não travar, e é a participação dele que decide a H1. O que o
+ * anfitrião imprime está na seção da identidade.
+ */
 const PASSOS = [
   {
-    titulo: "O QR já chega pronto",
-    desc: "A placa da mesa e os cards saem com as cores e a fonte do seu evento. Você imprime e põe na mesa.",
+    titulo: "Ele aponta a câmera, e pronto",
+    desc: "A placa já está na mesa. Aponta, toca no link e cai direto na tela de fotografar. Nada para baixar, nada para preencher.",
   },
   {
-    titulo: "A festa fotografa sozinha",
-    desc: "Missões curtas aparecem no celular de quem escaneia: o brinde no instante do brinde, a mesa do jeito que ela está agora.",
+    titulo: "Escolhe as fotos e manda",
+    desc: "No próprio celular ele marca as que já tirou e envia. Leva segundos, e funciona igual para quem tem 15 anos e para quem tem 80.",
   },
   {
     titulo: "O álbum já está lá",
@@ -69,30 +76,37 @@ const NUMEROS = [
  * são — uma landing que as mostra deitadas promete um enquadramento que o
  * produto recusa.
  */
-const MOMENTOS = [
+/**
+ * As cópias sobre a mesa.
+ *
+ * A moldura já está montada e vazia. Quando a foto chegar, ela entra **dentro**
+ * da polaroide sem que nada em volta mude — que é a diferença entre um buraco
+ * declarado e um `<img>` que ainda não existe.
+ */
+const COPIAS = [
+  { legenda: "Bia · 21h", giro: "-6deg" },
+  { legenda: "Tio João · 23h", giro: "3deg" },
+  { legenda: "Marcos · meia-noite", giro: "-2deg" },
+  { legenda: "Rafa · 02h", giro: "5deg" },
+  { legenda: "Lu · amanhecer", giro: "-4deg" },
+] as const;
+
+const SUPERFICIES = [
   {
     rotulo: "Feed ao vivo",
     legenda: "A foto que alguém tirou há um minuto, do outro lado do salão.",
-    recuo: "0rem",
-    giro: "-1.4deg",
   },
   {
     rotulo: "Missões",
     legenda: "Um convite por vez, para quem nunca sabe o que fotografar.",
-    recuo: "2.5rem",
-    giro: "1deg",
   },
   {
     rotulo: "Galeria de cada um",
     legenda: "Cada convidado vai embora com as próprias fotos no celular.",
-    recuo: "1rem",
-    giro: "-0.7deg",
   },
   {
     rotulo: "O álbum inteiro",
     legenda: "Tudo junto, em resolução original, no dia seguinte de manhã.",
-    recuo: "3.5rem",
-    giro: "1.6deg",
   },
 ] as const;
 
@@ -195,6 +209,13 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
 
   const exemplo = t("landing.exemplo.nome");
   const lugares = pack.lugares.map((l) => t(l.chaveTitulo));
+
+  // `problemasDaLanding` já reprovou o pack sem momentos antes de chegar aqui.
+  const momentosDaFesta = (pack.momentos ?? []).map((m) => ({
+    id: m.id,
+    titulo: t(m.chaveTitulo),
+    desc: t(m.chaveDesc),
+  }));
 
   return (
     <div
@@ -423,9 +444,21 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
           >
             <div style={{ maxWidth: "26.25rem" }}>
               <Rotulo>A experiência do convidado</Rotulo>
-              <Titulo tamanho="clamp(1.75rem, 3.6vw, 2.75rem)" style={{ margin: "0 0 1.375rem" }}>
+              <Titulo tamanho="clamp(1.75rem, 3.6vw, 2.75rem)" style={{ margin: "0 0 1rem" }}>
                 Três passos até a primeira foto.
               </Titulo>
+
+              <p
+                style={{
+                  margin: "0 0 1.375rem",
+                  maxWidth: "34ch",
+                  lineHeight: 1.6,
+                  color: "var(--ink-2)",
+                }}
+              >
+                Uma leitura de QR e a foto já está no álbum. Sem cadastro, sem senha e sem baixar
+                nada até a primeira.
+              </p>
 
               {PASSOS.map((p, i) => (
                 <div
@@ -536,56 +569,50 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
           {t("landing.momentos.lede")}
         </p>
 
+        <div style={{ margin: "clamp(2.5rem, 6vw, 4.25rem) 0 0" }}>
+          <LequeDePolaroides copias={COPIAS} />
+        </div>
+
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(10.5rem, 1fr))",
-            gap: "clamp(1rem, 2.5vw, 1.75rem)",
-            margin: "clamp(2.5rem, 6vw, 4.5rem) 0 0",
+            gridTemplateColumns: "repeat(auto-fit, minmax(13rem, 1fr))",
+            gap: "0 clamp(1.25rem, 3vw, 2.75rem)",
+            margin: "clamp(2.25rem, 5vw, 3.75rem) 0 0",
           }}
         >
-          {MOMENTOS.map((m) => (
-            <figure
-              key={m.rotulo}
-              className="cartao"
-              style={{ margin: 0, marginTop: m.recuo, transform: `rotate(${m.giro})` }}
+          {SUPERFICIES.map((s) => (
+            <div
+              key={s.rotulo}
+              style={{
+                padding: "1.25rem 0",
+                borderTopWidth: "1px",
+                borderTopStyle: "solid",
+                borderTopColor: "var(--linha)",
+              }}
             >
-              <div
+              <p
                 style={{
-                  position: "relative",
-                  aspectRatio: "9 / 16",
-                  ...raio("var(--raio-superficie)"),
-                  boxShadow: SOMBRA_ALTA,
+                  margin: 0,
+                  fontSize: "0.6875rem",
+                  letterSpacing: "var(--tracking-rotulo)",
+                  textTransform: "uppercase",
+                  color: "var(--acento-texto)",
                 }}
               >
-                <Moldura rotulo="" raio="var(--raio-superficie)" />
-              </div>
-              <figcaption style={{ margin: "1rem 0 0", textAlign: "center" }}>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: "0.6875rem",
-                    letterSpacing: "var(--tracking-rotulo)",
-                    textTransform: "uppercase",
-                    color: "var(--acento-texto)",
-                  }}
-                >
-                  {m.rotulo}
-                </span>
-                <span
-                  style={{
-                    display: "block",
-                    margin: "0.4375rem auto 0",
-                    maxWidth: "22ch",
-                    fontSize: "0.8125rem",
-                    lineHeight: 1.45,
-                    color: "var(--ink-2)",
-                  }}
-                >
-                  {m.legenda}
-                </span>
-              </figcaption>
-            </figure>
+                {s.rotulo}
+              </p>
+              <p
+                style={{
+                  margin: "0.5rem 0 0",
+                  fontSize: "0.875rem",
+                  lineHeight: 1.5,
+                  color: "var(--ink-2)",
+                }}
+              >
+                {s.legenda}
+              </p>
+            </div>
           ))}
         </div>
       </Secao>
@@ -602,7 +629,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
       <Secao id="album" revelar>
         <Rotulo>O álbum, durante a festa</Rotulo>
         <Titulo tamanho="clamp(1.875rem, 4.4vw, 3.5rem)">
-          A noite se ordena <Realce>sozinha.</Realce>
+          Todos os momentos, cada um <Realce>no seu capítulo.</Realce>
         </Titulo>
         <p
           style={{
@@ -613,8 +640,58 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
             color: "var(--ink-2)",
           }}
         >
-          Cada foto entra na hora em que foi tirada e no lugar em que quem tirou estava. No fim da
-          festa o álbum já está na ordem em que ela aconteceu, sem ninguém organizar nada.
+          Cada foto chega sabendo a hora e o lugar em que foi tirada. É por isso que o álbum já
+          nasce dividido nos momentos da festa, sem ninguém separar nada depois.
+        </p>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(16.5rem, 1fr))",
+            gap: "clamp(0.875rem, 2vw, 1.5rem)",
+          }}
+        >
+          {momentosDaFesta.map((m, i) => (
+            <figure key={m.id} className="cartao" style={{ margin: 0, overflow: "hidden", ...raio("var(--raio-superficie)") }}>
+              <SlotDeNoite variante={i} proporcao="4 / 5" />
+              <figcaption style={{ padding: "1.0625rem 1.125rem 1.25rem", backgroundColor: "var(--superficie-alta)" }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontFamily: "var(--fonte-titulo)",
+                    fontSize: "1.0625rem",
+                    lineHeight: 1.2,
+                    letterSpacing: "var(--tracking-titulo)",
+                  }}
+                >
+                  {m.titulo}
+                </span>
+                <span
+                  style={{
+                    display: "block",
+                    marginTop: "0.4375rem",
+                    fontSize: "0.8125rem",
+                    lineHeight: 1.45,
+                    color: "var(--ink-2)",
+                  }}
+                >
+                  {m.desc}
+                </span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+
+        <p
+          style={{
+            margin: "clamp(2.5rem, 5vw, 4rem) 0 clamp(0.5rem, 1.5vw, 1rem)",
+            fontSize: "0.8125rem",
+            letterSpacing: "var(--tracking-rotulo)",
+            textTransform: "uppercase",
+            color: "var(--acento-texto)",
+          }}
+        >
+          E dentro de cada capítulo, na ordem da noite
         </p>
 
         <LinhaDoTempo />

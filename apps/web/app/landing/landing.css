@@ -107,6 +107,51 @@
   flex-wrap: wrap;
 }
 
+/*
+ * O leque de polaroides.
+ *
+ * A sobreposição é margem negativa, não `position: absolute`: assim a linha
+ * continua sendo fluxo normal, quebra sozinha no celular e não precisa de
+ * altura chutada. O giro de cada cópia é inline, e o realce usa `translate` e
+ * `scale` — propriedades individuais, que compõem com o `transform` inline em
+ * vez de sobrescrevê-lo.
+ */
+.leque {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.leque > * {
+  margin-left: -1.125rem;
+  margin-right: -1.125rem;
+}
+
+.leque > *:nth-child(even) {
+  margin-top: -1.25rem;
+}
+
+.polaroide {
+  position: relative;
+  transition:
+    translate var(--tempo) var(--curva),
+    scale var(--tempo) var(--curva);
+}
+
+.polaroide:hover {
+  translate: 0 -0.625rem;
+  scale: 1.03;
+  z-index: 2;
+}
+
+@media (max-width: 44rem) {
+  .leque > * {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+  }
+}
+
 /* Foco visível em tudo que recebe teclado — nunca `outline: none` sem troca. */
 a:focus-visible,
 button:focus-visible,

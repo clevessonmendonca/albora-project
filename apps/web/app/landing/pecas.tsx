@@ -111,11 +111,23 @@ export function Moldura({
   raio: curvatura,
   src,
   prioridade,
+  atmosfera,
+  variante,
 }: {
   rotulo: string;
   raio: string;
   src?: string;
   prioridade?: boolean;
+  /**
+   * Luzes fora de foco, para o slot que espera foto de festa à noite.
+   *
+   * São pontos pequenos e discretos de propósito: um borrão que cobre o
+   * quadro inteiro lê como imagem quebrada carregando, e foi assim que a
+   * primeira versão desta moldura errou.
+   */
+  atmosfera?: boolean;
+  /** Desloca as luzes, para cinco slots lado a lado não repetirem o mesmo céu. */
+  variante?: number;
 }) {
   if (src) {
     return (
@@ -152,14 +164,31 @@ export function Moldura({
         overflow: "hidden",
         ...raio(curvatura),
         backgroundColor: "color-mix(in srgb, var(--acento) 9%, var(--superficie-alta))",
-        backgroundImage:
-          "linear-gradient(158deg, color-mix(in srgb, var(--acento) 10%, transparent), transparent 62%)",
+        backgroundImage: atmosfera
+          ? [
+              "radial-gradient(circle 14px at 22% 26%, color-mix(in srgb, var(--acento) 55%, transparent), transparent 100%)",
+              "radial-gradient(circle 9px at 68% 18%, color-mix(in srgb, var(--acento) 42%, transparent), transparent 100%)",
+              "radial-gradient(circle 20px at 79% 72%, color-mix(in srgb, var(--acento) 30%, transparent), transparent 100%)",
+              "radial-gradient(circle 7px at 41% 61%, color-mix(in srgb, var(--acento) 48%, transparent), transparent 100%)",
+              "radial-gradient(circle 11px at 12% 82%, color-mix(in srgb, var(--acento) 26%, transparent), transparent 100%)",
+              "linear-gradient(158deg, color-mix(in srgb, var(--acento) 10%, transparent), transparent 62%)",
+            ].join(", ")
+          : "linear-gradient(158deg, color-mix(in srgb, var(--acento) 10%, transparent), transparent 62%)",
+        // A camada precisa ser maior que o quadro, senão a posição não tem
+        // para onde correr e os cinco slots repetem o mesmo céu.
+        ...(atmosfera
+          ? {
+              backgroundSize: "125% 125%",
+              backgroundPositionX: `${((variante ?? 0) * 23) % 101}%`,
+              backgroundPositionY: `${((variante ?? 0) * 41) % 101}%`,
+            }
+          : {}),
         display: "grid",
         placeItems: "center",
         padding: "0.75rem",
       }}
     >
-      {rotulo ? null : (
+      {rotulo || atmosfera ? null : (
         <span
           style={{
             position: "absolute",

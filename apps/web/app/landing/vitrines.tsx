@@ -1,3 +1,4 @@
+import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { CSSProperties } from "react";
 import { rotuloDeHora } from "../../lib/agrupar-por-hora";
 import { Moldura, SOMBRA, SOMBRA_ALTA, raio } from "./pecas";
@@ -85,6 +86,114 @@ function Qr({ tamanho, celula = "13.5%" }: { tamanho: string; celula?: string })
         <Olho canto={{ bottom: 0, left: 0 }} miolo="55%" />
       </span>
     </span>
+  );
+}
+
+/**
+ * A polaroid: moldura montada, esperando a foto.
+ *
+ * O quadro da foto entra no chão **escuro** porque foto de festa é foto de
+ * noite. É o mesmo resolvedor do app do convidado às 23h, não uma paleta
+ * invertida à mão, e é o que faz a cópia impressa e a tela combinarem.
+ *
+ * A margem de baixo é mais grossa que as outras três. Essa desproporção é a
+ * polaroid; com margem igual vira moldura de quadro.
+ */
+export function Polaroid({
+  legenda,
+  giro,
+  src,
+  variante = 0,
+  largura = "min(13.5rem, 44vw)",
+}: {
+  legenda: string;
+  giro: string;
+  src?: string;
+  variante?: number;
+  largura?: string;
+}) {
+  const noite = resolverTokens({ marca: MARCA_ALBORA, pack: { fundo: "escuro" } });
+
+  return (
+    <figure
+      className="polaroide"
+      style={{
+        margin: 0,
+        width: largura,
+        flex: "none",
+        padding: "0.6875rem 0.6875rem 0",
+        backgroundColor: "var(--superficie-alta)",
+        boxShadow: SOMBRA_ALTA,
+        transform: `rotate(${giro})`,
+      }}
+    >
+      <div
+        style={{
+          ...(paraVariaveis(noite) as CSSProperties),
+          position: "relative",
+          aspectRatio: "1",
+        }}
+      >
+        <Moldura rotulo="" raio="0rem" atmosfera variante={variante} {...(src ? { src } : {})} />
+      </div>
+      <figcaption
+        style={{
+          padding: "0.9375rem 0.125rem 1.125rem",
+          textAlign: "center",
+          fontSize: "0.625rem",
+          letterSpacing: "var(--tracking-rotulo)",
+          textTransform: "uppercase",
+          color: "var(--ink-3)",
+        }}
+      >
+        {legenda}
+      </figcaption>
+    </figure>
+  );
+}
+
+/**
+ * Um quadro de foto no chão da noite, para quem chama estar no chão claro.
+ *
+ * Foto de festa é foto de madrugada. Um slot claro sobre papel claro some, e
+ * um capítulo do álbum que some não anuncia capítulo nenhum.
+ */
+export function SlotDeNoite({
+  variante,
+  proporcao,
+  raio: curvatura = "0rem",
+}: {
+  variante: number;
+  proporcao: string;
+  raio?: string;
+}) {
+  const noite = resolverTokens({ marca: MARCA_ALBORA, pack: { fundo: "escuro" } });
+
+  return (
+    <div
+      style={{
+        ...(paraVariaveis(noite) as CSSProperties),
+        position: "relative",
+        aspectRatio: proporcao,
+      }}
+    >
+      <Moldura rotulo="" raio={curvatura} atmosfera variante={variante} />
+    </div>
+  );
+}
+
+/** O leque de cópias sobre a mesa, sobrepostas como quem espalhou. */
+export function LequeDePolaroides({
+  copias,
+}: {
+  copias: readonly { legenda: string; giro: string; src?: string }[];
+}) {
+  return (
+    <div className="leque">
+      {copias.map((c, i) => (
+        <Polaroid key={c.legenda} variante={i} {...c} />
+      ))}
+    </div>
   );
 }
 
@@ -350,15 +459,11 @@ export function AlbumAberto() {
           backgroundColor: "var(--bg)",
         }}
       >
-        <div style={{ position: "relative", gridColumn: "span 2" }}>
-          <Moldura rotulo="" raio="calc(var(--raio) / 1.5)" />
+        <div style={{ gridColumn: "span 2" }}>
+          <SlotDeNoite variante={2} proporcao="16 / 11" raio="calc(var(--raio) / 1.5)" />
         </div>
-        <div style={{ position: "relative" }}>
-          <Moldura rotulo="" raio="calc(var(--raio) / 1.5)" />
-        </div>
-        <div style={{ position: "relative" }}>
-          <Moldura rotulo="" raio="calc(var(--raio) / 1.5)" />
-        </div>
+        <SlotDeNoite variante={5} proporcao="1" raio="calc(var(--raio) / 1.5)" />
+        <SlotDeNoite variante={8} proporcao="1" raio="calc(var(--raio) / 1.5)" />
         <p
           style={{
             gridColumn: "span 2",
@@ -384,9 +489,7 @@ export function AlbumAberto() {
           backgroundColor: "var(--bg)",
         }}
       >
-        <div style={{ position: "relative" }}>
-          <Moldura rotulo="" raio="calc(var(--raio) / 1.5)" />
-        </div>
+        <SlotDeNoite variante={11} proporcao="3 / 4" raio="calc(var(--raio) / 1.5)" />
         <p
           style={{
             margin: 0,
@@ -465,14 +568,12 @@ export function LinhaDoTempo() {
                 <div
                   key={n}
                   style={{
-                    position: "relative",
                     flex: "none",
                     height: "clamp(2.75rem, 5.5vw, 4.25rem)",
-                    aspectRatio: "3 / 4",
                     boxShadow: SOMBRA,
                   }}
                 >
-                  <Moldura rotulo="" raio="calc(var(--raio) / 1.5)" />
+                  <SlotDeNoite variante={faixa.hora + n} proporcao="3 / 4" />
                 </div>
               ))}
             </div>
