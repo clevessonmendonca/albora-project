@@ -40,7 +40,7 @@ const PASSOS = [
   },
 ] as const;
 
-function Tela({ passo }: { passo: number }) {
+function Tela({ passo, exemplo, missao }: { passo: number; exemplo: string; missao: string }) {
   const escuro = resolverTokens({ marca: MARCA_ALBORA, pack: { fundo: "escuro" } });
 
   return (
@@ -69,7 +69,7 @@ function Tela({ passo }: { passo: number }) {
         }}
       >
         <span>{PASSOS[passo]?.legenda}</span>
-        <span style={{ fontFamily: "var(--fonte-titulo)" }}>ANA &amp; JOÃO</span>
+        <span style={{ fontFamily: "var(--fonte-titulo)" }}>{exemplo}</span>
       </div>
 
       {passo === 0 ? (
@@ -154,7 +154,7 @@ function Tela({ passo }: { passo: number }) {
                 lineHeight: 1.25,
               }}
             >
-              Alguém dançando como se ninguém visse
+              {missao}
             </p>
           </div>
           <div style={{ position: "relative", flex: 1, minHeight: "3rem" }}>
@@ -226,7 +226,17 @@ function Tela({ passo }: { passo: number }) {
   );
 }
 
-function Fone({ passo, largura }: { passo: number; largura: string }) {
+function Fone({
+  passo,
+  largura,
+  exemplo,
+  missao,
+}: {
+  passo: number;
+  largura: string;
+  exemplo: string;
+  missao: string;
+}) {
   return (
     <div
       style={{
@@ -240,7 +250,7 @@ function Fone({ passo, largura }: { passo: number; largura: string }) {
         ...transicao("transform", "var(--tempo-lento)"),
       }}
     >
-      <Tela passo={passo} />
+      <Tela passo={passo} exemplo={exemplo} missao={missao} />
     </div>
   );
 }
@@ -252,7 +262,7 @@ function Fone({ passo, largura }: { passo: number; largura: string }) {
  * Fora da tela o observador é desligado. Um `scroll` ouvindo a página inteira
  * durante seis seções é trabalho por quadro que ninguém vê.
  */
-export function DemoRolagem() {
+export function DemoRolagem({ exemplo, missao }: { exemplo: string; missao: string }) {
   const trilho = useRef<HTMLDivElement>(null);
   const [passo, setPasso] = useState(0);
   const [progresso, setProgresso] = useState(0);
@@ -361,7 +371,7 @@ export function DemoRolagem() {
             minHeight: 0,
           }}
         >
-          <Fone passo={passo} largura="min(15rem, 42vw)" />
+          <Fone passo={passo} largura="min(15rem, 42vw)" exemplo={exemplo} missao={missao} />
 
           <div style={{ flex: 1, minWidth: "min(17.5rem, 100%)", maxWidth: "40rem" }}>
             <div
@@ -421,7 +431,7 @@ export function DemoRolagem() {
  * densidade e tracking de uma vez. Se um dia divergir do telão de verdade, é
  * porque alguém escreveu o segundo resolvedor que o ADR 0003 proíbe.
  */
-export function TelaoComIdentidade() {
+export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
   const [escolhido, setEscolhido] = useState(MODELOS_DE_IDENTIDADE[0]?.id ?? "");
   const modelo =
     MODELOS_DE_IDENTIDADE.find((m) => m.id === escolhido) ?? MODELOS_DE_IDENTIDADE[0];
@@ -559,7 +569,7 @@ export function TelaoComIdentidade() {
               color: "var(--ink-2)",
             }}
           >
-            Ana &amp; João
+            {exemplo}
           </div>
         </div>
       </div>
@@ -573,7 +583,17 @@ export function TelaoComIdentidade() {
  * O cartão recebe o chão escuro pelo mesmo resolvedor em vez de uma paleta
  * invertida à mão — é a mesma troca que o convidado vê às 23h, provada aqui.
  */
-export function Missoes({ missoes }: { missoes: { id: string; titulo: string }[] }) {
+export function Missoes({
+  missoes,
+  titulo,
+  destaque,
+  lede,
+}: {
+  missoes: { id: string; titulo: string }[];
+  titulo: string;
+  destaque: string;
+  lede: string;
+}) {
   const [feitas, setFeitas] = useState<string[]>([]);
   const escuro = resolverTokens({ marca: MARCA_ALBORA, pack: { fundo: "escuro" } });
 
@@ -605,11 +625,10 @@ export function Missoes({ missoes }: { missoes: { id: string; titulo: string }[]
         }}
       >
         <Titulo tamanho="clamp(1.75rem, 4.2vw, 3.25rem)" style={{ maxWidth: "20ch" }}>
-          Não se chama desafio. Chama-se <Realce>missão.</Realce>
+          {titulo} <Realce>{destaque}</Realce>
         </Titulo>
         <p style={{ margin: 0, maxWidth: "20rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
-          Convites curtos, fáceis e criativos misturados. É o que mantém todo mundo enviando até o
-          fim. Toque numa para ver como o convidado marca.
+          {lede} Toque numa para ver como o convidado marca.
         </p>
       </div>
 

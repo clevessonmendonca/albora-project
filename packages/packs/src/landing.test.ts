@@ -27,14 +27,11 @@ describe("vocabulário de landing", () => {
   });
 
   it("nenhum pack nomeia a missão de desafio", () => {
-    // A landing afirma "não se chama desafio, chama-se missão", e um pack que
-    // contradiz isso deixa a marca incoerente dentro da própria página.
-    //
-    // Só as chaves `missao.*`: a frase que **rejeita** a palavra precisa
-    // dizê-la, e reprová-la faria a regra proibir o próprio enunciado.
+    // O produto chama de missão em toda superfície. Um pack que escreve
+    // "desafio" deixa a marca incoerente dentro da própria página, e a palavra
+    // carrega competição, que é o oposto do convite.
     for (const [, pack] of packs) {
       for (const [chave, valor] of Object.entries(pack.vocabulario)) {
-        if (!chave.startsWith("missao.")) continue;
         expect(valor.toLowerCase(), chave).not.toMatch(/\bdesafios?\b/);
       }
     }

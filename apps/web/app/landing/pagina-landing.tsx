@@ -48,7 +48,7 @@ const PASSOS = [
   },
   {
     titulo: "O álbum já está lá",
-    desc: "As fotos entram enquanto a festa acontece. No fim, é seu — em resolução original, sem ninguém precisar mandar nada no dia seguinte.",
+    desc: "As fotos entram enquanto a festa acontece. No fim ele é seu, em resolução original, sem ninguém precisar mandar nada no dia seguinte.",
   },
 ] as const;
 
@@ -68,10 +68,48 @@ const NUMEROS = [
  * produto recusa.
  */
 const MOMENTOS = [
-  { rotulo: "Feed ao vivo", recuo: "0rem", giro: "-1.4deg" },
-  { rotulo: "Missões", recuo: "2.5rem", giro: "1deg" },
-  { rotulo: "Galeria de cada um", recuo: "1rem", giro: "-0.7deg" },
-  { rotulo: "Álbum do casal", recuo: "3.5rem", giro: "1.6deg" },
+  {
+    rotulo: "Feed ao vivo",
+    legenda: "A foto que alguém tirou há um minuto, do outro lado do salão.",
+    recuo: "0rem",
+    giro: "-1.4deg",
+  },
+  {
+    rotulo: "Missões",
+    legenda: "Um convite por vez, para quem nunca sabe o que fotografar.",
+    recuo: "2.5rem",
+    giro: "1deg",
+  },
+  {
+    rotulo: "Galeria de cada um",
+    legenda: "Cada convidado vai embora com as próprias fotos no celular.",
+    recuo: "1rem",
+    giro: "-0.7deg",
+  },
+  {
+    rotulo: "O álbum inteiro",
+    legenda: "Tudo junto, em resolução original, no dia seguinte de manhã.",
+    recuo: "3.5rem",
+    giro: "1.6deg",
+  },
+] as const;
+
+/**
+ * Os fatos, listados.
+ *
+ * Ogilvy: quanto mais você conta, mais você vende — a leitura despenca até 50
+ * palavras e quase não cai entre 50 e 500, porque quem chegou aqui já está
+ * interessado. Cada linha é verificável no produto; nenhuma é adjetivo.
+ */
+const FATOS = [
+  "Convidados e fotos sem limite, em todos os planos",
+  "QR na mesa: nenhum download e nenhum cadastro até a primeira foto",
+  "Fila offline: a foto sobe sozinha quando o sinal voltar",
+  "Localização e dados do aparelho apagados no celular, antes de subir",
+  "Feed, stories e reações liberados na hora que você escolher",
+  "Telão em quatro modelos, e foto em pé nunca é cortada",
+  "Envio aberto por 48 horas depois da festa",
+  "Exportação para a sua nuvem no dia 330, e apagamos tudo no 365",
 ] as const;
 
 const PERGUNTAS = [
@@ -80,16 +118,24 @@ const PERGUNTAS = [
     a: "Não para a primeira foto. Escaneiam o QR e já fotografam pelo navegador. O aplicativo é convidado depois do primeiro envio, para quem quiser feed, stories e a própria galeria.",
   },
   {
+    q: "Quanto tempo leva para montar?",
+    a: "Cerca de três minutos: nome do evento, data e a identidade visual. O QR e as placas saem prontos para impressão no fim.",
+  },
+  {
     q: "E se a internet do salão for ruim?",
     a: "As fotos entram numa fila dentro do celular e sobem sozinhas quando o sinal voltar. Vale mesmo se a pessoa fechar a tela ou for embora no meio do envio.",
   },
   {
+    q: "Quem consegue ver as fotos do meu evento?",
+    a: "Só quem escaneia o seu QR. A sessão do convidado vale para um evento e não passa para nenhum outro. Nada disso aparece em busca ou em página pública.",
+  },
+  {
     q: "E se alguém mandar uma foto inadequada?",
-    a: "Por padrão tudo aparece — no dia da festa ninguém vai aprovar fila. O que protege é automático: filtro antes da parede, denúncia por qualquer convidado, e você tira em um toque.",
+    a: "Por padrão tudo aparece, porque no dia da festa ninguém vai aprovar fila. O que protege é automático: filtro antes da parede, denúncia por qualquer convidado, e você tira em um toque.",
   },
   {
     q: "As fotos ficam com vocês?",
-    a: "São suas. No plano pago, a exportação para a sua nuvem roda sozinha no dia 330 — e no dia 365 apagamos o que estiver conosco.",
+    a: "São suas. No plano pago, a exportação para a sua nuvem roda sozinha no dia 330, e no dia 365 apagamos o que estiver conosco.",
   },
 ] as const;
 
@@ -144,6 +190,9 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
   const missoes = [...pack.missoes]
     .sort((a, b) => a.ordem - b.ordem)
     .map((m) => ({ id: m.id, titulo: t(m.chaveTitulo) }));
+
+  const exemplo = t("landing.exemplo.nome");
+  const lugares = pack.lugares.map((l) => t(l.chaveTitulo));
 
   return (
     <div
@@ -347,7 +396,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
       </Secao>
 
       <Secao id="demo" padding={`clamp(1.875rem, 4vw, 3.25rem) ${PADDING_LATERAL} 0`}>
-        <DemoRolagem />
+        <DemoRolagem exemplo={exemplo} missao={missoes[0]?.titulo ?? t("missao.livre")} />
       </Secao>
 
       <Secao id="experiencia" revelar>
@@ -498,17 +547,30 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
               <div style={{ position: "relative", aspectRatio: "9 / 16" }}>
                 <Moldura rotulo="" raio="var(--raio-superficie)" />
               </div>
-              <figcaption
-                style={{
-                  margin: "1rem 0 0",
-                  textAlign: "center",
-                  fontSize: "0.6875rem",
-                  letterSpacing: "var(--tracking-rotulo)",
-                  textTransform: "uppercase",
-                  color: "var(--ink-2)",
-                }}
-              >
-                {m.rotulo}
+              <figcaption style={{ margin: "1rem 0 0", textAlign: "center" }}>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: "0.6875rem",
+                    letterSpacing: "var(--tracking-rotulo)",
+                    textTransform: "uppercase",
+                    color: "var(--acento-texto)",
+                  }}
+                >
+                  {m.rotulo}
+                </span>
+                <span
+                  style={{
+                    display: "block",
+                    margin: "0.4375rem auto 0",
+                    maxWidth: "22ch",
+                    fontSize: "0.8125rem",
+                    lineHeight: 1.45,
+                    color: "var(--ink-2)",
+                  }}
+                >
+                  {m.legenda}
+                </span>
               </figcaption>
             </figure>
           ))}
@@ -516,7 +578,12 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
       </Secao>
 
       <Secao revelar>
-        <Missoes missoes={missoes} />
+        <Missoes
+          missoes={missoes}
+          titulo={t("landing.missoes.titulo")}
+          destaque={t("landing.missoes.destaque")}
+          lede={t("landing.missoes.lede")}
+        />
       </Secao>
 
       <Secao id="telao" revelar>
@@ -539,11 +606,11 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
           </p>
         </div>
 
-        <TelaoComIdentidade />
+        <TelaoComIdentidade exemplo={exemplo} />
 
         <p style={{ margin: "1.125rem 0 0", color: "var(--ink-3)" }}>
-          Não precisa ter. Sem telão, a festa inteira acompanha pelo próprio celular — e é isso
-          que a maioria faz.
+          Não precisa ter. Sem telão, a festa inteira acompanha pelo próprio celular, que é onde
+          a maior parte das fotos é vista de qualquer jeito.
         </p>
       </Secao>
 
@@ -572,13 +639,82 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
               }}
             >
               Bastidores, ângulos que ninguém cobriu, a pista às 2h. Você arrasta as fotos nos
-              espaços e o arquivo sai pronto para a gráfica — no mesmo desenho da placa, dos cards
-              e do telão, sem precisar de designer.
+              espaços e o arquivo sai pronto para a gráfica, no mesmo desenho da placa e do telão,
+              sem precisar de designer.
             </p>
+
+            <p style={{ margin: "1.375rem 0 0.75rem", color: "var(--ink-2)" }}>
+              E já chega separado por onde cada foto foi tirada:
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+              {lugares.map((lugar) => (
+                <span
+                  key={lugar}
+                  style={{
+                    padding: "0.4375rem 0.9375rem",
+                    ...raio("var(--raio-pilula)"),
+                    backgroundColor: "var(--superficie-alta)",
+                    fontSize: "0.84375rem",
+                    color: "var(--ink-2)",
+                  }}
+                >
+                  {lugar}
+                </span>
+              ))}
+            </div>
+
             <p style={{ margin: "1.375rem 0 0", color: "var(--ink-3)" }}>
               Montar é grátis. O arquivo é seu.
             </p>
           </div>
+        </div>
+      </Secao>
+
+      <Secao revelar>
+        <div
+          style={{
+            padding: "clamp(1.75rem, 4vw, 3.75rem)",
+            ...raio(RAIO_CASCA),
+            backgroundColor: "color-mix(in srgb, var(--acento) 10%, var(--superficie))",
+          }}
+        >
+          <Rotulo>O que está incluído</Rotulo>
+          <Titulo tamanho="clamp(1.75rem, 3.6vw, 2.75rem)" style={{ maxWidth: "24ch" }}>
+            Antes de falar de preço, o que você leva.
+          </Titulo>
+
+          <ul
+            style={{
+              margin: "clamp(1.5rem, 3vw, 2.375rem) 0 0",
+              padding: 0,
+              listStyle: "none",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(19rem, 1fr))",
+              gap: "0.25rem clamp(1.5rem, 4vw, 3.5rem)",
+            }}
+          >
+            {FATOS.map((fato) => (
+              <li
+                key={fato}
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: "0.875rem",
+                  padding: "0.9375rem 0",
+                  borderBottomWidth: "1px",
+                  borderBottomStyle: "solid",
+                  borderBottomColor: "var(--linha)",
+                  lineHeight: 1.5,
+                  color: "var(--ink-2)",
+                }}
+              >
+                <span style={{ flex: "none", color: "var(--acento-texto)" }} aria-hidden="true">
+                  ✓
+                </span>
+                {fato}
+              </li>
+            ))}
+          </ul>
         </div>
       </Secao>
 
@@ -722,7 +858,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
         </div>
 
         <p style={{ margin: "1.25rem 0 0", color: "var(--ink-3)" }}>
-          Nada é cobrado depois da festa — a decisão acontece antes de imprimir o QR.
+          Nada é cobrado depois da festa. A decisão acontece antes de imprimir o QR.
         </p>
       </Secao>
 
@@ -776,8 +912,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
               tamanho="clamp(1.75rem, 4.6vw, 3.625rem)"
               style={{ lineHeight: 1.04, margin: 0 }}
             >
-              No dia seguinte, você acorda com centenas de fotos que{" "}
-              <Realce>ninguém contratou para tirar.</Realce>
+              {t("landing.fechamento")} <Realce>{t("landing.fechamento.destaque")}</Realce>
             </Titulo>
             <div
               style={{
