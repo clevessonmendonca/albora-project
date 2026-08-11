@@ -21,8 +21,8 @@ export const PILULA: CSSProperties = {
   alignItems: "center",
   justifyContent: "center",
   padding: "1rem 2rem",
-  borderRadius: "var(--raio-pilula)",
-  background: "var(--ink)",
+  ...raio("var(--raio-pilula)"),
+  backgroundColor: "var(--ink)",
   color: "var(--bg)",
   fontWeight: 500,
   textDecoration: "none",
@@ -31,7 +31,7 @@ export const PILULA: CSSProperties = {
 
 export const PILULA_CLARA: CSSProperties = {
   ...PILULA,
-  background: "var(--superficie-alta)",
+  backgroundColor: "var(--superficie-alta)",
   color: "var(--ink)",
   fontWeight: 400,
 };
@@ -93,14 +93,14 @@ export function Realce({ children }: { children: ReactNode }) {
  * Declarado como buraco em vez de virar `<img>` quebrado ou cinza neutro —
  * cinza neutro passa por decisão de design e sobrevive à revisão.
  */
-export function Moldura({ rotulo, raio }: { rotulo: string; raio: string }) {
+export function Moldura({ rotulo, raio: curvatura }: { rotulo: string; raio: string }) {
   return (
     <div
       style={{
         position: "absolute",
         inset: 0,
-        borderRadius: raio,
-        background:
+        ...raio(curvatura),
+        backgroundImage:
           "linear-gradient(160deg, color-mix(in srgb, var(--acento) 24%, var(--superficie-alta)), var(--superficie))",
         display: "grid",
         placeItems: "center",
@@ -115,4 +115,29 @@ export function Moldura({ rotulo, raio }: { rotulo: string; raio: string }) {
       {rotulo}
     </div>
   );
+}
+
+/**
+ * Raio como quatro longhands, e transição idem.
+ *
+ * `border-radius: var(--raio)` em style inline quebra a hidratação: o atalho
+ * com `var()` vira "pending substitution", a CSSOM devolve `""` nas longhands,
+ * e é isso que o React lê ao comparar servidor com cliente. Longhand com
+ * `var()` serializa normal — é por isso que `color: var(--ink)` sempre bateu.
+ */
+export function raio(v: string): CSSProperties {
+  return {
+    borderTopLeftRadius: v,
+    borderTopRightRadius: v,
+    borderBottomLeftRadius: v,
+    borderBottomRightRadius: v,
+  };
+}
+
+export function transicao(propriedade: string, tempo = "var(--tempo)"): CSSProperties {
+  return {
+    transitionProperty: propriedade,
+    transitionDuration: tempo,
+    transitionTimingFunction: "var(--curva)",
+  };
 }

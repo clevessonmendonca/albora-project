@@ -8,7 +8,7 @@ import {
 } from "@albora/tokens";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { CHAO_QUENTE, Moldura, RAIO_CASCA, Realce, Rotulo, Titulo } from "./pecas";
+import { CHAO_QUENTE, Moldura, RAIO_CASCA, Realce, Rotulo, Titulo, raio, transicao } from "./pecas";
 
 /**
  * As três peças da v4 que respondem a gesto.
@@ -36,7 +36,7 @@ const PASSOS = [
     titulo: "O álbum, ao vivo",
     legenda: "00:12",
     descricao:
-      "Segundos depois ela está no telão e no álbum. Ninguém precisa mandar nada para ninguém no dia seguinte.",
+      "Segundos depois ela está no feed, e todo mundo acompanha pelo próprio celular. Ninguém precisa mandar nada para ninguém no dia seguinte.",
   },
 ] as const;
 
@@ -50,9 +50,9 @@ function Tela({ passo }: { passo: number }) {
         position: "relative",
         width: "100%",
         height: "100%",
-        borderRadius: "calc(var(--raio-superficie) - 0.5rem)",
+        ...raio("calc(var(--raio-superficie) - 0.5rem)"),
         overflow: "hidden",
-        background: "var(--bg)",
+        backgroundColor: "var(--bg)",
         color: "var(--ink)",
         display: "flex",
         flexDirection: "column",
@@ -88,8 +88,8 @@ function Tela({ passo }: { passo: number }) {
             style={{
               width: "70%",
               aspectRatio: "1",
-              borderRadius: "var(--raio)",
-              background: "var(--ink)",
+              ...raio("var(--raio)"),
+              backgroundColor: "var(--ink)",
               padding: "0.625rem",
             }}
           >
@@ -142,8 +142,8 @@ function Tela({ passo }: { passo: number }) {
           <div
             style={{
               padding: "1rem",
-              borderRadius: "var(--raio)",
-              background: "color-mix(in srgb, var(--acento) 22%, transparent)",
+              ...raio("var(--raio)"),
+              backgroundColor: "color-mix(in srgb, var(--acento) 22%, transparent)",
             }}
           >
             <p
@@ -167,8 +167,8 @@ function Tela({ passo }: { passo: number }) {
               justifyContent: "center",
               gap: "0.625rem",
               padding: "0.8125rem",
-              borderRadius: "var(--raio-pilula)",
-              background: "var(--ink)",
+              ...raio("var(--raio-pilula)"),
+              backgroundColor: "var(--ink)",
               color: "var(--bg)",
               fontSize: "0.84375rem",
               fontWeight: 600,
@@ -180,7 +180,7 @@ function Tela({ passo }: { passo: number }) {
                 width: "0.5625rem",
                 height: "0.5625rem",
                 borderRadius: "50%",
-                background: "var(--acento)",
+                backgroundColor: "var(--acento)",
               }}
             />
             Enviando
@@ -212,8 +212,8 @@ function Tela({ passo }: { passo: number }) {
               right: "0.875rem",
               bottom: "0.875rem",
               padding: "0.6875rem",
-              borderRadius: "var(--raio-pilula)",
-              background: "var(--superficie-alta)",
+              ...raio("var(--raio-pilula)"),
+              backgroundColor: "var(--superficie-alta)",
               fontSize: "0.75rem",
               textAlign: "center",
             }}
@@ -233,11 +233,11 @@ function Fone({ passo, largura }: { passo: number; largura: string }) {
         position: "relative",
         width: largura,
         aspectRatio: "9 / 19",
-        borderRadius: "var(--raio-superficie)",
+        ...raio("var(--raio-superficie)"),
         padding: "0.5rem",
-        background:
+        backgroundImage:
           "linear-gradient(155deg, var(--superficie-alta), color-mix(in srgb, var(--acento) 18%, var(--superficie)))",
-        transition: "transform var(--tempo-lento) var(--curva)",
+        ...transicao("transform", "var(--tempo-lento)"),
       }}
     >
       <Tela passo={passo} />
@@ -312,8 +312,8 @@ export function DemoRolagem() {
           flexDirection: "column",
           gap: "clamp(0.625rem, 1.6vw, 1.25rem)",
           padding: "clamp(1rem, 2.4vw, 1.875rem) clamp(1rem, 3vw, 2.25rem)",
-          borderRadius: RAIO_CASCA,
-          background: CHAO_QUENTE,
+          ...raio(RAIO_CASCA),
+          backgroundImage: CHAO_QUENTE,
           overflow: "hidden",
         }}
       >
@@ -336,8 +336,8 @@ export function DemoRolagem() {
         <div
           style={{
             height: "0.1875rem",
-            borderRadius: "var(--raio-pilula)",
-            background: "color-mix(in srgb, var(--acento) 20%, transparent)",
+            ...raio("var(--raio-pilula)"),
+            backgroundColor: "color-mix(in srgb, var(--acento) 20%, transparent)",
             overflow: "hidden",
           }}
         >
@@ -345,8 +345,8 @@ export function DemoRolagem() {
             style={{
               height: "100%",
               width: `${Math.round(progresso * 100)}%`,
-              borderRadius: "var(--raio-pilula)",
-              background: "var(--acento)",
+              ...raio("var(--raio-pilula)"),
+              backgroundColor: "var(--acento)",
             }}
           />
         </div>
@@ -368,8 +368,8 @@ export function DemoRolagem() {
               style={{
                 position: "relative",
                 padding: "0.5625rem",
-                borderRadius: "calc(var(--raio-superficie) - 0.75rem)",
-                background:
+                ...raio("calc(var(--raio-superficie) - 0.75rem)"),
+                backgroundImage:
                   "linear-gradient(155deg, var(--superficie-alta), color-mix(in srgb, var(--acento) 18%, var(--superficie)))",
               }}
             >
@@ -377,9 +377,9 @@ export function DemoRolagem() {
                 style={{
                   position: "relative",
                   height: "clamp(9rem, 20vw, 16rem)",
-                  borderRadius: "var(--raio)",
+                  ...raio("var(--raio)"),
                   overflow: "hidden",
-                  background: "var(--ink)",
+                  backgroundColor: "var(--ink)",
                   padding: "0.75rem",
                   display: "grid",
                   gridTemplateColumns: "repeat(3, 1fr)",
@@ -448,14 +448,14 @@ export function TelaoComIdentidade() {
                 alignItems: "center",
                 gap: "0.6875rem",
                 padding: "0.75rem 1.25rem",
-                border: `1px solid ${ativo ? "var(--acento)" : "var(--linha)"}`,
-                borderRadius: "var(--raio-pilula)",
+                borderWidth: "1px", borderStyle: "solid", borderColor: ativo ? "var(--acento)" : "var(--linha)",
+                ...raio("var(--raio-pilula)"),
                 background: ativo ? "var(--superficie-alta)" : "transparent",
                 color: "var(--ink)",
                 fontFamily: "var(--fonte-corpo)",
                 fontSize: "0.90625rem",
                 cursor: "pointer",
-                transition: "all var(--tempo) var(--curva)",
+                ...transicao("all", "var(--tempo)"),
               }}
             >
               <span
@@ -476,8 +476,8 @@ export function TelaoComIdentidade() {
         style={{
           position: "relative",
           padding: "0.75rem",
-          borderRadius: "var(--raio-superficie)",
-          background:
+          ...raio("var(--raio-superficie)"),
+          backgroundImage:
             "linear-gradient(155deg, var(--superficie-alta), color-mix(in srgb, var(--acento) 18%, var(--superficie)))",
         }}
       >
@@ -486,21 +486,21 @@ export function TelaoComIdentidade() {
             ...(paraVariaveis(tokens) as CSSProperties),
             position: "relative",
             height: "clamp(15.625rem, 38vw, 33.75rem)",
-            borderRadius: "calc(var(--raio-superficie) - 0.75rem)",
+            ...raio("calc(var(--raio-superficie) - 0.75rem)"),
             overflow: "hidden",
-            background: "var(--bg)",
-            transition: "background var(--tempo-lento) var(--curva)",
+            backgroundColor: "var(--bg)",
+            ...transicao("background", "var(--tempo-lento)"),
           }}
         >
           <div
             style={{
               position: "absolute",
-              inset: "var(--espaco)",
+              top: "var(--espaco)", right: "var(--espaco)", bottom: "var(--espaco)", left: "var(--espaco)",
               display: "grid",
               gridTemplateColumns: "2fr 1fr",
               gridTemplateRows: "1fr 1fr",
               gap: "var(--espaco)",
-              transition: "all var(--tempo-lento) var(--curva)",
+              ...transicao("all", "var(--tempo-lento)"),
             }}
           >
             <div style={{ position: "relative", gridRow: "span 2" }}>
@@ -523,8 +523,8 @@ export function TelaoComIdentidade() {
               alignItems: "center",
               gap: "0.75rem",
               padding: "0.6875rem 1.25rem",
-              borderRadius: "var(--raio-pilula)",
-              background: "var(--superficie-alta)",
+              ...raio("var(--raio-pilula)"),
+              backgroundColor: "var(--superficie-alta)",
               color: "var(--ink)",
             }}
           >
@@ -534,7 +534,7 @@ export function TelaoComIdentidade() {
                 width: "0.375rem",
                 height: "0.375rem",
                 borderRadius: "50%",
-                background: "var(--acento)",
+                backgroundColor: "var(--acento)",
               }}
             />
             <span
@@ -589,8 +589,8 @@ export function Missoes({ missoes }: { missoes: { id: string; titulo: string }[]
       style={{
         ...(paraVariaveis(escuro) as CSSProperties),
         padding: "clamp(2rem, 5vw, 4.5rem) clamp(1.5rem, 4vw, 3.75rem)",
-        borderRadius: RAIO_CASCA,
-        background: "var(--bg)",
+        ...raio(RAIO_CASCA),
+        backgroundColor: "var(--bg)",
         color: "var(--ink)",
       }}
     >
@@ -618,8 +618,8 @@ export function Missoes({ missoes }: { missoes: { id: string; titulo: string }[]
           style={{
             flex: 1,
             height: "0.1875rem",
-            borderRadius: "var(--raio-pilula)",
-            background: "var(--linha)",
+            ...raio("var(--raio-pilula)"),
+            backgroundColor: "var(--linha)",
             overflow: "hidden",
           }}
         >
@@ -627,9 +627,9 @@ export function Missoes({ missoes }: { missoes: { id: string; titulo: string }[]
             style={{
               height: "100%",
               width: `${Math.round(razao * 100)}%`,
-              borderRadius: "var(--raio-pilula)",
-              background: "var(--acento)",
-              transition: "width var(--tempo-lento) var(--curva)",
+              ...raio("var(--raio-pilula)"),
+              backgroundColor: "var(--acento)",
+              ...transicao("width", "var(--tempo-lento)"),
             }}
           />
         </div>
@@ -661,14 +661,14 @@ export function Missoes({ missoes }: { missoes: { id: string; titulo: string }[]
                 gap: "1.375rem",
                 minHeight: "10.75rem",
                 padding: "1.5rem",
-                border: 0,
-                borderRadius: "var(--raio-superficie)",
+                borderWidth: 0, borderStyle: "none",
+                ...raio("var(--raio-superficie)"),
                 background: feita ? "var(--superficie-alta)" : "var(--superficie)",
                 color: "var(--ink)",
                 fontFamily: "var(--fonte-corpo)",
                 textAlign: "left",
                 cursor: "pointer",
-                transition: "background var(--tempo) var(--curva)",
+                ...transicao("background", "var(--tempo)"),
               }}
             >
               <span
@@ -696,11 +696,11 @@ export function Missoes({ missoes }: { missoes: { id: string; titulo: string }[]
                     width: "1.625rem",
                     height: "1.625rem",
                     borderRadius: "50%",
-                    border: `1px solid ${feita ? "var(--acento)" : "var(--linha)"}`,
+                    borderWidth: "1px", borderStyle: "solid", borderColor: feita ? "var(--acento)" : "var(--linha)",
                     background: feita ? "var(--acento)" : "transparent",
                     color: "var(--sobre-acento)",
                     fontSize: "0.8125rem",
-                    transition: "all var(--tempo) var(--curva)",
+                    ...transicao("all", "var(--tempo)"),
                   }}
                 >
                   {feita ? "✓" : ""}
@@ -714,7 +714,7 @@ export function Missoes({ missoes }: { missoes: { id: string; titulo: string }[]
                   lineHeight: 1.22,
                   letterSpacing: "var(--tracking-titulo)",
                   opacity: feita ? 0.45 : 1,
-                  transition: "opacity var(--tempo) var(--curva)",
+                  ...transicao("opacity", "var(--tempo)"),
                 }}
               >
                 {missao.titulo}

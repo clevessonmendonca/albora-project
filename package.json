@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "pnpm --filter @albora/web dev",
     "build": "pnpm -r --filter=!@albora/mobile build",
-    "typecheck": "tsc --build",
+    "typecheck": "tsc --build && tsc -p apps/web --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
     "guards": "node tools/guards/todos.mjs",

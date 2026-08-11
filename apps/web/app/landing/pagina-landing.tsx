@@ -13,6 +13,7 @@ import {
   Realce,
   Rotulo,
   Titulo,
+  raio,
 } from "./pecas";
 
 /**
@@ -53,7 +54,7 @@ const PASSOS = [
 const NUMEROS = [
   { n: "4", o: "toques do QR até a primeira foto" },
   { n: "0", o: "downloads até a primeira foto" },
-  { n: "3s", o: "da foto tirada até o telão" },
+  { n: "3s", o: "da foto tirada até o feed" },
   { n: "∞", o: "convidados e fotos, em todos os planos" },
 ] as const;
 
@@ -114,7 +115,18 @@ function Secao({
   );
 }
 
-export function PaginaLanding({ pack }: { pack: Pack }) {
+/**
+ * Números reais de festas acontecendo agora, quando existirem.
+ *
+ * **Ausente é o estado correto hoje**, e a pílula cai no rótulo do pack. Um
+ * contador chumbado seria prova social inventada — a mesma coisa que o risco
+ * da spec 013 proíbe em depoimento, e num mercado de boca a boca isso não
+ * volta atrás. Quem preenche é uma consulta de agregação com papel dedicado
+ * (`CLAUDE.md`), que ainda não existe.
+ */
+export type AoVivo = { fotos: number; eventos: number };
+
+export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo }) {
   // A landing é lida às 14h no sofá; o app do convidado, às 23h num salão
   // escuro. Mesmo resolvedor, chão diferente — declarado, não herdado.
   const tokens = resolverTokens({
@@ -132,7 +144,7 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
     <div
       style={{
         ...(paraVariaveis(tokens) as CSSProperties),
-        background: "var(--bg)",
+        backgroundColor: "var(--bg)",
         color: "var(--ink)",
         fontFamily: "var(--fonte-corpo)",
         lineHeight: 1.6,
@@ -151,8 +163,8 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
           justifyContent: "space-between",
           gap: "1.5rem",
           padding: `0.875rem ${PADDING_LATERAL}`,
-          background: "var(--bg)",
-          borderBottom: "1px solid var(--linha)",
+          backgroundColor: "var(--bg)",
+          borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "var(--linha)",
         }}
       >
         <span style={{ display: "flex", alignItems: "center", gap: "0.6875rem" }}>
@@ -171,6 +183,9 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
         <nav className="nav-topo" style={{ display: "flex", gap: "1.625rem", color: "var(--ink-2)" }}>
           <a href="#experiencia" style={{ color: "inherit", textDecoration: "none" }}>
             A experiência
+          </a>
+          <a href="#momentos" style={{ color: "inherit", textDecoration: "none" }}>
+            As fotos
           </a>
           <a href="#telao" style={{ color: "inherit", textDecoration: "none" }}>
             Telão
@@ -192,9 +207,9 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
         <div
           style={{
             position: "relative",
-            borderRadius: RAIO_CASCA,
+            ...raio(RAIO_CASCA),
             overflow: "hidden",
-            background: CHAO_QUENTE,
+            backgroundImage: CHAO_QUENTE,
           }}
         >
           <div
@@ -214,8 +229,8 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
                   alignItems: "center",
                   gap: "0.625rem",
                   padding: "0.4375rem 1rem 0.4375rem 0.75rem",
-                  borderRadius: "var(--raio-pilula)",
-                  background: "var(--superficie-alta)",
+                  ...raio("var(--raio-pilula)"),
+                  backgroundColor: "var(--superficie-alta)",
                   fontSize: "0.8125rem",
                   color: "var(--ink-2)",
                 }}
@@ -226,10 +241,12 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
                     width: "0.375rem",
                     height: "0.375rem",
                     borderRadius: "50%",
-                    background: "var(--acento)",
+                    backgroundColor: "var(--acento)",
                   }}
                 />
-                {t("landing.rotulo")}
+                {aoVivo
+                  ? `${aoVivo.fotos.toLocaleString("pt-BR")} fotos enviadas · ${aoVivo.eventos} ${aoVivo.eventos === 1 ? "festa rolando" : "festas rolando"}`
+                  : t("landing.rotulo")}
               </span>
 
               <h1
@@ -265,8 +282,8 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
                 <a href="#planos" style={PILULA}>
                   {t("landing.cta")}
                 </a>
-                <a href="#telao" style={PILULA_CLARA}>
-                  Ver o telão
+                <a href="#momentos" style={PILULA_CLARA}>
+                  Ver as fotos
                 </a>
               </div>
 
@@ -281,9 +298,9 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
                   position: "relative",
                   width: "min(18.75rem, 80vw)",
                   aspectRatio: "9 / 19",
-                  borderRadius: "var(--raio-superficie)",
+                  ...raio("var(--raio-superficie)"),
                   padding: "0.5625rem",
-                  background:
+                  backgroundImage:
                     "linear-gradient(155deg, var(--superficie-alta), color-mix(in srgb, var(--acento) 18%, var(--superficie)))",
                 }}
               >
@@ -292,7 +309,7 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
                     position: "relative",
                     width: "100%",
                     height: "100%",
-                    borderRadius: "calc(var(--raio-superficie) - 0.5625rem)",
+                    ...raio("calc(var(--raio-superficie) - 0.5625rem)"),
                     overflow: "hidden",
                   }}
                 >
@@ -310,7 +327,7 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
                     width: "8.75rem",
                     height: "8.75rem",
                     borderRadius: "50%",
-                    background: "var(--acento)",
+                    backgroundColor: "var(--acento)",
                     color: "var(--sobre-acento)",
                     display: "grid",
                     placeItems: "center",
@@ -323,7 +340,7 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
                     lineHeight: 1.3,
                   }}
                 >
-                  A primeira foto, sem login
+                  Fácil e rápido
                 </span>
               </div>
             </div>
@@ -339,8 +356,8 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
         <div
           style={{
             padding: "clamp(1.75rem, 4vw, 3.75rem)",
-            borderRadius: RAIO_CASCA,
-            background: "color-mix(in srgb, var(--acento) 10%, var(--superficie))",
+            ...raio(RAIO_CASCA),
+            backgroundColor: "color-mix(in srgb, var(--acento) 10%, var(--superficie))",
           }}
         >
           <div
@@ -365,7 +382,7 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
                     alignItems: "flex-start",
                     gap: "1.125rem",
                     padding: "1.25rem 0",
-                    borderTop: "1px solid var(--linha)",
+                    borderTopWidth: "1px", borderTopStyle: "solid", borderTopColor: "var(--linha)",
                   }}
                 >
                   <span
@@ -376,7 +393,7 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
                       width: "2rem",
                       height: "2rem",
                       borderRadius: "50%",
-                      background: "var(--superficie-alta)",
+                      backgroundColor: "var(--superficie-alta)",
                       fontFamily: "var(--fonte-titulo)",
                       color: "var(--acento-texto)",
                     }}
@@ -420,8 +437,8 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
                   key={x.o}
                   style={{
                     padding: "1.625rem 1.5rem",
-                    borderRadius: "var(--raio-superficie)",
-                    background: "var(--superficie-alta)",
+                    ...raio("var(--raio-superficie)"),
+                    backgroundColor: "var(--superficie-alta)",
                   }}
                 >
                   <p
@@ -448,38 +465,8 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
         </div>
       </Secao>
 
-      <Secao id="telao">
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "end",
-            justifyContent: "space-between",
-            gap: "1.5rem",
-            marginBottom: "clamp(1.5rem, 3vw, 2.375rem)",
-          }}
-        >
-          <div style={{ maxWidth: "41.25rem" }}>
-            <Rotulo>Telão ao vivo · {MODELOS_DE_IDENTIDADE.length} modelos</Rotulo>
-            <Titulo tamanho="clamp(1.875rem, 4.4vw, 3.5rem)">{t("landing.telao.titulo")}</Titulo>
-          </div>
-          <p style={{ margin: 0, maxWidth: "20rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
-            {t("landing.telao.lede")}
-          </p>
-        </div>
-
-        <TelaoComIdentidade />
-
-        <p style={{ margin: "1.125rem 0 0", color: "var(--ink-3)" }}>
-          Foto em pé aparece em pé. Nada é cortado para caber no 16:9.
-        </p>
-      </Secao>
-
-      <Secao>
-        <Missoes missoes={missoes} />
-      </Secao>
-
       <Secao id="momentos">
+        <Rotulo>Durante e depois da festa</Rotulo>
         <Titulo tamanho="clamp(1.875rem, 4.4vw, 3.5rem)">
           {t("landing.momentos.titulo")} <Realce>{t("landing.momentos.destaque")}</Realce>
         </Titulo>
@@ -526,6 +513,38 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
             </figure>
           ))}
         </div>
+      </Secao>
+
+      <Secao>
+        <Missoes missoes={missoes} />
+      </Secao>
+
+      <Secao id="telao">
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "end",
+            justifyContent: "space-between",
+            gap: "1.5rem",
+            marginBottom: "clamp(1.5rem, 3vw, 2.375rem)",
+          }}
+        >
+          <div style={{ maxWidth: "41.25rem" }}>
+            <Rotulo>Se a festa tiver telão ou TV</Rotulo>
+            <Titulo tamanho="clamp(1.875rem, 4.4vw, 3.5rem)">{t("landing.telao.titulo")}</Titulo>
+          </div>
+          <p style={{ margin: 0, maxWidth: "20rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
+            {t("landing.telao.lede")}
+          </p>
+        </div>
+
+        <TelaoComIdentidade />
+
+        <p style={{ margin: "1.125rem 0 0", color: "var(--ink-3)" }}>
+          Não precisa ter. Sem telão, a festa inteira acompanha pelo próprio celular — e é isso
+          que a maioria faz.
+        </p>
       </Secao>
 
       <Secao id="livro">
@@ -623,8 +642,8 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
               key={plano.nome}
               style={{
                 padding: "2rem",
-                borderRadius: "var(--raio-superficie)",
-                background: plano.destaque ? CHAO_QUENTE : "var(--superficie-alta)",
+                ...raio("var(--raio-superficie)"),
+                backgroundImage: plano.destaque ? CHAO_QUENTE : "var(--superficie-alta)",
                 display: "flex",
                 flexDirection: "column",
                 gap: "1.25rem",
@@ -689,7 +708,7 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
                   ...(plano.destaque ? PILULA : PILULA_CLARA),
                   ...(plano.destaque
                     ? {}
-                    : { background: "color-mix(in srgb, var(--acento) 10%, var(--superficie))" }),
+                    : { backgroundColor: "color-mix(in srgb, var(--acento) 10%, var(--superficie))" }),
                   padding: "0.875rem",
                   fontSize: "0.90625rem",
                 }}
@@ -716,9 +735,9 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
                 gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.2fr)",
                 gap: "clamp(1.125rem, 4vw, 3.25rem)",
                 padding: "1.625rem 0",
-                borderTop: "1px solid var(--linha)",
+                borderTopWidth: "1px", borderTopStyle: "solid", borderTopColor: "var(--linha)",
                 ...(i === PERGUNTAS.length - 1
-                  ? { borderBottom: "1px solid var(--linha)" }
+                  ? { borderBottomWidth: "1px", borderBottomStyle: "solid", borderBottomColor: "var(--linha)" }
                   : {}),
               }}
             >
@@ -744,8 +763,8 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
           style={{
             position: "relative",
             padding: "clamp(2.75rem, 7vw, 6.875rem) clamp(1.5rem, 4vw, 3.75rem)",
-            borderRadius: RAIO_CASCA,
-            background: CHAO_QUENTE,
+            ...raio(RAIO_CASCA),
+            backgroundImage: CHAO_QUENTE,
             textAlign: "center",
             overflow: "hidden",
           }}
@@ -811,8 +830,8 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
           alignItems: "center",
           gap: "0.75rem",
           padding: "0.625rem 0.625rem 0.625rem 1.25rem",
-          borderRadius: "var(--raio-pilula)",
-          background: "var(--ink)",
+          ...raio("var(--raio-pilula)"),
+          backgroundColor: "var(--ink)",
         }}
       >
         <span style={{ flex: 1, fontSize: "0.84375rem", lineHeight: 1.3, color: "var(--bg)" }}>
@@ -820,7 +839,7 @@ export function PaginaLanding({ pack }: { pack: Pack }) {
         </span>
         <a
           href="#planos"
-          style={{ ...PILULA, background: "var(--bg)", color: "var(--ink)", padding: "0.75rem 1.375rem" }}
+          style={{ ...PILULA, backgroundColor: "var(--bg)", color: "var(--ink)", padding: "0.75rem 1.375rem" }}
         >
           Criar álbum
         </a>

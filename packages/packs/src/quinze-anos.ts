@@ -28,19 +28,19 @@ export const QUINZE_ANOS: Pack = {
     "lugar.bar": "Bar",
     "lugar.varanda": "Varanda",
 
-    "landing.rotulo": "Festa de 15 anos",
+    "landing.rotulo": "O álbum que a festa inteira tira",
     "landing.titulo": "Quem estava lá",
     "landing.titulo.destaque": "viu primeiro.",
     "landing.lede":
       "A festa inteira fotografa e cada um guarda no próprio celular. A Albora junta tudo num álbum só, na hora.",
     "landing.cta": "Criar meu álbum",
-    "landing.momentos.titulo": "Uma casa para o",
-    "landing.momentos.destaque": "espontâneo.",
+    "landing.momentos.titulo": "Todo mundo vendo as fotos",
+    "landing.momentos.destaque": "enquanto a festa acontece.",
     "landing.momentos.lede":
-      "A web é a porta: a primeira foto entra sem login e sem download. Depois dela existe o aplicativo — feed, stories, reações, comentários e a galeria de cada convidado.",
-    "landing.telao.titulo": "O telão veste a identidade da sua festa.",
+      "É aqui que a festa acontece de novo: um feed só da sua festa, com stories, reações e comentários. Cada convidado vê o que os outros viram, e sai com a própria galeria.",
+    "landing.telao.titulo": "E se tiver telão, ele veste a sua festa.",
     "landing.telao.lede":
-      "A mesma cor, a mesma fonte e o mesmo raio da placa da mesa. Foto em pé aparece em pé: nada é cortado para caber.",
+      "Mesma cor, mesma fonte e mesmo desenho da placa da mesa. Foto em pé aparece em pé — nada é cortado para caber.",
     "landing.missoes.titulo": "Não se chama desafio. Chama-se missão.",
     "landing.missoes.lede":
       "Convite curto, feito para quem está com o celular numa mão e não quer parar a festa.",
