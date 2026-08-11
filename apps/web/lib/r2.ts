@@ -18,8 +18,8 @@ function cliente(): AwsClient {
 }
 
 function urlDoObjeto(chave: string): URL {
-  const { r2 } = config();
-  return new URL(`https://${r2.contaId}.r2.cloudflarestorage.com/${r2.bucket}/${chave}`);
+  const { r2, origemDaMidia } = config();
+  return new URL(`https://${origemDaMidia}/${r2.bucket}/${chave}`);
 }
 
 export async function assinarPut(chave: string, mime: string, validadeSegundos: number) {
@@ -30,6 +30,27 @@ export async function assinarPut(chave: string, mime: string, validadeSegundos: 
   // deliberado: o navegador manda o dele e o PUT não quebra. Medido na task
   // 001 — `SignedHeaders: host`.
   const assinada = await cliente().sign(new Request(url, { method: "PUT", headers: { "content-type": mime } }), {
+    aws: { signQuery: true, allHeaders: false },
+  });
+
+  return assinada.url;
+}
+
+/**
+ * O caminho de leitura, irmão do `assinarPut`: o navegador busca os bytes no
+ * storage, e o servidor continua sem tocá-los.
+ *
+ * A assinatura prende a chave — trocar `/full` por `/thumb` na URL emitida dá
+ * 403, medido contra o bucket. E o `content-disposition` vai explícito porque
+ * o que o R2 guardou veio do cliente, e §4.3 de `docs/security.md` exige que
+ * a resposta declare o que é.
+ */
+export async function assinarGet(chave: string, validadeSegundos: number) {
+  const url = urlDoObjeto(chave);
+  url.searchParams.set("X-Amz-Expires", String(validadeSegundos));
+  url.searchParams.set("response-content-disposition", "inline");
+
+  const assinada = await cliente().sign(new Request(url, { method: "GET" }), {
     aws: { signQuery: true, allHeaders: false },
   });
 
