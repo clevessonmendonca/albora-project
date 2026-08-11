@@ -34,6 +34,16 @@ Isso **contradiz** [`../flows.md` §4](../flows.md), onde ficou decidido que o p
 
 Não é correção de nomenclatura, como a §4.5 do doc de landing sugere — é **mudança do modelo de precificação**. O §5.2 do doc de produto ainda lista três planos e precisa ser atualizado, junto com a menção a "Celebração+" na §14.6.
 
+⚠️ **Agora são três versões diferentes em circulação, e nenhuma bate com as outras:**
+
+| Onde | O que anuncia |
+|---|---|
+| §5.2 do doc de produto | Grátis · Celebração R$ 199 · Fornecedor R$ 149/mês |
+| Esta decisão (fundador, 2026-08-09) | Grátis · Celebração R$ 199 · **Completo R$ 349** · Fornecedor R$ 149/mês |
+| Landing v4 dos designers (2026-08-11) | R$ 0 · **R$ 149** · **R$ 199** |
+
+A landing não só voltou a três planos como usa **R$ 149 como faixa de consumidor** — valor que, nas outras duas fontes, é a assinatura mensal do fornecedor. Preço é decisão comercial do dono; nenhuma das três foi alterada aqui. **Resolver antes de publicar a landing.**
+
 Composição do Completo: tudo do Celebração + livro de fotos pronto para gráfica + guarda por 24 meses + suporte no dia por WhatsApp + entrega individual por WhatsApp + "cada convidado recebe as dele".
 
 ### 3. 🔴 Dois itens do Completo dependem de coisas ainda não resolvidas
@@ -47,7 +57,19 @@ O plano está aprovado; estes dois itens específicos têm pendência **antes de
 
 **Mitigação sugerida, já aplicada no protótipo:** os dois aparecem na lista do plano em tom secundário, distinguíveis do que já existe. Se o primeiro evento acontecer antes de eles ficarem prontos, a landing muda uma classe de CSS em vez de a promessa quebrar na frente do cliente — e a §5.3 do doc de produto, que proíbe surpreender o casal depois do evento, continua respeitada.
 
-### 4. 🟡 Lacuna: o convidado que já viveu o produto
+### 4. 🔴 "Nenhum aplicativo" — a formulação que vazou do doc de produto
+
+A landing v4 dos designers intitula a seção de como funciona:
+
+> *"Três passos e nenhum aplicativo."*
+
+Como promessa sobre a **primeira foto** é verdade, e é a linha dura do produto. Como promessa sobre o **produto**, contradiz a decisão 1 da §12 do doc de produto e o [ADR 0009](../adr/0009-app-social-do-convidado.md), que colocam o app como a experiência completa.
+
+A origem estava aqui dentro: o doc de produto dizia *"PWA, sem login, sem download"* e listava *"app nativo"* como fora de escopo. **Ambos já foram corrigidos** — §4.1 e §4.3 agora separam "não existe" de "não entra nas 6 semanas", e o [`albora-branding-marketing.md`](./albora-branding-marketing.md) §3 traz a tabela de promessa correta.
+
+**Pendente:** a landing mora fora do repositório. A copy precisa voltar para quem a fez.
+
+### 5. 🟡 Lacuna: o convidado que já viveu o produto
 
 A §1 identifica esse visitante como **a maior intenção de todas** — e o §3 não tem seção para ele. Ele chega convencido; mostrar a seção "o problema" desperdiça a intenção.
 

@@ -73,6 +73,18 @@ Provas: white-label · zero operação no dia · funciona em casamento, 15 anos 
 
 > **"Tira foto. Depois a gente te manda as suas."**
 
+**A promessa correta sobre o app, palavra por palavra:**
+
+| ✅ Diga | ❌ Não diga |
+|---|---|
+| Nenhum aplicativo **entre você e a primeira foto** | "Nenhum aplicativo" · "Três passos e nenhum aplicativo" |
+| Começa pelo navegador. Instalar é opcional, e vem depois | "Sem download" (sem qualificar) |
+| No app fica o álbum inteiro: as fotos de todo mundo, as suas, e o que rolou na festa | "O app é a mesma coisa" |
+
+A frase curta é tentadora e mente por omissão. O aplicativo **existe**, é onde o produto inteiro mora, e prometer que ele não existe cria duas derrotas: quebra a decisão registrada do fundador ([ADR 0009](../adr/0009-app-social-do-convidado.md)) e faz o CTA de instalação parecer isca no momento em que ele aparece na tela do convidado.
+
+O que é linha dura — e o que a comunicação pode afirmar sem medo — é a **ordem**: QR, câmera, foto, e só então o convite para instalar. Nunca o contrário.
+
 ---
 
 ## 4. Copy pronta
@@ -133,7 +145,8 @@ H1:  Seu fotógrafo não pode estar em todo lugar.
 
 Sub: O Albora reúne as fotos e os vídeos de todos os
      convidados em um álbum só. Eles escaneiam um QR
-     na mesa e já começam — sem baixar nada.
+     na mesa e já começam — sem baixar nada para tirar
+     a primeira foto.
 
 CTA: Criar meu álbum
 ```
@@ -155,8 +168,11 @@ CTA: Criar meu álbum
 **Objeções**
 ```
 "Meus convidados vão baixar um app?"
-Não precisa. Eles escaneiam o QR e já tiram a primeira
-foto pelo navegador. Instalar é opcional.
+Não para participar. Eles escaneiam o QR e já tiram a
+primeira foto pelo navegador — sem loja, sem cadastro,
+sem senha. Quem quiser continuar no aplicativo instala
+depois, e vê tudo que rolou na festa. Quem não quiser
+manda foto a noite inteira do mesmo jeito.
 
 "E se a internet do salão for ruim?"
 As fotos ficam salvas no celular e sobem sozinhas quando
@@ -237,7 +253,9 @@ antes da meia-noite
 | Fim da festa | `Suas fotos ficam salvas. Instale para acessar sempre` |
 | Pós-evento | `Veja o álbum completo no app` |
 
-> ❌ **Nunca:** "Instale para ver os stories agora." Compete com a festa e promete algo que a web já faz.
+> ❌ **Nunca:** "Instale para ver os stories agora." A interação abre no horário que os noivos escolheram (§4.4 do doc de produto) — o CTA pode tocar antes disso e entregar uma tela fechada. **"Receba suas fotos"** é verdade em qualquer momento da noite, e é por isso que é a oferta padrão.
+>
+> ✅ **Sempre:** o CTA aparece **depois** do primeiro upload. Antes dele, nada de instalação como condição — nem no texto, nem no desenho.
 
 ### 4.8 WhatsApp pós-evento
 
@@ -406,8 +424,9 @@ Posso te mostrar em 5 minutos?
 | ❌ Nunca | Por quê |
 |---|---|
 | "Baixe o app para participar" | Mata a H1. A primeira foto nunca passa por loja |
+| **"Nenhum aplicativo"**, sem qualificar | Nega um produto que existe e é a experiência completa ([ADR 0009](../adr/0009-app-social-do-convidado.md)). A promessa correta é *nenhum aplicativo entre o convidado e a primeira foto* (§3) |
 | "Memórias que duram para sempre" | Clichê da categoria inteira |
-| Prometer stories como exclusividade do app | Funciona na web; a promessa desmonta |
+| Prometer feed ou stories como exclusividade do app | Funcionam na web também; a promessa desmonta na primeira conferida |
 | Home genérica de "eventos" | Dilui o herói. Casamento é a porta da frente |
 | Comparar-se ao fotógrafo | Ele é seu canal, não seu concorrente |
 | Cobrar surpresa depois do casamento | Suicídio reputacional em grupo de noiva |
