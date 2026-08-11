@@ -15,3 +15,6 @@ next-env.d.ts
 
 # Artefato de `apps/web/scripts/construir-sw.mjs`. A fonte é apps/web/sw/sw.ts.
 apps/web/public/sw.js
+
+# Resultados de execucao do arnes de carga. O JSON e artefato, nao fonte.
+tools/carga/execucoes/
