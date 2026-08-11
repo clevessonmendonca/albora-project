@@ -20,6 +20,9 @@ export { anotarUpload, confirmarUpload, ErroUploadDeOutroEvento } from "./upload
 export type { Desafio } from "./desafios";
 export { desafioDoEvento, listarDesafios } from "./desafios";
 
+export type { EntradaFeed, ItemFeed, ModoFeed, PaginaFeed } from "./feed";
+export { codificarCursor, decodificarCursor, ErroCursorInvalido, gateDoEvento, listarFeed, TAMANHO_PAGINA } from "./feed";
+
 export type { MotivoSessaoInvalida, NovaSessao, SessaoResolvida } from "./sessoes";
 export { comSessao, criarSessao, ErroNomeInvalido, ErroSessaoInvalida, resolverSessao, revogarSessoesDoEvento } from "./sessoes";
 export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from "./token";

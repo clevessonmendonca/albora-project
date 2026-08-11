@@ -32,6 +32,45 @@ const entrada = (uploadId: string, d: { eventoId: string; sessaoId: string }) =>
   place: null,
 });
 
+describe("confirm é idempotente sob concorrência", () => {
+  it("dois retries do mesmo uploadId ao mesmo tempo dão uma linha, nunca erro", async () => {
+    // O caso real: sinal ruim, o cliente retenta antes de a primeira resposta
+    // chegar. Antes do lock isto dava um sucesso e um 403 — que o transporte
+    // trata como definitivo, e a foto sumia da fila. Achado pelo arnês de
+    // carga, não por revisão.
+    const uploadId = randomUUID();
+
+    const resultados = await Promise.allSettled([
+      comEvento(app, dados.a.eventoId, (c) => confirmarUpload(c, entrada(uploadId, dados.a))),
+      comEvento(app, dados.a.eventoId, (c) => confirmarUpload(c, entrada(uploadId, dados.a))),
+    ]);
+
+    const { rows } = await admin.query("SELECT count(*)::int AS n FROM uploads WHERE id = $1", [
+      uploadId,
+    ]);
+
+    expect(resultados.filter((r) => r.status === "rejected")).toEqual([]);
+    expect(rows[0].n).toBe(1);
+  });
+
+  it("dez retries simultâneos continuam dando uma linha só", async () => {
+    const uploadId = randomUUID();
+
+    const resultados = await Promise.allSettled(
+      Array.from({ length: 10 }, () =>
+        comEvento(app, dados.a.eventoId, (c) => confirmarUpload(c, entrada(uploadId, dados.a))),
+      ),
+    );
+
+    const { rows } = await admin.query("SELECT count(*)::int AS n FROM uploads WHERE id = $1", [
+      uploadId,
+    ]);
+
+    expect(resultados.filter((r) => r.status === "rejected")).toEqual([]);
+    expect(rows[0].n).toBe(1);
+  });
+});
+
 describe("confirm é idempotente — retry é o caminho normal", () => {
   it("a segunda chamada devolve a mesma linha, não duplica", async () => {
     const uploadId = randomUUID();

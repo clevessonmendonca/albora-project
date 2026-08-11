@@ -1,13 +1,20 @@
 import type { Evento } from "./tipos";
 
 /**
- * O gate de interação do ADR 0009. Quem decide quando abrir são os noivos.
+ * O mínimo que decide o gate. Um `Evento` inteiro é assinável aqui, mas o
+ * servidor lê uma coluna só — e pedir o objeto completo obrigaria a rota do
+ * feed a montar um evento que ela não usa para nada.
+ */
+export type GateDeInteracao = Pick<Evento, "interacaoAbreEm">;
+
+/**
+ * O gate de interação do ADR 0009. Quem decide quando abrir são os anfitriões.
  *
  * Mora aqui, e não num componente, porque as duas superfícies precisam da
  * mesma resposta. Gate reimplementado no app é gate que abre em horário
  * diferente do da web — e aí a festa tem duas regras.
  */
-export function interacaoAberta(evento: Evento, agora: Date): boolean {
+export function interacaoAberta(evento: GateDeInteracao, agora: Date): boolean {
   if (evento.interacaoAbreEm === null) return false;
   return agora.getTime() >= evento.interacaoAbreEm.getTime();
 }
@@ -20,6 +27,6 @@ export function interacaoAberta(evento: Evento, agora: Date): boolean {
  */
 export type ModoInteracao = "espelho" | "completo";
 
-export function modoInteracao(evento: Evento, agora: Date): ModoInteracao {
+export function modoInteracao(evento: GateDeInteracao, agora: Date): ModoInteracao {
   return interacaoAberta(evento, agora) ? "completo" : "espelho";
 }

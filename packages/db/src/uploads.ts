@@ -41,6 +41,17 @@ export async function confirmarUpload(
     place: string | null;
   },
 ): Promise<ResultadoConfirm> {
+  // Serializa os confirms do MESMO uploadId. Sem isto, dois retries em
+  // paralelo — o caso normal num salão com sinal ruim — davam um sucesso e um
+  // erro: o `ON CONFLICT DO NOTHING` do segundo não devolvia linha, e o SELECT
+  // seguinte não enxergava a linha do primeiro, que ainda não tinha commitado.
+  // O erro virava 403, o transporte marcava como definitivo e a foto era
+  // descartada da fila. Achado pelo arnês de carga.
+  //
+  // `xact`, nunca de sessão: o pooling em modo transação devolve a conexão a
+  // cada COMMIT, e um lock de sessão vazaria para o próximo cliente.
+  await cliente.query("SELECT pg_advisory_xact_lock(hashtext($1))", [entrada.uploadId]);
+
   const { rows: inseridas } = await cliente.query<LinhaUpload>(
     `INSERT INTO uploads (id, event_id, session_id, challenge_id, storage_key, mime, bytes, caption, place)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)

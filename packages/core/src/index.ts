@@ -11,7 +11,7 @@ export type {
 export type { CorpoItem, DetalhesItem, Fila, ItemFila } from "./fila";
 export { deveDesistir, esperaAntesDeRetentar, MAX_TENTATIVAS } from "./fila";
 
-export type { ModoInteracao } from "./interacao";
+export type { GateDeInteracao, ModoInteracao } from "./interacao";
 export { interacaoAberta, modoInteracao } from "./interacao";
 
 export type { AjustesManuais } from "./ajustes";
