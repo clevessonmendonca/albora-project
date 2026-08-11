@@ -20,7 +20,9 @@ export const MARCA_ALBORA: Tokens = {
   },
   fontes: {
     titulo: "Fraunces, Georgia, serif",
-    corpo: "ui-sans-serif, system-ui, -apple-system, sans-serif",
+    // A pilha do sistema fica atrás como rede: se o arquivo não chegar, o
+    // texto sai numa sans decente em vez de num serif de fallback.
+    corpo: "\"Instrument Sans\", ui-sans-serif, system-ui, -apple-system, sans-serif",
   },
   escala: {
     raio: "0.6rem",

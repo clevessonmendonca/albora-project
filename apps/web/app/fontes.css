@@ -25,3 +25,26 @@
   font-display: swap;
   src: url("/fontes/fraunces-latin-wght-italic.woff2") format("woff2-variations");
 }
+
+/**
+ * A face de corpo e interface, escolhida pelos designers na landing.
+ *
+ * Até esta rodada o corpo caía na fonte do sistema — o mesmo defeito que o
+ * título tinha com Georgia, um andar abaixo e menos visível, porque uma sans
+ * de sistema não parece errada, só não parece nada.
+ */
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fontes/instrument-sans-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Instrument Sans";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fontes/instrument-sans-latin-wght-italic.woff2") format("woff2-variations");
+}

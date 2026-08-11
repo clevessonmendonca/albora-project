@@ -20,17 +20,32 @@ import { fileURLToPath } from "node:url";
 
 const aqui = dirname(fileURLToPath(import.meta.url));
 const raiz = join(aqui, "..");
-const origem = join(raiz, "node_modules", "@fontsource-variable", "fraunces", "files");
 const destino = join(raiz, "public", "fontes");
 
-const ARQUIVOS = ["fraunces-latin-wght-normal.woff2", "fraunces-latin-wght-italic.woff2"];
+/**
+ * As duas famílias do sistema: Fraunces no display, Instrument Sans no corpo.
+ *
+ * Os itálicos entram declarados mas não pesam na primeira pintura — o
+ * navegador só busca o arquivo quando de fato precisa desenhar um glifo
+ * itálico, e nas telas de entrada não há nenhum.
+ */
+const PACOTES = {
+  fraunces: ["fraunces-latin-wght-normal.woff2", "fraunces-latin-wght-italic.woff2"],
+  "instrument-sans": [
+    "instrument-sans-latin-wght-normal.woff2",
+    "instrument-sans-latin-wght-italic.woff2",
+  ],
+};
 
 mkdirSync(destino, { recursive: true });
 
-for (const nome of ARQUIVOS) {
-  const de = join(origem, nome);
-  const para = join(destino, nome);
+for (const [pacote, arquivos] of Object.entries(PACOTES)) {
+  const origem = join(raiz, "node_modules", "@fontsource-variable", pacote, "files");
 
-  copyFileSync(de, para);
-  console.log(`  ${nome}  ${(statSync(para).size / 1024).toFixed(1)} kB`);
+  for (const nome of arquivos) {
+    const para = join(destino, nome);
+
+    copyFileSync(join(origem, nome), para);
+    console.log(`  ${nome}  ${(statSync(para).size / 1024).toFixed(1)} kB`);
+  }
 }
