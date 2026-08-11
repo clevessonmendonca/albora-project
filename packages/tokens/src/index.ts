@@ -16,6 +16,18 @@ export { MODELOS_DE_IDENTIDADE } from "./modelos";
 export { escalaDoFundo } from "./escalas";
 export { resolverEscala, resolverTokens } from "./resolvedor";
 export { paraCss, paraVariaveis } from "./saidas";
+export type { FormatoDePeca, LayoutDePeca, MedidasDaPeca, TintaDoQr } from "./pecas";
+export {
+  AREA_SEGURA_MM,
+  CONTRASTE_DE_QR,
+  QR_MINIMO_MM,
+  SANGRIA_MM,
+  avisoDeCor,
+  caixaDeCorte,
+  medidasDaPeca,
+  problemasDaPeca,
+  tintaDoQr,
+} from "./pecas";
 export type { Rgb } from "./cor";
 export {
   acentoLegivelSobre,
