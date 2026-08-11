@@ -42,3 +42,18 @@ export { drenar, enviarItem } from "./envio";
 
 export type { Bitmap, Desenhista, FiltroAplicado, FotoProcessada, OpcoesProcessamento } from "./processar";
 export { processarFoto } from "./processar";
+
+export type { EscolhaDoTelao, Faixa, ItemDoTelao, ModeloDeTelao } from "./telao";
+export {
+  ehVertical,
+  faixaDe,
+  JANELA_RECENTE_MS,
+  modeloCorta,
+  modelosPermitidos,
+  MODELOS_DE_TELAO,
+  PESOS,
+  podarCache,
+  pontuacaoPopular,
+  proximaDoTelao,
+  TETO_DO_CACHE,
+} from "./telao";
