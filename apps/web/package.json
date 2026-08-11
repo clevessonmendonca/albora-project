@@ -4,11 +4,12 @@
   "private": true,
   "scripts": {
     "sw:build": "node scripts/construir-sw.mjs",
-    "predev": "pnpm sw:build",
+    "predev": "pnpm sw:build && pnpm fontes",
     "dev": "next dev",
-    "prebuild": "pnpm sw:build --producao",
+    "prebuild": "pnpm sw:build --producao && pnpm fontes",
     "build": "next build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "fontes": "node scripts/copiar-fontes.mjs"
   },
   "dependencies": {
     "@albora/core": "workspace:*",
@@ -23,6 +24,7 @@
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
     "@types/pg": "^8.11.10",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",

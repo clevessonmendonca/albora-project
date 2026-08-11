@@ -18,3 +18,6 @@ apps/web/public/sw.js
 
 # Resultados de execucao do arnes de carga. O JSON e artefato, nao fonte.
 tools/carga/execucoes/
+
+# Copiado de @fontsource-variable/fraunces por scripts/copiar-fontes.mjs.
+apps/web/public/fontes/

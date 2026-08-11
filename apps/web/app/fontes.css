@@ -1,0 +1,27 @@
+/**
+ * A face de display, declarada com o nome `Fraunces`.
+ *
+ * O nome é literal, e não gerado com hash, de propósito: `MARCA_ALBORA.fontes`
+ * diz `"Fraunces, Georgia, serif"`, e esse mesmo valor precisa resolver na web,
+ * no SVG do logotipo e no app Expo. Um nome por renderizador seriam dois temas
+ * com um nome só, que é o que o ADR 0003 proíbe.
+ *
+ * `font-display: swap` porque o texto aparece antes da fonte. Numa festa, meio
+ * segundo de tela em branco esperando arquivo é meio segundo em que o convidado
+ * acha que travou — e a fonte certa não vale isso.
+ */
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fontes/fraunces-latin-wght-normal.woff2") format("woff2-variations");
+}
+
+@font-face {
+  font-family: "Fraunces";
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fontes/fraunces-latin-wght-italic.woff2") format("woff2-variations");
+}

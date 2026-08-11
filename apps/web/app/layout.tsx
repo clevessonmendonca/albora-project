@@ -1,3 +1,4 @@
+import "./fontes.css";
 import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import { CASAMENTO } from "@albora/packs";
 import type { Metadata } from "next";
