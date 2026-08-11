@@ -6,20 +6,20 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 /**
- * Primeira primitiva. Existe na 002 para o guard de tokens ter código real
- * para verificar, não porque alguma tela precise dela.
+ * Pílula, não retângulo. É a forma dominante da identidade — na landing dos
+ * designers ela aparece 22 vezes contra 6 do raio de card.
  *
- * Nenhuma cor aqui: tudo sai de custom property emitida por
- * `@albora/tokens`. Sem ícone dentro do botão, sem tracking — decisões do
- * DESIGN.md que o componente não reabre.
+ * O rótulo do primário sai de `--sobre-acento`, nunca de `--bg`: sobre o âmbar
+ * da marca o papel dá 2,6:1 e reprova. Quem decide é o contraste medido, uma
+ * vez, para qualquer cor que o casal escolha.
  */
 export function Botao({ variante = "primario", children, ...resto }: Props) {
   const base =
-    "inline-flex items-center justify-center min-h-[44px] px-4 rounded-[var(--raio)] font-medium";
+    "inline-flex items-center justify-center min-h-[44px] px-6 rounded-[var(--raio-pilula)] font-medium";
   const cor =
     variante === "primario"
-      ? "bg-[var(--frente)] text-[var(--fundo)]"
-      : "bg-transparent text-[var(--frente)] border border-[var(--frente)]/20";
+      ? "bg-[var(--acento)] text-[var(--sobre-acento)]"
+      : "bg-transparent text-[var(--ink)] border border-[var(--linha)]";
 
   return (
     <button className={`${base} ${cor}`} {...resto}>

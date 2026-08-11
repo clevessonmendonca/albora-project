@@ -1,0 +1,27 @@
+/*
+ * O reset mínimo, global.
+ *
+ * Existe porque o preflight do Tailwind não está alcançando as rotas: sem ele
+ * o `<body>` fica com a margem de 8px do navegador — a borda branca em volta
+ * do site inteiro — e todo elemento volta a `content-box`, onde `max-width`
+ * não conta o padding e a soma estoura a largura da tela no celular.
+ *
+ * Três regras e nada mais. Reset grande apaga semântica que a página usa.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* O chão vem do token: `<body>` transparente empresta o branco do navegador. */
+body {
+  background: var(--bg);
+  color: var(--ink);
+}

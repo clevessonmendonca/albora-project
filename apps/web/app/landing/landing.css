@@ -1,0 +1,72 @@
+/*
+ * O que precisa de media query, keyframe ou pseudo-elemento.
+ *
+ * O resto da landing é style inline de propósito — um componente, um pack, sem
+ * folha paralela para sair de sincronia. Estas regras não cabem lá.
+ */
+
+/*
+ * A barra fixa é do celular. No desktop o CTA já está no cabeçalho e no fim da
+ * página; uma terceira cópia rouba altura de tela sem ganhar nada.
+ */
+.cta-fixo {
+  display: none;
+}
+
+.nav-topo {
+  display: none;
+}
+
+@media (max-width: 52rem) {
+  .cta-fixo {
+    display: flex;
+  }
+}
+
+@media (min-width: 60rem) {
+  .nav-topo {
+    display: flex;
+  }
+}
+
+/*
+ * A oração em itálico começa a própria linha. Deixar a quebra para o navegador
+ * parte o destaque no meio e desfaz o contraste entre romana e itálica, que é
+ * o que a composição está dizendo.
+ */
+.heroi-titulo em {
+  display: block;
+}
+
+/* A pergunta empilha no celular; duas colunas de 20ch não são leitura. */
+@media (max-width: 44rem) {
+  .pergunta {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+}
+
+/* O ponto de "ao vivo". É o único movimento contínuo da página. */
+.pulso {
+  animation: pulso 2.4s var(--curva) infinite;
+}
+
+@keyframes pulso {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

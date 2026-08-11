@@ -1,5 +1,12 @@
 export type { ChaveVocabulario, Pack } from "./tipos";
-export { CHAVES_DO_NUCLEO, lugarValido, problemasDoPack, texto } from "./tipos";
+export {
+  CHAVES_DA_LANDING,
+  CHAVES_DO_NUCLEO,
+  lugarValido,
+  problemasDaLanding,
+  problemasDoPack,
+  texto,
+} from "./tipos";
 export { CASAMENTO } from "./casamento";
 export { QUINZE_ANOS } from "./quinze-anos";
 

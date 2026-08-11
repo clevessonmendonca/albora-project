@@ -1,4 +1,4 @@
-import { acentoLegivelSobre, misturarHex } from "./cor";
+import { acentoLegivelSobre, misturarHex, textoSobre } from "./cor";
 import type { Cores, EscalaSemantica, Fundo } from "./tipos";
 
 /**
@@ -45,6 +45,7 @@ function escuro(c: Cores): EscalaSemantica {
     ink: c.papel,
     acento: c.acento,
     acentoTexto: acentoLegivelSobre(c.acento, c.noite, superficieAlta),
+    sobreAcento: textoSobre(c.acento, c.noite, c.papel),
     // Brasa pura some no escuro. Quem clareia é o contraste, não o olho.
     critico: acentoLegivelSobre(c.critico, c.noite, superficieAlta),
   };
@@ -67,6 +68,8 @@ function claro(c: Cores): EscalaSemantica {
     ink: c.tinta,
     acento: c.acento,
     acentoTexto: acentoLegivelSobre(c.acento, bg, c.papel),
+    // Não depende do chão: o preenchimento é o mesmo âmbar nos dois.
+    sobreAcento: textoSobre(c.acento, c.tinta, c.papel),
     critico: acentoLegivelSobre(c.critico, bg, c.papel),
   };
 }

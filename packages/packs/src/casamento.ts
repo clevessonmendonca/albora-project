@@ -27,6 +27,27 @@ export const CASAMENTO: Pack = {
     "lugar.altar": "Altar",
     "lugar.bar": "Bar",
     "lugar.varanda": "Varanda",
+
+    "landing.rotulo": "Curadoria de casamento",
+    "landing.titulo": "Cada convidado",
+    "landing.titulo.destaque": "é um fotógrafo.",
+    "landing.lede":
+      "São 200 câmeras na festa e 200 rolos diferentes. A Albora reúne, organiza e devolve o que só quem estava lá conseguiu ver.",
+    "landing.cta": "Criar meu álbum",
+    "landing.momentos.titulo": "Uma casa para o",
+    "landing.momentos.destaque": "espontâneo.",
+    "landing.momentos.lede":
+      "A web é a porta: a primeira foto entra sem login e sem download. Depois dela existe o aplicativo — feed, stories, reações, comentários e a galeria de cada convidado.",
+    "landing.telao.titulo": "O telão veste a identidade do seu casamento.",
+    "landing.telao.lede":
+      "A mesma cor, a mesma fonte e o mesmo raio da placa da mesa. Foto em pé aparece em pé: nada é cortado para caber.",
+    "landing.missoes.titulo": "Não se chama desafio. Chama-se missão.",
+    "landing.missoes.lede":
+      "Convite curto, feito para quem tem uma taça na outra mão. Ninguém compete, e ninguém perde.",
+    "landing.planos.titulo": "Comece de graça. Pague uma vez, se quiser tudo.",
+    "landing.plano.completo": "Celebração",
+    "landing.fechamento":
+      "No dia seguinte, você acorda com centenas de fotos que ninguém contratou para tirar.",
   },
   missoes: [
     { id: "chegada", chaveTitulo: "missao.chegada", ordem: 1 },

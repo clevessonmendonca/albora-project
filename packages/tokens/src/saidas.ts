@@ -21,6 +21,7 @@ export function paraVariaveis(tokens: Tokens): Record<string, string> {
     "--ink-3": e.ink3,
     "--acento": e.acento,
     "--acento-texto": e.acentoTexto,
+    "--sobre-acento": e.sobreAcento,
     "--critico": e.critico,
 
     "--fonte-titulo": tokens.fontes.titulo,
@@ -37,11 +38,6 @@ export function paraVariaveis(tokens: Tokens): Record<string, string> {
 
     "--tracking-titulo": tokens.tracking.titulo,
     "--tracking-rotulo": tokens.tracking.rotulo,
-
-    // Ponte para as telas escritas antes da escala semântica existir. Sai na
-    // passada de tela — não escreva componente novo contra elas.
-    "--fundo": e.bg,
-    "--frente": e.ink,
   };
 }
 

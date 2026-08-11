@@ -99,6 +99,25 @@ export function misturarHex(base: string, tom: string, t: number): string {
  * de quem recebe o dado do casal, e falhar aqui apagaria a identidade inteira
  * por causa de um campo malformado.
  */
+/**
+ * O rótulo que vai **em cima** de um preenchimento — o inverso de
+ * `acentoLegivelSobre`, que resolve a cor do acento contra o chão.
+ *
+ * Existe porque o botão de acento não tem resposta óbvia: sobre o âmbar da
+ * marca, `papel` dá 2,6:1 e o branco dá 3,0:1 — os dois reprovam, e os dois
+ * parecem certos numa captura de tela. Escolhe entre os candidatos por
+ * contraste medido e, se nenhum servir, caminha o melhor até servir.
+ */
+export function textoSobre(preenchimento: string, ...candidatos: string[]): string {
+  const chao = lerHex(preenchimento);
+  const cores = candidatos.map(lerHex).filter((c): c is Rgb => c !== null);
+  if (!chao || cores.length === 0) return candidatos[0] ?? preenchimento;
+
+  const melhor = cores.reduce((a, b) => (contraste(a, chao) >= contraste(b, chao) ? a : b));
+
+  return acentoLegivelSobre(paraHex(melhor), preenchimento);
+}
+
 export function acentoLegivelSobre(acento: string, ...superficies: string[]): string {
   const cor = lerHex(acento);
   const chaos = superficies.map(lerHex).filter((c): c is Rgb => c !== null);

@@ -106,4 +106,15 @@ describe("cobertura das fixtures", () => {
     expect(motivos.some((m) => m.includes("pack → core"))).toBe(true);
     expect(motivos.some((m) => m.includes("vocabulário"))).toBe(true);
   });
+
+  it("o guard de packs pega copy de domínio na rota, e não o identificador do pack", () => {
+    // A landing é a maior superfície de copy de domínio do produto e mora em
+    // `apps/web/app`, fora de `packages`. Sem isto o guard tem a regra certa e
+    // o alvo errado.
+    const naRota = packs(fixture("packs")).filter((v) => v.arquivo.includes("apps/web/app"));
+
+    expect(naRota.map((v) => v.trecho.trim())).toEqual([
+      "return <h1>O álbum do seu casamento</h1>;",
+    ]);
+  });
 });

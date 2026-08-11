@@ -98,6 +98,11 @@ export type EscalaSemantica = {
   acento: string;
   /** O único seguro para texto em qualquer chão. */
   acentoTexto: string;
+  /**
+   * Rótulo **sobre** o preenchimento de acento. É o outro lado de
+   * `acentoTexto`, e não é o `bg`: sobre âmbar, papel reprova contraste.
+   */
+  sobreAcento: string;
   critico: string;
 };
 

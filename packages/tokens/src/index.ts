@@ -11,8 +11,18 @@ export type {
   Tokens,
 } from "./tipos";
 export { MARCA_ALBORA } from "./marca";
+export type { ModeloDeIdentidade } from "./modelos";
+export { MODELOS_DE_IDENTIDADE } from "./modelos";
 export { escalaDoFundo } from "./escalas";
 export { resolverEscala, resolverTokens } from "./resolvedor";
 export { paraCss, paraVariaveis } from "./saidas";
 export type { Rgb } from "./cor";
-export { acentoLegivelSobre, contraste, CONTRASTE_DE_TEXTO, lerHex, luminancia, paraHex } from "./cor";
+export {
+  acentoLegivelSobre,
+  contraste,
+  CONTRASTE_DE_TEXTO,
+  lerHex,
+  luminancia,
+  paraHex,
+  textoSobre,
+} from "./cor";

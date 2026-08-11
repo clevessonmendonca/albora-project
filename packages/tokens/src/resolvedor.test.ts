@@ -63,6 +63,33 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
       expect(razao(e.critico, e.bg), `critico/${fundo}`).toBeGreaterThan(3);
     }
   });
+
+  it("o rótulo do botão de acento é legível sobre o preenchimento", () => {
+    // O outro lado do teste acima: lá o acento é texto sobre o chão, aqui o
+    // acento é o chão. As duas escolhas óbvias reprovam — papel dá 2,7:1 e o
+    // branco não chega a 3:1 — e as duas parecem certas numa captura de tela.
+    for (const fundo of ["escuro", "claro"] as const) {
+      const e = resolverEscala({ ...MARCA_ALBORA, fundo });
+
+      expect(razao(e.sobreAcento, e.acento), `sobre-acento/${fundo}`).toBeGreaterThan(
+        CONTRASTE_DE_TEXTO,
+      );
+    }
+  });
+
+  it("acento escolhido pelo casal também recebe rótulo legível", () => {
+    // A cor vem de quem paga e pode ser qualquer uma. Um âmbar claro derruba a
+    // escolha para o lado escuro; se o rótulo fosse fixo, o botão sumiria.
+    for (const acento of ["#FFE08A", "#2B1A0E", "#D9793C"]) {
+      const e = resolverEscala({
+        ...MARCA_ALBORA,
+        cores: { ...MARCA_ALBORA.cores, acento },
+        fundo: "claro",
+      });
+
+      expect(razao(e.sobreAcento, e.acento), acento).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+    }
+  });
 });
 
 describe("trocar o chão re-deriva o acento", () => {

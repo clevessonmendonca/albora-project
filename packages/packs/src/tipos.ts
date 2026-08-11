@@ -52,6 +52,45 @@ export const CHAVES_DO_NUCLEO = [
   "lugar.pergunta",
 ] as const;
 
+/**
+ * O que a landing pede. Lista separada das chaves do núcleo, e de propósito.
+ *
+ * Um pack pode existir sem ser vendido sozinho — um vertical de fornecedor
+ * white-label não tem página de venda própria. Exigir copy de marketing de
+ * todo pack acoplaria o núcleo ao funil. Quem cobra esta lista é a rota da
+ * landing, e só ela.
+ */
+export const CHAVES_DA_LANDING = [
+  "landing.rotulo",
+  "landing.titulo",
+  "landing.titulo.destaque",
+  "landing.lede",
+  "landing.cta",
+  "landing.momentos.titulo",
+  "landing.momentos.destaque",
+  "landing.momentos.lede",
+  "landing.telao.titulo",
+  "landing.telao.lede",
+  "landing.missoes.titulo",
+  "landing.missoes.lede",
+  "landing.planos.titulo",
+  "landing.plano.completo",
+  "landing.fechamento",
+] as const;
+
+/**
+ * Vazio quando o pack pode ser vendido.
+ *
+ * Chave faltando vira a própria chave na tela — `texto()` devolve a chave de
+ * propósito. Numa tela interna isso é um bug visível e barato; na landing é
+ * `landing.titulo` em corpo 74px na frente de quem ia pagar.
+ */
+export function problemasDaLanding(pack: Pack): string[] {
+  return CHAVES_DA_LANDING.filter((chave) => !pack.vocabulario[chave]).map(
+    (chave) => `falta a chave de landing ${chave}`,
+  );
+}
+
 /** Vazio quando o pack está íntegro. Cada string é um defeito de tela. */
 export function problemasDoPack(pack: Pack): string[] {
   const problemas: string[] = [];
