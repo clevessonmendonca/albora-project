@@ -1,7 +1,7 @@
 # Albora — Fluxos e nuances
 
 > **Status:** fundação. Independente de runtime.
-> **Última revisão:** 2026-08-09
+> **Última revisão:** 2026-08-11
 > **Complementa:** [`architecture.md`](./architecture.md) (as fronteiras), [`security.md`](./security.md) (as ameaças), [`adr/`](./adr/README.md) (as decisões)
 
 Este documento descreve **o que acontece**, em cada superfície, no caminho feliz e em cada desvio dele. As nuances são a parte que importa: o caminho feliz cabe num diagrama, e é o desvio que decide se o produto funciona num salão às 22h com 4G ruim.
@@ -98,8 +98,8 @@ O produto **gera** o material; o casal só imprime. É a primeira materializaç�
 *Por quê:* câmera velha, permissão negada, QR riscado. A digitação é o caminho de recuperação, e ele precisa estar impresso — não adianta existir só no app.
 
 **N1.5 — Rotação de slug invalida o material impresso** 🔴🟠
-→ Ao rotacionar (defesa contra link vazado, N4.7), o admin recebe aviso explícito de que **todo o material impresso para de funcionar**. O slug antigo passa a mostrar uma página de orientação, nunca um erro seco.
-*Por quê:* é uma colisão real entre dois controles deste documento. Rotação é opção nuclear, e quem aperta o botão precisa saber que está inutilizando cem cards já distribuídos nas mesas. A página de orientação existe porque o material já está impresso e não some.
+→ Ao rotacionar (defesa contra link vazado, N4.7), o admin recebe aviso explícito de que **todo o material impresso para de funcionar**. O slug antigo passa a mostrar uma página de orientação — com o resgate da N4.8 —, nunca um erro seco.
+*Por quê:* é uma colisão real entre dois controles deste documento. Rotação é opção nuclear, e quem aperta o botão precisa saber que está inutilizando cem cards já distribuídos nas mesas. A página de orientação existe porque o material já está impresso e não some — e é a tela mais grave do produto, porque a pessoa está com o QR velho na mão e não tem como saber disso.
 
 **N1.6 — Quantas missões cabem na peça** ⚪
 → 4–6 na placa, 3–4 no card. O resto vive no app.
@@ -226,6 +226,14 @@ Custa um toque no caminho crítico, o recurso mais escasso do produto. Paga trê
 → Anfitrião rotaciona o slug. Sessões ativas continuam subindo; o link antigo para de abrir novas. **Ver N1.5** — isso invalida o impresso.
 *Por quê:* sem rotação, a única resposta a um QR vazado seria encerrar o evento no meio.
 
+**N4.8 — Tela sem saída oferece o caminho de volta ali mesmo** 🔴
+→ Nenhuma tela manda escanear o QR de novo sem dar como. Onde o convidado está no endereço errado — código desconhecido, slug rotacionado (N1.5) — ou com sessão que não é desta festa, a tela termina em duas camadas, nesta ordem: **campo para digitar o código da mesa**, sempre presente; e **botão de escanear**, só nos aparelhos que decodificam QR sozinhos. Não há terceira camada instalada. Câmera negada volta para o campo, sem tela de erro no meio — mesma regra da N5.1. Onde a festa existe e só não é hora — "já foi", "ainda não começou", "não está aberta agora" — **não há resgate**: o código está certo e escanear de novo dá a mesma resposta.
+*Por quê:* mandar reescanear custa participação. A pessoa teria de sair do navegador, abrir a câmera do sistema e reachar a placa; numa festa, boa parte para aí. A ordem das camadas é a decisão: o campo custa zero byte, funciona em qualquer aparelho e é o único que sobrevive à câmera negada; o Safari do iPhone não decodifica QR sozinho e é metade dos aparelhos, então a camada 1 é quem cobre o caso — pagar bytes na rota do convidado por um decodificador continua decisão em aberto. Oferecer scanner onde o código já está certo seria mentir sobre o que resolve o problema.
+
+**N4.9 — O conteúdo do QR nunca vira destino** 🟠
+→ Da leitura do QR e do campo de código sai **slug validado contra formato fechado**, nunca URL. O host lido é descartado, e um único lugar monta o caminho do evento (`apps/web/lib/qr.ts`).
+*Por quê:* a placa fica seis horas numa mesa sem ninguém olhando, e adesivo colado por cima do original é ataque real. Navegar para o que o código mandar levaria a festa inteira para o endereço de quem colou o adesivo — e o convidado não tem como desconfiar, porque escanear a placa da mesa é exatamente o que pedimos que ele faça.
+
 ### 3.4 Captura
 
 **N5.1 — Permissão de câmera negada** 🔴
@@ -252,6 +260,18 @@ Custa um toque no caminho crítico, o recurso mais escasso do produto. Paga trê
 → Seleção múltipla, uma entrada de fila por arquivo.
 *Por quê:* quem sobe no dia seguinte sobe em lote.
 
+**N5.11 — Câmera e rolo são duas portas, não uma** 🔴
+→ Duas entradas de arquivo: uma com `capture`, que abre a câmera; outra sem, com seleção múltipla, que abre o rolo. As duas existem no botão principal **e** em cada linha de missão — a linha continua abrindo a câmera num toque, e a porta do rolo fica ao lado dela.
+*Por quê:* metade das fotos boas já está no rolo antes de alguém abrir o app (N5.1), e quem sobe no dia seguinte sobe em lote (N5.6) — e não existia porta para nenhuma das duas. Sem a porta ao lado da missão, foto que já está no rolo nunca cumpriria missão; e uma folha de escolha no meio da linha custaria um toque no único caminho que não comporta mais um. Em desktop `capture` é ignorado sempre — não existe câmera traseira —, e lá os dois botões caem no mesmo seletor: isso é do navegador, não do produto.
+
+**N5.12 — Um arquivo passa pelo editor; um lote não** ⚪
+→ Um arquivo vai para o editor e depois para os detalhes (§3.6). Vários viram uma entrada de fila cada um e a tela vai direto para a confirmação, sem preset, sem legenda e sem lugar. Quem decide é a **quantidade de arquivos**, não a porta: foto única vinda do rolo passa pelo editor igual.
+*Por quê:* quem sobe dez do rolo no domingo de manhã não quer escolher filtro dez vezes nem escrever dez legendas. Uma entrada de fila por arquivo é o que a N5.6 pede, e o lote é o caminho do dia seguinte, não o de sábado às 22h — o custo de errar aqui é acervo mais pobre, não foto perdida.
+
+**N5.13 — Input de arquivo escondido com `display: none` perde o `capture`** 🔴
+→ O input fica invisível **e presente no layout**. Nunca `hidden`.
+*Por quê:* input de arquivo escondido com `display: none` tem histórico de ignorar `capture` quando o clique vem de código, e o sintoma é tocar numa missão e abrir o seletor de arquivos em vez da câmera. Já aconteceu neste produto. É o caminho crítico quebrando em silêncio, num detalhe que ninguém revisa duas vezes.
+
 **N5.7 — Preset aplicado depois da captura, nunca ao vivo** 🔴
 → A câmera nativa dispara sem filtro; o preset entra sobre a foto boa, em LUT no cliente.
 *Por quê:* preview ao vivo exigiria `getUserMedia`, que custa HDR e modo noturno — e às 22h no escuro é justamente aí que a foto se ganha ou se perde. O preset é gratuito e instantâneo; a qualidade do sensor, não.
@@ -267,6 +287,10 @@ Custa um toque no caminho crítico, o recurso mais escasso do produto. Paga trê
 **N5.8 — Preset funciona sem rede** 🔴
 → LUT em canvas, no aparelho. Nunca chamada de rede.
 *Por quê:* a fila offline é o que decide a H1. Um preset que precisa de internet quebra exatamente onde o produto não pode quebrar — e uma IA generativa também produziria uma interpretação diferente por foto, desfazendo a coerência do acervo ([ADR 0007](./adr/0007-ai-policy-luts-not-generation.md)).
+
+**N5.14 — Quatro ajustes por cima do preset, numa passagem só** ⚪
+→ Luz, Calor, Contraste e Vinheta, aplicados **depois** do preset e na ordem de uma câmera: luz, temperatura, contraste, vinheta por último. Rodam por pixel, não em `filter` de CSS, e dividem a mesma varredura do preset. Ajuste neutro não custa varredura nenhuma.
+*Por quê:* a luz do salão erra, e quem estava lá sabe para que lado. Não é CSS por causa da vinheta, que depende da **posição** do pixel — e três ajustes em CSS mais um em canvas dariam dois arredondamentos, com a miniatura da prévia deixando de bater com a foto que sobe. A ordem também não é gosto: contraste antes da luz amplificaria o erro de exposição em vez de corrigi-lo, e vinheta antes do contraste viraria anel visível na borda. E quem só escolheu um preset não paga o preço de um recurso que não usou — no Android de entrada, uma varredura à toa é a prévia parecendo morta, que é o convidado desistindo da foto.
 
 ### 3.5 Upload — onde o produto se decide
 
@@ -328,6 +352,10 @@ Enviar  →  upload COMEÇA
 **N6.11 — A legenda substitui o rótulo da missão no telão**
 → Havendo legenda, ela aparece no crédito no lugar de "Missão III".
 *Por quê:* a frase de quem estava lá vale mais que o número da missão. Sem legenda, o rótulo continua sendo a missão.
+
+**N6.13 — O confirm não espera a legenda** 🔴
+→ A subida termina quando os bytes chegam, não quando a pessoa termina de digitar: a foto **confirma sozinha**. A legenda alcança a foto pelos dois lados — item ainda na fila, a fila guarda e o confirm leva junto; item já confirmado, uma rota de anotação escreve depois, e ela só alcança mídia da própria sessão. Anotação que falha falha em silêncio.
+*Por quê:* é a razão de a fila existir. Se o confirm esperasse o texto, uma aba fechada no meio deixaria a foto no storage **sem linha no banco** — perdida exatamente no cenário que a fila cobre (N6.2). E a legenda é opcional numa foto que já está no álbum: avisar de um erro ali assustaria o convidado sobre uma coisa que não aconteceu.
 
 **N6.12 — Marcar pessoas fica fora** ❓
 → Não existe no MVP.
@@ -664,6 +692,7 @@ Voz: quente, direta, brasileira, sem ser boba. Segunda pessoa, frases curtas. Nu
 | Confirmado | "Foto 1 ✓ — já tá no telão" | "Upload concluído com sucesso" |
 | Missões concluídas | "Você fez todas as 10. Manda o que quiser." | "Parabéns! Você completou 100%!" |
 | Evento não começou | "A festa da Ana e do João começa às 19h." | "Evento inativo" |
+| Código da mesa digitado errado | "Esse código não parece certo. Confira as letras impressas na mesa." | "Código inválido", "404" |
 | Consentimento recusado | "Tudo bem. Se mudar de ideia, é só voltar aqui." | Insistência, segundo diálogo |
 
 Erro nunca expõe interno — sem código HTTP, sem stack, sem nome de tabela.
