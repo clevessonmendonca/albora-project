@@ -159,12 +159,14 @@ Exporte PNG a partir do 512 para as lojas. **Não arredonde os cantos** — o si
 ### Cores da marca — FIXAS
 
 ```css
---papel: #FAF7F2;  /* base clara — admin, marketing, papelaria */
+--papel: #F4F0E9;  /* base clara — admin, marketing, papelaria */
 --tinta: #1A1613;  /* texto sobre claro. Preto quente, nunca #000 */
---noite: #14100E;  /* base escura — convidado, galeria, telão */
---ambar: #E8873A;  /* acento único, com parcimônia */
+--noite: #0C0A09;  /* base escura — convidado, galeria, telão */
+--ambar: #D9793C;  /* acento único, com parcimônia */
 --brasa: #C2410C;  /* acento raro — erro, destaque crítico */
 ```
+
+🔴 **O pacote de [`brand/`](./brand/) é o canônico, e a origem é [`brand/LEIA-ME.md`](./brand/LEIA-ME.md).** A implementação vive em [`packages/tokens/src/marca.ts`](./packages/tokens/src/marca.ts), onde as duas últimas se chamam `acento` e `critico` — a paleta é de cinco cores, os nomes de código são por função. Quando este arquivo e o pacote divergirem, quem manda é o pacote: são 46 SVGs coerentes entre si contra uma tabela escrita, e é a placa impressa que deixaria de combinar com o telão.
 
 **Por que âmbar:** a categoria inteira do mercado é verde sage + rosa blush + fonte script. Âmbar lê como calor, festa e Brasil — e convive com qualquer paleta de evento sem brigar.
 
@@ -173,19 +175,21 @@ Exporte PNG a partir do 512 para as lojas. **Não arredonde os cantos** — o si
 Nenhum cinza novo entra na paleta. Todo tom intermediário é `--tinta` ou `--papel` com opacidade:
 
 ```css
---tinta-76: rgba(26,22,19,.76);   --papel-76: rgba(242,235,226,.76);
---tinta-50: rgba(26,22,19,.50);   --papel-50: rgba(242,235,226,.50);
---tinta-16: rgba(26,22,19,.16);   --papel-16: rgba(242,235,226,.16);
+--tinta-76: rgba(26,22,19,.76);   --papel-76: rgba(244,240,233,.76);
+--tinta-50: rgba(26,22,19,.50);   --papel-50: rgba(244,240,233,.50);
+--tinta-16: rgba(26,22,19,.16);   --papel-16: rgba(244,240,233,.16);
 ```
 
 **É esta regra que mantém a interface quente.** Derivar rampas de hex (`#6E635A`, `#A99C90`) parece equivalente e não é: a cada passo a temperatura escorre um pouco, e três telas depois a paleta virou cinza de produto. Opacidade sobre a base não tem como desviar.
+
+O componente nunca escreve uma dessas `rgba` à mão. Ele lê a escala semântica, que já chega **achatada em hex opaco** — superfície precisa ser opaca porque elevação sai da cor, não de sombra, e sombra sobre foto de festa suja a imagem. A operação é `misturarHex` em [`packages/tokens/src/cor.ts`](./packages/tokens/src/cor.ts).
 
 ### 🔴 O chão: escuro é o principal, e os noivos podem trocar
 
 | | |
 |---|---|
 | **Padrão do convidado** | `noite` — e a razão é física, não estética |
-| **Quem pode trocar** | O casal, como token do evento (`--event-ground`) |
+| **Quem pode trocar** | O casal, pelo `fundo` da camada do evento |
 | **Quem nunca troca** | O convidado. Não existe alternador no fluxo dele |
 | **O que nunca troca** | **O telão.** Sempre `noite` |
 
@@ -197,12 +201,14 @@ Nenhum cinza novo entra na paleta. Todo tom intermediário é `--tinta` ou `--pa
 4. **Contraste.** Âmbar é seguro sobre `noite` e **falha** sobre `papel`.
 5. **A marca.** Âmbar sobre noite *é* Albora.
 
-**🔴 Trocar o chão re-deriva o acento automaticamente.** Não é trocar uma cor, é trocar um conjunto. Sobre `papel`, todo acento de evento usa a variante escurecida — senão a interface inteira reprova contraste, e essa validação é trabalho do sistema, nunca escolha do casal.
+**🔴 Trocar o chão re-deriva o acento automaticamente.** Não é trocar uma cor, é trocar um conjunto. Sobre `papel`, o acento de texto sai escurecido — senão a interface inteira reprova contraste, e essa validação é trabalho do sistema, nunca escolha do casal.
 
-```
-noite   →  âmbar #E8873A · jardim #5C8262 · ameixa #9B6BA8 · marinho #4E8CA0
-papel   →  âmbar #A34F16 · jardim #3C5C42 · ameixa #6E3F78 · marinho #2F6070
-```
+**A variante escurecida não está escrita em lugar nenhum: ela é calculada.** `acentoLegivelSobre` em [`cor.ts`](./packages/tokens/src/cor.ts) caminha em passos pequenos a partir da cor do casal e para no primeiro tom que alcança 4,5:1. "Mais próxima" é a regra inteira — puxar direto para o preto passaria no contraste e apagaria a cor do casal, que é exatamente o que o produto promete propagar.
+
+Duas consequências que decidem o resultado:
+
+- **O acento de texto é derivado contra a superfície de pior contraste, não contra o chão.** No claro a página é um degrau mais **escura** que o card; no escuro é o contrário. Derivar só contra o chão aprovava cor que sumia em cima do card.
+- **O preenchimento fica na cor escolhida; só o texto ganha luminância de leitura.** São dois valores diferentes — `--acento` e `--acento-texto` — e é o que permite ao casal ver a própria cor no botão sem quebrar o rótulo.
 
 **O telão fica fora da escolha.** Projetor com fundo branco em salão escuro cega a plateia e lava a foto.
 
@@ -228,53 +234,63 @@ ESCURO (noite) → convidado, galeria, telão. A festa é à noite; foto brilha 
 
 **Não existe toggle de tema em nenhuma superfície.** O convidado usa o produto às 22h no escuro — tela clara nesse momento é agressiva. O admin trabalha de dia e a papelaria vai para gráfica.
 
-### Escala semântica — claro (base `papel`)
+### 🔴 A escala semântica é DERIVADA, não uma lista de hexes
+
+Estes são os dez valores que o componente consome. **Nenhum deles está escrito em lugar nenhum** — todos saem das cinco cores, calculados por [`packages/tokens/src/escalas.ts`](./packages/tokens/src/escalas.ts) e entregues por `paraVariaveis`:
 
 ```css
---bg:          #F3EEE6;   /* fundo de página */
---surface:     #FAF7F2;   /* card, superfície elevada */
---surface-2:   #FFFDF9;   /* elevação máxima */
---line:        #E2D9CD;   /* divisor, borda */
---ink:         #1A1613;   /* texto primário */
---ink-2:       #6B5F55;   /* secundário */
---ink-3:       #9C8E82;   /* terciário, placeholder */
---accent:      #E8873A;   /* preenchimento, não texto */
---accent-text: #A34F16;   /* âmbar escurecido — o único seguro para texto */
---critical:    #C2410C;
+--bg              /* fundo de página */
+--superficie      /* card. Elevação vem daqui, não de sombra */
+--superficie-alta /* elevação máxima */
+--linha           /* divisor, borda */
+--ink             /* texto primário */
+--ink-2           /* secundário */
+--ink-3           /* terciário, placeholder */
+--acento          /* preenchimento, barra, borda, ícone grande — nunca texto sobre claro */
+--acento-texto    /* o único seguro para texto em qualquer chão */
+--critico
 ```
 
-### Escala semântica — escuro (base `noite`)
+**Por que derivado e não uma tabela.** Uma lista fixa fica calibrada para a base do dia em que foi escrita, e a troca de chão desta rodada é a prova: quando `noite` saiu de `#14100E` para `#0C0A09`, uma lista fixa teria continuado a devolver superfícies clareadas na medida do preto antigo. O defeito é invisível em revisão, porque **cada valor isolado continua parecendo certo** — só o conjunto está errado. Derivar é o que faz "todo neutro é opacidade" ser verdade mecânica em vez de promessa.
 
-```css
---bg:          #14100E;
---surface:     #1E1916;   /* elevação vem daqui, não de sombra */
---surface-2:   #29221D;
---line:        #302823;
---ink:         #F2EBE2;
---ink-2:       #A99B8E;
---ink-3:       #7A6D62;
---accent:      #E8873A;   /* seguro para texto sobre noite */
---accent-text: #E8873A;
---critical:    #E06A3C;   /* brasa clareada — brasa puro some no escuro */
-```
+O que é fixo é a **proporção**, nunca a cor: a rampa de neutros são opacidades sobre a base (superfície, superfície alta, linha, `ink-3`, `ink-2`), e é isso que sobrevive à troca de chão.
+
+**As duas escalas são espelhadas, e de propósito:**
+
+| | Claro | Escuro |
+|---|---|---|
+| A cor da marca é | o **card** (`papel`); a página é derivada um degrau mais escura | a **página** (`noite`); as superfícies são derivadas um degrau mais claras |
+| Elevação sobe para | o branco | o `papel` |
+| Pior caso do acento de texto | a **página** — o degrau mais escuro | a **superfície elevada** — o degrau mais claro |
+
+É por isso que o acento de texto é derivado **contra a superfície de pior contraste, não contra o chão**. Derivar só contra o chão daria a resposta certa no escuro e errada no claro, onde a página é mais escura que o card — e aprovaria uma cor que some em cima da superfície elevada.
 
 ### 🔴 Regra de contraste que mais se erra
 
-**Âmbar `#E8873A` NÃO é seguro para texto sobre `papel`.** O contraste fica em torno de 2,4:1. Sobre fundo claro, âmbar serve para preenchimento, barra de progresso, borda e ícone grande — nunca para texto corrido nem rótulo pequeno. Para texto, use `--accent-text` (`#A34F16`).
+**Âmbar `#D9793C` NÃO é seguro para texto sobre `papel`.** O contraste é de **2,74:1** — reprova. Sobre fundo claro, âmbar serve para preenchimento, barra de progresso, borda e ícone grande; nunca para texto corrido nem rótulo pequeno. Para texto, use `--acento-texto`, que o sistema escurece sozinho.
 
 Sobre `noite`, âmbar é seguro para texto e é o acento pleno.
 
+A afirmação não fica solta: [`packages/tokens/src/resolvedor.test.ts`](./packages/tokens/src/resolvedor.test.ts) trava a razão abaixo do mínimo de texto, justamente para que a paleta e este parágrafo não divirjam em silêncio. Foi esse teste que registrou a troca de base — com o âmbar antigo a razão era 2,47:1, com o do `brand/` é 2,74:1, e **continua reprovando**, que era o ponto.
+
 ### Tokens DO EVENTO — sobrescrevíveis em runtime
 
-| Token | Fallback | Substituído por |
-|---|---|---|
-| `--event-accent` | `--ambar` | Cor primária do casal |
-| `--event-accent-2` | `--brasa` | Cor secundária |
-| `--event-display` | Fraunces | Fonte de display do casal, do catálogo licenciado |
-| `--event-ground` | `--noite` / `--papel` | Base, se o casal escolher |
-| `--event-monogram` | símbolo Albora | Monograma do casal |
+A identidade do casal não entra por tokens `--event-*` paralelos. Ela entra como uma **camada** da cadeia, sobrepondo campo a campo; o componente continua lendo `--acento` e `--bg` e nunca sabe de que camada o valor veio.
 
-Cadeia de resolução: **evento → pack → marca**. Um resolvedor único alimenta web, telão e o pipeline SVG→PDF de impressão. Nenhum renderizador implementa o seu — se divergirem, a placa impressa não combina com o telão, e essa coerência **é** o produto.
+| Camada | O que sobrepõe |
+|---|---|
+| `evento` | A identidade do casal. Ganha de todo mundo — é de quem pagou |
+| `pack` | O vertical — casamento, 15 anos, formatura |
+| `marca` | O piso. Nunca ausente |
+
+| Campo | Fallback | Substituído por |
+|---|---|---|
+| `cores.acento` | âmbar | Cor primária do casal |
+| `cores.critico` | brasa | Cor secundária |
+| `fontes.titulo` | Fraunces | Fonte de display do casal, do catálogo licenciado |
+| `fundo` | `escuro` | Base, se o casal escolher |
+
+Cadeia de resolução: **evento → pack → marca**. Um resolvedor único ([`resolvedor.ts`](./packages/tokens/src/resolvedor.ts)) alimenta web, telão e o pipeline SVG→PDF de impressão. Nenhum renderizador implementa o seu — se divergirem, a placa impressa não combina com o telão, e essa coerência **é** o produto.
 
 **Validação:** tokens vêm de dado do usuário. Valide contra conjunto fechado — formato de cor, fontes do catálogo licenciado, escala de raio. Token não é instrução.
 
@@ -284,13 +300,51 @@ Cadeia de resolução: **evento → pack → marca**. Um resolvedor único alime
 
 | Papel | Fonte | Origem |
 |---|---|---|
-| Display **e rótulo** | **Fraunces** | Google Fonts · OFL · variável |
-| Texto / UI | **Inter** | Google Fonts · OFL |
+| Display **e rótulo** | **Fraunces** | Auto-hospedada · OFL · só o eixo de peso |
+| Texto / UI | **Instrument Sans** | Auto-hospedada · OFL · só o eixo de peso |
 | Dado tabular | Mono do sistema | `ui-monospace, SF Mono, Menlo` |
 
-**Ambas são OFL, portanto livres para uso comercial E impressão.** Isso não é detalhe: convite e papelaria vão para gráfica, e é exatamente onde fontes proprietárias não podem ir. **Nenhum substituto é necessário** — use as reais.
+**Fraunces é OFL, portanto livre para uso comercial E impressão.** Isso não é detalhe: convite e papelaria vão para gráfica, e é exatamente onde fontes proprietárias não podem ir. **Nenhum substituto é necessário** — use a real.
 
-Fraunces é variável. Use `opsz` casado ao tamanho real, `SOFT` moderado e `WONK` **apenas** em display grande — o "wonk" nos tamanhos pequenos vira ruído.
+### 🔴 Fraunces é auto-hospedada, nunca Google Fonts
+
+Requisição a terceiro na rota que decide a primeira foto **é** terceiro no caminho crítico — a mesma regra do `CLAUDE.md` que só admite object storage e Postgres ali. O arquivo sai do pacote fixado no lockfile e é copiado para `public/fontes/` por [`apps/web/scripts/copiar-fontes.mjs`](./apps/web/scripts/copiar-fontes.mjs): é **artefato de build, não binário versionado**, porque binário em git envelhece sem ninguém perceber. A declaração vive em [`apps/web/app/fontes.css`](./apps/web/app/fontes.css).
+
+| | |
+|---|---|
+| Subset | **Só `latin`.** Português cabe nele inteiro — ã, õ, ç e os acentos vivem no Latin-1 Supplement. Levar `latin-ext` e `vietnamese` junto mais que dobraria o peso, para cobrir alfabeto que nenhum convidado vai digitar |
+| Eixos | **Só o peso** — 35,8 kB normal e 44,6 kB itálico. O build que carrega `opsz`, `SOFT` e `WONK` junto pesa mais de três vezes isso, e o produto não move nenhum desses eixos |
+| Itálico | Entra, e não é opcional: a copy desenhada usa `<em>` no título |
+| Carregamento | `font-display: swap`. Meio segundo de tela em branco esperando arquivo é meio segundo em que o convidado acha que travou |
+
+**O nome da família é o literal `"Fraunces"`, nunca gerado com hash.** O mesmo valor precisa resolver na web, no SVG do logotipo e depois no Expo. Um nome por renderizador seriam dois temas com um nome só, que é o que o [ADR 0003](./docs/adr/0003-runtime-token-resolution.md) proíbe.
+
+⚠️ **Não use `opsz`, `SOFT` nem `WONK`.** A família tem esses eixos, mas o arquivo que o produto carrega não — escrever `font-variation-settings` para eles não muda nada na tela e dá a impressão de estar ajustando alguma coisa.
+
+⚠️ **Até esta rodada não havia `@font-face` em lugar nenhum do app.** Todo `--fonte-titulo` caía no fallback Georgia, o logotipo inclusive. A pilha `Fraunces, Georgia, serif` sempre esteve correta em [`marca.ts`](./packages/tokens/src/marca.ts) — o que faltava era o arquivo.
+
+### A face de corpo
+
+A face de texto e interface é **`Instrument Sans`**, com a pilha do sistema atrás dela como rede: se o arquivo não chegar, o texto sai numa sans decente em vez de num serif de fallback.
+
+Até esta rodada `MARCA_ALBORA.fontes.corpo` era só a pilha do sistema — o mesmo defeito que o título tinha com Georgia, um andar abaixo e mais difícil de ver, porque **uma sans de sistema não parece errada, só não parece nada**.
+
+As duas famílias seguem a mesma regra, e ela é de custo, não de gosto:
+
+| | Normal | Itálico |
+|---|---|---|
+| Fraunces | 35,8 kB | 44,6 kB |
+| Instrument Sans | 29,4 kB | 31,1 kB |
+
+**Só o subset `latin` e só o eixo de peso.** Português cabe no latin inteiro — ã, õ, ç e os acentos vivem no Latin-1 Supplement. Levar `latin-ext` e `vietnamese` junto dobraria o peso na rota que decide a primeira foto, para cobrir alfabeto que nenhum convidado vai digitar. As variantes de Fraunces com `opsz`, `SOFT` e `WONK` custam quase o dobro e o produto não move nenhum desses eixos.
+
+**Os itálicos ficam declarados e não pesam na primeira pintura.** O navegador só busca o arquivo quando precisa desenhar um glifo itálico, e nas telas de entrada não há nenhum — o itálico existe para o `<em>` dos títulos.
+
+**Auto-hospedadas, nunca Google Fonts.** Requisição a terceiro na rota que decide a primeira foto é um terceiro no caminho crítico, e o `CLAUDE.md` trata isso como falha de arquitetura, não de configuração.
+
+**O nome da família é literal.** `"Fraunces"` e `"Instrument Sans"`, não um nome gerado com hash pelo empacotador: o mesmo valor precisa resolver na web, no SVG do logotipo e depois no app Expo. Um nome por renderizador seriam dois temas com um nome só, que é o que o [ADR 0003](./docs/adr/0003-runtime-token-resolution.md) proíbe.
+
+O woff2 é **artefato de build**, copiado do pacote por `apps/web/scripts/copiar-fontes.mjs`. Binário versionado em git envelhece sem ninguém perceber.
 
 ### 🔴 A superfície decide o peso
 
@@ -335,7 +389,7 @@ Display usa razão 1,24 (dramática, poucos passos). Texto usa 1,13 (fina, para 
 --l-label:   11px;  /* 1.30 · tracking +0.28em · UPPERCASE */
 --l-micro: 10.5px;  /* 1.30 · tracking +0.20em · UPPERCASE */
 
-/* Inter 400 — o que informa */
+/* Instrument Sans 400 — o que informa */
 --t-lede:    18px;  /* 1.72 */
 --t-body:  16.5px;  /* 1.68 */
 --t-ui:      15px;  /* 1.60 */
@@ -370,7 +424,7 @@ Numeral arábico fica onde é quantidade real — "6 de 10", contadores, verific
 
 - Fraunces 300: nome do casal, texto da missão, confirmação, título, o campo de nome
 - Fraunces 400 versalete: `ANA & JOÃO`, `MISSÕES`, `ENVIADA`, numeral romano
-- Inter: corpo, descrição, botão — tudo operacional
+- Instrument Sans: corpo, descrição, botão — tudo operacional
 
 Hierarquia por função e por espaço, nunca empilhando negrito.
 
@@ -394,9 +448,9 @@ Card com fundo sobrou em um lugar: o admin no modo claro, onde não há foto com
 ### Botão
 
 ```
-Primário   fundo --accent · texto #15100A · raio 100px
+Primário   fundo --acento · texto #15100A · raio 100px
            min-height 54px · padding 16px 22px
-           Inter 15px / peso 500 / tracking +0.05em
+           Instrument Sans 15px / peso 500 / tracking +0.05em
 Hairline   transparente · borda 1px --ink a 13% · texto --ink-2
            min-height 48px · peso 400
 Admin      transparente · borda 1px --ink · texto --ink
@@ -406,7 +460,7 @@ Admin      transparente · borda 1px --ink · texto --ink
 Peso **500 com tracking aberto**, nunca 600 apertado — 600 lê como botão de aplicativo, 500 espaçado lê como convite.
 
 Altura mínima de toque: **54px no fluxo do convidado** (está de pé, no escuro), 48px no admin.
-`:active` → `scale(.977)`. `:focus-visible` → contorno **1px** `--accent`, offset 4px. Contorno grosso quebra a delicadeza.
+`:active` → `scale(.977)`. `:focus-visible` → contorno **1px** `--acento`, offset 4px. Contorno grosso quebra a delicadeza.
 
 Botão diz exatamente o que acontece: **"Enviar"**, depois **"Enviada"**. Nunca "Confirmar ação".
 
@@ -415,7 +469,7 @@ Botão diz exatamente o que acontece: **"Enviar"**, depois **"Enviada"**. Nunca 
 | Superfície | Primário | Secundário |
 |---|---|---|
 | **Clara** (landing, admin) | `--tinta` sólido, texto `--papel` | transparente, contorno 1px a 16% |
-| **Escura** (convidado) | `--event-accent` sólido, texto quase preto | transparente, contorno 1px a 18% |
+| **Escura** (convidado) | `--acento` sólido, texto quase preto | transparente, contorno 1px a 18% |
 
 **No claro o primário é preto sólido, nunca âmbar.** Duas razões: âmbar reprova contraste sobre `papel`, e âmbar é metal — filete, não superfície grande. Preenchimento sólido cabe ao preto quente.
 
@@ -433,16 +487,16 @@ Botão diz exatamente o que acontece: **"Enviar"**, depois **"Enviada"**. Nunca 
 sem fundo · sem borda · sem raio
 border-bottom 1px --ink a 17%
 padding 10px 2px 14px
-foco: border-bottom vira --accent (transição 300ms)
+foco: border-bottom vira --acento (transição 300ms)
 placeholder: itálico, --ink a 18%
 ```
 
-**O campo de nome usa Fraunces 300 em 30px, não Inter.** É a única entrada de texto do fluxo do convidado, e escrever o próprio nome em serifada grande sobre uma linha faz o gesto parecer **assinar**, não preencher cadastro. É a assinatura tipográfica do produto.
+**O campo de nome usa Fraunces 300 em 30px, não a sans.** É a única entrada de texto do fluxo do convidado, e escrever o próprio nome em serifada grande sobre uma linha faz o gesto parecer **assinar**, não preencher cadastro. É a assinatura tipográfica do produto.
 
 ### Superfície
 
 ```
-claro (admin)  fundo --surface · borda 1px --hair · raio 18px · sombra e2
+claro (admin)  fundo --superficie · borda 1px --linha · raio 18px · sombra e2
 escuro (guest) SEM fundo, SEM borda de caixa.
                Separação por filete horizontal --ink a 7–9%
 ```
@@ -454,9 +508,9 @@ Raios: **18px** em superfície de admin, **20px** em mídia (visor, foto), **100
 ```
 sem fundo · border-bottom 1px --ink a 7%
 grid 34px | 1fr | 12px
-numeral romano: Fraunces 10,5px · tracking +0.20em · --accent
+numeral romano: Fraunces 10,5px · tracking +0.20em · --acento
 texto: Fraunces 300 · 17px · line-height 1.36
-chevron: --ink a 22%, desliza 3px e vira --accent no hover
+chevron: --ink a 22%, desliza 3px e vira --acento no hover
 cumprida: opacidade 30%, numeral perde o acento, chevron vira ✓
 ```
 
@@ -465,7 +519,7 @@ cumprida: opacidade 30%, numeral perde o acento, chevron vira ✓
 ```
 sem fundo · sem borda de caixa
 Fraunces 10,5px versalete · tracking +0.20em
-border-bottom 1px transparente → --accent quando ativo
+border-bottom 1px transparente → --acento quando ativo
 gap de 22px entre itens
 ```
 
@@ -473,7 +527,7 @@ Pílula preenchida é vocabulário de aplicativo. Sublinhado é vocabulário de 
 
 ### Progresso — filete, não barra
 
-Um segmento por missão. **1,5px de altura**, 4px de gap, **sem raio**. Preenchido em `--accent`, vazio em `--ink` a 12%.
+Um segmento por missão. **1,5px de altura**, 4px de gap, **sem raio**. Preenchido em `--acento`, vazio em `--ink` a 12%.
 
 **Nunca porcentagem numérica** — o convidado não está completando formulário.
 
@@ -582,7 +636,7 @@ Conteúdo largo — tabela, código, diagrama — recebe `overflow-x: auto` no p
 
 🔴 **A sombra é marrom-quente, nunca preta.** `rgba(0,0,0,…)` sobre `noite` simplesmente some, e sobre `papel` lê como sujeira cinza. O valor `rgba(26,22,19,…)` é a tinta da marca — é o que faz a sombra parecer parte da paleta em vez de um efeito aplicado por cima.
 
-🔴 **No escuro, sombra quase não lê. A elevação vem da superfície clarear** (`--bg` → `--surface` → `--surface-2`). Empilhar sombra no escuro é desperdício de pintura; use a cor.
+🔴 **No escuro, sombra quase não lê. A elevação vem da superfície clarear** (`--bg` → `--superficie` → `--superficie-alta`). Empilhar sombra no escuro é desperdício de pintura; use a cor.
 
 ### 🔴 Âmbar é metal, não tinta
 
@@ -605,7 +659,7 @@ A referência é **hot stamp sobre papel escuro** — e não é analogia solta: 
 No escuro, um halo âmbar quase invisível no alto da tela dá volume sem gradiente decorativo:
 
 ```css
-background: radial-gradient(120% 46% at 50% -14%, rgba(232,135,58,.09), transparent 62%);
+background: radial-gradient(120% 46% at 50% -14%, rgba(217,121,60,.09), transparent 62%);
 ```
 
 É o que produtos como o Raycast fazem com glow frio — aqui em **temperatura de vela**. A opacidade fica abaixo de 10%: se der para apontar onde está, está forte demais.
@@ -629,7 +683,7 @@ Adicione grão sutil (ruído SVG inline, opacidade ~4%, `mix-blend-mode: overlay
 background: linear-gradient(102deg,
   transparent 28%,
   rgba(255,212,152,.46) 47%,
-  rgba(232,135,58,.20) 56%,
+  rgba(217,121,60,.20) 56%,
   transparent 72%);
 transform: translateX(-118%) → translateX(118%);
 easing: cubic-bezier(.38, 0, .2, 1);
@@ -783,4 +837,4 @@ Ao gerar qualquer tela nova para o Albora, aplique nesta ordem:
  componente quebrou — é o teste da propagação de tokens."
 ```
 
-O último prompt é o mais importante do arquivo. **Se trocar `--event-accent` quebra alguma tela, um hex vazou** — e cada hex vazado é um pedaço da identidade do casal que não propaga. Não é lint: é regressão da funcionalidade principal do produto.
+O último prompt é o mais importante do arquivo. **Se trocar o acento do evento quebra alguma tela, um hex vazou** — e cada hex vazado é um pedaço da identidade do casal que não propaga. Não é lint: é regressão da funcionalidade principal do produto.
