@@ -3,6 +3,7 @@
 import type { FiltroAplicado } from "@albora/core";
 import { useEffect, useRef, useState } from "react";
 import { AVISO_VIDEO, PLANO_ATUAL, usarEnvio } from "@/lib/usar-envio";
+import { ArcoDeEnvio } from "./arco-de-envio";
 import { Detalhes, type Lugar } from "./detalhes";
 import { Editor } from "./editor";
 
@@ -62,6 +63,7 @@ export function PaginaFoto({
   const [missoes, setMissoes] = useState(missoesIniciais);
   const [escolhida, setEscolhida] = useState<string | null>(null);
   const [emLote, setEmLote] = useState(0);
+  const [enviadas, setEnviadas] = useState(0);
 
   function abrirCamera(missaoId: string | null) {
     setEscolhida(missaoId);
@@ -92,7 +94,8 @@ export function PaginaFoto({
 
     setEmLote(arquivos.length);
     for (const arquivo of arquivos) {
-      await enfileirarFoto({ arquivo, desafioId: escolhida });
+      const r = await enfileirarFoto({ arquivo, desafioId: escolhida });
+      if (r.ok) setEnviadas((n) => n + 1);
       setEmLote((n) => n - 1);
     }
     setEtapa({ nome: "pronto", arquivo: primeiro });
@@ -101,6 +104,8 @@ export function PaginaFoto({
   async function enviar(arquivo: File, filtro: FiltroAplicado | undefined) {
     const r = await enfileirarFoto({ arquivo, filtro, desafioId: escolhida });
     if (!r.ok) return;
+
+    setEnviadas((n) => n + 1);
 
     if (escolhida) {
       setMissoes((m) => m.map((x) => (x.id === escolhida ? { ...x, feito: true } : x)));
@@ -137,7 +142,9 @@ export function PaginaFoto({
     return (
       <Confirmacao
         arquivo={etapa.arquivo}
+        numero={enviadas}
         pendentes={estado.pendentes}
+        online={estado.online}
         onOutra={() => setEtapa({ nome: "missoes" })}
       />
     );
@@ -158,19 +165,58 @@ export function PaginaFoto({
         fontFamily: "var(--fonte-corpo)",
       }}
     >
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <h1 style={{ fontFamily: "var(--fonte-titulo)", fontSize: "1.3rem", fontWeight: 500, margin: 0 }}>
-          {restantes.length > 0 ? textos.missaoTitulo : "Modo livre"}
-        </h1>
-        <Estado pendentes={estado.pendentes} online={estado.online} />
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        {/* Rótulo versalete: quem nomeia a lista é o pack, e o título da tela é
+            a instrução, não o nome da coisa. */}
+        <p
+          style={{
+            margin: 0,
+            fontFamily: "var(--fonte-titulo)",
+            fontSize: "0.7rem",
+            fontWeight: 400,
+            letterSpacing: "0.28em",
+            textTransform: "uppercase",
+            color: "var(--ink-3)",
+          }}
+        >
+          {textos.missaoTitulo}
+        </p>
+        <ArcoDeEnvio
+          pendentes={estado.pendentes}
+          bytesPendentes={estado.bytesPendentes}
+          online={estado.online}
+        />
       </header>
 
       <section style={{ display: "grid", alignContent: "start", gap: "0.5rem" }}>
-        {restantes.length === 0 && missoes.length > 0 && (
-          // Terminar a lista não pode parecer o fim do produto: a madrugada é
-          // onde saem as melhores fotos (N5.5).
-          <p style={{ margin: "0 0 0.5rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
-            Você fez todas as {missoes.length}. Agora manda o que quiser.
+        {/* Terminar a lista não pode parecer o fim do produto: a madrugada é
+            onde saem as melhores fotos (N5.5). */}
+        <h1
+          style={{
+            fontFamily: "var(--fonte-titulo)",
+            fontSize: "1.7rem",
+            fontWeight: 500,
+            lineHeight: 1.2,
+            margin: "0 0 0.35rem",
+            textWrap: "balance",
+          }}
+        >
+          {missoes.length === 0 ? (
+            "Modo livre"
+          ) : restantes.length > 0 ? (
+            "Escolhe uma."
+          ) : (
+            <>
+              Você fez todas as {missoes.length}.
+              <br />
+              <em>Manda o que quiser.</em>
+            </>
+          )}
+        </h1>
+
+        {restantes.length > 0 && (
+          <p style={{ margin: "0 0 0.75rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
+            Ou manda o que quiser.
           </p>
         )}
 
@@ -326,11 +372,15 @@ export function PaginaFoto({
  */
 function Confirmacao({
   arquivo,
+  numero,
   pendentes,
+  online,
   onOutra,
 }: {
   arquivo: File;
+  numero: number;
   pendentes: number;
+  online: boolean;
   onOutra: () => void;
 }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -382,14 +432,41 @@ function Confirmacao({
       )}
 
       <div>
-        <p style={{ margin: "0 0 0.35rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.35rem" }}>
-          {pendentes > 0 ? "Guardada" : "Já está no álbum"}
+        <p
+          style={{
+            margin: "0 0 0.35rem",
+            fontFamily: "var(--fonte-titulo)",
+            fontSize: "1.7rem",
+            fontWeight: 500,
+            lineHeight: 1.2,
+            textWrap: "balance",
+          }}
+        >
+          {!online ? (
+            <>
+              Sem sinal.
+              <br />
+              <em>Suas fotos sobem sozinhas.</em>
+            </>
+          ) : pendentes > 0 ? (
+            <>
+              Foto {numero}.
+              <br />
+              <em>Já está subindo.</em>
+            </>
+          ) : (
+            <>
+              Foto {numero}.
+              <br />
+              <em>Já tá no telão.</em>
+            </>
+          )}
         </p>
-        <p style={{ margin: 0, opacity: 0.6, lineHeight: 1.6 }}>
-          {pendentes > 0
-            ? "Vai subir sozinha assim que o sinal voltar."
-            : "E já pode aparecer no telão."}
-        </p>
+        {!online && (
+          <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.6 }}>
+            Pode fechar. A gente cuida.
+          </p>
+        )}
       </div>
 
       <button
@@ -407,7 +484,7 @@ function Confirmacao({
           cursor: "pointer",
         }}
       >
-        Tirar outra
+        Continuar tirando
       </button>
 
       {/*
@@ -416,23 +493,33 @@ function Confirmacao({
         e o produto pediria instalação antes de ter entregado nada.
       */}
       {pendentes === 0 && (
-        <p style={{ margin: 0, fontSize: "0.85rem", opacity: 0.5, maxWidth: "18rem", lineHeight: 1.6 }}>
-          No app você acompanha as fotos dos outros e recebe as suas depois da festa.
+        <p
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.6rem",
+            margin: 0,
+            maxWidth: "20rem",
+            fontSize: "0.85rem",
+            lineHeight: 1.6,
+            color: "var(--ink-2)",
+          }}
+        >
+          <span
+            style={{
+              flex: "none",
+              fontFamily: "var(--fonte-titulo)",
+              fontSize: "0.7rem",
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              color: "var(--acento-texto)",
+            }}
+          >
+            App
+          </span>
+          Instale e receba suas fotos depois da festa
         </p>
       )}
     </main>
-  );
-}
-
-function Estado({ pendentes, online }: { pendentes: number; online: boolean }) {
-  if (pendentes === 0 && online) return null;
-
-  // Só aparece quando há o que dizer. Um contador permanente vira laço de
-  // checagem, que é o que o ADR 0009 mantém fora da festa.
-  return (
-    <span style={{ fontSize: "0.78rem", opacity: 0.55 }}>
-      {!online && "sem sinal · "}
-      {pendentes > 0 && `${pendentes} esperando`}
-    </span>
   );
 }

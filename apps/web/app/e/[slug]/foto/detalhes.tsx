@@ -51,20 +51,23 @@ export function Detalhes({
             margin: "0 0 0.4rem",
           }}
         >
-          Já está subindo
+          Sua foto já está subindo
         </h1>
         <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.6 }}>
           Se quiser, conte alguma coisa sobre ela.
         </p>
       </div>
 
+      <style>{ESTILO_LEGENDA}</style>
+
       <label style={{ display: "grid", gap: "0.4rem" }}>
-        <span style={{ fontSize: "0.78rem", color: "var(--ink-3)" }}>Legenda</span>
+        <span style={ROTULO}>Legenda</span>
         <textarea
+          className="detalhes-legenda"
           value={legenda}
           onChange={(e) => setLegenda(e.target.value.slice(0, MAX_LEGENDA))}
           rows={2}
-          placeholder="Opcional"
+          placeholder="Escreve alguma coisa…"
           style={{
             font: "inherit",
             fontSize: "1rem",
@@ -79,7 +82,7 @@ export function Detalhes({
       </label>
 
       <div style={{ display: "grid", gap: "0.5rem" }}>
-        <span style={{ fontSize: "0.78rem", color: "var(--ink-3)" }}>{perguntaDoLugar}</span>
+        <span style={ROTULO}>{perguntaDoLugar}</span>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem" }}>
           {lugares.map((l) => (
             <button
@@ -115,6 +118,20 @@ export function Detalhes({
     </main>
   );
 }
+
+const ROTULO: React.CSSProperties = {
+  fontFamily: "var(--fonte-titulo)",
+  fontSize: "0.7rem",
+  fontWeight: 400,
+  letterSpacing: "0.28em",
+  textTransform: "uppercase",
+  color: "var(--ink-3)",
+};
+
+const ESTILO_LEGENDA = `
+.detalhes-legenda::placeholder { color: var(--ink-3); font-style: italic; }
+.detalhes-legenda:focus-visible { outline: 1px solid var(--acento); outline-offset: 3px; }
+`;
 
 function botao(primario: boolean): React.CSSProperties {
   return {

@@ -1,3 +1,4 @@
+import { Logotipo } from "./logotipo";
 import { Resgate } from "./scanner";
 
 /**
@@ -36,6 +37,12 @@ export function Aviso({
       }}
     >
       <div style={{ width: "100%", maxWidth: "28rem", textAlign: "center" }}>
+        {/* Esta tela também é chegada de QR, e é a única coisa em cena que
+            identifica o produto. */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "2.25rem" }}>
+          <Logotipo />
+        </div>
+
         <h1
           style={{
             fontFamily: "var(--fonte-titulo)",

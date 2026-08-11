@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { registrarServiceWorker } from "@/lib/registrar-sw";
+import { Logotipo } from "./logotipo";
 
 /**
  * Do QR à sessão em três toques: consentir, digitar o nome, entrar.
@@ -81,13 +82,20 @@ export function Entrada({
   if (etapa === "recusou") {
     return (
       <Tela>
-        <Titulo>Tudo bem</Titulo>
-        <Texto>
-          Sem problema nenhum — aproveite a festa. Se mudar de ideia, é só escanear o QR da mesa
-          de novo.
-        </Texto>
+        <Titulo>
+          Tudo bem.
+          <br />
+          <em>Se mudar de ideia, é só voltar.</em>
+        </Titulo>
+        <Texto>Você não vai aparecer no álbum nem no telão.</Texto>
+
         {/* Sem insistência, sem "tem certeza?", sem segunda tentativa
-            disfarçada. Recusar é uma escolha legítima. */}
+            disfarçada. A volta é dela, e a frase acima promete que existe. */}
+        <div style={{ display: "grid", marginTop: "1.75rem" }}>
+          <Botao variante="secundario" onClick={() => setEtapa("consentimento")}>
+            Voltar
+          </Botao>
+        </div>
       </Tela>
     );
   }
@@ -95,7 +103,13 @@ export function Entrada({
   if (etapa === "consentimento") {
     return (
       <Tela>
-        <Titulo>Suas fotos, no álbum da festa</Titulo>
+        <Titulo>
+          Tira foto.
+          <br />
+          <em>A gente cuida do resto.</em>
+        </Titulo>
+        {/* Texto jurídico versionado por CONSENTIMENTO. Trocar a frase sem
+            virar a versão invalida o consentimento já coletado. */}
         <Texto>
           O que você fotografar aqui vai para o álbum de quem te convidou, e pode aparecer no
           telão. Você pode apagar as suas a qualquer momento.
@@ -117,14 +131,17 @@ export function Entrada({
 
   return (
     <Tela>
-      <Titulo>Como te chamam?</Titulo>
-      <Texto>É o nome que aparece junto das suas fotos.</Texto>
+      <Titulo>Como te chamamos?</Titulo>
+      <Texto>Aparece junto das suas fotos, no telão e no álbum. Apelido serve.</Texto>
+
+      <style>{ESTILO_CAMPO}</style>
 
       <form onSubmit={entrar} style={{ display: "grid", gap: "0.75rem", marginTop: "1.5rem" }}>
         <input
+          className="entrada-campo"
           value={nome}
           onChange={(ev) => setNome(ev.target.value)}
-          placeholder="Seu nome"
+          placeholder="Tio João"
           maxLength={40}
           required
           autoFocus
@@ -143,7 +160,7 @@ export function Entrada({
         />
 
         <Botao tipo="submit" desabilitado={enviando || nome.trim().length === 0}>
-          {enviando ? "Entrando…" : "Entrar"}
+          {enviando ? "Entrando…" : "Continuar"}
         </Botao>
 
         {erro && (
@@ -173,10 +190,22 @@ function Tela({ children }: { children: React.ReactNode }) {
           no layout raiz, porque o manifesto descreve o PWA do convidado — o
           admin e o telão não devem ser instaláveis como ele. */}
       <link rel="manifest" href="/manifest.webmanifest" />
-      <div style={{ width: "100%", maxWidth: "24rem" }}>{children}</div>
+      <div style={{ width: "100%", maxWidth: "24rem" }}>
+        {/* Único lugar do fluxo do convidado onde a marca aparece: é o primeiro
+            contato, e daqui em diante a foto é a interface. */}
+        <div style={{ marginBottom: "2.25rem" }}>
+          <Logotipo />
+        </div>
+        {children}
+      </div>
     </main>
   );
 }
+
+const ESTILO_CAMPO = `
+.entrada-campo::placeholder { color: var(--ink-3); font-style: italic; }
+.entrada-campo:focus-visible { outline: 1px solid var(--acento); outline-offset: 3px; }
+`;
 
 function Titulo({ children }: { children: React.ReactNode }) {
   return (
