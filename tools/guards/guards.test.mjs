@@ -48,11 +48,30 @@ describe.each(GUARDS)("guard %s", (nome, verificar) => {
 });
 
 describe("cobertura das fixtures", () => {
-  it("a fixture de tokens pega as três formas de burlar", () => {
+  it("a fixture de tokens pega as cinco formas de burlar", () => {
     const motivos = tokens(fixture("tokens")).map((v) => v.motivo);
     expect(motivos.some((m) => m.includes("hex"))).toBe(true);
     expect(motivos.some((m) => m.includes("arbitrária"))).toBe(true);
     expect(motivos.some((m) => m.includes("Tailwind"))).toBe(true);
+    expect(motivos.some((m) => m.includes("raio literal"))).toBe(true);
+    expect(motivos.some((m) => m.includes("curva literal"))).toBe(true);
+  });
+
+  it("o guard de tokens NÃO reprova círculo, zero, gradiente nem token", () => {
+    // Sem isto, a correção do raio e da curva vira ruído que alguém desliga —
+    // e guard desligado é pior que guard ausente, porque parece que existe.
+    //
+    // Por conteúdo e não por número de linha: fixture cresce, e um teste
+    // ancorado em posição passa a reprovar o que não devia sem ninguém mexer
+    // na regra.
+    const reprovadas = tokens(fixture("tokens")).map((v) => v.trecho);
+
+    for (const forma of ["var(--", "50%", "linear-gradient", "borderRadius: 0"]) {
+      expect(
+        reprovadas.filter((c) => c.includes(forma)),
+        `reprovou a forma correta: ${forma}`,
+      ).toEqual([]);
+    }
   });
 
   it("a fixture de isolamento pega SET de sessão e lock de sessão", () => {
