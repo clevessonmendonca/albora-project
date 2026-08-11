@@ -352,6 +352,65 @@ export function BarraDeAbas({ ativa }: { ativa: "feed" | "missoes" | "minhas" | 
   );
 }
 
+/**
+ * Compartilhar para fora.
+ *
+ * A seta que sai da caixa é o desenho que iOS e Android já ensinaram; o
+ * convidado não precisa aprender símbolo novo para mandar a foto para onde
+ * ele já conversa.
+ */
+export function IconeCompartilhar({ tamanho = 22 }: { tamanho?: number }) {
+  return (
+    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path d="M12 3.5v11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="m8.25 7.25 3.75-3.75 3.75 3.75" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M6 11.5H5.5A1.5 1.5 0 0 0 4 13v6.5A1.5 1.5 0 0 0 5.5 21h13a1.5 1.5 0 0 0 1.5-1.5V13a1.5 1.5 0 0 0-1.5-1.5H18"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+export function IconeMais({ tamanho = 20 }: { tamanho?: number }) {
+  return (
+    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" aria-hidden="true">
+      {[6, 12, 18].map((x) => (
+        <circle key={x} cx={x} cy="12" r="1.6" fill="currentColor" />
+      ))}
+    </svg>
+  );
+}
+
+export function IconeVoltar({ tamanho = 20 }: { tamanho?: number }) {
+  return (
+    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path d="m14.5 5-7 7 7 7" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Botão redondo sobre a foto do topo. */
+export function BotaoFlutuante({ children }: { children: ReactNode }) {
+  return (
+    <span
+      style={{
+        display: "grid",
+        placeItems: "center",
+        width: "2.25rem",
+        height: "2.25rem",
+        borderRadius: "50%",
+        backgroundColor: "color-mix(in srgb, var(--bg) 72%, transparent)",
+        color: "var(--ink)",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 export function Pilula({
   children,
   ativa,

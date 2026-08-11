@@ -5,8 +5,15 @@ import { Moldura, raio } from "../landing/pecas";
 import {
   BarraDeAbas,
   BarraDeStatus,
+  BotaoFlutuante,
   Estrela,
   IconeComentario,
+  IconeCompartilhar,
+  IconeGrade,
+  IconeMais,
+  IconePessoa,
+  IconePilha,
+  IconeVoltar,
   Pilula,
 } from "./pecas-de-tela";
 
@@ -370,6 +377,12 @@ export function TelaFeed({ pack, momentos }: { pack: Pack; momentos: string[] })
             <IconeComentario tamanho={22} />
             <span style={{ fontSize: "0.84375rem" }}>3</span>
           </span>
+          {/* Sair da Albora é uma função, não um vazamento: a foto é do
+              convidado, e obrigá-lo a salvar na mão para mandar no grupo
+              seria fricção contra o próprio boca a boca. */}
+          <span style={{ marginLeft: "auto" }}>
+            <IconeCompartilhar tamanho={21} />
+          </span>
         </div>
 
         <p style={{ margin: "0 1.125rem", fontSize: "0.84375rem", lineHeight: 1.45, color: "var(--ink-2)" }}>
@@ -451,6 +464,230 @@ export function TelaAlbum({ pack, momentos }: { pack: Pack; momentos: string[] }
       </div>
 
       <BarraDeAbas ativa="album" />
+    </Chao>
+  );
+}
+
+/**
+ * A capa do evento: foto grande, nome, e o carrossel dos capítulos.
+ *
+ * Três coisas mudam em relação à referência, e nenhuma é enfeite:
+ *
+ * 1. **A foto termina no chão do evento, não num borrão branco.** A dots
+ *    desfoca o topo até o branco, e o branco é da dots. Aqui a foto desce
+ *    para a cor que o casal escolheu, que é o que faz a tela ser a cara
+ *    deles e não a nossa.
+ * 2. **O card do meio é 9:16 e sangra pelos lados.** É a proporção do
+ *    TikTok, que é a proporção em que a festa foi fotografada. O vizinho
+ *    espiando é o que conta que existe mais e convida a arrastar.
+ * 3. **O capítulo que está acontecendo pulsa.** A referência põe um lápis de
+ *    editar no card; editar é tarefa de anfitrião. Para o convidado, o que
+ *    importa é onde a festa está agora.
+ */
+export function TelaCapa({
+  pack,
+  momentos,
+  fundo,
+}: {
+  pack: Pack;
+  momentos: string[];
+  fundo: "claro" | "escuro";
+}) {
+  const capitulos = momentos.slice(0, 5);
+
+  return (
+    <Chao fundo={fundo} pack={pack}>
+      <div style={{ position: "relative", height: "20.5rem", flex: "none" }}>
+        <Moldura rotulo="" raio="0rem" atmosfera variante={1} />
+
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundImage:
+              "linear-gradient(to bottom, color-mix(in srgb, var(--bg) 30%, transparent) 0%, transparent 26%, transparent 58%, var(--bg) 100%)",
+          }}
+        />
+
+        <div
+          style={{
+            position: "absolute",
+            top: "2.75rem",
+            left: "1.125rem",
+            right: "1.125rem",
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <BotaoFlutuante>
+            <IconeVoltar />
+          </BotaoFlutuante>
+          <span style={{ display: "flex", gap: "0.5rem" }}>
+            <BotaoFlutuante>
+              <IconeCompartilhar tamanho={19} />
+            </BotaoFlutuante>
+            <BotaoFlutuante>
+              <IconeMais />
+            </BotaoFlutuante>
+          </span>
+        </div>
+      </div>
+
+      <div style={{ position: "relative", marginTop: "-3.25rem", textAlign: "center", padding: "0 1.5rem" }}>
+        <p
+          style={{
+            margin: 0,
+            fontFamily: "var(--fonte-titulo)",
+            fontWeight: 300,
+            fontSize: "1.875rem",
+            lineHeight: 1.1,
+            letterSpacing: "var(--tracking-titulo)",
+          }}
+        >
+          {texto(pack, "landing.exemplo.nome")}
+        </p>
+        <p style={{ margin: "0.4375rem 0 0", fontSize: "0.8125rem", color: "var(--ink-2)" }}>
+          8 de novembro · 112 pessoas fotografando
+        </p>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(4, 1fr)",
+          gap: "0.5rem",
+          padding: "1.25rem 1.125rem 1.125rem",
+        }}
+      >
+        {[
+          { r: "Álbum", v: "847", i: <IconeGrade tamanho={20} /> },
+          { r: "Feed", v: "ao vivo", i: <IconePilha tamanho={20} /> },
+          { r: "Missões", v: "1 de 4", i: <Estrela tamanho={20} /> },
+          { r: "Convidados", v: "112", i: <IconePessoa tamanho={20} /> },
+        ].map((a) => (
+          <span
+            key={a.r}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "0.3125rem",
+              padding: "0.75rem 0.25rem",
+              ...raio("var(--raio)"),
+              backgroundColor: "var(--superficie)",
+              color: "var(--ink-2)",
+            }}
+          >
+            {a.i}
+            <span style={{ fontSize: "0.625rem", letterSpacing: "var(--tracking-rotulo)", textTransform: "uppercase" }}>
+              {a.r}
+            </span>
+            <span style={{ fontSize: "0.6875rem", color: "var(--ink)" }}>{a.v}</span>
+          </span>
+        ))}
+      </div>
+
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", padding: "0 1.125rem 0.75rem" }}>
+          <span style={{ fontFamily: "var(--fonte-titulo)", fontSize: "1rem" }}>Os momentos</span>
+          <span style={{ fontSize: "0.6875rem", color: "var(--ink-3)" }}>arraste</span>
+        </div>
+
+        <div style={{ display: "flex", gap: "0.625rem", padding: "0 1.125rem", overflow: "hidden" }}>
+          {capitulos.map((c, i) => {
+            const central = i === 1;
+
+            return (
+              <span
+                key={c}
+                style={{
+                  position: "relative",
+                  flex: "none",
+                  width: central ? "9.25rem" : "5rem",
+                  aspectRatio: "9 / 16",
+                  overflow: "hidden",
+                  ...raio("var(--raio)"),
+                  opacity: central ? 1 : 0.62,
+                }}
+              >
+                <Moldura rotulo="" raio="var(--raio)" atmosfera variante={i * 6 + 2} />
+
+                <span
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    bottom: 0,
+                    left: 0,
+                    backgroundImage:
+                      "linear-gradient(to top, color-mix(in srgb, var(--bg) 88%, transparent), transparent 52%)",
+                  }}
+                />
+
+                {central && i === 1 ? (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: "0.5rem",
+                      left: "0.5rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.3125rem",
+                      padding: "0.25rem 0.5rem",
+                      ...raio("var(--raio-pilula)"),
+                      backgroundColor: "var(--acento)",
+                      color: "var(--sobre-acento)",
+                      fontSize: "0.5rem",
+                      letterSpacing: "var(--tracking-rotulo)",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    <span className="pulso" style={{ width: "0.25rem", height: "0.25rem", borderRadius: "50%", backgroundColor: "currentColor" }} />
+                    agora
+                  </span>
+                ) : null}
+
+                <span
+                  style={{
+                    position: "absolute",
+                    left: "0.625rem",
+                    right: "0.625rem",
+                    bottom: "0.625rem",
+                    display: "block",
+                    fontFamily: "var(--fonte-titulo)",
+                    fontSize: central ? "0.9375rem" : "0.6875rem",
+                    lineHeight: 1.15,
+                    letterSpacing: "var(--tracking-titulo)",
+                  }}
+                >
+                  {c}
+                </span>
+              </span>
+            );
+          })}
+        </div>
+      </div>
+
+      <div style={{ padding: "1.125rem 1.5rem 2rem" }}>
+        <span
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "0.5rem",
+            padding: "1.0625rem",
+            ...raio("var(--raio-pilula)"),
+            backgroundColor: "var(--acento)",
+            color: "var(--sobre-acento)",
+            fontWeight: 600,
+          }}
+        >
+          Enviar foto
+        </span>
+      </div>
     </Chao>
   );
 }

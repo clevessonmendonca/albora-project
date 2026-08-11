@@ -7,6 +7,7 @@ import {
   TelaAlbum,
   TelaAntesDoGate,
   TelaCamera,
+  TelaCapa,
   TelaEntrada,
   TelaFeed,
   TelaPainel,
@@ -85,6 +86,20 @@ export default function Telas() {
         titulo="O convidado"
         nota="Chão escuro, porque ele usa isto às 23h num salão sem luz. Quatro abas e a câmera no meio, que é a forma consolidada pelo Instagram — o que muda é o conteúdo: sem aba de conversa e sem aba de planejamento."
       >
+        <Aparelho
+          titulo="Capa do evento"
+          nota="Foto grande, o nome, quatro atalhos e o carrossel dos momentos. O card do meio é 9:16 porque é a proporção em que a festa foi fotografada, e o vizinho espiando é o que convida a arrastar."
+        >
+          <TelaCapa pack={pack} momentos={momentos} fundo="escuro" />
+        </Aparelho>
+
+        <Aparelho
+          titulo="A mesma capa, no claro"
+          nota="O chão é escolha do convidado, não imposição nossa. Um resolvedor, dois chãos: nenhum componente sabe qual está valendo, e a cor do casal manda nos dois."
+        >
+          <TelaCapa pack={pack} momentos={momentos} fundo="claro" />
+        </Aparelho>
+
         <Aparelho
           titulo="Entrada"
           nota="Uma pergunta por tela. Nome e consentimento, e nada mais entre o QR e a câmera. Não existe senha, e-mail nem conta."

@@ -97,8 +97,33 @@ describe("trocar o chão re-deriva o acento", () => {
     const escuro = resolverEscala(MARCA_ALBORA);
     const claro = resolverEscala({ ...MARCA_ALBORA, fundo: "claro" });
 
-    expect(escuro.acentoTexto).toBe(MARCA_ALBORA.cores.acento);
-    expect(claro.acentoTexto).not.toBe(MARCA_ALBORA.cores.acento);
+    // Cada chão recebe o seu, e nenhum dos dois é o acento cru: a versão
+    // anterior afirmava que o escuro passava intacto, o que só era verdade
+    // enquanto o chão era o preto absoluto.
+    expect(escuro.acentoTexto).not.toBe(claro.acentoTexto);
+    expect(razao(escuro.acentoTexto, escuro.bg)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+    expect(razao(claro.acentoTexto, claro.bg)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+
+    // O preenchimento continua sendo a cor escolhida nos dois chãos.
+    expect(escuro.acento).toBe(MARCA_ALBORA.cores.acento);
+    expect(claro.acento).toBe(MARCA_ALBORA.cores.acento);
+  });
+
+  it("o chão escuro não é o extremo cru da marca", () => {
+    // Um app inteiro no `noite` puro lê como buraco preto: some a
+    // profundidade entre página e card, e a cor que o casal escolheu não
+    // aparece em lugar nenhum. O `claro()` sempre levantou a página do papel
+    // puro; a assimetria no escuro era acidente.
+    const escuro = resolverEscala(MARCA_ALBORA);
+
+    expect(escuro.bg).not.toBe(MARCA_ALBORA.cores.noite);
+    expect(razao(escuro.ink, escuro.bg)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+
+    // E a elevação continua subindo: página, superfície, superfície alta.
+    expect(razao(escuro.superficie, escuro.bg)).toBeGreaterThan(1);
+    expect(razao(escuro.superficieAlta, escuro.bg)).toBeGreaterThan(
+      razao(escuro.superficie, escuro.bg),
+    );
   });
 
   it("acento próprio do casal também é re-derivado, não aceito cru", () => {
@@ -125,7 +150,7 @@ describe("trocar o chão re-deriva o acento", () => {
       cores: { ...MARCA_ALBORA.cores, noite: "#001018" },
     });
 
-    expect(outroChao.bg).toBe("#001018");
+    expect(outroChao.bg).not.toBe(nossa.bg);
     expect(outroChao.superficie).not.toBe(nossa.superficie);
     expect(razao(outroChao.ink, outroChao.bg)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
   });
@@ -155,7 +180,10 @@ describe("a saída entrega a escala pronta", () => {
   it("o componente não escolhe nem chão nem neutro", () => {
     const v = paraVariaveis(resolverTokens({ marca: MARCA_ALBORA }));
 
-    expect(v["--bg"]).toBe(MARCA_ALBORA.cores.noite);
+    // Derivado, não copiado da marca: o componente recebe o chão pronto e
+    // não tem como escolher o extremo por conta própria.
+    expect(v["--bg"]).toBeDefined();
+    expect(v["--bg"]).not.toBe(MARCA_ALBORA.cores.noite);
     expect(v["--ink-2"]).toBeDefined();
     expect(v["--linha"]).toBeDefined();
     expect(v["--superficie"]).toBeDefined();
