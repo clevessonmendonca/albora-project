@@ -83,6 +83,9 @@
  * lêem como resposta, doze lêem como brinquedo.
  */
 .cartao {
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent),
+    0 10px 26px -16px color-mix(in srgb, var(--ink) 24%, transparent);
   transition:
     transform var(--tempo) var(--curva),
     box-shadow var(--tempo) var(--curva);
@@ -90,6 +93,18 @@
 
 .cartao:hover {
   transform: translateY(-0.25rem);
+  box-shadow:
+    0 2px 4px color-mix(in srgb, var(--ink) 7%, transparent),
+    0 18px 40px -18px color-mix(in srgb, var(--ink) 30%, transparent);
+}
+
+/*
+ * O comprimento de cada faixa conta quantas fotos entraram naquela hora. As
+ * miniaturas têm tamanho fixo para que a comparação entre horas seja honesta;
+ * quando a linha não cabe, ela quebra em vez de encolher a miniatura.
+ */
+.faixa-fotos {
+  flex-wrap: wrap;
 }
 
 /* Foco visível em tudo que recebe teclado — nunca `outline: none` sem troca. */

@@ -88,33 +88,113 @@ export function Realce({ children }: { children: ReactNode }) {
 }
 
 /**
- * O lugar de uma foto que ainda não existe.
+ * Profundidade em duas alturas, tirada da tinta do evento.
  *
- * Declarado como buraco em vez de virar `<img>` quebrado ou cinza neutro —
- * cinza neutro passa por decisão de design e sobrevive à revisão.
+ * Sombra cinza sobre papel quente suja; puxada do `--ink` ela escurece na
+ * mesma família da identidade e continua certa quando o casal troca a cor.
  */
-export function Moldura({ rotulo, raio: curvatura }: { rotulo: string; raio: string }) {
+export const SOMBRA = "0 1px 2px color-mix(in srgb, var(--ink) 7%, transparent), 0 10px 26px -14px color-mix(in srgb, var(--ink) 26%, transparent)";
+
+export const SOMBRA_ALTA =
+  "0 2px 4px color-mix(in srgb, var(--ink) 6%, transparent), 0 14px 32px -10px color-mix(in srgb, var(--ink) 20%, transparent), 0 44px 88px -36px color-mix(in srgb, var(--ink) 34%, transparent)";
+
+/**
+ * O lugar de uma foto.
+ *
+ * Com `src`, é a foto. Sem, é um buraco **declarado** — desenhado como prova
+ * de revelação, com as marcas de corte e a tarja de legenda, em vez de virar
+ * `<img>` quebrado ou retângulo cinza. Cinza neutro passa por decisão de
+ * design e sobrevive à revisão; isto não passa.
+ */
+export function Moldura({
+  rotulo,
+  raio: curvatura,
+  src,
+  prioridade,
+}: {
+  rotulo: string;
+  raio: string;
+  src?: string;
+  prioridade?: boolean;
+}) {
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={rotulo}
+        loading={prioridade ? "eager" : "lazy"}
+        decoding="async"
+        {...(prioridade ? { fetchPriority: "high" as const } : {})}
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          ...raio(curvatura),
+        }}
+      />
+    );
+  }
+
   return (
     <div
       className="brilho"
       style={{
         position: "absolute",
-        inset: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        left: 0,
         overflow: "hidden",
         ...raio(curvatura),
+        backgroundColor: "color-mix(in srgb, var(--acento) 9%, var(--superficie-alta))",
         backgroundImage:
-          "linear-gradient(160deg, color-mix(in srgb, var(--acento) 24%, var(--superficie-alta)), var(--superficie))",
+          "linear-gradient(158deg, color-mix(in srgb, var(--acento) 10%, transparent), transparent 62%)",
         display: "grid",
         placeItems: "center",
         padding: "0.75rem",
-        textAlign: "center",
-        fontSize: "0.6875rem",
-        letterSpacing: "var(--tracking-rotulo)",
-        textTransform: "uppercase",
-        color: "var(--ink-3)",
       }}
     >
-      {rotulo}
+      {rotulo ? null : (
+        <span
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            width: "min(18%, 2.25rem)",
+            aspectRatio: "1",
+            transform: "translate(-50%, -50%)",
+            borderRadius: "50%",
+            borderWidth: "1px",
+            borderStyle: "solid",
+            borderColor: "color-mix(in srgb, var(--ink) 20%, transparent)",
+            pointerEvents: "none",
+          }}
+        />
+      )}
+      {rotulo ? (
+        <span
+          style={{
+            position: "relative",
+            maxWidth: "18ch",
+            padding: "0.375rem 0.75rem",
+            ...raio("var(--raio-pilula)"),
+            backgroundColor: "color-mix(in srgb, var(--bg) 78%, transparent)",
+            textAlign: "center",
+            fontSize: "0.625rem",
+            lineHeight: 1.35,
+            letterSpacing: "var(--tracking-rotulo)",
+            textTransform: "uppercase",
+            color: "var(--ink-2)",
+          }}
+        >
+          {rotulo}
+        </span>
+      ) : null}
     </div>
   );
 }

@@ -58,11 +58,31 @@ sem logo, sem moldura, sem vinheta pesada
 
 ## Como entram no código
 
-`Moldura` é o buraco declarado — trocar por `<img>` é onde a foto entra:
+`Moldura` já aceita a foto. Sem `src` ela desenha o slot vazio; com `src` ela
+vira `<img>` com `object-fit: cover` no mesmo enquadramento:
 
 ```tsx
 <Moldura rotulo="A festa, por quem estava nela" raio="var(--raio-superficie)" />
+<Moldura
+  rotulo="A festa, por quem estava nela"
+  raio="var(--raio-superficie)"
+  src="/fotos/heroi.avif"
+  prioridade
+/>
 ```
+
+`prioridade` só na imagem do herói: ela é o LCP. O resto entra preguiçoso, que
+é o padrão.
+
+`rotulo` continua obrigatório porque com `src` ele vira o `alt`. Um slot que
+não sabe descrever a própria foto não deveria receber uma.
+
+**Slots que não são foto e nunca serão:** papelaria, telão, álbum aberto e a
+linha do tempo são desenhados com os tokens do evento em
+`apps/web/app/landing/vitrines.tsx`. Trocar por captura de tela congelaria a
+peça numa identidade só e mataria a prova do
+[ADR 0003](../adr/0003-runtime-token-resolution.md), que é o que a seção existe para
+mostrar. As `Moldura` **dentro** delas, sim, recebem foto.
 
 Vão para `apps/web/public/fotos/`, em **AVIF com fallback WebP**, largura
 máxima 1600 px. A rota do convidado tem orçamento de bundle

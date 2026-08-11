@@ -8,7 +8,19 @@ import {
 } from "@albora/tokens";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { CHAO_QUENTE, Moldura, RAIO_CASCA, Realce, Rotulo, Titulo, raio, transicao } from "./pecas";
+import {
+  CHAO_QUENTE,
+  Moldura,
+  RAIO_CASCA,
+  Realce,
+  Rotulo,
+  SOMBRA,
+  SOMBRA_ALTA,
+  Titulo,
+  raio,
+  transicao,
+} from "./pecas";
+import { Papelaria } from "./vitrines";
 
 /**
  * As três peças da v4 que respondem a gesto.
@@ -247,6 +259,7 @@ function Fone({
         padding: "0.5rem",
         backgroundImage:
           "linear-gradient(155deg, var(--superficie-alta), color-mix(in srgb, var(--acento) 18%, var(--superficie)))",
+        boxShadow: SOMBRA_ALTA,
         ...transicao("transform", "var(--tempo-lento)"),
       }}
     >
@@ -441,6 +454,15 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
     ...(modelo ? { evento: modelo.camada } : {}),
   });
 
+  // Papel é papel. Uma identidade escura veste o telão às 23h, mas ninguém
+  // imprime placa de mesa em chão preto — o chão claro é a única decisão que
+  // a peça impressa não herda do modelo. Cor, fonte, raio, espaço e tracking
+  // continuam sendo os mesmos, que é o que a seção está provando.
+  const tokensNoPapel = resolverTokens({
+    marca: MARCA_ALBORA,
+    ...(modelo ? { evento: { ...modelo.camada, fundo: "claro" } } : { pack: { fundo: "claro" } }),
+  });
+
   return (
     <>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.625rem", margin: "0 0 1.25rem" }}>
@@ -484,16 +506,24 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
 
       <div
         style={{
+          ...(paraVariaveis(tokens) as CSSProperties),
+          display: "flex",
+          flexDirection: "column",
+          gap: "clamp(1.125rem, 2.5vw, 2rem)",
+        }}
+      >
+      <div
+        style={{
           position: "relative",
           padding: "0.75rem",
           ...raio("var(--raio-superficie)"),
           backgroundImage:
             "linear-gradient(155deg, var(--superficie-alta), color-mix(in srgb, var(--acento) 18%, var(--superficie)))",
+          boxShadow: SOMBRA_ALTA,
         }}
       >
         <div
           style={{
-            ...(paraVariaveis(tokens) as CSSProperties),
             position: "relative",
             height: "clamp(15.625rem, 38vw, 33.75rem)",
             ...raio("calc(var(--raio-superficie) - 0.75rem)"),
@@ -571,6 +601,22 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
           >
             {exemplo}
           </div>
+        </div>
+      </div>
+
+        <div style={paraVariaveis(tokensNoPapel) as CSSProperties}>
+          <p
+            style={{
+              margin: "0 0 clamp(0.875rem, 2vw, 1.25rem)",
+              fontSize: "0.8125rem",
+              letterSpacing: "var(--tracking-rotulo)",
+              textTransform: "uppercase",
+              color: "var(--acento-texto)",
+            }}
+          >
+            E o mesmo desenho sai impresso
+          </p>
+          <Papelaria exemplo={exemplo} />
         </div>
       </div>
     </>
@@ -687,6 +733,7 @@ export function Missoes({
                 fontFamily: "var(--fonte-corpo)",
                 textAlign: "left",
                 cursor: "pointer",
+                boxShadow: SOMBRA,
                 ...transicao("background", "var(--tempo)"),
               }}
             >

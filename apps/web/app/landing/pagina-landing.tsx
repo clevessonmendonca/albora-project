@@ -3,6 +3,7 @@ import { MARCA_ALBORA, MODELOS_DE_IDENTIDADE, paraVariaveis, resolverTokens } fr
 import { texto, type Pack } from "@albora/packs";
 import type { CSSProperties } from "react";
 import { DemoRolagem, Missoes, Revelar, TelaoComIdentidade } from "./interativos";
+import { AlbumAberto, LinhaDoTempo } from "./vitrines";
 import { Marca } from "./marca";
 import { MarcaAnimada } from "./marca-animada";
 import {
@@ -13,6 +14,7 @@ import {
   RAIO_CASCA,
   Realce,
   Rotulo,
+  SOMBRA_ALTA,
   Titulo,
   raio,
 } from "./pecas";
@@ -232,8 +234,11 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
           <a href="#momentos" className="elo" style={{ color: "inherit", textDecoration: "none" }}>
             As fotos
           </a>
-          <a href="#telao" className="elo" style={{ color: "inherit", textDecoration: "none" }}>
-            Telão
+          <a href="#album" className="elo" style={{ color: "inherit", textDecoration: "none" }}>
+            O álbum
+          </a>
+          <a href="#identidade" className="elo" style={{ color: "inherit", textDecoration: "none" }}>
+            Identidade
           </a>
           <a href="#livro" className="elo" style={{ color: "inherit", textDecoration: "none" }}>
             Livro
@@ -349,6 +354,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
                   padding: "0.5625rem",
                   backgroundImage:
                     "linear-gradient(155deg, var(--superficie-alta), color-mix(in srgb, var(--acento) 18%, var(--superficie)))",
+                  boxShadow: SOMBRA_ALTA,
                 }}
               >
                 <div
@@ -544,7 +550,14 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
               className="cartao"
               style={{ margin: 0, marginTop: m.recuo, transform: `rotate(${m.giro})` }}
             >
-              <div style={{ position: "relative", aspectRatio: "9 / 16" }}>
+              <div
+                style={{
+                  position: "relative",
+                  aspectRatio: "9 / 16",
+                  ...raio("var(--raio-superficie)"),
+                  boxShadow: SOMBRA_ALTA,
+                }}
+              >
                 <Moldura rotulo="" raio="var(--raio-superficie)" />
               </div>
               <figcaption style={{ margin: "1rem 0 0", textAlign: "center" }}>
@@ -586,7 +599,28 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
         />
       </Secao>
 
-      <Secao id="telao" revelar>
+      <Secao id="album" revelar>
+        <Rotulo>O álbum, durante a festa</Rotulo>
+        <Titulo tamanho="clamp(1.875rem, 4.4vw, 3.5rem)">
+          A noite se ordena <Realce>sozinha.</Realce>
+        </Titulo>
+        <p
+          style={{
+            margin: "1.5rem 0 clamp(2rem, 4vw, 3.25rem)",
+            maxWidth: "46ch",
+            fontSize: "clamp(1rem, 1.4vw, 1.15625rem)",
+            lineHeight: 1.6,
+            color: "var(--ink-2)",
+          }}
+        >
+          Cada foto entra na hora em que foi tirada e no lugar em que quem tirou estava. No fim da
+          festa o álbum já está na ordem em que ela aconteceu, sem ninguém organizar nada.
+        </p>
+
+        <LinhaDoTempo />
+      </Secao>
+
+      <Secao id="identidade" revelar>
         <div
           style={{
             display: "flex",
@@ -598,8 +632,10 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
           }}
         >
           <div style={{ maxWidth: "41.25rem" }}>
-            <Rotulo>Se a festa tiver telão ou TV</Rotulo>
-            <Titulo tamanho="clamp(1.875rem, 4.4vw, 3.5rem)">{t("landing.telao.titulo")}</Titulo>
+            <Rotulo>A identidade do seu evento</Rotulo>
+            <Titulo tamanho="clamp(1.875rem, 4.4vw, 3.5rem)">
+              Uma decisão de cor, e ela <Realce>aparece em tudo.</Realce>
+            </Titulo>
           </div>
           <p style={{ margin: 0, maxWidth: "20rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
             {t("landing.telao.lede")}
@@ -608,9 +644,9 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
 
         <TelaoComIdentidade exemplo={exemplo} />
 
-        <p style={{ margin: "1.125rem 0 0", color: "var(--ink-3)" }}>
-          Não precisa ter. Sem telão, a festa inteira acompanha pelo próprio celular, que é onde
-          a maior parte das fotos é vista de qualquer jeito.
+        <p style={{ margin: "1.375rem 0 0", maxWidth: "44rem", color: "var(--ink-3)" }}>
+          {t("landing.telao.titulo")} E se não tiver, nada se perde: a festa inteira acompanha
+          pelo próprio celular, que é onde a maior parte das fotos é vista de qualquer jeito.
         </p>
       </Secao>
 
@@ -623,9 +659,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
             alignItems: "center",
           }}
         >
-          <div style={{ position: "relative", height: "clamp(17.5rem, 32vw, 27.5rem)" }}>
-            <Moldura rotulo="O livro aberto sobre a mesa" raio="var(--raio-superficie)" />
-          </div>
+          <AlbumAberto />
           <div>
             <Rotulo>Depois da festa</Rotulo>
             <Titulo tamanho="clamp(1.75rem, 4vw, 3.125rem)">O outro álbum da sua festa.</Titulo>
