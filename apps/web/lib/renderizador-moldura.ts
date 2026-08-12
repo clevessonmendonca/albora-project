@@ -3,7 +3,6 @@
 import {
   ALTURA_DA_COMPOSICAO,
   LARGURA_DA_COMPOSICAO,
-  areaDaFoto,
   celulasDaColagem,
   encaixar,
   faixaDaMarca,

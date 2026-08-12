@@ -1,7 +1,6 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
-  abrirInteracaoDoEvento,
   alternarPanicoDoEvento,
   atualizarModeracaoDoEvento,
   buscarEventoDoHost,
