@@ -63,10 +63,25 @@ export default async function Pagina() {
           ...raio("var(--raio-superficie)"),
         }}
       >
-        <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.6 }}>
-          Você entrou. Criar o evento, gerar as peças com o QR e acompanhar a
-          participação chegam aqui em seguida.
+        <p style={{ margin: "0 0 1.25rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
+          Crie o evento e saia com o link do QR do convidado e o telão do salão.
+          Gerar as peças impressas e o painel ao vivo chegam em seguida.
         </p>
+        <a
+          href="/admin/novo"
+          style={{
+            display: "inline-block",
+            padding: "0.75rem 1.4rem",
+            fontFamily: "var(--fonte-titulo)",
+            fontSize: "1rem",
+            color: "var(--sobre-acento)",
+            backgroundColor: "var(--acento)",
+            textDecoration: "none",
+            ...raio("var(--raio-pilula)"),
+          }}
+        >
+          Criar evento
+        </a>
       </section>
     </main>
   );

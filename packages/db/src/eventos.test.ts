@@ -1,7 +1,7 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { criarSessao, resolverSessao } from "./sessoes";
-import { HORAS_APOS_EVENTO, resolverSlug, rotacionarSlug } from "./eventos";
+import { criarEvento, HORAS_APOS_EVENTO, resolverSlug, rotacionarSlug } from "./eventos";
 import { prepararBanco, semear } from "./testes/banco";
 
 const SEGREDO = "um-segredo-de-teste-com-mais-de-32-caracteres";
@@ -98,5 +98,39 @@ describe("rotação de slug", () => {
     await expect(resolverSessao(app, SEGREDO, token)).resolves.toMatchObject({
       eventoId: dados.a.eventoId,
     });
+  });
+});
+
+describe("o anfitrião cria o evento", () => {
+  it("cria sob a própria conta, e o slug abre o novo evento", async () => {
+    const { eventoId, slug } = await criarEvento(app, {
+      accountId: dados.a.contaId,
+      packId: "pack-um",
+      comecaEm: daquiA(-1),
+      terminaEm: daquiA(6),
+    });
+
+    // Nasceu preso à conta A — pela política conta_evento e o WITH CHECK.
+    const { rows } = await admin.query<{ account_id: string }>(
+      "SELECT account_id FROM events WHERE id = $1",
+      [eventoId],
+    );
+    expect(rows[0]?.account_id).toBe(dados.a.contaId);
+
+    // E o slug, criado na mesma transação, resolve o evento.
+    const r = await resolverSlug(app, slug, new Date());
+    expect(r.estado).toBe("aberto");
+    expect(r.estado !== "desconhecido" && r.evento.eventoId).toBe(eventoId);
+  });
+
+  it("recusa pack fora do conjunto — a FK estoura antes de qualquer linha", async () => {
+    await expect(
+      criarEvento(app, {
+        accountId: dados.a.contaId,
+        packId: "pack-que-nao-existe",
+        comecaEm: daquiA(-1),
+        terminaEm: daquiA(6),
+      }),
+    ).rejects.toThrow();
   });
 });

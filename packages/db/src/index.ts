@@ -27,8 +27,14 @@ export type { MotivoSessaoInvalida, NovaSessao, SessaoResolvida } from "./sessoe
 export { comSessao, criarSessao, ErroNomeInvalido, ErroSessaoInvalida, resolverSessao, revogarSessoesDoEvento } from "./sessoes";
 export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from "./token";
 
-export type { EstadoDoEvento, EventoPublico, Resolucao } from "./eventos";
-export { HORAS_APOS_EVENTO, packDoEvento, resolverSlug, rotacionarSlug } from "./eventos";
+export type { EstadoDoEvento, EventoPublico, NovoEvento, Resolucao } from "./eventos";
+export {
+  criarEvento,
+  HORAS_APOS_EVENTO,
+  packDoEvento,
+  resolverSlug,
+  rotacionarSlug,
+} from "./eventos";
 export type { MotivoParedeInvalida, ParedeResolvida } from "./parede";
 export {
   ErroParedeInvalida,

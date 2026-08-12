@@ -1,5 +1,5 @@
 import type { Pool, PoolClient } from "pg";
-import { comEvento } from "./evento";
+import { comConta, comEvento } from "./evento";
 
 export type EstadoDoEvento =
   | "aberto"
@@ -100,6 +100,74 @@ export async function packDoEvento(cliente: PoolClient, eventoId: string): Promi
   );
 
   return rows[0]?.pack_id ?? null;
+}
+
+/** Slug legível, sem l/o/0/1: vai impresso na placa e alguém pode reconferir. */
+const ALFABETO_SLUG = "abcdefghijkmnpqrstuvwxyz23456789";
+const TAMANHO_SLUG = 8;
+
+function gerarSlug(rand: () => number): string {
+  let s = "";
+  for (let i = 0; i < TAMANHO_SLUG; i++) s += ALFABETO_SLUG[Math.floor(rand() * ALFABETO_SLUG.length)];
+  return s;
+}
+
+function ehColisaoDeSlug(e: unknown): boolean {
+  return typeof e === "object" && e !== null && (e as { code?: string }).code === "23505";
+}
+
+export type NovoEvento = {
+  accountId: string;
+  packId: string;
+  comecaEm: Date;
+  terminaEm: Date;
+  identityTokens?: Record<string, unknown>;
+};
+
+/**
+ * Cria o evento de uma conta (spec 009).
+ *
+ * 🔴 Roda em `comConta`: a política `conta_evento` de `events` e o `WITH CHECK`
+ * garantem que a linha nasce presa ao `accountId` da sessão de host — uma conta
+ * não cria evento para outra. O `event_slugs` (fora da RLS) e o `events`
+ * nascem na mesma transação: um evento sem porta de QR não existiria para o
+ * convidado.
+ *
+ * O slug é sorteado e reaposta na colisão — improvável, mas não pode virar erro
+ * na cara do casal que só quis criar a festa. O `pack_id` é conferido pela FK:
+ * pack fora do conjunto estoura antes de qualquer linha.
+ */
+export async function criarEvento(
+  pool: Pool,
+  entrada: NovoEvento,
+  rand: () => number = Math.random,
+): Promise<{ eventoId: string; slug: string }> {
+  return comConta(pool, entrada.accountId, async (c) => {
+    for (let tentativa = 0; tentativa < 6; tentativa++) {
+      const slug = gerarSlug(rand);
+      try {
+        const { rows } = await c.query<{ id: string }>(
+          `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, identity_tokens)
+           VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+          [
+            entrada.accountId,
+            entrada.packId,
+            slug,
+            entrada.comecaEm,
+            entrada.terminaEm,
+            JSON.stringify(entrada.identityTokens ?? {}),
+          ],
+        );
+        const eventoId = rows[0]!.id;
+        await c.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [slug, eventoId]);
+        return { eventoId, slug };
+      } catch (e) {
+        if (ehColisaoDeSlug(e)) continue;
+        throw e;
+      }
+    }
+    throw new Error("não foi possível gerar um slug livre");
+  });
 }
 
 /**
