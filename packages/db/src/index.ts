@@ -39,3 +39,31 @@ export {
 
 export type { MidiaNaParede } from "./parede-midia";
 export { listarMidiaDaParede, TETO_DA_PAREDE } from "./parede-midia";
+
+export type {
+  MotivoAutorizacaoInvalida,
+  PareamentoCriado,
+  StatusDoPareamento,
+} from "./pareamento";
+export {
+  autorizarPareamento,
+  criarPareamento,
+  ErroAutorizacaoDePareamento,
+  finalizarPareamento,
+} from "./pareamento";
+
+export type { ComentarioComAutor, ComentarioGravado } from "./comentario-db";
+export {
+  ErroComentarioDeOutroEvento,
+  gravarComentario,
+  listarComentariosDaFoto,
+  removerComentario,
+} from "./comentario-db";
+
+export {
+  adicionarSugestao,
+  definirMusicaDoCasal,
+  ErroProvedorForaDoConjunto,
+  listarSugestoes,
+  musicaDoCasal,
+} from "./musica-db";

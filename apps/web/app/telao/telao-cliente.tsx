@@ -12,19 +12,18 @@ import {
 } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import { raio } from "../../landing/pecas";
+import { raio } from "../landing/pecas";
 
 /**
- * A parede, no navegador da TV (spec 010).
+ * O telão do salão (spec 010), em duas fases.
  *
- * 🔴 Nada corta na vertical. Todo modelo desenha com `object-fit: contain`,
- * menos `cheio`, que sangra e por isso só recebe foto horizontal — e a seleção
- * já filtra as verticais para fora dele. Contain nunca recorta: a regra vermelha
- * está no CSS e na escolha, duas camadas para a mesma invariante.
+ * **Parear:** a TV pede um código, mostra na tela, e faz poll. Alguém que já
+ * está no evento — convidado ou anfitrião — digita o código no app e autoriza.
+ * O crachá volta num cookie `HttpOnly`; a TV nunca toca nele.
  *
- * O crachá chega na URL, é lido uma vez e apagado da barra de endereço antes do
- * primeiro quadro. As fotos vêm de `/api/parede` com `Authorization: Bearer`,
- * nunca com o token na querystring.
+ * **Exibir:** com o crachá no cookie, a TV lê `/api/parede` e roda os oito
+ * modelos. 🔴 Nada corta na vertical: todo modelo desenha com `contain`, menos
+ * `cheio`, que só recebe foto horizontal — a regra está no CSS e na seleção.
  */
 
 type ItemApi = {
@@ -37,32 +36,74 @@ type ItemApi = {
   expiraEm: number;
 };
 
-const POLL_MS = 6_000;
+const POLL_PAREAMENTO_MS = 3_000;
+const POLL_MIDIA_MS = 6_000;
 const ROTACAO_MS = 8_000;
-/** Renova a URL antes de ela expirar, com folga para não piscar no meio de uma cena. */
 const FOLGA_DE_RENOVACAO_MS = 90_000;
 
-/**
- * A ordem em que os modelos entram. Começa nos de uma foto, que funcionam com o
- * acervo pequeno do início da festa; os de várias só entram quando há fotos que
- * cheguem para preenchê-los. A escolha real do casal (spec 009) substitui esta
- * lista quando o admin existir.
- */
 const ROTACAO: readonly ModeloDeTelao[] = MODELOS_DE_TELAO;
 
 type Cena = { modelo: ModeloDeTelao; ids: string[] };
 
-export function Telao({ variaveis }: { variaveis: Record<string, string> }) {
-  const crachaRef = useRef<string | null>(null);
+export function Telao({ variaveisIniciais }: { variaveisIniciais: Record<string, string> }) {
+  const [fase, setFase] = useState<"pareando" | "exibindo">("pareando");
+  const [codigo, setCodigo] = useState<string | null>(null);
+  const [variaveis, setVariaveis] = useState(variaveisIniciais);
+
   const itensRef = useRef<Map<string, ItemApi>>(new Map());
   const dimsRef = useRef<Map<string, { largura: number; altura: number }>>(new Map());
   const exibicoesRef = useRef<Map<string, number>>(new Map());
   const rotacaoRef = useRef(0);
 
   const [cena, setCena] = useState<Cena | null>(null);
-  const [erro, setErro] = useState<null | "sem-cracha" | "expirou">(null);
   const [carregou, setCarregou] = useState(false);
 
+  // ── Fase parear ────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (fase !== "pareando") return;
+    let vivo = true;
+
+    const abrir = async () => {
+      try {
+        const r = await fetch("/api/parede/parear", { method: "POST", credentials: "same-origin" });
+        if (!r.ok) return;
+        const { code } = (await r.json()) as { code: string };
+        if (vivo) setCodigo(code);
+      } catch {
+        /* rede caiu: o próximo tick tenta de novo */
+      }
+    };
+
+    const conferir = async () => {
+      try {
+        const r = await fetch("/api/parede/parear/status", { credentials: "same-origin" });
+        if (!r.ok) return;
+        const corpo = (await r.json()) as
+          | { status: "pendente" }
+          | { status: "expirado" }
+          | { status: "pronto"; variaveis: Record<string, string> };
+        if (!vivo) return;
+        if (corpo.status === "pronto") {
+          setVariaveis(corpo.variaveis);
+          setFase("exibindo");
+        } else if (corpo.status === "expirado") {
+          setCodigo(null);
+          void abrir();
+        }
+      } catch {
+        /* ignora e tenta no próximo tick */
+      }
+    };
+
+    void abrir();
+    const p = window.setInterval(() => void conferir(), POLL_PAREAMENTO_MS);
+    return () => {
+      vivo = false;
+      window.clearInterval(p);
+    };
+  }, [fase]);
+
+  // ── Fase exibir ────────────────────────────────────────────────────────
   const medir = useCallback((item: ItemApi) => {
     if (dimsRef.current.has(item.id)) return;
     const img = new Image();
@@ -75,21 +116,15 @@ export function Telao({ variaveis }: { variaveis: Record<string, string> }) {
   }, []);
 
   const puxar = useCallback(async () => {
-    const cracha = crachaRef.current;
-    if (!cracha) return;
-
     let resposta: Response;
     try {
-      resposta = await fetch("/api/parede", {
-        headers: { authorization: `Bearer ${cracha}` },
-        cache: "no-store",
-      });
+      resposta = await fetch("/api/parede", { credentials: "same-origin", cache: "no-store" });
     } catch {
-      return; // rede caiu: a TV segue mostrando o cache e tenta no próximo poll.
+      return;
     }
-
     if (resposta.status === 401) {
-      setErro("expirou");
+      // O crachá caiu: volta a parear em vez de mostrar tela morta.
+      setFase("pareando");
       return;
     }
     if (!resposta.ok) return;
@@ -99,8 +134,6 @@ export function Telao({ variaveis }: { variaveis: Record<string, string> }) {
 
     for (const bruto of corpo.itens) {
       const existente = itensRef.current.get(bruto.id);
-      // Mantém a URL estável enquanto vale: trocá-la a cada poll recarregaria a
-      // foto e piscaria no meio da cena. Só renova quando está perto de expirar.
       if (existente && existente.expiraEm - agora > FOLGA_DE_RENOVACAO_MS) {
         existente.reacoes = bruto.reacoes;
         continue;
@@ -110,8 +143,6 @@ export function Telao({ variaveis }: { variaveis: Record<string, string> }) {
       medir(item);
     }
 
-    // Poda o cache pelas mais recentes: com o cabo arrancado, o que a TV tem
-    // para mostrar é o fim da festa, não o começo.
     const podadas = podarCache(
       [...itensRef.current.values()].map((i) => ({
         id: i.id,
@@ -139,7 +170,7 @@ export function Telao({ variaveis }: { variaveis: Record<string, string> }) {
     const itens: ItemDoTelao[] = [];
     for (const [id, api] of itensRef.current) {
       const dim = dimsRef.current.get(id);
-      if (!dim) continue; // ainda não medida: não entra até saber se corta.
+      if (!dim) continue;
       itens.push({
         id,
         criadaEm: new Date(api.criadaEm),
@@ -160,11 +191,7 @@ export function Telao({ variaveis }: { variaveis: Record<string, string> }) {
     }
     const elegiveis = itens
       .filter((i) => !modeloCorta(modelo, i))
-      .sort(
-        (a, b) => a.exibicoes - b.exibicoes || b.criadaEm.getTime() - a.criadaEm.getTime(),
-      );
-    // Modelo de várias fotos só entra quando há como preenchê-lo: um mosaico de
-    // nove com três buracos lê como tela quebrada.
+      .sort((a, b) => a.exibicoes - b.exibicoes || b.criadaEm.getTime() - a.criadaEm.getTime());
     if (elegiveis.length < perfil.fotos) return [];
     return elegiveis.slice(0, perfil.fotos).map((i) => i.id);
   }, []);
@@ -188,25 +215,15 @@ export function Telao({ variaveis }: { variaveis: Record<string, string> }) {
   }, [paraItemDoTelao, selecionar]);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const cracha = params.get("cracha");
-    if (!cracha) {
-      setErro("sem-cracha");
-      return;
-    }
-    crachaRef.current = cracha;
-    // Tira o crachá da barra de endereço: some do histórico, do referrer e do
-    // print de tela que alguém faz da TV.
-    window.history.replaceState(null, "", window.location.pathname);
-
+    if (fase !== "exibindo") return;
     void puxar();
-    const pApoll = window.setInterval(() => void puxar(), POLL_MS);
+    const pApoll = window.setInterval(() => void puxar(), POLL_MIDIA_MS);
     const pRot = window.setInterval(girar, ROTACAO_MS);
     return () => {
       window.clearInterval(pApoll);
       window.clearInterval(pRot);
     };
-  }, [puxar, girar]);
+  }, [fase, puxar, girar]);
 
   const base: CSSProperties = {
     ...(variaveis as CSSProperties),
@@ -218,19 +235,41 @@ export function Telao({ variaveis }: { variaveis: Record<string, string> }) {
     fontFamily: "var(--fonte-corpo)",
   };
 
-  if (erro) {
+  if (fase === "pareando") {
     return (
       <main style={{ ...base, display: "grid", placeItems: "center", padding: "2rem" }}>
-        <p style={{ fontSize: "1.5rem", color: "var(--ink-2)", textAlign: "center", maxWidth: "24ch" }}>
-          {erro === "sem-cracha"
-            ? "Abra o telão pelo link do painel."
-            : "O link do telão expirou. Gere outro no painel."}
-        </p>
+        <div style={{ textAlign: "center", maxWidth: "32ch" }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: "clamp(1rem, 2vw, 1.5rem)",
+              color: "var(--ink-2)",
+              letterSpacing: "var(--tracking-rotulo)",
+              textTransform: "uppercase",
+            }}
+          >
+            Para ligar o telão
+          </p>
+          <p
+            style={{
+              margin: "1.5rem 0",
+              fontFamily: "var(--fonte-titulo)",
+              fontSize: "clamp(3rem, 12vw, 8rem)",
+              letterSpacing: "0.15em",
+              color: "var(--acento)",
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {codigo ?? "······"}
+          </p>
+          <p style={{ margin: 0, fontSize: "clamp(0.95rem, 1.8vw, 1.35rem)", color: "var(--ink-2)", lineHeight: 1.5 }}>
+            No app do evento, abra as configurações e digite este código. Vale para
+            quem já entrou na festa — convidado ou anfitrião.
+          </p>
+        </div>
       </main>
     );
   }
-
-  const itemDe = (id: string): ItemApi | undefined => itensRef.current.get(id);
 
   return (
     <main style={base}>
@@ -241,7 +280,7 @@ export function Telao({ variaveis }: { variaveis: Record<string, string> }) {
           </p>
         </div>
       ) : (
-        <Palco cena={cena} itemDe={itemDe} />
+        <Palco cena={cena} itemDe={(id) => itensRef.current.get(id)} />
       )}
     </main>
   );
@@ -263,25 +302,25 @@ function Palco({ cena, itemDe }: { cena: Cena; itemDe: (id: string) => ItemApi |
   };
 
   if (cena.modelo === "cheio") {
-    const [only] = itens;
+    const only = itens[0]!;
     return (
       <div style={{ position: "absolute", inset: 0 }}>
         <img
-          src={only!.full}
+          src={only.full}
           alt=""
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
-        <Credito autor={only!.autor} reacoes={only!.reacoes} />
+        <Credito autor={only.autor} reacoes={only.reacoes} />
       </div>
     );
   }
 
   if (cena.modelo === "ambiente") {
-    const [only] = itens;
+    const only = itens[0]!;
     return (
       <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
         <img
-          src={only!.full}
+          src={only.full}
           alt=""
           aria-hidden
           style={{
@@ -294,15 +333,15 @@ function Palco({ cena, itemDe }: { cena: Cena; itemDe: (id: string) => ItemApi |
           }}
         />
         <div style={palco}>
-          <Foto src={only!.full} enquadrar="contain" />
+          <Foto src={only.full} enquadrar="contain" />
         </div>
-        <Credito autor={only!.autor} reacoes={only!.reacoes} />
+        <Credito autor={only.autor} reacoes={only.reacoes} />
       </div>
     );
   }
 
   if (cena.modelo === "polaroide" || cena.modelo === "carrossel" || cena.modelo === "tbt") {
-    const [only] = itens;
+    const only = itens[0]!;
     const emoldurado = cena.modelo !== "carrossel";
     return (
       <div style={palco}>
@@ -337,7 +376,7 @@ function Palco({ cena, itemDe }: { cena: Cena; itemDe: (id: string) => ItemApi |
               Mais cedo, na festa
             </figcaption>
           )}
-          <Foto src={only!.full} enquadrar="contain" />
+          <Foto src={only.full} enquadrar="contain" />
           <figcaption
             style={{
               marginTop: "0.75rem",
@@ -349,17 +388,15 @@ function Palco({ cena, itemDe }: { cena: Cena; itemDe: (id: string) => ItemApi |
               color: emoldurado ? "var(--ink-2)" : "var(--ink)",
             }}
           >
-            <span>{only!.autor}</span>
-            {only!.reacoes > 0 && <span style={{ color: "var(--acento)" }}>★ {only!.reacoes}</span>}
+            <span>{only.autor}</span>
+            {only.reacoes > 0 && <span style={{ color: "var(--acento)" }}>★ {only.reacoes}</span>}
           </figcaption>
         </figure>
       </div>
     );
   }
 
-  // mural (3), colagem (5), dump (9): grade que preenche a tela, cada célula
-  // contém a foto sem cortar.
-  const colunas = cena.modelo === "mural" ? 3 : cena.modelo === "colagem" ? 3 : 3;
+  const colunas = 3;
   const linhas = cena.modelo === "mural" ? 1 : cena.modelo === "colagem" ? 2 : 3;
   return (
     <div

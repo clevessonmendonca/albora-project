@@ -3,26 +3,41 @@ import { banco } from "./banco";
 import { config } from "./config";
 
 /**
- * O crachá da parede, do lado da rota.
+ * As credenciais do telão, do lado da rota.
  *
- * Chega em `Authorization: Bearer <crachá>`, **nunca** em querystring: o guard
- * `sessao` reprova `?token=` porque vaza por referrer e log de proxy, e o
- * crachá é credencial como qualquer outra. Na URL do telão ele aparece uma vez
- * só — quando o anfitrião abre o link na TV — e o cliente o tira da barra de
- * endereço antes do primeiro quadro.
+ * Duas, ambas em cookie `HttpOnly` — **nunca** na URL, que o guard `sessao`
+ * reprova porque vaza por referrer e log de proxy:
  *
- * Resolve pela `wall_tokens`, não pela `session_tokens`: mesma assinatura, tabela
- * diferente, e por isso autoriza só leitura. Uma TV pendurada num salão é a
- * credencial mais fácil de furtar do produto; ela não pode subir foto.
+ * - `albora_parede`: o crachá de leitura. A TV o recebe ao fim do pareamento e
+ *   o navegador o manda sozinho em cada poll de `/api/parede`. Só lê.
+ * - `albora_pareamento`: o token de poll, secreto de máquina. Vive enquanto o
+ *   pareamento está aberto e some quando vira crachá.
+ *
+ * O crachá resolve pela `wall_tokens`, não pela `session_tokens`: mesma
+ * assinatura, tabela diferente, e por isso autoriza só leitura. Uma TV
+ * pendurada num salão não pode subir foto.
  */
+
+export const COOKIE_PAREDE = "albora_parede";
+export const COOKIE_PAREAMENTO = "albora_pareamento";
+
+function lerCookie(req: Request, nome: string): string | null {
+  const bruto = req.headers.get("cookie");
+  if (!bruto) return null;
+
+  for (const parte of bruto.split(";")) {
+    const [chave, ...resto] = parte.trim().split("=");
+    if (chave === nome) return resto.join("=") || null;
+  }
+  return null;
+}
+
 export function crachaDaRequisicao(req: Request): string | null {
-  const auth = req.headers.get("authorization");
-  if (!auth) return null;
+  return lerCookie(req, COOKIE_PAREDE);
+}
 
-  const [esquema, valor] = auth.split(" ");
-  if (esquema?.toLowerCase() !== "bearer" || !valor) return null;
-
-  return valor;
+export function pollTokenDaRequisicao(req: Request): string | null {
+  return lerCookie(req, COOKIE_PAREAMENTO);
 }
 
 /**
@@ -38,4 +53,29 @@ export async function paredeDaRequisicao(req: Request): Promise<ParedeResolvida 
   } catch {
     return null;
   }
+}
+
+function cookie(nome: string, valor: string, maxAgeSegundos: number): string {
+  const atributos = [
+    `${nome}=${valor}`,
+    "Path=/",
+    "HttpOnly",
+    "SameSite=Lax",
+    `Max-Age=${maxAgeSegundos}`,
+  ];
+  if (process.env.APP_ENV !== "dev") atributos.push("Secure");
+  return atributos.join("; ");
+}
+
+export function cookieDoCracha(cracha: string, validadeHoras: number): string {
+  return cookie(COOKIE_PAREDE, cracha, validadeHoras * 3600);
+}
+
+export function cookieDoPareamento(pollToken: string, validadeSegundos: number): string {
+  return cookie(COOKIE_PAREAMENTO, pollToken, validadeSegundos);
+}
+
+/** Zera um cookie do telão — Max-Age 0 apaga na hora. */
+export function limparCookie(nome: string): string {
+  return cookie(nome, "", 0);
 }

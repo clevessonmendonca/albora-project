@@ -25,6 +25,9 @@ const TABELAS_DE_EVENTO = [
   "uploads",
   "reactions",
   "funnel_events",
+  "comments",
+  "event_music",
+  "music_suggestions",
 ];
 
 beforeAll(async () => {
@@ -232,6 +235,10 @@ const FORA_DA_RLS = new Map([
   ["session_tokens", "porta de entrada: resolve token → event_id, antes de haver contexto"],
   ["event_slugs", "porta do QR: resolve slug → event_id. O slug não é segredo — está impresso na mesa"],
   ["wall_tokens", "porta da TV: resolve crachá → event_id, mesmo circular da sessão. Só leitura"],
+  [
+    "wall_pairings",
+    "porta de pareamento da TV: nasce sem evento e ganha um quando alguém autoriza — resolve por código e por token de poll antes de haver contexto",
+  ],
 ]);
 
 describe("7 — nenhuma tabela nova escapa da política", () => {
@@ -271,6 +278,27 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
       "expires_at",
       "revoked_at",
       "token_hash",
+    ]);
+  });
+
+  it("a porta de pareamento não cresce, e não guarda nome nem conteúdo", async () => {
+    const { rows } = await admin.query<{ coluna: string }>(
+      `SELECT column_name AS coluna FROM information_schema.columns
+       WHERE table_name = 'wall_pairings' ORDER BY column_name`,
+    );
+
+    // Só o mapeamento código/token → evento, mais o consentimento de quem ligou.
+    // Nenhuma coluna de convidado, nenhuma foto. Quem ler esta tabela inteira
+    // sabe que existem pareamentos e a quais eventos foram presos — nada além.
+    expect(rows.map((r) => r.coluna)).toEqual([
+      "code",
+      "consent_version",
+      "created_at",
+      "event_id",
+      "expires_at",
+      "id",
+      "poll_token_hash",
+      "status",
     ]);
   });
 
