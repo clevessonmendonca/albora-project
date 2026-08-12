@@ -1,5 +1,9 @@
 "use client";
 
+import type { ModoInteracao } from "@albora/core";
+import { InteracaoDaFoto } from "../interacao-da-foto";
+import type { ResultadoReacao } from "@/lib/usar-reacao";
+
 /**
  * Uma foto no feed em coluna única.
  *
@@ -27,10 +31,26 @@ const MIDIA: React.CSSProperties = {
 };
 
 export function Publicacao({
+  uploadId,
+  interacao,
+  reacoes,
+  minhaReacao,
+  sessaoAutor,
+  minha,
+  onReacoes,
+  onBloqueado,
   url,
   autor,
   legenda,
 }: {
+  uploadId: string;
+  interacao: ModoInteracao;
+  reacoes?: number;
+  minhaReacao?: string | null;
+  sessaoAutor?: string;
+  minha?: boolean;
+  onReacoes?: (resultado: ResultadoReacao) => void;
+  onBloqueado?: () => void;
   url: string | null;
   autor: string;
   legenda: string | null;
@@ -92,6 +112,18 @@ export function Publicacao({
           />
         )}
       </div>
+
+      <InteracaoDaFoto
+        uploadId={uploadId}
+        interacao={interacao}
+        autor={autor}
+        {...(reacoes !== undefined ? { reacoesInicial: reacoes } : {})}
+        {...(minhaReacao !== undefined ? { minhaInicial: minhaReacao } : {})}
+        {...(sessaoAutor ? { sessaoAutor } : {})}
+        {...(minha !== undefined ? { minha } : {})}
+        {...(onReacoes ? { onReacoes } : {})}
+        {...(onBloqueado ? { onBloqueado } : {})}
+      />
 
       {legenda && (
         <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.6, color: "var(--ink-2)" }}>

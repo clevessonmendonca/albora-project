@@ -1,9 +1,12 @@
 "use client";
 
+import type { ModoInteracao } from "@albora/core";
 import { useEffect, useRef, useState } from "react";
 import { rotuloDeHora } from "@/lib/agrupar-por-hora";
 import type { UrlDeMidia } from "@/lib/midia";
+import type { ResultadoReacao } from "@/lib/usar-reacao";
 import type { ItemVisivel } from "@/lib/usar-feed";
+import { InteracaoDaFoto } from "../interacao-da-foto";
 import { Quadro } from "./quadro";
 
 /**
@@ -58,19 +61,25 @@ export function Reprodutor({
   indice,
   hora,
   urls,
+  interacao,
   caminhoDaCamera,
   movimentoReduzido,
   onIr,
   onSair,
+  onReacoes,
+  onBloqueado,
 }: {
   itens: ItemVisivel[];
   indice: number;
   hora: number;
   urls: Map<string, UrlDeMidia>;
+  interacao: ModoInteracao;
   caminhoDaCamera: string;
   movimentoReduzido: boolean;
   onIr: (indice: number) => void;
   onSair: () => void;
+  onReacoes?: (uploadId: string, resultado: ResultadoReacao) => void;
+  onBloqueado?: () => void;
 }) {
   const [segurando, setSegurando] = useState(false);
 
@@ -391,6 +400,17 @@ export function Reprodutor({
                 {atual.legenda}
               </p>
             )}
+            <InteracaoDaFoto
+              uploadId={atual.id}
+              interacao={interacao}
+              autor={atual.autor}
+              {...(atual.reacoes !== undefined ? { reacoesInicial: atual.reacoes } : {})}
+              {...(atual.minhaReacao !== undefined ? { minhaInicial: atual.minhaReacao } : {})}
+              {...(atual.sessaoAutor ? { sessaoAutor: atual.sessaoAutor } : {})}
+              {...(atual.minha !== undefined ? { minha: atual.minha } : {})}
+              {...(onReacoes ? { onReacoes: (r) => onReacoes(atual.id, r) } : {})}
+              {...(onBloqueado ? { onBloqueado } : {})}
+            />
           </div>
         )}
 

@@ -9,9 +9,16 @@ import {
   comUrls,
   estadoInicial,
   reiniciado,
+  sincronizarTopo,
   type EstadoFeed,
   type ItemVisivel,
 } from "./usar-feed";
+
+const pagina = (itens: ItemVisivel[], proximoCursor: string | null) => ({
+  itens,
+  proximoCursor,
+  interacao: "espelho" as const,
+});
 
 const item = (id: string): ItemVisivel => ({
   id,
@@ -39,7 +46,7 @@ describe("a primeira tela já vem carregando", () => {
   });
 
   it("trocar de filtro não pisca vazio antes da resposta", () => {
-    const cheio = comPagina(estadoInicial(), { itens: [item("a")], proximoCursor: null });
+    const cheio = comPagina(estadoInicial(), pagina([item("a")], null));
 
     expect(reiniciado(cheio).carregando).toBe(true);
     expect(reiniciado(cheio).jaCarregou).toBe(false);
@@ -48,8 +55,8 @@ describe("a primeira tela já vem carregando", () => {
 
 describe("paginação por cursor", () => {
   it("empilha a página nova depois do que já está na tela", () => {
-    const um = comPagina(estadoInicial(), { itens: [item("a"), item("b")], proximoCursor: "c1" });
-    const dois = comPagina(um, { itens: [item("c")], proximoCursor: "c2" });
+    const um = comPagina(estadoInicial(), pagina([item("a"), item("b")], "c1"));
+    const dois = comPagina(um, pagina([item("c")], "c2"));
 
     expect(dois.itens.map((i) => i.id)).toEqual(["a", "b", "c"]);
     expect(dois.cursor).toBe("c2");
@@ -57,22 +64,22 @@ describe("paginação por cursor", () => {
   });
 
   it("cursor nulo é o fim da lista", () => {
-    const e = comPagina(estadoInicial(), { itens: [item("a")], proximoCursor: null });
+    const e = comPagina(estadoInicial(), pagina([item("a")], null));
 
     expect(e.fim).toBe(true);
     expect(e.cursor).toBeNull();
   });
 
   it("a mesma página chegando duas vezes não duplica item", () => {
-    const um = comPagina(estadoInicial(), { itens: [item("a"), item("b")], proximoCursor: "c1" });
-    const dois = comPagina(um, { itens: [item("b"), item("c")], proximoCursor: "c2" });
+    const um = comPagina(estadoInicial(), pagina([item("a"), item("b")], "c1"));
+    const dois = comPagina(um, pagina([item("b"), item("c")], "c2"));
 
     expect(dois.itens.map((i) => i.id)).toEqual(["a", "b", "c"]);
   });
 
   it("página sem item novo preserva a referência da lista", () => {
-    const um = comPagina(estadoInicial(), { itens: [item("a")], proximoCursor: "c1" });
-    const dois = comPagina(um, { itens: [item("a")], proximoCursor: null });
+    const um = comPagina(estadoInicial(), pagina([item("a")], "c1"));
+    const dois = comPagina(um, pagina([item("a")], null));
 
     expect(dois.itens).toBe(um.itens);
   });
@@ -80,7 +87,7 @@ describe("paginação por cursor", () => {
 
 describe("falha não joga a rolagem para o topo", () => {
   it("cursor recusado mantém tudo que já está na tela", () => {
-    const cheio = comPagina(estadoInicial(), { itens: [item("a"), item("b")], proximoCursor: "c1" });
+    const cheio = comPagina(estadoInicial(), pagina([item("a"), item("b")], "c1"));
     const falhou = comFalha(cheio, "cursor");
 
     expect(falhou.itens.map((i) => i.id)).toEqual(["a", "b"]);
@@ -90,7 +97,7 @@ describe("falha não joga a rolagem para o topo", () => {
 
   it("recomeçar é explícito, e guarda o cache de URLs", () => {
     const cheio = comUrls(
-      comPagina(estadoInicial(), { itens: [item("a")], proximoCursor: "c1" }),
+      comPagina(estadoInicial(), pagina([item("a")], "c1")),
       new Map([["events/e/a/thumb", url("events/e/a/thumb", 9_000_000)]]),
     );
     const zerado = reiniciado(cheio);
@@ -103,7 +110,7 @@ describe("falha não joga a rolagem para o topo", () => {
 
 describe("URLs de mídia em lote", () => {
   const comItens = (ids: string[]): EstadoFeed =>
-    comPagina(estadoInicial(), { itens: ids.map(item), proximoCursor: null });
+    comPagina(estadoInicial(), pagina(ids.map(item), null));
 
   it("pede só as chaves que ainda não têm URL viva", () => {
     const e = comUrls(
@@ -130,7 +137,7 @@ describe("URLs de mídia em lote", () => {
       { ...item("a"), chaveThumb: "events/e/x/thumb" },
       { ...item("b"), chaveThumb: "events/e/x/thumb" },
     ];
-    const e = comPagina(estadoInicial(), { itens: repetida, proximoCursor: null });
+    const e = comPagina(estadoInicial(), pagina(repetida, null));
 
     expect(chavesSemUrl(e, 1_000_000)).toEqual(["events/e/x/thumb"]);
   });
@@ -199,7 +206,7 @@ describe("degradação quando a rota de mídia não responde", () => {
 
   it("a marca sai quando a mídia volta", () => {
     const caiu = comFalhaDeMidia(
-      comPagina(estadoInicial(), { itens: [item("a")], proximoCursor: null }),
+      comPagina(estadoInicial(), pagina([item("a")], null)),
     );
     const voltou = comUrls(
       caiu,
@@ -211,10 +218,29 @@ describe("degradação quando a rota de mídia não responde", () => {
 
   it("falha de mídia não derruba os itens do feed", () => {
     const caiu = comFalhaDeMidia(
-      comPagina(estadoInicial(), { itens: [item("a")], proximoCursor: null }),
+      comPagina(estadoInicial(), pagina([item("a")], null)),
     );
 
     expect(caiu.itens).toHaveLength(1);
+  });
+});
+
+describe("sincronização do topo ao vivo", () => {
+  it("tira da tela o que sumiu do telão sem reiniciar a rolagem", () => {
+    const carregado = comPagina(
+      estadoInicial(),
+      pagina([item("a"), item("b"), item("c")], "c1"),
+    );
+    const mais = comPagina(carregado, pagina([item("d")], null));
+
+    const sync = sincronizarTopo(mais, {
+      itens: [item("b"), item("c")],
+      proximoCursor: "c1",
+      interacao: "completo",
+    });
+
+    expect(sync.itens.map((i) => i.id)).toEqual(["b", "c", "d"]);
+    expect(sync.interacao).toBe("completo");
   });
 });
 
@@ -250,7 +276,7 @@ describe("contrato com a rota do feed", () => {
     expect(String(buscar.mock.calls[0]?.[0])).toBe("/api/feed");
   });
 
-  it("projeta o item sem a contagem, mesmo quando ela vem na resposta", async () => {
+  it("inclui reacoes quando o servidor manda modo completo", async () => {
     vi.stubGlobal(
       "fetch",
       responder({
@@ -263,11 +289,11 @@ describe("contrato com a rota do feed", () => {
             legenda: "no brinde",
             lugar: "Pista",
             criadaEm: "2026-08-11T23:10:00.000Z",
-            missaoId: "11111111-1111-1111-1111-111111111111",
             reacoes: 12,
           },
         ],
         proximoCursor: "c1",
+        interacao: "completo",
       }),
     );
 
@@ -283,7 +309,9 @@ describe("contrato com a rota do feed", () => {
       legenda: "no brinde",
       lugar: "Pista",
       criadaEm: "2026-08-11T23:10:00.000Z",
+      reacoes: 12,
     });
+    expect(r.pagina.interacao).toBe("completo");
   });
 
   it("instante ilegível não derruba a foto do feed", async () => {

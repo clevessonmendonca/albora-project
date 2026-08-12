@@ -1,5 +1,6 @@
 "use client";
 
+import type { ModoInteracao } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { expirou, urlsDeMidia, type UrlDeMidia } from "./midia";
 
@@ -25,6 +26,8 @@ import { expirou, urlsDeMidia, type UrlDeMidia } from "./midia";
  * tira de horas passaram a viver nesta mesma tela: o arquivo cheio é o que a
  * tela cheia mostra, e o instante é o que forma a hora. Buscá-los por um segundo
  * caminho seria pedir a mesma página do feed duas vezes por aparelho.
+ *
+ * `reacoes` e `minhaReacao` só existem depois do gate — o servidor omite antes.
  */
 export type ItemVisivel = {
   id: string;
@@ -35,6 +38,10 @@ export type ItemVisivel = {
   lugar: string | null;
   /** Instante do JSON, não `Date`: quem agrupa por hora converte. */
   criadaEm: string;
+  reacoes?: number;
+  minhaReacao?: string | null;
+  sessaoAutor?: string;
+  minha?: boolean;
 };
 
 /** O cliente ramifica no motivo, nunca no texto da mensagem. */
@@ -48,11 +55,15 @@ export type EstadoFeed = {
   jaCarregou: boolean;
   falha: FalhaFeed | null;
   urls: Map<string, UrlDeMidia>;
-  /** A rota de mídia não respondeu. A grade mostra moldura vazia, nunca ícone quebrado. */
   midiaIndisponivel: boolean;
+  interacao: ModoInteracao;
 };
 
-export type PaginaVisivel = { itens: ItemVisivel[]; proximoCursor: string | null };
+export type PaginaVisivel = {
+  itens: ItemVisivel[];
+  proximoCursor: string | null;
+  interacao: ModoInteracao;
+};
 
 /**
  * Já nasce carregando: é o estado que o servidor renderiza, e por isso a
@@ -69,6 +80,7 @@ export function estadoInicial(): EstadoFeed {
     falha: null,
     urls: new Map(),
     midiaIndisponivel: false,
+    interacao: "espelho",
   };
 }
 
@@ -90,6 +102,7 @@ export function comPagina(estado: EstadoFeed, pagina: PaginaVisivel): EstadoFeed
     carregando: false,
     jaCarregou: true,
     falha: null,
+    interacao: pagina.interacao,
   };
 }
 
@@ -195,6 +208,10 @@ type ItemDaRede = {
   legenda: string | null;
   lugar: string | null;
   criadaEm: string;
+  reacoes?: number;
+  minhaReacao?: string | null;
+  sessaoAutor?: string;
+  minha?: boolean;
 };
 
 /**
@@ -225,12 +242,22 @@ export async function buscarPagina(missaoId: string | null, cursor: string | nul
     return { ok: false, falha: code === "feed.cursor_invalido" ? "cursor" : "rede" };
   }
 
-  let corpo: { itens?: ItemDaRede[]; proximoCursor?: string | null };
+  let corpo: {
+    itens?: ItemDaRede[];
+    proximoCursor?: string | null;
+    interacao?: ModoInteracao;
+  };
   try {
-    corpo = (await res.json()) as { itens?: ItemDaRede[]; proximoCursor?: string | null };
+    corpo = (await res.json()) as {
+      itens?: ItemDaRede[];
+      proximoCursor?: string | null;
+      interacao?: ModoInteracao;
+    };
   } catch {
     return { ok: false, falha: "rede" };
   }
+
+  const interacao = corpo.interacao === "completo" ? "completo" : "espelho";
 
   return {
     ok: true,
@@ -242,11 +269,14 @@ export async function buscarPagina(missaoId: string | null, cursor: string | nul
         autor: i.autor,
         legenda: i.legenda ?? null,
         lugar: i.lugar ?? null,
-        // Instante ilegível vira string vazia e some do agrupamento por hora, em
-        // vez de derrubar a foto do feed: a foto existe, o relógio é que falhou.
         criadaEm: typeof i.criadaEm === "string" ? i.criadaEm : "",
+        ...(typeof i.reacoes === "number" ? { reacoes: i.reacoes } : {}),
+        ...(i.minhaReacao !== undefined ? { minhaReacao: i.minhaReacao } : {}),
+        ...(typeof i.sessaoAutor === "string" ? { sessaoAutor: i.sessaoAutor } : {}),
+        ...(typeof i.minha === "boolean" ? { minha: i.minha } : {}),
       })),
       proximoCursor: corpo.proximoCursor ?? null,
+      interacao,
     },
   };
 }
@@ -262,6 +292,40 @@ async function codigoDoErro(res: Response): Promise<string | null> {
 
 /** Uma tentativa a cada meio minuto renova o que expirou sem virar tráfego de fundo. */
 const INTERVALO_DE_RENOVACAO_MS = 30_000;
+
+/** Enquanto o gate está fechado, confere se a interação abriu (spec 007). */
+const INTERVALO_DO_GATE_MS = 30_000;
+
+/**
+ * Mescla a primeira página do servidor no topo do feed.
+ *
+ * Fotos retiradas por pânico ou moderação somem da janela recente sem
+ * reiniciar a rolagem inteira — o convidado só perde o que o telão já perdeu.
+ */
+export function sincronizarTopo(estado: EstadoFeed, pagina: PaginaVisivel): EstadoFeed {
+  if (pagina.itens.length === 0) return { ...estado, interacao: pagina.interacao };
+
+  const novos = new Map(pagina.itens.map((i) => [i.id, i]));
+  const novosIds = new Set(novos.keys());
+  const janela = pagina.itens.length;
+  const topoAntigo = new Set(estado.itens.slice(0, janela).map((i) => i.id));
+
+  const cauda = estado.itens.filter((i) => {
+    if (novosIds.has(i.id)) return false;
+    if (topoAntigo.has(i.id)) return false;
+    return true;
+  });
+
+  const mesclados = [...pagina.itens, ...cauda];
+  const vistos = new Set<string>();
+  const itens = mesclados.filter((i) => {
+    if (vistos.has(i.id)) return false;
+    vistos.add(i.id);
+    return true;
+  });
+
+  return { ...estado, itens, interacao: pagina.interacao };
+}
 
 export function usarFeed(missaoId: string | null) {
   const [estado, setEstado] = useState<EstadoFeed>(estadoInicial);
@@ -375,5 +439,37 @@ export function usarFeed(missaoId: string | null) {
     void carregar(null);
   }, [carregar]);
 
-  return { estado, carregarMais, recomecar, pedirChaves };
+  useEffect(() => {
+    if (!estado.jaCarregou) return;
+
+    const vigiar = async () => {
+      const r = await buscarPagina(missaoId, null);
+      if (!r.ok) return;
+
+      if (estado.interacao === "espelho" && r.pagina.interacao === "completo") {
+        recomecar();
+        return;
+      }
+
+      if (estado.interacao === "completo") {
+        setEstado((e) => sincronizarTopo(e, r.pagina));
+      }
+    };
+
+    const relogio = setInterval(() => void vigiar(), INTERVALO_DO_GATE_MS);
+    return () => clearInterval(relogio);
+  }, [estado.interacao, estado.jaCarregou, missaoId, recomecar]);
+
+  const atualizarReacoes = useCallback((uploadId: string, resultado: { reacoes: number; minha: string | null }) => {
+    setEstado((e) => ({
+      ...e,
+      itens: e.itens.map((i) =>
+        i.id === uploadId
+          ? { ...i, reacoes: resultado.reacoes, minhaReacao: resultado.minha }
+          : i,
+      ),
+    }));
+  }, []);
+
+  return { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes };
 }

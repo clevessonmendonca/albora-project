@@ -48,6 +48,7 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
 
   return (
     <PaginaFeed
+      slug={slug}
       missoes={desafios.map((d) => ({
         id: d.id,
         titulo: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,

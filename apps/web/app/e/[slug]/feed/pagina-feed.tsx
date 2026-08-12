@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { agruparPorHora, type GrupoDeHora } from "@/lib/agrupar-por-hora";
 import { usarFeed, type ItemVisivel } from "@/lib/usar-feed";
+import { BarraDeAbas } from "../barra-de-abas";
 import { Publicacao, PublicacaoCarregando } from "./publicacao";
 import { chavesDoReprodutor, Reprodutor } from "./reprodutor";
 import { Tira, TiraCarregando } from "./tira";
@@ -37,7 +38,6 @@ export type TextosDoFeed = {
 };
 
 const TOQUE_MINIMO = "48px";
-const TOQUE_PRIMARIO = "54px";
 
 /** Identidade estável: `[]` novo a cada render reabriria o efeito à toa. */
 const SEM_CHAVES: string[] = [];
@@ -46,16 +46,18 @@ const SEM_ITENS: ItemVisivel[] = [];
 type Aberto = { inicio: number; itemId: string };
 
 export function PaginaFeed({
+  slug,
   missoes,
   textos,
   caminhoDaCamera,
 }: {
+  slug: string;
   missoes: MissaoDoFiltro[];
   textos: TextosDoFeed;
   caminhoDaCamera: string;
 }) {
   const [missaoId, setMissaoId] = useState<string | null>(null);
-  const { estado, carregarMais, recomecar, pedirChaves } = usarFeed(missaoId);
+  const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = usarFeed(missaoId);
 
   const [aberto, setAberto] = useState<Aberto | null>(null);
   const [preparando, setPreparando] = useState<number | null>(null);
@@ -204,6 +206,23 @@ export function PaginaFeed({
           </p>
         </header>
 
+        {estado.interacao === "espelho" && estado.jaCarregou && (
+          <p
+            style={{
+              margin: "0 0 calc(var(--espaco) * 4)",
+              padding: "0.875rem 1rem",
+              fontSize: "0.875rem",
+              lineHeight: 1.5,
+              color: "var(--ink-2)",
+              background: "var(--superficie)",
+              borderRadius: "var(--raio)",
+              border: "1px solid var(--linha)",
+            }}
+          >
+            As reações e comentários abrem quando o casal liberar.
+          </p>
+        )}
+
         {primeiraCarga && <TiraCarregando />}
 
         {grupos.length > 0 && (
@@ -247,6 +266,14 @@ export function PaginaFeed({
             {estado.itens.map((item) => (
               <Publicacao
                 key={item.id}
+                uploadId={item.id}
+                interacao={estado.interacao}
+                {...(item.reacoes !== undefined ? { reacoes: item.reacoes } : {})}
+                {...(item.minhaReacao !== undefined ? { minhaReacao: item.minhaReacao } : {})}
+                {...(item.sessaoAutor ? { sessaoAutor: item.sessaoAutor } : {})}
+                {...(item.minha !== undefined ? { minha: item.minha } : {})}
+                onReacoes={(resultado) => atualizarReacoes(item.id, resultado)}
+                onBloqueado={recomecar}
                 url={estado.urls.get(item.chaveThumb)?.url ?? null}
                 autor={item.autor}
                 legenda={item.legenda}
@@ -263,39 +290,7 @@ export function PaginaFeed({
         />
       </main>
 
-      {/* Fixa em todos os estados: a tela não pode terminar sem a porta de volta
-          para a câmera, que é a única coisa que ela existe para provocar. */}
-      <div
-        style={{
-          position: "fixed",
-          insetInline: 0,
-          bottom: 0,
-          zIndex: 5,
-          padding: "calc(var(--espaco) * 3) calc(var(--espaco) * 5)",
-          paddingBottom: "calc(var(--espaco) * 3 + env(safe-area-inset-bottom))",
-          borderTop: "1px solid var(--linha)",
-          background: "var(--bg)",
-        }}
-      >
-        <a
-          href={caminhoDaCamera}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            minHeight: TOQUE_PRIMARIO,
-            borderRadius: "var(--raio-pilula)",
-            fontSize: "1.05rem",
-            fontWeight: 500,
-            letterSpacing: "var(--tracking-rotulo)",
-            textDecoration: "none",
-            background: "var(--acento)",
-            color: "var(--bg)",
-          }}
-        >
-          Mandar uma foto
-        </a>
-      </div>
+      <BarraDeAbas slug={slug} ativa="feed" />
 
       {grupoAberto && (
         <Reprodutor
@@ -303,10 +298,13 @@ export function PaginaFeed({
           indice={indice}
           hora={grupoAberto.hora}
           urls={estado.urls}
+          interacao={estado.interacao}
           caminhoDaCamera={caminhoDaCamera}
           movimentoReduzido={movimentoReduzido}
           onIr={irPara}
           onSair={sair}
+          onReacoes={atualizarReacoes}
+          onBloqueado={recomecar}
         />
       )}
     </>

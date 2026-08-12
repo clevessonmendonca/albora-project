@@ -366,12 +366,30 @@ function Confirmacao({
   onOutra: () => void;
 }) {
   const [url, setUrl] = useState<string | null>(null);
+  const [musica, setMusica] = useState<{ rotulo: string; url: string; provedor: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     const u = URL.createObjectURL(arquivo);
     setUrl(u);
     return () => URL.revokeObjectURL(u);
   }, [arquivo]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const r = await fetch("/api/musica", { credentials: "same-origin" });
+        if (!r.ok) return;
+        const corpo = (await r.json()) as {
+          musica: { rotulo: string; url: string; provedor: string } | null;
+        };
+        setMusica(corpo.musica);
+      } catch {
+        /* degrada: confirmação funciona sem música */
+      }
+    })();
+  }, []);
 
   return (
     <main
@@ -426,6 +444,38 @@ function Confirmacao({
       </p>
 
       {!online && <p className="foto-lede">Pode fechar. A gente cuida.</p>}
+
+      {musica && (
+        <p
+          style={{
+            margin: "0 0 1rem",
+            maxWidth: "34ch",
+            fontSize: "0.88rem",
+            lineHeight: 1.68,
+            color: "var(--ink-2)",
+          }}
+        >
+          <span
+            style={{
+              display: "block",
+              marginBottom: "0.25rem",
+              fontFamily: "var(--fonte-titulo)",
+              fontSize: "0.68rem",
+              fontWeight: 400,
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              color: "var(--acento-texto)",
+            }}
+          >
+            Trilha
+          </span>
+          {musica.rotulo}
+          {" · "}
+          <a href={musica.url} style={{ color: "var(--acento)" }}>
+            Abrir no {musica.provedor}
+          </a>
+        </p>
+      )}
 
       <span style={{ flex: "1 1 auto", minHeight: "1.5rem" }} />
 
