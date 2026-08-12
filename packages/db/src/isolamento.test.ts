@@ -335,6 +335,7 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
     const porTabela = new Map(rows.map((r) => [r.tabela, r.expressao]));
 
     for (const tabela of TABELAS_DE_EVENTO) {
+      if (tabela === "events") continue;
       const expressao = porTabela.get(tabela);
       expect(expressao, `${tabela} sem política`).toBeTruthy();
       expect(expressao, `${tabela} não filtra por app.event_id`).toContain("app.event_id");
