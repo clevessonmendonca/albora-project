@@ -24,7 +24,15 @@ export type ItemDoTelao = {
 
 export type Faixa = "nunca-exibida" | "recente" | "popular";
 
-export type ModeloDeTelao = "polaroide" | "mural" | "colagem" | "ambiente" | "cheio";
+export type ModeloDeTelao =
+  | "polaroide"
+  | "mural"
+  | "colagem"
+  | "ambiente"
+  | "cheio"
+  | "carrossel"
+  | "dump"
+  | "tbt";
 
 export const MODELOS_DE_TELAO: readonly ModeloDeTelao[] = [
   "polaroide",
@@ -32,7 +40,57 @@ export const MODELOS_DE_TELAO: readonly ModeloDeTelao[] = [
   "colagem",
   "ambiente",
   "cheio",
+  "carrossel",
+  "dump",
+  "tbt",
 ];
+
+/**
+ * O que cada modelo é, em número.
+ *
+ * `aceitaEmPe` é a regra vermelha virada dado: três de cada quatro fotos de
+ * festa são verticais, e `cheio` sangra até a borda. `faixaPreferida` existe
+ * porque **TBT não é layout, é seleção** — polaroide e colagem dizem *como* a
+ * foto aparece; TBT diz *qual* aparece. Misturar as duas coisas num campo só
+ * teria feito o telão sortear uma foto recente e chamá-la de retrospectiva.
+ */
+export type PerfilDoModelo = {
+  /** Quantas fotos o modelo mostra de uma vez. */
+  fotos: number;
+  aceitaEmPe: boolean;
+  faixaPreferida?: Faixa;
+};
+
+export const PERFIS: Readonly<Record<ModeloDeTelao, PerfilDoModelo>> = {
+  polaroide: { fotos: 1, aceitaEmPe: true },
+  mural: { fotos: 3, aceitaEmPe: true },
+  colagem: { fotos: 5, aceitaEmPe: true },
+  ambiente: { fotos: 1, aceitaEmPe: true },
+  cheio: { fotos: 1, aceitaEmPe: false },
+  carrossel: { fotos: 1, aceitaEmPe: true },
+  dump: { fotos: 9, aceitaEmPe: true },
+  tbt: { fotos: 1, aceitaEmPe: true, faixaPreferida: "popular" },
+};
+
+/**
+ * Vazio quando a escolha do casal pode ir para a parede.
+ *
+ * A recusa que importa: uma seleção só com `cheio` deixaria **três de cada
+ * quatro fotos sem nenhuma forma de aparecer**, porque só ele recusa foto em
+ * pé. O telão rodaria a noite inteira parecendo funcionar, mostrando só o
+ * quarto deitado do acervo, e ninguém descobriria até o dia seguinte.
+ */
+export function problemasDaEscolha(escolhidos: readonly ModeloDeTelao[]): string[] {
+  if (escolhidos.length === 0) return ["nenhum modelo escolhido"];
+
+  if (!escolhidos.some((m) => PERFIS[m].aceitaEmPe)) {
+    return [
+      "nenhum modelo escolhido aceita foto em pé — três de cada quatro fotos nunca apareceriam",
+    ];
+  }
+
+  return [];
+}
 
 /** Quanto tempo uma foto conta como "recente". */
 export const JANELA_RECENTE_MS = 12 * 60 * 1000;
@@ -64,7 +122,7 @@ export function modelosPermitidos(
   item: Pick<ItemDoTelao, "largura" | "altura">,
 ): ModeloDeTelao[] {
   const horizontal = item.largura > item.altura;
-  return MODELOS_DE_TELAO.filter((m) => m !== "cheio" || horizontal);
+  return MODELOS_DE_TELAO.filter((m) => PERFIS[m].aceitaEmPe || horizontal);
 }
 
 export function modeloCorta(
@@ -144,14 +202,21 @@ export function proximaDoTelao(
 
   const ordem: Faixa[] = ["nunca-exibida", "recente", "popular"];
 
-  const dado = sorteio();
-  let acumulado = 0;
-  let sorteada: Faixa = "popular";
-  for (const faixa of ordem) {
-    acumulado += PESOS[faixa];
-    if (dado < acumulado) {
-      sorteada = faixa;
-      break;
+  // TBT pede a faixa antiga em vez de sortear: um modelo chamado retrospectiva
+  // que mostra a foto de cinco minutos atrás não é retrospectiva de nada.
+  const preferida = modelo ? PERFIS[modelo].faixaPreferida : undefined;
+
+  let sorteada: Faixa = preferida ?? "popular";
+
+  if (preferida === undefined) {
+    const dado = sorteio();
+    let acumulado = 0;
+    for (const faixa of ordem) {
+      acumulado += PESOS[faixa];
+      if (dado < acumulado) {
+        sorteada = faixa;
+        break;
+      }
     }
   }
 

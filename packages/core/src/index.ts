@@ -59,7 +59,7 @@ export {
   registrarDecisao,
 } from "./moderacao";
 
-export type { EscolhaDoTelao, Faixa, ItemDoTelao, ModeloDeTelao } from "./telao";
+export type { EscolhaDoTelao, Faixa, ItemDoTelao, ModeloDeTelao, PerfilDoModelo } from "./telao";
 export {
   ehVertical,
   faixaDe,
@@ -67,7 +67,9 @@ export {
   modeloCorta,
   modelosPermitidos,
   MODELOS_DE_TELAO,
+  PERFIS,
   PESOS,
+  problemasDaEscolha,
   podarCache,
   pontuacaoPopular,
   proximaDoTelao,

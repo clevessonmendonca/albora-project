@@ -5,6 +5,8 @@ import {
   TETO_DO_CACHE,
   ehVertical,
   faixaDe,
+  PERFIS,
+  problemasDaEscolha,
   modeloCorta,
   modelosPermitidos,
   podarCache,
@@ -38,7 +40,7 @@ describe("nunca cortar na vertical", () => {
     expect(modeloCorta("cheio", emPe)).toBe(true);
   });
 
-  it("os outros quatro aceitam foto em pé", () => {
+  it("todos os outros aceitam foto em pé", () => {
     const emPe = item({ id: "a", largura: 1080, altura: 1920 });
 
     for (const modelo of MODELOS_DE_TELAO.filter((m) => m !== "cheio")) {
@@ -210,5 +212,65 @@ describe("o cache tem teto duro", () => {
     podarCache(original);
 
     expect(original).toHaveLength(60);
+  });
+});
+
+describe("os oito modelos e a escolha do casal", () => {
+  it("cheio é o único que recusa foto em pé", () => {
+    const recusam = MODELOS_DE_TELAO.filter((m) => !PERFIS[m].aceitaEmPe);
+
+    expect(recusam).toEqual(["cheio"]);
+  });
+
+  it("recusa escolha em que nenhum modelo aceita foto em pé", () => {
+    // O defeito que isto impede é o pior tipo: o telão roda a noite inteira
+    // parecendo funcionar, mostrando só o quarto deitado do acervo, e ninguém
+    // descobre até o dia seguinte.
+    expect(problemasDaEscolha(["cheio"])).toHaveLength(1);
+    expect(problemasDaEscolha(["cheio"])[0]).toContain("em pé");
+  });
+
+  it("recusa escolha vazia", () => {
+    expect(problemasDaEscolha([])).toEqual(["nenhum modelo escolhido"]);
+  });
+
+  it("aceita qualquer escolha com ao menos um que aceite em pé", () => {
+    expect(problemasDaEscolha(["cheio", "polaroide"])).toEqual([]);
+    expect(problemasDaEscolha(["dump"])).toEqual([]);
+    expect(problemasDaEscolha([...MODELOS_DE_TELAO])).toEqual([]);
+  });
+
+  it("dump mostra muitas de uma vez e carrossel uma só", () => {
+    expect(PERFIS.dump.fotos).toBeGreaterThan(PERFIS.carrossel.fotos);
+    expect(PERFIS.carrossel.fotos).toBe(1);
+  });
+});
+
+describe("TBT é seleção, não layout", () => {
+  const acervo = [
+    item({ id: "agora", criadaEm: min(1), exibicoes: 2 }),
+    item({ id: "antiga", criadaEm: min(300), exibicoes: 2, reacoes: 30 }),
+  ];
+
+  it("puxa da faixa antiga, qualquer que seja o sorteio", () => {
+    // Um modelo chamado retrospectiva que mostra a foto de cinco minutos atrás
+    // não é retrospectiva de nada.
+    for (const dado of [0, 0.3, 0.6, 0.99]) {
+      expect(
+        proximaDoTelao(acervo, { agora: AGORA, sorteio: () => dado, modelo: "tbt" })?.id,
+      ).toBe("antiga");
+    }
+  });
+
+  it("os outros modelos continuam sorteando", () => {
+    expect(proximaDoTelao(acervo, { agora: AGORA, sorteio: () => 0.6, modelo: "polaroide" })?.id).toBe(
+      "agora",
+    );
+  });
+
+  it("tbt cai para outra faixa quando não há foto antiga", () => {
+    const so = [item({ id: "unica", criadaEm: min(1), exibicoes: 0 })];
+
+    expect(proximaDoTelao(so, { agora: AGORA, sorteio: () => 0, modelo: "tbt" })?.id).toBe("unica");
   });
 });
