@@ -1,6 +1,6 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { comAgregacao, comEvento, ErroEventoAusente } from "./evento";
+import { comAgregacao, comConta, comEvento, ErroEventoAusente } from "./evento";
 import { prepararBanco, semear } from "./testes/banco";
 
 /**
@@ -346,6 +346,51 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
       "SELECT qual::text AS expressao FROM pg_policies WHERE tablename = 'events'",
     );
 
-    expect(rows[0]?.expressao).toContain("app.event_id");
+    // Desde o ADR 0013 há duas políticas em events (evento e conta); basta que
+    // alguma feche por app.event_id.
+    expect(rows.some((r) => r.expressao?.includes("app.event_id"))).toBe(true);
+  });
+});
+
+describe("8 — a conta vê os seus eventos, e só os seus (ADR 0013)", () => {
+  it("comConta enxerga o evento da conta, nunca o de outra", async () => {
+    const daContaA = await comConta(app, dados.a.contaId, async (c) => {
+      const { rows } = await c.query<{ id: string }>("SELECT id FROM events");
+      return rows.map((r) => r.id);
+    });
+
+    expect(daContaA).toContain(dados.a.eventoId);
+    expect(daContaA).not.toContain(dados.b.eventoId);
+  });
+
+  it("o caminho de evento não abre nada pela política de conta", async () => {
+    // O convidado seta app.event_id, não app.account_id: a política de conta
+    // vira account_id = NULL e não soma nada. Vê um evento, o do contexto.
+    const vistos = await comEvento(app, dados.a.eventoId, async (c) => {
+      const { rows } = await c.query<{ n: number }>("SELECT count(*)::int AS n FROM events");
+      return rows[0]!.n;
+    });
+
+    expect(vistos).toBe(1);
+  });
+
+  it("uma conta não cria evento para outra — o WITH CHECK recusa", async () => {
+    await expect(
+      comConta(app, dados.a.contaId, async (c) => {
+        await c.query(
+          `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
+           VALUES ($1, 'pack-um', 'roubado-de-b', now(), now() + interval '1 hour')`,
+          [dados.b.contaId],
+        );
+      }),
+    ).rejects.toThrow();
+
+    // E nada foi criado: a recusa é antes da linha, não depois.
+    const { rows } = await admin.query("SELECT id FROM events WHERE slug = 'roubado-de-b'");
+    expect(rows).toHaveLength(0);
+  });
+
+  it("sem account_id válido, comConta falha alto — não assume padrão", async () => {
+    await expect(comConta(app, "", async () => 1)).rejects.toThrow(/account/i);
   });
 });

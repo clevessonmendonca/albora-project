@@ -50,6 +50,48 @@ export class ErroEventoAusente extends Error {
   }
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * O caminho do anfitrião, irmão de `comEvento` (ADR 0013).
+ *
+ * Seta `app.account_id` em vez de `app.event_id`: a política `conta_evento`
+ * de `events` abre os eventos da conta, e o `WITH CHECK` dela impede criar
+ * evento para outra. Mesma disciplina — transação sempre, `SET LOCAL` nunca
+ * `SET`, conexão devolvida em toda saída.
+ *
+ * 🔴 O `contaId` vem **sempre** da sessão de host resolvida, nunca do cliente:
+ * é ele que decide quais eventos a transação enxerga.
+ */
+export async function comConta<T>(
+  pool: Pool,
+  contaId: string,
+  executar: (cliente: PoolClient) => Promise<T>,
+): Promise<T> {
+  if (!UUID.test(contaId)) throw new ErroContaAusente(contaId);
+
+  const cliente = await pool.connect();
+  try {
+    await cliente.query("BEGIN");
+    await cliente.query("SELECT set_config('app.account_id', $1, true)", [contaId]);
+    const resultado = await executar(cliente);
+    await cliente.query("COMMIT");
+    return resultado;
+  } catch (erro) {
+    await cliente.query("ROLLBACK").catch(() => {});
+    throw erro;
+  } finally {
+    cliente.release();
+  }
+}
+
+export class ErroContaAusente extends Error {
+  readonly code = "account.missing";
+  constructor(readonly recebido: unknown) {
+    super("caminho de conta sem account_id válido");
+  }
+}
+
 /**
  * Caminho que cruza eventos, por desenho: painel do fornecedor e
  * observabilidade. Exige papel com BYPASSRLS e **registra a chamada**.

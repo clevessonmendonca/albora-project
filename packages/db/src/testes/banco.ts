@@ -47,18 +47,27 @@ export async function prepararBanco() {
   };
 }
 
-/** Dois eventos com dado próprio. A prova é A nunca enxergar B. */
+/**
+ * Dois eventos com dado próprio, e — desde o ADR 0013 — sob **contas
+ * distintas**. A prova é dupla: A nunca enxerga o evento de B, nem por evento
+ * nem por conta.
+ */
 export async function semear(admin: pg.Pool) {
-  const { rows: conta } = await admin.query(
-    "INSERT INTO accounts (email) VALUES ('anfitriao@exemplo.test') RETURNING id",
-  );
+  const conta = async (email: string) => {
+    const { rows } = await admin.query("INSERT INTO accounts (email) VALUES ($1) RETURNING id", [
+      email,
+    ]);
+    return rows[0].id as string;
+  };
+  const contaAId = await conta("anfitriao-a@exemplo.test");
+  const contaBId = await conta("anfitriao-b@exemplo.test");
   await admin.query("INSERT INTO packs (id) VALUES ('pack-um'), ('pack-dois')");
 
-  const criar = async (slug: string, pack: string) => {
+  const criar = async (slug: string, pack: string, accountId: string) => {
     const { rows } = await admin.query(
       `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
        VALUES ($1, $2, $3, now(), now() + interval '6 hours') RETURNING id`,
-      [conta[0].id, pack, slug],
+      [accountId, pack, slug],
     );
     const eventoId = rows[0].id as string;
 
@@ -85,5 +94,8 @@ export async function semear(admin: pg.Pool) {
     return { eventoId, sessaoId, uploadId: upload[0].id as string };
   };
 
-  return { a: await criar("evento-a", "pack-um"), b: await criar("evento-b", "pack-dois") };
+  return {
+    a: { ...(await criar("evento-a", "pack-um", contaAId)), contaId: contaAId },
+    b: { ...(await criar("evento-b", "pack-dois", contaBId)), contaId: contaBId },
+  };
 }

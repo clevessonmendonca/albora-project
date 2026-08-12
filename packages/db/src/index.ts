@@ -11,7 +11,7 @@
 
 export const SETTING_EVENTO = "app.event_id";
 
-export { comAgregacao, comEvento, ErroEventoAusente } from "./evento";
+export { comAgregacao, comConta, comEvento, ErroContaAusente, ErroEventoAusente } from "./evento";
 export { migrar } from "./migrar";
 
 export type { LinhaUpload, ResultadoConfirm } from "./uploads";
