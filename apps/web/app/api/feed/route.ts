@@ -66,19 +66,26 @@ export async function GET(req: Request) {
       const gate = await gateDoEvento(c, sessao.eventoId);
       // Sessão de um evento que não é visível recebe página vazia, não erro:
       // um 404 aqui confirmaria quais ids existem.
-      if (!gate) return VAZIO;
+      if (!gate) return { ...VAZIO, interacao: "espelho" as const };
+
+      const interacao = modoInteracao(gate, new Date());
 
       // Missão é conjunto fechado, e o conjunto vem do banco. Uma que não é
       // deste evento filtra tudo — não vira "sem filtro", que devolveria o
       // feed inteiro para quem pediu um recorte.
-      if (missao !== null && !(await desafioDoEvento(c, sessao.eventoId, missao))) return VAZIO;
+      if (missao !== null && !(await desafioDoEvento(c, sessao.eventoId, missao))) {
+        return { ...VAZIO, interacao };
+      }
 
-      return listarFeed(c, {
+      const itens = await listarFeed(c, {
         eventoId: sessao.eventoId,
-        modo: modoInteracao(gate, new Date()),
+        modo: interacao,
         missaoId: missao,
         cursor,
+        sessaoId: sessao.sessaoId,
       });
+
+      return { ...itens, interacao };
     });
 
     console.log("feed.pagina", {
@@ -87,6 +94,7 @@ export async function GET(req: Request) {
       itens: pagina.itens.length,
       comFiltro: missao !== null,
       continua: pagina.proximoCursor !== null,
+      interacao: pagina.interacao,
     });
 
     return ok(pagina);

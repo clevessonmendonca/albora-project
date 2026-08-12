@@ -13,9 +13,11 @@ import {
   ErroComentarioDeOutroEvento,
   gateDoEvento,
   gravarComentario,
-  listarComentariosDaFoto,
+  listarComentariosVisiveisDaFoto,
+  removerComentario,
 } from "@albora/db";
 import { banco } from "@/lib/banco";
+import { classificarComentarioDepois } from "@/lib/classificar-comentario";
 import { consumir } from "@/lib/limite";
 import { erro, erroInesperado, ok } from "@/lib/resposta";
 import { identidadeParaLimite, sessaoDaRequisicao } from "@/lib/sessao";
@@ -28,6 +30,7 @@ type Corpo = {
   uploadId?: unknown;
   texto?: unknown;
   respostaA?: unknown;
+  id?: unknown;
 };
 
 type Saida =
@@ -55,6 +58,7 @@ function paraJson(c: ComentarioComAutor, sessaoAtual: string) {
     respostaA: c.respostaA,
     criadaEm: c.criadoEm.toISOString(),
     meu: c.sessaoId === sessaoAtual,
+    sessaoAutor: c.sessaoId,
   };
 }
 
@@ -103,7 +107,12 @@ export async function GET(req: Request) {
       // aqui confirmaria quais ids existem. Antes do gate, o mesmo vazio.
       if (!gate || modoInteracao(gate, new Date()) !== "completo") return [];
 
-      const comentarios = await listarComentariosDaFoto(c, sessao.eventoId, uploadId);
+      const comentarios = await listarComentariosVisiveisDaFoto(
+        c,
+        sessao.eventoId,
+        uploadId,
+        sessao.sessaoId,
+      );
       const porId = new Map(comentarios.map((k) => [k.id, k]));
 
       return montarThread(comentarios, uploadId).map((t) => ({
@@ -196,11 +205,19 @@ export async function POST(req: Request) {
         };
       }
 
-      const existentes = await listarComentariosDaFoto(c, sessao.eventoId, uploadId);
+      const existentes = await listarComentariosVisiveisDaFoto(
+        c,
+        sessao.eventoId,
+        uploadId,
+        sessao.sessaoId,
+      );
+
+      const idCliente =
+        typeof corpo.id === "string" && UUID.test(corpo.id) ? corpo.id : randomUUID();
 
       const publicado = publicarComentario(
         {
-          id: randomUUID(),
+          id: idCliente,
           eventoId: sessao.eventoId,
           midiaId: uploadId,
           sessaoId: sessao.sessaoId,
@@ -237,6 +254,12 @@ export async function POST(req: Request) {
       resposta: resultado.comentario.respostaA !== null,
     });
 
+    classificarComentarioDepois(
+      sessao.eventoId,
+      resultado.comentario.id,
+      resultado.comentario.texto,
+    );
+
     return ok(
       {
         id: resultado.comentario.id,
@@ -253,5 +276,51 @@ export async function POST(req: Request) {
       return erro(403, "comentario.outro_evento", "Comentário recusado");
     }
     return erroInesperado("comentarios", e);
+  }
+}
+
+/** Remove um comentário publicado por esta sessão (spec 014). */
+export async function DELETE(req: Request) {
+  const sessao = await sessaoDaRequisicao(req);
+  if (!sessao) return erro(401, "sessao.invalida", "Sessão inválida");
+
+  const limite = consumir(identidadeParaLimite(req, sessao), 60, 60, Date.now());
+  if (!limite.permitido) {
+    return erro(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetEmSegundos,
+    });
+  }
+
+  const parametros = new URL(req.url).searchParams;
+  const eventoPedido = parametros.get("evento");
+  if (eventoPedido !== null && eventoPedido !== sessao.eventoId) {
+    return erro(403, "comentarios.evento_divergente", "Esta sessão não pertence a este evento");
+  }
+
+  let corpo: { comentarioId?: unknown };
+  try {
+    corpo = (await req.json()) as { comentarioId?: unknown };
+  } catch {
+    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
+  }
+
+  const comentarioId =
+    typeof corpo.comentarioId === "string" && UUID.test(corpo.comentarioId) ? corpo.comentarioId : null;
+  if (!comentarioId) {
+    return erro(422, "validation_error", "Comentário inválido", { campos: ["comentarioId"] });
+  }
+
+  try {
+    const removido = await comEvento(banco(), sessao.eventoId, async (c) => {
+      const gate = await gateDoEvento(c, sessao.eventoId);
+      if (!gate || modoInteracao(gate, new Date()) !== "completo") return false;
+      return removerComentario(c, { comentarioId, sessaoId: sessao.sessaoId });
+    });
+
+    if (!removido) return erro(403, "comentario.remover_negado", "Não foi possível remover");
+
+    return ok({ comentarioId, removido: true });
+  } catch (e) {
+    return erroInesperado("comentarios.remover", e);
   }
 }

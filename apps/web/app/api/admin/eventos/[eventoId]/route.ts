@@ -1,0 +1,88 @@
+import { atualizarModeracaoDoEvento } from "@albora/db";
+import { banco } from "@/lib/banco";
+import { config, ErroConfig } from "@/lib/config";
+import { consumir } from "@/lib/limite";
+import { hostDaRequisicao } from "@/lib/host-sessao";
+import { erro, erroInesperado, ok } from "@/lib/resposta";
+
+export const dynamic = "force-dynamic";
+
+type Corpo = {
+  panico?: unknown;
+  haMenores?: unknown;
+};
+
+function comoBooleano(v: unknown): boolean | undefined {
+  if (typeof v === "boolean") return v;
+  return undefined;
+}
+
+/**
+ * Toggles de moderacao do evento (roadmap A2, spec 011, ADR 0012).
+ *
+ * A conta vem da sessao de host; `comConta` impede alterar evento alheio.
+ */
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ eventoId: string }> },
+) {
+  try {
+    config();
+  } catch (e) {
+    if (e instanceof ErroConfig) {
+      console.error("admin.config_ausente", { faltando: e.faltando });
+      return erro(503, "config.missing", "Serviço indisponível");
+    }
+    throw e;
+  }
+
+  const host = await hostDaRequisicao(req);
+  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+
+  const { eventoId } = await params;
+
+  const limite = consumir(`admin_moderacao:${host.accountId}`, 60, 60, Date.now());
+  if (!limite.permitido) {
+    return erro(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetEmSegundos,
+    });
+  }
+
+  let corpo: Corpo;
+  try {
+    corpo = (await req.json()) as Corpo;
+  } catch {
+    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
+  }
+
+  const panico = comoBooleano(corpo.panico);
+  const haMenores = comoBooleano(corpo.haMenores);
+
+  if (panico === undefined && haMenores === undefined) {
+    return erro(422, "validation_error", "Nada para atualizar", {
+      campos: ["panico", "haMenores"],
+    });
+  }
+
+  try {
+    const evento = await atualizarModeracaoDoEvento(banco(), host.accountId, eventoId, {
+      ...(panico !== undefined ? { panico } : {}),
+      ...(haMenores !== undefined ? { haMenores } : {}),
+    });
+
+    if (!evento) {
+      return erro(404, "evento.nao_encontrado", "Evento não encontrado");
+    }
+
+    console.log("admin.moderacao_atualizada", {
+      accountId: host.accountId,
+      eventoId,
+      panico: evento.moderacao.panico,
+      haMenores: evento.moderacao.haMenores,
+    });
+
+    return ok({ moderacao: evento.moderacao });
+  } catch (e) {
+    return erroInesperado("admin.moderacao", e);
+  }
+}
