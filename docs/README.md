@@ -22,6 +22,7 @@ Este diretório é a fonte da verdade de tudo que não é código: arquitetura, 
 | `design/` | Artefatos do trabalho de design: DNA, tokens, sistema, mockups |
 | `runbooks/` | Procedimentos operacionais: dev local, deploy, dia do evento, restore |
 | `specs/` | Contrato por tarefa, escrito antes do código |
+| [`roadmap.md`](./roadmap.md) | Estado operacional: o que falta no código para o 1º evento real |
 
 ## Quem manda quando dois lugares discordam
 
@@ -38,6 +39,7 @@ Este diretório é a fonte da verdade de tudo que não é código: arquitetura, 
 | Protótipos e artefatos de design | `design/` |
 | Regras de trabalho para humanos e assistentes | `../CLAUDE.md` |
 | Contrato de implementação de uma tarefa | `specs/task-N.md` |
+| O que falta no código para o 1º evento | `roadmap.md` |
 | Procedimento operacional | `runbooks/` |
 
 Quando `architecture.md` e um ADR discordam, o ADR vence e `architecture.md` está desatualizado — corrija na mesma MR.
