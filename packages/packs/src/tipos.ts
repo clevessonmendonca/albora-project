@@ -29,6 +29,15 @@ export type Pack = {
    * da landing.
    */
   momentos?: { id: string; chaveTitulo: string; chaveDesc: string }[];
+  /**
+   * O conjunto **fechado** de reações (spec 008).
+   *
+   * Fechado pelo mesmo motivo de `lugares`: emoji livre é texto livre, e
+   * texto livre numa foto projetada para 150 pessoas é a superfície de abuso
+   * que o produto recusa em toda parte. Um id fora desta lista não vira linha
+   * no banco.
+   */
+  reacoes?: { id: string; chaveTitulo: string }[];
   tokens?: CamadaTokens;
 };
 
@@ -141,4 +150,15 @@ export function problemasDoPack(pack: Pack): string[] {
  */
 export function lugarValido(pack: Pack, id: string | null | undefined): boolean {
   return typeof id === "string" && pack.lugares.some((l) => l.id === id);
+}
+
+/**
+ * Mesma porta fechada de `lugarValido`, para a reação.
+ *
+ * Pack sem `reacoes` reprova tudo em vez de liberar tudo: falhar fechado é a
+ * regra, e um pack que esqueceu a lista não pode virar campo livre por
+ * omissão.
+ */
+export function reacaoValida(pack: Pack, id: string | null | undefined): boolean {
+  return typeof id === "string" && (pack.reacoes ?? []).some((r) => r.id === id);
 }

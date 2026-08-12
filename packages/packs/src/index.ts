@@ -2,7 +2,7 @@ export type { ChaveVocabulario, Pack } from "./tipos";
 export {
   CHAVES_DA_LANDING,
   CHAVES_DO_NUCLEO,
-  lugarValido,
+  lugarValido, reacaoValida,
   problemasDaLanding,
   problemasDoPack,
   texto,

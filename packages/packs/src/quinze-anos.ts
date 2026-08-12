@@ -51,6 +51,10 @@ export const QUINZE_ANOS: Pack = {
     "landing.fechamento": "No dia seguinte, você acorda com centenas de fotos que",
     "landing.fechamento.destaque": "ninguém contratou para tirar.",
 
+    "reacao.estrela": "Estrela",
+    "reacao.riso": "Riso",
+    "reacao.choro": "Choro",
+    "reacao.festa": "Festa",
     "momento.antes": "Antes de descer",
     "momento.antes.desc": "O espelho, o vestido e as amigas em volta.",
     "momento.entrada": "A entrada",
@@ -64,6 +68,12 @@ export const QUINZE_ANOS: Pack = {
     "momento.depois": "Depois",
     "momento.depois.desc": "O salão vazio e os sapatos na mão.",
   },
+  reacoes: [
+    { id: "estrela", chaveTitulo: "reacao.estrela" },
+    { id: "riso", chaveTitulo: "reacao.riso" },
+    { id: "choro", chaveTitulo: "reacao.choro" },
+    { id: "festa", chaveTitulo: "reacao.festa" },
+  ],
   momentos: [
     { id: "antes", chaveTitulo: "momento.antes", chaveDesc: "momento.antes.desc" },
     { id: "entrada", chaveTitulo: "momento.entrada", chaveDesc: "momento.entrada.desc" },

@@ -73,3 +73,21 @@ export {
   proximaDoTelao,
   TETO_DO_CACHE,
 } from "./telao";
+
+export type {
+  EstadoNaGaleria,
+  ItemDaGaleria,
+  MidiaEnviada,
+  Reacao,
+  ResumoDaGaleria,
+} from "./galeria";
+export {
+  aplicarReacao,
+  contagemVisivel,
+  contarReacoes,
+  montarGaleria,
+  podeReagir,
+  podeRemover,
+  removerReacao,
+  resumirGaleria,
+} from "./galeria";
