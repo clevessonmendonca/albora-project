@@ -67,3 +67,9 @@ export {
   listarSugestoes,
   musicaDoCasal,
 } from "./musica-db";
+
+export type { ResultadoDenuncia } from "./moderacao-db";
+export { contarDenuncias, denunciar, ErroMidiaDeOutroEvento } from "./moderacao-db";
+
+export type { JanelaDoAlbum, MidiaDoAlbumComChave } from "./album-db";
+export { janelaDoAlbum, listarMidiaDoAlbum, TETO_DO_ALBUM } from "./album-db";

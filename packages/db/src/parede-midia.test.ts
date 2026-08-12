@@ -65,4 +65,46 @@ describe("a parede lê só o evento do crachá", () => {
     expect(midia?.chaveThumb).toBe(midia?.chaveFull.replace(/\/full$/, "/thumb"));
     expect(midia?.chaveThumb.startsWith(`events/${dados.a.eventoId}/`)).toBe(true);
   });
+
+  it("duas sessões distintas denunciando seguram a foto do telão", async () => {
+    // O sensor da sala: duas denúncias de sessões diferentes tiram do telão,
+    // uma só não. É `decidirExibicao` na superfície telao, alimentada pela
+    // contagem de `reports`.
+    const { rows: outra } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'Léo', '1', now()) RETURNING id`,
+      [dados.a.eventoId],
+    );
+    const segundaSessao = outra[0]!.id;
+
+    const antes = await comEvento(app, dados.a.eventoId, (c) =>
+      listarMidiaDaParede(c, dados.a.eventoId),
+    );
+    expect(antes.map((m) => m.id)).toContain(dados.a.uploadId);
+
+    try {
+      // Uma denúncia só: continua no telão.
+      await admin.query(
+        "INSERT INTO reports (event_id, upload_id, session_id) VALUES ($1, $2, $3)",
+        [dados.a.eventoId, dados.a.uploadId, dados.a.sessaoId],
+      );
+      const comUma = await comEvento(app, dados.a.eventoId, (c) =>
+        listarMidiaDaParede(c, dados.a.eventoId),
+      );
+      expect(comUma.map((m) => m.id)).toContain(dados.a.uploadId);
+
+      // A segunda, de outra sessão: sai.
+      await admin.query(
+        "INSERT INTO reports (event_id, upload_id, session_id) VALUES ($1, $2, $3)",
+        [dados.a.eventoId, dados.a.uploadId, segundaSessao],
+      );
+      const comDuas = await comEvento(app, dados.a.eventoId, (c) =>
+        listarMidiaDaParede(c, dados.a.eventoId),
+      );
+      expect(comDuas.map((m) => m.id)).not.toContain(dados.a.uploadId);
+    } finally {
+      await admin.query("DELETE FROM reports WHERE upload_id = $1", [dados.a.uploadId]);
+      await admin.query("DELETE FROM guest_sessions WHERE id = $1", [segundaSessao]);
+    }
+  });
 });

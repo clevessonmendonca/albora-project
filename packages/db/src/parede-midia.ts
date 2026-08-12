@@ -1,21 +1,31 @@
+import {
+  DENUNCIAS_PARA_SEGURAR,
+  decidirExibicao,
+  type VeredictoDoClassificador,
+} from "@albora/core";
 import type { PoolClient } from "pg";
 
 /**
- * O que a parede lê (spec 010).
+ * O que a parede lê (spec 010 + 011).
  *
- * 🔴 Uma fonte de verdade só sobre o que é público, e é a mesma do feed:
- * `state = 'published'`. A foto que o botão de pânico tira sai daqui pela mesma
- * coluna, no mesmo instante — a parede não guarda uma segunda regra de
- * visibilidade, porque duas regras divergem e a que sobra na parede é a errada.
- *
- * O afinamento que só o telão tem — segurar com N denúncias, segurar quando o
- * classificador não respondeu — mora em `decidirExibicao()` do `@albora/core`,
- * na superfície `telao`. Ele entra aqui quando a spec 011 persistir denúncia e
- * veredito do classificador; até lá o `state` é o único sinal que o banco tem,
- * e é o mesmo que o feed respeita.
+ * 🔴 A base é uma fonte de verdade só sobre o que é público, e é a mesma do
+ * feed: `state = 'published'`. Sobre ela roda `decidirExibicao()` do
+ * `@albora/core` na superfície `telao` — o afinamento que só o telão tem:
+ * segura com N denúncias de sessões distintas (o melhor sensor da sala), com o
+ * classificador suspeito, e sob pânico ou modo endurecido do evento. A decisão
+ * é do núcleo, e este módulo só a alimenta com o que o banco tem.
  */
 
 const PUBLICADO = "published";
+
+/**
+ * `classifier_verdict` nulo é classificador **não rodado**, não "sem resposta":
+ * mapeia para `limpo`. Tratar ausência como sem-resposta esconderia toda foto
+ * do telão enquanto não houver classificador — fail-closed no lugar errado.
+ */
+function veredicto(bruto: string | null): VeredictoDoClassificador {
+  return bruto === "suspeito" || bruto === "sem-resposta" ? bruto : "limpo";
+}
 
 /** Teto por página da parede. A TV acumula e poda no cliente (`TETO_DO_CACHE`). */
 export const TETO_DA_PAREDE = 60;
@@ -37,6 +47,9 @@ type Linha = {
   display_name: string;
   created_at: Date;
   reacoes: number;
+  denuncias: number;
+  classifier_verdict: string | null;
+  released_by_host: boolean;
 };
 
 /**
@@ -54,9 +67,20 @@ export async function listarMidiaDaParede(
 ): Promise<MidiaNaParede[]> {
   const teto = Math.min(Math.max(Math.trunc(limite), 1), TETO_DA_PAREDE);
 
+  const { rows: eventoRows } = await cliente.query<{ panic: boolean; hardened: boolean }>(
+    "SELECT panic, hardened FROM events WHERE id = $1",
+    [eventoId],
+  );
+  const evento = {
+    panico: eventoRows[0]?.panic ?? false,
+    modoEndurecido: eventoRows[0]?.hardened ?? false,
+  };
+
   const { rows } = await cliente.query<Linha>(
     `SELECT u.id, u.storage_key, u.created_at, s.display_name,
-            (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes
+            u.classifier_verdict, u.released_by_host,
+            (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes,
+            (SELECT count(*) FROM reports rp WHERE rp.upload_id = u.id)::int AS denuncias
        FROM uploads u
        JOIN guest_sessions s ON s.id = u.session_id AND s.event_id = u.event_id
       WHERE u.event_id = $1 AND u.state = $2
@@ -65,14 +89,30 @@ export async function listarMidiaDaParede(
     [eventoId, PUBLICADO, teto],
   );
 
-  return rows.map((l) => ({
-    id: l.id,
-    chaveFull: l.storage_key,
-    chaveThumb: chaveDaMiniatura(l.storage_key),
-    autor: l.display_name,
-    criadaEm: l.created_at,
-    reacoes: l.reacoes,
-  }));
+  return rows
+    .filter(
+      (l) =>
+        decidirExibicao(
+          {
+            // `state = 'published'` já filtrou o removido: quem chega aqui não está.
+            removida: false,
+            liberadaPeloAnfitriao: l.released_by_host,
+            denuncias: l.denuncias,
+            classificador: veredicto(l.classifier_verdict),
+          },
+          evento,
+          "telao",
+          DENUNCIAS_PARA_SEGURAR,
+        ).visivel,
+    )
+    .map((l) => ({
+      id: l.id,
+      chaveFull: l.storage_key,
+      chaveThumb: chaveDaMiniatura(l.storage_key),
+      autor: l.display_name,
+      criadaEm: l.created_at,
+      reacoes: l.reacoes,
+    }));
 }
 
 /**

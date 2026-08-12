@@ -28,6 +28,7 @@ const TABELAS_DE_EVENTO = [
   "comments",
   "event_music",
   "music_suggestions",
+  "reports",
 ];
 
 beforeAll(async () => {
