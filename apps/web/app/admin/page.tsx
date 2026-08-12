@@ -1,88 +1,67 @@
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
+import { listarEventosDoHost } from "@albora/db";
+import { PACKS, texto } from "@albora/packs";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import type { CSSProperties } from "react";
+import { banco } from "@/lib/banco";
 import { COOKIE_HOST, hostDoToken } from "@/lib/host-sessao";
-import { raio } from "../landing/pecas";
-import { SairBotao } from "./sair-botao";
+import { CascaAdmin, SecaoAdmin, estilosAdmin } from "./casca";
 
 export const dynamic = "force-dynamic";
 
-/**
- * O painel do anfitrião (spec 009).
- *
- * Sem sessão de host, redireciona para a entrada — o painel nunca aparece a
- * quem não entrou. Tema neutro da marca: aqui é a conta, não um evento.
- *
- * Este é o marco do login (fase 2a). Criar evento, gerar peças e o painel ao
- * vivo entram sobre a base de acesso por conta (fase 2b).
- */
 export default async function Pagina() {
   const token = (await cookies()).get(COOKIE_HOST)?.value;
   const host = await hostDoToken(token);
   if (!host) redirect("/admin/entrar");
 
-  const vars = paraVariaveis(resolverTokens({ marca: MARCA_ALBORA })) as CSSProperties;
+  const eventos = await listarEventosDoHost(banco(), host.accountId);
 
   return (
-    <main
-      style={{
-        ...vars,
-        minHeight: "100dvh",
-        padding: "clamp(1.5rem, 5vw, 4rem)",
-        backgroundColor: "var(--bg)",
-        color: "var(--ink)",
-        fontFamily: "var(--fonte-corpo)",
-      }}
-    >
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: "1rem",
-          marginBottom: "2rem",
-        }}
-      >
-        <div>
-          <h1 style={{ margin: 0, fontFamily: "var(--fonte-titulo)", fontSize: "1.75rem" }}>
-            Seu painel
-          </h1>
-          <p style={{ margin: "0.35rem 0 0", color: "var(--ink-3)", fontSize: "0.9rem" }}>
-            {host.email}
-          </p>
-        </div>
-        <SairBotao />
-      </header>
-
-      <section
-        style={{
-          padding: "1.5rem",
-          backgroundColor: "var(--superficie)",
-          border: "1px solid var(--linha)",
-          ...raio("var(--raio-superficie)"),
-        }}
-      >
+    <CascaAdmin titulo="Seu painel" subtitulo={host.email}>
+      <SecaoAdmin>
         <p style={{ margin: "0 0 1.25rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
-          Crie o evento e saia com o link do QR do convidado e o telão do salão.
-          Gerar as peças impressas e o painel ao vivo chegam em seguida.
+          Durante a festa, abra o evento para pausar o telão ou marcar que há menores.
+          Crie um evento novo quando precisar.
         </p>
-        <a
-          href="/admin/novo"
-          style={{
-            display: "inline-block",
-            padding: "0.75rem 1.4rem",
-            fontFamily: "var(--fonte-titulo)",
-            fontSize: "1rem",
-            color: "var(--sobre-acento)",
-            backgroundColor: "var(--acento)",
-            textDecoration: "none",
-            ...raio("var(--raio-pilula)"),
-          }}
-        >
+        <Link href="/admin/novo" style={estilosAdmin.botaoPrimario}>
           Criar evento
-        </a>
-      </section>
-    </main>
+        </Link>
+      </SecaoAdmin>
+
+      {eventos.length > 0 && (
+        <SecaoAdmin>
+          <h2
+            style={{
+              margin: "0 0 0.5rem",
+              fontFamily: "var(--fonte-titulo)",
+              fontSize: "1.125rem",
+            }}
+          >
+            Seus eventos
+          </h2>
+          <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+            {eventos.map((e) => {
+              const pack = PACKS[e.packId];
+              const nome = pack ? texto(pack, "evento.nome") : e.slug;
+              const quando = e.comecaEm.toLocaleDateString("pt-BR", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              });
+              return (
+                <li key={e.eventoId}>
+                  <Link href={`/admin/e/${e.eventoId}`} style={estilosAdmin.linkLista}>
+                    <span style={{ fontFamily: "var(--fonte-titulo)" }}>{nome}</span>
+                    <span style={{ display: "block", fontSize: "0.85rem", color: "var(--ink-3)" }}>
+                      /{e.slug} · {quando}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </SecaoAdmin>
+      )}
+    </CascaAdmin>
   );
 }

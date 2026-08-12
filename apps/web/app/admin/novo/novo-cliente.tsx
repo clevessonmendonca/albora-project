@@ -86,10 +86,11 @@ function Resultado({ criado }: { criado: Criado }) {
         Imprima o QR do link do convidado na mesa. Abra o telão numa TV do salão e
         pareie com o código que aparece nela.
       </p>
+      <Link titulo="Controles durante a festa" url={`${origem}/admin/e/${criado.eventoId}`} />
       <Link titulo="Link do convidado (QR)" url={`${origem}/e/${criado.slug}`} />
       <Link titulo="Telão do salão" url={`${origem}/telao`} />
-      <a href="/admin" style={{ ...botao, textAlign: "center", textDecoration: "none" }}>
-        Voltar ao painel
+      <a href={`/admin/e/${criado.eventoId}`} style={{ ...botao, textAlign: "center", textDecoration: "none" }}>
+        Abrir controles do evento
       </a>
     </Cartao>
   );
