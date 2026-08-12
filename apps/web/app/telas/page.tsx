@@ -1,15 +1,19 @@
 import "../landing/landing.css";
+import { MODELOS_DE_TELAO } from "@albora/core";
 import { CASAMENTO, problemasDaLanding, texto } from "@albora/packs";
 import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { CSSProperties } from "react";
-import { Aparelho, Navegador } from "./pecas-de-tela";
+import { Aparelho, Navegador, Parede } from "./pecas-de-tela";
 import {
+  nomeDoModelo,
+  notaDoModelo,
   TelaAlbum,
   TelaAntesDoGate,
   TelaCamera,
   TelaCapa,
   TelaEntrada,
   TelaFeed,
+  TelaModelosDaParede,
   TelaPainel,
   TelaTelao,
 } from "./telas";
@@ -138,24 +142,54 @@ export default function Telas() {
 
       <Grupo
         titulo="O anfitrião"
-        nota="Web e chão claro: lido de manhã no sofá, não no salão. O gate da interação fica na primeira dobra porque é a decisão que o casal mais volta para mexer."
+        nota="Web e chão claro: lido de manhã no sofá, não no salão. O gate da interação fica na primeira dobra porque é a decisão que o anfitrião mais volta para mexer."
       >
         <Navegador
           titulo="Painel, durante a festa"
           nota="Contadores reais, as últimas fotos chegando, e o horário em que reação e comentário abrem. Sem métrica de vaidade e sem 'aumente suas memórias'."
-          altura={640}
+          altura={760}
+          escala={0.58}
         >
           <TelaPainel pack={pack} />
         </Navegador>
 
         <Navegador
-          titulo="A parede do salão"
-          nota="URL fullscreen, sem controle. Foto em pé aparece em pé: encaixar 9:16 em 16:9 descarta o topo, que é onde estão as cabeças."
-          altura={420}
-          escala={0.52}
+          titulo="O mesmo painel, com menores na festa"
+          nota="Um interruptor por evento, e nenhuma pergunta de idade — em lugar nenhum do produto. Ligado, ele desliga o compartilhamento para fora, deixa o gate começar fechado e faz uma denúncia segurar em vez de duas. É controle de evento, não de pessoa: ninguém é marcado."
+          altura={760}
+          escala={0.58}
         >
-          <TelaTelao pack={pack} />
+          <TelaPainel pack={pack} haMenores />
         </Navegador>
+
+        <Navegador
+          titulo="Os modelos da parede"
+          nota="Oito modelos, e o anfitrião marca quais entram no rodízio. Sete aceitam foto em pé; Cheio sangra até a borda e por isso só aceita deitada."
+          altura={600}
+          escala={0.58}
+        >
+          <TelaModelosDaParede pack={pack} escolhidos={["polaroide", "mural", "dump", "cheio"]} />
+        </Navegador>
+
+        <Navegador
+          titulo="A mesma escolha, recusada"
+          nota="Só Cheio marcado. Nenhum modelo restante aceita foto em pé, e três de cada quatro fotos de festa são verticais — a parede rodaria a noite inteira mostrando o quarto deitado do acervo. Quem recusa é problemasDaEscolha, no núcleo: a tela mostra o veredito, não uma cópia da regra."
+          altura={790}
+          escala={0.58}
+        >
+          <TelaModelosDaParede pack={pack} escolhidos={["cheio"]} />
+        </Navegador>
+      </Grupo>
+
+      <Grupo
+        titulo="A parede"
+        nota="URL fullscreen, sem cromo e sem cursor. Oito modelos que se alternam a noite inteira, e o único deles que recusa foto em pé é Cheio — a fila filtra as verticais antes de sortear, em vez de escolher uma foto e depois descobrir que ela não cabe."
+      >
+        {MODELOS_DE_TELAO.map((modelo) => (
+          <Parede key={modelo} titulo={nomeDoModelo(modelo)} nota={notaDoModelo(modelo)}>
+            <TelaTelao pack={pack} modelo={modelo} />
+          </Parede>
+        ))}
       </Grupo>
 
       <section style={{ maxWidth: "44rem", marginTop: "clamp(2.5rem, 5vw, 4rem)" }}>

@@ -1,3 +1,10 @@
+import {
+  MODELOS_DE_TELAO,
+  PERFIS,
+  padroesDoEvento,
+  problemasDaEscolha,
+  type ModeloDeTelao,
+} from "@albora/core";
 import { texto, type Pack } from "@albora/packs";
 import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { CSSProperties, ReactNode } from "react";
@@ -30,6 +37,9 @@ import {
  *    comentário não existem na tela, em vez de existirem desabilitados.
  * 3. **Coração, aliança e pombinha são anti-padrão.** A reação usa a estrela
  *    da marca, que mantém o gesto do Instagram sem o clichê.
+ * 4. **Nada corta na vertical.** A parede tem oito modelos e sete deles
+ *    aceitam foto em pé; quem decide quais entram é o anfitrião, e a escolha
+ *    que deixaria só `cheio` é recusada por `problemasDaEscolha`.
  *
  * Não há aba de planejamento. Cronograma, local e traje são fase 4, e a dots
  * os coloca em primeiro plano — copiar isso seria vender o que não existe.
@@ -358,9 +368,9 @@ export function TelaFeed({ pack, momentos }: { pack: Pack; momentos: string[] })
       <div style={{ flex: 1, overflow: "hidden", borderTopWidth: "1px", borderTopStyle: "solid", borderTopColor: "var(--linha)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", padding: "0.875rem 1.125rem" }}>
           <span style={{ display: "grid", placeItems: "center", width: "1.875rem", height: "1.875rem", borderRadius: "50%", backgroundColor: "var(--superficie-alta)", fontSize: "0.75rem" }}>
-            TJ
+            BI
           </span>
-          <span style={{ flex: 1, fontSize: "0.84375rem" }}>Tio João</span>
+          <span style={{ flex: 1, fontSize: "0.84375rem" }}>Bia</span>
           <span style={{ fontSize: "0.6875rem", color: "var(--ink-3)" }}>23h · Pista</span>
         </div>
 
@@ -377,16 +387,16 @@ export function TelaFeed({ pack, momentos }: { pack: Pack; momentos: string[] })
             <IconeComentario tamanho={22} />
             <span style={{ fontSize: "0.84375rem" }}>3</span>
           </span>
-          {/* Sair da Albora é uma função, não um vazamento: a foto é do
-              convidado, e obrigá-lo a salvar na mão para mandar no grupo
-              seria fricção contra o próprio boca a boca. */}
+          {/* Compartilhar só aparece na foto de quem a enviou:
+              `autorizarCompartilhamento` nega `nao_e_autor`, e desenhar o ícone
+              na foto alheia prometeria uma ação que o núcleo recusa. */}
           <span style={{ marginLeft: "auto" }}>
             <IconeCompartilhar tamanho={21} />
           </span>
         </div>
 
         <p style={{ margin: "0 1.125rem", fontSize: "0.84375rem", lineHeight: 1.45, color: "var(--ink-2)" }}>
-          <span style={{ color: "var(--ink)" }}>Bia</span> essa é a melhor da noite
+          <span style={{ color: "var(--ink)" }}>Tio João</span> essa é a melhor da noite
         </p>
       </div>
 
@@ -694,47 +704,127 @@ export function TelaCapa({
 
 /* ── anfitrião ──────────────────────────────────────────────────────── */
 
+const SECOES_DO_ANFITRIAO = [
+  "Ao vivo",
+  "A parede",
+  "O álbum",
+  "Missões",
+  "Identidade",
+  "Moderação",
+  "O livro",
+  "Convidados",
+] as const;
+
+type SecaoDoAnfitriao = (typeof SECOES_DO_ANFITRIAO)[number];
+
+function Lateral({ pack, ativa }: { pack: Pack; ativa: SecaoDoAnfitriao }) {
+  return (
+    <aside
+      style={{
+        width: "13.75rem",
+        flex: "none",
+        padding: "1.5rem 1.125rem",
+        borderRightWidth: "1px",
+        borderRightStyle: "solid",
+        borderRightColor: "var(--linha)",
+      }}
+    >
+      <p style={{ margin: "0 0 1.5rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.0625rem" }}>
+        {texto(pack, "landing.exemplo.nome")}
+      </p>
+      {SECOES_DO_ANFITRIAO.map((item) => (
+        <p
+          key={item}
+          style={{
+            margin: "0 0 0.1875rem",
+            padding: "0.5625rem 0.75rem",
+            ...raio("var(--raio)"),
+            backgroundColor: item === ativa ? "var(--superficie-alta)" : "transparent",
+            color: item === ativa ? "var(--ink)" : "var(--ink-2)",
+            fontSize: "0.875rem",
+          }}
+        >
+          {item}
+        </p>
+      ))}
+    </aside>
+  );
+}
+
+function Interruptor({ ligado }: { ligado: boolean }) {
+  return (
+    <span
+      style={{
+        flex: "none",
+        width: "3.25rem",
+        height: "1.875rem",
+        ...raio("var(--raio-pilula)"),
+        backgroundColor: ligado ? "var(--acento)" : "var(--linha)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: ligado ? "flex-end" : "flex-start",
+        padding: "0.1875rem",
+      }}
+    >
+      <span style={{ width: "1.5rem", height: "1.5rem", borderRadius: "50%", backgroundColor: "var(--superficie-alta)" }} />
+    </span>
+  );
+}
+
+function Cartao({ children, destacado }: { children: ReactNode; destacado?: boolean }) {
+  return (
+    <div
+      style={{
+        margin: "1rem 0 0",
+        padding: "1.125rem 1.25rem",
+        ...raio("var(--raio)"),
+        backgroundColor: destacado
+          ? "color-mix(in srgb, var(--acento) 12%, var(--superficie))"
+          : "var(--superficie)",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 /**
  * O painel do anfitrião, na web e no chão claro.
  *
  * Lido de manhã no sofá, não às 23h no salão. O gate da interação fica na
- * primeira dobra porque é a decisão que o casal mais volta para mexer.
+ * primeira dobra porque é a decisão que o anfitrião mais volta para mexer.
+ *
+ * O interruptor de menores ([ADR 0012](../../../../docs/adr/0012-menores-sem-perguntar-idade.md))
+ * é o único lugar do produto onde menor de idade aparece — e ele **não
+ * pergunta idade**. É controle de evento, não de pessoa: ninguém é marcado e
+ * nenhuma data de nascimento é guardada. Os três efeitos vêm de
+ * `padroesDoEvento`, e não de texto redigitado aqui, senão a tela contaria uma
+ * política e o servidor aplicaria outra.
  */
-export function TelaPainel({ pack }: { pack: Pack }) {
+export function TelaPainel({ pack, haMenores = false }: { pack: Pack; haMenores?: boolean }) {
+  const padroes = padroesDoEvento({ haMenores });
+
+  const efeitos: [string, string][] = [
+    [
+      "Compartilhar para fora",
+      padroes.compartilhamentoExterno ? "ligado" : "desligado por padrão",
+    ],
+    [
+      "Para segurar uma foto",
+      padroes.denunciasParaSegurar === 1
+        ? "uma denúncia"
+        : `${padroes.denunciasParaSegurar} denúncias`,
+    ],
+    [
+      "Gate de interação",
+      padroes.gateComecaFechado ? "começa fechado" : "abre junto com a festa",
+    ],
+  ];
+
   return (
     <Chao fundo="claro" pack={pack}>
       <div style={{ display: "flex", height: "100%" }}>
-        <aside
-          style={{
-            width: "13.75rem",
-            flex: "none",
-            padding: "1.5rem 1.125rem",
-            borderRightWidth: "1px",
-            borderRightStyle: "solid",
-            borderRightColor: "var(--linha)",
-          }}
-        >
-          <p style={{ margin: "0 0 1.5rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.0625rem" }}>
-            {texto(pack, "landing.exemplo.nome")}
-          </p>
-          {["Ao vivo", "O álbum", "Missões", "Identidade", "Moderação", "O livro", "Convidados"].map(
-            (item, i) => (
-              <p
-                key={item}
-                style={{
-                  margin: "0 0 0.1875rem",
-                  padding: "0.5625rem 0.75rem",
-                  ...raio("var(--raio)"),
-                  backgroundColor: i === 0 ? "var(--superficie-alta)" : "transparent",
-                  color: i === 0 ? "var(--ink)" : "var(--ink-2)",
-                  fontSize: "0.875rem",
-                }}
-              >
-                {item}
-              </p>
-            ),
-          )}
-        </aside>
+        <Lateral pack={pack} ativa="Ao vivo" />
 
         <main style={{ flex: 1, padding: "1.75rem 2rem", overflow: "hidden" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
@@ -752,7 +842,13 @@ export function TelaPainel({ pack }: { pack: Pack }) {
               { n: "847", o: "fotos enviadas" },
               { n: "112", o: "convidados fotografando" },
               { n: "4", o: "missões abertas" },
-              { n: "0", o: "denúncias" },
+              {
+                n: "0",
+                o:
+                  padroes.denunciasParaSegurar === 1
+                    ? "denúncias · uma já segura"
+                    : `denúncias · ${padroes.denunciasParaSegurar} seguram`,
+              },
             ].map((x) => (
               <div key={x.o} style={{ padding: "1.125rem", ...raio("var(--raio)"), backgroundColor: "var(--superficie-alta)" }}>
                 <p style={{ margin: 0, fontFamily: "var(--fonte-titulo)", fontWeight: 300, fontSize: "1.875rem", lineHeight: 1, color: "var(--acento-texto)", fontVariantNumeric: "tabular-nums" }}>
@@ -763,42 +859,56 @@ export function TelaPainel({ pack }: { pack: Pack }) {
             ))}
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "1rem",
-              margin: "1rem 0 0",
-              padding: "1.125rem 1.25rem",
-              ...raio("var(--raio)"),
-              backgroundColor: "color-mix(in srgb, var(--acento) 12%, var(--superficie))",
-            }}
-          >
-            <span>
-              <span style={{ display: "block", fontFamily: "var(--fonte-titulo)", fontSize: "1.0625rem" }}>
-                Reações e comentários
+          <Cartao destacado>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+              <span>
+                <span style={{ display: "block", fontFamily: "var(--fonte-titulo)", fontSize: "1.0625rem" }}>
+                  Reações e comentários
+                </span>
+                <span style={{ display: "block", marginTop: "0.25rem", fontSize: "0.8125rem", color: "var(--ink-2)" }}>
+                  {padroes.gateComecaFechado
+                    ? "Começam fechados. Quem abre, e quando, é você."
+                    : "Abrem às 22h30. Quem escolhe a hora é você."}
+                </span>
               </span>
-              <span style={{ display: "block", marginTop: "0.25rem", fontSize: "0.8125rem", color: "var(--ink-2)" }}>
-                Abrem às 22h30. Quem escolhe a hora é você.
+              <Interruptor ligado={!padroes.gateComecaFechado} />
+            </div>
+          </Cartao>
+
+          <Cartao>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+              <span>
+                <span style={{ display: "block", fontFamily: "var(--fonte-titulo)", fontSize: "1.0625rem" }}>
+                  Há menores nesta festa
+                </span>
+                <span style={{ display: "block", marginTop: "0.25rem", fontSize: "0.8125rem", color: "var(--ink-2)" }}>
+                  Sobe o piso para todo mundo. Não perguntamos a idade de ninguém, aqui nem em
+                  lugar nenhum — quem conhece os convidados é você.
+                </span>
               </span>
-            </span>
-            <span
-              style={{
-                flex: "none",
-                width: "3.25rem",
-                height: "1.875rem",
-                ...raio("var(--raio-pilula)"),
-                backgroundColor: "var(--acento)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "flex-end",
-                padding: "0.1875rem",
-              }}
-            >
-              <span style={{ width: "1.5rem", height: "1.5rem", borderRadius: "50%", backgroundColor: "var(--superficie-alta)" }} />
-            </span>
-          </div>
+              <Interruptor ligado={haMenores} />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem", marginTop: "0.875rem" }}>
+              {efeitos.map(([rotulo, valor]) => (
+                <span
+                  key={rotulo}
+                  style={{
+                    padding: "0.625rem 0.75rem",
+                    ...raio("var(--raio)"),
+                    backgroundColor: "var(--superficie-alta)",
+                  }}
+                >
+                  <span style={{ display: "block", fontSize: "0.625rem", letterSpacing: "var(--tracking-rotulo)", textTransform: "uppercase", color: "var(--ink-3)" }}>
+                    {rotulo}
+                  </span>
+                  <span style={{ display: "block", marginTop: "0.1875rem", fontSize: "0.8125rem", color: haMenores ? "var(--acento-texto)" : "var(--ink-2)" }}>
+                    {valor}
+                  </span>
+                </span>
+              ))}
+            </div>
+          </Cartao>
 
           <p style={{ margin: "1.5rem 0 0.75rem", fontSize: "0.6875rem", letterSpacing: "var(--tracking-rotulo)", textTransform: "uppercase", color: "var(--acento-texto)" }}>
             Chegando agora
@@ -816,38 +926,346 @@ export function TelaPainel({ pack }: { pack: Pack }) {
   );
 }
 
-/** A parede do salão. Foto em pé aparece em pé, e nada corta na vertical. */
-export function TelaTelao({ pack }: { pack: Pack }) {
+/* ── a parede ───────────────────────────────────────────────────────── */
+
+/**
+ * Como cada modelo resolve o enquadramento.
+ *
+ * O número de fotos e o "aceita em pé" saem de `PERFIS`, nunca daqui: se um
+ * modelo mudar de tamanho no núcleo, o catálogo muda junto ou não muda nada.
+ * O que sobra nesta tabela é a única coisa que o núcleo não sabe — o desenho.
+ */
+const COMO_RESOLVE: Readonly<Record<ModeloDeTelao, string>> = {
+  polaroide: "Uma cópia por vez, com o crédito assinado na margem de baixo.",
+  mural: "Três verticais lado a lado preenchem o 16:9 sem cortar nenhuma.",
+  colagem: "Arranjos que se alternam, para a parede não virar papel de parede.",
+  ambiente: "A vertical inteira sobre a própria foto desfocada — a borda some sem recorte.",
+  cheio: "Sangra até a borda. É o único que recusa foto em pé, e a fila filtra antes de sortear.",
+  carrossel: "Uma de cada vez, com as vizinhas espiando: é o que conta que existe mais.",
+  dump: "Nove de uma vez. A mesa inteira aparece na mesma passada.",
+  tbt: "Puxa da faixa antiga, não da recente. Retrospectiva da foto de cinco minutos atrás não é retrospectiva de nada.",
+};
+
+const NOMES_DOS_MODELOS: Readonly<Record<ModeloDeTelao, string>> = {
+  polaroide: "Polaroide",
+  mural: "Mural",
+  colagem: "Colagem",
+  ambiente: "Ambiente",
+  cheio: "Cheio",
+  carrossel: "Carrossel",
+  dump: "Dump",
+  tbt: "TBT",
+};
+
+export function nomeDoModelo(modelo: ModeloDeTelao): string {
+  return NOMES_DOS_MODELOS[modelo];
+}
+
+/** O perfil em prosa, direto de `PERFIS`. */
+export function perfilEmPalavras(modelo: ModeloDeTelao): string {
+  const perfil = PERFIS[modelo];
+  const quantas = perfil.fotos === 1 ? "uma foto por vez" : `${perfil.fotos} fotos de uma vez`;
+  const emPe = perfil.aceitaEmPe ? "aceita foto em pé" : "só foto deitada";
+  return `${quantas} · ${emPe}`;
+}
+
+export function notaDoModelo(modelo: ModeloDeTelao): string {
+  return `${perfilEmPalavras(modelo)}. ${COMO_RESOLVE[modelo]}`;
+}
+
+function Quadro({
+  variante,
+  proporcao,
+  curvatura = "var(--raio)",
+  style,
+}: {
+  variante: number;
+  proporcao?: string;
+  curvatura?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <span
+      style={{
+        display: "block",
+        position: "relative",
+        overflow: "hidden",
+        ...raio(curvatura),
+        ...(proporcao ? { aspectRatio: proporcao } : {}),
+        ...style,
+      }}
+    >
+      <Moldura rotulo="" raio={curvatura} atmosfera variante={variante} />
+    </span>
+  );
+}
+
+const PREENCHE: CSSProperties = { width: "100%", height: "100%" };
+
+/**
+ * O enquadramento de um modelo, sem cromo.
+ *
+ * Toda proporção aqui é 9:16, 3:4 ou 16:9 declarada — nenhum `objectFit:
+ * cover` num quadro deitado. A regra vermelha da spec 010 é que nada corte na
+ * vertical, e `cover` é exatamente a linha que a quebraria sem avisar.
+ *
+ * `mini` some com o texto do enquadramento. Numa miniatura de 180px um crédito
+ * de 11px fica proporcionalmente do tamanho de um cartaz, e o que a miniatura
+ * precisa mostrar é a forma, não a legenda.
+ */
+function Enquadramento({ modelo, mini }: { modelo: ModeloDeTelao; mini?: boolean }) {
+  if (modelo === "cheio") {
+    return <Quadro variante={11} curvatura="0rem" style={PREENCHE} />;
+  }
+
+  if (modelo === "polaroide") {
+    return (
+      <span style={{ display: "grid", placeItems: "center", ...PREENCHE }}>
+        <span
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "88%",
+            aspectRatio: "0.72",
+            padding: mini ? "6% 6% 0" : "1rem 1rem 0",
+            ...raio("var(--raio)"),
+            backgroundColor: "var(--superficie-alta)",
+          }}
+        >
+          <Quadro variante={2} curvatura="0rem" style={{ flex: 1, width: "100%" }} />
+          {mini ? (
+            <span style={{ height: "14%", minHeight: "0.375rem" }} />
+          ) : (
+            <span
+              style={{
+                padding: "0.875rem 0.25rem",
+                fontFamily: "var(--fonte-titulo)",
+                fontSize: "1.125rem",
+                letterSpacing: "var(--tracking-rotulo)",
+                color: "var(--ink-2)",
+              }}
+            >
+              Bia · 23h41
+            </span>
+          )}
+        </span>
+      </span>
+    );
+  }
+
+  if (modelo === "mural") {
+    return (
+      <span
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${PERFIS.mural.fotos}, 1fr)`,
+          gap: "var(--espaco)",
+          placeItems: "center",
+          ...PREENCHE,
+        }}
+      >
+        {Array.from({ length: PERFIS.mural.fotos }, (_, i) => (
+          <Quadro key={i} variante={i * 7 + 3} proporcao="9 / 16" style={{ height: "100%" }} />
+        ))}
+      </span>
+    );
+  }
+
+  if (modelo === "colagem") {
+    return (
+      <span
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1.15fr 1fr 1fr",
+          gridTemplateRows: "1fr 1fr",
+          gap: "var(--espaco)",
+          ...PREENCHE,
+        }}
+      >
+        <Quadro variante={4} style={{ gridRow: "1 / 3" }} />
+        {Array.from({ length: PERFIS.colagem.fotos - 1 }, (_, i) => (
+          <Quadro key={i} variante={i * 5 + 9} />
+        ))}
+      </span>
+    );
+  }
+
+  if (modelo === "ambiente") {
+    return (
+      <span
+        style={{
+          position: "relative",
+          overflow: "hidden",
+          ...raio("var(--raio)"),
+          ...PREENCHE,
+          display: "grid",
+          placeItems: "center",
+        }}
+      >
+        <span
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            filter: mini ? "blur(0.375rem)" : "blur(2rem)",
+            transform: "scale(1.2)",
+          }}
+        >
+          <Moldura rotulo="" raio="0rem" atmosfera variante={6} />
+        </span>
+        <span
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            backgroundColor: "color-mix(in srgb, var(--bg) 55%, transparent)",
+          }}
+        />
+        <Quadro variante={6} proporcao="9 / 16" style={{ position: "relative", height: "100%" }} />
+      </span>
+    );
+  }
+
+  if (modelo === "carrossel") {
+    return (
+      <span
+        style={{
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "0.5rem",
+          overflow: "hidden",
+          ...PREENCHE,
+        }}
+      >
+        {[
+          { v: 12, altura: "68%", opacidade: 0.38 },
+          { v: 3, altura: "100%", opacidade: 1 },
+          { v: 17, altura: "68%", opacidade: 0.38 },
+        ].map((q, i) => (
+          <Quadro
+            key={i}
+            variante={q.v}
+            proporcao="9 / 16"
+            style={{ height: q.altura, opacity: q.opacidade }}
+          />
+        ))}
+
+        <span style={{ position: "absolute", bottom: "3%", display: "flex", gap: "0.3125rem" }}>
+          {[0, 1, 2, 3, 4].map((i) => (
+            <span
+              key={i}
+              style={{
+                width: "0.3125rem",
+                height: "0.3125rem",
+                borderRadius: "50%",
+                backgroundColor: i === 1 ? "var(--acento)" : "var(--linha)",
+              }}
+            />
+          ))}
+        </span>
+      </span>
+    );
+  }
+
+  if (modelo === "dump") {
+    const naPrimeira = Math.ceil(PERFIS.dump.fotos / 2);
+    const linhas = [naPrimeira, PERFIS.dump.fotos - naPrimeira];
+
+    return (
+      <span
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "var(--espaco)",
+          ...PREENCHE,
+        }}
+      >
+        {linhas.map((quantas, linha) => (
+          <span key={linha} style={{ display: "flex", gap: "var(--espaco)", height: "44%" }}>
+            {Array.from({ length: quantas }, (_, i) => (
+              <Quadro
+                key={i}
+                variante={linha * 13 + i * 3}
+                proporcao="3 / 4"
+                style={{ height: "100%" }}
+              />
+            ))}
+          </span>
+        ))}
+      </span>
+    );
+  }
+
+  return (
+    <span style={{ display: "grid", placeItems: "center", ...PREENCHE }}>
+      <span style={{ position: "relative", height: "100%", aspectRatio: "9 / 16" }}>
+        <Moldura rotulo="" raio="var(--raio)" atmosfera variante={19} />
+        <span
+          style={{
+            position: "absolute",
+            top: "4%",
+            left: "5%",
+            ...(mini ? { width: "45%", height: "5%" } : { padding: "0.4375rem 1rem" }),
+            ...raio("var(--raio-pilula)"),
+            backgroundColor: "var(--acento)",
+            color: "var(--sobre-acento)",
+            fontSize: "0.875rem",
+            letterSpacing: "var(--tracking-rotulo)",
+            textTransform: "uppercase",
+          }}
+        >
+          {mini ? "" : "19h20 · a chegada"}
+        </span>
+      </span>
+    </span>
+  );
+}
+
+/**
+ * A parede do salão, num modelo por vez.
+ *
+ * Sem cromo e sem controle: quem troca de modelo é o rodízio, e o único texto
+ * na tela é o do evento — a marca Albora não aparece na parede (verificação 8
+ * da spec 010).
+ */
+export function TelaTelao({ pack, modelo }: { pack: Pack; modelo: ModeloDeTelao }) {
+  const sangra = modelo === "cheio";
+
   return (
     <Chao fundo="escuro" pack={pack}>
-      <div style={{ position: "relative", flex: 1, display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: "var(--espaco)", padding: "var(--espaco)" }}>
-        <span style={{ position: "relative" }}>
-          <Moldura rotulo="" raio="var(--raio)" atmosfera variante={2} />
-        </span>
-        <span style={{ display: "grid", gridTemplateRows: "1fr 1fr", gap: "var(--espaco)" }}>
-          <span style={{ position: "relative" }}>
-            <Moldura rotulo="" raio="var(--raio)" atmosfera variante={9} />
-          </span>
-          <span style={{ position: "relative" }}>
-            <Moldura rotulo="" raio="var(--raio)" atmosfera variante={14} />
-          </span>
-        </span>
+      <div
+        style={{
+          position: "relative",
+          flex: 1,
+          overflow: "hidden",
+          padding: sangra ? "0" : "var(--espaco)",
+        }}
+      >
+        <Enquadramento modelo={modelo} />
 
         <span
           style={{
             position: "absolute",
-            left: "var(--espaco)",
-            bottom: "var(--espaco)",
+            left: "1.5rem",
+            bottom: "1.5rem",
             display: "flex",
             alignItems: "center",
             gap: "0.75rem",
-            padding: "0.625rem 1.125rem",
+            padding: "0.625rem 1.375rem",
             ...raio("var(--raio-pilula)"),
-            backgroundColor: "var(--superficie-alta)",
+            backgroundColor: "color-mix(in srgb, var(--bg) 72%, transparent)",
           }}
         >
-          <span className="pulso" style={{ width: "0.375rem", height: "0.375rem", borderRadius: "50%", backgroundColor: "var(--acento)" }} />
-          <span style={{ fontFamily: "var(--fonte-titulo)", fontSize: "0.875rem", letterSpacing: "var(--tracking-rotulo)" }}>
+          <span className="pulso" style={{ width: "0.5rem", height: "0.5rem", borderRadius: "50%", backgroundColor: "var(--acento)" }} />
+          <span style={{ fontFamily: "var(--fonte-titulo)", fontSize: "1.25rem", letterSpacing: "var(--tracking-rotulo)" }}>
             ao vivo · 847 fotos
           </span>
         </span>
@@ -855,16 +1273,238 @@ export function TelaTelao({ pack }: { pack: Pack }) {
         <span
           style={{
             position: "absolute",
-            right: "var(--espaco)",
-            top: "var(--espaco)",
+            right: "1.5rem",
+            top: "1.5rem",
             fontFamily: "var(--fonte-titulo)",
-            fontSize: "0.9375rem",
+            fontSize: "1.5rem",
             letterSpacing: "var(--tracking-rotulo)",
             color: "var(--ink-2)",
           }}
         >
           {texto(pack, "landing.exemplo.nome")}
         </span>
+      </div>
+    </Chao>
+  );
+}
+
+function Marcador({ marcado }: { marcado: boolean }) {
+  return (
+    <span
+      style={{
+        flex: "none",
+        display: "grid",
+        placeItems: "center",
+        width: "1.125rem",
+        height: "1.125rem",
+        ...raio("0.375rem"),
+        backgroundColor: marcado ? "var(--acento)" : "transparent",
+        borderWidth: "1px",
+        borderStyle: "solid",
+        borderColor: marcado ? "var(--acento)" : "var(--linha)",
+        color: "var(--sobre-acento)",
+        fontSize: "0.6875rem",
+      }}
+    >
+      {marcado ? "✓" : ""}
+    </span>
+  );
+}
+
+/**
+ * As fotos que a escolha deixaria de fora, desenhadas.
+ *
+ * Três verticais riscadas e uma deitada inteira: a frase "três de cada quatro
+ * fotos nunca apareceriam" é abstrata até alguém ver as três. É este desenho
+ * que faz o anfitrião entender a recusa sem ler o parágrafo.
+ */
+function OQueFicariaDeFora() {
+  return (
+    <span style={{ display: "flex", alignItems: "flex-end", gap: "0.5rem" }}>
+      {[0, 1, 2].map((i) => (
+        <span key={i} style={{ position: "relative", height: "4.5rem", aspectRatio: "9 / 16" }}>
+          <Moldura rotulo="" raio="var(--raio)" atmosfera variante={i * 8 + 1} />
+          <span
+            style={{
+              position: "absolute",
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              display: "grid",
+              placeItems: "center",
+              ...raio("var(--raio)"),
+              backgroundColor: "color-mix(in srgb, var(--critico) 62%, transparent)",
+              color: "var(--sobre-acento)",
+              fontSize: "1rem",
+            }}
+          >
+            ✕
+          </span>
+        </span>
+      ))}
+
+      <span style={{ position: "relative", height: "4.5rem", aspectRatio: "16 / 9" }}>
+        <Moldura rotulo="" raio="var(--raio)" atmosfera variante={21} />
+      </span>
+
+      <span style={{ fontSize: "0.75rem", lineHeight: 1.4, color: "var(--ink-2)", maxWidth: "30ch" }}>
+        Três de cada quatro fotos de festa são verticais. Só a quarta subiria à parede.
+      </span>
+    </span>
+  );
+}
+
+/**
+ * A escolha dos modelos, no admin.
+ *
+ * A recusa é desenhada e não só descrita porque o defeito que ela evita é
+ * invisível durante a festa: com só `cheio` marcado a parede roda a noite
+ * inteira parecendo funcionar, mostrando o quarto deitado do acervo, e ninguém
+ * descobre até o dia seguinte. Quem decide se a escolha vale é
+ * `problemasDaEscolha` — a tela não repete a regra, ela mostra o veredito.
+ */
+export function TelaModelosDaParede({
+  pack,
+  escolhidos,
+}: {
+  pack: Pack;
+  escolhidos: readonly ModeloDeTelao[];
+}) {
+  const problemas = problemasDaEscolha(escolhidos);
+  const recusada = problemas.length > 0;
+
+  return (
+    <Chao fundo="claro" pack={pack}>
+      <div style={{ display: "flex", height: "100%" }}>
+        <Lateral pack={pack} ativa="A parede" />
+
+        <main style={{ flex: 1, padding: "1.75rem 2rem", overflow: "hidden" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+            <span>
+              <p style={{ margin: 0, fontFamily: "var(--fonte-titulo)", fontWeight: 300, fontSize: "1.875rem", letterSpacing: "var(--tracking-titulo)" }}>
+                Os modelos da parede
+              </p>
+              <p style={{ margin: "0.375rem 0 0", fontSize: "0.8125rem", color: "var(--ink-2)" }}>
+                A parede alterna entre os modelos marcados a noite inteira. Marque quantos quiser.
+              </p>
+            </span>
+            <Pilula ativa={!recusada}>
+              {escolhidos.length} de {MODELOS_DE_TELAO.length}
+            </Pilula>
+          </div>
+
+          {recusada ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.875rem",
+                margin: "1.25rem 0 0",
+                padding: "1.125rem 1.25rem",
+                ...raio("var(--raio)"),
+                backgroundColor: "color-mix(in srgb, var(--critico) 12%, var(--superficie))",
+                borderLeftWidth: "3px",
+                borderLeftStyle: "solid",
+                borderLeftColor: "var(--critico)",
+              }}
+            >
+              <span>
+                <span style={{ display: "block", fontFamily: "var(--fonte-titulo)", fontSize: "1.0625rem", color: "var(--critico)" }}>
+                  Esta escolha não pode ser salva
+                </span>
+                {problemas.map((problema) => (
+                  <span key={problema} style={{ display: "block", marginTop: "0.25rem", fontSize: "0.8125rem", color: "var(--ink-2)" }}>
+                    {problema}
+                  </span>
+                ))}
+              </span>
+
+              <OQueFicariaDeFora />
+            </div>
+          ) : null}
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.75rem", margin: "1.25rem 0 0" }}>
+            {MODELOS_DE_TELAO.map((modelo) => {
+              const marcado = escolhidos.includes(modelo);
+              const culpado = recusada && !PERFIS[modelo].aceitaEmPe && marcado;
+
+              return (
+                <div
+                  key={modelo}
+                  style={{
+                    padding: "0.625rem",
+                    ...raio("var(--raio)"),
+                    backgroundColor: marcado
+                      ? "color-mix(in srgb, var(--acento) 12%, var(--superficie))"
+                      : "var(--superficie)",
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                    borderColor: culpado
+                      ? "var(--critico)"
+                      : marcado
+                        ? "var(--acento)"
+                        : "var(--linha)",
+                  }}
+                >
+                  <span
+                    style={{
+                      position: "relative",
+                      display: "block",
+                      aspectRatio: "16 / 9",
+                      overflow: "hidden",
+                      ...raio("var(--raio)"),
+                      backgroundColor: "var(--ink)",
+                      opacity: marcado ? 1 : 0.45,
+                    }}
+                  >
+                    <Enquadramento modelo={modelo} mini />
+                  </span>
+
+                  <span style={{ display: "flex", alignItems: "center", gap: "0.4375rem", marginTop: "0.5rem" }}>
+                    <Marcador marcado={marcado} />
+                    <span style={{ fontFamily: "var(--fonte-titulo)", fontSize: "0.9375rem" }}>
+                      {nomeDoModelo(modelo)}
+                    </span>
+                  </span>
+
+                  <span
+                    style={{
+                      display: "block",
+                      marginTop: "0.25rem",
+                      fontSize: "0.6875rem",
+                      lineHeight: 1.35,
+                      color: PERFIS[modelo].aceitaEmPe ? "var(--ink-2)" : "var(--critico)",
+                    }}
+                  >
+                    {perfilEmPalavras(modelo)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "0.875rem", margin: "1.25rem 0 0" }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                padding: "0.75rem 1.75rem",
+                ...raio("var(--raio-pilula)"),
+                backgroundColor: recusada ? "var(--superficie-alta)" : "var(--acento)",
+                color: recusada ? "var(--ink-3)" : "var(--sobre-acento)",
+                fontWeight: 600,
+              }}
+            >
+              Salvar
+            </span>
+            <span style={{ fontSize: "0.78125rem", color: "var(--ink-2)" }}>
+              {recusada
+                ? "Marque ao menos um modelo que aceite foto em pé."
+                : "Vale já na próxima foto que subir."}
+            </span>
+          </div>
+        </main>
       </div>
     </Chao>
   );

@@ -155,6 +155,80 @@ export function Navegador({
   );
 }
 
+export const LARGURA_PAREDE = 1180;
+/** 16:9 exato sobre `LARGURA_PAREDE` — é a proporção da TV do salão. */
+export const ALTURA_PAREDE = Math.round((LARGURA_PAREDE * 9) / 16);
+
+/**
+ * A moldura da parede: uma TV, não uma janela de navegador.
+ *
+ * O `Navegador` empresta abas e botões que a parede não tem — ela é URL
+ * fullscreen, sem cromo e sem cursor (spec 010). Desenhá-la dentro de um
+ * navegador contaria que existe barra de endereço para alguém tocar durante a
+ * festa, e não existe.
+ */
+export function Parede({
+  children,
+  titulo,
+  nota,
+  escala = 0.46,
+}: {
+  children: ReactNode;
+  titulo: string;
+  nota: string;
+  escala?: number;
+}) {
+  const moldura = 18;
+  const externa = LARGURA_PAREDE + moldura * 2;
+
+  return (
+    <figure style={{ margin: 0, display: "flex", flexDirection: "column", gap: "1rem" }}>
+      <div style={{ width: externa * escala, height: (ALTURA_PAREDE + moldura * 2) * escala, flex: "none" }}>
+        <div
+          style={{
+            width: externa,
+            transform: `scale(${escala})`,
+            transformOrigin: "top left",
+            padding: moldura,
+            ...raio("1.25rem"),
+            backgroundColor: "var(--ink)",
+            boxShadow:
+              "0 2px 4px color-mix(in srgb, var(--ink) 8%, transparent), 0 24px 48px -16px color-mix(in srgb, var(--ink) 30%, transparent)",
+          }}
+        >
+          <div
+            style={{
+              position: "relative",
+              width: LARGURA_PAREDE,
+              height: ALTURA_PAREDE,
+              ...raio("0.5rem"),
+              overflow: "hidden",
+            }}
+          >
+            {children}
+          </div>
+        </div>
+      </div>
+
+      <figcaption style={{ maxWidth: externa * escala }}>
+        <p
+          style={{
+            margin: 0,
+            fontFamily: "var(--fonte-titulo)",
+            fontSize: "1.0625rem",
+            letterSpacing: "var(--tracking-titulo)",
+          }}
+        >
+          {titulo}
+        </p>
+        <p style={{ margin: "0.375rem 0 0", fontSize: "0.8125rem", lineHeight: 1.5, color: "var(--ink-2)" }}>
+          {nota}
+        </p>
+      </figcaption>
+    </figure>
+  );
+}
+
 /** A barra de status, para a tela caber no aparelho sem parecer recortada. */
 export function BarraDeStatus({ claro }: { claro?: boolean }) {
   return (
