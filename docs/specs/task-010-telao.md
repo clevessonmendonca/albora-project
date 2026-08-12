@@ -62,3 +62,37 @@ Vale igual para vídeo.
 |---|---|
 | Navegador da TV sem suporte a stream | Polling é o caminho padrão nesse aparelho, não a exceção |
 | Memória crescendo em 4h | Teto duro no cache e liberação explícita das imagens antigas |
+
+---
+
+## Bloqueio encontrado ao ligar a rota — 11/08/2026
+
+A rota `/telao/[slug]` não foi construída, e o motivo não é tempo.
+
+**O telão não tem como se autenticar.** `GET /api/feed` exige sessão de
+convidado e devolve 401 sem ela. O telão não é convidado: é uma tela pendurada
+no salão, sem ninguém operando.
+
+Reusar a sessão de convidado resolveria a leitura e **autorizaria subir foto a
+partir de uma TV que fica ligada sozinha** — a credencial mais fácil de furtar
+do produto inteiro, porque está literalmente na parede. Abrir o feed sem
+credencial nenhuma entregaria o acervo a quem descobrisse o slug.
+
+### O que foi feito
+
+`packages/core/src/parede.ts` — o crachá da parede, com a forma do ADR 0004
+(opaco, assinado, preso a um evento) e as concessões invertidas: três de
+leitura, nenhuma de escrita. Mesmo copiado da TV, o crachá não sobe, não
+reage, não comenta e não remove. Expira em 12 horas, cobre a noite e não vira
+link permanente para o acervo depois que todo mundo foi embora.
+
+### O que falta, e nesta ordem
+
+1. **Migration** para a tabela do crachá, com `event_id` e RLS forçado.
+2. `GET /api/parede` lendo mídia publicada com o crachá, e a decisão de
+   exibição passando por `decidirExibicao` na superfície `telao`.
+3. A rota `/telao/[slug]`, com os oito renderizadores e o polling.
+
+O passo 1 é o que trava: nada da rota pode ser escrito antes da migration sem
+inventar uma credencial temporária, e credencial temporária em caminho de
+leitura de acervo é exatamente o tipo de atalho que sobrevive até produção.

@@ -311,3 +311,11 @@ export {
   gateComecaFechado,
   padroesDoEvento,
 } from "./menores";
+
+export type { ConcessaoDaParede, CrachaDaParede, VeredictoDaParede } from "./parede";
+export {
+  CONCESSOES_DA_PAREDE,
+  VALIDADE_DA_PAREDE_HORAS,
+  autorizarParede,
+  expiraEmPara,
+} from "./parede";
