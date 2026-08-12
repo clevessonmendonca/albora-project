@@ -35,6 +35,7 @@ export default async function Pagina({
         eventoId={evento.eventoId}
         slug={evento.slug}
         inicial={evento.moderacao}
+        interacaoAbreEmInicial={evento.interacaoAbreEm?.toISOString() ?? null}
       />
     </CascaAdmin>
   );

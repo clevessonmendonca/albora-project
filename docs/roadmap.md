@@ -7,13 +7,13 @@ Este documento complementa o roadmap de produto em [`product/albora-produto-arqu
 
 ## Onde estamos
 
-Núcleo, upload, sessão, feed, **telão completo**, **admin (login + criar evento)**, moderação por denúncia, álbum — tudo verde. O fluxo fecha em dev.
+Núcleo, upload, sessão, feed, telão, admin (login + criar evento + **controles por festa**), moderação (denúncia, fila de revisão, gate de interação), reações/comentários offline, álbum e música — tudo verde em dev. A PR #2 fecha A2/A3 no código; falta merge e QA manual.
 
 Faltam três coisas para um evento real:
 
-1. A **peça impressa com QR**
-2. Os **controles do host durante a festa**
-3. **Produção** (deploy + e-mail + carga)
+1. A **peça impressa com QR** (A1)
+2. **Produção** (deploy + e-mail + carga) (A4/A5)
+3. **Procedimento jurídico menores** (A6, não-código)
 
 **Gates de MVP** (ver [`../CLAUDE.md`](../CLAUDE.md)):
 
@@ -26,9 +26,9 @@ Faltam três coisas para um evento real:
 
 | # | Item | Tam | Por quê é bloqueante |
 |---|---|---|---|
-| A1 | **Peças: placa/card SVG→PDF com QR** ([spec 009](./specs/task-009-admin-e-pecas.md)) | **G** | Sem QR impresso, ninguém escaneia na festa. QR alto contraste, mín. ~3cm, correção nível H, URL legível embaixo, aviso RGB→CMYK, fonte embutida validada no CI, render **em fila**. A verificação "imprimir e escanear com 3 celulares" **não é opcional**. |
-| A2 | **Botões do host: pânico + "há menores"** | **P/M** | O pânico precisa existir na mão do casal durante a festa; "há menores" move o limiar de denúncia ([ADR 0012](./adr/0012-menores-sem-perguntar-idade.md)). A fiação em `decidirExibicao` já existe — falta a coluna `has_minors` + a página de admin do evento. Spec de moderação: [011](./specs/task-011-moderacao.md). |
-| A3 | **UI do convidado fiada** (reação/comentário no feed, música, álbum) | **M** | É o que puxa a participação (hipótese H1 ≥40%). As rotas existem; falta consumir nas páginas `/e/[slug]/*`, usando [`/telas`](../apps/web/app/telas/) como base. Specs: [007](./specs/task-007-feed-e-stories.md), [008](./specs/task-008-reacoes-e-galeria.md), [014](./specs/task-014-comentarios.md), [016](./specs/task-016-album-da-noite.md), [018](./specs/task-018-musica-do-casal.md). |
+| A1 | **Peças: placa/card SVG→PDF com QR** ([spec 009](./specs/task-009-admin-e-pecas.md)) | **G** | **Parcial** — download SVG no admin (QR nível H, URL legível, validação `@albora/tokens/pecas`). Falta fila SVG→PDF, fonte embutida no CI e prova impressa com 3 celulares. |
+| A2 | **Botões do host: pânico + "há menores" + fila de revisão + gate** | **P/M** | **Feito** — admin + toggle de pânico no telão (`PATCH /api/parede/panico`). |
+| A3 | **UI do convidado fiada** (reação/comentário no feed, música, álbum) | **M** | **Feito no código** (PR #2) — falta QA das provas da spec 014 e smoke E2E. |
 | A4 | **Teste de carga 150 uploads/20min** ([spec 012](./specs/task-012-carga-e-app.md)) | **M** | Gate **não negociável** do CLAUDE.md antes do 1º evento. A ferramenta (`pnpm carga`) já existe; falta rodar contra infra parecida com produção. Runbook: [`runbooks/carga.md`](./runbooks/carga.md). |
 | A5 | **Produção**: deploy (Cloudflare/OpenNext + R2 + Neon) + e-mail do magic link (Resend, verificar domínio) | **M** | Hoje roda em localhost. Precisa da esteira `stable→homol→main` de pé e o e-mail real pro host logar. Ver [ADR 0006](./adr/0006-hosting-platform.md). |
 | A6 | **Procedimento de conteúdo com menores** (não-código) + revisão jurídica do [ADR 0012](./adr/0012-menores-sem-perguntar-idade.md) | — | A [spec 011](./specs/task-011-moderacao.md) exige o procedimento escrito **antes** do 1º evento. |
@@ -41,7 +41,7 @@ Faltam três coisas para um evento real:
 |---|---|
 | App nativo Expo — "segunda porta" na confirmação da 1ª foto | [017](./specs/task-017-app-expo-e-lojas.md), [ADR 0008](./adr/0008-app-nativo-como-segunda-porta.md) |
 | Recado dos anfitriões (áudio/texto do casal) | [019](./specs/task-019-recado-dos-anfitrioes.md) |
-| Compartilhar pra fora (moldura + consentimento externo) | [015](./specs/task-015-compartilhar.md) |
+| Compartilhar pra fora (moldura + consentimento externo) | [015](./specs/task-015-compartilhar.md) — **parcial** (minhas + moldura + colagem; falta prova manual e polish) |
 | Identidade do casal (cores/fonte no admin) + seleção de missões na criação | [009](./specs/task-009-admin-e-pecas.md) |
 | Painel ao vivo — participação sobre `expected_guests`, funil, últimas fotos | [009](./specs/task-009-admin-e-pecas.md) |
 | Classificador na thumb + fila de revisão no admin | [011](./specs/task-011-moderacao.md) |

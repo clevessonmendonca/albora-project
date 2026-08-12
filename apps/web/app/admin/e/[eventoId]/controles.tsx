@@ -1,6 +1,6 @@
 "use client";
 
-import { padroesDoEvento } from "@albora/core";
+import { interacaoAberta, padroesDoEvento } from "@albora/core";
 import { useEffect, useState } from "react";
 import { raio } from "../../../landing/pecas";
 import { SecaoAdmin, estilosAdmin } from "../../casca";
@@ -15,32 +15,62 @@ type Props = {
   eventoId: string;
   slug: string;
   inicial: Moderacao;
+  interacaoAbreEmInicial: string | null;
 };
 
-export function ControlesDoEvento({ eventoId, slug, inicial }: Props) {
+export function ControlesDoEvento({
+  eventoId,
+  slug,
+  inicial,
+  interacaoAbreEmInicial,
+}: Props) {
   const [moderacao, setModeracao] = useState(inicial);
-  const [salvando, setSalvando] = useState<"panico" | "haMenores" | null>(null);
+  const [interacaoAbreEm, setInteracaoAbreEm] = useState(interacaoAbreEmInicial);
+  const [salvando, setSalvando] = useState<
+    "panico" | "haMenores" | "modoEndurecido" | "interacao" | null
+  >(null);
   const [erro, setErro] = useState(false);
 
   const padroes = padroesDoEvento({ haMenores: moderacao.haMenores });
+  const gateAberto = interacaoAberta(
+    { interacaoAbreEm: interacaoAbreEm ? new Date(interacaoAbreEm) : null },
+    new Date(),
+  );
 
-  const atualizar = async (campo: "panico" | "haMenores", valor: boolean) => {
+  const patch = async (
+    corpo: Record<string, boolean>,
+    campo: NonNullable<typeof salvando>,
+  ) => {
     setSalvando(campo);
     setErro(false);
-    const anterior = moderacao;
-    setModeracao((m) => ({ ...m, [campo]: valor }));
+    const moderacaoAnterior = moderacao;
+    const gateAnterior = interacaoAbreEm;
+
+    if ("panico" in corpo) setModeracao((m) => ({ ...m, panico: corpo.panico! }));
+    if ("haMenores" in corpo) setModeracao((m) => ({ ...m, haMenores: corpo.haMenores! }));
+    if ("modoEndurecido" in corpo) {
+      setModeracao((m) => ({ ...m, modoEndurecido: corpo.modoEndurecido! }));
+    }
+    if (corpo.abrirInteracao) setInteracaoAbreEm(new Date().toISOString());
 
     try {
       const r = await fetch(`/api/admin/eventos/${eventoId}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ [campo]: valor }),
+        body: JSON.stringify(corpo),
       });
       if (!r.ok) throw new Error("falhou");
-      const corpo = (await r.json()) as { moderacao: Moderacao };
-      setModeracao(corpo.moderacao);
+      const resposta = (await r.json()) as {
+        moderacao: Moderacao;
+        interacaoAbreEm?: string | null;
+      };
+      setModeracao(resposta.moderacao);
+      if (resposta.interacaoAbreEm !== undefined) {
+        setInteracaoAbreEm(resposta.interacaoAbreEm);
+      }
     } catch {
-      setModeracao(anterior);
+      setModeracao(moderacaoAnterior);
+      setInteracaoAbreEm(gateAnterior);
       setErro(true);
     } finally {
       setSalvando(null);
@@ -60,7 +90,7 @@ export function ControlesDoEvento({ eventoId, slug, inicial }: Props) {
         <button
           type="button"
           disabled={salvando === "panico"}
-          onClick={() => atualizar("panico", !moderacao.panico)}
+          onClick={() => void patch({ panico: !moderacao.panico }, "panico")}
           style={{
             ...estilosAdmin.botaoPerigo,
             opacity: salvando === "panico" ? 0.6 : 1,
@@ -108,7 +138,7 @@ export function ControlesDoEvento({ eventoId, slug, inicial }: Props) {
             ligado={moderacao.haMenores}
             desabilitado={salvando === "haMenores"}
             rotulo="Há menores nesta festa"
-            onChange={(v) => atualizar("haMenores", v)}
+            onChange={(v) => void patch({ haMenores: v }, "haMenores")}
           />
         </div>
 
@@ -127,14 +157,87 @@ export function ControlesDoEvento({ eventoId, slug, inicial }: Props) {
           />
           <Efeito
             rotulo="Gate"
-            valor={padroes.gateComecaFechado ? "fechado" : "aberto"}
+            valor={gateAberto ? "aberto" : padroes.gateComecaFechado ? "fechado" : "aberto"}
           />
         </div>
       </SecaoAdmin>
 
       <SecaoAdmin>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "1rem",
+          }}
+        >
+          <div>
+            <span
+              style={{
+                display: "block",
+                fontFamily: "var(--fonte-titulo)",
+                fontSize: "1.0625rem",
+              }}
+            >
+              Modo endurecido
+            </span>
+            <span style={{ display: "block", marginTop: "0.25rem", fontSize: "0.875rem", color: "var(--ink-3)" }}>
+              Novas fotos e comentários ficam na fila até você liberar.
+            </span>
+          </div>
+          <Interruptor
+            ligado={moderacao.modoEndurecido}
+            desabilitado={salvando === "modoEndurecido"}
+            rotulo="Modo endurecido"
+            onChange={(v) => void patch({ modoEndurecido: v }, "modoEndurecido")}
+          />
+        </div>
+      </SecaoAdmin>
+
+      <SecaoAdmin>
+        <h2 style={{ margin: "0 0 0.75rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.125rem" }}>
+          Interação social
+        </h2>
+        <p style={{ margin: "0 0 1rem", color: "var(--ink-2)", lineHeight: 1.6, fontSize: "0.9375rem" }}>
+          Reações e comentários no feed só aparecem depois que o casal liberar.
+        </p>
+        {gateAberto ? (
+          <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--ink)" }}>
+            Aberta desde{" "}
+            {interacaoAbreEm
+              ? new Date(interacaoAbreEm).toLocaleString("pt-BR", {
+                  day: "2-digit",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "—"}
+          </p>
+        ) : (
+          <button
+            type="button"
+            disabled={salvando === "interacao"}
+            onClick={() => void patch({ abrirInteracao: true }, "interacao")}
+            style={{
+              ...estilosAdmin.botaoPrimario,
+              opacity: salvando === "interacao" ? 0.6 : 1,
+            }}
+          >
+            {salvando === "interacao" ? "Abrindo…" : "Abrir interação agora"}
+          </button>
+        )}
+      </SecaoAdmin>
+
+      <SecaoAdmin>
         <h2 style={{ margin: "0 0 1rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.125rem" }}>
-          Comentários
+          Fila de revisão
+        </h2>
+        <FilaRevisao eventoId={eventoId} />
+      </SecaoAdmin>
+
+      <SecaoAdmin>
+        <h2 style={{ margin: "0 0 1rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.125rem" }}>
+          Comentários recentes
         </h2>
         <ModeracaoComentarios eventoId={eventoId} />
       </SecaoAdmin>
@@ -144,6 +247,13 @@ export function ControlesDoEvento({ eventoId, slug, inicial }: Props) {
           Música do casal
         </h2>
         <MusicaDoEvento eventoId={eventoId} />
+      </SecaoAdmin>
+
+      <SecaoAdmin>
+        <h2 style={{ margin: "0 0 1rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.125rem" }}>
+          Peças para imprimir
+        </h2>
+        <PecasDoEvento eventoId={eventoId} slug={slug} />
       </SecaoAdmin>
 
       <SecaoAdmin>
@@ -158,6 +268,143 @@ export function ControlesDoEvento({ eventoId, slug, inicial }: Props) {
         <p style={{ margin: 0, color: "var(--critico)", fontSize: "0.9rem" }}>
           Não salvou agora. Tente de novo.
         </p>
+      )}
+    </div>
+  );
+}
+
+function FilaRevisao({ eventoId }: { eventoId: string }) {
+  const [midias, setMidias] = useState<
+    { id: string; autor: string; denuncias: number; motivo: string; criadaEm: string }[]
+  >([]);
+  const [comentarios, setComentarios] = useState<
+    { id: string; autor: string; texto: string; denuncias: number }[]
+  >([]);
+  const [carregando, setCarregando] = useState(true);
+  const [acao, setAcao] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const carregar = async () => {
+    setErro(null);
+    try {
+      const r = await fetch(`/api/admin/eventos/${eventoId}/revisao`);
+      if (!r.ok) throw new Error("falhou");
+      const corpo = (await r.json()) as {
+        midias: { id: string; autor: string; denuncias: number; motivo: string; criadaEm: string }[];
+        comentarios: { id: string; autor: string; texto: string; denuncias: number }[];
+      };
+      setMidias(corpo.midias);
+      setComentarios(corpo.comentarios);
+    } catch {
+      setErro("Não carregou a fila.");
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  useEffect(() => {
+    void carregar();
+  }, [eventoId]);
+
+  const liberar = async (tipo: "midia" | "comentario", id: string) => {
+    setAcao(`${tipo}:${id}`);
+    setErro(null);
+    try {
+      const r = await fetch(`/api/admin/eventos/${eventoId}/revisao`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ tipo, id, acao: "liberar" }),
+      });
+      if (!r.ok) throw new Error("falhou");
+      await carregar();
+    } catch {
+      setErro("Não liberou agora. Tente de novo.");
+    } finally {
+      setAcao(null);
+    }
+  };
+
+  if (carregando) {
+    return <p style={{ margin: 0, color: "var(--ink-3)", fontSize: "0.9rem" }}>Carregando…</p>;
+  }
+
+  if (midias.length === 0 && comentarios.length === 0) {
+    return (
+      <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.6, fontSize: "0.9375rem" }}>
+        Nada retido agora. Denúncias e classificador aparecem aqui.
+      </p>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      {midias.map((m) => (
+        <div
+          key={m.id}
+          style={{
+            padding: "0.75rem",
+            backgroundColor: "var(--bg)",
+            ...raio("var(--raio)"),
+            display: "grid",
+            gap: "0.35rem",
+          }}
+        >
+          <span style={{ fontSize: "0.85rem", color: "var(--ink)" }}>
+            Foto · {m.autor} · {m.denuncias} denúncia(s) · {m.motivo}
+          </span>
+          <button
+            type="button"
+            disabled={acao === `midia:${m.id}`}
+            onClick={() => void liberar("midia", m.id)}
+            style={{
+              ...estilosAdmin.botaoPrimario,
+              justifySelf: "start",
+              fontSize: "0.8125rem",
+              padding: "0.45rem 0.75rem",
+              opacity: acao === `midia:${m.id}` ? 0.6 : 1,
+            }}
+          >
+            {acao === `midia:${m.id}` ? "Liberando…" : "Liberar foto"}
+          </button>
+        </div>
+      ))}
+
+      {comentarios.map((c) => (
+        <div
+          key={c.id}
+          style={{
+            padding: "0.75rem",
+            backgroundColor: "var(--bg)",
+            ...raio("var(--raio)"),
+            display: "grid",
+            gap: "0.35rem",
+          }}
+        >
+          <span style={{ fontSize: "0.85rem", color: "var(--ink)" }}>
+            {c.autor} · {c.denuncias} denúncia(s)
+          </span>
+          <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.5, color: "var(--ink-2)" }}>
+            {c.texto}
+          </p>
+          <button
+            type="button"
+            disabled={acao === `comentario:${c.id}`}
+            onClick={() => void liberar("comentario", c.id)}
+            style={{
+              ...estilosAdmin.botaoPrimario,
+              justifySelf: "start",
+              fontSize: "0.8125rem",
+              padding: "0.45rem 0.75rem",
+              opacity: acao === `comentario:${c.id}` ? 0.6 : 1,
+            }}
+          >
+            {acao === `comentario:${c.id}` ? "Liberando…" : "Liberar comentário"}
+          </button>
+        </div>
+      ))}
+
+      {erro && (
+        <p style={{ margin: 0, color: "var(--critico)", fontSize: "0.875rem" }}>{erro}</p>
       )}
     </div>
   );
@@ -418,6 +665,77 @@ function Efeito({ rotulo, valor }: { rotulo: string; valor: string }) {
     >
       <span style={{ display: "block", color: "var(--ink-3)" }}>{rotulo}</span>
       <span style={{ display: "block", marginTop: "0.125rem", color: "var(--ink)" }}>{valor}</span>
+    </div>
+  );
+}
+
+function PecasDoEvento({ eventoId, slug }: { eventoId: string; slug: string }) {
+  const [baixando, setBaixando] = useState<string | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
+
+  const formatos = [
+    { id: "placa-a4", rotulo: "Placa A4" },
+    { id: "card-de-mesa", rotulo: "Card de mesa" },
+    { id: "card-de-missao", rotulo: "Card de missão" },
+  ] as const;
+
+  const baixar = async (formato: (typeof formatos)[number]["id"]) => {
+    setBaixando(formato);
+    setErro(null);
+    try {
+      const r = await fetch(`/api/admin/eventos/${eventoId}/pecas?formato=${formato}`);
+      if (!r.ok) {
+        const corpo = (await r.json().catch(() => null)) as { problemas?: string[] } | null;
+        const msg = corpo?.problemas?.join(" ") ?? "Não gerou a peça.";
+        throw new Error(msg);
+      }
+      const svg = await r.text();
+      const blob = new Blob([svg], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `albora-${slug}-${formato}.svg`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Não baixou a peça.");
+    } finally {
+      setBaixando(null);
+    }
+  };
+
+  return (
+    <div>
+      <p style={{ margin: "0 0 1rem", color: "var(--ink-2)", lineHeight: 1.6, fontSize: "0.9375rem" }}>
+        SVG pronto para a gráfica converter em PDF. A tela mostra RGB e a impressão sai
+        CMYK — peça uma prova antes da tiragem inteira.
+      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+        {formatos.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            disabled={baixando !== null}
+            onClick={() => void baixar(f.id)}
+            style={{
+              padding: "0.625rem 1rem",
+              fontFamily: "var(--fonte-titulo)",
+              fontSize: "0.9375rem",
+              color: "var(--ink)",
+              backgroundColor: "var(--superficie)",
+              border: "1px solid var(--linha)",
+              cursor: baixando !== null ? "wait" : "pointer",
+              ...raio("var(--raio-pilula)"),
+              opacity: baixando === f.id ? 0.6 : 1,
+            }}
+          >
+            {baixando === f.id ? "Gerando…" : f.rotulo}
+          </button>
+        ))}
+      </div>
+      {erro && (
+        <p style={{ margin: "0.75rem 0 0", color: "var(--critico)", fontSize: "0.875rem" }}>{erro}</p>
+      )}
     </div>
   );
 }
