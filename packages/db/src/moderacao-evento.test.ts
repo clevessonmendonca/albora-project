@@ -1,6 +1,8 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
+  abrirInteracaoDoEvento,
+  alternarPanicoDoEvento,
   atualizarModeracaoDoEvento,
   buscarEventoDoHost,
   listarEventosDoHost,
@@ -56,5 +58,18 @@ describe("moderacao do evento pelo host", () => {
 
     const depois = await buscarEventoDoHost(app, dados.a.contaId, dados.a.eventoId);
     expect(depois?.moderacao).toEqual(antes?.moderacao);
+  });
+});
+
+describe("panico pela parede", () => {
+  it("alternarPanicoDoEvento inverte o estado", async () => {
+    const antes = await buscarEventoDoHost(app, dados.a.contaId, dados.a.eventoId);
+    const panicoInicial = antes!.moderacao.panico;
+
+    const ligado = await alternarPanicoDoEvento(app, dados.a.eventoId);
+    expect(ligado).toBe(!panicoInicial);
+
+    const desligado = await alternarPanicoDoEvento(app, dados.a.eventoId);
+    expect(desligado).toBe(panicoInicial);
   });
 });

@@ -3,7 +3,7 @@ import {
   type EstadoDoEvento,
 } from "@albora/core";
 import type { Pool, PoolClient } from "pg";
-import { comConta } from "./evento";
+import { comConta, comEvento } from "./evento";
 
 export type EstadoModeracao = {
   panico: boolean;
@@ -21,6 +21,7 @@ export type ResumoEvento = {
 
 export type EventoDoHost = ResumoEvento & {
   moderacao: EstadoModeracao;
+  interacaoAbreEm: Date | null;
 };
 
 export type AtualizacaoModeracao = Partial<EstadoModeracao>;
@@ -34,10 +35,11 @@ type LinhaCompleta = {
   panic: boolean;
   hardened: boolean;
   has_minors: boolean;
+  interaction_opens_at: Date | null;
 };
 
 const COLUNAS =
-  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors";
+  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at";
 
 function mapModeracao(l: Pick<LinhaCompleta, "panic" | "hardened" | "has_minors">): EstadoModeracao {
   return {
@@ -54,6 +56,7 @@ function mapEvento(l: LinhaCompleta): EventoDoHost {
     packId: l.pack_id,
     comecaEm: l.starts_at,
     terminaEm: l.ends_at,
+    interacaoAbreEm: l.interaction_opens_at,
     moderacao: mapModeracao(l),
   };
 }
@@ -138,6 +141,46 @@ export async function atualizarModeracaoDoEvento(
       [eventoId],
     );
     return rows[0] ? mapEvento(rows[0]) : null;
+  });
+}
+
+/** Abre o gate de interação na hora (spec 009, ADR 0009). */
+export async function abrirInteracaoDoEvento(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+): Promise<EventoDoHost | null> {
+  return comConta(pool, accountId, async (c) => {
+    const { rowCount } = await c.query(
+      `UPDATE events SET interaction_opens_at = now() WHERE id = $1`,
+      [eventoId],
+    );
+    if (!rowCount) return null;
+
+    const { rows } = await c.query<LinhaCompleta>(
+      `SELECT ${COLUNAS} FROM events WHERE id = $1`,
+      [eventoId],
+    );
+    return rows[0] ? mapEvento(rows[0]) : null;
+  });
+}
+
+/**
+ * Alterna o pânico do evento (spec 011).
+ *
+ * Usado pelo crachá da parede: quem está no salão pausa a exibição sem abrir
+ * o admin. Roda em `comEvento`, não em `comConta`.
+ */
+export async function alternarPanicoDoEvento(
+  pool: Pool,
+  eventoId: string,
+): Promise<boolean | null> {
+  return comEvento(pool, eventoId, async (c) => {
+    const { rows } = await c.query<{ panic: boolean }>(
+      `UPDATE events SET panic = NOT panic WHERE id = $1 RETURNING panic`,
+      [eventoId],
+    );
+    return rows[0]?.panic ?? null;
   });
 }
 

@@ -100,6 +100,8 @@ export type {
   ResumoEvento,
 } from "./moderacao-evento";
 export {
+  abrirInteracaoDoEvento,
+  alternarPanicoDoEvento,
   atualizarModeracaoDoEvento,
   buscarEventoDoHost,
   lerModeracaoDoEvento,
@@ -107,6 +109,17 @@ export {
   listarEventosDoHost,
   paraEstadoDoEvento,
 } from "./moderacao-evento";
+
+export type { ComentarioParaRevisao, MidiaParaRevisao } from "./moderacao-revisao-db";
+export {
+  liberarComentarioDoEvento,
+  liberarMidiaDoEvento,
+  listarComentariosParaRevisao,
+  listarMidiaParaRevisao,
+} from "./moderacao-revisao-db";
+
+export type { ContextoCompartilharDb } from "./compartilhar-db";
+export { buscarContextoCompartilhar, registrarConsentimentoExterno } from "./compartilhar-db";
 
 export type { JanelaDoAlbum, MidiaDoAlbumComChave } from "./album-db";
 export { janelaDoAlbum, listarMidiaDoAlbum, TETO_DO_ALBUM } from "./album-db";
