@@ -73,3 +73,15 @@ export { contarDenuncias, denunciar, ErroMidiaDeOutroEvento } from "./moderacao-
 
 export type { JanelaDoAlbum, MidiaDoAlbumComChave } from "./album-db";
 export { janelaDoAlbum, listarMidiaDoAlbum, TETO_DO_ALBUM } from "./album-db";
+
+export type { HostResolvida, HostSessaoCriada, MagicLinkEmitido } from "./host-auth";
+export {
+  consumirMagicLink,
+  emitirMagicLink,
+  ErroHostSessaoInvalida,
+  ErroMagicLinkInvalido,
+  resolverHostSessao,
+  revogarHostSessao,
+  VALIDADE_HOST_SESSAO_HORAS,
+  VALIDADE_MAGIC_LINK_MINUTOS,
+} from "./host-auth";
