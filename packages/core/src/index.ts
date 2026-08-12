@@ -152,6 +152,8 @@ export {
   validarTexto,
 } from "./comentario";
 
+export { classificarTexto } from "./classificador-texto";
+
 export type {
   Autorizacao,
   Caixa,
