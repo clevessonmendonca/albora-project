@@ -29,3 +29,10 @@ export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from 
 
 export type { EstadoDoEvento, EventoPublico, Resolucao } from "./eventos";
 export { HORAS_APOS_EVENTO, packDoEvento, resolverSlug, rotacionarSlug } from "./eventos";
+export type { MotivoParedeInvalida, ParedeResolvida } from "./parede";
+export {
+  ErroParedeInvalida,
+  emitirCrachaDaParede,
+  resolverParede,
+  revogarParedesDoEvento,
+} from "./parede";

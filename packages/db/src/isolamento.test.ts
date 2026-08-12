@@ -231,6 +231,7 @@ describe("6 — agregação cruza eventos, e fica auditada", () => {
 const FORA_DA_RLS = new Map([
   ["session_tokens", "porta de entrada: resolve token → event_id, antes de haver contexto"],
   ["event_slugs", "porta do QR: resolve slug → event_id. O slug não é segredo — está impresso na mesa"],
+  ["wall_tokens", "porta da TV: resolve crachá → event_id, mesmo circular da sessão. Só leitura"],
 ]);
 
 describe("7 — nenhuma tabela nova escapa da política", () => {
@@ -249,6 +250,26 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
       "expires_at",
       "revoked_at",
       "session_id",
+      "token_hash",
+    ]);
+  });
+
+  it("a porta da parede não cresce, e não tem sessão", async () => {
+    const { rows } = await admin.query<{ coluna: string }>(
+      `SELECT column_name AS coluna FROM information_schema.columns
+       WHERE table_name = 'wall_tokens' ORDER BY column_name`,
+    );
+
+    // Uma coluna a menos que `session_tokens`, e a ausência é a decisão: a
+    // parede não é uma pessoa. Inventar `session_id` para ela faria a
+    // auditoria atribuir a um convidado o que uma TV fez sozinha — e abriria
+    // a porta para alguém reusar o crachá como sessão, que é o que autoriza
+    // subir foto.
+    expect(rows.map((r) => r.coluna)).toEqual([
+      "created_at",
+      "event_id",
+      "expires_at",
+      "revoked_at",
       "token_hash",
     ]);
   });
