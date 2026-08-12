@@ -1,4 +1,4 @@
-import { atualizarModeracaoDoEvento } from "@albora/db";
+import { abrirInteracaoDoEvento, atualizarModeracaoDoEvento } from "@albora/db";
 import { banco } from "@/lib/banco";
 import { config, ErroConfig } from "@/lib/config";
 import { consumir } from "@/lib/limite";
@@ -10,6 +10,8 @@ export const dynamic = "force-dynamic";
 type Corpo = {
   panico?: unknown;
   haMenores?: unknown;
+  modoEndurecido?: unknown;
+  abrirInteracao?: unknown;
 };
 
 function comoBooleano(v: unknown): boolean | undefined {
@@ -57,18 +59,30 @@ export async function PATCH(
 
   const panico = comoBooleano(corpo.panico);
   const haMenores = comoBooleano(corpo.haMenores);
+  const modoEndurecido = comoBooleano(corpo.modoEndurecido);
+  const abrirInteracao = comoBooleano(corpo.abrirInteracao);
 
-  if (panico === undefined && haMenores === undefined) {
+  if (
+    panico === undefined &&
+    haMenores === undefined &&
+    modoEndurecido === undefined &&
+    abrirInteracao === undefined
+  ) {
     return erro(422, "validation_error", "Nada para atualizar", {
-      campos: ["panico", "haMenores"],
+      campos: ["panico", "haMenores", "modoEndurecido", "abrirInteracao"],
     });
   }
 
   try {
-    const evento = await atualizarModeracaoDoEvento(banco(), host.accountId, eventoId, {
+    let evento = await atualizarModeracaoDoEvento(banco(), host.accountId, eventoId, {
       ...(panico !== undefined ? { panico } : {}),
       ...(haMenores !== undefined ? { haMenores } : {}),
+      ...(modoEndurecido !== undefined ? { modoEndurecido } : {}),
     });
+
+    if (abrirInteracao === true) {
+      evento = await abrirInteracaoDoEvento(banco(), host.accountId, eventoId);
+    }
 
     if (!evento) {
       return erro(404, "evento.nao_encontrado", "Evento não encontrado");
@@ -79,9 +93,14 @@ export async function PATCH(
       eventoId,
       panico: evento.moderacao.panico,
       haMenores: evento.moderacao.haMenores,
+      modoEndurecido: evento.moderacao.modoEndurecido,
+      interacaoAberta: abrirInteracao === true,
     });
 
-    return ok({ moderacao: evento.moderacao });
+    return ok({
+      moderacao: evento.moderacao,
+      interacaoAbreEm: evento.interacaoAbreEm?.toISOString() ?? null,
+    });
   } catch (e) {
     return erroInesperado("admin.moderacao", e);
   }
