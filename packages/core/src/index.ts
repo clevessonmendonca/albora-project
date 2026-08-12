@@ -301,3 +301,11 @@ export {
   validarCriacao,
   validarRascunho,
 } from "./recado";
+
+export type { PadroesDoEvento, PoliticaDeMenores } from "./menores";
+export {
+  compartilhamentoExternoPadrao,
+  denunciasParaSegurar,
+  gateComecaFechado,
+  padroesDoEvento,
+} from "./menores";

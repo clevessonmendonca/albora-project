@@ -70,6 +70,12 @@ export function decidirExibicao(
   midia: EstadoDaMidia,
   evento: EstadoDoEvento,
   superficie: Superficie,
+  /**
+   * Quantas denúncias seguram. Cai para 1 quando o anfitrião marca que há
+   * menores na festa (ADR 0012) — quem calcula é `menores.ts`, e o padrão
+   * aqui mantém quem já chamava com três argumentos.
+   */
+  denunciasParaSegurar: number = DENUNCIAS_PARA_SEGURAR,
 ): Decisao {
   // A ordem abaixo é precedência, não estilo. Remoção e pânico vêm antes de
   // qualquer liberação: são as duas coisas que um humano acabou de mandar
@@ -81,7 +87,7 @@ export function decidirExibicao(
     return { visivel: true, codigo: "moderacao.liberada_pelo_anfitriao" };
   }
 
-  if (superficie === "telao" && midia.denuncias >= DENUNCIAS_PARA_SEGURAR) {
+  if (superficie === "telao" && midia.denuncias >= denunciasParaSegurar) {
     return { visivel: false, codigo: "moderacao.denuncias" };
   }
 
