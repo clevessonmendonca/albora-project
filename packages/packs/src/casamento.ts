@@ -32,7 +32,7 @@ export const CASAMENTO: Pack = {
     "landing.titulo": "As fotos do seu casamento,",
     "landing.titulo.destaque": "antes de a festa acabar.",
     "landing.lede":
-      "São 200 câmeras na festa e 200 rolos que nunca chegam até você. Com um QR na mesa, cada foto cai no seu álbum no instante em que alguém tira.",
+      "Cada convidado carrega uma câmera no bolso, e no fim da noite cada rolo some sem chegar até você. Com um QR na mesa, toda foto cai no seu álbum no instante em que alguém tira.",
     "landing.cta": "Criar meu álbum",
     "landing.exemplo.nome": "ANA & JOÃO",
     "landing.momentos.titulo": "Todo mundo vendo as fotos",

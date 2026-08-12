@@ -147,7 +147,7 @@ const PERGUNTAS = [
   },
   {
     q: "E se alguém mandar uma foto inadequada?",
-    a: "Por padrão tudo aparece, porque no dia da festa ninguém vai aprovar fila. O que protege é automático: filtro antes da parede, denúncia por qualquer convidado, e você tira em um toque.",
+    a: "Por padrão tudo aparece, porque no dia da festa ninguém vai ficar aprovando foto numa fila. O que protege roda sozinho: um filtro checa cada foto antes de ela subir, qualquer convidado pode denunciar, e você tira do ar em um toque.",
   },
   {
     q: "As fotos ficam com vocês?",
@@ -749,8 +749,8 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
                 color: "var(--ink-2)",
               }}
             >
-              Bastidores, ângulos que ninguém cobriu, a pista às 2h. Você arrasta as fotos nos
-              espaços e o arquivo sai pronto para a gráfica, no mesmo desenho da placa e do telão,
+              Bastidores, ângulos que ninguém cobriu, a pista às 2h. Você encaixa cada foto no seu
+              espaço e o arquivo sai pronto para a gráfica, no mesmo desenho da placa e do telão,
               sem precisar de designer.
             </p>
 
