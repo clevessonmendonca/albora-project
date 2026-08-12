@@ -150,6 +150,21 @@ describe("a fila de revisão", () => {
     // premissa é que ninguém está olhando fila.
     expect(precisaDeRevisao(midia({ classificador: "sem-resposta" }), CALMA)).toBe(false);
   });
+
+  it("com menores, a fila enxerga a foto que o telão segurou com 1 denúncia", () => {
+    // Regressão: o limiar da fila tem de acompanhar o de `decidirExibicao`. Com
+    // menores (ADR 0012) o telão segura em 1; a fila presa em 2 esconderia a
+    // foto sem recurso.
+    const uma = midia({ denuncias: 1 });
+
+    expect(decidirExibicao(uma, CALMA, "telao", 1)).toEqual({
+      visivel: false,
+      codigo: "moderacao.denuncias",
+    });
+    expect(precisaDeRevisao(uma, CALMA, 1)).toBe(true);
+    // Sem menores, 1 denúncia não segura nem revisa — o padrão continua 2.
+    expect(precisaDeRevisao(uma, CALMA)).toBe(false);
+  });
 });
 
 describe("a auditoria registra a decisão, não só a negativa", () => {

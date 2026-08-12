@@ -138,12 +138,23 @@ export function registrarDecisao(
   };
 }
 
-/** O que o anfitrião precisa olhar, e nada além. */
-export function precisaDeRevisao(midia: EstadoDaMidia, evento: EstadoDoEvento): boolean {
+/**
+ * O que o anfitrião precisa olhar, e nada além.
+ *
+ * 🔴 O limiar tem de ser o **mesmo** que `decidirExibicao` usou para segurar.
+ * Sem o parâmetro, com menores na festa (ADR 0012) o telão segurava a foto com
+ * 1 denúncia e a fila de revisão — presa em 2 — nunca a mostrava: escondida sem
+ * recurso, que é o pior estado possível para o anfitrião resolver.
+ */
+export function precisaDeRevisao(
+  midia: EstadoDaMidia,
+  evento: EstadoDoEvento,
+  denunciasParaSegurar: number = DENUNCIAS_PARA_SEGURAR,
+): boolean {
   if (midia.removida || midia.liberadaPeloAnfitriao) return false;
 
   return (
-    midia.denuncias >= DENUNCIAS_PARA_SEGURAR ||
+    midia.denuncias >= denunciasParaSegurar ||
     midia.classificador === "suspeito" ||
     evento.modoEndurecido
   );
