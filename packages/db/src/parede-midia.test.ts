@@ -107,4 +107,41 @@ describe("a parede lê só o evento do crachá", () => {
       await admin.query("DELETE FROM guest_sessions WHERE id = $1", [segundaSessao]);
     }
   });
+
+  it("com menores, uma denuncia ja segura do telao", async () => {
+    await admin.query("UPDATE events SET has_minors = true WHERE id = $1", [dados.a.eventoId]);
+    const { rows: outra } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'Léo', '1', now()) RETURNING id`,
+      [dados.a.eventoId],
+    );
+    const segundaSessao = outra[0]!.id;
+
+    try {
+      await admin.query(
+        "INSERT INTO reports (event_id, upload_id, session_id) VALUES ($1, $2, $3)",
+        [dados.a.eventoId, dados.a.uploadId, dados.a.sessaoId],
+      );
+      const comUma = await comEvento(app, dados.a.eventoId, (c) =>
+        listarMidiaDaParede(c, dados.a.eventoId),
+      );
+      expect(comUma.map((m) => m.id)).not.toContain(dados.a.uploadId);
+    } finally {
+      await admin.query("DELETE FROM reports WHERE upload_id = $1", [dados.a.uploadId]);
+      await admin.query("DELETE FROM guest_sessions WHERE id = $1", [segundaSessao]);
+      await admin.query("UPDATE events SET has_minors = false WHERE id = $1", [dados.a.eventoId]);
+    }
+  });
+
+  it("panico esvazia a parede", async () => {
+    await admin.query("UPDATE events SET panic = true WHERE id = $1", [dados.a.eventoId]);
+    try {
+      const lista = await comEvento(app, dados.a.eventoId, (c) =>
+        listarMidiaDaParede(c, dados.a.eventoId),
+      );
+      expect(lista).toHaveLength(0);
+    } finally {
+      await admin.query("UPDATE events SET panic = false WHERE id = $1", [dados.a.eventoId]);
+    }
+  });
 });

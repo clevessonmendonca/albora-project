@@ -1,4 +1,5 @@
 import type { PoolClient } from "pg";
+import { filtroSemBloqueio } from "./bloqueio-db";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -42,6 +43,12 @@ export type ItemFeed = {
    * número que qualquer um lê com o devtools aberto.
    */
   reacoes?: number;
+  /** Tipo da reação desta sessão. Só depois do gate. */
+  minhaReacao?: string | null;
+  /** Id opaco do autor. Só depois do gate — para bloqueio simétrico. */
+  sessaoAutor?: string;
+  /** Foto enviada pela sessão que está lendo. Só depois do gate. */
+  minha?: boolean;
 };
 
 export type PaginaFeed = {
@@ -55,6 +62,7 @@ export type EntradaFeed = {
   missaoId: string | null;
   cursor: string | null;
   limite?: number | undefined;
+  sessaoId?: string | undefined;
 };
 
 type LinhaFeed = {
@@ -64,9 +72,11 @@ type LinhaFeed = {
   caption: string | null;
   place: string | null;
   display_name: string;
+  session_id: string;
   created_at: Date;
   created_at_txt: string;
   reacoes?: number;
+  minha_reacao?: string | null;
 };
 
 /**
@@ -134,12 +144,19 @@ export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Pro
       ? ", (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes"
       : "";
 
+  let minha = "";
+  if (entrada.modo === "completo" && entrada.sessaoId) {
+    parametros.push(entrada.sessaoId);
+    minha = `, (SELECT r.kind FROM reactions r WHERE r.upload_id = u.id AND r.session_id = $${parametros.length}) AS minha_reacao`;
+    filtros.push(filtroSemBloqueio("u.session_id", parametros.length));
+  }
+
   parametros.push(limite + 1);
 
   const { rows } = await cliente.query<LinhaFeed>(
     `SELECT u.id, u.storage_key, u.challenge_id, u.caption, u.place,
             u.created_at, u.created_at::text AS created_at_txt,
-            s.display_name${contagem}
+            s.display_name, u.session_id${contagem}${minha}
        FROM uploads u
        JOIN guest_sessions s ON s.id = u.session_id AND s.event_id = u.event_id
       WHERE ${filtros.join(" AND ")}
@@ -153,12 +170,12 @@ export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Pro
   const ultima = pagina[pagina.length - 1];
 
   return {
-    itens: pagina.map((l) => paraItem(l, entrada.modo)),
+    itens: pagina.map((l) => paraItem(l, entrada.modo, entrada.sessaoId)),
     proximoCursor: temMais && ultima ? codificarCursor(ultima.created_at_txt, ultima.id) : null,
   };
 }
 
-function paraItem(linha: LinhaFeed, modo: ModoFeed): ItemFeed {
+function paraItem(linha: LinhaFeed, modo: ModoFeed, sessaoLeitora?: string): ItemFeed {
   const item: ItemFeed = {
     id: linha.id,
     chaveThumb: chaveDaMiniatura(linha.storage_key),
@@ -170,7 +187,14 @@ function paraItem(linha: LinhaFeed, modo: ModoFeed): ItemFeed {
     criadaEm: linha.created_at,
   };
 
-  if (modo === "completo") item.reacoes = linha.reacoes ?? 0;
+  if (modo === "completo") {
+    item.reacoes = linha.reacoes ?? 0;
+    item.minhaReacao = linha.minha_reacao ?? null;
+    item.sessaoAutor = linha.session_id;
+    if (sessaoLeitora) {
+      item.minha = linha.session_id === sessaoLeitora;
+    }
+  }
 
   return item;
 }

@@ -3,7 +3,7 @@ import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { comEvento } from "./evento";
 import { prepararBanco, semear } from "./testes/banco";
-import { confirmarUpload, ErroUploadDeOutroEvento } from "./uploads";
+import { confirmarUpload, ErroUploadDeOutroEvento, removerUploadProprio } from "./uploads";
 
 let admin: pg.Pool;
 let app: pg.Pool;
@@ -139,6 +139,28 @@ describe("o uploadId não atravessa eventos", () => {
 
     // Nada na mensagem revela o outro evento — dizer "já existe lá" já vaza.
     expect(String(erro.message)).not.toContain(dados.b.eventoId);
+  });
+});
+
+describe("remover a própria foto", () => {
+  it("a sessão dona marca como removed", async () => {
+    const uploadId = randomUUID();
+    await comEvento(app, dados.a.eventoId, (c) => confirmarUpload(c, entrada(uploadId, dados.a)));
+
+    const removido = await comEvento(app, dados.a.eventoId, (c) =>
+      removerUploadProprio(c, uploadId, dados.a.sessaoId),
+    );
+    expect(removido).toBe(true);
+
+    const { rows } = await admin.query("SELECT state FROM uploads WHERE id = $1", [uploadId]);
+    expect(rows[0].state).toBe("removed");
+  });
+
+  it("sessão alheia não remove", async () => {
+    const removido = await comEvento(app, dados.a.eventoId, (c) =>
+      removerUploadProprio(c, dados.a.uploadId, dados.b.sessaoId),
+    );
+    expect(removido).toBe(false);
   });
 });
 

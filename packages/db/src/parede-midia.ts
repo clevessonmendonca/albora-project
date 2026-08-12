@@ -1,9 +1,10 @@
-import {
-  DENUNCIAS_PARA_SEGURAR,
-  decidirExibicao,
-  type VeredictoDoClassificador,
-} from "@albora/core";
+import { decidirExibicao, type VeredictoDoClassificador } from "@albora/core";
 import type { PoolClient } from "pg";
+import {
+  lerModeracaoDoEvento,
+  limiarDenuncias,
+  paraEstadoDoEvento,
+} from "./moderacao-evento";
 
 /**
  * O que a parede lê (spec 010 + 011).
@@ -67,14 +68,9 @@ export async function listarMidiaDaParede(
 ): Promise<MidiaNaParede[]> {
   const teto = Math.min(Math.max(Math.trunc(limite), 1), TETO_DA_PAREDE);
 
-  const { rows: eventoRows } = await cliente.query<{ panic: boolean; hardened: boolean }>(
-    "SELECT panic, hardened FROM events WHERE id = $1",
-    [eventoId],
-  );
-  const evento = {
-    panico: eventoRows[0]?.panic ?? false,
-    modoEndurecido: eventoRows[0]?.hardened ?? false,
-  };
+  const moderacao = await lerModeracaoDoEvento(cliente, eventoId);
+  const evento = paraEstadoDoEvento(moderacao);
+  const limiar = limiarDenuncias(moderacao);
 
   const { rows } = await cliente.query<Linha>(
     `SELECT u.id, u.storage_key, u.created_at, s.display_name,
@@ -102,7 +98,7 @@ export async function listarMidiaDaParede(
           },
           evento,
           "telao",
-          DENUNCIAS_PARA_SEGURAR,
+          limiar,
         ).visivel,
     )
     .map((l) => ({

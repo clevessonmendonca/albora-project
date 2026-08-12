@@ -125,6 +125,19 @@ export async function anotarUpload(
   return (rowCount ?? 0) > 0;
 }
 
+/** Marca como removida uma foto da própria sessão (spec 008, ADR 0004). */
+export async function removerUploadProprio(
+  cliente: PoolClient,
+  uploadId: string,
+  sessaoId: string,
+): Promise<boolean> {
+  const { rowCount } = await cliente.query(
+    `UPDATE uploads SET state = 'removed' WHERE id = $1 AND session_id = $2 AND state = 'published'`,
+    [uploadId, sessaoId],
+  );
+  return (rowCount ?? 0) > 0;
+}
+
 export class ErroUploadDeOutroEvento extends Error {
   readonly code = "upload.conflito_entre_eventos";
   constructor(readonly uploadId: string) {

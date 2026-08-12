@@ -227,6 +227,79 @@ describe("gate de interação", () => {
     expect(pagina.itens.every((i) => typeof i.reacoes === "number")).toBe(true);
   });
 
+  it("depois do gate devolve a reação desta sessão", async () => {
+    const foto = await criarFoto({
+      eventoId: dados.a.eventoId,
+      sessaoId: dados.a.sessaoId,
+      criadaEm: "2028-01-03T00:00:00Z",
+    });
+    await admin.query(
+      "INSERT INTO reactions (event_id, upload_id, session_id, kind) VALUES ($1, $2, $3, 'estrela')",
+      [dados.a.eventoId, foto, dados.a.sessaoId],
+    );
+
+    const pagina = await feedDe(dados.a, { modo: "completo", sessaoId: dados.a.sessaoId });
+    const item = pagina.itens.find((i) => i.id === foto);
+
+    expect(item?.minhaReacao).toBe("estrela");
+  });
+
+  it("antes do gate minhaReacao não existe na resposta", async () => {
+    const foto = await criarFoto({
+      eventoId: dados.a.eventoId,
+      sessaoId: dados.a.sessaoId,
+      criadaEm: "2028-01-04T00:00:00Z",
+    });
+    await admin.query(
+      "INSERT INTO reactions (event_id, upload_id, session_id, kind) VALUES ($1, $2, $3, 'estrela')",
+      [dados.a.eventoId, foto, dados.a.sessaoId],
+    );
+
+    const pagina = await feedDe(dados.a, { modo: "espelho", sessaoId: dados.a.sessaoId });
+    const item = pagina.itens.find((i) => i.id === foto);
+
+    expect(item).toBeDefined();
+    expect("minhaReacao" in item!).toBe(false);
+  });
+
+  it("depois do gate expõe sessaoAutor e minha para bloqueio", async () => {
+    const foto = await criarFoto({
+      eventoId: dados.a.eventoId,
+      sessaoId: dados.a.sessaoId,
+      criadaEm: "2028-01-05T00:00:00Z",
+    });
+    const { rows: outra } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'leitor', 'v1', now()) RETURNING id`,
+      [dados.a.eventoId],
+    );
+
+    const pagina = await feedDe(dados.a, {
+      modo: "completo",
+      sessaoId: outra[0]!.id,
+    });
+    const item = pagina.itens.find((i) => i.id === foto);
+
+    expect(item?.sessaoAutor).toBe(dados.a.sessaoId);
+    expect(item?.minha).toBe(false);
+  });
+
+  it("marca minha quando a foto é desta sessão", async () => {
+    const foto = await criarFoto({
+      eventoId: dados.a.eventoId,
+      sessaoId: dados.a.sessaoId,
+      criadaEm: "2028-01-06T00:00:00Z",
+    });
+
+    const pagina = await feedDe(dados.a, {
+      modo: "completo",
+      sessaoId: dados.a.sessaoId,
+    });
+    const item = pagina.itens.find((i) => i.id === foto);
+
+    expect(item?.minha).toBe(true);
+  });
+
   it("o horário lido é o que o núcleo compara — antes fecha, depois abre", async () => {
     // A regra vive em `modoInteracao()` do @albora/core, que este pacote não
     // importa. O que se prova aqui é o insumo dela: o instante da coluna,

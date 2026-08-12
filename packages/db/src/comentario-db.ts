@@ -166,6 +166,30 @@ export async function removerComentario(
   return (rowCount ?? 0) > 0;
 }
 
+/** Remoção pelo anfitrião: qualquer comentário publicado do evento (spec 014). */
+export async function removerComentarioDoEvento(
+  cliente: PoolClient,
+  comentarioId: string,
+): Promise<boolean> {
+  const { rowCount } = await cliente.query(
+    `UPDATE comments SET state = $2 WHERE id = $1 AND state <> $2`,
+    [comentarioId, REMOVIDO],
+  );
+
+  return (rowCount ?? 0) > 0;
+}
+
+export async function gravarVeredictoComentario(
+  cliente: PoolClient,
+  comentarioId: string,
+  veredicto: string,
+): Promise<void> {
+  await cliente.query(`UPDATE comments SET classifier_verdict = $2 WHERE id = $1`, [
+    comentarioId,
+    veredicto,
+  ]);
+}
+
 export class ErroComentarioDeOutroEvento extends Error {
   readonly code = "comentario.conflito_entre_eventos";
   constructor(readonly comentarioId: string) {

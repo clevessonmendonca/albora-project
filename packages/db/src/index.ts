@@ -15,7 +15,7 @@ export { comAgregacao, comConta, comEvento, ErroContaAusente, ErroEventoAusente 
 export { migrar } from "./migrar";
 
 export type { LinhaUpload, ResultadoConfirm } from "./uploads";
-export { anotarUpload, confirmarUpload, ErroUploadDeOutroEvento } from "./uploads";
+export { anotarUpload, confirmarUpload, ErroUploadDeOutroEvento, removerUploadProprio } from "./uploads";
 
 export type { Desafio } from "./desafios";
 export { desafioDoEvento, listarDesafios } from "./desafios";
@@ -62,9 +62,25 @@ export type { ComentarioComAutor, ComentarioGravado } from "./comentario-db";
 export {
   ErroComentarioDeOutroEvento,
   gravarComentario,
+  gravarVeredictoComentario,
   listarComentariosDaFoto,
   removerComentario,
+  removerComentarioDoEvento,
 } from "./comentario-db";
+
+export type { ComentarioModeracao } from "./comentario-moderacao-db";
+export {
+  denunciarComentario,
+  listarComentariosParaModeracao,
+  listarComentariosVisiveisDaFoto,
+} from "./comentario-moderacao-db";
+
+export type { ResultadoBloqueio } from "./bloqueio-db";
+export {
+  bloquearConvidado,
+  ErroSessaoDeOutroEvento,
+  filtroSemBloqueio,
+} from "./bloqueio-db";
 
 export {
   adicionarSugestao,
@@ -77,8 +93,33 @@ export {
 export type { ResultadoDenuncia } from "./moderacao-db";
 export { contarDenuncias, denunciar, ErroMidiaDeOutroEvento } from "./moderacao-db";
 
+export type {
+  AtualizacaoModeracao,
+  EstadoModeracao,
+  EventoDoHost,
+  ResumoEvento,
+} from "./moderacao-evento";
+export {
+  atualizarModeracaoDoEvento,
+  buscarEventoDoHost,
+  lerModeracaoDoEvento,
+  limiarDenuncias,
+  listarEventosDoHost,
+  paraEstadoDoEvento,
+} from "./moderacao-evento";
+
 export type { JanelaDoAlbum, MidiaDoAlbumComChave } from "./album-db";
 export { janelaDoAlbum, listarMidiaDoAlbum, TETO_DO_ALBUM } from "./album-db";
+
+export {
+  apagarReacao,
+  gravarReacao,
+  midiaPublicadaDoEvento,
+  reacaoDaSessao,
+} from "./reacao-db";
+
+export type { MidiaMinha } from "./galeria-db";
+export { listarMinhasDoEvento } from "./galeria-db";
 
 export type { HostResolvida, HostSessaoCriada, MagicLinkEmitido } from "./host-auth";
 export {
