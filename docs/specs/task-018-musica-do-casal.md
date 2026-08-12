@@ -66,3 +66,22 @@ Só começa quando **todas** forem verdade:
 | Provedor mudar o formato do link ou fechar o endpoint de metadado | A exibição degrada para link cru. A lista de hosts é conjunto fechado num lugar só |
 | Casal colar link de faixa privada, ou de conta pessoal | Resolve para o que der; se não resolver, link cru. Não tentar autenticar para ler |
 | A leitura jurídica do ADR 0011 estar errada em algum detalhe | Pendência declarada no próprio ADR. A camada 1 não depende dessa leitura — ela é link e texto |
+
+---
+
+## Decisões de produto — 11/08/2026
+
+**Teto de três sugestões por convidado.** A lista é objeto compartilhado: sem
+teto, um entusiasta sozinho é dono dela e os outros param de sugerir porque não
+adianta. Três é o bastante para alguém se sentir ouvido e baixo o bastante para
+cem convidados renderem uma lista que o casal consegue olhar.
+
+**Voto não conta contra o teto** — só a faixa que o convidado introduziu.
+Contar voto puniria quem concorda, e é a concordância que faz a lista convergir
+em vez de virar cem faixas de uma vez cada.
+
+**Sem aprovação prévia do casal.** A sugestão entra na lista direto, ordenada
+por voto. Exigir aprovação antes de aparecer criaria a fila que a spec 011 já
+recusa em moderação: no dia da festa ninguém vai trabalhar fila, e um controle
+que fica desligado não é controle. O controle do casal está no ponto de **uso**
+— o que de fato toca — e não no ponto de sugestão.

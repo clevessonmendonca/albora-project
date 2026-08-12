@@ -4,6 +4,7 @@ import {
   CAMPOS_DA_SUGESTAO,
   FRONTEIRA_ADR_0011,
   HOSTS_ACEITOS,
+  TETO_DE_SUGESTOES_POR_SESSAO,
   chaveDaFaixa,
   exibirMusica,
   lerLinkDeMusica,
@@ -465,5 +466,58 @@ describe("sugestão do convidado", () => {
     ordenarSugestoes(fila);
 
     expect(fila).toEqual(copia);
+  });
+});
+
+describe("o teto de sugestões por convidado", () => {
+  const aberto = { interacaoAbreEm: new Date("2026-08-11T20:00:00Z") };
+  const agora = new Date("2026-08-11T23:00:00Z");
+
+  function sugerir(fila: FaixaSugerida[], sessaoId: string, id: string) {
+    const lido = lerLinkDeMusica(`https://open.spotify.com/track/${id}`);
+    if (!lido.ok) throw new Error("link de teste inválido");
+    return registrarSugestao(fila, { sessaoId, link: lido.link }, aberto, agora);
+  }
+
+  it("aceita até o teto e recusa a seguinte", () => {
+    // Sem teto, um entusiasta sozinho é dono da lista e os outros param de
+    // sugerir porque não adianta.
+    let fila: FaixaSugerida[] = [];
+    for (let i = 0; i < TETO_DE_SUGESTOES_POR_SESSAO; i += 1) {
+      const r = sugerir(fila, "s1", `4cOdK2wGLETKBW3PvgPWq${i}`);
+      expect(r.ok).toBe(true);
+      if (r.ok) fila = r.fila;
+    }
+
+    const estourou = sugerir(fila, "s1", "4cOdK2wGLETKBW3PvgPWqZ");
+    expect(estourou.ok).toBe(false);
+    if (!estourou.ok) expect(estourou.erro.code).toBe("musica.teto_de_sugestoes");
+  });
+
+  it("votar em faixa que já existe não conta contra o teto", () => {
+    // Contar voto puniria quem concorda — e é a concordância que faz a lista
+    // convergir em vez de virar cem faixas de uma vez cada.
+    let fila: FaixaSugerida[] = [];
+    for (let i = 0; i < TETO_DE_SUGESTOES_POR_SESSAO; i += 1) {
+      const r = sugerir(fila, "s1", `4cOdK2wGLETKBW3PvgPWq${i}`);
+      if (r.ok) fila = r.fila;
+    }
+
+    const outra = sugerir(fila, "s2", "4cOdK2wGLETKBW3PvgPWq0");
+    expect(outra.ok).toBe(true);
+    if (outra.ok) {
+      const votou = sugerir(outra.fila, "s1", "4cOdK2wGLETKBW3PvgPWq0");
+      expect(votou.ok).toBe(true);
+    }
+  });
+
+  it("o teto é por sessão, não da festa", () => {
+    let fila: FaixaSugerida[] = [];
+    for (let i = 0; i < TETO_DE_SUGESTOES_POR_SESSAO; i += 1) {
+      const r = sugerir(fila, "s1", `4cOdK2wGLETKBW3PvgPWq${i}`);
+      if (r.ok) fila = r.fila;
+    }
+
+    expect(sugerir(fila, "s2", "4cOdK2wGLETKBW3PvgPWqZ").ok).toBe(true);
   });
 });

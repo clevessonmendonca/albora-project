@@ -94,7 +94,19 @@ self.addEventListener("fetch", (evento) => {
   // `<script src>` não é `navigate` nem mora em `/_next/static/`, então caía
   // direto na rede — e offline a página renderizava inteira com o script
   // faltando. Falha silenciosa: parece funcionando.
-  evento.respondWith(cachePrimeiro(requisicao, CASCA));
+  //
+  // Só o que foi precacheado de propósito entra em cache primeiro. A versão
+  // anterior aplicava a regra a **tudo** que não fosse estático nem navegação,
+  // e aí a carga RSC entrava junto: ela é acoplada ao build, então servir a
+  // guardada contra chunk novo derruba a página inteira com "Application
+  // error" — e derruba para quem já visitou, que é justamente o convidado que
+  // volta no meio da festa.
+  if (PRECACHE.includes(url.pathname)) {
+    evento.respondWith(cachePrimeiro(requisicao, CASCA));
+    return;
+  }
+
+  evento.respondWith(redePrimeiro(requisicao));
 });
 
 self.addEventListener("sync", (evento) => {
@@ -108,7 +120,11 @@ self.addEventListener("sync", (evento) => {
 });
 
 async function cachePrimeiro(requisicao: Request, nomeDoCache: string): Promise<Response> {
-  const guardado = await caches.match(requisicao);
+  // Escopado ao cache pedido. Sem `cacheName` a busca varre todos os caches da
+  // origem, e aí o parâmetro é decorativo: uma entrada da casca respondia a
+  // uma busca do estático, e a limpeza por prefixo do `activate` deixava de
+  // valer como garantia.
+  const guardado = await caches.match(requisicao, { cacheName: nomeDoCache });
   if (guardado) return guardado;
 
   const resposta = await fetch(requisicao);

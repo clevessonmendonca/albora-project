@@ -269,6 +269,8 @@ export {
   ordenarSugestoes,
   podeSugerir,
   registrarSugestao,
+  sugestoesDaSessao,
+  TETO_DE_SUGESTOES_POR_SESSAO,
   validarSaidaDeCompartilhamento,
   votos,
 } from "./musica";

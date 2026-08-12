@@ -67,6 +67,7 @@ export type ErroMusica =
   | { code: "musica.conteudo_nao_suportado"; details: { provedor: Provedor } }
   | { code: "musica.identificador_invalido"; details: { provedor: Provedor } }
   | { code: "musica.interacao_fechada"; details: Record<string, never> }
+  | { code: "musica.teto_de_sugestoes"; details: { teto: number } }
   | { code: "musica.midia_com_audio"; details: { mime: string } }
   | { code: "musica.saida_nao_e_imagem"; details: { mime: string } }
   | { code: "musica.campo_fora_do_contrato"; details: { campo: string } };
@@ -504,6 +505,27 @@ export type ResultadoDaSugestao =
  * Passa pelo gate do ADR 0009: quem decide quando a interação abre são os
  * anfitriões, e gate fechado (`interacaoAbreEm === null`) recusa.
  */
+/**
+ * Quantas faixas cada convidado pode sugerir.
+ *
+ * A lista é objeto compartilhado: sem teto, um entusiasta sozinho é dono dela
+ * e os outros param de sugerir porque não adianta. Três é o suficiente para
+ * alguém se sentir ouvido e baixo o bastante para cem convidados renderem uma
+ * lista que o casal consegue olhar.
+ *
+ * Voto não conta contra o teto — só a faixa que o convidado **introduziu**.
+ * Contar voto puniria quem concorda, que é exatamente o comportamento que faz
+ * a lista convergir em vez de virar cem faixas de uma vez cada.
+ */
+export const TETO_DE_SUGESTOES_POR_SESSAO = 3;
+
+export function sugestoesDaSessao(
+  fila: readonly FaixaSugerida[],
+  sessaoId: string,
+): number {
+  return fila.filter((f) => f.sessoes[0] === sessaoId).length;
+}
+
 export function registrarSugestao(
   fila: readonly FaixaSugerida[],
   sugestao: { sessaoId: string; link: LinkDeMusica },
@@ -515,6 +537,18 @@ export function registrarSugestao(
   }
 
   const chave = chaveDaFaixa(sugestao.link);
+  const jaExiste = fila.some((f) => f.chave === chave);
+
+  if (!jaExiste && sugestoesDaSessao(fila, sugestao.sessaoId) >= TETO_DE_SUGESTOES_POR_SESSAO) {
+    return {
+      ok: false,
+      erro: {
+        code: "musica.teto_de_sugestoes",
+        details: { teto: TETO_DE_SUGESTOES_POR_SESSAO },
+      },
+    };
+  }
+
   const existente = fila.find((f) => f.chave === chave);
 
   if (existente === undefined) {
