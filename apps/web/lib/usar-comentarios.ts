@@ -46,11 +46,7 @@ async function enviarComentario(acao: AcaoComentario): Promise<boolean> {
   }
 }
 
-function comentarioOtimista(
-  id: string,
-  texto: string,
-  respostaA: string | null,
-): ComentarioVisivel {
+function comentarioOtimista(id: string, texto: string): ComentarioVisivel {
   return {
     id,
     autor: "Você",
@@ -137,7 +133,7 @@ export function usarComentarios(uploadId: string, habilitado: boolean) {
 
     const id = crypto.randomUUID();
     const alvoResposta = respostaA;
-    const otimista = comentarioOtimista(id, limpo, alvoResposta);
+    const otimista = comentarioOtimista(id, limpo);
 
     setEstado((e) => ({
       ...e,
