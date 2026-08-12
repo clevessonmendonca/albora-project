@@ -93,3 +93,41 @@ A prova 7 é a que protege a promessa do [ADR 0009](../adr/0009-app-social-do-co
 | A duplicação de interface trava o produto | Telas só na web por mais de um ciclo | React Native Web, unificando por cima — ao custo do SSR e da pré-visualização no WhatsApp |
 | Revisão da Apple demora | Sem previsão de publicação | Nenhuma data de produto depende desta tarefa. É por isso que ela vem depois do casamento |
 | Cota do EAS estoura | Build falha no meio do ciclo | Conferir limite antes de depender; build local é o plano B |
+
+---
+
+## Verificação de portabilidade — 11/08/2026
+
+A spec manda **verificar antes de estimar**: se o domínio estiver dentro da
+web em vez de em `packages/`, esta tarefa começa com o refactor caro que o
+ADR 0010 existe para evitar.
+
+Verificado. **Ele começa com refactor.**
+
+Cinco módulos em `apps/web/lib` não têm uma única importação de `next`,
+`react`, nem chamada a `document`, `window`, `indexedDB`, `Blob` ou
+`localStorage`. São domínio puro morando do lado errado da linha, e o app
+Expo precisa dos cinco:
+
+| Módulo | Linhas | O que é |
+|---|---|---|
+| `agrupar-por-hora.ts` | 93 | A linha do tempo do álbum. A 016 depende dela |
+| `qr.ts` | 96 | Slug do evento e leitura do conteúdo do código |
+| `limite.ts` | 63 | Teto por sessão |
+| `midia.ts` | 55 | Leitura de mídia |
+| `detalhes.ts` | 41 | Legenda e lugar do item da fila |
+
+`imagem.ts` (48 linhas) tem uma API de navegador e precisa de análise caso a
+caso; o resto de `apps/web/lib` é adaptador de verdade — `fila.ts` é
+IndexedDB, `r2.ts` e `resposta.ts` são do runtime, `usar-*.ts` são hooks — e
+está no lugar certo.
+
+**Consequência para a estimativa:** ~348 linhas a mover para `packages/core`,
+com os testes junto. Não é difícil, é só invisível — e some da estimativa de
+quem não verificou. Mover **antes** da 017 é mais barato que mover durante,
+porque durante já existe um segundo consumidor para quebrar.
+
+**Não verificado aqui:** se as LUTs e o editor estão de fato reaproveitáveis
+sem canvas do navegador. `desenhista.ts` é adaptador por design, mas o
+contrato que ele implementa vive em `packages/core` — conferir que o Expo
+consegue implementar o mesmo `Desenhista` sem alargar a interface.
