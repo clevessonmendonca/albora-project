@@ -1,4 +1,4 @@
-import { comEvento, listarMidiaDaParede } from "@albora/db";
+import { comEvento, listarMidiaDaParede, lerModeracaoDoEvento } from "@albora/db";
 import { banco } from "@/lib/banco";
 import { config, ErroConfig, ErroOrigemDeMidia } from "@/lib/config";
 import { consumir } from "@/lib/limite";
@@ -51,16 +51,18 @@ export async function GET(req: Request) {
   }
 
   try {
-    const midias = await comEvento(banco(), parede.eventoId, (c) =>
-      listarMidiaDaParede(c, parede.eventoId),
-    );
+    const midias = await comEvento(banco(), parede.eventoId, async (c) => {
+      const moderacao = await lerModeracaoDoEvento(c, parede.eventoId);
+      const lista = await listarMidiaDaParede(c, parede.eventoId);
+      return { moderacao, lista };
+    });
 
     // Uma expiração só para o lote: a TV renova a página inteira, e validades
     // escalonadas fariam a renovação picar foto a foto.
     const expiraEm = Date.now() + VALIDADE_GET_SEGUNDOS * 1000;
 
     const itens = await Promise.all(
-      midias.map(async (m) => ({
+      midias.lista.map(async (m) => ({
         id: m.id,
         autor: m.autor,
         criadaEm: m.criadaEm.toISOString(),
@@ -72,7 +74,7 @@ export async function GET(req: Request) {
 
     console.log("parede.pagina", { eventoId: parede.eventoId, itens: itens.length });
 
-    return ok({ itens, expiraEm });
+    return ok({ itens, expiraEm, panico: midias.moderacao.panico });
   } catch (e) {
     return erroInesperado("parede", e);
   }

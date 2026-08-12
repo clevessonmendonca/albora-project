@@ -57,6 +57,8 @@ export function Telao({ variaveisIniciais }: { variaveisIniciais: Record<string,
 
   const [cena, setCena] = useState<Cena | null>(null);
   const [carregou, setCarregou] = useState(false);
+  const [panico, setPanico] = useState(false);
+  const [alternandoPanico, setAlternandoPanico] = useState(false);
 
   // ── Fase parear ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -129,8 +131,13 @@ export function Telao({ variaveisIniciais }: { variaveisIniciais: Record<string,
     }
     if (!resposta.ok) return;
 
-    const corpo = (await resposta.json()) as { itens: Omit<ItemApi, "expiraEm">[]; expiraEm: number };
+    const corpo = (await resposta.json()) as {
+      itens: Omit<ItemApi, "expiraEm">[];
+      expiraEm: number;
+      panico?: boolean;
+    };
     const agora = Date.now();
+    setPanico(corpo.panico === true);
 
     for (const bruto of corpo.itens) {
       const existente = itensRef.current.get(bruto.id);
@@ -197,6 +204,7 @@ export function Telao({ variaveisIniciais }: { variaveisIniciais: Record<string,
   }, []);
 
   const girar = useCallback(() => {
+    if (panico) return;
     const itens = paraItemDoTelao();
     if (itens.length === 0) return;
 
@@ -212,7 +220,25 @@ export function Telao({ variaveisIniciais }: { variaveisIniciais: Record<string,
         return;
       }
     }
-  }, [paraItemDoTelao, selecionar]);
+  }, [paraItemDoTelao, selecionar, panico]);
+
+  const alternarPanico = useCallback(async () => {
+    setAlternandoPanico(true);
+    try {
+      const r = await fetch("/api/parede/panico", {
+        method: "PATCH",
+        credentials: "same-origin",
+      });
+      if (!r.ok) return;
+      const corpo = (await r.json()) as { panico: boolean };
+      setPanico(corpo.panico);
+      if (!corpo.panico) void puxar();
+    } catch {
+      /* próximo poll corrige */
+    } finally {
+      setAlternandoPanico(false);
+    }
+  }, [puxar]);
 
   useEffect(() => {
     if (fase !== "exibindo") return;
@@ -273,15 +299,47 @@ export function Telao({ variaveisIniciais }: { variaveisIniciais: Record<string,
 
   return (
     <main style={base}>
-      {!cena ? (
+      {!panico && cena ? (
+        <Palco cena={cena} itemDe={(id) => itensRef.current.get(id)} />
+      ) : (
         <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
-          <p style={{ fontSize: "1.5rem", color: "var(--ink-3)" }}>
-            {carregou ? "As fotos da festa aparecem aqui." : "Conectando ao telão…"}
+          <p style={{ fontSize: "1.5rem", color: "var(--ink-3)", textAlign: "center", padding: "2rem" }}>
+            {panico
+              ? "Telão pausado. Nenhuma foto nova aparece na parede."
+              : carregou
+                ? "As fotos da festa aparecem aqui."
+                : "Conectando ao telão…"}
           </p>
         </div>
-      ) : (
-        <Palco cena={cena} itemDe={(id) => itensRef.current.get(id)} />
       )}
+
+      <button
+        type="button"
+        aria-label={panico ? "Retomar telão" : "Pausar telão"}
+        disabled={alternandoPanico}
+        onClick={() => void alternarPanico()}
+        style={{
+          position: "absolute",
+          right: "clamp(0.75rem, 2vw, 1.5rem)",
+          bottom: "clamp(0.75rem, 2vw, 1.5rem)",
+          minWidth: "44px",
+          minHeight: "44px",
+          padding: "0.5rem 0.85rem",
+          border: "1px solid var(--linha)",
+          borderRadius: "var(--raio-pilula)",
+          background: "color-mix(in srgb, var(--bg) 72%, transparent)",
+          backdropFilter: "blur(6px)",
+          color: "var(--ink-2)",
+          font: "inherit",
+          fontSize: "clamp(0.75rem, 1.2vw, 0.95rem)",
+          letterSpacing: "0.04em",
+          textTransform: "uppercase",
+          cursor: alternandoPanico ? "wait" : "pointer",
+          opacity: alternandoPanico ? 0.6 : 0.85,
+        }}
+      >
+        {alternandoPanico ? "…" : panico ? "Retomar" : "Pausar"}
+      </button>
     </main>
   );
 }
