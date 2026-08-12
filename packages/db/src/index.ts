@@ -36,3 +36,6 @@ export {
   resolverParede,
   revogarParedesDoEvento,
 } from "./parede";
+
+export type { MidiaNaParede } from "./parede-midia";
+export { listarMidiaDaParede, TETO_DA_PAREDE } from "./parede-midia";
