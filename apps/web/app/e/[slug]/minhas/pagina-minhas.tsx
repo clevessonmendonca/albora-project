@@ -3,6 +3,7 @@
 import type { ItemDaGaleria } from "@albora/core";
 import { useEffect, useMemo, useState } from "react";
 import { filaWeb } from "@/lib/fila";
+import { usarCompartilhar } from "@/lib/usar-compartilhar";
 import { usarGaleria } from "@/lib/usar-galeria";
 import { BarraDeAbas } from "../barra-de-abas";
 
@@ -12,8 +13,17 @@ function rotuloEstado(estado: ItemDaGaleria["estado"]): string {
   return "";
 }
 
-export function PaginaMinhas({ slug, eventoId }: { slug: string; eventoId: string }) {
+export function PaginaMinhas({
+  slug,
+  eventoId,
+  sessaoId,
+}: {
+  slug: string;
+  eventoId: string;
+  sessaoId: string;
+}) {
   const galeria = usarGaleria(eventoId);
+  const compartilhar = usarCompartilhar(eventoId, sessaoId);
   const [locais, setLocais] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
@@ -46,6 +56,11 @@ export function PaginaMinhas({ slug, eventoId }: { slug: string; eventoId: strin
     }
     return `${galeria.resumo.total} ${galeria.resumo.total === 1 ? "foto" : "fotos"}`;
   }, [galeria.resumo]);
+
+  const idsEnviadas = useMemo(
+    () => galeria.itens.filter((i) => i.estado === "enviada").map((i) => i.id),
+    [galeria.itens],
+  );
 
   return (
     <>
@@ -80,6 +95,12 @@ export function PaginaMinhas({ slug, eventoId }: { slug: string; eventoId: strin
           </p>
         )}
 
+        {compartilhar.erro && (
+          <p style={{ color: "var(--critico)", fontSize: "0.9rem", marginBottom: "1rem" }}>
+            {compartilhar.erro}
+          </p>
+        )}
+
         {!galeria.carregando && galeria.itens.length === 0 && (
           <p style={{ color: "var(--ink-3)", fontSize: "0.95rem", lineHeight: 1.5 }}>
             Ainda não há fotos suas aqui. Use o botão da câmera para mandar a primeira.
@@ -102,6 +123,33 @@ export function PaginaMinhas({ slug, eventoId }: { slug: string; eventoId: strin
 
             return (
               <li key={item.id} style={{ position: "relative", aspectRatio: "1 / 1" }}>
+                {item.estado === "enviada" && (
+                  <button
+                    type="button"
+                    aria-label="Compartilhar esta foto"
+                    disabled={compartilhar.compartilhandoId === item.id}
+                    onClick={() => void compartilhar.compartilhar(item.id)}
+                    style={{
+                      position: "absolute",
+                      bottom: "0.25rem",
+                      left: "0.25rem",
+                      zIndex: 1,
+                      minWidth: "28px",
+                      minHeight: "28px",
+                      padding: "0.2rem 0.45rem",
+                      border: "none",
+                      borderRadius: "var(--raio-pilula)",
+                      background: "color-mix(in srgb, var(--bg) 90%, transparent)",
+                      color: "var(--ink-2)",
+                      fontSize: "0.625rem",
+                      letterSpacing: "0.04em",
+                      textTransform: "uppercase",
+                      cursor: compartilhar.compartilhandoId === item.id ? "wait" : "pointer",
+                    }}
+                  >
+                    {compartilhar.compartilhandoId === item.id ? "…" : "Compartilhar"}
+                  </button>
+                )}
                 <button
                   type="button"
                   aria-label="Remover esta foto"
@@ -172,6 +220,27 @@ export function PaginaMinhas({ slug, eventoId }: { slug: string; eventoId: strin
           })}
         </ul>
 
+        {idsEnviadas.length >= 2 && (
+          <button
+            type="button"
+            disabled={compartilhar.colagemIds !== null}
+            onClick={() => void compartilhar.compartilharColagem(idsEnviadas.slice(0, 4))}
+            style={{
+              marginTop: "calc(var(--espaco) * 3)",
+              width: "100%",
+              minHeight: "44px",
+              border: "1px solid var(--linha)",
+              borderRadius: "var(--raio-pilula)",
+              background: "var(--superficie)",
+              color: "var(--ink)",
+              font: "inherit",
+              cursor: compartilhar.colagemIds ? "wait" : "pointer",
+            }}
+          >
+            {compartilhar.colagemIds ? "Montando colagem…" : "Colagem da noite"}
+          </button>
+        )}
+
         {galeria.resumo.falhou > 0 && (
           <button
             type="button"
@@ -193,6 +262,112 @@ export function PaginaMinhas({ slug, eventoId }: { slug: string; eventoId: strin
           </button>
         )}
       </main>
+
+      {(compartilhar.pedindoConsentimento || compartilhar.pedindoColagem) && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="consentimento-externo-titulo"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 20,
+            display: "grid",
+            placeItems: "end center",
+            padding: "1rem",
+            paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
+            background: "color-mix(in srgb, var(--noite) 40%, transparent)",
+          }}
+        >
+          <div
+            style={{
+              width: "min(24rem, 100%)",
+              padding: "1.25rem",
+              borderRadius: "var(--raio-superficie)",
+              background: "var(--superficie)",
+              border: "1px solid var(--linha)",
+              display: "grid",
+              gap: "0.75rem",
+            }}
+          >
+            <h2
+              id="consentimento-externo-titulo"
+              style={{
+                margin: 0,
+                fontFamily: "var(--fonte-titulo)",
+                fontSize: "1.0625rem",
+                fontWeight: 400,
+              }}
+            >
+              Compartilhar para fora
+            </h2>
+            <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.5, color: "var(--ink-2)" }}>
+              Ao compartilhar, a foto sai do evento com uma moldura. Quem receber pode guardar
+              para sempre — não dá para desfazer depois.
+            </p>
+            <label
+              style={{
+                display: "flex",
+                gap: "0.5rem",
+                alignItems: "flex-start",
+                fontSize: "0.875rem",
+                color: "var(--ink-2)",
+              }}
+            >
+              <input type="checkbox" id="nome-na-moldura" defaultChecked />
+              <span>Incluir meu primeiro nome na moldura</span>
+            </label>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <button
+                type="button"
+                onClick={() => compartilhar.cancelarConsentimento()}
+                style={{
+                  flex: 1,
+                  minHeight: "44px",
+                  border: "1px solid var(--linha)",
+                  borderRadius: "var(--raio-pilula)",
+                  background: "transparent",
+                  color: "var(--ink)",
+                  font: "inherit",
+                  cursor: "pointer",
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById("nome-na-moldura") as HTMLInputElement | null;
+                  const nome = el?.checked ?? false;
+                  if (compartilhar.pedindoColagem) {
+                    void compartilhar.confirmarConsentimentoColagem(
+                      compartilhar.pedindoColagem,
+                      nome,
+                    );
+                  } else if (compartilhar.pedindoConsentimento) {
+                    void compartilhar.confirmarConsentimento(
+                      compartilhar.pedindoConsentimento,
+                      nome,
+                    );
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  minHeight: "44px",
+                  border: "none",
+                  borderRadius: "var(--raio-pilula)",
+                  background: "var(--acento)",
+                  color: "var(--sobre-acento)",
+                  font: "inherit",
+                  cursor: "pointer",
+                }}
+              >
+                Aceitar e compartilhar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BarraDeAbas slug={slug} ativa="minhas" />
     </>
