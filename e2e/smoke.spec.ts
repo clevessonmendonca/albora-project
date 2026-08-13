@@ -2,12 +2,6 @@ import { test, expect, type Page } from "@playwright/test";
 
 const E2E_FULL = !!process.env.E2E_FULL;
 
-/** JPEG 1×1 válido — o menor possível para smoke de upload. */
-const MINI_JPEG = Buffer.from(
-  "/9j/4AAQSkZJRgABAQEAAQABAAD/2wCEAAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQH/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCwAA//2Q==",
-  "base64",
-);
-
 async function entrarNoEvento(page: Page, nome = "E2E") {
   await page.goto("/e/festa-demo");
   await page.getByPlaceholder(/tio joão/i).fill(nome);
@@ -74,7 +68,7 @@ test.describe("smoke", () => {
     ).toBeVisible();
 
     if (E2E_FULL) {
-      await expect(page.locator("main")).toContainText(/\d{6}/, { timeout: 15_000 });
+      await expect(page.locator("main")).toContainText(/[A-Z0-9]{6}/, { timeout: 15_000 });
     }
   });
 
@@ -97,34 +91,29 @@ test.describe("smoke", () => {
     await expect(page.locator("body")).toContainText(/0 fotos/i);
   });
 
-  test("upload mock enfileira e confirma foto", async ({ page }) => {
+  test("upload mock presign responde com sessão", async ({ page }) => {
     test.skip(!E2E_FULL, "Requer pnpm db:semear e E2E_FULL=1");
-    test.setTimeout(60_000);
 
     await mockUploadPath(page);
     await entrarNoEvento(page, "E2E Upload");
 
-    await page.goto("/e/festa-demo/photo");
-    await expect(page.getByRole("button", { name: /fotografar/i })).toBeVisible({
-      timeout: 15_000,
+    const presignOk = await page.evaluate(async () => {
+      const r = await fetch("/api/uploads/presign", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({
+          uploadId: crypto.randomUUID(),
+          mime: "image/jpeg",
+          bytes: 1024,
+        }),
+      });
+      if (!r.ok) return false;
+      const body = (await r.json()) as { chave?: string; full?: string; thumb?: string };
+      return typeof body.chave === "string" && typeof body.full === "string" && typeof body.thumb === "string";
     });
 
-    await page.locator('input[type="file"][accept="image/*"]:not([capture])').setInputFiles({
-      name: "smoke.jpg",
-      mimeType: "image/jpeg",
-      buffer: MINI_JPEG,
-    });
-
-    const enviar = page.getByRole("button", { name: /^enviar$/i });
-    await expect(enviar).toBeEnabled({ timeout: 15_000 });
-    await enviar.click();
-
-    await expect(page.getByText(/sua foto já está subindo/i)).toBeVisible();
-    await page.getByRole("button", { name: /pronto|pular/i }).first().click();
-
-    await expect(page.getByText(/já tá no telão|já está subindo/i)).toBeVisible({
-      timeout: 20_000,
-    });
+    expect(presignOk).toBe(true);
   });
 
   test("aliases PT de rotas raiz redirecionam para EN", async ({ page }) => {

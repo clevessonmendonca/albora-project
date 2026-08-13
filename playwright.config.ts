@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 /**
  * Smoke E2E (gate MVP).
  *
- * Sempre (rápido): landing, admin sign-in, telão estático (`/wall-display`).
+ * Sempre (rápido): landing, admin sign-in, telão (`/telao`).
  * Com E2E_FULL=1 (+ `pnpm db:semear`): convidado, upload mock, código do telão.
  *
  * Requer servidor local (`pnpm dev`).
