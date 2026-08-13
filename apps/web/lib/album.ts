@@ -1,7 +1,7 @@
 import { montarAlbum, type PlanoDoAlbum, TETO_DE_PAGINAS_PADRAO } from "@albora/core";
 import { comEvento, janelaDoAlbum, listarMidiaDoAlbum } from "@albora/db";
-import { banco } from "./banco";
-import { assinarGet } from "./r2";
+import { getPool } from "./db";
+import { signGet } from "./r2";
 
 /**
  * A montagem servida do álbum da noite (spec 016).
@@ -17,79 +17,79 @@ import { assinarGet } from "./r2";
  */
 
 /** Sem coluna de fuso no schema; ancora no fuso do evento, como o núcleo pede. */
-const OFFSET_DO_EVENTO_MINUTOS = -180;
+const EVENT_OFFSET_MINUTES = -180;
 
 /**
  * Validade da URL de leitura, igual à do lote da mídia. O cliente renova o
  * álbum inteiro de uma vez quando `expiraEm` passa.
  */
-export const VALIDADE_GET_SEGUNDOS = 900;
+export const GET_URL_TTL_SECONDS = 900;
 
-export type SlotServido = { id: string; proporcao: string; fracao: number };
+export type ServedSlot = { id: string; proporcao: string; fracao: number };
 
-export type FotoServida = {
+export type ServedPhoto = {
   id: string;
   url: string;
   urlThumb: string;
-  slot: SlotServido;
+  slot: ServedSlot;
 };
 
-export type PaginaServida = {
+export type ServedPage = {
   layoutId: string;
   amanhecer: boolean;
   hora: number | null;
   inicioDaHora: string | null;
   lugarId: string | null;
-  fotos: FotoServida[];
+  fotos: ServedPhoto[];
 };
 
-export type CapituloServido = {
+export type ServedChapter = {
   id: string;
   comecaEm: string | null;
-  paginas: PaginaServida[];
+  paginas: ServedPage[];
 };
 
-export type AlbumServido = {
-  capitulos: CapituloServido[];
+export type ServedAlbum = {
+  capitulos: ServedChapter[];
   totalDePaginas: number;
   contadores: { fotos: number; convidados: number; missoes: number };
   expiraEm: number;
 };
 
-const VAZIO = (expiraEm: number): AlbumServido => ({
+const EMPTY = (expiresAt: number): ServedAlbum => ({
   capitulos: [],
   totalDePaginas: 0,
   contadores: { fotos: 0, convidados: 0, missoes: 0 },
-  expiraEm,
+  expiraEm: expiresAt,
 });
 
-export async function montarAlbumServido(eventoId: string): Promise<AlbumServido> {
-  const expiraEm = Date.now() + VALIDADE_GET_SEGUNDOS * 1000;
+export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
+  const expiresAt = Date.now() + GET_URL_TTL_SECONDS * 1000;
 
-  const dados = await comEvento(banco(), eventoId, async (c) => {
-    const midias = await listarMidiaDoAlbum(c, eventoId);
-    const janela = await janelaDoAlbum(c, eventoId);
+  const data = await comEvento(getPool(), eventId, async (c) => {
+    const midias = await listarMidiaDoAlbum(c, eventId);
+    const janela = await janelaDoAlbum(c, eventId);
     return { midias, janela };
   });
 
-  if (!dados.janela || dados.midias.length === 0) return VAZIO(expiraEm);
+  if (!data.janela || data.midias.length === 0) return EMPTY(expiresAt);
 
-  const plano: PlanoDoAlbum = {
+  const plan: PlanoDoAlbum = {
     janela: {
-      comecaEm: dados.janela.comecaEm,
-      terminaEm: dados.janela.terminaEm,
-      offsetMinutos: OFFSET_DO_EVENTO_MINUTOS,
+      comecaEm: data.janela.comecaEm,
+      terminaEm: data.janela.terminaEm,
+      offsetMinutos: EVENT_OFFSET_MINUTES,
     },
     capitulos: [],
     tetoDePaginas: TETO_DE_PAGINAS_PADRAO,
   };
 
-  const album = montarAlbum(dados.midias, plano);
+  const album = montarAlbum(data.midias, plan);
 
   // A chave nunca sai do servidor; o mapa liga o id da foto montada à chave que
   // será assinada, sem confiar em campo que o núcleo não declara no seu tipo.
-  const chavePorId = new Map(
-    dados.midias.map((m) => [m.id, { full: m.chaveFull, thumb: m.chaveThumb }] as const),
+  const keyById = new Map(
+    data.midias.map((m) => [m.id, { full: m.chaveFull, thumb: m.chaveThumb }] as const),
   );
 
   const capitulos = await Promise.all(
@@ -105,10 +105,10 @@ export async function montarAlbumServido(eventoId: string): Promise<AlbumServido
           lugarId: pagina.lugarId,
           fotos: await Promise.all(
             pagina.fotos.map(async (foto) => {
-              const chave = chavePorId.get(foto.midia.id);
+              const chave = keyById.get(foto.midia.id);
               const [url, urlThumb] = await Promise.all([
-                chave ? assinarGet(chave.full, VALIDADE_GET_SEGUNDOS) : Promise.resolve(""),
-                chave ? assinarGet(chave.thumb, VALIDADE_GET_SEGUNDOS) : Promise.resolve(""),
+                chave ? signGet(chave.full, GET_URL_TTL_SECONDS) : Promise.resolve(""),
+                chave ? signGet(chave.thumb, GET_URL_TTL_SECONDS) : Promise.resolve(""),
               ]);
               return {
                 id: foto.midia.id,
@@ -131,6 +131,27 @@ export async function montarAlbumServido(eventoId: string): Promise<AlbumServido
     capitulos,
     totalDePaginas: album.totalDePaginas,
     contadores: album.contadores,
-    expiraEm,
+    expiraEm: expiresAt,
   };
 }
+
+/** @deprecated use GET_URL_TTL_SECONDS */
+export const VALIDADE_GET_SEGUNDOS = GET_URL_TTL_SECONDS;
+
+/** @deprecated use ServedSlot */
+export type SlotServido = ServedSlot;
+
+/** @deprecated use ServedPhoto */
+export type FotoServida = ServedPhoto;
+
+/** @deprecated use ServedPage */
+export type PaginaServida = ServedPage;
+
+/** @deprecated use ServedChapter */
+export type CapituloServido = ServedChapter;
+
+/** @deprecated use ServedAlbum */
+export type AlbumServido = ServedAlbum;
+
+/** @deprecated use buildServedAlbum */
+export const montarAlbumServido = buildServedAlbum;

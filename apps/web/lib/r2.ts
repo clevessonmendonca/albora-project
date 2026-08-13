@@ -7,7 +7,7 @@ import { config } from "./config";
  * 001 mediu: 21 bytes de corpo no Worker contra 819 200 no storage.
  */
 
-function cliente(): AwsClient {
+function client(): AwsClient {
   const { r2 } = config();
   return new AwsClient({
     accessKeyId: r2.accessKeyId,
@@ -17,27 +17,27 @@ function cliente(): AwsClient {
   });
 }
 
-function urlDoObjeto(chave: string): URL {
-  const { r2, origemDaMidia } = config();
-  return new URL(`https://${origemDaMidia}/${r2.bucket}/${chave}`);
+function objectUrl(key: string): URL {
+  const { r2, mediaOrigin } = config();
+  return new URL(`https://${mediaOrigin}/${r2.bucket}/${key}`);
 }
 
-export async function assinarPut(chave: string, mime: string, validadeSegundos: number) {
-  const url = urlDoObjeto(chave);
-  url.searchParams.set("X-Amz-Expires", String(validadeSegundos));
+export async function signPut(key: string, mime: string, ttlSeconds: number) {
+  const url = objectUrl(key);
+  url.searchParams.set("X-Amz-Expires", String(ttlSeconds));
 
   // `allHeaders: false` deixa o content-type fora da assinatura, e é
   // deliberado: o navegador manda o dele e o PUT não quebra. Medido na task
   // 001 — `SignedHeaders: host`.
-  const assinada = await cliente().sign(new Request(url, { method: "PUT", headers: { "content-type": mime } }), {
+  const signed = await client().sign(new Request(url, { method: "PUT", headers: { "content-type": mime } }), {
     aws: { signQuery: true, allHeaders: false },
   });
 
-  return assinada.url;
+  return signed.url;
 }
 
 /**
- * O caminho de leitura, irmão do `assinarPut`: o navegador busca os bytes no
+ * O caminho de leitura, irmão do `signPut`: o navegador busca os bytes no
  * storage, e o servidor continua sem tocá-los.
  *
  * A assinatura prende a chave — trocar `/full` por `/thumb` na URL emitida dá
@@ -45,19 +45,19 @@ export async function assinarPut(chave: string, mime: string, validadeSegundos: 
  * o que o R2 guardou veio do cliente, e §4.3 de `docs/security.md` exige que
  * a resposta declare o que é.
  */
-export async function assinarGet(chave: string, validadeSegundos: number) {
-  const url = urlDoObjeto(chave);
-  url.searchParams.set("X-Amz-Expires", String(validadeSegundos));
+export async function signGet(key: string, ttlSeconds: number) {
+  const url = objectUrl(key);
+  url.searchParams.set("X-Amz-Expires", String(ttlSeconds));
   url.searchParams.set("response-content-disposition", "inline");
 
-  const assinada = await cliente().sign(new Request(url, { method: "GET" }), {
+  const signed = await client().sign(new Request(url, { method: "GET" }), {
     aws: { signQuery: true, allHeaders: false },
   });
 
-  return assinada.url;
+  return signed.url;
 }
 
-export type MetadadosObjeto = { bytes: number; inicio: Uint8Array };
+export type ObjectMetadata = { bytes: number; inicio: Uint8Array };
 
 /**
  * Confere o que **de fato** chegou no bucket.
@@ -66,8 +66,8 @@ export type MetadadosObjeto = { bytes: number; inicio: Uint8Array };
  * nada perto de trafegar a foto pelo servidor. É o que transforma "o cliente
  * disse que era JPEG" em "os primeiros bytes são de um JPEG".
  */
-export async function inspecionarObjeto(chave: string): Promise<MetadadosObjeto | null> {
-  const res = await cliente().fetch(urlDoObjeto(chave).toString(), {
+export async function inspectObject(key: string): Promise<ObjectMetadata | null> {
+  const res = await client().fetch(objectUrl(key).toString(), {
     method: "GET",
     headers: { range: "bytes=0-15" },
   });
@@ -85,3 +85,15 @@ export async function inspecionarObjeto(chave: string): Promise<MetadadosObjeto 
 
   return { bytes, inicio };
 }
+
+/** @deprecated use signPut */
+export const assinarPut = signPut;
+
+/** @deprecated use signGet */
+export const assinarGet = signGet;
+
+/** @deprecated use inspectObject */
+export const inspecionarObjeto = inspectObject;
+
+/** @deprecated use ObjectMetadata */
+export type MetadadosObjeto = ObjectMetadata;

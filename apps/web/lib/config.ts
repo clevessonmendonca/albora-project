@@ -10,8 +10,12 @@ export type Config = {
   sessionSecret: string;
   r2: { contaId: string; accessKeyId: string; secretAccessKey: string; bucket: string };
   databaseUrl: string;
-  duracaoSessaoHoras: number;
+  sessionDurationHours: number;
   /** Host de onde os bytes de mídia saem. Nunca o da aplicação (§4.3 de `docs/security.md`). */
+  mediaOrigin: string;
+  /** @deprecated use sessionDurationHours */
+  duracaoSessaoHoras: number;
+  /** @deprecated use mediaOrigin */
   origemDaMidia: string;
 };
 
@@ -20,34 +24,39 @@ let memo: Config | null = null;
 export function config(): Config {
   if (memo) return memo;
 
-  const faltando: string[] = [];
-  const ler = (nome: string): string => {
-    const v = process.env[nome];
-    if (!v) faltando.push(nome);
-    return v ?? "";
+  const missing: string[] = [];
+  const readEnv = (name: string): string => {
+    const value = process.env[name];
+    if (!value) missing.push(name);
+    return value ?? "";
   };
 
-  const sessionSecret = ler("SESSION_SECRET");
+  const sessionSecret = readEnv("SESSION_SECRET");
   const r2 = {
-    contaId: ler("R2_ACCOUNT_ID"),
-    accessKeyId: ler("R2_ACCESS_KEY_ID"),
-    secretAccessKey: ler("R2_SECRET_ACCESS_KEY"),
-    bucket: ler("R2_BUCKET"),
+    contaId: readEnv("R2_ACCOUNT_ID"),
+    accessKeyId: readEnv("R2_ACCESS_KEY_ID"),
+    secretAccessKey: readEnv("R2_SECRET_ACCESS_KEY"),
+    bucket: readEnv("R2_BUCKET"),
   };
+
+  const sessionDurationHours = 48;
+  const mediaOrigin = `${r2.contaId}.r2.cloudflarestorage.com`;
 
   const c: Config = {
     sessionSecret,
     r2,
-    databaseUrl: ler("DATABASE_URL"),
+    databaseUrl: readEnv("DATABASE_URL"),
     // A janela do ADR 0004: o convidado tem 48h depois do evento para o que
     // ficou na fila subir. Depois disso o token morre.
-    duracaoSessaoHoras: 48,
-    origemDaMidia: `${r2.contaId}.r2.cloudflarestorage.com`,
+    sessionDurationHours,
+    mediaOrigin,
+    duracaoSessaoHoras: sessionDurationHours,
+    origemDaMidia: mediaOrigin,
   };
 
-  if (faltando.length > 0) throw new ErroConfig(faltando);
+  if (missing.length > 0) throw new ConfigError(missing);
 
-  conferirSeparacaoDeOrigem(c.origemDaMidia);
+  checkOriginSeparation(c.mediaOrigin);
 
   memo = c;
   return c;
@@ -65,19 +74,19 @@ export function config(): Config {
  * `MEDIA_DOMAIN` ainda não assina nada nesta fase, e é conferido de todo jeito:
  * o guard tem de existir antes do dia em que alguém ligar o knob, não depois.
  */
-function conferirSeparacaoDeOrigem(origemDaMidia: string): void {
-  const raiz = hospedeiro(process.env.APP_ROOT_DOMAIN ?? "");
-  const declarado = hospedeiro(process.env.MEDIA_DOMAIN ?? "");
+function checkOriginSeparation(mediaOrigin: string): void {
+  const root = parseHost(process.env.APP_ROOT_DOMAIN ?? "");
+  const declared = parseHost(process.env.MEDIA_DOMAIN ?? "");
 
-  if (declarado !== "" && raiz === "") {
-    throw new ErroOrigemDeMidia(declarado, "MEDIA_DOMAIN definido sem APP_ROOT_DOMAIN");
+  if (declared !== "" && root === "") {
+    throw new MediaOriginError(declared, "MEDIA_DOMAIN definido sem APP_ROOT_DOMAIN");
   }
-  if (raiz === "") return;
+  if (root === "") return;
 
-  for (const host of [origemDaMidia, declarado]) {
+  for (const host of [mediaOrigin, declared]) {
     if (host === "") continue;
-    if (host === raiz || host.endsWith(`.${raiz}`)) {
-      throw new ErroOrigemDeMidia(host, "é a origem da aplicação, ou um subdomínio dela");
+    if (host === root || host.endsWith(`.${root}`)) {
+      throw new MediaOriginError(host, "é a origem da aplicação, ou um subdomínio dela");
     }
   }
 }
@@ -86,8 +95,8 @@ function conferirSeparacaoDeOrigem(origemDaMidia: string): void {
  * Só o host, em minúsculas e sem porta: cookie não é escopado por porta, então
  * mesma máquina em porta diferente é a mesma origem para o que interessa aqui.
  */
-function hospedeiro(valor: string): string {
-  return valor
+function parseHost(value: string): string {
+  return value
     .trim()
     .toLowerCase()
     .replace(/^[a-z][a-z0-9+.-]*:\/\//, "")
@@ -95,19 +104,34 @@ function hospedeiro(valor: string): string {
     .replace(/:\d+$/, "");
 }
 
-export class ErroConfig extends Error {
+export class ConfigError extends Error {
   readonly code = "config.missing";
-  constructor(readonly faltando: string[]) {
-    super(`configuração ausente: ${faltando.join(", ")}`);
+  readonly missing: string[];
+  /** @deprecated use missing */
+  readonly faltando: string[];
+  constructor(missing: string[]) {
+    super(`configuração ausente: ${missing.join(", ")}`);
+    this.missing = missing;
+    this.faltando = missing;
   }
 }
 
-export class ErroOrigemDeMidia extends Error {
+export class MediaOriginError extends Error {
   readonly code = "config.midia_na_origem_do_app";
-  constructor(
-    readonly host: string,
-    readonly motivo: string,
-  ) {
-    super(`domínio de mídia inválido (${host}): ${motivo}`);
+  readonly host: string;
+  readonly reason: string;
+  /** @deprecated use reason */
+  readonly motivo: string;
+  constructor(host: string, reason: string) {
+    super(`domínio de mídia inválido (${host}): ${reason}`);
+    this.host = host;
+    this.reason = reason;
+    this.motivo = reason;
   }
 }
+
+/** @deprecated use ConfigError */
+export const ErroConfig = ConfigError;
+
+/** @deprecated use MediaOriginError */
+export const ErroOrigemDeMidia = MediaOriginError;
