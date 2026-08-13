@@ -1888,3 +1888,423 @@ export function TelaModelosDaParede({
     </Chao>
   );
 }
+
+/** B-01 · Login — magic link, sem senha. */
+export function TelaLogin({ pack, enviado = false }: { pack: Pack; enviado?: boolean }) {
+  return (
+    <Chao fundo="claro" pack={pack}>
+      <div style={{ flex: 1, display: "grid", placeItems: "center", padding: "2rem" }}>
+        <div
+          style={{
+            width: "min(26rem, 100%)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1.25rem",
+            padding: "2rem",
+            ...raio("var(--raio-superficie)"),
+            backgroundColor: "var(--superficie)",
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              fontFamily: "var(--fonte-titulo)",
+              fontSize: "1.125rem",
+              letterSpacing: "var(--tracking-titulo)",
+              color: "var(--acento-texto)",
+            }}
+          >
+            Albora
+          </p>
+          <h1
+            style={{
+              margin: 0,
+              fontFamily: "var(--fonte-titulo)",
+              fontWeight: 300,
+              fontSize: "1.625rem",
+              letterSpacing: "var(--tracking-titulo)",
+            }}
+          >
+            {enviado ? "Verifique seu e-mail" : "Entre pra ver sua festa"}
+          </h1>
+          {enviado ? (
+            <p style={{ margin: 0, fontSize: "0.9375rem", color: "var(--ink-2)", lineHeight: 1.5 }}>
+              Se houver uma conta, o link de acesso está a caminho. Sem senha.
+            </p>
+          ) : (
+            <>
+              <p style={{ margin: 0, fontSize: "0.9375rem", color: "var(--ink-2)", lineHeight: 1.5 }}>
+                Enviamos um link de acesso. Sem senha.
+              </p>
+              <span
+                style={{
+                  padding: "0.875rem 1rem",
+                  ...raio("var(--raio)"),
+                  borderWidth: "1px",
+                  borderStyle: "solid",
+                  borderColor: "var(--linha)",
+                  fontSize: "1rem",
+                  color: "var(--ink-3)",
+                }}
+              >
+                voce@exemplo.com
+              </span>
+              <span
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "0.875rem 1rem",
+                  ...raio("var(--raio-pilula)"),
+                  backgroundColor: "var(--acento)",
+                  color: "var(--sobre-acento)",
+                  fontWeight: 600,
+                }}
+              >
+                Enviar link
+              </span>
+            </>
+          )}
+        </div>
+      </div>
+    </Chao>
+  );
+}
+
+const PASSOS_DO_WIZARD = ["Nome e data", "Identidade", "Missões", "Parede", "Peças"] as const;
+
+/** B-02 · Criar evento — um passo por tela, barra de progresso. */
+export function TelaCriarEvento({
+  pack,
+  passo = 1,
+}: {
+  pack: Pack;
+  passo?: 1 | 2 | 3 | 4 | 5;
+}) {
+  const indice = passo - 1;
+
+  return (
+    <Chao fundo="claro" pack={pack}>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "2rem 2.5rem" }}>
+        <div style={{ display: "flex", gap: "0.375rem", marginBottom: "2rem" }}>
+          {PASSOS_DO_WIZARD.map((rotulo, i) => (
+            <span
+              key={rotulo}
+              style={{
+                flex: 1,
+                height: "0.25rem",
+                ...raio("var(--raio-pilula)"),
+                backgroundColor: i <= indice ? "var(--acento)" : "var(--linha)",
+              }}
+              title={rotulo}
+            />
+          ))}
+        </div>
+
+        <p style={{ margin: 0, fontSize: "0.6875rem", letterSpacing: "var(--tracking-rotulo)", textTransform: "uppercase", color: "var(--ink-3)" }}>
+          Passo {passo} de {PASSOS_DO_WIZARD.length} · {PASSOS_DO_WIZARD[indice]}
+        </p>
+        <h1
+          style={{
+            margin: "0.5rem 0 0",
+            fontFamily: "var(--fonte-titulo)",
+            fontWeight: 300,
+            fontSize: "1.875rem",
+            letterSpacing: "var(--tracking-titulo)",
+          }}
+        >
+          {passo === 1 && "Quando é a festa?"}
+          {passo === 2 && "Como ela vai aparecer?"}
+          {passo === 3 && "Quais missões entram?"}
+          {passo === 4 && "Quais modelos na parede?"}
+          {passo === 5 && "A peça com o QR"}
+        </h1>
+
+        <div style={{ flex: 1, marginTop: "1.5rem" }}>
+          {passo === 1 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", maxWidth: "22rem" }}>
+              <CampoWizard rotulo="Nome do evento" valor={texto(pack, "landing.exemplo.nome")} />
+              <CampoWizard rotulo="Convidados esperados" valor="150" />
+              <CampoWizard rotulo="Começo" valor="Sáb, 20:00" />
+              <CampoWizard rotulo="Fim" valor="Dom, 04:00" />
+            </div>
+          )}
+          {passo === 5 && (
+            <p style={{ margin: 0, maxWidth: "40ch", fontSize: "0.9375rem", color: "var(--ink-2)", lineHeight: 1.5 }}>
+              A placa impressa na mesa é a porta física do convidado. Baixe o PDF quando estiver pronta.
+            </p>
+          )}
+        </div>
+
+        <div style={{ display: "flex", gap: "0.75rem", marginTop: "1.5rem" }}>
+          {passo > 1 && (
+            <span
+              style={{
+                padding: "0.75rem 1.5rem",
+                ...raio("var(--raio-pilula)"),
+                borderWidth: "1px",
+                borderStyle: "solid",
+                borderColor: "var(--linha)",
+                color: "var(--ink-2)",
+              }}
+            >
+              Voltar
+            </span>
+          )}
+          <span
+            style={{
+              padding: "0.75rem 1.75rem",
+              ...raio("var(--raio-pilula)"),
+              backgroundColor: "var(--acento)",
+              color: "var(--sobre-acento)",
+              fontWeight: 600,
+            }}
+          >
+            {passo === 5 ? "Ir pro painel" : "Continuar"}
+          </span>
+        </div>
+      </div>
+    </Chao>
+  );
+}
+
+function CampoWizard({ rotulo, valor }: { rotulo: string; valor: string }) {
+  return (
+    <label style={{ display: "flex", flexDirection: "column", gap: "0.375rem", fontSize: "0.8125rem", color: "var(--ink-2)" }}>
+      {rotulo}
+      <span
+        style={{
+          padding: "0.75rem 0.875rem",
+          ...raio("var(--raio)"),
+          backgroundColor: "var(--superficie-alta)",
+          fontSize: "0.9375rem",
+          color: "var(--ink)",
+        }}
+      >
+        {valor}
+      </span>
+    </label>
+  );
+}
+
+/** B-03 · Identidade — preview ao vivo com o mesmo resolvedor. */
+export function TelaIdentidade({ pack, momentos }: { pack: Pack; momentos: string[] }) {
+  return (
+    <Chao fundo="claro" pack={pack}>
+      <div style={{ display: "flex", height: "100%" }}>
+        <Lateral pack={pack} ativa="Identidade" />
+
+        <main style={{ flex: 1, display: "flex", gap: "2rem", padding: "1.75rem 2rem", overflow: "hidden" }}>
+          <div style={{ flex: "0 0 16rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            <p style={{ margin: 0, fontFamily: "var(--fonte-titulo)", fontWeight: 300, fontSize: "1.875rem", letterSpacing: "var(--tracking-titulo)" }}>
+              Identidade
+            </p>
+            <CampoWizard rotulo="Cor de destaque" valor="Âmbar do pack" />
+            <CampoWizard rotulo="Fonte do título" valor="Serif do pack" />
+            <CampoWizard rotulo="Raio dos cantos" valor="Suave" />
+            <p style={{ margin: 0, fontSize: "0.8125rem", color: "var(--ink-2)", lineHeight: 1.5 }}>
+              Cada mudança re-renderiza o preview com resolverTokens real — o mesmo resolvedor do
+              telão e da peça impressa.
+            </p>
+          </div>
+
+          <div
+            style={{
+              flex: 1,
+              display: "grid",
+              placeItems: "center",
+              ...raio("var(--raio)"),
+              backgroundColor: "var(--superficie-alta)",
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ position: "relative", width: "14rem", height: "28rem", transform: "scale(0.92)", transformOrigin: "center center" }}>
+              <TelaCapa pack={pack} momentos={momentos} fundo="escuro" />
+            </div>
+          </div>
+        </main>
+      </div>
+    </Chao>
+  );
+}
+
+/** B-05 · O álbum na visão do anfitrião — curadoria leve, ocultar foto. */
+export function TelaAlbumAnfitriao({ pack, momentos }: { pack: Pack; momentos: string[] }) {
+  return (
+    <Chao fundo="claro" pack={pack}>
+      <div style={{ display: "flex", height: "100%" }}>
+        <Lateral pack={pack} ativa="O álbum" />
+
+        <main style={{ flex: 1, padding: "1.75rem 2rem", overflow: "hidden" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+            <p style={{ margin: 0, fontFamily: "var(--fonte-titulo)", fontWeight: 300, fontSize: "1.875rem", letterSpacing: "var(--tracking-titulo)" }}>
+              O álbum
+            </p>
+            <Pilula>847 fotos</Pilula>
+          </div>
+
+          <div style={{ display: "flex", gap: "0.4375rem", margin: "1.25rem 0 1rem", overflow: "hidden" }}>
+            <Pilula ativa>Tudo</Pilula>
+            {momentos.slice(0, 4).map((m) => (
+              <Pilula key={m}>{m}</Pilula>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "0.375rem" }}>
+            {Array.from({ length: 12 }, (_, i) => (
+              <span key={i} style={{ position: "relative", aspectRatio: "3 / 4" }}>
+                <Moldura rotulo="" raio="var(--raio)" atmosfera variante={i * 5} />
+                {i === 2 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      display: "grid",
+                      placeItems: "center",
+                      ...raio("var(--raio)"),
+                      backgroundColor: "color-mix(in srgb, var(--bg) 55%, transparent)",
+                      fontSize: "0.6875rem",
+                      letterSpacing: "var(--tracking-rotulo)",
+                      textTransform: "uppercase",
+                      color: "var(--ink)",
+                    }}
+                  >
+                    Ocultar
+                  </span>
+                )}
+              </span>
+            ))}
+          </div>
+        </main>
+      </div>
+    </Chao>
+  );
+}
+
+/** B-08 · Peças — placa/card com QR do evento. */
+export function TelaPecas({ pack }: { pack: Pack }) {
+  return (
+    <Chao fundo="claro" pack={pack}>
+      <div style={{ display: "flex", height: "100%" }}>
+        <Lateral pack={pack} ativa="Ao vivo" />
+
+        <main style={{ flex: 1, padding: "1.75rem 2rem", overflow: "hidden" }}>
+          <p style={{ margin: 0, fontFamily: "var(--fonte-titulo)", fontWeight: 300, fontSize: "1.875rem", letterSpacing: "var(--tracking-titulo)" }}>
+            Peças para imprimir
+          </p>
+          <p style={{ margin: "0.75rem 0 1.5rem", maxWidth: "48ch", fontSize: "0.875rem", color: "var(--ink-2)", lineHeight: 1.5 }}>
+            QR nível H, URL legível e identidade do casal — tudo pelo mesmo resolvedor do telão.
+          </p>
+
+          <div style={{ display: "flex", gap: "2rem", alignItems: "flex-start" }}>
+            <div
+              style={{
+                width: "12rem",
+                aspectRatio: "210 / 297",
+                padding: "1.25rem",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "space-between",
+                ...raio("var(--raio)"),
+                backgroundColor: "var(--superficie-alta)",
+                borderWidth: "1px",
+                borderStyle: "solid",
+                borderColor: "var(--linha)",
+              }}
+            >
+              <p style={{ margin: 0, fontFamily: "var(--fonte-titulo)", fontSize: "0.875rem", textAlign: "center" }}>
+                {texto(pack, "landing.exemplo.nome")}
+              </p>
+              <span
+                style={{
+                  width: "5.5rem",
+                  height: "5.5rem",
+                  ...raio("var(--raio)"),
+                  backgroundColor: "var(--ink)",
+                  display: "grid",
+                  placeItems: "center",
+                  color: "var(--bg)",
+                  fontSize: "0.5625rem",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                QR
+              </span>
+              <p style={{ margin: 0, fontSize: "0.5625rem", color: "var(--ink-3)", textAlign: "center", wordBreak: "break-all" }}>
+                albora.app/e/exemplo
+              </p>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <span
+                style={{
+                  display: "inline-flex",
+                  padding: "0.75rem 1.5rem",
+                  ...raio("var(--raio-pilula)"),
+                  backgroundColor: "var(--acento)",
+                  color: "var(--sobre-acento)",
+                  fontWeight: 600,
+                }}
+              >
+                Baixar PDF
+              </span>
+              <span
+                style={{
+                  display: "inline-flex",
+                  padding: "0.75rem 1.5rem",
+                  ...raio("var(--raio-pilula)"),
+                  borderWidth: "1px",
+                  borderStyle: "solid",
+                  borderColor: "var(--linha)",
+                  color: "var(--ink-2)",
+                }}
+              >
+                Baixar SVG
+              </span>
+              <p style={{ margin: "0.5rem 0 0", fontSize: "0.75rem", color: "var(--ink-3)", maxWidth: "28ch" }}>
+                Contraste do QR validado antes do download.
+              </p>
+            </div>
+          </div>
+        </main>
+      </div>
+    </Chao>
+  );
+}
+
+/** C-02 · Pânico — a parede pausa sem expor a foto que causou o acionamento. */
+export function TelaPanico({ pack }: { pack: Pack }) {
+  return (
+    <Chao fundo="escuro" pack={pack}>
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "1rem",
+          padding: "2rem",
+          textAlign: "center",
+        }}
+      >
+        <p
+          style={{
+            margin: 0,
+            fontFamily: "var(--fonte-titulo)",
+            fontWeight: 300,
+            fontSize: "clamp(1.75rem, 4vw, 2.75rem)",
+            letterSpacing: "var(--tracking-titulo)",
+            color: "var(--ink)",
+          }}
+        >
+          {texto(pack, "landing.exemplo.nome")}
+        </p>
+        <p style={{ margin: 0, fontSize: "clamp(1rem, 2vw, 1.35rem)", color: "var(--ink-3)" }}>
+          Voltamos já
+        </p>
+      </div>
+    </Chao>
+  );
+}

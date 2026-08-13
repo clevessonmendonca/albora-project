@@ -1,9 +1,21 @@
 # Roadmap — produto completo
 
-> **Atualizado:** 2026-08-12
-> **Referência visual:** [`/telas`](../apps/web/app/telas/page.tsx) — toda tela nova ou refatorada deve espelhar este catálogo (Instagram dentro do evento, estrela no lugar do coração, gate honesto).
+> **Atualizado:** 2026-08-13
+> **Referência visual:** [`/telas`](../apps/web/app/telas/page.tsx) (web) · [`/telas-admin`](../apps/web/app/telas-admin/page.tsx) (anfitrião mobile) — toda tela nova ou refatorada deve espelhar estes catálogos (Instagram dentro do evento, estrela no lugar do coração, gate honesto).
+> **Mapa de ondas:** [`specs/task-020-mapa-de-telas.md`](./specs/task-020-mapa-de-telas.md)
 
 Este documento substitui o recorte “só MVP” por **entrega completa** alinhada a [`product/albora-produto-arquitetura.md`](./product/albora-produto-arquitetura.md). A ordem abaixo é de dependência, não de negócio.
+
+---
+
+## Task 020 — Ondas de construção
+
+| Onda | Fase | Telas | Estado |
+|---|---|---|---|
+| **1 — convidado A** | A | A-01 Scanner · A-02 Missões · A-03 Minhas · A-04 Foto · A-05 Comentar · A-06 Denúncia · A-07 Fila · A-08 Música · A-09 Vazios | **Catálogo feito** · **Produto:** reentrada `/capa`, `SemEntrada`, fila global, hub capa, momentos→álbum, motivo na denúncia, CTA PWA 1ª foto |
+| **2 — anfitrião A** | A | B-01 Login · B-02 Criar evento · B-03 Identidade · B-05 O álbum · B-08 Peças · C-02 Pânico | **Catálogo em curso** — web em `/telas` + mobile em `/telas-admin` · **Produto:** login/criar/controles existem; falta wizard completo e identidade com preview |
+| **3 — pós-H1** | B | A-10 App · A-11 Parear · A-12 Recado · B-04 Missões editor · B-06 Moderação · B-07 Convidados · C-01 Vídeo parede | Pendente |
+| **4 — escala** | C | A-13 Recap · B-09 Livro · B-10 Retenção | Pendente |
 
 ---
 
@@ -11,12 +23,12 @@ Este documento substitui o recorte “só MVP” por **entrega completa** alinha
 
 | # | Item | Estado |
 |---|---|---|
-| A1 | Shell compartilhado (`shell-convidado.tsx`, barra Feed·Missões·Câmera·Álbum·Minhas) | **Em curso** |
-| A2 | Entrada = `TelaEntrada` | Pendente |
-| A3 | Feed = `TelaFeed` / `TelaAntesDoGate` | Pendente |
-| A4 | Álbum = `TelaAlbum` | Pendente |
-| A5 | Capa do evento = `TelaCapa` (rota `/e/[slug]/capa`) | Pendente |
-| A6 | Câmera com missão sobre o visor = `TelaCamera` | Pendente |
+| A1 | Shell compartilhado (`shell-convidado.tsx`, barra Feed·Missões·Câmera·Álbum·Minhas) | **Feito** |
+| A2 | Entrada = `TelaEntrada` | **Feito** (produto + catálogo) |
+| A3 | Feed = `TelaFeed` / `TelaAntesDoGate` | **Feito** (produto + catálogo) |
+| A4 | Álbum = `TelaAlbum` | **Feito** (produto + catálogo) |
+| A5 | Capa do evento = `TelaCapa` (rota `/e/[slug]/capa`) | **Feito** (produto + catálogo) |
+| A6 | Câmera com missão sobre o visor = `TelaCamera` | **Feito** (produto + catálogo) |
 
 ---
 
@@ -35,10 +47,14 @@ Este documento substitui o recorte “só MVP” por **entrega completa** alinha
 
 | Item | Estado |
 |---|---|
-| Painel ao vivo (`TelaPainel`) | Pendente |
-| Modelos da parede (`TelaModelosDaParede`) | Pendente |
-| Identidade + missões na criação | Pendente |
-| Peças PDF + ZIP + funil `expected_guests` | Pendente |
+| Painel ao vivo (`TelaPainel` / `TelaAdminPainel`) | **Catálogo feito** · produto em `/admin/e/[id]` |
+| Modelos da parede (`TelaModelosDaParede` / `TelaAdminParede`) | **Catálogo feito** · produto parcial |
+| Login magic link (`TelaLogin`) | **Catálogo feito** · produto em `/admin/entrar` |
+| Wizard criar evento (`TelaCriarEvento`) | **Catálogo feito** · produto simplificado em `/admin/novo` |
+| Identidade + missões na criação (`TelaIdentidade`) | **Catálogo feito** · produto pendente |
+| O álbum anfitrião (`TelaAlbumAnfitriao`) | **Catálogo feito** · produto pendente |
+| Peças PDF + ZIP (`TelaPecas`) | **Catálogo feito** · SVG no admin; PDF na fila |
+| Pânico na parede (`TelaPanico`) | **Catálogo feito** · API + telão existem |
 
 ---
 

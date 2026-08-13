@@ -8,15 +8,21 @@ import {
   nomeDoModelo,
   notaDoModelo,
   TelaAlbum,
+  TelaAlbumAnfitriao,
   TelaAntesDoGate,
   TelaCamera,
   TelaComentar,
+  TelaCriarEvento,
   TelaDenuncia,
   TelaEntrada,
   TelaFila,
+  TelaIdentidade,
+  TelaLogin,
   TelaModelosDaParede,
   TelaMusica,
   TelaPainel,
+  TelaPanico,
+  TelaPecas,
   TelaScanner,
   TelaTelao,
 } from "./telas";
@@ -86,7 +92,11 @@ export default function Telas() {
         <p style={{ margin: "1.5rem 0 0", maxWidth: "52ch", color: "var(--ink-2)" }}>
           Cada tela roda pelo mesmo resolvedor de tokens do produto, dentro do mesmo pack. Trocar a
           identidade do evento redesenha todas de uma vez. As fotos são slots declarados, e entram
-          por <code>src</code> quando existirem.
+          por <code>src</code> quando existirem.{" "}
+          <a href="/telas-admin" style={{ color: "var(--acento)" }}>
+            Ver o anfitrião no app (mobile-first)
+          </a>
+          .
         </p>
       </header>
 
@@ -205,6 +215,51 @@ export default function Telas() {
         nota="Web e chão claro: lido de manhã no sofá, não no salão. O gate da interação fica na primeira dobra porque é a decisão que o anfitrião mais volta para mexer."
       >
         <Navegador
+          titulo="Login"
+          nota="Magic link por e-mail. Sem senha, sem cadastro de convidado — só o anfitrião entra por conta."
+          altura={520}
+          escala={0.58}
+        >
+          <TelaLogin pack={pack} />
+        </Navegador>
+
+        <Navegador
+          titulo="Login — link enviado"
+          nota="Estado após pedir o link. O e-mail real vem do Resend em produção; em dev o link aparece na resposta."
+          altura={480}
+          escala={0.58}
+        >
+          <TelaLogin pack={pack} enviado />
+        </Navegador>
+
+        <Navegador
+          titulo="Criar evento — passo 1"
+          nota="Wizard multi-passo: nome, data, expected_guests. Uma decisão por tela até o QR pronto."
+          altura={620}
+          escala={0.58}
+        >
+          <TelaCriarEvento pack={pack} passo={1} />
+        </Navegador>
+
+        <Navegador
+          titulo="Criar evento — peças"
+          nota="Último passo antes do painel ao vivo: a placa com QR é a porta física do convidado."
+          altura={620}
+          escala={0.58}
+        >
+          <TelaCriarEvento pack={pack} passo={5} />
+        </Navegador>
+
+        <Navegador
+          titulo="Identidade"
+          nota="Controles à esquerda, preview ao vivo à direita — o mesmo resolverTokens do telão e da peça impressa."
+          altura={760}
+          escala={0.58}
+        >
+          <TelaIdentidade pack={pack} momentos={momentos} />
+        </Navegador>
+
+        <Navegador
           titulo="Painel, durante a festa"
           nota="Contadores reais, as últimas fotos chegando, e o horário em que reação e comentário abrem. Sem métrica de vaidade e sem 'aumente suas memórias'."
           altura={760}
@@ -239,12 +294,34 @@ export default function Telas() {
         >
           <TelaModelosDaParede pack={pack} escolhidos={["cheio"]} />
         </Navegador>
+
+        <Navegador
+          titulo="O álbum — visão do anfitrião"
+          nota="Grade filtrável por capítulo; hover revela ocultar. Curadoria leve, distinta do álbum do convidado."
+          altura={680}
+          escala={0.58}
+        >
+          <TelaAlbumAnfitriao pack={pack} momentos={momentos} />
+        </Navegador>
+
+        <Navegador
+          titulo="Peças para imprimir"
+          nota="Preview da placa A4 com QR nível H. Download SVG hoje; PDF na fila do CI."
+          altura={620}
+          escala={0.58}
+        >
+          <TelaPecas pack={pack} />
+        </Navegador>
       </Grupo>
 
       <Grupo
         titulo="A parede"
         nota="URL fullscreen, sem cromo e sem cursor. Oito modelos que se alternam a noite inteira, e o único deles que recusa foto em pé é Cheio — a fila filtra as verticais antes de sortear, em vez de escolher uma foto e depois descobrir que ela não cabe."
       >
+        <Parede titulo="Pânico — telão pausado" nota="Takeover honesto: nome do evento e 'voltamos já'. Nenhuma foto exposta enquanto o pânico está ligado.">
+          <TelaPanico pack={pack} />
+        </Parede>
+
         {MODELOS_DE_TELAO.map((modelo) => (
           <Parede key={modelo} titulo={nomeDoModelo(modelo)} nota={notaDoModelo(modelo)}>
             <TelaTelao pack={pack} modelo={modelo} />

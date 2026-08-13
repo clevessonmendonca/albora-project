@@ -17,6 +17,7 @@ export { Cartao } from "./Cartao";
 export { Estrela } from "./Estrela";
 export { Moldura } from "./Moldura";
 export { BotaoFlutuante } from "./BotaoFlutuante";
+export { Interruptor } from "./Interruptor";
 export { Avatar, iniciais } from "./Avatar";
 export { BarraDeAbas, type AbaConvidado } from "./BarraDeAbas";
 export {
