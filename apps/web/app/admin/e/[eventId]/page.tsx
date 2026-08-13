@@ -1,22 +1,22 @@
 import { EventPageLayout } from "@/features/admin/components/server/event-page-layout";
-import { ControlesDoEvento } from "./controles";
-import { ResumoAoVivo } from "./resumo-ao-vivo";
+import { EventControls } from "@/features/admin/components/client/event-controls";
+import { LiveSummary } from "@/features/admin/components/client/live-summary";
 
 export const dynamic = "force-dynamic";
 
 export default async function Pagina({
   params,
 }: {
-  params: Promise<{ eventoId: string }>;
+  params: Promise<{ eventId: string }>;
 }) {
-  const { eventoId } = await params;
+  const { eventId } = await params;
 
   return (
-    <EventPageLayout eventoId={eventoId}>
+    <EventPageLayout eventId={eventId}>
       {({ evento }) => (
         <>
-          <ResumoAoVivo eventoId={eventoId} />
-          <ControlesDoEvento
+          <LiveSummary eventoId={eventId} />
+          <EventControls
             eventoId={evento.eventoId}
             slug={evento.slug}
             inicial={evento.moderacao}

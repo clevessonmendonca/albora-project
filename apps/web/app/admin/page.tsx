@@ -3,43 +3,39 @@ import { PACKS, texto } from "@albora/packs";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { banco } from "@/lib/banco";
-import { COOKIE_HOST, hostDoToken } from "@/lib/host-sessao";
-import { AdminShell, AdminSection, adminStyles } from "./casca";
+import { getPool } from "@/lib/db";
+import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
+import {
+  AdminShell,
+  AdminSection,
+  adminClasses,
+} from "@/features/admin/components/server/admin-shell";
 
 export const dynamic = "force-dynamic";
 
 export default async function Pagina() {
-  const token = (await cookies()).get(COOKIE_HOST)?.value;
-  const host = await hostDoToken(token);
-  if (!host) redirect("/admin/entrar");
+  const token = (await cookies()).get(HOST_COOKIE)?.value;
+  const host = await hostFromToken(token);
+  if (!host) redirect("/admin/sign-in");
 
-  const eventos = await listarEventosDoHost(banco(), host.accountId);
+  const eventos = await listarEventosDoHost(getPool(), host.accountId);
 
   return (
     <AdminShell title="Seu painel" subtitle={host.email}>
       <AdminSection>
-        <p style={{ margin: "0 0 1.25rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
+        <p className="mb-5 mt-0 leading-relaxed text-ink-2">
           Durante a festa, abra o evento para pausar o telão ou marcar que há menores.
           Crie um evento novo quando precisar.
         </p>
-        <Link href="/admin/novo" style={adminStyles.primaryButton}>
+        <Link href="/admin/new" className={adminClasses.primaryButton}>
           Criar evento
         </Link>
       </AdminSection>
 
       {eventos.length > 0 && (
         <AdminSection>
-          <h2
-            style={{
-              margin: "0 0 0.5rem",
-              fontFamily: "var(--fonte-titulo)",
-              fontSize: "1.125rem",
-            }}
-          >
-            Seus eventos
-          </h2>
-          <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+          <h2 className="mb-2 mt-0 font-titulo text-lg">Seus eventos</h2>
+          <ul className="m-0 list-none p-0">
             {eventos.map((e) => {
               const pack = PACKS[e.packId];
               const nome = pack ? texto(pack, "evento.nome") : e.slug;
@@ -50,9 +46,9 @@ export default async function Pagina() {
               });
               return (
                 <li key={e.eventoId}>
-                  <Link href={`/admin/e/${e.eventoId}`} style={adminStyles.listLink}>
-                    <span style={{ fontFamily: "var(--fonte-titulo)" }}>{nome}</span>
-                    <span style={{ display: "block", fontSize: "0.85rem", color: "var(--ink-3)" }}>
+                  <Link href={`/admin/e/${e.eventoId}`} className={adminClasses.listLink}>
+                    <span className="font-titulo">{nome}</span>
+                    <span className="block text-[0.85rem] text-ink-3">
                       /{e.slug} · {quando}
                     </span>
                   </Link>

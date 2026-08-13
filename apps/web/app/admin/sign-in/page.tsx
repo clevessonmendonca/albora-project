@@ -1,6 +1,6 @@
 import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { CSSProperties } from "react";
-import { Entrar } from "./entrar-cliente";
+import { SignInForm } from "@/features/admin/components/client/sign-in-form";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ export default async function Pagina({
 
   return (
     <div style={vars}>
-      <Entrar magic={m ?? null} />
+      <SignInForm magic={m ?? null} />
     </div>
   );
 }

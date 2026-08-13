@@ -1,20 +1,20 @@
 import { EventPageLayout } from "@/features/admin/components/server/event-page-layout";
-import { IdentidadeDoEvento } from "./identidade-cliente";
+import { IdentityEditor } from "@/features/admin/components/client/identity-editor";
 
 export const dynamic = "force-dynamic";
 
 export default async function PaginaIdentidade({
   params,
 }: {
-  params: Promise<{ eventoId: string }>;
+  params: Promise<{ eventId: string }>;
 }) {
-  const { eventoId } = await params;
+  const { eventId } = await params;
 
   return (
-    <EventPageLayout eventoId={eventoId} section="Identidade">
+    <EventPageLayout eventId={eventId} section="Identidade">
       {({ evento }) => (
-        <IdentidadeDoEvento
-          eventoId={eventoId}
+        <IdentityEditor
+          eventoId={eventId}
           packId={evento.packId}
           expectedGuestsInicial={evento.expectedGuests}
           identityTokensInicial={evento.identityTokens}
