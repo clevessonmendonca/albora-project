@@ -1,1 +1,6 @@
-export { DELETE, dynamic, GET } from "../../../eventos/[eventoId]/comentarios/route";
+import { withEventId } from "@/lib/api/adapt-event-id";
+import * as legacy from "../../../eventos/[eventoId]/comentarios/route";
+
+export const dynamic = legacy.dynamic;
+export const GET = withEventId(legacy.GET);
+export const DELETE = withEventId(legacy.DELETE);

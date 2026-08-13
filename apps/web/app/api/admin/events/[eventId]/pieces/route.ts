@@ -1,1 +1,5 @@
-export { dynamic, GET } from "../../../eventos/[eventoId]/pecas/route";
+import { withEventId } from "@/lib/api/adapt-event-id";
+import * as legacy from "../../../eventos/[eventoId]/pecas/route";
+
+export const dynamic = legacy.dynamic;
+export const GET = withEventId(legacy.GET);
