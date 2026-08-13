@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { Aparelho } from "../telas/pecas-de-tela";
 import {
   TelaAdminConvidados,
+  TelaAdminCriarEvento,
   TelaAdminIdentidade,
   TelaAdminLivro,
   TelaAdminLogin,
@@ -128,6 +129,13 @@ export default function TelasAdmin() {
           nota="O anfitrião tem login (o convidado nunca). Magic link, sem senha. Única tela do admin sem barra — antes de entrar não há pra onde navegar."
         >
           <TelaAdminLogin pack={pack} />
+        </Vitrine>
+
+        <Vitrine
+          titulo="Criar evento"
+          nota="O onboarding: uma coisa por passo (nome → identidade → missões → parede → peça com QR). Nenhuma pergunta de idade — os menores são um interruptor depois, não um cadastro."
+        >
+          <TelaAdminCriarEvento pack={pack} />
         </Vitrine>
       </div>
     </div>

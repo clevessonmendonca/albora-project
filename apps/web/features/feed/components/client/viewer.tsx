@@ -7,8 +7,8 @@ import { rotuloDeHora } from "@/lib/agrupar-por-hora";
 import type { UrlDeMidia } from "@/lib/midia";
 import type { ResultadoReacao } from "@/lib/usar-reacao";
 import type { ItemVisivel } from "@/lib/usar-feed";
-import { InteracaoDaFoto } from "../interacao-da-foto";
-import { Quadro } from "./quadro";
+import { InteracaoDaFoto } from "@/app/e/[slug]/interacao-da-foto";
+import { Frame } from "./frame";
 
 /**
  * A hora correndo em tela cheia, aberta pela tira do feed.
@@ -38,7 +38,7 @@ const SUPRESSAO_MS = 600;
  * Chave vazia fica de fora — item cuja resposta veio sem o arquivo cheio não
  * pode virar um pedido de assinatura para a string vazia.
  */
-export function chavesDoReprodutor(itens: readonly ItemVisivel[], indice: number): string[] {
+export function viewerKeys(itens: readonly ItemVisivel[], indice: number): string[] {
   const chaves: string[] = [];
   const atual = itens[indice];
 
@@ -64,13 +64,13 @@ export function chavesDoReprodutor(itens: readonly ItemVisivel[], indice: number
   return [...new Set(chaves.filter(Boolean))];
 }
 
-export function Reprodutor({
+export function Viewer({
   itens,
   indice,
   hora,
   urls,
   interacao,
-  caminhoDaCamera,
+  cameraPath,
   movimentoReduzido,
   onIr,
   onSair,
@@ -86,7 +86,7 @@ export function Reprodutor({
   hora: number;
   urls: Map<string, UrlDeMidia>;
   interacao: ModoInteracao;
-  caminhoDaCamera: string;
+  cameraPath: string;
   movimentoReduzido: boolean;
   onIr: (indice: number) => void;
   onSair: () => void;
@@ -288,7 +288,7 @@ export function Reprodutor({
       `}</style>
 
       {atual && (
-        <Quadro
+        <Frame
           urlThumb={urlThumb}
           urlCheia={urlCheia}
           alt={ehVideo ? `Vídeo de ${atual.autor}` : `Foto de ${atual.autor}`}
@@ -462,7 +462,7 @@ export function Reprodutor({
         {/* Fixo e sempre visível — é o plano de risco da própria task 007: esta
             tela não otimiza tempo de tela, ela devolve a pessoa para a câmera. */}
         <a
-          href={caminhoDaCamera}
+          href={cameraPath}
           style={{
             display: "grid",
             placeItems: "center",

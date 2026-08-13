@@ -10,7 +10,7 @@ import type { ItemVisivel } from "@/lib/usar-feed";
  * mecânica do Instagram dentro do evento.
  */
 
-export function GradeAlbum({
+export function AlbumGrid({
   itens,
   urls,
   onAbrir,
@@ -103,7 +103,7 @@ export function GradeAlbum({
   );
 }
 
-export function GradeAlbumCarregando() {
+export function AlbumGridLoading() {
   return (
     <ul
       aria-hidden

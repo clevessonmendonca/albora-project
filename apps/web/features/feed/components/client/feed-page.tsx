@@ -3,19 +3,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { agruparPorHora, type GrupoDeHora } from "@/lib/agrupar-por-hora";
 import { usarFeed, type ItemVisivel } from "@/lib/usar-feed";
-import { BarraDeAbas } from "../barra-de-abas";
+import { BarraDeAbas } from "@/app/e/[slug]/barra-de-abas";
 import {
   AvisoGate,
   CabecalhoConvidado,
   ChaoConvidado,
   EstadoVazio,
   MioloConvidado,
-} from "../../../telas/shell-convidado";
-import { Pilula } from "../../../telas/pecas-de-tela";
-import { Publicacao, PublicacaoCarregando } from "./publicacao";
-import { GradeEspelho, GradeEspelhoCarregando } from "./grade-espelho";
-import { chavesDoReprodutor, Reprodutor } from "./reprodutor";
-import { Tira, TiraCarregando } from "./tira";
+} from "@/app/telas/shell-convidado";
+import { Pilula } from "@/app/telas/pecas-de-tela";
+import { Post, PostLoading } from "./post";
+import { MirrorGrid, MirrorGridLoading } from "./mirror-grid";
+import { viewerKeys, Viewer } from "./viewer";
+import { HourStrip, HourStripLoading } from "./hour-strip";
 
 /**
  * O feed do convidado: a tira de horas no topo e as fotos em coluna única
@@ -39,11 +39,11 @@ import { Tira, TiraCarregando } from "./tira";
  * quem a mostra é outra tarefa.
  */
 
-export type MissaoDoFiltro = { id: string; titulo: string };
+export type FilterMission = { id: string; title: string };
 
-export type TextosDoFeed = {
+export type FeedCopy = {
   /** Como esta festa chama a lista de missões. Vem resolvido do pack. */
-  missaoTitulo: string;
+  missionTitle: string;
 };
 
 const TOQUE_MINIMO = "48px";
@@ -54,21 +54,21 @@ const SEM_ITENS: ItemVisivel[] = [];
 
 type Aberto = { inicio: number; itemId: string };
 
-export function PaginaFeed({
+export function FeedPage({
   slug,
-  tituloEvento,
-  missoes,
-  textos,
-  caminhoDaCamera,
+  eventTitle,
+  missions,
+  copy,
+  cameraPath,
 }: {
   slug: string;
-  tituloEvento: string;
-  missoes: MissaoDoFiltro[];
-  textos: TextosDoFeed;
-  caminhoDaCamera: string;
+  eventTitle: string;
+  missions: FilterMission[];
+  copy: FeedCopy;
+  cameraPath: string;
 }) {
-  const [missaoId, setMissaoId] = useState<string | null>(null);
-  const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = usarFeed(missaoId);
+  const [missionId, setMissaoId] = useState<string | null>(null);
+  const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = usarFeed(missionId);
 
   const [aberto, setAberto] = useState<Aberto | null>(null);
   const [preparando, setPreparando] = useState<number | null>(null);
@@ -98,7 +98,7 @@ export function PaginaFeed({
   const indice = achado >= 0 ? achado : 0;
 
   const janela = useMemo(
-    () => (grupoAberto ? chavesDoReprodutor(itensAbertos, indice) : SEM_CHAVES),
+    () => (grupoAberto ? viewerKeys(itensAbertos, indice) : SEM_CHAVES),
     [grupoAberto, itensAbertos, indice],
   );
 
@@ -196,7 +196,7 @@ export function PaginaFeed({
 
         <MioloConvidado>
           <CabecalhoConvidado
-            titulo={tituloEvento}
+            titulo={eventTitle}
             hrefInicio={`/e/${encodeURIComponent(slug)}/capa`}
             acao={contagem ? <Pilula>{contagem}</Pilula> : undefined}
           />
@@ -208,11 +208,11 @@ export function PaginaFeed({
             </AvisoGate>
           )}
 
-          {primeiraCarga && completo && <TiraCarregando />}
-          {primeiraCarga && espelho && <GradeEspelhoCarregando />}
+          {primeiraCarga && completo && <HourStripLoading />}
+          {primeiraCarga && espelho && <MirrorGridLoading />}
 
           {completo && grupos.length > 0 && (
-            <Tira
+            <HourStrip
               grupos={grupos}
               urls={estado.urls}
               vistos={vistos}
@@ -222,11 +222,11 @@ export function PaginaFeed({
             />
           )}
 
-          {completo && missoes.length > 0 && (
+          {completo && missions.length > 0 && (
             <Filtro
-              rotulo={textos.missaoTitulo}
-              missoes={missoes}
-              escolhida={missaoId}
+              rotulo={copy.missionTitle}
+              missions={missions}
+              escolhida={missionId}
               onEscolher={setMissaoId}
             />
           )}
@@ -240,21 +240,21 @@ export function PaginaFeed({
           {primeiraCarga && completo && (
             <Coluna>
               {[0, 1].map((i) => (
-                <PublicacaoCarregando key={i} />
+                <PostLoading key={i} />
               ))}
             </Coluna>
           )}
 
           {vazio && (
             <EstadoVazio
-              titulo={completo && missaoId !== null ? "Ninguém mandou essa ainda." : "Ainda não tem foto."}
-              lede={completo && missaoId !== null ? "A sua pode ser a primeira." : "Seja o primeiro."}
-              caminhoDaCamera={caminhoDaCamera}
+              titulo={completo && missionId !== null ? "Ninguém mandou essa ainda." : "Ainda não tem foto."}
+              lede={completo && missionId !== null ? "A sua pode ser a primeira." : "Seja o primeiro."}
+              caminhoDaCamera={cameraPath}
             />
           )}
 
           {espelho && estado.itens.length > 0 && (
-            <GradeEspelho itens={estado.itens} urls={estado.urls} />
+            <MirrorGrid itens={estado.itens} urls={estado.urls} />
           )}
 
           {completo && estado.itens.length > 0 && (
@@ -263,7 +263,7 @@ export function PaginaFeed({
                 const ehVideo = item.mime.startsWith("video/");
                 const chaveMidia = ehVideo ? item.chaveFull : item.chaveThumb;
                 return (
-                <Publicacao
+                <Post
                   key={item.id}
                   uploadId={item.id}
                   interacao={estado.interacao}
@@ -296,13 +296,13 @@ export function PaginaFeed({
       <BarraDeAbas slug={slug} ativa="feed" />
 
       {completo && grupoAberto && (
-        <Reprodutor
+        <Viewer
           itens={itensAbertos}
           indice={indice}
           hora={grupoAberto.hora}
           urls={estado.urls}
           interacao={estado.interacao}
-          caminhoDaCamera={caminhoDaCamera}
+          cameraPath={cameraPath}
           movimentoReduzido={movimentoReduzido}
           onIr={irPara}
           onSair={sair}
@@ -342,12 +342,12 @@ function Coluna({
 
 function Filtro({
   rotulo,
-  missoes,
+  missions,
   escolhida,
   onEscolher,
 }: {
   rotulo: string;
-  missoes: MissaoDoFiltro[];
+  missions: FilterMission[];
   escolhida: string | null;
   onEscolher: (id: string | null) => void;
 }) {
@@ -372,13 +372,13 @@ function Filtro({
         Tudo
       </Etiqueta>
 
-      {missoes.map((m) => (
+      {missions.map((m) => (
         <Etiqueta
           key={m.id}
           ativa={escolhida === m.id}
           onClick={() => onEscolher(escolhida === m.id ? null : m.id)}
         >
-          {m.titulo}
+          {m.title}
         </Etiqueta>
       ))}
     </div>

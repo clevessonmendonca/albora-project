@@ -3,7 +3,7 @@
 import type { CodigoDaTese } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
 import { raio } from "../../../landing/pecas";
-import { SecaoAdmin } from "../../casca";
+import { AdminSection } from "../../casca";
 
 type Resumo = {
   expectedGuests: number;
@@ -50,17 +50,17 @@ export function ResumoAoVivo({ eventoId }: Props) {
 
   if (erro && !resumo) {
     return (
-      <SecaoAdmin>
+      <AdminSection>
         <p style={{ margin: 0, color: "var(--critico)" }}>Não foi possível carregar o painel.</p>
-      </SecaoAdmin>
+      </AdminSection>
     );
   }
 
   if (!resumo) {
     return (
-      <SecaoAdmin>
+      <AdminSection>
         <p style={{ margin: 0, color: "var(--ink-2)" }}>Carregando painel…</p>
-      </SecaoAdmin>
+      </AdminSection>
     );
   }
 
@@ -73,7 +73,7 @@ export function ResumoAoVivo({ eventoId }: Props) {
         : "var(--critico)";
 
   return (
-    <SecaoAdmin>
+    <AdminSection>
       <div
         style={{
           display: "flex",
@@ -174,7 +174,7 @@ export function ResumoAoVivo({ eventoId }: Props) {
           </div>
         </>
       )}
-    </SecaoAdmin>
+    </AdminSection>
   );
 }
 

@@ -1,8 +1,8 @@
 "use client";
 
 import type { ModoInteracao } from "@albora/core";
-import { CabecalhoPublicacao } from "../../../telas/shell-convidado";
-import { InteracaoDaFoto } from "../interacao-da-foto";
+import { InteracaoDaFoto } from "@/app/e/[slug]/interacao-da-foto";
+import { CabecalhoPublicacao } from "@/app/telas/shell-convidado";
 import type { ResultadoReacao } from "@/lib/usar-reacao";
 
 /**
@@ -13,7 +13,7 @@ import type { ResultadoReacao } from "@/lib/usar-reacao";
 
 const ASPECTO = "4 / 5";
 
-export function Publicacao({
+export function Post({
   uploadId,
   interacao,
   reacoes,
@@ -119,7 +119,7 @@ export function Publicacao({
   );
 }
 
-export function PublicacaoCarregando() {
+export function PostLoading() {
   return (
     <article aria-hidden style={{ borderTop: "1px solid var(--linha)", paddingBottom: "1rem" }}>
       <div style={{ display: "flex", gap: "0.625rem", padding: "0.875rem 0" }}>

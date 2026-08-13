@@ -7,10 +7,7 @@ import { Aparelho, Navegador, Parede } from "./pecas-de-tela";
 import {
   nomeDoModelo,
   notaDoModelo,
-  TelaAlbum,
   TelaAlbumAnfitriao,
-  TelaAntesDoGate,
-  TelaCamera,
   TelaComentar,
   TelaCriarEvento,
   TelaDenuncia,
@@ -26,7 +23,16 @@ import {
   TelaScanner,
   TelaTelao,
 } from "./telas";
-import { TelaCapa, TelaFeed, TelaFotoAberta, TelaMinhas, TelaMissoes } from "./telas-convidado";
+import {
+  TelaAlbum,
+  TelaAntesDoGate,
+  TelaCamera,
+  TelaCapa,
+  TelaFeed,
+  TelaFotoAberta,
+  TelaMinhas,
+  TelaMissoes,
+} from "./telas-convidado";
 
 export const metadata = {
   title: "Albora — as telas",

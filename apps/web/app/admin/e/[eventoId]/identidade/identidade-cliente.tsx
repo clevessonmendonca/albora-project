@@ -6,7 +6,7 @@ import type { CamadaTokens } from "@albora/tokens";
 import { useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { raio } from "../../../../landing/pecas";
-import { SecaoAdmin, estilosAdmin } from "../../../casca";
+import { AdminSection, adminStyles } from "../../../casca";
 
 type Props = {
   eventoId: string;
@@ -81,15 +81,15 @@ export function IdentidadeDoEvento({
 
   if (!pack) {
     return (
-      <SecaoAdmin>
+      <AdminSection>
         <p style={{ margin: 0, color: "var(--critico)" }}>Pack do evento não encontrado.</p>
-      </SecaoAdmin>
+      </AdminSection>
     );
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-      <SecaoAdmin>
+      <AdminSection>
         <p style={{ margin: "0 0 1.25rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
           A identidade visual propaga para convidado, telão e peças impressas — um resolvedor,
           três superfícies.
@@ -185,7 +185,7 @@ export function IdentidadeDoEvento({
             disabled={!convidadosValidos || salvando}
             onClick={() => void salvar()}
             style={{
-              ...estilosAdmin.botaoPrimario,
+              ...adminStyles.primaryButton,
               opacity: !convidadosValidos || salvando ? 0.6 : 1,
             }}
           >
@@ -200,7 +200,7 @@ export function IdentidadeDoEvento({
             </span>
           )}
         </div>
-      </SecaoAdmin>
+      </AdminSection>
     </div>
   );
 }

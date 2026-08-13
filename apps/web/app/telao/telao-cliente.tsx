@@ -391,7 +391,24 @@ function Palco({ cena, itemDe }: { cena: Cena; itemDe: (id: string) => ItemApi |
     const only = itens[0]!;
     return (
       <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-        {!ehMimeVideo(only.mime) && (
+        {ehMimeVideo(only.mime) ? (
+          <video
+            src={only.full}
+            autoPlay
+            muted
+            playsInline
+            loop
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: "-8%",
+              width: "116%",
+              height: "116%",
+              objectFit: "cover",
+              filter: "blur(48px) brightness(0.55)",
+            }}
+          />
+        ) : (
           <img
             src={only.full}
             alt=""

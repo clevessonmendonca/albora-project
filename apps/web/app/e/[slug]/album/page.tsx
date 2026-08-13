@@ -1,12 +1,9 @@
-import { comEvento, listarDesafios, resolverSlug } from "@albora/db";
-import { PACKS, texto } from "@albora/packs";
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
-import type { CSSProperties } from "react";
-import { banco } from "@/lib/banco";
-import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
-import { AlbumComAbas } from "./album-com-abas";
+import { Suspense } from "react";
+import { AlbumContent } from "@/features/album/components/server/album-content";
+import { AlbumPageSkeleton } from "@/features/album/components/skeletons/album-page-skeleton";
+import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
+import { guestSession } from "@/features/guest/data/guest-session";
 import { Aviso } from "../aviso";
 import { SemEntrada } from "../sem-entrada";
 
@@ -25,8 +22,8 @@ export default async function Pagina({
   searchParams: Promise<{ missao?: string }>;
 }) {
   const { slug } = await params;
-  const { missao: missaoParam } = await searchParams;
-  const r = await resolverSlug(banco(), slug, new Date());
+  const { missao: missionParam } = await searchParams;
+  const r = await resolveOpenEvent(slug);
 
   if (r.estado !== "aberto") {
     return (
@@ -34,34 +31,18 @@ export default async function Pagina({
     );
   }
 
-  const sessao = await sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
-  if (!sessao) return <SemEntrada slug={slug} />;
-
-  const { eventoId, packId } = r.evento;
-  const pack = PACKS[packId];
-
-  const desafios = await comEvento(banco(), eventoId, (c) =>
-    listarDesafios(c, eventoId, sessao.sessaoId),
-  );
-
-  const tokens = resolverTokens({
-    marca: MARCA_ALBORA,
-    pack: { ...(pack?.tokens ?? {}), fundo: "escuro" },
-  });
+  const session = await guestSession();
+  if (!session) return <SemEntrada slug={slug} />;
 
   return (
-    <div style={paraVariaveis(tokens) as CSSProperties}>
-      <AlbumComAbas
+    <Suspense fallback={<AlbumPageSkeleton />}>
+      <AlbumContent
         slug={slug}
-        missaoInicial={
-          missaoParam && desafios.some((d) => d.id === missaoParam) ? missaoParam : null
-        }
-        missoes={desafios.map((d) => ({
-          id: d.id,
-          titulo: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,
-        }))}
-        caminhoDaCamera={`/e/${encodeURIComponent(slug)}/foto`}
+        eventoId={session.eventoId}
+        sessaoId={session.sessaoId}
+        evento={r.evento}
+        missionParam={missionParam}
       />
-    </div>
+    </Suspense>
   );
 }

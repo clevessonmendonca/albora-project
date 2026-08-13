@@ -5,7 +5,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { banco } from "@/lib/banco";
 import { COOKIE_HOST, hostDoToken } from "@/lib/host-sessao";
-import { CascaAdmin, SecaoAdmin, estilosAdmin } from "./casca";
+import { AdminShell, AdminSection, adminStyles } from "./casca";
 
 export const dynamic = "force-dynamic";
 
@@ -17,19 +17,19 @@ export default async function Pagina() {
   const eventos = await listarEventosDoHost(banco(), host.accountId);
 
   return (
-    <CascaAdmin titulo="Seu painel" subtitulo={host.email}>
-      <SecaoAdmin>
+    <AdminShell title="Seu painel" subtitle={host.email}>
+      <AdminSection>
         <p style={{ margin: "0 0 1.25rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
           Durante a festa, abra o evento para pausar o telão ou marcar que há menores.
           Crie um evento novo quando precisar.
         </p>
-        <Link href="/admin/novo" style={estilosAdmin.botaoPrimario}>
+        <Link href="/admin/novo" style={adminStyles.primaryButton}>
           Criar evento
         </Link>
-      </SecaoAdmin>
+      </AdminSection>
 
       {eventos.length > 0 && (
-        <SecaoAdmin>
+        <AdminSection>
           <h2
             style={{
               margin: "0 0 0.5rem",
@@ -50,7 +50,7 @@ export default async function Pagina() {
               });
               return (
                 <li key={e.eventoId}>
-                  <Link href={`/admin/e/${e.eventoId}`} style={estilosAdmin.linkLista}>
+                  <Link href={`/admin/e/${e.eventoId}`} style={adminStyles.listLink}>
                     <span style={{ fontFamily: "var(--fonte-titulo)" }}>{nome}</span>
                     <span style={{ display: "block", fontSize: "0.85rem", color: "var(--ink-3)" }}>
                       /{e.slug} · {quando}
@@ -60,8 +60,8 @@ export default async function Pagina() {
               );
             })}
           </ul>
-        </SecaoAdmin>
+        </AdminSection>
       )}
-    </CascaAdmin>
+    </AdminShell>
   );
 }

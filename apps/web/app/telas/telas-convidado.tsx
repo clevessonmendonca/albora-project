@@ -5,6 +5,7 @@ import {
   BarraDeAbas,
   Botao,
   BotaoFlutuante,
+  cn,
   Estrela,
   Etiqueta,
   IconeCamera,
@@ -466,6 +467,134 @@ export function TelaFeed({ pack, momentos }: { pack: Pack; momentos: string[] })
       </div>
 
       <BarraDeAbas ativa="feed" />
+    </Chao>
+  );
+}
+
+/**
+ * A câmera, com a missão em cima do visor.
+ *
+ * A missão vive dentro da tela de fotografar, não numa aba: quem está com uma
+ * taça na outra mão não navega até um convite. O lugar é lista fechada (as
+ * pílulas), nunca GPS — coordenada em foto de festa é exposição de LGPD.
+ */
+export function TelaCamera({ pack, missao }: { pack: Pack; missao: string }) {
+  return (
+    <Chao fundo="escuro" pack={pack}>
+      <BarraDeStatus />
+
+      <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3.5">
+        <span className="font-titulo text-[1.125rem] tracking-titulo">
+          {texto(pack, "landing.exemplo.nome")}
+        </span>
+        <Etiqueta>3 na fila</Etiqueta>
+      </div>
+
+      <div className="relative mx-3 flex-1 overflow-hidden rounded-superficie">
+        <Moldura atmosfera variante={3} />
+
+        <div className="absolute inset-x-3.5 top-3.5">
+          <div className="rounded-token bg-acento p-3.5 text-sobre-acento">
+            <p className="text-[0.5625rem] uppercase tracking-rotulo opacity-75">Missão 03 de 04</p>
+            <p className="mt-1 font-titulo text-[1.0625rem] leading-tight">{missao}</p>
+          </div>
+        </div>
+
+        <div className="absolute inset-x-3.5 bottom-3.5 flex flex-wrap gap-1.5">
+          {pack.lugares.slice(0, 4).map((l, i) => (
+            <Etiqueta key={l.id} tom={i === 0 ? "acento" : "neutro"}>
+              {texto(pack, l.chaveTitulo)}
+            </Etiqueta>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center px-7 pt-5 pb-9">
+        <span className="flex gap-1.5">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="relative size-[1.875rem] overflow-hidden rounded-[0.5rem]">
+              <Moldura atmosfera variante={i * 4} />
+            </span>
+          ))}
+        </span>
+        <span className="grid size-[4.5rem] place-items-center justify-self-center rounded-full border-[3px] border-ink">
+          <span className="size-[3.625rem] rounded-full bg-acento" />
+        </span>
+        <span className="justify-self-end text-[0.75rem] text-ink-3">Rolo</span>
+      </div>
+    </Chao>
+  );
+}
+
+/**
+ * O feed, antes do gate.
+ *
+ * A mesma aba, sem reação e sem comentário — a interação abre na hora que o
+ * anfitrião escolher (ADR 0009). Desabilitar botões contaria que existe algo
+ * trancado; não desenhá-los conta a verdade, que é que ainda não é hora.
+ */
+export function TelaAntesDoGate({ pack }: { pack: Pack }) {
+  return (
+    <Chao fundo="escuro" pack={pack}>
+      <BarraDeStatus />
+
+      <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3.5">
+        <span className="font-titulo text-[1.125rem] tracking-titulo">
+          {texto(pack, "landing.exemplo.nome")}
+        </span>
+        <Etiqueta>847 fotos</Etiqueta>
+      </div>
+
+      <div className="px-[1.125rem] pb-4">
+        <div className="flex items-start gap-3 rounded-token bg-superficie px-4 py-3.5">
+          <span className="pulso mt-1.5 size-[0.4375rem] shrink-0 rounded-full bg-acento" />
+          <span className="text-[0.8125rem] leading-snug text-ink-2">
+            As reações e os comentários abrem no horário que o anfitrião escolheu. Até lá, continue
+            enviando: tudo já está indo pro álbum.
+          </span>
+        </div>
+      </div>
+
+      <div className="grid flex-1 auto-rows-min grid-cols-2 gap-1.5 overflow-hidden px-[1.125rem]">
+        {Array.from({ length: 6 }, (_, i) => (
+          <span key={i} className="relative aspect-square overflow-hidden rounded-token">
+            <Moldura atmosfera variante={i * 3} />
+          </span>
+        ))}
+      </div>
+
+      <BarraDeAbas ativa="feed" />
+    </Chao>
+  );
+}
+
+/** O álbum do evento, em grade filtrada pelos capítulos do pack. */
+export function TelaAlbum({ pack, momentos }: { pack: Pack; momentos: string[] }) {
+  return (
+    <Chao fundo="escuro" pack={pack}>
+      <BarraDeStatus />
+
+      <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3.5">
+        <span className="font-titulo text-[1.125rem] tracking-titulo">O álbum</span>
+        <Etiqueta>847</Etiqueta>
+      </div>
+
+      <div className="flex gap-1.5 overflow-hidden px-[1.125rem] pb-3.5">
+        <Etiqueta tom="acento">Tudo</Etiqueta>
+        {momentos.slice(0, 3).map((m) => (
+          <Etiqueta key={m}>{m}</Etiqueta>
+        ))}
+      </div>
+
+      <div className="grid flex-1 auto-rows-min grid-cols-3 gap-0.5 overflow-hidden">
+        {Array.from({ length: 18 }, (_, i) => (
+          <span key={i} className="relative aspect-square overflow-hidden">
+            <Moldura atmosfera variante={i} />
+          </span>
+        ))}
+      </div>
+
+      <BarraDeAbas ativa="album" />
     </Chao>
   );
 }

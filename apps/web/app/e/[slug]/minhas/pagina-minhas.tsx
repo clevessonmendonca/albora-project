@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "r
 import { filaWeb } from "@/lib/fila";
 import { usarCompartilhar } from "@/lib/usar-compartilhar";
 import { usarGaleria } from "@/lib/usar-galeria";
-import { Reprodutor } from "../feed/reprodutor";
+import { Viewer } from "@/features/feed/components/client/viewer";
 import { BarraDeAbas } from "../barra-de-abas";
 import {
   BotaoPrimario,
@@ -103,12 +103,12 @@ export function PaginaMinhas({
   slug,
   eventoId,
   sessaoId,
-  caminhoDaCamera,
+  cameraPath,
 }: {
   slug: string;
   eventoId: string;
   sessaoId: string;
-  caminhoDaCamera: string;
+  cameraPath: string;
 }) {
   const galeria = usarGaleria(eventoId);
   const compartilhar = usarCompartilhar(eventoId, sessaoId);
@@ -166,7 +166,7 @@ export function PaginaMinhas({
     [galeria.itensVisiveis],
   );
 
-  const sairReprodutor = useCallback(() => setIndiceAberto(null), []);
+  const sairViewer = useCallback(() => setIndiceAberto(null), []);
 
   const irPara = useCallback(
     (i: number) => {
@@ -239,7 +239,7 @@ export function PaginaMinhas({
             <EstadoVazio
               titulo="Suas fotos aparecem aqui"
               lede="Assim que a primeira subir, ela fica nesta grade."
-              caminhoDaCamera={caminhoDaCamera}
+              caminhoDaCamera={cameraPath}
             />
           )}
 
@@ -391,16 +391,16 @@ export function PaginaMinhas({
       </ChaoConvidado>
 
       {indiceAberto !== null && galeria.itensVisiveis[indiceAberto] && (
-        <Reprodutor
+        <Viewer
           itens={galeria.itensVisiveis}
           indice={indiceAberto}
           hora={horaAberta}
           urls={galeria.urls}
           interacao={galeria.interacao}
-          caminhoDaCamera={caminhoDaCamera}
+          cameraPath={cameraPath}
           movimentoReduzido={movimentoReduzido}
           onIr={irPara}
-          onSair={sairReprodutor}
+          onSair={sairViewer}
           onReacoes={galeria.atualizarReacoes}
           onRemover={() => void removerAberta()}
           removendo={galeria.removendoId === uploadAberto}

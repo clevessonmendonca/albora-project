@@ -16,6 +16,7 @@ import {
   IconeMais,
   IconePessoa,
   IconePilha,
+  IconeVoltar,
   Interruptor,
   Moldura,
 } from "@albora/ui-web";
@@ -700,6 +701,77 @@ export function TelaAdminLogin({ pack }: { pack: Pack }) {
         <p className="text-center text-[0.75rem] text-ink-3">
           Chega em segundos. Se cair no spam, o link é o mesmo.
         </p>
+      </div>
+    </ChaoAdmin>
+  );
+}
+
+function Campo({ rotulo, valor, nota }: { rotulo: string; valor: string; nota?: string }) {
+  return (
+    <label className="block">
+      <span className="text-[0.6875rem] uppercase tracking-rotulo text-ink-3">{rotulo}</span>
+      <div className="mt-1.5 rounded-token border-b-2 border-acento bg-superficie px-4 py-3 font-titulo text-[1.125rem]">
+        {valor}
+      </div>
+      {nota && <span className="mt-1 block text-[0.6875rem] text-ink-3">{nota}</span>}
+    </label>
+  );
+}
+
+/**
+ * Criar evento — o wizard, no app.
+ *
+ * Uma coisa por passo, como a entrada do convidado: nome/data → identidade →
+ * missões → parede → a peça com o QR. O trilho de cima mostra onde se está sem
+ * prometer atalho. Nenhuma pergunta de idade em passo nenhum — os menores são
+ * um interruptor depois, não um cadastro.
+ */
+export function TelaAdminCriarEvento({ pack }: { pack: Pack }) {
+  const passos = ["Básico", "Identidade", "Missões", "Parede", "Peça"];
+  const atual = 0;
+
+  return (
+    <ChaoAdmin pack={pack}>
+      <BarraDeStatus />
+
+      <div className="flex items-center gap-3 px-[1.125rem] pt-1.5 pb-3">
+        <span className="text-ink-2">
+          <IconeVoltar />
+        </span>
+        <p className="flex-1 font-titulo text-[1.125rem] tracking-titulo">Novo evento</p>
+        <Etiqueta>
+          {atual + 1} de {passos.length}
+        </Etiqueta>
+      </div>
+
+      <div className="flex gap-1.5 px-[1.125rem] pb-5">
+        {passos.map((p, i) => (
+          <span
+            key={p}
+            className={cn("h-1 flex-1 rounded-pilula", i <= atual ? "bg-acento" : "bg-linha")}
+          />
+        ))}
+      </div>
+
+      <div className="flex-1 overflow-hidden px-[1.125rem]">
+        <p className="font-titulo text-[1.5rem] font-light leading-tight tracking-titulo">O básico</p>
+        <p className="mt-1 mb-5 text-[0.8125rem] text-ink-2">
+          Uma coisa por vez. Isto é tudo que a Albora precisa pra existir.
+        </p>
+
+        <div className="flex flex-col gap-4">
+          <Campo rotulo="O nome do casal" valor="Ana & João" />
+          <Campo rotulo="A data" valor="8 de novembro de 2026" />
+          <Campo
+            rotulo="Convidados esperados"
+            valor="150"
+            nota="Só pra medir participação — ninguém é cadastrado, e ninguém recebe convite por aqui."
+          />
+        </div>
+      </div>
+
+      <div className="px-[1.125rem] pt-3 pb-8">
+        <Botao largura="cheia">Continuar</Botao>
       </div>
     </ChaoAdmin>
   );

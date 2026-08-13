@@ -2,19 +2,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { raio } from "../../../landing/pecas";
+import { raio } from "@/app/landing/pecas";
 
-const SECOES = [
-  { rotulo: "Ao vivo", sufixo: "" },
-  { rotulo: "O álbum", sufixo: "/album" },
-  { rotulo: "Identidade", sufixo: "/identidade" },
+const SECTIONS = [
+  { label: "Ao vivo", suffix: "" },
+  { label: "Convidados", suffix: "/convidados" },
+  { label: "Moderação", suffix: "/moderacao" },
+  { label: "O álbum", suffix: "/album" },
+  { label: "Identidade", suffix: "/identidade" },
 ] as const;
 
-type Props = {
-  eventoId: string;
-};
-
-export function NavEvento({ eventoId }: Props) {
+export function EventNav({ eventoId }: { eventoId: string }) {
   const pathname = usePathname();
   const base = `/admin/e/${eventoId}`;
 
@@ -28,10 +26,10 @@ export function NavEvento({ eventoId }: Props) {
       }}
       aria-label="Seções do evento"
     >
-      {SECOES.map(({ rotulo, sufixo }) => {
-        const href = `${base}${sufixo}`;
-        const ativa =
-          sufixo === ""
+      {SECTIONS.map(({ label, suffix }) => {
+        const href = `${base}${suffix}`;
+        const active =
+          suffix === ""
             ? pathname === base || pathname === `${base}/`
             : pathname.startsWith(href);
 
@@ -44,13 +42,13 @@ export function NavEvento({ eventoId }: Props) {
               fontFamily: "var(--fonte-titulo)",
               fontSize: "0.875rem",
               textDecoration: "none",
-              color: ativa ? "var(--sobre-acento)" : "var(--ink)",
-              backgroundColor: ativa ? "var(--acento)" : "var(--superficie)",
-              border: ativa ? "none" : "1px solid var(--linha)",
+              color: active ? "var(--sobre-acento)" : "var(--ink)",
+              backgroundColor: active ? "var(--acento)" : "var(--superficie)",
+              border: active ? "none" : "1px solid var(--linha)",
               ...raio("var(--raio-pilula)"),
             }}
           >
-            {rotulo}
+            {label}
           </Link>
         );
       })}

@@ -7,32 +7,32 @@ import {
   ChaoConvidado,
   EstadoVazio,
   MioloConvidado,
-} from "../../../telas/shell-convidado";
-import { Pilula } from "../../../telas/pecas-de-tela";
-import { chavesDoReprodutor, Reprodutor } from "../feed/reprodutor";
-import { GradeAlbum, GradeAlbumCarregando } from "./grade-album";
+} from "@/app/telas/shell-convidado";
+import { Pilula } from "@/app/telas/pecas-de-tela";
+import { viewerKeys, Viewer } from "@/features/feed/components/client/viewer";
+import { AlbumGrid, AlbumGridLoading } from "./album-grid";
 
-export type MissaoDoAlbum = { id: string; titulo: string };
+export type AlbumMission = { id: string; title: string };
 
 const TOQUE_MINIMO = "48px";
 const SEM_CHAVES: string[] = [];
 
-export function PaginaAlbum({
+export function AlbumPage({
   slug,
-  missoes,
-  missaoInicial = null,
-  caminhoDaCamera,
+  missions,
+  initialMission = null,
+  cameraPath,
 }: {
   slug: string;
-  missoes: MissaoDoAlbum[];
-  missaoInicial?: string | null;
-  caminhoDaCamera: string;
+  missions: AlbumMission[];
+  initialMission?: string | null;
+  cameraPath: string;
 }) {
-  const [missaoId, setMissaoId] = useState<string | null>(() => {
-    if (missaoInicial && missoes.some((m) => m.id === missaoInicial)) return missaoInicial;
+  const [missionId, setMissionId] = useState<string | null>(() => {
+    if (initialMission && missions.some((m) => m.id === initialMission)) return initialMission;
     return null;
   });
-  const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = usarFeed(missaoId);
+  const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = usarFeed(missionId);
 
   const [indiceAberto, setIndiceAberto] = useState<number | null>(null);
   const movimentoReduzido = usarMovimentoReduzido();
@@ -42,7 +42,7 @@ export function PaginaAlbum({
   const contagem = estado.itens.length > 0 ? String(estado.itens.length) : undefined;
 
   const janela = useMemo(
-    () => (indiceAberto === null ? SEM_CHAVES : chavesDoReprodutor(estado.itens, indiceAberto)),
+    () => (indiceAberto === null ? SEM_CHAVES : viewerKeys(estado.itens, indiceAberto)),
     [indiceAberto, estado.itens],
   );
 
@@ -102,8 +102,8 @@ export function PaginaAlbum({
             acao={contagem ? <Pilula>{contagem}</Pilula> : undefined}
           />
 
-          {missoes.length > 0 && (
-            <Filtros missoes={missoes} escolhida={missaoId} onEscolher={setMissaoId} />
+          {missions.length > 0 && (
+            <Filters missions={missions} selected={missionId} onSelect={setMissionId} />
           )}
 
           {estado.midiaIndisponivel && (
@@ -112,18 +112,18 @@ export function PaginaAlbum({
             </p>
           )}
 
-          {primeiraCarga && <GradeAlbumCarregando />}
+          {primeiraCarga && <AlbumGridLoading />}
 
           {vazio && (
             <EstadoVazio
-              titulo={missaoId ? "Ninguém mandou essa ainda." : "Ainda não há fotos no álbum."}
-              lede={missaoId ? "A sua pode ser a primeira." : "Seja o primeiro a fotografar."}
-              caminhoDaCamera={caminhoDaCamera}
+              titulo={missionId ? "Ninguém mandou essa ainda." : "Ainda não há fotos no álbum."}
+              lede={missionId ? "A sua pode ser a primeira." : "Seja o primeiro a fotografar."}
+              caminhoDaCamera={cameraPath}
             />
           )}
 
           {estado.itens.length > 0 && (
-            <GradeAlbum
+            <AlbumGrid
               itens={estado.itens}
               urls={estado.urls}
               onAbrir={setIndiceAberto}
@@ -135,13 +135,13 @@ export function PaginaAlbum({
       </ChaoConvidado>
 
       {indiceAberto !== null && estado.itens[indiceAberto] && (
-        <Reprodutor
+        <Viewer
           itens={estado.itens}
           indice={indiceAberto}
           hora={horaAberta}
           urls={estado.urls}
           interacao={estado.interacao}
-          caminhoDaCamera={caminhoDaCamera}
+          cameraPath={cameraPath}
           movimentoReduzido={movimentoReduzido}
           onIr={irPara}
           onSair={sair}
@@ -153,14 +153,14 @@ export function PaginaAlbum({
   );
 }
 
-function Filtros({
-  missoes,
-  escolhida,
-  onEscolher,
+function Filters({
+  missions,
+  selected,
+  onSelect,
 }: {
-  missoes: MissaoDoAlbum[];
-  escolhida: string | null;
-  onEscolher: (id: string | null) => void;
+  missions: AlbumMission[];
+  selected: string | null;
+  onSelect: (id: string | null) => void;
 }) {
   return (
     <div
@@ -175,16 +175,16 @@ function Filtros({
         padding: "0 calc(var(--espaco) * 5)",
       }}
     >
-      <BotaoPilula ativa={escolhida === null} onClick={() => onEscolher(null)}>
+      <BotaoPilula ativa={selected === null} onClick={() => onSelect(null)}>
         Tudo
       </BotaoPilula>
-      {missoes.map((m) => (
+      {missions.map((m) => (
         <BotaoPilula
           key={m.id}
-          ativa={escolhida === m.id}
-          onClick={() => onEscolher(escolhida === m.id ? null : m.id)}
+          ativa={selected === m.id}
+          onClick={() => onSelect(selected === m.id ? null : m.id)}
         >
-          {m.titulo}
+          {m.title}
         </BotaoPilula>
       ))}
     </div>

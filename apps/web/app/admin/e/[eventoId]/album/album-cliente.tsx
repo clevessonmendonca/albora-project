@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { raio } from "../../../../landing/pecas";
-import { SecaoAdmin } from "../../../casca";
+import { AdminSection } from "../../../casca";
 
 type Item = {
   id: string;
@@ -62,25 +62,25 @@ export function AlbumDoAnfitriao({ eventoId }: Props) {
 
   if (carregando) {
     return (
-      <SecaoAdmin>
+      <AdminSection>
         <p style={{ margin: 0, color: "var(--ink-2)" }}>Carregando álbum…</p>
-      </SecaoAdmin>
+      </AdminSection>
     );
   }
 
   if (erro && itens.length === 0) {
     return (
-      <SecaoAdmin>
+      <AdminSection>
         <p style={{ margin: 0, color: "var(--critico)" }}>
           Não foi possível carregar o álbum. Tente de novo.
         </p>
-      </SecaoAdmin>
+      </AdminSection>
     );
   }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-      <SecaoAdmin>
+      <AdminSection>
         <div
           style={{
             display: "flex",
@@ -163,10 +163,10 @@ export function AlbumDoAnfitriao({ eventoId }: Props) {
             })}
           </div>
         )}
-      </SecaoAdmin>
+      </AdminSection>
 
       {selecionado && (
-        <SecaoAdmin>
+        <AdminSection>
           <p style={{ margin: "0 0 1rem", color: "var(--ink-2)", fontSize: "0.9375rem" }}>
             Ocultar esta foto? Ela some do evento para todos os convidados.
           </p>
@@ -187,7 +187,7 @@ export function AlbumDoAnfitriao({ eventoId }: Props) {
           >
             {ocultando ? "Ocultando…" : "Ocultar foto"}
           </button>
-        </SecaoAdmin>
+        </AdminSection>
       )}
     </div>
   );

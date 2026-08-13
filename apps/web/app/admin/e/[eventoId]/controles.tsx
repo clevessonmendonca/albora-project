@@ -1,9 +1,10 @@
 "use client";
 
 import { interacaoAberta, padroesDoEvento } from "@albora/core";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { raio } from "../../../landing/pecas";
-import { SecaoAdmin, estilosAdmin } from "../../casca";
+import { AdminSection, adminStyles } from "../../casca";
 
 type Moderacao = {
   panico: boolean;
@@ -81,7 +82,7 @@ export function ControlesDoEvento({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-      <SecaoAdmin>
+      <AdminSection>
         <p style={{ margin: "0 0 1rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
           Controles durante a festa. O pânico pausa o telão em segundos; o interruptor
           de menores sobe o limiar de denúncia sem marcar ninguém.
@@ -92,7 +93,7 @@ export function ControlesDoEvento({
           disabled={salvando === "panico"}
           onClick={() => void patch({ panico: !moderacao.panico }, "panico")}
           style={{
-            ...estilosAdmin.botaoPerigo,
+            ...adminStyles.dangerButton,
             opacity: salvando === "panico" ? 0.6 : 1,
             backgroundColor: moderacao.panico ? "var(--ink-2)" : "var(--critico)",
           }}
@@ -109,9 +110,9 @@ export function ControlesDoEvento({
             O telão está pausado. Nenhuma foto nova aparece na parede.
           </p>
         )}
-      </SecaoAdmin>
+      </AdminSection>
 
-      <SecaoAdmin>
+      <AdminSection>
         <div
           style={{
             display: "flex",
@@ -160,9 +161,9 @@ export function ControlesDoEvento({
             valor={gateAberto ? "aberto" : padroes.gateComecaFechado ? "fechado" : "aberto"}
           />
         </div>
-      </SecaoAdmin>
+      </AdminSection>
 
-      <SecaoAdmin>
+      <AdminSection>
         <div
           style={{
             display: "flex",
@@ -192,9 +193,9 @@ export function ControlesDoEvento({
             onChange={(v) => void patch({ modoEndurecido: v }, "modoEndurecido")}
           />
         </div>
-      </SecaoAdmin>
+      </AdminSection>
 
-      <SecaoAdmin>
+      <AdminSection>
         <h2 style={{ margin: "0 0 0.75rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.125rem" }}>
           Interação social
         </h2>
@@ -219,315 +220,62 @@ export function ControlesDoEvento({
             disabled={salvando === "interacao"}
             onClick={() => void patch({ abrirInteracao: true }, "interacao")}
             style={{
-              ...estilosAdmin.botaoPrimario,
+              ...adminStyles.primaryButton,
               opacity: salvando === "interacao" ? 0.6 : 1,
             }}
           >
             {salvando === "interacao" ? "Abrindo…" : "Abrir interação agora"}
           </button>
         )}
-      </SecaoAdmin>
+      </AdminSection>
 
-      <SecaoAdmin>
-        <h2 style={{ margin: "0 0 1rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.125rem" }}>
-          Fila de revisão
+      <AdminSection>
+        <h2 style={{ margin: "0 0 0.75rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.125rem" }}>
+          Moderação e convidados
         </h2>
-        <FilaRevisao eventoId={eventoId} />
-      </SecaoAdmin>
+        <p style={{ margin: "0 0 1rem", color: "var(--ink-2)", lineHeight: 1.6, fontSize: "0.9375rem" }}>
+          A fila de revisão e o funil de participação têm páginas próprias — números agregados,
+          sem lista nominal.
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
+          <Link href={`/admin/e/${eventoId}/moderacao`} style={adminStyles.primaryButton}>
+            Abrir moderação
+          </Link>
+          <Link
+            href={`/admin/e/${eventoId}/convidados`}
+            style={{ ...adminStyles.primaryButton, backgroundColor: "var(--superficie-alta)", color: "var(--ink)", border: "1px solid var(--linha)" }}
+          >
+            Ver convidados
+          </Link>
+        </div>
+      </AdminSection>
 
-      <SecaoAdmin>
-        <h2 style={{ margin: "0 0 1rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.125rem" }}>
-          Comentários recentes
-        </h2>
-        <ModeracaoComentarios eventoId={eventoId} />
-      </SecaoAdmin>
-
-      <SecaoAdmin>
+      <AdminSection>
         <h2 style={{ margin: "0 0 1rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.125rem" }}>
           Música do casal
         </h2>
         <MusicaDoEvento eventoId={eventoId} />
-      </SecaoAdmin>
+      </AdminSection>
 
-      <SecaoAdmin>
+      <AdminSection>
         <h2 style={{ margin: "0 0 1rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.125rem" }}>
           Peças para imprimir
         </h2>
         <PecasDoEvento eventoId={eventoId} slug={slug} />
-      </SecaoAdmin>
+      </AdminSection>
 
-      <SecaoAdmin>
+      <AdminSection>
         <h2 style={{ margin: "0 0 1rem", fontFamily: "var(--fonte-titulo)", fontSize: "1.125rem" }}>
           Links do evento
         </h2>
-        <LinkEvento titulo="Convidado (QR)" url={`${origem}/e/${slug}`} />
-        <LinkEvento titulo="Telão" url={`${origem}/telao`} />
-      </SecaoAdmin>
+        <LinkEvento title="Convidado (QR)" url={`${origem}/e/${slug}`} />
+        <LinkEvento title="Telão" url={`${origem}/telao`} />
+      </AdminSection>
 
       {erro && (
         <p style={{ margin: 0, color: "var(--critico)", fontSize: "0.9rem" }}>
           Não salvou agora. Tente de novo.
         </p>
-      )}
-    </div>
-  );
-}
-
-function FilaRevisao({ eventoId }: { eventoId: string }) {
-  const [midias, setMidias] = useState<
-    { id: string; autor: string; denuncias: number; motivo: string; criadaEm: string }[]
-  >([]);
-  const [comentarios, setComentarios] = useState<
-    { id: string; autor: string; texto: string; denuncias: number }[]
-  >([]);
-  const [carregando, setCarregando] = useState(true);
-  const [acao, setAcao] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-
-  const carregar = async () => {
-    setErro(null);
-    try {
-      const r = await fetch(`/api/admin/eventos/${eventoId}/revisao`);
-      if (!r.ok) throw new Error("falhou");
-      const corpo = (await r.json()) as {
-        midias: { id: string; autor: string; denuncias: number; motivo: string; criadaEm: string }[];
-        comentarios: { id: string; autor: string; texto: string; denuncias: number }[];
-      };
-      setMidias(corpo.midias);
-      setComentarios(corpo.comentarios);
-    } catch {
-      setErro("Não carregou a fila.");
-    } finally {
-      setCarregando(false);
-    }
-  };
-
-  useEffect(() => {
-    void carregar();
-  }, [eventoId]);
-
-  const liberar = async (tipo: "midia" | "comentario", id: string) => {
-    setAcao(`${tipo}:${id}`);
-    setErro(null);
-    try {
-      const r = await fetch(`/api/admin/eventos/${eventoId}/revisao`, {
-        method: "PATCH",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ tipo, id, acao: "liberar" }),
-      });
-      if (!r.ok) throw new Error("falhou");
-      await carregar();
-    } catch {
-      setErro("Não liberou agora. Tente de novo.");
-    } finally {
-      setAcao(null);
-    }
-  };
-
-  if (carregando) {
-    return <p style={{ margin: 0, color: "var(--ink-3)", fontSize: "0.9rem" }}>Carregando…</p>;
-  }
-
-  if (midias.length === 0 && comentarios.length === 0) {
-    return (
-      <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.6, fontSize: "0.9375rem" }}>
-        Nada retido agora. Denúncias e classificador aparecem aqui.
-      </p>
-    );
-  }
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-      {midias.map((m) => (
-        <div
-          key={m.id}
-          style={{
-            padding: "0.75rem",
-            backgroundColor: "var(--bg)",
-            ...raio("var(--raio)"),
-            display: "grid",
-            gap: "0.35rem",
-          }}
-        >
-          <span style={{ fontSize: "0.85rem", color: "var(--ink)" }}>
-            Foto · {m.autor} · {m.denuncias} denúncia(s) · {m.motivo}
-          </span>
-          <button
-            type="button"
-            disabled={acao === `midia:${m.id}`}
-            onClick={() => void liberar("midia", m.id)}
-            style={{
-              ...estilosAdmin.botaoPrimario,
-              justifySelf: "start",
-              fontSize: "0.8125rem",
-              padding: "0.45rem 0.75rem",
-              opacity: acao === `midia:${m.id}` ? 0.6 : 1,
-            }}
-          >
-            {acao === `midia:${m.id}` ? "Liberando…" : "Liberar foto"}
-          </button>
-        </div>
-      ))}
-
-      {comentarios.map((c) => (
-        <div
-          key={c.id}
-          style={{
-            padding: "0.75rem",
-            backgroundColor: "var(--bg)",
-            ...raio("var(--raio)"),
-            display: "grid",
-            gap: "0.35rem",
-          }}
-        >
-          <span style={{ fontSize: "0.85rem", color: "var(--ink)" }}>
-            {c.autor} · {c.denuncias} denúncia(s)
-          </span>
-          <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.5, color: "var(--ink-2)" }}>
-            {c.texto}
-          </p>
-          <button
-            type="button"
-            disabled={acao === `comentario:${c.id}`}
-            onClick={() => void liberar("comentario", c.id)}
-            style={{
-              ...estilosAdmin.botaoPrimario,
-              justifySelf: "start",
-              fontSize: "0.8125rem",
-              padding: "0.45rem 0.75rem",
-              opacity: acao === `comentario:${c.id}` ? 0.6 : 1,
-            }}
-          >
-            {acao === `comentario:${c.id}` ? "Liberando…" : "Liberar comentário"}
-          </button>
-        </div>
-      ))}
-
-      {erro && (
-        <p style={{ margin: 0, color: "var(--critico)", fontSize: "0.875rem" }}>{erro}</p>
-      )}
-    </div>
-  );
-}
-
-function ModeracaoComentarios({ eventoId }: { eventoId: string }) {
-  const [lista, setLista] = useState<
-    {
-      id: string;
-      autor: string;
-      texto: string;
-      denuncias: number;
-      criadaEm: string;
-      classificador: string | null;
-    }[]
-  >([]);
-  const [carregando, setCarregando] = useState(true);
-  const [removendo, setRemovendo] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
-
-  const carregar = async () => {
-    setErro(null);
-    try {
-      const r = await fetch(`/api/admin/eventos/${eventoId}/comentarios`);
-      if (!r.ok) throw new Error("falhou");
-      const corpo = (await r.json()) as {
-        comentarios: {
-          id: string;
-          autor: string;
-          texto: string;
-          denuncias: number;
-          criadaEm: string;
-          classificador: string | null;
-        }[];
-      };
-      setLista(corpo.comentarios);
-    } catch {
-      setErro("Não carregou os comentários.");
-    } finally {
-      setCarregando(false);
-    }
-  };
-
-  useEffect(() => {
-    void carregar();
-  }, [eventoId]);
-
-  const remover = async (comentarioId: string) => {
-    setRemovendo(comentarioId);
-    setErro(null);
-    try {
-      const r = await fetch(`/api/admin/eventos/${eventoId}/comentarios`, {
-        method: "DELETE",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ comentarioId }),
-      });
-      if (!r.ok) throw new Error("falhou");
-      setLista((antes) => antes.filter((c) => c.id !== comentarioId));
-    } catch {
-      setErro("Não removeu agora. Tente de novo.");
-    } finally {
-      setRemovendo(null);
-    }
-  };
-
-  if (carregando) {
-    return <p style={{ margin: 0, color: "var(--ink-3)", fontSize: "0.9rem" }}>Carregando…</p>;
-  }
-
-  if (lista.length === 0) {
-    return (
-      <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.6, fontSize: "0.9375rem" }}>
-        Nenhum comentário publicado ainda.
-      </p>
-    );
-  }
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-      <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.6, fontSize: "0.9375rem" }}>
-        Comentários recentes, com denúncias primeiro. Remover tira da festa na hora.
-      </p>
-
-      {lista.map((c) => (
-        <div
-          key={c.id}
-          style={{
-            padding: "0.75rem",
-            backgroundColor: "var(--bg)",
-            ...raio("var(--raio)"),
-            display: "grid",
-            gap: "0.35rem",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem" }}>
-            <span style={{ fontSize: "0.85rem", color: "var(--ink)" }}>{c.autor}</span>
-            <span style={{ fontSize: "0.75rem", color: "var(--ink-3)" }}>
-              {c.denuncias > 0 ? `${c.denuncias} denúncia(s)` : "sem denúncias"}
-              {c.classificador === "suspeito" ? " · classificador" : ""}
-            </span>
-          </div>
-          <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.5, color: "var(--ink-2)" }}>
-            {c.texto}
-          </p>
-          <button
-            type="button"
-            disabled={removendo === c.id}
-            onClick={() => void remover(c.id)}
-            style={{
-              ...estilosAdmin.botaoPerigo,
-              justifySelf: "start",
-              opacity: removendo === c.id ? 0.6 : 1,
-              fontSize: "0.8125rem",
-              padding: "0.45rem 0.75rem",
-            }}
-          >
-            {removendo === c.id ? "Removendo…" : "Remover"}
-          </button>
-        </div>
-      ))}
-
-      {erro && (
-        <p style={{ margin: 0, color: "var(--critico)", fontSize: "0.875rem" }}>{erro}</p>
       )}
     </div>
   );
@@ -639,7 +387,7 @@ function MusicaDoEvento({ eventoId }: { eventoId: string }) {
         disabled={salvando || !url.trim()}
         onClick={() => void salvar()}
         style={{
-          ...estilosAdmin.botaoPrimario,
+          ...adminStyles.primaryButton,
           opacity: salvando || !url.trim() ? 0.6 : 1,
         }}
       >
@@ -740,7 +488,7 @@ function PecasDoEvento({ eventoId, slug }: { eventoId: string; slug: string }) {
   );
 }
 
-function LinkEvento({ titulo, url }: { titulo: string; url: string }) {
+function LinkEvento({ title, url }: { title: string; url: string }) {
   return (
     <div style={{ marginBottom: "0.875rem" }}>
       <span
@@ -752,7 +500,7 @@ function LinkEvento({ titulo, url }: { titulo: string; url: string }) {
           textTransform: "uppercase",
         }}
       >
-        {titulo}
+        {title}
       </span>
       <a href={url} style={{ color: "var(--acento)", wordBreak: "break-all", fontSize: "0.95rem" }}>
         {url}

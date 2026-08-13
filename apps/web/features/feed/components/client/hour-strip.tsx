@@ -19,7 +19,7 @@ import type { ItemVisivel } from "@/lib/usar-feed";
 const DIAMETRO = "3.5rem";
 const LARGURA = "3.75rem";
 
-export function Tira({
+export function HourStrip({
   grupos,
   urls,
   vistos,
@@ -180,7 +180,7 @@ function Circulo({
 }
 
 /** Enquanto a primeira página não chega, a tira é o próprio contorno dos anéis. */
-export function TiraCarregando() {
+export function HourStripLoading() {
   return (
     <div
       aria-hidden

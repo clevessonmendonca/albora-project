@@ -10,7 +10,7 @@ import type { ItemVisivel } from "@/lib/usar-feed";
  * abriu, e desenhar botões trancados mentiria (ADR 0009).
  */
 
-export function GradeEspelho({
+export function MirrorGrid({
   itens,
   urls,
 }: {
@@ -114,7 +114,7 @@ export function GradeEspelho({
   );
 }
 
-export function GradeEspelhoCarregando() {
+export function MirrorGridLoading() {
   return (
     <div
       aria-hidden

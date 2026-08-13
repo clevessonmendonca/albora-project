@@ -17,7 +17,7 @@ import { useEffect, useRef, useState } from "react";
  * Vídeo usa o mesmo enquadramento: `contain`, fundo desfocado da miniatura
  * quando existe, e o arquivo cheio toca mudo — o reprodutor avança no `ended`.
  */
-export function Quadro({
+export function Frame({
   urlThumb,
   urlCheia,
   alt,

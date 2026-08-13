@@ -1,11 +1,8 @@
-import { resolverSlug } from "@albora/db";
-import { PACKS } from "@albora/packs";
-import { MARCA_ALBORA, paraVariaveis, resolverTokens, type CamadaTokens } from "@albora/tokens";
-import type { CSSProperties, ReactNode } from "react";
-import { cookies } from "next/headers";
-import { banco } from "@/lib/banco";
-import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
+import type { ReactNode } from "react";
+import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
+import { eventVars } from "@/features/guest/lib/event-vars";
 import { FilaGlobal } from "./fila-global";
+import { guestSession, isSameEventSession } from "@/features/guest/data/guest-session";
 
 export default async function Layout({
   children,
@@ -15,26 +12,17 @@ export default async function Layout({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const r = await resolverSlug(banco(), slug, new Date());
+  const r = await resolveOpenEvent(slug);
 
   if (r.estado !== "aberto") return children;
 
-  const pack = PACKS[r.evento.packId];
-  const camadaEvento = r.evento.identityTokens as CamadaTokens;
-  const vars = paraVariaveis(
-    resolverTokens({
-      marca: MARCA_ALBORA,
-      ...(pack ? { pack: pack.tokens } : {}),
-      ...(Object.keys(r.evento.identityTokens).length > 0 ? { evento: camadaEvento } : {}),
-    }),
-  ) as CSSProperties;
-
-  const sessao = await sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
-  const comSessao = sessao?.eventoId === r.evento.eventoId;
+  const vars = eventVars(r.evento);
+  const session = await guestSession();
+  const withSession = isSameEventSession(session, r.evento.eventoId);
 
   return (
     <div style={vars}>
-      {comSessao && <FilaGlobal eventoId={sessao.eventoId} />}
+      {withSession && <FilaGlobal eventoId={session.eventoId} />}
       {children}
     </div>
   );

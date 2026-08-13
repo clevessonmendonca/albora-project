@@ -1,11 +1,7 @@
-import { resolverSlug } from "@albora/db";
-import { PACKS } from "@albora/packs";
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
-import type { CSSProperties } from "react";
-import { banco } from "@/lib/banco";
-import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
+import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
+import { guestSession } from "@/features/guest/data/guest-session";
+import { eventVars } from "@/features/guest/lib/event-vars";
 import { Aviso } from "../aviso";
 import { SemEntrada } from "../sem-entrada";
 import { PaginaMinhas } from "./pagina-minhas";
@@ -19,7 +15,7 @@ export const metadata: Metadata = {
 
 export default async function Pagina({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const r = await resolverSlug(banco(), slug, new Date());
+  const r = await resolveOpenEvent(slug);
 
   if (r.estado !== "aberto") {
     return (
@@ -27,21 +23,16 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
     );
   }
 
-  const sessao = await sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
+  const sessao = await guestSession();
   if (!sessao) return <SemEntrada slug={slug} />;
 
-  const pack = PACKS[r.evento.packId];
-  const vars = paraVariaveis(
-    resolverTokens({ marca: MARCA_ALBORA, ...(pack ? { pack: pack.tokens } : {}) }),
-  ) as CSSProperties;
-
   return (
-    <div style={vars}>
+    <div style={eventVars(r.evento)}>
       <PaginaMinhas
         slug={slug}
         eventoId={sessao.eventoId}
         sessaoId={sessao.sessaoId}
-        caminhoDaCamera={`/e/${encodeURIComponent(slug)}/foto`}
+        cameraPath={`/e/${encodeURIComponent(slug)}/foto`}
       />
     </div>
   );
