@@ -4,6 +4,8 @@ import { verificar as tokens } from "./tokens.mjs";
 import { verificar as dominio } from "./dominio.mjs";
 import { verificar as packs } from "./packs.mjs";
 import { verificar as sessao } from "./sessao.mjs";
+import { verificar as features } from "./features.mjs";
+import { verificar as apiRoutes } from "./api-routes.mjs";
 
 export const GUARDS = {
   isolamento,
@@ -11,6 +13,8 @@ export const GUARDS = {
   dominio,
   packs,
   sessao,
+  features,
+  "api-routes": apiRoutes,
 };
 
 const raiz = process.argv[2] ?? process.cwd();

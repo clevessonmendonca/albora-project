@@ -6,6 +6,8 @@ import { verificar as tokens } from "./tokens.mjs";
 import { verificar as dominio } from "./dominio.mjs";
 import { verificar as packs } from "./packs.mjs";
 import { verificar as sessao } from "./sessao.mjs";
+import { verificar as features } from "./features.mjs";
+import { verificar as apiRoutes } from "./api-routes.mjs";
 
 /**
  * O auto-teste de cada guard.
@@ -26,6 +28,8 @@ const GUARDS = [
   ["dominio", dominio],
   ["packs", packs],
   ["sessao", sessao],
+  ["features", features],
+  ["api-routes", apiRoutes],
 ];
 
 describe.each(GUARDS)("guard %s", (nome, verificar) => {
@@ -55,6 +59,13 @@ describe("cobertura das fixtures", () => {
     expect(motivos.some((m) => m.includes("Tailwind"))).toBe(true);
     expect(motivos.some((m) => m.includes("raio literal"))).toBe(true);
     expect(motivos.some((m) => m.includes("curva literal"))).toBe(true);
+  });
+
+  it("o guard de tokens varre apps/web/lib e apps/web/features", () => {
+    const violacoes = tokens(fixture("tokens")).filter((v) =>
+      v.arquivo.startsWith("apps/web/lib/") || v.arquivo.startsWith("apps/web/features/"),
+    );
+    expect(violacoes.length).toBeGreaterThan(0);
   });
 
   it("o guard de tokens NÃO reprova círculo, zero, gradiente nem token", () => {
@@ -116,5 +127,21 @@ describe("cobertura das fixtures", () => {
     expect(naRota.map((v) => v.trecho.trim())).toEqual([
       "return <h1>O álbum do seu casamento</h1>;",
     ]);
+  });
+
+  it("a fixture de api-routes reprova rota sem sessão", () => {
+    const motivos = apiRoutes(fixture("api-routes")).map((v) => v.motivo);
+    expect(motivos.some((m) => m.includes("resolução de sessão"))).toBe(true);
+  });
+
+  it("rotas EN alias (reexport) passam no guard de api-routes", () => {
+    expect(
+      apiRoutes(raizReal).filter((v) => v.arquivo === "apps/web/app/api/comments/route.ts"),
+    ).toEqual([]);
+    expect(
+      apiRoutes(raizReal).filter(
+        (v) => v.arquivo === "apps/web/app/api/admin/events/[eventId]/guests/route.ts",
+      ),
+    ).toEqual([]);
   });
 });

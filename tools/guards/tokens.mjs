@@ -12,7 +12,14 @@ import { arquivos, cli, linhasDeCodigo, violacao } from "./util.mjs";
  * de tema com um nome só é exatamente o que o ADR 0003 proíbe.
  */
 
-const ALVOS = ["packages/ui-web", "packages/ui-native", "apps/web/app", "apps/mobile/app"];
+const ALVOS = [
+  "packages/ui-web",
+  "packages/ui-native",
+  "apps/web/app",
+  "apps/web/features",
+  "apps/web/lib",
+  "apps/mobile/app",
+];
 
 /** Hex de 3, 4, 6 ou 8 dígitos. */
 const HEX = /#[0-9a-fA-F]{3,8}\b/;
@@ -61,6 +68,10 @@ const CURVA_LITERAL =
  */
 const EXCECOES = new Map([
   ["marca.ts", "define a paleta da marca; é a origem dos tokens, não consumidor"],
+  [
+    "marca-animada.tsx",
+    "SVG estático do pacote de marca; cores são a origem da identidade, não consumidor do evento",
+  ],
 ]);
 
 export function verificar(raiz) {
