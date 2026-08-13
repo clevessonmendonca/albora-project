@@ -1,6 +1,6 @@
 import { modoInteracao, type GateDeInteracao } from "../interacao";
 import { TETO_DE_SUGESTOES_POR_SESSAO } from "./types";
-import type { ErroMusica, FaixaSugerida, LinkDeMusica, ResultadoDaSugestao } from "./types";
+import type { FaixaSugerida, LinkDeMusica, ResultadoDaSugestao } from "./types";
 
 export function chaveDaFaixa(link: LinkDeMusica): string {
   return `${link.provedor}:${link.tipo}:${link.identificador}`;

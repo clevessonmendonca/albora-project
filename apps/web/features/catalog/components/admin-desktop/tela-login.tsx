@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import type { Pack } from "@albora/packs";
 import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
 
 export function TelaLogin({ pack, enviado = false }: { pack: Pack; enviado?: boolean }) {

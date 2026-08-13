@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import type { Pack } from "@albora/packs";
 import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
 import { LateralAnfitriao } from "@/features/catalog/components/lateral-anfitriao";
 import { CampoWizard } from "@/features/catalog/components/campo-wizard";

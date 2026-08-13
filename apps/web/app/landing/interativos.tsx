@@ -14,8 +14,6 @@ import {
   Realce,
   Rotulo,
   Titulo,
-  pilulaClasses,
-  pilulaClaraClasses,
   radiusStyle,
   transicao,
 } from "./pecas";
