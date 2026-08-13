@@ -65,7 +65,7 @@ export function UploadArc({
       <span
         role="status"
         aria-label={rotulo(pendentes, online)}
-        style={{ display: "inline-flex", alignItems: "center", gap: "calc(var(--espaco) * 2)" }}
+        className="inline-flex items-center gap-[calc(var(--espaco)*2)]"
       >
         <svg viewBox="0 0 64 64" width={lado} height={lado} aria-hidden="true">
           <path

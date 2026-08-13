@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@albora/ui-web";
 import { useState } from "react";
 
 /**
@@ -13,6 +14,12 @@ import { useState } from "react";
 export type Place = { id: string; title: string };
 
 const MAX_LEGENDA = 280;
+
+const CLASSE_ROTULO =
+  "font-titulo text-[0.7rem] font-normal uppercase tracking-[0.28em] text-ink-3";
+
+const CLASSE_LUGAR =
+  "min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent px-[1.15rem] font-titulo text-[0.9rem] font-normal text-ink-2 transition-[color,border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-acento focus-visible:outline-offset-[5px] motion-reduce:transition-none";
 
 export function Details({
   places,
@@ -32,28 +39,20 @@ export function Details({
     onPronto({ legenda: legenda.trim() || null, lugar });
 
   return (
-    <main
-      style={{
-        minHeight: "100dvh",
-        display: "flex",
-        flexDirection: "column",
-        padding: "2.5rem 2rem 2.25rem",
-        background: "var(--bg)",
-        color: "var(--ink)",
-        fontFamily: "var(--fonte-corpo)",
-      }}
-    >
-      <style>{ESTILO}</style>
-
-      <div style={{ flex: "none" }}>
-        <h1 className="det-titulo">Sua foto já está subindo</h1>
-        <p className="det-lede">Se quiser, conte alguma coisa sobre ela.</p>
+    <main className="flex min-h-dvh flex-col bg-bg px-8 pb-9 pt-10 font-corpo text-ink">
+      <div className="shrink-0">
+        <h1 className="mb-2 mt-0 text-balance font-titulo text-[clamp(1.5rem,7vw,1.75rem)] font-medium leading-[1.16] tracking-titulo">
+          Sua foto já está subindo
+        </h1>
+        <p className="m-0 max-w-[34ch] text-[0.94rem] leading-[1.68] text-ink-2">
+          Se quiser, conte alguma coisa sobre ela.
+        </p>
       </div>
 
-      <label style={{ display: "grid", gap: "0.3rem", marginTop: "2rem", flex: "none" }}>
-        <span style={ROTULO}>Legenda</span>
+      <label className="mt-8 grid shrink-0 gap-[0.3rem]">
+        <span className={CLASSE_ROTULO}>Legenda</span>
         <textarea
-          className="det-legenda"
+          className="w-full resize-none border-0 border-b border-linha bg-transparent px-0.5 py-[0.8rem] font-titulo text-[1.1rem] font-normal leading-[1.42] text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] placeholder:italic placeholder:text-ink-3 focus:border-acento motion-reduce:transition-none"
           value={legenda}
           onChange={(e) => setLegenda(e.target.value.slice(0, MAX_LEGENDA))}
           rows={2}
@@ -61,13 +60,17 @@ export function Details({
         />
       </label>
 
-      <div style={{ display: "grid", gap: "0.75rem", marginTop: "2rem", flex: "none" }}>
-        <span style={ROTULO}>{perguntaDoLugar}</span>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+      <div className="mt-8 grid shrink-0 gap-3">
+        <span className={CLASSE_ROTULO}>{perguntaDoLugar}</span>
+        <div className="flex flex-wrap gap-2">
           {places.map((l) => (
             <button
               key={l.id}
-              className={lugar === l.id ? "det-lugar ativo" : "det-lugar"}
+              type="button"
+              className={cn(
+                CLASSE_LUGAR,
+                lugar === l.id && "border-acento text-acento-texto",
+              )}
               onClick={() => setLugar(lugar === l.id ? null : l.id)}
               aria-pressed={lugar === l.id}
             >
@@ -77,130 +80,24 @@ export function Details({
         </div>
       </div>
 
-      <span style={{ flex: "1 1 auto", minHeight: "2rem" }} />
+      <span className="min-h-8 flex-[1_1_auto]" aria-hidden />
 
-      <div style={{ display: "grid", gap: "0.25rem", flex: "none" }}>
-        <button className="det-primario" onClick={concluir}>
+      <div className="grid shrink-0 gap-1">
+        <button
+          type="button"
+          className="min-h-14 cursor-pointer rounded-pilula border-0 bg-ink px-6 text-[0.97rem] font-medium tracking-rotulo text-bg transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] active:scale-[0.972] focus-visible:outline focus-visible:outline-1 focus-visible:outline-acento focus-visible:outline-offset-[5px] motion-reduce:transition-none motion-reduce:active:scale-100"
+          onClick={concluir}
+        >
           Pronto
         </button>
-        <button className="det-pular" onClick={concluir}>
+        <button
+          type="button"
+          className="min-h-12 cursor-pointer border-0 bg-transparent font-titulo text-[0.7rem] font-normal uppercase tracking-[0.22em] text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-acento focus-visible:outline-offset-[5px] motion-reduce:transition-none"
+          onClick={concluir}
+        >
           Pular — já está subindo
         </button>
       </div>
     </main>
   );
 }
-
-const ROTULO: React.CSSProperties = {
-  fontFamily: "var(--fonte-titulo)",
-  fontSize: "0.7rem",
-  fontWeight: 400,
-  letterSpacing: "0.28em",
-  textTransform: "uppercase",
-  color: "var(--ink-3)",
-};
-
-const ESTILO = `
-.det-titulo {
-  font-family: var(--fonte-titulo);
-  font-size: clamp(1.5rem, 7vw, 1.75rem);
-  font-weight: 500;
-  line-height: 1.16;
-  letter-spacing: var(--tracking-titulo);
-  margin: 0 0 0.5rem;
-  text-wrap: balance;
-}
-
-.det-lede {
-  margin: 0;
-  max-width: 34ch;
-  font-size: 0.94rem;
-  line-height: 1.68;
-  color: var(--ink-2);
-}
-
-.det-legenda {
-  width: 100%;
-  font-family: var(--fonte-titulo);
-  font-size: 1.1rem;
-  font-weight: 400;
-  line-height: 1.42;
-  color: var(--ink);
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  border-bottom: 1px solid var(--linha);
-  padding: 0.8rem 0.125rem;
-  resize: none;
-  outline: none;
-  transition: border-color var(--tempo-rapido) var(--curva);
-}
-.det-legenda::placeholder { color: var(--ink-3); font-style: italic; }
-.det-legenda:focus { border-bottom-color: var(--acento); }
-
-/*
-  Pílula de filete, nunca preenchida: âmbar é metal, não tinta — o estado ativo
-  ganha borda e texto de acento, não um bloco de cor (DESIGN.md §6).
-*/
-.det-lugar {
-  font: inherit;
-  font-family: var(--fonte-titulo);
-  font-size: 0.9rem;
-  font-weight: 400;
-  min-height: 48px;
-  padding: 0 1.15rem;
-  border: 1px solid var(--linha);
-  border-radius: var(--raio-pilula);
-  background: transparent;
-  color: var(--ink-2);
-  cursor: pointer;
-  transition: color var(--tempo-rapido) var(--curva), border-color var(--tempo-rapido) var(--curva);
-}
-.det-lugar.ativo {
-  border-color: var(--acento);
-  color: var(--acento-texto);
-}
-
-.det-primario {
-  font: inherit;
-  font-size: 0.97rem;
-  font-weight: 500;
-  letter-spacing: var(--tracking-rotulo);
-  min-height: 56px;
-  padding: 0 1.5rem;
-  border: none;
-  border-radius: var(--raio-pilula);
-  background: var(--ink);
-  color: var(--bg);
-  cursor: pointer;
-  transition: transform var(--tempo-rapido) var(--curva);
-}
-.det-primario:active { transform: scale(0.972); }
-
-.det-pular {
-  font: inherit;
-  font-family: var(--fonte-titulo);
-  font-size: 0.7rem;
-  font-weight: 400;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  min-height: 48px;
-  background: none;
-  border: 0;
-  color: var(--ink-3);
-  cursor: pointer;
-  transition: color var(--tempo-rapido) var(--curva);
-}
-
-.det-lugar:focus-visible,
-.det-primario:focus-visible,
-.det-pular:focus-visible {
-  outline: 1px solid var(--acento);
-  outline-offset: 5px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .det-legenda, .det-lugar, .det-primario, .det-pular { transition: none; }
-  .det-primario:active { transform: none; }
-}
-`;

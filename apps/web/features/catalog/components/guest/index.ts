@@ -1,0 +1,14 @@
+export { TelaMissoes } from "./tela-missoes";
+export { TelaMinhas } from "./tela-minhas";
+export { TelaFotoAberta } from "./tela-foto-aberta";
+export { TelaCapa } from "./tela-capa";
+export { TelaFeed } from "./tela-feed";
+export { TelaCamera } from "./tela-camera";
+export { TelaAntesDoGate } from "./tela-antes-do-gate";
+export { TelaAlbum } from "./tela-album";
+export { TelaEntrada } from "./tela-entrada";
+export { TelaScanner } from "./tela-scanner";
+export { TelaFila } from "./tela-fila";
+export { TelaMusica } from "./tela-musica";
+export { TelaComentar } from "./tela-comentar";
+export { TelaDenuncia } from "./tela-denuncia";

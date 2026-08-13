@@ -1,6 +1,15 @@
 "use client";
 
+import { cn } from "@albora/ui-web";
 import { useEffect, useRef, useState } from "react";
+
+const CLASSE_INTEIRA =
+  "absolute inset-0 size-full object-contain";
+const CLASSE_FUNDO_DESFOCADO =
+  "absolute inset-0 size-full scale-[1.18] object-cover blur-[44px] saturate-[0.7] brightness-[0.42]";
+const CLASSE_PLACEHOLDER =
+  "absolute inset-x-[8%] inset-y-[12%] rounded-token border border-linha";
+const CLASSE_TRANSICAO = "[transition:opacity_var(--tempo-rapido)_var(--curva)]";
 
 /**
  * A mídia dentro do quadro 9:16, **sem cortar**.
@@ -57,34 +66,18 @@ export function Frame({
   const cheia = cheiaCaiu ? undefined : urlCheia;
   const fundo = thumb ?? (ehVideo ? undefined : cheia);
 
-  const inteira: React.CSSProperties = {
-    position: "absolute",
-    inset: 0,
-    width: "100%",
-    height: "100%",
-    objectFit: "contain",
-  };
-
-  const transicao = movimentoReduzido ? undefined : "opacity var(--tempo-rapido) var(--curva)";
+  const transicao = movimentoReduzido ? undefined : CLASSE_TRANSICAO;
 
   if (ehVideo) {
     return (
-      <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "var(--bg)" }}>
+      <div className="absolute inset-0 overflow-hidden bg-bg">
         {fundo && (
           <img
             src={fundo}
             alt=""
             aria-hidden
             onError={() => setThumbCaiu(true)}
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transform: "scale(1.18)",
-              filter: "blur(44px) saturate(0.7) brightness(0.42)",
-            }}
+            className={CLASSE_FUNDO_DESFOCADO}
           />
         )}
 
@@ -99,41 +92,19 @@ export function Frame({
             onLoadedData={() => setCheiaPronta(true)}
             onError={() => setCheiaCaiu(true)}
             onEnded={() => onFim?.()}
-            style={{ ...inteira, opacity: cheiaPronta ? 1 : 0, transition: transicao }}
+            className={cn(CLASSE_INTEIRA, transicao, cheiaPronta ? "opacity-100" : "opacity-0")}
           />
         )}
 
-        {!cheia && (
-          <div
-            style={{
-              position: "absolute",
-              inset: "12% 8%",
-              border: "1px solid var(--linha)",
-              borderRadius: "var(--raio)",
-            }}
-          />
-        )}
+        {!cheia && <div className={CLASSE_PLACEHOLDER} />}
       </div>
     );
   }
 
   return (
-    <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "var(--bg)" }}>
+    <div className="absolute inset-0 overflow-hidden bg-bg">
       {fundo && (
-        <img
-          src={fundo}
-          alt=""
-          aria-hidden
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            transform: "scale(1.18)",
-            filter: "blur(44px) saturate(0.7) brightness(0.42)",
-          }}
-        />
+        <img src={fundo} alt="" aria-hidden className={CLASSE_FUNDO_DESFOCADO} />
       )}
 
       {thumb && (
@@ -142,7 +113,7 @@ export function Frame({
           alt=""
           aria-hidden
           onError={() => setThumbCaiu(true)}
-          style={{ ...inteira, opacity: cheiaPronta ? 0 : 1, transition: transicao }}
+          className={cn(CLASSE_INTEIRA, transicao, cheiaPronta ? "opacity-0" : "opacity-100")}
         />
       )}
 
@@ -153,20 +124,15 @@ export function Frame({
           decoding="async"
           onLoad={() => setCheiaPronta(true)}
           onError={() => setCheiaCaiu(true)}
-          style={{ ...inteira, opacity: cheiaPronta || !thumb ? 1 : 0, transition: transicao }}
+          className={cn(
+            CLASSE_INTEIRA,
+            transicao,
+            cheiaPronta || !thumb ? "opacity-100" : "opacity-0",
+          )}
         />
       )}
 
-      {!fundo && (
-        <div
-          style={{
-            position: "absolute",
-            inset: "12% 8%",
-            border: "1px solid var(--linha)",
-            borderRadius: "var(--raio)",
-          }}
-        />
-      )}
+      {!fundo && <div className={CLASSE_PLACEHOLDER} />}
     </div>
   );
 }

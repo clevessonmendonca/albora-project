@@ -2,22 +2,25 @@
 
 import type { ItemDaGaleria } from "@albora/core";
 import { ehMimeVideo } from "@albora/core";
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
-import { filaWeb } from "@/lib/fila";
-import { usarCompartilhar } from "@/lib/usar-compartilhar";
-import { usarGaleria } from "@/lib/usar-galeria";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { webQueue } from "@/lib/queue";
+import { useShare } from "@/features/my-photos/hooks/use-share";
+import { useGallery } from "@/features/my-photos/hooks/use-gallery";
 import { Viewer } from "@/features/feed/components/client/viewer";
-import { BarraDeAbas } from "@/features/guest/components/client/guest-tab-bar";
+import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 import {
-  BotaoPrimario,
-  BotaoSecundario,
-  CabecalhoConvidado,
-  ChaoConvidado,
-  EstadoVazio,
-  MioloConvidado,
-  RecadoErro,
-} from "@/features/guest/components/client/guest-shell";
-import { Pilula } from "@/features/guest/components/client/guest-ui-parts";
+  BottomSheet,
+  ConsentCheckbox,
+  PrimaryButton,
+  SecondaryButton,
+  GuestHeader,
+  GuestShell,
+  EmptyState,
+  GuestMain,
+  ErrorMessage,
+  Button,
+} from "@albora/ui-web";
+import { Badge } from "@albora/ui-web";
 
 function rotuloEstado(estado: ItemDaGaleria["estado"]): string {
   if (estado === "subindo") return "Subindo…";
@@ -36,63 +39,39 @@ function MiniaturaMinhas({
   urlVideo: string | null | undefined;
   pendente: boolean;
 }) {
-  const cobertura: CSSProperties = {
-    width: "100%",
-    height: "100%",
-    objectFit: "cover",
-    display: "block",
-  };
+  const cobertura = "block size-full object-cover";
 
   if (ehVideo && pendente && url) {
-    return <video src={url} muted playsInline preload="metadata" style={cobertura} />;
+    return <video src={url} muted playsInline preload="metadata" className={cobertura} />;
   }
 
   if (ehVideo && url) {
     return (
       <>
-        <img src={url} alt="" loading="lazy" decoding="async" style={cobertura} />
+        <img src={url} alt="" loading="lazy" decoding="async" className={cobertura} />
         <IndicadorVideo />
       </>
     );
   }
 
   if (ehVideo && urlVideo) {
-    return <video src={urlVideo} muted playsInline preload="metadata" style={cobertura} />;
+    return <video src={urlVideo} muted playsInline preload="metadata" className={cobertura} />;
   }
 
   if (url) {
-    return <img src={url} alt="" loading="lazy" decoding="async" style={cobertura} />;
+    return <img src={url} alt="" loading="lazy" decoding="async" className={cobertura} />;
   }
 
-  return <div style={{ width: "100%", height: "100%", background: "var(--linha)" }} />;
+  return <div className="size-full bg-linha" />;
 }
 
 function IndicadorVideo() {
   return (
     <span
       aria-hidden
-      style={{
-        position: "absolute",
-        inset: 0,
-        display: "grid",
-        placeItems: "center",
-        pointerEvents: "none",
-        background:
-          "linear-gradient(to top, color-mix(in srgb, var(--bg) 40%, transparent), transparent 55%)",
-      }}
+      className="pointer-events-none absolute inset-0 grid place-items-center bg-gradient-video-scrim-forte"
     >
-      <span
-        style={{
-          width: "2rem",
-          height: "2rem",
-          borderRadius: "50%",
-          border: "1px solid var(--linha)",
-          background: "color-mix(in srgb, var(--bg) 72%, transparent)",
-          display: "grid",
-          placeItems: "center",
-          fontSize: "0.75rem",
-        }}
-      >
+      <span className="grid size-8 place-items-center rounded-full border border-linha bg-bg-vidro text-xs">
         ▶
       </span>
     </span>
@@ -110,19 +89,23 @@ export function MyPhotosPage({
   sessaoId: string;
   cameraPath: string;
 }) {
-  const galeria = usarGaleria(eventoId);
-  const compartilhar = usarCompartilhar(eventoId, sessaoId);
+  const galeria = useGallery(eventoId);
+  const compartilhar = useShare(eventoId, sessaoId);
   const [locais, setLocais] = useState<Map<string, string>>(new Map());
   const [mimesLocais, setMimesLocais] = useState<Map<string, string>>(new Map());
   const [indiceAberto, setIndiceAberto] = useState<number | null>(null);
+  const [nomeNaMoldura, setNomeNaMoldura] = useState(true);
   const movimentoReduzido = usarMovimentoReduzido();
+
+  const consentimentoAberto =
+    compartilhar.pedindoConsentimento !== null || compartilhar.pedindoColagem !== null;
 
   useEffect(() => {
     let cancelado = false;
     const criadas: string[] = [];
 
     void (async () => {
-      const fila = await filaWeb.listar();
+      const fila = await webQueue.listar();
       const mapa = new Map<string, string>();
       const mimes = new Map<string, string>();
       for (const item of fila) {
@@ -155,7 +138,7 @@ export function MyPhotosPage({
 
   const idsFotosEnviadas = useMemo(
     () => galeria.itens.filter((i) => i.estado === "enviada" && !galeria.ehVideo(i)).map((i) => i.id),
-    [galeria.itens, galeria.ehVideo],
+    [galeria],
   );
 
   const abrirEnviada = useCallback(
@@ -192,6 +175,14 @@ export function MyPhotosPage({
     if (visivel) void compartilhar.compartilhar(visivel.id);
   }, [indiceAberto, galeria.itensVisiveis, compartilhar]);
 
+  const confirmarConsentimento = useCallback(() => {
+    if (compartilhar.pedindoColagem) {
+      void compartilhar.confirmarConsentimentoColagem(compartilhar.pedindoColagem, nomeNaMoldura);
+    } else if (compartilhar.pedindoConsentimento) {
+      void compartilhar.confirmarConsentimento(compartilhar.pedindoConsentimento, nomeNaMoldura);
+    }
+  }, [compartilhar, nomeNaMoldura]);
+
   useEffect(() => {
     if (indiceAberto === null) return;
     const antes = document.body.style.overflow;
@@ -217,178 +208,120 @@ export function MyPhotosPage({
 
   return (
     <>
-      <ChaoConvidado>
-        <MioloConvidado>
-          <CabecalhoConvidado
-            titulo="Minhas fotos"
-            hrefInicio={`/e/${encodeURIComponent(slug)}/capa`}
-            acao={
+      <GuestShell>
+        <GuestMain>
+          <GuestHeader
+            title="Minhas fotos"
+            homeHref={`/e/${encodeURIComponent(slug)}/cover`}
+            action={
               !galeria.carregando ? (
-                <Pilula>{resumo}</Pilula>
+                <Badge>{resumo}</Badge>
               ) : (
-                <Pilula>Carregando…</Pilula>
+                <Badge>Carregando…</Badge>
               )
             }
           />
 
-          {galeria.falha && <RecadoErro>Não deu para carregar agora.</RecadoErro>}
+          {galeria.falha && <ErrorMessage>Não deu para carregar agora.</ErrorMessage>}
 
-          {compartilhar.erro && <RecadoErro>{compartilhar.erro}</RecadoErro>}
+          {compartilhar.erro && <ErrorMessage>{compartilhar.erro}</ErrorMessage>}
 
           {!galeria.carregando && galeria.itens.length === 0 && (
-            <EstadoVazio
-              titulo="Suas fotos aparecem aqui"
+            <EmptyState
+              title="Suas fotos aparecem aqui"
               lede="Assim que a primeira subir, ela fica nesta grade."
-              caminhoDaCamera={cameraPath}
+              cameraPath={cameraPath}
             />
           )}
 
-          <ul
-            style={{
-              listStyle: "none",
-              margin: 0,
-              padding: 0,
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "2px",
-            }}
-          >
-          {galeria.itens.map((item) => {
-            const url = item.estado === "enviada" ? galeria.urlDe(item) : locais.get(item.id);
-            const urlVideo =
-              item.estado === "enviada" ? galeria.urlCheia(item) : locais.get(item.id);
-            const ehVideo =
-              item.estado === "enviada"
-                ? galeria.ehVideo(item)
-                : ehMimeVideo(mimesLocais.get(item.id) ?? "");
-            const rotulo = rotuloEstado(item.estado);
+          <ul className="m-0 grid list-none grid-cols-3 gap-0.5 p-0">
+            {galeria.itens.map((item) => {
+              const url = item.estado === "enviada" ? galeria.urlDe(item) : locais.get(item.id);
+              const urlVideo =
+                item.estado === "enviada" ? galeria.urlCheia(item) : locais.get(item.id);
+              const ehVideo =
+                item.estado === "enviada"
+                  ? galeria.ehVideo(item)
+                  : ehMimeVideo(mimesLocais.get(item.id) ?? "");
+              const rotulo = rotuloEstado(item.estado);
 
-            return (
-              <li key={item.id} style={{ position: "relative", aspectRatio: "1 / 1" }}>
-                {item.estado !== "enviada" && (
-                  <button
-                    type="button"
-                    aria-label="Remover esta foto"
-                    disabled={galeria.removendoId === item.id}
-                    onClick={() => void galeria.remover(item)}
-                    style={{
-                      position: "absolute",
-                      top: "0.25rem",
-                      right: "0.25rem",
-                      zIndex: 1,
-                      minWidth: "28px",
-                      minHeight: "28px",
-                      padding: 0,
-                      border: "none",
-                      borderRadius: "50%",
-                      background: "color-mix(in srgb, var(--bg) 90%, transparent)",
-                      color: "var(--ink-2)",
-                      fontSize: "0.75rem",
-                      cursor: galeria.removendoId === item.id ? "wait" : "pointer",
-                    }}
-                  >
-                    ×
-                  </button>
-                )}
-                {item.estado === "enviada" ? (
-                  <button
-                    type="button"
-                    aria-label={ehVideo ? "Abrir este vídeo" : "Abrir esta foto"}
-                    onClick={() => abrirEnviada(item.id)}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      padding: 0,
-                      border: "none",
-                      background: "transparent",
-                      cursor: "pointer",
-                      borderRadius: "var(--raio)",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        background: "var(--superficie)",
-                        border: "1px solid var(--linha)",
-                      }}
+              return (
+                <li key={item.id} className="relative aspect-square">
+                  {item.estado !== "enviada" && (
+                    <button
+                      type="button"
+                      aria-label="Remover esta foto"
+                      disabled={galeria.removendoId === item.id}
+                      onClick={() => void galeria.remover(item)}
+                      className="absolute right-1 top-1 z-[1] grid min-h-7 min-w-7 cursor-pointer place-items-center rounded-full border-0 bg-bg-vidro-opaco p-0 text-xs text-ink-2 disabled:cursor-wait"
                     >
+                      ×
+                    </button>
+                  )}
+                  {item.estado === "enviada" ? (
+                    <button
+                      type="button"
+                      aria-label={ehVideo ? "Abrir este vídeo" : "Abrir esta foto"}
+                      onClick={() => abrirEnviada(item.id)}
+                      className="size-full cursor-pointer overflow-hidden rounded-token border-0 bg-transparent p-0"
+                    >
+                      <div className="relative size-full border border-linha bg-superficie">
+                        <MiniaturaMinhas
+                          ehVideo={ehVideo}
+                          url={url ?? undefined}
+                          urlVideo={urlVideo ?? undefined}
+                          pendente={false}
+                        />
+                      </div>
+                    </button>
+                  ) : (
+                    <div className="relative size-full overflow-hidden rounded-token border border-linha bg-superficie">
                       <MiniaturaMinhas
                         ehVideo={ehVideo}
                         url={url ?? undefined}
                         urlVideo={urlVideo ?? undefined}
-                        pendente={false}
+                        pendente
                       />
                     </div>
-                  </button>
-                ) : (
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      borderRadius: "var(--raio)",
-                      overflow: "hidden",
-                      background: "var(--superficie)",
-                      border: "1px solid var(--linha)",
-                    }}
-                  >
-                    <MiniaturaMinhas
-                      ehVideo={ehVideo}
-                      url={url ?? undefined}
-                      urlVideo={urlVideo ?? undefined}
-                      pendente
-                    />
-                  </div>
-                )}
+                  )}
 
-                {rotulo && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      insetInline: "0.25rem",
-                      bottom: "0.25rem",
-                      padding: "0.2rem 0.35rem",
-                      fontSize: "0.625rem",
-                      letterSpacing: "0.06em",
-                      textTransform: "uppercase",
-                      textAlign: "center",
-                      borderRadius: "var(--raio-pilula)",
-                      background: "color-mix(in srgb, var(--bg) 88%, transparent)",
-                      color: item.estado === "falhou" ? "var(--critico)" : "var(--ink-2)",
-                    }}
-                  >
-                    {rotulo}
-                  </span>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+                  {rotulo && (
+                    <span
+                      className={`absolute inset-x-1 bottom-1 rounded-pilula bg-bg-vidro-suave px-[0.35rem] py-[0.2rem] text-center text-[0.625rem] uppercase tracking-[0.06em] ${
+                        item.estado === "falhou" ? "text-critico" : "text-ink-2"
+                      }`}
+                    >
+                      {rotulo}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
 
-        {idsFotosEnviadas.length >= 2 && (
-          <div style={{ marginTop: "1.25rem" }}>
-            <BotaoSecundario
-              desabilitado={compartilhar.colagemIds !== null}
-              onClick={() => void compartilhar.compartilharColagem(idsFotosEnviadas.slice(0, 4))}
-            >
-              {compartilhar.colagemIds ? "Montando colagem…" : "Colagem da noite"}
-            </BotaoSecundario>
-          </div>
-        )}
+          {idsFotosEnviadas.length >= 2 && (
+            <div className="mt-5">
+              <SecondaryButton
+                disabled={compartilhar.colagemIds !== null}
+                onClick={() => void compartilhar.compartilharColagem(idsFotosEnviadas.slice(0, 4))}
+              >
+                {compartilhar.colagemIds ? "Montando colagem…" : "Colagem da noite"}
+              </SecondaryButton>
+            </div>
+          )}
 
-        {galeria.resumo.falhou > 0 && (
-          <div style={{ marginTop: "1.5rem" }}>
-            <BotaoPrimario
-              desabilitado={galeria.drenando}
-              onClick={() => void galeria.tentarDeNovo()}
-            >
-              {galeria.drenando ? "Tentando…" : "Tentar de novo"}
-            </BotaoPrimario>
-          </div>
-        )}
-        </MioloConvidado>
-      </ChaoConvidado>
+          {galeria.resumo.falhou > 0 && (
+            <div className="mt-6">
+              <PrimaryButton
+                disabled={galeria.drenando}
+                onClick={() => void galeria.tentarDeNovo()}
+              >
+                {galeria.drenando ? "Tentando…" : "Tentar de novo"}
+              </PrimaryButton>
+            </div>
+          )}
+        </GuestMain>
+      </GuestShell>
 
       {indiceAberto !== null && galeria.itensVisiveis[indiceAberto] && (
         <Viewer
@@ -409,113 +342,32 @@ export function MyPhotosPage({
         />
       )}
 
-      {(compartilhar.pedindoConsentimento || compartilhar.pedindoColagem) && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="consentimento-externo-titulo"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 20,
-            display: "grid",
-            placeItems: "end center",
-            padding: "1rem",
-            paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
-            background: "color-mix(in srgb, var(--noite) 40%, transparent)",
-          }}
-        >
-          <div
-            style={{
-              width: "min(24rem, 100%)",
-              padding: "1.25rem",
-              borderRadius: "var(--raio-superficie)",
-              background: "var(--superficie)",
-              border: "1px solid var(--linha)",
-              display: "grid",
-              gap: "0.75rem",
-            }}
-          >
-            <h2
-              id="consentimento-externo-titulo"
-              style={{
-                margin: 0,
-                fontFamily: "var(--fonte-titulo)",
-                fontSize: "1.0625rem",
-                fontWeight: 400,
-              }}
-            >
-              Compartilhar para fora
-            </h2>
-            <p style={{ margin: 0, fontSize: "0.9rem", lineHeight: 1.5, color: "var(--ink-2)" }}>
-              Ao compartilhar, a foto sai do evento com uma moldura. Quem receber pode guardar
-              para sempre — não dá para desfazer depois.
-            </p>
-            <label
-              style={{
-                display: "flex",
-                gap: "0.5rem",
-                alignItems: "flex-start",
-                fontSize: "0.875rem",
-                color: "var(--ink-2)",
-              }}
-            >
-              <input type="checkbox" id="nome-na-moldura" defaultChecked />
-              <span>Incluir meu primeiro nome na moldura</span>
-            </label>
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button
-                type="button"
-                onClick={() => compartilhar.cancelarConsentimento()}
-                style={{
-                  flex: 1,
-                  minHeight: "44px",
-                  border: "1px solid var(--linha)",
-                  borderRadius: "var(--raio-pilula)",
-                  background: "transparent",
-                  color: "var(--ink)",
-                  font: "inherit",
-                  cursor: "pointer",
-                }}
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const el = document.getElementById("nome-na-moldura") as HTMLInputElement | null;
-                  const nome = el?.checked ?? false;
-                  if (compartilhar.pedindoColagem) {
-                    void compartilhar.confirmarConsentimentoColagem(
-                      compartilhar.pedindoColagem,
-                      nome,
-                    );
-                  } else if (compartilhar.pedindoConsentimento) {
-                    void compartilhar.confirmarConsentimento(
-                      compartilhar.pedindoConsentimento,
-                      nome,
-                    );
-                  }
-                }}
-                style={{
-                  flex: 1,
-                  minHeight: "44px",
-                  border: "none",
-                  borderRadius: "var(--raio-pilula)",
-                  background: "var(--acento)",
-                  color: "var(--sobre-acento)",
-                  font: "inherit",
-                  cursor: "pointer",
-                }}
-              >
-                Aceitar e compartilhar
-              </button>
-            </div>
+      <BottomSheet
+        title="Compartilhar para fora"
+        titleId="consentimento-externo-titulo"
+        open={consentimentoAberto}
+        onClose={() => compartilhar.cancelarConsentimento()}
+        footer={
+          <div className="flex gap-2">
+            <Button variant="secondary" size="md" width="full" onClick={() => compartilhar.cancelarConsentimento()}>
+              Cancelar
+            </Button>
+            <Button variant="primary" size="md" width="full" onClick={confirmarConsentimento}>
+              Aceitar e compartilhar
+            </Button>
           </div>
-        </div>
-      )}
+        }
+      >
+        <p className="m-0 text-[0.9rem] leading-normal text-ink-2">
+          Ao compartilhar, a foto sai do evento com uma moldura. Quem receber pode guardar
+          para sempre — não dá para desfazer depois.
+        </p>
+        <ConsentCheckbox checked={nomeNaMoldura} onChange={setNomeNaMoldura}>
+          Incluir meu primeiro nome na moldura
+        </ConsentCheckbox>
+      </BottomSheet>
 
-      <BarraDeAbas slug={slug} ativa="minhas" />
+      <GuestTabBar slug={slug} active="minhas" />
     </>
   );
 }

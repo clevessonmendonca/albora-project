@@ -4,9 +4,9 @@ import type { FiltroAplicado, PlanoDoEvento } from "@albora/core";
 import { ehVideo } from "@albora/core";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { CotaVideo, mensagemCotaVideo, usarEnvio } from "@/lib/usar-envio";
-import { usarInstalacaoPwa } from "@/lib/usar-instalacao-pwa";
-import { RecadoErro, BotaoSecundario } from "@/features/guest/components/client/guest-shell";
+import { mensagemCotaVideo, useUpload, type CotaVideo } from "@/features/photo/hooks/use-upload";
+import { usePwaInstall } from "@/features/photo/hooks/use-pwa-install";
+import { ErrorMessage, SecondaryButton } from "@albora/ui-web";
 import { Details, type Place } from "./details";
 import { Editor } from "./editor";
 import { QueueHeader } from "./queue-panel";
@@ -32,13 +32,7 @@ export type PhotoCopy = {
  * Escondido do olho, presente no layout. `display: none` num input de arquivo
  * clicado por código já custou `capture` ignorado em Safari.
  */
-const ESCONDIDO: React.CSSProperties = {
-  position: "absolute",
-  width: "1px",
-  height: "1px",
-  opacity: 0,
-  pointerEvents: "none",
-};
+const ESCONDIDO = "absolute size-px opacity-0 pointer-events-none";
 
 type Etapa =
   | { nome: "camera" }
@@ -72,7 +66,7 @@ export function PhotoPage({
   interactionOpen: boolean;
 }) {
   const router = useRouter();
-  const { estado, enfileirarFoto, anotar, drenarAgora } = usarEnvio(eventoId, { plano: plan, cotaVideo: videoQuota });
+  const { estado, enfileirarFoto, anotar, drenarAgora } = useUpload(eventoId, { plano: plan, cotaVideo: videoQuota });
   const [drenando, setDrenando] = useState(false);
   const entradaCamera = useRef<HTMLInputElement>(null);
   const entradaVideo = useRef<HTMLInputElement>(null);
@@ -223,7 +217,7 @@ export function PhotoPage({
   if (etapa.nome === "camera") {
     const chosenMission = escolhida ? missions.find((m) => m.id === escolhida) : undefined;
     const missionIndex = chosenMission ? missions.findIndex((m) => m.id === escolhida) + 1 : 0;
-    const acaoCabecalho = (
+    const headerAction = (
       <QueueHeader
         eventoId={eventoId}
         pendentes={estado.pendentes}
@@ -246,58 +240,40 @@ export function PhotoPage({
         <style>{ESTILO}</style>
         <CameraView
           eventTitle={eventTitle}
-          acaoCabecalho={acaoCabecalho}
-          missao={
+          headerAction={headerAction}
+          mission={
             chosenMission
-              ? { indice: missionIndex, total: missions.length, title: chosenMission.title }
+              ? { index: missionIndex, total: missions.length, title: chosenMission.title }
               : null
           }
           places={places}
-          lugarAtivo={lugarPre}
-          onLugar={setLugarPre}
-          recentes={recentes}
-          processando={estado.processando}
-          onDisparar={dispararCamera}
-          onRolo={dispararRolo}
+          activePlaceId={lugarPre}
+          onPlace={setLugarPre}
+          recentThumbs={recentes}
+          processing={estado.processando}
+          onShutter={dispararCamera}
+          onRoll={dispararRolo}
           {...(missions.length > 0
-            ? { onVoltar: () => router.push(`/e/${encodeURIComponent(slug)}/missoes`) }
+            ? { onVoltar: () => router.push(`/e/${encodeURIComponent(slug)}/missions`) }
             : {})}
-          rodape={
+          footer={
             <>
-              {estado.ultimoErro && <RecadoErro>{estado.ultimoErro}</RecadoErro>}
+              {estado.ultimoErro && <ErrorMessage>{estado.ultimoErro}</ErrorMessage>}
               {avisoVideo && (
-                <p
-                  style={{
-                    margin: avisoVideo ? "0.75rem 0 0" : 0,
-                    fontSize: "0.8rem",
-                    lineHeight: 1.6,
-                    textAlign: "center",
-                    color: "var(--ink-3)",
-                  }}
-                >
+                <p className="mt-3 text-center text-[0.8rem] leading-[1.6] text-ink-3">
                   {avisoVideo}
                 </p>
               )}
               <button
                 type="button"
-                className="foto-botao"
+                className={`foto-botao mt-3 w-full min-h-12 border border-linha bg-transparent text-[0.9rem] font-normal text-ink-2${
+                  videoQuota.limite !== null && videoQuota.enviados >= videoQuota.limite ? " opacity-45" : ""
+                }`}
                 onClick={() => abrirVideo(escolhida)}
                 disabled={
                   estado.processando ||
                   (videoQuota.limite !== null && videoQuota.enviados >= videoQuota.limite)
                 }
-                style={{
-                  marginTop: "0.75rem",
-                  width: "100%",
-                  fontSize: "0.9rem",
-                  fontWeight: 400,
-                  minHeight: "48px",
-                  border: "1px solid var(--linha)",
-                  background: "transparent",
-                  color: "var(--ink-2)",
-                  opacity:
-                    videoQuota.limite !== null && videoQuota.enviados >= videoQuota.limite ? 0.45 : 1,
-                }}
               >
                 Gravar vídeo
               </button>
@@ -310,7 +286,7 @@ export function PhotoPage({
           type="file"
           accept="image/*"
           capture="environment"
-          style={ESCONDIDO}
+          className={ESCONDIDO}
           onChange={escolheu}
         />
         <input
@@ -318,7 +294,7 @@ export function PhotoPage({
           type="file"
           accept="image/*"
           multiple
-          style={ESCONDIDO}
+          className={ESCONDIDO}
           onChange={escolheu}
         />
         <input
@@ -326,7 +302,7 @@ export function PhotoPage({
           type="file"
           accept="video/*"
           capture="environment"
-          style={ESCONDIDO}
+          className={ESCONDIDO}
           onChange={escolheu}
         />
       </>
@@ -361,7 +337,7 @@ function Confirmacao({
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
-  const { disponivel: podeInstalar, instalar } = usarInstalacaoPwa();
+  const { disponivel: podeInstalar, instalar } = usePwaInstall();
   const [url, setUrl] = useState<string | null>(null);
   const [musica, setMusica] = useState<{ rotulo: string; url: string; provedor: string } | null>(
     null,
@@ -376,7 +352,7 @@ function Confirmacao({
   useEffect(() => {
     void (async () => {
       try {
-        const r = await fetch("/api/musica", { credentials: "same-origin" });
+        const r = await fetch("/api/music", { credentials: "same-origin" });
         if (!r.ok) return;
         const corpo = (await r.json()) as {
           musica: { rotulo: string; url: string; provedor: string } | null;
@@ -389,36 +365,18 @@ function Confirmacao({
   }, []);
 
   return (
-    <main
-      style={{
-        minHeight: "100dvh",
-        display: "flex",
-        flexDirection: "column",
-        padding: "2.5rem 2rem 2.25rem",
-        background: "var(--bg)",
-        color: "var(--ink)",
-        fontFamily: "var(--fonte-corpo)",
-      }}
-    >
+    <main className="flex min-h-dvh flex-col bg-bg px-8 pb-9 pt-10 font-corpo text-ink">
       <style>{ESTILO}</style>
 
       {url && (
         <img
-          className="amanhece"
+          className="amanhece mb-7 aspect-[3/4] w-[min(62vw,16rem)] shrink-0 rounded-superficie object-cover"
           src={url}
           alt=""
-          style={{
-            flex: "none",
-            width: "min(62vw, 16rem)",
-            aspectRatio: "3 / 4",
-            objectFit: "cover",
-            borderRadius: "var(--raio-superficie)",
-            marginBottom: "1.75rem",
-          }}
         />
       )}
 
-      <p className="foto-titulo" style={{ margin: 0 }}>
+      <p className="foto-titulo m-0">
         {!online ? (
           <>
             Sem sinal.
@@ -443,119 +401,58 @@ function Confirmacao({
       {!online && <p className="foto-lede">Pode fechar. A gente cuida.</p>}
 
       {musica && (
-        <p
-          style={{
-            margin: "0 0 1rem",
-            maxWidth: "34ch",
-            fontSize: "0.88rem",
-            lineHeight: 1.68,
-            color: "var(--ink-2)",
-          }}
-        >
-          <span
-            style={{
-              display: "block",
-              marginBottom: "0.25rem",
-              fontFamily: "var(--fonte-titulo)",
-              fontSize: "0.68rem",
-              fontWeight: 400,
-              letterSpacing: "0.28em",
-              textTransform: "uppercase",
-              color: "var(--acento-texto)",
-            }}
-          >
+        <p className="mb-4 max-w-[34ch] text-[0.88rem] leading-[1.68] text-ink-2">
+          <span className="mb-1 block font-titulo text-[0.68rem] font-normal uppercase tracking-[0.28em] text-acento-texto">
             Trilha
           </span>
           {musica.rotulo}
           {" · "}
-          <a href={musica.url} style={{ color: "var(--acento)" }}>
+          <a href={musica.url} className="text-acento">
             Abrir no {musica.provedor}
           </a>
         </p>
       )}
 
-      <span style={{ flex: "1 1 auto", minHeight: "1.5rem" }} />
+      <span className="min-h-6 flex-[1_1_auto]" />
 
       {pendentes === 0 && numero === 1 && (
-        <div
-          style={{
-            margin: "0 0 1.25rem",
-            maxWidth: "34ch",
-          }}
-        >
-          <p
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: "0.75rem",
-              margin: "0 0 0.75rem",
-              fontSize: "0.88rem",
-              lineHeight: 1.68,
-              color: "var(--ink-2)",
-            }}
-          >
-            <span
-              style={{
-                flex: "none",
-                fontFamily: "var(--fonte-titulo)",
-                fontSize: "0.68rem",
-                fontWeight: 400,
-                letterSpacing: "0.28em",
-                textTransform: "uppercase",
-                color: "var(--acento-texto)",
-              }}
-            >
+        <div className="mb-5 max-w-[34ch]">
+          <p className="mb-3 flex items-baseline gap-3 text-[0.88rem] leading-[1.68] text-ink-2">
+            <span className="shrink-0 font-titulo text-[0.68rem] font-normal uppercase tracking-[0.28em] text-acento-texto">
               App
             </span>
             Instale e receba suas fotos depois da festa
           </p>
           {podeInstalar && (
-            <BotaoSecundario onClick={() => void instalar()}>Instalar na tela inicial</BotaoSecundario>
+            <SecondaryButton onClick={() => void instalar()}>Instalar na tela inicial</SecondaryButton>
           )}
-          <BotaoSecundario onClick={() => router.push(`${base}/parear`)}>
+          <SecondaryButton onClick={() => router.push(`${base}/pair`)}>
             Abrir no app com código
-          </BotaoSecundario>
+          </SecondaryButton>
         </div>
       )}
 
       <button
-        className="foto-botao"
+        className="foto-botao min-h-14 shrink-0 border-0 bg-ink text-[0.97rem] font-medium text-bg"
         onClick={onOutra}
-        style={{
-          flex: "none",
-          fontSize: "0.97rem",
-          fontWeight: 500,
-          minHeight: "56px",
-          border: "none",
-          background: "var(--ink)",
-          color: "var(--bg)",
-        }}
       >
         Continuar tirando
       </button>
 
-      <div
-        style={{
-          flex: "none",
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.625rem",
-          marginTop: "0.875rem",
-        }}
-      >
+      <div className="mt-3.5 flex shrink-0 flex-col gap-2.5">
         {numero === 1 && (
-          <BotaoSecundario onClick={() => router.push(`${base}/minhas`)}>
+          <SecondaryButton onClick={() => router.push(`${base}/my-photos`)}>
             Ver minha foto
-          </BotaoSecundario>
+          </SecondaryButton>
         )}
         {interactionOpen && (
-          <BotaoSecundario onClick={() => router.push(`${base}/feed`)}>
+          <SecondaryButton onClick={() => router.push(`${base}/feed`)}>
             Ver o feed
-          </BotaoSecundario>
+          </SecondaryButton>
         )}
-        <BotaoSecundario onClick={() => router.push(`${base}/capa`)}>
+        <SecondaryButton onClick={() => router.push(`${base}/cover`)}>
           Voltar à capa
-        </BotaoSecundario>
+        </SecondaryButton>
       </div>
     </main>
   );

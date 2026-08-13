@@ -1,45 +1,31 @@
-import { raio } from "@/app/landing/pecas";
 import {
-  CabecalhoConvidado,
-  ChaoConvidado,
-  MioloConvidado,
-} from "@/features/guest/components/client/guest-shell";
+  GuestHeader,
+  GuestShell,
+  GuestMain,
+} from "@albora/ui-web";
 
 function Block() {
   return (
     <div
       aria-hidden
-      style={{
-        aspectRatio: "1 / 1",
-        ...raio("var(--raio)"),
-        backgroundColor: "color-mix(in srgb, var(--ink) 8%, transparent)",
-      }}
+      className="aspect-square rounded-token bg-ink-skeleton"
     />
   );
 }
 
 export function MyPhotosPageSkeleton() {
   return (
-    <ChaoConvidado semStatus>
-      <MioloConvidado>
-        <CabecalhoConvidado titulo="Minhas fotos" hrefInicio="#" />
-        <ul
-          style={{
-            listStyle: "none",
-            margin: 0,
-            padding: 0,
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "2px",
-          }}
-        >
+    <GuestShell hideStatusBar>
+      <GuestMain>
+        <GuestHeader title="Minhas fotos" homeHref="#" />
+        <ul className="m-0 grid list-none grid-cols-3 gap-0.5 p-0">
           {Array.from({ length: 9 }, (_, i) => (
             <li key={i}>
               <Block />
             </li>
           ))}
         </ul>
-      </MioloConvidado>
-    </ChaoConvidado>
+      </GuestMain>
+    </GuestShell>
   );
 }

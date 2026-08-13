@@ -1,0 +1,9 @@
+export { TelaAdminPainel } from "./tela-admin-painel";
+export { TelaAdminModeracao } from "./tela-admin-moderacao";
+export { TelaAdminParede } from "./tela-admin-parede";
+export { TelaAdminConvidados } from "./tela-admin-convidados";
+export { TelaAdminIdentidade } from "./tela-admin-identidade";
+export { TelaAdminLivro } from "./tela-admin-livro";
+export { TelaAdminRetencao } from "./tela-admin-retencao";
+export { TelaAdminLogin } from "./tela-admin-login";
+export { TelaAdminCriarEvento } from "./tela-admin-criar-evento";

@@ -1,10 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { CSSProperties, KeyboardEvent } from "react";
+import type { KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
-import { raio } from "@/app/landing/pecas";
-import { BotaoPrimario } from "@/features/guest/components/client/guest-shell";
+import { PrimaryButton } from "@albora/ui-web";
 
 type Estado = "editando" | "enviando" | "ligado" | "recusado" | "erro";
 
@@ -50,7 +49,7 @@ export function PairApp() {
       if (r.ok) {
         const { slug } = (await r.json()) as { slug: string };
         setEstado("ligado");
-        router.replace(`/e/${encodeURIComponent(slug)}/capa`);
+        router.replace(`/e/${encodeURIComponent(slug)}/cover`);
         return;
       }
       if (r.status === 409 || r.status === 422) setEstado("recusado");
@@ -60,51 +59,15 @@ export function PairApp() {
     }
   }
 
-  const cartao: CSSProperties = {
-    width: "min(28rem, 100%)",
-    display: "flex",
-    flexDirection: "column",
-    gap: "1.25rem",
-    padding: "2rem",
-    backgroundColor: "var(--superficie)",
-    ...raio("var(--raio-superficie)"),
-  };
-
   return (
-    <main
-      style={{
-        position: "fixed",
-        inset: 0,
-        display: "grid",
-        placeItems: "center",
-        padding: "1.5rem",
-        backgroundColor: "var(--bg)",
-        color: "var(--ink)",
-        fontFamily: "var(--fonte-corpo)",
-      }}
-    >
-      <div style={cartao}>
-        <h1
-          style={{
-            margin: 0,
-            fontFamily: "var(--fonte-titulo)",
-            fontSize: "1.5rem",
-          }}
-        >
-          Digite o código
-        </h1>
-        <p style={{ margin: 0, color: "var(--ink-2)", lineHeight: 1.5 }}>
+    <main className="fixed inset-0 grid place-items-center bg-bg p-6 font-corpo text-ink">
+      <div className="flex w-full max-w-md flex-col gap-5 rounded-superficie bg-superficie p-8">
+        <h1 className="m-0 font-titulo text-2xl">Digite o código</h1>
+        <p className="m-0 leading-normal text-ink-2">
           Quatro números que aparecem na web depois da primeira foto.
         </p>
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "0.75rem",
-          }}
-          aria-label="Código de pareamento"
-        >
+        <div className="flex justify-center gap-3" aria-label="Código de pareamento">
           {digitos.map((d, i) => (
             <input
               key={i}
@@ -118,39 +81,28 @@ export function PairApp() {
               autoComplete="one-time-code"
               maxLength={1}
               aria-label={`Dígito ${i + 1}`}
-              style={{
-                width: "3.25rem",
-                height: "3.75rem",
-                padding: 0,
-                fontFamily: "var(--fonte-titulo)",
-                fontSize: "1.75rem",
-                textAlign: "center",
-                color: "var(--ink)",
-                backgroundColor: "var(--bg)",
-                border: "1px solid var(--linha)",
-                ...raio("var(--raio)"),
-              }}
+              className="h-[3.75rem] w-[3.25rem] rounded-token border border-linha bg-bg p-0 text-center font-titulo text-[1.75rem] text-ink"
             />
           ))}
         </div>
 
         {estado === "recusado" && (
-          <p style={{ margin: 0, color: "var(--critico)", fontSize: "0.9rem" }}>
+          <p className="m-0 text-[0.9rem] text-critico">
             Código inválido ou expirado. Peça outro na web.
           </p>
         )}
         {estado === "erro" && (
-          <p style={{ margin: 0, color: "var(--critico)", fontSize: "0.9rem" }}>
+          <p className="m-0 text-[0.9rem] text-critico">
             Não deu para parear agora. Tente de novo.
           </p>
         )}
 
-        <BotaoPrimario
+        <PrimaryButton
           onClick={() => void resgatar()}
-          desabilitado={!valido || estado === "enviando" || estado === "ligado"}
+          disabled={!valido || estado === "enviando" || estado === "ligado"}
         >
           {estado === "enviando" ? "Entrando…" : "Continuar"}
-        </BotaoPrimario>
+        </PrimaryButton>
       </div>
     </main>
   );

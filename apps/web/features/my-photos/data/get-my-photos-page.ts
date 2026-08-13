@@ -18,6 +18,6 @@ export async function getMyPhotosPage(input: MyPhotosPageInput): Promise<MyPhoto
     slug,
     eventoId,
     sessaoId,
-    cameraPath: `/e/${encodeURIComponent(slug)}/foto`,
+    cameraPath: `/e/${encodeURIComponent(slug)}/photo`,
   };
 }

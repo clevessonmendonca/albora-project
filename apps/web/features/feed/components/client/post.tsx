@@ -1,17 +1,15 @@
 "use client";
 
 import type { ModoInteracao } from "@albora/core";
-import { InteracaoDaFoto } from "@/app/e/[slug]/interacao-da-foto";
-import { CabecalhoPublicacao } from "@/features/guest/components/client/guest-shell";
-import type { ResultadoReacao } from "@/lib/usar-reacao";
+import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
+import { PostHeader } from "@albora/ui-web";
+import type { ResultadoReacao } from "@/features/feed/hooks/use-reaction";
 
 /**
  * Uma publicação no feed — layout de `TelaFeed` em `/telas`.
  *
  * Cabeçalho com iniciais, foto em 4:5 sem cortar, estrela + comentário embaixo.
  */
-
-const ASPECTO = "4 / 5";
 
 export function Post({
   uploadId,
@@ -45,59 +43,37 @@ export function Post({
   const meta = lugar ? `· ${lugar}` : null;
 
   return (
-    <article style={{ borderTop: "1px solid var(--linha)" }}>
-      <div style={{ padding: "0.875rem 0" }}>
-        <CabecalhoPublicacao autor={autor} meta={meta} />
+    <article className="border-t border-linha">
+      <div className="py-3.5">
+        <PostHeader author={autor} meta={meta} />
       </div>
 
-      <div style={{ position: "relative", aspectRatio: ASPECTO, marginBottom: "0.75rem" }}>
+      <div className="relative mb-3 aspect-4/5">
         {url ? (
           ehVideo ? (
             <video
-              className="feed-amanhece"
+              className="feed-amanhece block size-full bg-bg object-contain"
               src={url}
               controls
               playsInline
               preload="metadata"
-              style={{
-                display: "block",
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                background: "var(--bg)",
-              }}
             />
           ) : (
             <img
-              className="feed-amanhece"
+              className="feed-amanhece block size-full bg-bg object-contain"
               src={url}
               alt={legenda ?? ""}
               loading="lazy"
               decoding="async"
-              style={{
-                display: "block",
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-                background: "var(--bg)",
-              }}
             />
           )
         ) : (
-          <div
-            className="feed-esperando"
-            style={{
-              position: "absolute",
-              inset: "8%",
-              border: "1px solid var(--linha)",
-              borderRadius: "var(--raio)",
-            }}
-          />
+          <div className="feed-esperando absolute inset-[8%] rounded-token border border-linha" />
         )}
       </div>
 
-      <div style={{ padding: "0 0 0.625rem" }}>
-        <InteracaoDaFoto
+      <div className="pb-2.5">
+        <PhotoInteraction
           uploadId={uploadId}
           interacao={interacao}
           autor={autor}
@@ -111,8 +87,8 @@ export function Post({
       </div>
 
       {legenda && (
-        <p style={{ margin: "0 0 1rem", fontSize: "0.84375rem", lineHeight: 1.45, color: "var(--ink-2)" }}>
-          <span style={{ color: "var(--ink)" }}>{autor}</span> {legenda}
+        <p className="mb-4 text-[0.84375rem] leading-[1.45] text-ink-2">
+          <span className="text-ink">{autor}</span> {legenda}
         </p>
       )}
     </article>
@@ -121,32 +97,12 @@ export function Post({
 
 export function PostLoading() {
   return (
-    <article aria-hidden style={{ borderTop: "1px solid var(--linha)", paddingBottom: "1rem" }}>
-      <div style={{ display: "flex", gap: "0.625rem", padding: "0.875rem 0" }}>
-        <span
-          className="feed-esperando"
-          style={{
-            width: "1.875rem",
-            height: "1.875rem",
-            borderRadius: "50%",
-            background: "var(--superficie-alta)",
-          }}
-        />
-        <span
-          className="feed-esperando"
-          style={{
-            width: "6rem",
-            height: "0.875rem",
-            borderRadius: "var(--raio-pilula)",
-            background: "var(--superficie-alta)",
-            alignSelf: "center",
-          }}
-        />
+    <article aria-hidden className="border-t border-linha pb-4">
+      <div className="flex gap-2.5 py-3.5">
+        <span className="feed-esperando size-7.5 rounded-full bg-superficie-alta" />
+        <span className="feed-esperando h-3.5 w-24 self-center rounded-pilula bg-superficie-alta" />
       </div>
-      <div
-        className="feed-esperando"
-        style={{ aspectRatio: ASPECTO, border: "1px solid var(--linha)", borderRadius: "var(--raio)" }}
-      />
+      <div className="feed-esperando aspect-4/5 rounded-token border border-linha" />
     </article>
   );
 }

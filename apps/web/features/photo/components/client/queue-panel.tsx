@@ -3,8 +3,8 @@
 import type { ItemFila } from "@albora/core";
 import { MAX_TENTATIVAS, ehMimeVideo } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
-import { BotaoPrimario, BotaoSecundario, SheetBaixo } from "@/features/guest/components/client/guest-shell";
-import { filaWeb } from "@/lib/fila";
+import { PrimaryButton, SecondaryButton, BottomSheet } from "@albora/ui-web";
+import { webQueue } from "@/lib/queue";
 import { UploadArc } from "./upload-arc";
 import { QueueLabel } from "./camera-view";
 
@@ -47,16 +47,10 @@ export function QueueHeader({
         onClick={() => setAberto(true)}
         aria-haspopup="dialog"
         aria-expanded={aberto}
-        style={{
-          padding: 0,
-          border: "none",
-          background: "none",
-          font: "inherit",
-          cursor: "pointer",
-        }}
+        className="cursor-pointer border-0 bg-transparent p-0 font-[inherit]"
       >
         {pendentes > 0 ? (
-          <QueueLabel pendentes={pendentes} />
+          <QueueLabel pending={pendentes} />
         ) : (
           <UploadArc
             pendentes={pendentes}
@@ -70,8 +64,8 @@ export function QueueHeader({
         eventoId={eventoId}
         online={online}
         drenando={drenando}
-        aberto={aberto}
-        onFechar={() => setAberto(false)}
+        open={aberto}
+        onClose={() => setAberto(false)}
         onDrenar={onDrenar}
       />
     </>
@@ -82,30 +76,30 @@ function PainelFila({
   eventoId,
   online,
   drenando,
-  aberto,
-  onFechar,
+  open,
+  onClose,
   onDrenar,
 }: {
   eventoId: string;
   online: boolean;
   drenando: boolean;
-  aberto: boolean;
-  onFechar: () => void;
+  open: boolean;
+  onClose: () => void;
   onDrenar: () => Promise<void>;
 }) {
   const [itens, setItens] = useState<ItemFila[]>([]);
 
   const recarregar = useCallback(async () => {
-    const fila = await filaWeb.listar();
+    const fila = await webQueue.listar();
     setItens(fila.filter((i) => i.eventoId === eventoId));
   }, [eventoId]);
 
   useEffect(() => {
-    if (!aberto) return;
+    if (!open) return;
     void recarregar();
     const id = window.setInterval(() => void recarregar(), 1500);
     return () => window.clearInterval(id);
-  }, [aberto, recarregar]);
+  }, [open, recarregar]);
 
   useEffect(() => {
     const urls: string[] = [];
@@ -121,40 +115,38 @@ function PainelFila({
   const temFalha = itens.some((i) => i.tentativas >= MAX_TENTATIVAS);
 
   return (
-    <SheetBaixo
-      titulo="Fila de envio"
-      aberto={aberto}
-      onFechar={onFechar}
-      idTitulo="painel-fila-titulo"
-      rodape={
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          <BotaoSecundario onClick={onFechar}>Fechar</BotaoSecundario>
+    <BottomSheet
+      title="Fila de envio"
+      open={open}
+      onClose={onClose}
+      titleId="painel-fila-titulo"
+      footer={
+        <div className="flex gap-2">
+          <SecondaryButton onClick={onClose}>Fechar</SecondaryButton>
           {temFalha && online && (
-            <BotaoPrimario desabilitado={drenando} onClick={() => void onDrenar()}>
+            <PrimaryButton disabled={drenando} onClick={() => void onDrenar()}>
               {drenando ? "Tentando…" : "Tentar de novo"}
-            </BotaoPrimario>
+            </PrimaryButton>
           )}
         </div>
       }
     >
       {!online && (
-        <p style={{ margin: "0 0 0.75rem", fontSize: "0.875rem", lineHeight: 1.5, color: "var(--ink-2)" }}>
+        <p className="mb-3 text-sm leading-normal text-ink-2">
           Sem sinal — a gente reenvia sozinho quando voltar.
         </p>
       )}
 
       {itens.length === 0 ? (
-        <p style={{ margin: 0, fontSize: "0.875rem", color: "var(--ink-3)" }}>
-          Nada na fila agora.
-        </p>
+        <p className="m-0 text-sm text-ink-3">Nada na fila agora.</p>
       ) : (
-        <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: "0.625rem" }}>
+        <ul className="m-0 grid list-none gap-2.5 p-0">
           {itens.map((item) => (
             <LinhaFila key={item.id} item={item} online={online} />
           ))}
         </ul>
       )}
-    </SheetBaixo>
+    </BottomSheet>
   );
 }
 
@@ -164,52 +156,20 @@ function LinhaFila({ item, online }: { item: ItemFila; online: boolean }) {
   const falhou = item.tentativas >= MAX_TENTATIVAS;
 
   return (
-    <li
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "0.75rem",
-        padding: "0.5rem",
-        borderRadius: "var(--raio)",
-        backgroundColor: "var(--bg)",
-      }}
-    >
-      <span
-        style={{
-          flex: "none",
-          width: "3rem",
-          height: "3rem",
-          overflow: "hidden",
-          borderRadius: "calc(var(--raio) * 0.75)",
-          backgroundColor: "var(--linha)",
-        }}
-      >
+    <li className="flex items-center gap-3 rounded-token bg-bg p-2">
+      <span className="size-12 shrink-0 overflow-hidden rounded-[calc(var(--raio)*0.75)] bg-linha">
         {url && video ? (
-          <video src={url} muted playsInline preload="metadata" style={miniatura} />
+          <video src={url} muted playsInline preload="metadata" className="block size-full object-cover" />
         ) : url ? (
-          <img src={url} alt="" style={miniatura} />
+          <img src={url} alt="" className="block size-full object-cover" />
         ) : null}
       </span>
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ display: "block", fontSize: "0.875rem", color: "var(--ink)" }}>
-          {video ? "Vídeo" : "Foto"}
-        </span>
-        <span
-          style={{
-            fontSize: "0.75rem",
-            color: falhou ? "var(--critico)" : "var(--ink-3)",
-          }}
-        >
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm text-ink">{video ? "Vídeo" : "Foto"}</span>
+        <span className={`text-xs ${falhou ? "text-critico" : "text-ink-3"}`}>
           {rotuloEstado(item, online)}
         </span>
       </span>
     </li>
   );
 }
-
-const miniatura: React.CSSProperties = {
-  width: "100%",
-  height: "100%",
-  objectFit: "cover",
-  display: "block",
-};

@@ -1,7 +1,7 @@
 "use client";
 
-import type { UrlDeMidia } from "@/lib/midia";
-import type { ItemVisivel } from "@/lib/usar-feed";
+import type { MediaUrl } from "@/lib/media";
+import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 
 /**
  * Grade 3×N do álbum — layout de `TelaAlbum` em `/telas`.
@@ -16,20 +16,11 @@ export function AlbumGrid({
   onAbrir,
 }: {
   itens: readonly ItemVisivel[];
-  urls: Map<string, UrlDeMidia>;
+  urls: Map<string, MediaUrl>;
   onAbrir: (indice: number) => void;
 }) {
   return (
-    <ul
-      style={{
-        listStyle: "none",
-        margin: 0,
-        padding: 0,
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: "2px",
-      }}
-    >
+    <ul className="m-0 grid list-none grid-cols-3 gap-0.5 p-0">
       {itens.map((item, indice) => {
         const ehVideo = item.mime.startsWith("video/");
         const url = urls.get(item.chaveThumb)?.url;
@@ -40,18 +31,7 @@ export function AlbumGrid({
               type="button"
               aria-label={ehVideo ? "Abrir vídeo" : "Abrir foto"}
               onClick={() => onAbrir(indice)}
-              style={{
-                font: "inherit",
-                display: "block",
-                width: "100%",
-                aspectRatio: "1 / 1",
-                padding: 0,
-                border: "none",
-                cursor: "pointer",
-                position: "relative",
-                overflow: "hidden",
-                background: "var(--superficie)",
-              }}
+              className="relative block aspect-square w-full cursor-pointer overflow-hidden border-0 bg-superficie p-0 font-[inherit]"
             >
               {url ? (
                 ehVideo ? (
@@ -61,12 +41,7 @@ export function AlbumGrid({
                       alt=""
                       loading="lazy"
                       decoding="async"
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                        display: "block",
-                      }}
+                      className="block size-full object-cover"
                     />
                     <IndicadorVideo />
                   </>
@@ -76,24 +51,11 @@ export function AlbumGrid({
                     alt={item.legenda ?? ""}
                     loading="lazy"
                     decoding="async"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      display: "block",
-                    }}
+                    className="block size-full object-cover"
                   />
                 )
               ) : (
-                <span
-                  className="album-esperando"
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    height: "100%",
-                    background: "var(--linha)",
-                  }}
-                />
+                <span className="album-esperando block size-full bg-linha" />
               )}
             </button>
           </li>
@@ -107,25 +69,11 @@ export function AlbumGridLoading() {
   return (
     <ul
       aria-hidden
-      style={{
-        listStyle: "none",
-        margin: 0,
-        padding: 0,
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: "2px",
-      }}
+      className="m-0 grid list-none grid-cols-3 gap-0.5 p-0"
     >
       {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
         <li key={i}>
-          <span
-            className="album-esperando"
-            style={{
-              display: "block",
-              aspectRatio: "1 / 1",
-              background: "var(--linha)",
-            }}
-          />
+          <span className="album-esperando block aspect-square bg-linha" />
         </li>
       ))}
     </ul>
@@ -136,28 +84,9 @@ function IndicadorVideo() {
   return (
     <span
       aria-hidden
-      style={{
-        position: "absolute",
-        inset: 0,
-        display: "grid",
-        placeItems: "center",
-        pointerEvents: "none",
-        background:
-          "linear-gradient(to top, color-mix(in srgb, var(--bg) 35%, transparent), transparent 55%)",
-      }}
+      className="pointer-events-none absolute inset-0 grid place-items-center bg-gradient-video-scrim"
     >
-      <span
-        style={{
-          width: "2rem",
-          height: "2rem",
-          borderRadius: "50%",
-          border: "1px solid var(--linha)",
-          background: "color-mix(in srgb, var(--bg) 72%, transparent)",
-          display: "grid",
-          placeItems: "center",
-          fontSize: "0.75rem",
-        }}
-      >
+      <span className="grid size-8 place-items-center rounded-full border border-linha bg-bg-vidro text-xs">
         ▶
       </span>
     </span>

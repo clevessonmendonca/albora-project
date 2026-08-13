@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { raio } from "@/app/landing/pecas";
 
 export function SignOutButton() {
   const [signingOut, setSigningOut] = useState(false);
@@ -10,7 +9,7 @@ export function SignOutButton() {
     try {
       await fetch("/api/admin/sair", { method: "POST" });
     } finally {
-      window.location.assign("/admin/entrar");
+      window.location.assign("/admin/sign-in");
     }
   };
   return (
@@ -18,15 +17,7 @@ export function SignOutButton() {
       type="button"
       onClick={signOut}
       disabled={signingOut}
-      style={{
-        padding: "0.6rem 1.1rem",
-        fontSize: "0.95rem",
-        color: "var(--ink-2)",
-        backgroundColor: "transparent",
-        border: "1px solid var(--linha)",
-        cursor: "pointer",
-        ...raio("var(--raio-pilula)"),
-      }}
+      className="cursor-pointer rounded-pilula border border-linha bg-transparent px-[1.1rem] py-2.5 text-[0.95rem] text-ink-2 disabled:cursor-default"
     >
       {signingOut ? "Saindo…" : "Sair"}
     </button>

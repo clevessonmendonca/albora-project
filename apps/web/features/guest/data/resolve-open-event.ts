@@ -1,6 +1,6 @@
 import { resolverSlug, type Resolucao } from "@albora/db";
-import { banco } from "@/lib/banco";
+import { getPool } from "@/lib/db";
 
 export async function resolveOpenEvent(slug: string): Promise<Resolucao> {
-  return resolverSlug(banco(), slug, new Date());
+  return resolverSlug(getPool(), slug, new Date());
 }

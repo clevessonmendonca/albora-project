@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Moldura } from "@/app/landing/pecas";
-import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 import {
-  CabecalhoConvidado,
-  ChaoConvidado,
-  MioloConvidado,
-  RecadoErro,
-  TextoSecundario,
-} from "@/features/guest/components/client/guest-shell";
-import { Pilula } from "@/features/guest/components/client/guest-ui-parts";
+  Badge,
+  ErrorMessage,
+  Frame,
+  GuestHeader,
+  GuestMain,
+  GuestShell,
+  SecondaryText,
+} from "@albora/ui-web";
+import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 
 type Musica = {
   provedor: string;
@@ -27,7 +27,7 @@ export function MusicPage({ slug }: { slug: string }) {
   useEffect(() => {
     void (async () => {
       try {
-        const r = await fetch("/api/musica", { credentials: "same-origin" });
+        const r = await fetch("/api/music", { credentials: "same-origin" });
         if (!r.ok) throw new Error("falhou");
         const corpo = (await r.json()) as { musica: Musica };
         setMusica(corpo.musica);
@@ -41,155 +41,83 @@ export function MusicPage({ slug }: { slug: string }) {
 
   return (
     <>
-      <ChaoConvidado>
-        <style>{ESTILO_PLAYER}</style>
-        <MioloConvidado comAbas>
-          <CabecalhoConvidado
-            titulo="Música da festa"
-            hrefInicio={`/e/${encodeURIComponent(slug)}/capa`}
-            acao={carregando ? <Pilula>Carregando…</Pilula> : undefined}
+      <GuestShell>
+        <GuestMain reserveTabBarSpace>
+          <GuestHeader
+            title="Música da festa"
+            homeHref={`/e/${encodeURIComponent(slug)}/cover`}
+            action={carregando ? <Badge>Carregando…</Badge> : undefined}
           />
 
-          {carregando && <TextoSecundario>Carregando…</TextoSecundario>}
+          {carregando && <SecondaryText>Carregando…</SecondaryText>}
 
           {!carregando && musica && (
-            <section className="mus-player">
-              <div className="mus-arte">
+            <section className="grid gap-4 pt-2">
+              <div className="relative mx-auto aspect-square w-full max-w-64 overflow-hidden rounded-superficie">
                 {musica.capaUrl ? (
-                  <img src={musica.capaUrl} alt="" className="mus-capa" />
+                  <img
+                    src={musica.capaUrl}
+                    alt=""
+                    className="block size-full object-cover saturate-[0.92]"
+                  />
                 ) : (
-                  <Moldura rotulo="" raio="var(--raio-superficie)" atmosfera variante={3} />
+                  <Frame label="" atmosphere variant={3} />
                 )}
               </div>
 
-              <p className="mus-rotulo">{musica.rotulo}</p>
-              <p className="mus-sub">Escolha do casal</p>
+              <p className="m-0 text-balance text-center font-titulo text-xl leading-[1.3]">
+                {musica.rotulo}
+              </p>
+              <p className="m-0 text-center text-xs uppercase tracking-rotulo text-ink-3">
+                Escolha do casal
+              </p>
 
-              <OndaAnimada />
+              <WaveAnimation />
 
-              <div className="mus-controles">
-                <a href={musica.url} className="mus-play" aria-label="Abrir no app de música">
+              <div className="flex items-center justify-center gap-4">
+                <a
+                  href={musica.url}
+                  className="grid size-[3.25rem] place-items-center rounded-full bg-acento text-base text-sobre-acento no-underline"
+                  aria-label="Abrir no app de música"
+                >
                   ▶
                 </a>
-                <span className="mus-tempo">—:——</span>
+                <span className="text-[0.85rem] tabular-nums text-ink-3">—:——</span>
               </div>
 
-              <a href={musica.url} className="mus-link">
+              <a href={musica.url} className="block text-center text-[0.9rem] text-acento no-underline">
                 Abrir no {musica.provedor}
               </a>
             </section>
           )}
 
           {!carregando && !musica && (
-            <TextoSecundario>
+            <SecondaryText>
               Os anfitriões ainda não escolheram a trilha. Quando escolherem, ela aparece aqui.
-            </TextoSecundario>
+            </SecondaryText>
           )}
 
-          {erro && <RecadoErro>Não deu para carregar agora.</RecadoErro>}
-        </MioloConvidado>
-      </ChaoConvidado>
+          {erro && <ErrorMessage>Não deu para carregar agora.</ErrorMessage>}
+        </GuestMain>
+      </GuestShell>
       <GuestTabBar slug={slug} />
     </>
   );
 }
 
-function OndaAnimada() {
+function WaveAnimation() {
   return (
-    <div className="mus-onda" aria-hidden>
+    <div
+      className="flex h-10 items-end justify-center gap-[3px] my-2 motion-reduce:[&_span]:animate-none"
+      aria-hidden
+    >
       {Array.from({ length: 24 }, (_, i) => (
-        <span key={i} className="mus-barra" style={{ animationDelay: `${i * 0.07}s` }} />
+        <span
+          key={i}
+          className="h-[40%] w-[3px] animate-[mus-pulsar_1.4s_var(--curva)_infinite_alternate] rounded-pilula bg-acento motion-reduce:animate-none"
+          style={{ animationDelay: `${i * 0.07}s` }}
+        />
       ))}
     </div>
   );
 }
-
-const ESTILO_PLAYER = `
-.mus-player {
-  display: grid;
-  gap: 1rem;
-  padding-top: 0.5rem;
-}
-.mus-arte {
-  position: relative;
-  aspect-ratio: 1;
-  max-width: 16rem;
-  margin: 0 auto;
-  border-radius: var(--raio-superficie);
-  overflow: hidden;
-}
-.mus-capa {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  filter: saturate(0.92);
-}
-.mus-rotulo {
-  margin: 0;
-  font-family: var(--fonte-titulo);
-  font-size: 1.25rem;
-  line-height: 1.3;
-  text-align: center;
-  text-wrap: balance;
-}
-.mus-sub {
-  margin: 0;
-  font-size: 0.75rem;
-  letter-spacing: var(--tracking-rotulo);
-  text-transform: uppercase;
-  text-align: center;
-  color: var(--ink-3);
-}
-.mus-onda {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 3px;
-  height: 2.5rem;
-  margin: 0.5rem 0;
-}
-.mus-barra {
-  width: 3px;
-  height: 40%;
-  border-radius: var(--raio-pilula);
-  background: var(--acento);
-  animation: mus-pulsar 1.4s var(--curva) infinite alternate;
-}
-@keyframes mus-pulsar {
-  from { transform: scaleY(0.35); opacity: 0.55; }
-  to   { transform: scaleY(1); opacity: 1; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .mus-barra { animation: none; }
-}
-.mus-controles {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-.mus-play {
-  display: grid;
-  place-items: center;
-  width: 3.25rem;
-  height: 3.25rem;
-  border-radius: 50%;
-  background: var(--acento);
-  color: var(--sobre-acento);
-  text-decoration: none;
-  font-size: 1rem;
-}
-.mus-tempo {
-  font-size: 0.85rem;
-  color: var(--ink-3);
-  font-variant-numeric: tabular-nums;
-}
-.mus-link {
-  display: block;
-  text-align: center;
-  color: var(--acento);
-  font-size: 0.9rem;
-  text-decoration: none;
-}
-`;

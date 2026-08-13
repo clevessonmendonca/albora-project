@@ -1,17 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { agruparPorHora, type GrupoDeHora } from "@/lib/agrupar-por-hora";
-import { usarFeed, type ItemVisivel } from "@/lib/usar-feed";
-import { BarraDeAbas } from "@/features/guest/components/client/guest-tab-bar";
+import { groupByHour, type HourGroup } from "@/features/feed/lib/group-by-hour";
+import { useFeed, type ItemVisivel } from "@/features/feed/hooks/use-feed";
+import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 import {
-  AvisoGate,
-  CabecalhoConvidado,
-  ChaoConvidado,
-  EstadoVazio,
-  MioloConvidado,
-} from "@/features/guest/components/client/guest-shell";
-import { Pilula } from "@/features/guest/components/client/guest-ui-parts";
+  GateNotice,
+  GuestHeader,
+  GuestShell,
+  EmptyState,
+  GuestMain,
+  SecondaryButton,
+  cn,
+} from "@albora/ui-web";
+import { Badge } from "@albora/ui-web";
 import { Post, PostLoading } from "./post";
 import { MirrorGrid, MirrorGridLoading } from "./mirror-grid";
 import { viewerKeys, Viewer } from "./viewer";
@@ -32,7 +34,7 @@ import { HourStrip, HourStripLoading } from "./hour-strip";
  *   inteira, e o fim da lista fica longe: uma ação primária que só aparece lá
  *   embaixo não existe. Ela não sai da tela em nenhum estado — nem no vazio,
  *   nem no erro, nem com o visualizador aberto, que carrega a sua.
- * - **A tela cheia devolve para o feed.** A hora acaba, e o que sobra é a
+ * - **A tela filled devolve para o feed.** A hora acaba, e o que sobra é a
  *   câmera.
  *
  * Nada de contagem: antes do gate ela nem chega do servidor, e depois dele
@@ -45,8 +47,6 @@ export type FeedCopy = {
   /** Como esta festa chama a lista de missões. Vem resolvido do pack. */
   missionTitle: string;
 };
-
-const TOQUE_MINIMO = "48px";
 
 /** Identidade estável: `[]` novo a cada render reabriria o efeito à toa. */
 const SEM_CHAVES: string[] = [];
@@ -68,7 +68,7 @@ export function FeedPage({
   cameraPath: string;
 }) {
   const [missionId, setMissaoId] = useState<string | null>(null);
-  const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = usarFeed(missionId);
+  const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = useFeed(missionId);
 
   const [aberto, setAberto] = useState<Aberto | null>(null);
   const [preparando, setPreparando] = useState<number | null>(null);
@@ -85,7 +85,7 @@ export function FeedPage({
    */
   const temMais = !estado.fim && estado.falha === null;
   const grupos = useMemo(
-    () => agruparPorHora(estado.itens, { temMais }),
+    () => groupByHour(estado.itens, { temMais }),
     [estado.itens, temMais],
   );
 
@@ -149,7 +149,7 @@ export function FeedPage({
     if (aberto && !grupoAberto) setAberto(null);
   }, [aberto, grupoAberto]);
 
-  // Sem isto o dedo atravessa a tela cheia e rola o feed atrás dela — e a pessoa
+  // Sem isto o dedo atravessa a tela filled e rola o feed atrás dela — e a pessoa
   // fecha a hora num lugar da lista que não é o que ela deixou.
   useEffect(() => {
     if (!grupoAberto) return;
@@ -161,7 +161,7 @@ export function FeedPage({
     };
   }, [grupoAberto]);
 
-  function abrir(grupo: GrupoDeHora<ItemVisivel>) {
+  function abrir(grupo: HourGroup<ItemVisivel>) {
     const inicio = grupo.inicio.getTime();
     const primeiro = grupo.itens[0];
 
@@ -177,7 +177,7 @@ export function FeedPage({
 
   return (
     <>
-      <ChaoConvidado>
+      <GuestShell>
         <style>{`
           @keyframes feed-amanhecer {
             from { opacity: 0; filter: brightness(0.4) saturate(0.6); }
@@ -194,18 +194,18 @@ export function FeedPage({
           }
         `}</style>
 
-        <MioloConvidado>
-          <CabecalhoConvidado
-            titulo={eventTitle}
-            hrefInicio={`/e/${encodeURIComponent(slug)}/capa`}
-            acao={contagem ? <Pilula>{contagem}</Pilula> : undefined}
+        <GuestMain>
+          <GuestHeader
+            title={eventTitle}
+            homeHref={`/e/${encodeURIComponent(slug)}/cover`}
+            action={contagem ? <Badge>{contagem}</Badge> : undefined}
           />
 
           {espelho && estado.jaCarregou && (
-            <AvisoGate>
+            <GateNotice>
               As reações e os comentários abrem no horário que o anfitrião escolheu. Até lá,
               continue enviando: tudo já está indo para o álbum.
-            </AvisoGate>
+            </GateNotice>
           )}
 
           {primeiraCarga && completo && <HourStripLoading />}
@@ -232,7 +232,7 @@ export function FeedPage({
           )}
 
           {estado.midiaIndisponivel && (
-            <p style={{ margin: "0 0 1rem", fontSize: "0.85rem", color: "var(--ink-3)" }}>
+            <p className="mb-4 text-[0.85rem] text-ink-3">
               As fotos ainda não abriram. Elas aparecem sozinhas.
             </p>
           )}
@@ -246,10 +246,10 @@ export function FeedPage({
           )}
 
           {vazio && (
-            <EstadoVazio
-              titulo={completo && missionId !== null ? "Ninguém mandou essa ainda." : "Ainda não tem foto."}
+            <EmptyState
+              title={completo && missionId !== null ? "Ninguém mandou essa ainda." : "Ainda não tem foto."}
               lede={completo && missionId !== null ? "A sua pode ser a primeira." : "Seja o primeiro."}
-              caminhoDaCamera={cameraPath}
+              cameraPath={cameraPath}
             />
           )}
 
@@ -290,10 +290,10 @@ export function FeedPage({
             onVerMais={carregarMais}
             onRecomecar={recomecar}
           />
-        </MioloConvidado>
-      </ChaoConvidado>
+        </GuestMain>
+      </GuestShell>
 
-      <BarraDeAbas slug={slug} ativa="feed" />
+      <GuestTabBar slug={slug} active="feed" />
 
       {completo && grupoAberto && (
         <Viewer
@@ -323,18 +323,7 @@ function Coluna({
   comDivisor?: boolean;
 }) {
   return (
-    <div
-      style={{
-        display: "grid",
-        ...(comDivisor
-          ? {
-              borderTopWidth: "1px",
-              borderTopStyle: "solid",
-              borderTopColor: "var(--linha)",
-            }
-          : {}),
-      }}
-    >
+    <div className={cn("grid", comDivisor && "border-t border-linha")}>
       {children}
     </div>
   );
@@ -358,40 +347,32 @@ function Filtro({
       // tira de horas logo acima, mais uma linha de rótulo visível empurraria a
       // primeira foto para fora da tela.
       aria-label={rotulo}
-      style={{
-        display: "flex",
-        gap: "calc(var(--espaco) * 6)",
-        overflowX: "auto",
-        scrollbarWidth: "none",
-        margin: "calc(var(--espaco) * 3) calc(var(--espaco) * -5) calc(var(--espaco) * 5)",
-        padding: "0 calc(var(--espaco) * 5)",
-        borderBottom: "1px solid var(--linha)",
-      }}
+      className="mx-[calc(var(--espaco)*-5)] mb-[calc(var(--espaco)*5)] mt-[calc(var(--espaco)*3)] flex gap-[calc(var(--espaco)*6)] overflow-x-auto border-b border-linha px-[calc(var(--espaco)*5)] [scrollbar-width:none]"
     >
-      <Etiqueta ativa={escolhida === null} onClick={() => onEscolher(null)}>
+      <FilterTab active={escolhida === null} onClick={() => onEscolher(null)}>
         Tudo
-      </Etiqueta>
+      </FilterTab>
 
       {missions.map((m) => (
-        <Etiqueta
+        <FilterTab
           key={m.id}
-          ativa={escolhida === m.id}
+          active={escolhida === m.id}
           onClick={() => onEscolher(escolhida === m.id ? null : m.id)}
         >
           {m.title}
-        </Etiqueta>
+        </FilterTab>
       ))}
     </div>
   );
 }
 
 /** Sublinhado, nunca pílula preenchida: é vocabulário de menu impresso. */
-function Etiqueta({
-  ativa,
+function FilterTab({
+  active,
   onClick,
   children,
 }: {
-  ativa: boolean;
+  active: boolean;
   onClick: () => void;
   children: React.ReactNode;
 }) {
@@ -399,28 +380,14 @@ function Etiqueta({
     <button
       type="button"
       onClick={onClick}
-      aria-pressed={ativa}
-      style={{
-        font: "inherit",
-        flex: "none",
-        maxWidth: "14rem",
-        minHeight: TOQUE_MINIMO,
-        padding: 0,
-        cursor: "pointer",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
-        fontFamily: "var(--fonte-titulo)",
-        fontSize: "0.68rem",
-        fontWeight: 400,
-        letterSpacing: "0.2em",
-        textTransform: "uppercase",
-        background: "transparent",
-        border: "none",
-        borderBottom: ativa ? "1px solid var(--acento)" : "1px solid transparent",
-        color: ativa ? "var(--ink)" : "var(--ink-3)",
-        transition: "color var(--tempo-rapido) var(--curva)",
-      }}
+      aria-pressed={active}
+      className={cn(
+        "max-w-56 min-h-12 flex-none cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap border-none bg-transparent p-0 font-titulo text-[0.68rem] font-normal uppercase tracking-[0.2em]",
+        "[transition:color_var(--tempo-rapido)_var(--curva)]",
+        active
+          ? "border-b border-b-acento text-ink"
+          : "border-b border-b-transparent text-ink-3",
+      )}
     >
       {children}
     </button>
@@ -433,7 +400,7 @@ function Rodape({
   onVerMais,
   onRecomecar,
 }: {
-  estado: ReturnType<typeof usarFeed>["estado"];
+  estado: ReturnType<typeof useFeed>["estado"];
   temItens: boolean;
   onVerMais: () => void;
   onRecomecar: () => void;
@@ -446,15 +413,17 @@ function Rodape({
 
   if (estado.falha !== null) {
     return (
-      <div style={{ marginTop: "calc(var(--espaco) * 6)", textAlign: "center" }}>
-        <p style={{ margin: "0 0 0.75rem", fontSize: "0.9rem", color: "var(--ink-2)" }}>
+      <div className="mt-[calc(var(--espaco)*6)] text-center">
+        <p className="mb-3 text-[0.9rem] text-ink-2">
           Não consegui carregar o resto agora.
         </p>
         {/* Recomeçar do topo é toque do convidado, nunca efeito colateral do
             erro: uma lista que se rebobina sozinha perde o lugar de quem rolou. */}
-        <Secundario onClick={estado.falha === "cursor" || !temItens ? onRecomecar : onVerMais}>
+        <SecondaryButton
+          onClick={estado.falha === "cursor" || !temItens ? onRecomecar : onVerMais}
+        >
           Tentar de novo
-        </Secundario>
+        </SecondaryButton>
       </div>
     );
   }
@@ -462,59 +431,19 @@ function Rodape({
   if (estado.fim || estado.cursor === null) return null;
 
   return (
-    <div style={{ marginTop: "calc(var(--espaco) * 6)" }}>
-      <Secundario onClick={onVerMais} desabilitado={estado.carregando}>
+    <div className="mt-[calc(var(--espaco)*6)]">
+      <SecondaryButton onClick={onVerMais} disabled={estado.carregando}>
         {estado.carregando ? "Carregando…" : "Ver mais"}
-      </Secundario>
+      </SecondaryButton>
     </div>
   );
 }
 
 function Recado({ texto }: { texto: string }) {
   return (
-    <p
-      style={{
-        margin: "calc(var(--espaco) * 6) 0 0",
-        fontSize: "0.9rem",
-        lineHeight: 1.6,
-        textAlign: "center",
-        color: "var(--ink-2)",
-      }}
-    >
+    <p className="mt-[calc(var(--espaco)*6)] text-center text-[0.9rem] leading-relaxed text-ink-2">
       {texto}
     </p>
-  );
-}
-
-function Secundario({
-  onClick,
-  desabilitado,
-  children,
-}: {
-  onClick: () => void;
-  desabilitado?: boolean | undefined;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={desabilitado ?? false}
-      style={{
-        font: "inherit",
-        width: "100%",
-        minHeight: TOQUE_MINIMO,
-        borderRadius: "var(--raio-pilula)",
-        border: "1px solid var(--linha)",
-        background: "transparent",
-        color: "var(--ink-2)",
-        fontSize: "0.95rem",
-        cursor: desabilitado ? "default" : "pointer",
-        opacity: desabilitado ? 0.5 : 1,
-      }}
-    >
-      {children}
-    </button>
   );
 }
 

@@ -1,14 +1,14 @@
 import {
-  CabecalhoConvidado,
-  ChaoConvidado,
-  MioloConvidado,
-} from "@/features/guest/components/client/guest-shell";
+  GuestHeader,
+  GuestShell,
+  GuestMain,
+} from "@albora/ui-web";
 import { PostLoading } from "../client/post";
 import { HourStripLoading } from "../client/hour-strip";
 
 export function FeedPageSkeleton() {
   return (
-    <ChaoConvidado semStatus>
+    <GuestShell hideStatusBar>
       <style>{`
         @keyframes feed-respirar {
           0%, 100% { opacity: 1; }
@@ -19,14 +19,14 @@ export function FeedPageSkeleton() {
           .feed-esperando { animation: none !important; }
         }
       `}</style>
-      <MioloConvidado>
-        <CabecalhoConvidado titulo="A festa" hrefInicio="#" />
+      <GuestMain>
+        <GuestHeader title="A festa" homeHref="#" />
         <HourStripLoading />
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", marginTop: "1rem" }}>
+        <div className="mt-4 flex flex-col gap-6">
           <PostLoading />
           <PostLoading />
         </div>
-      </MioloConvidado>
-    </ChaoConvidado>
+      </GuestMain>
+    </GuestShell>
   );
 }

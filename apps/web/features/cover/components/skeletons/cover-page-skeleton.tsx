@@ -1,53 +1,31 @@
-import { ChaoConvidado, RODAPE_ABAS } from "@/features/guest/components/client/guest-shell";
-import { raio } from "@/app/landing/pecas";
+import { GuestShell } from "@albora/ui-web";
 
 function Block({
-  height,
-  width = "100%",
-  rounded,
+  className,
 }: {
-  height: string;
-  width?: string;
-  rounded?: string;
+  className: string;
 }) {
-  return (
-    <div
-      aria-hidden
-      style={{
-        width,
-        height,
-        ...(rounded ? raio(rounded) : {}),
-        backgroundColor: "color-mix(in srgb, var(--ink) 8%, transparent)",
-      }}
-    />
-  );
+  return <div aria-hidden className={`bg-ink-skeleton ${className}`} />;
 }
 
 export function CoverPageSkeleton() {
   return (
-    <ChaoConvidado semStatus>
-      <Block height="20.5rem" />
-      <div style={{ marginTop: "-3.25rem", padding: "0 1.5rem", textAlign: "center" }}>
-        <Block height="2rem" width="72%" rounded="var(--raio)" />
-        <div style={{ marginTop: "0.5rem" }}>
-          <Block height="0.875rem" width="48%" rounded="var(--raio-pilula)" />
+    <GuestShell hideStatusBar>
+      <Block className="h-[20.5rem] w-full" />
+      <div className="-mt-13 px-6 text-center">
+        <Block className="mx-auto h-8 w-[72%] rounded-token" />
+        <div className="mt-2">
+          <Block className="mx-auto h-3.5 w-[48%] rounded-pilula" />
         </div>
       </div>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: "0.5rem",
-          padding: "1.25rem 1.125rem 1.125rem",
-        }}
-      >
+      <div className="grid grid-cols-4 gap-2 px-[1.125rem] pb-[1.125rem] pt-5">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Block key={i} height="4.5rem" rounded="var(--raio)" />
+          <Block key={i} className="h-[4.5rem] w-full rounded-token" />
         ))}
       </div>
-      <div style={{ padding: `1.125rem 1.5rem ${RODAPE_ABAS}` }}>
-        <Block height="3rem" rounded="var(--raio-pilula)" />
+      <div className="px-6 pt-[1.125rem] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
+        <Block className="h-12 w-full rounded-pilula" />
       </div>
-    </ChaoConvidado>
+    </GuestShell>
   );
 }

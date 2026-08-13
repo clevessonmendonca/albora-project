@@ -1,0 +1,24 @@
+/**
+ * Sem sessão não há superfície do convidado: a identidade é escopada a um
+ * evento (ADR 0009). O caminho de volta é o QR — a tela oferece o atalho.
+ */
+export function NoSession({ slug }: { slug: string }) {
+  return (
+    <main className="grid min-h-dvh place-items-center bg-bg px-6 py-8 font-corpo text-ink">
+      <div className="w-full max-w-sm text-center">
+        <h1 className="mb-3 font-titulo text-[1.6rem] font-medium [text-wrap:balance]">
+          Falta você entrar
+        </h1>
+        <p className="mb-7 leading-normal text-ink-2">
+          É rápido: diz seu primeiro nome e as fotos da festa aparecem.
+        </p>
+        <a
+          href={`/e/${encodeURIComponent(slug)}`}
+          className="flex min-h-14 items-center justify-center rounded-token bg-ink text-[1.05rem] font-medium text-bg no-underline"
+        >
+          Entrar
+        </a>
+      </div>
+    </main>
+  );
+}

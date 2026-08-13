@@ -1,7 +1,7 @@
 "use client";
 
-import type { UrlDeMidia } from "@/lib/midia";
-import type { ItemVisivel } from "@/lib/usar-feed";
+import type { MediaUrl } from "@/lib/media";
+import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 
 /**
  * Parede espelhada antes do gate — layout de `TelaAntesDoGate` em `/telas`.
@@ -15,16 +15,10 @@ export function MirrorGrid({
   urls,
 }: {
   itens: readonly ItemVisivel[];
-  urls: Map<string, UrlDeMidia>;
+  urls: Map<string, MediaUrl>;
 }) {
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "0.375rem",
-      }}
-    >
+    <div className="grid grid-cols-2 gap-1.5">
       {itens.map((item) => {
         const ehVideo = item.mime.startsWith("video/");
         const url = urls.get(item.chaveThumb)?.url;
@@ -32,13 +26,7 @@ export function MirrorGrid({
         return (
           <div
             key={item.id}
-            style={{
-              position: "relative",
-              aspectRatio: "1 / 1",
-              borderRadius: "var(--raio)",
-              overflow: "hidden",
-              background: "var(--superficie)",
-            }}
+            className="relative aspect-square overflow-hidden rounded-token bg-superficie"
           >
             {url ? (
               ehVideo ? (
@@ -48,37 +36,13 @@ export function MirrorGrid({
                     alt=""
                     loading="lazy"
                     decoding="async"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      display: "block",
-                    }}
+                    className="block size-full object-cover"
                   />
                   <span
                     aria-hidden
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      display: "grid",
-                      placeItems: "center",
-                      pointerEvents: "none",
-                      background:
-                        "linear-gradient(to top, color-mix(in srgb, var(--bg) 35%, transparent), transparent 55%)",
-                    }}
+                    className="pointer-events-none absolute inset-0 grid place-items-center bg-overlay-video"
                   >
-                    <span
-                      style={{
-                        width: "2rem",
-                        height: "2rem",
-                        borderRadius: "50%",
-                        border: "1px solid var(--linha)",
-                        background: "color-mix(in srgb, var(--bg) 72%, transparent)",
-                        display: "grid",
-                        placeItems: "center",
-                        fontSize: "0.75rem",
-                      }}
-                    >
+                    <span className="grid size-8 place-items-center rounded-full border border-linha bg-bg-vidro text-xs">
                       ▶
                     </span>
                   </span>
@@ -89,23 +53,11 @@ export function MirrorGrid({
                   alt={item.legenda ?? ""}
                   loading="lazy"
                   decoding="async"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
+                  className="block size-full object-cover"
                 />
               )
             ) : (
-              <div
-                className="feed-esperando"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  border: "1px solid var(--linha)",
-                }}
-              />
+              <div className="feed-esperando size-full border border-linha" />
             )}
           </div>
         );
@@ -116,23 +68,11 @@ export function MirrorGrid({
 
 export function MirrorGridLoading() {
   return (
-    <div
-      aria-hidden
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr",
-        gap: "0.375rem",
-      }}
-    >
+    <div aria-hidden className="grid grid-cols-2 gap-1.5">
       {[0, 1, 2, 3, 4, 5].map((i) => (
         <span
           key={i}
-          className="feed-esperando"
-          style={{
-            aspectRatio: "1 / 1",
-            borderRadius: "var(--raio)",
-            border: "1px solid var(--linha)",
-          }}
+          className="feed-esperando aspect-square rounded-token border border-linha"
         />
       ))}
     </div>

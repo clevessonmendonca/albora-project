@@ -2,29 +2,28 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { CSSProperties } from "react";
-import { raio } from "@/app/landing/pecas";
 import {
-  BotaoPrimario,
-  CabecalhoConvidado,
-  ChaoConvidado,
-  MioloConvidado,
-  TextoSecundario,
-  TituloGrande,
-} from "@/features/guest/components/client/guest-shell";
-import { Estrela, Pilula } from "@/features/guest/components/client/guest-ui-parts";
-import { BarraDeAbas } from "@/features/guest/components/client/guest-tab-bar";
+  Badge,
+  DisplayTitle,
+  GuestHeader,
+  GuestMain,
+  GuestShell,
+  PrimaryButton,
+  SecondaryText,
+  Star,
+} from "@albora/ui-web";
+import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 
 export type VisibleMission = { id: string; title: string; done: boolean };
 
 function turnIndex(missions: readonly VisibleMission[]): number {
-  const aberta = missions.findIndex((m) => !m.done);
-  if (aberta >= 0) return aberta + 1;
+  const open = missions.findIndex((m) => !m.done);
+  if (open >= 0) return open + 1;
   return missions.length;
 }
 
 function photoPathForMission(slug: string, missionId: string | null): string {
-  const base = `/e/${encodeURIComponent(slug)}/foto`;
+  const base = `/e/${encodeURIComponent(slug)}/photo`;
   if (!missionId) return base;
   return `${base}?missao=${encodeURIComponent(missionId)}`;
 }
@@ -36,124 +35,93 @@ export function MissionsPage({
   slug: string;
   missions: VisibleMission[];
 }) {
-  const feitas = missions.filter((m) => m.done).length;
-  const atual = missions.find((m) => !m.done) ?? null;
-  const indice = turnIndex(missions);
-  const resumo =
+  const doneCount = missions.filter((m) => m.done).length;
+  const current = missions.find((m) => !m.done) ?? null;
+  const index = turnIndex(missions);
+  const summary =
     missions.length === 0
       ? "Modo livre"
-      : feitas === missions.length
+      : doneCount === missions.length
         ? `${missions.length} de ${missions.length}`
-        : `${indice} de ${missions.length}`;
+        : `${index} de ${missions.length}`;
 
   return (
     <>
-      <ChaoConvidado>
-        <MioloConvidado>
-          <CabecalhoConvidado
-            titulo="Missões"
-            hrefInicio={`/e/${encodeURIComponent(slug)}/capa`}
-            acao={<Pilula>{resumo}</Pilula>}
+      <GuestShell>
+        <GuestMain>
+          <GuestHeader
+            title="Missões"
+            homeHref={`/e/${encodeURIComponent(slug)}/cover`}
+            action={<Badge>{summary}</Badge>}
           />
 
           {missions.length === 0 ? (
-            <EstadoLivre slug={slug} />
-          ) : atual ? (
+            <FreeModeState slug={slug} />
+          ) : current ? (
             <>
               <Link
-                href={photoPathForMission(slug, atual.id)}
-                style={{
-                  display: "grid",
-                  gap: "0.75rem",
-                  padding: "1.25rem 1.125rem",
-                  textDecoration: "none",
-                  color: "inherit",
-                  ...raio("var(--raio)"),
-                  backgroundColor: "color-mix(in srgb, var(--acento) 14%, var(--superficie))",
-                  borderWidth: "1px",
-                  borderStyle: "solid",
-                  borderColor: "color-mix(in srgb, var(--acento) 35%, var(--linha))",
-                }}
+                href={photoPathForMission(slug, current.id)}
+                className="grid gap-3 rounded-token border border-acento-borda bg-acento-superficie-forte p-5 text-inherit no-underline"
               >
-                <span
-                  style={{
-                    fontSize: "0.6875rem",
-                    letterSpacing: "var(--tracking-rotulo)",
-                    textTransform: "uppercase",
-                    color: "var(--acento-texto)",
-                  }}
-                >
+                <span className="text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
                   Missão de agora
                 </span>
-                <span
-                  style={{
-                    fontFamily: "var(--fonte-titulo)",
-                    fontSize: "1.375rem",
-                    lineHeight: 1.15,
-                    letterSpacing: "var(--tracking-titulo)",
-                  }}
-                >
-                  {atual.title}
+                <span className="font-titulo text-[1.375rem] leading-[1.15] tracking-titulo">
+                  {current.title}
                 </span>
-                <span style={{ fontSize: "0.8125rem", color: "var(--ink-2)" }}>
-                  Toque para fotografar
-                </span>
+                <span className="text-[0.8125rem] text-ink-2">Toque para fotografar</span>
               </Link>
 
-              <TextoSecundario>As outras missões</TextoSecundario>
+              <SecondaryText>As outras missões</SecondaryText>
 
-              <ul
-                style={{
-                  listStyle: "none",
-                  margin: 0,
-                  padding: 0,
-                  display: "grid",
-                  gap: "0.5rem",
-                }}
-              >
-                {missions.map((m) => (
-                  <li key={m.id}>
-                    <ItemMissao slug={slug} missao={m} destaque={m.id === atual.id} />
+              <ul className="m-0 grid list-none gap-2 p-0">
+                {missions.map((mission) => (
+                  <li key={mission.id}>
+                    <MissionItem
+                      slug={slug}
+                      mission={mission}
+                      highlighted={mission.id === current.id}
+                    />
                   </li>
                 ))}
               </ul>
             </>
           ) : (
             <>
-              <TituloGrande>
+              <DisplayTitle>
                 Você fez todas as {missions.length}.
                 <br />
                 <em>Manda o que quiser.</em>
-              </TituloGrande>
-              <BotaoCamera slug={slug} rotulo="Abrir a câmera" />
-              <ListaConcluidas slug={slug} missions={missions} />
+              </DisplayTitle>
+              <CameraButton slug={slug} label="Abrir a câmera" />
+              <CompletedList slug={slug} missions={missions} />
             </>
           )}
 
-          {atual && (
-            <div style={{ marginTop: "0.5rem" }}>
-              <BotaoCamera slug={slug} rotulo="Modo livre" />
+          {current && (
+            <div className="mt-2">
+              <CameraButton slug={slug} label="Modo livre" />
             </div>
           )}
-        </MioloConvidado>
-      </ChaoConvidado>
+        </GuestMain>
+      </GuestShell>
 
-      <BarraDeAbas slug={slug} ativa="missoes" />
+      <GuestTabBar slug={slug} active="missoes" />
     </>
   );
 }
 
-function EstadoLivre({ slug }: { slug: string }) {
+function FreeModeState({ slug }: { slug: string }) {
   return (
     <>
-      <TituloGrande>Modo livre</TituloGrande>
-      <TextoSecundario>Este evento não tem missões. Fotografe o que quiser.</TextoSecundario>
-      <BotaoCamera slug={slug} rotulo="Abrir a câmera" />
+      <DisplayTitle>Modo livre</DisplayTitle>
+      <SecondaryText>Este evento não tem missões. Fotografe o que quiser.</SecondaryText>
+      <CameraButton slug={slug} label="Abrir a câmera" />
     </>
   );
 }
 
-function ListaConcluidas({
+function CompletedList({
   slug,
   missions,
 }: {
@@ -161,114 +129,85 @@ function ListaConcluidas({
   missions: readonly VisibleMission[];
 }) {
   return (
-    <ul
-      style={{
-        listStyle: "none",
-        margin: "1.5rem 0 0",
-        padding: 0,
-        display: "grid",
-        gap: "0.5rem",
-      }}
-    >
-      {missions.map((m) => (
-        <li key={m.id}>
-          <ItemMissao slug={slug} missao={m} destaque={false} />
+    <ul className="mt-6 grid list-none gap-2 p-0">
+      {missions.map((mission) => (
+        <li key={mission.id}>
+          <MissionItem slug={slug} mission={mission} highlighted={false} />
         </li>
       ))}
     </ul>
   );
 }
 
-function ItemMissao({
+function MissionItem({
   slug,
-  missao,
-  destaque,
+  mission,
+  highlighted,
 }: {
   slug: string;
-  missao: VisibleMission;
-  destaque: boolean;
+  mission: VisibleMission;
+  highlighted: boolean;
 }) {
-  const conteudo = (
+  const icon = (
+    <span
+      className={[
+        "grid size-10 flex-none place-items-center rounded-token border",
+        mission.done
+          ? "border-acento bg-superficie-alta"
+          : "border-linha bg-superficie",
+      ].join(" ")}
+    >
+      <Star size={18} filled={mission.done} />
+    </span>
+  );
+
+  const body = (
     <>
-      <span
-        style={{
-          flex: "none",
-          display: "grid",
-          placeItems: "center",
-          width: "2.5rem",
-          height: "2.5rem",
-          ...raio("var(--raio)"),
-          backgroundColor: missao.done ? "var(--superficie-alta)" : "var(--superficie)",
-          borderWidth: "1px",
-          borderStyle: "solid",
-          borderColor: missao.done ? "var(--acento)" : "var(--linha)",
-        }}
-      >
-        <Estrela tamanho={18} cheia={missao.done} />
-      </span>
-      <span style={{ flex: 1, minWidth: 0 }}>
-        <span
-          style={{
-            display: "block",
-            fontFamily: "var(--fonte-titulo)",
-            fontSize: "1rem",
-            lineHeight: 1.25,
-          }}
-        >
-          {missao.title}
-        </span>
-        <span style={{ fontSize: "0.75rem", color: "var(--ink-3)" }}>
-          {missao.done ? "Feita" : destaque ? "Agora" : "Aberta"}
+      {icon}
+      <span className="min-w-0 flex-1">
+        <span className="block font-titulo text-base leading-[1.25]">{mission.title}</span>
+        <span className="text-[0.75rem] text-ink-3">
+          {mission.done ? "Feita" : highlighted ? "Agora" : "Aberta"}
         </span>
       </span>
     </>
   );
 
-  const estiloBase: CSSProperties = {
-    display: "flex",
-    alignItems: "center",
-    gap: "0.875rem",
-    width: "100%",
-    padding: "0.875rem 1rem",
-    ...raio("var(--raio)"),
-    backgroundColor: destaque && !missao.done ? "var(--superficie-alta)" : "var(--superficie)",
-    borderWidth: "1px",
-    borderStyle: "solid",
-    borderColor: destaque && !missao.done ? "var(--linha)" : "transparent",
-    textAlign: "left",
-  };
+  const shellClass = [
+    "flex w-full items-center gap-3.5 rounded-token border px-4 py-3.5 text-left",
+    highlighted && !mission.done
+      ? "border-linha bg-superficie-alta"
+      : "border-transparent bg-superficie",
+  ].join(" ");
 
-  if (missao.done) {
+  if (mission.done) {
     return (
-      <div style={{ ...estiloBase, color: "var(--ink-2)" }} aria-disabled>
-        {conteudo}
+      <div className={`${shellClass} text-ink-2`} aria-disabled>
+        {body}
       </div>
     );
   }
 
   return (
-    <Link
-      href={photoPathForMission(slug, missao.id)}
-      style={{ ...estiloBase, textDecoration: "none", color: "inherit" }}
-    >
-      {conteudo}
+    <Link href={photoPathForMission(slug, mission.id)} className={`${shellClass} text-inherit no-underline`}>
+      {body}
     </Link>
   );
 }
 
-function BotaoCamera({
+function CameraButton({
   slug,
-  rotulo,
+  label,
   missionId = null,
 }: {
   slug: string;
-  rotulo: string;
+  label: string;
   missionId?: string | null;
 }) {
   const router = useRouter();
   return (
-    <BotaoPrimario onClick={() => router.push(photoPathForMission(slug, missionId ?? null))}>
-      {rotulo}
-    </BotaoPrimario>
+    <PrimaryButton onClick={() => router.push(photoPathForMission(slug, missionId ?? null))}>
+      {label}
+    </PrimaryButton>
   );
 }

@@ -3,10 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { BarraDeAbas } from "@/features/guest/components/client/guest-tab-bar";
-import { Moldura, raio } from "@/app/landing/pecas";
-import { BotaoPrimario, ChaoConvidado, RODAPE_ABAS } from "@/features/guest/components/client/guest-shell";
-import { Estrela, IconeGrade, IconePilha } from "@/features/guest/components/client/guest-ui-parts";
+import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
+import {
+  Badge,
+  Frame,
+  GridIcon,
+  GuestShell,
+  PrimaryButton,
+  StackIcon,
+  Star,
+} from "@albora/ui-web";
 import type { AlbumServido } from "@/lib/album";
 import type { CoverMoment } from "../../types/cover";
 
@@ -52,29 +58,11 @@ function Shortcut({
   return (
     <Link
       href={href}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "0.3125rem",
-        padding: "0.75rem 0.25rem",
-        ...raio("var(--raio)"),
-        backgroundColor: "var(--superficie)",
-        color: "var(--ink-2)",
-        textDecoration: "none",
-      }}
+      className="flex flex-col items-center gap-[0.3125rem] rounded-token bg-superficie px-1 py-3 text-ink-2 no-underline"
     >
       {icon}
-      <span
-        style={{
-          fontSize: "0.625rem",
-          letterSpacing: "var(--tracking-rotulo)",
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </span>
-      <span style={{ fontSize: "0.6875rem", color: "var(--ink)" }}>{value}</span>
+      <span className="text-[0.625rem] uppercase tracking-rotulo">{label}</span>
+      <span className="text-[0.6875rem] text-ink">{value}</span>
     </Link>
   );
 }
@@ -106,55 +94,22 @@ export function CoverPage({
 
   return (
     <>
-      <ChaoConvidado>
-        <div style={{ position: "relative", height: "20.5rem", flex: "none" }}>
+      <GuestShell>
+        <div className="relative h-[20.5rem] shrink-0">
           {hero ? (
-            <img
-              src={hero}
-              alt=""
-              style={{
-                position: "absolute",
-                inset: 0,
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-              }}
-            />
+            <img src={hero} alt="" className="absolute inset-0 size-full object-cover" />
           ) : (
-            <Moldura rotulo="" raio="0rem" atmosfera variante={1} />
+            <Frame label="" atmosphere variant={1} />
           )}
 
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              backgroundImage:
-                "linear-gradient(to bottom, color-mix(in srgb, var(--bg) 30%, transparent) 0%, transparent 26%, transparent 58%, var(--bg) 100%)",
-            }}
-          />
+          <div className="absolute inset-0 bg-gradient-cover-hero" />
         </div>
 
-        <div
-          style={{
-            position: "relative",
-            marginTop: "-3.25rem",
-            textAlign: "center",
-            padding: "0 1.5rem",
-          }}
-        >
-          <p
-            style={{
-              margin: 0,
-              fontFamily: "var(--fonte-titulo)",
-              fontWeight: 300,
-              fontSize: "1.875rem",
-              lineHeight: 1.1,
-              letterSpacing: "var(--tracking-titulo)",
-            }}
-          >
+        <div className="relative -mt-13 px-6 text-center">
+          <p className="m-0 font-titulo text-[1.875rem] font-light leading-tight tracking-titulo">
             {eventName}
           </p>
-          <p style={{ margin: "0.4375rem 0 0", fontSize: "0.8125rem", color: "var(--ink-2)" }}>
+          <p className="mt-1.5 text-[0.8125rem] text-ink-2">
             {formatDate(startsAt)}
             {guests > 0
               ? ` · ${guests} ${guests === 1 ? "pessoa" : "pessoas"} fotografando`
@@ -162,34 +117,27 @@ export function CoverPage({
           </p>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "0.5rem",
-            padding: "1.25rem 1.125rem 1.125rem",
-          }}
-        >
+        <div className="grid grid-cols-4 gap-2 px-[1.125rem] pt-5 pb-[1.125rem]">
           <Shortcut
             href={`${base}/album`}
             label="Álbum"
             value={String(photos)}
-            icon={<IconeGrade tamanho={20} />}
+            icon={<GridIcon size={20} />}
           />
           <Shortcut
             href={`${base}/feed`}
             label="Feed"
             value={interactionOpen ? "ao vivo" : "em breve"}
-            icon={<IconePilha tamanho={20} />}
+            icon={<StackIcon size={20} />}
           />
           <Shortcut
-            href={`${base}/missoes`}
+            href={`${base}/missions`}
             label="Missões"
             value={missions > 0 ? String(missions) : "—"}
-            icon={<Estrela tamanho={20} />}
+            icon={<Star size={20} />}
           />
           <Shortcut
-            href={`${base}/musica`}
+            href={`${base}/music`}
             label="Música"
             value={musicLabel ? truncateLabel(musicLabel) : "trilha"}
             icon={<IconeMusica />}
@@ -197,33 +145,15 @@ export function CoverPage({
         </div>
 
         {moments.length > 0 && (
-          <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                justifyContent: "space-between",
-                padding: "0 1.125rem 0.75rem",
-              }}
-            >
-              <span style={{ fontFamily: "var(--fonte-titulo)", fontSize: "1rem" }}>Os momentos</span>
-              <Link
-                href={`${base}/album`}
-                style={{ fontSize: "0.6875rem", color: "var(--ink-3)", textDecoration: "none" }}
-              >
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="flex items-baseline justify-between px-[1.125rem] pb-3">
+              <span className="font-titulo text-base">Os momentos</span>
+              <Link href={`${base}/album`} className="text-[0.6875rem] text-ink-3 no-underline">
                 ver álbum
               </Link>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                gap: "0.625rem",
-                padding: "0 1.125rem",
-                overflowX: "auto",
-                scrollbarWidth: "none",
-              }}
-            >
+            <div className="flex gap-2.5 overflow-x-auto px-[1.125rem] [scrollbar-width:none]">
               {moments.map((moment, i) => {
                 const central = i === centerIndex;
                 const hrefAlbum = moment.missionFilterId
@@ -234,72 +164,27 @@ export function CoverPage({
                   <Link
                     key={moment.id}
                     href={hrefAlbum}
-                    style={{
-                      position: "relative",
-                      flex: "none",
-                      width: central ? "9.25rem" : "5rem",
-                      aspectRatio: "9 / 16",
-                      overflow: "hidden",
-                      ...raio("var(--raio)"),
-                      opacity: central ? 1 : 0.62,
-                      textDecoration: "none",
-                      color: "inherit",
-                    }}
+                    className={`relative aspect-[9/16] shrink-0 overflow-hidden rounded-token text-inherit no-underline ${
+                      central ? "w-[9.25rem]" : "w-20 opacity-60"
+                    }`}
                   >
-                    <Moldura rotulo="" raio="var(--raio)" atmosfera variante={i * 6 + 2} />
+                    <Frame label="" atmosphere variant={i * 6 + 2} />
 
-                    <span
-                      style={{
-                        position: "absolute",
-                        inset: 0,
-                        backgroundImage:
-                          "linear-gradient(to top, color-mix(in srgb, var(--bg) 88%, transparent), transparent 52%)",
-                      }}
-                    />
+                    <span className="absolute inset-0 bg-gradient-moment-scrim" />
 
                     {central && interactionOpen ? (
-                      <span
-                        style={{
-                          position: "absolute",
-                          top: "0.5rem",
-                          left: "0.5rem",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.3125rem",
-                          padding: "0.25rem 0.5rem",
-                          ...raio("var(--raio-pilula)"),
-                          backgroundColor: "var(--acento)",
-                          color: "var(--sobre-acento)",
-                          fontSize: "0.5rem",
-                          letterSpacing: "var(--tracking-rotulo)",
-                          textTransform: "uppercase",
-                        }}
-                      >
-                        <span
-                          className="pulso"
-                          style={{
-                            width: "0.25rem",
-                            height: "0.25rem",
-                            borderRadius: "50%",
-                            backgroundColor: "currentColor",
-                          }}
-                        />
-                        agora
+                      <span className="absolute left-2 top-2">
+                        <Badge tone="accent">
+                          <span className="pulso size-1 rounded-full bg-current" />
+                          agora
+                        </Badge>
                       </span>
                     ) : null}
 
                     <span
-                      style={{
-                        position: "absolute",
-                        left: "0.625rem",
-                        right: "0.625rem",
-                        bottom: "0.625rem",
-                        display: "block",
-                        fontFamily: "var(--fonte-titulo)",
-                        fontSize: central ? "0.9375rem" : "0.6875rem",
-                        lineHeight: 1.15,
-                        letterSpacing: "var(--tracking-titulo)",
-                      }}
+                      className={`absolute inset-x-2.5 bottom-2.5 block font-titulo leading-tight tracking-titulo ${
+                        central ? "text-[0.9375rem]" : "text-[0.6875rem]"
+                      }`}
                     >
                       {moment.title}
                     </span>
@@ -310,11 +195,11 @@ export function CoverPage({
           </div>
         )}
 
-        <div style={{ padding: `1.125rem 1.5rem ${RODAPE_ABAS}` }}>
-          <BotaoPrimario onClick={() => router.push(`${base}/foto`)}>Enviar foto</BotaoPrimario>
+        <div className="px-6 pt-[1.125rem] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
+          <PrimaryButton onClick={() => router.push(`${base}/photo`)}>Enviar foto</PrimaryButton>
         </div>
-      </ChaoConvidado>
-      <BarraDeAbas slug={slug} />
+      </GuestShell>
+      <GuestTabBar slug={slug} />
     </>
   );
 }

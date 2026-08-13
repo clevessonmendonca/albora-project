@@ -1,5 +1,5 @@
 import { comEvento, listarDesafios, type EventoPublico } from "@albora/db";
-import { banco } from "@/lib/banco";
+import { getPool } from "@/lib/db";
 import { resolveMissions, type ResolvedMission } from "@/features/guest/lib/resolved-missions";
 import { eventNameFromPack, packText } from "@/features/guest/lib/pack-text";
 
@@ -21,7 +21,7 @@ export type FeedPageData = {
 export async function getFeedPage(input: FeedPageInput): Promise<FeedPageData> {
   const { slug, eventoId, sessaoId, evento } = input;
 
-  const challenges = await comEvento(banco(), eventoId, (c) =>
+  const challenges = await comEvento(getPool(), eventoId, (c) =>
     listarDesafios(c, eventoId, sessaoId),
   );
 
@@ -30,6 +30,6 @@ export async function getFeedPage(input: FeedPageInput): Promise<FeedPageData> {
     eventTitle: eventNameFromPack(evento.packId),
     missions: resolveMissions(evento.packId, challenges),
     copy: { missionTitle: packText(evento.packId, "missao.titulo") },
-    cameraPath: `/e/${encodeURIComponent(slug)}/foto`,
+    cameraPath: `/e/${encodeURIComponent(slug)}/photo`,
   };
 }

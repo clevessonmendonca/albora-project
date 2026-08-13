@@ -1,9 +1,9 @@
 import type { SessaoResolvida } from "@albora/db";
 import { cookies } from "next/headers";
-import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
+import { GUEST_SESSION_COOKIE, guestSessionFromToken } from "@/lib/session";
 
 export async function guestSession(): Promise<SessaoResolvida | null> {
-  return sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
+  return guestSessionFromToken((await cookies()).get(GUEST_SESSION_COOKIE)?.value);
 }
 
 export function isSameEventSession(

@@ -1,7 +1,7 @@
 "use client";
 
 import { AlbumPage, type AlbumMission } from "./album-page";
-import { BarraDeAbas } from "@/features/guest/components/client/guest-tab-bar";
+import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 
 export function AlbumWithTabs({
   slug,
@@ -22,7 +22,7 @@ export function AlbumWithTabs({
         initialMission={initialMission}
         cameraPath={cameraPath}
       />
-      <BarraDeAbas slug={slug} ativa="album" />
+      <GuestTabBar slug={slug} active="album" />
     </>
   );
 }

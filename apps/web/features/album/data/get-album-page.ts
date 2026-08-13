@@ -1,5 +1,5 @@
 import { comEvento, listarDesafios, type EventoPublico } from "@albora/db";
-import { banco } from "@/lib/banco";
+import { getPool } from "@/lib/db";
 import { resolveMissions, type ResolvedMission } from "@/features/guest/lib/resolved-missions";
 
 export type AlbumPageInput = {
@@ -20,7 +20,7 @@ export type AlbumPageData = {
 export async function getAlbumPage(input: AlbumPageInput): Promise<AlbumPageData> {
   const { slug, eventoId, sessaoId, evento, missionParam } = input;
 
-  const challenges = await comEvento(banco(), eventoId, (c) =>
+  const challenges = await comEvento(getPool(), eventoId, (c) =>
     listarDesafios(c, eventoId, sessaoId),
   );
 
@@ -32,6 +32,6 @@ export async function getAlbumPage(input: AlbumPageInput): Promise<AlbumPageData
     slug,
     missions,
     initialMission,
-    cameraPath: `/e/${encodeURIComponent(slug)}/foto`,
+    cameraPath: `/e/${encodeURIComponent(slug)}/photo`,
   };
 }

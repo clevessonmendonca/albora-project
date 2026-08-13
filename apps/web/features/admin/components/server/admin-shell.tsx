@@ -1,7 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
 import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import Link from "next/link";
-import { raio } from "@/app/landing/pecas";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
 export function adminVars(): CSSProperties {
@@ -18,47 +17,21 @@ type AdminShellProps = {
 export function AdminShell({ title, subtitle, back, children }: AdminShellProps) {
   return (
     <main
-      style={{
-        ...adminVars(),
-        minHeight: "100dvh",
-        padding: "clamp(1.5rem, 5vw, 4rem)",
-        backgroundColor: "var(--bg)",
-        color: "var(--ink)",
-        fontFamily: "var(--fonte-corpo)",
-      }}
+      className="min-h-dvh bg-bg p-[clamp(1.5rem,5vw,4rem)] font-[family-name:var(--fonte-corpo)] text-ink"
+      style={adminVars()}
     >
-      <header
-        style={{
-          display: "flex",
-          alignItems: "flex-start",
-          justifyContent: "space-between",
-          gap: "1rem",
-          marginBottom: "2rem",
-        }}
-      >
+      <header className="mb-8 flex items-start justify-between gap-4">
         <div>
           {back && (
             <Link
               href={back.href}
-              style={{
-                display: "inline-block",
-                marginBottom: "0.75rem",
-                fontSize: "0.875rem",
-                color: "var(--ink-3)",
-                textDecoration: "none",
-              }}
+              className="mb-3 inline-block text-sm text-ink-3 no-underline"
             >
               ← {back.label}
             </Link>
           )}
-          <h1 style={{ margin: 0, fontFamily: "var(--fonte-titulo)", fontSize: "1.75rem" }}>
-            {title}
-          </h1>
-          {subtitle && (
-            <p style={{ margin: "0.35rem 0 0", color: "var(--ink-3)", fontSize: "0.9rem" }}>
-              {subtitle}
-            </p>
-          )}
+          <h1 className="m-0 font-titulo text-[1.75rem]">{title}</h1>
+          {subtitle && <p className="mt-1.5 text-[0.9rem] text-ink-3">{subtitle}</p>}
         </div>
         <SignOutButton />
       </header>
@@ -69,52 +42,22 @@ export function AdminShell({ title, subtitle, back, children }: AdminShellProps)
 
 export function AdminSection({ children }: { children: ReactNode }) {
   return (
-    <section
-      style={{
-        padding: "1.5rem",
-        backgroundColor: "var(--superficie)",
-        border: "1px solid var(--linha)",
-        ...raio("var(--raio-superficie)"),
-      }}
-    >
+    <section className="rounded-superficie border border-linha bg-superficie p-6">
       {children}
     </section>
   );
 }
 
-export const adminStyles: {
-  primaryButton: CSSProperties;
-  dangerButton: CSSProperties;
-  listLink: CSSProperties;
-} = {
-  primaryButton: {
-    display: "inline-block",
-    padding: "0.75rem 1.4rem",
-    fontFamily: "var(--fonte-titulo)",
-    fontSize: "1rem",
-    color: "var(--sobre-acento)",
-    backgroundColor: "var(--acento)",
-    textDecoration: "none",
-    border: "none",
-    cursor: "pointer",
-    ...raio("var(--raio-pilula)"),
-  },
-  dangerButton: {
-    width: "100%",
-    padding: "1rem 1.25rem",
-    fontFamily: "var(--fonte-titulo)",
-    fontSize: "1.0625rem",
-    color: "var(--sobre-critico, var(--sobre-acento))",
-    backgroundColor: "var(--critico)",
-    border: "none",
-    cursor: "pointer",
-    ...raio("var(--raio-pilula)"),
-  },
-  listLink: {
-    display: "block",
-    padding: "1rem 0",
-    color: "var(--ink)",
-    textDecoration: "none",
-    borderBottom: "1px solid var(--linha)",
-  },
-};
+export const adminClasses = {
+  primaryButton:
+    "inline-block cursor-pointer border-none bg-acento px-[1.4rem] py-3 font-titulo text-base text-sobre-acento no-underline rounded-pilula",
+  dangerButton:
+    "w-full cursor-pointer border-none bg-critico px-5 py-4 font-titulo text-[1.0625rem] text-sobre-acento rounded-pilula",
+  primaryButtonSm:
+    "inline-block cursor-pointer border-none bg-acento px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-sobre-acento no-underline rounded-pilula",
+  dangerButtonSm:
+    "inline-block w-auto cursor-pointer border-none bg-critico px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-sobre-acento rounded-pilula",
+  secondaryButton:
+    "inline-block cursor-pointer border border-linha bg-superficie-alta px-[1.4rem] py-3 font-titulo text-base text-ink no-underline rounded-pilula",
+  listLink: "block border-b border-linha py-4 text-ink no-underline",
+} as const;

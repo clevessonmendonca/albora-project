@@ -1,5 +1,5 @@
 import { comEvento, listarDesafios, type EventoPublico } from "@albora/db";
-import { banco } from "@/lib/banco";
+import { getPool } from "@/lib/db";
 import { resolveMissionsWithStatus, type MissionWithStatus } from "@/features/guest/lib/resolved-missions";
 
 export type MissionsPageInput = {
@@ -17,7 +17,7 @@ export type MissionsPageData = {
 export async function getMissionsPage(input: MissionsPageInput): Promise<MissionsPageData> {
   const { slug, eventoId, sessaoId, evento } = input;
 
-  const challenges = await comEvento(banco(), eventoId, (c) =>
+  const challenges = await comEvento(getPool(), eventoId, (c) =>
     listarDesafios(c, eventoId, sessaoId),
   );
 

@@ -1,36 +1,27 @@
-import {
-  CabecalhoConvidado,
-  ChaoConvidado,
-  MioloConvidado,
-} from "@/features/guest/components/client/guest-shell";
-import { raio } from "@/app/landing/pecas";
+import { GuestHeader, GuestMain, GuestShell } from "@albora/ui-web";
 
 function Block({ height, width = "100%" }: { height: string; width?: string }) {
   return (
     <div
       aria-hidden
-      style={{
-        width,
-        height,
-        ...raio("var(--raio)"),
-        backgroundColor: "color-mix(in srgb, var(--ink) 8%, transparent)",
-      }}
+      className="rounded-token bg-ink-suave"
+      style={{ width, height }}
     />
   );
 }
 
 export function MissionsPageSkeleton() {
   return (
-    <ChaoConvidado semStatus>
-      <MioloConvidado>
-        <CabecalhoConvidado titulo="Missões" hrefInicio="#" />
+    <GuestShell hideStatusBar>
+      <GuestMain>
+        <GuestHeader title="Missões" homeHref="#" />
         <Block height="5rem" />
-        <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        <div className="mt-4 flex flex-col gap-3">
           <Block height="3.5rem" />
           <Block height="3.5rem" />
           <Block height="3.5rem" />
         </div>
-      </MioloConvidado>
-    </ChaoConvidado>
+      </GuestMain>
+    </GuestShell>
   );
 }

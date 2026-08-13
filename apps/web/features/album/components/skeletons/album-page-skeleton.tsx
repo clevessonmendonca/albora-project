@@ -1,13 +1,13 @@
 import {
-  CabecalhoConvidado,
-  ChaoConvidado,
-  MioloConvidado,
-} from "@/features/guest/components/client/guest-shell";
+  GuestHeader,
+  GuestShell,
+  GuestMain,
+} from "@albora/ui-web";
 import { AlbumGridLoading } from "../client/album-grid";
 
 export function AlbumPageSkeleton() {
   return (
-    <ChaoConvidado semStatus>
+    <GuestShell hideStatusBar>
       <style>{`
         @keyframes album-respirar {
           0%, 100% { opacity: 1; }
@@ -18,10 +18,10 @@ export function AlbumPageSkeleton() {
           .album-esperando { animation: none !important; }
         }
       `}</style>
-      <MioloConvidado>
-        <CabecalhoConvidado titulo="O álbum" hrefInicio="#" />
+      <GuestMain>
+        <GuestHeader title="O álbum" homeHref="#" />
         <AlbumGridLoading />
-      </MioloConvidado>
-    </ChaoConvidado>
+      </GuestMain>
+    </GuestShell>
   );
 }

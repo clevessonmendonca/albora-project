@@ -1,20 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { usarFeed } from "@/lib/usar-feed";
+import { useFeed } from "@/features/feed/hooks/use-feed";
 import {
-  CabecalhoConvidado,
-  ChaoConvidado,
-  EstadoVazio,
-  MioloConvidado,
-} from "@/features/guest/components/client/guest-shell";
-import { Pilula } from "@/features/guest/components/client/guest-ui-parts";
+  GuestHeader,
+  GuestShell,
+  EmptyState,
+  GuestMain,
+  SecondaryButton,
+} from "@albora/ui-web";
+import { Badge } from "@albora/ui-web";
 import { viewerKeys, Viewer } from "@/features/feed/components/client/viewer";
 import { AlbumGrid, AlbumGridLoading } from "./album-grid";
 
 export type AlbumMission = { id: string; title: string };
 
-const TOQUE_MINIMO = "48px";
 const SEM_CHAVES: string[] = [];
 
 export function AlbumPage({
@@ -32,7 +32,7 @@ export function AlbumPage({
     if (initialMission && missions.some((m) => m.id === initialMission)) return initialMission;
     return null;
   });
-  const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = usarFeed(missionId);
+  const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = useFeed(missionId);
 
   const [indiceAberto, setIndiceAberto] = useState<number | null>(null);
   const movimentoReduzido = usarMovimentoReduzido();
@@ -83,7 +83,7 @@ export function AlbumPage({
 
   return (
     <>
-      <ChaoConvidado>
+      <GuestShell>
         <style>{`
           @keyframes album-respirar {
             0%, 100% { opacity: 1; }
@@ -95,11 +95,11 @@ export function AlbumPage({
           }
         `}</style>
 
-        <MioloConvidado>
-          <CabecalhoConvidado
-            titulo="O álbum"
-            hrefInicio={`/e/${encodeURIComponent(slug)}/capa`}
-            acao={contagem ? <Pilula>{contagem}</Pilula> : undefined}
+        <GuestMain>
+          <GuestHeader
+            title="O álbum"
+            homeHref={`/e/${encodeURIComponent(slug)}/cover`}
+            action={contagem ? <Badge>{contagem}</Badge> : undefined}
           />
 
           {missions.length > 0 && (
@@ -107,7 +107,7 @@ export function AlbumPage({
           )}
 
           {estado.midiaIndisponivel && (
-            <p style={{ margin: "0 0 1rem", fontSize: "0.85rem", color: "var(--ink-3)" }}>
+            <p className="mb-4 mt-0 text-[0.85rem] text-ink-3">
               As fotos ainda não abriram. Elas aparecem sozinhas.
             </p>
           )}
@@ -115,10 +115,10 @@ export function AlbumPage({
           {primeiraCarga && <AlbumGridLoading />}
 
           {vazio && (
-            <EstadoVazio
-              titulo={missionId ? "Ninguém mandou essa ainda." : "Ainda não há fotos no álbum."}
+            <EmptyState
+              title={missionId ? "Ninguém mandou essa ainda." : "Ainda não há fotos no álbum."}
               lede={missionId ? "A sua pode ser a primeira." : "Seja o primeiro a fotografar."}
-              caminhoDaCamera={cameraPath}
+              cameraPath={cameraPath}
             />
           )}
 
@@ -131,8 +131,8 @@ export function AlbumPage({
           )}
 
           <Rodape estado={estado} temItens={estado.itens.length > 0} onVerMais={carregarMais} onRecomecar={recomecar} />
-        </MioloConvidado>
-      </ChaoConvidado>
+        </GuestMain>
+      </GuestShell>
 
       {indiceAberto !== null && estado.itens[indiceAberto] && (
         <Viewer
@@ -166,55 +166,41 @@ function Filters({
     <div
       role="group"
       aria-label="Filtrar o álbum"
-      style={{
-        display: "flex",
-        gap: "0.4375rem",
-        overflowX: "auto",
-        scrollbarWidth: "none",
-        margin: "0 calc(var(--espaco) * -5) 0.875rem",
-        padding: "0 calc(var(--espaco) * 5)",
-      }}
+      className="-mx-[calc(var(--espaco)*5)] mb-3.5 flex gap-[0.4375rem] overflow-x-auto px-[calc(var(--espaco)*5)] [scrollbar-width:none]"
     >
-      <BotaoPilula ativa={selected === null} onClick={() => onSelect(null)}>
+      <ButtonBadge active={selected === null} onClick={() => onSelect(null)}>
         Tudo
-      </BotaoPilula>
+      </ButtonBadge>
       {missions.map((m) => (
-        <BotaoPilula
+        <ButtonBadge
           key={m.id}
-          ativa={selected === m.id}
+          active={selected === m.id}
           onClick={() => onSelect(selected === m.id ? null : m.id)}
         >
           {m.title}
-        </BotaoPilula>
+        </ButtonBadge>
       ))}
     </div>
   );
 }
 
-function BotaoPilula({
-  ativa,
+function ButtonBadge({
+  active,
   onClick,
   children,
 }: {
-  ativa: boolean;
+  active: boolean;
   onClick: () => void;
   children: React.ReactNode;
 }) {
   return (
     <button
       type="button"
-      aria-pressed={ativa}
+      aria-pressed={active}
       onClick={onClick}
-      style={{
-        font: "inherit",
-        flex: "none",
-        padding: 0,
-        border: "none",
-        background: "transparent",
-        cursor: "pointer",
-      }}
+      className="shrink-0 cursor-pointer border-0 bg-transparent p-0 font-[inherit]"
     >
-      <Pilula ativa={ativa}>{children}</Pilula>
+      <Badge tone={active ? "accent" : "neutral"}>{children}</Badge>
     </button>
   );
 }
@@ -225,22 +211,14 @@ function Rodape({
   onVerMais,
   onRecomecar,
 }: {
-  estado: ReturnType<typeof usarFeed>["estado"];
+  estado: ReturnType<typeof useFeed>["estado"];
   temItens: boolean;
   onVerMais: () => void;
   onRecomecar: () => void;
 }) {
   if (estado.falha === "sessao") {
     return (
-      <p
-        style={{
-          margin: "1.5rem 0 0",
-          fontSize: "0.9rem",
-          lineHeight: 1.6,
-          textAlign: "center",
-          color: "var(--ink-2)",
-        }}
-      >
+      <p className="mt-6 text-center text-[0.9rem] leading-relaxed text-ink-2">
         Sua entrada nessa festa expirou. Escaneie o QR da mesa de novo para continuar.
       </p>
     );
@@ -248,13 +226,13 @@ function Rodape({
 
   if (estado.falha !== null) {
     return (
-      <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
-        <p style={{ margin: "0 0 0.75rem", fontSize: "0.9rem", color: "var(--ink-2)" }}>
+      <div className="mt-6 text-center">
+        <p className="mb-3 mt-0 text-[0.9rem] text-ink-2">
           Não consegui carregar o resto agora.
         </p>
-        <Secundario onClick={estado.falha === "cursor" || !temItens ? onRecomecar : onVerMais}>
+        <SecondaryButton onClick={estado.falha === "cursor" || !temItens ? onRecomecar : onVerMais}>
           Tentar de novo
-        </Secundario>
+        </SecondaryButton>
       </div>
     );
   }
@@ -262,43 +240,11 @@ function Rodape({
   if (estado.fim || estado.cursor === null) return null;
 
   return (
-    <div style={{ marginTop: "1.5rem" }}>
-      <Secundario onClick={onVerMais} desabilitado={estado.carregando}>
+    <div className="mt-6">
+      <SecondaryButton onClick={onVerMais} disabled={estado.carregando}>
         {estado.carregando ? "Carregando…" : "Ver mais"}
-      </Secundario>
+      </SecondaryButton>
     </div>
-  );
-}
-
-function Secundario({
-  onClick,
-  desabilitado,
-  children,
-}: {
-  onClick: () => void;
-  desabilitado?: boolean | undefined;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={desabilitado ?? false}
-      style={{
-        font: "inherit",
-        width: "100%",
-        minHeight: TOQUE_MINIMO,
-        borderRadius: "var(--raio-pilula)",
-        border: "1px solid var(--linha)",
-        background: "transparent",
-        color: "var(--ink-2)",
-        fontSize: "0.95rem",
-        cursor: desabilitado ? "default" : "pointer",
-        opacity: desabilitado ? 0.5 : 1,
-      }}
-    >
-      {children}
-    </button>
   );
 }
 

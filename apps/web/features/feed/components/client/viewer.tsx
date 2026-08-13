@@ -2,12 +2,13 @@
 
 import type { ModoInteracao } from "@albora/core";
 import { ehMimeVideo } from "@albora/core";
+import { cn } from "@albora/ui-web";
 import { useEffect, useRef, useState } from "react";
-import { rotuloDeHora } from "@/lib/agrupar-por-hora";
-import type { UrlDeMidia } from "@/lib/midia";
-import type { ResultadoReacao } from "@/lib/usar-reacao";
-import type { ItemVisivel } from "@/lib/usar-feed";
-import { InteracaoDaFoto } from "@/app/e/[slug]/interacao-da-foto";
+import { hourLabel } from "@/features/feed/lib/group-by-hour";
+import type { MediaUrl } from "@/lib/media";
+import type { ResultadoReacao } from "@/features/feed/hooks/use-reaction";
+import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
+import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { Frame } from "./frame";
 
 /**
@@ -30,6 +31,8 @@ const LIMIAR_LONGO_MS = 220;
 const DESLIZE_MIN_PX = 44;
 /** Deslize e toque longo abafam o clique que vem logo atrás — só ele. */
 const SUPRESSAO_MS = 600;
+
+const CLASSE_SOMBRA_TEXTO = "[text-shadow:0_1px_4px_var(--bg)]";
 
 /**
  * A janela do reprodutor, em ordem de urgência: o que está na tela, o que
@@ -84,7 +87,7 @@ export function Viewer({
   itens: ItemVisivel[];
   indice: number;
   hora: number;
-  urls: Map<string, UrlDeMidia>;
+  urls: Map<string, MediaUrl>;
   interacao: ModoInteracao;
   cameraPath: string;
   movimentoReduzido: boolean;
@@ -224,7 +227,7 @@ export function Viewer({
 
   /**
    * Teclado no documento, e não no elemento: enquanto o foco não estiver dentro
-   * da tela cheia — e depois de um toque ele fica no `body` — um `onKeyDown` de
+   * da tela filled — e depois de um toque ele fica no `body` — um `onKeyDown` de
    * elemento nunca recebe o `Escape`, que é o atalho de sair.
    */
   useEffect(() => {
@@ -246,37 +249,15 @@ export function Viewer({
     return () => document.removeEventListener("keydown", tecla);
   }, [indice, itens.length, onIr, onSair]);
 
-  // Véu derivado de token, nunca `rgba()` literal. E sombra de texto por baixo
-  // dele: `color-mix` não existe em navegador de 2019, e é justamente lá que a
-  // pessoa está lendo um crédito sobre foto clara às 22h.
-  const veuTopo = "linear-gradient(to bottom, color-mix(in srgb, var(--bg) 86%, transparent), transparent)";
-  const veuBase = "linear-gradient(to top, color-mix(in srgb, var(--bg) 92%, transparent), transparent)";
-  const sombraDeTexto = "0 1px 4px var(--bg)";
-
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`Fotos das ${rotuloDeHora(hora)}`}
+      aria-label={`Fotos das ${hourLabel(hora)}`}
       onPointerDown={pressionou}
       onPointerUp={largou}
       onPointerCancel={soltar}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 10,
-        display: "grid",
-        gridTemplateRows: "auto 1fr auto",
-        overflow: "hidden",
-        background: "var(--bg)",
-        color: "var(--ink)",
-        fontFamily: "var(--fonte-corpo)",
-        // `manipulation`, e não `none`: mata o zoom de duplo toque, que aqui é
-        // toque duplo para avançar, e **preserva o pinça-para-ampliar** — a tia
-        // de 58 anos amplia a foto para achar quem está na mesa.
-        touchAction: "manipulation",
-        userSelect: "none",
-      }}
+      className="fixed inset-0 z-10 grid grid-rows-[auto_1fr_auto] overflow-hidden bg-bg font-corpo text-ink touch-manipulation select-none"
     >
       <style>{`
         .st-zona { appearance: none; background: transparent; border: none; padding: 0; cursor: pointer; }
@@ -298,29 +279,18 @@ export function Viewer({
         />
       )}
 
-      <header
-        style={{
-          position: "relative",
-          zIndex: 2,
-          display: "grid",
-          gap: "0.75rem",
-          padding: "max(0.75rem, env(safe-area-inset-top)) 1rem 1.5rem",
-          background: veuTopo,
-        }}
-      >
+      <header className="relative z-2 grid gap-3 bg-veu-feed-topo px-4 pb-6 pt-[max(0.75rem,env(safe-area-inset-top))]">
         {/* Filete, não barra: 1,5px, sem raio, um segmento por foto da hora. */}
-        <div style={{ display: "flex", gap: "3px", height: "1.5px" }} aria-hidden>
+        <div className="flex h-[1.5px] gap-0.75" aria-hidden>
           {itens.map((item, i) => (
-            <div key={item.id} style={{ flex: 1, background: "var(--linha)", overflow: "hidden" }}>
+            <div key={item.id} className="flex-1 overflow-hidden bg-linha">
               <div
-                className={i === indice ? "st-corrida" : undefined}
+                className={cn("h-full origin-left bg-acento", i === indice && "st-corrida")}
                 style={{
-                  height: "100%",
-                  background: "var(--acento)",
-                  transformOrigin: "left",
-                  transform: i < indice || (i === indice && (movimentoReduzido || !temMidia))
-                    ? "scaleX(1)"
-                    : "scaleX(0)",
+                  transform:
+                    i < indice || (i === indice && (movimentoReduzido || !temMidia))
+                      ? "scaleX(1)"
+                      : "scaleX(0)",
                   animation:
                     i === indice && !movimentoReduzido && temMidia && !ehVideo
                       ? `st-correr ${DURACAO_MS}ms linear forwards`
@@ -332,42 +302,28 @@ export function Viewer({
           ))}
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+        <div className="flex items-center justify-between gap-4">
           <p
-            style={{
-              margin: 0,
-              fontFamily: "var(--fonte-titulo)",
-              fontSize: "0.7rem",
-              fontWeight: 400,
-              letterSpacing: "0.24em",
-              textTransform: "uppercase",
-              color: "var(--ink-2)",
-              textShadow: sombraDeTexto,
-            }}
+            className={cn(
+              "m-0 font-titulo text-[0.7rem] font-normal uppercase tracking-[0.24em] text-ink-2",
+              CLASSE_SOMBRA_TEXTO,
+            )}
           >
-            {rotuloDeHora(hora)}
+            {hourLabel(hora)}
           </p>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div className="flex items-center gap-2">
             {onRemover && (
               <button
                 type="button"
                 aria-label="Remover esta foto"
                 disabled={removendo}
                 onClick={onRemover}
-                style={{
-                  font: "inherit",
-                  fontSize: "1.1rem",
-                  minHeight: "48px",
-                  minWidth: "48px",
-                  padding: 0,
-                  borderRadius: "50%",
-                  border: "1px solid var(--linha)",
-                  background: "transparent",
-                  color: "var(--ink)",
-                  cursor: removendo ? "wait" : "pointer",
-                  textShadow: sombraDeTexto,
-                }}
+                className={cn(
+                  "grid size-12 place-items-center rounded-full border border-linha bg-transparent font-inherit text-[1.1rem] text-ink",
+                  CLASSE_SOMBRA_TEXTO,
+                  removendo ? "cursor-wait" : "cursor-pointer",
+                )}
               >
                 ×
               </button>
@@ -375,19 +331,10 @@ export function Viewer({
             <button
               type="button"
               onClick={onSair}
-              style={{
-                font: "inherit",
-                fontSize: "0.9rem",
-                minHeight: "48px",
-                minWidth: "48px",
-                padding: "0 1.1rem",
-                borderRadius: "var(--raio-pilula)",
-                border: "1px solid var(--linha)",
-                background: "transparent",
-                color: "var(--ink)",
-                cursor: "pointer",
-                textShadow: sombraDeTexto,
-              }}
+              className={cn(
+                "min-h-12 min-w-12 rounded-pilula border border-linha bg-transparent px-[1.1rem] font-inherit text-[0.9rem] text-ink cursor-pointer",
+                CLASSE_SOMBRA_TEXTO,
+              )}
             >
               Fechar
             </button>
@@ -395,55 +342,32 @@ export function Viewer({
         </div>
       </header>
 
-      <div style={{ position: "relative", zIndex: 1, display: "flex" }}>
+      <div className="relative z-1 flex">
         <button
           type="button"
-          className="st-zona"
+          className="st-zona basis-[34%]"
           aria-label="Foto anterior"
           onClick={tocou(voltar)}
-          style={{ flex: "0 0 34%" }}
         />
         <button
           type="button"
-          className="st-zona"
+          className="st-zona flex-1"
           aria-label="Próxima foto"
           onClick={tocou(avancar)}
-          style={{ flex: 1 }}
         />
       </div>
 
-      <footer
-        style={{
-          position: "relative",
-          zIndex: 2,
-          display: "grid",
-          gap: "1rem",
-          padding: "2rem 1rem max(1.25rem, env(safe-area-inset-bottom))",
-          background: veuBase,
-        }}
-      >
+      <footer className="relative z-2 grid gap-4 bg-veu-feed-base px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-8">
         {atual && (
-          <div style={{ display: "grid", gap: "0.3rem", textShadow: sombraDeTexto }}>
-            <p
-              style={{
-                margin: 0,
-                fontFamily: "var(--fonte-titulo)",
-                fontSize: "0.66rem",
-                fontWeight: 400,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-                color: "var(--ink)",
-              }}
-            >
+          <div className={cn("grid gap-[0.3rem]", CLASSE_SOMBRA_TEXTO)}>
+            <p className="m-0 font-titulo text-[0.66rem] font-normal uppercase tracking-[0.2em] text-ink">
               {atual.autor}
               {atual.lugar ? ` · ${atual.lugar}` : ""}
             </p>
             {atual.legenda && (
-              <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.5, color: "var(--ink-2)" }}>
-                {atual.legenda}
-              </p>
+              <p className="m-0 text-[0.95rem] leading-normal text-ink-2">{atual.legenda}</p>
             )}
-            <InteracaoDaFoto
+            <PhotoInteraction
               uploadId={atual.id}
               interacao={interacao}
               autor={atual.autor}
@@ -463,19 +387,7 @@ export function Viewer({
             tela não otimiza tempo de tela, ela devolve a pessoa para a câmera. */}
         <a
           href={cameraPath}
-          style={{
-            display: "grid",
-            placeItems: "center",
-            minHeight: "54px",
-            padding: "0 2.1rem",
-            borderRadius: "var(--raio-pilula)",
-            background: "var(--acento)",
-            color: "var(--bg)",
-            fontSize: "1.02rem",
-            fontWeight: 500,
-            letterSpacing: "var(--tracking-rotulo)",
-            textDecoration: "none",
-          }}
+          className="grid min-h-13.5 place-items-center rounded-pilula bg-acento px-[2.1rem] text-[1.02rem] font-medium tracking-rotulo text-sobre-acento no-underline"
         >
           Tirar foto
         </a>
