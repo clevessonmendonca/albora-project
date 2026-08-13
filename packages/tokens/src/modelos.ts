@@ -1,4 +1,4 @@
-import type { CamadaTokens } from "./tipos";
+import type { TokenLayer } from "./types";
 
 /**
  * Os modelos de identidade que a Albora oferece pronto.
@@ -18,7 +18,7 @@ export type ModeloDeIdentidade = {
   nome: string;
   /** O disco da amostra na tira de escolha. */
   amostra: string;
-  camada: CamadaTokens;
+  camada: TokenLayer;
 };
 
 export const MODELOS_DE_IDENTIDADE: ModeloDeIdentidade[] = [

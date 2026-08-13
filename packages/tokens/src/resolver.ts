@@ -1,5 +1,5 @@
 import { escalaDoFundo } from "./escalas";
-import type { CamadaTokens, EntradaResolucao, EscalaSemantica, Tokens } from "./tipos";
+import type { ResolutionInput, SemanticScale, TokenLayer, Tokens } from "./types";
 
 /**
  * O resolvedor. Um só, para todos os renderizadores — web, nativo, telão,
@@ -12,21 +12,21 @@ import type { CamadaTokens, EntradaResolucao, EscalaSemantica, Tokens } from "./
  * Cadeia: marca → pack → evento. O evento ganha porque é a identidade de
  * quem pagou.
  */
-export function resolverTokens(entrada: EntradaResolucao): Tokens {
-  const camadas = [entrada.pack, entrada.evento].filter(
-    (c): c is CamadaTokens => c !== undefined,
+export function resolveTokens(input: ResolutionInput): Tokens {
+  const layers = [input.pack, input.evento].filter(
+    (layer): layer is TokenLayer => layer !== undefined,
   );
 
-  return camadas.reduce<Tokens>(
-    (acumulado, camada) => ({
-      cores: { ...acumulado.cores, ...camada.cores },
-      fontes: { ...acumulado.fontes, ...camada.fontes },
-      escala: { ...acumulado.escala, ...camada.escala },
-      movimento: { ...acumulado.movimento, ...camada.movimento },
-      tracking: { ...acumulado.tracking, ...camada.tracking },
-      fundo: camada.fundo ?? acumulado.fundo,
+  return layers.reduce<Tokens>(
+    (accumulated, layer) => ({
+      cores: { ...accumulated.cores, ...layer.cores },
+      fontes: { ...accumulated.fontes, ...layer.fontes },
+      escala: { ...accumulated.escala, ...layer.escala },
+      movimento: { ...accumulated.movimento, ...layer.movimento },
+      tracking: { ...accumulated.tracking, ...layer.tracking },
+      fundo: layer.fundo ?? accumulated.fundo,
     }),
-    entrada.marca,
+    input.marca,
   );
 }
 
@@ -39,6 +39,6 @@ export function resolverTokens(entrada: EntradaResolucao): Tokens {
  * interface ilegível às 22h num salão escuro. A validação é trabalho do
  * sistema, nunca escolha de quem paga.
  */
-export function resolverEscala(tokens: Tokens): EscalaSemantica {
+export function resolveScale(tokens: Tokens): SemanticScale {
   return escalaDoFundo(tokens.cores, tokens.fundo);
 }

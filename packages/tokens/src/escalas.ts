@@ -1,5 +1,5 @@
 import { acentoLegivelSobre, misturarHex, textoSobre } from "./cor";
-import type { Cores, EscalaSemantica, Fundo } from "./tipos";
+import type { Background, Colors, SemanticScale } from "./types";
 
 /**
  * A escala **derivada** das cinco cores, nunca uma lista de hexes.
@@ -46,7 +46,7 @@ const BRANCO = "#FFFFFF";
  */
 const CHAO_ESCURO = 0.09;
 
-function escuro(c: Cores): EscalaSemantica {
+function escuro(c: Colors): SemanticScale {
   const sobre = (t: number) => misturarHex(c.noite, c.papel, t);
   const acima = (t: number) => sobre(CHAO_ESCURO + t);
 
@@ -72,7 +72,7 @@ function escuro(c: Cores): EscalaSemantica {
   };
 }
 
-function claro(c: Cores): EscalaSemantica {
+function claro(c: Colors): SemanticScale {
   const sobre = (t: number) => misturarHex(c.papel, c.tinta, t);
   // No claro a página é o degrau mais ESCURO, então é ela o pior caso.
   const bg = sobre(0.03);
@@ -95,6 +95,6 @@ function claro(c: Cores): EscalaSemantica {
   };
 }
 
-export function escalaDoFundo(cores: Cores, fundo: Fundo): EscalaSemantica {
+export function escalaDoFundo(cores: Colors, fundo: Background): SemanticScale {
   return fundo === "claro" ? claro(cores) : escuro(cores);
 }

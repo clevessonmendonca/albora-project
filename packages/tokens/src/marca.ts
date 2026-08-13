@@ -1,4 +1,4 @@
-import type { Tokens } from "./tipos";
+import type { Tokens } from "./types";
 
 /**
  * O piso da cadeia. Um evento sem identidade nenhuma resolve para isto, e o

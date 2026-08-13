@@ -1,5 +1,5 @@
-import { resolverEscala } from "./resolvedor";
-import type { Tokens } from "./tipos";
+import { resolveScale } from "./resolver";
+import type { Tokens } from "./types";
 
 /**
  * Um formato de saída, dois consumidores.
@@ -8,21 +8,21 @@ import type { Tokens } from "./tipos";
  * NativeWind. É o que mantém o ADR 0003 de pé com duas superfícies: se cada
  * lado tivesse o seu formato, seriam dois temas com um nome só.
  */
-export function paraVariaveis(tokens: Tokens): Record<string, string> {
-  const e = resolverEscala(tokens);
+export function toVariables(tokens: Tokens): Record<string, string> {
+  const scale = resolveScale(tokens);
 
   return {
-    "--bg": e.bg,
-    "--superficie": e.superficie,
-    "--superficie-alta": e.superficieAlta,
-    "--linha": e.linha,
-    "--ink": e.ink,
-    "--ink-2": e.ink2,
-    "--ink-3": e.ink3,
-    "--acento": e.acento,
-    "--acento-texto": e.acentoTexto,
-    "--sobre-acento": e.sobreAcento,
-    "--critico": e.critico,
+    "--bg": scale.bg,
+    "--superficie": scale.superficie,
+    "--superficie-alta": scale.superficieAlta,
+    "--linha": scale.linha,
+    "--ink": scale.ink,
+    "--ink-2": scale.ink2,
+    "--ink-3": scale.ink3,
+    "--acento": scale.acento,
+    "--acento-texto": scale.acentoTexto,
+    "--sobre-acento": scale.sobreAcento,
+    "--critico": scale.critico,
 
     "--fonte-titulo": tokens.fontes.titulo,
     "--fonte-corpo": tokens.fontes.corpo,
@@ -41,8 +41,8 @@ export function paraVariaveis(tokens: Tokens): Record<string, string> {
   };
 }
 
-export function paraCss(tokens: Tokens): string {
-  return Object.entries(paraVariaveis(tokens))
-    .map(([chave, valor]) => `${chave}: ${valor};`)
+export function toCss(tokens: Tokens): string {
+  return Object.entries(toVariables(tokens))
+    .map(([key, value]) => `${key}: ${value};`)
     .join(" ");
 }

@@ -8,7 +8,7 @@
  * `tinta` e `noite` são coisas diferentes e o erro de tratá-las como uma só é
  * visível: `tinta` é texto sobre claro, `noite` é o chão escuro do convidado.
  */
-export type Cores = {
+export type Colors = {
   papel: string;
   tinta: string;
   noite: string;
@@ -18,12 +18,12 @@ export type Cores = {
   critico: string;
 };
 
-export type Fontes = {
+export type Fonts = {
   titulo: string;
   corpo: string;
 };
 
-export type Escala = {
+export type Scale = {
   /** O raio padrão. Card, campo, botão retangular. */
   raio: string;
   /**
@@ -43,7 +43,7 @@ export type Escala = {
  * Uma curva, três durações. A landing usa exatamente isso, e é o que faz o
  * conjunto parecer uma coisa só em vez de nove animações independentes.
  */
-export type Movimento = {
+export type Motion = {
   curva: string;
   rapido: string;
   medio: string;
@@ -60,15 +60,15 @@ export type Tracking = {
   rotulo: string;
 };
 
-export type Fundo = "escuro" | "claro";
+export type Background = "escuro" | "claro";
 
 export type Tokens = {
-  cores: Cores;
-  fontes: Fontes;
-  escala: Escala;
-  movimento: Movimento;
+  cores: Colors;
+  fontes: Fonts;
+  escala: Scale;
+  movimento: Motion;
   tracking: Tracking;
-  fundo: Fundo;
+  fundo: Background;
 };
 
 /**
@@ -79,7 +79,7 @@ export type Tokens = {
  * escolhe o próprio neutro é o mesmo defeito que componente com hex literal,
  * só que invisível para o guard.
  */
-export type EscalaSemantica = {
+export type SemanticScale = {
   /** Fundo de página. */
   bg: string;
   /** Card e superfície elevada. Elevação vem daqui, não de sombra. */
@@ -107,20 +107,20 @@ export type EscalaSemantica = {
 };
 
 /** Camada da cadeia. Cada uma sobrepõe a anterior, campo a campo. */
-export type CamadaTokens = {
-  cores?: Partial<Cores>;
-  fontes?: Partial<Fontes>;
-  escala?: Partial<Escala>;
-  movimento?: Partial<Movimento>;
+export type TokenLayer = {
+  cores?: Partial<Colors>;
+  fontes?: Partial<Fonts>;
+  escala?: Partial<Scale>;
+  movimento?: Partial<Motion>;
   tracking?: Partial<Tracking>;
-  fundo?: Fundo;
+  fundo?: Background;
 };
 
-export type EntradaResolucao = {
+export type ResolutionInput = {
   /** A marca Albora. Piso da cadeia, sempre presente. */
   marca: Tokens;
   /** O vertical — casamento, 15 anos, formatura. */
-  pack?: CamadaTokens;
+  pack?: TokenLayer;
   /** O evento. Ganha de todo mundo: é a identidade do casal. */
-  evento?: CamadaTokens;
+  evento?: TokenLayer;
 };

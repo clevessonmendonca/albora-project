@@ -1,5 +1,5 @@
 import { contraste, lerHex } from "./cor";
-import type { Cores } from "./tipos";
+import type { Colors } from "./types";
 
 /**
  * As regras da peça impressa (spec 009).
@@ -15,10 +15,10 @@ import type { Cores } from "./tipos";
  */
 
 /** Sangria: o corte da gráfica nunca cai exatamente na linha. */
-export const SANGRIA_MM = 3;
+export const BLEED_MM = 3;
 
 /** Área de segurança: nada de conteúdo entre a borda e esta margem. */
-export const AREA_SEGURA_MM = 5;
+export const SAFE_AREA_MM = 5;
 
 /**
  * O menor QR que sobrevive à festa.
@@ -27,7 +27,7 @@ export const AREA_SEGURA_MM = 5;
  * do salão. Abaixo disto o gerador **recusa**: recusar na geração é barato, e
  * descobrir na festa é irreversível.
  */
-export const QR_MINIMO_MM = 30;
+export const QR_MIN_MM = 30;
 
 /**
  * O contraste que o código exige, acima do que o texto exige.
@@ -36,16 +36,16 @@ export const QR_MINIMO_MM = 30;
  * é pior que o olho. 7 é a margem que separa "escaneia na tela" de "escaneia
  * no papel", que é o modo de falha que a spec chama de mais caro do produto.
  */
-export const CONTRASTE_DE_QR = 7;
+export const QR_CONTRAST_RATIO = 7;
 
 /** Preto e branco absolutos. O último recurso quando a identidade não dá conta. */
-const PRETO = "#000000";
-const BRANCO = "#FFFFFF";
+const BLACK = "#000000";
+const WHITE = "#FFFFFF";
 
-export type FormatoDePeca = "placa-a4" | "card-de-mesa" | "card-de-missao";
+export type PieceFormat = "placa-a4" | "card-de-mesa" | "card-de-missao";
 
-export type MedidasDaPeca = {
-  formato: FormatoDePeca;
+export type PieceMeasures = {
+  formato: PieceFormat;
   /** Milímetros, sem a sangria. */
   largura: number;
   altura: number;
@@ -53,25 +53,25 @@ export type MedidasDaPeca = {
   qr: number;
 };
 
-const MEDIDAS: Record<FormatoDePeca, Omit<MedidasDaPeca, "formato">> = {
+const MEASURES: Record<PieceFormat, Omit<PieceMeasures, "formato">> = {
   "placa-a4": { largura: 210, altura: 297, qr: 90 },
   "card-de-mesa": { largura: 100, altura: 140, qr: 48 },
   "card-de-missao": { largura: 55, altura: 85, qr: 32 },
 };
 
-export function medidasDaPeca(formato: FormatoDePeca): MedidasDaPeca {
-  return { formato, ...MEDIDAS[formato] };
+export function pieceMeasures(format: PieceFormat): PieceMeasures {
+  return { formato: format, ...MEASURES[format] };
 }
 
 /** A caixa de corte, com sangria dos quatro lados. */
-export function caixaDeCorte(peca: MedidasDaPeca): { largura: number; altura: number } {
+export function cutBox(piece: PieceMeasures): { largura: number; altura: number } {
   return {
-    largura: peca.largura + SANGRIA_MM * 2,
-    altura: peca.altura + SANGRIA_MM * 2,
+    largura: piece.largura + BLEED_MM * 2,
+    altura: piece.altura + BLEED_MM * 2,
   };
 }
 
-export type TintaDoQr = {
+export type QrInk = {
   /** A cor dos módulos escuros. */
   modulo: string;
   /** O fundo, incluindo a zona de silêncio. */
@@ -91,33 +91,35 @@ export type TintaDoQr = {
  * Âmbar sobre noite é lindo no preview e não escaneia em luz baixa; a
  * identidade colore a moldura, o texto e o fundo da peça, nunca o código.
  */
-export function tintaDoQr(cores: Cores): TintaDoQr {
-  const fundo = cores.papel;
-  const claro = lerHex(fundo);
+export function qrInk(colors: Colors): QrInk {
+  const background = colors.papel;
+  const light = lerHex(background);
 
-  // A mais escura das duas ganha: `noite` costuma ser, mas um evento pode ter
-  // trocado as duas e a decisão não pode depender do nome da cor.
-  const candidatos = [cores.tinta, cores.noite]
+  const candidates = [colors.tinta, colors.noite]
     .map((hex) => ({ hex, rgb: lerHex(hex) }))
-    .filter((c): c is { hex: string; rgb: NonNullable<ReturnType<typeof lerHex>> } => c.rgb !== null);
+    .filter((candidate): candidate is { hex: string; rgb: NonNullable<ReturnType<typeof lerHex>> } => candidate.rgb !== null);
 
-  if (!claro || candidatos.length === 0) {
-    return { modulo: PRETO, fundo: BRANCO, recuouParaAbsoluto: true };
+  if (!light || candidates.length === 0) {
+    return absoluteInk();
   }
 
-  const melhor = candidatos.reduce((a, b) =>
-    contraste(a.rgb, claro) >= contraste(b.rgb, claro) ? a : b,
+  const best = candidates.reduce((a, b) =>
+    contraste(a.rgb, light) >= contraste(b.rgb, light) ? a : b,
   );
 
-  if (contraste(melhor.rgb, claro) < CONTRASTE_DE_QR) {
-    return { modulo: PRETO, fundo: BRANCO, recuouParaAbsoluto: true };
+  if (contraste(best.rgb, light) < QR_CONTRAST_RATIO) {
+    return absoluteInk();
   }
 
-  return { modulo: melhor.hex, fundo, recuouParaAbsoluto: false };
+  return { modulo: best.hex, fundo: background, recuouParaAbsoluto: false };
 }
 
-export type LayoutDePeca = {
-  formato: FormatoDePeca;
+function absoluteInk(): QrInk {
+  return { modulo: BLACK, fundo: WHITE, recuouParaAbsoluto: true };
+}
+
+export type PieceLayout = {
+  formato: PieceFormat;
   /** O lado do QR que o layout pediu, em milímetros. */
   qr: number;
   /** A URL curta impressa sob o código. Vazia é defeito, não estilo. */
@@ -133,23 +135,23 @@ export type LayoutDePeca = {
  * vazia é a aprovação. O chamador decide se bloqueia o download ou só avisa —
  * mas ninguém gera um PDF sem passar por aqui.
  */
-export function problemasDaPeca(layout: LayoutDePeca, cores: Cores): string[] {
-  const problemas: string[] = [];
-  const medidas = medidasDaPeca(layout.formato);
+export function pieceProblems(layout: PieceLayout, colors: Colors): string[] {
+  const problems: string[] = [];
+  const measures = pieceMeasures(layout.formato);
 
-  if (layout.qr < QR_MINIMO_MM) {
-    problemas.push(
-      `o QR tem ${layout.qr} mm e o mínimo é ${QR_MINIMO_MM} mm — não escaneia depois de impresso`,
+  if (layout.qr < QR_MIN_MM) {
+    problems.push(
+      `o QR tem ${layout.qr} mm e o mínimo é ${QR_MIN_MM} mm — não escaneia depois de impresso`,
     );
   }
 
-  if (layout.qr > Math.min(medidas.largura, medidas.altura) - AREA_SEGURA_MM * 2) {
-    problemas.push("o QR não cabe dentro da área de segurança da peça");
+  if (layout.qr > Math.min(measures.largura, measures.altura) - SAFE_AREA_MM * 2) {
+    problems.push("o QR não cabe dentro da área de segurança da peça");
   }
 
-  if (layout.margem < AREA_SEGURA_MM) {
-    problemas.push(
-      `a margem tem ${layout.margem} mm e a área de segurança é ${AREA_SEGURA_MM} mm — o corte come o conteúdo`,
+  if (layout.margem < SAFE_AREA_MM) {
+    problems.push(
+      `a margem tem ${layout.margem} mm e a área de segurança é ${SAFE_AREA_MM} mm — o corte come o conteúdo`,
     );
   }
 
@@ -157,16 +159,16 @@ export function problemasDaPeca(layout: LayoutDePeca, cores: Cores): string[] {
   // URL embaixo é o único caminho que sobra, e ela some primeiro em revisão
   // de layout porque "polui".
   if (layout.url.trim() === "") {
-    problemas.push("falta a URL legível sob o QR");
+    problems.push("falta a URL legível sob o QR");
   }
 
-  if (tintaDoQr(cores).recuouParaAbsoluto) {
-    problemas.push(
+  if (qrInk(colors).recuouParaAbsoluto) {
+    problems.push(
       "a identidade não alcança o contraste do código: o QR sai em preto sobre branco",
     );
   }
 
-  return problemas;
+  return problems;
 }
 
 /**
@@ -176,6 +178,6 @@ export function problemasDaPeca(layout: LayoutDePeca, cores: Cores): string[] {
  * Avisar antes é expectativa e avisar depois é reclamação — por isso isto é
  * uma função no contrato, e não uma nota de rodapé que alguém esquece de pôr.
  */
-export function avisoDeCor(cores: Cores): string {
-  return `A tela mostra RGB e a gráfica imprime CMYK: ${cores.acento} vai sair um pouco mais apagado no papel. Peça uma prova impressa antes da tiragem inteira.`;
+export function colorWarning(colors: Colors): string {
+  return `A tela mostra RGB e a gráfica imprime CMYK: ${colors.acento} vai sair um pouco mais apagado no papel. Peça uma prova impressa antes da tiragem inteira.`;
 }
