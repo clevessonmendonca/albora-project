@@ -53,6 +53,15 @@ describe("comparar", () => {
 });
 
 describe("avaliar", () => {
+  it("prefere stdout quando a tabela traz First Load JS por rota", () => {
+    const { resultados } = avaliar({
+      saida: SAIDA_EXEMPLO,
+      orcamentos: ORCAMENTOS,
+      reportOnly: true,
+    });
+    expect(resultados.find((r) => r.rota.endsWith("/cover")).medidoKb).toBe(128);
+  });
+
   it("não reprova em report-only mesmo acima do limite", () => {
     const acima = SAIDA_EXEMPLO.replace("198 kB", "300 kB");
     const { reprova } = avaliar({

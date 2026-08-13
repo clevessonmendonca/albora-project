@@ -1,12 +1,13 @@
 /**
  * Orçamento de First Load JS nas rotas críticas do convidado (gate pós-H1).
  *
- * Roda `next build --no-lint`, lê a tabela de rotas do stdout e compara com
- * `orcamentos.json`. Modo `--report-only` nunca reprova o processo — serve
- * para observar tendência no CI antes de tornar o gate bloqueante.
+ * Roda `next build --experimental-build-mode compile` (não exige page data
+ * collection), soma gzip dos chunks do app-build-manifest e compara com
+ * `orcamentos.json`. Modo `--report-only` nunca reprova o processo.
  */
 
 import { readFileSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -16,9 +17,15 @@ const RAIZ = join(AQUI, "..", "..");
 const WEB = join(RAIZ, "apps", "web");
 const ORCAMENTOS_PATH = join(AQUI, "orcamentos.json");
 
-/** Linha da tabela de rotas emitida por `next build`. */
+/** Linha da tabela de rotas emitida por `next build` (modo completo). */
 const LINHA_ROTA =
   /(\/e\/\[slug\]\/[a-z-]+)\s+[\d.]+\s+\wB\s+([\d.]+)\s+kB/;
+
+/** Mapeia rota pública → chave em app-build-manifest.json. */
+const CHAVE_MANIFEST = {
+  "/e/[slug]/cover": "/e/[slug]/cover/page",
+  "/e/[slug]/photo": "/e/[slug]/photo/page",
+};
 
 export function parseKb(valor) {
   const m = String(valor).match(/([\d.]+)\s*kB/i);
@@ -31,6 +38,29 @@ export function extrairRotas(saida) {
     const m = linha.match(LINHA_ROTA);
     if (!m) continue;
     achados.set(m[1], parseKb(`${m[2]} kB`));
+  }
+  return achados;
+}
+
+export function somarChunksGzipKb(chunks, nextDir) {
+  let total = 0;
+  for (const rel of chunks) {
+    const bytes = readFileSync(join(nextDir, rel));
+    total += gzipSync(bytes).length;
+  }
+  return total / 1024;
+}
+
+export function medirDoManifest(nextDir, rotasAlvo) {
+  const manifestPath = join(nextDir, "app-build-manifest.json");
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  const achados = new Map();
+
+  for (const rota of rotasAlvo) {
+    const chave = CHAVE_MANIFEST[rota];
+    const chunks = manifest.pages[chave];
+    if (!chunks) continue;
+    achados.set(rota, somarChunksGzipKb(chunks, nextDir));
   }
   return achados;
 }
@@ -80,19 +110,25 @@ export function executarBuild() {
     }
   }
 
-  const build = executarPasso(["exec", "next", "build", "--no-lint"], WEB, {
-    BUNDLE_BUDGET_BUILD: "1",
-  });
+  const build = executarPasso(
+    ["exec", "next", "build", "--no-lint", "--experimental-build-mode", "compile"],
+    WEB,
+    { BUNDLE_BUDGET_BUILD: "1" },
+  );
   if (build.code !== 0) {
     return { ok: false, saida: build.saida, motivo: "next build falhou" };
   }
-  return { ok: true, saida: build.saida };
+  return { ok: true, saida: build.saida, nextDir: join(WEB, ".next") };
 }
 
-function formatarRelatorio(resultados, reportOnly) {
-  const linhas = ["Orçamento de bundle — rotas do convidado (First Load JS)", ""];
-  linhas.push("Rota                          Medido   Limite   Status");
-  linhas.push("────────────────────────────────────────────────────────");
+function formatarRelatorio(resultados, reportOnly, fonte) {
+  const linhas = [
+    "Orçamento de bundle — rotas do convidado (First Load JS, gzip)",
+    `Fonte: ${fonte}`,
+    "",
+    "Rota                          Medido   Limite   Status",
+    "────────────────────────────────────────────────────────",
+  ];
 
   for (const r of resultados) {
     const medido = r.medidoKb === null ? "  —   " : `${r.medidoKb.toFixed(1).padStart(5)} kB`;
@@ -102,9 +138,7 @@ function formatarRelatorio(resultados, reportOnly) {
     else if (r.dentro) status = "OK";
     else status = "ACIMA";
 
-    linhas.push(
-      `${r.rota.padEnd(28)} ${medido}  ${limite}  ${status}`,
-    );
+    linhas.push(`${r.rota.padEnd(28)} ${medido}  ${limite}  ${status}`);
     if (r.descricao) {
       linhas.push(`  ↳ ${r.descricao}`);
     }
@@ -116,7 +150,7 @@ function formatarRelatorio(resultados, reportOnly) {
   linhas.push("");
   if (ausentes.length > 0) {
     linhas.push(
-      `⚠ ${ausentes.length} rota(s) não encontrada(s) na saída do build — verifique se a rota ainda existe.`,
+      `⚠ ${ausentes.length} rota(s) não encontrada(s) no build — verifique se a rota ainda existe.`,
     );
   }
   if (acima.length > 0) {
@@ -136,10 +170,28 @@ function formatarRelatorio(resultados, reportOnly) {
   return linhas.join("\n");
 }
 
-export function avaliar({ saida, orcamentos, reportOnly }) {
-  const rotas = extrairRotas(saida);
-  const resultados = comparar(rotas, orcamentos);
-  const relatorio = formatarRelatorio(resultados, reportOnly);
+export function avaliar({ saida, nextDir, orcamentos, reportOnly }) {
+  const rotasAlvo = Object.keys(orcamentos.rotas);
+  const daTabela = extrairRotas(saida);
+  const doManifest = nextDir ? medirDoManifest(nextDir, rotasAlvo) : new Map();
+
+  const rotasMedidas = new Map();
+  let fonte = "stdout do next build";
+  for (const rota of rotasAlvo) {
+    const tabela = daTabela.get(rota);
+    const manifest = doManifest.get(rota);
+    if (tabela !== undefined) rotasMedidas.set(rota, tabela);
+    else if (manifest !== undefined) rotasMedidas.set(rota, manifest);
+  }
+  if ([...rotasMedidas.values()].length === 0 && doManifest.size > 0) {
+    fonte = "app-build-manifest.json (gzip)";
+    for (const [rota, kb] of doManifest) rotasMedidas.set(rota, kb);
+  } else if (doManifest.size > 0 && daTabela.size === 0) {
+    fonte = "app-build-manifest.json (gzip)";
+  }
+
+  const resultados = comparar(rotasMedidas, orcamentos);
+  const relatorio = formatarRelatorio(resultados, reportOnly, fonte);
   const reprova =
     !reportOnly &&
     resultados.some((r) => r.ausente || !r.dentro);
@@ -162,6 +214,7 @@ function main() {
 
   const { relatorio, reprova } = avaliar({
     saida: build.saida,
+    nextDir: build.nextDir,
     orcamentos,
     reportOnly,
   });
