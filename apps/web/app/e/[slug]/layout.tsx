@@ -1,6 +1,6 @@
 import { resolverSlug } from "@albora/db";
 import { PACKS } from "@albora/packs";
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
+import { MARCA_ALBORA, paraVariaveis, resolverTokens, type CamadaTokens } from "@albora/tokens";
 import type { CSSProperties, ReactNode } from "react";
 import { cookies } from "next/headers";
 import { banco } from "@/lib/banco";
@@ -20,8 +20,13 @@ export default async function Layout({
   if (r.estado !== "aberto") return children;
 
   const pack = PACKS[r.evento.packId];
+  const camadaEvento = r.evento.identityTokens as CamadaTokens;
   const vars = paraVariaveis(
-    resolverTokens({ marca: MARCA_ALBORA, ...(pack ? { pack: pack.tokens } : {}) }),
+    resolverTokens({
+      marca: MARCA_ALBORA,
+      ...(pack ? { pack: pack.tokens } : {}),
+      ...(Object.keys(r.evento.identityTokens).length > 0 ? { evento: camadaEvento } : {}),
+    }),
   ) as CSSProperties;
 
   const sessao = await sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);

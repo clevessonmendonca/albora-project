@@ -4,13 +4,13 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { banco } from "@/lib/banco";
 import { COOKIE_HOST, hostDoToken } from "@/lib/host-sessao";
-import { CascaAdmin } from "../../casca";
-import { ControlesDoEvento } from "./controles";
-import { NavEvento } from "./nav-evento";
+import { CascaAdmin } from "../../../casca";
+import { NavEvento } from "../nav-evento";
+import { AlbumDoAnfitriao } from "./album-cliente";
 
 export const dynamic = "force-dynamic";
 
-export default async function Pagina({
+export default async function PaginaAlbum({
   params,
 }: {
   params: Promise<{ eventoId: string }>;
@@ -29,16 +29,11 @@ export default async function Pagina({
   return (
     <CascaAdmin
       titulo={nome}
-      subtitulo={`/${evento.slug}`}
+      subtitulo={`/${evento.slug} · O álbum`}
       voltar={{ rotulo: "Seus eventos", href: "/admin" }}
     >
       <NavEvento eventoId={eventoId} />
-      <ControlesDoEvento
-        eventoId={evento.eventoId}
-        slug={evento.slug}
-        inicial={evento.moderacao}
-        interacaoAbreEmInicial={evento.interacaoAbreEm?.toISOString() ?? null}
-      />
+      <AlbumDoAnfitriao eventoId={eventoId} />
     </CascaAdmin>
   );
 }
