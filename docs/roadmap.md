@@ -14,7 +14,7 @@ Este documento substitui o recorte “só MVP” por **entrega completa** alinha
 |---|---|---|---|
 | **1 — convidado A** | A | A-01 Scanner · A-02 Missões · A-03 Minhas · A-04 Foto · A-05 Comentar · A-06 Denúncia · A-07 Fila · A-08 Música · A-09 Vazios | **Catálogo feito** · **Produto:** reentrada `/capa`, `SemEntrada`, fila global, hub capa, momentos→álbum, motivo na denúncia, CTA PWA 1ª foto |
 | **2 — anfitrião A** | A | B-01 Login · B-02 Criar evento · B-03 Identidade · B-05 O álbum · B-08 Peças · C-02 Pânico | **Catálogo feito** · **Produto feito:** wizard, identidade, álbum, nav, telãoModelos, **painel ao vivo com participação** |
-| **3 — pós-H1** | B | A-10 App · A-11 Parear · A-12 Recado · B-04 Missões editor · B-06 Moderação · B-07 Convidados · C-01 Vídeo parede | Pendente |
+| **3 — pós-H1** | B | A-10 App · A-11 Parear · A-12 Recado · B-04 Missões editor · B-06 Moderação · B-07 Convidados · C-01 Vídeo parede | **Próxima** — Onda 2 fechada; começar por B-06 (moderação admin) ou A-11 (parear app) |
 | **4 — escala** | C | A-13 Recap · B-09 Livro · B-10 Retenção | Pendente |
 
 ---
@@ -47,7 +47,7 @@ Este documento substitui o recorte “só MVP” por **entrega completa** alinha
 
 | Item | Estado |
 |---|---|
-| Painel ao vivo (`TelaPainel` / `TelaAdminPainel`) | **Catálogo feito** · produto em `/admin/e/[id]` |
+| Painel ao vivo (`TelaPainel` / `TelaAdminPainel`) | **Catálogo feito** · **Produto feito** — métricas H1, fila de revisão, últimas fotos em `/admin/e/[id]` |
 | Modelos da parede (`TelaModelosDaParede` / `TelaAdminParede`) | **Catálogo feito** · telão lê `telaoModelos` do evento |
 | Login magic link (`TelaLogin`) | **Catálogo feito** · produto em `/admin/entrar` |
 | Wizard criar evento (`TelaCriarEvento`) | **Catálogo feito** · **Produto feito** em `/admin/novo` (5 passos) |
