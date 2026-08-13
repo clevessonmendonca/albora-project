@@ -1,14 +1,11 @@
-import { resolverSlug } from "@albora/db";
-import { PACKS } from "@albora/packs";
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
-import type { CSSProperties } from "react";
-import { banco } from "@/lib/banco";
-import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
+import { Suspense } from "react";
+import { MusicContent } from "@/features/music/components/server/music-content";
+import { MusicPageSkeleton } from "@/features/music/components/skeletons/music-page-skeleton";
+import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
+import { guestSession } from "@/features/guest/data/guest-session";
 import { Aviso } from "../aviso";
 import { SemEntrada } from "../sem-entrada";
-import { PaginaMusica } from "./pagina-musica";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function Pagina({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const r = await resolverSlug(banco(), slug, new Date());
+  const r = await resolveOpenEvent(slug);
 
   if (r.estado !== "aberto") {
     return (
@@ -27,20 +24,12 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
     );
   }
 
-  const sessao = await sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
-  if (!sessao) return <SemEntrada slug={slug} />;
-
-  const pack = PACKS[r.evento.packId];
-  const vars = paraVariaveis(
-    resolverTokens({
-      marca: MARCA_ALBORA,
-      pack: { ...(pack?.tokens ?? {}), fundo: "escuro" },
-    }),
-  ) as CSSProperties;
+  const session = await guestSession();
+  if (!session) return <SemEntrada slug={slug} />;
 
   return (
-    <div style={vars}>
-      <PaginaMusica slug={slug} />
-    </div>
+    <Suspense fallback={<MusicPageSkeleton />}>
+      <MusicContent slug={slug} evento={r.evento} />
+    </Suspense>
   );
 }

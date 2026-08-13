@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Moldura } from "../../../landing/pecas";
-import { BarraDeAbas } from "../barra-de-abas";
+import { Moldura } from "@/app/landing/pecas";
+import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 import {
   CabecalhoConvidado,
   ChaoConvidado,
   MioloConvidado,
   RecadoErro,
   TextoSecundario,
-} from "../../../telas/shell-convidado";
-import { Pilula } from "../../../telas/pecas-de-tela";
+} from "@/features/guest/components/client/guest-shell";
+import { Pilula } from "@/features/guest/components/client/guest-ui-parts";
 
 type Musica = {
   provedor: string;
@@ -19,7 +19,7 @@ type Musica = {
   capaUrl?: string | null;
 } | null;
 
-export function PaginaMusica({ slug }: { slug: string }) {
+export function MusicPage({ slug }: { slug: string }) {
   const [musica, setMusica] = useState<Musica>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(false);
@@ -89,7 +89,7 @@ export function PaginaMusica({ slug }: { slug: string }) {
           {erro && <RecadoErro>Não deu para carregar agora.</RecadoErro>}
         </MioloConvidado>
       </ChaoConvidado>
-      <BarraDeAbas slug={slug} />
+      <GuestTabBar slug={slug} />
     </>
   );
 }
