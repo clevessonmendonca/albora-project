@@ -1,13 +1,20 @@
 "use client";
 
-import type { AlbumServido } from "@/lib/album";
-import { AlbumUI } from "../../../album/album-ui";
+import { PaginaAlbum, type MissaoDoAlbum } from "./pagina-album";
 import { BarraDeAbas } from "../barra-de-abas";
 
-export function AlbumComAbas({ slug, album }: { slug: string; album: AlbumServido }) {
+export function AlbumComAbas({
+  slug,
+  missoes,
+  caminhoDaCamera,
+}: {
+  slug: string;
+  missoes: MissaoDoAlbum[];
+  caminhoDaCamera: string;
+}) {
   return (
     <>
-      <AlbumUI album={album} />
+      <PaginaAlbum missoes={missoes} caminhoDaCamera={caminhoDaCamera} />
       <BarraDeAbas slug={slug} ativa="album" />
     </>
   );

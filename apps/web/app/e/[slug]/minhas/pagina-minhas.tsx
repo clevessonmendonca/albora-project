@@ -1,16 +1,100 @@
 "use client";
 
 import type { ItemDaGaleria } from "@albora/core";
-import { useEffect, useMemo, useState } from "react";
+import { ehMimeVideo } from "@albora/core";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { filaWeb } from "@/lib/fila";
 import { usarCompartilhar } from "@/lib/usar-compartilhar";
 import { usarGaleria } from "@/lib/usar-galeria";
 import { BarraDeAbas } from "../barra-de-abas";
+import {
+  BotaoPrimario,
+  BotaoSecundario,
+  CabecalhoConvidado,
+  ChaoConvidado,
+  MioloConvidado,
+  RecadoErro,
+} from "../../../telas/shell-convidado";
+import { Pilula } from "../../../telas/pecas-de-tela";
 
 function rotuloEstado(estado: ItemDaGaleria["estado"]): string {
   if (estado === "subindo") return "Subindo…";
   if (estado === "falhou") return "Não subiu";
   return "";
+}
+
+function MiniaturaMinhas({
+  ehVideo,
+  url,
+  urlVideo,
+  pendente,
+}: {
+  ehVideo: boolean;
+  url: string | undefined;
+  urlVideo: string | null | undefined;
+  pendente: boolean;
+}) {
+  const cobertura: CSSProperties = {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+  };
+
+  if (ehVideo && pendente && url) {
+    return <video src={url} muted playsInline preload="metadata" style={cobertura} />;
+  }
+
+  if (ehVideo && url) {
+    return (
+      <>
+        <img src={url} alt="" loading="lazy" decoding="async" style={cobertura} />
+        <IndicadorVideo />
+      </>
+    );
+  }
+
+  if (ehVideo && urlVideo) {
+    return <video src={urlVideo} muted playsInline preload="metadata" style={cobertura} />;
+  }
+
+  if (url) {
+    return <img src={url} alt="" loading="lazy" decoding="async" style={cobertura} />;
+  }
+
+  return <div style={{ width: "100%", height: "100%", background: "var(--linha)" }} />;
+}
+
+function IndicadorVideo() {
+  return (
+    <span
+      aria-hidden
+      style={{
+        position: "absolute",
+        inset: 0,
+        display: "grid",
+        placeItems: "center",
+        pointerEvents: "none",
+        background:
+          "linear-gradient(to top, color-mix(in srgb, var(--bg) 40%, transparent), transparent 55%)",
+      }}
+    >
+      <span
+        style={{
+          width: "2rem",
+          height: "2rem",
+          borderRadius: "50%",
+          border: "1px solid var(--linha)",
+          background: "color-mix(in srgb, var(--bg) 72%, transparent)",
+          display: "grid",
+          placeItems: "center",
+          fontSize: "0.75rem",
+        }}
+      >
+        ▶
+      </span>
+    </span>
+  );
 }
 
 export function PaginaMinhas({
@@ -25,6 +109,7 @@ export function PaginaMinhas({
   const galeria = usarGaleria(eventoId);
   const compartilhar = usarCompartilhar(eventoId, sessaoId);
   const [locais, setLocais] = useState<Map<string, string>>(new Map());
+  const [mimesLocais, setMimesLocais] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {
     let cancelado = false;
@@ -33,15 +118,20 @@ export function PaginaMinhas({
     void (async () => {
       const fila = await filaWeb.listar();
       const mapa = new Map<string, string>();
+      const mimes = new Map<string, string>();
       for (const item of fila) {
         if (item.eventoId !== eventoId) continue;
         if (item.corpo.tipo === "blob") {
           const url = URL.createObjectURL(item.corpo.blob);
           criadas.push(url);
           mapa.set(item.id, url);
+          mimes.set(item.id, item.mime);
         }
       }
-      if (!cancelado) setLocais(mapa);
+      if (!cancelado) {
+        setLocais(mapa);
+        setMimesLocais(mimes);
+      }
     })();
 
     return () => {
@@ -57,68 +147,54 @@ export function PaginaMinhas({
     return `${galeria.resumo.total} ${galeria.resumo.total === 1 ? "foto" : "fotos"}`;
   }, [galeria.resumo]);
 
-  const idsEnviadas = useMemo(
-    () => galeria.itens.filter((i) => i.estado === "enviada").map((i) => i.id),
-    [galeria.itens],
+  const idsFotosEnviadas = useMemo(
+    () => galeria.itens.filter((i) => i.estado === "enviada" && !galeria.ehVideo(i)).map((i) => i.id),
+    [galeria.itens, galeria.ehVideo],
   );
 
   return (
     <>
-      <main
-        style={{
-          minHeight: "100dvh",
-          padding: "calc(var(--espaco) * 4) calc(var(--espaco) * 3)",
-          paddingBottom: "calc(6rem + env(safe-area-inset-bottom))",
-        }}
-      >
-        <header style={{ marginBottom: "calc(var(--espaco) * 4)" }}>
-          <h1
+      <ChaoConvidado>
+        <MioloConvidado>
+          <CabecalhoConvidado
+            titulo="Minhas fotos"
+            acao={
+              !galeria.carregando ? (
+                <Pilula>{resumo}</Pilula>
+              ) : (
+                <Pilula>Carregando…</Pilula>
+              )
+            }
+          />
+
+          {galeria.falha && <RecadoErro>Não deu para carregar agora.</RecadoErro>}
+
+          {compartilhar.erro && <RecadoErro>{compartilhar.erro}</RecadoErro>}
+
+          {!galeria.carregando && galeria.itens.length === 0 && (
+            <p style={{ color: "var(--ink-3)", fontSize: "0.95rem", lineHeight: 1.5 }}>
+              Ainda não há fotos suas aqui. Use o botão da câmera para mandar a primeira.
+            </p>
+          )}
+
+          <ul
             style={{
+              listStyle: "none",
               margin: 0,
-              fontFamily: "var(--fonte-titulo)",
-              fontSize: "1.25rem",
-              fontWeight: 400,
-              letterSpacing: "0.04em",
-              color: "var(--ink)",
+              padding: 0,
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: "2px",
             }}
           >
-            Minhas fotos
-          </h1>
-          <p style={{ margin: "0.5rem 0 0", fontSize: "0.85rem", color: "var(--ink-3)" }}>
-            {galeria.carregando ? "Carregando…" : resumo}
-          </p>
-        </header>
-
-        {galeria.falha && (
-          <p style={{ color: "var(--critico)", fontSize: "0.9rem" }}>
-            Não deu para carregar agora.
-          </p>
-        )}
-
-        {compartilhar.erro && (
-          <p style={{ color: "var(--critico)", fontSize: "0.9rem", marginBottom: "1rem" }}>
-            {compartilhar.erro}
-          </p>
-        )}
-
-        {!galeria.carregando && galeria.itens.length === 0 && (
-          <p style={{ color: "var(--ink-3)", fontSize: "0.95rem", lineHeight: 1.5 }}>
-            Ainda não há fotos suas aqui. Use o botão da câmera para mandar a primeira.
-          </p>
-        )}
-
-        <ul
-          style={{
-            listStyle: "none",
-            margin: 0,
-            padding: 0,
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "0.375rem",
-          }}
-        >
           {galeria.itens.map((item) => {
             const url = item.estado === "enviada" ? galeria.urlDe(item) : locais.get(item.id);
+            const urlVideo =
+              item.estado === "enviada" ? galeria.urlCheia(item) : locais.get(item.id);
+            const ehVideo =
+              item.estado === "enviada"
+                ? galeria.ehVideo(item)
+                : ehMimeVideo(mimesLocais.get(item.id) ?? "");
             const rotulo = rotuloEstado(item.estado);
 
             return (
@@ -126,7 +202,7 @@ export function PaginaMinhas({
                 {item.estado === "enviada" && (
                   <button
                     type="button"
-                    aria-label="Compartilhar esta foto"
+                    aria-label={ehVideo ? "Compartilhar este vídeo" : "Compartilhar esta foto"}
                     disabled={compartilhar.compartilhandoId === item.id}
                     onClick={() => void compartilhar.compartilhar(item.id)}
                     style={{
@@ -183,17 +259,12 @@ export function PaginaMinhas({
                     border: "1px solid var(--linha)",
                   }}
                 >
-                  {url ? (
-                    <img
-                      src={url}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                    />
-                  ) : (
-                    <div style={{ width: "100%", height: "100%", background: "var(--linha)" }} />
-                  )}
+                  <MiniaturaMinhas
+                    ehVideo={ehVideo}
+                    url={url ?? undefined}
+                    urlVideo={urlVideo ?? undefined}
+                    pendente={item.estado !== "enviada"}
+                  />
                 </div>
 
                 {rotulo && (
@@ -220,48 +291,29 @@ export function PaginaMinhas({
           })}
         </ul>
 
-        {idsEnviadas.length >= 2 && (
-          <button
-            type="button"
-            disabled={compartilhar.colagemIds !== null}
-            onClick={() => void compartilhar.compartilharColagem(idsEnviadas.slice(0, 4))}
-            style={{
-              marginTop: "calc(var(--espaco) * 3)",
-              width: "100%",
-              minHeight: "44px",
-              border: "1px solid var(--linha)",
-              borderRadius: "var(--raio-pilula)",
-              background: "var(--superficie)",
-              color: "var(--ink)",
-              font: "inherit",
-              cursor: compartilhar.colagemIds ? "wait" : "pointer",
-            }}
-          >
-            {compartilhar.colagemIds ? "Montando colagem…" : "Colagem da noite"}
-          </button>
+        {idsFotosEnviadas.length >= 2 && (
+          <div style={{ marginTop: "1.25rem" }}>
+            <BotaoSecundario
+              desabilitado={compartilhar.colagemIds !== null}
+              onClick={() => void compartilhar.compartilharColagem(idsFotosEnviadas.slice(0, 4))}
+            >
+              {compartilhar.colagemIds ? "Montando colagem…" : "Colagem da noite"}
+            </BotaoSecundario>
+          </div>
         )}
 
         {galeria.resumo.falhou > 0 && (
-          <button
-            type="button"
-            disabled={galeria.drenando}
-            onClick={() => void galeria.tentarDeNovo()}
-            style={{
-              marginTop: "calc(var(--espaco) * 4)",
-              width: "100%",
-              minHeight: "44px",
-              border: "none",
-              borderRadius: "var(--raio-pilula)",
-              background: "var(--acento)",
-              color: "var(--sobre-acento)",
-              font: "inherit",
-              cursor: galeria.drenando ? "wait" : "pointer",
-            }}
-          >
-            {galeria.drenando ? "Tentando…" : "Tentar de novo"}
-          </button>
+          <div style={{ marginTop: "1.5rem" }}>
+            <BotaoPrimario
+              desabilitado={galeria.drenando}
+              onClick={() => void galeria.tentarDeNovo()}
+            >
+              {galeria.drenando ? "Tentando…" : "Tentar de novo"}
+            </BotaoPrimario>
+          </div>
         )}
-      </main>
+        </MioloConvidado>
+      </ChaoConvidado>
 
       {(compartilhar.pedindoConsentimento || compartilhar.pedindoColagem) && (
         <div

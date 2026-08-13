@@ -16,7 +16,8 @@ import type { ItemVisivel } from "@/lib/usar-feed";
  * mostrar "14 fotos" às 23h seria placar de popularidade numa festa.
  */
 
-const DIAMETRO = "4.75rem";
+const DIAMETRO = "3.5rem";
+const LARGURA = "3.75rem";
 
 export function Tira({
   grupos,
@@ -39,12 +40,11 @@ export function Tira({
       aria-label={rotulo}
       style={{
         display: "flex",
-        gap: "calc(var(--espaco) * 3.5)",
+        gap: "0.875rem",
         overflowX: "auto",
         scrollbarWidth: "none",
-        // Sangra até a borda da tela para o último círculo não parecer o fim.
-        margin: "0 calc(var(--espaco) * -5)",
-        padding: "calc(var(--espaco) * 1) calc(var(--espaco) * 5)",
+        margin: "0 calc(var(--espaco) * -5) 1rem",
+        padding: "0 calc(var(--espaco) * 5)",
       }}
     >
       {grupos.map((grupo) => {
@@ -92,9 +92,11 @@ function Circulo({
       style={{
         font: "inherit",
         flex: "none",
-        display: "grid",
-        justifyItems: "center",
-        gap: "calc(var(--espaco) * 1.5)",
+        width: LARGURA,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "0.375rem",
         padding: 0,
         border: "none",
         background: "transparent",
@@ -109,11 +111,9 @@ function Circulo({
           display: "block",
           width: DIAMETRO,
           height: DIAMETRO,
-          padding: "3px",
-          borderRadius: "var(--raio-pilula)",
-          // O anel é filete de acento — o gradiente roxo do Instagram é
-          // anti-padrão bloqueante, e âmbar é metal, nunca preenchimento.
-          border: visto ? "1px solid var(--linha)" : "1.5px solid var(--acento)",
+          padding: "2px",
+          borderRadius: "50%",
+          backgroundColor: visto ? "var(--linha)" : "var(--acento)",
         }}
       >
         <span
@@ -123,7 +123,7 @@ function Circulo({
             width: "100%",
             height: "100%",
             overflow: "hidden",
-            borderRadius: "var(--raio-pilula)",
+            borderRadius: "50%",
             background: "var(--superficie)",
           }}
         >
@@ -167,12 +167,10 @@ function Circulo({
 
       <span
         style={{
-          fontFamily: "var(--fonte-titulo)",
-          fontSize: "0.66rem",
-          fontWeight: 400,
-          letterSpacing: "0.2em",
-          textTransform: "uppercase",
+          fontSize: "0.5625rem",
           color: visto ? "var(--ink-3)" : "var(--ink-2)",
+          textAlign: "center",
+          lineHeight: 1.2,
         }}
       >
         {abrindo ? "…" : rotuloDeHora(hora)}
@@ -188,9 +186,9 @@ export function TiraCarregando() {
       aria-hidden
       style={{
         display: "flex",
-        gap: "calc(var(--espaco) * 3.5)",
-        margin: "0 calc(var(--espaco) * -5)",
-        padding: "calc(var(--espaco) * 1) calc(var(--espaco) * 5)",
+        gap: "0.875rem",
+        margin: "0 calc(var(--espaco) * -5) 1rem",
+        padding: "0 calc(var(--espaco) * 5)",
       }}
     >
       {[0, 1, 2, 3].map((i) => (

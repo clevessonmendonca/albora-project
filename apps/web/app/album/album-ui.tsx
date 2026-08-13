@@ -3,6 +3,8 @@
 import type { CSSProperties } from "react";
 import type { AlbumServido, PaginaServida } from "@/lib/album";
 import { Moldura, raio } from "../landing/pecas";
+import { CabecalhoConvidado, ChaoConvidado, MioloConvidado } from "../telas/shell-convidado";
+import { Pilula } from "../telas/pecas-de-tela";
 
 /**
  * O álbum da noite, desenhado (spec 016).
@@ -212,33 +214,14 @@ function Pagina({ pagina }: { pagina: PaginaServida }) {
 export function AlbumUI({ album }: { album: AlbumServido }) {
   const marcas = linhaDoTempo(album);
   const vazio = album.totalDePaginas === 0;
+  const contagem = `${album.contadores.fotos} ${album.contadores.fotos === 1 ? "foto" : "fotos"}`;
 
   return (
-    <main
-      style={{
-        minHeight: "100dvh",
-        backgroundColor: "var(--bg)",
-        color: "var(--ink)",
-        fontFamily: "var(--fonte-corpo)",
-        padding: "1.5rem 1.125rem 3rem",
-      }}
-    >
-      <div style={{ maxWidth: "34rem", margin: "0 auto" }}>
-        <header style={{ textAlign: "center", padding: "0.5rem 0 1.25rem" }}>
-          <h1
-            style={{
-              margin: 0,
-              fontFamily: "var(--fonte-titulo)",
-              fontWeight: 300,
-              fontSize: "2rem",
-              lineHeight: 1.1,
-              letterSpacing: "var(--tracking-titulo)",
-            }}
-          >
-            O álbum da noite
-          </h1>
-        </header>
+    <ChaoConvidado>
+      <MioloConvidado>
+        <CabecalhoConvidado titulo="O álbum da noite" acao={<Pilula>{contagem}</Pilula>} />
 
+        <div style={{ maxWidth: "34rem", margin: "0 auto", width: "100%" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
           <Contador valor={album.contadores.fotos} rotulo="fotos" />
           <Contador valor={album.contadores.convidados} rotulo="convidados" />
@@ -280,7 +263,8 @@ export function AlbumUI({ album }: { album: AlbumServido }) {
             )}
           </div>
         )}
-      </div>
-    </main>
+        </div>
+      </MioloConvidado>
+    </ChaoConvidado>
   );
 }

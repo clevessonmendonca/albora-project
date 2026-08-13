@@ -65,6 +65,7 @@ export async function GET(req: Request) {
       midias.lista.map(async (m) => ({
         id: m.id,
         autor: m.autor,
+        mime: m.mime,
         criadaEm: m.criadaEm.toISOString(),
         reacoes: m.reacoes,
         thumb: await assinarGet(m.chaveThumb, VALIDADE_GET_SEGUNDOS),

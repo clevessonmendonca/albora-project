@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 /**
- * A foto dentro do quadro 9:16, **sem cortar**.
+ * A mídia dentro do quadro 9:16, **sem cortar**.
  *
  * Três de cada quatro fotos de festa são verticais, e a tela do celular é
  * vertical: essas preenchem quase tudo sozinhas. O problema é a minoria
@@ -13,25 +13,26 @@ import { useEffect, useState } from "react";
  * A saída é o modelo **Ambiente** do `docs/flows.md` §5.0: a imagem inteira,
  * `contain`, com a própria foto desfocada estendendo o fundo. Nada é
  * descartado, e o quadro não fica com duas tarjas mortas em cima e embaixo.
- * O desfoque aqui é técnica de mídia — o banimento do `DESIGN.md` vale para
- * superfície de interface, onde blur lê como glassmorphism; esticar a própria
- * imagem é outra coisa, e o §5.0 diz isso com todas as letras.
  *
- * A miniatura entra primeiro e o arquivo cheio troca por cima quando chega. Sem
- * isso, cada toque é uma espera em tela preta — e a pessoa sai antes da terceira
- * foto.
+ * Vídeo usa o mesmo enquadramento: `contain`, fundo desfocado da miniatura
+ * quando existe, e o arquivo cheio toca mudo — o reprodutor avança no `ended`.
  */
 export function Quadro({
   urlThumb,
   urlCheia,
   alt,
   movimentoReduzido,
+  ehVideo = false,
+  onFim,
 }: {
   urlThumb: string | undefined;
   urlCheia: string | undefined;
   alt: string;
   movimentoReduzido: boolean;
+  ehVideo?: boolean;
+  onFim?: () => void;
 }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [cheiaPronta, setCheiaPronta] = useState(false);
   const [thumbCaiu, setThumbCaiu] = useState(false);
   const [cheiaCaiu, setCheiaCaiu] = useState(false);
@@ -41,14 +42,20 @@ export function Quadro({
   useEffect(() => {
     setCheiaPronta(false);
     setCheiaCaiu(false);
-  }, [urlCheia]);
+  }, [urlCheia, ehVideo]);
 
-  // A URL assinada pode vencer no bolso da pessoa, e o arquivo pode ainda estar
-  // subindo. Nos dois casos a tela mostra moldura — o ícone de imagem quebrada
-  // diria que a foto de alguém se perdeu, e ela não se perdeu.
+  useEffect(() => {
+    if (!ehVideo || !urlCheia || movimentoReduzido) return;
+    const el = videoRef.current;
+    if (!el) return;
+    void el.play().catch(() => {
+      /* autoplay bloqueado: o convidado ainda pode tocar na tela */
+    });
+  }, [ehVideo, urlCheia, movimentoReduzido]);
+
   const thumb = thumbCaiu ? undefined : urlThumb;
   const cheia = cheiaCaiu ? undefined : urlCheia;
-  const fundo = thumb ?? cheia;
+  const fundo = thumb ?? (ehVideo ? undefined : cheia);
 
   const inteira: React.CSSProperties = {
     position: "absolute",
@@ -59,6 +66,56 @@ export function Quadro({
   };
 
   const transicao = movimentoReduzido ? undefined : "opacity var(--tempo-rapido) var(--curva)";
+
+  if (ehVideo) {
+    return (
+      <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "var(--bg)" }}>
+        {fundo && (
+          <img
+            src={fundo}
+            alt=""
+            aria-hidden
+            onError={() => setThumbCaiu(true)}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              transform: "scale(1.18)",
+              filter: "blur(44px) saturate(0.7) brightness(0.42)",
+            }}
+          />
+        )}
+
+        {cheia && (
+          <video
+            ref={videoRef}
+            src={cheia}
+            playsInline
+            muted
+            preload="auto"
+            aria-label={alt}
+            onLoadedData={() => setCheiaPronta(true)}
+            onError={() => setCheiaCaiu(true)}
+            onEnded={() => onFim?.()}
+            style={{ ...inteira, opacity: cheiaPronta ? 1 : 0, transition: transicao }}
+          />
+        )}
+
+        {!cheia && (
+          <div
+            style={{
+              position: "absolute",
+              inset: "12% 8%",
+              border: "1px solid var(--linha)",
+              borderRadius: "var(--raio)",
+            }}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div style={{ position: "absolute", inset: 0, overflow: "hidden", background: "var(--bg)" }}>
@@ -73,8 +130,6 @@ export function Quadro({
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            // A escala esconde a borda transparente que o desfoque cria; a
-            // dessaturação impede o fundo de brigar com a foto na frente.
             transform: "scale(1.18)",
             filter: "blur(44px) saturate(0.7) brightness(0.42)",
           }}

@@ -1,11 +1,60 @@
-# Roadmap — caminho até o 1º casamento real
+# Roadmap — produto completo
 
 > **Atualizado:** 2026-08-12
-> **Organização:** o que falta para rodar o primeiro casamento de verdade → o que valida a hipótese → escala.
+> **Referência visual:** [`/telas`](../apps/web/app/telas/page.tsx) — toda tela nova ou refatorada deve espelhar este catálogo (Instagram dentro do evento, estrela no lugar do coração, gate honesto).
 
-Este documento complementa o roadmap de produto em [`product/albora-produto-arquitetura.md`](./product/albora-produto-arquitetura.md) com o **estado operacional do código**: o que já fecha em dev e o que ainda bloqueia um evento real.
+Este documento substitui o recorte “só MVP” por **entrega completa** alinhada a [`product/albora-produto-arquitetura.md`](./product/albora-produto-arquitetura.md). A ordem abaixo é de dependência, não de negócio.
 
-## Onde estamos
+---
+
+## Trilha A — Superfície do convidado (design `/telas`)
+
+| # | Item | Estado |
+|---|---|---|
+| A1 | Shell compartilhado (`shell-convidado.tsx`, barra Feed·Missões·Câmera·Álbum·Minhas) | **Em curso** |
+| A2 | Entrada = `TelaEntrada` | Pendente |
+| A3 | Feed = `TelaFeed` / `TelaAntesDoGate` | Pendente |
+| A4 | Álbum = `TelaAlbum` | Pendente |
+| A5 | Capa do evento = `TelaCapa` (rota `/e/[slug]/capa`) | Pendente |
+| A6 | Câmera com missão sobre o visor = `TelaCamera` | Pendente |
+
+---
+
+## Trilha B — Mídia e planos
+
+| # | Item | Estado |
+|---|---|---|
+| B1 | Coluna `events.plan` + cota de vídeo por convidado (grátis: 1) | **Feito** |
+| B2 | Upload de vídeo (presign/confirm/fila) | **Feito** (falta `<video>` no feed/telão) |
+| B3 | Resolução 1600 vs 3500 por plano | Parcial (só redimensionamento) |
+| B4 | Telão e feed reproduzem vídeo sem cortar vertical | Pendente |
+
+---
+
+## Trilha C — Anfitrião completo (spec 009)
+
+| Item | Estado |
+|---|---|
+| Painel ao vivo (`TelaPainel`) | Pendente |
+| Modelos da parede (`TelaModelosDaParede`) | Pendente |
+| Identidade + missões na criação | Pendente |
+| Peças PDF + ZIP + funil `expected_guests` | Pendente |
+
+---
+
+## Trilha D — Produção e escala
+
+Deploy CF + Resend, carga 150/20min, retenção jobs, app Expo, livro, fornecedor — ver doc de produto §8.
+
+---
+
+## Onde estávamos (1º casamento)
+
+Peças impressas, produção, carga e jurídico menores continuam bloqueantes operacionais — ver seções A1/A4/A5/A6 abaixo.
+
+---
+
+## Fase A — Pronto pro 1º evento (caminho crítico)
 
 Núcleo, upload, sessão, feed, telão, admin (login + criar evento + **controles por festa**), moderação (denúncia, fila de revisão, gate de interação), reações/comentários offline, álbum e música — tudo verde em dev. A PR #2 fecha A2/A3 no código; falta merge e QA manual.
 

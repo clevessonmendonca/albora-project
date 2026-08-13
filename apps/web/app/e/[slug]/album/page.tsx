@@ -1,10 +1,9 @@
-import { comEvento, packDoEvento, resolverSlug } from "@albora/db";
-import { PACKS } from "@albora/packs";
+import { comEvento, listarDesafios, resolverSlug } from "@albora/db";
+import { PACKS, texto } from "@albora/packs";
 import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import type { CSSProperties } from "react";
-import { montarAlbumServido } from "@/lib/album";
 import { banco } from "@/lib/banco";
 import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
 import { AlbumComAbas } from "./album-com-abas";
@@ -13,7 +12,7 @@ import { Aviso } from "../aviso";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "O álbum da noite",
+  title: "O álbum",
   robots: { index: false, follow: false },
 };
 
@@ -34,9 +33,12 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
     );
   }
 
-  const packId = await comEvento(banco(), sessao.eventoId, (c) => packDoEvento(c, sessao.eventoId));
-  const pack = packId ? PACKS[packId] : undefined;
-  const album = await montarAlbumServido(sessao.eventoId);
+  const { eventoId, packId } = r.evento;
+  const pack = PACKS[packId];
+
+  const desafios = await comEvento(banco(), eventoId, (c) =>
+    listarDesafios(c, eventoId, sessao.sessaoId),
+  );
 
   const tokens = resolverTokens({
     marca: MARCA_ALBORA,
@@ -45,7 +47,14 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
 
   return (
     <div style={paraVariaveis(tokens) as CSSProperties}>
-      <AlbumComAbas slug={slug} album={album} />
+      <AlbumComAbas
+        slug={slug}
+        missoes={desafios.map((d) => ({
+          id: d.id,
+          titulo: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,
+        }))}
+        caminhoDaCamera={`/e/${encodeURIComponent(slug)}/foto`}
+      />
     </div>
   );
 }

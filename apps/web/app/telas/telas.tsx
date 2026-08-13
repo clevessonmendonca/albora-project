@@ -23,6 +23,19 @@ import {
   IconeVoltar,
   Pilula,
 } from "./pecas-de-tela";
+import {
+  AvisoGate,
+  BotaoPrimario,
+  ColunaEntrada,
+  Consentimento,
+  FaixaMissao,
+  LinkDiscreto,
+  PADDING_LATERAL,
+  RodapeDiscreto,
+  RotuloEvento,
+  TextoSecundario,
+  TituloGrande,
+} from "./shell-convidado";
 
 /**
  * As telas do convidado, do anfitrião e do telão.
@@ -117,43 +130,11 @@ export function TelaEntrada({ pack }: { pack: Pack }) {
   return (
     <Chao fundo="escuro" pack={pack}>
       <BarraDeStatus />
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          gap: "1.75rem",
-          padding: "0 1.75rem 3rem",
-        }}
-      >
+      <ColunaEntrada>
         <div>
-          <p
-            style={{
-              margin: 0,
-              fontSize: "0.6875rem",
-              letterSpacing: "var(--tracking-rotulo)",
-              textTransform: "uppercase",
-              color: "var(--acento)",
-            }}
-          >
-            {texto(pack, "landing.exemplo.nome")}
-          </p>
-          <p
-            style={{
-              margin: "0.875rem 0 0",
-              fontFamily: "var(--fonte-titulo)",
-              fontWeight: 300,
-              fontSize: "2rem",
-              lineHeight: 1.1,
-              letterSpacing: "var(--tracking-titulo)",
-            }}
-          >
-            {texto(pack, "convidado.saudacao")}
-          </p>
-          <p style={{ margin: "0.875rem 0 0", fontSize: "0.9375rem", color: "var(--ink-2)" }}>
-            Como você quer aparecer nas fotos que enviar?
-          </p>
+          <RotuloEvento>{texto(pack, "landing.exemplo.nome")}</RotuloEvento>
+          <TituloGrande>{texto(pack, "convidado.saudacao")}</TituloGrande>
+          <TextoSecundario>Como você quer aparecer nas fotos que enviar?</TextoSecundario>
         </div>
 
         <div
@@ -172,46 +153,15 @@ export function TelaEntrada({ pack }: { pack: Pack }) {
           <span style={{ color: "var(--acento)" }}>|</span>
         </div>
 
-        <label style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-          <span
-            style={{
-              flex: "none",
-              display: "grid",
-              placeItems: "center",
-              width: "1.375rem",
-              height: "1.375rem",
-              ...raio("0.4375rem"),
-              backgroundColor: "var(--acento)",
-              color: "var(--sobre-acento)",
-              fontSize: "0.8125rem",
-            }}
-          >
-            ✓
-          </span>
-          <span style={{ fontSize: "0.8125rem", lineHeight: 1.5, color: "var(--ink-2)" }}>
-            Concordo que as fotos que eu enviar apareçam para quem está nesta festa.{" "}
-            <span style={{ color: "var(--acento)" }}>Ler o texto completo</span>
-          </span>
-        </label>
+        <Consentimento marcado onChange={() => {}}>
+          Concordo que as fotos que eu enviar apareçam para quem está nesta festa.{" "}
+          <LinkDiscreto onClick={() => {}}>Ler o texto completo</LinkDiscreto>
+        </Consentimento>
 
-        <span
-          style={{
-            display: "grid",
-            placeItems: "center",
-            padding: "1.125rem",
-            ...raio("var(--raio-pilula)"),
-            backgroundColor: "var(--acento)",
-            color: "var(--sobre-acento)",
-            fontWeight: 600,
-          }}
-        >
-          Fotografar
-        </span>
+        <BotaoPrimario desabilitado>Fotografar</BotaoPrimario>
 
-        <p style={{ margin: 0, textAlign: "center", fontSize: "0.75rem", color: "var(--ink-3)" }}>
-          Sem cadastro, sem senha e sem baixar nada
-        </p>
-      </div>
+        <RodapeDiscreto>Sem cadastro, sem senha e sem baixar nada</RodapeDiscreto>
+      </ColunaEntrada>
     </Chao>
   );
 }
@@ -236,36 +186,7 @@ export function TelaCamera({ pack, missao }: { pack: Pack; missao: string }) {
         <Moldura rotulo="" raio="var(--raio-superficie)" atmosfera variante={3} />
 
         <div style={{ position: "absolute", top: "0.875rem", left: "0.875rem", right: "0.875rem" }}>
-          <div
-            style={{
-              padding: "0.875rem 1rem",
-              ...raio("var(--raio)"),
-              backgroundColor: "color-mix(in srgb, var(--acento) 92%, transparent)",
-              color: "var(--sobre-acento)",
-            }}
-          >
-            <p
-              style={{
-                margin: 0,
-                fontSize: "0.5625rem",
-                letterSpacing: "var(--tracking-rotulo)",
-                textTransform: "uppercase",
-                opacity: 0.75,
-              }}
-            >
-              Missão 03 de 04
-            </p>
-            <p
-              style={{
-                margin: "0.3125rem 0 0",
-                fontFamily: "var(--fonte-titulo)",
-                fontSize: "1.0625rem",
-                lineHeight: 1.2,
-              }}
-            >
-              {missao}
-            </p>
-          </div>
+          <FaixaMissao indice={3} total={4} titulo={missao} />
         </div>
 
         <div
@@ -365,7 +286,7 @@ export function TelaFeed({ pack, momentos }: { pack: Pack; momentos: string[] })
         ))}
       </div>
 
-      <div style={{ flex: 1, overflow: "hidden", borderTopWidth: "1px", borderTopStyle: "solid", borderTopColor: "var(--linha)" }}>
+      <div style={{ flex: 1, overflow: "hidden", borderTop: "1px solid var(--linha)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.625rem", padding: "0.875rem 1.125rem" }}>
           <span style={{ display: "grid", placeItems: "center", width: "1.875rem", height: "1.875rem", borderRadius: "50%", backgroundColor: "var(--superficie-alta)", fontSize: "0.75rem" }}>
             BI
@@ -419,26 +340,24 @@ export function TelaAntesDoGate({ pack }: { pack: Pack }) {
       <BarraDeStatus />
       <Cabecalho titulo={texto(pack, "landing.exemplo.nome")} acao={<Pilula>847 fotos</Pilula>} />
 
-      <div style={{ padding: "0 1.125rem 1rem" }}>
-        <div
-          style={{
-            display: "flex",
-            gap: "0.75rem",
-            alignItems: "flex-start",
-            padding: "0.875rem 1rem",
-            ...raio("var(--raio)"),
-            backgroundColor: "var(--superficie)",
-          }}
-        >
-          <span className="pulso" style={{ marginTop: "0.375rem", width: "0.4375rem", height: "0.4375rem", borderRadius: "50%", backgroundColor: "var(--acento)", flex: "none" }} />
-          <span style={{ fontSize: "0.8125rem", lineHeight: 1.45, color: "var(--ink-2)" }}>
-            As reações e os comentários abrem no horário que o anfitrião escolheu. Até lá,
-            continue enviando: tudo já está indo para o álbum.
-          </span>
-        </div>
+      <div style={{ padding: `0 ${PADDING_LATERAL} 1rem` }}>
+        <AvisoGate>
+          As reações e os comentários abrem no horário que o anfitrião escolheu. Até lá,
+          continue enviando: tudo já está indo para o álbum.
+        </AvisoGate>
       </div>
 
-      <div style={{ flex: 1, padding: "0 1.125rem", display: "grid", gridTemplateColumns: "1fr 1fr", gridAutoRows: "min-content", gap: "0.375rem", overflow: "hidden" }}>
+      <div
+        style={{
+          flex: 1,
+          padding: `0 ${PADDING_LATERAL}`,
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gridAutoRows: "min-content",
+          gap: "0.375rem",
+          overflow: "hidden",
+        }}
+      >
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <span key={i} style={{ position: "relative", aspectRatio: "1" }}>
             <Moldura rotulo="" raio="var(--raio)" atmosfera variante={i * 3} />
@@ -458,14 +377,30 @@ export function TelaAlbum({ pack, momentos }: { pack: Pack; momentos: string[] }
       <BarraDeStatus />
       <Cabecalho titulo="O álbum" acao={<Pilula>847</Pilula>} />
 
-      <div style={{ display: "flex", gap: "0.4375rem", padding: "0 1.125rem 0.875rem", overflow: "hidden" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "0.4375rem",
+          padding: `0 ${PADDING_LATERAL} 0.875rem`,
+          overflow: "hidden",
+        }}
+      >
         <Pilula ativa>Tudo</Pilula>
         {momentos.slice(0, 3).map((m) => (
           <Pilula key={m}>{m}</Pilula>
         ))}
       </div>
 
-      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gridAutoRows: "min-content", gap: "2px", overflow: "hidden" }}>
+      <div
+        style={{
+          flex: 1,
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          gridAutoRows: "min-content",
+          gap: "2px",
+          overflow: "hidden",
+        }}
+      >
         {Array.from({ length: 18 }, (_, i) => (
           <span key={i} style={{ position: "relative", aspectRatio: "1" }}>
             <Moldura rotulo="" raio="0rem" atmosfera variante={i} />

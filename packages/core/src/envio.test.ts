@@ -91,6 +91,69 @@ describe("caminho feliz", () => {
     expect(chamadas).toEqual(["presign:a1", "bytes:a1", "confirm:a1"]);
   });
 
+  it("vídeo com poster sobe thumb depois do full", async () => {
+    const video: ItemFila = {
+      ...item("v1"),
+      mime: "video/mp4",
+      thumb: { tipo: "blob", blob: new Blob(["frame"], { type: "image/jpeg" }) },
+    };
+    await ctx.fila.enfileirar(video);
+    const chamadas: string[] = [];
+    const transporte: Transporte = {
+      async presign(i) {
+        chamadas.push(`presign:${i.id}`);
+        return presign(i.id);
+      },
+      async enviarBytes(url, i) {
+        chamadas.push(`bytes:${i.id}`);
+        expect(url).toContain("full");
+      },
+      async enviarPoster(url) {
+        chamadas.push("poster");
+        expect(url).toContain("thumb");
+      },
+      async confirmar(i) {
+        chamadas.push(`confirm:${i.id}`);
+      },
+    };
+
+    const r = await enviarItem(video, transporte, ctx.fila);
+
+    expect(r.estado).toBe("enviado");
+    expect(chamadas).toEqual(["presign:v1", "bytes:v1", "poster", "confirm:v1"]);
+  });
+
+  it("foto com thumb sobe miniatura depois do full", async () => {
+    const foto: ItemFila = {
+      ...item("f1"),
+      thumb: { tipo: "blob", blob: new Blob(["mini"], { type: "image/jpeg" }) },
+    };
+    await ctx.fila.enfileirar(foto);
+    const chamadas: string[] = [];
+    const transporte: Transporte = {
+      async presign(i) {
+        chamadas.push(`presign:${i.id}`);
+        return presign(i.id);
+      },
+      async enviarBytes(url, i) {
+        chamadas.push(`bytes:${i.id}`);
+        expect(url).toContain("full");
+      },
+      async enviarPoster(url) {
+        chamadas.push("thumb");
+        expect(url).toContain("thumb");
+      },
+      async confirmar(i) {
+        chamadas.push(`confirm:${i.id}`);
+      },
+    };
+
+    const r = await enviarItem(foto, transporte, ctx.fila);
+
+    expect(r.estado).toBe("enviado");
+    expect(chamadas).toEqual(["presign:f1", "bytes:f1", "thumb", "confirm:f1"]);
+  });
+
   it("só remove da fila depois do confirm aceito", async () => {
     await ctx.fila.enfileirar(item("a1"));
     const { transporte } = transporteFalso();

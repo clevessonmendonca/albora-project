@@ -33,6 +33,7 @@ export type ItemVisivel = {
   id: string;
   chaveThumb: string;
   chaveFull: string;
+  mime: string;
   autor: string;
   legenda: string | null;
   lugar: string | null;
@@ -159,7 +160,10 @@ export function chavesSemUrl(
     if (!url || expirou(url, agora)) faltando.add(chave);
   };
 
-  for (const item of estado.itens) conferir(item.chaveThumb);
+  for (const item of estado.itens) {
+    conferir(item.chaveThumb);
+    if (item.mime.startsWith("video/")) conferir(item.chaveFull);
+  }
   for (const chave of extras) conferir(chave);
 
   return [...faltando];
@@ -204,6 +208,7 @@ type ItemDaRede = {
   id: string;
   chaveThumb: string;
   chaveFull: string;
+  mime: string;
   autor: string;
   legenda: string | null;
   lugar: string | null;
@@ -266,6 +271,7 @@ export async function buscarPagina(missaoId: string | null, cursor: string | nul
         id: i.id,
         chaveThumb: i.chaveThumb,
         chaveFull: typeof i.chaveFull === "string" ? i.chaveFull : "",
+        mime: typeof i.mime === "string" ? i.mime : "image/jpeg",
         autor: i.autor,
         legenda: i.legenda ?? null,
         lugar: i.lugar ?? null,

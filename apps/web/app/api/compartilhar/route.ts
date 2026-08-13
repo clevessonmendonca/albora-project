@@ -34,6 +34,8 @@ export async function GET(req: Request) {
 
     return ok({
       chaveFull: ctx.midia.chaveFull,
+      chaveThumb: ctx.midia.chaveThumb,
+      mime: ctx.midia.mime,
       legenda: ctx.midia.legenda,
       sessao: {
         nome: ctx.sessao.nome,

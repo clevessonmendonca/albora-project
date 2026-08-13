@@ -134,6 +134,8 @@ export {
 export type { MidiaMinha } from "./galeria-db";
 export { listarMinhasDoEvento } from "./galeria-db";
 
+export { contarVideosDaSessao, planoDoEvento } from "./plano-db";
+
 export type { HostResolvida, HostSessaoCriada, MagicLinkEmitido } from "./host-auth";
 export {
   consumirMagicLink,

@@ -46,3 +46,53 @@ async function tentarDecodificar(bytes: Uint8Array, mime: string): Promise<boole
 export function esquecerSuporte(): void {
   suporte.clear();
 }
+
+/**
+ * Primeiro frame do vídeo como JPEG — vira `/thumb` no storage.
+ *
+ * Degrada para `null`: o vídeo sobe mesmo sem poster, e a UI usa o full.
+ */
+export async function posterDeVideo(blob: Blob): Promise<Blob | null> {
+  if (typeof document === "undefined") return null;
+
+  const url = URL.createObjectURL(blob);
+  try {
+    const video = document.createElement("video");
+    video.muted = true;
+    video.playsInline = true;
+    video.preload = "auto";
+
+    await new Promise<void>((resolve, reject) => {
+      video.onloadeddata = () => resolve();
+      video.onerror = () => reject(new Error("video"));
+      video.src = url;
+    });
+
+    if (video.videoWidth <= 0 || video.videoHeight <= 0) return null;
+
+    const instante = Number.isFinite(video.duration) && video.duration > 0
+      ? Math.min(0.25, video.duration * 0.05)
+      : 0;
+    video.currentTime = instante;
+
+    await new Promise<void>((resolve, reject) => {
+      video.onseeked = () => resolve();
+      video.onerror = () => reject(new Error("seek"));
+    });
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    ctx.drawImage(video, 0, 0);
+
+    return await new Promise((resolve) => {
+      canvas.toBlob((b) => resolve(b), "image/jpeg", 0.72);
+    });
+  } catch {
+    return null;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}

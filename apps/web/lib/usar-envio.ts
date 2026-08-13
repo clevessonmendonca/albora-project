@@ -4,16 +4,17 @@ import {
   drenar,
   ehHeic,
   ehVideo,
+  planoParaRedimensionamento,
   processarFoto,
   type DetalhesItem,
   type FiltroAplicado,
-  type Plano,
+  type PlanoDoEvento,
   type ResumoDrenagem,
 } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
 import { desenhistaWeb } from "./desenhista";
 import { ErroCotaEsgotada, filaWeb, resumoDaFila } from "./fila";
-import { aparelhoDecodifica } from "./imagem";
+import { aparelhoDecodifica, posterDeVideo } from "./imagem";
 import { transporteWeb } from "./transporte";
 
 /**
@@ -25,13 +26,24 @@ import { transporteWeb } from "./transporte";
  */
 
 /**
- * Fixo enquanto não há cobrança. Vive aqui, e não espalhado em literais,
- * porque é ele que a tela consulta para avisar do vídeo **antes** da captura
- * (N5.3) — o aviso e a recusa têm de sair da mesma fonte.
+ * Plano e cota vêm do servidor — o convidado nunca vê paywall, só aviso antes
+ * de gravar (spec 006, N5.3).
  */
-export const PLANO_ATUAL: Plano = "gratis";
+export type CotaVideo = {
+  limite: number | null;
+  enviados: number;
+};
 
-export const AVISO_VIDEO = "Vídeo é do plano pago. Por aqui, só foto.";
+export function mensagemCotaVideo(cota: CotaVideo): string | null {
+  if (cota.limite === null) return null;
+  if (cota.enviados >= cota.limite) {
+    return "Você já usou seu vídeo nesta festa. Fotos continuam ilimitadas.";
+  }
+  if (cota.limite === 1) {
+    return "Plano grátis: 1 vídeo por convidado. Fotos continuam ilimitadas.";
+  }
+  return `Plano grátis: até ${cota.limite} vídeos por convidado.`;
+}
 
 const AVISO_HEIC =
   "Este aparelho não abre fotos HEIC. No iPhone: Ajustes → Câmera → Formatos → “Mais compatível”.";
@@ -58,8 +70,13 @@ export type PedidoEnvio = {
   desafioId?: string | null | undefined;
 };
 
-export function usarEnvio(eventoId: string) {
+export function usarEnvio(
+  eventoId: string,
+  opcoes: { plano: PlanoDoEvento; cotaVideo: CotaVideo },
+) {
   const [estado, setEstado] = useState<EstadoEnvio>(INICIAL);
+  const [videosLocais, setVideosLocais] = useState(0);
+  const planoRedimensionamento = planoParaRedimensionamento(opcoes.plano);
 
   const atualizarResumo = useCallback(async () => {
     const { itens, bytes } = await resumoDaFila();
@@ -100,7 +117,38 @@ export function usarEnvio(eventoId: string) {
         // MB é o próprio travamento que a recusa deveria evitar.
         const inicio = new Uint8Array(await arquivo.slice(0, 16).arrayBuffer());
 
-        if (PLANO_ATUAL === "gratis" && ehVideo(inicio)) return recusar(AVISO_VIDEO);
+        if (ehVideo(inicio)) {
+          const limite = opcoes.cotaVideo.limite;
+          const usados = opcoes.cotaVideo.enviados + videosLocais;
+          if (limite !== null && usados >= limite) {
+            return recusar(mensagemCotaVideo({ ...opcoes.cotaVideo, enviados: usados })!);
+          }
+
+          const mime =
+            arquivo.type === "video/quicktime" || ehVideo(inicio) && arquivo.name.endsWith(".mov")
+              ? "video/quicktime"
+              : "video/mp4";
+          const corpo = new Uint8Array(await arquivo.arrayBuffer());
+          const id = crypto.randomUUID();
+          const blob = new Blob([corpo], { type: mime });
+          const poster = await posterDeVideo(blob);
+
+          await filaWeb.enfileirar({
+            id,
+            eventoId,
+            corpo: { tipo: "blob", blob },
+            mime,
+            ...(poster ? { thumb: { tipo: "blob", blob: poster } } : {}),
+            criadoEm: Date.now(),
+            tentativas: 0,
+            desafioId: desafioId ?? null,
+          });
+
+          setVideosLocais((n) => n + 1);
+          await atualizarResumo();
+          void drenarAgora();
+          return { ok: true as const, id, tinhaGeolocalizacao: false };
+        }
 
         const bytes = new Uint8Array(await arquivo.arrayBuffer());
 
@@ -115,7 +163,7 @@ export function usarEnvio(eventoId: string) {
         // O mesmo MIME da sonda: provar a decodificação com um tipo e decodificar
         // com outro invalidaria a prova, e no iOS o `type` do arquivo vem vazio.
         const foto = await processarFoto(bytes, heic ? "image/heic" : arquivo.type, desenhistaWeb, {
-          plano: PLANO_ATUAL,
+          plano: planoRedimensionamento,
           aparelho: {
             memoriaGb: (navigator as { deviceMemory?: number }).deviceMemory,
             nucleos: navigator.hardwareConcurrency,
@@ -129,6 +177,7 @@ export function usarEnvio(eventoId: string) {
           id,
           eventoId,
           corpo: { tipo: "blob", blob: foto.full },
+          thumb: { tipo: "blob", blob: foto.thumb },
           mime: "image/jpeg",
           criadoEm: Date.now(),
           tentativas: 0,
@@ -153,7 +202,7 @@ export function usarEnvio(eventoId: string) {
         setEstado((e) => ({ ...e, processando: false }));
       }
     },
-    [eventoId, atualizarResumo, drenarAgora],
+    [eventoId, atualizarResumo, drenarAgora, opcoes, planoRedimensionamento, videosLocais],
   );
 
   /**

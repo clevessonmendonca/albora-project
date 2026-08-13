@@ -13,6 +13,8 @@ import type { RespostaPresign } from "./upload";
 export type Transporte = {
   presign(item: ItemFila): Promise<RespostaPresign>;
   enviarBytes(url: string, item: ItemFila): Promise<void>;
+  /** Miniatura JPEG em `/thumb` (foto ou frame de vídeo). Opcional — só a web hoje. */
+  enviarPoster?(url: string, poster: Blob): Promise<void>;
   confirmar(item: ItemFila, presign: RespostaPresign): Promise<void>;
 };
 
@@ -47,6 +49,12 @@ export async function enviarItem(
     // confirm que chega primeiro cria linha apontando para objeto que não
     // existe — foto na galeria que não abre.
     await transporte.enviarBytes(presign.full, item);
+
+    const miniatura = item.thumb ?? item.poster;
+    if (miniatura?.tipo === "blob" && transporte.enviarPoster) {
+      await transporte.enviarPoster(presign.thumb, miniatura.blob);
+    }
+
     await transporte.confirmar(item, presign);
 
     // Só remove depois do confirm aceito. Remover antes é perder a foto se o

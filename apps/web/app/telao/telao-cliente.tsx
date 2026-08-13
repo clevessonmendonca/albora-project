@@ -4,6 +4,7 @@ import {
   MODELOS_DE_TELAO,
   PERFIS,
   TETO_DO_CACHE,
+  ehMimeVideo,
   modeloCorta,
   podarCache,
   proximaDoTelao,
@@ -29,6 +30,7 @@ import { raio } from "../landing/pecas";
 type ItemApi = {
   id: string;
   autor: string;
+  mime: string;
   criadaEm: string;
   reacoes: number;
   thumb: string;
@@ -108,6 +110,19 @@ export function Telao({ variaveisIniciais }: { variaveisIniciais: Record<string,
   // ── Fase exibir ────────────────────────────────────────────────────────
   const medir = useCallback((item: ItemApi) => {
     if (dimsRef.current.has(item.id)) return;
+
+    if (ehMimeVideo(item.mime)) {
+      const video = document.createElement("video");
+      video.preload = "metadata";
+      video.onloadedmetadata = () => {
+        if (video.videoWidth > 0 && video.videoHeight > 0) {
+          dimsRef.current.set(item.id, { largura: video.videoWidth, altura: video.videoHeight });
+        }
+      };
+      video.src = item.full;
+      return;
+    }
+
     const img = new Image();
     img.onload = () => {
       if (img.naturalWidth > 0 && img.naturalHeight > 0) {
@@ -363,11 +378,7 @@ function Palco({ cena, itemDe }: { cena: Cena; itemDe: (id: string) => ItemApi |
     const only = itens[0]!;
     return (
       <div style={{ position: "absolute", inset: 0 }}>
-        <img
-          src={only.full}
-          alt=""
-          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-        />
+        <MidiaPalco src={only.full} mime={only.mime} enquadrar="cover" />
         <Credito autor={only.autor} reacoes={only.reacoes} />
       </div>
     );
@@ -377,21 +388,23 @@ function Palco({ cena, itemDe }: { cena: Cena; itemDe: (id: string) => ItemApi |
     const only = itens[0]!;
     return (
       <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-        <img
-          src={only.full}
-          alt=""
-          aria-hidden
-          style={{
-            position: "absolute",
-            inset: "-8%",
-            width: "116%",
-            height: "116%",
-            objectFit: "cover",
-            filter: "blur(48px) brightness(0.55)",
-          }}
-        />
+        {!ehMimeVideo(only.mime) && (
+          <img
+            src={only.full}
+            alt=""
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: "-8%",
+              width: "116%",
+              height: "116%",
+              objectFit: "cover",
+              filter: "blur(48px) brightness(0.55)",
+            }}
+          />
+        )}
         <div style={palco}>
-          <Foto src={only.full} enquadrar="contain" />
+          <MidiaPalco src={only.full} mime={only.mime} enquadrar="contain" />
         </div>
         <Credito autor={only.autor} reacoes={only.reacoes} />
       </div>
@@ -434,7 +447,7 @@ function Palco({ cena, itemDe }: { cena: Cena; itemDe: (id: string) => ItemApi |
               Mais cedo, na festa
             </figcaption>
           )}
-          <Foto src={only.full} enquadrar="contain" />
+          <MidiaPalco src={only.full} mime={only.mime} enquadrar="contain" />
           <figcaption
             style={{
               marginTop: "0.75rem",
@@ -477,29 +490,46 @@ function Palco({ cena, itemDe }: { cena: Cena; itemDe: (id: string) => ItemApi |
             justifyContent: "center",
           }}
         >
-          <Foto src={it.full} enquadrar="contain" />
+          <MidiaPalco src={it.full} mime={it.mime} enquadrar="contain" />
         </div>
       ))}
     </div>
   );
 }
 
-function Foto({ src, enquadrar }: { src: string; enquadrar: "contain" | "cover" }) {
-  return (
-    <img
-      src={src}
-      alt=""
-      style={{
-        maxWidth: "100%",
-        maxHeight: "100%",
-        width: "auto",
-        height: "auto",
-        objectFit: enquadrar,
-        ...raio("var(--raio-superficie)"),
-        display: "block",
-      }}
-    />
-  );
+function MidiaPalco({
+  src,
+  mime,
+  enquadrar,
+}: {
+  src: string;
+  mime: string;
+  enquadrar: "contain" | "cover";
+}) {
+  const estilo: CSSProperties = {
+    maxWidth: enquadrar === "contain" ? "100%" : undefined,
+    maxHeight: enquadrar === "contain" ? "100%" : undefined,
+    width: enquadrar === "cover" ? "100%" : "auto",
+    height: enquadrar === "cover" ? "100%" : "auto",
+    objectFit: enquadrar,
+    ...raio("var(--raio-superficie)"),
+    display: "block",
+  };
+
+  if (ehMimeVideo(mime)) {
+    return (
+      <video
+        src={src}
+        autoPlay
+        muted
+        playsInline
+        loop
+        style={estilo}
+      />
+    );
+  }
+
+  return <img src={src} alt="" style={estilo} />;
 }
 
 function Credito({ autor, reacoes }: { autor: string; reacoes: number }) {

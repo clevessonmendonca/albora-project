@@ -1,4 +1,12 @@
-import { derivarChaveMidia, validarDeclaracao, VALIDADE_PRESIGN_SEGUNDOS } from "@albora/core";
+import {
+  derivarChaveMidia,
+  ehMimeVideo,
+  podeEnviarVideo,
+  validarDeclaracao,
+  VALIDADE_PRESIGN_SEGUNDOS,
+} from "@albora/core";
+import { comEvento, contarVideosDaSessao, planoDoEvento } from "@albora/db";
+import { banco } from "@/lib/banco";
 import { config, ErroConfig } from "@/lib/config";
 import { consumir } from "@/lib/limite";
 import { assinarPut } from "@/lib/r2";
@@ -57,6 +65,18 @@ export async function POST(req: Request) {
   const invalido = validarDeclaracao(mime, bytes);
   if (invalido) return erro(422, invalido.code, "Arquivo recusado", invalido.details);
 
+  if (ehMimeVideo(mime)) {
+    const cota = await comEvento(banco(), sessao.eventoId, async (c) => {
+      const plano = await planoDoEvento(c, sessao.eventoId);
+      const enviados = await contarVideosDaSessao(c, sessao.eventoId, sessao.sessaoId);
+      return { plano, enviados };
+    });
+
+    if (!podeEnviarVideo(cota.plano, cota.enviados)) {
+      return erro(403, "video.cota_esgotada", "Limite de vídeos atingido para este convidado");
+    }
+  }
+
   // 🔴 A chave é derivada aqui, a partir do event_id da **sessão**. O cliente
   // não a informa e não a escolhe, nem no presign nem no confirm — ADR 0002 e
   // ADR 0004. Aceitar chave do cliente é o caminho mais curto para um evento
@@ -64,10 +84,10 @@ export async function POST(req: Request) {
   const chave = derivarChaveMidia(sessao.eventoId, uploadId, "full").replace(/\/full$/, "");
 
   try {
-    const [full, thumb] = await Promise.all([
-      assinarPut(`${chave}/full`, mime, VALIDADE_PRESIGN_SEGUNDOS),
-      assinarPut(`${chave}/thumb`, mime, VALIDADE_PRESIGN_SEGUNDOS),
-    ]);
+    const full = await assinarPut(`${chave}/full`, mime, VALIDADE_PRESIGN_SEGUNDOS);
+    const thumb = ehMimeVideo(mime)
+      ? await assinarPut(`${chave}/thumb`, "image/jpeg", VALIDADE_PRESIGN_SEGUNDOS)
+      : await assinarPut(`${chave}/thumb`, mime, VALIDADE_PRESIGN_SEGUNDOS);
 
     console.log("presign.emitido", {
       eventoId: sessao.eventoId,

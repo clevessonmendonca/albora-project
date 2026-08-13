@@ -23,10 +23,33 @@ export { aplicarIntensidade, NEUTRO, paraFiltroCss } from "./luts";
 export type { Preset } from "./presets";
 export { aplicarPorPixel, ordenarComRecomendado, preset, PRESETS, TETO_POR_PIXEL_MS } from "./presets";
 
-export { derivarChaveMidia, prefixoDoEvento } from "./chaves";
+export { chaveThumbDeFull, derivarChaveMidia, prefixoDoEvento } from "./chaves";
 
-export type { ErroMidia, TipoAceito, TipoEntrada } from "./midia";
-export { detectarTipo, ehHeic, ehVideo, LADO_MAIOR, MAX_BYTES, TIPOS_ACEITOS, TIPOS_ENTRADA, tipoAceito, validarConteudo, validarDeclaracao } from "./midia";
+export type { ErroMidia, TipoAceito, TipoEntrada, TipoVideo } from "./midia";
+export {
+  detectarTipo,
+  ehHeic,
+  ehMimeVideo,
+  ehVideo,
+  LADO_MAIOR,
+  MAX_BYTES,
+  MAX_BYTES_VIDEO,
+  TIPOS_ACEITOS,
+  TIPOS_ENTRADA,
+  TIPOS_VIDEO,
+  tipoAceito,
+  validarConteudo,
+  validarDeclaracao,
+} from "./midia";
+
+export type { PlanoDoEvento } from "./plano-evento";
+export {
+  limiteVideosPorConvidado,
+  parsePlanoDoEvento,
+  planoParaRedimensionamento,
+  podeEnviarVideo,
+  VIDEOS_POR_CONVIDADO,
+} from "./plano-evento";
 
 export type { PedidoConfirm, PedidoPresign, RespostaPresign } from "./upload";
 export { presignExpirou, VALIDADE_PRESIGN_SEGUNDOS } from "./upload";

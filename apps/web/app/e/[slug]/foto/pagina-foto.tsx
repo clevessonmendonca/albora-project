@@ -1,11 +1,22 @@
 "use client";
 
-import type { FiltroAplicado } from "@albora/core";
+import type { FiltroAplicado, PlanoDoEvento } from "@albora/core";
+import { ehVideo } from "@albora/core";
 import { useEffect, useRef, useState } from "react";
-import { AVISO_VIDEO, PLANO_ATUAL, usarEnvio } from "@/lib/usar-envio";
+import { CotaVideo, mensagemCotaVideo, usarEnvio } from "@/lib/usar-envio";
+import {
+  CabecalhoConvidado,
+  ChaoConvidado,
+  MioloConvidado,
+  TituloGrande,
+  TextoSecundario,
+  RecadoErro,
+} from "../../../telas/shell-convidado";
 import { ArcoDeEnvio } from "./arco-de-envio";
 import { Detalhes, type Lugar } from "./detalhes";
 import { Editor } from "./editor";
+import { RotuloFila, VisaoCamera } from "./visao-camera";
+import { BarraDeAbas } from "../barra-de-abas";
 
 /**
  * O caminho crítico inteiro, em cinco toques: consentir, nome, missão, câmera,
@@ -46,43 +57,86 @@ function romano(n: number): string {
 
 type Etapa =
   | { nome: "missoes" }
+  | { nome: "camera" }
   | { nome: "editor"; arquivo: File }
   | { nome: "detalhes"; uploadId: string; arquivo: File }
   | { nome: "pronto"; arquivo: File };
 
 export function PaginaFoto({
+  slug,
   eventoId,
+  plano,
+  cotaVideo,
+  tituloEvento,
   missoes: missoesIniciais,
   lugares,
   textos,
   filtroRecomendado,
   caminhoDoFeed,
 }: {
+  slug: string;
   eventoId: string;
+  plano: PlanoDoEvento;
+  cotaVideo: CotaVideo;
+  tituloEvento: string;
   missoes: Missao[];
   lugares: Lugar[];
   textos: Textos;
   filtroRecomendado: string | null;
   caminhoDoFeed: string;
 }) {
-  const { estado, enfileirarFoto, anotar } = usarEnvio(eventoId);
+  const { estado, enfileirarFoto, anotar } = usarEnvio(eventoId, { plano, cotaVideo });
   const entradaCamera = useRef<HTMLInputElement>(null);
+  const entradaVideo = useRef<HTMLInputElement>(null);
   const entradaRolo = useRef<HTMLInputElement>(null);
-  const [etapa, setEtapa] = useState<Etapa>({ nome: "missoes" });
+  const [etapa, setEtapa] = useState<Etapa>(() =>
+    missoesIniciais.length === 0 ? { nome: "camera" } : { nome: "missoes" },
+  );
   const [missoes, setMissoes] = useState(missoesIniciais);
-  const [escolhida, setEscolhida] = useState<string | null>(null);
+  const [escolhida, setEscolhida] = useState<string | null>(() => {
+    if (missoesIniciais.length === 0) return null;
+    return missoesIniciais.find((m) => !m.feito)?.id ?? null;
+  });
+  const [lugarPre, setLugarPre] = useState<string | null>(null);
+  const [recentes, setRecentes] = useState<string[]>([]);
   const [emLote, setEmLote] = useState(0);
   const [enviadas, setEnviadas] = useState(0);
 
-  function abrirCamera(missaoId: string | null) {
+  useEffect(() => {
+    return () => {
+      for (const url of recentes) URL.revokeObjectURL(url);
+    };
+  }, [recentes]);
+
+  function irParaCamera(missaoId: string | null) {
     setEscolhida(missaoId);
+    setEtapa({ nome: "camera" });
+  }
+
+  function dispararCamera() {
     entradaCamera.current?.click();
   }
 
-  function abrirRolo(missaoId: string | null) {
-    setEscolhida(missaoId);
+  function dispararRolo() {
     entradaRolo.current?.click();
   }
+
+  function registrarRecente(arquivo: File) {
+    const url = URL.createObjectURL(arquivo);
+    setRecentes((antes) => [url, ...antes.filter((u) => u !== url)].slice(0, 3));
+  }
+
+  function abrirRolo(missaoId: string | null) {
+    irParaCamera(missaoId);
+    queueMicrotask(() => entradaRolo.current?.click());
+  }
+
+  function abrirVideo(missaoId: string | null) {
+    irParaCamera(missaoId);
+    queueMicrotask(() => entradaVideo.current?.click());
+  }
+
+  const avisoVideo = mensagemCotaVideo(cotaVideo);
 
   async function escolheu(ev: React.ChangeEvent<HTMLInputElement>) {
     const arquivos = [...(ev.target.files ?? [])];
@@ -97,7 +151,21 @@ export function PaginaFoto({
     // domingo de manhã não quer escolher filtro dez vezes, e uma entrada de
     // fila por arquivo é o que a N5.6 pede.
     if (arquivos.length === 1) {
+      const inicio = new Uint8Array(await primeiro.slice(0, 16).arrayBuffer());
+      if (ehVideo(inicio)) {
+        const r = await enfileirarFoto({ arquivo: primeiro, desafioId: escolhida });
+        if (r.ok) {
+          setEnviadas((n) => n + 1);
+          if (escolhida) {
+            setMissoes((m) => m.map((x) => (x.id === escolhida ? { ...x, feito: true } : x)));
+          }
+          setEtapa({ nome: "pronto", arquivo: primeiro });
+          registrarRecente(primeiro);
+        }
+        return;
+      }
       setEtapa({ nome: "editor", arquivo: primeiro });
+      registrarRecente(primeiro);
       return;
     }
 
@@ -108,6 +176,7 @@ export function PaginaFoto({
       setEmLote((n) => n - 1);
     }
     setEtapa({ nome: "pronto", arquivo: primeiro });
+    registrarRecente(primeiro);
   }
 
   async function enviar(arquivo: File, filtro: FiltroAplicado | undefined) {
@@ -124,12 +193,20 @@ export function PaginaFoto({
   }
 
   if (etapa.nome === "editor") {
+    const missaoEscolhida = escolhida ? missoes.find((m) => m.id === escolhida) : undefined;
+    const indiceMissao = missaoEscolhida ? missoes.findIndex((m) => m.id === escolhida) + 1 : 0;
+
     return (
       <Editor
         arquivo={etapa.arquivo}
         recomendadoId={filtroRecomendado}
         onEnviar={(filtro) => void enviar(etapa.arquivo, filtro)}
-        onDescartar={() => abrirCamera(escolhida)}
+        onDescartar={() => setEtapa({ nome: "camera" })}
+        missao={
+          missaoEscolhida
+            ? { indice: indiceMissao, total: missoes.length, titulo: missaoEscolhida.titulo }
+            : null
+        }
       />
     );
   }
@@ -139,6 +216,7 @@ export function PaginaFoto({
       <Detalhes
         lugares={lugares}
         perguntaDoLugar={textos.lugarPergunta}
+        lugarInicial={lugarPre}
         onPronto={(detalhes) => {
           void anotar(etapa.uploadId, detalhes);
           setEtapa({ nome: "pronto", arquivo: etapa.arquivo });
@@ -154,173 +232,277 @@ export function PaginaFoto({
         numero={enviadas}
         pendentes={estado.pendentes}
         online={estado.online}
-        onOutra={() => setEtapa({ nome: "missoes" })}
+        onOutra={() => setEtapa({ nome: "camera" })}
       />
+    );
+  }
+
+  if (etapa.nome === "camera") {
+    const missaoEscolhida = escolhida ? missoes.find((m) => m.id === escolhida) : undefined;
+    const indiceMissao = missaoEscolhida ? missoes.findIndex((m) => m.id === escolhida) + 1 : 0;
+    const acaoCabecalho =
+      estado.pendentes > 0 ? (
+        <RotuloFila pendentes={estado.pendentes} />
+      ) : (
+        <ArcoDeEnvio
+          pendentes={estado.pendentes}
+          bytesPendentes={estado.bytesPendentes}
+          online={estado.online}
+        />
+      );
+
+    return (
+      <>
+        <style>{ESTILO}</style>
+        <VisaoCamera
+          tituloEvento={tituloEvento}
+          acaoCabecalho={acaoCabecalho}
+          missao={
+            missaoEscolhida
+              ? { indice: indiceMissao, total: missoes.length, titulo: missaoEscolhida.titulo }
+              : null
+          }
+          lugares={lugares}
+          lugarAtivo={lugarPre}
+          onLugar={setLugarPre}
+          recentes={recentes}
+          processando={estado.processando}
+          onDisparar={dispararCamera}
+          onRolo={dispararRolo}
+          {...(missoes.length > 0 ? { onVoltar: () => setEtapa({ nome: "missoes" }) } : {})}
+          rodape={
+            <>
+              {estado.ultimoErro && <RecadoErro>{estado.ultimoErro}</RecadoErro>}
+              {avisoVideo && (
+                <p
+                  style={{
+                    margin: avisoVideo ? "0.75rem 0 0" : 0,
+                    fontSize: "0.8rem",
+                    lineHeight: 1.6,
+                    textAlign: "center",
+                    color: "var(--ink-3)",
+                  }}
+                >
+                  {avisoVideo}
+                </p>
+              )}
+              <button
+                type="button"
+                className="foto-botao"
+                onClick={() => abrirVideo(escolhida)}
+                disabled={
+                  estado.processando ||
+                  (cotaVideo.limite !== null && cotaVideo.enviados >= cotaVideo.limite)
+                }
+                style={{
+                  marginTop: "0.75rem",
+                  width: "100%",
+                  fontSize: "0.9rem",
+                  fontWeight: 400,
+                  minHeight: "48px",
+                  border: "1px solid var(--linha)",
+                  background: "transparent",
+                  color: "var(--ink-2)",
+                  opacity:
+                    cotaVideo.limite !== null && cotaVideo.enviados >= cotaVideo.limite ? 0.45 : 1,
+                }}
+              >
+                Gravar vídeo
+              </button>
+            </>
+          }
+        />
+
+        <input
+          ref={entradaCamera}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          style={ESCONDIDO}
+          onChange={escolheu}
+        />
+        <input
+          ref={entradaRolo}
+          type="file"
+          accept="image/*"
+          multiple
+          style={ESCONDIDO}
+          onChange={escolheu}
+        />
+        <input
+          ref={entradaVideo}
+          type="file"
+          accept="video/*"
+          capture="environment"
+          style={ESCONDIDO}
+          onChange={escolheu}
+        />
+
+        <BarraDeAbas slug={slug} ativa="missoes" />
+      </>
     );
   }
 
   const restantes = missoes.filter((m) => !m.feito);
 
   return (
-    <main
-      style={{
-        minHeight: "100dvh",
-        display: "grid",
-        gridTemplateRows: "auto 1fr auto",
-        padding: "1.75rem 2rem 2.25rem",
-        gap: "1.5rem",
-        background: "var(--bg)",
-        color: "var(--ink)",
-        fontFamily: "var(--fonte-corpo)",
-      }}
-    >
+    <ChaoConvidado>
       <style>{ESTILO}</style>
+      <MioloConvidado comAbas={false}>
+        <CabecalhoConvidado
+          titulo={tituloEvento}
+          acao={
+            <ArcoDeEnvio
+              pendentes={estado.pendentes}
+              bytesPendentes={estado.bytesPendentes}
+              online={estado.online}
+            />
+          }
+        />
 
-      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        {/* Rótulo versalete: quem nomeia a lista é o pack, e o título da tela é
-            a instrução, não o nome da coisa. */}
-        {/* Discreto de propósito. O feed existe para o convidado voltar a
-            fotografar (ADR 0009); um botão que compete com a câmera inverteria
-            o que ele serve. */}
         <a href={caminhoDoFeed} style={ATALHO_DO_FEED}>
           {textos.missaoTitulo}
         </a>
-        <ArcoDeEnvio
-          pendentes={estado.pendentes}
-          bytesPendentes={estado.bytesPendentes}
-          online={estado.online}
+
+        <section style={{ display: "grid", alignContent: "start", gap: "0.25rem", flex: 1 }}>
+          <TituloGrande>
+            {missoes.length === 0 ? (
+              "Modo livre"
+            ) : restantes.length > 0 ? (
+              "Escolhe uma."
+            ) : (
+              <>
+                Você fez todas as {missoes.length}.
+                <br />
+                <em>Manda o que quiser.</em>
+              </>
+            )}
+          </TituloGrande>
+
+          {restantes.length > 0 && <TextoSecundario>Ou manda o que quiser.</TextoSecundario>}
+
+          {missoes.map((m, i) => (
+            <div key={m.id} className={m.feito ? "missao pronta" : "missao"}>
+              <button className="missao-alvo" onClick={() => irParaCamera(m.id)}>
+                <span className="missao-num">{romano(i + 1)}</span>
+                <span className="missao-texto">{m.titulo}</span>
+                {m.feito && <span className="missao-feita">feita</span>}
+              </button>
+
+              <button
+                className="missao-rolo"
+                onClick={() => abrirRolo(m.id)}
+                aria-label={`Escolher do rolo para: ${m.titulo}`}
+              >
+                <IconeRolo />
+              </button>
+            </div>
+          ))}
+
+          {estado.ultimoErro && <RecadoErro>{estado.ultimoErro}</RecadoErro>}
+        </section>
+
+        <input
+          ref={entradaCamera}
+          type="file"
+          accept="image/*"
+          capture="environment"
+          style={ESCONDIDO}
+          onChange={escolheu}
         />
-      </header>
+        <input
+          ref={entradaRolo}
+          type="file"
+          accept="image/*"
+          multiple
+          style={ESCONDIDO}
+          onChange={escolheu}
+        />
+        <input
+          ref={entradaVideo}
+          type="file"
+          accept="video/*"
+          capture="environment"
+          style={ESCONDIDO}
+          onChange={escolheu}
+        />
 
-      <section style={{ display: "grid", alignContent: "start", gap: "0.25rem" }}>
-        {/* Terminar a lista não pode parecer o fim do produto: a madrugada é
-            onde saem as melhores fotos (N5.5). */}
-        <h1 className="foto-titulo">
-          {missoes.length === 0 ? (
-            "Modo livre"
-          ) : restantes.length > 0 ? (
-            "Escolhe uma."
-          ) : (
-            <>
-              Você fez todas as {missoes.length}.
-              <br />
-              <em>Manda o que quiser.</em>
-            </>
-          )}
-        </h1>
-
-        {restantes.length > 0 && <p className="foto-lede">Ou manda o que quiser.</p>}
-
-        {missoes.map((m, i) => (
-          <div key={m.id} className={m.feito ? "missao pronta" : "missao"}>
-            <button className="missao-alvo" onClick={() => abrirCamera(m.id)}>
-              <span className="missao-num">{romano(i + 1)}</span>
-              <span className="missao-texto">{m.titulo}</span>
-              {m.feito && <span className="missao-feita">feita</span>}
-            </button>
-
-            {/* A missão abre a câmera num toque — o caminho crítico não comporta
-                uma folha de escolha no meio. Esta porta existe para quem já tem
-                a foto no rolo cumprir a missão mesmo assim. */}
-            <button
-              className="missao-rolo"
-              onClick={() => abrirRolo(m.id)}
-              aria-label={`Escolher do rolo para: ${m.titulo}`}
-            >
-              <IconeRolo />
-            </button>
-          </div>
-        ))}
-
-        {estado.ultimoErro && (
-          <p role="alert" className="foto-recado">
-            {estado.ultimoErro}
-          </p>
-        )}
-      </section>
-
-      {/* `hidden` é `display: none`, e input escondido assim tem histórico de
-          ignorar `capture` quando o clique vem de código. Escondido no visual,
-          presente no layout. */}
-      <input
-        ref={entradaCamera}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        style={ESCONDIDO}
-        onChange={escolheu}
-      />
-      {/* Sem `capture`: é a porta do rolo. Metade das fotos boas foi tirada
-          antes de alguém abrir isto (N5.1), e quem sobe no dia seguinte sobe
-          em lote (N5.6). */}
-      <input
-        ref={entradaRolo}
-        type="file"
-        accept="image/*"
-        multiple
-        style={ESCONDIDO}
-        onChange={escolheu}
-      />
-
-      <div style={{ display: "grid", gap: "0.6rem" }}>
-        <button
-          className="foto-botao"
-          onClick={() => abrirCamera(null)}
-          disabled={estado.processando}
-          style={{
-            fontSize: "1.05rem",
-            fontWeight: 500,
-            // Alvo grande de propósito: é o único botão que importa, e a mão que
-            // o aperta às 23h segura uma taça na outra.
-            minHeight: "64px",
-            border: "none",
-            background: "var(--ink)",
-            color: "var(--bg)",
-            opacity: estado.processando ? 0.4 : 1,
-          }}
-        >
-          {estado.processando
-            ? "Preparando…"
-            : emLote > 0
-              ? `Guardando ${emLote}…`
-              : textos.missaoLivre}
-        </button>
-
-        <button
-          className="foto-botao"
-          onClick={() => abrirRolo(null)}
-          disabled={estado.processando}
-          style={{
-            fontSize: "0.97rem",
-            fontWeight: 400,
-            minHeight: "52px",
-            border: "1px solid var(--linha)",
-            background: "transparent",
-            color: "var(--ink-2)",
-          }}
-        >
-          Escolher do rolo
-        </button>
-
-        {/*
-          Antes da captura, nunca depois: deixar gravar e recusar no envio
-          destrói o momento, e o brinde não se refaz (N5.3).
-        */}
-        {PLANO_ATUAL === "gratis" && (
-          <p
+        <div style={{ display: "grid", gap: "0.6rem", paddingTop: "1rem" }}>
+          <button
+            className="foto-botao"
+            onClick={() => irParaCamera(null)}
+            disabled={estado.processando}
             style={{
-              margin: "0.4rem 0 0",
-              fontSize: "0.8rem",
-              lineHeight: 1.6,
-              textAlign: "center",
-              color: "var(--ink-3)",
+              fontSize: "1.05rem",
+              fontWeight: 500,
+              minHeight: "64px",
+              border: "none",
+              background: "var(--ink)",
+              color: "var(--bg)",
+              opacity: estado.processando ? 0.4 : 1,
             }}
           >
-            {AVISO_VIDEO}
-          </p>
-        )}
-      </div>
-    </main>
+            {estado.processando
+              ? "Preparando…"
+              : emLote > 0
+                ? `Guardando ${emLote}…`
+                : textos.missaoLivre}
+          </button>
+
+          <button
+            className="foto-botao"
+            onClick={() => abrirRolo(null)}
+            disabled={estado.processando}
+            style={{
+              fontSize: "0.97rem",
+              fontWeight: 400,
+              minHeight: "52px",
+              border: "1px solid var(--linha)",
+              background: "transparent",
+              color: "var(--ink-2)",
+            }}
+          >
+            Escolher do rolo
+          </button>
+
+          <button
+            className="foto-botao"
+            onClick={() => abrirVideo(null)}
+            disabled={
+              estado.processando ||
+              (cotaVideo.limite !== null && cotaVideo.enviados >= cotaVideo.limite)
+            }
+            style={{
+              fontSize: "0.97rem",
+              fontWeight: 400,
+              minHeight: "52px",
+              border: "1px solid var(--linha)",
+              background: "transparent",
+              color: "var(--ink-2)",
+              opacity:
+                cotaVideo.limite !== null && cotaVideo.enviados >= cotaVideo.limite ? 0.45 : 1,
+            }}
+          >
+            Gravar vídeo
+          </button>
+
+          {avisoVideo && (
+            <p
+              style={{
+                margin: "0.4rem 0 0",
+                fontSize: "0.8rem",
+                lineHeight: 1.6,
+                textAlign: "center",
+                color: "var(--ink-3)",
+              }}
+            >
+              {avisoVideo}
+            </p>
+          )}
+        </div>
+      </MioloConvidado>
+      <BarraDeAbas slug={slug} ativa="missoes" />
+    </ChaoConvidado>
   );
 }
 

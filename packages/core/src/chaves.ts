@@ -21,3 +21,11 @@ export function derivarChaveMidia(
 export function prefixoDoEvento(eventoId: string): string {
   return `events/${eventoId}/`;
 }
+
+/** Deriva a chave `/thumb` a partir da `/full` já persistida. */
+export function chaveThumbDeFull(chaveFull: string): string {
+  if (chaveFull.endsWith("/full")) {
+    return `${chaveFull.slice(0, -"/full".length)}/thumb`;
+  }
+  return `${chaveFull}/thumb`;
+}

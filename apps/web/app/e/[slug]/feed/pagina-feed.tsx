@@ -4,7 +4,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { agruparPorHora, type GrupoDeHora } from "@/lib/agrupar-por-hora";
 import { usarFeed, type ItemVisivel } from "@/lib/usar-feed";
 import { BarraDeAbas } from "../barra-de-abas";
+import {
+  AvisoGate,
+  CabecalhoConvidado,
+  ChaoConvidado,
+  MioloConvidado,
+} from "../../../telas/shell-convidado";
+import { Pilula } from "../../../telas/pecas-de-tela";
 import { Publicacao, PublicacaoCarregando } from "./publicacao";
+import { GradeEspelho, GradeEspelhoCarregando } from "./grade-espelho";
 import { chavesDoReprodutor, Reprodutor } from "./reprodutor";
 import { Tira, TiraCarregando } from "./tira";
 
@@ -47,11 +55,13 @@ type Aberto = { inicio: number; itemId: string };
 
 export function PaginaFeed({
   slug,
+  tituloEvento,
   missoes,
   textos,
   caminhoDaCamera,
 }: {
   slug: string;
+  tituloEvento: string;
   missoes: MissaoDoFiltro[];
   textos: TextosDoFeed;
   caminhoDaCamera: string;
@@ -160,18 +170,13 @@ export function PaginaFeed({
     else setPreparando(inicio);
   }
 
+  const espelho = estado.interacao === "espelho";
+  const completo = !espelho;
+  const contagem = estado.itens.length > 0 ? `${estado.itens.length} fotos` : undefined;
+
   return (
     <>
-      <main
-        style={{
-          minHeight: "100dvh",
-          padding: "calc(var(--espaco) * 5) calc(var(--espaco) * 5)",
-          paddingBottom: "calc(8rem + env(safe-area-inset-bottom))",
-          background: "var(--bg)",
-          color: "var(--ink)",
-          fontFamily: "var(--fonte-corpo)",
-        }}
-      >
+      <ChaoConvidado>
         <style>{`
           @keyframes feed-amanhecer {
             from { opacity: 0; filter: brightness(0.4) saturate(0.6); }
@@ -182,117 +187,107 @@ export function PaginaFeed({
             50%      { opacity: 0.55; }
           }
           .feed-amanhece { animation: feed-amanhecer var(--tempo-lento) var(--curva) both; }
-          /* O ciclo é mais longo que --tempo-lento de propósito: em laço
-             infinito, meio segundo não respira, pisca. */
           .feed-esperando { animation: feed-respirar 1900ms var(--curva) infinite; }
           @media (prefers-reduced-motion: reduce) {
             .feed-amanhece, .feed-esperando { animation: none !important; }
           }
         `}</style>
 
-        <header style={{ marginBottom: "calc(var(--espaco) * 3)" }}>
-          <p
-            style={{
-              margin: 0,
-              fontFamily: "var(--fonte-titulo)",
-              fontSize: "0.68rem",
-              fontWeight: 400,
-              letterSpacing: "0.28em",
-              textTransform: "uppercase",
-              color: "var(--ink-3)",
-            }}
-          >
-            A festa agora
-          </p>
-        </header>
-
-        {estado.interacao === "espelho" && estado.jaCarregou && (
-          <p
-            style={{
-              margin: "0 0 calc(var(--espaco) * 4)",
-              padding: "0.875rem 1rem",
-              fontSize: "0.875rem",
-              lineHeight: 1.5,
-              color: "var(--ink-2)",
-              background: "var(--superficie)",
-              borderRadius: "var(--raio)",
-              border: "1px solid var(--linha)",
-            }}
-          >
-            As reações e comentários abrem quando o casal liberar.
-          </p>
-        )}
-
-        {primeiraCarga && <TiraCarregando />}
-
-        {grupos.length > 0 && (
-          <Tira
-            grupos={grupos}
-            urls={estado.urls}
-            vistos={vistos}
-            preparando={preparando}
-            rotulo="Horas da festa"
-            onAbrir={abrir}
+        <MioloConvidado>
+          <CabecalhoConvidado
+            titulo={tituloEvento}
+            acao={contagem ? <Pilula>{contagem}</Pilula> : undefined}
           />
-        )}
 
-        {missoes.length > 0 && (
-          <Filtro
-            rotulo={textos.missaoTitulo}
-            missoes={missoes}
-            escolhida={missaoId}
-            onEscolher={setMissaoId}
+          {espelho && estado.jaCarregou && (
+            <AvisoGate>
+              As reações e os comentários abrem no horário que o anfitrião escolheu. Até lá,
+              continue enviando: tudo já está indo para o álbum.
+            </AvisoGate>
+          )}
+
+          {primeiraCarga && completo && <TiraCarregando />}
+          {primeiraCarga && espelho && <GradeEspelhoCarregando />}
+
+          {completo && grupos.length > 0 && (
+            <Tira
+              grupos={grupos}
+              urls={estado.urls}
+              vistos={vistos}
+              preparando={preparando}
+              rotulo="Horas da festa"
+              onAbrir={abrir}
+            />
+          )}
+
+          {completo && missoes.length > 0 && (
+            <Filtro
+              rotulo={textos.missaoTitulo}
+              missoes={missoes}
+              escolhida={missaoId}
+              onEscolher={setMissaoId}
+            />
+          )}
+
+          {estado.midiaIndisponivel && (
+            <p style={{ margin: "0 0 1rem", fontSize: "0.85rem", color: "var(--ink-3)" }}>
+              As fotos ainda não abriram. Elas aparecem sozinhas.
+            </p>
+          )}
+
+          {primeiraCarga && completo && (
+            <Coluna>
+              {[0, 1].map((i) => (
+                <PublicacaoCarregando key={i} />
+              ))}
+            </Coluna>
+          )}
+
+          {vazio && <Vazio comFiltro={completo && missaoId !== null} />}
+
+          {espelho && estado.itens.length > 0 && (
+            <GradeEspelho itens={estado.itens} urls={estado.urls} />
+          )}
+
+          {completo && estado.itens.length > 0 && (
+            <Coluna comDivisor>
+              {estado.itens.map((item) => {
+                const ehVideo = item.mime.startsWith("video/");
+                const chaveMidia = ehVideo ? item.chaveFull : item.chaveThumb;
+                return (
+                <Publicacao
+                  key={item.id}
+                  uploadId={item.id}
+                  interacao={estado.interacao}
+                  {...(item.reacoes !== undefined ? { reacoes: item.reacoes } : {})}
+                  {...(item.minhaReacao !== undefined ? { minhaReacao: item.minhaReacao } : {})}
+                  {...(item.sessaoAutor ? { sessaoAutor: item.sessaoAutor } : {})}
+                  {...(item.minha !== undefined ? { minha: item.minha } : {})}
+                  onReacoes={(resultado) => atualizarReacoes(item.id, resultado)}
+                  onBloqueado={recomecar}
+                  url={estado.urls.get(chaveMidia)?.url ?? null}
+                  autor={item.autor}
+                  legenda={item.legenda}
+                  lugar={item.lugar}
+                  ehVideo={ehVideo}
+                />
+              );
+              })}
+            </Coluna>
+          )}
+
+          <Rodape
+            estado={estado}
+            temItens={estado.itens.length > 0}
+            onVerMais={carregarMais}
+            onRecomecar={recomecar}
           />
-        )}
-
-        {estado.midiaIndisponivel && (
-          <p style={{ margin: "0 0 1rem", fontSize: "0.85rem", color: "var(--ink-3)" }}>
-            As fotos ainda não abriram. Elas aparecem sozinhas.
-          </p>
-        )}
-
-        {primeiraCarga && (
-          <Coluna>
-            {[0, 1].map((i) => (
-              <PublicacaoCarregando key={i} />
-            ))}
-          </Coluna>
-        )}
-
-        {vazio && <Vazio comFiltro={missaoId !== null} />}
-
-        {estado.itens.length > 0 && (
-          <Coluna>
-            {estado.itens.map((item) => (
-              <Publicacao
-                key={item.id}
-                uploadId={item.id}
-                interacao={estado.interacao}
-                {...(item.reacoes !== undefined ? { reacoes: item.reacoes } : {})}
-                {...(item.minhaReacao !== undefined ? { minhaReacao: item.minhaReacao } : {})}
-                {...(item.sessaoAutor ? { sessaoAutor: item.sessaoAutor } : {})}
-                {...(item.minha !== undefined ? { minha: item.minha } : {})}
-                onReacoes={(resultado) => atualizarReacoes(item.id, resultado)}
-                onBloqueado={recomecar}
-                url={estado.urls.get(item.chaveThumb)?.url ?? null}
-                autor={item.autor}
-                legenda={item.legenda}
-              />
-            ))}
-          </Coluna>
-        )}
-
-        <Rodape
-          estado={estado}
-          temItens={estado.itens.length > 0}
-          onVerMais={carregarMais}
-          onRecomecar={recomecar}
-        />
-      </main>
+        </MioloConvidado>
+      </ChaoConvidado>
 
       <BarraDeAbas slug={slug} ativa="feed" />
 
-      {grupoAberto && (
+      {completo && grupoAberto && (
         <Reprodutor
           itens={itensAbertos}
           indice={indice}
@@ -311,9 +306,30 @@ export function PaginaFeed({
   );
 }
 
-/** Uma foto por vez, em destaque. Grade é tela de perfil; isto aqui é a casa. */
-function Coluna({ children }: { children: React.ReactNode }) {
-  return <div style={{ display: "grid", gap: "calc(var(--espaco) * 6)" }}>{children}</div>;
+/** Uma foto por vez, em destaque — coluna única como `TelaFeed`. */
+function Coluna({
+  children,
+  comDivisor,
+}: {
+  children: React.ReactNode;
+  comDivisor?: boolean;
+}) {
+  return (
+    <div
+      style={{
+        display: "grid",
+        ...(comDivisor
+          ? {
+              borderTopWidth: "1px",
+              borderTopStyle: "solid",
+              borderTopColor: "var(--linha)",
+            }
+          : {}),
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 function Filtro({

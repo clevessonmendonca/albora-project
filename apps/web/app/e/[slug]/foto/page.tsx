@@ -1,6 +1,9 @@
-import { comEvento, listarDesafios, resolverSlug } from "@albora/db";
+import { comEvento, contarVideosDaSessao, listarDesafios, planoDoEvento, resolverSlug } from "@albora/db";
+import { limiteVideosPorConvidado } from "@albora/core";
 import { PACKS, texto, type Pack } from "@albora/packs";
+import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import { cookies } from "next/headers";
+import type { CSSProperties } from "react";
 import { banco } from "@/lib/banco";
 import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
 import { Aviso } from "../aviso";
@@ -39,9 +42,31 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
     listarDesafios(c, eventoId, sessao?.sessaoId ?? null),
   );
 
+  const planoECota = sessao
+    ? await comEvento(banco(), eventoId, async (c) => {
+        const plano = await planoDoEvento(c, eventoId);
+        const enviados = await contarVideosDaSessao(c, eventoId, sessao.sessaoId);
+        return { plano, cotaVideo: { limite: limiteVideosPorConvidado(plano), enviados } };
+      })
+    : { plano: "free" as const, cotaVideo: { limite: 1, enviados: 0 } };
+
   return (
-    <PaginaFoto
-      eventoId={eventoId}
+    <div
+      style={
+        paraVariaveis(
+          resolverTokens({
+            marca: MARCA_ALBORA,
+            pack: { ...(pack?.tokens ?? {}), fundo: "escuro" },
+          }),
+        ) as CSSProperties
+      }
+    >
+      <PaginaFoto
+        slug={slug}
+        eventoId={eventoId}
+      plano={planoECota.plano}
+      cotaVideo={planoECota.cotaVideo}
+      tituloEvento={pack ? texto(pack, "landing.exemplo.nome") : "A festa"}
       caminhoDoFeed={`/e/${encodeURIComponent(slug)}/feed`}
       filtroRecomendado={filtroRecomendado}
       missoes={desafios.map((d) => ({
@@ -55,7 +80,8 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
         missaoLivre: rotulo(pack, "missao.livre"),
         lugarPergunta: rotulo(pack, "lugar.pergunta"),
       }}
-    />
+      />
+    </div>
   );
 }
 

@@ -1,5 +1,6 @@
 import {
   VERSAO_DO_CONSENTIMENTO_EXTERNO,
+  chaveThumbDeFull,
   compartilhamentoExternoPadrao,
   type ConsentimentoExterno,
 } from "@albora/core";
@@ -13,6 +14,8 @@ export type MidiaCompartilharDb = {
   eventoId: string;
   sessaoDeOrigem: string;
   chaveFull: string;
+  chaveThumb: string;
+  mime: string;
   legenda: string | null;
   removida: boolean;
   liberadaPeloAnfitriao: boolean;
@@ -73,6 +76,7 @@ export async function buscarContextoCompartilhar(
     event_id: string;
     upload_session_id: string;
     storage_key: string;
+    mime: string;
     caption: string | null;
     upload_state: string;
     released_by_host: boolean;
@@ -92,7 +96,7 @@ export async function buscarContextoCompartilhar(
     denuncias: number;
   }>(
     `SELECT u.id AS upload_id, u.event_id, u.session_id AS upload_session_id,
-            u.storage_key, u.caption, u.state AS upload_state, u.released_by_host,
+            u.storage_key, u.mime, u.caption, u.state AS upload_state, u.released_by_host,
             u.classifier_verdict,
             s.display_name, s.consent_version, s.consented_at,
             s.external_consent_version, s.external_consented_at,
@@ -117,6 +121,8 @@ export async function buscarContextoCompartilhar(
       eventoId: l.event_id,
       sessaoDeOrigem: l.upload_session_id,
       chaveFull: l.storage_key,
+      chaveThumb: chaveThumbDeFull(l.storage_key),
+      mime: l.mime,
       legenda: l.caption,
       removida: l.upload_state !== "published",
       liberadaPeloAnfitriao: l.released_by_host,

@@ -33,6 +33,7 @@ export type ItemFeed = {
   /** Miniatura primeiro: é ela que faz a primeira tela em 3G lento. */
   chaveThumb: string;
   chaveFull: string;
+  mime: string;
   missaoId: string | null;
   legenda: string | null;
   lugar: string | null;
@@ -68,6 +69,7 @@ export type EntradaFeed = {
 type LinhaFeed = {
   id: string;
   storage_key: string;
+  mime: string;
   challenge_id: string | null;
   caption: string | null;
   place: string | null;
@@ -154,7 +156,7 @@ export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Pro
   parametros.push(limite + 1);
 
   const { rows } = await cliente.query<LinhaFeed>(
-    `SELECT u.id, u.storage_key, u.challenge_id, u.caption, u.place,
+    `SELECT u.id, u.storage_key, u.mime, u.challenge_id, u.caption, u.place,
             u.created_at, u.created_at::text AS created_at_txt,
             s.display_name, u.session_id${contagem}${minha}
        FROM uploads u
@@ -180,6 +182,7 @@ function paraItem(linha: LinhaFeed, modo: ModoFeed, sessaoLeitora?: string): Ite
     id: linha.id,
     chaveThumb: chaveDaMiniatura(linha.storage_key),
     chaveFull: linha.storage_key,
+    mime: linha.mime,
     missaoId: linha.challenge_id,
     legenda: linha.caption,
     lugar: linha.place,

@@ -1,34 +1,17 @@
 "use client";
 
 import type { ModoInteracao } from "@albora/core";
+import { CabecalhoPublicacao } from "../../../telas/shell-convidado";
 import { InteracaoDaFoto } from "../interacao-da-foto";
 import type { ResultadoReacao } from "@/lib/usar-reacao";
 
 /**
- * Uma foto no feed em coluna única.
+ * Uma publicação no feed — layout de `TelaFeed` em `/telas`.
  *
- * 🔴 **Nunca corta.** A foto entra com `max-width` e `max-height` e as duas
- * dimensões em `auto`: o navegador preserva a proporção real e encaixa dentro
- * dos dois limites sozinho, sem que a tela precise saber se a foto é 9:16 ou
- * 3:2. Vertical fica alta e centrada, horizontal ocupa a largura — e nenhuma
- * das duas perde um pixel.
- *
- * O teto de altura existe porque uma 9:16 na largura do celular passaria de uma
- * tela inteira, e a pessoa rolaria dentro de uma foto só sem saber que há mais.
- * O piso reserva o espaço antes de a imagem chegar, para a coluna não pular
- * embaixo do dedo em 4G ruim.
+ * Cabeçalho com iniciais, foto em 4:5 sem cortar, estrela + comentário embaixo.
  */
 
-const ALTURA_MAXIMA = "72dvh";
-const ALTURA_MINIMA = "44dvh";
-
-const MIDIA: React.CSSProperties = {
-  display: "grid",
-  placeItems: "center",
-  position: "relative",
-  minHeight: ALTURA_MINIMA,
-  maxHeight: ALTURA_MAXIMA,
-};
+const ASPECTO = "4 / 5";
 
 export function Publicacao({
   uploadId,
@@ -42,6 +25,8 @@ export function Publicacao({
   url,
   autor,
   legenda,
+  lugar,
+  ehVideo,
 }: {
   uploadId: string;
   interacao: ModoInteracao;
@@ -54,58 +39,56 @@ export function Publicacao({
   url: string | null;
   autor: string;
   legenda: string | null;
+  lugar?: string | null;
+  ehVideo?: boolean;
 }) {
-  return (
-    <article
-      style={{
-        display: "grid",
-        gap: "calc(var(--espaco) * 3)",
-        paddingBottom: "calc(var(--espaco) * 6)",
-        borderBottom: "1px solid var(--linha)",
-      }}
-    >
-      {/* O crédito é o mecanismo de reconhecimento social (flows N3.4), e vem
-          antes da foto: é o nome que faz a mesa reconhecer de quem ela é. */}
-      <span
-        style={{
-          fontFamily: "var(--fonte-titulo)",
-          fontSize: "0.68rem",
-          fontWeight: 400,
-          letterSpacing: "0.2em",
-          textTransform: "uppercase",
-          color: "var(--ink-2)",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {autor}
-      </span>
+  const meta = lugar ? `· ${lugar}` : null;
 
-      <div style={MIDIA}>
-        {/* Sem `src` enquanto a URL não chega: um endereço vazio pinta o ícone
-            de imagem quebrada, e moldura vazia é a degradação com dignidade. */}
+  return (
+    <article style={{ borderTop: "1px solid var(--linha)" }}>
+      <div style={{ padding: "0.875rem 0" }}>
+        <CabecalhoPublicacao autor={autor} meta={meta} />
+      </div>
+
+      <div style={{ position: "relative", aspectRatio: ASPECTO, marginBottom: "0.75rem" }}>
         {url ? (
-          <img
-            className="feed-amanhece"
-            src={url}
-            alt={legenda ?? ""}
-            loading="lazy"
-            decoding="async"
-            style={{
-              display: "block",
-              width: "auto",
-              height: "auto",
-              maxWidth: "100%",
-              maxHeight: ALTURA_MAXIMA,
-              borderRadius: "var(--raio)",
-            }}
-          />
+          ehVideo ? (
+            <video
+              className="feed-amanhece"
+              src={url}
+              controls
+              playsInline
+              preload="metadata"
+              style={{
+                display: "block",
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                background: "var(--bg)",
+              }}
+            />
+          ) : (
+            <img
+              className="feed-amanhece"
+              src={url}
+              alt={legenda ?? ""}
+              loading="lazy"
+              decoding="async"
+              style={{
+                display: "block",
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+                background: "var(--bg)",
+              }}
+            />
+          )
         ) : (
           <div
+            className="feed-esperando"
             style={{
               position: "absolute",
-              inset: "0 15%",
+              inset: "8%",
               border: "1px solid var(--linha)",
               borderRadius: "var(--raio)",
             }}
@@ -113,59 +96,57 @@ export function Publicacao({
         )}
       </div>
 
-      <InteracaoDaFoto
-        uploadId={uploadId}
-        interacao={interacao}
-        autor={autor}
-        {...(reacoes !== undefined ? { reacoesInicial: reacoes } : {})}
-        {...(minhaReacao !== undefined ? { minhaInicial: minhaReacao } : {})}
-        {...(sessaoAutor ? { sessaoAutor } : {})}
-        {...(minha !== undefined ? { minha } : {})}
-        {...(onReacoes ? { onReacoes } : {})}
-        {...(onBloqueado ? { onBloqueado } : {})}
-      />
+      <div style={{ padding: "0 0 0.625rem" }}>
+        <InteracaoDaFoto
+          uploadId={uploadId}
+          interacao={interacao}
+          autor={autor}
+          {...(reacoes !== undefined ? { reacoesInicial: reacoes } : {})}
+          {...(minhaReacao !== undefined ? { minhaInicial: minhaReacao } : {})}
+          {...(sessaoAutor ? { sessaoAutor } : {})}
+          {...(minha !== undefined ? { minha } : {})}
+          {...(onReacoes ? { onReacoes } : {})}
+          {...(onBloqueado ? { onBloqueado } : {})}
+        />
+      </div>
 
       {legenda && (
-        <p style={{ margin: 0, fontSize: "0.95rem", lineHeight: 1.6, color: "var(--ink-2)" }}>
-          {legenda}
+        <p style={{ margin: "0 0 1rem", fontSize: "0.84375rem", lineHeight: 1.45, color: "var(--ink-2)" }}>
+          <span style={{ color: "var(--ink)" }}>{autor}</span> {legenda}
         </p>
       )}
     </article>
   );
 }
 
-/** O estado de carregamento é a própria coluna, não um giro no meio da tela. */
 export function PublicacaoCarregando() {
   return (
-    <article
-      aria-hidden
-      style={{
-        display: "grid",
-        gap: "calc(var(--espaco) * 3)",
-        paddingBottom: "calc(var(--espaco) * 6)",
-        borderBottom: "1px solid var(--linha)",
-      }}
-    >
-      <span
-        className="feed-esperando"
-        style={{
-          width: "6rem",
-          height: "0.68rem",
-          borderRadius: "var(--raio-pilula)",
-          background: "var(--superficie-alta)",
-        }}
-      />
-      <div style={MIDIA}>
-        <div
+    <article aria-hidden style={{ borderTop: "1px solid var(--linha)", paddingBottom: "1rem" }}>
+      <div style={{ display: "flex", gap: "0.625rem", padding: "0.875rem 0" }}>
+        <span
           className="feed-esperando"
           style={{
-            position: "absolute",
-            inset: "0 15%",
-            border: "1px solid var(--linha)",
-            borderRadius: "var(--raio)",
+            width: "1.875rem",
+            height: "1.875rem",
+            borderRadius: "50%",
+            background: "var(--superficie-alta)",
+          }}
+        />
+        <span
+          className="feed-esperando"
+          style={{
+            width: "6rem",
+            height: "0.875rem",
+            borderRadius: "var(--raio-pilula)",
+            background: "var(--superficie-alta)",
+            alignSelf: "center",
           }}
         />
       </div>
+      <div
+        className="feed-esperando"
+        style={{ aspectRatio: ASPECTO, border: "1px solid var(--linha)", borderRadius: "var(--raio)" }}
+      />
     </article>
   );
 }

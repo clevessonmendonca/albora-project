@@ -35,6 +35,7 @@ export type MidiaNaParede = {
   id: string;
   chaveFull: string;
   chaveThumb: string;
+  mime: string;
   /** Concessão `ler.identidade`: o primeiro nome de quem enviou, nunca o contato. */
   autor: string;
   criadaEm: Date;
@@ -45,6 +46,7 @@ export type MidiaNaParede = {
 type Linha = {
   id: string;
   storage_key: string;
+  mime: string;
   display_name: string;
   created_at: Date;
   reacoes: number;
@@ -73,7 +75,7 @@ export async function listarMidiaDaParede(
   const limiar = limiarDenuncias(moderacao);
 
   const { rows } = await cliente.query<Linha>(
-    `SELECT u.id, u.storage_key, u.created_at, s.display_name,
+    `SELECT u.id, u.storage_key, u.mime, u.created_at, s.display_name,
             u.classifier_verdict, u.released_by_host,
             (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes,
             (SELECT count(*) FROM reports rp WHERE rp.upload_id = u.id)::int AS denuncias
@@ -105,6 +107,7 @@ export async function listarMidiaDaParede(
       id: l.id,
       chaveFull: l.storage_key,
       chaveThumb: chaveDaMiniatura(l.storage_key),
+      mime: l.mime,
       autor: l.display_name,
       criadaEm: l.created_at,
       reacoes: l.reacoes,

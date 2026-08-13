@@ -1,7 +1,9 @@
 import { comEvento, listarDesafios, resolverSlug } from "@albora/db";
 import { PACKS, texto, type Pack } from "@albora/packs";
+import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import type { CSSProperties } from "react";
 import { banco } from "@/lib/banco";
 import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
 import { Aviso } from "../aviso";
@@ -46,16 +48,24 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
     listarDesafios(c, eventoId, sessao.sessaoId),
   );
 
+  const tokens = resolverTokens({
+    marca: MARCA_ALBORA,
+    pack: { ...(pack?.tokens ?? {}), fundo: "escuro" },
+  });
+
   return (
-    <PaginaFeed
-      slug={slug}
-      missoes={desafios.map((d) => ({
-        id: d.id,
-        titulo: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,
-      }))}
-      textos={{ missaoTitulo: rotulo(pack, "missao.titulo") }}
-      caminhoDaCamera={`/e/${encodeURIComponent(slug)}/foto`}
-    />
+    <div style={paraVariaveis(tokens) as CSSProperties}>
+      <PaginaFeed
+        slug={slug}
+        tituloEvento={pack ? texto(pack, "landing.exemplo.nome") : "A festa"}
+        missoes={desafios.map((d) => ({
+          id: d.id,
+          titulo: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,
+        }))}
+        textos={{ missaoTitulo: rotulo(pack, "missao.titulo") }}
+        caminhoDaCamera={`/e/${encodeURIComponent(slug)}/foto`}
+      />
+    </div>
   );
 }
 

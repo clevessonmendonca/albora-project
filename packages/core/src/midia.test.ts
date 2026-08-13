@@ -56,6 +56,11 @@ describe("declaração do cliente, verificada no portão", () => {
     expect(validarDeclaracao("image/jpeg", 0)?.code).toBe("midia.grande_demais");
     expect(validarDeclaracao("image/jpeg", MAX_BYTES + 1)?.code).toBe("midia.grande_demais");
   });
+
+  it("aceita vídeo mp4 dentro do teto de vídeo", () => {
+    expect(validarDeclaracao("video/mp4", 40 * 1024 * 1024)).toBeNull();
+    expect(validarConteudo("video/mp4", MP4)).toBeNull();
+  });
 });
 
 describe("magic bytes — o Content-Type do cliente não vale nada", () => {

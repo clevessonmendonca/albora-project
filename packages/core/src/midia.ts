@@ -10,6 +10,9 @@
 export const TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp"] as const;
 export type TipoAceito = (typeof TIPOS_ACEITOS)[number];
 
+export const TIPOS_VIDEO = ["video/mp4", "video/quicktime"] as const;
+export type TipoVideo = (typeof TIPOS_VIDEO)[number];
+
 /**
  * O que o cliente pode **tentar decodificar** — não o que pode subir.
  *
@@ -23,6 +26,9 @@ export type TipoEntrada = (typeof TIPOS_ENTRADA)[number];
 /** Teto por foto. Acima disso o cliente redimensiona antes de enfileirar. */
 export const MAX_BYTES = 12 * 1024 * 1024;
 
+/** Teto por vídeo (~30s em 1080p, §5.1 do doc de produto). */
+export const MAX_BYTES_VIDEO = 50 * 1024 * 1024;
+
 export const LADO_MAIOR = {
   gratis: 2500,
   pago: 3500,
@@ -30,6 +36,10 @@ export const LADO_MAIOR = {
 
 export function tipoAceito(mime: string): mime is TipoAceito {
   return (TIPOS_ACEITOS as readonly string[]).includes(mime);
+}
+
+export function ehMimeVideo(mime: string): mime is TipoVideo {
+  return (TIPOS_VIDEO as readonly string[]).includes(mime);
 }
 
 /**
@@ -122,6 +132,13 @@ export type ErroMidia =
  * consumir assinatura, nem cota, nem espaço no bucket.
  */
 export function validarDeclaracao(mime: string, bytes: number): ErroMidia | null {
+  if (ehMimeVideo(mime)) {
+    if (bytes <= 0 || bytes > MAX_BYTES_VIDEO) {
+      return { code: "midia.grande_demais", details: { bytes, limite: MAX_BYTES_VIDEO } };
+    }
+    return null;
+  }
+
   if (!tipoAceito(mime)) {
     return { code: "midia.tipo_recusado", details: { recebido: mime } };
   }
@@ -137,6 +154,16 @@ export function validarDeclaracao(mime: string, bytes: number): ErroMidia | null
  * de um JPEG".
  */
 export function validarConteudo(mimeDeclarado: string, inicio: Uint8Array): ErroMidia | null {
+  if (ehMimeVideo(mimeDeclarado)) {
+    if (!ehVideo(inicio)) {
+      return {
+        code: "midia.conteudo_nao_confere",
+        details: { declarado: mimeDeclarado, detectado: null },
+      };
+    }
+    return null;
+  }
+
   const detectado = detectarTipo(inicio);
   if (detectado === null || detectado !== mimeDeclarado) {
     return {

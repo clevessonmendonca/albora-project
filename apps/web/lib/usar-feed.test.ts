@@ -24,6 +24,7 @@ const item = (id: string): ItemVisivel => ({
   id,
   chaveThumb: `events/e/${id}/thumb`,
   chaveFull: `events/e/${id}/full`,
+  mime: "image/jpeg",
   autor: "Ana",
   legenda: null,
   lugar: null,
@@ -305,6 +306,7 @@ describe("contrato com a rota do feed", () => {
       id: "a",
       chaveThumb: "events/e/a/thumb",
       chaveFull: "events/e/a/full",
+      mime: "image/jpeg",
       autor: "Ana",
       legenda: "no brinde",
       lugar: "Pista",
@@ -318,7 +320,7 @@ describe("contrato com a rota do feed", () => {
     vi.stubGlobal(
       "fetch",
       responder({
-        itens: [{ id: "a", chaveThumb: "t", chaveFull: "f", autor: "Ana", legenda: null }],
+        itens: [{ id: "a", chaveThumb: "t", chaveFull: "f", mime: "image/jpeg", autor: "Ana", legenda: null }],
         proximoCursor: null,
       }),
     );

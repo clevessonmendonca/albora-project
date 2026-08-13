@@ -35,7 +35,10 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
 
   const pack = PACKS[r.evento.packId];
   const vars = paraVariaveis(
-    resolverTokens({ marca: MARCA_ALBORA, ...(pack ? { pack: pack.tokens } : {}) }),
+    resolverTokens({
+      marca: MARCA_ALBORA,
+      pack: { ...(pack?.tokens ?? {}), fundo: "escuro" },
+    }),
   ) as CSSProperties;
 
   return (

@@ -5,6 +5,7 @@ import {
   autorizarCompartilhamento,
   compor,
   conteudoDaMoldura,
+  ehMimeVideo,
   MAX_DA_COLAGEM,
   modeloRecomendado,
   VERSAO_DO_CONSENTIMENTO_EXTERNO,
@@ -25,6 +26,8 @@ import {
 
 type ContextoApi = {
   chaveFull: string;
+  chaveThumb: string;
+  mime: string;
   legenda: string | null;
   sessao: {
     nome: string;
@@ -111,8 +114,9 @@ export function usarCompartilhar(eventoId: string, sessaoId: string) {
           compartilhamentoExternoLiberado: ctx.evento.compartilhamentoExternoLiberado,
         };
 
-        const urls = await urlsDeMidia([ctx.chaveFull]);
-        const url = urls.get(ctx.chaveFull)?.url;
+        const chaveImagem = ehMimeVideo(ctx.mime) ? ctx.chaveThumb : ctx.chaveFull;
+        const urls = await urlsDeMidia([chaveImagem]);
+        const url = urls.get(chaveImagem)?.url;
         if (!url) throw new Error("url");
 
         const img = await carregarImagem(url);

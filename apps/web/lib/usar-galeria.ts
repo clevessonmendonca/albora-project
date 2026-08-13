@@ -4,6 +4,7 @@ import {
   drenar,
   montarGaleria,
   resumirGaleria,
+  ehMimeVideo,
   type ItemDaGaleria,
   type ResumoDaGaleria,
 } from "@albora/core";
@@ -16,6 +17,7 @@ type EnviadaServidor = {
   id: string;
   chaveThumb: string;
   chaveFull: string;
+  mime: string;
   criadaEm: string;
 };
 
@@ -23,6 +25,7 @@ export type EstadoGaleria = {
   itens: ItemDaGaleria[];
   resumo: ResumoDaGaleria;
   urls: Map<string, UrlDeMidia>;
+  mimes: Map<string, string>;
   carregando: boolean;
   drenando: boolean;
   falha: boolean;
@@ -30,11 +33,21 @@ export type EstadoGaleria = {
 
 const VAZIO: ResumoDaGaleria = { total: 0, enviadas: 0, subindo: 0, falhou: 0 };
 
+function chavesParaAssinar(enviadas: readonly EnviadaServidor[]): string[] {
+  const chaves: string[] = [];
+  for (const m of enviadas) {
+    chaves.push(m.chaveThumb);
+    if (ehMimeVideo(m.mime)) chaves.push(m.chaveFull);
+  }
+  return [...new Set(chaves)];
+}
+
 export function usarGaleria(eventoId: string) {
   const [estado, setEstado] = useState<EstadoGaleria>({
     itens: [],
     resumo: VAZIO,
     urls: new Map(),
+    mimes: new Map(),
     carregando: true,
     drenando: false,
     falha: false,
@@ -53,6 +66,7 @@ export function usarGaleria(eventoId: string) {
       if (!res.ok) throw new Error("minhas");
 
       const corpo = (await res.json()) as { enviadas: EnviadaServidor[] };
+      const mimes = new Map(corpo.enviadas.map((m) => [m.id, m.mime]));
       const enviadas = corpo.enviadas.map((m) => ({
         id: m.id,
         chave: m.chaveFull,
@@ -62,10 +76,10 @@ export function usarGaleria(eventoId: string) {
       const itens = montarGaleria(enviadas, fila, eventoId);
       const resumo = resumirGaleria(itens);
 
-      const chaves = corpo.enviadas.map((m) => m.chaveThumb);
+      const chaves = chavesParaAssinar(corpo.enviadas);
       const urls = chaves.length > 0 ? await urlsDeMidia(chaves) : new Map<string, UrlDeMidia>();
 
-      setEstado({ itens, resumo, urls, carregando: false, drenando: false, falha: false });
+      setEstado({ itens, resumo, urls, mimes, carregando: false, drenando: false, falha: false });
     } catch {
       setEstado((e) => ({ ...e, carregando: false, falha: true }));
     }
@@ -85,17 +99,43 @@ export function usarGaleria(eventoId: string) {
     return () => window.removeEventListener("online", voltou);
   }, [carregar]);
 
+  const ehVideo = useCallback(
+    (item: ItemDaGaleria): boolean => {
+      const mime = estado.mimes.get(item.id);
+      if (mime) return ehMimeVideo(mime);
+      return false;
+    },
+    [estado.mimes],
+  );
+
   const urlDe = useCallback(
     (item: ItemDaGaleria): string | null => {
       if (!item.chave) return null;
       const chaveThumb = item.chave.endsWith("/full")
         ? `${item.chave.slice(0, -"/full".length)}/thumb`
         : item.chave;
-      const url = estado.urls.get(chaveThumb);
+
+      const ler = (chave: string) => {
+        const url = estado.urls.get(chave);
+        if (!url || expirou(url, Date.now())) return url?.url ?? null;
+        return url.url;
+      };
+
+      const miniatura = ler(chaveThumb);
+      if (miniatura || !ehVideo(item)) return miniatura;
+      return ler(item.chave);
+    },
+    [estado.urls, ehVideo],
+  );
+
+  const urlCheia = useCallback(
+    (item: ItemDaGaleria): string | null => {
+      if (!item.chave || !ehVideo(item)) return null;
+      const url = estado.urls.get(item.chave);
       if (!url || expirou(url, Date.now())) return url?.url ?? null;
       return url.url;
     },
-    [estado.urls],
+    [estado.urls, ehVideo],
   );
 
   const remover = useCallback(
@@ -124,5 +164,14 @@ export function usarGaleria(eventoId: string) {
     [carregar],
   );
 
-  return { ...estado, recarregar: carregar, tentarDeNovo, urlDe, remover, removendoId };
+  return {
+    ...estado,
+    recarregar: carregar,
+    tentarDeNovo,
+    urlDe,
+    urlCheia,
+    ehVideo,
+    remover,
+    removendoId,
+  };
 }

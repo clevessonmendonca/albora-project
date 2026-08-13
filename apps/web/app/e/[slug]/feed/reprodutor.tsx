@@ -1,6 +1,7 @@
 "use client";
 
 import type { ModoInteracao } from "@albora/core";
+import { ehMimeVideo } from "@albora/core";
 import { useEffect, useRef, useState } from "react";
 import { rotuloDeHora } from "@/lib/agrupar-por-hora";
 import type { UrlDeMidia } from "@/lib/midia";
@@ -41,16 +42,23 @@ export function chavesDoReprodutor(itens: readonly ItemVisivel[], indice: number
   const chaves: string[] = [];
   const atual = itens[indice];
 
-  if (atual) chaves.push(atual.chaveThumb, atual.chaveFull);
+  if (atual) {
+    if (ehMimeVideo(atual.mime)) chaves.push(atual.chaveFull);
+    else chaves.push(atual.chaveThumb, atual.chaveFull);
+  }
 
   for (const passo of [1, 2]) {
     const proximo = itens[indice + passo];
-    if (proximo) chaves.push(proximo.chaveThumb, proximo.chaveFull);
+    if (!proximo) continue;
+    if (ehMimeVideo(proximo.mime)) chaves.push(proximo.chaveFull);
+    else chaves.push(proximo.chaveThumb, proximo.chaveFull);
   }
 
   for (const passo of [-1, 3, 4]) {
     const vizinho = itens[indice + passo];
-    if (vizinho) chaves.push(vizinho.chaveThumb);
+    if (!vizinho) continue;
+    if (ehMimeVideo(vizinho.mime)) chaves.push(vizinho.chaveFull);
+    else chaves.push(vizinho.chaveThumb);
   }
 
   return [...new Set(chaves.filter(Boolean))];
@@ -89,9 +97,10 @@ export function Reprodutor({
   const precarregadas = useRef<HTMLImageElement[]>([]);
 
   const atual = itens[indice];
-  const urlThumb = atual ? urls.get(atual.chaveThumb)?.url : undefined;
+  const ehVideo = atual ? ehMimeVideo(atual.mime) : false;
+  const urlThumb = atual && !ehVideo ? urls.get(atual.chaveThumb)?.url : undefined;
   const urlCheia = atual ? urls.get(atual.chaveFull)?.url : undefined;
-  const temImagem = Boolean(urlThumb ?? urlCheia);
+  const temMidia = Boolean(ehVideo ? urlCheia : urlThumb ?? urlCheia);
 
   function avancar() {
     if (indice + 1 < itens.length) onIr(indice + 1);
@@ -113,14 +122,17 @@ export function Reprodutor({
     for (const passo of [1, 2]) {
       const proximo = itens[indice + passo];
       if (!proximo) continue;
+      if (ehMimeVideo(proximo.mime)) {
+        const url = urls.get(proximo.chaveFull)?.url;
+        if (url) alvos.push(url);
+        continue;
+      }
       const url = urls.get(proximo.chaveFull)?.url ?? urls.get(proximo.chaveThumb)?.url;
       if (url) alvos.push(url);
     }
 
     if (alvos.length === 0) return;
 
-    // Guardadas numa ref: uma `Image` sem referência viva pode ser coletada
-    // antes de a resposta chegar, e aí o pré-carregamento não carregou nada.
     precarregadas.current = alvos.map((url) => {
       const img = new Image();
       img.decoding = "async";
@@ -134,7 +146,7 @@ export function Reprodutor({
    * de tela preta não é ritmo, é a foto perdida — e para no toque longo.
    */
   useEffect(() => {
-    if (movimentoReduzido || segurando || !temImagem) return;
+    if (movimentoReduzido || segurando || !temMidia || ehVideo) return;
 
     const id = setTimeout(() => {
       if (indice + 1 < itens.length) onIr(indice + 1);
@@ -142,7 +154,7 @@ export function Reprodutor({
     }, DURACAO_MS);
 
     return () => clearTimeout(id);
-  }, [movimentoReduzido, segurando, temImagem, indice, itens.length, onIr, onSair]);
+  }, [movimentoReduzido, segurando, temMidia, ehVideo, indice, itens.length, onIr, onSair]);
 
   useEffect(() => {
     return () => {
@@ -271,8 +283,10 @@ export function Reprodutor({
         <Quadro
           urlThumb={urlThumb}
           urlCheia={urlCheia}
-          alt={`Foto de ${atual.autor}`}
+          alt={ehVideo ? `Vídeo de ${atual.autor}` : `Foto de ${atual.autor}`}
           movimentoReduzido={movimentoReduzido}
+          ehVideo={ehVideo}
+          {...(ehVideo && !movimentoReduzido && !segurando ? { onFim: avancar } : {})}
         />
       )}
 
@@ -296,14 +310,11 @@ export function Reprodutor({
                   height: "100%",
                   background: "var(--acento)",
                   transformOrigin: "left",
-                  transform: i < indice || (i === indice && (movimentoReduzido || !temImagem))
+                  transform: i < indice || (i === indice && (movimentoReduzido || !temMidia))
                     ? "scaleX(1)"
                     : "scaleX(0)",
-                  // `linear` de propósito, e não `var(--curva)`: o segmento
-                  // relata a passagem de cinco segundos, e uma curva faria o
-                  // tempo restante mentir no meio do trajeto.
                   animation:
-                    i === indice && !movimentoReduzido && temImagem
+                    i === indice && !movimentoReduzido && temMidia && !ehVideo
                       ? `st-correr ${DURACAO_MS}ms linear forwards`
                       : undefined,
                   animationPlayState: segurando ? "paused" : "running",

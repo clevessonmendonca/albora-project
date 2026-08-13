@@ -38,6 +38,10 @@ export type ItemFila = DetalhesItem & {
   eventoId: string;
   corpo: CorpoItem;
   mime: string;
+  /** Miniatura JPEG — thumb da foto ou frame do vídeo; sobe em `/thumb`. */
+  thumb?: CorpoItem;
+  /** @deprecated Preferir `thumb`. Mantido para filas antigas só com vídeo. */
+  poster?: CorpoItem;
   criadoEm: number;
   tentativas: number;
 };

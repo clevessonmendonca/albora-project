@@ -9,7 +9,7 @@ import {
   IconePilha,
 } from "../../telas/pecas-de-tela";
 
-type Aba = "feed" | "album" | "musica" | "minhas" | "foto";
+type Aba = "feed" | "album" | "missoes" | "minhas";
 
 function AbaLink({
   href,
@@ -46,8 +46,13 @@ function AbaLink({
   );
 }
 
-/** Navegação do convidado entre as superfícies do evento. */
-export function BarraDeAbas({ slug, ativa }: { slug: string; ativa: Aba }) {
+/**
+ * Navegação do convidado — igual ao catálogo `/telas`.
+ *
+ * Feed · Missões · câmera · Álbum · Minhas. Música fica acessível pela rota
+ * direta, fora da barra, até virar card na capa do evento.
+ */
+export function BarraDeAbasConvidado({ slug, ativa }: { slug: string; ativa?: Aba }) {
   const base = `/e/${encodeURIComponent(slug)}`;
 
   return (
@@ -74,15 +79,15 @@ export function BarraDeAbas({ slug, ativa }: { slug: string; ativa: Aba }) {
       />
       <AbaLink
         coluna={2}
-        href={`${base}/album`}
-        ligada={ativa === "album"}
-        rotulo="Álbum"
-        icone={<IconeGrade />}
+        href={`${base}/foto`}
+        ligada={ativa === "missoes"}
+        rotulo="Missões"
+        icone={<Estrela tamanho={22} />}
       />
 
       <Link
         href={`${base}/foto`}
-        aria-label="Mandar uma foto"
+        aria-label="Mandar foto ou vídeo"
         style={{
           gridColumn: 3,
           justifySelf: "center",
@@ -103,10 +108,10 @@ export function BarraDeAbas({ slug, ativa }: { slug: string; ativa: Aba }) {
 
       <AbaLink
         coluna={4}
-        href={`${base}/musica`}
-        ligada={ativa === "musica"}
-        rotulo="Música"
-        icone={<Estrela tamanho={22} />}
+        href={`${base}/album`}
+        ligada={ativa === "album"}
+        rotulo="Álbum"
+        icone={<IconeGrade />}
       />
       <AbaLink
         coluna={5}
@@ -118,3 +123,6 @@ export function BarraDeAbas({ slug, ativa }: { slug: string; ativa: Aba }) {
     </nav>
   );
 }
+
+/** Alias histórico — preferir o nome explícito em código novo. */
+export const BarraDeAbas = BarraDeAbasConvidado;

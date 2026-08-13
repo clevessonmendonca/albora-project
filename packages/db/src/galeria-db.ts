@@ -4,6 +4,7 @@ export type MidiaMinha = {
   id: string;
   chaveFull: string;
   chaveThumb: string;
+  mime: string;
   criadaEm: Date;
 };
 
@@ -20,9 +21,10 @@ export async function listarMinhasDoEvento(
   const { rows } = await cliente.query<{
     id: string;
     storage_key: string;
+    mime: string;
     created_at: Date;
   }>(
-    `SELECT id, storage_key, created_at
+    `SELECT id, storage_key, mime, created_at
        FROM uploads
       WHERE session_id = $1 AND state <> 'removed'
       ORDER BY created_at DESC`,
@@ -33,6 +35,7 @@ export async function listarMinhasDoEvento(
     id: l.id,
     chaveFull: l.storage_key,
     chaveThumb: chaveDaMiniatura(l.storage_key),
+    mime: l.mime,
     criadaEm: l.created_at,
   }));
 }

@@ -1,5 +1,8 @@
 import { resolverSlug } from "@albora/db";
+import { PACKS, texto } from "@albora/packs";
+import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { Metadata } from "next";
+import type { CSSProperties } from "react";
 import { banco } from "@/lib/banco";
 import { Entrada } from "./entrada";
 import { Aviso } from "./aviso";
@@ -80,5 +83,30 @@ export default async function Pagina({ params }: Props) {
     );
   }
 
-  return <Entrada eventoId={r.evento.eventoId} packId={r.evento.packId} slug={slug} />;
+  return (
+    <div
+      style={
+        paraVariaveis(
+          resolverTokens({
+            marca: MARCA_ALBORA,
+            pack: {
+              ...(PACKS[r.evento.packId]?.tokens ?? {}),
+              fundo: "escuro",
+            },
+          }),
+        ) as CSSProperties
+      }
+    >
+      <Entrada
+        eventoId={r.evento.eventoId}
+        slug={slug}
+        nomeEvento={
+          PACKS[r.evento.packId] ? texto(PACKS[r.evento.packId]!, "landing.exemplo.nome") : "A festa"
+        }
+        saudacao={
+          PACKS[r.evento.packId] ? texto(PACKS[r.evento.packId]!, "convidado.saudacao") : "Bem-vindo"
+        }
+      />
+    </div>
+  );
 }

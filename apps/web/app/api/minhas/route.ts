@@ -38,6 +38,7 @@ export async function GET(req: Request) {
         id: m.id,
         chaveThumb: m.chaveThumb,
         chaveFull: m.chaveFull,
+        mime: m.mime,
         criadaEm: m.criadaEm.toISOString(),
       })),
     });

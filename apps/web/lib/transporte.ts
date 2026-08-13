@@ -48,6 +48,16 @@ export const transporteWeb: Transporte = {
     if (!res.ok) throw new ErroDeApi("put", res.status);
   },
 
+  async enviarPoster(url, poster) {
+    const res = await fetch(url, {
+      method: "PUT",
+      body: poster,
+      headers: { "content-type": "image/jpeg" },
+    });
+
+    if (!res.ok) throw new ErroDeApi("put", res.status);
+  },
+
   async confirmar(item, presign) {
     const res = await fetch("/api/uploads/confirm", {
       method: "POST",

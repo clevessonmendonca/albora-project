@@ -17,14 +17,16 @@ const MAX_LEGENDA = 280;
 export function Detalhes({
   lugares,
   perguntaDoLugar,
+  lugarInicial = null,
   onPronto,
 }: {
   lugares: Lugar[];
   perguntaDoLugar: string;
+  lugarInicial?: string | null;
   onPronto: (detalhes: { legenda: string | null; lugar: string | null }) => void;
 }) {
   const [legenda, setLegenda] = useState("");
-  const [lugar, setLugar] = useState<string | null>(null);
+  const [lugar, setLugar] = useState<string | null>(lugarInicial);
 
   const concluir = () =>
     onPronto({ legenda: legenda.trim() || null, lugar });
