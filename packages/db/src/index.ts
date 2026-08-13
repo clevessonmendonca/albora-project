@@ -37,6 +37,8 @@ export {
 } from "./eventos";
 export type { AtualizacaoConfigEvento } from "./eventos-admin";
 export { atualizarConfigDoEvento, ocultarMidiaDoHost } from "./eventos-admin";
+export type { FotoRecente, MetricasAoVivo } from "./metricas-evento";
+export { lerMetricasAoVivo } from "./metricas-evento";
 export type { MotivoParedeInvalida, ParedeResolvida } from "./parede";
 export {
   ErroParedeInvalida,

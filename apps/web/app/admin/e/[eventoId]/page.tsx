@@ -7,6 +7,7 @@ import { COOKIE_HOST, hostDoToken } from "@/lib/host-sessao";
 import { CascaAdmin } from "../../casca";
 import { ControlesDoEvento } from "./controles";
 import { NavEvento } from "./nav-evento";
+import { ResumoAoVivo } from "./resumo-ao-vivo";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,7 @@ export default async function Pagina({
       voltar={{ rotulo: "Seus eventos", href: "/admin" }}
     >
       <NavEvento eventoId={eventoId} />
+      <ResumoAoVivo eventoId={eventoId} />
       <ControlesDoEvento
         eventoId={evento.eventoId}
         slug={evento.slug}
