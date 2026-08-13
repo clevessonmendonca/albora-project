@@ -5,6 +5,8 @@ import type { CSSProperties, ReactNode } from "react";
 import { Aparelho } from "../telas/pecas-de-tela";
 import {
   TelaAdminConvidados,
+  TelaAdminIdentidade,
+  TelaAdminLivro,
   TelaAdminModeracao,
   TelaAdminPainel,
   TelaAdminParede,
@@ -96,6 +98,20 @@ export default function TelasAdmin() {
           nota="Participação sobre expected_guests — o número que decide a H1. Agregado: sem lista nominal, sem enviar mensagem. O convidado não recebe e-mail nem SMS."
         >
           <TelaAdminConvidados pack={pack} />
+        </Vitrine>
+
+        <Vitrine
+          titulo="Identidade"
+          nota="A cor e a fonte do casal, com prévia ao vivo pelo resolverTokens real — o que se vê aqui é o que sai no telão e no PDF da placa. Um resolvedor, N renderizadores."
+        >
+          <TelaAdminIdentidade pack={pack} />
+        </Vitrine>
+
+        <Vitrine
+          titulo="O livro"
+          nota="Curadoria por slots, nunca posição livre — não é editor de canvas. O slot cuida do enquadramento e nada corta na vertical; o vazio é desenhado como vazio."
+        >
+          <TelaAdminLivro pack={pack} />
         </Vitrine>
       </div>
     </div>
