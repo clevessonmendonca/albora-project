@@ -5,8 +5,8 @@ import {
   emitirCrachaDaParede,
   resolverParede,
   revogarParedesDoEvento,
-} from "./parede";
-import { criarSessao, resolverSessao } from "./sessoes";
+} from "./wall";
+import { criarSessao, resolverSessao } from "./sessions";
 import { prepararBanco, semear } from "./testes/banco";
 
 const SEGREDO = "um-segredo-de-teste-com-mais-de-32-caracteres";

@@ -1,13 +1,13 @@
 import { lerLinkDeMusica, ordenarSugestoes, votos, type LinkDeMusica } from "@albora/core";
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { comEvento } from "./evento";
+import { comEvento } from "./event";
 import {
   adicionarSugestao,
   definirMusicaDoCasal,
   listarSugestoes,
   musicaDoCasal,
-} from "./musica-db";
+} from "./music-db";
 import { prepararBanco, semear } from "./testes/banco";
 
 /**

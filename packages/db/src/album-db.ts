@@ -1,5 +1,6 @@
 import type { MidiaDoAlbum } from "@albora/core";
 import type { PoolClient } from "pg";
+import { thumbKeyFromFull } from "./storage-key";
 
 /**
  * O que o álbum da noite lê (spec 016).
@@ -84,7 +85,7 @@ export async function listarMidiaDoAlbum(
     missaoId: l.challenge_id,
     reacoes: l.reacoes,
     chaveFull: l.storage_key,
-    chaveThumb: chaveDaMiniatura(l.storage_key),
+    chaveThumb: thumbKeyFromFull(l.storage_key),
   }));
 }
 
@@ -105,13 +106,4 @@ export async function janelaDoAlbum(
   if (!linha) return null;
 
   return { comecaEm: linha.starts_at, terminaEm: linha.ends_at };
-}
-
-/**
- * A thumb vive ao lado do full, na mesma pasta do evento. Derivada da chave
- * gravada, nunca recalculada por data — a chave carrega o ano e o mês da
- * confirmação, e recalcular no dia seguinte apontaria para pasta que não existe.
- */
-function chaveDaMiniatura(chaveFull: string): string {
-  return chaveFull.endsWith("/full") ? `${chaveFull.slice(0, -"/full".length)}/thumb` : chaveFull;
 }

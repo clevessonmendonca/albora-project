@@ -1,5 +1,5 @@
 import type { Pool } from "pg";
-import { emitirCrachaDaParede } from "./parede";
+import { emitirCrachaDaParede } from "./wall";
 import { assinaturaValida, emitirToken, hashDoToken } from "./token";
 
 /**

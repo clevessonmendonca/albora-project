@@ -1,4 +1,5 @@
 import type { PoolClient } from "pg";
+import { thumbKeyFromFull } from "./storage-key";
 
 export type FotoRecente = {
   id: string;
@@ -11,10 +12,6 @@ export type MetricasAoVivo = {
   totalFotos: number;
   ultimas: FotoRecente[];
 };
-
-function chaveDaMiniatura(chaveFull: string): string {
-  return chaveFull.endsWith("/full") ? `${chaveFull.slice(0, -"/full".length)}/thumb` : chaveFull;
-}
 
 /** Contagens do painel ao vivo (spec 009) — só leitura, dentro de `comEvento`. */
 export async function lerMetricasAoVivo(
@@ -49,7 +46,7 @@ export async function lerMetricasAoVivo(
     totalFotos: linha.fotos,
     ultimas: recentes.map((r) => ({
       id: r.id,
-      chaveThumb: chaveDaMiniatura(r.storage_key),
+      chaveThumb: thumbKeyFromFull(r.storage_key),
       criadaEm: r.created_at,
     })),
   };

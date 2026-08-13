@@ -1,7 +1,7 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { comEvento } from "./evento";
-import { apagarReacao, gravarReacao, reacaoDaSessao } from "./reacao-db";
+import { comEvento } from "./event";
+import { apagarReacao, gravarReacao, reacaoDaSessao } from "./reaction-db";
 import { prepararBanco, semear } from "./testes/banco";
 
 let admin: pg.Pool;

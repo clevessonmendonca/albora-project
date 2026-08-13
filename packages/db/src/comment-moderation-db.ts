@@ -4,10 +4,10 @@ import {
   type VeredictoDoClassificador,
 } from "@albora/core";
 import type { PoolClient } from "pg";
-import { filtroSemBloqueio } from "./bloqueio-db";
-import type { ComentarioComAutor } from "./comentario-db";
-import { ErroComentarioDeOutroEvento } from "./comentario-db";
-import { lerModeracaoDoEvento, paraEstadoDoEvento } from "./moderacao-evento";
+import { filtroSemBloqueio } from "./block-db";
+import type { ComentarioComAutor } from "./comment-db";
+import { ErroComentarioDeOutroEvento } from "./comment-db";
+import { lerModeracaoDoEvento, paraEstadoDoEvento } from "./moderation-event";
 
 const PUBLICADO = "published";
 

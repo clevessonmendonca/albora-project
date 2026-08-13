@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { bloquearConvidado } from "./bloqueio-db";
-import { gravarComentario } from "./comentario-db";
-import { denunciarComentario, listarComentariosVisiveisDaFoto } from "./comentario-moderacao-db";
-import { comEvento } from "./evento";
+import { bloquearConvidado } from "./block-db";
+import { gravarComentario } from "./comment-db";
+import { denunciarComentario, listarComentariosVisiveisDaFoto } from "./comment-moderation-db";
+import { comEvento } from "./event";
 import { listarFeed } from "./feed";
 import { prepararBanco, semear } from "./testes/banco";
 

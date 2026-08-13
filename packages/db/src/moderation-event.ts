@@ -3,7 +3,7 @@ import {
   type EstadoDoEvento,
 } from "@albora/core";
 import type { Pool, PoolClient } from "pg";
-import { comConta, comEvento } from "./evento";
+import { comConta, comEvento } from "./event";
 
 export type EstadoModeracao = {
   panico: boolean;

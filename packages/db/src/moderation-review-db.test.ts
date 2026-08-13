@@ -1,13 +1,13 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { comEvento } from "./evento";
+import { comEvento } from "./event";
 import {
   liberarComentarioDoEvento,
   liberarMidiaDoEvento,
   listarComentariosParaRevisao,
   listarMidiaParaRevisao,
-} from "./moderacao-revisao-db";
-import { abrirInteracaoDoEvento, atualizarModeracaoDoEvento } from "./moderacao-evento";
+} from "./moderation-review-db";
+import { abrirInteracaoDoEvento, atualizarModeracaoDoEvento } from "./moderation-event";
 import { prepararBanco, semear } from "./testes/banco";
 
 let admin: pg.Pool;

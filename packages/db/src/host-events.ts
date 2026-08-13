@@ -1,5 +1,5 @@
 import type { Pool } from "pg";
-import { comConta, comEvento } from "./evento";
+import { comConta, comEvento } from "./event";
 
 export type AtualizacaoConfigEvento = {
   expectedGuests?: number;

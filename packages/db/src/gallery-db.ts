@@ -1,4 +1,5 @@
 import type { PoolClient } from "pg";
+import { thumbKeyFromFull } from "./storage-key";
 
 export type ModoGaleria = "espelho" | "completo";
 
@@ -60,7 +61,7 @@ export async function listarMinhasDoEvento(
     const item: MidiaMinha = {
       id: l.id,
       chaveFull: l.storage_key,
-      chaveThumb: chaveDaMiniatura(l.storage_key),
+      chaveThumb: thumbKeyFromFull(l.storage_key),
       mime: l.mime,
       criadaEm: l.created_at,
       legenda: l.caption,
@@ -75,8 +76,4 @@ export async function listarMinhasDoEvento(
 
     return item;
   });
-}
-
-function chaveDaMiniatura(chaveFull: string): string {
-  return chaveFull.endsWith("/full") ? `${chaveFull.slice(0, -"/full".length)}/thumb` : chaveFull;
 }

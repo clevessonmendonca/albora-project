@@ -1,7 +1,7 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { criarSessao, resolverSessao } from "./sessoes";
-import { criarEvento, HORAS_APOS_EVENTO, resolverSlug, rotacionarSlug } from "./eventos";
+import { criarSessao, resolverSessao } from "./sessions";
+import { criarEvento, HORAS_APOS_EVENTO, resolverSlug, rotacionarSlug } from "./events";
 import { prepararBanco, semear } from "./testes/banco";
 
 const SEGREDO = "um-segredo-de-teste-com-mais-de-32-caracteres";

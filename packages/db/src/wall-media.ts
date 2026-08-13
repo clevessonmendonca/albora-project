@@ -4,7 +4,8 @@ import {
   lerModeracaoDoEvento,
   limiarDenuncias,
   paraEstadoDoEvento,
-} from "./moderacao-evento";
+} from "./moderation-event";
+import { thumbKeyFromFull } from "./storage-key";
 
 /**
  * O que a parede lê (spec 010 + 011).
@@ -106,19 +107,10 @@ export async function listarMidiaDaParede(
     .map((l) => ({
       id: l.id,
       chaveFull: l.storage_key,
-      chaveThumb: chaveDaMiniatura(l.storage_key),
+      chaveThumb: thumbKeyFromFull(l.storage_key),
       mime: l.mime,
       autor: l.display_name,
       criadaEm: l.created_at,
       reacoes: l.reacoes,
     }));
-}
-
-/**
- * A thumb vive ao lado do full, na mesma pasta do evento. Derivada da chave
- * gravada, nunca recalculada por data — a chave carrega o ano e o mês da
- * confirmação, e recalcular no dia seguinte apontaria para pasta que não existe.
- */
-function chaveDaMiniatura(chaveFull: string): string {
-  return chaveFull.endsWith("/full") ? `${chaveFull.slice(0, -"/full".length)}/thumb` : chaveFull;
 }

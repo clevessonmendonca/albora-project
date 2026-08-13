@@ -8,7 +8,7 @@ import {
   lerModeracaoDoEvento,
   limiarDenuncias,
   paraEstadoDoEvento,
-} from "./moderacao-evento";
+} from "./moderation-event";
 
 const PUBLICADO = "published";
 

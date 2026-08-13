@@ -1,6 +1,6 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { comAgregacao, comConta, comEvento, ErroEventoAusente } from "./evento";
+import { comAgregacao, comConta, comEvento, ErroEventoAusente } from "./event";
 import { prepararBanco, semear } from "./testes/banco";
 
 /**
@@ -240,6 +240,10 @@ const FORA_DA_RLS = new Map([
     "wall_pairings",
     "porta de pareamento da TV: nasce sem evento e ganha um quando alguém autoriza — resolve por código e por token de poll antes de haver contexto",
   ],
+  [
+    "app_pairings",
+    "porta de pareamento web → app: resolve código → (event_id, session_id) antes de haver contexto — só mapeamento, sem PII",
+  ],
 ]);
 
 describe("7 — nenhuma tabela nova escapa da política", () => {
@@ -299,6 +303,26 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
       "expires_at",
       "id",
       "poll_token_hash",
+      "status",
+    ]);
+  });
+
+  it("a porta de pareamento do app não cresce, e não guarda nome nem conteúdo", async () => {
+    const { rows } = await admin.query<{ coluna: string }>(
+      `SELECT column_name AS coluna FROM information_schema.columns
+       WHERE table_name = 'app_pairings' ORDER BY column_name`,
+    );
+
+    // Só o mapeamento código → (event_id, session_id). Sem nome de convidado,
+    // sem foto. Quem ler esta tabela inteira sabe que existem códigos de
+    // pareamento e a quais sessões pertencem — nada além.
+    expect(rows.map((r) => r.coluna)).toEqual([
+      "code",
+      "created_at",
+      "event_id",
+      "expires_at",
+      "id",
+      "session_id",
       "status",
     ]);
   });

@@ -1,5 +1,5 @@
 import type { Pool, PoolClient } from "pg";
-import { comConta, comEvento } from "./evento";
+import { comConta, comEvento } from "./event";
 
 export type EstadoDoEvento =
   | "aberto"

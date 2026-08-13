@@ -5,7 +5,7 @@ import {
   type ConsentimentoExterno,
 } from "@albora/core";
 import type { PoolClient } from "pg";
-import { lerModeracaoDoEvento } from "./moderacao-evento";
+import { lerModeracaoDoEvento } from "./moderation-event";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

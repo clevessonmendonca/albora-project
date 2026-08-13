@@ -5,7 +5,7 @@ import {
   atualizarModeracaoDoEvento,
   buscarEventoDoHost,
   listarEventosDoHost,
-} from "./moderacao-evento";
+} from "./moderation-event";
 import { prepararBanco, semear } from "./testes/banco";
 
 let admin: pg.Pool;

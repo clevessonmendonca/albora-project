@@ -1,5 +1,5 @@
 import type { Pool, PoolClient } from "pg";
-import { comEvento } from "./evento";
+import { comEvento } from "./event";
 import { assinaturaValida, emitirToken, hashDoToken } from "./token";
 
 export type SessaoResolvida = {

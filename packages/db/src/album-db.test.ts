@@ -1,7 +1,7 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { janelaDoAlbum, listarMidiaDoAlbum } from "./album-db";
-import { comEvento } from "./evento";
+import { comEvento } from "./event";
 import { prepararBanco, semear } from "./testes/banco";
 
 /**

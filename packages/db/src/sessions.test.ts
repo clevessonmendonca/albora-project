@@ -1,6 +1,6 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { comEvento } from "./evento";
+import { comEvento } from "./event";
 import {
   comSessao,
   criarSessao,
@@ -8,7 +8,7 @@ import {
   ErroSessaoInvalida,
   resolverSessao,
   revogarSessoesDoEvento,
-} from "./sessoes";
+} from "./sessions";
 import { prepararBanco, semear } from "./testes/banco";
 import { assinaturaValida, emitirToken, ErroSegredoDeSessao } from "./token";
 

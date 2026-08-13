@@ -5,8 +5,8 @@ import {
   criarPareamento,
   ErroAutorizacaoDePareamento,
   finalizarPareamento,
-} from "./pareamento";
-import { resolverParede } from "./parede";
+} from "./pairing";
+import { resolverParede } from "./wall";
 import { prepararBanco, semear } from "./testes/banco";
 
 const SEGREDO = "um-segredo-de-teste-com-mais-de-32-caracteres";

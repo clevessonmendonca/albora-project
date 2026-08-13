@@ -11,58 +11,70 @@
 
 export const SETTING_EVENTO = "app.event_id";
 
-export { comAgregacao, comConta, comEvento, ErroContaAusente, ErroEventoAusente } from "./evento";
+export { comAgregacao, comConta, comEvento, ErroContaAusente, ErroEventoAusente } from "./event";
 export { migrar } from "./migrar";
 
 export type { LinhaUpload, ResultadoConfirm } from "./uploads";
 export { anotarUpload, confirmarUpload, ErroUploadDeOutroEvento, removerUploadProprio } from "./uploads";
 
-export type { Desafio } from "./desafios";
-export { desafioDoEvento, listarDesafios } from "./desafios";
+export type { Desafio } from "./challenges";
+export { desafioDoEvento, listarDesafios } from "./challenges";
 
 export type { EntradaFeed, ItemFeed, ModoFeed, PaginaFeed } from "./feed";
 export { codificarCursor, decodificarCursor, ErroCursorInvalido, gateDoEvento, listarFeed, TAMANHO_PAGINA } from "./feed";
 
-export type { MotivoSessaoInvalida, NovaSessao, SessaoResolvida } from "./sessoes";
-export { comSessao, criarSessao, ErroNomeInvalido, ErroSessaoInvalida, resolverSessao, revogarSessoesDoEvento } from "./sessoes";
+export type { MotivoSessaoInvalida, NovaSessao, SessaoResolvida } from "./sessions";
+export { comSessao, criarSessao, ErroNomeInvalido, ErroSessaoInvalida, resolverSessao, revogarSessoesDoEvento } from "./sessions";
 export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from "./token";
 
-export type { EstadoDoEvento, EventoPublico, NovoEvento, Resolucao } from "./eventos";
+export type { EstadoDoEvento, EventoPublico, NovoEvento, Resolucao } from "./events";
 export {
   criarEvento,
   HORAS_APOS_EVENTO,
   packDoEvento,
   resolverSlug,
   rotacionarSlug,
-} from "./eventos";
-export type { AtualizacaoConfigEvento } from "./eventos-admin";
-export { atualizarConfigDoEvento, ocultarMidiaDoHost } from "./eventos-admin";
-export type { FotoRecente, MetricasAoVivo } from "./metricas-evento";
-export { lerMetricasAoVivo } from "./metricas-evento";
-export type { MotivoParedeInvalida, ParedeResolvida } from "./parede";
+} from "./events";
+export type { AtualizacaoConfigEvento } from "./host-events";
+export { atualizarConfigDoEvento, ocultarMidiaDoHost } from "./host-events";
+export type { FotoRecente, MetricasAoVivo } from "./event-metrics";
+export { lerMetricasAoVivo } from "./event-metrics";
+export type { FunilAgregado } from "./funnel-aggregate";
+export { lerFunilAgregado } from "./funnel-aggregate";
+export type {
+  CodigoPareamentoApp,
+  MotivoResgateInvalido,
+  SessaoResgatada,
+} from "./app-pairing";
+export {
+  criarCodigoPareamentoApp,
+  ErroResgateDePareamento,
+  resgatarCodigoPareamentoApp,
+} from "./app-pairing";
+export type { MotivoParedeInvalida, ParedeResolvida } from "./wall";
 export {
   ErroParedeInvalida,
   emitirCrachaDaParede,
   resolverParede,
   revogarParedesDoEvento,
-} from "./parede";
+} from "./wall";
 
-export type { MidiaNaParede } from "./parede-midia";
-export { listarMidiaDaParede, TETO_DA_PAREDE } from "./parede-midia";
+export type { MidiaNaParede } from "./wall-media";
+export { listarMidiaDaParede, TETO_DA_PAREDE } from "./wall-media";
 
 export type {
   MotivoAutorizacaoInvalida,
   PareamentoCriado,
   StatusDoPareamento,
-} from "./pareamento";
+} from "./pairing";
 export {
   autorizarPareamento,
   criarPareamento,
   ErroAutorizacaoDePareamento,
   finalizarPareamento,
-} from "./pareamento";
+} from "./pairing";
 
-export type { ComentarioComAutor, ComentarioGravado } from "./comentario-db";
+export type { ComentarioComAutor, ComentarioGravado } from "./comment-db";
 export {
   ErroComentarioDeOutroEvento,
   gravarComentario,
@@ -70,21 +82,21 @@ export {
   listarComentariosDaFoto,
   removerComentario,
   removerComentarioDoEvento,
-} from "./comentario-db";
+} from "./comment-db";
 
-export type { ComentarioModeracao } from "./comentario-moderacao-db";
+export type { ComentarioModeracao } from "./comment-moderation-db";
 export {
   denunciarComentario,
   listarComentariosParaModeracao,
   listarComentariosVisiveisDaFoto,
-} from "./comentario-moderacao-db";
+} from "./comment-moderation-db";
 
-export type { ResultadoBloqueio } from "./bloqueio-db";
+export type { ResultadoBloqueio } from "./block-db";
 export {
   bloquearConvidado,
   ErroSessaoDeOutroEvento,
   filtroSemBloqueio,
-} from "./bloqueio-db";
+} from "./block-db";
 
 export {
   adicionarSugestao,
@@ -92,17 +104,17 @@ export {
   ErroProvedorForaDoConjunto,
   listarSugestoes,
   musicaDoCasal,
-} from "./musica-db";
+} from "./music-db";
 
-export type { ResultadoDenuncia } from "./moderacao-db";
-export { contarDenuncias, denunciar, ErroMidiaDeOutroEvento } from "./moderacao-db";
+export type { ResultadoDenuncia } from "./moderation-db";
+export { contarDenuncias, denunciar, ErroMidiaDeOutroEvento } from "./moderation-db";
 
 export type {
   AtualizacaoModeracao,
   EstadoModeracao,
   EventoDoHost,
   ResumoEvento,
-} from "./moderacao-evento";
+} from "./moderation-event";
 export {
   abrirInteracaoDoEvento,
   alternarPanicoDoEvento,
@@ -112,18 +124,18 @@ export {
   limiarDenuncias,
   listarEventosDoHost,
   paraEstadoDoEvento,
-} from "./moderacao-evento";
+} from "./moderation-event";
 
-export type { ComentarioParaRevisao, MidiaParaRevisao } from "./moderacao-revisao-db";
+export type { ComentarioParaRevisao, MidiaParaRevisao } from "./moderation-review-db";
 export {
   liberarComentarioDoEvento,
   liberarMidiaDoEvento,
   listarComentariosParaRevisao,
   listarMidiaParaRevisao,
-} from "./moderacao-revisao-db";
+} from "./moderation-review-db";
 
-export type { ContextoCompartilharDb } from "./compartilhar-db";
-export { buscarContextoCompartilhar, registrarConsentimentoExterno } from "./compartilhar-db";
+export type { ContextoCompartilharDb } from "./share-db";
+export { buscarContextoCompartilhar, registrarConsentimentoExterno } from "./share-db";
 
 export type { JanelaDoAlbum, MidiaDoAlbumComChave } from "./album-db";
 export { janelaDoAlbum, listarMidiaDoAlbum, TETO_DO_ALBUM } from "./album-db";
@@ -133,12 +145,12 @@ export {
   gravarReacao,
   midiaPublicadaDoEvento,
   reacaoDaSessao,
-} from "./reacao-db";
+} from "./reaction-db";
 
-export type { MidiaMinha } from "./galeria-db";
-export { listarMinhasDoEvento } from "./galeria-db";
+export type { MidiaMinha } from "./gallery-db";
+export { listarMinhasDoEvento } from "./gallery-db";
 
-export { contarVideosDaSessao, planoDoEvento } from "./plano-db";
+export { contarVideosDaSessao, planoDoEvento } from "./plan-db";
 
 export type { HostResolvida, HostSessaoCriada, MagicLinkEmitido } from "./host-auth";
 export {
@@ -151,3 +163,80 @@ export {
   VALIDADE_HOST_SESSAO_HORAS,
   VALIDADE_MAGIC_LINK_MINUTOS,
 } from "./host-auth";
+
+/** English alias — preferred for new code. @see comEvento */
+export { comEvento as withEvent } from "./event";
+/** English alias — preferred for new code. @see comConta */
+export { comConta as withAccount } from "./event";
+/** English alias — preferred for new code. @see comAgregacao */
+export { comAgregacao as withAggregation } from "./event";
+
+/** English alias — preferred for new code. @see criarSessao */
+export { criarSessao as createSession } from "./sessions";
+/** English alias — preferred for new code. @see resolverSessao */
+export { resolverSessao as resolveSession } from "./sessions";
+/** English alias — preferred for new code. @see ErroSessaoInvalida */
+export { ErroSessaoInvalida as InvalidSessionError } from "./sessions";
+
+/** English alias — preferred for new code. @see listarFeed */
+export { listarFeed as listFeed } from "./feed";
+/** English alias — preferred for new code. @see gateDoEvento */
+export { gateDoEvento as eventGate } from "./feed";
+/** English alias — preferred for new code. @see codificarCursor */
+export { codificarCursor as encodeCursor } from "./feed";
+/** English alias — preferred for new code. @see decodificarCursor */
+export { decodificarCursor as decodeCursor } from "./feed";
+/** English alias — preferred for new code. @see ErroCursorInvalido */
+export { ErroCursorInvalido as InvalidCursorError } from "./feed";
+
+/** English alias — preferred for new code. @see criarEvento */
+export { criarEvento as createEvent } from "./events";
+/** English alias — preferred for new code. @see resolverSlug */
+export { resolverSlug as resolveSlug } from "./events";
+/** English alias — preferred for new code. @see packDoEvento */
+export { packDoEvento as eventPack } from "./events";
+
+/** English alias — preferred for new code. @see confirmarUpload */
+export { confirmarUpload as confirmUpload } from "./uploads";
+/** English alias — preferred for new code. @see anotarUpload */
+export { anotarUpload as annotateUpload } from "./uploads";
+/** English alias — preferred for new code. @see removerUploadProprio */
+export { removerUploadProprio as removeOwnUpload } from "./uploads";
+/** English alias — preferred for new code. @see ErroUploadDeOutroEvento */
+export { ErroUploadDeOutroEvento as UploadConflictError } from "./uploads";
+
+/** English alias — preferred for new code. @see listarMinhasDoEvento */
+export { listarMinhasDoEvento as listMyMedia } from "./gallery-db";
+
+/** English alias — preferred for new code. @see denunciar */
+export { denunciar as reportMedia } from "./moderation-db";
+/** English alias — preferred for new code. @see contarDenuncias */
+export { contarDenuncias as reportCount } from "./moderation-db";
+/** English alias — preferred for new code. @see ErroMidiaDeOutroEvento */
+export { ErroMidiaDeOutroEvento as MediaConflictError } from "./moderation-db";
+
+/** English alias — preferred for new code. @see bloquearConvidado */
+export { bloquearConvidado as blockGuest } from "./block-db";
+/** English alias — preferred for new code. @see ErroSessaoDeOutroEvento */
+export { ErroSessaoDeOutroEvento as SessionConflictError } from "./block-db";
+
+/** English alias — preferred for new code. @see listarEventosDoHost */
+export { listarEventosDoHost as listHostEvents } from "./moderation-event";
+/** English alias — preferred for new code. @see buscarEventoDoHost */
+export { buscarEventoDoHost as getHostEvent } from "./moderation-event";
+/** English alias — preferred for new code. @see atualizarModeracaoDoEvento */
+export { atualizarModeracaoDoEvento as updateEventModeration } from "./moderation-event";
+/** English alias — preferred for new code. @see abrirInteracaoDoEvento */
+export { abrirInteracaoDoEvento as openEventInteraction } from "./moderation-event";
+/** English alias — preferred for new code. @see alternarPanicoDoEvento */
+export { alternarPanicoDoEvento as toggleEventPanic } from "./moderation-event";
+/** English alias — preferred for new code. @see lerModeracaoDoEvento */
+export { lerModeracaoDoEvento as readEventModeration } from "./moderation-event";
+
+/** English alias — preferred for new code. @see atualizarConfigDoEvento */
+export { atualizarConfigDoEvento as updateEventConfig } from "./host-events";
+/** English alias — preferred for new code. @see ocultarMidiaDoHost */
+export { ocultarMidiaDoHost as hideHostMedia } from "./host-events";
+
+/** English alias — preferred for new code. @see thumbKeyFromFull */
+export { thumbKeyFromFull } from "./storage-key";

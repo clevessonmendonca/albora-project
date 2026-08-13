@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
-import { filtroSemBloqueio } from "./bloqueio-db";
+import { filtroSemBloqueio } from "./block-db";
+import { thumbKeyFromFull } from "./storage-key";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -180,7 +181,7 @@ export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Pro
 function paraItem(linha: LinhaFeed, modo: ModoFeed, sessaoLeitora?: string): ItemFeed {
   const item: ItemFeed = {
     id: linha.id,
-    chaveThumb: chaveDaMiniatura(linha.storage_key),
+    chaveThumb: thumbKeyFromFull(linha.storage_key),
     chaveFull: linha.storage_key,
     mime: linha.mime,
     missaoId: linha.challenge_id,
@@ -200,17 +201,6 @@ function paraItem(linha: LinhaFeed, modo: ModoFeed, sessaoLeitora?: string): Ite
   }
 
   return item;
-}
-
-/**
- * A thumb vive ao lado do full, sob a mesma pasta do evento.
- *
- * Derivada da chave gravada, e não recalculada por data: a chave carrega o
- * ano e o mês da confirmação, e recalcular no dia seguinte apontaria para uma
- * pasta que nunca existiu.
- */
-function chaveDaMiniatura(chaveFull: string): string {
-  return chaveFull.endsWith("/full") ? `${chaveFull.slice(0, -"/full".length)}/thumb` : chaveFull;
 }
 
 /**

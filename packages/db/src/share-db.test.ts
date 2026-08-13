@@ -1,8 +1,8 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { VERSAO_DO_CONSENTIMENTO_EXTERNO } from "@albora/core";
-import { comEvento } from "./evento";
-import { buscarContextoCompartilhar, registrarConsentimentoExterno } from "./compartilhar-db";
+import { comEvento } from "./event";
+import { buscarContextoCompartilhar, registrarConsentimentoExterno } from "./share-db";
 import { prepararBanco, semear } from "./testes/banco";
 
 let admin: pg.Pool;

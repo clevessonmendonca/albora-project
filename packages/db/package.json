@@ -6,7 +6,14 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./events": "./src/events.ts",
+    "./sessions": "./src/sessions.ts",
+    "./challenges": "./src/challenges.ts",
+    "./wall": "./src/wall.ts",
+    "./upload": "./src/uploads.ts",
+    "./moderation-event": "./src/moderation-event.ts",
+    "./host-events": "./src/host-events.ts"
   },
   "scripts": {
     "build": "tsc --build",

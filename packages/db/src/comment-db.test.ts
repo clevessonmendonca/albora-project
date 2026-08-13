@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { gravarComentario, listarComentariosDaFoto, removerComentario } from "./comentario-db";
-import { comEvento } from "./evento";
+import { gravarComentario, listarComentariosDaFoto, removerComentario } from "./comment-db";
+import { comEvento } from "./event";
 import { prepararBanco, semear } from "./testes/banco";
 
 /**

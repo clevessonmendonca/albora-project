@@ -1,7 +1,7 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { comEvento } from "./evento";
-import { listarMidiaDaParede } from "./parede-midia";
+import { comEvento } from "./event";
+import { listarMidiaDaParede } from "./wall-media";
 import { prepararBanco, semear } from "./testes/banco";
 
 /**

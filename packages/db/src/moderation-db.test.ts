@@ -1,7 +1,7 @@
 import type pg from "pg";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { comEvento } from "./evento";
-import { contarDenuncias, denunciar, ErroMidiaDeOutroEvento } from "./moderacao-db";
+import { comEvento } from "./event";
+import { contarDenuncias, denunciar, ErroMidiaDeOutroEvento } from "./moderation-db";
 import { prepararBanco, semear } from "./testes/banco";
 
 /**
