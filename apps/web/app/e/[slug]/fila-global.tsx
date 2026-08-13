@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { usarFilaEvento } from "@/lib/usar-fila-evento";
-import { CabecalhoFila } from "./foto/painel-fila";
+import { QueueHeader } from "@/features/photo/components/client/queue-panel";
 
 export function FilaGlobal({ eventoId }: { eventoId: string }) {
   const pathname = usePathname();
@@ -23,7 +23,7 @@ export function FilaGlobal({ eventoId }: { eventoId: string }) {
         zIndex: 20,
       }}
     >
-      <CabecalhoFila
+      <QueueHeader
         eventoId={eventoId}
         pendentes={pendentes}
         bytesPendentes={bytesPendentes}

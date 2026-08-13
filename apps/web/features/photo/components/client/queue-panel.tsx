@@ -3,10 +3,10 @@
 import type { ItemFila } from "@albora/core";
 import { MAX_TENTATIVAS, ehMimeVideo } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
-import { BotaoPrimario, BotaoSecundario, SheetBaixo } from "../../../telas/shell-convidado";
+import { BotaoPrimario, BotaoSecundario, SheetBaixo } from "@/app/telas/shell-convidado";
 import { filaWeb } from "@/lib/fila";
-import { ArcoDeEnvio } from "./arco-de-envio";
-import { RotuloFila } from "./visao-camera";
+import { UploadArc } from "./upload-arc";
+import { QueueLabel } from "./camera-view";
 
 function rotuloEstado(item: ItemFila, online: boolean): string {
   if (item.tentativas >= MAX_TENTATIVAS) return "Falhou · tentar de novo";
@@ -21,7 +21,7 @@ function urlMiniatura(item: ItemFila): string | null {
   return URL.createObjectURL(corpo.blob);
 }
 
-export function CabecalhoFila({
+export function QueueHeader({
   eventoId,
   pendentes,
   bytesPendentes,
@@ -56,9 +56,9 @@ export function CabecalhoFila({
         }}
       >
         {pendentes > 0 ? (
-          <RotuloFila pendentes={pendentes} />
+          <QueueLabel pendentes={pendentes} />
         ) : (
-          <ArcoDeEnvio
+          <UploadArc
             pendentes={pendentes}
             bytesPendentes={bytesPendentes}
             online={online}

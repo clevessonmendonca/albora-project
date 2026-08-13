@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CotaVideo, mensagemCotaVideo, usarEnvio } from "@/lib/usar-envio";
 import { usarInstalacaoPwa } from "@/lib/usar-instalacao-pwa";
-import { RecadoErro, BotaoSecundario } from "../../../telas/shell-convidado";
-import { Detalhes, type Lugar } from "./detalhes";
+import { RecadoErro, BotaoSecundario } from "@/app/telas/shell-convidado";
+import { Details, type Place } from "./details";
 import { Editor } from "./editor";
-import { CabecalhoFila } from "./painel-fila";
-import { VisaoCamera } from "./visao-camera";
+import { QueueHeader } from "./queue-panel";
+import { CameraView } from "./camera-view";
 
 /**
  * O caminho crítico inteiro, em cinco toques: consentir, nome, missão, câmera,
@@ -22,10 +22,10 @@ import { VisaoCamera } from "./visao-camera";
  * e às 22h no escuro é aí que a foto se ganha (N5.7).
  */
 
-export type Missao = { id: string; titulo: string; feito: boolean };
+export type PhotoMission = { id: string; title: string; done: boolean };
 
-export type Textos = {
-  lugarPergunta: string;
+export type PhotoCopy = {
+  placeQuestion: string;
 };
 
 /**
@@ -46,45 +46,45 @@ type Etapa =
   | { nome: "detalhes"; uploadId: string; arquivo: File }
   | { nome: "pronto"; arquivo: File };
 
-export function PaginaFoto({
+export function PhotoPage({
   slug,
   eventoId,
-  plano,
-  cotaVideo,
-  tituloEvento,
-  missoes: missoesIniciais,
-  lugares,
-  textos,
-  filtroRecomendado,
-  missaoInicial = null,
-  interacaoAberta,
+  plan,
+  videoQuota,
+  eventTitle,
+  missions: initialMissions,
+  places,
+  copy,
+  recommendedFilter,
+  initialMission = null,
+  interactionOpen,
 }: {
   slug: string;
   eventoId: string;
-  plano: PlanoDoEvento;
-  cotaVideo: CotaVideo;
-  tituloEvento: string;
-  missoes: Missao[];
-  lugares: Lugar[];
-  textos: Textos;
-  filtroRecomendado: string | null;
-  missaoInicial?: string | null;
-  interacaoAberta: boolean;
+  plan: PlanoDoEvento;
+  videoQuota: CotaVideo;
+  eventTitle: string;
+  missions: PhotoMission[];
+  places: Place[];
+  copy: PhotoCopy;
+  recommendedFilter: string | null;
+  initialMission?: string | null;
+  interactionOpen: boolean;
 }) {
   const router = useRouter();
-  const { estado, enfileirarFoto, anotar, drenarAgora } = usarEnvio(eventoId, { plano, cotaVideo });
+  const { estado, enfileirarFoto, anotar, drenarAgora } = usarEnvio(eventoId, { plano: plan, cotaVideo: videoQuota });
   const [drenando, setDrenando] = useState(false);
   const entradaCamera = useRef<HTMLInputElement>(null);
   const entradaVideo = useRef<HTMLInputElement>(null);
   const entradaRolo = useRef<HTMLInputElement>(null);
   const [etapa, setEtapa] = useState<Etapa>({ nome: "camera" });
-  const [missoes, setMissoes] = useState(missoesIniciais);
+  const [missions, setMissions] = useState(initialMissions);
   const [escolhida, setEscolhida] = useState<string | null>(() => {
-    if (missaoInicial && missoesIniciais.some((m) => m.id === missaoInicial && !m.feito)) {
-      return missaoInicial;
+    if (initialMission && initialMissions.some((m) => m.id === initialMission && !m.done)) {
+      return initialMission;
     }
-    if (missoesIniciais.length === 0) return null;
-    return missoesIniciais.find((m) => !m.feito)?.id ?? null;
+    if (initialMissions.length === 0) return null;
+    return initialMissions.find((m) => !m.done)?.id ?? null;
   });
   const [lugarPre, setLugarPre] = useState<string | null>(null);
   const [recentes, setRecentes] = useState<string[]>([]);
@@ -119,7 +119,7 @@ export function PaginaFoto({
     queueMicrotask(() => entradaVideo.current?.click());
   }
 
-  const avisoVideo = mensagemCotaVideo(cotaVideo);
+  const avisoVideo = mensagemCotaVideo(videoQuota);
 
   async function escolheu(ev: React.ChangeEvent<HTMLInputElement>) {
     const arquivos = [...(ev.target.files ?? [])];
@@ -140,7 +140,7 @@ export function PaginaFoto({
         if (r.ok) {
           setEnviadas((n) => n + 1);
           if (escolhida) {
-            setMissoes((m) => m.map((x) => (x.id === escolhida ? { ...x, feito: true } : x)));
+            setMissions((m) => m.map((x) => (x.id === escolhida ? { ...x, done: true } : x)));
           }
           setEtapa({ nome: "pronto", arquivo: primeiro });
           registrarRecente(primeiro);
@@ -167,25 +167,25 @@ export function PaginaFoto({
     setEnviadas((n) => n + 1);
 
     if (escolhida) {
-      setMissoes((m) => m.map((x) => (x.id === escolhida ? { ...x, feito: true } : x)));
+      setMissions((m) => m.map((x) => (x.id === escolhida ? { ...x, done: true } : x)));
     }
 
     setEtapa({ nome: "detalhes", uploadId: r.id, arquivo });
   }
 
   if (etapa.nome === "editor") {
-    const missaoEscolhida = escolhida ? missoes.find((m) => m.id === escolhida) : undefined;
-    const indiceMissao = missaoEscolhida ? missoes.findIndex((m) => m.id === escolhida) + 1 : 0;
+    const chosenMission = escolhida ? missions.find((m) => m.id === escolhida) : undefined;
+    const missionIndex = chosenMission ? missions.findIndex((m) => m.id === escolhida) + 1 : 0;
 
     return (
       <Editor
         arquivo={etapa.arquivo}
-        recomendadoId={filtroRecomendado}
+        recomendadoId={recommendedFilter}
         onEnviar={(filtro) => void enviar(etapa.arquivo, filtro)}
         onDescartar={() => setEtapa({ nome: "camera" })}
         missao={
-          missaoEscolhida
-            ? { indice: indiceMissao, total: missoes.length, titulo: missaoEscolhida.titulo }
+          chosenMission
+            ? { indice: missionIndex, total: missions.length, title: chosenMission.title }
             : null
         }
       />
@@ -194,9 +194,9 @@ export function PaginaFoto({
 
   if (etapa.nome === "detalhes") {
     return (
-      <Detalhes
-        lugares={lugares}
-        perguntaDoLugar={textos.lugarPergunta}
+      <Details
+        places={places}
+        perguntaDoLugar={copy.placeQuestion}
         lugarInicial={lugarPre}
         onPronto={(detalhes) => {
           void anotar(etapa.uploadId, detalhes);
@@ -214,17 +214,17 @@ export function PaginaFoto({
         numero={enviadas}
         pendentes={estado.pendentes}
         online={estado.online}
-        interacaoAberta={interacaoAberta}
+        interactionOpen={interactionOpen}
         onOutra={() => setEtapa({ nome: "camera" })}
       />
     );
   }
 
   if (etapa.nome === "camera") {
-    const missaoEscolhida = escolhida ? missoes.find((m) => m.id === escolhida) : undefined;
-    const indiceMissao = missaoEscolhida ? missoes.findIndex((m) => m.id === escolhida) + 1 : 0;
+    const chosenMission = escolhida ? missions.find((m) => m.id === escolhida) : undefined;
+    const missionIndex = chosenMission ? missions.findIndex((m) => m.id === escolhida) + 1 : 0;
     const acaoCabecalho = (
-      <CabecalhoFila
+      <QueueHeader
         eventoId={eventoId}
         pendentes={estado.pendentes}
         bytesPendentes={estado.bytesPendentes}
@@ -244,22 +244,22 @@ export function PaginaFoto({
     return (
       <>
         <style>{ESTILO}</style>
-        <VisaoCamera
-          tituloEvento={tituloEvento}
+        <CameraView
+          eventTitle={eventTitle}
           acaoCabecalho={acaoCabecalho}
           missao={
-            missaoEscolhida
-              ? { indice: indiceMissao, total: missoes.length, titulo: missaoEscolhida.titulo }
+            chosenMission
+              ? { indice: missionIndex, total: missions.length, title: chosenMission.title }
               : null
           }
-          lugares={lugares}
+          places={places}
           lugarAtivo={lugarPre}
           onLugar={setLugarPre}
           recentes={recentes}
           processando={estado.processando}
           onDisparar={dispararCamera}
           onRolo={dispararRolo}
-          {...(missoes.length > 0
+          {...(missions.length > 0
             ? { onVoltar: () => router.push(`/e/${encodeURIComponent(slug)}/missoes`) }
             : {})}
           rodape={
@@ -284,7 +284,7 @@ export function PaginaFoto({
                 onClick={() => abrirVideo(escolhida)}
                 disabled={
                   estado.processando ||
-                  (cotaVideo.limite !== null && cotaVideo.enviados >= cotaVideo.limite)
+                  (videoQuota.limite !== null && videoQuota.enviados >= videoQuota.limite)
                 }
                 style={{
                   marginTop: "0.75rem",
@@ -296,7 +296,7 @@ export function PaginaFoto({
                   background: "transparent",
                   color: "var(--ink-2)",
                   opacity:
-                    cotaVideo.limite !== null && cotaVideo.enviados >= cotaVideo.limite ? 0.45 : 1,
+                    videoQuota.limite !== null && videoQuota.enviados >= videoQuota.limite ? 0.45 : 1,
                 }}
               >
                 Gravar vídeo
@@ -348,7 +348,7 @@ function Confirmacao({
   numero,
   pendentes,
   online,
-  interacaoAberta,
+  interactionOpen,
   onOutra,
 }: {
   slug: string;
@@ -356,7 +356,7 @@ function Confirmacao({
   numero: number;
   pendentes: number;
   online: boolean;
-  interacaoAberta: boolean;
+  interactionOpen: boolean;
   onOutra: () => void;
 }) {
   const router = useRouter();
@@ -512,6 +512,9 @@ function Confirmacao({
           {podeInstalar && (
             <BotaoSecundario onClick={() => void instalar()}>Instalar na tela inicial</BotaoSecundario>
           )}
+          <BotaoSecundario onClick={() => router.push(`${base}/parear`)}>
+            Abrir no app com código
+          </BotaoSecundario>
         </div>
       )}
 
@@ -545,7 +548,7 @@ function Confirmacao({
             Ver minha foto
           </BotaoSecundario>
         )}
-        {interacaoAberta && (
+        {interactionOpen && (
           <BotaoSecundario onClick={() => router.push(`${base}/feed`)}>
             Ver o feed
           </BotaoSecundario>

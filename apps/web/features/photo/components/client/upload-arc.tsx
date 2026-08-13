@@ -34,7 +34,7 @@ const ESTILO = `
 }
 `;
 
-export function ArcoDeEnvio({
+export function UploadArc({
   pendentes,
   bytesPendentes,
   online,

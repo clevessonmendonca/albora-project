@@ -1,28 +1,28 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import { raio } from "../../../landing/pecas";
+import { raio } from "@/app/landing/pecas";
 import {
   CabecalhoConvidado,
   ChaoConvidado,
   FaixaMissao,
   PADDING_LATERAL,
-} from "../../../telas/shell-convidado";
-import { Pilula } from "../../../telas/pecas-de-tela";
+} from "@/app/telas/shell-convidado";
+import { Pilula } from "@/app/telas/pecas-de-tela";
 
 /**
  * A câmera com missão sobre o visor — espelha `TelaCamera` em `/telas`.
  *
  * Não monta preview ao vivo: o obturador abre a câmera nativa do aparelho
  * (`capture="environment"`). O retângulo aqui é o **lugar** da missão e dos
- * lugares, não um stream de vídeo.
+ * places, não um stream de vídeo.
  */
 
-export function VisaoCamera({
-  tituloEvento,
+export function CameraView({
+  eventTitle,
   acaoCabecalho,
   missao,
-  lugares,
+  places,
   lugarAtivo,
   onLugar,
   recentes,
@@ -32,10 +32,10 @@ export function VisaoCamera({
   onVoltar,
   rodape,
 }: {
-  tituloEvento: string;
+  eventTitle: string;
   acaoCabecalho?: ReactNode;
-  missao?: { indice: number; total: number; titulo: string } | null;
-  lugares: readonly { id: string; titulo: string }[];
+  missao?: { indice: number; total: number; title: string } | null;
+  places: readonly { id: string; title: string }[];
   lugarAtivo: string | null;
   onLugar: (id: string | null) => void;
   recentes: readonly string[];
@@ -57,7 +57,7 @@ export function VisaoCamera({
         }}
       >
         <div style={{ padding: `0 ${PADDING_LATERAL}` }}>
-          <CabecalhoConvidado titulo={tituloEvento} acao={acaoCabecalho} />
+          <CabecalhoConvidado titulo={eventTitle} acao={acaoCabecalho} />
           {onVoltar && (
             <button
               type="button"
@@ -106,12 +106,12 @@ export function VisaoCamera({
               <FaixaMissao
                 indice={missao.indice}
                 total={missao.total}
-                titulo={missao.titulo}
+                titulo={missao.title}
               />
             </div>
           )}
 
-          {lugares.length > 0 && (
+          {places.length > 0 && (
             <div
               style={{
                 position: "absolute",
@@ -124,13 +124,13 @@ export function VisaoCamera({
                 zIndex: 1,
               }}
             >
-              {lugares.slice(0, 4).map((l) => (
+              {places.slice(0, 4).map((l) => (
                 <BotaoPilula
                   key={l.id}
                   ativa={lugarAtivo === l.id}
                   onClick={() => onLugar(lugarAtivo === l.id ? null : l.id)}
                 >
-                  {l.titulo}
+                  {l.title}
                 </BotaoPilula>
               ))}
             </div>
@@ -280,7 +280,7 @@ function MiniaturaRecente({ url }: { url: string | undefined }) {
   );
 }
 
-export function RotuloFila({ pendentes }: { pendentes: number }) {
+export function QueueLabel({ pendentes }: { pendentes: number }) {
   if (pendentes <= 0) return null;
   return <Pilula>{pendentes === 1 ? "1 na fila" : `${pendentes} na fila`}</Pilula>;
 }

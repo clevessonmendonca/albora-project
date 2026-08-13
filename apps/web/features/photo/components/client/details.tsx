@@ -10,17 +10,17 @@ import { useState } from "react";
  * uma tela opcional que parece obrigatória é uma tela obrigatória (N6.8).
  */
 
-export type Lugar = { id: string; titulo: string };
+export type Place = { id: string; title: string };
 
 const MAX_LEGENDA = 280;
 
-export function Detalhes({
-  lugares,
+export function Details({
+  places,
   perguntaDoLugar,
   lugarInicial = null,
   onPronto,
 }: {
-  lugares: Lugar[];
+  places: Place[];
   perguntaDoLugar: string;
   lugarInicial?: string | null;
   onPronto: (detalhes: { legenda: string | null; lugar: string | null }) => void;
@@ -64,14 +64,14 @@ export function Detalhes({
       <div style={{ display: "grid", gap: "0.75rem", marginTop: "2rem", flex: "none" }}>
         <span style={ROTULO}>{perguntaDoLugar}</span>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
-          {lugares.map((l) => (
+          {places.map((l) => (
             <button
               key={l.id}
               className={lugar === l.id ? "det-lugar ativo" : "det-lugar"}
               onClick={() => setLugar(lugar === l.id ? null : l.id)}
               aria-pressed={lugar === l.id}
             >
-              {l.titulo}
+              {l.title}
             </button>
           ))}
         </div>

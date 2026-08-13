@@ -1,26 +1,19 @@
-import { comEvento, contarVideosDaSessao, listarDesafios, planoDoEvento, resolverSlug } from "@albora/db";
-import { limiteVideosPorConvidado } from "@albora/core";
-import { PACKS, texto, type Pack } from "@albora/packs";
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
-import { cookies } from "next/headers";
-import type { CSSProperties } from "react";
-import { banco } from "@/lib/banco";
-import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
+import type { Metadata } from "next";
+import { Suspense } from "react";
+import { PhotoContent } from "@/features/photo/components/server/photo-content";
+import { PhotoPageSkeleton } from "@/features/photo/components/skeletons/photo-page-skeleton";
+import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
+import { guestSession } from "@/features/guest/data/guest-session";
 import { Aviso } from "../aviso";
 import { SemEntrada } from "../sem-entrada";
-import { PaginaFoto } from "./pagina-foto";
 
 export const dynamic = "force-dynamic";
 
-/**
- * A tela de captura só existe dentro de uma festa aberta. O servidor confere
- * o slug de novo aqui — não porque o convidado veio de outra tela, mas porque
- * ele pode ter deixado a aba aberta a noite toda e voltado depois do fim.
- *
- * Missões e lugares chegam **resolvidos** no componente. Quem traduz chave de
- * vocabulário é o pack, aqui; dentro do componente não entra string de
- * domínio nenhuma.
- */
+export const metadata: Metadata = {
+  title: "Enviar foto",
+  robots: { index: false, follow: false },
+};
+
 export default async function Pagina({
   params,
   searchParams,
@@ -29,82 +22,27 @@ export default async function Pagina({
   searchParams: Promise<{ missao?: string }>;
 }) {
   const { slug } = await params;
-  const { missao: missaoParam } = await searchParams;
-  const r = await resolverSlug(banco(), slug, new Date());
+  const { missao: missionParam } = await searchParams;
+  const r = await resolveOpenEvent(slug);
 
   if (r.estado !== "aberto") {
     return (
-      <Aviso
-        titulo="Essa festa não está aberta agora"
-        texto="Volte pelo QR da mesa para conferir."
-      />
+      <Aviso titulo="Essa festa não está aberta agora" texto="Volte pelo QR da mesa para conferir." />
     );
   }
 
-  const { eventoId, packId, filtroRecomendado } = r.evento;
-  const pack = PACKS[packId];
-  const interacaoAberta =
-    r.evento.interacaoAbreEm === null || r.evento.interacaoAbreEm.getTime() <= Date.now();
-
-  const sessao = await sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
-  if (!sessao) return <SemEntrada slug={slug} />;
-
-  const desafios = await comEvento(banco(), eventoId, (c) =>
-    listarDesafios(c, eventoId, sessao.sessaoId),
-  );
-
-  const planoECota = await comEvento(banco(), eventoId, async (c) => {
-    const plano = await planoDoEvento(c, eventoId);
-    const enviados = await contarVideosDaSessao(c, eventoId, sessao.sessaoId);
-    return { plano, cotaVideo: { limite: limiteVideosPorConvidado(plano), enviados } };
-  });
+  const session = await guestSession();
+  if (!session) return <SemEntrada slug={slug} />;
 
   return (
-    <div
-      style={
-        paraVariaveis(
-          resolverTokens({
-            marca: MARCA_ALBORA,
-            pack: { ...(pack?.tokens ?? {}), fundo: "escuro" },
-          }),
-        ) as CSSProperties
-      }
-    >
-      <PaginaFoto
+    <Suspense fallback={<PhotoPageSkeleton />}>
+      <PhotoContent
         slug={slug}
-        eventoId={eventoId}
-        plano={planoECota.plano}
-        cotaVideo={planoECota.cotaVideo}
-        tituloEvento={pack ? texto(pack, "landing.exemplo.nome") : "A festa"}
-        filtroRecomendado={filtroRecomendado}
-        interacaoAberta={interacaoAberta}
-        missaoInicial={
-          missaoParam && desafios.some((d) => d.id === missaoParam) ? missaoParam : null
-        }
-        missoes={desafios.map((d) => ({
-          id: d.id,
-          titulo: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,
-          feito: d.feito,
-        }))}
-        lugares={lugaresDoPack(pack)}
-        textos={{
-          lugarPergunta: rotulo(pack, "lugar.pergunta"),
-        }}
+        eventoId={session.eventoId}
+        sessaoId={session.sessaoId}
+        evento={r.evento}
+        missionParam={missionParam}
       />
-    </div>
+    </Suspense>
   );
-}
-
-function lugaresDoPack(pack: Pack | undefined) {
-  if (!pack) return [];
-  return pack.lugares.map((l) => ({ id: l.id, titulo: texto(pack, l.chaveTitulo) }));
-}
-
-/**
- * Pack ausente é evento apontando para um pack que saiu do catálogo. A tela
- * continua funcionando — a foto é o que importa — e a chave crua aparece, que
- * é bug visível em vez de tela vazia.
- */
-function rotulo(pack: Pack | undefined, chave: string): string {
-  return pack ? texto(pack, chave) : chave;
 }

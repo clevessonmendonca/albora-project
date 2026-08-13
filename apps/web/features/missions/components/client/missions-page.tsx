@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { CSSProperties } from "react";
-import { raio } from "../../../landing/pecas";
+import { raio } from "@/app/landing/pecas";
 import {
   BotaoPrimario,
   CabecalhoConvidado,
@@ -11,40 +11,40 @@ import {
   MioloConvidado,
   TextoSecundario,
   TituloGrande,
-} from "../../../telas/shell-convidado";
-import { Estrela, Pilula } from "../../../telas/pecas-de-tela";
-import { BarraDeAbas } from "../barra-de-abas";
+} from "@/app/telas/shell-convidado";
+import { Estrela, Pilula } from "@/app/telas/pecas-de-tela";
+import { BarraDeAbas } from "@/app/e/[slug]/barra-de-abas";
 
-export type MissaoVisivel = { id: string; titulo: string; feito: boolean };
+export type VisibleMission = { id: string; title: string; done: boolean };
 
-function indiceDaVez(missoes: readonly MissaoVisivel[]): number {
-  const aberta = missoes.findIndex((m) => !m.feito);
+function turnIndex(missions: readonly VisibleMission[]): number {
+  const aberta = missions.findIndex((m) => !m.done);
   if (aberta >= 0) return aberta + 1;
-  return missoes.length;
+  return missions.length;
 }
 
-function caminhoCamera(slug: string, missaoId: string | null): string {
+function photoPathForMission(slug: string, missionId: string | null): string {
   const base = `/e/${encodeURIComponent(slug)}/foto`;
-  if (!missaoId) return base;
-  return `${base}?missao=${encodeURIComponent(missaoId)}`;
+  if (!missionId) return base;
+  return `${base}?missao=${encodeURIComponent(missionId)}`;
 }
 
-export function PaginaMissoes({
+export function MissionsPage({
   slug,
-  missoes,
+  missions,
 }: {
   slug: string;
-  missoes: MissaoVisivel[];
+  missions: VisibleMission[];
 }) {
-  const feitas = missoes.filter((m) => m.feito).length;
-  const atual = missoes.find((m) => !m.feito) ?? null;
-  const indice = indiceDaVez(missoes);
+  const feitas = missions.filter((m) => m.done).length;
+  const atual = missions.find((m) => !m.done) ?? null;
+  const indice = turnIndex(missions);
   const resumo =
-    missoes.length === 0
+    missions.length === 0
       ? "Modo livre"
-      : feitas === missoes.length
-        ? `${missoes.length} de ${missoes.length}`
-        : `${indice} de ${missoes.length}`;
+      : feitas === missions.length
+        ? `${missions.length} de ${missions.length}`
+        : `${indice} de ${missions.length}`;
 
   return (
     <>
@@ -56,12 +56,12 @@ export function PaginaMissoes({
             acao={<Pilula>{resumo}</Pilula>}
           />
 
-          {missoes.length === 0 ? (
+          {missions.length === 0 ? (
             <EstadoLivre slug={slug} />
           ) : atual ? (
             <>
               <Link
-                href={caminhoCamera(slug, atual.id)}
+                href={photoPathForMission(slug, atual.id)}
                 style={{
                   display: "grid",
                   gap: "0.75rem",
@@ -93,7 +93,7 @@ export function PaginaMissoes({
                     letterSpacing: "var(--tracking-titulo)",
                   }}
                 >
-                  {atual.titulo}
+                  {atual.title}
                 </span>
                 <span style={{ fontSize: "0.8125rem", color: "var(--ink-2)" }}>
                   Toque para fotografar
@@ -111,7 +111,7 @@ export function PaginaMissoes({
                   gap: "0.5rem",
                 }}
               >
-                {missoes.map((m) => (
+                {missions.map((m) => (
                   <li key={m.id}>
                     <ItemMissao slug={slug} missao={m} destaque={m.id === atual.id} />
                   </li>
@@ -121,12 +121,12 @@ export function PaginaMissoes({
           ) : (
             <>
               <TituloGrande>
-                Você fez todas as {missoes.length}.
+                Você fez todas as {missions.length}.
                 <br />
                 <em>Manda o que quiser.</em>
               </TituloGrande>
               <BotaoCamera slug={slug} rotulo="Abrir a câmera" />
-              <ListaConcluidas slug={slug} missoes={missoes} />
+              <ListaConcluidas slug={slug} missions={missions} />
             </>
           )}
 
@@ -155,10 +155,10 @@ function EstadoLivre({ slug }: { slug: string }) {
 
 function ListaConcluidas({
   slug,
-  missoes,
+  missions,
 }: {
   slug: string;
-  missoes: readonly MissaoVisivel[];
+  missions: readonly VisibleMission[];
 }) {
   return (
     <ul
@@ -170,7 +170,7 @@ function ListaConcluidas({
         gap: "0.5rem",
       }}
     >
-      {missoes.map((m) => (
+      {missions.map((m) => (
         <li key={m.id}>
           <ItemMissao slug={slug} missao={m} destaque={false} />
         </li>
@@ -185,7 +185,7 @@ function ItemMissao({
   destaque,
 }: {
   slug: string;
-  missao: MissaoVisivel;
+  missao: VisibleMission;
   destaque: boolean;
 }) {
   const conteudo = (
@@ -198,13 +198,13 @@ function ItemMissao({
           width: "2.5rem",
           height: "2.5rem",
           ...raio("var(--raio)"),
-          backgroundColor: missao.feito ? "var(--superficie-alta)" : "var(--superficie)",
+          backgroundColor: missao.done ? "var(--superficie-alta)" : "var(--superficie)",
           borderWidth: "1px",
           borderStyle: "solid",
-          borderColor: missao.feito ? "var(--acento)" : "var(--linha)",
+          borderColor: missao.done ? "var(--acento)" : "var(--linha)",
         }}
       >
-        <Estrela tamanho={18} cheia={missao.feito} />
+        <Estrela tamanho={18} cheia={missao.done} />
       </span>
       <span style={{ flex: 1, minWidth: 0 }}>
         <span
@@ -215,10 +215,10 @@ function ItemMissao({
             lineHeight: 1.25,
           }}
         >
-          {missao.titulo}
+          {missao.title}
         </span>
         <span style={{ fontSize: "0.75rem", color: "var(--ink-3)" }}>
-          {missao.feito ? "Feita" : destaque ? "Agora" : "Aberta"}
+          {missao.done ? "Feita" : destaque ? "Agora" : "Aberta"}
         </span>
       </span>
     </>
@@ -231,14 +231,14 @@ function ItemMissao({
     width: "100%",
     padding: "0.875rem 1rem",
     ...raio("var(--raio)"),
-    backgroundColor: destaque && !missao.feito ? "var(--superficie-alta)" : "var(--superficie)",
+    backgroundColor: destaque && !missao.done ? "var(--superficie-alta)" : "var(--superficie)",
     borderWidth: "1px",
     borderStyle: "solid",
-    borderColor: destaque && !missao.feito ? "var(--linha)" : "transparent",
+    borderColor: destaque && !missao.done ? "var(--linha)" : "transparent",
     textAlign: "left",
   };
 
-  if (missao.feito) {
+  if (missao.done) {
     return (
       <div style={{ ...estiloBase, color: "var(--ink-2)" }} aria-disabled>
         {conteudo}
@@ -248,7 +248,7 @@ function ItemMissao({
 
   return (
     <Link
-      href={caminhoCamera(slug, missao.id)}
+      href={photoPathForMission(slug, missao.id)}
       style={{ ...estiloBase, textDecoration: "none", color: "inherit" }}
     >
       {conteudo}
@@ -259,15 +259,15 @@ function ItemMissao({
 function BotaoCamera({
   slug,
   rotulo,
-  missaoId = null,
+  missionId = null,
 }: {
   slug: string;
   rotulo: string;
-  missaoId?: string | null;
+  missionId?: string | null;
 }) {
   const router = useRouter();
   return (
-    <BotaoPrimario onClick={() => router.push(caminhoCamera(slug, missaoId ?? null))}>
+    <BotaoPrimario onClick={() => router.push(photoPathForMission(slug, missionId ?? null))}>
       {rotulo}
     </BotaoPrimario>
   );

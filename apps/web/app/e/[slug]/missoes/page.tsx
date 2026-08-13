@@ -1,14 +1,11 @@
-import { comEvento, listarDesafios, resolverSlug } from "@albora/db";
-import { PACKS, texto } from "@albora/packs";
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
-import type { CSSProperties } from "react";
-import { banco } from "@/lib/banco";
-import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
+import { Suspense } from "react";
+import { MissionsContent } from "@/features/missions/components/server/missions-content";
+import { MissionsPageSkeleton } from "@/features/missions/components/skeletons/missions-page-skeleton";
+import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
+import { guestSession } from "@/features/guest/data/guest-session";
 import { Aviso } from "../aviso";
 import { SemEntrada } from "../sem-entrada";
-import { PaginaMissoes } from "./pagina-missoes";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +16,7 @@ export const metadata: Metadata = {
 
 export default async function Pagina({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const r = await resolverSlug(banco(), slug, new Date());
+  const r = await resolveOpenEvent(slug);
 
   if (r.estado !== "aberto") {
     return (
@@ -27,37 +24,17 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
     );
   }
 
-  const sessao = await sessaoDaRequisicao();
-  if (!sessao) return <SemEntrada slug={slug} />;
-
-  const pack = PACKS[r.evento.packId];
-  const desafios = await comEvento(banco(), r.evento.eventoId, (c) =>
-    listarDesafios(c, r.evento.eventoId, sessao.sessaoId),
-  );
+  const session = await guestSession();
+  if (!session) return <SemEntrada slug={slug} />;
 
   return (
-    <div
-      style={
-        paraVariaveis(
-          resolverTokens({
-            marca: MARCA_ALBORA,
-            pack: { ...(pack?.tokens ?? {}), fundo: "escuro" },
-          }),
-        ) as CSSProperties
-      }
-    >
-      <PaginaMissoes
+    <Suspense fallback={<MissionsPageSkeleton />}>
+      <MissionsContent
         slug={slug}
-        missoes={desafios.map((d) => ({
-          id: d.id,
-          titulo: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,
-          feito: d.feito,
-        }))}
+        eventoId={session.eventoId}
+        sessaoId={session.sessaoId}
+        evento={r.evento}
       />
-    </div>
+    </Suspense>
   );
-}
-
-async function sessaoDaRequisicao() {
-  return sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
 }

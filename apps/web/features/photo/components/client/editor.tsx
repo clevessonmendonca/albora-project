@@ -15,7 +15,7 @@ import {
   type Preset,
 } from "@albora/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FaixaMissao } from "../../../telas/shell-convidado";
+import { FaixaMissao } from "@/app/telas/shell-convidado";
 
 /**
  * O editor. A foto já foi tirada pela câmera nativa; aqui só se escolhe cor.
@@ -54,7 +54,7 @@ export function Editor({
   recomendadoId: string | null;
   onEnviar: (filtro: FiltroAplicado | undefined) => void;
   onDescartar: () => void;
-  missao?: { indice: number; total: number; titulo: string } | null;
+  missao?: { indice: number; total: number; title: string } | null;
 }) {
   const telaPrevia = useRef<HTMLCanvasElement>(null);
   const [previa, setPrevia] = useState<ImageBitmap | null>(null);
@@ -248,7 +248,7 @@ export function Editor({
               zIndex: 1,
             }}
           >
-            <FaixaMissao indice={missao.indice} total={missao.total} titulo={missao.titulo} />
+            <FaixaMissao indice={missao.indice} total={missao.total} titulo={missao.title} />
           </div>
         )}
         {erro ? (
