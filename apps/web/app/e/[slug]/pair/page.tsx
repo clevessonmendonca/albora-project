@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import { FeedContent } from "@/features/feed/components/server/feed-content";
-import { FeedPageSkeleton } from "@/features/feed/components/skeletons/feed-page-skeleton";
+import { PairPage } from "@/features/pairing/components/client/pair-page";
 import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
-import { guestSession } from "@/features/guest/data/guest-session";
+import {
+  guestSession,
+  isSameEventSession,
+} from "@/features/guest/data/guest-session";
 import { EventNotice } from "@/features/guest/components/client/event-notice";
 import { NoSession } from "@/features/guest/components/client/no-session";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Fotos da festa",
+  title: "Parear o app",
   robots: { index: false, follow: false },
 };
 
@@ -24,17 +25,10 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
     );
   }
 
-  const session = await guestSession();
-  if (!session) return <NoSession slug={slug} />;
+  const sessao = await guestSession();
+  if (!isSameEventSession(sessao, r.evento.eventoId)) {
+    return <NoSession slug={slug} />;
+  }
 
-  return (
-    <Suspense fallback={<FeedPageSkeleton />}>
-      <FeedContent
-        slug={slug}
-        eventoId={session.eventoId}
-        sessaoId={session.sessaoId}
-        evento={r.evento}
-      />
-    </Suspense>
-  );
+  return <PairPage slug={slug} />;
 }

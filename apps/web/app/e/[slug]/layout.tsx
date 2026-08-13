@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
 import { eventVars } from "@/features/guest/lib/event-vars";
-import { FilaGlobal } from "./fila-global";
+import { GlobalQueue } from "@/features/photo/components/client/global-queue";
 import { guestSession, isSameEventSession } from "@/features/guest/data/guest-session";
 
 export default async function Layout({
@@ -22,7 +22,7 @@ export default async function Layout({
 
   return (
     <div style={vars}>
-      {withSession && <FilaGlobal eventoId={session.eventoId} />}
+      {withSession && <GlobalQueue eventoId={session.eventoId} />}
       {children}
     </div>
   );

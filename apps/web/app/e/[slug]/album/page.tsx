@@ -4,8 +4,8 @@ import { AlbumContent } from "@/features/album/components/server/album-content";
 import { AlbumPageSkeleton } from "@/features/album/components/skeletons/album-page-skeleton";
 import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
 import { guestSession } from "@/features/guest/data/guest-session";
-import { Aviso } from "../aviso";
-import { SemEntrada } from "../sem-entrada";
+import { EventNotice } from "@/features/guest/components/client/event-notice";
+import { NoSession } from "@/features/guest/components/client/no-session";
 
 export const dynamic = "force-dynamic";
 
@@ -27,12 +27,12 @@ export default async function Pagina({
 
   if (r.estado !== "aberto") {
     return (
-      <Aviso titulo="Essa festa não está aberta agora" texto="Volte pelo QR da mesa para conferir." />
+      <EventNotice title="Essa festa não está aberta agora" body="Volte pelo QR da mesa para conferir." />
     );
   }
 
   const session = await guestSession();
-  if (!session) return <SemEntrada slug={slug} />;
+  if (!session) return <NoSession slug={slug} />;
 
   return (
     <Suspense fallback={<AlbumPageSkeleton />}>

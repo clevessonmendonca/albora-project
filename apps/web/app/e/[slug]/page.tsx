@@ -5,10 +5,10 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { CSSProperties } from "react";
-import { banco } from "@/lib/banco";
-import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
-import { Entrada } from "./entrada";
-import { Aviso } from "./aviso";
+import { getPool } from "@/lib/db";
+import { GUEST_SESSION_COOKIE, guestSessionFromToken } from "@/lib/session";
+import { EntryFlow } from "@/features/guest/components/client/entry-flow";
+import { EventNotice } from "@/features/guest/components/client/event-notice";
 
 /**
  * A rota do QR. É a **exceção arquitetural** declarada no ADR 0005: o
@@ -24,7 +24,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const r = await resolverSlug(banco(), slug, new Date());
+  const r = await resolverSlug(getPool(), slug, new Date());
 
   if (r.estado === "desconhecido") {
     return { title: "Albora", robots: { index: false } };
@@ -40,14 +40,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Pagina({ params }: Props) {
   const { slug } = await params;
-  const r = await resolverSlug(banco(), slug, new Date());
+  const r = await resolverSlug(getPool(), slug, new Date());
 
   if (r.estado === "desconhecido") {
     return (
-      <Aviso
-        titulo="Esse endereço não abre nenhuma festa"
-        texto="Pode ser uma letra trocada. Tente de novo pelo código da mesa."
-        resgate
+      <EventNotice
+        title="Esse endereço não abre nenhuma festa"
+        body="Pode ser uma letra trocada. Tente de novo pelo código da mesa."
+        showRescue
       />
     );
   }
@@ -57,19 +57,19 @@ export default async function Pagina({ params }: Props) {
     // escaneou a antiga precisa de orientação e de um caminho, nunca de um
     // erro seco (N1.5).
     return (
-      <Aviso
-        titulo="Esse código foi trocado"
-        texto="A festa existe, mas o endereço mudou. Use o QR mais novo da mesa, ou peça o link a quem te convidou."
-        resgate
+      <EventNotice
+        title="Esse código foi trocado"
+        body="A festa existe, mas o endereço mudou. Use o QR mais novo da mesa, ou peça o link a quem te convidou."
+        showRescue
       />
     );
   }
 
   if (r.estado === "encerrado") {
     return (
-      <Aviso
-        titulo="Essa festa já foi"
-        texto="O envio de fotos ficou aberto por 48 horas depois do fim. Se você mandou fotos, elas estão com quem te convidou."
+      <EventNotice
+        title="Essa festa já foi"
+        body="O envio de fotos ficou aberto por 48 horas depois do fim. Se você mandou fotos, elas estão com quem te convidou."
       />
     );
   }
@@ -78,17 +78,17 @@ export default async function Pagina({ params }: Props) {
     // Existe e é legítimo — só não é hora. Dizer quando é vale mais que
     // dizer que não pode.
     return (
-      <Aviso
-        titulo="Ainda não começou"
-        texto="Guarde este endereço: quando a festa começar, é por aqui que suas fotos entram."
-        quando={r.evento.comecaEm}
+      <EventNotice
+        title="Ainda não começou"
+        body="Guarde este endereço: quando a festa começar, é por aqui que suas fotos entram."
+        at={r.evento.comecaEm}
       />
     );
   }
 
-  const sessao = await sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
+  const sessao = await guestSessionFromToken((await cookies()).get(GUEST_SESSION_COOKIE)?.value);
   if (sessao?.eventoId === r.evento.eventoId) {
-    redirect(`/e/${encodeURIComponent(slug)}/capa`);
+    redirect(`/e/${encodeURIComponent(slug)}/cover`);
   }
 
   return (
@@ -105,7 +105,7 @@ export default async function Pagina({ params }: Props) {
         ) as CSSProperties
       }
     >
-      <Entrada
+      <EntryFlow
         eventoId={r.evento.eventoId}
         slug={slug}
         nomeEvento={
