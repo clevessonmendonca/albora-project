@@ -8,7 +8,15 @@ import { erro, erroInesperado, ok } from "@/lib/resposta";
 
 export const dynamic = "force-dynamic";
 
-type Corpo = { packId?: unknown; comecaEm?: unknown; terminaEm?: unknown };
+type Corpo = {
+  packId?: unknown;
+  comecaEm?: unknown;
+  terminaEm?: unknown;
+  expectedGuests?: unknown;
+  identityTokens?: unknown;
+  missoes?: unknown;
+  telaoModelos?: unknown;
+};
 
 function comoData(v: unknown): Date | null {
   if (typeof v !== "string") return null;
@@ -63,13 +71,52 @@ export async function POST(req: Request) {
     return erro(422, "validation_error", "Datas inválidas", { campos: ["comecaEm", "terminaEm"] });
   }
 
+  let expectedGuests = 150;
+  if (corpo.expectedGuests !== undefined) {
+    if (typeof corpo.expectedGuests !== "number" || !Number.isFinite(corpo.expectedGuests)) {
+      return erro(422, "validation_error", "Convidados esperados inválido", {
+        campos: ["expectedGuests"],
+      });
+    }
+    expectedGuests = Math.trunc(corpo.expectedGuests);
+    if (expectedGuests <= 0) {
+      return erro(422, "validation_error", "Convidados esperados inválido", {
+        campos: ["expectedGuests"],
+      });
+    }
+  }
+
+  let identityTokens: Record<string, unknown> = {};
+  if (corpo.identityTokens !== undefined) {
+    if (typeof corpo.identityTokens !== "object" || corpo.identityTokens === null || Array.isArray(corpo.identityTokens)) {
+      return erro(422, "validation_error", "Identidade inválida", { campos: ["identityTokens"] });
+    }
+    identityTokens = corpo.identityTokens as Record<string, unknown>;
+  }
+
+  if (Array.isArray(corpo.telaoModelos) && corpo.telaoModelos.every((m) => typeof m === "string")) {
+    identityTokens = { ...identityTokens, telaoModelos: corpo.telaoModelos };
+  }
+
+  let missoes: string[] | undefined;
+  if (corpo.missoes !== undefined) {
+    if (!Array.isArray(corpo.missoes) || !corpo.missoes.every((m) => typeof m === "string")) {
+      return erro(422, "validation_error", "Missões inválidas", { campos: ["missoes"] });
+    }
+    missoes = corpo.missoes as string[];
+  }
+
   try {
-    const { eventoId, slug } = await criarEvento(banco(), {
+    const entrada = {
       accountId: host.accountId,
       packId,
       comecaEm,
       terminaEm,
-    });
+      expectedGuests,
+      identityTokens,
+      ...(missoes !== undefined ? { missoes } : {}),
+    };
+    const { eventoId, slug } = await criarEvento(banco(), entrada);
 
     console.log("admin.evento_criado", { accountId: host.accountId, eventoId });
 

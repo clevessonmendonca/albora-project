@@ -22,6 +22,8 @@ export type ResumoEvento = {
 export type EventoDoHost = ResumoEvento & {
   moderacao: EstadoModeracao;
   interacaoAbreEm: Date | null;
+  expectedGuests: number;
+  identityTokens: Record<string, unknown>;
 };
 
 export type AtualizacaoModeracao = Partial<EstadoModeracao>;
@@ -36,10 +38,12 @@ type LinhaCompleta = {
   hardened: boolean;
   has_minors: boolean;
   interaction_opens_at: Date | null;
+  expected_guests: number;
+  identity_tokens: Record<string, unknown>;
 };
 
 const COLUNAS =
-  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at";
+  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at, expected_guests, identity_tokens";
 
 function mapModeracao(l: Pick<LinhaCompleta, "panic" | "hardened" | "has_minors">): EstadoModeracao {
   return {
@@ -57,6 +61,8 @@ function mapEvento(l: LinhaCompleta): EventoDoHost {
     comecaEm: l.starts_at,
     terminaEm: l.ends_at,
     interacaoAbreEm: l.interaction_opens_at,
+    expectedGuests: l.expected_guests,
+    identityTokens: l.identity_tokens ?? {},
     moderacao: mapModeracao(l),
   };
 }

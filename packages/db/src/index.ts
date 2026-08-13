@@ -35,6 +35,8 @@ export {
   resolverSlug,
   rotacionarSlug,
 } from "./eventos";
+export type { AtualizacaoConfigEvento } from "./eventos-admin";
+export { atualizarConfigDoEvento, ocultarMidiaDoHost } from "./eventos-admin";
 export type { MotivoParedeInvalida, ParedeResolvida } from "./parede";
 export {
   ErroParedeInvalida,

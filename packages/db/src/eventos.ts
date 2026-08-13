@@ -121,7 +121,10 @@ export type NovoEvento = {
   packId: string;
   comecaEm: Date;
   terminaEm: Date;
+  expectedGuests?: number;
   identityTokens?: Record<string, unknown>;
+  /** Chaves de vocabulário do pack (`missao.*`). Vazio = nenhuma missão semeada. */
+  missoes?: readonly string[];
 };
 
 /**
@@ -142,13 +145,19 @@ export async function criarEvento(
   entrada: NovoEvento,
   rand: () => number = Math.random,
 ): Promise<{ eventoId: string; slug: string }> {
+  const convidados =
+    entrada.expectedGuests !== undefined ? Math.trunc(entrada.expectedGuests) : 150;
+  if (!Number.isFinite(convidados) || convidados <= 0) {
+    throw new Error("expected_guests inválido");
+  }
+
   return comConta(pool, entrada.accountId, async (c) => {
     for (let tentativa = 0; tentativa < 6; tentativa++) {
       const slug = gerarSlug(rand);
       try {
         const { rows } = await c.query<{ id: string }>(
-          `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, identity_tokens)
-           VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+          `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, identity_tokens, expected_guests)
+           VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
           [
             entrada.accountId,
             entrada.packId,
@@ -156,10 +165,23 @@ export async function criarEvento(
             entrada.comecaEm,
             entrada.terminaEm,
             JSON.stringify(entrada.identityTokens ?? {}),
+            convidados,
           ],
         );
         const eventoId = rows[0]!.id;
         await c.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [slug, eventoId]);
+
+        const missoes = entrada.missoes ?? [];
+        if (missoes.length > 0) {
+          await c.query("SELECT set_config('app.event_id', $1, true)", [eventoId]);
+          for (const [i, chave] of missoes.entries()) {
+            await c.query(
+              "INSERT INTO challenges (event_id, title_key, position) VALUES ($1, $2, $3)",
+              [eventoId, chave, i + 1],
+            );
+          }
+        }
+
         return { eventoId, slug };
       } catch (e) {
         if (ehColisaoDeSlug(e)) continue;
