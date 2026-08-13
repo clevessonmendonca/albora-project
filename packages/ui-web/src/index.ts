@@ -1,59 +1,56 @@
-/**
- * Primitivas web. Só desenham.
- *
- * Nenhum hex literal, nenhuma classe de cor arbitrária com valor fixo — o guard
- * `tokens` reprova; cor entra por token (`bg-acento`, `text-ink`) ou por
- * `var(--…)`. Nenhuma regra de negócio, validação ou chamada de API — o guard
- * `dominio` reprova. O que não desenha pixel mora em `@albora/core`, para poder
- * ser reaproveitado pelo app Expo sem refactor (ADR 0010).
- *
- * O padrão é shadcn, próprio: componente dono, estilo por `className` Tailwind,
- * variantes por `variantes()` (o CVA da casa), tema por CSS var de token.
- */
-export { cn, variantes } from "./variantes";
-export { Botao } from "./Botao";
-export { Etiqueta } from "./Etiqueta";
-export { Cartao } from "./Cartao";
-export { Estrela } from "./Estrela";
-export { Moldura } from "./Moldura";
-export { BotaoFlutuante } from "./BotaoFlutuante";
-export { Interruptor } from "./Interruptor";
-export { Avatar, iniciais } from "./Avatar";
-export { BarraDeAbas, type AbaConvidado } from "./BarraDeAbas";
-export { BarraDeStatus } from "./BarraDeStatus";
+export { cn, cva, radiusStyle } from "./variants";
+export { Button } from "./button";
+export { Badge } from "./badge";
+export { Card } from "./card";
+export { Star } from "./star";
+export { Frame } from "./frame";
+export { FloatingButton } from "./floating-button";
+export { Switch } from "./switch";
+export { Avatar, initials } from "./avatar";
+export { TabBar, type GuestTab } from "./tab-bar";
+export { StatusBar } from "./status-bar";
 export {
-  AvisoGate,
-  AvatarAutor,
-  BotaoPrimario,
-  BotaoSecundario,
-  CabecalhoConvidado,
-  CabecalhoPublicacao,
-  CampoNome,
-  ChaoConvidado,
-  ColunaEntrada,
-  Consentimento,
-  EstadoVazio,
-  FaixaMissao,
-  iniciaisDoAutor,
-  LinkDiscreto,
-  MioloConvidado,
-  PADDING_LATERAL,
-  RecadoConsentimento,
-  RecadoErro,
-  RodapeDiscreto,
-  RotuloEvento,
-  RODAPE_ABAS,
-  SheetBaixo,
-  TextoSecundario,
-  TituloGrande,
-} from "./shell-convidado";
+  authorInitials,
+  BottomSheet,
+  ConsentCheckbox,
+  ConsentNote,
+  DisplayTitle,
+  EmptyState,
+  EntryColumn,
+  ErrorMessage,
+  EventLabel,
+  FinePrint,
+  GateNotice,
+  GUEST_PADDING_X,
+  GuestHeader,
+  GuestMain,
+  GuestShell,
+  MissionBanner,
+  NameField,
+  PostAuthorAvatar,
+  PostHeader,
+  PrimaryButton,
+  SecondaryButton,
+  SecondaryText,
+  TAB_BAR_INSET,
+  TextLink,
+} from "./guest-shell";
 export {
-  IconeCamera,
-  IconeComentario,
-  IconeCompartilhar,
-  IconeGrade,
-  IconeMais,
-  IconePessoa,
-  IconePilha,
-  IconeVoltar,
-} from "./icones";
+  ALTURA_APARELHO,
+  ALTURA_PAREDE,
+  Aparelho,
+  LARGURA_APARELHO,
+  LARGURA_PAREDE,
+  Navegador,
+  Parede,
+} from "./catalog-frame";
+export {
+  BackIcon,
+  CameraIcon,
+  CommentIcon,
+  GridIcon,
+  MoreIcon,
+  PersonIcon,
+  ShareIcon,
+  StackIcon,
+} from "./icons";

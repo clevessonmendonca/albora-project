@@ -1,14 +1,27 @@
-export type { ChaveVocabulario, Pack } from "./tipos";
+export type {
+  ChaveVocabulario,
+  Pack,
+  PackDefinition,
+  VocabularyKey,
+} from "./tipos";
 export {
   CHAVES_DA_LANDING,
   CHAVES_DO_NUCLEO,
-  lugarValido, reacaoValida,
+  CORE_VOCABULARY_KEYS,
+  isValidPlace,
+  isValidReaction,
+  landingProblems,
+  LANDING_VOCABULARY_KEYS,
+  lugarValido,
+  packProblems,
   problemasDaLanding,
   problemasDoPack,
+  reacaoValida,
+  resolvePackText,
   texto,
 } from "./tipos";
-export { CASAMENTO } from "./casamento";
-export { QUINZE_ANOS } from "./quinze-anos";
+export { CASAMENTO, WEDDING } from "./casamento";
+export { FIFTEEN_YEARS, QUINZE_ANOS } from "./quinze-anos";
 
 import { CASAMENTO } from "./casamento";
 import { QUINZE_ANOS } from "./quinze-anos";

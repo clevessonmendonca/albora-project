@@ -14,7 +14,7 @@ import {
   pontuacaoPopular,
   proximaDoTelao,
   type ItemDoTelao,
-} from "./telao";
+} from "./wall-display";
 
 const AGORA = new Date("2026-08-11T23:00:00Z");
 const min = (n: number) => new Date(AGORA.getTime() - n * 60 * 1000);

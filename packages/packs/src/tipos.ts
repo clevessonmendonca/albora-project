@@ -41,7 +41,10 @@ export type Pack = {
   tokens?: CamadaTokens;
 };
 
+export type PackDefinition = Pack;
+
 export type ChaveVocabulario = string;
+export type VocabularyKey = ChaveVocabulario;
 
 /**
  * Resolve uma chave de vocabulário. Devolve a própria chave se faltar, em vez
@@ -50,6 +53,8 @@ export type ChaveVocabulario = string;
 export function texto(pack: Pack, chave: ChaveVocabulario): string {
   return pack.vocabulario[chave] ?? chave;
 }
+
+export const resolvePackText = texto;
 
 /**
  * As chaves que o núcleo pede a qualquer pack.
@@ -69,6 +74,8 @@ export const CHAVES_DO_NUCLEO = [
   "telao.vazio",
   "lugar.pergunta",
 ] as const;
+
+export const CORE_VOCABULARY_KEYS = CHAVES_DO_NUCLEO;
 
 /**
  * O que a landing pede. Lista separada das chaves do núcleo, e de propósito.
@@ -99,6 +106,8 @@ export const CHAVES_DA_LANDING = [
   "landing.fechamento.destaque",
 ] as const;
 
+export const LANDING_VOCABULARY_KEYS = CHAVES_DA_LANDING;
+
 /**
  * Vazio quando o pack pode ser vendido.
  *
@@ -127,6 +136,8 @@ export function problemasDaLanding(pack: Pack): string[] {
   return problemas;
 }
 
+export const landingProblems = problemasDaLanding;
+
 /** Vazio quando o pack está íntegro. Cada string é um defeito de tela. */
 export function problemasDoPack(pack: Pack): string[] {
   const problemas: string[] = [];
@@ -144,6 +155,8 @@ export function problemasDoPack(pack: Pack): string[] {
   return problemas;
 }
 
+export const packProblems = problemasDoPack;
+
 /**
  * Lista fechada, verificada no servidor. O cliente manda um id; se ele não
  * estiver aqui, não vira coluna no banco (N6.10).
@@ -151,6 +164,8 @@ export function problemasDoPack(pack: Pack): string[] {
 export function lugarValido(pack: Pack, id: string | null | undefined): boolean {
   return typeof id === "string" && pack.lugares.some((l) => l.id === id);
 }
+
+export const isValidPlace = lugarValido;
 
 /**
  * Mesma porta fechada de `lugarValido`, para a reação.
@@ -162,3 +177,5 @@ export function lugarValido(pack: Pack, id: string | null | undefined): boolean 
 export function reacaoValida(pack: Pack, id: string | null | undefined): boolean {
   return typeof id === "string" && (pack.reacoes ?? []).some((r) => r.id === id);
 }
+
+export const isValidReaction = reacaoValida;

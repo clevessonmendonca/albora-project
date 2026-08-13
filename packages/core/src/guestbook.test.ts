@@ -17,7 +17,7 @@ import {
   type RascunhoDeRecado,
   type Recado,
   type SessaoDoRecado,
-} from "./recado";
+} from "./guestbook";
 
 const ABERTURA = new Date("2026-08-11T22:00:00Z");
 const ANTES = new Date("2026-08-11T21:59:59Z");

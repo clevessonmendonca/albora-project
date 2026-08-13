@@ -345,3 +345,34 @@ export {
   autorizarParede,
   expiraEmPara,
 } from "./parede";
+
+/** English alias — prefer for new code. */
+export { modoInteracao as interactionMode } from "./interacao";
+/** English alias — prefer for new code. */
+export { interacaoAberta as interactionOpen } from "./interacao";
+/** English alias — prefer for new code. */
+export { derivarChaveMidia as deriveMediaKey } from "./chaves";
+/** English alias — prefer for new code. */
+export { ehMimeVideo as isVideoMime } from "./midia";
+/** English alias — prefer for new code. */
+export { validarDeclaracao as validateDeclaration } from "./midia";
+/** English alias — prefer for new code. */
+export { podeEnviarVideo as canUploadVideo } from "./plano-evento";
+/** English alias — prefer for new code. */
+export { processarFoto as processPhoto } from "./processar";
+/** English alias — prefer for new code. */
+export { montarGaleria as buildGallery } from "./galeria";
+/** English alias — prefer for new code. */
+export { publicarComentario as publishComment } from "./comentario";
+/** English alias — prefer for new code. */
+export { decidirExibicao as decideDisplay } from "./moderacao";
+/** English alias — prefer for new code. */
+export { autorizarCompartilhamento as authorizeShare } from "./compartilhar";
+/** English alias — prefer for new code. */
+export { compor as composeShare } from "./compartilhar";
+/** English alias — prefer for new code. */
+export { montarAlbum as buildAlbum } from "./album";
+/** English alias — prefer for new code. */
+export { lerLinkDeMusica as parseMusicLink } from "./musica";
+/** English alias — prefer for new code. */
+export { exibirMusica as displayMusic } from "./musica";

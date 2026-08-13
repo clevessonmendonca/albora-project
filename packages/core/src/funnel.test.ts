@@ -14,7 +14,7 @@ import {
   validarSequencia,
   type ContagemDePlataforma,
   type EventoDoFunil,
-} from "./funil";
+} from "./funnel";
 
 const SESSAO_FELIZ: readonly EventoDoFunil[] = [
   "qr_scan",

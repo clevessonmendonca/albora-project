@@ -95,3 +95,5 @@ export const QUINZE_ANOS: Pack = {
     { id: "varanda", chaveTitulo: "lugar.varanda" },
   ],
 };
+
+export const FIFTEEN_YEARS = QUINZE_ANOS;

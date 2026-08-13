@@ -5,7 +5,7 @@ import {
   autorizarParede,
   expiraEmPara,
   type CrachaDaParede,
-} from "./parede";
+} from "./wall";
 
 const AGORA = new Date("2026-08-11T23:00:00Z");
 const hora = (n: number) => new Date(AGORA.getTime() + n * 60 * 60 * 1000);

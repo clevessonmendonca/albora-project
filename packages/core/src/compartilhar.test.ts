@@ -32,7 +32,7 @@ import {
   type SessaoQueCompartilha,
 } from "./compartilhar";
 import { decidirExibicao, type EstadoDaMidia } from "./moderacao";
-import { modelosPermitidos } from "./telao";
+import { modelosPermitidos } from "./wall-display";
 
 const AGORA = new Date("2026-08-08T23:00:00.000Z");
 const ONTEM = new Date("2026-08-07T20:00:00.000Z");

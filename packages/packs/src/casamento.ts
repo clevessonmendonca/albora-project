@@ -103,3 +103,5 @@ export const CASAMENTO: Pack = {
     fontes: { titulo: "Fraunces, Georgia, serif" },
   },
 };
+
+export const WEDDING = CASAMENTO;

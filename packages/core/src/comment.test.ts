@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import * as modulo from "./comentario";
+import * as modulo from "./comment";
 import {
   MAX_CARACTERES,
   PROFUNDIDADE_MAXIMA,
@@ -13,7 +13,7 @@ import {
   type EstadoDoComentario,
   type EventoDoComentario,
   type PedidoDeComentario,
-} from "./comentario";
+} from "./comment";
 import type { EstadoDaMidia, EstadoDoEvento } from "./moderacao";
 
 const AGORA = new Date("2026-08-11T23:00:00Z");

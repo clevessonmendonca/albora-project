@@ -1,84 +1,85 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { iniciais, Avatar } from "./Avatar";
-import { BarraDeStatus } from "./BarraDeStatus";
-import { Botao } from "./Botao";
-import { cn } from "./variantes";
+import { Avatar, initials } from "./avatar";
+import { Button } from "./button";
+import { StatusBar } from "./status-bar";
+import { cn } from "./variants";
 
-/** Espaço reservado acima da barra de abas fixa nas rotas do convidado. */
-export const RODAPE_ABAS = "calc(6.5rem + env(safe-area-inset-bottom))";
-export const PADDING_LATERAL = "1.125rem";
+export const TAB_BAR_INSET = "calc(6.5rem + env(safe-area-inset-bottom))";
+export const GUEST_PADDING_X = "1.125rem";
 
-export const iniciaisDoAutor = iniciais;
+export const authorInitials = initials;
 
-export function ChaoConvidado({
+export function GuestShell({
   children,
-  semStatus,
+  hideStatusBar,
 }: {
   children: ReactNode;
-  semStatus?: boolean;
+  hideStatusBar?: boolean;
 }) {
   return (
     <div className="flex min-h-dvh flex-col bg-bg font-corpo text-ink leading-normal">
-      {!semStatus && <BarraDeStatus />}
+      {!hideStatusBar && <StatusBar />}
       {children}
     </div>
   );
 }
 
-export function MioloConvidado({
+export function GuestMain({
   children,
-  comAbas = true,
+  reserveTabBarSpace = true,
 }: {
   children: ReactNode;
-  comAbas?: boolean;
+  reserveTabBarSpace?: boolean;
 }) {
   return (
     <div
-      className="flex flex-1 flex-col px-[1.125rem]"
-      style={{ paddingBottom: comAbas ? RODAPE_ABAS : "1.5rem" }}
+      className={cn(
+        "flex flex-1 flex-col px-[1.125rem]",
+        reserveTabBarSpace
+          ? "pb-[calc(6.5rem+env(safe-area-inset-bottom))]"
+          : "pb-6",
+      )}
     >
       {children}
     </div>
   );
 }
 
-export function CabecalhoConvidado({
-  titulo,
-  hrefInicio,
-  acao,
+export function GuestHeader({
+  title,
+  homeHref,
+  action,
 }: {
-  titulo: string;
-  hrefInicio?: string;
-  acao?: ReactNode;
+  title: string;
+  homeHref?: string;
+  action?: ReactNode;
 }) {
-  const tituloClass =
+  const titleClass =
     "font-titulo text-[1.125rem] tracking-titulo text-inherit no-underline";
 
   return (
     <div className="flex items-center justify-between gap-3 pb-3.5 pt-1.5">
-      {hrefInicio ? (
-        <a href={hrefInicio} className={tituloClass}>
-          {titulo}
+      {homeHref ? (
+        <a href={homeHref} className={titleClass}>
+          {title}
         </a>
       ) : (
-        <span className={tituloClass}>{titulo}</span>
+        <span className={titleClass}>{title}</span>
       )}
-      {acao}
+      {action}
     </div>
   );
 }
 
-export function RotuloEvento({ children }: { children: ReactNode }) {
+export function EventLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-acento">
-      {children}
-    </p>
+    <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-acento">{children}</p>
   );
 }
 
-export function TituloGrande({ children }: { children: ReactNode }) {
+export function DisplayTitle({ children }: { children: ReactNode }) {
   return (
     <h1 className="mt-3.5 font-titulo text-[clamp(1.75rem,8vw,2rem)] font-light leading-[1.1] tracking-titulo [text-wrap:balance]">
       {children}
@@ -86,81 +87,81 @@ export function TituloGrande({ children }: { children: ReactNode }) {
   );
 }
 
-export function TextoSecundario({ children }: { children: ReactNode }) {
+export function SecondaryText({ children }: { children: ReactNode }) {
   return <p className="mt-3.5 text-[0.9375rem] text-ink-2">{children}</p>;
 }
 
-export function EstadoVazio({
-  titulo,
+export function EmptyState({
+  title,
   lede,
-  caminhoDaCamera,
-  rotuloCamera = "Tirar foto",
+  cameraPath,
+  cameraLabel = "Tirar foto",
 }: {
-  titulo: string;
+  title: string;
   lede: string;
-  caminhoDaCamera: string;
-  rotuloCamera?: string;
+  cameraPath: string;
+  cameraLabel?: string;
 }) {
   return (
     <div className="grid gap-5 py-[calc(var(--espaco)*8)] text-center">
       <div>
         <p className="mb-1.5 font-titulo text-[1.6rem] font-medium leading-snug tracking-titulo [text-wrap:balance]">
-          {titulo}
+          {title}
         </p>
         <p className="m-0 leading-relaxed text-ink-2">{lede}</p>
       </div>
       <a
-        href={caminhoDaCamera}
+        href={cameraPath}
         className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline"
       >
-        {rotuloCamera}
+        {cameraLabel}
       </a>
     </div>
   );
 }
 
-export function SheetBaixo({
-  titulo,
-  aberto,
-  onFechar,
+export function BottomSheet({
+  title,
+  open,
+  onClose,
   children,
-  rodape,
-  idTitulo,
+  footer,
+  titleId,
 }: {
-  titulo: string;
-  aberto: boolean;
-  onFechar: () => void;
+  title: string;
+  open: boolean;
+  onClose: () => void;
   children: ReactNode;
-  rodape?: ReactNode;
-  idTitulo?: string;
+  footer?: ReactNode;
+  titleId?: string;
 }) {
-  if (!aberto) return null;
+  if (!open) return null;
 
-  const tituloId = idTitulo ?? "sheet-titulo";
+  const headingId = titleId ?? "sheet-title";
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby={tituloId}
+      aria-labelledby={headingId}
       className="fixed inset-0 z-[35] grid place-items-end bg-bg-overlay p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]"
-      onClick={onFechar}
+      onClick={onClose}
     >
       <div
         className="grid max-h-[min(78dvh,32rem)] w-[min(26rem,100%)] grid-rows-[auto_1fr_auto] gap-3.5 overflow-hidden rounded-superficie border border-linha bg-superficie p-5"
         onClick={(ev) => ev.stopPropagation()}
       >
-        <h2 id={tituloId} className="m-0 font-titulo text-[1.0625rem] font-normal">
-          {titulo}
+        <h2 id={headingId} className="m-0 font-titulo text-[1.0625rem] font-normal">
+          {title}
         </h2>
         <div className="min-h-0 overflow-auto">{children}</div>
-        {rodape}
+        {footer}
       </div>
     </div>
   );
 }
 
-export function AvisoGate({ children }: { children: ReactNode }) {
+export function GateNotice({ children }: { children: ReactNode }) {
   return (
     <div className="mb-4 flex items-start gap-3 rounded-token bg-superficie px-4 py-3.5">
       <span className="pulso mt-1.5 size-[0.4375rem] shrink-0 rounded-full bg-acento" />
@@ -169,108 +170,95 @@ export function AvisoGate({ children }: { children: ReactNode }) {
   );
 }
 
-export function FaixaMissao({
-  indice,
+export function MissionBanner({
+  index,
   total,
-  titulo,
+  title,
 }: {
-  indice: number;
+  index: number;
   total: number;
-  titulo: string;
+  title: string;
 }) {
   return (
-    <div className="rounded-token bg-[color-mix(in_srgb,var(--acento)_92%,transparent)] px-4 py-3.5 text-sobre-acento">
+    <div className="rounded-token bg-acento px-4 py-3.5 text-sobre-acento">
       <p className="m-0 text-[0.5625rem] uppercase tracking-rotulo opacity-75">
-        Missão {String(indice).padStart(2, "0")} de {String(total).padStart(2, "0")}
+        Missão {String(index).padStart(2, "0")} de {String(total).padStart(2, "0")}
       </p>
-      <p className="mt-1 font-titulo text-[1.0625rem] leading-tight">{titulo}</p>
+      <p className="mt-1 font-titulo text-[1.0625rem] leading-tight">{title}</p>
     </div>
   );
 }
 
-export function AvatarAutor({ nome }: { nome: string }) {
-  return <Avatar nome={nome} className="size-[1.875rem] text-[0.75rem]" />;
+export function PostAuthorAvatar({ name }: { name: string }) {
+  return <Avatar name={name} className="size-[1.875rem] text-[0.75rem]" />;
 }
 
-export function CabecalhoPublicacao({
-  autor,
-  meta,
-}: {
-  autor: string;
-  meta?: string | null;
-}) {
+export function PostHeader({ author, meta }: { author: string; meta?: string | null }) {
   return (
     <div className="flex items-center gap-2.5 py-1">
-      <AvatarAutor nome={autor} />
-      <span className="flex-1 text-[0.84375rem]">{autor}</span>
+      <PostAuthorAvatar name={author} />
+      <span className="flex-1 text-[0.84375rem]">{author}</span>
       {meta && <span className="text-[0.6875rem] text-ink-3">{meta}</span>}
     </div>
   );
 }
 
-export function BotaoPrimario({
+export function PrimaryButton({
   children,
   onClick,
-  desabilitado,
-  tipo = "button",
+  disabled,
+  type = "button",
 }: {
   children: ReactNode;
   onClick?: () => void;
-  desabilitado?: boolean;
-  tipo?: "button" | "submit";
+  disabled?: boolean;
+  type?: "button" | "submit";
 }) {
   return (
-    <Botao
-      type={tipo}
-      variante="primario"
-      tamanho="g"
-      largura="cheia"
-      disabled={desabilitado}
-      onClick={onClick}
-    >
+    <Button type={type} variant="primary" size="lg" width="full" disabled={disabled} onClick={onClick}>
       {children}
-    </Botao>
+    </Button>
   );
 }
 
-export function BotaoSecundario({
+export function SecondaryButton({
   children,
   onClick,
-  desabilitado,
-  tipo = "button",
+  disabled,
+  type = "button",
 }: {
   children: ReactNode;
   onClick?: () => void;
-  desabilitado?: boolean;
-  tipo?: "button" | "submit";
+  disabled?: boolean;
+  type?: "button" | "submit";
 }) {
   return (
-    <Botao
-      type={tipo}
-      variante="secundario"
-      tamanho="md"
-      largura="cheia"
+    <Button
+      type={type}
+      variant="secondary"
+      size="md"
+      width="full"
       className="py-[0.9375rem] font-normal"
-      disabled={desabilitado}
+      disabled={disabled}
       onClick={onClick}
     >
       {children}
-    </Botao>
+    </Button>
   );
 }
 
-export function CampoNome({
-  valor,
+export function NameField({
+  value,
   onChange,
   placeholder,
 }: {
-  valor: string;
-  onChange: (valor: string) => void;
+  value: string;
+  onChange: (value: string) => void;
   placeholder: string;
 }) {
   return (
     <input
-      value={valor}
+      value={value}
       onChange={(ev) => onChange(ev.target.value)}
       placeholder={placeholder}
       maxLength={40}
@@ -282,25 +270,20 @@ export function CampoNome({
   );
 }
 
-export function Consentimento({
-  marcado,
+export function ConsentCheckbox({
+  checked,
   onChange,
   children,
 }: {
-  marcado: boolean;
-  onChange?: (valor: boolean) => void;
+  checked: boolean;
+  onChange?: (value: boolean) => void;
   children: ReactNode;
 }) {
   return (
-    <label
-      className={cn(
-        "flex items-start gap-3",
-        onChange ? "cursor-pointer" : "cursor-default",
-      )}
-    >
+    <label className={cn("flex items-start gap-3", onChange ? "cursor-pointer" : "cursor-default")}>
       <input
         type="checkbox"
-        checked={marcado}
+        checked={checked}
         readOnly={!onChange}
         onChange={onChange ? (ev) => onChange(ev.target.checked) : undefined}
         className="pointer-events-none absolute size-px opacity-0"
@@ -308,19 +291,19 @@ export function Consentimento({
       <span
         className={cn(
           "grid size-[1.375rem] shrink-0 place-items-center rounded-[0.4375rem] border text-[0.8125rem]",
-          marcado
+          checked
             ? "border-acento bg-acento text-sobre-acento"
             : "border-linha bg-transparent text-transparent",
         )}
       >
-        {marcado ? "✓" : ""}
+        {checked ? "✓" : ""}
       </span>
       <span className="text-[0.8125rem] leading-normal text-ink-2">{children}</span>
     </label>
   );
 }
 
-export function ColunaEntrada({ children }: { children: ReactNode }) {
+export function EntryColumn({ children }: { children: ReactNode }) {
   return (
     <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col justify-center gap-7 px-7 pb-12">
       {children}
@@ -328,7 +311,7 @@ export function ColunaEntrada({ children }: { children: ReactNode }) {
   );
 }
 
-export function LinkDiscreto({
+export function TextLink({
   children,
   onClick,
 }: {
@@ -357,7 +340,7 @@ export function LinkDiscreto({
   );
 }
 
-export function RecadoConsentimento({ children }: { children: ReactNode }) {
+export function ConsentNote({ children }: { children: ReactNode }) {
   return (
     <p className="m-0 rounded-token bg-superficie px-4 py-3.5 text-[0.8125rem] leading-snug text-ink-2">
       {children}
@@ -365,7 +348,7 @@ export function RecadoConsentimento({ children }: { children: ReactNode }) {
   );
 }
 
-export function RecadoErro({ children }: { children: ReactNode }) {
+export function ErrorMessage({ children }: { children: ReactNode }) {
   return (
     <p role="alert" className="mt-3 text-[0.85rem] text-critico">
       {children}
@@ -373,6 +356,6 @@ export function RecadoErro({ children }: { children: ReactNode }) {
   );
 }
 
-export function RodapeDiscreto({ children }: { children: ReactNode }) {
+export function FinePrint({ children }: { children: ReactNode }) {
   return <p className="m-0 text-center text-xs text-ink-3">{children}</p>;
 }
