@@ -82,7 +82,7 @@ export {
   registrarDecisao,
 } from "./moderacao";
 
-export type { EscolhaDoTelao, Faixa, ItemDoTelao, ModeloDeTelao, PerfilDoModelo } from "./telao";
+export type { EscolhaDoTelao, Faixa, ItemDoTelao, ModeloDeTelao, PerfilDoModelo } from "./wall-display";
 export {
   ehVertical,
   faixaDe,
@@ -98,7 +98,7 @@ export {
   pontuacaoPopular,
   proximaDoTelao,
   TETO_DO_CACHE,
-} from "./telao";
+} from "./wall-display";
 
 export type {
   EstadoNaGaleria,
@@ -133,7 +133,7 @@ export type {
   Perda,
   Sequencia,
   Veredito,
-} from "./funil";
+} from "./funnel";
 export {
   ESPINHA_DO_FUNIL,
   EVENTOS_DO_FUNIL,
@@ -151,7 +151,7 @@ export {
   ondeParou,
   taxaDeParticipacao,
   validarSequencia,
-} from "./funil";
+} from "./funnel";
 
 export type {
   AtorDaRemocao,
@@ -164,7 +164,7 @@ export type {
   ResultadoDePublicacao,
   TextoValidado,
   ThreadDeComentario,
-} from "./comentario";
+} from "./comment";
 export {
   MAX_CARACTERES,
   PROFUNDIDADE_MAXIMA,
@@ -174,7 +174,7 @@ export {
   publicarComentario,
   registrarDecisaoDoComentario,
   validarTexto,
-} from "./comentario";
+} from "./comment";
 
 export { classificarTexto } from "./classificador-texto";
 
@@ -316,7 +316,7 @@ export type {
   Recado,
   SessaoDoRecado,
   TelaDoRecado,
-} from "./recado";
+} from "./guestbook";
 export {
   TETO_AUDIO_SEGUNDOS,
   TETO_TEXTO_CARACTERES,
@@ -328,7 +328,7 @@ export {
   telaTemConteudo,
   validarCriacao,
   validarRascunho,
-} from "./recado";
+} from "./guestbook";
 
 export type { PadroesDoEvento, PoliticaDeMenores } from "./menores";
 export {
@@ -338,13 +338,13 @@ export {
   padroesDoEvento,
 } from "./menores";
 
-export type { ConcessaoDaParede, CrachaDaParede, VeredictoDaParede } from "./parede";
+export type { ConcessaoDaParede, CrachaDaParede, VeredictoDaParede } from "./wall";
 export {
   CONCESSOES_DA_PAREDE,
   VALIDADE_DA_PAREDE_HORAS,
   autorizarParede,
   expiraEmPara,
-} from "./parede";
+} from "./wall";
 
 /** English alias — prefer for new code. */
 export { modoInteracao as interactionMode } from "./interacao";
@@ -363,7 +363,7 @@ export { processarFoto as processPhoto } from "./processar";
 /** English alias — prefer for new code. */
 export { montarGaleria as buildGallery } from "./galeria";
 /** English alias — prefer for new code. */
-export { publicarComentario as publishComment } from "./comentario";
+export { publicarComentario as publishComment } from "./comment";
 /** English alias — prefer for new code. */
 export { decidirExibicao as decideDisplay } from "./moderacao";
 /** English alias — prefer for new code. */
@@ -376,3 +376,204 @@ export { montarAlbum as buildAlbum } from "./album";
 export { lerLinkDeMusica as parseMusicLink } from "./musica";
 /** English alias — prefer for new code. */
 export { exibirMusica as displayMusic } from "./musica";
+
+/** English alias — prefer for new code. @see ConcessaoDaParede */
+export type { ConcessaoDaParede as WallGrant } from "./wall";
+/** English alias — prefer for new code. @see CrachaDaParede */
+export type { CrachaDaParede as WallBadge } from "./wall";
+/** English alias — prefer for new code. @see VeredictoDaParede */
+export type { VeredictoDaParede as WallVerdict } from "./wall";
+/** English alias — prefer for new code. @see CONCESSOES_DA_PAREDE */
+export { CONCESSOES_DA_PAREDE as WALL_GRANTS } from "./wall";
+/** English alias — prefer for new code. @see VALIDADE_DA_PAREDE_HORAS */
+export { VALIDADE_DA_PAREDE_HORAS as WALL_VALIDITY_HOURS } from "./wall";
+/** English alias — prefer for new code. @see autorizarParede */
+export { autorizarParede as authorizeWall } from "./wall";
+/** English alias — prefer for new code. @see expiraEmPara */
+export { expiraEmPara as wallExpiresAtFor } from "./wall";
+
+/** English alias — prefer for new code. @see AgendamentoDoRecado */
+export type { AgendamentoDoRecado as GuestbookSchedule } from "./guestbook";
+/** English alias — prefer for new code. @see AudioDoRecado */
+export type { AudioDoRecado as GuestbookAudio } from "./guestbook";
+/** English alias — prefer for new code. @see AudioGravado */
+export type { AudioGravado as RecordedAudio } from "./guestbook";
+/** English alias — prefer for new code. @see CodigoDeEntrega */
+export type { CodigoDeEntrega as DeliveryCode } from "./guestbook";
+/** English alias — prefer for new code. @see Entrega */
+export type { Entrega as GuestbookDelivery } from "./guestbook";
+/** English alias — prefer for new code. @see ErroDoRecado */
+export type { ErroDoRecado as GuestbookError } from "./guestbook";
+/** English alias — prefer for new code. @see EstadoDoAudio */
+export type { EstadoDoAudio as AudioState } from "./guestbook";
+/** English alias — prefer for new code. @see LeituraDoRecado */
+export type { LeituraDoRecado as GuestbookRead } from "./guestbook";
+/** English alias — prefer for new code. @see RascunhoDeRecado */
+export type { RascunhoDeRecado as GuestbookDraft } from "./guestbook";
+/** English alias — prefer for new code. @see Recado */
+export type { Recado as GuestbookEntry } from "./guestbook";
+/** English alias — prefer for new code. @see SessaoDoRecado */
+export type { SessaoDoRecado as GuestbookSession } from "./guestbook";
+/** English alias — prefer for new code. @see TelaDoRecado */
+export type { TelaDoRecado as GuestbookScreen } from "./guestbook";
+/** English alias — prefer for new code. @see TETO_AUDIO_SEGUNDOS */
+export { TETO_AUDIO_SEGUNDOS as MAX_AUDIO_SECONDS } from "./guestbook";
+/** English alias — prefer for new code. @see TETO_TEXTO_CARACTERES */
+export { TETO_TEXTO_CARACTERES as MAX_TEXT_CHARACTERS } from "./guestbook";
+/** English alias — prefer for new code. @see decidirEntrega */
+export { decidirEntrega as decideDelivery } from "./guestbook";
+/** English alias — prefer for new code. @see foiLido */
+export { foiLido as wasRead } from "./guestbook";
+/** English alias — prefer for new code. @see marcarLido */
+export { marcarLido as markRead } from "./guestbook";
+/** English alias — prefer for new code. @see montarTela */
+export { montarTela as buildGuestbookScreen } from "./guestbook";
+/** English alias — prefer for new code. @see recadoPublicado */
+export { recadoPublicado as guestbookPublished } from "./guestbook";
+/** English alias — prefer for new code. @see telaTemConteudo */
+export { telaTemConteudo as guestbookScreenHasContent } from "./guestbook";
+/** English alias — prefer for new code. @see validarCriacao */
+export { validarCriacao as validateGuestbookCreation } from "./guestbook";
+/** English alias — prefer for new code. @see validarRascunho */
+export { validarRascunho as validateGuestbookDraft } from "./guestbook";
+
+/** English alias — prefer for new code. @see CodigoDaTese */
+export type { CodigoDaTese as ThesisCode } from "./funnel";
+/** English alias — prefer for new code. @see CodigoDeMetrica */
+export type { CodigoDeMetrica as MetricCode } from "./funnel";
+/** English alias — prefer for new code. @see CodigoDePlataforma */
+export type { CodigoDePlataforma as PlatformCode } from "./funnel";
+/** English alias — prefer for new code. @see CodigoDeSequencia */
+export type { CodigoDeSequencia as SequenceCode } from "./funnel";
+/** English alias — prefer for new code. @see ComparacaoDePlataforma */
+export type { ComparacaoDePlataforma as PlatformComparison } from "./funnel";
+/** English alias — prefer for new code. @see ContagemDePlataforma */
+export type { ContagemDePlataforma as PlatformCount } from "./funnel";
+/** English alias — prefer for new code. @see ContagemDoEvento */
+export type { ContagemDoEvento as EventCount } from "./funnel";
+/** English alias — prefer for new code. @see DegrauDoFunil */
+export type { DegrauDoFunil as FunnelStep } from "./funnel";
+/** English alias — prefer for new code. @see EtapaDaEspinha */
+export type { EtapaDaEspinha as SpineStage } from "./funnel";
+/** English alias — prefer for new code. @see EventoDoFunil */
+export type { EventoDoFunil as FunnelEvent } from "./funnel";
+/** English alias — prefer for new code. @see LeituraDePlataforma */
+export type { LeituraDePlataforma as PlatformReading } from "./funnel";
+/** English alias — prefer for new code. @see Perda */
+export type { Perda as FunnelLoss } from "./funnel";
+/** English alias — prefer for new code. @see Sequencia */
+export type { Sequencia as FunnelSequence } from "./funnel";
+/** English alias — prefer for new code. @see Veredito */
+export type { Veredito as ThesisVerdict } from "./funnel";
+/** English alias — prefer for new code. @see ESPINHA_DO_FUNIL */
+export { ESPINHA_DO_FUNIL as FUNNEL_SPINE } from "./funnel";
+/** English alias — prefer for new code. @see EVENTOS_DO_FUNIL */
+export { EVENTOS_DO_FUNIL as FUNNEL_EVENTS } from "./funnel";
+/** English alias — prefer for new code. @see MARGEM_DE_RUIDO */
+export { MARGEM_DE_RUIDO as NOISE_MARGIN } from "./funnel";
+/** English alias — prefer for new code. @see MetricaInvalida */
+export { MetricaInvalida as InvalidMetric } from "./funnel";
+/** English alias — prefer for new code. @see PISO_DA_FRICCAO */
+export { PISO_DA_FRICCAO as FRICTION_FLOOR } from "./funnel";
+/** English alias — prefer for new code. @see PISO_DA_TESE */
+export { PISO_DA_TESE as THESIS_FLOOR } from "./funnel";
+/** English alias — prefer for new code. @see PRE_REQUISITOS */
+export { PRE_REQUISITOS as PREREQUISITES } from "./funnel";
+/** English alias — prefer for new code. @see compararPlataforma */
+export { compararPlataforma as comparePlatform } from "./funnel";
+/** English alias — prefer for new code. @see decidirTese */
+export { decidirTese as decideThesis } from "./funnel";
+/** English alias — prefer for new code. @see degraus */
+export { degraus as funnelSteps } from "./funnel";
+/** English alias — prefer for new code. @see ehEventoDoFunil */
+export { ehEventoDoFunil as isFunnelEvent } from "./funnel";
+/** English alias — prefer for new code. @see lerPlataforma */
+export { lerPlataforma as readPlatform } from "./funnel";
+/** English alias — prefer for new code. @see maiorPerda */
+export { maiorPerda as biggestFunnelLoss } from "./funnel";
+/** English alias — prefer for new code. @see ondeParou */
+export { ondeParou as whereFunnelStopped } from "./funnel";
+/** English alias — prefer for new code. @see taxaDeParticipacao */
+export { taxaDeParticipacao as participationRate } from "./funnel";
+/** English alias — prefer for new code. @see validarSequencia */
+export { validarSequencia as validateFunnelSequence } from "./funnel";
+
+/** English alias — prefer for new code. @see EscolhaDoTelao */
+export type { EscolhaDoTelao as WallDisplayChoice } from "./wall-display";
+/** English alias — prefer for new code. @see Faixa */
+export type { Faixa as WallDisplayBand } from "./wall-display";
+/** English alias — prefer for new code. @see ItemDoTelao */
+export type { ItemDoTelao as WallDisplayItem } from "./wall-display";
+/** English alias — prefer for new code. @see ModeloDeTelao */
+export type { ModeloDeTelao as WallDisplayModel } from "./wall-display";
+/** English alias — prefer for new code. @see PerfilDoModelo */
+export type { PerfilDoModelo as WallDisplayModelProfile } from "./wall-display";
+/** English alias — prefer for new code. @see JANELA_RECENTE_MS */
+export { JANELA_RECENTE_MS as RECENT_WINDOW_MS } from "./wall-display";
+/** English alias — prefer for new code. @see MODELOS_DE_TELAO */
+export { MODELOS_DE_TELAO as WALL_DISPLAY_MODELS } from "./wall-display";
+/** English alias — prefer for new code. @see PESOS */
+export { PESOS as WALL_DISPLAY_BAND_WEIGHTS } from "./wall-display";
+/** English alias — prefer for new code. @see PERFIS */
+export { PERFIS as WALL_DISPLAY_MODEL_PROFILES } from "./wall-display";
+/** English alias — prefer for new code. @see TETO_DO_CACHE */
+export { TETO_DO_CACHE as WALL_DISPLAY_CACHE_LIMIT } from "./wall-display";
+/** English alias — prefer for new code. @see ehVertical */
+export { ehVertical as isVertical } from "./wall-display";
+/** English alias — prefer for new code. @see faixaDe */
+export { faixaDe as wallDisplayBandOf } from "./wall-display";
+/** English alias — prefer for new code. @see modeloCorta */
+export { modeloCorta as wallDisplayModelCrops } from "./wall-display";
+/** English alias — prefer for new code. @see modelosDoRodizio */
+export { modelosDoRodizio as wallDisplayRotationModels } from "./wall-display";
+/** English alias — prefer for new code. @see modelosPermitidos */
+export { modelosPermitidos as allowedWallDisplayModels } from "./wall-display";
+/** English alias — prefer for new code. @see podarCache */
+export { podarCache as pruneWallDisplayCache } from "./wall-display";
+/** English alias — prefer for new code. @see pontuacaoPopular */
+export { pontuacaoPopular as wallDisplayPopularityScore } from "./wall-display";
+/** English alias — prefer for new code. @see problemasDaEscolha */
+export { problemasDaEscolha as wallDisplayChoiceProblems } from "./wall-display";
+/** English alias — prefer for new code. @see proximaDoTelao */
+export { proximaDoTelao as nextForWallDisplay } from "./wall-display";
+
+/** English alias — prefer for new code. @see AtorDaRemocao */
+export type { AtorDaRemocao as CommentRemovalActor } from "./comment";
+/** English alias — prefer for new code. @see CodigoDeComentario */
+export type { CodigoDeComentario as CommentCode } from "./comment";
+/** English alias — prefer for new code. @see Comentario */
+export type { Comentario as Comment } from "./comment";
+/** English alias — prefer for new code. @see EntradaDeAuditoriaDeComentario */
+export type { EntradaDeAuditoriaDeComentario as CommentAuditEntry } from "./comment";
+/** English alias — prefer for new code. @see EstadoDoComentario */
+export type { EstadoDoComentario as CommentState } from "./comment";
+/** English alias — prefer for new code. @see EventoDoComentario */
+export type { EventoDoComentario as CommentEvent } from "./comment";
+/** English alias — prefer for new code. @see PedidoDeComentario */
+export type { PedidoDeComentario as CommentRequest } from "./comment";
+/** English alias — prefer for new code. @see ResultadoDePublicacao */
+export type { ResultadoDePublicacao as CommentPublishResult } from "./comment";
+/** English alias — prefer for new code. @see TextoValidado */
+export type { TextoValidado as ValidatedCommentText } from "./comment";
+/** English alias — prefer for new code. @see ThreadDeComentario */
+export type { ThreadDeComentario as CommentThread } from "./comment";
+/** English alias — prefer for new code. @see MAX_CARACTERES */
+export { MAX_CARACTERES as MAX_COMMENT_CHARACTERS } from "./comment";
+/** English alias — prefer for new code. @see PROFUNDIDADE_MAXIMA */
+export { PROFUNDIDADE_MAXIMA as MAX_COMMENT_DEPTH } from "./comment";
+/** English alias — prefer for new code. @see decidirExibicaoDoComentario */
+export { decidirExibicaoDoComentario as decideCommentDisplay } from "./comment";
+/** English alias — prefer for new code. @see montarThread */
+export { montarThread as buildCommentThread } from "./comment";
+/** English alias — prefer for new code. @see podeRemoverComentario */
+export { podeRemoverComentario as canRemoveComment } from "./comment";
+/** English alias — prefer for new code. @see registrarDecisaoDoComentario */
+export { registrarDecisaoDoComentario as registerCommentDecision } from "./comment";
+/** English alias — prefer for new code. @see validarTexto */
+export { validarTexto as validateCommentText } from "./comment";
+
+/**
+ * PT filename shims (re-export EN modules). Prefer EN paths in new code:
+ * `wall`, `guestbook`, `funnel`, `wall-display`, `comment`,
+ * `album`, `musica`, `compartilhar`.
+ */
