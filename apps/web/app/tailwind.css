@@ -6,7 +6,8 @@
  * saem do CSS final e o componente renderiza sem estilo. É o análogo do
  * `content` do v3, agora no CSS.
  */
-@source "../**/*.{ts,tsx}";
+@source "../app/**/*.{ts,tsx}";
+@source "../features/**/*.{ts,tsx}";
 @source "../../../packages/ui-web/src/**/*.{ts,tsx}";
 
 /*
@@ -31,10 +32,114 @@
   --color-critico: var(--critico);
   --color-bg-vidro: color-mix(in srgb, var(--bg) 72%, transparent);
   --color-bg-vidro-forte: color-mix(in srgb, var(--bg) 62%, transparent);
+  --color-bg-vidro-suave: color-mix(in srgb, var(--bg) 88%, transparent);
+  --color-bg-vidro-opaco: color-mix(in srgb, var(--bg) 90%, transparent);
   --color-bg-overlay: color-mix(in srgb, var(--bg) 45%, transparent);
+  --color-ink-skeleton: color-mix(in srgb, var(--ink) 8%, transparent);
+  --color-bg-video-scrim: color-mix(in srgb, var(--bg) 35%, transparent);
+  --color-bg-video-scrim-forte: color-mix(in srgb, var(--bg) 40%, transparent);
+
+  --background-image-gradient-cover-hero: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--bg) 30%, transparent) 0%,
+    transparent 26%,
+    transparent 58%,
+    var(--bg) 100%
+  );
+  --background-image-gradient-moment-scrim: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--bg) 88%, transparent),
+    transparent 52%
+  );
+  --background-image-gradient-video-scrim: linear-gradient(
+    to top,
+    var(--color-bg-video-scrim),
+    transparent 55%
+  );
+  --background-image-gradient-video-scrim-forte: linear-gradient(
+    to top,
+    var(--color-bg-video-scrim-forte),
+    transparent 55%
+  );
+  --background-image-gradient-chao-quente: linear-gradient(
+    168deg,
+    color-mix(in srgb, var(--acento) 6%, var(--superficie-alta)),
+    color-mix(in srgb, var(--acento) 14%, var(--superficie)) 55%,
+    color-mix(in srgb, var(--acento) 26%, var(--superficie))
+  );
+  --background-image-gradient-aparelho: linear-gradient(
+    155deg,
+    var(--superficie-alta),
+    color-mix(in srgb, var(--acento) 18%, var(--superficie))
+  );
+  --color-acento-overlay-suave: color-mix(in srgb, var(--acento) 20%, transparent);
+  --color-acento-overlay: color-mix(in srgb, var(--acento) 22%, transparent);
+  --color-ink-borda: color-mix(in srgb, var(--ink) 12%, transparent);
+  --color-ink-borda-forte: color-mix(in srgb, var(--ink) 20%, transparent);
+  --color-ink-superficie: color-mix(in srgb, var(--ink) 22%, var(--superficie));
+  --color-bg-vidro-medio: color-mix(in srgb, var(--bg) 78%, transparent);
+  --color-bg-overlay-medio: color-mix(in srgb, var(--bg) 55%, transparent);
   --color-acento-superficie: color-mix(in srgb, var(--acento) 12%, var(--superficie));
   --color-acento-superficie-suave: color-mix(in srgb, var(--acento) 10%, var(--superficie));
+  --color-acento-superficie-forte: color-mix(in srgb, var(--acento) 14%, var(--superficie));
   --color-acento-fundo: color-mix(in srgb, var(--acento) 9%, var(--superficie-alta));
+  --color-acento-borda: color-mix(in srgb, var(--acento) 35%, var(--linha));
+  --color-critico-superficie: color-mix(in srgb, var(--critico) 10%, var(--superficie));
+  --color-critico-borda: color-mix(in srgb, var(--critico) 35%, transparent);
+  --color-critico-overlay: color-mix(in srgb, var(--critico) 62%, transparent);
+  --color-ink-suave: color-mix(in srgb, var(--ink) 8%, transparent);
+  --color-noite-overlay: color-mix(in srgb, var(--noite) 35%, transparent);
+  --color-noite-vidro: color-mix(in srgb, var(--noite) 45%, transparent);
+  --color-amostra-clara: color-mix(in srgb, var(--acento) 58%, var(--bg));
+  --color-amostra-escura: color-mix(in srgb, var(--acento) 65%, var(--ink));
+
+  --background-image-veu-topo: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--bg) 92%, transparent),
+    transparent
+  );
+  --background-image-veu-topo-medio: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--bg) 92%, transparent),
+    transparent 58%
+  );
+  --background-image-veu-capa: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--bg) 30%, transparent) 0%,
+    transparent 26%,
+    transparent 58%,
+    var(--bg) 100%
+  );
+  --background-image-veu-card: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--bg) 88%, transparent),
+    transparent 52%
+  );
+  --background-image-veu-admin: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--bg) 90%, transparent),
+    transparent 60%
+  );
+  --background-image-veu-feed-topo: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--bg) 86%, transparent),
+    transparent
+  );
+  --background-image-veu-feed-base: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--bg) 92%, transparent),
+    transparent
+  );
+  --background-image-overlay-video: linear-gradient(
+    to top,
+    color-mix(in srgb, var(--bg) 35%, transparent),
+    transparent 55%
+  );
+  --background-image-superficie-vignette: radial-gradient(
+    ellipse 120% 80% at 50% 20%,
+    color-mix(in srgb, var(--ink) 8%, transparent),
+    transparent 55%
+  );
 
   --radius-token: var(--raio);
   --radius-superficie: var(--raio-superficie);
@@ -57,4 +162,19 @@
     0 14px 32px -10px color-mix(in srgb, var(--ink) 20%, transparent),
     0 44px 88px -36px color-mix(in srgb, var(--ink) 34%, transparent);
   --shadow-acento: 0 8px 20px -6px color-mix(in srgb, var(--acento) 70%, transparent);
+  --shadow-aparelho: 0 2px 4px color-mix(in srgb, var(--ink) 8%, transparent),
+    0 24px 48px -16px color-mix(in srgb, var(--ink) 34%, transparent);
+  --shadow-polaroide: 0 24px 80px -32px color-mix(in srgb, var(--ink) 60%, transparent);
+  --shadow-scan-mascara: 0 0 0 9999px color-mix(in srgb, var(--noite) 35%, transparent);
+}
+
+@keyframes mus-pulsar {
+  from {
+    transform: scaleY(0.35);
+    opacity: 0.55;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
