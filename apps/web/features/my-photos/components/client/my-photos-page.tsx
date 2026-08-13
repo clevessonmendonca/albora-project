@@ -7,7 +7,7 @@ import { filaWeb } from "@/lib/fila";
 import { usarCompartilhar } from "@/lib/usar-compartilhar";
 import { usarGaleria } from "@/lib/usar-galeria";
 import { Viewer } from "@/features/feed/components/client/viewer";
-import { BarraDeAbas } from "../barra-de-abas";
+import { BarraDeAbas } from "@/app/e/[slug]/barra-de-abas";
 import {
   BotaoPrimario,
   BotaoSecundario,
@@ -16,8 +16,8 @@ import {
   EstadoVazio,
   MioloConvidado,
   RecadoErro,
-} from "../../../telas/shell-convidado";
-import { Pilula } from "../../../telas/pecas-de-tela";
+} from "@/app/telas/shell-convidado";
+import { Pilula } from "@/app/telas/pecas-de-tela";
 
 function rotuloEstado(estado: ItemDaGaleria["estado"]): string {
   if (estado === "subindo") return "Subindo…";
@@ -99,7 +99,7 @@ function IndicadorVideo() {
   );
 }
 
-export function PaginaMinhas({
+export function MyPhotosPage({
   slug,
   eventoId,
   sessaoId,

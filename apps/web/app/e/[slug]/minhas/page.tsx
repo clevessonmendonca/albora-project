@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { MyPhotosContent } from "@/features/my-photos/components/server/my-photos-content";
+import { MyPhotosPageSkeleton } from "@/features/my-photos/components/skeletons/my-photos-page-skeleton";
 import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
 import { guestSession } from "@/features/guest/data/guest-session";
-import { eventVars } from "@/features/guest/lib/event-vars";
 import { Aviso } from "../aviso";
 import { SemEntrada } from "../sem-entrada";
-import { PaginaMinhas } from "./pagina-minhas";
 
 export const dynamic = "force-dynamic";
 
@@ -23,17 +24,17 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
     );
   }
 
-  const sessao = await guestSession();
-  if (!sessao) return <SemEntrada slug={slug} />;
+  const session = await guestSession();
+  if (!session) return <SemEntrada slug={slug} />;
 
   return (
-    <div style={eventVars(r.evento)}>
-      <PaginaMinhas
+    <Suspense fallback={<MyPhotosPageSkeleton />}>
+      <MyPhotosContent
         slug={slug}
-        eventoId={sessao.eventoId}
-        sessaoId={sessao.sessaoId}
-        cameraPath={`/e/${encodeURIComponent(slug)}/foto`}
+        eventoId={session.eventoId}
+        sessaoId={session.sessaoId}
+        evento={r.evento}
       />
-    </div>
+    </Suspense>
   );
 }
