@@ -1,4 +1,5 @@
 import { comEvento, listarMidiaDaParede, lerModeracaoDoEvento } from "@albora/db";
+import { modelosDoRodizio, type ModeloDeTelao } from "@albora/core";
 import { banco } from "@/lib/banco";
 import { config, ErroConfig, ErroOrigemDeMidia } from "@/lib/config";
 import { consumir } from "@/lib/limite";
@@ -54,7 +55,13 @@ export async function GET(req: Request) {
     const midias = await comEvento(banco(), parede.eventoId, async (c) => {
       const moderacao = await lerModeracaoDoEvento(c, parede.eventoId);
       const lista = await listarMidiaDaParede(c, parede.eventoId);
-      return { moderacao, lista };
+      const { rows } = await c.query<{ identity_tokens: Record<string, unknown> }>(
+        "SELECT identity_tokens FROM events WHERE id = $1",
+        [parede.eventoId],
+      );
+      const tokens = rows[0]?.identity_tokens ?? {};
+      const telaoModelos = modelosDoRodizio(tokens.telaoModelos) as ModeloDeTelao[];
+      return { moderacao, lista, telaoModelos };
     });
 
     // Uma expiração só para o lote: a TV renova a página inteira, e validades
@@ -75,7 +82,7 @@ export async function GET(req: Request) {
 
     console.log("parede.pagina", { eventoId: parede.eventoId, itens: itens.length });
 
-    return ok({ itens, expiraEm, panico: midias.moderacao.panico });
+    return ok({ itens, expiraEm, panico: midias.moderacao.panico, telaoModelos: midias.telaoModelos });
   } catch (e) {
     return erroInesperado("parede", e);
   }

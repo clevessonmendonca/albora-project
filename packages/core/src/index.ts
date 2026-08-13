@@ -92,6 +92,7 @@ export {
   MODELOS_DE_TELAO,
   PERFIS,
   PESOS,
+  modelosDoRodizio,
   problemasDaEscolha,
   podarCache,
   pontuacaoPopular,

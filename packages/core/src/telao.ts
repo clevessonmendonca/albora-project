@@ -92,6 +92,26 @@ export function problemasDaEscolha(escolhidos: readonly ModeloDeTelao[]): string
   return [];
 }
 
+const MODELOS_CONHECIDOS = new Set<string>(MODELOS_DE_TELAO);
+
+function ehModeloDeTelao(valor: unknown): valor is ModeloDeTelao {
+  return typeof valor === "string" && MODELOS_CONHECIDOS.has(valor);
+}
+
+/** Normaliza a escolha do casal; inválida ou ausente volta ao rodízio completo. */
+export function modelosDoRodizio(escolhidos: unknown): readonly ModeloDeTelao[] {
+  if (!Array.isArray(escolhidos) || escolhidos.length === 0) {
+    return MODELOS_DE_TELAO;
+  }
+
+  const filtrados = escolhidos.filter(ehModeloDeTelao);
+  if (filtrados.length === 0 || problemasDaEscolha(filtrados).length > 0) {
+    return MODELOS_DE_TELAO;
+  }
+
+  return filtrados;
+}
+
 /** Quanto tempo uma foto conta como "recente". */
 export const JANELA_RECENTE_MS = 12 * 60 * 1000;
 

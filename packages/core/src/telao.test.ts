@@ -8,6 +8,7 @@ import {
   PERFIS,
   problemasDaEscolha,
   modeloCorta,
+  modelosDoRodizio,
   modelosPermitidos,
   podarCache,
   pontuacaoPopular,
@@ -238,6 +239,12 @@ describe("os oito modelos e a escolha do casal", () => {
     expect(problemasDaEscolha(["cheio", "polaroide"])).toEqual([]);
     expect(problemasDaEscolha(["dump"])).toEqual([]);
     expect(problemasDaEscolha([...MODELOS_DE_TELAO])).toEqual([]);
+  });
+
+  it("modelosDoRodizio cai no padrão quando inválido", () => {
+    expect(modelosDoRodizio(undefined)).toEqual(MODELOS_DE_TELAO);
+    expect(modelosDoRodizio(["cheio"])).toEqual(MODELOS_DE_TELAO);
+    expect(modelosDoRodizio(["polaroide", "dump"])).toEqual(["polaroide", "dump"]);
   });
 
   it("dump mostra muitas de uma vez e carrossel uma só", () => {

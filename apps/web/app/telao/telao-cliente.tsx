@@ -6,6 +6,7 @@ import {
   TETO_DO_CACHE,
   ehMimeVideo,
   modeloCorta,
+  modelosDoRodizio,
   podarCache,
   proximaDoTelao,
   type ItemDoTelao,
@@ -43,8 +44,6 @@ const POLL_MIDIA_MS = 6_000;
 const ROTACAO_MS = 8_000;
 const FOLGA_DE_RENOVACAO_MS = 90_000;
 
-const ROTACAO: readonly ModeloDeTelao[] = MODELOS_DE_TELAO;
-
 type Cena = { modelo: ModeloDeTelao; ids: string[] };
 
 export function Telao({ variaveisIniciais }: { variaveisIniciais: Record<string, string> }) {
@@ -55,7 +54,8 @@ export function Telao({ variaveisIniciais }: { variaveisIniciais: Record<string,
   const itensRef = useRef<Map<string, ItemApi>>(new Map());
   const dimsRef = useRef<Map<string, { largura: number; altura: number }>>(new Map());
   const exibicoesRef = useRef<Map<string, number>>(new Map());
-  const rotacaoRef = useRef(0);
+  const modelosRef = useRef<readonly ModeloDeTelao[]>(MODELOS_DE_TELAO);
+  const indiceModeloRef = useRef(0);
 
   const [cena, setCena] = useState<Cena | null>(null);
   const [carregou, setCarregou] = useState(false);
@@ -150,9 +150,11 @@ export function Telao({ variaveisIniciais }: { variaveisIniciais: Record<string,
       itens: Omit<ItemApi, "expiraEm">[];
       expiraEm: number;
       panico?: boolean;
+      telaoModelos?: unknown;
     };
     const agora = Date.now();
     setPanico(corpo.panico === true);
+    modelosRef.current = modelosDoRodizio(corpo.telaoModelos);
 
     for (const bruto of corpo.itens) {
       const existente = itensRef.current.get(bruto.id);
@@ -223,11 +225,12 @@ export function Telao({ variaveisIniciais }: { variaveisIniciais: Record<string,
     const itens = paraItemDoTelao();
     if (itens.length === 0) return;
 
-    for (let passo = 0; passo < ROTACAO.length; passo++) {
-      const modelo = ROTACAO[(rotacaoRef.current + passo) % ROTACAO.length]!;
+    const rotacao = modelosRef.current;
+    for (let passo = 0; passo < rotacao.length; passo++) {
+      const modelo = rotacao[(indiceModeloRef.current + passo) % rotacao.length]!;
       const ids = selecionar(modelo, itens);
       if (ids.length > 0) {
-        rotacaoRef.current = (rotacaoRef.current + passo + 1) % ROTACAO.length;
+        indiceModeloRef.current = (indiceModeloRef.current + passo + 1) % rotacao.length;
         for (const id of ids) {
           exibicoesRef.current.set(id, (exibicoesRef.current.get(id) ?? 0) + 1);
         }
