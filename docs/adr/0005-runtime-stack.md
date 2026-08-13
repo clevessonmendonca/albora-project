@@ -26,7 +26,7 @@ apps/
     /             landing
     /e/[slug]     convidado (PWA)
     /admin        anfitrião
-    /telao/[slug] telão
+    /wall-display   telão (EN; /telao redireciona 308)
 packages/
   ui/             tokens + primitivas
   tokens/         resolvedor identity_tokens → valores

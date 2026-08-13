@@ -560,8 +560,8 @@ vendors (
 ### 6.4 Telão
 
 ```
-GET /telao/:slug           → HTML fullscreen, sem chrome
-GET /api/telao/:slug/sse   → stream de novos IDs aprovados
+GET /wall-display           → HTML fullscreen do telão, sem chrome
+GET /api/wall               → estado e mídia do telão pareado (alias EN de /api/parede)
 ```
 
 - Cliente pré-carrega as próximas N imagens

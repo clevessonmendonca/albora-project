@@ -52,6 +52,8 @@ O aplicativo lê `apps/web/.env.local`. Confira **três coisas**, porque cada um
 | `SESSION_SECRET` | **32 caracteres ou mais** | Curto demais: `POST /api/sessions` devolve 500 e a entrada trava no botão "Entrando…". Gere com `openssl rand -base64 32` |
 | `DATABASE_URL` | O **mesmo** banco que o seed semeia | O seed usa `DATABASE_URL_DEV` ou, na falta, `postgres://albora:albora@localhost:55432/albora`. Apontar a aplicação para outro banco dá "Esse endereço não abre nenhuma festa" num slug que você acabou de semear |
 
+**Rotas raiz em inglês, aliases PT preservados.** O canônico é `/scan`, `/wall-display`, `/wall-pair`. URLs antigas (`/escanear`, `/telao`, `/parear`, `/album`) redirecionam 308 em `next.config.ts` — placas já impressas e links salvos continuam abrindo. Query strings (`?codigo=` no pareamento do telão) são preservadas no redirect.
+
 As chaves `R2_*` também são lidas. **Sem elas o upload não fecha** — `presign` e `confirm` respondem `503 config.missing`, o item fica na fila e a tela mostra "n esperando". Isso não impede a maior parte deste runbook, e para o ponto 7 é até útil (§3.7); mas os pontos que exigem `confirm` ficam marcados como não verificados.
 
 ### 0.4 Subir o ambiente
@@ -154,7 +156,7 @@ Pela regra, a contagem esperada é:
 
 **Repita uma segunda vez sem limpar nada**, pelo botão "Tirar outra". O caminho encurta para missão → câmera → "Enviar" → "Pronto": **três toques** depois do "Tirar outra", sem consentimento e sem nome.
 
-> **Lacuna conhecida, e ela é da task 005.** Se em vez de "Tirar outra" você **voltar a `/e/festa-demo`** — que é o que o convidado faz ao escanear o QR de novo, ou ao reabrir o link do WhatsApp —, a tela de consentimento aparece outra vez e **o campo de nome vem vazio**. O nome é gravado no aparelho, mas nada o lê de volta. A sessão em si continua válida: ir direto a `/e/festa-demo/foto` cai nas missões sem perguntar nada. Registre se isso acontecer; não é falha do ponto 1.
+> **Lacuna conhecida, e ela é da task 005.** Se em vez de "Tirar outra" você **voltar a `/e/festa-demo`** — que é o que o convidado faz ao escanear o QR de novo, ou ao reabrir o link do WhatsApp —, a tela de consentimento aparece outra vez e **o campo de nome vem vazio**. O nome é gravado no aparelho, mas nada o lê de volta. A sessão em si continua válida: ir direto a `/e/festa-demo/photo` cai nas missões sem perguntar nada. Registre se isso acontecer; não é falha do ponto 1.
 
 ### 3.2 Ponto 2 — permissão de câmera negada
 
@@ -169,7 +171,7 @@ Pela regra, a contagem esperada é:
 ### 3.3 Ponto 3 — o editor funciona com a rede desligada
 
 **Faça:**
-1. Abra `/e/festa-demo/foto` com rede, e **espere a segunda carga** para o Service Worker assumir (§2).
+1. Abra `/e/festa-demo/photo` com rede, e **espere a segunda carga** para o Service Worker assumir (§2).
 2. Ligue o modo avião.
 3. Recarregue a página.
 4. Tire uma foto e vá até o editor.

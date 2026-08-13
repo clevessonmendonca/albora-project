@@ -14,7 +14,7 @@ Este documento substitui o recorte “só MVP” por **entrega completa** alinha
 |---|---|---|---|
 | **1 — convidado A** | A | A-01 Scanner · A-02 Missões · A-03 Minhas · A-04 Foto · A-05 Comentar · A-06 Denúncia · A-07 Fila · A-08 Música · A-09 Vazios | **Catálogo feito** · **Produto:** reentrada `/capa`, `SemEntrada`, fila global, hub capa, momentos→álbum, motivo na denúncia, CTA PWA 1ª foto |
 | **2 — anfitrião A** | A | B-01 Login · B-02 Criar evento · B-03 Identidade · B-05 O álbum · B-08 Peças · C-02 Pânico | **Catálogo feito** · **Produto feito:** wizard, identidade, álbum, nav, telãoModelos, **painel ao vivo com participação** |
-| **3 — pós-H1** | B | A-10 App · A-11 Parear · A-12 Recado · B-04 Missões editor · B-06 Moderação · B-07 Convidados · C-01 Vídeo parede | **Próxima** — Onda 2 fechada; começar por B-06 (moderação admin) ou A-11 (parear app) |
+| **3 — pós-H1** | B | A-10 App · A-11 Parear · A-12 Recado · B-04 Missões editor · B-06 Moderação · B-07 Convidados · C-01 Vídeo parede | **Em curso** — B-06/B-07/A-11/C-01 no produto; falta A-12 recado e B-04 missões |
 | **4 — escala** | C | A-13 Recap · B-09 Livro · B-10 Retenção | Pendente |
 
 ---
@@ -27,8 +27,12 @@ Este documento substitui o recorte “só MVP” por **entrega completa** alinha
 | A2 | Entrada = `TelaEntrada` | **Feito** (produto + catálogo) |
 | A3 | Feed = `TelaFeed` / `TelaAntesDoGate` | **Feito** (produto + catálogo) |
 | A4 | Álbum = `TelaAlbum` | **Feito** (produto + catálogo) |
-| A5 | Capa do evento = `TelaCapa` (rota `/e/[slug]/capa`) | **Feito** (produto + catálogo) |
+| A5 | Capa do evento = `TelaCapa` (rota `/e/[slug]/cover`; PT `/capa` redireciona 308) | **Feito** (produto + catálogo) |
 | A6 | Câmera com missão sobre o visor = `TelaCamera` | **Feito** (produto + catálogo) |
+
+**Rotas do convidado (EN canônico):** `/cover`, `/photo`, `/my-photos`, `/music`, `/missions`, `/pair`. Aliases PT (`capa`, `foto`, etc.) redirecionam 308 em `next.config.ts`; query strings (ex. `?missao=`) são preservadas.
+
+**Rotas raiz públicas (EN canônico):** `/scan` (resgate por QR/código), `/wall-display` (telão fullscreen), `/wall-pair` (autorização do telão — spec 010). Aliases PT (`/escanear`, `/telao`, `/parear`) e `/album` redirecionam 308; query strings (ex. `?codigo=` em `/parear`) são preservadas. `/wall-pair` na raiz é **autorização do telão** — distinto de `/e/[slug]/pair` (pareamento do app nativo) e de `/app/parear` (resgate no app instalado). Não usamos `/wall` na raiz para não colidir semanticamente com `/api/wall`.
 
 ---
 
@@ -37,9 +41,9 @@ Este documento substitui o recorte “só MVP” por **entrega completa** alinha
 | # | Item | Estado |
 |---|---|---|
 | B1 | Coluna `events.plan` + cota de vídeo por convidado (grátis: 1) | **Feito** |
-| B2 | Upload de vídeo (presign/confirm/fila) | **Feito** (falta `<video>` no feed/telão) |
+| B2 | Upload de vídeo (presign/confirm/fila) | **Feito** |
 | B3 | Resolução 1600 vs 3500 por plano | Parcial (só redimensionamento) |
-| B4 | Telão e feed reproduzem vídeo sem cortar vertical | Pendente |
+| B4 | Telão e feed reproduzem vídeo sem cortar vertical | **Feito** |
 
 ---
 
@@ -49,9 +53,9 @@ Este documento substitui o recorte “só MVP” por **entrega completa** alinha
 |---|---|
 | Painel ao vivo (`TelaPainel` / `TelaAdminPainel`) | **Catálogo feito** · **Produto feito** — métricas H1, fila de revisão, últimas fotos em `/admin/e/[id]` |
 | Modelos da parede (`TelaModelosDaParede` / `TelaAdminParede`) | **Catálogo feito** · telão lê `telaoModelos` do evento |
-| Login magic link (`TelaLogin`) | **Catálogo feito** · produto em `/admin/entrar` |
-| Wizard criar evento (`TelaCriarEvento`) | **Catálogo feito** · **Produto feito** em `/admin/novo` (5 passos) |
-| Identidade + missões na criação (`TelaIdentidade`) | **Catálogo feito** · **Produto feito** (wizard + `/admin/e/[id]/identidade`) |
+| Login magic link (`TelaLogin`) | **Catálogo feito** · produto em `/admin/sign-in` |
+| Wizard criar evento (`TelaCriarEvento`) | **Catálogo feito** · **Produto feito** em `/admin/new` (5 passos) |
+| Identidade + missões na criação (`TelaIdentidade`) | **Catálogo feito** · **Produto feito** (wizard + `/admin/e/[id]/identity`) |
 | O álbum anfitrião (`TelaAlbumAnfitriao`) | **Catálogo feito** · **Produto feito** em `/admin/e/[id]/album` |
 | Peças PDF + ZIP (`TelaPecas`) | **Catálogo feito** · SVG no admin; PDF na fila |
 | Pânico na parede (`TelaPanico`) | **Catálogo feito** · API + telão existem |

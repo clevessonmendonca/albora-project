@@ -27,7 +27,7 @@ O build de cada tela nova reaproveita as peças já existentes, não redesenha p
 - **Molduras/telefone:** `Aparelho`, `Navegador`, `Parede`, `BarraDeStatus` (`pecas-de-tela.tsx`).
 - **Shell do convidado:** `ChaoConvidado`, `MioloConvidado`, `CabecalhoConvidado`, `BarraDeAbas`, `BotaoPrimario`/`Secundario`, `CampoNome`, `Consentimento`, `AvisoGate`, `CabecalhoPublicacao`, `AvatarAutor` (`shell-convidado.tsx`).
 - **Ícones/átomos:** `Estrela`, `IconeComentario`, `IconeCompartilhar`, `IconeGrade`, `IconePilha`, `IconeMais`, `IconePessoa`, `IconeVoltar`, `Pilula`, `BotaoFlutuante`, `Moldura`.
-- **Anfitrião:** `Lateral` (8 seções), `Cartao`, `Interruptor`, `Marcador` (hoje em `telas.tsx`).
+- **Anfitrião:** `Lateral` (8 seções), `Cartao`, `Interruptor`, `Marcador` (`telas-admin.tsx`, `telas-anfitriao-desktop.tsx`).
 
 Quando uma tela precisa de um átomo novo, ele entra no `pecas-de-tela.tsx` e vira reutilizável — nunca inline.
 

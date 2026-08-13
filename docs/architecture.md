@@ -61,16 +61,19 @@ O terceiro argumento `true` em `current_setting` evita o erro quando o setting n
 
 **O `NULLIF` não é defensivo, é obrigatório**, e a razão não é óbvia. Depois de um `SET LOCAL`, ao commitar, um GUC customizado não volta a NULL — volta a **string vazia**. E `''::uuid` não "deixa de casar": ele **estoura** com `invalid input syntax`. Sem o `NULLIF`, a mesma consulta se comporta de dois jeitos na mesma pool — zero linhas em conexão nova, erro 500 em conexão reciclada por outro evento. A diferença entre "falha fechado" e "falha às vezes" cabe nessas seis letras.
 
-### As duas portas fora da RLS
+### As cinco portas fora da RLS
 
-Duas consultas precisam acontecer **antes** de existir contexto de evento, e nenhuma das duas pode passar pela política sem circularidade:
+Cinco consultas precisam acontecer **antes** de existir contexto de evento, e nenhuma delas pode passar pela política sem circularidade:
 
 | Porta | Circularidade | Por que é aceitável |
 |---|---|---|
-| **Token da sessão** | Resolver o token dá o `event_id`; a tabela do token exigiria o `event_id` | Contém só hash opaco → (`event_id`, `session_id`, validade). Sem PII, sem conteúdo de evento, sem nome. Quem lê a tabela inteira sabe que existem sessões e a quais eventos pertencem, e nada mais |
-| **Slug do evento** | Achar o evento pelo slug exige o `event_id`; o `event_id` vem de achar o evento | O slug **não é segredo**: está impresso na placa da mesa e escaneado por 200 pessoas. A tabela não revela nada que o QR já não revele |
+| **Token da sessão** (`session_tokens`) | Resolver o token dá o `event_id`; a tabela do token exigiria o `event_id` | Contém só hash opaco → (`event_id`, `session_id`, validade). Sem PII, sem conteúdo de evento, sem nome. Quem lê a tabela inteira sabe que existem sessões e a quais eventos pertencem, e nada mais |
+| **Slug do evento** (`event_slugs`) | Achar o evento pelo slug exige o `event_id`; o `event_id` vem de achar o evento | O slug **não é segredo**: está impresso na placa da mesa e escaneado por 200 pessoas. A tabela não revela nada que o QR já não revele |
+| **Crachá da parede** (`wall_tokens`) | Resolver o crachá dá o `event_id`; a tabela exigiria o `event_id` | Só leitura — a TV não é uma pessoa e não tem `session_id`. Sem PII, sem conteúdo de evento |
+| **Pareamento da TV** (`wall_pairings`) | Nasce sem evento; resolve por código e token de poll antes de haver contexto | Só mapeamento código/token → evento, mais consentimento de quem autorizou. Sem nome de convidado, sem foto |
+| **Pareamento web → app** (`app_pairings`) | Resgatar o código dá o `event_id`; a tabela exigiria o `event_id` | Só mapeamento código → (`event_id`, `session_id`). Sem PII — a única coisa que o convidado digita além do nome |
 
-A disciplina é manter as duas portas **mínimas**. Toda coluna que alguém quiser acrescentar ali está pedindo para sair de trás da RLS, e a revisão trata isso como mudança de fronteira, não como campo novo. Um teste da suíte de isolamento existe só para isso: conta as tabelas sem RLS e reprova quando aparece a terceira.
+A disciplina é manter as cinco portas **mínimas**. Toda coluna que alguém quiser acrescentar ali está pedindo para sair de trás da RLS, e a revisão trata isso como mudança de fronteira, não como campo novo. Um teste da suíte de isolamento existe só para isso: fixa a lista de tabelas sem RLS e reprova quando aparece uma sexta.
 
 ### O segundo escopo
 
@@ -313,6 +316,9 @@ vendors ───┘              ├──< guest_sessions >──┬──< up
                           ├──< funnel_events
                           ├──< event_slugs        ← fora da RLS (§3)
                           ├──< session_tokens     ← fora da RLS (§3)
+                          ├──< wall_tokens        ← fora da RLS (§3)
+                          ├──< wall_pairings      ← fora da RLS (§3)
+                          ├──< app_pairings       ← fora da RLS (§3)
                           └──> packs
 ```
 
@@ -330,6 +336,9 @@ vendors ───┘              ├──< guest_sessions >──┬──< up
 | `funnel_events` | Instrumentação do funil, desde o commit 1 | `event_id`, RLS |
 | `event_slugs` | Slug → evento, com o antigo preservado como inativo | **Fora da RLS por circularidade declarada (§3)** |
 | `session_tokens` | Hash do token → (`event_id`, `session_id`), validade, revogação | **Fora da RLS por circularidade declarada (§3)** |
+| `wall_tokens` | Hash do crachá da TV → `event_id`, validade, revogação. Só leitura | **Fora da RLS por circularidade declarada (§3)** |
+| `wall_pairings` | Código de pareamento da TV → evento, com consentimento | **Fora da RLS por circularidade declarada (§3)** |
+| `app_pairings` | Código de pareamento web → app → (`event_id`, `session_id`) | **Fora da RLS por circularidade declarada (§3)** |
 
 Duas notas de desenho que não são cosméticas:
 
@@ -359,8 +368,8 @@ O convidado remove a própria mídia pelo token de sessão, sem pedir nada a nin
 ## 10. Telão
 
 ```
-GET  /telao/{slug}            HTML fullscreen, sem chrome, sem cursor, resistente a reload
-GET  /api/telao/{slug}/stream stream de IDs recém-aprovados (SSE)
+GET  /wall-display            HTML fullscreen do telão, sem chrome, sem cursor, resistente a reload
+GET  /api/wall/stream         stream de IDs recém-aprovados (SSE; alias EN de /api/parede)
 ```
 
 - Pré-carrega as próximas N imagens.
@@ -444,7 +453,7 @@ docs/
   runbooks/    procedimentos operacionais
   specs/       contrato por tarefa, escrito antes do código
 tools/
-  guards/      os cinco guards bloqueantes
+  guards/      os guards bloqueantes (isolamento, tokens, domínio, packs, sessão, features, api-routes)
   db/          migração e seed de desenvolvimento
 docker-compose.yml     Postgres local, em porta não padrão de propósito
 .github/workflows/     pipeline única (GitHub, não GitLab — exceção da task 002)
@@ -464,7 +473,9 @@ O rigor cresce com o produto. O que **não** escalona, e roda bloqueante desde o
 4. **Guard de isolamento estático:** `SET` de sessão, `set_config` com `is_local=false`, lock de sessão. As três formas de vazar evento entre clientes numa pool em modo transação.
 5. **Guard de sessão:** token em querystring, credencial em log, PII crua em log.
 6. **Guard de domínio:** string de vertical dentro do núcleo.
-7. **Teste de carga antes do primeiro evento real:** 150 uploads em 20 minutos.
+7. **Guard de features:** `features/` não importa de `@/app/*` (espelha ESLint).
+8. **Guard de api-routes:** rotas de convidado resolvem sessão; `event_id` nunca vem do corpo.
+9. **Teste de carga antes do primeiro evento real:** 150 uploads em 20 minutos.
 
 Isolamento é testado contra banco real com escopo definido, nunca contra mock — testar isolamento contra mock prova que o mock está isolado. Duas condições dessa suíte não são detalhe:
 

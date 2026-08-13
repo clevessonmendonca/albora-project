@@ -11,7 +11,7 @@ Rodar **quatro horas sem ninguém tocar**, sobrevivendo a queda de rede e a relo
 
 **Entra**
 
-- `GET /telao/[slug]` — fullscreen, sem cromo, sem cursor, resistente a reload
+- `GET /wall-display` — fullscreen, sem cromo, sem cursor, resistente a reload (`/telao` redireciona 308)
 - Stream de mídia recém-publicada, com fallback para polling
 - Fila de três faixas
 - Cinco modelos de layout, escolhidos pelo casal
