@@ -1,15 +1,16 @@
 import { autorizarPareamento, ErroAutorizacaoDePareamento } from "@albora/db";
-import { banco } from "@/lib/banco";
-import { consumir } from "@/lib/limite";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
-import { identidadeParaLimite, sessaoDaRequisicao } from "@/lib/sessao";
+import {
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireGuestSession,
+  unexpectedError,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
 
-/**
- * A versão do consentimento de quem liga o telão. Datada e versionada por quem
- * autoriza: é ele que decide expor as fotos publicadas numa tela do salão.
- */
 const VERSAO_CONSENTIMENTO_TELAO = "1";
 
 const CODIGO = /^[A-HJ-NP-Z2-9]{6}$/;
@@ -25,53 +26,48 @@ type Corpo = { codigo?: unknown };
  * telão de um evento em que você não entrou.
  */
 export async function POST(req: Request) {
-  const sessao = await sessaoDaRequisicao(req);
-  if (!sessao) return erro(401, "sessao.invalida", "Entre no evento antes de ligar o telão");
+  const auth = await requireGuestSession(req, "Entre no evento antes de ligar o telão");
+  if (auth instanceof Response) return auth;
 
-  const limite = consumir(`autorizar:${identidadeParaLimite(req, sessao)}`, 20, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`autorizar:${auth.rateLimitKey}`, 20, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const parsed = await parseJsonBody<Corpo>(req);
+  if (parsed instanceof Response) return parsed;
 
-  const codigo = typeof corpo.codigo === "string" ? corpo.codigo.trim().toUpperCase() : "";
+  const codigo =
+    typeof parsed.data.codigo === "string" ? parsed.data.codigo.trim().toUpperCase() : "";
   if (!CODIGO.test(codigo)) {
-    return erro(422, "validation_error", "Código inválido", { campos: ["codigo"] });
+    return errorResponse(422, "validation_error", "Código inválido", { campos: ["codigo"] });
   }
 
   try {
     await autorizarPareamento(
-      banco(),
+      getPool(),
       codigo,
-      sessao.eventoId,
+      auth.session.eventoId,
       VERSAO_CONSENTIMENTO_TELAO,
       new Date(),
     );
 
     console.log("parede.pareamento_autorizado", {
-      eventoId: sessao.eventoId,
-      sessaoId: sessao.sessaoId,
+      eventoId: auth.session.eventoId,
+      sessaoId: auth.session.sessaoId,
     });
 
-    return ok({ autorizado: true });
+    return jsonOk({ autorizado: true });
   } catch (e) {
     if (e instanceof ErroAutorizacaoDePareamento) {
-      // Código errado, expirado ou já usado: mesma resposta 409 para o cliente,
-      // motivo distinto só no log. Não confirma qual dos três para quem tenta.
       console.warn("parede.autorizacao_recusada", {
-        eventoId: sessao.eventoId,
+        eventoId: auth.session.eventoId,
         motivo: e.motivo,
       });
-      return erro(409, "parede.pareamento_invalido", "Código inválido ou expirado");
+      return errorResponse(409, "parede.pareamento_invalido", "Código inválido ou expirado");
     }
-    return erroInesperado("parede.autorizar", e);
+    return unexpectedError("parede.autorizar", e);
   }
 }

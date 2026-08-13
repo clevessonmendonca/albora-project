@@ -1,48 +1,52 @@
-import { buscarEventoDoHost, comEvento, listarMidiaDoAlbum, ocultarMidiaDoHost } from "@albora/db";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig, ErroOrigemDeMidia } from "@/lib/config";
-import { consumir } from "@/lib/limite";
-import { hostDaRequisicao } from "@/lib/host-sessao";
+import { comEvento, listarMidiaDoAlbum, ocultarMidiaDoHost } from "@albora/db";
+import {
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireConfig,
+  requireHostEvent,
+  requireHostSession,
+  unexpectedError,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { consume } from "@/lib/rate-limit-store";
 import { assinarGet } from "@/lib/r2";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
 
 export const dynamic = "force-dynamic";
 
 const VALIDADE_GET_SEGUNDOS = 900;
 
+const ADMIN_SESSAO = {
+  code: "admin.sem_sessao",
+  message: "Entre no painel para continuar",
+} as const;
+
+type Corpo = { midiaId?: unknown };
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    if (e instanceof ErroOrigemDeMidia) {
-      return erro(503, e.code, "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin", { log: false, mediaOrigin: true });
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
 
-  const limite = consumir(`admin_album:${host.accountId}`, 60, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`admin_album:${auth.host.accountId}`, 60, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
   try {
-    const evento = await buscarEventoDoHost(banco(), host.accountId, eventoId);
-    if (!evento) return erro(404, "evento.nao_encontrado", "Evento não encontrado");
+    const owned = await requireHostEvent(auth.host.accountId, eventoId);
+    if (owned instanceof Response) return owned;
 
-    const midias = await comEvento(banco(), eventoId, (c) => listarMidiaDoAlbum(c, eventoId, 120));
+    const midias = await comEvento(getPool(), eventoId, (c) => listarMidiaDoAlbum(c, eventoId, 120));
 
     const itens = await Promise.all(
       midias.map(async (m) => ({
@@ -55,49 +59,38 @@ export async function GET(
       })),
     );
 
-    return ok({ itens, total: itens.length });
+    return jsonOk({ itens, total: itens.length });
   } catch (e) {
-    return erroInesperado("admin.album", e);
+    return unexpectedError("admin.album", e);
   }
 }
-
-type Corpo = { midiaId?: unknown };
 
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin", { log: false });
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const parsed = await parseJsonBody<Corpo>(req);
+  if (parsed instanceof Response) return parsed;
+  const corpo = parsed.data;
 
   const midiaId = typeof corpo.midiaId === "string" ? corpo.midiaId : "";
   if (!midiaId) {
-    return erro(422, "validation_error", "midiaId obrigatório", { campos: ["midiaId"] });
+    return errorResponse(422, "validation_error", "midiaId obrigatório", { campos: ["midiaId"] });
   }
 
   try {
-    const ocultou = await ocultarMidiaDoHost(banco(), host.accountId, eventoId, midiaId);
-    if (!ocultou) return erro(404, "midia.nao_encontrada", "Foto não encontrada");
-    return ok({ oculta: true });
+    const ocultou = await ocultarMidiaDoHost(getPool(), auth.host.accountId, eventoId, midiaId);
+    if (!ocultou) return errorResponse(404, "midia.nao_encontrada", "Foto não encontrada");
+    return jsonOk({ oculta: true });
   } catch (e) {
-    return erroInesperado("admin.album", e);
+    return unexpectedError("admin.album", e);
   }
 }

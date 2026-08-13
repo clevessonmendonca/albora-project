@@ -1,17 +1,27 @@
 import { exibirMusica, lerLinkDeMusica } from "@albora/core";
 import {
-  buscarEventoDoHost,
   comEvento,
   definirMusicaDoCasal,
   musicaDoCasal,
 } from "@albora/db";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig } from "@/lib/config";
-import { hostDaRequisicao } from "@/lib/host-sessao";
-import { consumir } from "@/lib/limite";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
+import {
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireConfig,
+  requireHostEvent,
+  requireHostSession,
+  unexpectedError,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
+
+const ADMIN_SESSAO = {
+  code: "admin.sem_sessao",
+  message: "Entre no painel para continuar",
+} as const;
 
 type Corpo = { url?: unknown };
 
@@ -27,39 +37,25 @@ function serializar(
   };
 }
 
-async function eventoDoHost(accountId: string, eventoId: string) {
-  const evento = await buscarEventoDoHost(banco(), accountId, eventoId);
-  if (!evento) return null;
-  return evento;
-}
-
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("admin.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin");
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
-  if (!(await eventoDoHost(host.accountId, eventoId))) {
-    return erro(404, "evento.nao_encontrado", "Evento não encontrado");
-  }
+  const owned = await requireHostEvent(auth.host.accountId, eventoId);
+  if (owned instanceof Response) return owned;
 
   try {
-    const musica = await comEvento(banco(), eventoId, (c) => musicaDoCasal(c, eventoId));
-    return ok({ musica: serializar(musica) });
+    const musica = await comEvento(getPool(), eventoId, (c) => musicaDoCasal(c, eventoId));
+    return jsonOk({ musica: serializar(musica) });
   } catch (e) {
-    return erroInesperado("admin.musica.get", e);
+    return unexpectedError("admin.musica.get", e);
   }
 }
 
@@ -71,50 +67,39 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("admin.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin");
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
 
-  const limite = consumir(`admin_musica:${host.accountId}`, 30, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`admin_musica:${auth.host.accountId}`, 30, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
-  if (!(await eventoDoHost(host.accountId, eventoId))) {
-    return erro(404, "evento.nao_encontrado", "Evento não encontrado");
-  }
+  const owned = await requireHostEvent(auth.host.accountId, eventoId);
+  if (owned instanceof Response) return owned;
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const parsed = await parseJsonBody<Corpo>(req);
+  if (parsed instanceof Response) return parsed;
+  const corpo = parsed.data;
 
   if (typeof corpo.url !== "string" || corpo.url.trim() === "") {
-    return erro(422, "validation_error", "Cole o link da faixa", { campos: ["url"] });
+    return errorResponse(422, "validation_error", "Cole o link da faixa", { campos: ["url"] });
   }
 
   const lido = lerLinkDeMusica(corpo.url.trim());
   if (!lido.ok) {
-    return erro(422, lido.erro.code, "Link não aceito", lido.erro.details);
+    return errorResponse(422, lido.erro.code, "Link não aceito", lido.erro.details);
   }
 
   try {
-    await comEvento(banco(), eventoId, (c) =>
+    await comEvento(getPool(), eventoId, (c) =>
       definirMusicaDoCasal(c, {
         eventoId,
         link: lido.link,
@@ -122,16 +107,16 @@ export async function PUT(
       }),
     );
 
-    const musica = await comEvento(banco(), eventoId, (c) => musicaDoCasal(c, eventoId));
+    const musica = await comEvento(getPool(), eventoId, (c) => musicaDoCasal(c, eventoId));
 
     console.log("admin.musica_definida", {
-      accountId: host.accountId,
+      accountId: auth.host.accountId,
       eventoId,
       provedor: lido.link.provedor,
     });
 
-    return ok({ musica: serializar(musica) });
+    return jsonOk({ musica: serializar(musica) });
   } catch (e) {
-    return erroInesperado("admin.musica.put", e);
+    return unexpectedError("admin.musica.put", e);
   }
 }

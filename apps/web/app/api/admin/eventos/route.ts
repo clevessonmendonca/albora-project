@@ -1,10 +1,15 @@
 import { criarEvento } from "@albora/db";
 import { PACKS } from "@albora/packs";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig } from "@/lib/config";
-import { consumir } from "@/lib/limite";
-import { hostDaRequisicao } from "@/lib/host-sessao";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
+import {
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireConfig,
+  requireHostSession,
+  unexpectedError,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
 
@@ -33,54 +38,49 @@ function comoData(v: unknown): Date | null {
  * é 422, não um 500 de violação de FK.
  */
 export async function POST(req: Request) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("admin.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin");
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para criar um evento");
+  const auth = await requireHostSession(req, {
+    code: "admin.sem_sessao",
+    message: "Entre no painel para criar um evento",
+  });
+  if (auth instanceof Response) return auth;
 
-  const limite = consumir(`admin_eventos:${host.accountId}`, 20, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`admin_eventos:${auth.host.accountId}`, 20, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const parsed = await parseJsonBody<Corpo>(req);
+  if (parsed instanceof Response) return parsed;
+  const corpo = parsed.data;
 
   const packId = typeof corpo.packId === "string" ? corpo.packId : "";
   if (!(packId in PACKS)) {
-    return erro(422, "validation_error", "Pack inválido", { campos: ["packId"] });
+    return errorResponse(422, "validation_error", "Pack inválido", { campos: ["packId"] });
   }
 
   const comecaEm = comoData(corpo.comecaEm);
   const terminaEm = comoData(corpo.terminaEm);
   if (!comecaEm || !terminaEm || terminaEm <= comecaEm) {
-    return erro(422, "validation_error", "Datas inválidas", { campos: ["comecaEm", "terminaEm"] });
+    return errorResponse(422, "validation_error", "Datas inválidas", {
+      campos: ["comecaEm", "terminaEm"],
+    });
   }
 
   let expectedGuests = 150;
   if (corpo.expectedGuests !== undefined) {
     if (typeof corpo.expectedGuests !== "number" || !Number.isFinite(corpo.expectedGuests)) {
-      return erro(422, "validation_error", "Convidados esperados inválido", {
+      return errorResponse(422, "validation_error", "Convidados esperados inválido", {
         campos: ["expectedGuests"],
       });
     }
     expectedGuests = Math.trunc(corpo.expectedGuests);
     if (expectedGuests <= 0) {
-      return erro(422, "validation_error", "Convidados esperados inválido", {
+      return errorResponse(422, "validation_error", "Convidados esperados inválido", {
         campos: ["expectedGuests"],
       });
     }
@@ -88,8 +88,14 @@ export async function POST(req: Request) {
 
   let identityTokens: Record<string, unknown> = {};
   if (corpo.identityTokens !== undefined) {
-    if (typeof corpo.identityTokens !== "object" || corpo.identityTokens === null || Array.isArray(corpo.identityTokens)) {
-      return erro(422, "validation_error", "Identidade inválida", { campos: ["identityTokens"] });
+    if (
+      typeof corpo.identityTokens !== "object" ||
+      corpo.identityTokens === null ||
+      Array.isArray(corpo.identityTokens)
+    ) {
+      return errorResponse(422, "validation_error", "Identidade inválida", {
+        campos: ["identityTokens"],
+      });
     }
     identityTokens = corpo.identityTokens as Record<string, unknown>;
   }
@@ -101,14 +107,14 @@ export async function POST(req: Request) {
   let missoes: string[] | undefined;
   if (corpo.missoes !== undefined) {
     if (!Array.isArray(corpo.missoes) || !corpo.missoes.every((m) => typeof m === "string")) {
-      return erro(422, "validation_error", "Missões inválidas", { campos: ["missoes"] });
+      return errorResponse(422, "validation_error", "Missões inválidas", { campos: ["missoes"] });
     }
     missoes = corpo.missoes as string[];
   }
 
   try {
     const entrada = {
-      accountId: host.accountId,
+      accountId: auth.host.accountId,
       packId,
       comecaEm,
       terminaEm,
@@ -116,12 +122,12 @@ export async function POST(req: Request) {
       identityTokens,
       ...(missoes !== undefined ? { missoes } : {}),
     };
-    const { eventoId, slug } = await criarEvento(banco(), entrada);
+    const { eventoId, slug } = await criarEvento(getPool(), entrada);
 
-    console.log("admin.evento_criado", { accountId: host.accountId, eventoId });
+    console.log("admin.evento_criado", { accountId: auth.host.accountId, eventoId });
 
-    return ok({ eventoId, slug });
+    return jsonOk({ eventoId, slug });
   } catch (e) {
-    return erroInesperado("admin.eventos", e);
+    return unexpectedError("admin.eventos", e);
   }
 }

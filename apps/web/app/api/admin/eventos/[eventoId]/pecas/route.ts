@@ -1,4 +1,4 @@
-import { buscarEventoDoHost, comConta } from "@albora/db";
+import { comConta } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import {
   MARCA_ALBORA,
@@ -6,17 +6,26 @@ import {
   type CamadaTokens,
   type FormatoDePeca,
 } from "@albora/tokens";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig } from "@/lib/config";
-import { gerarPecaSvg } from "@/lib/gerar-peca-svg";
-import { identidadeParaMoldura } from "@/lib/identidade-moldura";
-import { hostDaRequisicao } from "@/lib/host-sessao";
-import { consumir } from "@/lib/limite";
-import { erro, erroInesperado } from "@/lib/resposta";
+import {
+  errorResponse,
+  requireConfig,
+  requireHostEvent,
+  requireHostSession,
+  unexpectedError,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { generatePieceSvg } from "@/lib/generate-piece-svg";
+import { identityToFrame } from "@/lib/frame-identity";
+import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
 
 const FORMATOS: FormatoDePeca[] = ["placa-a4", "card-de-mesa", "card-de-missao"];
+
+const ADMIN_SESSAO = {
+  code: "admin.sem_sessao",
+  message: "Entre no painel para continuar",
+} as const;
 
 function comoFormato(valor: string | null): FormatoDePeca | null {
   if (!valor) return null;
@@ -32,7 +41,7 @@ async function tokensDoEvento(
   comecaEm: Date;
   identityTokens: Record<string, unknown>;
 } | null> {
-  return comConta(banco(), accountId, async (c) => {
+  return comConta(getPool(), accountId, async (c) => {
     const { rows } = await c.query<{
       slug: string;
       pack_id: string;
@@ -59,42 +68,35 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("admin.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin");
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
-  const resumo = await buscarEventoDoHost(banco(), host.accountId, eventoId);
-  if (!resumo) return erro(404, "evento.nao_encontrado", "Evento não encontrado");
+  const owned = await requireHostEvent(auth.host.accountId, eventoId);
+  if (owned instanceof Response) return owned;
 
-  const limite = consumir(`admin_pecas:${host.accountId}`, 30, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`admin_pecas:${auth.host.accountId}`, 30, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
   const url = new URL(req.url);
   const formato = comoFormato(url.searchParams.get("formato"));
   if (!formato) {
-    return erro(422, "validation_error", "Formato inválido", {
+    return errorResponse(422, "validation_error", "Formato inválido", {
       campo: "formato",
       aceitos: FORMATOS,
     });
   }
 
   try {
-    const dados = await tokensDoEvento(host.accountId, eventoId);
-    if (!dados) return erro(404, "evento.nao_encontrado", "Evento não encontrado");
+    const dados = await tokensDoEvento(auth.host.accountId, eventoId);
+    if (!dados) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
 
     const pack = PACKS[dados.packId];
     const tokens = resolverTokens({
@@ -103,7 +105,7 @@ export async function GET(
       evento: dados.identityTokens as CamadaTokens,
     });
 
-    const identidade = identidadeParaMoldura(
+    const identidade = identityToFrame(
       dados.slug,
       dados.comecaEm,
       dados.identityTokens,
@@ -114,7 +116,7 @@ export async function GET(
     const urlQr = `${origem}/e/${encodeURIComponent(dados.slug)}`;
     const urlLegivel = `${url.host}/e/${dados.slug}`;
 
-    const resultado = await gerarPecaSvg({
+    const resultado = await generatePieceSvg({
       formato,
       urlQr,
       urlLegivel,
@@ -125,14 +127,14 @@ export async function GET(
     });
 
     if (resultado.problemas.length > 0) {
-      return erro(422, "peca.invalida", "Esta peça não passa na validação", {
+      return errorResponse(422, "peca.invalida", "Esta peça não passa na validação", {
         problemas: resultado.problemas,
         avisos: resultado.avisos,
       });
     }
 
     console.log("admin.peca_gerada", {
-      accountId: host.accountId,
+      accountId: auth.host.accountId,
       eventoId,
       formato,
     });
@@ -147,6 +149,6 @@ export async function GET(
       },
     });
   } catch (e) {
-    return erroInesperado("admin.pecas", e);
+    return unexpectedError("admin.pecas", e);
   }
 }

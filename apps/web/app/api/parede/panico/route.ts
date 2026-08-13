@@ -1,9 +1,8 @@
 import { alternarPanicoDoEvento } from "@albora/db";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig } from "@/lib/config";
-import { consumir } from "@/lib/limite";
-import { paredeDaRequisicao } from "@/lib/parede";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
+import { errorResponse, jsonOk, requireConfig, unexpectedError } from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { consume } from "@/lib/rate-limit-store";
+import { wallFromRequest } from "@/lib/wall";
 
 export const dynamic = "force-dynamic";
 
@@ -14,33 +13,30 @@ export const dynamic = "force-dynamic";
  * quem está no salão não precisar abrir o admin.
  */
 export async function PATCH(req: Request) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("parede.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
+  const configError = requireConfig("parede");
+  if (configError) return configError;
+
+  const parede = await wallFromRequest(req);
+  if (!parede) {
+    return errorResponse(401, "parede.invalida", "Crachá do telão inválido ou expirado");
   }
 
-  const parede = await paredeDaRequisicao(req);
-  if (!parede) return erro(401, "parede.invalida", "Crachá do telão inválido ou expirado");
-
-  const limite = consumir(`parede_panico:${parede.eventoId}`, 30, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`parede_panico:${parede.eventoId}`, 30, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
   try {
-    const panico = await alternarPanicoDoEvento(banco(), parede.eventoId);
-    if (panico === null) return erro(404, "evento.nao_encontrado", "Evento não encontrado");
+    const panico = await alternarPanicoDoEvento(getPool(), parede.eventoId);
+    if (panico === null) {
+      return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
+    }
 
     console.log("parede.panico_alternado", { eventoId: parede.eventoId, panico });
-    return ok({ panico });
+    return jsonOk({ panico });
   } catch (e) {
-    return erroInesperado("parede.panico", e);
+    return unexpectedError("parede.panico", e);
   }
 }

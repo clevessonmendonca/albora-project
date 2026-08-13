@@ -12,43 +12,37 @@ import {
   listarSugestoes,
   musicaDoCasal,
 } from "@albora/db";
-import { banco } from "@/lib/banco";
-import { consumir } from "@/lib/limite";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
-import { identidadeParaLimite, sessaoDaRequisicao } from "@/lib/sessao";
+import {
+  enforceRateLimit,
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireGuestSession,
+  unexpectedError,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 type Corpo = { url?: unknown; evento?: unknown };
 
-/**
- * A musica do casal e as sugestoes dos convidados (spec 018, camada 1 do ADR
- * 0011). So metadado e link saem daqui — nunca bytes de audio.
- *
- * Como no feed: o evento vem da sessao, nunca da URL. O `evento` da querystring
- * ou do corpo, se vier, e conferido contra ela — divergencia e 403.
- */
 export async function GET(req: Request) {
-  const sessao = await sessaoDaRequisicao(req);
-  if (!sessao) return erro(401, "sessao.invalida", "Sessão inválida");
+  const auth = await requireGuestSession(req);
+  if (auth instanceof Response) return auth;
 
-  const limite = consumir(identidadeParaLimite(req, sessao), 120, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
-    });
-  }
+  const limited = enforceRateLimit(req, auth.session);
+  if (limited) return limited;
 
   const eventoPedido = new URL(req.url).searchParams.get("evento");
-  if (eventoPedido !== null && eventoPedido !== sessao.eventoId) {
-    console.warn("musica.evento_divergente", { eventoId: sessao.eventoId, sessaoId: sessao.sessaoId });
-    return erro(403, "musica.evento_divergente", "Esta sessão não pertence a este evento");
+  if (eventoPedido !== null && eventoPedido !== auth.session.eventoId) {
+    console.warn("musica.evento_divergente", { eventoId: auth.session.eventoId, sessaoId: auth.session.sessaoId });
+    return errorResponse(403, "musica.evento_divergente", "Esta sessão não pertence a este evento");
   }
 
   try {
-    const corpo = await comEvento(banco(), sessao.eventoId, async (c) => {
-      const escolhida = await musicaDoCasal(c, sessao.eventoId);
-      const fila = ordenarSugestoes(await listarSugestoes(c, sessao.eventoId));
+    const corpo = await comEvento(getPool(), auth.session.eventoId, async (c) => {
+      const escolhida = await musicaDoCasal(c, auth.session.eventoId);
+      const fila = ordenarSugestoes(await listarSugestoes(c, auth.session.eventoId));
       return { escolhida, fila };
     });
 
@@ -63,80 +57,64 @@ export async function GET(req: Request) {
       votos: votos(f),
     }));
 
-    return ok({ musica, sugestoes });
+    return jsonOk({ musica, sugestoes });
   } catch (e) {
-    return erroInesperado("musica.get", e);
+    return unexpectedError("musica.get", e);
   }
 }
 
-/**
- * O convidado sugere uma faixa. O link colado e dado de usuario e passa por
- * `lerLinkDeMusica` — host fora do conjunto fechado e recusado com 422, nunca
- * salvo para quebrar depois. O teto por sessao e o gate de interacao sao do
- * nucleo (`registrarSugestao`), avaliados sobre a fila atual antes da escrita.
- */
 export async function POST(req: Request) {
-  const sessao = await sessaoDaRequisicao(req);
-  if (!sessao) return erro(401, "sessao.invalida", "Sessão inválida");
+  const auth = await requireGuestSession(req);
+  if (auth instanceof Response) return auth;
 
-  const limite = consumir(identidadeParaLimite(req, sessao), 30, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
-    });
+  const limited = enforceRateLimit(req, auth.session, { max: 30 });
+  if (limited) return limited;
+
+  const parsed = await parseJsonBody<Corpo>(req);
+  if (parsed instanceof Response) return parsed;
+
+  if (parsed.data.evento !== undefined && parsed.data.evento !== auth.session.eventoId) {
+    console.warn("musica.evento_divergente", { eventoId: auth.session.eventoId, sessaoId: auth.session.sessaoId });
+    return errorResponse(403, "musica.evento_divergente", "Esta sessão não pertence a este evento");
   }
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
+  if (typeof parsed.data.url !== "string") {
+    return errorResponse(422, "validation_error", "Dados incompletos", { campos: ["url"] });
   }
 
-  if (corpo.evento !== undefined && corpo.evento !== sessao.eventoId) {
-    console.warn("musica.evento_divergente", { eventoId: sessao.eventoId, sessaoId: sessao.sessaoId });
-    return erro(403, "musica.evento_divergente", "Esta sessão não pertence a este evento");
-  }
-
-  if (typeof corpo.url !== "string") {
-    return erro(422, "validation_error", "Dados incompletos", { campos: ["url"] });
-  }
-
-  const lido = lerLinkDeMusica(corpo.url);
+  const lido = lerLinkDeMusica(parsed.data.url);
   if (!lido.ok) {
-    console.warn("musica.link_recusado", { eventoId: sessao.eventoId, code: lido.erro.code });
-    return erro(422, lido.erro.code, "Link não aceito", lido.erro.details);
+    console.warn("musica.link_recusado", { eventoId: auth.session.eventoId, code: lido.erro.code });
+    return errorResponse(422, lido.erro.code, "Link não aceito", lido.erro.details);
   }
   const link = lido.link;
 
   try {
-    const resultado = await comEvento(banco(), sessao.eventoId, async (c) => {
-      const gate = await gateDoEvento(c, sessao.eventoId);
-      // Sessao de um evento nao visivel: mesma resposta de gate fechado, sem
-      // confirmar quais ids existem.
+    const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
+      const gate = await gateDoEvento(c, auth.session.eventoId);
       if (!gate) return { tipo: "fechado" as const };
 
-      const fila = await listarSugestoes(c, sessao.eventoId);
-      const decisao = registrarSugestao(fila, { sessaoId: sessao.sessaoId, link }, gate, new Date());
+      const fila = await listarSugestoes(c, auth.session.eventoId);
+      const decisao = registrarSugestao(fila, { sessaoId: auth.session.sessaoId, link }, gate, new Date());
       if (!decisao.ok) return { tipo: "recusada" as const, erro: decisao.erro };
 
-      await adicionarSugestao(c, { eventoId: sessao.eventoId, sessaoId: sessao.sessaoId, link });
-      const atual = ordenarSugestoes(await listarSugestoes(c, sessao.eventoId));
+      await adicionarSugestao(c, { eventoId: auth.session.eventoId, sessaoId: auth.session.sessaoId, link });
+      const atual = ordenarSugestoes(await listarSugestoes(c, auth.session.eventoId));
       return { tipo: "aceita" as const, fila: atual };
     });
 
     if (resultado.tipo === "fechado") {
-      return erro(403, "musica.interacao_fechada", "A interação ainda não abriu");
+      return errorResponse(403, "musica.interacao_fechada", "A interação ainda não abriu");
     }
 
     if (resultado.tipo === "recusada") {
       const status = resultado.erro.code === "musica.interacao_fechada" ? 403 : 422;
-      return erro(status, resultado.erro.code, "Sugestão recusada", resultado.erro.details);
+      return errorResponse(status, resultado.erro.code, "Sugestão recusada", resultado.erro.details);
     }
 
     console.log("musica.sugestao", {
-      eventoId: sessao.eventoId,
-      sessaoId: sessao.sessaoId,
+      eventoId: auth.session.eventoId,
+      sessaoId: auth.session.sessaoId,
       provedor: link.provedor,
     });
 
@@ -147,8 +125,8 @@ export async function POST(req: Request) {
       votos: votos(f),
     }));
 
-    return ok({ aceita: true, sugestoes });
+    return jsonOk({ aceita: true, sugestoes });
   } catch (e) {
-    return erroInesperado("musica.post", e);
+    return unexpectedError("musica.post", e);
   }
 }

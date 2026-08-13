@@ -1,15 +1,13 @@
 import { comEvento, listarMidiaDaParede, lerModeracaoDoEvento } from "@albora/db";
 import { modelosDoRodizio, type ModeloDeTelao } from "@albora/core";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig, ErroOrigemDeMidia } from "@/lib/config";
-import { consumir } from "@/lib/limite";
-import { paredeDaRequisicao } from "@/lib/parede";
+import { errorResponse, jsonOk, requireConfig, unexpectedError } from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { consume } from "@/lib/rate-limit-store";
+import { wallFromRequest } from "@/lib/wall";
 import { assinarGet } from "@/lib/r2";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
 
 export const dynamic = "force-dynamic";
 
-/** A validade das URLs de leitura, igual à do feed: a TV renova a página. */
 const VALIDADE_GET_SEGUNDOS = 900;
 
 /**
@@ -25,34 +23,23 @@ const VALIDADE_GET_SEGUNDOS = 900;
  *    única fonte de verdade sobre o que é público.
  */
 export async function GET(req: Request) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("parede.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    if (e instanceof ErroOrigemDeMidia) {
-      console.error("parede.origem_invalida", { motivo: e.motivo });
-      return erro(503, e.code, "Serviço indisponível");
-    }
-    throw e;
+  const configError = requireConfig("parede", { mediaOrigin: true });
+  if (configError) return configError;
+
+  const parede = await wallFromRequest(req);
+  if (!parede) {
+    return errorResponse(401, "parede.invalida", "Crachá do telão inválido ou expirado");
   }
 
-  const parede = await paredeDaRequisicao(req);
-  if (!parede) return erro(401, "parede.invalida", "Crachá do telão inválido ou expirado");
-
-  // Limite por evento, não por pessoa: a parede é uma tela só, e quem a
-  // consulta é a TV. Uma janela folgada porque ela repete o poll a noite toda.
-  const limite = consumir(`parede:${parede.eventoId}`, 240, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`parede:${parede.eventoId}`, 240, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
   try {
-    const midias = await comEvento(banco(), parede.eventoId, async (c) => {
+    const midias = await comEvento(getPool(), parede.eventoId, async (c) => {
       const moderacao = await lerModeracaoDoEvento(c, parede.eventoId);
       const lista = await listarMidiaDaParede(c, parede.eventoId);
       const { rows } = await c.query<{ identity_tokens: Record<string, unknown> }>(
@@ -64,8 +51,6 @@ export async function GET(req: Request) {
       return { moderacao, lista, telaoModelos };
     });
 
-    // Uma expiração só para o lote: a TV renova a página inteira, e validades
-    // escalonadas fariam a renovação picar foto a foto.
     const expiraEm = Date.now() + VALIDADE_GET_SEGUNDOS * 1000;
 
     const itens = await Promise.all(
@@ -82,8 +67,13 @@ export async function GET(req: Request) {
 
     console.log("parede.pagina", { eventoId: parede.eventoId, itens: itens.length });
 
-    return ok({ itens, expiraEm, panico: midias.moderacao.panico, telaoModelos: midias.telaoModelos });
+    return jsonOk({
+      itens,
+      expiraEm,
+      panico: midias.moderacao.panico,
+      telaoModelos: midias.telaoModelos,
+    });
   } catch (e) {
-    return erroInesperado("parede", e);
+    return unexpectedError("parede", e);
   }
 }

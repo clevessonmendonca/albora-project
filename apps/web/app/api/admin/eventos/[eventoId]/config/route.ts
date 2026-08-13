@@ -1,14 +1,22 @@
+import { atualizarConfigDoEvento } from "@albora/db";
 import {
-  atualizarConfigDoEvento,
-  buscarEventoDoHost,
-} from "@albora/db";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig } from "@/lib/config";
-import { consumir } from "@/lib/limite";
-import { hostDaRequisicao } from "@/lib/host-sessao";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireConfig,
+  requireHostEvent,
+  requireHostSession,
+  unexpectedError,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
+
+const ADMIN_SESSAO = {
+  code: "admin.sem_sessao",
+  message: "Entre no painel para continuar",
+} as const;
 
 type Corpo = {
   expectedGuests?: unknown;
@@ -16,29 +24,23 @@ type Corpo = {
 };
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin", { log: false });
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(_req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
-  const evento = await buscarEventoDoHost(banco(), host.accountId, eventoId);
-  if (!evento) return erro(404, "evento.nao_encontrado", "Evento não encontrado");
+  const owned = await requireHostEvent(auth.host.accountId, eventoId);
+  if (owned instanceof Response) return owned;
 
-  return ok({
-    expectedGuests: evento.expectedGuests,
-    identityTokens: evento.identityTokens,
-    packId: evento.packId,
+  return jsonOk({
+    expectedGuests: owned.evento.expectedGuests,
+    identityTokens: owned.evento.identityTokens,
+    packId: owned.evento.packId,
   });
 }
 
@@ -46,45 +48,36 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin", { log: false });
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
 
-  const limite = consumir(`admin_config:${host.accountId}`, 30, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`admin_config:${auth.host.accountId}`, 30, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const parsed = await parseJsonBody<Corpo>(req);
+  if (parsed instanceof Response) return parsed;
+  const corpo = parsed.data;
 
   const atualizacao: { expectedGuests?: number; identityTokens?: Record<string, unknown> } = {};
 
   if (corpo.expectedGuests !== undefined) {
     if (typeof corpo.expectedGuests !== "number" || !Number.isFinite(corpo.expectedGuests)) {
-      return erro(422, "validation_error", "Convidados esperados inválido", {
+      return errorResponse(422, "validation_error", "Convidados esperados inválido", {
         campos: ["expectedGuests"],
       });
     }
     const n = Math.trunc(corpo.expectedGuests);
     if (n <= 0) {
-      return erro(422, "validation_error", "Convidados esperados inválido", {
+      return errorResponse(422, "validation_error", "Convidados esperados inválido", {
         campos: ["expectedGuests"],
       });
     }
@@ -97,32 +90,34 @@ export async function PATCH(
       corpo.identityTokens === null ||
       Array.isArray(corpo.identityTokens)
     ) {
-      return erro(422, "validation_error", "Identidade inválida", { campos: ["identityTokens"] });
+      return errorResponse(422, "validation_error", "Identidade inválida", { campos: ["identityTokens"] });
     }
     atualizacao.identityTokens = corpo.identityTokens as Record<string, unknown>;
   }
 
   if (Object.keys(atualizacao).length === 0) {
-    return erro(422, "validation_error", "Nada para atualizar", {
+    return errorResponse(422, "validation_error", "Nada para atualizar", {
       campos: ["expectedGuests", "identityTokens"],
     });
   }
 
   try {
     const ok_ = await atualizarConfigDoEvento(
-      banco(),
-      host.accountId,
+      getPool(),
+      auth.host.accountId,
       eventoId,
       atualizacao,
     );
-    if (!ok_) return erro(404, "evento.nao_encontrado", "Evento não encontrado");
+    if (!ok_) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
 
-    const evento = await buscarEventoDoHost(banco(), host.accountId, eventoId);
-    return ok({
-      expectedGuests: evento?.expectedGuests,
-      identityTokens: evento?.identityTokens,
+    const owned = await requireHostEvent(auth.host.accountId, eventoId);
+    if (owned instanceof Response) return owned;
+
+    return jsonOk({
+      expectedGuests: owned.evento.expectedGuests,
+      identityTokens: owned.evento.identityTokens,
     });
   } catch (e) {
-    return erroInesperado("admin.config", e);
+    return unexpectedError("admin.config", e);
   }
 }

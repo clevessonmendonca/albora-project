@@ -13,7 +13,7 @@ export const TETO_DE_CHAVES = 60;
  *
  * Curta o bastante para uma URL que vazou no grupo do WhatsApp não valer a
  * noite; longa o bastante para uma rolagem de feed não expirar no meio dela —
- * o cliente renova com 60s de folga (`FOLGA_DE_RENOVACAO_MS`).
+ * o cliente renova com 60s de folga (`RENEWAL_BUFFER_MS`).
  */
 export const VALIDADE_GET_SEGUNDOS = 900;
 

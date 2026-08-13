@@ -3,10 +3,11 @@ import { comEvento, finalizarPareamento } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { CamadaTokens } from "@albora/tokens";
-import { banco } from "@/lib/banco";
+import { errorResponse, unexpectedError } from "@/lib/api";
+import { getPool } from "@/lib/db";
 import { config, ErroConfig } from "@/lib/config";
-import { cookieDoCracha, COOKIE_PAREAMENTO, limparCookie, pollTokenDaRequisicao } from "@/lib/parede";
-import { erroInesperado } from "@/lib/resposta";
+import { consume } from "@/lib/rate-limit-store";
+import { badgeCookie, PAIRING_COOKIE, clearCookie, pollTokenFromRequest } from "@/lib/wall";
 
 export const dynamic = "force-dynamic";
 
@@ -33,13 +34,20 @@ export async function GET(req: Request) {
     throw e;
   }
 
-  const pollToken = pollTokenDaRequisicao(req);
+  const pollToken = pollTokenFromRequest(req);
   if (!pollToken) return responder({ status: "expirado" }, 200, []);
+
+  const limite = consume(`parear_status:${pollToken}`, 30, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
+    });
+  }
 
   try {
     const expiraCrachaEm = new Date(Date.now() + VALIDADE_DA_PAREDE_HORAS * 3600 * 1000);
     const resultado = await finalizarPareamento(
-      banco(),
+      getPool(),
       config().sessionSecret,
       pollToken,
       expiraCrachaEm,
@@ -51,7 +59,7 @@ export async function GET(req: Request) {
     }
 
     if (resultado.status === "expirado") {
-      return responder({ status: "expirado" }, 200, [limparCookie(COOKIE_PAREAMENTO)]);
+      return responder({ status: "expirado" }, 200, [clearCookie(PAIRING_COOKIE)]);
     }
 
     const variaveis = await temaDoEvento(resultado.eventoId);
@@ -59,17 +67,16 @@ export async function GET(req: Request) {
     console.log("parede.pareamento_pronto", { eventoId: resultado.eventoId });
 
     return responder({ status: "pronto", variaveis }, 200, [
-      cookieDoCracha(resultado.cracha, VALIDADE_DA_PAREDE_HORAS),
-      limparCookie(COOKIE_PAREAMENTO),
+      badgeCookie(resultado.cracha, VALIDADE_DA_PAREDE_HORAS),
+      clearCookie(PAIRING_COOKIE),
     ]);
   } catch (e) {
-    return erroInesperado("parede.status", e);
+    return unexpectedError("parede.status", e);
   }
 }
 
-/** O tema do evento por id — cor e fonte do casal, fundo escuro do salão. */
 async function temaDoEvento(eventoId: string): Promise<Record<string, string>> {
-  const linha = await comEvento(banco(), eventoId, async (c) => {
+  const linha = await comEvento(getPool(), eventoId, async (c) => {
     const { rows } = await c.query<{ pack_id: string; identity_tokens: unknown }>(
       "SELECT pack_id, identity_tokens FROM events WHERE id = $1",
       [eventoId],

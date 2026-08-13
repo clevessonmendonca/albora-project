@@ -1,9 +1,15 @@
 import { criarSessao, ErroNomeInvalido } from "@albora/db";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig } from "@/lib/config";
-import { consumir } from "@/lib/limite";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
-import { cabecalhoDeCookie, identidadeParaLimite } from "@/lib/sessao";
+import {
+  sessionCookieHeader,
+  enforceRateLimit,
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireConfig,
+  unexpectedError,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { config } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
@@ -19,70 +25,52 @@ type Corpo = { eventoId?: unknown; nome?: unknown; consentimento?: unknown };
  * H1, e a H1 decide se o negócio existe.
  */
 export async function POST(req: Request) {
-  let cfg;
-  try {
-    cfg = config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("sessions.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const configError = requireConfig("sessions");
+  if (configError) return configError;
 
-  // No portão: antes de escrever no banco. Criar sessão é barato, mas 200
-  // sessões por minuto do mesmo IP não é convidado, é script.
-  const limite = consumir(identidadeParaLimite(req, null), 10, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Muitas tentativas", {
-      retry_after_seconds: limite.resetEmSegundos,
-    });
-  }
+  const limited = enforceRateLimit(req, null, {
+    max: 10,
+    message: "Muitas tentativas",
+  });
+  if (limited) return limited;
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const parsed = await parseJsonBody<Corpo>(req);
+  if (parsed instanceof Response) return parsed;
 
-  const { eventoId, nome, consentimento } = corpo;
+  const { eventoId, nome, consentimento } = parsed.data;
 
   if (typeof eventoId !== "string" || typeof nome !== "string") {
-    return erro(422, "validation_error", "Dados incompletos", {
+    return errorResponse(422, "validation_error", "Dados incompletos", {
       campos: ["eventoId", "nome"],
     });
   }
 
-  // O consentimento é versionado e datado, e vem **antes** de qualquer
-  // captura. Recusar não é erro: é uma escolha legítima, e quem chama
-  // apresenta a saída com dignidade em vez de insistir.
   if (consentimento !== CONSENTIMENTO_VIGENTE) {
-    return erro(422, "consentimento.ausente", "Consentimento necessário", {
+    return errorResponse(422, "consentimento.ausente", "Consentimento necessário", {
       versao_vigente: CONSENTIMENTO_VIGENTE,
     });
   }
 
+  const cfg = config();
+
   try {
-    const { token, sessaoId } = await criarSessao(banco(), cfg.sessionSecret, {
+    const { token, sessaoId } = await criarSessao(getPool(), cfg.sessionSecret, {
       eventoId,
       nome,
       consentimentoVersao: CONSENTIMENTO_VIGENTE,
       duracaoHoras: cfg.duracaoSessaoHoras,
     });
 
-    // O id da sessão vai no corpo; o token vai só no cookie. O cliente nunca
-    // precisa ler o token, e o que ele não lê ele não cola numa URL.
     console.log("sessao.criada", { eventoId, sessaoId });
 
-    return ok(
+    return jsonOk(
       { sessaoId },
-      { status: 201, headers: { "set-cookie": cabecalhoDeCookie(token, cfg.duracaoSessaoHoras) } },
+      { status: 201, headers: { "set-cookie": sessionCookieHeader(token, cfg.duracaoSessaoHoras) } },
     );
   } catch (e) {
     if (e instanceof ErroNomeInvalido) {
-      return erro(422, e.code, "Nome obrigatório", { max: 40 });
+      return errorResponse(422, e.code, "Nome obrigatório", { max: 40 });
     }
-    return erroInesperado("sessions.criar", e);
+    return unexpectedError("sessions.criar", e);
   }
 }

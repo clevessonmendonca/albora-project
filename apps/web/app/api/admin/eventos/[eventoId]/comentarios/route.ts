@@ -1,22 +1,27 @@
 import {
-  buscarEventoDoHost,
   comEvento,
   listarComentariosParaModeracao,
   removerComentarioDoEvento,
 } from "@albora/db";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig } from "@/lib/config";
-import { hostDaRequisicao } from "@/lib/host-sessao";
-import { consumir } from "@/lib/limite";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
+import {
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireConfig,
+  requireHostEvent,
+  requireHostSession,
+  unexpectedError,
+  UUID_RE,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-async function eventoDoHost(accountId: string, eventoId: string) {
-  return buscarEventoDoHost(banco(), accountId, eventoId);
-}
+const ADMIN_SESSAO = {
+  code: "admin.sem_sessao",
+  message: "Entre no painel para continuar",
+} as const;
 
 function serializar(
   lista: Awaited<ReturnType<typeof listarComentariosParaModeracao>>,
@@ -36,31 +41,23 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("admin.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin");
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
-  if (!(await eventoDoHost(host.accountId, eventoId))) {
-    return erro(404, "evento.nao_encontrado", "Evento não encontrado");
-  }
+  const owned = await requireHostEvent(auth.host.accountId, eventoId);
+  if (owned instanceof Response) return owned;
 
   try {
-    const comentarios = await comEvento(banco(), eventoId, (c) =>
+    const comentarios = await comEvento(getPool(), eventoId, (c) =>
       listarComentariosParaModeracao(c, eventoId),
     );
-    return ok({ comentarios: serializar(comentarios) });
+    return jsonOk({ comentarios: serializar(comentarios) });
   } catch (e) {
-    return erroInesperado("admin.comentarios.get", e);
+    return unexpectedError("admin.comentarios.get", e);
   }
 }
 
@@ -69,64 +66,53 @@ export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("admin.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin");
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
 
-  const limite = consumir(`admin_comentarios:${host.accountId}`, 60, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`admin_comentarios:${auth.host.accountId}`, 60, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
-  if (!(await eventoDoHost(host.accountId, eventoId))) {
-    return erro(404, "evento.nao_encontrado", "Evento não encontrado");
-  }
+  const owned = await requireHostEvent(auth.host.accountId, eventoId);
+  if (owned instanceof Response) return owned;
 
-  let corpo: { comentarioId?: unknown };
-  try {
-    corpo = (await req.json()) as { comentarioId?: unknown };
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const parsed = await parseJsonBody<{ comentarioId?: unknown }>(req);
+  if (parsed instanceof Response) return parsed;
+  const corpo = parsed.data;
 
   const comentarioId =
-    typeof corpo.comentarioId === "string" && UUID.test(corpo.comentarioId)
+    typeof corpo.comentarioId === "string" && UUID_RE.test(corpo.comentarioId)
       ? corpo.comentarioId
       : null;
   if (!comentarioId) {
-    return erro(422, "validation_error", "Comentário inválido", { campos: ["comentarioId"] });
+    return errorResponse(422, "validation_error", "Comentário inválido", { campos: ["comentarioId"] });
   }
 
   try {
-    const removido = await comEvento(banco(), eventoId, (c) =>
+    const removido = await comEvento(getPool(), eventoId, (c) =>
       removerComentarioDoEvento(c, comentarioId),
     );
 
     if (!removido) {
-      return erro(404, "comentario.nao_encontrado", "Comentário não encontrado");
+      return errorResponse(404, "comentario.nao_encontrado", "Comentário não encontrado");
     }
 
     console.log("admin.comentario_removido", {
-      accountId: host.accountId,
+      accountId: auth.host.accountId,
       eventoId,
       comentarioId,
     });
 
-    return ok({ comentarioId, removido: true });
+    return jsonOk({ comentarioId, removido: true });
   } catch (e) {
-    return erroInesperado("admin.comentarios.delete", e);
+    return unexpectedError("admin.comentarios.delete", e);
   }
 }

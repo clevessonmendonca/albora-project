@@ -1,38 +1,37 @@
 import { comEvento, buscarContextoCompartilhar, registrarConsentimentoExterno } from "@albora/db";
-import { banco } from "@/lib/banco";
-import { consumir } from "@/lib/limite";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
-import { identidadeParaLimite, sessaoDaRequisicao } from "@/lib/sessao";
+import {
+  enforceRateLimit,
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireGuestSession,
+  unexpectedError,
+  UUID_RE,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/** Contexto para compor e autorizar compartilhamento (spec 015). */
 export async function GET(req: Request) {
-  const sessao = await sessaoDaRequisicao(req);
-  if (!sessao) return erro(401, "sessao.invalida", "Sessão inválida");
+  const auth = await requireGuestSession(req);
+  if (auth instanceof Response) return auth;
 
   const uploadId = new URL(req.url).searchParams.get("uploadId");
-  if (!uploadId || !UUID.test(uploadId)) {
-    return erro(422, "validation_error", "Foto inválida", { campo: "uploadId" });
+  if (!uploadId || !UUID_RE.test(uploadId)) {
+    return errorResponse(422, "validation_error", "Foto inválida", { campo: "uploadId" });
   }
 
-  const limite = consumir(identidadeParaLimite(req, sessao), 60, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
-    });
-  }
+  const limited = enforceRateLimit(req, auth.session, { max: 60 });
+  if (limited) return limited;
 
   try {
-    const ctx = await comEvento(banco(), sessao.eventoId, (c) =>
-      buscarContextoCompartilhar(c, sessao.sessaoId, uploadId),
+    const ctx = await comEvento(getPool(), auth.session.eventoId, (c) =>
+      buscarContextoCompartilhar(c, auth.session.sessaoId, uploadId),
     );
 
-    if (!ctx) return erro(404, "upload.nao_encontrado", "Foto não encontrada");
+    if (!ctx) return errorResponse(404, "upload.nao_encontrado", "Foto não encontrada");
 
-    return ok({
+    return jsonOk({
       chaveFull: ctx.midia.chaveFull,
       chaveThumb: ctx.midia.chaveThumb,
       mime: ctx.midia.mime,
@@ -68,42 +67,33 @@ export async function GET(req: Request) {
       },
     });
   } catch (e) {
-    return erroInesperado("compartilhar.contexto", e);
+    return unexpectedError("compartilhar.contexto", e);
   }
 }
 
 type Corpo = { nomeNaMoldura?: unknown };
 
-/** Segundo consentimento antes de sair do perímetro (spec 015, ADR 0009). */
 export async function POST(req: Request) {
-  const sessao = await sessaoDaRequisicao(req);
-  if (!sessao) return erro(401, "sessao.invalida", "Sessão inválida");
+  const auth = await requireGuestSession(req);
+  if (auth instanceof Response) return auth;
 
-  const limite = consumir(identidadeParaLimite(req, sessao), 20, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
-    });
-  }
+  const limited = enforceRateLimit(req, auth.session, { max: 20 });
+  if (limited) return limited;
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const parsed = await parseJsonBody<Corpo>(req);
+  if (parsed instanceof Response) return parsed;
 
-  const nomeNaMoldura = corpo.nomeNaMoldura === true;
+  const nomeNaMoldura = parsed.data.nomeNaMoldura === true;
 
   try {
-    const gravou = await comEvento(banco(), sessao.eventoId, (c) =>
-      registrarConsentimentoExterno(c, sessao.sessaoId, nomeNaMoldura),
+    const gravou = await comEvento(getPool(), auth.session.eventoId, (c) =>
+      registrarConsentimentoExterno(c, auth.session.sessaoId, nomeNaMoldura),
     );
 
-    if (!gravou) return erro(404, "sessao.nao_encontrada", "Sessão não encontrada");
+    if (!gravou) return errorResponse(404, "sessao.nao_encontrada", "Sessão não encontrada");
 
-    return ok({ registrado: true, nomeNaMoldura });
+    return jsonOk({ registrado: true, nomeNaMoldura });
   } catch (e) {
-    return erroInesperado("compartilhar.consentimento", e);
+    return unexpectedError("compartilhar.consentimento", e);
   }
 }

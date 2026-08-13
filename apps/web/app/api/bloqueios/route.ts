@@ -3,71 +3,68 @@ import {
   comEvento,
   ErroSessaoDeOutroEvento,
 } from "@albora/db";
-import { banco } from "@/lib/banco";
-import { consumir } from "@/lib/limite";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
-import { identidadeParaLimite, sessaoDaRequisicao } from "@/lib/sessao";
+import {
+  enforceRateLimit,
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireGuestSession,
+  unexpectedError,
+  UUID_RE,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 type Corpo = { sessaoId?: unknown };
 
-/** Bloqueio simetrico entre convidados no evento (spec 014). */
 export async function POST(req: Request) {
-  const sessao = await sessaoDaRequisicao(req);
-  if (!sessao) return erro(401, "sessao.invalida", "Sessão inválida");
+  const auth = await requireGuestSession(req);
+  if (auth instanceof Response) return auth;
 
   const eventoPedido = new URL(req.url).searchParams.get("evento");
-  if (eventoPedido !== null && eventoPedido !== sessao.eventoId) {
-    return erro(403, "bloqueio.evento_divergente", "Esta sessão não pertence a este evento");
+  if (eventoPedido !== null && eventoPedido !== auth.session.eventoId) {
+    return errorResponse(403, "bloqueio.evento_divergente", "Esta sessão não pertence a este evento");
   }
 
-  const limite = consumir(identidadeParaLimite(req, sessao), 30, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
-    });
-  }
+  const limited = enforceRateLimit(req, auth.session, { max: 30 });
+  if (limited) return limited;
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const parsed = await parseJsonBody<Corpo>(req);
+  if (parsed instanceof Response) return parsed;
 
   const alvo =
-    typeof corpo.sessaoId === "string" && UUID.test(corpo.sessaoId) ? corpo.sessaoId : null;
+    typeof parsed.data.sessaoId === "string" && UUID_RE.test(parsed.data.sessaoId)
+      ? parsed.data.sessaoId
+      : null;
   if (!alvo) {
-    return erro(422, "validation_error", "Sessão inválida", { campos: ["sessaoId"] });
+    return errorResponse(422, "validation_error", "Sessão inválida", { campos: ["sessaoId"] });
   }
 
-  if (alvo === sessao.sessaoId) {
-    return erro(422, "bloqueio.proprio", "Não é possível bloquear a si");
+  if (alvo === auth.session.sessaoId) {
+    return errorResponse(422, "bloqueio.proprio", "Não é possível bloquear a si");
   }
 
   try {
-    const resultado = await comEvento(banco(), sessao.eventoId, (c) =>
+    const resultado = await comEvento(getPool(), auth.session.eventoId, (c) =>
       bloquearConvidado(c, {
-        eventoId: sessao.eventoId,
-        bloqueadorId: sessao.sessaoId,
+        eventoId: auth.session.eventoId,
+        bloqueadorId: auth.session.sessaoId,
         bloqueadoId: alvo,
       }),
     );
 
     console.log("bloqueio.registrado", {
-      eventoId: sessao.eventoId,
-      bloqueadorId: sessao.sessaoId,
+      eventoId: auth.session.eventoId,
+      bloqueadorId: auth.session.sessaoId,
       novo: resultado.registrado,
     });
 
-    return ok({ registrado: resultado.registrado });
+    return jsonOk({ registrado: resultado.registrado });
   } catch (e) {
     if (e instanceof ErroSessaoDeOutroEvento) {
-      return erro(404, "bloqueio.sessao_ausente", "Convidado não encontrado");
+      return errorResponse(404, "bloqueio.sessao_ausente", "Convidado não encontrado");
     }
-    return erroInesperado("bloqueio", e);
+    return unexpectedError("bloqueio", e);
   }
 }

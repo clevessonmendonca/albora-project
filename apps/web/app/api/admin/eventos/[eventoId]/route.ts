@@ -1,23 +1,33 @@
 import {
   abrirInteracaoDoEvento,
   atualizarModeracaoDoEvento,
-  buscarEventoDoHost,
   comEvento,
   lerMetricasAoVivo,
   listarComentariosParaRevisao,
   listarMidiaParaRevisao,
 } from "@albora/db";
 import { decidirTese, type CodigoDaTese } from "@albora/core";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig, ErroOrigemDeMidia } from "@/lib/config";
-import { consumir } from "@/lib/limite";
-import { hostDaRequisicao } from "@/lib/host-sessao";
+import {
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireConfig,
+  requireHostEvent,
+  requireHostSession,
+  unexpectedError,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { consume } from "@/lib/rate-limit-store";
 import { assinarGet } from "@/lib/r2";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
 
 export const dynamic = "force-dynamic";
 
 const VALIDADE_GET_SEGUNDOS = 900;
+
+const ADMIN_SESSAO = {
+  code: "admin.sem_sessao",
+  message: "Entre no painel para continuar",
+} as const;
 
 type Corpo = {
   panico?: unknown;
@@ -33,38 +43,30 @@ function comoBooleano(v: unknown): boolean | undefined {
 
 /** Painel ao vivo: participação, fotos e fila de revisão (spec 009). */
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    if (e instanceof ErroOrigemDeMidia) {
-      return erro(503, e.code, "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin", { log: false, mediaOrigin: true });
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(_req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
 
-  const limite = consumir(`admin_painel:${host.accountId}`, 60, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`admin_painel:${auth.host.accountId}`, 60, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
   try {
-    const evento = await buscarEventoDoHost(banco(), host.accountId, eventoId);
-    if (!evento) return erro(404, "evento.nao_encontrado", "Evento não encontrado");
+    const owned = await requireHostEvent(auth.host.accountId, eventoId);
+    if (owned instanceof Response) return owned;
+    const { evento } = owned;
 
-    const dados = await comEvento(banco(), eventoId, async (c) => {
+    const dados = await comEvento(getPool(), eventoId, async (c) => {
       const metricas = await lerMetricasAoVivo(c, eventoId);
       const midias = await listarMidiaParaRevisao(c, eventoId);
       const comentarios = await listarComentariosParaRevisao(c, eventoId);
@@ -84,7 +86,7 @@ export async function GET(
       })),
     );
 
-    return ok({
+    return jsonOk({
       expectedGuests: evento.expectedGuests,
       sessoesComUpload: dados.metricas.sessoesComUpload,
       totalFotos: dados.metricas.totalFotos,
@@ -94,7 +96,7 @@ export async function GET(
       ultimas,
     });
   } catch (e) {
-    return erroInesperado("admin.painel", e);
+    return unexpectedError("admin.painel", e);
   }
 }
 
@@ -107,34 +109,24 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("admin.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin");
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
 
-  const limite = consumir(`admin_moderacao:${host.accountId}`, 60, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`admin_moderacao:${auth.host.accountId}`, 60, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const parsed = await parseJsonBody<Corpo>(req);
+  if (parsed instanceof Response) return parsed;
+  const corpo = parsed.data;
 
   const panico = comoBooleano(corpo.panico);
   const haMenores = comoBooleano(corpo.haMenores);
@@ -147,28 +139,28 @@ export async function PATCH(
     modoEndurecido === undefined &&
     abrirInteracao === undefined
   ) {
-    return erro(422, "validation_error", "Nada para atualizar", {
+    return errorResponse(422, "validation_error", "Nada para atualizar", {
       campos: ["panico", "haMenores", "modoEndurecido", "abrirInteracao"],
     });
   }
 
   try {
-    let evento = await atualizarModeracaoDoEvento(banco(), host.accountId, eventoId, {
+    let evento = await atualizarModeracaoDoEvento(getPool(), auth.host.accountId, eventoId, {
       ...(panico !== undefined ? { panico } : {}),
       ...(haMenores !== undefined ? { haMenores } : {}),
       ...(modoEndurecido !== undefined ? { modoEndurecido } : {}),
     });
 
     if (abrirInteracao === true) {
-      evento = await abrirInteracaoDoEvento(banco(), host.accountId, eventoId);
+      evento = await abrirInteracaoDoEvento(getPool(), auth.host.accountId, eventoId);
     }
 
     if (!evento) {
-      return erro(404, "evento.nao_encontrado", "Evento não encontrado");
+      return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
     }
 
     console.log("admin.moderacao_atualizada", {
-      accountId: host.accountId,
+      accountId: auth.host.accountId,
       eventoId,
       panico: evento.moderacao.panico,
       haMenores: evento.moderacao.haMenores,
@@ -176,11 +168,11 @@ export async function PATCH(
       interacaoAberta: abrirInteracao === true,
     });
 
-    return ok({
+    return jsonOk({
       moderacao: evento.moderacao,
       interacaoAbreEm: evento.interacaoAbreEm?.toISOString() ?? null,
     });
   } catch (e) {
-    return erroInesperado("admin.moderacao", e);
+    return unexpectedError("admin.moderacao", e);
   }
 }

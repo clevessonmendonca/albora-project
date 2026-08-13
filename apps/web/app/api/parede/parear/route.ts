@@ -1,13 +1,12 @@
 import { criarPareamento } from "@albora/db";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig } from "@/lib/config";
-import { consumir } from "@/lib/limite";
-import { cookieDoPareamento } from "@/lib/parede";
-import { erro, erroInesperado } from "@/lib/resposta";
+import { errorResponse, jsonOk, requireConfig, unexpectedError } from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { config } from "@/lib/config";
+import { consume } from "@/lib/rate-limit-store";
+import { pairingCookie } from "@/lib/wall";
 
 export const dynamic = "force-dynamic";
 
-/** O pareamento vive pouco: a TV mostra o código e alguém autoriza em minutos. */
 const VALIDADE_PAREAMENTO_SEGUNDOS = 10 * 60;
 
 /**
@@ -19,39 +18,31 @@ const VALIDADE_PAREAMENTO_SEGUNDOS = 10 * 60;
  * resposta. Quem já está no evento é que autoriza, e é de lá que o evento vem.
  */
 export async function POST(req: Request) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("parede.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const configError = requireConfig("parede");
+  if (configError) return configError;
 
   const ip = req.headers.get("cf-connecting-ip") ?? req.headers.get("x-forwarded-for") ?? "sem-ip";
-  const limite = consumir(`parear:${ip.split(",")[0]!.trim()}`, 30, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`parear:${ip.split(",")[0]!.trim()}`, 30, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
   try {
     const expiraEm = new Date(Date.now() + VALIDADE_PAREAMENTO_SEGUNDOS * 1000);
-    const { code, pollToken } = await criarPareamento(banco(), config().sessionSecret, expiraEm);
+    const { code, pollToken } = await criarPareamento(getPool(), config().sessionSecret, expiraEm);
 
     console.log("parede.pareamento_criado", { expiraEm: expiraEm.toISOString() });
 
-    return new Response(JSON.stringify({ code, expiraEm: expiraEm.toISOString() }), {
-      status: 201,
-      headers: {
-        "content-type": "application/json",
-        "cache-control": "no-store",
-        "set-cookie": cookieDoPareamento(pollToken, VALIDADE_PAREAMENTO_SEGUNDOS),
+    return jsonOk(
+      { code, expiraEm: expiraEm.toISOString() },
+      {
+        status: 201,
+        headers: { "set-cookie": pairingCookie(pollToken, VALIDADE_PAREAMENTO_SEGUNDOS) },
       },
-    });
+    );
   } catch (e) {
-    return erroInesperado("parede.parear", e);
+    return unexpectedError("parede.parear", e);
   }
 }

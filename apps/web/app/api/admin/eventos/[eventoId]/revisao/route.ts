@@ -1,25 +1,31 @@
 import {
-  buscarEventoDoHost,
   comEvento,
   liberarComentarioDoEvento,
   liberarMidiaDoEvento,
   listarComentariosParaRevisao,
   listarMidiaParaRevisao,
+  ocultarMidiaDoHost,
   removerComentarioDoEvento,
 } from "@albora/db";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig } from "@/lib/config";
-import { hostDaRequisicao } from "@/lib/host-sessao";
-import { consumir } from "@/lib/limite";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
+import {
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireConfig,
+  requireHostEvent,
+  requireHostSession,
+  unexpectedError,
+  UUID_RE,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-async function eventoDoHost(accountId: string, eventoId: string) {
-  return buscarEventoDoHost(banco(), accountId, eventoId);
-}
+const ADMIN_SESSAO = {
+  code: "admin.sem_sessao",
+  message: "Entre no painel para continuar",
+} as const;
 
 function serializar(
   midias: Awaited<ReturnType<typeof listarMidiaParaRevisao>>,
@@ -50,35 +56,27 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("admin.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin");
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
-  if (!(await eventoDoHost(host.accountId, eventoId))) {
-    return erro(404, "evento.nao_encontrado", "Evento não encontrado");
-  }
+  const owned = await requireHostEvent(auth.host.accountId, eventoId);
+  if (owned instanceof Response) return owned;
 
   try {
-    const fila = await comEvento(banco(), eventoId, async (c) => {
+    const fila = await comEvento(getPool(), eventoId, async (c) => {
       const [midias, comentarios] = await Promise.all([
         listarMidiaParaRevisao(c, eventoId),
         listarComentariosParaRevisao(c, eventoId),
       ]);
       return serializar(midias, comentarios);
     });
-    return ok(fila);
+    return jsonOk(fila);
   } catch (e) {
-    return erroInesperado("admin.revisao.get", e);
+    return unexpectedError("admin.revisao.get", e);
   }
 }
 
@@ -93,74 +91,76 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ eventoId: string }> },
 ) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("admin.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const cfgErr = requireConfig("admin");
+  if (cfgErr) return cfgErr;
 
-  const host = await hostDaRequisicao(req);
-  if (!host) return erro(401, "admin.sem_sessao", "Entre no painel para continuar");
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
 
   const { eventoId } = await params;
 
-  const limite = consumir(`admin_revisao:${host.accountId}`, 60, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Espere um instante", {
-      retry_after_seconds: limite.resetEmSegundos,
+  const limite = consume(`admin_revisao:${auth.host.accountId}`, 60, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
     });
   }
 
-  if (!(await eventoDoHost(host.accountId, eventoId))) {
-    return erro(404, "evento.nao_encontrado", "Evento não encontrado");
-  }
+  const owned = await requireHostEvent(auth.host.accountId, eventoId);
+  if (owned instanceof Response) return owned;
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const parsed = await parseJsonBody<Corpo>(req);
+  if (parsed instanceof Response) return parsed;
+  const corpo = parsed.data;
 
   const tipo = corpo.tipo === "midia" || corpo.tipo === "comentario" ? corpo.tipo : null;
-  const acao = corpo.acao === "liberar" || corpo.acao === "remover" ? corpo.acao : null;
-  const id = typeof corpo.id === "string" && UUID.test(corpo.id) ? corpo.id : null;
+  const acao =
+    corpo.acao === "liberar" || corpo.acao === "remover" || corpo.acao === "ocultar"
+      ? corpo.acao
+      : null;
+  const id = typeof corpo.id === "string" && UUID_RE.test(corpo.id) ? corpo.id : null;
 
   if (!tipo || !acao || !id) {
-    return erro(422, "validation_error", "Pedido inválido", { campos: ["tipo", "id", "acao"] });
+    return errorResponse(422, "validation_error", "Pedido inválido", { campos: ["tipo", "id", "acao"] });
   }
 
   if (tipo === "comentario" && acao === "remover") {
     try {
-      const removido = await comEvento(banco(), eventoId, (c) =>
+      const removido = await comEvento(getPool(), eventoId, (c) =>
         removerComentarioDoEvento(c, id),
       );
-      if (!removido) return erro(404, "comentario.nao_encontrado", "Comentário não encontrado");
-      return ok({ id, removido: true });
+      if (!removido) return errorResponse(404, "comentario.nao_encontrado", "Comentário não encontrado");
+      return jsonOk({ id, removido: true });
     } catch (e) {
-      return erroInesperado("admin.revisao.remover_comentario", e);
+      return unexpectedError("admin.revisao.remover_comentario", e);
+    }
+  }
+
+  if (tipo === "midia" && acao === "ocultar") {
+    try {
+      const ocultou = await ocultarMidiaDoHost(getPool(), auth.host.accountId, eventoId, id);
+      if (!ocultou) return errorResponse(404, "midia.nao_encontrada", "Foto não encontrada");
+      return jsonOk({ id, oculta: true });
+    } catch (e) {
+      return unexpectedError("admin.revisao.ocultar_midia", e);
     }
   }
 
   if (acao !== "liberar") {
-    return erro(422, "validation_error", "Só comentários podem ser removidos", { campos: ["acao"] });
+    return errorResponse(422, "validation_error", "Ação inválida para este tipo", { campos: ["acao"] });
   }
 
   try {
-    const okAcao = await comEvento(banco(), eventoId, async (c) => {
+    const okAcao = await comEvento(getPool(), eventoId, async (c) => {
       if (tipo === "midia") return liberarMidiaDoEvento(c, id);
       return liberarComentarioDoEvento(c, id);
     });
 
-    if (!okAcao) return erro(404, "recurso.nao_encontrado", "Item não encontrado");
+    if (!okAcao) return errorResponse(404, "recurso.nao_encontrado", "Item não encontrado");
 
-    console.log("admin.revisao_liberada", { accountId: host.accountId, eventoId, tipo, id });
-    return ok({ id, tipo, liberado: true });
+    console.log("admin.revisao_liberada", { accountId: auth.host.accountId, eventoId, tipo, id });
+    return jsonOk({ id, tipo, liberado: true });
   } catch (e) {
-    return erroInesperado("admin.revisao.liberar", e);
+    return unexpectedError("admin.revisao.liberar", e);
   }
 }
