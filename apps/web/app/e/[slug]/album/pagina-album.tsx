@@ -5,6 +5,7 @@ import { usarFeed } from "@/lib/usar-feed";
 import {
   CabecalhoConvidado,
   ChaoConvidado,
+  EstadoVazio,
   MioloConvidado,
 } from "../../../telas/shell-convidado";
 import { Pilula } from "../../../telas/pecas-de-tela";
@@ -106,16 +107,11 @@ export function PaginaAlbum({
           {primeiraCarga && <GradeAlbumCarregando />}
 
           {vazio && (
-            <p
-              style={{
-                margin: "2.5rem 0 0",
-                textAlign: "center",
-                lineHeight: 1.6,
-                color: "var(--ink-2)",
-              }}
-            >
-              {missaoId ? "Ninguém mandou essa ainda." : "Ainda não há fotos no álbum."}
-            </p>
+            <EstadoVazio
+              titulo={missaoId ? "Ninguém mandou essa ainda." : "Ainda não há fotos no álbum."}
+              lede={missaoId ? "A sua pode ser a primeira." : "Seja o primeiro a fotografar."}
+              caminhoDaCamera={caminhoDaCamera}
+            />
           )}
 
           {estado.itens.length > 0 && (

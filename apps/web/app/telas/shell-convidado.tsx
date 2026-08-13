@@ -142,6 +142,133 @@ export function TextoSecundario({ children }: { children: ReactNode }) {
   );
 }
 
+/** Estado vazio compartilhado — spec A-09. Frase + atalho pra câmera. */
+export function EstadoVazio({
+  titulo,
+  lede,
+  caminhoDaCamera,
+  rotuloCamera = "Tirar foto",
+}: {
+  titulo: string;
+  lede: string;
+  caminhoDaCamera: string;
+  rotuloCamera?: string;
+}) {
+  return (
+    <div
+      style={{
+        padding: "calc(var(--espaco) * 8) 0",
+        textAlign: "center",
+        display: "grid",
+        gap: "1.25rem",
+      }}
+    >
+      <div>
+        <p
+          style={{
+            margin: "0 0 0.4rem",
+            fontFamily: "var(--fonte-titulo)",
+            fontSize: "1.6rem",
+            fontWeight: 500,
+            lineHeight: 1.25,
+            letterSpacing: "var(--tracking-titulo)",
+            textWrap: "balance",
+          }}
+        >
+          {titulo}
+        </p>
+        <p style={{ margin: 0, lineHeight: 1.6, color: "var(--ink-2)" }}>{lede}</p>
+      </div>
+      <a
+        href={caminhoDaCamera}
+        style={{
+          display: "grid",
+          placeItems: "center",
+          width: "100%",
+          padding: "1.125rem",
+          textDecoration: "none",
+          fontWeight: 600,
+          ...raio("var(--raio-pilula)"),
+          backgroundColor: "var(--acento)",
+          color: "var(--sobre-acento)",
+        }}
+      >
+        {rotuloCamera}
+      </a>
+    </div>
+  );
+}
+
+/** Bottom-sheet compartilhado — spec A-05/A-06/A-07. */
+export function SheetBaixo({
+  titulo,
+  aberto,
+  onFechar,
+  children,
+  rodape,
+  idTitulo,
+}: {
+  titulo: string;
+  aberto: boolean;
+  onFechar: () => void;
+  children: ReactNode;
+  rodape?: ReactNode;
+  idTitulo?: string;
+}) {
+  if (!aberto) return null;
+
+  const tituloId = idTitulo ?? "sheet-titulo";
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={tituloId}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 35,
+        display: "grid",
+        placeItems: "end center",
+        padding: "1rem",
+        paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
+        background: "color-mix(in srgb, var(--noite) 45%, transparent)",
+      }}
+      onClick={onFechar}
+    >
+      <div
+        style={{
+          width: "min(26rem, 100%)",
+          maxHeight: "min(78dvh, 32rem)",
+          display: "grid",
+          gridTemplateRows: "auto 1fr auto",
+          overflow: "hidden",
+          padding: "1.25rem",
+          gap: "0.875rem",
+          ...raio("var(--raio-superficie)"),
+          backgroundColor: "var(--superficie)",
+          border: "1px solid var(--linha)",
+        }}
+        onClick={(ev) => ev.stopPropagation()}
+      >
+        <h2
+          id={tituloId}
+          style={{
+            margin: 0,
+            fontFamily: "var(--fonte-titulo)",
+            fontSize: "1.0625rem",
+            fontWeight: 400,
+          }}
+        >
+          {titulo}
+        </h2>
+        <div style={{ overflow: "auto", minHeight: 0 }}>{children}</div>
+        {rodape}
+      </div>
+    </div>
+  );
+}
+
 export function AvisoGate({ children }: { children: ReactNode }) {
   return (
     <div
@@ -370,7 +497,7 @@ export function Consentimento({
   children,
 }: {
   marcado: boolean;
-  onChange: (valor: boolean) => void;
+  onChange?: (valor: boolean) => void;
   children: ReactNode;
 }) {
   return (
@@ -379,13 +506,14 @@ export function Consentimento({
         display: "flex",
         gap: "0.75rem",
         alignItems: "flex-start",
-        cursor: "pointer",
+        cursor: onChange ? "pointer" : "default",
       }}
     >
       <input
         type="checkbox"
         checked={marcado}
-        onChange={(ev) => onChange(ev.target.checked)}
+        readOnly={!onChange}
+        onChange={onChange ? (ev) => onChange(ev.target.checked) : undefined}
         style={{
           position: "absolute",
           width: "1px",
@@ -439,13 +567,29 @@ export function ColunaEntrada({ children }: { children: ReactNode }) {
   );
 }
 
+const estiloLinkDiscreto: CSSProperties = {
+  padding: 0,
+  border: "none",
+  background: "none",
+  font: "inherit",
+  fontSize: "inherit",
+  lineHeight: "inherit",
+  color: "var(--acento)",
+  textDecoration: "underline",
+  textUnderlineOffset: "0.15em",
+};
+
 export function LinkDiscreto({
   children,
   onClick,
 }: {
   children: ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
 }) {
+  if (!onClick) {
+    return <span style={estiloLinkDiscreto}>{children}</span>;
+  }
+
   return (
     <button
       type="button"
@@ -454,18 +598,7 @@ export function LinkDiscreto({
         ev.stopPropagation();
         onClick();
       }}
-      style={{
-        padding: 0,
-        border: "none",
-        background: "none",
-        font: "inherit",
-        fontSize: "inherit",
-        lineHeight: "inherit",
-        color: "var(--acento)",
-        cursor: "pointer",
-        textDecoration: "underline",
-        textUnderlineOffset: "0.15em",
-      }}
+      style={{ ...estiloLinkDiscreto, cursor: "pointer" }}
     >
       {children}
     </button>

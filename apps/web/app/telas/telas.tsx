@@ -26,6 +26,7 @@ import {
 import {
   AvisoGate,
   BotaoPrimario,
+  BotaoSecundario,
   ColunaEntrada,
   Consentimento,
   FaixaMissao,
@@ -153,15 +154,53 @@ export function TelaEntrada({ pack }: { pack: Pack }) {
           <span style={{ color: "var(--acento)" }}>|</span>
         </div>
 
-        <Consentimento marcado onChange={() => {}}>
+        <Consentimento marcado>
           Concordo que as fotos que eu enviar apareçam para quem está nesta festa.{" "}
-          <LinkDiscreto onClick={() => {}}>Ler o texto completo</LinkDiscreto>
+          <LinkDiscreto>Ler o texto completo</LinkDiscreto>
         </Consentimento>
 
         <BotaoPrimario desabilitado>Fotografar</BotaoPrimario>
 
         <RodapeDiscreto>Sem cadastro, sem senha e sem baixar nada</RodapeDiscreto>
       </ColunaEntrada>
+    </Chao>
+  );
+}
+
+/** A-01 · Scanner — visor ao vivo antes de entrar no evento. */
+export function TelaScanner({ pack }: { pack: Pack }) {
+  return (
+    <Chao fundo="escuro" pack={pack}>
+      <div style={{ position: "relative", flex: 1, backgroundColor: "var(--superficie)" }}>
+        <Moldura rotulo="" raio="0" atmosfera variante={2} />
+        <span
+          style={{
+            position: "absolute",
+            inset: "18%",
+            border: "1px solid var(--acento)",
+            borderRadius: "var(--raio)",
+            boxShadow: "0 0 0 9999px color-mix(in srgb, var(--noite) 35%, transparent)",
+          }}
+        />
+        <p
+          style={{
+            position: "absolute",
+            top: "1rem",
+            left: "1.125rem",
+            right: "1.125rem",
+            margin: 0,
+            textAlign: "center",
+            fontFamily: "var(--fonte-titulo)",
+            fontSize: "1.0625rem",
+            textShadow: "0 1px 4px var(--bg)",
+          }}
+        >
+          Aponte para o QR da festa
+        </p>
+      </div>
+      <div style={{ padding: "1rem 1.125rem 2rem" }}>
+        <BotaoSecundario>Já tenho o link</BotaoSecundario>
+      </div>
     </Chao>
   );
 }
@@ -247,6 +286,88 @@ export function TelaCamera({ pack, missao }: { pack: Pack; missao: string }) {
 }
 
 /**
+ * A aba de missões — card da missão de agora e trilha do progresso.
+ *
+ * A missão também aparece sobre o visor da câmera; esta aba existe para quem
+ * quer ver o que falta sem abrir o obturador. Gamificação de placar fica fora.
+ */
+export function TelaMissoes({ pack }: { pack: Pack }) {
+  const titulos = pack.missoes.slice(0, 4).map((m) => texto(pack, m.chaveTitulo));
+  const atual = titulos[2] ?? texto(pack, "missao.livre");
+
+  return (
+    <Chao fundo="escuro" pack={pack}>
+      <BarraDeStatus />
+      <Cabecalho titulo="Missões" acao={<Pilula>3 de 4</Pilula>} />
+
+      <div style={{ padding: "0 1.125rem", display: "grid", gap: "1rem", flex: 1, alignContent: "start" }}>
+        <div
+          style={{
+            display: "grid",
+            gap: "0.75rem",
+            padding: "1.25rem 1.125rem",
+            ...raio("var(--raio)"),
+            backgroundColor: "color-mix(in srgb, var(--acento) 14%, var(--superficie))",
+            borderWidth: "1px",
+            borderStyle: "solid",
+            borderColor: "color-mix(in srgb, var(--acento) 35%, var(--linha))",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "0.6875rem",
+              letterSpacing: "var(--tracking-rotulo)",
+              textTransform: "uppercase",
+              color: "var(--acento-texto)",
+            }}
+          >
+            Missão de agora
+          </span>
+          <span
+            style={{
+              fontFamily: "var(--fonte-titulo)",
+              fontSize: "1.375rem",
+              lineHeight: 1.15,
+              letterSpacing: "var(--tracking-titulo)",
+            }}
+          >
+            {atual}
+          </span>
+          <span style={{ fontSize: "0.8125rem", color: "var(--ink-2)" }}>Toque para fotografar</span>
+        </div>
+
+        <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "grid", gap: "0.5rem" }}>
+          {titulos.map((t, i) => {
+            const feita = i < 2;
+            return (
+              <li
+                key={t}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.875rem",
+                  padding: "0.875rem 1rem",
+                  ...raio("var(--raio)"),
+                  backgroundColor: "var(--superficie)",
+                  opacity: feita ? 0.72 : 1,
+                }}
+              >
+                <Estrela tamanho={18} cheia={feita} />
+                <span style={{ fontFamily: "var(--fonte-titulo)", fontSize: "1rem", lineHeight: 1.25 }}>
+                  {t}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      <BarraDeAbas ativa="missoes" />
+    </Chao>
+  );
+}
+
+/**
  * O feed, depois do gate.
  *
  * A trilha de cima são os capítulos da noite, não pessoas: o Instagram põe
@@ -322,6 +443,329 @@ export function TelaFeed({ pack, momentos }: { pack: Pack; momentos: string[] })
       </div>
 
       <BarraDeAbas ativa="feed" />
+    </Chao>
+  );
+}
+
+/** Foto aberta em tela cheia — spec A-04. Destino de toque no feed, álbum ou minhas. */
+export function TelaFotoAberta({ pack }: { pack: Pack }) {
+  const veuTopo = "linear-gradient(to bottom, color-mix(in srgb, var(--bg) 86%, transparent), transparent)";
+  const veuBase = "linear-gradient(to top, color-mix(in srgb, var(--bg) 92%, transparent), transparent)";
+
+  return (
+    <Chao fundo="escuro" pack={pack}>
+      <div
+        style={{
+          position: "relative",
+          flex: 1,
+          display: "grid",
+          gridTemplateRows: "auto 1fr auto",
+          overflow: "hidden",
+        }}
+      >
+        <div style={{ position: "absolute", inset: 0 }}>
+          <Moldura rotulo="" raio="0" atmosfera variante={11} />
+        </div>
+
+        <header
+          style={{
+            position: "relative",
+            zIndex: 2,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "max(0.75rem, env(safe-area-inset-top)) 1rem 1rem",
+            background: veuTopo,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "var(--fonte-titulo)",
+              fontSize: "0.7rem",
+              letterSpacing: "0.24em",
+              textTransform: "uppercase",
+              color: "var(--ink-2)",
+            }}
+          >
+            23h
+          </span>
+          <span style={{ display: "flex", gap: "0.5rem" }}>
+            <BotaoFlutuante aria-hidden>×</BotaoFlutuante>
+            <BotaoFlutuante>Fechar</BotaoFlutuante>
+          </span>
+        </header>
+
+        <div style={{ position: "relative", zIndex: 1 }} />
+
+        <footer
+          style={{
+            position: "relative",
+            zIndex: 2,
+            display: "grid",
+            gap: "1rem",
+            padding: "2rem 1rem max(1.25rem, env(safe-area-inset-bottom))",
+            background: veuBase,
+          }}
+        >
+          <div style={{ display: "grid", gap: "0.3rem" }}>
+            <p
+              style={{
+                margin: 0,
+                fontFamily: "var(--fonte-titulo)",
+                fontSize: "0.66rem",
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                color: "var(--ink)",
+              }}
+            >
+              Bia · Pista
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "1.125rem", color: "var(--ink)" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+                <Estrela tamanho={24} cheia />
+                <span style={{ fontSize: "0.84375rem" }}>12</span>
+              </span>
+              <span style={{ display: "flex", alignItems: "center", gap: "0.375rem" }}>
+                <IconeComentario tamanho={22} />
+                <span style={{ fontSize: "0.84375rem" }}>3</span>
+              </span>
+              <span style={{ marginLeft: "auto", display: "flex", gap: "0.75rem" }}>
+                <IconeCompartilhar tamanho={21} />
+                <IconeMais tamanho={20} />
+              </span>
+            </div>
+          </div>
+          <BotaoPrimario>Tirar foto</BotaoPrimario>
+        </footer>
+      </div>
+    </Chao>
+  );
+}
+
+/** A-07 · Fila de envio — sheet sobre a câmera, caminho crítico offline. */
+export function TelaFila({ pack }: { pack: Pack }) {
+  return (
+    <Chao fundo="escuro" pack={pack}>
+      <BarraDeStatus />
+      <Cabecalho
+        titulo={texto(pack, "landing.exemplo.nome")}
+        acao={<Pilula>3 na fila</Pilula>}
+      />
+
+      <div style={{ position: "relative", flex: 1, margin: "0 0.75rem", overflow: "hidden", ...raio("var(--raio-superficie)") }}>
+        <Moldura rotulo="" raio="var(--raio-superficie)" atmosfera variante={3} />
+      </div>
+
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 2,
+          display: "grid",
+          placeItems: "end center",
+          padding: "1rem",
+          paddingBottom: "calc(1rem + env(safe-area-inset-bottom))",
+          background: "color-mix(in srgb, var(--noite) 45%, transparent)",
+          pointerEvents: "none",
+        }}
+      >
+        <div
+          style={{
+            width: "min(26rem, 100%)",
+            padding: "1.25rem",
+            display: "grid",
+            gap: "0.875rem",
+            ...raio("var(--raio-superficie)"),
+            backgroundColor: "var(--superficie)",
+            border: "1px solid var(--linha)",
+          }}
+        >
+          <p style={{ margin: 0, fontFamily: "var(--fonte-titulo)", fontSize: "1.0625rem" }}>
+            Fila de envio
+          </p>
+          <p style={{ margin: 0, fontSize: "0.875rem", lineHeight: 1.5, color: "var(--ink-2)" }}>
+            Sem sinal — a gente reenvia sozinho quando voltar.
+          </p>
+          {[
+            { tipo: "Foto", estado: "Enviando…" },
+            { tipo: "Foto", estado: "Na fila · sem sinal" },
+            { tipo: "Vídeo", estado: "Falhou · tentar de novo", falhou: true },
+          ].map((linha) => (
+            <div
+              key={linha.estado}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.75rem",
+                padding: "0.5rem",
+                ...raio("var(--raio)"),
+                backgroundColor: "var(--bg)",
+              }}
+            >
+              <span
+                style={{
+                  flex: "none",
+                  width: "3rem",
+                  height: "3rem",
+                  ...raio("calc(var(--raio) * 0.75)"),
+                  overflow: "hidden",
+                }}
+              >
+                <Moldura rotulo="" raio="calc(var(--raio) * 0.75)" atmosfera variante={2} />
+              </span>
+              <span>
+                <span style={{ display: "block", fontSize: "0.875rem" }}>{linha.tipo}</span>
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    color: linha.falhou ? "var(--critico)" : "var(--ink-3)",
+                  }}
+                >
+                  {linha.estado}
+                </span>
+              </span>
+            </div>
+          ))}
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <BotaoSecundario>Fechar</BotaoSecundario>
+            <BotaoPrimario>Tentar de novo</BotaoPrimario>
+          </div>
+        </div>
+      </div>
+    </Chao>
+  );
+}
+
+/** A-08 · Música do casal — player informativo, sem fila social. */
+export function TelaMusica({ pack }: { pack: Pack }) {
+  return (
+    <Chao fundo="escuro" pack={pack}>
+      <BarraDeStatus />
+      <Cabecalho titulo="Música da festa" />
+
+      <div style={{ flex: 1, padding: `0 ${PADDING_LATERAL}`, display: "grid", gap: "1rem", alignContent: "start" }}>
+        <div style={{ position: "relative", aspectRatio: "1", maxWidth: "12rem", margin: "0 auto", ...raio("var(--raio-superficie)"), overflow: "hidden" }}>
+          <Moldura rotulo="" raio="var(--raio-superficie)" atmosfera variante={5} />
+        </div>
+        <p style={{ margin: 0, textAlign: "center", fontFamily: "var(--fonte-titulo)", fontSize: "1.125rem" }}>
+          Perfect — Ed Sheeran
+        </p>
+        <p style={{ margin: 0, textAlign: "center", fontSize: "0.6875rem", letterSpacing: "var(--tracking-rotulo)", textTransform: "uppercase", color: "var(--ink-3)" }}>
+          Escolha do casal
+        </p>
+        <div style={{ display: "flex", justifyContent: "center", gap: "3px", height: "2rem", alignItems: "flex-end" }}>
+          {Array.from({ length: 16 }, (_, i) => (
+            <span key={i} style={{ width: "3px", height: `${40 + (i % 5) * 12}%`, backgroundColor: "var(--acento)", borderRadius: "var(--raio-pilula)" }} />
+          ))}
+        </div>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "1rem" }}>
+          <span style={{ display: "grid", placeItems: "center", width: "3rem", height: "3rem", borderRadius: "50%", backgroundColor: "var(--acento)", color: "var(--sobre-acento)" }}>
+            ▶
+          </span>
+          <span style={{ fontSize: "0.85rem", color: "var(--ink-3)" }}>—:——</span>
+        </div>
+      </div>
+
+      <BarraDeAbas ativa="feed" />
+    </Chao>
+  );
+}
+
+/** A-05 · Comentar — sheet sobre a foto aberta. */
+export function TelaComentar({ pack }: { pack: Pack }) {
+  return (
+    <Chao fundo="escuro" pack={pack}>
+      <div style={{ position: "relative", flex: 1 }}>
+        <Moldura rotulo="" raio="0" atmosfera variante={9} />
+        <div
+          style={{
+            position: "absolute",
+            insetInline: 0,
+            bottom: 0,
+            padding: "1.25rem",
+            background: "linear-gradient(to top, color-mix(in srgb, var(--bg) 92%, transparent), transparent)",
+          }}
+        >
+          <div
+            style={{
+              padding: "1.25rem",
+              display: "grid",
+              gap: "0.75rem",
+              ...raio("var(--raio-superficie)"),
+              backgroundColor: "var(--superficie)",
+              border: "1px solid var(--linha)",
+            }}
+          >
+            <p style={{ margin: 0, fontFamily: "var(--fonte-titulo)", fontSize: "1.0625rem" }}>Comentários</p>
+            <p style={{ margin: 0, fontSize: "0.84375rem", lineHeight: 1.45 }}>
+              <span style={{ color: "var(--ink)" }}>Bia</span> que foto linda · 23:41
+            </p>
+            <p style={{ margin: 0, fontSize: "0.84375rem", lineHeight: 1.45 }}>
+              <span style={{ color: "var(--ink)" }}>Tio João</span> essa é a melhor da noite · 23:52
+            </p>
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <span style={{ flex: 1, minHeight: "44px", padding: "0 0.875rem", display: "grid", alignItems: "center", fontSize: "0.9rem", border: "1px solid var(--linha)", borderRadius: "var(--raio-pilula)", color: "var(--ink-3)" }}>
+                Escreva um comentário…
+              </span>
+              <BotaoPrimario>Enviar</BotaoPrimario>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Chao>
+  );
+}
+
+/** A-06 · Denúncia — sheet de sinalização sobre a foto aberta. */
+export function TelaDenuncia({ pack }: { pack: Pack }) {
+  return (
+    <Chao fundo="escuro" pack={pack}>
+      <div style={{ position: "relative", flex: 1 }}>
+        <Moldura rotulo="" raio="0" atmosfera variante={9} />
+        <div
+          style={{
+            position: "absolute",
+            insetInline: 0,
+            bottom: 0,
+            padding: "1.25rem",
+            background: "linear-gradient(to top, color-mix(in srgb, var(--bg) 92%, transparent), transparent)",
+          }}
+        >
+          <div
+            style={{
+              padding: "1.25rem",
+              display: "grid",
+              gap: "0.75rem",
+              ...raio("var(--raio-superficie)"),
+              backgroundColor: "var(--superficie)",
+              border: "1px solid var(--linha)",
+            }}
+          >
+            <p style={{ margin: 0, fontFamily: "var(--fonte-titulo)", fontSize: "1.0625rem" }}>
+              Sinalizar esta foto
+            </p>
+            <p style={{ margin: 0, fontSize: "0.875rem", lineHeight: 1.5, color: "var(--ink-2)" }}>
+              A moderação revisa depois. O upload não trava.
+            </p>
+            <span
+              style={{
+                minHeight: "44px",
+                padding: "0 0.875rem",
+                display: "grid",
+                alignItems: "center",
+                fontSize: "0.9rem",
+                border: "1px solid var(--linha)",
+                borderRadius: "var(--raio-pilula)",
+                color: "var(--ink-3)",
+              }}
+            >
+              Motivo (opcional)
+            </span>
+            <BotaoPrimario>Sinalizar</BotaoPrimario>
+            <BotaoSecundario>Bloquear autor</BotaoSecundario>
+          </div>
+        </div>
+      </div>
     </Chao>
   );
 }

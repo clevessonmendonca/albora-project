@@ -40,7 +40,12 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
 
   return (
     <div style={vars}>
-      <PaginaMinhas slug={slug} eventoId={sessao.eventoId} sessaoId={sessao.sessaoId} />
+      <PaginaMinhas
+        slug={slug}
+        eventoId={sessao.eventoId}
+        sessaoId={sessao.sessaoId}
+        caminhoDaCamera={`/e/${encodeURIComponent(slug)}/foto`}
+      />
     </div>
   );
 }

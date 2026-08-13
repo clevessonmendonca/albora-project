@@ -76,6 +76,10 @@ export function Reprodutor({
   onSair,
   onReacoes,
   onBloqueado,
+  onRemover,
+  removendo,
+  onCompartilhar,
+  compartilhando,
 }: {
   itens: ItemVisivel[];
   indice: number;
@@ -88,6 +92,10 @@ export function Reprodutor({
   onSair: () => void;
   onReacoes?: (uploadId: string, resultado: ResultadoReacao) => void;
   onBloqueado?: () => void;
+  onRemover?: () => void;
+  removendo?: boolean;
+  onCompartilhar?: () => void;
+  compartilhando?: boolean;
 }) {
   const [segurando, setSegurando] = useState(false);
 
@@ -340,26 +348,50 @@ export function Reprodutor({
             {rotuloDeHora(hora)}
           </p>
 
-          {/* Sair tem de ser óbvio. Tela cheia sem saída clara é armadilha. */}
-          <button
-            type="button"
-            onClick={onSair}
-            style={{
-              font: "inherit",
-              fontSize: "0.9rem",
-              minHeight: "48px",
-              minWidth: "48px",
-              padding: "0 1.1rem",
-              borderRadius: "var(--raio-pilula)",
-              border: "1px solid var(--linha)",
-              background: "transparent",
-              color: "var(--ink)",
-              cursor: "pointer",
-              textShadow: sombraDeTexto,
-            }}
-          >
-            Fechar
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            {onRemover && (
+              <button
+                type="button"
+                aria-label="Remover esta foto"
+                disabled={removendo}
+                onClick={onRemover}
+                style={{
+                  font: "inherit",
+                  fontSize: "1.1rem",
+                  minHeight: "48px",
+                  minWidth: "48px",
+                  padding: 0,
+                  borderRadius: "50%",
+                  border: "1px solid var(--linha)",
+                  background: "transparent",
+                  color: "var(--ink)",
+                  cursor: removendo ? "wait" : "pointer",
+                  textShadow: sombraDeTexto,
+                }}
+              >
+                ×
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onSair}
+              style={{
+                font: "inherit",
+                fontSize: "0.9rem",
+                minHeight: "48px",
+                minWidth: "48px",
+                padding: "0 1.1rem",
+                borderRadius: "var(--raio-pilula)",
+                border: "1px solid var(--linha)",
+                background: "transparent",
+                color: "var(--ink)",
+                cursor: "pointer",
+                textShadow: sombraDeTexto,
+              }}
+            >
+              Fechar
+            </button>
+          </div>
         </div>
       </header>
 
@@ -421,6 +453,8 @@ export function Reprodutor({
               {...(atual.minha !== undefined ? { minha: atual.minha } : {})}
               {...(onReacoes ? { onReacoes: (r) => onReacoes(atual.id, r) } : {})}
               {...(onBloqueado ? { onBloqueado } : {})}
+              {...(onCompartilhar ? { onCompartilhar } : {})}
+              {...(compartilhando !== undefined ? { compartilhando } : {})}
             />
           </div>
         )}

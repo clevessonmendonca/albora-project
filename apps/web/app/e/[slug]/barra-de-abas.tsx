@@ -79,7 +79,7 @@ export function BarraDeAbasConvidado({ slug, ativa }: { slug: string; ativa?: Ab
       />
       <AbaLink
         coluna={2}
-        href={`${base}/foto`}
+        href={`${base}/missoes`}
         ligada={ativa === "missoes"}
         rotulo="Missões"
         icone={<Estrela tamanho={22} />}

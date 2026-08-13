@@ -20,8 +20,15 @@ export const dynamic = "force-dynamic";
  * vocabulário é o pack, aqui; dentro do componente não entra string de
  * domínio nenhuma.
  */
-export default async function Pagina({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Pagina({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ missao?: string }>;
+}) {
   const { slug } = await params;
+  const { missao: missaoParam } = await searchParams;
   const r = await resolverSlug(banco(), slug, new Date());
 
   if (r.estado !== "aberto") {
@@ -67,8 +74,10 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
       plano={planoECota.plano}
       cotaVideo={planoECota.cotaVideo}
       tituloEvento={pack ? texto(pack, "landing.exemplo.nome") : "A festa"}
-      caminhoDoFeed={`/e/${encodeURIComponent(slug)}/feed`}
       filtroRecomendado={filtroRecomendado}
+      missaoInicial={
+        missaoParam && desafios.some((d) => d.id === missaoParam) ? missaoParam : null
+      }
       missoes={desafios.map((d) => ({
         id: d.id,
         titulo: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,
@@ -76,8 +85,6 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
       }))}
       lugares={lugaresDoPack(pack)}
       textos={{
-        missaoTitulo: rotulo(pack, "missao.titulo"),
-        missaoLivre: rotulo(pack, "missao.livre"),
         lugarPergunta: rotulo(pack, "lugar.pergunta"),
       }}
       />

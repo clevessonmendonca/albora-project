@@ -1,4 +1,5 @@
-import { comEvento, packDoEvento, resolverSlug } from "@albora/db";
+import { comEvento, packDoEvento, resolverSlug, musicaDoCasal } from "@albora/db";
+import { exibirMusica } from "@albora/core";
 import { PACKS, texto } from "@albora/packs";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
@@ -35,6 +36,12 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
   const packId = await comEvento(banco(), sessao.eventoId, (c) => packDoEvento(c, sessao.eventoId));
   const pack = packId ? PACKS[packId] : undefined;
   const album = await montarAlbumServido(sessao.eventoId);
+  const escolhida = await comEvento(banco(), sessao.eventoId, (c) =>
+    musicaDoCasal(c, sessao.eventoId),
+  );
+  const musicaRotulo = escolhida
+    ? exibirMusica(escolhida.link, escolhida.metadado).rotulo
+    : null;
   const momentos = (pack?.momentos ?? []).slice(0, 5).map((m) => ({
     id: m.id,
     titulo: pack ? texto(pack, m.chaveTitulo) : m.id,
@@ -50,6 +57,7 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
       album={album}
       momentos={momentos}
       interacaoAberta={interacaoAberta}
+      musicaRotulo={musicaRotulo}
     />
   );
 }

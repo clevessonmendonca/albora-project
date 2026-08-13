@@ -113,6 +113,12 @@ export function usarComentarios(uploadId: string, habilitado: boolean) {
 
   const abrir = useCallback(() => {
     setEstado((e) => ({ ...e, aberto: true }));
+    void carregar();
+  }, [carregar]);
+
+  const fechar = useCallback(() => {
+    setEstado((e) => ({ ...e, aberto: false }));
+    setRespostaA(null);
   }, []);
 
   useEffect(() => {
@@ -266,6 +272,7 @@ export function usarComentarios(uploadId: string, habilitado: boolean) {
     respostaA,
     total,
     abrir,
+    fechar,
     publicar,
     remover,
     denunciar,

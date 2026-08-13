@@ -16,8 +16,20 @@ const ALVOS = ["packages/ui-web", "packages/ui-native", "apps/web/app", "apps/mo
 
 /** Hex de 3, 4, 6 ou 8 dígitos. */
 const HEX = /#[0-9a-fA-F]{3,8}\b/;
-/** `bg-[#...]`, `text-[rgb(...)]` — cor arbitrária do Tailwind. */
-const ARBITRARIA = /\b(?:bg|text|border|fill|stroke|from|via|to)-\[(?!var\()[^\]]*\]/;
+
+function pareceCorArbitraria(valor) {
+  const v = valor.trim();
+  if (v.startsWith("var(")) return false;
+  return /#|rgb|hsl|oklch|color-mix|transparent|\bwhite\b|\bblack\b/i.test(v);
+}
+
+/** `bg-[#...]`, `text-[rgb(...)]` — cor arbitrária do Tailwind (não tamanho). */
+function temCorArbitraria(linha) {
+  for (const m of linha.matchAll(/\b(?:bg|text|border|fill|stroke|from|via|to)-\[([^\]]+)\]/g)) {
+    if (pareceCorArbitraria(m[1])) return true;
+  }
+  return false;
+}
 /** Paleta pronta do Tailwind: a identidade do evento não passa por ela. */
 const PALETA = /\b(?:bg|text|border|fill|stroke)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/;
 
@@ -64,7 +76,7 @@ export function verificar(raiz) {
         if (HEX.test(semComentario)) {
           violacoes.push(violacao(raiz, caminho, i, semComentario, "hex literal — use var(--token) de @albora/tokens"));
         }
-        if (ARBITRARIA.test(semComentario)) {
+        if (temCorArbitraria(semComentario)) {
           violacoes.push(violacao(raiz, caminho, i, semComentario, "cor arbitrária — só `-[var(--token)]` é aceito"));
         }
         if (PALETA.test(semComentario)) {

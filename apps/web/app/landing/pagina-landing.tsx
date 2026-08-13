@@ -363,6 +363,11 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
               <p style={{ margin: "1.375rem 0 0", color: "var(--ink-3)" }}>
                 Montar é grátis · não pedimos cartão · você decide antes de imprimir o QR
               </p>
+              <p style={{ margin: "0.75rem 0 0", fontSize: "0.84375rem" }}>
+                <a href="/escanear" style={{ color: "var(--ink-3)", textDecoration: "underline" }}>
+                  Já tem o QR da festa? Escanear ou colar o link
+                </a>
+              </p>
             </div>
 
             <div style={{ position: "relative", display: "flex", justifyContent: "center" }}>

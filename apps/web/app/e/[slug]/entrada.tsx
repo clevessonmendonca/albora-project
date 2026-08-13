@@ -92,7 +92,7 @@ export function Entrada({
         // Navegação privada bloqueia. Não impede a entrada.
       }
 
-      window.location.href = `/e/${slug}/foto`;
+      window.location.href = `/e/${encodeURIComponent(slug)}/capa`;
     } catch {
       setErro("Sem conexão. Chegue mais perto do roteador e tente de novo.");
     } finally {

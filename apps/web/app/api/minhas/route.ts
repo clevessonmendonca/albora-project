@@ -1,4 +1,5 @@
-import { comEvento, listarMinhasDoEvento } from "@albora/db";
+import { modoInteracao } from "@albora/core";
+import { comEvento, gateDoEvento, listarMinhasDoEvento } from "@albora/db";
 import { banco } from "@/lib/banco";
 import { consumir } from "@/lib/limite";
 import { erro, erroInesperado, ok } from "@/lib/resposta";
@@ -29,17 +30,30 @@ export async function GET(req: Request) {
   }
 
   try {
-    const enviadas = await comEvento(banco(), sessao.eventoId, (c) =>
-      listarMinhasDoEvento(c, sessao.sessaoId),
-    );
+    const resultado = await comEvento(banco(), sessao.eventoId, async (c) => {
+      const gate = await gateDoEvento(c, sessao.eventoId);
+      if (!gate) return { interacao: "espelho" as const, enviadas: [] };
+
+      const interacao = modoInteracao(gate, new Date());
+      const modo = interacao === "completo" ? "completo" : "espelho";
+      const enviadas = await listarMinhasDoEvento(c, sessao.sessaoId, modo);
+
+      return { interacao, enviadas };
+    });
 
     return ok({
-      enviadas: enviadas.map((m) => ({
+      interacao: resultado.interacao,
+      enviadas: resultado.enviadas.map((m) => ({
         id: m.id,
         chaveThumb: m.chaveThumb,
         chaveFull: m.chaveFull,
         mime: m.mime,
         criadaEm: m.criadaEm.toISOString(),
+        autor: m.autor,
+        legenda: m.legenda,
+        lugar: m.lugar,
+        ...(typeof m.reacoes === "number" ? { reacoes: m.reacoes } : {}),
+        ...(m.minhaReacao !== undefined ? { minhaReacao: m.minhaReacao } : {}),
       })),
     });
   } catch (e) {

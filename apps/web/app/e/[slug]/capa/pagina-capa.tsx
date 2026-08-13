@@ -7,13 +7,24 @@ import type { AlbumServido } from "@/lib/album";
 import { Moldura, raio } from "../../../landing/pecas";
 import { BotaoPrimario, ChaoConvidado } from "../../../telas/shell-convidado";
 import {
-  BotaoFlutuante,
   Estrela,
   IconeGrade,
-  IconePessoa,
   IconePilha,
-  IconeVoltar,
 } from "../../../telas/pecas-de-tela";
+
+function IconeMusica({ tamanho = 20 }: { tamanho?: number }) {
+  return (
+    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M9 18V5l12-2v13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="18" cy="16" r="3" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+function resumirRotulo(rotulo: string, max = 16): string {
+  return rotulo.length <= max ? rotulo : `${rotulo.slice(0, max - 1)}…`;
+}
 
 type MomentoCapa = { id: string; titulo: string };
 
@@ -79,6 +90,7 @@ export function PaginaCapa({
   album,
   momentos,
   interacaoAberta,
+  musicaRotulo,
 }: {
   slug: string;
   nomeEvento: string;
@@ -86,6 +98,7 @@ export function PaginaCapa({
   album: AlbumServido;
   momentos: MomentoCapa[];
   interacaoAberta: boolean;
+  musicaRotulo: string | null;
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
@@ -122,23 +135,6 @@ export function PaginaCapa({
               "linear-gradient(to bottom, color-mix(in srgb, var(--bg) 30%, transparent) 0%, transparent 26%, transparent 58%, var(--bg) 100%)",
           }}
         />
-
-        <div
-          style={{
-            position: "absolute",
-            top: "2.75rem",
-            left: "1.125rem",
-            right: "1.125rem",
-            display: "flex",
-            justifyContent: "space-between",
-          }}
-        >
-          <Link href={`${base}/feed`} aria-label="Voltar ao feed" style={{ textDecoration: "none" }}>
-            <BotaoFlutuante>
-              <IconeVoltar />
-            </BotaoFlutuante>
-          </Link>
-        </div>
       </div>
 
       <div
@@ -188,16 +184,16 @@ export function PaginaCapa({
           icone={<IconePilha tamanho={20} />}
         />
         <Atalho
-          href={`${base}/foto`}
+          href={`${base}/missoes`}
           rotulo="Missões"
           valor={missoes > 0 ? String(missoes) : "—"}
           icone={<Estrela tamanho={20} />}
         />
         <Atalho
-          href={`${base}/album`}
-          rotulo="Convidados"
-          valor={String(convidados)}
-          icone={<IconePessoa tamanho={20} />}
+          href={`${base}/musica`}
+          rotulo="Música"
+          valor={musicaRotulo ? resumirRotulo(musicaRotulo) : "trilha"}
+          icone={<IconeMusica />}
         />
       </div>
 

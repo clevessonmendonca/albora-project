@@ -8,6 +8,7 @@ import {
   AvisoGate,
   CabecalhoConvidado,
   ChaoConvidado,
+  EstadoVazio,
   MioloConvidado,
 } from "../../../telas/shell-convidado";
 import { Pilula } from "../../../telas/pecas-de-tela";
@@ -243,7 +244,13 @@ export function PaginaFeed({
             </Coluna>
           )}
 
-          {vazio && <Vazio comFiltro={completo && missaoId !== null} />}
+          {vazio && (
+            <EstadoVazio
+              titulo={completo && missaoId !== null ? "Ninguém mandou essa ainda." : "Ainda não tem foto."}
+              lede={completo && missaoId !== null ? "A sua pode ser a primeira." : "Seja o primeiro."}
+              caminhoDaCamera={caminhoDaCamera}
+            />
+          )}
 
           {espelho && estado.itens.length > 0 && (
             <GradeEspelho itens={estado.itens} urls={estado.urls} />
@@ -416,29 +423,6 @@ function Etiqueta({
     >
       {children}
     </button>
-  );
-}
-
-function Vazio({ comFiltro }: { comFiltro: boolean }) {
-  return (
-    <div style={{ padding: "calc(var(--espaco) * 12) 0", textAlign: "center" }}>
-      <p
-        style={{
-          margin: "0 0 0.4rem",
-          fontFamily: "var(--fonte-titulo)",
-          fontSize: "1.6rem",
-          fontWeight: 500,
-          lineHeight: 1.25,
-          letterSpacing: "var(--tracking-titulo)",
-          textWrap: "balance",
-        }}
-      >
-        {comFiltro ? "Ninguém mandou essa ainda." : "Ainda não tem foto."}
-      </p>
-      <p style={{ margin: 0, lineHeight: 1.6, color: "var(--ink-2)" }}>
-        {comFiltro ? "A sua pode ser a primeira." : "Seja o primeiro."}
-      </p>
-    </div>
   );
 }
 

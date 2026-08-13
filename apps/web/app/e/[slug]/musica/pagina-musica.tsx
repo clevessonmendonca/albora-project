@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Moldura } from "../../../landing/pecas";
 import { BarraDeAbas } from "../barra-de-abas";
 import {
-  BotaoPrimario,
   CabecalhoConvidado,
   ChaoConvidado,
   MioloConvidado,
@@ -16,21 +16,12 @@ type Musica = {
   provedor: string;
   rotulo: string;
   url: string;
+  capaUrl?: string | null;
 } | null;
-
-type Sugestao = {
-  provedor: string;
-  tipo: string;
-  url: string;
-  votos: number;
-};
 
 export function PaginaMusica({ slug }: { slug: string }) {
   const [musica, setMusica] = useState<Musica>(null);
-  const [sugestoes, setSugestoes] = useState<Sugestao[]>([]);
-  const [url, setUrl] = useState("");
   const [carregando, setCarregando] = useState(true);
-  const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState(false);
 
   useEffect(() => {
@@ -38,9 +29,8 @@ export function PaginaMusica({ slug }: { slug: string }) {
       try {
         const r = await fetch("/api/musica", { credentials: "same-origin" });
         if (!r.ok) throw new Error("falhou");
-        const corpo = (await r.json()) as { musica: Musica; sugestoes: Sugestao[] };
+        const corpo = (await r.json()) as { musica: Musica };
         setMusica(corpo.musica);
-        setSugestoes(corpo.sugestoes ?? []);
       } catch {
         setErro(true);
       } finally {
@@ -49,52 +39,11 @@ export function PaginaMusica({ slug }: { slug: string }) {
     })();
   }, []);
 
-  const sugerir = async () => {
-    if (!url.trim()) return;
-    setEnviando(true);
-    setErro(false);
-    try {
-      const r = await fetch("/api/musica", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ url: url.trim() }),
-      });
-      if (!r.ok) throw new Error("falhou");
-      const corpo = (await r.json()) as { sugestoes: Sugestao[] };
-      setSugestoes(corpo.sugestoes ?? []);
-      setUrl("");
-    } catch {
-      setErro(true);
-    } finally {
-      setEnviando(false);
-    }
-  };
-
-  const votar = async (link: string) => {
-    setEnviando(true);
-    setErro(false);
-    try {
-      const r = await fetch("/api/musica", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ url: link }),
-      });
-      if (!r.ok) throw new Error("falhou");
-      const corpo = (await r.json()) as { sugestoes: Sugestao[] };
-      setSugestoes(corpo.sugestoes ?? []);
-    } catch {
-      setErro(true);
-    } finally {
-      setEnviando(false);
-    }
-  };
-
   return (
     <>
       <ChaoConvidado>
-        <MioloConvidado>
+        <style>{ESTILO_PLAYER}</style>
+        <MioloConvidado comAbas={false}>
           <CabecalhoConvidado
             titulo="Música da festa"
             acao={carregando ? <Pilula>Carregando…</Pilula> : undefined}
@@ -103,117 +52,143 @@ export function PaginaMusica({ slug }: { slug: string }) {
           {carregando && <TextoSecundario>Carregando…</TextoSecundario>}
 
           {!carregando && musica && (
-            <section style={{ marginBottom: "2rem" }}>
-              <p
-                style={{
-                  margin: "0 0 0.35rem",
-                  fontSize: "0.75rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "var(--tracking-rotulo)",
-                  color: "var(--ink-3)",
-                }}
-              >
-                Escolhida pelos anfitriões
-              </p>
-              <p style={{ margin: "0 0 0.5rem", fontSize: "1.0625rem" }}>{musica.rotulo}</p>
-              <a href={musica.url} style={{ color: "var(--acento)", fontSize: "0.9rem" }}>
+            <section className="mus-player">
+              <div className="mus-arte">
+                {musica.capaUrl ? (
+                  <img src={musica.capaUrl} alt="" className="mus-capa" />
+                ) : (
+                  <Moldura rotulo="" raio="var(--raio-superficie)" atmosfera variante={3} />
+                )}
+              </div>
+
+              <p className="mus-rotulo">{musica.rotulo}</p>
+              <p className="mus-sub">Escolha do casal</p>
+
+              <OndaAnimada />
+
+              <div className="mus-controles">
+                <a href={musica.url} className="mus-play" aria-label="Abrir no app de música">
+                  ▶
+                </a>
+                <span className="mus-tempo">—:——</span>
+              </div>
+
+              <a href={musica.url} className="mus-link">
                 Abrir no {musica.provedor}
               </a>
             </section>
           )}
 
-          {!carregando && (
-            <section>
-              <p
-                style={{
-                  margin: "0 0 0.75rem",
-                  fontSize: "0.75rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "var(--tracking-rotulo)",
-                  color: "var(--ink-3)",
-                }}
-              >
-                Sugestões dos convidados
-              </p>
-              <ul style={{ margin: "0 0 1.25rem", padding: 0, listStyle: "none" }}>
-                {sugestoes.map((s) => (
-                  <li
-                    key={s.url}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "0.75rem",
-                      padding: "0.75rem 0",
-                      borderBottom: "1px solid var(--linha)",
-                      fontSize: "0.9rem",
-                    }}
-                  >
-                    <a
-                      href={s.url}
-                      style={{ color: "var(--ink)", flex: 1, wordBreak: "break-all" }}
-                    >
-                      {s.url}
-                    </a>
-                    <button
-                      type="button"
-                      disabled={enviando}
-                      onClick={() => void votar(s.url)}
-                      style={{
-                        flexShrink: 0,
-                        minHeight: "36px",
-                        padding: "0 0.75rem",
-                        border: "1px solid var(--linha)",
-                        borderRadius: "var(--raio-pilula)",
-                        background: "transparent",
-                        color: "var(--ink-2)",
-                        font: "inherit",
-                        fontSize: "0.75rem",
-                        cursor: "pointer",
-                      }}
-                    >
-                      +1 · {s.votos}
-                    </button>
-                  </li>
-                ))}
-                {sugestoes.length === 0 && (
-                  <li style={{ color: "var(--ink-3)", fontSize: "0.9rem" }}>
-                    Ninguém sugeriu ainda.
-                  </li>
-                )}
-              </ul>
-
-              <div style={{ display: "grid", gap: "0.75rem" }}>
-                <input
-                  type="url"
-                  value={url}
-                  placeholder="Cole um link do Spotify ou YouTube"
-                  onChange={(e) => setUrl(e.target.value)}
-                  style={{
-                    width: "100%",
-                    minHeight: "48px",
-                    padding: "0 0.875rem",
-                    border: "1px solid var(--linha)",
-                    borderRadius: "var(--raio-pilula)",
-                    background: "var(--superficie)",
-                    color: "var(--ink)",
-                    font: "inherit",
-                  }}
-                />
-                <BotaoPrimario
-                  desabilitado={enviando || url.trim() === ""}
-                  onClick={() => void sugerir()}
-                >
-                  {enviando ? "…" : "Sugerir"}
-                </BotaoPrimario>
-              </div>
-            </section>
+          {!carregando && !musica && (
+            <TextoSecundario>
+              Os anfitriões ainda não escolheram a trilha. Quando escolherem, ela aparece aqui.
+            </TextoSecundario>
           )}
 
-          {erro && <RecadoErro>Não deu agora. Tente de novo.</RecadoErro>}
+          {erro && <RecadoErro>Não deu para carregar agora.</RecadoErro>}
         </MioloConvidado>
       </ChaoConvidado>
       <BarraDeAbas slug={slug} />
     </>
   );
 }
+
+function OndaAnimada() {
+  return (
+    <div className="mus-onda" aria-hidden>
+      {Array.from({ length: 24 }, (_, i) => (
+        <span key={i} className="mus-barra" style={{ animationDelay: `${i * 0.07}s` }} />
+      ))}
+    </div>
+  );
+}
+
+const ESTILO_PLAYER = `
+.mus-player {
+  display: grid;
+  gap: 1rem;
+  padding-top: 0.5rem;
+}
+.mus-arte {
+  position: relative;
+  aspect-ratio: 1;
+  max-width: 16rem;
+  margin: 0 auto;
+  border-radius: var(--raio-superficie);
+  overflow: hidden;
+}
+.mus-capa {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: saturate(0.92);
+}
+.mus-rotulo {
+  margin: 0;
+  font-family: var(--fonte-titulo);
+  font-size: 1.25rem;
+  line-height: 1.3;
+  text-align: center;
+  text-wrap: balance;
+}
+.mus-sub {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: var(--tracking-rotulo);
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--ink-3);
+}
+.mus-onda {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  height: 2.5rem;
+  margin: 0.5rem 0;
+}
+.mus-barra {
+  width: 3px;
+  height: 40%;
+  border-radius: var(--raio-pilula);
+  background: var(--acento);
+  animation: mus-pulsar 1.4s var(--curva) infinite alternate;
+}
+@keyframes mus-pulsar {
+  from { transform: scaleY(0.35); opacity: 0.55; }
+  to   { transform: scaleY(1); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mus-barra { animation: none; }
+}
+.mus-controles {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+.mus-play {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  background: var(--acento);
+  color: var(--sobre-acento);
+  text-decoration: none;
+  font-size: 1rem;
+}
+.mus-tempo {
+  font-size: 0.85rem;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.mus-link {
+  display: block;
+  text-align: center;
+  color: var(--acento);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+`;

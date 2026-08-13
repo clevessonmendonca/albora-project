@@ -6,12 +6,14 @@ import {
   resumirGaleria,
   ehMimeVideo,
   type ItemDaGaleria,
+  type ModoInteracao,
   type ResumoDaGaleria,
 } from "@albora/core";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { filaWeb } from "./fila";
 import { expirou, urlsDeMidia, type UrlDeMidia } from "./midia";
 import { transporteWeb } from "./transporte";
+import type { ItemVisivel } from "./usar-feed";
 
 type EnviadaServidor = {
   id: string;
@@ -19,6 +21,11 @@ type EnviadaServidor = {
   chaveFull: string;
   mime: string;
   criadaEm: string;
+  autor: string;
+  legenda: string | null;
+  lugar: string | null;
+  reacoes?: number;
+  minhaReacao?: string | null;
 };
 
 export type EstadoGaleria = {
@@ -26,6 +33,7 @@ export type EstadoGaleria = {
   resumo: ResumoDaGaleria;
   urls: Map<string, UrlDeMidia>;
   mimes: Map<string, string>;
+  interacao: ModoInteracao;
   carregando: boolean;
   drenando: boolean;
   falha: boolean;
@@ -36,10 +44,25 @@ const VAZIO: ResumoDaGaleria = { total: 0, enviadas: 0, subindo: 0, falhou: 0 };
 function chavesParaAssinar(enviadas: readonly EnviadaServidor[]): string[] {
   const chaves: string[] = [];
   for (const m of enviadas) {
-    chaves.push(m.chaveThumb);
-    if (ehMimeVideo(m.mime)) chaves.push(m.chaveFull);
+    chaves.push(m.chaveThumb, m.chaveFull);
   }
   return [...new Set(chaves)];
+}
+
+function paraItemVisivel(m: EnviadaServidor): ItemVisivel {
+  return {
+    id: m.id,
+    chaveThumb: m.chaveThumb,
+    chaveFull: m.chaveFull,
+    mime: m.mime,
+    autor: m.autor,
+    legenda: m.legenda,
+    lugar: m.lugar,
+    criadaEm: m.criadaEm,
+    minha: true,
+    ...(typeof m.reacoes === "number" ? { reacoes: m.reacoes } : {}),
+    ...(m.minhaReacao !== undefined ? { minhaReacao: m.minhaReacao } : {}),
+  };
 }
 
 export function usarGaleria(eventoId: string) {
@@ -48,11 +71,13 @@ export function usarGaleria(eventoId: string) {
     resumo: VAZIO,
     urls: new Map(),
     mimes: new Map(),
+    interacao: "espelho",
     carregando: true,
     drenando: false,
     falha: false,
   });
   const [removendoId, setRemovendoId] = useState<string | null>(null);
+  const [enviadasDetalhe, setEnviadasDetalhe] = useState<EnviadaServidor[]>([]);
 
   const carregar = useCallback(async () => {
     setEstado((e) => ({ ...e, carregando: true, falha: false }));
@@ -65,8 +90,13 @@ export function usarGaleria(eventoId: string) {
 
       if (!res.ok) throw new Error("minhas");
 
-      const corpo = (await res.json()) as { enviadas: EnviadaServidor[] };
+      const corpo = (await res.json()) as {
+        interacao?: ModoInteracao;
+        enviadas: EnviadaServidor[];
+      };
+      const interacao = corpo.interacao === "completo" ? "completo" : "espelho";
       const mimes = new Map(corpo.enviadas.map((m) => [m.id, m.mime]));
+      setEnviadasDetalhe(corpo.enviadas);
       const enviadas = corpo.enviadas.map((m) => ({
         id: m.id,
         chave: m.chaveFull,
@@ -79,7 +109,16 @@ export function usarGaleria(eventoId: string) {
       const chaves = chavesParaAssinar(corpo.enviadas);
       const urls = chaves.length > 0 ? await urlsDeMidia(chaves) : new Map<string, UrlDeMidia>();
 
-      setEstado({ itens, resumo, urls, mimes, carregando: false, drenando: false, falha: false });
+      setEstado({
+        itens,
+        resumo,
+        urls,
+        mimes,
+        interacao,
+        carregando: false,
+        drenando: false,
+        falha: false,
+      });
     } catch {
       setEstado((e) => ({ ...e, carregando: false, falha: true }));
     }
@@ -164,8 +203,22 @@ export function usarGaleria(eventoId: string) {
     [carregar],
   );
 
+  const atualizarReacoes = useCallback((uploadId: string, resultado: { reacoes: number; minha: string | null }) => {
+    setEnviadasDetalhe((lista) =>
+      lista.map((m) =>
+        m.id === uploadId ? { ...m, reacoes: resultado.reacoes, minhaReacao: resultado.minha } : m,
+      ),
+    );
+  }, []);
+
+  const itensVisiveis = useMemo(
+    () => enviadasDetalhe.map(paraItemVisivel),
+    [enviadasDetalhe],
+  );
+
   return {
     ...estado,
+    itensVisiveis,
     recarregar: carregar,
     tentarDeNovo,
     urlDe,
@@ -173,5 +226,6 @@ export function usarGaleria(eventoId: string) {
     ehVideo,
     remover,
     removendoId,
+    atualizarReacoes,
   };
 }

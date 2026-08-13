@@ -1,143 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { caminhoDoEvento, extrairSlug } from "@/lib/qr";
+import Link from "next/link";
+import { usarEscanearQr } from "@/lib/escanear-qr";
 
 /**
- * A saída de toda tela sem saída.
+ * A saída de toda tela sem saída — versão compacta para avisos.
  *
- * Mandar escanear o QR de novo sem dar como custa participação: a pessoa teria
- * de sair do navegador, abrir a câmera do sistema e reachar a placa — e numa
- * festa boa parte simplesmente para aí. Isso pesa mais na N1.5, onde a placa já
- * saiu da gráfica e o QR na mão da pessoa é o velho.
- *
- * Duas camadas, nesta ordem de importância:
- *
- * 1. O campo de código, sempre presente. O slug vai impresso ao lado do QR
- *    (N1.4), custa zero byte e é o único caminho que sobrevive à permissão de
- *    câmera negada — que é cenário documentado deste produto (N5.1).
- * 2. O botão de escanear, só onde o aparelho decodifica sozinho via
- *    `BarcodeDetector`. Sem ele o botão abriria a câmera para não decodificar
- *    nada, o que é pior que não existir.
+ * O campo de código vem primeiro; o botão de escanear só onde o aparelho
+ * decodifica QR sozinho via `BarcodeDetector`.
  */
-
-const FORMATO_QR = "qr_code";
-
-/** ~3 leituras por segundo. Cadência de vídeo aqui é bateria, não precisão. */
-const INTERVALO_LEITURA = 350;
-
-/** `HAVE_CURRENT_DATA`: antes disso não há quadro para ler. */
-const QUADRO_PRONTO = 2;
-
-type CodigoDetectado = { rawValue: string };
-
-type DetectorDeCodigo = { detect(fonte: CanvasImageSource): Promise<CodigoDetectado[]> };
-
-type ConstrutorDetector = {
-  new (opcoes: { formats: string[] }): DetectorDeCodigo;
-  getSupportedFormats?: () => Promise<string[]>;
-};
-
 export function Resgate() {
-  const [codigo, setCodigo] = useState("");
-  const [naoEntendi, setNaoEntendi] = useState(false);
-  const [podeEscanear, setPodeEscanear] = useState(false);
-  const [escaneando, setEscaneando] = useState(false);
-
-  const campo = useRef<HTMLInputElement>(null);
-  const visor = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    let vivo = true;
-
-    void aparelhoDecodificaQr().then((pode) => {
-      if (vivo) setPodeEscanear(pode);
-    });
-
-    return () => {
-      vivo = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!escaneando) return;
-
-    let vivo = true;
-    let fluxo: MediaStream | null = null;
-    let relogio: number | undefined;
-
-    function encerrar() {
-      if (relogio !== undefined) window.clearInterval(relogio);
-      relogio = undefined;
-      // Câmera viva em segundo plano numa festa de seis horas é bateria do
-      // convidado, e é a bateria que decide se ele ainda fotografa à meia-noite.
-      fluxo?.getTracks().forEach((trilha) => trilha.stop());
-      fluxo = null;
-    }
-
-    async function abrir() {
-      const Detector = construtorDetector();
-      if (Detector === null) {
-        if (vivo) setEscaneando(false);
-        return;
-      }
-
-      try {
-        fluxo = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-        });
-      } catch {
-        // Permissão negada cai direto no campo de código, sem tela de erro no
-        // meio — é a mesma regra da N5.1.
-        if (vivo) {
-          setEscaneando(false);
-          setPodeEscanear(false);
-          campo.current?.focus();
-        }
-        return;
-      }
-
-      if (!vivo) {
-        encerrar();
-        return;
-      }
-
-      const elemento = visor.current;
-      if (elemento !== null) {
-        elemento.srcObject = fluxo;
-        await elemento.play().catch(() => undefined);
-      }
-
-      const detector = new Detector({ formats: [FORMATO_QR] });
-
-      relogio = window.setInterval(() => {
-        void procurar(detector, visor.current, (slug) => {
-          encerrar();
-          setEscaneando(false);
-          window.location.href = caminhoDoEvento(slug);
-        });
-      }, INTERVALO_LEITURA);
-    }
-
-    void abrir();
-
-    return () => {
-      vivo = false;
-      encerrar();
-    };
-  }, [escaneando]);
-
-  function digitou(evento: React.FormEvent) {
-    evento.preventDefault();
-
-    const slug = extrairSlug(codigo);
-    if (slug === null) {
-      setNaoEntendi(true);
-      return;
-    }
-
-    window.location.href = caminhoDoEvento(slug);
-  }
+  const qr = usarEscanearQr();
 
   return (
     <section className="resgate">
@@ -145,14 +18,14 @@ export function Resgate() {
 
       <p className="resgate-rotulo">Código da mesa</p>
 
-      <form onSubmit={digitou} className="resgate-linha">
+      <form onSubmit={qr.enviarCodigo} className="resgate-linha">
         <input
-          ref={campo}
+          ref={qr.campo}
           className="resgate-campo"
-          value={codigo}
+          value={qr.codigo}
           onChange={(evento) => {
-            setCodigo(evento.target.value);
-            setNaoEntendi(false);
+            qr.setCodigo(evento.target.value);
+            qr.setNaoEntendi(false);
           }}
           placeholder="o código impresso"
           maxLength={80}
@@ -164,90 +37,44 @@ export function Resgate() {
           enterKeyHint="go"
           aria-label="Código da mesa"
         />
-        <button type="submit" className="resgate-primario" disabled={codigo.trim().length === 0}>
+        <button type="submit" className="resgate-primario" disabled={qr.codigo.trim().length === 0}>
           Entrar
         </button>
       </form>
 
-      {naoEntendi && (
+      {qr.naoEntendi && (
         <p role="alert" className="resgate-recado">
           Esse código não parece certo. Confira as letras impressas na mesa.
         </p>
       )}
 
-      {podeEscanear && !escaneando && (
-        <button type="button" className="resgate-fino" onClick={() => setEscaneando(true)}>
+      {qr.podeEscanear && !qr.escaneando && (
+        <button type="button" className="resgate-fino" onClick={() => qr.setEscaneando(true)}>
           Escanear o QR
         </button>
       )}
 
-      {escaneando && (
+      {qr.escaneando && (
         <div className="resgate-visor">
-          <video ref={visor} muted playsInline aria-label="Câmera apontada para o QR" />
+          <video ref={qr.visor} muted playsInline aria-label="Câmera apontada para o QR" />
           <span className="resgate-mira" />
         </div>
       )}
 
-      {escaneando && (
+      {qr.escaneando && (
         <>
           <p className="resgate-dica">Aponte para o QR da mesa.</p>
-          <button type="button" className="resgate-fino" onClick={() => setEscaneando(false)}>
+          <button type="button" className="resgate-fino" onClick={() => qr.setEscaneando(false)}>
             Cancelar
           </button>
         </>
       )}
+
+      <Link href="/escanear" className="resgate-fino" style={{ textAlign: "center", textDecoration: "none" }}>
+        Abrir scanner em tela cheia
+      </Link>
     </section>
   );
-}
-
-function construtorDetector(): ConstrutorDetector | null {
-  if (typeof window === "undefined") return null;
-  if (typeof navigator.mediaDevices?.getUserMedia !== "function") return null;
-
-  const global = window as unknown as { BarcodeDetector?: ConstrutorDetector };
-  return global.BarcodeDetector ?? null;
-}
-
-/**
- * Pergunta ao aparelho, não ao user-agent.
- *
- * Existe navegador que expõe `BarcodeDetector` sem trazer o formato QR — e ali
- * o botão abriria a câmera para nunca achar nada.
- */
-async function aparelhoDecodificaQr(): Promise<boolean> {
-  const Detector = construtorDetector();
-  if (Detector === null) return false;
-  if (typeof Detector.getSupportedFormats !== "function") return true;
-
-  try {
-    return (await Detector.getSupportedFormats()).includes(FORMATO_QR);
-  } catch {
-    return false;
-  }
-}
-
-async function procurar(
-  detector: DetectorDeCodigo,
-  elemento: HTMLVideoElement | null,
-  achou: (slug: string) => void,
-): Promise<void> {
-  if (elemento === null || elemento.readyState < QUADRO_PRONTO) return;
-
-  let codigos: CodigoDetectado[];
-  try {
-    codigos = await detector.detect(elemento);
-  } catch {
-    // Quadro escuro, foco ruim, mão tremendo. Tenta no próximo.
-    return;
-  }
-
-  for (const codigo of codigos) {
-    const slug = extrairSlug(codigo.rawValue);
-    if (slug !== null) {
-      achou(slug);
-      return;
-    }
-  }
 }
 
 const ESTILO = `

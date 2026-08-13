@@ -10,13 +10,17 @@ import {
   TelaAlbum,
   TelaAntesDoGate,
   TelaCamera,
-  TelaCapa,
+  TelaComentar,
+  TelaDenuncia,
   TelaEntrada,
-  TelaFeed,
+  TelaFila,
   TelaModelosDaParede,
+  TelaMusica,
   TelaPainel,
+  TelaScanner,
   TelaTelao,
 } from "./telas";
+import { TelaCapa, TelaFeed, TelaFotoAberta, TelaMinhas, TelaMissoes } from "./telas-convidado";
 
 export const metadata = {
   title: "Albora — as telas",
@@ -112,10 +116,31 @@ export default function Telas() {
         </Aparelho>
 
         <Aparelho
+          titulo="Scanner de QR"
+          nota="Primeira superfície antes do evento: visor ao vivo, moldura-alvo e fallback 'Já tenho o link'. Sem barra de abas."
+        >
+          <TelaScanner pack={pack} />
+        </Aparelho>
+
+        <Aparelho
           titulo="Câmera"
           nota="A missão vive em cima do visor, não numa aba. Quem está com uma taça na outra mão não navega até um convite. O lugar é lista fechada, nunca GPS."
         >
           <TelaCamera pack={pack} missao={missao} />
+        </Aparelho>
+
+        <Aparelho
+          titulo="Fila de envio"
+          nota="Caminho crítico offline: pílula no cabeçalho abre sheet com miniatura, estado e banner de sem sinal. Persiste entre recargas; retry com backoff."
+        >
+          <TelaFila pack={pack} />
+        </Aparelho>
+
+        <Aparelho
+          titulo="Missões"
+          nota="Card da missão de agora e trilha do progresso. A câmera continua no meio da barra; esta aba só torna visível o que falta, sem placar entre pessoas."
+        >
+          <TelaMissoes pack={pack} />
         </Aparelho>
 
         <Aparelho
@@ -137,6 +162,41 @@ export default function Telas() {
           nota="Grade de três, filtrada pelos capítulos que o pack define. É a tela que o convidado abre no dia seguinte."
         >
           <TelaAlbum pack={pack} momentos={momentos} />
+        </Aparelho>
+
+        <Aparelho
+          titulo="Minhas"
+          nota="O que este convidado enviou, a cota de vídeo e o remover da própria foto — sem cabeçalho de perfil. Grade de miniaturas arredondadas, uma com selo de vídeo."
+        >
+          <TelaMinhas pack={pack} />
+        </Aparelho>
+
+        <Aparelho
+          titulo="Foto aberta"
+          nota="Tela cheia com reação, comentário e compartilhar só na foto do próprio autor. O ✕ remove quando a foto é dela."
+        >
+          <TelaFotoAberta pack={pack} />
+        </Aparelho>
+
+        <Aparelho
+          titulo="Comentar"
+          nota="Sheet por baixo da foto aberta: thread + compositor fixo. Só depois do gate."
+        >
+          <TelaComentar pack={pack} />
+        </Aparelho>
+
+        <Aparelho
+          titulo="Denúncia"
+          nota="Sheet de sinalização: confirma, motivo opcional, bloquear autor. Moderação degrada — nunca trava o upload."
+        >
+          <TelaDenuncia pack={pack} />
+        </Aparelho>
+
+        <Aparelho
+          titulo="Música da festa"
+          nota="Trilha escolhida pelos anfitriões — capa, onda decorativa e link pro app. Sem fila colaborativa."
+        >
+          <TelaMusica pack={pack} />
         </Aparelho>
       </Grupo>
 

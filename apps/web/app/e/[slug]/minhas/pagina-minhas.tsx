@@ -2,16 +2,18 @@
 
 import type { ItemDaGaleria } from "@albora/core";
 import { ehMimeVideo } from "@albora/core";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { filaWeb } from "@/lib/fila";
 import { usarCompartilhar } from "@/lib/usar-compartilhar";
 import { usarGaleria } from "@/lib/usar-galeria";
+import { Reprodutor } from "../feed/reprodutor";
 import { BarraDeAbas } from "../barra-de-abas";
 import {
   BotaoPrimario,
   BotaoSecundario,
   CabecalhoConvidado,
   ChaoConvidado,
+  EstadoVazio,
   MioloConvidado,
   RecadoErro,
 } from "../../../telas/shell-convidado";
@@ -101,15 +103,19 @@ export function PaginaMinhas({
   slug,
   eventoId,
   sessaoId,
+  caminhoDaCamera,
 }: {
   slug: string;
   eventoId: string;
   sessaoId: string;
+  caminhoDaCamera: string;
 }) {
   const galeria = usarGaleria(eventoId);
   const compartilhar = usarCompartilhar(eventoId, sessaoId);
   const [locais, setLocais] = useState<Map<string, string>>(new Map());
   const [mimesLocais, setMimesLocais] = useState<Map<string, string>>(new Map());
+  const [indiceAberto, setIndiceAberto] = useState<number | null>(null);
+  const movimentoReduzido = usarMovimentoReduzido();
 
   useEffect(() => {
     let cancelado = false;
@@ -152,6 +158,63 @@ export function PaginaMinhas({
     [galeria.itens, galeria.ehVideo],
   );
 
+  const abrirEnviada = useCallback(
+    (id: string) => {
+      const indice = galeria.itensVisiveis.findIndex((i) => i.id === id);
+      if (indice >= 0) setIndiceAberto(indice);
+    },
+    [galeria.itensVisiveis],
+  );
+
+  const sairReprodutor = useCallback(() => setIndiceAberto(null), []);
+
+  const irPara = useCallback(
+    (i: number) => {
+      if (i < 0 || i >= galeria.itensVisiveis.length) return;
+      setIndiceAberto(i);
+    },
+    [galeria.itensVisiveis.length],
+  );
+
+  const removerAberta = useCallback(async () => {
+    if (indiceAberto === null) return;
+    const visivel = galeria.itensVisiveis[indiceAberto];
+    if (!visivel) return;
+    const item = galeria.itens.find((i) => i.id === visivel.id);
+    if (!item) return;
+    const ok = await galeria.remover(item);
+    if (ok) setIndiceAberto(null);
+  }, [indiceAberto, galeria]);
+
+  const compartilharAberta = useCallback(() => {
+    if (indiceAberto === null) return;
+    const visivel = galeria.itensVisiveis[indiceAberto];
+    if (visivel) void compartilhar.compartilhar(visivel.id);
+  }, [indiceAberto, galeria.itensVisiveis, compartilhar]);
+
+  useEffect(() => {
+    if (indiceAberto === null) return;
+    const antes = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = antes;
+    };
+  }, [indiceAberto]);
+
+  useEffect(() => {
+    if (indiceAberto !== null && indiceAberto >= galeria.itensVisiveis.length) {
+      setIndiceAberto(null);
+    }
+  }, [indiceAberto, galeria.itensVisiveis.length]);
+
+  const horaAberta =
+    indiceAberto !== null && galeria.itensVisiveis[indiceAberto]
+      ? new Date(galeria.itensVisiveis[indiceAberto].criadaEm).getHours()
+      : 0;
+
+  const uploadAberto =
+    indiceAberto !== null ? galeria.itensVisiveis[indiceAberto]?.id : null;
+
   return (
     <>
       <ChaoConvidado>
@@ -172,9 +235,11 @@ export function PaginaMinhas({
           {compartilhar.erro && <RecadoErro>{compartilhar.erro}</RecadoErro>}
 
           {!galeria.carregando && galeria.itens.length === 0 && (
-            <p style={{ color: "var(--ink-3)", fontSize: "0.95rem", lineHeight: 1.5 }}>
-              Ainda não há fotos suas aqui. Use o botão da câmera para mandar a primeira.
-            </p>
+            <EstadoVazio
+              titulo="Suas fotos aparecem aqui"
+              lede="Assim que a primeira subir, ela fica nesta grade."
+              caminhoDaCamera={caminhoDaCamera}
+            />
           )}
 
           <ul
@@ -199,73 +264,82 @@ export function PaginaMinhas({
 
             return (
               <li key={item.id} style={{ position: "relative", aspectRatio: "1 / 1" }}>
-                {item.estado === "enviada" && (
+                {item.estado !== "enviada" && (
                   <button
                     type="button"
-                    aria-label={ehVideo ? "Compartilhar este vídeo" : "Compartilhar esta foto"}
-                    disabled={compartilhar.compartilhandoId === item.id}
-                    onClick={() => void compartilhar.compartilhar(item.id)}
+                    aria-label="Remover esta foto"
+                    disabled={galeria.removendoId === item.id}
+                    onClick={() => void galeria.remover(item)}
                     style={{
                       position: "absolute",
-                      bottom: "0.25rem",
-                      left: "0.25rem",
+                      top: "0.25rem",
+                      right: "0.25rem",
                       zIndex: 1,
                       minWidth: "28px",
                       minHeight: "28px",
-                      padding: "0.2rem 0.45rem",
+                      padding: 0,
                       border: "none",
-                      borderRadius: "var(--raio-pilula)",
+                      borderRadius: "50%",
                       background: "color-mix(in srgb, var(--bg) 90%, transparent)",
                       color: "var(--ink-2)",
-                      fontSize: "0.625rem",
-                      letterSpacing: "0.04em",
-                      textTransform: "uppercase",
-                      cursor: compartilhar.compartilhandoId === item.id ? "wait" : "pointer",
+                      fontSize: "0.75rem",
+                      cursor: galeria.removendoId === item.id ? "wait" : "pointer",
                     }}
                   >
-                    {compartilhar.compartilhandoId === item.id ? "…" : "Compartilhar"}
+                    ×
                   </button>
                 )}
-                <button
-                  type="button"
-                  aria-label="Remover esta foto"
-                  disabled={galeria.removendoId === item.id}
-                  onClick={() => void galeria.remover(item)}
-                  style={{
-                    position: "absolute",
-                    top: "0.25rem",
-                    right: "0.25rem",
-                    zIndex: 1,
-                    minWidth: "28px",
-                    minHeight: "28px",
-                    padding: 0,
-                    border: "none",
-                    borderRadius: "50%",
-                    background: "color-mix(in srgb, var(--bg) 90%, transparent)",
-                    color: "var(--ink-2)",
-                    fontSize: "0.75rem",
-                    cursor: galeria.removendoId === item.id ? "wait" : "pointer",
-                  }}
-                >
-                  ×
-                </button>
-                <div
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    borderRadius: "var(--raio)",
-                    overflow: "hidden",
-                    background: "var(--superficie)",
-                    border: "1px solid var(--linha)",
-                  }}
-                >
-                  <MiniaturaMinhas
-                    ehVideo={ehVideo}
-                    url={url ?? undefined}
-                    urlVideo={urlVideo ?? undefined}
-                    pendente={item.estado !== "enviada"}
-                  />
-                </div>
+                {item.estado === "enviada" ? (
+                  <button
+                    type="button"
+                    aria-label={ehVideo ? "Abrir este vídeo" : "Abrir esta foto"}
+                    onClick={() => abrirEnviada(item.id)}
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      padding: 0,
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                      borderRadius: "var(--raio)",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        background: "var(--superficie)",
+                        border: "1px solid var(--linha)",
+                      }}
+                    >
+                      <MiniaturaMinhas
+                        ehVideo={ehVideo}
+                        url={url ?? undefined}
+                        urlVideo={urlVideo ?? undefined}
+                        pendente={false}
+                      />
+                    </div>
+                  </button>
+                ) : (
+                  <div
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "var(--raio)",
+                      overflow: "hidden",
+                      background: "var(--superficie)",
+                      border: "1px solid var(--linha)",
+                    }}
+                  >
+                    <MiniaturaMinhas
+                      ehVideo={ehVideo}
+                      url={url ?? undefined}
+                      urlVideo={urlVideo ?? undefined}
+                      pendente
+                    />
+                  </div>
+                )}
 
                 {rotulo && (
                   <span
@@ -314,6 +388,25 @@ export function PaginaMinhas({
         )}
         </MioloConvidado>
       </ChaoConvidado>
+
+      {indiceAberto !== null && galeria.itensVisiveis[indiceAberto] && (
+        <Reprodutor
+          itens={galeria.itensVisiveis}
+          indice={indiceAberto}
+          hora={horaAberta}
+          urls={galeria.urls}
+          interacao={galeria.interacao}
+          caminhoDaCamera={caminhoDaCamera}
+          movimentoReduzido={movimentoReduzido}
+          onIr={irPara}
+          onSair={sairReprodutor}
+          onReacoes={galeria.atualizarReacoes}
+          onRemover={() => void removerAberta()}
+          removendo={galeria.removendoId === uploadAberto}
+          onCompartilhar={compartilharAberta}
+          compartilhando={compartilhar.compartilhandoId === uploadAberto}
+        />
+      )}
 
       {(compartilhar.pedindoConsentimento || compartilhar.pedindoColagem) && (
         <div
@@ -424,4 +517,18 @@ export function PaginaMinhas({
       <BarraDeAbas slug={slug} ativa="minhas" />
     </>
   );
+}
+
+function usarMovimentoReduzido(): boolean {
+  const [reduzido, setReduzido] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduzido(mq.matches);
+    const ouvir = () => setReduzido(mq.matches);
+    mq.addEventListener("change", ouvir);
+    return () => mq.removeEventListener("change", ouvir);
+  }, []);
+
+  return reduzido;
 }
