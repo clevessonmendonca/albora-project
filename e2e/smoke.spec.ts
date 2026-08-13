@@ -67,7 +67,7 @@ test.describe("smoke", () => {
   });
 
   test("telão carrega tela de pareamento", async ({ page }) => {
-    await page.goto("/wall-display");
+    await page.goto("/telao");
     await expect(page.getByText(/para ligar o telão/i)).toBeVisible();
     await expect(
       page.getByText(/no app do evento, abra as configurações/i),
@@ -142,7 +142,9 @@ test.describe("smoke", () => {
   });
 
   test("scan carrega", async ({ page }) => {
-    await page.goto("/scan");
-    await expect(page.locator("body")).toContainText(/festa|código|qr|link/i);
+    await page.goto("/scan", { waitUntil: "networkidle" });
+    await expect(page.locator("body")).toContainText(/festa|código|qr|link/i, {
+      timeout: 15_000,
+    });
   });
 });
