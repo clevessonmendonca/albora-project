@@ -1,10 +1,12 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Smoke E2E do convidado (gate MVP).
+ * Smoke E2E (gate MVP).
  *
- * Requer servidor local (`pnpm dev`) e, para o fluxo completo,
- * banco semeado (`pnpm db:semear`). Sem E2E_FULL=1 só roda a landing.
+ * Sempre (rápido): landing, admin sign-in, telão estático.
+ * Com E2E_FULL=1 (+ `pnpm db:semear`): convidado, upload mock, código do telão.
+ *
+ * Requer servidor local (`pnpm dev`).
  */
 export default defineConfig({
   testDir: "./e2e",

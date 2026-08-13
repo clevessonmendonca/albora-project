@@ -33,7 +33,7 @@ function esperaAntesDeRetentar(tentativas) {
   return Math.min(2 ** tentativas, 60);
 }
 
-/** Espelha `ErroDeApi.definitivo` de `apps/web/lib/transporte.ts`. */
+/** Espelha `ApiError.definitivo` de `apps/web/lib/transport.ts`. */
 function ehDefinitivo(status) {
   return status === 401 || status === 403 || status === 422;
 }

@@ -25,3 +25,6 @@ apps/web/public/fontes/
 # Playwright
 playwright-report/
 test-results/
+
+# Vitest coverage (artefato de CI, não fonte)
+coverage/

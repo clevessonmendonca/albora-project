@@ -1,19 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { contraste, CONTRASTE_DE_TEXTO, lerHex } from "./cor";
 import { MARCA_ALBORA } from "./marca";
-import { resolverEscala, resolverTokens } from "./resolvedor";
-import { paraVariaveis } from "./saidas";
+import { resolveScale, resolveTokens } from "./resolver";
+import { toVariables } from "./outputs";
 
 const cor = (hex: string) => lerHex(hex)!;
 const razao = (a: string, b: string) => contraste(cor(a), cor(b));
 
 describe("cadeia marca → pack → evento", () => {
   it("resolve para a marca quando não há nada por cima", () => {
-    expect(resolverTokens({ marca: MARCA_ALBORA })).toEqual(MARCA_ALBORA);
+    expect(resolveTokens({ marca: MARCA_ALBORA })).toEqual(MARCA_ALBORA);
   });
 
   it("o evento ganha do pack, que ganha da marca", () => {
-    const r = resolverTokens({
+    const r = resolveTokens({
       marca: MARCA_ALBORA,
       pack: { cores: { acento: "#111111" }, fontes: { titulo: "Pack" } },
       evento: { cores: { acento: "#222222" } },
@@ -25,7 +25,7 @@ describe("cadeia marca → pack → evento", () => {
   });
 
   it("sobrepõe campo a campo, não camada inteira", () => {
-    const r = resolverTokens({
+    const r = resolveTokens({
       marca: MARCA_ALBORA,
       evento: { cores: { tinta: "#000000" } },
     });
@@ -55,7 +55,7 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
 
   it("as duas escalas entregam texto legível sobre o próprio chão", () => {
     for (const fundo of ["escuro", "claro"] as const) {
-        const e = resolverEscala({ ...MARCA_ALBORA, fundo });
+        const e = resolveScale({ ...MARCA_ALBORA, fundo });
 
       expect(razao(e.ink, e.bg), `ink/${fundo}`).toBeGreaterThan(CONTRASTE_DE_TEXTO);
       expect(razao(e.ink2, e.bg), `ink2/${fundo}`).toBeGreaterThan(3);
@@ -69,7 +69,7 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
     // acento é o chão. As duas escolhas óbvias reprovam — papel dá 2,7:1 e o
     // branco não chega a 3:1 — e as duas parecem certas numa captura de tela.
     for (const fundo of ["escuro", "claro"] as const) {
-      const e = resolverEscala({ ...MARCA_ALBORA, fundo });
+      const e = resolveScale({ ...MARCA_ALBORA, fundo });
 
       expect(razao(e.sobreAcento, e.acento), `sobre-acento/${fundo}`).toBeGreaterThan(
         CONTRASTE_DE_TEXTO,
@@ -81,7 +81,7 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
     // A cor vem de quem paga e pode ser qualquer uma. Um âmbar claro derruba a
     // escolha para o lado escuro; se o rótulo fosse fixo, o botão sumiria.
     for (const acento of ["#FFE08A", "#2B1A0E", "#D9793C"]) {
-      const e = resolverEscala({
+      const e = resolveScale({
         ...MARCA_ALBORA,
         cores: { ...MARCA_ALBORA.cores, acento },
         fundo: "claro",
@@ -94,8 +94,8 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
 
 describe("trocar o chão re-deriva o acento", () => {
   it("o casal escolhe claro e o acento de texto muda sozinho", () => {
-    const escuro = resolverEscala(MARCA_ALBORA);
-    const claro = resolverEscala({ ...MARCA_ALBORA, fundo: "claro" });
+    const escuro = resolveScale(MARCA_ALBORA);
+    const claro = resolveScale({ ...MARCA_ALBORA, fundo: "claro" });
 
     // Cada chão recebe o seu, e nenhum dos dois é o acento cru: a versão
     // anterior afirmava que o escuro passava intacto, o que só era verdade
@@ -114,7 +114,7 @@ describe("trocar o chão re-deriva o acento", () => {
     // profundidade entre página e card, e a cor que o casal escolheu não
     // aparece em lugar nenhum. O `claro()` sempre levantou a página do papel
     // puro; a assimetria no escuro era acidente.
-    const escuro = resolverEscala(MARCA_ALBORA);
+    const escuro = resolveScale(MARCA_ALBORA);
 
     expect(escuro.bg).not.toBe(MARCA_ALBORA.cores.noite);
     expect(razao(escuro.ink, escuro.bg)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
@@ -129,7 +129,7 @@ describe("trocar o chão re-deriva o acento", () => {
   it("acento próprio do casal também é re-derivado, não aceito cru", () => {
     // O amarelo é o caso que mais aparece e o que mais reprova: some sobre
     // papel e ninguém percebe até a festa.
-    const claro = resolverEscala({
+    const claro = resolveScale({
       ...MARCA_ALBORA,
       fundo: "claro",
       cores: { ...MARCA_ALBORA.cores, acento: "#F2C744" },
@@ -144,8 +144,8 @@ describe("trocar o chão re-deriva o acento", () => {
   it("a rampa de neutro acompanha a base, não fica fixa", () => {
     // O defeito que este teste impede: escala calibrada para um preto antigo
     // continua parecendo certa valor a valor, e só brigada com o chão novo.
-    const nossa = resolverEscala(MARCA_ALBORA);
-    const outroChao = resolverEscala({
+    const nossa = resolveScale(MARCA_ALBORA);
+    const outroChao = resolveScale({
       ...MARCA_ALBORA,
       cores: { ...MARCA_ALBORA.cores, noite: "#001018" },
     });
@@ -156,7 +156,7 @@ describe("trocar o chão re-deriva o acento", () => {
   });
 
   it("acento que já é legível passa intacto", () => {
-    const claro = resolverEscala({
+    const claro = resolveScale({
       ...MARCA_ALBORA,
       fundo: "claro",
       cores: { ...MARCA_ALBORA.cores, acento: "#1B4D3E" },
@@ -166,7 +166,7 @@ describe("trocar o chão re-deriva o acento", () => {
   });
 
   it("hex malformado não apaga a identidade inteira", () => {
-    const claro = resolverEscala({
+    const claro = resolveScale({
       ...MARCA_ALBORA,
       fundo: "claro",
       cores: { ...MARCA_ALBORA.cores, acento: "o azul da festa" },
@@ -178,7 +178,7 @@ describe("trocar o chão re-deriva o acento", () => {
 
 describe("a saída entrega a escala pronta", () => {
   it("o componente não escolhe nem chão nem neutro", () => {
-    const v = paraVariaveis(resolverTokens({ marca: MARCA_ALBORA }));
+    const v = toVariables(resolveTokens({ marca: MARCA_ALBORA }));
 
     // Derivado, não copiado da marca: o componente recebe o chão pronto e
     // não tem como escolher o extremo por conta própria.
@@ -190,7 +190,7 @@ describe("a saída entrega a escala pronta", () => {
   });
 
   it("fundo claro troca o conjunto, não uma variável", () => {
-    const v = paraVariaveis(resolverTokens({ marca: MARCA_ALBORA, evento: { fundo: "claro" } }));
+    const v = toVariables(resolveTokens({ marca: MARCA_ALBORA, evento: { fundo: "claro" } }));
 
     expect(v["--bg"]).not.toBe(MARCA_ALBORA.cores.noite);
     expect(razao(v["--ink"]!, v["--bg"]!)).toBeGreaterThan(CONTRASTE_DE_TEXTO);

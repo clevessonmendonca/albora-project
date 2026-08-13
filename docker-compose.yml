@@ -1,3 +1,7 @@
+# Postgres local de desenvolvimento e testes de isolamento.
+# Credenciais e imagem espelham o service postgres do job `isolamento` em
+# .github/workflows/ci.yml. `pnpm db:up` usa `--wait`, que depende do
+# healthcheck abaixo.
 services:
   postgres:
     image: postgres:18-alpine
@@ -12,6 +16,7 @@ services:
       # rodando na porta padrão apagaria dados alheios.
       - "55432:5432"
     healthcheck:
+      # Mesmo comando do CI: db:up só retorna quando pg_isready passa.
       test: ["CMD-SHELL", "pg_isready -U albora"]
       interval: 2s
       timeout: 3s

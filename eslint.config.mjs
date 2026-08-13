@@ -1,4 +1,7 @@
 import js from "@eslint/js";
+import globals from "globals";
+import react from "eslint-plugin-react";
+import reactHooks from "eslint-plugin-react-hooks";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
@@ -16,34 +19,60 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: { jsx: true },
+      },
+    },
+    plugins: {
+      react,
+      "react-hooks": reactHooks,
+    },
+    settings: {
+      react: { version: "detect" },
+    },
+    rules: {
+      ...react.configs.recommended.rules,
+      "react-hooks/rules-of-hooks": "off",
+      "react-hooks/exhaustive-deps": "warn",
+      "react/react-in-jsx-scope": "off",
+      "react/prop-types": "off",
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { prefer: "type-imports", fixStyle: "inline-type-imports" },
+      ],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
+  {
+    files: ["apps/web/features/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/app/*", "@/app/**"],
+              message: "Features must not import from app/. Move shared UI to @albora/ui-web or features/.",
+            },
+            {
+              group: ["**/landing/pecas"],
+              message: "Use @albora/ui-web (Frame, radiusStyle) or Tailwind utilities.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ["**/*.mjs"],
-    /**
-     * O que o Node 20 já entrega como global. Declarado à mão, e não pelo
-     * pacote `globals`, para a lista continuar sendo uma decisão legível: o
-     * que não está aqui é engano de digitação, e é assim que `no-undef` ganha
-     * o troco dele.
-     */
     languageOptions: {
       globals: {
-        process: "readonly",
-        console: "readonly",
-        Buffer: "readonly",
-        fetch: "readonly",
-        URL: "readonly",
-        URLSearchParams: "readonly",
-        Blob: "readonly",
-        crypto: "readonly",
-        performance: "readonly",
-        AbortController: "readonly",
-        AbortSignal: "readonly",
-        TextEncoder: "readonly",
-        TextDecoder: "readonly",
-        setTimeout: "readonly",
-        clearTimeout: "readonly",
-        setInterval: "readonly",
-        clearInterval: "readonly",
-        queueMicrotask: "readonly",
-        structuredClone: "readonly",
+        ...globals.node,
       },
     },
   },
