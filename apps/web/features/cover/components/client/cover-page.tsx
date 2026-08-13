@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { BarraDeAbas } from "@/app/e/[slug]/barra-de-abas";
+import { BarraDeAbas } from "@/features/guest/components/client/guest-tab-bar";
 import { Moldura, raio } from "@/app/landing/pecas";
-import { BotaoPrimario, ChaoConvidado, RODAPE_ABAS } from "@/app/telas/shell-convidado";
-import { Estrela, IconeGrade, IconePilha } from "@/app/telas/pecas-de-tela";
+import { BotaoPrimario, ChaoConvidado, RODAPE_ABAS } from "@/features/guest/components/client/guest-shell";
+import { Estrela, IconeGrade, IconePilha } from "@/features/guest/components/client/guest-ui-parts";
 import type { AlbumServido } from "@/lib/album";
 import type { CoverMoment } from "../../types/cover";
 

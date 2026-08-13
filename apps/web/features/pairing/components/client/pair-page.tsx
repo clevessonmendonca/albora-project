@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { raio } from "@/app/landing/pecas";
-import { BotaoPrimario, BotaoSecundario } from "@/app/telas/shell-convidado";
+import { BotaoPrimario, BotaoSecundario } from "@/features/guest/components/client/guest-shell";
 
 type Estado = "carregando" | "pronto" | "sem-sessao" | "erro";
 

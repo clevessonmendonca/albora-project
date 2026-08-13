@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CotaVideo, mensagemCotaVideo, usarEnvio } from "@/lib/usar-envio";
 import { usarInstalacaoPwa } from "@/lib/usar-instalacao-pwa";
-import { RecadoErro, BotaoSecundario } from "@/app/telas/shell-convidado";
+import { RecadoErro, BotaoSecundario } from "@/features/guest/components/client/guest-shell";
 import { Details, type Place } from "./details";
 import { Editor } from "./editor";
 import { QueueHeader } from "./queue-panel";

@@ -1,4 +1,4 @@
-import { ChaoConvidado } from "@/app/telas/shell-convidado";
+import { ChaoConvidado } from "@/features/guest/components/client/guest-shell";
 import { raio } from "@/app/landing/pecas";
 
 function Block({ height }: { height: string }) {

@@ -15,7 +15,7 @@ import {
   type Preset,
 } from "@albora/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FaixaMissao } from "@/app/telas/shell-convidado";
+import { FaixaMissao } from "@/features/guest/components/client/guest-shell";
 
 /**
  * O editor. A foto já foi tirada pela câmera nativa; aqui só se escolhe cor.

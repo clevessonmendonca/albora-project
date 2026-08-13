@@ -11,9 +11,9 @@ import {
   MioloConvidado,
   TextoSecundario,
   TituloGrande,
-} from "@/app/telas/shell-convidado";
-import { Estrela, Pilula } from "@/app/telas/pecas-de-tela";
-import { BarraDeAbas } from "@/app/e/[slug]/barra-de-abas";
+} from "@/features/guest/components/client/guest-shell";
+import { Estrela, Pilula } from "@/features/guest/components/client/guest-ui-parts";
+import { BarraDeAbas } from "@/features/guest/components/client/guest-tab-bar";
 
 export type VisibleMission = { id: string; title: string; done: boolean };
 

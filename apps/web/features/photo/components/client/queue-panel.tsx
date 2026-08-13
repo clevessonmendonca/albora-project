@@ -3,7 +3,7 @@
 import type { ItemFila } from "@albora/core";
 import { MAX_TENTATIVAS, ehMimeVideo } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
-import { BotaoPrimario, BotaoSecundario, SheetBaixo } from "@/app/telas/shell-convidado";
+import { BotaoPrimario, BotaoSecundario, SheetBaixo } from "@/features/guest/components/client/guest-shell";
 import { filaWeb } from "@/lib/fila";
 import { UploadArc } from "./upload-arc";
 import { QueueLabel } from "./camera-view";

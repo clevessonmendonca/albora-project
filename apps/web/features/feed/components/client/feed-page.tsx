@@ -3,15 +3,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { agruparPorHora, type GrupoDeHora } from "@/lib/agrupar-por-hora";
 import { usarFeed, type ItemVisivel } from "@/lib/usar-feed";
-import { BarraDeAbas } from "@/app/e/[slug]/barra-de-abas";
+import { BarraDeAbas } from "@/features/guest/components/client/guest-tab-bar";
 import {
   AvisoGate,
   CabecalhoConvidado,
   ChaoConvidado,
   EstadoVazio,
   MioloConvidado,
-} from "@/app/telas/shell-convidado";
-import { Pilula } from "@/app/telas/pecas-de-tela";
+} from "@/features/guest/components/client/guest-shell";
+import { Pilula } from "@/features/guest/components/client/guest-ui-parts";
 import { Post, PostLoading } from "./post";
 import { MirrorGrid, MirrorGridLoading } from "./mirror-grid";
 import { viewerKeys, Viewer } from "./viewer";

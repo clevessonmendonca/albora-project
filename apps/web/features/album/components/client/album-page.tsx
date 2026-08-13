@@ -7,8 +7,8 @@ import {
   ChaoConvidado,
   EstadoVazio,
   MioloConvidado,
-} from "@/app/telas/shell-convidado";
-import { Pilula } from "@/app/telas/pecas-de-tela";
+} from "@/features/guest/components/client/guest-shell";
+import { Pilula } from "@/features/guest/components/client/guest-ui-parts";
 import { viewerKeys, Viewer } from "@/features/feed/components/client/viewer";
 import { AlbumGrid, AlbumGridLoading } from "./album-grid";
 

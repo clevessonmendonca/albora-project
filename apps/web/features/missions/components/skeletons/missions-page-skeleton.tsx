@@ -2,7 +2,7 @@ import {
   CabecalhoConvidado,
   ChaoConvidado,
   MioloConvidado,
-} from "@/app/telas/shell-convidado";
+} from "@/features/guest/components/client/guest-shell";
 import { raio } from "@/app/landing/pecas";
 
 function Block({ height, width = "100%" }: { height: string; width?: string }) {

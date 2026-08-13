@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import type { CSSProperties, KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { raio } from "@/app/landing/pecas";
-import { BotaoPrimario } from "@/app/telas/shell-convidado";
+import { BotaoPrimario } from "@/features/guest/components/client/guest-shell";
 
 type Estado = "editando" | "enviando" | "ligado" | "recusado" | "erro";
 

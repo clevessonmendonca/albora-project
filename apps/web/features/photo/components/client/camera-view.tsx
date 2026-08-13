@@ -7,8 +7,8 @@ import {
   ChaoConvidado,
   FaixaMissao,
   PADDING_LATERAL,
-} from "@/app/telas/shell-convidado";
-import { Pilula } from "@/app/telas/pecas-de-tela";
+} from "@/features/guest/components/client/guest-shell";
+import { Pilula } from "@/features/guest/components/client/guest-ui-parts";
 
 /**
  * A câmera com missão sobre o visor — espelha `TelaCamera` em `/telas`.

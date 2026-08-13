@@ -1,7 +1,7 @@
 "use client";
 
 import { AlbumPage, type AlbumMission } from "./album-page";
-import { BarraDeAbas } from "@/app/e/[slug]/barra-de-abas";
+import { BarraDeAbas } from "@/features/guest/components/client/guest-tab-bar";
 
 export function AlbumWithTabs({
   slug,

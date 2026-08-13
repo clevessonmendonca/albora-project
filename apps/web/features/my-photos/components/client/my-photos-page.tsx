@@ -7,7 +7,7 @@ import { filaWeb } from "@/lib/fila";
 import { usarCompartilhar } from "@/lib/usar-compartilhar";
 import { usarGaleria } from "@/lib/usar-galeria";
 import { Viewer } from "@/features/feed/components/client/viewer";
-import { BarraDeAbas } from "@/app/e/[slug]/barra-de-abas";
+import { BarraDeAbas } from "@/features/guest/components/client/guest-tab-bar";
 import {
   BotaoPrimario,
   BotaoSecundario,
@@ -16,8 +16,8 @@ import {
   EstadoVazio,
   MioloConvidado,
   RecadoErro,
-} from "@/app/telas/shell-convidado";
-import { Pilula } from "@/app/telas/pecas-de-tela";
+} from "@/features/guest/components/client/guest-shell";
+import { Pilula } from "@/features/guest/components/client/guest-ui-parts";
 
 function rotuloEstado(estado: ItemDaGaleria["estado"]): string {
   if (estado === "subindo") return "Subindo…";

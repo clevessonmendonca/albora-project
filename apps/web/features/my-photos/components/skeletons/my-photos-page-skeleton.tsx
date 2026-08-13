@@ -3,7 +3,7 @@ import {
   CabecalhoConvidado,
   ChaoConvidado,
   MioloConvidado,
-} from "@/app/telas/shell-convidado";
+} from "@/features/guest/components/client/guest-shell";
 
 function Block() {
   return (

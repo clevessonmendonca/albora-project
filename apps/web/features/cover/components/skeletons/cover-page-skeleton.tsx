@@ -1,4 +1,4 @@
-import { ChaoConvidado, RODAPE_ABAS } from "@/app/telas/shell-convidado";
+import { ChaoConvidado, RODAPE_ABAS } from "@/features/guest/components/client/guest-shell";
 import { raio } from "@/app/landing/pecas";
 
 function Block({

@@ -2,7 +2,7 @@ import {
   CabecalhoConvidado,
   ChaoConvidado,
   MioloConvidado,
-} from "@/app/telas/shell-convidado";
+} from "@/features/guest/components/client/guest-shell";
 import { PostLoading } from "../client/post";
 import { HourStripLoading } from "../client/hour-strip";
 

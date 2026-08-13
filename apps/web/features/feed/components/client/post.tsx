@@ -2,7 +2,7 @@
 
 import type { ModoInteracao } from "@albora/core";
 import { InteracaoDaFoto } from "@/app/e/[slug]/interacao-da-foto";
-import { CabecalhoPublicacao } from "@/app/telas/shell-convidado";
+import { CabecalhoPublicacao } from "@/features/guest/components/client/guest-shell";
 import type { ResultadoReacao } from "@/lib/usar-reacao";
 
 /**
