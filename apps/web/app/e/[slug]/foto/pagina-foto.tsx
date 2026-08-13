@@ -85,7 +85,6 @@ export function PaginaFoto({
   });
   const [lugarPre, setLugarPre] = useState<string | null>(null);
   const [recentes, setRecentes] = useState<string[]>([]);
-  const [emLote, setEmLote] = useState(0);
   const [enviadas, setEnviadas] = useState(0);
 
   useEffect(() => {
@@ -110,11 +109,6 @@ export function PaginaFoto({
   function registrarRecente(arquivo: File) {
     const url = URL.createObjectURL(arquivo);
     setRecentes((antes) => [url, ...antes.filter((u) => u !== url)].slice(0, 3));
-  }
-
-  function abrirRolo(missaoId: string | null) {
-    irParaCamera(missaoId);
-    queueMicrotask(() => entradaRolo.current?.click());
   }
 
   function abrirVideo(missaoId: string | null) {
@@ -155,11 +149,9 @@ export function PaginaFoto({
       return;
     }
 
-    setEmLote(arquivos.length);
     for (const arquivo of arquivos) {
       const r = await enfileirarFoto({ arquivo, desafioId: escolhida });
       if (r.ok) setEnviadas((n) => n + 1);
-      setEmLote((n) => n - 1);
     }
     setEtapa({ nome: "pronto", arquivo: primeiro });
     registrarRecente(primeiro);
