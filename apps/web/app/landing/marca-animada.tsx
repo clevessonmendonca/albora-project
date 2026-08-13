@@ -16,7 +16,8 @@ export function MarcaAnimada({ altura = "2rem" }: { altura?: string }) {
     <span
       aria-label="Albora"
       role="img"
-      style={{ display: "block", height: altura, aspectRatio: "300 / 64" }}
+      className="block aspect-[300/64]"
+      style={{ height: altura }}
       // O SVG é ativo estático do pacote de marca, não entrada de usuário.
       dangerouslySetInnerHTML={{ __html: SVG }}
     />

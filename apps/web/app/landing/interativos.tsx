@@ -6,18 +6,17 @@ import {
   paraVariaveis,
   resolverTokens,
 } from "@albora/tokens";
+import { cn } from "@albora/ui-web";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import {
-  CHAO_QUENTE,
   Moldura,
-  RAIO_CASCA,
   Realce,
   Rotulo,
-  SOMBRA,
-  SOMBRA_ALTA,
   Titulo,
-  raio,
+  pilulaClasses,
+  pilulaClaraClasses,
+  radiusStyle,
   transicao,
 } from "./pecas";
 import { Papelaria } from "./vitrines";
@@ -57,179 +56,61 @@ function Tela({ passo, exemplo, missao }: { passo: number; exemplo: string; miss
 
   return (
     <div
+      className="relative flex h-full w-full flex-col overflow-hidden bg-bg text-ink"
       style={{
         ...(paraVariaveis(escuro) as CSSProperties),
-        position: "relative",
-        width: "100%",
-        height: "100%",
-        ...raio("calc(var(--raio-superficie) - 0.5rem)"),
-        overflow: "hidden",
-        backgroundColor: "var(--bg)",
-        color: "var(--ink)",
-        display: "flex",
-        flexDirection: "column",
+        ...radiusStyle("calc(var(--raio-superficie) - 0.5rem)"),
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          padding: "0.875rem 1rem 0.375rem",
-          fontSize: "0.625rem",
-          letterSpacing: "var(--tracking-rotulo)",
-          color: "var(--ink-3)",
-        }}
-      >
+      <div className="flex justify-between px-4 pb-1.5 pt-3.5 text-[0.625rem] uppercase tracking-rotulo text-ink-3">
         <span>{PASSOS[passo]?.legenda}</span>
-        <span style={{ fontFamily: "var(--fonte-titulo)" }}>{exemplo}</span>
+        <span className="font-titulo">{exemplo}</span>
       </div>
 
       {passo === 0 ? (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "1.125rem",
-            padding: "1.25rem",
-          }}
-        >
-          <div
-            style={{
-              width: "70%",
-              aspectRatio: "1",
-              ...raio("var(--raio)"),
-              backgroundColor: "var(--ink)",
-              padding: "0.625rem",
-            }}
-          >
+        <div className="flex flex-1 flex-col items-center justify-center gap-[1.125rem] p-5">
+          <div className="aspect-square w-[70%] rounded-token bg-ink p-2.5">
             <div
+              className="h-full w-full"
               style={{
-                width: "100%",
-                height: "100%",
                 backgroundImage:
                   "repeating-conic-gradient(var(--bg) 0 25%, var(--ink) 0 50%)",
                 backgroundSize: "1.0625rem 1.0625rem",
               }}
             />
           </div>
-          <p
-            style={{
-              margin: 0,
-              textAlign: "center",
-              fontFamily: "var(--fonte-titulo)",
-              fontSize: "1rem",
-              lineHeight: 1.4,
-              color: "var(--ink-2)",
-            }}
-          >
+          <p className="m-0 text-center font-titulo text-base leading-[1.4] text-ink-2">
             Aponte a câmera para o QR da mesa
           </p>
         </div>
       ) : null}
 
       {passo === 1 ? (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.5rem",
-            padding: "0.875rem",
-            minHeight: 0,
-          }}
-        >
-          <p
-            style={{
-              margin: 0,
-              fontSize: "0.625rem",
-              letterSpacing: "var(--tracking-rotulo)",
-              color: "var(--acento)",
-            }}
-          >
+        <div className="flex min-h-0 flex-1 flex-col gap-2 p-3.5">
+          <p className="m-0 text-[0.625rem] uppercase tracking-rotulo text-acento">
             MISSÃO 03 DE 04
           </p>
-          <div
-            style={{
-              padding: "1rem",
-              ...raio("var(--raio)"),
-              backgroundColor: "color-mix(in srgb, var(--acento) 22%, transparent)",
-            }}
-          >
-            <p
-              style={{
-                margin: 0,
-                fontFamily: "var(--fonte-titulo)",
-                fontSize: "1.125rem",
-                lineHeight: 1.25,
-              }}
-            >
-              {missao}
-            </p>
+          <div className="rounded-token bg-acento-overlay p-4">
+            <p className="m-0 font-titulo text-[1.125rem] leading-[1.25]">{missao}</p>
           </div>
-          <div style={{ position: "relative", flex: 1, minHeight: "3rem" }}>
+          <div className="relative min-h-12 flex-1">
             <Moldura rotulo="A pista" raio="var(--raio)" />
           </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "0.625rem",
-              padding: "0.8125rem",
-              ...raio("var(--raio-pilula)"),
-              backgroundColor: "var(--ink)",
-              color: "var(--bg)",
-              fontSize: "0.84375rem",
-              fontWeight: 600,
-            }}
-          >
-            <span
-              className="pulso"
-              style={{
-                width: "0.5625rem",
-                height: "0.5625rem",
-                borderRadius: "50%",
-                backgroundColor: "var(--acento)",
-              }}
-            />
+          <div className="flex items-center justify-center gap-2.5 rounded-pilula bg-ink px-3.5 py-[0.8125rem] text-[0.84375rem] font-semibold text-bg">
+            <span className="pulso size-[0.5625rem] rounded-full bg-acento" />
             Enviando
           </div>
         </div>
       ) : null}
 
       {passo === 2 ? (
-        <div
-          style={{
-            flex: 1,
-            position: "relative",
-            padding: "0.875rem",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gridAutoRows: "1fr",
-            gap: "0.4375rem",
-          }}
-        >
+        <div className="relative grid flex-1 grid-cols-2 grid-rows-[1fr_1fr] gap-[0.4375rem] p-3.5">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} style={{ position: "relative" }}>
+            <div key={i} className="relative">
               <Moldura rotulo="" raio="var(--raio)" />
             </div>
           ))}
-          <div
-            style={{
-              position: "absolute",
-              left: "0.875rem",
-              right: "0.875rem",
-              bottom: "0.875rem",
-              padding: "0.6875rem",
-              ...raio("var(--raio-pilula)"),
-              backgroundColor: "var(--superficie-alta)",
-              fontSize: "0.75rem",
-              textAlign: "center",
-            }}
-          >
+          <div className="absolute inset-x-3.5 bottom-3.5 rounded-pilula bg-superficie-alta p-[0.6875rem] text-center text-xs">
             847 fotos no álbum
           </div>
         </div>
@@ -251,15 +132,9 @@ function Fone({
 }) {
   return (
     <div
+      className="relative aspect-[9/19] rounded-superficie bg-gradient-aparelho p-2 shadow-alta"
       style={{
-        position: "relative",
         width: largura,
-        aspectRatio: "9 / 19",
-        ...raio("var(--raio-superficie)"),
-        padding: "0.5rem",
-        backgroundImage:
-          "linear-gradient(155deg, var(--superficie-alta), color-mix(in srgb, var(--acento) 18%, var(--superficie)))",
-        boxShadow: SOMBRA_ALTA,
         ...transicao("transform", "var(--tempo-lento)"),
       }}
     >
@@ -300,7 +175,6 @@ export function DemoRolagem({ exemplo, missao }: { exemplo: string; missao: stri
       if (pedido === 0) pedido = requestAnimationFrame(medir);
     };
 
-    // O `scroll` só é assinado enquanto o trilho está à vista.
     const observador = new IntersectionObserver(
       ([entrada]) => {
         if (entrada?.isIntersecting) {
@@ -325,97 +199,34 @@ export function DemoRolagem({ exemplo, missao }: { exemplo: string; missao: stri
   const atual = PASSOS[passo] ?? PASSOS[0];
 
   return (
-    <div ref={trilho} style={{ position: "relative", height: "300vh" }}>
-      <div
-        style={{
-          position: "sticky",
-          top: "4.875rem",
-          maxHeight: "calc(100vh - 6rem)",
-          display: "flex",
-          flexDirection: "column",
-          gap: "clamp(0.625rem, 1.6vw, 1.25rem)",
-          padding: "clamp(1rem, 2.4vw, 1.875rem) clamp(1rem, 3vw, 2.25rem)",
-          ...raio(RAIO_CASCA),
-          backgroundImage: CHAO_QUENTE,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: "0.75rem",
-          }}
-        >
+    <div ref={trilho} className="relative h-[300vh]">
+      <div className="sticky top-[4.875rem] flex max-h-[calc(100vh-6rem)] flex-col gap-[clamp(0.625rem,1.6vw,1.25rem)] overflow-hidden rounded-superficie bg-gradient-chao-quente p-[clamp(1rem,2.4vw,1.875rem)_clamp(1rem,3vw,2.25rem)]">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
           <div>
             <Rotulo>Role para viver a festa</Rotulo>
             <Titulo tamanho="clamp(1.375rem, 3vw, 2.375rem)">{atual.titulo}</Titulo>
           </div>
-          <span style={{ color: "var(--ink-2)" }}>{atual.legenda}</span>
+          <span className="text-ink-2">{atual.legenda}</span>
         </div>
 
-        <div
-          style={{
-            height: "0.1875rem",
-            ...raio("var(--raio-pilula)"),
-            backgroundColor: "color-mix(in srgb, var(--acento) 20%, transparent)",
-            overflow: "hidden",
-          }}
-        >
+        <div className="h-[0.1875rem] overflow-hidden rounded-pilula bg-acento-overlay-suave">
           <div
-            style={{
-              height: "100%",
-              width: `${Math.round(progresso * 100)}%`,
-              ...raio("var(--raio-pilula)"),
-              backgroundColor: "var(--acento)",
-            }}
+            className="h-full rounded-pilula bg-acento"
+            style={{ width: `${Math.round(progresso * 100)}%` }}
           />
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: "clamp(1rem, 3vw, 2.5rem)",
-            minHeight: 0,
-          }}
-        >
+        <div className="flex min-h-0 flex-wrap items-center justify-center gap-[clamp(1rem,3vw,2.5rem)]">
           <Fone passo={passo} largura="min(15rem, 42vw)" exemplo={exemplo} missao={missao} />
 
-          <div style={{ flex: 1, minWidth: "min(17.5rem, 100%)", maxWidth: "40rem" }}>
-            <div
-              style={{
-                position: "relative",
-                padding: "0.5625rem",
-                ...raio("calc(var(--raio-superficie) - 0.75rem)"),
-                backgroundImage:
-                  "linear-gradient(155deg, var(--superficie-alta), color-mix(in srgb, var(--acento) 18%, var(--superficie)))",
-              }}
-            >
-              <div
-                style={{
-                  position: "relative",
-                  height: "clamp(9rem, 20vw, 16rem)",
-                  ...raio("var(--raio)"),
-                  overflow: "hidden",
-                  backgroundColor: "var(--ink)",
-                  padding: "0.75rem",
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, 1fr)",
-                  gridAutoRows: "1fr",
-                  gap: "0.5rem",
-                }}
-              >
+          <div className="min-w-[min(17.5rem,100%)] max-w-[40rem] flex-1">
+            <div className="rounded-[calc(var(--raio-superficie)-0.75rem)] bg-gradient-aparelho p-[0.5625rem]">
+              <div className="relative grid h-[clamp(9rem,20vw,16rem)] grid-cols-3 grid-rows-[1fr_1fr] gap-2 overflow-hidden rounded-token bg-ink p-3">
                 {[0, 1, 2, 3, 4, 5].map((i) => (
                   <div
                     key={i}
+                    className="relative"
                     style={{
-                      position: "relative",
-                      // As fotos entram uma a uma conforme a festa avança.
                       opacity: progresso * 6 > i ? 1 : 0,
                       transform: progresso * 6 > i ? "scale(1)" : "scale(0.92)",
                       transition:
@@ -427,9 +238,7 @@ export function DemoRolagem({ exemplo, missao }: { exemplo: string; missao: stri
                 ))}
               </div>
             </div>
-            <p style={{ margin: "0.875rem 0 0", color: "var(--ink-2)", lineHeight: 1.55 }}>
-              {atual.descricao}
-            </p>
+            <p className="mt-3.5 leading-[1.55] text-ink-2">{atual.descricao}</p>
           </div>
         </div>
       </div>
@@ -454,10 +263,6 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
     ...(modelo ? { evento: modelo.camada } : {}),
   });
 
-  // Papel é papel. Uma identidade escura veste o telão às 23h, mas ninguém
-  // imprime placa de mesa em chão preto — o chão claro é a única decisão que
-  // a peça impressa não herda do modelo. Cor, fonte, raio, espaço e tracking
-  // continuam sendo os mesmos, que é o que a seção está provando.
   const tokensNoPapel = resolverTokens({
     marca: MARCA_ALBORA,
     ...(modelo ? { evento: { ...modelo.camada, fundo: "claro" } } : { pack: { fundo: "claro" } }),
@@ -465,7 +270,7 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
 
   return (
     <>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.625rem", margin: "0 0 1.25rem" }}>
+      <div className="mb-5 flex flex-wrap gap-2.5">
         {MODELOS_DE_IDENTIDADE.map((m) => {
           const ativo = m.id === escolhido;
 
@@ -475,28 +280,15 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
               type="button"
               onClick={() => setEscolhido(m.id)}
               aria-pressed={ativo}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "0.6875rem",
-                padding: "0.75rem 1.25rem",
-                borderWidth: "1px", borderStyle: "solid", borderColor: ativo ? "var(--acento)" : "var(--linha)",
-                ...raio("var(--raio-pilula)"),
-                background: ativo ? "var(--superficie-alta)" : "transparent",
-                color: "var(--ink)",
-                fontFamily: "var(--fonte-corpo)",
-                fontSize: "0.90625rem",
-                cursor: "pointer",
-                ...transicao("all", "var(--tempo)"),
-              }}
+              className={cn(
+                "flex cursor-pointer items-center gap-[0.6875rem] rounded-pilula border px-5 py-3 font-corpo text-[0.90625rem] text-ink",
+                ativo ? "border-acento bg-superficie-alta" : "border-linha bg-transparent",
+              )}
+              style={transicao("all", "var(--tempo)")}
             >
               <span
-                style={{
-                  width: "0.875rem",
-                  height: "0.875rem",
-                  borderRadius: "50%",
-                  background: m.amostra,
-                }}
+                className="size-3.5 rounded-full"
+                style={{ background: m.amostra }}
               />
               {m.nome}
             </button>
@@ -505,115 +297,47 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
       </div>
 
       <div
-        style={{
-          ...(paraVariaveis(tokens) as CSSProperties),
-          display: "flex",
-          flexDirection: "column",
-          gap: "clamp(1.125rem, 2.5vw, 2rem)",
-        }}
+        className="flex flex-col gap-[clamp(1.125rem,2.5vw,2rem)]"
+        style={paraVariaveis(tokens) as CSSProperties}
       >
-      <div
-        style={{
-          position: "relative",
-          padding: "0.75rem",
-          ...raio("var(--raio-superficie)"),
-          backgroundImage:
-            "linear-gradient(155deg, var(--superficie-alta), color-mix(in srgb, var(--acento) 18%, var(--superficie)))",
-          boxShadow: SOMBRA_ALTA,
-        }}
-      >
-        <div
-          style={{
-            position: "relative",
-            height: "clamp(15.625rem, 38vw, 33.75rem)",
-            ...raio("calc(var(--raio-superficie) - 0.75rem)"),
-            overflow: "hidden",
-            backgroundColor: "var(--bg)",
-            ...transicao("background", "var(--tempo-lento)"),
-          }}
-        >
+        <div className="relative rounded-superficie bg-gradient-aparelho p-3 shadow-alta">
           <div
+            className="relative h-[clamp(15.625rem,38vw,33.75rem)] overflow-hidden bg-bg"
             style={{
-              position: "absolute",
-              top: "var(--espaco)", right: "var(--espaco)", bottom: "var(--espaco)", left: "var(--espaco)",
-              display: "grid",
-              gridTemplateColumns: "2fr 1fr",
-              gridTemplateRows: "1fr 1fr",
-              gap: "var(--espaco)",
-              ...transicao("all", "var(--tempo-lento)"),
+              ...radiusStyle("calc(var(--raio-superficie) - 0.75rem)"),
+              ...transicao("background", "var(--tempo-lento)"),
             }}
           >
-            <div style={{ position: "relative", gridRow: "span 2" }}>
-              <Moldura rotulo="Foto grande do telão" raio="var(--raio)" />
-            </div>
-            <div style={{ position: "relative" }}>
-              <Moldura rotulo="" raio="var(--raio)" />
-            </div>
-            <div style={{ position: "relative" }}>
-              <Moldura rotulo="" raio="var(--raio)" />
-            </div>
-          </div>
-
-          <div
-            style={{
-              position: "absolute",
-              left: "var(--espaco)",
-              bottom: "var(--espaco)",
-              display: "flex",
-              alignItems: "center",
-              gap: "0.75rem",
-              padding: "0.6875rem 1.25rem",
-              ...raio("var(--raio-pilula)"),
-              backgroundColor: "var(--superficie-alta)",
-              color: "var(--ink)",
-            }}
-          >
-            <span
-              className="pulso"
-              style={{
-                width: "0.375rem",
-                height: "0.375rem",
-                borderRadius: "50%",
-                backgroundColor: "var(--acento)",
-              }}
-            />
-            <span
-              style={{
-                fontFamily: "var(--fonte-titulo)",
-                fontSize: "0.875rem",
-                letterSpacing: "var(--tracking-rotulo)",
-              }}
+            <div
+              className="absolute inset-[var(--espaco)] grid grid-cols-[2fr_1fr] grid-rows-2 gap-[var(--espaco)]"
+              style={transicao("all", "var(--tempo-lento)")}
             >
-              ao vivo · 847 fotos
-            </span>
-          </div>
+              <div className="relative row-span-2">
+                <Moldura rotulo="Foto grande do telão" raio="var(--raio)" />
+              </div>
+              <div className="relative">
+                <Moldura rotulo="" raio="var(--raio)" />
+              </div>
+              <div className="relative">
+                <Moldura rotulo="" raio="var(--raio)" />
+              </div>
+            </div>
 
-          <div
-            style={{
-              position: "absolute",
-              right: "var(--espaco)",
-              top: "var(--espaco)",
-              fontFamily: "var(--fonte-titulo)",
-              fontSize: "0.8125rem",
-              letterSpacing: "var(--tracking-rotulo)",
-              color: "var(--ink-2)",
-            }}
-          >
-            {exemplo}
+            <div className="absolute bottom-[var(--espaco)] left-[var(--espaco)] flex items-center gap-3 rounded-pilula bg-superficie-alta px-5 py-[0.6875rem] text-ink">
+              <span className="pulso size-1.5 rounded-full bg-acento" />
+              <span className="font-titulo text-sm uppercase tracking-rotulo">
+                ao vivo · 847 fotos
+              </span>
+            </div>
+
+            <div className="absolute right-[var(--espaco)] top-[var(--espaco)] font-titulo text-[0.8125rem] uppercase tracking-rotulo text-ink-2">
+              {exemplo}
+            </div>
           </div>
         </div>
-      </div>
 
         <div style={paraVariaveis(tokensNoPapel) as CSSProperties}>
-          <p
-            style={{
-              margin: "0 0 clamp(0.875rem, 2vw, 1.25rem)",
-              fontSize: "0.8125rem",
-              letterSpacing: "var(--tracking-rotulo)",
-              textTransform: "uppercase",
-              color: "var(--acento-texto)",
-            }}
-          >
+          <p className="mb-[clamp(0.875rem,2vw,1.25rem)] text-[0.8125rem] uppercase tracking-rotulo text-acento-texto">
             E o mesmo desenho sai impresso
           </p>
           <Papelaria exemplo={exemplo} />
@@ -652,64 +376,34 @@ export function Missoes({
 
   return (
     <div
-      style={{
-        ...(paraVariaveis(escuro) as CSSProperties),
-        padding: "clamp(2rem, 5vw, 4.5rem) clamp(1.5rem, 4vw, 3.75rem)",
-        ...raio(RAIO_CASCA),
-        backgroundColor: "var(--bg)",
-        color: "var(--ink)",
-      }}
+      className="rounded-superficie bg-bg p-[clamp(2rem,5vw,4.5rem)_clamp(1.5rem,4vw,3.75rem)] text-ink"
+      style={paraVariaveis(escuro) as CSSProperties}
     >
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "end",
-          justifyContent: "space-between",
-          gap: "1.5rem",
-          marginBottom: "clamp(1.25rem, 3vw, 1.875rem)",
-        }}
-      >
-        <Titulo tamanho="clamp(1.75rem, 4.2vw, 3.25rem)" style={{ maxWidth: "20ch" }}>
+      <div className="mb-[clamp(1.25rem,3vw,1.875rem)] flex flex-wrap items-end justify-between gap-6">
+        <Titulo tamanho="clamp(1.75rem, 4.2vw, 3.25rem)" className="max-w-[20ch]">
           {titulo} <Realce>{destaque}</Realce>
         </Titulo>
-        <p style={{ margin: 0, maxWidth: "20rem", color: "var(--ink-2)", lineHeight: 1.6 }}>
+        <p className="m-0 max-w-[20rem] leading-normal text-ink-2">
           {lede} Toque numa para ver como o convidado marca.
         </p>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.375rem" }}>
-        <div
-          style={{
-            flex: 1,
-            height: "0.1875rem",
-            ...raio("var(--raio-pilula)"),
-            backgroundColor: "var(--linha)",
-            overflow: "hidden",
-          }}
-        >
+      <div className="mb-[1.375rem] flex items-center gap-4">
+        <div className="h-[0.1875rem] flex-1 overflow-hidden rounded-pilula bg-linha">
           <div
+            className="h-full rounded-pilula bg-acento"
             style={{
-              height: "100%",
               width: `${Math.round(razao * 100)}%`,
-              ...raio("var(--raio-pilula)"),
-              backgroundColor: "var(--acento)",
               ...transicao("width", "var(--tempo-lento)"),
             }}
           />
         </div>
-        <span style={{ color: "var(--ink-2)", whiteSpace: "nowrap" }}>
+        <span className="whitespace-nowrap text-ink-2">
           {feitas.length} de {missoes.length}
         </span>
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(14.375rem, 1fr))",
-          gap: "0.875rem",
-        }}
-      >
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(14.375rem,1fr))] gap-[0.875rem]">
         {missoes.map((missao, i) => {
           const feita = feitas.includes(missao.id);
 
@@ -719,66 +413,31 @@ export function Missoes({
               type="button"
               onClick={() => alternar(missao.id)}
               aria-pressed={feita}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                gap: "1.375rem",
-                minHeight: "10.75rem",
-                padding: "1.5rem",
-                borderWidth: 0, borderStyle: "none",
-                ...raio("var(--raio-superficie)"),
-                background: feita ? "var(--superficie-alta)" : "var(--superficie)",
-                color: "var(--ink)",
-                fontFamily: "var(--fonte-corpo)",
-                textAlign: "left",
-                cursor: "pointer",
-                boxShadow: SOMBRA,
-                ...transicao("background", "var(--tempo)"),
-              }}
+              className={cn(
+                "flex min-h-[10.75rem] cursor-pointer flex-col justify-between gap-[1.375rem] rounded-superficie border-0 p-6 text-left font-corpo text-ink shadow-suave",
+                feita ? "bg-superficie-alta" : "bg-superficie",
+              )}
+              style={transicao("background", "var(--tempo)")}
             >
-              <span
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: "0.75rem",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "0.6875rem",
-                    fontWeight: 600,
-                    letterSpacing: "var(--tracking-rotulo)",
-                    color: "var(--acento)",
-                  }}
-                >
+              <span className="flex items-center justify-between gap-3">
+                <span className="text-[0.6875rem] font-semibold uppercase tracking-rotulo text-acento">
                   MISSÃO {String(i + 1).padStart(2, "0")}
                 </span>
                 <span
-                  style={{
-                    display: "grid",
-                    placeItems: "center",
-                    width: "1.625rem",
-                    height: "1.625rem",
-                    borderRadius: "50%",
-                    borderWidth: "1px", borderStyle: "solid", borderColor: feita ? "var(--acento)" : "var(--linha)",
-                    background: feita ? "var(--acento)" : "transparent",
-                    color: "var(--sobre-acento)",
-                    fontSize: "0.8125rem",
-                    ...transicao("all", "var(--tempo)"),
-                  }}
+                  className={cn(
+                    "grid size-[1.625rem] place-items-center rounded-full border text-[0.8125rem]",
+                    feita
+                      ? "border-acento bg-acento text-sobre-acento"
+                      : "border-linha bg-transparent",
+                  )}
+                  style={transicao("all", "var(--tempo)")}
                 >
                   {feita ? "✓" : ""}
                 </span>
               </span>
               <span
+                className="font-titulo text-[1.3125rem] font-light leading-[1.22] tracking-titulo"
                 style={{
-                  fontFamily: "var(--fonte-titulo)",
-                  fontWeight: 300,
-                  fontSize: "1.3125rem",
-                  lineHeight: 1.22,
-                  letterSpacing: "var(--tracking-titulo)",
                   opacity: feita ? 0.45 : 1,
                   ...transicao("opacity", "var(--tempo)"),
                 }}
@@ -792,7 +451,6 @@ export function Missoes({
     </div>
   );
 }
-
 
 /**
  * Entra quando chega à vista, uma vez só.
@@ -846,7 +504,7 @@ export function Revelar({
   return (
     <div
       ref={alvo}
-      {...(className ? { className } : {})}
+      className={className}
       style={{
         opacity: visivel ? 1 : 0,
         transform: visivel ? "none" : "translateY(1.25rem)",

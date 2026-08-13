@@ -34,13 +34,8 @@ export default function TelasAdmin() {
 
   return (
     <div
-      className="min-h-screen px-[clamp(1.125rem,4vw,3rem)] pt-[clamp(2rem,5vw,4.5rem)] pb-24"
-      style={{
-        ...(paraVariaveis(tokens) as CSSProperties),
-        backgroundColor: "var(--bg)",
-        color: "var(--ink)",
-        fontFamily: "var(--fonte-corpo)",
-      }}
+      className="min-h-screen bg-bg px-[clamp(1.125rem,4vw,3rem)] pt-[clamp(2rem,5vw,4.5rem)] pb-24 font-corpo text-ink leading-relaxed"
+      style={paraVariaveis(tokens) as CSSProperties}
     >
       <header className="mb-[clamp(2rem,4vw,3.5rem)] max-w-3xl">
         <p className="mb-4 text-[0.8125rem] uppercase tracking-rotulo text-acento-texto">

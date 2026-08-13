@@ -4,35 +4,33 @@ import { CASAMENTO, problemasDaLanding, texto } from "@albora/packs";
 import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { CSSProperties } from "react";
 import { Aparelho, Navegador, Parede } from "./pecas-de-tela";
-import {
-  nomeDoModelo,
-  notaDoModelo,
-  TelaAlbumAnfitriao,
-  TelaComentar,
-  TelaCriarEvento,
-  TelaDenuncia,
-  TelaEntrada,
-  TelaFila,
-  TelaIdentidade,
-  TelaLogin,
-  TelaModelosDaParede,
-  TelaMusica,
-  TelaPainel,
-  TelaPanico,
-  TelaPecas,
-  TelaScanner,
-  TelaTelao,
-} from "./telas";
+import { CatalogGroup } from "@/features/catalog/components/catalog-group";
 import {
   TelaAlbum,
   TelaAntesDoGate,
   TelaCamera,
   TelaCapa,
+  TelaComentar,
+  TelaDenuncia,
+  TelaEntrada,
   TelaFeed,
+  TelaFila,
   TelaFotoAberta,
   TelaMinhas,
   TelaMissoes,
+  TelaMusica,
+  TelaScanner,
 } from "./telas-convidado";
+import {
+  TelaAlbumAnfitriao,
+  TelaCriarEvento,
+  TelaIdentidade,
+  TelaLogin,
+  TelaModelosDaParede,
+  TelaPainel,
+  TelaPecas,
+} from "./telas-anfitriao-desktop";
+import { nomeDoModelo, notaDoModelo, TelaPanico, TelaTelao } from "./telas-telao";
 
 export const metadata = {
   title: "Albora — as telas",
@@ -61,52 +59,28 @@ export default function Telas() {
 
   return (
     <div
-      style={{
-        ...(paraVariaveis(tokens) as CSSProperties),
-        backgroundColor: "var(--bg)",
-        color: "var(--ink)",
-        fontFamily: "var(--fonte-corpo)",
-        lineHeight: 1.6,
-        minHeight: "100vh",
-        padding: "clamp(2rem, 5vw, 4.5rem) clamp(1.125rem, 4vw, 3rem) 6rem",
-      }}
+      className="min-h-screen bg-bg px-[clamp(1.125rem,4vw,3rem)] pt-[clamp(2rem,5vw,4.5rem)] pb-24 font-corpo text-ink leading-relaxed"
+      style={paraVariaveis(tokens) as CSSProperties}
     >
-      <header style={{ maxWidth: "44rem", marginBottom: "clamp(2.5rem, 5vw, 4rem)" }}>
-        <p
-          style={{
-            margin: "0 0 1rem",
-            fontSize: "0.8125rem",
-            letterSpacing: "var(--tracking-rotulo)",
-            textTransform: "uppercase",
-            color: "var(--acento-texto)",
-          }}
-        >
+      <header className="mb-[clamp(2.5rem,5vw,4rem)] max-w-[44rem]">
+        <p className="mb-4 text-[0.8125rem] uppercase tracking-rotulo text-acento-texto">
           Projeto de telas
         </p>
-        <h1
-          style={{
-            margin: 0,
-            fontFamily: "var(--fonte-titulo)",
-            fontWeight: 300,
-            fontSize: "clamp(2rem, 5vw, 3.5rem)",
-            lineHeight: 1.04,
-            letterSpacing: "var(--tracking-titulo)",
-          }}
-        >
+        <h1 className="font-titulo text-[clamp(2rem,5vw,3.5rem)] font-light leading-[1.04] tracking-titulo">
           As telas do convidado, do anfitrião e da parede.
         </h1>
-        <p style={{ margin: "1.5rem 0 0", maxWidth: "52ch", color: "var(--ink-2)" }}>
+        <p className="mt-6 max-w-[52ch] text-ink-2">
           Cada tela roda pelo mesmo resolvedor de tokens do produto, dentro do mesmo pack. Trocar a
           identidade do evento redesenha todas de uma vez. As fotos são slots declarados, e entram
           por <code>src</code> quando existirem.{" "}
-          <a href="/telas-admin" style={{ color: "var(--acento)" }}>
+          <a href="/telas-admin" className="text-acento">
             Ver o anfitrião no app (mobile-first)
           </a>
           .
         </p>
       </header>
 
-      <Grupo
+      <CatalogGroup
         titulo="O convidado"
         nota="Chão escuro, porque ele usa isto às 23h num salão sem luz. Quatro abas e a câmera no meio, que é a forma consolidada pelo Instagram — o que muda é o conteúdo: sem aba de conversa e sem aba de planejamento."
       >
@@ -161,7 +135,7 @@ export default function Telas() {
 
         <Aparelho
           titulo="Feed, antes do gate"
-          nota="Mesma aba, sem reação e sem comentário. Botão desabilitado contaria que existe algo trancado; não desenhar conta que ainda não é hora."
+          nota="Mesma aba, sem reação e sem comentário. Botão disabled contaria que existe algo trancado; não desenhar conta que ainda não é hora."
         >
           <TelaAntesDoGate pack={pack} />
         </Aparelho>
@@ -189,7 +163,7 @@ export default function Telas() {
 
         <Aparelho
           titulo="Foto aberta"
-          nota="Tela cheia com reação, comentário e compartilhar só na foto do próprio autor. O ✕ remove quando a foto é dela."
+          nota="Tela filled com reação, comentário e compartilhar só na foto do próprio autor. O ✕ remove quando a foto é dela."
         >
           <TelaFotoAberta pack={pack} />
         </Aparelho>
@@ -214,9 +188,9 @@ export default function Telas() {
         >
           <TelaMusica pack={pack} />
         </Aparelho>
-      </Grupo>
+      </CatalogGroup>
 
-      <Grupo
+      <CatalogGroup
         titulo="O anfitrião"
         nota="Web e chão claro: lido de manhã no sofá, não no salão. O gate da interação fica na primeira dobra porque é a decisão que o anfitrião mais volta para mexer."
       >
@@ -318,9 +292,9 @@ export default function Telas() {
         >
           <TelaPecas pack={pack} />
         </Navegador>
-      </Grupo>
+      </CatalogGroup>
 
-      <Grupo
+      <CatalogGroup
         titulo="A parede"
         nota="URL fullscreen, sem cromo e sem cursor. Oito modelos que se alternam a noite inteira, e o único deles que recusa foto em pé é Cheio — a fila filtra as verticais antes de sortear, em vez de escolher uma foto e depois descobrir que ela não cabe."
       >
@@ -333,75 +307,34 @@ export default function Telas() {
             <TelaTelao pack={pack} modelo={modelo} />
           </Parede>
         ))}
-      </Grupo>
+      </CatalogGroup>
 
-      <section style={{ maxWidth: "44rem", marginTop: "clamp(2.5rem, 5vw, 4rem)" }}>
-        <h2
-          style={{
-            margin: "0 0 1rem",
-            fontFamily: "var(--fonte-titulo)",
-            fontWeight: 400,
-            fontSize: "1.5rem",
-            letterSpacing: "var(--tracking-titulo)",
-          }}
-        >
+      <section className="mt-[clamp(2.5rem,5vw,4rem)] max-w-[44rem]">
+        <h2 className="mb-4 font-titulo text-2xl font-normal tracking-titulo">
           O que a referência tem e isto não
         </h2>
-        <ul style={{ margin: 0, paddingLeft: "1.125rem", color: "var(--ink-2)", display: "flex", flexDirection: "column", gap: "0.625rem" }}>
+        <ul className="m-0 flex list-disc flex-col gap-2.5 pl-[1.125rem] text-ink-2">
           <li>
-            <strong style={{ color: "var(--ink)" }}>Aba de planejamento.</strong> Cronograma, local
+            <strong className="text-ink">Aba de planejamento.</strong> Cronograma, local
             e traje são fase 4, com condições de entrada explícitas. Desenhar agora seria vender o
             que não existe.
           </li>
           <li>
-            <strong style={{ color: "var(--ink)" }}>Aba de conversa.</strong> Comentário mora na
+            <strong className="text-ink">Aba de conversa.</strong> Comentário mora na
             foto. Uma caixa de mensagens paralela é outro produto, com outra superfície de
             moderação.
           </li>
           <li>
-            <strong style={{ color: "var(--ink)" }}>Selo de plano na tela do convidado.</strong>{" "}
+            <strong className="text-ink">Selo de plano na tela do convidado.</strong>{" "}
             Quem paga é o anfitrião. Vender para quem não compra rouba espaço do que decide a
             participação.
           </li>
           <li>
-            <strong style={{ color: "var(--ink)" }}>Notificação.</strong> Fica desligada até ter
+            <strong className="text-ink">Notificação.</strong> Fica desligada até ter
             decisão própria, por ADR.
           </li>
         </ul>
       </section>
     </div>
-  );
-}
-
-function Grupo({
-  titulo,
-  nota,
-  children,
-}: {
-  titulo: string;
-  nota: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section style={{ marginBottom: "clamp(3rem, 7vw, 5.5rem)" }}>
-      <div style={{ maxWidth: "48rem", marginBottom: "clamp(1.5rem, 3vw, 2.5rem)" }}>
-        <h2
-          style={{
-            margin: 0,
-            fontFamily: "var(--fonte-titulo)",
-            fontWeight: 300,
-            fontSize: "clamp(1.5rem, 3vw, 2.25rem)",
-            letterSpacing: "var(--tracking-titulo)",
-          }}
-        >
-          {titulo}
-        </h2>
-        <p style={{ margin: "0.75rem 0 0", color: "var(--ink-2)" }}>{nota}</p>
-      </div>
-
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "clamp(1.5rem, 3vw, 2.75rem)" }}>
-        {children}
-      </div>
-    </section>
   );
 }
