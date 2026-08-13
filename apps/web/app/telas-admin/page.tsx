@@ -7,9 +7,11 @@ import {
   TelaAdminConvidados,
   TelaAdminIdentidade,
   TelaAdminLivro,
+  TelaAdminLogin,
   TelaAdminModeracao,
   TelaAdminPainel,
   TelaAdminParede,
+  TelaAdminRetencao,
 } from "../telas/telas-admin";
 
 export const metadata = {
@@ -112,6 +114,20 @@ export default function TelasAdmin() {
           nota="Curadoria por slots, nunca posição livre — não é editor de canvas. O slot cuida do enquadramento e nada corta na vertical; o vazio é desenhado como vazio."
         >
           <TelaAdminLivro pack={pack} />
+        </Vitrine>
+
+        <Vitrine
+          titulo="Retenção & conta"
+          nota="Export pro drive do casal no dia 330, delete no 365 — por job, não por promessa. Excluir exclui de verdade e rápido, sem dark pattern de retenção."
+        >
+          <TelaAdminRetencao pack={pack} />
+        </Vitrine>
+
+        <Vitrine
+          titulo="Login"
+          nota="O anfitrião tem login (o convidado nunca). Magic link, sem senha. Única tela do admin sem barra — antes de entrar não há pra onde navegar."
+        >
+          <TelaAdminLogin pack={pack} />
         </Vitrine>
       </div>
     </div>
