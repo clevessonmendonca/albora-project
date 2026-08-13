@@ -55,12 +55,12 @@ function carregarOrcamentos() {
   return JSON.parse(readFileSync(ORCAMENTOS_PATH, "utf8"));
 }
 
-function executarPasso(args, cwd) {
+function executarPasso(args, cwd, extraEnv = {}) {
   const r = spawnSync("pnpm", args, {
     cwd,
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
-    env: { ...process.env, FORCE_COLOR: "0" },
+    env: { ...process.env, FORCE_COLOR: "0", ...extraEnv },
   });
   return {
     code: r.status ?? 1,
@@ -80,7 +80,9 @@ export function executarBuild() {
     }
   }
 
-  const build = executarPasso(["exec", "next", "build", "--no-lint"], WEB);
+  const build = executarPasso(["exec", "next", "build", "--no-lint"], WEB, {
+    BUNDLE_BUDGET_BUILD: "1",
+  });
   if (build.code !== 0) {
     return { ok: false, saida: build.saida, motivo: "next build falhou" };
   }

@@ -3,6 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
   transpilePackages: ["@albora/core", "@albora/packs", "@albora/tokens", "@albora/ui-web"],
+  typescript: {
+    // Só para `pnpm bundle:budget*` — mede First Load JS sem bloquear o gate principal de build.
+    ignoreBuildErrors: process.env.BUNDLE_BUDGET_BUILD === "1",
+  },
   async redirects() {
     const rootPtToEn = [
       ["escanear", "scan"],
