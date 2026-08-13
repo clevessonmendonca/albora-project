@@ -19,7 +19,7 @@ import {
   Moldura,
 } from "@albora/ui-web";
 import type { CSSProperties, ReactNode } from "react";
-import { BarraDeStatus } from "./pecas-de-tela";
+import { BarraDeStatus } from "@albora/ui-web";
 
 /**
  * As telas novas do convidado, compostas dos primitivos donos de
