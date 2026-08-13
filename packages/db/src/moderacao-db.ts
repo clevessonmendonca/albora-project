@@ -25,18 +25,20 @@ export type ResultadoDenuncia = { registrada: boolean };
  */
 export async function denunciar(
   cliente: PoolClient,
-  entrada: { uploadId: string; sessaoId: string },
+  entrada: { uploadId: string; sessaoId: string; motivo?: string | null },
 ): Promise<ResultadoDenuncia> {
   const { rowCount: visivel } = await cliente.query("SELECT 1 FROM uploads WHERE id = $1", [
     entrada.uploadId,
   ]);
   if ((visivel ?? 0) === 0) throw new ErroMidiaDeOutroEvento(entrada.uploadId);
 
+  const motivo = entrada.motivo?.trim() || null;
+
   const { rowCount } = await cliente.query(
-    `INSERT INTO reports (event_id, upload_id, session_id)
-     VALUES (NULLIF(current_setting('app.event_id', true), '')::uuid, $1, $2)
+    `INSERT INTO reports (event_id, upload_id, session_id, reason)
+     VALUES (NULLIF(current_setting('app.event_id', true), '')::uuid, $1, $2, $3)
      ON CONFLICT (upload_id, session_id) DO NOTHING`,
-    [entrada.uploadId, entrada.sessaoId],
+    [entrada.uploadId, entrada.sessaoId, motivo],
   );
 
   return { registrada: (rowCount ?? 0) > 0 };

@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-type Corpo = { uploadId?: unknown };
+type Corpo = { uploadId?: unknown; motivo?: unknown };
 
 /**
  * Denúncia de uma foto por um convidado, sem login (spec 011).
@@ -59,9 +59,21 @@ export async function POST(req: Request) {
     return erro(422, "validation_error", "Foto inválida", { campos: ["uploadId"] });
   }
 
+  let motivo: string | null = null;
+  if (corpo.motivo !== undefined && corpo.motivo !== null) {
+    if (typeof corpo.motivo !== "string") {
+      return erro(422, "validation_error", "Motivo inválido", { campos: ["motivo"] });
+    }
+    const limpo = corpo.motivo.trim();
+    if (limpo.length > 280) {
+      return erro(422, "validation_error", "Motivo longo demais", { campos: ["motivo"] });
+    }
+    motivo = limpo.length > 0 ? limpo : null;
+  }
+
   try {
     const resultado = await comEvento(banco(), sessao.eventoId, (c) =>
-      denunciar(c, { uploadId, sessaoId: sessao.sessaoId }),
+      denunciar(c, { uploadId, sessaoId: sessao.sessaoId, motivo }),
     );
 
     console.log("denuncia.registrada", {

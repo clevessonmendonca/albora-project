@@ -197,6 +197,7 @@ export function PaginaFeed({
         <MioloConvidado>
           <CabecalhoConvidado
             titulo={tituloEvento}
+            hrefInicio={`/e/${encodeURIComponent(slug)}/capa`}
             acao={contagem ? <Pilula>{contagem}</Pilula> : undefined}
           />
 

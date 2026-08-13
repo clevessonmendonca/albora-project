@@ -1,12 +1,13 @@
-import { comEvento, packDoEvento, resolverSlug, musicaDoCasal } from "@albora/db";
+import { comEvento, listarDesafios, packDoEvento, resolverSlug, musicaDoCasal } from "@albora/db";
 import { exibirMusica } from "@albora/core";
-import { PACKS, texto } from "@albora/packs";
+import { PACKS, texto, type Pack } from "@albora/packs";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { banco } from "@/lib/banco";
 import { montarAlbumServido } from "@/lib/album";
 import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
 import { Aviso } from "../aviso";
+import { SemEntrada } from "../sem-entrada";
 import { PaginaCapa } from "./pagina-capa";
 
 export const dynamic = "force-dynamic";
@@ -27,11 +28,11 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
   }
 
   const sessao = await sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
-  if (!sessao) {
-    return (
-      <Aviso titulo="Falta você entrar" texto="Volte pelo QR da mesa para ver a festa." />
-    );
-  }
+  if (!sessao) return <SemEntrada slug={slug} />;
+
+  const desafios = await comEvento(banco(), sessao.eventoId, (c) =>
+    listarDesafios(c, sessao.eventoId, sessao.sessaoId),
+  );
 
   const packId = await comEvento(banco(), sessao.eventoId, (c) => packDoEvento(c, sessao.eventoId));
   const pack = packId ? PACKS[packId] : undefined;
@@ -45,6 +46,7 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
   const momentos = (pack?.momentos ?? []).slice(0, 5).map((m) => ({
     id: m.id,
     titulo: pack ? texto(pack, m.chaveTitulo) : m.id,
+    filtroMissaoId: missaoDoMomento(pack, m.id, desafios),
   }));
   const interacaoAberta =
     r.evento.interacaoAbreEm === null || r.evento.interacaoAbreEm.getTime() <= Date.now();
@@ -60,4 +62,15 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
       musicaRotulo={musicaRotulo}
     />
   );
+}
+
+function missaoDoMomento(
+  pack: Pack | undefined,
+  momentoId: string,
+  desafios: { id: string; chaveTitulo: string }[],
+): string | null {
+  if (!pack) return null;
+  const template = pack.missoes.find((m) => m.id === momentoId);
+  if (!template) return null;
+  return desafios.find((d) => d.chaveTitulo === template.chaveTitulo)?.id ?? null;
 }

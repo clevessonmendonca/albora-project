@@ -7,6 +7,7 @@ import type { CSSProperties } from "react";
 import { banco } from "@/lib/banco";
 import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
 import { Aviso } from "../aviso";
+import { SemEntrada } from "../sem-entrada";
 import { PaginaFoto } from "./pagina-foto";
 
 export const dynamic = "force-dynamic";
@@ -42,20 +43,21 @@ export default async function Pagina({
 
   const { eventoId, packId, filtroRecomendado } = r.evento;
   const pack = PACKS[packId];
+  const interacaoAberta =
+    r.evento.interacaoAbreEm === null || r.evento.interacaoAbreEm.getTime() <= Date.now();
 
   const sessao = await sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
+  if (!sessao) return <SemEntrada slug={slug} />;
 
   const desafios = await comEvento(banco(), eventoId, (c) =>
-    listarDesafios(c, eventoId, sessao?.sessaoId ?? null),
+    listarDesafios(c, eventoId, sessao.sessaoId),
   );
 
-  const planoECota = sessao
-    ? await comEvento(banco(), eventoId, async (c) => {
-        const plano = await planoDoEvento(c, eventoId);
-        const enviados = await contarVideosDaSessao(c, eventoId, sessao.sessaoId);
-        return { plano, cotaVideo: { limite: limiteVideosPorConvidado(plano), enviados } };
-      })
-    : { plano: "free" as const, cotaVideo: { limite: 1, enviados: 0 } };
+  const planoECota = await comEvento(banco(), eventoId, async (c) => {
+    const plano = await planoDoEvento(c, eventoId);
+    const enviados = await contarVideosDaSessao(c, eventoId, sessao.sessaoId);
+    return { plano, cotaVideo: { limite: limiteVideosPorConvidado(plano), enviados } };
+  });
 
   return (
     <div
@@ -71,22 +73,23 @@ export default async function Pagina({
       <PaginaFoto
         slug={slug}
         eventoId={eventoId}
-      plano={planoECota.plano}
-      cotaVideo={planoECota.cotaVideo}
-      tituloEvento={pack ? texto(pack, "landing.exemplo.nome") : "A festa"}
-      filtroRecomendado={filtroRecomendado}
-      missaoInicial={
-        missaoParam && desafios.some((d) => d.id === missaoParam) ? missaoParam : null
-      }
-      missoes={desafios.map((d) => ({
-        id: d.id,
-        titulo: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,
-        feito: d.feito,
-      }))}
-      lugares={lugaresDoPack(pack)}
-      textos={{
-        lugarPergunta: rotulo(pack, "lugar.pergunta"),
-      }}
+        plano={planoECota.plano}
+        cotaVideo={planoECota.cotaVideo}
+        tituloEvento={pack ? texto(pack, "landing.exemplo.nome") : "A festa"}
+        filtroRecomendado={filtroRecomendado}
+        interacaoAberta={interacaoAberta}
+        missaoInicial={
+          missaoParam && desafios.some((d) => d.id === missaoParam) ? missaoParam : null
+        }
+        missoes={desafios.map((d) => ({
+          id: d.id,
+          titulo: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,
+          feito: d.feito,
+        }))}
+        lugares={lugaresDoPack(pack)}
+        textos={{
+          lugarPergunta: rotulo(pack, "lugar.pergunta"),
+        }}
       />
     </div>
   );

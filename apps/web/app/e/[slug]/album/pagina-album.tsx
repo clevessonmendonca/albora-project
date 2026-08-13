@@ -18,13 +18,20 @@ const TOQUE_MINIMO = "48px";
 const SEM_CHAVES: string[] = [];
 
 export function PaginaAlbum({
+  slug,
   missoes,
+  missaoInicial = null,
   caminhoDaCamera,
 }: {
+  slug: string;
   missoes: MissaoDoAlbum[];
+  missaoInicial?: string | null;
   caminhoDaCamera: string;
 }) {
-  const [missaoId, setMissaoId] = useState<string | null>(null);
+  const [missaoId, setMissaoId] = useState<string | null>(() => {
+    if (missaoInicial && missoes.some((m) => m.id === missaoInicial)) return missaoInicial;
+    return null;
+  });
   const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = usarFeed(missaoId);
 
   const [indiceAberto, setIndiceAberto] = useState<number | null>(null);
@@ -91,6 +98,7 @@ export function PaginaAlbum({
         <MioloConvidado>
           <CabecalhoConvidado
             titulo="O álbum"
+            hrefInicio={`/e/${encodeURIComponent(slug)}/capa`}
             acao={contagem ? <Pilula>{contagem}</Pilula> : undefined}
           />
 

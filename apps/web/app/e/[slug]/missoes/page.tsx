@@ -7,6 +7,7 @@ import type { CSSProperties } from "react";
 import { banco } from "@/lib/banco";
 import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
 import { Aviso } from "../aviso";
+import { SemEntrada } from "../sem-entrada";
 import { PaginaMissoes } from "./pagina-missoes";
 
 export const dynamic = "force-dynamic";
@@ -27,11 +28,7 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
   }
 
   const sessao = await sessaoDaRequisicao();
-  if (!sessao) {
-    return (
-      <Aviso titulo="Falta você entrar" texto="Volte pelo QR da mesa para ver as missões." />
-    );
-  }
+  if (!sessao) return <SemEntrada slug={slug} />;
 
   const pack = PACKS[r.evento.packId];
   const desafios = await comEvento(banco(), r.evento.eventoId, (c) =>

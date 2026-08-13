@@ -43,9 +43,10 @@ export function PaginaMusica({ slug }: { slug: string }) {
     <>
       <ChaoConvidado>
         <style>{ESTILO_PLAYER}</style>
-        <MioloConvidado comAbas={false}>
+        <MioloConvidado comAbas>
           <CabecalhoConvidado
             titulo="Música da festa"
+            hrefInicio={`/e/${encodeURIComponent(slug)}/capa`}
             acao={carregando ? <Pilula>Carregando…</Pilula> : undefined}
           />
 

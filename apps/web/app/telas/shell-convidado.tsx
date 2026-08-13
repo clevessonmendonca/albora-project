@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import { raio } from "../landing/pecas";
 import { BarraDeStatus } from "./pecas-de-tela";
@@ -71,11 +72,19 @@ export function MioloConvidado({
 
 export function CabecalhoConvidado({
   titulo,
+  hrefInicio,
   acao,
 }: {
   titulo: string;
+  hrefInicio?: string;
   acao?: ReactNode;
 }) {
+  const tituloEstilo: CSSProperties = {
+    fontFamily: "var(--fonte-titulo)",
+    fontSize: "1.125rem",
+    letterSpacing: "var(--tracking-titulo)",
+  };
+
   return (
     <div
       style={{
@@ -86,15 +95,13 @@ export function CabecalhoConvidado({
         padding: "0.375rem 0 0.875rem",
       }}
     >
-      <span
-        style={{
-          fontFamily: "var(--fonte-titulo)",
-          fontSize: "1.125rem",
-          letterSpacing: "var(--tracking-titulo)",
-        }}
-      >
-        {titulo}
-      </span>
+      {hrefInicio ? (
+        <Link href={hrefInicio} style={{ ...tituloEstilo, color: "inherit", textDecoration: "none" }}>
+          {titulo}
+        </Link>
+      ) : (
+        <span style={tituloEstilo}>{titulo}</span>
+      )}
       {acao}
     </div>
   );

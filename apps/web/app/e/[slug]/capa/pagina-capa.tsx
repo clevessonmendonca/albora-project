@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import type { AlbumServido } from "@/lib/album";
 import { Moldura, raio } from "../../../landing/pecas";
-import { BotaoPrimario, ChaoConvidado } from "../../../telas/shell-convidado";
+import { BotaoPrimario, ChaoConvidado, RODAPE_ABAS } from "../../../telas/shell-convidado";
 import {
   Estrela,
   IconeGrade,
   IconePilha,
 } from "../../../telas/pecas-de-tela";
+import { BarraDeAbas } from "../barra-de-abas";
 
 function IconeMusica({ tamanho = 20 }: { tamanho?: number }) {
   return (
@@ -26,7 +27,7 @@ function resumirRotulo(rotulo: string, max = 16): string {
   return rotulo.length <= max ? rotulo : `${rotulo.slice(0, max - 1)}…`;
 }
 
-type MomentoCapa = { id: string; titulo: string };
+type MomentoCapa = { id: string; titulo: string; filtroMissaoId: string | null };
 
 function capaDoAlbum(album: AlbumServido): string | null {
   for (const capitulo of album.capitulos) {
@@ -109,7 +110,8 @@ export function PaginaCapa({
   const indiceCentral = momentos.length > 1 ? 1 : 0;
 
   return (
-    <ChaoConvidado>
+    <>
+      <ChaoConvidado>
       <div style={{ position: "relative", height: "20.5rem", flex: "none" }}>
         {hero ? (
           <img
@@ -227,11 +229,14 @@ export function PaginaCapa({
           >
             {momentos.map((momento, i) => {
               const central = i === indiceCentral;
+              const hrefAlbum = momento.filtroMissaoId
+                ? `${base}/album?missao=${encodeURIComponent(momento.filtroMissaoId)}`
+                : `${base}/album`;
 
               return (
                 <Link
                   key={momento.id}
-                  href={`${base}/album`}
+                  href={hrefAlbum}
                   style={{
                     position: "relative",
                     flex: "none",
@@ -308,9 +313,11 @@ export function PaginaCapa({
         </div>
       )}
 
-      <div style={{ padding: "1.125rem 1.5rem 2rem" }}>
+      <div style={{ padding: `1.125rem 1.5rem ${RODAPE_ABAS}` }}>
         <BotaoPrimario onClick={() => router.push(`${base}/foto`)}>Enviar foto</BotaoPrimario>
       </div>
-    </ChaoConvidado>
+      </ChaoConvidado>
+      <BarraDeAbas slug={slug} />
+    </>
   );
 }

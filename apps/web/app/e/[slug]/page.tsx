@@ -2,8 +2,11 @@ import { resolverSlug } from "@albora/db";
 import { PACKS, texto } from "@albora/packs";
 import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import type { CSSProperties } from "react";
 import { banco } from "@/lib/banco";
+import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
 import { Entrada } from "./entrada";
 import { Aviso } from "./aviso";
 
@@ -81,6 +84,11 @@ export default async function Pagina({ params }: Props) {
         quando={r.evento.comecaEm}
       />
     );
+  }
+
+  const sessao = await sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
+  if (sessao?.eventoId === r.evento.eventoId) {
+    redirect(`/e/${encodeURIComponent(slug)}/capa`);
   }
 
   return (

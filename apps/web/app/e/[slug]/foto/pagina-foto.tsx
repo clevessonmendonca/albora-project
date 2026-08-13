@@ -5,7 +5,8 @@ import { ehVideo } from "@albora/core";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CotaVideo, mensagemCotaVideo, usarEnvio } from "@/lib/usar-envio";
-import { RecadoErro } from "../../../telas/shell-convidado";
+import { usarInstalacaoPwa } from "@/lib/usar-instalacao-pwa";
+import { RecadoErro, BotaoSecundario } from "../../../telas/shell-convidado";
 import { Detalhes, type Lugar } from "./detalhes";
 import { Editor } from "./editor";
 import { CabecalhoFila } from "./painel-fila";
@@ -56,6 +57,7 @@ export function PaginaFoto({
   textos,
   filtroRecomendado,
   missaoInicial = null,
+  interacaoAberta,
 }: {
   slug: string;
   eventoId: string;
@@ -67,6 +69,7 @@ export function PaginaFoto({
   textos: Textos;
   filtroRecomendado: string | null;
   missaoInicial?: string | null;
+  interacaoAberta: boolean;
 }) {
   const router = useRouter();
   const { estado, enfileirarFoto, anotar, drenarAgora } = usarEnvio(eventoId, { plano, cotaVideo });
@@ -206,10 +209,12 @@ export function PaginaFoto({
   if (etapa.nome === "pronto") {
     return (
       <Confirmacao
+        slug={slug}
         arquivo={etapa.arquivo}
         numero={enviadas}
         pendentes={estado.pendentes}
         online={estado.online}
+        interacaoAberta={interacaoAberta}
         onOutra={() => setEtapa({ nome: "camera" })}
       />
     );
@@ -338,18 +343,25 @@ export function PaginaFoto({
  * álbum, no único instante em que o convidado está olhando para saber isso.
  */
 function Confirmacao({
+  slug,
   arquivo,
   numero,
   pendentes,
   online,
+  interacaoAberta,
   onOutra,
 }: {
+  slug: string;
   arquivo: File;
   numero: number;
   pendentes: number;
   online: boolean;
+  interacaoAberta: boolean;
   onOutra: () => void;
 }) {
+  const router = useRouter();
+  const base = `/e/${encodeURIComponent(slug)}`;
+  const { disponivel: podeInstalar, instalar } = usarInstalacaoPwa();
   const [url, setUrl] = useState<string | null>(null);
   const [musica, setMusica] = useState<{ rotulo: string; url: string; provedor: string } | null>(
     null,
@@ -464,39 +476,43 @@ function Confirmacao({
 
       <span style={{ flex: "1 1 auto", minHeight: "1.5rem" }} />
 
-      {/*
-        O convite para o app só aparece com a fila vazia. Com foto pendente ele
-        competiria com a coisa que o convidado ainda está esperando terminar —
-        e o produto pediria instalação antes de ter entregado nada.
-      */}
-      {pendentes === 0 && (
-        <p
+      {pendentes === 0 && numero === 1 && (
+        <div
           style={{
-            display: "flex",
-            alignItems: "baseline",
-            gap: "0.75rem",
             margin: "0 0 1.25rem",
             maxWidth: "34ch",
-            fontSize: "0.88rem",
-            lineHeight: 1.68,
-            color: "var(--ink-2)",
           }}
         >
-          <span
+          <p
             style={{
-              flex: "none",
-              fontFamily: "var(--fonte-titulo)",
-              fontSize: "0.68rem",
-              fontWeight: 400,
-              letterSpacing: "0.28em",
-              textTransform: "uppercase",
-              color: "var(--acento-texto)",
+              display: "flex",
+              alignItems: "baseline",
+              gap: "0.75rem",
+              margin: "0 0 0.75rem",
+              fontSize: "0.88rem",
+              lineHeight: 1.68,
+              color: "var(--ink-2)",
             }}
           >
-            App
-          </span>
-          Instale e receba suas fotos depois da festa
-        </p>
+            <span
+              style={{
+                flex: "none",
+                fontFamily: "var(--fonte-titulo)",
+                fontSize: "0.68rem",
+                fontWeight: 400,
+                letterSpacing: "0.28em",
+                textTransform: "uppercase",
+                color: "var(--acento-texto)",
+              }}
+            >
+              App
+            </span>
+            Instale e receba suas fotos depois da festa
+          </p>
+          {podeInstalar && (
+            <BotaoSecundario onClick={() => void instalar()}>Instalar na tela inicial</BotaoSecundario>
+          )}
+        </div>
       )}
 
       <button
@@ -514,6 +530,30 @@ function Confirmacao({
       >
         Continuar tirando
       </button>
+
+      <div
+        style={{
+          flex: "none",
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.625rem",
+          marginTop: "0.875rem",
+        }}
+      >
+        {numero === 1 && (
+          <BotaoSecundario onClick={() => router.push(`${base}/minhas`)}>
+            Ver minha foto
+          </BotaoSecundario>
+        )}
+        {interacaoAberta && (
+          <BotaoSecundario onClick={() => router.push(`${base}/feed`)}>
+            Ver o feed
+          </BotaoSecundario>
+        )}
+        <BotaoSecundario onClick={() => router.push(`${base}/capa`)}>
+          Voltar à capa
+        </BotaoSecundario>
+      </div>
     </main>
   );
 }

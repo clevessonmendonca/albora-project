@@ -221,6 +221,7 @@ export function PaginaMinhas({
         <MioloConvidado>
           <CabecalhoConvidado
             titulo="Minhas fotos"
+            hrefInicio={`/e/${encodeURIComponent(slug)}/capa`}
             acao={
               !galeria.carregando ? (
                 <Pilula>{resumo}</Pilula>

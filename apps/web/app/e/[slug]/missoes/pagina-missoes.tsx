@@ -50,7 +50,11 @@ export function PaginaMissoes({
     <>
       <ChaoConvidado>
         <MioloConvidado>
-          <CabecalhoConvidado titulo="Missões" acao={<Pilula>{resumo}</Pilula>} />
+          <CabecalhoConvidado
+            titulo="Missões"
+            hrefInicio={`/e/${encodeURIComponent(slug)}/capa`}
+            acao={<Pilula>{resumo}</Pilula>}
+          />
 
           {missoes.length === 0 ? (
             <EstadoLivre slug={slug} />

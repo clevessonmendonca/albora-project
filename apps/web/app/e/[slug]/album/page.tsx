@@ -8,6 +8,7 @@ import { banco } from "@/lib/banco";
 import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
 import { AlbumComAbas } from "./album-com-abas";
 import { Aviso } from "../aviso";
+import { SemEntrada } from "../sem-entrada";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +17,15 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function Pagina({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Pagina({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ missao?: string }>;
+}) {
   const { slug } = await params;
+  const { missao: missaoParam } = await searchParams;
   const r = await resolverSlug(banco(), slug, new Date());
 
   if (r.estado !== "aberto") {
@@ -27,11 +35,7 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
   }
 
   const sessao = await sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
-  if (!sessao) {
-    return (
-      <Aviso titulo="Falta você entrar" texto="Volte pelo QR da mesa para ver o álbum da festa." />
-    );
-  }
+  if (!sessao) return <SemEntrada slug={slug} />;
 
   const { eventoId, packId } = r.evento;
   const pack = PACKS[packId];
@@ -49,6 +53,9 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
     <div style={paraVariaveis(tokens) as CSSProperties}>
       <AlbumComAbas
         slug={slug}
+        missaoInicial={
+          missaoParam && desafios.some((d) => d.id === missaoParam) ? missaoParam : null
+        }
         missoes={desafios.map((d) => ({
           id: d.id,
           titulo: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,

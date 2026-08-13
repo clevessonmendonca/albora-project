@@ -2,7 +2,10 @@ import { resolverSlug } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { CSSProperties, ReactNode } from "react";
+import { cookies } from "next/headers";
 import { banco } from "@/lib/banco";
+import { COOKIE_SESSAO, sessaoDoToken } from "@/lib/sessao";
+import { FilaGlobal } from "./fila-global";
 
 export default async function Layout({
   children,
@@ -21,5 +24,13 @@ export default async function Layout({
     resolverTokens({ marca: MARCA_ALBORA, ...(pack ? { pack: pack.tokens } : {}) }),
   ) as CSSProperties;
 
-  return <div style={vars}>{children}</div>;
+  const sessao = await sessaoDoToken((await cookies()).get(COOKIE_SESSAO)?.value);
+  const comSessao = sessao?.eventoId === r.evento.eventoId;
+
+  return (
+    <div style={vars}>
+      {comSessao && <FilaGlobal eventoId={sessao.eventoId} />}
+      {children}
+    </div>
+  );
 }

@@ -31,7 +31,7 @@ export function SheetDenuncia({
         method: "POST",
         headers: { "content-type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ uploadId }),
+        body: JSON.stringify({ uploadId, motivo: motivo.trim() || undefined }),
       });
       if (r.ok) {
         setConfirmado(true);
