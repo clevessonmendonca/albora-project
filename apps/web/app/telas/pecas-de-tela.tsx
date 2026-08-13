@@ -230,6 +230,7 @@ export function Parede({
 }
 
 export {
+  BarraDeAbas,
   BarraDeStatus,
   BotaoFlutuante,
   Estrela,
@@ -241,6 +242,5 @@ export {
   IconePessoa,
   IconePilha,
   IconeVoltar,
-  Pilula,
-  TabBarPreview as BarraDeAbas,
-} from "@/features/guest/components/client/guest-ui-parts";
+} from "@albora/ui-web";
+export { Pilula } from "@/features/guest/components/client/guest-ui-parts";

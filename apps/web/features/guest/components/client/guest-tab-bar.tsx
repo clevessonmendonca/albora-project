@@ -7,123 +7,86 @@ import {
   IconeGrade,
   IconePessoa,
   IconePilha,
-} from "./guest-ui-parts";
+} from "@albora/ui-web";
 
 type GuestTab = "feed" | "album" | "missoes" | "minhas";
 
-function AbaLink({
+function TabLink({
   href,
-  ligada,
-  rotulo,
-  icone,
-  coluna,
+  active,
+  label,
+  icon,
+  column,
 }: {
   href: string;
-  ligada: boolean;
-  rotulo: string;
-  icone: React.ReactNode;
-  coluna: number;
+  active: boolean;
+  label: string;
+  icon: React.ReactNode;
+  column: number;
 }) {
   return (
     <Link
       href={href}
-      style={{
-        gridColumn: coluna,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: "0.25rem",
-        fontSize: "0.5625rem",
-        letterSpacing: "var(--tracking-rotulo)",
-        textTransform: "uppercase",
-        color: ligada ? "var(--acento)" : "var(--ink-3)",
-        textDecoration: "none",
-      }}
+      style={{ gridColumn: column }}
+      className={`flex flex-col items-center gap-1 text-[0.5625rem] uppercase tracking-rotulo no-underline ${
+        active ? "text-acento" : "text-ink-3"
+      }`}
     >
-      {icone}
-      {rotulo}
+      {icon}
+      {label}
     </Link>
   );
 }
 
 /**
- * Navegação do convidado — igual ao catálogo `/telas`.
- *
- * Feed · Missões · câmera · Álbum · Minhas. Música fica acessível pela rota
- * direta, fora da barra, até virar card na capa do evento.
+ * Navegação do convidado — Feed · Missões · câmera · Álbum · Minhas.
+ * Música fica fora da barra até virar card na capa.
  */
 export function GuestTabBar({ slug, ativa }: { slug: string; ativa?: GuestTab }) {
   const base = `/e/${encodeURIComponent(slug)}`;
 
   return (
-    <nav
-      style={{
-        position: "fixed",
-        insetInline: 0,
-        bottom: 0,
-        zIndex: 5,
-        display: "grid",
-        gridTemplateColumns: "1fr 1fr auto 1fr 1fr",
-        alignItems: "center",
-        padding: "0.625rem 0.75rem calc(1.625rem + env(safe-area-inset-bottom))",
-        backgroundColor: "var(--bg)",
-        borderTop: "1px solid var(--linha)",
-      }}
-    >
-      <AbaLink
-        coluna={1}
+    <nav className="fixed inset-x-0 bottom-0 z-[5] grid grid-cols-[1fr_1fr_auto_1fr_1fr] items-center border-t border-linha bg-bg px-3 pt-2.5 pb-[calc(1.625rem+env(safe-area-inset-bottom))]">
+      <TabLink
+        column={1}
         href={`${base}/feed`}
-        ligada={ativa === "feed"}
-        rotulo="Feed"
-        icone={<IconePilha />}
+        active={ativa === "feed"}
+        label="Feed"
+        icon={<IconePilha />}
       />
-      <AbaLink
-        coluna={2}
+      <TabLink
+        column={2}
         href={`${base}/missoes`}
-        ligada={ativa === "missoes"}
-        rotulo="Missões"
-        icone={<Estrela tamanho={22} />}
+        active={ativa === "missoes"}
+        label="Missões"
+        icon={<Estrela tamanho={22} />}
       />
 
       <Link
         href={`${base}/foto`}
         aria-label="Mandar foto ou vídeo"
-        style={{
-          gridColumn: 3,
-          justifySelf: "center",
-          display: "grid",
-          placeItems: "center",
-          width: "3.375rem",
-          height: "3.375rem",
-          borderRadius: "50%",
-          backgroundColor: "var(--acento)",
-          color: "var(--sobre-acento)",
-          marginTop: "-1.25rem",
-          boxShadow: "0 8px 20px -6px color-mix(in srgb, var(--acento) 70%, transparent)",
-          textDecoration: "none",
-        }}
+        className="col-start-3 -mt-5 grid size-[3.375rem] place-items-center justify-self-center rounded-full bg-acento text-sobre-acento no-underline shadow-acento"
       >
         <IconeCamera />
       </Link>
 
-      <AbaLink
-        coluna={4}
+      <TabLink
+        column={4}
         href={`${base}/album`}
-        ligada={ativa === "album"}
-        rotulo="Álbum"
-        icone={<IconeGrade />}
+        active={ativa === "album"}
+        label="Álbum"
+        icon={<IconeGrade />}
       />
-      <AbaLink
-        coluna={5}
+      <TabLink
+        column={5}
         href={`${base}/minhas`}
-        ligada={ativa === "minhas"}
-        rotulo="Minhas"
-        icone={<IconePessoa />}
+        active={ativa === "minhas"}
+        label="Minhas"
+        icon={<IconePessoa />}
       />
     </nav>
   );
 }
 
-/** Alias histórico — preferir `GuestTabBar` em código novo. */
 export const BarraDeAbasConvidado = GuestTabBar;
 export const BarraDeAbas = GuestTabBar;

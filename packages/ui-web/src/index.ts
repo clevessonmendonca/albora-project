@@ -20,6 +20,33 @@ export { BotaoFlutuante } from "./BotaoFlutuante";
 export { Interruptor } from "./Interruptor";
 export { Avatar, iniciais } from "./Avatar";
 export { BarraDeAbas, type AbaConvidado } from "./BarraDeAbas";
+export { BarraDeStatus } from "./BarraDeStatus";
+export {
+  AvisoGate,
+  AvatarAutor,
+  BotaoPrimario,
+  BotaoSecundario,
+  CabecalhoConvidado,
+  CabecalhoPublicacao,
+  CampoNome,
+  ChaoConvidado,
+  ColunaEntrada,
+  Consentimento,
+  EstadoVazio,
+  FaixaMissao,
+  iniciaisDoAutor,
+  LinkDiscreto,
+  MioloConvidado,
+  PADDING_LATERAL,
+  RecadoConsentimento,
+  RecadoErro,
+  RodapeDiscreto,
+  RotuloEvento,
+  RODAPE_ABAS,
+  SheetBaixo,
+  TextoSecundario,
+  TituloGrande,
+} from "./shell-convidado";
 export {
   IconeCamera,
   IconeComentario,
