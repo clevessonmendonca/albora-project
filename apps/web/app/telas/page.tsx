@@ -6,31 +6,31 @@ import type { CSSProperties } from "react";
 import { Aparelho, Navegador, Parede } from "./pecas-de-tela";
 import { CatalogGroup } from "@/features/catalog/components/catalog-group";
 import {
-  TelaAlbum,
-  TelaAntesDoGate,
-  TelaCamera,
-  TelaCapa,
-  TelaComentar,
-  TelaDenuncia,
-  TelaEntrada,
-  TelaFeed,
-  TelaFila,
-  TelaFotoAberta,
-  TelaMinhas,
-  TelaMissoes,
-  TelaMusica,
-  TelaScanner,
-} from "./telas-convidado";
+  AlbumScreen,
+  BeforeGateScreen,
+  CameraScreen,
+  CoverScreen,
+  CommentScreen,
+  ReportScreen,
+  EntryScreen,
+  FeedScreen,
+  QueueScreen,
+  PhotoDetailScreen,
+  MyPhotosScreen,
+  MissionsScreen,
+  MusicScreen,
+  ScannerScreen,
+} from "./guest-screens";
 import {
-  TelaAlbumAnfitriao,
-  TelaCriarEvento,
-  TelaIdentidade,
-  TelaLogin,
-  TelaModelosDaParede,
-  TelaPainel,
-  TelaPecas,
-} from "./telas-anfitriao-desktop";
-import { nomeDoModelo, notaDoModelo, TelaPanico, TelaTelao } from "./telas-telao";
+  HostAlbumScreen,
+  HostCreateEventScreen,
+  HostIdentityScreen,
+  HostLoginScreen,
+  WallModelsScreen,
+  HostPanelScreen,
+  HostPiecesScreen,
+} from "./host-desktop-screens";
+import { modelName, modelNote, PanicScreen, WallScreen } from "./wall-screens";
 
 export const metadata = {
   title: "Albora — as telas",
@@ -88,105 +88,105 @@ export default function Telas() {
           titulo="Capa do evento"
           nota="Foto grande, o nome, quatro atalhos e o carrossel dos momentos. O card do meio é 9:16 porque é a proporção em que a festa foi fotografada, e o vizinho espiando é o que convida a arrastar."
         >
-          <TelaCapa pack={pack} momentos={momentos} fundo="escuro" />
+          <CoverScreen pack={pack} momentos={momentos} fundo="escuro" />
         </Aparelho>
 
         <Aparelho
           titulo="A mesma capa, no claro"
           nota="O chão é escolha do convidado, não imposição nossa. Um resolvedor, dois chãos: nenhum componente sabe qual está valendo, e a cor do casal manda nos dois."
         >
-          <TelaCapa pack={pack} momentos={momentos} fundo="claro" />
+          <CoverScreen pack={pack} momentos={momentos} fundo="claro" />
         </Aparelho>
 
         <Aparelho
           titulo="Entrada"
           nota="Uma pergunta por tela. Nome e consentimento, e nada mais entre o QR e a câmera. Não existe senha, e-mail nem conta."
         >
-          <TelaEntrada pack={pack} />
+          <EntryScreen pack={pack} />
         </Aparelho>
 
         <Aparelho
           titulo="Scanner de QR"
           nota="Primeira superfície antes do evento: visor ao vivo, moldura-alvo e fallback 'Já tenho o link'. Sem barra de abas."
         >
-          <TelaScanner pack={pack} />
+          <ScannerScreen pack={pack} />
         </Aparelho>
 
         <Aparelho
           titulo="Câmera"
           nota="A missão vive em cima do visor, não numa aba. Quem está com uma taça na outra mão não navega até um convite. O lugar é lista fechada, nunca GPS."
         >
-          <TelaCamera pack={pack} missao={missao} />
+          <CameraScreen pack={pack} missao={missao} />
         </Aparelho>
 
         <Aparelho
           titulo="Fila de envio"
           nota="Caminho crítico offline: pílula no cabeçalho abre sheet com miniatura, estado e banner de sem sinal. Persiste entre recargas; retry com backoff."
         >
-          <TelaFila pack={pack} />
+          <QueueScreen pack={pack} />
         </Aparelho>
 
         <Aparelho
           titulo="Missões"
           nota="Card da missão de agora e trilha do progresso. A câmera continua no meio da barra; esta aba só torna visível o que falta, sem placar entre pessoas."
         >
-          <TelaMissoes pack={pack} />
+          <MissionsScreen pack={pack} />
         </Aparelho>
 
         <Aparelho
           titulo="Feed, antes do gate"
           nota="Mesma aba, sem reação e sem comentário. Botão disabled contaria que existe algo trancado; não desenhar conta que ainda não é hora."
         >
-          <TelaAntesDoGate pack={pack} />
+          <BeforeGateScreen pack={pack} />
         </Aparelho>
 
         <Aparelho
           titulo="Feed, depois do gate"
           nota="A trilha de cima são os capítulos da noite, não pessoas: o Instagram põe contas ali porque é rede entre pessoas. A reação é a estrela da marca — coração é anti-padrão listado."
         >
-          <TelaFeed pack={pack} momentos={momentos} />
+          <FeedScreen pack={pack} momentos={momentos} />
         </Aparelho>
 
         <Aparelho
           titulo="O álbum"
           nota="Grade de três, filtrada pelos capítulos que o pack define. É a tela que o convidado abre no dia seguinte."
         >
-          <TelaAlbum pack={pack} momentos={momentos} />
+          <AlbumScreen pack={pack} momentos={momentos} />
         </Aparelho>
 
         <Aparelho
           titulo="Minhas"
           nota="O que este convidado enviou, a cota de vídeo e o remover da própria foto — sem cabeçalho de perfil. Grade de miniaturas arredondadas, uma com selo de vídeo."
         >
-          <TelaMinhas pack={pack} />
+          <MyPhotosScreen pack={pack} />
         </Aparelho>
 
         <Aparelho
           titulo="Foto aberta"
           nota="Tela filled com reação, comentário e compartilhar só na foto do próprio autor. O ✕ remove quando a foto é dela."
         >
-          <TelaFotoAberta pack={pack} />
+          <PhotoDetailScreen pack={pack} />
         </Aparelho>
 
         <Aparelho
           titulo="Comentar"
           nota="Sheet por baixo da foto aberta: thread + compositor fixo. Só depois do gate."
         >
-          <TelaComentar pack={pack} />
+          <CommentScreen pack={pack} />
         </Aparelho>
 
         <Aparelho
           titulo="Denúncia"
           nota="Sheet de sinalização: confirma, motivo opcional, bloquear autor. Moderação degrada — nunca trava o upload."
         >
-          <TelaDenuncia pack={pack} />
+          <ReportScreen pack={pack} />
         </Aparelho>
 
         <Aparelho
           titulo="Música da festa"
           nota="Trilha escolhida pelos anfitriões — capa, onda decorativa e link pro app. Sem fila colaborativa."
         >
-          <TelaMusica pack={pack} />
+          <MusicScreen pack={pack} />
         </Aparelho>
       </CatalogGroup>
 
@@ -200,7 +200,7 @@ export default function Telas() {
           altura={520}
           escala={0.58}
         >
-          <TelaLogin pack={pack} />
+          <HostLoginScreen pack={pack} />
         </Navegador>
 
         <Navegador
@@ -209,7 +209,7 @@ export default function Telas() {
           altura={480}
           escala={0.58}
         >
-          <TelaLogin pack={pack} enviado />
+          <HostLoginScreen pack={pack} enviado />
         </Navegador>
 
         <Navegador
@@ -218,7 +218,7 @@ export default function Telas() {
           altura={620}
           escala={0.58}
         >
-          <TelaCriarEvento pack={pack} passo={1} />
+          <HostCreateEventScreen pack={pack} passo={1} />
         </Navegador>
 
         <Navegador
@@ -227,7 +227,7 @@ export default function Telas() {
           altura={620}
           escala={0.58}
         >
-          <TelaCriarEvento pack={pack} passo={5} />
+          <HostCreateEventScreen pack={pack} passo={5} />
         </Navegador>
 
         <Navegador
@@ -236,7 +236,7 @@ export default function Telas() {
           altura={760}
           escala={0.58}
         >
-          <TelaIdentidade pack={pack} momentos={momentos} />
+          <HostIdentityScreen pack={pack} momentos={momentos} />
         </Navegador>
 
         <Navegador
@@ -245,7 +245,7 @@ export default function Telas() {
           altura={760}
           escala={0.58}
         >
-          <TelaPainel pack={pack} />
+          <HostPanelScreen pack={pack} />
         </Navegador>
 
         <Navegador
@@ -254,7 +254,7 @@ export default function Telas() {
           altura={760}
           escala={0.58}
         >
-          <TelaPainel pack={pack} haMenores />
+          <HostPanelScreen pack={pack} haMenores />
         </Navegador>
 
         <Navegador
@@ -263,7 +263,7 @@ export default function Telas() {
           altura={600}
           escala={0.58}
         >
-          <TelaModelosDaParede pack={pack} escolhidos={["polaroide", "mural", "dump", "cheio"]} />
+          <WallModelsScreen pack={pack} escolhidos={["polaroide", "mural", "dump", "cheio"]} />
         </Navegador>
 
         <Navegador
@@ -272,7 +272,7 @@ export default function Telas() {
           altura={790}
           escala={0.58}
         >
-          <TelaModelosDaParede pack={pack} escolhidos={["cheio"]} />
+          <WallModelsScreen pack={pack} escolhidos={["cheio"]} />
         </Navegador>
 
         <Navegador
@@ -281,7 +281,7 @@ export default function Telas() {
           altura={680}
           escala={0.58}
         >
-          <TelaAlbumAnfitriao pack={pack} momentos={momentos} />
+          <HostAlbumScreen pack={pack} momentos={momentos} />
         </Navegador>
 
         <Navegador
@@ -290,7 +290,7 @@ export default function Telas() {
           altura={620}
           escala={0.58}
         >
-          <TelaPecas pack={pack} />
+          <HostPiecesScreen pack={pack} />
         </Navegador>
       </CatalogGroup>
 
@@ -299,12 +299,12 @@ export default function Telas() {
         nota="URL fullscreen, sem cromo e sem cursor. Oito modelos que se alternam a noite inteira, e o único deles que recusa foto em pé é Cheio — a fila filtra as verticais antes de sortear, em vez de escolher uma foto e depois descobrir que ela não cabe."
       >
         <Parede titulo="Pânico — telão pausado" nota="Takeover honesto: nome do evento e 'voltamos já'. Nenhuma foto exposta enquanto o pânico está ligado.">
-          <TelaPanico pack={pack} />
+          <PanicScreen pack={pack} />
         </Parede>
 
         {MODELOS_DE_TELAO.map((modelo) => (
-          <Parede key={modelo} titulo={nomeDoModelo(modelo)} nota={notaDoModelo(modelo)}>
-            <TelaTelao pack={pack} modelo={modelo} />
+          <Parede key={modelo} titulo={modelName(modelo)} nota={modelNote(modelo)}>
+            <WallScreen pack={pack} modelo={modelo} />
           </Parede>
         ))}
       </CatalogGroup>

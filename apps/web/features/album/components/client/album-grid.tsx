@@ -4,7 +4,7 @@ import type { MediaUrl } from "@/lib/media";
 import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 
 /**
- * Grade 3×N do álbum — layout de `TelaAlbum` em `/telas`.
+ * Grade 3×N do álbum — layout de `AlbumScreen` em `/telas`.
  *
  * Gap de 2px, células quadradas, sem crop enganoso: o convidado reconhece a
  * mecânica do Instagram dentro do evento.

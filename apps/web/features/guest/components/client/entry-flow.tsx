@@ -21,7 +21,7 @@ import {
 /**
  * Do QR à sessão em três toques: consentir, digitar o nome, entrar.
  *
- * Layout espelha `TelaEntrada` em `/telas` — uma pergunta por bloco, fundo
+ * Layout espelha `EntryScreen` em `/telas` — uma pergunta por bloco, fundo
  * escuro, sem logotipo no topo (a festa é o herói, não a marca).
  */
 

@@ -1,7 +1,7 @@
-export { TelaPainel } from "./tela-painel";
-export { TelaModelosDaParede } from "./tela-modelos-da-parede";
-export { TelaLogin } from "./tela-login";
-export { TelaCriarEvento } from "./tela-criar-evento";
-export { TelaIdentidade } from "./tela-identidade";
-export { TelaAlbumAnfitriao } from "./tela-album-anfitriao";
-export { TelaPecas } from "./tela-pecas";
+export { HostPanelScreen } from "./host-panel-screen";
+export { WallModelsScreen } from "./wall-models-screen";
+export { HostLoginScreen } from "./host-login-screen";
+export { HostCreateEventScreen } from "./host-create-event-screen";
+export { HostIdentityScreen } from "./host-identity-screen";
+export { HostAlbumScreen } from "./host-album-screen";
+export { HostPiecesScreen } from "./host-pieces-screen";

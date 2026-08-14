@@ -4,7 +4,7 @@ import type { MediaUrl } from "@/lib/media";
 import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 
 /**
- * Parede espelhada antes do gate — layout de `TelaAntesDoGate` em `/telas`.
+ * Parede espelhada antes do gate — layout de `BeforeGateScreen` em `/telas`.
  *
  * Grade 2×N, sem reação, sem comentário, sem stories: a interação ainda não
  * abriu, e desenhar botões trancados mentiria (ADR 0009).

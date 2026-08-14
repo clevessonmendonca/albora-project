@@ -11,7 +11,7 @@ export const NOMES_DOS_MODELOS: Readonly<Record<ModeloDeTelao, string>> = {
   tbt: "TBT",
 };
 
-export function perfilEmPalavras(modelo: ModeloDeTelao): string {
+export function profileText(modelo: ModeloDeTelao): string {
   const perfil = PERFIS[modelo];
   const quantas = perfil.fotos === 1 ? "1 foto" : `${perfil.fotos} fotos`;
   return `${quantas} · ${perfil.aceitaEmPe ? "em pé" : "só deitada"}`;

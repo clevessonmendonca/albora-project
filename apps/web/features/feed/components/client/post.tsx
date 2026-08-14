@@ -6,7 +6,7 @@ import { PostHeader } from "@albora/ui-web";
 import type { ResultadoReacao } from "@/features/feed/hooks/use-reaction";
 
 /**
- * Uma publicação no feed — layout de `TelaFeed` em `/telas`.
+ * Uma publicação no feed — layout de `FeedScreen` em `/telas`.
  *
  * Cabeçalho com iniciais, foto em 4:5 sem cortar, estrela + comentário embaixo.
  */

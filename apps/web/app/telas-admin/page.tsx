@@ -4,16 +4,16 @@ import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
 import type { CSSProperties, ReactNode } from "react";
 import { Aparelho } from "../telas/pecas-de-tela";
 import {
-  TelaAdminConvidados,
-  TelaAdminCriarEvento,
-  TelaAdminIdentidade,
-  TelaAdminLivro,
-  TelaAdminLogin,
-  TelaAdminModeracao,
-  TelaAdminPainel,
-  TelaAdminParede,
-  TelaAdminRetencao,
-} from "../telas/telas-admin";
+  AdminGuestsScreen,
+  AdminCreateEventScreen,
+  AdminIdentityScreen,
+  AdminBookScreen,
+  AdminLoginScreen,
+  AdminModerationScreen,
+  AdminPanelScreen,
+  AdminWallScreen,
+  AdminRetentionScreen,
+} from "../telas/admin-screens";
 
 export const metadata = {
   title: "Albora — o anfitrião no app",
@@ -60,77 +60,77 @@ export default function TelasAdmin() {
           titulo="Ao vivo"
           nota="A primeira dobra é o gate — a decisão que o anfitrião mais volta pra mexer. Números reais, e o toque abre reação e comentário na hora que ele escolher."
         >
-          <TelaAdminPainel pack={pack} />
+          <AdminPanelScreen pack={pack} />
         </Vitrine>
 
         <Vitrine
           titulo="Ao vivo — com menores"
           nota="Um interruptor por evento, sem perguntar idade de ninguém. Ligado, sobe o piso: gate começa fechado e uma denúncia já segura, em vez de duas."
         >
-          <TelaAdminPainel pack={pack} haMenores />
+          <AdminPanelScreen pack={pack} haMenores />
         </Vitrine>
 
         <Vitrine
           titulo="Moderação"
           nota="A fila do que foi segurado — denúncia ou classificador. Nada sai do ar sozinho: a foto fica em espera até o anfitrião manter ou ocultar."
         >
-          <TelaAdminModeracao pack={pack} />
+          <AdminModerationScreen pack={pack} />
         </Vitrine>
 
         <Vitrine
           titulo="A parede"
           nota="Marcar quais modelos entram no rodízio. Quem recusa a escolha ruim é problemasDaEscolha, no núcleo — só Cheio deixaria a parede só com deitadas."
         >
-          <TelaAdminParede pack={pack} escolhidos={["polaroide", "mural", "dump", "cheio"]} />
+          <AdminWallScreen pack={pack} escolhidos={["polaroide", "mural", "dump", "cheio"]} />
         </Vitrine>
 
         <Vitrine
           titulo="A parede — recusada"
           nota="Só Cheio marcado. Nenhum modelo restante aceita foto em pé, e três de cada quatro fotos de festa são verticais. A tela mostra o veredito, não repete a regra."
         >
-          <TelaAdminParede pack={pack} escolhidos={["cheio"]} />
+          <AdminWallScreen pack={pack} escolhidos={["cheio"]} />
         </Vitrine>
 
         <Vitrine
           titulo="Convidados"
           nota="Participação sobre expected_guests — o número que decide a H1. Agregado: sem lista nominal, sem enviar mensagem. O convidado não recebe e-mail nem SMS."
         >
-          <TelaAdminConvidados pack={pack} />
+          <AdminGuestsScreen pack={pack} />
         </Vitrine>
 
         <Vitrine
           titulo="Identidade"
           nota="A cor e a fonte do casal, com prévia ao vivo pelo resolverTokens real — o que se vê aqui é o que sai no telão e no PDF da placa. Um resolvedor, N renderizadores."
         >
-          <TelaAdminIdentidade pack={pack} />
+          <AdminIdentityScreen pack={pack} />
         </Vitrine>
 
         <Vitrine
           titulo="O livro"
           nota="Curadoria por slots, nunca posição livre — não é editor de canvas. O slot cuida do enquadramento e nada corta na vertical; o vazio é desenhado como vazio."
         >
-          <TelaAdminLivro pack={pack} />
+          <AdminBookScreen pack={pack} />
         </Vitrine>
 
         <Vitrine
           titulo="Retenção & conta"
           nota="Export pro drive do casal no dia 330, delete no 365 — por job, não por promessa. Excluir exclui de verdade e rápido, sem dark pattern de retenção."
         >
-          <TelaAdminRetencao pack={pack} />
+          <AdminRetentionScreen pack={pack} />
         </Vitrine>
 
         <Vitrine
           titulo="Login"
           nota="O anfitrião tem login (o convidado nunca). Magic link, sem senha. Única tela do admin sem barra — antes de entrar não há pra onde navegar."
         >
-          <TelaAdminLogin pack={pack} />
+          <AdminLoginScreen pack={pack} />
         </Vitrine>
 
         <Vitrine
           titulo="Criar evento"
           nota="O onboarding: uma coisa por passo (nome → identidade → missões → parede → peça com QR). Nenhuma pergunta de idade — os menores são um interruptor depois, não um cadastro."
         >
-          <TelaAdminCriarEvento pack={pack} />
+          <AdminCreateEventScreen pack={pack} />
         </Vitrine>
       </div>
     </div>

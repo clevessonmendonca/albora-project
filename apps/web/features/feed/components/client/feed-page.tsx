@@ -314,7 +314,7 @@ export function FeedPage({
   );
 }
 
-/** Uma foto por vez, em destaque — coluna única como `TelaFeed`. */
+/** Uma foto por vez, em destaque — coluna única como `FeedScreen`. */
 function Coluna({
   children,
   comDivisor,
