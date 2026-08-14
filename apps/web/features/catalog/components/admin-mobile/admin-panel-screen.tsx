@@ -1,8 +1,8 @@
 import { padroesDoEvento } from "@albora/core";
 import { texto, type Pack } from "@albora/packs";
 import { Badge, Card, Frame, StatusBar, Switch } from "@albora/ui-web";
-import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
-import { NavAdmin } from "@/features/catalog/components/nav-admin";
+import { GuestBackground } from "@/features/catalog/lib/guest-background";
+import { AdminNav } from "@/features/catalog/components/admin-nav";
 
 export function AdminPanelScreen({ pack, haMenores = false }: { pack: Pack; haMenores?: boolean }) {
   const padroes = padroesDoEvento({ haMenores });
@@ -21,7 +21,7 @@ export function AdminPanelScreen({ pack, haMenores = false }: { pack: Pack; haMe
   ];
 
   return (
-    <ChaoClaro pack={pack}>
+    <GuestBackground fundo="claro" pack={pack}>
       <StatusBar />
 
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3">
@@ -87,7 +87,7 @@ export function AdminPanelScreen({ pack, haMenores = false }: { pack: Pack; haMe
         </div>
       </div>
 
-      <NavAdmin active="aovivo" />
-    </ChaoClaro>
+      <AdminNav active="live" />
+    </GuestBackground>
   );
 }

@@ -6,11 +6,11 @@ import {
 } from "@albora/core";
 import type { Pack } from "@albora/packs";
 import { Badge, cn } from "@albora/ui-web";
-import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
+import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { HostSidebar } from "@/features/catalog/components/host-sidebar";
-import { MarcadorDesktop } from "@/features/catalog/components/marcador";
-import { OQueFicariaDeFora } from "@/features/catalog/components/o-que-ficaria-de-fora";
-import { profileText } from "@/features/catalog/lib/parede-utils";
+import { DesktopCheckMark } from "@/features/catalog/components/check-mark";
+import { LeftOutPreview } from "@/features/catalog/components/left-out-preview";
+import { profileText } from "@/features/catalog/lib/wall-utils";
 import { Framing, modelName } from "@/features/catalog/components/wall/framing";
 
 export function WallModelsScreen({
@@ -24,7 +24,7 @@ export function WallModelsScreen({
   const recusada = problemas.length > 0;
 
   return (
-    <ChaoClaro pack={pack}>
+    <GuestBackground fundo="claro" pack={pack}>
       <div className="flex h-full">
         <HostSidebar pack={pack} active="A parede" />
 
@@ -56,7 +56,7 @@ export function WallModelsScreen({
                 ))}
               </span>
 
-              <OQueFicariaDeFora />
+              <LeftOutPreview />
             </div>
           ) : null}
 
@@ -84,7 +84,7 @@ export function WallModelsScreen({
                   </span>
 
                   <span className="mt-2 flex items-center gap-[0.4375rem]">
-                    <MarcadorDesktop checked={checked} />
+                    <DesktopCheckMark checked={checked} />
                     <span className="font-titulo text-[0.9375rem]">{modelName(modelo)}</span>
                   </span>
 
@@ -118,6 +118,6 @@ export function WallModelsScreen({
           </div>
         </main>
       </div>
-    </ChaoClaro>
+    </GuestBackground>
   );
 }

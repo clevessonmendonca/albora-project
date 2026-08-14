@@ -1,14 +1,14 @@
 import type { Pack } from "@albora/packs";
 import { BackIcon, Badge, Button, cn, StatusBar } from "@albora/ui-web";
-import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
-import { CampoAdmin } from "@/features/catalog/components/campo-admin";
+import { GuestBackground } from "@/features/catalog/lib/guest-background";
+import { AdminField } from "@/features/catalog/components/admin-field";
 
 export function AdminCreateEventScreen({ pack }: { pack: Pack }) {
   const passos = ["Básico", "Identidade", "Missões", "Parede", "Peça"];
   const atual = 0;
 
   return (
-    <ChaoClaro pack={pack}>
+    <GuestBackground fundo="claro" pack={pack}>
       <StatusBar />
 
       <div className="flex items-center gap-3 px-[1.125rem] pt-1.5 pb-3">
@@ -37,12 +37,12 @@ export function AdminCreateEventScreen({ pack }: { pack: Pack }) {
         </p>
 
         <div className="flex flex-col gap-4">
-          <CampoAdmin rotulo="O nome do casal" valor="Ana & João" />
-          <CampoAdmin rotulo="A data" valor="8 de novembro de 2026" />
-          <CampoAdmin
-            rotulo="Convidados esperados"
-            valor="150"
-            nota="Só pra medir participação — ninguém é cadastrado, e ninguém recebe convite por aqui."
+          <AdminField label="O nome do casal" value="Ana & João" />
+          <AdminField label="A data" value="8 de novembro de 2026" />
+          <AdminField
+            label="Convidados esperados"
+            value="150"
+            note="Só pra medir participação — ninguém é cadastrado, e ninguém recebe convite por aqui."
           />
         </div>
       </div>
@@ -50,6 +50,6 @@ export function AdminCreateEventScreen({ pack }: { pack: Pack }) {
       <div className="px-[1.125rem] pt-3 pb-8">
         <Button width="full">Continuar</Button>
       </div>
-    </ChaoClaro>
+    </GuestBackground>
   );
 }

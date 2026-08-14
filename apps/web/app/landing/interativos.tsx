@@ -130,7 +130,7 @@ function Fone({
 }) {
   return (
     <div
-      className="relative aspect-[9/19] rounded-superficie bg-gradient-aparelho p-2 shadow-alta"
+      className="relative aspect-[9/19] rounded-superficie bg-gradient-device p-2 shadow-alta"
       style={{
         width: largura,
         ...transicao("transform", "var(--tempo-lento)"),
@@ -218,7 +218,7 @@ export function DemoRolagem({ exemplo, missao }: { exemplo: string; missao: stri
           <Fone passo={passo} largura="min(15rem, 42vw)" exemplo={exemplo} missao={missao} />
 
           <div className="min-w-[min(17.5rem,100%)] max-w-[40rem] flex-1">
-            <div className="rounded-[calc(var(--raio-superficie)-0.75rem)] bg-gradient-aparelho p-[0.5625rem]">
+            <div className="rounded-[calc(var(--raio-superficie)-0.75rem)] bg-gradient-device p-[0.5625rem]">
               <div className="relative grid h-[clamp(9rem,20vw,16rem)] grid-cols-3 grid-rows-[1fr_1fr] gap-2 overflow-hidden rounded-token bg-ink p-3">
                 {[0, 1, 2, 3, 4, 5].map((i) => (
                   <div
@@ -298,7 +298,7 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
         className="flex flex-col gap-[clamp(1.125rem,2.5vw,2rem)]"
         style={paraVariaveis(tokens) as CSSProperties}
       >
-        <div className="relative rounded-superficie bg-gradient-aparelho p-3 shadow-alta">
+        <div className="relative rounded-superficie bg-gradient-device p-3 shadow-alta">
           <div
             className="relative h-[clamp(15.625rem,38vw,33.75rem)] overflow-hidden bg-bg"
             style={{

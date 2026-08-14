@@ -1,7 +1,7 @@
 import type { Pack } from "@albora/packs";
 import { Badge, Button, Frame, StatusBar } from "@albora/ui-web";
-import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
-import { NavAdmin } from "@/features/catalog/components/nav-admin";
+import { GuestBackground } from "@/features/catalog/lib/guest-background";
+import { AdminNav } from "@/features/catalog/components/admin-nav";
 
 export function AdminModerationScreen({ pack }: { pack: Pack }) {
   const fila = [
@@ -10,7 +10,7 @@ export function AdminModerationScreen({ pack }: { pack: Pack }) {
   ];
 
   return (
-    <ChaoClaro pack={pack}>
+    <GuestBackground fundo="claro" pack={pack}>
       <StatusBar />
 
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3">
@@ -50,7 +50,7 @@ export function AdminModerationScreen({ pack }: { pack: Pack }) {
         </div>
       </div>
 
-      <NavAdmin active="moderacao" />
-    </ChaoClaro>
+      <AdminNav active="moderation" />
+    </GuestBackground>
   );
 }

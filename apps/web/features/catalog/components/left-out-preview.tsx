@@ -1,6 +1,6 @@
 import { Frame } from "@albora/ui-web";
 
-export function OQueFicariaDeFora() {
+export function LeftOutPreview() {
   return (
     <span className="flex items-end gap-2">
       {[0, 1, 2].map((i) => (

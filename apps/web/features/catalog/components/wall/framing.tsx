@@ -12,7 +12,7 @@ const COMO_RESOLVE: Readonly<Record<ModeloDeTelao, string>> = {
   tbt: "Puxa da faixa antiga, não da recente. Retrospectiva da foto de cinco minutos atrás não é retrospectiva de nada.",
 };
 
-const NOMES_DOS_MODELOS: Readonly<Record<ModeloDeTelao, string>> = {
+const MODEL_NAMES: Readonly<Record<ModeloDeTelao, string>> = {
   polaroide: "Polaroide",
   mural: "Mural",
   colagem: "Colagem",
@@ -24,7 +24,7 @@ const NOMES_DOS_MODELOS: Readonly<Record<ModeloDeTelao, string>> = {
 };
 
 export function modelName(modelo: ModeloDeTelao): string {
-  return NOMES_DOS_MODELOS[modelo];
+  return MODEL_NAMES[modelo];
 }
 
 export function wallProfileText(modelo: ModeloDeTelao): string {

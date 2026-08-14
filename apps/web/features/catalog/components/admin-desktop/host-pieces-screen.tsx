@@ -1,10 +1,10 @@
 import { texto, type Pack } from "@albora/packs";
-import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
+import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { HostSidebar } from "@/features/catalog/components/host-sidebar";
 
 export function HostPiecesScreen({ pack }: { pack: Pack }) {
   return (
-    <ChaoClaro pack={pack}>
+    <GuestBackground fundo="claro" pack={pack}>
       <div className="flex h-full">
         <HostSidebar pack={pack} active="Ao vivo" />
 
@@ -43,6 +43,6 @@ export function HostPiecesScreen({ pack }: { pack: Pack }) {
           </div>
         </main>
       </div>
-    </ChaoClaro>
+    </GuestBackground>
   );
 }

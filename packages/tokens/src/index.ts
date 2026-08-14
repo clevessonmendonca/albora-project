@@ -10,7 +10,7 @@ export type {
   Tokens,
   Tracking,
 } from "./types";
-export { MARCA_ALBORA } from "./marca";
+export { MARCA_ALBORA, MARCA_ALBORA as ALBORA_BRAND } from "./marca";
 export type { ModeloDeIdentidade } from "./modelos";
 export { MODELOS_DE_IDENTIDADE } from "./modelos";
 export { escalaDoFundo } from "./escalas";

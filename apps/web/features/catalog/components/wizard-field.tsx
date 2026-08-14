@@ -1,9 +1,9 @@
-export function CampoWizard({ rotulo, valor }: { rotulo: string; valor: string }) {
+export function WizardField({ label, value }: { label: string; value: string }) {
   return (
     <label className="flex flex-col gap-1.5 text-[0.8125rem] text-ink-2">
-      {rotulo}
+      {label}
       <span className="rounded-token bg-superficie-alta px-3.5 py-3 text-[0.9375rem] text-ink">
-        {valor}
+        {value}
       </span>
     </label>
   );

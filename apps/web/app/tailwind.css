@@ -14,7 +14,7 @@
  * A ponte token → utilitário semântico.
  *
  * Os tokens do evento entram em runtime como CSS vars (`--acento`, `--ink`…)
- * que `paraVariaveis` injeta no wrapper por-evento. Aqui eles viram cores do
+ * que `toVariables` injeta no wrapper por-evento. Aqui eles viram cores do
  * Tailwind, então `bg-acento`/`text-ink` funcionam e continuam trocando quando
  * o casal troca a identidade — sem hex literal, que o guard `tokens` reprova.
  */
@@ -67,7 +67,7 @@
     color-mix(in srgb, var(--acento) 14%, var(--superficie)) 55%,
     color-mix(in srgb, var(--acento) 26%, var(--superficie))
   );
-  --background-image-gradient-aparelho: linear-gradient(
+  --background-image-gradient-device: linear-gradient(
     155deg,
     var(--superficie-alta),
     color-mix(in srgb, var(--acento) 18%, var(--superficie))
@@ -162,7 +162,7 @@
     0 14px 32px -10px color-mix(in srgb, var(--ink) 20%, transparent),
     0 44px 88px -36px color-mix(in srgb, var(--ink) 34%, transparent);
   --shadow-acento: 0 8px 20px -6px color-mix(in srgb, var(--acento) 70%, transparent);
-  --shadow-aparelho: 0 2px 4px color-mix(in srgb, var(--ink) 8%, transparent),
+  --shadow-device: 0 2px 4px color-mix(in srgb, var(--ink) 8%, transparent),
     0 24px 48px -16px color-mix(in srgb, var(--ink) 34%, transparent);
   --shadow-polaroide: 0 24px 80px -32px color-mix(in srgb, var(--ink) 60%, transparent);
   --shadow-scan-mascara: 0 0 0 9999px color-mix(in srgb, var(--noite) 35%, transparent);

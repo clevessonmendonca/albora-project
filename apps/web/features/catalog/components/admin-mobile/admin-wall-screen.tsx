@@ -1,10 +1,10 @@
 import { MODELOS_DE_TELAO, PERFIS, problemasDaEscolha, type ModeloDeTelao } from "@albora/core";
 import type { Pack } from "@albora/packs";
 import { Badge, Button, cn, StatusBar } from "@albora/ui-web";
-import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
-import { NavAdmin } from "@/features/catalog/components/nav-admin";
-import { Marcador } from "@/features/catalog/components/marcador";
-import { NOMES_DOS_MODELOS, profileText } from "@/features/catalog/lib/parede-utils";
+import { GuestBackground } from "@/features/catalog/lib/guest-background";
+import { AdminNav } from "@/features/catalog/components/admin-nav";
+import { CheckMark } from "@/features/catalog/components/check-mark";
+import { MODEL_NAMES, profileText } from "@/features/catalog/lib/wall-utils";
 
 export function AdminWallScreen({
   pack,
@@ -17,7 +17,7 @@ export function AdminWallScreen({
   const recusada = problemas.length > 0;
 
   return (
-    <ChaoClaro pack={pack}>
+    <GuestBackground fundo="claro" pack={pack}>
       <StatusBar />
 
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3">
@@ -45,21 +45,21 @@ export function AdminWallScreen({
 
         <div className="grid grid-cols-2 gap-2">
           {MODELOS_DE_TELAO.map((modelo) => {
-            const marcado = escolhidos.includes(modelo);
-            const culpado = recusada && !PERFIS[modelo].aceitaEmPe && marcado;
+            const checked = escolhidos.includes(modelo);
+            const culpado = recusada && !PERFIS[modelo].aceitaEmPe && checked;
 
             return (
               <div
                 key={modelo}
                 className={cn(
                   "rounded-token border p-3",
-                  marcado ? "border-acento bg-acento-superficie-suave" : "border-linha bg-superficie",
+                  checked ? "border-acento bg-acento-superficie-suave" : "border-linha bg-superficie",
                   culpado && "border-critico",
                 )}
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-titulo text-[0.9375rem]">{NOMES_DOS_MODELOS[modelo]}</span>
-                  <Marcador marcado={marcado} />
+                  <span className="font-titulo text-[0.9375rem]">{MODEL_NAMES[modelo]}</span>
+                  <CheckMark checked={checked} />
                 </div>
                 <p
                   className={cn(
@@ -86,7 +86,7 @@ export function AdminWallScreen({
         </div>
       </div>
 
-      <NavAdmin active="parede" />
-    </ChaoClaro>
+      <AdminNav active="wall" />
+    </GuestBackground>
   );
 }

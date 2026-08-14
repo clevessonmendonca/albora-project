@@ -1,7 +1,7 @@
 import { padroesDoEvento } from "@albora/core";
 import type { Pack } from "@albora/packs";
 import { Badge, Card, cn, Frame, Switch } from "@albora/ui-web";
-import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
+import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { HostSidebar } from "@/features/catalog/components/host-sidebar";
 
 export function HostPanelScreen({ pack, haMenores = false }: { pack: Pack; haMenores?: boolean }) {
@@ -25,7 +25,7 @@ export function HostPanelScreen({ pack, haMenores = false }: { pack: Pack; haMen
   ];
 
   return (
-    <ChaoClaro pack={pack}>
+    <GuestBackground fundo="claro" pack={pack}>
       <div className="flex h-full">
         <HostSidebar pack={pack} active="Ao vivo" />
 
@@ -121,6 +121,6 @@ export function HostPanelScreen({ pack, haMenores = false }: { pack: Pack; haMen
           </div>
         </main>
       </div>
-    </ChaoClaro>
+    </GuestBackground>
   );
 }

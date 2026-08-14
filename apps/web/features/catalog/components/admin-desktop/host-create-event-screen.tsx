@@ -1,7 +1,7 @@
 import { texto, type Pack } from "@albora/packs";
 import { cn } from "@albora/ui-web";
-import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
-import { CampoWizard } from "@/features/catalog/components/campo-wizard";
+import { GuestBackground } from "@/features/catalog/lib/guest-background";
+import { WizardField } from "@/features/catalog/components/wizard-field";
 
 const PASSOS_DO_WIZARD = ["Nome e data", "Identidade", "Missões", "Parede", "Peças"] as const;
 
@@ -15,7 +15,7 @@ export function HostCreateEventScreen({
   const indice = passo - 1;
 
   return (
-    <ChaoClaro pack={pack}>
+    <GuestBackground fundo="claro" pack={pack}>
       <div className="flex flex-1 flex-col px-10 py-8">
         <div className="mb-8 flex gap-1.5">
           {PASSOS_DO_WIZARD.map((rotulo, i) => (
@@ -44,10 +44,10 @@ export function HostCreateEventScreen({
         <div className="mt-6 flex-1">
           {passo === 1 && (
             <div className="flex max-w-[22rem] flex-col gap-4">
-              <CampoWizard rotulo="Nome do evento" valor={texto(pack, "landing.exemplo.nome")} />
-              <CampoWizard rotulo="Convidados esperados" valor="150" />
-              <CampoWizard rotulo="Começo" valor="Sáb, 20:00" />
-              <CampoWizard rotulo="Fim" valor="Dom, 04:00" />
+              <WizardField label="Nome do evento" value={texto(pack, "landing.exemplo.nome")} />
+              <WizardField label="Convidados esperados" value="150" />
+              <WizardField label="Começo" value="Sáb, 20:00" />
+              <WizardField label="Fim" value="Dom, 04:00" />
             </div>
           )}
           {passo === 5 && (
@@ -68,6 +68,6 @@ export function HostCreateEventScreen({
           </span>
         </div>
       </div>
-    </ChaoClaro>
+    </GuestBackground>
   );
 }

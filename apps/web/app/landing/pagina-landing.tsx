@@ -249,7 +249,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
             </div>
 
             <div className="relative flex justify-center">
-              <div className="relative aspect-[9/19] w-[min(18.75rem,80vw)] rounded-superficie bg-gradient-aparelho p-[0.5625rem] shadow-alta">
+              <div className="relative aspect-[9/19] w-[min(18.75rem,80vw)] rounded-superficie bg-gradient-device p-[0.5625rem] shadow-alta">
                 <div
                   className="relative h-full w-full overflow-hidden"
                   style={radiusStyle("calc(var(--raio-superficie) - 0.5625rem)")}

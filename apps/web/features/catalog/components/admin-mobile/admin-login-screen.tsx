@@ -1,10 +1,10 @@
 import type { Pack } from "@albora/packs";
 import { Button, StatusBar } from "@albora/ui-web";
-import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
+import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
 export function AdminLoginScreen({ pack }: { pack: Pack }) {
   return (
-    <ChaoClaro pack={pack}>
+    <GuestBackground fundo="claro" pack={pack}>
       <StatusBar />
 
       <div className="flex flex-1 flex-col justify-center gap-6 px-7 pb-16">
@@ -30,6 +30,6 @@ export function AdminLoginScreen({ pack }: { pack: Pack }) {
           Chega em segundos. Se cair no spam, o link é o mesmo.
         </p>
       </div>
-    </ChaoClaro>
+    </GuestBackground>
   );
 }

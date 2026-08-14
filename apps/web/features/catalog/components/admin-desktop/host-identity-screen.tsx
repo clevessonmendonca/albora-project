@@ -1,12 +1,12 @@
 import type { Pack } from "@albora/packs";
-import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
+import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { HostSidebar } from "@/features/catalog/components/host-sidebar";
-import { CampoWizard } from "@/features/catalog/components/campo-wizard";
+import { WizardField } from "@/features/catalog/components/wizard-field";
 import { CoverScreen } from "@/features/catalog/components/guest/cover-screen";
 
 export function HostIdentityScreen({ pack, momentos }: { pack: Pack; momentos: string[] }) {
   return (
-    <ChaoClaro pack={pack}>
+    <GuestBackground fundo="claro" pack={pack}>
       <div className="flex h-full">
         <HostSidebar pack={pack} active="Identidade" />
 
@@ -15,9 +15,9 @@ export function HostIdentityScreen({ pack, momentos }: { pack: Pack; momentos: s
             <p className="m-0 font-titulo text-[1.875rem] font-light tracking-titulo">
               Identidade
             </p>
-            <CampoWizard rotulo="Cor de destaque" valor="Âmbar do pack" />
-            <CampoWizard rotulo="Fonte do título" valor="Serif do pack" />
-            <CampoWizard rotulo="Raio dos cantos" valor="Suave" />
+            <WizardField label="Cor de destaque" value="Âmbar do pack" />
+            <WizardField label="Fonte do título" value="Serif do pack" />
+            <WizardField label="Raio dos cantos" value="Suave" />
             <p className="m-0 text-[0.8125rem] leading-normal text-ink-2">
               Cada mudança re-renderiza o preview com resolverTokens real — o mesmo resolvedor do
               telão e da peça impressa.
@@ -31,6 +31,6 @@ export function HostIdentityScreen({ pack, momentos }: { pack: Pack; momentos: s
           </div>
         </main>
       </div>
-    </ChaoClaro>
+    </GuestBackground>
   );
 }

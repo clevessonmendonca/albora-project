@@ -1,11 +1,11 @@
 import { cn } from "@albora/ui-web";
 
-export function Marcador({ marcado }: { marcado: boolean }) {
+export function CheckMark({ checked }: { checked: boolean }) {
   return (
     <span
       className={cn(
         "grid size-5 shrink-0 place-items-center rounded-[0.375rem] border text-[0.6875rem]",
-        marcado ? "border-acento bg-acento text-sobre-acento" : "border-linha text-transparent",
+        checked ? "border-acento bg-acento text-sobre-acento" : "border-linha text-transparent",
       )}
     >
       ✓
@@ -13,7 +13,7 @@ export function Marcador({ marcado }: { marcado: boolean }) {
   );
 }
 
-export function MarcadorDesktop({ checked }: { checked: boolean }) {
+export function DesktopCheckMark({ checked }: { checked: boolean }) {
   return (
     <span
       className={cn(

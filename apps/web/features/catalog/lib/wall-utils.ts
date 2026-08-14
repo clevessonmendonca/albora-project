@@ -1,6 +1,6 @@
 import { PERFIS, type ModeloDeTelao } from "@albora/core";
 
-export const NOMES_DOS_MODELOS: Readonly<Record<ModeloDeTelao, string>> = {
+export const MODEL_NAMES: Readonly<Record<ModeloDeTelao, string>> = {
   polaroide: "Polaroide",
   mural: "Mural",
   colagem: "Colagem",
@@ -12,7 +12,7 @@ export const NOMES_DOS_MODELOS: Readonly<Record<ModeloDeTelao, string>> = {
 };
 
 export function profileText(modelo: ModeloDeTelao): string {
-  const perfil = PERFIS[modelo];
-  const quantas = perfil.fotos === 1 ? "1 foto" : `${perfil.fotos} fotos`;
-  return `${quantas} · ${perfil.aceitaEmPe ? "em pé" : "só deitada"}`;
+  const profile = PERFIS[modelo];
+  const count = profile.fotos === 1 ? "1 foto" : `${profile.fotos} fotos`;
+  return `${count} · ${profile.aceitaEmPe ? "em pé" : "só deitada"}`;
 }

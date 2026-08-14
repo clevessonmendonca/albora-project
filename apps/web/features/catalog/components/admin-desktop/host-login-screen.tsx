@@ -1,9 +1,9 @@
 import type { Pack } from "@albora/packs";
-import { ChaoClaro } from "@/features/catalog/lib/chao-claro";
+import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
 export function HostLoginScreen({ pack, enviado = false }: { pack: Pack; enviado?: boolean }) {
   return (
-    <ChaoClaro pack={pack}>
+    <GuestBackground fundo="claro" pack={pack}>
       <div className="grid flex-1 place-items-center p-8">
         <div className="flex w-full max-w-[26rem] flex-col gap-5 rounded-superficie bg-superficie p-8">
           <p className="m-0 font-titulo text-[1.125rem] tracking-titulo text-acento-texto">
@@ -31,6 +31,6 @@ export function HostLoginScreen({ pack, enviado = false }: { pack: Pack; enviado
           )}
         </div>
       </div>
-    </ChaoClaro>
+    </GuestBackground>
   );
 }
