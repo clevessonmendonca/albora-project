@@ -3,52 +3,51 @@
 import { useState } from "react";
 
 /**
- * Entrar no painel do anfitrião (spec 009).
+ * Host panel sign-in (spec 009).
  *
- * Duas telas na mesma rota: sem `?m=`, o formulário de e-mail que pede o link;
- * com `?m=`, o botão que confirma e abre a sessão. O token só é consumido no
- * clique — nunca no carregamento — para o pré-fetch de um cliente de e-mail não
- * gastar o link sozinho.
+ * Two screens on the same route: without `?m=`, the email form that requests
+ * the link; with `?m=`, the button that confirms and opens the session. The
+ * token is only consumed on click — never on load — so an email client's
+ * prefetch cannot spend the link on its own.
  */
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function SignInForm({ magic }: { magic: string | null }) {
-  return magic ? <Confirmar token={magic} /> : <PedirLink />;
+  return magic ? <Confirm token={magic} /> : <RequestLink />;
 }
 
-function PedirLink() {
+function RequestLink() {
   const [email, setEmail] = useState("");
-  const [estado, setEstado] = useState<"editando" | "enviando" | "enviado" | "erro">("editando");
-  const [linkDeDev, setLinkDeDev] = useState<string | null>(null);
+  const [status, setStatus] = useState<"editing" | "sending" | "sent" | "error">("editing");
+  const [devLink, setDevLink] = useState<string | null>(null);
 
-  const valido = EMAIL.test(email.trim());
+  const valid = EMAIL.test(email.trim());
 
-  const pedir = async () => {
-    if (!valido) return;
-    setEstado("enviando");
+  const request = async () => {
+    if (!valid) return;
+    setStatus("sending");
     try {
       const r = await fetch("/api/admin/entrar", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
       });
-      if (!r.ok) return setEstado("erro");
-      const corpo = (await r.json()) as { enviado: boolean; link?: string };
-      setLinkDeDev(corpo.link ?? null);
-      setEstado("enviado");
+      if (!r.ok) return setStatus("error");
+      const body = (await r.json()) as { enviado: boolean; link?: string };
+      setDevLink(body.link ?? null);
+      setStatus("sent");
     } catch {
-      setEstado("erro");
+      setStatus("error");
     }
   };
 
-  if (estado === "enviado") {
+  if (status === "sent") {
     return (
-      <Card titulo="Verifique seu e-mail">
+      <Card title="Verifique seu e-mail">
         <p className="m-0 leading-normal text-ink-2">Se houver uma conta, o link de acesso está a caminho.</p>
-        {linkDeDev && (
-          <a href={linkDeDev} className="break-all text-acento">
-            {/* Só em dev: sem e-mail, o link aparece aqui para clicar. */}
+        {devLink && (
+          <a href={devLink} className="break-all text-acento">
             Abrir link (dev)
           </a>
         )}
@@ -57,7 +56,7 @@ function PedirLink() {
   }
 
   return (
-    <Card titulo="Entrar no painel">
+    <Card title="Entrar no painel">
       <p className="m-0 leading-normal text-ink-2">Enviamos um link de acesso para o seu e-mail. Sem senha.</p>
       <input
         type="email"
@@ -70,26 +69,26 @@ function PedirLink() {
         aria-label="Seu e-mail"
         className="rounded-token border border-linha bg-bg px-4 py-3.5 text-base text-ink"
       />
-      {estado === "erro" && <p className="m-0 text-[0.9rem] text-critico">Não deu para enviar agora. Tente de novo.</p>}
+      {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Não deu para enviar agora. Tente de novo.</p>}
       <button
         type="button"
-        onClick={pedir}
-        disabled={!valido || estado === "enviando"}
+        onClick={request}
+        disabled={!valid || status === "sending"}
         className={`cursor-pointer rounded-pilula border-none bg-acento px-4 py-3.5 font-titulo text-[1.05rem] text-sobre-acento ${
-          valido && estado !== "enviando" ? "opacity-100" : "opacity-50"
+          valid && status !== "sending" ? "opacity-100" : "opacity-50"
         }`}
       >
-        {estado === "enviando" ? "Enviando…" : "Enviar link"}
+        {status === "sending" ? "Enviando…" : "Enviar link"}
       </button>
     </Card>
   );
 }
 
-function Confirmar({ token }: { token: string }) {
-  const [estado, setEstado] = useState<"pronto" | "entrando" | "erro">("pronto");
+function Confirm({ token }: { token: string }) {
+  const [status, setStatus] = useState<"ready" | "signingIn" | "error">("ready");
 
-  const entrar = async () => {
-    setEstado("entrando");
+  const signIn = async () => {
+    setStatus("signingIn");
     try {
       const r = await fetch("/api/admin/sessao", {
         method: "POST",
@@ -100,35 +99,35 @@ function Confirmar({ token }: { token: string }) {
         window.location.assign("/admin");
         return;
       }
-      setEstado("erro");
+      setStatus("error");
     } catch {
-      setEstado("erro");
+      setStatus("error");
     }
   };
 
   return (
-    <Card titulo="Confirmar acesso">
+    <Card title="Confirmar acesso">
       <p className="m-0 leading-normal text-ink-2">Toque para entrar no seu painel.</p>
-      {estado === "erro" && <p className="m-0 text-[0.9rem] text-critico">Link inválido ou expirado. Peça outro.</p>}
+      {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Link inválido ou expirado. Peça outro.</p>}
       <button
         type="button"
-        onClick={entrar}
-        disabled={estado === "entrando"}
+        onClick={signIn}
+        disabled={status === "signingIn"}
         className={`cursor-pointer rounded-pilula border-none bg-acento px-4 py-3.5 font-titulo text-[1.05rem] text-sobre-acento ${
-          estado === "entrando" ? "opacity-50" : "opacity-100"
+          status === "signingIn" ? "opacity-50" : "opacity-100"
         }`}
       >
-        {estado === "entrando" ? "Entrando…" : "Entrar"}
+        {status === "signingIn" ? "Entrando…" : "Entrar"}
       </button>
     </Card>
   );
 }
 
-function Card({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <main className="fixed inset-0 grid place-items-center bg-bg p-6 font-corpo text-ink">
       <div className="flex w-full max-w-[26rem] flex-col gap-5 rounded-superficie bg-superficie p-8">
-        <h1 className="m-0 font-titulo text-2xl">{titulo}</h1>
+        <h1 className="m-0 font-titulo text-2xl">{title}</h1>
         {children}
       </div>
     </main>

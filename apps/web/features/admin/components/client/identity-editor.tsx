@@ -11,54 +11,54 @@ import {
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 
 type Props = {
-  eventoId: string;
+  eventId: string;
   packId: string;
-  expectedGuestsInicial: number;
-  identityTokensInicial: Record<string, unknown>;
+  initialExpectedGuests: number;
+  initialIdentityTokens: Record<string, unknown>;
 };
 
 export function IdentityEditor({
-  eventoId,
+  eventId,
   packId,
-  expectedGuestsInicial,
-  identityTokensInicial,
+  initialExpectedGuests,
+  initialIdentityTokens,
 }: Props) {
   const pack = PACKS[packId] as Pack | undefined;
-  const presetInicial =
-    typeof identityTokensInicial.presetId === "string"
-      ? identityTokensInicial.presetId
+  const initialPreset =
+    typeof initialIdentityTokens.presetId === "string"
+      ? initialIdentityTokens.presetId
       : IDENTITY_MODELS[0]!.id;
 
-  const [presetId, setPresetId] = useState(presetInicial);
-  const [expectedGuests, setExpectedGuests] = useState(String(expectedGuestsInicial));
-  const [salvando, setSalvando] = useState(false);
-  const [erro, setErro] = useState(false);
-  const [salvo, setSalvo] = useState(false);
+  const [presetId, setPresetId] = useState(initialPreset);
+  const [expectedGuests, setExpectedGuests] = useState(String(initialExpectedGuests));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const preset = IDENTITY_MODELS.find((m) => m.id === presetId) ?? IDENTITY_MODELS[0]!;
 
   const identityTokens = useMemo(() => {
     return {
-      ...identityTokensInicial,
+      ...initialIdentityTokens,
       presetId: preset.id,
       ...preset.camada,
     };
-  }, [identityTokensInicial, preset]);
+  }, [initialIdentityTokens, preset]);
 
   const previewVars = useMemo(() => {
     if (!pack) return {};
     return resolveIdentityPreviewVars(pack, identityTokens);
   }, [pack, identityTokens]);
 
-  const convidadosValidos = Number(expectedGuests) > 0 && Number.isFinite(Number(expectedGuests));
+  const guestsValid = Number(expectedGuests) > 0 && Number.isFinite(Number(expectedGuests));
 
-  const salvar = async () => {
-    if (!convidadosValidos) return;
-    setSalvando(true);
-    setErro(false);
-    setSalvo(false);
+  const save = async () => {
+    if (!guestsValid) return;
+    setSaving(true);
+    setError(false);
+    setSaved(false);
     try {
-      const r = await fetch(`/api/admin/events/${eventoId}/config`, {
+      const r = await fetch(`/api/admin/events/${eventId}/config`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -67,11 +67,11 @@ export function IdentityEditor({
         }),
       });
       if (!r.ok) throw new Error("falhou");
-      setSalvo(true);
+      setSaved(true);
     } catch {
-      setErro(true);
+      setError(true);
     } finally {
-      setSalvando(false);
+      setSaving(false);
     }
   };
 
@@ -99,7 +99,7 @@ export function IdentityEditor({
             value={expectedGuests}
             onChange={(e) => {
               setExpectedGuests(e.target.value);
-              setSalvo(false);
+              setSaved(false);
             }}
             className="rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink"
           />
@@ -113,7 +113,7 @@ export function IdentityEditor({
                 type="button"
                 onClick={() => {
                   setPresetId(m.id);
-                  setSalvo(false);
+                  setSaved(false);
                 }}
                 className={`flex cursor-pointer items-center gap-3 rounded-token p-3 text-left ${
                   presetId === m.id
@@ -138,16 +138,16 @@ export function IdentityEditor({
         <div className="mt-6 flex items-center gap-4">
           <button
             type="button"
-            disabled={!convidadosValidos || salvando}
-            onClick={() => void salvar()}
+            disabled={!guestsValid || saving}
+            onClick={() => void save()}
             className={`${adminClasses.primaryButton} ${
-              !convidadosValidos || salvando ? "opacity-60" : ""
+              !guestsValid || saving ? "opacity-60" : ""
             }`}
           >
-            {salvando ? "Salvando…" : "Salvar identidade"}
+            {saving ? "Salvando…" : "Salvar identidade"}
           </button>
-          {salvo && <span className="text-sm text-ink-3">Salvo.</span>}
-          {erro && <span className="text-sm text-critico">Não foi possível salvar.</span>}
+          {saved && <span className="text-sm text-ink-3">Salvo.</span>}
+          {error && <span className="text-sm text-critico">Não foi possível salvar.</span>}
         </div>
       </AdminSection>
     </div>

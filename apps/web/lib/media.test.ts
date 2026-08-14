@@ -4,7 +4,7 @@ import {
   TETO_DE_CHAVES,
   validarLote,
   VALIDADE_GET_SEGUNDOS,
-} from "../app/api/midia/urls/lote";
+} from "../app/api/media/urls/lote";
 import { config, ErroOrigemDeMidia } from "./config";
 
 const EVENTO = "3c465e29-f183-4436-92f5-df06d5b7f289";

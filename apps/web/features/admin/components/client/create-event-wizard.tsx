@@ -15,97 +15,97 @@ import {
 } from "@/features/admin/lib/identity-preview";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 
-const OPCOES = Object.values(PACKS).map((p) => ({ id: p.id, nome: resolvePackText(p, "evento.nome") }));
+const OPTIONS = Object.values(PACKS).map((p) => ({ id: p.id, nome: resolvePackText(p, "evento.nome") }));
 
-const PASSOS = ["Quando", "Identidade", "Missões", "Parede", "Peças"] as const;
+const STEPS = ["Quando", "Identidade", "Missões", "Parede", "Peças"] as const;
 
-const MODELOS_PADRAO: readonly WallDisplayModel[] = ["polaroide", "mural", "colagem", "dump"];
+const DEFAULT_MODELS: readonly WallDisplayModel[] = ["polaroide", "mural", "colagem", "dump"];
 
-type Criado = { slug: string; eventoId: string };
+type Created = { slug: string; eventoId: string };
 
 export function CreateEventWizard() {
-  const [passo, setPasso] = useState(0);
-  const [packId, setPackId] = useState(OPCOES[0]!.id);
-  const [comeca, setComeca] = useState("");
-  const [termina, setTermina] = useState("");
+  const [step, setStep] = useState(0);
+  const [packId, setPackId] = useState(OPTIONS[0]!.id);
+  const [starts, setStarts] = useState("");
+  const [ends, setEnds] = useState("");
   const [expectedGuests, setExpectedGuests] = useState("150");
   const [presetId, setPresetId] = useState(IDENTITY_MODELS[0]!.id);
-  const [missoesMarcadas, setMissoesMarcadas] = useState<Set<string>>(() => new Set());
-  const [modelosParede, setModelosParede] = useState<Set<WallDisplayModel>>(
-    () => new Set(MODELOS_PADRAO),
+  const [checkedMissions, setCheckedMissions] = useState<Set<string>>(() => new Set());
+  const [wallModels, setWallModels] = useState<Set<WallDisplayModel>>(
+    () => new Set(DEFAULT_MODELS),
   );
-  const [estado, setEstado] = useState<"editando" | "criando" | "erro">("editando");
-  const [criado, setCriado] = useState<Criado | null>(null);
+  const [status, setStatus] = useState<"editing" | "creating" | "error">("editing");
+  const [created, setCreated] = useState<Created | null>(null);
 
   const pack = PACKS[packId]!;
 
-  const datasValidas = comeca !== "" && termina !== "" && termina > comeca;
-  const convidadosValidos = Number(expectedGuests) > 0 && Number.isFinite(Number(expectedGuests));
+  const datesValid = starts !== "" && ends !== "" && ends > starts;
+  const guestsValid = Number(expectedGuests) > 0 && Number.isFinite(Number(expectedGuests));
 
-  const missoesIniciais = useMemo(() => {
-    const chaves = pack.missoes.map((m) => m.chaveTitulo);
-    return chaves;
+  const initialMissions = useMemo(() => {
+    const keys = pack.missoes.map((m) => m.chaveTitulo);
+    return keys;
   }, [pack]);
 
-  const missoesAtivas =
-    missoesMarcadas.size > 0
-      ? [...missoesMarcadas]
-      : missoesIniciais;
+  const activeMissions =
+    checkedMissions.size > 0
+      ? [...checkedMissions]
+      : initialMissions;
 
-  const problemasParede = wallDisplayChoiceProblems([...modelosParede]);
+  const wallProblems = wallDisplayChoiceProblems([...wallModels]);
 
   const preset = IDENTITY_MODELS.find((m) => m.id === presetId) ?? IDENTITY_MODELS[0]!;
 
   const identityTokens = useMemo(() => {
     const base: Record<string, unknown> = {
       presetId: preset.id,
-      telaoModelos: [...modelosParede],
+      telaoModelos: [...wallModels],
       ...preset.camada,
     };
     return base;
-  }, [preset, modelosParede]);
+  }, [preset, wallModels]);
 
   const previewVars = useMemo(
     () => resolveIdentityPreviewVars(pack, identityTokens),
     [pack, identityTokens],
   );
 
-  const podeAvancar =
-    passo === 0
-      ? datasValidas && convidadosValidos
-      : passo === 3
-        ? problemasParede.length === 0
+  const canAdvance =
+    step === 0
+      ? datesValid && guestsValid
+      : step === 3
+        ? wallProblems.length === 0
         : true;
 
-  const criar = async () => {
-    if (!datasValidas || !convidadosValidos || problemasParede.length > 0) return;
-    setEstado("criando");
+  const create = async () => {
+    if (!datesValid || !guestsValid || wallProblems.length > 0) return;
+    setStatus("creating");
     try {
       const r = await fetch("/api/admin/events", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           packId,
-          comecaEm: comeca,
-          terminaEm: termina,
+          comecaEm: starts,
+          terminaEm: ends,
           expectedGuests: Number(expectedGuests),
           identityTokens,
-          missoes: missoesAtivas,
-          telaoModelos: [...modelosParede],
+          missoes: activeMissions,
+          telaoModelos: [...wallModels],
         }),
       });
-      if (!r.ok) return setEstado("erro");
-      setCriado((await r.json()) as Criado);
+      if (!r.ok) return setStatus("error");
+      setCreated((await r.json()) as Created);
     } catch {
-      setEstado("erro");
+      setStatus("error");
     }
   };
 
-  if (criado) return <Resultado criado={criado} />;
+  if (created) return <Result created={created} />;
 
   return (
-    <Shell titulo={PASSOS[passo] ?? "Criar evento"} passo={passo} total={PASSOS.length}>
-      {passo === 0 && (
+    <Shell title={STEPS[step] ?? "Criar evento"} step={step} total={STEPS.length}>
+      {step === 0 && (
         <>
           <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
             Tipo de evento
@@ -114,7 +114,7 @@ export function CreateEventWizard() {
               onChange={(e) => setPackId(e.target.value)}
               className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink"
             >
-              {OPCOES.map((p) => (
+              {OPTIONS.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.nome}
                 </option>
@@ -135,8 +135,8 @@ export function CreateEventWizard() {
             Começo
             <input
               type="datetime-local"
-              value={comeca}
-              onChange={(e) => setComeca(e.target.value)}
+              value={starts}
+              onChange={(e) => setStarts(e.target.value)}
               className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink"
             />
           </label>
@@ -144,15 +144,15 @@ export function CreateEventWizard() {
             Fim
             <input
               type="datetime-local"
-              value={termina}
-              onChange={(e) => setTermina(e.target.value)}
+              value={ends}
+              onChange={(e) => setEnds(e.target.value)}
               className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink"
             />
           </label>
         </>
       )}
 
-      {passo === 1 && (
+      {step === 1 && (
         <div className="grid grid-cols-2 gap-5">
           <div className="flex flex-col gap-3">
             {IDENTITY_MODELS.map((m) => (
@@ -182,54 +182,54 @@ export function CreateEventWizard() {
         </div>
       )}
 
-      {passo === 2 && (
-        <ListaMissoes
+      {step === 2 && (
+        <MissionList
           pack={pack}
-          marcadas={missoesMarcadas.size > 0 ? missoesMarcadas : new Set(missoesIniciais)}
-          onToggle={(chave) => {
-            setMissoesMarcadas((antes) => {
-              const base = antes.size > 0 ? new Set(antes) : new Set(missoesIniciais);
-              if (base.has(chave)) {
-                base.delete(chave);
+          checked={checkedMissions.size > 0 ? checkedMissions : new Set(initialMissions)}
+          onToggle={(key) => {
+            setCheckedMissions((prev) => {
+              const next = prev.size > 0 ? new Set(prev) : new Set(initialMissions);
+              if (next.has(key)) {
+                next.delete(key);
               } else {
-                base.add(chave);
+                next.add(key);
               }
-              return base;
+              return next;
             });
           }}
         />
       )}
 
-      {passo === 3 && (
+      {step === 3 && (
         <>
           <p className="m-0 text-[0.9375rem] leading-normal text-ink-2">
             Marque os modelos que entram no rodízio da parede.
           </p>
-          {problemasParede.length > 0 && (
-            <p className="m-0 text-sm text-critico">{problemasParede.join(" ")}</p>
+          {wallProblems.length > 0 && (
+            <p className="m-0 text-sm text-critico">{wallProblems.join(" ")}</p>
           )}
           <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2">
-            {WALL_DISPLAY_MODELS.map((modelo) => {
-              const marcado = modelosParede.has(modelo);
+            {WALL_DISPLAY_MODELS.map((model) => {
+              const selected = wallModels.has(model);
               return (
                 <button
-                  key={modelo}
+                  key={model}
                   type="button"
                   onClick={() => {
-                    setModelosParede((antes) => {
-                      const prox = new Set(antes);
-                      if (prox.has(modelo)) prox.delete(modelo);
-                      else prox.add(modelo);
-                      return prox;
+                    setWallModels((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(model)) next.delete(model);
+                      else next.add(model);
+                      return next;
                     });
                   }}
                   className={`cursor-pointer rounded-token p-3 font-titulo text-sm ${
-                    marcado
+                    selected
                       ? "border-2 border-acento bg-superficie-alta"
                       : "border border-linha bg-bg"
                   }`}
                 >
-                  {modelo}
+                  {model}
                 </button>
               );
             })}
@@ -237,36 +237,36 @@ export function CreateEventWizard() {
         </>
       )}
 
-      {passo === 4 && (
+      {step === 4 && (
         <p className="m-0 leading-relaxed text-ink-2">
           Pronto para criar. Depois você baixa a placa com QR nos controles do evento — SVG hoje,
           PDF na fila do CI.
         </p>
       )}
 
-      {estado === "erro" && (
+      {status === "error" && (
         <p className="m-0 text-[0.9rem] text-critico">
           Não deu para criar agora. Confira os dados e tente de novo.
         </p>
       )}
 
       <div className="mt-2 flex gap-3">
-        {passo > 0 && (
+        {step > 0 && (
           <button
             type="button"
-            onClick={() => setPasso((p) => p - 1)}
+            onClick={() => setStep((p) => p - 1)}
             className={`${adminClasses.secondaryButton} px-4 py-3.5`}
           >
             Voltar
           </button>
         )}
-        {passo < PASSOS.length - 1 ? (
+        {step < STEPS.length - 1 ? (
           <button
             type="button"
-            disabled={!podeAvancar}
-            onClick={() => setPasso((p) => p + 1)}
+            disabled={!canAdvance}
+            onClick={() => setStep((p) => p + 1)}
             className={`${adminClasses.primaryButton} flex-1 py-3.5 text-[1.05rem] ${
-              podeAvancar ? "opacity-100" : "opacity-50"
+              canAdvance ? "opacity-100" : "opacity-50"
             }`}
           >
             Continuar
@@ -274,13 +274,13 @@ export function CreateEventWizard() {
         ) : (
           <button
             type="button"
-            disabled={estado === "criando" || !podeAvancar}
-            onClick={() => void criar()}
+            disabled={status === "creating" || !canAdvance}
+            onClick={() => void create()}
             className={`${adminClasses.primaryButton} flex-1 py-3.5 text-[1.05rem] ${
-              estado === "criando" ? "opacity-60" : "opacity-100"
+              status === "creating" ? "opacity-60" : "opacity-100"
             }`}
           >
-            {estado === "criando" ? "Criando…" : "Criar e abrir painel"}
+            {status === "creating" ? "Criando…" : "Criar e abrir painel"}
           </button>
         )}
       </div>
@@ -288,14 +288,14 @@ export function CreateEventWizard() {
   );
 }
 
-function ListaMissoes({
+function MissionList({
   pack,
-  marcadas,
+  checked,
   onToggle,
 }: {
   pack: Pack;
-  marcadas: Set<string>;
-  onToggle: (chave: string) => void;
+  checked: Set<string>;
+  onToggle: (key: string) => void;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -306,7 +306,7 @@ function ListaMissoes({
         >
           <input
             type="checkbox"
-            checked={marcadas.has(m.chaveTitulo)}
+            checked={checked.has(m.chaveTitulo)}
             onChange={() => onToggle(m.chaveTitulo)}
           />
           <span>{resolvePackText(pack, m.chaveTitulo)}</span>
@@ -316,18 +316,18 @@ function ListaMissoes({
   );
 }
 
-function Resultado({ criado }: { criado: Criado }) {
-  const origem = typeof window !== "undefined" ? window.location.origin : "";
+function Result({ created }: { created: Created }) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
   return (
-    <Shell titulo="Evento criado" passo={4} total={5}>
+    <Shell title="Evento criado" step={4} total={5}>
       <p className="m-0 leading-normal text-ink-2">
         Imprima o QR do link do convidado na mesa. Abra o telão numa TV do salão e pareie com o
         código que aparece nela.
       </p>
-      <Link titulo="Controles durante a festa" url={`${origem}/admin/e/${criado.eventoId}`} />
-      <Link titulo="Link do convidado (QR)" url={`${origem}/e/${criado.slug}`} />
+      <Link title="Controles durante a festa" url={`${origin}/admin/e/${created.eventoId}`} />
+      <Link title="Link do convidado (QR)" url={`${origin}/e/${created.slug}`} />
       <a
-        href={`/admin/e/${criado.eventoId}`}
+        href={`/admin/e/${created.eventoId}`}
         className={`${adminClasses.primaryButton} block py-3.5 text-center text-[1.05rem]`}
       >
         Abrir controles do evento
@@ -336,10 +336,10 @@ function Resultado({ criado }: { criado: Criado }) {
   );
 }
 
-function Link({ titulo, url }: { titulo: string; url: string }) {
+function Link({ title, url }: { title: string; url: string }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-[0.8rem] uppercase tracking-rotulo text-ink-3">{titulo}</span>
+      <span className="text-[0.8rem] uppercase tracking-rotulo text-ink-3">{title}</span>
       <a href={url} className="break-all text-[0.95rem] text-acento">
         {url}
       </a>
@@ -348,13 +348,13 @@ function Link({ titulo, url }: { titulo: string; url: string }) {
 }
 
 function Shell({
-  titulo,
-  passo,
+  title,
+  step,
   total,
   children,
 }: {
-  titulo: string;
-  passo: number;
+  title: string;
+  step: number;
   total: number;
   children: React.ReactNode;
 }) {
@@ -366,15 +366,15 @@ function Shell({
             <span
               key={i}
               className={`h-1 flex-1 rounded-pilula ${
-                i <= passo ? "bg-acento" : "bg-linha"
+                i <= step ? "bg-acento" : "bg-linha"
               }`}
             />
           ))}
         </div>
         <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
-          Passo {passo + 1} de {total}
+          Passo {step + 1} de {total}
         </p>
-        <h1 className="m-0 font-titulo text-2xl">{titulo}</h1>
+        <h1 className="m-0 font-titulo text-2xl">{title}</h1>
         {children}
       </div>
     </main>

@@ -1,3 +1,1 @@
-export const dynamic = "force-dynamic";
-
-export { DELETE, GET, POST } from "@/lib/api/handlers/comments";
+export { DELETE, dynamic, GET, POST } from "../comments/route";

@@ -5,79 +5,90 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 
-type Moderacao = {
+type WireModeration = {
   panico: boolean;
   modoEndurecido: boolean;
   haMenores: boolean;
 };
 
-type Props = {
-  eventoId: string;
-  slug: string;
-  inicial: Moderacao;
-  interacaoAbreEmInicial: string | null;
+type Moderation = {
+  panic: boolean;
+  hardened: boolean;
+  hasMinors: boolean;
 };
 
-export function EventControls({
-  eventoId,
-  slug,
-  inicial,
-  interacaoAbreEmInicial,
-}: Props) {
-  const [moderacao, setModeracao] = useState(inicial);
-  const [interacaoAbreEm, setInteracaoAbreEm] = useState(interacaoAbreEmInicial);
-  const [salvando, setSalvando] = useState<
-    "panico" | "haMenores" | "modoEndurecido" | "interacao" | null
-  >(null);
-  const [erro, setErro] = useState(false);
+type SavingField = "panic" | "hasMinors" | "hardened" | "interaction" | null;
 
-  const padroes = eventDefaults({ haMenores: moderacao.haMenores });
-  const gateAberto = interacaoAberta(
-    { interacaoAbreEm: interacaoAbreEm ? new Date(interacaoAbreEm) : null },
+type Props = {
+  eventId: string;
+  slug: string;
+  initial: WireModeration;
+  initialInteractionOpensAt: string | null;
+};
+
+function fromWire(m: WireModeration): Moderation {
+  return {
+    panic: m.panico,
+    hardened: m.modoEndurecido,
+    hasMinors: m.haMenores,
+  };
+}
+
+export function EventControls({
+  eventId,
+  slug,
+  initial,
+  initialInteractionOpensAt,
+}: Props) {
+  const [moderation, setModeration] = useState(() => fromWire(initial));
+  const [interactionOpensAt, setInteractionOpensAt] = useState(initialInteractionOpensAt);
+  const [saving, setSaving] = useState<SavingField>(null);
+  const [error, setError] = useState(false);
+
+  const defaults = eventDefaults({ haMenores: moderation.hasMinors });
+  const gateOpen = interacaoAberta(
+    { interacaoAbreEm: interactionOpensAt ? new Date(interactionOpensAt) : null },
     new Date(),
   );
 
-  const patch = async (
-    corpo: Record<string, boolean>,
-    campo: NonNullable<typeof salvando>,
-  ) => {
-    setSalvando(campo);
-    setErro(false);
-    const moderacaoAnterior = moderacao;
-    const gateAnterior = interacaoAbreEm;
+  const patch = async (body: Record<string, boolean>, field: NonNullable<SavingField>) => {
+    setSaving(field);
+    setError(false);
+    const previousModeration = moderation;
+    const previousGate = interactionOpensAt;
 
-    if ("panico" in corpo) setModeracao((m) => ({ ...m, panico: corpo.panico! }));
-    if ("haMenores" in corpo) setModeracao((m) => ({ ...m, haMenores: corpo.haMenores! }));
-    if ("modoEndurecido" in corpo) {
-      setModeracao((m) => ({ ...m, modoEndurecido: corpo.modoEndurecido! }));
+    if ("panico" in body) setModeration((m) => ({ ...m, panic: body.panico! }));
+    if ("haMenores" in body) setModeration((m) => ({ ...m, hasMinors: body.haMenores! }));
+    if ("modoEndurecido" in body) {
+      setModeration((m) => ({ ...m, hardened: body.modoEndurecido! }));
     }
-    if (corpo.abrirInteracao) setInteracaoAbreEm(new Date().toISOString());
+    if (body.abrirInteracao) setInteractionOpensAt(new Date().toISOString());
 
     try {
-      const r = await fetch(`/api/admin/events/${eventoId}`, {
+      const r = await fetch(`/api/admin/events/${eventId}`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(corpo),
+        body: JSON.stringify(body),
       });
       if (!r.ok) throw new Error("falhou");
-      const resposta = (await r.json()) as {
-        moderacao: Moderacao;
+      const response = (await r.json()) as {
+        moderacao: WireModeration;
         interacaoAbreEm?: string | null;
       };
-      setModeracao(resposta.moderacao);
-      if (resposta.interacaoAbreEm !== undefined) {
-        setInteracaoAbreEm(resposta.interacaoAbreEm);
+      setModeration(fromWire(response.moderacao));
+      if (response.interacaoAbreEm !== undefined) {
+        setInteractionOpensAt(response.interacaoAbreEm);
       }
     } catch {
-      setModeracao(moderacaoAnterior);
-      setInteracaoAbreEm(gateAnterior);
-      setErro(true);
+      setModeration(previousModeration);
+      setInteractionOpensAt(previousGate);
+      setError(true);
     } finally {
-      setSalvando(null);
+      setSaving(null);
     }
   };
 
-  const origem = typeof window !== "undefined" ? window.location.origin : "";
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
 
   return (
     <div className="flex flex-col gap-5">
@@ -89,20 +100,20 @@ export function EventControls({
 
         <button
           type="button"
-          disabled={salvando === "panico"}
-          onClick={() => void patch({ panico: !moderacao.panico }, "panico")}
+          disabled={saving === "panic"}
+          onClick={() => void patch({ panico: !moderation.panic }, "panic")}
           className={`${adminClasses.dangerButton} ${
-            moderacao.panico ? "bg-ink-2" : "bg-critico"
-          } ${salvando === "panico" ? "opacity-60" : ""}`}
+            moderation.panic ? "bg-ink-2" : "bg-critico"
+          } ${saving === "panic" ? "opacity-60" : ""}`}
         >
-          {salvando === "panico"
+          {saving === "panic"
             ? "Salvando…"
-            : moderacao.panico
+            : moderation.panic
               ? "Retomar telão"
               : "Pausar telão"}
         </button>
 
-        {moderacao.panico && (
+        {moderation.panic && (
           <p className="mb-0 mt-3 text-[0.9rem] text-critico">
             O telão está pausado. Nenhuma foto nova aparece na parede.
           </p>
@@ -117,23 +128,23 @@ export function EventControls({
               Uma denúncia já segura do telão. Compartilhar para fora nasce desligado.
             </span>
           </div>
-          <Interruptor
-            ligado={moderacao.haMenores}
-            desabilitado={salvando === "haMenores"}
-            rotulo="Há menores nesta festa"
-            onChange={(v) => void patch({ haMenores: v }, "haMenores")}
+          <Switch
+            on={moderation.hasMinors}
+            disabled={saving === "hasMinors"}
+            label="Há menores nesta festa"
+            onChange={(v) => void patch({ haMenores: v }, "hasMinors")}
           />
         </div>
 
         <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-2">
-          <Efeito rotulo="Para segurar" valor={`${padroes.denunciasParaSegurar} denúncia(s)`} />
-          <Efeito
-            rotulo="Compartilhar fora"
-            valor={padroes.compartilhamentoExterno ? "ligado" : "desligado"}
+          <Effect label="Para segurar" value={`${defaults.denunciasParaSegurar} denúncia(s)`} />
+          <Effect
+            label="Compartilhar fora"
+            value={defaults.compartilhamentoExterno ? "ligado" : "desligado"}
           />
-          <Efeito
-            rotulo="Gate"
-            valor={gateAberto ? "aberto" : padroes.gateComecaFechado ? "fechado" : "aberto"}
+          <Effect
+            label="Gate"
+            value={gateOpen ? "aberto" : defaults.gateComecaFechado ? "fechado" : "aberto"}
           />
         </div>
       </AdminSection>
@@ -146,11 +157,11 @@ export function EventControls({
               Novas fotos e comentários ficam na fila até você liberar.
             </span>
           </div>
-          <Interruptor
-            ligado={moderacao.modoEndurecido}
-            desabilitado={salvando === "modoEndurecido"}
-            rotulo="Modo endurecido"
-            onChange={(v) => void patch({ modoEndurecido: v }, "modoEndurecido")}
+          <Switch
+            on={moderation.hardened}
+            disabled={saving === "hardened"}
+            label="Modo endurecido"
+            onChange={(v) => void patch({ modoEndurecido: v }, "hardened")}
           />
         </div>
       </AdminSection>
@@ -160,11 +171,11 @@ export function EventControls({
         <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
           Reações e comentários no feed só aparecem depois que o casal liberar.
         </p>
-        {gateAberto ? (
+        {gateOpen ? (
           <p className="m-0 text-[0.9rem] text-ink">
             Aberta desde{" "}
-            {interacaoAbreEm
-              ? new Date(interacaoAbreEm).toLocaleString("pt-BR", {
+            {interactionOpensAt
+              ? new Date(interactionOpensAt).toLocaleString("pt-BR", {
                   day: "2-digit",
                   month: "short",
                   hour: "2-digit",
@@ -175,13 +186,13 @@ export function EventControls({
         ) : (
           <button
             type="button"
-            disabled={salvando === "interacao"}
-            onClick={() => void patch({ abrirInteracao: true }, "interacao")}
+            disabled={saving === "interaction"}
+            onClick={() => void patch({ abrirInteracao: true }, "interaction")}
             className={`${adminClasses.primaryButton} ${
-              salvando === "interacao" ? "opacity-60" : ""
+              saving === "interaction" ? "opacity-60" : ""
             }`}
           >
-            {salvando === "interacao" ? "Abrindo…" : "Abrir interação agora"}
+            {saving === "interaction" ? "Abrindo…" : "Abrir interação agora"}
           </button>
         )}
       </AdminSection>
@@ -193,10 +204,10 @@ export function EventControls({
           sem lista nominal.
         </p>
         <div className="flex flex-wrap gap-3">
-          <Link href={`/admin/e/${eventoId}/moderation`} className={adminClasses.primaryButton}>
+          <Link href={`/admin/e/${eventId}/moderation`} className={adminClasses.primaryButton}>
             Abrir moderação
           </Link>
-          <Link href={`/admin/e/${eventoId}/guests`} className={adminClasses.secondaryButton}>
+          <Link href={`/admin/e/${eventId}/guests`} className={adminClasses.secondaryButton}>
             Ver convidados
           </Link>
         </div>
@@ -204,79 +215,79 @@ export function EventControls({
 
       <AdminSection>
         <h2 className="mb-4 mt-0 font-titulo text-lg">Música do casal</h2>
-        <MusicaDoEvento eventoId={eventoId} />
+        <EventMusic eventId={eventId} />
       </AdminSection>
 
       <AdminSection>
         <h2 className="mb-4 mt-0 font-titulo text-lg">Peças para imprimir</h2>
-        <PecasDoEvento eventoId={eventoId} slug={slug} />
+        <EventPieces eventId={eventId} slug={slug} />
       </AdminSection>
 
       <AdminSection>
         <h2 className="mb-4 mt-0 font-titulo text-lg">Links do evento</h2>
-        <LinkEvento title="Convidado (QR)" url={`${origem}/e/${slug}`} />
-        <LinkEvento title="Telão" url={`${origem}/wall-display`} />
+        <EventLink title="Convidado (QR)" url={`${origin}/e/${slug}`} />
+        <EventLink title="Telão" url={`${origin}/wall-display`} />
       </AdminSection>
 
-      {erro && (
+      {error && (
         <p className="m-0 text-[0.9rem] text-critico">Não salvou agora. Tente de novo.</p>
       )}
     </div>
   );
 }
 
-function MusicaDoEvento({ eventoId }: { eventoId: string }) {
+function EventMusic({ eventId }: { eventId: string }) {
   const [url, setUrl] = useState("");
-  const [atual, setAtual] = useState<{ provedor: string; rotulo: string; url: string } | null>(
+  const [current, setCurrent] = useState<{ provedor: string; rotulo: string; url: string } | null>(
     null,
   );
-  const [carregando, setCarregando] = useState(true);
-  const [salvando, setSalvando] = useState(false);
-  const [erro, setErro] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     void (async () => {
       try {
-        const r = await fetch(`/api/admin/events/${eventoId}/music`);
+        const r = await fetch(`/api/admin/events/${eventId}/music`);
         if (!r.ok) throw new Error("falhou");
-        const corpo = (await r.json()) as {
+        const body = (await r.json()) as {
           musica: { provedor: string; rotulo: string; url: string } | null;
         };
-        setAtual(corpo.musica);
-        if (corpo.musica) setUrl(corpo.musica.url);
+        setCurrent(body.musica);
+        if (body.musica) setUrl(body.musica.url);
       } catch {
-        setErro("Não carregou a música salva.");
+        setError("Não carregou a música salva.");
       } finally {
-        setCarregando(false);
+        setLoading(false);
       }
     })();
-  }, [eventoId]);
+  }, [eventId]);
 
-  const salvar = async () => {
-    const limpo = url.trim();
-    if (!limpo) return;
+  const save = async () => {
+    const trimmed = url.trim();
+    if (!trimmed) return;
 
-    setSalvando(true);
-    setErro(null);
+    setSaving(true);
+    setError(null);
     try {
-      const r = await fetch(`/api/admin/events/${eventoId}/music`, {
+      const r = await fetch(`/api/admin/events/${eventId}/music`, {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url: limpo }),
+        body: JSON.stringify({ url: trimmed }),
       });
-      const corpo = (await r.json()) as {
+      const body = (await r.json()) as {
         musica?: { provedor: string; rotulo: string; url: string } | null;
         message?: string;
       };
       if (!r.ok) {
-        setErro(corpo.message ?? "Link não aceito.");
+        setError(body.message ?? "Link não aceito.");
         return;
       }
-      setAtual(corpo.musica ?? null);
+      setCurrent(body.musica ?? null);
     } catch {
-      setErro("Não salvou agora. Tente de novo.");
+      setError("Não salvou agora. Tente de novo.");
     } finally {
-      setSalvando(false);
+      setSaving(false);
     }
   };
 
@@ -287,10 +298,10 @@ function MusicaDoEvento({ eventoId }: { eventoId: string }) {
         e na aba Música.
       </p>
 
-      {carregando ? (
+      {loading ? (
         <p className="m-0 text-[0.9rem] text-ink-3">Carregando…</p>
       ) : (
-        atual && <p className="m-0 text-[0.9rem] text-ink">Agora: {atual.rotulo}</p>
+        current && <p className="m-0 text-[0.9rem] text-ink">Agora: {current.rotulo}</p>
       )}
 
       <label className="flex flex-col gap-1.5">
@@ -306,61 +317,61 @@ function MusicaDoEvento({ eventoId }: { eventoId: string }) {
 
       <button
         type="button"
-        disabled={salvando || !url.trim()}
-        onClick={() => void salvar()}
+        disabled={saving || !url.trim()}
+        onClick={() => void save()}
         className={`${adminClasses.primaryButton} ${
-          salvando || !url.trim() ? "opacity-60" : ""
+          saving || !url.trim() ? "opacity-60" : ""
         }`}
       >
-        {salvando ? "Salvando…" : "Salvar música"}
+        {saving ? "Salvando…" : "Salvar música"}
       </button>
 
-      {erro && <p className="m-0 text-sm text-critico">{erro}</p>}
+      {error && <p className="m-0 text-sm text-critico">{error}</p>}
     </div>
   );
 }
 
-function Efeito({ rotulo, valor }: { rotulo: string; valor: string }) {
+function Effect({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-token bg-bg px-3 py-2.5 text-[0.8125rem]">
-      <span className="block text-ink-3">{rotulo}</span>
-      <span className="mt-0.5 block text-ink">{valor}</span>
+      <span className="block text-ink-3">{label}</span>
+      <span className="mt-0.5 block text-ink">{value}</span>
     </div>
   );
 }
 
-function PecasDoEvento({ eventoId, slug }: { eventoId: string; slug: string }) {
-  const [baixando, setBaixando] = useState<string | null>(null);
-  const [erro, setErro] = useState<string | null>(null);
+function EventPieces({ eventId, slug }: { eventId: string; slug: string }) {
+  const [downloading, setDownloading] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const formatos = [
-    { id: "placa-a4", rotulo: "Placa A4" },
-    { id: "card-de-mesa", rotulo: "Card de mesa" },
-    { id: "card-de-missao", rotulo: "Card de missão" },
+  const formats = [
+    { id: "placa-a4", label: "Placa A4" },
+    { id: "card-de-mesa", label: "Card de mesa" },
+    { id: "card-de-missao", label: "Card de missão" },
   ] as const;
 
-  const baixar = async (formato: (typeof formatos)[number]["id"]) => {
-    setBaixando(formato);
-    setErro(null);
+  const download = async (format: (typeof formats)[number]["id"]) => {
+    setDownloading(format);
+    setError(null);
     try {
-      const r = await fetch(`/api/admin/events/${eventoId}/pieces?formato=${formato}`);
+      const r = await fetch(`/api/admin/events/${eventId}/pieces?formato=${format}`);
       if (!r.ok) {
-        const corpo = (await r.json().catch(() => null)) as { problemas?: string[] } | null;
-        const msg = corpo?.problemas?.join(" ") ?? "Não gerou a peça.";
+        const body = (await r.json().catch(() => null)) as { problemas?: string[] } | null;
+        const msg = body?.problemas?.join(" ") ?? "Não gerou a peça.";
         throw new Error(msg);
       }
       const svg = await r.text();
       const blob = new Blob([svg], { type: "image/svg+xml" });
-      const url = URL.createObjectURL(blob);
+      const objectUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = url;
-      a.download = `albora-${slug}-${formato}.svg`;
+      a.href = objectUrl;
+      a.download = `albora-${slug}-${format}.svg`;
       a.click();
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(objectUrl);
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Não baixou a peça.");
+      setError(e instanceof Error ? e.message : "Não baixou a peça.");
     } finally {
-      setBaixando(null);
+      setDownloading(null);
     }
   };
 
@@ -371,26 +382,26 @@ function PecasDoEvento({ eventoId, slug }: { eventoId: string; slug: string }) {
         CMYK — peça uma prova antes da tiragem inteira.
       </p>
       <div className="flex flex-wrap gap-2">
-        {formatos.map((f) => (
+        {formats.map((f) => (
           <button
             key={f.id}
             type="button"
-            disabled={baixando !== null}
-            onClick={() => void baixar(f.id)}
+            disabled={downloading !== null}
+            onClick={() => void download(f.id)}
             className={`cursor-pointer rounded-pilula border border-linha bg-superficie px-4 py-2.5 font-titulo text-[0.9375rem] text-ink ${
-              baixando !== null ? "cursor-wait" : ""
-            } ${baixando === f.id ? "opacity-60" : ""}`}
+              downloading !== null ? "cursor-wait" : ""
+            } ${downloading === f.id ? "opacity-60" : ""}`}
           >
-            {baixando === f.id ? "Gerando…" : f.rotulo}
+            {downloading === f.id ? "Gerando…" : f.label}
           </button>
         ))}
       </div>
-      {erro && <p className="mb-0 mt-3 text-sm text-critico">{erro}</p>}
+      {error && <p className="mb-0 mt-3 text-sm text-critico">{error}</p>}
     </div>
   );
 }
 
-function LinkEvento({ title, url }: { title: string; url: string }) {
+function EventLink({ title, url }: { title: string; url: string }) {
   return (
     <div className="mb-3.5">
       <span className="block text-xs uppercase tracking-rotulo text-ink-3">{title}</span>
@@ -401,28 +412,28 @@ function LinkEvento({ title, url }: { title: string; url: string }) {
   );
 }
 
-function Interruptor({
-  ligado,
-  desabilitado,
-  rotulo,
+function Switch({
+  on,
+  disabled,
+  label,
   onChange,
 }: {
-  ligado: boolean;
-  desabilitado?: boolean;
-  rotulo: string;
+  on: boolean;
+  disabled?: boolean;
+  label: string;
   onChange: (v: boolean) => void;
 }) {
   return (
     <button
       type="button"
       role="switch"
-      aria-checked={ligado}
-      aria-label={rotulo}
-      disabled={desabilitado}
-      onClick={() => onChange(!ligado)}
+      aria-checked={on}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!on)}
       className={`flex h-[1.875rem] w-[3.25rem] shrink-0 items-center rounded-pilula border-none p-[0.1875rem] ${
-        ligado ? "justify-end bg-acento" : "justify-start bg-linha"
-      } ${desabilitado ? "cursor-wait opacity-60" : "cursor-pointer"}`}
+        on ? "justify-end bg-acento" : "justify-start bg-linha"
+      } ${disabled ? "cursor-wait opacity-60" : "cursor-pointer"}`}
     >
       <span className="size-6 rounded-full bg-superficie-alta" />
     </button>

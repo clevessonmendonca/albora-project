@@ -50,7 +50,7 @@ function temAuth(conteudo) {
   );
 }
 
-/** Rotas EN que só reexportam handlers PT — a auth está na rota de origem. */
+/** Rotas que só reexportam outro handler — a auth está na rota de origem. */
 const ALIAS_DE_ROTA = /export\s*\{[^}]+\}\s*from\s+["'][^"']+\/route["']/;
 
 /** Rotas finas que delegam para @/lib/api/handlers — a auth está no módulo handler. */

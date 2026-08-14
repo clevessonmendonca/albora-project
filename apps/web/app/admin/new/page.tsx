@@ -8,7 +8,7 @@ import { CreateEventWizard } from "@/features/admin/components/client/create-eve
 export const dynamic = "force-dynamic";
 
 /** Criar evento — só para quem entrou. Tema neutro: aqui é a conta, não o evento. */
-export default async function Pagina() {
+export default async function NewEventPage() {
   const token = (await cookies()).get(HOST_COOKIE)?.value;
   const host = await hostFromToken(token);
   if (!host) redirect("/admin/sign-in");

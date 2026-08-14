@@ -3,7 +3,7 @@ import { IdentityEditor } from "@/features/admin/components/client/identity-edit
 
 export const dynamic = "force-dynamic";
 
-export default async function PaginaIdentidade({
+export default async function IdentityPage({
   params,
 }: {
   params: Promise<{ eventId: string }>;
@@ -14,10 +14,10 @@ export default async function PaginaIdentidade({
     <EventPageLayout eventId={eventId} section="Identidade">
       {({ evento }) => (
         <IdentityEditor
-          eventoId={eventId}
+          eventId={eventId}
           packId={evento.packId}
-          expectedGuestsInicial={evento.expectedGuests}
-          identityTokensInicial={evento.identityTokens}
+          initialExpectedGuests={evento.expectedGuests}
+          initialIdentityTokens={evento.identityTokens}
         />
       )}
     </EventPageLayout>

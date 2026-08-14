@@ -1,5 +1,5 @@
-import { PaginaLanding } from "@/app/landing/pagina-landing";
+import { LandingPage } from "@/app/landing/landing-page";
 
 export function violador() {
-  return PaginaLanding;
+  return LandingPage;
 }

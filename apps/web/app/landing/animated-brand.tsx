@@ -11,13 +11,13 @@
  *
  * O `prefers-reduced-motion` já vem tratado dentro do próprio SVG do pacote.
  */
-export function MarcaAnimada({ altura = "2rem" }: { altura?: string }) {
+export function AnimatedBrand({ height = "2rem" }: { height?: string }) {
   return (
     <span
       aria-label="Albora"
       role="img"
       className="block aspect-[300/64]"
-      style={{ height: altura }}
+      style={{ height }}
       // O SVG é ativo estático do pacote de marca, não entrada de usuário.
       dangerouslySetInnerHTML={{ __html: SVG }}
     />

@@ -4,7 +4,7 @@ import { LiveSummary } from "@/features/admin/components/client/live-summary";
 
 export const dynamic = "force-dynamic";
 
-export default async function Pagina({
+export default async function EventPage({
   params,
 }: {
   params: Promise<{ eventId: string }>;
@@ -17,10 +17,10 @@ export default async function Pagina({
         <>
           <LiveSummary eventoId={eventId} />
           <EventControls
-            eventoId={evento.eventoId}
+            eventId={evento.eventoId}
             slug={evento.slug}
-            inicial={evento.moderacao}
-            interacaoAbreEmInicial={evento.interacaoAbreEm?.toISOString() ?? null}
+            initial={evento.moderacao}
+            initialInteractionOpensAt={evento.interacaoAbreEm?.toISOString() ?? null}
           />
         </>
       )}

@@ -1,6 +1,6 @@
 import { WEDDING, landingProblems } from "@albora/packs";
 import type { Metadata } from "next";
-import { PaginaLanding } from "./landing/pagina-landing";
+import { LandingPage } from "./landing/landing-page";
 
 export const metadata: Metadata = {
   title: "Albora — o álbum coletivo da sua festa",
@@ -13,5 +13,5 @@ export default function Home() {
   const problemas = landingProblems(WEDDING);
   if (problemas.length > 0) throw new Error(problemas.join("; "));
 
-  return <PaginaLanding pack={WEDDING} />;
+  return <LandingPage pack={WEDDING} />;
 }

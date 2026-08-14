@@ -13,7 +13,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default async function Pagina() {
+export default async function AdminPage() {
   const token = (await cookies()).get(HOST_COOKIE)?.value;
   const host = await hostFromToken(token);
   if (!host) redirect("/admin/sign-in");

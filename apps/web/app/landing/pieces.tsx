@@ -2,22 +2,22 @@ import { cn } from "@albora/ui-web";
 import type { CSSProperties, ReactNode } from "react";
 
 /**
- * As peças repetidas da landing da v4 — a pílula, o rótulo, o chão quente e a
- * moldura de foto.
+ * Repeated landing pieces from v4 — the pill, the label, the warm ground and
+ * the photo frame.
  *
- * Existem para que o mesmo desenho não seja redigitado em nove lugares e
- * divirja em três. Nenhuma cor literal: a v4 escreve `#FFF6E9` e aqui isso é
- * papel aquecido pelo âmbar **do evento**, que é o que faz a landing mudar de
- * cara quando o casal muda a dele.
+ * They exist so the same drawing is not retyped in nine places and diverges
+ * in three. No literal colors: v4 writes `#FFF6E9` and here that is paper
+ * warmed by the event amber, which is what makes the landing change look
+ * when the couple changes theirs.
  */
 
-export const pilulaClasses =
+export const pillClasses =
   "pilula inline-flex items-center justify-center whitespace-nowrap rounded-pilula bg-ink px-8 py-4 font-medium text-bg no-underline";
 
-export const pilulaClaraClasses =
+export const lightPillClasses =
   "pilula inline-flex items-center justify-center whitespace-nowrap rounded-pilula bg-superficie-alta px-8 py-4 font-normal text-ink no-underline";
 
-export function Rotulo({ children }: { children: ReactNode }) {
+export function Label({ children }: { children: ReactNode }) {
   return (
     <p className="mb-4 text-[0.8125rem] uppercase tracking-rotulo text-acento-texto">
       {children}
@@ -25,13 +25,13 @@ export function Rotulo({ children }: { children: ReactNode }) {
   );
 }
 
-export function Titulo({
+export function Heading({
   children,
-  tamanho = "clamp(1.75rem, 4.2vw, 3.25rem)",
+  size = "clamp(1.75rem, 4.2vw, 3.25rem)",
   className,
 }: {
   children: ReactNode;
-  tamanho?: string;
+  size?: string;
   className?: string;
 }) {
   return (
@@ -40,71 +40,69 @@ export function Titulo({
         "m-0 font-titulo font-light leading-[1.03] tracking-titulo text-balance",
         className,
       )}
-      style={{ fontSize: tamanho }}
+      style={{ fontSize: size }}
     >
       {children}
     </h2>
   );
 }
 
-/** A oração em itálico e âmbar que a v4 usa para fechar todo título. */
-export function Realce({ children }: { children: ReactNode }) {
+/** The italic amber clause v4 uses to close every heading. */
+export function Accent({ children }: { children: ReactNode }) {
   return <em className="font-normal italic text-acento-texto">{children}</em>;
 }
 
 /**
- * O lugar de uma foto.
+ * The place of a photo.
  *
- * Com `src`, é a foto. Sem, é um buraco **declarado** — desenhado como prova
- * de revelação, com as marcas de corte e a tarja de legenda, em vez de virar
- * `<img>` quebrado ou retângulo cinza. Cinza neutro passa por decisão de
- * design e sobrevive à revisão; isto não passa.
+ * With `src`, it is the photo. Without, it is a **declared** hole — drawn as
+ * proof of development, with crop marks and a caption bar, instead of a
+ * broken `<img>` or a gray rectangle. Neutral gray reads as a design
+ * decision and survives review; this does not.
  */
-export { Moldura as Frame };
-
-export function Moldura({
-  rotulo,
-  raio: curvatura,
+export function Frame({
+  label,
+  radius: curvature,
   src,
-  prioridade,
-  atmosfera,
-  variante,
+  priority,
+  atmosphere,
+  variant,
 }: {
-  rotulo: string;
-  raio: string;
+  label: string;
+  radius: string;
   src?: string;
-  prioridade?: boolean;
+  priority?: boolean;
   /**
-   * Luzes fora de foco, para o slot que espera foto de festa à noite.
+   * Out-of-focus lights, for the slot that waits for a night-party photo.
    *
-   * São pontos pequenos e discretos de propósito: um borrão que cobre o
-   * quadro inteiro lê como imagem quebrada carregando, e foi assim que a
-   * primeira versão desta moldura errou.
+   * They are small and discreet on purpose: a blur covering the whole frame
+   * reads as a broken image loading, which is how the first version of this
+   * frame went wrong.
    */
-  atmosfera?: boolean;
-  /** Desloca as luzes, para cinco slots lado a lado não repetirem o mesmo céu. */
-  variante?: number;
+  atmosphere?: boolean;
+  /** Offsets the lights so five slots side by side do not repeat the same sky. */
+  variant?: number;
 }) {
   if (src) {
     return (
       <img
         src={src}
-        alt={rotulo}
-        loading={prioridade ? "eager" : "lazy"}
+        alt={label}
+        loading={priority ? "eager" : "lazy"}
         decoding="async"
-        {...(prioridade ? { fetchPriority: "high" as const } : {})}
+        {...(priority ? { fetchPriority: "high" as const } : {})}
         className="absolute inset-0 h-full w-full object-cover"
-        style={radiusStyle(curvatura)}
+        style={radiusStyle(curvature)}
       />
     );
   }
 
-  const background: CSSProperties = atmosfera
+  const background: CSSProperties = atmosphere
     ? {
         backgroundImage: ATMOSPHERE,
         backgroundSize: "125% 125%",
-        backgroundPositionX: `${((variante ?? 0) * 23) % 101}%`,
-        backgroundPositionY: `${((variante ?? 0) * 41) % 101}%`,
+        backgroundPositionX: `${((variant ?? 0) * 23) % 101}%`,
+        backgroundPositionY: `${((variant ?? 0) * 41) % 101}%`,
       }
     : {
         backgroundImage:
@@ -114,17 +112,17 @@ export function Moldura({
   return (
     <div
       className="brilho absolute inset-0 grid place-items-center overflow-hidden bg-acento-fundo p-3"
-      style={{ ...radiusStyle(curvatura), ...background }}
+      style={{ ...radiusStyle(curvature), ...background }}
     >
-      {rotulo || atmosfera ? null : (
+      {label || atmosphere ? null : (
         <span
           className="pointer-events-none absolute left-1/2 top-1/2 aspect-square w-[min(18%,2.25rem)] -translate-x-1/2 -translate-y-1/2 rounded-full border border-ink-borda-forte"
           aria-hidden="true"
         />
       )}
-      {rotulo ? (
+      {label ? (
         <span className="relative max-w-[18ch] rounded-pilula bg-bg-vidro-medio px-3 py-1.5 text-center text-[0.625rem] uppercase leading-[1.35] tracking-rotulo text-ink-2">
-          {rotulo}
+          {label}
         </span>
       ) : null}
     </div>
@@ -140,7 +138,7 @@ const ATMOSPHERE = [
   "linear-gradient(158deg, color-mix(in srgb, var(--acento) 10%, transparent), transparent 62%)",
 ].join(", ");
 
-/** Longhand border-radius — `border-radius: var(--raio)` quebra hidratação. */
+/** Longhand border-radius — `border-radius: var(--raio)` breaks hydration. */
 export function radiusStyle(v: string): CSSProperties {
   return {
     borderTopLeftRadius: v,
@@ -150,10 +148,10 @@ export function radiusStyle(v: string): CSSProperties {
   };
 }
 
-export function transicao(propriedade: string, tempo = "var(--tempo)"): CSSProperties {
+export function transition(property: string, duration = "var(--tempo)"): CSSProperties {
   return {
-    transitionProperty: propriedade,
-    transitionDuration: tempo,
+    transitionProperty: property,
+    transitionDuration: duration,
     transitionTimingFunction: "var(--curva)",
   };
 }

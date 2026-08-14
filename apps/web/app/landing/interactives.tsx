@@ -10,62 +10,62 @@ import { cn } from "@albora/ui-web";
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import {
-  Moldura,
-  Realce,
-  Rotulo,
-  Titulo,
+  Accent,
+  Frame,
+  Heading,
+  Label,
   radiusStyle,
-  transicao,
-} from "./pecas";
-import { Papelaria } from "./vitrines";
+  transition,
+} from "./pieces";
+import { Stationery } from "./showcases";
 
 /**
- * As três peças da v4 que respondem a gesto.
+ * The three v4 pieces that respond to gesture.
  *
- * Todas renderizam no servidor no primeiro estado e só então hidratam — a
- * verificação 2 da spec 013 é "a página funciona sem JS até o CTA", e uma
- * demo que só existe depois da hidratação deixaria um buraco no meio da
- * página num Android velho em 4G.
+ * All render on the server in the first state and only then hydrate — spec
+ * 013 check 2 is "the page works without JS until the CTA", and a demo that
+ * only exists after hydration would leave a hole in the middle of the page
+ * on an old Android on 4G.
  */
 
-const PASSOS = [
+const STEPS = [
   {
-    titulo: "O QR na mesa",
-    legenda: "23:41",
-    descricao:
+    title: "O QR na mesa",
+    caption: "23:41",
+    description:
       "A placa fica na mesa. O convidado aponta a câmera e cai direto na tela de fotografar — sem loja de aplicativos e sem senha no caminho.",
   },
   {
-    titulo: "A missão, e a foto",
-    legenda: "23:47",
-    descricao:
+    title: "A missão, e a foto",
+    caption: "23:47",
+    description:
       "Um convite curto por vez. A foto sai do celular direto para o armazenamento, e a fila segura o envio até o sinal voltar.",
   },
   {
-    titulo: "O álbum, ao vivo",
-    legenda: "00:12",
-    descricao:
+    title: "O álbum, ao vivo",
+    caption: "00:12",
+    description:
       "Segundos depois ela está no feed, e todo mundo acompanha pelo próprio celular. Ninguém precisa mandar nada para ninguém no dia seguinte.",
   },
 ] as const;
 
-function Tela({ passo, exemplo, missao }: { passo: number; exemplo: string; missao: string }) {
-  const escuro = resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } });
+function Screen({ step, example, mission }: { step: number; example: string; mission: string }) {
+  const dark = resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } });
 
   return (
     <div
       className="relative flex h-full w-full flex-col overflow-hidden bg-bg text-ink"
       style={{
-        ...(toVariables(escuro) as CSSProperties),
+        ...(toVariables(dark) as CSSProperties),
         ...radiusStyle("calc(var(--raio-superficie) - 0.5rem)"),
       }}
     >
       <div className="flex justify-between px-4 pb-1.5 pt-3.5 text-[0.625rem] uppercase tracking-rotulo text-ink-3">
-        <span>{PASSOS[passo]?.legenda}</span>
-        <span className="font-titulo">{exemplo}</span>
+        <span>{STEPS[step]?.caption}</span>
+        <span className="font-titulo">{example}</span>
       </div>
 
-      {passo === 0 ? (
+      {step === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-[1.125rem] p-5">
           <div className="aspect-square w-[70%] rounded-token bg-ink p-2.5">
             <div
@@ -83,16 +83,16 @@ function Tela({ passo, exemplo, missao }: { passo: number; exemplo: string; miss
         </div>
       ) : null}
 
-      {passo === 1 ? (
+      {step === 1 ? (
         <div className="flex min-h-0 flex-1 flex-col gap-2 p-3.5">
           <p className="m-0 text-[0.625rem] uppercase tracking-rotulo text-acento">
             MISSÃO 03 DE 04
           </p>
           <div className="rounded-token bg-acento-overlay p-4">
-            <p className="m-0 font-titulo text-[1.125rem] leading-[1.25]">{missao}</p>
+            <p className="m-0 font-titulo text-[1.125rem] leading-[1.25]">{mission}</p>
           </div>
           <div className="relative min-h-12 flex-1">
-            <Moldura rotulo="A pista" raio="var(--raio)" />
+            <Frame label="A pista" radius="var(--raio)" />
           </div>
           <div className="flex items-center justify-center gap-2.5 rounded-pilula bg-ink px-3.5 py-[0.8125rem] text-[0.84375rem] font-semibold text-bg">
             <span className="pulso size-[0.5625rem] rounded-full bg-acento" />
@@ -101,11 +101,11 @@ function Tela({ passo, exemplo, missao }: { passo: number; exemplo: string; miss
         </div>
       ) : null}
 
-      {passo === 2 ? (
+      {step === 2 ? (
         <div className="relative grid flex-1 grid-cols-2 grid-rows-[1fr_1fr] gap-[0.4375rem] p-3.5">
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="relative">
-              <Moldura rotulo="" raio="var(--raio)" />
+              <Frame label="" radius="var(--raio)" />
             </div>
           ))}
           <div className="absolute inset-x-3.5 bottom-3.5 rounded-pilula bg-superficie-alta p-[0.6875rem] text-center text-xs">
@@ -117,105 +117,105 @@ function Tela({ passo, exemplo, missao }: { passo: number; exemplo: string; miss
   );
 }
 
-function Fone({
-  passo,
-  largura,
-  exemplo,
-  missao,
+function Phone({
+  step,
+  width,
+  example,
+  mission,
 }: {
-  passo: number;
-  largura: string;
-  exemplo: string;
-  missao: string;
+  step: number;
+  width: string;
+  example: string;
+  mission: string;
 }) {
   return (
     <div
       className="relative aspect-[9/19] rounded-superficie bg-gradient-device p-2 shadow-alta"
       style={{
-        width: largura,
-        ...transicao("transform", "var(--tempo-lento)"),
+        width,
+        ...transition("transform", "var(--tempo-lento)"),
       }}
     >
-      <Tela passo={passo} exemplo={exemplo} missao={missao} />
+      <Screen step={step} example={example} mission={mission} />
     </div>
   );
 }
 
 /**
- * A demo por rolagem da v4: um trilho de 300vh e um cartão grudado que avança
- * três passos conforme a página desce.
+ * The v4 scroll demo: a 300vh track and a stuck card that advances three
+ * steps as the page goes down.
  *
- * Fora da tela o observador é desligado. Um `scroll` ouvindo a página inteira
- * durante seis seções é trabalho por quadro que ninguém vê.
+ * Off-screen the observer is disconnected. A `scroll` listener on the whole
+ * page across six sections is per-frame work nobody sees.
  */
-export function DemoRolagem({ exemplo, missao }: { exemplo: string; missao: string }) {
-  const trilho = useRef<HTMLDivElement>(null);
-  const [passo, setPasso] = useState(0);
-  const [progresso, setProgresso] = useState(0);
+export function ScrollDemo({ example, mission }: { example: string; mission: string }) {
+  const track = useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState(0);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const alvo = trilho.current;
-    if (!alvo) return;
+    const target = track.current;
+    if (!target) return;
 
-    let pedido = 0;
-    const medir = () => {
-      pedido = 0;
-      const caixa = alvo.getBoundingClientRect();
-      const curso = caixa.height - window.innerHeight;
-      if (curso <= 0) return;
+    let pending = 0;
+    const measure = () => {
+      pending = 0;
+      const box = target.getBoundingClientRect();
+      const course = box.height - window.innerHeight;
+      if (course <= 0) return;
 
-      const p = Math.min(1, Math.max(0, -caixa.top / curso));
-      setProgresso(p);
-      setPasso(Math.min(PASSOS.length - 1, Math.floor(p * PASSOS.length)));
+      const p = Math.min(1, Math.max(0, -box.top / course));
+      setProgress(p);
+      setStep(Math.min(STEPS.length - 1, Math.floor(p * STEPS.length)));
     };
 
-    const aoRolar = () => {
-      if (pedido === 0) pedido = requestAnimationFrame(medir);
+    const onScroll = () => {
+      if (pending === 0) pending = requestAnimationFrame(measure);
     };
 
-    const observador = new IntersectionObserver(
-      ([entrada]) => {
-        if (entrada?.isIntersecting) {
-          window.addEventListener("scroll", aoRolar, { passive: true });
-          medir();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          window.addEventListener("scroll", onScroll, { passive: true });
+          measure();
         } else {
-          window.removeEventListener("scroll", aoRolar);
+          window.removeEventListener("scroll", onScroll);
         }
       },
       { rootMargin: "100px" },
     );
 
-    observador.observe(alvo);
+    observer.observe(target);
 
     return () => {
-      observador.disconnect();
-      window.removeEventListener("scroll", aoRolar);
-      if (pedido !== 0) cancelAnimationFrame(pedido);
+      observer.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      if (pending !== 0) cancelAnimationFrame(pending);
     };
   }, []);
 
-  const atual = PASSOS[passo] ?? PASSOS[0];
+  const current = STEPS[step] ?? STEPS[0];
 
   return (
-    <div ref={trilho} className="relative h-[300vh]">
+    <div ref={track} className="relative h-[300vh]">
       <div className="sticky top-[4.875rem] flex max-h-[calc(100vh-6rem)] flex-col gap-[clamp(0.625rem,1.6vw,1.25rem)] overflow-hidden rounded-superficie bg-gradient-chao-quente p-[clamp(1rem,2.4vw,1.875rem)_clamp(1rem,3vw,2.25rem)]">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
           <div>
-            <Rotulo>Role para viver a festa</Rotulo>
-            <Titulo tamanho="clamp(1.375rem, 3vw, 2.375rem)">{atual.titulo}</Titulo>
+            <Label>Role para viver a festa</Label>
+            <Heading size="clamp(1.375rem, 3vw, 2.375rem)">{current.title}</Heading>
           </div>
-          <span className="text-ink-2">{atual.legenda}</span>
+          <span className="text-ink-2">{current.caption}</span>
         </div>
 
         <div className="h-[0.1875rem] overflow-hidden rounded-pilula bg-acento-overlay-suave">
           <div
             className="h-full rounded-pilula bg-acento"
-            style={{ width: `${Math.round(progresso * 100)}%` }}
+            style={{ width: `${Math.round(progress * 100)}%` }}
           />
         </div>
 
         <div className="flex min-h-0 flex-wrap items-center justify-center gap-[clamp(1rem,3vw,2.5rem)]">
-          <Fone passo={passo} largura="min(15rem, 42vw)" exemplo={exemplo} missao={missao} />
+          <Phone step={step} width="min(15rem, 42vw)" example={example} mission={mission} />
 
           <div className="min-w-[min(17.5rem,100%)] max-w-[40rem] flex-1">
             <div className="rounded-[calc(var(--raio-superficie)-0.75rem)] bg-gradient-device p-[0.5625rem]">
@@ -225,18 +225,18 @@ export function DemoRolagem({ exemplo, missao }: { exemplo: string; missao: stri
                     key={i}
                     className="relative"
                     style={{
-                      opacity: progresso * 6 > i ? 1 : 0,
-                      transform: progresso * 6 > i ? "scale(1)" : "scale(0.92)",
+                      opacity: progress * 6 > i ? 1 : 0,
+                      transform: progress * 6 > i ? "scale(1)" : "scale(0.92)",
                       transition:
                         "opacity var(--tempo-lento) var(--curva), transform var(--tempo-lento) var(--curva)",
                     }}
                   >
-                    <Moldura rotulo="" raio="var(--raio)" />
+                    <Frame label="" radius="var(--raio)" />
                   </div>
                 ))}
               </div>
             </div>
-            <p className="mt-3.5 leading-[1.55] text-ink-2">{atual.descricao}</p>
+            <p className="mt-3.5 leading-[1.55] text-ink-2">{current.description}</p>
           </div>
         </div>
       </div>
@@ -245,44 +245,44 @@ export function DemoRolagem({ exemplo, missao }: { exemplo: string; missao: stri
 }
 
 /**
- * O telão vestindo cada modelo de identidade.
+ * The wall wearing each identity model.
  *
- * O quadro inteiro é redesenhado pelo resolvedor — cor, fonte, raio,
- * densidade e tracking de uma vez. Se um dia divergir do telão de verdade, é
- * porque alguém escreveu o segundo resolvedor que o ADR 0003 proíbe.
+ * The whole frame is redrawn by the resolver — color, font, radius, density
+ * and tracking at once. If it ever diverges from the real wall, someone
+ * wrote the second resolver that ADR 0003 forbids.
  */
-export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
-  const [escolhido, setEscolhido] = useState(IDENTITY_MODELS[0]?.id ?? "");
-  const modelo =
-    IDENTITY_MODELS.find((m) => m.id === escolhido) ?? IDENTITY_MODELS[0];
+export function IdentityWall({ example }: { example: string }) {
+  const [selected, setSelected] = useState(IDENTITY_MODELS[0]?.id ?? "");
+  const model =
+    IDENTITY_MODELS.find((m) => m.id === selected) ?? IDENTITY_MODELS[0];
 
   const tokens = resolveTokens({
     marca: ALBORA_BRAND,
-    ...(modelo ? { evento: modelo.camada } : {}),
+    ...(model ? { evento: model.camada } : {}),
   });
 
-  const tokensNoPapel = resolveTokens({
+  const printTokens = resolveTokens({
     marca: ALBORA_BRAND,
-    ...(modelo ? { evento: { ...modelo.camada, fundo: "claro" } } : { pack: { fundo: "claro" } }),
+    ...(model ? { evento: { ...model.camada, fundo: "claro" } } : { pack: { fundo: "claro" } }),
   });
 
   return (
     <>
       <div className="mb-5 flex flex-wrap gap-2.5">
         {IDENTITY_MODELS.map((m) => {
-          const ativo = m.id === escolhido;
+          const active = m.id === selected;
 
           return (
             <button
               key={m.id}
               type="button"
-              onClick={() => setEscolhido(m.id)}
-              aria-pressed={ativo}
+              onClick={() => setSelected(m.id)}
+              aria-pressed={active}
               className={cn(
                 "flex cursor-pointer items-center gap-[0.6875rem] rounded-pilula border px-5 py-3 font-corpo text-[0.90625rem] text-ink",
-                ativo ? "border-acento bg-superficie-alta" : "border-linha bg-transparent",
+                active ? "border-acento bg-superficie-alta" : "border-linha bg-transparent",
               )}
-              style={transicao("all", "var(--tempo)")}
+              style={transition("all", "var(--tempo)")}
             >
               <span
                 className="size-3.5 rounded-full"
@@ -303,21 +303,21 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
             className="relative h-[clamp(15.625rem,38vw,33.75rem)] overflow-hidden bg-bg"
             style={{
               ...radiusStyle("calc(var(--raio-superficie) - 0.75rem)"),
-              ...transicao("background", "var(--tempo-lento)"),
+              ...transition("background", "var(--tempo-lento)"),
             }}
           >
             <div
               className="absolute inset-[var(--espaco)] grid grid-cols-[2fr_1fr] grid-rows-2 gap-[var(--espaco)]"
-              style={transicao("all", "var(--tempo-lento)")}
+              style={transition("all", "var(--tempo-lento)")}
             >
               <div className="relative row-span-2">
-                <Moldura rotulo="Foto grande do telão" raio="var(--raio)" />
+                <Frame label="Foto grande do telão" radius="var(--raio)" />
               </div>
               <div className="relative">
-                <Moldura rotulo="" raio="var(--raio)" />
+                <Frame label="" radius="var(--raio)" />
               </div>
               <div className="relative">
-                <Moldura rotulo="" raio="var(--raio)" />
+                <Frame label="" radius="var(--raio)" />
               </div>
             </div>
 
@@ -329,16 +329,16 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
             </div>
 
             <div className="absolute right-[var(--espaco)] top-[var(--espaco)] font-titulo text-[0.8125rem] uppercase tracking-rotulo text-ink-2">
-              {exemplo}
+              {example}
             </div>
           </div>
         </div>
 
-        <div style={toVariables(tokensNoPapel) as CSSProperties}>
+        <div style={toVariables(printTokens) as CSSProperties}>
           <p className="mb-[clamp(0.875rem,2vw,1.25rem)] text-[0.8125rem] uppercase tracking-rotulo text-acento-texto">
             E o mesmo desenho sai impresso
           </p>
-          <Papelaria exemplo={exemplo} />
+          <Stationery example={example} />
         </div>
       </div>
     </>
@@ -346,41 +346,41 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
 }
 
 /**
- * A grade de missões da v4, no cartão escuro.
+ * The v4 mission grid, on the dark card.
  *
- * O cartão recebe o chão escuro pelo mesmo resolvedor em vez de uma paleta
- * invertida à mão — é a mesma troca que o convidado vê às 23h, provada aqui.
+ * The card receives dark ground from the same resolver instead of a
+ * hand-inverted palette — the same swap the guest sees at 11pm, proven here.
  */
-export function Missoes({
-  missoes,
-  titulo,
-  destaque,
+export function Missions({
+  missions,
+  title,
+  highlight,
   lede,
 }: {
-  missoes: { id: string; titulo: string }[];
-  titulo: string;
-  destaque: string;
+  missions: { id: string; title: string }[];
+  title: string;
+  highlight: string;
   lede: string;
 }) {
-  const [feitas, setFeitas] = useState<string[]>([]);
-  const escuro = resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } });
+  const [done, setDone] = useState<string[]>([]);
+  const dark = resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } });
 
-  const alternar = (id: string) =>
-    setFeitas((atual) =>
-      atual.includes(id) ? atual.filter((x) => x !== id) : [...atual, id],
+  const toggle = (id: string) =>
+    setDone((current) =>
+      current.includes(id) ? current.filter((x) => x !== id) : [...current, id],
     );
 
-  const razao = missoes.length === 0 ? 0 : feitas.length / missoes.length;
+  const ratio = missions.length === 0 ? 0 : done.length / missions.length;
 
   return (
     <div
       className="rounded-superficie bg-bg p-[clamp(2rem,5vw,4.5rem)_clamp(1.5rem,4vw,3.75rem)] text-ink"
-      style={toVariables(escuro) as CSSProperties}
+      style={toVariables(dark) as CSSProperties}
     >
       <div className="mb-[clamp(1.25rem,3vw,1.875rem)] flex flex-wrap items-end justify-between gap-6">
-        <Titulo tamanho="clamp(1.75rem, 4.2vw, 3.25rem)" className="max-w-[20ch]">
-          {titulo} <Realce>{destaque}</Realce>
-        </Titulo>
+        <Heading size="clamp(1.75rem, 4.2vw, 3.25rem)" className="max-w-[20ch]">
+          {title} <Accent>{highlight}</Accent>
+        </Heading>
         <p className="m-0 max-w-[20rem] leading-normal text-ink-2">
           {lede} Toque numa para ver como o convidado marca.
         </p>
@@ -391,31 +391,31 @@ export function Missoes({
           <div
             className="h-full rounded-pilula bg-acento"
             style={{
-              width: `${Math.round(razao * 100)}%`,
-              ...transicao("width", "var(--tempo-lento)"),
+              width: `${Math.round(ratio * 100)}%`,
+              ...transition("width", "var(--tempo-lento)"),
             }}
           />
         </div>
         <span className="whitespace-nowrap text-ink-2">
-          {feitas.length} de {missoes.length}
+          {done.length} de {missions.length}
         </span>
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(14.375rem,1fr))] gap-[0.875rem]">
-        {missoes.map((missao, i) => {
-          const feita = feitas.includes(missao.id);
+        {missions.map((mission, i) => {
+          const complete = done.includes(mission.id);
 
           return (
             <button
-              key={missao.id}
+              key={mission.id}
               type="button"
-              onClick={() => alternar(missao.id)}
-              aria-pressed={feita}
+              onClick={() => toggle(mission.id)}
+              aria-pressed={complete}
               className={cn(
                 "flex min-h-[10.75rem] cursor-pointer flex-col justify-between gap-[1.375rem] rounded-superficie border-0 p-6 text-left font-corpo text-ink shadow-suave",
-                feita ? "bg-superficie-alta" : "bg-superficie",
+                complete ? "bg-superficie-alta" : "bg-superficie",
               )}
-              style={transicao("background", "var(--tempo)")}
+              style={transition("background", "var(--tempo)")}
             >
               <span className="flex items-center justify-between gap-3">
                 <span className="text-[0.6875rem] font-semibold uppercase tracking-rotulo text-acento">
@@ -424,23 +424,23 @@ export function Missoes({
                 <span
                   className={cn(
                     "grid size-[1.625rem] place-items-center rounded-full border text-[0.8125rem]",
-                    feita
+                    complete
                       ? "border-acento bg-acento text-sobre-acento"
                       : "border-linha bg-transparent",
                   )}
-                  style={transicao("all", "var(--tempo)")}
+                  style={transition("all", "var(--tempo)")}
                 >
-                  {feita ? "✓" : ""}
+                  {complete ? "✓" : ""}
                 </span>
               </span>
               <span
                 className="font-titulo text-[1.3125rem] font-light leading-[1.22] tracking-titulo"
                 style={{
-                  opacity: feita ? 0.45 : 1,
-                  ...transicao("opacity", "var(--tempo)"),
+                  opacity: complete ? 0.45 : 1,
+                  ...transition("opacity", "var(--tempo)"),
                 }}
               >
-                {missao.titulo}
+                {mission.title}
               </span>
             </button>
           );
@@ -451,65 +451,65 @@ export function Missoes({
 }
 
 /**
- * Entra quando chega à vista, uma vez só.
+ * Enters when it comes into view, once.
  *
- * Três decisões que não são estilo:
+ * Three decisions that are not style:
  *
- * - **Começa visível e o JS esconde.** O contrário deixaria a página inteira
- *   em branco para quem tem JS desligado ou lento, e a verificação 2 da spec
- *   013 é justamente que a página funcione sem JS. Quem não hidrata vê tudo.
- * - **Desconecta ao revelar.** Observador vivo depois de cumprir o papel é
- *   trabalho por quadro que ninguém vê, numa página que já tem uma demo de
- *   300vh escutando rolagem.
- * - **Respeita `prefers-reduced-motion` no próprio JS.** A regra em CSS zera a
- *   transição, mas o elemento ainda partiria de `opacity: 0` até o observador
- *   disparar — e num Android velho isso é um piscar. Aqui ele nem começa
- *   escondido.
+ * - **Starts visible and JS hides.** The opposite would leave the whole page
+ *   blank for anyone with JS off or slow, and spec 013 check 2 is exactly
+ *   that the page works without JS. Anyone who does not hydrate sees everything.
+ * - **Disconnects on reveal.** A live observer after it has done its job is
+ *   per-frame work nobody sees, on a page that already has a 300vh demo
+ *   listening to scroll.
+ * - **Honors `prefers-reduced-motion` in JS itself.** The CSS rule zeroes the
+ *   transition, but the element would still start at `opacity: 0` until the
+ *   observer fires — and on an old Android that is a blink. Here it never
+ *   starts hidden.
  */
-export function Revelar({
+export function Reveal({
   children,
-  atraso = 0,
+  delay = 0,
   className,
 }: {
   children: ReactNode;
-  atraso?: number;
+  delay?: number;
   className?: string;
 }) {
-  const alvo = useRef<HTMLDivElement>(null);
-  const [visivel, setVisivel] = useState(true);
+  const target = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    const elemento = alvo.current;
-    if (!elemento) return;
+    const element = target.current;
+    if (!element) return;
 
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    setVisivel(false);
+    setVisible(false);
 
-    const observador = new IntersectionObserver(
-      ([entrada]) => {
-        if (!entrada?.isIntersecting) return;
-        setVisivel(true);
-        observador.disconnect();
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setVisible(true);
+        observer.disconnect();
       },
       { rootMargin: "0px 0px -12% 0px" },
     );
 
-    observador.observe(elemento);
-    return () => observador.disconnect();
+    observer.observe(element);
+    return () => observer.disconnect();
   }, []);
 
   return (
     <div
-      ref={alvo}
+      ref={target}
       className={className}
       style={{
-        opacity: visivel ? 1 : 0,
-        transform: visivel ? "none" : "translateY(1.25rem)",
+        opacity: visible ? 1 : 0,
+        transform: visible ? "none" : "translateY(1.25rem)",
         transitionProperty: "opacity, transform",
         transitionDuration: "var(--tempo-lento)",
         transitionTimingFunction: "var(--curva)",
-        transitionDelay: `${atraso}ms`,
+        transitionDelay: `${delay}ms`,
       }}
     >
       {children}

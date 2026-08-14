@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
  * de um evento, então não há identidade de casal aqui. O `m` é o magic link
  * vindo do e-mail; sem ele, a tela pede o e-mail.
  */
-export default async function Pagina({
+export default async function SignInPage({
   searchParams,
 }: {
   searchParams: Promise<{ m?: string }>;
