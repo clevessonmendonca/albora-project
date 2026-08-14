@@ -79,7 +79,7 @@ export function Polaroid({
   variant?: number;
   width?: string;
 }) {
-  const night = resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } });
+  const night = resolveTokens({ marca: ALBORA_BRAND, pack: { background: "dark" } });
 
   return (
     <figure
@@ -114,7 +114,7 @@ export function NightSlot({
   ratio: string;
   radius?: string;
 }) {
-  const night = resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } });
+  const night = resolveTokens({ marca: ALBORA_BRAND, pack: { background: "dark" } });
 
   return (
     <div

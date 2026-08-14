@@ -151,7 +151,7 @@ export type LiveStats = { fotos: number; eventos: number };
 export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
   const tokens = resolveTokens({
     marca: ALBORA_BRAND,
-    pack: { ...pack.tokens, fundo: "claro" },
+    pack: { ...pack.tokens, background: "light" },
   });
 
   const t = (key: string) => resolvePackText(pack, key);

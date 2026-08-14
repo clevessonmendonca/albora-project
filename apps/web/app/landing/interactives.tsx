@@ -50,7 +50,7 @@ const STEPS = [
 ] as const;
 
 function Screen({ step, example, mission }: { step: number; example: string; mission: string }) {
-  const dark = resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } });
+  const dark = resolveTokens({ marca: ALBORA_BRAND, pack: { background: "dark" } });
 
   return (
     <div
@@ -263,7 +263,7 @@ export function IdentityWall({ example }: { example: string }) {
 
   const printTokens = resolveTokens({
     marca: ALBORA_BRAND,
-    ...(model ? { evento: { ...model.camada, fundo: "claro" } } : { pack: { fundo: "claro" } }),
+    ...(model ? { evento: { ...model.camada, background: "light" } } : { pack: { background: "light" } }),
   });
 
   return (
@@ -363,7 +363,7 @@ export function Missions({
   lede: string;
 }) {
   const [done, setDone] = useState<string[]>([]);
-  const dark = resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } });
+  const dark = resolveTokens({ marca: ALBORA_BRAND, pack: { background: "dark" } });
 
   const toggle = (id: string) =>
     setDone((current) =>
