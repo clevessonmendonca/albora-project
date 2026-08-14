@@ -4,7 +4,7 @@ import { HostSidebar } from "@/features/catalog/components/host-sidebar";
 import { WizardField } from "@/features/catalog/components/wizard-field";
 import { CoverScreen } from "@/features/catalog/components/guest/cover-screen";
 
-export function HostIdentityScreen({ pack, momentos }: { pack: Pack; momentos: string[] }) {
+export function HostIdentityScreen({ pack, moments }: { pack: Pack; moments: string[] }) {
   return (
     <GuestBackground fundo="claro" pack={pack}>
       <div className="flex h-full">
@@ -26,7 +26,7 @@ export function HostIdentityScreen({ pack, momentos }: { pack: Pack; momentos: s
 
           <div className="grid flex-1 place-items-center overflow-hidden rounded-token bg-superficie-alta">
             <div className="relative h-[28rem] w-56 origin-center scale-[0.92]">
-              <CoverScreen pack={pack} momentos={momentos} fundo="escuro" />
+              <CoverScreen pack={pack} moments={moments} fundo="escuro" />
             </div>
           </div>
         </main>

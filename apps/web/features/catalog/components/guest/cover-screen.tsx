@@ -16,14 +16,14 @@ import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
 export function CoverScreen({
   pack,
-  momentos,
+  moments,
   fundo,
 }: {
   pack: Pack;
-  momentos: string[];
+  moments: string[];
   fundo: "claro" | "escuro";
 }) {
-  const capitulos = momentos.slice(0, 5);
+  const chapters = moments.slice(0, 5);
   const atalhos = [
     { r: "Álbum", v: "847", i: <GridIcon size={20} /> },
     { r: "Feed", v: "ao vivo", i: <StackIcon size={20} /> },
@@ -77,7 +77,7 @@ export function CoverScreen({
           <span className="text-[0.6875rem] text-ink-3">arraste</span>
         </div>
         <div className="flex gap-2.5 overflow-hidden px-[1.125rem]">
-          {capitulos.map((c, i) => {
+          {chapters.map((c, i) => {
             const central = i === 1;
             return (
               <span

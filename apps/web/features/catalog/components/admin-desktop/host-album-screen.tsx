@@ -3,7 +3,7 @@ import { Badge, Frame } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { HostSidebar } from "@/features/catalog/components/host-sidebar";
 
-export function HostAlbumScreen({ pack, momentos }: { pack: Pack; momentos: string[] }) {
+export function HostAlbumScreen({ pack, moments }: { pack: Pack; moments: string[] }) {
   return (
     <GuestBackground fundo="claro" pack={pack}>
       <div className="flex h-full">
@@ -19,7 +19,7 @@ export function HostAlbumScreen({ pack, momentos }: { pack: Pack; momentos: stri
 
           <div className="mb-4 mt-5 flex gap-[0.4375rem] overflow-hidden">
             <Badge tone="accent">Tudo</Badge>
-            {momentos.slice(0, 4).map((m) => (
+            {moments.slice(0, 4).map((m) => (
               <Badge key={m}>{m}</Badge>
             ))}
           </div>

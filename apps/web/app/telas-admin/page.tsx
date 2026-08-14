@@ -67,7 +67,7 @@ export default function AdminCatalogPage() {
           title="Ao vivo — com menores"
           note="Um interruptor por evento, sem perguntar idade de ninguém. Ligado, sobe o piso: gate começa fechado e uma denúncia já segura, em vez de duas."
         >
-          <AdminPanelScreen pack={pack} haMenores />
+          <AdminPanelScreen pack={pack} hasMinors />
         </Showcase>
 
         <Showcase
@@ -81,14 +81,14 @@ export default function AdminCatalogPage() {
           title="A parede"
           note="Marcar quais modelos entram no rodízio. Quem recusa a escolha ruim é problemasDaEscolha, no núcleo — só Cheio deixaria a parede só com deitadas."
         >
-          <AdminWallScreen pack={pack} escolhidos={["polaroide", "mural", "dump", "cheio"]} />
+          <AdminWallScreen pack={pack} selected={["polaroide", "mural", "dump", "cheio"]} />
         </Showcase>
 
         <Showcase
           title="A parede — recusada"
           note="Só Cheio marcado. Nenhum modelo restante aceita foto em pé, e três de cada quatro fotos de festa são verticais. A tela mostra o veredito, não repete a regra."
         >
-          <AdminWallScreen pack={pack} escolhidos={["cheio"]} />
+          <AdminWallScreen pack={pack} selected={["cheio"]} />
         </Showcase>
 
         <Showcase

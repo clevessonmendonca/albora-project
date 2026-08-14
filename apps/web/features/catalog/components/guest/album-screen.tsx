@@ -2,7 +2,7 @@ import type { Pack } from "@albora/packs";
 import { Badge, Frame, StatusBar, TabBar } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
-export function AlbumScreen({ pack, momentos }: { pack: Pack; momentos: string[] }) {
+export function AlbumScreen({ pack, moments }: { pack: Pack; moments: string[] }) {
   return (
     <GuestBackground fundo="escuro" pack={pack}>
       <StatusBar />
@@ -14,7 +14,7 @@ export function AlbumScreen({ pack, momentos }: { pack: Pack; momentos: string[]
 
       <div className="flex gap-1.5 overflow-hidden px-[1.125rem] pb-3.5">
         <Badge tone="accent">Tudo</Badge>
-        {momentos.slice(0, 3).map((m) => (
+        {moments.slice(0, 3).map((m) => (
           <Badge key={m}>{m}</Badge>
         ))}
       </div>

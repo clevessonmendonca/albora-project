@@ -1,7 +1,7 @@
 import { texto, type Pack } from "@albora/packs";
 import { cn } from "@albora/ui-web";
 
-export const SECOES_DO_ANFITRIAO = [
+export const HOST_SECTIONS = [
   "Ao vivo",
   "A parede",
   "O álbum",
@@ -12,15 +12,15 @@ export const SECOES_DO_ANFITRIAO = [
   "Convidados",
 ] as const;
 
-export type SecaoDoAnfitriao = (typeof SECOES_DO_ANFITRIAO)[number];
+export type HostSection = (typeof HOST_SECTIONS)[number];
 
-export function HostSidebar({ pack, active }: { pack: Pack; active: SecaoDoAnfitriao }) {
+export function HostSidebar({ pack, active }: { pack: Pack; active: HostSection }) {
   return (
     <aside className="w-[13.75rem] shrink-0 border-r border-linha px-[1.125rem] py-6">
       <p className="mb-6 mt-0 font-titulo text-[1.0625rem]">
         {texto(pack, "landing.exemplo.nome")}
       </p>
-      {SECOES_DO_ANFITRIAO.map((item) => (
+      {HOST_SECTIONS.map((item) => (
         <p
           key={item}
           className={cn(

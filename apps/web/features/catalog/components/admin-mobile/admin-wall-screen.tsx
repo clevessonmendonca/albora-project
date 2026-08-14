@@ -8,12 +8,12 @@ import { MODEL_NAMES, profileText } from "@/features/catalog/lib/wall-utils";
 
 export function AdminWallScreen({
   pack,
-  escolhidos,
+  selected,
 }: {
   pack: Pack;
-  escolhidos: readonly ModeloDeTelao[];
+  selected: readonly ModeloDeTelao[];
 }) {
-  const problemas = problemasDaEscolha(escolhidos);
+  const problemas = problemasDaEscolha(selected);
   const recusada = problemas.length > 0;
 
   return (
@@ -23,7 +23,7 @@ export function AdminWallScreen({
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3">
         <p className="font-titulo text-[1.375rem] tracking-titulo">A parede</p>
         <Badge tone={recusada ? "outline" : "accent"}>
-          {escolhidos.length} de {MODELOS_DE_TELAO.length}
+          {selected.length} de {MODELOS_DE_TELAO.length}
         </Badge>
       </div>
 
@@ -45,7 +45,7 @@ export function AdminWallScreen({
 
         <div className="grid grid-cols-2 gap-2">
           {MODELOS_DE_TELAO.map((modelo) => {
-            const checked = escolhidos.includes(modelo);
+            const checked = selected.includes(modelo);
             const culpado = recusada && !PERFIS[modelo].aceitaEmPe && checked;
 
             return (

@@ -54,8 +54,8 @@ export default function CatalogPage() {
 
   const tokens = resolveTokens({ marca: ALBORA_BRAND, pack: { ...pack.tokens, fundo: "claro" } });
 
-  const momentos = (pack.momentos ?? []).map((m) => resolvePackText(pack, m.chaveTitulo));
-  const missao = resolvePackText(pack, pack.missoes[2]?.chaveTitulo ?? "missao.livre");
+  const moments = (pack.momentos ?? []).map((m) => resolvePackText(pack, m.chaveTitulo));
+  const mission = resolvePackText(pack, pack.missoes[2]?.chaveTitulo ?? "missao.livre");
 
   return (
     <div
@@ -88,14 +88,14 @@ export default function CatalogPage() {
           title="Capa do evento"
           note="Foto grande, o nome, quatro atalhos e o carrossel dos momentos. O card do meio é 9:16 porque é a proporção em que a festa foi fotografada, e o vizinho espiando é o que convida a arrastar."
         >
-          <CoverScreen pack={pack} momentos={momentos} fundo="escuro" />
+          <CoverScreen pack={pack} moments={moments} fundo="escuro" />
         </PhoneFrame>
 
         <PhoneFrame
           title="A mesma capa, no claro"
           note="O chão é escolha do convidado, não imposição nossa. Um resolvedor, dois chãos: nenhum componente sabe qual está valendo, e a cor do casal manda nos dois."
         >
-          <CoverScreen pack={pack} momentos={momentos} fundo="claro" />
+          <CoverScreen pack={pack} moments={moments} fundo="claro" />
         </PhoneFrame>
 
         <PhoneFrame
@@ -116,7 +116,7 @@ export default function CatalogPage() {
           title="Câmera"
           note="A missão vive em cima do visor, não numa aba. Quem está com uma taça na outra mão não navega até um convite. O lugar é lista fechada, nunca GPS."
         >
-          <CameraScreen pack={pack} missao={missao} />
+          <CameraScreen pack={pack} mission={mission} />
         </PhoneFrame>
 
         <PhoneFrame
@@ -144,14 +144,14 @@ export default function CatalogPage() {
           title="Feed, depois do gate"
           note="A trilha de cima são os capítulos da noite, não pessoas: o Instagram põe contas ali porque é rede entre pessoas. A reação é a estrela da marca — coração é anti-padrão listado."
         >
-          <FeedScreen pack={pack} momentos={momentos} />
+          <FeedScreen pack={pack} moments={moments} />
         </PhoneFrame>
 
         <PhoneFrame
           title="O álbum"
           note="Grade de três, filtrada pelos capítulos que o pack define. É a tela que o convidado abre no dia seguinte."
         >
-          <AlbumScreen pack={pack} momentos={momentos} />
+          <AlbumScreen pack={pack} moments={moments} />
         </PhoneFrame>
 
         <PhoneFrame
@@ -209,7 +209,7 @@ export default function CatalogPage() {
           height={480}
           scale={0.58}
         >
-          <HostLoginScreen pack={pack} enviado />
+          <HostLoginScreen pack={pack} sent />
         </BrowserFrame>
 
         <BrowserFrame
@@ -218,7 +218,7 @@ export default function CatalogPage() {
           height={620}
           scale={0.58}
         >
-          <HostCreateEventScreen pack={pack} passo={1} />
+          <HostCreateEventScreen pack={pack} step={1} />
         </BrowserFrame>
 
         <BrowserFrame
@@ -227,7 +227,7 @@ export default function CatalogPage() {
           height={620}
           scale={0.58}
         >
-          <HostCreateEventScreen pack={pack} passo={5} />
+          <HostCreateEventScreen pack={pack} step={5} />
         </BrowserFrame>
 
         <BrowserFrame
@@ -236,7 +236,7 @@ export default function CatalogPage() {
           height={760}
           scale={0.58}
         >
-          <HostIdentityScreen pack={pack} momentos={momentos} />
+          <HostIdentityScreen pack={pack} moments={moments} />
         </BrowserFrame>
 
         <BrowserFrame
@@ -254,7 +254,7 @@ export default function CatalogPage() {
           height={760}
           scale={0.58}
         >
-          <HostPanelScreen pack={pack} haMenores />
+          <HostPanelScreen pack={pack} hasMinors />
         </BrowserFrame>
 
         <BrowserFrame
@@ -263,7 +263,7 @@ export default function CatalogPage() {
           height={600}
           scale={0.58}
         >
-          <WallModelsScreen pack={pack} escolhidos={["polaroide", "mural", "dump", "cheio"]} />
+          <WallModelsScreen pack={pack} selected={["polaroide", "mural", "dump", "cheio"]} />
         </BrowserFrame>
 
         <BrowserFrame
@@ -272,7 +272,7 @@ export default function CatalogPage() {
           height={790}
           scale={0.58}
         >
-          <WallModelsScreen pack={pack} escolhidos={["cheio"]} />
+          <WallModelsScreen pack={pack} selected={["cheio"]} />
         </BrowserFrame>
 
         <BrowserFrame
@@ -281,7 +281,7 @@ export default function CatalogPage() {
           height={680}
           scale={0.58}
         >
-          <HostAlbumScreen pack={pack} momentos={momentos} />
+          <HostAlbumScreen pack={pack} moments={moments} />
         </BrowserFrame>
 
         <BrowserFrame

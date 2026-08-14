@@ -10,8 +10,8 @@ import {
 } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
-export function FeedScreen({ pack, momentos }: { pack: Pack; momentos: string[] }) {
-  const capitulos = momentos.slice(0, 4);
+export function FeedScreen({ pack, moments }: { pack: Pack; moments: string[] }) {
+  const chapters = moments.slice(0, 4);
 
   return (
     <GuestBackground fundo="escuro" pack={pack}>
@@ -25,7 +25,7 @@ export function FeedScreen({ pack, momentos }: { pack: Pack; momentos: string[] 
       </div>
 
       <div className="flex gap-3.5 overflow-hidden px-[1.125rem] pb-4">
-        {capitulos.map((m, i) => (
+        {chapters.map((m, i) => (
           <span key={m} className="flex w-15 shrink-0 flex-col items-center gap-1.5">
             <span className={`relative size-14 rounded-full p-0.5 ${i < 2 ? "bg-acento" : "bg-linha"}`}>
               <span className="relative block size-full overflow-hidden rounded-full">

@@ -12,7 +12,7 @@ import {
 } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
-export function PhotoDetailScreen({ pack, propria = false }: { pack: Pack; propria?: boolean }) {
+export function PhotoDetailScreen({ pack, own = false }: { pack: Pack; own?: boolean }) {
   return (
     <GuestBackground fundo="escuro" pack={pack}>
       <StatusBar />
@@ -36,7 +36,7 @@ export function PhotoDetailScreen({ pack, propria = false }: { pack: Pack; propr
             <span className="block text-sm">Bia</span>
             <span className="block text-[0.6875rem] text-ink-3">23h41 · Pista</span>
           </span>
-          {propria && (
+          {own && (
             <span className="inline-flex items-center gap-1.5 rounded-pilula border border-linha px-3 py-1.5 text-xs text-ink-2">
               ✕ remover
             </span>
@@ -52,7 +52,7 @@ export function PhotoDetailScreen({ pack, propria = false }: { pack: Pack; propr
             <CommentIcon size={22} />
             <span className="text-[0.84375rem]">3</span>
           </span>
-          {propria && (
+          {own && (
             <span className="ml-auto">
               <ShareIcon size={21} />
             </span>

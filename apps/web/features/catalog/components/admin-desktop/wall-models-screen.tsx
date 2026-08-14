@@ -15,12 +15,12 @@ import { Framing, modelName } from "@/features/catalog/components/wall/framing";
 
 export function WallModelsScreen({
   pack,
-  escolhidos,
+  selected,
 }: {
   pack: Pack;
-  escolhidos: readonly ModeloDeTelao[];
+  selected: readonly ModeloDeTelao[];
 }) {
-  const problemas = problemasDaEscolha(escolhidos);
+  const problemas = problemasDaEscolha(selected);
   const recusada = problemas.length > 0;
 
   return (
@@ -39,7 +39,7 @@ export function WallModelsScreen({
               </p>
             </span>
             <Badge tone={!recusada ? "accent" : "neutral"}>
-              {escolhidos.length} de {MODELOS_DE_TELAO.length}
+              {selected.length} de {MODELOS_DE_TELAO.length}
             </Badge>
           </div>
 
@@ -62,7 +62,7 @@ export function WallModelsScreen({
 
           <div className="mt-5 grid grid-cols-4 gap-3">
             {MODELOS_DE_TELAO.map((modelo) => {
-              const checked = escolhidos.includes(modelo);
+              const checked = selected.includes(modelo);
               const culpado = recusada && !PERFIS[modelo].aceitaEmPe && checked;
 
               return (

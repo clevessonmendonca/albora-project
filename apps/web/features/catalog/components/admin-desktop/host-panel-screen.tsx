@@ -4,8 +4,8 @@ import { Badge, Card, cn, Frame, Switch } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { HostSidebar } from "@/features/catalog/components/host-sidebar";
 
-export function HostPanelScreen({ pack, haMenores = false }: { pack: Pack; haMenores?: boolean }) {
-  const padroes = padroesDoEvento({ haMenores });
+export function HostPanelScreen({ pack, hasMinors = false }: { pack: Pack; hasMinors?: boolean }) {
+  const padroes = padroesDoEvento({ haMenores: hasMinors });
 
   const efeitos: [string, string][] = [
     [
@@ -85,7 +85,7 @@ export function HostPanelScreen({ pack, haMenores = false }: { pack: Pack; haMen
                   lugar nenhum — quem conhece os convidados é você.
                 </span>
               </span>
-              <Switch checked={haMenores} />
+              <Switch checked={hasMinors} />
             </div>
 
             <div className="mt-3.5 grid grid-cols-3 gap-2">
@@ -97,7 +97,7 @@ export function HostPanelScreen({ pack, haMenores = false }: { pack: Pack; haMen
                   <span
                     className={cn(
                       "mt-[0.1875rem] block text-[0.8125rem]",
-                      haMenores ? "text-acento-texto" : "text-ink-2",
+                      hasMinors ? "text-acento-texto" : "text-ink-2",
                     )}
                   >
                     {valor}

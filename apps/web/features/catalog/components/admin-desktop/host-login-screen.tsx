@@ -1,7 +1,7 @@
 import type { Pack } from "@albora/packs";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
-export function HostLoginScreen({ pack, enviado = false }: { pack: Pack; enviado?: boolean }) {
+export function HostLoginScreen({ pack, sent = false }: { pack: Pack; sent?: boolean }) {
   return (
     <GuestBackground fundo="claro" pack={pack}>
       <div className="grid flex-1 place-items-center p-8">
@@ -10,9 +10,9 @@ export function HostLoginScreen({ pack, enviado = false }: { pack: Pack; enviado
             Albora
           </p>
           <h1 className="m-0 font-titulo text-[1.625rem] font-light tracking-titulo">
-            {enviado ? "Verifique seu e-mail" : "Entre pra ver sua festa"}
+            {sent ? "Verifique seu e-mail" : "Entre pra ver sua festa"}
           </h1>
-          {enviado ? (
+          {sent ? (
             <p className="m-0 text-[0.9375rem] leading-normal text-ink-2">
               Se houver uma conta, o link de acesso está a caminho. Sem senha.
             </p>

@@ -4,8 +4,8 @@ import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { AdminField } from "@/features/catalog/components/admin-field";
 
 export function AdminCreateEventScreen({ pack }: { pack: Pack }) {
-  const passos = ["Básico", "Identidade", "Missões", "Parede", "Peça"];
-  const atual = 0;
+  const steps = ["Básico", "Identidade", "Missões", "Parede", "Peça"];
+  const current = 0;
 
   return (
     <GuestBackground fundo="claro" pack={pack}>
@@ -17,15 +17,15 @@ export function AdminCreateEventScreen({ pack }: { pack: Pack }) {
         </span>
         <p className="flex-1 font-titulo text-[1.125rem] tracking-titulo">Novo evento</p>
         <Badge>
-          {atual + 1} de {passos.length}
+          {current + 1} de {steps.length}
         </Badge>
       </div>
 
       <div className="flex gap-1.5 px-[1.125rem] pb-5">
-        {passos.map((p, i) => (
+        {steps.map((p, i) => (
           <span
             key={p}
-            className={cn("h-1 flex-1 rounded-pilula", i <= atual ? "bg-acento" : "bg-linha")}
+            className={cn("h-1 flex-1 rounded-pilula", i <= current ? "bg-acento" : "bg-linha")}
           />
         ))}
       </div>

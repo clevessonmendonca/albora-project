@@ -2,7 +2,7 @@ import { texto, type Pack } from "@albora/packs";
 import { Badge, Frame, StatusBar } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
-export function CameraScreen({ pack, missao }: { pack: Pack; missao: string }) {
+export function CameraScreen({ pack, mission }: { pack: Pack; mission: string }) {
   return (
     <GuestBackground fundo="escuro" pack={pack}>
       <StatusBar />
@@ -20,7 +20,7 @@ export function CameraScreen({ pack, missao }: { pack: Pack; missao: string }) {
         <div className="absolute inset-x-3.5 top-3.5">
           <div className="rounded-token bg-acento p-3.5 text-sobre-acento">
             <p className="text-[0.5625rem] uppercase tracking-rotulo opacity-75">Missão 03 de 04</p>
-            <p className="mt-1 font-titulo text-[1.0625rem] leading-tight">{missao}</p>
+            <p className="mt-1 font-titulo text-[1.0625rem] leading-tight">{mission}</p>
           </div>
         </div>
 

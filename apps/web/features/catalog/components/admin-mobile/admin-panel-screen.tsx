@@ -4,8 +4,8 @@ import { Badge, Card, Frame, StatusBar, Switch } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { AdminNav } from "@/features/catalog/components/admin-nav";
 
-export function AdminPanelScreen({ pack, haMenores = false }: { pack: Pack; haMenores?: boolean }) {
-  const padroes = padroesDoEvento({ haMenores });
+export function AdminPanelScreen({ pack, hasMinors = false }: { pack: Pack; hasMinors?: boolean }) {
+  const padroes = padroesDoEvento({ haMenores: hasMinors });
 
   const stats = [
     { n: "847", o: "fotos enviadas" },
@@ -71,7 +71,7 @@ export function AdminPanelScreen({ pack, haMenores = false }: { pack: Pack; haMe
                 Sobe o piso pra todo mundo. Não perguntamos a idade de ninguém.
               </p>
             </div>
-            <Switch checked={haMenores} label="Há menores na festa" />
+            <Switch checked={hasMinors} label="Há menores na festa" />
           </div>
         </Card>
 
