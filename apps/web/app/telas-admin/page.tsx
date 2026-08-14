@@ -79,7 +79,7 @@ export default function AdminCatalogPage() {
 
         <Showcase
           title="A parede"
-          note="Marcar quais modelos entram no rodízio. Quem recusa a escolha ruim é problemasDaEscolha, no núcleo — só Cheio deixaria a parede só com deitadas."
+          note="Marcar quais modelos entram no rodízio. Quem recusa a escolha ruim é wallDisplayChoiceProblems, no núcleo — só Cheio deixaria a parede só com deitadas."
         >
           <AdminWallScreen pack={pack} selected={["polaroide", "mural", "dump", "cheio"]} />
         </Showcase>
@@ -100,7 +100,7 @@ export default function AdminCatalogPage() {
 
         <Showcase
           title="Identidade"
-          note="A cor e a fonte do casal, com prévia ao vivo pelo resolverTokens real — o que se vê aqui é o que sai no telão e no PDF da placa. Um resolvedor, N renderizadores."
+          note="A cor e a fonte do casal, com prévia ao vivo pelo resolveTokens real — o que se vê aqui é o que sai no telão e no PDF da placa. Um resolvedor, N renderizadores."
         >
           <AdminIdentityScreen pack={pack} />
         </Showcase>

@@ -3,7 +3,7 @@ import {
   compartilhamentoExternoPadrao,
   denunciasParaSegurar,
   gateComecaFechado,
-  padroesDoEvento,
+  eventDefaults,
 } from "./menores";
 import { DENUNCIAS_PARA_SEGURAR, decidirExibicao } from "./moderacao";
 
@@ -39,7 +39,7 @@ describe("o interruptor sobe o piso sem marcar ninguém", () => {
   it("os três padrões saem juntos", () => {
     // O admin escreve a configuração inicial de uma vez: consultar três
     // funções é como esquecer a terceira.
-    expect(padroesDoEvento(COM)).toEqual({
+    expect(eventDefaults(COM)).toEqual({
       denunciasParaSegurar: 1,
       compartilhamentoExterno: false,
       gateComecaFechado: true,

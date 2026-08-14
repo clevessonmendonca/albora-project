@@ -1,7 +1,7 @@
 import type { EventoDoHost } from "@albora/db";
-import { PACKS, texto } from "@albora/packs";
+import { PACKS, resolvePackText } from "@albora/packs";
 
 export function adminEventDisplayName(event: Pick<EventoDoHost, "packId" | "slug">): string {
   const pack = PACKS[event.packId];
-  return pack ? texto(pack, "evento.nome") : event.slug;
+  return pack ? resolvePackText(pack, "evento.nome") : event.slug;
 }

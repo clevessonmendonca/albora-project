@@ -1,4 +1,4 @@
-import { MARCA_ALBORA, paraVariaveis } from "@albora/tokens";
+import { ALBORA_BRAND, toVariables } from "@albora/tokens";
 import type { MetadataRoute } from "next";
 
 /**
@@ -10,7 +10,7 @@ import type { MetadataRoute } from "next";
  * convidado vê.
  */
 export default function manifest(): MetadataRoute.Manifest {
-  const chao = paraVariaveis(MARCA_ALBORA)["--bg"]!;
+  const chao = toVariables(ALBORA_BRAND)["--bg"]!;
 
   return {
     id: "/",

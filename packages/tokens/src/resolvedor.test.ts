@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { contraste, CONTRASTE_DE_TEXTO, lerHex } from "./cor";
-import { MARCA_ALBORA } from "./marca";
+import { ALBORA_BRAND } from "./marca";
 import { resolveScale, resolveTokens } from "./resolver";
 import { toVariables } from "./outputs";
 
@@ -9,30 +9,30 @@ const razao = (a: string, b: string) => contraste(cor(a), cor(b));
 
 describe("cadeia marca → pack → evento", () => {
   it("resolve para a marca quando não há nada por cima", () => {
-    expect(resolveTokens({ marca: MARCA_ALBORA })).toEqual(MARCA_ALBORA);
+    expect(resolveTokens({ marca: ALBORA_BRAND })).toEqual(ALBORA_BRAND);
   });
 
   it("o evento ganha do pack, que ganha da marca", () => {
     const r = resolveTokens({
-      marca: MARCA_ALBORA,
+      marca: ALBORA_BRAND,
       pack: { cores: { acento: "#111111" }, fontes: { titulo: "Pack" } },
       evento: { cores: { acento: "#222222" } },
     });
 
     expect(r.cores.acento).toBe("#222222");
     expect(r.fontes.titulo).toBe("Pack");
-    expect(r.cores.papel).toBe(MARCA_ALBORA.cores.papel);
+    expect(r.cores.papel).toBe(ALBORA_BRAND.cores.papel);
   });
 
   it("sobrepõe campo a campo, não camada inteira", () => {
     const r = resolveTokens({
-      marca: MARCA_ALBORA,
+      marca: ALBORA_BRAND,
       evento: { cores: { tinta: "#000000" } },
     });
 
     // Trocar a tinta não pode zerar as outras quatro cores.
-    expect(r.cores.acento).toBe(MARCA_ALBORA.cores.acento);
-    expect(r.cores.noite).toBe(MARCA_ALBORA.cores.noite);
+    expect(r.cores.acento).toBe(ALBORA_BRAND.cores.acento);
+    expect(r.cores.noite).toBe(ALBORA_BRAND.cores.noite);
   });
 });
 
@@ -42,20 +42,20 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
     // teste existe para que a afirmação e a paleta não divirjam em silêncio —
     // e ele já pegou uma troca de base: com o âmbar do `brand/` a razão mudou
     // de 2,47 para 2,74, e continua reprovando.
-    const r = razao(MARCA_ALBORA.cores.acento, MARCA_ALBORA.cores.papel);
+    const r = razao(ALBORA_BRAND.cores.acento, ALBORA_BRAND.cores.papel);
 
     expect(r).toBeLessThan(CONTRASTE_DE_TEXTO);
   });
 
   it("âmbar é o acento pleno sobre noite, texto inclusive", () => {
-    expect(razao(MARCA_ALBORA.cores.acento, MARCA_ALBORA.cores.noite)).toBeGreaterThan(
+    expect(razao(ALBORA_BRAND.cores.acento, ALBORA_BRAND.cores.noite)).toBeGreaterThan(
       CONTRASTE_DE_TEXTO,
     );
   });
 
   it("as duas escalas entregam texto legível sobre o próprio chão", () => {
     for (const fundo of ["escuro", "claro"] as const) {
-        const e = resolveScale({ ...MARCA_ALBORA, fundo });
+        const e = resolveScale({ ...ALBORA_BRAND, fundo });
 
       expect(razao(e.ink, e.bg), `ink/${fundo}`).toBeGreaterThan(CONTRASTE_DE_TEXTO);
       expect(razao(e.ink2, e.bg), `ink2/${fundo}`).toBeGreaterThan(3);
@@ -69,7 +69,7 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
     // acento é o chão. As duas escolhas óbvias reprovam — papel dá 2,7:1 e o
     // branco não chega a 3:1 — e as duas parecem certas numa captura de tela.
     for (const fundo of ["escuro", "claro"] as const) {
-      const e = resolveScale({ ...MARCA_ALBORA, fundo });
+      const e = resolveScale({ ...ALBORA_BRAND, fundo });
 
       expect(razao(e.sobreAcento, e.acento), `sobre-acento/${fundo}`).toBeGreaterThan(
         CONTRASTE_DE_TEXTO,
@@ -82,8 +82,8 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
     // escolha para o lado escuro; se o rótulo fosse fixo, o botão sumiria.
     for (const acento of ["#FFE08A", "#2B1A0E", "#D9793C"]) {
       const e = resolveScale({
-        ...MARCA_ALBORA,
-        cores: { ...MARCA_ALBORA.cores, acento },
+        ...ALBORA_BRAND,
+        cores: { ...ALBORA_BRAND.cores, acento },
         fundo: "claro",
       });
 
@@ -94,8 +94,8 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
 
 describe("trocar o chão re-deriva o acento", () => {
   it("o casal escolhe claro e o acento de texto muda sozinho", () => {
-    const escuro = resolveScale(MARCA_ALBORA);
-    const claro = resolveScale({ ...MARCA_ALBORA, fundo: "claro" });
+    const escuro = resolveScale(ALBORA_BRAND);
+    const claro = resolveScale({ ...ALBORA_BRAND, fundo: "claro" });
 
     // Cada chão recebe o seu, e nenhum dos dois é o acento cru: a versão
     // anterior afirmava que o escuro passava intacto, o que só era verdade
@@ -105,8 +105,8 @@ describe("trocar o chão re-deriva o acento", () => {
     expect(razao(claro.acentoTexto, claro.bg)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
 
     // O preenchimento continua sendo a cor escolhida nos dois chãos.
-    expect(escuro.acento).toBe(MARCA_ALBORA.cores.acento);
-    expect(claro.acento).toBe(MARCA_ALBORA.cores.acento);
+    expect(escuro.acento).toBe(ALBORA_BRAND.cores.acento);
+    expect(claro.acento).toBe(ALBORA_BRAND.cores.acento);
   });
 
   it("o chão escuro não é o extremo cru da marca", () => {
@@ -114,9 +114,9 @@ describe("trocar o chão re-deriva o acento", () => {
     // profundidade entre página e card, e a cor que o casal escolheu não
     // aparece em lugar nenhum. O `claro()` sempre levantou a página do papel
     // puro; a assimetria no escuro era acidente.
-    const escuro = resolveScale(MARCA_ALBORA);
+    const escuro = resolveScale(ALBORA_BRAND);
 
-    expect(escuro.bg).not.toBe(MARCA_ALBORA.cores.noite);
+    expect(escuro.bg).not.toBe(ALBORA_BRAND.cores.noite);
     expect(razao(escuro.ink, escuro.bg)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
 
     // E a elevação continua subindo: página, superfície, superfície alta.
@@ -130,9 +130,9 @@ describe("trocar o chão re-deriva o acento", () => {
     // O amarelo é o caso que mais aparece e o que mais reprova: some sobre
     // papel e ninguém percebe até a festa.
     const claro = resolveScale({
-      ...MARCA_ALBORA,
+      ...ALBORA_BRAND,
       fundo: "claro",
-      cores: { ...MARCA_ALBORA.cores, acento: "#F2C744" },
+      cores: { ...ALBORA_BRAND.cores, acento: "#F2C744" },
     });
 
     expect(razao(claro.acentoTexto, claro.bg)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
@@ -144,10 +144,10 @@ describe("trocar o chão re-deriva o acento", () => {
   it("a rampa de neutro acompanha a base, não fica fixa", () => {
     // O defeito que este teste impede: escala calibrada para um preto antigo
     // continua parecendo certa valor a valor, e só brigada com o chão novo.
-    const nossa = resolveScale(MARCA_ALBORA);
+    const nossa = resolveScale(ALBORA_BRAND);
     const outroChao = resolveScale({
-      ...MARCA_ALBORA,
-      cores: { ...MARCA_ALBORA.cores, noite: "#001018" },
+      ...ALBORA_BRAND,
+      cores: { ...ALBORA_BRAND.cores, noite: "#001018" },
     });
 
     expect(outroChao.bg).not.toBe(nossa.bg);
@@ -157,9 +157,9 @@ describe("trocar o chão re-deriva o acento", () => {
 
   it("acento que já é legível passa intacto", () => {
     const claro = resolveScale({
-      ...MARCA_ALBORA,
+      ...ALBORA_BRAND,
       fundo: "claro",
-      cores: { ...MARCA_ALBORA.cores, acento: "#1B4D3E" },
+      cores: { ...ALBORA_BRAND.cores, acento: "#1B4D3E" },
     });
 
     expect(claro.acentoTexto).toBe("#1B4D3E");
@@ -167,9 +167,9 @@ describe("trocar o chão re-deriva o acento", () => {
 
   it("hex malformado não apaga a identidade inteira", () => {
     const claro = resolveScale({
-      ...MARCA_ALBORA,
+      ...ALBORA_BRAND,
       fundo: "claro",
-      cores: { ...MARCA_ALBORA.cores, acento: "o azul da festa" },
+      cores: { ...ALBORA_BRAND.cores, acento: "o azul da festa" },
     });
 
     expect(claro.acentoTexto).toBe("o azul da festa");
@@ -178,21 +178,21 @@ describe("trocar o chão re-deriva o acento", () => {
 
 describe("a saída entrega a escala pronta", () => {
   it("o componente não escolhe nem chão nem neutro", () => {
-    const v = toVariables(resolveTokens({ marca: MARCA_ALBORA }));
+    const v = toVariables(resolveTokens({ marca: ALBORA_BRAND }));
 
     // Derivado, não copiado da marca: o componente recebe o chão pronto e
     // não tem como escolher o extremo por conta própria.
     expect(v["--bg"]).toBeDefined();
-    expect(v["--bg"]).not.toBe(MARCA_ALBORA.cores.noite);
+    expect(v["--bg"]).not.toBe(ALBORA_BRAND.cores.noite);
     expect(v["--ink-2"]).toBeDefined();
     expect(v["--linha"]).toBeDefined();
     expect(v["--superficie"]).toBeDefined();
   });
 
   it("fundo claro troca o conjunto, não uma variável", () => {
-    const v = toVariables(resolveTokens({ marca: MARCA_ALBORA, evento: { fundo: "claro" } }));
+    const v = toVariables(resolveTokens({ marca: ALBORA_BRAND, evento: { fundo: "claro" } }));
 
-    expect(v["--bg"]).not.toBe(MARCA_ALBORA.cores.noite);
+    expect(v["--bg"]).not.toBe(ALBORA_BRAND.cores.noite);
     expect(razao(v["--ink"]!, v["--bg"]!)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
     expect(razao(v["--acento-texto"]!, v["--bg"]!)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
   });

@@ -1,11 +1,11 @@
-import { padroesDoEvento } from "@albora/core";
-import { texto, type Pack } from "@albora/packs";
+import { eventDefaults } from "@albora/core";
+import { resolvePackText, type Pack } from "@albora/packs";
 import { Badge, Card, Frame, StatusBar, Switch } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { AdminNav } from "@/features/catalog/components/admin-nav";
 
 export function AdminPanelScreen({ pack, hasMinors = false }: { pack: Pack; hasMinors?: boolean }) {
-  const padroes = padroesDoEvento({ haMenores: hasMinors });
+  const padroes = eventDefaults({ haMenores: hasMinors });
 
   const stats = [
     { n: "847", o: "fotos enviadas" },
@@ -27,7 +27,7 @@ export function AdminPanelScreen({ pack, hasMinors = false }: { pack: Pack; hasM
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3">
         <div>
           <p className="font-titulo text-[1.375rem] leading-tight tracking-titulo">
-            {texto(pack, "landing.exemplo.nome")}
+            {resolvePackText(pack, "landing.exemplo.nome")}
           </p>
           <p className="text-[0.75rem] text-ink-3">A festa está acontecendo</p>
         </div>

@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import { resolvePackText, type Pack } from "@albora/packs";
 import {
   Badge,
   Frame,
@@ -15,7 +15,7 @@ export function QueueScreen({ pack }: { pack: Pack }) {
 
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3.5">
         <span className="font-titulo text-[1.125rem] tracking-titulo">
-          {texto(pack, "landing.exemplo.nome")}
+          {resolvePackText(pack, "landing.exemplo.nome")}
         </span>
         <Badge>3 na fila</Badge>
       </div>

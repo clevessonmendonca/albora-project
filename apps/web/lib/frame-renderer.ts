@@ -9,9 +9,9 @@ import {
   type Composicao,
   type ConteudoDaMoldura,
 } from "@albora/core";
-import { MARCA_ALBORA, paraVariaveis } from "@albora/tokens";
+import { ALBORA_BRAND, toVariables } from "@albora/tokens";
 
-const PADRAO = paraVariaveis(MARCA_ALBORA);
+const PADRAO = toVariables(ALBORA_BRAND);
 
 function corCss(nome: keyof typeof PADRAO): string {
   const bruto = getComputedStyle(document.documentElement).getPropertyValue(nome).trim();

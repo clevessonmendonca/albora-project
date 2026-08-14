@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import { resolvePackText, type Pack } from "@albora/packs";
 import {
   Badge,
   BackIcon,
@@ -38,7 +38,7 @@ export function MissionsScreen({ pack }: { pack: Pack }) {
             </span>
             <div className="absolute inset-x-4 bottom-4">
               <p className="font-titulo text-[1.375rem] font-light leading-tight tracking-titulo">
-                {texto(pack, daVez?.chaveTitulo ?? "missao.livre")}
+                {resolvePackText(pack, daVez?.chaveTitulo ?? "missao.livre")}
               </p>
               <span className="mt-3 inline-block">
                 <Button size="sm">
@@ -77,7 +77,7 @@ export function MissionsScreen({ pack }: { pack: Pack }) {
                 </span>
 
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm">{texto(pack, m.chaveTitulo)}</span>
+                  <span className="block truncate text-sm">{resolvePackText(pack, m.chaveTitulo)}</span>
                   <span
                     className={`mt-0.5 block text-[0.6875rem] uppercase tracking-rotulo ${
                       agora ? "text-acento-texto" : "text-ink-3"

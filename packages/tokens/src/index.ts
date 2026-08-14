@@ -10,10 +10,10 @@ export type {
   Tokens,
   Tracking,
 } from "./types";
-export { MARCA_ALBORA, MARCA_ALBORA as ALBORA_BRAND } from "./marca";
-export type { ModeloDeIdentidade } from "./modelos";
-export { MODELOS_DE_IDENTIDADE } from "./modelos";
-export { escalaDoFundo } from "./escalas";
+export { ALBORA_BRAND, MARCA_ALBORA } from "./marca";
+export type { ModeloDeIdentidade, ModeloDeIdentidade as IdentityModel } from "./modelos";
+export { MODELOS_DE_IDENTIDADE, MODELOS_DE_IDENTIDADE as IDENTITY_MODELS } from "./modelos";
+export { escalaDoFundo, escalaDoFundo as scaleForBackground } from "./escalas";
 export { resolveScale, resolveTokens } from "./resolver";
 export { toCss, toVariables } from "./outputs";
 export type { PieceFormat, PieceLayout, PieceMeasures, QrInk } from "./pieces";
@@ -31,12 +31,21 @@ export {
 export type { Rgb } from "./cor";
 export {
   acentoLegivelSobre,
+  acentoLegivelSobre as readableAccentOn,
   contraste,
+  contraste as contrast,
   CONTRASTE_DE_TEXTO,
+  CONTRASTE_DE_TEXTO as TEXT_CONTRAST,
   lerHex,
+  lerHex as parseHex,
   luminancia,
+  luminancia as luminance,
+  misturarHex,
+  misturarHex as mixHex,
   paraHex,
+  paraHex as toHex,
   textoSobre,
+  textoSobre as textOn,
 } from "./cor";
 
 /** PT type aliases — compatibilidade com código legado. */

@@ -232,7 +232,7 @@ export default function CatalogPage() {
 
         <BrowserFrame
           title="Identidade"
-          note="Controles à esquerda, preview ao vivo à direita — o mesmo resolverTokens do telão e da peça impressa."
+          note="Controles à esquerda, preview ao vivo à direita — o mesmo resolveTokens do telão e da peça impressa."
           height={760}
           scale={0.58}
         >
@@ -268,7 +268,7 @@ export default function CatalogPage() {
 
         <BrowserFrame
           title="A mesma escolha, recusada"
-          note="Só Cheio marcado. Nenhum modelo restante aceita foto em pé, e três de cada quatro fotos de festa são verticais — a parede rodaria a noite inteira mostrando o quarto deitado do acervo. Quem recusa é problemasDaEscolha, no núcleo: a tela mostra o veredito, não uma cópia da regra."
+          note="Só Cheio marcado. Nenhum modelo restante aceita foto em pé, e três de cada quatro fotos de festa são verticais — a parede rodaria a noite inteira mostrando o quarto deitado do acervo. Quem recusa é wallDisplayChoiceProblems, no núcleo: a tela mostra o veredito, não uma cópia da regra."
           height={790}
           scale={0.58}
         >

@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import { resolvePackText, type Pack } from "@albora/packs";
 import {
   Avatar,
   Badge,
@@ -19,7 +19,7 @@ export function FeedScreen({ pack, moments }: { pack: Pack; moments: string[] })
 
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3.5">
         <span className="font-titulo text-[1.125rem] tracking-titulo">
-          {texto(pack, "landing.exemplo.nome")}
+          {resolvePackText(pack, "landing.exemplo.nome")}
         </span>
         <Badge>847 fotos</Badge>
       </div>

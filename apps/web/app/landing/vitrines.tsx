@@ -1,4 +1,4 @@
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
+import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import { cn } from "@albora/ui-web";
 import type { CSSProperties } from "react";
 import { hourLabel } from "@/features/feed/lib/group-by-hour";
@@ -78,7 +78,7 @@ export function Polaroid({
   variante?: number;
   largura?: string;
 }) {
-  const noite = resolverTokens({ marca: MARCA_ALBORA, pack: { fundo: "escuro" } });
+  const noite = resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } });
 
   return (
     <figure
@@ -87,7 +87,7 @@ export function Polaroid({
     >
       <div
         className="relative aspect-square"
-        style={paraVariaveis(noite) as CSSProperties}
+        style={toVariables(noite) as CSSProperties}
       >
         <Moldura rotulo="" raio="0rem" atmosfera variante={variante} {...(src ? { src } : {})} />
       </div>
@@ -113,13 +113,13 @@ export function SlotDeNoite({
   proporcao: string;
   raio?: string;
 }) {
-  const noite = resolverTokens({ marca: MARCA_ALBORA, pack: { fundo: "escuro" } });
+  const noite = resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } });
 
   return (
     <div
       className="relative"
       style={{
-        ...(paraVariaveis(noite) as CSSProperties),
+        ...(toVariables(noite) as CSSProperties),
         aspectRatio: proporcao,
       }}
     >

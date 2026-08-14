@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MARCA_ALBORA } from "./marca";
+import { ALBORA_BRAND } from "./marca";
 import {
   BLEED_MM,
   colorWarning,
@@ -23,26 +23,26 @@ const bom = {
 
 describe("a peça recusa antes da gráfica", () => {
   it("aprova o layout íntegro", () => {
-    expect(pieceProblems(bom, MARCA_ALBORA.cores)).toEqual([]);
+    expect(pieceProblems(bom, ALBORA_BRAND.cores)).toEqual([]);
   });
 
   it("recusa QR abaixo do mínimo", () => {
     // O defeito que este teste impede é o mais caro do produto: QR que
     // escaneia na tela do designer e falha no papel, na festa, sem volta.
-    const problemas = pieceProblems({ ...bom, qr: QR_MIN_MM - 1 }, MARCA_ALBORA.cores);
+    const problemas = pieceProblems({ ...bom, qr: QR_MIN_MM - 1 }, ALBORA_BRAND.cores);
 
     expect(problemas).toHaveLength(1);
     expect(problemas[0]).toContain("mínimo");
   });
 
   it("aceita exatamente o mínimo", () => {
-    expect(pieceProblems({ ...bom, qr: QR_MIN_MM }, MARCA_ALBORA.cores)).toEqual([]);
+    expect(pieceProblems({ ...bom, qr: QR_MIN_MM }, ALBORA_BRAND.cores)).toEqual([]);
   });
 
   it("recusa QR que estoura a área de segurança", () => {
     const problemas = pieceProblems(
       { ...bom, formato: "card-de-missao", qr: 54 },
-      MARCA_ALBORA.cores,
+      ALBORA_BRAND.cores,
     );
 
     expect(problemas.join(" ")).toContain("área de segurança");
@@ -51,7 +51,7 @@ describe("a peça recusa antes da gráfica", () => {
   it("recusa margem menor que a área de segurança", () => {
     const problemas = pieceProblems(
       { ...bom, margem: SAFE_AREA_MM - 1 },
-      MARCA_ALBORA.cores,
+      ALBORA_BRAND.cores,
     );
 
     expect(problemas.join(" ")).toContain("o corte come o conteúdo");
@@ -60,12 +60,12 @@ describe("a peça recusa antes da gráfica", () => {
   it("recusa peça sem a URL sob o código", () => {
     // Câmera velha, permissão negada, código riscado: a URL é o que sobra.
     for (const url of ["", "   "]) {
-      expect(pieceProblems({ ...bom, url }, MARCA_ALBORA.cores).join(" ")).toContain("URL");
+      expect(pieceProblems({ ...bom, url }, ALBORA_BRAND.cores).join(" ")).toContain("URL");
     }
   });
 
   it("acumula os defeitos em vez de parar no primeiro", () => {
-    const problemas = pieceProblems({ ...bom, qr: 10, url: "", margem: 0 }, MARCA_ALBORA.cores);
+    const problemas = pieceProblems({ ...bom, qr: 10, url: "", margem: 0 }, ALBORA_BRAND.cores);
 
     expect(problemas.length).toBeGreaterThanOrEqual(3);
   });
@@ -73,17 +73,17 @@ describe("a peça recusa antes da gráfica", () => {
 
 describe("a identidade colore a peça, nunca o código", () => {
   it("veste o QR com a cor do evento quando ela alcança", () => {
-    const tinta = qrInk(MARCA_ALBORA.cores);
+    const tinta = qrInk(ALBORA_BRAND.cores);
 
     expect(tinta.recuouParaAbsoluto).toBe(false);
-    expect(tinta.fundo).toBe(MARCA_ALBORA.cores.papel);
-    expect([MARCA_ALBORA.cores.tinta, MARCA_ALBORA.cores.noite]).toContain(tinta.modulo);
+    expect(tinta.fundo).toBe(ALBORA_BRAND.cores.papel);
+    expect([ALBORA_BRAND.cores.tinta, ALBORA_BRAND.cores.noite]).toContain(tinta.modulo);
   });
 
   it("recua para preto sobre branco quando a identidade não alcança", () => {
     // Âmbar sobre creme é lindo no preview e não escaneia em luz baixa.
     const tinta = qrInk({
-      ...MARCA_ALBORA.cores,
+      ...ALBORA_BRAND.cores,
       tinta: "#D9793C",
       noite: "#E0A46F",
       papel: "#F4F0E9",
@@ -95,13 +95,13 @@ describe("a identidade colore a peça, nunca o código", () => {
   });
 
   it("o recuo vira defeito declarado, não silêncio", () => {
-    const cores = { ...MARCA_ALBORA.cores, tinta: "#D9793C", noite: "#E0A46F" };
+    const cores = { ...ALBORA_BRAND.cores, tinta: "#D9793C", noite: "#E0A46F" };
 
     expect(pieceProblems(bom, cores).join(" ")).toContain("preto sobre branco");
   });
 
   it("hex malformado não gera peça sem contraste", () => {
-    const tinta = qrInk({ ...MARCA_ALBORA.cores, tinta: "o azul", noite: "também azul" });
+    const tinta = qrInk({ ...ALBORA_BRAND.cores, tinta: "o azul", noite: "também azul" });
 
     expect(tinta.recuouParaAbsoluto).toBe(true);
     expect(tinta.modulo).toBe("#000000");
@@ -109,7 +109,7 @@ describe("a identidade colore a peça, nunca o código", () => {
 
   it("escolhe a mais escura, não a que se chama noite", () => {
     // Um evento pode trocar as duas, e a decisão não pode depender do nome.
-    const tinta = qrInk({ ...MARCA_ALBORA.cores, tinta: "#000000", noite: "#777777" });
+    const tinta = qrInk({ ...ALBORA_BRAND.cores, tinta: "#000000", noite: "#777777" });
 
     expect(tinta.modulo).toBe("#000000");
   });
@@ -125,7 +125,7 @@ describe("as medidas", () => {
     expect(
       pieceProblems(
         { formato, qr: medidas.qr, url: "albora.app/e/x", margem: SAFE_AREA_MM },
-        MARCA_ALBORA.cores,
+        ALBORA_BRAND.cores,
       ),
     ).toEqual([]);
   });
@@ -145,9 +145,9 @@ describe("as medidas", () => {
 
 describe("o aviso de cor", () => {
   it("nomeia o acento do evento e sai antes do download", () => {
-    const aviso = colorWarning(MARCA_ALBORA.cores);
+    const aviso = colorWarning(ALBORA_BRAND.cores);
 
-    expect(aviso).toContain(MARCA_ALBORA.cores.acento);
+    expect(aviso).toContain(ALBORA_BRAND.cores.acento);
     expect(aviso.toLowerCase()).toContain("cmyk");
     expect(aviso.toLowerCase()).toContain("prova impressa");
   });

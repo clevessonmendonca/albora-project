@@ -19,7 +19,7 @@ export function HostIdentityScreen({ pack, moments }: { pack: Pack; moments: str
             <WizardField label="Fonte do título" value="Serif do pack" />
             <WizardField label="Raio dos cantos" value="Suave" />
             <p className="m-0 text-[0.8125rem] leading-normal text-ink-2">
-              Cada mudança re-renderiza o preview com resolverTokens real — o mesmo resolvedor do
+              Cada mudança re-renderiza o preview com resolveTokens real — o mesmo resolvedor do
               telão e da peça impressa.
             </p>
           </div>

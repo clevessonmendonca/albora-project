@@ -1,6 +1,6 @@
 "use client";
 
-import { interacaoAberta, padroesDoEvento } from "@albora/core";
+import { interacaoAberta, eventDefaults } from "@albora/core";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
@@ -31,7 +31,7 @@ export function EventControls({
   >(null);
   const [erro, setErro] = useState(false);
 
-  const padroes = padroesDoEvento({ haMenores: moderacao.haMenores });
+  const padroes = eventDefaults({ haMenores: moderacao.haMenores });
   const gateAberto = interacaoAberta(
     { interacaoAbreEm: interacaoAbreEm ? new Date(interacaoAbreEm) : null },
     new Date(),

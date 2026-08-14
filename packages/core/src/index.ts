@@ -335,8 +335,20 @@ export {
   compartilhamentoExternoPadrao,
   denunciasParaSegurar,
   gateComecaFechado,
-  padroesDoEvento,
+  eventDefaults,
 } from "./menores";
+/** English alias — prefer for new code. @see PadroesDoEvento */
+export type { PadroesDoEvento as EventDefaults } from "./menores";
+/** English alias — prefer for new code. @see PoliticaDeMenores */
+export type { PoliticaDeMenores as MinorsPolicy } from "./menores";
+/** PT alias — prefer `eventDefaults`. */
+export { eventDefaults as padroesDoEvento } from "./menores";
+/** English alias — prefer for new code. @see denunciasParaSegurar */
+export { denunciasParaSegurar as reportsToHold } from "./menores";
+/** English alias — prefer for new code. @see compartilhamentoExternoPadrao */
+export { compartilhamentoExternoPadrao as defaultExternalShare } from "./menores";
+/** English alias — prefer for new code. @see gateComecaFechado */
+export { gateComecaFechado as gateStartsClosed } from "./menores";
 
 export type { ConcessaoDaParede, CrachaDaParede, VeredictoDaParede } from "./wall";
 export {

@@ -1,4 +1,4 @@
-import type { CamadaTokens } from "@albora/tokens";
+import type { TokenLayer } from "@albora/tokens";
 
 /**
  * Dependência unidirecional: `pack → core`, nunca o contrário.
@@ -38,7 +38,7 @@ export type Pack = {
    * no banco.
    */
   reacoes?: { id: string; chaveTitulo: string }[];
-  tokens?: CamadaTokens;
+  tokens?: TokenLayer;
 };
 
 export type PackDefinition = Pack;
@@ -50,11 +50,11 @@ export type VocabularyKey = ChaveVocabulario;
  * Resolve uma chave de vocabulário. Devolve a própria chave se faltar, em vez
  * de string vazia: chave crua na tela é bug visível, tela vazia é bug mudo.
  */
-export function texto(pack: Pack, chave: ChaveVocabulario): string {
+export function resolvePackText(pack: Pack, chave: ChaveVocabulario): string {
   return pack.vocabulario[chave] ?? chave;
 }
 
-export const resolvePackText = texto;
+export const texto = resolvePackText;
 
 /**
  * As chaves que o núcleo pede a qualquer pack.
@@ -64,7 +64,7 @@ export const resolvePackText = texto;
  * tem. O que precisa ser igual é o que o núcleo desenha; o resto é o pack
  * descrevendo a própria festa.
  */
-export const CHAVES_DO_NUCLEO = [
+export const CORE_VOCABULARY_KEYS = [
   "evento.nome",
   "anfitriao.plural",
   "convidado.saudacao",
@@ -75,7 +75,7 @@ export const CHAVES_DO_NUCLEO = [
   "lugar.pergunta",
 ] as const;
 
-export const CORE_VOCABULARY_KEYS = CHAVES_DO_NUCLEO;
+export const CHAVES_DO_NUCLEO = CORE_VOCABULARY_KEYS;
 
 /**
  * O que a landing pede. Lista separada das chaves do núcleo, e de propósito.
@@ -85,7 +85,7 @@ export const CORE_VOCABULARY_KEYS = CHAVES_DO_NUCLEO;
  * todo pack acoplaria o núcleo ao funil. Quem cobra esta lista é a rota da
  * landing, e só ela.
  */
-export const CHAVES_DA_LANDING = [
+export const LANDING_VOCABULARY_KEYS = [
   "landing.rotulo",
   "landing.titulo",
   "landing.titulo.destaque",
@@ -106,17 +106,17 @@ export const CHAVES_DA_LANDING = [
   "landing.fechamento.destaque",
 ] as const;
 
-export const LANDING_VOCABULARY_KEYS = CHAVES_DA_LANDING;
+export const CHAVES_DA_LANDING = LANDING_VOCABULARY_KEYS;
 
 /**
  * Vazio quando o pack pode ser vendido.
  *
- * Chave faltando vira a própria chave na tela — `texto()` devolve a chave de
+ * Chave faltando vira a própria chave na tela — `resolvePackText()` devolve a chave de
  * propósito. Numa tela interna isso é um bug visível e barato; na landing é
  * `landing.titulo` em corpo 74px na frente de quem ia pagar.
  */
-export function problemasDaLanding(pack: Pack): string[] {
-  const problemas = CHAVES_DA_LANDING.filter((chave) => !pack.vocabulario[chave]).map(
+export function landingProblems(pack: Pack): string[] {
+  const problemas = LANDING_VOCABULARY_KEYS.filter((chave) => !pack.vocabulario[chave]).map(
     (chave) => `falta a chave de landing ${chave}`,
   );
 
@@ -136,13 +136,13 @@ export function problemasDaLanding(pack: Pack): string[] {
   return problemas;
 }
 
-export const landingProblems = problemasDaLanding;
+export const problemasDaLanding = landingProblems;
 
 /** Vazio quando o pack está íntegro. Cada string é um defeito de tela. */
-export function problemasDoPack(pack: Pack): string[] {
+export function packProblems(pack: Pack): string[] {
   const problemas: string[] = [];
 
-  for (const chave of CHAVES_DO_NUCLEO) {
+  for (const chave of CORE_VOCABULARY_KEYS) {
     if (!pack.vocabulario[chave]) problemas.push(`falta a chave do núcleo ${chave}`);
   }
 
@@ -155,27 +155,27 @@ export function problemasDoPack(pack: Pack): string[] {
   return problemas;
 }
 
-export const packProblems = problemasDoPack;
+export const problemasDoPack = packProblems;
 
 /**
  * Lista fechada, verificada no servidor. O cliente manda um id; se ele não
  * estiver aqui, não vira coluna no banco (N6.10).
  */
-export function lugarValido(pack: Pack, id: string | null | undefined): boolean {
+export function isValidPlace(pack: Pack, id: string | null | undefined): boolean {
   return typeof id === "string" && pack.lugares.some((l) => l.id === id);
 }
 
-export const isValidPlace = lugarValido;
+export const lugarValido = isValidPlace;
 
 /**
- * Mesma porta fechada de `lugarValido`, para a reação.
+ * Mesma porta fechada de `isValidPlace`, para a reação.
  *
  * Pack sem `reacoes` reprova tudo em vez de liberar tudo: falhar fechado é a
  * regra, e um pack que esqueceu a lista não pode virar campo livre por
  * omissão.
  */
-export function reacaoValida(pack: Pack, id: string | null | undefined): boolean {
+export function isValidReaction(pack: Pack, id: string | null | undefined): boolean {
   return typeof id === "string" && (pack.reacoes ?? []).some((r) => r.id === id);
 }
 
-export const isValidReaction = reacaoValida;
+export const reacaoValida = isValidReaction;

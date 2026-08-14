@@ -9,7 +9,7 @@ import type { Tokens } from "./types";
  * impressa deixa de combinar com o telão, que é a coerência que o produto
  * vende — e a divergência entra por aqui, não por outro lugar.
  */
-export const MARCA_ALBORA: Tokens = {
+export const ALBORA_BRAND: Tokens = {
   cores: {
     papel: "#F4F0E9",
     // Preto quente, nunca #000: preto puro sobre foto de festa vira buraco.
@@ -47,3 +47,6 @@ export const MARCA_ALBORA: Tokens = {
   // a pessoa perde a festa de vista. Ver `DESIGN.md` §2.
   fundo: "escuro",
 };
+
+/** PT alias — prefer `ALBORA_BRAND`. */
+export const MARCA_ALBORA = ALBORA_BRAND;

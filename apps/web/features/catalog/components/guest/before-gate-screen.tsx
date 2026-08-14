@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import { resolvePackText, type Pack } from "@albora/packs";
 import { Badge, Frame, StatusBar, TabBar } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
@@ -9,7 +9,7 @@ export function BeforeGateScreen({ pack }: { pack: Pack }) {
 
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3.5">
         <span className="font-titulo text-[1.125rem] tracking-titulo">
-          {texto(pack, "landing.exemplo.nome")}
+          {resolvePackText(pack, "landing.exemplo.nome")}
         </span>
         <Badge>847 fotos</Badge>
       </div>

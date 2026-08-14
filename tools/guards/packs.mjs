@@ -32,7 +32,7 @@ const DOMINIO = /\b(noiv[oa]s?|casamento|padrinh[oa]s?|madrinhas?|aniversariante
 /**
  * A palavra em prosa é violação; o identificador do pack não é.
  *
- * `import { CASAMENTO } from "@albora/packs"` é a rota escolhendo qual pack
+ * `import { WEDDING } from "@albora/packs"` é a rota escolhendo qual pack
  * servir — é o mecanismo funcionando, não burlado. Já `"casamento"` e
  * `Casamento` são texto que o pack deveria ter dado. Constante em CAIXA ALTA é
  * a única forma que o produto usa para identificador de pack, então é ela a

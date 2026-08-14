@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  MARCA_ALBORA,
-  MODELOS_DE_IDENTIDADE,
-  paraVariaveis,
-  resolverTokens,
+  ALBORA_BRAND,
+  IDENTITY_MODELS,
+  toVariables,
+  resolveTokens,
 } from "@albora/tokens";
 import { cn } from "@albora/ui-web";
 import { useEffect, useRef, useState } from "react";
@@ -50,13 +50,13 @@ const PASSOS = [
 ] as const;
 
 function Tela({ passo, exemplo, missao }: { passo: number; exemplo: string; missao: string }) {
-  const escuro = resolverTokens({ marca: MARCA_ALBORA, pack: { fundo: "escuro" } });
+  const escuro = resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } });
 
   return (
     <div
       className="relative flex h-full w-full flex-col overflow-hidden bg-bg text-ink"
       style={{
-        ...(paraVariaveis(escuro) as CSSProperties),
+        ...(toVariables(escuro) as CSSProperties),
         ...radiusStyle("calc(var(--raio-superficie) - 0.5rem)"),
       }}
     >
@@ -252,24 +252,24 @@ export function DemoRolagem({ exemplo, missao }: { exemplo: string; missao: stri
  * porque alguém escreveu o segundo resolvedor que o ADR 0003 proíbe.
  */
 export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
-  const [escolhido, setEscolhido] = useState(MODELOS_DE_IDENTIDADE[0]?.id ?? "");
+  const [escolhido, setEscolhido] = useState(IDENTITY_MODELS[0]?.id ?? "");
   const modelo =
-    MODELOS_DE_IDENTIDADE.find((m) => m.id === escolhido) ?? MODELOS_DE_IDENTIDADE[0];
+    IDENTITY_MODELS.find((m) => m.id === escolhido) ?? IDENTITY_MODELS[0];
 
-  const tokens = resolverTokens({
-    marca: MARCA_ALBORA,
+  const tokens = resolveTokens({
+    marca: ALBORA_BRAND,
     ...(modelo ? { evento: modelo.camada } : {}),
   });
 
-  const tokensNoPapel = resolverTokens({
-    marca: MARCA_ALBORA,
+  const tokensNoPapel = resolveTokens({
+    marca: ALBORA_BRAND,
     ...(modelo ? { evento: { ...modelo.camada, fundo: "claro" } } : { pack: { fundo: "claro" } }),
   });
 
   return (
     <>
       <div className="mb-5 flex flex-wrap gap-2.5">
-        {MODELOS_DE_IDENTIDADE.map((m) => {
+        {IDENTITY_MODELS.map((m) => {
           const ativo = m.id === escolhido;
 
           return (
@@ -296,7 +296,7 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
 
       <div
         className="flex flex-col gap-[clamp(1.125rem,2.5vw,2rem)]"
-        style={paraVariaveis(tokens) as CSSProperties}
+        style={toVariables(tokens) as CSSProperties}
       >
         <div className="relative rounded-superficie bg-gradient-device p-3 shadow-alta">
           <div
@@ -334,7 +334,7 @@ export function TelaoComIdentidade({ exemplo }: { exemplo: string }) {
           </div>
         </div>
 
-        <div style={paraVariaveis(tokensNoPapel) as CSSProperties}>
+        <div style={toVariables(tokensNoPapel) as CSSProperties}>
           <p className="mb-[clamp(0.875rem,2vw,1.25rem)] text-[0.8125rem] uppercase tracking-rotulo text-acento-texto">
             E o mesmo desenho sai impresso
           </p>
@@ -363,7 +363,7 @@ export function Missoes({
   lede: string;
 }) {
   const [feitas, setFeitas] = useState<string[]>([]);
-  const escuro = resolverTokens({ marca: MARCA_ALBORA, pack: { fundo: "escuro" } });
+  const escuro = resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } });
 
   const alternar = (id: string) =>
     setFeitas((atual) =>
@@ -375,7 +375,7 @@ export function Missoes({
   return (
     <div
       className="rounded-superficie bg-bg p-[clamp(2rem,5vw,4.5rem)_clamp(1.5rem,4vw,3.75rem)] text-ink"
-      style={paraVariaveis(escuro) as CSSProperties}
+      style={toVariables(escuro) as CSSProperties}
     >
       <div className="mb-[clamp(1.25rem,3vw,1.875rem)] flex flex-wrap items-end justify-between gap-6">
         <Titulo tamanho="clamp(1.75rem, 4.2vw, 3.25rem)" className="max-w-[20ch]">

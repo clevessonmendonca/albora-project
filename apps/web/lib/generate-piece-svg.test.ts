@@ -1,4 +1,4 @@
-import { MARCA_ALBORA } from "@albora/tokens";
+import { ALBORA_BRAND } from "@albora/tokens";
 import { describe, expect, it } from "vitest";
 import { generatePieceSvg } from "./generate-piece-svg";
 
@@ -8,7 +8,7 @@ const entradaBase = {
   monograma: "AJ",
   titulo: "Ana & João",
   data: "12 de agosto de 2026",
-  cores: MARCA_ALBORA.cores,
+  cores: ALBORA_BRAND.cores,
 };
 
 describe("generatePieceSvg", () => {

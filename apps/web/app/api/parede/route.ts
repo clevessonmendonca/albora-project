@@ -1,5 +1,5 @@
 import { comEvento, listarMidiaDaParede, lerModeracaoDoEvento } from "@albora/db";
-import { modelosDoRodizio, type ModeloDeTelao } from "@albora/core";
+import { wallDisplayRotationModels, type WallDisplayModel } from "@albora/core";
 import { errorResponse, jsonOk, requireConfig, unexpectedError } from "@/lib/api";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
@@ -47,7 +47,7 @@ export async function GET(req: Request) {
         [parede.eventoId],
       );
       const tokens = rows[0]?.identity_tokens ?? {};
-      const telaoModelos = modelosDoRodizio(tokens.telaoModelos) as ModeloDeTelao[];
+      const telaoModelos = wallDisplayRotationModels(tokens.telaoModelos) as WallDisplayModel[];
       return { moderacao, lista, telaoModelos };
     });
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { PACKS, texto, type Pack } from "@albora/packs";
-import { MODELOS_DE_IDENTIDADE } from "@albora/tokens";
+import { PACKS, resolvePackText, type Pack } from "@albora/packs";
+import { IDENTITY_MODELS } from "@albora/tokens";
 import { useMemo, useState } from "react";
 import {
   identityPreviewClassName,
@@ -27,7 +27,7 @@ export function IdentityEditor({
   const presetInicial =
     typeof identityTokensInicial.presetId === "string"
       ? identityTokensInicial.presetId
-      : MODELOS_DE_IDENTIDADE[0]!.id;
+      : IDENTITY_MODELS[0]!.id;
 
   const [presetId, setPresetId] = useState(presetInicial);
   const [expectedGuests, setExpectedGuests] = useState(String(expectedGuestsInicial));
@@ -35,7 +35,7 @@ export function IdentityEditor({
   const [erro, setErro] = useState(false);
   const [salvo, setSalvo] = useState(false);
 
-  const preset = MODELOS_DE_IDENTIDADE.find((m) => m.id === presetId) ?? MODELOS_DE_IDENTIDADE[0]!;
+  const preset = IDENTITY_MODELS.find((m) => m.id === presetId) ?? IDENTITY_MODELS[0]!;
 
   const identityTokens = useMemo(() => {
     return {
@@ -107,7 +107,7 @@ export function IdentityEditor({
 
         <div className="mt-5 grid grid-cols-[minmax(12rem,1fr)_minmax(14rem,1fr)] gap-5">
           <div className="flex flex-col gap-3">
-            {MODELOS_DE_IDENTIDADE.map((m) => (
+            {IDENTITY_MODELS.map((m) => (
               <button
                 key={m.id}
                 type="button"
@@ -129,9 +129,9 @@ export function IdentityEditor({
 
           <div className={identityPreviewClassName} style={previewVars}>
             <p className="m-0 font-titulo text-xl text-acento-texto">
-              {texto(pack, "landing.exemplo.nome")}
+              {resolvePackText(pack, "landing.exemplo.nome")}
             </p>
-            <p className="mb-0 mt-3 text-sm text-ink-2">Preview ao vivo com resolverTokens.</p>
+            <p className="mb-0 mt-3 text-sm text-ink-2">Preview ao vivo com resolveTokens.</p>
           </div>
         </div>
 

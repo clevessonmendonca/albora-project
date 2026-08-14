@@ -1,4 +1,4 @@
-import { PACKS, texto } from "@albora/packs";
+import { PACKS, resolvePackText } from "@albora/packs";
 
 export type ResolvedMission = { id: string; title: string };
 
@@ -11,7 +11,7 @@ export function resolveMissions(
   const pack = PACKS[packId];
   return challenges.map((d) => ({
     id: d.id,
-    title: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,
+    title: pack ? resolvePackText(pack, d.chaveTitulo) : d.chaveTitulo,
   }));
 }
 
@@ -22,7 +22,7 @@ export function resolveMissionsWithStatus(
   const pack = PACKS[packId];
   return challenges.map((d) => ({
     id: d.id,
-    title: pack ? texto(pack, d.chaveTitulo) : d.chaveTitulo,
+    title: pack ? resolvePackText(pack, d.chaveTitulo) : d.chaveTitulo,
     done: d.feito,
   }));
 }

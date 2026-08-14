@@ -1,10 +1,10 @@
 import type { CSSProperties, ReactNode } from "react";
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
+import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import Link from "next/link";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
 export function adminVars(): CSSProperties {
-  return paraVariaveis(resolverTokens({ marca: MARCA_ALBORA })) as CSSProperties;
+  return toVariables(resolveTokens({ marca: ALBORA_BRAND })) as CSSProperties;
 }
 
 type AdminShellProps = {

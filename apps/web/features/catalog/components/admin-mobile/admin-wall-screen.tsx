@@ -1,4 +1,4 @@
-import { MODELOS_DE_TELAO, PERFIS, problemasDaEscolha, type ModeloDeTelao } from "@albora/core";
+import { WALL_DISPLAY_MODELS, WALL_DISPLAY_MODEL_PROFILES, wallDisplayChoiceProblems, type WallDisplayModel } from "@albora/core";
 import type { Pack } from "@albora/packs";
 import { Badge, Button, cn, StatusBar } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
@@ -11,9 +11,9 @@ export function AdminWallScreen({
   selected,
 }: {
   pack: Pack;
-  selected: readonly ModeloDeTelao[];
+  selected: readonly WallDisplayModel[];
 }) {
-  const problemas = problemasDaEscolha(selected);
+  const problemas = wallDisplayChoiceProblems(selected);
   const recusada = problemas.length > 0;
 
   return (
@@ -23,7 +23,7 @@ export function AdminWallScreen({
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3">
         <p className="font-titulo text-[1.375rem] tracking-titulo">A parede</p>
         <Badge tone={recusada ? "outline" : "accent"}>
-          {selected.length} de {MODELOS_DE_TELAO.length}
+          {selected.length} de {WALL_DISPLAY_MODELS.length}
         </Badge>
       </div>
 
@@ -44,9 +44,9 @@ export function AdminWallScreen({
         )}
 
         <div className="grid grid-cols-2 gap-2">
-          {MODELOS_DE_TELAO.map((modelo) => {
+          {WALL_DISPLAY_MODELS.map((modelo) => {
             const checked = selected.includes(modelo);
-            const culpado = recusada && !PERFIS[modelo].aceitaEmPe && checked;
+            const culpado = recusada && !WALL_DISPLAY_MODEL_PROFILES[modelo].aceitaEmPe && checked;
 
             return (
               <div
@@ -64,7 +64,7 @@ export function AdminWallScreen({
                 <p
                   className={cn(
                     "mt-1 text-[0.6875rem]",
-                    PERFIS[modelo].aceitaEmPe ? "text-ink-3" : "text-critico",
+                    WALL_DISPLAY_MODEL_PROFILES[modelo].aceitaEmPe ? "text-ink-3" : "text-critico",
                   )}
                 >
                   {profileText(modelo)}

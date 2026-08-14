@@ -1,10 +1,10 @@
 import { comConta } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import {
-  MARCA_ALBORA,
-  resolverTokens,
-  type CamadaTokens,
-  type FormatoDePeca,
+  ALBORA_BRAND,
+  resolveTokens,
+  type TokenLayer,
+  type PieceFormat,
 } from "@albora/tokens";
 import {
   errorResponse,
@@ -20,16 +20,16 @@ import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
 
-const FORMATOS: FormatoDePeca[] = ["placa-a4", "card-de-mesa", "card-de-missao"];
+const FORMATOS: PieceFormat[] = ["placa-a4", "card-de-mesa", "card-de-missao"];
 
 const ADMIN_SESSAO = {
   code: "admin.sem_sessao",
   message: "Entre no painel para continuar",
 } as const;
 
-function comoFormato(valor: string | null): FormatoDePeca | null {
+function comoFormato(valor: string | null): PieceFormat | null {
   if (!valor) return null;
-  return FORMATOS.includes(valor as FormatoDePeca) ? (valor as FormatoDePeca) : null;
+  return FORMATOS.includes(valor as PieceFormat) ? (valor as PieceFormat) : null;
 }
 
 async function tokensDoEvento(
@@ -99,10 +99,10 @@ export async function GET(
     if (!dados) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
 
     const pack = PACKS[dados.packId];
-    const tokens = resolverTokens({
-      marca: MARCA_ALBORA,
+    const tokens = resolveTokens({
+      marca: ALBORA_BRAND,
       ...(pack ? { pack: pack.tokens } : {}),
-      evento: dados.identityTokens as CamadaTokens,
+      evento: dados.identityTokens as TokenLayer,
     });
 
     const identidade = identityToFrame(

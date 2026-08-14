@@ -1,4 +1,4 @@
-import type { ModeloDeTelao } from "@albora/core";
+import type { WallDisplayModel } from "@albora/core";
 
 export type ItemApi = {
   id: string;
@@ -11,7 +11,7 @@ export type ItemApi = {
   expiraEm: number;
 };
 
-export type Cena = { modelo: ModeloDeTelao; ids: string[] };
+export type Cena = { modelo: WallDisplayModel; ids: string[] };
 
 export type FaseWall = "pareando" | "exibindo";
 

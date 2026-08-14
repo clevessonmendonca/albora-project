@@ -8,7 +8,7 @@ import {
   packDoEvento,
   reacaoDaSessao,
 } from "@albora/db";
-import { PACKS, reacaoValida } from "@albora/packs";
+import { PACKS, isValidReaction } from "@albora/packs";
 import {
   enforceRateLimit,
   errorResponse,
@@ -70,7 +70,7 @@ export async function PUT(req: Request) {
 
       const packId = await packDoEvento(c, auth.session.eventoId);
       const pack = packId ? PACKS[packId] : undefined;
-      if (!pack || !reacaoValida(pack, tipo)) {
+      if (!pack || !isValidReaction(pack, tipo)) {
         return { ok: false as const, code: "reacao.tipo_invalido" };
       }
 

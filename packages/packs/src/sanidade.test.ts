@@ -1,8 +1,8 @@
-import { MARCA_ALBORA, resolverTokens } from "@albora/tokens";
+import { ALBORA_BRAND, resolveTokens } from "@albora/tokens";
 import { describe, expect, it } from "vitest";
-import { CASAMENTO } from "./casamento";
-import { QUINZE_ANOS } from "./quinze-anos";
-import { lugarValido, PACKS, problemasDoPack, texto } from "./index";
+import { WEDDING } from "./casamento";
+import { FIFTEEN_YEARS } from "./quinze-anos";
+import { isValidPlace, PACKS, packProblems, resolvePackText } from "./index";
 
 /**
  * O teste de sanidade do CLAUDE.md: trocar o pack de um evento muda toda a UI
@@ -13,8 +13,8 @@ import { lugarValido, PACKS, problemasDoPack, texto } from "./index";
  */
 describe("trocar o pack muda a UI, não o núcleo", () => {
   it("a mesma chave devolve texto diferente por pack", () => {
-    expect(texto(CASAMENTO, "anfitriao.plural")).toBe("os noivos");
-    expect(texto(QUINZE_ANOS, "anfitriao.plural")).toBe("a aniversariante");
+    expect(resolvePackText(WEDDING, "anfitriao.plural")).toBe("os noivos");
+    expect(resolvePackText(FIFTEEN_YEARS, "anfitriao.plural")).toBe("a aniversariante");
   });
 
   it("todo pack registrado responde ao que o núcleo pede", () => {
@@ -22,35 +22,35 @@ describe("trocar o pack muda a UI, não o núcleo", () => {
     // valer quando missão e lugar entraram no vocabulário: um casamento tem
     // altar e um aniversário não, e igualar os conjuntos forçaria um pack a
     // inventar lugares que a festa não tem. O que precisa bater é o que o
-    // núcleo desenha — e isso `problemasDoPack` verifica por chave.
+    // núcleo desenha — e isso `packProblems` verifica por chave.
     for (const [id, pack] of Object.entries(PACKS)) {
-      expect(problemasDoPack(pack), id).toEqual([]);
+      expect(packProblems(pack), id).toEqual([]);
     }
   });
 
   it("missão e lugar podem divergir entre packs", () => {
-    expect(CASAMENTO.lugares.map((l) => l.id)).toContain("altar");
-    expect(QUINZE_ANOS.lugares.map((l) => l.id)).not.toContain("altar");
+    expect(WEDDING.lugares.map((l) => l.id)).toContain("altar");
+    expect(FIFTEEN_YEARS.lugares.map((l) => l.id)).not.toContain("altar");
   });
 
   it("lugar fora da lista do pack é recusado", () => {
     // É a validação de conjunto fechado que o confirm usa. Campo livre aqui
     // seria a mesma superfície de abuso do nome, projetada no telão.
-    expect(lugarValido(CASAMENTO, "altar")).toBe(true);
-    expect(lugarValido(QUINZE_ANOS, "altar")).toBe(false);
-    expect(lugarValido(CASAMENTO, "-22.9068,-43.1729")).toBe(false);
-    expect(lugarValido(CASAMENTO, null)).toBe(false);
+    expect(isValidPlace(WEDDING, "altar")).toBe(true);
+    expect(isValidPlace(FIFTEEN_YEARS, "altar")).toBe(false);
+    expect(isValidPlace(WEDDING, "-22.9068,-43.1729")).toBe(false);
+    expect(isValidPlace(WEDDING, null)).toBe(false);
   });
 
   it("chave ausente devolve a própria chave, nunca vazio", () => {
-    expect(texto(CASAMENTO, "nao.existe")).toBe("nao.existe");
+    expect(resolvePackText(WEDDING, "nao.existe")).toBe("nao.existe");
   });
 
   it("o pack entra na cadeia de tokens sem substituir a marca", () => {
-    const r = resolverTokens({ marca: MARCA_ALBORA, pack: CASAMENTO.tokens ?? {} });
+    const r = resolveTokens({ marca: ALBORA_BRAND, pack: WEDDING.tokens ?? {} });
 
     expect(r.fontes.titulo).toBe("Fraunces, Georgia, serif");
-    expect(r.cores.papel).toBe(MARCA_ALBORA.cores.papel);
+    expect(r.cores.papel).toBe(ALBORA_BRAND.cores.papel);
   });
 });
 

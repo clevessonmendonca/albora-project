@@ -1,4 +1,4 @@
-import { QUINZE_ANOS, problemasDaLanding } from "@albora/packs";
+import { FIFTEEN_YEARS, landingProblems } from "@albora/packs";
 import type { Metadata } from "next";
 import { PaginaLanding } from "../landing/pagina-landing";
 
@@ -13,8 +13,8 @@ export const metadata: Metadata = {
  * de dar conta e a diferença virou código.
  */
 export default function QuinzeAnos() {
-  const problemas = problemasDaLanding(QUINZE_ANOS);
+  const problemas = landingProblems(FIFTEEN_YEARS);
   if (problemas.length > 0) throw new Error(problemas.join("; "));
 
-  return <PaginaLanding pack={QUINZE_ANOS} />;
+  return <PaginaLanding pack={FIFTEEN_YEARS} />;
 }

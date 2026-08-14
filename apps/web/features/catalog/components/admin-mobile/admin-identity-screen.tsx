@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import { resolvePackText, type Pack } from "@albora/packs";
 import { Badge, Button, cn, Frame, StatusBar } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { AdminNav } from "@/features/catalog/components/admin-nav";
@@ -24,7 +24,7 @@ export function AdminIdentityScreen({ pack }: { pack: Pack }) {
           <div className="absolute inset-0 bg-veu-admin" />
           <div className="absolute inset-x-4 bottom-4">
             <p className="font-titulo text-[1.375rem] leading-tight tracking-titulo">
-              {texto(pack, "landing.exemplo.nome")}
+              {resolvePackText(pack, "landing.exemplo.nome")}
             </p>
             <span className="mt-2 inline-flex items-center rounded-pilula bg-acento px-3 py-1.5 text-[0.75rem] font-medium text-sobre-acento">
               Enviar foto
@@ -55,7 +55,7 @@ export function AdminIdentityScreen({ pack }: { pack: Pack }) {
         <div className="grid grid-cols-2 gap-2.5">
           <div className="rounded-token bg-superficie p-3">
             <p className="text-[0.625rem] uppercase tracking-rotulo text-ink-3">Título</p>
-            <p className="mt-1 font-titulo text-[1.25rem]">{texto(pack, "landing.exemplo.nome")}</p>
+            <p className="mt-1 font-titulo text-[1.25rem]">{resolvePackText(pack, "landing.exemplo.nome")}</p>
           </div>
           <div className="rounded-token bg-superficie p-3">
             <p className="text-[0.625rem] uppercase tracking-rotulo text-ink-3">Corpo</p>

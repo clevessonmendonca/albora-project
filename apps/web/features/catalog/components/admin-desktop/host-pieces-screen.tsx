@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import { resolvePackText, type Pack } from "@albora/packs";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { HostSidebar } from "@/features/catalog/components/host-sidebar";
 
@@ -19,7 +19,7 @@ export function HostPiecesScreen({ pack }: { pack: Pack }) {
           <div className="flex items-start gap-8">
             <div className="flex aspect-[210/297] w-48 flex-col items-center justify-between rounded-token border border-linha bg-superficie-alta p-5">
               <p className="m-0 text-center font-titulo text-[0.875rem]">
-                {texto(pack, "landing.exemplo.nome")}
+                {resolvePackText(pack, "landing.exemplo.nome")}
               </p>
               <span className="grid size-[5.5rem] place-items-center rounded-token bg-ink text-[0.5625rem] tracking-wider text-bg">
                 QR

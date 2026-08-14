@@ -1,8 +1,8 @@
 import {
-  MODELOS_DE_TELAO,
-  PERFIS,
-  problemasDaEscolha,
-  type ModeloDeTelao,
+  WALL_DISPLAY_MODELS,
+  WALL_DISPLAY_MODEL_PROFILES,
+  wallDisplayChoiceProblems,
+  type WallDisplayModel,
 } from "@albora/core";
 import type { Pack } from "@albora/packs";
 import { Badge, cn } from "@albora/ui-web";
@@ -18,9 +18,9 @@ export function WallModelsScreen({
   selected,
 }: {
   pack: Pack;
-  selected: readonly ModeloDeTelao[];
+  selected: readonly WallDisplayModel[];
 }) {
-  const problemas = problemasDaEscolha(selected);
+  const problemas = wallDisplayChoiceProblems(selected);
   const recusada = problemas.length > 0;
 
   return (
@@ -39,7 +39,7 @@ export function WallModelsScreen({
               </p>
             </span>
             <Badge tone={!recusada ? "accent" : "neutral"}>
-              {selected.length} de {MODELOS_DE_TELAO.length}
+              {selected.length} de {WALL_DISPLAY_MODELS.length}
             </Badge>
           </div>
 
@@ -61,9 +61,9 @@ export function WallModelsScreen({
           ) : null}
 
           <div className="mt-5 grid grid-cols-4 gap-3">
-            {MODELOS_DE_TELAO.map((modelo) => {
+            {WALL_DISPLAY_MODELS.map((modelo) => {
               const checked = selected.includes(modelo);
-              const culpado = recusada && !PERFIS[modelo].aceitaEmPe && checked;
+              const culpado = recusada && !WALL_DISPLAY_MODEL_PROFILES[modelo].aceitaEmPe && checked;
 
               return (
                 <div
@@ -91,7 +91,7 @@ export function WallModelsScreen({
                   <span
                     className={cn(
                       "mt-1 block text-[0.6875rem] leading-snug",
-                      PERFIS[modelo].aceitaEmPe ? "text-ink-2" : "text-critico",
+                      WALL_DISPLAY_MODEL_PROFILES[modelo].aceitaEmPe ? "text-ink-2" : "text-critico",
                     )}
                   >
                     {profileText(modelo)}

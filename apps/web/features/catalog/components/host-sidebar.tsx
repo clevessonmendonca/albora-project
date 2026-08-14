@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import { resolvePackText, type Pack } from "@albora/packs";
 import { cn } from "@albora/ui-web";
 
 export const HOST_SECTIONS = [
@@ -18,7 +18,7 @@ export function HostSidebar({ pack, active }: { pack: Pack; active: HostSection 
   return (
     <aside className="w-[13.75rem] shrink-0 border-r border-linha px-[1.125rem] py-6">
       <p className="mb-6 mt-0 font-titulo text-[1.0625rem]">
-        {texto(pack, "landing.exemplo.nome")}
+        {resolvePackText(pack, "landing.exemplo.nome")}
       </p>
       {HOST_SECTIONS.map((item) => (
         <p

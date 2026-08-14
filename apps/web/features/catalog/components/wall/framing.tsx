@@ -1,7 +1,7 @@
-import { PERFIS, type ModeloDeTelao } from "@albora/core";
+import { WALL_DISPLAY_MODEL_PROFILES, type WallDisplayModel } from "@albora/core";
 import { Frame, cn } from "@albora/ui-web";
 
-const COMO_RESOLVE: Readonly<Record<ModeloDeTelao, string>> = {
+const COMO_RESOLVE: Readonly<Record<WallDisplayModel, string>> = {
   polaroide: "Uma cópia por vez, com o crédito assinado na margem de baixo.",
   mural: "Três verticais lado a lado preenchem o 16:9 sem cortar nenhuma.",
   colagem: "Arranjos que se alternam, para a parede não virar papel de parede.",
@@ -12,7 +12,7 @@ const COMO_RESOLVE: Readonly<Record<ModeloDeTelao, string>> = {
   tbt: "Puxa da faixa antiga, não da recente. Retrospectiva da foto de cinco minutos atrás não é retrospectiva de nada.",
 };
 
-const MODEL_NAMES: Readonly<Record<ModeloDeTelao, string>> = {
+const MODEL_NAMES: Readonly<Record<WallDisplayModel, string>> = {
   polaroide: "Polaroide",
   mural: "Mural",
   colagem: "Colagem",
@@ -23,18 +23,18 @@ const MODEL_NAMES: Readonly<Record<ModeloDeTelao, string>> = {
   tbt: "TBT",
 };
 
-export function modelName(modelo: ModeloDeTelao): string {
+export function modelName(modelo: WallDisplayModel): string {
   return MODEL_NAMES[modelo];
 }
 
-export function wallProfileText(modelo: ModeloDeTelao): string {
-  const perfil = PERFIS[modelo];
+export function wallProfileText(modelo: WallDisplayModel): string {
+  const perfil = WALL_DISPLAY_MODEL_PROFILES[modelo];
   const quantas = perfil.fotos === 1 ? "uma foto por vez" : `${perfil.fotos} fotos de uma vez`;
   const emPe = perfil.aceitaEmPe ? "aceita foto em pé" : "só foto deitada";
   return `${quantas} · ${emPe}`;
 }
 
-export function modelNote(modelo: ModeloDeTelao): string {
+export function modelNote(modelo: WallDisplayModel): string {
   return `${wallProfileText(modelo)}. ${COMO_RESOLVE[modelo]}`;
 }
 
@@ -66,7 +66,7 @@ function Quadro({
   );
 }
 
-export function Framing({ modelo, mini }: { modelo: ModeloDeTelao; mini?: boolean }) {
+export function Framing({ modelo, mini }: { modelo: WallDisplayModel; mini?: boolean }) {
   if (modelo === "cheio") {
     return <Quadro variante={11} semRaio className="size-full" />;
   }
@@ -96,7 +96,7 @@ export function Framing({ modelo, mini }: { modelo: ModeloDeTelao; mini?: boolea
   if (modelo === "mural") {
     return (
       <span className="grid size-full grid-cols-3 place-items-center gap-[var(--espaco)]">
-        {Array.from({ length: PERFIS.mural.fotos }, (_, i) => (
+        {Array.from({ length: WALL_DISPLAY_MODEL_PROFILES.mural.fotos }, (_, i) => (
           <Quadro key={i} variante={i * 7 + 3} proporcao="9/16" className="h-full" />
         ))}
       </span>
@@ -107,7 +107,7 @@ export function Framing({ modelo, mini }: { modelo: ModeloDeTelao; mini?: boolea
     return (
       <span className="grid size-full grid-cols-[1.15fr_1fr_1fr] grid-rows-2 gap-[var(--espaco)]">
         <Quadro variante={4} className="row-span-2" />
-        {Array.from({ length: PERFIS.colagem.fotos - 1 }, (_, i) => (
+        {Array.from({ length: WALL_DISPLAY_MODEL_PROFILES.colagem.fotos - 1 }, (_, i) => (
           <Quadro key={i} variante={i * 5 + 9} />
         ))}
       </span>
@@ -165,8 +165,8 @@ export function Framing({ modelo, mini }: { modelo: ModeloDeTelao; mini?: boolea
   }
 
   if (modelo === "dump") {
-    const naPrimeira = Math.ceil(PERFIS.dump.fotos / 2);
-    const linhas = [naPrimeira, PERFIS.dump.fotos - naPrimeira];
+    const naPrimeira = Math.ceil(WALL_DISPLAY_MODEL_PROFILES.dump.fotos / 2);
+    const linhas = [naPrimeira, WALL_DISPLAY_MODEL_PROFILES.dump.fotos - naPrimeira];
 
     return (
       <span className="flex size-full flex-col items-center justify-center gap-[var(--espaco)]">

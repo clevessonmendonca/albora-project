@@ -1,5 +1,5 @@
 import { listarEventosDoHost } from "@albora/db";
-import { PACKS, texto } from "@albora/packs";
+import { PACKS, resolvePackText } from "@albora/packs";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -38,7 +38,7 @@ export default async function Pagina() {
           <ul className="m-0 list-none p-0">
             {eventos.map((e) => {
               const pack = PACKS[e.packId];
-              const nome = pack ? texto(pack, "evento.nome") : e.slug;
+              const nome = pack ? resolvePackText(pack, "evento.nome") : e.slug;
               const quando = e.comecaEm.toLocaleDateString("pt-BR", {
                 day: "numeric",
                 month: "short",

@@ -1,14 +1,14 @@
 import {
-  MODELOS_DE_TELAO,
-  PERFIS,
-  TETO_DO_CACHE,
+  WALL_DISPLAY_MODELS,
+  WALL_DISPLAY_MODEL_PROFILES,
+  WALL_DISPLAY_CACHE_LIMIT,
   ehMimeVideo,
-  modeloCorta,
-  modelosDoRodizio,
-  podarCache,
-  proximaDoTelao,
-  type ItemDoTelao,
-  type ModeloDeTelao,
+  wallDisplayModelCrops,
+  wallDisplayRotationModels,
+  pruneWallDisplayCache,
+  nextForWallDisplay,
+  type WallDisplayItem,
+  type WallDisplayModel,
 } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -27,7 +27,7 @@ export function useWallDisplay(
   const itensRef = useRef<Map<string, ItemApi>>(new Map());
   const dimsRef = useRef<Map<string, { largura: number; altura: number }>>(new Map());
   const exibicoesRef = useRef<Map<string, number>>(new Map());
-  const modelosRef = useRef<readonly ModeloDeTelao[]>(MODELOS_DE_TELAO);
+  const modelosRef = useRef<readonly WallDisplayModel[]>(WALL_DISPLAY_MODELS);
   const indiceModeloRef = useRef(0);
 
   const [cena, setCena] = useState<Cena | null>(null);
@@ -80,7 +80,7 @@ export function useWallDisplay(
     };
     const agora = Date.now();
     setPanico(corpo.panico === true);
-    modelosRef.current = modelosDoRodizio(corpo.telaoModelos);
+    modelosRef.current = wallDisplayRotationModels(corpo.telaoModelos);
 
     for (const bruto of corpo.itens) {
       const existente = itensRef.current.get(bruto.id);
@@ -93,7 +93,7 @@ export function useWallDisplay(
       medir(item);
     }
 
-    const podadas = podarCache(
+    const podadas = pruneWallDisplayCache(
       [...itensRef.current.values()].map((i) => ({
         id: i.id,
         criadaEm: new Date(i.criadaEm),
@@ -102,7 +102,7 @@ export function useWallDisplay(
         largura: 0,
         altura: 0,
       })),
-      TETO_DO_CACHE,
+      WALL_DISPLAY_CACHE_LIMIT,
     );
     const vivos = new Set(podadas.map((p) => p.id));
     for (const id of itensRef.current.keys()) {
@@ -116,8 +116,8 @@ export function useWallDisplay(
     setCarregou(true);
   }, [medir, onNaoAutorizado]);
 
-  const paraItemDoTelao = useCallback((): ItemDoTelao[] => {
-    const itens: ItemDoTelao[] = [];
+  const paraItemDoTelao = useCallback((): WallDisplayItem[] => {
+    const itens: WallDisplayItem[] = [];
     for (const [id, api] of itensRef.current) {
       const dim = dimsRef.current.get(id);
       if (!dim) continue;
@@ -133,14 +133,14 @@ export function useWallDisplay(
     return itens;
   }, []);
 
-  const selecionar = useCallback((modelo: ModeloDeTelao, itens: ItemDoTelao[]): string[] => {
-    const perfil = PERFIS[modelo];
+  const selecionar = useCallback((modelo: WallDisplayModel, itens: WallDisplayItem[]): string[] => {
+    const perfil = WALL_DISPLAY_MODEL_PROFILES[modelo];
     if (perfil.fotos === 1) {
-      const escolhido = proximaDoTelao(itens, { agora: new Date(), modelo });
+      const escolhido = nextForWallDisplay(itens, { agora: new Date(), modelo });
       return escolhido ? [escolhido.id] : [];
     }
     const elegiveis = itens
-      .filter((i) => !modeloCorta(modelo, i))
+      .filter((i) => !wallDisplayModelCrops(modelo, i))
       .sort((a, b) => a.exibicoes - b.exibicoes || b.criadaEm.getTime() - a.criadaEm.getTime());
     if (elegiveis.length < perfil.fotos) return [];
     return elegiveis.slice(0, perfil.fotos).map((i) => i.id);

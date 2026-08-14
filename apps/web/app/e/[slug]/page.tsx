@@ -1,6 +1,6 @@
 import { resolverSlug } from "@albora/db";
-import { PACKS, texto } from "@albora/packs";
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
+import { PACKS, resolvePackText } from "@albora/packs";
+import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -94,9 +94,9 @@ export default async function Pagina({ params }: Props) {
   return (
     <div
       style={
-        paraVariaveis(
-          resolverTokens({
-            marca: MARCA_ALBORA,
+        toVariables(
+          resolveTokens({
+            marca: ALBORA_BRAND,
             pack: {
               ...(PACKS[r.evento.packId]?.tokens ?? {}),
               fundo: "escuro",
@@ -109,10 +109,10 @@ export default async function Pagina({ params }: Props) {
         eventoId={r.evento.eventoId}
         slug={slug}
         nomeEvento={
-          PACKS[r.evento.packId] ? texto(PACKS[r.evento.packId]!, "landing.exemplo.nome") : "A festa"
+          PACKS[r.evento.packId] ? resolvePackText(PACKS[r.evento.packId]!, "landing.exemplo.nome") : "A festa"
         }
         saudacao={
-          PACKS[r.evento.packId] ? texto(PACKS[r.evento.packId]!, "convidado.saudacao") : "Bem-vindo"
+          PACKS[r.evento.packId] ? resolvePackText(PACKS[r.evento.packId]!, "convidado.saudacao") : "Bem-vindo"
         }
       />
     </div>

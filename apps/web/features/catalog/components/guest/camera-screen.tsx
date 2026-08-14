@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import { resolvePackText, type Pack } from "@albora/packs";
 import { Badge, Frame, StatusBar } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
@@ -9,7 +9,7 @@ export function CameraScreen({ pack, mission }: { pack: Pack; mission: string })
 
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3.5">
         <span className="font-titulo text-[1.125rem] tracking-titulo">
-          {texto(pack, "landing.exemplo.nome")}
+          {resolvePackText(pack, "landing.exemplo.nome")}
         </span>
         <Badge>3 na fila</Badge>
       </div>
@@ -27,7 +27,7 @@ export function CameraScreen({ pack, mission }: { pack: Pack; mission: string })
         <div className="absolute inset-x-3.5 bottom-3.5 flex flex-wrap gap-1.5">
           {pack.lugares.slice(0, 4).map((l, i) => (
             <Badge key={l.id} tone={i === 0 ? "accent" : "neutral"}>
-              {texto(pack, l.chaveTitulo)}
+              {resolvePackText(pack, l.chaveTitulo)}
             </Badge>
           ))}
         </div>

@@ -1,4 +1,4 @@
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
+import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { CSSProperties } from "react";
@@ -13,7 +13,7 @@ export default async function Pagina() {
   const host = await hostFromToken(token);
   if (!host) redirect("/admin/sign-in");
 
-  const vars = paraVariaveis(resolverTokens({ marca: MARCA_ALBORA })) as CSSProperties;
+  const vars = toVariables(resolveTokens({ marca: ALBORA_BRAND })) as CSSProperties;
 
   return (
     <div style={vars}>

@@ -1,6 +1,6 @@
 import "./landing.css";
-import { MARCA_ALBORA, MODELOS_DE_IDENTIDADE, paraVariaveis, resolverTokens } from "@albora/tokens";
-import { texto, type Pack } from "@albora/packs";
+import { ALBORA_BRAND, IDENTITY_MODELS, toVariables, resolveTokens } from "@albora/tokens";
+import { resolvePackText, type Pack } from "@albora/packs";
 import { cn } from "@albora/ui-web";
 import type { CSSProperties } from "react";
 import { DemoRolagem, Missoes, Revelar, TelaoComIdentidade } from "./interativos";
@@ -149,12 +149,12 @@ function Secao({
 export type AoVivo = { fotos: number; eventos: number };
 
 export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo }) {
-  const tokens = resolverTokens({
-    marca: MARCA_ALBORA,
+  const tokens = resolveTokens({
+    marca: ALBORA_BRAND,
     pack: { ...pack.tokens, fundo: "claro" },
   });
 
-  const t = (chave: string) => texto(pack, chave);
+  const t = (chave: string) => resolvePackText(pack, chave);
 
   const missoes = [...pack.missoes]
     .sort((a, b) => a.ordem - b.ordem)
@@ -172,7 +172,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
   return (
     <div
       className="min-h-screen overflow-x-clip bg-bg font-corpo leading-normal text-ink"
-      style={paraVariaveis(tokens) as CSSProperties}
+      style={toVariables(tokens) as CSSProperties}
     >
       <header
         className={cn(
@@ -489,7 +489,7 @@ export function PaginaLanding({ pack, aoVivo }: { pack: Pack; aoVivo?: AoVivo })
               periodo: "pagamento único",
               itens: [
                 "Resolução original e vídeo",
-                `Telão ao vivo nos ${MODELOS_DE_IDENTIDADE.length} modelos`,
+                `Telão ao vivo nos ${IDENTITY_MODELS.length} modelos`,
                 "Download em ZIP",
                 "Identidade do evento aplicada",
                 "12 meses, com exportação para a sua nuvem",

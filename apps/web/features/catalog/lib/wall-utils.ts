@@ -1,6 +1,6 @@
-import { PERFIS, type ModeloDeTelao } from "@albora/core";
+import { WALL_DISPLAY_MODEL_PROFILES, type WallDisplayModel } from "@albora/core";
 
-export const MODEL_NAMES: Readonly<Record<ModeloDeTelao, string>> = {
+export const MODEL_NAMES: Readonly<Record<WallDisplayModel, string>> = {
   polaroide: "Polaroide",
   mural: "Mural",
   colagem: "Colagem",
@@ -11,8 +11,8 @@ export const MODEL_NAMES: Readonly<Record<ModeloDeTelao, string>> = {
   tbt: "TBT",
 };
 
-export function profileText(modelo: ModeloDeTelao): string {
-  const profile = PERFIS[modelo];
+export function profileText(modelo: WallDisplayModel): string {
+  const profile = WALL_DISPLAY_MODEL_PROFILES[modelo];
   const count = profile.fotos === 1 ? "1 foto" : `${profile.fotos} fotos`;
   return `${count} · ${profile.aceitaEmPe ? "em pé" : "só deitada"}`;
 }

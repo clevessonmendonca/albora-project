@@ -1,11 +1,11 @@
-import { padroesDoEvento } from "@albora/core";
+import { eventDefaults } from "@albora/core";
 import type { Pack } from "@albora/packs";
 import { Badge, Card, cn, Frame, Switch } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { HostSidebar } from "@/features/catalog/components/host-sidebar";
 
 export function HostPanelScreen({ pack, hasMinors = false }: { pack: Pack; hasMinors?: boolean }) {
-  const padroes = padroesDoEvento({ haMenores: hasMinors });
+  const padroes = eventDefaults({ haMenores: hasMinors });
 
   const efeitos: [string, string][] = [
     [

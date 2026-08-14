@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import { resolvePackText, type Pack } from "@albora/packs";
 import { cn } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { WizardField } from "@/features/catalog/components/wizard-field";
@@ -44,7 +44,7 @@ export function HostCreateEventScreen({
         <div className="mt-6 flex-1">
           {step === 1 && (
             <div className="flex max-w-[22rem] flex-col gap-4">
-              <WizardField label="Nome do evento" value={texto(pack, "landing.exemplo.nome")} />
+              <WizardField label="Nome do evento" value={resolvePackText(pack, "landing.exemplo.nome")} />
               <WizardField label="Convidados esperados" value="150" />
               <WizardField label="Começo" value="Sáb, 20:00" />
               <WizardField label="Fim" value="Dom, 04:00" />

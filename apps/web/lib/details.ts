@@ -1,4 +1,4 @@
-import { lugarValido, PACKS } from "@albora/packs";
+import { isValidPlace, PACKS } from "@albora/packs";
 
 /**
  * Normalização de legenda e lugar, num lugar só.
@@ -37,5 +37,5 @@ export function acceptedPlace(packId: string | null, valor: unknown): string | n
   const pack = PACKS[packId];
   if (!pack) return null;
 
-  return lugarValido(pack, valor) ? valor : null;
+  return isValidPlace(pack, valor) ? valor : null;
 }

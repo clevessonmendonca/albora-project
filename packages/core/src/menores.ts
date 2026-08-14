@@ -59,7 +59,7 @@ export type PadroesDoEvento = {
  * Os três padrões de uma vez, para o admin escrever a configuração inicial do
  * evento sem consultar três funções e esquecer a terceira.
  */
-export function padroesDoEvento(politica: PoliticaDeMenores): PadroesDoEvento {
+export function eventDefaults(politica: PoliticaDeMenores): PadroesDoEvento {
   return {
     denunciasParaSegurar: denunciasParaSegurar(politica),
     compartilhamentoExterno: compartilhamentoExternoPadrao(politica),

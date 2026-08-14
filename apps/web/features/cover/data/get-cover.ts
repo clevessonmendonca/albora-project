@@ -1,6 +1,6 @@
 import { comEvento, listarDesafios, musicaDoCasal, packDoEvento, type EventoPublico } from "@albora/db";
 import { exibirMusica } from "@albora/core";
-import { PACKS, texto } from "@albora/packs";
+import { PACKS, resolvePackText } from "@albora/packs";
 import { getPool } from "@/lib/db";
 import { montarAlbumServido } from "@/lib/album";
 import { isInteractionOpen } from "../lib/is-interaction-open";
@@ -28,13 +28,13 @@ export async function getCover(input: CoverInput): Promise<CoverData> {
   const musicLabel = chosen ? exibirMusica(chosen.link, chosen.metadado).rotulo : null;
   const moments = (pack?.momentos ?? []).slice(0, 5).map((m) => ({
     id: m.id,
-    title: pack ? texto(pack, m.chaveTitulo) : m.id,
+    title: pack ? resolvePackText(pack, m.chaveTitulo) : m.id,
     missionFilterId: missionForMoment(pack, m.id, challenges),
   }));
 
   return {
     slug,
-    eventName: pack ? texto(pack, "landing.exemplo.nome") : "A festa",
+    eventName: pack ? resolvePackText(pack, "landing.exemplo.nome") : "A festa",
     startsAt: evento.comecaEm.toISOString(),
     album,
     moments,

@@ -1,8 +1,8 @@
 import { VALIDADE_DA_PAREDE_HORAS } from "@albora/core";
 import { comEvento, finalizarPareamento } from "@albora/db";
 import { PACKS } from "@albora/packs";
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
-import type { CamadaTokens } from "@albora/tokens";
+import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
+import type { TokenLayer } from "@albora/tokens";
 import { errorResponse, unexpectedError } from "@/lib/api";
 import { getPool } from "@/lib/db";
 import { config, ErroConfig } from "@/lib/config";
@@ -85,15 +85,15 @@ async function temaDoEvento(eventoId: string): Promise<Record<string, string>> {
   });
 
   const pack = linha ? PACKS[linha.pack_id] : undefined;
-  const evento = (linha?.identity_tokens ?? {}) as CamadaTokens;
+  const evento = (linha?.identity_tokens ?? {}) as TokenLayer;
 
-  const tokens = resolverTokens({
-    marca: MARCA_ALBORA,
+  const tokens = resolveTokens({
+    marca: ALBORA_BRAND,
     pack: pack ? { ...pack.tokens, fundo: "escuro" } : { fundo: "escuro" },
     evento,
   });
 
-  return paraVariaveis(tokens);
+  return toVariables(tokens);
 }
 
 function responder(corpo: unknown, status: number, cookies: string[]): Response {

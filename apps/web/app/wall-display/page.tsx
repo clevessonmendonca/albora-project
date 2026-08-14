@@ -1,4 +1,4 @@
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
+import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import { WallClient } from "@/features/wall/components/client/wall-client";
 
 export const dynamic = "force-dynamic";
@@ -12,8 +12,8 @@ export const dynamic = "force-dynamic";
  * o crachá. Toda a lógica — parear, poll, exibir — vive no cliente.
  */
 export default function Pagina() {
-  const neutro = paraVariaveis(
-    resolverTokens({ marca: MARCA_ALBORA, pack: { fundo: "escuro" } }),
+  const neutro = toVariables(
+    resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } }),
   );
 
   return <WallClient initialVars={neutro} />;

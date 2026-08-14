@@ -29,7 +29,7 @@ function veredicto(bruto: string | null): VeredictoDoClassificador {
   return bruto === "suspeito" || bruto === "sem-resposta" ? bruto : "limpo";
 }
 
-/** Teto por página da parede. A TV acumula e poda no cliente (`TETO_DO_CACHE`). */
+/** Teto por página da parede. A TV acumula e poda no cliente (`WALL_DISPLAY_CACHE_LIMIT`). */
 export const TETO_DA_PAREDE = 60;
 
 export type MidiaNaParede = {

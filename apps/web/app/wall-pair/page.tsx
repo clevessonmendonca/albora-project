@@ -1,4 +1,4 @@
-import { MARCA_ALBORA, paraVariaveis, resolverTokens } from "@albora/tokens";
+import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import type { CSSProperties } from "react";
 import { WallPairClient } from "@/features/wall-pairing/components/client/wall-pair-client";
 
@@ -16,7 +16,7 @@ export default async function Pagina({
   searchParams: Promise<{ codigo?: string }>;
 }) {
   const { codigo } = await searchParams;
-  const vars = paraVariaveis(resolverTokens({ marca: MARCA_ALBORA })) as CSSProperties;
+  const vars = toVariables(resolveTokens({ marca: ALBORA_BRAND })) as CSSProperties;
 
   return (
     <div style={vars}>

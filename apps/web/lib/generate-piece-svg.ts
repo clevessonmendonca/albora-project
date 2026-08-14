@@ -1,23 +1,23 @@
-import type { Cores, FormatoDePeca } from "@albora/tokens";
+import type { Colors, PieceFormat } from "@albora/tokens";
 import {
-  AREA_SEGURA_MM,
-  SANGRIA_MM,
-  avisoDeCor,
-  caixaDeCorte,
-  medidasDaPeca,
-  problemasDaPeca,
-  tintaDoQr,
+  SAFE_AREA_MM,
+  BLEED_MM,
+  colorWarning,
+  cutBox,
+  pieceMeasures,
+  pieceProblems,
+  qrInk,
 } from "@albora/tokens";
 import QRCode from "qrcode";
 
 export type PieceInput = {
-  formato: FormatoDePeca;
+  formato: PieceFormat;
   urlQr: string;
   urlLegivel: string;
   monograma: string;
   titulo: string;
   data: string;
-  cores: Cores;
+  cores: Colors;
 };
 
 export type PieceResult = {
@@ -64,13 +64,13 @@ function modulosQr(
   return partes;
 }
 
-function alturaCabecalho(formato: FormatoDePeca): number {
+function alturaCabecalho(formato: PieceFormat): number {
   if (formato === "placa-a4") return 42;
   if (formato === "card-de-mesa") return 28;
   return 18;
 }
 
-function tamanhoFonte(formato: FormatoDePeca, papel: "mono" | "titulo" | "data" | "url"): number {
+function tamanhoFonte(formato: PieceFormat, papel: "mono" | "titulo" | "data" | "url"): number {
   const mapa = {
     "placa-a4": { mono: 14, titulo: 9, data: 4.5, url: 3.5 },
     "card-de-mesa": { mono: 9, titulo: 6, data: 3.5, url: 2.8 },
@@ -80,9 +80,9 @@ function tamanhoFonte(formato: FormatoDePeca, papel: "mono" | "titulo" | "data" 
 }
 
 export async function generatePieceSvg(entrada: PieceInput): Promise<PieceResult> {
-  const medidas = medidasDaPeca(entrada.formato);
-  const corte = caixaDeCorte(medidas);
-  const margem = Math.max(MARGEM_CONTEUDO_MM, AREA_SEGURA_MM);
+  const medidas = pieceMeasures(entrada.formato);
+  const corte = cutBox(medidas);
+  const margem = Math.max(MARGEM_CONTEUDO_MM, SAFE_AREA_MM);
   const layout = {
     formato: entrada.formato,
     qr: medidas.qr,
@@ -90,16 +90,16 @@ export async function generatePieceSvg(entrada: PieceInput): Promise<PieceResult
     margem,
   };
 
-  const problemas = problemasDaPeca(layout, entrada.cores);
-  const avisos = [avisoDeCor(entrada.cores)];
-  const tinta = tintaDoQr(entrada.cores);
+  const problemas = pieceProblems(layout, entrada.cores);
+  const avisos = [colorWarning(entrada.cores)];
+  const tinta = qrInk(entrada.cores);
 
   if (problemas.length > 0) {
     return { svg: "", avisos, problemas };
   }
 
-  const ox = SANGRIA_MM;
-  const oy = SANGRIA_MM;
+  const ox = BLEED_MM;
+  const oy = BLEED_MM;
   const cx = ox + medidas.largura / 2;
   const cabecalho = alturaCabecalho(entrada.formato);
 

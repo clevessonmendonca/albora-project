@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  MODELOS_DE_TELAO,
-  problemasDaEscolha,
-  type ModeloDeTelao,
+  WALL_DISPLAY_MODELS,
+  wallDisplayChoiceProblems,
+  type WallDisplayModel,
 } from "@albora/core";
-import { PACKS, texto, type Pack } from "@albora/packs";
-import { MODELOS_DE_IDENTIDADE } from "@albora/tokens";
+import { PACKS, resolvePackText, type Pack } from "@albora/packs";
+import { IDENTITY_MODELS } from "@albora/tokens";
 import { useMemo, useState } from "react";
 import {
   identityPreviewClassName,
@@ -15,11 +15,11 @@ import {
 } from "@/features/admin/lib/identity-preview";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 
-const OPCOES = Object.values(PACKS).map((p) => ({ id: p.id, nome: texto(p, "evento.nome") }));
+const OPCOES = Object.values(PACKS).map((p) => ({ id: p.id, nome: resolvePackText(p, "evento.nome") }));
 
 const PASSOS = ["Quando", "Identidade", "Missões", "Parede", "Peças"] as const;
 
-const MODELOS_PADRAO: readonly ModeloDeTelao[] = ["polaroide", "mural", "colagem", "dump"];
+const MODELOS_PADRAO: readonly WallDisplayModel[] = ["polaroide", "mural", "colagem", "dump"];
 
 type Criado = { slug: string; eventoId: string };
 
@@ -29,9 +29,9 @@ export function CreateEventWizard() {
   const [comeca, setComeca] = useState("");
   const [termina, setTermina] = useState("");
   const [expectedGuests, setExpectedGuests] = useState("150");
-  const [presetId, setPresetId] = useState(MODELOS_DE_IDENTIDADE[0]!.id);
+  const [presetId, setPresetId] = useState(IDENTITY_MODELS[0]!.id);
   const [missoesMarcadas, setMissoesMarcadas] = useState<Set<string>>(() => new Set());
-  const [modelosParede, setModelosParede] = useState<Set<ModeloDeTelao>>(
+  const [modelosParede, setModelosParede] = useState<Set<WallDisplayModel>>(
     () => new Set(MODELOS_PADRAO),
   );
   const [estado, setEstado] = useState<"editando" | "criando" | "erro">("editando");
@@ -52,9 +52,9 @@ export function CreateEventWizard() {
       ? [...missoesMarcadas]
       : missoesIniciais;
 
-  const problemasParede = problemasDaEscolha([...modelosParede]);
+  const problemasParede = wallDisplayChoiceProblems([...modelosParede]);
 
-  const preset = MODELOS_DE_IDENTIDADE.find((m) => m.id === presetId) ?? MODELOS_DE_IDENTIDADE[0]!;
+  const preset = IDENTITY_MODELS.find((m) => m.id === presetId) ?? IDENTITY_MODELS[0]!;
 
   const identityTokens = useMemo(() => {
     const base: Record<string, unknown> = {
@@ -155,7 +155,7 @@ export function CreateEventWizard() {
       {passo === 1 && (
         <div className="grid grid-cols-2 gap-5">
           <div className="flex flex-col gap-3">
-            {MODELOS_DE_IDENTIDADE.map((m) => (
+            {IDENTITY_MODELS.map((m) => (
               <button
                 key={m.id}
                 type="button"
@@ -173,7 +173,7 @@ export function CreateEventWizard() {
           </div>
           <div className={identityPreviewClassName} style={previewVars}>
             <p className="m-0 font-titulo text-xl text-acento-texto">
-              {texto(pack, "landing.exemplo.nome")}
+              {resolvePackText(pack, "landing.exemplo.nome")}
             </p>
             <p className="mb-0 mt-3 text-sm text-ink-2">
               Preview ao vivo — o convidado vê isto com os mesmos tokens.
@@ -209,7 +209,7 @@ export function CreateEventWizard() {
             <p className="m-0 text-sm text-critico">{problemasParede.join(" ")}</p>
           )}
           <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2">
-            {MODELOS_DE_TELAO.map((modelo) => {
+            {WALL_DISPLAY_MODELS.map((modelo) => {
               const marcado = modelosParede.has(modelo);
               return (
                 <button
@@ -309,7 +309,7 @@ function ListaMissoes({
             checked={marcadas.has(m.chaveTitulo)}
             onChange={() => onToggle(m.chaveTitulo)}
           />
-          <span>{texto(pack, m.chaveTitulo)}</span>
+          <span>{resolvePackText(pack, m.chaveTitulo)}</span>
         </label>
       ))}
     </div>

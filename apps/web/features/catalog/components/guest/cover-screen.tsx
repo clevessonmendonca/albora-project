@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import { resolvePackText, type Pack } from "@albora/packs";
 import {
   BackIcon,
   Badge,
@@ -53,7 +53,7 @@ export function CoverScreen({
 
       <div className="relative -mt-13 px-6 text-center">
         <p className="font-titulo text-[1.875rem] font-light leading-tight tracking-titulo">
-          {texto(pack, "landing.exemplo.nome")}
+          {resolvePackText(pack, "landing.exemplo.nome")}
         </p>
         <p className="mt-1.5 text-[0.8125rem] text-ink-2">8 de novembro · 112 pessoas fotografando</p>
       </div>

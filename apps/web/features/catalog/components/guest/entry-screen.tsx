@@ -1,4 +1,4 @@
-import { texto, type Pack } from "@albora/packs";
+import { resolvePackText, type Pack } from "@albora/packs";
 import {
   ConsentCheckbox,
   DisplayTitle,
@@ -18,8 +18,8 @@ export function EntryScreen({ pack }: { pack: Pack }) {
       <StatusBar />
       <EntryColumn>
         <div>
-          <EventLabel>{texto(pack, "landing.exemplo.nome")}</EventLabel>
-          <DisplayTitle>{texto(pack, "convidado.saudacao")}</DisplayTitle>
+          <EventLabel>{resolvePackText(pack, "landing.exemplo.nome")}</EventLabel>
+          <DisplayTitle>{resolvePackText(pack, "convidado.saudacao")}</DisplayTitle>
           <SecondaryText>Como você quer aparecer nas fotos que enviar?</SecondaryText>
         </div>
 
