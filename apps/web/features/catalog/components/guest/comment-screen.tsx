@@ -4,7 +4,7 @@ import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
 export function CommentScreen({ pack }: { pack: Pack }) {
   return (
-    <GuestBackground fundo="escuro" pack={pack}>
+    <GuestBackground background="dark" pack={pack}>
       <div className="relative flex-1">
         <Frame atmosphere variant={9} />
         <div className="absolute inset-x-0 bottom-0 bg-veu-topo p-5">

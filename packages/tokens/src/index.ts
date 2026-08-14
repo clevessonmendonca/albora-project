@@ -1,5 +1,6 @@
 export type {
   Background,
+  BackgroundInput,
   Colors,
   Fonts,
   Motion,
@@ -14,7 +15,7 @@ export { ALBORA_BRAND, MARCA_ALBORA } from "./marca";
 export type { ModeloDeIdentidade, ModeloDeIdentidade as IdentityModel } from "./modelos";
 export { MODELOS_DE_IDENTIDADE, MODELOS_DE_IDENTIDADE as IDENTITY_MODELS } from "./modelos";
 export { escalaDoFundo, escalaDoFundo as scaleForBackground } from "./escalas";
-export { resolveScale, resolveTokens } from "./resolver";
+export { normalizeBackground, resolveScale, resolveTokens } from "./resolver";
 export { toCss, toVariables } from "./outputs";
 export type { PieceFormat, PieceLayout, PieceMeasures, QrInk } from "./pieces";
 export {
@@ -51,6 +52,7 @@ export {
 /** PT type aliases — compatibilidade com código legado. */
 export type {
   Background as Fundo,
+  BackgroundInput as FundoEntrada,
   Colors as Cores,
   Fonts as Fontes,
   Motion as Movimento,
@@ -82,7 +84,11 @@ export {
 } from "./pieces";
 
 /** PT resolver — compatibilidade com código legado. */
-export { resolveScale as resolverEscala, resolveTokens as resolverTokens } from "./resolver";
+export {
+  normalizeBackground as normalizarFundo,
+  resolveScale as resolverEscala,
+  resolveTokens as resolverTokens,
+} from "./resolver";
 
 /** PT output formatters — compatibilidade com código legado. */
 export { toCss as paraCss, toVariables as paraVariaveis } from "./outputs";

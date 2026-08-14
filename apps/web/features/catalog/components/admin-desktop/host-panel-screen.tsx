@@ -25,7 +25,7 @@ export function HostPanelScreen({ pack, hasMinors = false }: { pack: Pack; hasMi
   ];
 
   return (
-    <GuestBackground fundo="claro" pack={pack}>
+    <GuestBackground background="light" pack={pack}>
       <div className="flex h-full">
         <HostSidebar pack={pack} active="Ao vivo" />
 

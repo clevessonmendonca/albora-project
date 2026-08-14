@@ -17,7 +17,7 @@ export function MissionsScreen({ pack }: { pack: Pack }) {
   const estados = ["feita", "agora", "aberta", "aberta"] as const;
 
   return (
-    <GuestBackground fundo="escuro" pack={pack}>
+    <GuestBackground background="dark" pack={pack}>
       <StatusBar />
 
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3.5">

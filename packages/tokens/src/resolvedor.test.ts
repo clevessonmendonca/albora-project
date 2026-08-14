@@ -54,13 +54,13 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
   });
 
   it("as duas escalas entregam texto legível sobre o próprio chão", () => {
-    for (const fundo of ["escuro", "claro"] as const) {
-        const e = resolveScale({ ...ALBORA_BRAND, fundo });
+    for (const background of ["dark", "light"] as const) {
+        const e = resolveScale({ ...ALBORA_BRAND, background });
 
-      expect(razao(e.ink, e.bg), `ink/${fundo}`).toBeGreaterThan(CONTRASTE_DE_TEXTO);
-      expect(razao(e.ink2, e.bg), `ink2/${fundo}`).toBeGreaterThan(3);
-      expect(razao(e.acentoTexto, e.bg), `acento/${fundo}`).toBeGreaterThan(CONTRASTE_DE_TEXTO);
-      expect(razao(e.critico, e.bg), `critico/${fundo}`).toBeGreaterThan(3);
+      expect(razao(e.ink, e.bg), `ink/${background}`).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+      expect(razao(e.ink2, e.bg), `ink2/${background}`).toBeGreaterThan(3);
+      expect(razao(e.acentoTexto, e.bg), `acento/${background}`).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+      expect(razao(e.critico, e.bg), `critico/${background}`).toBeGreaterThan(3);
     }
   });
 
@@ -68,10 +68,10 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
     // O outro lado do teste acima: lá o acento é texto sobre o chão, aqui o
     // acento é o chão. As duas escolhas óbvias reprovam — papel dá 2,7:1 e o
     // branco não chega a 3:1 — e as duas parecem certas numa captura de tela.
-    for (const fundo of ["escuro", "claro"] as const) {
-      const e = resolveScale({ ...ALBORA_BRAND, fundo });
+    for (const background of ["dark", "light"] as const) {
+      const e = resolveScale({ ...ALBORA_BRAND, background });
 
-      expect(razao(e.sobreAcento, e.acento), `sobre-acento/${fundo}`).toBeGreaterThan(
+      expect(razao(e.sobreAcento, e.acento), `sobre-acento/${background}`).toBeGreaterThan(
         CONTRASTE_DE_TEXTO,
       );
     }
@@ -84,7 +84,7 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
       const e = resolveScale({
         ...ALBORA_BRAND,
         cores: { ...ALBORA_BRAND.cores, acento },
-        fundo: "claro",
+        background: "light",
       });
 
       expect(razao(e.sobreAcento, e.acento), acento).toBeGreaterThan(CONTRASTE_DE_TEXTO);
@@ -95,7 +95,7 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
 describe("trocar o chão re-deriva o acento", () => {
   it("o casal escolhe claro e o acento de texto muda sozinho", () => {
     const escuro = resolveScale(ALBORA_BRAND);
-    const claro = resolveScale({ ...ALBORA_BRAND, fundo: "claro" });
+    const claro = resolveScale({ ...ALBORA_BRAND, background: "light" });
 
     // Cada chão recebe o seu, e nenhum dos dois é o acento cru: a versão
     // anterior afirmava que o escuro passava intacto, o que só era verdade
@@ -131,7 +131,7 @@ describe("trocar o chão re-deriva o acento", () => {
     // papel e ninguém percebe até a festa.
     const claro = resolveScale({
       ...ALBORA_BRAND,
-      fundo: "claro",
+      background: "light",
       cores: { ...ALBORA_BRAND.cores, acento: "#F2C744" },
     });
 
@@ -158,7 +158,7 @@ describe("trocar o chão re-deriva o acento", () => {
   it("acento que já é legível passa intacto", () => {
     const claro = resolveScale({
       ...ALBORA_BRAND,
-      fundo: "claro",
+      background: "light",
       cores: { ...ALBORA_BRAND.cores, acento: "#1B4D3E" },
     });
 
@@ -168,7 +168,7 @@ describe("trocar o chão re-deriva o acento", () => {
   it("hex malformado não apaga a identidade inteira", () => {
     const claro = resolveScale({
       ...ALBORA_BRAND,
-      fundo: "claro",
+      background: "light",
       cores: { ...ALBORA_BRAND.cores, acento: "o azul da festa" },
     });
 
@@ -190,10 +190,42 @@ describe("a saída entrega a escala pronta", () => {
   });
 
   it("fundo claro troca o conjunto, não uma variável", () => {
-    const v = toVariables(resolveTokens({ marca: ALBORA_BRAND, evento: { fundo: "claro" } }));
+    const v = toVariables(resolveTokens({ marca: ALBORA_BRAND, evento: { background: "light" } }));
 
     expect(v["--bg"]).not.toBe(ALBORA_BRAND.cores.noite);
     expect(razao(v["--ink"]!, v["--bg"]!)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
     expect(razao(v["--acento-texto"]!, v["--bg"]!)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+  });
+});
+
+describe("JSON antigo de identityTokens ainda resolve", () => {
+  it("aceita fundo/claro e fundo/escuro na camada do evento", () => {
+    const claro = resolveTokens({ marca: ALBORA_BRAND, evento: { fundo: "claro" } });
+    const escuro = resolveTokens({ marca: ALBORA_BRAND, evento: { fundo: "escuro" } });
+
+    expect(claro.background).toBe("light");
+    expect(escuro.background).toBe("dark");
+    expect(razao(resolveScale(claro).ink, resolveScale(claro).bg)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+  });
+
+  it("aceita background em inglês na mesma posição", () => {
+    const light = resolveTokens({ marca: ALBORA_BRAND, evento: { background: "light" } });
+    expect(light.background).toBe("light");
+  });
+
+  it("background ganha de fundo na mesma camada", () => {
+    const r = resolveTokens({
+      marca: ALBORA_BRAND,
+      evento: { fundo: "claro", background: "dark" },
+    });
+    expect(r.background).toBe("dark");
+  });
+
+  it("fundo depois de background na mesma camada sobrescreve (spread da landing)", () => {
+    const r = resolveTokens({
+      marca: ALBORA_BRAND,
+      evento: { ...{ background: "dark" as const }, fundo: "claro" },
+    });
+    expect(r.background).toBe("light");
   });
 });

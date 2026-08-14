@@ -15,7 +15,7 @@ export function WallScreen({ pack, modelo }: { pack: Pack; modelo: WallDisplayMo
   const sangra = modelo === "cheio";
 
   return (
-    <GuestBackground fundo="escuro" pack={pack}>
+    <GuestBackground background="dark" pack={pack}>
       <div
         className={cn("relative flex-1 overflow-hidden", !sangra && "p-[var(--espaco)]")}
       >
@@ -36,7 +36,7 @@ export function WallScreen({ pack, modelo }: { pack: Pack; modelo: WallDisplayMo
 
 export function PanicScreen({ pack }: { pack: Pack }) {
   return (
-    <GuestBackground fundo="escuro" pack={pack}>
+    <GuestBackground background="dark" pack={pack}>
       <div className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
         <p className="m-0 font-titulo text-[clamp(1.75rem,4vw,2.75rem)] font-light tracking-titulo text-ink">
           {resolvePackText(pack, "landing.exemplo.nome")}

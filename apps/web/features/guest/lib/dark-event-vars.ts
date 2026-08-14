@@ -7,7 +7,7 @@ export function darkEventVars(event: EventoPublico): CSSProperties {
   const pack = PACKS[event.packId];
   const tokens = resolveTokens({
     marca: ALBORA_BRAND,
-    pack: { ...(pack?.tokens ?? {}), fundo: "escuro" },
+    pack: { ...(pack?.tokens ?? {}), background: "dark" },
   });
   return toVariables(tokens) as CSSProperties;
 }

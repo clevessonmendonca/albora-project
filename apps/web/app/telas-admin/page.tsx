@@ -30,7 +30,7 @@ export default function AdminCatalogPage() {
   const problemas = landingProblems(pack);
   if (problemas.length > 0) throw new Error(problemas.join("; "));
 
-  const tokens = resolveTokens({ marca: ALBORA_BRAND, pack: { ...pack.tokens, fundo: "claro" } });
+  const tokens = resolveTokens({ marca: ALBORA_BRAND, pack: { ...pack.tokens, background: "light" } });
 
   return (
     <div

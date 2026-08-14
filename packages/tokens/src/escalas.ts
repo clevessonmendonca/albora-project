@@ -95,6 +95,6 @@ function claro(c: Colors): SemanticScale {
   };
 }
 
-export function escalaDoFundo(cores: Colors, fundo: Background): SemanticScale {
-  return fundo === "claro" ? claro(cores) : escuro(cores);
+export function escalaDoFundo(cores: Colors, background: Background): SemanticScale {
+  return background === "light" ? claro(cores) : escuro(cores);
 }

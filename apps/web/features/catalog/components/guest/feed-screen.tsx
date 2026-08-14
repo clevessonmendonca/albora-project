@@ -14,7 +14,7 @@ export function FeedScreen({ pack, moments }: { pack: Pack; moments: string[] })
   const chapters = moments.slice(0, 4);
 
   return (
-    <GuestBackground fundo="escuro" pack={pack}>
+    <GuestBackground background="dark" pack={pack}>
       <StatusBar />
 
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3.5">

@@ -14,7 +14,7 @@ import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
 export function EntryScreen({ pack }: { pack: Pack }) {
   return (
-    <GuestBackground fundo="escuro" pack={pack}>
+    <GuestBackground background="dark" pack={pack}>
       <StatusBar />
       <EntryColumn>
         <div>

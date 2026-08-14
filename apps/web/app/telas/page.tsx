@@ -52,7 +52,7 @@ export default function CatalogPage() {
   const problemas = landingProblems(pack);
   if (problemas.length > 0) throw new Error(problemas.join("; "));
 
-  const tokens = resolveTokens({ marca: ALBORA_BRAND, pack: { ...pack.tokens, fundo: "claro" } });
+  const tokens = resolveTokens({ marca: ALBORA_BRAND, pack: { ...pack.tokens, background: "light" } });
 
   const moments = (pack.momentos ?? []).map((m) => resolvePackText(pack, m.chaveTitulo));
   const mission = resolvePackText(pack, pack.missoes[2]?.chaveTitulo ?? "missao.livre");
@@ -88,14 +88,14 @@ export default function CatalogPage() {
           title="Capa do evento"
           note="Foto grande, o nome, quatro atalhos e o carrossel dos momentos. O card do meio é 9:16 porque é a proporção em que a festa foi fotografada, e o vizinho espiando é o que convida a arrastar."
         >
-          <CoverScreen pack={pack} moments={moments} fundo="escuro" />
+          <CoverScreen pack={pack} moments={moments} background="dark" />
         </PhoneFrame>
 
         <PhoneFrame
           title="A mesma capa, no claro"
           note="O chão é escolha do convidado, não imposição nossa. Um resolvedor, dois chãos: nenhum componente sabe qual está valendo, e a cor do casal manda nos dois."
         >
-          <CoverScreen pack={pack} moments={moments} fundo="claro" />
+          <CoverScreen pack={pack} moments={moments} background="light" />
         </PhoneFrame>
 
         <PhoneFrame

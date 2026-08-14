@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
  */
 export default function Pagina() {
   const neutro = toVariables(
-    resolveTokens({ marca: ALBORA_BRAND, pack: { fundo: "escuro" } }),
+    resolveTokens({ marca: ALBORA_BRAND, pack: { background: "dark" } }),
   );
 
   return <WallClient initialVars={neutro} />;

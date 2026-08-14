@@ -1,17 +1,17 @@
 import type { Pack } from "@albora/packs";
-import { ALBORA_BRAND, resolveTokens, toVariables } from "@albora/tokens";
+import { ALBORA_BRAND, resolveTokens, toVariables, type Background } from "@albora/tokens";
 import type { CSSProperties, ReactNode } from "react";
 
 export function GuestBackground({
   children,
-  fundo,
+  background,
   pack,
 }: {
   children: ReactNode;
-  fundo: "claro" | "escuro";
+  background: Background;
   pack: Pack;
 }) {
-  const tokens = resolveTokens({ marca: ALBORA_BRAND, pack: { ...pack.tokens, fundo } });
+  const tokens = resolveTokens({ marca: ALBORA_BRAND, pack: { ...pack.tokens, background } });
 
   return (
     <div

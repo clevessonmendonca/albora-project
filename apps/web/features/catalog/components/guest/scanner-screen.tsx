@@ -4,7 +4,7 @@ import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
 export function ScannerScreen({ pack }: { pack: Pack }) {
   return (
-    <GuestBackground fundo="escuro" pack={pack}>
+    <GuestBackground background="dark" pack={pack}>
       <div className="relative flex-1 bg-superficie">
         <Frame atmosphere variant={2} />
         <span className="absolute inset-[18%] rounded-token border border-acento shadow-scan-mascara" />

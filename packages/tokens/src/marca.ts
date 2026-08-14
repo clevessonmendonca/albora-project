@@ -45,7 +45,7 @@ export const ALBORA_BRAND: Tokens = {
   },
   // Escuro por física, não por estética: tela branca às 22h contrai a pupila e
   // a pessoa perde a festa de vista. Ver `DESIGN.md` §2.
-  fundo: "escuro",
+  background: "dark",
 };
 
 /** PT alias — prefer `ALBORA_BRAND`. */

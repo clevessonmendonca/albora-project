@@ -4,7 +4,7 @@ import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
 export function BeforeGateScreen({ pack }: { pack: Pack }) {
   return (
-    <GuestBackground fundo="escuro" pack={pack}>
+    <GuestBackground background="dark" pack={pack}>
       <StatusBar />
 
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3.5">

@@ -1,5 +1,45 @@
 import { escalaDoFundo } from "./escalas";
-import type { ResolutionInput, SemanticScale, TokenLayer, Tokens } from "./types";
+import type {
+  Background,
+  ResolutionInput,
+  SemanticScale,
+  TokenLayer,
+  Tokens,
+} from "./types";
+
+const BACKGROUND_ALIASES: Record<string, Background> = {
+  dark: "dark",
+  light: "light",
+  escuro: "dark",
+  claro: "light",
+};
+
+/** Maps stored PT values onto the canonical English background. */
+export function normalizeBackground(value: unknown): Background | undefined {
+  if (typeof value !== "string") return undefined;
+  return BACKGROUND_ALIASES[value];
+}
+
+function layerBackground(layer: { background?: unknown; fundo?: unknown }): Background | undefined {
+  let found: Background | undefined;
+  for (const key of Object.keys(layer)) {
+    if (key !== "background" && key !== "fundo") continue;
+    const normalized = normalizeBackground((layer as Record<string, unknown>)[key]);
+    if (normalized) found = normalized;
+  }
+  return found;
+}
+
+function canonicalize(tokens: Tokens): Tokens {
+  return {
+    cores: tokens.cores,
+    fontes: tokens.fontes,
+    escala: tokens.escala,
+    movimento: tokens.movimento,
+    tracking: tokens.tracking,
+    background: layerBackground(tokens) ?? "dark",
+  };
+}
 
 /**
  * O resolvedor. Um só, para todos os renderizadores — web, nativo, telão,
@@ -11,6 +51,9 @@ import type { ResolutionInput, SemanticScale, TokenLayer, Tokens } from "./types
  *
  * Cadeia: marca → pack → evento. O evento ganha porque é a identidade de
  * quem pagou.
+ *
+ * Camadas ainda podem trazer `fundo: "claro"|"escuro"` de JSON antigo; a
+ * saída é sempre `background: "light"|"dark"`.
  */
 export function resolveTokens(input: ResolutionInput): Tokens {
   const layers = [input.pack, input.evento].filter(
@@ -24,9 +67,9 @@ export function resolveTokens(input: ResolutionInput): Tokens {
       escala: { ...accumulated.escala, ...layer.escala },
       movimento: { ...accumulated.movimento, ...layer.movimento },
       tracking: { ...accumulated.tracking, ...layer.tracking },
-      fundo: layer.fundo ?? accumulated.fundo,
+      background: layerBackground(layer) ?? accumulated.background,
     }),
-    input.marca,
+    canonicalize(input.marca),
   );
 }
 
@@ -40,5 +83,5 @@ export function resolveTokens(input: ResolutionInput): Tokens {
  * sistema, nunca escolha de quem paga.
  */
 export function resolveScale(tokens: Tokens): SemanticScale {
-  return escalaDoFundo(tokens.cores, tokens.fundo);
+  return escalaDoFundo(tokens.cores, canonicalize(tokens).background);
 }

@@ -10,7 +10,7 @@ export function AdminModerationScreen({ pack }: { pack: Pack }) {
   ];
 
   return (
-    <GuestBackground fundo="claro" pack={pack}>
+    <GuestBackground background="light" pack={pack}>
       <StatusBar />
 
       <div className="flex items-center justify-between gap-3 px-[1.125rem] pt-1.5 pb-3">

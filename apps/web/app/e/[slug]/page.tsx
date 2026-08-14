@@ -99,7 +99,7 @@ export default async function Pagina({ params }: Props) {
             marca: ALBORA_BRAND,
             pack: {
               ...(PACKS[r.evento.packId]?.tokens ?? {}),
-              fundo: "escuro",
+              background: "dark",
             },
           }),
         ) as CSSProperties

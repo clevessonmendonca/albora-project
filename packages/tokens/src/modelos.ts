@@ -30,7 +30,7 @@ export const MODELOS_DE_IDENTIDADE: ModeloDeIdentidade[] = [
       cores: { noite: "#241C16", acento: "#EFA463" },
       escala: { raio: "1.125rem", espaco: "1.375rem" },
       tracking: { rotulo: "0.04em" },
-      fundo: "escuro",
+      background: "dark",
     },
   },
   {
@@ -41,7 +41,7 @@ export const MODELOS_DE_IDENTIDADE: ModeloDeIdentidade[] = [
       cores: { papel: "#F4EADD", tinta: "#3B2E23", acento: "#B4571F" },
       escala: { raio: "0.25rem", espaco: "1.625rem" },
       tracking: { rotulo: "0.1em" },
-      fundo: "claro",
+      background: "light",
     },
   },
   {
@@ -55,7 +55,7 @@ export const MODELOS_DE_IDENTIDADE: ModeloDeIdentidade[] = [
       fontes: { titulo: "var(--fonte-corpo)" },
       escala: { raio: "0.125rem", espaco: "1.125rem" },
       tracking: { rotulo: "0.12em" },
-      fundo: "escuro",
+      background: "dark",
     },
   },
   {
@@ -66,7 +66,7 @@ export const MODELOS_DE_IDENTIDADE: ModeloDeIdentidade[] = [
       cores: { papel: "#EDF0E4", tinta: "#39422C", acento: "#6E8455" },
       escala: { raio: "var(--raio-pilula)", espaco: "1.875rem" },
       tracking: { rotulo: "0.03em" },
-      fundo: "claro",
+      background: "light",
     },
   },
 ];

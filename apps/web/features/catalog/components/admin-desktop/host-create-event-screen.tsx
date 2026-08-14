@@ -15,7 +15,7 @@ export function HostCreateEventScreen({
   const index = step - 1;
 
   return (
-    <GuestBackground fundo="claro" pack={pack}>
+    <GuestBackground background="light" pack={pack}>
       <div className="flex flex-1 flex-col px-10 py-8">
         <div className="mb-8 flex gap-1.5">
           {WIZARD_STEPS.map((label, i) => (

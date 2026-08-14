@@ -60,7 +60,10 @@ export type Tracking = {
   rotulo: string;
 };
 
-export type Background = "escuro" | "claro";
+export type Background = "dark" | "light";
+
+/** PT aliases still present in stored event `identityTokens`. */
+export type BackgroundInput = Background | "escuro" | "claro";
 
 export type Tokens = {
   cores: Colors;
@@ -68,7 +71,7 @@ export type Tokens = {
   escala: Scale;
   movimento: Motion;
   tracking: Tracking;
-  fundo: Background;
+  background: Background;
 };
 
 /**
@@ -113,7 +116,9 @@ export type TokenLayer = {
   escala?: Partial<Scale>;
   movimento?: Partial<Motion>;
   tracking?: Partial<Tracking>;
-  fundo?: Background;
+  background?: BackgroundInput;
+  /** PT alias — event JSON in the DB still uses `fundo`. */
+  fundo?: BackgroundInput;
 };
 
 export type ResolutionInput = {

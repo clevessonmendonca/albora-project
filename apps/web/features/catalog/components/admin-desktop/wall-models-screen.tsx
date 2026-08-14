@@ -24,7 +24,7 @@ export function WallModelsScreen({
   const recusada = problemas.length > 0;
 
   return (
-    <GuestBackground fundo="claro" pack={pack}>
+    <GuestBackground background="light" pack={pack}>
       <div className="flex h-full">
         <HostSidebar pack={pack} active="A parede" />
 

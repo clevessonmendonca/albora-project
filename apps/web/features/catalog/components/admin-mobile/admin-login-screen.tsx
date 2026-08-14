@@ -4,7 +4,7 @@ import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
 export function AdminLoginScreen({ pack }: { pack: Pack }) {
   return (
-    <GuestBackground fundo="claro" pack={pack}>
+    <GuestBackground background="light" pack={pack}>
       <StatusBar />
 
       <div className="flex flex-1 flex-col justify-center gap-6 px-7 pb-16">

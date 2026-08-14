@@ -5,7 +5,7 @@ import { HostSidebar } from "@/features/catalog/components/host-sidebar";
 
 export function HostAlbumScreen({ pack, moments }: { pack: Pack; moments: string[] }) {
   return (
-    <GuestBackground fundo="claro" pack={pack}>
+    <GuestBackground background="light" pack={pack}>
       <div className="flex h-full">
         <HostSidebar pack={pack} active="O álbum" />
 

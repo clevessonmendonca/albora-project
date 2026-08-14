@@ -14,7 +14,7 @@ import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
 export function PhotoDetailScreen({ pack, own = false }: { pack: Pack; own?: boolean }) {
   return (
-    <GuestBackground fundo="escuro" pack={pack}>
+    <GuestBackground background="dark" pack={pack}>
       <StatusBar />
 
       <div className="relative aspect-[4/5] shrink-0">

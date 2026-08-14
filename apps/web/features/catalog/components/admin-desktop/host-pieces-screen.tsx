@@ -4,7 +4,7 @@ import { HostSidebar } from "@/features/catalog/components/host-sidebar";
 
 export function HostPiecesScreen({ pack }: { pack: Pack }) {
   return (
-    <GuestBackground fundo="claro" pack={pack}>
+    <GuestBackground background="light" pack={pack}>
       <div className="flex h-full">
         <HostSidebar pack={pack} active="Ao vivo" />
 

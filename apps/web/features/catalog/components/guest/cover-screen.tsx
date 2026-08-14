@@ -12,16 +12,17 @@ import {
   StackIcon,
   Star,
 } from "@albora/ui-web";
+import type { Background } from "@albora/tokens";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 
 export function CoverScreen({
   pack,
   moments,
-  fundo,
+  background,
 }: {
   pack: Pack;
   moments: string[];
-  fundo: "claro" | "escuro";
+  background: Background;
 }) {
   const chapters = moments.slice(0, 5);
   const atalhos = [
@@ -32,7 +33,7 @@ export function CoverScreen({
   ];
 
   return (
-    <GuestBackground fundo={fundo} pack={pack}>
+    <GuestBackground background={background} pack={pack}>
       <div className="relative h-[20.5rem] shrink-0">
         <Frame atmosphere variant={1} />
         <div className="absolute inset-0 bg-veu-capa" />

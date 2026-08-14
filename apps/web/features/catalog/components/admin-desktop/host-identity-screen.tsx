@@ -6,7 +6,7 @@ import { CoverScreen } from "@/features/catalog/components/guest/cover-screen";
 
 export function HostIdentityScreen({ pack, moments }: { pack: Pack; moments: string[] }) {
   return (
-    <GuestBackground fundo="claro" pack={pack}>
+    <GuestBackground background="light" pack={pack}>
       <div className="flex h-full">
         <HostSidebar pack={pack} active="Identidade" />
 
@@ -26,7 +26,7 @@ export function HostIdentityScreen({ pack, moments }: { pack: Pack; moments: str
 
           <div className="grid flex-1 place-items-center overflow-hidden rounded-token bg-superficie-alta">
             <div className="relative h-[28rem] w-56 origin-center scale-[0.92]">
-              <CoverScreen pack={pack} moments={moments} fundo="escuro" />
+              <CoverScreen pack={pack} moments={moments} background="dark" />
             </div>
           </div>
         </main>
