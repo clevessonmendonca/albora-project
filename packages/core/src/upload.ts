@@ -26,6 +26,8 @@ export type PedidoConfirm = {
   chave: string;
   largura: number;
   altura: number;
+  /** ISO do instante de captura; ausente quando o EXIF não trouxe hora. */
+  capturadaEm?: string | null;
   legenda?: string | null;
 };
 

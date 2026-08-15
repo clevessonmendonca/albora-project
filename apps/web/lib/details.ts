@@ -39,3 +39,46 @@ export function acceptedPlace(packId: string | null, valor: unknown): string | n
 
   return isValidPlace(pack, valor) ? valor : null;
 }
+
+const ANO_MIN = 1990;
+const ANO_MAX = 2100;
+const LADO_MAX = 20_000;
+
+/**
+ * Instante declarado pelo cliente, lido do EXIF **antes** do reencode.
+ *
+ * O servidor não relê o arquivo: o GPS já saiu. Confere só que é uma data
+ * real dentro de um século plausível; a janela do evento o núcleo do álbum
+ * aplica, caindo no `created_at` quando o relógio do aparelho mentiu.
+ */
+export function acceptedTakenAt(valor: unknown): Date | null {
+  if (typeof valor !== "string" || valor.length < 10 || valor.length > 40) return null;
+
+  const em = new Date(valor);
+  if (Number.isNaN(em.getTime())) return null;
+
+  const ano = em.getUTCFullYear();
+  if (ano < ANO_MIN || ano > ANO_MAX) return null;
+
+  return em;
+}
+
+/**
+ * Par de dimensões já em pé. Um lado só não serve — misturar largura real
+ * com altura padrão vira paisagem no slot de retrato e corta cabeça.
+ */
+export function acceptedSize(largura: unknown, altura: unknown): {
+  width: number;
+  height: number;
+} | null {
+  const w = ladoInteiro(largura);
+  const h = ladoInteiro(altura);
+  if (w === null || h === null) return null;
+  return { width: w, height: h };
+}
+
+function ladoInteiro(valor: unknown): number | null {
+  if (typeof valor !== "number" || !Number.isInteger(valor)) return null;
+  if (valor < 1 || valor > LADO_MAX) return null;
+  return valor;
+}

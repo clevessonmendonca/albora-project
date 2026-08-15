@@ -42,6 +42,15 @@ export function ehAmanhecer(em: Date, offsetMinutos: number): boolean {
   return HORAS_DO_AMANHECER.includes(horaNoEvento(em, offsetMinutos));
 }
 
+/**
+ * A parede do EXIF (componentes UTC = o que a câmera gravou, sem fuso) vira
+ * instante absoluto no offset do evento. Sem isto, 21h em Brasília viraria
+ * 21h UTC e a faixa da noite cairia três horas cedo.
+ */
+export function instanteDaParede(parede: Date, offsetMinutos: number): Date {
+  return new Date(parede.getTime() - offsetMinutos * 60_000);
+}
+
 export function capituloDe(em: Date, capitulos: readonly CapituloPlanejado[]): string {
   const ordenados = [...capitulos].sort((a, b) => a.comecaEm.getTime() - b.comecaEm.getTime());
   const primeiro = ordenados[0];

@@ -73,6 +73,12 @@ export const webTransport: Transport = {
         desafioId: item.desafioId ?? null,
         legenda: item.legenda ?? null,
         lugar: item.lugar ?? null,
+        ...(typeof item.capturadaEm === "number"
+          ? { capturadaEm: new Date(item.capturadaEm).toISOString() }
+          : {}),
+        ...(typeof item.largura === "number" && typeof item.altura === "number"
+          ? { largura: item.largura, altura: item.altura }
+          : {}),
       }),
     });
 

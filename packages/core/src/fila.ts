@@ -48,6 +48,10 @@ export type QueueItem = QueueDetails & {
   poster?: QueueBody;
   criadoEm: number;
   tentativas: number;
+  /** Instante de captura em epoch ms. Ausente nas filas antigas. */
+  capturadaEm?: number;
+  largura?: number;
+  altura?: number;
 };
 
 export interface Queue {

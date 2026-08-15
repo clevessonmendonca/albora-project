@@ -17,7 +17,7 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
-import { cleanCaption, acceptedPlace } from "@/lib/details";
+import { cleanCaption, acceptedPlace, acceptedTakenAt, acceptedSize } from "@/lib/details";
 import { inspecionarObjeto } from "@/lib/r2";
 
 export const dynamic = "force-dynamic";
@@ -29,6 +29,9 @@ type Corpo = {
   legenda?: unknown;
   lugar?: unknown;
   desafioId?: unknown;
+  capturadaEm?: unknown;
+  largura?: unknown;
+  altura?: unknown;
 };
 
 export async function POST(req: Request) {
@@ -46,7 +49,8 @@ export async function POST(req: Request) {
   const parsed = await parseJsonBody<Corpo>(req);
   if (parsed instanceof Response) return parsed;
 
-  const { uploadId, chave, mime, legenda, lugar, desafioId } = parsed.data;
+  const { uploadId, chave, mime, legenda, lugar, desafioId, capturadaEm, largura, altura } =
+    parsed.data;
   if (typeof uploadId !== "string" || typeof chave !== "string" || typeof mime !== "string") {
     return errorResponse(422, "validation_error", "Dados incompletos", {
       campos: ["uploadId", "chave", "mime"],
@@ -85,6 +89,7 @@ export async function POST(req: Request) {
           : null;
 
       const packId = await packDoEvento(c, auth.session.eventoId);
+      const tamanho = acceptedSize(largura, altura);
 
       return confirmarUpload(c, {
         uploadId,
@@ -96,6 +101,9 @@ export async function POST(req: Request) {
         bytes: objeto.bytes,
         caption: cleanCaption(legenda),
         place: acceptedPlace(packId, lugar),
+        takenAt: acceptedTakenAt(capturadaEm),
+        width: tamanho?.width ?? null,
+        height: tamanho?.height ?? null,
       });
     });
 

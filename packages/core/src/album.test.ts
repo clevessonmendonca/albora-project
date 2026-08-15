@@ -11,6 +11,7 @@ import {
   escolherLayout,
   horaNoEvento,
   inicioDaHoraNoEvento,
+  instanteDaParede,
   instanteDe,
   montarAlbum,
   ordemDeDescarte,
@@ -139,6 +140,12 @@ describe("a unidade é a hora, e a hora é a do evento", () => {
     expect(horaNoEvento(em, OFFSET)).toBe(0);
     expect(horaNoEvento(em, 0)).toBe(3);
     expect(inicioDaHoraNoEvento(em, OFFSET).toISOString()).toBe("2026-08-09T03:00:00.000Z");
+  });
+
+  it("a parede do EXIF vira instante no fuso do evento, não no UTC cru", () => {
+    const parede = new Date("2026-08-08T21:00:00.000Z");
+    expect(instanteDaParede(parede, OFFSET).toISOString()).toBe("2026-08-09T00:00:00.000Z");
+    expect(horaNoEvento(instanteDaParede(parede, OFFSET), OFFSET)).toBe(21);
   });
 
   it("a chave da faixa é o instante, não o número da hora", () => {

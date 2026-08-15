@@ -23,6 +23,7 @@ export {
   FOLGA_DA_JANELA_MS,
   HORAS_DO_AMANHECER,
   JANELA_DE_RAJADA_MS,
+  OFFSET_PADRAO_MINUTOS,
   TETO_DE_PAGINAS_PADRAO,
 } from "./types";
 
@@ -31,6 +32,7 @@ export {
   ehAmanhecer,
   horaNoEvento,
   inicioDaHoraNoEvento,
+  instanteDaParede,
   instanteDe,
 } from "./tempo";
 

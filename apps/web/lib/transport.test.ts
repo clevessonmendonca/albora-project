@@ -54,6 +54,35 @@ describe("webTransport", () => {
     ).rejects.toThrow("não é enviável pela web");
   });
 
+  it("confirmar envia instante e dimensões quando o item os tem", async () => {
+    await webTransport.confirm(
+      {
+        ...itemBlob,
+        capturadaEm: Date.parse("2026-08-09T01:10:00.000Z"),
+        largura: 1080,
+        altura: 1920,
+      },
+      {
+        uploadId: itemBlob.id,
+        chave: "events/e/full",
+        full: "u",
+        thumb: "t",
+        expiraEm: 1,
+      },
+    );
+
+    const [, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    const corpo = JSON.parse(String(init.body)) as {
+      capturadaEm?: string;
+      largura?: number;
+      altura?: number;
+    };
+
+    expect(corpo.capturadaEm).toBe("2026-08-09T01:10:00.000Z");
+    expect(corpo.largura).toBe(1080);
+    expect(corpo.altura).toBe(1920);
+  });
+
   it("confirmar propaga codigo de erro da API", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(JSON.stringify({ code: "upload.invalido" }), { status: 422 }),

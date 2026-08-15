@@ -69,7 +69,7 @@ export type { PedidoConfirm, PedidoPresign, RespostaPresign } from "./upload";
 export { presignExpirou, VALIDADE_PRESIGN_SEGUNDOS } from "./upload";
 
 export type { Orientacao, Transformacao } from "./exif";
-export { dimensoesCorrigidas, lerOrientacao, temExif, temGeolocalizacao, transformacaoParaOrientacao } from "./exif";
+export { dimensoesCorrigidas, lerCapturadaEm, lerOrientacao, temExif, temGeolocalizacao, transformacaoParaOrientacao } from "./exif";
 
 export type { Target, Device, Plan } from "./redimensionar";
 export type { Target as Alvo, Device as Aparelho, Plan as Plano } from "./redimensionar";
@@ -305,6 +305,7 @@ export {
   HORAS_DO_AMANHECER,
   JANELA_DE_RAJADA_MS,
   LAYOUTS,
+  OFFSET_PADRAO_MINUTOS,
   TETO_DE_PAGINAS_PADRAO,
   agruparEmBlocos,
   capituloDe,
@@ -314,6 +315,7 @@ export {
   escolherLayout,
   horaNoEvento,
   inicioDaHoraNoEvento,
+  instanteDaParede,
   instanteDe,
   layoutsQueCabem,
   montarAlbum,
@@ -427,6 +429,10 @@ export { validarDeclaracao as validateDeclaration } from "./midia";
 export { podeEnviarVideo as canUploadVideo } from "./plano-evento";
 /** English alias — prefer for new code. */
 export { processarFoto as processPhoto } from "./processar";
+/** English alias — prefer for new code. */
+export { lerCapturadaEm as readCapturedAt } from "./exif";
+/** English alias — prefer for new code. */
+export { instanteDaParede as wallClockToInstant } from "./album";
 /** English alias — prefer for new code. */
 export { montarGaleria as buildGallery } from "./galeria";
 /** English alias — prefer for new code. */

@@ -190,6 +190,7 @@ export function useUpload(
           criadoEm: Date.now(),
           tentativas: 0,
           desafioId: desafioId ?? null,
+          ...metaDaCaptura(foto.capturadaEm, arquivo.lastModified, foto.largura, foto.altura),
         });
 
         reportFunnel("capture");
@@ -267,4 +268,22 @@ export function useUpload(
   }, [atualizarResumo, drenarAgora]);
 
   return { estado, enfileirarFoto, anotar, drenarAgora };
+}
+
+function metaDaCaptura(
+  paredeExif: Date | null,
+  lastModified: number,
+  largura?: number,
+  altura?: number,
+): { capturadaEm?: number; largura?: number; altura?: number } {
+  const capturadaEm = paredeExif
+    ? instanteDaParede(paredeExif, OFFSET_PADRAO_MINUTOS).getTime()
+    : Number.isFinite(lastModified) && lastModified > 0
+      ? lastModified
+      : undefined;
+
+  return {
+    ...(capturadaEm !== undefined ? { capturadaEm } : {}),
+    ...(typeof largura === "number" && typeof altura === "number" ? { largura, altura } : {}),
+  };
 }

@@ -1,6 +1,7 @@
 import { saoNeutros, type AjustesManuais } from "./ajustes";
 import type { Ajustes } from "./luts";
 import {
+  lerCapturadaEm,
   lerOrientacao,
   temGeolocalizacao,
   transformacaoParaOrientacao,
@@ -74,6 +75,11 @@ export type FotoProcessada<TSaida> = {
   orientacaoOriginal: Orientacao;
   /** Verificação, não decisão: o EXIF sai sempre, tenha GPS ou não. */
   tinhaGeolocalizacao: boolean;
+  /**
+   * Parede do EXIF, sem fuso. Ausente quando a foto não traz DateTime.
+   * Quem persiste aplica o offset do evento via `instanteDaParede`.
+   */
+  capturadaEm: Date | null;
 };
 
 export type OpcoesProcessamento = {
@@ -109,6 +115,7 @@ export async function processarFoto<TImagem extends Bitmap, TSaida>(
   const mimeSaida = opcoes.mimeSaida ?? "image/jpeg";
 
   const orientacaoOriginal = lerOrientacao(bytes);
+  const capturadaEm = lerCapturadaEm(bytes);
   const { girar, espelhar, trocaEixos } = transformacaoParaOrientacao(orientacaoOriginal);
 
   const original = await desenhista.decodificar(bytes, mimeEntrada);
@@ -148,5 +155,6 @@ export async function processarFoto<TImagem extends Bitmap, TSaida>(
     altura: planned.full.height,
     orientacaoOriginal,
     tinhaGeolocalizacao: temGeolocalizacao(bytes),
+    capturadaEm,
   };
 }

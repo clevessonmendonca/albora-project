@@ -62,6 +62,22 @@ function jpegOrientacao6(): Uint8Array {
 const semExif = new Uint8Array([0xff, 0xd8, 0xff, 0xdb, 0x00, 0x04, 0x00, 0x00]);
 const aparelhoComum = { memoryGb: 8, cores: 8 };
 
+function jpegComDateTime(): Uint8Array {
+  const u16 = (n: number) => [n & 0xff, (n >> 8) & 0xff];
+  const u32 = (n: number) => [n & 0xff, (n >> 8) & 0xff, (n >> 16) & 0xff, (n >> 24) & 0xff];
+  const str = Array.from("2026:08:09 01:00:00\0").map((c) => c.charCodeAt(0));
+  const tiff = [
+    0x49, 0x49, 0x2a, 0x00, ...u32(8),
+    ...u16(1),
+    ...u16(0x0132), ...u16(2), ...u32(20), ...u32(26),
+    ...u32(0),
+    ...str,
+  ];
+  const corpo = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00, ...tiff];
+  const tam = corpo.length + 2;
+  return new Uint8Array([0xff, 0xd8, 0xff, 0xe1, (tam >> 8) & 0xff, tam & 0xff, ...corpo]);
+}
+
 describe("a ordem das operações", () => {
   it("decodifica, endireita, codifica, e só então faz a miniatura", async () => {
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
@@ -273,5 +289,16 @@ describe("saída", () => {
     // O EXIF sai de toda foto, sempre. Este campo serve para o cliente poder
     // afirmar que a remoção aconteceu, não para condicioná-la.
     expect(r.tinhaGeolocalizacao).toBe(false);
+    expect(r.capturadaEm).toBeNull();
+  });
+
+  it("lê o instante de captura antes de reencodar", async () => {
+    const { desenhista } = desenhistaFalso({ largura: 1000, altura: 800 });
+    const r = await processarFoto(jpegComDateTime(), "image/jpeg", desenhista, {
+      plan: "gratis",
+      device: aparelhoComum,
+    });
+
+    expect(r.capturadaEm?.toISOString()).toBe("2026-08-09T01:00:00.000Z");
   });
 });
