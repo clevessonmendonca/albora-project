@@ -175,3 +175,54 @@ describe("a chave gravada pertence ao evento", () => {
     expect(r.upload.storageKey.startsWith(`events/${dados.a.eventoId}/`)).toBe(true);
   });
 });
+
+describe("confirm persiste o instante de captura e as dimensões", () => {
+  it("grava taken_at, width e height na primeira inserção", async () => {
+    const uploadId = randomUUID();
+    const capturada = new Date("2026-08-09T01:10:00.000Z");
+
+    const r = await comEvento(app, dados.a.eventoId, (c) =>
+      confirmarUpload(c, {
+        ...entrada(uploadId, dados.a),
+        takenAt: capturada,
+        width: 1080,
+        height: 1920,
+      }),
+    );
+
+    expect(r.estado).toBe("criado");
+    expect(r.upload.takenAt?.toISOString()).toBe(capturada.toISOString());
+    expect(r.upload.width).toBe(1080);
+    expect(r.upload.height).toBe(1920);
+
+    const { rows } = await admin.query(
+      "SELECT taken_at, width, height FROM uploads WHERE id = $1",
+      [uploadId],
+    );
+    expect(rows[0].taken_at.toISOString()).toBe(capturada.toISOString());
+    expect(rows[0].width).toBe(1080);
+    expect(rows[0].height).toBe(1920);
+  });
+
+  it("retry não apaga o taken_at que a primeira chamada gravou", async () => {
+    const uploadId = randomUUID();
+    const capturada = new Date("2026-08-09T02:00:00.000Z");
+
+    await comEvento(app, dados.a.eventoId, (c) =>
+      confirmarUpload(c, {
+        ...entrada(uploadId, dados.a),
+        takenAt: capturada,
+        width: 1080,
+        height: 1920,
+      }),
+    );
+
+    const segunda = await comEvento(app, dados.a.eventoId, (c) =>
+      confirmarUpload(c, entrada(uploadId, dados.a)),
+    );
+
+    expect(segunda.estado).toBe("ja_existia");
+    expect(segunda.upload.takenAt?.toISOString()).toBe(capturada.toISOString());
+    expect(segunda.upload.width).toBe(1080);
+  });
+});

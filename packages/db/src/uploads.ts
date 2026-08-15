@@ -10,6 +10,9 @@ export type LinhaUpload = {
   bytes: number;
   caption: string | null;
   place: string | null;
+  takenAt: Date | null;
+  width: number | null;
+  height: number | null;
 };
 
 export type ResultadoConfirm =
@@ -39,6 +42,9 @@ export async function confirmarUpload(
     bytes: number;
     caption: string | null;
     place: string | null;
+    takenAt?: Date | null;
+    width?: number | null;
+    height?: number | null;
   },
 ): Promise<ResultadoConfirm> {
   // Serializa os confirms do MESMO uploadId. Sem isto, dois retries em
@@ -52,13 +58,16 @@ export async function confirmarUpload(
   // cada COMMIT, e um lock de sessão vazaria para o próximo cliente.
   await cliente.query("SELECT pg_advisory_xact_lock(hashtext($1))", [entrada.uploadId]);
 
-  const { rows: inseridas } = await cliente.query<LinhaUpload>(
-    `INSERT INTO uploads (id, event_id, session_id, challenge_id, storage_key, mime, bytes, caption, place)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-     ON CONFLICT (id) DO NOTHING
-     RETURNING id, event_id AS "eventId", session_id AS "sessionId",
+  const returning = `id, event_id AS "eventId", session_id AS "sessionId",
                challenge_id AS "challengeId", storage_key AS "storageKey",
-               mime, bytes, caption, place`,
+               mime, bytes, caption, place,
+               taken_at AS "takenAt", width, height`;
+
+  const { rows: inseridas } = await cliente.query<LinhaUpload>(
+    `INSERT INTO uploads (id, event_id, session_id, challenge_id, storage_key, mime, bytes, caption, place, taken_at, width, height)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+     ON CONFLICT (id) DO NOTHING
+     RETURNING ${returning}`,
     [
       entrada.uploadId,
       entrada.eventId,
@@ -69,6 +78,9 @@ export async function confirmarUpload(
       entrada.bytes,
       entrada.caption,
       entrada.place,
+      entrada.takenAt ?? null,
+      entrada.width ?? null,
+      entrada.height ?? null,
     ],
   );
 
@@ -76,9 +88,7 @@ export async function confirmarUpload(
   if (criada) return { estado: "criado", upload: criada };
 
   const { rows: existentes } = await cliente.query<LinhaUpload>(
-    `SELECT id, event_id AS "eventId", session_id AS "sessionId",
-            challenge_id AS "challengeId", storage_key AS "storageKey",
-            mime, bytes, caption, place
+    `SELECT ${returning}
      FROM uploads WHERE id = $1`,
     [entrada.uploadId],
   );

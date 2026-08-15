@@ -65,6 +65,29 @@ describe("o álbum lê só o evento do contexto", () => {
     expect(midia?.chaveThumb.startsWith(`events/${dados.a.eventoId}/`)).toBe(true);
     expect(midia?.recebidaEm).toBeInstanceOf(Date);
     expect(midia?.sessaoId).toBe(dados.a.sessaoId);
+    expect(midia?.capturadaEm).toBeNull();
+    expect(midia?.largura).toBe(1080);
+    expect(midia?.altura).toBe(1920);
+  });
+
+  it("lê taken_at e as dimensões reais quando o confirm as gravou", async () => {
+    const capturada = new Date("2026-08-09T01:10:00.000Z");
+    await admin.query("UPDATE uploads SET taken_at = $2, width = 1920, height = 1080 WHERE id = $1", [
+      dados.a.uploadId,
+      capturada,
+    ]);
+    try {
+      const [midia] = await comEvento(app, dados.a.eventoId, (c) =>
+        listarMidiaDoAlbum(c, dados.a.eventoId),
+      );
+      expect(midia?.capturadaEm?.toISOString()).toBe(capturada.toISOString());
+      expect(midia?.largura).toBe(1920);
+      expect(midia?.altura).toBe(1080);
+    } finally {
+      await admin.query("UPDATE uploads SET taken_at = NULL, width = NULL, height = NULL WHERE id = $1", [
+        dados.a.uploadId,
+      ]);
+    }
   });
 
   it("a janela do evento vem do contexto, e a de outro evento não vaza", async () => {

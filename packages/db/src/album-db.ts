@@ -11,12 +11,10 @@ import { thumbKeyFromFull } from "./storage-key";
  * daqui pela mesma coluna, no mesmo instante.
  *
  * O álbum é montado por `montarAlbum()` do `@albora/core` sobre estas linhas.
- * O núcleo pede `capturadaEm`, `largura` e `altura` que ainda não existem no
- * schema: `taken_at` chega quando o `confirm` o preservar antes de descartar o
- * EXIF (spec 016, risco registrado), e as dimensões idem. Até lá a leitura os
- * entrega como ausência declarada — `capturadaEm` nulo cai no `created_at` pela
- * regra do próprio núcleo, e a proporção assume retrato, que é a forma de três
- * em cada quatro fotos de festa. Nenhuma migration aqui: a leitura é derivada.
+ * `taken_at` chega no `confirm` a partir da leitura de EXIF feita antes do
+ * reencode; `width`/`height` vêm das dimensões já em pé do processamento.
+ * Ausentes — fila antiga, vídeo sem poster, EXIF mudo — `capturadaEm` nulo
+ * cai no `created_at` pela regra do núcleo, e a proporção assume retrato.
  */
 
 const PUBLICADO = "published";
@@ -46,6 +44,9 @@ type Linha = {
   challenge_id: string | null;
   place: string | null;
   created_at: Date;
+  taken_at: Date | null;
+  width: number | null;
+  height: number | null;
   reacoes: number;
 };
 
@@ -66,6 +67,7 @@ export async function listarMidiaDoAlbum(
 
   const { rows } = await cliente.query<Linha>(
     `SELECT u.id, u.storage_key, u.session_id, u.challenge_id, u.place, u.created_at,
+            u.taken_at, u.width, u.height,
             (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes
        FROM uploads u
       WHERE u.event_id = $1 AND u.state = $2
@@ -74,19 +76,39 @@ export async function listarMidiaDoAlbum(
     [eventoId, PUBLICADO, teto],
   );
 
-  return rows.map((l) => ({
-    id: l.id,
-    sessaoId: l.session_id,
-    capturadaEm: null,
-    recebidaEm: l.created_at,
-    largura: LARGURA_PADRAO,
-    altura: ALTURA_PADRAO,
-    lugarId: l.place,
-    missaoId: l.challenge_id,
-    reacoes: l.reacoes,
-    chaveFull: l.storage_key,
-    chaveThumb: thumbKeyFromFull(l.storage_key),
-  }));
+  return rows.map((l) => {
+    const { largura, altura } = parDeDimensoes(l.width, l.height);
+    return {
+      id: l.id,
+      sessaoId: l.session_id,
+      capturadaEm: l.taken_at,
+      recebidaEm: l.created_at,
+      largura,
+      altura,
+      lugarId: l.place,
+      missaoId: l.challenge_id,
+      reacoes: l.reacoes,
+      chaveFull: l.storage_key,
+      chaveThumb: thumbKeyFromFull(l.storage_key),
+    };
+  });
+}
+
+function parDeDimensoes(
+  width: number | null,
+  height: number | null,
+): { largura: number; altura: number } {
+  if (
+    width !== null &&
+    height !== null &&
+    Number.isFinite(width) &&
+    Number.isFinite(height) &&
+    width > 0 &&
+    height > 0
+  ) {
+    return { largura: width, altura: height };
+  }
+  return { largura: LARGURA_PADRAO, altura: ALTURA_PADRAO };
 }
 
 /**
