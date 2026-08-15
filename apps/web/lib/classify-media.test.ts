@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  classificarPendentesDoEvento,
-  type DependenciasDoClassificador,
+  classifyPendingForEvent,
+  type ClassifierDependencies,
 } from "./classify-media";
 import type { UploadPendenteDeClassificacao } from "@albora/db";
 
@@ -26,28 +26,25 @@ function pendente(parcial: Partial<UploadPendenteDeClassificacao> = {}): UploadP
 }
 
 function deps(
-  parcial: Partial<DependenciasDoClassificador> & Pick<DependenciasDoClassificador, "listar">,
-): DependenciasDoClassificador {
-  const gravados: { id: string; veredicto: string }[] = [];
+  parcial: Partial<ClassifierDependencies> & Pick<ClassifierDependencies, "list">,
+): ClassifierDependencies {
   return {
-    lerThumb: async () => jpegMinimo(),
-    gravar: async (_eventoId, uploadId, veredicto) => {
-      gravados.push({ id: uploadId, veredicto });
-    },
-    classificar: async () => "limpo",
-    agora: () => new Date("2026-08-15T12:00:10Z").getTime(),
+    readThumb: async () => jpegMinimo(),
+    save: async () => undefined,
+    classify: async () => "limpo",
+    now: () => new Date("2026-08-15T12:00:10Z").getTime(),
     ...parcial,
   };
 }
 
-describe("classificarPendentesDoEvento", () => {
+describe("classifyPendingForEvent", () => {
   it("grava limpo quando a thumb chega e o provedor responde", async () => {
     const gravados: { id: string; veredicto: string }[] = [];
-    const n = await classificarPendentesDoEvento(
+    const n = await classifyPendingForEvent(
       EVENTO,
       deps({
-        listar: async () => [pendente()],
-        gravar: async (_e, id, veredicto) => {
+        list: async () => [pendente()],
+        save: async (_e, id, veredicto) => {
           gravados.push({ id, veredicto });
         },
       }),
@@ -59,14 +56,14 @@ describe("classificarPendentesDoEvento", () => {
 
   it("leitura da thumb que falha persiste sem-resposta — o telão segura", async () => {
     const gravados: string[] = [];
-    await classificarPendentesDoEvento(
+    await classifyPendingForEvent(
       EVENTO,
       deps({
-        listar: async () => [pendente()],
-        lerThumb: async () => {
+        list: async () => [pendente()],
+        readThumb: async () => {
           throw new Error("r2");
         },
-        gravar: async (_e, _id, veredicto) => {
+        save: async (_e, _id, veredicto) => {
           gravados.push(veredicto);
         },
       }),
@@ -76,29 +73,29 @@ describe("classificarPendentesDoEvento", () => {
 
   it("thumb ausente espera; depois do prazo grava sem-resposta", async () => {
     const gravados: string[] = [];
-    const cedo = await classificarPendentesDoEvento(
+    const cedo = await classifyPendingForEvent(
       EVENTO,
       deps({
-        listar: async () => [pendente()],
-        lerThumb: async () => null,
-        gravar: async (_e, _id, veredicto) => {
+        list: async () => [pendente()],
+        readThumb: async () => null,
+        save: async (_e, _id, veredicto) => {
           gravados.push(veredicto);
         },
-        agora: () => new Date("2026-08-15T12:00:10Z").getTime(),
+        now: () => new Date("2026-08-15T12:00:10Z").getTime(),
       }),
     );
     expect(cedo).toBe(0);
     expect(gravados).toEqual([]);
 
-    const tarde = await classificarPendentesDoEvento(
+    const tarde = await classifyPendingForEvent(
       EVENTO,
       deps({
-        listar: async () => [pendente()],
-        lerThumb: async () => null,
-        gravar: async (_e, _id, veredicto) => {
+        list: async () => [pendente()],
+        readThumb: async () => null,
+        save: async (_e, _id, veredicto) => {
           gravados.push(veredicto);
         },
-        agora: () => new Date("2026-08-15T12:00:31Z").getTime(),
+        now: () => new Date("2026-08-15T12:00:31Z").getTime(),
       }),
     );
     expect(tarde).toBe(1);
@@ -107,11 +104,11 @@ describe("classificarPendentesDoEvento", () => {
 
   it("pede a chave da thumb, nunca a full", async () => {
     const chaves: string[] = [];
-    await classificarPendentesDoEvento(
+    await classifyPendingForEvent(
       EVENTO,
       deps({
-        listar: async () => [pendente()],
-        lerThumb: async (chave) => {
+        list: async () => [pendente()],
+        readThumb: async (chave) => {
           chaves.push(chave);
           return jpegMinimo();
         },

@@ -1,32 +1,32 @@
 import { VERSAO_DO_CONSENTIMENTO_EXTERNO } from "@albora/core";
 import { describe, expect, it } from "vitest";
 import {
-  mapConsentimentoExterno,
-  mensagemDeShare,
-  precisaPedirConsentimento,
+  mapExternalConsent,
+  shareMessage,
+  needsExternalConsent,
 } from "./share-gate";
 
 const AGORA = new Date("2026-08-15T20:00:00.000Z");
 
-describe("precisaPedirConsentimento", () => {
+describe("needsExternalConsent", () => {
   it("sem aceite, o sheet abre antes da folha nativa", () => {
-    expect(precisaPedirConsentimento(null, AGORA)).toBe(true);
+    expect(needsExternalConsent(null, AGORA)).toBe(true);
   });
 
   it("aceite vigente libera o share", () => {
-    const consentimento = mapConsentimentoExterno({
+    const consentimento = mapExternalConsent({
       versao: VERSAO_DO_CONSENTIMENTO_EXTERNO,
       em: "2026-08-15T19:00:00.000Z",
       revogadoEm: null,
       nomeNaMoldura: true,
     });
-    expect(precisaPedirConsentimento(consentimento, AGORA)).toBe(false);
+    expect(needsExternalConsent(consentimento, AGORA)).toBe(false);
   });
 
   it("versão velha, sem data ou revogado pedem de novo", () => {
     expect(
-      precisaPedirConsentimento(
-        mapConsentimentoExterno({
+      needsExternalConsent(
+        mapExternalConsent({
           versao: "externo-v0",
           em: "2026-08-15T19:00:00.000Z",
           revogadoEm: null,
@@ -37,7 +37,7 @@ describe("precisaPedirConsentimento", () => {
     ).toBe(true);
 
     expect(
-      precisaPedirConsentimento(
+      needsExternalConsent(
         {
           versao: VERSAO_DO_CONSENTIMENTO_EXTERNO,
           em: new Date("invalid"),
@@ -49,8 +49,8 @@ describe("precisaPedirConsentimento", () => {
     ).toBe(true);
 
     expect(
-      precisaPedirConsentimento(
-        mapConsentimentoExterno({
+      needsExternalConsent(
+        mapExternalConsent({
           versao: VERSAO_DO_CONSENTIMENTO_EXTERNO,
           em: "2026-08-15T18:00:00.000Z",
           revogadoEm: "2026-08-15T19:30:00.000Z",
@@ -62,12 +62,12 @@ describe("precisaPedirConsentimento", () => {
   });
 });
 
-describe("mensagemDeShare", () => {
+describe("shareMessage", () => {
   it("cada recusa da spec tem copy em PT-BR, não o código cru", () => {
-    expect(mensagemDeShare("compartilhar.desligado_pelo_anfitriao")).toMatch(/festa/);
-    expect(mensagemDeShare("compartilhar.sem_consentimento_externo")).toMatch(/aceitar/);
-    expect(mensagemDeShare("compartilhar.bloqueado_pela_moderacao")).toMatch(/ainda não/);
-    expect(mensagemDeShare("compartilhar.nao_e_autor")).toMatch(/suas/);
-    expect(mensagemDeShare("compartilhar.colagem_vazia")).toMatch(/colagem/);
+    expect(shareMessage("compartilhar.desligado_pelo_anfitriao")).toMatch(/festa/);
+    expect(shareMessage("compartilhar.sem_consentimento_externo")).toMatch(/aceitar/);
+    expect(shareMessage("compartilhar.bloqueado_pela_moderacao")).toMatch(/ainda não/);
+    expect(shareMessage("compartilhar.nao_e_autor")).toMatch(/suas/);
+    expect(shareMessage("compartilhar.colagem_vazia")).toMatch(/colagem/);
   });
 });

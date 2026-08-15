@@ -21,9 +21,9 @@ import { shareOrDownload } from "@/lib/share-or-download";
 import { reportFunnel } from "@/features/guest/lib/report-funnel";
 import { loadImage, drawCollage, drawFrame } from "@/lib/frame-renderer";
 import {
-  mapConsentimentoExterno,
-  mensagemDeShare,
-  precisaPedirConsentimento,
+  mapExternalConsent,
+  shareMessage,
+  needsExternalConsent,
   type ConsentimentoExternoBruto,
 } from "@/features/my-photos/lib/share-gate";
 
@@ -83,7 +83,7 @@ export function useShare(eventoId: string, sessaoId: string) {
           nome: ctx.sessao.nome,
           consentimentoDeEntrada: { versao: "v1", em: agora },
           consentimentoExterno:
-            consentimentoExterno ?? mapConsentimentoExterno(ctx.sessao.consentimentoExterno),
+            consentimentoExterno ?? mapExternalConsent(ctx.sessao.consentimentoExterno),
         };
 
         const evento = {
@@ -115,7 +115,7 @@ export function useShare(eventoId: string, sessaoId: string) {
 
         const autorizacao = autorizarCompartilhamento(midia, sessao, evento, agora);
         if (!autorizacao.pode) {
-          setErro(mensagemDeShare(autorizacao.codigo));
+          setErro(shareMessage(autorizacao.codigo));
           return;
         }
 
@@ -138,7 +138,7 @@ export function useShare(eventoId: string, sessaoId: string) {
         });
 
         if (!resultado.autorizada || !resultado.composicao) {
-          setErro(mensagemDeShare(resultado.codigo));
+          setErro(shareMessage(resultado.codigo));
           return;
         }
 
@@ -171,7 +171,7 @@ export function useShare(eventoId: string, sessaoId: string) {
           nome: base.sessao.nome,
           consentimentoDeEntrada: { versao: "v1", em: agora },
           consentimentoExterno:
-            consentimentoExterno ?? mapConsentimentoExterno(base.sessao.consentimentoExterno),
+            consentimentoExterno ?? mapExternalConsent(base.sessao.consentimentoExterno),
         };
 
         const evento = {
@@ -197,7 +197,7 @@ export function useShare(eventoId: string, sessaoId: string) {
 
         const autorizacao = autorizarColagem(midias, sessao, evento, agora);
         if (!autorizacao.pode) {
-          setErro(mensagemDeShare(autorizacao.codigo));
+          setErro(shareMessage(autorizacao.codigo));
           return;
         }
 
@@ -251,12 +251,12 @@ export function useShare(eventoId: string, sessaoId: string) {
       setErro(null);
       try {
         const ctx = await buscarContexto(uploadId);
-        if (precisaPedirConsentimento(mapConsentimentoExterno(ctx.sessao.consentimentoExterno))) {
+        if (needsExternalConsent(mapExternalConsent(ctx.sessao.consentimentoExterno))) {
           setPedindoConsentimento(uploadId);
           return;
         }
 
-        await executar(uploadId, mapConsentimentoExterno(ctx.sessao.consentimentoExterno));
+        await executar(uploadId, mapExternalConsent(ctx.sessao.consentimentoExterno));
       } catch {
         setErro("Não deu para compartilhar agora.");
       }
@@ -270,11 +270,11 @@ export function useShare(eventoId: string, sessaoId: string) {
       setErro(null);
       try {
         const ctx = await buscarContexto(uploadIds[0]!);
-        if (precisaPedirConsentimento(mapConsentimentoExterno(ctx.sessao.consentimentoExterno))) {
+        if (needsExternalConsent(mapExternalConsent(ctx.sessao.consentimentoExterno))) {
           setPedindoColagem(uploadIds);
           return;
         }
-        await executarColagem(uploadIds, mapConsentimentoExterno(ctx.sessao.consentimentoExterno));
+        await executarColagem(uploadIds, mapExternalConsent(ctx.sessao.consentimentoExterno));
       } catch {
         setErro("Não deu para compartilhar a colagem.");
       }

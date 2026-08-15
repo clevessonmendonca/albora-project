@@ -6,95 +6,90 @@ import {
   type VeredictoDoClassificador,
 } from "@albora/core";
 import {
-  comEvento,
-  gravarVeredictoUpload,
-  listarUploadsPendentesDeClassificacao,
+  listPendingClassifierUploads,
+  saveUploadVerdict,
+  withEvent,
   type UploadPendenteDeClassificacao,
 } from "@albora/db";
 import { getPool } from "@/lib/db";
 import { readThumb } from "@/lib/r2";
 
-const TETO = 8;
-const ESPERA_THUMB_MS = 30_000;
+const LIMIT = 8;
+const THUMB_WAIT_MS = 30_000;
 
-const emCurso = new Set<string>();
+const inFlight = new Set<string>();
 
-export type DependenciasDoClassificador = {
-  listar: (eventoId: string) => Promise<UploadPendenteDeClassificacao[]>;
-  lerThumb: (chave: string) => Promise<Uint8Array | null>;
-  gravar: (
-    eventoId: string,
+export type ClassifierDependencies = {
+  list: (eventId: string) => Promise<UploadPendenteDeClassificacao[]>;
+  readThumb: (key: string) => Promise<Uint8Array | null>;
+  save: (
+    eventId: string,
     uploadId: string,
-    veredicto: VeredictoDoClassificador,
+    verdict: VeredictoDoClassificador,
   ) => Promise<void>;
-  classificar: (entrada: EntradaDeImagem) => Promise<VeredictoDoClassificador>;
-  agora?: () => number;
+  classify: (entrada: EntradaDeImagem) => Promise<VeredictoDoClassificador>;
+  now?: () => number;
 };
 
-/**
- * Classifica thumbs pendentes de um evento. Fora do confirm, fora do caminho
- * crítico: o poll da parede chama isto em fire-and-forget.
- */
-export async function classificarPendentesDoEvento(
-  eventoId: string,
-  deps: DependenciasDoClassificador,
-  teto = TETO,
+export async function classifyPendingForEvent(
+  eventId: string,
+  deps: ClassifierDependencies,
+  limit = LIMIT,
 ): Promise<number> {
-  const pendentes = (await deps.listar(eventoId)).slice(0, teto);
-  const agora = deps.agora ?? Date.now;
-  let processados = 0;
+  const pending = (await deps.list(eventId)).slice(0, limit);
+  const now = deps.now ?? Date.now;
+  let processed = 0;
 
-  for (const p of pendentes) {
-    const chaveThumb = chaveThumbDeFull(p.chaveFull);
+  for (const p of pending) {
+    const thumbKey = chaveThumbDeFull(p.chaveFull);
     let bytes: Uint8Array | null;
     try {
-      bytes = await deps.lerThumb(chaveThumb);
+      bytes = await deps.readThumb(thumbKey);
     } catch {
-      await deps.gravar(eventoId, p.id, "sem-resposta");
-      processados += 1;
+      await deps.save(eventId, p.id, "sem-resposta");
+      processed += 1;
       continue;
     }
 
     if (bytes === null) {
-      if (agora() - p.criadaEm.getTime() >= ESPERA_THUMB_MS) {
-        await deps.gravar(eventoId, p.id, "sem-resposta");
-        processados += 1;
+      if (now() - p.criadaEm.getTime() >= THUMB_WAIT_MS) {
+        await deps.save(eventId, p.id, "sem-resposta");
+        processed += 1;
       }
       continue;
     }
 
-    const veredicto = await deps.classificar({ bytes, mime: p.mime });
-    await deps.gravar(eventoId, p.id, veredicto);
-    processados += 1;
+    const verdict = await deps.classify({ bytes, mime: p.mime });
+    await deps.save(eventId, p.id, verdict);
+    processed += 1;
   }
 
-  return processados;
+  return processed;
 }
 
-/** Dispara o lote e não espera — o próximo poll da parede já lê o veredicto. */
 export function classifyMediaAfter(eventoId: string): void {
-  if (emCurso.has(eventoId)) return;
-  emCurso.add(eventoId);
-  void classificarPendentesDoEvento(eventoId, dependenciasDeProducao())
+  if (inFlight.has(eventoId)) return;
+  inFlight.add(eventoId);
+  void classifyPendingForEvent(eventoId, productionDependencies())
     .catch(() => {
       console.warn("midia.classificador_falhou", { eventoId });
     })
     .finally(() => {
-      emCurso.delete(eventoId);
+      inFlight.delete(eventoId);
     });
 }
 
-function dependenciasDeProducao(): DependenciasDoClassificador {
+function productionDependencies(): ClassifierDependencies {
   const pool = getPool();
-  const provedor = provedorDeImagemDoAmbiente();
+  const provider = provedorDeImagemDoAmbiente();
   return {
-    listar: (eventoId) =>
-      comEvento(pool, eventoId, (c) => listarUploadsPendentesDeClassificacao(c, eventoId)),
-    lerThumb: readThumb,
-    gravar: (eventoId, uploadId, veredicto) =>
-      comEvento(pool, eventoId, (c) => gravarVeredictoUpload(c, uploadId, veredicto)).then(
+    list: (eventId) =>
+      withEvent(pool, eventId, (c) => listPendingClassifierUploads(c, eventId)),
+    readThumb,
+    save: (eventId, uploadId, verdict) =>
+      withEvent(pool, eventId, (c) => saveUploadVerdict(c, uploadId, verdict)).then(
         () => undefined,
       ),
-    classificar: (entrada) => classificarImagem(entrada, provedor),
+    classify: (entrada) => classificarImagem(entrada, provider),
   };
 }

@@ -11,7 +11,7 @@ export type ConsentimentoExternoBruto = {
   nomeNaMoldura: boolean;
 };
 
-export function mapConsentimentoExterno(
+export function mapExternalConsent(
   bruto: ConsentimentoExternoBruto | null,
 ): ConsentimentoExterno | null {
   if (!bruto) return null;
@@ -23,7 +23,7 @@ export function mapConsentimentoExterno(
   };
 }
 
-export function precisaPedirConsentimento(
+export function needsExternalConsent(
   consentimento: ConsentimentoExterno | null,
   agora = new Date(),
 ): boolean {
@@ -60,6 +60,6 @@ export const MENSAGENS_DE_SHARE: Partial<Record<CodigoDeCompartilhamento, string
   "compartilhar.colagem_grande_demais": "A colagem leva no máximo quatro fotos.",
 };
 
-export function mensagemDeShare(codigo: CodigoDeCompartilhamento): string {
+export function shareMessage(codigo: CodigoDeCompartilhamento): string {
   return MENSAGENS_DE_SHARE[codigo] ?? "Não dá para compartilhar agora.";
 }
