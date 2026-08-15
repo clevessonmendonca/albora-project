@@ -12,6 +12,7 @@ import {
   recadoDoEvento,
 } from "@albora/db";
 import {
+  ADMIN_SESSION_REQUIRED,
   errorResponse,
   jsonOk,
   parseJsonBody,
@@ -25,11 +26,6 @@ import { consume } from "@/lib/rate-limit-store";
 import { clientSentStorageKey } from "./guestbook-body";
 
 export const dynamic = "force-dynamic";
-
-const ADMIN_SESSAO = {
-  code: "admin.sem_sessao",
-  message: "Entre no painel para continuar",
-} as const;
 
 type Corpo = {
   texto?: unknown;
@@ -82,7 +78,7 @@ export async function GET(
   const cfgErr = requireConfig("admin");
   if (cfgErr) return cfgErr;
 
-  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
   if (auth instanceof Response) return auth;
 
   const { eventId } = await params;
@@ -109,7 +105,7 @@ export async function PUT(
   const cfgErr = requireConfig("admin");
   if (cfgErr) return cfgErr;
 
-  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
   if (auth instanceof Response) return auth;
 
   const { eventId } = await params;

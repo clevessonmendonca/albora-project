@@ -1,5 +1,6 @@
 import { comEvento, listarMidiaDoAlbum, ocultarMidiaDoHost } from "@albora/db";
 import {
+  ADMIN_SESSION_REQUIRED,
   errorResponse,
   jsonOk,
   parseJsonBody,
@@ -16,11 +17,6 @@ export const dynamic = "force-dynamic";
 
 const VALIDADE_GET_SEGUNDOS = 900;
 
-const ADMIN_SESSAO = {
-  code: "admin.sem_sessao",
-  message: "Entre no painel para continuar",
-} as const;
-
 type Corpo = { midiaId?: unknown };
 
 export async function GET(
@@ -30,7 +26,7 @@ export async function GET(
   const cfgErr = requireConfig("admin", { log: false, mediaOrigin: true });
   if (cfgErr) return cfgErr;
 
-  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
   if (auth instanceof Response) return auth;
 
   const { eventId } = await params;
@@ -72,7 +68,7 @@ export async function PATCH(
   const cfgErr = requireConfig("admin", { log: false });
   if (cfgErr) return cfgErr;
 
-  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
   if (auth instanceof Response) return auth;
 
   const { eventId } = await params;

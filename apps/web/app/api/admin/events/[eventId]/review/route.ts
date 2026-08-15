@@ -8,6 +8,7 @@ import {
   removerComentarioDoEvento,
 } from "@albora/db";
 import {
+  ADMIN_SESSION_REQUIRED,
   errorResponse,
   jsonOk,
   parseJsonBody,
@@ -21,11 +22,6 @@ import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
-
-const ADMIN_SESSAO = {
-  code: "admin.sem_sessao",
-  message: "Entre no painel para continuar",
-} as const;
 
 function serializar(
   midias: Awaited<ReturnType<typeof listarMidiaParaRevisao>>,
@@ -59,7 +55,7 @@ export async function GET(
   const cfgErr = requireConfig("admin");
   if (cfgErr) return cfgErr;
 
-  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
   if (auth instanceof Response) return auth;
 
   const { eventId } = await params;
@@ -94,7 +90,7 @@ export async function PATCH(
   const cfgErr = requireConfig("admin");
   if (cfgErr) return cfgErr;
 
-  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
   if (auth instanceof Response) return auth;
 
   const { eventId } = await params;

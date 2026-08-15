@@ -7,6 +7,7 @@ import {
   type PieceFormat,
 } from "@albora/tokens";
 import {
+  ADMIN_SESSION_REQUIRED,
   errorResponse,
   requireConfig,
   requireHostEvent,
@@ -27,11 +28,6 @@ const FORMATOS: PieceFormat[] = ["placa-a4", "card-de-mesa", "card-de-missao"];
 const TIPOS = ["svg", "pdf"] as const;
 
 type TipoPeca = (typeof TIPOS)[number];
-
-const ADMIN_SESSAO = {
-  code: "admin.sem_sessao",
-  message: "Entre no painel para continuar",
-} as const;
 
 function comoFormato(valor: string | null): PieceFormat | null {
   if (!valor) return null;
@@ -82,7 +78,7 @@ export async function GET(
   const cfgErr = requireConfig("admin");
   if (cfgErr) return cfgErr;
 
-  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
   if (auth instanceof Response) return auth;
 
   const { eventId } = await params;

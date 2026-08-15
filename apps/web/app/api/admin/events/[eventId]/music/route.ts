@@ -7,6 +7,7 @@ import {
 } from "@albora/db";
 import { filaParaTela } from "@/features/music/lib/fila-para-tela";
 import {
+  ADMIN_SESSION_REQUIRED,
   errorResponse,
   jsonOk,
   parseJsonBody,
@@ -19,11 +20,6 @@ import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
-
-const ADMIN_SESSAO = {
-  code: "admin.sem_sessao",
-  message: "Entre no painel para continuar",
-} as const;
 
 type Corpo = { url?: unknown };
 
@@ -46,7 +42,7 @@ export async function GET(
   const cfgErr = requireConfig("admin");
   if (cfgErr) return cfgErr;
 
-  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
   if (auth instanceof Response) return auth;
 
   const { eventId } = await params;
@@ -79,7 +75,7 @@ export async function PUT(
   const cfgErr = requireConfig("admin");
   if (cfgErr) return cfgErr;
 
-  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
   if (auth instanceof Response) return auth;
 
   const { eventId } = await params;
