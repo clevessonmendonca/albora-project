@@ -57,7 +57,7 @@ Este documento substitui o recorte “só MVP” por **entrega completa** alinha
 | Wizard criar evento (`TelaCriarEvento`) | **Catálogo feito** · **Produto feito** em `/admin/new` (5 passos) |
 | Identidade + missões na criação (`TelaIdentidade`) | **Catálogo feito** · **Produto feito** (wizard + `/admin/e/[id]/identity`) |
 | O álbum anfitrião (`TelaAlbumAnfitriao`) | **Catálogo feito** · **Produto feito** em `/admin/e/[id]/album` |
-| Peças PDF + ZIP (`TelaPecas`) | **Catálogo feito** · SVG no admin; PDF na fila |
+| Peças PDF + ZIP (`TelaPecas`) | **Catálogo feito** · PDF+SVG no admin |
 | Pânico na parede (`TelaPanico`) | **Catálogo feito** · API + telão existem |
 
 ---
@@ -95,7 +95,7 @@ Faltam três coisas para um evento real:
 
 | # | Item | Tam | Por quê é bloqueante |
 |---|---|---|---|
-| A1 | **Peças: placa/card SVG→PDF com QR** ([spec 009](./specs/task-009-admin-e-pecas.md)) | **G** | **Parcial** — download SVG no admin (QR nível H, URL legível, validação `@albora/tokens/pecas`). Falta fila SVG→PDF, fonte embutida no CI e prova impressa com 3 celulares. |
+| A1 | **Peças: placa/card SVG→PDF com QR** ([spec 009](./specs/task-009-admin-e-pecas.md)) | **G** | **Parcial** — download SVG+PDF no admin (QR nível H, URL legível, Fraunces e Instrument Sans OFL embutidas). Falta prova impressa com 3 celulares. |
 | A2 | **Botões do host: pânico + "há menores" + fila de revisão + gate** | **P/M** | **Feito** — admin + toggle de pânico no telão (`PATCH /api/parede/panico`). |
 | A3 | **UI do convidado fiada** (reação/comentário no feed, música, álbum) | **M** | **Feito no código** (PR #2) — smoke E2E inicial (`pnpm test:e2e`); fluxo completo com `E2E_FULL=1` após `db:semear`. |
 | A4 | **Teste de carga 150 uploads/20min** ([spec 012](./specs/task-012-carga-e-app.md)) | **M** | Gate **não negociável** do CLAUDE.md antes do 1º evento. A ferramenta (`pnpm carga`) já existe; falta rodar contra infra parecida com produção. Runbook: [`runbooks/carga.md`](./runbooks/carga.md). |

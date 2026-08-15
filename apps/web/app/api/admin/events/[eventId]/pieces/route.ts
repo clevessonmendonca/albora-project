@@ -14,13 +14,18 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
+import { generatePiecePdf } from "@/lib/generate-piece-pdf";
 import { generatePieceSvg } from "@/lib/generate-piece-svg";
 import { identityToFrame } from "@/lib/frame-identity";
 import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const FORMATOS: PieceFormat[] = ["placa-a4", "card-de-mesa", "card-de-missao"];
+const TIPOS = ["svg", "pdf"] as const;
+
+type TipoPeca = (typeof TIPOS)[number];
 
 const ADMIN_SESSAO = {
   code: "admin.sem_sessao",
@@ -30,6 +35,11 @@ const ADMIN_SESSAO = {
 function comoFormato(valor: string | null): PieceFormat | null {
   if (!valor) return null;
   return FORMATOS.includes(valor as PieceFormat) ? (valor as PieceFormat) : null;
+}
+
+function comoTipo(valor: string | null): TipoPeca | null {
+  if (!valor) return "svg";
+  return TIPOS.includes(valor as TipoPeca) ? (valor as TipoPeca) : null;
 }
 
 async function tokensDoEvento(
@@ -60,9 +70,9 @@ async function tokensDoEvento(
 }
 
 /**
- * Gera SVG de peça impressa para download (spec 009, MVP).
+ * Gera peça impressa (SVG ou PDF) com sangria, QR nível H e URL legível.
  *
- * PDF em fila fica para depois; o SVG já leva sangria, QR nível H e URL legível.
+ * `tipo=pdf` é vetorial no request — dezenas de KB, não raster 300 dpi.
  */
 export async function GET(
   req: Request,
@@ -94,6 +104,14 @@ export async function GET(
     });
   }
 
+  const tipo = comoTipo(url.searchParams.get("tipo"));
+  if (!tipo) {
+    return errorResponse(422, "validation_error", "Tipo inválido", {
+      campo: "tipo",
+      aceitos: TIPOS,
+    });
+  }
+
   try {
     const dados = await tokensDoEvento(auth.host.accountId, eventId);
     if (!dados) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
@@ -113,19 +131,42 @@ export async function GET(
     );
 
     const origem = url.origin;
-    const urlQr = `${origem}/e/${encodeURIComponent(dados.slug)}`;
-    const urlLegivel = `${url.host}/e/${dados.slug}`;
-
-    const resultado = await generatePieceSvg({
+    const entrada = {
       formato,
-      urlQr,
-      urlLegivel,
+      urlQr: `${origem}/e/${encodeURIComponent(dados.slug)}`,
+      urlLegivel: `${url.host}/e/${dados.slug}`,
       monograma: identidade.monograma,
       titulo: identidade.titulo,
       data: identidade.data,
       cores: tokens.cores,
-    });
+    };
 
+    if (tipo === "pdf") {
+      const resultado = await generatePiecePdf(entrada);
+      if (resultado.problemas.length > 0) {
+        return errorResponse(422, "peca.invalida", "Esta peça não passa na validação", {
+          problemas: resultado.problemas,
+          avisos: resultado.avisos,
+        });
+      }
+      console.log("admin.peca_gerada", {
+        accountId: auth.host.accountId,
+        eventId,
+        formato,
+        tipo,
+      });
+      return new Response(Buffer.from(resultado.pdf), {
+        status: 200,
+        headers: {
+          "content-type": "application/pdf",
+          "cache-control": "no-store",
+          "content-disposition": `attachment; filename="albora-${dados.slug}-${formato}.pdf"`,
+          "x-albora-avisos": encodeURIComponent(JSON.stringify(resultado.avisos)),
+        },
+      });
+    }
+
+    const resultado = await generatePieceSvg(entrada);
     if (resultado.problemas.length > 0) {
       return errorResponse(422, "peca.invalida", "Esta peça não passa na validação", {
         problemas: resultado.problemas,
@@ -137,6 +178,7 @@ export async function GET(
       accountId: auth.host.accountId,
       eventId,
       formato,
+      tipo,
     });
 
     return new Response(resultado.svg, {

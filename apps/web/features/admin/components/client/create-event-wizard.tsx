@@ -239,8 +239,8 @@ export function CreateEventWizard() {
 
       {step === 4 && (
         <p className="m-0 leading-relaxed text-ink-2">
-          Pronto para criar. Depois você baixa a placa com QR nos controles do evento — SVG hoje,
-          PDF na fila do CI.
+          Pronto para criar. Depois você baixa a placa com QR nos controles do evento — PDF
+          pronto para a gráfica.
         </p>
       )}
 

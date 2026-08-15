@@ -286,7 +286,7 @@ export default function CatalogPage() {
 
         <BrowserFrame
           title="Peças para imprimir"
-          note="Preview da placa A4 com QR nível H. Download SVG hoje; PDF na fila do CI."
+          note="Preview da placa A4 com QR nível H. Download PDF para a gráfica e SVG se o estúdio pedir."
           height={620}
           scale={0.58}
         >

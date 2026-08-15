@@ -37,7 +37,8 @@ export function HostPiecesScreen({ pack }: { pack: Pack }) {
                 Baixar SVG
               </span>
               <p className="mb-0 mt-2 max-w-[28ch] text-xs text-ink-3">
-                Contraste do QR validado antes do download.
+                Placa A4 210×297 mm, card de mesa 100×140 mm, sangria 3 mm. Contraste do QR
+                validado antes do download.
               </p>
             </div>
           </div>
