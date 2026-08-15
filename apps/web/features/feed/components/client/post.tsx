@@ -24,7 +24,7 @@ export function Post({
   autor,
   legenda,
   lugar,
-  ehVideo,
+  isVideo,
 }: {
   uploadId: string;
   interacao: ModoInteracao;
@@ -38,7 +38,7 @@ export function Post({
   autor: string;
   legenda: string | null;
   lugar?: string | null;
-  ehVideo?: boolean;
+  isVideo?: boolean;
 }) {
   const meta = lugar ? `· ${lugar}` : null;
 
@@ -50,7 +50,7 @@ export function Post({
 
       <div className="relative mb-3 aspect-4/5">
         {url ? (
-          ehVideo ? (
+          isVideo ? (
             <video
               className="feed-amanhece block size-full bg-bg object-contain"
               src={url}

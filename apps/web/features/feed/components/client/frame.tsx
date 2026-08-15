@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@albora/ui-web";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 const CLASSE_INTEIRA =
   "absolute inset-0 size-full object-contain";
@@ -31,14 +31,14 @@ export function Frame({
   urlCheia,
   alt,
   movimentoReduzido,
-  ehVideo = false,
+  isVideo = false,
   onFim,
 }: {
   urlThumb: string | undefined;
   urlCheia: string | undefined;
   alt: string;
   movimentoReduzido: boolean;
-  ehVideo?: boolean;
+  isVideo?: boolean;
   onFim?: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -51,69 +51,128 @@ export function Frame({
   useEffect(() => {
     setCheiaPronta(false);
     setCheiaCaiu(false);
-  }, [urlCheia, ehVideo]);
+  }, [urlCheia, isVideo]);
 
   useEffect(() => {
-    if (!ehVideo || !urlCheia || movimentoReduzido) return;
+    if (!isVideo || !urlCheia || movimentoReduzido) return;
     const el = videoRef.current;
     if (!el) return;
     void el.play().catch(() => {
       /* autoplay bloqueado: o convidado ainda pode tocar na tela */
     });
-  }, [ehVideo, urlCheia, movimentoReduzido]);
+  }, [isVideo, urlCheia, movimentoReduzido]);
 
   const thumb = thumbCaiu ? undefined : urlThumb;
   const cheia = cheiaCaiu ? undefined : urlCheia;
-  const fundo = thumb ?? (ehVideo ? undefined : cheia);
-
+  const fundo = thumb ?? (isVideo ? undefined : cheia);
   const transicao = movimentoReduzido ? undefined : CLASSE_TRANSICAO;
-
-  if (ehVideo) {
-    return (
-      <div className="absolute inset-0 overflow-hidden bg-bg">
-        {fundo && (
-          <img
-            src={fundo}
-            alt=""
-            aria-hidden
-            onError={() => setThumbCaiu(true)}
-            className={CLASSE_FUNDO_DESFOCADO}
-          />
-        )}
-
-        {cheia && (
-          <video
-            ref={videoRef}
-            src={cheia}
-            playsInline
-            muted
-            preload="auto"
-            aria-label={alt}
-            onLoadedData={() => setCheiaPronta(true)}
-            onError={() => setCheiaCaiu(true)}
-            onEnded={() => onFim?.()}
-            className={cn(CLASSE_INTEIRA, transicao, cheiaPronta ? "opacity-100" : "opacity-0")}
-          />
-        )}
-
-        {!cheia && <div className={CLASSE_PLACEHOLDER} />}
-      </div>
-    );
-  }
 
   return (
     <div className="absolute inset-0 overflow-hidden bg-bg">
       {fundo && (
-        <img src={fundo} alt="" aria-hidden className={CLASSE_FUNDO_DESFOCADO} />
+        <img
+          src={fundo}
+          alt=""
+          aria-hidden
+          {...(isVideo ? { onError: () => setThumbCaiu(true) } : {})}
+          className={CLASSE_FUNDO_DESFOCADO}
+        />
       )}
 
+      {isVideo ? (
+        <VideoLayer
+          videoRef={videoRef}
+          src={cheia}
+          alt={alt}
+          transicao={transicao}
+          pronta={cheiaPronta}
+          onPronta={() => setCheiaPronta(true)}
+          onCaiu={() => setCheiaCaiu(true)}
+          {...(onFim ? { onFim } : {})}
+        />
+      ) : (
+        <PhotoLayer
+          thumb={thumb}
+          cheia={cheia}
+          alt={alt}
+          transicao={transicao}
+          pronta={cheiaPronta}
+          onThumbCaiu={() => setThumbCaiu(true)}
+          onCheiaPronta={() => setCheiaPronta(true)}
+          onCheiaCaiu={() => setCheiaCaiu(true)}
+        />
+      )}
+
+      {(isVideo ? !cheia : !fundo) && <div className={CLASSE_PLACEHOLDER} />}
+    </div>
+  );
+}
+
+function VideoLayer({
+  videoRef,
+  src,
+  alt,
+  transicao,
+  pronta,
+  onPronta,
+  onCaiu,
+  onFim,
+}: {
+  videoRef: RefObject<HTMLVideoElement | null>;
+  src: string | undefined;
+  alt: string;
+  transicao: string | undefined;
+  pronta: boolean;
+  onPronta: () => void;
+  onCaiu: () => void;
+  onFim?: () => void;
+}) {
+  if (!src) return null;
+
+  return (
+    <video
+      ref={videoRef}
+      src={src}
+      playsInline
+      muted
+      preload="auto"
+      aria-label={alt}
+      onLoadedData={onPronta}
+      onError={onCaiu}
+      onEnded={() => onFim?.()}
+      className={cn(CLASSE_INTEIRA, transicao, pronta ? "opacity-100" : "opacity-0")}
+    />
+  );
+}
+
+function PhotoLayer({
+  thumb,
+  cheia,
+  alt,
+  transicao,
+  pronta,
+  onThumbCaiu,
+  onCheiaPronta,
+  onCheiaCaiu,
+}: {
+  thumb: string | undefined;
+  cheia: string | undefined;
+  alt: string;
+  transicao: string | undefined;
+  pronta: boolean;
+  onThumbCaiu: () => void;
+  onCheiaPronta: () => void;
+  onCheiaCaiu: () => void;
+}) {
+  return (
+    <>
       {thumb && (
         <img
           src={thumb}
           alt=""
           aria-hidden
-          onError={() => setThumbCaiu(true)}
-          className={cn(CLASSE_INTEIRA, transicao, cheiaPronta ? "opacity-0" : "opacity-100")}
+          onError={onThumbCaiu}
+          className={cn(CLASSE_INTEIRA, transicao, pronta ? "opacity-0" : "opacity-100")}
         />
       )}
 
@@ -122,17 +181,15 @@ export function Frame({
           src={cheia}
           alt={alt}
           decoding="async"
-          onLoad={() => setCheiaPronta(true)}
-          onError={() => setCheiaCaiu(true)}
+          onLoad={onCheiaPronta}
+          onError={onCheiaCaiu}
           className={cn(
             CLASSE_INTEIRA,
             transicao,
-            cheiaPronta || !thumb ? "opacity-100" : "opacity-0",
+            pronta || !thumb ? "opacity-100" : "opacity-0",
           )}
         />
       )}
-
-      {!fundo && <div className={CLASSE_PLACEHOLDER} />}
-    </div>
+    </>
   );
 }

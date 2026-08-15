@@ -2,8 +2,8 @@
 
 import {
   drenar,
-  ehHeic,
-  ehVideo,
+  isHeic,
+  isVideoBytes,
   planoParaRedimensionamento,
   processarFoto,
   type DetalhesItem,
@@ -117,7 +117,7 @@ export function useUpload(
         // MB é o próprio travamento que a recusa deveria evitar.
         const inicio = new Uint8Array(await arquivo.slice(0, 16).arrayBuffer());
 
-        if (ehVideo(inicio)) {
+        if (isVideoBytes(inicio)) {
           const limite = opcoes.cotaVideo.limite;
           const usados = opcoes.cotaVideo.enviados + videosLocais;
           if (limite !== null && usados >= limite) {
@@ -125,7 +125,7 @@ export function useUpload(
           }
 
           const mime =
-            arquivo.type === "video/quicktime" || ehVideo(inicio) && arquivo.name.endsWith(".mov")
+            arquivo.type === "video/quicktime" || arquivo.name.endsWith(".mov")
               ? "video/quicktime"
               : "video/mp4";
           const corpo = new Uint8Array(await arquivo.arrayBuffer());
@@ -155,7 +155,7 @@ export function useUpload(
         // HEIC que o aparelho decodifica sai JPEG do `processarFoto` sem etapa
         // extra. O que ele não decodifica não tem conversão possível aqui — e
         // subir o original contaminaria o acervo com o que o telão não exibe.
-        const heic = ehHeic(inicio);
+        const heic = isHeic(inicio);
         if (heic && !(await deviceDecodes(bytes, "image/heic"))) {
           return recusar(AVISO_HEIC);
         }

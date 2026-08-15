@@ -1,6 +1,6 @@
 "use client";
 
-import type { ModoInteracao } from "@albora/core";
+import { isVideoMime, type ModoInteracao } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { isExpired, mediaUrls, type MediaUrl } from "@/lib/media";
 
@@ -162,7 +162,7 @@ export function chavesSemUrl(
 
   for (const item of estado.itens) {
     conferir(item.chaveThumb);
-    if (item.mime.startsWith("video/")) conferir(item.chaveFull);
+    if (isVideoMime(item.mime)) conferir(item.chaveFull);
   }
   for (const chave of extras) conferir(chave);
 

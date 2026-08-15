@@ -29,23 +29,23 @@ function rotuloEstado(estado: ItemDaGaleria["estado"]): string {
 }
 
 function MiniaturaMinhas({
-  ehVideo,
+  isVideo,
   url,
   urlVideo,
   pendente,
 }: {
-  ehVideo: boolean;
+  isVideo: boolean;
   url: string | undefined;
   urlVideo: string | null | undefined;
   pendente: boolean;
 }) {
   const cobertura = "block size-full object-cover";
 
-  if (ehVideo && pendente && url) {
+  if (isVideo && pendente && url) {
     return <video src={url} muted playsInline preload="metadata" className={cobertura} />;
   }
 
-  if (ehVideo && url) {
+  if (isVideo && url) {
     return (
       <>
         <img src={url} alt="" loading="lazy" decoding="async" className={cobertura} />
@@ -54,7 +54,7 @@ function MiniaturaMinhas({
     );
   }
 
-  if (ehVideo && urlVideo) {
+  if (isVideo && urlVideo) {
     return <video src={urlVideo} muted playsInline preload="metadata" className={cobertura} />;
   }
 
@@ -137,7 +137,7 @@ export function MyPhotosPage({
   }, [galeria.resumo]);
 
   const idsFotosEnviadas = useMemo(
-    () => galeria.itens.filter((i) => i.estado === "enviada" && !galeria.ehVideo(i)).map((i) => i.id),
+    () => galeria.itens.filter((i) => i.estado === "enviada" && !galeria.isVideo(i)).map((i) => i.id),
     [galeria],
   );
 
@@ -239,9 +239,9 @@ export function MyPhotosPage({
               const url = item.estado === "enviada" ? galeria.urlDe(item) : locais.get(item.id);
               const urlVideo =
                 item.estado === "enviada" ? galeria.urlCheia(item) : locais.get(item.id);
-              const ehVideo =
+              const isVideo =
                 item.estado === "enviada"
-                  ? galeria.ehVideo(item)
+                  ? galeria.isVideo(item)
                   : isVideoMime(mimesLocais.get(item.id) ?? "");
               const rotulo = rotuloEstado(item.estado);
 
@@ -261,13 +261,13 @@ export function MyPhotosPage({
                   {item.estado === "enviada" ? (
                     <button
                       type="button"
-                      aria-label={ehVideo ? "Abrir este vídeo" : "Abrir esta foto"}
+                      aria-label={isVideo ? "Abrir este vídeo" : "Abrir esta foto"}
                       onClick={() => abrirEnviada(item.id)}
                       className="size-full cursor-pointer overflow-hidden rounded-token border-0 bg-transparent p-0"
                     >
                       <div className="relative size-full border border-linha bg-superficie">
                         <MiniaturaMinhas
-                          ehVideo={ehVideo}
+                          isVideo={isVideo}
                           url={url ?? undefined}
                           urlVideo={urlVideo ?? undefined}
                           pendente={false}
@@ -277,7 +277,7 @@ export function MyPhotosPage({
                   ) : (
                     <div className="relative size-full overflow-hidden rounded-token border border-linha bg-superficie">
                       <MiniaturaMinhas
-                        ehVideo={ehVideo}
+                        isVideo={isVideo}
                         url={url ?? undefined}
                         urlVideo={urlVideo ?? undefined}
                         pendente

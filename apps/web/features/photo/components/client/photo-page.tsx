@@ -1,7 +1,7 @@
 "use client";
 
 import type { FiltroAplicado, PlanoDoEvento } from "@albora/core";
-import { ehVideo } from "@albora/core";
+import { isVideoBytes } from "@albora/core";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { mensagemCotaVideo, useUpload, type CotaVideo } from "@/features/photo/hooks/use-upload";
@@ -129,7 +129,7 @@ export function PhotoPage({
     // fila por arquivo é o que a N5.6 pede.
     if (arquivos.length === 1) {
       const inicio = new Uint8Array(await primeiro.slice(0, 16).arrayBuffer());
-      if (ehVideo(inicio)) {
+      if (isVideoBytes(inicio)) {
         const r = await enfileirarFoto({ arquivo: primeiro, desafioId: escolhida });
         if (r.ok) {
           setEnviadas((n) => n + 1);

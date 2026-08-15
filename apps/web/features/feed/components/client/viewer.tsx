@@ -108,10 +108,10 @@ export function Viewer({
   const precarregadas = useRef<HTMLImageElement[]>([]);
 
   const atual = itens[indice];
-  const ehVideo = atual ? isVideoMime(atual.mime) : false;
-  const urlThumb = atual && !ehVideo ? urls.get(atual.chaveThumb)?.url : undefined;
+  const isVideo = atual ? isVideoMime(atual.mime) : false;
+  const urlThumb = atual && !isVideo ? urls.get(atual.chaveThumb)?.url : undefined;
   const urlCheia = atual ? urls.get(atual.chaveFull)?.url : undefined;
-  const temMidia = Boolean(ehVideo ? urlCheia : urlThumb ?? urlCheia);
+  const temMidia = Boolean(isVideo ? urlCheia : urlThumb ?? urlCheia);
 
   function avancar() {
     if (indice + 1 < itens.length) onIr(indice + 1);
@@ -157,7 +157,7 @@ export function Viewer({
    * de tela preta não é ritmo, é a foto perdida — e para no toque longo.
    */
   useEffect(() => {
-    if (movimentoReduzido || segurando || !temMidia || ehVideo) return;
+    if (movimentoReduzido || segurando || !temMidia || isVideo) return;
 
     const id = setTimeout(() => {
       if (indice + 1 < itens.length) onIr(indice + 1);
@@ -165,7 +165,7 @@ export function Viewer({
     }, DURACAO_MS);
 
     return () => clearTimeout(id);
-  }, [movimentoReduzido, segurando, temMidia, ehVideo, indice, itens.length, onIr, onSair]);
+  }, [movimentoReduzido, segurando, temMidia, isVideo, indice, itens.length, onIr, onSair]);
 
   useEffect(() => {
     return () => {
@@ -272,10 +272,10 @@ export function Viewer({
         <Frame
           urlThumb={urlThumb}
           urlCheia={urlCheia}
-          alt={ehVideo ? `Vídeo de ${atual.autor}` : `Foto de ${atual.autor}`}
+          alt={isVideo ? `Vídeo de ${atual.autor}` : `Foto de ${atual.autor}`}
           movimentoReduzido={movimentoReduzido}
-          ehVideo={ehVideo}
-          {...(ehVideo && !movimentoReduzido && !segurando ? { onFim: avancar } : {})}
+          isVideo={isVideo}
+          {...(isVideo && !movimentoReduzido && !segurando ? { onFim: avancar } : {})}
         />
       )}
 
@@ -292,7 +292,7 @@ export function Viewer({
                       ? "scaleX(1)"
                       : "scaleX(0)",
                   animation:
-                    i === indice && !movimentoReduzido && temMidia && !ehVideo
+                    i === indice && !movimentoReduzido && temMidia && !isVideo
                       ? `st-correr ${DURACAO_MS}ms linear forwards`
                       : undefined,
                   animationPlayState: segurando ? "paused" : "running",

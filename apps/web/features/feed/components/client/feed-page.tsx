@@ -1,5 +1,6 @@
 "use client";
 
+import { isVideoMime } from "@albora/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { groupByHour, type HourGroup } from "@/features/feed/lib/group-by-hour";
 import { useFeed, type ItemVisivel } from "@/features/feed/hooks/use-feed";
@@ -260,8 +261,8 @@ export function FeedPage({
           {completo && estado.itens.length > 0 && (
             <Coluna comDivisor>
               {estado.itens.map((item) => {
-                const ehVideo = item.mime.startsWith("video/");
-                const chaveMidia = ehVideo ? item.chaveFull : item.chaveThumb;
+                const isVideo = isVideoMime(item.mime);
+                const chaveMidia = isVideo ? item.chaveFull : item.chaveThumb;
                 return (
                 <Post
                   key={item.id}
@@ -277,7 +278,7 @@ export function FeedPage({
                   autor={item.autor}
                   legenda={item.legenda}
                   lugar={item.lugar}
-                  ehVideo={ehVideo}
+                  isVideo={isVideo}
                 />
               );
               })}

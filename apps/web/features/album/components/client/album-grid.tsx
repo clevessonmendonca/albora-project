@@ -1,5 +1,6 @@
 "use client";
 
+import { isVideoMime } from "@albora/core";
 import type { MediaUrl } from "@/lib/media";
 import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 
@@ -22,19 +23,19 @@ export function AlbumGrid({
   return (
     <ul className="m-0 grid list-none grid-cols-3 gap-0.5 p-0">
       {itens.map((item, indice) => {
-        const ehVideo = item.mime.startsWith("video/");
+        const isVideo = isVideoMime(item.mime);
         const url = urls.get(item.chaveThumb)?.url;
 
         return (
           <li key={item.id}>
             <button
               type="button"
-              aria-label={ehVideo ? "Abrir vídeo" : "Abrir foto"}
+              aria-label={isVideo ? "Abrir vídeo" : "Abrir foto"}
               onClick={() => onAbrir(indice)}
               className="relative block aspect-square w-full cursor-pointer overflow-hidden border-0 bg-superficie p-0 font-[inherit]"
             >
               {url ? (
-                ehVideo ? (
+                isVideo ? (
                   <>
                     <img
                       src={url}

@@ -138,7 +138,7 @@ export function useGallery(eventoId: string) {
     return () => window.removeEventListener("online", voltou);
   }, [carregar]);
 
-  const ehVideo = useCallback(
+  const isVideo = useCallback(
     (item: ItemDaGaleria): boolean => {
       const mime = estado.mimes.get(item.id);
       if (mime) return isVideoMime(mime);
@@ -161,20 +161,20 @@ export function useGallery(eventoId: string) {
       };
 
       const miniatura = ler(chaveThumb);
-      if (miniatura || !ehVideo(item)) return miniatura;
+      if (miniatura || !isVideo(item)) return miniatura;
       return ler(item.chave);
     },
-    [estado.urls, ehVideo],
+    [estado.urls, isVideo],
   );
 
   const urlCheia = useCallback(
     (item: ItemDaGaleria): string | null => {
-      if (!item.chave || !ehVideo(item)) return null;
+      if (!item.chave || !isVideo(item)) return null;
       const url = estado.urls.get(item.chave);
       if (!url || isExpired(url, Date.now())) return url?.url ?? null;
       return url.url;
     },
-    [estado.urls, ehVideo],
+    [estado.urls, isVideo],
   );
 
   const remover = useCallback(
@@ -223,7 +223,7 @@ export function useGallery(eventoId: string) {
     tentarDeNovo,
     urlDe,
     urlCheia,
-    ehVideo,
+    isVideo,
     remover,
     removendoId,
     atualizarReacoes,

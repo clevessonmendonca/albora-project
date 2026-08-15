@@ -1,5 +1,6 @@
 "use client";
 
+import { isVideoMime } from "@albora/core";
 import type { MediaUrl } from "@/lib/media";
 import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 
@@ -20,7 +21,7 @@ export function MirrorGrid({
   return (
     <div className="grid grid-cols-2 gap-1.5">
       {itens.map((item) => {
-        const ehVideo = item.mime.startsWith("video/");
+        const isVideo = isVideoMime(item.mime);
         const url = urls.get(item.chaveThumb)?.url;
 
         return (
@@ -29,7 +30,7 @@ export function MirrorGrid({
             className="relative aspect-square overflow-hidden rounded-token bg-superficie"
           >
             {url ? (
-              ehVideo ? (
+              isVideo ? (
                 <>
                   <img
                     src={url}
