@@ -1,5 +1,6 @@
 import { criarEvento } from "@albora/db";
 import { PACKS } from "@albora/packs";
+import { parseMissionKeys } from "@/features/admin/lib/parse-mission-keys";
 import {
   errorResponse,
   jsonOk,
@@ -106,10 +107,12 @@ export async function POST(req: Request) {
 
   let missoes: string[] | undefined;
   if (corpo.missoes !== undefined) {
-    if (!Array.isArray(corpo.missoes) || !corpo.missoes.every((m) => typeof m === "string")) {
+    const pack = PACKS[packId]!;
+    const parsedKeys = parseMissionKeys(pack, corpo.missoes);
+    if (!parsedKeys) {
       return errorResponse(422, "validation_error", "Missões inválidas", { campos: ["missoes"] });
     }
-    missoes = corpo.missoes as string[];
+    missoes = parsedKeys;
   }
 
   try {

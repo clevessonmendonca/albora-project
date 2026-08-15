@@ -33,6 +33,7 @@ const nextConfig: NextConfig = {
       ["convidados", "guests"],
       ["identidade", "identity"],
       ["moderacao", "moderation"],
+      ["missoes", "missions"],
     ] as const;
 
     return [

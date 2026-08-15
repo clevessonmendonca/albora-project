@@ -179,3 +179,15 @@ export function isValidReaction(pack: Pack, id: string | null | undefined): bool
 }
 
 export const reacaoValida = isValidReaction;
+
+/**
+ * Chave de vocabulário (`missao.*`), não o id interno nem texto livre.
+ *
+ * O anfitrião liga/desliga missões do pack; inventar título quebraria o
+ * resolvedor e o teste de sanidade (trocar o pack muda a UI).
+ */
+export function isValidMissionKey(pack: Pack, key: string | null | undefined): boolean {
+  return typeof key === "string" && pack.missoes.some((m) => m.chaveTitulo === key);
+}
+
+export const missaoValida = isValidMissionKey;

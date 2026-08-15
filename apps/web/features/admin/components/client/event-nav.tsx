@@ -8,6 +8,7 @@ const SECTIONS = [
   { label: "Convidados", suffix: "/guests" },
   { label: "Moderação", suffix: "/moderation" },
   { label: "O álbum", suffix: "/album" },
+  { label: "Missões", suffix: "/missions" },
   { label: "Identidade", suffix: "/identity" },
 ] as const;
 

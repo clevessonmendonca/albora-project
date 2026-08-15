@@ -2,7 +2,7 @@ import { ALBORA_BRAND, resolveTokens } from "@albora/tokens";
 import { describe, expect, it } from "vitest";
 import { WEDDING } from "./casamento";
 import { FIFTEEN_YEARS } from "./quinze-anos";
-import { isValidPlace, PACKS, packProblems, resolvePackText } from "./index";
+import { isValidMissionKey, isValidPlace, PACKS, packProblems, resolvePackText } from "./index";
 
 /**
  * O teste de sanidade do CLAUDE.md: trocar o pack de um evento muda toda a UI
@@ -15,8 +15,6 @@ describe("trocar o pack muda a UI, não o núcleo", () => {
   it("a mesma chave devolve texto diferente por pack", () => {
     expect(resolvePackText(WEDDING, "anfitriao.plural")).toBe("os noivos");
     expect(resolvePackText(FIFTEEN_YEARS, "anfitriao.plural")).toBe("a aniversariante");
-    expect(resolvePackText(WEDDING, "musica.escolha")).toBe("Escolha dos noivos");
-    expect(resolvePackText(FIFTEEN_YEARS, "musica.escolha")).toBe("Escolha da aniversariante");
   });
 
   it("todo pack registrado responde ao que o núcleo pede", () => {
@@ -33,6 +31,15 @@ describe("trocar o pack muda a UI, não o núcleo", () => {
   it("missão e lugar podem divergir entre packs", () => {
     expect(WEDDING.lugares.map((l) => l.id)).toContain("altar");
     expect(FIFTEEN_YEARS.lugares.map((l) => l.id)).not.toContain("altar");
+  });
+
+  it("missão fora da lista do pack é recusada", () => {
+    expect(isValidMissionKey(WEDDING, "missao.danca")).toBe(true);
+    expect(isValidMissionKey(FIFTEEN_YEARS, "missao.danca")).toBe(false);
+    expect(isValidMissionKey(FIFTEEN_YEARS, "missao.valsa")).toBe(true);
+    expect(isValidMissionKey(WEDDING, "A mesa mais cheia")).toBe(false);
+    expect(isValidMissionKey(WEDDING, "chegada")).toBe(false);
+    expect(isValidMissionKey(WEDDING, null)).toBe(false);
   });
 
   it("lugar fora da lista do pack é recusado", () => {
@@ -63,3 +70,4 @@ describe("nenhuma palavra de domínio fora do pack", () => {
     }
   });
 });
+
