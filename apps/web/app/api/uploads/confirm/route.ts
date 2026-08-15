@@ -6,6 +6,7 @@ import {
   ErroUploadDeOutroEvento,
   packDoEvento,
 } from "@albora/db";
+import { recordFunnelEvent } from "@/features/guest/lib/record-funnel";
 import {
   enforceRateLimit,
   errorResponse,
@@ -104,6 +105,10 @@ export async function POST(req: Request) {
       estado: resultado.estado,
       bytes: objeto.bytes,
     });
+
+    if (resultado.estado === "criado") {
+      await recordFunnelEvent(auth.session.eventoId, auth.session.sessaoId, "upload_ok");
+    }
 
     return jsonOk({ uploadId, estado: resultado.estado });
   } catch (e) {

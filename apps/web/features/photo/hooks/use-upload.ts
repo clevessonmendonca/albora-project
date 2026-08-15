@@ -16,6 +16,7 @@ import { webDrawer } from "@/lib/drawer";
 import { deviceDecodes, videoPoster } from "@/lib/image";
 import { QueueQuotaExceededError, webQueue, queueSummary } from "@/lib/queue";
 import { webTransport } from "@/lib/transport";
+import { reportFunnel } from "@/features/guest/lib/report-funnel";
 
 /**
  * O laço de upload do convidado, num lugar só.
@@ -144,6 +145,8 @@ export function useUpload(
             desafioId: desafioId ?? null,
           });
 
+          reportFunnel("capture");
+
           setVideosLocais((n) => n + 1);
           await atualizarResumo();
           void drenarAgora();
@@ -183,6 +186,8 @@ export function useUpload(
           tentativas: 0,
           desafioId: desafioId ?? null,
         });
+
+        reportFunnel("capture");
 
         await atualizarResumo();
         void drenarAgora();

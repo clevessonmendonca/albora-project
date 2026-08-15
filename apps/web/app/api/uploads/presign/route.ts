@@ -6,6 +6,7 @@ import {
   VALIDADE_PRESIGN_SEGUNDOS,
 } from "@albora/core";
 import { comEvento, contarVideosDaSessao, planoDoEvento } from "@albora/db";
+import { recordFunnelEvent } from "@/features/guest/lib/record-funnel";
 import {
   enforceRateLimit,
   errorResponse,
@@ -73,6 +74,8 @@ export async function POST(req: Request) {
       chave: key,
       bytes,
     });
+
+    await recordFunnelEvent(auth.session.eventoId, auth.session.sessaoId, "upload_start");
 
     return jsonOk({
       uploadId,

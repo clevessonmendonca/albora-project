@@ -1,7 +1,8 @@
 import { comEvento, listarDesafios, type EventoPublico } from "@albora/db";
-import { getPool } from "@/lib/db";
-import { resolveMissions, type ResolvedMission } from "@/features/guest/lib/resolved-missions";
+import { recordFunnelEvent } from "@/features/guest/lib/record-funnel";
 import { eventNameFromPack, packText } from "@/features/guest/lib/pack-text";
+import { resolveMissions, type ResolvedMission } from "@/features/guest/lib/resolved-missions";
+import { getPool } from "@/lib/db";
 
 export type FeedPageInput = {
   slug: string;
@@ -24,6 +25,8 @@ export async function getFeedPage(input: FeedPageInput): Promise<FeedPageData> {
   const challenges = await comEvento(getPool(), eventoId, (c) =>
     listarDesafios(c, eventoId, sessaoId),
   );
+
+  await recordFunnelEvent(eventoId, sessaoId, "feed_open");
 
   return {
     slug,

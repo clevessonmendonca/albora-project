@@ -1,4 +1,5 @@
 import { criarSessao, ErroNomeInvalido } from "@albora/db";
+import { recordFunnelEntry } from "@/features/guest/lib/record-funnel";
 import {
   sessionCookieHeader,
   enforceRateLimit,
@@ -60,6 +61,8 @@ export async function POST(req: Request) {
       consentimentoVersao: CONSENTIMENTO_VIGENTE,
       duracaoHoras: cfg.duracaoSessaoHoras,
     });
+
+    await recordFunnelEntry(eventoId, sessaoId);
 
     console.log("sessao.criada", { eventoId, sessaoId });
 
