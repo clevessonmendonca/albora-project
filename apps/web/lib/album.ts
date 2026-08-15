@@ -1,5 +1,7 @@
 import { montarAlbum, OFFSET_PADRAO_MINUTOS, TETO_DE_PAGINAS_PADRAO, type PlanoDoAlbum } from "@albora/core";
-import { comEvento, janelaDoAlbum, listarMidiaDoAlbum } from "@albora/db";
+import { comEvento, janelaDoAlbum, listarMidiaDoAlbum, packDoEvento } from "@albora/db";
+import { PACKS } from "@albora/packs";
+import { chapterTitle, planAlbumChapters } from "./album-chapters";
 import { getPool } from "./db";
 import { signGet } from "./r2";
 
@@ -9,7 +11,9 @@ import { signGet } from "./r2";
  * O servidor **nunca serve mídia**: assina URLs de leitura e o navegador busca
  * os bytes direto no object storage. A montagem é derivada — corre
  * `montarAlbum()` do `@albora/core` sobre a mídia publicada do evento, e o
- * núcleo é a única fonte da diagramação por slots.
+ * núcleo é a única fonte da diagramação por slots. Os capítulos da noite
+ * saem dos momentos do pack, fatiados na janela do evento — `taken_at` já
+ * está no upload; não há segundo pipeline de captura.
  *
  * O que sai daqui não carrega contagem de reação (verificação 5 da spec: sem
  * contagem visível), nem a chave de storage, nem nome de convidado. O que o
@@ -46,6 +50,7 @@ export type ServedPage = {
 
 export type ServedChapter = {
   id: string;
+  titulo: string;
   comecaEm: string | null;
   paginas: ServedPage[];
 };
@@ -70,18 +75,21 @@ export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
   const data = await comEvento(getPool(), eventId, async (c) => {
     const midias = await listarMidiaDoAlbum(c, eventId);
     const janela = await janelaDoAlbum(c, eventId);
-    return { midias, janela };
+    const packId = await packDoEvento(c, eventId);
+    return { midias, janela, packId };
   });
 
   if (!data.janela || data.midias.length === 0) return EMPTY(expiresAt);
 
+  const pack = data.packId ? PACKS[data.packId] : undefined;
+  const janela = {
+    comecaEm: data.janela.comecaEm,
+    terminaEm: data.janela.terminaEm,
+    offsetMinutos: EVENT_OFFSET_MINUTES,
+  };
   const plan: PlanoDoAlbum = {
-    janela: {
-      comecaEm: data.janela.comecaEm,
-      terminaEm: data.janela.terminaEm,
-      offsetMinutos: EVENT_OFFSET_MINUTES,
-    },
-    capitulos: [],
+    janela,
+    capitulos: planAlbumChapters(janela, pack),
     tetoDePaginas: TETO_DE_PAGINAS_PADRAO,
   };
 
@@ -96,6 +104,7 @@ export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
   const capitulos = await Promise.all(
     album.capitulos.map(async (capitulo) => ({
       id: capitulo.id,
+      titulo: chapterTitle(pack, capitulo.id),
       comecaEm: capitulo.comecaEm?.toISOString() ?? null,
       paginas: await Promise.all(
         capitulo.paginas.map(async (pagina) => ({

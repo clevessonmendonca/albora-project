@@ -2,16 +2,17 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Badge,
   GuestHeader,
   GuestShell,
   EmptyState,
   GuestMain,
   SecondaryButton,
+  cn,
 } from "@albora/ui-web";
-import { Badge } from "@albora/ui-web";
 import type { ServedPhoto } from "@/lib/album";
 import { useAlbum } from "../../hooks/use-album";
-import { bandsFromAlbum, firstCoverUrl, flattenPhotos } from "../../lib/bands";
+import { chaptersFromAlbum, firstCoverUrl, flattenChapterPhotos } from "../../lib/bands";
 import { AlbumTimeline, AlbumTimelineLoading } from "./album-timeline";
 
 export type AlbumMission = { id: string; title: string };
@@ -34,15 +35,15 @@ export function AlbumPage({
   const { estado, recarregar } = useAlbum();
   const [aberta, setAberta] = useState<ServedPhoto | null>(null);
 
-  const faixas = useMemo(
-    () => (estado.album ? bandsFromAlbum(estado.album, missionId) : []),
+  const capitulos = useMemo(
+    () => (estado.album ? chaptersFromAlbum(estado.album, missionId) : []),
     [estado.album, missionId],
   );
-  const fotos = useMemo(() => flattenPhotos(faixas), [faixas]);
+  const fotos = useMemo(() => flattenChapterPhotos(capitulos), [capitulos]);
   const capa = estado.album ? firstCoverUrl(estado.album) : null;
 
   const primeiraCarga = !estado.jaCarregou && estado.carregando;
-  const vazio = estado.jaCarregou && faixas.length === 0 && estado.falha === null;
+  const vazio = estado.jaCarregou && capitulos.length === 0 && estado.falha === null;
 
   useEffect(() => {
     if (aberta && !fotos.some((f) => f.id === aberta.id)) setAberta(null);
@@ -105,7 +106,26 @@ export function AlbumPage({
             />
           )}
 
-          {faixas.length > 0 && <AlbumTimeline faixas={faixas} onAbrir={setAberta} />}
+          {capitulos.length > 0 &&
+            capitulos.map((capitulo) => (
+              <section
+                key={capitulo.id}
+                aria-label={capitulo.titulo}
+                className={cn(capitulo.nomear && "mt-6 first:mt-0")}
+              >
+                {capitulo.nomear && (
+                  <h2
+                    className={cn(
+                      "mb-3 font-titulo text-[1.125rem] font-light tracking-titulo",
+                      capitulo.faixas.some((f) => f.amanhecer) && "text-acento",
+                    )}
+                  >
+                    {capitulo.titulo}
+                  </h2>
+                )}
+                <AlbumTimeline faixas={capitulo.faixas} onAbrir={setAberta} />
+              </section>
+            ))}
 
           <Rodape falha={estado.falha} onTentar={recarregar} />
         </GuestMain>

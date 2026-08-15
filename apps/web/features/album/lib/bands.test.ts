@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { ServedAlbum, ServedPage, ServedPhoto } from "@/lib/album";
-import { bandsFromAlbum, firstCoverUrl, flattenPhotos } from "./bands";
+import {
+  bandsFromAlbum,
+  chaptersFromAlbum,
+  firstCoverUrl,
+  flattenChapterPhotos,
+  flattenPhotos,
+} from "./bands";
 
 function foto(id: string, missaoId: string | null = null): ServedPhoto {
   return {
@@ -25,7 +31,7 @@ function pagina(parcial: Partial<ServedPage> & { fotos: ServedPhoto[] }): Served
 
 function album(paginas: ServedPage[]): ServedAlbum {
   return {
-    capitulos: [{ id: "a-noite", comecaEm: null, paginas }],
+    capitulos: [{ id: "a-noite", titulo: "A noite", comecaEm: null, paginas }],
     totalDePaginas: paginas.length,
     contadores: { fotos: paginas.reduce((n, p) => n + p.fotos.length, 0), convidados: 1, missoes: 0 },
     expiraEm: Date.now() + 60_000,
@@ -121,5 +127,84 @@ describe("capa e lista plana", () => {
     );
 
     expect(flattenPhotos(faixas).map((p) => p.id)).toEqual(["a", "b"]);
+  });
+});
+
+describe("capítulos envolvem as faixas de hora, sem misturá-las", () => {
+  it("cada capítulo guarda as próprias faixas, na ordem do núcleo", () => {
+    const servido: ServedAlbum = {
+      capitulos: [
+        {
+          id: "cerimonia",
+          titulo: "A cerimônia",
+          comecaEm: "2026-08-08T23:00:00.000Z",
+          paginas: [pagina({ fotos: [foto("a")] })],
+        },
+        {
+          id: "pista",
+          titulo: "A pista",
+          comecaEm: "2026-08-09T01:00:00.000Z",
+          paginas: [
+            pagina({
+              hora: 22,
+              inicioDaHora: "2026-08-09T01:00:00.000Z",
+              fotos: [foto("b")],
+            }),
+          ],
+        },
+      ],
+      totalDePaginas: 2,
+      contadores: { fotos: 2, convidados: 1, missoes: 0 },
+      expiraEm: Date.now() + 60_000,
+    };
+
+    const capitulos = chaptersFromAlbum(servido);
+
+    expect(capitulos.map((c) => c.id)).toEqual(["cerimonia", "pista"]);
+    expect(capitulos.map((c) => c.titulo)).toEqual(["A cerimônia", "A pista"]);
+    expect(capitulos.map((c) => c.nomear)).toEqual([true, true]);
+    expect(capitulos[0]?.faixas[0]?.hora).toBe(21);
+    expect(capitulos[1]?.faixas[0]?.hora).toBe(22);
+    expect(flattenChapterPhotos(capitulos).map((p) => p.id)).toEqual(["a", "b"]);
+  });
+
+  it("a-noite não ganha título à parte — os discos de hora já são a navegação", () => {
+    const capitulos = chaptersFromAlbum(album([pagina({ fotos: [foto("a")] })]));
+    expect(capitulos).toHaveLength(1);
+    expect(capitulos[0]?.id).toBe("a-noite");
+    expect(capitulos[0]?.nomear).toBe(false);
+    expect(capitulos[0]?.faixas).toHaveLength(1);
+  });
+
+  it("filtro de missão esconde o capítulo vazio, não o disco da outra hora", () => {
+    const servido: ServedAlbum = {
+      capitulos: [
+        {
+          id: "antes",
+          titulo: "Antes de tudo",
+          comecaEm: "2026-08-08T22:00:00.000Z",
+          paginas: [pagina({ fotos: [foto("a", "m1")] })],
+        },
+        {
+          id: "pista",
+          titulo: "A pista",
+          comecaEm: "2026-08-09T01:00:00.000Z",
+          paginas: [
+            pagina({
+              hora: 22,
+              inicioDaHora: "2026-08-09T01:00:00.000Z",
+              fotos: [foto("b", "m2")],
+            }),
+          ],
+        },
+      ],
+      totalDePaginas: 2,
+      contadores: { fotos: 2, convidados: 1, missoes: 2 },
+      expiraEm: Date.now() + 60_000,
+    };
+
+    const capitulos = chaptersFromAlbum(servido, "m1");
+    expect(capitulos.map((c) => c.id)).toEqual(["antes"]);
+    expect(capitulos[0]?.faixas[0]?.fotos.map((p) => p.id)).toEqual(["a"]);
   });
 });

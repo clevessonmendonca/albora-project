@@ -25,7 +25,17 @@ describe("buscar GET /api/album", () => {
   });
 
   it("devolve o álbum montado", async () => {
-    const corpo = album({ contadores: { fotos: 3, convidados: 2, missoes: 1 } });
+    const corpo = album({
+      contadores: { fotos: 3, convidados: 2, missoes: 1 },
+      capitulos: [
+        {
+          id: "cerimonia",
+          titulo: "A cerimônia",
+          comecaEm: "2026-08-08T23:00:00.000Z",
+          paginas: [],
+        },
+      ],
+    });
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => new Response(JSON.stringify({ album: corpo }), { status: 200 })),
@@ -34,6 +44,7 @@ describe("buscar GET /api/album", () => {
     const r = await buscarAlbum();
 
     expect(r).toEqual({ ok: true, album: corpo });
+    expect(r.ok && r.album.capitulos[0]?.titulo).toBe("A cerimônia");
     expect(fetch).toHaveBeenCalledWith("/api/album", { credentials: "same-origin" });
   });
 

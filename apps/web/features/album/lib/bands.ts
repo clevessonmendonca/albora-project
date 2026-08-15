@@ -1,4 +1,5 @@
-import type { ServedAlbum, ServedPhoto } from "@/lib/album";
+import { CAPITULO_SEM_HORA, CAPITULO_UNICO } from "@albora/core";
+import type { ServedAlbum, ServedPage, ServedPhoto } from "@/lib/album";
 
 export type AlbumBand = {
   chave: string;
@@ -8,48 +9,86 @@ export type AlbumBand = {
   fotos: ServedPhoto[];
 };
 
+export type AlbumChapterView = {
+  id: string;
+  titulo: string;
+  comecaEm: string | null;
+  nomear: boolean;
+  faixas: AlbumBand[];
+};
+
 const SEM_HORA = "sem-hora";
 
 /**
  * A unidade do álbum é a hora. Páginas do mesmo instante (lugares diferentes)
  * viram uma faixa só — o convidado navega a noite, não o layout.
  */
-export function bandsFromAlbum(
-  album: ServedAlbum,
+export function bandsFromPages(
+  paginas: readonly ServedPage[],
   missaoId: string | null = null,
 ): AlbumBand[] {
   const porChave = new Map<string, AlbumBand>();
   const ordem: string[] = [];
 
-  for (const capitulo of album.capitulos) {
-    for (const pagina of capitulo.paginas) {
-      const fotos = missaoId
-        ? pagina.fotos.filter((f) => f.missaoId === missaoId)
-        : pagina.fotos;
-      if (fotos.length === 0) continue;
+  for (const pagina of paginas) {
+    const fotos = missaoId ? pagina.fotos.filter((f) => f.missaoId === missaoId) : pagina.fotos;
+    if (fotos.length === 0) continue;
 
-      const chave = pagina.inicioDaHora ?? SEM_HORA;
-      const existente = porChave.get(chave);
-      if (existente) {
-        existente.fotos.push(...fotos);
-        existente.amanhecer = existente.amanhecer || pagina.amanhecer;
-        continue;
-      }
-
-      ordem.push(chave);
-      porChave.set(chave, {
-        chave,
-        hora: pagina.hora,
-        inicioDaHora: pagina.inicioDaHora,
-        amanhecer: pagina.amanhecer,
-        fotos: [...fotos],
-      });
+    const chave = pagina.inicioDaHora ?? SEM_HORA;
+    const existente = porChave.get(chave);
+    if (existente) {
+      existente.fotos.push(...fotos);
+      existente.amanhecer = existente.amanhecer || pagina.amanhecer;
+      continue;
     }
+
+    ordem.push(chave);
+    porChave.set(chave, {
+      chave,
+      hora: pagina.hora,
+      inicioDaHora: pagina.inicioDaHora,
+      amanhecer: pagina.amanhecer,
+      fotos: [...fotos],
+    });
   }
 
   return ordem.flatMap((chave) => {
     const faixa = porChave.get(chave);
     return faixa ? [faixa] : [];
+  });
+}
+
+export function bandsFromAlbum(
+  album: ServedAlbum,
+  missaoId: string | null = null,
+): AlbumBand[] {
+  return bandsFromPages(
+    album.capitulos.flatMap((c) => c.paginas),
+    missaoId,
+  );
+}
+
+/**
+ * Capítulos na ordem em que o núcleo montou, cada um com as faixas de hora
+ * lá dentro. Capítulo sem foto (filtro de missão, fatia vazia) some — lista
+ * vazia só quando não há o que mostrar.
+ */
+export function chaptersFromAlbum(
+  album: ServedAlbum,
+  missaoId: string | null = null,
+): AlbumChapterView[] {
+  return album.capitulos.flatMap((capitulo) => {
+    const faixas = bandsFromPages(capitulo.paginas, missaoId);
+    if (faixas.length === 0) return [];
+    return [
+      {
+        id: capitulo.id,
+        titulo: capitulo.titulo,
+        comecaEm: capitulo.comecaEm,
+        nomear: capitulo.id !== CAPITULO_SEM_HORA && capitulo.id !== CAPITULO_UNICO,
+        faixas,
+      },
+    ];
   });
 }
 
@@ -65,4 +104,8 @@ export function firstCoverUrl(album: ServedAlbum): string | null {
 
 export function flattenPhotos(faixas: readonly AlbumBand[]): ServedPhoto[] {
   return faixas.flatMap((f) => f.fotos);
+}
+
+export function flattenChapterPhotos(capitulos: readonly AlbumChapterView[]): ServedPhoto[] {
+  return capitulos.flatMap((c) => flattenPhotos(c.faixas));
 }
