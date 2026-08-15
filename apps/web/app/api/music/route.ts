@@ -18,6 +18,8 @@ import {
   errorResponse,
   jsonOk,
   parseJsonBody,
+  rejectGuestEventMismatch,
+  rejectGuestEventQueryMismatch,
   requireGuestSession,
   unexpectedError,
 } from "@/lib/api";
@@ -34,11 +36,8 @@ export async function GET(req: Request) {
   const limited = enforceRateLimit(req, auth.session);
   if (limited) return limited;
 
-  const eventoPedido = new URL(req.url).searchParams.get("evento");
-  if (eventoPedido !== null && eventoPedido !== auth.session.eventoId) {
-    console.warn("musica.evento_divergente", { eventoId: auth.session.eventoId, sessaoId: auth.session.sessaoId });
-    return errorResponse(403, "musica.evento_divergente", "Esta sessão não pertence a este evento");
-  }
+  const mismatch = rejectGuestEventQueryMismatch(req, auth.session, "musica.evento_divergente");
+  if (mismatch) return mismatch;
 
   try {
     const corpo = await comEvento(getPool(), auth.session.eventoId, async (c) => {
@@ -76,10 +75,12 @@ export async function POST(req: Request) {
   const parsed = await parseJsonBody<Corpo>(req);
   if (parsed instanceof Response) return parsed;
 
-  if (parsed.data.evento !== undefined && parsed.data.evento !== auth.session.eventoId) {
-    console.warn("musica.evento_divergente", { eventoId: auth.session.eventoId, sessaoId: auth.session.sessaoId });
-    return errorResponse(403, "musica.evento_divergente", "Esta sessão não pertence a este evento");
-  }
+  const mismatch = rejectGuestEventMismatch(
+    parsed.data.evento,
+    auth.session,
+    "musica.evento_divergente",
+  );
+  if (mismatch) return mismatch;
 
   if (typeof parsed.data.url !== "string") {
     return errorResponse(422, "validation_error", "Dados incompletos", { campos: ["url"] });

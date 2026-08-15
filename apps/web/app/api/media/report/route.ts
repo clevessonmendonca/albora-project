@@ -4,6 +4,7 @@ import {
   errorResponse,
   jsonOk,
   parseJsonBody,
+  rejectGuestEventQueryMismatch,
   requireGuestSession,
   unexpectedError,
   UUID_RE,
@@ -21,14 +22,8 @@ export async function POST(req: Request) {
   const limited = enforceRateLimit(req, auth.session, { max: 60 });
   if (limited) return limited;
 
-  const eventoPedido = new URL(req.url).searchParams.get("evento");
-  if (eventoPedido !== null && eventoPedido !== auth.session.eventoId) {
-    console.warn("denuncia.evento_divergente", {
-      eventoId: auth.session.eventoId,
-      sessaoId: auth.session.sessaoId,
-    });
-    return errorResponse(403, "denuncia.evento_divergente", "Esta sessão não pertence a este evento");
-  }
+  const mismatch = rejectGuestEventQueryMismatch(req, auth.session, "denuncia.evento_divergente");
+  if (mismatch) return mismatch;
 
   const parsed = await parseJsonBody<Corpo>(req);
   if (parsed instanceof Response) return parsed;

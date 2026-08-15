@@ -12,23 +12,14 @@ import {
 } from "@albora/db";
 import {
   enforceRateLimit,
-  errorResponse,
   jsonOk,
+  rejectGuestEventQueryMismatch,
   requireGuestSession,
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
-
-function eventMismatch(req: Request, eventId: string, sessionId: string) {
-  const requestedEvent = new URL(req.url).searchParams.get("evento");
-  if (requestedEvent !== null && requestedEvent !== eventId) {
-    console.warn("recado.evento_divergente", { eventoId: eventId, sessaoId: sessionId });
-    return errorResponse(403, "recado.evento_divergente", "Esta sessão não pertence a este evento");
-  }
-  return null;
-}
 
 function serializarTela(
   recado: Recado | null,
@@ -57,7 +48,7 @@ export async function GET(req: Request) {
   const limited = enforceRateLimit(req, auth.session, { keyPrefix: "recado:" });
   if (limited) return limited;
 
-  const mismatch = eventMismatch(req, auth.session.eventoId, auth.session.sessaoId);
+  const mismatch = rejectGuestEventQueryMismatch(req, auth.session, "recado.evento_divergente");
   if (mismatch) return mismatch;
 
   try {
@@ -85,7 +76,7 @@ export async function POST(req: Request) {
   const limited = enforceRateLimit(req, auth.session, { max: 60, keyPrefix: "recado:" });
   if (limited) return limited;
 
-  const mismatch = eventMismatch(req, auth.session.eventoId, auth.session.sessaoId);
+  const mismatch = rejectGuestEventQueryMismatch(req, auth.session, "recado.evento_divergente");
   if (mismatch) return mismatch;
 
   try {

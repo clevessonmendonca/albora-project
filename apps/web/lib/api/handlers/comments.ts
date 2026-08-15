@@ -21,6 +21,7 @@ import {
   errorResponse,
   jsonOk,
   parseJsonBody,
+  rejectGuestEventQueryMismatch,
   requireGuestSession,
   unexpectedError,
   UUID_RE,
@@ -63,15 +64,6 @@ function toJson(c: ComentarioComAutor, currentSessionId: string) {
   };
 }
 
-function eventMismatch(req: Request, eventId: string, sessionId: string) {
-  const requestedEvent = new URL(req.url).searchParams.get("evento");
-  if (requestedEvent !== null && requestedEvent !== eventId) {
-    console.warn("comentarios.evento_divergente", { eventoId: eventId, sessaoId: sessionId });
-    return errorResponse(403, "comentarios.evento_divergente", "Esta sessão não pertence a este evento");
-  }
-  return null;
-}
-
 function gateIsOpen(
   gate: { interacaoAbreEm: Date | null } | null,
 ): gate is { interacaoAbreEm: Date | null } {
@@ -85,7 +77,11 @@ export async function GET(req: Request) {
   const limited = enforceRateLimit(req, auth.session);
   if (limited) return limited;
 
-  const mismatch = eventMismatch(req, auth.session.eventoId, auth.session.sessaoId);
+  const mismatch = rejectGuestEventQueryMismatch(
+    req,
+    auth.session,
+    "comentarios.evento_divergente",
+  );
   if (mismatch) return mismatch;
 
   const uploadId = new URL(req.url).searchParams.get("upload_id");
@@ -131,7 +127,11 @@ export async function POST(req: Request) {
   const limited = enforceRateLimit(req, auth.session, { max: 60 });
   if (limited) return limited;
 
-  const mismatch = eventMismatch(req, auth.session.eventoId, auth.session.sessaoId);
+  const mismatch = rejectGuestEventQueryMismatch(
+    req,
+    auth.session,
+    "comentarios.evento_divergente",
+  );
   if (mismatch) return mismatch;
 
   const parsed = await parseJsonBody<Body>(req);
@@ -246,7 +246,11 @@ export async function DELETE(req: Request) {
   const limited = enforceRateLimit(req, auth.session, { max: 60 });
   if (limited) return limited;
 
-  const mismatch = eventMismatch(req, auth.session.eventoId, auth.session.sessaoId);
+  const mismatch = rejectGuestEventQueryMismatch(
+    req,
+    auth.session,
+    "comentarios.evento_divergente",
+  );
   if (mismatch) return mismatch;
 
   const parsed = await parseJsonBody<{ comentarioId?: unknown }>(req);

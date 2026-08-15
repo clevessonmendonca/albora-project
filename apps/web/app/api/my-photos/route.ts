@@ -2,8 +2,8 @@ import { modoInteracao } from "@albora/core";
 import { comEvento, gateDoEvento, listarMinhasDoEvento } from "@albora/db";
 import {
   enforceRateLimit,
-  errorResponse,
   jsonOk,
+  rejectGuestEventQueryMismatch,
   requireGuestSession,
   unexpectedError,
 } from "@/lib/api";
@@ -15,10 +15,8 @@ export async function GET(req: Request) {
   const auth = await requireGuestSession(req);
   if (auth instanceof Response) return auth;
 
-  const eventoPedido = new URL(req.url).searchParams.get("evento");
-  if (eventoPedido !== null && eventoPedido !== auth.session.eventoId) {
-    return errorResponse(403, "galeria.evento_divergente", "Esta sessão não pertence a este evento");
-  }
+  const mismatch = rejectGuestEventQueryMismatch(req, auth.session, "galeria.evento_divergente");
+  if (mismatch) return mismatch;
 
   const limited = enforceRateLimit(req, auth.session);
   if (limited) return limited;

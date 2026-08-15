@@ -11,6 +11,7 @@ import {
   enforceRateLimit,
   errorResponse,
   jsonOk,
+  rejectGuestEventQueryMismatch,
   requireGuestSession,
   unexpectedError,
   UUID_RE,
@@ -28,17 +29,10 @@ export async function GET(req: Request) {
   const limited = enforceRateLimit(req, auth.session);
   if (limited) return limited;
 
+  const mismatch = rejectGuestEventQueryMismatch(req, auth.session, "feed.evento_divergente");
+  if (mismatch) return mismatch;
+
   const parametros = new URL(req.url).searchParams;
-  const eventoPedido = parametros.get("evento");
-
-  if (eventoPedido !== null && eventoPedido !== auth.session.eventoId) {
-    console.warn("feed.evento_divergente", {
-      eventoId: auth.session.eventoId,
-      sessaoId: auth.session.sessaoId,
-    });
-    return errorResponse(403, "feed.evento_divergente", "Esta sessão não pertence a este evento");
-  }
-
   const missao = parametros.get("missao");
   if (missao !== null && !UUID_RE.test(missao)) {
     return errorResponse(422, "validation_error", "Filtro inválido", { campos: ["missao"] });

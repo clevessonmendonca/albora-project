@@ -14,6 +14,7 @@ import {
   errorResponse,
   jsonOk,
   parseJsonBody,
+  rejectGuestEventQueryMismatch,
   requireGuestSession,
   unexpectedError,
   UUID_RE,
@@ -30,10 +31,8 @@ async function validarSessao(req: Request) {
   const auth = await requireGuestSession(req);
   if (auth instanceof Response) return auth;
 
-  const eventoPedido = new URL(req.url).searchParams.get("evento");
-  if (eventoPedido !== null && eventoPedido !== auth.session.eventoId) {
-    return errorResponse(403, "reacao.evento_divergente", "Esta sessão não pertence a este evento");
-  }
+  const mismatch = rejectGuestEventQueryMismatch(req, auth.session, "reacao.evento_divergente");
+  if (mismatch) return mismatch;
 
   return auth;
 }

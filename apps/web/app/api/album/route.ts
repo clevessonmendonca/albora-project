@@ -1,8 +1,8 @@
 import { montarAlbumServido } from "@/lib/album";
 import {
   enforceRateLimit,
-  errorResponse,
   jsonOk,
+  rejectGuestEventQueryMismatch,
   requireConfig,
   requireGuestSession,
   unexpectedError,
@@ -20,14 +20,8 @@ export async function GET(req: Request) {
   const limited = enforceRateLimit(req, auth.session, { max: 30, keyPrefix: "album:" });
   if (limited) return limited;
 
-  const eventoPedido = new URL(req.url).searchParams.get("evento");
-  if (eventoPedido !== null && eventoPedido !== auth.session.eventoId) {
-    console.warn("album.evento_divergente", {
-      eventoId: auth.session.eventoId,
-      sessaoId: auth.session.sessaoId,
-    });
-    return errorResponse(403, "album.evento_divergente", "Esta sessão não pertence a este evento");
-  }
+  const mismatch = rejectGuestEventQueryMismatch(req, auth.session, "album.evento_divergente");
+  if (mismatch) return mismatch;
 
   try {
     const album = await montarAlbumServido(auth.session.eventoId);

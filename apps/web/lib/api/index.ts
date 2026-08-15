@@ -1,6 +1,7 @@
 export * from "./constants";
 export * from "./config-guard";
 export * from "./guest-auth";
+export * from "./guest-event";
 export * from "./host-auth";
 export * from "./host-event";
 export * from "./parse-json";
