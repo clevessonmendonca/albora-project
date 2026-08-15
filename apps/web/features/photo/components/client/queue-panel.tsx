@@ -1,7 +1,7 @@
 "use client";
 
 import type { ItemFila } from "@albora/core";
-import { MAX_TENTATIVAS, ehMimeVideo } from "@albora/core";
+import { MAX_TENTATIVAS, isVideoMime } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
 import { PrimaryButton, SecondaryButton, BottomSheet } from "@albora/ui-web";
 import { webQueue } from "@/lib/queue";
@@ -152,7 +152,7 @@ function PainelFila({
 
 function LinhaFila({ item, online }: { item: ItemFila; online: boolean }) {
   const url = urlMiniatura(item);
-  const video = ehMimeVideo(item.mime);
+  const video = isVideoMime(item.mime);
   const falhou = item.tentativas >= MAX_TENTATIVAS;
 
   return (

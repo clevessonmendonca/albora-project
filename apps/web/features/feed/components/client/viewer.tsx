@@ -1,7 +1,7 @@
 "use client";
 
 import type { ModoInteracao } from "@albora/core";
-import { ehMimeVideo } from "@albora/core";
+import { isVideoMime } from "@albora/core";
 import { cn } from "@albora/ui-web";
 import { useEffect, useRef, useState } from "react";
 import { hourLabel } from "@/features/feed/lib/group-by-hour";
@@ -46,21 +46,21 @@ export function viewerKeys(itens: readonly ItemVisivel[], indice: number): strin
   const atual = itens[indice];
 
   if (atual) {
-    if (ehMimeVideo(atual.mime)) chaves.push(atual.chaveFull);
+    if (isVideoMime(atual.mime)) chaves.push(atual.chaveFull);
     else chaves.push(atual.chaveThumb, atual.chaveFull);
   }
 
   for (const passo of [1, 2]) {
     const proximo = itens[indice + passo];
     if (!proximo) continue;
-    if (ehMimeVideo(proximo.mime)) chaves.push(proximo.chaveFull);
+    if (isVideoMime(proximo.mime)) chaves.push(proximo.chaveFull);
     else chaves.push(proximo.chaveThumb, proximo.chaveFull);
   }
 
   for (const passo of [-1, 3, 4]) {
     const vizinho = itens[indice + passo];
     if (!vizinho) continue;
-    if (ehMimeVideo(vizinho.mime)) chaves.push(vizinho.chaveFull);
+    if (isVideoMime(vizinho.mime)) chaves.push(vizinho.chaveFull);
     else chaves.push(vizinho.chaveThumb);
   }
 
@@ -108,7 +108,7 @@ export function Viewer({
   const precarregadas = useRef<HTMLImageElement[]>([]);
 
   const atual = itens[indice];
-  const ehVideo = atual ? ehMimeVideo(atual.mime) : false;
+  const ehVideo = atual ? isVideoMime(atual.mime) : false;
   const urlThumb = atual && !ehVideo ? urls.get(atual.chaveThumb)?.url : undefined;
   const urlCheia = atual ? urls.get(atual.chaveFull)?.url : undefined;
   const temMidia = Boolean(ehVideo ? urlCheia : urlThumb ?? urlCheia);
@@ -133,7 +133,7 @@ export function Viewer({
     for (const passo of [1, 2]) {
       const proximo = itens[indice + passo];
       if (!proximo) continue;
-      if (ehMimeVideo(proximo.mime)) {
+      if (isVideoMime(proximo.mime)) {
         const url = urls.get(proximo.chaveFull)?.url;
         if (url) alvos.push(url);
         continue;

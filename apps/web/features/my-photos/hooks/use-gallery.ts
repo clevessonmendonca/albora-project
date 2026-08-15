@@ -4,7 +4,7 @@ import {
   drenar,
   montarGaleria,
   resumirGaleria,
-  ehMimeVideo,
+  isVideoMime,
   type ItemDaGaleria,
   type ModoInteracao,
   type ResumoDaGaleria,
@@ -141,7 +141,7 @@ export function useGallery(eventoId: string) {
   const ehVideo = useCallback(
     (item: ItemDaGaleria): boolean => {
       const mime = estado.mimes.get(item.id);
-      if (mime) return ehMimeVideo(mime);
+      if (mime) return isVideoMime(mime);
       return false;
     },
     [estado.mimes],

@@ -1,4 +1,4 @@
-import { ehMimeVideo } from "@albora/core";
+import { isVideoMime } from "@albora/core";
 import { cn } from "@albora/ui-web";
 import type { Cena, ItemApi } from "../../lib/types";
 
@@ -32,7 +32,7 @@ export function WallStage({
     const only = itens[0]!;
     return (
       <div className="absolute inset-0 overflow-hidden">
-        {ehMimeVideo(only.mime) ? (
+        {isVideoMime(only.mime) ? (
           <video
             src={only.full}
             autoPlay
@@ -124,7 +124,7 @@ function MidiaPalco({
       : "h-full w-full object-cover",
   );
 
-  if (ehMimeVideo(mime)) {
+  if (isVideoMime(mime)) {
     return (
       <video
         src={src}

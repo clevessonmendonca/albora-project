@@ -2,7 +2,7 @@ import {
   WALL_DISPLAY_MODELS,
   WALL_DISPLAY_MODEL_PROFILES,
   WALL_DISPLAY_CACHE_LIMIT,
-  ehMimeVideo,
+  isVideoMime,
   wallDisplayModelCrops,
   wallDisplayRotationModels,
   pruneWallDisplayCache,
@@ -38,7 +38,7 @@ export function useWallDisplay(
   const medir = useCallback((item: ItemApi) => {
     if (dimsRef.current.has(item.id)) return;
 
-    if (ehMimeVideo(item.mime)) {
+    if (isVideoMime(item.mime)) {
       const video = document.createElement("video");
       video.preload = "metadata";
       video.onloadedmetadata = () => {

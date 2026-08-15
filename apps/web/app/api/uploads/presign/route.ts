@@ -1,8 +1,8 @@
 import {
-  derivarChaveMidia,
-  ehMimeVideo,
-  podeEnviarVideo,
-  validarDeclaracao,
+  canUploadVideo,
+  deriveMediaKey,
+  isVideoMime,
+  validateDeclaration,
   VALIDADE_PRESIGN_SEGUNDOS,
 } from "@albora/core";
 import { comEvento, contarVideosDaSessao, planoDoEvento } from "@albora/db";
@@ -20,7 +20,7 @@ import { assinarPut } from "@/lib/r2";
 
 export const dynamic = "force-dynamic";
 
-type Corpo = { uploadId?: unknown; mime?: unknown; bytes?: unknown };
+type Body = { uploadId?: unknown; mime?: unknown; bytes?: unknown };
 
 export async function POST(req: Request) {
   const configError = requireConfig("presign");
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   });
   if (limited) return limited;
 
-  const parsed = await parseJsonBody<Corpo>(req);
+  const parsed = await parseJsonBody<Body>(req);
   if (parsed instanceof Response) return parsed;
 
   const { uploadId, mime, bytes } = parsed.data;
@@ -44,39 +44,39 @@ export async function POST(req: Request) {
     });
   }
 
-  const invalido = validarDeclaracao(mime, bytes);
-  if (invalido) return errorResponse(422, invalido.code, "Arquivo recusado", invalido.details);
+  const invalid = validateDeclaration(mime, bytes);
+  if (invalid) return errorResponse(422, invalid.code, "Arquivo recusado", invalid.details);
 
-  if (ehMimeVideo(mime)) {
-    const cota = await comEvento(getPool(), auth.session.eventoId, async (c) => {
-      const plano = await planoDoEvento(c, auth.session.eventoId);
-      const enviados = await contarVideosDaSessao(c, auth.session.eventoId, auth.session.sessaoId);
-      return { plano, enviados };
+  if (isVideoMime(mime)) {
+    const quota = await comEvento(getPool(), auth.session.eventoId, async (c) => {
+      const plan = await planoDoEvento(c, auth.session.eventoId);
+      const uploaded = await contarVideosDaSessao(c, auth.session.eventoId, auth.session.sessaoId);
+      return { plan, uploaded };
     });
 
-    if (!podeEnviarVideo(cota.plano, cota.enviados)) {
+    if (!canUploadVideo(quota.plan, quota.uploaded)) {
       return errorResponse(403, "video.cota_esgotada", "Limite de vídeos atingido para este convidado");
     }
   }
 
-  const chave = derivarChaveMidia(auth.session.eventoId, uploadId, "full").replace(/\/full$/, "");
+  const key = deriveMediaKey(auth.session.eventoId, uploadId, "full").replace(/\/full$/, "");
 
   try {
-    const full = await assinarPut(`${chave}/full`, mime, VALIDADE_PRESIGN_SEGUNDOS);
-    const thumb = ehMimeVideo(mime)
-      ? await assinarPut(`${chave}/thumb`, "image/jpeg", VALIDADE_PRESIGN_SEGUNDOS)
-      : await assinarPut(`${chave}/thumb`, mime, VALIDADE_PRESIGN_SEGUNDOS);
+    const full = await assinarPut(`${key}/full`, mime, VALIDADE_PRESIGN_SEGUNDOS);
+    const thumb = isVideoMime(mime)
+      ? await assinarPut(`${key}/thumb`, "image/jpeg", VALIDADE_PRESIGN_SEGUNDOS)
+      : await assinarPut(`${key}/thumb`, mime, VALIDADE_PRESIGN_SEGUNDOS);
 
     console.log("presign.emitido", {
       eventoId: auth.session.eventoId,
       sessaoId: auth.session.sessaoId,
-      chave,
+      chave: key,
       bytes,
     });
 
     return jsonOk({
       uploadId,
-      chave,
+      chave: key,
       full,
       thumb,
       expiraEm: Date.now() + VALIDADE_PRESIGN_SEGUNDOS * 1000,

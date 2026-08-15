@@ -5,7 +5,7 @@ import {
   autorizarCompartilhamento,
   compor,
   conteudoDaMoldura,
-  ehMimeVideo,
+  isVideoMime,
   MAX_DA_COLAGEM,
   modeloRecomendado,
   VERSAO_DO_CONSENTIMENTO_EXTERNO,
@@ -114,7 +114,7 @@ export function useShare(eventoId: string, sessaoId: string) {
           compartilhamentoExternoLiberado: ctx.evento.compartilhamentoExternoLiberado,
         };
 
-        const chaveImagem = ehMimeVideo(ctx.mime) ? ctx.chaveThumb : ctx.chaveFull;
+        const chaveImagem = isVideoMime(ctx.mime) ? ctx.chaveThumb : ctx.chaveFull;
         const urls = await mediaUrls([chaveImagem]);
         const url = urls.get(chaveImagem)?.url;
         if (!url) throw new Error("url");

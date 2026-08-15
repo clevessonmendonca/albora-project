@@ -1,7 +1,7 @@
 "use client";
 
 import type { ItemDaGaleria } from "@albora/core";
-import { ehMimeVideo } from "@albora/core";
+import { isVideoMime } from "@albora/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { webQueue } from "@/lib/queue";
 import { useShare } from "@/features/my-photos/hooks/use-share";
@@ -242,7 +242,7 @@ export function MyPhotosPage({
               const ehVideo =
                 item.estado === "enviada"
                   ? galeria.ehVideo(item)
-                  : ehMimeVideo(mimesLocais.get(item.id) ?? "");
+                  : isVideoMime(mimesLocais.get(item.id) ?? "");
               const rotulo = rotuloEstado(item.estado);
 
               return (

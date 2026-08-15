@@ -29,7 +29,8 @@ export type { ErroMidia, TipoAceito, TipoEntrada, TipoVideo } from "./midia";
 export {
   detectarTipo,
   ehHeic,
-  ehMimeVideo,
+  isVideoMime,
+  isVideoMime as ehMimeVideo,
   ehVideo,
   LADO_MAIOR,
   MAX_BYTES,
@@ -366,8 +367,6 @@ export { interacaoAberta as interactionOpen } from "./interacao";
 export { derivarChaveMidia as deriveMediaKey } from "./chaves";
 /** English alias — prefer for new code. */
 export { prefixoDoEvento as eventPrefix } from "./chaves";
-/** English alias — prefer for new code. */
-export { ehMimeVideo as isVideoMime } from "./midia";
 /** English alias — prefer for new code. */
 export { validarDeclaracao as validateDeclaration } from "./midia";
 /** English alias — prefer for new code. */

@@ -38,7 +38,7 @@ export function tipoAceito(mime: string): mime is TipoAceito {
   return (TIPOS_ACEITOS as readonly string[]).includes(mime);
 }
 
-export function ehMimeVideo(mime: string): mime is TipoVideo {
+export function isVideoMime(mime: string): mime is TipoVideo {
   return (TIPOS_VIDEO as readonly string[]).includes(mime);
 }
 
@@ -132,7 +132,7 @@ export type ErroMidia =
  * consumir assinatura, nem cota, nem espaço no bucket.
  */
 export function validarDeclaracao(mime: string, bytes: number): ErroMidia | null {
-  if (ehMimeVideo(mime)) {
+  if (isVideoMime(mime)) {
     if (bytes <= 0 || bytes > MAX_BYTES_VIDEO) {
       return { code: "midia.grande_demais", details: { bytes, limite: MAX_BYTES_VIDEO } };
     }
@@ -154,7 +154,7 @@ export function validarDeclaracao(mime: string, bytes: number): ErroMidia | null
  * de um JPEG".
  */
 export function validarConteudo(mimeDeclarado: string, inicio: Uint8Array): ErroMidia | null {
-  if (ehMimeVideo(mimeDeclarado)) {
+  if (isVideoMime(mimeDeclarado)) {
     if (!ehVideo(inicio)) {
       return {
         code: "midia.conteudo_nao_confere",
