@@ -4,6 +4,7 @@ import {
   decidirTese,
   degraus,
   ehEventoDoFunil,
+  ehEventoUnicoDoFunil,
   ESPINHA_DO_FUNIL,
   EVENTOS_DO_FUNIL,
   lerPlataforma,
@@ -26,7 +27,7 @@ const SESSAO_FELIZ: readonly EventoDoFunil[] = [
 ];
 
 describe("o conjunto é fechado", () => {
-  it("tem os doze eventos do contrato e nada além", () => {
+  it("tem os treze eventos do contrato e nada além", () => {
     expect([...EVENTOS_DO_FUNIL]).toEqual([
       "qr_scan",
       "page_open",
@@ -40,6 +41,7 @@ describe("o conjunto é fechado", () => {
       "install_prompt",
       "install_accept",
       "install_dismiss",
+      "feed_open",
     ]);
   });
 
@@ -277,6 +279,20 @@ describe("a ordem do funil", () => {
     // `install_prompt` rejeitaria a variante de entrada do experimento dos três
     // primeiros casamentos, que é justamente o que se quer medir.
     expect(validarSequencia(["page_open", "install_prompt", "install_dismiss"]).valida).toBe(true);
+  });
+
+  it("abrir o feed antes ou depois do upload é válido", () => {
+    expect(validarSequencia(["page_open", "consent", "feed_open"]).valida).toBe(true);
+    expect(validarSequencia([...SESSAO_FELIZ, "feed_open"]).valida).toBe(true);
+  });
+
+  it("refresh não pode contar de novo o QR, a entrada, o consentimento nem o feed", () => {
+    expect(ehEventoUnicoDoFunil("qr_scan")).toBe(true);
+    expect(ehEventoUnicoDoFunil("page_open")).toBe(true);
+    expect(ehEventoUnicoDoFunil("consent")).toBe(true);
+    expect(ehEventoUnicoDoFunil("feed_open")).toBe(true);
+    expect(ehEventoUnicoDoFunil("upload_ok")).toBe(false);
+    expect(ehEventoUnicoDoFunil("capture")).toBe(false);
   });
 
   it("aceitar instalação sem ter recebido o convite é inválido", () => {

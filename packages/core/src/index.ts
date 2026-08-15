@@ -188,6 +188,7 @@ export {
   decidirTese,
   degraus,
   ehEventoDoFunil,
+  ehEventoUnicoDoFunil,
   lerPlataforma,
   maiorPerda,
   ondeParou,
@@ -541,6 +542,8 @@ export { decidirTese as decideThesis } from "./funnel";
 export { degraus as funnelSteps } from "./funnel";
 /** English alias — prefer for new code. @see ehEventoDoFunil */
 export { ehEventoDoFunil as isFunnelEvent } from "./funnel";
+/** English alias — prefer for new code. @see ehEventoUnicoDoFunil */
+export { ehEventoUnicoDoFunil as isUniqueFunnelEvent } from "./funnel";
 /** English alias — prefer for new code. @see lerPlataforma */
 export { lerPlataforma as readPlatform } from "./funnel";
 /** English alias — prefer for new code. @see maiorPerda */

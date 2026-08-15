@@ -23,6 +23,7 @@ const EVENTOS = [
   "install_prompt",
   "install_accept",
   "install_dismiss",
+  "feed_open",
 ] as const;
 
 export type EventoDoFunil = (typeof EVENTOS)[number];
@@ -74,7 +75,28 @@ export const PRE_REQUISITOS: Readonly<Record<EventoDoFunil, readonly EventoDoFun
   install_prompt: [],
   install_accept: ["install_prompt"],
   install_dismiss: ["install_prompt"],
+  feed_open: [],
 };
+
+/**
+ * Eventos que um refresh ou um toque duplo não pode contar de novo.
+ *
+ * A espinha do meio — captura e envio — se repete a cada foto. QR, entrada,
+ * consentimento e a primeira abertura do feed não: são um por sessão.
+ */
+const UNICOS: ReadonlySet<EventoDoFunil> = new Set([
+  "qr_scan",
+  "page_open",
+  "consent",
+  "feed_open",
+  "install_prompt",
+  "install_accept",
+  "install_dismiss",
+]);
+
+export function ehEventoUnicoDoFunil(evento: EventoDoFunil): boolean {
+  return UNICOS.has(evento);
+}
 
 export type CodigoDeSequencia =
   | "funil.ordem_ok"

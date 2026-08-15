@@ -41,6 +41,7 @@ export type { FotoRecente, MetricasAoVivo } from "./event-metrics";
 export { lerMetricasAoVivo } from "./event-metrics";
 export type { FunilAgregado } from "./funnel-aggregate";
 export { lerFunilAgregado } from "./funnel-aggregate";
+export { ErroEventoDoFunilInvalido, registrarEntradaDoFunil, registrarEventoDoFunil } from "./funnel-events";
 export type {
   CodigoPareamentoApp,
   MotivoResgateInvalido,
@@ -240,3 +241,9 @@ export { ocultarMidiaDoHost as hideHostMedia } from "./host-events";
 
 /** English alias — preferred for new code. @see thumbKeyFromFull */
 export { thumbKeyFromFull } from "./storage-key";
+/** English alias — preferred for new code. @see registrarEventoDoFunil */
+export { registrarEventoDoFunil as recordFunnelEvent } from "./funnel-events";
+/** English alias — preferred for new code. @see registrarEntradaDoFunil */
+export { registrarEntradaDoFunil as recordFunnelEntry } from "./funnel-events";
+/** English alias — preferred for new code. @see ErroEventoDoFunilInvalido */
+export { ErroEventoDoFunilInvalido as InvalidFunnelEventError } from "./funnel-events";
