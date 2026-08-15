@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useFeed } from "@/features/feed/hooks/use-feed";
 import {
   GuestHeader,
   GuestShell,
@@ -10,12 +9,12 @@ import {
   SecondaryButton,
 } from "@albora/ui-web";
 import { Badge } from "@albora/ui-web";
-import { viewerKeys, Viewer } from "@/features/feed/components/client/viewer";
-import { AlbumGrid, AlbumGridLoading } from "./album-grid";
+import type { ServedPhoto } from "@/lib/album";
+import { useAlbum } from "../../hooks/use-album";
+import { bandsFromAlbum, firstCoverUrl, flattenPhotos } from "../../lib/bands";
+import { AlbumTimeline, AlbumTimelineLoading } from "./album-timeline";
 
 export type AlbumMission = { id: string; title: string };
-
-const SEM_CHAVES: string[] = [];
 
 export function AlbumPage({
   slug,
@@ -32,54 +31,41 @@ export function AlbumPage({
     if (initialMission && missions.some((m) => m.id === initialMission)) return initialMission;
     return null;
   });
-  const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = useFeed(missionId);
+  const { estado, recarregar } = useAlbum();
+  const [aberta, setAberta] = useState<ServedPhoto | null>(null);
 
-  const [indiceAberto, setIndiceAberto] = useState<number | null>(null);
-  const movimentoReduzido = usarMovimentoReduzido();
+  const faixas = useMemo(
+    () => (estado.album ? bandsFromAlbum(estado.album, missionId) : []),
+    [estado.album, missionId],
+  );
+  const fotos = useMemo(() => flattenPhotos(faixas), [faixas]);
+  const capa = estado.album ? firstCoverUrl(estado.album) : null;
 
   const primeiraCarga = !estado.jaCarregou && estado.carregando;
-  const vazio = estado.jaCarregou && estado.itens.length === 0 && estado.falha === null;
-  const contagem = estado.itens.length > 0 ? String(estado.itens.length) : undefined;
-
-  const janela = useMemo(
-    () => (indiceAberto === null ? SEM_CHAVES : viewerKeys(estado.itens, indiceAberto)),
-    [indiceAberto, estado.itens],
-  );
+  const vazio = estado.jaCarregou && faixas.length === 0 && estado.falha === null;
 
   useEffect(() => {
-    pedirChaves(janela);
-  }, [pedirChaves, janela]);
-
-  const irPara = useCallback(
-    (i: number) => {
-      if (i < 0 || i >= estado.itens.length) return;
-      setIndiceAberto(i);
-    },
-    [estado.itens.length],
-  );
-
-  const sair = useCallback(() => setIndiceAberto(null), []);
+    if (aberta && !fotos.some((f) => f.id === aberta.id)) setAberta(null);
+  }, [aberta, fotos]);
 
   useEffect(() => {
-    if (indiceAberto === null) return;
-
+    if (!aberta) return;
     const antes = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = antes;
     };
-  }, [indiceAberto]);
+  }, [aberta]);
 
-  useEffect(() => {
-    if (indiceAberto !== null && indiceAberto >= estado.itens.length) {
-      setIndiceAberto(null);
-    }
-  }, [indiceAberto, estado.itens.length]);
-
-  const horaAberta =
-    indiceAberto !== null && estado.itens[indiceAberto]
-      ? new Date(estado.itens[indiceAberto].criadaEm).getHours()
-      : 0;
+  const ir = useCallback(
+    (delta: number) => {
+      if (!aberta) return;
+      const i = fotos.findIndex((f) => f.id === aberta.id);
+      const proxima = fotos[i + delta];
+      if (proxima) setAberta(proxima);
+    },
+    [aberta, fotos],
+  );
 
   return (
     <>
@@ -95,24 +81,21 @@ export function AlbumPage({
           }
         `}</style>
 
+        {capa && <CoverHero src={capa} />}
+
         <GuestMain>
           <GuestHeader
             title="O álbum"
             homeHref={`/e/${encodeURIComponent(slug)}/cover`}
-            action={contagem ? <Badge>{contagem}</Badge> : undefined}
           />
+
+          {estado.album && <Counters contadores={estado.album.contadores} />}
 
           {missions.length > 0 && (
             <Filters missions={missions} selected={missionId} onSelect={setMissionId} />
           )}
 
-          {estado.midiaIndisponivel && (
-            <p className="mb-4 mt-0 text-[0.85rem] text-ink-3">
-              As fotos ainda não abriram. Elas aparecem sozinhas.
-            </p>
-          )}
-
-          {primeiraCarga && <AlbumGridLoading />}
+          {primeiraCarga && <AlbumTimelineLoading />}
 
           {vazio && (
             <EmptyState
@@ -122,34 +105,72 @@ export function AlbumPage({
             />
           )}
 
-          {estado.itens.length > 0 && (
-            <AlbumGrid
-              itens={estado.itens}
-              urls={estado.urls}
-              onAbrir={setIndiceAberto}
-            />
-          )}
+          {faixas.length > 0 && <AlbumTimeline faixas={faixas} onAbrir={setAberta} />}
 
-          <Rodape estado={estado} temItens={estado.itens.length > 0} onVerMais={carregarMais} onRecomecar={recomecar} />
+          <Rodape falha={estado.falha} onTentar={recarregar} />
         </GuestMain>
       </GuestShell>
 
-      {indiceAberto !== null && estado.itens[indiceAberto] && (
-        <Viewer
-          itens={estado.itens}
-          indice={indiceAberto}
-          hora={horaAberta}
-          urls={estado.urls}
-          interacao={estado.interacao}
-          cameraPath={cameraPath}
-          movimentoReduzido={movimentoReduzido}
-          onIr={irPara}
-          onSair={sair}
-          onReacoes={atualizarReacoes}
-          onBloqueado={recomecar}
+      {aberta && (
+        <Lightbox
+          foto={aberta}
+          onSair={() => setAberta(null)}
+          onAnterior={() => ir(-1)}
+          onProxima={() => ir(1)}
         />
       )}
     </>
+  );
+}
+
+function CoverHero({ src }: { src: string }) {
+  return (
+    <div className="relative h-52 shrink-0 overflow-hidden">
+      <img
+        src={src}
+        alt=""
+        aria-hidden
+        className="absolute inset-0 size-full scale-[1.2] object-cover blur-md saturate-[0.7] brightness-[0.45]"
+      />
+      <img src={src} alt="" className="absolute inset-0 size-full object-contain" />
+      <div className="absolute inset-0 bg-gradient-cover-hero" />
+    </div>
+  );
+}
+
+function Counters({
+  contadores,
+}: {
+  contadores: { fotos: number; convidados: number; missoes: number };
+}) {
+  return (
+    <ul
+      className="mb-4 mt-0 flex list-none justify-center gap-0 p-0"
+      aria-label="A noite em números"
+    >
+      <Stat valor={contadores.fotos} rotulo={contadores.fotos === 1 ? "foto" : "fotos"} />
+      <Stat
+        valor={contadores.convidados}
+        rotulo={contadores.convidados === 1 ? "pessoa" : "pessoas"}
+      />
+      <Stat
+        valor={contadores.missoes}
+        rotulo={contadores.missoes === 1 ? "missão" : "missões"}
+      />
+    </ul>
+  );
+}
+
+function Stat({ valor, rotulo }: { valor: number; rotulo: string }) {
+  return (
+    <li className="flex-1 border-l border-linha px-2 text-center first:border-l-0">
+      <span className="block font-titulo text-[1.375rem] font-light tabular-nums leading-none">
+        {valor}
+      </span>
+      <span className="mt-1 block text-[0.5625rem] uppercase tracking-rotulo text-ink-3">
+        {rotulo}
+      </span>
+    </li>
   );
 }
 
@@ -206,17 +227,13 @@ function ButtonBadge({
 }
 
 function Rodape({
-  estado,
-  temItens,
-  onVerMais,
-  onRecomecar,
+  falha,
+  onTentar,
 }: {
-  estado: ReturnType<typeof useFeed>["estado"];
-  temItens: boolean;
-  onVerMais: () => void;
-  onRecomecar: () => void;
+  falha: ReturnType<typeof useAlbum>["estado"]["falha"];
+  onTentar: () => void;
 }) {
-  if (estado.falha === "sessao") {
+  if (falha === "sessao") {
     return (
       <p className="mt-6 text-center text-[0.9rem] leading-relaxed text-ink-2">
         Sua entrada nessa festa expirou. Escaneie o QR da mesa de novo para continuar.
@@ -224,41 +241,83 @@ function Rodape({
     );
   }
 
-  if (estado.falha !== null) {
+  if (falha !== null) {
     return (
       <div className="mt-6 text-center">
-        <p className="mb-3 mt-0 text-[0.9rem] text-ink-2">
-          Não consegui carregar o resto agora.
-        </p>
-        <SecondaryButton onClick={estado.falha === "cursor" || !temItens ? onRecomecar : onVerMais}>
-          Tentar de novo
-        </SecondaryButton>
+        <p className="mb-3 mt-0 text-[0.9rem] text-ink-2">Não consegui carregar o álbum agora.</p>
+        <SecondaryButton onClick={onTentar}>Tentar de novo</SecondaryButton>
       </div>
     );
   }
 
-  if (estado.fim || estado.cursor === null) return null;
-
-  return (
-    <div className="mt-6">
-      <SecondaryButton onClick={onVerMais} disabled={estado.carregando}>
-        {estado.carregando ? "Carregando…" : "Ver mais"}
-      </SecondaryButton>
-    </div>
-  );
+  return null;
 }
 
-function usarMovimentoReduzido(): boolean {
-  const [reduzido, setReduzido] = useState(false);
-
+function Lightbox({
+  foto,
+  onSair,
+  onAnterior,
+  onProxima,
+}: {
+  foto: ServedPhoto;
+  onSair: () => void;
+  onAnterior: () => void;
+  onProxima: () => void;
+}) {
   useEffect(() => {
-    const consulta = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const aplicar = () => setReduzido(consulta.matches);
+    const tecla = (ev: KeyboardEvent) => {
+      if (ev.key === "Escape") onSair();
+      if (ev.key === "ArrowLeft") onAnterior();
+      if (ev.key === "ArrowRight") onProxima();
+    };
+    window.addEventListener("keydown", tecla);
+    return () => window.removeEventListener("keydown", tecla);
+  }, [onSair, onAnterior, onProxima]);
 
-    aplicar();
-    consulta.addEventListener("change", aplicar);
-    return () => consulta.removeEventListener("change", aplicar);
-  }, []);
+  const src = foto.url || foto.urlThumb;
 
-  return reduzido;
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Foto do álbum"
+      className="fixed inset-0 z-40 bg-bg"
+      onClick={onSair}
+    >
+      <button
+        type="button"
+        aria-label="Fechar"
+        className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-10 border-0 bg-transparent p-2 font-[inherit] text-ink-2"
+        onClick={onSair}
+      >
+        Fechar
+      </button>
+      {src ? (
+        <img
+          src={src}
+          alt=""
+          className="absolute inset-0 size-full object-contain"
+          onClick={(ev) => ev.stopPropagation()}
+        />
+      ) : null}
+      <button
+        type="button"
+        aria-label="Foto anterior"
+        className="absolute inset-y-0 left-0 w-1/3 cursor-pointer border-0 bg-transparent"
+        onClick={(ev) => {
+          ev.stopPropagation();
+          onAnterior();
+        }}
+      />
+      <button
+        type="button"
+        aria-label="Próxima foto"
+        className="absolute inset-y-0 right-0 w-1/3 cursor-pointer border-0 bg-transparent"
+        onClick={(ev) => {
+          ev.stopPropagation();
+          onProxima();
+        }}
+      />
+    </div>
+  );
 }

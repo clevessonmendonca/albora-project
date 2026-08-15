@@ -1,4 +1,4 @@
-import { montarAlbum, type PlanoDoAlbum, TETO_DE_PAGINAS_PADRAO } from "@albora/core";
+import { montarAlbum, OFFSET_PADRAO_MINUTOS, TETO_DE_PAGINAS_PADRAO, type PlanoDoAlbum } from "@albora/core";
 import { comEvento, janelaDoAlbum, listarMidiaDoAlbum } from "@albora/db";
 import { getPool } from "./db";
 import { signGet } from "./r2";
@@ -17,7 +17,7 @@ import { signGet } from "./r2";
  */
 
 /** Sem coluna de fuso no schema; ancora no fuso do evento, como o núcleo pede. */
-const EVENT_OFFSET_MINUTES = -180;
+const EVENT_OFFSET_MINUTES = OFFSET_PADRAO_MINUTOS;
 
 /**
  * Validade da URL de leitura, igual à do lote da mídia. O cliente renova o
@@ -31,6 +31,7 @@ export type ServedPhoto = {
   id: string;
   url: string;
   urlThumb: string;
+  missaoId: string | null;
   slot: ServedSlot;
 };
 
@@ -114,6 +115,7 @@ export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
                 id: foto.midia.id,
                 url,
                 urlThumb,
+                missaoId: foto.midia.missaoId,
                 slot: {
                   id: foto.slot.id,
                   proporcao: foto.slot.proporcao,

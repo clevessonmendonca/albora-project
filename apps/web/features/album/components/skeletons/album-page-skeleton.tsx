@@ -3,7 +3,7 @@ import {
   GuestShell,
   GuestMain,
 } from "@albora/ui-web";
-import { AlbumGridLoading } from "../client/album-grid";
+import { AlbumTimelineLoading } from "../client/album-timeline";
 
 export function AlbumPageSkeleton() {
   return (
@@ -20,7 +20,7 @@ export function AlbumPageSkeleton() {
       `}</style>
       <GuestMain>
         <GuestHeader title="O álbum" homeHref="#" />
-        <AlbumGridLoading />
+        <AlbumTimelineLoading />
       </GuestMain>
     </GuestShell>
   );
