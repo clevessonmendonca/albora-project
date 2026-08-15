@@ -1,7 +1,8 @@
 "use client";
 
-import { drain, type DrainSummary } from "@albora/core";
+import { type DrainSummary } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
+import { drainAndReport } from "@/features/guest/lib/funnel-from-drain";
 import { webQueue } from "@/lib/queue";
 import { webTransport } from "@/lib/transport";
 
@@ -29,7 +30,9 @@ export function useEventQueue(eventoId: string) {
 
   const drenarAgora = useCallback(async (): Promise<DrainSummary | null> => {
     if (!navigator.onLine) return null;
-    const resumo = await drain(webQueue, webTransport, { online: () => navigator.onLine });
+    const resumo = await drainAndReport(webQueue, webTransport, {
+      online: () => navigator.onLine,
+    });
     await atualizar();
     return resumo;
   }, [atualizar]);

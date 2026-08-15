@@ -11,6 +11,12 @@ const DO_CLIENTE: ReadonlySet<EventoDoFunil> = new Set([
   "install_dismiss",
 ]);
 
+export function funnelEventFromInstallChoice(
+  outcome: "accepted" | "dismissed",
+): "install_accept" | "install_dismiss" {
+  return outcome === "accepted" ? "install_accept" : "install_dismiss";
+}
+
 /** Passos que o cliente reporta. Confirm, sessão e feed gravamos no servidor. */
 export function funnelEventFromClient(value: unknown): EventoDoFunil | null {
   if (typeof value !== "string" || !ehEventoDoFunil(value) || !DO_CLIENTE.has(value)) {

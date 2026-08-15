@@ -1,9 +1,10 @@
 "use client";
 
 import {
-  drain,
   isHeic,
   isVideoBytes,
+  instanteDaParede,
+  OFFSET_PADRAO_MINUTOS,
   planoParaRedimensionamento,
   processarFoto,
   type QueueDetails,
@@ -12,11 +13,12 @@ import {
   type DrainSummary,
 } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
+import { drainAndReport } from "@/features/guest/lib/funnel-from-drain";
+import { reportFunnel } from "@/features/guest/lib/report-funnel";
 import { webDrawer } from "@/lib/drawer";
 import { deviceDecodes, videoPoster } from "@/lib/image";
 import { QueueQuotaExceededError, webQueue, queueSummary } from "@/lib/queue";
 import { webTransport } from "@/lib/transport";
-import { reportFunnel } from "@/features/guest/lib/report-funnel";
 
 /**
  * O laço de upload do convidado, num lugar só.
@@ -87,7 +89,9 @@ export function useUpload(
   const drenarAgora = useCallback(async (): Promise<DrainSummary | null> => {
     if (!navigator.onLine) return null;
 
-    const resumo = await drain(webQueue, webTransport, { online: () => navigator.onLine });
+    const resumo = await drainAndReport(webQueue, webTransport, {
+      online: () => navigator.onLine,
+    });
     await atualizarResumo();
 
     const falha = resumo.resultados.find((r) => r.estado !== "enviado");
@@ -143,6 +147,7 @@ export function useUpload(
             criadoEm: Date.now(),
             tentativas: 0,
             desafioId: desafioId ?? null,
+            ...metaDaCaptura(null, arquivo.lastModified),
           });
 
           reportFunnel("capture");

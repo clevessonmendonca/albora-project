@@ -1,4 +1,4 @@
-import { drain } from "@albora/core";
+import { drainAndReport } from "../features/guest/lib/funnel-from-drain";
 import { webQueue } from "../lib/queue";
 import { webTransport } from "../lib/transport";
 import { TAG_DRENAGEM } from "./tag";
@@ -116,7 +116,7 @@ self.addEventListener("sync", (evento) => {
   // navegador já restabeleceu conectividade, e `navigator.onLine` dentro do SW
   // responde por um contexto que pode ter acordado agora. Consultá-lo aqui
   // cancelaria a drenagem exatamente na hora em que ela deveria acontecer.
-  evento.waitUntil(drain(webQueue, webTransport, { online: () => true }));
+  evento.waitUntil(drainAndReport(webQueue, webTransport, { online: () => true }));
 });
 
 async function cachePrimeiro(requisicao: Request, nomeDoCache: string): Promise<Response> {

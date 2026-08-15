@@ -67,6 +67,7 @@ export function PhotoPage({
 }) {
   const router = useRouter();
   const { estado, enfileirarFoto, anotar, drenarAgora } = useUpload(eventoId, { plano: plan, cotaVideo: videoQuota });
+  const { disponivel: podeInstalar, instalar } = usePwaInstall();
   const [drenando, setDrenando] = useState(false);
   const entradaCamera = useRef<HTMLInputElement>(null);
   const entradaVideo = useRef<HTMLInputElement>(null);
@@ -209,6 +210,8 @@ export function PhotoPage({
         pendentes={estado.pendentes}
         online={estado.online}
         interactionOpen={interactionOpen}
+        podeInstalar={podeInstalar}
+        instalar={instalar}
         onOutra={() => setEtapa({ nome: "camera" })}
       />
     );
@@ -325,6 +328,8 @@ function Confirmacao({
   pendentes,
   online,
   interactionOpen,
+  podeInstalar,
+  instalar,
   onOutra,
 }: {
   slug: string;
@@ -333,11 +338,12 @@ function Confirmacao({
   pendentes: number;
   online: boolean;
   interactionOpen: boolean;
+  podeInstalar: boolean;
+  instalar: () => Promise<boolean>;
   onOutra: () => void;
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
-  const { disponivel: podeInstalar, instalar } = usePwaInstall();
   const [url, setUrl] = useState<string | null>(null);
   const [musica, setMusica] = useState<{ rotulo: string; url: string; provedor: string } | null>(
     null,

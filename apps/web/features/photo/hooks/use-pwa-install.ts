@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { funnelEventFromInstallChoice } from "@/features/guest/lib/funnel-client-events";
+import { reportFunnel } from "@/features/guest/lib/report-funnel";
 
 type PromptInstalacao = Event & {
   prompt: () => Promise<void>;
@@ -21,6 +23,7 @@ export function usePwaInstall() {
       evento.preventDefault();
       promptRef.current = evento as PromptInstalacao;
       setDisponivel(true);
+      reportFunnel("install_prompt");
     };
 
     window.addEventListener("beforeinstallprompt", capturar);
@@ -33,6 +36,7 @@ export function usePwaInstall() {
 
     await prompt.prompt();
     const escolha = await prompt.userChoice;
+    reportFunnel(funnelEventFromInstallChoice(escolha.outcome));
     if (escolha.outcome === "accepted") {
       promptRef.current = null;
       setDisponivel(false);

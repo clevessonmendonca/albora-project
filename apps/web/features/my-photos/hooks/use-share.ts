@@ -17,6 +17,7 @@ import { PACKS } from "@albora/packs";
 import { useCallback, useState } from "react";
 import { identityToFrame } from "@/lib/frame-identity";
 import { mediaUrls } from "@/lib/media";
+import { reportFunnel } from "@/features/guest/lib/report-funnel";
 import {
   loadImage,
   shareOrDownload,
@@ -165,6 +166,7 @@ export function useShare(eventoId: string, sessaoId: string) {
 
         const blob = await drawFrame(img, resultado.composicao);
         await shareOrDownload(blob, `albora-${ctx.evento.slug}.jpg`);
+        reportFunnel("share");
       } catch {
         setErro("Não deu para compartilhar agora. Tente de novo.");
       } finally {
@@ -252,6 +254,7 @@ export function useShare(eventoId: string, sessaoId: string) {
 
         const blob = await drawCollage(fotos, conteudo);
         await shareOrDownload(blob, `albora-${base.evento.slug}-colagem.jpg`);
+        reportFunnel("share");
       } catch {
         setErro("Não deu para compartilhar a colagem agora.");
       } finally {

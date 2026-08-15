@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  drain,
   montarGaleria,
   resumirGaleria,
   isVideoMime,
@@ -11,6 +10,7 @@ import {
 } from "@albora/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
+import { drainAndReport } from "@/features/guest/lib/funnel-from-drain";
 import { isExpired, mediaUrls, type MediaUrl } from "@/lib/media";
 import { webQueue } from "@/lib/queue";
 import { webTransport } from "@/lib/transport";
@@ -127,7 +127,7 @@ export function useGallery(eventoId: string) {
   const tentarDeNovo = useCallback(async () => {
     if (!navigator.onLine) return;
     setEstado((e) => ({ ...e, drenando: true }));
-    await drain(webQueue, webTransport, { online: () => navigator.onLine });
+    await drainAndReport(webQueue, webTransport, { online: () => navigator.onLine });
     await carregar();
   }, [carregar]);
 
