@@ -53,8 +53,9 @@ export function PhotoDetailScreen({ pack, own = false }: { pack: Pack; own?: boo
             <span className="text-[0.84375rem]">3</span>
           </span>
           {own && (
-            <span className="ml-auto">
+            <span className="ml-auto inline-flex items-center gap-1.5 text-ink">
               <ShareIcon size={21} />
+              <span className="text-[0.84375rem]">Stories</span>
             </span>
           )}
         </div>

@@ -9,18 +9,15 @@ import { useGallery } from "@/features/my-photos/hooks/use-gallery";
 import { Viewer } from "@/features/feed/components/client/viewer";
 import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 import {
-  BottomSheet,
-  ConsentCheckbox,
   PrimaryButton,
-  SecondaryButton,
   GuestHeader,
   GuestShell,
   EmptyState,
   GuestMain,
   ErrorMessage,
-  Button,
 } from "@albora/ui-web";
 import { Badge } from "@albora/ui-web";
+import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
 
 function rotuloEstado(estado: ItemDaGaleria["estado"]): string {
   if (estado === "subindo") return "Subindo…";
@@ -94,7 +91,6 @@ export function MyPhotosPage({
   const [locais, setLocais] = useState<Map<string, string>>(new Map());
   const [mimesLocais, setMimesLocais] = useState<Map<string, string>>(new Map());
   const [indiceAberto, setIndiceAberto] = useState<number | null>(null);
-  const [nomeNaMoldura, setNomeNaMoldura] = useState(true);
   const movimentoReduzido = usarMovimentoReduzido();
 
   const consentimentoAberto =
@@ -175,13 +171,16 @@ export function MyPhotosPage({
     if (visivel) void compartilhar.compartilhar(visivel.id);
   }, [indiceAberto, galeria.itensVisiveis, compartilhar]);
 
-  const confirmarConsentimento = useCallback(() => {
-    if (compartilhar.pedindoColagem) {
-      void compartilhar.confirmarConsentimentoColagem(compartilhar.pedindoColagem, nomeNaMoldura);
-    } else if (compartilhar.pedindoConsentimento) {
-      void compartilhar.confirmarConsentimento(compartilhar.pedindoConsentimento, nomeNaMoldura);
-    }
-  }, [compartilhar, nomeNaMoldura]);
+  const confirmarConsentimento = useCallback(
+    (nomeNaMoldura: boolean) => {
+      if (compartilhar.pedindoColagem) {
+        void compartilhar.confirmarConsentimentoColagem(compartilhar.pedindoColagem, nomeNaMoldura);
+      } else if (compartilhar.pedindoConsentimento) {
+        void compartilhar.confirmarConsentimento(compartilhar.pedindoConsentimento, nomeNaMoldura);
+      }
+    },
+    [compartilhar],
+  );
 
   useEffect(() => {
     if (indiceAberto === null) return;
@@ -300,13 +299,17 @@ export function MyPhotosPage({
           </ul>
 
           {idsFotosEnviadas.length >= 2 && (
-            <div className="mt-5">
-              <SecondaryButton
+            <div className="mt-6 rounded-token bg-superficie px-4 py-4">
+              <p className="m-0 font-titulo text-[1.0625rem]">Colagem da noite</p>
+              <p className="mb-3 mt-1 text-[0.8125rem] leading-snug text-ink-2">
+                Até quatro fotos suas, com a moldura desta festa, prontas para o Instagram.
+              </p>
+              <PrimaryButton
                 disabled={compartilhar.colagemIds !== null}
                 onClick={() => void compartilhar.compartilharColagem(idsFotosEnviadas.slice(0, 4))}
               >
-                {compartilhar.colagemIds ? "Montando colagem…" : "Colagem da noite"}
-              </SecondaryButton>
+                {compartilhar.colagemIds ? "Montando…" : "Compartilhar colagem"}
+              </PrimaryButton>
             </div>
           )}
 
@@ -342,30 +345,11 @@ export function MyPhotosPage({
         />
       )}
 
-      <BottomSheet
-        title="Compartilhar para fora"
-        titleId="consentimento-externo-titulo"
+      <ShareConsentSheet
         open={consentimentoAberto}
         onClose={() => compartilhar.cancelarConsentimento()}
-        footer={
-          <div className="flex gap-2">
-            <Button variant="secondary" size="md" width="full" onClick={() => compartilhar.cancelarConsentimento()}>
-              Cancelar
-            </Button>
-            <Button variant="primary" size="md" width="full" onClick={confirmarConsentimento}>
-              Aceitar e compartilhar
-            </Button>
-          </div>
-        }
-      >
-        <p className="m-0 text-[0.9rem] leading-normal text-ink-2">
-          Ao compartilhar, a foto sai do evento com uma moldura. Quem receber pode guardar
-          para sempre — não dá para desfazer depois.
-        </p>
-        <ConsentCheckbox checked={nomeNaMoldura} onChange={setNomeNaMoldura}>
-          Incluir meu primeiro nome na moldura
-        </ConsentCheckbox>
-      </BottomSheet>
+        onConfirm={confirmarConsentimento}
+      />
 
       <GuestTabBar slug={slug} active="minhas" />
     </>

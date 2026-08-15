@@ -107,12 +107,15 @@ function InteracaoCompleta({
         {minha && onCompartilhar && (
           <button
             type="button"
-            aria-label="Compartilhar esta foto"
+            aria-label="Compartilhar no Instagram ou WhatsApp"
             disabled={compartilhando}
             onClick={onCompartilhar}
             className={CLASSE_BOTAO_ICONE}
           >
             <ShareIcon size={21} />
+            <span className="text-[0.84375rem]">
+              {compartilhando ? "Montando…" : "Stories"}
+            </span>
           </button>
         )}
 

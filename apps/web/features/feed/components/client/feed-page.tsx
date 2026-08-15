@@ -6,6 +6,8 @@ import { groupByHour, type HourGroup } from "@/features/feed/lib/group-by-hour";
 import { useFeed, type ItemVisivel } from "@/features/feed/hooks/use-feed";
 import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
+import { useShare } from "@/features/my-photos/hooks/use-share";
+import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
 import {
   GateNotice,
   GuestHeader,
@@ -13,6 +15,7 @@ import {
   EmptyState,
   GuestMain,
   SecondaryButton,
+  ErrorMessage,
   cn,
 } from "@albora/ui-web";
 import { Badge } from "@albora/ui-web";
@@ -63,6 +66,8 @@ export function FeedPage({
   copy,
   cameraPath,
   hostMessageLabel,
+  eventoId,
+  sessaoId,
 }: {
   slug: string;
   eventTitle: string;
@@ -70,9 +75,12 @@ export function FeedPage({
   copy: FeedCopy;
   cameraPath: string;
   hostMessageLabel: string;
+  eventoId: string;
+  sessaoId: string;
 }) {
   const [missionId, setMissaoId] = useState<string | null>(null);
   const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = useFeed(missionId);
+  const compartilhar = useShare(eventoId, sessaoId);
 
   const [aberto, setAberto] = useState<Aberto | null>(null);
   const [preparando, setPreparando] = useState<number | null>(null);
@@ -243,6 +251,8 @@ export function FeedPage({
             </p>
           )}
 
+          {compartilhar.erro && <ErrorMessage>{compartilhar.erro}</ErrorMessage>}
+
           {primeiraCarga && completo && (
             <Coluna>
               {[0, 1].map((i) => (
@@ -279,6 +289,8 @@ export function FeedPage({
                   {...(item.minha !== undefined ? { minha: item.minha } : {})}
                   onReacoes={(resultado) => atualizarReacoes(item.id, resultado)}
                   onBloqueado={recomecar}
+                  onCompartilhar={() => void compartilhar.compartilhar(item.id)}
+                  compartilhando={compartilhar.compartilhandoId === item.id}
                   url={estado.urls.get(chaveMidia)?.url ?? null}
                   autor={item.autor}
                   legenda={item.legenda}
@@ -314,8 +326,23 @@ export function FeedPage({
           onSair={sair}
           onReacoes={atualizarReacoes}
           onBloqueado={recomecar}
+          onCompartilhar={() => {
+            const atual = itensAbertos[indice];
+            if (atual) void compartilhar.compartilhar(atual.id);
+          }}
+          compartilhando={compartilhar.compartilhandoId === itensAbertos[indice]?.id}
         />
       )}
+
+      <ShareConsentSheet
+        open={compartilhar.pedindoConsentimento !== null}
+        onClose={() => compartilhar.cancelarConsentimento()}
+        onConfirm={(nomeNaMoldura) => {
+          if (compartilhar.pedindoConsentimento) {
+            void compartilhar.confirmarConsentimento(compartilhar.pedindoConsentimento, nomeNaMoldura);
+          }
+        }}
+      />
     </>
   );
 }

@@ -4,22 +4,16 @@ import {
   ALTURA_DA_COMPOSICAO,
   LARGURA_DA_COMPOSICAO,
   celulasDaColagem,
-  encaixar,
   faixaDaMarca,
   type Composicao,
   type ConteudoDaMoldura,
 } from "@albora/core";
-import { ALBORA_BRAND, toVariables } from "@albora/tokens";
+import type { FramePalette } from "@/lib/frame-palette";
 
-const PADRAO = toVariables(ALBORA_BRAND);
-
-function corCss(nome: keyof typeof PADRAO): string {
-  const bruto = getComputedStyle(document.documentElement).getPropertyValue(nome).trim();
-  return bruto || PADRAO[nome]!;
-}
+type Ctx2d = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
 function desenharFoto(
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  ctx: Ctx2d,
   imagem: CanvasImageSource,
   composicao: Composicao,
 ) {
@@ -41,38 +35,32 @@ function desenharFoto(
 }
 
 function desenharFaixaConteudo(
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  ctx: Ctx2d,
   faixa: Composicao["faixa"],
   conteudo: ConteudoDaMoldura,
+  paleta: FramePalette,
 ) {
-  const superficie = corCss("--superficie");
-  const ink = corCss("--ink");
-  const ink2 = corCss("--ink-2");
-  const acento = corCss("--acento");
-  const fonteTitulo = corCss("--fonte-titulo").replace(/"/g, "");
-  const fonteCorpo = corCss("--fonte-corpo").replace(/"/g, "");
-
-  ctx.fillStyle = superficie;
-  ctx.fillRect(faixa.x, faixa.y, faixa.largura, faixa.altura);
-
   const cx = LARGURA_DA_COMPOSICAO / 2;
   let y = faixa.y + 72;
+
+  ctx.fillStyle = paleta.superficie;
+  ctx.fillRect(faixa.x, faixa.y, faixa.largura, faixa.altura);
 
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
-  ctx.fillStyle = acento;
-  ctx.font = `600 64px ${fonteTitulo}`;
+  ctx.fillStyle = paleta.acento;
+  ctx.font = `600 64px ${paleta.fonteTitulo}`;
   ctx.fillText(conteudo.monograma, cx, y);
   y += 56;
 
-  ctx.fillStyle = ink;
-  ctx.font = `400 36px ${fonteTitulo}`;
+  ctx.fillStyle = paleta.ink;
+  ctx.font = `400 36px ${paleta.fonteTitulo}`;
   ctx.fillText(conteudo.titulo, cx, y);
   y += 44;
 
-  ctx.fillStyle = ink2;
-  ctx.font = `400 26px ${fonteCorpo}`;
+  ctx.fillStyle = paleta.ink2;
+  ctx.font = `400 26px ${paleta.fonteCorpo}`;
   ctx.fillText(conteudo.data, cx, y);
   y += 36;
 
@@ -82,25 +70,16 @@ function desenharFaixaConteudo(
   }
 
   if (conteudo.legenda) {
-    ctx.font = `400 22px ${fonteCorpo}`;
+    ctx.font = `400 22px ${paleta.fonteCorpo}`;
     const legenda =
       conteudo.legenda.length > 80 ? `${conteudo.legenda.slice(0, 77)}…` : conteudo.legenda;
     ctx.fillText(legenda, cx, y);
     y += 32;
   }
 
-  ctx.font = `400 22px ${fonteCorpo}`;
+  ctx.font = `400 22px ${paleta.fonteCorpo}`;
   ctx.fillText(`albora.app/e/${conteudo.slug}`, cx, faixa.y + faixa.altura - 36);
 }
-
-function desenharFaixa(
-  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
-  composicao: Composicao,
-) {
-  desenharFaixaConteudo(ctx, composicao.faixa, composicao.conteudo);
-}
-
-type Ctx2d = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
 function ctx2d(canvas: OffscreenCanvas | HTMLCanvasElement): Ctx2d {
   const ctx = canvas.getContext("2d");
@@ -131,19 +110,35 @@ async function canvasParaBlob(canvas: OffscreenCanvas | HTMLCanvasElement): Prom
   });
 }
 
+function preencherCelula(
+  foto: { largura: number; altura: number },
+  celula: { x: number; y: number; largura: number; altura: number },
+) {
+  const fator = Math.max(celula.largura / foto.largura, celula.altura / foto.altura);
+  const largura = foto.largura * fator;
+  const altura = foto.altura * fator;
+  return {
+    x: celula.x + (celula.largura - largura) / 2,
+    y: celula.y + (celula.altura - altura) / 2,
+    largura,
+    altura,
+  };
+}
+
 /** Quinto renderizador: moldura 9:16 com tokens do evento (spec 015). */
 export async function drawFrame(
   imagem: CanvasImageSource,
   composicao: Composicao,
+  paleta: FramePalette,
 ): Promise<Blob> {
   const canvas = criarCanvas();
   const ctx = ctx2d(canvas);
 
-  ctx.fillStyle = corCss("--bg");
+  ctx.fillStyle = paleta.bg;
   ctx.fillRect(0, 0, LARGURA_DA_COMPOSICAO, ALTURA_DA_COMPOSICAO);
 
   desenharFoto(ctx, imagem, composicao);
-  desenharFaixa(ctx, composicao);
+  desenharFaixaConteudo(ctx, composicao.faixa, composicao.conteudo, paleta);
 
   return canvasParaBlob(canvas);
 }
@@ -152,22 +147,28 @@ export async function drawFrame(
 export async function drawCollage(
   fotos: { img: CanvasImageSource; largura: number; altura: number }[],
   conteudo: ConteudoDaMoldura,
+  paleta: FramePalette,
 ): Promise<Blob> {
   const canvas = criarCanvas();
   const ctx = ctx2d(canvas);
 
-  ctx.fillStyle = corCss("--bg");
+  ctx.fillStyle = paleta.bg;
   ctx.fillRect(0, 0, LARGURA_DA_COMPOSICAO, ALTURA_DA_COMPOSICAO);
 
   const celulas = celulasDaColagem(fotos.length);
   for (let i = 0; i < fotos.length; i += 1) {
     const foto = fotos[i]!;
     const celula = celulas[i]!;
-    const caixa = encaixar({ largura: foto.largura, altura: foto.altura }, celula);
+    const caixa = preencherCelula(foto, celula);
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(celula.x, celula.y, celula.largura, celula.altura);
+    ctx.clip();
     ctx.drawImage(foto.img, caixa.x, caixa.y, caixa.largura, caixa.altura);
+    ctx.restore();
   }
 
-  desenharFaixaConteudo(ctx, faixaDaMarca(), conteudo);
+  desenharFaixaConteudo(ctx, faixaDaMarca(), conteudo, paleta);
 
   return canvasParaBlob(canvas);
 }
@@ -184,19 +185,4 @@ export async function loadImage(url: string): Promise<HTMLImageElement> {
   return img;
 }
 
-export async function shareOrDownload(blob: Blob, nomeArquivo: string) {
-  const arquivo = new File([blob], nomeArquivo, { type: blob.type || "image/jpeg" });
-
-  if (typeof navigator.share === "function" && navigator.canShare?.({ files: [arquivo] })) {
-    await navigator.share({ files: [arquivo] });
-    return "compartilhado" as const;
-  }
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = nomeArquivo;
-  link.click();
-  URL.revokeObjectURL(url);
-  return "baixado" as const;
-}
+export { shareOrDownload } from "@/lib/share-or-download";

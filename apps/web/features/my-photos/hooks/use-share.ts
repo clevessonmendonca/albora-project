@@ -9,21 +9,23 @@ import {
   MAX_DA_COLAGEM,
   modeloRecomendado,
   VERSAO_DO_CONSENTIMENTO_EXTERNO,
-  type CodigoDeCompartilhamento,
   type ConsentimentoExterno,
   type VeredictoDoClassificador,
 } from "@albora/core";
 import { PACKS } from "@albora/packs";
 import { useCallback, useState } from "react";
 import { identityToFrame } from "@/lib/frame-identity";
+import { paletteForFrame } from "@/lib/frame-palette";
 import { mediaUrls } from "@/lib/media";
+import { shareOrDownload } from "@/lib/share-or-download";
 import { reportFunnel } from "@/features/guest/lib/report-funnel";
+import { loadImage, drawCollage, drawFrame } from "@/lib/frame-renderer";
 import {
-  loadImage,
-  shareOrDownload,
-  drawCollage,
-  drawFrame,
-} from "@/lib/frame-renderer";
+  mapConsentimentoExterno,
+  mensagemDeShare,
+  precisaPedirConsentimento,
+  type ConsentimentoExternoBruto,
+} from "@/features/my-photos/lib/share-gate";
 
 type ContextoApi = {
   chaveFull: string;
@@ -32,12 +34,7 @@ type ContextoApi = {
   legenda: string | null;
   sessao: {
     nome: string;
-    consentimentoExterno: {
-      versao: string;
-      em: string;
-      revogadoEm: string | null;
-      nomeNaMoldura: boolean;
-    } | null;
+    consentimentoExterno: ConsentimentoExternoBruto | null;
   };
   evento: {
     slug: string;
@@ -55,26 +52,6 @@ type ContextoApi = {
     classificador: VeredictoDoClassificador;
   };
 };
-
-const MENSAGENS: Partial<Record<CodigoDeCompartilhamento, string>> = {
-  "compartilhar.desligado_pelo_anfitriao":
-    "O casal desligou compartilhar para fora nesta festa.",
-  "compartilhar.sem_consentimento_externo": "Precisa aceitar antes de compartilhar.",
-  "compartilhar.bloqueado_pela_moderacao": "Esta foto ainda não pode sair do evento.",
-  "compartilhar.nao_e_autor": "Só dá para compartilhar fotos suas.",
-};
-
-function mapConsentimento(
-  bruto: ContextoApi["sessao"]["consentimentoExterno"],
-): ConsentimentoExterno | null {
-  if (!bruto) return null;
-  return {
-    versao: bruto.versao,
-    em: new Date(bruto.em),
-    revogadoEm: bruto.revogadoEm ? new Date(bruto.revogadoEm) : null,
-    nomeNaMoldura: bruto.nomeNaMoldura,
-  };
-}
 
 export function useShare(eventoId: string, sessaoId: string) {
   const [compartilhandoId, setCompartilhandoId] = useState<string | null>(null);
@@ -106,7 +83,7 @@ export function useShare(eventoId: string, sessaoId: string) {
           nome: ctx.sessao.nome,
           consentimentoDeEntrada: { versao: "v1", em: agora },
           consentimentoExterno:
-            consentimentoExterno ?? mapConsentimento(ctx.sessao.consentimentoExterno),
+            consentimentoExterno ?? mapConsentimentoExterno(ctx.sessao.consentimentoExterno),
         };
 
         const evento = {
@@ -138,7 +115,7 @@ export function useShare(eventoId: string, sessaoId: string) {
 
         const autorizacao = autorizarCompartilhamento(midia, sessao, evento, agora);
         if (!autorizacao.pode) {
-          setErro(MENSAGENS[autorizacao.codigo] ?? "Não dá para compartilhar agora.");
+          setErro(mensagemDeShare(autorizacao.codigo));
           return;
         }
 
@@ -149,6 +126,7 @@ export function useShare(eventoId: string, sessaoId: string) {
           ctx.evento.identityTokens,
           pack,
         );
+        const paleta = paletteForFrame(ctx.evento.identityTokens, pack);
 
         const resultado = compor({
           midia,
@@ -160,19 +138,18 @@ export function useShare(eventoId: string, sessaoId: string) {
         });
 
         if (!resultado.autorizada || !resultado.composicao) {
-          setErro(MENSAGENS[resultado.codigo] ?? "Não dá para compartilhar agora.");
+          setErro(mensagemDeShare(resultado.codigo));
           return;
         }
 
-        const blob = await drawFrame(img, resultado.composicao);
-        await shareOrDownload(blob, `albora-${ctx.evento.slug}.jpg`);
-        reportFunnel("share");
+        const blob = await drawFrame(img, resultado.composicao, paleta);
+        const saida = await shareOrDownload(blob, `albora-${ctx.evento.slug}.jpg`);
+        if (saida !== "cancelado") reportFunnel("share");
       } catch {
         setErro("Não deu para compartilhar agora. Tente de novo.");
       } finally {
         setCompartilhandoId(null);
         setPedindoConsentimento(null);
-        setColagemIds(null);
       }
     },
     [eventoId, sessaoId],
@@ -194,7 +171,7 @@ export function useShare(eventoId: string, sessaoId: string) {
           nome: base.sessao.nome,
           consentimentoDeEntrada: { versao: "v1", em: agora },
           consentimentoExterno:
-            consentimentoExterno ?? mapConsentimento(base.sessao.consentimentoExterno),
+            consentimentoExterno ?? mapConsentimentoExterno(base.sessao.consentimentoExterno),
         };
 
         const evento = {
@@ -220,15 +197,18 @@ export function useShare(eventoId: string, sessaoId: string) {
 
         const autorizacao = autorizarColagem(midias, sessao, evento, agora);
         if (!autorizacao.pode) {
-          setErro(MENSAGENS[autorizacao.codigo] ?? "Não dá para compartilhar agora.");
+          setErro(mensagemDeShare(autorizacao.codigo));
           return;
         }
 
-        const chaves = contextos.map((c) => c.chaveFull);
+        const chaves = contextos.map((c) =>
+          isVideoMime(c.mime) ? c.chaveThumb : c.chaveFull,
+        );
         const urls = await mediaUrls(chaves);
         const fotos = await Promise.all(
           contextos.map(async (ctx, i) => {
-            const url = urls.get(ctx.chaveFull)?.url;
+            const chave = chaves[i]!;
+            const url = urls.get(chave)?.url;
             if (!url) throw new Error("url");
             const img = await loadImage(url);
             midias[i]!.largura = img.naturalWidth;
@@ -244,6 +224,7 @@ export function useShare(eventoId: string, sessaoId: string) {
           base.evento.identityTokens,
           pack,
         );
+        const paleta = paletteForFrame(base.evento.identityTokens, pack);
 
         const conteudo = conteudoDaMoldura(
           identidade,
@@ -252,9 +233,9 @@ export function useShare(eventoId: string, sessaoId: string) {
           agora,
         );
 
-        const blob = await drawCollage(fotos, conteudo);
-        await shareOrDownload(blob, `albora-${base.evento.slug}-colagem.jpg`);
-        reportFunnel("share");
+        const blob = await drawCollage(fotos, conteudo, paleta);
+        const saida = await shareOrDownload(blob, `albora-${base.evento.slug}-colagem.jpg`);
+        if (saida !== "cancelado") reportFunnel("share");
       } catch {
         setErro("Não deu para compartilhar a colagem agora.");
       } finally {
@@ -270,13 +251,12 @@ export function useShare(eventoId: string, sessaoId: string) {
       setErro(null);
       try {
         const ctx = await buscarContexto(uploadId);
-
-        if (!ctx.sessao.consentimentoExterno) {
+        if (precisaPedirConsentimento(mapConsentimentoExterno(ctx.sessao.consentimentoExterno))) {
           setPedindoConsentimento(uploadId);
           return;
         }
 
-        await executar(uploadId, mapConsentimento(ctx.sessao.consentimentoExterno));
+        await executar(uploadId, mapConsentimentoExterno(ctx.sessao.consentimentoExterno));
       } catch {
         setErro("Não deu para compartilhar agora.");
       }
@@ -290,11 +270,11 @@ export function useShare(eventoId: string, sessaoId: string) {
       setErro(null);
       try {
         const ctx = await buscarContexto(uploadIds[0]!);
-        if (!ctx.sessao.consentimentoExterno) {
+        if (precisaPedirConsentimento(mapConsentimentoExterno(ctx.sessao.consentimentoExterno))) {
           setPedindoColagem(uploadIds);
           return;
         }
-        await executarColagem(uploadIds, mapConsentimento(ctx.sessao.consentimentoExterno));
+        await executarColagem(uploadIds, mapConsentimentoExterno(ctx.sessao.consentimentoExterno));
       } catch {
         setErro("Não deu para compartilhar a colagem.");
       }

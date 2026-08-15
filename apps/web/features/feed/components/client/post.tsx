@@ -20,6 +20,8 @@ export function Post({
   minha,
   onReacoes,
   onBloqueado,
+  onCompartilhar,
+  compartilhando,
   url,
   autor,
   legenda,
@@ -34,6 +36,8 @@ export function Post({
   minha?: boolean;
   onReacoes?: (resultado: ResultadoReacao) => void;
   onBloqueado?: () => void;
+  onCompartilhar?: () => void;
+  compartilhando?: boolean;
   url: string | null;
   autor: string;
   legenda: string | null;
@@ -83,6 +87,8 @@ export function Post({
           {...(minha !== undefined ? { minha } : {})}
           {...(onReacoes ? { onReacoes } : {})}
           {...(onBloqueado ? { onBloqueado } : {})}
+          {...(onCompartilhar ? { onCompartilhar } : {})}
+          {...(compartilhando !== undefined ? { compartilhando } : {})}
         />
       </div>
 

@@ -18,7 +18,7 @@ export async function FeedContent({
 
   return (
     <div style={darkEventVars(evento)}>
-      <FeedPage {...data} />
+      <FeedPage {...data} eventoId={eventoId} sessaoId={sessaoId} />
     </div>
   );
 }
