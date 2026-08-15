@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   detectarTipo,
-  ehHeic,
-  ehVideo,
+  isHeic,
+  isVideoBytes,
   MAX_BYTES,
   TIPOS_ACEITOS,
   TIPOS_ENTRADA,
@@ -97,41 +97,41 @@ describe("magic bytes — o Content-Type do cliente não vale nada", () => {
 
 describe("HEIC e vídeo — o mesmo contêiner, marcas diferentes", () => {
   it("reconhece as marcas de HEIC/HEIF", () => {
-    expect(ehHeic(HEIC)).toBe(true);
-    expect(ehHeic(HEIF_MIF1)).toBe(true);
-    expect(ehHeic(isoBmff("hevc"))).toBe(true);
+    expect(isHeic(HEIC)).toBe(true);
+    expect(isHeic(HEIF_MIF1)).toBe(true);
+    expect(isHeic(isoBmff("hevc"))).toBe(true);
   });
 
   it("reconhece o .mov do iPhone e o mp4", () => {
-    expect(ehVideo(MOV)).toBe(true);
-    expect(ehVideo(MP4)).toBe(true);
-    expect(ehVideo(isoBmff("mp42"))).toBe(true);
+    expect(isVideoBytes(MOV)).toBe(true);
+    expect(isVideoBytes(MP4)).toBe(true);
+    expect(isVideoBytes(isoBmff("mp42"))).toBe(true);
   });
 
   it("não confunde HEIC com vídeo nem o contrário", () => {
-    expect(ehVideo(HEIC)).toBe(false);
-    expect(ehHeic(MOV)).toBe(false);
+    expect(isVideoBytes(HEIC)).toBe(false);
+    expect(isHeic(MOV)).toBe(false);
   });
 
   it("JPEG continua sendo JPEG e não vira nem HEIC nem vídeo", () => {
     expect(detectarTipo(JPEG)).toBe("image/jpeg");
-    expect(ehHeic(JPEG)).toBe(false);
-    expect(ehVideo(JPEG)).toBe(false);
-    expect(ehHeic(PNG)).toBe(false);
-    expect(ehVideo(WEBP)).toBe(false);
+    expect(isHeic(JPEG)).toBe(false);
+    expect(isVideoBytes(JPEG)).toBe(false);
+    expect(isHeic(PNG)).toBe(false);
+    expect(isVideoBytes(WEBP)).toBe(false);
   });
 
   it("ISO-BMFF de marca desconhecida não é nem um nem outro", () => {
-    expect(ehHeic(isoBmff("zzzz"))).toBe(false);
-    expect(ehVideo(isoBmff("zzzz"))).toBe(false);
+    expect(isHeic(isoBmff("zzzz"))).toBe(false);
+    expect(isVideoBytes(isoBmff("zzzz"))).toBe(false);
   });
 
   it("arquivo curto demais não estoura", () => {
     const truncado = new Uint8Array([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70, 0x68]);
 
-    expect(ehHeic(truncado)).toBe(false);
-    expect(ehVideo(truncado)).toBe(false);
-    expect(ehHeic(new Uint8Array(0))).toBe(false);
+    expect(isHeic(truncado)).toBe(false);
+    expect(isVideoBytes(truncado)).toBe(false);
+    expect(isHeic(new Uint8Array(0))).toBe(false);
   });
 });
 

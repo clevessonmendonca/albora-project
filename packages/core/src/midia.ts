@@ -109,13 +109,13 @@ function marcaIsoBmff(inicio: Uint8Array): string | null {
  * Detecta HEIC/HEIF pelos bytes, nunca pelo `File.type` — no iOS ele vem
  * vazio ou mentiroso, e é o convidado de iPhone que a N5.2 protege.
  */
-export function ehHeic(inicio: Uint8Array): boolean {
+export function isHeic(inicio: Uint8Array): boolean {
   const marca = marcaIsoBmff(inicio);
   return marca !== null && MARCAS_HEIC.includes(marca);
 }
 
 /** Vídeo em contêiner ISO-BMFF, incluindo o `.mov` do iPhone (marca `qt  `). */
-export function ehVideo(inicio: Uint8Array): boolean {
+export function isVideoBytes(inicio: Uint8Array): boolean {
   const marca = marcaIsoBmff(inicio);
   return marca !== null && MARCAS_VIDEO.includes(marca);
 }
@@ -155,7 +155,7 @@ export function validarDeclaracao(mime: string, bytes: number): ErroMidia | null
  */
 export function validarConteudo(mimeDeclarado: string, inicio: Uint8Array): ErroMidia | null {
   if (isVideoMime(mimeDeclarado)) {
-    if (!ehVideo(inicio)) {
+    if (!isVideoBytes(inicio)) {
       return {
         code: "midia.conteudo_nao_confere",
         details: { declarado: mimeDeclarado, detectado: null },

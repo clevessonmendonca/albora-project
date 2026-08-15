@@ -28,10 +28,12 @@ export { chaveThumbDeFull, derivarChaveMidia, prefixoDoEvento } from "./chaves";
 export type { ErroMidia, TipoAceito, TipoEntrada, TipoVideo } from "./midia";
 export {
   detectarTipo,
-  ehHeic,
+  isHeic,
+  isHeic as ehHeic,
   isVideoMime,
   isVideoMime as ehMimeVideo,
-  ehVideo,
+  isVideoBytes,
+  isVideoBytes as ehVideo,
   LADO_MAIOR,
   MAX_BYTES,
   MAX_BYTES_VIDEO,
