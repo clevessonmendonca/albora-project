@@ -1,0 +1,179 @@
+import {
+  type ErroDoRecado,
+  validarCriacao,
+  validarRascunho,
+  type Recado,
+} from "@albora/core";
+import {
+  atualizarRecado,
+  comEvento,
+  ErroRecadoJaExiste,
+  gravarRecado,
+  recadoDoEvento,
+} from "@albora/db";
+import {
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireConfig,
+  requireHostEvent,
+  requireHostSession,
+  unexpectedError,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { consume } from "@/lib/rate-limit-store";
+import { clientSentStorageKey } from "./guestbook-body";
+
+export const dynamic = "force-dynamic";
+
+const ADMIN_SESSAO = {
+  code: "admin.sem_sessao",
+  message: "Entre no painel para continuar",
+} as const;
+
+type Corpo = {
+  texto?: unknown;
+  publicaEm?: unknown;
+  chave?: unknown;
+  audio?: unknown;
+};
+
+function serializar(recado: Recado | null) {
+  if (!recado) return { recado: null };
+  return {
+    recado: {
+      id: recado.id,
+      texto: recado.texto,
+      publicaEm: recado.publicaEm?.toISOString() ?? null,
+    },
+  };
+}
+
+function mapErro(erro: ErroDoRecado) {
+  switch (erro.code) {
+    case "recado.texto_obrigatorio":
+      return errorResponse(422, erro.code, "O recado precisa de um texto");
+    case "recado.texto_longo_demais":
+      return errorResponse(422, erro.code, "Texto longo demais", erro.details);
+    case "recado.audio_vazio":
+    case "recado.audio_longo_demais":
+      return errorResponse(422, erro.code, "Áudio inválido", "details" in erro ? erro.details : undefined);
+    case "recado.ja_existe":
+      return errorResponse(409, erro.code, "Este evento já tem um recado", erro.details);
+  }
+}
+
+function parsePublicaEm(valor: unknown): Date | null | Response {
+  if (valor === undefined || valor === null || valor === "") return null;
+  if (typeof valor !== "string") {
+    return errorResponse(422, "validation_error", "Horário inválido", { campos: ["publicaEm"] });
+  }
+  const data = new Date(valor);
+  if (Number.isNaN(data.getTime())) {
+    return errorResponse(422, "validation_error", "Horário inválido", { campos: ["publicaEm"] });
+  }
+  return data;
+}
+
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ eventId: string }> },
+) {
+  const cfgErr = requireConfig("admin");
+  if (cfgErr) return cfgErr;
+
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
+
+  const { eventId } = await params;
+  const owned = await requireHostEvent(auth.host.accountId, eventId);
+  if (owned instanceof Response) return owned;
+
+  try {
+    const recado = await comEvento(getPool(), eventId, (c) => recadoDoEvento(c, eventId));
+    return jsonOk(serializar(recado));
+  } catch (e) {
+    return unexpectedError("admin.recado.get", e);
+  }
+}
+
+/**
+ * O anfitriao escreve ou edita o recado (spec 019). Um por evento: o
+ * primeiro INSERT cria, o seguinte UPDATE troca texto e horario. A chave
+ * de storage, se vier no JSON, e recusada — o cliente nunca a informa.
+ */
+export async function PUT(
+  req: Request,
+  { params }: { params: Promise<{ eventId: string }> },
+) {
+  const cfgErr = requireConfig("admin");
+  if (cfgErr) return cfgErr;
+
+  const auth = await requireHostSession(req, ADMIN_SESSAO);
+  if (auth instanceof Response) return auth;
+
+  const { eventId } = await params;
+
+  const limite = consume(`admin_recado:${auth.host.accountId}`, 30, 60, Date.now());
+  if (!limite.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limite.resetInSeconds,
+    });
+  }
+
+  const owned = await requireHostEvent(auth.host.accountId, eventId);
+  if (owned instanceof Response) return owned;
+
+  const parsed = await parseJsonBody<Corpo>(req);
+  if (parsed instanceof Response) return parsed;
+  const corpo = parsed.data;
+
+  if (clientSentStorageKey(corpo as Record<string, unknown>)) {
+    return errorResponse(422, "recado.chave_do_cliente", "A chave de storage não vem do cliente");
+  }
+
+  if (typeof corpo.texto !== "string") {
+    return errorResponse(422, "validation_error", "Texto inválido", { campos: ["texto"] });
+  }
+
+  const publicaEm = parsePublicaEm(corpo.publicaEm);
+  if (publicaEm instanceof Response) return publicaEm;
+
+  const rascunho = { texto: corpo.texto, audio: null, publicaEm };
+
+  try {
+    const salvo = await comEvento(getPool(), eventId, async (c) => {
+      const existente = await recadoDoEvento(c, eventId);
+
+      if (existente === null) {
+        const erro = validarCriacao([], eventId, rascunho);
+        if (erro) return { ok: false as const, erro };
+        const recado = await gravarRecado(c, {
+          eventoId: eventId,
+          texto: rascunho.texto.trim(),
+          publicaEm,
+        });
+        return { ok: true as const, recado };
+      }
+
+      const erro = validarRascunho(rascunho);
+      if (erro) return { ok: false as const, erro };
+      const recado = await atualizarRecado(c, {
+        eventoId: eventId,
+        texto: rascunho.texto.trim(),
+        publicaEm,
+      });
+      return { ok: true as const, recado: recado ?? existente };
+    });
+
+    if (!salvo.ok) return mapErro(salvo.erro);
+
+    console.log("admin.recado_salvo", { accountId: auth.host.accountId, eventId });
+    return jsonOk(serializar(salvo.recado));
+  } catch (e) {
+    if (e instanceof ErroRecadoJaExiste) {
+      return errorResponse(409, e.code, "Este evento já tem um recado", { eventoId: eventId });
+    }
+    return unexpectedError("admin.recado.put", e);
+  }
+}
