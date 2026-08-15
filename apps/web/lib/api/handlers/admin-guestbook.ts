@@ -1,15 +1,15 @@
 import {
-  type ErroDoRecado,
-  validarCriacao,
-  validarRascunho,
-  type Recado,
+  type GuestbookError,
+  validateGuestbookCreation,
+  validateGuestbookDraft,
+  type GuestbookEntry,
 } from "@albora/core";
 import {
-  atualizarRecado,
-  comEvento,
-  ErroRecadoJaExiste,
-  gravarRecado,
-  recadoDoEvento,
+  updateGuestbook,
+  withEvent,
+  GuestbookExistsError,
+  insertGuestbook,
+  eventGuestbook,
 } from "@albora/db";
 import {
   ADMIN_SESSION_REQUIRED,
@@ -34,7 +34,7 @@ type Corpo = {
   audio?: unknown;
 };
 
-function serializar(recado: Recado | null) {
+function serializar(recado: GuestbookEntry | null) {
   if (!recado) return { recado: null };
   return {
     recado: {
@@ -45,7 +45,7 @@ function serializar(recado: Recado | null) {
   };
 }
 
-function mapErro(erro: ErroDoRecado) {
+function mapErro(erro: GuestbookError) {
   switch (erro.code) {
     case "recado.texto_obrigatorio":
       return errorResponse(422, erro.code, "O recado precisa de um texto");
@@ -86,7 +86,7 @@ export async function GET(
   if (owned instanceof Response) return owned;
 
   try {
-    const recado = await comEvento(getPool(), eventId, (c) => recadoDoEvento(c, eventId));
+    const recado = await withEvent(getPool(), eventId, (c) => eventGuestbook(c, eventId));
     return jsonOk(serializar(recado));
   } catch (e) {
     return unexpectedError("admin.recado.get", e);
@@ -138,13 +138,13 @@ export async function PUT(
   const rascunho = { texto: corpo.texto, audio: null, publicaEm };
 
   try {
-    const salvo = await comEvento(getPool(), eventId, async (c) => {
-      const existente = await recadoDoEvento(c, eventId);
+    const salvo = await withEvent(getPool(), eventId, async (c) => {
+      const existente = await eventGuestbook(c, eventId);
 
       if (existente === null) {
-        const erro = validarCriacao([], eventId, rascunho);
+        const erro = validateGuestbookCreation([], eventId, rascunho);
         if (erro) return { ok: false as const, erro };
-        const recado = await gravarRecado(c, {
+        const recado = await insertGuestbook(c, {
           eventoId: eventId,
           texto: rascunho.texto.trim(),
           publicaEm,
@@ -152,9 +152,9 @@ export async function PUT(
         return { ok: true as const, recado };
       }
 
-      const erro = validarRascunho(rascunho);
+      const erro = validateGuestbookDraft(rascunho);
       if (erro) return { ok: false as const, erro };
-      const recado = await atualizarRecado(c, {
+      const recado = await updateGuestbook(c, {
         eventoId: eventId,
         texto: rascunho.texto.trim(),
         publicaEm,
@@ -167,7 +167,7 @@ export async function PUT(
     console.log("admin.recado_salvo", { accountId: auth.host.accountId, eventId });
     return jsonOk(serializar(salvo.recado));
   } catch (e) {
-    if (e instanceof ErroRecadoJaExiste) {
+    if (e instanceof GuestbookExistsError) {
       return errorResponse(409, e.code, "Este evento já tem um recado", { eventoId: eventId });
     }
     return unexpectedError("admin.recado.put", e);

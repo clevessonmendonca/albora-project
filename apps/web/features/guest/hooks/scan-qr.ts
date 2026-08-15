@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { eventEntryPath, extrairSlug } from "@/lib/qr";
+import { eventEntryPath, extractSlug } from "@/lib/qr";
 
 const FORMATO_QR = "qr_code";
 const INTERVALO_LEITURA = 350;
@@ -103,7 +103,7 @@ export function useScanQr() {
 
   function enviarCodigo(evento?: React.FormEvent) {
     evento?.preventDefault();
-    const slug = extrairSlug(codigo);
+    const slug = extractSlug(codigo);
     if (slug === null) {
       setNaoEntendi(true);
       return;
@@ -158,7 +158,7 @@ async function procurar(
   }
 
   for (const item of codigos) {
-    const slug = extrairSlug(item.rawValue);
+    const slug = extractSlug(item.rawValue);
     if (slug !== null) {
       achou(slug);
       return;

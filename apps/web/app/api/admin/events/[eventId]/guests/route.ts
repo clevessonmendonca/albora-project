@@ -3,7 +3,7 @@ import {
   lerFunilAgregado,
   lerMetricasAoVivo,
 } from "@albora/db";
-import { decidirTese, type CodigoDaTese } from "@albora/core";
+import { decideThesis, type CodigoDaTese } from "@albora/core";
 import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
@@ -54,7 +54,7 @@ export async function GET(
       return { metricas, funil };
     });
 
-    const veredito = decidirTese({
+    const veredito = decideThesis({
       expectedGuests: evento.expectedGuests,
       sessoesComUpload: dados.metricas.sessoesComUpload,
     });

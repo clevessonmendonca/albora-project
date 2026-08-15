@@ -1,5 +1,5 @@
 import { criarSessao, ErroNomeInvalido } from "@albora/db";
-import { parseViaDeEntrada } from "@albora/core";
+import { parseEntryVia } from "@albora/core";
 import { recordFunnelEntry } from "@/features/guest/lib/record-funnel";
 import {
   sessionCookieHeader,
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
   }
 
   const cfg = config();
-  const via = parseViaDeEntrada(viaBruto);
+  const via = parseEntryVia(viaBruto);
 
   try {
     const { token, sessaoId } = await criarSessao(getPool(), cfg.sessionSecret, {

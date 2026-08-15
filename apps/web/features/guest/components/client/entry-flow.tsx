@@ -1,6 +1,6 @@
 "use client";
 
-import type { ViaDeEntrada } from "@albora/core";
+import type { EntryVia } from "@albora/core";
 import { useEffect, useState } from "react";
 import { registerServiceWorker } from "@/lib/register-sw";
 import {
@@ -45,7 +45,7 @@ export function EntryFlow({
   slug: string;
   nomeEvento: string;
   saudacao: string;
-  via: ViaDeEntrada;
+  via: EntryVia;
 }) {
   const [etapa, setEtapa] = useState<Etapa>("entrada");
   const [nome, setNome] = useState("");

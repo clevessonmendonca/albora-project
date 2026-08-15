@@ -1,14 +1,14 @@
 import {
-  decidirEntrega,
-  montarTela,
-  telaTemConteudo,
-  type Recado,
+  buildGuestbookScreen,
+  decideDelivery,
+  guestbookScreenHasContent,
+  type GuestbookEntry,
 } from "@albora/core";
 import {
-  comEvento,
-  leiturasDoRecado,
-  marcarRecadoLido,
-  recadoDoEvento,
+  guestbookReads,
+  markGuestbookRead,
+  eventGuestbook,
+  withEvent,
 } from "@albora/db";
 import {
   enforceRateLimit,
@@ -21,16 +21,16 @@ import { getPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-function serializarTela(
-  recado: Recado | null,
+function screenPayload(
+  recado: GuestbookEntry | null,
   sessaoId: string,
   eventoId: string,
-  leituras: Awaited<ReturnType<typeof leiturasDoRecado>>,
+  leituras: Awaited<ReturnType<typeof guestbookReads>>,
 ) {
-  const entrega = decidirEntrega(recado, { id: sessaoId, eventoId }, leituras, new Date());
-  const tela = montarTela(entrega, "indisponivel");
+  const entrega = decideDelivery(recado, { id: sessaoId, eventoId }, leituras, new Date());
+  const tela = buildGuestbookScreen(entrega, "indisponivel");
   return {
-    mostrar: entrega.mostrar && telaTemConteudo(tela),
+    mostrar: entrega.mostrar && guestbookScreenHasContent(tela),
     codigo: entrega.codigo,
     tela: { texto: tela.texto, camera: tela.camera },
   };
@@ -52,10 +52,10 @@ export async function GET(req: Request) {
   if (mismatch) return mismatch;
 
   try {
-    const corpo = await comEvento(getPool(), auth.session.eventoId, async (c) => {
-      const recado = await recadoDoEvento(c, auth.session.eventoId);
-      const leituras = await leiturasDoRecado(c, auth.session.eventoId, auth.session.sessaoId);
-      return serializarTela(recado, auth.session.sessaoId, auth.session.eventoId, leituras);
+    const corpo = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+      const recado = await eventGuestbook(c, auth.session.eventoId);
+      const leituras = await guestbookReads(c, auth.session.eventoId, auth.session.sessaoId);
+      return screenPayload(recado, auth.session.sessaoId, auth.session.eventoId, leituras);
     });
 
     return jsonOk(corpo);
@@ -81,10 +81,10 @@ export async function POST(req: Request) {
 
   try {
     const agora = new Date();
-    const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
-      const recado = await recadoDoEvento(c, auth.session.eventoId);
-      const leituras = await leiturasDoRecado(c, auth.session.eventoId, auth.session.sessaoId);
-      const entrega = decidirEntrega(
+    const resultado = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+      const recado = await eventGuestbook(c, auth.session.eventoId);
+      const leituras = await guestbookReads(c, auth.session.eventoId, auth.session.sessaoId);
+      const entrega = decideDelivery(
         recado,
         { id: auth.session.sessaoId, eventoId: auth.session.eventoId },
         leituras,
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
         return { lido: entrega.codigo === "recado.ja_lido", codigo: entrega.codigo };
       }
 
-      await marcarRecadoLido(c, {
+      await markGuestbookRead(c, {
         eventoId: auth.session.eventoId,
         sessaoId: auth.session.sessaoId,
         recadoId: entrega.recado.id,

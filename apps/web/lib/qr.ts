@@ -6,7 +6,7 @@
  * só o slug sobrevive, e o caminho é remontado aqui, com `via` no query.
  */
 
-import type { ViaDeEntrada } from "@albora/core";
+import type { EntryVia } from "@albora/core";
 
 /** Minúscula, dígito e hífen entre blocos. Sem hífen na ponta, sem hífen duplo. */
 const PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -58,11 +58,11 @@ export function eventPath(slug: string): string {
 }
 
 /** Entrada do convidado com canal (`via=qr` na peça; `wa`/`link` no convite). */
-export function eventEntryPath(slug: string, via: ViaDeEntrada): string {
+export function eventEntryPath(slug: string, via: EntryVia): string {
   return `${eventPath(slug)}?via=${via}`;
 }
 
-export function eventEntryUrl(origin: string, slug: string, via: ViaDeEntrada): string {
+export function eventEntryUrl(origin: string, slug: string, via: EntryVia): string {
   return `${origin}${eventEntryPath(slug, via)}`;
 }
 
