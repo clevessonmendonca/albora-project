@@ -103,8 +103,8 @@ export function GuestFunnel({ eventoId }: Props) {
       <AdminSection>
         <h2 className="mb-4 mt-0 font-titulo text-lg">Funil da noite</h2>
         <p className="mb-4 mt-0 text-[0.8125rem] text-ink-3">
-          Derivado das sessões reais. Quando a instrumentação completa entrar, estes degraus
-          passam a ler `funnel_events`.
+          Cada degrau conta sessões que chegaram até ali. Refresh do QR e da
+          primeira abertura do feed não entram de novo.
         </p>
         <div className="flex flex-col gap-2">
           {resumo.degraus.map((d) => (
