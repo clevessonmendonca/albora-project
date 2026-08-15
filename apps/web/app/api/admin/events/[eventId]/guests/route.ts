@@ -81,6 +81,7 @@ export async function GET(
       degraus: dados.funil.degraus,
       uploadsAntesDoFeed: dados.funil.uploadsAntesDoFeed,
       uploadsDepoisDoFeed: dados.funil.uploadsDepoisDoFeed,
+      entradasPorVia: dados.funil.entradasPorVia,
       ultimas,
     });
   } catch (e) {

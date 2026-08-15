@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { caminhoDoEvento, extrairSlug } from "@/lib/qr";
+import { eventEntryPath, extrairSlug } from "@/lib/qr";
 
 const FORMATO_QR = "qr_code";
 const INTERVALO_LEITURA = 350;
@@ -15,7 +15,7 @@ type ConstrutorDetector = {
 };
 
 export function goToEvent(slug: string) {
-  window.location.href = caminhoDoEvento(slug);
+  window.location.href = eventEntryPath(slug, "qr");
 }
 
 export function useScanQr() {

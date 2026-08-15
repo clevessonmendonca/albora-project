@@ -2,10 +2,11 @@
  * O conteúdo de um QR é dado de terceiro.
  *
  * A placa fica seis horas numa mesa sem ninguém olhando, e um adesivo colado
- * por cima do original é ataque real. Por isso nada aqui devolve URL: o máximo
- * que sai é um slug já validado contra formato fechado, e quem navega monta o
- * caminho do próprio produto com ele. O host do QR nunca é destino.
+ * por cima do original é ataque real. Por isso o host do QR nunca é destino:
+ * só o slug sobrevive, e o caminho é remontado aqui, com `via` no query.
  */
+
+import type { ViaDeEntrada } from "@albora/core";
 
 /** Minúscula, dígito e hífen entre blocos. Sem hífen na ponta, sem hífen duplo. */
 const PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -54,6 +55,19 @@ export function extractSlug(content: string): string | null {
 /** O único lugar que monta o destino. O slug entra já validado. */
 export function eventPath(slug: string): string {
   return `/e/${encodeURIComponent(slug)}`;
+}
+
+/** Entrada do convidado com canal (`via=qr` na peça; `wa`/`link` no convite). */
+export function eventEntryPath(slug: string, via: ViaDeEntrada): string {
+  return `${eventPath(slug)}?via=${via}`;
+}
+
+export function eventEntryUrl(origin: string, slug: string, via: ViaDeEntrada): string {
+  return `${origin}${eventEntryPath(slug, via)}`;
+}
+
+export function whatsappInviteUrl(origin: string, slug: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(eventEntryUrl(origin, slug, "wa"))}`;
 }
 
 function asUrl(raw: string): URL | null {

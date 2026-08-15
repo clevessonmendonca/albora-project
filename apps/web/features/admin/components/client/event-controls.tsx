@@ -4,6 +4,7 @@ import { interacaoAberta, eventDefaults } from "@albora/core";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
 
 type WireModeration = {
   panico: boolean;
@@ -225,7 +226,8 @@ export function EventControls({
 
       <AdminSection>
         <h2 className="mb-4 mt-0 font-titulo text-lg">Links do evento</h2>
-        <EventLink title="Convidado (QR)" url={`${origin}/e/${slug}`} />
+        <EventLink title="Link do convidado" url={eventEntryUrl(origin, slug, "link")} />
+        <EventLink title="WhatsApp" url={whatsappInviteUrl(origin, slug)} />
         <EventLink title="Telão" url={`${origin}/wall-display`} />
       </AdminSection>
 

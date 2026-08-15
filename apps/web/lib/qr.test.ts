@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { caminhoDoEvento, extrairSlug, slugValido } from "./qr";
+import { caminhoDoEvento, eventEntryPath, eventEntryUrl, extrairSlug, slugValido, whatsappInviteUrl } from "./qr";
 
 describe("o QR pode trazer URL ou só o código, e os dois entram", () => {
   it("o código sozinho, que é o que está impresso ao lado do QR", () => {
@@ -24,6 +24,7 @@ describe("o QR pode trazer URL ou só o código, e os dois entram", () => {
 
   it("barra no fim, query e âncora não atrapalham", () => {
     expect(extrairSlug("https://albora.com.br/e/festa-demo/?x=1#topo")).toBe("festa-demo");
+    expect(extrairSlug("https://albora.com.br/e/festa-demo?via=qr")).toBe("festa-demo");
   });
 
   it("percent-encoding é decodificado antes de validar, nunca depois", () => {
@@ -99,6 +100,17 @@ describe("um QR colado por cima do original não redireciona ninguém", () => {
     const slug = extrairSlug("../../admin");
     expect(slug).toBe("admin");
     expect(caminhoDoEvento(slug as string)).toBe("/e/admin");
+  });
+});
+
+describe("via marca o canal sem mudar o slug", () => {
+  it("peça impressa leva via=qr; convite, wa ou link", () => {
+    expect(eventEntryPath("festa-demo", "qr")).toBe("/e/festa-demo?via=qr");
+    expect(eventEntryUrl("https://albora.app", "festa-demo", "link")).toBe(
+      "https://albora.app/e/festa-demo?via=link",
+    );
+    expect(whatsappInviteUrl("https://albora.app", "festa-demo")).toContain("via%3Dwa");
+    expect(whatsappInviteUrl("https://albora.app", "festa-demo")).toContain("wa.me");
   });
 });
 

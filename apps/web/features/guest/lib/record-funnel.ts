@@ -1,4 +1,4 @@
-import type { EventoDoFunil } from "@albora/core";
+import type { EventoDoFunil, ViaDeEntrada } from "@albora/core";
 import { comEvento, registrarEntradaDoFunil, registrarEventoDoFunil } from "@albora/db";
 import { getPool } from "@/lib/db";
 
@@ -23,9 +23,13 @@ export async function recordFunnelEvent(
   }
 }
 
-export async function recordFunnelEntry(eventId: string, sessionId: string): Promise<void> {
+export async function recordFunnelEntry(
+  eventId: string,
+  sessionId: string,
+  via: ViaDeEntrada,
+): Promise<void> {
   try {
-    await comEvento(getPool(), eventId, (c) => registrarEntradaDoFunil(c, sessionId));
+    await comEvento(getPool(), eventId, (c) => registrarEntradaDoFunil(c, sessionId, via));
   } catch (e) {
     console.error("funil.falhou", { eventoId: eventId, name: "entrada", erro: String(e) });
   }

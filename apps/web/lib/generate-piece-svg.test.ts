@@ -23,6 +23,18 @@ describe("generatePieceSvg", () => {
     expect(resultado.avisos.length).toBeGreaterThan(0);
   });
 
+  it("via=qr no QR não aparece na URL impressa", async () => {
+    const resultado = await generatePieceSvg({
+      ...entradaBase,
+      formato: "placa-a4",
+      urlQr: "https://albora.app/e/festa-demo?via=qr",
+    });
+
+    expect(resultado.problemas).toEqual([]);
+    expect(resultado.svg).toContain("albora.app/e/festa-demo");
+    expect(resultado.svg).not.toContain("via=qr");
+  });
+
   it("recusa peça sem URL legível", async () => {
     const resultado = await generatePieceSvg({
       ...entradaBase,

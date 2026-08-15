@@ -14,6 +14,7 @@ import {
   resolveIdentityPreviewVars,
 } from "@/features/admin/lib/identity-preview";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
 
 const OPTIONS = Object.values(PACKS).map((p) => ({ id: p.id, nome: resolvePackText(p, "evento.nome") }));
 
@@ -325,7 +326,8 @@ function Result({ created }: { created: Created }) {
         código que aparece nela.
       </p>
       <Link title="Controles durante a festa" url={`${origin}/admin/e/${created.eventoId}`} />
-      <Link title="Link do convidado (QR)" url={`${origin}/e/${created.slug}`} />
+      <Link title="Link do convidado" url={eventEntryUrl(origin, created.slug, "link")} />
+      <Link title="WhatsApp" url={whatsappInviteUrl(origin, created.slug)} />
       <a
         href={`/admin/e/${created.eventoId}`}
         className={`${adminClasses.primaryButton} block py-3.5 text-center text-[1.05rem]`}

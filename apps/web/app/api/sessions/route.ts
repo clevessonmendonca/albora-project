@@ -1,4 +1,5 @@
 import { criarSessao, ErroNomeInvalido } from "@albora/db";
+import { parseViaDeEntrada } from "@albora/core";
 import { recordFunnelEntry } from "@/features/guest/lib/record-funnel";
 import {
   sessionCookieHeader,
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 const CONSENTIMENTO_VIGENTE = "v1";
 
-type Corpo = { eventoId?: unknown; nome?: unknown; consentimento?: unknown };
+type Corpo = { eventoId?: unknown; nome?: unknown; consentimento?: unknown; via?: unknown };
 
 /**
  * Terceiro toque do fluxo: QR → consentimento → nome → sessão.
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
   const parsed = await parseJsonBody<Corpo>(req);
   if (parsed instanceof Response) return parsed;
 
-  const { eventoId, nome, consentimento } = parsed.data;
+  const { eventoId, nome, consentimento, via: viaBruto } = parsed.data;
 
   if (typeof eventoId !== "string" || typeof nome !== "string") {
     return errorResponse(422, "validation_error", "Dados incompletos", {
@@ -53,6 +54,7 @@ export async function POST(req: Request) {
   }
 
   const cfg = config();
+  const via = parseViaDeEntrada(viaBruto);
 
   try {
     const { token, sessaoId } = await criarSessao(getPool(), cfg.sessionSecret, {
@@ -60,9 +62,10 @@ export async function POST(req: Request) {
       nome,
       consentimentoVersao: CONSENTIMENTO_VIGENTE,
       duracaoHoras: cfg.duracaoSessaoHoras,
+      via,
     });
 
-    await recordFunnelEntry(eventoId, sessaoId);
+    await recordFunnelEntry(eventoId, sessaoId, via);
 
     console.log("sessao.criada", { eventoId, sessaoId });
 

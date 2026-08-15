@@ -1,5 +1,6 @@
 import { resolverSlug } from "@albora/db";
 import { PACKS, resolvePackText } from "@albora/packs";
+import { parseViaDeEntrada } from "@albora/core";
 import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
@@ -20,7 +21,7 @@ import { EventNotice } from "@/features/guest/components/client/event-notice";
  */
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ via?: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -38,8 +39,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function Pagina({ params }: Props) {
+export default async function Pagina({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { via: viaParam } = await searchParams;
+  const via = parseViaDeEntrada(viaParam);
   const r = await resolverSlug(getPool(), slug, new Date());
 
   if (r.estado === "desconhecido") {
@@ -108,6 +111,7 @@ export default async function Pagina({ params }: Props) {
       <EntryFlow
         eventoId={r.evento.eventoId}
         slug={slug}
+        via={via}
         nomeEvento={
           PACKS[r.evento.packId] ? resolvePackText(PACKS[r.evento.packId]!, "landing.exemplo.nome") : "A festa"
         }

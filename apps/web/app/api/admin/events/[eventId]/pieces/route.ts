@@ -17,6 +17,7 @@ import { getPool } from "@/lib/db";
 import { generatePiecePdf } from "@/lib/generate-piece-pdf";
 import { generatePieceSvg } from "@/lib/generate-piece-svg";
 import { identityToFrame } from "@/lib/frame-identity";
+import { eventEntryUrl } from "@/lib/qr";
 import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
@@ -133,7 +134,7 @@ export async function GET(
     const origem = url.origin;
     const entrada = {
       formato,
-      urlQr: `${origem}/e/${encodeURIComponent(dados.slug)}`,
+      urlQr: eventEntryUrl(origem, dados.slug, "qr"),
       urlLegivel: `${url.host}/e/${dados.slug}`,
       monograma: identidade.monograma,
       titulo: identidade.titulo,

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ViaDeEntrada } from "@albora/core";
 import { useEffect, useState } from "react";
 import { registerServiceWorker } from "@/lib/register-sw";
 import {
@@ -38,11 +39,13 @@ export function EntryFlow({
   slug,
   nomeEvento,
   saudacao,
+  via,
 }: {
   eventoId: string;
   slug: string;
   nomeEvento: string;
   saudacao: string;
+  via: ViaDeEntrada;
 }) {
   const [etapa, setEtapa] = useState<Etapa>("entrada");
   const [nome, setNome] = useState("");
@@ -73,7 +76,7 @@ export function EntryFlow({
         method: "POST",
         headers: { "content-type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ eventoId, nome, consentimento: CONSENTIMENTO }),
+        body: JSON.stringify({ eventoId, nome, consentimento: CONSENTIMENTO, via }),
       });
 
       if (!res.ok) {

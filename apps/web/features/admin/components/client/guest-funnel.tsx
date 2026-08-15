@@ -14,6 +14,7 @@ type Resumo = {
   degraus: DegrauDoFunil[];
   uploadsAntesDoFeed: number;
   uploadsDepoisDoFeed: number;
+  entradasPorVia: { qr: number; wa: number; link: number };
   ultimas: { id: string; thumb: string; criadaEm: string }[];
 };
 
@@ -105,8 +106,9 @@ export function GuestFunnel({ eventoId }: Props) {
       <AdminSection>
         <h2 className="mb-4 mt-0 font-titulo text-lg">Funil da noite</h2>
         <p className="mb-4 mt-0 text-[0.8125rem] text-ink-3">
-          Cada degrau conta sessões que chegaram até ali. Refresh do QR e da
-          primeira abertura do feed não entram de novo.
+          Cada degrau conta sessões que chegaram até ali — a espinha é cumulativa, então QR e
+          abrir o evento podem parecer iguais. O canal, abaixo, é quem veio da peça, do WhatsApp
+          ou de um link copiado.
         </p>
         <div className="flex flex-col gap-2">
           {resumo.degraus.map((d) => (
@@ -121,6 +123,18 @@ export function GuestFunnel({ eventoId }: Props) {
               </span>
             </div>
           ))}
+        </div>
+      </AdminSection>
+
+      <AdminSection>
+        <h2 className="mb-4 mt-0 font-titulo text-lg">Como chegaram</h2>
+        <p className="mb-4 mt-0 text-[0.8125rem] text-ink-3">
+          QR é só a peça impressa. WhatsApp e link copiado abrem o evento sem contar como scan.
+        </p>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
+          <Stat n={String(resumo.entradasPorVia?.qr ?? 0)} rotulo="QR impresso" />
+          <Stat n={String(resumo.entradasPorVia?.wa ?? 0)} rotulo="WhatsApp" />
+          <Stat n={String(resumo.entradasPorVia?.link ?? 0)} rotulo="link copiado" />
         </div>
       </AdminSection>
 
