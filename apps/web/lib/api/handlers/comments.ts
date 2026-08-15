@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
 import {
-  type CodigoDeComentario,
-  modoInteracao,
-  montarThread,
-  publicarComentario,
-  validarTexto,
+  type CommentCode,
+  buildCommentThread,
+  interactionOpen,
+  publishComment,
+  validateCommentText,
 } from "@albora/core";
 import {
   type ComentarioComAutor,
@@ -28,48 +28,54 @@ import {
 import { classifyCommentAfter } from "@/lib/classify-comment";
 import { getPool } from "@/lib/db";
 
-type Corpo = {
+type Body = {
   uploadId?: unknown;
   texto?: unknown;
   respostaA?: unknown;
   id?: unknown;
 };
 
-type Saida =
+type Outcome =
   | { ok: true; comentario: ComentarioGravado }
   | { ok: false; status: number; code: string; message: string };
 
-function mapearFalha(codigo: CodigoDeComentario): Saida {
-  switch (codigo) {
+function mapFailure(code: CommentCode): Outcome {
+  switch (code) {
     case "comentario.gate_fechado":
     case "comentario.outro_evento":
-      return { ok: false, status: 403, code: codigo, message: "Comentário recusado" };
+      return { ok: false, status: 403, code, message: "Comentário recusado" };
     case "comentario.texto_vazio":
     case "comentario.texto_longo":
     case "comentario.resposta_ausente":
-      return { ok: false, status: 422, code: codigo, message: "Comentário inválido" };
+      return { ok: false, status: 422, code, message: "Comentário inválido" };
   }
 }
 
-function paraJson(c: ComentarioComAutor, sessaoAtual: string) {
+function toJson(c: ComentarioComAutor, currentSessionId: string) {
   return {
     id: c.id,
     autor: c.autor,
     texto: c.texto,
     respostaA: c.respostaA,
     criadaEm: c.criadoEm.toISOString(),
-    meu: c.sessaoId === sessaoAtual,
+    meu: c.sessaoId === currentSessionId,
     sessaoAutor: c.sessaoId,
   };
 }
 
-function eventoDivergente(req: Request, eventoId: string, sessaoId: string) {
-  const eventoPedido = new URL(req.url).searchParams.get("evento");
-  if (eventoPedido !== null && eventoPedido !== eventoId) {
-    console.warn("comentarios.evento_divergente", { eventoId, sessaoId });
+function eventMismatch(req: Request, eventId: string, sessionId: string) {
+  const requestedEvent = new URL(req.url).searchParams.get("evento");
+  if (requestedEvent !== null && requestedEvent !== eventId) {
+    console.warn("comentarios.evento_divergente", { eventoId: eventId, sessaoId: sessionId });
     return errorResponse(403, "comentarios.evento_divergente", "Esta sessão não pertence a este evento");
   }
   return null;
+}
+
+function gateIsOpen(
+  gate: { interacaoAbreEm: Date | null } | null,
+): gate is { interacaoAbreEm: Date | null } {
+  return gate !== null && interactionOpen(gate, new Date());
 }
 
 export async function GET(req: Request) {
@@ -79,8 +85,8 @@ export async function GET(req: Request) {
   const limited = enforceRateLimit(req, auth.session);
   if (limited) return limited;
 
-  const divergente = eventoDivergente(req, auth.session.eventoId, auth.session.sessaoId);
-  if (divergente) return divergente;
+  const mismatch = eventMismatch(req, auth.session.eventoId, auth.session.sessaoId);
+  if (mismatch) return mismatch;
 
   const uploadId = new URL(req.url).searchParams.get("upload_id");
   if (uploadId === null || !UUID_RE.test(uploadId)) {
@@ -90,19 +96,19 @@ export async function GET(req: Request) {
   try {
     const threads = await comEvento(getPool(), auth.session.eventoId, async (c) => {
       const gate = await gateDoEvento(c, auth.session.eventoId);
-      if (!gate || modoInteracao(gate, new Date()) !== "completo") return [];
+      if (!gateIsOpen(gate)) return [];
 
-      const comentarios = await listarComentariosVisiveisDaFoto(
+      const comments = await listarComentariosVisiveisDaFoto(
         c,
         auth.session.eventoId,
         uploadId,
         auth.session.sessaoId,
       );
-      const porId = new Map(comentarios.map((k) => [k.id, k]));
+      const byId = new Map(comments.map((row) => [row.id, row]));
 
-      return montarThread(comentarios, uploadId).map((t) => ({
-        ...paraJson(porId.get(t.raiz.id)!, auth.session.sessaoId),
-        respostas: t.respostas.map((r) => paraJson(porId.get(r.id)!, auth.session.sessaoId)),
+      return buildCommentThread(comments, uploadId).map((t) => ({
+        ...toJson(byId.get(t.raiz.id)!, auth.session.sessaoId),
+        respostas: t.respostas.map((r) => toJson(byId.get(r.id)!, auth.session.sessaoId)),
       }));
     });
 
@@ -125,10 +131,10 @@ export async function POST(req: Request) {
   const limited = enforceRateLimit(req, auth.session, { max: 60 });
   if (limited) return limited;
 
-  const divergente = eventoDivergente(req, auth.session.eventoId, auth.session.sessaoId);
-  if (divergente) return divergente;
+  const mismatch = eventMismatch(req, auth.session.eventoId, auth.session.sessaoId);
+  if (mismatch) return mismatch;
 
-  const parsed = await parseJsonBody<Corpo>(req);
+  const parsed = await parseJsonBody<Body>(req);
   if (parsed instanceof Response) return parsed;
 
   const { uploadId, texto, respostaA } = parsed.data;
@@ -140,23 +146,23 @@ export async function POST(req: Request) {
     return errorResponse(422, "validation_error", "Texto inválido", { campos: ["texto"] });
   }
 
-  const validado = validarTexto(texto);
-  if (!validado.ok) {
-    return errorResponse(422, validado.codigo, "Comentário inválido", { campos: ["texto"] });
+  const validated = validateCommentText(texto);
+  if (!validated.ok) {
+    return errorResponse(422, validated.codigo, "Comentário inválido", { campos: ["texto"] });
   }
 
-  let respostaAlvo: string | null = null;
+  let replyTo: string | null = null;
   if (respostaA !== undefined && respostaA !== null) {
     if (typeof respostaA !== "string" || !UUID_RE.test(respostaA)) {
       return errorResponse(422, "validation_error", "Resposta inválida", { campos: ["respostaA"] });
     }
-    respostaAlvo = respostaA;
+    replyTo = respostaA;
   }
 
   try {
-    const resultado = await comEvento(getPool(), auth.session.eventoId, async (c): Promise<Saida> => {
+    const result = await comEvento(getPool(), auth.session.eventoId, async (c): Promise<Outcome> => {
       const gate = await gateDoEvento(c, auth.session.eventoId);
-      if (!gate || modoInteracao(gate, new Date()) !== "completo") {
+      if (!gateIsOpen(gate)) {
         return {
           ok: false,
           status: 403,
@@ -165,67 +171,63 @@ export async function POST(req: Request) {
         };
       }
 
-      const existentes = await listarComentariosVisiveisDaFoto(
+      const existing = await listarComentariosVisiveisDaFoto(
         c,
         auth.session.eventoId,
         uploadId,
         auth.session.sessaoId,
       );
 
-      const idCliente =
+      const clientId =
         typeof parsed.data.id === "string" && UUID_RE.test(parsed.data.id)
           ? parsed.data.id
           : randomUUID();
 
-      const publicado = publicarComentario(
+      const published = publishComment(
         {
-          id: idCliente,
+          id: clientId,
           eventoId: auth.session.eventoId,
           midiaId: uploadId,
           sessaoId: auth.session.sessaoId,
-          texto: validado.texto,
-          respostaA: respostaAlvo,
+          texto: validated.texto,
+          respostaA: replyTo,
         },
         { id: auth.session.eventoId, interacaoAbreEm: gate.interacaoAbreEm },
-        existentes,
+        existing,
         new Date(),
       );
 
-      if (!publicado.ok) return mapearFalha(publicado.codigo);
+      if (!published.ok) return mapFailure(published.codigo);
 
-      const gravado = await gravarComentario(c, {
-        id: publicado.comentario.id,
-        eventoId: publicado.comentario.eventoId,
-        midiaId: publicado.comentario.midiaId,
-        sessaoId: publicado.comentario.sessaoId,
-        respostaA: publicado.comentario.respostaA,
-        texto: publicado.comentario.texto,
+      const saved = await gravarComentario(c, {
+        id: published.comentario.id,
+        eventoId: published.comentario.eventoId,
+        midiaId: published.comentario.midiaId,
+        sessaoId: published.comentario.sessaoId,
+        respostaA: published.comentario.respostaA,
+        texto: published.comentario.texto,
       });
 
-      return { ok: true, comentario: gravado };
+      return { ok: true, comentario: saved };
     });
 
-    if (!resultado.ok) return errorResponse(resultado.status, resultado.code, resultado.message);
+    if (!result.ok) return errorResponse(result.status, result.code, result.message);
 
     console.log("comentarios.publicado", {
       eventoId: auth.session.eventoId,
       sessaoId: auth.session.sessaoId,
-      comentarioId: resultado.comentario.id,
-      resposta: resultado.comentario.respostaA !== null,
+      comentarioId: result.comentario.id,
+      resposta: result.comentario.respostaA !== null,
     });
 
-    classifyCommentAfter(
-      auth.session.eventoId,
-      resultado.comentario.id,
-      resultado.comentario.texto,
-    );
+    classifyCommentAfter(auth.session.eventoId, result.comentario.id, result.comentario.texto);
 
     return jsonOk(
       {
-        id: resultado.comentario.id,
-        texto: resultado.comentario.texto,
-        respostaA: resultado.comentario.respostaA,
-        criadaEm: resultado.comentario.criadoEm.toISOString(),
+        id: result.comentario.id,
+        texto: result.comentario.texto,
+        respostaA: result.comentario.respostaA,
+        criadaEm: result.comentario.criadoEm.toISOString(),
       },
       { status: 201 },
     );
@@ -244,32 +246,30 @@ export async function DELETE(req: Request) {
   const limited = enforceRateLimit(req, auth.session, { max: 60 });
   if (limited) return limited;
 
-  const eventoPedido = new URL(req.url).searchParams.get("evento");
-  if (eventoPedido !== null && eventoPedido !== auth.session.eventoId) {
-    return errorResponse(403, "comentarios.evento_divergente", "Esta sessão não pertence a este evento");
-  }
+  const mismatch = eventMismatch(req, auth.session.eventoId, auth.session.sessaoId);
+  if (mismatch) return mismatch;
 
   const parsed = await parseJsonBody<{ comentarioId?: unknown }>(req);
   if (parsed instanceof Response) return parsed;
 
-  const comentarioId =
+  const commentId =
     typeof parsed.data.comentarioId === "string" && UUID_RE.test(parsed.data.comentarioId)
       ? parsed.data.comentarioId
       : null;
-  if (!comentarioId) {
+  if (!commentId) {
     return errorResponse(422, "validation_error", "Comentário inválido", { campos: ["comentarioId"] });
   }
 
   try {
-    const removido = await comEvento(getPool(), auth.session.eventoId, async (c) => {
+    const removed = await comEvento(getPool(), auth.session.eventoId, async (c) => {
       const gate = await gateDoEvento(c, auth.session.eventoId);
-      if (!gate || modoInteracao(gate, new Date()) !== "completo") return false;
-      return removerComentario(c, { comentarioId, sessaoId: auth.session.sessaoId });
+      if (!gateIsOpen(gate)) return false;
+      return removerComentario(c, { comentarioId: commentId, sessaoId: auth.session.sessaoId });
     });
 
-    if (!removido) return errorResponse(403, "comentario.remover_negado", "Não foi possível remover");
+    if (!removed) return errorResponse(403, "comentario.remover_negado", "Não foi possível remover");
 
-    return jsonOk({ comentarioId, removido: true });
+    return jsonOk({ comentarioId: commentId, removido: true });
   } catch (e) {
     return unexpectedError("comentarios.remover", e);
   }

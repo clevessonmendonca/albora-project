@@ -13,7 +13,7 @@ import { cleanCaption, acceptedPlace } from "@/lib/details";
 
 export const dynamic = "force-dynamic";
 
-type Corpo = { uploadId?: unknown; legenda?: unknown; lugar?: unknown };
+type DetailsBody = { uploadId?: unknown; legenda?: unknown; lugar?: unknown };
 
 export async function POST(req: Request) {
   const auth = await requireGuestSession(req);
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   const limited = enforceRateLimit(req, auth.session);
   if (limited) return limited;
 
-  const parsed = await parseJsonBody<Corpo>(req);
+  const parsed = await parseJsonBody<DetailsBody>(req);
   if (parsed instanceof Response) return parsed;
 
   const { uploadId, legenda, lugar } = parsed.data;
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const anotado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
+    const annotated = await comEvento(getPool(), auth.session.eventoId, async (c) => {
       const packId = await packDoEvento(c, auth.session.eventoId);
 
       return anotarUpload(c, {
@@ -42,9 +42,9 @@ export async function POST(req: Request) {
       });
     });
 
-    console.log("detalhes.anotado", { eventoId: auth.session.eventoId, uploadId, anotado });
+    console.log("detalhes.anotado", { eventoId: auth.session.eventoId, uploadId, anotado: annotated });
 
-    return jsonOk({ uploadId, anotado });
+    return jsonOk({ uploadId, anotado: annotated });
   } catch (e) {
     return unexpectedError("detalhes", e);
   }

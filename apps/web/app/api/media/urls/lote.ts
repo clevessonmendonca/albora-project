@@ -1,4 +1,4 @@
-import { prefixoDoEvento } from "@albora/core";
+import { eventPrefix } from "@albora/core";
 
 /**
  * Teto do lote. Uma página de feed são 24 itens e duas variantes cada, e é
@@ -6,7 +6,7 @@ import { prefixoDoEvento } from "@albora/core";
  * de esgotamento — uma requisição pedindo dez mil chaves custa dez mil
  * assinaturas.
  */
-export const TETO_DE_CHAVES = 60;
+export const KEY_CAP = 60;
 
 /**
  * Validade da URL de leitura.
@@ -15,30 +15,30 @@ export const TETO_DE_CHAVES = 60;
  * noite; longa o bastante para uma rolagem de feed não expirar no meio dela —
  * o cliente renova com 60s de folga (`RENEWAL_BUFFER_MS`).
  */
-export const VALIDADE_GET_SEGUNDOS = 900;
+export const GET_TTL_SECONDS = 900;
 
 /**
- * A forma exata que `derivarChaveMidia` produz.
+ * A forma exata que `deriveMediaKey` produz.
  *
  * Conferir só o prefixo do evento deixaria de fora tudo que **mais tarde**
  * more debaixo de `events/{id}/` e não seja foto de convidado — export do
  * acervo, artefato de job. Conjunto fechado de variantes é o que impede que a
  * rota de leitura do feed vire chave-mestra do que ainda vai ser escrito ali.
  */
-const FORMATO_DE_CHAVE =
+const KEY_FORMAT =
   /^events\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/\d{4}\/\d{2}\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/(full|thumb)$/i;
 
-export type LoteAceito = { chaves: string[] };
+export type AcceptedBatch = { chaves: string[] };
 
-export type LoteRecusado = {
+export type RejectedBatch = {
   status: number;
   code: string;
   message: string;
   details: Record<string, unknown>;
 };
 
-export function recusado(lote: LoteAceito | LoteRecusado): lote is LoteRecusado {
-  return "code" in lote;
+export function isRejected(batch: AcceptedBatch | RejectedBatch): batch is RejectedBatch {
+  return "code" in batch;
 }
 
 /**
@@ -49,8 +49,8 @@ export function recusado(lote: LoteAceito | LoteRecusado): lote is LoteRecusado 
  * propósito: distinguir contaria ao pedinte se aquele id existe em outra
  * festa, que é exatamente o que ele queria descobrir.
  */
-export function validarLote(bruto: unknown, eventoId: string): LoteAceito | LoteRecusado {
-  if (!Array.isArray(bruto)) {
+export function validateBatch(raw: unknown, eventId: string): AcceptedBatch | RejectedBatch {
+  if (!Array.isArray(raw)) {
     return {
       status: 422,
       code: "validation_error",
@@ -59,20 +59,20 @@ export function validarLote(bruto: unknown, eventoId: string): LoteAceito | Lote
     };
   }
 
-  if (bruto.length > TETO_DE_CHAVES) {
+  if (raw.length > KEY_CAP) {
     return {
       status: 422,
       code: "midia.lote_excedido",
       message: "Pedido grande demais",
-      details: { teto: TETO_DE_CHAVES, recebido: bruto.length },
+      details: { teto: KEY_CAP, recebido: raw.length },
     };
   }
 
-  const prefixo = prefixoDoEvento(eventoId);
-  const aceitas = new Set<string>();
+  const prefix = eventPrefix(eventId);
+  const accepted = new Set<string>();
 
-  for (const chave of bruto) {
-    if (typeof chave !== "string") {
+  for (const key of raw) {
+    if (typeof key !== "string") {
       return {
         status: 422,
         code: "validation_error",
@@ -84,7 +84,7 @@ export function validarLote(bruto: unknown, eventoId: string): LoteAceito | Lote
     // 🔴 A chave pertence a este evento, ou não existe para nós. Sem esta
     // checagem, pedir a chave do casamento do vizinho é ler o casamento do
     // vizinho.
-    if (!chave.startsWith(prefixo) || !FORMATO_DE_CHAVE.test(chave)) {
+    if (!key.startsWith(prefix) || !KEY_FORMAT.test(key)) {
       return {
         status: 403,
         code: "midia.chave_invalida",
@@ -93,8 +93,8 @@ export function validarLote(bruto: unknown, eventoId: string): LoteAceito | Lote
       };
     }
 
-    aceitas.add(chave);
+    accepted.add(key);
   }
 
-  return { chaves: [...aceitas] };
+  return { chaves: [...accepted] };
 }

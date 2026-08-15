@@ -4,7 +4,7 @@ import { PairApp } from "@/features/pairing/components/client/pair-app-client";
 
 export const dynamic = "force-dynamic";
 
-export default function Pagina() {
+export default function PairAppPage() {
   const vars = toVariables(resolveTokens({ marca: ALBORA_BRAND })) as CSSProperties;
   return (
     <div style={vars}>

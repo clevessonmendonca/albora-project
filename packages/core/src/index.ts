@@ -365,6 +365,8 @@ export { interacaoAberta as interactionOpen } from "./interacao";
 /** English alias — prefer for new code. */
 export { derivarChaveMidia as deriveMediaKey } from "./chaves";
 /** English alias — prefer for new code. */
+export { prefixoDoEvento as eventPrefix } from "./chaves";
+/** English alias — prefer for new code. */
 export { ehMimeVideo as isVideoMime } from "./midia";
 /** English alias — prefer for new code. */
 export { validarDeclaracao as validateDeclaration } from "./midia";

@@ -8,11 +8,11 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { assinarGet } from "@/lib/r2";
-import { recusado, validarLote, VALIDADE_GET_SEGUNDOS } from "./lote";
+import { isRejected, validateBatch, GET_TTL_SECONDS } from "./lote";
 
 export const dynamic = "force-dynamic";
 
-type Corpo = { chaves?: unknown };
+type Body = { chaves?: unknown };
 
 export async function POST(req: Request) {
   const configError = requireConfig("midia", { mediaOrigin: true });
@@ -24,28 +24,28 @@ export async function POST(req: Request) {
   const limited = enforceRateLimit(req, auth.session, { keyPrefix: "midia:" });
   if (limited) return limited;
 
-  const parsed = await parseJsonBody<Corpo>(req);
+  const parsed = await parseJsonBody<Body>(req);
   if (parsed instanceof Response) return parsed;
 
-  const lote = validarLote(parsed.data.chaves, auth.session.eventoId);
+  const batch = validateBatch(parsed.data.chaves, auth.session.eventoId);
 
-  if (recusado(lote)) {
-    if (lote.status === 403) {
+  if (isRejected(batch)) {
+    if (batch.status === 403) {
       console.warn("midia.chave_recusada", {
         eventoId: auth.session.eventoId,
         sessaoId: auth.session.sessaoId,
       });
     }
-    return errorResponse(lote.status, lote.code, lote.message, lote.details);
+    return errorResponse(batch.status, batch.code, batch.message, batch.details);
   }
 
   try {
-    const expiraEm = Date.now() + VALIDADE_GET_SEGUNDOS * 1000;
+    const expiraEm = Date.now() + GET_TTL_SECONDS * 1000;
 
     const urls = await Promise.all(
-      lote.chaves.map(async (chave) => ({
+      batch.chaves.map(async (chave) => ({
         chave,
-        url: await assinarGet(chave, VALIDADE_GET_SEGUNDOS),
+        url: await assinarGet(chave, GET_TTL_SECONDS),
         expiraEm,
       })),
     );

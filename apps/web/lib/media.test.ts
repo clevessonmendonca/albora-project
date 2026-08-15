@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
-  recusado,
-  TETO_DE_CHAVES,
-  validarLote,
-  VALIDADE_GET_SEGUNDOS,
+  GET_TTL_SECONDS,
+  isRejected,
+  KEY_CAP,
+  validateBatch,
 } from "../app/api/media/urls/lote";
 import { config, ErroOrigemDeMidia } from "./config";
 
@@ -23,31 +23,31 @@ function chavesRepetidas(quantidade: number): string[] {
 
 describe("chave conferida contra o evento da sessão", () => {
   it("aceita as duas variantes do próprio evento", () => {
-    const lote = validarLote([chave(EVENTO, "full"), chave(EVENTO, "thumb")], EVENTO);
+    const lote = validateBatch([chave(EVENTO, "full"), chave(EVENTO, "thumb")], EVENTO);
 
-    expect(recusado(lote)).toBe(false);
-    expect(recusado(lote) ? [] : lote.chaves).toHaveLength(2);
+    expect(isRejected(lote)).toBe(false);
+    expect(isRejected(lote) ? [] : lote.chaves).toHaveLength(2);
   });
 
   it("recusa com 403 a chave de outro evento", () => {
-    const lote = validarLote([chave(OUTRO_EVENTO)], EVENTO);
+    const lote = validateBatch([chave(OUTRO_EVENTO)], EVENTO);
 
-    expect(recusado(lote) && lote.status).toBe(403);
-    expect(recusado(lote) && lote.code).toBe("midia.chave_invalida");
+    expect(isRejected(lote) && lote.status).toBe(403);
+    expect(isRejected(lote) && lote.code).toBe("midia.chave_invalida");
   });
 
   it("uma chave alheia condena o lote inteiro", () => {
-    const lote = validarLote([chave(EVENTO), chave(OUTRO_EVENTO)], EVENTO);
+    const lote = validateBatch([chave(EVENTO), chave(OUTRO_EVENTO)], EVENTO);
 
-    expect(recusado(lote) && lote.status).toBe(403);
+    expect(isRejected(lote) && lote.status).toBe(403);
   });
 
   it("chave de outro evento e chave malformada são indistinguíveis", () => {
-    const alheia = validarLote([chave(OUTRO_EVENTO)], EVENTO);
-    const torta = validarLote([`events/${EVENTO}/nao-e-chave`], EVENTO);
+    const alheia = validateBatch([chave(OUTRO_EVENTO)], EVENTO);
+    const torta = validateBatch([`events/${EVENTO}/nao-e-chave`], EVENTO);
 
-    expect(recusado(alheia) && recusado(torta)).toBe(true);
-    if (!recusado(alheia) || !recusado(torta)) return;
+    expect(isRejected(alheia) && isRejected(torta)).toBe(true);
+    if (!isRejected(alheia) || !isRejected(torta)) return;
 
     expect({ status: alheia.status, code: alheia.code, message: alheia.message }).toEqual({
       status: torta.status,
@@ -59,81 +59,81 @@ describe("chave conferida contra o evento da sessão", () => {
   it("recusa travessia que começa com o prefixo do próprio evento", () => {
     const travessia = `events/${EVENTO}/../${OUTRO_EVENTO}/2026/08/${FOTO}/full`;
 
-    expect(recusado(validarLote([travessia], EVENTO))).toBe(true);
+    expect(isRejected(validateBatch([travessia], EVENTO))).toBe(true);
   });
 
   it("recusa variante fora do conjunto fechado", () => {
-    expect(recusado(validarLote([chave(EVENTO, "original")], EVENTO))).toBe(true);
-    expect(recusado(validarLote([`events/${EVENTO}/export/acervo.zip`], EVENTO))).toBe(true);
+    expect(isRejected(validateBatch([chave(EVENTO, "original")], EVENTO))).toBe(true);
+    expect(isRejected(validateBatch([`events/${EVENTO}/export/acervo.zip`], EVENTO))).toBe(true);
   });
 
   it("recusa prefixo que só se parece com o do evento", () => {
     const quase = `events/${EVENTO}x/2026/08/${FOTO}/full`;
 
-    expect(recusado(validarLote([quase], EVENTO))).toBe(true);
+    expect(isRejected(validateBatch([quase], EVENTO))).toBe(true);
   });
 
   it("recusa chave com querystring pendurada", () => {
-    expect(recusado(validarLote([`${chave(EVENTO)}?x=1`], EVENTO))).toBe(true);
+    expect(isRejected(validateBatch([`${chave(EVENTO)}?x=1`], EVENTO))).toBe(true);
   });
 
   it("devolve cada chave uma vez só", () => {
-    const lote = validarLote([chave(EVENTO), chave(EVENTO), chave(EVENTO)], EVENTO);
+    const lote = validateBatch([chave(EVENTO), chave(EVENTO), chave(EVENTO)], EVENTO);
 
-    expect(recusado(lote) ? [] : lote.chaves).toEqual([chave(EVENTO)]);
+    expect(isRejected(lote) ? [] : lote.chaves).toEqual([chave(EVENTO)]);
   });
 });
 
 describe("teto do lote", () => {
   it("aceita exatamente o teto", () => {
-    expect(recusado(validarLote(chavesRepetidas(TETO_DE_CHAVES), EVENTO))).toBe(false);
+    expect(isRejected(validateBatch(chavesRepetidas(KEY_CAP), EVENTO))).toBe(false);
   });
 
   it("recusa um acima do teto com 422", () => {
-    const lote = validarLote(chavesRepetidas(TETO_DE_CHAVES + 1), EVENTO);
+    const lote = validateBatch(chavesRepetidas(KEY_CAP + 1), EVENTO);
 
-    expect(recusado(lote) && lote.status).toBe(422);
-    expect(recusado(lote) && lote.code).toBe("midia.lote_excedido");
-    expect(recusado(lote) && lote.details).toEqual({
-      teto: TETO_DE_CHAVES,
-      recebido: TETO_DE_CHAVES + 1,
+    expect(isRejected(lote) && lote.status).toBe(422);
+    expect(isRejected(lote) && lote.code).toBe("midia.lote_excedido");
+    expect(isRejected(lote) && lote.details).toEqual({
+      teto: KEY_CAP,
+      recebido: KEY_CAP + 1,
     });
   });
 
   it("o teto vem antes da conferência de chave — o lote condenado não custa nada", () => {
-    const alheias = Array.from({ length: TETO_DE_CHAVES + 1 }, () => chave(OUTRO_EVENTO));
-    const lote = validarLote(alheias, EVENTO);
+    const alheias = Array.from({ length: KEY_CAP + 1 }, () => chave(OUTRO_EVENTO));
+    const lote = validateBatch(alheias, EVENTO);
 
-    expect(recusado(lote) && lote.code).toBe("midia.lote_excedido");
+    expect(isRejected(lote) && lote.code).toBe("midia.lote_excedido");
   });
 
   it("lista vazia é lote vazio, não erro", () => {
-    const lote = validarLote([], EVENTO);
+    const lote = validateBatch([], EVENTO);
 
-    expect(recusado(lote) ? null : lote.chaves).toEqual([]);
+    expect(isRejected(lote) ? null : lote.chaves).toEqual([]);
   });
 });
 
 describe("forma do corpo", () => {
   it("recusa o que não é lista", () => {
     for (const bruto of [undefined, null, "chave", 7, { chaves: [] }]) {
-      const lote = validarLote(bruto, EVENTO);
-      expect(recusado(lote) && lote.status).toBe(422);
-      expect(recusado(lote) && lote.code).toBe("validation_error");
+      const lote = validateBatch(bruto, EVENTO);
+      expect(isRejected(lote) && lote.status).toBe(422);
+      expect(isRejected(lote) && lote.code).toBe("validation_error");
     }
   });
 
   it("recusa item que não é string", () => {
-    const lote = validarLote([chave(EVENTO), 42], EVENTO);
+    const lote = validateBatch([chave(EVENTO), 42], EVENTO);
 
-    expect(recusado(lote) && lote.code).toBe("validation_error");
+    expect(isRejected(lote) && lote.code).toBe("validation_error");
   });
 });
 
 describe("validade da URL", () => {
   it("cabe numa rolagem de feed e não vale a noite inteira", () => {
-    expect(VALIDADE_GET_SEGUNDOS).toBeGreaterThan(5 * 60);
-    expect(VALIDADE_GET_SEGUNDOS).toBeLessThanOrEqual(30 * 60);
+    expect(GET_TTL_SECONDS).toBeGreaterThan(5 * 60);
+    expect(GET_TTL_SECONDS).toBeLessThanOrEqual(30 * 60);
   });
 });
 

@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
  * a tela de código; o tema do casal chega quando o pareamento termina, junto com
  * o crachá. Toda a lógica — parear, poll, exibir — vive no cliente.
  */
-export default function Pagina() {
+export default function WallDisplayPage() {
   const neutro = toVariables(
     resolveTokens({ marca: ALBORA_BRAND, pack: { background: "dark" } }),
   );

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function Pagina() {
+export default function GuestScanPage() {
   const vars = toVariables(resolveTokens({ marca: ALBORA_BRAND })) as CSSProperties;
 
   return (
