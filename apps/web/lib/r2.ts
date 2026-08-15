@@ -2,9 +2,11 @@ import { AwsClient } from "aws4fetch";
 import { config } from "./config";
 
 /**
- * Assinatura e inspeção no R2. O servidor emite URLs e lê metadados —
- * **nunca bytes de mídia**. É a regra do caminho crítico, e o spike da task
- * 001 mediu: 21 bytes de corpo no Worker contra 819 200 no storage.
+ * Assinatura, inspeção no confirm, e leitura da thumb no classificador.
+ *
+ * No caminho crítico (presign/confirm/parede) o servidor **não** trafega a
+ * foto: emite URL e lê no máximo 16 bytes de magic. O classificador da spec
+ * 011 é enriquecimento — lê só a thumb, com teto, fora do PUT do convidado.
  */
 
 function client(): AwsClient {
@@ -86,6 +88,27 @@ export async function inspectObject(key: string): Promise<ObjectMetadata | null>
   return { bytes, inicio };
 }
 
+const TETO_DA_THUMB = 512 * 1024;
+
+/**
+ * Lê a thumb para o classificador (spec 011). Fora do caminho crítico: o
+ * upload continua PUT direto no storage. Teto de 512 KiB — a thumb é barata
+ * de propósito; objeto maior que isso não é thumb e o classificador cala.
+ */
+export async function readThumb(key: string): Promise<Uint8Array | null> {
+  const res = await client().fetch(objectUrl(key).toString(), {
+    method: "GET",
+    headers: { range: `bytes=0-${TETO_DA_THUMB - 1}` },
+  });
+
+  if (res.status === 404) return null;
+  if (!res.ok && res.status !== 206) {
+    throw new Error(`leitura da thumb falhou: ${res.status}`);
+  }
+
+  return new Uint8Array(await res.arrayBuffer());
+}
+
 /** @deprecated use signPut */
 export const assinarPut = signPut;
 
@@ -94,6 +117,9 @@ export const assinarGet = signGet;
 
 /** @deprecated use inspectObject */
 export const inspecionarObjeto = inspectObject;
+
+/** @deprecated use readThumb */
+export const lerThumb = readThumb;
 
 /** @deprecated use ObjectMetadata */
 export type MetadadosObjeto = ObjectMetadata;

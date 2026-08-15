@@ -1,6 +1,7 @@
 import { comEvento, listarMidiaDaParede, lerModeracaoDoEvento } from "@albora/db";
 import { wallDisplayRotationModels, type WallDisplayModel } from "@albora/core";
 import { errorResponse, jsonOk, requireConfig, unexpectedError } from "@/lib/api";
+import { classifyMediaAfter } from "@/lib/classify-media";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 import { wallFromRequest } from "@/lib/wall";
@@ -19,8 +20,9 @@ const VALIDADE_GET_SEGUNDOS = 900;
  *    o crachá já carrega o seu, e a RLS confere de novo dentro de `comEvento`.
  * 3. **O servidor nunca toca nos bytes.** Ele assina a URL de leitura e o
  *    navegador da TV busca a foto direto no storage, como no resto do produto.
- * 4. **A moderação é a mesma do feed.** `listarMidiaDaParede` lê `published`, a
- *    única fonte de verdade sobre o que é público.
+ * 4. **A parede falha fechada no classificador.** `listarMidiaDaParede` lê
+ *    `published` e segura NULL / `sem-resposta` / suspeito. A galeria (feed)
+ *    não. O poll dispara a classificação em fire-and-forget — fora do confirm.
  */
 export async function GET(req: Request) {
   const configError = requireConfig("parede", { mediaOrigin: true });
@@ -37,6 +39,8 @@ export async function GET(req: Request) {
       retry_after_seconds: limite.resetInSeconds,
     });
   }
+
+  classifyMediaAfter(parede.eventoId);
 
   try {
     const midias = await comEvento(getPool(), parede.eventoId, async (c) => {
