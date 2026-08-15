@@ -1,9 +1,9 @@
 import {
   exibirMusica,
   lerLinkDeMusica,
+  modoInteracao,
   ordenarSugestoes,
   registrarSugestao,
-  votos,
 } from "@albora/core";
 import {
   adicionarSugestao,
@@ -12,6 +12,7 @@ import {
   listarSugestoes,
   musicaDoCasal,
 } from "@albora/db";
+import { filaParaTela } from "@/features/music/lib/fila-para-tela";
 import {
   enforceRateLimit,
   errorResponse,
@@ -41,23 +42,25 @@ export async function GET(req: Request) {
 
   try {
     const corpo = await comEvento(getPool(), auth.session.eventoId, async (c) => {
+      const gate = await gateDoEvento(c, auth.session.eventoId);
       const escolhida = await musicaDoCasal(c, auth.session.eventoId);
       const fila = ordenarSugestoes(await listarSugestoes(c, auth.session.eventoId));
-      return { escolhida, fila };
+      return {
+        escolhida,
+        fila,
+        interacao: gate ? modoInteracao(gate, new Date()) : ("espelho" as const),
+      };
     });
 
     const musica = corpo.escolhida
       ? { provedor: corpo.escolhida.link.provedor, ...exibirMusica(corpo.escolhida.link, corpo.escolhida.metadado) }
       : null;
 
-    const sugestoes = corpo.fila.map((f) => ({
-      provedor: f.link.provedor,
-      tipo: f.link.tipo,
-      url: f.link.url,
-      votos: votos(f),
-    }));
-
-    return jsonOk({ musica, sugestoes });
+    return jsonOk({
+      musica,
+      sugestoes: filaParaTela(corpo.fila),
+      interacao: corpo.interacao,
+    });
   } catch (e) {
     return unexpectedError("musica.get", e);
   }
@@ -118,14 +121,7 @@ export async function POST(req: Request) {
       provedor: link.provedor,
     });
 
-    const sugestoes = resultado.fila.map((f) => ({
-      provedor: f.link.provedor,
-      tipo: f.link.tipo,
-      url: f.link.url,
-      votos: votos(f),
-    }));
-
-    return jsonOk({ aceita: true, sugestoes });
+    return jsonOk({ aceita: true, sugestoes: filaParaTela(resultado.fila) });
   } catch (e) {
     return unexpectedError("musica.post", e);
   }

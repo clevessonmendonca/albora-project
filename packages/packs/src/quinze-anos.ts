@@ -20,6 +20,7 @@ export const QUINZE_ANOS: Pack = {
     "missao.valsa": "A valsa, de onde você estiver",
     "missao.pista": "A pista quando ela enche",
     "galeria.minhas": "Minhas fotos",
+    "musica.escolha": "Escolha da aniversariante",
     "telao.vazio": "As primeiras fotos aparecem aqui",
     "lugar.pergunta": "Onde na festa?",
     "lugar.pista": "Pista",

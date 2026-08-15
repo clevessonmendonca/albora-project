@@ -19,6 +19,7 @@ export const CASAMENTO: Pack = {
     "missao.danca": "Alguém dançando como se ninguém visse",
     "missao.brinde": "O brinde, no instante do brinde",
     "galeria.minhas": "Minhas fotos",
+    "musica.escolha": "Escolha dos noivos",
     "telao.vazio": "As primeiras fotos aparecem aqui",
     "lugar.pergunta": "Onde na festa?",
     "lugar.pista": "Pista",
