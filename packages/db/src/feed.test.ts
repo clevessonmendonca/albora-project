@@ -166,6 +166,26 @@ describe("o feed lê exatamente o que a moderação liberou", () => {
 
     expect(pagina.itens.map((i) => i.id)).not.toContain(retida);
   });
+
+  it("classificador nulo ou mudo continua no feed — a galeria falha aberta", async () => {
+    const nula = await criarFoto({
+      eventoId: dados.a.eventoId,
+      sessaoId: dados.a.sessaoId,
+      criadaEm: "2029-01-03T00:00:00Z",
+    });
+    const muda = await criarFoto({
+      eventoId: dados.a.eventoId,
+      sessaoId: dados.a.sessaoId,
+      criadaEm: "2029-01-04T00:00:00Z",
+    });
+    await admin.query("UPDATE uploads SET classifier_verdict = 'sem-resposta' WHERE id = $1", [muda]);
+
+    const pagina = await feedDe(dados.a);
+    const ids = pagina.itens.map((i) => i.id);
+
+    expect(ids).toContain(nula);
+    expect(ids).toContain(muda);
+  });
 });
 
 describe("gate de interação", () => {

@@ -46,4 +46,14 @@ describe("galeria pessoal", () => {
     );
     expect(minhas.some((m) => m.id === dados.a.uploadId)).toBe(false);
   });
+
+  it("classificador nulo ou mudo continua visível — a galeria falha aberta", async () => {
+    await admin.query("UPDATE uploads SET classifier_verdict = 'sem-resposta' WHERE id = $1", [
+      dados.a.uploadId,
+    ]);
+    const minhas = await comEvento(app, dados.a.eventoId, (c) =>
+      listarMinhasDoEvento(c, dados.a.sessaoId),
+    );
+    expect(minhas.some((m) => m.id === dados.a.uploadId)).toBe(true);
+  });
 });

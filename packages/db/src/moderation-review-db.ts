@@ -40,7 +40,7 @@ function motivoMidia(
   endurecido: boolean,
 ): MidiaParaRevisao["motivo"] {
   if (endurecido) return "endurecido";
-  if (classificador === "suspeito") return "classificador";
+  if (classificador === "suspeito" || classificador === "sem-resposta") return "classificador";
   return "denuncias";
 }
 

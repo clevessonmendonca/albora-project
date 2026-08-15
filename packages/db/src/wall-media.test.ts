@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { comEvento } from "./event";
@@ -18,6 +19,10 @@ beforeAll(async () => {
   admin = pools.admin;
   app = pools.app;
   dados = await semear(admin);
+  await admin.query("UPDATE uploads SET classifier_verdict = 'limpo' WHERE id IN ($1, $2)", [
+    dados.a.uploadId,
+    dados.b.uploadId,
+  ]);
 }, 60_000);
 
 afterAll(async () => {
@@ -143,5 +148,62 @@ describe("a parede lê só o evento do crachá", () => {
     } finally {
       await admin.query("UPDATE events SET panic = false WHERE id = $1", [dados.a.eventoId]);
     }
+  });
+});
+
+describe("o classificador é o portão do telão, não da galeria", () => {
+  async function publicar(veredicto: string | null): Promise<string> {
+    const { rows } = await admin.query<{ id: string }>(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes, state, classifier_verdict)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 500000, 'published', $4)
+       RETURNING id`,
+      [
+        dados.a.eventoId,
+        dados.a.sessaoId,
+        `events/${dados.a.eventoId}/${randomUUID()}/full`,
+        veredicto,
+      ],
+    );
+    return rows[0]!.id;
+  }
+
+  it("NULL e sem-resposta não entram na parede", async () => {
+    const nula = await publicar(null);
+    const muda = await publicar("sem-resposta");
+    const limpa = await publicar("limpo");
+
+    const parede = await comEvento(app, dados.a.eventoId, (c) =>
+      listarMidiaDaParede(c, dados.a.eventoId),
+    );
+    const ids = parede.map((m) => m.id);
+
+    expect(ids).not.toContain(nula);
+    expect(ids).not.toContain(muda);
+    expect(ids).toContain(limpa);
+  });
+
+  it("suspeito também some do telão", async () => {
+    const suspeita = await publicar("suspeito");
+    const parede = await comEvento(app, dados.a.eventoId, (c) =>
+      listarMidiaDaParede(c, dados.a.eventoId),
+    );
+    expect(parede.map((m) => m.id)).not.toContain(suspeita);
+  });
+
+  it("liberação do anfitrião vence o silêncio do classificador", async () => {
+    const { rows } = await admin.query<{ id: string }>(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes, state,
+                            classifier_verdict, released_by_host)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 500000, 'published',
+               'sem-resposta', true)
+       RETURNING id`,
+      [dados.a.eventoId, dados.a.sessaoId, `events/${dados.a.eventoId}/${randomUUID()}/full`],
+    );
+    const id = rows[0]!.id;
+
+    const parede = await comEvento(app, dados.a.eventoId, (c) =>
+      listarMidiaDaParede(c, dados.a.eventoId),
+    );
+    expect(parede.map((m) => m.id)).toContain(id);
   });
 });

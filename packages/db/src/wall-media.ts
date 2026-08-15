@@ -1,4 +1,4 @@
-import { decidirExibicao, type VeredictoDoClassificador } from "@albora/core";
+import { decidirExibicao, interpretarVeredicto } from "@albora/core";
 import type { PoolClient } from "pg";
 import {
   lerModeracaoDoEvento,
@@ -14,20 +14,12 @@ import { thumbKeyFromFull } from "./storage-key";
  * feed: `state = 'published'`. Sobre ela roda `decidirExibicao()` do
  * `@albora/core` na superfície `telao` — o afinamento que só o telão tem:
  * segura com N denúncias de sessões distintas (o melhor sensor da sala), com o
- * classificador suspeito, e sob pânico ou modo endurecido do evento. A decisão
- * é do núcleo, e este módulo só a alimenta com o que o banco tem.
+ * classificador suspeito **ou em silêncio**, e sob pânico ou modo endurecido
+ * do evento. A decisão é do núcleo, e este módulo só a alimenta com o que o
+ * banco tem.
  */
 
 const PUBLICADO = "published";
-
-/**
- * `classifier_verdict` nulo é classificador **não rodado**, não "sem resposta":
- * mapeia para `limpo`. Tratar ausência como sem-resposta esconderia toda foto
- * do telão enquanto não houver classificador — fail-closed no lugar errado.
- */
-function veredicto(bruto: string | null): VeredictoDoClassificador {
-  return bruto === "suspeito" || bruto === "sem-resposta" ? bruto : "limpo";
-}
 
 /** Teto por página da parede. A TV acumula e poda no cliente (`WALL_DISPLAY_CACHE_LIMIT`). */
 export const TETO_DA_PAREDE = 60;
@@ -97,7 +89,7 @@ export async function listarMidiaDaParede(
             removida: false,
             liberadaPeloAnfitriao: l.released_by_host,
             denuncias: l.denuncias,
-            classificador: veredicto(l.classifier_verdict),
+            classificador: interpretarVeredicto(l.classifier_verdict),
           },
           evento,
           "telao",

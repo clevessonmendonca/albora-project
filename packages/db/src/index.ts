@@ -135,6 +135,13 @@ export {
   listarMidiaParaRevisao,
 } from "./moderation-review-db";
 
+export type { UploadPendenteDeClassificacao } from "./classificador-db";
+export {
+  TETO_DO_CLASSIFICADOR,
+  gravarVeredictoUpload,
+  listarUploadsPendentesDeClassificacao,
+} from "./classificador-db";
+
 export type { ContextoCompartilharDb } from "./share-db";
 export { buscarContextoCompartilhar, registrarConsentimentoExterno } from "./share-db";
 
@@ -247,3 +254,8 @@ export { registrarEventoDoFunil as recordFunnelEvent } from "./funnel-events";
 export { registrarEntradaDoFunil as recordFunnelEntry } from "./funnel-events";
 /** English alias — preferred for new code. @see ErroEventoDoFunilInvalido */
 export { ErroEventoDoFunilInvalido as InvalidFunnelEventError } from "./funnel-events";
+
+/** English alias — preferred for new code. @see listarUploadsPendentesDeClassificacao */
+export { listarUploadsPendentesDeClassificacao as listPendingClassifierUploads } from "./classificador-db";
+/** English alias — preferred for new code. @see gravarVeredictoUpload */
+export { gravarVeredictoUpload as saveUploadVerdict } from "./classificador-db";

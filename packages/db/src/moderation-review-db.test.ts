@@ -92,6 +92,38 @@ describe("fila de revisao", () => {
     );
     expect(depois.some((c) => c.id === comentarioId)).toBe(false);
   });
+
+  it("foto suspeita e classificador mudo entram na fila; nulo ainda não", async () => {
+    const { rows: nula } = await admin.query<{ id: string }>(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes, state)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 500000, 'published')
+       RETURNING id`,
+      [dados.a.eventoId, dados.a.sessaoId, `events/${dados.a.eventoId}/classif-nula/full`],
+    );
+    const { rows: muda } = await admin.query<{ id: string }>(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes, state, classifier_verdict)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 500000, 'published', 'sem-resposta')
+       RETURNING id`,
+      [dados.a.eventoId, dados.a.sessaoId, `events/${dados.a.eventoId}/classif-muda/full`],
+    );
+    const { rows: suspeita } = await admin.query<{ id: string }>(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes, state, classifier_verdict)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 500000, 'published', 'suspeito')
+       RETURNING id`,
+      [dados.a.eventoId, dados.a.sessaoId, `events/${dados.a.eventoId}/classif-suspeita/full`],
+    );
+
+    const fila = await comEvento(app, dados.a.eventoId, (c) =>
+      listarMidiaParaRevisao(c, dados.a.eventoId),
+    );
+    const ids = fila.map((m) => m.id);
+
+    expect(ids).not.toContain(nula[0]!.id);
+    expect(ids).toContain(muda[0]!.id);
+    expect(ids).toContain(suspeita[0]!.id);
+    expect(fila.find((m) => m.id === suspeita[0]!.id)?.motivo).toBe("classificador");
+    expect(fila.find((m) => m.id === muda[0]!.id)?.motivo).toBe("classificador");
+  });
 });
 
 describe("gate de interacao", () => {
