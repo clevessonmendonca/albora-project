@@ -107,6 +107,15 @@ export {
   musicaDoCasal,
 } from "./music-db";
 
+export { ErroRecadoJaExiste } from "./guestbook-db";
+export {
+  atualizarRecado,
+  gravarRecado,
+  leiturasDoRecado,
+  marcarRecadoLido,
+  recadoDoEvento,
+} from "./guestbook-db";
+
 export type { ResultadoDenuncia } from "./moderation-db";
 export { contarDenuncias, denunciar, ErroMidiaDeOutroEvento } from "./moderation-db";
 
@@ -266,3 +275,16 @@ export { ErroEventoDoFunilInvalido as InvalidFunnelEventError } from "./funnel-e
 export { listarUploadsPendentesDeClassificacao as listPendingClassifierUploads } from "./classificador-db";
 /** English alias — preferred for new code. @see gravarVeredictoUpload */
 export { gravarVeredictoUpload as saveUploadVerdict } from "./classificador-db";
+
+/** English alias — preferred for new code. @see recadoDoEvento */
+export { recadoDoEvento as eventGuestbook } from "./guestbook-db";
+/** English alias — preferred for new code. @see gravarRecado */
+export { gravarRecado as insertGuestbook } from "./guestbook-db";
+/** English alias — preferred for new code. @see atualizarRecado */
+export { atualizarRecado as updateGuestbook } from "./guestbook-db";
+/** English alias — preferred for new code. @see leiturasDoRecado */
+export { leiturasDoRecado as guestbookReads } from "./guestbook-db";
+/** English alias — preferred for new code. @see marcarRecadoLido */
+export { marcarRecadoLido as markGuestbookRead } from "./guestbook-db";
+/** English alias — preferred for new code. @see ErroRecadoJaExiste */
+export { ErroRecadoJaExiste as GuestbookExistsError } from "./guestbook-db";

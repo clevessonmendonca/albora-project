@@ -29,6 +29,8 @@ const TABELAS_DE_EVENTO = [
   "event_music",
   "music_suggestions",
   "reports",
+  "recado",
+  "recado_lido",
 ];
 
 beforeAll(async () => {
