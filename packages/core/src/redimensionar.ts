@@ -8,17 +8,17 @@ import { LADO_MAIOR } from "./midia";
  * decisão precisa ser testável sem canvas, sem navegador e sem aparelho.
  */
 
-export type Plano = "gratis" | "pago";
+export type Plan = "gratis" | "pago";
 
-export type Alvo = { largura: number; altura: number };
+export type Target = { width: number; height: number };
 
-export const LADO_THUMB = 320;
+export const THUMB_SIDE = 320;
 
 /**
  * A qualidade cai junto com o tamanho porque artefato de compressão é menos
  * visível em imagem menor — e o que importa aqui é o peso no 3G do salão.
  */
-export const QUALIDADE = { full: 0.82, thumb: 0.7 } as const;
+export const QUALITY = { full: 0.82, thumb: 0.7 } as const;
 
 /**
  * Reduz mantendo proporção, **nunca aumenta**.
@@ -26,23 +26,23 @@ export const QUALIDADE = { full: 0.82, thumb: 0.7 } as const;
  * Ampliar uma foto pequena não acrescenta informação: só gasta banda do
  * convidado e memória do aparelho para entregar a mesma imagem borrada.
  */
-export function alvoParaLadoMaior(largura: number, altura: number, ladoMaior: number): Alvo {
-  const maior = Math.max(largura, altura);
-  if (maior <= ladoMaior) return { largura, altura };
+export function targetForLongerSide(width: number, height: number, longerSide: number): Target {
+  const longer = Math.max(width, height);
+  if (longer <= longerSide) return { width, height };
 
-  const fator = ladoMaior / maior;
+  const factor = longerSide / longer;
   return {
-    largura: Math.max(1, Math.round(largura * fator)),
-    altura: Math.max(1, Math.round(altura * fator)),
+    width: Math.max(1, Math.round(width * factor)),
+    height: Math.max(1, Math.round(height * factor)),
   };
 }
 
-export function alvoFull(largura: number, altura: number, plano: Plano): Alvo {
-  return alvoParaLadoMaior(largura, altura, LADO_MAIOR[plano]);
+export function fullTarget(width: number, height: number, plan: Plan): Target {
+  return targetForLongerSide(width, height, LADO_MAIOR[plan]);
 }
 
-export function alvoThumb(largura: number, altura: number): Alvo {
-  return alvoParaLadoMaior(largura, altura, LADO_THUMB);
+export function thumbTarget(width: number, height: number): Target {
+  return targetForLongerSide(width, height, THUMB_SIDE);
 }
 
 /**
@@ -53,10 +53,10 @@ export function alvoThumb(largura: number, altura: number): Alvo {
  * dois modos de falha são silenciosos, e é por isso que existe um teto em
  * vez de um try/catch.
  */
-export const TETO_PIXELS = {
+export const PIXEL_CAP = {
   /** Aparelho declarado de pouca memória, ou detectado como antigo. */
-  modesto: 2048 * 2048,
-  padrao: 4096 * 4096,
+  modest: 2048 * 2048,
+  standard: 4096 * 4096,
 } as const;
 
 /**
@@ -67,18 +67,18 @@ export const TETO_PIXELS = {
  * que desiste, e o custo disso é participação, que é a única métrica que
  * decide o produto.
  */
-export function alvoQueCabe(alvo: Alvo, tetoPixels: number): Alvo {
-  const pixels = alvo.largura * alvo.altura;
-  if (pixels <= tetoPixels) return alvo;
+export function targetThatFits(target: Target, pixelCap: number): Target {
+  const pixels = target.width * target.height;
+  if (pixels <= pixelCap) return target;
 
-  const fator = Math.sqrt(tetoPixels / pixels);
+  const factor = Math.sqrt(pixelCap / pixels);
   return {
-    largura: Math.max(1, Math.floor(alvo.largura * fator)),
-    altura: Math.max(1, Math.floor(alvo.altura * fator)),
+    width: Math.max(1, Math.floor(target.width * factor)),
+    height: Math.max(1, Math.floor(target.height * factor)),
   };
 }
 
-export type Aparelho = { memoriaGb?: number | undefined; nucleos?: number | undefined };
+export type Device = { memoryGb?: number | undefined; cores?: number | undefined };
 
 /**
  * Escolhe o teto a partir do que o navegador informa.
@@ -87,30 +87,30 @@ export type Aparelho = { memoriaGb?: number | undefined; nucleos?: number | unde
  * foto pior a todo mundo, e a maioria dos aparelhos numa festa é capaz. O
  * caso modesto é exceção, e exceção não pode virar regra por precaução.
  */
-export function tetoParaAparelho(aparelho: Aparelho): number {
-  const { memoriaGb, nucleos } = aparelho;
+export function pixelCapForDevice(device: Device): number {
+  const { memoryGb, cores } = device;
 
-  if (typeof memoriaGb === "number" && memoriaGb <= 2) return TETO_PIXELS.modesto;
-  if (typeof nucleos === "number" && nucleos <= 2) return TETO_PIXELS.modesto;
+  if (typeof memoryGb === "number" && memoryGb <= 2) return PIXEL_CAP.modest;
+  if (typeof cores === "number" && cores <= 2) return PIXEL_CAP.modest;
 
-  return TETO_PIXELS.padrao;
+  return PIXEL_CAP.standard;
 }
 
 /** O alvo final: plano, orientação já aplicada, e o que o aparelho aguenta. */
-export function planejarProcessamento(entrada: {
-  largura: number;
-  altura: number;
-  plano: Plano;
-  aparelho: Aparelho;
-}): { full: Alvo; thumb: Alvo; qualidade: typeof QUALIDADE } {
-  const teto = tetoParaAparelho(entrada.aparelho);
-  const full = alvoQueCabe(alvoFull(entrada.largura, entrada.altura, entrada.plano), teto);
+export function planProcessing(input: {
+  width: number;
+  height: number;
+  plan: Plan;
+  device: Device;
+}): { full: Target; thumb: Target; quality: typeof QUALITY } {
+  const cap = pixelCapForDevice(input.device);
+  const full = targetThatFits(fullTarget(input.width, input.height, input.plan), cap);
 
   return {
     full,
     // A miniatura sai do alvo já reduzido, não do original: reprocessar o
     // original dobraria o pico de memória no aparelho mais fraco.
-    thumb: alvoThumb(full.largura, full.altura),
-    qualidade: QUALIDADE,
+    thumb: thumbTarget(full.width, full.height),
+    quality: QUALITY,
   };
 }

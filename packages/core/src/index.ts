@@ -58,8 +58,30 @@ export { presignExpirou, VALIDADE_PRESIGN_SEGUNDOS } from "./upload";
 export type { Orientacao, Transformacao } from "./exif";
 export { dimensoesCorrigidas, lerOrientacao, temExif, temGeolocalizacao, transformacaoParaOrientacao } from "./exif";
 
-export type { Alvo, Aparelho, Plano } from "./redimensionar";
-export { alvoFull, alvoParaLadoMaior, alvoQueCabe, alvoThumb, LADO_THUMB, planejarProcessamento, QUALIDADE, TETO_PIXELS, tetoParaAparelho } from "./redimensionar";
+export type { Target, Device, Plan } from "./redimensionar";
+export type { Target as Alvo, Device as Aparelho, Plan as Plano } from "./redimensionar";
+export {
+  fullTarget,
+  targetForLongerSide,
+  targetThatFits,
+  thumbTarget,
+  THUMB_SIDE,
+  planProcessing,
+  QUALITY,
+  PIXEL_CAP,
+  pixelCapForDevice,
+} from "./redimensionar";
+export {
+  fullTarget as alvoFull,
+  targetForLongerSide as alvoParaLadoMaior,
+  targetThatFits as alvoQueCabe,
+  thumbTarget as alvoThumb,
+  THUMB_SIDE as LADO_THUMB,
+  planProcessing as planejarProcessamento,
+  QUALITY as QUALIDADE,
+  PIXEL_CAP as TETO_PIXELS,
+  pixelCapForDevice as tetoParaAparelho,
+} from "./redimensionar";
 
 export type { Resultado, ResumoDrenagem, Transporte } from "./envio";
 export { drenar, enviarItem } from "./envio";

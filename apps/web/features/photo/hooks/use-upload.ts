@@ -163,10 +163,10 @@ export function useUpload(
         // O mesmo MIME da sonda: provar a decodificação com um tipo e decodificar
         // com outro invalidaria a prova, e no iOS o `type` do arquivo vem vazio.
         const foto = await processarFoto(bytes, heic ? "image/heic" : arquivo.type, webDrawer, {
-          plano: planoRedimensionamento,
-          aparelho: {
-            memoriaGb: (navigator as { deviceMemory?: number }).deviceMemory,
-            nucleos: navigator.hardwareConcurrency,
+          plan: planoRedimensionamento,
+          device: {
+            memoryGb: (navigator as { deviceMemory?: number }).deviceMemory,
+            cores: navigator.hardwareConcurrency,
           },
           ...(filtro ? { filtro } : {}),
         });

@@ -4,7 +4,7 @@ import {
   aplicarPorPixel,
   paraFiltroCss,
   saoNeutros,
-  type Alvo,
+  type Target,
   type Bitmap,
   type Desenhista,
 } from "@albora/core";
@@ -57,19 +57,19 @@ export const webDrawer: Desenhista<Img, Blob> = {
     return { largura: bitmap.width, altura: bitmap.height, bitmap };
   },
 
-  async desenhar(imagem, alvo: Alvo, t) {
-    const { canvas, ctx } = contexto(alvo.largura, alvo.altura);
+  async desenhar(imagem, target: Target, t) {
+    const { canvas, ctx } = contexto(target.width, target.height);
 
     ctx.save();
     // Gira em torno do centro do destino; com troca de eixos, o destino já
-    // veio com largura e altura invertidas de `planejarProcessamento`.
-    ctx.translate(alvo.largura / 2, alvo.altura / 2);
+    // veio com largura e altura invertidas de `planProcessing`.
+    ctx.translate(target.width / 2, target.height / 2);
     if (t.girar) ctx.rotate((t.girar * Math.PI) / 180);
     if (t.espelhar) ctx.scale(-1, 1);
 
     const trocou = t.girar === 90 || t.girar === 270;
-    const larguraDesenho = trocou ? alvo.altura : alvo.largura;
-    const alturaDesenho = trocou ? alvo.largura : alvo.altura;
+    const larguraDesenho = trocou ? target.height : target.width;
+    const alturaDesenho = trocou ? target.width : target.height;
 
     ctx.drawImage(
       imagem.bitmap,
@@ -80,7 +80,7 @@ export const webDrawer: Desenhista<Img, Blob> = {
     );
     ctx.restore();
 
-    return { largura: alvo.largura, altura: alvo.altura, bitmap: await paraBitmap(canvas) };
+    return { largura: target.width, altura: target.height, bitmap: await paraBitmap(canvas) };
   },
 
   async codificar(imagem, mime, qualidade) {

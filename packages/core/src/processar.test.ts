@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { processarFoto, type Bitmap, type Desenhista } from "./processar";
 import { AJUSTES_NEUTROS, saoNeutros } from "./ajustes";
 import { NEUTRO } from "./luts";
-import { QUALIDADE } from "./redimensionar";
+import { QUALITY } from "./redimensionar";
 
 type Img = Bitmap & { rotulo: string };
 
@@ -22,11 +22,11 @@ function desenhistaFalso(original: Bitmap) {
       chamadas.push(`decodificar:${mime}:${bytes.length}b`);
       return { ...original, rotulo: "original" };
     },
-    async desenhar(imagem, alvo, t) {
+    async desenhar(imagem, target, t) {
       chamadas.push(
-        `desenhar:${imagem.rotulo}→${alvo.largura}x${alvo.altura}:girar${t.girar}${t.espelhar ? ":espelhar" : ""}`,
+        `desenhar:${imagem.rotulo}→${target.width}x${target.height}:girar${t.girar}${t.espelhar ? ":espelhar" : ""}`,
       );
-      return { largura: alvo.largura, altura: alvo.altura, rotulo: `${alvo.largura}x${alvo.altura}` };
+      return { largura: target.width, altura: target.height, rotulo: `${target.width}x${target.height}` };
     },
     async codificar(imagem, mime, qualidade) {
       chamadas.push(`codificar:${imagem.rotulo}:${mime}:q${qualidade}`);
@@ -60,15 +60,15 @@ function jpegOrientacao6(): Uint8Array {
 }
 
 const semExif = new Uint8Array([0xff, 0xd8, 0xff, 0xdb, 0x00, 0x04, 0x00, 0x00]);
-const aparelhoComum = { memoriaGb: 8, nucleos: 8 };
+const aparelhoComum = { memoryGb: 8, cores: 8 };
 
 describe("a ordem das operações", () => {
   it("decodifica, endireita, codifica, e só então faz a miniatura", async () => {
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     await processarFoto(semExif, "image/jpeg", desenhista, {
-      plano: "gratis",
-      aparelho: aparelhoComum,
+      plan: "gratis",
+      device: aparelhoComum,
     });
 
     expect(chamadas).toEqual([
@@ -88,8 +88,8 @@ describe("a ordem das operações", () => {
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     return processarFoto(semExif, "image/jpeg", desenhista, {
-      plano: "gratis",
-      aparelho: aparelhoComum,
+      plan: "gratis",
+      device: aparelhoComum,
     }).then(() => {
       expect(chamadas.some((c) => c.startsWith("filtrar:"))).toBe(false);
     });
@@ -101,8 +101,8 @@ describe("a ordem das operações", () => {
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     await processarFoto(semExif, "image/jpeg", desenhista, {
-      plano: "gratis",
-      aparelho: aparelhoComum,
+      plan: "gratis",
+      device: aparelhoComum,
       filtro: { ajustes: NEUTRO, porPixel: true, intensidade: 0.6 },
     });
 
@@ -123,8 +123,8 @@ describe("a ordem das operações", () => {
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     await processarFoto(semExif, "image/jpeg", desenhista, {
-      plano: "gratis",
-      aparelho: aparelhoComum,
+      plan: "gratis",
+      device: aparelhoComum,
       filtro: {
         ajustes: NEUTRO,
         porPixel: false,
@@ -149,8 +149,8 @@ describe("a ordem das operações", () => {
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     await processarFoto(semExif, "image/jpeg", desenhista, {
-      plano: "gratis",
-      aparelho: aparelhoComum,
+      plan: "gratis",
+      device: aparelhoComum,
       filtro: {
         ajustes: NEUTRO,
         porPixel: false,
@@ -167,8 +167,8 @@ describe("a ordem das operações", () => {
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     await processarFoto(semExif, "image/jpeg", desenhista, {
-      plano: "gratis",
-      aparelho: aparelhoComum,
+      plan: "gratis",
+      device: aparelhoComum,
       filtro: { ajustes: NEUTRO, porPixel: true, intensidade: 0, manuais: AJUSTES_NEUTROS },
     });
 
@@ -179,8 +179,8 @@ describe("a ordem das operações", () => {
     const { desenhista, chamadas } = desenhistaFalso({ largura: 8000, altura: 6000 });
 
     await processarFoto(semExif, "image/jpeg", desenhista, {
-      plano: "gratis",
-      aparelho: aparelhoComum,
+      plan: "gratis",
+      device: aparelhoComum,
     });
 
     const origemDaThumb = chamadas.find((c) => c.includes("→320x"));
@@ -195,8 +195,8 @@ describe("orientação, antes de o reencode apagar o EXIF", () => {
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     const r = await processarFoto(jpegOrientacao6(), "image/jpeg", desenhista, {
-      plano: "gratis",
-      aparelho: aparelhoComum,
+      plan: "gratis",
+      device: aparelhoComum,
     });
 
     expect(r.orientacaoOriginal).toBe(6);
@@ -209,8 +209,8 @@ describe("orientação, antes de o reencode apagar o EXIF", () => {
     const { desenhista } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     const r = await processarFoto(jpegOrientacao6(), "image/jpeg", desenhista, {
-      plano: "gratis",
-      aparelho: aparelhoComum,
+      plan: "gratis",
+      device: aparelhoComum,
     });
 
     // Planejar sobre as dimensões cruas encolheria pelo lado errado.
@@ -222,8 +222,8 @@ describe("orientação, antes de o reencode apagar o EXIF", () => {
     const { desenhista, chamadas } = desenhistaFalso({ largura: 1000, altura: 800 });
 
     const r = await processarFoto(semExif, "image/jpeg", desenhista, {
-      plano: "gratis",
-      aparelho: aparelhoComum,
+      plan: "gratis",
+      device: aparelhoComum,
     });
 
     expect(r.orientacaoOriginal).toBe(1);
@@ -238,8 +238,8 @@ describe("saída", () => {
 
     // É o que o iPhone não entrega e todo mundo abre — inclusive o telão.
     await processarFoto(semExif, "image/heic", desenhista, {
-      plano: "gratis",
-      aparelho: aparelhoComum,
+      plan: "gratis",
+      device: aparelhoComum,
     });
 
     expect(chamadas[0]).toContain("image/heic");
@@ -247,15 +247,15 @@ describe("saída", () => {
   });
 
   it("a miniatura é mais comprimida que a foto", async () => {
-    expect(QUALIDADE.thumb).toBeLessThan(QUALIDADE.full);
+    expect(QUALITY.thumb).toBeLessThan(QUALITY.full);
   });
 
   it("num aparelho modesto, o teto reduz mais e a foto ainda sai", async () => {
     const { desenhista } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     const r = await processarFoto(semExif, "image/jpeg", desenhista, {
-      plano: "pago",
-      aparelho: { memoriaGb: 2 },
+      plan: "pago",
+      device: { memoryGb: 2 },
     });
 
     expect(r.largura * r.altura).toBeLessThanOrEqual(2048 * 2048);
@@ -266,8 +266,8 @@ describe("saída", () => {
     const { desenhista } = desenhistaFalso({ largura: 1000, altura: 800 });
 
     const r = await processarFoto(semExif, "image/jpeg", desenhista, {
-      plano: "gratis",
-      aparelho: aparelhoComum,
+      plan: "gratis",
+      device: aparelhoComum,
     });
 
     // O EXIF sai de toda foto, sempre. Este campo serve para o cliente poder

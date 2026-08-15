@@ -1,4 +1,4 @@
-import type { Plano } from "./redimensionar";
+import type { Plan } from "./redimensionar";
 
 /**
  * Planos do evento — espelham a coluna `events.plan` e o §5.2 do doc de produto.
@@ -26,7 +26,7 @@ export function podeEnviarVideo(plano: PlanoDoEvento, enviados: number): boolean
 }
 
 /** Resolução de imagem: planos pagos sobem para 3500px (§6.3). */
-export function planoParaRedimensionamento(plano: PlanoDoEvento): Plano {
+export function planoParaRedimensionamento(plano: PlanoDoEvento): Plan {
   return plano === "free" ? "gratis" : "pago";
 }
 

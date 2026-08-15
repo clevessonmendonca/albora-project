@@ -6,7 +6,7 @@ import {
   transformacaoParaOrientacao,
   type Orientacao,
 } from "./exif";
-import { planejarProcessamento, QUALIDADE, type Alvo, type Aparelho, type Plano } from "./redimensionar";
+import { planProcessing, QUALITY, type Device, type Plan, type Target } from "./redimensionar";
 
 /**
  * A orquestração do processamento de foto, sem tocar em canvas.
@@ -27,7 +27,7 @@ export type Desenhista<TImagem extends Bitmap, TSaida> = {
    */
   desenhar(
     imagem: TImagem,
-    alvo: Alvo,
+    target: Target,
     transformacao: { girar: 0 | 90 | 180 | 270; espelhar: boolean },
   ): Promise<TImagem>;
   codificar(imagem: TImagem, mime: string, qualidade: number): Promise<TSaida>;
@@ -77,8 +77,8 @@ export type FotoProcessada<TSaida> = {
 };
 
 export type OpcoesProcessamento = {
-  plano: Plano;
-  aparelho: Aparelho;
+  plan: Plan;
+  device: Device;
   /** Saída sempre em JPEG: é o que o iPhone não entrega e todo mundo abre. */
   mimeSaida?: string;
   /** Ausente = sem filtro. O preset é escolha do convidado, nunca padrão. */
@@ -118,14 +118,14 @@ export async function processarFoto<TImagem extends Bitmap, TSaida>(
   const largura = trocaEixos ? original.altura : original.largura;
   const altura = trocaEixos ? original.largura : original.altura;
 
-  const plano = planejarProcessamento({
-    largura,
-    altura,
-    plano: opcoes.plano,
-    aparelho: opcoes.aparelho,
+  const planned = planProcessing({
+    width: largura,
+    height: altura,
+    plan: opcoes.plan,
+    device: opcoes.device,
   });
 
-  const emPe = await desenhista.desenhar(original, plano.full, { girar, espelhar });
+  const emPe = await desenhista.desenhar(original, planned.full, { girar, espelhar });
 
   // A cor entra depois de a foto estar em pé e no tamanho final, e a miniatura
   // sai DELA. Preset e ajustes manuais vão na mesma chamada — separá-los daria
@@ -136,16 +136,16 @@ export async function processarFoto<TImagem extends Bitmap, TSaida>(
       ? await desenhista.filtrar(emPe, opcoes.filtro)
       : emPe;
 
-  const full = await desenhista.codificar(colorida, mimeSaida, QUALIDADE.full);
+  const full = await desenhista.codificar(colorida, mimeSaida, QUALITY.full);
 
-  const reduzida = await desenhista.desenhar(colorida, plano.thumb, { girar: 0, espelhar: false });
-  const thumb = await desenhista.codificar(reduzida, mimeSaida, QUALIDADE.thumb);
+  const reduzida = await desenhista.desenhar(colorida, planned.thumb, { girar: 0, espelhar: false });
+  const thumb = await desenhista.codificar(reduzida, mimeSaida, QUALITY.thumb);
 
   return {
     full,
     thumb,
-    largura: plano.full.largura,
-    altura: plano.full.altura,
+    largura: planned.full.width,
+    altura: planned.full.height,
     orientacaoOriginal,
     tinhaGeolocalizacao: temGeolocalizacao(bytes),
   };
