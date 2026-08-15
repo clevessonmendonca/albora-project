@@ -1,9 +1,11 @@
-import { exibirMusica, lerLinkDeMusica } from "@albora/core";
+import { exibirMusica, lerLinkDeMusica, ordenarSugestoes } from "@albora/core";
 import {
   comEvento,
   definirMusicaDoCasal,
+  listarSugestoes,
   musicaDoCasal,
 } from "@albora/db";
+import { filaParaTela } from "@/features/music/lib/fila-para-tela";
 import {
   errorResponse,
   jsonOk,
@@ -52,8 +54,15 @@ export async function GET(
   if (owned instanceof Response) return owned;
 
   try {
-    const musica = await comEvento(getPool(), eventId, (c) => musicaDoCasal(c, eventId));
-    return jsonOk({ musica: serializar(musica) });
+    const corpo = await comEvento(getPool(), eventId, async (c) => {
+      const musica = await musicaDoCasal(c, eventId);
+      const fila = ordenarSugestoes(await listarSugestoes(c, eventId));
+      return { musica, fila };
+    });
+    return jsonOk({
+      musica: serializar(corpo.musica),
+      sugestoes: filaParaTela(corpo.fila),
+    });
   } catch (e) {
     return unexpectedError("admin.musica.get", e);
   }

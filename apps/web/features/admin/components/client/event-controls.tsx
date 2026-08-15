@@ -241,6 +241,9 @@ function EventMusic({ eventId }: { eventId: string }) {
   const [current, setCurrent] = useState<{ provedor: string; rotulo: string; url: string } | null>(
     null,
   );
+  const [suggestions, setSuggestions] = useState<
+    { provedor: string; tipo: string; url: string; votos: number }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -252,8 +255,10 @@ function EventMusic({ eventId }: { eventId: string }) {
         if (!r.ok) throw new Error("falhou");
         const body = (await r.json()) as {
           musica: { provedor: string; rotulo: string; url: string } | null;
+          sugestoes?: { provedor: string; tipo: string; url: string; votos: number }[];
         };
         setCurrent(body.musica);
+        setSuggestions(body.sugestoes ?? []);
         if (body.musica) setUrl(body.musica.url);
       } catch {
         setError("Não carregou a música salva.");
@@ -327,6 +332,33 @@ function EventMusic({ eventId }: { eventId: string }) {
       </button>
 
       {error && <p className="m-0 text-sm text-critico">{error}</p>}
+
+      <div className="mt-2 grid gap-2">
+        <p className="m-0 text-xs uppercase tracking-rotulo text-ink-3">
+          Sugestões dos convidados
+        </p>
+        {loading ? (
+          <p className="m-0 text-[0.9rem] text-ink-3">Carregando…</p>
+        ) : suggestions.length === 0 ? (
+          <p className="m-0 text-[0.9rem] text-ink-2">
+            Nenhuma ainda. Quando a interação abrir, os pedidos aparecem aqui, ordenados por voto.
+          </p>
+        ) : (
+          <ul className="m-0 grid list-none gap-2 p-0">
+            {suggestions.map((s) => (
+              <li key={`${s.provedor}:${s.tipo}:${s.url}`} className="text-[0.9rem] text-ink">
+                <a href={s.url} className="text-acento">
+                  {s.provedor}
+                </a>
+                {" · "}
+                {s.tipo}
+                {" · "}
+                {s.votos === 1 ? "1 voto" : `${s.votos} votos`}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
