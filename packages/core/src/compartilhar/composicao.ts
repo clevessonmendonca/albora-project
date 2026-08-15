@@ -85,7 +85,28 @@ export function celulasDaColagem(quantidade: number): Caixa[] {
   }
 
   const area = areaDaFoto("ambiente");
-  const colunas = quantidade === 4 ? 2 : 1;
+
+  if (quantidade === 3) {
+    const largura = (area.largura - ESPACO_DA_COLAGEM) / 2;
+    const alturaDir = (area.altura - ESPACO_DA_COLAGEM) / 2;
+    return [
+      { x: area.x, y: area.y, largura, altura: area.altura },
+      {
+        x: area.x + largura + ESPACO_DA_COLAGEM,
+        y: area.y,
+        largura,
+        altura: alturaDir,
+      },
+      {
+        x: area.x + largura + ESPACO_DA_COLAGEM,
+        y: area.y + alturaDir + ESPACO_DA_COLAGEM,
+        largura,
+        altura: alturaDir,
+      },
+    ];
+  }
+
+  const colunas = quantidade === 1 ? 1 : 2;
   const linhas = Math.ceil(quantidade / colunas);
   const largura = (area.largura - ESPACO_DA_COLAGEM * (colunas - 1)) / colunas;
   const altura = (area.altura - ESPACO_DA_COLAGEM * (linhas - 1)) / linhas;

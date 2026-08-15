@@ -608,6 +608,17 @@ describe("a colagem monta só com as fotos do próprio convidado", () => {
     expect(celulasDaColagem(MAX_DA_COLAGEM + 1)).toEqual([]);
     expect(celulasDaColagem(2.5)).toEqual([]);
   });
+
+  it("duas fotos ficam lado a lado, três preenchem a grade", () => {
+    const duas = celulasDaColagem(2);
+    expect(duas[0]!.y).toBe(duas[1]!.y);
+    expect(duas[0]!.x).toBeLessThan(duas[1]!.x);
+
+    const tres = celulasDaColagem(3);
+    expect(tres[0]!.altura).toBeGreaterThan(tres[1]!.altura);
+    expect(tres[1]!.x).toBe(tres[2]!.x);
+    expect(tres[1]!.y).toBeLessThan(tres[2]!.y);
+  });
 });
 
 describe("os modelos declarados são os que existem", () => {
