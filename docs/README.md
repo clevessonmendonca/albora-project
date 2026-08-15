@@ -10,8 +10,8 @@ Este diretório é a fonte da verdade de tudo que não é código: arquitetura, 
 4. [`security.md`](./security.md) — **o que pode dar errado.** Modelo de ameaça, controles por camada, LGPD. Leitura obrigatória antes de tocar em upload, mídia ou sessão.
 5. [`../CLAUDE.md`](../CLAUDE.md) — **como se trabalha aqui.** Regras não negociáveis, convenções, ladder de deploy, gates escalonados.
 6. [`../DESIGN.md`](../DESIGN.md) — **como deve parecer e soar.** Tokens, escala tipográfica, componentes, movimento, voz, anti-padrões. Legível por agentes de design.
-6. [`engineering.md`](./engineering.md) — **como o código se organiza.** Regra de dependência, onde cada lógica mora, estratégia de teste.
-7. [`adr/README.md`](./adr/README.md) — **as decisões vinculantes**, e por quê.
+7. [`engineering.md`](./engineering.md) — **como o código se organiza.** Regra de dependência, onde cada lógica mora, estratégia de teste.
+8. [`adr/README.md`](./adr/README.md) — **as decisões vinculantes**, e por quê.
 
 ## Mapa da árvore
 
@@ -33,7 +33,9 @@ Este diretório é a fonte da verdade de tudo que não é código: arquitetura, 
 | Ameaças, controles, LGPD, resposta a incidente | `security.md` |
 | Camadas, dependências, onde a lógica mora, teste | `engineering.md` |
 | Decisões arquiteturais vinculantes | `adr/` |
-| Posicionamento, escopo, preço, roadmap, riscos | `product/albora-produto-arquitetura.md` |
+| Posicionamento, escopo, roadmap, riscos | `product/albora-produto-arquitetura.md` |
+| O que a landing **mostra** (planos e preço na UI) | `apps/web/app/landing/landing-page.tsx` — rascunhos em `product/README.md` |
+| Modelo de negócio / preço **draft** | `product/albora-produto-arquitetura.md` §5.2 (não é a UI) |
 | Voz, tom, copy, anti-padrões de comunicação | `product/albora-branding-marketing.md` |
 | Tokens, tipografia, componentes, movimento, voz | `../DESIGN.md` |
 | Protótipos e artefatos de design | `design/` |
@@ -52,9 +54,54 @@ Quando `architecture.md` e um ADR discordam, o ADR vence e `architecture.md` est
 - Blocos de código declaram a linguagem.
 - Datas em ISO (`2026-08-09`).
 
-## Estado — 2026-08-09
+## Mapa das rotas no ar
 
-- **Arquitetura:** fundação escrita. Runtime em aberto ([ADR 0005](./adr/0005-runtime-stack.md)), por decisão deliberada de esperar o trabalho de design.
-- **ADRs:** 0001–0004 aceitos; 0005 proposto.
-- **Design:** direção definida (ofício Apple/HIG sobre a paleta Albora, sem glassmorphism). Quatro superfícies a desenhar: convidado, landing, admin, telão.
-- **Código:** nenhum. O repositório é greenfield por escolha — a fundação vem antes.
+Canônico em inglês. Páginas PT redirecionam 308 (`apps/web/next.config.ts`). APIs PT reexportam o handler EN (ex.: `/api/parede` → `/api/wall`).
+
+### Convidado — `/e/[slug]`
+
+| Rota | O que é |
+|---|---|
+| `/e/[slug]` | QR: consentimento + nome + sessão. Query `?via=qr\|wa\|link` grava `guest_sessions.via` e o funil |
+| `/e/[slug]/cover` | Hub depois da sessão (missão do momento, recado, atalhos) |
+| `/e/[slug]/feed` | Feed do evento (abre no gate de interação) |
+| `/e/[slug]/photo` | Câmera / editor / fila de upload |
+| `/e/[slug]/missions` | Missões da festa |
+| `/e/[slug]/album` | Álbum da noite, capítulos pelo pack |
+| `/e/[slug]/my-photos` | Galeria pessoal + share Stories (moldura + consentimento externo) |
+| `/e/[slug]/music` | Trilha do casal + sugestão do convidado (link, sem áudio — ADR 0011) |
+| `/e/[slug]/pair` | Código de 4 dígitos web → app nativo |
+
+### Anfitrião — `/admin`
+
+| Rota | O que é |
+|---|---|
+| `/admin` | Lista de eventos da conta |
+| `/admin/sign-in` | Magic link |
+| `/admin/new` | Wizard: quando, identidade, missões, parede, peças |
+| `/admin/e/[eventId]` | Painel ao vivo + pânico + peças PDF/SVG |
+| `/admin/e/[eventId]/guests` | Funil e participação sobre `expected_guests` |
+| `/admin/e/[eventId]/moderation` | Fila de revisão (denúncia / classificador) |
+| `/admin/e/[eventId]/album` | Álbum do anfitrião |
+| `/admin/e/[eventId]/missions` | Editor de missões do pack |
+| `/admin/e/[eventId]/identity` | Tokens de identidade |
+| `/admin/e/[eventId]/guestbook` | Recado dos anfitriões (texto; áudio ainda não) |
+
+### Telão, resgate, landing
+
+| Rota | O que é |
+|---|---|
+| `/` | Landing. Planos **no ar:** Grátis R$ 0 · Completo R$ 199 · Fornecedor sob consulta |
+| `/scan` | Resgate por QR / código |
+| `/wall-display` | Telão fullscreen. Poll em `GET /api/wall` (não há SSE) |
+| `/wall-pair` | Autorizar a TV — distinto de `/e/[slug]/pair` |
+| `/telas`, `/telas-admin` | Catálogo visual interno, não produto |
+
+O código das telas mora em `apps/web/features/` (um diretório por superfície: `guest`, `feed`, `photo`, `album`, `music`, `admin`, `wall`, …). Handlers HTTP em `apps/web/app/api/`.
+
+## Estado — 2026-08-15
+
+- **Arquitetura:** runtime e hospedagem aceitos ([ADR 0005](./adr/0005-runtime-stack.md), [ADR 0006](./adr/0006-hosting-platform.md)). ADRs 0001–0013.
+- **Código:** aplicação web (convidado, admin, telão, landing) em `apps/web`. App nativo (`apps/mobile`) ainda é stub da [spec 017](./specs/task-017-app-expo-e-lojas.md).
+- **Packs no catálogo:** casamento e 15 anos (`packages/packs`).
+- **1º evento real:** ainda bloqueado por peças impressas (prova com celulares), produção, carga e jurídico — [`roadmap.md`](./roadmap.md).

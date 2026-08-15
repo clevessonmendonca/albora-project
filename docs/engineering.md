@@ -1,7 +1,7 @@
 # Albora — Práticas de engenharia
 
 > **Status:** fundação. Independente de runtime.
-> **Última revisão:** 2026-08-09
+> **Última revisão:** 2026-08-15
 
 Este documento cobre o que é **específico do Albora**. Os princípios gerais de código limpo, tratamento de erro e observabilidade não são repetidos aqui — as regras de trabalho estão em [`../CLAUDE.md`](../CLAUDE.md) e valem integralmente.
 
@@ -25,7 +25,29 @@ Uma seta, e ela nunca inverte:
 
 Isso tem uma razão prática além da estética: [ADR 0006](./adr/0006-hosting-platform.md) escolheu Cloudflare Workers, que é a mais específica das três dependências de plataforma. Manter a lógica de negócio em código puro, com o handler como camada fina de transporte, é o que mantém essa escolha reversível. Se a plataforma mudar, muda o adaptador — não o produto.
 
-**O núcleo não sabe que casamento existe.** Ele conhece `event`, `host`, `guest`, `challenge`, `upload`. Casamento é um pack: vocabulário, missões, templates, tom. Guard bloqueante no CI impede o import invertido.
+**O núcleo não sabe que casamento existe.** Ele conhece `event`, `host`, `guest`, `challenge`, `upload`. Casamento e 15 anos são packs: vocabulário, missões, templates, tom. Guard bloqueante no CI impede o import invertido.
+
+---
+
+## 1.1 Onde a feature mora na web
+
+A UI de produto não vive em `app/` além da página fina. Cada superfície tem pasta em `apps/web/features/`:
+
+| Pasta | Superfície |
+|---|---|
+| `guest` | Entrada, sessão, recado, funil, chrome do convidado |
+| `photo` | Câmera, editor, fila, upload |
+| `feed` | Feed, reação, comentário |
+| `album` | Álbum da noite e capítulos |
+| `missions` | Missões do convidado |
+| `music` | Trilha e sugestão |
+| `my-photos` | Galeria pessoal e share Stories |
+| `cover` | Hub `/cover` |
+| `admin` | Wizard, painel, missões, recado, funil, peças |
+| `wall` / `wall-pairing` | Telão e autorização da TV |
+| `catalog` | Catálogo `/telas` — não é o produto |
+
+Handler HTTP em `apps/web/app/api/` (EN canônico; PT reexporta). Domínio em `packages/core`. Persistência em `packages/db`.
 
 ---
 

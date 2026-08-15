@@ -10,79 +10,62 @@ Origem de tudo. Quando um documento técnico e um de produto discordarem, o reso
 
 ---
 
-## ⚠️ Conflitos abertos — resolver antes de publicar a landing
+## Preço no ar versus rascunhos
 
-Detectados em 2026-08-09 ao cruzar o documento de landing com as decisões técnicas já tomadas.
+**Fonte do que o visitante vê:** `apps/web/app/landing/landing-page.tsx` (rota `/`). Em 2026-08-15 a landing mostra **três cartões**:
+
+| Plano na UI | Preço na UI | O que a copy promete |
+|---|---|---|
+| Grátis | R$ 0, para sempre | Convidados e fotos sem limite, missões e galeria, resolução reduzida, álbum por 30 dias |
+| Completo · o mais escolhido | R$ 199, pagamento único | Resolução original e vídeo, telão, ZIP, identidade do evento, 12 meses com exportação para a nuvem do casal |
+| Fornecedor | Sob consulta | White-label, eventos sem limite, um painel, zero operação no dia |
+
+Nenhuma outra tabela de preço neste repositório é a landing. **Não inventamos preço aqui.**
+
+Rascunhos que **não** estão na UI — tratar como draft até o dono publicar:
+
+| Onde | O que anuncia | Status |
+|---|---|---|
+| §5.2 de [`albora-produto-arquitetura.md`](./albora-produto-arquitetura.md) | Grátis · Celebração R$ 199 · Fornecedor R$ 149/mês | Draft de modelo. O nome “Celebração” e o R$ 149/mês **não** aparecem na landing |
+| Decisão verbal do fundador (2026-08-09), registrada abaixo | Grátis · Celebração R$ 199 · Completo R$ 349 · Fornecedor R$ 149/mês | Draft. O Completo a R$ 349 **não** está no código |
+| Landing v4 dos designers (2026-08-11), fora do repo | R$ 0 · R$ 149 · R$ 199 | Draft externo. R$ 149 como faixa de consumidor **não** está no código |
+
+Composição extra que o Completo a R$ 349 pretendia (livro para gráfica, 24 meses, suporte no dia, “cada convidado recebe as dele”) **não é copy da landing atual**. Dois desses itens continuam bloqueados mesmo como rascunho: agrupamento facial ([`../security.md` §5.1](../security.md)) e WhatsApp Business (Fase 2).
+
+---
+
+## Conflitos de copy ainda abertos (não de preço)
 
 ### 1. 🔴 Copy de moderação contradiz a decisão
 
-O documento de landing diz, em §3.5 e no FAQ §3.9:
+Um documento de landing **fora do repo** dizia:
 
 > *"Você aprova o que vai pro telão. Nada aparece sem passar por você."*
 
-Isso **contradiz** [`../flows.md` §4](../flows.md), onde ficou decidido que o padrão é **publicar tudo** — porque os noivos estão na festa e ninguém vai olhar fila de aprovação. Um controle que fica desligado não é um controle.
+Isso **contradiz** [`../flows.md` §4](../flows.md) e o código: o padrão é **publicar na galeria**; o telão segura classificador mudo ou suspeito. Copy alinhada ao produto:
 
-**Copy correta, já aplicada no protótipo:**
+> Por padrão tudo aparece na galeria — porque no dia da festa ninguém vai ficar aprovando fila. O que protege a parede é automático: o classificador segura o que for impróprio ou o silêncio dele, qualquer convidado pode denunciar, e você tira do telão em um toque. Se preferir, dá pra ligar a aprovação manual.
 
-> Por padrão tudo aparece — porque no dia da festa ninguém vai ficar aprovando fila. O que protege é automático: um filtro segura o que for impróprio antes de chegar na parede, qualquer convidado pode denunciar, e você tira do telão em um toque. Se preferir, dá pra ligar a aprovação manual.
+### 2. 🔴 "Nenhum aplicativo" — a formulação que vazou do doc de produto
 
-É a terceira vez que esse drift aparece em documento diferente. **Corrigir na origem.**
-
-### 2. ✅ Quatro planos — decisão confirmada
-
-**Grátis · Celebração R$ 199 · Completo R$ 349 · Fornecedor R$ 149/mês.** Confirmado pelo fundador em 2026-08-09.
-
-Não é correção de nomenclatura, como a §4.5 do doc de landing sugere — é **mudança do modelo de precificação**. O §5.2 do doc de produto ainda lista três planos e precisa ser atualizado, junto com a menção a "Celebração+" na §14.6.
-
-⚠️ **Agora são três versões diferentes em circulação, e nenhuma bate com as outras:**
-
-| Onde | O que anuncia |
-|---|---|
-| §5.2 do doc de produto | Grátis · Celebração R$ 199 · Fornecedor R$ 149/mês |
-| Esta decisão (fundador, 2026-08-09) | Grátis · Celebração R$ 199 · **Completo R$ 349** · Fornecedor R$ 149/mês |
-| Landing v4 dos designers (2026-08-11) | R$ 0 · **R$ 149** · **R$ 199** |
-
-A landing não só voltou a três planos como usa **R$ 149 como faixa de consumidor** — valor que, nas outras duas fontes, é a assinatura mensal do fornecedor. Preço é decisão comercial do dono; nenhuma das três foi alterada aqui. **Resolver antes de publicar a landing.**
-
-Composição do Completo: tudo do Celebração + livro de fotos pronto para gráfica + guarda por 24 meses + suporte no dia por WhatsApp + entrega individual por WhatsApp + "cada convidado recebe as dele".
-
-### 3. 🔴 Dois itens do Completo dependem de coisas ainda não resolvidas
-
-O plano está aprovado; estes dois itens específicos têm pendência **antes de serem entregues**, não antes de serem vendidos:
-
-| Item | Pendência |
-|---|---|
-| **"Cada convidado recebe as dele"** | Depende de **agrupamento facial** = dado biométrico sensível (Art. 5º II da LGPD). Parecer jurídico pendente — ver [`../security.md` §5.1](../security.md) e [ADR 0007](../adr/0007-ai-policy-luts-not-generation.md). O titular do dado é **quem aparece** na foto, não quem a enviou |
-| **"Fotos entregues por WhatsApp"** | Fase 2 no roadmap. Exige WhatsApp Business Platform com templates aprovados |
-
-**Mitigação sugerida, já aplicada no protótipo:** os dois aparecem na lista do plano em tom secundário, distinguíveis do que já existe. Se o primeiro evento acontecer antes de eles ficarem prontos, a landing muda uma classe de CSS em vez de a promessa quebrar na frente do cliente — e a §5.3 do doc de produto, que proíbe surpreender o casal depois do evento, continua respeitada.
-
-### 4. 🔴 "Nenhum aplicativo" — a formulação que vazou do doc de produto
-
-A landing v4 dos designers intitula a seção de como funciona:
+A landing v4 dos designers (fora do repo) intitulava:
 
 > *"Três passos e nenhum aplicativo."*
 
-Como promessa sobre a **primeira foto** é verdade, e é a linha dura do produto. Como promessa sobre o **produto**, contradiz a decisão 1 da §12 do doc de produto e o [ADR 0009](../adr/0009-app-social-do-convidado.md), que colocam o app como a experiência completa.
+Como promessa sobre a **primeira foto** é verdade. Como promessa sobre o **produto**, contradiz o [ADR 0009](../adr/0009-app-social-do-convidado.md). A tabela correta está em [`albora-branding-marketing.md`](./albora-branding-marketing.md) §3.
 
-A origem estava aqui dentro: o doc de produto dizia *"PWA, sem login, sem download"* e listava *"app nativo"* como fora de escopo. **Ambos já foram corrigidos** — §4.1 e §4.3 agora separam "não existe" de "não entra nas 6 semanas", e o [`albora-branding-marketing.md`](./albora-branding-marketing.md) §3 traz a tabela de promessa correta.
+**Pendente:** a landing de designers mora fora do repositório. A copy em `apps/web/app/landing/` é a que conta.
 
-**Pendente:** a landing mora fora do repositório. A copy precisa voltar para quem a fez.
+### 3. 🟡 Lacuna: o convidado que já viveu o produto
 
-### 5. 🟡 Lacuna: o convidado que já viveu o produto
-
-A §1 identifica esse visitante como **a maior intenção de todas** — e o §3 não tem seção para ele. Ele chega convencido; mostrar a seção "o problema" desperdiça a intenção.
-
-Vale uma variante da página com o topo trocado: *"Você esteve num casamento com Albora. Quer no seu?"* → direto para preço e criação.
+A §1 do doc de landing identifica esse visitante como **a maior intenção** — e o §3 não tem seção para ele. Vale uma variante: *"Você esteve num casamento com Albora. Quer no seu?"* → direto para preço e criação. Não está na UI.
 
 ---
 
 ## O que a análise validou
 
-Três coisas do documento de landing são fortes e foram para o protótipo:
+Três coisas do documento de landing são fortes e foram para o protótipo / a página:
 
-- **§3.2, o demo ao vivo.** Provar em cinco segundos em vez de argumentar. É a melhor ideia do documento e nenhum concorrente faz bem.
-- **§4.1, a âncora por convidado** — com a redação corrigida. A lógica é boa: casamento no Brasil é orçado por pessoa, então a noiva já pensa nessa unidade. Mas **"dividido por 150" faz parecer vaquinha**, e quem paga são os noivos. E "arranjo de mesa" compara unidades diferentes — arranjo é por mesa, não por pessoa.
-
-  Redação em uso: *"A lembrancinha sai por uns **R$ 15 por convidado** — e quase ninguém leva pra casa. As fotos que todos eles tiraram saem por **R$ 1,33**."* Compara com um item que já é por convidado e que todo mundo sabe que se perde.
-- **§5, a honestidade no lançamento.** *"Somos novos, seja um dos primeiros"* em vez de depoimento inventado. Num mercado que roda em boca a boca de grupo de noiva, depoimento falso destrói a marca.
+- **O demo ao vivo.** Provar em cinco segundos em vez de argumentar.
+- **A âncora por convidado** — compara com lembrancinha (~R$ 15), não com “dividido por 150” (parece vaquinha).
+- **A honestidade no lançamento.** *"Somos novos, seja um dos primeiros"* em vez de depoimento inventado.

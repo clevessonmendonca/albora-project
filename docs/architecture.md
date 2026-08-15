@@ -1,8 +1,9 @@
 # Albora — Arquitetura
 
-> **Status:** em construção. Runtime e hospedagem fixados — [ADR 0005](./adr/0005-runtime-stack.md) e [ADR 0006](./adr/0006-hosting-platform.md) estão em `Accepted`: TypeScript ponta a ponta, Next.js no Cloudflare, R2 e Postgres gerenciado.
+> **Status:** fonte da verdade de fronteiras. Runtime e hospedagem fixados — [ADR 0005](./adr/0005-runtime-stack.md) e [ADR 0006](./adr/0006-hosting-platform.md) estão em `Accepted`: TypeScript ponta a ponta, Next.js no Cloudflare, R2 e Postgres gerenciado.
 > **Origem:** [`product/albora-produto-arquitetura.md`](./product/albora-produto-arquitetura.md) e [`product/albora-branding-marketing.md`](./product/albora-branding-marketing.md).
-> **Última revisão:** 2026-08-10
+> **Última revisão:** 2026-08-15
+> **Rotas no ar:** mapa em [`README.md`](./README.md).
 
 Este documento é a fonte da verdade de arquitetura. Ele descreve **fronteiras, invariantes e caminhos críticos** — não a implementação. Decisões vinculantes viram ADR; procedimentos viram runbook.
 
@@ -39,6 +40,8 @@ Quatro portas, três hoje e uma na Fase 3. Cada uma tem público, frequência e 
 O modo claro/escuro **não é preferência do usuário** — é contexto de uso. O convidado usa o produto às 22h no escuro; tela clara nesse momento é agressiva. O admin trabalha de dia e a papelaria vai para gráfica.
 
 Os planos **rejeitam os tokens uns dos outros**. Um token de sessão de convidado não abre nada no admin; um token de exibição do telão é somente leitura e não sobe mídia.
+
+**Onde isso vive hoje.** Convidado em `/e/[slug]/…`, anfitrião em `/admin`, telão em `/wall-display` (poll de `GET /api/wall`, cache local das últimas 50). Landing em `/`. Mapa completo em [`README.md`](./README.md). O app nativo (`apps/mobile`) ainda não passou da task 017.
 
 ---
 
@@ -298,7 +301,7 @@ A regra de fronteira: **o conjunto vem do servidor, o cliente manda uma escolha 
 
 Missão e lugar **não** entram no conjunto de chaves que o núcleo exige de todo pack. Um casamento tem altar e um aniversário de 15 anos não; exigir o mesmo conjunto forçaria packs a inventar lugares que a festa não tem. O que precisa ser igual é o que o núcleo desenha — o resto é o pack descrevendo a própria festa. Um pack incompleto é defeito verificável: falta uma chave, e a verificação diz qual.
 
-No MVP o sistema existe e o catálogo tem **um** item: casamento. Isso custa ~zero agora; retrofitar custa semanas, e a conta chega exatamente quando você estiver ocupado vendendo.
+No catálogo há **dois** packs: casamento e 15 anos (`packages/packs`). Trocar o `pack_id` de um evento muda o vocabulário, as missões e os momentos do álbum sem tocar o núcleo — é o teste de sanidade.
 
 > A regra que protege a decisão: **a experiência de casamento nunca piora para acomodar outro vertical.** Se um pack novo exigir tirar especificidade do casamento, o problema está no desenho de packs — não no casamento.
 
@@ -312,8 +315,11 @@ Nomes genéricos desde o commit 1. Nunca `couple_names`, `wedding_date`, `bride`
 accounts ──┐
            ├──< events >──┬──< challenges
 vendors ───┘              ├──< guest_sessions >──┬──< uploads >──< reactions
+                          │                      ├──< comments
                           │                      └──< guest_contacts
                           ├──< funnel_events
+                          ├──< event_music / music_suggestions
+                          ├──< recado / recado_lido
                           ├──< event_slugs        ← fora da RLS (§3)
                           ├──< session_tokens     ← fora da RLS (§3)
                           ├──< wall_tokens        ← fora da RLS (§3)
@@ -327,13 +333,16 @@ vendors ───┘              ├──< guest_sessions >──┬──< up
 | `accounts` | 1 conta → N eventos (casamento, chá de bebê, bodas) | Fora do escopo de evento |
 | `vendors` | Parceiro B2B2C, tokens de marca própria | Fora do escopo de evento |
 | `packs` | Vocabulário, missões padrão, templates, identidade padrão, **lista de lugares** | Global, versionado |
-| `events` | Raiz do escopo. `identity_tokens`, `pack_id`, filtro recomendado, janela do evento, gate de interação | **É a fronteira.** Sob política, casando por `id` |
+| `events` | Raiz do escopo. `identity_tokens`, `pack_id`, filtro recomendado, janela do evento, gate de interação, **`expected_guests`** (denominador da H1; migration `0020_convidados_esperados.sql`) | **É a fronteira.** Sob política, casando por `id`. Segunda política de conta: [ADR 0013](./adr/0013-acesso-por-conta-sob-rls.md) |
 | `challenges` | Missões do evento | `event_id`, RLS |
-| `guest_sessions` | Sessão anônima + consentimento versionado e datado. `via` é `qr` \| `wa` \| `link` — o canal de entrada | `event_id`, RLS |
+| `guest_sessions` | Sessão anônima + consentimento versionado e datado. `via` é `qr` \| `wa` \| `link` — o canal de entrada (migration `0024_via_da_sessao.sql`). Consentimento externo (Stories) é coluna à parte | `event_id`, RLS |
 | `guest_contacts` | Opt-in explícito de contato — base do loop viral | `event_id`, RLS, **PII** |
-| `uploads` | Mídia, estado, legenda e lugar (ambos opcionais) | `event_id`, RLS |
+| `uploads` | Mídia, estado, legenda e lugar (ambos opcionais), veredicto do classificador | `event_id`, RLS |
 | `reactions` | Reação única e anônima — chave por (`upload`, `sessão`) | `event_id`, RLS |
-| `funnel_events` | Instrumentação do funil, desde o commit 1 | `event_id`, RLS |
+| `comments` | Comentário em foto, com thread (`parent_id`) | `event_id`, RLS |
+| `funnel_events` | Instrumentação do funil | `event_id`, RLS |
+| `event_music` / `music_suggestions` | Trilha do casal e sugestões do convidado — **link e metadado, nunca bytes de áudio** ([ADR 0011](./adr/0011-musica-do-evento-sem-direito-de-sincronizacao.md)) | `event_id`, RLS |
+| `recado` / `recado_lido` | Recado dos anfitriões (um por evento) e leitura por sessão. Áudio ainda não é escrito | `event_id`, RLS |
 | `event_slugs` | Slug → evento, com o antigo preservado como inativo | **Fora da RLS por circularidade declarada (§3)** |
 | `session_tokens` | Hash do token → (`event_id`, `session_id`), validade, revogação | **Fora da RLS por circularidade declarada (§3)** |
 | `wall_tokens` | Hash do crachá da TV → `event_id`, validade, revogação. Só leitura | **Fora da RLS por circularidade declarada (§3)** |
@@ -345,21 +354,25 @@ Duas notas de desenho que não são cosméticas:
 - **Uma linha por slug, e não uma coluna em `events`.** A rotação precisa que o slug **antigo** continue existindo: o material impresso já saiu da gráfica, e quem escanear a placa velha tem de cair numa página de orientação, nunca num erro seco.
 - **Reagir duas vezes é reagir uma vez**, garantido pela chave primária. É o que faz o botão sobreviver a toque duplo e a retry de rede sem inflar contagem.
 
-`expected_guests` é o denominador da métrica que decide o negócio. Sem ele instrumentado desde o começo, o casamento termina e não se sabe onde a participação foi perdida. **Ainda não existe no schema** — entra com o admin.
+`expected_guests` é o denominador da métrica que decide o negócio (`sessões_com_upload / expected_guests`). Mora em `events`, NOT NULL, default 150, conferido no wizard e no painel `/admin/e/[eventId]/guests`. Sem ele o casamento termina e não se sabe onde a participação foi perdida.
 
 ---
 
 ## 9. Moderação
 
-Com feed e reações, moderação deixa de ser feature e vira **requisito** — o produto passa a difundir imagem de terceiros, não só coletar.
+Com feed, reações e telão, o produto **difunde** imagem de terceiros. A decisão de exibir é uma função pura em `@albora/core` (`decidirExibicao`), avaliada toda vez que uma superfície desenha — não uma fila que alguém precisa olhar no sábado.
 
-| Modo | Comportamento |
-|---|---|
-| `open` | Auto-aprova; anfitrião oculta depois |
-| `queue` | Fila de aprovação. Padrão quando há telão |
-| `telao_only` | Galeria livre, telão moderado |
+O padrão é **publicar na galeria**. O telão é o portão mais estreito:
 
-O classificador roda **no thumb** (barato) antes de liberar para o telão. Ele é enriquecimento: se cair, a mídia vai para fila manual — nunca para o telão sem passar por alguém.
+- Veredicto `limpo` → pode ir à parede.
+- `suspeito` → some das duas superfícies até o anfitrião liberar.
+- `sem-resposta` (NULL, timeout, provedor mudo) → **galeria publica, telão segura.** Falhar fechado na parede; falhar aberto no feed.
+- Duas denúncias de sessões distintas tiram do telão (uma, se o anfitrião marcou `has_minors`).
+- Pânico pausa as duas superfícies. Modo endurecido (`events.hardened`) exige liberação do anfitrião antes de exibir.
+
+O classificador roda **no thumb**, fora do `confirm`, disparado em fire-and-forget pelo poll da parede (`classifyMediaAfter`). Não há fornecedor de ML no repositório: o padrão é heurístico (assinatura de arquivo válida → `limpo`). Troca-se o provedor, não o gate. Silêncio grava `sem-resposta` — nunca `limpo`.
+
+A fila de revisão no admin (`/admin/e/[eventId]/moderation`) lista denúncia e classificador. Nada sai do ar sozinho: o anfitrião mantém ou oculta.
 
 O convidado remove a própria mídia pelo token de sessão, sem pedir nada a ninguém.
 
@@ -368,16 +381,24 @@ O convidado remove a própria mídia pelo token de sessão, sem pedir nada a nin
 ## 10. Telão
 
 ```
-GET  /wall-display            HTML fullscreen do telão, sem chrome, sem cursor, resistente a reload
-GET  /api/wall/stream         stream de IDs recém-aprovados (SSE; alias EN de /api/parede)
+GET  /wall-display            HTML fullscreen, sem chrome, sem cursor, resistente a reload
+GET  /api/wall                página de mídia aprovada para a parede (crachá em cookie)
+POST /api/wall/pair           inicia pareamento
+GET  /api/wall/pair/status    a TV espera o anfitrião autorizar
+POST /api/wall/authorize      o anfitrião autoriza (sessão de host)
+PATCH /api/wall/panic         pânico na parede
 ```
 
-- Pré-carrega as próximas N imagens.
-- **Cache local das últimas 50**: se a rede cair no meio da festa, o telão continua rodando. Esta é a única coisa no salão que todo mundo está olhando.
-- Fallback para polling se o stream falhar.
-- Presença de marca Albora: **zero**. Só a identidade do evento.
+Aliases PT (`/api/parede`, `/telao`, `/parear`) reexportam ou redirecionam; o canônico é inglês.
 
-O telão e os stories pós-evento são a **mesma pipeline de render**, duas superfícies.
+- A TV **poll** `GET /api/wall` a cada 6 s. Não há SSE (`/api/wall/stream` não existe).
+- Cada poll dispara `classifyMediaAfter` em fire-and-forget — fora do caminho do `confirm`.
+- **Cache local das últimas 50**: se a rede cair no meio da festa, o telão continua rodando.
+- Fallback é continuar com o cache; não há segundo protocolo.
+- Presença de marca Albora: **zero**. Só a identidade do evento, lida de `events.identity_tokens`.
+- O evento vem do crachá (`wall_tokens`), nunca da URL.
+
+O telão e a moldura de compartilhar (Stories) consomem o **mesmo resolvedor de tokens**. Os modelos de enquadramento sem cortar vertical vivem em `@albora/core`.
 
 ---
 
@@ -405,7 +426,7 @@ qr_scan → page_open → consent → capture → upload_start → upload_ok
 
 Mais: `share`, `install_prompt`, `install_accept`, `install_dismiss`.
 
-Dashboard por evento: escaneamentos, sessões, uploads, taxa de retry, falhas, tempo médio de upload. **Métrica principal:** `sessões_com_upload / expected_guests`. `qr_scan` só nasce quando `via=qr` (peça impressa); WhatsApp e link copiado entram em `page_open`. A espinha continua cumulativa; o corte por canal é `guest_sessions.via`.
+Dashboard por evento, em `/admin/e/[eventId]/guests`: escaneamentos, sessões, uploads, corte por `via`, participação. **Métrica principal:** `sessões_com_upload / expected_guests`. `qr_scan` só nasce quando `via=qr` (peça impressa); WhatsApp e link copiado entram em `page_open`. A espinha continua cumulativa; o canal mora em `guest_sessions.via`.
 
 Telemetria **nunca** quebra o caminho do request. Envolvida em try/catch que engole e loga.
 
@@ -437,16 +458,18 @@ Casamento acaba. Pessoas se separam. Pessoas morrem — e as fotos estão cheias
 
 ```
 apps/
-  web/         Next.js — convidado, rotas de API, e depois admin e telão
-  mobile/      app do convidado (ADR 0010), segunda porta e nunca a primeira
+  web/         Next.js — convidado, admin, telão, landing, rotas de API
+               features/  uma pasta por superfície (guest, feed, photo, album, music, admin, wall, …)
+               app/       páginas e route handlers; EN canônico, PT reexporta ou redireciona
+  mobile/      stub da task 017 — app Expo do convidado, segunda porta, nunca a primeira
 packages/
-  core/        o que as duas superfícies compartilham: fila, envio, processamento
-               de imagem, presets, validação de mídia, derivação de chave
+  core/        o que as superfícies compartilham: fila, envio, processamento
+               de imagem, presets, validação de mídia, moderação, funil, álbum, share
   db/          schema, migrations, escopo de evento, sessão, suíte de isolamento
   tokens/      resolvedor identity_tokens → valores, compartilhado por todos os renderizadores
-  packs/       vocabulário, missões, lugares, identidade por vertical
+  packs/       vocabulário, missões, lugares, identidade por vertical (casamento, 15 anos)
   ui-web/      primitivas da web — o package que o guard de conformidade protege
-  ui-native/   as equivalentes do app
+  ui-native/   casca do app nativo (ainda sem telas)
 docs/
   adr/         decisões vinculantes, datadas e imutáveis
   product/     os documentos de produto e branding que originam tudo
@@ -455,7 +478,7 @@ docs/
 tools/
   guards/      os guards bloqueantes (isolamento, tokens, domínio, packs, sessão, features, api-routes)
   db/          migração e seed de desenvolvimento
-docker-compose.yml     Postgres local, em porta não padrão de propósito
+docker-compose.yml     Postgres local, em porta não padrão de propósito (55432)
 .github/workflows/     pipeline única (GitHub, não GitLab — exceção da task 002)
 ```
 
@@ -490,18 +513,32 @@ O restante segue a tabela de fases em [`CLAUDE.md`](../CLAUDE.md). Rebaixar um g
 
 ## 16. O que este documento descreve e ainda não existe
 
-Este documento é a fonte da verdade de **fronteiras**, e uma fronteira vale antes de haver código atrás dela. Mas a distância entre o desenhado e o construído é informação operacional, e escondê-la faz alguém planejar em cima de uma peça que não está lá.
+Este documento é a fonte da verdade de **fronteiras**, e uma fronteira vale antes de haver código atrás dela. A distância entre o desenhado e o construído é informação operacional.
 
-Descrito acima e **ainda não construído** no caminho do convidado:
+### Entregue no caminho do convidado e do anfitrião (não estava na revisão de 2026-08-10)
+
+| Peça | Onde | Estado |
+|---|---|---|
+| PUT da miniatura | §5 | A fila manda `full` e `thumb`. `webTransport.sendPoster` faz o PUT da thumb |
+| Identidade do evento no banco | §6 | `events.identity_tokens` entra no resolvedor (`eventVars`, telão, peças, moldura de share) |
+| Moderação + classificador | §9 | Gate fail-closed na parede; fila de revisão no admin; provedor heurístico, sem ML |
+| Telão | §10 | `/wall-display` + poll `/api/wall` + cache 50 + pânico |
+| Funil | §12 | `funnel_events` + `guest_sessions.via` + painel em `/admin/e/[id]/guests` |
+| Peças SVG/PDF | wizard e painel | Download no admin; falta prova impressa com 3 celulares |
+| Recado, música, missões, álbum, share Stories | features correspondentes | No ar. Áudio do recado e app Expo ainda não |
+
+### Ainda não construído (bloqueia o 1º evento real ou é Fase B/C)
 
 | Peça | Onde é descrita | Estado |
 |---|---|---|
-| Upload da miniatura | §5, passos 3 e 5 | **Meio caminho, e é a lacuna mais concreta.** A miniatura é gerada no cliente e a URL presigned é emitida, mas nada faz o PUT dela: hoje só a imagem cheia sobe, e a chave `thumb` fica vazia no storage. O telão precisa disso fechado antes de existir |
-| Identidade do evento vinda do banco | §6 | **Meio caminho.** O resolvedor é único e nenhum componente escolhe cor — a invariante que importa está de pé —, mas a camada do evento ainda não é lida de `identity_tokens`: a resolução parte da marca e do pack |
-| Moderação | §9 | Não construído. `uploads` já tem coluna de estado; os três modos, o classificador e a fila de aprovação, não |
-| Telão, retenção, funil | §10, §11, §12 | Não construídos |
+| Prova das peças impressas | spec 009, roadmap A1 | Código gera SVG/PDF; ninguém mediu QR em papel com 3 celulares |
+| Retenção por job (D330/D365) | §11 | Não construído |
+| App nativo Expo | ADR 0008–0010, spec 017 | `apps/mobile` é stub |
+| Classificador com modelo de ML | §9 | Heurística de magic bytes. O **gate** (silêncio → `sem-resposta` → parede segura) já é o produto |
+| Produção (Workers + R2 + Neon + Resend) | ADR 0006, roadmap A5 | Roda em localhost |
+| Carga 150/20 min contra infra de produção | spec 012 | Ferramenta `pnpm carga` existe; falta a prova |
 
-Uma peça descrita em §5 que **existe e o texto original não previa**: a triagem de vídeo e de HEIC antes de ler o arquivo inteiro. Ela está no diagrama porque é fronteira, não otimização — recusar depois da captura destrói um momento que o convidado não tem como refazer, e o formato se descobre pela assinatura do arquivo, nunca pelo tipo declarado, que vem vazio ou mentiroso no iOS.
+Uma peça descrita em §5 que **existe** e o texto original não previa: a triagem de vídeo e de HEIC antes de ler o arquivo inteiro. Ela está no diagrama porque é fronteira, não otimização.
 
 Uma consequência operacional que vale registrar: **Service Worker, Background Sync e `crypto.randomUUID` só existem em contexto seguro.** Verificar o caminho do convidado num aparelho de verdade exige HTTPS — em `http://` de rede local o produto falha na hora de enfileirar, e o sintoma não se parece com a causa. O procedimento está em [`runbooks/verificacao-da-captura.md`](./runbooks/verificacao-da-captura.md).
 
@@ -527,3 +564,4 @@ Uma consequência operacional que vale registrar: **Service Worker, Background S
 |---|---|
 | 2026-08-09 | Versão inicial. Fronteiras, invariantes e caminhos críticos derivados dos documentos de produto; boas práticas de disciplina herdadas do Nereus, calibradas para a escala do Albora. |
 | 2026-08-10 | Revisão contra o código das tasks 003 a 006. **Correções:** o `NULLIF` na política de RLS (§3), sem o qual a política falha de dois jeitos diferentes na mesma pool; as duas tabelas fora da RLS, que o modelo de dados não listava (§3, §8); `confirm` não confere dimensões, confere assinatura de arquivo (§5); o preset é paramétrico com uma passagem por pixel, não uma tabela de cor (§6); estrutura do repositório e pipeline no GitHub (§14). **Acrescentado:** as duas portas da legenda e por que o confirm não a espera (§5), conjuntos fechados vindos do pack (§7), rate limit em duas camadas (§4), o que a suíte de isolamento de fato prova (§15), e §16 com o que está descrito e ainda não construído. |
+| 2026-08-15 | Revisão contra o código da PR #2. **Correções:** `expected_guests` existe (migration 0020), não “entra com o admin”; telão é poll de `GET /api/wall`, não SSE; PUT da thumb e `identity_tokens` do banco estão no caminho; classificador fail-closed na parede; dois packs no catálogo. **Acrescentado:** `via` na sessão, recado, música, comentários, mapa de rotas no índice. |

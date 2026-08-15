@@ -1,7 +1,7 @@
 # Albora — Segurança e proteção de dados
 
 > **Status:** fundação. Independente de runtime.
-> **Última revisão:** 2026-08-11
+> **Última revisão:** 2026-08-15
 > **Complementa:** [`architecture.md`](./architecture.md), [`flows.md`](./flows.md), [ADR 0002](./adr/0002-event-as-tenancy-boundary.md), [ADR 0004](./adr/0004-anonymous-guest-session.md)
 
 ## 1. O enquadramento que muda todas as decisões
@@ -99,7 +99,7 @@ Hoje a mídia sai do endpoint S3 do R2 — `<conta>.r2.cloudflarestorage.com` �
 
 > **O servidor nunca serve mídia.** Ele emite URL assinada; o navegador busca os bytes direto no object storage, do mesmo jeito que o upload escreve direto nele.
 
-Proxy pelo app poria o servidor no caminho dos bytes — viola a regra das duas dependências duras, e às 22h de sábado é o gargalo que ninguém consegue tirar. A emissão é em lote ([`apps/web/app/api/midia/urls/route.ts`](../apps/web/app/api/midia/urls/route.ts)) porque uma página de feed são 24 fotos, e 24 requisições no meio de uma rolagem é a própria travada.
+Proxy pelo app poria o servidor no caminho dos bytes — viola a regra das duas dependências duras, e às 22h de sábado é o gargalo que ninguém consegue tirar. A emissão é em lote ([`apps/web/app/api/media/urls/route.ts`](../apps/web/app/api/media/urls/route.ts); alias PT `/api/midia/urls`) porque uma página de feed são 24 fotos, e 24 requisições no meio de uma rolagem é a própria travada.
 
 Sete controles, todos obrigatórios:
 
@@ -109,11 +109,11 @@ Sete controles, todos obrigatórios:
 | 2 | **Evento vem da sessão**, nunca da requisição | Pedir a chave do casamento do vizinho e recebê-la assinada |
 | 3 | **Formato fechado de chave** — `events/{uuid}/AAAA/MM/{uuid}/full` ou `/thumb` —, não apenas o prefixo do evento | A rota de leitura do feed virar chave-mestra de tudo que passar a morar debaixo de `events/{id}/`: export do acervo, artefato de job |
 | 4 | **Mesma resposta** para chave de outro evento e para chave malformada | Oráculo de existência: distinguir conta ao pedinte que aquele id existe em outra festa — exatamente o que ele queria descobrir |
-| 5 | **Teto de lote** (`TETO_DE_CHAVES = 60`), conferido **antes** da checagem de chave | Enumeração e esgotamento: um pedido de dez mil chaves custa dez mil assinaturas |
-| 6 | **Validade curta** da URL assinada (`VALIDADE_GET_SEGUNDOS = 900`), renovada pelo cliente com folga | URL vazada no grupo do WhatsApp valer a noite |
+| 5 | **Teto de lote** (`KEY_CAP = 60`), conferido **antes** da checagem de chave | Enumeração e esgotamento: um pedido de dez mil chaves custa dez mil assinaturas |
+| 6 | **Validade curta** da URL assinada (`GET_TTL_SECONDS = 900`), renovada pelo cliente com folga | URL vazada no grupo do WhatsApp valer a noite |
 | 7 | **Janela de rate limit própria**, separada da de feed e presign | Rolar o feed gastar o contador que deveria segurar abuso — um contador só faria a leitura morrer pelo tráfego que ela mesma provoca |
 
-Os tetos vivem em [`apps/web/app/api/midia/urls/lote.ts`](../apps/web/app/api/midia/urls/lote.ts); a janela de leitura é contada sob chave própria na rota, a 120 pedidos por minuto e por identidade.
+Os tetos vivem em [`apps/web/app/api/media/urls/lote.ts`](../apps/web/app/api/media/urls/lote.ts); a janela de leitura é contada sob chave própria na rota, a 120 pedidos por minuto e por identidade.
 
 O ponto 4 é contraintuitivo e por isso merece estar escrito: a resposta *mais informativa* é a que entrega o que o atacante veio buscar. Um 404 para chave inexistente e um 403 para chave alheia formam, juntos, um endpoint de consulta — "esta foto existe em alguma festa" —, e é assim que **A5** encontra alguém.
 
@@ -149,12 +149,14 @@ Com feed, reações e telão, o produto **difunde** imagem de terceiros. Isso mu
 
 A defesa, então, não pode depender de atenção humana em tempo real:
 
-- **O classificador é o único portão automático.** Roda no thumb, antes da liberação para o telão.
-- **Assimetria galeria versus telão quando o classificador não responde:** publica na galeria, **segura do telão**. São exposições diferentes — galeria é ativa (alguém escolheu abrir), telão é passivo (150 pessoas estão olhando sem ter escolhido). Falhar aberto na galeria custa pouco; falhar aberto na parede custa a festa.
-- **Botão de pânico** no admin *e* na tela do telão, pausando a exibição em três segundos. Quando algo dá errado, ninguém vai procurar o menu certo.
-- **Denúncia por convidado**, sem login. Duas denúncias tiram do telão automaticamente, pendente de revisão. As 150 pessoas na sala veem o telão antes de qualquer classificador — são o melhor sensor disponível e são de graça.
-- **Remoção propaga em segundos**, não no próximo ciclo.
-- **O anfitrião pode endurecer o modo durante a festa.** O padrão aberto é aposta calculada e precisa ter freio.
+- **O classificador é o único portão automático.** Roda no thumb, fora do `confirm`. O poll da parede dispara o lote (`classifyMediaAfter`) em fire-and-forget.
+- **Assimetria galeria versus telão quando o classificador não responde:** publica na galeria, **segura do telão.** Silêncio, timeout e bytes ilegíveis gravam `sem-resposta`, nunca `limpo`. Está em `@albora/core` (`decidirExibicao`) e na query da parede (`listarMidiaDaParede`).
+- **Botão de pânico** no admin *e* na tela do telão (`PATCH /api/wall/panic`). Quando algo dá errado, ninguém vai procurar o menu certo.
+- **Denúncia por convidado**, sem login. Duas denúncias tiram do telão automaticamente, pendente de revisão (uma, se `has_minors`).
+- **Remoção propaga no próximo poll** da parede (6 s), não no próximo ciclo de deploy.
+- **O anfitrião pode endurecer o modo durante a festa** (`events.hardened`). O padrão aberto é aposta calculada e precisa ter freio.
+
+Não há modelo de ML neste repositório. O provedor padrão é heurístico (assinatura de arquivo → `limpo`). O **gate** já é o produto: falhar fechado na parede. Trocar o provedor não muda a assimetria.
 
 🔴 **Conteúdo ilegal envolvendo menores** não é caso de moderação, é obrigação legal. Precisa de procedimento escrito — preservação, notificação, contato — **antes** do primeiro evento. Não pode ser improvisado no sábado.
 

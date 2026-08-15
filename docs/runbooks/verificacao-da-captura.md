@@ -363,12 +363,12 @@ Roda em `pnpm test`, e cobre a **matemática e a ordem**, que é onde moram os b
 
 ### Lacunas conhecidas de implementação
 
-Não são falhas de execução deste runbook — são coisas que ainda não existem, e que a verificação vai encontrar:
+Não são falhas de execução deste runbook — são coisas que a verificação ainda encontra, ou que já fecharam:
 
 1. **Queda para o seletor de arquivos com a câmera negada (ponto 2)** não está implementada. O atributo `capture` pede a câmera, e o que acontece depois é do sistema.
 2. **O "CTA de instalação" (ponto 7)** é hoje uma linha de texto condicionada à fila vazia. O prompt de instalação do navegador não está sob controle do produto.
-3. **A miniatura não sobe.** Ela é gerada e a URL presigned é emitida, mas nada faz o PUT — só a imagem cheia chega ao storage. Não afeta nenhum dos oito pontos, e afeta o telão. Ver [`../architecture.md` §16](../architecture.md).
-4. **A identidade do evento ainda não vem do banco.** Cores e fontes na tela saem da marca e do pack, não de `identity_tokens`. Verificar "a cor do casal propaga" ainda não é possível.
+3. **A miniatura sobe.** A fila manda `thumb` e `webTransport.sendPoster` faz o PUT. Se o telão mostrar placeholder, não é mais esta lacuna — olhe a rede e o R2.
+4. **A identidade do evento vem do banco.** `events.identity_tokens` entra no resolvedor (`eventVars`, telão, peças, moldura). Verificar “a cor do casal propaga” é possível depois de salvar identidade no admin.
 5. **O nome gravado no aparelho não é lido de volta** (§3.1). É lacuna da task 005 e aparece durante este runbook; anote onde apareceu e siga.
 
 ---

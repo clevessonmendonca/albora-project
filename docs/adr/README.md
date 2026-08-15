@@ -20,6 +20,7 @@ Um ADR aceito **não é editado**. Se a decisão muda, escreve-se um novo que o 
 | [0010](./0010-expo-para-o-app-do-convidado.md) | Expo para o app do convidado, com o domínio compartilhado | Accepted |
 | [0011](./0011-musica-do-evento-sem-direito-de-sincronizacao.md) | Música do evento: link e sugestão sim, áudio embutido não | Accepted |
 | [0012](./0012-menores-sem-perguntar-idade.md) | Menores: nivelar por cima em vez de perguntar idade | Accepted |
+| [0013](./0013-acesso-por-conta-sob-rls.md) | Acesso por conta sob RLS (`app.account_id` + `comConta`) | Accepted |
 
 ## Status
 
@@ -37,8 +38,7 @@ Vivem em [`../product/`](../product/) e devem virar ADR quando tocarem implement
 - Site, convite, RSVP e lista de presentes adiados para a Fase 4, com condições de entrada explícitas
 - Lista de presentes como bifurcação estratégica — registrada para não ser tomada por impulso
 - Sem editor de canvas; diagramação por slots
-- Sem comentários em foto
-- Sem comunidade
+- Sem comunidade entre eventos (comentário **existe** dentro do evento — [ADR 0009](./0009-app-social-do-convidado.md), spec 014)
 - Assinatura mensal só para fornecedor; nunca para o casal
 - Nunca limitar convidados
 - Núcleo genérico, experiência especializada, marketing vertical

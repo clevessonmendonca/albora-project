@@ -387,6 +387,8 @@ Franquia permanente do R2: 10 GB, 1M Class A, 10M Class B por mês → **os prim
 
 ### 5.2 Planos
 
+> **Draft de modelo de negócio**, não a landing. O que o visitante vê em `/` está em `apps/web/app/landing/landing-page.tsx`: Grátis R$ 0 · Completo R$ 199 único · Fornecedor sob consulta. Ver [`README.md`](./README.md). Esta tabela não foi alterada para “inventar” o R$ 149/mês na UI.
+
 | | **Grátis** | **Celebração — R$ 199 único** | **Fornecedor — R$ 149/mês** |
 |---|---|---|---|
 | Convidados | ∞ | ∞ | ∞ |
