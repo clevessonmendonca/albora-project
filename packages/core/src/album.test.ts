@@ -16,6 +16,8 @@ import {
   montarAlbum,
   ordemDeDescarte,
   ordemNaRajada,
+  planejarCapitulos,
+  primeiroAmanhecerNaJanela,
   proporcaoDe,
   resolver,
   selecionarParaAlbum,
@@ -170,6 +172,63 @@ describe("a unidade é a hora, e a hora é a do evento", () => {
     expect(capituloDe(new Date("2026-08-08T21:00:00Z"), CAPITULOS)).toBe("chegada");
     expect(capituloDe(new Date("2026-08-09T01:00:00Z"), CAPITULOS)).toBe("festa");
     expect(capituloDe(new Date("2026-08-09T01:00:00Z"), [])).toBe(CAPITULO_UNICO);
+  });
+});
+
+describe("o plano da noite sai da janela, não de um horário inventado", () => {
+  const ids = ["antes", "cerimonia", "pista", "depois"] as const;
+
+  it("sem ids, o plano fica vazio e a montagem cai na noite inteira", () => {
+    expect(planejarCapitulos(JANELA, [])).toEqual([]);
+    expect(capituloDe(JANELA.comecaEm, planejarCapitulos(JANELA, []))).toBe(CAPITULO_UNICO);
+  });
+
+  it("um id só começa no começo da janela", () => {
+    expect(planejarCapitulos(JANELA, ["a-noite"])).toEqual([
+      { id: "a-noite", comecaEm: JANELA.comecaEm },
+    ]);
+  });
+
+  it("o último capítulo começa no primeiro amanhecer da janela", () => {
+    const amanhecer = primeiroAmanhecerNaJanela(JANELA);
+    expect(amanhecer?.toISOString()).toBe("2026-08-09T08:00:00.000Z");
+
+    const plano = planejarCapitulos(JANELA, ids);
+    expect(plano.map((c) => c.id)).toEqual([...ids]);
+    expect(plano[0]?.comecaEm.toISOString()).toBe(JANELA.comecaEm.toISOString());
+    expect(plano.at(-1)?.comecaEm.toISOString()).toBe(amanhecer?.toISOString());
+  });
+
+  it("janela que acaba antes do amanhecer reparte o arco inteiro", () => {
+    const tarde: JanelaDoEvento = {
+      comecaEm: new Date("2026-08-08T21:00:00Z"),
+      terminaEm: new Date("2026-08-09T02:00:00Z"),
+      offsetMinutos: OFFSET,
+    };
+    expect(primeiroAmanhecerNaJanela(tarde)).toBeNull();
+
+    const plano = planejarCapitulos(tarde, ids);
+    expect(plano).toHaveLength(4);
+    expect(plano[0]?.comecaEm.toISOString()).toBe(tarde.comecaEm.toISOString());
+    expect(plano.at(-1)?.comecaEm.getTime()).toBeLessThan(tarde.terminaEm.getTime());
+  });
+
+  it("a foto cai no capítulo do instante, e a sem hora não some", () => {
+    const capitulos = planejarCapitulos(JANELA, ids);
+    const album = montarAlbum(
+      [
+        foto({ id: "chegada", capturadaEm: new Date("2026-08-08T22:10:00Z") }),
+        foto({ id: "alvorada", capturadaEm: new Date("2026-08-09T08:30:00Z") }),
+        foto({
+          id: "perdida",
+          capturadaEm: null,
+          recebidaEm: new Date("2026-08-12T15:00:00Z"),
+        }),
+      ],
+      plano({ capitulos }),
+    );
+
+    expect(album.capitulos.map((c) => c.id)).toEqual(["antes", "depois", CAPITULO_SEM_HORA]);
   });
 });
 

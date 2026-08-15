@@ -321,6 +321,8 @@ export {
   montarAlbum,
   ordemDeDescarte,
   ordemNaRajada,
+  planejarCapitulos,
+  primeiroAmanhecerNaJanela,
   proporcaoDe,
   resolver,
   selecionarParaAlbum,
@@ -447,6 +449,8 @@ export { autorizarCompartilhamento as authorizeShare } from "./compartilhar";
 export { compor as composeShare } from "./compartilhar";
 /** English alias — prefer for new code. */
 export { montarAlbum as buildAlbum } from "./album";
+/** English alias — prefer for new code. */
+export { planejarCapitulos as planChapters } from "./album";
 /** English alias — prefer for new code. */
 export { lerLinkDeMusica as parseMusicLink } from "./musica";
 /** English alias — prefer for new code. */

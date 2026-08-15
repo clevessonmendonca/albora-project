@@ -36,6 +36,8 @@ export {
   instanteDe,
 } from "./tempo";
 
+export { planejarCapitulos, primeiroAmanhecerNaJanela } from "./plano";
+
 export { resolver } from "./resolver";
 
 export {
