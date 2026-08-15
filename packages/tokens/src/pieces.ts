@@ -10,8 +10,8 @@ import type { Colors } from "./types";
  * o segundo resolvedor que o ADR 0003 existe para impedir — e a divergência
  * apareceria em papel, depois de impresso.
  *
- * Nada aqui desenha. São medidas e recusas: quem rasteriza é o pipeline
- * SVG → PDF, em fila, nunca em request.
+ * Nada aqui desenha. São medidas e recusas: quem desenha é o pipeline
+ * SVG → PDF. Uma peça vetorial cabe no request; raster a 300 dpi iria para fila.
  */
 
 /** Sangria: o corte da gráfica nunca cai exatamente na linha. */

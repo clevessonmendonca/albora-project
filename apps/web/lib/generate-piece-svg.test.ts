@@ -1,6 +1,7 @@
 import { ALBORA_BRAND } from "@albora/tokens";
 import { describe, expect, it } from "vitest";
 import { generatePieceSvg } from "./generate-piece-svg";
+import { PIECE_INSTRUCTION } from "./piece-layout";
 
 const entradaBase = {
   urlQr: "https://albora.app/e/festa-demo",
@@ -18,6 +19,7 @@ describe("generatePieceSvg", () => {
     expect(resultado.problemas).toEqual([]);
     expect(resultado.svg).toContain("<svg");
     expect(resultado.svg).toContain("albora.app/e/festa-demo");
+    expect(resultado.svg).toContain(PIECE_INSTRUCTION);
     expect(resultado.avisos.length).toBeGreaterThan(0);
   });
 

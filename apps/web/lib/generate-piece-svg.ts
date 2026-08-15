@@ -1,33 +1,12 @@
-import type { Colors, PieceFormat } from "@albora/tokens";
-import {
-  SAFE_AREA_MM,
-  BLEED_MM,
-  colorWarning,
-  cutBox,
-  pieceMeasures,
-  pieceProblems,
-  qrInk,
-} from "@albora/tokens";
-import QRCode from "qrcode";
+import { planPiece, type PieceInput } from "./piece-layout";
 
-export type PieceInput = {
-  formato: PieceFormat;
-  urlQr: string;
-  urlLegivel: string;
-  monograma: string;
-  titulo: string;
-  data: string;
-  cores: Colors;
-};
+export type { PieceInput };
 
 export type PieceResult = {
   svg: string;
   avisos: string[];
   problemas: string[];
 };
-
-const MARGEM_CONTEUDO_MM = 12;
-const SILENCIO_QR_MODULOS = 4;
 
 function escaparXml(valor: string): string {
   return valor
@@ -37,102 +16,38 @@ function escaparXml(valor: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function modulosQr(
-  conteudo: string,
-  x: number,
-  y: number,
-  ladoMm: number,
-  modulo: string,
-  fundo: string,
-): string {
-  const qr = QRCode.create(conteudo, { errorCorrectionLevel: "H" });
-  const n = qr.modules.size;
-  const total = n + SILENCIO_QR_MODULOS * 2;
-  const celula = ladoMm / total;
-
-  let partes = `<rect x="${x}" y="${y}" width="${ladoMm}" height="${ladoMm}" fill="${fundo}"/>`;
-
-  for (let row = 0; row < n; row++) {
-    for (let col = 0; col < n; col++) {
-      if (!qr.modules.get(row, col)) continue;
-      const px = x + (col + SILENCIO_QR_MODULOS) * celula;
-      const py = y + (row + SILENCIO_QR_MODULOS) * celula;
-      partes += `<rect x="${px.toFixed(3)}" y="${py.toFixed(3)}" width="${celula.toFixed(3)}" height="${celula.toFixed(3)}" fill="${modulo}"/>`;
-    }
-  }
-
-  return partes;
-}
-
-function alturaCabecalho(formato: PieceFormat): number {
-  if (formato === "placa-a4") return 42;
-  if (formato === "card-de-mesa") return 28;
-  return 18;
-}
-
-function tamanhoFonte(formato: PieceFormat, papel: "mono" | "titulo" | "data" | "url"): number {
-  const mapa = {
-    "placa-a4": { mono: 14, titulo: 9, data: 4.5, url: 3.5 },
-    "card-de-mesa": { mono: 9, titulo: 6, data: 3.5, url: 2.8 },
-    "card-de-missao": { mono: 6, titulo: 4.2, data: 2.6, url: 2.2 },
-  } as const;
-  return mapa[formato][papel];
+function familia(font: "serif" | "sans"): string {
+  return font === "serif" ? "Fraunces, Georgia, serif" : '"Instrument Sans", system-ui, sans-serif';
 }
 
 export async function generatePieceSvg(entrada: PieceInput): Promise<PieceResult> {
-  const medidas = pieceMeasures(entrada.formato);
-  const corte = cutBox(medidas);
-  const margem = Math.max(MARGEM_CONTEUDO_MM, SAFE_AREA_MM);
-  const layout = {
-    formato: entrada.formato,
-    qr: medidas.qr,
-    url: entrada.urlLegivel,
-    margem,
-  };
-
-  const problemas = pieceProblems(layout, entrada.cores);
-  const avisos = [colorWarning(entrada.cores)];
-  const tinta = qrInk(entrada.cores);
-
-  if (problemas.length > 0) {
-    return { svg: "", avisos, problemas };
+  const plano = planPiece(entrada);
+  if (plano.problemas.length > 0) {
+    return { svg: "", avisos: plano.avisos, problemas: plano.problemas };
   }
 
-  const ox = BLEED_MM;
-  const oy = BLEED_MM;
-  const cx = ox + medidas.largura / 2;
-  const cabecalho = alturaCabecalho(entrada.formato);
+  const textos = plano.textos
+    .map((t) => {
+      const weight = t.weight !== 400 ? ` font-weight="${t.weight}"` : "";
+      return `<text x="${t.x}" y="${t.y}" text-anchor="middle" font-family="${familia(t.font)}" font-size="${t.size}"${weight} fill="${t.fill}">${escaparXml(t.value)}</text>`;
+    })
+    .join("\n  ");
 
-  const qrX = cx - medidas.qr / 2;
-  const qrY = oy + margem + cabecalho;
-  const urlY = qrY + medidas.qr + 6;
-
-  const mono = escaparXml(entrada.monograma);
-  const titulo = escaparXml(entrada.titulo);
-  const data = escaparXml(entrada.data);
-  const url = escaparXml(entrada.urlLegivel);
-
-  const fsMono = tamanhoFonte(entrada.formato, "mono");
-  const fsTitulo = tamanhoFonte(entrada.formato, "titulo");
-  const fsData = tamanhoFonte(entrada.formato, "data");
-  const fsUrl = tamanhoFonte(entrada.formato, "url");
-
-  const qr = modulosQr(entrada.urlQr, qrX, qrY, medidas.qr, tinta.modulo, tinta.fundo);
+  const celulas = plano.qrCelulas
+    .map(
+      (c) =>
+        `<rect x="${c.x.toFixed(3)}" y="${c.y.toFixed(3)}" width="${c.width.toFixed(3)}" height="${c.height.toFixed(3)}" fill="${plano.qrModulo}"/>`,
+    )
+    .join("");
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${corte.largura}mm" height="${corte.altura}mm" viewBox="0 0 ${corte.largura} ${corte.altura}">
-  <rect width="${corte.largura}" height="${corte.altura}" fill="${entrada.cores.papel}"/>
-  <rect x="${ox}" y="${oy}" width="${medidas.largura}" height="${medidas.altura}" fill="${entrada.cores.papel}"/>
-  <text x="${cx}" y="${oy + margem + fsMono}" text-anchor="middle" font-family="Georgia, serif" font-size="${fsMono}" font-weight="600" fill="${entrada.cores.acento}">${mono}</text>
-  <text x="${cx}" y="${oy + margem + fsMono + fsTitulo + 2}" text-anchor="middle" font-family="Georgia, serif" font-size="${fsTitulo}" fill="${entrada.cores.tinta}">${titulo}</text>
-  <text x="${cx}" y="${oy + margem + fsMono + fsTitulo + fsData + 4}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="${fsData}" fill="${entrada.cores.tinta}">${data}</text>
-  ${qr}
-  <text x="${cx}" y="${urlY}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="${fsUrl}" fill="${entrada.cores.tinta}">${url}</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="${plano.corte.largura}mm" height="${plano.corte.altura}mm" viewBox="0 0 ${plano.corte.largura} ${plano.corte.altura}">
+  <rect width="${plano.corte.largura}" height="${plano.corte.altura}" fill="${plano.fundo}"/>
+  <rect x="${plano.papel.x}" y="${plano.papel.y}" width="${plano.papel.largura}" height="${plano.papel.altura}" fill="${plano.papel.fill}"/>
+  ${textos}
+  <rect x="${plano.qrFundo.x}" y="${plano.qrFundo.y}" width="${plano.qrFundo.lado}" height="${plano.qrFundo.lado}" fill="${plano.qrFundo.fill}"/>
+  ${celulas}
 </svg>`;
 
-  if (tinta.recuouParaAbsoluto) {
-    avisos.push("O QR saiu em preto sobre branco porque a identidade não alcança o contraste exigido.");
-  }
-
-  return { svg, avisos, problemas: [] };
+  return { svg, avisos: plano.avisos, problemas: [] };
 }
