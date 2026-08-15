@@ -161,4 +161,31 @@ describe("o agregador enxerga o que a sessão gravou, e só dela", () => {
 
     expect(funilB.degraus.every((d) => d.sessoes === 0)).toBe(true);
   });
+
+  it("upload_ok antes e depois do feed_open saem separados", async () => {
+    const { rows } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'prova-feed', 'v1', now()) RETURNING id`,
+      [dados.a.eventoId],
+    );
+    const sessaoId = rows[0]!.id;
+
+    const antes = await comEvento(app, dados.a.eventoId, (c) =>
+      lerFunilAgregado(c, dados.a.eventoId),
+    );
+
+    await comEvento(app, dados.a.eventoId, async (c) => {
+      await registrarEventoDoFunil(c, { sessaoId, name: "upload_ok" });
+      await registrarEventoDoFunil(c, { sessaoId, name: "upload_ok" });
+      await registrarEventoDoFunil(c, { sessaoId, name: "feed_open" });
+      await registrarEventoDoFunil(c, { sessaoId, name: "upload_ok" });
+    });
+
+    const depois = await comEvento(app, dados.a.eventoId, (c) =>
+      lerFunilAgregado(c, dados.a.eventoId),
+    );
+
+    expect(depois.uploadsAntesDoFeed).toBe(antes.uploadsAntesDoFeed + 2);
+    expect(depois.uploadsDepoisDoFeed).toBe(antes.uploadsDepoisDoFeed + 1);
+  });
 });

@@ -5,7 +5,32 @@ import type { PoolClient } from "pg";
 export type FunilAgregado = {
   totalSessoes: number;
   degraus: DegrauDoFunil[];
+  uploadsAntesDoFeed: number;
+  uploadsDepoisDoFeed: number;
 };
+
+/** Spec 007 prova 6: `upload_ok` de cada sessão, antes × depois do primeiro `feed_open`. */
+export function contarUploadsAntesDepoisDoFeed(
+  sequencias: Iterable<readonly EventoDoFunil[]>,
+): { antes: number; depois: number } {
+  let antes = 0;
+  let depois = 0;
+
+  for (const eventos of sequencias) {
+    let viuFeed = false;
+    for (const name of eventos) {
+      if (name === "feed_open") {
+        viuFeed = true;
+        continue;
+      }
+      if (name !== "upload_ok") continue;
+      if (viuFeed) depois += 1;
+      else antes += 1;
+    }
+  }
+
+  return { antes, depois };
+}
 
 /** Funil agregado por sessão (spec 009 B-07) — só leitura, dentro de `comEvento`. */
 export async function lerFunilAgregado(
@@ -35,8 +60,13 @@ export async function lerFunilAgregado(
     porSessao.set(linha.session_id, lista);
   }
 
+  const sequencias = [...porSessao.values()];
+  const { antes, depois } = contarUploadsAntesDepoisDoFeed(sequencias);
+
   return {
     totalSessoes: totais[0]?.total ?? 0,
-    degraus: degraus([...porSessao.values()]),
+    degraus: degraus(sequencias),
+    uploadsAntesDoFeed: antes,
+    uploadsDepoisDoFeed: depois,
   };
 }

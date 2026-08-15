@@ -79,6 +79,8 @@ export async function GET(
       participacao: veredito.taxa,
       veredito: veredito.codigo as CodigoDaTese,
       degraus: dados.funil.degraus,
+      uploadsAntesDoFeed: dados.funil.uploadsAntesDoFeed,
+      uploadsDepoisDoFeed: dados.funil.uploadsDepoisDoFeed,
       ultimas,
     });
   } catch (e) {

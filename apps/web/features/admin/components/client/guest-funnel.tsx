@@ -12,6 +12,8 @@ type Resumo = {
   participacao: number;
   veredito: CodigoDaTese;
   degraus: DegrauDoFunil[];
+  uploadsAntesDoFeed: number;
+  uploadsDepoisDoFeed: number;
   ultimas: { id: string; thumb: string; criadaEm: string }[];
 };
 
@@ -119,6 +121,18 @@ export function GuestFunnel({ eventoId }: Props) {
               </span>
             </div>
           ))}
+        </div>
+      </AdminSection>
+
+      <AdminSection>
+        <h2 className="mb-4 mt-0 font-titulo text-lg">Antes e depois do feed</h2>
+        <p className="mb-4 mt-0 text-[0.8125rem] text-ink-3">
+          Fotos no ar de cada lado da primeira abertura do feed. Se o depois
+          não sobe, o feed não está cumprindo o que prometeu.
+        </p>
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
+          <Stat n={String(resumo.uploadsAntesDoFeed)} rotulo="antes do feed" />
+          <Stat n={String(resumo.uploadsDepoisDoFeed)} rotulo="depois do feed" />
         </div>
       </AdminSection>
 
