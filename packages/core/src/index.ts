@@ -625,9 +625,3 @@ export { podeRemoverComentario as canRemoveComment } from "./comment";
 export { registrarDecisaoDoComentario as registerCommentDecision } from "./comment";
 /** English alias — prefer for new code. @see validarTexto */
 export { validarTexto as validateCommentText } from "./comment";
-
-/**
- * PT filename shims (re-export EN modules). Prefer EN paths in new code:
- * `wall`, `guestbook`, `funnel`, `wall-display`, `comment`,
- * `album`, `musica`, `compartilhar`.
- */
