@@ -13,6 +13,8 @@ import {
   ondeParou,
   taxaDeParticipacao,
   validarSequencia,
+  eventosDeEntrada,
+  parseViaDeEntrada,
   type ContagemDePlataforma,
   type EventoDoFunil,
 } from "./funnel";
@@ -265,6 +267,19 @@ describe("a ordem do funil", () => {
     expect(validarSequencia([...SESSAO_FELIZ, "capture", "upload_start", "upload_ok"]).valida).toBe(
       true,
     );
+  });
+
+  it("QR grava scan; WhatsApp e link só abrem a página", () => {
+    expect(eventosDeEntrada("qr")).toEqual(["qr_scan", "page_open", "consent"]);
+    expect(eventosDeEntrada("wa")).toEqual(["page_open", "consent"]);
+    expect(eventosDeEntrada("link")).toEqual(["page_open", "consent"]);
+  });
+
+  it("via ausente ou inventada vira link, nunca QR", () => {
+    expect(parseViaDeEntrada(undefined)).toBe("link");
+    expect(parseViaDeEntrada("qr_scan")).toBe("link");
+    expect(parseViaDeEntrada("qr")).toBe("qr");
+    expect(parseViaDeEntrada("wa")).toBe("wa");
   });
 
   it("entrar por link, sem QR, é válido", () => {

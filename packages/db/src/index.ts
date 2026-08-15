@@ -39,8 +39,8 @@ export type { AtualizacaoConfigEvento } from "./host-events";
 export { atualizarConfigDoEvento, ocultarMidiaDoHost } from "./host-events";
 export type { FotoRecente, MetricasAoVivo } from "./event-metrics";
 export { lerMetricasAoVivo } from "./event-metrics";
-export type { FunilAgregado } from "./funnel-aggregate";
-export { lerFunilAgregado } from "./funnel-aggregate";
+export type { EntradasPorVia, FunilAgregado } from "./funnel-aggregate";
+export { contarEntradasPorVia, lerFunilAgregado } from "./funnel-aggregate";
 export { ErroEventoDoFunilInvalido, registrarEntradaDoFunil, registrarEventoDoFunil } from "./funnel-events";
 export type {
   CodigoPareamentoApp,

@@ -73,8 +73,12 @@ describe("grava o nome que o agregador já lê", () => {
 
 describe("scan e entrada não duplicam no refresh", () => {
   it("qr_scan, page_open e consent nascem uma vez só, nesta ordem", async () => {
-    await comEvento(app, dados.a.eventoId, (c) => registrarEntradaDoFunil(c, dados.a.sessaoId));
-    await comEvento(app, dados.a.eventoId, (c) => registrarEntradaDoFunil(c, dados.a.sessaoId));
+    await comEvento(app, dados.a.eventoId, (c) =>
+      registrarEntradaDoFunil(c, dados.a.sessaoId, "qr"),
+    );
+    await comEvento(app, dados.a.eventoId, (c) =>
+      registrarEntradaDoFunil(c, dados.a.sessaoId, "qr"),
+    );
 
     expect(await nomesDaSessao(dados.a.eventoId, dados.a.sessaoId)).toEqual([
       "qr_scan",
@@ -187,5 +191,31 @@ describe("o agregador enxerga o que a sessão gravou, e só dela", () => {
 
     expect(depois.uploadsAntesDoFeed).toBe(antes.uploadsAntesDoFeed + 2);
     expect(depois.uploadsDepoisDoFeed).toBe(antes.uploadsDepoisDoFeed + 1);
+  });
+});
+
+describe("QR não é atribuído a quem entrou pelo link", () => {
+  it("WhatsApp grava page_open e consent, sem qr_scan", async () => {
+    const { rows } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at, via)
+       VALUES ($1, 'prova-wa', 'v1', now(), 'wa') RETURNING id`,
+      [dados.b.eventoId],
+    );
+    const sessaoId = rows[0]!.id;
+
+    await comEvento(app, dados.b.eventoId, (c) => registrarEntradaDoFunil(c, sessaoId, "wa"));
+
+    expect(await nomesDaSessao(dados.b.eventoId, sessaoId)).toEqual(["page_open", "consent"]);
+  });
+
+  it("o agregador separa QR, WhatsApp e link copiado", async () => {
+    const funil = await comEvento(app, dados.b.eventoId, (c) =>
+      lerFunilAgregado(c, dados.b.eventoId),
+    );
+
+    expect(funil.entradasPorVia.wa).toBeGreaterThan(0);
+    expect(funil.entradasPorVia.qr + funil.entradasPorVia.wa + funil.entradasPorVia.link).toBe(
+      funil.totalSessoes,
+    );
   });
 });

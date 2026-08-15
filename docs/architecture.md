@@ -329,7 +329,7 @@ vendors ───┘              ├──< guest_sessions >──┬──< up
 | `packs` | Vocabulário, missões padrão, templates, identidade padrão, **lista de lugares** | Global, versionado |
 | `events` | Raiz do escopo. `identity_tokens`, `pack_id`, filtro recomendado, janela do evento, gate de interação | **É a fronteira.** Sob política, casando por `id` |
 | `challenges` | Missões do evento | `event_id`, RLS |
-| `guest_sessions` | Sessão anônima + consentimento versionado e datado | `event_id`, RLS |
+| `guest_sessions` | Sessão anônima + consentimento versionado e datado. `via` é `qr` \| `wa` \| `link` — o canal de entrada | `event_id`, RLS |
 | `guest_contacts` | Opt-in explícito de contato — base do loop viral | `event_id`, RLS, **PII** |
 | `uploads` | Mídia, estado, legenda e lugar (ambos opcionais) | `event_id`, RLS |
 | `reactions` | Reação única e anônima — chave por (`upload`, `sessão`) | `event_id`, RLS |
@@ -405,7 +405,7 @@ qr_scan → page_open → consent → capture → upload_start → upload_ok
 
 Mais: `share`, `install_prompt`, `install_accept`, `install_dismiss`.
 
-Dashboard por evento: escaneamentos, sessões, uploads, taxa de retry, falhas, tempo médio de upload. **Métrica principal:** `sessões_com_upload / expected_guests`.
+Dashboard por evento: escaneamentos, sessões, uploads, taxa de retry, falhas, tempo médio de upload. **Métrica principal:** `sessões_com_upload / expected_guests`. `qr_scan` só nasce quando `via=qr` (peça impressa); WhatsApp e link copiado entram em `page_open`. A espinha continua cumulativa; o corte por canal é `guest_sessions.via`.
 
 Telemetria **nunca** quebra o caminho do request. Envolvida em try/catch que engole e loga.
 

@@ -176,10 +176,15 @@ export type {
   Perda,
   Sequencia,
   Veredito,
+  ViaDeEntrada,
 } from "./funnel";
 export {
   ESPINHA_DO_FUNIL,
   EVENTOS_DO_FUNIL,
+  VIAS_DE_ENTRADA,
+  ehViaDeEntrada,
+  eventosDeEntrada,
+  parseViaDeEntrada,
   MARGEM_DE_RUIDO,
   MetricaInvalida,
   PISO_DA_FRICCAO,
@@ -578,6 +583,16 @@ export { ondeParou as whereFunnelStopped } from "./funnel";
 export { taxaDeParticipacao as participationRate } from "./funnel";
 /** English alias — prefer for new code. @see validarSequencia */
 export { validarSequencia as validateFunnelSequence } from "./funnel";
+/** English alias — prefer for new code. @see ViaDeEntrada */
+export type { ViaDeEntrada as EntryVia } from "./funnel";
+/** English alias — prefer for new code. @see VIAS_DE_ENTRADA */
+export { VIAS_DE_ENTRADA as ENTRY_VIAS } from "./funnel";
+/** English alias — prefer for new code. @see ehViaDeEntrada */
+export { ehViaDeEntrada as isEntryVia } from "./funnel";
+/** English alias — prefer for new code. @see eventosDeEntrada */
+export { eventosDeEntrada as entryEvents } from "./funnel";
+/** English alias — prefer for new code. @see parseViaDeEntrada */
+export { parseViaDeEntrada as parseEntryVia } from "./funnel";
 
 /** English alias — prefer for new code. @see EscolhaDoTelao */
 export type { EscolhaDoTelao as WallDisplayChoice } from "./wall-display";

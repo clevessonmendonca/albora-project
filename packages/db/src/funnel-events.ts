@@ -1,7 +1,10 @@
-import { ehEventoDoFunil, ehEventoUnicoDoFunil, type EventoDoFunil } from "@albora/core";
+import {
+  ehEventoDoFunil,
+  ehEventoUnicoDoFunil,
+  eventosDeEntrada,
+  type ViaDeEntrada,
+} from "@albora/core";
 import type { PoolClient } from "pg";
-
-const ENTRADA: readonly EventoDoFunil[] = ["qr_scan", "page_open", "consent"];
 
 export class ErroEventoDoFunilInvalido extends Error {
   readonly code = "funil.evento_invalido";
@@ -61,12 +64,13 @@ export async function registrarEventoDoFunil(
   return (rowCount ?? 0) > 0;
 }
 
-/** QR → página → consentimento, nesta ordem, para o `id ASC` do agregador. */
+/** QR → página → consentimento só quando `via=qr`. Link e WhatsApp abrem a página. */
 export async function registrarEntradaDoFunil(
   cliente: PoolClient,
   sessaoId: string,
+  via: ViaDeEntrada,
 ): Promise<void> {
-  for (const name of ENTRADA) {
+  for (const name of eventosDeEntrada(via)) {
     await registrarEventoDoFunil(cliente, { sessaoId, name });
   }
 }

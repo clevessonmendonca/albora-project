@@ -77,13 +77,30 @@ describe("criar sessão", () => {
     const { sessaoId } = await novaSessao(dados.a.eventoId);
 
     const { rows } = await admin.query(
-      "SELECT consent_version, consented_at, display_name FROM guest_sessions WHERE id = $1",
+      "SELECT consent_version, consented_at, display_name, via FROM guest_sessions WHERE id = $1",
       [sessaoId],
     );
 
     expect(rows[0].consent_version).toBe("v1");
     expect(rows[0].consented_at).toBeInstanceOf(Date);
     expect(rows[0].display_name).toBe("Cida");
+    expect(rows[0].via).toBe("link");
+  });
+
+  it("grava o canal de entrada informado", async () => {
+    const { sessaoId } = await criarSessao(app, SEGREDO, {
+      eventoId: dados.a.eventoId,
+      nome: "QR",
+      consentimentoVersao: "v1",
+      duracaoHoras: 48,
+      via: "qr",
+    });
+
+    const { rows } = await admin.query<{ via: string }>(
+      "SELECT via FROM guest_sessions WHERE id = $1",
+      [sessaoId],
+    );
+    expect(rows[0]!.via).toBe("qr");
   });
 
   it("nome é obrigatório", async () => {

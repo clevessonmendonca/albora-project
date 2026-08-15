@@ -31,6 +31,27 @@ export type EventoDoFunil = (typeof EVENTOS)[number];
 /** O tipo sai desta lista, e não o contrário: conjunto e união não podem divergir. */
 export const EVENTOS_DO_FUNIL: readonly EventoDoFunil[] = EVENTOS;
 
+const VIAS = ["qr", "wa", "link"] as const;
+
+export type ViaDeEntrada = (typeof VIAS)[number];
+
+/** Canal pelo qual o convidado abriu `/e/[slug]`. Conjunto fechado, como os eventos. */
+export const VIAS_DE_ENTRADA: readonly ViaDeEntrada[] = VIAS;
+
+export function ehViaDeEntrada(valor: string): valor is ViaDeEntrada {
+  return (VIAS_DE_ENTRADA as readonly string[]).includes(valor);
+}
+
+/** Query ou corpo desconhecido vira `link`: não fingimos que escaneou papel. */
+export function parseViaDeEntrada(valor: unknown): ViaDeEntrada {
+  return typeof valor === "string" && ehViaDeEntrada(valor) ? valor : "link";
+}
+
+/** `qr_scan` só existe para peça impressa. WhatsApp e link copiado abrem a página. */
+export function eventosDeEntrada(via: ViaDeEntrada): readonly EventoDoFunil[] {
+  return via === "qr" ? ["qr_scan", "page_open", "consent"] : ["page_open", "consent"];
+}
+
 /**
  * Validação de conjunto fechado para o que chega da rede.
  *

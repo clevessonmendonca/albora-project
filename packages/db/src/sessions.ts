@@ -1,3 +1,4 @@
+import type { ViaDeEntrada } from "@albora/core";
 import type { Pool, PoolClient } from "pg";
 import { comEvento } from "./event";
 import { assinaturaValida, emitirToken, hashDoToken } from "./token";
@@ -12,6 +13,7 @@ export type NovaSessao = {
   nome: string;
   consentimentoVersao: string;
   duracaoHoras: number;
+  via?: ViaDeEntrada;
 };
 
 /**
@@ -36,9 +38,9 @@ export async function criarSessao(
 
   const sessaoId = await comEvento(pool, entrada.eventoId, async (c) => {
     const { rows } = await c.query<{ id: string }>(
-      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
-       VALUES ($1, $2, $3, now()) RETURNING id`,
-      [entrada.eventoId, nome, entrada.consentimentoVersao],
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at, via)
+       VALUES ($1, $2, $3, now(), $4) RETURNING id`,
+      [entrada.eventoId, nome, entrada.consentimentoVersao, entrada.via ?? "link"],
     );
     const id = rows[0]!.id;
 

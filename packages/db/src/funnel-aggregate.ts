@@ -1,13 +1,30 @@
 import type { DegrauDoFunil, EventoDoFunil } from "@albora/core";
-import { degraus, ehEventoDoFunil } from "@albora/core";
+import { degraus, ehEventoDoFunil, parseViaDeEntrada } from "@albora/core";
 import type { PoolClient } from "pg";
+
+export type EntradasPorVia = {
+  qr: number;
+  wa: number;
+  link: number;
+};
 
 export type FunilAgregado = {
   totalSessoes: number;
   degraus: DegrauDoFunil[];
   uploadsAntesDoFeed: number;
   uploadsDepoisDoFeed: number;
+  entradasPorVia: EntradasPorVia;
 };
+
+export function contarEntradasPorVia(
+  linhas: Iterable<{ via: string; n: number }>,
+): EntradasPorVia {
+  const saida: EntradasPorVia = { qr: 0, wa: 0, link: 0 };
+  for (const linha of linhas) {
+    saida[parseViaDeEntrada(linha.via)] += linha.n;
+  }
+  return saida;
+}
 
 /** Spec 007 prova 6: `upload_ok` de cada sessão, antes × depois do primeiro `feed_open`. */
 export function contarUploadsAntesDepoisDoFeed(
@@ -37,7 +54,7 @@ export async function lerFunilAgregado(
   cliente: PoolClient,
   eventoId: string,
 ): Promise<FunilAgregado> {
-  const [{ rows: totais }, { rows: linhas }] = await Promise.all([
+  const [{ rows: totais }, { rows: linhas }, { rows: vias }] = await Promise.all([
     cliente.query<{ total: number }>(
       `SELECT count(*)::int AS total FROM guest_sessions WHERE event_id = $1`,
       [eventoId],
@@ -47,6 +64,10 @@ export async function lerFunilAgregado(
          FROM funnel_events
         WHERE event_id = $1 AND session_id IS NOT NULL
         ORDER BY session_id, created_at ASC, id ASC`,
+      [eventoId],
+    ),
+    cliente.query<{ via: string; n: number }>(
+      `SELECT via, count(*)::int AS n FROM guest_sessions WHERE event_id = $1 GROUP BY via`,
       [eventoId],
     ),
   ]);
@@ -68,5 +89,6 @@ export async function lerFunilAgregado(
     degraus: degraus(sequencias),
     uploadsAntesDoFeed: antes,
     uploadsDepoisDoFeed: depois,
+    entradasPorVia: contarEntradasPorVia(vias),
   };
 }
