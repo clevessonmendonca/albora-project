@@ -77,3 +77,63 @@ export async function desafioDoEvento(
 
   return (rowCount ?? 0) > 0;
 }
+
+/**
+ * Troca o conjunto de missões do evento, na ordem recebida.
+ *
+ * Linhas cuja `title_key` continua na lista **mantêm o id** — fotos já
+ * ligadas a elas não perdem a missão. Quem sai é apagada; `uploads.challenge_id`
+ * cai em NULL pela FK. Quem entra nasce com id novo.
+ *
+ * O conjunto fechado do pack é conferido **antes** de chegar aqui. Esta
+ * função só impõe o que o banco consegue sozinho: sem duplicata, sem chave
+ * vazia, e o `event_id` da transação (RLS), nunca um id de outro evento.
+ */
+export async function substituirDesafios(
+  cliente: PoolClient,
+  eventoId: string,
+  chaves: readonly string[],
+): Promise<Desafio[]> {
+  if (chaves.some((k) => typeof k !== "string" || k.length === 0)) {
+    throw new Error("missão inválida");
+  }
+  if (new Set(chaves).size !== chaves.length) {
+    throw new Error("missões duplicadas");
+  }
+
+  const { rows: atuais } = await cliente.query<{ id: string; title_key: string }>(
+    "SELECT id, title_key FROM challenges WHERE event_id = $1",
+    [eventoId],
+  );
+  const porChave = new Map(atuais.map((l) => [l.title_key, l.id]));
+  const manter = new Set<string>();
+
+  for (const [i, chave] of chaves.entries()) {
+    const existente = porChave.get(chave);
+    const posicao = i + 1;
+    if (existente) {
+      await cliente.query(
+        "UPDATE challenges SET position = $1 WHERE id = $2 AND event_id = $3",
+        [posicao, existente, eventoId],
+      );
+      manter.add(existente);
+    } else {
+      const { rows } = await cliente.query<{ id: string }>(
+        "INSERT INTO challenges (event_id, title_key, position) VALUES ($1, $2, $3) RETURNING id",
+        [eventoId, chave, posicao],
+      );
+      manter.add(rows[0]!.id);
+    }
+  }
+
+  if (manter.size === 0) {
+    await cliente.query("DELETE FROM challenges WHERE event_id = $1", [eventoId]);
+  } else {
+    await cliente.query(
+      "DELETE FROM challenges WHERE event_id = $1 AND NOT (id = ANY($2::uuid[]))",
+      [eventoId, [...manter]],
+    );
+  }
+
+  return listarDesafios(cliente, eventoId, null);
+}

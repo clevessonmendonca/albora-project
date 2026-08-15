@@ -18,7 +18,7 @@ export type { LinhaUpload, ResultadoConfirm } from "./uploads";
 export { anotarUpload, confirmarUpload, ErroUploadDeOutroEvento, removerUploadProprio } from "./uploads";
 
 export type { Desafio } from "./challenges";
-export { desafioDoEvento, listarDesafios } from "./challenges";
+export { desafioDoEvento, listarDesafios, substituirDesafios } from "./challenges";
 
 export type { EntradaFeed, ItemFeed, ModoFeed, PaginaFeed } from "./feed";
 export { codificarCursor, decodificarCursor, ErroCursorInvalido, gateDoEvento, listarFeed, TAMANHO_PAGINA } from "./feed";
@@ -196,6 +196,13 @@ export { codificarCursor as encodeCursor } from "./feed";
 export { decodificarCursor as decodeCursor } from "./feed";
 /** English alias — preferred for new code. @see ErroCursorInvalido */
 export { ErroCursorInvalido as InvalidCursorError } from "./feed";
+
+/** English alias — preferred for new code. @see listarDesafios */
+export { listarDesafios as listChallenges } from "./challenges";
+/** English alias — preferred for new code. @see desafioDoEvento */
+export { desafioDoEvento as challengeBelongsToEvent } from "./challenges";
+/** English alias — preferred for new code. @see substituirDesafios */
+export { substituirDesafios as replaceChallenges } from "./challenges";
 
 /** English alias — preferred for new code. @see criarEvento */
 export { criarEvento as createEvent } from "./events";

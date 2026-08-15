@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { desafioDoEvento, listarDesafios } from "./challenges";
+import { desafioDoEvento, listarDesafios, substituirDesafios } from "./challenges";
 import { comEvento } from "./event";
 import { prepararBanco, semear } from "./testes/banco";
 import { anotarUpload, confirmarUpload } from "./uploads";
@@ -108,6 +108,98 @@ describe("missão pertence ao evento", () => {
     );
 
     expect(ok).toBe(false);
+  });
+});
+
+describe("substituir missões", () => {
+  it("reordena, acrescenta e remove, na ordem pedida", async () => {
+    const lista = await comEvento(app, dados.a.eventoId, async (c) => {
+      await substituirDesafios(c, dados.a.eventoId, ["missao.dois", "missao.nova"]);
+      return listarDesafios(c, dados.a.eventoId, dados.a.sessaoId);
+    });
+
+    expect(lista.map((d) => d.chaveTitulo)).toEqual(["missao.dois", "missao.nova"]);
+    expect(lista.map((d) => d.ordem)).toEqual([1, 2]);
+  });
+
+  it("mantém o id de quem continua — a foto não perde a missão", async () => {
+    const { idAntes, idDepois } = await comEvento(app, dados.a.eventoId, async (c) => {
+      const [antes] = await substituirDesafios(c, dados.a.eventoId, ["missao.keep"]);
+      const [depois] = await substituirDesafios(c, dados.a.eventoId, ["missao.keep", "missao.extra"]);
+      return { idAntes: antes!.id, idDepois: depois!.id };
+    });
+
+    expect(idDepois).toBe(idAntes);
+  });
+
+  it("lista vazia é modo livre — apaga as missões do evento", async () => {
+    const lista = await comEvento(app, dados.a.eventoId, (c) =>
+      substituirDesafios(c, dados.a.eventoId, []),
+    );
+
+    expect(lista).toEqual([]);
+  });
+
+  it("foto da missão removida fica, sem challenge_id", async () => {
+    const { missaoId, uploadId } = await comEvento(app, dados.a.eventoId, async (c) => {
+      const [missao] = await substituirDesafios(c, dados.a.eventoId, ["missao.ligada"]);
+      const uploadId = randomUUID();
+      await confirmarUpload(c, {
+        uploadId,
+        eventId: dados.a.eventoId,
+        sessionId: dados.a.sessaoId,
+        challengeId: missao!.id,
+        storageKey: `events/${dados.a.eventoId}/2026/08/${uploadId}/full`,
+        mime: "image/jpeg",
+        bytes: 800_000,
+        caption: null,
+        place: null,
+      });
+      await substituirDesafios(c, dados.a.eventoId, ["missao.outra"]);
+      return { missaoId: missao!.id, uploadId };
+    });
+
+    const { rows } = await admin.query("SELECT challenge_id FROM uploads WHERE id = $1", [uploadId]);
+
+    expect(rows[0].challenge_id).toBeNull();
+    expect(missaoId).toBeTruthy();
+  });
+
+  it("não enxerga nem apaga a missão do outro evento", async () => {
+    await comEvento(app, dados.b.eventoId, (c) =>
+      substituirDesafios(c, dados.b.eventoId, ["missao.do-b"]),
+    );
+
+    const doA = await comEvento(app, dados.a.eventoId, (c) =>
+      substituirDesafios(c, dados.a.eventoId, ["missao.so-a"]),
+    );
+    const doB = await comEvento(app, dados.b.eventoId, (c) =>
+      listarDesafios(c, dados.b.eventoId, dados.b.sessaoId),
+    );
+
+    expect(doA.map((d) => d.chaveTitulo)).toEqual(["missao.so-a"]);
+    expect(doB.map((d) => d.chaveTitulo)).toEqual(["missao.do-b"]);
+  });
+
+  it("chave duplicada ou vazia falha alto, não grava metade", async () => {
+    await comEvento(app, dados.a.eventoId, (c) =>
+      substituirDesafios(c, dados.a.eventoId, ["missao.ok"]),
+    );
+
+    await expect(
+      comEvento(app, dados.a.eventoId, (c) =>
+        substituirDesafios(c, dados.a.eventoId, ["missao.ok", "missao.ok"]),
+      ),
+    ).rejects.toThrow(/duplicad/i);
+
+    await expect(
+      comEvento(app, dados.a.eventoId, (c) => substituirDesafios(c, dados.a.eventoId, [""])),
+    ).rejects.toThrow(/inválida/i);
+
+    const lista = await comEvento(app, dados.a.eventoId, (c) =>
+      listarDesafios(c, dados.a.eventoId, dados.a.sessaoId),
+    );
+    expect(lista.map((d) => d.chaveTitulo)).toEqual(["missao.ok"]);
   });
 });
 
