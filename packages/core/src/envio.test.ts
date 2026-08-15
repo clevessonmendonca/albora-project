@@ -1,37 +1,37 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { drenar, enviarItem, type Transporte } from "./envio";
-import { MAX_TENTATIVAS, type Fila, type ItemFila } from "./fila";
+import { drain, sendItem, type Transport } from "./envio";
+import { MAX_ATTEMPTS, type Queue, type QueueItem } from "./fila";
 import type { RespostaPresign } from "./upload";
 
-function filaEmMemoria(iniciais: ItemFila[] = []) {
-  const itens = new Map(iniciais.map((i) => [i.id, { ...i }]));
+function memoryQueue(initial: QueueItem[] = []) {
+  const items = new Map(initial.map((i) => [i.id, { ...i }]));
 
-  const fila: Fila = {
-    async enfileirar(i) {
-      itens.set(i.id, { ...i });
+  const queue: Queue = {
+    async enqueue(i) {
+      items.set(i.id, { ...i });
     },
-    async listar() {
-      return [...itens.values()].sort((a, b) => a.criadoEm - b.criadoEm);
+    async list() {
+      return [...items.values()].sort((a, b) => a.criadoEm - b.criadoEm);
     },
-    async remover(id) {
-      itens.delete(id);
+    async remove(id) {
+      items.delete(id);
     },
-    async marcarTentativa(id) {
-      const i = itens.get(id);
+    async markAttempt(id) {
+      const i = items.get(id);
       if (i) i.tentativas += 1;
     },
-    async anotar(id, detalhes) {
-      const i = itens.get(id);
+    async annotate(id, details) {
+      const i = items.get(id);
       if (!i) return false;
-      itens.set(id, { ...i, ...detalhes });
+      items.set(id, { ...i, ...details });
       return true;
     },
   };
 
-  return { fila, itens };
+  return { queue, items };
 }
 
-const item = (id: string, tentativas = 0): ItemFila => ({
+const item = (id: string, tentativas = 0): QueueItem => ({
   id,
   eventoId: "11111111-1111-1111-1111-111111111111",
   corpo: { tipo: "arquivo", caminho: `/tmp/${id}`, bytes: 800_000 },
@@ -50,40 +50,40 @@ const presign = (id: string): RespostaPresign => ({
 
 type Falha = "presign" | "bytes" | "confirm" | null;
 
-function transporteFalso(falharEm: Falha = null) {
+function fakeTransport(failAt: Falha = null) {
   const chamadas: string[] = [];
 
-  const transporte: Transporte = {
+  const transport: Transport = {
     async presign(i) {
       chamadas.push(`presign:${i.id}`);
-      if (falharEm === "presign") throw new Error("presign 503");
+      if (failAt === "presign") throw new Error("presign 503");
       return presign(i.id);
     },
-    async enviarBytes(url, i) {
+    async sendBytes(url, i) {
       chamadas.push(`bytes:${i.id}`);
-      if (falharEm === "bytes") throw new Error("rede caiu");
+      if (failAt === "bytes") throw new Error("rede caiu");
       expect(url).toContain("assinado");
     },
-    async confirmar(i) {
+    async confirm(i) {
       chamadas.push(`confirm:${i.id}`);
-      if (falharEm === "confirm") throw new Error("confirm 500");
+      if (failAt === "confirm") throw new Error("confirm 500");
     },
   };
 
-  return { transporte, chamadas };
+  return { transport, chamadas };
 }
 
-let ctx: ReturnType<typeof filaEmMemoria>;
+let ctx: ReturnType<typeof memoryQueue>;
 beforeEach(() => {
-  ctx = filaEmMemoria();
+  ctx = memoryQueue();
 });
 
 describe("caminho feliz", () => {
   it("presign, bytes e confirm — nesta ordem", async () => {
-    await ctx.fila.enfileirar(item("a1"));
-    const { transporte, chamadas } = transporteFalso();
+    await ctx.queue.enqueue(item("a1"));
+    const { transport, chamadas } = fakeTransport();
 
-    const r = await enviarItem(item("a1"), transporte, ctx.fila);
+    const r = await sendItem(item("a1"), transport, ctx.queue);
 
     expect(r.estado).toBe("enviado");
     // Confirm antes dos bytes criaria linha apontando para objeto que não
@@ -92,114 +92,114 @@ describe("caminho feliz", () => {
   });
 
   it("vídeo com poster sobe thumb depois do full", async () => {
-    const video: ItemFila = {
+    const video: QueueItem = {
       ...item("v1"),
       mime: "video/mp4",
       thumb: { tipo: "blob", blob: new Blob(["frame"], { type: "image/jpeg" }) },
     };
-    await ctx.fila.enfileirar(video);
+    await ctx.queue.enqueue(video);
     const chamadas: string[] = [];
-    const transporte: Transporte = {
+    const transport: Transport = {
       async presign(i) {
         chamadas.push(`presign:${i.id}`);
         return presign(i.id);
       },
-      async enviarBytes(url, i) {
+      async sendBytes(url, i) {
         chamadas.push(`bytes:${i.id}`);
         expect(url).toContain("full");
       },
-      async enviarPoster(url) {
+      async sendPoster(url) {
         chamadas.push("poster");
         expect(url).toContain("thumb");
       },
-      async confirmar(i) {
+      async confirm(i) {
         chamadas.push(`confirm:${i.id}`);
       },
     };
 
-    const r = await enviarItem(video, transporte, ctx.fila);
+    const r = await sendItem(video, transport, ctx.queue);
 
     expect(r.estado).toBe("enviado");
     expect(chamadas).toEqual(["presign:v1", "bytes:v1", "poster", "confirm:v1"]);
   });
 
   it("foto com thumb sobe miniatura depois do full", async () => {
-    const foto: ItemFila = {
+    const foto: QueueItem = {
       ...item("f1"),
       thumb: { tipo: "blob", blob: new Blob(["mini"], { type: "image/jpeg" }) },
     };
-    await ctx.fila.enfileirar(foto);
+    await ctx.queue.enqueue(foto);
     const chamadas: string[] = [];
-    const transporte: Transporte = {
+    const transport: Transport = {
       async presign(i) {
         chamadas.push(`presign:${i.id}`);
         return presign(i.id);
       },
-      async enviarBytes(url, i) {
+      async sendBytes(url, i) {
         chamadas.push(`bytes:${i.id}`);
         expect(url).toContain("full");
       },
-      async enviarPoster(url) {
+      async sendPoster(url) {
         chamadas.push("thumb");
         expect(url).toContain("thumb");
       },
-      async confirmar(i) {
+      async confirm(i) {
         chamadas.push(`confirm:${i.id}`);
       },
     };
 
-    const r = await enviarItem(foto, transporte, ctx.fila);
+    const r = await sendItem(foto, transport, ctx.queue);
 
     expect(r.estado).toBe("enviado");
     expect(chamadas).toEqual(["presign:f1", "bytes:f1", "thumb", "confirm:f1"]);
   });
 
   it("só remove da fila depois do confirm aceito", async () => {
-    await ctx.fila.enfileirar(item("a1"));
-    const { transporte } = transporteFalso();
+    await ctx.queue.enqueue(item("a1"));
+    const { transport } = fakeTransport();
 
-    await enviarItem(item("a1"), transporte, ctx.fila);
+    await sendItem(item("a1"), transport, ctx.queue);
 
-    expect(await ctx.fila.listar()).toHaveLength(0);
+    expect(await ctx.queue.list()).toHaveLength(0);
   });
 });
 
 describe("a foto não se perde quando algo falha", () => {
   it.each(["presign", "bytes", "confirm"] as const)("falha em %s mantém o item na fila", async (onde) => {
-    await ctx.fila.enfileirar(item("a1"));
-    const { transporte } = transporteFalso(onde);
+    await ctx.queue.enqueue(item("a1"));
+    const { transport } = fakeTransport(onde);
 
-    const r = await enviarItem(item("a1"), transporte, ctx.fila);
+    const r = await sendItem(item("a1"), transport, ctx.queue);
 
     expect(r.estado).toBe("retentar");
-    expect(await ctx.fila.listar()).toHaveLength(1);
-    expect(ctx.itens.get("a1")?.tentativas).toBe(1);
+    expect(await ctx.queue.list()).toHaveLength(1);
+    expect(ctx.items.get("a1")?.tentativas).toBe(1);
   });
 
   it("falha depois do PUT não remove — o confirm é idempotente para isso", async () => {
-    await ctx.fila.enfileirar(item("a1"));
-    const { transporte } = transporteFalso("confirm");
+    await ctx.queue.enqueue(item("a1"));
+    const { transport } = fakeTransport("confirm");
 
-    await enviarItem(item("a1"), transporte, ctx.fila);
+    await sendItem(item("a1"), transport, ctx.queue);
 
     // Remover antes do confirm perderia a foto; o confirm tolera a segunda
     // chamada justamente para esta remoção poder não acontecer.
-    expect(await ctx.fila.listar()).toHaveLength(1);
+    expect(await ctx.queue.list()).toHaveLength(1);
   });
 
   it("nunca lança — o erro é valor, para o laço continuar", async () => {
-    const { transporte } = transporteFalso("bytes");
+    const { transport } = fakeTransport("bytes");
 
-    await expect(enviarItem(item("a1"), transporte, ctx.fila)).resolves.toMatchObject({
+    await expect(sendItem(item("a1"), transport, ctx.queue)).resolves.toMatchObject({
       estado: "retentar",
     });
   });
 
   it("a espera cresce com a tentativa", async () => {
-    const { transporte } = transporteFalso("bytes");
+    const { transport } = fakeTransport("bytes");
 
-    const primeira = await enviarItem(item("a1", 0), transporte, ctx.fila);
-    const quarta = await enviarItem(item("a1", 3), transporte, ctx.fila);
+    const primeira = await sendItem(item("a1", 0), transport, ctx.queue);
+    const quarta = await sendItem(item("a1", 3), transport, ctx.queue);
 
     expect(primeira).toMatchObject({ esperaSegundos: 2 });
     expect(quarta).toMatchObject({ esperaSegundos: 16 });
@@ -208,53 +208,53 @@ describe("a foto não se perde quando algo falha", () => {
 
 describe("erro definitivo não vira retry", () => {
   it("sessão recusada não queima as seis tentativas", async () => {
-    await ctx.fila.enfileirar(item("a1"));
-    const transporte: Transporte = {
+    await ctx.queue.enqueue(item("a1"));
+    const transport: Transport = {
       async presign() {
         throw Object.assign(new Error("presign 401"), { definitivo: true });
       },
-      async enviarBytes() {},
-      async confirmar() {},
+      async sendBytes() {},
+      async confirm() {},
     };
 
-    const r = await enviarItem(item("a1"), transporte, ctx.fila);
+    const r = await sendItem(item("a1"), transport, ctx.queue);
 
     // Insistir contra uma parede atrasa as fotos seguintes e esconde do
     // convidado que aquela precisa da atenção dele.
     expect(r.estado).toBe("desistiu");
-    expect(ctx.itens.get("a1")?.tentativas).toBe(0);
-    expect(await ctx.fila.listar()).toHaveLength(1);
+    expect(ctx.items.get("a1")?.tentativas).toBe(0);
+    expect(await ctx.queue.list()).toHaveLength(1);
   });
 
   it("erro comum continua sendo retry", async () => {
-    await ctx.fila.enfileirar(item("a1"));
-    const { transporte } = transporteFalso("bytes");
+    await ctx.queue.enqueue(item("a1"));
+    const { transport } = fakeTransport("bytes");
 
-    expect((await enviarItem(item("a1"), transporte, ctx.fila)).estado).toBe("retentar");
+    expect((await sendItem(item("a1"), transport, ctx.queue)).estado).toBe("retentar");
   });
 });
 
 describe("desistir não é apagar", () => {
   it("item no teto de tentativas vira falha visível, e continua na fila", async () => {
-    await ctx.fila.enfileirar(item("a1", MAX_TENTATIVAS));
-    const { transporte, chamadas } = transporteFalso();
+    await ctx.queue.enqueue(item("a1", MAX_ATTEMPTS));
+    const { transport, chamadas } = fakeTransport();
 
-    const r = await enviarItem(item("a1", MAX_TENTATIVAS), transporte, ctx.fila);
+    const r = await sendItem(item("a1", MAX_ATTEMPTS), transport, ctx.queue);
 
     expect(r.estado).toBe("desistiu");
     // Apagar em silêncio é a foto sumindo sem explicação — o pior modo de
     // falha deste produto.
-    expect(await ctx.fila.listar()).toHaveLength(1);
+    expect(await ctx.queue.list()).toHaveLength(1);
     expect(chamadas).toEqual([]);
   });
 });
 
 describe("drenagem", () => {
   it("envia em série, na ordem da fila", async () => {
-    ctx = filaEmMemoria([item("a1"), item("b2"), item("c3")]);
-    const { transporte, chamadas } = transporteFalso();
+    ctx = memoryQueue([item("a1"), item("b2"), item("c3")]);
+    const { transport, chamadas } = fakeTransport();
 
-    const resumo = await drenar(ctx.fila, transporte);
+    const resumo = await drain(ctx.queue, transport);
 
     expect(resumo.enviados).toBe(3);
     expect(chamadas.filter((c) => c.startsWith("presign"))).toEqual([
@@ -265,30 +265,30 @@ describe("drenagem", () => {
   });
 
   it("um item que falha não derruba os outros", async () => {
-    ctx = filaEmMemoria([item("a1"), item("b2")]);
+    ctx = memoryQueue([item("a1"), item("b2")]);
     let chamou = 0;
-    const transporte: Transporte = {
+    const transport: Transport = {
       async presign(i) {
         chamou += 1;
         if (i.id === "a1") throw new Error("essa falhou");
         return presign(i.id);
       },
-      async enviarBytes() {},
-      async confirmar() {},
+      async sendBytes() {},
+      async confirm() {},
     };
 
-    const resumo = await drenar(ctx.fila, transporte);
+    const resumo = await drain(ctx.queue, transport);
 
     expect(chamou).toBe(2);
     expect(resumo).toMatchObject({ enviados: 1, retentar: 1 });
   });
 
   it("para de tentar quando o sinal cai no meio", async () => {
-    ctx = filaEmMemoria([item("a1"), item("b2"), item("c3")]);
-    const { transporte, chamadas } = transporteFalso();
+    ctx = memoryQueue([item("a1"), item("b2"), item("c3")]);
+    const { transport, chamadas } = fakeTransport();
     let online = true;
 
-    const resumo = await drenar(ctx.fila, transporte, {
+    const resumo = await drain(ctx.queue, transport, {
       online: () => {
         const agora = online;
         online = false;
@@ -302,23 +302,23 @@ describe("drenagem", () => {
   });
 
   it("offline desde o início não consome tentativa nenhuma", async () => {
-    ctx = filaEmMemoria([item("a1")]);
-    const { transporte, chamadas } = transporteFalso();
+    ctx = memoryQueue([item("a1")]);
+    const { transport, chamadas } = fakeTransport();
 
-    const resumo = await drenar(ctx.fila, transporte, { online: () => false });
+    const resumo = await drain(ctx.queue, transport, { online: () => false });
 
     expect(resumo.enviados).toBe(0);
     expect(chamadas).toEqual([]);
-    expect(ctx.itens.get("a1")?.tentativas).toBe(0);
+    expect(ctx.items.get("a1")?.tentativas).toBe(0);
   });
 
   it("respeita o máximo por rodada", async () => {
-    ctx = filaEmMemoria([item("a1"), item("b2"), item("c3")]);
-    const { transporte } = transporteFalso();
+    ctx = memoryQueue([item("a1"), item("b2"), item("c3")]);
+    const { transport } = fakeTransport();
 
-    const resumo = await drenar(ctx.fila, transporte, { online: () => true, maximo: 2 });
+    const resumo = await drain(ctx.queue, transport, { online: () => true, limit: 2 });
 
     expect(resumo.enviados).toBe(2);
-    expect(await ctx.fila.listar()).toHaveLength(1);
+    expect(await ctx.queue.list()).toHaveLength(1);
   });
 });

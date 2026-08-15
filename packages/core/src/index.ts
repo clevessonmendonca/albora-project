@@ -8,8 +8,19 @@ export type {
   SessaoId,
 } from "./tipos";
 
-export type { CorpoItem, DetalhesItem, Fila, ItemFila } from "./fila";
-export { deveDesistir, esperaAntesDeRetentar, MAX_TENTATIVAS } from "./fila";
+export type { QueueBody, QueueDetails, Queue, QueueItem } from "./fila";
+export type {
+  QueueBody as CorpoItem,
+  QueueDetails as DetalhesItem,
+  Queue as Fila,
+  QueueItem as ItemFila,
+} from "./fila";
+export { shouldGiveUp, retryWaitSeconds, MAX_ATTEMPTS } from "./fila";
+export {
+  shouldGiveUp as deveDesistir,
+  retryWaitSeconds as esperaAntesDeRetentar,
+  MAX_ATTEMPTS as MAX_TENTATIVAS,
+} from "./fila";
 
 export type { GateDeInteracao, ModoInteracao } from "./interacao";
 export { interacaoAberta, modoInteracao } from "./interacao";
@@ -85,8 +96,14 @@ export {
   pixelCapForDevice as tetoParaAparelho,
 } from "./redimensionar";
 
-export type { Resultado, ResumoDrenagem, Transporte } from "./envio";
-export { drenar, enviarItem } from "./envio";
+export type { SendResult, DrainSummary, Transport } from "./envio";
+export type {
+  SendResult as Resultado,
+  DrainSummary as ResumoDrenagem,
+  Transport as Transporte,
+} from "./envio";
+export { drain, sendItem } from "./envio";
+export { drain as drenar, sendItem as enviarItem } from "./envio";
 
 export type { Bitmap, Desenhista, FiltroAplicado, FotoProcessada, OpcoesProcessamento } from "./processar";
 export { processarFoto } from "./processar";

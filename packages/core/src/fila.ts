@@ -4,6 +4,10 @@
  * A web usa IndexedDB; o app Expo usa SQLite mais sistema de arquivos
  * (ADR 0010). O que não pode existir é uma terceira versão da *lógica* —
  * a fila é a fonte da verdade do produto, e duas fontes divergem em silêncio.
+ *
+ * Os nomes de campo abaixo (`eventoId`, `corpo`, `criadoEm`, `tentativas`,
+ * `tipo: "blob" | "arquivo"`) são o schema persistido na fila offline.
+ * Renomeá-los esvazia a fila do convidado. Só os símbolos TypeScript mudam.
  */
 
 /**
@@ -14,7 +18,7 @@
  * arquivo. Um `Blob` em IndexedDB não serve, e descobrir isso depois de a
  * fila estar em produção custaria uma migração de dado do convidado.
  */
-export type CorpoItem =
+export type QueueBody =
   | { tipo: "blob"; blob: Blob }
   | { tipo: "arquivo"; caminho: string; bytes: number };
 
@@ -26,40 +30,40 @@ export type CorpoItem =
  * fechada do pack, nunca texto livre e nunca coordenada — reintroduzir
  * localização aqui desfaria a remoção de EXIF da 004 (N6.9).
  */
-export type DetalhesItem = {
+export type QueueDetails = {
   desafioId?: string | null;
   legenda?: string | null;
   lugar?: string | null;
 };
 
-export type ItemFila = DetalhesItem & {
+export type QueueItem = QueueDetails & {
   /** uuid do cliente. É a chave de idempotência do confirm. */
   id: string;
   eventoId: string;
-  corpo: CorpoItem;
+  corpo: QueueBody;
   mime: string;
   /** Miniatura JPEG — thumb da foto ou frame do vídeo; sobe em `/thumb`. */
-  thumb?: CorpoItem;
+  thumb?: QueueBody;
   /** @deprecated Preferir `thumb`. Mantido para filas antigas só com vídeo. */
-  poster?: CorpoItem;
+  poster?: QueueBody;
   criadoEm: number;
   tentativas: number;
 };
 
-export interface Fila {
-  enfileirar(item: ItemFila): Promise<void>;
-  listar(): Promise<ItemFila[]>;
-  remover(id: string): Promise<void>;
-  marcarTentativa(id: string): Promise<void>;
+export interface Queue {
+  enqueue(item: QueueItem): Promise<void>;
+  list(): Promise<QueueItem[]>;
+  remove(id: string): Promise<void>;
+  markAttempt(id: string): Promise<void>;
   /**
    * Anota um item que ainda está na fila. Devolve `false` quando o item já
    * saiu — aí a anotação é do banco, não da fila, e quem chama decide.
    */
-  anotar(id: string, detalhes: DetalhesItem): Promise<boolean>;
+  annotate(id: string, details: QueueDetails): Promise<boolean>;
 }
 
 /** Teto de tentativas antes de o item virar falha visível para o convidado. */
-export const MAX_TENTATIVAS = 6;
+export const MAX_ATTEMPTS = 6;
 
 /**
  * Backoff em segundos reais, não em número de tentativas.
@@ -67,10 +71,10 @@ export const MAX_TENTATIVAS = 6;
  * Num salão com 200 celulares na mesma antena, retry sem espaçamento é o que
  * transforma sinal ruim em sinal nenhum.
  */
-export function esperaAntesDeRetentar(tentativas: number): number {
-  return Math.min(2 ** tentativas, 60);
+export function retryWaitSeconds(attempts: number): number {
+  return Math.min(2 ** attempts, 60);
 }
 
-export function deveDesistir(item: ItemFila): boolean {
-  return item.tentativas >= MAX_TENTATIVAS;
+export function shouldGiveUp(item: QueueItem): boolean {
+  return item.tentativas >= MAX_ATTEMPTS;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAX_TENTATIVAS, type ItemFila } from "./fila";
+import { MAX_ATTEMPTS, type QueueItem } from "./fila";
 import {
   aplicarReacao,
   contagemVisivel,
@@ -20,7 +20,7 @@ function enviada(id: string, minutos: number): MidiaEnviada {
   return { id, chave: `events/${EVENTO}/${id}.jpg`, criadaEm: min(minutos) };
 }
 
-function naFila(id: string, minutos: number, tentativas = 0, eventoId = EVENTO): ItemFila {
+function naFila(id: string, minutos: number, tentativas = 0, eventoId = EVENTO): QueueItem {
   return {
     id,
     eventoId,
@@ -49,14 +49,14 @@ describe("a galeria mostra o que ainda não subiu", () => {
   });
 
   it("item que estourou as tentativas aparece como falha, não some", () => {
-    const galeria = montarGaleria([], [naFila("a", 1, MAX_TENTATIVAS)], EVENTO);
+    const galeria = montarGaleria([], [naFila("a", 1, MAX_ATTEMPTS)], EVENTO);
 
     expect(galeria[0]?.estado).toBe("falhou");
-    expect(galeria[0]?.tentativas).toBe(MAX_TENTATIVAS);
+    expect(galeria[0]?.tentativas).toBe(MAX_ATTEMPTS);
   });
 
   it("uma tentativa antes do teto ainda é subindo", () => {
-    const galeria = montarGaleria([], [naFila("a", 1, MAX_TENTATIVAS - 1)], EVENTO);
+    const galeria = montarGaleria([], [naFila("a", 1, MAX_ATTEMPTS - 1)], EVENTO);
 
     expect(galeria[0]?.estado).toBe("subindo");
   });

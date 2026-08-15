@@ -1,4 +1,4 @@
-import { deveDesistir, esperaAntesDeRetentar, type Fila, type ItemFila } from "./fila";
+import { shouldGiveUp, retryWaitSeconds, type Queue, type QueueItem } from "./fila";
 import type { RespostaPresign } from "./upload";
 
 /**
@@ -10,15 +10,15 @@ import type { RespostaPresign } from "./upload";
  * some no app.
  */
 
-export type Transporte = {
-  presign(item: ItemFila): Promise<RespostaPresign>;
-  enviarBytes(url: string, item: ItemFila): Promise<void>;
+export type Transport = {
+  presign(item: QueueItem): Promise<RespostaPresign>;
+  sendBytes(url: string, item: QueueItem): Promise<void>;
   /** Miniatura JPEG em `/thumb` (foto ou frame de vídeo). Opcional — só a web hoje. */
-  enviarPoster?(url: string, poster: Blob): Promise<void>;
-  confirmar(item: ItemFila, presign: RespostaPresign): Promise<void>;
+  sendPoster?(url: string, poster: Blob): Promise<void>;
+  confirm(item: QueueItem, presign: RespostaPresign): Promise<void>;
 };
 
-export type Resultado =
+export type SendResult =
   | { estado: "enviado"; id: string }
   | { estado: "retentar"; id: string; esperaSegundos: number; motivo: string }
   | { estado: "desistiu"; id: string; motivo: string };
@@ -30,12 +30,12 @@ export type Resultado =
  * aí uma foto corrompida leva as outras nove embora. O erro é valor, não
  * exceção, justamente para o laço continuar.
  */
-export async function enviarItem(
-  item: ItemFila,
-  transporte: Transporte,
-  fila: Fila,
-): Promise<Resultado> {
-  if (deveDesistir(item)) {
+export async function sendItem(
+  item: QueueItem,
+  transport: Transport,
+  queue: Queue,
+): Promise<SendResult> {
+  if (shouldGiveUp(item)) {
     // Desistir **não** apaga o item: ele vira falha visível na galeria, com
     // "tentar de novo". Apagar em silêncio é a foto sumindo sem explicação,
     // que é o pior modo de falha deste produto.
@@ -43,24 +43,24 @@ export async function enviarItem(
   }
 
   try {
-    const presign = await transporte.presign(item);
+    const presign = await transport.presign(item);
 
     // A ordem importa: os bytes vão para o storage **antes** do confirm. Um
     // confirm que chega primeiro cria linha apontando para objeto que não
     // existe — foto na galeria que não abre.
-    await transporte.enviarBytes(presign.full, item);
+    await transport.sendBytes(presign.full, item);
 
-    const miniatura = item.thumb ?? item.poster;
-    if (miniatura?.tipo === "blob" && transporte.enviarPoster) {
-      await transporte.enviarPoster(presign.thumb, miniatura.blob);
+    const thumbnail = item.thumb ?? item.poster;
+    if (thumbnail?.tipo === "blob" && transport.sendPoster) {
+      await transport.sendPoster(presign.thumb, thumbnail.blob);
     }
 
-    await transporte.confirmar(item, presign);
+    await transport.confirm(item, presign);
 
     // Só remove depois do confirm aceito. Remover antes é perder a foto se o
     // confirm falhar, e o confirm é idempotente justamente para tolerar que
     // esta remoção não aconteça.
-    await fila.remover(item.id);
+    await queue.remove(item.id);
 
     return { estado: "enviado", id: item.id };
   } catch (e) {
@@ -70,16 +70,16 @@ export async function enviarItem(
     // arquivo inválido. Insistir seis vezes contra uma parede só atrasa as
     // fotos seguintes da fila e esconde do convidado que aquela precisa da
     // atenção dele.
-    if (ehDefinitivo(e)) {
+    if (isTerminalError(e)) {
       return { estado: "desistiu", id: item.id, motivo };
     }
 
-    await fila.marcarTentativa(item.id);
+    await queue.markAttempt(item.id);
 
     return {
       estado: "retentar",
       id: item.id,
-      esperaSegundos: esperaAntesDeRetentar(item.tentativas + 1),
+      esperaSegundos: retryWaitSeconds(item.tentativas + 1),
       motivo,
     };
   }
@@ -89,15 +89,15 @@ export async function enviarItem(
  * Estrutural, não por `instanceof`: o erro nasce no transporte, que é do app,
  * e `core` não conhece as classes de nenhum dos dois.
  */
-function ehDefinitivo(e: unknown): boolean {
+function isTerminalError(e: unknown): boolean {
   return typeof e === "object" && e !== null && (e as { definitivo?: unknown }).definitivo === true;
 }
 
-export type ResumoDrenagem = {
+export type DrainSummary = {
   enviados: number;
   retentar: number;
   desistiram: number;
-  resultados: Resultado[];
+  resultados: SendResult[];
 };
 
 /**
@@ -107,20 +107,20 @@ export type ResumoDrenagem = {
  * subir dez fotos em paralelo do mesmo aparelho piora o tempo de todo mundo —
  * inclusive o dele. A fila existe para espalhar no tempo, não para amontoar.
  */
-export async function drenar(
-  fila: Fila,
-  transporte: Transporte,
-  opcoes: { online: () => boolean; maximo?: number } = { online: () => true },
-): Promise<ResumoDrenagem> {
-  const itens = await fila.listar();
-  const limite = opcoes.maximo ?? itens.length;
-  const resultados: Resultado[] = [];
+export async function drain(
+  queue: Queue,
+  transport: Transport,
+  options: { online: () => boolean; limit?: number } = { online: () => true },
+): Promise<DrainSummary> {
+  const items = await queue.list();
+  const limit = options.limit ?? items.length;
+  const resultados: SendResult[] = [];
 
-  for (const item of itens.slice(0, limite)) {
+  for (const item of items.slice(0, limit)) {
     // Reconfere a cada item: o sinal cai no meio da drenagem, e insistir
     // offline só queima tentativas de itens que ainda não falharam.
-    if (!opcoes.online()) break;
-    resultados.push(await enviarItem(item, transporte, fila));
+    if (!options.online()) break;
+    resultados.push(await sendItem(item, transport, queue));
   }
 
   return {

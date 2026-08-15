@@ -1,5 +1,5 @@
-import { MAX_TENTATIVAS } from "./fila";
-import type { ItemFila } from "./fila";
+import { MAX_ATTEMPTS } from "./fila";
+import type { QueueItem } from "./fila";
 import { modoInteracao, type GateDeInteracao } from "./interacao";
 
 /**
@@ -45,7 +45,7 @@ export type ItemDaGaleria = {
  */
 export function montarGaleria(
   enviadas: readonly MidiaEnviada[],
-  fila: readonly ItemFila[],
+  fila: readonly QueueItem[],
   eventoId: string,
 ): ItemDaGaleria[] {
   const doServidor: ItemDaGaleria[] = enviadas.map((m) => ({
@@ -66,7 +66,7 @@ export function montarGaleria(
     .filter((i) => !confirmadas.has(i.id))
     .map((i) => ({
       id: i.id,
-      estado: i.tentativas >= MAX_TENTATIVAS ? "falhou" : "subindo",
+      estado: i.tentativas >= MAX_ATTEMPTS ? "falhou" : "subindo",
       criadaEm: new Date(i.criadoEm),
       chave: null,
       tentativas: i.tentativas,
