@@ -60,7 +60,7 @@ describe("webTransport", () => {
     );
 
     await expect(
-      webTransport.confirmar(itemBlob, {
+      webTransport.confirm(itemBlob, {
         uploadId: itemBlob.id,
         chave: "events/e/full",
         full: "u",

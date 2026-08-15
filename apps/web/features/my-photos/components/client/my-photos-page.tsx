@@ -105,7 +105,7 @@ export function MyPhotosPage({
     const criadas: string[] = [];
 
     void (async () => {
-      const fila = await webQueue.listar();
+      const fila = await webQueue.list();
       const mapa = new Map<string, string>();
       const mimes = new Map<string, string>();
       for (const item of fila) {

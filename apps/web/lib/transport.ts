@@ -1,7 +1,7 @@
-import type { ItemFila, RespostaPresign, Transporte } from "@albora/core";
+import type { QueueItem, RespostaPresign, Transport } from "@albora/core";
 
 /**
- * O `Transporte` da web. Camada fina: a sequência e o retry vivem em
+ * O `Transport` da web. Camada fina: a sequência e o retry vivem em
  * `@albora/core`, aqui só se fala com a rede.
  *
  * O corpo do item pode ser `Blob` (web) ou referência de arquivo (Expo). Esta
@@ -10,14 +10,14 @@ import type { ItemFila, RespostaPresign, Transporte } from "@albora/core";
  * pareceria sucesso.
  */
 
-function corpoDoItem(item: ItemFila): Blob {
+function corpoDoItem(item: QueueItem): Blob {
   if (item.corpo.tipo !== "blob") {
     throw new Error(`corpo ${item.corpo.tipo} não é enviável pela web`);
   }
   return item.corpo.blob;
 }
 
-export const webTransport: Transporte = {
+export const webTransport: Transport = {
   async presign(item) {
     const res = await fetch("/api/uploads/presign", {
       method: "POST",
@@ -36,7 +36,7 @@ export const webTransport: Transporte = {
     return (await res.json()) as RespostaPresign;
   },
 
-  async enviarBytes(url, item) {
+  async sendBytes(url, item) {
     // Direto no object storage. O servidor não vê estes bytes — é a regra do
     // caminho crítico, e o que faz a conta do produto fechar.
     const res = await fetch(url, {
@@ -48,7 +48,7 @@ export const webTransport: Transporte = {
     if (!res.ok) throw new ApiError("put", res.status);
   },
 
-  async enviarPoster(url, poster) {
+  async sendPoster(url, poster) {
     const res = await fetch(url, {
       method: "PUT",
       body: poster,
@@ -58,7 +58,7 @@ export const webTransport: Transporte = {
     if (!res.ok) throw new ApiError("put", res.status);
   },
 
-  async confirmar(item, presign) {
+  async confirm(item, presign) {
     const res = await fetch("/api/uploads/confirm", {
       method: "POST",
       headers: { "content-type": "application/json" },

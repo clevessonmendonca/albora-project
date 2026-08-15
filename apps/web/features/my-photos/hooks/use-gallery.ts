@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  drenar,
+  drain,
   montarGaleria,
   resumirGaleria,
   isVideoMime,
@@ -85,7 +85,7 @@ export function useGallery(eventoId: string) {
     try {
       const [res, fila] = await Promise.all([
         fetch("/api/my-photos", { credentials: "same-origin" }),
-        webQueue.listar(),
+        webQueue.list(),
       ]);
 
       if (!res.ok) throw new Error("minhas");
@@ -127,7 +127,7 @@ export function useGallery(eventoId: string) {
   const tentarDeNovo = useCallback(async () => {
     if (!navigator.onLine) return;
     setEstado((e) => ({ ...e, drenando: true }));
-    await drenar(webQueue, webTransport, { online: () => navigator.onLine });
+    await drain(webQueue, webTransport, { online: () => navigator.onLine });
     await carregar();
   }, [carregar]);
 
@@ -190,7 +190,7 @@ export function useGallery(eventoId: string) {
           });
           if (!r.ok) return false;
         } else {
-          await webQueue.remover(item.id);
+          await webQueue.remove(item.id);
         }
         await carregar();
         return true;

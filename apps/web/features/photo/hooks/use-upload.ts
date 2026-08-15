@@ -1,15 +1,15 @@
 "use client";
 
 import {
-  drenar,
+  drain,
   isHeic,
   isVideoBytes,
   planoParaRedimensionamento,
   processarFoto,
-  type DetalhesItem,
+  type QueueDetails,
   type FiltroAplicado,
   type PlanoDoEvento,
-  type ResumoDrenagem,
+  type DrainSummary,
 } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
 import { webDrawer } from "@/lib/drawer";
@@ -83,10 +83,10 @@ export function useUpload(
     setEstado((e) => ({ ...e, pendentes: itens, bytesPendentes: bytes }));
   }, []);
 
-  const drenarAgora = useCallback(async (): Promise<ResumoDrenagem | null> => {
+  const drenarAgora = useCallback(async (): Promise<DrainSummary | null> => {
     if (!navigator.onLine) return null;
 
-    const resumo = await drenar(webQueue, webTransport, { online: () => navigator.onLine });
+    const resumo = await drain(webQueue, webTransport, { online: () => navigator.onLine });
     await atualizarResumo();
 
     const falha = resumo.resultados.find((r) => r.estado !== "enviado");
@@ -133,7 +133,7 @@ export function useUpload(
           const blob = new Blob([corpo], { type: mime });
           const poster = await videoPoster(blob);
 
-          await webQueue.enfileirar({
+          await webQueue.enqueue({
             id,
             eventoId,
             corpo: { tipo: "blob", blob },
@@ -173,7 +173,7 @@ export function useUpload(
 
         const id = crypto.randomUUID();
 
-        await webQueue.enfileirar({
+        await webQueue.enqueue({
           id,
           eventoId,
           corpo: { tipo: "blob", blob: foto.full },
@@ -213,9 +213,9 @@ export function useUpload(
    * quem guarda é o banco. Nunca falha de forma visível — a foto já está no
    * álbum, e é ela que importa.
    */
-  const anotar = useCallback(async (id: string, detalhes: DetalhesItem): Promise<void> => {
+  const anotar = useCallback(async (id: string, detalhes: QueueDetails): Promise<void> => {
     try {
-      if (await webQueue.anotar(id, detalhes)) return;
+      if (await webQueue.annotate(id, detalhes)) return;
 
       await fetch("/api/uploads/detalhes", {
         method: "POST",

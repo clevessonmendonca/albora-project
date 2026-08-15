@@ -1,4 +1,4 @@
-import { drenar } from "@albora/core";
+import { drain } from "@albora/core";
 import { webQueue } from "../lib/queue";
 import { webTransport } from "../lib/transport";
 import { TAG_DRENAGEM } from "./tag";
@@ -6,7 +6,7 @@ import { TAG_DRENAGEM } from "./tag";
 /**
  * O Service Worker do convidado. Compilado por `scripts/construir-sw.mjs`.
  *
- * A sequência presign → PUT → confirm **não** é reescrita aqui: `drenar`, a
+ * A sequência presign → PUT → confirm **não** é reescrita aqui: `drain`, a
  * fila e o transporte são exatamente os que a aba usa (ADR 0010). Escrever o
  * laço de novo em JS solto seria uma segunda fonte da verdade, e o sintoma da
  * divergência seria foto que sobe com a aba aberta e some com a aba fechada —
@@ -116,7 +116,7 @@ self.addEventListener("sync", (evento) => {
   // navegador já restabeleceu conectividade, e `navigator.onLine` dentro do SW
   // responde por um contexto que pode ter acordado agora. Consultá-lo aqui
   // cancelaria a drenagem exatamente na hora em que ela deveria acontecer.
-  evento.waitUntil(drenar(webQueue, webTransport, { online: () => true }));
+  evento.waitUntil(drain(webQueue, webTransport, { online: () => true }));
 });
 
 async function cachePrimeiro(requisicao: Request, nomeDoCache: string): Promise<Response> {

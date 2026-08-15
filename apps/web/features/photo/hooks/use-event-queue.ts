@@ -1,6 +1,6 @@
 "use client";
 
-import { drenar, type ResumoDrenagem } from "@albora/core";
+import { drain, type DrainSummary } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
 import { webQueue } from "@/lib/queue";
 import { webTransport } from "@/lib/transport";
@@ -16,7 +16,7 @@ export function useEventQueue(eventoId: string) {
   const [online, setOnline] = useState(true);
 
   const atualizar = useCallback(async () => {
-    const fila = await webQueue.listar();
+    const fila = await webQueue.list();
     const doEvento = fila.filter((i) => i.eventoId === eventoId);
     setPendentes(doEvento.length);
     setBytesPendentes(
@@ -27,9 +27,9 @@ export function useEventQueue(eventoId: string) {
     );
   }, [eventoId]);
 
-  const drenarAgora = useCallback(async (): Promise<ResumoDrenagem | null> => {
+  const drenarAgora = useCallback(async (): Promise<DrainSummary | null> => {
     if (!navigator.onLine) return null;
-    const resumo = await drenar(webQueue, webTransport, { online: () => navigator.onLine });
+    const resumo = await drain(webQueue, webTransport, { online: () => navigator.onLine });
     await atualizar();
     return resumo;
   }, [atualizar]);

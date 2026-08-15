@@ -1,21 +1,21 @@
 "use client";
 
-import type { ItemFila } from "@albora/core";
-import { MAX_TENTATIVAS, isVideoMime } from "@albora/core";
+import type { QueueItem } from "@albora/core";
+import { MAX_ATTEMPTS, isVideoMime } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
 import { PrimaryButton, SecondaryButton, BottomSheet } from "@albora/ui-web";
 import { webQueue } from "@/lib/queue";
 import { UploadArc } from "./upload-arc";
 import { QueueLabel } from "./camera-view";
 
-function rotuloEstado(item: ItemFila, online: boolean): string {
-  if (item.tentativas >= MAX_TENTATIVAS) return "Falhou · tentar de novo";
+function rotuloEstado(item: QueueItem, online: boolean): string {
+  if (item.tentativas >= MAX_ATTEMPTS) return "Falhou · tentar de novo";
   if (!online) return "Na fila · sem sinal";
   if (item.tentativas > 0) return "Enviando…";
   return "Na fila";
 }
 
-function urlMiniatura(item: ItemFila): string | null {
+function urlMiniatura(item: QueueItem): string | null {
   const corpo = item.thumb ?? item.poster ?? item.corpo;
   if (corpo.tipo !== "blob") return null;
   return URL.createObjectURL(corpo.blob);
@@ -87,10 +87,10 @@ function PainelFila({
   onClose: () => void;
   onDrenar: () => Promise<void>;
 }) {
-  const [itens, setItens] = useState<ItemFila[]>([]);
+  const [itens, setItens] = useState<QueueItem[]>([]);
 
   const recarregar = useCallback(async () => {
-    const fila = await webQueue.listar();
+    const fila = await webQueue.list();
     setItens(fila.filter((i) => i.eventoId === eventoId));
   }, [eventoId]);
 
@@ -112,7 +112,7 @@ function PainelFila({
     };
   }, [itens]);
 
-  const temFalha = itens.some((i) => i.tentativas >= MAX_TENTATIVAS);
+  const temFalha = itens.some((i) => i.tentativas >= MAX_ATTEMPTS);
 
   return (
     <BottomSheet
@@ -150,10 +150,10 @@ function PainelFila({
   );
 }
 
-function LinhaFila({ item, online }: { item: ItemFila; online: boolean }) {
+function LinhaFila({ item, online }: { item: QueueItem; online: boolean }) {
   const url = urlMiniatura(item);
   const video = isVideoMime(item.mime);
-  const falhou = item.tentativas >= MAX_TENTATIVAS;
+  const falhou = item.tentativas >= MAX_ATTEMPTS;
 
   return (
     <li className="flex items-center gap-3 rounded-token bg-bg p-2">
