@@ -73,6 +73,7 @@ export const CORE_VOCABULARY_KEYS = [
   "galeria.minhas",
   "telao.vazio",
   "lugar.pergunta",
+  "recado.rotulo",
 ] as const;
 
 export const CHAVES_DO_NUCLEO = CORE_VOCABULARY_KEYS;

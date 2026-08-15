@@ -11,6 +11,7 @@ export {
   ScannerScreen,
   QueueScreen,
   MusicScreen,
+  HostMessageScreen,
   CommentScreen,
   ReportScreen,
 } from "@/features/catalog/components/guest";

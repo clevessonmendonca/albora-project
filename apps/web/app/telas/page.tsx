@@ -19,6 +19,7 @@ import {
   MyPhotosScreen,
   MissionsScreen,
   MusicScreen,
+  HostMessageScreen,
   ScannerScreen,
 } from "./guest-screens";
 import {
@@ -187,6 +188,13 @@ export default function CatalogPage() {
           note="Trilha escolhida pelos anfitriões — capa, onda decorativa e link pro app. Sem fila colaborativa."
         >
           <MusicScreen pack={pack} />
+        </PhoneFrame>
+
+        <PhoneFrame
+          title="Recado dos anfitriões"
+          note="Texto dos anfitriões, uma vez por sessão. Se o recado não carregar, o caminho até a câmera continua. Áudio entra depois."
+        >
+          <HostMessageScreen pack={pack} />
         </PhoneFrame>
       </CatalogGroup>
 

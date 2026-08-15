@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
+import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
 import {
   Badge,
   Frame,
@@ -75,6 +76,7 @@ export function CoverPage({
   moments,
   interactionOpen,
   musicLabel,
+  hostMessageLabel,
 }: {
   slug: string;
   eventName: string;
@@ -83,6 +85,7 @@ export function CoverPage({
   moments: CoverMoment[];
   interactionOpen: boolean;
   musicLabel: string | null;
+  hostMessageLabel: string;
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
@@ -116,6 +119,8 @@ export function CoverPage({
               : ""}
           </p>
         </div>
+
+        <HostMessageCard label={hostMessageLabel} hostName={eventName} />
 
         <div className="grid grid-cols-4 gap-2 px-[1.125rem] pt-5 pb-[1.125rem]">
           <Shortcut

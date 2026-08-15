@@ -14,6 +14,7 @@ import {
 } from "@albora/ui-web";
 import type { Background } from "@albora/tokens";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
+import { HostMessagePreview } from "./host-message-screen";
 
 export function CoverScreen({
   pack,
@@ -58,6 +59,8 @@ export function CoverScreen({
         </p>
         <p className="mt-1.5 text-[0.8125rem] text-ink-2">8 de novembro · 112 pessoas fotografando</p>
       </div>
+
+      <HostMessagePreview pack={pack} texto={resolvePackText(pack, "recado.exemplo")} />
 
       <div className="grid grid-cols-4 gap-2 px-[1.125rem] pt-5 pb-[1.125rem]">
         {atalhos.map((a) => (

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { groupByHour, type HourGroup } from "@/features/feed/lib/group-by-hour";
 import { useFeed, type ItemVisivel } from "@/features/feed/hooks/use-feed";
 import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
+import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
 import {
   GateNotice,
   GuestHeader,
@@ -61,12 +62,14 @@ export function FeedPage({
   missions,
   copy,
   cameraPath,
+  hostMessageLabel,
 }: {
   slug: string;
   eventTitle: string;
   missions: FilterMission[];
   copy: FeedCopy;
   cameraPath: string;
+  hostMessageLabel: string;
 }) {
   const [missionId, setMissaoId] = useState<string | null>(null);
   const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = useFeed(missionId);
@@ -201,6 +204,8 @@ export function FeedPage({
             homeHref={`/e/${encodeURIComponent(slug)}/cover`}
             action={contagem ? <Badge>{contagem}</Badge> : undefined}
           />
+
+          <HostMessageCard label={hostMessageLabel} hostName={eventTitle} />
 
           {espelho && estado.jaCarregou && (
             <GateNotice>

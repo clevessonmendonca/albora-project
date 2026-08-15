@@ -10,5 +10,6 @@ export { EntryScreen } from "./entry-screen";
 export { ScannerScreen } from "./scanner-screen";
 export { QueueScreen } from "./queue-screen";
 export { MusicScreen } from "./music-screen";
+export { HostMessageScreen } from "./host-message-screen";
 export { CommentScreen } from "./comment-screen";
 export { ReportScreen } from "./report-screen";

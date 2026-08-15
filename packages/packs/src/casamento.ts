@@ -22,6 +22,9 @@ export const CASAMENTO: Pack = {
     "musica.escolha": "Escolha dos noivos",
     "telao.vazio": "As primeiras fotos aparecem aqui",
     "lugar.pergunta": "Onde na festa?",
+    "recado.rotulo": "Um recado dos noivos",
+    "recado.exemplo":
+      "Obrigado por estar com a gente hoje. Tirem fotos — as suas também são as nossas.",
     "lugar.pista": "Pista",
     "lugar.mesa": "Mesa",
     "lugar.jardim": "Jardim",

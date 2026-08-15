@@ -15,6 +15,8 @@ describe("trocar o pack muda a UI, não o núcleo", () => {
   it("a mesma chave devolve texto diferente por pack", () => {
     expect(resolvePackText(WEDDING, "anfitriao.plural")).toBe("os noivos");
     expect(resolvePackText(FIFTEEN_YEARS, "anfitriao.plural")).toBe("a aniversariante");
+    expect(resolvePackText(WEDDING, "recado.rotulo")).toBe("Um recado dos noivos");
+    expect(resolvePackText(FIFTEEN_YEARS, "recado.rotulo")).toBe("Um recado da aniversariante");
   });
 
   it("todo pack registrado responde ao que o núcleo pede", () => {

@@ -14,4 +14,5 @@ export type CoverData = {
   moments: CoverMoment[];
   interactionOpen: boolean;
   musicLabel: string | null;
+  hostMessageLabel: string;
 };

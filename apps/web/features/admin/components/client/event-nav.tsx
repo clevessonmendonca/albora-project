@@ -10,6 +10,7 @@ const SECTIONS = [
   { label: "O álbum", suffix: "/album" },
   { label: "Missões", suffix: "/missions" },
   { label: "Identidade", suffix: "/identity" },
+  { label: "Recado", suffix: "/guestbook" },
 ] as const;
 
 export function EventNav({ eventId }: { eventId: string }) {

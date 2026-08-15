@@ -9,6 +9,7 @@ import {
   TabBar,
 } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
+import { HostMessagePreview } from "./host-message-screen";
 
 export function FeedScreen({ pack, moments }: { pack: Pack; moments: string[] }) {
   const chapters = moments.slice(0, 4);
@@ -23,6 +24,8 @@ export function FeedScreen({ pack, moments }: { pack: Pack; moments: string[] })
         </span>
         <Badge>847 fotos</Badge>
       </div>
+
+      <HostMessagePreview pack={pack} texto={resolvePackText(pack, "recado.exemplo")} />
 
       <div className="flex gap-3.5 overflow-hidden px-[1.125rem] pb-4">
         {chapters.map((m, i) => (
