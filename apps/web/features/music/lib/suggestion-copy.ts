@@ -1,6 +1,6 @@
 import { TETO_DE_SUGESTOES_POR_SESSAO } from "@albora/core";
 
-const ROTULO_PROVEDOR: Record<string, string> = {
+const PROVIDER_LABEL: Record<string, string> = {
   spotify: "Spotify",
   "youtube-music": "YouTube Music",
   youtube: "YouTube",
@@ -8,21 +8,21 @@ const ROTULO_PROVEDOR: Record<string, string> = {
   deezer: "Deezer",
 };
 
-const ROTULO_TIPO: Record<string, string> = {
+const TYPE_LABEL: Record<string, string> = {
   faixa: "faixa",
   album: "álbum",
   playlist: "playlist",
 };
 
-export function rotuloDoProvedor(provedor: string): string {
-  return ROTULO_PROVEDOR[provedor] ?? provedor;
+export function providerLabel(provedor: string): string {
+  return PROVIDER_LABEL[provedor] ?? provedor;
 }
 
-export function rotuloDoTipo(tipo: string): string {
-  return ROTULO_TIPO[tipo] ?? tipo;
+export function typeLabel(tipo: string): string {
+  return TYPE_LABEL[tipo] ?? tipo;
 }
 
-export function mensagemDaSugestao(
+export function suggestionMessage(
   code: string,
   details?: Record<string, unknown>,
 ): string {

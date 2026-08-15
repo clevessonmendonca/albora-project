@@ -1,4 +1,4 @@
-export type MusicaVisivel = {
+export type VisibleTrack = {
   provedor: string;
   rotulo: string;
   url: string;

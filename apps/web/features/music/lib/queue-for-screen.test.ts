@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FaixaSugerida, LinkDeMusica } from "@albora/core";
-import { filaParaTela } from "./fila-para-tela";
+import { queueForScreen } from "./queue-for-screen";
 
 function link(id: string): LinkDeMusica {
   return {
@@ -21,9 +21,9 @@ function faixa(id: string, sessoes: readonly string[]): FaixaSugerida {
   };
 }
 
-describe("filaParaTela", () => {
+describe("queueForScreen", () => {
   it("expõe provedor, tipo, url e votos, nunca a sessão", () => {
-    const tela = filaParaTela([faixa("4cOdK2wGLETKBW3PvgPWqT", ["ses_1", "ses_2", "ses_3"])]);
+    const tela = queueForScreen([faixa("4cOdK2wGLETKBW3PvgPWqT", ["ses_1", "ses_2", "ses_3"])]);
 
     expect(tela).toEqual([
       {
@@ -37,7 +37,7 @@ describe("filaParaTela", () => {
   });
 
   it("preserva a ordem que o núcleo já ordenou", () => {
-    const tela = filaParaTela([faixa("aaa", ["a"]), faixa("bbb", ["b", "c"])]);
+    const tela = queueForScreen([faixa("aaa", ["a"]), faixa("bbb", ["b", "c"])]);
 
     expect(tela.map((s) => s.url)).toEqual([
       "https://open.spotify.com/track/aaa",

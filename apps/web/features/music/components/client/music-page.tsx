@@ -12,8 +12,8 @@ import {
 import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 import { SuggestionForm } from "@/features/music/components/client/suggestion-form";
 import { useMusic } from "@/features/music/hooks/use-music";
-import { rotuloDoProvedor } from "@/features/music/lib/sugestao-na-tela";
-import type { MusicaVisivel } from "@/features/music/types/musica-visivel";
+import { providerLabel } from "@/features/music/lib/suggestion-copy";
+import type { VisibleTrack } from "@/features/music/types/visible-track";
 
 export function MusicPage({ slug, escolhaLabel }: { slug: string; escolhaLabel: string }) {
   const { estado, sugerir } = useMusic();
@@ -55,7 +55,7 @@ export function MusicPage({ slug, escolhaLabel }: { slug: string; escolhaLabel: 
   );
 }
 
-function CoupleTrack({ musica, escolhaLabel }: { musica: MusicaVisivel; escolhaLabel: string }) {
+function CoupleTrack({ musica, escolhaLabel }: { musica: VisibleTrack; escolhaLabel: string }) {
   return (
     <section className="grid gap-4 pt-2">
       <div className="relative mx-auto aspect-square w-full max-w-64 overflow-hidden rounded-superficie">
@@ -83,7 +83,7 @@ function CoupleTrack({ musica, escolhaLabel }: { musica: MusicaVisivel; escolhaL
       </div>
 
       <a href={musica.url} className="block text-center text-[0.9rem] text-acento no-underline">
-        Abrir no {rotuloDoProvedor(musica.provedor)}
+        Abrir no {providerLabel(musica.provedor)}
       </a>
     </section>
   );

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { SugestaoVisivel } from "@/features/music/types/sugestao-visivel";
+import type { VisibleSuggestion } from "@/features/music/types/visible-suggestion";
 import {
   buscarMusica,
   comFalha,
@@ -10,7 +10,7 @@ import {
   estadoInicial,
 } from "./use-music";
 
-const sugestao = (parcial: Partial<SugestaoVisivel> = {}): SugestaoVisivel => ({
+const sugestao = (parcial: Partial<VisibleSuggestion> = {}): VisibleSuggestion => ({
   provedor: "spotify",
   tipo: "faixa",
   url: "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT",

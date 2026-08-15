@@ -1,7 +1,7 @@
 import { votos, type FaixaSugerida } from "@albora/core";
-import type { SugestaoVisivel } from "@/features/music/types/sugestao-visivel";
+import type { VisibleSuggestion } from "@/features/music/types/visible-suggestion";
 
-export function filaParaTela(fila: readonly FaixaSugerida[]): SugestaoVisivel[] {
+export function queueForScreen(fila: readonly FaixaSugerida[]): VisibleSuggestion[] {
   return fila.map((f) => ({
     provedor: f.link.provedor,
     tipo: f.link.tipo,

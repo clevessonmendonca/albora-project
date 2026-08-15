@@ -12,7 +12,7 @@ import {
   listarSugestoes,
   musicaDoCasal,
 } from "@albora/db";
-import { filaParaTela } from "@/features/music/lib/fila-para-tela";
+import { queueForScreen } from "@/features/music/lib/queue-for-screen";
 import {
   enforceRateLimit,
   errorResponse,
@@ -57,7 +57,7 @@ export async function GET(req: Request) {
 
     return jsonOk({
       musica,
-      sugestoes: filaParaTela(corpo.fila),
+      sugestoes: queueForScreen(corpo.fila),
       interacao: corpo.interacao,
     });
   } catch (e) {
@@ -122,7 +122,7 @@ export async function POST(req: Request) {
       provedor: link.provedor,
     });
 
-    return jsonOk({ aceita: true, sugestoes: filaParaTela(resultado.fila) });
+    return jsonOk({ aceita: true, sugestoes: queueForScreen(resultado.fila) });
   } catch (e) {
     return unexpectedError("musica.post", e);
   }

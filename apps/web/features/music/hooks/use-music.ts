@@ -2,15 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ModoInteracao } from "@albora/core";
-import { mensagemDaSugestao } from "@/features/music/lib/sugestao-na-tela";
-import type { MusicaVisivel } from "@/features/music/types/musica-visivel";
-import type { SugestaoVisivel } from "@/features/music/types/sugestao-visivel";
+import { suggestionMessage } from "@/features/music/lib/suggestion-copy";
+import type { VisibleSuggestion } from "@/features/music/types/visible-suggestion";
+import type { VisibleTrack } from "@/features/music/types/visible-track";
 
 export type FalhaMusica = "rede" | "sessao";
 
 export type EstadoMusica = {
-  musica: MusicaVisivel | null;
-  sugestoes: SugestaoVisivel[];
+  musica: VisibleTrack | null;
+  sugestoes: VisibleSuggestion[];
   interacao: ModoInteracao;
   carregando: boolean;
   jaCarregou: boolean;
@@ -35,8 +35,8 @@ export function estadoInicial(): EstadoMusica {
 }
 
 export type PaginaMusica = {
-  musica: MusicaVisivel | null;
-  sugestoes: SugestaoVisivel[];
+  musica: VisibleTrack | null;
+  sugestoes: VisibleSuggestion[];
   interacao: ModoInteracao;
 };
 
@@ -45,13 +45,13 @@ export type RespostaGet =
   | { ok: false; falha: FalhaMusica };
 
 export type RespostaPost =
-  | { ok: true; sugestoes: SugestaoVisivel[] }
+  | { ok: true; sugestoes: VisibleSuggestion[] }
   | { ok: false; falha: FalhaMusica }
   | { ok: false; code: string; details?: Record<string, unknown> };
 
-function lerSugestoes(valor: unknown): SugestaoVisivel[] {
+function lerSugestoes(valor: unknown): VisibleSuggestion[] {
   if (!Array.isArray(valor)) return [];
-  const saida: SugestaoVisivel[] = [];
+  const saida: VisibleSuggestion[] = [];
   for (const item of valor) {
     if (
       item &&
@@ -72,7 +72,7 @@ function lerSugestoes(valor: unknown): SugestaoVisivel[] {
   return saida;
 }
 
-function lerMusica(valor: unknown): MusicaVisivel | null {
+function lerMusica(valor: unknown): VisibleTrack | null {
   if (!valor || typeof valor !== "object") return null;
   const m = valor as Record<string, unknown>;
   if (typeof m.provedor !== "string" || typeof m.rotulo !== "string" || typeof m.url !== "string") {
@@ -170,7 +170,7 @@ export function comEnvio(estado: EstadoMusica): EstadoMusica {
 
 export function comSugestaoAceita(
   estado: EstadoMusica,
-  sugestoes: SugestaoVisivel[],
+  sugestoes: VisibleSuggestion[],
 ): EstadoMusica {
   return {
     ...estado,
@@ -188,7 +188,7 @@ export function comSugestaoRecusada(
   return {
     ...estado,
     enviando: false,
-    erroSugestao: mensagemDaSugestao(code, details),
+    erroSugestao: suggestionMessage(code, details),
     tetoAtingido: code === "musica.teto_de_sugestoes" ? true : estado.tetoAtingido,
     interacao: code === "musica.interacao_fechada" ? "espelho" : estado.interacao,
   };
@@ -198,7 +198,7 @@ export function comErroDeRedeNoEnvio(estado: EstadoMusica): EstadoMusica {
   return {
     ...estado,
     enviando: false,
-    erroSugestao: mensagemDaSugestao("erro.interno"),
+    erroSugestao: suggestionMessage("erro.interno"),
   };
 }
 

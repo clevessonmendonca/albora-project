@@ -1,4 +1,4 @@
-export type SugestaoVisivel = {
+export type VisibleSuggestion = {
   provedor: string;
   tipo: string;
   url: string;

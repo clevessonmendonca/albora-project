@@ -5,7 +5,7 @@ import {
   listarSugestoes,
   musicaDoCasal,
 } from "@albora/db";
-import { filaParaTela } from "@/features/music/lib/fila-para-tela";
+import { queueForScreen } from "@/features/music/lib/queue-for-screen";
 import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
@@ -57,7 +57,7 @@ export async function GET(
     });
     return jsonOk({
       musica: serializar(corpo.musica),
-      sugestoes: filaParaTela(corpo.fila),
+      sugestoes: queueForScreen(corpo.fila),
     });
   } catch (e) {
     return unexpectedError("admin.musica.get", e);
