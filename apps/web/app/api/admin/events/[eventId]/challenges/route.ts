@@ -1,6 +1,6 @@
 import { comEvento, listarDesafios, substituirDesafios } from "@albora/db";
 import { PACKS } from "@albora/packs";
-import { parseMissionKeys } from "@/features/admin/lib/parse-mission-keys";
+import { parseMissionKeys } from "@/features/admin/lib/mission-keys";
 import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,

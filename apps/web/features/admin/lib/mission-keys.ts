@@ -1,3 +1,18 @@
+import { isValidMissionKey, type Pack } from "@albora/packs";
+
+export function parseMissionKeys(pack: Pack, raw: unknown): string[] | null {
+  if (!Array.isArray(raw) || !raw.every((k) => typeof k === "string")) return null;
+
+  const seen = new Set<string>();
+  const keys: string[] = [];
+  for (const key of raw) {
+    if (!isValidMissionKey(pack, key) || seen.has(key)) return null;
+    seen.add(key);
+    keys.push(key);
+  }
+  return keys;
+}
+
 export function toggleMissionKey(
   selected: readonly string[],
   key: string,

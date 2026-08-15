@@ -11,7 +11,7 @@ import {
   moveMissionKey,
   reorderMissionKeys,
   toggleMissionKey,
-} from "@/features/admin/lib/mission-selection";
+} from "@/features/admin/lib/mission-keys";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 
 type Props = {
