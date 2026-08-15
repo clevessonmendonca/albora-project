@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   DENUNCIAS_PARA_SEGURAR,
   decidirExibicao,
+  interpretarVeredicto,
   precisaDeRevisao,
   registrarDecisao,
   type EstadoDaMidia,
@@ -144,11 +145,11 @@ describe("a fila de revisão", () => {
     );
   });
 
-  it("sem resposta do classificador não vira fila", () => {
-    // Segurar do telão já é a resposta. Mandar para revisão faria a fila
-    // encher de foto normal toda vez que o classificador ficasse lento — e a
-    // premissa é que ninguém está olhando fila.
-    expect(precisaDeRevisao(midia({ classificador: "sem-resposta" }), CALMA)).toBe(false);
+  it("silêncio do classificador entra na fila — o admin é avisado", () => {
+    // Spec 011 verificação 2. NULL ainda não rodou: quem mapeia isso é a
+    // leitura do banco (`interpretarVeredicto` na parede, nulo→limpo na fila
+    // para não encher de foto à espera do job).
+    expect(precisaDeRevisao(midia({ classificador: "sem-resposta" }), CALMA)).toBe(true);
   });
 
   it("com menores, a fila enxerga a foto que o telão segurou com 1 denúncia", () => {
@@ -205,5 +206,20 @@ describe("a auditoria registra a decisão, não só a negativa", () => {
       "superficie",
       "visivel",
     ]);
+  });
+});
+
+describe("interpretarVeredicto", () => {
+  it("NULL e lixo são silêncio, não limpeza", () => {
+    expect(interpretarVeredicto(null)).toBe("sem-resposta");
+    expect(interpretarVeredicto(undefined)).toBe("sem-resposta");
+    expect(interpretarVeredicto("")).toBe("sem-resposta");
+    expect(interpretarVeredicto("desconhecido")).toBe("sem-resposta");
+  });
+
+  it("os três veredictos passam intactos", () => {
+    expect(interpretarVeredicto("limpo")).toBe("limpo");
+    expect(interpretarVeredicto("suspeito")).toBe("suspeito");
+    expect(interpretarVeredicto("sem-resposta")).toBe("sem-resposta");
   });
 });

@@ -120,6 +120,7 @@ export type {
 export {
   DENUNCIAS_PARA_SEGURAR,
   decidirExibicao,
+  interpretarVeredicto,
   precisaDeRevisao,
   registrarDecisao,
 } from "./moderacao";
@@ -220,6 +221,17 @@ export {
 } from "./comment";
 
 export { classificarTexto } from "./classificador-texto";
+export type {
+  EntradaDeImagem,
+  NomeDoProvedorDeImagem,
+  ProvedorDeClassificadorDeImagem,
+} from "./classificador-imagem";
+export {
+  TEMPO_MAXIMO_MS as TEMPO_MAXIMO_CLASSIFICADOR_IMAGEM_MS,
+  classificarImagem,
+  provedorDeImagemDoAmbiente,
+  provedorHeuristico,
+} from "./classificador-imagem";
 
 export type {
   Autorizacao,
@@ -421,6 +433,8 @@ export { montarGaleria as buildGallery } from "./galeria";
 export { publicarComentario as publishComment } from "./comment";
 /** English alias — prefer for new code. */
 export { decidirExibicao as decideDisplay } from "./moderacao";
+/** English alias — prefer for new code. */
+export { interpretarVeredicto as interpretVerdict } from "./moderacao";
 /** English alias — prefer for new code. */
 export { autorizarCompartilhamento as authorizeShare } from "./compartilhar";
 /** English alias — prefer for new code. */

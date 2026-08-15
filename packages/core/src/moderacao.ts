@@ -13,6 +13,17 @@
 
 export type VeredictoDoClassificador = "limpo" | "suspeito" | "sem-resposta";
 
+/**
+ * Silêncio (NULL, vazio, valor desconhecido) é `sem-resposta`, nunca `limpo`.
+ *
+ * Quem ainda não rodou e quem falhou são a mesma coisa na parede: o telão
+ * segura. O feed/galeria não filtram por veredicto — falham abertos.
+ */
+export function interpretarVeredicto(bruto: string | null | undefined): VeredictoDoClassificador {
+  if (bruto === "limpo" || bruto === "suspeito" || bruto === "sem-resposta") return bruto;
+  return "sem-resposta";
+}
+
 export type Superficie = "galeria" | "telao";
 
 export type EstadoDaMidia = {
@@ -156,6 +167,7 @@ export function precisaDeRevisao(
   return (
     midia.denuncias >= denunciasParaSegurar ||
     midia.classificador === "suspeito" ||
+    midia.classificador === "sem-resposta" ||
     evento.modoEndurecido
   );
 }
