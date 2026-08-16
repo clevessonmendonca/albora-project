@@ -1,6 +1,19 @@
-import { CAPITULO_SEM_HORA, CAPITULO_UNICO } from "./tempo";
+import { CAPITULO_CONFESSIONARIO, CAPITULO_SEM_HORA, CAPITULO_UNICO } from "./tempo";
 import { escolherLayout, LAYOUT_DE_UMA, MAIOR_LAYOUT, proporcaoDe } from "./slots";
 import type { Bloco, FotoNaPagina, MidiaResolvida, Pagina, PlanoDoAlbum } from "./types";
+
+const ORDEM_FIM = Number.MAX_SAFE_INTEGER;
+/** Depois do arco por hora; antes de `sem-hora`. */
+const ORDEM_CONFESSIONARIO = ORDEM_FIM - 1;
+
+function ordemDoCapituloId(
+  id: string,
+  ordemDoCapitulo: ReadonlyMap<string, number>,
+): number {
+  if (id === CAPITULO_SEM_HORA) return ORDEM_FIM;
+  if (id === CAPITULO_CONFESSIONARIO) return ORDEM_CONFESSIONARIO;
+  return ordemDoCapitulo.get(id) ?? 0;
+}
 
 export function agruparEmBlocos(
   resolvidas: readonly MidiaResolvida[],
@@ -34,11 +47,10 @@ export function agruparEmBlocos(
   const ordemDoCapitulo = new Map<string, number>();
   plano.capitulos.forEach((c, i) => ordemDoCapitulo.set(c.id, i));
   ordemDoCapitulo.set(CAPITULO_UNICO, ordemDoCapitulo.get(CAPITULO_UNICO) ?? -1);
-  const FIM = Number.MAX_SAFE_INTEGER;
 
   return [...porChave.values()].sort((a, b) => {
-    const ia = a.capituloId === CAPITULO_SEM_HORA ? FIM : ordemDoCapitulo.get(a.capituloId) ?? 0;
-    const ib = b.capituloId === CAPITULO_SEM_HORA ? FIM : ordemDoCapitulo.get(b.capituloId) ?? 0;
+    const ia = ordemDoCapituloId(a.capituloId, ordemDoCapitulo);
+    const ib = ordemDoCapituloId(b.capituloId, ordemDoCapitulo);
     if (ia !== ib) return ia - ib;
 
     const ta = a.inicioDaHora?.getTime() ?? 0;

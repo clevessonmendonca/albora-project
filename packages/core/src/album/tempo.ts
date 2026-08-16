@@ -1,4 +1,5 @@
 import {
+  CAPITULO_CONFESSIONARIO,
   CAPITULO_SEM_HORA,
   CAPITULO_UNICO,
   FOLGA_DA_JANELA_MS,
@@ -63,4 +64,4 @@ export function capituloDe(em: Date, capitulos: readonly CapituloPlanejado[]): s
   return atual;
 }
 
-export { CAPITULO_SEM_HORA, CAPITULO_UNICO };
+export { CAPITULO_CONFESSIONARIO, CAPITULO_SEM_HORA, CAPITULO_UNICO };

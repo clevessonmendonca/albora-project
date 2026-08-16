@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  CAPITULO_CONFESSIONARIO,
   CAPITULO_SEM_HORA,
   CAPITULO_UNICO,
   FUSO_PADRAO,
@@ -139,6 +140,38 @@ describe("a unidade é a hora, e a hora é a do evento", () => {
     );
 
     expect(album.capitulos.map((c) => c.id)).toEqual(["chegada", "amanhecer", CAPITULO_SEM_HORA]);
+  });
+
+  it("mídia com promptKey vira capítulo confessionário, fora do arco por hora", () => {
+    const album = montarAlbum(
+      [
+        foto({ id: "pista", capturadaEm: new Date("2026-08-09T01:10:00Z") }),
+        foto({
+          id: "video",
+          capturadaEm: new Date("2026-08-09T01:20:00Z"),
+          promptKey: "confessionario.conselho",
+        }),
+        foto({ id: "chegada", capturadaEm: new Date("2026-08-08T22:10:00Z") }),
+        foto({
+          id: "perdida",
+          capturadaEm: null,
+          recebidaEm: new Date("2026-08-12T15:00:00Z"),
+        }),
+      ],
+      plano(),
+    );
+
+    expect(album.capitulos.map((c) => c.id)).toEqual([
+      "chegada",
+      "festa",
+      CAPITULO_CONFESSIONARIO,
+      CAPITULO_SEM_HORA,
+    ]);
+    const conf = album.capitulos.find((c) => c.id === CAPITULO_CONFESSIONARIO);
+    expect(conf?.paginas.flatMap((p) => p.fotos.map((f) => f.midia.id))).toEqual(["video"]);
+    expect(resolver([foto({ id: "v", promptKey: "confessionario.historia" })], plano())[0]?.capituloId).toBe(
+      CAPITULO_CONFESSIONARIO,
+    );
   });
 
   it("ancora no fuso do evento, não no do aparelho", () => {

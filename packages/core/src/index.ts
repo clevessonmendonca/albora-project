@@ -343,6 +343,7 @@ export type {
 } from "./album";
 export type { FusoDoEvento } from "./album";
 export {
+  CAPITULO_CONFESSIONARIO,
   CAPITULO_SEM_HORA,
   CAPITULO_UNICO,
   FOLGA_DA_JANELA_MS,
@@ -380,6 +381,8 @@ export {
   slotAceita,
   slotCorta,
 } from "./album";
+/** English alias — prefer for new code. @see CAPITULO_CONFESSIONARIO */
+export { CAPITULO_CONFESSIONARIO as CONFESSIONAL_CHAPTER } from "./album";
 
 export type {
   ErroMusica,

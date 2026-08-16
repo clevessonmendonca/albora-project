@@ -18,6 +18,7 @@ export type {
 } from "./types";
 
 export {
+  CAPITULO_CONFESSIONARIO,
   CAPITULO_SEM_HORA,
   CAPITULO_UNICO,
   FOLGA_DA_JANELA_MS,

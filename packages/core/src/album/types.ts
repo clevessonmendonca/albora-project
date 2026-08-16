@@ -7,6 +7,8 @@ export type MidiaDoAlbum = {
   altura: number;
   lugarId: string | null;
   missaoId: string | null;
+  /** Chave fechada do pack (`confessionario.*`); null/omitida = capítulo por hora. */
+  promptKey?: string | null;
   reacoes: number;
 };
 
@@ -23,6 +25,8 @@ export const OFFSET_PADRAO_MINUTOS = -180;
 
 export const CAPITULO_SEM_HORA = "sem-hora";
 export const CAPITULO_UNICO = "a-noite";
+/** Capítulo virtual: mídias com `promptKey` (confessionário), fora do arco por hora. */
+export const CAPITULO_CONFESSIONARIO = "confessionario";
 
 export const HORAS_DO_AMANHECER: readonly number[] = [5, 6, 7];
 
