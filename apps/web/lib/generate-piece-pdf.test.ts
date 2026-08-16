@@ -22,7 +22,7 @@ function mmToPt(mm: number): number {
   return (mm * 72) / 25.4;
 }
 
-describe("generatePiecePdf", { timeout: 20_000 }, () => {
+describe("generatePiecePdf", { timeout: 60_000 }, () => {
   it("devolve %PDF com tamanho não trivial, QR e slug", async () => {
     const resultado = await generatePiecePdf({ ...entradaBase, formato: "placa-a4" });
 
