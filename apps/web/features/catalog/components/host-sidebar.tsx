@@ -7,6 +7,7 @@ export const HOST_SECTIONS = [
   "O álbum",
   "Missões",
   "Identidade",
+  "Recado",
   "Moderação",
   "O livro",
   "Convidados",

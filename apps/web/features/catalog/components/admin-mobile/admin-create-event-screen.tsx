@@ -1,3 +1,4 @@
+import { FUSOS_DO_EVENTO } from "@albora/core";
 import type { Pack } from "@albora/packs";
 import { BackIcon, Badge, Button, cn, StatusBar } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
@@ -44,6 +45,7 @@ export function AdminCreateEventScreen({ pack }: { pack: Pack }) {
             value="150"
             note="Só pra medir participação — ninguém é cadastrado, e ninguém recebe convite por aqui."
           />
+          <AdminField label="Fuso horário" value={FUSOS_DO_EVENTO[0].rotulo} />
         </div>
       </div>
 

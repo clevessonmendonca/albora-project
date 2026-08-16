@@ -23,7 +23,7 @@ export function MyPhotosScreen({ pack }: { pack: Pack }) {
       </div>
 
       <div className="grid flex-1 auto-rows-min grid-cols-3 gap-1.5 overflow-hidden px-[1.125rem]">
-        {Array.from({ length: 15 }, (_, i) => (
+        {Array.from({ length: 6 }, (_, i) => (
           <span key={i} className="relative aspect-square overflow-hidden rounded-token">
             <Frame atmosphere variant={i * 4 + 1} />
             {i === 0 && (
@@ -34,6 +34,16 @@ export function MyPhotosScreen({ pack }: { pack: Pack }) {
             )}
           </span>
         ))}
+      </div>
+
+      <div className="mx-[1.125rem] mb-3 mt-3 rounded-token bg-superficie px-4 py-3">
+        <p className="m-0 font-titulo text-[1.0625rem]">Colagem da noite</p>
+        <p className="mb-2 mt-1 text-[0.8125rem] leading-snug text-ink-2">
+          Até quatro fotos suas, com a moldura desta festa, prontas para o Instagram.
+        </p>
+        <span className="inline-flex rounded-pilula bg-acento px-4 py-2 text-[0.8125rem] font-medium text-sobre-acento">
+          Compartilhar colagem
+        </span>
       </div>
 
       <TabBar active="minhas" />

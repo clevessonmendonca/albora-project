@@ -8,4 +8,8 @@ export {
   AdminRetentionScreen,
   AdminLoginScreen,
   AdminCreateEventScreen,
+  AdminMissionsScreen,
+  AdminGuestbookScreen,
+  AdminAlbumScreen,
+  AdminPiecesScreen,
 } from "@/features/catalog/components/admin-mobile";

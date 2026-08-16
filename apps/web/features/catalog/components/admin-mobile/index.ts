@@ -7,3 +7,7 @@ export { AdminBookScreen } from "./admin-book-screen";
 export { AdminRetentionScreen } from "./admin-retention-screen";
 export { AdminLoginScreen } from "./admin-login-screen";
 export { AdminCreateEventScreen } from "./admin-create-event-screen";
+export { AdminMissionsScreen } from "./admin-missions-screen";
+export { AdminGuestbookScreen } from "./admin-guestbook-screen";
+export { AdminAlbumScreen } from "./admin-album-screen";
+export { AdminPiecesScreen } from "./admin-pieces-screen";

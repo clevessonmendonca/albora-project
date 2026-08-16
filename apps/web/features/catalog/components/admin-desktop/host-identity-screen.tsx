@@ -1,7 +1,8 @@
+import { FUSOS_DO_EVENTO } from "@albora/core";
 import type { Pack } from "@albora/packs";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
 import { HostSidebar } from "@/features/catalog/components/host-sidebar";
-import { WizardField } from "@/features/catalog/components/wizard-field";
+import { WizardField, WizardSelect } from "@/features/catalog/components/wizard-field";
 import { CoverScreen } from "@/features/catalog/components/guest/cover-screen";
 
 export function HostIdentityScreen({ pack, moments }: { pack: Pack; moments: string[] }) {
@@ -18,6 +19,8 @@ export function HostIdentityScreen({ pack, moments }: { pack: Pack; moments: str
             <WizardField label="Cor de destaque" value="Âmbar do pack" />
             <WizardField label="Fonte do título" value="Serif do pack" />
             <WizardField label="Raio dos cantos" value="Suave" />
+            <WizardSelect label="Fuso horário" value={FUSOS_DO_EVENTO[0].rotulo} />
+            <WizardField label="Convidados esperados" value="150" />
             <p className="m-0 text-[0.8125rem] leading-normal text-ink-2">
               Cada mudança re-renderiza o preview com resolveTokens real — o mesmo resolvedor do
               telão e da peça impressa.

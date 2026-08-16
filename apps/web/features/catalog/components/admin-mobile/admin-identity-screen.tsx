@@ -1,3 +1,4 @@
+import { FUSOS_DO_EVENTO } from "@albora/core";
 import { resolvePackText, type Pack } from "@albora/packs";
 import { Badge, Button, cn, Frame, StatusBar } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
@@ -62,6 +63,19 @@ export function AdminIdentityScreen({ pack }: { pack: Pack }) {
             <p className="mt-1 text-[0.9375rem]">A festa está acontecendo</p>
           </div>
         </div>
+
+        <p className="mt-4 mb-2 text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
+          Fuso horário
+        </p>
+        <span className="mb-1 flex items-center justify-between rounded-token border border-linha bg-bg px-3.5 py-3 text-[0.9375rem] text-ink">
+          {FUSOS_DO_EVENTO[0].rotulo}
+          <span className="text-ink-3" aria-hidden>
+            ▾
+          </span>
+        </span>
+        <p className="mb-0 mt-1 text-[0.75rem] text-ink-3">
+          A faixa das 5h no álbum segue o relógio do salão, não o do aparelho.
+        </p>
 
         <div className="mt-4">
           <Button width="full">Editar identidade</Button>

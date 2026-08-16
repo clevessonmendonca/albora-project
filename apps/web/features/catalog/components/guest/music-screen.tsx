@@ -47,9 +47,14 @@ export function MusicScreen({ pack }: { pack: Pack }) {
             https://open.spotify.com/track/…
           </span>
           <PrimaryButton disabled>Sugerir</PrimaryButton>
-          <div className="flex items-center justify-between rounded-token border border-linha bg-superficie px-3.5 py-3">
-            <span className="text-[0.85rem]">Spotify · faixa</span>
-            <span className="text-[0.75rem] uppercase tracking-rotulo text-acento">Também quero</span>
+          <div className="flex items-center justify-between gap-3 rounded-token border border-linha bg-superficie px-3.5 py-3">
+            <span className="min-w-0">
+              <span className="block truncate text-[0.85rem]">Spotify · faixa</span>
+              <span className="text-[0.75rem] text-ink-3">3 votos</span>
+            </span>
+            <span className="shrink-0 text-[0.75rem] uppercase tracking-rotulo text-acento">
+              Também quero
+            </span>
           </div>
         </section>
       </div>

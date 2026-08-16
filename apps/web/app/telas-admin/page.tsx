@@ -13,6 +13,10 @@ import {
   AdminPanelScreen,
   AdminWallScreen,
   AdminRetentionScreen,
+  AdminAlbumScreen,
+  AdminMissionsScreen,
+  AdminGuestbookScreen,
+  AdminPiecesScreen,
 } from "../telas/admin-screens";
 
 export const metadata = {
@@ -99,8 +103,36 @@ export default function AdminCatalogPage() {
         </Showcase>
 
         <Showcase
+          title="O álbum"
+          note="Baixar tudo pede confirmação no e-mail — a sessão aberta não basta. Curadoria leve: ocultar tira do feed, do álbum e do telão."
+        >
+          <AdminAlbumScreen pack={pack} />
+        </Showcase>
+
+        <Showcase
+          title="Missões"
+          note="Liga e ordena as missões do pack. Sem texto livre — o vocabulário continua no pack."
+        >
+          <AdminMissionsScreen pack={pack} />
+        </Showcase>
+
+        <Showcase
+          title="Recado"
+          note="Texto e áudio opcional, com consentimento da voz. Gravar ou anexar; cada convidado vê uma vez."
+        >
+          <AdminGuestbookScreen pack={pack} />
+        </Showcase>
+
+        <Showcase
+          title="Peças"
+          note="ZIP com placa, card de mesa e card de missão. A placa lista as missões do pack."
+        >
+          <AdminPiecesScreen pack={pack} />
+        </Showcase>
+
+        <Showcase
           title="Identidade"
-          note="A cor e a fonte do casal, com prévia ao vivo pelo resolveTokens real — o que se vê aqui é o que sai no telão e no PDF da placa. Um resolvedor, N renderizadores."
+          note="A cor, a fonte e o fuso do salão, com prévia ao vivo pelo resolveTokens real — o que se vê aqui é o que sai no telão e no PDF da placa."
         >
           <AdminIdentityScreen pack={pack} />
         </Showcase>
@@ -128,7 +160,7 @@ export default function AdminCatalogPage() {
 
         <Showcase
           title="Criar evento"
-          note="O onboarding: uma coisa por passo (nome → identidade → missões → parede → peça com QR). Nenhuma pergunta de idade — os menores são um interruptor depois, não um cadastro."
+          note="O onboarding: uma coisa por passo (nome e fuso → identidade → missões → parede → peça com QR). Nenhuma pergunta de idade — os menores são um interruptor depois, não um cadastro."
         >
           <AdminCreateEventScreen pack={pack} />
         </Showcase>

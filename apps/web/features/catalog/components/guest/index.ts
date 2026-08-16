@@ -13,3 +13,5 @@ export { MusicScreen } from "./music-screen";
 export { HostMessageScreen } from "./host-message-screen";
 export { CommentScreen } from "./comment-screen";
 export { ReportScreen } from "./report-screen";
+export { ConfirmScreen } from "./confirm-screen";
+export { ShareConsentScreen } from "./share-consent-screen";

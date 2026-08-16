@@ -1,7 +1,9 @@
+import { FUSOS_DO_EVENTO } from "@albora/core";
 import { resolvePackText, type Pack } from "@albora/packs";
 import { cn } from "@albora/ui-web";
 import { GuestBackground } from "@/features/catalog/lib/guest-background";
-import { WizardField } from "@/features/catalog/components/wizard-field";
+import { CheckMark } from "@/features/catalog/components/check-mark";
+import { WizardField, WizardSelect } from "@/features/catalog/components/wizard-field";
 
 const WIZARD_STEPS = ["Nome e data", "Identidade", "Missões", "Parede", "Peças"] as const;
 
@@ -48,7 +50,22 @@ export function HostCreateEventScreen({
               <WizardField label="Convidados esperados" value="150" />
               <WizardField label="Começo" value="Sáb, 20:00" />
               <WizardField label="Fim" value="Dom, 04:00" />
-              <WizardField label="Fuso horário" value="Brasília" />
+              <WizardSelect label="Fuso horário" value={FUSOS_DO_EVENTO[0].rotulo} />
+            </div>
+          )}
+          {step === 3 && (
+            <div className="flex max-w-[22rem] flex-col gap-2">
+              {pack.missoes.map((m, i) => (
+                <span
+                  key={m.id}
+                  className="flex items-center gap-3 rounded-token border border-linha bg-bg p-3"
+                >
+                  <CheckMark checked={i < 3} />
+                  <span className="font-titulo text-[0.95rem] leading-snug">
+                    {resolvePackText(pack, m.chaveTitulo)}
+                  </span>
+                </span>
+              ))}
             </div>
           )}
           {step === 5 && (

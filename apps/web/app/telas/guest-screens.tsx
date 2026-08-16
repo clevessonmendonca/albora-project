@@ -14,4 +14,6 @@ export {
   HostMessageScreen,
   CommentScreen,
   ReportScreen,
+  ConfirmScreen,
+  ShareConsentScreen,
 } from "@/features/catalog/components/guest";

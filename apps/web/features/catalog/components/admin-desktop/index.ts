@@ -5,3 +5,5 @@ export { HostCreateEventScreen } from "./host-create-event-screen";
 export { HostIdentityScreen } from "./host-identity-screen";
 export { HostAlbumScreen } from "./host-album-screen";
 export { HostPiecesScreen } from "./host-pieces-screen";
+export { HostMissionsScreen } from "./host-missions-screen";
+export { HostGuestbookScreen } from "./host-guestbook-screen";

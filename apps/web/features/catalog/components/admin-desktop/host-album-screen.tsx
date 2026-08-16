@@ -17,7 +17,18 @@ export function HostAlbumScreen({ pack, moments }: { pack: Pack; moments: string
             <Badge>847 fotos</Badge>
           </div>
 
-          <div className="mb-4 mt-5 flex gap-[0.4375rem] overflow-hidden">
+          <div className="mb-4 mt-5 rounded-token bg-superficie-alta p-4">
+            <p className="mb-1 mt-0 font-titulo text-[1.0625rem]">Baixar tudo</p>
+            <p className="mb-3 mt-0 max-w-[48ch] text-[0.8125rem] leading-relaxed text-ink-2">
+              As fotos publicadas da noite, num ZIP. Confirma no e-mail antes — a sessão aberta não
+              basta.
+            </p>
+            <span className="inline-flex rounded-pilula border border-linha px-4 py-2 text-[0.8125rem] text-ink">
+              Baixar tudo
+            </span>
+          </div>
+
+          <div className="mb-4 flex gap-[0.4375rem] overflow-hidden">
             <Badge tone="accent">Tudo</Badge>
             {moments.slice(0, 4).map((m) => (
               <Badge key={m}>{m}</Badge>

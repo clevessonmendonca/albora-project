@@ -9,6 +9,7 @@ import {
   AlbumScreen,
   BeforeGateScreen,
   CameraScreen,
+  ConfirmScreen,
   CoverScreen,
   CommentScreen,
   ReportScreen,
@@ -21,13 +22,16 @@ import {
   MusicScreen,
   HostMessageScreen,
   ScannerScreen,
+  ShareConsentScreen,
 } from "./guest-screens";
 import {
   HostAlbumScreen,
   HostCreateEventScreen,
+  HostGuestbookScreen,
   HostIdentityScreen,
   HostLoginScreen,
   WallModelsScreen,
+  HostMissionsScreen,
   HostPanelScreen,
   HostPiecesScreen,
 } from "./host-desktop-screens";
@@ -121,6 +125,20 @@ export default function CatalogPage() {
         </PhoneFrame>
 
         <PhoneFrame
+          title="Confirmação"
+          note="A primeira foto já está no telão. O convite ao app aparece aqui, nunca antes — Android instala na tela inicial."
+        >
+          <ConfirmScreen pack={pack} />
+        </PhoneFrame>
+
+        <PhoneFrame
+          title="Confirmação — iOS"
+          note="Sem prompt nativo: Toque em Compartilhar, depois Adicionar à Tela de Início. O convidado não passa por loja."
+        >
+          <ConfirmScreen pack={pack} ios />
+        </PhoneFrame>
+
+        <PhoneFrame
           title="Fila de envio"
           note="Caminho crítico offline: pílula no cabeçalho abre sheet com miniatura, estado e banner de sem sinal. Persiste entre recargas; retry com backoff."
         >
@@ -150,23 +168,37 @@ export default function CatalogPage() {
 
         <PhoneFrame
           title="O álbum"
-          note="Grade de três, filtrada pelos capítulos que o pack define. É a tela que o convidado abre no dia seguinte."
+          note="Capa, contadores e filtros de missão. Capítulos do pack e faixas de hora com discos — não é grade de três."
         >
           <AlbumScreen pack={pack} moments={moments} />
         </PhoneFrame>
 
         <PhoneFrame
           title="Minhas"
-          note="O que este convidado enviou, a cota de vídeo e o remover da própria foto — sem cabeçalho de perfil. Grade de miniaturas arredondadas, uma com selo de vídeo."
+          note="O que este convidado enviou, a cota de vídeo e a colagem da noite — até quatro fotos com a moldura da festa."
         >
           <MyPhotosScreen pack={pack} />
         </PhoneFrame>
 
         <PhoneFrame
           title="Foto aberta"
-          note="Tela filled com reação, comentário e compartilhar só na foto do próprio autor. O ✕ remove quando a foto é dela."
+          note="Reação e comentário. Sem Stories: esta foto não é dela."
         >
           <PhotoDetailScreen pack={pack} />
+        </PhoneFrame>
+
+        <PhoneFrame
+          title="Foto aberta — a sua"
+          note="O ✕ remove e Stories aparece só na foto do próprio autor."
+        >
+          <PhotoDetailScreen pack={pack} own />
+        </PhoneFrame>
+
+        <PhoneFrame
+          title="Consentimento de Stories"
+          note="A foto sai com a moldura desta festa. Não dá para desfazer — o overlay pede o aceite antes de postar."
+        >
+          <ShareConsentScreen pack={pack} />
         </PhoneFrame>
 
         <PhoneFrame
@@ -185,14 +217,14 @@ export default function CatalogPage() {
 
         <PhoneFrame
           title="Música da festa"
-          note="Trilha escolhida pelos anfitriões — capa, onda decorativa e link pro app. Sem fila colaborativa."
+          note="Trilha escolhida pelos anfitriões e pedidos da festa: link, teto por sessão e votos."
         >
           <MusicScreen pack={pack} />
         </PhoneFrame>
 
         <PhoneFrame
           title="Recado dos anfitriões"
-          note="Texto dos anfitriões, uma vez por sessão. Se o recado não carregar, o caminho até a câmera continua. Áudio entra depois."
+          note="Texto dos anfitriões, uma vez por sessão, com player de áudio. Se o recado não carregar, o caminho até a câmera continua."
         >
           <HostMessageScreen pack={pack} />
         </PhoneFrame>
@@ -222,11 +254,20 @@ export default function CatalogPage() {
 
         <BrowserFrame
           title="Criar evento — passo 1"
-          note="Wizard multi-passo: nome, data, expected_guests. Uma decisão por tela até o QR pronto."
+          note="Wizard multi-passo: nome, data, expected_guests e fuso do salão. Uma decisão por tela até o QR pronto."
           height={620}
           scale={0.58}
         >
           <HostCreateEventScreen pack={pack} step={1} />
+        </BrowserFrame>
+
+        <BrowserFrame
+          title="Criar evento — missões"
+          note="Passo 3: liga as missões do pack. Sem texto livre — o vocabulário continua no pack."
+          height={620}
+          scale={0.58}
+        >
+          <HostCreateEventScreen pack={pack} step={3} />
         </BrowserFrame>
 
         <BrowserFrame
@@ -240,7 +281,7 @@ export default function CatalogPage() {
 
         <BrowserFrame
           title="Identidade"
-          note="Controles à esquerda, preview ao vivo à direita — o mesmo resolveTokens do telão e da peça impressa."
+          note="Controles à esquerda — cor, fonte, fuso e convidados esperados — preview ao vivo à direita. O mesmo resolveTokens do telão e da peça impressa."
           height={760}
           scale={0.58}
         >
@@ -285,7 +326,7 @@ export default function CatalogPage() {
 
         <BrowserFrame
           title="O álbum — visão do anfitrião"
-          note="Grade filtrável por capítulo; hover revela ocultar. Curadoria leve, distinta do álbum do convidado."
+          note="Grade filtrável por capítulo; hover revela ocultar. Baixar tudo pede confirmação no e-mail — a sessão aberta não basta."
           height={680}
           scale={0.58}
         >
@@ -293,8 +334,26 @@ export default function CatalogPage() {
         </BrowserFrame>
 
         <BrowserFrame
+          title="Missões"
+          note="Liga e ordena as missões do pack. O convidado vê esta lista na aba Missões — sem texto livre."
+          height={680}
+          scale={0.58}
+        >
+          <HostMissionsScreen pack={pack} />
+        </BrowserFrame>
+
+        <BrowserFrame
+          title="Recado"
+          note="Texto e áudio opcional, com consentimento da voz. Gravar ou anexar; cada convidado vê uma vez."
+          height={720}
+          scale={0.58}
+        >
+          <HostGuestbookScreen pack={pack} />
+        </BrowserFrame>
+
+        <BrowserFrame
           title="Peças para imprimir"
-          note="Preview da placa A4 com QR nível H. Download PDF para a gráfica e SVG se o estúdio pedir."
+          note="ZIP com placa, card de mesa e card de missão. SVG se o estúdio pedir. A placa lista as missões do pack."
           height={620}
           scale={0.58}
         >

@@ -6,4 +6,6 @@ export {
   HostIdentityScreen,
   HostAlbumScreen,
   HostPiecesScreen,
+  HostMissionsScreen,
+  HostGuestbookScreen,
 } from "@/features/catalog/components/admin-desktop";
