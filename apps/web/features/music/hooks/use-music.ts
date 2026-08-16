@@ -6,53 +6,53 @@ import { suggestionMessage } from "@/features/music/lib/suggestion-copy";
 import type { VisibleSuggestion } from "@/features/music/types/visible-suggestion";
 import type { VisibleTrack } from "@/features/music/types/visible-track";
 
-export type FalhaMusica = "rede" | "sessao";
+export type MusicFailure = "network" | "session";
 
-export type EstadoMusica = {
-  musica: VisibleTrack | null;
-  sugestoes: VisibleSuggestion[];
-  interacao: ModoInteracao;
-  carregando: boolean;
-  jaCarregou: boolean;
-  falha: FalhaMusica | null;
-  enviando: boolean;
-  erroSugestao: string | null;
-  tetoAtingido: boolean;
+export type MusicState = {
+  track: VisibleTrack | null;
+  suggestions: VisibleSuggestion[];
+  interaction: ModoInteracao;
+  loading: boolean;
+  loaded: boolean;
+  failure: MusicFailure | null;
+  submitting: boolean;
+  suggestionError: string | null;
+  capReached: boolean;
 };
 
-export function estadoInicial(): EstadoMusica {
+export function initialState(): MusicState {
   return {
-    musica: null,
-    sugestoes: [],
-    interacao: "espelho",
-    carregando: true,
-    jaCarregou: false,
-    falha: null,
-    enviando: false,
-    erroSugestao: null,
-    tetoAtingido: false,
+    track: null,
+    suggestions: [],
+    interaction: "espelho",
+    loading: true,
+    loaded: false,
+    failure: null,
+    submitting: false,
+    suggestionError: null,
+    capReached: false,
   };
 }
 
-export type PaginaMusica = {
-  musica: VisibleTrack | null;
-  sugestoes: VisibleSuggestion[];
-  interacao: ModoInteracao;
+export type MusicPageData = {
+  track: VisibleTrack | null;
+  suggestions: VisibleSuggestion[];
+  interaction: ModoInteracao;
 };
 
-export type RespostaGet =
-  | { ok: true; pagina: PaginaMusica }
-  | { ok: false; falha: FalhaMusica };
+export type FetchMusicResult =
+  | { ok: true; page: MusicPageData }
+  | { ok: false; failure: MusicFailure };
 
-export type RespostaPost =
-  | { ok: true; sugestoes: VisibleSuggestion[] }
-  | { ok: false; falha: FalhaMusica }
+export type SubmitSuggestionResult =
+  | { ok: true; suggestions: VisibleSuggestion[] }
+  | { ok: false; failure: MusicFailure }
   | { ok: false; code: string; details?: Record<string, unknown> };
 
-function lerSugestoes(valor: unknown): VisibleSuggestion[] {
-  if (!Array.isArray(valor)) return [];
-  const saida: VisibleSuggestion[] = [];
-  for (const item of valor) {
+function readSuggestions(value: unknown): VisibleSuggestion[] {
+  if (!Array.isArray(value)) return [];
+  const out: VisibleSuggestion[] = [];
+  for (const item of value) {
     if (
       item &&
       typeof item === "object" &&
@@ -61,7 +61,7 @@ function lerSugestoes(valor: unknown): VisibleSuggestion[] {
       typeof item.url === "string" &&
       typeof item.votos === "number"
     ) {
-      saida.push({
+      out.push({
         provedor: item.provedor,
         tipo: item.tipo,
         url: item.url,
@@ -69,12 +69,12 @@ function lerSugestoes(valor: unknown): VisibleSuggestion[] {
       });
     }
   }
-  return saida;
+  return out;
 }
 
-function lerMusica(valor: unknown): VisibleTrack | null {
-  if (!valor || typeof valor !== "object") return null;
-  const m = valor as Record<string, unknown>;
+function readTrack(value: unknown): VisibleTrack | null {
+  if (!value || typeof value !== "object") return null;
+  const m = value as Record<string, unknown>;
   if (typeof m.provedor !== "string" || typeof m.rotulo !== "string" || typeof m.url !== "string") {
     return null;
   }
@@ -86,33 +86,33 @@ function lerMusica(valor: unknown): VisibleTrack | null {
   };
 }
 
-export async function buscarMusica(): Promise<RespostaGet> {
+export async function fetchMusic(): Promise<FetchMusicResult> {
   let res: Response;
   try {
     res = await fetch("/api/music", { credentials: "same-origin" });
   } catch {
-    return { ok: false, falha: "rede" };
+    return { ok: false, failure: "network" };
   }
 
-  if (res.status === 401 || res.status === 403) return { ok: false, falha: "sessao" };
-  if (!res.ok) return { ok: false, falha: "rede" };
+  if (res.status === 401 || res.status === 403) return { ok: false, failure: "session" };
+  if (!res.ok) return { ok: false, failure: "network" };
 
   try {
-    const corpo = (await res.json()) as Record<string, unknown>;
+    const body = (await res.json()) as Record<string, unknown>;
     return {
       ok: true,
-      pagina: {
-        musica: lerMusica(corpo.musica),
-        sugestoes: lerSugestoes(corpo.sugestoes),
-        interacao: corpo.interacao === "completo" ? "completo" : "espelho",
+      page: {
+        track: readTrack(body.musica),
+        suggestions: readSuggestions(body.sugestoes),
+        interaction: body.interacao === "completo" ? "completo" : "espelho",
       },
     };
   } catch {
-    return { ok: false, falha: "rede" };
+    return { ok: false, failure: "network" };
   }
 }
 
-export async function enviarSugestao(url: string): Promise<RespostaPost> {
+export async function submitSuggestion(url: string): Promise<SubmitSuggestionResult> {
   let res: Response;
   try {
     res = await fetch("/api/music", {
@@ -122,119 +122,119 @@ export async function enviarSugestao(url: string): Promise<RespostaPost> {
       body: JSON.stringify({ url }),
     });
   } catch {
-    return { ok: false, falha: "rede" };
+    return { ok: false, failure: "network" };
   }
 
-  if (res.status === 401) return { ok: false, falha: "sessao" };
+  if (res.status === 401) return { ok: false, failure: "session" };
 
-  let corpo: Record<string, unknown>;
+  let body: Record<string, unknown>;
   try {
-    corpo = (await res.json()) as Record<string, unknown>;
+    body = (await res.json()) as Record<string, unknown>;
   } catch {
-    return { ok: false, falha: "rede" };
+    return { ok: false, failure: "network" };
   }
 
   if (res.ok) {
-    return { ok: true, sugestoes: lerSugestoes(corpo.sugestoes) };
+    return { ok: true, suggestions: readSuggestions(body.sugestoes) };
   }
 
-  const code = typeof corpo.code === "string" ? corpo.code : "erro.interno";
-  if (code === "musica.evento_divergente") return { ok: false, falha: "sessao" };
+  const code = typeof body.code === "string" ? body.code : "erro.interno";
+  if (code === "musica.evento_divergente") return { ok: false, failure: "session" };
 
   const details =
-    corpo.details && typeof corpo.details === "object"
-      ? (corpo.details as Record<string, unknown>)
+    body.details && typeof body.details === "object"
+      ? (body.details as Record<string, unknown>)
       : undefined;
   return details ? { ok: false, code, details } : { ok: false, code };
 }
 
-export function comPagina(estado: EstadoMusica, pagina: PaginaMusica): EstadoMusica {
+export function withPage(state: MusicState, page: MusicPageData): MusicState {
   return {
-    ...estado,
-    musica: pagina.musica,
-    sugestoes: pagina.sugestoes,
-    interacao: pagina.interacao,
-    carregando: false,
-    jaCarregou: true,
-    falha: null,
+    ...state,
+    track: page.track,
+    suggestions: page.suggestions,
+    interaction: page.interaction,
+    loading: false,
+    loaded: true,
+    failure: null,
   };
 }
 
-export function comFalha(estado: EstadoMusica, falha: FalhaMusica): EstadoMusica {
-  return { ...estado, carregando: false, jaCarregou: true, enviando: false, falha };
+export function withFailure(state: MusicState, failure: MusicFailure): MusicState {
+  return { ...state, loading: false, loaded: true, submitting: false, failure };
 }
 
-export function comEnvio(estado: EstadoMusica): EstadoMusica {
-  return { ...estado, enviando: true, erroSugestao: null };
+export function withSubmit(state: MusicState): MusicState {
+  return { ...state, submitting: true, suggestionError: null };
 }
 
-export function comSugestaoAceita(
-  estado: EstadoMusica,
-  sugestoes: VisibleSuggestion[],
-): EstadoMusica {
+export function withAcceptedSuggestion(
+  state: MusicState,
+  suggestions: VisibleSuggestion[],
+): MusicState {
   return {
-    ...estado,
-    enviando: false,
-    erroSugestao: null,
-    sugestoes,
+    ...state,
+    submitting: false,
+    suggestionError: null,
+    suggestions,
   };
 }
 
-export function comSugestaoRecusada(
-  estado: EstadoMusica,
+export function withRejectedSuggestion(
+  state: MusicState,
   code: string,
   details?: Record<string, unknown>,
-): EstadoMusica {
+): MusicState {
   return {
-    ...estado,
-    enviando: false,
-    erroSugestao: suggestionMessage(code, details),
-    tetoAtingido: code === "musica.teto_de_sugestoes" ? true : estado.tetoAtingido,
-    interacao: code === "musica.interacao_fechada" ? "espelho" : estado.interacao,
+    ...state,
+    submitting: false,
+    suggestionError: suggestionMessage(code, details),
+    capReached: code === "musica.teto_de_sugestoes" ? true : state.capReached,
+    interaction: code === "musica.interacao_fechada" ? "espelho" : state.interaction,
   };
 }
 
-export function comErroDeRedeNoEnvio(estado: EstadoMusica): EstadoMusica {
+export function withNetworkErrorOnSubmit(state: MusicState): MusicState {
   return {
-    ...estado,
-    enviando: false,
-    erroSugestao: suggestionMessage("erro.interno"),
+    ...state,
+    submitting: false,
+    suggestionError: suggestionMessage("erro.interno"),
   };
 }
 
 export function useMusic() {
-  const [estado, setEstado] = useState<EstadoMusica>(estadoInicial);
+  const [state, setState] = useState<MusicState>(initialState);
 
-  const carregar = useCallback(async () => {
-    setEstado((e) => ({ ...e, carregando: true, falha: null }));
-    const r = await buscarMusica();
-    setEstado((e) => (r.ok ? comPagina(e, r.pagina) : comFalha(e, r.falha)));
+  const load = useCallback(async () => {
+    setState((s) => ({ ...s, loading: true, failure: null }));
+    const r = await fetchMusic();
+    setState((s) => (r.ok ? withPage(s, r.page) : withFailure(s, r.failure)));
   }, []);
 
-  const sugerir = useCallback(async (url: string): Promise<boolean> => {
-    const colado = url.trim();
-    if (colado === "") {
-      setEstado((e) => comSugestaoRecusada(e, "validation_error"));
+  const suggest = useCallback(async (url: string): Promise<boolean> => {
+    const trimmed = url.trim();
+    if (trimmed === "") {
+      setState((s) => withRejectedSuggestion(s, "validation_error"));
       return false;
     }
 
-    setEstado(comEnvio);
-    const r = await enviarSugestao(colado);
+    setState(withSubmit);
+    const r = await submitSuggestion(trimmed);
     if (r.ok) {
-      setEstado((e) => comSugestaoAceita(e, r.sugestoes));
+      setState((s) => withAcceptedSuggestion(s, r.suggestions));
       return true;
     }
-    if ("falha" in r) {
-      setEstado((e) => (r.falha === "sessao" ? comFalha(e, "sessao") : comErroDeRedeNoEnvio(e)));
+    if ("failure" in r) {
+      setState((s) => (r.failure === "session" ? withFailure(s, "session") : withNetworkErrorOnSubmit(s)));
       return false;
     }
-    setEstado((e) => comSugestaoRecusada(e, r.code, r.details));
+    setState((s) => withRejectedSuggestion(s, r.code, r.details));
     return false;
   }, []);
 
   useEffect(() => {
-    void carregar();
-  }, [carregar]);
+    void load();
+  }, [load]);
 
-  return { estado, sugerir };
+  return { state, suggest };
 }

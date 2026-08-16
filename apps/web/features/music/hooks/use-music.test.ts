@@ -1,30 +1,30 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { VisibleSuggestion } from "@/features/music/types/visible-suggestion";
 import {
-  buscarMusica,
-  comFalha,
-  comPagina,
-  comSugestaoAceita,
-  comSugestaoRecusada,
-  enviarSugestao,
-  estadoInicial,
+  fetchMusic,
+  withFailure,
+  withPage,
+  withAcceptedSuggestion,
+  withRejectedSuggestion,
+  submitSuggestion,
+  initialState,
 } from "./use-music";
 
-const sugestao = (parcial: Partial<VisibleSuggestion> = {}): VisibleSuggestion => ({
+const suggestion = (partial: Partial<VisibleSuggestion> = {}): VisibleSuggestion => ({
   provedor: "spotify",
   tipo: "faixa",
   url: "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT",
   votos: 1,
-  ...parcial,
+  ...partial,
 });
 
 describe("a aba nasce carregando e com o gate fechado", () => {
   it("não mostra o formulário antes da resposta — falha fechada", () => {
-    const e = estadoInicial();
-    expect(e.carregando).toBe(true);
-    expect(e.interacao).toBe("espelho");
-    expect(e.sugestoes).toEqual([]);
-    expect(e.tetoAtingido).toBe(false);
+    const e = initialState();
+    expect(e.loading).toBe(true);
+    expect(e.interaction).toBe("espelho");
+    expect(e.suggestions).toEqual([]);
+    expect(e.capReached).toBe(false);
   });
 });
 
@@ -45,7 +45,7 @@ describe("buscar GET /api/music", () => {
                 rotulo: "Perfect — Ed Sheeran",
                 url: "https://open.spotify.com/track/0",
               },
-              sugestoes: [sugestao({ votos: 4 })],
+              sugestoes: [suggestion({ votos: 4 })],
               interacao: "completo",
             }),
             { status: 200 },
@@ -53,12 +53,12 @@ describe("buscar GET /api/music", () => {
       ),
     );
 
-    const r = await buscarMusica();
+    const r = await fetchMusic();
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.pagina.interacao).toBe("completo");
-    expect(r.pagina.musica?.rotulo).toBe("Perfect — Ed Sheeran");
-    expect(r.pagina.sugestoes[0]?.votos).toBe(4);
+    expect(r.page.interaction).toBe("completo");
+    expect(r.page.track?.rotulo).toBe("Perfect — Ed Sheeran");
+    expect(r.page.suggestions[0]?.votos).toBe(4);
     expect(fetch).toHaveBeenCalledWith("/api/music", { credentials: "same-origin" });
   });
 
@@ -67,9 +67,9 @@ describe("buscar GET /api/music", () => {
       "fetch",
       vi.fn(async () => new Response(JSON.stringify({ musica: null }), { status: 200 })),
     );
-    const r = await buscarMusica();
+    const r = await fetchMusic();
     expect(r.ok).toBe(true);
-    if (r.ok) expect(r.pagina.interacao).toBe("espelho");
+    if (r.ok) expect(r.page.interaction).toBe("espelho");
   });
 
   it("item malformado na fila some, o resto fica", async () => {
@@ -82,7 +82,7 @@ describe("buscar GET /api/music", () => {
               musica: null,
               interacao: "completo",
               sugestoes: [
-                sugestao({ votos: 2 }),
+                suggestion({ votos: 2 }),
                 { provedor: "spotify" },
                 null,
               ],
@@ -91,22 +91,22 @@ describe("buscar GET /api/music", () => {
           ),
       ),
     );
-    const r = await buscarMusica();
+    const r = await fetchMusic();
     expect(r.ok).toBe(true);
     if (r.ok) {
-      expect(r.pagina.sugestoes).toEqual([sugestao({ votos: 2 })]);
+      expect(r.page.suggestions).toEqual([suggestion({ votos: 2 })]);
     }
   });
 
   it("401 e 403 na leitura são sessão; 500 é rede", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("no", { status: 401 })));
-    expect(await buscarMusica()).toEqual({ ok: false, falha: "sessao" });
+    expect(await fetchMusic()).toEqual({ ok: false, failure: "session" });
 
     vi.stubGlobal("fetch", vi.fn(async () => new Response("no", { status: 403 })));
-    expect(await buscarMusica()).toEqual({ ok: false, falha: "sessao" });
+    expect(await fetchMusic()).toEqual({ ok: false, failure: "session" });
 
     vi.stubGlobal("fetch", vi.fn(async () => new Response("no", { status: 500 })));
-    expect(await buscarMusica()).toEqual({ ok: false, falha: "rede" });
+    expect(await fetchMusic()).toEqual({ ok: false, failure: "network" });
   });
 });
 
@@ -116,7 +116,7 @@ describe("enviar POST /api/music", () => {
   });
 
   it("manda só a url e devolve a fila atualizada", async () => {
-    const fila = [sugestao({ votos: 2 })];
+    const fila = [suggestion({ votos: 2 })];
     vi.stubGlobal(
       "fetch",
       vi.fn(
@@ -125,8 +125,8 @@ describe("enviar POST /api/music", () => {
       ),
     );
 
-    const r = await enviarSugestao("  https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT  ");
-    expect(r).toEqual({ ok: true, sugestoes: fila });
+    const r = await submitSuggestion("  https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT  ");
+    expect(r).toEqual({ ok: true, suggestions: fila });
     expect(fetch).toHaveBeenCalledWith("/api/music", {
       method: "POST",
       credentials: "same-origin",
@@ -149,7 +149,7 @@ describe("enviar POST /api/music", () => {
       ),
     );
 
-    expect(await enviarSugestao("https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT")).toEqual({
+    expect(await submitSuggestion("https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT")).toEqual({
       ok: false,
       code: "musica.interacao_fechada",
     });
@@ -171,7 +171,7 @@ describe("enviar POST /api/music", () => {
       ),
     );
 
-    expect(await enviarSugestao("https://evil.example/x")).toEqual({
+    expect(await submitSuggestion("https://evil.example/x")).toEqual({
       ok: false,
       code: "musica.provedor_fora_da_lista",
       details: { host: "evil.example" },
@@ -194,7 +194,7 @@ describe("enviar POST /api/music", () => {
       ),
     );
 
-    expect(await enviarSugestao("https://open.spotify.com/track/zzzz")).toEqual({
+    expect(await submitSuggestion("https://open.spotify.com/track/zzzz")).toEqual({
       ok: false,
       code: "musica.teto_de_sugestoes",
       details: { teto: 3 },
@@ -209,61 +209,61 @@ describe("enviar POST /api/music", () => {
           new Response(JSON.stringify({ code: "musica.evento_divergente" }), { status: 403 }),
       ),
     );
-    expect(await enviarSugestao("https://open.spotify.com/track/a")).toEqual({
+    expect(await submitSuggestion("https://open.spotify.com/track/a")).toEqual({
       ok: false,
-      falha: "sessao",
+      failure: "session",
     });
 
     vi.stubGlobal("fetch", vi.fn(async () => new Response("no", { status: 401 })));
-    expect(await enviarSugestao("https://open.spotify.com/track/a")).toEqual({
+    expect(await submitSuggestion("https://open.spotify.com/track/a")).toEqual({
       ok: false,
-      falha: "sessao",
+      failure: "session",
     });
   });
 });
 
 describe("transições da sugestão", () => {
   it("sucesso troca a fila e limpa o erro", () => {
-    const comErro = comSugestaoRecusada(estadoInicial(), "validation_error");
-    const ok = comSugestaoAceita(comErro, [sugestao()]);
-    expect(ok.sugestoes).toHaveLength(1);
-    expect(ok.erroSugestao).toBeNull();
-    expect(ok.enviando).toBe(false);
+    const withError = withRejectedSuggestion(initialState(), "validation_error");
+    const ok = withAcceptedSuggestion(withError, [suggestion()]);
+    expect(ok.suggestions).toHaveLength(1);
+    expect(ok.suggestionError).toBeNull();
+    expect(ok.submitting).toBe(false);
   });
 
   it("teto trava faixas novas, mas não apaga a lista", () => {
-    const cheia = comPagina(estadoInicial(), {
-      musica: null,
-      sugestoes: [sugestao()],
-      interacao: "completo",
+    const full = withPage(initialState(), {
+      track: null,
+      suggestions: [suggestion()],
+      interaction: "completo",
     });
-    const recusada = comSugestaoRecusada(cheia, "musica.teto_de_sugestoes", { teto: 3 });
-    expect(recusada.tetoAtingido).toBe(true);
-    expect(recusada.sugestoes).toEqual(cheia.sugestoes);
-    expect(recusada.interacao).toBe("completo");
-    expect(recusada.erroSugestao).toMatch(/3 faixas/);
+    const rejected = withRejectedSuggestion(full, "musica.teto_de_sugestoes", { teto: 3 });
+    expect(rejected.capReached).toBe(true);
+    expect(rejected.suggestions).toEqual(full.suggestions);
+    expect(rejected.interaction).toBe("completo");
+    expect(rejected.suggestionError).toMatch(/3 faixas/);
   });
 
   it("gate fechado no POST esconde o formulário", () => {
-    const aberta = comPagina(estadoInicial(), {
-      musica: null,
-      sugestoes: [],
-      interacao: "completo",
+    const open = withPage(initialState(), {
+      track: null,
+      suggestions: [],
+      interaction: "completo",
     });
-    const fechada = comSugestaoRecusada(aberta, "musica.interacao_fechada");
-    expect(fechada.interacao).toBe("espelho");
-    expect(fechada.erroSugestao).toBe("A interação ainda não abriu");
+    const closed = withRejectedSuggestion(open, "musica.interacao_fechada");
+    expect(closed.interaction).toBe("espelho");
+    expect(closed.suggestionError).toBe("A interação ainda não abriu");
   });
 
   it("falha de sessão no GET não apaga o que já estava na tela", () => {
-    const cheia = comPagina(estadoInicial(), {
-      musica: { provedor: "spotify", rotulo: "X", url: "https://open.spotify.com/track/x" },
-      sugestoes: [sugestao()],
-      interacao: "completo",
+    const full = withPage(initialState(), {
+      track: { provedor: "spotify", rotulo: "X", url: "https://open.spotify.com/track/x" },
+      suggestions: [suggestion()],
+      interaction: "completo",
     });
-    const falhou = comFalha(cheia, "sessao");
-    expect(falhou.musica).toEqual(cheia.musica);
-    expect(falhou.sugestoes).toEqual(cheia.sugestoes);
-    expect(falhou.falha).toBe("sessao");
+    const failed = withFailure(full, "session");
+    expect(failed.track).toEqual(full.track);
+    expect(failed.suggestions).toEqual(full.suggestions);
+    expect(failed.failure).toBe("session");
   });
 });
