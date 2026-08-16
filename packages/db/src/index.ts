@@ -329,6 +329,7 @@ export {
   isPlatformOperator,
   listOpenSupportTicketsAdmin,
   listSupportTicketsForAccount,
+  listSupportTicketsForEvent,
   slaDueAt,
 } from "./support";
 

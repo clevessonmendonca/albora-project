@@ -156,6 +156,42 @@ export async function listOpenSupportTicketsAdmin(
   });
 }
 
+export async function listSupportTicketsForEvent(
+  pool: Pool,
+  operatorAccountId: string,
+  eventId: string,
+): Promise<SupportTicket[]> {
+  return comConta(pool, operatorAccountId, async (c: PoolClient) => {
+    const { rows } = await c.query<{
+      id: string;
+      account_id: string;
+      event_id: string | null;
+      subject: string;
+      status: SupportStatus;
+      priority: SupportPriority;
+      sla_due_at: Date | null;
+      created_at: Date;
+    }>(
+      `SELECT id, account_id, event_id, subject, status, priority, sla_due_at, created_at
+         FROM support_tickets
+        WHERE event_id = $1
+        ORDER BY created_at DESC
+        LIMIT 50`,
+      [eventId],
+    );
+    return rows.map((t) => ({
+      id: t.id,
+      accountId: t.account_id,
+      eventId: t.event_id,
+      subject: t.subject,
+      status: t.status,
+      priority: t.priority,
+      slaDueAt: t.sla_due_at,
+      createdAt: t.created_at,
+    }));
+  });
+}
+
 export async function isPlatformOperator(pool: Pool, accountId: string): Promise<boolean> {
   return comConta(pool, accountId, async (c) => {
     const { rows } = await c.query(`SELECT 1 FROM platform_operators WHERE account_id = $1`, [

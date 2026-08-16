@@ -78,6 +78,11 @@ export default async function OpsEventBySlugPage({
         Agregados read-only · sem galeria · sem PII de convidado
         {!porta.active ? " · slug rotacionado (ainda resolve)" : ""}.
       </p>
+      <p className="mt-4">
+        <Link href={`/ops/e/${slug}/painel`} className="text-acento underline">
+          Ver painel do evento (somente leitura) →
+        </Link>
+      </p>
       <div className="mt-8">
         <OpsEventAggregates slug={slug} metrics={metrics} />
       </div>

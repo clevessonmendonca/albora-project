@@ -105,7 +105,9 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Feliz:** parear → sessão SecureStore → câmera enfileira stills em disco; **drain** da fila nativa (`drainGuestQueue` / `drainFileQueue`) no caminho da câmera; **feed** lê `GET /api/feed` + `POST /api/media/urls`.
 
-**Gap 🟡:** LUT/EXIF no still; PUT em segundo plano (`URLSession` / WorkManager); lojas / EAS.
+**EXIF/GPS 🟡:** Câmera captura com `exif: false`. `stripGpsOrReject` bloqueia PUT de foto com GPS (galeria/HEIC) devolvendo erro definitivo — **sem reencode**, coordenadas nunca sobem. Gap: `processarFoto` + Desenhista Expo = reencode que remove EXIF + aplica LUT; galeria/HEIC voltam a funcionar quando existir.
+
+**Gap 🟡:** PUT em segundo plano (`URLSession` / WorkManager); lojas / EAS.
 
 ---
 
@@ -115,15 +117,15 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 |---|---|---|
 | Noivos | `/admin/e/{id}/insights` | H1, funil, vias — sem nomes/thumbs |
 | Cerimonialista | `/admin/vendor/insights` | lista de eventos da conta |
-| Owner | `/ops`, `/ops/insights`, `/ops/support`, `/ops/events?slug=` · `/ops/e/[slug]` | landing + tickets + lookup agregado por slug; operador em `platform_operators` |
+| Owner | `/ops`, `/ops/insights`, `/ops/support`, `/ops/events?slug=` · `/ops/e/[slug]` · `/ops/e/[slug]/painel` | landing + tickets + lookup agregado por slug + painel read-only completo (título, plano, equipe, tickets, métricas); operador em `platform_operators` |
 
 **Schema:** `event_members`, `platform_operators`, `product_events`, `analytics_snapshots`, `support_*`.
 
 **Jobs:** `tools/jobs/analytics-snapshots.mjs` materializa `analytics_snapshots` (event/live) — rodando. Funil comercial dispara `account_created` / `event_created` / `qr_downloaded` / `checkout_started` / `checkout_paid`.
 
-**Código:** KPIs cross-event básicos em `/ops/insights` (eventos com atividade, uploads, product_events, tickets abertos — 7d).
+**Código:** KPIs cross-event básicos em `/ops/insights` (eventos com atividade, uploads, product_events, tickets abertos — 7d). Painel read-only em `/ops/e/[slug]/painel` mostra detalhes completos do evento sem impersonação.
 
-**Gap:** impersonação read-only e agregador auditado completo da plataforma.
+**Gap:** agregador auditado completo da plataforma (scope=platform em analytics_snapshots).
 
 ---
 
