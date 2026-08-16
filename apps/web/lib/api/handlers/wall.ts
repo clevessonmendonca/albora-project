@@ -64,6 +64,9 @@ export async function GET(req: Request) {
         reacoes: m.reacoes,
         thumb: await assinarGet(m.chaveThumb, GET_TTL_SECONDS),
         full: await assinarGet(m.chaveFull, GET_TTL_SECONDS),
+        ...(m.largura !== undefined && m.altura !== undefined
+          ? { largura: m.largura, altura: m.altura }
+          : {}),
       })),
     );
 

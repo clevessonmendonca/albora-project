@@ -39,6 +39,8 @@ export type ItemVisivel = {
   lugar: string | null;
   /** Instante do JSON, não `Date`: quem agrupa por hora converte. */
   criadaEm: string;
+  largura?: number;
+  altura?: number;
   reacoes?: number;
   minhaReacao?: string | null;
   sessaoAutor?: string;
@@ -213,6 +215,8 @@ type ItemDaRede = {
   legenda: string | null;
   lugar: string | null;
   criadaEm: string;
+  largura?: number;
+  altura?: number;
   reacoes?: number;
   minhaReacao?: string | null;
   sessaoAutor?: string;
@@ -276,6 +280,9 @@ export async function buscarPagina(missaoId: string | null, cursor: string | nul
         legenda: i.legenda ?? null,
         lugar: i.lugar ?? null,
         criadaEm: typeof i.criadaEm === "string" ? i.criadaEm : "",
+        ...(typeof i.largura === "number" && typeof i.altura === "number"
+          ? { largura: i.largura, altura: i.altura }
+          : {}),
         ...(typeof i.reacoes === "number" ? { reacoes: i.reacoes } : {}),
         ...(i.minhaReacao !== undefined ? { minhaReacao: i.minhaReacao } : {}),
         ...(typeof i.sessaoAutor === "string" ? { sessaoAutor: i.sessaoAutor } : {}),

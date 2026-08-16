@@ -4,11 +4,13 @@ import type { ModoInteracao } from "@albora/core";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { PostHeader } from "@albora/ui-web";
 import type { ResultadoReacao } from "@/features/feed/hooks/use-reaction";
+import { cssAspectRatio } from "@/lib/media-aspect";
 
 /**
  * Uma publicação no feed — layout de `FeedScreen` em `/telas`.
  *
- * Cabeçalho com iniciais, foto em 4:5 sem cortar, estrela + comentário embaixo.
+ * Cabeçalho com iniciais, foto no aspecto persistido (4:5 se o confirm
+ * não gravou o par), estrela + comentário embaixo.
  */
 
 export function Post({
@@ -27,6 +29,8 @@ export function Post({
   legenda,
   lugar,
   isVideo,
+  largura,
+  altura,
 }: {
   uploadId: string;
   interacao: ModoInteracao;
@@ -43,8 +47,11 @@ export function Post({
   legenda: string | null;
   lugar?: string | null;
   isVideo?: boolean;
+  largura?: number;
+  altura?: number;
 }) {
   const meta = lugar ? `· ${lugar}` : null;
+  const aspecto = cssAspectRatio(largura, altura);
 
   return (
     <article className="border-t border-linha">
@@ -52,7 +59,7 @@ export function Post({
         <PostHeader author={autor} meta={meta} />
       </div>
 
-      <div className="relative mb-3 aspect-4/5">
+      <div className="relative mb-3 aspect-4/5" style={aspecto ? { aspectRatio: aspecto } : undefined}>
         {url ? (
           isVideo ? (
             <video

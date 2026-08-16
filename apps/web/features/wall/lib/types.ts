@@ -9,6 +9,8 @@ export type ItemApi = {
   thumb: string;
   full: string;
   expiraEm: number;
+  largura?: number;
+  altura?: number;
 };
 
 export type Cena = { modelo: WallDisplayModel; ids: string[] };

@@ -24,6 +24,11 @@ const PUBLICADO = "published";
 /** Teto da varredura. O álbum lê a noite inteira; o núcleo é quem poda páginas. */
 export const TETO_DO_ALBUM = 2000;
 
+/**
+ * Proporção assumida enquanto `width`/`height` não são persistidos. Retrato,
+ * porque encaixar a foto de festa em qualquer outra forma corta o topo — a
+ * mesma regra vermelha que o telão e o layout do álbum impõem.
+ */
 export { LARGURA_PADRAO, ALTURA_PADRAO } from "./dimensoes";
 
 export type MidiaDoAlbumComChave = MidiaDoAlbum & {

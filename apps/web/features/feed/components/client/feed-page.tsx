@@ -296,6 +296,8 @@ export function FeedPage({
                   legenda={item.legenda}
                   lugar={item.lugar}
                   isVideo={isVideo}
+                  {...(item.largura !== undefined ? { largura: item.largura } : {})}
+                  {...(item.altura !== undefined ? { altura: item.altura } : {})}
                 />
               );
               })}

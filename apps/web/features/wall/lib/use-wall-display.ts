@@ -11,6 +11,7 @@ import {
   type WallDisplayModel,
 } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { persistedSize } from "@/lib/media-aspect";
 import {
   FOLGA_DE_RENOVACAO_MS,
   POLL_MIDIA_MS,
@@ -84,13 +85,21 @@ export function useWallDisplay(
 
     for (const bruto of corpo.itens) {
       const existente = itensRef.current.get(bruto.id);
+      const persistido = persistedSize(bruto.largura, bruto.altura);
       if (existente && existente.expiraEm - agora > FOLGA_DE_RENOVACAO_MS) {
         existente.reacoes = bruto.reacoes;
+        if (persistido && !dimsRef.current.has(bruto.id)) {
+          dimsRef.current.set(bruto.id, persistido);
+        }
         continue;
       }
       const item: ItemApi = { ...bruto, expiraEm: corpo.expiraEm };
       itensRef.current.set(bruto.id, item);
-      medir(item);
+      if (persistido) {
+        dimsRef.current.set(bruto.id, persistido);
+      } else {
+        medir(item);
+      }
     }
 
     const podadas = pruneWallDisplayCache(
