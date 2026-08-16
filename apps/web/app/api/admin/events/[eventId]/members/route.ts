@@ -44,7 +44,7 @@ export async function GET(
   if (check instanceof Response) return check;
 
   try {
-    const members = await listEventMembers(getPool(), eventId);
+    const members = await listEventMembers(getPool(), auth.host.accountId, eventId);
     return jsonOk({ members });
   } catch (e) {
     return unexpectedError("admin.members.list", e);
@@ -127,7 +127,7 @@ export async function POST(
 
     console.log("admin.member_invited", { role });
 
-    const members = await listEventMembers(pool, eventId);
+    const members = await listEventMembers(pool, auth.host.accountId, eventId);
     return jsonOk({ members });
   } catch (e) {
     return unexpectedError("admin.members.invite", e);

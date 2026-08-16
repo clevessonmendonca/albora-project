@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { useState, useEffect } from "react";
+import { adminClasses } from "@/features/admin/components/server/admin-shell";
 
 type EventMember = {
   accountId: string;
@@ -67,7 +67,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (canManageTeam) {
       void loadMembers();
     }
@@ -76,12 +76,13 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
   if (!canManageTeam) return null;
 
   return (
-    <AdminSection title="Equipe">
-      <div className={adminClasses.textMuted}>
+    <section className="mt-8 rounded-superficie border border-linha bg-superficie p-6">
+      <h2 className="m-0 mb-2 font-titulo text-[1.25rem]">Equipe</h2>
+      <div className="text-sm text-ink-3">
         Convide pessoas para gerenciar este evento junto com você.
       </div>
 
-      {loading && <div className={adminClasses.textMuted}>Carregando...</div>}
+      {loading && <div className="text-sm text-ink-3">Carregando...</div>}
 
       {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
 
@@ -90,7 +91,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
           {members.map((m) => (
             <div key={m.accountId} className="flex items-center gap-3 text-sm">
               <div className="flex-1 font-mono text-xs">{m.email}</div>
-              <div className={adminClasses.textMuted}>
+              <div className="text-sm text-ink-3">
                 {m.role === "couple" ? "Casal" : "Cerimonialista"}
               </div>
             </div>
@@ -100,34 +101,38 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
 
       <form onSubmit={handleInvite} className="mt-6 space-y-3">
         <div>
-          <label className={adminClasses.label}>E-mail</label>
+          <label className="mb-1 block text-[0.8125rem] text-ink-3">E-mail</label>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={saving}
-            className={adminClasses.input}
+            className="w-full rounded-sm border border-linha bg-superficie-alta px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-acento"
             placeholder="nome@exemplo.com"
           />
         </div>
 
         <div>
-          <label className={adminClasses.label}>Papel</label>
+          <label className="mb-1 block text-[0.8125rem] text-ink-3">Papel</label>
           <select
             value={role}
             onChange={(e) => setRole(e.target.value as "couple" | "planner")}
             disabled={saving}
-            className={adminClasses.input}
+            className="w-full rounded-sm border border-linha bg-superficie-alta px-3 py-2 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-acento"
           >
             <option value="couple">Casal (acesso completo)</option>
             <option value="planner">Cerimonialista (moderação e painel)</option>
           </select>
         </div>
 
-        <button type="submit" disabled={saving || !email.trim()} className={adminClasses.button}>
+        <button
+          type="submit"
+          disabled={saving || !email.trim()}
+          className={adminClasses.primaryButtonSm}
+        >
           {saving ? "Convidando..." : "Convidar"}
         </button>
       </form>
-    </AdminSection>
+    </section>
   );
 }
