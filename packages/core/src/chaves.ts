@@ -22,6 +22,24 @@ export function prefixoDoEvento(eventoId: string): string {
   return `events/${eventoId}/`;
 }
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Áudio do recado dos anfitriões (spec 019). Conjunto fechado, separado da
+ * foto do convidado: a rota de leitura do feed não assina o que mora aqui.
+ */
+export function derivarChaveRecado(eventoId: string, uuid: string): string {
+  return `events/${eventoId}/recado/${uuid}`;
+}
+
+export function chaveRecadoValida(eventoId: string, chave: string): boolean {
+  if (!UUID_RE.test(eventoId)) return false;
+  const prefixo = `events/${eventoId}/recado/`;
+  if (!chave.startsWith(prefixo)) return false;
+  return UUID_RE.test(chave.slice(prefixo.length));
+}
+
 /** Deriva a chave `/thumb` a partir da `/full` já persistida. */
 export function chaveThumbDeFull(chaveFull: string): string {
   if (chaveFull.endsWith("/full")) {

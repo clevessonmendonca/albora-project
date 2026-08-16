@@ -34,7 +34,7 @@ export { aplicarIntensidade, NEUTRO, paraFiltroCss } from "./luts";
 export type { Preset } from "./presets";
 export { aplicarPorPixel, ordenarComRecomendado, preset, PRESETS, TETO_POR_PIXEL_MS } from "./presets";
 
-export { chaveThumbDeFull, derivarChaveMidia, prefixoDoEvento } from "./chaves";
+export { chaveThumbDeFull, derivarChaveMidia, derivarChaveRecado, chaveRecadoValida, prefixoDoEvento } from "./chaves";
 
 export type { ErroMidia, TipoAceito, TipoEntrada, TipoVideo } from "./midia";
 export {
@@ -520,6 +520,36 @@ export { telaTemConteudo as guestbookScreenHasContent } from "./guestbook";
 export { validarCriacao as validateGuestbookCreation } from "./guestbook";
 /** English alias — prefer for new code. @see validarRascunho */
 export { validarRascunho as validateGuestbookDraft } from "./guestbook";
+/** English alias — prefer for new code. @see derivarChaveRecado */
+export { derivarChaveRecado as deriveGuestbookAudioKey } from "./chaves";
+/** English alias — prefer for new code. @see chaveRecadoValida */
+export { chaveRecadoValida as isGuestbookAudioKey } from "./chaves";
+
+export type { ErroAudioRecado, TipoAudioRecado } from "./guestbook-audio";
+export {
+  ACEITE_AUDIO_VERSAO,
+  TETO_BYTES_AUDIO_RECADO,
+  TIPOS_AUDIO_RECADO,
+  duracaoParaEnvio,
+  normalizarMimeAudio,
+  validarAceiteAudio,
+  validarConteudoAudio,
+  validarDeclaracaoAudio,
+} from "./guestbook-audio";
+/** English alias — prefer for new code. @see ACEITE_AUDIO_VERSAO */
+export { ACEITE_AUDIO_VERSAO as GUESTBOOK_AUDIO_CONSENT_VERSION } from "./guestbook-audio";
+/** English alias — prefer for new code. @see TETO_BYTES_AUDIO_RECADO */
+export { TETO_BYTES_AUDIO_RECADO as MAX_GUESTBOOK_AUDIO_BYTES } from "./guestbook-audio";
+/** English alias — prefer for new code. @see validarDeclaracaoAudio */
+export { validarDeclaracaoAudio as validateGuestbookAudioDeclaration } from "./guestbook-audio";
+/** English alias — prefer for new code. @see validarConteudoAudio */
+export { validarConteudoAudio as validateGuestbookAudioContent } from "./guestbook-audio";
+/** English alias — prefer for new code. @see validarAceiteAudio */
+export { validarAceiteAudio as validateGuestbookAudioConsent } from "./guestbook-audio";
+/** English alias — prefer for new code. @see normalizarMimeAudio */
+export { normalizarMimeAudio as normalizeGuestbookAudioMime } from "./guestbook-audio";
+/** English alias — prefer for new code. @see duracaoParaEnvio */
+export { duracaoParaEnvio as durationForUpload } from "./guestbook-audio";
 
 /** English alias — prefer for new code. @see CodigoDaTese */
 export type { CodigoDaTese as ThesisCode } from "./funnel";
