@@ -247,6 +247,10 @@ const FORA_DA_RLS = new Map([
     "app_pairings",
     "porta de pareamento web → app: resolve código → (event_id, session_id) antes de haver contexto — só mapeamento, sem PII",
   ],
+  [
+    "retention_jobs",
+    "runner pós-evento: lista due cross-event sem PII de convidado — só event_id, kind e status",
+  ],
 ]);
 
 describe("7 — nenhuma tabela nova escapa da política", () => {
