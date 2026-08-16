@@ -29,8 +29,8 @@ export function ModerationPage({ eventoId }: Props) {
           </span>
         </div>
         <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
-          Nada sai do ar sozinho. A denúncia segura; o classificador só sinaliza. Você decide
-          manter ou ocultar.
+          Nada sai do ar sozinho. A denúncia ofensiva segura o telão; o pedido
+          de quem aparece na foto só entra aqui. Você decide manter ou ocultar.
         </p>
         <ReviewQueue eventoId={eventoId} onTotalChange={setFila} />
       </AdminSection>

@@ -585,8 +585,8 @@ Não é cronológica. Três faixas, misturadas em proporção fixa:
 → Job, nunca request. Aviso por e-mail quando o pacote estiver pronto.
 *Por quê:* 3.000 fotos não cabem num request, e tentar é derrubar o produto no momento de maior desejo.
 
-**N12.4 — Remover a pedido de terceiro** 🟠❓
-→ O anfitrião remove. Não existe caminho self-service para quem aparece na foto sem tê-la enviado. Ver §12.
+**N12.4 — Remover a pedido de terceiro** 🟠
+→ O convidado pede pelo sheet da foto (`kind = aparece_na_foto`). **Não some sozinho.** O anfitrião decide na fila de revisão. Sem reconhecimento facial. Ver §12.
 
 **N12.5 — Excluir tudo**
 → Exclusão real e rápida, sem tentativa de retenção.
@@ -704,7 +704,7 @@ Erro nunca expõe interno — sem código HTTP, sem stack, sem nome de tabela.
 | # | Buraco | Status | Precisa decidir antes de |
 |---|---|---|---|
 | 1 | ~~Quem modera durante a festa~~ | ✅ **Resolvido** — ninguém. Padrão é publicar tudo; classificador é o único portão (§4) | — |
-| 2 | 🟠 **Remoção pedida por quem aparece na foto** mas não a enviou. Só existe caminho pelo anfitrião | Aberto | **1º evento** |
+| 2 | 🟠 **Remoção pedida por quem aparece na foto** mas não a enviou | **Pedido ao anfitrião** — sheet do convidado; anfitrião decide; sem auto-remoção, sem reconhecimento facial | **1º evento** |
 | 3 | 🔴 **O anúncio no microfone** é o maior fator isolado de participação e não é software | Aberto | **1º evento** |
 | 4 | 🟠 **Nome ofensivo no telão** — N3.3 dá o mecanismo, mas não a política: renomear, ocultar a sessão, ou banir? | Aberto | **1º evento** |
 | 5 | ⚪ **Dupla contagem de sessões** contamina o número que decide continuar ou parar | Aceito como viés | Antes de **ler** o resultado dos 3 casamentos |

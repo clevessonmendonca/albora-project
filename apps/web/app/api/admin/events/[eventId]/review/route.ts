@@ -32,6 +32,7 @@ function serializar(
       id: m.id,
       autor: m.autor,
       denuncias: m.denuncias,
+      pedidosDeRemocao: m.pedidosDeRemocao,
       classificador: m.classificador,
       motivo: m.motivo,
       criadaEm: m.criadaEm.toISOString(),

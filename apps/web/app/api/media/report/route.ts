@@ -1,3 +1,8 @@
+import {
+  ehMotivoDeDenuncia,
+  MOTIVO_DENUNCIA_PADRAO,
+  type MotivoDeDenuncia,
+} from "@albora/core";
 import { comEvento, denunciar, ErroMidiaDeOutroEvento } from "@albora/db";
 import {
   enforceRateLimit,
@@ -13,7 +18,7 @@ import { getPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-type Corpo = { uploadId?: unknown; motivo?: unknown };
+type Corpo = { uploadId?: unknown; motivo?: unknown; kind?: unknown };
 
 export async function POST(req: Request) {
   const auth = await requireGuestSession(req);
@@ -33,6 +38,14 @@ export async function POST(req: Request) {
     return errorResponse(422, "validation_error", "Foto inválida", { campos: ["uploadId"] });
   }
 
+  let kind: MotivoDeDenuncia = MOTIVO_DENUNCIA_PADRAO;
+  if (parsed.data.kind !== undefined && parsed.data.kind !== null) {
+    if (!ehMotivoDeDenuncia(parsed.data.kind)) {
+      return errorResponse(422, "validation_error", "Motivo inválido", { campos: ["kind"] });
+    }
+    kind = parsed.data.kind;
+  }
+
   let motivo: string | null = null;
   if (parsed.data.motivo !== undefined && parsed.data.motivo !== null) {
     if (typeof parsed.data.motivo !== "string") {
@@ -47,17 +60,18 @@ export async function POST(req: Request) {
 
   try {
     const resultado = await comEvento(getPool(), auth.session.eventoId, (c) =>
-      denunciar(c, { uploadId, sessaoId: auth.session.sessaoId, motivo }),
+      denunciar(c, { uploadId, sessaoId: auth.session.sessaoId, motivo, kind }),
     );
 
     console.log("denuncia.registrada", {
       eventoId: auth.session.eventoId,
       sessaoId: auth.session.sessaoId,
       uploadId,
+      kind,
       novaDenuncia: resultado.registrada,
     });
 
-    return jsonOk({ registrada: resultado.registrada });
+    return jsonOk({ registrada: resultado.registrada, kind });
   } catch (e) {
     if (e instanceof ErroMidiaDeOutroEvento) {
       return errorResponse(404, "midia.inexistente", "Foto não encontrada");

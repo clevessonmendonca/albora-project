@@ -7,6 +7,7 @@ type Midia = {
   id: string;
   autor: string;
   denuncias: number;
+  pedidosDeRemocao?: number;
   motivo: string;
   criadaEm: string;
 };
@@ -22,6 +23,17 @@ type Props = {
   eventoId: string;
   onTotalChange?: (total: number) => void;
 };
+
+function rotuloDaFila(m: Midia): string {
+  const partes: string[] = [];
+  if ((m.pedidosDeRemocao ?? 0) > 0 || m.motivo === "aparece_na_foto") {
+    partes.push("sou eu nessa foto");
+  }
+  if (m.motivo === "classificador") partes.push("classificador");
+  if (m.motivo === "endurecido") partes.push("aguardando aprovação");
+  if (m.motivo === "denuncias" && m.denuncias > 0) partes.push("conteúdo ofensivo");
+  return partes.length > 0 ? ` · ${partes.join(" · ")}` : "";
+}
 
 export function ReviewQueue({ eventoId, onTotalChange }: Props) {
   const [midias, setMidias] = useState<Midia[]>([]);
@@ -82,7 +94,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
   if (midias.length === 0 && comentarios.length === 0) {
     return (
       <p className="m-0 text-[0.9375rem] leading-relaxed text-ink-2">
-        0 na fila. Denúncias e classificador aparecem aqui — nada sai do ar sozinho.
+        Nada sai do ar sozinho. Denúncias, classificador e pedido de quem aparece na foto entram aqui — você decide.
       </p>
     );
   }
@@ -92,7 +104,9 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
       {midias.map((m) => (
         <div key={m.id} className="grid gap-2 rounded-token bg-bg p-3.5">
           <span className="text-[0.85rem] text-ink">
-            Foto · {m.autor} · {m.denuncias} denúncia(s) · {m.motivo}
+            Foto · {m.autor}
+            {m.denuncias > 0 ? ` · ${m.denuncias} denúncia(s)` : ""}
+            {rotuloDaFila(m)}
           </span>
           <div className="flex flex-wrap gap-2">
             <button

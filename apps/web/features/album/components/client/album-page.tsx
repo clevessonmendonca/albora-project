@@ -11,6 +11,7 @@ import {
   cn,
 } from "@albora/ui-web";
 import type { ServedPhoto } from "@/lib/album";
+import { ReportSheet } from "@/features/feed/components/client/report-sheet";
 import { useAlbum } from "../../hooks/use-album";
 import { chaptersFromAlbum, firstCoverUrl, flattenChapterPhotos } from "../../lib/bands";
 import { AlbumTimeline, AlbumTimelineLoading } from "./album-timeline";
@@ -284,15 +285,18 @@ function Lightbox({
   onAnterior: () => void;
   onProxima: () => void;
 }) {
+  const [pedidoAberto, setPedidoAberto] = useState(false);
+
   useEffect(() => {
     const tecla = (ev: KeyboardEvent) => {
+      if (pedidoAberto) return;
       if (ev.key === "Escape") onSair();
       if (ev.key === "ArrowLeft") onAnterior();
       if (ev.key === "ArrowRight") onProxima();
     };
     window.addEventListener("keydown", tecla);
     return () => window.removeEventListener("keydown", tecla);
-  }, [onSair, onAnterior, onProxima]);
+  }, [onSair, onAnterior, onProxima, pedidoAberto]);
 
   const src = foto.url || foto.urlThumb;
 
@@ -302,13 +306,29 @@ function Lightbox({
       aria-modal="true"
       aria-label="Foto do álbum"
       className="fixed inset-0 z-40 bg-bg"
-      onClick={onSair}
+      onClick={() => {
+        if (!pedidoAberto) onSair();
+      }}
     >
       <button
         type="button"
+        aria-label="Pedir para tirar esta foto"
+        className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20 border-0 bg-transparent p-2 font-[inherit] text-[0.9rem] text-ink-2"
+        onClick={(ev) => {
+          ev.stopPropagation();
+          setPedidoAberto(true);
+        }}
+      >
+        Pedir para tirar
+      </button>
+      <button
+        type="button"
         aria-label="Fechar"
-        className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-10 border-0 bg-transparent p-2 font-[inherit] text-ink-2"
-        onClick={onSair}
+        className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-20 border-0 bg-transparent p-2 font-[inherit] text-ink-2"
+        onClick={(ev) => {
+          ev.stopPropagation();
+          onSair();
+        }}
       >
         Fechar
       </button>
@@ -323,7 +343,7 @@ function Lightbox({
       <button
         type="button"
         aria-label="Foto anterior"
-        className="absolute inset-y-0 left-0 w-1/3 cursor-pointer border-0 bg-transparent"
+        className="absolute top-16 bottom-0 left-0 w-1/3 cursor-pointer border-0 bg-transparent"
         onClick={(ev) => {
           ev.stopPropagation();
           onAnterior();
@@ -332,12 +352,19 @@ function Lightbox({
       <button
         type="button"
         aria-label="Próxima foto"
-        className="absolute inset-y-0 right-0 w-1/3 cursor-pointer border-0 bg-transparent"
+        className="absolute top-16 bottom-0 right-0 w-1/3 cursor-pointer border-0 bg-transparent"
         onClick={(ev) => {
           ev.stopPropagation();
           onProxima();
         }}
       />
+      <div onClick={(ev) => ev.stopPropagation()}>
+        <ReportSheet
+          open={pedidoAberto}
+          onClose={() => setPedidoAberto(false)}
+          uploadId={foto.id}
+        />
+      </div>
     </div>
   );
 }

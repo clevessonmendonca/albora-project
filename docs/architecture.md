@@ -339,10 +339,11 @@ vendors ───┘              ├──< guest_sessions >──┬──< up
 | `guest_sessions` | Sessão anônima + consentimento versionado e datado. `via` é `qr` \| `wa` \| `link` — o canal de entrada (migration `0024_via_da_sessao.sql`). Consentimento externo (Stories) é coluna à parte | `event_id`, RLS |
 | `guest_contacts` | Opt-in explícito de contato — base do loop viral | `event_id`, RLS, **PII** |
 | `uploads` | Mídia, estado, legenda e lugar (ambos opcionais), veredicto do classificador | `event_id`, RLS |
+| `reports` | Denúncia por sessão. `kind`: `ofensivo` (limiar do telão) ou `aparece_na_foto` (só fila). Sem auto-remoção | `event_id`, RLS |
 | `reactions` | Reação única e anônima — chave por (`upload`, `sessão`) | `event_id`, RLS |
 | `comments` | Comentário em foto, com thread (`parent_id`) | `event_id`, RLS |
 | `funnel_events` | Instrumentação do funil | `event_id`, RLS |
-| `event_music` / `music_suggestions` | Trilha do casal e sugestões do convidado — **link e metadado, nunca bytes de áudio** ([ADR 0011](./adr/0011-musica-do-evento-sem-direito-de-sincronizacao.md)) | `event_id`, RLS |
+| `event_music` / `music_suggestions` | Trilha do casal e sugestões do convidado — **link e metadado, nunca bytes de áudio** ([ADR 0011](./adr/0011-musica-do-evento-sem-direito-de-sincronizacao.md)). Título e artista da sugestão vêm de oEmbed (Spotify, YouTube) ou Open Graph (Apple Music, Deezer) **só nos hosts da lista fechada**; timeout curto, e falha deixa o link. | `event_id`, RLS |
 | `recado` / `recado_lido` | Recado dos anfitriões (um por evento) e leitura por sessão. Áudio em `audio_key` / `audio_duration_seconds`, PUT presigned em `events/{event_id}/recado/...` | `event_id`, RLS |
 | `export_jobs` | Recorte published para o ZIP “baixar tudo”. A lista de chaves é query em `uploads`, nunca `ListObjects` no bucket. Artefato em `events/{event_id}/export/{job}.zip` se materializado; o download autenticado transmite em stream | `event_id`, RLS |
 | `event_slugs` | Slug → evento, com o antigo preservado como inativo | **Fora da RLS por circularidade declarada (§3)** |
@@ -371,12 +372,13 @@ O padrão é **publicar na galeria**. O telão é o portão mais estreito:
 - Veredicto `limpo` → pode ir à parede.
 - `suspeito` → some das duas superfícies até o anfitrião liberar.
 - `sem-resposta` (NULL, timeout, provedor mudo) → **galeria publica, telão segura.** Falhar fechado na parede; falhar aberto no feed.
-- Duas denúncias de sessões distintas tiram do telão (uma, se o anfitrião marcou `has_minors`).
+- Duas denúncias **ofensivas** de sessões distintas tiram do telão (uma, se o anfitrião marcou `has_minors`).
+- Pedido **“sou eu nessa foto”** (`reports.kind = aparece_na_foto`) entra na fila de revisão e **não** some sozinho. O anfitrião mantém ou oculta. Sem reconhecimento facial.
 - Pânico pausa as duas superfícies. Modo endurecido (`events.hardened`) exige liberação do anfitrião antes de exibir.
 
 O classificador roda **no thumb**, fora do `confirm`, disparado em fire-and-forget pelo poll da parede (`classifyMediaAfter`). Não há fornecedor de ML no repositório: o padrão é heurístico (assinatura de arquivo válida → `limpo`). Troca-se o provedor, não o gate. Silêncio grava `sem-resposta` — nunca `limpo`.
 
-A fila de revisão no admin (`/admin/e/[eventId]/moderation`) lista denúncia e classificador. Nada sai do ar sozinho: o anfitrião mantém ou oculta.
+A fila de revisão no admin (`/admin/e/[eventId]/moderation`) lista denúncia ofensiva, classificador e pedido de quem aparece na foto. Nada sai do ar sozinho: o anfitrião mantém ou oculta.
 
 O convidado remove a própria mídia pelo token de sessão, sem pedir nada a ninguém.
 
@@ -429,6 +431,8 @@ qr_scan → page_open → consent → capture → upload_start → upload_ok
 ```
 
 Mais: `share`, `install_prompt`, `install_accept`, `install_dismiss`.
+
+O CTA de instalação do PWA aparece na confirmação da **primeira foto**, só depois do confirm (fila vazia). No Android, `beforeinstallprompt` alimenta o funil `install_*` e o botão nativo. No iOS não há prompt: a confirmação mostra Compartilhar → Adicionar à Tela de Início e dispara `install_prompt` quando o convite fica visível. Já instalado (`display-mode: standalone` ou `navigator.standalone`) não mostra. Dispensa vale a sessão; o CTA de fim de festa fica para quando essa superfície existir.
 
 Dashboard por evento, em `/admin/e/[eventId]/guests`: escaneamentos, sessões, uploads, corte por `via`, participação. **Métrica principal:** `sessões_com_upload / expected_guests`. `qr_scan` só nasce quando `via=qr` (peça impressa); WhatsApp e link copiado entram em `page_open`. A espinha continua cumulativa; o canal mora em `guest_sessions.via`.
 
@@ -571,3 +575,4 @@ Uma consequência operacional que vale registrar: **Service Worker, Background S
 | 2026-08-10 | Revisão contra o código das tasks 003 a 006. **Correções:** o `NULLIF` na política de RLS (§3), sem o qual a política falha de dois jeitos diferentes na mesma pool; as duas tabelas fora da RLS, que o modelo de dados não listava (§3, §8); `confirm` não confere dimensões, confere assinatura de arquivo (§5); o preset é paramétrico com uma passagem por pixel, não uma tabela de cor (§6); estrutura do repositório e pipeline no GitHub (§14). **Acrescentado:** as duas portas da legenda e por que o confirm não a espera (§5), conjuntos fechados vindos do pack (§7), rate limit em duas camadas (§4), o que a suíte de isolamento de fato prova (§15), e §16 com o que está descrito e ainda não construído. |
 | 2026-08-15 | Revisão contra o código da PR #2. **Correções:** `expected_guests` existe (migration 0020), não “entra com o admin”; telão é poll de `GET /api/wall`, não SSE; PUT da thumb e `identity_tokens` do banco estão no caminho; classificador fail-closed na parede; dois packs no catálogo. **Acrescentado:** `via` na sessão, recado, música, comentários, mapa de rotas no índice. Áudio do recado: presign R2 em `events/{id}/recado/...`, leitura assinada no GET do convidado. Baixar tudo do anfitrião: `export_jobs` + step-up, ZIP em stream. |
 | 2026-08-15 | `events.timezone` IANA (migration 0026). Default `America/Sao_Paulo`; ancora `taken_at`, capítulos do álbum e a faixa 5h–7h. |
+| 2026-08-16 | Pedido “sou eu nessa foto” (`reports.kind`): entra na fila, não segura o telão, anfitrião decide. Sem reconhecimento facial. |
