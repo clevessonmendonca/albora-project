@@ -92,6 +92,21 @@ async function semear() {
       [existente[0].event_id, FILTRO_RECOMENDADO],
     );
     await semearMissoes(existente[0].event_id);
+    const { rows: dono } = await pool.query(
+      `SELECT account_id FROM events WHERE id = $1`,
+      [existente[0].event_id],
+    );
+    if (dono[0]) {
+      await pool.query(
+        `INSERT INTO event_members (event_id, account_id, role)
+         VALUES ($1, $2, 'couple') ON CONFLICT DO NOTHING`,
+        [existente[0].event_id, dono[0].account_id],
+      );
+      await pool.query(
+        `INSERT INTO platform_operators (account_id) VALUES ($1) ON CONFLICT DO NOTHING`,
+        [dono[0].account_id],
+      );
+    }
     return existente[0].event_id;
   }
 
@@ -113,6 +128,12 @@ async function semear() {
 
   await pool.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [SLUG, eventoId]);
   await semearMissoes(eventoId);
+
+  await pool.query(
+    `INSERT INTO event_members (event_id, account_id, role)
+     VALUES ($1, $2, 'couple') ON CONFLICT DO NOTHING`,
+    [eventoId, conta[0].id],
+  );
 
   // Conta de ops local: magic link em /admin/sign-in com o mesmo e-mail.
   await pool.query(

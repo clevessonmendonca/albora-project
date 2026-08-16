@@ -196,6 +196,13 @@ export async function criarEvento(
         const eventoId = rows[0]!.id;
         await c.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [slug, eventoId]);
 
+        await c.query(
+          `INSERT INTO event_members (event_id, account_id, role)
+           VALUES ($1, $2, 'couple')
+           ON CONFLICT (event_id, account_id) DO NOTHING`,
+          [eventoId, entrada.accountId],
+        );
+
         const missoes = entrada.missoes ?? [];
         if (missoes.length > 0) {
           await c.query("SELECT set_config('app.event_id', $1, true)", [eventoId]);

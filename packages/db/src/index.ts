@@ -331,3 +331,6 @@ export {
   listSupportTicketsForAccount,
   slaDueAt,
 } from "./support";
+
+export type { EventMemberRole } from "./memberships";
+export { addEventMember, ensureCoupleMember } from "./memberships";
