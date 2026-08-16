@@ -13,8 +13,7 @@
  * SET LOCAL app.event_id via comEvento.
  */
 import { createRequire } from "node:module";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -64,8 +63,8 @@ if (falhas > 0) process.exitCode = 1;
 console.log(\`pronto: \${ok} ok, \${falhas} falha(s)\`);
 `;
 
-const dir = mkdtempSync(join(tmpdir(), "albora-analytics-"));
-const outfile = join(dir, "run.mjs");
+const localOutDir = join(aqui, ".tmp");
+const outfile = join(localOutDir, "analytics-snapshots-run.mjs");
 
 try {
   const result = esbuild.buildSync({
@@ -85,11 +84,12 @@ try {
     },
   });
 
+  rmSync(localOutDir, { recursive: true, force: true });
+  mkdirSync(localOutDir, { recursive: true });
   writeFileSync(outfile, result.outputFiles[0].text);
+  
   await import(pathToFileURL(outfile).href);
 } catch (e) {
   console.error(e);
   process.exit(1);
-} finally {
-  rmSync(dir, { recursive: true, force: true });
 }

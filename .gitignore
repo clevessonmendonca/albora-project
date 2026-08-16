@@ -19,6 +19,9 @@ apps/web/public/sw.js
 # Resultados de execucao do arnes de carga. O JSON e artefato, nao fonte.
 tools/carga/execucoes/
 
+# Artefato de bundle temporário (analytics-snapshots.mjs)
+tools/jobs/.tmp/
+
 # Copiado de @fontsource-variable/fraunces por scripts/copiar-fontes.mjs.
 apps/web/public/fontes/
 
