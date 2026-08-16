@@ -5,12 +5,13 @@ import { isVideoBytes } from "@albora/core";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { mensagemCotaVideo, useUpload, type CotaVideo } from "@/features/photo/hooks/use-upload";
-import { usePwaInstall } from "@/features/photo/hooks/use-pwa-install";
+import { deveMostrarCtaPwa, usePwaInstall } from "@/features/photo/hooks/use-pwa-install";
 import { ErrorMessage, SecondaryButton } from "@albora/ui-web";
 import { Details, type Place } from "./details";
 import { Editor } from "./editor";
 import { QueueHeader } from "./queue-panel";
 import { CameraView } from "./camera-view";
+import { PwaInstallCta } from "./pwa-install-cta";
 
 /**
  * O caminho crítico inteiro, em cinco toques: consentir, nome, missão, câmera,
@@ -67,7 +68,16 @@ export function PhotoPage({
 }) {
   const router = useRouter();
   const { estado, enfileirarFoto, anotar, drenarAgora } = useUpload(eventoId, { plano: plan, cotaVideo: videoQuota });
-  const { disponivel: podeInstalar, instalar } = usePwaInstall();
+  const {
+    disponivel: podeInstalar,
+    jaInstalado,
+    precisaInstrucaoIos,
+    dispensado,
+    pronto: pwaPronto,
+    instalar,
+    dispensar,
+    avisarPromptIos,
+  } = usePwaInstall();
   const [drenando, setDrenando] = useState(false);
   const entradaCamera = useRef<HTMLInputElement>(null);
   const entradaVideo = useRef<HTMLInputElement>(null);
@@ -211,7 +221,13 @@ export function PhotoPage({
         online={estado.online}
         interactionOpen={interactionOpen}
         podeInstalar={podeInstalar}
+        jaInstalado={jaInstalado}
+        precisaInstrucaoIos={precisaInstrucaoIos}
+        dispensado={dispensado}
+        pwaPronto={pwaPronto}
         instalar={instalar}
+        dispensar={dispensar}
+        avisarPromptIos={avisarPromptIos}
         onOutra={() => setEtapa({ nome: "camera" })}
       />
     );
@@ -329,7 +345,13 @@ function Confirmacao({
   online,
   interactionOpen,
   podeInstalar,
+  jaInstalado,
+  precisaInstrucaoIos,
+  dispensado,
+  pwaPronto,
   instalar,
+  dispensar,
+  avisarPromptIos,
   onOutra,
 }: {
   slug: string;
@@ -339,7 +361,13 @@ function Confirmacao({
   online: boolean;
   interactionOpen: boolean;
   podeInstalar: boolean;
+  jaInstalado: boolean;
+  precisaInstrucaoIos: boolean;
+  dispensado: boolean;
+  pwaPronto: boolean;
   instalar: () => Promise<boolean>;
+  dispensar: () => void;
+  avisarPromptIos: () => void;
   onOutra: () => void;
 }) {
   const router = useRouter();
@@ -423,15 +451,24 @@ function Confirmacao({
 
       {pendentes === 0 && numero === 1 && (
         <div className="mb-5 max-w-[34ch]">
-          <p className="mb-3 flex items-baseline gap-3 text-[0.88rem] leading-[1.68] text-ink-2">
-            <span className="shrink-0 font-titulo text-[0.68rem] font-normal uppercase tracking-[0.28em] text-acento-texto">
-              App
-            </span>
-            Instale e receba suas fotos depois da festa
-          </p>
-          {podeInstalar && (
-            <SecondaryButton onClick={() => void instalar()}>Instalar na tela inicial</SecondaryButton>
-          )}
+          <PwaInstallCta
+            mostrar={
+              pwaPronto &&
+              deveMostrarCtaPwa({
+                enviadas: numero,
+                pendentes,
+                jaInstalado,
+                dispensado,
+                promptNativo: podeInstalar,
+                precisaInstrucaoIos,
+              })
+            }
+            promptNativo={podeInstalar}
+            precisaInstrucaoIos={precisaInstrucaoIos}
+            onInstalar={() => void instalar()}
+            onDispensar={dispensar}
+            onPromptIos={avisarPromptIos}
+          />
           <SecondaryButton onClick={() => router.push(`${base}/pair`)}>
             Abrir no app com código
           </SecondaryButton>
