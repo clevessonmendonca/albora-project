@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  FUSO_PADRAO,
   WALL_DISPLAY_MODELS,
   wallDisplayChoiceProblems,
   type WallDisplayModel,
@@ -15,6 +16,7 @@ import {
 } from "@/features/admin/lib/identity-preview";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
+import { TimezoneField } from "@/features/admin/components/client/timezone-field";
 
 const OPTIONS = Object.values(PACKS).map((p) => ({ id: p.id, nome: resolvePackText(p, "evento.nome") }));
 
@@ -29,6 +31,7 @@ export function CreateEventWizard() {
   const [packId, setPackId] = useState(OPTIONS[0]!.id);
   const [starts, setStarts] = useState("");
   const [ends, setEnds] = useState("");
+  const [timezone, setTimezone] = useState(FUSO_PADRAO);
   const [expectedGuests, setExpectedGuests] = useState("150");
   const [presetId, setPresetId] = useState(IDENTITY_MODELS[0]!.id);
   const [checkedMissions, setCheckedMissions] = useState<Set<string>>(() => new Set());
@@ -89,6 +92,7 @@ export function CreateEventWizard() {
           packId,
           comecaEm: starts,
           terminaEm: ends,
+          timezone,
           expectedGuests: Number(expectedGuests),
           identityTokens,
           missoes: activeMissions,
@@ -150,6 +154,7 @@ export function CreateEventWizard() {
               className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink"
             />
           </label>
+          <TimezoneField value={timezone} onChange={setTimezone} />
         </>
       )}
 

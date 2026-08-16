@@ -9,11 +9,13 @@ import {
   resolveIdentityPreviewVars,
 } from "@/features/admin/lib/identity-preview";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { TimezoneField } from "@/features/admin/components/client/timezone-field";
 
 type Props = {
   eventId: string;
   packId: string;
   initialExpectedGuests: number;
+  initialTimezone: string;
   initialIdentityTokens: Record<string, unknown>;
 };
 
@@ -21,6 +23,7 @@ export function IdentityEditor({
   eventId,
   packId,
   initialExpectedGuests,
+  initialTimezone,
   initialIdentityTokens,
 }: Props) {
   const pack = PACKS[packId] as Pack | undefined;
@@ -31,6 +34,7 @@ export function IdentityEditor({
 
   const [presetId, setPresetId] = useState(initialPreset);
   const [expectedGuests, setExpectedGuests] = useState(String(initialExpectedGuests));
+  const [timezone, setTimezone] = useState(initialTimezone);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -63,6 +67,7 @@ export function IdentityEditor({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           expectedGuests: Number(expectedGuests),
+          timezone,
           identityTokens,
         }),
       });
@@ -104,6 +109,16 @@ export function IdentityEditor({
             className="rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink"
           />
         </label>
+
+        <div className="mt-5">
+          <TimezoneField
+            value={timezone}
+            onChange={(fuso) => {
+              setTimezone(fuso);
+              setSaved(false);
+            }}
+          />
+        </div>
 
         <div className="mt-5 grid grid-cols-[minmax(12rem,1fr)_minmax(14rem,1fr)] gap-5">
           <div className="flex flex-col gap-3">

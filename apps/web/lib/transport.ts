@@ -74,7 +74,10 @@ export const webTransport: Transport = {
         legenda: item.legenda ?? null,
         lugar: item.lugar ?? null,
         ...(typeof item.capturadaEm === "number"
-          ? { capturadaEm: new Date(item.capturadaEm).toISOString() }
+          ? {
+              capturadaEm: new Date(item.capturadaEm).toISOString(),
+              ...(item.capturadaEmParede ? { capturadaEmParede: true } : {}),
+            }
           : {}),
         ...(typeof item.largura === "number" && typeof item.altura === "number"
           ? { largura: item.largura, altura: item.altura }

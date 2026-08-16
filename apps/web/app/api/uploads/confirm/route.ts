@@ -4,6 +4,7 @@ import {
   confirmarUpload,
   desafioDoEvento,
   ErroUploadDeOutroEvento,
+  fusoDoEvento,
   packDoEvento,
 } from "@albora/db";
 import { recordFunnelEvent } from "@/features/guest/lib/record-funnel";
@@ -17,7 +18,7 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
-import { cleanCaption, acceptedPlace, acceptedTakenAt, acceptedSize } from "@/lib/details";
+import { cleanCaption, acceptedPlace, acceptedTakenAt, acceptedTakenAtInTimeZone, acceptedSize } from "@/lib/details";
 import { inspecionarObjeto } from "@/lib/r2";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,7 @@ type Corpo = {
   lugar?: unknown;
   desafioId?: unknown;
   capturadaEm?: unknown;
+  capturadaEmParede?: unknown;
   largura?: unknown;
   altura?: unknown;
 };
@@ -49,7 +51,7 @@ export async function POST(req: Request) {
   const parsed = await parseJsonBody<Corpo>(req);
   if (parsed instanceof Response) return parsed;
 
-  const { uploadId, chave, mime, legenda, lugar, desafioId, capturadaEm, largura, altura } =
+  const { uploadId, chave, mime, legenda, lugar, desafioId, capturadaEm, capturadaEmParede, largura, altura } =
     parsed.data;
   if (typeof uploadId !== "string" || typeof chave !== "string" || typeof mime !== "string") {
     return errorResponse(422, "validation_error", "Dados incompletos", {
@@ -89,7 +91,12 @@ export async function POST(req: Request) {
           : null;
 
       const packId = await packDoEvento(c, auth.session.eventoId);
+      const fuso = await fusoDoEvento(c, auth.session.eventoId);
       const tamanho = acceptedSize(largura, altura);
+      const takenAt =
+        capturadaEmParede === true
+          ? acceptedTakenAtInTimeZone(capturadaEm, fuso)
+          : acceptedTakenAt(capturadaEm);
 
       return confirmarUpload(c, {
         uploadId,
@@ -101,7 +108,7 @@ export async function POST(req: Request) {
         bytes: objeto.bytes,
         caption: cleanCaption(legenda),
         place: acceptedPlace(packId, lugar),
-        takenAt: acceptedTakenAt(capturadaEm),
+        takenAt,
         width: tamanho?.width ?? null,
         height: tamanho?.height ?? null,
       });

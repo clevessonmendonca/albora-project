@@ -1,4 +1,4 @@
-import { montarAlbum, OFFSET_PADRAO_MINUTOS, TETO_DE_PAGINAS_PADRAO, type PlanoDoAlbum } from "@albora/core";
+import { montarAlbum, TETO_DE_PAGINAS_PADRAO, type PlanoDoAlbum } from "@albora/core";
 import { comEvento, janelaDoAlbum, listarMidiaDoAlbum, packDoEvento } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import { chapterTitle, planAlbumChapters } from "./album-chapters";
@@ -19,9 +19,6 @@ import { signGet } from "./r2";
  * contagem visível), nem a chave de storage, nem nome de convidado. O que o
  * cliente recebe é onde cada foto entra na página e a URL para buscá-la.
  */
-
-/** Sem coluna de fuso no schema; ancora no fuso do evento, como o núcleo pede. */
-const EVENT_OFFSET_MINUTES = OFFSET_PADRAO_MINUTOS;
 
 /**
  * Validade da URL de leitura, igual à do lote da mídia. O cliente renova o
@@ -85,7 +82,7 @@ export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
   const janela = {
     comecaEm: data.janela.comecaEm,
     terminaEm: data.janela.terminaEm,
-    offsetMinutos: EVENT_OFFSET_MINUTES,
+    offsetMinutos: data.janela.offsetMinutos,
   };
   const plan: PlanoDoAlbum = {
     janela,

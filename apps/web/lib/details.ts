@@ -1,3 +1,4 @@
+import { instanteDaParedeNoFuso } from "@albora/core";
 import { isValidPlace, PACKS } from "@albora/packs";
 
 /**
@@ -61,6 +62,16 @@ export function acceptedTakenAt(valor: unknown): Date | null {
   if (ano < ANO_MIN || ano > ANO_MAX) return null;
 
   return em;
+}
+
+/**
+ * Parede do EXIF no IANA do evento. O cliente manda os componentes da câmera
+ * como UTC; daqui sai o instante absoluto que o álbum agrupa.
+ */
+export function acceptedTakenAtInTimeZone(valor: unknown, fuso: string): Date | null {
+  const parede = acceptedTakenAt(valor);
+  if (!parede) return null;
+  return instanteDaParedeNoFuso(parede, fuso);
 }
 
 /**

@@ -3,8 +3,6 @@
 import {
   isHeic,
   isVideoBytes,
-  instanteDaParede,
-  OFFSET_PADRAO_MINUTOS,
   planoParaRedimensionamento,
   processarFoto,
   type QueueDetails,
@@ -275,15 +273,17 @@ function metaDaCaptura(
   lastModified: number,
   largura?: number,
   altura?: number,
-): { capturadaEm?: number; largura?: number; altura?: number } {
-  const capturadaEm = paredeExif
-    ? instanteDaParede(paredeExif, OFFSET_PADRAO_MINUTOS).getTime()
-    : Number.isFinite(lastModified) && lastModified > 0
-      ? lastModified
-      : undefined;
+): { capturadaEm?: number; capturadaEmParede?: boolean; largura?: number; altura?: number } {
+  const dims =
+    typeof largura === "number" && typeof altura === "number" ? { largura, altura } : {};
 
-  return {
-    ...(capturadaEm !== undefined ? { capturadaEm } : {}),
-    ...(typeof largura === "number" && typeof altura === "number" ? { largura, altura } : {}),
-  };
+  if (paredeExif) {
+    return { capturadaEm: paredeExif.getTime(), capturadaEmParede: true, ...dims };
+  }
+
+  if (Number.isFinite(lastModified) && lastModified > 0) {
+    return { capturadaEm: lastModified, ...dims };
+  }
+
+  return dims;
 }

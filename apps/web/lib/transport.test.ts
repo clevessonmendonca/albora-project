@@ -83,6 +83,32 @@ describe("webTransport", () => {
     expect(corpo.altura).toBe(1920);
   });
 
+  it("confirmar marca parede de EXIF para o servidor aplicar o fuso do evento", async () => {
+    await webTransport.confirm(
+      {
+        ...itemBlob,
+        capturadaEm: Date.parse("2026-08-08T21:00:00.000Z"),
+        capturadaEmParede: true,
+      },
+      {
+        uploadId: itemBlob.id,
+        chave: "events/e/full",
+        full: "u",
+        thumb: "t",
+        expiraEm: 1,
+      },
+    );
+
+    const [, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    const corpo = JSON.parse(String(init.body)) as {
+      capturadaEm?: string;
+      capturadaEmParede?: boolean;
+    };
+
+    expect(corpo.capturadaEm).toBe("2026-08-08T21:00:00.000Z");
+    expect(corpo.capturadaEmParede).toBe(true);
+  });
+
   it("confirmar envia o tamanho real do vídeo, não o retrato assumido", async () => {
     await webTransport.confirm(
       {

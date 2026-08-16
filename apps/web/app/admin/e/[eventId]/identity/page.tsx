@@ -17,6 +17,7 @@ export default async function IdentityPage({
           eventId={eventId}
           packId={evento.packId}
           initialExpectedGuests={evento.expectedGuests}
+          initialTimezone={evento.fuso}
           initialIdentityTokens={evento.identityTokens}
         />
       )}

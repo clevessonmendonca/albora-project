@@ -48,6 +48,7 @@ export function HostCreateEventScreen({
               <WizardField label="Convidados esperados" value="150" />
               <WizardField label="Começo" value="Sáb, 20:00" />
               <WizardField label="Fim" value="Dom, 04:00" />
+              <WizardField label="Fuso horário" value="Brasília" />
             </div>
           )}
           {step === 5 && (

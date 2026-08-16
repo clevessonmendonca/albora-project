@@ -1,4 +1,5 @@
 import { atualizarConfigDoEvento } from "@albora/db";
+import { fusoIanaValido } from "@albora/core";
 import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
@@ -16,6 +17,7 @@ export const dynamic = "force-dynamic";
 
 type Corpo = {
   expectedGuests?: unknown;
+  timezone?: unknown;
   identityTokens?: unknown;
 };
 
@@ -35,6 +37,7 @@ export async function GET(
 
   return jsonOk({
     expectedGuests: owned.evento.expectedGuests,
+    timezone: owned.evento.fuso,
     identityTokens: owned.evento.identityTokens,
     packId: owned.evento.packId,
   });
@@ -63,7 +66,11 @@ export async function PATCH(
   if (parsed instanceof Response) return parsed;
   const corpo = parsed.data;
 
-  const atualizacao: { expectedGuests?: number; identityTokens?: Record<string, unknown> } = {};
+  const atualizacao: {
+    expectedGuests?: number;
+    identityTokens?: Record<string, unknown>;
+    fuso?: string;
+  } = {};
 
   if (corpo.expectedGuests !== undefined) {
     if (typeof corpo.expectedGuests !== "number" || !Number.isFinite(corpo.expectedGuests)) {
@@ -80,6 +87,15 @@ export async function PATCH(
     atualizacao.expectedGuests = n;
   }
 
+  if (corpo.timezone !== undefined) {
+    if (typeof corpo.timezone !== "string" || !fusoIanaValido(corpo.timezone)) {
+      return errorResponse(422, "validation_error", "Fuso horário inválido", {
+        campos: ["timezone"],
+      });
+    }
+    atualizacao.fuso = corpo.timezone;
+  }
+
   if (corpo.identityTokens !== undefined) {
     if (
       typeof corpo.identityTokens !== "object" ||
@@ -93,7 +109,7 @@ export async function PATCH(
 
   if (Object.keys(atualizacao).length === 0) {
     return errorResponse(422, "validation_error", "Nada para atualizar", {
-      campos: ["expectedGuests", "identityTokens"],
+      campos: ["expectedGuests", "timezone", "identityTokens"],
     });
   }
 
@@ -111,6 +127,7 @@ export async function PATCH(
 
     return jsonOk({
       expectedGuests: owned.evento.expectedGuests,
+      timezone: owned.evento.fuso,
       identityTokens: owned.evento.identityTokens,
     });
   } catch (e) {

@@ -1,4 +1,5 @@
 import { criarEvento } from "@albora/db";
+import { FUSO_PADRAO, fusoIanaValido, instanteLocalNoFuso } from "@albora/core";
 import { PACKS } from "@albora/packs";
 import { parseMissionKeys } from "@/features/admin/lib/mission-keys";
 import {
@@ -16,16 +17,16 @@ type Body = {
   packId?: unknown;
   comecaEm?: unknown;
   terminaEm?: unknown;
+  timezone?: unknown;
   expectedGuests?: unknown;
   identityTokens?: unknown;
   missoes?: unknown;
   telaoModelos?: unknown;
 };
 
-function asDate(v: unknown): Date | null {
+function asDate(v: unknown, fuso: string): Date | null {
   if (typeof v !== "string") return null;
-  const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? null : d;
+  return instanteLocalNoFuso(v, fuso);
 }
 
 /**
@@ -62,8 +63,18 @@ export async function POST(req: Request) {
     return errorResponse(422, "validation_error", "Pack inválido", { campos: ["packId"] });
   }
 
-  const comecaEm = asDate(body.comecaEm);
-  const terminaEm = asDate(body.terminaEm);
+  let timezone = FUSO_PADRAO;
+  if (body.timezone !== undefined) {
+    if (typeof body.timezone !== "string" || !fusoIanaValido(body.timezone)) {
+      return errorResponse(422, "validation_error", "Fuso horário inválido", {
+        campos: ["timezone"],
+      });
+    }
+    timezone = body.timezone;
+  }
+
+  const comecaEm = asDate(body.comecaEm, timezone);
+  const terminaEm = asDate(body.terminaEm, timezone);
   if (!comecaEm || !terminaEm || terminaEm <= comecaEm) {
     return errorResponse(422, "validation_error", "Datas inválidas", {
       campos: ["comecaEm", "terminaEm"],
@@ -121,6 +132,7 @@ export async function POST(req: Request) {
       terminaEm,
       expectedGuests,
       identityTokens,
+      fuso: timezone,
       ...(missoes !== undefined ? { missoes } : {}),
     };
     const { eventoId, slug } = await criarEvento(getPool(), input);
