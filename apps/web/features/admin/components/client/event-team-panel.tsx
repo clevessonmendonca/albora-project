@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 
 type EventMember = {
@@ -23,20 +23,20 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"couple" | "planner">("couple");
 
-  const loadMembers = async () => {
+  const loadMembers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch(`/api/admin/events/${eventId}/members`);
       if (!res.ok) throw new Error("Falha ao carregar membros");
-      const data = await res.json();
+      const data = (await res.json()) as { members?: EventMember[] };
       setMembers(data.members || []);
     } catch (e) {
       setError(String(e));
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventId]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,16 +52,16 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
       });
 
       if (!res.ok) {
-        const err = await res.json();
+        const err = (await res.json()) as { message?: string };
         throw new Error(err.message || "Falha ao convidar");
       }
 
-      const data = await res.json();
+      const data = (await res.json()) as { members?: EventMember[] };
       setMembers(data.members || []);
       setEmail("");
       setRole("couple");
-    } catch (e) {
-      setError(String(e));
+    } catch (err) {
+      setError(String(err));
     } finally {
       setSaving(false);
     }
@@ -71,7 +71,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
     if (canManageTeam) {
       void loadMembers();
     }
-  }, [eventId, canManageTeam]);
+  }, [canManageTeam, loadMembers]);
 
   if (!canManageTeam) return null;
 

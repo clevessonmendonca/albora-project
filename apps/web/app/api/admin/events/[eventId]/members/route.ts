@@ -3,7 +3,6 @@ import {
   comEvento,
   emitirMagicLink,
   listEventMembers,
-  type EventMember,
   type EventMemberRole,
   VALIDADE_MAGIC_LINK_MINUTOS,
 } from "@albora/db";
