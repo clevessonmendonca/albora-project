@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 /**
  * Host panel sign-in (spec 009).
@@ -9,15 +10,30 @@ import { useState } from "react";
  * the link; with `?m=`, the button that confirms and opens the session. The
  * token is only consumed on click — never on load — so an email client's
  * prefetch cannot spend the link on its own.
+ *
+ * `?next=` (path under /admin) survives magic-link via the API and redirects
+ * after Confirm — so Completo from the landing lands on the wizard with plano.
  */
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function SignInForm({ magic }: { magic: string | null }) {
-  return magic ? <Confirm token={magic} /> : <RequestLink />;
+/** Only same-origin admin paths — blocks open redirects. */
+export function safeAdminNext(raw: string | null | undefined): string | null {
+  if (!raw || typeof raw !== "string") return null;
+  const next = raw.trim();
+  if (!next.startsWith("/admin")) return null;
+  if (next.startsWith("//") || next.includes("://")) return null;
+  if (next.includes("\\")) return null;
+  return next;
 }
 
-function RequestLink() {
+export function SignInForm({ magic }: { magic: string | null }) {
+  const search = useSearchParams();
+  const next = safeAdminNext(search.get("next"));
+  return magic ? <Confirm token={magic} next={next} /> : <RequestLink next={next} />;
+}
+
+function RequestLink({ next }: { next: string | null }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"editing" | "sending" | "sent" | "error">("editing");
   const [devLink, setDevLink] = useState<string | null>(null);
@@ -31,7 +47,7 @@ function RequestLink() {
       const r = await fetch("/api/admin/entrar", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: email.trim(), ...(next ? { next } : {}) }),
       });
       if (!r.ok) return setStatus("error");
       const body = (await r.json()) as { enviado: boolean; link?: string };
@@ -72,7 +88,7 @@ function RequestLink() {
       {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Não deu para enviar agora. Tente de novo.</p>}
       <button
         type="button"
-        onClick={request}
+        onClick={() => void request()}
         disabled={!valid || status === "sending"}
         className={`cursor-pointer rounded-pilula border-none bg-acento px-4 py-3.5 font-titulo text-[1.05rem] text-sobre-acento ${
           valid && status !== "sending" ? "opacity-100" : "opacity-50"
@@ -84,7 +100,7 @@ function RequestLink() {
   );
 }
 
-function Confirm({ token }: { token: string }) {
+function Confirm({ token, next }: { token: string; next: string | null }) {
   const [status, setStatus] = useState<"ready" | "signingIn" | "error">("ready");
 
   const signIn = async () => {
@@ -96,7 +112,7 @@ function Confirm({ token }: { token: string }) {
         body: JSON.stringify({ token }),
       });
       if (r.ok) {
-        window.location.assign("/admin");
+        window.location.assign(next ?? "/admin");
         return;
       }
       setStatus("error");
@@ -111,7 +127,7 @@ function Confirm({ token }: { token: string }) {
       {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Link inválido ou expirado. Peça outro.</p>}
       <button
         type="button"
-        onClick={signIn}
+        onClick={() => void signIn()}
         disabled={status === "signingIn"}
         className={`cursor-pointer rounded-pilula border-none bg-acento px-4 py-3.5 font-titulo text-[1.05rem] text-sobre-acento ${
           status === "signingIn" ? "opacity-50" : "opacity-100"

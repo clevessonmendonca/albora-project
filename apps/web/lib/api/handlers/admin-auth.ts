@@ -24,8 +24,16 @@ import { consume } from "@/lib/rate-limit-store";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-type SignInBody = { email?: unknown };
+type SignInBody = { email?: unknown; next?: unknown };
 type SessionBody = { token?: unknown };
+
+function safeAdminNext(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const next = raw.trim();
+  if (!next.startsWith("/admin")) return null;
+  if (next.startsWith("//") || next.includes("://") || next.includes("\\")) return null;
+  return next;
+}
 
 /**
  * O anfitrião pede um magic link (spec 009).
@@ -62,7 +70,9 @@ export async function postSignIn(req: Request) {
   try {
     const expiresAt = new Date(Date.now() + VALIDADE_MAGIC_LINK_MINUTOS * 60 * 1000);
     const { token } = await emitirMagicLink(getPool(), config().sessionSecret, email, expiresAt);
-    const link = `${new URL(req.url).origin}/admin/sign-in?m=${token}`;
+    const next = safeAdminNext(parsed.data.next);
+    const nextQ = next ? `&next=${encodeURIComponent(next)}` : "";
+    const link = `${new URL(req.url).origin}/admin/sign-in?m=${token}${nextQ}`;
 
     // Fora do caminho crítico de sábado: falha de e-mail não revela se a conta
     // existe. Em dev devolvemos o link para o anfitrião clicar sem Resend.
