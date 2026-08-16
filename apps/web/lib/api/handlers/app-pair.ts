@@ -101,7 +101,7 @@ export async function postRedeemPairCode(req: Request) {
     });
 
     return jsonOk(
-      { slug: redeemed.slug, sessaoId: redeemed.sessaoId },
+      { slug: redeemed.slug, sessaoId: redeemed.sessaoId, token: redeemed.token },
       {
         headers: {
           "set-cookie": sessionCookieHeader(redeemed.token, cfg.duracaoSessaoHoras),

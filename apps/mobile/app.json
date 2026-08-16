@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Albora",
+    "slug": "albora",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "scheme": "albora",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.albora.guest",
+      "infoPlist": {
+        "NSCameraUsageDescription": "A câmera tira a foto da festa. Sem ela o app não tem o que enviar."
+      }
+    },
+    "android": {
+      "package": "app.albora.guest",
+      "permissions": ["CAMERA"]
+    },
+    "plugins": ["expo-router", "expo-secure-store"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

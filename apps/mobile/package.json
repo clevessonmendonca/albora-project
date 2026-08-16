@@ -2,7 +2,36 @@
   "name": "@albora/mobile",
   "version": "0.0.0",
   "private": true,
+  "main": "expo-router/entry",
   "scripts": {
-    "build": "echo 'app Expo entra na task 017' && exit 0"
+    "start": "expo start",
+    "ios": "expo start --ios",
+    "android": "expo start --android",
+    "typecheck": "tsc --noEmit",
+    "build": "echo 'EAS Build — pnpm --filter @albora/mobile exec eas build'"
+  },
+  "dependencies": {
+    "@albora/core": "workspace:*",
+    "@albora/tokens": "workspace:*",
+    "@albora/ui-native": "workspace:*",
+    "expo": "~53.0.22",
+    "expo-constants": "~17.1.7",
+    "expo-linking": "~7.1.7",
+    "expo-router": "~5.1.4",
+    "expo-secure-store": "~14.2.3",
+    "expo-status-bar": "~2.2.3",
+    "nativewind": "^4.1.23",
+    "react": "19.0.0",
+    "react-native": "0.79.5",
+    "react-native-reanimated": "~3.17.4",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.1",
+    "react-native-gesture-handler": "~2.24.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@types/react": "^19.1.0",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.8.3"
   }
 }
