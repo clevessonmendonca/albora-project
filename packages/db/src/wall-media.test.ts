@@ -71,6 +71,23 @@ describe("a parede lê só o evento do crachá", () => {
     expect(midia?.chaveThumb.startsWith(`events/${dados.a.eventoId}/`)).toBe(true);
   });
 
+  it("traz as dimensões persistidas para o telão escolher o modelo", async () => {
+    await admin.query("UPDATE uploads SET width = 1920, height = 1080 WHERE id = $1", [
+      dados.a.uploadId,
+    ]);
+    try {
+      const [midia] = await comEvento(app, dados.a.eventoId, (c) =>
+        listarMidiaDaParede(c, dados.a.eventoId),
+      );
+      expect(midia?.largura).toBe(1920);
+      expect(midia?.altura).toBe(1080);
+    } finally {
+      await admin.query("UPDATE uploads SET width = NULL, height = NULL WHERE id = $1", [
+        dados.a.uploadId,
+      ]);
+    }
+  });
+
   it("duas sessões distintas denunciando seguram a foto do telão", async () => {
     // O sensor da sala: duas denúncias de sessões diferentes tiram do telão,
     // uma só não. É `decidirExibicao` na superfície telao, alimentada pela

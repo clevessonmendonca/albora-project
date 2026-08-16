@@ -1,5 +1,6 @@
 import { decidirExibicao, interpretarVeredicto } from "@albora/core";
 import type { PoolClient } from "pg";
+import { dimensoesDaColuna } from "./dimensoes";
 import {
   lerModeracaoDoEvento,
   limiarDenuncias,
@@ -34,6 +35,13 @@ export type MidiaNaParede = {
   criadaEm: Date;
   /** Concessão `ler.contagem`. */
   reacoes: number;
+  /**
+   * Par persistido no confirm. Ausente na fila antiga — o telão mede no
+   * cliente; não inventa 1080×1920, que escolheria modelo de retrato para
+   * vídeo deitado.
+   */
+  largura?: number;
+  altura?: number;
 };
 
 type Linha = {
@@ -46,6 +54,8 @@ type Linha = {
   denuncias: number;
   classifier_verdict: string | null;
   released_by_host: boolean;
+  width: number | null;
+  height: number | null;
 };
 
 /**
@@ -69,7 +79,7 @@ export async function listarMidiaDaParede(
 
   const { rows } = await cliente.query<Linha>(
     `SELECT u.id, u.storage_key, u.mime, u.created_at, s.display_name,
-            u.classifier_verdict, u.released_by_host,
+            u.classifier_verdict, u.released_by_host, u.width, u.height,
             (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes,
             (SELECT count(*) FROM reports rp WHERE rp.upload_id = u.id)::int AS denuncias
        FROM uploads u
@@ -96,13 +106,17 @@ export async function listarMidiaDaParede(
           limiar,
         ).visivel,
     )
-    .map((l) => ({
-      id: l.id,
-      chaveFull: l.storage_key,
-      chaveThumb: thumbKeyFromFull(l.storage_key),
-      mime: l.mime,
-      autor: l.display_name,
-      criadaEm: l.created_at,
-      reacoes: l.reacoes,
-    }));
+    .map((l) => {
+      const tamanho = dimensoesDaColuna(l.width, l.height);
+      return {
+        id: l.id,
+        chaveFull: l.storage_key,
+        chaveThumb: thumbKeyFromFull(l.storage_key),
+        mime: l.mime,
+        autor: l.display_name,
+        criadaEm: l.created_at,
+        reacoes: l.reacoes,
+        ...(tamanho ? { largura: tamanho.largura, altura: tamanho.altura } : {}),
+      };
+    });
 }

@@ -1,5 +1,6 @@
 import type { MidiaDoAlbum } from "@albora/core";
 import type { PoolClient } from "pg";
+import { dimensoesDoAlbum } from "./dimensoes";
 import { thumbKeyFromFull } from "./storage-key";
 
 /**
@@ -12,9 +13,10 @@ import { thumbKeyFromFull } from "./storage-key";
  *
  * O álbum é montado por `montarAlbum()` do `@albora/core` sobre estas linhas.
  * `taken_at` chega no `confirm` a partir da leitura de EXIF feita antes do
- * reencode; `width`/`height` vêm das dimensões já em pé do processamento.
- * Ausentes — fila antiga, vídeo sem poster, EXIF mudo — `capturadaEm` nulo
- * cai no `created_at` pela regra do núcleo, e a proporção assume retrato.
+ * reencode; `width`/`height` vêm das dimensões já em pé — foto processada ou
+ * `videoWidth`/`videoHeight` lidos no cliente antes do upload. Ausentes —
+ * fila antiga, decoder mudo — `capturadaEm` nulo cai no `created_at` pela
+ * regra do núcleo, e a proporção assume retrato.
  */
 
 const PUBLICADO = "published";
@@ -22,13 +24,7 @@ const PUBLICADO = "published";
 /** Teto da varredura. O álbum lê a noite inteira; o núcleo é quem poda páginas. */
 export const TETO_DO_ALBUM = 2000;
 
-/**
- * Proporção assumida enquanto `width`/`height` não são persistidos. Retrato,
- * porque encaixar a foto de festa em qualquer outra forma corta o topo — a
- * mesma regra vermelha que o telão e o layout do álbum impõem.
- */
-export const LARGURA_PADRAO = 1080;
-export const ALTURA_PADRAO = 1920;
+export { LARGURA_PADRAO, ALTURA_PADRAO } from "./dimensoes";
 
 export type MidiaDoAlbumComChave = MidiaDoAlbum & {
   chaveFull: string;
@@ -77,7 +73,7 @@ export async function listarMidiaDoAlbum(
   );
 
   return rows.map((l) => {
-    const { largura, altura } = parDeDimensoes(l.width, l.height);
+    const { largura, altura } = dimensoesDoAlbum(l.width, l.height);
     return {
       id: l.id,
       sessaoId: l.session_id,
@@ -92,23 +88,6 @@ export async function listarMidiaDoAlbum(
       chaveThumb: thumbKeyFromFull(l.storage_key),
     };
   });
-}
-
-function parDeDimensoes(
-  width: number | null,
-  height: number | null,
-): { largura: number; altura: number } {
-  if (
-    width !== null &&
-    height !== null &&
-    Number.isFinite(width) &&
-    Number.isFinite(height) &&
-    width > 0 &&
-    height > 0
-  ) {
-    return { largura: width, altura: height };
-  }
-  return { largura: LARGURA_PADRAO, altura: ALTURA_PADRAO };
 }
 
 /**

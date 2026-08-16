@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import { filtroSemBloqueio } from "./block-db";
+import { dimensoesDaColuna } from "./dimensoes";
 import { thumbKeyFromFull } from "./storage-key";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -51,6 +52,12 @@ export type ItemFeed = {
   sessaoAutor?: string;
   /** Foto enviada pela sessão que está lendo. Só depois do gate. */
   minha?: boolean;
+  /**
+   * Par persistido no confirm. Ausente na fila antiga — o quadro do feed
+   * cai no 4:5; não inventa 1080×1920, que faria vídeo deitado parecer em pé.
+   */
+  largura?: number;
+  altura?: number;
 };
 
 export type PaginaFeed = {
@@ -78,6 +85,8 @@ type LinhaFeed = {
   session_id: string;
   created_at: Date;
   created_at_txt: string;
+  width: number | null;
+  height: number | null;
   reacoes?: number;
   minha_reacao?: string | null;
 };
@@ -159,6 +168,7 @@ export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Pro
   const { rows } = await cliente.query<LinhaFeed>(
     `SELECT u.id, u.storage_key, u.mime, u.challenge_id, u.caption, u.place,
             u.created_at, u.created_at::text AS created_at_txt,
+            u.width, u.height,
             s.display_name, u.session_id${contagem}${minha}
        FROM uploads u
        JOIN guest_sessions s ON s.id = u.session_id AND s.event_id = u.event_id
@@ -179,6 +189,7 @@ export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Pro
 }
 
 function paraItem(linha: LinhaFeed, modo: ModoFeed, sessaoLeitora?: string): ItemFeed {
+  const tamanho = dimensoesDaColuna(linha.width, linha.height);
   const item: ItemFeed = {
     id: linha.id,
     chaveThumb: thumbKeyFromFull(linha.storage_key),
@@ -189,6 +200,7 @@ function paraItem(linha: LinhaFeed, modo: ModoFeed, sessaoLeitora?: string): Ite
     lugar: linha.place,
     autor: linha.display_name,
     criadaEm: linha.created_at,
+    ...(tamanho ? { largura: tamanho.largura, altura: tamanho.altura } : {}),
   };
 
   if (modo === "completo") {

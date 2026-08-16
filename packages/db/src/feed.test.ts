@@ -502,6 +502,29 @@ describe("o item que a tela recebe", () => {
     expect(item?.chaveThumb).toBe(`events/${dados.a.eventoId}/2026/08/foto/thumb`);
   });
 
+  it("traz as dimensões persistidas, e não inventa 1080×1920", async () => {
+    await admin.query("UPDATE uploads SET width = 1920, height = 1080 WHERE id = $1", [
+      dados.a.uploadId,
+    ]);
+    try {
+      const pagina = await feedDe(dados.a);
+      const item = pagina.itens.find((i) => i.id === dados.a.uploadId);
+      expect(item?.largura).toBe(1920);
+      expect(item?.altura).toBe(1080);
+    } finally {
+      await admin.query("UPDATE uploads SET width = NULL, height = NULL WHERE id = $1", [
+        dados.a.uploadId,
+      ]);
+    }
+  });
+
+  it("omite o par quando o confirm não gravou — o cliente não assume retrato", async () => {
+    const pagina = await feedDe(dados.a);
+    const item = pagina.itens.find((i) => i.id === dados.a.uploadId);
+    expect(item?.largura).toBeUndefined();
+    expect(item?.altura).toBeUndefined();
+  });
+
   it("a página tem teto próprio — o cliente não escolhe quanto puxa", async () => {
     const pagina = await feedDe(dados.a, { limite: 10_000 });
 
