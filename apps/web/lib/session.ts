@@ -1,8 +1,9 @@
+import { GUEST_SESSION_COOKIE } from "@albora/core";
 import { resolverSessao, type SessaoResolvida } from "@albora/db";
 import { getPool } from "./db";
 import { config } from "./config";
 
-export const GUEST_SESSION_COOKIE = "albora_sessao";
+export { GUEST_SESSION_COOKIE };
 
 /**
  * O token vive em cookie `HttpOnly`, e **nunca na URL**.

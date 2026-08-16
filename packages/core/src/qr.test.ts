@@ -95,8 +95,6 @@ describe("um QR colado por cima do original não redireciona ninguém", () => {
   });
 
   it("travessia de caminho vira um evento inexistente, nunca outra rota", () => {
-    // Não basta o resultado ser `null`: o que garante a segurança é o destino
-    // ser sempre remontado sob `/e/`, e é isso que este teste fixa.
     const slug = extrairSlug("../../admin");
     expect(slug).toBe("admin");
     expect(caminhoDoEvento(slug as string)).toBe("/e/admin");
