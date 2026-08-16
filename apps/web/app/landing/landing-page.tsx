@@ -7,7 +7,9 @@ import { ScrollDemo, Missions, Reveal, IdentityWall } from "./interactives";
 import { OpenAlbum, PolaroidFan, Timeline, NightSlot } from "./showcases";
 import { Brand } from "./brand";
 import { AnimatedBrand } from "./animated-brand";
-import { LandingBeacon, LandingCtaLink, LandingDemoLink } from "./landing-beacon";
+import { LandingBeacon } from "./landing-beacon";
+import { LandingCtaLink } from "./landing-cta-link";
+import { LandingDemoLink } from "./landing-demo-link";
 import {
   Accent,
   Frame,
