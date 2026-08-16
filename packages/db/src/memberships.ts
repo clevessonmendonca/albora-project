@@ -31,14 +31,20 @@ export async function addEventMember(
 
 /**
  * Lista membros do evento (couple | planner) com seus e-mails.
- * Usa comEvento para garantir isolamento via RLS.
+ * 
+ * 🔴 IMPORTANTE: RLS de `event_members` só permite ver a própria membership
+ * (`conta_membro`). Criar policy cross-account geraria recursão com
+ * `conta_membro_evento_leitura` (0034). Por isso a ACL é na aplicação:
+ * `requireHostEventRole` valida acesso ANTES de chamar esta função. A query
+ * inline reforça a validação como defesa em profundidade, mas a proteção real
+ * está na API.
  */
 export async function listEventMembers(
   pool: Pool,
+  accountId: string,
   eventId: string,
 ): Promise<EventMember[]> {
-  const { comEvento } = await import("./event");
-  return comEvento(pool, eventId, async (c) => {
+  return comConta(pool, accountId, async (c) => {
     const { rows } = await c.query<{
       account_id: string;
       email: string;
@@ -49,8 +55,12 @@ export async function listEventMembers(
        FROM event_members m
        JOIN accounts a ON a.id = m.account_id
        WHERE m.event_id = $1
+         AND (
+           EXISTS (SELECT 1 FROM events e WHERE e.id = $1 AND e.account_id = $2)
+           OR $2 IN (SELECT account_id FROM event_members WHERE event_id = $1)
+         )
        ORDER BY m.created_at ASC`,
-      [eventId],
+      [eventId, accountId],
     );
     return rows.map((r) => ({
       accountId: r.account_id,

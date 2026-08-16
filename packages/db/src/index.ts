@@ -332,8 +332,8 @@ export {
   slaDueAt,
 } from "./support";
 
-export type { EventMemberRole, HostEventRole } from "./memberships";
-export { addEventMember, ensureCoupleMember, roleForAccountOnEvent } from "./memberships";
+export type { EventMember, EventMemberRole, HostEventRole } from "./memberships";
+export { addEventMember, ensureCoupleMember, listEventMembers, roleForAccountOnEvent } from "./memberships";
 
 export type { BillingPayment, BillingPaymentStatus } from "./billing";
 export {
