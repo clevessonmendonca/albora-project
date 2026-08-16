@@ -29,6 +29,7 @@ type Props = {
   plan: "free" | "celebration" | "vendor";
   initial: WireModeration;
   initialInteractionOpensAt: string | null;
+  canManageCoupleOnly?: boolean;
 };
 
 function fromWire(m: WireModeration): Moderation {
@@ -45,6 +46,7 @@ export function EventControls({
   plan,
   initial,
   initialInteractionOpensAt,
+  canManageCoupleOnly = true,
 }: Props) {
   const [moderation, setModeration] = useState(() => fromWire(initial));
   const [interactionOpensAt, setInteractionOpensAt] = useState(initialInteractionOpensAt);
@@ -147,12 +149,18 @@ export function EventControls({
               Uma denúncia já segura do telão. Compartilhar para fora nasce desligado.
             </span>
           </div>
-          <Switch
-            on={moderation.hasMinors}
-            disabled={saving === "hasMinors"}
-            label="Há menores nesta festa"
-            onChange={(v) => void patch({ haMenores: v }, "hasMinors")}
-          />
+          {canManageCoupleOnly ? (
+            <Switch
+              on={moderation.hasMinors}
+              disabled={saving === "hasMinors"}
+              label="Há menores nesta festa"
+              onChange={(v) => void patch({ haMenores: v }, "hasMinors")}
+            />
+          ) : (
+            <span className="shrink-0 text-sm text-ink-3">
+              {moderation.hasMinors ? "Sim" : "Não"}
+            </span>
+          )}
         </div>
 
         <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-2">
@@ -269,7 +277,7 @@ export function EventControls({
         <SupportHelpButton eventId={eventId} />
       </AdminSection>
 
-      {plan === "free" && (
+      {canManageCoupleOnly && plan === "free" && (
         <AdminSection>
           <h2 className="mb-3 mt-0 font-titulo text-lg">Assinar Completo</h2>
           <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">

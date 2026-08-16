@@ -4,6 +4,7 @@ export * from "./guest-auth";
 export * from "./guest-event";
 export * from "./host-auth";
 export * from "./host-event";
+export * from "./host-event-role";
 export * from "./parse-json";
 export * from "./rate-limit";
 export * from "./response";

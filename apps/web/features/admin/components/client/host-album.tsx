@@ -15,9 +15,10 @@ type Item = {
 
 type Props = {
   eventoId: string;
+  canExport?: boolean;
 };
 
-export function HostAlbum({ eventoId }: Props) {
+export function HostAlbum({ eventoId, canExport = true }: Props) {
   const [itens, setItens] = useState<Item[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(false);
@@ -78,7 +79,7 @@ export function HostAlbum({ eventoId }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
-      <HostExport eventoId={eventoId} />
+      {canExport ? <HostExport eventoId={eventoId} /> : null}
       <AdminSection>
         <div className="mb-4 flex items-center justify-between gap-4">
           <p className="m-0 leading-relaxed text-ink-2">

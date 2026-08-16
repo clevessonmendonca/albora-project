@@ -13,7 +13,7 @@ export default async function EventPage({
 
   return (
     <EventPageLayout eventId={eventId}>
-      {({ evento }) => (
+      {({ evento, canManageCoupleOnly }) => (
         <>
           <LiveSummary eventoId={eventId} />
           <EventControls
@@ -22,6 +22,7 @@ export default async function EventPage({
             plan={evento.plan}
             initial={evento.moderacao}
             initialInteractionOpensAt={evento.interacaoAbreEm?.toISOString() ?? null}
+            canManageCoupleOnly={canManageCoupleOnly}
           />
         </>
       )}

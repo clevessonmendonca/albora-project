@@ -10,11 +10,13 @@ import {
 import { decidirTese, type CodigoDaTese } from "@albora/core";
 import {
   ADMIN_SESSION_REQUIRED,
+  ANY_HOST_ROLES,
+  COUPLE_HOST_ROLES,
   errorResponse,
   jsonOk,
   parseJsonBody,
   requireConfig,
-  requireHostEvent,
+  requireHostEventRole,
   requireHostSession,
   unexpectedError,
 } from "@/lib/api";
@@ -69,7 +71,7 @@ export async function GET(
   }
 
   try {
-    const owned = await requireHostEvent(auth.host.accountId, eventId);
+    const owned = await requireHostEventRole(auth.host.accountId, eventId, ANY_HOST_ROLES);
     if (owned instanceof Response) return owned;
     const { evento } = owned;
 
@@ -163,6 +165,10 @@ export async function PATCH(
       campos: ["panico", "haMenores", "modoEndurecido", "abrirInteracao", "interacaoAbreEm"],
     });
   }
+
+  const allowedRoles = haMenores !== undefined ? COUPLE_HOST_ROLES : ANY_HOST_ROLES;
+  const access = await requireHostEventRole(auth.host.accountId, eventId, allowedRoles);
+  if (access instanceof Response) return access;
 
   try {
     let evento = await atualizarModeracaoDoEvento(getPool(), auth.host.accountId, eventId, {

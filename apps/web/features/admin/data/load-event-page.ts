@@ -1,4 +1,4 @@
-import { buscarEventoDoHost, type EventoDoHost } from "@albora/db";
+import { buscarEventoDoHost, roleForAccountOnEvent, type EventoDoHost, type HostEventRole } from "@albora/db";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { adminEventDisplayName } from "@/features/admin/lib/event-display-name";
@@ -9,6 +9,9 @@ export type AdminEventPageContext = {
   evento: EventoDoHost;
   eventoId: string;
   name: string;
+  role: HostEventRole;
+  /** ZIP, Assinar Completo, haMenores — só couple/owner. */
+  canManageCoupleOnly: boolean;
 };
 
 export async function loadEventPage(eventoId: string): Promise<AdminEventPageContext> {
@@ -16,8 +19,18 @@ export async function loadEventPage(eventoId: string): Promise<AdminEventPageCon
   const host = await hostFromToken(token);
   if (!host) redirect("/admin/sign-in");
 
-  const evento = await buscarEventoDoHost(getPool(), host.accountId, eventoId);
+  const pool = getPool();
+  const role = await roleForAccountOnEvent(pool, host.accountId, eventoId);
+  if (!role) notFound();
+
+  const evento = await buscarEventoDoHost(pool, host.accountId, eventoId);
   if (!evento) notFound();
 
-  return { evento, eventoId, name: adminEventDisplayName(evento) };
+  return {
+    evento,
+    eventoId,
+    name: adminEventDisplayName(evento),
+    role,
+    canManageCoupleOnly: role === "owner" || role === "couple",
+  };
 }

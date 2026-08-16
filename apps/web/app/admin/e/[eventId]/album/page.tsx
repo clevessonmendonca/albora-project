@@ -12,7 +12,9 @@ export default async function PaginaAlbum({
 
   return (
     <EventPageLayout eventId={eventId} section="O álbum">
-      <HostAlbum eventoId={eventId} />
+      {({ canManageCoupleOnly }) => (
+        <HostAlbum eventoId={eventId} canExport={canManageCoupleOnly} />
+      )}
     </EventPageLayout>
   );
 }

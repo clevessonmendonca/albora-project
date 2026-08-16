@@ -1,9 +1,11 @@
 import {
   ADMIN_SESSION_REQUIRED,
+  COUPLE_HOST_ROLES,
   errorResponse,
   jsonOk,
   parseJsonBody,
   requireConfig,
+  requireHostEventRole,
   requireHostSession,
   unexpectedError,
 } from "@/lib/api";
@@ -13,7 +15,6 @@ import {
   upsertBillingCustomer,
 } from "@albora/db";
 import { getPool } from "@/lib/db";
-import { requireHostEvent } from "@/lib/api/host-event";
 import {
   CELEBRATION_PRICE_CENTS,
   resolveBilling,
@@ -32,6 +33,7 @@ type Body = {
 /**
  * Host autenticado inicia checkout Asaas (ou stub em APP_ENV=dev sem chave).
  * Evento permanece `free` até o webhook (ou /api/billing/simulate em stub).
+ * Só couple/owner — planner não muda plano.
  */
 export async function POST(req: Request) {
   const cfgErr = requireConfig("admin");
@@ -55,7 +57,7 @@ export async function POST(req: Request) {
     return errorResponse(422, "validation_error", "Evento obrigatório", { campos: ["eventId"] });
   }
 
-  const owned = await requireHostEvent(auth.host.accountId, eventId);
+  const owned = await requireHostEventRole(auth.host.accountId, eventId, COUPLE_HOST_ROLES);
   if (owned instanceof Response) return owned;
 
   const billing = resolveBilling();

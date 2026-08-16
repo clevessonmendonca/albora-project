@@ -16,8 +16,9 @@ import {
   errorResponse,
   jsonOk,
   parseJsonBody,
+  COUPLE_HOST_ROLES,
   requireConfig,
-  requireHostEvent,
+  requireHostEventRole,
   requireHostSession,
   unexpectedError,
   UUID_RE,
@@ -44,7 +45,7 @@ async function requireOwnedEvent(req: Request, eventId: string) {
   const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
   if (auth instanceof Response) return auth;
 
-  const owned = await requireHostEvent(auth.host.accountId, eventId);
+  const owned = await requireHostEventRole(auth.host.accountId, eventId, COUPLE_HOST_ROLES);
   if (owned instanceof Response) return owned;
 
   return { host: auth.host, evento: owned.evento };
