@@ -6,6 +6,13 @@ export type EventMemberRole = "couple" | "planner";
 /** Papel efetivo no painel: dono da fatura, casal ou cerimonialista. */
 export type HostEventRole = "owner" | "couple" | "planner";
 
+export type EventMember = {
+  accountId: string;
+  email: string;
+  role: EventMemberRole;
+  createdAt: Date;
+};
+
 /**
  * Membro do evento. Fotos ficam com `events.account_id`; papéis operacionais
  * entram aqui (couple | planner).
@@ -20,6 +27,38 @@ export async function addEventMember(
      ON CONFLICT (event_id, account_id) DO UPDATE SET role = EXCLUDED.role`,
     [entrada.eventId, entrada.accountId, entrada.role],
   );
+}
+
+/**
+ * Lista membros do evento (couple | planner) com seus e-mails.
+ * Usa comEvento para garantir isolamento via RLS.
+ */
+export async function listEventMembers(
+  pool: Pool,
+  eventId: string,
+): Promise<EventMember[]> {
+  const { comEvento } = await import("./event");
+  return comEvento(pool, eventId, async (c) => {
+    const { rows } = await c.query<{
+      account_id: string;
+      email: string;
+      role: string;
+      created_at: Date;
+    }>(
+      `SELECT m.account_id, a.email, m.role, m.created_at
+       FROM event_members m
+       JOIN accounts a ON a.id = m.account_id
+       WHERE m.event_id = $1
+       ORDER BY m.created_at ASC`,
+      [eventId],
+    );
+    return rows.map((r) => ({
+      accountId: r.account_id,
+      email: r.email,
+      role: r.role as EventMemberRole,
+      createdAt: r.created_at,
+    }));
+  });
 }
 
 /** Quem cria o evento entra como couple na mesma transação de conta. */

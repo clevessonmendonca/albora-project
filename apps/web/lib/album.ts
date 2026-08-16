@@ -1,5 +1,11 @@
-import { montarAlbum, TETO_DE_PAGINAS_PADRAO, type PlanoDoAlbum } from "@albora/core";
-import { comEvento, janelaDoAlbum, listarMidiaDoAlbum, packDoEvento } from "@albora/db";
+import {
+  montarAlbum,
+  modoInteracao,
+  TETO_DE_PAGINAS_PADRAO,
+  type ModoInteracao,
+  type PlanoDoAlbum,
+} from "@albora/core";
+import { comEvento, gateDoEvento, janelaDoAlbum, listarMidiaDoAlbum, packDoEvento } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import { chapterTitle, planAlbumChapters } from "./album-chapters";
 import { getPool } from "./db";
@@ -57,13 +63,15 @@ export type ServedAlbum = {
   capitulos: ServedChapter[];
   totalDePaginas: number;
   contadores: { fotos: number; convidados: number; missoes: number };
+  interacao: ModoInteracao;
   expiraEm: number;
 };
 
-const EMPTY = (expiresAt: number): ServedAlbum => ({
+const EMPTY = (expiresAt: number, interacao: ModoInteracao): ServedAlbum => ({
   capitulos: [],
   totalDePaginas: 0,
   contadores: { fotos: 0, convidados: 0, missoes: 0 },
+  interacao,
   expiraEm: expiresAt,
 });
 

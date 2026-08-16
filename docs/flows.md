@@ -17,7 +17,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ---
 
-## F0 — Landing e conversão ✅/🟡
+## F0 — Landing e conversão ✅
 
 **Feliz:** `/` ou `/15-anos` → preço → Grátis `/admin/new?plano=free` · Completo `/admin/new?plano=celebration` · Fornecedor `mailto:` · demo `/e/festa-demo`. Sem cookie: `/admin/new` redireciona para `/admin/sign-in?next=…` preservando `plano`.
 
@@ -123,7 +123,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Jobs:** `tools/jobs/analytics-snapshots.mjs` materializa `analytics_snapshots` (event/live) — rodando.
 
-**Gap:** agregador auditado para impersonação e KPIs cross-event da plataforma.
+**Gap:** KPIs cross-event básicos em `/ops/insights` (eventos com atividade, uploads, product_events, tickets); impersonação e agregador auditado completo ainda gap.
 
 ---
 

@@ -15,7 +15,7 @@ export const VALIDADE_MAGIC_LINK_MINUTOS = 15;
 /** Validade da sessão de host depois de consumir o link. */
 export const VALIDADE_HOST_SESSAO_HORAS = 12;
 
-export type MagicLinkEmitido = { token: string; accountId: string };
+export type MagicLinkEmitido = { token: string; accountId: string; isNewAccount: boolean };
 export type HostSessaoCriada = { token: string; accountId: string };
 export type HostResolvida = { accountId: string; email: string };
 
@@ -51,6 +51,12 @@ export async function emitirMagicLink(
 ): Promise<MagicLinkEmitido> {
   const normalizado = email.trim().toLowerCase();
 
+  const antes = await pool.query<{ id: string }>(
+    "SELECT id FROM accounts WHERE email = $1",
+    [normalizado],
+  );
+  const jaExistia = antes.rows.length > 0;
+
   const { rows } = await pool.query<{ id: string }>(
     `INSERT INTO accounts (email) VALUES ($1)
      ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
@@ -65,7 +71,7 @@ export async function emitirMagicLink(
     [hash, accountId, expiraEm],
   );
 
-  return { token, accountId };
+  return { token, accountId, isNewAccount: !jaExistia };
 }
 
 /**

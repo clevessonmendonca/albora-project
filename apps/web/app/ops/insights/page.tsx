@@ -31,14 +31,32 @@ export default async function OpsInsightsPage() {
   }
 
   const pool = getPool();
-  const [{ rows: product }, tickets] = await Promise.all([
+  const [{ rows: product }, tickets, { rows: platformKpis }] = await Promise.all([
     pool.query<{ name: string; n: number }>(
       `SELECT name, count(*)::int AS n FROM product_events
         WHERE created_at > now() - interval '7 days'
         GROUP BY name ORDER BY n DESC`,
     ),
     listOpenSupportTicketsAdmin(pool, host.accountId, 5),
+    pool.query<{
+      events_with_activity: number;
+      total_uploads: number;
+      total_product_events: number;
+      open_tickets: number;
+    }>(
+      `SELECT
+        (SELECT count(DISTINCT event_id)::int FROM uploads
+          WHERE created_at > now() - interval '7 days') AS events_with_activity,
+        (SELECT count(*)::int FROM uploads
+          WHERE created_at > now() - interval '7 days') AS total_uploads,
+        (SELECT count(*)::int FROM product_events
+          WHERE created_at > now() - interval '7 days') AS total_product_events,
+        (SELECT count(*)::int FROM support_tickets
+          WHERE status IN ('open', 'pending')) AS open_tickets`,
+    ),
   ]);
+
+  const kpis = platformKpis[0];
 
   console.log("ops.insights", { accountId: host.accountId });
 
@@ -46,9 +64,30 @@ export default async function OpsInsightsPage() {
     <main className="mx-auto max-w-2xl px-6 py-12">
       <h1 className="m-0 font-titulo text-3xl font-light">KPIs</h1>
       <p className="mt-2 text-ink-2">
-        Funil de landing (7 dias) e fila de suporte. Contagem cross-event de fotos exige
-        agregador auditado — fora desta tela.
+        Agregados da plataforma (7 dias), funil de landing e fila de suporte.
       </p>
+
+      <section className="mt-8">
+        <h2 className="font-titulo text-lg">Plataforma (7 dias)</h2>
+        <ul className="mt-3 list-none p-0">
+          <li className="flex justify-between border-b border-linha py-2 text-sm">
+            <span>Eventos com atividade</span>
+            <span className="tabular-nums">{kpis?.events_with_activity ?? 0}</span>
+          </li>
+          <li className="flex justify-between border-b border-linha py-2 text-sm">
+            <span>Total de uploads</span>
+            <span className="tabular-nums">{kpis?.total_uploads ?? 0}</span>
+          </li>
+          <li className="flex justify-between border-b border-linha py-2 text-sm">
+            <span>Total de product_events</span>
+            <span className="tabular-nums">{kpis?.total_product_events ?? 0}</span>
+          </li>
+          <li className="flex justify-between border-b border-linha py-2 text-sm">
+            <span>Tickets de suporte abertos</span>
+            <span className="tabular-nums">{kpis?.open_tickets ?? 0}</span>
+          </li>
+        </ul>
+      </section>
 
       <section className="mt-8">
         <h2 className="font-titulo text-lg">Landing (7 dias)</h2>

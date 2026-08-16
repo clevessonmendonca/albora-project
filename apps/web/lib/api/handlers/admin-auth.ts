@@ -2,6 +2,7 @@ import {
   consumirMagicLink,
   emitirMagicLink,
   ErroMagicLinkInvalido,
+  recordProductEvent,
   revogarHostSessao,
   VALIDADE_HOST_SESSAO_HORAS,
   VALIDADE_MAGIC_LINK_MINUTOS,
@@ -69,13 +70,17 @@ export async function postSignIn(req: Request) {
 
   try {
     const expiresAt = new Date(Date.now() + VALIDADE_MAGIC_LINK_MINUTOS * 60 * 1000);
-    const { token } = await emitirMagicLink(getPool(), config().sessionSecret, email, expiresAt);
+    const result = await emitirMagicLink(getPool(), config().sessionSecret, email, expiresAt);
+    const { token, isNewAccount } = result;
+    
+    if (isNewAccount) {
+      void recordProductEvent(getPool(), "account_created");
+    }
+
     const next = safeAdminNext(parsed.data.next);
     const nextQ = next ? `&next=${encodeURIComponent(next)}` : "";
     const link = `${new URL(req.url).origin}/admin/sign-in?m=${token}${nextQ}`;
 
-    // Fora do caminho crítico de sábado: falha de e-mail não revela se a conta
-    // existe. Em dev devolvemos o link para o anfitrião clicar sem Resend.
     void sendHostEmail({
       to: email,
       subject: "Seu link para entrar na Albora",

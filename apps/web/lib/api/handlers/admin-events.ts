@@ -1,4 +1,4 @@
-import { criarEvento } from "@albora/db";
+import { criarEvento, recordProductEvent } from "@albora/db";
 import { FUSO_PADRAO, fusoIanaValido, instanteLocalNoFuso } from "@albora/core";
 import { PACKS } from "@albora/packs";
 import { parseMissionKeys } from "@/features/admin/lib/mission-keys";
@@ -143,6 +143,8 @@ export async function POST(req: Request) {
       ...(missoes !== undefined ? { missoes } : {}),
     };
     const { eventoId, slug } = await criarEvento(getPool(), input);
+
+    void recordProductEvent(getPool(), "event_created");
 
     console.log("admin.evento_criado", { accountId: auth.host.accountId, eventoId });
 

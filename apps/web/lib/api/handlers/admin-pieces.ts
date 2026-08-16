@@ -1,4 +1,4 @@
-import { comConta, comEvento, listarDesafios } from "@albora/db";
+import { comConta, comEvento, listarDesafios, recordProductEvent } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import {
   ALBORA_BRAND,
@@ -149,6 +149,9 @@ export async function GET(
         includeSvg: pedido.includeSvg,
       });
       if (resultado.problemas.length > 0) return invalidPiece(resultado.problemas, resultado.avisos);
+      
+      void recordProductEvent(getPool(), "qr_downloaded");
+      
       console.log("admin.pecas_zip", {
         accountId: auth.host.accountId,
         eventId,
@@ -167,6 +170,9 @@ export async function GET(
     if (pedido.tipo === "pdf") {
       const resultado = await generatePiecePdf(entrada);
       if (resultado.problemas.length > 0) return invalidPiece(resultado.problemas, resultado.avisos);
+      
+      void recordProductEvent(getPool(), "qr_downloaded");
+      
       console.log("admin.peca_gerada", {
         accountId: auth.host.accountId,
         eventId,
