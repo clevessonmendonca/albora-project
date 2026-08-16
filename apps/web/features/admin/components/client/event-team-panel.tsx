@@ -84,7 +84,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
 
       {loading && <div className="text-sm text-ink-3">Carregando...</div>}
 
-      {error && <div className="text-red-600 text-sm mt-2">{error}</div>}
+      {error && <p className="mt-2 text-sm text-critico">{error}</p>}
 
       {!loading && members.length > 0 && (
         <div className="mt-4 space-y-2">

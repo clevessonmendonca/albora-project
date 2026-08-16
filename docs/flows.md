@@ -65,9 +65,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ## F5 — Feed, álbum, missões, música, recado ✅
 
-**Feliz:** espelho vs social pelo gate; álbum por capítulos (incl. capítulo `confessionario` via `promptKey`); missões; música; recado.
-
-**Gap 🟡:** lightbox social no álbum (hoje: ver + denunciar; sem reações/comentários no lightbox).
+**Feliz:** espelho vs social pelo gate; álbum por capítulos (incl. capítulo `confessionario` via `promptKey`); missões; música; recado; lightbox com `PhotoInteraction` (estrela + comentários) quando `interacao=completo`.
 
 ---
 
@@ -97,9 +95,9 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ## F9 — Fornecedor ✅/🟡
 
-**Feliz:** lead sob consulta; `vendor_members` / `event_members.planner` no schema; Insights portfólio `/admin/vendor/insights`; ACL `COUPLE_HOST_ROLES` (ZIP, billing, identidade) vs `ANY_HOST_ROLES` (painel) via `requireHostEventRole`.
+**Feliz:** lead sob consulta; `vendor_members` / `event_members.planner` no schema; Insights portfólio `/admin/vendor/insights`; ACL `COUPLE_HOST_ROLES` (ZIP, billing, identidade) vs `ANY_HOST_ROLES` (painel) via `requireHostEventRole`; convite de equipe no admin (`GET`/`POST /api/admin/events/{id}/members` + painel Equipe).
 
-**Gap:** white-label; convite do casal.
+**Gap:** white-label.
 
 ---
 
@@ -121,9 +119,11 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Schema:** `event_members`, `platform_operators`, `product_events`, `analytics_snapshots`, `support_*`.
 
-**Jobs:** `tools/jobs/analytics-snapshots.mjs` materializa `analytics_snapshots` (event/live) — rodando.
+**Jobs:** `tools/jobs/analytics-snapshots.mjs` materializa `analytics_snapshots` (event/live) — rodando. Funil comercial dispara `account_created` / `event_created` / `qr_downloaded` / `checkout_started` / `checkout_paid`.
 
-**Gap:** KPIs cross-event básicos em `/ops/insights` (eventos com atividade, uploads, product_events, tickets); impersonação e agregador auditado completo ainda gap.
+**Código:** KPIs cross-event básicos em `/ops/insights` (eventos com atividade, uploads, product_events, tickets abertos — 7d).
+
+**Gap:** impersonação read-only e agregador auditado completo da plataforma.
 
 ---
 
@@ -131,10 +131,11 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ```
 Landing → magic link → wizard (± Asaas stub/webhook)
-       → /{slug} → /e/slug → capa → foto/feed/álbum/confessionário
-Admin → ao vivo / Insights / suporte
+       → /{slug} → /e/slug → capa → foto/feed/álbum(+lightbox social)/confessionário
+Admin → ao vivo / Equipe (convite) / Insights / suporte / Assinar Completo
 TV → wall-pair → telão
 Expo → parear → feed + câmera + drain
-Ops → support + KPIs + lookup por slug
+Ops → support + KPIs 7d + lookup por slug
 Jobs → retention +48h / D330 stub / D365 fail-closed · analytics-snapshots
+Product → landing_* + account/event/qr/checkout_*
 ```
