@@ -193,6 +193,7 @@ export {
   emitirStepUp,
   jobExportMaisRecente,
   jobExportPorId,
+  midiaParaCuradoria,
   VALIDADE_STEP_UP_MINUTOS,
 } from "./export-db";
 

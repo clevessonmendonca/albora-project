@@ -3,6 +3,8 @@ import type { Pool, PoolClient } from "pg";
 import { comConta, comEvento } from "./event";
 import { emitirToken, hashDoToken, assinaturaValida } from "./token";
 import { ErroMagicLinkInvalido } from "./host-auth";
+import { listarMidiaDoAlbum, janelaDoAlbum } from "./album-db";
+import { packDoEvento } from "./events";
 
 export type ItemDoExport = {
   id: string;
@@ -16,6 +18,7 @@ export type JobExport = {
   eventId: string;
   accountId: string;
   estado: "pronto" | "vazio" | "falhou";
+  modo: "full" | "curated";
   fotos: number;
   itens: ItemDoExport[];
   criadoEm: Date;
@@ -29,6 +32,7 @@ type LinhaJob = {
   event_id: string;
   account_id: string;
   state: "pronto" | "vazio" | "falhou";
+  mode: "full" | "curated" | null;
   photo_count: number;
   items: ItemDoExport[];
   created_at: Date;
@@ -104,6 +108,7 @@ export async function criarJobExport(
   pool: Pool,
   accountId: string,
   eventoId: string,
+  opts?: { curated?: boolean; curatedIds?: string[] },
 ): Promise<JobExport | null> {
   const pertence = await comConta(pool, accountId, async (c) => {
     const { rowCount } = await c.query("SELECT 1 FROM events WHERE id = $1", [eventoId]);
@@ -113,18 +118,30 @@ export async function criarJobExport(
 
   return comEvento(pool, eventoId, async (c) => {
     await c.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`export:${eventoId}`]);
-    const itens = await listarItensPublicados(c, eventoId);
+    const modo: "full" | "curated" = opts?.curated ? "curated" : "full";
+    const itens = opts?.curated && opts.curatedIds
+      ? await listarItensFiltrados(c, eventoId, opts.curatedIds)
+      : await listarItensPublicados(c, eventoId);
     const estado = itens.length === 0 ? "vazio" : "pronto";
     const agora = new Date();
 
     const { rows } = await c.query<LinhaJob>(
-      `INSERT INTO export_jobs (event_id, account_id, state, photo_count, items, ready_at)
-       VALUES ($1, $2, $3, $4, $5::jsonb, $6)
-       RETURNING id, event_id, account_id, state, photo_count, items, created_at, ready_at`,
-      [eventoId, accountId, estado, itens.length, JSON.stringify(itens), agora],
+      `INSERT INTO export_jobs (event_id, account_id, state, mode, photo_count, items, ready_at)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
+       RETURNING id, event_id, account_id, state, mode, photo_count, items, created_at, ready_at`,
+      [eventoId, accountId, estado, modo, itens.length, JSON.stringify(itens), agora],
     );
 
     return deLinha(rows[0]!);
+  });
+}
+
+export async function midiaParaCuradoria(pool: Pool, eventoId: string) {
+  return comEvento(pool, eventoId, async (c) => {
+    const midias = await listarMidiaDoAlbum(c, eventoId);
+    const janela = await janelaDoAlbum(c, eventoId);
+    const packId = await packDoEvento(c, eventoId);
+    return { midias, janela, packId };
   });
 }
 
@@ -132,6 +149,7 @@ export async function jobExportMaisRecente(
   pool: Pool,
   accountId: string,
   eventoId: string,
+  modo?: "full" | "curated",
 ): Promise<JobExport | null> {
   const pertence = await comConta(pool, accountId, async (c) => {
     const { rowCount } = await c.query("SELECT 1 FROM events WHERE id = $1", [eventoId]);
@@ -140,13 +158,15 @@ export async function jobExportMaisRecente(
   if (!pertence) return null;
 
   return comEvento(pool, eventoId, async (c) => {
+    const where = modo ? "WHERE event_id = $1 AND mode = $2" : "WHERE event_id = $1";
+    const params = modo ? [eventoId, modo] : [eventoId];
     const { rows } = await c.query<LinhaJob>(
-      `SELECT id, event_id, account_id, state, photo_count, items, created_at, ready_at
+      `SELECT id, event_id, account_id, state, mode, photo_count, items, created_at, ready_at
          FROM export_jobs
-        WHERE event_id = $1
+        ${where}
         ORDER BY created_at DESC, id DESC
         LIMIT 1`,
-      [eventoId],
+      params,
     );
     const linha = rows[0];
     return linha ? deLinha(linha) : null;
@@ -167,7 +187,7 @@ export async function jobExportPorId(
 
   return comEvento(pool, eventoId, async (c) => {
     const { rows } = await c.query<LinhaJob>(
-      `SELECT id, event_id, account_id, state, photo_count, items, created_at, ready_at
+      `SELECT id, event_id, account_id, state, mode, photo_count, items, created_at, ready_at
          FROM export_jobs
         WHERE id = $1 AND event_id = $2`,
       [jobId, eventoId],
@@ -200,6 +220,32 @@ async function listarItensPublicados(
     .map((l) => ({ id: l.id, chave: l.storage_key, mime: l.mime, bytes: l.bytes }));
 }
 
+async function listarItensFiltrados(
+  cliente: PoolClient,
+  eventoId: string,
+  uploadIds: string[],
+): Promise<ItemDoExport[]> {
+  if (uploadIds.length === 0) return [];
+
+  const { rows } = await cliente.query<LinhaUpload>(
+    `SELECT id, storage_key, mime, bytes, state
+       FROM uploads
+      WHERE event_id = $1 AND state = 'published' AND id = ANY($2)
+      ORDER BY created_at ASC, id ASC
+      LIMIT $3`,
+    [eventoId, uploadIds, TETO_DO_EXPORT],
+  );
+
+  return rows
+    .filter((l) =>
+      midiaExportavel(
+        { id: l.id, chave: l.storage_key, mime: l.mime, estado: l.state },
+        eventoId,
+      ),
+    )
+    .map((l) => ({ id: l.id, chave: l.storage_key, mime: l.mime, bytes: l.bytes }));
+}
+
 function deLinha(linha: LinhaJob): JobExport {
   const bruto = linha.items;
   const itens = Array.isArray(bruto) ? bruto : [];
@@ -208,6 +254,7 @@ function deLinha(linha: LinhaJob): JobExport {
     eventId: linha.event_id,
     accountId: linha.account_id,
     estado: linha.state,
+    modo: linha.mode ?? "full",
     fotos: linha.photo_count,
     itens,
     criadoEm: linha.created_at,
