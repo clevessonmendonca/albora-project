@@ -13,7 +13,15 @@ import {
   type EstadoExport,
 } from "@/features/admin/hooks/use-host-export";
 
-export function HostExport({ eventoId }: { eventoId: string }) {
+type ExportSectionProps = {
+  eventoId: string;
+  modo: "full" | "curated";
+  titulo: string;
+  descricao: string;
+  textoBotao: string;
+};
+
+function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: ExportSectionProps) {
   const [estado, setEstado] = useState<EstadoExport>(estadoInicial);
   const [busy, setBusy] = useState(false);
   const confirmou = useRef(false);
@@ -24,23 +32,24 @@ export function HostExport({ eventoId }: { eventoId: string }) {
   }, []);
 
   useEffect(() => {
-    void lerJob(eventoId).then((r) => {
+    void lerJob(eventoId, modo).then((r) => {
       if (r.ok) aplicarJob(r.job);
     });
-  }, [eventoId, aplicarJob]);
+  }, [eventoId, modo, aplicarJob]);
 
   useEffect(() => {
     const token = new URLSearchParams(window.location.search).get("exportar");
-    if (!token || confirmou.current) return;
+    const urlModo = new URLSearchParams(window.location.search).get("modo");
+    if (!token || confirmou.current || (urlModo && urlModo !== modo)) return;
     confirmou.current = true;
     setBusy(true);
-    void abrirJob(eventoId, token)
+    void abrirJob(eventoId, token, modo === "curated")
       .then((r) => {
         if (!r.ok) setEstado({ fase: "erro" });
         else aplicarJob(r.job);
       })
       .finally(() => setBusy(false));
-  }, [eventoId, aplicarJob]);
+  }, [eventoId, modo, aplicarJob]);
 
   const pedir = async () => {
     setBusy(true);
@@ -58,7 +67,7 @@ export function HostExport({ eventoId }: { eventoId: string }) {
     const token = tokenDoLink(link);
     if (!token) return;
     setBusy(true);
-    const r = await abrirJob(eventoId, token);
+    const r = await abrirJob(eventoId, token, modo === "curated");
     setBusy(false);
     if (!r.ok) setEstado({ fase: "erro" });
     else aplicarJob(r.job);
@@ -68,11 +77,8 @@ export function HostExport({ eventoId }: { eventoId: string }) {
     <AdminSection>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="mb-2 mt-0 font-titulo text-lg">Baixar tudo</h2>
-          <p className="mb-0 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
-            As fotos publicadas da noite, num ZIP. Confirma no e-mail antes — a sessão
-            aberta não basta.
-          </p>
+          <h2 className="mb-2 mt-0 font-titulo text-lg">{titulo}</h2>
+          <p className="mb-0 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">{descricao}</p>
         </div>
         {estado.fase !== "pronto" && (
           <button
@@ -81,7 +87,7 @@ export function HostExport({ eventoId }: { eventoId: string }) {
             onClick={() => void pedir()}
             className={`${adminClasses.secondaryButton} shrink-0 ${busy ? "cursor-wait opacity-60" : ""}`}
           >
-            {busy ? "Aguarde…" : "Baixar tudo"}
+            {busy ? "Aguarde…" : textoBotao}
           </button>
         )}
         {estado.fase === "pronto" && estado.job.baixar && (
@@ -120,5 +126,26 @@ export function HostExport({ eventoId }: { eventoId: string }) {
         <p className="mb-0 mt-4 text-[0.9rem] text-critico">Não foi possível baixar agora. Tente de novo.</p>
       )}
     </AdminSection>
+  );
+}
+
+export function HostExport({ eventoId }: { eventoId: string }) {
+  return (
+    <>
+      <ExportSection
+        eventoId={eventoId}
+        modo="full"
+        titulo="Baixar tudo"
+        descricao="As fotos publicadas da noite, num ZIP. Confirma no e-mail antes — a sessão aberta não basta."
+        textoBotao="Baixar tudo"
+      />
+      <ExportSection
+        eventoId={eventoId}
+        modo="curated"
+        titulo="Álbum curado"
+        descricao="Seleção automática (sem rajadas) · até ~60 páginas · mesmo step-up"
+        textoBotao="Baixar curado"
+      />
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import { nomeDoArquivoZip, podeBaixarZip } from "@albora/core";
+import { nomeDoArquivoZip, podeBaixarZip, resolver, selecionarParaAlbum, planejarCapitulos, TETO_DE_PAGINAS_PADRAO } from "@albora/core";
 import {
   comEvento,
   consumirStepUp,
@@ -7,10 +7,12 @@ import {
   ErroMagicLinkInvalido,
   jobExportMaisRecente,
   jobExportPorId,
+  midiaParaCuradoria,
   planoDoEvento,
   VALIDADE_STEP_UP_MINUTOS,
   type JobExport,
 } from "@albora/db";
+import { PACKS } from "@albora/packs";
 import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
@@ -32,7 +34,7 @@ import { streamObject } from "@/lib/r2";
 
 export const dynamic = "force-dynamic";
 
-type CreateBody = { token?: unknown };
+type CreateBody = { token?: unknown; curated?: unknown };
 
 async function requireOwnedEvent(req: Request, eventId: string) {
   const cfgErr = requireConfig("admin", { mediaOrigin: true });
@@ -55,6 +57,7 @@ function telaDoJob(eventId: string, job: JobExport) {
   return {
     id: job.id,
     estado: job.estado,
+    modo: job.modo,
     fotos: job.fotos,
     criadoEm: job.criadoEm.toISOString(),
     baixar: job.estado === "pronto" ? `/api/admin/events/${eventId}/export/arquivo?job=${job.id}` : null,
@@ -133,6 +136,7 @@ export async function postExport(
   const parsed = await parseJsonBody<CreateBody>(req);
   if (parsed instanceof Response) return parsed;
   const token = typeof parsed.data.token === "string" ? parsed.data.token : "";
+  const curated = parsed.data.curated === true;
   if (!token) {
     return errorResponse(422, "validation_error", "Confirme o download", { campos: ["token"] });
   }
@@ -147,10 +151,43 @@ export async function postExport(
   }
 
   try {
-    const job = await criarJobExport(getPool(), auth.host.accountId, eventId);
+    let curatedIds: string[] | undefined;
+    if (curated) {
+      const data = await midiaParaCuradoria(getPool(), eventId);
+      if (data.janela && data.midias.length > 0) {
+        const pack = data.packId ? PACKS[data.packId] : undefined;
+        const plano = {
+          janela: {
+            comecaEm: data.janela.comecaEm,
+            terminaEm: data.janela.terminaEm,
+            offsetMinutos: data.janela.offsetMinutos,
+          },
+          capitulos: planejarCapitulos(
+            {
+              comecaEm: data.janela.comecaEm,
+              terminaEm: data.janela.terminaEm,
+              offsetMinutos: data.janela.offsetMinutos,
+            },
+            pack?.momentos?.map((m) => m.id) ?? [],
+          ),
+          tetoDePaginas: TETO_DE_PAGINAS_PADRAO,
+        };
+        const resolvidas = resolver(data.midias, plano);
+        const selecao = selecionarParaAlbum(resolvidas, plano);
+        curatedIds = selecao.mantidas.map((m) => m.id);
+      }
+    }
+
+    const opts = curated && curatedIds ? { curated, curatedIds } : curated ? { curated } : undefined;
+    const job = await criarJobExport(getPool(), auth.host.accountId, eventId, opts);
     if (!job) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
 
-    console.log("admin.export.job", { accountId: auth.host.accountId, fotos: job.fotos, estado: job.estado });
+    console.log("admin.export.job", {
+      accountId: auth.host.accountId,
+      modo: job.modo,
+      fotos: job.fotos,
+      estado: job.estado,
+    });
 
     if (job.estado === "pronto") {
       const origin = new URL(req.url).origin;
@@ -188,7 +225,11 @@ export async function getExport(
   }
 
   try {
-    const job = await jobExportMaisRecente(getPool(), auth.host.accountId, eventId);
+    const url = new URL(req.url);
+    const modoParam = url.searchParams.get("modo");
+    const modo: "full" | "curated" | undefined =
+      modoParam === "curated" ? "curated" : modoParam === "full" ? "full" : undefined;
+    const job = await jobExportMaisRecente(getPool(), auth.host.accountId, eventId, modo);
     return jsonOk({ job: job ? telaDoJob(eventId, job) : null });
   } catch (e) {
     return unexpectedError("admin.export", e);

@@ -11,6 +11,7 @@ import {
 const JOB = {
   id: "11111111-2222-3333-4444-555555555555",
   estado: "pronto" as const,
+  modo: "full" as const,
   fotos: 3,
   criadoEm: "2026-08-15T20:00:00.000Z",
   baixar: "/api/admin/events/aaa/export/arquivo?job=11111111-2222-3333-4444-555555555555",

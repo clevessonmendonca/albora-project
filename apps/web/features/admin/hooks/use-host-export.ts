@@ -1,6 +1,7 @@
 export type JobNaTela = {
   id: string;
   estado: "pronto" | "vazio" | "falhou";
+  modo: "full" | "curated";
   fotos: number;
   criadoEm: string;
   baixar: string | null;
@@ -37,13 +38,14 @@ export async function pedirConfirmacao(eventoId: string): Promise<
 export async function abrirJob(
   eventoId: string,
   token: string,
+  curated?: boolean,
 ): Promise<{ ok: true; job: JobNaTela } | { ok: false }> {
   try {
     const res = await fetch(`/api/admin/events/${eventoId}/export`, {
       method: "POST",
       credentials: "same-origin",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ token }),
+      body: JSON.stringify({ token, curated }),
     });
     if (!res.ok) return { ok: false };
     const corpo = (await res.json()) as { job?: JobNaTela };
@@ -54,9 +56,13 @@ export async function abrirJob(
   }
 }
 
-export async function lerJob(eventoId: string): Promise<{ ok: true; job: JobNaTela | null } | { ok: false }> {
+export async function lerJob(
+  eventoId: string,
+  modo?: "full" | "curated",
+): Promise<{ ok: true; job: JobNaTela | null } | { ok: false }> {
   try {
-    const res = await fetch(`/api/admin/events/${eventoId}/export`, { credentials: "same-origin" });
+    const url = modo ? `/api/admin/events/${eventoId}/export?modo=${modo}` : `/api/admin/events/${eventoId}/export`;
+    const res = await fetch(url, { credentials: "same-origin" });
     if (!res.ok) return { ok: false };
     const corpo = (await res.json()) as { job?: JobNaTela | null };
     return { ok: true, job: corpo.job ?? null };
