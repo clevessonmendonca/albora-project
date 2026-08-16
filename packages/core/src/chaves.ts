@@ -47,3 +47,20 @@ export function chaveThumbDeFull(chaveFull: string): string {
   }
   return `${chaveFull}/thumb`;
 }
+
+/**
+ * ZIP do acervo (spec 016). Mora ao lado da mídia do convidado, mas fora do
+ * conjunto que a rota de leitura do feed assina — `export/` não é `full` nem
+ * `thumb`, e o lote de URLs do convidado recusa essa forma de propósito.
+ */
+export function derivarChaveExport(eventoId: string, jobId: string): string {
+  return `events/${eventoId}/export/${jobId}.zip`;
+}
+
+export function chaveExportValida(eventoId: string, chave: string): boolean {
+  if (!UUID_RE.test(eventoId)) return false;
+  const prefixo = `events/${eventoId}/export/`;
+  if (!chave.startsWith(prefixo) || !chave.endsWith(".zip")) return false;
+  const jobId = chave.slice(prefixo.length, -".zip".length);
+  return UUID_RE.test(jobId) && !jobId.includes("/");
+}

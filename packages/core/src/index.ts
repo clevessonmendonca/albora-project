@@ -35,6 +35,17 @@ export type { Preset } from "./presets";
 export { aplicarPorPixel, ordenarComRecomendado, preset, PRESETS, TETO_POR_PIXEL_MS } from "./presets";
 
 export { chaveThumbDeFull, derivarChaveMidia, derivarChaveRecado, chaveRecadoValida, prefixoDoEvento } from "./chaves";
+export { chaveExportValida, derivarChaveExport } from "./chaves";
+export type { EstadoDoExport, ItemDoAcervo } from "./acervo-export";
+export {
+  ACAO_EXPORT_ACERVO,
+  TETO_DO_EXPORT,
+  midiaExportavel,
+  nomeDoArquivoZip,
+  nomeNoZip,
+} from "./acervo-export";
+export type { ZipStoreEntry } from "./zip-store";
+export { crc32Update, zipStore } from "./zip-store";
 
 export type { ErroMidia, TipoAceito, TipoEntrada, TipoVideo } from "./midia";
 export {
@@ -524,6 +535,16 @@ export { validarRascunho as validateGuestbookDraft } from "./guestbook";
 export { derivarChaveRecado as deriveGuestbookAudioKey } from "./chaves";
 /** English alias — prefer for new code. @see chaveRecadoValida */
 export { chaveRecadoValida as isGuestbookAudioKey } from "./chaves";
+/** English alias — prefer for new code. @see derivarChaveExport */
+export { derivarChaveExport as deriveExportKey } from "./chaves";
+/** English alias — prefer for new code. @see chaveExportValida */
+export { chaveExportValida as isExportKey } from "./chaves";
+/** English alias — prefer for new code. @see midiaExportavel */
+export { midiaExportavel as isExportableMedia } from "./acervo-export";
+/** English alias — prefer for new code. @see nomeNoZip */
+export { nomeNoZip as zipEntryName } from "./acervo-export";
+/** English alias — prefer for new code. @see nomeDoArquivoZip */
+export { nomeDoArquivoZip as zipDownloadName } from "./acervo-export";
 
 export type { ErroAudioRecado, TipoAudioRecado } from "./guestbook-audio";
 export {
