@@ -1,4 +1,5 @@
-import { autorizarPareamento, ErroAutorizacaoDePareamento } from "@albora/db";
+import { podeUsarTelao } from "@albora/core";
+import { autorizarPareamento, comEvento, ErroAutorizacaoDePareamento, planoDoEvento } from "@albora/db";
 import {
   errorResponse,
   jsonOk,
@@ -22,6 +23,8 @@ type Body = { codigo?: unknown };
  * Convidado ou anfitrião serve — o crachá que sai daqui só lê o que já é
  * público, e ninguém sobe foto por ele. Sem sessão, 401: não dá para ligar o
  * telão de um evento em que você não entrou.
+ *
+ * Plano grátis: recusa aqui (TV / quem autoriza), nunca paywall na pista.
  */
 export async function POST(req: Request) {
   const auth = await requireGuestSession(req, "Entre no evento antes de ligar o telão");
@@ -44,6 +47,17 @@ export async function POST(req: Request) {
   }
 
   try {
+    const plan = await comEvento(getPool(), auth.session.eventoId, (c) =>
+      planoDoEvento(c, auth.session.eventoId),
+    );
+    if (!podeUsarTelao(plan)) {
+      return errorResponse(
+        403,
+        "plano.telao",
+        "O telão entra no plano Completo. No painel do anfitrião dá para subir de plano sem travar a festa.",
+      );
+    }
+
     await autorizarPareamento(
       getPool(),
       codigo,

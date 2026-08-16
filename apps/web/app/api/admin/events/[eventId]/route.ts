@@ -1,5 +1,6 @@
 import {
   abrirInteracaoDoEvento,
+  agendarInteracaoDoEvento,
   atualizarModeracaoDoEvento,
   comEvento,
   lerMetricasAoVivo,
@@ -30,11 +31,21 @@ type Corpo = {
   haMenores?: unknown;
   modoEndurecido?: unknown;
   abrirInteracao?: unknown;
+  /** ISO-8601 ou `null` para fechar o gate de novo. */
+  interacaoAbreEm?: unknown;
 };
 
 function comoBooleano(v: unknown): boolean | undefined {
   if (typeof v === "boolean") return v;
   return undefined;
+}
+
+function comoAbertura(v: unknown): Date | null | undefined {
+  if (v === null) return null;
+  if (typeof v !== "string" || v.trim() === "") return undefined;
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d;
 }
 
 /** Painel ao vivo: participação, fotos e fila de revisão (spec 009). */
@@ -128,15 +139,28 @@ export async function PATCH(
   const haMenores = comoBooleano(corpo.haMenores);
   const modoEndurecido = comoBooleano(corpo.modoEndurecido);
   const abrirInteracao = comoBooleano(corpo.abrirInteracao);
+  const interacaoAbreEm =
+    corpo.interacaoAbreEm !== undefined ? comoAbertura(corpo.interacaoAbreEm) : undefined;
+
+  if (
+    corpo.interacaoAbreEm !== undefined &&
+    interacaoAbreEm === undefined &&
+    corpo.interacaoAbreEm !== null
+  ) {
+    return errorResponse(422, "validation_error", "Horário inválido", {
+      campos: ["interacaoAbreEm"],
+    });
+  }
 
   if (
     panico === undefined &&
     haMenores === undefined &&
     modoEndurecido === undefined &&
-    abrirInteracao === undefined
+    abrirInteracao === undefined &&
+    interacaoAbreEm === undefined
   ) {
     return errorResponse(422, "validation_error", "Nada para atualizar", {
-      campos: ["panico", "haMenores", "modoEndurecido", "abrirInteracao"],
+      campos: ["panico", "haMenores", "modoEndurecido", "abrirInteracao", "interacaoAbreEm"],
     });
   }
 
@@ -149,6 +173,13 @@ export async function PATCH(
 
     if (abrirInteracao === true) {
       evento = await abrirInteracaoDoEvento(getPool(), auth.host.accountId, eventId);
+    } else if (interacaoAbreEm !== undefined) {
+      evento = await agendarInteracaoDoEvento(
+        getPool(),
+        auth.host.accountId,
+        eventId,
+        interacaoAbreEm,
+      );
     }
 
     if (!evento) {

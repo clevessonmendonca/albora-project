@@ -104,8 +104,8 @@ async function semear() {
   );
 
   const { rows: evento } = await pool.query(
-    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, interaction_opens_at, recommended_filter)
-     VALUES ($1, 'casamento', $2, now() - interval '1 hour', now() + interval '6 hours', now() + interval '2 hours', $3)
+    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, interaction_opens_at, recommended_filter, plan)
+     VALUES ($1, 'casamento', $2, now() - interval '1 hour', now() + interval '6 hours', now() + interval '2 hours', $3, 'celebration')
      RETURNING id`,
     [conta[0].id, SLUG, FILTRO_RECOMENDADO],
   );

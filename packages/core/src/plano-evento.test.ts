@@ -3,7 +3,9 @@ import {
   limiteVideosPorConvidado,
   parsePlanoDoEvento,
   planoParaRedimensionamento,
+  podeBaixarZip,
   podeEnviarVideo,
+  podeUsarTelao,
 } from "./plano-evento";
 
 describe("plano-evento", () => {
@@ -28,5 +30,12 @@ describe("plano-evento", () => {
   it("parse desconhecido cai em free", () => {
     expect(parsePlanoDoEvento("x")).toBe("free");
     expect(parsePlanoDoEvento("vendor")).toBe("vendor");
+  });
+
+  it("telão e ZIP só nos planos pagos", () => {
+    expect(podeUsarTelao("free")).toBe(false);
+    expect(podeBaixarZip("free")).toBe(false);
+    expect(podeUsarTelao("celebration")).toBe(true);
+    expect(podeBaixarZip("vendor")).toBe(true);
   });
 });

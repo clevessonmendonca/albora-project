@@ -4,6 +4,8 @@ export type CoverMoment = {
   id: string;
   title: string;
   missionFilterId: string | null;
+  /** Miniatura real do álbum quando existir; senão a capa usa Frame. */
+  thumbUrl: string | null;
 };
 
 export type CoverData = {

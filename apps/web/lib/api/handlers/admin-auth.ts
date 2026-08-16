@@ -19,6 +19,7 @@ import {
 } from "@/lib/api";
 import { config } from "@/lib/config";
 import { getPool } from "@/lib/db";
+import { sendHostEmail } from "@/lib/email";
 import { consume } from "@/lib/rate-limit-store";
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -62,6 +63,20 @@ export async function postSignIn(req: Request) {
     const expiresAt = new Date(Date.now() + VALIDADE_MAGIC_LINK_MINUTOS * 60 * 1000);
     const { token } = await emitirMagicLink(getPool(), config().sessionSecret, email, expiresAt);
     const link = `${new URL(req.url).origin}/admin/sign-in?m=${token}`;
+
+    // Fora do caminho crítico de sábado: falha de e-mail não revela se a conta
+    // existe. Em dev devolvemos o link para o anfitrião clicar sem Resend.
+    void sendHostEmail({
+      to: email,
+      subject: "Seu link para entrar na Albora",
+      text: [
+        "Para entrar no painel, abra este link (válido por poucos minutos):",
+        "",
+        link,
+        "",
+        "Se você não pediu isso, ignore este e-mail.",
+      ].join("\n"),
+    });
 
     console.log("admin.magic_link_emitido", {});
 

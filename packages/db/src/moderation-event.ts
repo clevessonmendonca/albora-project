@@ -176,6 +176,31 @@ export async function abrirInteracaoDoEvento(
 }
 
 /**
+ * Agenda (ou reabre) o gate para um instante. `null` fecha de novo.
+ * Instantes no passado equivalem a "aberto agora".
+ */
+export async function agendarInteracaoDoEvento(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+  abreEm: Date | null,
+): Promise<EventoDoHost | null> {
+  return comConta(pool, accountId, async (c) => {
+    const { rowCount } = await c.query(
+      `UPDATE events SET interaction_opens_at = $2 WHERE id = $1`,
+      [eventoId, abreEm],
+    );
+    if (!rowCount) return null;
+
+    const { rows } = await c.query<LinhaCompleta>(
+      `SELECT ${COLUNAS} FROM events WHERE id = $1`,
+      [eventoId],
+    );
+    return rows[0] ? mapEvento(rows[0]) : null;
+  });
+}
+
+/**
  * Alterna o pânico do evento (spec 011).
  *
  * Usado pelo crachá da parede: quem está no salão pausa a exibição sem abrir

@@ -26,10 +26,12 @@ export async function getCover(input: CoverInput): Promise<CoverData> {
 
   const pack = packId ? PACKS[packId] : undefined;
   const musicLabel = chosen ? exibirMusica(chosen.link, chosen.metadado).rotulo : null;
-  const moments = (pack?.momentos ?? []).slice(0, 5).map((m) => ({
+  const thumbs = albumThumbs(album, 5);
+  const moments = (pack?.momentos ?? []).slice(0, 5).map((m, i) => ({
     id: m.id,
     title: pack ? resolvePackText(pack, m.chaveTitulo) : m.id,
     missionFilterId: missionForMoment(pack, m.id, challenges),
+    thumbUrl: thumbs[i] ?? null,
   }));
 
   return {
@@ -42,4 +44,19 @@ export async function getCover(input: CoverInput): Promise<CoverData> {
     musicLabel,
     hostMessageLabel: pack ? resolvePackText(pack, "recado.rotulo") : "Um recado",
   };
+}
+
+function albumThumbs(album: Awaited<ReturnType<typeof montarAlbumServido>>, max: number): string[] {
+  const out: string[] = [];
+  for (const capitulo of album.capitulos) {
+    for (const pagina of capitulo.paginas) {
+      for (const foto of pagina.fotos) {
+        if (foto.url) {
+          out.push(foto.url);
+          if (out.length >= max) return out;
+        }
+      }
+    }
+  }
+  return out;
 }

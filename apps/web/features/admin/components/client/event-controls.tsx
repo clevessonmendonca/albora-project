@@ -54,18 +54,30 @@ export function EventControls({
     new Date(),
   );
 
-  const patch = async (body: Record<string, boolean>, field: NonNullable<SavingField>) => {
+  const patch = async (
+    body: Record<string, boolean | string | null>,
+    field: NonNullable<SavingField>,
+  ) => {
     setSaving(field);
     setError(false);
     const previousModeration = moderation;
     const previousGate = interactionOpensAt;
 
-    if ("panico" in body) setModeration((m) => ({ ...m, panic: body.panico! }));
-    if ("haMenores" in body) setModeration((m) => ({ ...m, hasMinors: body.haMenores! }));
-    if ("modoEndurecido" in body) {
-      setModeration((m) => ({ ...m, hardened: body.modoEndurecido! }));
+    if ("panico" in body && typeof body.panico === "boolean") {
+      setModeration((m) => ({ ...m, panic: body.panico as boolean }));
     }
-    if (body.abrirInteracao) setInteractionOpensAt(new Date().toISOString());
+    if ("haMenores" in body && typeof body.haMenores === "boolean") {
+      setModeration((m) => ({ ...m, hasMinors: body.haMenores as boolean }));
+    }
+    if ("modoEndurecido" in body && typeof body.modoEndurecido === "boolean") {
+      setModeration((m) => ({ ...m, hardened: body.modoEndurecido as boolean }));
+    }
+    if (body.abrirInteracao === true) setInteractionOpensAt(new Date().toISOString());
+    if ("interacaoAbreEm" in body) {
+      setInteractionOpensAt(
+        typeof body.interacaoAbreEm === "string" ? body.interacaoAbreEm : null,
+      );
+    }
 
     try {
       const r = await fetch(`/api/admin/events/${eventId}`, {
@@ -173,6 +185,7 @@ export function EventControls({
         <h2 className="mb-3 mt-0 font-titulo text-lg">Interação social</h2>
         <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
           Reações e comentários no feed só aparecem depois que o casal liberar.
+          Sem horário, o gate fica fechado.
         </p>
         {gateOpen ? (
           <p className="m-0 text-[0.9rem] text-ink">
@@ -187,17 +200,45 @@ export function EventControls({
               : "—"}
           </p>
         ) : (
+          <div className="flex flex-col gap-3">
+            <button
+              type="button"
+              disabled={saving === "interaction"}
+              onClick={() => void patch({ abrirInteracao: true }, "interaction")}
+              className={`${adminClasses.primaryButton} ${
+                saving === "interaction" ? "opacity-60" : ""
+              }`}
+            >
+              {saving === "interaction" ? "Abrindo…" : "Abrir interação agora"}
+            </button>
+            <label className="flex flex-col gap-1.5 text-sm text-ink-2">
+              Ou agendar
+              <input
+                type="datetime-local"
+                disabled={saving === "interaction"}
+                className="rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (!value) return;
+                  const iso = new Date(value).toISOString();
+                  void patch({ interacaoAbreEm: iso }, "interaction");
+                }}
+              />
+            </label>
+          </div>
+        )}
+        {gateOpen || interactionOpensAt ? (
           <button
             type="button"
             disabled={saving === "interaction"}
-            onClick={() => void patch({ abrirInteracao: true }, "interaction")}
-            className={`${adminClasses.primaryButton} ${
+            onClick={() => void patch({ interacaoAbreEm: null }, "interaction")}
+            className={`${adminClasses.secondaryButton} mt-3 ${
               saving === "interaction" ? "opacity-60" : ""
             }`}
           >
-            {saving === "interaction" ? "Abrindo…" : "Abrir interação agora"}
+            Fechar interação
           </button>
-        )}
+        ) : null}
       </AdminSection>
 
       <AdminSection>

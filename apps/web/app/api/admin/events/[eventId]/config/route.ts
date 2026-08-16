@@ -12,6 +12,7 @@ import {
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
+import { wallModelsChoiceError } from "@/features/admin/lib/wall-models";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ type Corpo = {
   expectedGuests?: unknown;
   timezone?: unknown;
   identityTokens?: unknown;
+  telaoModelos?: unknown;
 };
 
 export async function GET(
@@ -104,7 +106,16 @@ export async function PATCH(
     ) {
       return errorResponse(422, "validation_error", "Identidade inválida", { campos: ["identityTokens"] });
     }
-    atualizacao.identityTokens = corpo.identityTokens as Record<string, unknown>;
+    const tokens = corpo.identityTokens as Record<string, unknown>;
+    if (tokens.telaoModelos !== undefined) {
+      const wallErr = wallModelsChoiceError(tokens.telaoModelos);
+      if (wallErr) {
+        return errorResponse(422, "validation_error", wallErr.join(" "), {
+          campos: ["identityTokens"],
+        });
+      }
+    }
+    atualizacao.identityTokens = tokens;
   }
 
   if (Object.keys(atualizacao).length === 0) {

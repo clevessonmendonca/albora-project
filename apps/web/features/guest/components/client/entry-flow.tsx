@@ -105,7 +105,7 @@ export function EntryFlow({
 
   return (
     <GuestShell>
-      <link rel="manifest" href="/manifest.webmanifest" />
+      <link rel="manifest" href={`/e/${encodeURIComponent(slug)}/manifest.webmanifest`} />
 
       {etapa === "recusou" ? (
         <EntryColumn>

@@ -74,7 +74,9 @@ export {
   limiteVideosPorConvidado,
   parsePlanoDoEvento,
   planoParaRedimensionamento,
+  podeBaixarZip,
   podeEnviarVideo,
+  podeUsarTelao,
   VIDEOS_POR_CONVIDADO,
 } from "./plano-evento";
 

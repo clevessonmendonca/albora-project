@@ -131,6 +131,7 @@ export type {
 } from "./moderation-event";
 export {
   abrirInteracaoDoEvento,
+  agendarInteracaoDoEvento,
   alternarPanicoDoEvento,
   atualizarModeracaoDoEvento,
   buscarEventoDoHost,

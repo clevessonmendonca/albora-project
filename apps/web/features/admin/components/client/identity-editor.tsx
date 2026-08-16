@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  WALL_DISPLAY_MODELS,
+  wallDisplayChoiceProblems,
+  type WallDisplayModel,
+} from "@albora/core";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
 import { IDENTITY_MODELS } from "@albora/tokens";
 import { useMemo, useState } from "react";
@@ -8,6 +13,7 @@ import {
   presetSwatchProps,
   resolveIdentityPreviewVars,
 } from "@/features/admin/lib/identity-preview";
+import { wallModelsFromTokens } from "@/features/admin/lib/wall-models";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { TimezoneField } from "@/features/admin/components/client/timezone-field";
 
@@ -35,19 +41,24 @@ export function IdentityEditor({
   const [presetId, setPresetId] = useState(initialPreset);
   const [expectedGuests, setExpectedGuests] = useState(String(initialExpectedGuests));
   const [timezone, setTimezone] = useState(initialTimezone);
+  const [wallModels, setWallModels] = useState<Set<WallDisplayModel>>(
+    () => new Set(wallModelsFromTokens(initialIdentityTokens)),
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const preset = IDENTITY_MODELS.find((m) => m.id === presetId) ?? IDENTITY_MODELS[0]!;
+  const wallProblems = wallDisplayChoiceProblems([...wallModels]);
 
   const identityTokens = useMemo(() => {
     return {
       ...initialIdentityTokens,
       presetId: preset.id,
       ...preset.camada,
+      telaoModelos: [...wallModels],
     };
-  }, [initialIdentityTokens, preset]);
+  }, [initialIdentityTokens, preset, wallModels]);
 
   const previewVars = useMemo(() => {
     if (!pack) return {};
@@ -55,9 +66,10 @@ export function IdentityEditor({
   }, [pack, identityTokens]);
 
   const guestsValid = Number(expectedGuests) > 0 && Number.isFinite(Number(expectedGuests));
+  const canSave = guestsValid && wallProblems.length === 0;
 
   const save = async () => {
-    if (!guestsValid) return;
+    if (!canSave) return;
     setSaving(true);
     setError(false);
     setSaved(false);
@@ -150,13 +162,50 @@ export function IdentityEditor({
           </div>
         </div>
 
+        <div className="mt-8">
+          <h2 className="mb-2 mt-0 font-titulo text-lg">Modelos da parede</h2>
+          <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
+            Marque os modelos que entram no rodízio da parede. Vale na próxima foto que subir.
+          </p>
+          {wallProblems.length > 0 && (
+            <p className="mb-3 mt-0 text-sm text-critico">{wallProblems.join(" ")}</p>
+          )}
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2">
+            {WALL_DISPLAY_MODELS.map((model) => {
+              const selected = wallModels.has(model);
+              return (
+                <button
+                  key={model}
+                  type="button"
+                  onClick={() => {
+                    setWallModels((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(model)) next.delete(model);
+                      else next.add(model);
+                      return next;
+                    });
+                    setSaved(false);
+                  }}
+                  className={`cursor-pointer rounded-token p-3 font-titulo text-sm ${
+                    selected
+                      ? "border-2 border-acento bg-superficie-alta"
+                      : "border border-linha bg-bg"
+                  }`}
+                >
+                  {model}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <div className="mt-6 flex items-center gap-4">
           <button
             type="button"
-            disabled={!guestsValid || saving}
+            disabled={!canSave || saving}
             onClick={() => void save()}
             className={`${adminClasses.primaryButton} ${
-              !guestsValid || saving ? "opacity-60" : ""
+              !canSave || saving ? "opacity-60" : ""
             }`}
           >
             {saving ? "Salvando…" : "Salvar identidade"}

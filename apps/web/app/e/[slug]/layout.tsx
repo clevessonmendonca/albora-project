@@ -22,6 +22,7 @@ export default async function Layout({
 
   return (
     <div style={vars}>
+      <link rel="manifest" href={`/e/${encodeURIComponent(slug)}/manifest.webmanifest`} />
       {withSession && <GlobalQueue eventoId={session.eventoId} />}
       {children}
     </div>

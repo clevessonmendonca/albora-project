@@ -30,6 +30,16 @@ export function planoParaRedimensionamento(plano: PlanoDoEvento): Plan {
   return plano === "free" ? "gratis" : "pago";
 }
 
+/** Telão ao vivo é gate do Completo / Fornecedor — nunca fricção no convidado. */
+export function podeUsarTelao(plano: PlanoDoEvento): boolean {
+  return plano !== "free";
+}
+
+/** ZIP do acervo só nos planos pagos (doc de produto §5.2). */
+export function podeBaixarZip(plano: PlanoDoEvento): boolean {
+  return plano !== "free";
+}
+
 export function parsePlanoDoEvento(valor: unknown): PlanoDoEvento {
   if (valor === "celebration" || valor === "vendor") return valor;
   return "free";

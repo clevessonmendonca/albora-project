@@ -38,6 +38,13 @@ const WIDTH = "max-w-[78rem]";
 const SIDE_PADDING = "px-[clamp(1.125rem,4vw,2.75rem)]";
 const SECTION_PADDING = `py-[clamp(2.5rem,6vw,5.5rem)] ${SIDE_PADDING}`;
 
+/** Montar é grátis — Completo sobe de plano depois de criar o evento. */
+const HREF_CRIAR_GRATIS = "/admin/sign-in?next=/admin/new&plano=free";
+const HREF_CRIAR_COMPLETO = "/admin/sign-in?next=/admin/new&plano=celebration";
+const HREF_FORNECEDOR =
+  "mailto:ola@albora.app?subject=Albora%20Fornecedor&body=Quero%20saber%20do%20plano%20Fornecedor.";
+const HREF_DEMO = "/e/festa-demo?via=link";
+
 const STEPS = [
   {
     title: "Ele aponta a câmera, e pronto",
@@ -205,7 +212,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
           </a>
         </nav>
 
-        <a href="#planos" className={cn(pillClasses, "px-[1.375rem] py-[0.6875rem] text-sm")}>
+        <a href={HREF_CRIAR_GRATIS} className={cn(pillClasses, "px-[1.375rem] py-[0.6875rem] text-sm")}>
           {t("landing.cta")}
         </a>
       </header>
@@ -230,7 +237,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
               </p>
 
               <div className="mt-[2.125rem] flex flex-wrap gap-3">
-                <a href="#planos" className={pillClasses}>
+                <a href={HREF_CRIAR_GRATIS} className={pillClasses}>
                   {t("landing.cta")}
                 </a>
                 <a href="#momentos" className={lightPillClasses}>
@@ -244,6 +251,10 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
               <p className="m-0 mt-3 text-[0.84375rem]">
                 <a href="/scan" className="text-ink-3 underline">
                   Já tem o QR da festa? Escanear ou colar o link
+                </a>
+                {" · "}
+                <a href={HREF_DEMO} className="text-ink-3 underline">
+                  Abrir a demo
                 </a>
               </p>
             </div>
@@ -481,6 +492,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
                 "Álbum por 30 dias",
               ],
               cta: "Criar álbum grátis",
+              href: HREF_CRIAR_GRATIS,
               featured: false,
             },
             {
@@ -495,6 +507,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
                 "12 meses, com exportação para a sua nuvem",
               ],
               cta: t("landing.cta"),
+              href: HREF_CRIAR_COMPLETO,
               featured: true,
             },
             {
@@ -507,6 +520,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
                 "Zero operação no dia da festa",
               ],
               cta: "Falar com a gente",
+              href: HREF_FORNECEDOR,
               featured: false,
             },
           ].map((plan) => (
@@ -541,7 +555,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
               </ul>
 
               <a
-                href="#"
+                href={plan.href}
                 className={cn(
                   plan.featured ? pillClasses : lightPillClasses,
                   !plan.featured && "bg-acento-superficie-suave",
@@ -585,10 +599,10 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
               {t("landing.fechamento")} <Accent>{t("landing.fechamento.destaque")}</Accent>
             </Heading>
             <div className="mt-9 flex flex-wrap justify-center gap-3">
-              <a href="#planos" className={pillClasses}>
+              <a href={HREF_CRIAR_GRATIS} className={pillClasses}>
                 {t("landing.cta")}
               </a>
-              <a href="#planos" className={lightPillClasses}>
+              <a href={HREF_FORNECEDOR} className={lightPillClasses}>
                 Sou cerimonialista
               </a>
             </div>
@@ -615,7 +629,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
           Montar é grátis. Leva 3 minutos.
         </span>
         <a
-          href="#planos"
+          href={HREF_CRIAR_GRATIS}
           className={cn(pillClasses, "bg-bg px-[1.375rem] py-3 text-ink")}
         >
           Criar álbum

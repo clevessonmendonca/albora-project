@@ -1,11 +1,13 @@
-import { nomeDoArquivoZip } from "@albora/core";
+import { nomeDoArquivoZip, podeBaixarZip } from "@albora/core";
 import {
+  comEvento,
   consumirStepUp,
   criarJobExport,
   emitirStepUp,
   ErroMagicLinkInvalido,
   jobExportMaisRecente,
   jobExportPorId,
+  planoDoEvento,
   VALIDADE_STEP_UP_MINUTOS,
   type JobExport,
 } from "@albora/db";
@@ -75,6 +77,15 @@ export async function postReauth(
   }
 
   try {
+    const plan = await comEvento(getPool(), eventId, (c) => planoDoEvento(c, eventId));
+    if (!podeBaixarZip(plan)) {
+      return errorResponse(
+        403,
+        "plano.zip",
+        "O download em ZIP entra no plano Completo. Subir de plano não interrompe os convidados.",
+      );
+    }
+
     const expiresAt = new Date(Date.now() + VALIDADE_STEP_UP_MINUTOS * 60 * 1000);
     const { token } = await emitirStepUp(getPool(), config().sessionSecret, auth.host.accountId, expiresAt);
     const origin = new URL(req.url).origin;

@@ -149,6 +149,13 @@ export function CoverPage({
           />
         </div>
 
+        <p className="m-0 px-[1.125rem] pb-2 text-center text-[0.75rem] text-ink-3">
+          <Link href="/wall-pair" className="text-ink-2 underline">
+            Ligar telão
+          </Link>
+          {" · digite o código que aparece na TV"}
+        </p>
+
         {moments.length > 0 && (
           <div className="flex min-h-0 flex-1 flex-col">
             <div className="flex items-baseline justify-between px-[1.125rem] pb-3">
@@ -173,7 +180,15 @@ export function CoverPage({
                       central ? "w-[9.25rem]" : "w-20 opacity-60"
                     }`}
                   >
-                    <Frame label="" atmosphere variant={i * 6 + 2} />
+                    {moment.thumbUrl ? (
+                      <img
+                        src={moment.thumbUrl}
+                        alt=""
+                        className="absolute inset-0 size-full object-cover"
+                      />
+                    ) : (
+                      <Frame label="" atmosphere variant={i * 6 + 2} />
+                    )}
 
                     <span className="absolute inset-0 bg-gradient-moment-scrim" />
 
