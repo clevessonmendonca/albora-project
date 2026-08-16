@@ -1,4 +1,8 @@
-export type ShareOutcome = "compartilhado" | "baixado" | "cancelado";
+export type ShareOutcome = "shared" | "downloaded" | "cancelled";
+
+export const compartilhado: ShareOutcome = "shared";
+export const baixado: ShareOutcome = "downloaded";
+export const cancelado: ShareOutcome = "cancelled";
 
 export function shareWasAborted(error: unknown): boolean {
   return (
@@ -16,9 +20,9 @@ export async function shareOrDownload(blob: Blob, nomeArquivo: string): Promise<
   if (typeof navigator.share === "function" && navigator.canShare?.({ files: [arquivo] })) {
     try {
       await navigator.share({ files: [arquivo] });
-      return "compartilhado";
+      return "shared";
     } catch (error) {
-      if (shareWasAborted(error)) return "cancelado";
+      if (shareWasAborted(error)) return "cancelled";
       throw error;
     }
   }
@@ -29,5 +33,5 @@ export async function shareOrDownload(blob: Blob, nomeArquivo: string): Promise<
   link.download = nomeArquivo;
   link.click();
   URL.revokeObjectURL(url);
-  return "baixado";
+  return "downloaded";
 }

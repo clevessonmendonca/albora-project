@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { shareOrDownload, shareWasAborted } from "./share-or-download";
+import {
+  baixado,
+  cancelado,
+  compartilhado,
+  shareOrDownload,
+  shareWasAborted,
+} from "./share-or-download";
 
 function arquivoShare() {
   return {
@@ -16,6 +22,14 @@ describe("shareWasAborted", () => {
   });
 });
 
+describe("aliases em PT", () => {
+  it("apontam para os outcomes em inglês", () => {
+    expect(compartilhado).toBe("shared");
+    expect(baixado).toBe("downloaded");
+    expect(cancelado).toBe("cancelled");
+  });
+});
+
 describe("shareOrDownload", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -26,7 +40,7 @@ describe("shareOrDownload", () => {
     vi.stubGlobal("navigator", nav);
 
     const blob = new Blob(["jpeg"], { type: "image/jpeg" });
-    await expect(shareOrDownload(blob, "albora-festa.jpg")).resolves.toBe("compartilhado");
+    await expect(shareOrDownload(blob, "albora-festa.jpg")).resolves.toBe("shared");
 
     expect(nav.canShare).toHaveBeenCalledOnce();
     expect(nav.share).toHaveBeenCalledWith({
@@ -43,7 +57,7 @@ describe("shareOrDownload", () => {
     });
 
     const blob = new Blob(["jpeg"], { type: "image/jpeg" });
-    await expect(shareOrDownload(blob, "albora-festa.jpg")).resolves.toBe("cancelado");
+    await expect(shareOrDownload(blob, "albora-festa.jpg")).resolves.toBe("cancelled");
   });
 
   it("sem share com arquivo, baixa o composto", async () => {
@@ -58,7 +72,7 @@ describe("shareOrDownload", () => {
     });
 
     const blob = new Blob(["jpeg"], { type: "image/jpeg" });
-    await expect(shareOrDownload(blob, "albora-festa.jpg")).resolves.toBe("baixado");
+    await expect(shareOrDownload(blob, "albora-festa.jpg")).resolves.toBe("downloaded");
     expect(click).toHaveBeenCalledOnce();
   });
 });

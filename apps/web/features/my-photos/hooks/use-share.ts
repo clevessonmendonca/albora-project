@@ -144,7 +144,7 @@ export function useShare(eventoId: string, sessaoId: string) {
 
         const blob = await drawFrame(img, resultado.composicao, paleta);
         const saida = await shareOrDownload(blob, `albora-${ctx.evento.slug}.jpg`);
-        if (saida !== "cancelado") reportFunnel("share");
+        if (saida !== "cancelled") reportFunnel("share");
       } catch {
         setErro("Não deu para compartilhar agora. Tente de novo.");
       } finally {
@@ -235,7 +235,7 @@ export function useShare(eventoId: string, sessaoId: string) {
 
         const blob = await drawCollage(fotos, conteudo, paleta);
         const saida = await shareOrDownload(blob, `albora-${base.evento.slug}-colagem.jpg`);
-        if (saida !== "cancelado") reportFunnel("share");
+        if (saida !== "cancelled") reportFunnel("share");
       } catch {
         setErro("Não deu para compartilhar a colagem agora.");
       } finally {
