@@ -10,6 +10,7 @@ Não há login, push, nem compra. ADR 0004, 0009 e 0010.
 - Node 20 — o monorepo inteiro. SDK 54 puxa Metro que exige Node 22; aqui isso quebraria o CI.
 - NativeWind v4 consumindo `@albora/tokens` (um resolvedor, dois `ui-*`)
 - Fila em arquivo (`src/queue.ts`) — o `URLSession` iOS não aceita Blob
+- Câmera nativa (`expo-camera`) copia o still para disco e enfileira `corpo.tipo === "arquivo"`
 - Sessão em SecureStore; o cookie se chama `albora_sessao`, igual à web
 
 ## Dev
@@ -26,4 +27,4 @@ O pareamento chama `POST /api/app/parear/resgatar`. A web precisa estar no ar (`
 
 ## O que ainda não está
 
-Câmera nativa, LUT, upload em segundo plano, feed real, universal links, ícone/fichas das lojas, EAS project id. A estrutura e o contrato da fila existem para não extrair domínio da web depois.
+LUT no still, PUT em segundo plano (`URLSession` / WorkManager), feed real, universal links, ícone/fichas das lojas, EAS project id. A captura já deixa o JPEG na fila em disco.

@@ -18,7 +18,18 @@
       "package": "app.albora.guest",
       "permissions": ["CAMERA"]
     },
-    "plugins": ["expo-router", "expo-secure-store"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "A câmera tira a foto da festa. Sem ela o app não tem o que enviar.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
     }

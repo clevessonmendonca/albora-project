@@ -65,8 +65,8 @@ export async function postPairCode(req: Request) {
 /**
  * O app instalado digita o codigo e recebe a sessao da web (spec A-11).
  *
- * Sem sessao previa: o codigo *é* a credencial. Resposta traz slug e sessaoId;
- * o token vai no cookie HttpOnly (e no corpo para o cliente nativo).
+ * Sem sessao previa: o codigo *é* a credencial. Resposta traz slug, sessaoId e
+ * eventoId; o token vai no cookie HttpOnly (e no corpo para o cliente nativo).
  */
 export async function postRedeemPairCode(req: Request) {
   const configError = requireConfig("app.parear.resgatar", { log: false });
@@ -101,7 +101,12 @@ export async function postRedeemPairCode(req: Request) {
     });
 
     return jsonOk(
-      { slug: redeemed.slug, sessaoId: redeemed.sessaoId, token: redeemed.token },
+      {
+        slug: redeemed.slug,
+        sessaoId: redeemed.sessaoId,
+        token: redeemed.token,
+        eventoId: redeemed.eventoId,
+      },
       {
         headers: {
           "set-cookie": sessionCookieHeader(redeemed.token, cfg.duracaoSessaoHoras),

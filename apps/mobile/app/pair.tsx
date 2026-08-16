@@ -3,7 +3,7 @@ import { TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { Button, Screen, Text } from "@albora/ui-native";
-import { parseRedeemResponse, redeemUrl } from "../src/session";
+import { parseRedeemResponse, redeemUrl, SESSION_STORE_KEY } from "../src/session";
 
 const HOUSES = 4;
 
@@ -38,7 +38,7 @@ export default function PairScreen() {
       const body: unknown = await response.json().catch(() => null);
       const session = parseRedeemResponse(body);
       if (response.ok && session) {
-        await SecureStore.setItemAsync("albora.sessao", JSON.stringify(session));
+        await SecureStore.setItemAsync(SESSION_STORE_KEY, JSON.stringify(session));
         router.replace("/(tabs)/feed");
         return;
       }
