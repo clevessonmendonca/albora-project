@@ -182,6 +182,16 @@ export {
   VALIDADE_MAGIC_LINK_MINUTOS,
 } from "./host-auth";
 
+export type { ItemDoExport, JobExport } from "./export-db";
+export {
+  consumirStepUp,
+  criarJobExport,
+  emitirStepUp,
+  jobExportMaisRecente,
+  jobExportPorId,
+  VALIDADE_STEP_UP_MINUTOS,
+} from "./export-db";
+
 /** English alias — preferred for new code. @see comEvento */
 export { comEvento as withEvent } from "./event";
 /** English alias — preferred for new code. @see comConta */
@@ -291,3 +301,14 @@ export { leiturasDoRecado as guestbookReads } from "./guestbook-db";
 export { marcarRecadoLido as markGuestbookRead } from "./guestbook-db";
 /** English alias — preferred for new code. @see ErroRecadoJaExiste */
 export { ErroRecadoJaExiste as GuestbookExistsError } from "./guestbook-db";
+
+/** English alias — preferred for new code. @see criarJobExport */
+export { criarJobExport as createExportJob } from "./export-db";
+/** English alias — preferred for new code. @see jobExportMaisRecente */
+export { jobExportMaisRecente as latestExportJob } from "./export-db";
+/** English alias — preferred for new code. @see jobExportPorId */
+export { jobExportPorId as getExportJob } from "./export-db";
+/** English alias — preferred for new code. @see emitirStepUp */
+export { emitirStepUp as issueStepUp } from "./export-db";
+/** English alias — preferred for new code. @see consumirStepUp */
+export { consumirStepUp as consumeStepUp } from "./export-db";

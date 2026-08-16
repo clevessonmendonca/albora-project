@@ -31,6 +31,7 @@ const TABELAS_DE_EVENTO = [
   "reports",
   "recado",
   "recado_lido",
+  "export_jobs",
 ];
 
 beforeAll(async () => {
