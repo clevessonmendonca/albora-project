@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   DENUNCIAS_PARA_SEGURAR,
   decidirExibicao,
+  denunciaSeguraTelao,
+  ehMotivoDeDenuncia,
   interpretarVeredicto,
+  motivoDaFila,
   precisaDeRevisao,
   registrarDecisao,
   type EstadoDaMidia,
@@ -152,6 +155,21 @@ describe("a fila de revisão", () => {
     expect(precisaDeRevisao(midia({ classificador: "sem-resposta" }), CALMA)).toBe(true);
   });
 
+  it("pedido de quem aparece entra na fila e não tira do telão", () => {
+    const pedido = midia({ pedidosDeRemocao: 1 });
+
+    expect(precisaDeRevisao(pedido, CALMA)).toBe(true);
+    expect(decidirExibicao(pedido, CALMA, "telao").visivel).toBe(true);
+    expect(decidirExibicao(pedido, CALMA, "galeria").visivel).toBe(true);
+    expect(motivoDaFila(pedido, CALMA)).toBe("aparece_na_foto");
+  });
+
+  it("liberação do anfitrião tira o pedido de remoção da fila", () => {
+    expect(
+      precisaDeRevisao(midia({ pedidosDeRemocao: 3, liberadaPeloAnfitriao: true }), CALMA),
+    ).toBe(false);
+  });
+
   it("com menores, a fila enxerga a foto que o telão segurou com 1 denúncia", () => {
     // Regressão: o limiar da fila tem de acompanhar o de `decidirExibicao`. Com
     // menores (ADR 0012) o telão segura em 1; a fila presa em 2 esconderia a
@@ -206,6 +224,16 @@ describe("a auditoria registra a decisão, não só a negativa", () => {
       "superficie",
       "visivel",
     ]);
+  });
+});
+
+describe("o enum da denúncia", () => {
+  it("ofensivo segura o telão; aparece_na_foto não", () => {
+    expect(ehMotivoDeDenuncia("ofensivo")).toBe(true);
+    expect(ehMotivoDeDenuncia("aparece_na_foto")).toBe(true);
+    expect(ehMotivoDeDenuncia("conteudo")).toBe(false);
+    expect(denunciaSeguraTelao("ofensivo")).toBe(true);
+    expect(denunciaSeguraTelao("aparece_na_foto")).toBe(false);
   });
 });
 

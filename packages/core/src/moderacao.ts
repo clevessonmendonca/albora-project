@@ -26,9 +26,33 @@ export function interpretarVeredicto(bruto: string | null | undefined): Veredict
 
 export type Superficie = "galeria" | "telao";
 
+export type MotivoDeDenuncia = "ofensivo" | "aparece_na_foto";
+
+export const MOTIVOS_DE_DENUNCIA = ["ofensivo", "aparece_na_foto"] as const;
+
+export const MOTIVO_DENUNCIA_PADRAO: MotivoDeDenuncia = "ofensivo";
+
+export function ehMotivoDeDenuncia(valor: unknown): valor is MotivoDeDenuncia {
+  return valor === "ofensivo" || valor === "aparece_na_foto";
+}
+
+/**
+ * Só conteúdo ofensivo segura o telão. Pedido de quem aparece na foto
+ * (`aparece_na_foto`) entra na fila; o anfitrião decide — nunca some sozinho
+ * (flows.md §12 buraco 2).
+ */
+export function denunciaSeguraTelao(motivo: MotivoDeDenuncia): boolean {
+  return motivo === "ofensivo";
+}
+
 export type EstadoDaMidia = {
   classificador: VeredictoDoClassificador;
   denuncias: number;
+  /**
+   * Pedidos "sou eu nessa foto". Não entram em `denuncias` e não seguram o
+   * telão — só a fila de revisão. Ausente = zero.
+   */
+  pedidosDeRemocao?: number;
   /** Remoção pelo anfitrião ou por quem enviou. Irreversível na exibição. */
   removida: boolean;
   /**
@@ -165,9 +189,30 @@ export function precisaDeRevisao(
   if (midia.removida || midia.liberadaPeloAnfitriao) return false;
 
   return (
+    (midia.pedidosDeRemocao ?? 0) >= 1 ||
     midia.denuncias >= denunciasParaSegurar ||
     midia.classificador === "suspeito" ||
     midia.classificador === "sem-resposta" ||
     evento.modoEndurecido
   );
+}
+
+export type MotivoDaFila = "denuncias" | "classificador" | "endurecido" | "aparece_na_foto";
+
+/**
+ * Por que a foto está na fila. Precedência: endurecido, classificador, pedido
+ * de quem aparece, denúncia ofensiva. `null` se `precisaDeRevisao` é falso.
+ */
+export function motivoDaFila(
+  midia: EstadoDaMidia,
+  evento: EstadoDoEvento,
+  denunciasParaSegurar: number = DENUNCIAS_PARA_SEGURAR,
+): MotivoDaFila | null {
+  if (!precisaDeRevisao(midia, evento, denunciasParaSegurar)) return null;
+  if (evento.modoEndurecido) return "endurecido";
+  if (midia.classificador === "suspeito" || midia.classificador === "sem-resposta") {
+    return "classificador";
+  }
+  if ((midia.pedidosDeRemocao ?? 0) >= 1) return "aparece_na_foto";
+  return "denuncias";
 }

@@ -116,6 +116,19 @@ export type {
 export { drain, sendItem } from "./envio";
 export { drain as drenar, sendItem as enviarItem } from "./envio";
 
+export {
+  isValidSlug,
+  extractSlug,
+  eventPath,
+  eventEntryPath,
+  eventEntryUrl,
+  whatsappInviteUrl,
+  slugValido,
+  extrairSlug,
+  caminhoDoEvento,
+} from "./qr";
+export { GUEST_SESSION_COOKIE } from "./sessao-cookie";
+
 export type { Bitmap, Desenhista, FiltroAplicado, FotoProcessada, OpcoesProcessamento } from "./processar";
 export { processarFoto } from "./processar";
 
@@ -125,13 +138,20 @@ export type {
   EntradaDeAuditoria,
   EstadoDaMidia,
   EstadoDoEvento,
+  MotivoDaFila,
+  MotivoDeDenuncia,
   Superficie,
   VeredictoDoClassificador,
 } from "./moderacao";
 export {
   DENUNCIAS_PARA_SEGURAR,
+  MOTIVOS_DE_DENUNCIA,
+  MOTIVO_DENUNCIA_PADRAO,
   decidirExibicao,
+  denunciaSeguraTelao,
+  ehMotivoDeDenuncia,
   interpretarVeredicto,
+  motivoDaFila,
   precisaDeRevisao,
   registrarDecisao,
 } from "./moderacao";
@@ -475,6 +495,14 @@ export { publicarComentario as publishComment } from "./comment";
 export { decidirExibicao as decideDisplay } from "./moderacao";
 /** English alias — prefer for new code. */
 export { interpretarVeredicto as interpretVerdict } from "./moderacao";
+/** English alias — prefer for new code. */
+export { ehMotivoDeDenuncia as isReportKind } from "./moderacao";
+/** English alias — prefer for new code. */
+export { denunciaSeguraTelao as reportHoldsDisplay } from "./moderacao";
+/** English alias — prefer for new code. */
+export { motivoDaFila as reviewReason } from "./moderacao";
+/** English alias — prefer for new code. */
+export { precisaDeRevisao as needsReview } from "./moderacao";
 /** English alias — prefer for new code. */
 export { autorizarCompartilhamento as authorizeShare } from "./compartilhar";
 /** English alias — prefer for new code. */
