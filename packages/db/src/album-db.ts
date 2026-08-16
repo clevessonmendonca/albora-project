@@ -54,6 +54,7 @@ type Linha = {
   taken_at: Date | null;
   width: number | null;
   height: number | null;
+  prompt_key: string | null;
   reacoes: number;
 };
 
@@ -74,7 +75,7 @@ export async function listarMidiaDoAlbum(
 
   const { rows } = await cliente.query<Linha>(
     `SELECT u.id, u.storage_key, u.session_id, u.challenge_id, u.place, u.created_at,
-            u.taken_at, u.width, u.height,
+            u.taken_at, u.width, u.height, u.prompt_key,
             (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes
        FROM uploads u
       WHERE u.event_id = $1 AND u.state = $2
@@ -94,6 +95,7 @@ export async function listarMidiaDoAlbum(
       altura,
       lugarId: l.place,
       missaoId: l.challenge_id,
+      promptKey: l.prompt_key,
       reacoes: l.reacoes,
       chaveFull: l.storage_key,
       chaveThumb: thumbKeyFromFull(l.storage_key),

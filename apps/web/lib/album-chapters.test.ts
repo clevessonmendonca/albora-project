@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  CAPITULO_CONFESSIONARIO,
   CAPITULO_SEM_HORA,
   CAPITULO_UNICO,
   OFFSET_PADRAO_MINUTOS,
@@ -53,6 +54,13 @@ describe("os capítulos do álbum saem do pack e da janela", () => {
     expect(chapterIdsFromPack(undefined)).toEqual([]);
     expect(planAlbumChapters(JANELA, undefined)).toEqual([]);
   });
+
+  it("confessionário não entra na fatia por hora — é virtual no núcleo", () => {
+    expect(chapterIdsFromPack(CASAMENTO)).not.toContain(CAPITULO_CONFESSIONARIO);
+    expect(planAlbumChapters(JANELA, CASAMENTO).map((c) => c.id)).not.toContain(
+      CAPITULO_CONFESSIONARIO,
+    );
+  });
 });
 
 describe("o título que o convidado lê", () => {
@@ -69,5 +77,12 @@ describe("o título que o convidado lê", () => {
     expect(chapterHeadingVisible(CAPITULO_UNICO)).toBe(false);
     expect(chapterHeadingVisible(CAPITULO_SEM_HORA)).toBe(false);
     expect(chapterHeadingVisible("cerimonia")).toBe(true);
+  });
+
+  it("confessionário resolve pelo vocabulário do pack, nunca texto livre da chave", () => {
+    expect(chapterTitle(CASAMENTO, CAPITULO_CONFESSIONARIO)).toBe("Confessionário");
+    expect(chapterTitle(QUINZE_ANOS, CAPITULO_CONFESSIONARIO)).toBe("Confessionário");
+    expect(chapterTitle(undefined, CAPITULO_CONFESSIONARIO)).toBe(CAPITULO_CONFESSIONARIO);
+    expect(chapterHeadingVisible(CAPITULO_CONFESSIONARIO)).toBe(true);
   });
 });

@@ -13,7 +13,8 @@ import { signGet } from "./r2";
  * `montarAlbum()` do `@albora/core` sobre a mídia publicada do evento, e o
  * núcleo é a única fonte da diagramação por slots. Os capítulos da noite
  * saem dos momentos do pack, fatiados na janela do evento — `taken_at` já
- * está no upload; não há segundo pipeline de captura.
+ * está no upload; não há segundo pipeline de captura. Mídia com `promptKey`
+ * (confessionário) vira capítulo virtual no núcleo, com título via pack.
  *
  * O que sai daqui não carrega contagem de reação (verificação 5 da spec: sem
  * contagem visível), nem a chave de storage, nem nome de convidado. O que o
