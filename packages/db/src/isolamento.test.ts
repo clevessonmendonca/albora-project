@@ -251,6 +251,18 @@ const FORA_DA_RLS = new Map([
     "retention_jobs",
     "runner pós-evento: lista due cross-event sem PII de convidado — só event_id, kind e status",
   ],
+  [
+    "billing_payments",
+    "cobrança Asaas: webhook marca pago e aplica plan sem app.event_id; sem PII de convidado",
+  ],
+  [
+    "support_tickets",
+    "inbox de suporte: event_id opcional; isolamento por app.account_id (conta), não por evento",
+  ],
+  [
+    "event_members",
+    "papéis couple/planner: isolamento por app.account_id (conta), não por evento do convidado",
+  ],
 ]);
 
 describe("7 — nenhuma tabela nova escapa da política", () => {
