@@ -7,7 +7,7 @@ import { ScrollDemo, Missions, Reveal, IdentityWall } from "./interactives";
 import { OpenAlbum, PolaroidFan, Timeline, NightSlot } from "./showcases";
 import { Brand } from "./brand";
 import { AnimatedBrand } from "./animated-brand";
-import { LandingBeacon, LandingCtaLink } from "./landing-beacon";
+import { LandingBeacon, LandingCtaLink, LandingDemoLink } from "./landing-beacon";
 import {
   Accent,
   Frame,
@@ -259,9 +259,9 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
                   Já tem o QR da festa? Escanear ou colar o link
                 </a>
                 {" · "}
-                <a href={HREF_DEMO} className="text-ink-3 underline">
+                <LandingDemoLink href={HREF_DEMO} packHint={pack.id} className="text-ink-3 underline">
                   Abrir a demo
-                </a>
+                </LandingDemoLink>
               </p>
             </div>
 

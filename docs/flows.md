@@ -23,7 +23,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Nuances:** CTA único; convidado nunca vê plano; pack troca vocabulário.
 
-**Código:** CTAs ligados. `product_events` + `POST /api/analytics/product`: `landing_view` (beacon) e `landing_cta` (Grátis/Completo). Gap 🟡: `landing_scroll_50` / `landing_demo` ainda não instrumentados.
+**Código:** CTAs ligados. `product_events` + `POST /api/analytics/product`: `landing_view` (beacon), `landing_cta` (Grátis/Completo), `landing_scroll_50` (scroll listener em ~50%), `landing_demo` (link de demo). ✅
 
 ---
 
