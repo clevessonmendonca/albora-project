@@ -34,6 +34,7 @@ function album(paginas: ServedPage[]): ServedAlbum {
     capitulos: [{ id: "a-noite", titulo: "A noite", comecaEm: null, paginas }],
     totalDePaginas: paginas.length,
     contadores: { fotos: paginas.reduce((n, p) => n + p.fotos.length, 0), convidados: 1, missoes: 0 },
+    interacao: "espelho",
     expiraEm: Date.now() + 60_000,
   };
 }
@@ -155,6 +156,7 @@ describe("capítulos envolvem as faixas de hora, sem misturá-las", () => {
       ],
       totalDePaginas: 2,
       contadores: { fotos: 2, convidados: 1, missoes: 0 },
+      interacao: "espelho",
       expiraEm: Date.now() + 60_000,
     };
 
@@ -200,6 +202,7 @@ describe("capítulos envolvem as faixas de hora, sem misturá-las", () => {
       ],
       totalDePaginas: 2,
       contadores: { fotos: 2, convidados: 1, missoes: 2 },
+      interacao: "espelho",
       expiraEm: Date.now() + 60_000,
     };
 

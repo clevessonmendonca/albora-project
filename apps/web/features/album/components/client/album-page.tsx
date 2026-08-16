@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ModoInteracao } from "@albora/core";
 import {
   Badge,
   GuestHeader,
@@ -12,6 +13,7 @@ import {
 } from "@albora/ui-web";
 import type { ServedPhoto } from "@/lib/album";
 import { ReportSheet } from "@/features/feed/components/client/report-sheet";
+import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { useAlbum } from "../../hooks/use-album";
 import { chaptersFromAlbum, firstCoverUrl, flattenChapterPhotos } from "../../lib/bands";
 import { AlbumTimeline, AlbumTimelineLoading } from "./album-timeline";
@@ -135,6 +137,7 @@ export function AlbumPage({
       {aberta && (
         <Lightbox
           foto={aberta}
+          interacao={estado.album?.interacao ?? "espelho"}
           onSair={() => setAberta(null)}
           onAnterior={() => ir(-1)}
           onProxima={() => ir(1)}
@@ -276,11 +279,13 @@ function Rodape({
 
 function Lightbox({
   foto,
+  interacao,
   onSair,
   onAnterior,
   onProxima,
 }: {
   foto: ServedPhoto;
+  interacao: ModoInteracao;
   onSair: () => void;
   onAnterior: () => void;
   onProxima: () => void;
@@ -358,6 +363,14 @@ function Lightbox({
           onProxima();
         }}
       />
+      <div
+        className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex items-end justify-center pb-[max(1.5rem,env(safe-area-inset-bottom))]"
+        onClick={(ev) => ev.stopPropagation()}
+      >
+        <div className="pointer-events-auto px-6">
+          <PhotoInteraction uploadId={foto.id} interacao={interacao} />
+        </div>
+      </div>
       <div onClick={(ev) => ev.stopPropagation()}>
         <ReportSheet
           open={pedidoAberto}

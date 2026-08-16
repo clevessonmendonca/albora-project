@@ -82,10 +82,13 @@ export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
     const midias = await listarMidiaDoAlbum(c, eventId);
     const janela = await janelaDoAlbum(c, eventId);
     const packId = await packDoEvento(c, eventId);
-    return { midias, janela, packId };
+    const gate = await gateDoEvento(c, eventId);
+    return { midias, janela, packId, gate };
   });
 
-  if (!data.janela || data.midias.length === 0) return EMPTY(expiresAt);
+  const interacao = data.gate ? modoInteracao(data.gate, new Date()) : "espelho";
+
+  if (!data.janela || data.midias.length === 0) return EMPTY(expiresAt, interacao);
 
   const pack = data.packId ? PACKS[data.packId] : undefined;
   const janela = {
@@ -148,6 +151,7 @@ export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
     capitulos,
     totalDePaginas: album.totalDePaginas,
     contadores: album.contadores,
+    interacao,
     expiraEm: expiresAt,
   };
 }

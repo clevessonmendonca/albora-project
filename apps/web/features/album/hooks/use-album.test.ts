@@ -6,6 +6,7 @@ const album = (parcial: Partial<ServedAlbum> = {}): ServedAlbum => ({
   capitulos: [],
   totalDePaginas: 0,
   contadores: { fotos: 0, convidados: 0, missoes: 0 },
+  interacao: "espelho",
   expiraEm: Date.now() + 60_000,
   ...parcial,
 });
