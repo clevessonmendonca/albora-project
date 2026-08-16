@@ -13,6 +13,11 @@ export type Pack = {
   vocabulario: Record<string, string>;
   missoes: { id: string; chaveTitulo: string; ordem: number }[];
   /**
+   * Confessionário — perguntas fechadas; o convidado grava um vídeo respondendo.
+   * Opcional: pack sem lista não mostra a superfície.
+   */
+  confessionario?: { id: string; chaveTitulo: string }[];
+  /**
    * "Onde na festa" — lista fechada, nunca campo livre e nunca GPS (N6.9).
    *
    * Fechada por dois motivos que se somam: alimenta a linha do tempo do álbum
@@ -147,7 +152,11 @@ export function packProblems(pack: Pack): string[] {
     if (!pack.vocabulario[chave]) problemas.push(`falta a chave do núcleo ${chave}`);
   }
 
-  for (const { id, chaveTitulo } of [...pack.missoes, ...pack.lugares]) {
+  for (const { id, chaveTitulo } of [
+    ...pack.missoes,
+    ...pack.lugares,
+    ...(pack.confessionario ?? []),
+  ]) {
     if (!pack.vocabulario[chaveTitulo]) {
       problemas.push(`${id} aponta para ${chaveTitulo}, que o vocabulário não tem`);
     }
@@ -192,3 +201,12 @@ export function isValidMissionKey(pack: Pack, key: string | null | undefined): b
 }
 
 export const missaoValida = isValidMissionKey;
+
+/** Pergunta do confessionário — mesma porta fechada das missões. */
+export function isValidConfessionPrompt(pack: Pack, key: string | null | undefined): boolean {
+  return (
+    typeof key === "string" && (pack.confessionario ?? []).some((p) => p.chaveTitulo === key)
+  );
+}
+
+export const confessionarioValido = isValidConfessionPrompt;

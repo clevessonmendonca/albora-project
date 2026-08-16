@@ -26,6 +26,11 @@ export const QUINZE_ANOS: Pack = {
     "recado.rotulo": "Um recado da aniversariante",
     "recado.exemplo":
       "Obrigada por vir. Tirem fotos — eu quero ver a festa pelos olhos de vocês.",
+    "confessionario.titulo": "Confessionário",
+    "confessionario.lede": "Escolha uma pergunta e grave um vídeo curto para o álbum.",
+    "confessionario.conselho": "Que conselho você dá para os 15?",
+    "confessionario.historia": "Conte uma história boa com a aniversariante.",
+    "confessionario.desejo": "O que você deseja para ela daqui a dez anos?",
     "lugar.pista": "Pista",
     "lugar.mesa": "Mesa",
     "lugar.jardim": "Jardim",
@@ -90,6 +95,11 @@ export const QUINZE_ANOS: Pack = {
     { id: "chegada", chaveTitulo: "missao.chegada", ordem: 1 },
     { id: "valsa", chaveTitulo: "missao.valsa", ordem: 2 },
     { id: "pista", chaveTitulo: "missao.pista", ordem: 3 },
+  ],
+  confessionario: [
+    { id: "conselho", chaveTitulo: "confessionario.conselho" },
+    { id: "historia", chaveTitulo: "confessionario.historia" },
+    { id: "desejo", chaveTitulo: "confessionario.desejo" },
   ],
   lugares: [
     { id: "pista", chaveTitulo: "lugar.pista" },

@@ -32,6 +32,8 @@ export type QueueBody =
  */
 export type QueueDetails = {
   desafioId?: string | null;
+  /** Confessionário — chave de vocabulário do pack. */
+  promptKey?: string | null;
   legenda?: string | null;
   lugar?: string | null;
 };

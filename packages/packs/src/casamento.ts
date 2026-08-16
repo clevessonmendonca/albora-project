@@ -25,6 +25,12 @@ export const CASAMENTO: Pack = {
     "recado.rotulo": "Um recado dos noivos",
     "recado.exemplo":
       "Obrigado por estar com a gente hoje. Tirem fotos — as suas também são as nossas.",
+    "confessionario.titulo": "Confessionário",
+    "confessionario.lede": "Escolha uma pergunta e grave um vídeo curto para o álbum.",
+    "confessionario.conselho": "Que conselho você dá para a vida a dois?",
+    "confessionario.historia": "Conte uma história boa com os noivos.",
+    "confessionario.desejo": "O que você deseja para eles daqui a dez anos?",
+    "confessionario.segredo": "Um segredo engraçado que só a mesa sabe.",
     "lugar.pista": "Pista",
     "lugar.mesa": "Mesa",
     "lugar.jardim": "Jardim",
@@ -94,6 +100,12 @@ export const CASAMENTO: Pack = {
     { id: "mesa", chaveTitulo: "missao.mesa", ordem: 2 },
     { id: "danca", chaveTitulo: "missao.danca", ordem: 3 },
     { id: "brinde", chaveTitulo: "missao.brinde", ordem: 4 },
+  ],
+  confessionario: [
+    { id: "conselho", chaveTitulo: "confessionario.conselho" },
+    { id: "historia", chaveTitulo: "confessionario.historia" },
+    { id: "desejo", chaveTitulo: "confessionario.desejo" },
+    { id: "segredo", chaveTitulo: "confessionario.segredo" },
   ],
   lugares: [
     { id: "pista", chaveTitulo: "lugar.pista" },

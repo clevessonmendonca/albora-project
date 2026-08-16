@@ -2,7 +2,7 @@ import { ALBORA_BRAND, resolveTokens } from "@albora/tokens";
 import { describe, expect, it } from "vitest";
 import { WEDDING } from "./casamento";
 import { FIFTEEN_YEARS } from "./quinze-anos";
-import { isValidMissionKey, isValidPlace, PACKS, packProblems, resolvePackText } from "./index";
+import { isValidConfessionPrompt, isValidMissionKey, isValidPlace, PACKS, packProblems, resolvePackText } from "./index";
 
 /**
  * O teste de sanidade do CLAUDE.md: trocar o pack de um evento muda toda a UI
@@ -51,6 +51,14 @@ describe("trocar o pack muda a UI, não o núcleo", () => {
     expect(isValidPlace(FIFTEEN_YEARS, "altar")).toBe(false);
     expect(isValidPlace(WEDDING, "-22.9068,-43.1729")).toBe(false);
     expect(isValidPlace(WEDDING, null)).toBe(false);
+  });
+
+  it("pergunta do confessionário fora da lista é recusada", () => {
+    expect(isValidConfessionPrompt(WEDDING, "confessionario.conselho")).toBe(true);
+    expect(isValidConfessionPrompt(WEDDING, "texto livre")).toBe(false);
+    expect(isValidConfessionPrompt(WEDDING, null)).toBe(false);
+    expect(WEDDING.confessionario?.length).toBeGreaterThan(0);
+    expect(FIFTEEN_YEARS.confessionario?.length).toBeGreaterThan(0);
   });
 
   it("chave ausente devolve a própria chave, nunca vazio", () => {
