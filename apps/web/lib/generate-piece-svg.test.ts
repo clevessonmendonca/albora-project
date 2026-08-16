@@ -23,6 +23,27 @@ describe("generatePieceSvg", () => {
     expect(resultado.avisos.length).toBeGreaterThan(0);
   });
 
+  it("placa A4 imprime as missões do editor e não inventa título", async () => {
+    const missoes = [
+      "A chegada de quem você não via há tempos",
+      "A sua mesa, do jeito que ela está agora",
+      "Alguém dançando como se ninguém visse",
+      "O brinde, no instante do brinde",
+    ];
+    const resultado = await generatePieceSvg({
+      ...entradaBase,
+      formato: "placa-a4",
+      missoes: [...missoes, "cinco", "seis", "missão que não cabe"],
+    });
+
+    expect(resultado.problemas).toEqual([]);
+    for (const titulo of missoes) {
+      expect(resultado.svg).toContain(titulo);
+    }
+    expect(resultado.svg).not.toContain("missão que não cabe");
+    expect(resultado.svg).toContain("albora.app/e/festa-demo");
+  });
+
   it("via=qr no QR não aparece na URL impressa", async () => {
     const resultado = await generatePieceSvg({
       ...entradaBase,

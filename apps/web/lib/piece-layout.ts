@@ -9,6 +9,7 @@ import {
   qrInk,
 } from "@albora/tokens";
 import QRCode from "qrcode";
+import { highlightedMissions } from "./piece-missions";
 
 export type PieceInput = {
   formato: PieceFormat;
@@ -18,6 +19,7 @@ export type PieceInput = {
   titulo: string;
   data: string;
   cores: Colors;
+  missoes?: readonly string[];
 };
 
 export type PieceText = {
@@ -66,6 +68,78 @@ function tamanhoFonte(formato: PieceFormat, papel: "mono" | "titulo" | "data" | 
     "card-de-missao": { mono: 6, titulo: 4.2, data: 2.6, url: 2.2 },
   } as const;
   return mapa[formato][papel];
+}
+
+function wrapWords(text: string, maxChars: number): string[] {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [];
+  const lines: string[] = [];
+  let current = "";
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= maxChars || current === "") {
+      current = next;
+      continue;
+    }
+    lines.push(current);
+    current = word;
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+function missionTexts(opts: {
+  formato: PieceFormat;
+  titles: readonly string[];
+  cx: number;
+  afterY: number;
+  bottomY: number;
+  widthMm: number;
+  fill: string;
+}): PieceText[] {
+  const titles = highlightedMissions(opts.formato, opts.titles);
+  if (titles.length === 0) return [];
+
+  const startSize = opts.formato === "placa-a4" ? 4.2 : 2.6;
+  const minSize = opts.formato === "placa-a4" ? 2.8 : 2.0;
+  const lineHeight = 1.28;
+  const blockGap = opts.formato === "placa-a4" ? 12 : 4.5;
+  const itemGapAt = (size: number) => (opts.formato === "placa-a4" ? size * 0.7 : size * 0.4);
+
+  let size = startSize;
+  let wrapped: string[][] = [];
+
+  while (size >= minSize - 0.001) {
+    const maxLen = Math.max(12, Math.floor(opts.widthMm / (size * 0.52)));
+    wrapped = titles.map((t) => wrapWords(t, maxLen));
+    const gap = itemGapAt(size);
+    const used = wrapped.reduce(
+      (h, lines, i) => h + lines.length * size * lineHeight + (i < wrapped.length - 1 ? gap : 0),
+      0,
+    );
+    if (opts.afterY + blockGap + used <= opts.bottomY) break;
+    size -= 0.15;
+  }
+
+  const gap = itemGapAt(size);
+  const texts: PieceText[] = [];
+  let y = opts.afterY + blockGap;
+  for (let i = 0; i < wrapped.length; i++) {
+    for (const line of wrapped[i] ?? []) {
+      y += size * lineHeight;
+      texts.push({
+        x: opts.cx,
+        y,
+        size,
+        fill: opts.fill,
+        font: "sans",
+        weight: 400,
+        value: line,
+      });
+    }
+    y += gap;
+  }
+  return texts;
 }
 
 function qrCelulas(
@@ -150,6 +224,17 @@ export function planPiece(entrada: PieceInput): PiecePlan {
     avisos.push("O QR saiu em preto sobre branco porque a identidade não alcança o contraste exigido.");
   }
 
+  const instrucaoY = urlY + fsUrl + 3;
+  const missoes = missionTexts({
+    formato: entrada.formato,
+    titles: entrada.missoes ?? [],
+    cx,
+    afterY: instrucaoY,
+    bottomY: oy + medidas.altura - margem,
+    widthMm: medidas.largura - margem * 2,
+    fill: entrada.cores.tinta,
+  });
+
   return {
     avisos,
     problemas: [],
@@ -201,13 +286,14 @@ export function planPiece(entrada: PieceInput): PiecePlan {
       },
       {
         x: cx,
-        y: urlY + fsUrl + 3,
+        y: instrucaoY,
         size: fsUrl,
         fill: entrada.cores.tinta,
         font: "sans",
         weight: 400,
         value: PIECE_INSTRUCTION,
       },
+      ...missoes,
     ],
     qrFundo: { ...qr.fundo, fill: tinta.fundo },
     qrCelulas: qr.celulas,

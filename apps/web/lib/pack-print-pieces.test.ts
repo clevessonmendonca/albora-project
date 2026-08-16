@@ -11,6 +11,12 @@ const entradaBase = {
   titulo: "Ana & João",
   data: "12 de agosto de 2026",
   cores: ALBORA_BRAND.cores,
+  missoes: [
+    "A chegada de quem você não via há tempos",
+    "A sua mesa, do jeito que ela está agora",
+    "Alguém dançando como se ninguém visse",
+    "O brinde, no instante do brinde",
+  ],
 };
 
 function unzip(zip: Uint8Array): Map<string, Uint8Array> {
@@ -72,6 +78,7 @@ describe("packPrintPieces", { timeout: 30_000 }, () => {
     expect(svg).toContain("<svg");
     expect(svg).toContain("albora.app/e/festa-demo");
     expect(svg).not.toContain("via=qr");
+    expect(svg).toContain("A chegada de quem você não via há tempos");
     expect(files.get("albora-festa-demo-placa-a4.pdf")?.byteLength).toBeGreaterThan(4_000);
   });
 

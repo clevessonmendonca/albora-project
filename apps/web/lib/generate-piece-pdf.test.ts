@@ -10,6 +10,12 @@ const entradaBase = {
   titulo: "Ana & João",
   data: "12 de agosto de 2026",
   cores: ALBORA_BRAND.cores,
+  missoes: [
+    "A chegada de quem você não via há tempos",
+    "A sua mesa, do jeito que ela está agora",
+    "Alguém dançando como se ninguém visse",
+    "O brinde, no instante do brinde",
+  ],
 };
 
 function mmToPt(mm: number): number {

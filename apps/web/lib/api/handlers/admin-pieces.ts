@@ -1,4 +1,4 @@
-import { comConta } from "@albora/db";
+import { comConta, comEvento, listarDesafios } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import {
   ALBORA_BRAND,
@@ -18,6 +18,7 @@ import { generatePiecePdf } from "@/lib/generate-piece-pdf";
 import { generatePieceSvg } from "@/lib/generate-piece-svg";
 import { packPrintPieces, PRINT_FORMATS } from "@/lib/pack-print-pieces";
 import { parsePiecesQuery, PIECE_TYPES } from "@/lib/parse-pieces-query";
+import { missionTitlesForPrint } from "@/lib/piece-missions";
 import { identityToFrame } from "@/lib/frame-identity";
 import { eventEntryUrl } from "@/lib/qr";
 import { consume } from "@/lib/rate-limit-store";
@@ -108,7 +109,10 @@ export async function GET(
   }
 
   try {
-    const dados = await tokensDoEvento(auth.host.accountId, eventId);
+    const [dados, desafios] = await Promise.all([
+      tokensDoEvento(auth.host.accountId, eventId),
+      comEvento(getPool(), eventId, (c) => listarDesafios(c, eventId, null)),
+    ]);
     if (!dados) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
 
     const pack = PACKS[dados.packId];
@@ -133,6 +137,10 @@ export async function GET(
       titulo: identidade.titulo,
       data: identidade.data,
       cores: tokens.cores,
+      missoes: missionTitlesForPrint(
+        pack,
+        desafios.map((d) => d.chaveTitulo),
+      ),
     };
 
     if (pedido.kind === "zip") {

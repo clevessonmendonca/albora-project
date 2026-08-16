@@ -528,7 +528,7 @@ Este documento é a fonte da verdade de **fronteiras**, e uma fronteira vale ant
 | Moderação + classificador | §9 | Gate fail-closed na parede; fila de revisão no admin; provedor heurístico, sem ML |
 | Telão | §10 | `/wall-display` + poll `/api/wall` + cache 50 + pânico |
 | Funil | §12 | `funnel_events` + `guest_sessions.via` + painel em `/admin/e/[id]/guests` |
-| Peças SVG/PDF | wizard e painel | Download no admin; falta prova impressa com 3 celulares |
+| Peças SVG/PDF | wizard e painel | Download no admin; placa A4 traz até 6 missões do editor (N1.6); falta prova impressa com 3 celulares |
 | Recado, música, missões, álbum, share Stories | features correspondentes | No ar. App Expo ainda não |
 | Baixar tudo (anfitrião) | spec 016 | Job + reauth por e-mail; ZIP autenticado em stream. Export para Drive continua fora |
 
