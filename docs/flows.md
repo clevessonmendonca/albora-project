@@ -19,11 +19,11 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ## F0 — Landing e conversão ✅/🟡
 
-**Feliz:** `/` ou `/15-anos` → preço → Grátis `/admin/sign-in?next=/admin/new&plano=free` · Completo `…&plano=celebration` · Fornecedor `mailto:` · demo `/e/festa-demo`.
+**Feliz:** `/` ou `/15-anos` → preço → Grátis `/admin/new?plano=free` · Completo `/admin/new?plano=celebration` · Fornecedor `mailto:` · demo `/e/festa-demo`. Sem cookie: `/admin/new` redireciona para `/admin/sign-in?next=…` preservando `plano`.
 
 **Nuances:** CTA único; convidado nunca vê plano; pack troca vocabulário.
 
-**Código:** CTAs ligados. `product_events` + `POST /api/analytics/product` existem; instrumentação da landing ainda 🟡.
+**Código:** CTAs ligados. `product_events` + `POST /api/analytics/product`: `landing_view` (beacon) e `landing_cta` (Grátis/Completo). Gap 🟡: `landing_scroll_50` / `landing_demo` ainda não instrumentados.
 
 ---
 
@@ -39,11 +39,11 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Feliz Grátis:** wizard (título + quando → identidade → missões → parede → peças) → evento `plan=free` + `event_members.couple` + jobs de retenção.
 
-**Feliz Completo:** mesmo wizard → checkout Asaas (`POST /api/billing/checkout`) → webhook `PAYMENT_CONFIRMED`/`RECEIVED` → **única** escrita de `plan=celebration`. Stub + `/api/billing/simulate` em dev.
+**Feliz Completo:** mesmo wizard → checkout Asaas (`POST /api/billing/checkout`) → webhook `PAYMENT_CONFIRMED`/`RECEIVED` → **única** escrita de `plan=celebration`. Stub em `APP_ENV=dev` sem `ASAAS_API_KEY`; com chave → Asaas sandbox/prod (`ASAAS_SANDBOX=0` = prod). Simulate: `/api/billing/simulate` em dev.
 
 **Nuances:** nunca cartão para criar; upgrade no meio da festa não derruba sessão de convidado; entitlements `podeUsarTelao` / `podeBaixarZip`.
 
-**Gap:** cartão/Pix real exige `ASAAS_API_KEY` + `ASAAS_WEBHOOK_TOKEN`.
+**Gap:** cartão/Pix real exige `ASAAS_API_KEY` + `ASAAS_WEBHOOK_TOKEN` fora de stub.
 
 ---
 
@@ -65,9 +65,9 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ## F5 — Feed, álbum, missões, música, recado ✅
 
-**Feliz:** espelho vs social pelo gate; álbum por capítulos; missões; música; recado.
+**Feliz:** espelho vs social pelo gate; álbum por capítulos (incl. capítulo `confessionario` via `promptKey`); missões; música; recado.
 
-**Gap 🟡:** capítulo dedicado do confessionário no álbum; lightbox social no álbum.
+**Gap 🟡:** lightbox social no álbum (hoje: ver + denunciar; sem reações/comentários no lightbox).
 
 ---
 
@@ -103,11 +103,11 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ---
 
-## F10 — Expo 🟡
+## F10 — Expo ✅/🟡
 
-**Feliz:** parear → sessão SecureStore → câmera enfileira stills; **feed** lê `GET /api/feed` + `POST /api/media/urls`.
+**Feliz:** parear → sessão SecureStore → câmera enfileira stills em disco; **drain** da fila nativa (`drainGuestQueue` / `drainFileQueue`) no caminho da câmera; **feed** lê `GET /api/feed` + `POST /api/media/urls`.
 
-**Gap:** drenar fila nativa (URLSession/WorkManager); LUT/EXIF.
+**Gap 🟡:** LUT/EXIF no still; PUT em segundo plano (`URLSession` / WorkManager); lojas / EAS.
 
 ---
 
@@ -128,11 +128,11 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 ## Mapa rápido
 
 ```
-Landing → magic link → wizard (± Asaas webhook)
+Landing → magic link → wizard (± Asaas stub/webhook)
        → /{slug} → /e/slug → capa → foto/feed/álbum/confessionário
 Admin → ao vivo / Insights / suporte
 TV → wall-pair → telão
-Expo → parear → feed + câmera
+Expo → parear → feed + câmera + drain
 Ops → support + KPIs
 Jobs → retention +48h / D330 stub / D365 fail-closed
 ```
