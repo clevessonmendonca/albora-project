@@ -1,3 +1,4 @@
+import { PREFIXO_MAGIC_BYTES } from "@albora/core";
 import { AwsClient } from "aws4fetch";
 import { config } from "./config";
 
@@ -5,8 +6,9 @@ import { config } from "./config";
  * Assinatura, inspeção no confirm, e leitura da thumb no classificador.
  *
  * No caminho crítico (presign/confirm/parede) o servidor **não** trafega a
- * foto: emite URL e lê no máximo 16 bytes de magic. O classificador da spec
- * 011 é enriquecimento — lê só a thumb, com teto, fora do PUT do convidado.
+ * foto: emite URL e lê no máximo `PREFIXO_MAGIC_BYTES` do objeto `/full`.
+ * O classificador da spec 011 é enriquecimento — lê só a thumb, com teto,
+ * fora do PUT do convidado. Magic bytes da thumb não substituem o confirm.
  */
 
 function client(): AwsClient {
@@ -61,8 +63,37 @@ export async function signGet(key: string, ttlSeconds: number) {
 
 export type ObjectMetadata = { bytes: number; inicio: Uint8Array };
 
+export function rangeDoPrefixoMagic(): string {
+  return `bytes=0-${PREFIXO_MAGIC_BYTES - 1}`;
+}
+
 /**
- * Confere o que **de fato** chegou no bucket.
+ * Interpreta a resposta do GET com Range. Copia só o prefixo — se o storage
+ * ignorar o Range e devolver o objeto inteiro (200), o ArrayBuffer grande
+ * não fica preso no `inicio` via `subarray`.
+ */
+export function metadadosDaInspecao(
+  status: number,
+  headers: Headers,
+  corpo: Uint8Array,
+): ObjectMetadata | null {
+  if (status === 404) return null;
+  if (status !== 200 && status !== 206) {
+    throw new Error(`inspeção falhou: ${status}`);
+  }
+
+  const tam = Math.min(corpo.byteLength, PREFIXO_MAGIC_BYTES);
+  const inicio = new Uint8Array(tam);
+  inicio.set(corpo.subarray(0, tam));
+
+  const total = headers.get("content-range")?.split("/")[1];
+  const bytes = total ? Number(total) : Number(headers.get("content-length") ?? corpo.byteLength);
+
+  return { bytes, inicio };
+}
+
+/**
+ * Confere o que **de fato** chegou no bucket — a variante `/full`, no confirm.
  *
  * Lê só os primeiros bytes, com Range: o suficiente para os magic bytes e
  * nada perto de trafegar a foto pelo servidor. É o que transforma "o cliente
@@ -71,21 +102,10 @@ export type ObjectMetadata = { bytes: number; inicio: Uint8Array };
 export async function inspectObject(key: string): Promise<ObjectMetadata | null> {
   const res = await client().fetch(objectUrl(key).toString(), {
     method: "GET",
-    headers: { range: "bytes=0-15" },
+    headers: { Range: rangeDoPrefixoMagic() },
   });
 
-  if (res.status === 404) return null;
-  if (!res.ok && res.status !== 206) {
-    throw new Error(`inspeção falhou: ${res.status}`);
-  }
-
-  const inicio = new Uint8Array(await res.arrayBuffer());
-
-  // Content-Range vem como "bytes 0-15/819200"; o total é o que interessa.
-  const total = res.headers.get("content-range")?.split("/")[1];
-  const bytes = total ? Number(total) : Number(res.headers.get("content-length") ?? 0);
-
-  return { bytes, inicio };
+  return metadadosDaInspecao(res.status, res.headers, new Uint8Array(await res.arrayBuffer()));
 }
 
 /**

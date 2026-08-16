@@ -34,7 +34,7 @@ confirm  { uploadId, key, w, h }  → 200 | 409 (idempotente)
 **Cinco invariantes**
 
 1. A **chave é derivada no servidor** a partir do `event_id` da sessão. O cliente nunca a informa
-2. `confirm` **valida, não confia**: HEAD no objeto, chave pertence ao evento, dimensões batem, magic bytes conferem
+2. `confirm` **valida, não confia**: `Range` GET dos primeiros 16 bytes do objeto `/full`, chave pertence ao evento, tamanho real no teto, magic bytes conferem com o MIME declarado
 3. `confirm` é **idempotente** por `uploadId` — retry é o caminho normal, não a exceção
 4. Rate limit **antes** do presign. Circuito no portão, não na saída
 5. TTL curto, teto de tamanho e tipo restrito embutidos na assinatura

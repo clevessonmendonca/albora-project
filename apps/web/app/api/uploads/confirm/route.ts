@@ -1,4 +1,4 @@
-import { prefixoDoEvento, validarConteudo } from "@albora/core";
+import { prefixoDoEvento, validarObjetoRecebido } from "@albora/core";
 import {
   comEvento,
   confirmarUpload,
@@ -75,13 +75,13 @@ export async function POST(req: Request) {
       });
     }
 
-    const conteudoInvalido = validarConteudo(mime, objeto.inicio);
-    if (conteudoInvalido) {
+    const recusa = validarObjetoRecebido(mime, objeto.bytes, objeto.inicio);
+    if (recusa) {
       console.warn("confirm.conteudo_recusado", {
         eventoId: auth.session.eventoId,
-        ...conteudoInvalido.details,
+        ...recusa.details,
       });
-      return errorResponse(422, conteudoInvalido.code, "Arquivo recusado", conteudoInvalido.details);
+      return errorResponse(422, recusa.code, "Arquivo recusado", recusa.details);
     }
 
     const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
