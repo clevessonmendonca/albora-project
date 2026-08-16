@@ -16,7 +16,7 @@ import { getPool } from "@/lib/db";
 import { requireHostEvent } from "@/lib/api/host-event";
 import {
   CELEBRATION_PRICE_CENTS,
-  getBillingProvider,
+  resolveBilling,
   type CheckoutPlan,
 } from "@/lib/billing";
 import { consume } from "@/lib/rate-limit-store";
@@ -30,8 +30,8 @@ type Body = {
 };
 
 /**
- * Host autenticado inicia checkout Asaas (ou stub em dev).
- * Evento permanece `free` até o webhook.
+ * Host autenticado inicia checkout Asaas (ou stub em APP_ENV=dev sem chave).
+ * Evento permanece `free` até o webhook (ou /api/billing/simulate em stub).
  */
 export async function POST(req: Request) {
   const cfgErr = requireConfig("admin");
@@ -58,6 +58,11 @@ export async function POST(req: Request) {
   const owned = await requireHostEvent(auth.host.accountId, eventId);
   if (owned instanceof Response) return owned;
 
+  const billing = resolveBilling();
+  if (billing.mode === "unavailable") {
+    return errorResponse(503, "billing.indisponivel", "Cobrança indisponível");
+  }
+
   const plan: CheckoutPlan =
     parsed.data.plan === "vendor" ? "vendor" : "celebration";
   const billingType =
@@ -70,7 +75,7 @@ export async function POST(req: Request) {
   const successUrl = `${origin}/admin/e/${eventId}?pago=1`;
 
   try {
-    const provider = getBillingProvider();
+    const provider = billing.provider;
     let customerId = await asaasCustomerIdForAccount(getPool(), auth.host.accountId);
     if (!customerId) {
       customerId = await provider.ensureCustomer(
@@ -102,13 +107,14 @@ export async function POST(req: Request) {
       invoiceUrl: checkout.invoiceUrl,
     });
 
-    console.log("billing.checkout", { plan, stub: !process.env.ASAAS_API_KEY });
+    console.log("billing.checkout", { plan, mode: billing.mode });
     return jsonOk({
       paymentId: payment.id,
       asaasPaymentId: payment.asaasPaymentId,
       invoiceUrl: payment.invoiceUrl,
       amountCents,
       plan,
+      stub: billing.mode === "stub",
     });
   } catch (e) {
     return unexpectedError("billing.checkout", e);

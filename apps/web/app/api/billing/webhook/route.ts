@@ -5,12 +5,16 @@ import {
 } from "@albora/db";
 import { errorResponse, jsonOk, unexpectedError } from "@/lib/api";
 import { getPool } from "@/lib/db";
-import { getBillingProvider } from "@/lib/billing";
+import {
+  isBillingStubMode,
+  parseWebhook,
+  readAsaasWebhookToken,
+} from "@/lib/billing";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Webhook Asaas — única escrita de `events.plan` pago.
+ * Webhook Asaas — única escrita de `events.plan` pago (via aplicarPlanoPago).
  * Idempotente por `asaas_event_id`.
  */
 export async function POST(req: Request) {
@@ -21,8 +25,12 @@ export async function POST(req: Request) {
     return errorResponse(400, "billing.webhook_invalido", "JSON inválido");
   }
 
-  const token = process.env.ASAAS_WEBHOOK_TOKEN?.trim() || null;
-  const parsed = getBillingProvider().parseWebhook(req.headers, body, token);
+  const token = readAsaasWebhookToken();
+  if (!token && !isBillingStubMode()) {
+    return errorResponse(503, "billing.webhook_config", "Webhook não configurado");
+  }
+
+  const parsed = parseWebhook(req.headers, body, token);
   if (parsed && "error" in parsed) {
     return errorResponse(401, "billing.webhook_token", "Token inválido");
   }

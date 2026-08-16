@@ -1,24 +1,14 @@
+import {
+  isBillingStubMode,
+  readAsaasConfig,
+  type AsaasEnvConfig,
+} from "./config";
+import { parseWebhook } from "./parse-webhook";
 import type {
   BillingProvider,
   CreateCheckoutInput,
   CreateCheckoutResult,
-  WebhookPaymentEvent,
 } from "./types";
-
-type AsaasConfig = {
-  apiKey: string;
-  baseUrl: string;
-};
-
-function cfg(): AsaasConfig | null {
-  const apiKey = process.env.ASAAS_API_KEY?.trim();
-  if (!apiKey) return null;
-  const sandbox = process.env.ASAAS_SANDBOX !== "0";
-  return {
-    apiKey,
-    baseUrl: sandbox ? "https://sandbox.asaas.com/api/v3" : "https://api.asaas.com/v3",
-  };
-}
 
 async function asaasFetch(
   path: string,
@@ -34,13 +24,7 @@ async function asaasFetch(
   });
 }
 
-/**
- * Provedor Asaas. Sem `ASAAS_API_KEY` devolve null — o checkout usa stub local.
- */
-export function asaasProvider(): BillingProvider | null {
-  const c = cfg();
-  if (!c) return null;
-
+function asaasProviderFromConfig(c: AsaasEnvConfig): BillingProvider {
   return {
     async ensureCustomer(email, externalRef, name) {
       const found = await asaasFetch(
@@ -104,42 +88,18 @@ export function asaasProvider(): BillingProvider | null {
       };
     },
 
-    parseWebhook(headers, body, expectedAccessToken) {
-      if (expectedAccessToken) {
-        const got = headers.get("asaas-access-token");
-        if (got !== expectedAccessToken) {
-          return { error: "token" };
-        }
-      }
-      if (typeof body !== "object" || body === null) return null;
-      const row = body as {
-        id?: unknown;
-        event?: unknown;
-        payment?: { id?: unknown; status?: unknown };
-      };
-      if (typeof row.id !== "string" || typeof row.event !== "string") return null;
-      const paymentId = row.payment?.id;
-      if (typeof paymentId !== "string") return null;
-
-      const name = row.event;
-      let status: WebhookPaymentEvent["status"] = "OTHER";
-      if (name === "PAYMENT_CONFIRMED") status = "CONFIRMED";
-      else if (name === "PAYMENT_RECEIVED") status = "RECEIVED";
-      else if (name === "PAYMENT_OVERDUE") status = "OVERDUE";
-      else if (name === "PAYMENT_REFUNDED") status = "REFUNDED";
-      else if (name === "PAYMENT_DELETED") status = "DELETED";
-
-      return {
-        eventId: row.id,
-        eventName: name,
-        paymentId,
-        status,
-      };
-    },
+    parseWebhook,
   };
 }
 
-/** Stub local: gera cobrança fake e invoiceUrl apontando para simular no admin. */
+/** Provedor Asaas. Null sem ASAAS_API_KEY. */
+export function asaasProvider(): BillingProvider | null {
+  const c = readAsaasConfig();
+  if (!c) return null;
+  return asaasProviderFromConfig(c);
+}
+
+/** Stub local: cobrança fake; invoiceUrl aponta para simular no admin. */
 export function stubBillingProvider(): BillingProvider {
   return {
     async ensureCustomer(_email, externalRef) {
@@ -153,35 +113,34 @@ export function stubBillingProvider(): BillingProvider {
         status: "PENDING",
       };
     },
-    parseWebhook(headers, body, expectedAccessToken) {
-      if (expectedAccessToken) {
-        const got = headers.get("asaas-access-token");
-        if (got !== expectedAccessToken) return { error: "token" };
-      }
-      if (typeof body !== "object" || body === null) return null;
-      const row = body as {
-        id?: unknown;
-        event?: unknown;
-        payment?: { id?: unknown };
-      };
-      if (typeof row.id !== "string" || typeof row.event !== "string") return null;
-      if (typeof row.payment?.id !== "string") return null;
-      const status =
-        row.event === "PAYMENT_RECEIVED"
-          ? "RECEIVED"
-          : row.event === "PAYMENT_CONFIRMED"
-            ? "CONFIRMED"
-            : "OTHER";
-      return {
-        eventId: row.id,
-        eventName: row.event,
-        paymentId: row.payment.id,
-        status,
-      };
-    },
+    parseWebhook,
+  };
+}
+
+export type ResolvedBilling =
+  | { mode: "asaas"; provider: BillingProvider; sandbox: boolean }
+  | { mode: "stub"; provider: BillingProvider }
+  | { mode: "unavailable"; reason: string };
+
+export function resolveBilling(): ResolvedBilling {
+  const asaas = asaasProvider();
+  if (asaas) {
+    const c = readAsaasConfig()!;
+    return { mode: "asaas", provider: asaas, sandbox: c.sandbox };
+  }
+  if (isBillingStubMode()) {
+    return { mode: "stub", provider: stubBillingProvider() };
+  }
+  return {
+    mode: "unavailable",
+    reason: "ASAAS_API_KEY ausente (stub só com APP_ENV=dev)",
   };
 }
 
 export function getBillingProvider(): BillingProvider {
-  return asaasProvider() ?? stubBillingProvider();
+  const resolved = resolveBilling();
+  if (resolved.mode === "unavailable") {
+    throw new Error(resolved.reason);
+  }
+  return resolved.provider;
 }
