@@ -422,3 +422,42 @@ describe("8 — a conta vê os seus eventos, e só os seus (ADR 0013)", () => {
     await expect(comConta(app, "", async () => 1)).rejects.toThrow(/account/i);
   });
 });
+
+describe("9 — missão duplicada no mesmo evento é recusada pelo banco", () => {
+  it("o segundo INSERT da mesma title_key no mesmo evento estoura UNIQUE", async () => {
+    await comEvento(app, dados.a.eventoId, async (c) => {
+      await c.query(
+        "INSERT INTO challenges (event_id, title_key, position) VALUES ($1, $2, $3)",
+        [dados.a.eventoId, "missao.unica", 1],
+      );
+    });
+
+    await expect(
+      comEvento(app, dados.a.eventoId, async (c) => {
+        await c.query(
+          "INSERT INTO challenges (event_id, title_key, position) VALUES ($1, $2, $3)",
+          [dados.a.eventoId, "missao.unica", 2],
+        );
+      }),
+    ).rejects.toMatchObject({ code: "23505", constraint: "challenges_event_id_title_key_key" });
+  });
+
+  it("a mesma chave em outro evento cabe — unicidade é por evento, não global", async () => {
+    await comEvento(app, dados.a.eventoId, async (c) => {
+      await c.query(
+        "INSERT INTO challenges (event_id, title_key, position) VALUES ($1, $2, $3)",
+        [dados.a.eventoId, "missao.nos-dois", 1],
+      );
+    });
+
+    await expect(
+      comEvento(app, dados.b.eventoId, async (c) => {
+        await c.query(
+          "INSERT INTO challenges (event_id, title_key, position) VALUES ($1, $2, $3)",
+          [dados.b.eventoId, "missao.nos-dois", 1],
+        );
+      }),
+    ).resolves.toBeUndefined();
+  });
+});
+

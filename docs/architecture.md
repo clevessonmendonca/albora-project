@@ -335,7 +335,7 @@ vendors ───┘              ├──< guest_sessions >──┬──< up
 | `vendors` | Parceiro B2B2C, tokens de marca própria | Fora do escopo de evento |
 | `packs` | Vocabulário, missões padrão, templates, identidade padrão, **lista de lugares** | Global, versionado |
 | `events` | Raiz do escopo. `identity_tokens`, `pack_id`, filtro recomendado, janela do evento, gate de interação, **`expected_guests`** (denominador da H1; migration `0020_convidados_esperados.sql`), **`timezone`** IANA do salão (migration `0026_fuso_do_evento.sql`; default `America/Sao_Paulo`) | **É a fronteira.** Sob política, casando por `id`. Segunda política de conta: [ADR 0013](./adr/0013-acesso-por-conta-sob-rls.md) |
-| `challenges` | Missões do evento | `event_id`, RLS |
+| `challenges` | Missões do evento. UNIQUE (`event_id`, `title_key`) — a mesma missão não nasce duas vezes (migration `0028_missao_unica_no_evento.sql`) | `event_id`, RLS |
 | `guest_sessions` | Sessão anônima + consentimento versionado e datado. `via` é `qr` \| `wa` \| `link` — o canal de entrada (migration `0024_via_da_sessao.sql`). Consentimento externo (Stories) é coluna à parte | `event_id`, RLS |
 | `guest_contacts` | Opt-in explícito de contato — base do loop viral | `event_id`, RLS, **PII** |
 | `uploads` | Mídia, estado, legenda e lugar (ambos opcionais), veredicto do classificador | `event_id`, RLS |
@@ -356,6 +356,7 @@ Duas notas de desenho que não são cosméticas:
 
 - **Uma linha por slug, e não uma coluna em `events`.** A rotação precisa que o slug **antigo** continue existindo: o material impresso já saiu da gráfica, e quem escanear a placa velha tem de cair numa página de orientação, nunca num erro seco.
 - **Reagir duas vezes é reagir uma vez**, garantido pela chave primária. É o que faz o botão sobreviver a toque duplo e a retry de rede sem inflar contagem.
+- **Deduplicar uma missão duas vezes é impossível**, garantido por UNIQUE (`event_id`, `title_key`). O editor recusa no app; o banco recusa a corrida. `substituirDesafios` mantém o `id` quando a chave permanece.
 
 `expected_guests` é o denominador da métrica que decide o negócio (`sessões_com_upload / expected_guests`). Mora em `events`, NOT NULL, default 150, conferido no wizard e no painel `/admin/e/[eventId]/guests`. Sem ele o casamento termina e não se sabe onde a participação foi perdida.
 
