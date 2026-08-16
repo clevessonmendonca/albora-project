@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const SECTIONS = [
   { label: "Ao vivo", suffix: "" },
+  { label: "Insights", suffix: "/insights" },
   { label: "Convidados", suffix: "/guests" },
   { label: "Moderação", suffix: "/moderation" },
   { label: "O álbum", suffix: "/album" },
