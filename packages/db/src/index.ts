@@ -109,6 +109,7 @@ export {
 
 export { ErroRecadoJaExiste } from "./guestbook-db";
 export {
+  atualizarAudioDoRecado,
   atualizarRecado,
   gravarRecado,
   leiturasDoRecado,
@@ -282,6 +283,8 @@ export { recadoDoEvento as eventGuestbook } from "./guestbook-db";
 export { gravarRecado as insertGuestbook } from "./guestbook-db";
 /** English alias — preferred for new code. @see atualizarRecado */
 export { atualizarRecado as updateGuestbook } from "./guestbook-db";
+/** English alias — preferred for new code. @see atualizarAudioDoRecado */
+export { atualizarAudioDoRecado as updateGuestbookAudio } from "./guestbook-db";
 /** English alias — preferred for new code. @see leiturasDoRecado */
 export { leiturasDoRecado as guestbookReads } from "./guestbook-db";
 /** English alias — preferred for new code. @see marcarRecadoLido */

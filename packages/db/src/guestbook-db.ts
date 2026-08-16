@@ -100,6 +100,25 @@ export async function atualizarRecado(
   return l ? paraRecado(l) : null;
 }
 
+export async function atualizarAudioDoRecado(
+  cliente: PoolClient,
+  entrada: {
+    eventoId: string;
+    audio: { chave: string; duracaoSegundos: number } | null;
+  },
+): Promise<Recado | null> {
+  const { rows } = await cliente.query<LinhaRecado>(
+    `UPDATE recado
+        SET audio_key = $2, audio_duration_seconds = $3, updated_at = now()
+      WHERE event_id = $1
+      RETURNING id, event_id, body, audio_key, audio_duration_seconds, published_at`,
+    [entrada.eventoId, entrada.audio?.chave ?? null, entrada.audio?.duracaoSegundos ?? null],
+  );
+
+  const l = rows[0];
+  return l ? paraRecado(l) : null;
+}
+
 export async function leiturasDoRecado(
   cliente: PoolClient,
   eventoId: string,

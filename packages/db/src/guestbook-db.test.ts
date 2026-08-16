@@ -2,6 +2,7 @@ import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { comEvento } from "./event";
 import {
+  atualizarAudioDoRecado,
   atualizarRecado,
   ErroRecadoJaExiste,
   gravarRecado,
@@ -86,7 +87,7 @@ describe("um recado por evento", () => {
 });
 
 describe("a chave de storage nao entra por esta porta", () => {
-  it("a linha nasce sem audio_key — nao ha parametro que a carregue", async () => {
+  it("a linha nasce sem audio_key — gravarRecado nao a carrega", async () => {
     const recado = await comEvento(app, dados.a.eventoId, (c) => recadoDoEvento(c, dados.a.eventoId));
 
     expect(recado?.audio).toBeNull();
@@ -96,6 +97,44 @@ describe("a chave de storage nao entra por esta porta", () => {
       [dados.a.eventoId],
     );
     expect(rows[0]!.audio_key).toBeNull();
+  });
+});
+
+describe("o audio e uma escrita propria", () => {
+  it("grava e apaga a chave sem mexer no texto", async () => {
+    const chave = `events/${dados.a.eventoId}/recado/11111111-2222-3333-4444-555555555555`;
+
+    const comAudio = await comEvento(app, dados.a.eventoId, (c) =>
+      atualizarAudioDoRecado(c, {
+        eventoId: dados.a.eventoId,
+        audio: { chave, duracaoSegundos: 20 },
+      }),
+    );
+
+    expect(comAudio?.audio).toEqual({ chave, duracaoSegundos: 20 });
+
+    const semAudio = await comEvento(app, dados.a.eventoId, (c) =>
+      atualizarAudioDoRecado(c, { eventoId: dados.a.eventoId, audio: null }),
+    );
+
+    expect(semAudio?.texto).toBe(comAudio?.texto);
+    expect(semAudio?.audio).toBeNull();
+  });
+
+  it("evento A nao grava audio no recado de B", async () => {
+    const chaveB = `events/${dados.b.eventoId}/recado/11111111-2222-3333-4444-555555555555`;
+
+    const cruzado = await comEvento(app, dados.a.eventoId, (c) =>
+      atualizarAudioDoRecado(c, {
+        eventoId: dados.b.eventoId,
+        audio: { chave: chaveB, duracaoSegundos: 12 },
+      }),
+    );
+
+    expect(cruzado).toBeNull();
+
+    const doB = await comEvento(app, dados.b.eventoId, (c) => recadoDoEvento(c, dados.b.eventoId));
+    expect(doB?.audio).toBeNull();
   });
 });
 
