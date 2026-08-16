@@ -88,6 +88,17 @@ export async function inspectObject(key: string): Promise<ObjectMetadata | null>
   return { bytes, inicio };
 }
 
+/**
+ * Lê o objeto como stream. O export do acervo puxa um arquivo por vez e
+ * joga no ZIP — `arrayBuffer()` aqui carregaria a noite inteira na memória.
+ */
+export async function streamObject(key: string): Promise<ReadableStream<Uint8Array> | null> {
+  const res = await client().fetch(objectUrl(key).toString(), { method: "GET" });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`leitura falhou: ${res.status}`);
+  return res.body;
+}
+
 const TETO_DA_THUMB = 512 * 1024;
 
 /**
