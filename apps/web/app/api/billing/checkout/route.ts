@@ -12,6 +12,7 @@ import {
 import {
   asaasCustomerIdForAccount,
   createBillingPayment,
+  recordProductEvent,
   upsertBillingCustomer,
 } from "@albora/db";
 import { getPool } from "@/lib/db";
@@ -108,6 +109,8 @@ export async function POST(req: Request) {
       billingType,
       invoiceUrl: checkout.invoiceUrl,
     });
+
+    void recordProductEvent(getPool(), "checkout_started");
 
     console.log("billing.checkout", { plan, mode: billing.mode });
     return jsonOk({

@@ -7,7 +7,7 @@ import {
   requireHostSession,
   unexpectedError,
 } from "@/lib/api";
-import { aplicarPlanoPago, claimWebhookEvent, markPaymentPaidByAsaasId, paymentByAsaasId } from "@albora/db";
+import { aplicarPlanoPago, claimWebhookEvent, markPaymentPaidByAsaasId, paymentByAsaasId, recordProductEvent } from "@albora/db";
 import { getPool } from "@/lib/db";
 import { requireHostEvent } from "@/lib/api/host-event";
 
@@ -50,6 +50,7 @@ export async function POST(req: Request) {
     if (claimed) {
       await markPaymentPaidByAsaasId(getPool(), asaasPaymentId, "received");
       await aplicarPlanoPago(getPool(), payment.eventId, payment.plan);
+      void recordProductEvent(getPool(), "checkout_paid");
     }
     return jsonOk({ ok: true, eventId: payment.eventId, plan: payment.plan });
   } catch (e) {

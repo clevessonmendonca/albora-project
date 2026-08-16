@@ -2,6 +2,7 @@ import {
   aplicarPlanoPago,
   claimWebhookEvent,
   markPaymentPaidByAsaasId,
+  recordProductEvent,
 } from "@albora/db";
 import { errorResponse, jsonOk, unexpectedError } from "@/lib/api";
 import { getPool } from "@/lib/db";
@@ -57,6 +58,7 @@ export async function POST(req: Request) {
       );
       if (paid) {
         await aplicarPlanoPago(getPool(), paid.eventId, paid.plan);
+        void recordProductEvent(getPool(), "checkout_paid");
         console.log("billing.plan_aplicado", { plan: paid.plan });
       }
     }
