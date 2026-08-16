@@ -7,7 +7,7 @@ import { ScrollDemo, Missions, Reveal, IdentityWall } from "./interactives";
 import { OpenAlbum, PolaroidFan, Timeline, NightSlot } from "./showcases";
 import { Brand } from "./brand";
 import { AnimatedBrand } from "./animated-brand";
-import { LandingBeacon } from "./landing-beacon";
+import { LandingBeacon, LandingCtaLink } from "./landing-beacon";
 import {
   Accent,
   Frame,
@@ -214,9 +214,13 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
           </a>
         </nav>
 
-        <a href={HREF_CRIAR_GRATIS} className={cn(pillClasses, "px-[1.375rem] py-[0.6875rem] text-sm")}>
+        <LandingCtaLink
+          href={HREF_CRIAR_GRATIS}
+          packHint={pack.id}
+          className={cn(pillClasses, "px-[1.375rem] py-[0.6875rem] text-sm")}
+        >
           {t("landing.cta")}
-        </a>
+        </LandingCtaLink>
       </header>
 
       <Section className={`pb-0 pt-[clamp(1.875rem,4vw,3.25rem)] ${SIDE_PADDING}`}>
@@ -239,9 +243,9 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
               </p>
 
               <div className="mt-[2.125rem] flex flex-wrap gap-3">
-                <a href={HREF_CRIAR_GRATIS} className={pillClasses}>
+                <LandingCtaLink href={HREF_CRIAR_GRATIS} packHint={pack.id} className={pillClasses}>
                   {t("landing.cta")}
-                </a>
+                </LandingCtaLink>
                 <a href="#momentos" className={lightPillClasses}>
                   Ver as fotos
                 </a>
@@ -556,16 +560,30 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
                 ))}
               </ul>
 
-              <a
-                href={plan.href}
-                className={cn(
-                  plan.featured ? pillClasses : lightPillClasses,
-                  !plan.featured && "bg-acento-superficie-suave",
-                  "py-3.5 text-[0.90625rem]",
-                )}
-              >
-                {plan.cta}
-              </a>
+              {plan.href === HREF_FORNECEDOR ? (
+                <a
+                  href={plan.href}
+                  className={cn(
+                    plan.featured ? pillClasses : lightPillClasses,
+                    !plan.featured && "bg-acento-superficie-suave",
+                    "py-3.5 text-[0.90625rem]",
+                  )}
+                >
+                  {plan.cta}
+                </a>
+              ) : (
+                <LandingCtaLink
+                  href={plan.href}
+                  packHint={pack.id}
+                  className={cn(
+                    plan.featured ? pillClasses : lightPillClasses,
+                    !plan.featured && "bg-acento-superficie-suave",
+                    "py-3.5 text-[0.90625rem]",
+                  )}
+                >
+                  {plan.cta}
+                </LandingCtaLink>
+              )}
             </div>
           ))}
         </div>
@@ -601,9 +619,9 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
               {t("landing.fechamento")} <Accent>{t("landing.fechamento.destaque")}</Accent>
             </Heading>
             <div className="mt-9 flex flex-wrap justify-center gap-3">
-              <a href={HREF_CRIAR_GRATIS} className={pillClasses}>
+              <LandingCtaLink href={HREF_CRIAR_GRATIS} packHint={pack.id} className={pillClasses}>
                 {t("landing.cta")}
-              </a>
+              </LandingCtaLink>
               <a href={HREF_FORNECEDOR} className={lightPillClasses}>
                 Sou cerimonialista
               </a>
@@ -630,12 +648,13 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
         <span className="flex-1 text-[0.84375rem] leading-[1.3] text-bg">
           Montar é grátis. Leva 3 minutos.
         </span>
-        <a
+        <LandingCtaLink
           href={HREF_CRIAR_GRATIS}
+          packHint={pack.id}
           className={cn(pillClasses, "bg-bg px-[1.375rem] py-3 text-ink")}
         >
           Criar álbum
-        </a>
+        </LandingCtaLink>
       </div>
     </div>
   );
