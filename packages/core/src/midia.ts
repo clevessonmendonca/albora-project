@@ -29,6 +29,13 @@ export const MAX_BYTES = 12 * 1024 * 1024;
 /** Teto por vídeo (~30s em 1080p, §5.1 do doc de produto). */
 export const MAX_BYTES_VIDEO = 50 * 1024 * 1024;
 
+/**
+ * Quantos bytes o confirm lê do objeto `/full` no storage. JPEG cabe em 3,
+ * PNG em 8, WEBP e ISO-BMFF (mp4 / .mov) em 12. Dezesseis cobre todos sem
+ * puxar a foto pelo servidor.
+ */
+export const PREFIXO_MAGIC_BYTES = 16;
+
 export const LADO_MAIOR = {
   gratis: 2500,
   pago: 3500,
@@ -172,4 +179,16 @@ export function validarConteudo(mimeDeclarado: string, inicio: Uint8Array): Erro
     };
   }
   return null;
+}
+
+/**
+ * O portão do confirm: tamanho real do objeto no storage + magic bytes do
+ * prefixo. Nem o MIME do presign nem o do `File.type` entram aqui.
+ */
+export function validarObjetoRecebido(
+  mimeDeclarado: string,
+  bytes: number,
+  inicio: Uint8Array,
+): ErroMidia | null {
+  return validarDeclaracao(mimeDeclarado, bytes) ?? validarConteudo(mimeDeclarado, inicio);
 }

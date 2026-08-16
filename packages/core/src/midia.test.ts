@@ -4,11 +4,13 @@ import {
   isHeic,
   isVideoBytes,
   MAX_BYTES,
+  PREFIXO_MAGIC_BYTES,
   TIPOS_ACEITOS,
   TIPOS_ENTRADA,
   tipoAceito,
   validarConteudo,
   validarDeclaracao,
+  validarObjetoRecebido,
 } from "./midia";
 
 const bytes = (...b: number[]) => new Uint8Array([...b, ...new Array(32).fill(0)]);
@@ -91,7 +93,40 @@ describe("magic bytes — o Content-Type do cliente não vale nada", () => {
 
   it("aceita quando declaração e conteúdo batem", () => {
     expect(validarConteudo("image/jpeg", JPEG)).toBeNull();
+    expect(validarConteudo("image/png", PNG)).toBeNull();
     expect(validarConteudo("image/webp", WEBP)).toBeNull();
+  });
+
+  it("recusa JPEG declarado como mp4 e mp4 declarado como JPEG", () => {
+    expect(validarConteudo("video/mp4", JPEG)?.code).toBe("midia.conteudo_nao_confere");
+    expect(validarConteudo("image/jpeg", MP4)?.code).toBe("midia.conteudo_nao_confere");
+  });
+
+  it("os 16 bytes do Range do confirm bastam para os quatro formatos", () => {
+    const prefixo = (src: Uint8Array) => src.slice(0, PREFIXO_MAGIC_BYTES);
+
+    expect(validarConteudo("image/jpeg", prefixo(JPEG))).toBeNull();
+    expect(validarConteudo("image/png", prefixo(PNG))).toBeNull();
+    expect(validarConteudo("image/webp", prefixo(WEBP))).toBeNull();
+    expect(validarConteudo("video/mp4", prefixo(MP4))).toBeNull();
+  });
+});
+
+describe("o objeto que de fato chegou — tamanho do storage + magic bytes", () => {
+  it("aceita JPEG cujo prefixo e tamanho batem", () => {
+    expect(validarObjetoRecebido("image/jpeg", 800_000, JPEG)).toBeNull();
+  });
+
+  it("recusa HTML declarado como JPEG mesmo com tamanho de foto", () => {
+    expect(validarObjetoRecebido("image/jpeg", 800_000, HTML)?.code).toBe("midia.conteudo_nao_confere");
+  });
+
+  it("recusa o tamanho real acima do teto mesmo com prefixo JPEG", () => {
+    expect(validarObjetoRecebido("image/jpeg", MAX_BYTES + 1, JPEG)?.code).toBe("midia.grande_demais");
+  });
+
+  it("recusa tipo que o presign nem assinaria — o confirm não é atalho", () => {
+    expect(validarObjetoRecebido("text/html", 800_000, HTML)?.code).toBe("midia.tipo_recusado");
   });
 });
 

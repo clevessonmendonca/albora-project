@@ -59,12 +59,14 @@ export {
   LADO_MAIOR,
   MAX_BYTES,
   MAX_BYTES_VIDEO,
+  PREFIXO_MAGIC_BYTES,
   TIPOS_ACEITOS,
   TIPOS_ENTRADA,
   TIPOS_VIDEO,
   tipoAceito,
   validarConteudo,
   validarDeclaracao,
+  validarObjetoRecebido,
 } from "./midia";
 
 export type { PlanoDoEvento } from "./plano-evento";
@@ -471,6 +473,12 @@ export { derivarChaveMidia as deriveMediaKey } from "./chaves";
 export { prefixoDoEvento as eventPrefix } from "./chaves";
 /** English alias — prefer for new code. */
 export { validarDeclaracao as validateDeclaration } from "./midia";
+/** English alias — prefer for new code. @see validarConteudo */
+export { validarConteudo as validateContent } from "./midia";
+/** English alias — prefer for new code. @see validarObjetoRecebido */
+export { validarObjetoRecebido as validateReceivedObject } from "./midia";
+/** English alias — prefer for new code. @see PREFIXO_MAGIC_BYTES */
+export { PREFIXO_MAGIC_BYTES as MAGIC_BYTE_PREFIX } from "./midia";
 /** English alias — prefer for new code. */
 export { podeEnviarVideo as canUploadVideo } from "./plano-evento";
 /** English alias — prefer for new code. */
