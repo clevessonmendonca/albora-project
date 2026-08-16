@@ -114,6 +114,12 @@ async function semear() {
   await pool.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [SLUG, eventoId]);
   await semearMissoes(eventoId);
 
+  // Conta de ops local: magic link em /admin/sign-in com o mesmo e-mail.
+  await pool.query(
+    `INSERT INTO platform_operators (account_id) VALUES ($1) ON CONFLICT DO NOTHING`,
+    [conta[0].id],
+  );
+
   // Um segundo evento, já encerrado, para conferir a tela de "já foi" sem
   // ter de mexer no relógio.
   const { rows: velho } = await pool.query(

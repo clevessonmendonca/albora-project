@@ -322,3 +322,12 @@ export { jobExportPorId as getExportJob } from "./export-db";
 export { emitirStepUp as issueStepUp } from "./export-db";
 /** English alias — preferred for new code. @see consumirStepUp */
 export { consumirStepUp as consumeStepUp } from "./export-db";
+
+export type { SupportPriority, SupportStatus, SupportTicket } from "./support";
+export {
+  createSupportTicket,
+  isPlatformOperator,
+  listOpenSupportTicketsAdmin,
+  listSupportTicketsForAccount,
+  slaDueAt,
+} from "./support";

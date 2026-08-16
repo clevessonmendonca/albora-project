@@ -13,6 +13,7 @@ export type LinhaUpload = {
   takenAt: Date | null;
   width: number | null;
   height: number | null;
+  promptKey: string | null;
 };
 
 export type ResultadoConfirm =
@@ -45,6 +46,8 @@ export async function confirmarUpload(
     takenAt?: Date | null;
     width?: number | null;
     height?: number | null;
+    /** Chave de vocabulário do confessionário (só vídeo). */
+    promptKey?: string | null;
   },
 ): Promise<ResultadoConfirm> {
   // Serializa os confirms do MESMO uploadId. Sem isto, dois retries em
@@ -61,11 +64,12 @@ export async function confirmarUpload(
   const returning = `id, event_id AS "eventId", session_id AS "sessionId",
                challenge_id AS "challengeId", storage_key AS "storageKey",
                mime, bytes, caption, place,
-               taken_at AS "takenAt", width, height`;
+               taken_at AS "takenAt", width, height,
+               prompt_key AS "promptKey"`;
 
   const { rows: inseridas } = await cliente.query<LinhaUpload>(
-    `INSERT INTO uploads (id, event_id, session_id, challenge_id, storage_key, mime, bytes, caption, place, taken_at, width, height)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    `INSERT INTO uploads (id, event_id, session_id, challenge_id, storage_key, mime, bytes, caption, place, taken_at, width, height, prompt_key)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
      ON CONFLICT (id) DO NOTHING
      RETURNING ${returning}`,
     [
@@ -81,6 +85,7 @@ export async function confirmarUpload(
       entrada.takenAt ?? null,
       entrada.width ?? null,
       entrada.height ?? null,
+      entrada.promptKey ?? null,
     ],
   );
 
