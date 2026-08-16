@@ -50,6 +50,8 @@ export type QueueItem = QueueDetails & {
   tentativas: number;
   /** Instante de captura em epoch ms. Ausente nas filas antigas. */
   capturadaEm?: number;
+  /** True só quando `capturadaEm` é parede de EXIF, não instante absoluto. */
+  capturadaEmParede?: boolean;
   largura?: number;
   altura?: number;
 };

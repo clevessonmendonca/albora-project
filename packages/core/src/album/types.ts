@@ -18,7 +18,7 @@ export type JanelaDoEvento = {
 
 export const FOLGA_DA_JANELA_MS = 3 * 60 * 60 * 1000;
 
-/** Sem coluna de fuso no schema; Brasília é o fuso do evento no MVP. */
+/** Offset de `America/Sao_Paulo`, o default da coluna `events.timezone`. */
 export const OFFSET_PADRAO_MINUTOS = -180;
 
 export const CAPITULO_SEM_HORA = "sem-hora";

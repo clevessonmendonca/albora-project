@@ -314,10 +314,13 @@ export type {
   Selecao,
   Slot,
 } from "./album";
+export type { FusoDoEvento } from "./album";
 export {
   CAPITULO_SEM_HORA,
   CAPITULO_UNICO,
   FOLGA_DA_JANELA_MS,
+  FUSOS_DO_EVENTO,
+  FUSO_PADRAO,
   HORAS_DO_AMANHECER,
   JANELA_DE_RAJADA_MS,
   LAYOUTS,
@@ -329,12 +332,17 @@ export {
   diagramarBloco,
   ehAmanhecer,
   escolherLayout,
+  fusoIanaValido,
+  fusoOuPadrao,
   horaNoEvento,
   inicioDaHoraNoEvento,
   instanteDaParede,
+  instanteDaParedeNoFuso,
   instanteDe,
+  instanteLocalNoFuso,
   layoutsQueCabem,
   montarAlbum,
+  offsetMinutosDoFuso,
   ordemDeDescarte,
   ordemNaRajada,
   planejarCapitulos,
@@ -451,6 +459,14 @@ export { processarFoto as processPhoto } from "./processar";
 export { lerCapturadaEm as readCapturedAt } from "./exif";
 /** English alias — prefer for new code. */
 export { instanteDaParede as wallClockToInstant } from "./album";
+/** English alias — prefer for new code. */
+export { instanteDaParedeNoFuso as wallClockInTimeZone } from "./album";
+/** English alias — prefer for new code. */
+export { offsetMinutosDoFuso as timezoneOffsetMinutes } from "./album";
+/** English alias — prefer for new code. */
+export { FUSO_PADRAO as DEFAULT_TIMEZONE } from "./album";
+/** English alias — prefer for new code. */
+export { fusoIanaValido as isValidIanaTimeZone } from "./album";
 /** English alias — prefer for new code. */
 export { montarGaleria as buildGallery } from "./galeria";
 /** English alias — prefer for new code. */

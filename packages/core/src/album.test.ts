@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CAPITULO_SEM_HORA,
   CAPITULO_UNICO,
+  FUSO_PADRAO,
   JANELA_DE_RAJADA_MS,
   agruparEmBlocos,
   capituloDe,
@@ -9,11 +10,15 @@ import {
   diagramarBloco,
   ehAmanhecer,
   escolherLayout,
+  fusoIanaValido,
   horaNoEvento,
   inicioDaHoraNoEvento,
   instanteDaParede,
+  instanteDaParedeNoFuso,
   instanteDe,
+  instanteLocalNoFuso,
   montarAlbum,
+  offsetMinutosDoFuso,
   ordemDeDescarte,
   ordemNaRajada,
   planejarCapitulos,
@@ -29,8 +34,10 @@ import {
   type PlanoDoAlbum,
 } from "./album";
 
-/** Brasília: o fuso do evento, que é o único que vale. */
+/** Brasília: default IANA `America/Sao_Paulo`. */
 const OFFSET = -180;
+/** Pacific/Honolulu, o fuso que prova que 5h locais não são 5h de Brasília. */
+const HONOLULU = -600;
 
 const JANELA: JanelaDoEvento = {
   comecaEm: new Date("2026-08-08T22:00:00Z"),
@@ -172,6 +179,56 @@ describe("a unidade é a hora, e a hora é a do evento", () => {
     expect(capituloDe(new Date("2026-08-08T21:00:00Z"), CAPITULOS)).toBe("chegada");
     expect(capituloDe(new Date("2026-08-09T01:00:00Z"), CAPITULOS)).toBe("festa");
     expect(capituloDe(new Date("2026-08-09T01:00:00Z"), [])).toBe(CAPITULO_UNICO);
+  });
+});
+
+describe("o fuso do evento não é Brasília por decreto", () => {
+  const janela: JanelaDoEvento = {
+    comecaEm: new Date("2026-08-08T22:00:00Z"),
+    terminaEm: new Date("2026-08-09T18:00:00Z"),
+    offsetMinutos: HONOLULU,
+  };
+
+  it("5h locais em Honolulu não são 5h em Brasília", () => {
+    const cincoHonolulu = new Date("2026-08-09T15:00:00Z");
+    const cincoBrasilia = new Date("2026-08-09T08:00:00Z");
+
+    expect(ehAmanhecer(cincoHonolulu, HONOLULU)).toBe(true);
+    expect(ehAmanhecer(cincoHonolulu, OFFSET)).toBe(false);
+    expect(ehAmanhecer(cincoBrasilia, OFFSET)).toBe(true);
+    expect(ehAmanhecer(cincoBrasilia, HONOLULU)).toBe(false);
+
+    expect(primeiroAmanhecerNaJanela(janela)?.toISOString()).toBe("2026-08-09T15:00:00.000Z");
+    expect(
+      primeiroAmanhecerNaJanela({ ...janela, offsetMinutos: OFFSET })?.toISOString(),
+    ).toBe("2026-08-09T08:00:00.000Z");
+  });
+
+  it("a parede do EXIF vira instante no IANA do evento", () => {
+    const parede = new Date("2026-08-08T21:00:00.000Z");
+
+    expect(offsetMinutosDoFuso("Pacific/Honolulu", parede)).toBe(HONOLULU);
+    expect(offsetMinutosDoFuso(FUSO_PADRAO, parede)).toBe(OFFSET);
+    expect(offsetMinutosDoFuso("America/New_York", new Date("2026-08-09T12:00:00Z"))).toBe(-240);
+
+    expect(instanteDaParedeNoFuso(parede, "Pacific/Honolulu").toISOString()).toBe(
+      "2026-08-09T07:00:00.000Z",
+    );
+    expect(instanteDaParedeNoFuso(parede, FUSO_PADRAO).toISOString()).toBe(
+      "2026-08-09T00:00:00.000Z",
+    );
+    expect(horaNoEvento(instanteDaParedeNoFuso(parede, "Pacific/Honolulu"), HONOLULU)).toBe(21);
+  });
+
+  it("datetime-local do wizard é parede no fuso, não no do aparelho", () => {
+    expect(instanteLocalNoFuso("2026-08-08T21:00", "Pacific/Honolulu")?.toISOString()).toBe(
+      "2026-08-09T07:00:00.000Z",
+    );
+    expect(instanteLocalNoFuso("2026-08-08T21:00:00.000Z", FUSO_PADRAO)?.toISOString()).toBe(
+      "2026-08-08T21:00:00.000Z",
+    );
+    expect(fusoIanaValido("America/Sao_Paulo")).toBe(true);
+    expect(fusoIanaValido("Not/AZone")).toBe(false);
   });
 });
 

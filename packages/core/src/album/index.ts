@@ -28,6 +28,17 @@ export {
 } from "./types";
 
 export {
+  FUSOS_DO_EVENTO,
+  FUSO_PADRAO,
+  fusoIanaValido,
+  fusoOuPadrao,
+  instanteDaParedeNoFuso,
+  instanteLocalNoFuso,
+  offsetMinutosDoFuso,
+} from "./fuso";
+export type { FusoDoEvento } from "./fuso";
+
+export {
   capituloDe,
   ehAmanhecer,
   horaNoEvento,
