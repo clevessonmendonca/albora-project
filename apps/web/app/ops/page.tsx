@@ -43,6 +43,11 @@ export default async function OpsHomePage() {
             KPIs da plataforma
           </Link>
         </li>
+        <li>
+          <Link href="/ops/events" className="text-acento underline">
+            Lookup de evento (slug)
+          </Link>
+        </li>
       </ul>
     </main>
   );

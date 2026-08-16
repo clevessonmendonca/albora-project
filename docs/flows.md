@@ -117,11 +117,13 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 |---|---|---|
 | Noivos | `/admin/e/{id}/insights` | H1, funil, vias — sem nomes/thumbs |
 | Cerimonialista | `/admin/vendor/insights` | lista de eventos da conta |
-| Owner | `/ops`, `/ops/insights`, `/ops/support` | landing + tickets; operador em `platform_operators` |
+| Owner | `/ops`, `/ops/insights`, `/ops/support`, `/ops/events?slug=` · `/ops/e/[slug]` | landing + tickets + lookup agregado por slug; operador em `platform_operators` |
 
 **Schema:** `event_members`, `platform_operators`, `product_events`, `analytics_snapshots`, `support_*`.
 
-**Gap:** snapshots materializados em cron; agregador auditado para KPIs cross-event; impersonação read-only.
+**Jobs:** `tools/jobs/analytics-snapshots.mjs` materializa `analytics_snapshots` (event/live).
+
+**Gap:** agregador auditado para KPIs cross-event.
 
 ---
 
@@ -133,6 +135,6 @@ Landing → magic link → wizard (± Asaas stub/webhook)
 Admin → ao vivo / Insights / suporte
 TV → wall-pair → telão
 Expo → parear → feed + câmera + drain
-Ops → support + KPIs
-Jobs → retention +48h / D330 stub / D365 fail-closed
+Ops → support + KPIs + lookup por slug
+Jobs → retention +48h / D330 stub / D365 fail-closed · analytics-snapshots
 ```

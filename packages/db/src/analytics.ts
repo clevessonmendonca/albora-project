@@ -1,4 +1,10 @@
+import type { CodigoDaTese, DegrauDoFunil } from "@albora/core";
+import { decidirTese } from "@albora/core";
 import type { Pool } from "pg";
+import { comEvento } from "./event";
+import { lerMetricasAoVivo } from "./event-metrics";
+import { HORAS_APOS_EVENTO } from "./events";
+import { lerFunilAgregado, type EntradasPorVia } from "./funnel-aggregate";
 
 export const PRODUCT_EVENT_NAMES = [
   "landing_view",
@@ -13,6 +19,20 @@ export const PRODUCT_EVENT_NAMES = [
 ] as const;
 
 export type ProductEventName = (typeof PRODUCT_EVENT_NAMES)[number];
+
+/** Agregados de um evento — sem nomes, thumbs ou PII. */
+export type EventLiveMetrics = {
+  expectedGuests: number;
+  totalSessoes: number;
+  sessoesComUpload: number;
+  totalFotos: number;
+  participacao: number;
+  veredito: CodigoDaTese;
+  degraus: DegrauDoFunil[];
+  uploadsAntesDoFeed: number;
+  uploadsDepoisDoFeed: number;
+  entradasPorVia: EntradasPorVia;
+};
 
 export function isProductEventName(v: unknown): v is ProductEventName {
   return typeof v === "string" && (PRODUCT_EVENT_NAMES as readonly string[]).includes(v);
@@ -66,4 +86,80 @@ export async function readAnalyticsSnapshot(
   const r = rows[0];
   if (!r) return null;
   return { metrics: r.metrics, computedAt: r.computed_at };
+}
+
+/**
+ * KPIs agregados do casal (H1, funil, vias) — sem thumbs/nomes.
+ * Só dentro do caminho de evento (`comEvento`).
+ */
+export async function collectEventLiveMetrics(
+  pool: Pool,
+  eventId: string,
+): Promise<EventLiveMetrics> {
+  return comEvento(pool, eventId, async (c) => {
+    const [{ rows }, metricas, funil] = await Promise.all([
+      c.query<{ expected_guests: number }>(
+        `SELECT expected_guests FROM events WHERE id = $1`,
+        [eventId],
+      ),
+      lerMetricasAoVivo(c, eventId),
+      lerFunilAgregado(c, eventId),
+    ]);
+
+    const expectedGuests = rows[0]?.expected_guests;
+    if (!expectedGuests || expectedGuests <= 0) {
+      throw new Error("expected_guests inválido no snapshot");
+    }
+
+    const veredito = decidirTese({
+      expectedGuests,
+      sessoesComUpload: metricas.sessoesComUpload,
+    });
+
+    return {
+      expectedGuests,
+      totalSessoes: funil.totalSessoes,
+      sessoesComUpload: metricas.sessoesComUpload,
+      totalFotos: metricas.totalFotos,
+      participacao: veredito.taxa,
+      veredito: veredito.codigo,
+      degraus: funil.degraus,
+      uploadsAntesDoFeed: funil.uploadsAntesDoFeed,
+      uploadsDepoisDoFeed: funil.uploadsDepoisDoFeed,
+      entradasPorVia: funil.entradasPorVia,
+    };
+  });
+}
+
+/**
+ * Materializa `analytics_snapshots` scope=event period=live.
+ * Metrics JSON: só agregados (sem nomes/thumbs/PII).
+ */
+export async function materializeEventSnapshot(pool: Pool, eventId: string): Promise<EventLiveMetrics> {
+  const metrics = await collectEventLiveMetrics(pool, eventId);
+  await upsertAnalyticsSnapshot(pool, {
+    scope: "event",
+    scopeId: eventId,
+    period: "live",
+    metrics: metrics as unknown as Record<string, unknown>,
+  });
+  return metrics;
+}
+
+/**
+ * Eventos na janela aberta (starts → ends + 48h).
+ * Lista cross-event: o pool do job precisa BYPASSRLS / owner (como retention).
+ */
+export async function listOpenEventIdsForSnapshots(
+  pool: Pool,
+  agora: Date = new Date(),
+): Promise<string[]> {
+  const { rows } = await pool.query<{ id: string }>(
+    `SELECT id FROM events
+      WHERE starts_at <= $1
+        AND ends_at + make_interval(hours => $2) > $1
+      ORDER BY starts_at ASC`,
+    [agora, HORAS_APOS_EVENTO],
+  );
+  return rows.map((r) => r.id);
 }

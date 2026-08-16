@@ -332,8 +332,8 @@ export {
   slaDueAt,
 } from "./support";
 
-export type { EventMemberRole } from "./memberships";
-export { addEventMember, ensureCoupleMember } from "./memberships";
+export type { EventMemberRole, HostEventRole } from "./memberships";
+export { addEventMember, ensureCoupleMember, roleForAccountOnEvent } from "./memberships";
 
 export type { BillingPayment, BillingPaymentStatus } from "./billing";
 export {
@@ -346,9 +346,12 @@ export {
   upsertBillingCustomer,
 } from "./billing";
 
-export type { ProductEventName } from "./analytics";
+export type { EventLiveMetrics, ProductEventName } from "./analytics";
 export {
+  collectEventLiveMetrics,
   isProductEventName,
+  listOpenEventIdsForSnapshots,
+  materializeEventSnapshot,
   PRODUCT_EVENT_NAMES,
   readAnalyticsSnapshot,
   recordProductEvent,
