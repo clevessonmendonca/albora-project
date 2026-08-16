@@ -87,9 +87,11 @@ try {
   rmSync(localOutDir, { recursive: true, force: true });
   mkdirSync(localOutDir, { recursive: true });
   writeFileSync(outfile, result.outputFiles[0].text);
-  
+
   await import(pathToFileURL(outfile).href);
 } catch (e) {
   console.error(e);
   process.exit(1);
+} finally {
+  rmSync(localOutDir, { recursive: true, force: true });
 }

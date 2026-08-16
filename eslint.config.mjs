@@ -18,6 +18,7 @@ export default tseslint.config(
       "apps/mobile/metro.config.js",
       "apps/mobile/babel.config.js",
       "apps/mobile/tailwind.config.js",
+      "tools/jobs/.tmp/**",
     ],
   },
   js.configs.recommended,
