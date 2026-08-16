@@ -14,6 +14,7 @@ describe("o recado nasce carregando e nao segura a camera", () => {
     expect(e.carregando).toBe(true);
     expect(e.mostrar).toBe(false);
     expect(e.texto).toBeNull();
+    expect(e.audio).toBeNull();
   });
 });
 
@@ -39,8 +40,62 @@ describe("buscar GET /api/recado", () => {
 
     const r = await buscarRecado();
 
-    expect(r).toEqual({ ok: true, mostrar: true, texto: "Obrigado por vir." });
+    expect(r).toEqual({ ok: true, mostrar: true, texto: "Obrigado por vir.", audio: null });
     expect(fetch).toHaveBeenCalledWith("/api/recado", { credentials: "same-origin" });
+  });
+
+  it("traz o player quando a entrega manda audio com url", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            mostrar: true,
+            codigo: "recado.entregar",
+            tela: {
+              texto: "Obrigado por vir.",
+              camera: "livre",
+              audio: { duracaoSegundos: 20, url: "https://cdn.example/recado" },
+            },
+          }),
+          { status: 200 },
+        ),
+      ),
+    );
+
+    expect(await buscarRecado()).toEqual({
+      ok: true,
+      mostrar: true,
+      texto: "Obrigado por vir.",
+      audio: { duracaoSegundos: 20, url: "https://cdn.example/recado" },
+    });
+  });
+
+  it("audio sem url nao segura o card — o texto continua", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({
+            mostrar: true,
+            codigo: "recado.entregar",
+            tela: {
+              texto: "Obrigado por vir.",
+              camera: "livre",
+              audio: { duracaoSegundos: 20, chave: "events/x/recado/y" },
+            },
+          }),
+          { status: 200 },
+        ),
+      ),
+    );
+
+    expect(await buscarRecado()).toEqual({
+      ok: true,
+      mostrar: true,
+      texto: "Obrigado por vir.",
+      audio: null,
+    });
   });
 
   it("agendado, lido ou inexistente nao aparecem — a camera segue", async () => {
@@ -58,7 +113,7 @@ describe("buscar GET /api/recado", () => {
       ),
     );
 
-    expect(await buscarRecado()).toEqual({ ok: true, mostrar: false, texto: null });
+    expect(await buscarRecado()).toEqual({ ok: true, mostrar: false, texto: null, audio: null });
   });
 
   it("401 e sessao, o resto e rede — e rede nao trava o resto do app", async () => {
@@ -78,10 +133,14 @@ describe("transicoes", () => {
   });
 
   it("dispensar esconde e nao volta nesta sessao de tela", () => {
-    const visivel = comTela(estadoInicial(), true, "oi");
+    const visivel = comTela(estadoInicial(), true, "oi", {
+      duracaoSegundos: 8,
+      url: "https://cdn.example/recado",
+    });
     const sumiu = dispensar(visivel);
     expect(sumiu.mostrar).toBe(false);
     expect(sumiu.texto).toBeNull();
+    expect(sumiu.audio).toBeNull();
   });
 });
 

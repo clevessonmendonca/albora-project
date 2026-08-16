@@ -85,7 +85,7 @@ Canônico em inglês. Páginas PT redirecionam 308 (`apps/web/next.config.ts`). 
 | `/admin/e/[eventId]/album` | Álbum do anfitrião |
 | `/admin/e/[eventId]/missions` | Editor de missões do pack |
 | `/admin/e/[eventId]/identity` | Tokens de identidade |
-| `/admin/e/[eventId]/guestbook` | Recado dos anfitriões (texto; áudio ainda não) |
+| `/admin/e/[eventId]/guestbook` | Recado dos anfitriões (texto e áudio curto) |
 
 ### Telão, resgate, landing
 

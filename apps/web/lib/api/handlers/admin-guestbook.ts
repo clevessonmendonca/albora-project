@@ -24,6 +24,7 @@ import {
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 import { clientSentStorageKey } from "./guestbook-body";
+import { signGuestbookAudio } from "./guestbook-audio-url";
 
 export const dynamic = "force-dynamic";
 
@@ -34,13 +35,14 @@ type Corpo = {
   audio?: unknown;
 };
 
-function serializar(recado: GuestbookEntry | null) {
+async function serializar(recado: GuestbookEntry | null) {
   if (!recado) return { recado: null };
   return {
     recado: {
       id: recado.id,
       texto: recado.texto,
       publicaEm: recado.publicaEm?.toISOString() ?? null,
+      audio: await signGuestbookAudio(recado.audio),
     },
   };
 }
@@ -75,7 +77,7 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },
 ) {
-  const cfgErr = requireConfig("admin");
+  const cfgErr = requireConfig("admin", { mediaOrigin: true });
   if (cfgErr) return cfgErr;
 
   const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
@@ -87,7 +89,7 @@ export async function GET(
 
   try {
     const recado = await withEvent(getPool(), eventId, (c) => eventGuestbook(c, eventId));
-    return jsonOk(serializar(recado));
+    return jsonOk(await serializar(recado));
   } catch (e) {
     return unexpectedError("admin.recado.get", e);
   }
@@ -102,7 +104,7 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },
 ) {
-  const cfgErr = requireConfig("admin");
+  const cfgErr = requireConfig("admin", { mediaOrigin: true });
   if (cfgErr) return cfgErr;
 
   const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
@@ -165,7 +167,7 @@ export async function PUT(
     if (!salvo.ok) return mapErro(salvo.erro);
 
     console.log("admin.recado_salvo", { accountId: auth.host.accountId, eventId });
-    return jsonOk(serializar(salvo.recado));
+    return jsonOk(await serializar(salvo.recado));
   } catch (e) {
     if (e instanceof GuestbookExistsError) {
       return errorResponse(409, e.code, "Este evento já tem um recado", { eventoId: eventId });

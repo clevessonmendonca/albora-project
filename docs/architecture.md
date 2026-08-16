@@ -342,7 +342,7 @@ vendors ───┘              ├──< guest_sessions >──┬──< up
 | `comments` | Comentário em foto, com thread (`parent_id`) | `event_id`, RLS |
 | `funnel_events` | Instrumentação do funil | `event_id`, RLS |
 | `event_music` / `music_suggestions` | Trilha do casal e sugestões do convidado — **link e metadado, nunca bytes de áudio** ([ADR 0011](./adr/0011-musica-do-evento-sem-direito-de-sincronizacao.md)) | `event_id`, RLS |
-| `recado` / `recado_lido` | Recado dos anfitriões (um por evento) e leitura por sessão. Áudio ainda não é escrito | `event_id`, RLS |
+| `recado` / `recado_lido` | Recado dos anfitriões (um por evento) e leitura por sessão. Áudio em `audio_key` / `audio_duration_seconds`, PUT presigned em `events/{event_id}/recado/...` | `event_id`, RLS |
 | `event_slugs` | Slug → evento, com o antigo preservado como inativo | **Fora da RLS por circularidade declarada (§3)** |
 | `session_tokens` | Hash do token → (`event_id`, `session_id`), validade, revogação | **Fora da RLS por circularidade declarada (§3)** |
 | `wall_tokens` | Hash do crachá da TV → `event_id`, validade, revogação. Só leitura | **Fora da RLS por circularidade declarada (§3)** |
@@ -525,7 +525,7 @@ Este documento é a fonte da verdade de **fronteiras**, e uma fronteira vale ant
 | Telão | §10 | `/wall-display` + poll `/api/wall` + cache 50 + pânico |
 | Funil | §12 | `funnel_events` + `guest_sessions.via` + painel em `/admin/e/[id]/guests` |
 | Peças SVG/PDF | wizard e painel | Download no admin; falta prova impressa com 3 celulares |
-| Recado, música, missões, álbum, share Stories | features correspondentes | No ar. Áudio do recado e app Expo ainda não |
+| Recado, música, missões, álbum, share Stories | features correspondentes | No ar. App Expo ainda não |
 
 ### Ainda não construído (bloqueia o 1º evento real ou é Fase B/C)
 
@@ -564,4 +564,4 @@ Uma consequência operacional que vale registrar: **Service Worker, Background S
 |---|---|
 | 2026-08-09 | Versão inicial. Fronteiras, invariantes e caminhos críticos derivados dos documentos de produto; boas práticas de disciplina herdadas do Nereus, calibradas para a escala do Albora. |
 | 2026-08-10 | Revisão contra o código das tasks 003 a 006. **Correções:** o `NULLIF` na política de RLS (§3), sem o qual a política falha de dois jeitos diferentes na mesma pool; as duas tabelas fora da RLS, que o modelo de dados não listava (§3, §8); `confirm` não confere dimensões, confere assinatura de arquivo (§5); o preset é paramétrico com uma passagem por pixel, não uma tabela de cor (§6); estrutura do repositório e pipeline no GitHub (§14). **Acrescentado:** as duas portas da legenda e por que o confirm não a espera (§5), conjuntos fechados vindos do pack (§7), rate limit em duas camadas (§4), o que a suíte de isolamento de fato prova (§15), e §16 com o que está descrito e ainda não construído. |
-| 2026-08-15 | Revisão contra o código da PR #2. **Correções:** `expected_guests` existe (migration 0020), não “entra com o admin”; telão é poll de `GET /api/wall`, não SSE; PUT da thumb e `identity_tokens` do banco estão no caminho; classificador fail-closed na parede; dois packs no catálogo. **Acrescentado:** `via` na sessão, recado, música, comentários, mapa de rotas no índice. |
+| 2026-08-15 | Revisão contra o código da PR #2. **Correções:** `expected_guests` existe (migration 0020), não “entra com o admin”; telão é poll de `GET /api/wall`, não SSE; PUT da thumb e `identity_tokens` do banco estão no caminho; classificador fail-closed na parede; dois packs no catálogo. **Acrescentado:** `via` na sessão, recado, música, comentários, mapa de rotas no índice. Áudio do recado: presign R2 em `events/{id}/recado/...`, leitura assinada no GET do convidado. |

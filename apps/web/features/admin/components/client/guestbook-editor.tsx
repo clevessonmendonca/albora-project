@@ -3,12 +3,17 @@
 import { MAX_TEXT_CHARACTERS } from "@albora/core";
 import { PACKS, resolvePackText } from "@albora/packs";
 import { useEffect, useState } from "react";
+import { GuestbookAudioField } from "@/features/admin/components/client/guestbook-audio-field";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { useGuestbookRecorder } from "@/features/admin/hooks/use-guestbook-recorder";
+import type { SavedGuestbookAudio } from "@/features/admin/lib/guestbook-audio";
+import { deleteGuestbookAudio, uploadGuestbookAudio } from "@/features/admin/lib/guestbook-audio-upload";
 
 type RecadoSalvo = {
   id: string;
   texto: string;
   publicaEm: string | null;
+  audio: SavedGuestbookAudio | null;
 };
 
 function toLocalInput(iso: string | null): string {
@@ -31,6 +36,10 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [exists, setExists] = useState(false);
+  const [audioSalvo, setAudioSalvo] = useState<SavedGuestbookAudio | null>(null);
+  const [removerAudio, setRemoverAudio] = useState(false);
+  const [aceite, setAceite] = useState(false);
+  const recorder = useGuestbookRecorder();
 
   useEffect(() => {
     void (async () => {
@@ -41,6 +50,7 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
         if (body.recado) {
           setTexto(body.recado.texto);
           setPublicaEm(toLocalInput(body.recado.publicaEm));
+          setAudioSalvo(body.recado.audio);
           setExists(true);
         }
       } catch {
@@ -54,9 +64,14 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
   const caracteres = texto.trim().length;
   const longoDemais = caracteres > MAX_TEXT_CHARACTERS;
   const vazio = caracteres === 0;
+  const precisaAceite = recorder.pending !== null;
 
   const save = async (publicarAgora: boolean) => {
     if (vazio || longoDemais) return;
+    if (precisaAceite && !aceite) {
+      setError("Confirme que a gravação é da sua voz.");
+      return;
+    }
     setSaving(true);
     setError(null);
     setSaved(false);
@@ -81,8 +96,23 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
       if (body.recado) {
         setTexto(body.recado.texto);
         setPublicaEm(toLocalInput(body.recado.publicaEm));
+        if (body.recado.audio) setAudioSalvo(body.recado.audio);
         setExists(true);
       }
+
+      if (removerAudio && !recorder.pending) {
+        await deleteGuestbookAudio(eventId);
+        setAudioSalvo(null);
+        setRemoverAudio(false);
+      }
+
+      if (recorder.pending) {
+        const audio = await uploadGuestbookAudio(eventId, recorder.pending);
+        setAudioSalvo(audio);
+        recorder.descartar();
+        setRemoverAudio(false);
+      }
+
       setSaved(true);
     } catch (e) {
       setError(e instanceof Error && e.message !== "falhou" ? e.message : "Não foi possível salvar.");
@@ -125,6 +155,17 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
           </span>
         </label>
 
+        <GuestbookAudioField
+          saved={removerAudio ? null : audioSalvo}
+          aceite={aceite}
+          onAceite={setAceite}
+          onRemoveSaved={() => {
+            setRemoverAudio(true);
+            setSaved(false);
+          }}
+          recorder={recorder}
+        />
+
         <label className="mt-5 flex flex-col gap-1.5 font-titulo text-sm">
           Aparece a partir de
           <input
@@ -144,20 +185,20 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <button
             type="button"
-            disabled={vazio || longoDemais || saving}
+            disabled={vazio || longoDemais || saving || recorder.recording}
             onClick={() => void save(false)}
             className={`${adminClasses.primaryButton} ${
-              vazio || longoDemais || saving ? "opacity-60" : ""
+              vazio || longoDemais || saving || recorder.recording ? "opacity-60" : ""
             }`}
           >
             {saving ? "Salvando…" : exists ? "Salvar recado" : "Criar recado"}
           </button>
           <button
             type="button"
-            disabled={vazio || longoDemais || saving}
+            disabled={vazio || longoDemais || saving || recorder.recording}
             onClick={() => void save(true)}
             className={`${adminClasses.secondaryButton} ${
-              vazio || longoDemais || saving ? "opacity-60" : ""
+              vazio || longoDemais || saving || recorder.recording ? "opacity-60" : ""
             }`}
           >
             Salvar e publicar agora

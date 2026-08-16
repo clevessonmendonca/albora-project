@@ -18,21 +18,24 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
+import { signGuestbookAudio } from "./guestbook-audio-url";
 
 export const dynamic = "force-dynamic";
 
-function screenPayload(
+async function screenPayload(
   recado: GuestbookEntry | null,
   sessaoId: string,
   eventoId: string,
   leituras: Awaited<ReturnType<typeof guestbookReads>>,
 ) {
   const entrega = decideDelivery(recado, { id: sessaoId, eventoId }, leituras, new Date());
-  const tela = buildGuestbookScreen(entrega, "indisponivel");
+  const estadoDoAudio = entrega.recado?.audio ? "disponivel" : "indisponivel";
+  const tela = buildGuestbookScreen(entrega, estadoDoAudio);
+  const audio = await signGuestbookAudio(tela.audio);
   return {
     mostrar: entrega.mostrar && guestbookScreenHasContent(tela),
     codigo: entrega.codigo,
-    tela: { texto: tela.texto, camera: tela.camera },
+    tela: { texto: tela.texto, camera: tela.camera, audio },
   };
 }
 
@@ -52,11 +55,12 @@ export async function GET(req: Request) {
   if (mismatch) return mismatch;
 
   try {
-    const corpo = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+    const { recado, leituras } = await withEvent(getPool(), auth.session.eventoId, async (c) => {
       const recado = await eventGuestbook(c, auth.session.eventoId);
       const leituras = await guestbookReads(c, auth.session.eventoId, auth.session.sessaoId);
-      return screenPayload(recado, auth.session.sessaoId, auth.session.eventoId, leituras);
+      return { recado, leituras };
     });
+    const corpo = await screenPayload(recado, auth.session.sessaoId, auth.session.eventoId, leituras);
 
     return jsonOk(corpo);
   } catch (e) {
