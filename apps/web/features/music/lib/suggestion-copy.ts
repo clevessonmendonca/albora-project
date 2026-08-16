@@ -22,6 +22,18 @@ export function typeLabel(tipo: string): string {
   return TYPE_LABEL[tipo] ?? tipo;
 }
 
+export function suggestionLabel(s: {
+  provedor: string;
+  tipo: string;
+  titulo?: string | null;
+  artista?: string | null;
+}): string {
+  const titulo = s.titulo?.trim() ?? "";
+  if (titulo === "") return `${providerLabel(s.provedor)} · ${typeLabel(s.tipo)}`;
+  const artista = s.artista?.trim() ?? "";
+  return artista === "" ? titulo : `${titulo} — ${artista}`;
+}
+
 export function suggestionMessage(
   code: string,
   details?: Record<string, unknown>,

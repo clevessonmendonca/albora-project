@@ -31,6 +31,8 @@ describe("queueForScreen", () => {
         tipo: "faixa",
         url: "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT",
         votos: 3,
+        titulo: null,
+        artista: null,
       },
     ]);
     expect(JSON.stringify(tela)).not.toContain("ses_");
@@ -43,5 +45,18 @@ describe("queueForScreen", () => {
       "https://open.spotify.com/track/aaa",
       "https://open.spotify.com/track/bbb",
     ]);
+  });
+
+  it("expõe título e artista quando a faixa já tem metadado", () => {
+    const comTitulo: FaixaSugerida = {
+      ...faixa("4cOdK2wGLETKBW3PvgPWqT", ["ses_1"]),
+      metadado: { titulo: "Perfect", artista: "Ed Sheeran", capaUrl: null },
+    };
+
+    expect(queueForScreen([comTitulo])[0]).toMatchObject({
+      titulo: "Perfect",
+      artista: "Ed Sheeran",
+      url: "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT",
+    });
   });
 });

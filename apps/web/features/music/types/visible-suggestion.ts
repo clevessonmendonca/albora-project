@@ -3,4 +3,6 @@ export type VisibleSuggestion = {
   tipo: string;
   url: string;
   votos: number;
+  titulo: string | null;
+  artista: string | null;
 };

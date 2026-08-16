@@ -7,5 +7,7 @@ export function queueForScreen(fila: readonly FaixaSugerida[]): VisibleSuggestio
     tipo: f.link.tipo,
     url: f.link.url,
     votos: votos(f),
+    titulo: f.metadado?.titulo ?? null,
+    artista: f.metadado?.artista ?? null,
   }));
 }

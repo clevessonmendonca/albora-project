@@ -15,6 +15,8 @@ const suggestion = (partial: Partial<VisibleSuggestion> = {}): VisibleSuggestion
   tipo: "faixa",
   url: "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT",
   votos: 1,
+  titulo: null,
+  artista: null,
   ...partial,
 });
 
@@ -60,6 +62,34 @@ describe("buscar GET /api/music", () => {
     expect(r.page.track?.rotulo).toBe("Perfect — Ed Sheeran");
     expect(r.page.suggestions[0]?.votos).toBe(4);
     expect(fetch).toHaveBeenCalledWith("/api/music", { credentials: "same-origin" });
+  });
+
+  it("lê título e artista da fila quando a API manda", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              musica: null,
+              interacao: "completo",
+              sugestoes: [
+                suggestion({ titulo: "Perfect", artista: "Ed Sheeran", votos: 2 }),
+              ],
+            }),
+            { status: 200 },
+          ),
+      ),
+    );
+
+    const r = await fetchMusic();
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.page.suggestions[0]).toMatchObject({
+      titulo: "Perfect",
+      artista: "Ed Sheeran",
+      votos: 2,
+    });
   });
 
   it("interacao ausente ou desconhecida cai em espelho", async () => {

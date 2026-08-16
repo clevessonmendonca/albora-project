@@ -2,7 +2,7 @@
 
 import { TETO_DE_SUGESTOES_POR_SESSAO } from "@albora/core";
 import { ErrorMessage, PrimaryButton } from "@albora/ui-web";
-import { providerLabel, typeLabel } from "@/features/music/lib/suggestion-copy";
+import { suggestionLabel } from "@/features/music/lib/suggestion-copy";
 import type { MusicState } from "@/features/music/hooks/use-music";
 import type { VisibleSuggestion } from "@/features/music/types/visible-suggestion";
 import { useState } from "react";
@@ -112,7 +112,7 @@ function SuggestionList({
         >
           <div className="min-w-0 flex-1">
             <a href={s.url} className="block truncate text-[0.9rem] text-ink no-underline">
-              {providerLabel(s.provedor)} · {typeLabel(s.tipo)}
+              {suggestionLabel(s)}
             </a>
             <p className="m-0 text-[0.75rem] text-ink-3">
               {s.votos === 1 ? "1 voto" : `${s.votos} votos`}

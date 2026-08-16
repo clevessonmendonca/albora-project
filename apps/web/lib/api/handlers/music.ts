@@ -1,9 +1,11 @@
 import {
+  chaveDaFaixa,
   displayMusic,
   interactionMode,
   ordenarSugestoes,
   parseMusicLink,
   registrarSugestao,
+  type MetadadoDaMusica,
 } from "@albora/core";
 import {
   adicionarSugestao,
@@ -24,6 +26,7 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
+import { buscarMetadadoDaMusica } from "@/lib/music-metadata";
 
 type Corpo = { url?: unknown; evento?: unknown };
 
@@ -90,6 +93,20 @@ export async function POST(req: Request) {
     return errorResponse(422, lido.erro.code, "Link não aceito", lido.erro.details);
   }
   const link = lido.link;
+  const chave = chaveDaFaixa(link);
+
+  let metadado: MetadadoDaMusica | null = null;
+  try {
+    const filaAtual = await comEvento(getPool(), auth.session.eventoId, (c) =>
+      listarSugestoes(c, auth.session.eventoId),
+    );
+    const existente = filaAtual.find((f) => f.chave === chave);
+    metadado = existente?.metadado?.titulo
+      ? (existente.metadado ?? null)
+      : await buscarMetadadoDaMusica(link);
+  } catch {
+    metadado = null;
+  }
 
   try {
     const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
@@ -100,7 +117,12 @@ export async function POST(req: Request) {
       const decisao = registrarSugestao(fila, { sessaoId: auth.session.sessaoId, link }, gate, new Date());
       if (!decisao.ok) return { tipo: "recusada" as const, erro: decisao.erro };
 
-      await adicionarSugestao(c, { eventoId: auth.session.eventoId, sessaoId: auth.session.sessaoId, link });
+      await adicionarSugestao(c, {
+        eventoId: auth.session.eventoId,
+        sessaoId: auth.session.sessaoId,
+        link,
+        metadado,
+      });
       const atual = ordenarSugestoes(await listarSugestoes(c, auth.session.eventoId));
       return { tipo: "aceita" as const, fila: atual };
     });

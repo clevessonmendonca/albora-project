@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { TETO_DE_SUGESTOES_POR_SESSAO } from "@albora/core";
-import { providerLabel, suggestionMessage, typeLabel } from "./suggestion-copy";
+import { providerLabel, suggestionMessage, typeLabel, suggestionLabel } from "./suggestion-copy";
 
 describe("suggestionMessage", () => {
   it("usa o teto que a API mandou, e o do núcleo se faltar", () => {
@@ -37,5 +37,20 @@ describe("rótulos na lista", () => {
 
   it("provedor fora da lista não inventa nome", () => {
     expect(providerLabel("bandcamp")).toBe("bandcamp");
+  });
+
+  it("prefere título e artista; sem metadado cai no provedor · tipo", () => {
+    expect(
+      suggestionLabel({
+        provedor: "spotify",
+        tipo: "faixa",
+        titulo: "Perfect",
+        artista: "Ed Sheeran",
+      }),
+    ).toBe("Perfect — Ed Sheeran");
+    expect(
+      suggestionLabel({ provedor: "spotify", tipo: "faixa", titulo: "Perfect", artista: null }),
+    ).toBe("Perfect");
+    expect(suggestionLabel({ provedor: "spotify", tipo: "faixa" })).toBe("Spotify · faixa");
   });
 });

@@ -66,6 +66,8 @@ function readSuggestions(value: unknown): VisibleSuggestion[] {
         tipo: item.tipo,
         url: item.url,
         votos: item.votos,
+        titulo: typeof item.titulo === "string" ? item.titulo : null,
+        artista: typeof item.artista === "string" ? item.artista : null,
       });
     }
   }

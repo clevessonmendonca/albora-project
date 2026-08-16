@@ -2,9 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { suggestionLabel } from "@/features/music/lib/suggestion-copy";
 
 type HostTrack = { provedor: string; rotulo: string; url: string };
-type HostSuggestion = { provedor: string; tipo: string; url: string; votos: number };
+type HostSuggestion = {
+  provedor: string;
+  tipo: string;
+  url: string;
+  votos: number;
+  titulo?: string | null;
+  artista?: string | null;
+};
 
 export function EventMusic({ eventId }: { eventId: string }) {
   const [url, setUrl] = useState("");
@@ -114,10 +122,8 @@ export function EventMusic({ eventId }: { eventId: string }) {
             {suggestions.map((s) => (
               <li key={`${s.provedor}:${s.tipo}:${s.url}`} className="text-[0.9rem] text-ink">
                 <a href={s.url} className="text-acento">
-                  {s.provedor}
+                  {suggestionLabel(s)}
                 </a>
-                {" · "}
-                {s.tipo}
                 {" · "}
                 {s.votos === 1 ? "1 voto" : `${s.votos} votos`}
               </li>
