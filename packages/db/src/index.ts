@@ -334,3 +334,31 @@ export {
 
 export type { EventMemberRole } from "./memberships";
 export { addEventMember, ensureCoupleMember } from "./memberships";
+
+export type { BillingPayment, BillingPaymentStatus } from "./billing";
+export {
+  aplicarPlanoPago,
+  asaasCustomerIdForAccount,
+  claimWebhookEvent,
+  createBillingPayment,
+  markPaymentPaidByAsaasId,
+  paymentByAsaasId,
+  upsertBillingCustomer,
+} from "./billing";
+
+export type { ProductEventName } from "./analytics";
+export {
+  isProductEventName,
+  PRODUCT_EVENT_NAMES,
+  readAnalyticsSnapshot,
+  recordProductEvent,
+  upsertAnalyticsSnapshot,
+} from "./analytics";
+
+export type { DueRetentionJob } from "./retention-jobs";
+export {
+  listDueRetentionJobs,
+  markRetentionJob,
+  processRetentionJob,
+  scheduleRetentionJobs,
+} from "./retention-jobs";

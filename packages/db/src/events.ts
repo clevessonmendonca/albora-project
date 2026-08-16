@@ -144,6 +144,8 @@ export type NovoEvento = {
   fuso?: string;
   /** Chaves de vocabulário do pack (`missao.*`). Vazio = nenhuma missão semeada. */
   missoes?: readonly string[];
+  /** Nome amigável no painel. Ausente = vocabulário do pack. */
+  title?: string | null;
 };
 
 /**
@@ -180,8 +182,8 @@ export async function criarEvento(
       const slug = gerarSlug(rand);
       try {
         const { rows } = await c.query<{ id: string }>(
-          `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, identity_tokens, expected_guests, timezone)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+          `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, identity_tokens, expected_guests, timezone, title)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
           [
             entrada.accountId,
             entrada.packId,
@@ -191,6 +193,7 @@ export async function criarEvento(
             JSON.stringify(entrada.identityTokens ?? {}),
             convidados,
             fuso,
+            entrada.title?.trim() || null,
           ],
         );
         const eventoId = rows[0]!.id;
@@ -202,6 +205,25 @@ export async function criarEvento(
            ON CONFLICT (event_id, account_id) DO NOTHING`,
           [eventoId, entrada.accountId],
         );
+
+        for (const item of [
+          { kind: "plus_48h", due: new Date(entrada.terminaEm.getTime() + 48 * 3600 * 1000) },
+          {
+            kind: "d330_drive",
+            due: new Date(entrada.terminaEm.getTime() + 330 * 24 * 3600 * 1000),
+          },
+          {
+            kind: "d365_delete",
+            due: new Date(entrada.terminaEm.getTime() + 365 * 24 * 3600 * 1000),
+          },
+        ]) {
+          await c.query(
+            `INSERT INTO retention_jobs (event_id, kind, due_at)
+             VALUES ($1, $2, $3)
+             ON CONFLICT (event_id, kind) DO NOTHING`,
+            [eventoId, item.kind, item.due],
+          );
+        }
 
         const missoes = entrada.missoes ?? [];
         if (missoes.length > 0) {
