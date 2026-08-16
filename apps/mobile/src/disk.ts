@@ -65,6 +65,10 @@ export function diskFiles(): FileOps {
       });
       return decodeBase64(b64);
     },
+    async readAll(path) {
+      const b64 = await readAsStringAsync(path, { encoding: EncodingType.Base64 });
+      return decodeBase64(b64);
+    },
     async mkdir(path) {
       await makeDirectoryAsync(path, { intermediates: true });
     },

@@ -2,6 +2,7 @@ export type FileOps = {
   copy(from: string, to: string): Promise<void>;
   info(path: string): Promise<{ exists: boolean; size: number }>;
   readHead(path: string, bytes: number): Promise<Uint8Array>;
+  readAll(path: string): Promise<Uint8Array>;
   mkdir(path: string): Promise<void>;
   remove(path: string): Promise<void>;
 };
@@ -25,6 +26,11 @@ export function memoryFiles(seed: Record<string, Uint8Array> = {}): FileOps & {
       const data = files.get(path);
       if (!data) throw new Error("arquivo ausente");
       return data.slice(0, bytes);
+    },
+    async readAll(path) {
+      const data = files.get(path);
+      if (!data) throw new Error("arquivo ausente");
+      return new Uint8Array(data);
     },
     async mkdir() {},
     async remove(path) {

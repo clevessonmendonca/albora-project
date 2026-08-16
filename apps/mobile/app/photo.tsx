@@ -1,15 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { randomUUID } from "expo-crypto";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { QUALITY } from "@albora/core";
 import { Button, Screen, Text } from "@albora/ui-native";
 import { persistCapture } from "../src/capture";
 import { diskFiles, guestQueue, mediaRoot } from "../src/disk";
 import { parseStoredSession, SESSION_STORE_KEY, type GuestSession } from "../src/session";
-import { drainFileQueue } from "../src/upload";
+import { drainGuestQueue } from "../src/drain-guest";
 
 export default function PhotoScreen() {
   const router = useRouter();
@@ -20,13 +20,28 @@ export default function PhotoScreen() {
   const [busy, setBusy] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
+  const refreshPending = useCallback(async () => {
+    setPending((await guestQueue().list()).length);
+  }, []);
+
+  const tryDrain = useCallback(async () => {
+    await drainGuestQueue(guestQueue());
+    await refreshPending();
+  }, [refreshPending]);
+
   useEffect(() => {
     void (async () => {
       const raw = await SecureStore.getItemAsync(SESSION_STORE_KEY);
       setSession(parseStoredSession(raw));
-      setPending((await guestQueue().list()).length);
+      await refreshPending();
     })();
-  }, []);
+  }, [refreshPending]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void tryDrain();
+    }, [tryDrain]),
+  );
 
   if (session === undefined || permission === null) {
     return <View className="flex-1 bg-bg" />;
@@ -102,8 +117,8 @@ export default function PhotoScreen() {
         return;
       }
 
-      setPending((await guestQueue().list()).length);
-      void drainFileQueue(guestQueue());
+      await refreshPending();
+      void tryDrain();
     } catch {
       setErro("Não consegui tirar a foto. Tente de novo.");
     } finally {
