@@ -9,14 +9,26 @@ export async function PhotoContent({
   sessaoId,
   evento,
   missionParam,
+  promptParam,
+  forceVideo,
 }: {
   slug: string;
   eventoId: string;
   sessaoId: string;
   evento: EventoPublico;
   missionParam?: string | undefined;
+  promptParam?: string | undefined;
+  forceVideo?: boolean | undefined;
 }) {
-  const data = await getPhotoPage({ slug, eventoId, sessaoId, evento, missionParam });
+  const data = await getPhotoPage({
+    slug,
+    eventoId,
+    sessaoId,
+    evento,
+    missionParam,
+    promptParam,
+    forceVideo,
+  });
 
   return (
     <div style={darkEventVars(evento)}>
@@ -32,6 +44,9 @@ export async function PhotoContent({
         recommendedFilter={data.recommendedFilter}
         initialMission={data.initialMission}
         interactionOpen={data.interactionOpen}
+        promptKey={data.promptKey}
+        promptLabel={data.promptLabel}
+        forceVideo={data.forceVideo}
       />
     </div>
   );

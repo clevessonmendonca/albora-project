@@ -53,6 +53,9 @@ export function PhotoPage({
   recommendedFilter,
   initialMission = null,
   interactionOpen,
+  promptKey = null,
+  promptLabel = null,
+  forceVideo = false,
 }: {
   slug: string;
   eventoId: string;
@@ -65,6 +68,9 @@ export function PhotoPage({
   recommendedFilter: string | null;
   initialMission?: string | null;
   interactionOpen: boolean;
+  promptKey?: string | null;
+  promptLabel?: string | null;
+  forceVideo?: boolean;
 }) {
   const router = useRouter();
   const { estado, enfileirarFoto, anotar, drenarAgora } = useUpload(eventoId, { plano: plan, cotaVideo: videoQuota });
@@ -141,7 +147,11 @@ export function PhotoPage({
     if (arquivos.length === 1) {
       const inicio = new Uint8Array(await primeiro.slice(0, 16).arrayBuffer());
       if (isVideoBytes(inicio)) {
-        const r = await enfileirarFoto({ arquivo: primeiro, desafioId: escolhida });
+        const r = await enfileirarFoto({
+          arquivo: primeiro,
+          desafioId: escolhida,
+          promptKey,
+        });
         if (r.ok) {
           setEnviadas((n) => n + 1);
           if (escolhida) {
@@ -158,7 +168,7 @@ export function PhotoPage({
     }
 
     for (const arquivo of arquivos) {
-      const r = await enfileirarFoto({ arquivo, desafioId: escolhida });
+      const r = await enfileirarFoto({ arquivo, desafioId: escolhida, promptKey });
       if (r.ok) setEnviadas((n) => n + 1);
     }
     setEtapa({ nome: "pronto", arquivo: primeiro });
@@ -166,7 +176,7 @@ export function PhotoPage({
   }
 
   async function enviar(arquivo: File, filtro: FiltroAplicado | undefined) {
-    const r = await enfileirarFoto({ arquivo, filtro, desafioId: escolhida });
+    const r = await enfileirarFoto({ arquivo, filtro, desafioId: escolhida, promptKey });
     if (!r.ok) return;
 
     setEnviadas((n) => n + 1);
@@ -261,20 +271,24 @@ export function PhotoPage({
           eventTitle={eventTitle}
           headerAction={headerAction}
           mission={
-            chosenMission
-              ? { index: missionIndex, total: missions.length, title: chosenMission.title }
-              : null
+            promptLabel
+              ? { index: 1, total: 1, title: promptLabel }
+              : chosenMission
+                ? { index: missionIndex, total: missions.length, title: chosenMission.title }
+                : null
           }
           places={places}
           activePlaceId={lugarPre}
           onPlace={setLugarPre}
           recentThumbs={recentes}
           processing={estado.processando}
-          onShutter={dispararCamera}
-          onRoll={dispararRolo}
-          {...(missions.length > 0
+          onShutter={forceVideo || promptKey ? abrirVideo.bind(null, escolhida) : dispararCamera}
+          onRoll={forceVideo || promptKey ? () => undefined : dispararRolo}
+          {...(missions.length > 0 && !promptKey
             ? { onVoltar: () => router.push(`/e/${encodeURIComponent(slug)}/missions`) }
-            : {})}
+            : promptKey
+              ? { onVoltar: () => router.push(`/e/${encodeURIComponent(slug)}/confessional`) }
+              : {})}
           footer={
             <>
               {estado.ultimoErro && <ErrorMessage>{estado.ultimoErro}</ErrorMessage>}

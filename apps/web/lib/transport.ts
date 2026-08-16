@@ -71,6 +71,7 @@ export const webTransport: Transport = {
         chave: presign.chave,
         mime: item.mime,
         desafioId: item.desafioId ?? null,
+        promptKey: item.promptKey ?? null,
         legenda: item.legenda ?? null,
         lugar: item.lugar ?? null,
         ...(typeof item.capturadaEm === "number"

@@ -77,6 +77,7 @@ export function CoverPage({
   interactionOpen,
   musicLabel,
   hostMessageLabel,
+  hasConfessional = false,
 }: {
   slug: string;
   eventName: string;
@@ -86,6 +87,7 @@ export function CoverPage({
   interactionOpen: boolean;
   musicLabel: string | null;
   hostMessageLabel: string;
+  hasConfessional?: boolean;
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
@@ -150,10 +152,17 @@ export function CoverPage({
         </div>
 
         <p className="m-0 px-[1.125rem] pb-2 text-center text-[0.75rem] text-ink-3">
+          {hasConfessional && (
+            <>
+              <Link href={`${base}/confessional`} className="text-ink-2 underline">
+                Confessionário
+              </Link>
+              {" · "}
+            </>
+          )}
           <Link href="/wall-pair" className="text-ink-2 underline">
             Ligar telão
           </Link>
-          {" · digite o código que aparece na TV"}
         </p>
 
         {moments.length > 0 && (

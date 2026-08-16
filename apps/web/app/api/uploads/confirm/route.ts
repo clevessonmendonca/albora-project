@@ -7,6 +7,7 @@ import {
   fusoDoEvento,
   packDoEvento,
 } from "@albora/db";
+import { isValidConfessionPrompt, PACKS } from "@albora/packs";
 import { recordFunnelEvent } from "@/features/guest/lib/record-funnel";
 import {
   enforceRateLimit,
@@ -30,6 +31,7 @@ type Corpo = {
   legenda?: unknown;
   lugar?: unknown;
   desafioId?: unknown;
+  promptKey?: unknown;
   capturadaEm?: unknown;
   capturadaEmParede?: unknown;
   largura?: unknown;
@@ -51,7 +53,7 @@ export async function POST(req: Request) {
   const parsed = await parseJsonBody<Corpo>(req);
   if (parsed instanceof Response) return parsed;
 
-  const { uploadId, chave, mime, legenda, lugar, desafioId, capturadaEm, capturadaEmParede, largura, altura } =
+  const { uploadId, chave, mime, legenda, lugar, desafioId, promptKey, capturadaEm, capturadaEmParede, largura, altura } =
     parsed.data;
   if (typeof uploadId !== "string" || typeof chave !== "string" || typeof mime !== "string") {
     return errorResponse(422, "validation_error", "Dados incompletos", {
@@ -91,6 +93,15 @@ export async function POST(req: Request) {
           : null;
 
       const packId = await packDoEvento(c, auth.session.eventoId);
+      const pack = packId ? PACKS[packId] : undefined;
+      let prompt: string | null = null;
+      if (typeof promptKey === "string" && pack && isValidConfessionPrompt(pack, promptKey)) {
+        if (!mime.startsWith("video/")) {
+          return { erro: "confessionario.video" as const };
+        }
+        prompt = promptKey;
+      }
+
       const fuso = await fusoDoEvento(c, auth.session.eventoId);
       const tamanho = acceptedSize(largura, altura);
       const takenAt =
@@ -98,34 +109,44 @@ export async function POST(req: Request) {
           ? acceptedTakenAtInTimeZone(capturadaEm, fuso)
           : acceptedTakenAt(capturadaEm);
 
-      return confirmarUpload(c, {
-        uploadId,
-        eventId: auth.session.eventoId,
-        sessionId: auth.session.sessaoId,
-        challengeId: daMissao,
-        storageKey: `${chave}/full`,
-        mime,
-        bytes: objeto.bytes,
-        caption: cleanCaption(legenda),
-        place: acceptedPlace(packId, lugar),
-        takenAt,
-        width: tamanho?.width ?? null,
-        height: tamanho?.height ?? null,
-      });
+      return {
+        ok: true as const,
+        resultado: await confirmarUpload(c, {
+          uploadId,
+          eventId: auth.session.eventoId,
+          sessionId: auth.session.sessaoId,
+          challengeId: daMissao,
+          storageKey: `${chave}/full`,
+          mime,
+          bytes: objeto.bytes,
+          caption: cleanCaption(legenda),
+          place: acceptedPlace(packId, lugar),
+          takenAt,
+          width: tamanho?.width ?? null,
+          height: tamanho?.height ?? null,
+          promptKey: prompt,
+        }),
+      };
     });
+
+    if ("erro" in resultado) {
+      return errorResponse(422, resultado.erro, "O confessionário pede um vídeo");
+    }
+
+    const { resultado: confirmado } = resultado;
 
     console.log("confirm.ok", {
       eventoId: auth.session.eventoId,
       uploadId,
-      estado: resultado.estado,
+      estado: confirmado.estado,
       bytes: objeto.bytes,
     });
 
-    if (resultado.estado === "criado") {
+    if (confirmado.estado === "criado") {
       await recordFunnelEvent(auth.session.eventoId, auth.session.sessaoId, "upload_ok");
     }
 
-    return jsonOk({ uploadId, estado: resultado.estado });
+    return jsonOk({ uploadId, estado: confirmado.estado });
   } catch (e) {
     if (e instanceof ErroUploadDeOutroEvento) {
       return errorResponse(403, "upload.chave_invalida", "Chave não pertence a este evento");

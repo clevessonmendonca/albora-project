@@ -19,10 +19,10 @@ export default async function Pagina({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ missao?: string }>;
+  searchParams: Promise<{ missao?: string; prompt?: string; video?: string }>;
 }) {
   const { slug } = await params;
-  const { missao: missionParam } = await searchParams;
+  const { missao: missionParam, prompt: promptParam, video: videoParam } = await searchParams;
   const r = await resolveOpenEvent(slug);
 
   if (r.estado !== "aberto") {
@@ -42,6 +42,8 @@ export default async function Pagina({
         sessaoId={session.sessaoId}
         evento={r.evento}
         missionParam={missionParam}
+        promptParam={promptParam}
+        forceVideo={videoParam === "1"}
       />
     </Suspense>
   );

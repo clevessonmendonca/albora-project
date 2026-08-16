@@ -43,6 +43,7 @@ export async function getCover(input: CoverInput): Promise<CoverData> {
     interactionOpen: isInteractionOpen(evento),
     musicLabel,
     hostMessageLabel: pack ? resolvePackText(pack, "recado.rotulo") : "Um recado",
+    hasConfessional: (pack?.confessionario?.length ?? 0) > 0,
   };
 }
 

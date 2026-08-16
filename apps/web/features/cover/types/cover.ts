@@ -17,4 +17,5 @@ export type CoverData = {
   interactionOpen: boolean;
   musicLabel: string | null;
   hostMessageLabel: string;
+  hasConfessional: boolean;
 };

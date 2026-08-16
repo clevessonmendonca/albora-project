@@ -69,6 +69,7 @@ export type PedidoEnvio = {
   arquivo: File;
   filtro?: FiltroAplicado | undefined;
   desafioId?: string | null | undefined;
+  promptKey?: string | null | undefined;
 };
 
 export function useUpload(
@@ -106,7 +107,7 @@ export function useUpload(
    * O `id` devolvido é o que a tela de detalhes usa para anotar depois.
    */
   const enfileirarFoto = useCallback(
-    async ({ arquivo, filtro, desafioId }: PedidoEnvio) => {
+    async ({ arquivo, filtro, desafioId, promptKey }: PedidoEnvio) => {
       setEstado((e) => ({ ...e, processando: true, ultimoErro: null }));
 
       const recusar = (mensagem: string) => {
@@ -145,6 +146,7 @@ export function useUpload(
             criadoEm: Date.now(),
             tentativas: 0,
             desafioId: desafioId ?? null,
+            promptKey: promptKey ?? null,
             ...metaDaCaptura(null, arquivo.lastModified, prep?.largura, prep?.altura),
           });
 
@@ -188,6 +190,7 @@ export function useUpload(
           criadoEm: Date.now(),
           tentativas: 0,
           desafioId: desafioId ?? null,
+          promptKey: promptKey ?? null,
           ...metaDaCaptura(foto.capturadaEm, arquivo.lastModified, foto.largura, foto.altura),
         });
 

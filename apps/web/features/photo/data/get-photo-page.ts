@@ -11,7 +11,7 @@ import { isInteractionOpen } from "@/features/cover/lib/is-interaction-open";
 import { resolveMissionsWithStatus } from "@/features/guest/lib/resolved-missions";
 import { eventNameFromPack, packText } from "@/features/guest/lib/pack-text";
 import { placesFromPack, type PlaceOption } from "../lib/places-from-pack";
-import { PACKS } from "@albora/packs";
+import { isValidConfessionPrompt, PACKS, resolvePackText } from "@albora/packs";
 import type { CotaVideo } from "@/features/photo/hooks/use-upload";
 import type { MissionWithStatus } from "@/features/guest/lib/resolved-missions";
 
@@ -21,6 +21,8 @@ export type PhotoPageInput = {
   sessaoId: string;
   evento: EventoPublico;
   missionParam?: string | undefined;
+  promptParam?: string | undefined;
+  forceVideo?: boolean | undefined;
 };
 
 export type PhotoPageData = {
@@ -32,13 +34,16 @@ export type PhotoPageData = {
   recommendedFilter: string | null;
   interactionOpen: boolean;
   initialMission: string | null;
+  promptKey: string | null;
+  promptLabel: string | null;
+  forceVideo: boolean;
   missions: MissionWithStatus[];
   places: PlaceOption[];
   copy: { placeQuestion: string };
 };
 
 export async function getPhotoPage(input: PhotoPageInput): Promise<PhotoPageData> {
-  const { slug, eventoId, sessaoId, evento, missionParam } = input;
+  const { slug, eventoId, sessaoId, evento, missionParam, promptParam, forceVideo } = input;
   const pack = PACKS[evento.packId];
 
   const [challenges, planData] = await Promise.all([
@@ -54,6 +59,10 @@ export async function getPhotoPage(input: PhotoPageInput): Promise<PhotoPageData
   const initialMission =
     missionParam && challenges.some((d) => d.id === missionParam) ? missionParam : null;
 
+  const promptKey =
+    pack && promptParam && isValidConfessionPrompt(pack, promptParam) ? promptParam : null;
+  const promptLabel = pack && promptKey ? resolvePackText(pack, promptKey) : null;
+
   return {
     slug,
     eventoId,
@@ -66,6 +75,9 @@ export async function getPhotoPage(input: PhotoPageInput): Promise<PhotoPageData
     recommendedFilter: evento.filtroRecomendado,
     interactionOpen: isInteractionOpen(evento),
     initialMission,
+    promptKey,
+    promptLabel,
+    forceVideo: !!forceVideo || !!promptKey,
     missions,
     places: placesFromPack(pack),
     copy: { placeQuestion: packText(evento.packId, "lugar.pergunta") },

@@ -1,0 +1,86 @@
+import { PACKS, resolvePackText } from "@albora/packs";
+import { comEvento, packDoEvento } from "@albora/db";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
+import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
+import { guestSession, isSameEventSession } from "@/features/guest/data/guest-session";
+import { EventNotice } from "@/features/guest/components/client/event-notice";
+import { NoSession } from "@/features/guest/components/client/no-session";
+import { getPool } from "@/lib/db";
+import { GuestShell } from "@albora/ui-web";
+
+export const dynamic = "force-dynamic";
+
+type Props = { params: Promise<{ slug: string }> };
+
+/**
+ * Confessionário: o convidado escolhe uma pergunta do pack e grava um vídeo.
+ * A gravação reusa a câmera (`/photo?prompt=…&video=1`).
+ */
+export default async function ConfessionalPage({ params }: Props) {
+  const { slug } = await params;
+  const r = await resolveOpenEvent(slug);
+  if (r.estado !== "aberto") {
+    return (
+      <EventNotice
+        title="Essa festa não está aberta agora"
+        body="Volte pelo QR da mesa quando o envio estiver liberado."
+        showRescue
+      />
+    );
+  }
+
+  const session = await guestSession();
+  if (!isSameEventSession(session, r.evento.eventoId)) {
+    return <NoSession slug={slug} />;
+  }
+
+  const packId = await comEvento(getPool(), r.evento.eventoId, (c) =>
+    packDoEvento(c, r.evento.eventoId),
+  );
+  const pack = packId ? PACKS[packId] : undefined;
+  if (!pack?.confessionario?.length) notFound();
+
+  const base = `/e/${encodeURIComponent(slug)}`;
+  const title = resolvePackText(pack, "confessionario.titulo");
+  const lede = resolvePackText(pack, "confessionario.lede");
+
+  return (
+    <>
+      <GuestShell>
+        <div className="flex flex-1 flex-col px-6 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-8">
+          <h1 className="m-0 font-titulo text-[1.75rem] font-light tracking-titulo">{title}</h1>
+          <p className="mt-2 text-[0.9375rem] leading-relaxed text-ink-2">{lede}</p>
+
+          <ul className="mt-8 flex list-none flex-col gap-3 p-0">
+            {pack.confessionario.map((prompt) => {
+              const label = resolvePackText(pack, prompt.chaveTitulo);
+              const href = `${base}/photo?prompt=${encodeURIComponent(prompt.chaveTitulo)}&video=1`;
+              return (
+                <li key={prompt.id}>
+                  <Link
+                    href={href}
+                    className="block rounded-token border border-linha bg-superficie px-4 py-4 text-inherit no-underline"
+                  >
+                    <span className="font-titulo text-[1.0625rem] leading-snug">{label}</span>
+                    <span className="mt-2 block text-[0.75rem] uppercase tracking-rotulo text-ink-3">
+                      Gravar vídeo
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          <p className="mt-8 text-center">
+            <Link href={`${base}/cover`} className="text-ink-2 underline">
+              Voltar à capa
+            </Link>
+          </p>
+        </div>
+      </GuestShell>
+      <GuestTabBar slug={slug} />
+    </>
+  );
+}

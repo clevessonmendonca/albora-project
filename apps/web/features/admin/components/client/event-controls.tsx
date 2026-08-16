@@ -6,6 +6,7 @@ import { useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { EventMusic } from "@/features/admin/components/client/event-music";
 import { EventPieces } from "@/features/admin/components/client/event-pieces";
+import { SupportHelpButton } from "@/features/admin/components/client/support-help-button";
 import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
 
 type WireModeration = {
@@ -255,6 +256,14 @@ export function EventControls({
             Ver convidados
           </Link>
         </div>
+      </AdminSection>
+
+      <AdminSection>
+        <h2 className="mb-3 mt-0 font-titulo text-lg">Preciso de ajuda</h2>
+        <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
+          Fala com a equipe Albora. Em festa ao vivo, marque prioridade alta.
+        </p>
+        <SupportHelpButton eventId={eventId} />
       </AdminSection>
 
       <AdminSection>
