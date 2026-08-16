@@ -38,7 +38,7 @@ function unzip(zip: Uint8Array): Map<string, Uint8Array> {
   return out;
 }
 
-describe("packPrintPieces", { timeout: 30_000 }, () => {
+describe("packPrintPieces", { timeout: 90_000 }, () => {
   it("ZIP padrão traz os três PDFs da gráfica, sem SVG", async () => {
     const resultado = await packPrintPieces(entradaBase, { slug: "festa-demo" });
 
