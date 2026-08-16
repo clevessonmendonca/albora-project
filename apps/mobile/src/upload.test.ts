@@ -9,9 +9,44 @@ import {
   createNativeTransport,
   drainFileQueue,
   presignPayload,
+  stripGpsOrReject,
 } from "./upload";
 
 const JPEG_SEM_GPS = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array(64).fill(0), 0xff, 0xd9]);
+
+/**
+ * JPEG mínimo com EXIF+GPS para teste de bloqueio.
+ * Réplica do helper de exif.test.ts, necessário porque não é exportado.
+ */
+function jpegComGps(): Uint8Array {
+  const PONTEIRO_GPS = 0x8825;
+  const tiff: number[] = [];
+  const u16 = (n: number) => [n & 0xff, (n >> 8) & 0xff];
+  const u32 = (n: number) => [n & 0xff, (n >> 8) & 0xff, (n >> 16) & 0xff, (n >> 24) & 0xff];
+
+  tiff.push(0x49, 0x49); // little endian
+  tiff.push(...u16(0x002a));
+  tiff.push(...u32(8));
+  tiff.push(...u16(1)); // uma entrada IFD0
+
+  // entrada GPS pointer
+  tiff.push(...u16(PONTEIRO_GPS));
+  tiff.push(...u16(4)); // LONG
+  tiff.push(...u32(1)); // count
+  tiff.push(...u32(200)); // offset GPS IFD
+  tiff.push(...u32(0)); // next IFD
+
+  const corpo = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00, ...tiff];
+  const tamanho = corpo.length + 2;
+
+  return new Uint8Array([
+    0xff, 0xd8,
+    0xff, 0xe1,
+    (tamanho >> 8) & 0xff, tamanho & 0xff,
+    ...corpo,
+    0xff, 0xdb, 0x00, 0x04, 0x00, 0x00,
+  ]);
+}
 
 function item(over: Partial<QueueItem> = {}): QueueItem {
   return {
@@ -133,6 +168,35 @@ describe("createNativeTransport", () => {
   it("401 no confirm é definitivo", () => {
     const err = new ApiError("confirm", 401, "sessao.invalida");
     expect(err.definitivo).toBe(true);
+  });
+
+  it("sendBytes rejeita foto com GPS antes do PUT", async () => {
+    const comGps = jpegComGps();
+
+    const transport = createNativeTransport({
+      origin: "http://localhost:3000",
+      cookie: "albora_sessao=tok",
+      readBytes: async () => comGps,
+    });
+
+    await expect(transport.sendBytes(PRESIGN.full, item())).rejects.toThrow(/GPS/);
+  });
+});
+
+describe("stripGpsOrReject", () => {
+  it("passa foto sem GPS", () => {
+    expect(() => stripGpsOrReject(JPEG_SEM_GPS)).not.toThrow();
+  });
+
+  it("rejeita foto com GPS (erro definitivo)", () => {
+    const comGps = jpegComGps();
+    expect(() => stripGpsOrReject(comGps)).toThrow(/GPS/);
+
+    try {
+      stripGpsOrReject(comGps);
+    } catch (err) {
+      expect((err as { definitivo?: boolean }).definitivo).toBe(true);
+    }
   });
 });
 

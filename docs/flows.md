@@ -85,11 +85,11 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ## F8 — Pós-evento 🟡
 
-**Feliz:** ZIP com step-up (plano pago); jobs `plus_48h` / `d330_drive` (stub) / `d365_delete` (**fail-closed** sem export).
+**Feliz:** ZIP completo + ZIP álbum curado (via `selecionarParaAlbum`, sem rajadas, ~60 páginas), ambos com step-up (plano pago); jobs `plus_48h` / `d330_drive` (stub) / `d365_delete` (**fail-closed** sem export).
 
 **Runner:** `node tools/jobs/retention.mjs`.
 
-**Gap:** Drive OAuth real; livro PDF.
+**Gap:** Drive OAuth real; livro PDF print-ready.
 
 ---
 

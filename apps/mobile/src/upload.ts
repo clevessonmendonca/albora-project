@@ -10,11 +10,13 @@ import {
 import { apiOrigin, cookieHeader, type GuestSession } from "./session";
 
 /**
- * TODO(mobile): `processarFoto` + Desenhista Expo (LUT, orientação, strip EXIF).
- * Sem canvas nativo o reencode ainda não cabe aqui. A câmera já captura com
- * `exif: false`; se o arquivo ainda trouxer GPS, recusamos o PUT (LGPD) em
- * vez de subir coordenada. Galeria / HEIC com GPS voltam a funcionar quando
- * o Desenhista existir.
+ * EXIF/GPS: A câmera já captura com `exif: false`, mas fotos da galeria ou
+ * HEIC convertidos podem trazer GPS. `stripGpsOrReject` bloqueia o PUT de
+ * qualquer imagem com coordenadas (LGPD § 001), devolvendo erro definitivo.
+ *
+ * TODO(F10-completar): `processarFoto` + Desenhista Expo = reencode que
+ * remove EXIF + aplica LUT. Sem canvas nativo o reencode ainda não cabe.
+ * Galeria/HEIC com GPS voltam a funcionar quando o Desenhista existir.
  */
 
 export type NativeUploadDeps = {
@@ -88,6 +90,23 @@ async function codigoDeErro(res: Response): Promise<string | undefined> {
   }
 }
 
+/**
+ * Verifica GPS e rejeita o PUT se presente. Sem canvas nativo (F10 gap), não
+ * há reencode para remover EXIF; bloqueio total é preferível a vazamento de
+ * coordenadas. Mensagem de erro definitivo para não retentar.
+ */
+export function stripGpsOrReject(bytes: Uint8Array): void {
+  if (temGeolocalizacao(bytes)) {
+    throw Object.assign(
+      new Error(
+        "Esta foto contém localização GPS e não pode ser enviada. " +
+        "Tire nova foto com a câmera do app, sem carregar da galeria.",
+      ),
+      { definitivo: true },
+    );
+  }
+}
+
 export function createNativeTransport(deps: NativeUploadDeps): Transport {
   const doFetch = deps.fetch ?? fetch;
 
@@ -109,11 +128,7 @@ export function createNativeTransport(deps: NativeUploadDeps): Transport {
     async sendBytes(url, item) {
       const arquivo = arquivoDoItem(item);
       const bytes = await deps.readBytes(arquivo.caminho);
-      if (temGeolocalizacao(bytes)) {
-        throw Object.assign(new Error("foto com GPS — processarFoto pendente no nativo"), {
-          definitivo: true,
-        });
-      }
+      stripGpsOrReject(bytes);
       const copy = bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength
         ? bytes
         : bytes.slice();
