@@ -146,17 +146,22 @@ export async function musicaDoCasal(
  */
 export async function adicionarSugestao(
   cliente: PoolClient,
-  entrada: { eventoId: string; sessaoId: string; link: LinkDeMusica },
+  entrada: {
+    eventoId: string;
+    sessaoId: string;
+    link: LinkDeMusica;
+    metadado?: MetadadoDaMusica | null;
+  },
 ): Promise<{ inserida: boolean }> {
   if (!provedorNoConjunto(entrada.link.provedor)) {
     throw new ErroProvedorForaDoConjunto(entrada.link.provedor);
   }
 
-  const { link } = entrada;
+  const { link, metadado } = entrada;
   const { rowCount } = await cliente.query(
     `INSERT INTO music_suggestions
-       (event_id, session_id, provider, content_type, identifier, region, url)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+       (event_id, session_id, provider, content_type, identifier, region, url, title, artist)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
      ON CONFLICT (event_id, session_id, provider, content_type, identifier) DO NOTHING`,
     [
       entrada.eventoId,
@@ -166,6 +171,8 @@ export async function adicionarSugestao(
       link.identificador,
       link.regiao,
       link.url,
+      metadado?.titulo ?? null,
+      metadado?.artista ?? null,
     ],
   );
 
@@ -178,9 +185,16 @@ type LinhaSugestao = {
   identifier: string;
   region: string | null;
   url: string;
+  title: string | null;
+  artist: string | null;
   session_id: string;
   primeiro_ms: string;
 };
+
+function metadadoDaSugestao(l: { title: string | null; artist: string | null }): MetadadoDaMusica | null {
+  if (l.title === null || l.title.trim() === "") return null;
+  return { titulo: l.title, artista: l.artist, capaUrl: null };
+}
 
 /**
  * A fila de sugestoes do evento, reconstruida como `FaixaSugerida[]` para
@@ -196,7 +210,7 @@ export async function listarSugestoes(
   eventoId: string,
 ): Promise<FaixaSugerida[]> {
   const { rows } = await cliente.query<LinhaSugestao>(
-    `SELECT provider, content_type, identifier, region, url, session_id,
+    `SELECT provider, content_type, identifier, region, url, title, artist, session_id,
             (extract(epoch from created_at) * 1000)::bigint AS primeiro_ms
        FROM music_suggestions
       WHERE event_id = $1
@@ -204,12 +218,22 @@ export async function listarSugestoes(
     [eventoId],
   );
 
-  const porChave = new Map<string, { chave: string; link: LinkDeMusica; sessoes: string[]; primeiroEm: number }>();
+  const porChave = new Map<
+    string,
+    {
+      chave: string;
+      link: LinkDeMusica;
+      sessoes: string[];
+      primeiroEm: number;
+      metadado: MetadadoDaMusica | null;
+    }
+  >();
 
   for (const l of rows) {
     const link = linkDaLinha(l);
     const chave = chaveDaFaixa(link);
     const existente = porChave.get(chave);
+    const metadado = metadadoDaSugestao(l);
 
     if (existente === undefined) {
       porChave.set(chave, {
@@ -217,9 +241,15 @@ export async function listarSugestoes(
         link,
         sessoes: [l.session_id],
         primeiroEm: Number(l.primeiro_ms),
+        metadado,
       });
-    } else if (!existente.sessoes.includes(l.session_id)) {
-      existente.sessoes.push(l.session_id);
+    } else {
+      if (!existente.sessoes.includes(l.session_id)) {
+        existente.sessoes.push(l.session_id);
+      }
+      if (existente.metadado === null && metadado !== null) {
+        existente.metadado = metadado;
+      }
     }
   }
 

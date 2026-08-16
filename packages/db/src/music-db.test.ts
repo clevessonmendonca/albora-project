@@ -141,3 +141,42 @@ describe("a escolha do casal e uma por evento", () => {
     expect(doB).toBeNull();
   });
 });
+
+describe("titulo e artista da sugestao", () => {
+  it("grava, le de volta, e a segunda sessao preenche se a primeira veio crua", async () => {
+    const { rows } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'convidada-meta', 'v1', now()) RETURNING id`,
+      [dados.a.eventoId],
+    );
+    const outra = rows[0]!.id;
+    const faixaMeta = faixa("https://open.spotify.com/track/0VjIjW4GlUZAMYd2vXMi3b");
+
+    await comEvento(app, dados.a.eventoId, (c) =>
+      adicionarSugestao(c, {
+        eventoId: dados.a.eventoId,
+        sessaoId: dados.a.sessaoId,
+        link: faixaMeta,
+        metadado: null,
+      }),
+    );
+    await comEvento(app, dados.a.eventoId, (c) =>
+      adicionarSugestao(c, {
+        eventoId: dados.a.eventoId,
+        sessaoId: outra,
+        link: faixaMeta,
+        metadado: { titulo: "Blinding Lights", artista: "The Weeknd", capaUrl: null },
+      }),
+    );
+
+    const fila = await comEvento(app, dados.a.eventoId, (c) => listarSugestoes(c, dados.a.eventoId));
+    const alvo = fila.find((f) => f.link.identificador === faixaMeta.identificador);
+
+    expect(alvo?.metadado).toEqual({
+      titulo: "Blinding Lights",
+      artista: "The Weeknd",
+      capaUrl: null,
+    });
+    expect(votos(alvo!)).toBe(2);
+  });
+});

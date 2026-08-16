@@ -79,6 +79,7 @@ export type FaixaSugerida = {
   link: LinkDeMusica;
   sessoes: readonly string[];
   primeiroEm: number;
+  metadado?: MetadadoDaMusica | null;
 };
 
 export type ResultadoDaSugestao =
