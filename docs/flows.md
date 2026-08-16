@@ -185,8 +185,8 @@ Custa um toque no caminho crítico, o recurso mais escasso do produto. Paga trê
 *Por quê:* o toque extra é aceitável uma vez. Repetido a cada foto, mataria o volume — que é onde o acervo se forma.
 
 **N3.3 — Nome ofensivo** 🟠
-→ Aparece no admin junto com as mídias daquela sessão; o anfitrião renomeia ou oculta a sessão inteira.
-*Por quê:* o nome vai ao telão. É um campo de texto livre projetado numa parede para 150 pessoas — e alguém vai testar isso.
+→ Aparece no admin (Convidados) junto com a sessão; o anfitrião troca o nome ou oculta no telão (primeira letra + “·”, ou “Convidado”). As fotos ficam. Banimento fica para depois.
+*Por quê:* o nome vai ao telão. É um campo de texto livre projetado numa parede para 150 pessoas — e alguém vai testar isso. Trocar o `display_name` é o caminho mínimo: o telão já lê essa coluna. Ocultar a sessão ou banir o aparelho puniria as fotos e ainda não tem política.
 
 **N3.4 — Onde o nome aparece**
 → Telão e galeria: sim. Discreto, nunca competindo com a foto.
@@ -706,7 +706,7 @@ Erro nunca expõe interno — sem código HTTP, sem stack, sem nome de tabela.
 | 1 | ~~Quem modera durante a festa~~ | ✅ **Resolvido** — ninguém. Padrão é publicar tudo; classificador é o único portão (§4) | — |
 | 2 | 🟠 **Remoção pedida por quem aparece na foto** mas não a enviou | **Pedido ao anfitrião** — sheet do convidado; anfitrião decide; sem auto-remoção, sem reconhecimento facial | **1º evento** |
 | 3 | 🔴 **O anúncio no microfone** é o maior fator isolado de participação e não é software | Aberto | **1º evento** |
-| 4 | 🟠 **Nome ofensivo no telão** — N3.3 dá o mecanismo, mas não a política: renomear, ocultar a sessão, ou banir? | Aberto | **1º evento** |
+| 4 | 🟠 **Nome ofensivo no telão** — N3.3 | ✅ **Resolvido** — o anfitrião troca ou oculta o `display_name` no admin; as fotos ficam. Banimento adiado | — |
 | 5 | ⚪ **Dupla contagem de sessões** contamina o número que decide continuar ou parar | Aceito como viés | Antes de **ler** o resultado dos 3 casamentos |
 | 6 | ⚪ **Pesos da fila do telão** (50/25/25) são chute fundamentado | Ajustável | Com dado do 1º evento |
 | 7 | ⚪ **Grace period de 48 h** é chute | Ajustável | Com dado do 1º evento |

@@ -1,3 +1,3 @@
 export const dynamic = "force-dynamic";
 
-export { GET } from "@/lib/api/handlers/admin-guests";
+export { GET, PATCH } from "@/lib/api/handlers/admin-guests";

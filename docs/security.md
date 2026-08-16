@@ -302,7 +302,7 @@ Quatro cenários com resposta pré-escrita, porque nenhum deles admite improviso
 | 2 | 🟠 Controlador vs. operador, com advogado | **1º evento** |
 | 3 | 🟠 Caminho de remoção para quem aparece na foto e não a enviou | **Pedido ao anfitrião** (`reports.kind = aparece_na_foto`). Host decide. Sem auto-remoção. |
 | 4 | 🟠 Posição sobre imagem de crianças | **1º evento** |
-| 5 | 🟠 Política para nome ofensivo exibido no telão ([`flows.md` N3.3](./flows.md#32-o-nome--obrigatório-e-por-quê)) | **1º evento** |
+| 5 | 🟠 Política para nome ofensivo exibido no telão ([`flows.md` N3.3](./flows.md#32-o-nome--obrigatório-e-por-quê)) | **Resolvido** — host troca/oculta `display_name` no admin Convidados. Fotos ficam. Banimento adiado |
 | 6 | 🔴 Parecer jurídico sobre agrupamento facial como dado biométrico | Antes de **construir** a Fase 2 |
 | 7 | 🟡 Avaliação de busca por pessoa contra o ator A5 | Antes de **desenhar** o recurso |
 | 8 | 🟠 Emissão de URL de leitura conferir o estado de moderação (§4.3) | **1º evento** — é o que faz o botão de pânico valer para quem já tem a chave |

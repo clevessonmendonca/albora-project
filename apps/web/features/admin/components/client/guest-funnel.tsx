@@ -3,6 +3,7 @@
 import type { CodigoDaTese, DegrauDoFunil, EtapaDaEspinha } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { GuestDisplayNames, type SessaoNoTelao } from "./guest-display-names";
 
 type Resumo = {
   expectedGuests: number;
@@ -16,6 +17,7 @@ type Resumo = {
   uploadsDepoisDoFeed: number;
   entradasPorVia: { qr: number; wa: number; link: number };
   ultimas: { id: string; thumb: string; criadaEm: string }[];
+  sessoes?: SessaoNoTelao[];
 };
 
 const INTERVALO_MS = 30_000;
@@ -89,8 +91,8 @@ export function GuestFunnel({ eventoId }: Props) {
     <div className="flex flex-col gap-5">
       <AdminSection>
         <p className="mb-4 mt-0 leading-relaxed text-ink-2">
-          Números agregados — sem lista nominal e sem enviar mensagem. O denominador vem dos
-          convidados esperados que você definiu na criação.
+          Números agregados — sem enviar mensagem. O denominador vem dos convidados esperados
+          que você definiu na criação.
         </p>
 
         <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
@@ -149,6 +151,12 @@ export function GuestFunnel({ eventoId }: Props) {
           <Stat n={String(resumo.uploadsDepoisDoFeed)} rotulo="depois do feed" />
         </div>
       </AdminSection>
+
+      <GuestDisplayNames
+        eventoId={eventoId}
+        sessoes={resumo.sessoes ?? []}
+        onChanged={() => void carregar()}
+      />
 
       {resumo.ultimas.length > 0 && (
         <AdminSection>

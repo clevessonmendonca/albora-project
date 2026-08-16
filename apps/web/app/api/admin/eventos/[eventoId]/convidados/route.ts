@@ -3,3 +3,4 @@ import * as canonical from "../../../events/[eventId]/guests/route";
 
 export const dynamic = canonical.dynamic;
 export const GET = withLegacyEventId(canonical.GET);
+export const PATCH = withLegacyEventId(canonical.PATCH);
