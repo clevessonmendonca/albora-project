@@ -38,6 +38,8 @@ export {
 } from "./events";
 export type { AtualizacaoConfigEvento } from "./host-events";
 export { atualizarConfigDoEvento, ocultarMidiaDoHost } from "./host-events";
+export type { AcaoNomeDaSessao, SessaoDoHost } from "./host-sessions";
+export { definirNomeDaSessaoDoHost, listarSessoesDoHost } from "./host-sessions";
 export type { FotoRecente, MetricasAoVivo } from "./event-metrics";
 export { lerMetricasAoVivo } from "./event-metrics";
 export type { EntradasPorVia, FunilAgregado } from "./funnel-aggregate";
@@ -275,6 +277,10 @@ export { lerModeracaoDoEvento as readEventModeration } from "./moderation-event"
 export { atualizarConfigDoEvento as updateEventConfig } from "./host-events";
 /** English alias — preferred for new code. @see ocultarMidiaDoHost */
 export { ocultarMidiaDoHost as hideHostMedia } from "./host-events";
+/** English alias — preferred for new code. @see listarSessoesDoHost */
+export { listarSessoesDoHost as listHostSessions } from "./host-sessions";
+/** English alias — preferred for new code. @see definirNomeDaSessaoDoHost */
+export { definirNomeDaSessaoDoHost as setHostSessionDisplayName } from "./host-sessions";
 
 /** English alias — preferred for new code. @see thumbKeyFromFull */
 export { thumbKeyFromFull } from "./storage-key";

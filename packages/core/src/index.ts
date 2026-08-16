@@ -435,6 +435,20 @@ export {
   validarRascunho,
 } from "./guestbook";
 
+export {
+  MAX_NOME_EXIBICAO,
+  MIN_NOME_EXIBICAO,
+  NOME_NEUTRO_DO_TELAO,
+  nomeNeutroDoTelao,
+  validarNomeDeExibicao,
+} from "./nome-exibicao";
+/** English alias — prefer for new code. @see NOME_NEUTRO_DO_TELAO */
+export { NOME_NEUTRO_DO_TELAO as WALL_NEUTRAL_NAME } from "./nome-exibicao";
+/** English alias — prefer for new code. @see nomeNeutroDoTelao */
+export { nomeNeutroDoTelao as wallNeutralName } from "./nome-exibicao";
+/** English alias — prefer for new code. @see validarNomeDeExibicao */
+export { validarNomeDeExibicao as validateDisplayName } from "./nome-exibicao";
+
 export type { PadroesDoEvento, PoliticaDeMenores } from "./menores";
 export {
   compartilhamentoExternoPadrao,
