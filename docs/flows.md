@@ -95,11 +95,11 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ---
 
-## F9 — Fornecedor 🟡
+## F9 — Fornecedor ✅/🟡
 
-**Feliz:** lead sob consulta; `vendor_members` / `event_members.planner` no schema; Insights portfólio `/admin/vendor/insights`.
+**Feliz:** lead sob consulta; `vendor_members` / `event_members.planner` no schema; Insights portfólio `/admin/vendor/insights`; ACL `COUPLE_HOST_ROLES` (ZIP, billing, identidade) vs `ANY_HOST_ROLES` (painel) via `requireHostEventRole`.
 
-**Gap:** white-label; convite do casal; ACL planner vs couple nas rotas.
+**Gap:** white-label; convite do casal.
 
 ---
 
@@ -111,7 +111,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ---
 
-## F11 — Papéis e analytics 🟡
+## F11 — Papéis e analytics ✅/🟡
 
 | Perfil | Rota | Dados |
 |---|---|---|
@@ -121,9 +121,9 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Schema:** `event_members`, `platform_operators`, `product_events`, `analytics_snapshots`, `support_*`.
 
-**Jobs:** `tools/jobs/analytics-snapshots.mjs` materializa `analytics_snapshots` (event/live).
+**Jobs:** `tools/jobs/analytics-snapshots.mjs` materializa `analytics_snapshots` (event/live) — rodando.
 
-**Gap:** agregador auditado para KPIs cross-event.
+**Gap:** agregador auditado para impersonação e KPIs cross-event da plataforma.
 
 ---
 
