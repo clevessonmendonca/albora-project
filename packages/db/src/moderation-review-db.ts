@@ -1,9 +1,12 @@
 import {
   decidirExibicaoDoComentario,
+  motivoDaFila,
   precisaDeRevisao,
+  type MotivoDaFila,
   type VeredictoDoClassificador,
 } from "@albora/core";
 import type { PoolClient } from "pg";
+import { SQL_DENUNCIAS_QUE_SEGURAM, SQL_PEDIDOS_DE_REMOCAO } from "./moderation-db";
 import {
   lerModeracaoDoEvento,
   limiarDenuncias,
@@ -20,9 +23,10 @@ export type MidiaParaRevisao = {
   id: string;
   autor: string;
   denuncias: number;
+  pedidosDeRemocao: number;
   classificador: string | null;
   criadaEm: Date;
-  motivo: "denuncias" | "classificador" | "endurecido";
+  motivo: MotivoDaFila;
 };
 
 export type ComentarioParaRevisao = {
@@ -34,15 +38,6 @@ export type ComentarioParaRevisao = {
   classificador: string | null;
   criadaEm: Date;
 };
-
-function motivoMidia(
-  classificador: VeredictoDoClassificador,
-  endurecido: boolean,
-): MidiaParaRevisao["motivo"] {
-  if (endurecido) return "endurecido";
-  if (classificador === "suspeito" || classificador === "sem-resposta") return "classificador";
-  return "denuncias";
-}
 
 /** Mídia publicada que o anfitrião ainda precisa liberar (spec 011). */
 export async function listarMidiaParaRevisao(
@@ -60,40 +55,44 @@ export async function listarMidiaParaRevisao(
     display_name: string;
     created_at: Date;
     denuncias: number;
+    pedidos_de_remocao: number;
     classifier_verdict: string | null;
     released_by_host: boolean;
   }>(
     `SELECT u.id, s.display_name, u.created_at, u.classifier_verdict, u.released_by_host,
-            (SELECT count(*)::int FROM reports rp WHERE rp.upload_id = u.id) AS denuncias
+            ${SQL_DENUNCIAS_QUE_SEGURAM} AS denuncias,
+            ${SQL_PEDIDOS_DE_REMOCAO} AS pedidos_de_remocao
        FROM uploads u
        JOIN guest_sessions s ON s.id = u.session_id AND s.event_id = u.event_id
       WHERE u.event_id = $1 AND u.state = $2 AND u.released_by_host = false
-      ORDER BY denuncias DESC, u.created_at DESC
+      ORDER BY pedidos_de_remocao DESC, denuncias DESC, u.created_at DESC
       LIMIT $3`,
     [eventoId, PUBLICADO, teto],
   );
 
-  return rows
-    .filter((l) =>
-      precisaDeRevisao(
-        {
-          removida: false,
-          liberadaPeloAnfitriao: l.released_by_host,
-          denuncias: l.denuncias,
-          classificador: veredicto(l.classifier_verdict),
-        },
-        evento,
-        limiar,
-      ),
-    )
-    .map((l) => ({
-      id: l.id,
-      autor: l.display_name,
+  return rows.flatMap((l) => {
+    const estado = {
+      removida: false,
+      liberadaPeloAnfitriao: l.released_by_host,
       denuncias: l.denuncias,
-      classificador: l.classifier_verdict,
-      criadaEm: l.created_at,
-      motivo: motivoMidia(veredicto(l.classifier_verdict), moderacao.modoEndurecido),
-    }));
+      pedidosDeRemocao: l.pedidos_de_remocao,
+      classificador: veredicto(l.classifier_verdict),
+    };
+    if (!precisaDeRevisao(estado, evento, limiar)) return [];
+    const motivo = motivoDaFila(estado, evento, limiar);
+    if (!motivo) return [];
+    return [
+      {
+        id: l.id,
+        autor: l.display_name,
+        denuncias: l.denuncias,
+        pedidosDeRemocao: l.pedidos_de_remocao,
+        classificador: l.classifier_verdict,
+        criadaEm: l.created_at,
+        motivo,
+      },
+    ];
+  });
 }
 
 type LinhaComentarioRevisao = {
@@ -128,7 +127,7 @@ export async function listarComentariosParaRevisao(
             u.state AS midia_state,
             u.classifier_verdict AS midia_classifier_verdict,
             u.released_by_host AS midia_released_by_host,
-            (SELECT count(*)::int FROM reports rp WHERE rp.upload_id = u.id) AS midia_denuncias
+            (SELECT count(*)::int FROM reports rp WHERE rp.upload_id = u.id AND rp.kind = 'ofensivo') AS midia_denuncias
        FROM comments c
        JOIN guest_sessions s ON s.id = c.session_id AND s.event_id = c.event_id
        JOIN uploads u ON u.id = c.upload_id AND u.event_id = c.event_id

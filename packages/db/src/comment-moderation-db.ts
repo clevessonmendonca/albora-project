@@ -78,7 +78,7 @@ export async function listarComentariosVisiveisDaFoto(
             u.state AS midia_state,
             u.classifier_verdict AS midia_classifier_verdict,
             u.released_by_host AS midia_released_by_host,
-            (SELECT count(*)::int FROM reports rp WHERE rp.upload_id = u.id) AS midia_denuncias
+            (SELECT count(*)::int FROM reports rp WHERE rp.upload_id = u.id AND rp.kind = 'ofensivo') AS midia_denuncias
        FROM comments c
        JOIN guest_sessions s ON s.id = c.session_id AND s.event_id = c.event_id
        JOIN uploads u ON u.id = c.upload_id AND u.event_id = c.event_id

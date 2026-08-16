@@ -124,6 +124,37 @@ describe("fila de revisao", () => {
     expect(fila.find((m) => m.id === suspeita[0]!.id)?.motivo).toBe("classificador");
     expect(fila.find((m) => m.id === muda[0]!.id)?.motivo).toBe("classificador");
   });
+
+  it("pedido sou eu nessa foto entra na fila com motivo distinto e não some sozinho", async () => {
+    const { rows } = await admin.query<{ id: string }>(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes, state)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 500000, 'published')
+       RETURNING id`,
+      [dados.a.eventoId, dados.a.sessaoId, `events/${dados.a.eventoId}/sou-eu/full`],
+    );
+    const uploadId = rows[0]!.id;
+
+    await admin.query(
+      `INSERT INTO reports (event_id, upload_id, session_id, kind)
+       VALUES ($1, $2, $3, 'aparece_na_foto')`,
+      [dados.a.eventoId, uploadId, dados.a.sessaoId],
+    );
+
+    const fila = await comEvento(app, dados.a.eventoId, (c) =>
+      listarMidiaParaRevisao(c, dados.a.eventoId),
+    );
+    const item = fila.find((m) => m.id === uploadId);
+
+    expect(item?.motivo).toBe("aparece_na_foto");
+    expect(item?.pedidosDeRemocao).toBe(1);
+    expect(item?.denuncias).toBe(0);
+
+    const { rows: estado } = await admin.query<{ state: string }>(
+      "SELECT state FROM uploads WHERE id = $1",
+      [uploadId],
+    );
+    expect(estado[0]?.state).toBe("published");
+  });
 });
 
 describe("gate de interacao", () => {

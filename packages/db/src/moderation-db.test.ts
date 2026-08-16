@@ -101,4 +101,49 @@ describe("uma sessão denuncia uma vez; duas sessões somam", () => {
     );
     expect(total).toBe(2);
   });
+
+  it("pedido de quem aparece não soma no limiar do telão", async () => {
+    await comEvento(app, dados.a.eventoId, (c) =>
+      denunciar(c, {
+        uploadId: dados.a.uploadId,
+        sessaoId: dados.a.sessaoId,
+        kind: "aparece_na_foto",
+      }),
+    );
+    await comEvento(app, dados.a.eventoId, (c) =>
+      denunciar(c, {
+        uploadId: dados.a.uploadId,
+        sessaoId: outroDeA,
+        kind: "aparece_na_foto",
+      }),
+    );
+
+    const total = await comEvento(app, dados.a.eventoId, (c) =>
+      contarDenuncias(c, dados.a.uploadId),
+    );
+    expect(total).toBe(0);
+  });
+
+  it("ofensivo e aparece_na_foto da mesma sessão: a primeira ganha", async () => {
+    const pedido = await comEvento(app, dados.a.eventoId, (c) =>
+      denunciar(c, {
+        uploadId: dados.a.uploadId,
+        sessaoId: dados.a.sessaoId,
+        kind: "aparece_na_foto",
+      }),
+    );
+    const ofensivo = await comEvento(app, dados.a.eventoId, (c) =>
+      denunciar(c, {
+        uploadId: dados.a.uploadId,
+        sessaoId: dados.a.sessaoId,
+        kind: "ofensivo",
+      }),
+    );
+
+    expect(pedido.registrada).toBe(true);
+    expect(ofensivo.registrada).toBe(false);
+    expect(
+      await comEvento(app, dados.a.eventoId, (c) => contarDenuncias(c, dados.a.uploadId)),
+    ).toBe(0);
+  });
 });

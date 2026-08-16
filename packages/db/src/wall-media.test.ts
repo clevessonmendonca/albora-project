@@ -155,6 +155,30 @@ describe("a parede lê só o evento do crachá", () => {
     }
   });
 
+  it("pedido sou eu nessa foto não tira do telão", async () => {
+    const { rows: outra } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'Bia', '1', now()) RETURNING id`,
+      [dados.a.eventoId],
+    );
+    const segundaSessao = outra[0]!.id;
+
+    try {
+      await admin.query(
+        `INSERT INTO reports (event_id, upload_id, session_id, kind)
+         VALUES ($1, $2, $3, 'aparece_na_foto'), ($1, $2, $4, 'aparece_na_foto')`,
+        [dados.a.eventoId, dados.a.uploadId, dados.a.sessaoId, segundaSessao],
+      );
+      const depois = await comEvento(app, dados.a.eventoId, (c) =>
+        listarMidiaDaParede(c, dados.a.eventoId),
+      );
+      expect(depois.map((m) => m.id)).toContain(dados.a.uploadId);
+    } finally {
+      await admin.query("DELETE FROM reports WHERE upload_id = $1", [dados.a.uploadId]);
+      await admin.query("DELETE FROM guest_sessions WHERE id = $1", [segundaSessao]);
+    }
+  });
+
   it("panico esvazia a parede", async () => {
     await admin.query("UPDATE events SET panic = true WHERE id = $1", [dados.a.eventoId]);
     try {

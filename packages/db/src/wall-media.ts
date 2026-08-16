@@ -81,7 +81,7 @@ export async function listarMidiaDaParede(
     `SELECT u.id, u.storage_key, u.mime, u.created_at, s.display_name,
             u.classifier_verdict, u.released_by_host, u.width, u.height,
             (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes,
-            (SELECT count(*) FROM reports rp WHERE rp.upload_id = u.id)::int AS denuncias
+            (SELECT count(*) FROM reports rp WHERE rp.upload_id = u.id AND rp.kind = 'ofensivo')::int AS denuncias
        FROM uploads u
        JOIN guest_sessions s ON s.id = u.session_id AND s.event_id = u.event_id
       WHERE u.event_id = $1 AND u.state = $2

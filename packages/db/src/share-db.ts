@@ -102,7 +102,7 @@ export async function buscarContextoCompartilhar(
             s.external_consent_version, s.external_consented_at,
             s.external_consent_revoked_at, s.external_name_on_frame,
             e.slug, e.pack_id, e.starts_at, e.identity_tokens, e.has_minors,
-            (SELECT count(*)::int FROM reports rp WHERE rp.upload_id = u.id) AS denuncias
+            (SELECT count(*)::int FROM reports rp WHERE rp.upload_id = u.id AND rp.kind = 'ofensivo') AS denuncias
        FROM uploads u
        JOIN guest_sessions s ON s.id = $1 AND s.event_id = u.event_id
        JOIN events e ON e.id = u.event_id
