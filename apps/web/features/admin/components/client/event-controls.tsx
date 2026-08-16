@@ -26,6 +26,7 @@ type SavingField = "panic" | "hasMinors" | "hardened" | "interaction" | null;
 type Props = {
   eventId: string;
   slug: string;
+  plan: "free" | "celebration" | "vendor";
   initial: WireModeration;
   initialInteractionOpensAt: string | null;
 };
@@ -41,6 +42,7 @@ function fromWire(m: WireModeration): Moderation {
 export function EventControls({
   eventId,
   slug,
+  plan,
   initial,
   initialInteractionOpensAt,
 }: Props) {
@@ -48,6 +50,7 @@ export function EventControls({
   const [interactionOpensAt, setInteractionOpensAt] = useState(initialInteractionOpensAt);
   const [saving, setSaving] = useState<SavingField>(null);
   const [error, setError] = useState(false);
+  const [upgrading, setUpgrading] = useState(false);
 
   const defaults = eventDefaults({ haMenores: moderation.hasMinors });
   const gateOpen = interacaoAberta(
@@ -265,6 +268,57 @@ export function EventControls({
         </p>
         <SupportHelpButton eventId={eventId} />
       </AdminSection>
+
+      {plan === "free" && (
+        <AdminSection>
+          <h2 className="mb-3 mt-0 font-titulo text-lg">Assinar Completo</h2>
+          <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
+            Telão, ZIP e vídeos ilimitados. O convidado não vê cobrança — o plano sobe no
+            próximo poll.
+          </p>
+          <button
+            type="button"
+            disabled={upgrading}
+            className={`${adminClasses.primaryButton} ${upgrading ? "opacity-60" : ""}`}
+            onClick={() => {
+              void (async () => {
+                setUpgrading(true);
+                try {
+                  const r = await fetch("/api/billing/checkout", {
+                    method: "POST",
+                    headers: { "content-type": "application/json" },
+                    body: JSON.stringify({ eventId, plan: "celebration" }),
+                  });
+                  if (!r.ok) throw new Error("falhou");
+                  const data = (await r.json()) as {
+                    invoiceUrl?: string | null;
+                    asaasPaymentId?: string;
+                  };
+                  if (data.invoiceUrl?.startsWith("http")) {
+                    window.location.href = data.invoiceUrl;
+                    return;
+                  }
+                  if (data.asaasPaymentId?.startsWith("pay_stub_")) {
+                    await fetch("/api/billing/simulate", {
+                      method: "POST",
+                      headers: { "content-type": "application/json" },
+                      body: JSON.stringify({ asaasPaymentId: data.asaasPaymentId }),
+                    });
+                    window.location.reload();
+                    return;
+                  }
+                } catch {
+                  setError(true);
+                } finally {
+                  setUpgrading(false);
+                }
+              })();
+            }}
+          >
+            {upgrading ? "Abrindo…" : "Pagar R$ 199"}
+          </button>
+        </AdminSection>
+      )}
 
       <AdminSection>
         <h2 className="mb-4 mt-0 font-titulo text-lg">Música do casal</h2>

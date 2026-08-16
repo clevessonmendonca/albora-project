@@ -22,6 +22,7 @@ type Body = {
   identityTokens?: unknown;
   missoes?: unknown;
   telaoModelos?: unknown;
+  title?: unknown;
 };
 
 function asDate(v: unknown, fuso: string): Date | null {
@@ -124,6 +125,11 @@ export async function POST(req: Request) {
     missoes = parsedKeys;
   }
 
+  const title =
+    typeof body.title === "string" && body.title.trim().length > 0
+      ? body.title.trim().slice(0, 120)
+      : null;
+
   try {
     const input = {
       accountId: auth.host.accountId,
@@ -133,6 +139,7 @@ export async function POST(req: Request) {
       expectedGuests,
       identityTokens,
       fuso: timezone,
+      title,
       ...(missoes !== undefined ? { missoes } : {}),
     };
     const { eventoId, slug } = await criarEvento(getPool(), input);

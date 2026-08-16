@@ -9,6 +9,7 @@ import {
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
 import { IDENTITY_MODELS } from "@albora/tokens";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   identityPreviewClassName,
   presetSwatchProps,
@@ -24,11 +25,16 @@ const STEPS = ["Quando", "Identidade", "Missões", "Parede", "Peças"] as const;
 
 const DEFAULT_MODELS: readonly WallDisplayModel[] = ["polaroide", "mural", "colagem", "dump"];
 
-type Created = { slug: string; eventoId: string };
+type Created = { slug: string; eventoId: string; planIntent: "free" | "celebration" };
 
 export function CreateEventWizard() {
+  const search = useSearchParams();
+  const planIntent: "free" | "celebration" =
+    search.get("plano") === "celebration" ? "celebration" : "free";
+
   const [step, setStep] = useState(0);
   const [packId, setPackId] = useState(OPTIONS[0]!.id);
+  const [title, setTitle] = useState("");
   const [starts, setStarts] = useState("");
   const [ends, setEnds] = useState("");
   const [timezone, setTimezone] = useState(FUSO_PADRAO);
@@ -90,6 +96,7 @@ export function CreateEventWizard() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           packId,
+          title: title.trim() || undefined,
           comecaEm: starts,
           terminaEm: ends,
           timezone,
@@ -100,7 +107,8 @@ export function CreateEventWizard() {
         }),
       });
       if (!r.ok) return setStatus("error");
-      setCreated((await r.json()) as Created);
+      const data = (await r.json()) as { slug: string; eventoId: string };
+      setCreated({ ...data, planIntent });
     } catch {
       setStatus("error");
     }
@@ -110,8 +118,23 @@ export function CreateEventWizard() {
 
   return (
     <Shell title={STEPS[step] ?? "Criar evento"} step={step} total={STEPS.length}>
+      {planIntent === "celebration" && step === 0 && (
+        <p className="m-0 rounded-token bg-superficie-alta px-3 py-2 text-sm text-ink-2">
+          Completo (R$ 199): o evento nasce grátis para montar; o pagamento abre depois, sem
+          bloquear o convidado.
+        </p>
+      )}
       {step === 0 && (
         <>
+          <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
+            Nome do evento
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder={resolvePackText(pack, "landing.exemplo.nome")}
+              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink"
+            />
+          </label>
           <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
             Tipo de evento
             <select
@@ -324,6 +347,41 @@ function MissionList({
 
 function Result({ created }: { created: Created }) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState(false);
+
+  const startCheckout = async () => {
+    setPaying(true);
+    setPayError(false);
+    try {
+      const r = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ eventId: created.eventoId, plan: "celebration" }),
+      });
+      if (!r.ok) throw new Error("falhou");
+      const data = (await r.json()) as { invoiceUrl?: string | null; asaasPaymentId?: string };
+      if (data.invoiceUrl?.startsWith("http")) {
+        window.location.href = data.invoiceUrl;
+        return;
+      }
+      if (data.asaasPaymentId?.startsWith("pay_stub_")) {
+        const sim = await fetch("/api/billing/simulate", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ asaasPaymentId: data.asaasPaymentId }),
+        });
+        if (!sim.ok) throw new Error("sim");
+        window.location.href = `/admin/e/${created.eventoId}?pago=1`;
+        return;
+      }
+      window.location.href = `/admin/e/${created.eventoId}`;
+    } catch {
+      setPayError(true);
+      setPaying(false);
+    }
+  };
+
   return (
     <Shell title="Evento criado" step={4} total={5}>
       <p className="m-0 leading-normal text-ink-2">
@@ -333,9 +391,24 @@ function Result({ created }: { created: Created }) {
       <Link title="Controles durante a festa" url={`${origin}/admin/e/${created.eventoId}`} />
       <Link title="Link do convidado" url={eventEntryUrl(origin, created.slug, "link")} />
       <Link title="WhatsApp" url={whatsappInviteUrl(origin, created.slug)} />
+      {created.planIntent === "celebration" && (
+        <button
+          type="button"
+          disabled={paying}
+          onClick={() => void startCheckout()}
+          className={`${adminClasses.primaryButton} block w-full py-3.5 text-center text-[1.05rem] ${
+            paying ? "opacity-60" : ""
+          }`}
+        >
+          {paying ? "Abrindo pagamento…" : "Pagar Completo (R$ 199)"}
+        </button>
+      )}
+      {payError && (
+        <p className="m-0 text-sm text-critico">Não abriu o checkout. Tente de novo no painel.</p>
+      )}
       <a
         href={`/admin/e/${created.eventoId}`}
-        className={`${adminClasses.primaryButton} block py-3.5 text-center text-[1.05rem]`}
+        className={`${adminClasses.secondaryButton} block py-3.5 text-center text-[1.05rem]`}
       >
         Abrir controles do evento
       </a>

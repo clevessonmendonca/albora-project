@@ -1,7 +1,7 @@
 import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import type { CSSProperties } from "react";
+import { Suspense, type CSSProperties } from "react";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { CreateEventWizard } from "@/features/admin/components/client/create-event-wizard";
 
@@ -17,7 +17,9 @@ export default async function NewEventPage() {
 
   return (
     <div style={vars}>
-      <CreateEventWizard />
+      <Suspense fallback={<p className="p-8 text-ink-2">Carregando…</p>}>
+        <CreateEventWizard />
+      </Suspense>
     </div>
   );
 }

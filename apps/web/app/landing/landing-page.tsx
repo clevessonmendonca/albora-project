@@ -7,6 +7,7 @@ import { ScrollDemo, Missions, Reveal, IdentityWall } from "./interactives";
 import { OpenAlbum, PolaroidFan, Timeline, NightSlot } from "./showcases";
 import { Brand } from "./brand";
 import { AnimatedBrand } from "./animated-brand";
+import { LandingBeacon } from "./landing-beacon";
 import {
   Accent,
   Frame,
@@ -181,6 +182,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
       className="min-h-screen overflow-x-clip bg-bg font-corpo leading-normal text-ink"
       style={toVariables(tokens) as CSSProperties}
     >
+      <LandingBeacon packHint={pack.id} />
       <header
         className={cn(
           "flex items-center justify-between gap-6 border-b border-linha bg-bg py-3.5",

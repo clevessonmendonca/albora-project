@@ -80,6 +80,9 @@ export {
   VIDEOS_POR_CONVIDADO,
 } from "./plano-evento";
 
+export type { RetentionKind, RetentionPlanItem } from "./retention";
+export { mayDeleteAtD365, planRetention } from "./retention";
+
 export type { PedidoConfirm, PedidoPresign, RespostaPresign } from "./upload";
 export { presignExpirou, VALIDADE_PRESIGN_SEGUNDOS } from "./upload";
 

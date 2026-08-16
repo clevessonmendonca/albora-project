@@ -1,0 +1,116 @@
+import {
+  ADMIN_SESSION_REQUIRED,
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireConfig,
+  requireHostSession,
+  unexpectedError,
+} from "@/lib/api";
+import {
+  asaasCustomerIdForAccount,
+  createBillingPayment,
+  upsertBillingCustomer,
+} from "@albora/db";
+import { getPool } from "@/lib/db";
+import { requireHostEvent } from "@/lib/api/host-event";
+import {
+  CELEBRATION_PRICE_CENTS,
+  getBillingProvider,
+  type CheckoutPlan,
+} from "@/lib/billing";
+import { consume } from "@/lib/rate-limit-store";
+
+export const dynamic = "force-dynamic";
+
+type Body = {
+  eventId?: unknown;
+  plan?: unknown;
+  billingType?: unknown;
+};
+
+/**
+ * Host autenticado inicia checkout Asaas (ou stub em dev).
+ * Evento permanece `free` até o webhook.
+ */
+export async function POST(req: Request) {
+  const cfgErr = requireConfig("admin");
+  if (cfgErr) return cfgErr;
+
+  const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
+  if (auth instanceof Response) return auth;
+
+  const limit = consume(`billing_checkout:${auth.host.accountId}`, 10, 60, Date.now());
+  if (!limit.allowed) {
+    return errorResponse(429, "limite.excedido", "Espere um instante", {
+      retry_after_seconds: limit.resetInSeconds,
+    });
+  }
+
+  const parsed = await parseJsonBody<Body>(req);
+  if (parsed instanceof Response) return parsed;
+
+  const eventId = typeof parsed.data.eventId === "string" ? parsed.data.eventId : "";
+  if (!eventId) {
+    return errorResponse(422, "validation_error", "Evento obrigatório", { campos: ["eventId"] });
+  }
+
+  const owned = await requireHostEvent(auth.host.accountId, eventId);
+  if (owned instanceof Response) return owned;
+
+  const plan: CheckoutPlan =
+    parsed.data.plan === "vendor" ? "vendor" : "celebration";
+  const billingType =
+    parsed.data.billingType === "PIX" || parsed.data.billingType === "CREDIT_CARD"
+      ? parsed.data.billingType
+      : "UNDEFINED";
+
+  const amountCents = CELEBRATION_PRICE_CENTS;
+  const origin = new URL(req.url).origin;
+  const successUrl = `${origin}/admin/e/${eventId}?pago=1`;
+
+  try {
+    const provider = getBillingProvider();
+    let customerId = await asaasCustomerIdForAccount(getPool(), auth.host.accountId);
+    if (!customerId) {
+      customerId = await provider.ensureCustomer(
+        auth.host.email,
+        auth.host.accountId,
+        auth.host.email.split("@")[0],
+      );
+      await upsertBillingCustomer(getPool(), auth.host.accountId, customerId);
+    }
+
+    const checkout = await provider.createCheckout({
+      accountId: auth.host.accountId,
+      eventId,
+      email: auth.host.email,
+      plan,
+      amountCents,
+      billingType,
+      successUrl,
+      customerId,
+    });
+
+    const payment = await createBillingPayment(getPool(), {
+      accountId: auth.host.accountId,
+      eventId,
+      asaasPaymentId: checkout.providerPaymentId,
+      plan,
+      amountCents,
+      billingType,
+      invoiceUrl: checkout.invoiceUrl,
+    });
+
+    console.log("billing.checkout", { plan, stub: !process.env.ASAAS_API_KEY });
+    return jsonOk({
+      paymentId: payment.id,
+      asaasPaymentId: payment.asaasPaymentId,
+      invoiceUrl: payment.invoiceUrl,
+      amountCents,
+      plan,
+    });
+  } catch (e) {
+    return unexpectedError("billing.checkout", e);
+  }
+}
