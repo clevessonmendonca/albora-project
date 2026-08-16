@@ -4,7 +4,6 @@ import {
   ALBORA_BRAND,
   resolveTokens,
   type TokenLayer,
-  type PieceFormat,
 } from "@albora/tokens";
 import {
   ADMIN_SESSION_REQUIRED,
@@ -17,24 +16,11 @@ import {
 import { getPool } from "@/lib/db";
 import { generatePiecePdf } from "@/lib/generate-piece-pdf";
 import { generatePieceSvg } from "@/lib/generate-piece-svg";
+import { packPrintPieces, PRINT_FORMATS } from "@/lib/pack-print-pieces";
+import { parsePiecesQuery, PIECE_TYPES } from "@/lib/parse-pieces-query";
 import { identityToFrame } from "@/lib/frame-identity";
 import { eventEntryUrl } from "@/lib/qr";
 import { consume } from "@/lib/rate-limit-store";
-
-const FORMATOS: PieceFormat[] = ["placa-a4", "card-de-mesa", "card-de-missao"];
-const TIPOS = ["svg", "pdf"] as const;
-
-type TipoPeca = (typeof TIPOS)[number];
-
-function comoFormato(valor: string | null): PieceFormat | null {
-  if (!valor) return null;
-  return FORMATOS.includes(valor as PieceFormat) ? (valor as PieceFormat) : null;
-}
-
-function comoTipo(valor: string | null): TipoPeca | null {
-  if (!valor) return "svg";
-  return TIPOS.includes(valor as TipoPeca) ? (valor as TipoPeca) : null;
-}
 
 async function tokensDoEvento(
   accountId: string,
@@ -88,9 +74,8 @@ function invalidPiece(problemas: string[], avisos: string[]): Response {
 }
 
 /**
- * Gera peça impressa (SVG ou PDF) com sangria, QR nível H e URL legível.
- *
- * `tipo=pdf` é vetorial no request — dezenas de KB, não raster 300 dpi.
+ * Gera peça impressa (SVG, PDF ou ZIP das três) com sangria, QR nível H e URL
+ * legível. `tipo=pdf` é vetorial no request — dezenas de KB, não raster 300 dpi.
  */
 export async function GET(
   req: Request,
@@ -114,19 +99,11 @@ export async function GET(
   }
 
   const url = new URL(req.url);
-  const formato = comoFormato(url.searchParams.get("formato"));
-  if (!formato) {
-    return errorResponse(422, "validation_error", "Formato inválido", {
-      campo: "formato",
-      aceitos: FORMATOS,
-    });
-  }
-
-  const tipo = comoTipo(url.searchParams.get("tipo"));
-  if (!tipo) {
-    return errorResponse(422, "validation_error", "Tipo inválido", {
-      campo: "tipo",
-      aceitos: TIPOS,
+  const pedido = parsePiecesQuery(url.searchParams);
+  if (!pedido.ok) {
+    return errorResponse(422, "validation_error", pedido.campo === "tipo" ? "Tipo inválido" : "Formato inválido", {
+      campo: pedido.campo,
+      aceitos: pedido.campo === "tipo" ? PIECE_TYPES : PRINT_FORMATS,
     });
   }
 
@@ -149,8 +126,7 @@ export async function GET(
     );
 
     const origem = url.origin;
-    const entrada = {
-      formato,
+    const base = {
       urlQr: eventEntryUrl(origem, dados.slug, "qr"),
       urlLegivel: `${url.host}/e/${dados.slug}`,
       monograma: identidade.monograma,
@@ -159,25 +135,56 @@ export async function GET(
       cores: tokens.cores,
     };
 
-    if (tipo === "pdf") {
+    if (pedido.kind === "zip") {
+      const resultado = await packPrintPieces(base, {
+        slug: dados.slug,
+        includeSvg: pedido.includeSvg,
+      });
+      if (resultado.problemas.length > 0) return invalidPiece(resultado.problemas, resultado.avisos);
+      console.log("admin.pecas_zip", {
+        accountId: auth.host.accountId,
+        eventId,
+        arquivos: resultado.arquivos,
+      });
+      return pieceFile(
+        Buffer.from(resultado.zip),
+        "application/zip",
+        `albora-${dados.slug}-pecas.zip`,
+        resultado.avisos,
+      );
+    }
+
+    const entrada = { ...base, formato: pedido.formato };
+
+    if (pedido.tipo === "pdf") {
       const resultado = await generatePiecePdf(entrada);
       if (resultado.problemas.length > 0) return invalidPiece(resultado.problemas, resultado.avisos);
-      console.log("admin.peca_gerada", { accountId: auth.host.accountId, eventId, formato, tipo });
+      console.log("admin.peca_gerada", {
+        accountId: auth.host.accountId,
+        eventId,
+        formato: pedido.formato,
+        tipo: pedido.tipo,
+      });
       return pieceFile(
         Buffer.from(resultado.pdf),
         "application/pdf",
-        `albora-${dados.slug}-${formato}.pdf`,
+        `albora-${dados.slug}-${pedido.formato}.pdf`,
         resultado.avisos,
       );
     }
 
     const resultado = await generatePieceSvg(entrada);
     if (resultado.problemas.length > 0) return invalidPiece(resultado.problemas, resultado.avisos);
-    console.log("admin.peca_gerada", { accountId: auth.host.accountId, eventId, formato, tipo });
+    console.log("admin.peca_gerada", {
+      accountId: auth.host.accountId,
+      eventId,
+      formato: pedido.formato,
+      tipo: pedido.tipo,
+    });
     return pieceFile(
       resultado.svg,
       "image/svg+xml; charset=utf-8",
-      `albora-${dados.slug}-${formato}.svg`,
+      `albora-${dados.slug}-${pedido.formato}.svg`,
       resultado.avisos,
     );
   } catch (e) {

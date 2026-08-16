@@ -31,13 +31,16 @@ export function HostPiecesScreen({ pack }: { pack: Pack }) {
 
             <div className="flex flex-col gap-3">
               <span className="inline-flex rounded-pilula bg-acento px-6 py-3 font-semibold text-sobre-acento">
+                Baixar tudo (ZIP)
+              </span>
+              <span className="inline-flex rounded-pilula border border-linha px-6 py-3 text-ink-2">
                 Baixar PDF
               </span>
               <span className="inline-flex rounded-pilula border border-linha px-6 py-3 text-ink-2">
                 Baixar SVG
               </span>
               <p className="mb-0 mt-2 max-w-[28ch] text-xs text-ink-3">
-                Placa A4 210×297 mm, card de mesa 100×140 mm, sangria 3 mm. Contraste do QR
+                Placa A4, card de mesa e card de missão num ZIP. Sangria 3 mm. Contraste do QR
                 validado antes do download.
               </p>
             </div>
