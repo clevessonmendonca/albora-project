@@ -334,7 +334,7 @@ vendors ───┘              ├──< guest_sessions >──┬──< up
 | `accounts` | 1 conta → N eventos (casamento, chá de bebê, bodas) | Fora do escopo de evento |
 | `vendors` | Parceiro B2B2C, tokens de marca própria | Fora do escopo de evento |
 | `packs` | Vocabulário, missões padrão, templates, identidade padrão, **lista de lugares** | Global, versionado |
-| `events` | Raiz do escopo. `identity_tokens`, `pack_id`, filtro recomendado, janela do evento, gate de interação, **`expected_guests`** (denominador da H1; migration `0020_convidados_esperados.sql`) | **É a fronteira.** Sob política, casando por `id`. Segunda política de conta: [ADR 0013](./adr/0013-acesso-por-conta-sob-rls.md) |
+| `events` | Raiz do escopo. `identity_tokens`, `pack_id`, filtro recomendado, janela do evento, gate de interação, **`expected_guests`** (denominador da H1; migration `0020_convidados_esperados.sql`), **`timezone`** IANA do salão (migration `0026_fuso_do_evento.sql`; default `America/Sao_Paulo`) | **É a fronteira.** Sob política, casando por `id`. Segunda política de conta: [ADR 0013](./adr/0013-acesso-por-conta-sob-rls.md) |
 | `challenges` | Missões do evento | `event_id`, RLS |
 | `guest_sessions` | Sessão anônima + consentimento versionado e datado. `via` é `qr` \| `wa` \| `link` — o canal de entrada (migration `0024_via_da_sessao.sql`). Consentimento externo (Stories) é coluna à parte | `event_id`, RLS |
 | `guest_contacts` | Opt-in explícito de contato — base do loop viral | `event_id`, RLS, **PII** |
@@ -357,6 +357,8 @@ Duas notas de desenho que não são cosméticas:
 - **Reagir duas vezes é reagir uma vez**, garantido pela chave primária. É o que faz o botão sobreviver a toque duplo e a retry de rede sem inflar contagem.
 
 `expected_guests` é o denominador da métrica que decide o negócio (`sessões_com_upload / expected_guests`). Mora em `events`, NOT NULL, default 150, conferido no wizard e no painel `/admin/e/[eventId]/guests`. Sem ele o casamento termina e não se sabe onde a participação foi perdida.
+
+`timezone` é o IANA do salão (`America/Sao_Paulo` por omissão). O `confirm` aplica esse fuso na parede do EXIF para gravar `taken_at`; o álbum fatia capítulos e a faixa 5h–7h no mesmo offset. Sem a coluna, Brasília era constante — uma festa em Manaus deslocava o amanhecer em uma hora.
 
 ---
 
@@ -568,3 +570,4 @@ Uma consequência operacional que vale registrar: **Service Worker, Background S
 | 2026-08-09 | Versão inicial. Fronteiras, invariantes e caminhos críticos derivados dos documentos de produto; boas práticas de disciplina herdadas do Nereus, calibradas para a escala do Albora. |
 | 2026-08-10 | Revisão contra o código das tasks 003 a 006. **Correções:** o `NULLIF` na política de RLS (§3), sem o qual a política falha de dois jeitos diferentes na mesma pool; as duas tabelas fora da RLS, que o modelo de dados não listava (§3, §8); `confirm` não confere dimensões, confere assinatura de arquivo (§5); o preset é paramétrico com uma passagem por pixel, não uma tabela de cor (§6); estrutura do repositório e pipeline no GitHub (§14). **Acrescentado:** as duas portas da legenda e por que o confirm não a espera (§5), conjuntos fechados vindos do pack (§7), rate limit em duas camadas (§4), o que a suíte de isolamento de fato prova (§15), e §16 com o que está descrito e ainda não construído. |
 | 2026-08-15 | Revisão contra o código da PR #2. **Correções:** `expected_guests` existe (migration 0020), não “entra com o admin”; telão é poll de `GET /api/wall`, não SSE; PUT da thumb e `identity_tokens` do banco estão no caminho; classificador fail-closed na parede; dois packs no catálogo. **Acrescentado:** `via` na sessão, recado, música, comentários, mapa de rotas no índice. Áudio do recado: presign R2 em `events/{id}/recado/...`, leitura assinada no GET do convidado. Baixar tudo do anfitrião: `export_jobs` + step-up, ZIP em stream. |
+| 2026-08-15 | `events.timezone` IANA (migration 0026). Default `America/Sao_Paulo`; ancora `taken_at`, capítulos do álbum e a faixa 5h–7h. |

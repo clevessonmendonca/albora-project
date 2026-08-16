@@ -1,9 +1,11 @@
 import type { Pool } from "pg";
+import { fusoIanaValido } from "@albora/core";
 import { comConta, comEvento } from "./event";
 
 export type AtualizacaoConfigEvento = {
   expectedGuests?: number;
   identityTokens?: Record<string, unknown>;
+  fuso?: string;
 };
 
 /** Oculta uma foto do feed, álbum e telão (state = removed). Só o anfitrião. */
@@ -29,7 +31,7 @@ export async function ocultarMidiaDoHost(
 }
 
 /**
- * Atualiza identidade e convidados esperados (spec 009 B-03).
+ * Atualiza identidade, fuso e convidados esperados (spec 009 B-03).
  *
  * Roda em `comConta`: a política `conta_evento` impede alterar evento alheio.
  */
@@ -52,6 +54,12 @@ export async function atualizarConfigDoEvento(
   if (atualizacao.identityTokens !== undefined) {
     valores.push(JSON.stringify(atualizacao.identityTokens));
     partes.push(`identity_tokens = $${valores.length}`);
+  }
+
+  if (atualizacao.fuso !== undefined) {
+    if (!fusoIanaValido(atualizacao.fuso)) throw new Error("timezone inválido");
+    valores.push(atualizacao.fuso);
+    partes.push(`timezone = $${valores.length}`);
   }
 
   if (partes.length === 0) return true;

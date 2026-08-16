@@ -1,4 +1,5 @@
 import type { MidiaDoAlbum } from "@albora/core";
+import { fusoOuPadrao, offsetMinutosDoFuso } from "@albora/core";
 import type { PoolClient } from "pg";
 import { dimensoesDoAlbum } from "./dimensoes";
 import { thumbKeyFromFull } from "./storage-key";
@@ -36,7 +37,12 @@ export type MidiaDoAlbumComChave = MidiaDoAlbum & {
   chaveThumb: string;
 };
 
-export type JanelaDoAlbum = { comecaEm: Date; terminaEm: Date };
+export type JanelaDoAlbum = {
+  comecaEm: Date;
+  terminaEm: Date;
+  fuso: string;
+  offsetMinutos: number;
+};
 
 type Linha = {
   id: string;
@@ -103,13 +109,19 @@ export async function janelaDoAlbum(
   cliente: PoolClient,
   eventoId: string,
 ): Promise<JanelaDoAlbum | null> {
-  const { rows } = await cliente.query<{ starts_at: Date; ends_at: Date }>(
-    "SELECT starts_at, ends_at FROM events WHERE id = $1",
+  const { rows } = await cliente.query<{ starts_at: Date; ends_at: Date; timezone: string }>(
+    "SELECT starts_at, ends_at, timezone FROM events WHERE id = $1",
     [eventoId],
   );
 
   const linha = rows[0];
   if (!linha) return null;
 
-  return { comecaEm: linha.starts_at, terminaEm: linha.ends_at };
+  const fuso = fusoOuPadrao(linha.timezone);
+  return {
+    comecaEm: linha.starts_at,
+    terminaEm: linha.ends_at,
+    fuso,
+    offsetMinutos: offsetMinutosDoFuso(fuso, linha.starts_at),
+  };
 }

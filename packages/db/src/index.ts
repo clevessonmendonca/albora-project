@@ -30,6 +30,7 @@ export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from 
 export type { EstadoDoEvento, EventoPublico, NovoEvento, Resolucao } from "./events";
 export {
   criarEvento,
+  fusoDoEvento,
   HORAS_APOS_EVENTO,
   packDoEvento,
   resolverSlug,
@@ -230,6 +231,8 @@ export { criarEvento as createEvent } from "./events";
 export { resolverSlug as resolveSlug } from "./events";
 /** English alias — preferred for new code. @see packDoEvento */
 export { packDoEvento as eventPack } from "./events";
+/** English alias — preferred for new code. @see fusoDoEvento */
+export { fusoDoEvento as eventTimeZone } from "./events";
 
 /** English alias — preferred for new code. @see confirmarUpload */
 export { confirmarUpload as confirmUpload } from "./uploads";

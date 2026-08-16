@@ -1,4 +1,5 @@
 import type { Pool, PoolClient } from "pg";
+import { FUSO_PADRAO, fusoIanaValido, fusoOuPadrao } from "@albora/core";
 import { comConta, comEvento } from "./event";
 
 export type EstadoDoEvento =
@@ -17,6 +18,8 @@ export type EventoPublico = {
   identityTokens: Record<string, unknown>;
   /** Id de preset sugerido pelo anfitrião. `null` = tira na ordem do catálogo. */
   filtroRecomendado: string | null;
+  /** IANA do salão. Ancora taken_at, capítulos e a faixa 5h–7h. */
+  fuso: string;
 };
 
 export type Resolucao =
@@ -54,7 +57,7 @@ export async function resolverSlug(
   const evento = await comEvento(pool, encontrado.event_id, async (c) => {
     const { rows: e } = await c.query(
       `SELECT id, pack_id, starts_at, ends_at, interaction_opens_at, identity_tokens,
-              recommended_filter
+              recommended_filter, timezone
        FROM events WHERE id = $1`,
       [encontrado.event_id],
     );
@@ -69,6 +72,7 @@ export async function resolverSlug(
       interacaoAbreEm: linha.interaction_opens_at as Date | null,
       identityTokens: (linha.identity_tokens ?? {}) as Record<string, unknown>,
       filtroRecomendado: (linha.recommended_filter ?? null) as string | null,
+      fuso: fusoOuPadrao((linha.timezone ?? null) as string | null),
     };
   });
 
@@ -102,6 +106,19 @@ export async function packDoEvento(cliente: PoolClient, eventoId: string): Promi
   return rows[0]?.pack_id ?? null;
 }
 
+/**
+ * IANA persistido do evento, de dentro de uma transação já escopada.
+ * Ausente ou inválido cai no default — o álbum e o confirm nunca ficam sem âncora.
+ */
+export async function fusoDoEvento(cliente: PoolClient, eventoId: string): Promise<string> {
+  const { rows } = await cliente.query<{ timezone: string }>(
+    "SELECT timezone FROM events WHERE id = $1",
+    [eventoId],
+  );
+
+  return fusoOuPadrao(rows[0]?.timezone);
+}
+
 /** Slug legível, sem l/o/0/1: vai impresso na placa e alguém pode reconferir. */
 const ALFABETO_SLUG = "abcdefghijkmnpqrstuvwxyz23456789";
 const TAMANHO_SLUG = 8;
@@ -123,6 +140,8 @@ export type NovoEvento = {
   terminaEm: Date;
   expectedGuests?: number;
   identityTokens?: Record<string, unknown>;
+  /** IANA. Ausente = `America/Sao_Paulo`. */
+  fuso?: string;
   /** Chaves de vocabulário do pack (`missao.*`). Vazio = nenhuma missão semeada. */
   missoes?: readonly string[];
 };
@@ -151,13 +170,18 @@ export async function criarEvento(
     throw new Error("expected_guests inválido");
   }
 
+  const fuso = entrada.fuso ?? FUSO_PADRAO;
+  if (!fusoIanaValido(fuso)) {
+    throw new Error("timezone inválido");
+  }
+
   return comConta(pool, entrada.accountId, async (c) => {
     for (let tentativa = 0; tentativa < 6; tentativa++) {
       const slug = gerarSlug(rand);
       try {
         const { rows } = await c.query<{ id: string }>(
-          `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, identity_tokens, expected_guests)
-           VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+          `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, identity_tokens, expected_guests, timezone)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
           [
             entrada.accountId,
             entrada.packId,
@@ -166,6 +190,7 @@ export async function criarEvento(
             entrada.terminaEm,
             JSON.stringify(entrada.identityTokens ?? {}),
             convidados,
+            fuso,
           ],
         );
         const eventoId = rows[0]!.id;

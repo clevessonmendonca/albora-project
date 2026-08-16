@@ -2,6 +2,7 @@ import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { criarSessao, resolverSessao } from "./sessions";
 import { criarEvento, HORAS_APOS_EVENTO, resolverSlug, rotacionarSlug } from "./events";
+import { atualizarConfigDoEvento } from "./host-events";
 import { prepararBanco, semear } from "./testes/banco";
 
 const SEGREDO = "um-segredo-de-teste-com-mais-de-32-caracteres";
@@ -121,6 +122,57 @@ describe("o anfitrião cria o evento", () => {
     const r = await resolverSlug(app, slug, new Date());
     expect(r.estado).toBe("aberto");
     expect(r.estado !== "desconhecido" && r.evento.eventoId).toBe(eventoId);
+  });
+
+  it("grava America/Sao_Paulo quando o anfitrião não manda fuso", async () => {
+    const { eventoId } = await criarEvento(app, {
+      accountId: dados.a.contaId,
+      packId: "pack-um",
+      comecaEm: daquiA(-1),
+      terminaEm: daquiA(6),
+    });
+
+    const { rows } = await admin.query<{ timezone: string }>(
+      "SELECT timezone FROM events WHERE id = $1",
+      [eventoId],
+    );
+    expect(rows[0]?.timezone).toBe("America/Sao_Paulo");
+  });
+
+  it("grava o IANA que o anfitrião escolheu", async () => {
+    const { eventoId } = await criarEvento(app, {
+      accountId: dados.a.contaId,
+      packId: "pack-um",
+      comecaEm: daquiA(-1),
+      terminaEm: daquiA(6),
+      fuso: "Pacific/Honolulu",
+    });
+
+    const { rows } = await admin.query<{ timezone: string }>(
+      "SELECT timezone FROM events WHERE id = $1",
+      [eventoId],
+    );
+    expect(rows[0]?.timezone).toBe("Pacific/Honolulu");
+  });
+
+  it("o anfitrião troca o fuso depois de criar", async () => {
+    const { eventoId } = await criarEvento(app, {
+      accountId: dados.a.contaId,
+      packId: "pack-um",
+      comecaEm: daquiA(-1),
+      terminaEm: daquiA(6),
+    });
+
+    const ok = await atualizarConfigDoEvento(app, dados.a.contaId, eventoId, {
+      fuso: "America/Manaus",
+    });
+    expect(ok).toBe(true);
+
+    const { rows } = await admin.query<{ timezone: string }>(
+      "SELECT timezone FROM events WHERE id = $1",
+      [eventoId],
+    );
+    expect(rows[0]?.timezone).toBe("America/Manaus");
   });
 
   it("recusa pack fora do conjunto — a FK estoura antes de qualquer linha", async () => {

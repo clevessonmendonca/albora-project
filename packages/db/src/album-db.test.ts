@@ -100,4 +100,23 @@ describe("o álbum lê só o evento do contexto", () => {
     const deB = await comEvento(app, dados.a.eventoId, (c) => janelaDoAlbum(c, dados.b.eventoId));
     expect(deB).toBeNull();
   });
+
+  it("a janela traz o offset do fuso persistido, não o de Brasília", async () => {
+    await admin.query("UPDATE events SET timezone = $2 WHERE id = $1", [
+      dados.a.eventoId,
+      "Pacific/Honolulu",
+    ]);
+    try {
+      const janela = await comEvento(app, dados.a.eventoId, (c) =>
+        janelaDoAlbum(c, dados.a.eventoId),
+      );
+      expect(janela?.fuso).toBe("Pacific/Honolulu");
+      expect(janela?.offsetMinutos).toBe(-600);
+    } finally {
+      await admin.query("UPDATE events SET timezone = $2 WHERE id = $1", [
+        dados.a.eventoId,
+        "America/Sao_Paulo",
+      ]);
+    }
+  });
 });

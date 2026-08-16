@@ -1,5 +1,6 @@
 import {
   denunciasParaSegurar,
+  fusoOuPadrao,
   type EstadoDoEvento,
 } from "@albora/core";
 import type { Pool, PoolClient } from "pg";
@@ -24,6 +25,7 @@ export type EventoDoHost = ResumoEvento & {
   interacaoAbreEm: Date | null;
   expectedGuests: number;
   identityTokens: Record<string, unknown>;
+  fuso: string;
 };
 
 export type AtualizacaoModeracao = Partial<EstadoModeracao>;
@@ -40,10 +42,11 @@ type LinhaCompleta = {
   interaction_opens_at: Date | null;
   expected_guests: number;
   identity_tokens: Record<string, unknown>;
+  timezone: string;
 };
 
 const COLUNAS =
-  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at, expected_guests, identity_tokens";
+  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at, expected_guests, identity_tokens, timezone";
 
 function mapModeracao(l: Pick<LinhaCompleta, "panic" | "hardened" | "has_minors">): EstadoModeracao {
   return {
@@ -63,6 +66,7 @@ function mapEvento(l: LinhaCompleta): EventoDoHost {
     interacaoAbreEm: l.interaction_opens_at,
     expectedGuests: l.expected_guests,
     identityTokens: l.identity_tokens ?? {},
+    fuso: fusoOuPadrao(l.timezone),
     moderacao: mapModeracao(l),
   };
 }
