@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { suggestionLabel } from "@/features/music/lib/suggestion-copy";
 
-type HostTrack = { provedor: string; rotulo: string; url: string };
+type HostTrack = { provedor: string; rotulo: string; url: string; capaUrl?: string | null };
 type HostSuggestion = {
   provedor: string;
   tipo: string;

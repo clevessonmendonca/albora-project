@@ -1,4 +1,4 @@
-import { displayMusic, ordenarSugestoes, parseMusicLink } from "@albora/core";
+import { ordenarSugestoes, parseMusicLink } from "@albora/core";
 import {
   comEvento,
   definirMusicaDoCasal,
@@ -17,21 +17,10 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
+import { metadadoParaFaixaDoCasal, serializarMusicaDoCasal } from "@/lib/music-track";
 import { consume } from "@/lib/rate-limit-store";
 
 type Corpo = { url?: unknown };
-
-function serializar(
-  musica: Awaited<ReturnType<typeof musicaDoCasal>>,
-): { provedor: string; rotulo: string; url: string } | null {
-  if (!musica) return null;
-  const exibicao = displayMusic(musica.link, musica.metadado);
-  return {
-    provedor: musica.link.provedor,
-    rotulo: exibicao.rotulo,
-    url: exibicao.url,
-  };
-}
 
 export async function GET(
   req: Request,
@@ -54,7 +43,7 @@ export async function GET(
       return { musica, fila };
     });
     return jsonOk({
-      musica: serializar(corpo.musica),
+      musica: serializarMusicaDoCasal(corpo.musica),
       sugestoes: queueForScreen(corpo.fila),
     });
   } catch (e) {
@@ -63,8 +52,9 @@ export async function GET(
 }
 
 /**
- * O casal cola o link da faixa (spec 018). Metadado rico fica fora do caminho
- * crítico — sem título, a UI cai para o link cru.
+ * O casal cola o link da faixa (spec 018). Título e artista são
+ * enriquecimento: o mesmo resolvedor das sugestões tenta preencher; se
+ * falhar, grava o link e a UI cai para a URL crua.
  */
 export async function PUT(
   req: Request,
@@ -102,11 +92,13 @@ export async function PUT(
   }
 
   try {
+    const metadado = await metadadoParaFaixaDoCasal(lido.link);
+
     await comEvento(getPool(), eventId, (c) =>
       definirMusicaDoCasal(c, {
         eventoId: eventId,
         link: lido.link,
-        metadado: null,
+        metadado,
       }),
     );
 
@@ -118,7 +110,7 @@ export async function PUT(
       provedor: lido.link.provedor,
     });
 
-    return jsonOk({ musica: serializar(musica) });
+    return jsonOk({ musica: serializarMusicaDoCasal(musica) });
   } catch (e) {
     return unexpectedError("admin.musica.put", e);
   }

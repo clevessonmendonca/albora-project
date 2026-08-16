@@ -1,6 +1,5 @@
 import {
   chaveDaFaixa,
-  displayMusic,
   interactionMode,
   ordenarSugestoes,
   parseMusicLink,
@@ -27,6 +26,7 @@ import {
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
 import { buscarMetadadoDaMusica } from "@/lib/music-metadata";
+import { serializarMusicaDoCasal } from "@/lib/music-track";
 
 type Corpo = { url?: unknown; evento?: unknown };
 
@@ -52,9 +52,7 @@ export async function GET(req: Request) {
       };
     });
 
-    const musica = corpo.escolhida
-      ? { provedor: corpo.escolhida.link.provedor, ...displayMusic(corpo.escolhida.link, corpo.escolhida.metadado) }
-      : null;
+    const musica = serializarMusicaDoCasal(corpo.escolhida);
 
     return jsonOk({
       musica,
