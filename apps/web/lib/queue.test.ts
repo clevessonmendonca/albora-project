@@ -150,3 +150,14 @@ describe("resumo para a tela", () => {
     expect(await queueSummary()).toEqual({ itens: 0, bytes: 0 });
   });
 });
+
+describe("dimensões viajam com o item", () => {
+  it("guarda largura e altura do vídeo para o confirm", async () => {
+    await webQueue.enqueue({ ...item("v", 1000), mime: "video/mp4", largura: 1920, altura: 1080 });
+    const [guardado] = await webQueue.list();
+
+    expect(guardado?.largura).toBe(1920);
+    expect(guardado?.altura).toBe(1080);
+  });
+});
+

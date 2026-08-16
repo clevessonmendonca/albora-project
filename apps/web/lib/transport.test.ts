@@ -83,6 +83,30 @@ describe("webTransport", () => {
     expect(corpo.altura).toBe(1920);
   });
 
+  it("confirmar envia o tamanho real do vídeo, não o retrato assumido", async () => {
+    await webTransport.confirm(
+      {
+        ...itemBlob,
+        mime: "video/mp4",
+        largura: 1920,
+        altura: 1080,
+      },
+      {
+        uploadId: itemBlob.id,
+        chave: "events/e/full",
+        full: "u",
+        thumb: "t",
+        expiraEm: 1,
+      },
+    );
+
+    const [, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    const corpo = JSON.parse(String(init.body)) as { largura?: number; altura?: number };
+
+    expect(corpo.largura).toBe(1920);
+    expect(corpo.altura).toBe(1080);
+  });
+
   it("confirmar propaga codigo de erro da API", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(JSON.stringify({ code: "upload.invalido" }), { status: 422 }),

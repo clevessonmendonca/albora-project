@@ -42,11 +42,37 @@ export function forgetSupportedFormats(): void {
 }
 
 /**
- * First video frame as JPEG — becomes `/thumb` in storage.
+ * First video frame as JPEG — becomes `/thumb` in storage — plus the real
+ * display size, which the confirm persists so album/feed/wall do not assume
+ * 1080×1920 portrait.
  *
- * Degrades to `null`: video still uploads and the UI uses the full asset.
+ * Poster degrades to `null`: video still uploads. Size degrades the same way
+ * when the decoder is silent; the UI then falls back.
  */
-export async function videoPoster(blob: Blob): Promise<Blob | null> {
+
+export type VideoPrep = {
+  largura: number;
+  altura: number;
+  poster: Blob | null;
+};
+
+/**
+ * Display size after the browser applies rotation. `videoWidth`/`videoHeight`
+ * are already upright; sending the file's coded size would swap landscape
+ * iPhone clips into portrait slots.
+ */
+export function videoDisplaySize(video: {
+  videoWidth: number;
+  videoHeight: number;
+}): { largura: number; altura: number } | null {
+  const largura = Math.round(video.videoWidth);
+  const altura = Math.round(video.videoHeight);
+  if (!Number.isFinite(largura) || !Number.isFinite(altura)) return null;
+  if (largura < 1 || altura < 1) return null;
+  return { largura, altura };
+}
+
+export async function prepareVideo(blob: Blob): Promise<VideoPrep | null> {
   if (typeof document === "undefined") return null;
 
   const url = URL.createObjectURL(blob);
@@ -62,11 +88,23 @@ export async function videoPoster(blob: Blob): Promise<Blob | null> {
       video.src = url;
     });
 
-    if (video.videoWidth <= 0 || video.videoHeight <= 0) return null;
+    const tamanho = videoDisplaySize(video);
+    if (!tamanho) return null;
 
-    const instante = Number.isFinite(video.duration) && video.duration > 0
-      ? Math.min(0.25, video.duration * 0.05)
-      : 0;
+    return { ...tamanho, poster: await posterFromVideo(video) };
+  } catch {
+    return null;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function posterFromVideo(video: HTMLVideoElement): Promise<Blob | null> {
+  try {
+    const instante =
+      Number.isFinite(video.duration) && video.duration > 0
+        ? Math.min(0.25, video.duration * 0.05)
+        : 0;
     video.currentTime = instante;
 
     await new Promise<void>((resolve, reject) => {
@@ -86,7 +124,5 @@ export async function videoPoster(blob: Blob): Promise<Blob | null> {
     });
   } catch {
     return null;
-  } finally {
-    URL.revokeObjectURL(url);
   }
 }

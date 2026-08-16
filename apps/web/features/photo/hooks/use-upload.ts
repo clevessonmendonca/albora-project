@@ -16,7 +16,7 @@ import { useCallback, useEffect, useState } from "react";
 import { drainAndReport } from "@/features/guest/lib/funnel-from-drain";
 import { reportFunnel } from "@/features/guest/lib/report-funnel";
 import { webDrawer } from "@/lib/drawer";
-import { deviceDecodes, videoPoster } from "@/lib/image";
+import { deviceDecodes, prepareVideo } from "@/lib/image";
 import { QueueQuotaExceededError, webQueue, queueSummary } from "@/lib/queue";
 import { webTransport } from "@/lib/transport";
 
@@ -136,18 +136,18 @@ export function useUpload(
           const corpo = new Uint8Array(await arquivo.arrayBuffer());
           const id = crypto.randomUUID();
           const blob = new Blob([corpo], { type: mime });
-          const poster = await videoPoster(blob);
+          const prep = await prepareVideo(blob);
 
           await webQueue.enqueue({
             id,
             eventoId,
             corpo: { tipo: "blob", blob },
             mime,
-            ...(poster ? { thumb: { tipo: "blob", blob: poster } } : {}),
+            ...(prep?.poster ? { thumb: { tipo: "blob", blob: prep.poster } } : {}),
             criadoEm: Date.now(),
             tentativas: 0,
             desafioId: desafioId ?? null,
-            ...metaDaCaptura(null, arquivo.lastModified),
+            ...metaDaCaptura(null, arquivo.lastModified, prep?.largura, prep?.altura),
           });
 
           reportFunnel("capture");
