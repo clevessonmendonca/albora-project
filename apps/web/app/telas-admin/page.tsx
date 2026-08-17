@@ -51,11 +51,7 @@ export default function AdminCatalogPage() {
         <p className="mt-6 max-w-[52ch] text-ink-2">
           Quem opera a festa — o casal ou a cerimonialista — está de pé, no salão, com o celular.
           Então o admin também nasce app: controlar o gate, segurar uma foto e ver a participação sem
-          abrir um notebook. Mesmos primitivos, mesmos tokens do evento.{" "}
-          <a href="/telas" className="text-acento-texto">
-            Voltar ao catálogo web
-          </a>
-          .
+          abrir um notebook. Mesmos primitivos, mesmos tokens do evento.
         </p>
       </header>
 
