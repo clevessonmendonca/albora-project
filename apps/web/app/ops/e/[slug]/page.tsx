@@ -5,6 +5,11 @@ import { redirect } from "next/navigation";
 import { collectEventLiveMetrics, isPlatformOperator } from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
+import {
+  AdminSection,
+  adminClasses,
+  adminVars,
+} from "@/features/admin/components/server/admin-shell";
 import { OpsEventAggregates } from "../../event-aggregates";
 
 export const dynamic = "force-dynamic";
@@ -30,7 +35,10 @@ export default async function OpsEventBySlugPage({
   const allowed = await isPlatformOperator(getPool(), host.accountId);
   if (!allowed) {
     return (
-      <main className="mx-auto max-w-lg px-6 py-16">
+      <main
+        className="mx-auto min-h-dvh max-w-lg bg-bg px-6 py-16 font-[family-name:var(--fonte-corpo)] text-ink"
+        style={adminVars()}
+      >
         <h1 className="font-titulo text-2xl">Ops</h1>
         <p className="mt-3 text-ink-2">Sem acesso.</p>
       </main>
@@ -52,14 +60,21 @@ export default async function OpsEventBySlugPage({
 
   if (!porta) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-12">
-        <p className="m-0">
-          <Link href="/ops/events" className="text-acento underline">
-            ← Lookup
-          </Link>
-        </p>
-        <h1 className="mt-6 font-titulo text-3xl font-light">/{slug}</h1>
-        <p className="mt-3 text-ink-2">Slug desconhecido.</p>
+      <main
+        className="mx-auto min-h-dvh max-w-4xl bg-bg px-6 py-12 font-[family-name:var(--fonte-corpo)] text-ink"
+        style={adminVars()}
+      >
+        <header className="mb-8">
+          <p className="m-0 mb-6">
+            <Link href="/ops/events" className="text-acento no-underline">
+              ← Buscar eventos
+            </Link>
+          </p>
+          <h1 className="m-0 font-titulo text-3xl font-light">/{slug}</h1>
+          <p className="mt-2 text-ink-2">
+            Nenhum evento encontrado com este slug. Verifique a grafia ou tente outro.
+          </p>
+        </header>
       </main>
     );
   }
@@ -67,22 +82,30 @@ export default async function OpsEventBySlugPage({
   const metrics = await collectEventLiveMetrics(pool, porta.event_id);
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <p className="m-0">
-        <Link href="/ops/events" className="text-acento underline">
-          ← Lookup
+    <main
+      className="mx-auto min-h-dvh max-w-4xl bg-bg px-6 py-12 font-[family-name:var(--fonte-corpo)] text-ink"
+      style={adminVars()}
+    >
+      <header className="mb-8">
+        <p className="m-0 mb-6">
+          <Link href="/ops/events" className="text-acento no-underline">
+            ← Buscar eventos
+          </Link>
+        </p>
+        <h1 className="m-0 font-titulo text-3xl font-light">Evento /{slug}</h1>
+        <p className="mt-2 text-ink-2">
+          Agregados read-only · sem galeria · sem PII de convidado
+          {!porta.active ? " · slug rotacionado, mas ainda resolvível" : ""}.
+        </p>
+      </header>
+
+      <AdminSection>
+        <p className="mb-3 text-sm text-ink-2">Ações disponíveis</p>
+        <Link href={`/ops/e/${slug}/painel`} className={adminClasses.primaryButton}>
+          Ver painel completo do evento
         </Link>
-      </p>
-      <h1 className="mt-6 font-titulo text-3xl font-light">Evento</h1>
-      <p className="mt-2 text-ink-2">
-        Agregados read-only · sem galeria · sem PII de convidado
-        {!porta.active ? " · slug rotacionado (ainda resolve)" : ""}.
-      </p>
-      <p className="mt-4">
-        <Link href={`/ops/e/${slug}/painel`} className="text-acento underline">
-          Ver painel do evento (somente leitura) →
-        </Link>
-      </p>
+      </AdminSection>
+
       <div className="mt-8">
         <OpsEventAggregates slug={slug} metrics={metrics} />
       </div>

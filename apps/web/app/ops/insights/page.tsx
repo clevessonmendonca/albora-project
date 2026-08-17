@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { isPlatformOperator, listOpenSupportTicketsAdmin } from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
+import {
+  AdminSection,
+  adminVars,
+} from "@/features/admin/components/server/admin-shell";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +28,10 @@ export default async function OpsInsightsPage() {
   const allowed = await isPlatformOperator(getPool(), host.accountId);
   if (!allowed) {
     return (
-      <main className="mx-auto max-w-lg px-6 py-16">
+      <main
+        className="mx-auto min-h-dvh max-w-lg bg-bg px-6 py-16 font-[family-name:var(--fonte-corpo)] text-ink"
+        style={adminVars()}
+      >
         <h1 className="font-titulo text-2xl">Ops</h1>
         <p className="mt-3 text-ink-2">Sem acesso.</p>
       </main>
@@ -61,58 +69,95 @@ export default async function OpsInsightsPage() {
   console.log("ops.insights", { accountId: host.accountId });
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
-      <h1 className="m-0 font-titulo text-3xl font-light">KPIs</h1>
-      <p className="mt-2 text-ink-2">
-        Agregados da plataforma (7 dias), funil de landing e fila de suporte.
-      </p>
+    <main
+      className="mx-auto min-h-dvh max-w-4xl bg-bg px-6 py-12 font-[family-name:var(--fonte-corpo)] text-ink"
+      style={adminVars()}
+    >
+      <header className="mb-8">
+        <p className="m-0 mb-6">
+          <Link href="/ops" className="text-acento no-underline">
+            ← Console
+          </Link>
+        </p>
+        <h1 className="m-0 font-titulo text-3xl font-light">Insights da Plataforma</h1>
+        <p className="mt-2 text-ink-2">
+          Agregados dos últimos 7 dias — funil de landing, volume de eventos e fila de suporte.
+        </p>
+      </header>
 
-      <section className="mt-8">
-        <h2 className="font-titulo text-lg">Plataforma (7 dias)</h2>
-        <ul className="mt-3 list-none p-0">
-          <li className="flex justify-between border-b border-linha py-2 text-sm">
-            <span>Eventos com atividade</span>
-            <span className="tabular-nums">{kpis?.events_with_activity ?? 0}</span>
-          </li>
-          <li className="flex justify-between border-b border-linha py-2 text-sm">
-            <span>Total de uploads</span>
-            <span className="tabular-nums">{kpis?.total_uploads ?? 0}</span>
-          </li>
-          <li className="flex justify-between border-b border-linha py-2 text-sm">
-            <span>Total de product_events</span>
-            <span className="tabular-nums">{kpis?.total_product_events ?? 0}</span>
-          </li>
-          <li className="flex justify-between border-b border-linha py-2 text-sm">
-            <span>Tickets de suporte abertos</span>
-            <span className="tabular-nums">{kpis?.open_tickets ?? 0}</span>
-          </li>
-        </ul>
-      </section>
-
-      <section className="mt-8">
-        <h2 className="font-titulo text-lg">Landing (7 dias)</h2>
-        <ul className="mt-3 list-none p-0">
-          {product.map((e) => (
-            <li key={e.name} className="flex justify-between border-b border-linha py-2 text-sm">
-              <span>{e.name}</span>
-              <span className="tabular-nums">{e.n}</span>
+      <div className="flex flex-col gap-6">
+        <AdminSection>
+          <h2 className="m-0 mb-4 font-titulo text-xl">Atividade da Plataforma</h2>
+          <ul className="list-none p-0">
+            <li className="flex justify-between border-b border-linha py-3 text-sm">
+              <span className="text-ink-2">Eventos com atividade</span>
+              <span className="font-titulo tabular-nums text-ink">
+                {kpis?.events_with_activity ?? 0}
+              </span>
             </li>
-          ))}
-          {product.length === 0 && <li className="text-ink-3">Sem product_events ainda.</li>}
-        </ul>
-      </section>
-
-      <section className="mt-8">
-        <h2 className="font-titulo text-lg">Suporte aberto (amostra)</h2>
-        <ul className="mt-3 list-none p-0">
-          {tickets.map((t) => (
-            <li key={t.id} className="border-b border-linha py-2 text-sm">
-              {t.priority.toUpperCase()} · {t.subject}
+            <li className="flex justify-between border-b border-linha py-3 text-sm">
+              <span className="text-ink-2">Total de uploads</span>
+              <span className="font-titulo tabular-nums text-ink">
+                {kpis?.total_uploads ?? 0}
+              </span>
             </li>
-          ))}
-          {tickets.length === 0 && <li className="text-ink-3">Fila vazia.</li>}
-        </ul>
-      </section>
+            <li className="flex justify-between border-b border-linha py-3 text-sm">
+              <span className="text-ink-2">Eventos de produto</span>
+              <span className="font-titulo tabular-nums text-ink">
+                {kpis?.total_product_events ?? 0}
+              </span>
+            </li>
+            <li className="flex justify-between py-3 text-sm">
+              <span className="text-ink-2">Tickets abertos</span>
+              <span className="font-titulo tabular-nums text-ink">{kpis?.open_tickets ?? 0}</span>
+            </li>
+          </ul>
+        </AdminSection>
+
+        <AdminSection>
+          <h2 className="m-0 mb-4 font-titulo text-xl">Funil de Landing</h2>
+          {product.length === 0 ? (
+            <p className="m-0 text-sm text-ink-3">
+              Nenhum evento de produto registrado nos últimos 7 dias.
+            </p>
+          ) : (
+            <ul className="list-none p-0">
+              {product.map((e) => (
+                <li
+                  key={e.name}
+                  className="flex justify-between border-b border-linha py-3 text-sm last:border-b-0"
+                >
+                  <span className="text-ink-2">{e.name}</span>
+                  <span className="font-titulo tabular-nums text-ink">{e.n}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </AdminSection>
+
+        <AdminSection>
+          <h2 className="m-0 mb-4 font-titulo text-xl">Fila de Suporte (amostra)</h2>
+          {tickets.length === 0 ? (
+            <p className="m-0 text-sm text-ink-3">Nenhum ticket aberto no momento.</p>
+          ) : (
+            <ul className="list-none space-y-3 p-0">
+              {tickets.map((t) => (
+                <li
+                  key={t.id}
+                  className="rounded-token border border-linha bg-superficie-alta px-4 py-3"
+                >
+                  <div className="flex items-baseline gap-3">
+                    <span className="inline-block rounded-token bg-superficie px-2 py-1 font-titulo text-xs uppercase tracking-rotulo text-ink-2">
+                      {t.priority}
+                    </span>
+                    <span className="text-sm text-ink">{t.subject}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </AdminSection>
+      </div>
     </main>
   );
 }
