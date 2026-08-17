@@ -227,13 +227,13 @@ export function MyPhotosPage({
 
           {!galeria.carregando && galeria.itens.length === 0 && (
             <EmptyState
-              title="Suas fotos aparecem aqui"
-              lede="Assim que a primeira subir, ela fica nesta grade."
+              title="Suas fotos vão aparecer aqui"
+              lede="Quando você tirar a primeira, ela sobe sozinha e já aparece nesta grade."
               cameraPath={cameraPath}
             />
           )}
 
-          <ul className="m-0 grid list-none grid-cols-3 gap-0.5 p-0">
+          <ul className="m-0 grid list-none grid-cols-3 gap-1 p-0">
             {galeria.itens.map((item) => {
               const url = item.estado === "enviada" ? galeria.urlDe(item) : locais.get(item.id);
               const urlVideo =
@@ -299,27 +299,32 @@ export function MyPhotosPage({
           </ul>
 
           {idsFotosEnviadas.length >= 2 && (
-            <div className="mt-6 rounded-token bg-superficie px-4 py-4">
-              <p className="m-0 font-titulo text-[1.0625rem]">Colagem da noite</p>
-              <p className="mb-3 mt-1 text-[0.8125rem] leading-snug text-ink-2">
-                Até quatro fotos suas, com a moldura desta festa, prontas para o Instagram.
+            <div className="mt-8 rounded-token border border-linha bg-superficie px-5 py-5">
+              <p className="m-0 font-titulo text-d-inline font-light">Colagem da noite</p>
+              <p className="mb-4 mt-2 text-t-body leading-relaxed text-ink-2">
+                Até quatro fotos suas, com a moldura desta festa, prontas para postar.
               </p>
               <PrimaryButton
                 disabled={compartilhar.colagemIds !== null}
                 onClick={() => void compartilhar.compartilharColagem(idsFotosEnviadas.slice(0, 4))}
               >
-                {compartilhar.colagemIds ? "Montando…" : "Compartilhar colagem"}
+                {compartilhar.colagemIds ? "Montando…" : "Criar colagem"}
               </PrimaryButton>
             </div>
           )}
 
           {galeria.resumo.falhou > 0 && (
-            <div className="mt-6">
+            <div className="mt-8 rounded-token border border-linha bg-superficie px-5 py-4">
+              <p className="m-0 mb-3 text-t-body text-ink-2">
+                {galeria.resumo.falhou === 1 
+                  ? "Uma foto não subiu. Tenta de novo?" 
+                  : `${galeria.resumo.falhou} fotos não subiram. Tenta de novo?`}
+              </p>
               <PrimaryButton
                 disabled={galeria.drenando}
                 onClick={() => void galeria.tentarDeNovo()}
               >
-                {galeria.drenando ? "Tentando…" : "Tentar de novo"}
+                {galeria.drenando ? "Enviando…" : "Tentar de novo"}
               </PrimaryButton>
             </div>
           )}

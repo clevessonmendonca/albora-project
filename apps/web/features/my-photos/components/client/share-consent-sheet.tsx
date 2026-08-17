@@ -20,25 +20,25 @@ export function ShareConsentSheet({
 
   return (
     <BottomSheet
-      title="Postar fora da festa"
+      title="Compartilhar fora da festa"
       titleId="consentimento-externo-titulo"
       open={open}
       onClose={onClose}
       footer={
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-3">
+          <Button variant="primary" size="md" width="full" onClick={() => onConfirm(nomeNaMoldura)}>
+            Continuar
+          </Button>
           <Button variant="secondary" size="md" width="full" onClick={onClose}>
             Agora não
-          </Button>
-          <Button variant="primary" size="md" width="full" onClick={() => onConfirm(nomeNaMoldura)}>
-            Aceitar e postar
           </Button>
         </div>
       }
     >
-      <p className="m-0 text-[0.9rem] leading-normal text-ink-2">
-        A foto sai com a moldura desta festa: monograma, nomes, data e o endereço da
-        Albora. No Instagram ou no WhatsApp, quem receber pode guardar para sempre — não
-        dá para desfazer.
+      <p className="m-0 text-t-body leading-relaxed text-ink-2">
+        A foto vai sair com a moldura desta festa: monograma, nomes, data e o
+        endereço da Albora. Quem receber no Instagram ou WhatsApp pode guardar
+        para sempre — não dá para desfazer depois.
       </p>
       <ConsentCheckbox checked={nomeNaMoldura} onChange={setNomeNaMoldura}>
         Incluir meu primeiro nome na moldura

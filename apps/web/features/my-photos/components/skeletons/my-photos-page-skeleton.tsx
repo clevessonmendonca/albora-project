@@ -18,7 +18,7 @@ export function MyPhotosPageSkeleton() {
     <GuestShell hideStatusBar>
       <GuestMain>
         <GuestHeader title="Minhas fotos" homeHref="#" />
-        <ul className="m-0 grid list-none grid-cols-3 gap-0.5 p-0">
+        <ul className="m-0 grid list-none grid-cols-3 gap-1 p-0">
           {Array.from({ length: 9 }, (_, i) => (
             <li key={i}>
               <Block />
