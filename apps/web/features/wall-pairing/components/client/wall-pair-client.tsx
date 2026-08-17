@@ -46,8 +46,8 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
     width: "min(28rem, 100%)",
     display: "flex",
     flexDirection: "column",
-    gap: "1.25rem",
-    padding: "2rem",
+    gap: "1.5rem",
+    padding: "2.5rem",
     backgroundColor: "var(--superficie)",
     ...radiusStyle("var(--raio-superficie)"),
   };
@@ -56,8 +56,15 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
     return (
       <Shell>
         <div style={card}>
-          <h1 style={titleStyle}>Telão ligado</h1>
-          <p style={bodyStyle}>As fotos publicadas já estão aparecendo na tela do salão.</p>
+          <div className="mx-auto grid size-16 place-items-center rounded-full bg-acento text-[1.75rem] text-sobre-acento">
+            ✓
+          </div>
+          <div className="text-center">
+            <h1 style={titleStyle}>Telão ligado</h1>
+            <p style={bodyStyle}>
+              As fotos publicadas já estão aparecendo na tela do salão. Você pode fechar esta aba.
+            </p>
+          </div>
         </div>
       </Shell>
     );
@@ -66,8 +73,10 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
   return (
     <Shell>
       <div style={card}>
-        <h1 style={titleStyle}>Ligar o telão</h1>
-        <p style={bodyStyle}>Digite o código que aparece na tela do salão.</p>
+        <div>
+          <h1 style={titleStyle}>Ligar o telão</h1>
+          <p style={bodyStyle}>Digite o código que aparece na tela do salão para autorizar.</p>
+        </div>
 
         <input
           value={code}
@@ -84,13 +93,19 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
         />
 
         {status === "no-session" && (
-          <p style={alertStyle}>Entre no evento pelo QR da mesa antes de ligar o telão.</p>
+          <p style={alertStyle}>
+            Você precisa estar na festa para autorizar o telão. Entre pelo QR da mesa primeiro.
+          </p>
         )}
         {status === "rejected" && (
-          <p style={alertStyle}>Código inválido ou expirado. Confira na tela.</p>
+          <p style={alertStyle}>
+            Código inválido ou expirado. Verifique se digitou corretamente ou peça um novo código.
+          </p>
         )}
         {status === "error" && (
-          <p style={alertStyle}>Não deu para ligar agora. Tente de novo.</p>
+          <p style={alertStyle}>
+            Não conseguimos conectar agora. Verifique sua conexão e tente novamente.
+          </p>
         )}
 
         <PrimaryButton
@@ -108,10 +123,22 @@ const titleStyle: CSSProperties = {
   margin: 0,
   fontFamily: "var(--fonte-titulo)",
   fontSize: "1.5rem",
+  lineHeight: 1.2,
   color: "var(--ink)",
 };
-const bodyStyle: CSSProperties = { margin: 0, color: "var(--ink-2)", lineHeight: 1.5 };
-const alertStyle: CSSProperties = { margin: 0, color: "var(--critico)", fontSize: "0.9rem" };
+const bodyStyle: CSSProperties = {
+  margin: 0,
+  marginTop: "0.5rem",
+  color: "var(--ink-2)",
+  fontSize: "0.9375rem",
+  lineHeight: 1.5,
+};
+const alertStyle: CSSProperties = {
+  margin: 0,
+  color: "var(--critico)",
+  fontSize: "0.875rem",
+  lineHeight: 1.4,
+};
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (

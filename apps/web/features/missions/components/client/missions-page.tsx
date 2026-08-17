@@ -61,7 +61,7 @@ export function MissionsPage({
             <>
               <Link
                 href={photoPathForMission(slug, current.id)}
-                className="grid gap-3 rounded-token border border-acento-borda bg-acento-superficie-forte p-5 text-inherit no-underline"
+                className="grid gap-3 rounded-token border border-acento-borda bg-acento-superficie-forte p-6 text-inherit no-underline"
               >
                 <span className="text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
                   Missão de agora
@@ -72,35 +72,46 @@ export function MissionsPage({
                 <span className="text-[0.8125rem] text-ink-2">Toque para fotografar</span>
               </Link>
 
-              <SecondaryText>As outras missões</SecondaryText>
-
-              <ul className="m-0 grid list-none gap-2 p-0">
-                {missions.map((mission) => (
-                  <li key={mission.id}>
-                    <MissionItem
-                      slug={slug}
-                      mission={mission}
-                      highlighted={mission.id === current.id}
-                    />
-                  </li>
-                ))}
-              </ul>
+              <div className="mt-6 grid gap-2">
+                <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
+                  Outras missões
+                </p>
+                <ul className="m-0 grid list-none gap-2 p-0">
+                  {missions.map((mission) => (
+                    <li key={mission.id}>
+                      <MissionItem
+                        slug={slug}
+                        mission={mission}
+                        highlighted={mission.id === current.id}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </>
           ) : (
             <>
-              <DisplayTitle>
-                Você fez todas as {missions.length}.
-                <br />
-                <em>Manda o que quiser.</em>
-              </DisplayTitle>
-              <CameraButton slug={slug} label="Abrir a câmera" />
+              <div className="grid gap-4 py-8 text-center">
+                <div className="mx-auto grid size-16 place-items-center rounded-full bg-acento text-[1.75rem] text-sobre-acento">
+                  ✓
+                </div>
+                <div>
+                  <p className="m-0 font-titulo text-[1.5rem] leading-[1.2] tracking-titulo text-ink">
+                    Todas as {missions.length} missões completas!
+                  </p>
+                  <p className="m-0 mt-2 text-[0.9375rem] leading-relaxed text-ink-3">
+                    Agora você pode fotografar o que quiser, sem restrições.
+                  </p>
+                </div>
+              </div>
+              <CameraButton slug={slug} label="Abrir câmera livre" />
               <CompletedList slug={slug} missions={missions} />
             </>
           )}
 
           {current && (
-            <div className="mt-2">
-              <CameraButton slug={slug} label="Modo livre" />
+            <div className="mt-6 pt-4 border-t border-linha">
+              <CameraButton slug={slug} label="Fotografar sem missão" />
             </div>
           )}
         </GuestMain>
@@ -114,8 +125,14 @@ export function MissionsPage({
 function FreeModeState({ slug }: { slug: string }) {
   return (
     <>
-      <DisplayTitle>Modo livre</DisplayTitle>
-      <SecondaryText>Este evento não tem missões. Fotografe o que quiser.</SecondaryText>
+      <div className="grid gap-4 py-8 text-center">
+        <p className="m-0 font-titulo text-[1.5rem] leading-[1.2] tracking-titulo text-ink">
+          Modo livre
+        </p>
+        <p className="m-0 text-[0.9375rem] leading-relaxed text-ink-3">
+          Este evento não tem missões. Fotografe o que quiser e envie para o álbum da festa.
+        </p>
+      </div>
       <CameraButton slug={slug} label="Abrir a câmera" />
     </>
   );
@@ -129,13 +146,18 @@ function CompletedList({
   missions: readonly VisibleMission[];
 }) {
   return (
-    <ul className="mt-6 grid list-none gap-2 p-0">
-      {missions.map((mission) => (
-        <li key={mission.id}>
-          <MissionItem slug={slug} mission={mission} highlighted={false} />
-        </li>
-      ))}
-    </ul>
+    <div className="mt-8 grid gap-2">
+      <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
+        Missões completadas
+      </p>
+      <ul className="m-0 grid list-none gap-2 p-0">
+        {missions.map((mission) => (
+          <li key={mission.id}>
+            <MissionItem slug={slug} mission={mission} highlighted={false} />
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 

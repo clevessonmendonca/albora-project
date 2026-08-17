@@ -109,18 +109,20 @@ export function EntryFlow({
 
       {etapa === "recusou" ? (
         <EntryColumn>
-          <DisplayTitle>
-            Tudo bem.
-            <br />
-            <em>Se mudar de ideia, é só voltar.</em>
-          </DisplayTitle>
-          <SecondaryText>Você não vai aparecer no álbum nem no telão.</SecondaryText>
+          <div className="grid gap-4 text-center">
+            <p className="m-0 font-titulo text-[1.5rem] leading-[1.2] tracking-titulo text-ink">
+              Tudo bem.
+            </p>
+            <p className="m-0 text-[0.9375rem] leading-relaxed text-ink-3">
+              Se mudar de ideia, é só voltar pelo QR da mesa.
+            </p>
+          </div>
           <SecondaryButton onClick={() => setEtapa("entrada")}>Voltar</SecondaryButton>
         </EntryColumn>
       ) : (
         <form onSubmit={entrar} className="flex flex-1 flex-col">
           <EntryColumn>
-            <div>
+            <div className="grid gap-3">
               <EventLabel>{nomeEvento}</EventLabel>
               <DisplayTitle>{saudacao}</DisplayTitle>
               <SecondaryText>Como você quer aparecer nas fotos que enviar?</SecondaryText>
@@ -139,16 +141,18 @@ export function EntryFlow({
               <ConsentNote>{TEXTO_CONSENTIMENTO_COMPLETO}</ConsentNote>
             )}
 
-            <PrimaryButton
-              type="submit"
-              disabled={enviando || nome.trim().length === 0 || !consentiu}
-            >
-              {enviando ? "Entrando…" : "Fotografar"}
-            </PrimaryButton>
+            <div className="grid gap-3">
+              <PrimaryButton
+                type="submit"
+                disabled={enviando || nome.trim().length === 0 || !consentiu}
+              >
+                {enviando ? "Entrando…" : "Fotografar"}
+              </PrimaryButton>
 
-            <SecondaryButton type="button" onClick={() => setEtapa("recusou")}>
-              Prefiro não
-            </SecondaryButton>
+              <SecondaryButton type="button" onClick={() => setEtapa("recusou")}>
+                Prefiro não
+              </SecondaryButton>
+            </div>
 
             {erro && <ErrorMessage>{erro}</ErrorMessage>}
 

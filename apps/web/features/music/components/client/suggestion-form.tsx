@@ -20,23 +20,24 @@ export function SuggestionForm({
 
   return (
     <section className="grid gap-4 border-t border-linha pt-6">
-      <div className="grid gap-1.5">
-        <h2 className="m-0 font-titulo text-lg tracking-titulo">Pedidos da festa</h2>
+      <div className="grid gap-2">
+        <h2 className="m-0 font-titulo text-lg tracking-titulo">Pedidos musicais</h2>
         {open ? (
           <p className="m-0 text-[0.875rem] leading-relaxed text-ink-2">
-            Cole o link da faixa. Até {TETO_DE_SUGESTOES_POR_SESSAO} faixas novas por pessoa —
-            votar na que já está na lista não conta.
+            Cole o link da música que você gostaria de ouvir. Você pode sugerir até{" "}
+            {TETO_DE_SUGESTOES_POR_SESSAO} faixas diferentes ou votar nas que já estão na lista.
           </p>
         ) : (
           <p className="m-0 text-[0.875rem] leading-relaxed text-ink-2">
-            A interação ainda não abriu. Quando abrir, você sugere uma faixa por aqui.
+            Os pedidos musicais ainda não foram liberados. Quando os anfitriões liberarem, você
+            poderá sugerir suas músicas favoritas aqui.
           </p>
         )}
       </div>
 
       {canPaste && (
         <form
-          className="grid gap-3"
+          className="grid gap-3.5"
           onSubmit={(e) => {
             e.preventDefault();
             void onSuggest(url).then((ok) => {
@@ -44,9 +45,9 @@ export function SuggestionForm({
             });
           }}
         >
-          <label className="grid gap-1.5">
+          <label className="grid gap-2">
             <span className="text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
-              Link da faixa
+              Link da música
             </span>
             <input
               type="url"
@@ -60,7 +61,7 @@ export function SuggestionForm({
             />
           </label>
           <PrimaryButton type="submit" disabled={state.submitting || url.trim() === ""}>
-            {state.submitting ? "Enviando…" : "Sugerir"}
+            {state.submitting ? "Enviando…" : "Sugerir música"}
           </PrimaryButton>
         </form>
       )}
@@ -97,9 +98,11 @@ function SuggestionList({
 }) {
   if (suggestions.length === 0) {
     return (
-      <p className="m-0 text-[0.875rem] text-ink-3">
-        Ninguém sugeriu ainda. A primeira faixa abre a lista.
-      </p>
+      <div className="rounded-token bg-superficie px-4 py-5 text-center">
+        <p className="m-0 text-[0.9375rem] leading-relaxed text-ink-3">
+          Nenhuma sugestão ainda. Seja o primeiro a sugerir uma música para a festa!
+        </p>
+      </div>
     );
   }
 

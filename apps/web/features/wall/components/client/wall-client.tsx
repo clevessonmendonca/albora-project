@@ -53,14 +53,23 @@ export function WallClient({ initialVars }: { initialVars: Record<string, string
       {!panico && cena ? (
         <WallStage cena={cena} itemDe={itemDe} />
       ) : (
-        <div className="absolute inset-0 grid place-items-center">
-          <p className="p-8 text-center text-2xl text-ink-3">
-            {panico
-              ? "Telão pausado. Nenhuma foto nova aparece na parede."
-              : carregou
-                ? "As fotos da festa aparecem aqui."
-                : "Conectando ao telão…"}
-          </p>
+        <div className="absolute inset-0 grid place-items-center p-8">
+          <div className="max-w-[32ch] text-center">
+            <p className="m-0 text-[clamp(1.25rem,3vw,2rem)] leading-[1.25] text-ink-2">
+              {panico
+                ? "Telão pausado"
+                : carregou
+                  ? "Aguardando fotos"
+                  : "Conectando…"}
+            </p>
+            <p className="m-0 mt-4 text-[clamp(0.95rem,1.6vw,1.15rem)] leading-relaxed text-ink-3">
+              {panico
+                ? "Nenhuma foto nova aparece enquanto o telão estiver pausado."
+                : carregou
+                  ? "As fotos da festa aparecem aqui assim que os convidados começarem a enviar."
+                  : "Conectando ao evento. Aguarde alguns instantes."}
+            </p>
+          </div>
         </div>
       )}
 
