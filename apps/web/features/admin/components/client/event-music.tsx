@@ -115,7 +115,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
           <p className="m-0 text-[0.9rem] text-ink-3">Carregando…</p>
         ) : suggestions.length === 0 ? (
           <p className="m-0 text-[0.9rem] text-ink-2">
-            Nenhuma ainda. Quando a interação abrir, os pedidos aparecem aqui, ordenados por voto.
+            Nenhum pedido ainda. Quando o feed abrir para os convidados, as sugestões aparecem aqui.
           </p>
         ) : (
           <ul className="m-0 grid list-none gap-2 p-0">

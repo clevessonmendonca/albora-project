@@ -115,8 +115,8 @@ export function EventControls({
     <div className="flex flex-col gap-5">
       <AdminSection>
         <p className="mb-4 mt-0 leading-relaxed text-ink-2">
-          Controles durante a festa. O pânico pausa o telão em segundos; o interruptor
-          de menores sobe o limiar de denúncia sem marcar ninguém.
+          Controles durante a festa. O pânico pausa o telão em segundos; marcar que há menores
+          torna a moderação mais rigorosa sem expor ninguém.
         </p>
 
         <button
@@ -196,8 +196,8 @@ export function EventControls({
       <AdminSection>
         <h2 className="mb-3 mt-0 font-titulo text-lg">Interação social</h2>
         <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
-          Reações e comentários no feed só aparecem depois que o casal liberar.
-          Sem horário, o gate fica fechado.
+          Reações e comentários no feed só aparecem depois que vocês liberarem.
+          Sem horário, os convidados veem as fotos mas não interagem.
         </p>
         {gateOpen ? (
           <p className="m-0 text-[0.9rem] text-ink">

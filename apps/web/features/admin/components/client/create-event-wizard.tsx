@@ -200,12 +200,18 @@ export function CreateEventWizard() {
               </button>
             ))}
           </div>
-          <div className={identityPreviewClassName} style={previewVars}>
-            <p className="m-0 font-titulo text-xl text-acento-texto">
-              {resolvePackText(pack, "landing.exemplo.nome")}
-            </p>
-            <p className="mb-0 mt-3 text-sm text-ink-2">
-              Preview ao vivo — o convidado vê isto com os mesmos tokens.
+          <div className="flex flex-col gap-4">
+            <div className={identityPreviewClassName} style={previewVars}>
+              <div className="mb-2 h-1 w-12 rounded-pilula bg-acento" />
+              <p className="m-0 font-titulo text-xl text-acento-texto">
+                {resolvePackText(pack, "landing.exemplo.nome")}
+              </p>
+              <p className="mb-0 mt-2 text-sm text-ink-2">
+                Exemplo com tokens desta identidade
+              </p>
+            </div>
+            <p className="m-0 text-xs text-ink-3">
+              Preview ao vivo — o convidado vê isto com a mesma tipografia, cores e bordas.
             </p>
           </div>
         </div>

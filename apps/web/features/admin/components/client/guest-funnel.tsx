@@ -71,7 +71,7 @@ export function GuestFunnel({ eventoId }: Props) {
   if (erro && !resumo) {
     return (
       <AdminSection>
-        <p className="m-0 text-critico">Não foi possível carregar os números.</p>
+        <p className="m-0 text-critico">Não foi possível carregar os números agora. Tente recarregar a página.</p>
       </AdminSection>
     );
   }

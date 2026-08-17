@@ -91,9 +91,14 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
         </div>
 
         {itens.length === 0 ? (
-          <p className="m-0 text-ink-3">
-            Ainda não há fotos publicadas. Elas aparecem aqui assim que entram.
-          </p>
+          <div className="flex flex-col gap-3">
+            <p className="m-0 text-ink-2">
+              Ainda não há fotos publicadas. Elas aparecem aqui assim que entram.
+            </p>
+            <p className="m-0 text-sm text-ink-3">
+              Baixe as peças com o QR e coloque nas mesas — ou compartilhe o link do convidado diretamente.
+            </p>
+          </div>
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-1.5">
             {itens.map((item) => {

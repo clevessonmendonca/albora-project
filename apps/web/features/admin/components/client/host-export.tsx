@@ -118,7 +118,7 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
 
       {estado.fase === "vazio" && (
         <p className="mb-0 mt-4 text-[0.9rem] text-ink-3">
-          Ainda não há fotos publicadas para baixar.
+          Ainda não há fotos no álbum. Quando entrar a primeira, o download abre aqui.
         </p>
       )}
 

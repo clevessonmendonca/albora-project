@@ -56,7 +56,7 @@ export function LiveSummary({ eventoId }: Props) {
   if (erro && !resumo) {
     return (
       <AdminSection>
-        <p className="m-0 text-critico">Não foi possível carregar o painel.</p>
+        <p className="m-0 text-critico">Não foi possível carregar o painel agora. Tente recarregar a página.</p>
       </AdminSection>
     );
   }

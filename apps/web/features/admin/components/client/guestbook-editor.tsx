@@ -178,7 +178,7 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
             className="rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink"
           />
           <span className="font-corpo text-[0.75rem] text-ink-3">
-            Sem horário, nenhum convidado vê. O recado espera vocês marcarem.
+            Sem horário, nenhum convidado vê. Escolha quando mostrar.
           </span>
         </label>
 
