@@ -61,7 +61,9 @@ function RequestLink({ next }: { next: string | null }) {
   if (status === "sent") {
     return (
       <Card title="Verifique seu e-mail">
-        <p className="m-0 leading-normal text-ink-2">Se houver uma conta, o link de acesso está a caminho.</p>
+        <p className="m-0 leading-relaxed text-ink-2">
+          Se houver uma conta associada, o link de acesso já está a caminho.
+        </p>
         {devLink && (
           <a href={devLink} className="break-all text-acento">
             Abrir link (dev)
@@ -73,7 +75,9 @@ function RequestLink({ next }: { next: string | null }) {
 
   return (
     <Card title="Entrar no painel">
-      <p className="m-0 leading-normal text-ink-2">Enviamos um link de acesso para o seu e-mail. Sem senha.</p>
+      <p className="m-0 leading-relaxed text-ink-2">
+        Enviaremos um link de acesso para o seu e-mail. Nenhuma senha necessária.
+      </p>
       <input
         type="email"
         value={email}
@@ -85,7 +89,7 @@ function RequestLink({ next }: { next: string | null }) {
         aria-label="Seu e-mail"
         className="rounded-token border border-linha bg-bg px-4 py-3.5 text-base text-ink"
       />
-      {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Não deu para enviar agora. Tente de novo.</p>}
+      {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Não conseguimos enviar agora. Por favor, tente novamente.</p>}
       <button
         type="button"
         onClick={() => void request()}
@@ -123,8 +127,10 @@ function Confirm({ token, next }: { token: string; next: string | null }) {
 
   return (
     <Card title="Confirmar acesso">
-      <p className="m-0 leading-normal text-ink-2">Toque para entrar no seu painel.</p>
-      {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Link inválido ou expirado. Peça outro.</p>}
+      <p className="m-0 leading-relaxed text-ink-2">
+        Toque abaixo para confirmar e entrar no seu painel.
+      </p>
+      {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Este link está inválido ou expirou. Por favor, solicite outro.</p>}
       <button
         type="button"
         onClick={() => void signIn()}
@@ -142,8 +148,8 @@ function Confirm({ token, next }: { token: string; next: string | null }) {
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <main className="fixed inset-0 grid place-items-center bg-bg p-6 font-corpo text-ink">
-      <div className="flex w-full max-w-[26rem] flex-col gap-5 rounded-superficie bg-superficie p-8">
-        <h1 className="m-0 font-titulo text-2xl">{title}</h1>
+      <div className="flex w-full max-w-[26rem] flex-col gap-6 rounded-superficie bg-superficie p-9">
+        <h1 className="m-0 font-titulo text-2xl font-light tracking-titulo">{title}</h1>
         {children}
       </div>
     </main>

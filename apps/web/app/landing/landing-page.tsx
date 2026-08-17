@@ -10,6 +10,7 @@ import { AnimatedBrand } from "./animated-brand";
 import { LandingBeacon } from "./landing-beacon";
 import { LandingCtaLink } from "./landing-cta-link";
 import { LandingDemoLink } from "./landing-demo-link";
+import { LandingStickyCta } from "./landing-sticky-cta";
 import {
   Accent,
   Frame,
@@ -646,18 +647,11 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
         <span className="text-ink-3">Feito no Brasil</span>
       </footer>
 
-      <div className="cta-fixo fixed bottom-3 left-3 right-3 z-[70] gap-3 rounded-pilula bg-ink p-2.5 pl-5">
-        <span className="flex-1 text-[0.84375rem] leading-[1.3] text-bg">
-          Montar é grátis. Leva 3 minutos.
-        </span>
-        <LandingCtaLink
-          href={HREF_CRIAR_GRATIS}
-          packHint={pack.id}
-          className={cn(pillClasses, "bg-bg px-[1.375rem] py-3 text-ink")}
-        >
-          Criar álbum
-        </LandingCtaLink>
-      </div>
+      <LandingStickyCta
+        href={HREF_CRIAR_GRATIS}
+        packHint={pack.id}
+        label="Criar álbum"
+      />
     </div>
   );
 }

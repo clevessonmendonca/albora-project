@@ -20,18 +20,18 @@ export function AdminShell({ title, subtitle, back, children }: AdminShellProps)
       className="min-h-dvh bg-bg p-[clamp(1.5rem,5vw,4rem)] font-[family-name:var(--fonte-corpo)] text-ink"
       style={adminVars()}
     >
-      <header className="mb-8 flex items-start justify-between gap-4">
+      <header className="mb-10 flex items-start justify-between gap-6">
         <div>
           {back && (
             <Link
               href={back.href}
-              className="mb-3 inline-block text-sm text-ink-3 no-underline"
+              className="mb-3.5 inline-block text-sm tracking-[0.01em] text-ink-3 no-underline"
             >
               ← {back.label}
             </Link>
           )}
-          <h1 className="m-0 font-titulo text-[1.75rem]">{title}</h1>
-          {subtitle && <p className="mt-1.5 text-[0.9rem] text-ink-3">{subtitle}</p>}
+          <h1 className="m-0 font-titulo text-[1.875rem] font-light tracking-titulo">{title}</h1>
+          {subtitle && <p className="mt-2 text-[0.9rem] text-ink-3">{subtitle}</p>}
         </div>
         <SignOutButton />
       </header>
