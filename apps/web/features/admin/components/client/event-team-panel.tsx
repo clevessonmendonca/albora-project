@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 
 type EventMember = {
   accountId: string;

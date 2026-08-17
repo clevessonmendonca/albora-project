@@ -230,8 +230,8 @@ export default async function OpsPainelEventoPage({
             <h2 className="m-0 mb-4 font-titulo text-xl">Tickets de Suporte</h2>
             <ul className="list-none space-y-3 p-0">
               {tickets.map((ticket) => {
-                const isUrgent = ticket.priority === "urgent";
-                const isHigh = ticket.priority === "high";
+                const isUrgent = ticket.priority === "p0";
+                const isHigh = ticket.priority === "p1";
 
                 return (
                   <li

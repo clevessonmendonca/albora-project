@@ -74,8 +74,8 @@ export default async function OpsSupportPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {tickets.map((t) => {
-            const isUrgent = t.priority === "urgent";
-            const isHigh = t.priority === "high";
+            const isUrgent = t.priority === "p0";
+            const isHigh = t.priority === "p1";
 
             return (
               <AdminSection key={t.id}>
