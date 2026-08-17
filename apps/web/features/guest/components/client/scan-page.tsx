@@ -77,7 +77,7 @@ export function ScanPage() {
               </button>
               {qr.naoEntendi && (
                 <p role="alert" className="m-0 text-[0.85rem] text-critico">
-                  Esse endereço não abre nenhuma festa. Confira o código da mesa.
+                  Esse código não abre nenhum evento. Confere de novo? Às vezes é só um zero no lugar do O.
                 </p>
               )}
             </form>

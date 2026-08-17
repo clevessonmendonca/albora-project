@@ -50,20 +50,24 @@ function Shortcut({
   label,
   value,
   icon,
+  primary = false,
 }: {
   href: string;
   label: string;
   value: string;
   icon: ReactNode;
+  primary?: boolean;
 }) {
   return (
     <Link
       href={href}
-      className="flex flex-col items-center gap-[0.3125rem] rounded-token bg-superficie px-1 py-3 text-ink-2 no-underline"
+      className={`flex flex-col items-center gap-[0.3125rem] rounded-token bg-superficie px-1 py-3 no-underline ${
+        primary ? "text-ink" : "text-ink-2 opacity-85"
+      }`}
     >
       {icon}
       <span className="text-[0.625rem] uppercase tracking-rotulo">{label}</span>
-      <span className="text-[0.6875rem] text-ink">{value}</span>
+      <span className={`text-[0.6875rem] ${primary ? "text-ink" : "text-ink-2"}`}>{value}</span>
     </Link>
   );
 }
@@ -130,12 +134,14 @@ export function CoverPage({
             label="Álbum"
             value={String(photos)}
             icon={<GridIcon size={20} />}
+            primary
           />
           <Shortcut
             href={`${base}/feed`}
             label="Feed"
             value={interactionOpen ? "ao vivo" : "em breve"}
             icon={<StackIcon size={20} />}
+            primary
           />
           <Shortcut
             href={`${base}/missions`}

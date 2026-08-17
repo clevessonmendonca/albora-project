@@ -56,7 +56,7 @@ export function Details({
           value={legenda}
           onChange={(e) => setLegenda(e.target.value.slice(0, MAX_LEGENDA))}
           rows={2}
-          placeholder="Escreve alguma coisa…"
+          placeholder="Uma noite que ninguém esquece"
         />
       </label>
 
