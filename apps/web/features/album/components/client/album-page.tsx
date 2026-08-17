@@ -103,8 +103,8 @@ export function AlbumPage({
 
           {vazio && (
             <EmptyState
-              title={missionId ? "Ninguém mandou essa ainda." : "Ainda não há fotos no álbum."}
-              lede={missionId ? "A sua pode ser a primeira." : "Seja o primeiro a fotografar."}
+              title={missionId ? "Ninguém fez essa ainda." : "Ainda não há fotos no álbum."}
+              lede={missionId ? "Sua foto pode ser a primeira." : "Seja o primeiro a fotografar esta noite."}
               cameraPath={cameraPath}
             />
           )}
@@ -114,12 +114,12 @@ export function AlbumPage({
               <section
                 key={capitulo.id}
                 aria-label={capitulo.titulo}
-                className={cn(capitulo.nomear && "mt-6 first:mt-0")}
+                className={cn(capitulo.nomear && "mt-8 first:mt-0")}
               >
                 {capitulo.nomear && (
                   <h2
                     className={cn(
-                      "mb-3 font-titulo text-[1.125rem] font-light tracking-titulo",
+                      "mb-4 font-titulo text-[1.1875rem] font-light leading-[1.26] tracking-titulo",
                       capitulo.faixas.some((f) => f.amanhecer) && "text-acento",
                     )}
                   >
@@ -260,7 +260,7 @@ function Rodape({
   if (falha === "sessao") {
     return (
       <p className="mt-6 text-center text-[0.9rem] leading-relaxed text-ink-2">
-        Sua entrada nessa festa expirou. Escaneie o QR da mesa de novo para continuar.
+        Sua entrada expirou. Escaneie o QR da mesa de novo para ver o álbum.
       </p>
     );
   }
@@ -268,7 +268,9 @@ function Rodape({
   if (falha !== null) {
     return (
       <div className="mt-6 text-center">
-        <p className="mb-3 mt-0 text-[0.9rem] text-ink-2">Não consegui carregar o álbum agora.</p>
+        <p className="mb-3 mt-0 text-[0.9rem] leading-relaxed text-ink-2">
+          Não consegui carregar o álbum agora.
+        </p>
         <SecondaryButton onClick={onTentar}>Tentar de novo</SecondaryButton>
       </div>
     );
@@ -318,7 +320,7 @@ function Lightbox({
       <button
         type="button"
         aria-label="Pedir para tirar esta foto"
-        className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20 border-0 bg-transparent p-2 font-[inherit] text-[0.9rem] text-ink-2"
+        className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20 min-h-11 rounded-pilula border border-linha bg-superficie px-4 py-2 font-titulo text-[0.6875rem] uppercase tracking-rotulo text-ink-2 transition-colors duration-[var(--tempo-rapido)] hover:border-acento hover:text-acento"
         onClick={(ev) => {
           ev.stopPropagation();
           setPedidoAberto(true);
@@ -329,7 +331,7 @@ function Lightbox({
       <button
         type="button"
         aria-label="Fechar"
-        className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-20 border-0 bg-transparent p-2 font-[inherit] text-ink-2"
+        className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-20 min-h-11 rounded-pilula border border-linha bg-superficie px-4 py-2 font-titulo text-[0.6875rem] uppercase tracking-rotulo text-ink-2 transition-colors duration-[var(--tempo-rapido)] hover:border-acento hover:text-acento"
         onClick={(ev) => {
           ev.stopPropagation();
           onSair();

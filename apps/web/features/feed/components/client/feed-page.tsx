@@ -217,8 +217,8 @@ export function FeedPage({
 
           {espelho && estado.jaCarregou && (
             <GateNotice>
-              As reações e os comentários abrem no horário que o anfitrião escolheu. Até lá,
-              continue enviando: tudo já está indo para o álbum.
+              As reações e comentários abrem no horário escolhido pelos noivos. Enquanto isso,
+              continue fotografando — tudo já está no álbum.
             </GateNotice>
           )}
 
@@ -246,8 +246,8 @@ export function FeedPage({
           )}
 
           {estado.midiaIndisponivel && (
-            <p className="mb-4 text-[0.85rem] text-ink-3">
-              As fotos ainda não abriram. Elas aparecem sozinhas.
+            <p className="mb-4 text-[0.9rem] leading-relaxed text-ink-2">
+              As fotos ainda não abriram. Elas aparecem sozinhas quando os noivos liberarem.
             </p>
           )}
 
@@ -263,8 +263,8 @@ export function FeedPage({
 
           {vazio && (
             <EmptyState
-              title={completo && missionId !== null ? "Ninguém mandou essa ainda." : "Ainda não tem foto."}
-              lede={completo && missionId !== null ? "A sua pode ser a primeira." : "Seja o primeiro."}
+              title={completo && missionId !== null ? "Ninguém fez essa ainda." : "Ainda não tem foto aqui."}
+              lede={completo && missionId !== null ? "Sua foto pode ser a primeira." : "Seja o primeiro a fotografar."}
               cameraPath={cameraPath}
             />
           )}
@@ -442,15 +442,15 @@ function Rodape({
 }) {
   if (estado.falha === "sessao") {
     return (
-      <Recado texto="Sua entrada nessa festa expirou. Escaneie o QR da mesa de novo para continuar." />
+      <Recado texto="Sua entrada expirou. Escaneie o QR da mesa de novo para continuar vendo as fotos." />
     );
   }
 
   if (estado.falha !== null) {
     return (
       <div className="mt-[calc(var(--espaco)*6)] text-center">
-        <p className="mb-3 text-[0.9rem] text-ink-2">
-          Não consegui carregar o resto agora.
+        <p className="mb-3 text-[0.9rem] leading-relaxed text-ink-2">
+          Não consegui carregar mais fotos agora.
         </p>
         {/* Recomeçar do topo é toque do convidado, nunca efeito colateral do
             erro: uma lista que se rebobina sozinha perde o lugar de quem rolou. */}

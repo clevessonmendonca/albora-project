@@ -80,7 +80,7 @@ function InteracaoCompleta({
 
   return (
     <>
-      <div className="flex items-center gap-4.5 text-ink">
+      <div className="flex items-center gap-5 text-ink">
         <button
           type="button"
           aria-pressed={reacao.minha !== null}
@@ -89,7 +89,7 @@ function InteracaoCompleta({
           className={CLASSE_BOTAO_ICONE}
         >
           <Star size={24} filled={reacao.minha !== null} />
-          <span className="text-[0.84375rem]">{reacao.reacoes}</span>
+          <span className="font-titulo text-[0.8125rem] tracking-rotulo">{reacao.reacoes}</span>
         </button>
 
         <button
@@ -99,7 +99,7 @@ function InteracaoCompleta({
           className={CLASSE_BOTAO_ICONE}
         >
           <CommentIcon size={22} />
-          <span className="text-[0.84375rem]">
+          <span className="font-titulo text-[0.8125rem] tracking-rotulo">
             {comentarios.total > 0 ? comentarios.total : ""}
           </span>
         </button>
@@ -113,7 +113,7 @@ function InteracaoCompleta({
             className={CLASSE_BOTAO_ICONE}
           >
             <ShareIcon size={21} />
-            <span className="text-[0.84375rem]">
+            <span className="font-titulo text-[0.75rem] uppercase tracking-rotulo">
               {compartilhando ? "Montando…" : "Stories"}
             </span>
           </button>

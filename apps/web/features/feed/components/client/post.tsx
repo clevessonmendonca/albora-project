@@ -55,11 +55,11 @@ export function Post({
 
   return (
     <article className="border-t border-linha">
-      <div className="py-3.5">
+      <div className="py-4">
         <PostHeader author={autor} meta={meta} />
       </div>
 
-      <div className="relative mb-3 aspect-4/5" style={aspecto ? { aspectRatio: aspecto } : undefined}>
+      <div className="relative mb-3.5 aspect-4/5" style={aspecto ? { aspectRatio: aspecto } : undefined}>
         {url ? (
           isVideo ? (
             <video
@@ -83,7 +83,7 @@ export function Post({
         )}
       </div>
 
-      <div className="pb-2.5">
+      <div className="pb-3">
         <PhotoInteraction
           uploadId={uploadId}
           interacao={interacao}
@@ -100,8 +100,8 @@ export function Post({
       </div>
 
       {legenda && (
-        <p className="mb-4 text-[0.84375rem] leading-[1.45] text-ink-2">
-          <span className="text-ink">{autor}</span> {legenda}
+        <p className="mb-4.5 text-[0.875rem] leading-[1.5] text-ink-2">
+          <span className="font-titulo text-ink">{autor}</span> {legenda}
         </p>
       )}
     </article>
