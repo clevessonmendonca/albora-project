@@ -154,8 +154,8 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
       <AdminSection>
         <h2 className="mb-3 mt-0 font-titulo text-lg">Efeito do feed social</h2>
         <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
-          Fotos subidas antes e depois da primeira abertura do feed. Se o número "depois" não
-          cresce, o feed pode não estar gerando o engajamento esperado.
+          Fotos subidas antes e depois da primeira abertura do feed. Se o número depois
+          não cresce, o feed pode não estar gerando o engajamento esperado.
         </p>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
           <Stat n={String(resumo.uploadsAntesDoFeed)} rotulo="antes do feed" />

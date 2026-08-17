@@ -112,7 +112,7 @@ export function GuestFunnel({ eventoId }: Props) {
         <h2 className="mb-3 mt-0 font-titulo text-lg">Onde os convidados param</h2>
         <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
           Cada degrau mostra quantas pessoas chegaram até ali. A espinha é cumulativa, então
-          "QR escaneado" e "Abriu o evento" podem ter números parecidos. Se houver queda brusca
+          QR escaneado e Abriu o evento podem ter números parecidos. Se houver queda brusca
           em algum ponto, vale investigar fricção.
         </p>
         <div className="flex flex-col gap-2">

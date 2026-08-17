@@ -4,12 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Badge,
-  DisplayTitle,
   GuestHeader,
   GuestMain,
   GuestShell,
   PrimaryButton,
-  SecondaryText,
   Star,
 } from "@albora/ui-web";
 import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
