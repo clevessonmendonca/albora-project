@@ -291,9 +291,13 @@ export function PhotoPage({
               : {})}
           footer={
             <>
-              {estado.ultimoErro && <ErrorMessage>{estado.ultimoErro}</ErrorMessage>}
+              {estado.ultimoErro && (
+                <div className="px-4">
+                  <ErrorMessage>{estado.ultimoErro}</ErrorMessage>
+                </div>
+              )}
               {avisoVideo && (
-                <p className="mt-3 text-center text-[0.8rem] leading-[1.6] text-ink-3">
+                <p className="mt-3 text-center text-[0.82rem] leading-[1.6] text-ink-3">
                   {avisoVideo}
                 </p>
               )}
@@ -446,19 +450,25 @@ function Confirmacao({
         )}
       </p>
 
-      {!online && <p className="foto-lede">Pode fechar. A gente cuida.</p>}
+      {!online && (
+        <p className="foto-lede">
+          Pode fechar o app — suas fotos sobem sozinhas quando voltar o sinal.
+        </p>
+      )}
 
       {musica && (
-        <p className="mb-4 max-w-[34ch] text-[0.88rem] leading-[1.68] text-ink-2">
-          <span className="mb-1 block font-titulo text-[0.68rem] font-normal uppercase tracking-[0.28em] text-acento-texto">
+        <div className="mb-5 max-w-[34ch]">
+          <span className="mb-1.5 block font-titulo text-[0.68rem] font-normal uppercase tracking-[0.28em] text-acento-texto">
             Trilha
           </span>
-          {musica.rotulo}
-          {" · "}
-          <a href={musica.url} className="text-acento">
-            Abrir no {musica.provedor}
-          </a>
-        </p>
+          <p className="m-0 text-[0.88rem] leading-[1.68] text-ink-2">
+            {musica.rotulo}
+            {" · "}
+            <a href={musica.url} className="text-acento underline decoration-1 underline-offset-2">
+              Abrir no {musica.provedor}
+            </a>
+          </p>
+        </div>
       )}
 
       <span className="min-h-6 flex-[1_1_auto]" />
@@ -496,7 +506,7 @@ function Confirmacao({
         Continuar tirando
       </button>
 
-      <div className="mt-3.5 flex shrink-0 flex-col gap-2.5">
+      <div className="mt-4 flex shrink-0 flex-col gap-2.5">
         {numero === 1 && (
           <SecondaryButton onClick={() => router.push(`${base}/my-photos`)}>
             Ver minha foto
@@ -504,11 +514,11 @@ function Confirmacao({
         )}
         {interactionOpen && (
           <SecondaryButton onClick={() => router.push(`${base}/feed`)}>
-            Ver o feed
+            Ir pro feed
           </SecondaryButton>
         )}
         <SecondaryButton onClick={() => router.push(`${base}/cover`)}>
-          Voltar à capa
+          Voltar
         </SecondaryButton>
       </div>
     </main>

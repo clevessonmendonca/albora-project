@@ -65,10 +65,10 @@ export function EditorControls({
   const podeZerar = !saoNeutros(ajustes);
 
   return (
-    <footer className="grid gap-[0.7rem] px-6 pb-6">
+    <footer className="grid gap-3 px-6 pb-6">
       <div className="grid grid-cols-[1fr_auto_1fr] items-center">
         <span />
-        <div className="flex gap-6">
+        <div className="flex gap-7">
           <ButtonAba rotulo="Filtros" ativa={aba === "filtros"} onClick={() => onAba("filtros")} />
           <ButtonAba rotulo="Ajustes" ativa={aba === "ajustes"} onClick={() => onAba("ajustes")} />
         </div>
@@ -87,7 +87,7 @@ export function EditorControls({
 
       {aba === "filtros" ? (
         <>
-          <div className="flex gap-[0.6rem] overflow-x-auto pb-1 [scrollbar-width:none]">
+          <div className="flex gap-2.5 overflow-x-auto pb-1.5 [scrollbar-width:none]">
             <Chip
               rotulo="Original"
               miniatura={tiras.get(SEM_FILTRO)}
@@ -317,21 +317,23 @@ const ESTILO = `
   .ed-chip {
     font: inherit;
     flex: 0 0 auto;
-    width: 62px;
+    width: 64px;
     display: grid;
-    gap: 0.4rem;
+    gap: 0.45rem;
     justify-items: center;
     background: none;
     border: 0;
     padding: 0;
     cursor: pointer;
+    transition: opacity var(--tempo-rapido) var(--curva);
   }
+  .ed-chip:active { opacity: 0.85; }
 
   .ed-mini {
     position: relative;
     display: block;
-    width: 62px;
-    height: 62px;
+    width: 64px;
+    height: 64px;
     border-radius: var(--raio);
     overflow: hidden;
     background-color: var(--superficie-alta);
@@ -340,7 +342,7 @@ const ESTILO = `
     box-shadow: inset 0 0 0 1px var(--linha);
     transition: box-shadow var(--tempo-rapido) var(--curva);
   }
-  .ed-chip.ativo .ed-mini { box-shadow: inset 0 0 0 2px var(--acento); }
+  .ed-chip.ativo .ed-mini { box-shadow: inset 0 0 0 2.5px var(--acento); }
 
   .ed-selo {
     position: absolute;
@@ -369,7 +371,7 @@ const ESTILO = `
     font-size: 0.97rem;
     font-weight: 500;
     letter-spacing: var(--tracking-rotulo);
-    min-height: 56px;
+    min-height: 58px;
     padding: 0 1.5rem;
     border: 0;
     border-radius: var(--raio-pilula);
@@ -378,8 +380,8 @@ const ESTILO = `
     cursor: pointer;
     transition: transform var(--tempo-rapido) var(--curva), opacity var(--tempo-rapido) var(--curva);
   }
-  .ed-primario:disabled { opacity: 0.4; cursor: default; }
-  .ed-primario:active:not(:disabled) { transform: scale(0.972); }
+  .ed-primario:disabled { opacity: 0.35; cursor: default; }
+  .ed-primario:active:not(:disabled) { transform: scale(0.97); }
 
   .ed-texto:focus-visible,
   .ed-aba:focus-visible,
@@ -470,7 +472,7 @@ const ESTILO = `
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ed-texto, .ed-aba, .ed-mini, .ed-primario { transition: none; }
-    .ed-primario:active:not(:disabled) { transform: none; }
+    .ed-texto, .ed-aba, .ed-mini, .ed-primario, .ed-chip { transition: none; }
+    .ed-primario:active:not(:disabled), .ed-chip:active { transform: none; opacity: 1; }
   }
 `;

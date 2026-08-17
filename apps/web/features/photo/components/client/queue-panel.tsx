@@ -9,9 +9,9 @@ import { UploadArc } from "./upload-arc";
 import { QueueLabel } from "./camera-view";
 
 function rotuloEstado(item: QueueItem, online: boolean): string {
-  if (item.tentativas >= MAX_ATTEMPTS) return "Falhou · tentar de novo";
-  if (!online) return "Na fila · sem sinal";
-  if (item.tentativas > 0) return "Enviando…";
+  if (item.tentativas >= MAX_ATTEMPTS) return "Aguardando";
+  if (!online) return "Vai subir quando voltar o sinal";
+  if (item.tentativas > 0) return "Subindo…";
   return "Na fila";
 }
 
@@ -125,20 +125,20 @@ function PainelFila({
           <SecondaryButton onClick={onClose}>Fechar</SecondaryButton>
           {temFalha && online && (
             <PrimaryButton disabled={drenando} onClick={() => void onDrenar()}>
-              {drenando ? "Tentando…" : "Tentar de novo"}
+              {drenando ? "Enviando…" : "Enviar agora"}
             </PrimaryButton>
           )}
         </div>
       }
     >
       {!online && (
-        <p className="mb-3 text-sm leading-normal text-ink-2">
-          Sem sinal — a gente reenvia sozinho quando voltar.
+        <p className="mb-4 max-w-[34ch] text-[0.88rem] leading-[1.68] text-ink-2">
+          Sem sinal. Pode fechar — a gente cuida.
         </p>
       )}
 
       {itens.length === 0 ? (
-        <p className="m-0 text-sm text-ink-3">Nada na fila agora.</p>
+        <p className="m-0 text-[0.88rem] leading-[1.68] text-ink-3">Tudo enviado.</p>
       ) : (
         <ul className="m-0 grid list-none gap-2.5 p-0">
           {itens.map((item) => (
@@ -156,8 +156,8 @@ function LinhaFila({ item, online }: { item: QueueItem; online: boolean }) {
   const falhou = item.tentativas >= MAX_ATTEMPTS;
 
   return (
-    <li className="flex items-center gap-3 rounded-token bg-bg p-2">
-      <span className="size-12 shrink-0 overflow-hidden rounded-[calc(var(--raio)*0.75)] bg-linha">
+    <li className="flex items-center gap-3 rounded-superficie bg-superficie p-2.5">
+      <span className="size-14 shrink-0 overflow-hidden rounded-[calc(var(--raio)*0.85)] bg-superficie-alta">
         {url && video ? (
           <video src={url} muted playsInline preload="metadata" className="block size-full object-cover" />
         ) : url ? (
@@ -165,8 +165,8 @@ function LinhaFila({ item, online }: { item: QueueItem; online: boolean }) {
         ) : null}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm text-ink">{video ? "Vídeo" : "Foto"}</span>
-        <span className={`text-xs ${falhou ? "text-critico" : "text-ink-3"}`}>
+        <span className="block text-[0.9rem] font-medium text-ink">{video ? "Vídeo" : "Foto"}</span>
+        <span className={`mt-0.5 block text-[0.78rem] leading-[1.5] ${falhou ? "text-ink-2" : "text-ink-3"}`}>
           {rotuloEstado(item, online)}
         </span>
       </span>

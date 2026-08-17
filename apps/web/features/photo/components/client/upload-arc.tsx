@@ -87,7 +87,7 @@ export function UploadArc({
           />
         </svg>
 
-        {!online && <span className="arco-envio-rotulo">sem sinal</span>}
+        {!online && <span className="arco-envio-rotulo">Sem sinal</span>}
       </span>
     </>
   );

@@ -66,7 +66,7 @@ export function Editor({
         setPrevia(resultado.previa);
         setTiras(resultado.tiras);
       } catch {
-        setErro("Não consegui abrir essa foto. Tente outra.");
+        setErro("Não consegui abrir esse arquivo. Tire outra foto.");
       }
     })();
 

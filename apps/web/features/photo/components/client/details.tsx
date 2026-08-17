@@ -41,7 +41,7 @@ export function Details({
   return (
     <main className="flex min-h-dvh flex-col bg-bg px-8 pb-9 pt-10 font-corpo text-ink">
       <div className="shrink-0">
-        <h1 className="mb-2 mt-0 text-balance font-titulo text-[clamp(1.5rem,7vw,1.75rem)] font-medium leading-[1.16] tracking-titulo">
+        <h1 className="mb-2.5 mt-0 text-balance font-titulo text-[clamp(1.5rem,7vw,1.75rem)] font-medium leading-[1.16] tracking-titulo">
           Sua foto já está subindo
         </h1>
         <p className="m-0 max-w-[34ch] text-[0.94rem] leading-[1.68] text-ink-2">
@@ -49,10 +49,10 @@ export function Details({
         </p>
       </div>
 
-      <label className="mt-8 grid shrink-0 gap-[0.3rem]">
-        <span className={CLASSE_ROTULO}>Legenda</span>
+      <label className="mt-9 grid shrink-0 gap-1">
+        <span className={CLASSE_ROTULO}>Legenda (opcional)</span>
         <textarea
-          className="w-full resize-none border-0 border-b border-linha bg-transparent px-0.5 py-[0.8rem] font-titulo text-[1.1rem] font-normal leading-[1.42] text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] placeholder:italic placeholder:text-ink-3 focus:border-acento motion-reduce:transition-none"
+          className="w-full resize-none border-0 border-b border-linha bg-transparent px-0.5 py-3 font-titulo text-[1.1rem] font-normal leading-[1.42] text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] placeholder:italic placeholder:text-ink-3 focus:border-acento motion-reduce:transition-none"
           value={legenda}
           onChange={(e) => setLegenda(e.target.value.slice(0, MAX_LEGENDA))}
           rows={2}
@@ -60,9 +60,9 @@ export function Details({
         />
       </label>
 
-      <div className="mt-8 grid shrink-0 gap-3">
+      <div className="mt-9 grid shrink-0 gap-3.5">
         <span className={CLASSE_ROTULO}>{perguntaDoLugar}</span>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2.5">
           {places.map((l) => (
             <button
               key={l.id}
@@ -80,12 +80,12 @@ export function Details({
         </div>
       </div>
 
-      <span className="min-h-8 flex-[1_1_auto]" aria-hidden />
+      <span className="min-h-10 flex-[1_1_auto]" aria-hidden />
 
-      <div className="grid shrink-0 gap-1">
+      <div className="grid shrink-0 gap-2">
         <button
           type="button"
-          className="min-h-14 cursor-pointer rounded-pilula border-0 bg-ink px-6 text-[0.97rem] font-medium tracking-rotulo text-bg transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] active:scale-[0.972] focus-visible:outline focus-visible:outline-1 focus-visible:outline-acento focus-visible:outline-offset-[5px] motion-reduce:transition-none motion-reduce:active:scale-100"
+          className="min-h-14 cursor-pointer rounded-pilula border-0 bg-ink px-6 text-[0.97rem] font-medium tracking-rotulo text-bg transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] active:scale-[0.97] focus-visible:outline focus-visible:outline-1 focus-visible:outline-acento focus-visible:outline-offset-[5px] motion-reduce:transition-none motion-reduce:active:scale-100"
           onClick={concluir}
         >
           Pronto
@@ -95,7 +95,7 @@ export function Details({
           className="min-h-12 cursor-pointer border-0 bg-transparent font-titulo text-[0.7rem] font-normal uppercase tracking-[0.22em] text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-acento focus-visible:outline-offset-[5px] motion-reduce:transition-none"
           onClick={concluir}
         >
-          Pular — já está subindo
+          Pular
         </button>
       </div>
     </main>

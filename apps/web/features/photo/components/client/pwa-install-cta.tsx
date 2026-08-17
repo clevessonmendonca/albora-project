@@ -31,8 +31,8 @@ export function PwaInstallCta({
   if (!mostrar) return null;
 
   return (
-    <div className="mb-3">
-      <p className="mb-3 flex items-baseline gap-3 text-[0.88rem] leading-[1.68] text-ink-2">
+    <div className="mb-4">
+      <p className="mb-3.5 flex items-baseline gap-3 text-[0.88rem] leading-[1.68] text-ink-2">
         <span className="shrink-0 font-titulo text-[0.68rem] font-normal uppercase tracking-[0.28em] text-acento-texto">
           App
         </span>
@@ -72,7 +72,7 @@ export function PwaInstallCta({
 
       <button
         type="button"
-        className="mt-2 min-h-11 border-0 bg-transparent p-0 text-left text-[0.85rem] text-ink-3"
+        className="mt-2 min-h-11 border-0 bg-transparent p-0 text-left text-[0.85rem] leading-[1.5] text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] motion-reduce:transition-none"
         onClick={onDispensar}
       >
         {COPY_DISPENSAR_CTA}

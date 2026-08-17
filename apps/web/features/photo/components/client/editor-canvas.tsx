@@ -78,14 +78,16 @@ export function EditorCanvas({
   return (
     <section className="relative grid place-items-center overflow-hidden px-5">
       {missao && (
-        <div className="absolute inset-x-3.5 top-3.5 z-[1]">
+        <div className="absolute inset-x-4 top-4 z-[1]">
           <MissionBanner index={missao.indice} total={missao.total} title={missao.title} />
         </div>
       )}
       {erro ? (
-        <p role="alert" className="text-center leading-[1.68] text-critico">
-          {erro}
-        </p>
+        <div className="max-w-[28ch] text-center">
+          <p role="alert" className="m-0 text-[0.94rem] leading-[1.68] text-ink-2">
+            {erro}
+          </p>
+        </div>
       ) : (
         <canvas ref={telaPrevia} className="max-h-full max-w-full rounded-superficie" />
       )}
