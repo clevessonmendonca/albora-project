@@ -60,50 +60,59 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
 
   return (
     <div>
-      <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
-        PDF pronto para a gráfica. SVG se o estúdio pedir para editar. A tela mostra RGB e a
-        impressão sai CMYK — peça uma prova antes da tiragem inteira.
+      <p className="mb-5 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
+        PDF pronto para a gráfica, com sangria de 3 mm e marcas de corte. SVG se o estúdio pedir
+        para editar. A tela mostra RGB e a impressão sai CMYK — sempre peça uma prova colorida
+        antes da tiragem final.
       </p>
 
-      <div className="mb-6 rounded-token bg-bg px-4 py-4">
-        <p className="mb-3 mt-0 text-[0.9375rem] leading-relaxed text-ink">
-          Placa A4, card de mesa e card de missão num ZIP — o que a gráfica pede de uma vez.
+      <div className="mb-6 rounded-token border border-linha bg-superficie-alta px-5 py-5">
+        <p className="mb-3 mt-0 text-[0.9375rem] font-titulo leading-relaxed text-ink">
+          Pacote completo
         </p>
-        <label className="mb-3 flex cursor-pointer items-center gap-2 text-[0.8125rem] text-ink-2">
+        <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-2">
+          Placa A4, card de mesa e card de missão num arquivo ZIP — tudo que a gráfica
+          precisa de uma vez só.
+        </p>
+        <label className="mb-4 flex cursor-pointer items-center gap-2 text-[0.8125rem] text-ink-2">
           <input
             type="checkbox"
             checked={includeSvg}
             onChange={(e) => setIncludeSvg(e.target.checked)}
             disabled={downloading !== null}
+            className="cursor-pointer"
           />
-          Incluir SVG, se o estúdio pedir para editar
+          Incluir arquivos SVG editáveis
         </label>
         <button
           type="button"
           disabled={downloading !== null}
           onClick={() => void downloadZip()}
-          className={`${adminClasses.primaryButtonSm} ${
-            downloading !== null ? "cursor-wait" : ""
+          className={`${adminClasses.primaryButton} ${
+            downloading !== null ? "cursor-wait opacity-50" : ""
           } ${downloading === "zip" ? "opacity-60" : ""}`}
         >
-          {downloading === "zip" ? "Gerando…" : "Baixar tudo (ZIP)"}
+          {downloading === "zip" ? "Preparando arquivo…" : "Baixar pacote completo (ZIP)"}
         </button>
       </div>
 
-      <p className="mb-3 mt-0 text-[0.8125rem] uppercase tracking-rotulo text-ink-3">Uma peça só</p>
+      <p className="mb-3 mt-0 text-[0.8125rem] uppercase tracking-rotulo text-ink-3">
+        Arquivos individuais
+      </p>
       <div className="flex flex-col gap-4">
         {FORMATS.map((f) => (
-          <div key={f.id}>
-            <p className="mb-2 mt-0 text-[0.9375rem] text-ink">
-              {f.label} <span className="text-ink-3">{f.size}</span>
+          <div key={f.id} className="rounded-token border border-linha bg-bg px-4 py-3.5">
+            <p className="mb-3 mt-0 font-titulo text-[0.9375rem] text-ink">
+              {f.label}
             </p>
+            <p className="mb-3 mt-0 text-[0.8125rem] text-ink-3">{f.size}</p>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 disabled={downloading !== null}
                 onClick={() => void download(f.id, "pdf")}
                 className={`${adminClasses.primaryButtonSm} ${
-                  downloading !== null ? "cursor-wait" : ""
+                  downloading !== null ? "cursor-wait opacity-50" : ""
                 } ${downloading === `${f.id}-pdf` ? "opacity-60" : ""}`}
               >
                 {downloading === `${f.id}-pdf` ? "Gerando…" : "Baixar PDF"}
@@ -112,8 +121,8 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
                 type="button"
                 disabled={downloading !== null}
                 onClick={() => void download(f.id, "svg")}
-                className={`cursor-pointer rounded-pilula border border-linha bg-superficie px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-ink ${
-                  downloading !== null ? "cursor-wait" : ""
+                className={`cursor-pointer rounded-pilula border border-linha bg-superficie px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-ink transition-opacity hover:bg-superficie-alta ${
+                  downloading !== null ? "cursor-wait opacity-50" : ""
                 } ${downloading === `${f.id}-svg` ? "opacity-60" : ""}`}
               >
                 {downloading === `${f.id}-svg` ? "Gerando…" : "Baixar SVG"}
@@ -122,7 +131,11 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
           </div>
         ))}
       </div>
-      {error && <p className="mb-0 mt-3 text-sm text-critico">{error}</p>}
+      {error && (
+        <div className="mt-4 rounded-token border border-critico bg-superficie px-4 py-3">
+          <p className="m-0 text-sm text-critico">{error}</p>
+        </div>
+      )}
     </div>
   );
 }

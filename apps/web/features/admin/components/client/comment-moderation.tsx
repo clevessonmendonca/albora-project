@@ -39,7 +39,7 @@ export function CommentModeration({ eventoId }: Props) {
       };
       setLista(corpo.comentarios);
     } catch {
-      setErro("Não carregou os comentários.");
+      setErro("Não foi possível carregar os comentários agora.");
     } finally {
       setCarregando(false);
     }
@@ -61,50 +61,60 @@ export function CommentModeration({ eventoId }: Props) {
       if (!r.ok) throw new Error("falhou");
       setLista((antes) => antes.filter((c) => c.id !== comentarioId));
     } catch {
-      setErro("Não removeu agora. Tente de novo.");
+      setErro("Não foi possível remover o comentário. Tente novamente em instantes.");
     } finally {
       setRemovendo(null);
     }
   };
 
   if (carregando) {
-    return <p className="m-0 text-[0.9rem] text-ink-3">Carregando…</p>;
+    return <p className="m-0 text-[0.9375rem] text-ink-2">Carregando comentários…</p>;
   }
 
   if (lista.length === 0) {
     return (
-      <p className="m-0 text-[0.9375rem] leading-relaxed text-ink-2">
-        Nenhum comentário publicado ainda.
-      </p>
+      <div className="rounded-token border border-linha bg-bg px-6 py-8 text-center">
+        <p className="mb-2 mt-0 text-[0.9375rem] text-ink">
+          Nenhum comentário publicado ainda
+        </p>
+        <p className="m-0 text-[0.8125rem] leading-relaxed text-ink-3">
+          Quando os convidados começarem a comentar nas fotos, você verá a lista aqui e poderá
+          moderar o conteúdo.
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-3">
       {lista.map((c) => (
-        <div key={c.id} className="grid gap-1.5 rounded-token bg-bg p-3">
-          <div className="flex justify-between gap-3">
-            <span className="text-[0.85rem] text-ink">{c.autor}</span>
+        <div key={c.id} className="grid gap-2 rounded-token border border-linha bg-bg p-3.5">
+          <div className="flex items-start justify-between gap-3">
+            <span className="font-titulo text-[0.85rem] text-ink">{c.autor}</span>
             <span className="text-xs text-ink-3">
-              {c.denuncias > 0 ? `${c.denuncias} denúncia(s)` : "sem denúncias"}
-              {c.classificador === "suspeito" ? " · classificador" : ""}
+              {c.denuncias > 0 ? `${c.denuncias} ${c.denuncias === 1 ? "denúncia" : "denúncias"}` : "sem denúncias"}
+              {c.classificador === "suspeito" ? " · filtro automático" : ""}
             </span>
           </div>
-          <p className="m-0 text-[0.9rem] leading-normal text-ink-2">{c.texto}</p>
+          <p className="m-0 text-[0.9rem] leading-relaxed text-ink-2">{c.texto}</p>
           <button
             type="button"
             disabled={removendo === c.id}
             onClick={() => void remover(c.id)}
             className={`${adminClasses.dangerButtonSm} justify-self-start ${
-              removendo === c.id ? "opacity-60" : ""
+              removendo === c.id ? "cursor-wait opacity-50" : ""
             }`}
           >
-            {removendo === c.id ? "Removendo…" : "Remover"}
+            {removendo === c.id ? "Removendo…" : "Remover comentário"}
           </button>
         </div>
       ))}
 
-      {erro && <p className="m-0 text-sm text-critico">{erro}</p>}
+      {erro && (
+        <div className="rounded-token border border-critico bg-superficie px-4 py-3">
+          <p className="m-0 text-sm text-critico">{erro}</p>
+        </div>
+      )}
     </div>
   );
 }

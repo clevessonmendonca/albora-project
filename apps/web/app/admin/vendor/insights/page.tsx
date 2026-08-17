@@ -22,29 +22,44 @@ export default async function VendorInsightsPage() {
   return (
     <AdminShell
       title="Insights do fornecedor"
-      subtitle="Portfólio · só agregados"
+      subtitle="Visão geral dos seus eventos"
       back={{ label: "Painel", href: "/admin" }}
     >
       <AdminSection>
         <p className="m-0 leading-relaxed text-ink-2">
-          Compare H1 entre festas sem abrir álbum. Detalhe de uma noite: abra Insights no
-          evento.
+          Compare a participação (H1) entre festas sem precisar abrir o álbum de cada uma.
+          Para ver detalhes de uma noite específica, clique no evento abaixo.
         </p>
       </AdminSection>
 
       {eventos.length === 0 ? (
         <AdminSection>
-          <p className="m-0 text-ink-3">Nenhum evento ainda.</p>
+          <div className="py-8 text-center">
+            <p className="mb-2 mt-0 text-[0.9375rem] text-ink">
+              Nenhum evento criado ainda
+            </p>
+            <p className="m-0 text-[0.8125rem] leading-relaxed text-ink-3">
+              Crie seu primeiro evento para começar a acompanhar insights e participação dos
+              convidados em tempo real.
+            </p>
+          </div>
         </AdminSection>
       ) : (
         <AdminSection>
+          <p className="mb-3 mt-0 text-[0.8125rem] uppercase tracking-rotulo text-ink-3">
+            Seus eventos ({eventos.length})
+          </p>
           <ul className="m-0 flex list-none flex-col gap-2 p-0">
             {eventos.map((e) => (
               <li key={e.eventoId}>
                 <Link href={`/admin/e/${e.eventoId}/insights`} className={adminClasses.listLink}>
                   <span className="font-titulo">/{e.slug}</span>
                   <span className="block text-[0.85rem] text-ink-3">
-                    {e.comecaEm.toLocaleDateString("pt-BR")}
+                    {e.comecaEm.toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "long",
+                      year: "numeric",
+                    })}
                   </span>
                 </Link>
               </li>

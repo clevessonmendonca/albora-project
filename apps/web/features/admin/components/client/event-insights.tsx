@@ -69,7 +69,9 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
   if (erro && !resumo) {
     return (
       <AdminSection>
-        <p className="m-0 text-critico">Não foi possível carregar os insights.</p>
+        <p className="m-0 text-critico">
+          Não foi possível carregar os insights agora. Recarregue a página ou tente em instantes.
+        </p>
       </AdminSection>
     );
   }
@@ -77,7 +79,7 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
   if (!resumo) {
     return (
       <AdminSection>
-        <p className="m-0 text-ink-2">Carregando…</p>
+        <p className="m-0 text-[0.9375rem] text-ink-2">Carregando insights do evento…</p>
       </AdminSection>
     );
   }
@@ -92,27 +94,34 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
   return (
     <div className="flex flex-col gap-5">
       <AdminSection>
-        <p className="mb-4 mt-0 leading-relaxed text-ink-2">
-          A pergunta da noite: a festa está pegando? Só números agregados — sem nomes nem
-          fotos de convidado.
+        <h2 className="mb-3 mt-0 font-titulo text-lg">A festa está pegando?</h2>
+        <p className="mb-5 mt-0 leading-relaxed text-ink-2">
+          A pergunta da noite em números ao vivo. Dados agregados, atualizados a cada 30
+          segundos — sem nomes nem fotos de convidado.
         </p>
-        <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
+        <div className="mb-5 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
           <Stat n={`${pct}%`} rotulo="H1 participação" destaqueClass={destaqueClass} />
           <Stat n={String(resumo.sessoesComUpload)} rotulo="fotografaram" />
           <Stat n={String(resumo.expectedGuests)} rotulo="esperados" />
           <Stat n={String(resumo.totalFotos)} rotulo="fotos no ar" />
         </div>
-        <p className={`m-0 text-sm ${destaqueClass}`}>{ROTULO_VEREDITO[resumo.veredito]}</p>
+        <p className={`m-0 text-sm font-medium ${destaqueClass}`}>
+          {ROTULO_VEREDITO[resumo.veredito]}
+        </p>
         {ondeMorreu && (
-          <p className="mb-0 mt-3 text-sm text-ink-3">
-            Maior queda no funil em «{ROTULO_ETAPA[ondeMorreu.etapa]}» — é o degrau para
-            reforçar no salão.
+          <p className="mb-0 mt-3 text-sm leading-relaxed text-ink-3">
+            💡 Maior queda no funil: «{ROTULO_ETAPA[ondeMorreu.etapa]}». Vale reforçar esse
+            ponto no salão ou nas instruções.
           </p>
         )}
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-4 mt-0 font-titulo text-lg">Funil</h2>
+        <h2 className="mb-3 mt-0 font-titulo text-lg">Jornada do convidado</h2>
+        <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+          Cada etapa mostra quantas pessoas chegaram até ali. A coluna de retenção compara com
+          a etapa anterior.
+        </p>
         <div className="flex flex-col gap-2">
           {resumo.degraus.map((d) => (
             <div
@@ -130,7 +139,11 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-4 mt-0 font-titulo text-lg">Como chegaram</h2>
+        <h2 className="mb-3 mt-0 font-titulo text-lg">Canais de entrada</h2>
+        <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+          Como os convidados chegaram até o evento: QR impresso, mensagem no WhatsApp ou link
+          copiado.
+        </p>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
           <Stat n={String(resumo.entradasPorVia?.qr ?? 0)} rotulo="QR impresso" />
           <Stat n={String(resumo.entradasPorVia?.wa ?? 0)} rotulo="WhatsApp" />
@@ -139,7 +152,11 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-4 mt-0 font-titulo text-lg">Antes e depois do feed</h2>
+        <h2 className="mb-3 mt-0 font-titulo text-lg">Efeito do feed social</h2>
+        <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+          Fotos subidas antes e depois da primeira abertura do feed. Se o número "depois" não
+          cresce, o feed pode não estar gerando o engajamento esperado.
+        </p>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
           <Stat n={String(resumo.uploadsAntesDoFeed)} rotulo="antes do feed" />
           <Stat n={String(resumo.uploadsDepoisDoFeed)} rotulo="depois do feed" />

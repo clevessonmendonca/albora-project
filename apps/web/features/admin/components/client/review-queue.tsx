@@ -27,11 +27,11 @@ type Props = {
 function rotuloDaFila(m: Midia): string {
   const partes: string[] = [];
   if ((m.pedidosDeRemocao ?? 0) > 0 || m.motivo === "aparece_na_foto") {
-    partes.push("sou eu nessa foto");
+    partes.push("pedido de remoção");
   }
-  if (m.motivo === "classificador") partes.push("classificador");
+  if (m.motivo === "classificador") partes.push("filtro automático");
   if (m.motivo === "endurecido") partes.push("aguardando aprovação");
-  if (m.motivo === "denuncias" && m.denuncias > 0) partes.push("conteúdo ofensivo");
+  if (m.motivo === "denuncias" && m.denuncias > 0) partes.push("denunciado como ofensivo");
   return partes.length > 0 ? ` · ${partes.join(" · ")}` : "";
 }
 
@@ -52,7 +52,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
       setComentarios(corpo.comentarios);
       onTotalChange?.(corpo.midias.length + corpo.comentarios.length);
     } catch {
-      setErro("Não carregou a fila.");
+      setErro("Não foi possível carregar a lista de revisão agora.");
       onTotalChange?.(0);
     } finally {
       setCarregando(false);
@@ -81,7 +81,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
       if (!r.ok) throw new Error("falhou");
       await carregar();
     } catch {
-      setErro("Não concluiu agora. Tente de novo.");
+      setErro("Não foi possível concluir a ação. Tente novamente em instantes.");
     } finally {
       setAcao(null);
     }
@@ -93,9 +93,15 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
 
   if (midias.length === 0 && comentarios.length === 0) {
     return (
-      <p className="m-0 text-[0.9375rem] leading-relaxed text-ink-2">
-        Nada sai do ar sozinho. Denúncias, classificador e pedido de quem aparece na foto entram aqui — você decide.
-      </p>
+      <div className="rounded-token border border-linha bg-bg px-6 py-8 text-center">
+        <p className="mb-3 mt-0 text-[0.9375rem] leading-relaxed text-ink">
+          Nenhum item aguardando revisão
+        </p>
+        <p className="m-0 text-[0.8125rem] leading-relaxed text-ink-3">
+          Denúncias e pedidos de remoção aparecem aqui quando alguém sinalizar.
+          Enquanto isso, o telão segue no ar com tudo aprovado.
+        </p>
+      </div>
     );
   }
 

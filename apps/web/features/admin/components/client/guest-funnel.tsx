@@ -71,7 +71,9 @@ export function GuestFunnel({ eventoId }: Props) {
   if (erro && !resumo) {
     return (
       <AdminSection>
-        <p className="m-0 text-critico">Não foi possível carregar os números agora. Tente recarregar a página.</p>
+        <p className="m-0 text-critico">
+          Não foi possível carregar os números agora. Recarregue a página ou tente em instantes.
+        </p>
       </AdminSection>
     );
   }
@@ -79,7 +81,7 @@ export function GuestFunnel({ eventoId }: Props) {
   if (!resumo) {
     return (
       <AdminSection>
-        <p className="m-0 text-ink-2">Carregando…</p>
+        <p className="m-0 text-[0.9375rem] text-ink-2">Carregando dados do evento…</p>
       </AdminSection>
     );
   }
@@ -90,9 +92,10 @@ export function GuestFunnel({ eventoId }: Props) {
   return (
     <div className="flex flex-col gap-5">
       <AdminSection>
+        <h2 className="mb-3 mt-0 font-titulo text-lg">Participação ao vivo</h2>
         <p className="mb-4 mt-0 leading-relaxed text-ink-2">
-          Números agregados — sem enviar mensagem. O denominador vem dos convidados esperados
-          que você definiu na criação.
+          Números agregados, atualizados a cada 30 segundos. O denominador vem dos convidados
+          esperados que você definiu na criação do evento.
         </p>
 
         <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
@@ -106,11 +109,11 @@ export function GuestFunnel({ eventoId }: Props) {
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-4 mt-0 font-titulo text-lg">Funil da noite</h2>
-        <p className="mb-4 mt-0 text-[0.8125rem] text-ink-3">
-          Cada degrau conta sessões que chegaram até ali — a espinha é cumulativa, então QR e
-          abrir o evento podem parecer iguais. O canal, abaixo, é quem veio da peça, do WhatsApp
-          ou de um link copiado.
+        <h2 className="mb-3 mt-0 font-titulo text-lg">Onde os convidados param</h2>
+        <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+          Cada degrau mostra quantas pessoas chegaram até ali. A espinha é cumulativa, então
+          "QR escaneado" e "Abriu o evento" podem ter números parecidos. Se houver queda brusca
+          em algum ponto, vale investigar fricção.
         </p>
         <div className="flex flex-col gap-2">
           {resumo.degraus.map((d) => (
@@ -129,9 +132,10 @@ export function GuestFunnel({ eventoId }: Props) {
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-4 mt-0 font-titulo text-lg">Como chegaram</h2>
-        <p className="mb-4 mt-0 text-[0.8125rem] text-ink-3">
-          QR é só a peça impressa. WhatsApp e link copiado abrem o evento sem contar como scan.
+        <h2 className="mb-3 mt-0 font-titulo text-lg">Canais de entrada</h2>
+        <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+          QR é só a peça impressa. WhatsApp e link copiado abrem o evento direto, sem passar
+          pelo scan da câmera.
         </p>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
           <Stat n={String(resumo.entradasPorVia?.qr ?? 0)} rotulo="QR impresso" />
@@ -141,10 +145,10 @@ export function GuestFunnel({ eventoId }: Props) {
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-4 mt-0 font-titulo text-lg">Antes e depois do feed</h2>
-        <p className="mb-4 mt-0 text-[0.8125rem] text-ink-3">
-          Fotos no ar de cada lado da primeira abertura do feed. Se o depois
-          não sobe, o feed não está cumprindo o que prometeu.
+        <h2 className="mb-3 mt-0 font-titulo text-lg">Efeito do feed social</h2>
+        <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+          Fotos subidas antes e depois da primeira abertura do feed. Se o número "depois" não
+          cresce, o feed não está gerando o engajamento esperado.
         </p>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
           <Stat n={String(resumo.uploadsAntesDoFeed)} rotulo="antes do feed" />
