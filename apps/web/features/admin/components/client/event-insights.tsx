@@ -110,7 +110,7 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
         </p>
         {ondeMorreu && (
           <p className="mb-0 mt-3 text-sm leading-relaxed text-ink-3">
-            💡 Maior queda no funil: «{ROTULO_ETAPA[ondeMorreu.etapa]}». Vale reforçar esse
+            Maior queda no funil: «{ROTULO_ETAPA[ondeMorreu.etapa]}». Vale reforçar esse
             ponto no salão ou nas instruções.
           </p>
         )}
