@@ -1,9 +1,9 @@
-import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { Suspense, type CSSProperties } from "react";
+import { Suspense } from "react";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { CreateEventWizard } from "@/features/admin/components/client/create-event-wizard";
+import { adminVars } from "@/features/admin/components/server/admin-shell";
 
 export const dynamic = "force-dynamic";
 
@@ -24,10 +24,8 @@ export default async function NewEventPage({
     redirect(`/admin/sign-in?next=${encodeURIComponent(dest)}`);
   }
 
-  const vars = toVariables(resolveTokens({ marca: ALBORA_BRAND })) as CSSProperties;
-
   return (
-    <div style={vars}>
+    <div style={adminVars()}>
       <Suspense fallback={<p className="p-8 text-ink-2">Carregando…</p>}>
         <CreateEventWizard />
       </Suspense>

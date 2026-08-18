@@ -1,10 +1,17 @@
 import type { CSSProperties, ReactNode } from "react";
-import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
+import { ALBORA_BRAND, toVariables, resolveTokens, type Background } from "@albora/tokens";
 import Link from "next/link";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
-export function adminVars(): CSSProperties {
-  return toVariables(resolveTokens({ marca: ALBORA_BRAND })) as CSSProperties;
+/**
+ * O admin é superfície clara por padrão (DESIGN.md §2: admin é papel, não
+ * noite) — a marca resolve para `dark` porque é o chão do convidado, então o
+ * default aqui precisa sobrescrever, não herdar.
+ */
+export function adminVars(background: Background = "light"): CSSProperties {
+  return toVariables(
+    resolveTokens({ marca: ALBORA_BRAND, pack: { background } }),
+  ) as CSSProperties;
 }
 
 type AdminShellProps = {

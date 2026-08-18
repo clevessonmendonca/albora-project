@@ -1,7 +1,6 @@
-import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
-import type { CSSProperties } from "react";
 import { Suspense } from "react";
 import { SignInForm } from "@/features/admin/components/client/sign-in-form";
+import { adminVars } from "@/features/admin/components/server/admin-shell";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +16,9 @@ export default async function SignInPage({
   searchParams: Promise<{ m?: string }>;
 }) {
   const { m } = await searchParams;
-  const vars = toVariables(resolveTokens({ marca: ALBORA_BRAND })) as CSSProperties;
 
   return (
-    <div style={vars}>
+    <div style={adminVars()}>
       <Suspense fallback={<p className="p-8 text-ink-2">Carregando…</p>}>
         <SignInForm magic={m ?? null} />
       </Suspense>
