@@ -1,5 +1,6 @@
-import type { CSSProperties, ReactNode } from "react";
+import React, { type CSSProperties, type ReactNode } from "react";
 import { ALBORA_BRAND, toVariables, resolveTokens, type Background } from "@albora/tokens";
+import { cva } from "@albora/ui-web";
 import Link from "next/link";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
@@ -47,12 +48,32 @@ export function AdminShell({ title, subtitle, back, children }: AdminShellProps)
   );
 }
 
+const adminCardVariants = cva({
+  base: "rounded-superficie border border-linha p-6",
+  variants: {
+    variant: {
+      default: "bg-superficie shadow-suave",
+      highlight: "bg-gradient-chao-quente shadow-alta",
+    },
+  },
+  defaultVariants: { variant: "default" },
+});
+
+export function AdminCard({
+  variant,
+  children,
+  className,
+}: {
+  variant?: "default" | "highlight";
+  children: ReactNode;
+  className?: string;
+}) {
+  return <section className={adminCardVariants({ variant, className })}>{children}</section>;
+}
+
+/** Alias de `AdminCard` variant default — migração dos consumidores é outra task. */
 export function AdminSection({ children }: { children: ReactNode }) {
-  return (
-    <section className="rounded-superficie border border-linha bg-superficie p-6">
-      {children}
-    </section>
-  );
+  return <AdminCard>{children}</AdminCard>;
 }
 
 export const adminClasses = {
