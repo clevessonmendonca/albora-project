@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { initials } from "./avatar";
+import { PlusIcon } from "./icons";
 import { cn } from "./variants";
 
 export type StoryItem = {
@@ -46,9 +47,7 @@ function StoryYou({ onAdd }: { onAdd?: (() => void) | undefined }) {
       className="flex w-[3.75rem] shrink-0 flex-col items-center gap-1.5"
     >
       <StorySquircle className="border border-linha text-acento">
-        <span aria-hidden="true" className="text-2xl leading-none">
-          +
-        </span>
+        <PlusIcon size={24} />
       </StorySquircle>
       <span className="w-full truncate text-center text-[0.6875rem] text-ink-2">Você</span>
     </button>

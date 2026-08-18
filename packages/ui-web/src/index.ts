@@ -46,11 +46,14 @@ export {
 } from "./catalog-frame";
 export {
   BackIcon,
+  BookmarkIcon,
   CameraIcon,
   CommentIcon,
   GridIcon,
+  HeartIcon,
   MoreIcon,
   PersonIcon,
+  PlusIcon,
   ShareIcon,
   StackIcon,
 } from "./icons";
