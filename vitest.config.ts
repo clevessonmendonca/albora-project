@@ -1,6 +1,12 @@
 import path from "node:path";
 import { defineConfig } from "vitest/config";
 
+// A suíte de isolamento exige Postgres de verdade e roda em job próprio
+// (`pnpm test:isolamento`). Fora dali ela não é pulada por conveniência:
+// é que uma falha de isolamento perdida no meio de "testes falharam"
+// deixa de parecer o que é.
+const EXCLUDE = ["**/node_modules/**", "**/dist/**", "spike/**", "packages/db/**"];
+
 export default defineConfig({
   resolve: {
     alias: {
@@ -8,16 +14,31 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["packages/**/*.test.ts", "apps/**/*.test.ts", "tools/**/*.test.mjs"],
-    exclude: [
-      "**/node_modules/**",
-      "**/dist/**",
-      "spike/**",
-      // A suíte de isolamento exige Postgres de verdade e roda em job próprio
-      // (`pnpm test:isolamento`). Fora dali ela não é pulada por conveniência:
-      // é que uma falha de isolamento perdida no meio de "testes falharam"
-      // deixa de parecer o que é.
-      "packages/db/**",
+    // Dois projetos, dois environments: lógica pura roda em node (rápido,
+    // sem DOM); render de componente (.test.tsx) precisa de jsdom. O
+    // `environmentMatchGlobs` equivalente está deprecado no Vitest 3 —
+    // `projects` é a forma suportada de escopar environment + setupFiles
+    // por glob sem afetar a suíte node existente.
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "node",
+          environment: "node",
+          include: ["packages/**/*.test.ts", "apps/**/*.test.ts", "tools/**/*.test.mjs"],
+          exclude: EXCLUDE,
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "jsdom",
+          environment: "jsdom",
+          include: ["packages/**/*.test.tsx", "apps/**/*.test.tsx"],
+          exclude: EXCLUDE,
+          setupFiles: ["./vitest.setup.ts"],
+        },
+      },
     ],
     coverage: {
       provider: "v8",
