@@ -9,6 +9,12 @@ import {
 } from "@albora/tokens";
 import type { CSSProperties } from "react";
 
+/** Remove `fundo`/`background` da camada — usado quando o argumento explícito vai decidir o fundo. */
+function semFundoDaCamada(layer: TokenLayer): Omit<TokenLayer, "fundo" | "background"> {
+  const { fundo: _fundo, background: _background, ...resto } = layer;
+  return resto;
+}
+
 /**
  * `background` sobrepõe o fundo resolvido da cadeia marca → pack → evento,
  * re-derivando `--bg`/`--ink`/`--acento` etc. Omitido, o comportamento é
@@ -16,15 +22,23 @@ import type { CSSProperties } from "react";
  */
 export function eventVars(event: EventoPublico, background?: Background): CSSProperties {
   const pack = PACKS[event.packId];
-  const eventLayer = event.identityTokens as TokenLayer;
-  const hasEventLayer = Object.keys(event.identityTokens).length > 0;
+  const identityLayer = event.identityTokens as TokenLayer;
+  const hasIdentityLayer = Object.keys(event.identityTokens).length > 0;
+
+  // Com `background` presente, ele é a única fonte do fundo desta camada —
+  // `fundo`/`background` do identityTokens do evento são removidos antes de
+  // aplicar o override, para não coexistirem e decidir por ordem de chave.
+  const eventoLayer: TokenLayer | undefined = background
+    ? { ...semFundoDaCamada(identityLayer), background }
+    : hasIdentityLayer
+      ? identityLayer
+      : undefined;
+
   return toVariables(
     resolveTokens({
       marca: ALBORA_BRAND,
       ...(pack ? { pack: pack.tokens } : {}),
-      ...(hasEventLayer || background
-        ? { evento: { ...(hasEventLayer ? eventLayer : {}), ...(background ? { background } : {}) } }
-        : {}),
+      ...(eventoLayer ? { evento: eventoLayer } : {}),
     }),
   ) as CSSProperties;
 }

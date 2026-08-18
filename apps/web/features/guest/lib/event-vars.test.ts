@@ -44,4 +44,19 @@ describe("eventVars aceita override de tema", () => {
 
     expect(semArg).toEqual(comArgDark);
   });
+
+  it("o override vence o alias PT 'fundo' do identityTokens do evento", () => {
+    const event: EventoPublico = {
+      ...eventoFixture(),
+      identityTokens: { fundo: "escuro" },
+    };
+
+    const vars = eventVars(event, "light") as Record<string, string>;
+    const claro = toVariables(
+      resolveTokens({ marca: ALBORA_BRAND, evento: { background: "light" } }),
+    ) as Record<string, string>;
+
+    expect(vars["--bg"]).toBe(claro["--bg"]);
+    expect(vars["--ink"]).toBe(claro["--ink"]);
+  });
 });
