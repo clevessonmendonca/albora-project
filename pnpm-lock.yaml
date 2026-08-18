@@ -281,9 +281,6 @@ importers:
       '@types/react':
         specifier: ^19.1.0
         version: 19.2.18
-      next:
-        specifier: ^15.5.4
-        version: 15.5.23(@playwright/test@1.62.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react:
         specifier: ^19.1.1
         version: 19.2.8

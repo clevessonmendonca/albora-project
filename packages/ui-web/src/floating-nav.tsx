@@ -1,5 +1,4 @@
-import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ElementType, ReactNode } from "react";
 import { CameraIcon, GridIcon, PersonIcon, StackIcon } from "./icons";
 import { Star } from "./star";
 import { cn } from "./variants";
@@ -9,6 +8,7 @@ export type FloatingNavTab = "inicio" | "missoes" | "album" | "minhas";
 export type FloatingNavProps = {
   active: FloatingNavTab;
   base: string;
+  linkComponent?: ElementType;
 };
 
 type TabDef = {
@@ -51,11 +51,22 @@ const TAB_MINHAS: TabDef = {
   column: "col-start-5",
 };
 
-function FloatingNavItem({ tab, base, active }: { tab: TabDef; base: string; active: FloatingNavTab }) {
+function FloatingNavItem({
+  tab,
+  base,
+  active,
+  linkComponent,
+}: {
+  tab: TabDef;
+  base: string;
+  active: FloatingNavTab;
+  linkComponent: ElementType;
+}) {
   const isActive = active === tab.id;
+  const L = linkComponent;
 
   return (
-    <Link
+    <L
       href={`${base}${tab.path}`}
       aria-current={isActive ? "page" : undefined}
       className={cn(
@@ -66,29 +77,31 @@ function FloatingNavItem({ tab, base, active }: { tab: TabDef; base: string; act
     >
       {tab.icon}
       {tab.label}
-    </Link>
+    </L>
   );
 }
 
-export function FloatingNav({ active, base }: FloatingNavProps) {
+export function FloatingNav({ active, base, linkComponent }: FloatingNavProps) {
+  const L = linkComponent ?? "a";
+
   return (
     <nav
       className="fixed inset-x-4 z-40 grid grid-cols-[1fr_1fr_auto_1fr_1fr] items-center rounded-pilula border border-linha bg-superficie-alta px-2 py-2"
       style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
     >
-      <FloatingNavItem tab={TAB_INICIO} base={base} active={active} />
-      <FloatingNavItem tab={TAB_MISSOES} base={base} active={active} />
+      <FloatingNavItem tab={TAB_INICIO} base={base} active={active} linkComponent={L} />
+      <FloatingNavItem tab={TAB_MISSOES} base={base} active={active} linkComponent={L} />
 
-      <Link
+      <L
         href={`${base}/photo`}
         aria-label="Mandar foto ou vídeo"
         className="col-start-3 -mt-6 grid size-[3.375rem] place-items-center justify-self-center rounded-full bg-acento text-sobre-acento no-underline shadow-acento"
       >
         <CameraIcon />
-      </Link>
+      </L>
 
-      <FloatingNavItem tab={TAB_ALBUM} base={base} active={active} />
-      <FloatingNavItem tab={TAB_MINHAS} base={base} active={active} />
+      <FloatingNavItem tab={TAB_ALBUM} base={base} active={active} linkComponent={L} />
+      <FloatingNavItem tab={TAB_MINHAS} base={base} active={active} linkComponent={L} />
     </nav>
   );
 }
