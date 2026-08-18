@@ -63,7 +63,7 @@ export function ThemeController({
 
     const proximo: ThemePreference = temaEfetivo() === "dark" ? "light" : "dark";
     root.dataset.tema = proximo;
-    document.cookie = `${THEME_COOKIE}=${proximo}; path=/; max-age=${UM_ANO_EM_SEGUNDOS}; SameSite=Lax`;
+    document.cookie = `${THEME_COOKIE}=${proximo}; path=/; max-age=${UM_ANO_EM_SEGUNDOS}; SameSite=Lax; Secure`;
     setTema(proximo);
   }
 

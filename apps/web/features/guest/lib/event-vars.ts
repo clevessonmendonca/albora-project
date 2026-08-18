@@ -42,3 +42,13 @@ export function eventVars(event: EventoPublico, background?: Background): CSSPro
     }),
   ) as CSSProperties;
 }
+
+/**
+ * A marca sozinha, sem pack e sem `identityTokens` do evento — o fallback
+ * seguro de cada var quando o valor do evento não passa pelo saneador de
+ * `theme-style.ts`. Depende só do fundo: a marca é o piso da cadeia de
+ * resolução, nunca falta e nunca é dado de terceiro.
+ */
+export function marcaVars(background: Background): CSSProperties {
+  return toVariables(resolveTokens({ marca: ALBORA_BRAND, evento: { background } })) as CSSProperties;
+}
