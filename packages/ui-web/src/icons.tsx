@@ -145,3 +145,42 @@ export function PlusIcon({ size = 24 }: IconProps) {
     </svg>
   );
 }
+
+export function SunIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+      {[
+        [12, 2.5, 12, 5],
+        [12, 19, 12, 21.5],
+        [2.5, 12, 5, 12],
+        [19, 12, 21.5, 12],
+        [4.9, 4.9, 6.7, 6.7],
+        [17.3, 17.3, 19.1, 19.1],
+        [4.9, 19.1, 6.7, 17.3],
+        [17.3, 6.7, 19.1, 4.9],
+      ].map(([x1, y1, x2, y2]) => (
+        <path
+          key={`${x1}-${y1}`}
+          d={`M${x1} ${y1}L${x2} ${y2}`}
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      ))}
+    </svg>
+  );
+}
+
+export function MoonIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path
+        d="M20.5 14.6A8.5 8.5 0 1 1 9.4 3.5a7 7 0 0 0 11.1 11.1Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

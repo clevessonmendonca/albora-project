@@ -51,11 +51,13 @@ export {
   CommentIcon,
   GridIcon,
   HeartIcon,
+  MoonIcon,
   MoreIcon,
   PersonIcon,
   PlusIcon,
   ShareIcon,
   StackIcon,
+  SunIcon,
 } from "./icons";
 export { FloatingNav, type FloatingNavTab, type FloatingNavProps } from "./floating-nav";
 export { StoryRail, type StoryItem } from "./story-rail";
