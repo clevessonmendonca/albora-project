@@ -18,10 +18,12 @@
     "@albora/packs": "workspace:*"
   },
   "peerDependencies": {
+    "next": "^15.5.4",
     "react": "^19.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.1.0",
+    "next": "^15.5.4",
     "react": "^19.1.1"
   }
 }

@@ -1,0 +1,84 @@
+import type { ReactNode } from "react";
+import { initials } from "./avatar";
+import { cn } from "./variants";
+
+export type StoryItem = {
+  id: string;
+  nome: string;
+  capaUrl?: string | undefined;
+  novo?: boolean | undefined;
+};
+
+function StorySquircle({
+  children,
+  destaque,
+  capaUrl,
+  className,
+}: {
+  children?: ReactNode | undefined;
+  destaque?: boolean | undefined;
+  capaUrl?: string | undefined;
+  className?: string | undefined;
+}) {
+  return (
+    <span
+      className={cn(
+        "grid size-14 shrink-0 place-items-center overflow-hidden rounded-superficie bg-superficie-alta text-sm text-ink",
+        destaque && "ring-2 ring-acento",
+        className,
+      )}
+      style={
+        capaUrl
+          ? { backgroundImage: `url(${capaUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+          : undefined
+      }
+    >
+      {!capaUrl && children}
+    </span>
+  );
+}
+
+function StoryYou({ onAdd }: { onAdd?: (() => void) | undefined }) {
+  return (
+    <button
+      type="button"
+      onClick={onAdd}
+      className="flex w-[3.75rem] shrink-0 flex-col items-center gap-1.5"
+    >
+      <StorySquircle className="border border-linha text-acento">
+        <span aria-hidden="true" className="text-2xl leading-none">
+          +
+        </span>
+      </StorySquircle>
+      <span className="w-full truncate text-center text-[0.6875rem] text-ink-2">Você</span>
+    </button>
+  );
+}
+
+function StoryAvatar({ item }: { item: StoryItem }) {
+  return (
+    <div className="flex w-[3.75rem] shrink-0 flex-col items-center gap-1.5">
+      <StorySquircle destaque={item.novo} capaUrl={item.capaUrl}>
+        {initials(item.nome)}
+      </StorySquircle>
+      <span className="w-full truncate text-center text-[0.6875rem] text-ink-3">{item.nome}</span>
+    </div>
+  );
+}
+
+export function StoryRail({
+  items,
+  onAdd,
+}: {
+  items: StoryItem[];
+  onAdd?: (() => void) | undefined;
+}) {
+  return (
+    <div role="list" aria-label="Stories" className="flex gap-4 overflow-x-auto pb-1">
+      <StoryYou onAdd={onAdd} />
+      {items.map((item) => (
+        <StoryAvatar key={item.id} item={item} />
+      ))}
+    </div>
+  );
+}
