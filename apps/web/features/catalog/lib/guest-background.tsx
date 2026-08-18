@@ -1,3 +1,4 @@
+import React from "react";
 import type { Pack } from "@albora/packs";
 import { ALBORA_BRAND, resolveTokens, toVariables, type Background } from "@albora/tokens";
 import type { CSSProperties, ReactNode } from "react";

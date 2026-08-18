@@ -4,12 +4,15 @@ import { parseEntryVia } from "@albora/core";
 import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import type { CSSProperties } from "react";
 import { getPool } from "@/lib/db";
 import { GUEST_SESSION_COOKIE, guestSessionFromToken } from "@/lib/session";
 import { EntryFlow } from "@/features/guest/components/client/entry-flow";
 import { EventNotice } from "@/features/guest/components/client/event-notice";
+import { isSameEventSession } from "@/features/guest/data/guest-session";
+import { HomeContent } from "@/features/home/components/server/home-content";
+import { HomePageSkeleton } from "@/features/home/components/skeletons/home-page-skeleton";
 
 /**
  * A rota do QR. É a **exceção arquitetural** declarada no ADR 0005: o
@@ -90,8 +93,17 @@ export default async function Pagina({ params, searchParams }: Props) {
   }
 
   const sessao = await guestSessionFromToken((await cookies()).get(GUEST_SESSION_COOKIE)?.value);
-  if (sessao?.eventoId === r.evento.eventoId) {
-    redirect(`/e/${encodeURIComponent(slug)}/cover`);
+
+  // Com sessão do MESMO evento, a raiz é a Home (stories + feed) — nunca o
+  // EntryFlow de novo. Sem sessão, ou sessão de outro evento (o crachá não é
+  // transferível entre festas), o fluxo abaixo continua intacto: nome +
+  // consentimento antes de qualquer captura.
+  if (isSameEventSession(sessao, r.evento.eventoId)) {
+    return (
+      <Suspense fallback={<HomePageSkeleton />}>
+        <HomeContent slug={slug} evento={r.evento} />
+      </Suspense>
+    );
   }
 
   return (
