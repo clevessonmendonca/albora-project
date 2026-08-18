@@ -29,7 +29,12 @@ export function sanearVars(
 ): Record<string, string> {
   const resultado: Record<string, string> = {};
   for (const [chave, valor] of Object.entries(vars)) {
-    resultado[chave] = valorCssSeguro(valor) ? valor : fallback[chave];
+    // `fallback[chave]` é `string | undefined` sob `noUncheckedIndexedAccess`.
+    // Na prática `fallback` sempre tem as mesmas chaves de `vars` (ambos vêm
+    // de `toVariables`, que devolve um conjunto fixo) — o `""` só existiria
+    // numa chave que nem o fallback da marca reconhece, e mesmo assim é
+    // seguro: string vazia não contém nenhum caractere da lista proibida.
+    resultado[chave] = valorCssSeguro(valor) ? valor : fallback[chave] ?? "";
   }
   return resultado;
 }
