@@ -29,6 +29,7 @@ export const ALBORA_BRAND: Tokens = {
     raioPilula: "999px",
     // Cresce com a tela: 48px num celular comeria a foto; 28px num telão some.
     raioSuperficie: "clamp(1.75rem, 4vw, 3rem)",
+    raioMedia: "20px",
     espaco: "0.25rem",
   },
   movimento: {

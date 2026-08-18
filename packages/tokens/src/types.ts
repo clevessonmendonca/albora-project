@@ -36,6 +36,8 @@ export type Scale = {
    * a foto, e num telão um de 28px some.
    */
   raioSuperficie: string;
+  /** Mídia — foto e vídeo no card do feed do convidado. */
+  raioMedia: string;
   espaco: string;
 };
 

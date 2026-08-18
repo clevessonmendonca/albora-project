@@ -144,6 +144,7 @@
   --radius-token: var(--raio);
   --radius-superficie: var(--raio-superficie);
   --radius-pilula: var(--raio-pilula);
+  --radius-media: var(--raio-media);
 
   --font-titulo: var(--fonte-titulo);
   --font-corpo: var(--fonte-corpo);

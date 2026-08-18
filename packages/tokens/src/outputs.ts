@@ -29,6 +29,7 @@ export function toVariables(tokens: Tokens): Record<string, string> {
     "--raio": tokens.escala.raio,
     "--raio-pilula": tokens.escala.raioPilula,
     "--raio-superficie": tokens.escala.raioSuperficie,
+    "--raio-media": tokens.escala.raioMedia,
     "--espaco": tokens.escala.espaco,
 
     "--curva": tokens.movimento.curva,
