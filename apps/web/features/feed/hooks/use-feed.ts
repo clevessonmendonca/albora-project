@@ -206,7 +206,14 @@ export function comFalhaDeMidia(estado: EstadoFeed): EstadoFeed {
 
 export type RespostaFeed = { ok: true; pagina: PaginaVisivel } | { ok: false; falha: FalhaFeed };
 
-type ItemDaRede = {
+/**
+ * O formato de item na rede — o mesmo em `/api/feed` e `/api/guests/:id`
+ * (ambos serializam `ItemFeed` de `packages/db/src/feed.ts`). Exportado com
+ * `itemDeRede` para que os dois lados do cliente concordem sobre como
+ * desserializar, em vez de manter duas cópias que só divergem no primeiro
+ * ajuste feito de um lado.
+ */
+export type ItemDaRede = {
   id: string;
   chaveThumb: string;
   chaveFull: string;
@@ -222,6 +229,26 @@ type ItemDaRede = {
   sessaoAutor?: string;
   minha?: boolean;
 };
+
+export function itemDeRede(i: ItemDaRede): ItemVisivel {
+  return {
+    id: i.id,
+    chaveThumb: i.chaveThumb,
+    chaveFull: typeof i.chaveFull === "string" ? i.chaveFull : "",
+    mime: typeof i.mime === "string" ? i.mime : "image/jpeg",
+    autor: i.autor,
+    legenda: i.legenda ?? null,
+    lugar: i.lugar ?? null,
+    criadaEm: typeof i.criadaEm === "string" ? i.criadaEm : "",
+    ...(typeof i.largura === "number" && typeof i.altura === "number"
+      ? { largura: i.largura, altura: i.altura }
+      : {}),
+    ...(typeof i.reacoes === "number" ? { reacoes: i.reacoes } : {}),
+    ...(i.minhaReacao !== undefined ? { minhaReacao: i.minhaReacao } : {}),
+    ...(typeof i.sessaoAutor === "string" ? { sessaoAutor: i.sessaoAutor } : {}),
+    ...(typeof i.minha === "boolean" ? { minha: i.minha } : {}),
+  };
+}
 
 /**
  * Uma página do feed. O cursor volta como veio — **nunca** um deslocamento
@@ -271,23 +298,7 @@ export async function buscarPagina(missaoId: string | null, cursor: string | nul
   return {
     ok: true,
     pagina: {
-      itens: (corpo.itens ?? []).map((i) => ({
-        id: i.id,
-        chaveThumb: i.chaveThumb,
-        chaveFull: typeof i.chaveFull === "string" ? i.chaveFull : "",
-        mime: typeof i.mime === "string" ? i.mime : "image/jpeg",
-        autor: i.autor,
-        legenda: i.legenda ?? null,
-        lugar: i.lugar ?? null,
-        criadaEm: typeof i.criadaEm === "string" ? i.criadaEm : "",
-        ...(typeof i.largura === "number" && typeof i.altura === "number"
-          ? { largura: i.largura, altura: i.altura }
-          : {}),
-        ...(typeof i.reacoes === "number" ? { reacoes: i.reacoes } : {}),
-        ...(i.minhaReacao !== undefined ? { minhaReacao: i.minhaReacao } : {}),
-        ...(typeof i.sessaoAutor === "string" ? { sessaoAutor: i.sessaoAutor } : {}),
-        ...(typeof i.minha === "boolean" ? { minha: i.minha } : {}),
-      })),
+      itens: (corpo.itens ?? []).map(itemDeRede),
       proximoCursor: corpo.proximoCursor ?? null,
       interacao,
     },
