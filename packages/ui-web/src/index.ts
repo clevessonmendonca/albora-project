@@ -8,6 +8,8 @@ export { FloatingButton } from "./floating-button";
 export { Switch } from "./switch";
 export { Avatar, initials } from "./avatar";
 export { TabBar, type GuestTab } from "./tab-bar";
+export { NavCameraButton, type NavCameraButtonProps } from "./nav-camera-button";
+export { SHARED_GUEST_TABS, type SharedGuestTabDef, type SharedGuestTabId } from "./nav-tabs";
 export { StatusBar } from "./status-bar";
 export {
   authorInitials,

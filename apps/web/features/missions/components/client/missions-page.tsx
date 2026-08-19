@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Badge,
+  FloatingNav,
   GuestHeader,
   GuestMain,
   GuestShell,
   PrimaryButton,
   Star,
 } from "@albora/ui-web";
-import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 
 export type VisibleMission = { id: string; title: string; done: boolean };
 
@@ -33,6 +33,7 @@ export function MissionsPage({
   slug: string;
   missions: VisibleMission[];
 }) {
+  const base = `/e/${encodeURIComponent(slug)}`;
   const doneCount = missions.filter((m) => m.done).length;
   const current = missions.find((m) => !m.done) ?? null;
   const index = turnIndex(missions);
@@ -115,7 +116,7 @@ export function MissionsPage({
         </GuestMain>
       </GuestShell>
 
-      <GuestTabBar slug={slug} active="missoes" />
+      <FloatingNav active="missoes" base={base} linkComponent={Link} />
     </>
   );
 }

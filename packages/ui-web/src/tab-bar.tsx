@@ -1,24 +1,25 @@
-import { Star } from "./star";
-import { CameraIcon, GridIcon, PersonIcon, StackIcon } from "./icons";
+import { StackIcon } from "./icons";
+import { NavCameraButton } from "./nav-camera-button";
+import { SHARED_GUEST_TABS } from "./nav-tabs";
 
 export type GuestTab = "feed" | "missoes" | "album" | "minhas";
 
-const TABS = [
-  { id: "feed", label: "Feed", icon: <StackIcon /> },
-  { id: "missoes", label: "Missões", icon: <Star size={22} /> },
-  { id: "album", label: "Álbum", icon: <GridIcon /> },
-  { id: "minhas", label: "Minhas", icon: <PersonIcon /> },
-] as const;
+const TAB_FEED = {
+  id: "feed" as const,
+  label: "Feed",
+  column: "col-start-1",
+  icon: <StackIcon />,
+};
 
-const TAB_COLUMNS = ["col-start-1", "col-start-2", "col-start-4", "col-start-5"] as const;
+const TABS = [TAB_FEED, ...SHARED_GUEST_TABS];
 
 export function TabBar({ active }: { active: GuestTab }) {
   return (
     <nav className="relative grid grid-cols-[1fr_1fr_auto_1fr_1fr] items-center border-t border-linha bg-bg px-3 pt-2.5 pb-[1.625rem]">
-      {TABS.map((tab, i) => (
+      {TABS.map((tab) => (
         <span
           key={tab.id}
-          className={`flex flex-col items-center gap-1 text-[0.5625rem] uppercase tracking-rotulo ${TAB_COLUMNS[i]} ${
+          className={`flex flex-col items-center gap-1 text-[0.5625rem] uppercase tracking-rotulo ${tab.column} ${
             tab.id === active ? "text-acento" : "text-ink-3"
           }`}
         >
@@ -27,9 +28,7 @@ export function TabBar({ active }: { active: GuestTab }) {
         </span>
       ))}
 
-      <span className="col-start-3 -mt-5 grid size-[3.375rem] place-items-center justify-self-center rounded-full bg-acento text-sobre-acento shadow-acento">
-        <CameraIcon />
-      </span>
+      <NavCameraButton />
     </nav>
   );
 }

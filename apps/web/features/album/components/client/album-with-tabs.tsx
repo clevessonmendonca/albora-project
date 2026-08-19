@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { FloatingNav } from "@albora/ui-web";
 import { AlbumPage, type AlbumMission } from "./album-page";
-import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 
 export function AlbumWithTabs({
   slug,
@@ -14,6 +15,8 @@ export function AlbumWithTabs({
   initialMission?: string | null;
   cameraPath: string;
 }) {
+  const base = `/e/${encodeURIComponent(slug)}`;
+
   return (
     <>
       <AlbumPage
@@ -22,7 +25,7 @@ export function AlbumWithTabs({
         initialMission={initialMission}
         cameraPath={cameraPath}
       />
-      <GuestTabBar slug={slug} active="album" />
+      <FloatingNav active="album" base={base} linkComponent={Link} />
     </>
   );
 }

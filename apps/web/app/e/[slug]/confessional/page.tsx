@@ -2,13 +2,12 @@ import { PACKS, resolvePackText } from "@albora/packs";
 import { comEvento, packDoEvento } from "@albora/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
 import { guestSession, isSameEventSession } from "@/features/guest/data/guest-session";
 import { EventNotice } from "@/features/guest/components/client/event-notice";
 import { NoSession } from "@/features/guest/components/client/no-session";
 import { getPool } from "@/lib/db";
-import { GuestShell } from "@albora/ui-web";
+import { FloatingNav, GuestShell } from "@albora/ui-web";
 
 export const dynamic = "force-dynamic";
 
@@ -95,7 +94,7 @@ export default async function ConfessionalPage({ params }: Props) {
           </p>
         </div>
       </GuestShell>
-      <GuestTabBar slug={slug} />
+      <FloatingNav base={base} linkComponent={Link} />
     </>
   );
 }

@@ -1,12 +1,18 @@
 import type { ElementType, ReactNode } from "react";
-import { CameraIcon, GridIcon, PersonIcon, StackIcon } from "./icons";
-import { Star } from "./star";
+import { StackIcon } from "./icons";
+import { NavCameraButton } from "./nav-camera-button";
+import { SHARED_GUEST_TABS } from "./nav-tabs";
 import { cn } from "./variants";
 
 export type FloatingNavTab = "inicio" | "missoes" | "album" | "minhas";
 
 export type FloatingNavProps = {
-  active: FloatingNavTab;
+  /**
+   * Ausente quando a tela atual não corresponde a nenhum dos quatro slots
+   * (ex.: `/feed`, `/music`, `/cover`) — realçar o slot mais próximo
+   * enganaria o convidado, que tocaria num ícone "atual" e sairia da tela.
+   */
+  active?: FloatingNavTab;
   base: string;
   linkComponent?: ElementType;
 };
@@ -27,29 +33,7 @@ const TAB_INICIO: TabDef = {
   column: "col-start-1",
 };
 
-const TAB_MISSOES: TabDef = {
-  id: "missoes",
-  label: "Missões",
-  icon: <Star size={22} />,
-  path: "/missions",
-  column: "col-start-2",
-};
-
-const TAB_ALBUM: TabDef = {
-  id: "album",
-  label: "Álbum",
-  icon: <GridIcon size={22} />,
-  path: "/album",
-  column: "col-start-4",
-};
-
-const TAB_MINHAS: TabDef = {
-  id: "minhas",
-  label: "Minhas",
-  icon: <PersonIcon size={22} />,
-  path: "/my-photos",
-  column: "col-start-5",
-};
+const TABS: readonly TabDef[] = [TAB_INICIO, ...SHARED_GUEST_TABS];
 
 function FloatingNavItem({
   tab,
@@ -59,7 +43,7 @@ function FloatingNavItem({
 }: {
   tab: TabDef;
   base: string;
-  active: FloatingNavTab;
+  active: FloatingNavTab | undefined;
   linkComponent: ElementType;
 }) {
   const isActive = active === tab.id;
@@ -89,19 +73,11 @@ export function FloatingNav({ active, base, linkComponent }: FloatingNavProps) {
       className="fixed inset-x-4 z-40 grid grid-cols-[1fr_1fr_auto_1fr_1fr] items-center rounded-pilula border border-linha bg-superficie-alta px-2 py-2"
       style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
     >
-      <FloatingNavItem tab={TAB_INICIO} base={base} active={active} linkComponent={L} />
-      <FloatingNavItem tab={TAB_MISSOES} base={base} active={active} linkComponent={L} />
+      {TABS.map((tab) => (
+        <FloatingNavItem key={tab.id} tab={tab} base={base} active={active} linkComponent={L} />
+      ))}
 
-      <L
-        href={`${base}/photo`}
-        aria-label="Mandar foto ou vídeo"
-        className="col-start-3 -mt-6 grid size-[3.375rem] place-items-center justify-self-center rounded-full bg-acento text-sobre-acento no-underline shadow-acento"
-      >
-        <CameraIcon />
-      </L>
-
-      <FloatingNavItem tab={TAB_ALBUM} base={base} active={active} linkComponent={L} />
-      <FloatingNavItem tab={TAB_MINHAS} base={base} active={active} linkComponent={L} />
+      <NavCameraButton href={`${base}/photo`} linkComponent={L} lift="-mt-6" />
     </nav>
   );
 }

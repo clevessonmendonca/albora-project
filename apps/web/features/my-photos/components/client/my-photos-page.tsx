@@ -2,13 +2,14 @@
 
 import type { ItemDaGaleria } from "@albora/core";
 import { isVideoMime } from "@albora/core";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { webQueue } from "@/lib/queue";
 import { useShare } from "@/features/my-photos/hooks/use-share";
 import { useGallery } from "@/features/my-photos/hooks/use-gallery";
 import { Viewer } from "@/features/feed/components/client/viewer";
-import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 import {
+  FloatingNav,
   PrimaryButton,
   GuestHeader,
   GuestShell,
@@ -87,6 +88,7 @@ export function MyPhotosPage({
   sessaoId: string;
   cameraPath: string;
 }) {
+  const base = `/e/${encodeURIComponent(slug)}`;
   const galeria = useGallery(eventoId);
   const compartilhar = useShare(eventoId, sessaoId);
   const [locais, setLocais] = useState<Map<string, string>>(new Map());
@@ -358,7 +360,7 @@ export function MyPhotosPage({
         onConfirm={confirmarConsentimento}
       />
 
-      <GuestTabBar slug={slug} active="minhas" />
+      <FloatingNav active="minhas" base={base} linkComponent={Link} />
     </>
   );
 }

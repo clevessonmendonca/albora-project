@@ -37,4 +37,14 @@ describe("FloatingNav", () => {
 
     expect(screen.getByRole("link", { name: "Mandar foto ou vídeo" })).toBeInTheDocument();
   });
+
+  it("sem `active` (tela sem slot correspondente, ex. /feed), nenhum item fica marcado", () => {
+    render(<FloatingNav base={base} />);
+
+    for (const name of [/início/i, /missões/i, /álbum/i, /minhas/i]) {
+      const link = screen.getByRole("link", { name });
+      expect(link).not.toHaveAttribute("aria-current");
+      expect(link.className).toContain("text-ink-3");
+    }
+  });
 });

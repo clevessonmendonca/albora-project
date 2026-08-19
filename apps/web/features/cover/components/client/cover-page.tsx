@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
-import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
 import {
   Badge,
+  FloatingNav,
   Frame,
   GridIcon,
   GuestShell,
@@ -234,7 +234,7 @@ export function CoverPage({
           <PrimaryButton onClick={() => router.push(`${base}/photo`)}>Enviar foto</PrimaryButton>
         </div>
       </GuestShell>
-      <GuestTabBar slug={slug} />
+      <FloatingNav base={base} linkComponent={Link} />
     </>
   );
 }

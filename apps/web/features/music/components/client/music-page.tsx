@@ -1,21 +1,23 @@
 "use client";
 
+import Link from "next/link";
 import {
   Badge,
   ErrorMessage,
+  FloatingNav,
   Frame,
   GuestHeader,
   GuestMain,
   GuestShell,
   SecondaryText,
 } from "@albora/ui-web";
-import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 import { SuggestionForm } from "@/features/music/components/client/suggestion-form";
 import { useMusic } from "@/features/music/hooks/use-music";
 import { providerLabel } from "@/features/music/lib/suggestion-copy";
 import type { VisibleTrack } from "@/features/music/types/visible-track";
 
 export function MusicPage({ slug, escolhaLabel }: { slug: string; escolhaLabel: string }) {
+  const base = `/e/${encodeURIComponent(slug)}`;
   const { state, suggest } = useMusic();
 
   return (
@@ -55,7 +57,7 @@ export function MusicPage({ slug, escolhaLabel }: { slug: string; escolhaLabel: 
           )}
         </GuestMain>
       </GuestShell>
-      <GuestTabBar slug={slug} />
+      <FloatingNav base={base} linkComponent={Link} />
     </>
   );
 }

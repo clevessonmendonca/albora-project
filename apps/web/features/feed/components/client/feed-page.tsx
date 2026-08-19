@@ -1,14 +1,15 @@
 "use client";
 
 import { isVideoMime } from "@albora/core";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { groupByHour, type HourGroup } from "@/features/feed/lib/group-by-hour";
 import { useFeed, type ItemVisivel } from "@/features/feed/hooks/use-feed";
-import { GuestTabBar } from "@/features/guest/components/client/guest-tab-bar";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
 import { useShare } from "@/features/my-photos/hooks/use-share";
 import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
 import {
+  FloatingNav,
   GateNotice,
   GuestHeader,
   GuestShell,
@@ -78,6 +79,7 @@ export function FeedPage({
   eventoId: string;
   sessaoId: string;
 }) {
+  const base = `/e/${encodeURIComponent(slug)}`;
   const [missionId, setMissaoId] = useState<string | null>(null);
   const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = useFeed(missionId);
   const compartilhar = useShare(eventoId, sessaoId);
@@ -313,7 +315,7 @@ export function FeedPage({
         </GuestMain>
       </GuestShell>
 
-      <GuestTabBar slug={slug} active="feed" />
+      <FloatingNav base={base} linkComponent={Link} />
 
       {completo && grupoAberto && (
         <Viewer
