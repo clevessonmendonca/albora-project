@@ -4,7 +4,8 @@ import { isVideoMime } from "@albora/core";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { groupByHour, type HourGroup } from "@/features/feed/lib/group-by-hour";
-import { useFeed, type ItemVisivel } from "@/features/feed/hooks/use-feed";
+import { useFeed, podeCarregarMais, type ItemVisivel } from "@/features/feed/hooks/use-feed";
+import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
 import { useShare } from "@/features/my-photos/hooks/use-share";
 import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
@@ -33,9 +34,11 @@ import { HourStrip, HourStripLoading } from "./hour-strip";
  * por isso, mandar mais (ADR 0009). Três decisões de tela saem direto daí, e
  * nenhuma é estética:
  *
- * - **A próxima página só vem a pedido.** Rolagem infinita é o desenho que
- *   prende, e prender é o oposto do que esta tela serve. Aqui ela termina, e
- *   quem quiser mais toca.
+ * - **A próxima página chega sozinha.** Pivô assumido pelo mantenedor no
+ *   design doc `2026-08-17-convidado-social-moderno-design.md` §5.4, que
+ *   substitui a regra antiga de "toque, nunca rolagem infinita". O gatilho
+ *   troca de botão para `useInfiniteScroll` — a paginação por cursor de
+ *   `useFeed` continua a mesma, só quem a chama muda.
  * - **A barra da câmera é fixa.** Em coluna única cada foto ocupa quase a tela
  *   inteira, e o fim da lista fica longe: uma ação primária que só aparece lá
  *   embaixo não existe. Ela não sai da tela em nenhum estado — nem no vazio,
@@ -442,6 +445,8 @@ function Rodape({
   onVerMais: () => void;
   onRecomecar: () => void;
 }) {
+  const sentinela = useInfiniteScroll(onVerMais, podeCarregarMais(estado), estado.itens.length);
+
   if (estado.falha === "sessao") {
     return (
       <Recado texto="Sua entrada expirou. Escaneie o QR da mesa de novo para continuar vendo as fotos." />
@@ -468,10 +473,12 @@ function Rodape({
   if (estado.fim || estado.cursor === null) return null;
 
   return (
-    <div className="mt-[calc(var(--espaco)*6)]">
-      <SecondaryButton onClick={onVerMais} disabled={estado.carregando}>
-        {estado.carregando ? "Carregando…" : "Ver mais"}
-      </SecondaryButton>
+    <div ref={sentinela} className="mt-[calc(var(--espaco)*6)]">
+      {estado.carregando && (
+        <p aria-live="polite" className="text-center text-[0.9rem] leading-relaxed text-ink-2">
+          Carregando mais fotos…
+        </p>
+      )}
     </div>
   );
 }

@@ -15,7 +15,8 @@ import {
   StoryRail,
   type StoryItem,
 } from "@albora/ui-web";
-import { useFeed, type EstadoFeed } from "@/features/feed/hooks/use-feed";
+import { useFeed, podeCarregarMais, type EstadoFeed } from "@/features/feed/hooks/use-feed";
+import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
 import { deriveStories } from "../../lib/derive-stories";
 import { HomeFeedCard } from "./home-feed-card";
 
@@ -29,8 +30,12 @@ import { HomeFeedCard } from "./home-feed-card";
  * ausência da tira de horas e do visualizador em tela cheia — a Home é a
  * porta de entrada, não a leitura funda; quem quer isso vai pra `/feed`.
  *
- * Rolagem infinita não é escolha aqui: "Ver mais" é toque, igual a `/feed` —
- * engajamento dentro da festa é anti-objetivo do produto (`DESIGN.md` §1).
+ * A próxima página chega sozinha: pivô assumido pelo mantenedor no design
+ * doc `2026-08-17-convidado-social-moderno-design.md` §5.4, que substitui a
+ * regra antiga de "toque, nunca rolagem infinita" do `DESIGN.md` §1. O
+ * gatilho troca de botão para `useInfiniteScroll` (sentinela +
+ * `IntersectionObserver`); a paginação por cursor de `useFeed` não muda uma
+ * linha — só quem a chama muda.
  */
 export function HomePage({
   slug,
@@ -138,6 +143,8 @@ function CardLoading() {
 }
 
 function Rodape({ estado, onVerMais }: { estado: EstadoFeed; onVerMais: () => void }) {
+  const sentinela = useInfiniteScroll(onVerMais, podeCarregarMais(estado), estado.itens.length);
+
   if (estado.falha === "sessao") {
     return (
       <p className="mt-6 text-center text-[0.9rem] leading-relaxed text-ink-2">
@@ -160,10 +167,12 @@ function Rodape({ estado, onVerMais }: { estado: EstadoFeed; onVerMais: () => vo
   if (estado.fim || estado.cursor === null) return null;
 
   return (
-    <div className="mt-6">
-      <SecondaryButton onClick={onVerMais} disabled={estado.carregando}>
-        {estado.carregando ? "Carregando…" : "Ver mais"}
-      </SecondaryButton>
+    <div ref={sentinela} className="mt-6">
+      {estado.carregando && (
+        <p aria-live="polite" className="text-center text-[0.9rem] leading-relaxed text-ink-2">
+          Carregando mais fotos…
+        </p>
+      )}
     </div>
   );
 }

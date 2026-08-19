@@ -69,6 +69,24 @@ export type PaginaVisivel = {
 };
 
 /**
+ * Se ainda faz sentido pedir a próxima página: nem o fim da lista, nem uma
+ * falha pendente.
+ *
+ * Falha fica de fora de propósito — depois de um erro quem tenta de novo é
+ * o convidado, pelo botão. Sem esta exclusão, o sentinela de rolagem
+ * (`useInfiniteScroll`) reenviaria a mesma página que acabou de falhar a
+ * cada novo quadro em que ainda estiver visível, virando retentativa em
+ * laço em vez de UI que espera o toque.
+ *
+ * `carregando` fica de fora também: enquanto uma busca está em voo o
+ * sentinela continua observado, e é o guard dentro de `carregarMais` que
+ * evita o pedido duplicado — aqui só decide se vale continuar observando.
+ */
+export function podeCarregarMais(estado: EstadoFeed): boolean {
+  return !estado.fim && estado.falha === null;
+}
+
+/**
  * Já nasce carregando: é o estado que o servidor renderiza, e por isso a
  * primeira tela chega com as molduras no lugar em vez de um vazio que pisca
  * até o efeito rodar. Em 3G lento essa diferença é a tela inteira.

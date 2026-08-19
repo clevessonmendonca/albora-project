@@ -8,6 +8,7 @@ import {
   comPagina,
   comUrls,
   estadoInicial,
+  podeCarregarMais,
   reiniciado,
   sincronizarTopo,
   type EstadoFeed,
@@ -83,6 +84,33 @@ describe("paginação por cursor", () => {
     const dois = comPagina(um, pagina([item("a")], null));
 
     expect(dois.itens).toBe(um.itens);
+  });
+});
+
+describe("o sentinela de rolagem sabe quando parar de observar", () => {
+  it("continua observando com página e sem falha", () => {
+    const e = comPagina(estadoInicial(), pagina([item("a")], "c1"));
+
+    expect(podeCarregarMais(e)).toBe(true);
+  });
+
+  it("para no fim da lista", () => {
+    const e = comPagina(estadoInicial(), pagina([item("a")], null));
+
+    expect(podeCarregarMais(e)).toBe(false);
+  });
+
+  it("para numa falha pendente — quem tenta de novo é o convidado, pelo botão", () => {
+    const cheio = comPagina(estadoInicial(), pagina([item("a")], "c1"));
+    const falhou = comFalha(cheio, "rede");
+
+    expect(podeCarregarMais(falhou)).toBe(false);
+  });
+
+  it("continua observando enquanto uma busca está em voo", () => {
+    const e = { ...comPagina(estadoInicial(), pagina([item("a")], "c1")), carregando: true };
+
+    expect(podeCarregarMais(e)).toBe(true);
   });
 });
 
