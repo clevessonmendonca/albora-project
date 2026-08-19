@@ -365,8 +365,24 @@ export {
   upsertBillingCustomer,
 } from "./billing";
 
-export type { VendorEventSummary, VendorPlan, VendorRole, VendorStatus } from "./vendor-portal";
-export { ErroSemAcessoAoFornecedor, eventosDoFornecedor, roleForAccountOnVendor } from "./vendor-portal";
+export type {
+  MarcaPublicaDoFornecedor,
+  VendorEventSummary,
+  VendorPlan,
+  VendorRole,
+  VendorStatus,
+} from "./vendor-portal";
+export {
+  ErroSemAcessoAoFornecedor,
+  eventosDoFornecedor,
+  marcaPublicaDoFornecedor,
+  roleForAccountOnVendor,
+} from "./vendor-portal";
+
+/** English alias — preferred for new code. @see marcaPublicaDoFornecedor */
+export { marcaPublicaDoFornecedor as vendorPublicBranding } from "./vendor-portal";
+/** English alias — preferred for new code. @see MarcaPublicaDoFornecedor */
+export type { MarcaPublicaDoFornecedor as VendorPublicBranding } from "./vendor-portal";
 
 export type { EventLiveMetrics, ProductEventName } from "./analytics";
 export {

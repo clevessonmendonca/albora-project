@@ -40,6 +40,62 @@ export async function roleForAccountOnVendor(
   });
 }
 
+/** Marca resolvida a partir do slug público, sem sessão de conta. */
+export type MarcaPublicaDoFornecedor = {
+  id: string;
+  slug: string;
+  name: string;
+  brandTokens: Record<string, unknown>;
+  plan: VendorPlan;
+};
+
+/** `slug` já é um segmento de URL — mesmo caractere que `event_slugs` aceita. */
+const SLUG = /^[a-z0-9-]{1,80}$/;
+
+/**
+ * Resolve `vendorSlug → marca` para a landing pública do portal (spec §3), sem
+ * exigir sessão de conta — o mesmo espírito de `resolverSlug` para eventos.
+ *
+ * `vendors` difere de `events`: a RLS forçada por `vendor_membro` (migration
+ * 0037) não tem um GUC próprio tipo `app.event_id` que a query possa setar
+ * para "só esta linha" — a política exige pertencimento em `vendor_members`,
+ * que um visitante sem sessão nunca tem. Por isso a única porta legítima é
+ * `comAgregacao`/`albora_agregador`, com `motivo` fixo e auditado, e a query
+ * **fechada em duas frentes**: `WHERE slug = $1` (nunca um `SELECT` genérico)
+ * e só as colunas de branding — nunca `vendor_members`, nunca dado de conta.
+ *
+ * Devolve `null` para slug desconhecido ou malformado (404 na borda, não erro
+ * — a mesma semântica de `resolverSlug` devolvendo `"desconhecido"`).
+ */
+export async function marcaPublicaDoFornecedor(
+  poolAgregacao: Pool,
+  slug: string,
+  auditar: (registro: { motivo: string; em: Date }) => void,
+): Promise<MarcaPublicaDoFornecedor | null> {
+  if (!SLUG.test(slug)) return null;
+
+  return comAgregacao(poolAgregacao, `vendor_public_resolve:${slug}`, auditar, async (c) => {
+    const { rows } = await c.query<{
+      id: string;
+      slug: string;
+      name: string;
+      brand_tokens: Record<string, unknown>;
+      plan: string;
+    }>(`SELECT id, slug, name, brand_tokens, plan FROM vendors WHERE slug = $1`, [slug]);
+
+    const row = rows[0];
+    if (!row) return null;
+
+    return {
+      id: row.id,
+      slug: row.slug,
+      name: row.name,
+      brandTokens: row.brand_tokens ?? {},
+      plan: row.plan as VendorPlan,
+    };
+  });
+}
+
 export type VendorEventSummary = {
   id: string;
   slug: string;

@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   ErroSemAcessoAoFornecedor,
   eventosDoFornecedor,
+  marcaPublicaDoFornecedor,
   roleForAccountOnVendor,
 } from "./vendor-portal";
 import { prepararBanco, semear } from "./testes/banco";
@@ -38,15 +39,16 @@ beforeAll(async () => {
   staffAccountId = await conta("fornecedor-staff@exemplo.test");
   outsiderAccountId = await conta("fora-do-fornecedor@exemplo.test");
 
-  const vendor = async (name: string) => {
+  const vendor = async (name: string, slug: string) => {
     const { rows } = await admin.query<{ id: string }>(
-      "INSERT INTO vendors (name) VALUES ($1) RETURNING id",
-      [name],
+      `INSERT INTO vendors (name, slug, brand_tokens)
+       VALUES ($1, $2, $3::jsonb) RETURNING id`,
+      [name, slug, JSON.stringify({ cores: { acento: "#123456" } })],
     );
     return rows[0]!.id;
   };
-  vendorXId = await vendor("Buffet X");
-  vendorYId = await vendor("Buffet Y");
+  vendorXId = await vendor("Buffet X", "buffet-x");
+  vendorYId = await vendor("Buffet Y", "buffet-y");
 
   await admin.query(
     `INSERT INTO vendor_members (vendor_id, account_id, role) VALUES
@@ -138,5 +140,52 @@ describe("eventosDoFornecedor — duas portas, nunca uma", () => {
       packId: "pack-um",
       isDemo: false,
     });
+  });
+});
+
+describe("marcaPublicaDoFornecedor — resolução pública, sem sessão de conta", () => {
+  it("resolve marca (id, slug, name, brand_tokens, plan) por slug, sem exigir vendor_members", async () => {
+    const registros: { motivo: string; em: Date }[] = [];
+    const marca = await marcaPublicaDoFornecedor(agregador, "buffet-x", (r) => registros.push(r));
+
+    expect(marca).toMatchObject({
+      id: vendorXId,
+      slug: "buffet-x",
+      name: "Buffet X",
+      plan: "starter",
+      brandTokens: { cores: { acento: "#123456" } },
+    });
+    expect(registros).toHaveLength(1);
+    expect(registros[0]?.motivo).toBe("vendor_public_resolve:buffet-x");
+  });
+
+  it("um visitante sem sessão (sem app.account_id) resolve a marca do mesmo jeito", async () => {
+    // Nenhuma chamada de comConta aqui — a marca pública não passa pela
+    // política vendor_membro, é exatamente o caminho de agregação que o
+    // dashboard usa, com motivo diferente e sem a primeira porta de
+    // pertencimento (não há conta para pertencer a nada).
+    const marca = await marcaPublicaDoFornecedor(agregador, "buffet-y", () => {});
+    expect(marca?.id).toBe(vendorYId);
+  });
+
+  it("slug desconhecido devolve null, sem estourar", async () => {
+    const marca = await marcaPublicaDoFornecedor(agregador, "nao-existe", () => {});
+    expect(marca).toBeNull();
+  });
+
+  it("slug fora do charset é recusado antes de tocar o banco — nada é auditado", async () => {
+    const registros: { motivo: string; em: Date }[] = [];
+    const marca = await marcaPublicaDoFornecedor(agregador, "Buffet X; DROP TABLE vendors;--", (r) =>
+      registros.push(r),
+    );
+    expect(marca).toBeNull();
+    expect(registros).toHaveLength(0);
+  });
+
+  it("a query nunca vaza vendor_members nem outra coluna além de branding", async () => {
+    const marca = await marcaPublicaDoFornecedor(agregador, "buffet-x", () => {});
+    expect(marca).not.toHaveProperty("commissionBps");
+    expect(marca).not.toHaveProperty("customDomain");
+    expect(Object.keys(marca ?? {}).sort()).toEqual(["brandTokens", "id", "name", "plan", "slug"]);
   });
 });
