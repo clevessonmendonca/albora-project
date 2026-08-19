@@ -17,6 +17,7 @@ import {
 import { getPool } from "@/lib/db";
 import { resolveBilling, VENDOR_PLAN_PRICE_CENTS } from "@/lib/billing";
 import { consume } from "@/lib/rate-limit-store";
+import type { Pool } from "pg";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,28 @@ type Body = { plan?: unknown; billingType?: unknown };
 
 function isVendorPlan(v: unknown): v is VendorPlan {
   return typeof v === "string" && (VENDOR_PLANS as readonly string[]).includes(v);
+}
+
+/**
+ * Espelha `latestSubscriptionStatus` de `load-vendor-portal.ts` — mesma razão
+ * para ficar como query inline em vez de função em `@albora/db`:
+ * `vendor_subscriptions` não tem RLS própria, então este `WHERE vendor_id =
+ * $1` é a única contenção, e `vendorId` aqui já passou por
+ * `roleForAccountOnVendor` (nunca um valor cru do cliente).
+ *
+ * Fecha, no servidor, o mesmo buraco que a UI já fechou escondendo o botão:
+ * sem isto, duas abas ou uma chamada direta à API criam duas assinaturas
+ * `pending` para o mesmo fornecedor e cobram duas vezes no Asaas.
+ */
+async function hasPendingOrActiveVendorSubscription(pool: Pool, vendorId: string): Promise<boolean> {
+  const { rows } = await pool.query<{ blocked: boolean }>(
+    `SELECT EXISTS (
+       SELECT 1 FROM vendor_subscriptions
+        WHERE vendor_id = $1 AND status IN ('pending', 'active')
+     ) AS blocked`,
+    [vendorId],
+  );
+  return rows[0]?.blocked ?? false;
 }
 
 /**
@@ -41,6 +64,12 @@ function isVendorPlan(v: unknown): v is VendorPlan {
  * `ativarPlanoDoFornecedor` só roda depois, no webhook, quando o Asaas
  * confirma o pagamento — nunca aqui, e nunca a partir de um valor que o
  * cliente possa forjar.
+ *
+ * `hasPendingOrActiveVendorSubscription` roda logo depois do gate de papel e
+ * antes de qualquer chamada de rede ao Asaas — o portal já escondia o botão
+ * de assinar com `pending`/`active`, mas isso é só UI; sem esta checagem no
+ * servidor, duas abas ou uma chamada direta à API criavam uma segunda
+ * assinatura e cobravam duas vezes.
  */
 export async function POST(
   req: Request,
@@ -63,6 +92,14 @@ export async function POST(
   }
   if (role !== "admin") {
     return errorResponse(403, "vendor.papel_negado", "Só admin do fornecedor pode assinar");
+  }
+
+  if (await hasPendingOrActiveVendorSubscription(getPool(), vendorId)) {
+    return errorResponse(
+      409,
+      "vendor.assinatura_ja_existe",
+      "Já há uma assinatura ativa ou aguardando confirmação",
+    );
   }
 
   const limit = consume(`vendor_subscription:${auth.host.accountId}`, 5, 60, Date.now());
