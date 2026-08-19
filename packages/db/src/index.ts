@@ -370,6 +370,7 @@ export {
 
 export type {
   MarcaPublicaDoFornecedor,
+  ResumoDoFornecedor,
   VendorEventSummary,
   VendorMembership,
   VendorPlan,
@@ -380,6 +381,7 @@ export {
   ErroSemAcessoAoFornecedor,
   eventosDoFornecedor,
   marcaPublicaDoFornecedor,
+  resumoDoFornecedor,
   roleForAccountOnVendor,
   vendorsDaConta,
 } from "./vendor-portal";

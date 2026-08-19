@@ -1,7 +1,7 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { comAgregacao, comConta, comEvento, ErroEventoAusente } from "./event";
-import { ErroSemAcessoAoFornecedor, eventosDoFornecedor } from "./vendor-portal";
+import { ErroSemAcessoAoFornecedor, eventosDoFornecedor, resumoDoFornecedor } from "./vendor-portal";
 import { prepararBanco, semear } from "./testes/banco";
 
 /**
@@ -489,6 +489,7 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
   let vendorXId: string;
   let vendorYId: string;
   let membroXId: string;
+  let eventoExtraXId: string;
 
   beforeAll(async () => {
     const { rows: vx } = await admin.query<{ id: string }>(
@@ -516,6 +517,27 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
     await admin.query(
       "INSERT INTO vendor_members (vendor_id, account_id, role) VALUES ($1, $2, 'admin')",
       [vendorXId, membroXId],
+    );
+
+    // Segundo evento sob vendorX, dono de conta diferente de dados.a — prova
+    // que resumoDoFornecedor soma por vendor_id, não por account_id: o dono
+    // deste evento nem é vendor_members de X, só o evento pertence a X.
+    const { rows: extra } = await admin.query<{ id: string }>(
+      `INSERT INTO events (account_id, vendor_id, pack_id, slug, starts_at, ends_at, expected_guests)
+       VALUES ($1, $2, 'pack-um', 'evento-extra-x', now(), now() + interval '4 hours', 50)
+       RETURNING id`,
+      [dados.b.contaId, vendorXId],
+    );
+    eventoExtraXId = extra[0]!.id;
+    const { rows: sessaoExtra } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'convidado-extra-x', 'v1', now()) RETURNING id`,
+      [eventoExtraXId],
+    );
+    await admin.query(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 800000)`,
+      [eventoExtraXId, sessaoExtra[0]!.id, `events/${eventoExtraXId}/2026/08/foto/extra`],
     );
   });
 
@@ -576,6 +598,61 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
     // fechado por vendor_id = $1 com $1 já confirmado na primeira porta.
     const doX = await eventosDoFornecedor(app, agregador, membroXId, vendorXId, () => {});
     expect(doX.every((e) => e.id !== dados.b.eventoId)).toBe(true);
+  });
+
+  describe("resumoDoFornecedor — agregado por vendor_id, nunca soma o outro fornecedor", () => {
+    it("soma eventos, fotos e H1 só através dos eventos do próprio vendor_id", async () => {
+      const registros: { motivo: string; em: Date }[] = [];
+      const resumo = await resumoDoFornecedor(app, agregador, membroXId, vendorXId, (r) =>
+        registros.push(r),
+      );
+
+      // vendorX tem dois eventos (eventoA, expected_guests=150; e
+      // eventoExtraX, expected_guests=50), um upload publicado cada — o
+      // upload de eventoB (vendorY) nunca entra nesta soma.
+      expect(resumo).toEqual({
+        totalEventos: 2,
+        totalFotos: 2,
+        h1Medio: 2 / 200,
+      });
+      expect(registros).toHaveLength(1);
+      expect(registros[0]?.motivo).toBe(`vendor_insights:${vendorXId}`);
+    });
+
+    it("vendorY soma só o próprio evento, isolado do upload extra de X", async () => {
+      const membroY = await admin.query<{ id: string }>(
+        "INSERT INTO accounts (email) VALUES ($1) RETURNING id",
+        ["membro-fornecedor-y@exemplo.test"],
+      );
+      const membroYId = membroY.rows[0]!.id;
+      await admin.query(
+        "INSERT INTO vendor_members (vendor_id, account_id, role) VALUES ($1, $2, 'staff')",
+        [vendorYId, membroYId],
+      );
+
+      const resumo = await resumoDoFornecedor(app, agregador, membroYId, vendorYId, () => {});
+      expect(resumo).toEqual({ totalEventos: 1, totalFotos: 1, h1Medio: 1 / 150 });
+    });
+
+    it("conta sem vínculo em vendor_members é recusada ANTES de qualquer agregação", async () => {
+      const registros: { motivo: string; em: Date }[] = [];
+      await expect(
+        resumoDoFornecedor(app, agregador, dados.b.contaId, vendorXId, (r) => registros.push(r)),
+      ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
+      expect(registros).toHaveLength(0);
+    });
+
+    it("membro de X pedindo o vendorId de Y é recusado na primeira porta", async () => {
+      await expect(
+        resumoDoFornecedor(app, agregador, membroXId, vendorYId, () => {}),
+      ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
+    });
+
+    it("vendorId que não é uuid é recusado antes de tocar o banco", async () => {
+      await expect(
+        resumoDoFornecedor(app, agregador, membroXId, "nao-e-um-uuid", () => {}),
+      ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
+    });
   });
 });
 

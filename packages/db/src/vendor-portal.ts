@@ -231,3 +231,84 @@ export async function eventosDoFornecedor(
     return rows.map(mapVendorEventSummary);
   });
 }
+
+export type ResumoDoFornecedor = {
+  totalEventos: number;
+  totalFotos: number;
+  /**
+   * H1 médio ponderado: `Σ sessoesComUpload / Σ expectedGuests` através de
+   * todos os eventos do fornecedor — não a média simples das taxas por
+   * evento. Ponderado porque um evento de 30 convidados e outro de 300 não
+   * têm o mesmo peso estatístico; a média simples deixaria a festa pequena
+   * puxar o número tanto quanto a grande. Mesmo denominador de
+   * `taxaDeParticipacao` (funnel.ts) e mesmo filtro de `lerMetricasAoVivo`
+   * (`state = 'published'`, sessão distinta) — só que somado através de
+   * `vendor_id` em vez de fechado num `event_id`.
+   *
+   * `0` quando `totalEventos === 0` ou todo evento tem `expected_guests = 0`
+   * (não deveria acontecer — a coluna tem `CHECK (expected_guests > 0)` —
+   * mas o cálculo não divide por zero mesmo assim).
+   */
+  h1Medio: number;
+};
+
+/**
+ * Resumo agregado do fornecedor para o topo do painel de insights — mesmo
+ * padrão de duas portas de `eventosDoFornecedor` (spec canal-fornecedor §6):
+ * pertencimento sob RLS normal PRIMEIRO, cruzamento cross-evento só depois,
+ * atrás de `comAgregacao`/`albora_agregador`, auditado, fechado por
+ * `WHERE vendor_id = $1` com `$1` já confirmado no passo 1.
+ *
+ * Duas queries, não uma: `events` e `uploads` agregados juntos numa única
+ * query com `JOIN` inflaria `sum(expected_guests)` uma vez por foto do
+ * evento (produto cartesiano evento×upload) — o mesmo defeito que motivou
+ * `Promise.all` em `lerMetricasAoVivo` em vez de um único `SELECT`.
+ */
+export async function resumoDoFornecedor(
+  poolConta: Pool,
+  poolAgregacao: Pool,
+  accountId: string,
+  vendorId: string,
+  auditar: (registro: { motivo: string; em: Date }) => void,
+): Promise<ResumoDoFornecedor> {
+  if (!UUID.test(vendorId)) throw new ErroSemAcessoAoFornecedor(vendorId);
+
+  const pertence = await comConta(poolConta, accountId, async (c) => {
+    const { rowCount } = await c.query(
+      `SELECT 1 FROM vendor_members WHERE vendor_id = $1 AND account_id = $2`,
+      [vendorId, accountId],
+    );
+    return (rowCount ?? 0) > 0;
+  });
+  if (!pertence) throw new ErroSemAcessoAoFornecedor(vendorId);
+
+  return comAgregacao(poolAgregacao, `vendor_insights:${vendorId}`, auditar, async (c) => {
+    const [{ rows: eventosRows }, { rows: uploadsRows }] = await Promise.all([
+      c.query<{ total_eventos: number; total_esperados: number }>(
+        `SELECT count(*)::int AS total_eventos, coalesce(sum(expected_guests), 0)::int AS total_esperados
+           FROM events
+          WHERE vendor_id = $1`,
+        [vendorId],
+      ),
+      c.query<{ total_sessoes_com_upload: number; total_fotos: number }>(
+        `SELECT count(DISTINCT u.session_id)::int AS total_sessoes_com_upload,
+                count(*)::int AS total_fotos
+           FROM uploads u
+           JOIN events e ON e.id = u.event_id
+          WHERE e.vendor_id = $1 AND u.state = 'published'`,
+        [vendorId],
+      ),
+    ]);
+
+    const totalEventos = eventosRows[0]?.total_eventos ?? 0;
+    const totalEsperados = eventosRows[0]?.total_esperados ?? 0;
+    const totalSessoesComUpload = uploadsRows[0]?.total_sessoes_com_upload ?? 0;
+    const totalFotos = uploadsRows[0]?.total_fotos ?? 0;
+
+    return {
+      totalEventos,
+      totalFotos,
+      h1Medio: totalEsperados > 0 ? totalSessoesComUpload / totalEsperados : 0,
+    };
+  });
+}

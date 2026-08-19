@@ -1,23 +1,48 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { listarEventosDoHost } from "@albora/db";
+import { listarEventosDoHost, resumoDoFornecedor, vendorsDaConta } from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
-import { getPool } from "@/lib/db";
+import { getAggregatorPool, getPool } from "@/lib/db";
 import { AdminShell, AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { VendorSummaryCard } from "@/features/vendor-portal/components/server/vendor-summary-card";
+import { auditarAgregacaoDoPortal } from "@/features/vendor-portal/lib/audit";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Insights do cerimonialista — lista agregada dos eventos da conta.
- * Sem nomes de convidado, sem thumbs. H1 por festa quando o funil existir.
+ * Insights do cerimonialista — resumo agregado por fornecedor no topo (o
+ * gancho de uso recorrente do B2B2C), seguido da lista dos eventos da conta.
+ *
+ * O resumo só aparece para fornecedores em que esta conta é
+ * admin/staff (`vendorsDaConta`, porta sob RLS normal) — conta sem nenhum
+ * `vendor_members` não vê a seção, sem erro. `resumoDoFornecedor` repete a
+ * mesma checagem de pertencimento por dentro antes de cruzar `vendor_id` pela
+ * pool agregadora (defesa em profundidade, mesma disciplina de
+ * `eventosDoFornecedor`).
  */
 export default async function VendorInsightsPage() {
   const token = (await cookies()).get(HOST_COOKIE)?.value;
   const host = await hostFromToken(token);
   if (!host) redirect("/admin/sign-in?next=/admin/vendor/insights");
 
-  const eventos = await listarEventosDoHost(getPool(), host.accountId);
+  const [eventos, vendors] = await Promise.all([
+    listarEventosDoHost(getPool(), host.accountId),
+    vendorsDaConta(getPool(), host.accountId),
+  ]);
+
+  const resumos = await Promise.all(
+    vendors.map(async (vendor) => ({
+      vendor,
+      resumo: await resumoDoFornecedor(
+        getPool(),
+        getAggregatorPool(),
+        host.accountId,
+        vendor.vendorId,
+        auditarAgregacaoDoPortal,
+      ),
+    })),
+  );
 
   return (
     <AdminShell
@@ -31,6 +56,14 @@ export default async function VendorInsightsPage() {
           Para ver detalhes de uma noite específica, clique no evento abaixo.
         </p>
       </AdminSection>
+
+      {resumos.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {resumos.map(({ vendor, resumo }) => (
+            <VendorSummaryCard key={vendor.vendorId} vendorName={vendor.name} resumo={resumo} />
+          ))}
+        </div>
+      )}
 
       {eventos.length === 0 ? (
         <AdminSection>
