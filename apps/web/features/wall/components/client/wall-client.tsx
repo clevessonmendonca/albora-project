@@ -7,6 +7,7 @@ import { useWallDisplay } from "../../lib/use-wall-display";
 import { useWallPairing } from "../../lib/use-wall-pairing";
 import { SHELL, type FaseWall } from "../../lib/types";
 import { WallPairingScreen } from "./wall-pairing-screen";
+import { WallParticipationCounter } from "./wall-participation-counter";
 import { WallStage } from "./wall-stage";
 
 /**
@@ -42,6 +43,7 @@ export function WallClient({ initialVars }: { initialVars: Record<string, string
     alternandoPanico,
     alternarPanico,
     itemDe,
+    contadores,
   } = useWallDisplay(fase, onNaoAutorizado);
 
   if (fase === "pareando") {
@@ -72,6 +74,8 @@ export function WallClient({ initialVars }: { initialVars: Record<string, string
           </div>
         </div>
       )}
+
+      <WallParticipationCounter contadores={contadores} />
 
       <button
         type="button"

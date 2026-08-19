@@ -15,6 +15,9 @@ export type ItemApi = {
 
 export type Cena = { modelo: WallDisplayModel; ids: string[] };
 
+/** O contador público (spec A4) — só fotos publicadas e convidados do evento corrente. */
+export type ContadoresDaParede = { fotos: number; convidados: number };
+
 export type FaseWall = "pareando" | "exibindo";
 
 export const POLL_PAREAMENTO_MS = 3_000;

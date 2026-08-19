@@ -50,7 +50,17 @@ export async function GET(req: Request) {
       );
       const tokens = rows[0]?.identity_tokens ?? {};
       const telaoModelos = wallDisplayRotationModels(tokens.telaoModelos) as WallDisplayModel[];
-      return { moderacao, lista, telaoModelos };
+      // Contagem total do evento (não a janela de rotação de `listarMidiaDaParede`,
+      // que é capada): o total honesto de "N fotos · M pessoas" para a prova
+      // social do telão. Sob `comEvento` a RLS já escopa por evento — o COUNT
+      // não cruza eventos. `::int` para o node-pg devolver número, não string.
+      const { rows: contagem } = await c.query<{ fotos: number; convidados: number }>(
+        `SELECT COUNT(*)::int AS fotos,
+                COUNT(DISTINCT session_id)::int AS convidados
+           FROM uploads WHERE state = 'published'`,
+      );
+      const contadores = contagem[0] ?? { fotos: 0, convidados: 0 };
+      return { moderacao, lista, telaoModelos, contadores };
     });
 
     const expiraEm = Date.now() + GET_TTL_SECONDS * 1000;
@@ -77,6 +87,7 @@ export async function GET(req: Request) {
       expiraEm,
       panico: page.moderacao.panico,
       telaoModelos: page.telaoModelos,
+      contadores: page.contadores,
     });
   } catch (e) {
     return unexpectedError("parede", e);

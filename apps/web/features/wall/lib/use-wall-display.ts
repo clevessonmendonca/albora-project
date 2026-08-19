@@ -12,11 +12,13 @@ import {
 } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { persistedSize } from "@/lib/media-aspect";
+import { paraContadoresDaParede } from "./participation";
 import {
   FOLGA_DE_RENOVACAO_MS,
   POLL_MIDIA_MS,
   ROTACAO_MS,
   type Cena,
+  type ContadoresDaParede,
   type FaseWall,
   type ItemApi,
 } from "./types";
@@ -35,6 +37,7 @@ export function useWallDisplay(
   const [carregou, setCarregou] = useState(false);
   const [panico, setPanico] = useState(false);
   const [alternandoPanico, setAlternandoPanico] = useState(false);
+  const [contadores, setContadores] = useState<ContadoresDaParede | null>(null);
 
   const medir = useCallback((item: ItemApi) => {
     if (dimsRef.current.has(item.id)) return;
@@ -78,9 +81,11 @@ export function useWallDisplay(
       expiraEm: number;
       panico?: boolean;
       telaoModelos?: unknown;
+      contadores?: unknown;
     };
     const agora = Date.now();
     setPanico(corpo.panico === true);
+    setContadores(paraContadoresDaParede(corpo.contadores));
     modelosRef.current = wallDisplayRotationModels(corpo.telaoModelos);
 
     for (const bruto of corpo.itens) {
@@ -213,5 +218,6 @@ export function useWallDisplay(
     alternandoPanico,
     alternarPanico,
     itemDe,
+    contadores,
   };
 }
