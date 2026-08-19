@@ -51,13 +51,23 @@ export async function GET(req: Request) {
         return { ...VAZIO, interacao };
       }
 
-      const itens = await listarFeed(c, {
-        eventoId: auth.session.eventoId,
-        modo: interacao,
-        missaoId: missao,
-        cursor,
-        sessaoId: auth.session.sessaoId,
-      });
+      const itens = await listarFeed(
+        c,
+        interacao === "completo"
+          ? {
+              eventoId: auth.session.eventoId,
+              modo: "completo",
+              missaoId: missao,
+              cursor,
+              sessaoId: auth.session.sessaoId,
+            }
+          : {
+              eventoId: auth.session.eventoId,
+              modo: "espelho",
+              missaoId: missao,
+              cursor,
+            },
+      );
 
       return { ...itens, interacao };
     });

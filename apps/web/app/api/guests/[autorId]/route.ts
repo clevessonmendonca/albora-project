@@ -1,0 +1,86 @@
+import { modoInteracao } from "@albora/core";
+import {
+  comEvento,
+  ErroCursorInvalido,
+  gateDoEvento,
+  listarFeed,
+  perfilDoConvidado,
+} from "@albora/db";
+import {
+  enforceRateLimit,
+  errorResponse,
+  jsonOk,
+  rejectGuestEventQueryMismatch,
+  requireGuestSession,
+  unexpectedError,
+  UUID_RE,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
+
+/**
+ * O perfil de um convidado dentro do evento — nome + fotos publicadas dele.
+ *
+ * Só existe depois do gate: antes disso o feed nem manda `sessaoAutor` para o
+ * cliente, então não há como o convidado ter chegado a este id por um toque
+ * legítimo. Um id forjado antes do gate devolve "não encontrado", igual a um
+ * id de outro evento — a RLS e a regra de bloqueio fazem o resto.
+ */
+export async function GET(req: Request, { params }: { params: Promise<{ autorId: string }> }) {
+  const { autorId } = await params;
+
+  const auth = await requireGuestSession(req);
+  if (auth instanceof Response) return auth;
+
+  const limited = enforceRateLimit(req, auth.session);
+  if (limited) return limited;
+
+  const mismatch = rejectGuestEventQueryMismatch(req, auth.session, "perfil.evento_divergente");
+  if (mismatch) return mismatch;
+
+  if (!UUID_RE.test(autorId)) {
+    return errorResponse(422, "validation_error", "Id inválido", { campos: ["autorId"] });
+  }
+
+  const cursor = new URL(req.url).searchParams.get("cursor");
+
+  try {
+    const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
+      const gate = await gateDoEvento(c, auth.session.eventoId);
+      if (!gate) return null;
+
+      const interacao = modoInteracao(gate, new Date());
+      if (interacao !== "completo") return null;
+
+      const perfil = await perfilDoConvidado(c, {
+        eventoId: auth.session.eventoId,
+        autorId,
+        leitorId: auth.session.sessaoId,
+      });
+      if (!perfil) return null;
+
+      const pagina = await listarFeed(c, {
+        eventoId: auth.session.eventoId,
+        modo: "completo",
+        missaoId: null,
+        cursor,
+        sessaoId: auth.session.sessaoId,
+        autorId,
+      });
+
+      return { nome: perfil.nome, ...pagina };
+    });
+
+    if (!resultado) {
+      return errorResponse(404, "perfil.nao_encontrado", "Perfil não encontrado");
+    }
+
+    return jsonOk(resultado);
+  } catch (e) {
+    if (e instanceof ErroCursorInvalido) {
+      return errorResponse(422, e.code, "Cursor inválido", { campos: ["cursor"] });
+    }
+    return unexpectedError("perfil", e);
+  }
+}

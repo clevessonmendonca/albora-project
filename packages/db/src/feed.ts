@@ -65,14 +65,37 @@ export type PaginaFeed = {
   proximoCursor: string | null;
 };
 
-export type EntradaFeed = {
-  eventoId: string;
-  modo: ModoFeed;
-  missaoId: string | null;
-  cursor: string | null;
-  limite?: number | undefined;
-  sessaoId?: string | undefined;
-};
+/**
+ * União discriminada por `modo`: `sessaoId` é obrigatório sempre que
+ * `modo: "completo"`, porque é ele quem aciona `filtroSemBloqueio` — sem essa
+ * amarra no tipo, `listarFeed({ modo: "completo", autorId: X })` sem
+ * `sessaoId` compilava e listava as fotos de um autor **sem** aplicar
+ * bloqueio simétrico, o cenário mais perigoso de todos (perfil de um
+ * convidado bloqueado, vazado por completo).
+ */
+export type EntradaFeed =
+  | {
+      eventoId: string;
+      modo: "espelho";
+      missaoId: string | null;
+      cursor: string | null;
+      limite?: number;
+    }
+  | {
+      eventoId: string;
+      modo: "completo";
+      missaoId: string | null;
+      cursor: string | null;
+      limite?: number;
+      sessaoId: string;
+      /**
+       * Filtro por dono da foto — o perfil de um convidado (spec do "autor
+       * clicável"). Só existe em `modo: "completo"`: antes do gate o
+       * servidor nem manda `sessaoAutor`, então não existe id de perfil para
+       * filtrar por ele.
+       */
+      autorId?: string;
+    };
 
 type LinhaFeed = {
   id: string;
@@ -141,6 +164,12 @@ export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Pro
     filtros.push(`u.challenge_id = $${parametros.length}`);
   }
 
+  if (entrada.modo === "completo" && entrada.autorId !== undefined) {
+    if (!UUID.test(entrada.autorId)) return { itens: [], proximoCursor: null };
+    parametros.push(entrada.autorId);
+    filtros.push(`u.session_id = $${parametros.length}`);
+  }
+
   if (entrada.cursor !== null) {
     const posicao = decodificarCursor(entrada.cursor);
     parametros.push(posicao.instante, posicao.id);
@@ -183,7 +212,9 @@ export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Pro
   const ultima = pagina[pagina.length - 1];
 
   return {
-    itens: pagina.map((l) => paraItem(l, entrada.modo, entrada.sessaoId)),
+    itens: pagina.map((l) =>
+      paraItem(l, entrada.modo, entrada.modo === "completo" ? entrada.sessaoId : undefined),
+    ),
     proximoCursor: temMais && ultima ? codificarCursor(ultima.created_at_txt, ultima.id) : null,
   };
 }

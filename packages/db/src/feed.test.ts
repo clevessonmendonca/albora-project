@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { bloquearConvidado } from "./block-db";
 import { comEvento } from "./event";
 import { codificarCursor, ErroCursorInvalido, gateDoEvento, listarFeed } from "./feed";
 import { prepararBanco, semear } from "./testes/banco";
@@ -55,19 +56,50 @@ async function criarFoto(entrada: {
   return id;
 }
 
-const feedDe = (
-  d: { eventoId: string },
-  opcoes: Partial<Parameters<typeof listarFeed>[1]> = {},
-) =>
-  comEvento(app, d.eventoId, (c) =>
-    listarFeed(c, {
-      eventoId: d.eventoId,
-      modo: "espelho",
-      missaoId: null,
-      cursor: null,
-      ...opcoes,
-    }),
-  );
+/**
+ * `EntradaFeed` é uma união discriminada por `modo`: `sessaoId` é obrigatório
+ * sempre que `modo: "completo"`. `OpcoesFeed` espelha essa amarra — quem
+ * chamar `feedDe(d, { modo: "completo", ... })` sem `sessaoId` não compila,
+ * o mesmo gap que o tipo de produção fecha.
+ */
+type OpcoesFeed =
+  | {
+      modo?: "espelho";
+      missaoId?: string | null;
+      cursor?: string | null;
+      limite?: number;
+    }
+  | {
+      modo: "completo";
+      missaoId?: string | null;
+      cursor?: string | null;
+      limite?: number;
+      sessaoId: string;
+      autorId?: string;
+    };
+
+const feedDe = (d: { eventoId: string }, opcoes: OpcoesFeed = {}) => {
+  const entrada: Parameters<typeof listarFeed>[1] =
+    opcoes.modo === "completo"
+      ? {
+          eventoId: d.eventoId,
+          modo: "completo",
+          missaoId: opcoes.missaoId ?? null,
+          cursor: opcoes.cursor ?? null,
+          sessaoId: opcoes.sessaoId,
+          ...(opcoes.limite !== undefined ? { limite: opcoes.limite } : {}),
+          ...(opcoes.autorId !== undefined ? { autorId: opcoes.autorId } : {}),
+        }
+      : {
+          eventoId: d.eventoId,
+          modo: "espelho",
+          missaoId: opcoes.missaoId ?? null,
+          cursor: opcoes.cursor ?? null,
+          ...(opcoes.limite !== undefined ? { limite: opcoes.limite } : {}),
+        };
+
+  return comEvento(app, d.eventoId, (c) => listarFeed(c, entrada));
+};
 
 beforeAll(async () => {
   const pools = await prepararBanco();
@@ -240,7 +272,7 @@ describe("gate de interação", () => {
       );
     }
 
-    const pagina = await feedDe(dados.a, { modo: "completo" });
+    const pagina = await feedDe(dados.a, { modo: "completo", sessaoId: dados.a.sessaoId });
     const item = pagina.itens.find((i) => i.id === foto);
 
     expect(item?.reacoes).toBe(2);
@@ -275,7 +307,7 @@ describe("gate de interação", () => {
       [dados.a.eventoId, foto, dados.a.sessaoId],
     );
 
-    const pagina = await feedDe(dados.a, { modo: "espelho", sessaoId: dados.a.sessaoId });
+    const pagina = await feedDe(dados.a, { modo: "espelho" });
     const item = pagina.itens.find((i) => i.id === foto);
 
     expect(item).toBeDefined();
@@ -373,6 +405,109 @@ describe("filtro por missão", () => {
     const pagina = await feedDe(dados.a, { missaoId: missaoA });
 
     expect(pagina.itens.map((i) => i.id)).not.toContain(retirada);
+  });
+});
+
+describe("filtro por autor", () => {
+  it("devolve só as fotos daquela sessão, dentro do mesmo evento", async () => {
+    const { rows: outra } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'outro autor', 'v1', now()) RETURNING id`,
+      [dados.a.eventoId],
+    );
+    const outroAutorId = outra[0]!.id;
+
+    const daOutraSessao = await criarFoto({
+      eventoId: dados.a.eventoId,
+      sessaoId: outroAutorId,
+      criadaEm: "2026-04-01T20:00:00Z",
+    });
+
+    const pagina = await feedDe(dados.a, {
+      modo: "completo",
+      sessaoId: dados.a.sessaoId,
+      autorId: outroAutorId,
+    });
+    const ids = pagina.itens.map((i) => i.id);
+
+    expect(ids).toEqual([daOutraSessao]);
+    expect(ids).not.toContain(dados.a.uploadId);
+  });
+
+  it("id de autor que não é uuid devolve página vazia, não erro", async () => {
+    const pagina = await feedDe(dados.a, {
+      modo: "completo",
+      sessaoId: dados.a.sessaoId,
+      autorId: "nao-e-um-uuid",
+    });
+
+    expect(pagina).toEqual({ itens: [], proximoCursor: null });
+  });
+
+  it("autor de outro evento nunca aparece, mesmo com o id certo", async () => {
+    const pagina = await feedDe(dados.a, {
+      modo: "completo",
+      sessaoId: dados.a.sessaoId,
+      autorId: dados.b.sessaoId,
+    });
+
+    expect(pagina.itens).toEqual([]);
+  });
+
+  it("foto removida do autor filtrado some pela mesma consulta", async () => {
+    const { rows: outra } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'autor com remocao', 'v1', now()) RETURNING id`,
+      [dados.a.eventoId],
+    );
+    const autorId = outra[0]!.id;
+
+    const removida = await criarFoto({
+      eventoId: dados.a.eventoId,
+      sessaoId: autorId,
+      criadaEm: "2026-04-02T20:00:00Z",
+      estado: "removida",
+    });
+
+    const pagina = await feedDe(dados.a, {
+      modo: "completo",
+      sessaoId: dados.a.sessaoId,
+      autorId,
+    });
+
+    expect(pagina.itens.map((i) => i.id)).not.toContain(removida);
+  });
+
+  it("bloqueio simétrico esconde as fotos do autor filtrado — não só o nome do perfil", async () => {
+    const { rows: outra } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'autor bloqueado', 'v1', now()) RETURNING id`,
+      [dados.a.eventoId],
+    );
+    const autorBloqueadoId = outra[0]!.id;
+
+    const daPessoaBloqueada = await criarFoto({
+      eventoId: dados.a.eventoId,
+      sessaoId: autorBloqueadoId,
+      criadaEm: "2026-04-03T20:00:00Z",
+    });
+
+    await comEvento(app, dados.a.eventoId, (c) =>
+      bloquearConvidado(c, {
+        eventoId: dados.a.eventoId,
+        bloqueadorId: dados.a.sessaoId,
+        bloqueadoId: autorBloqueadoId,
+      }),
+    );
+
+    const pagina = await feedDe(dados.a, {
+      modo: "completo",
+      sessaoId: dados.a.sessaoId,
+      autorId: autorBloqueadoId,
+    });
+
+    expect(pagina.itens.map((i) => i.id)).not.toContain(daPessoaBloqueada);
+    expect(pagina.itens).toEqual([]);
   });
 });
 

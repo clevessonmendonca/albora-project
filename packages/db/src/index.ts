@@ -172,6 +172,9 @@ export {
 export type { MidiaMinha } from "./gallery-db";
 export { listarMinhasDoEvento } from "./gallery-db";
 
+export type { PerfilConvidado } from "./guest-profile";
+export { perfilDoConvidado } from "./guest-profile";
+
 export { contarVideosDaSessao, planoDoEvento } from "./plan-db";
 
 export type { HostResolvida, HostSessaoCriada, MagicLinkEmitido } from "./host-auth";
@@ -249,6 +252,9 @@ export { ErroUploadDeOutroEvento as UploadConflictError } from "./uploads";
 
 /** English alias — preferred for new code. @see listarMinhasDoEvento */
 export { listarMinhasDoEvento as listMyMedia } from "./gallery-db";
+
+/** English alias — preferred for new code. @see perfilDoConvidado */
+export { perfilDoConvidado as guestProfile } from "./guest-profile";
 
 /** English alias — preferred for new code. @see denunciar */
 export { denunciar as reportMedia } from "./moderation-db";
