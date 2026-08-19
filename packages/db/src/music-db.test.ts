@@ -180,3 +180,40 @@ describe("titulo e artista da sugestao", () => {
     expect(votos(alvo!)).toBe(2);
   });
 });
+
+describe("id da faixa — o que a story referencia em music_track_id", () => {
+  it("o id é o da linha de music_suggestions que chegou primeiro, não muda com o segundo voto", async () => {
+    const faixaId = faixa("https://open.spotify.com/track/2374M0fQpWi3dLnB54qaLX");
+
+    await comEvento(app, dados.a.eventoId, (c) =>
+      adicionarSugestao(c, { eventoId: dados.a.eventoId, sessaoId: dados.a.sessaoId, link: faixaId }),
+    );
+
+    const { rows } = await admin.query<{ id: string }>(
+      "SELECT id FROM music_suggestions WHERE event_id = $1 AND identifier = $2",
+      [dados.a.eventoId, faixaId.identificador],
+    );
+    const idDaPrimeira = rows[0]!.id;
+
+    const filaAntes = await comEvento(app, dados.a.eventoId, (c) => listarSugestoes(c, dados.a.eventoId));
+    expect(filaAntes.find((f) => f.link.identificador === faixaId.identificador)?.id).toBe(idDaPrimeira);
+
+    const { rows: segundaSessao } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'convidada-tres', 'v1', now()) RETURNING id`,
+      [dados.a.eventoId],
+    );
+    await comEvento(app, dados.a.eventoId, (c) =>
+      adicionarSugestao(c, {
+        eventoId: dados.a.eventoId,
+        sessaoId: segundaSessao[0]!.id,
+        link: faixaId,
+      }),
+    );
+
+    const filaDepois = await comEvento(app, dados.a.eventoId, (c) => listarSugestoes(c, dados.a.eventoId));
+    const alvo = filaDepois.find((f) => f.link.identificador === faixaId.identificador);
+    expect(alvo?.id).toBe(idDaPrimeira);
+    expect(votos(alvo!)).toBe(2);
+  });
+});

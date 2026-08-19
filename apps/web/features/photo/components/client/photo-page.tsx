@@ -183,15 +183,17 @@ export function PhotoPage({
     arquivo: File,
     filtro: FiltroAplicado | undefined,
     texto: TextoComposto | undefined,
+    musicTrackId: string | undefined,
   ) {
-    // O composer marca a foto como story quando o convidado escreveu algo
-    // (spec 020, sub-etapa a) — a única ferramenta do composer até a
-    // sub-etapa b (música) chegar.
+    // O composer marca a foto como story quando o convidado escreveu algo ou
+    // anexou uma faixa pelo sticker de música (spec 020, sub-etapas a e b) —
+    // as duas ferramentas do composer até a sub-etapa c chegar.
     const r = await enfileirarFoto({
       arquivo,
       filtro,
       texto,
-      story: !!texto,
+      story: !!texto || !!musicTrackId,
+      musicTrackId,
       desafioId: escolhida,
       promptKey,
     });
@@ -214,7 +216,9 @@ export function PhotoPage({
       <Editor
         arquivo={etapa.arquivo}
         recomendadoId={recommendedFilter}
-        onEnviar={(filtro, texto) => void enviar(etapa.arquivo, filtro, texto)}
+        onEnviar={(filtro, texto, musicTrackId) =>
+          void enviar(etapa.arquivo, filtro, texto, musicTrackId)
+        }
         onDescartar={() => setEtapa({ nome: "camera" })}
         missao={
           chosenMission

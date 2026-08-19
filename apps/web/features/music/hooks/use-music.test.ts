@@ -11,6 +11,7 @@ import {
 } from "./use-music";
 
 const suggestion = (partial: Partial<VisibleSuggestion> = {}): VisibleSuggestion => ({
+  id: "00000000-0000-0000-0000-000000000001",
   provedor: "spotify",
   tipo: "faixa",
   url: "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT",

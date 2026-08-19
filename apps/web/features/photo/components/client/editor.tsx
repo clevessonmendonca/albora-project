@@ -12,6 +12,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EditorCanvas } from "./editor-canvas";
 import { EditorControls, EditorHeader, EditorStyles } from "./editor-controls";
+import { faixasVotadas, type FaixaVotada } from "./editor-musica";
 import { comConteudo, textoTemConteudo } from "./editor-texto";
 import { carregarImagemEditor, type Escolha } from "./editor-lut";
 
@@ -30,7 +31,7 @@ export type { Escolha };
  * prévia para fora — e é a prévia que decide a escolha.
  */
 
-type Aba = "filtros" | "ajustes" | "texto";
+type Aba = "filtros" | "ajustes" | "texto" | "musica";
 
 export function Editor({
   arquivo,
@@ -41,7 +42,11 @@ export function Editor({
 }: {
   arquivo: File;
   recomendadoId: string | null;
-  onEnviar: (filtro: FiltroAplicado | undefined, texto: TextoComposto | undefined) => void;
+  onEnviar: (
+    filtro: FiltroAplicado | undefined,
+    texto: TextoComposto | undefined,
+    musicTrackId: string | undefined,
+  ) => void;
   onDescartar: () => void;
   missao?: { indice: number; total: number; title: string } | null;
 }) {
@@ -54,8 +59,31 @@ export function Editor({
   const [degradar, setDegradar] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [texto, setTexto] = useState<TextoComposto | null>(null);
+  const [musicas, setMusicas] = useState<FaixaVotada[]>([]);
+  const [musicaId, setMusicaId] = useState<string | null>(null);
 
   const presets = useMemo(() => ordenarComRecomendado(recomendadoId), [recomendadoId]);
+
+  useEffect(() => {
+    let vivo = true;
+
+    void (async () => {
+      try {
+        const res = await fetch("/api/music", { credentials: "same-origin" });
+        if (!res.ok) return;
+        const corpo = (await res.json()) as { sugestoes?: unknown };
+        if (!vivo) return;
+        setMusicas(faixasVotadas(corpo.sugestoes));
+      } catch {
+        // Degrada: o sticker de música é enriquecimento do composer, e sem
+        // lista o convidado ainda edita e envia a foto normalmente.
+      }
+    })();
+
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   useEffect(() => {
     let vivo = true;
@@ -84,8 +112,9 @@ export function Editor({
   function enviar() {
     const manuais = saoNeutros(ajustes) ? null : ajustes;
     const textoFinal = textoTemConteudo(texto) ? texto : undefined;
+    const musicaFinal = musicaId ?? undefined;
 
-    if (!escolhido && !manuais) return onEnviar(undefined, textoFinal);
+    if (!escolhido && !manuais) return onEnviar(undefined, textoFinal, musicaFinal);
 
     onEnviar(
       {
@@ -95,6 +124,7 @@ export function Editor({
         ...(manuais ? { manuais } : {}),
       },
       textoFinal,
+      musicaFinal,
     );
   }
 
@@ -137,6 +167,9 @@ export function Editor({
         texto={texto}
         onTexto={(conteudo) => setTexto((t) => comConteudo(t, conteudo))}
         onRemoverTexto={() => setTexto(null)}
+        musicas={musicas}
+        musicaId={musicaId}
+        onMusica={setMusicaId}
         onEnviar={enviar}
       />
     </div>

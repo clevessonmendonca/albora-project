@@ -2,10 +2,11 @@
 
 import { AJUSTES_NEUTROS, saoNeutros, type AjustesManuais, type Preset, type TextoComposto } from "@albora/core";
 import type { Dispatch, SetStateAction } from "react";
+import type { FaixaVotada } from "./editor-musica";
 import { LIMITE_TEXTO } from "./editor-texto";
 import { PASSOS_BIPOLAR, PASSOS_UNIPOLAR, SEM_FILTRO } from "./editor-lut";
 
-type Aba = "filtros" | "ajustes" | "texto";
+type Aba = "filtros" | "ajustes" | "texto" | "musica";
 
 export function EditorStyles() {
   return <style>{ESTILO}</style>;
@@ -50,6 +51,9 @@ export function EditorControls({
   texto,
   onTexto,
   onRemoverTexto,
+  musicas,
+  musicaId,
+  onMusica,
   onEnviar,
 }: {
   aba: Aba;
@@ -68,6 +72,10 @@ export function EditorControls({
   texto: TextoComposto | null;
   onTexto: (conteudo: string) => void;
   onRemoverTexto: () => void;
+  /** As faixas votadas para o sticker de música (spec 020, sub-etapa b). */
+  musicas: readonly FaixaVotada[];
+  musicaId: string | null;
+  onMusica: (id: string | null) => void;
   onEnviar: () => void;
 }) {
   const podeZerar = !saoNeutros(ajustes);
@@ -80,6 +88,7 @@ export function EditorControls({
           <ButtonAba rotulo="Filtros" ativa={aba === "filtros"} onClick={() => onAba("filtros")} />
           <ButtonAba rotulo="Ajustes" ativa={aba === "ajustes"} onClick={() => onAba("ajustes")} />
           <ButtonAba rotulo="Texto" ativa={aba === "texto"} onClick={() => onAba("texto")} />
+          <ButtonAba rotulo="Música" ativa={aba === "musica"} onClick={() => onAba("musica")} />
         </div>
         {podeZerar && aba === "ajustes" ? (
           <button
@@ -188,10 +197,57 @@ export function EditorControls({
         </div>
       )}
 
+      {aba === "musica" && <PainelMusica musicas={musicas} musicaId={musicaId} onMusica={onMusica} />}
+
       <button className="ed-primario" onClick={onEnviar} disabled={!previaPronta}>
         Enviar
       </button>
     </footer>
+  );
+}
+
+/**
+ * O sticker de música (spec 020, sub-etapa b): lista as faixas já votadas
+ * pelos convidados (`music-db`, mesma fila de `/api/music`) e deixa
+ * escolher uma para anexar à story. Tocar na já escolhida desmarca — não é
+ * um segundo toggle "postar como story" (essa decisão continua sendo
+ * "escreveu algo ou escolheu música", como já documentado em `photo-page`).
+ */
+function PainelMusica({
+  musicas,
+  musicaId,
+  onMusica,
+}: {
+  musicas: readonly FaixaVotada[];
+  musicaId: string | null;
+  onMusica: (id: string | null) => void;
+}) {
+  if (musicas.length === 0) {
+    return (
+      <p className="m-0 text-[0.82rem] leading-[1.5] text-ink-3">
+        Nenhuma música votada ainda. Peça para alguém sugerir uma na aba de música do evento.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="ed-musica-lista m-0 grid list-none gap-2 overflow-y-auto p-0">
+      {musicas.map((m) => {
+        const ativa = musicaId === m.id;
+        return (
+          <li key={m.id}>
+            <button
+              type="button"
+              className={`ed-musica-item ${ativa ? "ativo" : ""}`}
+              aria-pressed={ativa}
+              onClick={() => onMusica(ativa ? null : m.id)}
+            >
+              {m.rotulo}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -402,6 +458,30 @@ const ESTILO = `
     text-overflow: ellipsis;
   }
 
+  .ed-musica-lista {
+    max-height: 9.5rem;
+  }
+
+  .ed-musica-item {
+    font: inherit;
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--linha);
+    border-radius: var(--raio);
+    background: none;
+    text-align: left;
+    font-size: 0.85rem;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: border-color var(--tempo-rapido) var(--curva), color var(--tempo-rapido) var(--curva);
+  }
+  .ed-musica-item.ativo {
+    border-color: var(--acento);
+    color: var(--ink);
+  }
+
   .ed-primario {
     font: inherit;
     font-size: 0.97rem;
@@ -440,6 +520,7 @@ const ESTILO = `
   .ed-aba:focus-visible,
   .ed-reset:focus-visible,
   .ed-chip:focus-visible,
+  .ed-musica-item:focus-visible,
   .ed-primario:focus-visible {
     outline: 1px solid var(--acento);
     outline-offset: 5px;
@@ -525,7 +606,7 @@ const ESTILO = `
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ed-texto, .ed-aba, .ed-mini, .ed-primario, .ed-chip { transition: none; }
+    .ed-texto, .ed-aba, .ed-mini, .ed-primario, .ed-chip, .ed-musica-item { transition: none; }
     .ed-primario:active:not(:disabled), .ed-chip:active { transform: none; opacity: 1; }
   }
 `;

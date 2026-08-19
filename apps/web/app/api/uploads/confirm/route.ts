@@ -38,6 +38,7 @@ type Corpo = {
   largura?: unknown;
   altura?: unknown;
   story?: unknown;
+  musicTrackId?: unknown;
 };
 
 export async function POST(req: Request) {
@@ -68,6 +69,7 @@ export async function POST(req: Request) {
     largura,
     altura,
     story,
+    musicTrackId,
   } = parsed.data;
   if (typeof uploadId !== "string" || typeof chave !== "string" || typeof mime !== "string") {
     return errorResponse(422, "validation_error", "Dados incompletos", {
@@ -153,6 +155,7 @@ export async function POST(req: Request) {
             eventoId: auth.session.eventoId,
             sessaoId: auth.session.sessaoId,
             uploadId,
+            musicTrackId: typeof musicTrackId === "string" ? musicTrackId : null,
           });
           await c.query("RELEASE SAVEPOINT marcar_story");
         } catch {

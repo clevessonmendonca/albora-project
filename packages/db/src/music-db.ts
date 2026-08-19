@@ -49,7 +49,7 @@ type LinhaMusica = {
   cover_url: string | null;
 };
 
-function linkDaLinha(l: {
+export function linkDaLinha(l: {
   provider: string;
   content_type: string;
   identifier: string;
@@ -180,6 +180,7 @@ export async function adicionarSugestao(
 }
 
 type LinhaSugestao = {
+  id: string;
   provider: string;
   content_type: string;
   identifier: string;
@@ -191,7 +192,7 @@ type LinhaSugestao = {
   primeiro_ms: string;
 };
 
-function metadadoDaSugestao(l: { title: string | null; artist: string | null }): MetadadoDaMusica | null {
+export function metadadoDaSugestao(l: { title: string | null; artist: string | null }): MetadadoDaMusica | null {
   if (l.title === null || l.title.trim() === "") return null;
   return { titulo: l.title, artista: l.artist, capaUrl: null };
 }
@@ -210,7 +211,7 @@ export async function listarSugestoes(
   eventoId: string,
 ): Promise<FaixaSugerida[]> {
   const { rows } = await cliente.query<LinhaSugestao>(
-    `SELECT provider, content_type, identifier, region, url, title, artist, session_id,
+    `SELECT id, provider, content_type, identifier, region, url, title, artist, session_id,
             (extract(epoch from created_at) * 1000)::bigint AS primeiro_ms
        FROM music_suggestions
       WHERE event_id = $1
@@ -226,6 +227,7 @@ export async function listarSugestoes(
       sessoes: string[];
       primeiroEm: number;
       metadado: MetadadoDaMusica | null;
+      id: string;
     }
   >();
 
@@ -236,12 +238,16 @@ export async function listarSugestoes(
     const metadado = metadadoDaSugestao(l);
 
     if (existente === undefined) {
+      // A primeira linha a chegar pra esta faixa fixa `id` junto com
+      // `primeiroEm` — o mesmo desempate estável, e o `id` que `criarStory`
+      // valida quando a story anexa esta faixa.
       porChave.set(chave, {
         chave,
         link,
         sessoes: [l.session_id],
         primeiroEm: Number(l.primeiro_ms),
         metadado,
+        id: l.id,
       });
     } else {
       if (!existente.sessoes.includes(l.session_id)) {

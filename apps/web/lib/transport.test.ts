@@ -83,6 +83,34 @@ describe("webTransport", () => {
     expect(corpo.altura).toBe(1920);
   });
 
+  it("confirmar reenvia o musicTrackId do sticker de música quando o item tem", async () => {
+    await webTransport.confirm(
+      { ...itemBlob, story: true, musicTrackId: "33333333-3333-3333-3333-333333333333" },
+      { uploadId: itemBlob.id, chave: "events/e/full", full: "u", thumb: "t", expiraEm: 1 },
+    );
+
+    const [, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    const corpo = JSON.parse(String(init.body)) as { story?: boolean; musicTrackId?: string };
+
+    expect(corpo.story).toBe(true);
+    expect(corpo.musicTrackId).toBe("33333333-3333-3333-3333-333333333333");
+  });
+
+  it("sem sticker de música, o campo não aparece no corpo", async () => {
+    await webTransport.confirm(itemBlob, {
+      uploadId: itemBlob.id,
+      chave: "events/e/full",
+      full: "u",
+      thumb: "t",
+      expiraEm: 1,
+    });
+
+    const [, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    const corpo = JSON.parse(String(init.body)) as Record<string, unknown>;
+
+    expect("musicTrackId" in corpo).toBe(false);
+  });
+
   it("confirmar marca parede de EXIF para o servidor aplicar o fuso do evento", async () => {
     await webTransport.confirm(
       {

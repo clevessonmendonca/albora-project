@@ -56,12 +56,14 @@ function readSuggestions(value: unknown): VisibleSuggestion[] {
     if (
       item &&
       typeof item === "object" &&
+      typeof item.id === "string" &&
       typeof item.provedor === "string" &&
       typeof item.tipo === "string" &&
       typeof item.url === "string" &&
       typeof item.votos === "number"
     ) {
       out.push({
+        id: item.id,
         provedor: item.provedor,
         tipo: item.tipo,
         url: item.url,

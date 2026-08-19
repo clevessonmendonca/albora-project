@@ -80,6 +80,13 @@ export type FaixaSugerida = {
   sessoes: readonly string[];
   primeiroEm: number;
   metadado?: MetadadoDaMusica | null;
+  /**
+   * O `id` da linha de `music_suggestions` que fixou `primeiroEm` — presente
+   * quando a fila vem da persistência (`listarSugestoes`), ausente na
+   * reconstrução em memória de `registrarSugestao` (que não conhece o banco).
+   * É o que a story referencia em `music_track_id`.
+   */
+  id?: string;
 };
 
 export type ResultadoDaSugestao =

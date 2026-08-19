@@ -18,15 +18,17 @@ function faixa(id: string, sessoes: readonly string[]): FaixaSugerida {
     link: link(id),
     sessoes,
     primeiroEm: 1,
+    id: `id-${id}`,
   };
 }
 
 describe("queueForScreen", () => {
-  it("expõe provedor, tipo, url e votos, nunca a sessão", () => {
+  it("expõe id, provedor, tipo, url e votos, nunca a sessão", () => {
     const tela = queueForScreen([faixa("4cOdK2wGLETKBW3PvgPWqT", ["ses_1", "ses_2", "ses_3"])]);
 
     expect(tela).toEqual([
       {
+        id: "id-4cOdK2wGLETKBW3PvgPWqT",
         provedor: "spotify",
         tipo: "faixa",
         url: "https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT",
@@ -36,6 +38,17 @@ describe("queueForScreen", () => {
       },
     ]);
     expect(JSON.stringify(tela)).not.toContain("ses_");
+  });
+
+  it("sem id (fila reconstruída em memória), cai no fallback da chave", () => {
+    const semId: FaixaSugerida = {
+      chave: "spotify:faixa:xyz",
+      link: link("xyz"),
+      sessoes: ["ses_1"],
+      primeiroEm: 1,
+    };
+
+    expect(queueForScreen([semId])[0]?.id).toBe("spotify:faixa:xyz");
   });
 
   it("preserva a ordem que o núcleo já ordenou", () => {

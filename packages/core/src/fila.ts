@@ -63,6 +63,13 @@ export type QueueItem = QueueDetails & {
    * story: o campo só precisa sobreviver ao retry offline até esse ponto.
    */
   story?: boolean;
+  /**
+   * O `id` da faixa votada que o sticker de música anexou à story (spec 020,
+   * sub-etapa b) — mesma lógica de `story`: decidido na captura, mora aqui
+   * para sobreviver ao retry, e quem grava é o confirm. Sem `story: true`
+   * este campo não tem efeito — música é um atributo da story, não da foto.
+   */
+  musicTrackId?: string | null;
 };
 
 export interface Queue {

@@ -75,6 +75,7 @@ export const webTransport: Transport = {
         legenda: item.legenda ?? null,
         lugar: item.lugar ?? null,
         ...(item.story ? { story: true } : {}),
+        ...(item.musicTrackId ? { musicTrackId: item.musicTrackId } : {}),
         ...(typeof item.capturadaEm === "number"
           ? {
               capturadaEm: new Date(item.capturadaEm).toISOString(),

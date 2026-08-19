@@ -175,7 +175,7 @@ export {
 export type { MidiaMinha } from "./gallery-db";
 export { listarMinhasDoEvento } from "./gallery-db";
 
-export type { StoryAtiva } from "./story-db";
+export type { FaixaDaStory, StoryAtiva } from "./story-db";
 export { criarStory, storiesAtivasDoEvento } from "./story-db";
 
 export type { PerfilConvidado } from "./guest-profile";

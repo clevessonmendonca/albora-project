@@ -75,6 +75,8 @@ export type PedidoEnvio = {
   promptKey?: string | null | undefined;
   /** Marca a foto como story do composer (spec 020, sub-etapa a). */
   story?: boolean | undefined;
+  /** A faixa votada anexada pelo sticker de música (spec 020, sub-etapa b). */
+  musicTrackId?: string | null | undefined;
 };
 
 export function useUpload(
@@ -112,7 +114,7 @@ export function useUpload(
    * O `id` devolvido é o que a tela de detalhes usa para anotar depois.
    */
   const enfileirarFoto = useCallback(
-    async ({ arquivo, filtro, texto, desafioId, promptKey, story }: PedidoEnvio) => {
+    async ({ arquivo, filtro, texto, desafioId, promptKey, story, musicTrackId }: PedidoEnvio) => {
       setEstado((e) => ({ ...e, processando: true, ultimoErro: null }));
 
       const recusar = (mensagem: string) => {
@@ -199,6 +201,7 @@ export function useUpload(
           desafioId: desafioId ?? null,
           promptKey: promptKey ?? null,
           ...(story ? { story: true } : {}),
+          ...(musicTrackId ? { musicTrackId } : {}),
           ...metaDaCaptura(foto.capturadaEm, arquivo.lastModified, foto.largura, foto.altura),
         });
 
