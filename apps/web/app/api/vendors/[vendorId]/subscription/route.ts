@@ -1,6 +1,7 @@
 import {
   asaasCustomerIdForAccount,
   createVendorSubscription,
+  ehAssinaturaDuplicada,
   roleForAccountOnVendor,
   upsertBillingCustomer,
   type VendorPlan,
@@ -168,6 +169,18 @@ export async function POST(
       stub: billing.mode === "stub",
     });
   } catch (e) {
+    // Rede de segurança do índice único parcial (migration 0043): a checagem
+    // acima (hasPendingOrActiveVendorSubscription) reduz a corrida, mas não a
+    // fecha — duas chamadas concorrentes podem passar pelo mesmo SELECT antes
+    // de qualquer INSERT confirmar. O banco recusa a segunda; aqui isso vira
+    // o mesmo 409 amigável, não um 500.
+    if (ehAssinaturaDuplicada(e)) {
+      return errorResponse(
+        409,
+        "vendor.assinatura_ja_existe",
+        "Já há uma assinatura ativa ou aguardando confirmação",
+      );
+    }
     return unexpectedError("vendor_billing.subscription", e);
   }
 }

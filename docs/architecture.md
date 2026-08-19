@@ -412,12 +412,18 @@ O telão e a moldura de compartilhar (Stories) consomem o **mesmo resolvedor de 
 ## 11. Ciclo de vida do armazenamento
 
 ```
-Dia 0–330   armazenamento padrão
-Dia 330     job de export para a nuvem do próprio casal + e-mail de aviso
-Dia 365     delete
+Fim do evento (T)
+T + 48h     aviso — a fila do convidado ainda está drenando
+T + 330d    nudge — convite pra exportar pro Google Drive do casal, self-serve
+T + 358d    aviso final — contagem regressiva real até o dia 365
+T + 365d
+  + 60min   delete — só se houve export `pronto` cobrindo o acervo publicado
+            inteiro (gate reforçado); skip nunca é silencioso
 ```
 
 A nuvem do casal **é** a política de retenção: o casal fica com as memórias para sempre, o custo de retenção vai a zero, e ninguém fica bravo. Assinatura mensal para guardar foto de casamento é sequestro emocional — tem churn certo e gera review furioso.
+
+O destino é o **Google Drive do casal**, conectado via OAuth por `event_id` (não por conta — um evento, uma pasta, um refresh token), escopo mínimo `drive.file`, iniciado self-serve a qualquer momento depois do fim do evento. O refresh token nunca fica em texto puro: `DriveTokenVault` (`@albora/core`, interface; `VaultDeTokenDrive` em `@albora/db`, AES-256-GCM) sela antes de gravar em `drive_connections`. O gate do D365 (`mayDeleteAtD365`, `@albora/core`) exige export `pronto` **e** `publishedSnapshot` igual ao publicado agora — um export antigo ou parcial nunca libera a deleção, que roda com `pg_advisory_xact_lock` por evento e folga de 60min (`podeProcessarAgora`) para nunca antecipar. Detalhe completo: `.superpowers/sdd/2026-08-17-convidado-social-moderno/spec-drive-export-retencao.md`.
 
 ---
 
@@ -535,14 +541,16 @@ Este documento é a fonte da verdade de **fronteiras**, e uma fronteira vale ant
 | Funil | §12 | `funnel_events` + `guest_sessions.via` + painel em `/admin/e/[id]/guests` |
 | Peças SVG/PDF | wizard e painel | Download no admin; placa A4 traz até 6 missões do editor (N1.6); falta prova impressa com 3 celulares |
 | Recado, música, missões, álbum, share Stories | features correspondentes | No ar. App Expo ainda não |
-| Baixar tudo (anfitrião) | spec 016 | Job + reauth por e-mail; ZIP autenticado em stream. Export para Drive continua fora |
+| Baixar tudo (anfitrião) | spec 016 | Job + reauth por e-mail; ZIP autenticado em stream |
+| Export para o Drive + retenção D330/D358/D365 | spec drive-export | OAuth (`drive.file`), vault do refresh token, gate reforçado (`mayDeleteAtD365`), runner real (`tools/jobs/retention.mjs`). Export síncrono (sem fila) — evento grande de verdade precisa do encadeamento por Cloudflare Queues (§16, ainda não construído) |
 
 ### Ainda não construído (bloqueia o 1º evento real ou é Fase B/C)
 
 | Peça | Onde é descrita | Estado |
 |---|---|---|
 | Prova das peças impressas | spec 009, roadmap A1 | Código gera SVG/PDF; ninguém mediu QR em papel com 3 celulares |
-| Retenção por job (D330/D365) | §11 | Não construído |
+| Verificação OAuth do Google (Testing → Production) | spec drive-export §1.4/§10, risco 1 | Bloqueante antes do 1º evento real que use o Drive: em "Testing" o refresh token expira em 7 dias |
+| Encadeamento do export do Drive por fila (Cloudflare Queues) | spec drive-export §7/§9, fase 5 | Export roda síncrono, um request só — vale para eventos pequenos de teste; 1.000+ fotos precisa do consumer da fila (ADR 0006) |
 | App nativo Expo | ADR 0008–0010, spec 017 | `apps/mobile` é stub |
 | Classificador com modelo de ML | §9 | Heurística de magic bytes. O **gate** (silêncio → `sem-resposta` → parede segura) já é o produto |
 | Produção (Workers + R2 + Neon + Resend) | ADR 0006, roadmap A5 | Roda em localhost |
@@ -577,3 +585,4 @@ Uma consequência operacional que vale registrar: **Service Worker, Background S
 | 2026-08-15 | Revisão contra o código da PR #2. **Correções:** `expected_guests` existe (migration 0020), não “entra com o admin”; telão é poll de `GET /api/wall`, não SSE; PUT da thumb e `identity_tokens` do banco estão no caminho; classificador fail-closed na parede; dois packs no catálogo. **Acrescentado:** `via` na sessão, recado, música, comentários, mapa de rotas no índice. Áudio do recado: presign R2 em `events/{id}/recado/...`, leitura assinada no GET do convidado. Baixar tudo do anfitrião: `export_jobs` + step-up, ZIP em stream. |
 | 2026-08-15 | `events.timezone` IANA (migration 0026). Default `America/Sao_Paulo`; ancora `taken_at`, capítulos do álbum e a faixa 5h–7h. |
 | 2026-08-16 | Pedido “sou eu nessa foto” (`reports.kind`): entra na fila, não segura o telão, anfitrião decide. Sem reconhecimento facial. |
+| 2026-08-19 | Export para o Google Drive do casal + retenção D330/D358/D365 real (§11). OAuth por `event_id` (`drive.file`), `DriveTokenVault` (AES-256-GCM), gate do D365 reforçado por cobertura de export (`mayDeleteAtD365`), grace window + lock por evento no runner. Export para o Drive ainda roda síncrono (sem fila) — §16 ganha os dois itens que faltam antes de escala: verificação OAuth do Google e o encadeamento por Cloudflare Queues. |

@@ -1,4 +1,4 @@
-import { ACAO_EXPORT_ACERVO, midiaExportavel, TETO_DO_EXPORT } from "@albora/core";
+import { ACAO_EXPORT_ACERVO, midiaExportavel, TETO_DO_EXPORT, type EstadoDoExport } from "@albora/core";
 import type { Pool, PoolClient } from "pg";
 import { comConta, comEvento } from "./event";
 import { emitirToken, hashDoToken, assinaturaValida } from "./token";
@@ -11,14 +11,23 @@ export type ItemDoExport = {
   chave: string;
   mime: string;
   bytes: number;
+  /** Só quando `destino === 'drive'` — ausente até o upload confirmar (spec §3.2). */
+  driveFileId?: string;
+  uploadedAt?: string;
 };
 
 export type JobExport = {
   id: string;
   eventId: string;
   accountId: string;
-  estado: "pronto" | "vazio" | "falhou";
+  estado: EstadoDoExport;
   modo: "full" | "curated";
+  destino: "zip" | "drive";
+  driveFolderId: string | null;
+  bytesTotal: number;
+  bytesEnviados: number;
+  /** COUNT(*) de `uploads` published no instante em que o job nasceu — o que o gate do D365 usa para confirmar cobertura (packages/core/src/retention.ts). */
+  publishedSnapshot: number;
   fotos: number;
   itens: ItemDoExport[];
   criadoEm: Date;
@@ -31,8 +40,13 @@ type LinhaJob = {
   id: string;
   event_id: string;
   account_id: string;
-  state: "pronto" | "vazio" | "falhou";
+  state: EstadoDoExport;
   mode: "full" | "curated" | null;
+  destination: "zip" | "drive";
+  drive_folder_id: string | null;
+  bytes_total: string | number;
+  bytes_uploaded: string | number;
+  published_snapshot: number | null;
   photo_count: number;
   items: ItemDoExport[];
   created_at: Date;
@@ -57,11 +71,12 @@ export async function emitirStepUp(
   segredo: string,
   accountId: string,
   expiraEm: Date,
+  acao: string = ACAO_EXPORT_ACERVO,
 ): Promise<{ token: string }> {
   const { token, hash } = emitirToken(segredo);
   await pool.query(
     "INSERT INTO host_step_up (token_hash, account_id, action, expires_at) VALUES ($1, $2, $3, $4)",
-    [hash, accountId, ACAO_EXPORT_ACERVO, expiraEm],
+    [hash, accountId, acao, expiraEm],
   );
   return { token };
 }
@@ -69,6 +84,9 @@ export async function emitirStepUp(
 /**
  * Consome o step-up. Atômico: dois cliques no mesmo link só passam uma vez.
  * A conta do token tem de ser a da sessão — senão é o token de outro anfitrião.
+ * `acao` distingue o segundo fator do ZIP (`ACAO_EXPORT_ACERVO`) do de
+ * conectar o Drive (`ACAO_DRIVE_CONNECT`, spec drive-export §1.3) — um token
+ * emitido para uma ação nunca serve para a outra.
  */
 export async function consumirStepUp(
   pool: Pool,
@@ -76,6 +94,7 @@ export async function consumirStepUp(
   token: string,
   accountId: string,
   agora: Date,
+  acao: string = ACAO_EXPORT_ACERVO,
 ): Promise<void> {
   if (!assinaturaValida(segredo, token)) throw new ErroMagicLinkInvalido("assinatura");
 
@@ -84,7 +103,7 @@ export async function consumirStepUp(
     `UPDATE host_step_up SET used_at = $2
       WHERE token_hash = $1 AND account_id = $4 AND used_at IS NULL AND expires_at > $2 AND action = $3
       RETURNING account_id`,
-    [hash, agora, ACAO_EXPORT_ACERVO, accountId],
+    [hash, agora, acao, accountId],
   );
 
   if (rows[0]) return;
@@ -122,17 +141,163 @@ export async function criarJobExport(
     const itens = opts?.curated && opts.curatedIds
       ? await listarItensFiltrados(c, eventoId, opts.curatedIds)
       : await listarItensPublicados(c, eventoId);
-    const estado = itens.length === 0 ? "vazio" : "pronto";
+    const estado: EstadoDoExport = itens.length === 0 ? "vazio" : "pronto";
     const agora = new Date();
 
     const { rows } = await c.query<LinhaJob>(
-      `INSERT INTO export_jobs (event_id, account_id, state, mode, photo_count, items, ready_at)
-       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
-       RETURNING id, event_id, account_id, state, mode, photo_count, items, created_at, ready_at`,
-      [eventoId, accountId, estado, modo, itens.length, JSON.stringify(itens), agora],
+      `INSERT INTO export_jobs (event_id, account_id, state, mode, destination, published_snapshot, photo_count, items, ready_at)
+       VALUES ($1, $2, $3, $4, 'zip', $5, $6, $7::jsonb, $8)
+       RETURNING id, event_id, account_id, state, mode, destination, drive_folder_id, bytes_total, bytes_uploaded, published_snapshot, photo_count, items, created_at, ready_at`,
+      [eventoId, accountId, estado, modo, itens.length, itens.length, JSON.stringify(itens), agora],
     );
 
     return deLinha(rows[0]!);
+  });
+}
+
+/**
+ * O export para o Drive do casal (spec drive-export §4/§7) — sempre
+ * `mode='full'` (o Drive é a cópia completa, não o álbum curado) e nasce
+ * `enviando`: o upload em si acontece depois, item a item, em
+ * `avancarExportDrive` — nunca bloqueia esta chamada.
+ *
+ * `driveFolderId` já veio de `files.create` (a pasta nasce vazia antes desta
+ * chamada) — esta função só grava o job, nunca fala com o Drive.
+ */
+export async function criarJobExportDrive(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+  driveFolderId: string,
+): Promise<JobExport | null> {
+  const pertence = await comConta(pool, accountId, async (c) => {
+    const { rowCount } = await c.query("SELECT 1 FROM events WHERE id = $1", [eventoId]);
+    return (rowCount ?? 0) > 0;
+  });
+  if (!pertence) return null;
+
+  return comEvento(pool, eventoId, async (c) => {
+    await c.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`export:${eventoId}`]);
+    const itens = await listarItensPublicados(c, eventoId);
+    const bytesTotal = itens.reduce((soma, i) => soma + i.bytes, 0);
+    const estado: EstadoDoExport = itens.length === 0 ? "vazio" : "enviando";
+    const agora = new Date();
+
+    const { rows } = await c.query<LinhaJob>(
+      `INSERT INTO export_jobs
+         (event_id, account_id, state, mode, destination, drive_folder_id, bytes_total, published_snapshot, photo_count, items, ready_at)
+       VALUES ($1, $2, $3, 'full', 'drive', $4, $5, $6, $7, $8::jsonb, $9)
+       RETURNING id, event_id, account_id, state, mode, destination, drive_folder_id, bytes_total, bytes_uploaded, published_snapshot, photo_count, items, created_at, ready_at`,
+      [
+        eventoId,
+        accountId,
+        estado,
+        driveFolderId,
+        bytesTotal,
+        itens.length,
+        itens.length,
+        JSON.stringify(itens),
+        estado === "vazio" ? agora : null,
+      ],
+    );
+
+    return deLinha(rows[0]!);
+  });
+}
+
+/**
+ * Progresso por item (spec §3.2/§7) — um objeto por vez, nunca o lote
+ * inteiro de uma vez: uma falha no meio não perde o que já subiu. Marca
+ * `pronto`/`parcial` quando não sobra nenhum item sem `uploadedAt`
+ * (`falharam` conta como "não sobra mais o que tentar", mas nunca `pronto`).
+ */
+export async function marcarItemDriveEnviado(
+  pool: Pool,
+  eventoId: string,
+  jobId: string,
+  itemId: string,
+  driveFileId: string,
+): Promise<void> {
+  await comEvento(pool, eventoId, async (c) => {
+    const { rows } = await c.query<{ items: ItemDoExport[] }>(
+      "SELECT items FROM export_jobs WHERE id = $1 AND event_id = $2",
+      [jobId, eventoId],
+    );
+    const linha = rows[0];
+    if (!linha) return;
+
+    const alvo = linha.items.find((i) => i.id === itemId);
+    if (!alvo || alvo.uploadedAt) return; // já marcado — idempotente contra retomada
+
+    const agora = new Date().toISOString();
+    const itens = linha.items.map((i) =>
+      i.id === itemId ? { ...i, driveFileId, uploadedAt: agora } : i,
+    );
+
+    await c.query(
+      `UPDATE export_jobs
+          SET items = $3::jsonb, bytes_uploaded = bytes_uploaded + $4
+        WHERE id = $1 AND event_id = $2`,
+      [jobId, eventoId, JSON.stringify(itens), alvo.bytes],
+    );
+  });
+}
+
+/** Fecha o job de Drive — `pronto` só quando cobriu tudo; `parcial` senão (nunca conta para o gate do D365). */
+export async function finalizarExportDrive(
+  pool: Pool,
+  eventoId: string,
+  jobId: string,
+  estado: "pronto" | "parcial",
+): Promise<void> {
+  await comEvento(pool, eventoId, (c) =>
+    c.query(
+      "UPDATE export_jobs SET state = $3, ready_at = now() WHERE id = $1 AND event_id = $2",
+      [jobId, eventoId, estado],
+    ),
+  );
+}
+
+/** Estimativa antes de criar o job (spec §5.1) — quota se confere ANTES de qualquer INSERT. */
+export async function previaExportDrive(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+): Promise<{ fotos: number; bytesTotal: number } | null> {
+  const pertence = await comConta(pool, accountId, async (c) => {
+    const { rowCount } = await c.query("SELECT 1 FROM events WHERE id = $1", [eventoId]);
+    return (rowCount ?? 0) > 0;
+  });
+  if (!pertence) return null;
+
+  return comEvento(pool, eventoId, async (c) => {
+    const itens = await listarItensPublicados(c, eventoId);
+    return { fotos: itens.length, bytesTotal: itens.reduce((soma, i) => soma + i.bytes, 0) };
+  });
+}
+
+export async function jobExportDriveMaisRecente(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+): Promise<JobExport | null> {
+  const pertence = await comConta(pool, accountId, async (c) => {
+    const { rowCount } = await c.query("SELECT 1 FROM events WHERE id = $1", [eventoId]);
+    return (rowCount ?? 0) > 0;
+  });
+  if (!pertence) return null;
+
+  return comEvento(pool, eventoId, async (c) => {
+    const { rows } = await c.query<LinhaJob>(
+      `SELECT id, event_id, account_id, state, mode, destination, drive_folder_id, bytes_total, bytes_uploaded, published_snapshot, photo_count, items, created_at, ready_at
+         FROM export_jobs
+        WHERE event_id = $1 AND destination = 'drive'
+        ORDER BY created_at DESC, id DESC
+        LIMIT 1`,
+      [eventoId],
+    );
+    const linha = rows[0];
+    return linha ? deLinha(linha) : null;
   });
 }
 
@@ -161,7 +326,7 @@ export async function jobExportMaisRecente(
     const where = modo ? "WHERE event_id = $1 AND mode = $2" : "WHERE event_id = $1";
     const params = modo ? [eventoId, modo] : [eventoId];
     const { rows } = await c.query<LinhaJob>(
-      `SELECT id, event_id, account_id, state, mode, photo_count, items, created_at, ready_at
+      `SELECT id, event_id, account_id, state, mode, destination, drive_folder_id, bytes_total, bytes_uploaded, published_snapshot, photo_count, items, created_at, ready_at
          FROM export_jobs
         ${where}
         ORDER BY created_at DESC, id DESC
@@ -187,7 +352,7 @@ export async function jobExportPorId(
 
   return comEvento(pool, eventoId, async (c) => {
     const { rows } = await c.query<LinhaJob>(
-      `SELECT id, event_id, account_id, state, mode, photo_count, items, created_at, ready_at
+      `SELECT id, event_id, account_id, state, mode, destination, drive_folder_id, bytes_total, bytes_uploaded, published_snapshot, photo_count, items, created_at, ready_at
          FROM export_jobs
         WHERE id = $1 AND event_id = $2`,
       [jobId, eventoId],
@@ -255,6 +420,11 @@ function deLinha(linha: LinhaJob): JobExport {
     accountId: linha.account_id,
     estado: linha.state,
     modo: linha.mode ?? "full",
+    destino: linha.destination ?? "zip",
+    driveFolderId: linha.drive_folder_id,
+    bytesTotal: Number(linha.bytes_total ?? 0),
+    bytesEnviados: Number(linha.bytes_uploaded ?? 0),
+    publishedSnapshot: linha.published_snapshot ?? 0,
     fotos: linha.photo_count,
     itens,
     criadoEm: linha.created_at,

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { HostExport } from "@/features/admin/components/client/host-export";
+import { HostDriveExport } from "@/features/admin/components/client/host-drive-export";
 
 type Item = {
   id: string;
@@ -80,6 +81,7 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
   return (
     <div className="flex flex-col gap-5">
       {canExport ? <HostExport eventoId={eventoId} /> : null}
+      {canExport ? <HostDriveExport eventoId={eventoId} /> : null}
       <AdminSection>
         <div className="mb-4 flex items-center justify-between gap-4">
           <p className="m-0 leading-relaxed text-ink-2">

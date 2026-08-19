@@ -1,5 +1,6 @@
 export * from "./constants";
 export * from "./config-guard";
+export * from "./drive-config-guard";
 export * from "./guest-auth";
 export * from "./guest-event";
 export * from "./host-auth";

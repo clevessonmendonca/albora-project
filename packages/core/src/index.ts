@@ -38,6 +38,7 @@ export { chaveThumbDeFull, derivarChaveMidia, derivarChaveRecado, chaveRecadoVal
 export { chaveExportValida, derivarChaveExport } from "./chaves";
 export type { EstadoDoExport, ItemDoAcervo } from "./acervo-export";
 export {
+  ACAO_DRIVE_CONNECT,
   ACAO_EXPORT_ACERVO,
   TETO_DO_EXPORT,
   midiaExportavel,
@@ -80,8 +81,16 @@ export {
   VIDEOS_POR_CONVIDADO,
 } from "./plano-evento";
 
-export type { RetentionKind, RetentionPlanItem } from "./retention";
-export { mayDeleteAtD365, planRetention } from "./retention";
+export type { MelhorExportParaRetencao, MotivoRecusaD365, RetentionKind, RetentionPlanItem } from "./retention";
+export {
+  diasRestantesAteD365,
+  GRACE_MINUTOS_DELETE,
+  mayDeleteAtD365,
+  planRetention,
+  podeProcessarAgora,
+} from "./retention";
+
+export type { DriveTokenVault, SealedToken } from "./drive-token-vault";
 
 export type { PedidoConfirm, PedidoPresign, RespostaPresign } from "./upload";
 export { presignExpirou, VALIDADE_PRESIGN_SEGUNDOS } from "./upload";

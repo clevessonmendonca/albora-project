@@ -1,6 +1,7 @@
 import type { Pool, PoolClient } from "pg";
 import { FUSO_PADRAO, fusoIanaValido, fusoOuPadrao } from "@albora/core";
 import { comConta, comEvento } from "./event";
+import { agendarRetencaoNaTransacao } from "./retention-jobs";
 import { mintarRefDeCompartilhamento } from "./share-attribution";
 import { ErroSemAcessoAoFornecedor } from "./vendor-portal";
 
@@ -329,24 +330,14 @@ export async function criarEvento(
           );
         }
 
-        for (const item of [
-          { kind: "plus_48h", due: new Date(entrada.terminaEm.getTime() + 48 * 3600 * 1000) },
-          {
-            kind: "d330_drive",
-            due: new Date(entrada.terminaEm.getTime() + 330 * 24 * 3600 * 1000),
-          },
-          {
-            kind: "d365_delete",
-            due: new Date(entrada.terminaEm.getTime() + 365 * 24 * 3600 * 1000),
-          },
-        ]) {
-          await c.query(
-            `INSERT INTO retention_jobs (event_id, kind, due_at)
-             VALUES ($1, $2, $3)
-             ON CONFLICT (event_id, kind) DO NOTHING`,
-            [eventoId, item.kind, item.due],
-          );
-        }
+        // scheduleRetentionJobs (spec drive-export §10, risco #4): esta era a
+        // única chamada real do produto e, até aqui, reimplementava a mesma
+        // lista de retention_jobs à mão em vez de usar `planRetention`
+        // (@albora/core) — as duas listas podiam divergir silenciosamente.
+        // `agendarRetencaoNaTransacao` roda dentro desta mesma transação
+        // (retention_jobs não tem RLS de evento, então não precisa de um
+        // `comEvento` próprio aqui).
+        await agendarRetencaoNaTransacao(c, eventoId, entrada.terminaEm);
 
         const missoes = entrada.missoes ?? [];
         if (missoes.length > 0) {

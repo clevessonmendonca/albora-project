@@ -33,6 +33,7 @@ const TABELAS_DE_EVENTO = [
   "recado",
   "recado_lido",
   "export_jobs",
+  "drive_connections",
 ];
 
 beforeAll(async () => {
@@ -653,6 +654,85 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
         resumoDoFornecedor(app, agregador, membroXId, "nao-e-um-uuid", () => {}),
       ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
     });
+  });
+});
+
+/**
+ * 11 — `drive_connections` (spec drive-export §1/§3.1): `event_id` é a
+ * própria PK — só existe uma conexão por evento — e a mesma RLS de evento de
+ * qualquer outra tabela. O refresh token nunca aparece em claro nem aqui:
+ * os campos são ciphertext/iv/tag, o mesmo argumento já aplicado ao hash do
+ * token de sessão do convidado.
+ */
+describe("11 — drive_connections: RLS por event_id, e o refresh token nunca em claro", () => {
+  beforeAll(async () => {
+    const inserir = (eventoId: string, contaId: string, folderId: string) =>
+      admin.query(
+        `INSERT INTO drive_connections
+           (event_id, account_id, drive_folder_id, drive_account_email, refresh_ciphertext, refresh_iv, refresh_tag, key_version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 1)`,
+        [
+          eventoId,
+          contaId,
+          folderId,
+          `casal-${folderId}@exemplo.test`,
+          Buffer.from("ciphertext-fake"),
+          Buffer.from("iv-fake-12b."),
+          Buffer.from("tag-fake-16bytes"),
+        ],
+      );
+    await inserir(dados.a.eventoId, dados.a.contaId, "folder-a");
+    await inserir(dados.b.eventoId, dados.b.contaId, "folder-b");
+  });
+
+  it("o contexto do evento A nunca enxerga a linha do evento B, mesmo com a PK em mãos", async () => {
+    const vistas = await comEvento(app, dados.a.eventoId, async (c) => {
+      const { rows } = await c.query("SELECT event_id FROM drive_connections");
+      return rows;
+    });
+    expect(vistas).toHaveLength(1);
+    expect(vistas[0].event_id).toBe(dados.a.eventoId);
+
+    const tentativaDireta = await comEvento(app, dados.a.eventoId, async (c) => {
+      const { rows } = await c.query("SELECT event_id FROM drive_connections WHERE event_id = $1", [
+        dados.b.eventoId,
+      ]);
+      return rows;
+    });
+    expect(tentativaDireta).toHaveLength(0);
+  });
+
+  it("sem app.event_id, zero linhas — mesmo para quem conectou o Drive", async () => {
+    const cliente = await app.connect();
+    try {
+      const { rows } = await cliente.query("SELECT count(*)::int AS n FROM drive_connections");
+      expect(rows[0].n).toBe(0);
+    } finally {
+      cliente.release();
+    }
+  });
+
+  it("a linha nunca guarda o refresh token em texto puro — só ciphertext/iv/tag/key_version", async () => {
+    const { rows } = await admin.query<{ coluna: string }>(
+      `SELECT column_name AS coluna FROM information_schema.columns
+       WHERE table_name = 'drive_connections' ORDER BY column_name`,
+    );
+    const colunas = rows.map((r) => r.coluna);
+    expect(colunas).not.toContain("refresh_token");
+    expect(colunas).toEqual(
+      expect.arrayContaining(["refresh_ciphertext", "refresh_iv", "refresh_tag", "key_version"]),
+    );
+  });
+
+  it("event_id é a própria chave primária — reconectar é UPSERT, nunca acumula linha", async () => {
+    await expect(
+      admin.query(
+        `INSERT INTO drive_connections
+           (event_id, account_id, drive_folder_id, refresh_ciphertext, refresh_iv, refresh_tag, key_version)
+         VALUES ($1, $2, 'folder-a-duplicada', $3, $4, $5, 1)`,
+        [dados.a.eventoId, dados.a.contaId, Buffer.from("x"), Buffer.from("y"), Buffer.from("z")],
+      ),
+    ).rejects.toMatchObject({ code: "23505" });
   });
 });
 

@@ -140,6 +140,63 @@ export async function readThumb(key: string): Promise<Uint8Array | null> {
   return new Uint8Array(await res.arrayBuffer());
 }
 
+/**
+ * Apaga o objeto do storage — só o D365 chama isto (`tools/jobs/retention.mjs`).
+ * Nenhum outro caminho do produto apaga bytes: "ocultar" no admin e "remover"
+ * do convidado só mudam `uploads.state`, os bytes continuam (permite
+ * reverter). D365 é a exceção deliberada e irreversível.
+ *
+ * 404 conta como sucesso — idempotente: reprocessar um evento já purgado
+ * (retry do runner) não pode estourar por causa de um objeto que já sumiu.
+ */
+export async function deleteObject(key: string): Promise<void> {
+  const url = objectUrl(key);
+  const signed = await client().sign(new Request(url, { method: "DELETE" }), {
+    aws: { signQuery: true, allHeaders: false },
+  });
+  const res = await fetch(signed.url, { method: "DELETE" });
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`purge falhou: ${res.status}`);
+  }
+}
+
+/**
+ * Lê o objeto inteiro na memória — usado pelo export síncrono para o Drive
+ * (spec drive-export §9, fase 4: "sem fila ainda, para eventos pequenos de
+ * teste"). Stopgap deliberado: quando o encadeamento por fila (Cloudflare
+ * Queues) chegar, o consumer deve subir por stream/chunk, não bufferizar
+ * uma foto full-res inteira por request — o ZIP (`streamObject` direto) já
+ * faz isso certo e continua sendo o padrão para portar.
+ */
+export async function bufferObject(key: string): Promise<Uint8Array | null> {
+  const stream = await streamObject(key);
+  if (!stream) return null;
+
+  const reader = stream.getReader();
+  const partes: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) {
+        partes.push(value);
+        total += value.byteLength;
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const saida = new Uint8Array(total);
+  let offset = 0;
+  for (const parte of partes) {
+    saida.set(parte, offset);
+    offset += parte.byteLength;
+  }
+  return saida;
+}
+
 /** @deprecated use signPut */
 export const assinarPut = signPut;
 

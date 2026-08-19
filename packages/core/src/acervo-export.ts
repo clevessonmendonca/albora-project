@@ -15,7 +15,15 @@ export const TETO_DO_EXPORT = 2000;
 
 export const ACAO_EXPORT_ACERVO = "export_acervo";
 
-export type EstadoDoExport = "pronto" | "vazio" | "falhou";
+/** Step-up antes da primeira conexão de Drive (spec drive-export §1.3) — reusa o mesmo `host_step_up`, ação distinta. */
+export const ACAO_DRIVE_CONNECT = "drive_connect";
+
+/**
+ * `enviando`/`parcial`/`quota_insuficiente` só existem para `destination='drive'`
+ * (spec drive-export §5) — o ZIP continua tudo-ou-nada, sempre
+ * `pronto`/`vazio`/`falhou`.
+ */
+export type EstadoDoExport = "pronto" | "vazio" | "falhou" | "enviando" | "parcial" | "quota_insuficiente";
 
 export type ItemDoAcervo = {
   id: string;

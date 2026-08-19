@@ -22,6 +22,18 @@ export type BillingPayment = {
   invoiceUrl: string | null;
 };
 
+/**
+ * A rede de segurança do índice único parcial `vendor_subscriptions_pendente_unica`
+ * (migration 0043) — fecha, no banco, a corrida que o `SELECT` de
+ * `hasPendingOrActiveVendorSubscription` só reduz: duas chamadas concorrentes
+ * passam pelo mesmo `SELECT` antes de qualquer `INSERT` confirmar, e sem o
+ * índice as duas criavam assinatura. Com o índice, a segunda estoura 23505 —
+ * o chamador usa isto para devolver o mesmo 409 amigável, não um 500.
+ */
+export function ehAssinaturaDuplicada(e: unknown): boolean {
+  return typeof e === "object" && e !== null && (e as { code?: string }).code === "23505";
+}
+
 export async function upsertBillingCustomer(
   pool: Pool,
   accountId: string,

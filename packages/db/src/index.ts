@@ -199,10 +199,15 @@ export type { ItemDoExport, JobExport } from "./export-db";
 export {
   consumirStepUp,
   criarJobExport,
+  criarJobExportDrive,
   emitirStepUp,
+  finalizarExportDrive,
+  jobExportDriveMaisRecente,
   jobExportMaisRecente,
   jobExportPorId,
+  marcarItemDriveEnviado,
   midiaParaCuradoria,
+  previaExportDrive,
   VALIDADE_STEP_UP_MINUTOS,
 } from "./export-db";
 
@@ -362,6 +367,7 @@ export {
   claimWebhookEvent,
   createBillingPayment,
   createVendorSubscription,
+  ehAssinaturaDuplicada,
   markPaymentPaidByAsaasId,
   markVendorSubscriptionByAsaasId,
   paymentByAsaasId,
@@ -403,10 +409,41 @@ export {
   upsertAnalyticsSnapshot,
 } from "./analytics";
 
-export type { DueRetentionJob } from "./retention-jobs";
+export type {
+  DepsProcessarRetencao,
+  DueRetentionJob,
+  NotificacaoRetencao,
+  ResultadoRetentionJob,
+} from "./retention-jobs";
 export {
+  agendarRetencaoNaTransacao,
   listDueRetentionJobs,
   markRetentionJob,
   processRetentionJob,
   scheduleRetentionJobs,
 } from "./retention-jobs";
+
+export type { ChaveVersionada } from "./drive-token-vault";
+export {
+  ErroChaveDeVersaoDesconhecida,
+  ErroChaveDoVaultInvalida,
+  ErroTokenNaoAbre,
+  VaultDeTokenDrive,
+} from "./drive-token-vault";
+
+export type { EstadoOAuthDrive } from "./drive-oauth-state";
+export {
+  abrirEstadoOAuthDrive,
+  emitirEstadoOAuthDrive,
+  ErroSegredoDoEstadoOAuthDrive,
+} from "./drive-oauth-state";
+
+export type { DriveConnection, DriveConnectionStatus } from "./drive-connections";
+export {
+  conectarDrive,
+  conexaoDrive,
+  marcarDriveExpirado,
+  refreshTokenDoEvento,
+  revogarDrive,
+  revogarDriveNaTransacao,
+} from "./drive-connections";

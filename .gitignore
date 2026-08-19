@@ -22,6 +22,11 @@ tools/carga/execucoes/
 # Artefato de bundle temporário (analytics-snapshots.mjs)
 tools/jobs/.tmp/
 
+# Artefato de bundle temporário (retention.mjs) — precisa ficar dentro de
+# apps/web/ pra resolução de módulo do Node achar aws4fetch (só instalado
+# ali, pnpm não hoisteia pra raiz por padrão).
+apps/web/.tmp-retention-job/
+
 # Copiado de @fontsource-variable/fraunces por scripts/copiar-fontes.mjs.
 apps/web/public/fontes/
 
