@@ -23,6 +23,8 @@ const OPTIONS = Object.values(PACKS).map((p) => ({ id: p.id, nome: resolvePackTe
 
 const STEPS = ["Quando", "Identidade", "Missões", "Parede", "Peças"] as const;
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const DEFAULT_MODELS: readonly WallDisplayModel[] = ["polaroide", "mural", "colagem", "dump"];
 
 type Created = { slug: string; eventoId: string; planIntent: "free" | "celebration" };
@@ -50,6 +52,7 @@ export function CreateEventWizard() {
   const [created, setCreated] = useState<Created | null>(null);
   const [vendors, setVendors] = useState<VendorOption[]>([]);
   const [vendorId, setVendorId] = useState<string>("");
+  const [coupleEmail, setCoupleEmail] = useState<string>("");
 
   // Passo condicional (spec-canal-fornecedor §2, item 4): a maioria dos
   // anfitriões não é membro de fornecedor nenhum — lista vazia é o caso comum
@@ -72,6 +75,10 @@ export function CreateEventWizard() {
 
   const datesValid = starts !== "" && ends !== "" && ends > starts;
   const guestsValid = Number(expectedGuests) > 0 && Number.isFinite(Number(expectedGuests));
+  // Criar sob fornecedor: o casal, não quem clica "criar", vira dono do
+  // evento (canManageCoupleOnly é do casal) — o e-mail dele é obrigatório
+  // aqui pra emitir o magic link que abre o painel para ele.
+  const coupleEmailValid = vendorId === "" || EMAIL_RE.test(coupleEmail.trim());
 
   const initialMissions = useMemo(() => {
     const keys = pack.missoes.map((m) => m.chaveTitulo);
@@ -103,13 +110,13 @@ export function CreateEventWizard() {
 
   const canAdvance =
     step === 0
-      ? datesValid && guestsValid
+      ? datesValid && guestsValid && coupleEmailValid
       : step === 3
         ? wallProblems.length === 0
         : true;
 
   const create = async () => {
-    if (!datesValid || !guestsValid || wallProblems.length > 0) return;
+    if (!datesValid || !guestsValid || !coupleEmailValid || wallProblems.length > 0) return;
     setStatus("creating");
     try {
       const r = await fetch("/api/admin/events", {
@@ -125,7 +132,7 @@ export function CreateEventWizard() {
           identityTokens,
           missoes: activeMissions,
           telaoModelos: [...wallModels],
-          ...(vendorId ? { vendorId } : {}),
+          ...(vendorId ? { vendorId, coupleEmail: coupleEmail.trim() } : {}),
         }),
       });
       if (!r.ok) return setStatus("error");
@@ -187,6 +194,24 @@ export function CreateEventWizard() {
                 ))}
               </select>
             </label>
+          )}
+          {vendorId !== "" && (
+            <>
+              <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
+                E-mail do casal
+                <input
+                  type="email"
+                  value={coupleEmail}
+                  onChange={(e) => setCoupleEmail(e.target.value)}
+                  placeholder="nome@exemplo.com"
+                  className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink"
+                />
+              </label>
+              <p className="m-0 text-[0.8rem] text-ink-3">
+                O casal recebe um link por e-mail pra abrir o painel — quem cria aqui entra como
+                cerimonialista, não como dono do evento.
+              </p>
+            </>
           )}
           <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
             Convidados esperados

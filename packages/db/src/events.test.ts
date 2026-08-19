@@ -1,8 +1,15 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { criarSessao, resolverSessao } from "./sessions";
-import { criarEvento, HORAS_APOS_EVENTO, resolverSlug, rotacionarSlug } from "./events";
+import {
+  criarEvento,
+  ErroContaDoCasalInvalida,
+  HORAS_APOS_EVENTO,
+  resolverSlug,
+  rotacionarSlug,
+} from "./events";
 import { atualizarConfigDoEvento } from "./host-events";
+import { roleForAccountOnEvent } from "./memberships";
 import { ErroSemAcessoAoFornecedor } from "./vendor-portal";
 import { prepararBanco, semear } from "./testes/banco";
 
@@ -189,43 +196,72 @@ describe("o anfitrião cria o evento", () => {
 });
 
 describe("o anfitrião cria um evento sob um fornecedor (spec-canal-fornecedor §2)", () => {
-  it("membro do fornecedor: nasce com vendor_id, plan='vendor', e o criador entra como planner", async () => {
-    const { rows: v } = await admin.query<{ id: string }>(
-      "INSERT INTO vendors (name) VALUES ('Buffet Teste V2c') RETURNING id",
+  const contaDoCasal = async (email: string) => {
+    const { rows } = await admin.query<{ id: string }>(
+      "INSERT INTO accounts (email) VALUES ($1) RETURNING id",
+      [email],
     );
-    const vendorId = v[0]!.id;
-    await admin.query(
-      "INSERT INTO vendor_members (vendor_id, account_id, role) VALUES ($1, $2, 'staff')",
-      [vendorId, dados.a.contaId],
-    );
+    return rows[0]!.id;
+  };
 
-    const { eventoId } = await criarEvento(app, {
-      accountId: dados.a.contaId,
-      packId: "pack-um",
-      comecaEm: daquiA(-1),
-      terminaEm: daquiA(6),
-      vendorId,
-    });
+  it(
+    "membro do fornecedor: nasce com vendor_id, plan='vendor', dono é o CASAL — " +
+      "fornecedor é planner (sem canManageCoupleOnly), casal é owner (com canManageCoupleOnly)",
+    async () => {
+      const { rows: v } = await admin.query<{ id: string }>(
+        "INSERT INTO vendors (name) VALUES ('Buffet Teste V2d') RETURNING id",
+      );
+      const vendorId = v[0]!.id;
+      await admin.query(
+        "INSERT INTO vendor_members (vendor_id, account_id, role) VALUES ($1, $2, 'staff')",
+        [vendorId, dados.a.contaId],
+      );
+      const coupleAccountId = await contaDoCasal("casal-v2d@exemplo.test");
 
-    const { rows } = await admin.query<{ vendor_id: string; plan: string }>(
-      "SELECT vendor_id, plan FROM events WHERE id = $1",
-      [eventoId],
-    );
-    expect(rows[0]?.vendor_id).toBe(vendorId);
-    expect(rows[0]?.plan).toBe("vendor");
+      const { eventoId } = await criarEvento(app, {
+        accountId: dados.a.contaId,
+        packId: "pack-um",
+        comecaEm: daquiA(-1),
+        terminaEm: daquiA(6),
+        vendorId,
+        coupleAccountId,
+      });
 
-    const { rows: membro } = await admin.query<{ role: string }>(
-      "SELECT role FROM event_members WHERE event_id = $1 AND account_id = $2",
-      [eventoId, dados.a.contaId],
-    );
-    expect(membro[0]?.role).toBe("planner");
-  });
+      const { rows } = await admin.query<{ account_id: string; vendor_id: string; plan: string }>(
+        "SELECT account_id, vendor_id, plan FROM events WHERE id = $1",
+        [eventoId],
+      );
+      // O dono da fatura (events.account_id) é o CASAL, nunca o fornecedor.
+      expect(rows[0]?.account_id).toBe(coupleAccountId);
+      expect(rows[0]?.vendor_id).toBe(vendorId);
+      expect(rows[0]?.plan).toBe("vendor");
+
+      const { rows: membros } = await admin.query<{ account_id: string; role: string }>(
+        "SELECT account_id, role FROM event_members WHERE event_id = $1 ORDER BY role",
+        [eventoId],
+      );
+      expect(membros).toEqual(
+        expect.arrayContaining([
+          { account_id: coupleAccountId, role: "couple" },
+          { account_id: dados.a.contaId, role: "planner" },
+        ]),
+      );
+
+      // O critério de aceite desta correção: `roleForAccountOnEvent` resolve
+      // o fornecedor como `planner` (canManageCoupleOnly=false na aplicação,
+      // load-event-page.ts) e o casal como `owner` (canManageCoupleOnly=true)
+      // — nunca o contrário.
+      expect(await roleForAccountOnEvent(app, dados.a.contaId, eventoId)).toBe("planner");
+      expect(await roleForAccountOnEvent(app, coupleAccountId, eventoId)).toBe("owner");
+    },
+  );
 
   it("conta sem vínculo em vendor_members é recusada — nenhuma linha nasce", async () => {
     const { rows: v } = await admin.query<{ id: string }>(
-      "INSERT INTO vendors (name) VALUES ('Buffet Fora V2c') RETURNING id",
+      "INSERT INTO vendors (name) VALUES ('Buffet Fora V2d') RETURNING id",
     );
     const vendorId = v[0]!.id;
+    const coupleAccountId = await contaDoCasal("casal-fora-v2d@exemplo.test");
 
     await expect(
       criarEvento(app, {
@@ -234,6 +270,7 @@ describe("o anfitrião cria um evento sob um fornecedor (spec-canal-fornecedor �
         comecaEm: daquiA(-1),
         terminaEm: daquiA(6),
         vendorId,
+        coupleAccountId,
       }),
     ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
 
@@ -242,6 +279,8 @@ describe("o anfitrião cria um evento sob um fornecedor (spec-canal-fornecedor �
   });
 
   it("vendorId malformado é recusado antes de tocar o banco", async () => {
+    const coupleAccountId = await contaDoCasal("casal-malformado-v2d@exemplo.test");
+
     await expect(
       criarEvento(app, {
         accountId: dados.a.contaId,
@@ -249,9 +288,81 @@ describe("o anfitrião cria um evento sob um fornecedor (spec-canal-fornecedor �
         comecaEm: daquiA(-1),
         terminaEm: daquiA(6),
         vendorId: "nao-e-um-uuid",
+        coupleAccountId,
       }),
     ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
   });
+
+  it("vendorId sem coupleAccountId (ausente ou malformado) é recusado antes de tocar o banco", async () => {
+    const { rows: v } = await admin.query<{ id: string }>(
+      "INSERT INTO vendors (name) VALUES ('Buffet Sem Casal V2d') RETURNING id",
+    );
+    const vendorId = v[0]!.id;
+    await admin.query(
+      "INSERT INTO vendor_members (vendor_id, account_id, role) VALUES ($1, $2, 'staff')",
+      [vendorId, dados.a.contaId],
+    );
+
+    await expect(
+      criarEvento(app, {
+        accountId: dados.a.contaId,
+        packId: "pack-um",
+        comecaEm: daquiA(-1),
+        terminaEm: daquiA(6),
+        vendorId,
+      }),
+    ).rejects.toBeInstanceOf(ErroContaDoCasalInvalida);
+
+    await expect(
+      criarEvento(app, {
+        accountId: dados.a.contaId,
+        packId: "pack-um",
+        comecaEm: daquiA(-1),
+        terminaEm: daquiA(6),
+        vendorId,
+        coupleAccountId: "nao-e-um-uuid",
+      }),
+    ).rejects.toBeInstanceOf(ErroContaDoCasalInvalida);
+
+    const { rows } = await admin.query("SELECT 1 FROM events WHERE vendor_id = $1", [vendorId]);
+    expect(rows).toHaveLength(0);
+  });
+
+  it(
+    "coupleAccountId igual ao accountId do fornecedor é recusado — sem isso ele nasceria " +
+      "owner por coincidência de e-mail, a exata fronteira que esta correção fecha",
+    async () => {
+      const { rows: v } = await admin.query<{ id: string }>(
+        "INSERT INTO vendors (name) VALUES ('Buffet Mesmo E-mail V2d') RETURNING id",
+      );
+      const vendorId = v[0]!.id;
+      await admin.query(
+        "INSERT INTO vendor_members (vendor_id, account_id, role) VALUES ($1, $2, 'staff')",
+        [vendorId, dados.a.contaId],
+      );
+
+      await expect(
+        criarEvento(app, {
+          accountId: dados.a.contaId,
+          packId: "pack-um",
+          comecaEm: daquiA(-1),
+          terminaEm: daquiA(6),
+          vendorId,
+          coupleAccountId: dados.a.contaId,
+        }),
+      ).rejects.toBeInstanceOf(ErroContaDoCasalInvalida);
+
+      // Nenhuma linha nasce em `events` — e como `event_members.event_id` é
+      // FK pra `events`, a ausência de evento já prova a ausência de
+      // qualquer `event_members` desta tentativa (não há `eventoId` pra
+      // referenciar): o guard estoura antes de qualquer INSERT na transação.
+      const { rows: linhaEvento } = await admin.query(
+        "SELECT 1 FROM events WHERE vendor_id = $1",
+        [vendorId],
+      );
+      expect(linhaEvento).toHaveLength(0);
+    },
+  );
 
   it("sem vendorId, o comportamento de hoje continua: plan='free', criador como couple", async () => {
     const { eventoId } = await criarEvento(app, {

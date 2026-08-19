@@ -135,7 +135,17 @@ function ehColisaoDeSlug(e: unknown): boolean {
   return typeof e === "object" && e !== null && (e as { code?: string }).code === "23505";
 }
 
-const VENDOR_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export class ErroContaDoCasalInvalida extends Error {
+  readonly code = "event.invalid_couple_account";
+  constructor() {
+    super(
+      "coupleAccountId ausente, malformado, ou igual ao accountId autenticado ao criar evento sob fornecedor",
+    );
+    this.name = "ErroContaDoCasalInvalida";
+  }
+}
 
 export type NovoEvento = {
   accountId: string;
@@ -153,19 +163,34 @@ export type NovoEvento = {
   /**
    * Evento nasce vinculado a este fornecedor: grava `events.vendor_id` e
    * `plan = 'vendor'`. Conferido contra `vendor_members` dentro da mesma
-   * transação de `comConta` — nunca aceito só porque o cliente mandou o id.
+   * transação — sob a conta de `accountId` (o membro do fornecedor
+   * autenticado), nunca aceito só porque o cliente mandou o id.
    */
   vendorId?: string;
+  /**
+   * Obrigatório quando `vendorId` está presente: a conta do CASAL, resolvida
+   * (ou criada) via `emitirMagicLink` por quem chama — nunca a do membro do
+   * fornecedor. Vira `events.account_id` (dona da fatura, `canManageCoupleOnly`)
+   * e entra em `event_members` como `couple`. `accountId` (quem está
+   * autenticado) entra separadamente como `planner`. Ausente quando `vendorId`
+   * também está ausente — o caminho de hoje, `accountId` é dono.
+   *
+   * 🔴 Precisa ser DIFERENTE de `accountId`: se o membro do fornecedor usar o
+   * próprio e-mail como e-mail do casal, `emitirMagicLink` resolve pra conta
+   * dele mesmo, e sem este guard o GUC nunca trocaria — ele nasceria owner
+   * por coincidência de e-mail. `criarEvento` recusa antes de qualquer INSERT.
+   */
+  coupleAccountId?: string;
 };
 
 /**
  * Cria o evento de uma conta (spec 009).
  *
  * 🔴 Roda em `comConta`: a política `conta_evento` de `events` e o `WITH CHECK`
- * garantem que a linha nasce presa ao `accountId` da sessão de host — uma conta
- * não cria evento para outra. O `event_slugs` (fora da RLS) e o `events`
- * nascem na mesma transação: um evento sem porta de QR não existiria para o
- * convidado.
+ * garantem que a linha nasce presa ao `account_id` setado em `app.account_id`
+ * — uma conta não cria evento para outra. O `event_slugs` (fora da RLS) e o
+ * `events` nascem na mesma transação: um evento sem porta de QR não existiria
+ * para o convidado.
  *
  * O slug é sorteado e reaposta na colisão — improvável, mas não pode virar erro
  * na cara do casal que só quis criar a festa. O `pack_id` é conferido pela FK:
@@ -173,10 +198,22 @@ export type NovoEvento = {
  *
  * `vendorId` (canal do fornecedor, spec-canal-fornecedor §2) é opcional: quando
  * presente, o pertencimento a `vendor_members` é conferido dentro desta mesma
- * transação — o cliente nunca decide por conta própria em que fornecedor o
- * evento nasce. O evento ganha `plan = 'vendor'` e o criador entra em
- * `event_members` como `planner`, do jeito que hoje um cerimonialista é
- * convidado — `roleForAccountOnEvent`/`canManageCoupleOnly` não mudam.
+ * transação, sob a conta de `accountId` — o cliente nunca decide por conta
+ * própria em que fornecedor o evento nasce. O evento ganha `plan = 'vendor'`,
+ * mas o **dono** (`events.account_id`, e o papel `couple` em `event_members`)
+ * é `coupleAccountId`, nunca o membro do fornecedor: `canManageCoupleOnly`
+ * (ZIP, "há menores", assinar completo) é do casal, nunca do fornecedor
+ * (CLAUDE.md/spec §2). O membro do fornecedor entra em `event_members` como
+ * `planner` — mesmo papel operacional de um cerimonialista convidado.
+ *
+ * 🔴 Isso exige `SET LOCAL app.account_id` **duas vezes** dentro da mesma
+ * transação: a política `conta_evento`/`conta_membro` (`WITH CHECK`) exige
+ * que `account_id` da linha case com `app.account_id` no momento do INSERT —
+ * não existe um único GUC que sirva para checar `vendor_members` sob a conta
+ * do fornecedor E gravar `events`/o `couple` de `event_members` sob a conta do
+ * casal. `SET LOCAL` é escopado à transação, não à conexão: reafirmá-lo várias
+ * vezes antes de cada escrita mantém tudo atômico num único `BEGIN…COMMIT`,
+ * sem tocar `roleForAccountOnEvent` nem a política.
  */
 export async function criarEvento(
   pool: Pool,
@@ -194,17 +231,35 @@ export async function criarEvento(
     throw new Error("timezone inválido");
   }
 
-  if (entrada.vendorId !== undefined && !VENDOR_ID_RE.test(entrada.vendorId)) {
+  if (entrada.vendorId !== undefined && !UUID_RE.test(entrada.vendorId)) {
     throw new ErroSemAcessoAoFornecedor(entrada.vendorId);
   }
 
+  if (
+    entrada.vendorId !== undefined &&
+    (entrada.coupleAccountId === undefined || !UUID_RE.test(entrada.coupleAccountId))
+  ) {
+    throw new ErroContaDoCasalInvalida();
+  }
+
+  // 🔴 Defesa em profundidade: mesmo que a borda (admin-events.ts) deixe
+  // passar, o casal não pode ser a MESMA conta do membro do fornecedor. Sem
+  // este guard, `donoDoEvento === entrada.accountId` e o `if` abaixo nunca
+  // troca o GUC — o fornecedor nasceria owner por coincidência de e-mail, a
+  // exata fronteira que este arquivo existe para fechar.
+  if (entrada.vendorId !== undefined && entrada.coupleAccountId === entrada.accountId) {
+    throw new ErroContaDoCasalInvalida();
+  }
+
+  const donoDoEvento = entrada.vendorId !== undefined ? entrada.coupleAccountId! : entrada.accountId;
+
   return comConta(pool, entrada.accountId, async (c) => {
     // Portão antes de qualquer INSERT: confere pertencimento em
-    // `vendor_members` sob a mesma transação/GUC de `app.account_id` — nunca
-    // confia no `vendorId` que o cliente mandou. RLS de `vendor_members`
-    // (`conta_vendor_member`) já restringe a linha por `account_id`; o
-    // `AND account_id = $2` explícito é defesa em profundidade, mesma forma
-    // de `roleForAccountOnVendor`.
+    // `vendor_members` sob a conta de quem está autenticado (`app.account_id`
+    // ainda é `entrada.accountId` aqui) — nunca confia no `vendorId` que o
+    // cliente mandou. RLS de `vendor_members` (`conta_vendor_member`) já
+    // restringe a linha por `account_id`; o `AND account_id = $2` explícito é
+    // defesa em profundidade, mesma forma de `roleForAccountOnVendor`.
     if (entrada.vendorId !== undefined) {
       const { rowCount } = await c.query(
         "SELECT 1 FROM vendor_members WHERE vendor_id = $1 AND account_id = $2",
@@ -213,8 +268,15 @@ export async function criarEvento(
       if (!rowCount) throw new ErroSemAcessoAoFornecedor(entrada.vendorId);
     }
 
+    // Canal do fornecedor: o evento nasce do CASAL, não de quem clicou
+    // "criar". `conta_evento`/`conta_membro` exigem `account_id = app.account_id`
+    // no `WITH CHECK` — reseta o GUC para o dono antes de qualquer escrita
+    // que carregue essa coluna.
+    if (donoDoEvento !== entrada.accountId) {
+      await c.query("SELECT set_config('app.account_id', $1, true)", [donoDoEvento]);
+    }
+
     const plano = entrada.vendorId !== undefined ? "vendor" : "free";
-    const papelDoCriador = entrada.vendorId !== undefined ? "planner" : "couple";
 
     for (let tentativa = 0; tentativa < 6; tentativa++) {
       const slug = gerarSlug(rand);
@@ -223,7 +285,7 @@ export async function criarEvento(
           `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, identity_tokens, expected_guests, timezone, title, vendor_id, plan)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
           [
-            entrada.accountId,
+            donoDoEvento,
             entrada.packId,
             slug,
             entrada.comecaEm,
@@ -251,8 +313,21 @@ export async function criarEvento(
           `INSERT INTO event_members (event_id, account_id, role)
            VALUES ($1, $2, $3)
            ON CONFLICT (event_id, account_id) DO NOTHING`,
-          [eventoId, entrada.accountId, papelDoCriador],
+          [eventoId, donoDoEvento, "couple"],
         );
+
+        if (entrada.vendorId !== undefined) {
+          // `app.account_id` volta pro membro do fornecedor — a mesma linha de
+          // `conta_membro` que valeu pro `couple` acima exige account_id =
+          // app.account_id também aqui, e agora a linha é a do fornecedor.
+          await c.query("SELECT set_config('app.account_id', $1, true)", [entrada.accountId]);
+          await c.query(
+            `INSERT INTO event_members (event_id, account_id, role)
+             VALUES ($1, $2, 'planner')
+             ON CONFLICT (event_id, account_id) DO NOTHING`,
+            [eventoId, entrada.accountId],
+          );
+        }
 
         for (const item of [
           { kind: "plus_48h", due: new Date(entrada.terminaEm.getTime() + 48 * 3600 * 1000) },
