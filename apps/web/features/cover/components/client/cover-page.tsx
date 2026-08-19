@@ -180,7 +180,7 @@ export function CoverPage({
               </Link>
             </div>
 
-            <div className="flex gap-2.5 overflow-x-auto px-[1.125rem] [scrollbar-width:none]">
+            <div className="flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-[1.125rem] [scrollbar-width:none]">
               {moments.map((moment, i) => {
                 const central = i === centerIndex;
                 const hrefAlbum = moment.missionFilterId
@@ -191,7 +191,7 @@ export function CoverPage({
                   <Link
                     key={moment.id}
                     href={hrefAlbum}
-                    className={`relative aspect-[9/16] shrink-0 overflow-hidden rounded-token text-inherit no-underline ${
+                    className={`relative aspect-[9/16] shrink-0 snap-center overflow-hidden rounded-token text-inherit no-underline ${
                       central ? "w-[9.25rem]" : "w-20 opacity-60"
                     }`}
                   >
