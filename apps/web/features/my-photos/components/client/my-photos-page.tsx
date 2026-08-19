@@ -18,6 +18,7 @@ import {
 } from "@albora/ui-web";
 import { Badge } from "@albora/ui-web";
 import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
+import { ThemeSetting } from "@/features/guest/components/client/theme-setting";
 
 function rotuloEstado(estado: ItemDaGaleria["estado"]): string {
   if (estado === "subindo") return "Subindo…";
@@ -328,6 +329,7 @@ export function MyPhotosPage({
               </PrimaryButton>
             </div>
           )}
+          <ThemeSetting />
         </GuestMain>
       </GuestShell>
 

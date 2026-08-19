@@ -4,7 +4,6 @@ import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
 import { eventVars, marcaVars } from "@/features/guest/lib/event-vars";
 import { estiloAntiFlash, sanearVars } from "@/features/guest/lib/theme-style";
 import { readThemePreference, THEME_COOKIE } from "@/features/guest/lib/theme-preference";
-import { ThemeController } from "@/features/guest/components/client/theme-controller";
 import { GlobalQueue } from "@/features/photo/components/client/global-queue";
 import { guestSession, isSameEventSession } from "@/features/guest/data/guest-session";
 
@@ -42,7 +41,6 @@ export default async function Layout({
     <div className="guest-tema" data-tema={prefServidor ?? undefined} id="guest-root">
       <style>{estiloAntiFlash(claro, escuro)}</style>
       <link rel="manifest" href={`/e/${encodeURIComponent(slug)}/manifest.webmanifest`} />
-      <ThemeController preferenciaServidor={prefServidor} />
       {withSession && <GlobalQueue eventoId={session.eventoId} />}
       {children}
     </div>
