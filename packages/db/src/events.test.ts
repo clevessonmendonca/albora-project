@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { criarSessao, resolverSessao } from "./sessions";
 import { criarEvento, HORAS_APOS_EVENTO, resolverSlug, rotacionarSlug } from "./events";
 import { atualizarConfigDoEvento } from "./host-events";
+import { ErroSemAcessoAoFornecedor } from "./vendor-portal";
 import { prepararBanco, semear } from "./testes/banco";
 
 const SEGREDO = "um-segredo-de-teste-com-mais-de-32-caracteres";
@@ -184,5 +185,93 @@ describe("o anfitrião cria o evento", () => {
         terminaEm: daquiA(6),
       }),
     ).rejects.toThrow();
+  });
+});
+
+describe("o anfitrião cria um evento sob um fornecedor (spec-canal-fornecedor §2)", () => {
+  it("membro do fornecedor: nasce com vendor_id, plan='vendor', e o criador entra como planner", async () => {
+    const { rows: v } = await admin.query<{ id: string }>(
+      "INSERT INTO vendors (name) VALUES ('Buffet Teste V2c') RETURNING id",
+    );
+    const vendorId = v[0]!.id;
+    await admin.query(
+      "INSERT INTO vendor_members (vendor_id, account_id, role) VALUES ($1, $2, 'staff')",
+      [vendorId, dados.a.contaId],
+    );
+
+    const { eventoId } = await criarEvento(app, {
+      accountId: dados.a.contaId,
+      packId: "pack-um",
+      comecaEm: daquiA(-1),
+      terminaEm: daquiA(6),
+      vendorId,
+    });
+
+    const { rows } = await admin.query<{ vendor_id: string; plan: string }>(
+      "SELECT vendor_id, plan FROM events WHERE id = $1",
+      [eventoId],
+    );
+    expect(rows[0]?.vendor_id).toBe(vendorId);
+    expect(rows[0]?.plan).toBe("vendor");
+
+    const { rows: membro } = await admin.query<{ role: string }>(
+      "SELECT role FROM event_members WHERE event_id = $1 AND account_id = $2",
+      [eventoId, dados.a.contaId],
+    );
+    expect(membro[0]?.role).toBe("planner");
+  });
+
+  it("conta sem vínculo em vendor_members é recusada — nenhuma linha nasce", async () => {
+    const { rows: v } = await admin.query<{ id: string }>(
+      "INSERT INTO vendors (name) VALUES ('Buffet Fora V2c') RETURNING id",
+    );
+    const vendorId = v[0]!.id;
+
+    await expect(
+      criarEvento(app, {
+        accountId: dados.b.contaId,
+        packId: "pack-um",
+        comecaEm: daquiA(-1),
+        terminaEm: daquiA(6),
+        vendorId,
+      }),
+    ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
+
+    const { rows } = await admin.query("SELECT 1 FROM events WHERE vendor_id = $1", [vendorId]);
+    expect(rows).toHaveLength(0);
+  });
+
+  it("vendorId malformado é recusado antes de tocar o banco", async () => {
+    await expect(
+      criarEvento(app, {
+        accountId: dados.a.contaId,
+        packId: "pack-um",
+        comecaEm: daquiA(-1),
+        terminaEm: daquiA(6),
+        vendorId: "nao-e-um-uuid",
+      }),
+    ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
+  });
+
+  it("sem vendorId, o comportamento de hoje continua: plan='free', criador como couple", async () => {
+    const { eventoId } = await criarEvento(app, {
+      accountId: dados.a.contaId,
+      packId: "pack-um",
+      comecaEm: daquiA(-1),
+      terminaEm: daquiA(6),
+    });
+
+    const { rows } = await admin.query<{ vendor_id: string | null; plan: string }>(
+      "SELECT vendor_id, plan FROM events WHERE id = $1",
+      [eventoId],
+    );
+    expect(rows[0]?.vendor_id).toBeNull();
+    expect(rows[0]?.plan).toBe("free");
+
+    const { rows: membro } = await admin.query<{ role: string }>(
+      "SELECT role FROM event_members WHERE event_id = $1 AND account_id = $2",
+      [eventoId, dados.a.contaId],
+    );
+    expect(membro[0]?.role).toBe("couple");
   });
 });

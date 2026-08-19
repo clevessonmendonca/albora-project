@@ -5,6 +5,7 @@ import {
   eventosDoFornecedor,
   marcaPublicaDoFornecedor,
   roleForAccountOnVendor,
+  vendorsDaConta,
 } from "./vendor-portal";
 import { prepararBanco, semear } from "./testes/banco";
 
@@ -140,6 +141,31 @@ describe("eventosDoFornecedor — duas portas, nunca uma", () => {
       packId: "pack-um",
       isDemo: false,
     });
+  });
+});
+
+describe("vendorsDaConta — para o passo condicional do wizard (spec §2, item 4)", () => {
+  it("admin vê o fornecedor em que está em vendor_members, com o próprio papel", async () => {
+    const vendors = await vendorsDaConta(app, adminAccountId);
+    expect(vendors).toEqual([
+      expect.objectContaining({ vendorId: vendorXId, name: "Buffet X", role: "admin" }),
+    ]);
+  });
+
+  it("staff também aparece, com role='staff'", async () => {
+    const vendors = await vendorsDaConta(app, staffAccountId);
+    expect(vendors).toEqual([
+      expect.objectContaining({ vendorId: vendorXId, name: "Buffet X", role: "staff" }),
+    ]);
+  });
+
+  it("conta sem nenhum vínculo em vendor_members recebe lista vazia, não erro", async () => {
+    expect(await vendorsDaConta(app, outsiderAccountId)).toEqual([]);
+  });
+
+  it("membro de X não vê Y na lista", async () => {
+    const vendors = await vendorsDaConta(app, adminAccountId);
+    expect(vendors.some((v) => v.vendorId === vendorYId)).toBe(false);
   });
 });
 

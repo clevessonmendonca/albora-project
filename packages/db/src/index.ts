@@ -370,6 +370,7 @@ export {
 export type {
   MarcaPublicaDoFornecedor,
   VendorEventSummary,
+  VendorMembership,
   VendorPlan,
   VendorRole,
   VendorStatus,
@@ -379,6 +380,7 @@ export {
   eventosDoFornecedor,
   marcaPublicaDoFornecedor,
   roleForAccountOnVendor,
+  vendorsDaConta,
 } from "./vendor-portal";
 
 /** English alias — preferred for new code. @see marcaPublicaDoFornecedor */

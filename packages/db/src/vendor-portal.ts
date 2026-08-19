@@ -40,6 +40,48 @@ export async function roleForAccountOnVendor(
   });
 }
 
+export type VendorMembership = {
+  vendorId: string;
+  name: string;
+  slug: string | null;
+  role: VendorRole;
+};
+
+/**
+ * Fornecedores que esta conta administra ou em que atua como staff — irmã de
+ * `roleForAccountOnVendor`, mesma porta (`comConta`/`app.account_id`).
+ *
+ * Alimenta o passo condicional do wizard de criação de evento
+ * (spec-canal-fornecedor §2, item 4): "se a sessão de host tem
+ * `vendor_members`, oferece criar sob aquele fornecedor". Nunca decide por
+ * si só em que fornecedor o evento nasce — só lista o que a própria conta já
+ * comprovadamente pertence; `criarEvento` reconfirma o pertencimento na
+ * escrita.
+ */
+export async function vendorsDaConta(pool: Pool, accountId: string): Promise<VendorMembership[]> {
+  return comConta(pool, accountId, async (c) => {
+    const { rows } = await c.query<{
+      vendor_id: string;
+      name: string;
+      slug: string | null;
+      role: string;
+    }>(
+      `SELECT vm.vendor_id, v.name, v.slug, vm.role
+         FROM vendor_members vm
+         JOIN vendors v ON v.id = vm.vendor_id
+        WHERE vm.account_id = $1
+        ORDER BY v.name ASC`,
+      [accountId],
+    );
+    return rows.map((r) => ({
+      vendorId: r.vendor_id,
+      name: r.name,
+      slug: r.slug,
+      role: r.role as VendorRole,
+    }));
+  });
+}
+
 /** Marca resolvida a partir do slug público, sem sessão de conta. */
 export type MarcaPublicaDoFornecedor = {
   id: string;

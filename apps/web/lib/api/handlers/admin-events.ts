@@ -1,4 +1,4 @@
-import { criarEvento, recordProductEvent } from "@albora/db";
+import { criarEvento, ErroSemAcessoAoFornecedor, recordProductEvent } from "@albora/db";
 import { FUSO_PADRAO, fusoIanaValido, instanteLocalNoFuso } from "@albora/core";
 import { PACKS } from "@albora/packs";
 import { parseMissionKeys } from "@/features/admin/lib/mission-keys";
@@ -9,6 +9,7 @@ import {
   requireConfig,
   requireHostSession,
   unexpectedError,
+  UUID_RE,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
@@ -23,6 +24,7 @@ type Body = {
   missoes?: unknown;
   telaoModelos?: unknown;
   title?: unknown;
+  vendorId?: unknown;
 };
 
 function asDate(v: unknown, fuso: string): Date | null {
@@ -37,6 +39,11 @@ function asDate(v: unknown, fuso: string): Date | null {
  * `criarEvento` que prende a linha a ela. O `packId` é conferido contra o
  * conjunto fechado do registro de packs antes de tocar no banco: pack inválido
  * é 422, não um 500 de violação de FK.
+ *
+ * `vendorId` (wizard do portal do fornecedor, spec-canal-fornecedor §2) só
+ * valida formato aqui — quem confere pertencimento real a `vendor_members` é
+ * `criarEvento`, na mesma transação de `comConta`. `ErroSemAcessoAoFornecedor`
+ * vira 403, nunca um 500.
  */
 export async function POST(req: Request) {
   const cfgErr = requireConfig("admin");
@@ -130,6 +137,14 @@ export async function POST(req: Request) {
       ? body.title.trim().slice(0, 120)
       : null;
 
+  let vendorId: string | undefined;
+  if (body.vendorId !== undefined) {
+    if (typeof body.vendorId !== "string" || !UUID_RE.test(body.vendorId)) {
+      return errorResponse(422, "validation_error", "Fornecedor inválido", { campos: ["vendorId"] });
+    }
+    vendorId = body.vendorId;
+  }
+
   try {
     const input = {
       accountId: auth.host.accountId,
@@ -141,6 +156,7 @@ export async function POST(req: Request) {
       fuso: timezone,
       title,
       ...(missoes !== undefined ? { missoes } : {}),
+      ...(vendorId !== undefined ? { vendorId } : {}),
     };
     const { eventoId, slug } = await criarEvento(getPool(), input);
 
@@ -150,6 +166,9 @@ export async function POST(req: Request) {
 
     return jsonOk({ eventoId, slug });
   } catch (e) {
+    if (e instanceof ErroSemAcessoAoFornecedor) {
+      return errorResponse(403, "vendor.no_access", "Conta sem acesso a este fornecedor");
+    }
     return unexpectedError("admin.eventos", e);
   }
 }

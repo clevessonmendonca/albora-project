@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useEffect, useMemo, useState } from "react";
 import {
   FUSO_PADRAO,
   WALL_DISPLAY_MODELS,
@@ -8,7 +9,6 @@ import {
 } from "@albora/core";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
 import { IDENTITY_MODELS } from "@albora/tokens";
-import { useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   identityPreviewClassName,
@@ -26,6 +26,8 @@ const STEPS = ["Quando", "Identidade", "Missões", "Parede", "Peças"] as const;
 const DEFAULT_MODELS: readonly WallDisplayModel[] = ["polaroide", "mural", "colagem", "dump"];
 
 type Created = { slug: string; eventoId: string; planIntent: "free" | "celebration" };
+
+type VendorOption = { vendorId: string; name: string; role: "admin" | "staff" };
 
 export function CreateEventWizard() {
   const search = useSearchParams();
@@ -46,6 +48,25 @@ export function CreateEventWizard() {
   );
   const [status, setStatus] = useState<"editing" | "creating" | "error">("editing");
   const [created, setCreated] = useState<Created | null>(null);
+  const [vendors, setVendors] = useState<VendorOption[]>([]);
+  const [vendorId, setVendorId] = useState<string>("");
+
+  // Passo condicional (spec-canal-fornecedor §2, item 4): a maioria dos
+  // anfitriões não é membro de fornecedor nenhum — lista vazia é o caso comum
+  // e não muda a tela. Falha na busca degrada para "sem fornecedor", nunca
+  // trava a criação do evento por ela.
+  useEffect(() => {
+    let vivo = true;
+    void fetch("/api/admin/vendors")
+      .then((r) => (r.ok ? (r.json() as Promise<{ vendors: VendorOption[] }>) : null))
+      .then((data) => {
+        if (vivo && data) setVendors(data.vendors);
+      })
+      .catch(() => {});
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   const pack = PACKS[packId]!;
 
@@ -104,6 +125,7 @@ export function CreateEventWizard() {
           identityTokens,
           missoes: activeMissions,
           telaoModelos: [...wallModels],
+          ...(vendorId ? { vendorId } : {}),
         }),
       });
       if (!r.ok) return setStatus("error");
@@ -149,6 +171,23 @@ export function CreateEventWizard() {
               ))}
             </select>
           </label>
+          {vendors.length > 0 && (
+            <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
+              Criar sob
+              <select
+                value={vendorId}
+                onChange={(e) => setVendorId(e.target.value)}
+                className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink"
+              >
+                <option value="">Minha conta</option>
+                {vendors.map((v) => (
+                  <option key={v.vendorId} value={v.vendorId}>
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
             Convidados esperados
             <input

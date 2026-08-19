@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { FUSO_PADRAO, FUSOS_DO_EVENTO } from "@albora/core";
 
 export function TimezoneField({

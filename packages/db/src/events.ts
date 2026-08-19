@@ -2,6 +2,7 @@ import type { Pool, PoolClient } from "pg";
 import { FUSO_PADRAO, fusoIanaValido, fusoOuPadrao } from "@albora/core";
 import { comConta, comEvento } from "./event";
 import { mintarRefDeCompartilhamento } from "./share-attribution";
+import { ErroSemAcessoAoFornecedor } from "./vendor-portal";
 
 export type EstadoDoEvento =
   | "aberto"
@@ -134,6 +135,8 @@ function ehColisaoDeSlug(e: unknown): boolean {
   return typeof e === "object" && e !== null && (e as { code?: string }).code === "23505";
 }
 
+const VENDOR_ID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export type NovoEvento = {
   accountId: string;
   packId: string;
@@ -147,6 +150,12 @@ export type NovoEvento = {
   missoes?: readonly string[];
   /** Nome amigável no painel. Ausente = vocabulário do pack. */
   title?: string | null;
+  /**
+   * Evento nasce vinculado a este fornecedor: grava `events.vendor_id` e
+   * `plan = 'vendor'`. Conferido contra `vendor_members` dentro da mesma
+   * transação de `comConta` — nunca aceito só porque o cliente mandou o id.
+   */
+  vendorId?: string;
 };
 
 /**
@@ -161,6 +170,13 @@ export type NovoEvento = {
  * O slug é sorteado e reaposta na colisão — improvável, mas não pode virar erro
  * na cara do casal que só quis criar a festa. O `pack_id` é conferido pela FK:
  * pack fora do conjunto estoura antes de qualquer linha.
+ *
+ * `vendorId` (canal do fornecedor, spec-canal-fornecedor §2) é opcional: quando
+ * presente, o pertencimento a `vendor_members` é conferido dentro desta mesma
+ * transação — o cliente nunca decide por conta própria em que fornecedor o
+ * evento nasce. O evento ganha `plan = 'vendor'` e o criador entra em
+ * `event_members` como `planner`, do jeito que hoje um cerimonialista é
+ * convidado — `roleForAccountOnEvent`/`canManageCoupleOnly` não mudam.
  */
 export async function criarEvento(
   pool: Pool,
@@ -178,13 +194,34 @@ export async function criarEvento(
     throw new Error("timezone inválido");
   }
 
+  if (entrada.vendorId !== undefined && !VENDOR_ID_RE.test(entrada.vendorId)) {
+    throw new ErroSemAcessoAoFornecedor(entrada.vendorId);
+  }
+
   return comConta(pool, entrada.accountId, async (c) => {
+    // Portão antes de qualquer INSERT: confere pertencimento em
+    // `vendor_members` sob a mesma transação/GUC de `app.account_id` — nunca
+    // confia no `vendorId` que o cliente mandou. RLS de `vendor_members`
+    // (`conta_vendor_member`) já restringe a linha por `account_id`; o
+    // `AND account_id = $2` explícito é defesa em profundidade, mesma forma
+    // de `roleForAccountOnVendor`.
+    if (entrada.vendorId !== undefined) {
+      const { rowCount } = await c.query(
+        "SELECT 1 FROM vendor_members WHERE vendor_id = $1 AND account_id = $2",
+        [entrada.vendorId, entrada.accountId],
+      );
+      if (!rowCount) throw new ErroSemAcessoAoFornecedor(entrada.vendorId);
+    }
+
+    const plano = entrada.vendorId !== undefined ? "vendor" : "free";
+    const papelDoCriador = entrada.vendorId !== undefined ? "planner" : "couple";
+
     for (let tentativa = 0; tentativa < 6; tentativa++) {
       const slug = gerarSlug(rand);
       try {
         const { rows } = await c.query<{ id: string }>(
-          `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, identity_tokens, expected_guests, timezone, title)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
+          `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, identity_tokens, expected_guests, timezone, title, vendor_id, plan)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
           [
             entrada.accountId,
             entrada.packId,
@@ -195,6 +232,8 @@ export async function criarEvento(
             convidados,
             fuso,
             entrada.title?.trim() || null,
+            entrada.vendorId ?? null,
+            plano,
           ],
         );
         const eventoId = rows[0]!.id;
@@ -210,9 +249,9 @@ export async function criarEvento(
 
         await c.query(
           `INSERT INTO event_members (event_id, account_id, role)
-           VALUES ($1, $2, 'couple')
+           VALUES ($1, $2, $3)
            ON CONFLICT (event_id, account_id) DO NOTHING`,
-          [eventoId, entrada.accountId],
+          [eventoId, entrada.accountId, papelDoCriador],
         );
 
         for (const item of [
