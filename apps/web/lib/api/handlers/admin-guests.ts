@@ -82,6 +82,7 @@ export async function GET(
       totalSessoes: data.funil.totalSessoes,
       sessoesComUpload: data.metricas.sessoesComUpload,
       totalFotos: data.metricas.totalFotos,
+      sharesTotais: data.metricas.sharesTotais,
       participacao: veredito.taxa,
       veredito: veredito.codigo as CodigoDaTese,
       degraus: data.funil.degraus,

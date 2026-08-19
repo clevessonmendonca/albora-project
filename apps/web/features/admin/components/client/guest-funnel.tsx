@@ -1,6 +1,7 @@
 "use client";
 
 import type { CodigoDaTese, DegrauDoFunil, EtapaDaEspinha } from "@albora/core";
+import type { EntradasPorVia } from "@albora/db";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { GuestDisplayNames, type SessaoNoTelao } from "./guest-display-names";
@@ -10,12 +11,13 @@ type Resumo = {
   totalSessoes: number;
   sessoesComUpload: number;
   totalFotos: number;
+  sharesTotais: number;
   participacao: number;
   veredito: CodigoDaTese;
   degraus: DegrauDoFunil[];
   uploadsAntesDoFeed: number;
   uploadsDepoisDoFeed: number;
-  entradasPorVia: { qr: number; wa: number; link: number };
+  entradasPorVia: EntradasPorVia;
   ultimas: { id: string; thumb: string; criadaEm: string }[];
   sessoes?: SessaoNoTelao[];
 };
@@ -103,6 +105,7 @@ export function GuestFunnel({ eventoId }: Props) {
           <Stat n={String(resumo.sessoesComUpload)} rotulo="fotografaram" />
           <Stat n={`${pct}%`} rotulo="participação" destaqueClass={destaqueClass} />
           <Stat n={String(resumo.totalFotos)} rotulo="fotos no ar" />
+          <Stat n={String(resumo.sharesTotais)} rotulo="compartilhamentos" />
         </div>
 
         <p className={`m-0 text-sm ${destaqueClass}`}>{ROTULO_VEREDITO[resumo.veredito]}</p>
@@ -134,13 +137,14 @@ export function GuestFunnel({ eventoId }: Props) {
       <AdminSection>
         <h2 className="mb-3 mt-0 font-titulo text-lg">Canais de entrada</h2>
         <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
-          QR é só a peça impressa. WhatsApp e link copiado abrem o evento direto, sem passar
-          pelo scan da câmera.
+          QR é só a peça impressa. WhatsApp, link copiado e código digitado abrem o evento
+          direto, sem passar pelo scan da câmera.
         </p>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
           <Stat n={String(resumo.entradasPorVia?.qr ?? 0)} rotulo="QR impresso" />
           <Stat n={String(resumo.entradasPorVia?.wa ?? 0)} rotulo="WhatsApp" />
           <Stat n={String(resumo.entradasPorVia?.link ?? 0)} rotulo="link copiado" />
+          <Stat n={String(resumo.entradasPorVia?.code ?? 0)} rotulo="código digitado" />
         </div>
       </AdminSection>
 
