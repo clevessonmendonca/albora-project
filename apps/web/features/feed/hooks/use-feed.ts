@@ -305,7 +305,14 @@ export async function buscarPagina(missaoId: string | null, cursor: string | nul
   };
 }
 
-async function codigoDoErro(res: Response): Promise<string | null> {
+/**
+ * O código de erro da resposta, quando o corpo é JSON e o traz.
+ *
+ * Exportado porque `use-author-feed.ts` lê a mesma forma de resposta de
+ * `/api/guests/:id` e ramifica no mesmo `code` — duplicar esta função
+ * divergiria no primeiro ajuste feito de um lado só.
+ */
+export async function codigoDoErro(res: Response): Promise<string | null> {
   try {
     const corpo = (await res.json()) as { code?: string };
     return corpo.code ?? null;

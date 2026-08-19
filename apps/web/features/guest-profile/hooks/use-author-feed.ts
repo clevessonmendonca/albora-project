@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { mediaUrls } from "@/lib/media";
 import {
   chavesSemUrl,
+  codigoDoErro,
   comFalha,
   comPagina,
   comUrls,
@@ -95,15 +96,6 @@ export async function buscarPaginaDoAutor(
       interacao: "completo",
     },
   };
-}
-
-async function codigoDoErro(res: Response): Promise<string | null> {
-  try {
-    const corpo = (await res.json()) as { code?: string };
-    return corpo.code ?? null;
-  } catch {
-    return null;
-  }
 }
 
 const INTERVALO_DE_RENOVACAO_MS = 30_000;

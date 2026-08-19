@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { MAX_ATTEMPTS, type QueueItem } from "./fila";
 import {
   aplicarReacao,
-  contagemVisivel,
   contarReacoes,
   montarGaleria,
   podeReagir,
@@ -107,13 +106,11 @@ describe("reagir nunca espera o gate (ADR 0009, atualizado)", () => {
     // liberado assim que a mídia publica, gate aberto ou não.
     for (const evento of [fechado, semData]) {
       expect(podeReagir(evento, AGORA)).toBe(true);
-      expect(contagemVisivel(evento, AGORA)).toBe(true);
     }
   });
 
   it("e continuam depois do gate", () => {
     expect(podeReagir(aberto, AGORA)).toBe(true);
-    expect(contagemVisivel(aberto, AGORA)).toBe(true);
   });
 });
 

@@ -99,9 +99,9 @@ export function resumirGaleria(itens: readonly ItemDaGaleria[]): ResumoDaGaleria
  * O botão de reagir nunca espera o gate — só o comentário espera (ADR 0009,
  * atualizado). Reagir é o gesto mais barato que existe no app e é ele quem dá
  * ao convidado o primeiro sinal de "chegou" antes mesmo de a interação abrir;
- * seguem em `podeReagir`/`contagemVisivel`, e não inline nos dois call sites
- * (rota de reação e feed), porque as duas superfícies leem a mesma resposta —
- * é o mesmo motivo que já valia quando a regra era o inverso.
+ * segue em `podeReagir`, e não inline nos dois call sites (rota de reação e
+ * feed), porque as duas superfícies leem a mesma resposta — é o mesmo motivo
+ * que já valia quando a regra era o inverso.
  *
  * `evento`/`agora` seguem na assinatura porque este é o par de `modoInteracao`
  * que os dois call sites já chamam com esses argumentos; usá-los aqui de novo
@@ -110,10 +110,6 @@ export function resumirGaleria(itens: readonly ItemDaGaleria[]): ResumoDaGaleria
  */
 export function podeReagir(_evento: GateDeInteracao, _agora: Date): boolean {
   return true;
-}
-
-export function contagemVisivel(evento: GateDeInteracao, agora: Date): boolean {
-  return podeReagir(evento, agora);
 }
 
 export type Reacao = {

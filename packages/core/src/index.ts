@@ -190,7 +190,6 @@ export type {
 } from "./galeria";
 export {
   aplicarReacao,
-  contagemVisivel,
   contarReacoes,
   montarGaleria,
   podeReagir,
