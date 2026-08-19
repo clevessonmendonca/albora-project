@@ -9,6 +9,7 @@ import {
   comPagina,
   comUrls,
   estadoInicial,
+  INTERVALO_DE_RENOVACAO_MS,
   itemDeRede,
   type EstadoFeed,
   type FalhaFeed,
@@ -97,8 +98,6 @@ export async function buscarPaginaDoAutor(
     },
   };
 }
-
-const INTERVALO_DE_RENOVACAO_MS = 30_000;
 
 export function useAuthorFeed(autorId: string) {
   const [estado, setEstado] = useState<EstadoPerfil>(estadoInicialPerfil);

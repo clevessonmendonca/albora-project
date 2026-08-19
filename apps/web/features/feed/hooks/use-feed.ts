@@ -339,8 +339,13 @@ export async function codigoDoErro(res: Response): Promise<string | null> {
   }
 }
 
-/** Uma tentativa a cada meio minuto renova o que isExpired sem virar tráfego de fundo. */
-const INTERVALO_DE_RENOVACAO_MS = 30_000;
+/**
+ * Uma tentativa a cada meio minuto renova o que isExpired sem virar tráfego de fundo.
+ *
+ * Exportada porque `use-author-feed.ts` renova URLs assinadas no mesmo ritmo —
+ * duplicar o valor divergiria no primeiro ajuste feito de um lado só.
+ */
+export const INTERVALO_DE_RENOVACAO_MS = 30_000;
 
 /** Enquanto o gate está fechado, confere se a interação abriu (spec 007). */
 const INTERVALO_DO_GATE_MS = 30_000;

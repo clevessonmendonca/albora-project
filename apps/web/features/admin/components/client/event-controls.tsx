@@ -1,6 +1,7 @@
 "use client";
 
 import { interacaoAberta, eventDefaults } from "@albora/core";
+import { Switch } from "@albora/ui-web";
 import Link from "next/link";
 import { useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
@@ -151,10 +152,12 @@ export function EventControls({
           </div>
           {canManageCoupleOnly ? (
             <Switch
-              on={moderation.hasMinors}
-              disabled={saving === "hasMinors"}
+              checked={moderation.hasMinors}
               label="Há menores nesta festa"
-              onChange={(v) => void patch({ haMenores: v }, "hasMinors")}
+              onChange={(v) => {
+                if (saving === "hasMinors") return;
+                void patch({ haMenores: v }, "hasMinors");
+              }}
             />
           ) : (
             <span className="shrink-0 text-sm text-ink-3">
@@ -185,10 +188,12 @@ export function EventControls({
             </span>
           </div>
           <Switch
-            on={moderation.hardened}
-            disabled={saving === "hardened"}
+            checked={moderation.hardened}
             label="Modo endurecido"
-            onChange={(v) => void patch({ modoEndurecido: v }, "hardened")}
+            onChange={(v) => {
+              if (saving === "hardened") return;
+              void patch({ modoEndurecido: v }, "hardened");
+            }}
           />
         </div>
       </AdminSection>
@@ -369,33 +374,5 @@ function EventLink({ title, url }: { title: string; url: string }) {
         {url}
       </a>
     </div>
-  );
-}
-
-function Switch({
-  on,
-  disabled,
-  label,
-  onChange,
-}: {
-  on: boolean;
-  disabled?: boolean;
-  label: string;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      aria-label={label}
-      disabled={disabled}
-      onClick={() => onChange(!on)}
-      className={`flex h-[1.875rem] w-[3.25rem] shrink-0 items-center rounded-pilula border-none p-[0.1875rem] ${
-        on ? "justify-end bg-acento" : "justify-start bg-linha"
-      } ${disabled ? "cursor-wait opacity-60" : "cursor-pointer"}`}
-    >
-      <span className="size-6 rounded-full bg-superficie-alta" />
-    </button>
   );
 }
