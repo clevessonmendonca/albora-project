@@ -135,4 +135,62 @@ describe("RecapSheet", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Não deu para compartilhar o recap agora.");
   });
+
+  describe("convite de atribuição (?ref=)", () => {
+    it("não aparece antes da última foto, mesmo com refToken", () => {
+      render(
+        <RecapSheet
+          aberto
+          quadros={QUADROS}
+          indiceAtivo={0}
+          erro={null}
+          compartilhando={false}
+          refToken="abc123"
+          onIr={vi.fn()}
+          onFechar={vi.fn()}
+          onCompartilhar={vi.fn()}
+        />,
+      );
+
+      expect(screen.queryByRole("link", { name: /Conhecer a Albora/ })).not.toBeInTheDocument();
+    });
+
+    it("na última foto, sem refToken, não aparece", () => {
+      render(
+        <RecapSheet
+          aberto
+          quadros={QUADROS}
+          indiceAtivo={2}
+          erro={null}
+          compartilhando={false}
+          refToken={null}
+          onIr={vi.fn()}
+          onFechar={vi.fn()}
+          onCompartilhar={vi.fn()}
+        />,
+      );
+
+      expect(screen.queryByRole("link", { name: /Conhecer a Albora/ })).not.toBeInTheDocument();
+    });
+
+    it("na última foto, com refToken, mostra o convite com o link opaco", () => {
+      render(
+        <RecapSheet
+          aberto
+          quadros={QUADROS}
+          indiceAtivo={2}
+          erro={null}
+          compartilhando={false}
+          refToken="abc123"
+          onIr={vi.fn()}
+          onFechar={vi.fn()}
+          onCompartilhar={vi.fn()}
+        />,
+      );
+
+      expect(screen.getByText(/Curtiu o álbum\?/)).toBeInTheDocument();
+      const link = screen.getByRole("link", { name: /Conhecer a Albora/ });
+      expect(link).toHaveAttribute("href", "/?ref=abc123");
+    });
+  });
 });

@@ -18,6 +18,7 @@ export function RecapSheet({
   indiceAtivo,
   erro,
   compartilhando,
+  refToken,
   onIr,
   onFechar,
   onCompartilhar,
@@ -27,6 +28,8 @@ export function RecapSheet({
   indiceAtivo: number;
   erro: string | null;
   compartilhando: boolean;
+  /** Ref de atribuição da festa (spec A1) — só existe pra mostrar o convite na tela final. */
+  refToken?: string | null;
   onIr: (indice: number) => void;
   onFechar: () => void;
   onCompartilhar: () => void;
@@ -47,6 +50,10 @@ export function RecapSheet({
   if (!aberto) return null;
 
   const atual = quadros[indiceAtivo];
+  // Só na última tela do carrossel, depois de compartilhar — nunca em cada
+  // foto individual, senão o convite viraria propaganda dentro da lembrança
+  // (mesmo instinto do TP7 que bloqueia marca d'água na foto, spec A1 §4.1).
+  const ultimaTela = quadros.length > 0 && indiceAtivo === quadros.length - 1;
 
   return (
     <div
@@ -106,6 +113,15 @@ export function RecapSheet({
             {compartilhando ? "Preparando…" : "Compartilhar recap"}
           </span>
         </PrimaryButton>
+
+        {ultimaTela && refToken && (
+          <p className="m-0 text-center text-[0.8rem] leading-normal text-ink-2">
+            Curtiu o álbum? Depois da sua festa você também pode ter um.{" "}
+            <a href={`/?ref=${encodeURIComponent(refToken)}`} className="text-ink underline">
+              Conhecer a Albora
+            </a>
+          </p>
+        )}
       </footer>
     </div>
   );

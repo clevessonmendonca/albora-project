@@ -1,6 +1,7 @@
 import type { Pool, PoolClient } from "pg";
 import { FUSO_PADRAO, fusoIanaValido, fusoOuPadrao } from "@albora/core";
 import { comConta, comEvento } from "./event";
+import { mintarRefDeCompartilhamento } from "./share-attribution";
 
 export type EstadoDoEvento =
   | "aberto"
@@ -197,7 +198,15 @@ export async function criarEvento(
           ],
         );
         const eventoId = rows[0]!.id;
+
+        // `event_share_refs` está sob a mesma política de isolamento comum
+        // (event_id via NULLIF), mas `criarEvento` roda em `comConta`
+        // (app.account_id) — o GUC de evento precisa existir antes desta e de
+        // qualquer outra escrita RLS-por-evento nesta transação.
+        await c.query("SELECT set_config('app.event_id', $1, true)", [eventoId]);
+
         await c.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [slug, eventoId]);
+        await mintarRefDeCompartilhamento(c, eventoId, rand);
 
         await c.query(
           `INSERT INTO event_members (event_id, account_id, role)

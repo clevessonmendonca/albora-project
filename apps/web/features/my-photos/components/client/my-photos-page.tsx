@@ -84,11 +84,13 @@ export function MyPhotosPage({
   eventoId,
   sessaoId,
   cameraPath,
+  refToken,
 }: {
   slug: string;
   eventoId: string;
   sessaoId: string;
   cameraPath: string;
+  refToken?: string | null;
 }) {
   const base = `/e/${encodeURIComponent(slug)}`;
   const galeria = useGallery(eventoId);
@@ -381,6 +383,7 @@ export function MyPhotosPage({
         indiceAtivo={recap.indiceAtivo}
         erro={recap.aberto ? recap.erro : null}
         compartilhando={recap.compartilhando}
+        refToken={refToken ?? null}
         onIr={recap.irPara}
         onFechar={recap.fechar}
         onCompartilhar={() => void recap.compartilhar()}
