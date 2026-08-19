@@ -17,7 +17,7 @@ import {
 } from "@albora/ui-web";
 import { useFeed, podeCarregarMais, type EstadoFeed } from "@/features/feed/hooks/use-feed";
 import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
-import { deriveStories } from "../../lib/derive-stories";
+import { paraStoryItem, useStories } from "../../hooks/use-stories";
 import { HomeFeedCard } from "./home-feed-card";
 
 /**
@@ -36,6 +36,13 @@ import { HomeFeedCard } from "./home-feed-card";
  * gatilho troca de botão para `useInfiniteScroll` (sentinela +
  * `IntersectionObserver`); a paginação por cursor de `useFeed` não muda uma
  * linha — só quem a chama muda.
+ *
+ * O rail do topo (`StoryRail`) e a lista embaixo (`PhotoCard` via
+ * `HomeFeedCard`) são a distinção visual entre story e post: story é a
+ * entidade efêmera de `@albora/db` (janela de 24h, `useStories`/`/api/stories`),
+ * post é o feed permanente de `useFeed`/`/api/feed`. São duas fontes de rede
+ * e dois componentes diferentes de propósito — a story some da tira depois
+ * de vencer sem nunca ter estado misturada ao mural.
  */
 export function HomePage({
   slug,
@@ -52,6 +59,7 @@ export function HomePage({
   const base = `/e/${encodeURIComponent(slug)}`;
 
   const { estado, carregarMais, atualizarReacoes } = useFeed(null);
+  const historias = useStories();
 
   const primeiraCarga = !estado.jaCarregou && estado.carregando;
   const vazio = estado.jaCarregou && estado.itens.length === 0 && estado.falha === null;
@@ -59,13 +67,8 @@ export function HomePage({
   const contagem = estado.itens.length > 0 ? `${estado.itens.length} fotos` : undefined;
 
   const stories: StoryItem[] = useMemo(
-    () =>
-      deriveStories(estado.itens).map((pessoa) => ({
-        id: pessoa.id,
-        nome: pessoa.nome,
-        capaUrl: estado.urls.get(pessoa.chaveThumb)?.url,
-      })),
-    [estado.itens, estado.urls],
+    () => historias.itens.map((s) => paraStoryItem(s, historias.urls)),
+    [historias.itens, historias.urls],
   );
 
   return (
