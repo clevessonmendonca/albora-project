@@ -6,21 +6,29 @@ export function Switch({
   checked,
   onChange,
   label,
+  disabled = false,
 }: {
   checked: boolean;
   onChange?: (value: boolean) => void;
   label?: string;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={checked}
+      aria-disabled={disabled}
       aria-label={label}
-      onClick={() => onChange?.(!checked)}
+      disabled={disabled}
+      onClick={() => {
+        if (disabled) return;
+        onChange?.(!checked);
+      }}
       className={cn(
         "relative inline-flex h-7 w-[3.25rem] shrink-0 items-center rounded-pilula p-0.5 transition-colors duration-200",
         checked ? "bg-acento" : "bg-linha",
+        disabled ? "cursor-wait opacity-60" : "",
       )}
     >
       <span

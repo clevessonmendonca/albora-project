@@ -154,10 +154,8 @@ export function EventControls({
             <Switch
               checked={moderation.hasMinors}
               label="Há menores nesta festa"
-              onChange={(v) => {
-                if (saving === "hasMinors") return;
-                void patch({ haMenores: v }, "hasMinors");
-              }}
+              disabled={saving === "hasMinors"}
+              onChange={(v) => void patch({ haMenores: v }, "hasMinors")}
             />
           ) : (
             <span className="shrink-0 text-sm text-ink-3">
@@ -190,10 +188,8 @@ export function EventControls({
           <Switch
             checked={moderation.hardened}
             label="Modo endurecido"
-            onChange={(v) => {
-              if (saving === "hardened") return;
-              void patch({ modoEndurecido: v }, "hardened");
-            }}
+            disabled={saving === "hardened"}
+            onChange={(v) => void patch({ modoEndurecido: v }, "hardened")}
           />
         </div>
       </AdminSection>
