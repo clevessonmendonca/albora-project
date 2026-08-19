@@ -28,17 +28,23 @@ describe("contarUploadsAntesDepoisDoFeed", () => {
 });
 
 describe("contarEntradasPorVia", () => {
-  it("soma QR, WhatsApp e link sem misturar", () => {
+  it("soma QR, WhatsApp, link e código sem misturar", () => {
     expect(
       contarEntradasPorVia([
         { via: "qr", n: 4 },
         { via: "wa", n: 2 },
         { via: "link", n: 3 },
+        { via: "code", n: 5 },
       ]),
-    ).toEqual({ qr: 4, wa: 2, link: 3 });
+    ).toEqual({ qr: 4, wa: 2, link: 3, code: 5 });
   });
 
   it("valor fora do conjunto cai em link, nunca em QR", () => {
-    expect(contarEntradasPorVia([{ via: "qr_scan", n: 9 }])).toEqual({ qr: 0, wa: 0, link: 9 });
+    expect(contarEntradasPorVia([{ via: "qr_scan", n: 9 }])).toEqual({
+      qr: 0,
+      wa: 0,
+      link: 9,
+      code: 0,
+    });
   });
 });

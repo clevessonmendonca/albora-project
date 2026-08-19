@@ -1,3 +1,4 @@
+import { parseEntryVia } from "@albora/core";
 import { describe, expect, it } from "vitest";
 import { isSameEventSession } from "./guest-session";
 
@@ -20,6 +21,24 @@ describe("isSameEventSession", () => {
   });
 
   it("sessão do mesmo evento — é a Home", () => {
+    expect(isSameEventSession({ eventoId: EVENTO_A, sessaoId: "s-1" }, EVENTO_A)).toBe(true);
+  });
+});
+
+/**
+ * A3 (código de resgate): `/scan?codigo=` redireciona para `/e/[slug]?via=code`
+ * — a MESMA rota que `qr`/`wa`/`link` já usam, nunca um caminho de sessão
+ * paralelo. `isSameEventSession` não recebe `via` na assinatura: a decisão de
+ * pular o `EntryFlow` e cair direto na Home olha só para `eventoId` da sessão
+ * existente, então reentrar por código digitado não repete nome/consentimento
+ * — de graça, sem código novo em `/e/[slug]`.
+ */
+describe("reentrada por /scan?codigo= não pergunta nome/consentimento de novo", () => {
+  it("'code' é um via válido, não cai em 'link' por engano", () => {
+    expect(parseEntryVia("code")).toBe("code");
+  });
+
+  it("sessão existente do mesmo evento continua reconhecida entrando por código", () => {
     expect(isSameEventSession({ eventoId: EVENTO_A, sessaoId: "s-1" }, EVENTO_A)).toBe(true);
   });
 });

@@ -31,7 +31,7 @@ export type EventoDoFunil = (typeof EVENTOS)[number];
 /** O tipo sai desta lista, e não o contrário: conjunto e união não podem divergir. */
 export const EVENTOS_DO_FUNIL: readonly EventoDoFunil[] = EVENTOS;
 
-const VIAS = ["qr", "wa", "link"] as const;
+const VIAS = ["qr", "wa", "link", "code"] as const;
 
 export type ViaDeEntrada = (typeof VIAS)[number];
 

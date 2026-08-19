@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { ViaDeEntrada } from "@albora/core";
 import { eventEntryPath, extractSlug } from "@/lib/qr";
 
 const FORMATO_QR = "qr_code";
@@ -14,8 +15,13 @@ type ConstrutorDetector = {
   getSupportedFormats?: () => Promise<string[]>;
 };
 
-export function goToEvent(slug: string) {
-  window.location.href = eventEntryPath(slug, "qr");
+/**
+ * `via` distingue câmera lida de código digitado — bug de instrumentação
+ * (`goToEvent` gravava `qr` para os dois casos) inflava `entradasPorVia.qr`
+ * com gente que nunca abriu a câmera.
+ */
+export function goToEvent(slug: string, via: ViaDeEntrada) {
+  window.location.href = eventEntryPath(slug, via);
 }
 
 export function useScanQr() {
@@ -88,7 +94,7 @@ export function useScanQr() {
         void procurar(detector, visor.current, (slug) => {
           encerrar();
           setEscaneando(false);
-          goToEvent(slug);
+          goToEvent(slug, "qr");
         });
       }, INTERVALO_LEITURA);
     }
@@ -108,7 +114,7 @@ export function useScanQr() {
       setNaoEntendi(true);
       return;
     }
-    goToEvent(slug);
+    goToEvent(slug, "code");
   }
 
   return {

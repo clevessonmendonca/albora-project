@@ -269,10 +269,11 @@ describe("a ordem do funil", () => {
     );
   });
 
-  it("QR grava scan; WhatsApp e link só abrem a página", () => {
+  it("QR grava scan; WhatsApp, link e código só abrem a página", () => {
     expect(eventosDeEntrada("qr")).toEqual(["qr_scan", "page_open", "consent"]);
     expect(eventosDeEntrada("wa")).toEqual(["page_open", "consent"]);
     expect(eventosDeEntrada("link")).toEqual(["page_open", "consent"]);
+    expect(eventosDeEntrada("code")).toEqual(["page_open", "consent"]);
   });
 
   it("via ausente ou inventada vira link, nunca QR", () => {
@@ -280,6 +281,7 @@ describe("a ordem do funil", () => {
     expect(parseViaDeEntrada("qr_scan")).toBe("link");
     expect(parseViaDeEntrada("qr")).toBe("qr");
     expect(parseViaDeEntrada("wa")).toBe("wa");
+    expect(parseViaDeEntrada("code")).toBe("code");
   });
 
   it("entrar por link, sem QR, é válido", () => {

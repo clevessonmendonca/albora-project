@@ -6,6 +6,7 @@ export type EntradasPorVia = {
   qr: number;
   wa: number;
   link: number;
+  code: number;
 };
 
 export type FunilAgregado = {
@@ -19,7 +20,7 @@ export type FunilAgregado = {
 export function contarEntradasPorVia(
   linhas: Iterable<{ via: string; n: number }>,
 ): EntradasPorVia {
-  const saida: EntradasPorVia = { qr: 0, wa: 0, link: 0 };
+  const saida: EntradasPorVia = { qr: 0, wa: 0, link: 0, code: 0 };
   for (const linha of linhas) {
     saida[parseViaDeEntrada(linha.via)] += linha.n;
   }
