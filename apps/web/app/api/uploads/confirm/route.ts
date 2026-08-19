@@ -139,18 +139,30 @@ export async function POST(req: Request) {
         promptKey: prompt,
       });
 
-      // Marca a story na MESMA transação do confirm, não numa segunda chamada:
-      // a fila offline já retenta o confirm até ele passar (spec 020), e
-      // reaproveitar esse retry evita um segundo round-trip que poderia falhar
-      // depois de a foto já estar salva — a foto nunca espera a story.
-      // Idempotente via `UNIQUE (upload_id)`: o mesmo retry marcando duas
-      // vezes não duplica.
+      // Marca a story na MESMA transação do confirm, mas atrás de um SAVEPOINT:
+      // a story é enriquecimento, o confirm da foto é o dado essencial. Sem o
+      // savepoint, um erro em `criarStory` abortaria a transação inteira e
+      // desfaria o confirm da foto — violando "a story degrada, nunca falha".
+      // Com ele, a falha da story reverte só o próprio INSERT; a foto commita.
+      // Idempotente via `UNIQUE (upload_id)`: o retry da fila offline marcando
+      // duas vezes não duplica.
       if (story === true) {
-        await criarStory(c, {
-          eventoId: auth.session.eventoId,
-          sessaoId: auth.session.sessaoId,
-          uploadId,
-        });
+        await c.query("SAVEPOINT marcar_story");
+        try {
+          await criarStory(c, {
+            eventoId: auth.session.eventoId,
+            sessaoId: auth.session.sessaoId,
+            uploadId,
+          });
+          await c.query("RELEASE SAVEPOINT marcar_story");
+        } catch {
+          await c.query("ROLLBACK TO SAVEPOINT marcar_story");
+          console.warn("confirm.story_falhou", {
+            eventoId: auth.session.eventoId,
+            sessaoId: auth.session.sessaoId,
+            uploadId,
+          });
+        }
       }
 
       return { ok: true as const, resultado: confirmado };
