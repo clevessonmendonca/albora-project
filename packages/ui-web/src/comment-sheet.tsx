@@ -2,7 +2,8 @@
 
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { Button } from "./button";
-import { BottomSheet, ErrorMessage } from "./guest-shell";
+import { BottomSheet } from "./sheet";
+import { ErrorMessage } from "./notice";
 
 export type Comentario = {
   id: string;

@@ -12,31 +12,23 @@ export { NavCameraButton, type NavCameraButtonProps } from "./nav-camera-button"
 export { SHARED_GUEST_TABS, type SharedGuestTabDef, type SharedGuestTabId } from "./nav-tabs";
 export { StatusBar } from "./status-bar";
 export {
-  authorInitials,
-  BottomSheet,
-  ConsentCheckbox,
-  ConsentNote,
   DisplayTitle,
   EmptyState,
   EntryColumn,
-  ErrorMessage,
   EventLabel,
   FinePrint,
-  GateNotice,
   GUEST_PADDING_X,
   GuestHeader,
   GuestMain,
   GuestShell,
-  MissionBanner,
-  NameField,
-  PostAuthorAvatar,
-  PostHeader,
-  PrimaryButton,
-  SecondaryButton,
   SecondaryText,
   TAB_BAR_INSET,
-  TextLink,
-} from "./guest-shell";
+} from "./guest-chrome";
+export { BottomSheet } from "./sheet";
+export { ConsentNote, ErrorMessage, GateNotice, MissionBanner } from "./notice";
+export { authorInitials, PostAuthorAvatar, PostHeader } from "./post-header";
+export { PrimaryButton, SecondaryButton } from "./guest-buttons";
+export { ConsentCheckbox, NameField, TextLink } from "./form-fields";
 export {
   PHONE_HEIGHT,
   PHONE_WIDTH,

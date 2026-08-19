@@ -1,6 +1,6 @@
 import type { ElementType } from "react";
 import { BookmarkIcon, CommentIcon, HeartIcon, ShareIcon } from "./icons";
-import { PostAuthorAvatar } from "./guest-shell";
+import { PostAuthorAvatar } from "./post-header";
 import { cn } from "./variants";
 
 export type PhotoCardProps = {
