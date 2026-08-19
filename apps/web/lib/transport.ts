@@ -74,6 +74,7 @@ export const webTransport: Transport = {
         promptKey: item.promptKey ?? null,
         legenda: item.legenda ?? null,
         lugar: item.lugar ?? null,
+        ...(item.story ? { story: true } : {}),
         ...(typeof item.capturadaEm === "number"
           ? {
               capturadaEm: new Date(item.capturadaEm).toISOString(),

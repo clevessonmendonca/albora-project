@@ -2,6 +2,7 @@ import { prefixoDoEvento, validarObjetoRecebido } from "@albora/core";
 import {
   comEvento,
   confirmarUpload,
+  criarStory,
   desafioDoEvento,
   ErroUploadDeOutroEvento,
   fusoDoEvento,
@@ -36,6 +37,7 @@ type Corpo = {
   capturadaEmParede?: unknown;
   largura?: unknown;
   altura?: unknown;
+  story?: unknown;
 };
 
 export async function POST(req: Request) {
@@ -53,8 +55,20 @@ export async function POST(req: Request) {
   const parsed = await parseJsonBody<Corpo>(req);
   if (parsed instanceof Response) return parsed;
 
-  const { uploadId, chave, mime, legenda, lugar, desafioId, promptKey, capturadaEm, capturadaEmParede, largura, altura } =
-    parsed.data;
+  const {
+    uploadId,
+    chave,
+    mime,
+    legenda,
+    lugar,
+    desafioId,
+    promptKey,
+    capturadaEm,
+    capturadaEmParede,
+    largura,
+    altura,
+    story,
+  } = parsed.data;
   if (typeof uploadId !== "string" || typeof chave !== "string" || typeof mime !== "string") {
     return errorResponse(422, "validation_error", "Dados incompletos", {
       campos: ["uploadId", "chave", "mime"],
@@ -109,24 +123,37 @@ export async function POST(req: Request) {
           ? acceptedTakenAtInTimeZone(capturadaEm, fuso)
           : acceptedTakenAt(capturadaEm);
 
-      return {
-        ok: true as const,
-        resultado: await confirmarUpload(c, {
+      const confirmado = await confirmarUpload(c, {
+        uploadId,
+        eventId: auth.session.eventoId,
+        sessionId: auth.session.sessaoId,
+        challengeId: daMissao,
+        storageKey: `${chave}/full`,
+        mime,
+        bytes: objeto.bytes,
+        caption: cleanCaption(legenda),
+        place: acceptedPlace(packId, lugar),
+        takenAt,
+        width: tamanho?.width ?? null,
+        height: tamanho?.height ?? null,
+        promptKey: prompt,
+      });
+
+      // Marca a story na MESMA transação do confirm, não numa segunda chamada:
+      // a fila offline já retenta o confirm até ele passar (spec 020), e
+      // reaproveitar esse retry evita um segundo round-trip que poderia falhar
+      // depois de a foto já estar salva — a foto nunca espera a story.
+      // Idempotente via `UNIQUE (upload_id)`: o mesmo retry marcando duas
+      // vezes não duplica.
+      if (story === true) {
+        await criarStory(c, {
+          eventoId: auth.session.eventoId,
+          sessaoId: auth.session.sessaoId,
           uploadId,
-          eventId: auth.session.eventoId,
-          sessionId: auth.session.sessaoId,
-          challengeId: daMissao,
-          storageKey: `${chave}/full`,
-          mime,
-          bytes: objeto.bytes,
-          caption: cleanCaption(legenda),
-          place: acceptedPlace(packId, lugar),
-          takenAt,
-          width: tamanho?.width ?? null,
-          height: tamanho?.height ?? null,
-          promptKey: prompt,
-        }),
-      };
+        });
+      }
+
+      return { ok: true as const, resultado: confirmado };
     });
 
     if ("erro" in resultado) {

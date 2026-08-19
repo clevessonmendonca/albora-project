@@ -56,6 +56,13 @@ export type QueueItem = QueueDetails & {
   capturadaEmParede?: boolean;
   largura?: number;
   altura?: number;
+  /**
+   * True quando o composer marcou esta foto como story (spec 020, sub-etapa
+   * a). Decidido no momento da captura, como `desafioId` — por isso mora
+   * aqui e não em `QueueDetails`. O confirm, não este item, é quem grava a
+   * story: o campo só precisa sobreviver ao retry offline até esse ponto.
+   */
+  story?: boolean;
 };
 
 export interface Queue {

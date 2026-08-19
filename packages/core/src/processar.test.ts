@@ -41,6 +41,10 @@ function desenhistaFalso(original: Bitmap) {
       );
       return { ...imagem, rotulo: `${imagem.rotulo}+filtro${ajustes ? "+ajustes" : ""}` };
     },
+    async compor(imagem, texto) {
+      chamadas.push(`compor:${imagem.rotulo}:"${texto.conteudo}"@${texto.x},${texto.y}`);
+      return { ...imagem, rotulo: `${imagem.rotulo}+texto` };
+    },
   };
 
   return { desenhista, chamadas };
@@ -189,6 +193,50 @@ describe("a ordem das operações", () => {
     });
 
     expect(chamadas.some((c) => c.startsWith("filtrar:"))).toBe(false);
+  });
+
+  it("sem texto do composer, o desenhista de texto nem é chamado", async () => {
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
+
+    await processarFoto(semExif, "image/jpeg", desenhista, {
+      plan: "gratis",
+      device: aparelhoComum,
+    });
+
+    expect(chamadas.some((c) => c.startsWith("compor:"))).toBe(false);
+  });
+
+  it("texto em branco não conta como composer aberto", async () => {
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
+
+    await processarFoto(semExif, "image/jpeg", desenhista, {
+      plan: "gratis",
+      device: aparelhoComum,
+      texto: { conteudo: "   ", x: 0.5, y: 0.5, tamanho: 0.08 },
+    });
+
+    expect(chamadas.some((c) => c.startsWith("compor:"))).toBe(false);
+  });
+
+  it("o texto entra depois da cor, e a miniatura sai dele — mesma proporção, sem recalcular posição", async () => {
+    const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
+
+    await processarFoto(semExif, "image/jpeg", desenhista, {
+      plan: "gratis",
+      device: aparelhoComum,
+      filtro: { ajustes: NEUTRO, porPixel: true, intensidade: 0.6 },
+      texto: { conteudo: "oi, festa!", x: 0.5, y: 0.8, tamanho: 0.1 },
+    });
+
+    expect(chamadas).toEqual([
+      "decodificar:image/jpeg:8b",
+      "desenhar:original→2500x1875:girar0",
+      "filtrar:2500x1875:pixel:i0.6",
+      'compor:2500x1875+filtro:"oi, festa!"@0.5,0.8',
+      "codificar:2500x1875+filtro+texto:image/jpeg:q0.82",
+      "desenhar:2500x1875+filtro+texto→320x240:girar0",
+      "codificar:320x240:image/jpeg:q0.7",
+    ]);
   });
 
   it("a miniatura parte da imagem já reduzida", async () => {

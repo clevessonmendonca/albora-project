@@ -136,7 +136,14 @@ export {
 } from "./qr";
 export { GUEST_SESSION_COOKIE } from "./sessao-cookie";
 
-export type { Bitmap, Desenhista, FiltroAplicado, FotoProcessada, OpcoesProcessamento } from "./processar";
+export type {
+  Bitmap,
+  Desenhista,
+  FiltroAplicado,
+  FotoProcessada,
+  OpcoesProcessamento,
+  TextoComposto,
+} from "./processar";
 export { processarFoto } from "./processar";
 
 export type {

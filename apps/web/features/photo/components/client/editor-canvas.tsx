@@ -6,7 +6,9 @@ import {
   AJUSTES_NEUTROS,
   type AjustesManuais,
   type Preset,
+  type TextoComposto,
 } from "@albora/core";
+import { desenharTextoNoContexto, estiloTextoDoStory } from "@/lib/story-text";
 import {
   criarCachePrevia,
   desenharPreviaNoCanvas,
@@ -22,6 +24,8 @@ export function EditorCanvas({
   ajustes = AJUSTES_NEUTROS,
   erro,
   missao,
+  texto,
+  onMoverTexto,
   onDegradar,
 }: {
   previa: ImageBitmap | null;
@@ -31,11 +35,16 @@ export function EditorCanvas({
   ajustes?: AjustesManuais;
   erro: string | null;
   missao?: { indice: number; total: number; title: string } | null | undefined;
+  /** O texto do composer, se o convidado já escreveu algo (spec 020). */
+  texto?: TextoComposto | null;
+  /** Arrastar sobre a foto reposiciona o texto — `x`/`y` chegam já em 0–1. */
+  onMoverTexto?: (x: number, y: number) => void;
   onDegradar: () => void;
 }) {
   const telaPrevia = useRef<HTMLCanvasElement>(null);
   const cache = useRef<CachePrevia>(criarCachePrevia());
   const quadroAgendado = useRef<number | null>(null);
+  const arrastando = useRef<number | null>(null);
 
   useEffect(() => {
     resetarCachePrevia(cache.current);
@@ -55,7 +64,15 @@ export function EditorCanvas({
       cache: cache.current,
       onDegradar,
     });
-  }, [previa, escolhido, intensidade, degradar, ajustes, onDegradar]);
+
+    // O texto entra depois da cor, no mesmo canvas — a mesma função que vai
+    // compor a foto final (`webDrawer.compor`), para a prévia não mostrar uma
+    // posição e a story sair com outra.
+    if (texto && texto.conteudo.trim()) {
+      const ctx = tela.getContext("2d");
+      if (ctx) desenharTextoNoContexto(ctx, tela.width, tela.height, texto, estiloTextoDoStory());
+    }
+  }, [previa, escolhido, intensidade, degradar, ajustes, onDegradar, texto]);
 
   useEffect(() => {
     // Um desenho por quadro, sempre o último. Arrastar um slider dispara
@@ -75,6 +92,35 @@ export function EditorCanvas({
     };
   }, [desenharPrevia]);
 
+  function moverPara(clientX: number, clientY: number) {
+    const tela = telaPrevia.current;
+    if (!tela || !onMoverTexto) return;
+
+    const caixa = tela.getBoundingClientRect();
+    if (caixa.width === 0 || caixa.height === 0) return;
+
+    const x = Math.min(1, Math.max(0, (clientX - caixa.left) / caixa.width));
+    const y = Math.min(1, Math.max(0, (clientY - caixa.top) / caixa.height));
+    onMoverTexto(x, y);
+  }
+
+  function aoPressionar(e: React.PointerEvent<HTMLCanvasElement>) {
+    if (!texto || !onMoverTexto) return;
+    arrastando.current = e.pointerId;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    moverPara(e.clientX, e.clientY);
+  }
+
+  function aoMover(e: React.PointerEvent<HTMLCanvasElement>) {
+    if (arrastando.current !== e.pointerId) return;
+    moverPara(e.clientX, e.clientY);
+  }
+
+  function aoSoltar(e: React.PointerEvent<HTMLCanvasElement>) {
+    if (arrastando.current !== e.pointerId) return;
+    arrastando.current = null;
+  }
+
   return (
     <section className="relative grid place-items-center overflow-hidden px-5">
       {missao && (
@@ -89,7 +135,14 @@ export function EditorCanvas({
           </p>
         </div>
       ) : (
-        <canvas ref={telaPrevia} className="max-h-full max-w-full rounded-superficie" />
+        <canvas
+          ref={telaPrevia}
+          className={`max-h-full max-w-full rounded-superficie${texto ? " touch-none" : ""}`}
+          onPointerDown={aoPressionar}
+          onPointerMove={aoMover}
+          onPointerUp={aoSoltar}
+          onPointerCancel={aoSoltar}
+        />
       )}
     </section>
   );

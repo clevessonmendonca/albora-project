@@ -9,6 +9,7 @@ import {
   type FiltroAplicado,
   type PlanoDoEvento,
   type DrainSummary,
+  type TextoComposto,
 } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
 import { drainAndReport } from "@/features/guest/lib/funnel-from-drain";
@@ -68,8 +69,12 @@ const INICIAL: EstadoEnvio = {
 export type PedidoEnvio = {
   arquivo: File;
   filtro?: FiltroAplicado | undefined;
+  /** Texto do composer, queimado na foto final junto com o LUT. */
+  texto?: TextoComposto | undefined;
   desafioId?: string | null | undefined;
   promptKey?: string | null | undefined;
+  /** Marca a foto como story do composer (spec 020, sub-etapa a). */
+  story?: boolean | undefined;
 };
 
 export function useUpload(
@@ -107,7 +112,7 @@ export function useUpload(
    * O `id` devolvido é o que a tela de detalhes usa para anotar depois.
    */
   const enfileirarFoto = useCallback(
-    async ({ arquivo, filtro, desafioId, promptKey }: PedidoEnvio) => {
+    async ({ arquivo, filtro, texto, desafioId, promptKey, story }: PedidoEnvio) => {
       setEstado((e) => ({ ...e, processando: true, ultimoErro: null }));
 
       const recusar = (mensagem: string) => {
@@ -147,6 +152,7 @@ export function useUpload(
             tentativas: 0,
             desafioId: desafioId ?? null,
             promptKey: promptKey ?? null,
+            ...(story ? { story: true } : {}),
             ...metaDaCaptura(null, arquivo.lastModified, prep?.largura, prep?.altura),
           });
 
@@ -177,6 +183,7 @@ export function useUpload(
             cores: navigator.hardwareConcurrency,
           },
           ...(filtro ? { filtro } : {}),
+          ...(texto ? { texto } : {}),
         });
 
         const id = crypto.randomUUID();
@@ -191,6 +198,7 @@ export function useUpload(
           tentativas: 0,
           desafioId: desafioId ?? null,
           promptKey: promptKey ?? null,
+          ...(story ? { story: true } : {}),
           ...metaDaCaptura(foto.capturadaEm, arquivo.lastModified, foto.largura, foto.altura),
         });
 

@@ -1,10 +1,11 @@
 "use client";
 
-import { AJUSTES_NEUTROS, saoNeutros, type AjustesManuais, type Preset } from "@albora/core";
+import { AJUSTES_NEUTROS, saoNeutros, type AjustesManuais, type Preset, type TextoComposto } from "@albora/core";
 import type { Dispatch, SetStateAction } from "react";
+import { LIMITE_TEXTO } from "./editor-texto";
 import { PASSOS_BIPOLAR, PASSOS_UNIPOLAR, SEM_FILTRO } from "./editor-lut";
 
-type Aba = "filtros" | "ajustes";
+type Aba = "filtros" | "ajustes" | "texto";
 
 export function EditorStyles() {
   return <style>{ESTILO}</style>;
@@ -46,6 +47,9 @@ export function EditorControls({
   recomendadoId,
   tiras,
   previaPronta,
+  texto,
+  onTexto,
+  onRemoverTexto,
   onEnviar,
 }: {
   aba: Aba;
@@ -60,6 +64,10 @@ export function EditorControls({
   recomendadoId: string | null;
   tiras: Map<string, string>;
   previaPronta: boolean;
+  /** Texto do composer, se o convidado já escreveu algo (spec 020). */
+  texto: TextoComposto | null;
+  onTexto: (conteudo: string) => void;
+  onRemoverTexto: () => void;
   onEnviar: () => void;
 }) {
   const podeZerar = !saoNeutros(ajustes);
@@ -71,8 +79,9 @@ export function EditorControls({
         <div className="flex gap-7">
           <ButtonAba rotulo="Filtros" ativa={aba === "filtros"} onClick={() => onAba("filtros")} />
           <ButtonAba rotulo="Ajustes" ativa={aba === "ajustes"} onClick={() => onAba("ajustes")} />
+          <ButtonAba rotulo="Texto" ativa={aba === "texto"} onClick={() => onAba("texto")} />
         </div>
-        {podeZerar ? (
+        {podeZerar && aba === "ajustes" ? (
           <button
             className="ed-reset"
             aria-label="Zerar os ajustes"
@@ -85,7 +94,7 @@ export function EditorControls({
         )}
       </div>
 
-      {aba === "filtros" ? (
+      {aba === "filtros" && (
         <>
           <div className="flex gap-2.5 overflow-x-auto pb-1.5 [scrollbar-width:none]">
             <Chip
@@ -119,7 +128,9 @@ export function EditorControls({
             />
           )}
         </>
-      ) : (
+      )}
+
+      {aba === "ajustes" && (
         <div>
           <Deslizante
             rotulo="Luz"
@@ -149,6 +160,31 @@ export function EditorControls({
             valor={ajustes.vinheta}
             onMudar={(v) => onAjustes((a) => ({ ...a, vinheta: v }))}
           />
+        </div>
+      )}
+
+      {aba === "texto" && (
+        <div className="grid gap-2">
+          <input
+            className="ed-texto-input"
+            type="text"
+            inputMode="text"
+            placeholder="Escreva alguma coisa…"
+            aria-label="Texto sobre a foto"
+            maxLength={LIMITE_TEXTO}
+            value={texto?.conteudo ?? ""}
+            onChange={(e) => onTexto(e.target.value)}
+          />
+          <div className="flex items-center justify-between">
+            <p className="m-0 text-[0.78rem] leading-[1.5] text-ink-3">
+              Arraste na foto para posicionar
+            </p>
+            {texto && (
+              <button className="ed-reset" onClick={onRemoverTexto}>
+                Remover
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -382,6 +418,23 @@ const ESTILO = `
   }
   .ed-primario:disabled { opacity: 0.35; cursor: default; }
   .ed-primario:active:not(:disabled) { transform: scale(0.97); }
+
+  .ed-texto-input {
+    font: inherit;
+    font-family: var(--fonte-corpo);
+    font-size: 0.94rem;
+    min-height: 48px;
+    padding: 0 0.125rem;
+    border: 0;
+    border-bottom: 1px solid var(--linha);
+    background: none;
+    color: var(--ink);
+  }
+  .ed-texto-input::placeholder { color: var(--ink-3); }
+  .ed-texto-input:focus-visible {
+    outline: 1px solid var(--acento);
+    outline-offset: 3px;
+  }
 
   .ed-texto:focus-visible,
   .ed-aba:focus-visible,

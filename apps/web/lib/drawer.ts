@@ -8,6 +8,7 @@ import {
   type Bitmap,
   type Desenhista,
 } from "@albora/core";
+import { desenharTextoNoContexto, estiloTextoDoStory } from "./story-text";
 
 /**
  * O `Desenhista` da web. Camada fina de propósito.
@@ -116,6 +117,14 @@ export const webDrawer: Desenhista<Img, Blob> = {
 
       ctx.putImageData(quadro, 0, 0);
     }
+
+    return { largura: imagem.largura, altura: imagem.altura, bitmap: await paraBitmap(canvas) };
+  },
+
+  async compor(imagem, texto) {
+    const { canvas, ctx } = contexto(imagem.largura, imagem.altura);
+    ctx.drawImage(imagem.bitmap, 0, 0);
+    desenharTextoNoContexto(ctx, imagem.largura, imagem.altura, texto, estiloTextoDoStory());
 
     return { largura: imagem.largura, altura: imagem.altura, bitmap: await paraBitmap(canvas) };
   },

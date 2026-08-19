@@ -172,6 +172,9 @@ export {
 export type { MidiaMinha } from "./gallery-db";
 export { listarMinhasDoEvento } from "./gallery-db";
 
+export type { StoryAtiva } from "./story-db";
+export { criarStory, storiesAtivasDoEvento } from "./story-db";
+
 export type { PerfilConvidado } from "./guest-profile";
 export { perfilDoConvidado } from "./guest-profile";
 
@@ -255,6 +258,11 @@ export { listarMinhasDoEvento as listMyMedia } from "./gallery-db";
 
 /** English alias — preferred for new code. @see perfilDoConvidado */
 export { perfilDoConvidado as guestProfile } from "./guest-profile";
+
+/** English alias — preferred for new code. @see criarStory */
+export { criarStory as createStory } from "./story-db";
+/** English alias — preferred for new code. @see storiesAtivasDoEvento */
+export { storiesAtivasDoEvento as activeStoriesForEvent } from "./story-db";
 
 /** English alias — preferred for new code. @see denunciar */
 export { denunciar as reportMedia } from "./moderation-db";

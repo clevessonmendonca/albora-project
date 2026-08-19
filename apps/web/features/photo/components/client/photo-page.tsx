@@ -1,6 +1,6 @@
 "use client";
 
-import type { FiltroAplicado, PlanoDoEvento } from "@albora/core";
+import type { FiltroAplicado, PlanoDoEvento, TextoComposto } from "@albora/core";
 import { isVideoBytes } from "@albora/core";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -179,8 +179,22 @@ export function PhotoPage({
     registrarRecente(primeiro);
   }
 
-  async function enviar(arquivo: File, filtro: FiltroAplicado | undefined) {
-    const r = await enfileirarFoto({ arquivo, filtro, desafioId: escolhida, promptKey });
+  async function enviar(
+    arquivo: File,
+    filtro: FiltroAplicado | undefined,
+    texto: TextoComposto | undefined,
+  ) {
+    // O composer marca a foto como story quando o convidado escreveu algo
+    // (spec 020, sub-etapa a) — a única ferramenta do composer até a
+    // sub-etapa b (música) chegar.
+    const r = await enfileirarFoto({
+      arquivo,
+      filtro,
+      texto,
+      story: !!texto,
+      desafioId: escolhida,
+      promptKey,
+    });
     if (!r.ok) return;
 
     setEnviadas((n) => n + 1);
@@ -200,7 +214,7 @@ export function PhotoPage({
       <Editor
         arquivo={etapa.arquivo}
         recomendadoId={recommendedFilter}
-        onEnviar={(filtro) => void enviar(etapa.arquivo, filtro)}
+        onEnviar={(filtro, texto) => void enviar(etapa.arquivo, filtro, texto)}
         onDescartar={() => setEtapa({ nome: "camera" })}
         missao={
           chosenMission

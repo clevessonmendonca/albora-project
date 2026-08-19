@@ -37,6 +37,31 @@ export type Desenhista<TImagem extends Bitmap, TSaida> = {
    * degradar. Ausente, o preset simplesmente não sai do preview.
    */
   filtrar?(imagem: TImagem, filtro: FiltroAplicado): Promise<TImagem>;
+  /**
+   * Compõe o texto do composer sobre a imagem, depois da cor (spec 020,
+   * sub-etapa a). Ausente, o texto simplesmente não sai — mesma regra de
+   * `filtrar`.
+   */
+  compor?(imagem: TImagem, texto: TextoComposto): Promise<TImagem>;
+};
+
+/**
+ * O texto que o convidado escreve sobre a foto no composer, estilo story.
+ *
+ * Posição e tamanho são fração da imagem final (0–1), não pixel — o mesmo
+ * texto vale para a prévia de 1000 px e para a foto em tamanho de subida sem
+ * recálculo, porque `desenhar` já redesenha tudo dentro de um `Target`
+ * proporcional.
+ */
+export type TextoComposto = {
+  /** Aparado; vazio equivale a não ter texto — o composer não desenha nada. */
+  conteudo: string;
+  /** Centro horizontal do texto, fração 0–1 da largura da imagem final. */
+  x: number;
+  /** Centro vertical do texto, fração 0–1 da altura da imagem final. */
+  y: number;
+  /** Tamanho da fonte, fração 0–1 da largura da imagem final. */
+  tamanho: number;
 };
 
 export type FiltroAplicado = {
@@ -67,6 +92,11 @@ function precisaDeCor(filtro: FiltroAplicado): boolean {
   return filtro.intensidade > 0 || (filtro.manuais !== undefined && !saoNeutros(filtro.manuais));
 }
 
+/** Texto em branco (ou só espaço) equivale a não ter composer aberto. */
+function precisaDeTexto(texto: TextoComposto): boolean {
+  return texto.conteudo.trim() !== "";
+}
+
 export type FotoProcessada<TSaida> = {
   full: TSaida;
   thumb: TSaida;
@@ -89,6 +119,8 @@ export type OpcoesProcessamento = {
   mimeSaida?: string;
   /** Ausente = sem filtro. O preset é escolha do convidado, nunca padrão. */
   filtro?: FiltroAplicado;
+  /** Ausente = sem texto. O composer é escolha do convidado, nunca padrão. */
+  texto?: TextoComposto;
 };
 
 /**
@@ -143,9 +175,18 @@ export async function processarFoto<TImagem extends Bitmap, TSaida>(
       ? await desenhista.filtrar(emPe, opcoes.filtro)
       : emPe;
 
-  const full = await desenhista.codificar(colorida, mimeSaida, QUALITY.full);
+  // O texto do composer entra depois da cor e antes da miniatura, pela mesma
+  // razão que a cor: `desenhar` redimensiona os pixels já queimados, então o
+  // texto sai proporcional na tira do telão e na foto do álbum sem um
+  // segundo cálculo de posição ou de tamanho de fonte para o thumb.
+  const composta =
+    opcoes.texto && desenhista.compor && precisaDeTexto(opcoes.texto)
+      ? await desenhista.compor(colorida, opcoes.texto)
+      : colorida;
 
-  const reduzida = await desenhista.desenhar(colorida, planned.thumb, { girar: 0, espelhar: false });
+  const full = await desenhista.codificar(composta, mimeSaida, QUALITY.full);
+
+  const reduzida = await desenhista.desenhar(composta, planned.thumb, { girar: 0, espelhar: false });
   const thumb = await desenhista.codificar(reduzida, mimeSaida, QUALITY.thumb);
 
   return {

@@ -7,10 +7,12 @@ import {
   saoNeutros,
   type FiltroAplicado,
   type Preset,
+  type TextoComposto,
 } from "@albora/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EditorCanvas } from "./editor-canvas";
 import { EditorControls, EditorHeader, EditorStyles } from "./editor-controls";
+import { comConteudo, textoTemConteudo } from "./editor-texto";
 import { carregarImagemEditor, type Escolha } from "./editor-lut";
 
 export type { Escolha };
@@ -28,7 +30,7 @@ export type { Escolha };
  * prévia para fora — e é a prévia que decide a escolha.
  */
 
-type Aba = "filtros" | "ajustes";
+type Aba = "filtros" | "ajustes" | "texto";
 
 export function Editor({
   arquivo,
@@ -39,7 +41,7 @@ export function Editor({
 }: {
   arquivo: File;
   recomendadoId: string | null;
-  onEnviar: (filtro: FiltroAplicado | undefined) => void;
+  onEnviar: (filtro: FiltroAplicado | undefined, texto: TextoComposto | undefined) => void;
   onDescartar: () => void;
   missao?: { indice: number; total: number; title: string } | null;
 }) {
@@ -51,6 +53,7 @@ export function Editor({
   const [aba, setAba] = useState<Aba>("filtros");
   const [degradar, setDegradar] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [texto, setTexto] = useState<TextoComposto | null>(null);
 
   const presets = useMemo(() => ordenarComRecomendado(recomendadoId), [recomendadoId]);
 
@@ -80,15 +83,19 @@ export function Editor({
 
   function enviar() {
     const manuais = saoNeutros(ajustes) ? null : ajustes;
+    const textoFinal = textoTemConteudo(texto) ? texto : undefined;
 
-    if (!escolhido && !manuais) return onEnviar(undefined);
+    if (!escolhido && !manuais) return onEnviar(undefined, textoFinal);
 
-    onEnviar({
-      ajustes: escolhido ? escolhido.ajustes : NEUTRO,
-      porPixel: !!escolhido?.porPixel && !degradar,
-      intensidade: escolhido ? intensidade : 0,
-      ...(manuais ? { manuais } : {}),
-    });
+    onEnviar(
+      {
+        ajustes: escolhido ? escolhido.ajustes : NEUTRO,
+        porPixel: !!escolhido?.porPixel && !degradar,
+        intensidade: escolhido ? intensidade : 0,
+        ...(manuais ? { manuais } : {}),
+      },
+      textoFinal,
+    );
   }
 
   return (
@@ -109,6 +116,8 @@ export function Editor({
         ajustes={ajustes}
         erro={erro}
         missao={missao}
+        texto={texto}
+        onMoverTexto={(x, y) => setTexto((t) => (t ? { ...t, x, y } : t))}
         onDegradar={handleDegradar}
       />
 
@@ -125,6 +134,9 @@ export function Editor({
         recomendadoId={recomendadoId}
         tiras={tiras}
         previaPronta={!!previa}
+        texto={texto}
+        onTexto={(conteudo) => setTexto((t) => comConteudo(t, conteudo))}
+        onRemoverTexto={() => setTexto(null)}
         onEnviar={enviar}
       />
     </div>
