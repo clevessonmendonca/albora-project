@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { SecondaryButton, ShareIcon } from "@albora/ui-web";
 import {
-  COPY_CTA_PWA,
   COPY_DISPENSAR_CTA,
   COPY_IOS_COMPARTILHAR,
   COPY_IOS_TELA_INICIO,
@@ -32,13 +31,6 @@ export function PwaInstallCta({
 
   return (
     <div className="mb-4">
-      <p className="mb-3.5 flex items-baseline gap-3 text-[0.88rem] leading-[1.68] text-ink-2">
-        <span className="shrink-0 font-titulo text-[0.68rem] font-normal uppercase tracking-[0.28em] text-acento-texto">
-          App
-        </span>
-        {COPY_CTA_PWA}
-      </p>
-
       {promptNativo && (
         <SecondaryButton onClick={onInstalar}>Instalar na tela inicial</SecondaryButton>
       )}

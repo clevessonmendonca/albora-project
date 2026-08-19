@@ -163,7 +163,7 @@ describe("a promessa é receber as fotos", () => {
     for (const texto of textos) {
       expect(texto.toLowerCase()).not.toMatch(/stor/i);
     }
-    expect(COPY_CTA_PWA).toBe("Instale e receba suas fotos depois da festa");
+    expect(COPY_CTA_PWA).toBe("Suas fotos já estão guardadas. Leve pra o app — é rápido.");
     expect(COPY_IOS_COMPARTILHAR).toMatch(/Compartilhar/);
     expect(COPY_IOS_TELA_INICIO).toBe("Adicionar à Tela de Início");
   });

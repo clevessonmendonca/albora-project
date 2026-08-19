@@ -5,7 +5,11 @@ import { isVideoBytes } from "@albora/core";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { mensagemCotaVideo, useUpload, type CotaVideo } from "@/features/photo/hooks/use-upload";
-import { deveMostrarCtaPwa, usePwaInstall } from "@/features/photo/hooks/use-pwa-install";
+import {
+  COPY_CTA_PWA,
+  deveMostrarCtaPwa,
+  usePwaInstall,
+} from "@/features/photo/hooks/use-pwa-install";
 import { ErrorMessage, SecondaryButton } from "@albora/ui-web";
 import { Details, type Place } from "./details";
 import { Editor } from "./editor";
@@ -478,6 +482,12 @@ function Confirmacao({
 
       {pendentes === 0 && numero === 1 && (
         <div className="mb-5 max-w-[34ch]">
+          <p className="mb-3.5 flex items-baseline gap-3 text-[0.88rem] leading-[1.68] text-ink-2">
+            <span className="shrink-0 font-titulo text-[0.68rem] font-normal uppercase tracking-[0.28em] text-acento-texto">
+              App
+            </span>
+            {COPY_CTA_PWA}
+          </p>
           <PwaInstallCta
             mostrar={
               pwaPronto &&

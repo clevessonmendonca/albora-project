@@ -9,7 +9,7 @@ type PromptInstalacao = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-export const COPY_CTA_PWA = "Instale e receba suas fotos depois da festa";
+export const COPY_CTA_PWA = "Suas fotos já estão guardadas. Leve pra o app — é rápido.";
 export const COPY_IOS_COMPARTILHAR = "Toque em Compartilhar";
 export const COPY_IOS_TELA_INICIO = "Adicionar à Tela de Início";
 export const COPY_DISPENSAR_CTA = "Agora não";
