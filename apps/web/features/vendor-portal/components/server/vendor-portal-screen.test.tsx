@@ -15,6 +15,7 @@ function context(overrides: Partial<VendorPortalContext> = {}): VendorPortalCont
     },
     role: "admin",
     eventos: [],
+    subscriptionStatus: null,
     ...overrides,
   };
 }
@@ -44,6 +45,18 @@ describe("VendorPortalScreen", () => {
 
   it("staff não vê o botão de assinar plano", () => {
     render(<VendorPortalScreen {...context({ role: "staff" })} />);
+    expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
+  });
+
+  it("admin com assinatura pending vê o estado, não o formulário de novo", () => {
+    render(<VendorPortalScreen {...context({ subscriptionStatus: "pending" })} />);
+    expect(screen.getByText("Aguardando confirmação")).toBeInTheDocument();
+    expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
+  });
+
+  it("admin com assinatura active vê o estado, não o formulário de novo", () => {
+    render(<VendorPortalScreen {...context({ subscriptionStatus: "active" })} />);
+    expect(screen.getByText("Assinatura ativa")).toBeInTheDocument();
     expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
   });
 });

@@ -9,7 +9,12 @@ const ROLE_LABEL: Record<string, string> = {
   staff: "Equipe",
 };
 
-export function VendorPortalScreen({ vendor, role, eventos }: VendorPortalContext) {
+export function VendorPortalScreen({
+  vendor,
+  role,
+  eventos,
+  subscriptionStatus,
+}: VendorPortalContext) {
   return (
     <VendorShell
       vendorName={vendor.name}
@@ -20,7 +25,12 @@ export function VendorPortalScreen({ vendor, role, eventos }: VendorPortalContex
     >
       <div className="flex flex-col gap-5">
         <VendorEventsList eventos={eventos} />
-        <VendorSubscribeButton vendorId={vendor.id} role={role} currentPlan={vendor.plan} />
+        <VendorSubscribeButton
+          vendorId={vendor.id}
+          role={role}
+          currentPlan={vendor.plan}
+          subscriptionStatus={subscriptionStatus}
+        />
       </div>
     </VendorShell>
   );

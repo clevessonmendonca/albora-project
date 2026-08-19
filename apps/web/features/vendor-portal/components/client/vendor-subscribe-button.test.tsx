@@ -18,7 +18,14 @@ describe("VendorSubscribeButton", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("staff não vê o botão de assinar", () => {
-    render(<VendorSubscribeButton vendorId={VENDOR_ID} role="staff" currentPlan="starter" />);
+    render(
+      <VendorSubscribeButton
+        vendorId={VENDOR_ID}
+        role="staff"
+        currentPlan="starter"
+        subscriptionStatus={null}
+      />,
+    );
     expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
   });
 
@@ -37,7 +44,14 @@ describe("VendorSubscribeButton", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    render(<VendorSubscribeButton vendorId={VENDOR_ID} role="admin" currentPlan="starter" />);
+    render(
+      <VendorSubscribeButton
+        vendorId={VENDOR_ID}
+        role="admin"
+        currentPlan="starter"
+        subscriptionStatus={null}
+      />,
+    );
 
     fireEvent.click(screen.getByText(/Studio/));
     fireEvent.click(screen.getByText("Assinar plano"));
@@ -63,10 +77,55 @@ describe("VendorSubscribeButton", () => {
       ),
     );
 
-    render(<VendorSubscribeButton vendorId={VENDOR_ID} role="admin" currentPlan="starter" />);
+    render(
+      <VendorSubscribeButton
+        vendorId={VENDOR_ID}
+        role="admin"
+        currentPlan="starter"
+        subscriptionStatus={null}
+      />,
+    );
     fireEvent.click(screen.getByText("Assinar plano"));
 
     expect(await screen.findByText("Só admin do fornecedor pode assinar")).toBeInTheDocument();
     expect(screen.queryByText("Pagar assinatura")).not.toBeInTheDocument();
+  });
+
+  it("assinatura pending mostra o estado, sem oferecer assinar de novo", () => {
+    render(
+      <VendorSubscribeButton
+        vendorId={VENDOR_ID}
+        role="admin"
+        currentPlan="starter"
+        subscriptionStatus="pending"
+      />,
+    );
+    expect(screen.getByText("Aguardando confirmação")).toBeInTheDocument();
+    expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
+  });
+
+  it("assinatura active mostra o estado, sem oferecer assinar de novo", () => {
+    render(
+      <VendorSubscribeButton
+        vendorId={VENDOR_ID}
+        role="admin"
+        currentPlan="starter"
+        subscriptionStatus="active"
+      />,
+    );
+    expect(screen.getByText("Assinatura ativa")).toBeInTheDocument();
+    expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
+  });
+
+  it("assinatura overdue cai para o fluxo normal (pode ser refeita)", () => {
+    render(
+      <VendorSubscribeButton
+        vendorId={VENDOR_ID}
+        role="admin"
+        currentPlan="starter"
+        subscriptionStatus="overdue"
+      />,
+    );
+    expect(screen.getByText("Assinar plano")).toBeInTheDocument();
   });
 });

@@ -5,6 +5,7 @@ import {
   type MarcaPublicaDoFornecedor,
   type VendorEventSummary,
   type VendorRole,
+  type VendorSubscriptionStatus,
 } from "@albora/db";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -16,7 +17,25 @@ export type VendorPortalContext = {
   vendor: MarcaPublicaDoFornecedor;
   role: VendorRole;
   eventos: VendorEventSummary[];
+  subscriptionStatus: VendorSubscriptionStatus | null;
 };
+
+/**
+ * Status da assinatura mais recente do fornecedor — query inline, não em
+ * `@albora/db`: `vendor_subscriptions` não tem RLS própria (protegida por
+ * papel na app layer), então o `WHERE vendor_id = $1` é a única contenção, e
+ * usa sempre `vendor.id` já resolvido/portado por `roleForAccountOnVendor`
+ * acima — nunca um valor vindo do cliente. Existe para fechar a lacuna que o
+ * botão de assinar relatou: sem o status, admin clica "assinar" duas vezes e
+ * gera duas cobranças `pending`.
+ */
+async function latestSubscriptionStatus(vendorId: string): Promise<VendorSubscriptionStatus | null> {
+  const { rows } = await getPool().query<{ status: VendorSubscriptionStatus }>(
+    `SELECT status FROM vendor_subscriptions WHERE vendor_id = $1 ORDER BY created_at DESC LIMIT 1`,
+    [vendorId],
+  );
+  return rows[0]?.status ?? null;
+}
 
 /**
  * Carrega o painel "meus eventos" do fornecedor (`/f/[vendorSlug]`, spec
@@ -60,5 +79,7 @@ export async function loadVendorPortal(vendorSlug: string): Promise<VendorPortal
     auditarAgregacaoDoPortal,
   );
 
-  return { vendor, role, eventos };
+  const subscriptionStatus = await latestSubscriptionStatus(vendor.id);
+
+  return { vendor, role, eventos, subscriptionStatus };
 }

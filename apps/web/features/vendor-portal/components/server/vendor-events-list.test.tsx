@@ -50,4 +50,29 @@ describe("VendorEventsList", () => {
     render(<VendorEventsList eventos={[evento()]} />);
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
+
+  it("agrupa por packId, usando o nome do pack via resolvePackText", () => {
+    render(
+      <VendorEventsList
+        eventos={[
+          evento({ id: "a", title: "Festa da Marina", packId: "casamento" }),
+          evento({ id: "b", title: "Festa do João", packId: "casamento" }),
+          evento({ id: "c", title: "Debutante da Ana", packId: "quinze-anos" }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Casamento (2)")).toBeInTheDocument();
+    expect(screen.getByText("Aniversário de 15 anos (1)")).toBeInTheDocument();
+  });
+
+  it("pack fora do catálogo agrupa pelo próprio packId", () => {
+    render(
+      <VendorEventsList
+        eventos={[evento({ id: "a", title: "Festa X", packId: "pack-desconhecido" })]}
+      />,
+    );
+
+    expect(screen.getByText("Pack-desconhecido (1)")).toBeInTheDocument();
+  });
 });

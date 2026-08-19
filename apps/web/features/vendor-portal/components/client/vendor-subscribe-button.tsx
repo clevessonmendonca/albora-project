@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import type { VendorPlan, VendorRole } from "@albora/db";
+import type { VendorPlan, VendorRole, VendorSubscriptionStatus } from "@albora/db";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { VENDOR_PLAN_PRICE_CENTS } from "@/lib/billing";
 
@@ -26,6 +26,12 @@ type Props = {
   vendorId: string;
   role: VendorRole;
   currentPlan: VendorPlan;
+  subscriptionStatus: VendorSubscriptionStatus | null;
+};
+
+const SUBSCRIPTION_STATUS_LABEL: Record<"active" | "pending", string> = {
+  active: "Assinatura ativa",
+  pending: "Aguardando confirmação",
 };
 
 /**
@@ -33,19 +39,32 @@ type Props = {
  * gate de papel aqui é conveniência de exibição, não a segurança: a rota
  * revalida `role === "admin"` no servidor de qualquer forma.
  *
- * Não há, no `VendorPortalContext` de hoje, um campo de status de assinatura
- * (`vendor_subscriptions.status`: pending/active/overdue/canceled) — só
- * `vendor.plan`, a coluna de tier de `vendors`. Sem esse dado o botão fica
- * sempre visível para admin, mesmo com uma assinatura `pending` já criada;
- * é lacuna relatada, não suposição sobre o schema.
+ * `subscriptionStatus` vem de `loadVendorPortal` (leitura da assinatura mais
+ * recente em `vendor_subscriptions`). `active`/`pending` mostram o estado em
+ * vez do formulário — sem isso, admin clica "assinar" duas vezes e gera duas
+ * cobranças `pending`. `overdue`/`canceled`/ausente caem para o fluxo normal:
+ * assinatura vencida ou cancelada pode ser refeita.
  */
-export function VendorSubscribeButton({ vendorId, role, currentPlan }: Props) {
+export function VendorSubscribeButton({ vendorId, role, currentPlan, subscriptionStatus }: Props) {
   const [plan, setPlan] = useState<VendorPlan>(currentPlan);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<SubscriptionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   if (role !== "admin") return null;
+
+  if (subscriptionStatus === "active" || subscriptionStatus === "pending") {
+    return (
+      <section className="rounded-superficie border border-linha bg-superficie p-6">
+        <p className="m-0 mb-3 text-[0.8125rem] uppercase tracking-rotulo text-ink-3">
+          Assinatura
+        </p>
+        <p className="m-0 text-[0.9375rem] text-ink">
+          {SUBSCRIPTION_STATUS_LABEL[subscriptionStatus]}
+        </p>
+      </section>
+    );
+  }
 
   const assinar = () => {
     void (async () => {
