@@ -13,7 +13,7 @@ export default async function EventPage({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId}>
+    <EventPageLayout eventId={eventId} allowFollowMode>
       {({ evento, canManageCoupleOnly }) => (
         <>
           <LiveSummary eventoId={eventId} />
