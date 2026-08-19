@@ -42,11 +42,11 @@ export type ItemFeed = {
   autor: string;
   criadaEm: Date;
   /**
-   * Ausente — não zero — antes do gate. Um número escondido pelo CSS é um
-   * número que qualquer um lê com o devtools aberto.
+   * Sempre presente, em qualquer modo. Reagir não espera o gate (ADR 0009,
+   * atualizado) — só comentário e identidade do autor esperam.
    */
   reacoes?: number;
-  /** Tipo da reação desta sessão. Só depois do gate. */
+  /** Tipo da reação desta sessão. Sempre presente, mesmo antes do gate. */
   minhaReacao?: string | null;
   /** Id opaco do autor. Só depois do gate — para bloqueio simétrico. */
   sessaoAutor?: string;
@@ -66,36 +66,29 @@ export type PaginaFeed = {
 };
 
 /**
- * União discriminada por `modo`: `sessaoId` é obrigatório sempre que
- * `modo: "completo"`, porque é ele quem aciona `filtroSemBloqueio` — sem essa
- * amarra no tipo, `listarFeed({ modo: "completo", autorId: X })` sem
- * `sessaoId` compilava e listava as fotos de um autor **sem** aplicar
- * bloqueio simétrico, o cenário mais perigoso de todos (perfil de um
- * convidado bloqueado, vazado por completo).
+ * `sessaoId` é sempre obrigatório, mesmo em `modo: "espelho"`: reagir não
+ * espera o gate (ADR 0009, atualizado), e sem a sessão de quem lê o servidor
+ * não sabe dizer se *esta* sessão já reagiu à foto. Isso também mantém de
+ * graça a amarra que a união discriminada garantia antes — `autorId` sem
+ * `sessaoId` não compila mais porque `sessaoId` nunca é opcional — e é ela
+ * quem aciona `filtroSemBloqueio`, o cenário mais perigoso de todos (perfil
+ * de um convidado bloqueado, vazado por completo) segue impossível de montar.
  */
-export type EntradaFeed =
-  | {
-      eventoId: string;
-      modo: "espelho";
-      missaoId: string | null;
-      cursor: string | null;
-      limite?: number;
-    }
-  | {
-      eventoId: string;
-      modo: "completo";
-      missaoId: string | null;
-      cursor: string | null;
-      limite?: number;
-      sessaoId: string;
-      /**
-       * Filtro por dono da foto — o perfil de um convidado (spec do "autor
-       * clicável"). Só existe em `modo: "completo"`: antes do gate o
-       * servidor nem manda `sessaoAutor`, então não existe id de perfil para
-       * filtrar por ele.
-       */
-      autorId?: string;
-    };
+export type EntradaFeed = {
+  eventoId: string;
+  modo: ModoFeed;
+  missaoId: string | null;
+  cursor: string | null;
+  limite?: number;
+  sessaoId: string;
+  /**
+   * Filtro por dono da foto — o perfil de um convidado (spec do "autor
+   * clicável"). Só tem efeito em `modo: "completo"`: antes do gate o
+   * servidor nem manda `sessaoAutor`, então não existe id de perfil legítimo
+   * para filtrar por ele. Passado em `modo: "espelho"` é ignorado.
+   */
+  autorId?: string;
+};
 
 type LinhaFeed = {
   id: string;
@@ -178,18 +171,19 @@ export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Pro
     );
   }
 
-  // A contagem nem é calculada antes do gate. Omitir na serialização deixaria o
-  // custo de pé e a decisão longe do lugar onde a regra vale.
-  const contagem =
-    entrada.modo === "completo"
-      ? ", (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes"
-      : "";
+  // Reagir não espera o gate (ADR 0009, atualizado): a contagem e a própria
+  // reação da sessão são calculadas em qualquer modo.
+  const contagem = ", (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes";
 
-  let minha = "";
-  if (entrada.modo === "completo" && entrada.sessaoId) {
-    parametros.push(entrada.sessaoId);
-    minha = `, (SELECT r.kind FROM reactions r WHERE r.upload_id = u.id AND r.session_id = $${parametros.length}) AS minha_reacao`;
-    filtros.push(filtroSemBloqueio("u.session_id", parametros.length));
+  parametros.push(entrada.sessaoId);
+  const sessaoIdxParam = parametros.length;
+  const minha = `, (SELECT r.kind FROM reactions r WHERE r.upload_id = u.id AND r.session_id = $${sessaoIdxParam}) AS minha_reacao`;
+
+  // O bloqueio simétrico só se aplica quando a identidade do autor já é
+  // visível (modo completo) — antes disso não há perfil nem foto "de fulano"
+  // para esconder, é espelho puro do telão.
+  if (entrada.modo === "completo") {
+    filtros.push(filtroSemBloqueio("u.session_id", sessaoIdxParam));
   }
 
   parametros.push(limite + 1);
@@ -212,14 +206,12 @@ export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Pro
   const ultima = pagina[pagina.length - 1];
 
   return {
-    itens: pagina.map((l) =>
-      paraItem(l, entrada.modo, entrada.modo === "completo" ? entrada.sessaoId : undefined),
-    ),
+    itens: pagina.map((l) => paraItem(l, entrada.modo, entrada.sessaoId)),
     proximoCursor: temMais && ultima ? codificarCursor(ultima.created_at_txt, ultima.id) : null,
   };
 }
 
-function paraItem(linha: LinhaFeed, modo: ModoFeed, sessaoLeitora?: string): ItemFeed {
+function paraItem(linha: LinhaFeed, modo: ModoFeed, sessaoLeitora: string): ItemFeed {
   const tamanho = dimensoesDaColuna(linha.width, linha.height);
   const item: ItemFeed = {
     id: linha.id,
@@ -231,16 +223,14 @@ function paraItem(linha: LinhaFeed, modo: ModoFeed, sessaoLeitora?: string): Ite
     lugar: linha.place,
     autor: linha.display_name,
     criadaEm: linha.created_at,
+    reacoes: linha.reacoes ?? 0,
+    minhaReacao: linha.minha_reacao ?? null,
     ...(tamanho ? { largura: tamanho.largura, altura: tamanho.altura } : {}),
   };
 
   if (modo === "completo") {
-    item.reacoes = linha.reacoes ?? 0;
-    item.minhaReacao = linha.minha_reacao ?? null;
     item.sessaoAutor = linha.session_id;
-    if (sessaoLeitora) {
-      item.minha = linha.session_id === sessaoLeitora;
-    }
+    item.minha = linha.session_id === sessaoLeitora;
   }
 
   return item;

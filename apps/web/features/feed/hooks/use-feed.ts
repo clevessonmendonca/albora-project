@@ -19,15 +19,15 @@ import { isExpired, mediaUrls, type MediaUrl } from "@/lib/media";
 /**
  * A projeção que a tela enxerga.
  *
- * 🔴 Sem `reacoes`, e isso não muda: a contagem nem é calculada antes do gate, e
- * mantê-la fora do tipo é o lugar mais barato de torná-la inalcançável na tela.
- *
  * `chaveFull` e `criadaEm` **entram**, porque o visualizador em tela cheia e a
  * tira de horas passaram a viver nesta mesma tela: o arquivo cheio é o que a
  * tela cheia mostra, e o instante é o que forma a hora. Buscá-los por um segundo
  * caminho seria pedir a mesma página do feed duas vezes por aparelho.
  *
- * `reacoes` e `minhaReacao` só existem depois do gate — o servidor omite antes.
+ * `reacoes` e `minhaReacao` chegam em qualquer modo — reagir não espera o
+ * gate (ADR 0009, atualizado). `sessaoAutor` e `minha` continuam só depois
+ * do gate: são identidade do autor (perfil clicável, bloqueio, compartilhar),
+ * e essa parte segue esperando o horário que os noivos escolherem.
  */
 export type ItemVisivel = {
   id: string;

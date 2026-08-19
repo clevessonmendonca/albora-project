@@ -13,12 +13,12 @@ import { formatQuando } from "../../lib/format-quando";
  * Uma foto do feed da Home, no `PhotoCard` do kit novo.
  *
  * Curtida e comentário são reais — `/api/reaction` e `/api/comments` já
- * existem e já valem para `/feed` (spec 008/014, ADR 0009). Antes do gate
- * (`interacao !== "completo"`) o servidor nem manda `reacoes`/`minhaReacao`
- * (ver `ItemVisivel`), e aqui a contagem mostra 0 e os botões não fazem
- * nada — mesmo comportamento de `PhotoInteraction`, que **retorna `null`**
- * antes do gate; aqui não dá pra retornar `null` porque o `PhotoCard` já é a
- * foto inteira, então o card fica, só a interação some.
+ * existem e já valem para `/feed` (spec 008/014, ADR 0009, atualizado).
+ * Curtida nunca espera o gate: `item.reacoes`/`item.minhaReacao` chegam em
+ * qualquer modo (ver `ItemVisivel`), e o botão de curtir fica ativo desde a
+ * primeira foto. Comentário continua atrás de `interacao === "completo"` —
+ * é ele que espera o horário que os noivos escolherem, igual a
+ * `PhotoInteraction`.
  */
 export function HomeFeedCard({
   item,
@@ -56,10 +56,10 @@ export function HomeFeedCard({
           : {})}
         quando={formatQuando(item.criadaEm)}
         {...(url ? { fotoUrl: url } : {})}
-        curtidas={completo ? reacao.reacoes : 0}
-        curtido={completo && reacao.minha !== null}
+        curtidas={reacao.reacoes}
+        curtido={reacao.minha !== null}
         comentarios={completo ? comentarios.total : 0}
-        {...(completo ? { onCurtir: () => void alternarCurtida() } : {})}
+        onCurtir={() => void alternarCurtida()}
         {...(completo ? { onComentar: comentarios.abrir } : {})}
       />
 

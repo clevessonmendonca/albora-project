@@ -97,21 +97,21 @@ describe("a galeria mostra o que ainda não subiu", () => {
   });
 });
 
-describe("o gate manda no botão e na contagem", () => {
+describe("reagir nunca espera o gate (ADR 0009, atualizado)", () => {
   const aberto = { interacaoAbreEm: min(10) };
   const fechado = { interacaoAbreEm: new Date(AGORA.getTime() + 60 * 60 * 1000) };
   const semData = { interacaoAbreEm: null };
 
-  it("antes do gate não há botão nem contagem", () => {
-    // Contagem sem poder reagir é o laço de checagem que o gate existe para
-    // não criar.
+  it("o botão e a contagem aparecem antes do gate", () => {
+    // Só o comentário espera o horário que o casal escolheu — reagir é
+    // liberado assim que a mídia publica, gate aberto ou não.
     for (const evento of [fechado, semData]) {
-      expect(podeReagir(evento, AGORA)).toBe(false);
-      expect(contagemVisivel(evento, AGORA)).toBe(false);
+      expect(podeReagir(evento, AGORA)).toBe(true);
+      expect(contagemVisivel(evento, AGORA)).toBe(true);
     }
   });
 
-  it("depois do gate os dois aparecem juntos", () => {
+  it("e continuam depois do gate", () => {
     expect(podeReagir(aberto, AGORA)).toBe(true);
     expect(contagemVisivel(aberto, AGORA)).toBe(true);
   });

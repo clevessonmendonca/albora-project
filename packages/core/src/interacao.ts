@@ -13,6 +13,11 @@ export type GateDeInteracao = Pick<Evento, "interacaoAbreEm">;
  * Mora aqui, e não num componente, porque as duas superfícies precisam da
  * mesma resposta. Gate reimplementado no app é gate que abre em horário
  * diferente do da web — e aí a festa tem duas regras.
+ *
+ * Desde a atualização do ADR 0009, este gate governa **comentário** e a
+ * identidade do autor (perfil clicável, compartilhar, bloquear) — não mais a
+ * reação, que é liberada assim que a mídia publica (ver `podeReagir` em
+ * `./galeria`).
  */
 export function interacaoAberta(evento: GateDeInteracao, agora: Date): boolean {
   if (evento.interacaoAbreEm === null) return false;
@@ -22,8 +27,8 @@ export function interacaoAberta(evento: GateDeInteracao, agora: Date): boolean {
 /**
  * O que a superfície pode mostrar neste instante.
  *
- * Antes do gate o feed existe, mas só espelha o que já está no telão, sem
- * contagem — ver, sem laço de checagem.
+ * Antes do gate o feed existe, espelha o que já está no telão, e a reação já
+ * responde — só o comentário e a identidade do autor esperam (ADR 0009).
  */
 export type ModoInteracao = "espelho" | "completo";
 

@@ -25,7 +25,15 @@ type Props = {
   compartilhando?: boolean;
 };
 
-/** Barra de estrela + comentário numa foto do feed (spec 008 + 014). */
+/**
+ * Barra de estrela + comentário numa foto do feed (spec 008 + 014).
+ *
+ * A estrela nunca espera o gate — reagir é liberado assim que a mídia
+ * publica (ADR 0009, atualizado). Comentário, compartilhar, denunciar e
+ * bloquear continuam atrás de `interacao === "completo"`: são eles que
+ * carregam identidade do autor (`sessaoAutor`/`minha`) e o horário que o
+ * casal escolheu.
+ */
 export function PhotoInteraction({
   uploadId,
   interacao,
@@ -39,38 +47,10 @@ export function PhotoInteraction({
   onCompartilhar,
   compartilhando,
 }: Props) {
-  if (interacao !== "completo") return null;
+  const completo = interacao === "completo";
 
-  return (
-    <InteracaoCompleta
-      uploadId={uploadId}
-      {...(reacoesInicial !== undefined ? { reacoesInicial } : {})}
-      {...(minhaInicial !== undefined ? { minhaInicial } : {})}
-      {...(sessaoAutor ? { sessaoAutor } : {})}
-      {...(autor ? { autor } : {})}
-      {...(minha !== undefined ? { minha } : {})}
-      {...(onReacoes ? { onReacoes } : {})}
-      {...(onBloqueado ? { onBloqueado } : {})}
-      {...(onCompartilhar ? { onCompartilhar } : {})}
-      {...(compartilhando !== undefined ? { compartilhando } : {})}
-    />
-  );
-}
-
-function InteracaoCompleta({
-  uploadId,
-  reacoesInicial,
-  minhaInicial,
-  sessaoAutor,
-  autor,
-  minha,
-  onReacoes,
-  onBloqueado,
-  onCompartilhar,
-  compartilhando,
-}: Omit<Props, "interacao">) {
   const reacao = useReaction(uploadId, reacoesInicial, minhaInicial);
-  const comentarios = useComments(uploadId, true);
+  const comentarios = useComments(uploadId, completo);
   const [denunciaAberta, setDenunciaAberta] = useState(false);
 
   const alternarReacao = async () => {
@@ -92,19 +72,21 @@ function InteracaoCompleta({
           <span className="font-titulo text-[0.8125rem] tracking-rotulo">{reacao.reacoes}</span>
         </button>
 
-        <button
-          type="button"
-          aria-expanded={comentarios.aberto}
-          onClick={comentarios.abrir}
-          className={CLASSE_BOTAO_ICONE}
-        >
-          <CommentIcon size={22} />
-          <span className="font-titulo text-[0.8125rem] tracking-rotulo">
-            {comentarios.total > 0 ? comentarios.total : ""}
-          </span>
-        </button>
+        {completo && (
+          <button
+            type="button"
+            aria-expanded={comentarios.aberto}
+            onClick={comentarios.abrir}
+            className={CLASSE_BOTAO_ICONE}
+          >
+            <CommentIcon size={22} />
+            <span className="font-titulo text-[0.8125rem] tracking-rotulo">
+              {comentarios.total > 0 ? comentarios.total : ""}
+            </span>
+          </button>
+        )}
 
-        {minha && onCompartilhar && (
+        {completo && minha && onCompartilhar && (
           <button
             type="button"
             aria-label="Compartilhar no Instagram ou WhatsApp"
@@ -119,29 +101,33 @@ function InteracaoCompleta({
           </button>
         )}
 
-        <div className="ml-auto">
-          <button
-            type="button"
-            aria-expanded={denunciaAberta}
-            aria-label="Mais opções"
-            onClick={() => setDenunciaAberta(true)}
-            className={CLASSE_BOTAO_ICONE}
-          >
-            <MoreIcon size={20} />
-          </button>
-        </div>
+        {completo && (
+          <div className="ml-auto">
+            <button
+              type="button"
+              aria-expanded={denunciaAberta}
+              aria-label="Mais opções"
+              onClick={() => setDenunciaAberta(true)}
+              className={CLASSE_BOTAO_ICONE}
+            >
+              <MoreIcon size={20} />
+            </button>
+          </div>
+        )}
       </div>
 
-      <CommentSheet comentarios={comentarios} />
-      <ReportSheet
-        open={denunciaAberta}
-        onClose={() => setDenunciaAberta(false)}
-        uploadId={uploadId}
-        {...(autor ? { autor } : {})}
-        {...(sessaoAutor ? { sessaoAutor } : {})}
-        {...(minha !== undefined ? { minha } : {})}
-        {...(onBloqueado ? { onBloqueado } : {})}
-      />
+      {completo && <CommentSheet comentarios={comentarios} />}
+      {completo && (
+        <ReportSheet
+          open={denunciaAberta}
+          onClose={() => setDenunciaAberta(false)}
+          uploadId={uploadId}
+          {...(autor ? { autor } : {})}
+          {...(sessaoAutor ? { sessaoAutor } : {})}
+          {...(minha !== undefined ? { minha } : {})}
+          {...(onBloqueado ? { onBloqueado } : {})}
+        />
+      )}
     </>
   );
 }

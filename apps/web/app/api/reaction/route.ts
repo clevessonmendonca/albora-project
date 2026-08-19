@@ -1,4 +1,3 @@
-import { podeReagir } from "@albora/core";
 import {
   apagarReacao,
   comEvento,
@@ -58,9 +57,12 @@ export async function PUT(req: Request) {
 
   try {
     const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
+      // Reagir não espera o gate (ADR 0009, atualizado) — só o evento
+      // precisa existir/ser visível sob RLS. Só comentário fica atrás do
+      // horário que o casal escolheu (ver `/api/comments`).
       const gate = await gateDoEvento(c, auth.session.eventoId);
-      if (!gate || !podeReagir(gate, new Date())) {
-        return { ok: false as const, code: "reacao.gate_fechado" };
+      if (!gate) {
+        return { ok: false as const, code: "reacao.evento_ausente" };
       }
 
       if (!(await midiaPublicadaDoEvento(c, auth.session.eventoId, uploadId))) {
@@ -78,7 +80,7 @@ export async function PUT(req: Request) {
     });
 
     if (!resultado.ok) {
-      const status = resultado.code === "reacao.gate_fechado" ? 403 : 422;
+      const status = resultado.code === "reacao.evento_ausente" ? 403 : 422;
       return errorResponse(status, resultado.code, "Reação recusada");
     }
 
@@ -104,8 +106,8 @@ export async function DELETE(req: Request) {
   try {
     const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
       const gate = await gateDoEvento(c, auth.session.eventoId);
-      if (!gate || !podeReagir(gate, new Date())) {
-        return { ok: false as const, code: "reacao.gate_fechado" };
+      if (!gate) {
+        return { ok: false as const, code: "reacao.evento_ausente" };
       }
 
       const tinha = await reacaoDaSessao(c, uploadId, auth.session.sessaoId);

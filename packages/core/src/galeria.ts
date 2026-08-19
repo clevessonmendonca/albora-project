@@ -1,6 +1,6 @@
 import { MAX_ATTEMPTS } from "./fila";
 import type { QueueItem } from "./fila";
-import { modoInteracao, type GateDeInteracao } from "./interacao";
+import type { GateDeInteracao } from "./interacao";
 
 /**
  * A galeria pessoal e a reação (spec 008).
@@ -96,15 +96,20 @@ export function resumirGaleria(itens: readonly ItemDaGaleria[]): ResumoDaGaleria
 /* ── reação ─────────────────────────────────────────────────────────── */
 
 /**
- * O botão só existe depois do gate, e a contagem também.
+ * O botão de reagir nunca espera o gate — só o comentário espera (ADR 0009,
+ * atualizado). Reagir é o gesto mais barato que existe no app e é ele quem dá
+ * ao convidado o primeiro sinal de "chegou" antes mesmo de a interação abrir;
+ * seguem em `podeReagir`/`contagemVisivel`, e não inline nos dois call sites
+ * (rota de reação e feed), porque as duas superfícies leem a mesma resposta —
+ * é o mesmo motivo que já valia quando a regra era o inverso.
  *
- * Antes do gate não é botão desabilitado: o ADR 0009 diz que a interação
- * abre na hora que o casal escolheu, e um botão cinza conta que existe algo
- * trancado. A contagem some junto porque contagem sem poder reagir é o laço
- * de checagem que o gate existe para não criar.
+ * `evento`/`agora` seguem na assinatura porque este é o par de `modoInteracao`
+ * que os dois call sites já chamam com esses argumentos; usá-los aqui de novo
+ * um dia (por exemplo, se a moderação global precisar suspender reação sem
+ * mudar o gate de comentário) não pede assinatura nova.
  */
-export function podeReagir(evento: GateDeInteracao, agora: Date): boolean {
-  return modoInteracao(evento, agora) === "completo";
+export function podeReagir(_evento: GateDeInteracao, _agora: Date): boolean {
+  return true;
 }
 
 export function contagemVisivel(evento: GateDeInteracao, agora: Date): boolean {

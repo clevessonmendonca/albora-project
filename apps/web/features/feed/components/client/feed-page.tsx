@@ -217,8 +217,8 @@ export function FeedPage({
 
           {espelho && estado.jaCarregou && (
             <GateNotice>
-              As reações e comentários abrem no horário escolhido pelos noivos. Enquanto isso,
-              continue fotografando — tudo já está no álbum.
+              Comentários abrem no horário escolhido pelos noivos. Pode curtir à vontade —
+              continue fotografando, tudo já está no álbum.
             </GateNotice>
           )}
 

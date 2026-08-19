@@ -78,8 +78,8 @@ export function HomePage({
           {espelho && estado.jaCarregou && (
             <div className="mt-4">
               <GateNotice>
-                As reações e comentários abrem no horário escolhido pelos noivos. Enquanto isso,
-                continue fotografando — tudo já está no álbum.
+                Comentários abrem no horário escolhido pelos noivos. Pode curtir à vontade —
+                continue fotografando, tudo já está no álbum.
               </GateNotice>
             </div>
           )}

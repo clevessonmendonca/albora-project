@@ -101,7 +101,7 @@ admin do evento
     ( ) só depois do evento
 ```
 
-Antes do gate, o app sobe foto e mostra o que está no telão. Depois, libera feed, reação e comentário.
+Antes do gate, o app sobe foto e mostra o que está no telão. Depois, libera feed, reação e comentário. **Emenda de 2026-08-18:** a reação saiu dessa frase — ver a emenda ao final deste ADR.
 
 O padrão não é timidez de produto: é que ninguém quer o celular do primo apitando durante a troca de alianças, e o casal é quem sabe a hora. Deixar configurável evita que a decisão seja tomada por quem não está na festa.
 
@@ -134,5 +134,19 @@ O [`../security.md`](../security.md) marca o ator **A5, o perseguidor**, como me
 **Compartilhamento externo sai do evento por definição.** Uma foto compartilhada no Instagram deixa o perímetro e nenhum controle nosso a alcança depois. Isso precisa de consentimento explícito de quem **aparece** na foto, não só de quem a enviou — a mesma assimetria que [`../security.md` §5.1](../security.md) já identificou no agrupamento facial. Fica registrado como pendência de produto, não resolvido aqui.
 
 **Notificação continua sem decisão.** Feed e comentário costumam arrastar push junto, e nada neste ADR autoriza isso. Fica **desligado por padrão** até existir decisão própria. Se for ligado, o gate temporal vale para ele também.
+
+## Emenda (2026-08-18) — a reação sai do gate, o comentário fica
+
+A decisão original tratava reação e comentário como um par: os dois esperavam o mesmo `interaction_opens_at`. Na prática isso juntava dois riscos que não são do mesmo tamanho.
+
+Comentário carrega texto livre, thread e identidade do autor — é onde o A5 (o perseguidor, [`../security.md`](../security.md)) ganha superfície nova, e é sobre isso que a moderação de conteúdo deste ADR foi pensada. Adiar comentário até o horário que o casal escolher continua certo.
+
+Reagir (a estrela) não carrega nenhum dos dois riscos: não tem texto, não expõe quem reagiu para quem reagiu (`sessaoAutor`/`minha` continuam atrás do gate, só a contagem e a própria reação da sessão saem dele), e é o gesto mais barato que existe no app. Segurar reação até o mesmo horário do comentário não protegia nada — só atrasava o primeiro sinal de "chegou" que o convidado tem, bem no momento em que ele mais precisa de um motivo pra continuar fotografando (a pergunta do §1 deste ADR: "isso aumenta a chance de a tia mandar a foto que está no rolo dela?").
+
+**Decisão da emenda:** `podeReagir` (`packages/core/src/galeria.ts`) deixa de depender de `modoInteracao`/`interacaoAberta` e passa a valer sempre que a mídia está publicada, gate aberto ou não. `interacaoAberta`/`modoInteracao` continuam existindo e continuam sendo a única fonte de verdade — só que agora governam exclusivamente comentário e identidade do autor (perfil clicável, bloquear, compartilhar), não mais reação.
+
+Isso obrigou a soltar `reacoes`/`minhaReacao` da amarra de `modo` em `listarFeed` (`packages/db/src/feed.ts`): os dois campos agora vêm em qualquer modo, porque o servidor sempre sabe se *esta* sessão já reagiu. `sessaoAutor`, `minha`, o filtro por `autorId` e o bloqueio simétrico continuam só em `modo: "completo"` — nada disso muda, porque nenhum deles é sobre reagir.
+
+O que isto revoga, especificamente: a frase da seção 4 "Depois, libera feed, reação e comentário" — a reação nunca mais espera essa liberação.
 
 **Reabrir se:** aparecer demanda real de identidade entre eventos. Hoje ela não existe, e a decisão 2 é o que segura a complexidade do produto inteiro.

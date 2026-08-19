@@ -57,46 +57,31 @@ async function criarFoto(entrada: {
 }
 
 /**
- * `EntradaFeed` é uma união discriminada por `modo`: `sessaoId` é obrigatório
- * sempre que `modo: "completo"`. `OpcoesFeed` espelha essa amarra — quem
- * chamar `feedDe(d, { modo: "completo", ... })` sem `sessaoId` não compila,
- * o mesmo gap que o tipo de produção fecha.
+ * `sessaoId` é sempre obrigatório em `EntradaFeed`, mesmo em `modo:
+ * "espelho"` — reagir não espera o gate (ADR 0009, atualizado), então o
+ * servidor sempre precisa saber quem lê para responder a própria reação.
+ * `OpcoesFeed` cai de volta em `d.sessaoId` quando o teste não passa um
+ * leitor específico.
  */
-type OpcoesFeed =
-  | {
-      modo?: "espelho";
-      missaoId?: string | null;
-      cursor?: string | null;
-      limite?: number;
-    }
-  | {
-      modo: "completo";
-      missaoId?: string | null;
-      cursor?: string | null;
-      limite?: number;
-      sessaoId: string;
-      autorId?: string;
-    };
+type OpcoesFeed = {
+  modo?: "espelho" | "completo";
+  missaoId?: string | null;
+  cursor?: string | null;
+  limite?: number;
+  sessaoId?: string;
+  autorId?: string;
+};
 
-const feedDe = (d: { eventoId: string }, opcoes: OpcoesFeed = {}) => {
-  const entrada: Parameters<typeof listarFeed>[1] =
-    opcoes.modo === "completo"
-      ? {
-          eventoId: d.eventoId,
-          modo: "completo",
-          missaoId: opcoes.missaoId ?? null,
-          cursor: opcoes.cursor ?? null,
-          sessaoId: opcoes.sessaoId,
-          ...(opcoes.limite !== undefined ? { limite: opcoes.limite } : {}),
-          ...(opcoes.autorId !== undefined ? { autorId: opcoes.autorId } : {}),
-        }
-      : {
-          eventoId: d.eventoId,
-          modo: "espelho",
-          missaoId: opcoes.missaoId ?? null,
-          cursor: opcoes.cursor ?? null,
-          ...(opcoes.limite !== undefined ? { limite: opcoes.limite } : {}),
-        };
+const feedDe = (d: { eventoId: string; sessaoId: string }, opcoes: OpcoesFeed = {}) => {
+  const entrada: Parameters<typeof listarFeed>[1] = {
+    eventoId: d.eventoId,
+    modo: opcoes.modo ?? "espelho",
+    missaoId: opcoes.missaoId ?? null,
+    cursor: opcoes.cursor ?? null,
+    sessaoId: opcoes.sessaoId ?? d.sessaoId,
+    ...(opcoes.limite !== undefined ? { limite: opcoes.limite } : {}),
+    ...(opcoes.autorId !== undefined ? { autorId: opcoes.autorId } : {}),
+  };
 
   return comEvento(app, d.eventoId, (c) => listarFeed(c, entrada));
 };
@@ -233,7 +218,7 @@ describe("gate de interação", () => {
     expect(gate?.interacaoAbreEm).toBeNull();
   });
 
-  it("antes do gate a contagem não existe na resposta — nem zerada", async () => {
+  it("antes do gate a contagem já existe na resposta — reagir não espera o gate", async () => {
     const foto = await criarFoto({
       eventoId: dados.a.eventoId,
       sessaoId: dados.a.sessaoId,
@@ -247,11 +232,7 @@ describe("gate de interação", () => {
     const pagina = await feedDe(dados.a, { modo: "espelho" });
     const item = pagina.itens.find((i) => i.id === foto);
 
-    expect(item).toBeDefined();
-    expect("reacoes" in item!).toBe(false);
-    // O que a tela esconde, qualquer um lê com o devtools aberto. A prova é o
-    // corpo serializado, não o objeto.
-    expect(JSON.stringify(pagina)).not.toContain("reacoes");
+    expect(item?.reacoes).toBe(1);
   });
 
   it("depois do gate a contagem aparece, e é a real", async () => {
@@ -296,7 +277,7 @@ describe("gate de interação", () => {
     expect(item?.minhaReacao).toBe("estrela");
   });
 
-  it("antes do gate minhaReacao não existe na resposta", async () => {
+  it("antes do gate minhaReacao já responde — é a própria reação, não a do gate", async () => {
     const foto = await criarFoto({
       eventoId: dados.a.eventoId,
       sessaoId: dados.a.sessaoId,
@@ -307,11 +288,25 @@ describe("gate de interação", () => {
       [dados.a.eventoId, foto, dados.a.sessaoId],
     );
 
+    const pagina = await feedDe(dados.a, { modo: "espelho", sessaoId: dados.a.sessaoId });
+    const item = pagina.itens.find((i) => i.id === foto);
+
+    expect(item?.minhaReacao).toBe("estrela");
+  });
+
+  it("antes do gate sessaoAutor e minha continuam ausentes — identidade espera o gate", async () => {
+    const foto = await criarFoto({
+      eventoId: dados.a.eventoId,
+      sessaoId: dados.a.sessaoId,
+      criadaEm: "2028-01-07T00:00:00Z",
+    });
+
     const pagina = await feedDe(dados.a, { modo: "espelho" });
     const item = pagina.itens.find((i) => i.id === foto);
 
     expect(item).toBeDefined();
-    expect("minhaReacao" in item!).toBe(false);
+    expect("sessaoAutor" in item!).toBe(false);
+    expect("minha" in item!).toBe(false);
   });
 
   it("depois do gate expõe sessaoAutor e minha para bloqueio", async () => {
