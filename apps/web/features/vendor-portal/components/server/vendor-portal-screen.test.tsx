@@ -36,4 +36,14 @@ describe("VendorPortalScreen", () => {
     render(<VendorPortalScreen {...context()} />);
     expect(screen.getByText("Portal com Albora")).toBeInTheDocument();
   });
+
+  it("admin vê o botão de assinar plano", () => {
+    render(<VendorPortalScreen {...context({ role: "admin" })} />);
+    expect(screen.getByText("Assinar plano")).toBeInTheDocument();
+  });
+
+  it("staff não vê o botão de assinar plano", () => {
+    render(<VendorPortalScreen {...context({ role: "staff" })} />);
+    expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
+  });
 });

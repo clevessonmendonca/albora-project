@@ -1,5 +1,6 @@
 import React from "react";
 import type { VendorPortalContext } from "../../data/load-vendor-portal";
+import { VendorSubscribeButton } from "../client/vendor-subscribe-button";
 import { VendorEventsList } from "./vendor-events-list";
 import { VendorShell } from "./vendor-shell";
 
@@ -17,7 +18,10 @@ export function VendorPortalScreen({ vendor, role, eventos }: VendorPortalContex
       title="Meus eventos"
       subtitle={`${ROLE_LABEL[role] ?? role} · plano ${vendor.plan}`}
     >
-      <VendorEventsList eventos={eventos} />
+      <div className="flex flex-col gap-5">
+        <VendorEventsList eventos={eventos} />
+        <VendorSubscribeButton vendorId={vendor.id} role={role} currentPlan={vendor.plan} />
+      </div>
     </VendorShell>
   );
 }
