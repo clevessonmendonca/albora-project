@@ -4,6 +4,7 @@ import { resolvePackText, type Pack } from "@albora/packs";
 import { cn } from "@albora/ui-web";
 import type { CSSProperties } from "react";
 import { ScrollDemo, Missions, Reveal, IdentityWall } from "./interactives";
+import { FirstPhotoDemo } from "./first-photo-demo";
 import { OpenAlbum, PolaroidFan, Timeline, NightSlot } from "./showcases";
 import { Brand } from "./brand";
 import { AnimatedBrand } from "./animated-brand";
@@ -284,6 +285,19 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
             </div>
           </div>
         </div>
+      </Section>
+
+      <Section id="sem-app" reveal>
+        <Label>A objeção número um</Label>
+        <Heading size="clamp(1.875rem, 4.4vw, 3.5rem)" className="max-w-[38ch]">
+          “Meus convidados vão instalar um aplicativo?” <Accent>Toque e veja que não.</Accent>
+        </Heading>
+        <p className="m-0 mt-6 mb-[clamp(2rem,4vw,3.25rem)] max-w-[46ch] text-[clamp(1rem,1.4vw,1.15625rem)] leading-normal text-ink-2">
+          Os quatro toques que um convidado dá de verdade, sem tirar o celular do bolso um
+          segundo antes.
+        </p>
+
+        <FirstPhotoDemo packHint={pack.id} />
       </Section>
 
       <Section id="demo" className={`pb-0 pt-[clamp(1.875rem,4vw,3.25rem)] ${SIDE_PADDING}`}>

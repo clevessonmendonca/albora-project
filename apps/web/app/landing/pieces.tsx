@@ -1,5 +1,5 @@
 import { cn } from "@albora/ui-web";
-import type { CSSProperties, ReactNode } from "react";
+import React, { type CSSProperties, type ReactNode } from "react";
 
 /**
  * Repeated landing pieces from v4 — the pill, the label, the warm ground and

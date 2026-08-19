@@ -1,6 +1,6 @@
 import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import { cn } from "@albora/ui-web";
-import type { CSSProperties } from "react";
+import React, { type CSSProperties } from "react";
 import { hourLabel } from "@/features/feed/lib/group-by-hour";
 import { Frame } from "./pieces";
 
@@ -34,7 +34,7 @@ function Finder({ corner, pupil }: { corner: CSSProperties; pupil: string }) {
  * reads as an empty box. A small piece gets a large module, which is what a
  * print shop would do anyway.
  */
-function Qr({ size, cell = "13.5%" }: { size: string; cell?: string }) {
+export function Qr({ size, cell = "13.5%" }: { size: string; cell?: string }) {
   return (
     <span
       className="block rounded-[calc(var(--raio)/2)] border border-ink-borda bg-bg p-[7%]"
