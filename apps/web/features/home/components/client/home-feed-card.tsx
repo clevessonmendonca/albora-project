@@ -1,6 +1,7 @@
 "use client";
 
 import type { ModoInteracao } from "@albora/core";
+import Link from "next/link";
 import { PhotoCard } from "@albora/ui-web";
 import { CommentSheet } from "@/features/feed/components/client/comment-sheet";
 import { useComments } from "@/features/feed/hooks/use-comments";
@@ -23,11 +24,14 @@ export function HomeFeedCard({
   item,
   url,
   interacao,
+  base,
   onReacoes,
 }: {
   item: ItemVisivel;
   url: string | null;
   interacao: ModoInteracao;
+  /** Raiz do evento (`/e/{slug}`) — monta o link do perfil do autor. */
+  base: string;
   onReacoes: (uploadId: string, resultado: ResultadoReacao) => void;
 }) {
   const completo = interacao === "completo";
@@ -44,6 +48,12 @@ export function HomeFeedCard({
     <>
       <PhotoCard
         autor={item.autor}
+        {...(item.sessaoAutor
+          ? {
+              autorHref: `${base}/g/${encodeURIComponent(item.sessaoAutor)}`,
+              linkComponent: Link,
+            }
+          : {})}
         quando={formatQuando(item.criadaEm)}
         {...(url ? { fotoUrl: url } : {})}
         curtidas={completo ? reacao.reacoes : 0}
