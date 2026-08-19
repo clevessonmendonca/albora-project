@@ -8,6 +8,7 @@ import { webQueue } from "@/lib/queue";
 import { useShare } from "@/features/my-photos/hooks/use-share";
 import { useGallery } from "@/features/my-photos/hooks/use-gallery";
 import { useRecap } from "@/features/my-photos/hooks/use-recap";
+import { useRecapCard } from "@/features/my-photos/hooks/use-recap-card";
 import { Viewer } from "@/features/feed/components/client/viewer";
 import {
   FloatingNav,
@@ -21,6 +22,7 @@ import {
 import { Badge } from "@albora/ui-web";
 import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
 import { RecapSheet } from "@/features/my-photos/components/client/recap-sheet";
+import { RecapCard } from "@/features/my-photos/components/client/recap-card";
 import { ThemeSetting } from "@/features/guest/components/client/theme-setting";
 
 function rotuloEstado(estado: ItemDaGaleria["estado"]): string {
@@ -96,6 +98,7 @@ export function MyPhotosPage({
   const galeria = useGallery(eventoId);
   const compartilhar = useShare(eventoId, sessaoId);
   const recap = useRecap({ eventoId, sessaoId, slug, itens: galeria.itensVisiveis });
+  const recapPessoal = useRecapCard();
   const [locais, setLocais] = useState<Map<string, string>>(new Map());
   const [mimesLocais, setMimesLocais] = useState<Map<string, string>>(new Map());
   const [indiceAberto, setIndiceAberto] = useState<number | null>(null);
@@ -232,6 +235,8 @@ export function MyPhotosPage({
               )
             }
           />
+
+          <RecapCard recap={recapPessoal} />
 
           {galeria.falha && <ErrorMessage>Não deu para carregar agora.</ErrorMessage>}
 
