@@ -3,11 +3,13 @@ import {
   readAsaasConfig,
   type AsaasEnvConfig,
 } from "./config";
-import { parseWebhook } from "./parse-webhook";
+import { parseVendorWebhook, parseWebhook } from "./parse-webhook";
 import type {
   BillingProvider,
   CreateCheckoutInput,
   CreateCheckoutResult,
+  CreateVendorSubscriptionInput,
+  CreateVendorSubscriptionResult,
 } from "./types";
 
 async function asaasFetch(
@@ -88,7 +90,42 @@ function asaasProviderFromConfig(c: AsaasEnvConfig): BillingProvider {
       };
     },
 
+    async createSubscription(
+      input: CreateVendorSubscriptionInput,
+    ): Promise<CreateVendorSubscriptionResult> {
+      const value = input.amountCents / 100;
+      const res = await asaasFetch("/subscriptions", {
+        method: "POST",
+        apiKey: c.apiKey,
+        baseUrl: c.baseUrl,
+        body: JSON.stringify({
+          customer: input.customerId,
+          billingType: input.billingType,
+          value,
+          nextDueDate: new Date().toISOString().slice(0, 10),
+          cycle: "MONTHLY",
+          description: `Albora Fornecedor — plano ${input.plan}`,
+          externalReference: `${input.vendorId}:${input.plan}`,
+        }),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`asaas.subscription: ${res.status} ${text}`);
+      }
+      const body = (await res.json()) as {
+        id: string;
+        status: string;
+        invoiceUrl?: string;
+      };
+      return {
+        providerSubscriptionId: body.id,
+        invoiceUrl: body.invoiceUrl ?? null,
+        status: body.status,
+      };
+    },
+
     parseWebhook,
+    parseVendorWebhook,
   };
 }
 
@@ -113,7 +150,16 @@ export function stubBillingProvider(): BillingProvider {
         status: "PENDING",
       };
     },
+    async createSubscription(input) {
+      const id = `sub_stub_${input.vendorId.replace(/-/g, "").slice(0, 16)}`;
+      return {
+        providerSubscriptionId: id,
+        invoiceUrl: null,
+        status: "PENDING",
+      };
+    },
     parseWebhook,
+    parseVendorWebhook,
   };
 }
 

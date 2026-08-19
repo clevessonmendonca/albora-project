@@ -3,16 +3,19 @@ export type {
   CheckoutPlan,
   CreateCheckoutInput,
   CreateCheckoutResult,
+  CreateVendorSubscriptionInput,
+  CreateVendorSubscriptionResult,
   WebhookPaymentEvent,
+  WebhookVendorSubscriptionEvent,
 } from "./types";
-export { CELEBRATION_PRICE_CENTS } from "./types";
+export { CELEBRATION_PRICE_CENTS, VENDOR_PLAN_PRICE_CENTS } from "./types";
 export {
   isBillingStubMode,
   isDevAppEnv,
   readAsaasConfig,
   readAsaasWebhookToken,
 } from "./config";
-export { parseWebhook } from "./parse-webhook";
+export { parseVendorWebhook, parseWebhook } from "./parse-webhook";
 export {
   asaasProvider,
   getBillingProvider,
