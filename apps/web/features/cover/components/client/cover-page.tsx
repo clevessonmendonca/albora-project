@@ -216,12 +216,19 @@ export function CoverPage({
                       </span>
                     ) : null}
 
-                    <span
-                      className={`absolute inset-x-2.5 bottom-2.5 block font-titulo leading-tight tracking-titulo ${
-                        central ? "text-[0.9375rem]" : "text-[0.6875rem]"
-                      }`}
-                    >
-                      {moment.title}
+                    <span className="absolute inset-x-2.5 bottom-2.5 block">
+                      <span
+                        className={`block font-titulo leading-tight tracking-titulo ${
+                          central ? "text-[0.9375rem]" : "text-[0.6875rem]"
+                        }`}
+                      >
+                        {moment.title}
+                      </span>
+                      {central && moment.contributorsLabel ? (
+                        <span className="mt-0.5 block truncate text-[0.625rem] leading-tight text-ink-2 opacity-85">
+                          {moment.contributorsLabel}
+                        </span>
+                      ) : null}
                     </span>
                   </Link>
                 );
