@@ -1,6 +1,7 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { comAgregacao, comConta, comEvento, ErroEventoAusente } from "./event";
+import { ErroSemAcessoAoFornecedor, eventosDoFornecedor } from "./vendor-portal";
 import { prepararBanco, semear } from "./testes/banco";
 
 /**
@@ -474,6 +475,107 @@ describe("9 — missão duplicada no mesmo evento é recusada pelo banco", () =>
         );
       }),
     ).resolves.toBeUndefined();
+  });
+});
+
+/**
+ * 10 — canal do fornecedor: a mesma disciplina do event_id, agora para
+ * vendor_id. Bloqueante (spec §6, riscos): `comAgregacao` nunca teve uso real
+ * em produção até `eventosDoFornecedor`, e a contenção não é o GRANT do papel
+ * `albora_agregador` (que tem SELECT em tudo) — é a query nunca sair sem
+ * `WHERE vendor_id = $1`, atrás de uma primeira porta sob RLS normal.
+ */
+describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
+  let vendorXId: string;
+  let vendorYId: string;
+  let membroXId: string;
+
+  beforeAll(async () => {
+    const { rows: vx } = await admin.query<{ id: string }>(
+      "INSERT INTO vendors (name) VALUES ($1) RETURNING id",
+      ["Fornecedor X"],
+    );
+    vendorXId = vx[0]!.id;
+    const { rows: vy } = await admin.query<{ id: string }>(
+      "INSERT INTO vendors (name) VALUES ($1) RETURNING id",
+      ["Fornecedor Y"],
+    );
+    vendorYId = vy[0]!.id;
+
+    // Os eventos A e B do seed principal (contas distintas, ADR 0013) passam
+    // a pertencer a um fornecedor cada — o mesmo par que já prova isolamento
+    // por event_id agora prova isolamento por vendor_id.
+    await admin.query("UPDATE events SET vendor_id = $1 WHERE id = $2", [vendorXId, dados.a.eventoId]);
+    await admin.query("UPDATE events SET vendor_id = $1 WHERE id = $2", [vendorYId, dados.b.eventoId]);
+
+    const { rows: membro } = await admin.query<{ id: string }>(
+      "INSERT INTO accounts (email) VALUES ($1) RETURNING id",
+      ["membro-fornecedor-x@exemplo.test"],
+    );
+    membroXId = membro[0]!.id;
+    await admin.query(
+      "INSERT INTO vendor_members (vendor_id, account_id, role) VALUES ($1, $2, 'admin')",
+      [vendorXId, membroXId],
+    );
+  });
+
+  it("eventosDoFornecedor nunca devolve evento de outro vendor_id", async () => {
+    const eventos = await eventosDoFornecedor(app, agregador, membroXId, vendorXId, () => {});
+
+    expect(eventos.map((e) => e.id)).toContain(dados.a.eventoId);
+    expect(eventos.map((e) => e.id)).not.toContain(dados.b.eventoId);
+  });
+
+  it("a checagem de pertencimento roda sob RLS normal — bloqueia ANTES de auditar", async () => {
+    const registros: { motivo: string; em: Date }[] = [];
+
+    // dados.b.contaId é dono do evento B, mas não é vendor_members de X: a
+    // primeira porta recusa antes de o agregador entrar em cena.
+    await expect(
+      eventosDoFornecedor(app, agregador, dados.b.contaId, vendorXId, (r) => registros.push(r)),
+    ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
+    expect(registros).toHaveLength(0);
+  });
+
+  it("vendor_membro (RLS de vendors) só deixa o membro ver a própria linha", async () => {
+    const vistoPeloMembro = await comConta(app, membroXId, async (c) => {
+      const { rows } = await c.query<{ id: string }>("SELECT id FROM vendors");
+      return rows.map((r) => r.id);
+    });
+    expect(vistoPeloMembro).toContain(vendorXId);
+    expect(vistoPeloMembro).not.toContain(vendorYId);
+
+    const vistoPorQuemNaoEMembro = await comConta(app, dados.b.contaId, async (c) => {
+      const { rows } = await c.query<{ id: string }>("SELECT id FROM vendors");
+      return rows.map((r) => r.id);
+    });
+    expect(vistoPorQuemNaoEMembro).toHaveLength(0);
+  });
+
+  it("a contenção é a query, não o GRANT do papel agregador", async () => {
+    // O papel albora_agregador tem SELECT em toda tabela (migration 0002) —
+    // por design, não por acidente. Sem o WHERE vendor_id = $1 que
+    // eventosDoFornecedor sempre usa, uma consulta no MESMO papel veria os
+    // dois vendors. Este teste documenta por que a disciplina tem de ser na
+    // query de aplicação, nunca no GRANT.
+    const registros: { motivo: string; em: Date }[] = [];
+    const semFiltro = await comAgregacao(
+      agregador,
+      "teste:prova-de-contencao-por-query",
+      (r) => registros.push(r),
+      async (c) => {
+        const { rows } = await c.query<{ vendor_id: string }>(
+          "SELECT DISTINCT vendor_id FROM events WHERE vendor_id IS NOT NULL",
+        );
+        return rows.map((r) => r.vendor_id);
+      },
+    );
+    expect(semFiltro).toEqual(expect.arrayContaining([vendorXId, vendorYId]));
+
+    // eventosDoFornecedor, atrás do mesmo papel, nunca devolve isso: está
+    // fechado por vendor_id = $1 com $1 já confirmado na primeira porta.
+    const doX = await eventosDoFornecedor(app, agregador, membroXId, vendorXId, () => {});
+    expect(doX.every((e) => e.id !== dados.b.eventoId)).toBe(true);
   });
 });
 

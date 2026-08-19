@@ -36,6 +36,51 @@ describe("cadeia marca → pack → evento", () => {
   });
 });
 
+describe("cadeia marca → vendor → pack → evento (canal do fornecedor)", () => {
+  it("o vendor entra entre a marca e o pack", () => {
+    const r = resolveTokens({
+      marca: ALBORA_BRAND,
+      vendor: { cores: { acento: "#333333" }, fontes: { titulo: "Fornecedor" } },
+    });
+
+    expect(r.cores.acento).toBe("#333333");
+    expect(r.fontes.titulo).toBe("Fornecedor");
+    // Sem pack/evento por cima, o resto continua vindo da marca.
+    expect(r.cores.papel).toBe(ALBORA_BRAND.cores.papel);
+  });
+
+  it("o pack ganha do vendor, que ganha da marca", () => {
+    const r = resolveTokens({
+      marca: ALBORA_BRAND,
+      vendor: { cores: { acento: "#333333" } },
+      pack: { cores: { acento: "#111111" } },
+    });
+
+    expect(r.cores.acento).toBe("#111111");
+  });
+
+  it("o evento ganha de todo mundo, inclusive do vendor", () => {
+    const r = resolveTokens({
+      marca: ALBORA_BRAND,
+      vendor: { cores: { acento: "#333333" } },
+      pack: { cores: { acento: "#111111" } },
+      evento: { cores: { acento: "#222222" } },
+    });
+
+    expect(r.cores.acento).toBe("#222222");
+  });
+
+  it("sem vendor, a cadeia se comporta exatamente como antes", () => {
+    const r = resolveTokens({
+      marca: ALBORA_BRAND,
+      pack: { cores: { acento: "#111111" } },
+      evento: { cores: { acento: "#222222" } },
+    });
+
+    expect(r.cores.acento).toBe("#222222");
+  });
+});
+
 describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
   it("âmbar reprova para texto sobre papel", () => {
     // O DESIGN.md afirma que âmbar sobre papel não serve para texto. Este

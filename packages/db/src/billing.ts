@@ -1,6 +1,7 @@
 import type { Pool, PoolClient } from "pg";
-import { comEvento } from "./event";
+import { comAgregacao, comEvento } from "./event";
 import type { PlanoDoEvento } from "@albora/core";
+import type { VendorPlan } from "./vendor-portal";
 
 export type BillingPaymentStatus =
   | "pending"
@@ -142,6 +143,113 @@ export async function aplicarPlanoPago(
 ): Promise<void> {
   await comEvento(pool, eventId, async (c: PoolClient) => {
     await c.query(`UPDATE events SET plan = $2 WHERE id = $1`, [eventId, plan]);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Assinatura do fornecedor — Modelo A (tipo Gathmo, ver spec §4.1).
+// O fornecedor assina um plano fixo mensal na plataforma; ele cobra o casal
+// por fora, no canal dele. Zero split de gateway: reusa billing_customers
+// (por accountId) e o mesmo desenho de billing_payments/webhook, só que sem
+// event_id — a linha aqui mapeia asaas_subscription_id → vendor_id.
+// ─────────────────────────────────────────────────────────────
+
+export type VendorSubscriptionStatus = "pending" | "active" | "overdue" | "canceled";
+
+export type VendorSubscription = {
+  id: string;
+  vendorId: string;
+  accountId: string;
+  asaasSubscriptionId: string;
+  status: VendorSubscriptionStatus;
+  plan: VendorPlan;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+/**
+ * Registra a assinatura antes de chamar o Asaas — espelha `createBillingPayment`.
+ * O chamador (rota `POST /api/vendors/{id}/subscription`, fora do escopo desta
+ * mudança) confere `roleForAccountOnVendor(pool, accountId, vendorId) === "admin"`
+ * antes de invocar esta função; ela não repete a checagem porque não tem como
+ * fazê-lo sob RLS sem reabrir a mesma consulta duas vezes na mesma transação.
+ */
+export async function createVendorSubscription(
+  pool: Pool,
+  entrada: {
+    vendorId: string;
+    accountId: string;
+    asaasSubscriptionId: string;
+    plan: VendorPlan;
+  },
+): Promise<VendorSubscription> {
+  const { rows } = await pool.query<{
+    id: string;
+    vendor_id: string;
+    account_id: string;
+    asaas_subscription_id: string;
+    status: VendorSubscriptionStatus;
+    plan: VendorPlan;
+    created_at: Date;
+    updated_at: Date;
+  }>(
+    `INSERT INTO vendor_subscriptions
+       (vendor_id, account_id, asaas_subscription_id, status, plan)
+     VALUES ($1, $2, $3, 'pending', $4)
+     RETURNING id, vendor_id, account_id, asaas_subscription_id, status, plan, created_at, updated_at`,
+    [entrada.vendorId, entrada.accountId, entrada.asaasSubscriptionId, entrada.plan],
+  );
+  const r = rows[0]!;
+  return {
+    id: r.id,
+    vendorId: r.vendor_id,
+    accountId: r.account_id,
+    asaasSubscriptionId: r.asaas_subscription_id,
+    status: r.status,
+    plan: r.plan,
+    createdAt: r.created_at,
+    updatedAt: r.updated_at,
+  };
+}
+
+/** Marca a assinatura pelo id do Asaas — devolve `null` se o webhook não achar (evento desconhecido/duplicado). */
+export async function markVendorSubscriptionByAsaasId(
+  pool: Pool,
+  asaasSubscriptionId: string,
+  status: Exclude<VendorSubscriptionStatus, "pending">,
+): Promise<{ vendorId: string; accountId: string; plan: VendorPlan } | null> {
+  const { rows } = await pool.query<{ vendor_id: string; account_id: string; plan: VendorPlan }>(
+    `UPDATE vendor_subscriptions
+        SET status = $2, updated_at = now()
+      WHERE asaas_subscription_id = $1
+      RETURNING vendor_id, account_id, plan`,
+    [asaasSubscriptionId, status],
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return { vendorId: row.vendor_id, accountId: row.account_id, plan: row.plan };
+}
+
+/**
+ * Única escrita de `vendors.status`/`plan` pago, via webhook — espelha
+ * `aplicarPlanoPago`.
+ *
+ * `aplicarPlanoPago` escapa a RLS de `events` porque `comEvento` seta
+ * `app.event_id` para exatamente o id da linha, e a política de isolamento
+ * por evento casa por `id`. `vendors` não tem esse escape: a única política
+ * (`vendor_membro`) exige pertencimento em `vendor_members`, que o webhook —
+ * sem sessão de conta — não tem. Por isso esta escrita usa `comAgregacao`
+ * (BYPASSRLS, auditado), com `motivo` fechado ao `vendorId` já resolvido por
+ * `markVendorSubscriptionByAsaasId`, nunca um `UPDATE` sem filtro.
+ */
+export async function ativarPlanoDoFornecedor(
+  pool: Pool,
+  vendorId: string,
+  plan: VendorPlan,
+  auditar: (registro: { motivo: string; em: Date }) => void,
+): Promise<void> {
+  await comAgregacao(pool, `billing_webhook:vendor:${vendorId}`, auditar, async (c) => {
+    await c.query(`UPDATE vendors SET status = 'active', plan = $2 WHERE id = $1`, [vendorId, plan]);
   });
 }
 

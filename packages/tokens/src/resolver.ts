@@ -49,14 +49,15 @@ function canonicalize(tokens: Tokens): Tokens {
  * do casal propaga num e não no outro, e a placa impressa deixa de combinar
  * com o telão — que é a coerência que o produto vende.
  *
- * Cadeia: marca → pack → evento. O evento ganha porque é a identidade de
- * quem pagou.
+ * Cadeia: marca → vendor → pack → evento. O evento ganha porque é a
+ * identidade de quem pagou; o fornecedor (branding do canal B2B2C, quando o
+ * evento tem `vendor_id`) entra entre a marca e o vertical.
  *
  * Camadas ainda podem trazer `fundo: "claro"|"escuro"` de JSON antigo; a
  * saída é sempre `background: "light"|"dark"`.
  */
 export function resolveTokens(input: ResolutionInput): Tokens {
-  const layers = [input.pack, input.evento].filter(
+  const layers = [input.vendor, input.pack, input.evento].filter(
     (layer): layer is TokenLayer => layer !== undefined,
   );
 

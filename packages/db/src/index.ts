@@ -351,16 +351,22 @@ export {
 export type { EventMember, EventMemberRole, HostEventRole } from "./memberships";
 export { addEventMember, ensureCoupleMember, listEventMembers, roleForAccountOnEvent } from "./memberships";
 
-export type { BillingPayment, BillingPaymentStatus } from "./billing";
+export type { BillingPayment, BillingPaymentStatus, VendorSubscription, VendorSubscriptionStatus } from "./billing";
 export {
   aplicarPlanoPago,
   asaasCustomerIdForAccount,
+  ativarPlanoDoFornecedor,
   claimWebhookEvent,
   createBillingPayment,
+  createVendorSubscription,
   markPaymentPaidByAsaasId,
+  markVendorSubscriptionByAsaasId,
   paymentByAsaasId,
   upsertBillingCustomer,
 } from "./billing";
+
+export type { VendorEventSummary, VendorPlan, VendorRole, VendorStatus } from "./vendor-portal";
+export { ErroSemAcessoAoFornecedor, eventosDoFornecedor, roleForAccountOnVendor } from "./vendor-portal";
 
 export type { EventLiveMetrics, ProductEventName } from "./analytics";
 export {

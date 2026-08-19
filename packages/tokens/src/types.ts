@@ -126,6 +126,12 @@ export type TokenLayer = {
 export type ResolutionInput = {
   /** A marca Albora. Piso da cadeia, sempre presente. */
   marca: Tokens;
+  /**
+   * O fornecedor (branding do canal B2B2C) — só entra quando `events.vendor_id`
+   * existe. Fica entre `marca` e `pack`: perde para o vertical e para o
+   * evento, ganha do piso Albora.
+   */
+  vendor?: TokenLayer;
   /** O vertical — casamento, 15 anos, formatura. */
   pack?: TokenLayer;
   /** O evento. Ganha de todo mundo: é a identidade do casal. */
