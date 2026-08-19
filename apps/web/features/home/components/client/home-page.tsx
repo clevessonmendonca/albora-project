@@ -108,6 +108,7 @@ export function HomePage({
                   key={item.id}
                   item={item}
                   interacao={estado.interacao}
+                  base={base}
                   url={estado.urls.get(item.chaveThumb)?.url ?? null}
                   onReacoes={atualizarReacoes}
                 />
