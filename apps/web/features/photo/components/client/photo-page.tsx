@@ -264,6 +264,13 @@ export function PhotoPage({
       />
     );
 
+    const base = `/e/${encodeURIComponent(slug)}`;
+    const onBack = promptKey
+      ? () => router.push(`${base}/confessional`)
+      : missions.length > 0
+        ? () => router.push(`${base}/missions`)
+        : () => router.push(`${base}/cover`);
+
     return (
       <>
         <style>{ESTILO}</style>
@@ -284,11 +291,7 @@ export function PhotoPage({
           processing={estado.processando}
           onShutter={forceVideo || promptKey ? abrirVideo.bind(null, escolhida) : dispararCamera}
           onRoll={forceVideo || promptKey ? () => undefined : dispararRolo}
-          {...(missions.length > 0 && !promptKey
-            ? { onVoltar: () => router.push(`/e/${encodeURIComponent(slug)}/missions`) }
-            : promptKey
-              ? { onVoltar: () => router.push(`/e/${encodeURIComponent(slug)}/confessional`) }
-              : {})}
+          onBack={onBack}
           footer={
             <>
               {estado.ultimoErro && (
