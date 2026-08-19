@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { webQueue } from "@/lib/queue";
 import { useShare } from "@/features/my-photos/hooks/use-share";
 import { useGallery } from "@/features/my-photos/hooks/use-gallery";
+import { useRecap } from "@/features/my-photos/hooks/use-recap";
 import { Viewer } from "@/features/feed/components/client/viewer";
 import {
   FloatingNav,
@@ -19,6 +20,7 @@ import {
 } from "@albora/ui-web";
 import { Badge } from "@albora/ui-web";
 import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
+import { RecapSheet } from "@/features/my-photos/components/client/recap-sheet";
 import { ThemeSetting } from "@/features/guest/components/client/theme-setting";
 
 function rotuloEstado(estado: ItemDaGaleria["estado"]): string {
@@ -91,13 +93,16 @@ export function MyPhotosPage({
   const base = `/e/${encodeURIComponent(slug)}`;
   const galeria = useGallery(eventoId);
   const compartilhar = useShare(eventoId, sessaoId);
+  const recap = useRecap({ eventoId, sessaoId, slug, itens: galeria.itensVisiveis });
   const [locais, setLocais] = useState<Map<string, string>>(new Map());
   const [mimesLocais, setMimesLocais] = useState<Map<string, string>>(new Map());
   const [indiceAberto, setIndiceAberto] = useState<number | null>(null);
   const movimentoReduzido = usarMovimentoReduzido();
 
   const consentimentoAberto =
-    compartilhar.pedindoConsentimento !== null || compartilhar.pedindoColagem !== null;
+    compartilhar.pedindoConsentimento !== null ||
+    compartilhar.pedindoColagem !== null ||
+    recap.pedindoConsentimento;
 
   useEffect(() => {
     let cancelado = false;
@@ -176,13 +181,15 @@ export function MyPhotosPage({
 
   const confirmarConsentimento = useCallback(
     (nomeNaMoldura: boolean) => {
-      if (compartilhar.pedindoColagem) {
+      if (recap.pedindoConsentimento) {
+        void recap.confirmarConsentimento(nomeNaMoldura);
+      } else if (compartilhar.pedindoColagem) {
         void compartilhar.confirmarConsentimentoColagem(compartilhar.pedindoColagem, nomeNaMoldura);
       } else if (compartilhar.pedindoConsentimento) {
         void compartilhar.confirmarConsentimento(compartilhar.pedindoConsentimento, nomeNaMoldura);
       }
     },
-    [compartilhar],
+    [compartilhar, recap],
   );
 
   useEffect(() => {
@@ -227,6 +234,8 @@ export function MyPhotosPage({
           {galeria.falha && <ErrorMessage>Não deu para carregar agora.</ErrorMessage>}
 
           {compartilhar.erro && <ErrorMessage>{compartilhar.erro}</ErrorMessage>}
+
+          {recap.erro && !recap.aberto && <ErrorMessage>{recap.erro}</ErrorMessage>}
 
           {!galeria.carregando && galeria.itens.length === 0 && (
             <EmptyState
@@ -301,6 +310,18 @@ export function MyPhotosPage({
             })}
           </ul>
 
+          {recap.disponivel && (
+            <div className="mt-8 rounded-token border border-linha bg-superficie px-5 py-5">
+              <p className="m-0 font-titulo text-d-inline font-light">Recap da festa</p>
+              <p className="mb-4 mt-2 text-t-body leading-relaxed text-ink-2">
+                Suas {recap.quantidade} melhores fotos, com a moldura desta festa, prontas para o story.
+              </p>
+              <PrimaryButton disabled={recap.montando} onClick={() => void recap.abrir()}>
+                {recap.montando ? "Montando…" : "Ver meu recap"}
+              </PrimaryButton>
+            </div>
+          )}
+
           {idsFotosEnviadas.length >= 2 && (
             <div className="mt-8 rounded-token border border-linha bg-superficie px-5 py-5">
               <p className="m-0 font-titulo text-d-inline font-light">Colagem da noite</p>
@@ -354,9 +375,23 @@ export function MyPhotosPage({
         />
       )}
 
+      <RecapSheet
+        aberto={recap.aberto}
+        quadros={recap.quadros}
+        indiceAtivo={recap.indiceAtivo}
+        erro={recap.aberto ? recap.erro : null}
+        compartilhando={recap.compartilhando}
+        onIr={recap.irPara}
+        onFechar={recap.fechar}
+        onCompartilhar={() => void recap.compartilhar()}
+      />
+
       <ShareConsentSheet
         open={consentimentoAberto}
-        onClose={() => compartilhar.cancelarConsentimento()}
+        onClose={() => {
+          compartilhar.cancelarConsentimento();
+          recap.cancelarConsentimento();
+        }}
         onConfirm={confirmarConsentimento}
       />
 

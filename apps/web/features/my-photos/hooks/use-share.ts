@@ -27,7 +27,12 @@ import {
   type ConsentimentoExternoBruto,
 } from "@/features/my-photos/lib/share-gate";
 
-type ContextoApi = {
+/**
+ * Exportado (e a busca abaixo também) para `use-recap.ts` reusar a mesma
+ * resposta de `/api/share` — duplicar aqui divergiria no primeiro ajuste
+ * feito de um lado só, igual ao motivo de `itemDeRede` em `use-feed.ts`.
+ */
+export type ContextoApi = {
   chaveFull: string;
   chaveThumb: string;
   mime: string;
@@ -53,6 +58,14 @@ type ContextoApi = {
   };
 };
 
+export async function buscarContextoDeCompartilhamento(uploadId: string): Promise<ContextoApi> {
+  const r = await fetch(`/api/share?uploadId=${uploadId}`, {
+    credentials: "same-origin",
+  });
+  if (!r.ok) throw new Error("contexto");
+  return (await r.json()) as ContextoApi;
+}
+
 export function useShare(eventoId: string, sessaoId: string) {
   const [compartilhandoId, setCompartilhandoId] = useState<string | null>(null);
   const [colagemIds, setColagemIds] = useState<string[] | null>(null);
@@ -60,21 +73,13 @@ export function useShare(eventoId: string, sessaoId: string) {
   const [pedindoColagem, setPedindoColagem] = useState<string[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
-  const buscarContexto = async (uploadId: string): Promise<ContextoApi> => {
-    const r = await fetch(`/api/share?uploadId=${uploadId}`, {
-      credentials: "same-origin",
-    });
-    if (!r.ok) throw new Error("contexto");
-    return (await r.json()) as ContextoApi;
-  };
-
   const executar = useCallback(
     async (uploadId: string, consentimentoExterno: ConsentimentoExterno | null) => {
       setCompartilhandoId(uploadId);
       setErro(null);
 
       try {
-        const ctx = await buscarContexto(uploadId);
+        const ctx = await buscarContextoDeCompartilhamento(uploadId);
         const agora = new Date();
 
         const sessao = {
@@ -161,7 +166,7 @@ export function useShare(eventoId: string, sessaoId: string) {
       setErro(null);
 
       try {
-        const contextos = await Promise.all(uploadIds.map((id) => buscarContexto(id)));
+        const contextos = await Promise.all(uploadIds.map((id) => buscarContextoDeCompartilhamento(id)));
         const agora = new Date();
         const base = contextos[0]!;
 
@@ -250,7 +255,7 @@ export function useShare(eventoId: string, sessaoId: string) {
     async (uploadId: string) => {
       setErro(null);
       try {
-        const ctx = await buscarContexto(uploadId);
+        const ctx = await buscarContextoDeCompartilhamento(uploadId);
         if (needsExternalConsent(mapExternalConsent(ctx.sessao.consentimentoExterno))) {
           setPedindoConsentimento(uploadId);
           return;
@@ -269,7 +274,7 @@ export function useShare(eventoId: string, sessaoId: string) {
       if (uploadIds.length < 2 || uploadIds.length > MAX_DA_COLAGEM) return;
       setErro(null);
       try {
-        const ctx = await buscarContexto(uploadIds[0]!);
+        const ctx = await buscarContextoDeCompartilhamento(uploadIds[0]!);
         if (needsExternalConsent(mapExternalConsent(ctx.sessao.consentimentoExterno))) {
           setPedindoColagem(uploadIds);
           return;
