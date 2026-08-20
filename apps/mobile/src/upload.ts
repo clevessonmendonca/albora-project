@@ -14,9 +14,8 @@ import { apiOrigin, cookieHeader, type GuestSession } from "./session";
  * HEIC convertidos podem trazer GPS. `stripGpsOrReject` bloqueia o PUT de
  * qualquer imagem com coordenadas (LGPD § 001), devolvendo erro definitivo.
  *
- * TODO(F10-completar): `processarFoto` + Desenhista Expo = reencode que
- * remove EXIF + aplica LUT. Sem canvas nativo o reencode ainda não cabe.
- * Galeria/HEIC com GPS voltam a funcionar quando o Desenhista existir.
+ * TODO(F10-completar): presets só-CSS no Desenhista (Skia) + tira de filtros
+ * na UI. Reencode + GPS strip + LUT por pixel já passam por `bufferDrawer`.
  */
 
 /** PUT a partir de arquivo — `URLSession` (iOS) / upload nativo (Android). */

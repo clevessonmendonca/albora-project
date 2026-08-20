@@ -2,11 +2,15 @@ import {
   detectarTipo,
   isHeic,
   isVideoBytes,
+  processarFoto,
+  temGeolocalizacao,
   validarConteudo,
   validarDeclaracao,
+  type Plan,
   type Queue,
   type QueueItem,
 } from "@albora/core";
+import { bufferDrawer } from "./drawer";
 import type { FileOps } from "./files";
 
 const AVISO_HEIC =
@@ -19,12 +23,12 @@ export type CaptureSource = {
 };
 
 export type CaptureResult =
-  | { ok: true; id: string; caminho: string }
+  | { ok: true; id: string; caminho: string; tinhaGeolocalizacao: boolean }
   | { ok: false; erro: string };
 
 /**
- * Copia o still do cache da câmera para a fila em disco.
- * O URI temporário some; o URLSession só continua com arquivo (ADR 0008/0010).
+ * Copia o still, processa (orientação + resize + reencode) e enfileira.
+ * O reencode tira EXIF/GPS — o URLSession só continua com arquivo (ADR 0008/0010).
  */
 export async function persistCapture(input: {
   source: CaptureSource;
@@ -32,6 +36,8 @@ export async function persistCapture(input: {
   queue: Queue;
   files: FileOps;
   destDir: string;
+  plan?: Plan;
+  device?: { memoryGb: number; cores: number };
   now?: () => number;
   id?: () => string;
 }): Promise<CaptureResult> {
@@ -77,21 +83,59 @@ export async function persistCapture(input: {
       return { ok: false, erro: mensagem(conteudo.code) };
     }
 
+    const brutos = await input.files.readAll(dest);
+    const processada = await processarFoto(brutos, mime, bufferDrawer, {
+      plan: input.plan ?? "gratis",
+      device: input.device ?? { memoryGb: 4, cores: 4 },
+    });
+
+    if (!input.files.write) {
+      await input.files.remove(dest);
+      return { ok: false, erro: "Não consegui guardar a foto. Tente de novo." };
+    }
+    await input.files.write(dest, processada.full);
+
+    const depois = await input.files.info(dest);
+    if (!depois.exists || depois.size <= 0) {
+      await input.files.remove(dest);
+      return { ok: false, erro: "Não consegui guardar a foto. Tente de novo." };
+    }
+
+    // Rede de segurança: se o reencode falhar em silêncio, não sobe GPS.
+    if (temGeolocalizacao(processada.full)) {
+      await input.files.remove(dest);
+      return {
+        ok: false,
+        erro:
+          "Esta foto contém localização GPS e não pode ser enviada. " +
+          "Tire nova foto com a câmera do app.",
+      };
+    }
+
     const criadoEm = (input.now ?? Date.now)();
+    const capturadaEm =
+      processada.capturadaEm !== null ? processada.capturadaEm.getTime() : criadoEm;
+
     const item: QueueItem = {
       id,
       eventoId: input.eventoId,
-      corpo: { tipo: "arquivo", caminho: dest, bytes: meta.size },
-      mime,
+      corpo: { tipo: "arquivo", caminho: dest, bytes: depois.size },
+      mime: "image/jpeg",
       criadoEm,
       tentativas: 0,
-      capturadaEm: criadoEm,
-      ...(typeof input.source.width === "number" ? { largura: input.source.width } : {}),
-      ...(typeof input.source.height === "number" ? { altura: input.source.height } : {}),
+      capturadaEm,
+      ...(processada.capturadaEm !== null ? { capturadaEmParede: true } : {}),
+      largura: processada.largura,
+      altura: processada.altura,
     };
 
     await input.queue.enqueue(item);
-    return { ok: true, id, caminho: dest };
+    return {
+      ok: true,
+      id,
+      caminho: dest,
+      tinhaGeolocalizacao: processada.tinhaGeolocalizacao,
+    };
   } catch {
     await input.files.remove(dest).catch(() => undefined);
     return { ok: false, erro: "Não consegui guardar a foto. Tente de novo." };

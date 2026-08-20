@@ -69,6 +69,10 @@ export function diskFiles(): FileOps {
       const b64 = await readAsStringAsync(path, { encoding: EncodingType.Base64 });
       return decodeBase64(b64);
     },
+    async write(path, bytes) {
+      await makeDirectoryAsync(parentDir(path), { intermediates: true });
+      await writeAsStringAsync(path, encodeBase64(bytes), { encoding: EncodingType.Base64 });
+    },
     async mkdir(path) {
       await makeDirectoryAsync(path, { intermediates: true });
     },
@@ -92,4 +96,12 @@ function decodeBase64(b64: string): Uint8Array {
     out[i] = bin.charCodeAt(i);
   }
   return out;
+}
+
+function encodeBase64(bytes: Uint8Array): string {
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    bin += String.fromCharCode(bytes[i]!);
+  }
+  return btoa(bin);
 }

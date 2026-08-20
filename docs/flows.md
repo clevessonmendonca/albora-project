@@ -105,7 +105,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Feliz:** parear → sessão SecureStore → câmera enfileira stills em disco; **drain** da fila nativa (`drainGuestQueue` / `drainFileQueue`) no caminho da câmera; **feed** lê `GET /api/feed` + `POST /api/media/urls`.
 
-**EXIF/GPS 🟡:** Câmera captura com `exif: false`. `stripGpsOrReject` bloqueia PUT de foto com GPS (galeria/HEIC) devolvendo erro definitivo — **sem reencode**, coordenadas nunca sobem. Gap: `processarFoto` + Desenhista Expo = reencode que remove EXIF + aplica LUT; galeria/HEIC voltam a funcionar quando existir.
+**EXIF/GPS 🟡:** Câmera captura com `exif: false`. `persistCapture` roda `processarFoto` + `bufferDrawer` (jpeg-js) — reencode remove EXIF/GPS antes de enfileirar. Gap: presets só-CSS (precisa Skia); tira de filtros na UI; galeria/HEIC ainda fora.
 
 **Upload em segundo plano 🟡:** PUT presigned via `uploadAsync` + `FileSystemSessionType.BACKGROUND` (`put-file.ts`); task `albora-guest-upload-drain` registra `BackgroundFetch` para drenar a fila. Falta prova em aparelho com app fechado.
 

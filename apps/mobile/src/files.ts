@@ -3,6 +3,8 @@ export type FileOps = {
   info(path: string): Promise<{ exists: boolean; size: number }>;
   readHead(path: string, bytes: number): Promise<Uint8Array>;
   readAll(path: string): Promise<Uint8Array>;
+  /** Grava bytes crus (JPEG processado). */
+  write?(path: string, bytes: Uint8Array): Promise<void>;
   mkdir(path: string): Promise<void>;
   remove(path: string): Promise<void>;
 };
@@ -31,6 +33,9 @@ export function memoryFiles(seed: Record<string, Uint8Array> = {}): FileOps & {
       const data = files.get(path);
       if (!data) throw new Error("arquivo ausente");
       return new Uint8Array(data);
+    },
+    async write(path, bytes) {
+      files.set(path, new Uint8Array(bytes));
     },
     async mkdir() {},
     async remove(path) {
