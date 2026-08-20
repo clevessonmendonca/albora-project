@@ -12,6 +12,7 @@ import {
   withEvent,
 } from "@albora/db";
 import { PACKS } from "@albora/packs";
+import type { TokenLayer } from "@albora/tokens";
 import {
   ADMIN_SESSION_REQUIRED,
   COUPLE_HOST_ROLES,
@@ -111,7 +112,30 @@ export async function getAdminBookPdf(
       const midias = await listarMidiaDoAlbum(c, eventId);
       const janela = await janelaDoAlbum(c, eventId);
       const packId = await eventPack(c, eventId);
-      return { plano, midias, janela, packId };
+
+      const { rows: evRows } = await c.query<{
+        vendor_id: string | null;
+        identity_tokens: Record<string, unknown>;
+      }>("SELECT vendor_id, identity_tokens FROM events WHERE id = $1", [eventId]);
+      const evRow = evRows[0];
+
+      let vendorBrandTokens: Record<string, unknown> | null = null;
+      if (evRow?.vendor_id) {
+        const { rows: vRows } = await c.query<{ brand_tokens: Record<string, unknown> }>(
+          "SELECT brand_tokens FROM vendors WHERE id = $1",
+          [evRow.vendor_id],
+        );
+        vendorBrandTokens = vRows[0]?.brand_tokens ?? null;
+      }
+
+      return {
+        plano,
+        midias,
+        janela,
+        packId,
+        vendorBrandTokens,
+        identityTokens: (evRow?.identity_tokens ?? {}) as Record<string, unknown>,
+      };
     });
 
     if (!podeBaixarZip(data.plano)) {
@@ -137,10 +161,22 @@ export async function getAdminBookPdf(
     const ids = slotIdsDoAlbum(album, TETO_SLOTS_PDF);
     const imagens = await fetchThumbsParaPdf(ids, data.midias);
 
+    const vendorTokens =
+      data.vendorBrandTokens && Object.keys(data.vendorBrandTokens).length > 0
+        ? (data.vendorBrandTokens as TokenLayer)
+        : undefined;
+    const eventoTokens =
+      Object.keys(data.identityTokens).length > 0
+        ? (data.identityTokens as TokenLayer)
+        : undefined;
+
     const result = await generateBookPdf({
       album,
       tituloDoCapitulo: (id) => chapterTitle(pack, id),
       imagens,
+      vendorTokens,
+      packTokens: pack?.tokens,
+      eventoTokens,
     });
 
     const slug = owned.evento.slug ?? "livro";

@@ -1,7 +1,7 @@
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage, type RGB } from "pdf-lib";
 import type { Album } from "@albora/core";
-import { ALBORA_BRAND, lerHex, resolveTokens, toVariables } from "@albora/tokens";
+import { ALBORA_BRAND, lerHex, resolveTokens, toVariables, type TokenLayer } from "@albora/tokens";
 import { planBook, BOOK_MARGIN_MM, BOOK_PAGE_MM, type BookPagePlan } from "./book-layout";
 import { loadPrintFonts } from "./piece-fonts";
 
@@ -17,8 +17,15 @@ function cor(hex: string): RGB {
   return rgb(parsed.r / 255, parsed.g / 255, parsed.b / 255);
 }
 
-function coresPadrao() {
-  const v = toVariables(resolveTokens({ marca: ALBORA_BRAND, pack: { background: "light" } }));
+function resolverCores(input: Pick<BookPdfInput, "vendorTokens" | "packTokens" | "eventoTokens">) {
+  const v = toVariables(
+    resolveTokens({
+      marca: ALBORA_BRAND,
+      ...(input.vendorTokens ? { vendor: input.vendorTokens } : {}),
+      ...(input.packTokens ? { pack: input.packTokens } : { pack: { background: "light" } }),
+      ...(input.eventoTokens ? { evento: input.eventoTokens } : {}),
+    }),
+  );
   return {
     fundo: String(v["--bg"]),
     tinta: String(v["--ink"]),
@@ -30,9 +37,12 @@ function coresPadrao() {
 export type BookPdfInput = {
   album: Album;
   tituloDoCapitulo: (id: string) => string;
-  fundo?: string;
-  tinta?: string;
-  acento?: string;
+  /** Camada de marca do fornecedor B2B2C — alimenta `vendor` no `resolveTokens`. */
+  vendorTokens?: TokenLayer;
+  /** Tokens do vertical (pack) — alimenta `pack` no `resolveTokens`. */
+  packTokens?: TokenLayer;
+  /** Tokens de identidade do evento — alimenta `evento` no `resolveTokens`. */
+  eventoTokens?: TokenLayer;
   imagens?: ReadonlyMap<string, Uint8Array>;
 };
 
@@ -54,10 +64,10 @@ export async function generateBookPdf(input: BookPdfInput): Promise<BookPdfResul
   const serif = await doc.embedFont(faces.serif);
   const sans = await doc.embedFont(faces.sans);
 
-  const padrao = coresPadrao();
-  const fundo = cor(input.fundo ?? padrao.fundo);
-  const tinta = cor(input.tinta ?? padrao.tinta);
-  const acento = cor(input.acento ?? padrao.acento);
+  const padrao = resolverCores(input);
+  const fundo = cor(padrao.fundo);
+  const tinta = cor(padrao.tinta);
+  const acento = cor(padrao.acento);
   const placeholder = cor(padrao.placeholder);
 
   let comFotos = 0;

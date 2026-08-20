@@ -8,6 +8,7 @@ import {
   TETO_DE_PAGINAS_PADRAO,
   type MidiaDoAlbum,
 } from "@albora/core";
+import { ALBORA_BRAND } from "@albora/tokens";
 import { generateBookPdf } from "./generate-book-pdf";
 
 /** JPEG 8×8 cinza — suficiente para pdf-lib embedJpg. */
@@ -95,6 +96,19 @@ describe("generateBookPdf", () => {
     expect(result.semFotos).toBeGreaterThanOrEqual(0);
     expect(result.comFotos + result.semFotos).toBeGreaterThanOrEqual(1);
 
+    const doc = await PDFDocument.load(result.pdf);
+    expect(doc.getPageCount()).toBe(result.paginas);
+  });
+
+  it("aceita vendorTokens e gera PDF válido — acento do vendor (ALBORA_BRAND.cores.critico)", async () => {
+    const album = montarAlbum([midia("v1"), midia("v2")], plano());
+    const result = await generateBookPdf({
+      album,
+      tituloDoCapitulo: () => "A festa",
+      vendorTokens: { cores: { acento: ALBORA_BRAND.cores.critico } },
+    });
+
+    expect(result.paginas).toBeGreaterThanOrEqual(1);
     const doc = await PDFDocument.load(result.pdf);
     expect(doc.getPageCount()).toBe(result.paginas);
   });

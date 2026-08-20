@@ -87,7 +87,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Feliz:** ZIP completo + ZIP álbum curado (via `selecionarParaAlbum`, sem rajadas, ~60 páginas), ambos com step-up (plano pago); jobs `plus_48h` / `d330_drive` (stub) / `d365_delete` (**fail-closed** sem export).
 
-**Livro PDF 🟡:** `GET /api/admin/events/{id}/book/pdf` — A4 sRGB com slots do núcleo (`planBook` + `generateBookPdf`); thumbs embutidas via `readThumb` (cap 80 slots / 512 KiB por objeto, fallback `/full`); placeholders para slots sem thumb disponível. CTA no álbum admin.
+**Livro PDF ✅:** `GET /api/admin/events/{id}/book/pdf` — A4 sRGB com slots do núcleo (`planBook` + `generateBookPdf`); thumbs embutidas via `readThumb` (cap 80 slots / 512 KiB por objeto, fallback `/full`); placeholders para slots sem thumb disponível. Cadeia de tokens completa: `resolveTokens({ marca, vendor?, pack?, evento? })` — `--bg`/`--ink`/`--acento`/`--superficie` do fornecedor propagam para fundo/tinta/acento/placeholder do PDF. CTA no álbum admin.
 
 **Runner:** `node tools/jobs/retention.mjs` · export Drive: `pnpm drive-export` ou cron em `POST /api/jobs/drive-export` (Bearer `JOB_RUNNER_SECRET`). Em produção Cloudflare: fila `albora-drive-export` → consumer em `apps/web/cloudflare/worker.ts` (tick via `WORKER_SELF_REFERENCE`).
 
@@ -99,7 +99,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **White-label parcial ✅:** `vendors.brand_tokens` propaga para as superfícies do convidado. Cadeia completa: `resolverSlug` lê `brand_tokens` dentro do mesmo `comEvento` (policy `vendor_marca_do_evento`, migration 0047 — SELECT escopado a `app.event_id`, sem BYPASSRLS); `EventoPublico.vendorBrandTokens` transporta até `eventVars` e `darkEventVars`, que passam a camada `vendor` para `resolveTokens`. Isolamento garantido: o GUC `app.event_id` é `SET LOCAL` por transação — o convidado do evento A nunca lê os tokens do vendor do evento B.
 
-**Gap:** editor de `brand_tokens` no portal do fornecedor (UI admin); propagação para mobile (`eventVars` nativo); peças PDF (`planBook`/`generateBookPdf` não passam camada vendor ainda).
+**Gap:** editor de `brand_tokens` no portal do fornecedor (UI admin); propagação para mobile (`eventVars` nativo).
 
 ---
 
