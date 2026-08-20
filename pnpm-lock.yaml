@@ -74,6 +74,9 @@ importers:
       '@albora/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@albora/packs':
+        specifier: workspace:*
+        version: link:../../packages/packs
       '@albora/tokens':
         specifier: workspace:*
         version: link:../../packages/tokens

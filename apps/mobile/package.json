@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@albora/core": "workspace:*",
+    "@albora/packs": "workspace:*",
     "@albora/tokens": "workspace:*",
     "@albora/ui-native": "workspace:*",
     "expo": "~53.0.22",

@@ -51,6 +51,46 @@ export type Resolucao =
 export const HORAS_APOS_EVENTO = 48;
 
 /**
+ * Monta `EventoPublico` a partir do cliente já sob `comEvento` — incluindo
+ * `vendorBrandTokens` via policy `vendor_marca_do_evento` (migration 0047).
+ * Usado pelo QR (`resolverSlug`) e pelo tema do app (`GET /api/guest/event`).
+ */
+export async function carregarEventoPublico(
+  cliente: PoolClient,
+  eventoId: string,
+): Promise<EventoPublico | null> {
+  const { rows: e } = await cliente.query(
+    `SELECT id, pack_id, starts_at, ends_at, interaction_opens_at, identity_tokens,
+            recommended_filter, timezone, vendor_id
+     FROM events WHERE id = $1`,
+    [eventoId],
+  );
+  const linha = e[0];
+  if (!linha) return null;
+
+  let vendorBrandTokens: Record<string, unknown> | null = null;
+  if (linha.vendor_id) {
+    const { rows: v } = await cliente.query<{ brand_tokens: Record<string, unknown> }>(
+      `SELECT brand_tokens FROM vendors WHERE id = $1`,
+      [linha.vendor_id],
+    );
+    vendorBrandTokens = (v[0]?.brand_tokens ?? null) as Record<string, unknown> | null;
+  }
+
+  return {
+    eventoId: linha.id as string,
+    packId: linha.pack_id as string,
+    comecaEm: linha.starts_at as Date,
+    terminaEm: linha.ends_at as Date,
+    interacaoAbreEm: linha.interaction_opens_at as Date | null,
+    identityTokens: (linha.identity_tokens ?? {}) as Record<string, unknown>,
+    filtroRecomendado: (linha.recommended_filter ?? null) as string | null,
+    fuso: fusoOuPadrao((linha.timezone ?? null) as string | null),
+    vendorBrandTokens,
+  };
+}
+
+/**
  * Resolve o slug do QR. É a primeira coisa que roda quando alguém escaneia a
  * placa da mesa, e a única consulta além do token que precisa acontecer antes
  * de existir contexto de evento.
@@ -68,40 +108,9 @@ export async function resolverSlug(
   const encontrado = rows[0];
   if (!encontrado) return { estado: "desconhecido" };
 
-  const evento = await comEvento(pool, encontrado.event_id, async (c) => {
-    const { rows: e } = await c.query(
-      `SELECT id, pack_id, starts_at, ends_at, interaction_opens_at, identity_tokens,
-              recommended_filter, timezone, vendor_id
-       FROM events WHERE id = $1`,
-      [encontrado.event_id],
-    );
-    const linha = e[0];
-    if (!linha) return null;
-
-    // Lê brand_tokens do vendor quando o evento tem vendor_id. A policy
-    // `vendor_marca_do_evento` (migration 0047) permite este SELECT dentro
-    // do comEvento porque app.event_id já está setado nesta transação.
-    let vendorBrandTokens: Record<string, unknown> | null = null;
-    if (linha.vendor_id) {
-      const { rows: v } = await c.query<{ brand_tokens: Record<string, unknown> }>(
-        `SELECT brand_tokens FROM vendors WHERE id = $1`,
-        [linha.vendor_id],
-      );
-      vendorBrandTokens = (v[0]?.brand_tokens ?? null) as Record<string, unknown> | null;
-    }
-
-    return {
-      eventoId: linha.id as string,
-      packId: linha.pack_id as string,
-      comecaEm: linha.starts_at as Date,
-      terminaEm: linha.ends_at as Date,
-      interacaoAbreEm: linha.interaction_opens_at as Date | null,
-      identityTokens: (linha.identity_tokens ?? {}) as Record<string, unknown>,
-      filtroRecomendado: (linha.recommended_filter ?? null) as string | null,
-      fuso: fusoOuPadrao((linha.timezone ?? null) as string | null),
-      vendorBrandTokens,
-    };
-  });
+  const evento = await comEvento(pool, encontrado.event_id, (c) =>
+    carregarEventoPublico(c, encontrado.event_id),
+  );
 
   if (!evento) return { estado: "desconhecido" };
 

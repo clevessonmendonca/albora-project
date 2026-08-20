@@ -2,18 +2,12 @@ import type { EventoPublico } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import {
   ALBORA_BRAND,
-  toVariables,
+  resolveGuestThemeVariables,
   resolveTokens,
+  toVariables,
   type Background,
-  type TokenLayer,
 } from "@albora/tokens";
 import type { CSSProperties } from "react";
-
-/** Remove `fundo`/`background` da camada — usado quando o argumento explícito vai decidir o fundo. */
-function semFundoDaCamada(layer: TokenLayer): Omit<TokenLayer, "fundo" | "background"> {
-  const { fundo: _fundo, background: _background, ...resto } = layer;
-  return resto;
-}
 
 /**
  * `background` sobrepõe o fundo resolvido da cadeia marca → vendor → pack → evento,
@@ -22,31 +16,12 @@ function semFundoDaCamada(layer: TokenLayer): Omit<TokenLayer, "fundo" | "backgr
  */
 export function eventVars(event: EventoPublico, background?: Background): CSSProperties {
   const pack = PACKS[event.packId];
-  const identityLayer = event.identityTokens as TokenLayer;
-  const hasIdentityLayer = Object.keys(event.identityTokens).length > 0;
-
-  // Com `background` presente, ele é a única fonte do fundo desta camada —
-  // `fundo`/`background` do identityTokens do evento são removidos antes de
-  // aplicar o override, para não coexistirem e decidir por ordem de chave.
-  const eventoLayer: TokenLayer | undefined = background
-    ? { ...semFundoDaCamada(identityLayer), background }
-    : hasIdentityLayer
-      ? identityLayer
-      : undefined;
-
-  const vendorLayer =
-    event.vendorBrandTokens && Object.keys(event.vendorBrandTokens).length > 0
-      ? (event.vendorBrandTokens as TokenLayer)
-      : undefined;
-
-  return toVariables(
-    resolveTokens({
-      marca: ALBORA_BRAND,
-      ...(vendorLayer ? { vendor: vendorLayer } : {}),
-      ...(pack ? { pack: pack.tokens } : {}),
-      ...(eventoLayer ? { evento: eventoLayer } : {}),
-    }),
-  ) as CSSProperties;
+  return resolveGuestThemeVariables({
+    identityTokens: event.identityTokens,
+    vendorBrandTokens: event.vendorBrandTokens,
+    ...(pack ? { packTokens: pack.tokens } : {}),
+    ...(background !== undefined ? { background } : {}),
+  }) as CSSProperties;
 }
 
 /**

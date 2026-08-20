@@ -29,6 +29,7 @@ export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from 
 
 export type { EstadoDoEvento, EventoPublico, NovoEvento, Resolucao } from "./events";
 export {
+  carregarEventoPublico,
   criarEvento,
   ErroContaDoCasalInvalida,
   fusoDoEvento,

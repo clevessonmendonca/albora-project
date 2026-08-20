@@ -16,6 +16,8 @@ export type { ModeloDeIdentidade } from "./modelos";
 export { MODELOS_DE_IDENTIDADE, MODELOS_DE_IDENTIDADE as IDENTITY_MODELS } from "./modelos";
 export { escalaDoFundo } from "./escalas";
 export { normalizeBackground, resolveScale, resolveTokens } from "./resolver";
+export { resolveGuestThemeVariables } from "./event-theme";
+export type { GuestThemeInput } from "./event-theme";
 export { toCss, toVariables } from "./outputs";
 export type { PieceFormat, PieceLayout, PieceMeasures, QrInk } from "./pieces";
 export {
