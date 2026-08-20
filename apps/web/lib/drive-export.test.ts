@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { ErroDriveApi, type DriveClient } from "./drive-client";
-import { driveFolderUrl, executarExportDrive } from "./drive-export";
+import { driveFolderUrl, executarExportDrive, avancarExportDrive } from "./drive-export";
 
 function itens(n: number) {
   return Array.from({ length: n }, (_, i) => ({
@@ -157,6 +157,41 @@ describe("executarExportDrive", () => {
       async () => {},
     );
     expect(r).toEqual({ estado: "pronto", enviadas: 0, total: 0, quotaEsgotada: false });
+  });
+});
+
+describe("avancarExportDrive", () => {
+  it("para no teto do tick e sinaliza pausadoNoTick", async () => {
+    const client = driveClientFake();
+    const r = await avancarExportDrive(
+      { itens: itens(10), driveFolderId: "f" },
+      client,
+      "at",
+      async () => new Uint8Array([1]),
+      async () => {},
+      { maxItens: 3 },
+    );
+
+    expect(r.pausadoNoTick).toBe(true);
+    expect(r.concluido).toBe(false);
+    expect(r.enviadas).toBe(3);
+    expect(client.uploadFile).toHaveBeenCalledTimes(3);
+  });
+
+  it("maxItens infinito fecha concluido num único tick", async () => {
+    const client = driveClientFake();
+    const r = await avancarExportDrive(
+      { itens: itens(2), driveFolderId: "f" },
+      client,
+      "at",
+      async () => new Uint8Array([1]),
+      async () => {},
+      { maxItens: Number.POSITIVE_INFINITY },
+    );
+
+    expect(r.concluido).toBe(true);
+    expect(r.pausadoNoTick).toBe(false);
+    expect(r.estado).toBe("pronto");
   });
 });
 

@@ -258,6 +258,36 @@ export async function finalizarExportDrive(
   );
 }
 
+export type JobDriveEnviando = {
+  eventId: string;
+  jobId: string;
+  accountId: string;
+};
+
+/** Lista jobs cross-event — runner usa papel BYPASSRLS (como retenção). */
+export async function listarJobsDriveEnviando(pool: Pool, limite = 10): Promise<JobDriveEnviando[]> {
+  const { rows } = await pool.query<{ event_id: string; id: string; account_id: string }>(
+    `SELECT event_id, id, account_id
+       FROM export_jobs
+      WHERE destination = 'drive' AND state = 'enviando'
+      ORDER BY created_at ASC
+      LIMIT $1`,
+    [limite],
+  );
+  return rows.map((r) => ({ eventId: r.event_id, jobId: r.id, accountId: r.account_id }));
+}
+
+/** Retoma um job parcial sem criar duplicata — o POST do admin chama isto. */
+export async function retomarExportDrive(pool: Pool, eventoId: string, jobId: string): Promise<boolean> {
+  const { rowCount } = await pool.query(
+    `UPDATE export_jobs
+        SET state = 'enviando', ready_at = NULL
+      WHERE id = $1 AND event_id = $2 AND destination = 'drive' AND state = 'parcial'`,
+    [jobId, eventoId],
+  );
+  return (rowCount ?? 0) > 0;
+}
+
 /** Estimativa antes de criar o job (spec §5.1) — quota se confere ANTES de qualquer INSERT. */
 export async function previaExportDrive(
   pool: Pool,

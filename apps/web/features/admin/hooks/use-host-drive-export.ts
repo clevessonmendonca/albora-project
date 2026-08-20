@@ -22,7 +22,7 @@ export type EstadoDrive =
   | { fase: "desconectado" }
   | { fase: "reauth"; link: string | null }
   | { fase: "conectado_sem_export"; conexao: ConexaoDriveNaTela }
-  | { fase: "enviando"; conexao: ConexaoDriveNaTela }
+  | { fase: "enviando"; conexao: ConexaoDriveNaTela; job: JobDriveNaTela }
   | { fase: "pronto"; conexao: ConexaoDriveNaTela; job: JobDriveNaTela }
   | { fase: "parcial"; conexao: ConexaoDriveNaTela; job: JobDriveNaTela }
   | { fase: "quota_insuficiente"; conexao: ConexaoDriveNaTela; necessario: number; disponivel: number }

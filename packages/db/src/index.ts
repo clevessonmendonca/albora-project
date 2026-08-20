@@ -206,11 +206,14 @@ export {
   jobExportDriveMaisRecente,
   jobExportMaisRecente,
   jobExportPorId,
+  listarJobsDriveEnviando,
   marcarItemDriveEnviado,
   midiaParaCuradoria,
   previaExportDrive,
+  retomarExportDrive,
   VALIDADE_STEP_UP_MINUTOS,
 } from "./export-db";
+export type { JobDriveEnviando } from "./export-db";
 
 /** English alias — preferred for new code. @see comEvento */
 export { comEvento as withEvent } from "./event";

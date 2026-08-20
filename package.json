@@ -22,6 +22,7 @@
     "bundle:budget:report": "node tools/bundle/orcamento-convidado.mjs --report-only",
     "carga": "node tools/carga/executar.mjs",
     "carga:limpar": "node tools/carga/limpar.mjs",
+    "drive-export": "node tools/jobs/drive-export.mjs",
     "db:up": "docker compose up -d --wait postgres",
     "db:down": "docker compose down -v",
     "db:semear": "node tools/db/semear-dev.mjs"

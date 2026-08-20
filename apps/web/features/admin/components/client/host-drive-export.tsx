@@ -44,6 +44,8 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
     if (jobR.ok && jobR.job) {
       if (jobR.job.estado === "pronto") setEstado({ fase: "pronto", conexao, job: jobR.job });
       else if (jobR.job.estado === "parcial") setEstado({ fase: "parcial", conexao, job: jobR.job });
+      else if (jobR.job.estado === "enviando")
+        setEstado({ fase: "enviando", conexao, job: jobR.job });
       else setEstado({ fase: "conectado_sem_export", conexao });
       return;
     }
@@ -53,6 +55,12 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
   useEffect(() => {
     void carregar();
   }, [carregar]);
+
+  useEffect(() => {
+    if (estado.fase !== "enviando") return;
+    const id = window.setInterval(() => void carregar(), 4000);
+    return () => window.clearInterval(id);
+  }, [estado.fase, carregar]);
 
   // O e-mail de confirmação de conexão leva de volta pra cá com o token —
   // a navegação para o Google acontece por redirect de servidor
@@ -113,6 +121,7 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
 
     if (r.job.estado === "pronto") setEstado({ fase: "pronto", conexao: conexaoAtual, job: r.job });
     else if (r.job.estado === "parcial") setEstado({ fase: "parcial", conexao: conexaoAtual, job: r.job });
+    else if (r.job.estado === "enviando") setEstado({ fase: "enviando", conexao: conexaoAtual, job: r.job });
     else void carregar();
   };
 
@@ -197,7 +206,17 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
         </p>
       )}
 
-      {(estado.fase === "conectado_sem_export" || estado.fase === "pronto" || estado.fase === "parcial") && (
+      {estado.fase === "enviando" && (
+        <p className="mb-0 mt-4 text-[0.9rem] text-ink-2">
+          Enviando {estado.job.enviadas} de {estado.job.fotos}… Pode fechar esta tela — o upload continua em
+          segundo plano.
+        </p>
+      )}
+
+      {(estado.fase === "conectado_sem_export" ||
+        estado.fase === "enviando" ||
+        estado.fase === "pronto" ||
+        estado.fase === "parcial") && (
         <p className="mb-0 mt-4 text-[0.9rem] text-ink-3">
           Conectado como {estado.conexao.email ?? "sua conta Google"}.{" "}
           <button

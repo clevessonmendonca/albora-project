@@ -1,13 +1,12 @@
 import {
   conexaoDrive,
   criarJobExportDrive,
-  finalizarExportDrive,
   jobExportDriveMaisRecente,
   jobExportPorId,
   marcarDriveExpirado,
-  marcarItemDriveEnviado,
   previaExportDrive,
   refreshTokenDoEvento,
+  retomarExportDrive,
   type JobExport,
 } from "@albora/db";
 import {
@@ -24,10 +23,10 @@ import {
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
 import { getDriveClient, getDriveVault } from "@/lib/drive";
-import { driveFolderUrl, executarExportDrive } from "@/lib/drive-export";
+import { driveFolderUrl } from "@/lib/drive-export";
+import { processDriveExportJobAteFechar } from "@/lib/drive-export-worker";
 import { sendHostEmail } from "@/lib/email";
 import { consume } from "@/lib/rate-limit-store";
-import { bufferObject } from "@/lib/r2";
 
 export const dynamic = "force-dynamic";
 
@@ -60,11 +59,39 @@ function telaDoJobDrive(job: JobExport) {
   };
 }
 
+function jobTemPendentes(job: JobExport): boolean {
+  return job.itens.some((i) => !i.uploadedAt);
+}
+
+function depsDoWorker(hostEmail: string) {
+  return {
+    driveClient: getDriveClient(),
+    vault: getDriveVault(),
+    onPronto: async ({ total, job }: { total: number; job: JobExport; eventId: string }) => {
+      void sendHostEmail({
+        to: hostEmail,
+        subject: "Suas fotos já estão no Google Drive",
+        text: [
+          `${total} ${total === 1 ? "arquivo foi enviado" : "arquivos foram enviados"} para o Drive de vocês.`,
+          "",
+          job.driveFolderId ? driveFolderUrl(job.driveFolderId) : "",
+        ].join("\n"),
+      });
+    },
+  };
+}
+
+function agendarProcessamento(eventId: string, accountId: string, jobId: string, hostEmail: string) {
+  const pool = getPool();
+  const deps = depsDoWorker(hostEmail);
+  void processDriveExportJobAteFechar(pool, eventId, accountId, jobId, deps).catch((e) => {
+    console.error("drive_export.background_falhou", { eventId, jobId, erro: String(e) });
+  });
+}
+
 /**
- * Cria e roda o export para o Drive (spec §4/§5/§7). Síncrono por ora — sem
- * fila local (spec §9, fase 4). Gate de 15GB roda ANTES do INSERT: espaço
- * insuficiente nunca cria job nenhum, e o botão de ZIP continua a saída
- * garantida.
+ * Cria (ou retoma) o job de Drive e devolve 202 — o upload roda em ticks via
+ * `tools/jobs/drive-export.mjs` ou em background no dev server.
  */
 export async function postExportDrive(
   req: Request,
@@ -98,6 +125,18 @@ export async function postExportDrive(
       return errorResponse(409, "drive.nao_conectado", "Conecte o Google Drive primeiro");
     }
 
+    const existente = await jobExportDriveMaisRecente(getPool(), auth.host.accountId, eventId);
+    if (existente?.estado === "enviando") {
+      return jsonOk({ job: telaDoJobDrive(existente) }, { status: 202 });
+    }
+
+    if (existente?.estado === "parcial" && jobTemPendentes(existente)) {
+      await retomarExportDrive(getPool(), eventId, existente.id);
+      const retomado = (await jobExportPorId(getPool(), auth.host.accountId, eventId, existente.id)) ?? existente;
+      agendarProcessamento(eventId, auth.host.accountId, retomado.id, auth.host.email);
+      return jsonOk({ job: telaDoJobDrive(retomado) }, { status: 202 });
+    }
+
     const previa = await previaExportDrive(getPool(), auth.host.accountId, eventId);
     if (!previa) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
 
@@ -107,15 +146,15 @@ export async function postExportDrive(
     }
 
     const client = getDriveClient();
-    let accessToken: string;
     try {
-      accessToken = (await client.refreshAccessToken(refreshToken)).accessToken;
+      await client.refreshAccessToken(refreshToken);
     } catch {
       await marcarDriveExpirado(getPool(), eventId);
       return errorResponse(409, "drive.expirado", "Reconecte o Google Drive");
     }
 
     if (previa.bytesTotal > 0) {
+      const accessToken = (await client.refreshAccessToken(refreshToken)).accessToken;
       const about = await client.getAbout(accessToken);
       const disponivel =
         about.quota.limitBytes === null
@@ -136,42 +175,14 @@ export async function postExportDrive(
     const job = await criarJobExportDrive(getPool(), auth.host.accountId, eventId, conexao.driveFolderId);
     if (!job) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
 
-    console.log("drive_export_start", { eventId, fotos: job.fotos });
+    console.log("drive_export_start", { eventId, fotos: job.fotos, async: true });
 
-    if (job.estado === "vazio") {
+    if (job.estado !== "enviando") {
       return jsonOk({ job: telaDoJobDrive(job) }, { status: 202 });
     }
 
-    const resultado = await executarExportDrive(
-      job,
-      client,
-      accessToken,
-      (chave) => bufferObject(chave),
-      (itemId, fileId) => marcarItemDriveEnviado(getPool(), eventId, job.id, itemId, fileId),
-    );
-
-    await finalizarExportDrive(getPool(), eventId, job.id, resultado.estado);
-    const jobFinal = await jobExportPorId(getPool(), auth.host.accountId, eventId, job.id);
-
-    console.log(resultado.estado === "pronto" ? "drive_export_ok" : "drive_export_partial", {
-      eventId,
-      enviadas: resultado.enviadas,
-      total: resultado.total,
-    });
-
-    if (resultado.estado === "pronto") {
-      void sendHostEmail({
-        to: auth.host.email,
-        subject: "Suas fotos já estão no Google Drive",
-        text: [
-          `${resultado.total} ${resultado.total === 1 ? "arquivo foi enviado" : "arquivos foram enviados"} para o Drive de vocês.`,
-          "",
-          driveFolderUrl(job.driveFolderId ?? ""),
-        ].join("\n"),
-      });
-    }
-
-    return jsonOk({ job: telaDoJobDrive(jobFinal ?? job) }, { status: 202 });
+    agendarProcessamento(eventId, auth.host.accountId, job.id, auth.host.email);
+    return jsonOk({ job: telaDoJobDrive(job) }, { status: 202 });
   } catch (e) {
     return unexpectedError("admin.export.drive", e);
   }
