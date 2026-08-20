@@ -7,6 +7,9 @@
  * convidado vê a foto sumir sem explicação.
  */
 
+import type { PlanoDoEvento } from "./plano-evento";
+import { planoParaRedimensionamento } from "./plano-evento";
+
 export const TIPOS_ACEITOS = ["image/jpeg", "image/png", "image/webp"] as const;
 export type TipoAceito = (typeof TIPOS_ACEITOS)[number];
 
@@ -191,4 +194,20 @@ export function validarObjetoRecebido(
   inicio: Uint8Array,
 ): ErroMidia | null {
   return validarDeclaracao(mimeDeclarado, bytes) ?? validarConteudo(mimeDeclarado, inicio);
+}
+
+/**
+ * O cliente redimensiona no plano antes do PUT (2500 grátis / 3500 pago).
+ * O confirm valida o par declarado — quem pular o resize no cliente não ganha
+ * resolução extra no acervo (roadmap B3).
+ */
+export function dimensoesDentroDoPlano(
+  largura: number,
+  altura: number,
+  plano: PlanoDoEvento,
+): { ok: true } | { ok: false; limite: number; ladoMaior: number } {
+  const limite = LADO_MAIOR[planoParaRedimensionamento(plano)];
+  const ladoMaior = Math.max(largura, altura);
+  if (ladoMaior > limite) return { ok: false, limite, ladoMaior };
+  return { ok: true };
 }

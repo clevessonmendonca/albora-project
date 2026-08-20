@@ -11,6 +11,7 @@ import {
   validarConteudo,
   validarDeclaracao,
   validarObjetoRecebido,
+  dimensoesDentroDoPlano,
 } from "./midia";
 
 const bytes = (...b: number[]) => new Uint8Array([...b, ...new Array(32).fill(0)]);
@@ -190,5 +191,25 @@ describe("HEIC nunca sobe — vira JPEG no cliente (N5.2)", () => {
     expect(TIPOS_ENTRADA).toContain("image/heic");
     expect(TIPOS_ENTRADA).toContain("image/heif");
     for (const aceito of TIPOS_ACEITOS) expect(TIPOS_ENTRADA).toContain(aceito);
+  });
+});
+
+describe("dimensoesDentroDoPlano — o confirm não aceita resize burlado", () => {
+  it("free aceita até 2500 no lado maior", () => {
+    expect(dimensoesDentroDoPlano(2500, 1875, "free")).toEqual({ ok: true });
+    expect(dimensoesDentroDoPlano(2501, 1875, "free")).toEqual({
+      ok: false,
+      limite: 2500,
+      ladoMaior: 2501,
+    });
+  });
+
+  it("celebration aceita até 3500 no lado maior", () => {
+    expect(dimensoesDentroDoPlano(3500, 2333, "celebration")).toEqual({ ok: true });
+    expect(dimensoesDentroDoPlano(3501, 2333, "vendor")).toEqual({
+      ok: false,
+      limite: 3500,
+      ladoMaior: 3501,
+    });
   });
 });

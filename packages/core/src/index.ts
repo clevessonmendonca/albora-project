@@ -54,6 +54,7 @@ export {
   validarConteudo,
   validarDeclaracao,
   validarObjetoRecebido,
+  dimensoesDentroDoPlano,
 } from "./midia";
 
 export type { PlanoDoEvento } from "./plano-evento";
@@ -480,6 +481,8 @@ export { validarDeclaracao as validateDeclaration } from "./midia";
 export { validarConteudo as validateContent } from "./midia";
 /** English alias — prefer for new code. @see validarObjetoRecebido */
 export { validarObjetoRecebido as validateReceivedObject } from "./midia";
+/** English alias — prefer for new code. @see dimensoesDentroDoPlano */
+export { dimensoesDentroDoPlano as withinPlanDimensions } from "./midia";
 /** English alias — prefer for new code. @see PREFIXO_MAGIC_BYTES */
 export { PREFIXO_MAGIC_BYTES as MAGIC_BYTE_PREFIX } from "./midia";
 /** English alias — prefer for new code. */

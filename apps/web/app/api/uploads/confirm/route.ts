@@ -1,12 +1,13 @@
-import { prefixoDoEvento, validarObjetoRecebido } from "@albora/core";
+import { prefixoDoEvento, validarObjetoRecebido, withinPlanDimensions } from "@albora/core";
 import {
-  comEvento,
-  confirmarUpload,
-  criarStory,
-  desafioDoEvento,
-  ErroUploadDeOutroEvento,
-  fusoDoEvento,
-  packDoEvento,
+  withEvent,
+  confirmUpload,
+  createStory,
+  challengeBelongsToEvent,
+  UploadConflictError,
+  eventTimeZone,
+  eventPack,
+  planoDoEvento,
 } from "@albora/db";
 import { isValidConfessionPrompt, PACKS } from "@albora/packs";
 import { recordFunnelEvent } from "@/features/guest/lib/record-funnel";
@@ -102,13 +103,13 @@ export async function POST(req: Request) {
       return errorResponse(422, recusa.code, "Arquivo recusado", recusa.details);
     }
 
-    const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
+    const resultado = await withEvent(getPool(), auth.session.eventoId, async (c) => {
       const daMissao =
-        typeof desafioId === "string" && (await desafioDoEvento(c, auth.session.eventoId, desafioId))
+        typeof desafioId === "string" && (await challengeBelongsToEvent(c, auth.session.eventoId, desafioId))
           ? desafioId
           : null;
 
-      const packId = await packDoEvento(c, auth.session.eventoId);
+      const packId = await eventPack(c, auth.session.eventoId);
       const pack = packId ? PACKS[packId] : undefined;
       let prompt: string | null = null;
       if (typeof promptKey === "string" && pack && isValidConfessionPrompt(pack, promptKey)) {
@@ -118,14 +119,26 @@ export async function POST(req: Request) {
         prompt = promptKey;
       }
 
-      const fuso = await fusoDoEvento(c, auth.session.eventoId);
+      const fuso = await eventTimeZone(c, auth.session.eventoId);
       const tamanho = acceptedSize(largura, altura);
       const takenAt =
         capturadaEmParede === true
           ? acceptedTakenAtInTimeZone(capturadaEm, fuso)
           : acceptedTakenAt(capturadaEm);
 
-      const confirmado = await confirmarUpload(c, {
+      if (!mime.startsWith("video/") && tamanho) {
+        const plano = await planoDoEvento(c, auth.session.eventoId);
+        const limite = withinPlanDimensions(tamanho.width, tamanho.height, plano);
+        if (!limite.ok) {
+          return {
+            erro: "upload.resolucao_acima_do_plano" as const,
+            limite: limite.limite,
+            ladoMaior: limite.ladoMaior,
+          };
+        }
+      }
+
+      const confirmado = await confirmUpload(c, {
         uploadId,
         eventId: auth.session.eventoId,
         sessionId: auth.session.sessaoId,
@@ -143,7 +156,7 @@ export async function POST(req: Request) {
 
       // Marca a story na MESMA transação do confirm, mas atrás de um SAVEPOINT:
       // a story é enriquecimento, o confirm da foto é o dado essencial. Sem o
-      // savepoint, um erro em `criarStory` abortaria a transação inteira e
+      // savepoint, um erro em `createStory` abortaria a transação inteira e
       // desfaria o confirm da foto — violando "a story degrada, nunca falha".
       // Com ele, a falha da story reverte só o próprio INSERT; a foto commita.
       // Idempotente via `UNIQUE (upload_id)`: o retry da fila offline marcando
@@ -151,7 +164,7 @@ export async function POST(req: Request) {
       if (story === true) {
         await c.query("SAVEPOINT marcar_story");
         try {
-          await criarStory(c, {
+          await createStory(c, {
             eventoId: auth.session.eventoId,
             sessaoId: auth.session.sessaoId,
             uploadId,
@@ -172,7 +185,13 @@ export async function POST(req: Request) {
     });
 
     if ("erro" in resultado) {
-      return errorResponse(422, resultado.erro, "O confessionário pede um vídeo");
+      if (resultado.erro === "confessionario.video") {
+        return errorResponse(422, resultado.erro, "O confessionário pede um vídeo");
+      }
+      return errorResponse(422, resultado.erro, "A foto passou do tamanho do plano", {
+        limite: resultado.limite,
+        ladoMaior: resultado.ladoMaior,
+      });
     }
 
     const { resultado: confirmado } = resultado;
@@ -190,7 +209,7 @@ export async function POST(req: Request) {
 
     return jsonOk({ uploadId, estado: confirmado.estado });
   } catch (e) {
-    if (e instanceof ErroUploadDeOutroEvento) {
+    if (e instanceof UploadConflictError) {
       return errorResponse(403, "upload.chave_invalida", "Chave não pertence a este evento");
     }
     return unexpectedError("confirm", e);
