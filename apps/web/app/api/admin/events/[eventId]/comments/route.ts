@@ -1,5 +1,5 @@
 import {
-  comEvento,
+  withEvent,
   listarComentariosParaModeracao,
   removerComentarioDoEvento,
 } from "@albora/db";
@@ -48,7 +48,7 @@ export async function GET(
   if (owned instanceof Response) return owned;
 
   try {
-    const comentarios = await comEvento(getPool(), eventId, (c) =>
+    const comentarios = await withEvent(getPool(), eventId, (c) =>
       listarComentariosParaModeracao(c, eventId),
     );
     return jsonOk({ comentarios: serializar(comentarios) });
@@ -93,7 +93,7 @@ export async function DELETE(
   }
 
   try {
-    const removido = await comEvento(getPool(), eventId, (c) =>
+    const removido = await withEvent(getPool(), eventId, (c) =>
       removerComentarioDoEvento(c, comentarioId),
     );
 

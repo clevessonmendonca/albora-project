@@ -9,9 +9,9 @@ import {
 import {
   type ComentarioComAutor,
   type ComentarioGravado,
-  comEvento,
+  withEvent,
   ErroComentarioDeOutroEvento,
-  gateDoEvento,
+  eventGate,
   gravarComentario,
   listarComentariosVisiveisDaFoto,
   removerComentario,
@@ -90,8 +90,8 @@ export async function GET(req: Request) {
   }
 
   try {
-    const threads = await comEvento(getPool(), auth.session.eventoId, async (c) => {
-      const gate = await gateDoEvento(c, auth.session.eventoId);
+    const threads = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+      const gate = await eventGate(c, auth.session.eventoId);
       if (!gateIsOpen(gate)) return [];
 
       const comments = await listarComentariosVisiveisDaFoto(
@@ -160,8 +160,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const result = await comEvento(getPool(), auth.session.eventoId, async (c): Promise<Outcome> => {
-      const gate = await gateDoEvento(c, auth.session.eventoId);
+    const result = await withEvent(getPool(), auth.session.eventoId, async (c): Promise<Outcome> => {
+      const gate = await eventGate(c, auth.session.eventoId);
       if (!gateIsOpen(gate)) {
         return {
           ok: false,
@@ -265,8 +265,8 @@ export async function DELETE(req: Request) {
   }
 
   try {
-    const removed = await comEvento(getPool(), auth.session.eventoId, async (c) => {
-      const gate = await gateDoEvento(c, auth.session.eventoId);
+    const removed = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+      const gate = await eventGate(c, auth.session.eventoId);
       if (!gateIsOpen(gate)) return false;
       return removerComentario(c, { comentarioId: commentId, sessaoId: auth.session.sessaoId });
     });

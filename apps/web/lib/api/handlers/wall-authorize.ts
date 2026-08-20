@@ -1,5 +1,5 @@
 import { podeUsarTelao } from "@albora/core";
-import { autorizarPareamento, comEvento, ErroAutorizacaoDePareamento, planoDoEvento } from "@albora/db";
+import { autorizarPareamento, withEvent, ErroAutorizacaoDePareamento, planoDoEvento } from "@albora/db";
 import {
   errorResponse,
   jsonOk,
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const plan = await comEvento(getPool(), auth.session.eventoId, (c) =>
+    const plan = await withEvent(getPool(), auth.session.eventoId, (c) =>
       planoDoEvento(c, auth.session.eventoId),
     );
     if (!podeUsarTelao(plan)) {

@@ -1,4 +1,4 @@
-import { comConta, comEvento, listarDesafios, recordProductEvent } from "@albora/db";
+import { withAccount, withEvent, listChallenges, recordProductEvent } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import {
   ALBORA_BRAND,
@@ -32,7 +32,7 @@ async function tokensDoEvento(
   comecaEm: Date;
   identityTokens: Record<string, unknown>;
 } | null> {
-  return comConta(getPool(), accountId, async (c) => {
+  return withAccount(getPool(), accountId, async (c) => {
     const { rows } = await c.query<{
       slug: string;
       pack_id: string;
@@ -111,7 +111,7 @@ export async function GET(
   try {
     const [dados, desafios] = await Promise.all([
       tokensDoEvento(auth.host.accountId, eventId),
-      comEvento(getPool(), eventId, (c) => listarDesafios(c, eventId, null)),
+      withEvent(getPool(), eventId, (c) => listChallenges(c, eventId, null)),
     ]);
     if (!dados) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
 

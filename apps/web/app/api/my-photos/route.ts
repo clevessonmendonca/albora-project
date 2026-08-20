@@ -1,5 +1,5 @@
 import { modoInteracao } from "@albora/core";
-import { comEvento, gateDoEvento, listarMinhasDoEvento } from "@albora/db";
+import { withEvent, eventGate, listMyMedia } from "@albora/db";
 import {
   enforceRateLimit,
   jsonOk,
@@ -22,13 +22,13 @@ export async function GET(req: Request) {
   if (limited) return limited;
 
   try {
-    const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
-      const gate = await gateDoEvento(c, auth.session.eventoId);
+    const resultado = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+      const gate = await eventGate(c, auth.session.eventoId);
       if (!gate) return { interacao: "espelho" as const, enviadas: [] };
 
       const interacao = modoInteracao(gate, new Date());
       const modo = interacao === "completo" ? "completo" : "espelho";
-      const enviadas = await listarMinhasDoEvento(c, auth.session.sessaoId, modo);
+      const enviadas = await listMyMedia(c, auth.session.sessaoId, modo);
 
       return { interacao, enviadas };
     });

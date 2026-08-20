@@ -1,6 +1,6 @@
 import { ordenarSugestoes, parseMusicLink } from "@albora/core";
 import {
-  comEvento,
+  withEvent,
   definirMusicaDoCasal,
   listarSugestoes,
   musicaDoCasal,
@@ -37,7 +37,7 @@ export async function GET(
   if (owned instanceof Response) return owned;
 
   try {
-    const corpo = await comEvento(getPool(), eventId, async (c) => {
+    const corpo = await withEvent(getPool(), eventId, async (c) => {
       const musica = await musicaDoCasal(c, eventId);
       const fila = ordenarSugestoes(await listarSugestoes(c, eventId));
       return { musica, fila };
@@ -94,7 +94,7 @@ export async function PUT(
   try {
     const metadado = await metadadoParaFaixaDoCasal(lido.link);
 
-    await comEvento(getPool(), eventId, (c) =>
+    await withEvent(getPool(), eventId, (c) =>
       definirMusicaDoCasal(c, {
         eventoId: eventId,
         link: lido.link,
@@ -102,7 +102,7 @@ export async function PUT(
       }),
     );
 
-    const musica = await comEvento(getPool(), eventId, (c) => musicaDoCasal(c, eventId));
+    const musica = await withEvent(getPool(), eventId, (c) => musicaDoCasal(c, eventId));
 
     console.log("admin.musica_definida", {
       accountId: auth.host.accountId,

@@ -29,7 +29,7 @@ function auditarWebhookDeAssinatura(registro: { motivo: string; em: Date }): voi
 /**
  * Webhook Asaas — assinatura do fornecedor (Modelo A, spec §4.4). Única
  * escrita de `vendors.status`/`plan` pago (via `ativarPlanoDoFornecedor`,
- * `comAgregacao`/BYPASSRLS auditado).
+ * `withAggregation`/BYPASSRLS auditado).
  *
  * Autenticidade validada ANTES de qualquer leitura de corpo —
  * `parseVendorWebhook` confere o token `asaas-access-token` antes de tocar

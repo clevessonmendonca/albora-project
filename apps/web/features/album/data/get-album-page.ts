@@ -1,4 +1,4 @@
-import { comEvento, listarDesafios, type EventoPublico } from "@albora/db";
+import { withEvent, listChallenges, type EventoPublico } from "@albora/db";
 import { getPool } from "@/lib/db";
 import { resolveMissions, type ResolvedMission } from "@/features/guest/lib/resolved-missions";
 
@@ -20,8 +20,8 @@ export type AlbumPageData = {
 export async function getAlbumPage(input: AlbumPageInput): Promise<AlbumPageData> {
   const { slug, eventoId, sessaoId, evento, missionParam } = input;
 
-  const challenges = await comEvento(getPool(), eventoId, (c) =>
-    listarDesafios(c, eventoId, sessaoId),
+  const challenges = await withEvent(getPool(), eventoId, (c) =>
+    listChallenges(c, eventoId, sessaoId),
   );
 
   const missions = resolveMissions(evento.packId, challenges);

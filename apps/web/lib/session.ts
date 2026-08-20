@@ -1,5 +1,5 @@
 import { GUEST_SESSION_COOKIE } from "@albora/core";
-import { resolverSessao, type SessaoResolvida } from "@albora/db";
+import { resolveSession, type SessaoResolvida } from "@albora/db";
 import { getPool } from "./db";
 import { config } from "./config";
 
@@ -49,7 +49,7 @@ export async function guestSessionFromRequest(req: Request): Promise<SessaoResol
   if (!token) return null;
 
   try {
-    return await resolverSessao(getPool(), config().sessionSecret, token);
+    return await resolveSession(getPool(), config().sessionSecret, token);
   } catch {
     return null;
   }
@@ -60,7 +60,7 @@ export async function guestSessionFromRequest(req: Request): Promise<SessaoResol
  *
  * Existe para o componente de servidor, que não recebe `Request`. Uma segunda
  * forma de ler o token seria uma segunda chance de errar — por isso as duas
- * terminam em `resolverSessao`.
+ * terminam em `resolveSession`.
  */
 export async function guestSessionFromToken(
   token: string | undefined,
@@ -68,7 +68,7 @@ export async function guestSessionFromToken(
   if (!token) return null;
 
   try {
-    return await resolverSessao(getPool(), config().sessionSecret, token);
+    return await resolveSession(getPool(), config().sessionSecret, token);
   } catch {
     return null;
   }

@@ -1,5 +1,5 @@
 import {
-  comEvento,
+  withEvent,
   denunciarComentario,
   ErroComentarioDeOutroEvento,
 } from "@albora/db";
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const resultado = await comEvento(getPool(), auth.session.eventoId, (c) =>
+    const resultado = await withEvent(getPool(), auth.session.eventoId, (c) =>
       denunciarComentario(c, { comentarioId, sessaoId: auth.session.sessaoId }),
     );
 

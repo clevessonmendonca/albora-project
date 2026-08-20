@@ -1,4 +1,4 @@
-import { comEvento, storiesAtivasDoEvento, thumbKeyFromFull } from "@albora/db";
+import { withEvent, activeStoriesForEvent, thumbKeyFromFull } from "@albora/db";
 import {
   enforceRateLimit,
   jsonOk,
@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
  *
  * Sem gate de interação: mostrar story antes do gate é espelho (CLAUDE.md,
  * "A interação abre por gate"), a mesma regra que já libera o feed em modo
- * `espelho`. `storiesAtivasDoEvento` já filtra pela janela de 24h; aqui só
+ * `espelho`. `activeStoriesForEvent` já filtra pela janela de 24h; aqui só
  * serializa para a rede com o mínimo que a tira precisa — `autor` é o
  * primeiro nome que a consulta devolve (concessão `ler.identidade`), nunca
  * mais que isso.
@@ -27,8 +27,8 @@ export async function GET(req: Request) {
   if (limited) return limited;
 
   try {
-    const stories = await comEvento(getPool(), auth.session.eventoId, (c) =>
-      storiesAtivasDoEvento(c, auth.session.eventoId),
+    const stories = await withEvent(getPool(), auth.session.eventoId, (c) =>
+      activeStoriesForEvent(c, auth.session.eventoId),
     );
 
     return jsonOk({

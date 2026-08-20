@@ -1,6 +1,6 @@
 import {
   bloquearConvidado,
-  comEvento,
+  withEvent,
   ErroSessaoDeOutroEvento,
 } from "@albora/db";
 import {
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const resultado = await comEvento(getPool(), auth.session.eventoId, (c) =>
+    const resultado = await withEvent(getPool(), auth.session.eventoId, (c) =>
       bloquearConvidado(c, {
         eventoId: auth.session.eventoId,
         bloqueadorId: auth.session.sessaoId,

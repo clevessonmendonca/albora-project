@@ -1,9 +1,9 @@
 import {
-  comEvento,
+  withEvent,
   filtroSemBloqueio,
-  listarDesafios,
+  listChallenges,
   musicaDoCasal,
-  packDoEvento,
+  eventPack,
   type EventoPublico,
 } from "@albora/db";
 import { exibirMusica } from "@albora/core";
@@ -26,10 +26,10 @@ export async function getCover(input: CoverInput): Promise<CoverData> {
   const { slug, eventoId, sessaoId, evento } = input;
 
   const [challenges, packId, album, chosen] = await Promise.all([
-    comEvento(getPool(), eventoId, (c) => listarDesafios(c, eventoId, sessaoId)),
-    comEvento(getPool(), eventoId, (c) => packDoEvento(c, eventoId)),
+    withEvent(getPool(), eventoId, (c) => listChallenges(c, eventoId, sessaoId)),
+    withEvent(getPool(), eventoId, (c) => eventPack(c, eventoId)),
     montarAlbumServido(eventoId),
-    comEvento(getPool(), eventoId, (c) => musicaDoCasal(c, eventoId)),
+    withEvent(getPool(), eventoId, (c) => musicaDoCasal(c, eventoId)),
   ]);
 
   const pack = packId ? PACKS[packId] : undefined;
@@ -81,7 +81,7 @@ async function contribuidoresDosMomentos(
   ];
   if (missionIds.length === 0) return new Map();
 
-  const { rows } = await comEvento(getPool(), eventoId, (c) =>
+  const { rows } = await withEvent(getPool(), eventoId, (c) =>
     c.query<{ challenge_id: string; display_name: string; fotos: number }>(
       `SELECT u.challenge_id, s.display_name, count(*)::int AS fotos
          FROM uploads u

@@ -1,4 +1,4 @@
-import { comEvento, listarMidiaDaParede, lerModeracaoDoEvento } from "@albora/db";
+import { withEvent, listarMidiaDaParede, lerModeracaoDoEvento } from "@albora/db";
 import { wallDisplayRotationModels, type WallDisplayModel } from "@albora/core";
 import { errorResponse, jsonOk, requireConfig, unexpectedError } from "@/lib/api";
 import { classifyMediaAfter } from "@/lib/classify-media";
@@ -15,7 +15,7 @@ const GET_TTL_SECONDS = 900;
  * 1. **Crachá, não sessão.** A rota resolve pela `wall_tokens`; um crachá só
  *    lê, e é o que faz ser seguro deixá-lo numa TV pendurada no salão.
  * 2. **O evento vem do crachá, nunca da URL.** Não há parâmetro de evento aqui:
- *    o crachá já carrega o seu, e a RLS confere de novo dentro de `comEvento`.
+ *    o crachá já carrega o seu, e a RLS confere de novo dentro de `withEvent`.
  * 3. **O servidor nunca toca nos bytes.** Ele assina a URL de leitura e o
  *    navegador da TV busca a foto direto no storage, como no resto do produto.
  * 4. **A parede falha fechada no classificador.** `listarMidiaDaParede` lê
@@ -41,7 +41,7 @@ export async function GET(req: Request) {
   classifyMediaAfter(wall.eventoId);
 
   try {
-    const page = await comEvento(getPool(), wall.eventoId, async (c) => {
+    const page = await withEvent(getPool(), wall.eventoId, async (c) => {
       const moderacao = await lerModeracaoDoEvento(c, wall.eventoId);
       const lista = await listarMidiaDaParede(c, wall.eventoId);
       const { rows } = await c.query<{ identity_tokens: Record<string, unknown> }>(
@@ -52,7 +52,7 @@ export async function GET(req: Request) {
       const telaoModelos = wallDisplayRotationModels(tokens.telaoModelos) as WallDisplayModel[];
       // Contagem total do evento (não a janela de rotação de `listarMidiaDaParede`,
       // que é capada): o total honesto de "N fotos · M pessoas" para a prova
-      // social do telão. Sob `comEvento` a RLS já escopa por evento — o COUNT
+      // social do telão. Sob `withEvent` a RLS já escopa por evento — o COUNT
       // não cruza eventos. `::int` para o node-pg devolver número, não string.
       const { rows: contagem } = await c.query<{ fotos: number; convidados: number }>(
         `SELECT COUNT(*)::int AS fotos,

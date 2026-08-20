@@ -8,8 +8,8 @@ import {
 } from "@albora/core";
 import {
   adicionarSugestao,
-  comEvento,
-  gateDoEvento,
+  withEvent,
+  eventGate,
   listarSugestoes,
   musicaDoCasal,
 } from "@albora/db";
@@ -41,8 +41,8 @@ export async function GET(req: Request) {
   if (mismatch) return mismatch;
 
   try {
-    const corpo = await comEvento(getPool(), auth.session.eventoId, async (c) => {
-      const gate = await gateDoEvento(c, auth.session.eventoId);
+    const corpo = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+      const gate = await eventGate(c, auth.session.eventoId);
       const escolhida = await musicaDoCasal(c, auth.session.eventoId);
       const fila = ordenarSugestoes(await listarSugestoes(c, auth.session.eventoId));
       return {
@@ -95,7 +95,7 @@ export async function POST(req: Request) {
 
   let metadado: MetadadoDaMusica | null = null;
   try {
-    const filaAtual = await comEvento(getPool(), auth.session.eventoId, (c) =>
+    const filaAtual = await withEvent(getPool(), auth.session.eventoId, (c) =>
       listarSugestoes(c, auth.session.eventoId),
     );
     const existente = filaAtual.find((f) => f.chave === chave);
@@ -107,8 +107,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
-      const gate = await gateDoEvento(c, auth.session.eventoId);
+    const resultado = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+      const gate = await eventGate(c, auth.session.eventoId);
       if (!gate) return { tipo: "fechado" as const };
 
       const fila = await listarSugestoes(c, auth.session.eventoId);

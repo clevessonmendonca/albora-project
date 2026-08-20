@@ -1,5 +1,5 @@
 import { VALIDADE_DA_PAREDE_HORAS } from "@albora/core";
-import { comEvento, criarPareamento, finalizarPareamento } from "@albora/db";
+import { withEvent, criarPareamento, finalizarPareamento } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import type { TokenLayer } from "@albora/tokens";
@@ -120,7 +120,7 @@ export async function GET(req: Request) {
 }
 
 async function eventTheme(eventoId: string): Promise<Record<string, string>> {
-  const row = await comEvento(getPool(), eventoId, async (c) => {
+  const row = await withEvent(getPool(), eventoId, async (c) => {
     const { rows } = await c.query<{ pack_id: string; identity_tokens: unknown }>(
       "SELECT pack_id, identity_tokens FROM events WHERE id = $1",
       [eventoId],

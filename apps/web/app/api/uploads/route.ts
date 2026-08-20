@@ -1,4 +1,4 @@
-import { comEvento, removerUploadProprio } from "@albora/db";
+import { withEvent, removerUploadProprio } from "@albora/db";
 import {
   enforceRateLimit,
   errorResponse,
@@ -31,7 +31,7 @@ export async function DELETE(req: Request) {
   if (!uploadId) return errorResponse(422, "validation_error", "Foto inválida", { campos: ["uploadId"] });
 
   try {
-    const removido = await comEvento(getPool(), auth.session.eventoId, (c) =>
+    const removido = await withEvent(getPool(), auth.session.eventoId, (c) =>
       removerUploadProprio(c, uploadId, auth.session.sessaoId),
     );
 

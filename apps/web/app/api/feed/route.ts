@@ -1,10 +1,10 @@
 import { modoInteracao } from "@albora/core";
 import {
-  comEvento,
-  desafioDoEvento,
+  withEvent,
+  challengeBelongsToEvent,
   ErroCursorInvalido,
-  gateDoEvento,
-  listarFeed,
+  eventGate,
+  listFeed,
   type PaginaFeed,
 } from "@albora/db";
 import {
@@ -41,17 +41,17 @@ export async function GET(req: Request) {
   const cursor = parametros.get("cursor");
 
   try {
-    const pagina = await comEvento(getPool(), auth.session.eventoId, async (c) => {
-      const gate = await gateDoEvento(c, auth.session.eventoId);
+    const pagina = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+      const gate = await eventGate(c, auth.session.eventoId);
       if (!gate) return { ...VAZIO, interacao: "espelho" as const };
 
       const interacao = modoInteracao(gate, new Date());
 
-      if (missao !== null && !(await desafioDoEvento(c, auth.session.eventoId, missao))) {
+      if (missao !== null && !(await challengeBelongsToEvent(c, auth.session.eventoId, missao))) {
         return { ...VAZIO, interacao };
       }
 
-      const itens = await listarFeed(c, {
+      const itens = await listFeed(c, {
         eventoId: auth.session.eventoId,
         modo: interacao,
         missaoId: missao,

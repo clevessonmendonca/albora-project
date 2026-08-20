@@ -3,7 +3,7 @@ import {
   MOTIVO_DENUNCIA_PADRAO,
   type MotivoDeDenuncia,
 } from "@albora/core";
-import { comEvento, denunciar, ErroMidiaDeOutroEvento } from "@albora/db";
+import { withEvent, denunciar, ErroMidiaDeOutroEvento } from "@albora/db";
 import {
   enforceRateLimit,
   errorResponse,
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const resultado = await comEvento(getPool(), auth.session.eventoId, (c) =>
+    const resultado = await withEvent(getPool(), auth.session.eventoId, (c) =>
       denunciar(c, { uploadId, sessaoId: auth.session.sessaoId, motivo, kind }),
     );
 

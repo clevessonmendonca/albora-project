@@ -1,5 +1,5 @@
 import {
-  comEvento,
+  withEvent,
   liberarComentarioDoEvento,
   liberarMidiaDoEvento,
   listarComentariosParaRevisao,
@@ -64,7 +64,7 @@ export async function GET(
   if (owned instanceof Response) return owned;
 
   try {
-    const fila = await comEvento(getPool(), eventId, async (c) => {
+    const fila = await withEvent(getPool(), eventId, async (c) => {
       const [midias, comentarios] = await Promise.all([
         listarMidiaParaRevisao(c, eventId),
         listarComentariosParaRevisao(c, eventId),
@@ -123,7 +123,7 @@ export async function PATCH(
 
   if (tipo === "comentario" && acao === "remover") {
     try {
-      const removido = await comEvento(getPool(), eventId, (c) =>
+      const removido = await withEvent(getPool(), eventId, (c) =>
         removerComentarioDoEvento(c, id),
       );
       if (!removido) return errorResponse(404, "comentario.nao_encontrado", "Comentário não encontrado");
@@ -148,7 +148,7 @@ export async function PATCH(
   }
 
   try {
-    const okAcao = await comEvento(getPool(), eventId, async (c) => {
+    const okAcao = await withEvent(getPool(), eventId, async (c) => {
       if (tipo === "midia") return liberarMidiaDoEvento(c, id);
       return liberarComentarioDoEvento(c, id);
     });

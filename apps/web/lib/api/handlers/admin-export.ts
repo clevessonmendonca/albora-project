@@ -1,6 +1,6 @@
 import { nomeDoArquivoZip, podeBaixarZip, resolver, selecionarParaAlbum, planejarCapitulos, TETO_DE_PAGINAS_PADRAO } from "@albora/core";
 import {
-  comEvento,
+  withEvent,
   consumirStepUp,
   criarJobExport,
   emitirStepUp,
@@ -81,7 +81,7 @@ export async function postReauth(
   }
 
   try {
-    const plan = await comEvento(getPool(), eventId, (c) => planoDoEvento(c, eventId));
+    const plan = await withEvent(getPool(), eventId, (c) => planoDoEvento(c, eventId));
     if (!podeBaixarZip(plan)) {
       return errorResponse(
         403,

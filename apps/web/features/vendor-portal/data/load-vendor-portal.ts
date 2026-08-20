@@ -44,7 +44,7 @@ async function latestSubscriptionStatus(vendorId: string): Promise<VendorSubscri
  * Três passos, cada um falhando para `notFound()`/`redirect()` em vez de
  * seguir com um estado parcial:
  *
- * 1. Resolve a marca pública pelo slug — via `comAgregacao`, auditado, só
+ * 1. Resolve a marca pública pelo slug — via `withAggregation`, auditado, só
  *    branding (§3 do spec). Slug desconhecido é 404, não erro: mesma
  *    semântica de `resolverSlug` para o slug do convidado.
  * 2. Exige sessão de host. Sem cookie válido, manda para o login do

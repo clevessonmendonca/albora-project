@@ -1,7 +1,7 @@
 import {
-  comEvento,
+  withEvent,
   contarVideosDaSessao,
-  listarDesafios,
+  listChallenges,
   planoDoEvento,
   type EventoPublico,
 } from "@albora/db";
@@ -47,8 +47,8 @@ export async function getPhotoPage(input: PhotoPageInput): Promise<PhotoPageData
   const pack = PACKS[evento.packId];
 
   const [challenges, planData] = await Promise.all([
-    comEvento(getPool(), eventoId, (c) => listarDesafios(c, eventoId, sessaoId)),
-    comEvento(getPool(), eventoId, async (c) => {
+    withEvent(getPool(), eventoId, (c) => listChallenges(c, eventoId, sessaoId)),
+    withEvent(getPool(), eventoId, async (c) => {
       const plan = await planoDoEvento(c, eventoId);
       const sent = await contarVideosDaSessao(c, eventoId, sessaoId);
       return { plan, sent };

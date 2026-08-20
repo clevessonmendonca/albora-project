@@ -5,7 +5,7 @@ import {
   type ModoInteracao,
   type PlanoDoAlbum,
 } from "@albora/core";
-import { comEvento, gateDoEvento, janelaDoAlbum, listarMidiaDoAlbum, packDoEvento } from "@albora/db";
+import { withEvent, eventGate, janelaDoAlbum, listarMidiaDoAlbum, eventPack } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import { chapterTitle, planAlbumChapters } from "./album-chapters";
 import { getPool } from "./db";
@@ -78,11 +78,11 @@ const EMPTY = (expiresAt: number, interacao: ModoInteracao): ServedAlbum => ({
 export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
   const expiresAt = Date.now() + GET_URL_TTL_SECONDS * 1000;
 
-  const data = await comEvento(getPool(), eventId, async (c) => {
+  const data = await withEvent(getPool(), eventId, async (c) => {
     const midias = await listarMidiaDoAlbum(c, eventId);
     const janela = await janelaDoAlbum(c, eventId);
-    const packId = await packDoEvento(c, eventId);
-    const gate = await gateDoEvento(c, eventId);
+    const packId = await eventPack(c, eventId);
+    const gate = await eventGate(c, eventId);
     return { midias, janela, packId, gate };
   });
 

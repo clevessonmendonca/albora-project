@@ -2,7 +2,7 @@ import {
   abrirInteracaoDoEvento,
   agendarInteracaoDoEvento,
   atualizarModeracaoDoEvento,
-  comEvento,
+  withEvent,
   lerMetricasAoVivo,
   listarComentariosParaRevisao,
   listarMidiaParaRevisao,
@@ -75,7 +75,7 @@ export async function GET(
     if (owned instanceof Response) return owned;
     const { evento } = owned;
 
-    const dados = await comEvento(getPool(), eventId, async (c) => {
+    const dados = await withEvent(getPool(), eventId, async (c) => {
       const metricas = await lerMetricasAoVivo(c, eventId);
       const midias = await listarMidiaParaRevisao(c, eventId);
       const comentarios = await listarComentariosParaRevisao(c, eventId);
@@ -112,7 +112,7 @@ export async function GET(
 /**
  * Toggles de moderacao do evento (roadmap A2, spec 011, ADR 0012).
  *
- * A conta vem da sessao de host; `comConta` impede alterar evento alheio.
+ * A conta vem da sessao de host; `withAccount` impede alterar evento alheio.
  */
 export async function PATCH(
   req: Request,

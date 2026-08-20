@@ -1,4 +1,4 @@
-import { comEvento, listarMidiaDoAlbum, ocultarMidiaDoHost } from "@albora/db";
+import { withEvent, listarMidiaDoAlbum, ocultarMidiaDoHost } from "@albora/db";
 import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
@@ -42,7 +42,7 @@ export async function GET(
     const owned = await requireHostEvent(auth.host.accountId, eventId);
     if (owned instanceof Response) return owned;
 
-    const midias = await comEvento(getPool(), eventId, (c) => listarMidiaDoAlbum(c, eventId, 120));
+    const midias = await withEvent(getPool(), eventId, (c) => listarMidiaDoAlbum(c, eventId, 120));
 
     const itens = await Promise.all(
       midias.map(async (m) => ({

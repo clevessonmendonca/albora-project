@@ -1,4 +1,4 @@
-import { comEvento } from "@albora/db";
+import { withEvent } from "@albora/db";
 import {
   enforceRateLimit,
   jsonOk,
@@ -32,7 +32,7 @@ export async function GET(req: Request) {
   if (limited) return limited;
 
   try {
-    const resumo = await comEvento(getPool(), auth.session.eventoId, async (c) => {
+    const resumo = await withEvent(getPool(), auth.session.eventoId, async (c) => {
       // event_id no WHERE é redundante com a RLS (SET LOCAL app.event_id já
       // filtra) — mantido como segunda camada do mesmo invariante, no mesmo
       // espírito das outras consultas escopadas por sessão deste pacote.

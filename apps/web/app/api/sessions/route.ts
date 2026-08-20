@@ -1,4 +1,4 @@
-import { criarSessao, ErroNomeInvalido } from "@albora/db";
+import { createSession, ErroNomeInvalido } from "@albora/db";
 import { parseEntryVia } from "@albora/core";
 import { recordFunnelEntry } from "@/features/guest/lib/record-funnel";
 import {
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
   const via = parseEntryVia(viaBruto);
 
   try {
-    const { token, sessaoId } = await criarSessao(getPool(), cfg.sessionSecret, {
+    const { token, sessaoId } = await createSession(getPool(), cfg.sessionSecret, {
       eventoId,
       nome,
       consentimentoVersao: CONSENTIMENTO_VIGENTE,

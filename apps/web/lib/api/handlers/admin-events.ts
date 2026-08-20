@@ -48,7 +48,7 @@ function asDate(v: unknown, fuso: string): Date | null {
 /**
  * O anfitrião cria um evento (spec 009).
  *
- * 🔴 A conta vem da **sessão de host**, nunca do corpo — é `comConta` dentro de
+ * 🔴 A conta vem da **sessão de host**, nunca do corpo — é `withAccount` dentro de
  * `criarEvento` que prende a linha a ela. O `packId` é conferido contra o
  * conjunto fechado do registro de packs antes de tocar no banco: pack inválido
  * é 422, não um 500 de violação de FK.

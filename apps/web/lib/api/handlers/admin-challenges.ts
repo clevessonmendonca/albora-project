@@ -1,4 +1,4 @@
-import { comEvento, listarDesafios, substituirDesafios } from "@albora/db";
+import { withEvent, listChallenges, substituirDesafios } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import { parseMissionKeys } from "@/features/admin/lib/mission-keys";
 import {
@@ -18,7 +18,7 @@ type Corpo = {
   titleKeys?: unknown;
 };
 
-function serializar(lista: Awaited<ReturnType<typeof listarDesafios>>) {
+function serializar(lista: Awaited<ReturnType<typeof listChallenges>>) {
   return lista.map((d) => ({
     id: d.id,
     titleKey: d.chaveTitulo,
@@ -41,8 +41,8 @@ export async function GET(
   if (owned instanceof Response) return owned;
 
   try {
-    const challenges = await comEvento(getPool(), eventId, (c) =>
-      listarDesafios(c, eventId, null),
+    const challenges = await withEvent(getPool(), eventId, (c) =>
+      listChallenges(c, eventId, null),
     );
     return jsonOk({ packId: owned.evento.packId, challenges: serializar(challenges) });
   } catch (e) {
@@ -86,7 +86,7 @@ export async function PUT(
   }
 
   try {
-    const challenges = await comEvento(getPool(), eventId, (c) =>
+    const challenges = await withEvent(getPool(), eventId, (c) =>
       substituirDesafios(c, eventId, titleKeys),
     );
     return jsonOk({ packId: owned.evento.packId, challenges: serializar(challenges) });

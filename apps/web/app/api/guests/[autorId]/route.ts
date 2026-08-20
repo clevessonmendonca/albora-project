@@ -1,10 +1,10 @@
 import { modoInteracao } from "@albora/core";
 import {
-  comEvento,
+  withEvent,
   ErroCursorInvalido,
-  gateDoEvento,
-  listarFeed,
-  perfilDoConvidado,
+  eventGate,
+  listFeed,
+  guestProfile,
 } from "@albora/db";
 import {
   enforceRateLimit,
@@ -46,21 +46,21 @@ export async function GET(req: Request, { params }: { params: Promise<{ autorId:
   const cursor = new URL(req.url).searchParams.get("cursor");
 
   try {
-    const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
-      const gate = await gateDoEvento(c, auth.session.eventoId);
+    const resultado = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+      const gate = await eventGate(c, auth.session.eventoId);
       if (!gate) return null;
 
       const interacao = modoInteracao(gate, new Date());
       if (interacao !== "completo") return null;
 
-      const perfil = await perfilDoConvidado(c, {
+      const perfil = await guestProfile(c, {
         eventoId: auth.session.eventoId,
         autorId,
         leitorId: auth.session.sessaoId,
       });
       if (!perfil) return null;
 
-      const pagina = await listarFeed(c, {
+      const pagina = await listFeed(c, {
         eventoId: auth.session.eventoId,
         modo: "completo",
         missaoId: null,

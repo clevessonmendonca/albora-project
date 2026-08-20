@@ -1,5 +1,5 @@
 import { PACKS, resolvePackText } from "@albora/packs";
-import { comEvento, packDoEvento } from "@albora/db";
+import { withEvent, eventPack } from "@albora/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
@@ -35,8 +35,8 @@ export default async function ConfessionalPage({ params }: Props) {
     return <NoSession slug={slug} />;
   }
 
-  const packId = await comEvento(getPool(), r.evento.eventoId, (c) =>
-    packDoEvento(c, r.evento.eventoId),
+  const packId = await withEvent(getPool(), r.evento.eventoId, (c) =>
+    eventPack(c, r.evento.eventoId),
   );
   const pack = packId ? PACKS[packId] : undefined;
   if (!pack?.confessionario?.length) notFound();

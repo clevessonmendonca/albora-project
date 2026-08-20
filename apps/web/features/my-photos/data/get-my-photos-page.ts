@@ -1,4 +1,4 @@
-import { comEvento, refDoEvento } from "@albora/db";
+import { withEvent, refDoEvento } from "@albora/db";
 import { getPool } from "@/lib/db";
 
 export type MyPhotosPageInput = {
@@ -19,7 +19,7 @@ export type MyPhotosPageData = {
 export async function getMyPhotosPage(input: MyPhotosPageInput): Promise<MyPhotosPageData> {
   const { slug, eventoId, sessaoId } = input;
 
-  const refToken = await comEvento(getPool(), eventoId, (c) => refDoEvento(c, eventoId)).catch(
+  const refToken = await withEvent(getPool(), eventoId, (c) => refDoEvento(c, eventoId)).catch(
     () => null,
   );
 

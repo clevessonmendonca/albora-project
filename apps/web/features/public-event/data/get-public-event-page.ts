@@ -1,5 +1,5 @@
 import {
-  comEvento,
+  withEvent,
   lerMetricasAoVivo,
   listarMidiaDaParede,
   resolverSlug,
@@ -68,7 +68,7 @@ export async function getPublicEventPage(slug: string): Promise<PublicEventPageD
   const estado: EstadoPaginaPublica = resolucao.estado;
   const identidade = resolvePublicEventIdentity(slug, evento);
 
-  const { metricas, midia } = await comEvento(getPool(), evento.eventoId, async (c) => {
+  const { metricas, midia } = await withEvent(getPool(), evento.eventoId, async (c) => {
     const metricas = await lerMetricasAoVivo(c, evento.eventoId);
     const midia = await listarMidiaDaParede(c, evento.eventoId, TAMANHO_DA_VITRINE);
     return { metricas, midia };

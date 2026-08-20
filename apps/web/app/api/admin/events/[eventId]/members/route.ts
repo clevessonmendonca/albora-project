@@ -1,6 +1,6 @@
 import {
   addEventMember,
-  comEvento,
+  withEvent,
   emitirMagicLink,
   listEventMembers,
   type EventMemberRole,
@@ -94,7 +94,7 @@ export async function POST(
       expiresAt,
     );
 
-    await comEvento(pool, eventId, async (c) => {
+    await withEvent(pool, eventId, async (c) => {
       await addEventMember(c, {
         eventId,
         accountId,

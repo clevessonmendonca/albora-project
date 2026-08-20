@@ -1,4 +1,4 @@
-import { anotarUpload, comEvento, packDoEvento } from "@albora/db";
+import { annotateUpload, withEvent, eventPack } from "@albora/db";
 import {
   enforceRateLimit,
   errorResponse,
@@ -31,10 +31,10 @@ export async function POST(req: Request) {
   }
 
   try {
-    const annotated = await comEvento(getPool(), auth.session.eventoId, async (c) => {
-      const packId = await packDoEvento(c, auth.session.eventoId);
+    const annotated = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+      const packId = await eventPack(c, auth.session.eventoId);
 
-      return anotarUpload(c, {
+      return annotateUpload(c, {
         uploadId,
         sessionId: auth.session.sessaoId,
         caption: cleanCaption(legenda),

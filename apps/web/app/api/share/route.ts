@@ -1,4 +1,4 @@
-import { comEvento, buscarContextoCompartilhar, registrarConsentimentoExterno } from "@albora/db";
+import { withEvent, buscarContextoCompartilhar, registrarConsentimentoExterno } from "@albora/db";
 import {
   enforceRateLimit,
   errorResponse,
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   if (limited) return limited;
 
   try {
-    const ctx = await comEvento(getPool(), auth.session.eventoId, (c) =>
+    const ctx = await withEvent(getPool(), auth.session.eventoId, (c) =>
       buscarContextoCompartilhar(c, auth.session.sessaoId, uploadId),
     );
 
@@ -86,7 +86,7 @@ export async function POST(req: Request) {
   const nomeNaMoldura = parsed.data.nomeNaMoldura === true;
 
   try {
-    const gravou = await comEvento(getPool(), auth.session.eventoId, (c) =>
+    const gravou = await withEvent(getPool(), auth.session.eventoId, (c) =>
       registrarConsentimentoExterno(c, auth.session.sessaoId, nomeNaMoldura),
     );
 

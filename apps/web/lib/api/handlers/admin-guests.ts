@@ -1,5 +1,5 @@
 import {
-  comEvento,
+  withEvent,
   definirNomeDaSessaoDoHost,
   ErroNomeInvalido,
   lerFunilAgregado,
@@ -55,7 +55,7 @@ export async function GET(
     if (owned instanceof Response) return owned;
     const { evento } = owned;
 
-    const data = await comEvento(getPool(), eventId, async (c) => {
+    const data = await withEvent(getPool(), eventId, async (c) => {
       const [metricas, funil, sessoes] = await Promise.all([
         lerMetricasAoVivo(c, eventId),
         lerFunilAgregado(c, eventId),

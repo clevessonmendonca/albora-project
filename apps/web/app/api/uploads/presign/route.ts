@@ -5,7 +5,7 @@ import {
   validateDeclaration,
   VALIDADE_PRESIGN_SEGUNDOS,
 } from "@albora/core";
-import { comEvento, contarVideosDaSessao, planoDoEvento } from "@albora/db";
+import { withEvent, contarVideosDaSessao, planoDoEvento } from "@albora/db";
 import { recordFunnelEvent } from "@/features/guest/lib/record-funnel";
 import {
   enforceRateLimit,
@@ -49,7 +49,7 @@ export async function POST(req: Request) {
   if (invalid) return errorResponse(422, invalid.code, "Arquivo recusado", invalid.details);
 
   if (isVideoMime(mime)) {
-    const quota = await comEvento(getPool(), auth.session.eventoId, async (c) => {
+    const quota = await withEvent(getPool(), auth.session.eventoId, async (c) => {
       const plan = await planoDoEvento(c, auth.session.eventoId);
       const uploaded = await contarVideosDaSessao(c, auth.session.eventoId, auth.session.sessaoId);
       return { plan, uploaded };
