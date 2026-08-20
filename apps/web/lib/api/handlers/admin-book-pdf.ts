@@ -30,6 +30,10 @@ import { readThumb, bufferObject } from "@/lib/r2";
 
 export const dynamic = "force-dynamic";
 
+/** Aviso sRGB adicionado em todos os PDFs do livro — espelha o `colorWarning` das peças. */
+const AVISO_SRGB =
+  "sRGB: o PDF foi gerado em perfil sRGB prepress. A cor do acento pode sair um pouco mais apagada na impressão CMYK. Peça uma prova impressa antes da tiragem inteira.";
+
 /** Slots únicos que aparecem nas páginas do álbum — só os primeiros N. */
 function slotIdsDoAlbum(album: ReturnType<typeof montarAlbum>, teto: number): string[] {
   const vistos = new Set<string>();
@@ -97,6 +101,15 @@ export async function getAdminBookPdf(
 
   if (!UUID_RE.test(eventId)) {
     return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
+  }
+
+  const url = new URL(req.url);
+  if (url.searchParams.get("perfil") === "cmyk") {
+    return errorResponse(
+      422,
+      "book.cmyk_indisponivel",
+      "Conversão CMYK não está disponível neste ambiente. O PDF é gerado em perfil sRGB prepress — peça uma prova impressa antes da tiragem. Para impressão profissional CMYK, use Ghostscript em um job offline fora do Worker (consulte docs/runbooks/cmyk-ghostscript.md).",
+    );
   }
 
   const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
@@ -188,6 +201,7 @@ export async function getAdminBookPdf(
         "cache-control": "private, no-store",
         "x-albora-book-pages": String(result.paginas),
         "x-albora-book-photos": String(result.comFotos),
+        "x-albora-avisos": AVISO_SRGB,
       },
     });
   } catch (e) {

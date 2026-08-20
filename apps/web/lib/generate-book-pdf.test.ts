@@ -9,6 +9,7 @@ import {
   type MidiaDoAlbum,
 } from "@albora/core";
 import { ALBORA_BRAND } from "@albora/tokens";
+import { BOOK_CUT_MM } from "./book-layout";
 import { generateBookPdf } from "./generate-book-pdf";
 
 /** JPEG 8×8 cinza — suficiente para pdf-lib embedJpg. */
@@ -64,11 +65,12 @@ describe("generateBookPdf", () => {
     const doc = await PDFDocument.load(result.pdf);
     expect(doc.getPageCount()).toBe(result.paginas);
     const size = doc.getPage(0).getSize();
-    expect(Math.round(size.width)).toBe(Math.round((210 * 72) / 25.4));
-    expect(Math.round(size.height)).toBe(Math.round((297 * 72) / 25.4));
+    // Página física = A4 + sangria 3 mm de cada lado → BOOK_CUT_MM (216 × 303 mm).
+    expect(Math.round(size.width)).toBe(Math.round((BOOK_CUT_MM.width * 72) / 25.4));
+    expect(Math.round(size.height)).toBe(Math.round((BOOK_CUT_MM.height * 72) / 25.4));
   });
 
-  it("álbum vazio ainda devolve uma página de aviso", async () => {
+  it("álbum vazio ainda devolve uma página de aviso com sangria", async () => {
     const album = montarAlbum([], plano());
     const result = await generateBookPdf({
       album,
@@ -77,6 +79,9 @@ describe("generateBookPdf", () => {
     expect(result.paginas).toBe(1);
     const doc = await PDFDocument.load(result.pdf);
     expect(doc.getPageCount()).toBe(1);
+    const size = doc.getPage(0).getSize();
+    expect(Math.round(size.width)).toBe(Math.round((BOOK_CUT_MM.width * 72) / 25.4));
+    expect(Math.round(size.height)).toBe(Math.round((BOOK_CUT_MM.height * 72) / 25.4));
   });
 
   it("embute JPEG quando imagens são passadas — comFotos >= 1", async () => {

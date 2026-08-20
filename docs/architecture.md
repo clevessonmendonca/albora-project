@@ -544,6 +544,7 @@ Este documento é a fonte da verdade de **fronteiras**, e uma fronteira vale ant
 | Telão | §10 | `/wall-display` + poll `/api/wall` + cache 50 + pânico |
 | Funil | §12 | `funnel_events` + `guest_sessions.via` + painel em `/admin/e/[id]/guests` |
 | Peças SVG/PDF | wizard e painel | Download no admin; placa A4 traz até 6 missões do editor (N1.6); falta prova impressa com 3 celulares |
+| Livro PDF sRGB com sangria | spec 016 / F8 | `BOOK_CUT_MM = 216 × 303 mm` (A4 + 3 mm bleed); sRGB prepress; CMYK via GS offline — sem binário no Worker (`?perfil=cmyk` → 422). Runbook: [`runbooks/cmyk-ghostscript.md`](./runbooks/cmyk-ghostscript.md) |
 | Recado, música, missões, álbum, share Stories | features correspondentes | No ar. App Expo ainda não |
 | Baixar tudo (anfitrião) | spec 016 | Job + reauth por e-mail; ZIP autenticado em stream |
 | Export para o Drive + retenção D330/D358/D365 | spec drive-export | OAuth, vault, gate D365, runner `retention.mjs`. Export Drive **assíncrono** (ticks + `pnpm drive-export` + `POST /api/jobs/drive-export`); fila Cloudflare Queues com producer + consumer Worker em `apps/web` |
@@ -595,3 +596,4 @@ Uma consequência operacional que vale registrar: **Service Worker, Background S
 | 2026-08-20 | App Expo: Desenhista buffer (`bufferDrawer` + jpeg-js) no `persistCapture` — `processarFoto` remove EXIF/GPS antes de enfileirar. |
 | 2026-08-20 | `aplicarFiltroCss` no core (presets CSS em pixels) + livro PDF A4 sRGB (`GET .../book/pdf`, slots do núcleo, placeholders). |
 | 2026-08-20 | Livro PDF embute thumbs R2 (cap 80 / 512 KiB); Expo: tira de presets na revisão da captura (`FilterStrip` + `filtroFromPreset`). |
+| 2026-08-20 | Livro PDF com sangria (`BOOK_BLEED_MM = 3 mm`; `BOOK_CUT_MM = 216 × 303 mm`); CMYK/GS formalizado como job offline fora do Worker (`?perfil=cmyk` → 422); header `x-albora-avisos` adicionado à resposta do PDF. |

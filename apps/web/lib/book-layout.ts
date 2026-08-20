@@ -1,7 +1,26 @@
 import type { Album, Pagina, Proporcao } from "@albora/core";
+import { BLEED_MM } from "@albora/tokens";
 
-/** A4 retrato em mm — preview/gráfica light (sRGB), sem sangria nesta v1. */
+/** A4 retrato em mm — área de corte (trim), sem sangria. */
 export const BOOK_PAGE_MM = { width: 210, height: 297 } as const;
+
+/**
+ * Sangria do livro: compartilha o valor das peças impressas (`BLEED_MM`).
+ * Toda linha de corte pode sair deslocada ±1–2 mm; a sangria garante que
+ * o fundo extravase o suficiente para não aparecer borda branca.
+ */
+export const BOOK_BLEED_MM: number = BLEED_MM;
+
+/**
+ * Caixa de corte (cut box) com sangria dos quatro lados.
+ * É o tamanho físico que vai para a impressora / para o `addPage` do pdf-lib.
+ * O conteúdo é deslocado `BOOK_BLEED_MM` em x e y para ficar na área de corte.
+ */
+export const BOOK_CUT_MM = {
+  width: BOOK_PAGE_MM.width + BOOK_BLEED_MM * 2,
+  height: BOOK_PAGE_MM.height + BOOK_BLEED_MM * 2,
+} as const;
+
 export const BOOK_MARGIN_MM = 14;
 export const BOOK_HEADER_MM = 18;
 export const BOOK_GAP_MM = 4;

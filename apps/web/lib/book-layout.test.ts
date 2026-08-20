@@ -6,7 +6,8 @@ import {
   TETO_DE_PAGINAS_PADRAO,
   type MidiaDoAlbum,
 } from "@albora/core";
-import { planBook, planBookPage, BOOK_PAGE_MM } from "./book-layout";
+import { BLEED_MM } from "@albora/tokens";
+import { planBook, planBookPage, BOOK_BLEED_MM, BOOK_CUT_MM, BOOK_PAGE_MM } from "./book-layout";
 
 const janela = {
   comecaEm: new Date("2026-08-09T21:00:00.000Z"),
@@ -35,6 +36,26 @@ function midia(over: Partial<MidiaDoAlbum> & Pick<MidiaDoAlbum, "id">): MidiaDoA
     ...over,
   };
 }
+
+describe("BOOK_BLEED_MM / BOOK_CUT_MM", () => {
+  it("BOOK_BLEED_MM reutiliza BLEED_MM do @albora/tokens", () => {
+    expect(BOOK_BLEED_MM).toBe(BLEED_MM);
+  });
+
+  it("BOOK_BLEED_MM vale 3 mm", () => {
+    expect(BOOK_BLEED_MM).toBe(3);
+  });
+
+  it("BOOK_CUT_MM tem A4 + sangria dos quatro lados", () => {
+    expect(BOOK_CUT_MM.width).toBe(BOOK_PAGE_MM.width + BOOK_BLEED_MM * 2);
+    expect(BOOK_CUT_MM.height).toBe(BOOK_PAGE_MM.height + BOOK_BLEED_MM * 2);
+  });
+
+  it("BOOK_CUT_MM é 216 × 303 mm", () => {
+    expect(BOOK_CUT_MM.width).toBe(216);
+    expect(BOOK_CUT_MM.height).toBe(303);
+  });
+});
 
 describe("planBookPage", () => {
   it("encaixa um retrato sem ultrapassar a página", () => {

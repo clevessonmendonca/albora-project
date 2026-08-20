@@ -87,11 +87,13 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Feliz:** ZIP completo + ZIP álbum curado (via `selecionarParaAlbum`, sem rajadas, ~60 páginas), ambos com step-up (plano pago); jobs `plus_48h` / `d330_drive` (stub) / `d365_delete` (**fail-closed** sem export).
 
-**Livro PDF ✅:** `GET /api/admin/events/{id}/book/pdf` — A4 sRGB com slots do núcleo (`planBook` + `generateBookPdf`); thumbs embutidas via `readThumb` (cap 80 slots / 512 KiB por objeto, fallback `/full`); placeholders para slots sem thumb disponível. Cadeia de tokens completa: `resolveTokens({ marca, vendor?, pack?, evento? })` — `--bg`/`--ink`/`--acento`/`--superficie` do fornecedor propagam para fundo/tinta/acento/placeholder do PDF. CTA no álbum admin.
+**Livro PDF ✅:** `GET /api/admin/events/{id}/book/pdf` — A4 com sangria (`BOOK_BLEED_MM = 3 mm`; página física `BOOK_CUT_MM = 216 × 303 mm`), perfil sRGB prepress; slots do núcleo (`planBook` + `generateBookPdf`); thumbs embutidas via `readThumb` (cap 80 slots / 512 KiB por objeto, fallback `/full`); placeholders para slots sem thumb. Cadeia de tokens completa: `resolveTokens({ marca, vendor?, pack?, evento? })` — `--bg`/`--ink`/`--acento`/`--superficie` propagam para fundo/tinta/acento/placeholder do PDF. Aviso RGB→CMYK no CTA do admin (`text-ink-3`, sem hex). Header `x-albora-avisos` em todas as respostas com aviso sRGB.
+
+**CMYK ✅ (flag/futuro):** `?perfil=cmyk` → 422 com mensagem PT-BR — conversão CMYK não está disponível no Worker. Padrão permanece sRGB prepress. GS roda offline em job fora do Worker, sob demanda da equipe de ops (ver [`docs/runbooks/cmyk-ghostscript.md`](./runbooks/cmyk-ghostscript.md)). Binário GS não está em CI nem no contêiner.
 
 **Runner:** `node tools/jobs/retention.mjs` · export Drive: `pnpm drive-export` ou cron em `POST /api/jobs/drive-export` (Bearer `JOB_RUNNER_SECRET`). Em produção Cloudflare: fila `albora-drive-export` → consumer em `apps/web/cloudflare/worker.ts` (tick via `WORKER_SELF_REFERENCE`).
 
-**Gap:** CMYK/Ghostscript para impressão profissional.
+**Gap:** Prova impressa física antes do 1º evento real.
 
 ## F9 — Fornecedor ✅
 
@@ -117,7 +119,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Galeria ✅:** botão "Galeria" em `photo.tsx` abre `launchImageLibraryAsync` (imagens, `exif:false`). `normalizeSource` (`normalize-source.ts`) sempre converte para JPEG via `manipulateAsync` (cobre HEIC e URIs `ph://`/`content://`). `persistCapture` recebe `convertHeic` injetável como rede de segurança. Testes em `normalize-source.test.ts` e `capture.test.ts`.
 
-**Gap:** Skia para qualidade.
+**Skia resize ✅:** `skiaDrawer` (`apps/mobile/src/skia-drawer.ts`) implementa a interface `Desenhista` com `@shopify/react-native-skia` ^1.11.11. Decode/resize/encode via GPU; resize com `FilterQuality.High` (bicúbico) no lugar do nearest-neighbor do `bufferDrawer`. `filtrar` lê pixels da imagem Skia → delega ao `@albora/core` (mesmas funções `aplicarFiltroCss`/`aplicarPorPixel`/`aplicarAjustes` do `bufferDrawer`) → recria `SkImage` — sem divergência de LUT entre os dois caminhos. `capture.ts` e `previewFiltrado` aceitam `desenhista?` opcional; padrão `bufferDrawer` mantém os testes em Node funcionando sem módulo nativo. `photo.tsx` injeta `skiaDrawer` tanto no preview ao vivo quanto em `persistCapture`. GPU ColorFilter (ColorMatrix direto no shader) fica fora do escopo desta fatia — otimização opcional, sem impacto na estética atual.
 
 **Upload em segundo plano 🟡:** PUT presigned via `uploadAsync` + `FileSystemSessionType.BACKGROUND` (`put-file.ts`); task `albora-guest-upload-drain` registra `BackgroundFetch` para drenar a fila. Falta prova em aparelho com app fechado.
 

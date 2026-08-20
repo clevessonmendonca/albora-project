@@ -93,8 +93,11 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
       {canExport ? (
         <AdminSection>
           <h2 className="m-0 mb-2 font-titulo text-xl">O livro</h2>
-          <p className="m-0 mb-4 text-sm text-ink-2">
-            PDF A4 com a diagramação por slots do álbum curado (preview sRGB).
+          <p className="m-0 mb-1 text-sm text-ink-2">
+            PDF A4 com sangria (216 × 303 mm) e diagramação por slots do álbum curado — perfil sRGB prepress.
+          </p>
+          <p className="m-0 mb-4 text-sm text-ink-3">
+            A tela mostra RGB e a gráfica imprime CMYK: a cor do acento pode sair um pouco mais apagada no papel. Peça uma prova impressa antes da tiragem.
           </p>
           <a
             href={`/api/admin/events/${eventoId}/book/pdf`}
