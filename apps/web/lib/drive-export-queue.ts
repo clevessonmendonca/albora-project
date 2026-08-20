@@ -5,21 +5,34 @@
  * mesmo payload (encadeamento spec drive-export §9).
  */
 
-export type DriveExportTickMessage = {
-  eventId: string;
-  jobId: string;
-  accountId: string;
-};
+export type { DriveExportTickMessage } from "@/lib/drive-export-tick-message";
+
+import type { DriveExportTickMessage } from "@/lib/drive-export-tick-message";
 
 type QueueBinding = { send: (body: DriveExportTickMessage) => Promise<void> };
 
-function queueBinding(): QueueBinding | null {
+async function queueBinding(): Promise<QueueBinding | null> {
+  try {
+    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+    const { env } = await getCloudflareContext({ async: true });
+    const fila = env.DRIVE_EXPORT_QUEUE;
+    if (fila) {
+      return {
+        send: async (body) => {
+          await fila.send(body);
+        },
+      };
+    }
+  } catch {
+    // fora do Worker / dev sem initOpenNextCloudflareForDev
+  }
+
   const global = globalThis as { DRIVE_EXPORT_QUEUE?: QueueBinding };
   return global.DRIVE_EXPORT_QUEUE ?? null;
 }
 
 export async function enqueueDriveExportTick(message: DriveExportTickMessage): Promise<"queue" | "http" | "local"> {
-  const fila = queueBinding();
+  const fila = await queueBinding();
   if (fila) {
     await fila.send(message);
     return "queue";

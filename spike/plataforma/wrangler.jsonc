@@ -15,13 +15,6 @@
     "R2_BUCKET": "albora-spike"
   },
   "queues": {
-    "producers": [{ "binding": "DRIVE_EXPORT_QUEUE", "queue": "albora-drive-export" }],
-    "consumers": [
-      {
-        "queue": "albora-drive-export",
-        "max_batch_size": 1,
-        "max_retries": 5
-      }
-    ]
+    "producers": [{ "binding": "DRIVE_EXPORT_QUEUE", "queue": "albora-drive-export" }]
   }
 }

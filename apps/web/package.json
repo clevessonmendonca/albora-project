@@ -9,9 +9,14 @@
     "prebuild": "pnpm sw:build --producao && pnpm fontes",
     "build": "next build",
     "typecheck": "tsc --noEmit",
-    "fontes": "node scripts/copiar-fontes.mjs"
+    "fontes": "node scripts/copiar-fontes.mjs",
+    "cf:build": "opennextjs-cloudflare build",
+    "cf:preview": "opennextjs-cloudflare build && wrangler dev",
+    "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.3.0",
     "@albora/core": "workspace:*",
     "@albora/db": "workspace:*",
     "@albora/packs": "workspace:*",
@@ -29,6 +34,7 @@
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260426.1",
     "@fontsource-variable/fraunces": "^5.3.0",
     "@fontsource-variable/instrument-sans": "^5.3.0",
     "@tailwindcss/postcss": "^4.3.3",
@@ -38,6 +44,7 @@
     "@types/react-dom": "^19.1.0",
     "esbuild": "^0.28.2",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "wrangler": "^4.20.0"
   }
 }

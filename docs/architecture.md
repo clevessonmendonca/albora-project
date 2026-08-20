@@ -542,7 +542,7 @@ Este documento é a fonte da verdade de **fronteiras**, e uma fronteira vale ant
 | Peças SVG/PDF | wizard e painel | Download no admin; placa A4 traz até 6 missões do editor (N1.6); falta prova impressa com 3 celulares |
 | Recado, música, missões, álbum, share Stories | features correspondentes | No ar. App Expo ainda não |
 | Baixar tudo (anfitrião) | spec 016 | Job + reauth por e-mail; ZIP autenticado em stream |
-| Export para o Drive + retenção D330/D358/D365 | spec drive-export | OAuth, vault, gate D365, runner `retention.mjs`. Export Drive **assíncrono** (ticks + `pnpm drive-export` + `POST /api/jobs/drive-export`); binding Cloudflare Queues no spike |
+| Export para o Drive + retenção D330/D358/D365 | spec drive-export | OAuth, vault, gate D365, runner `retention.mjs`. Export Drive **assíncrono** (ticks + `pnpm drive-export` + `POST /api/jobs/drive-export`); fila Cloudflare Queues com producer + consumer Worker em `apps/web` |
 
 ### Ainda não construído (bloqueia o 1º evento real ou é Fase B/C)
 
@@ -550,7 +550,7 @@ Este documento é a fonte da verdade de **fronteiras**, e uma fronteira vale ant
 |---|---|---|
 | Prova das peças impressas | spec 009, roadmap A1 | Código gera SVG/PDF; ninguém mediu QR em papel com 3 celulares |
 | Verificação OAuth do Google (Testing → Production) | spec drive-export §1.4/§10, risco 1 | Bloqueante antes do 1º evento real que use o Drive: em "Testing" o refresh token expira em 7 dias |
-| Encadeamento do export do Drive por fila (Cloudflare Queues) | spec drive-export §7/§9, fase 5 | **Parcial** — ticks assíncronos + consumer HTTP `/api/jobs/drive-export` + producer `DRIVE_EXPORT_QUEUE` no spike; falta consumer Worker wired ao binding |
+| Encadeamento do export do Drive por fila (Cloudflare Queues) | spec drive-export §7/§9, fase 5 | **Feito** — producer `DRIVE_EXPORT_QUEUE`, consumer Worker (`cloudflare/worker.ts` → tick HTTP), fallback cron `/api/jobs/drive-export` + `pnpm drive-export` |
 | App nativo Expo | ADR 0008–0010, spec 017 | `apps/mobile` é stub |
 | Classificador com modelo de ML | §9 | Heurística de magic bytes. O **gate** (silêncio → `sem-resposta` → parede segura) já é o produto |
 | Produção (Workers + R2 + Neon + Resend) | ADR 0006, roadmap A5 | Roda em localhost |
@@ -586,3 +586,4 @@ Uma consequência operacional que vale registrar: **Service Worker, Background S
 | 2026-08-15 | `events.timezone` IANA (migration 0026). Default `America/Sao_Paulo`; ancora `taken_at`, capítulos do álbum e a faixa 5h–7h. |
 | 2026-08-16 | Pedido “sou eu nessa foto” (`reports.kind`): entra na fila, não segura o telão, anfitrião decide. Sem reconhecimento facial. |
 | 2026-08-19 | Export para o Google Drive do casal + retenção D330/D358/D365 real (§11). OAuth por `event_id` (`drive.file`), `DriveTokenVault` (AES-256-GCM), gate do D365 reforçado por cobertura de export (`mayDeleteAtD365`), grace window + lock por evento no runner. Export para o Drive ainda roda síncrono (sem fila) — §16 ganha os dois itens que faltam antes de escala: verificação OAuth do Google e o encadeamento por Cloudflare Queues. |
+| 2026-08-20 | Encadeamento do export Drive por Cloudflare Queues no Worker OpenNext (`apps/web/cloudflare/worker.ts`): producer `DRIVE_EXPORT_QUEUE`, consumer chama `POST /api/jobs/drive-export` via `WORKER_SELF_REFERENCE`. Fallback HTTP/cron e `pnpm drive-export` permanecem. |
