@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { encode as jpegEncode } from "jpeg-js";
 import { PDFDocument } from "pdf-lib";
 import {
   CAPITULO_UNICO,
@@ -8,6 +9,18 @@ import {
   type MidiaDoAlbum,
 } from "@albora/core";
 import { generateBookPdf } from "./generate-book-pdf";
+
+/** JPEG 8×8 cinza — suficiente para pdf-lib embedJpg. */
+function jpegMinimo(w = 8, h = 8): Uint8Array {
+  const data = new Uint8Array(w * h * 4);
+  for (let i = 0; i < data.length; i += 4) {
+    data[i] = 180;
+    data[i + 1] = 180;
+    data[i + 2] = 180;
+    data[i + 3] = 255;
+  }
+  return new Uint8Array(jpegEncode({ data, width: w, height: h }, 90).data);
+}
 
 const janela = {
   comecaEm: new Date("2026-08-09T21:00:00.000Z"),
@@ -63,5 +76,26 @@ describe("generateBookPdf", () => {
     expect(result.paginas).toBe(1);
     const doc = await PDFDocument.load(result.pdf);
     expect(doc.getPageCount()).toBe(1);
+  });
+
+  it("embute JPEG quando imagens são passadas — comFotos >= 1", async () => {
+    const imgBytes = jpegMinimo();
+    const m1 = midia("img-a");
+    const m2 = midia("img-b");
+    const album = montarAlbum([m1, m2], plano());
+
+    const imagens = new Map<string, Uint8Array>([["img-a", imgBytes]]);
+    const result = await generateBookPdf({
+      album,
+      tituloDoCapitulo: () => "A festa",
+      imagens,
+    });
+
+    expect(result.comFotos).toBeGreaterThanOrEqual(1);
+    expect(result.semFotos).toBeGreaterThanOrEqual(0);
+    expect(result.comFotos + result.semFotos).toBeGreaterThanOrEqual(1);
+
+    const doc = await PDFDocument.load(result.pdf);
+    expect(doc.getPageCount()).toBe(result.paginas);
   });
 });

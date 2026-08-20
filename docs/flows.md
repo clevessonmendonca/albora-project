@@ -87,11 +87,11 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Feliz:** ZIP completo + ZIP álbum curado (via `selecionarParaAlbum`, sem rajadas, ~60 páginas), ambos com step-up (plano pago); jobs `plus_48h` / `d330_drive` (stub) / `d365_delete` (**fail-closed** sem export).
 
-**Livro PDF 🟡:** `GET /api/admin/events/{id}/book/pdf` — A4 sRGB com slots do núcleo (`planBook` + `generateBookPdf`); placeholders sem JPEG embutido nesta fatia. CTA no álbum admin.
+**Livro PDF 🟡:** `GET /api/admin/events/{id}/book/pdf` — A4 sRGB com slots do núcleo (`planBook` + `generateBookPdf`); thumbs embutidas via `readThumb` (cap 80 slots / 512 KiB por objeto, fallback `/full`); placeholders para slots sem thumb disponível. CTA no álbum admin.
 
 **Runner:** `node tools/jobs/retention.mjs` · export Drive: `pnpm drive-export` ou cron em `POST /api/jobs/drive-export` (Bearer `JOB_RUNNER_SECRET`). Em produção Cloudflare: fila `albora-drive-export` → consumer em `apps/web/cloudflare/worker.ts` (tick via `WORKER_SELF_REFERENCE`).
 
-**Gap:** embutir JPEGs no PDF + CMYK/Ghostscript.
+**Gap:** CMYK/Ghostscript para impressão profissional.
 
 ## F9 — Fornecedor ✅/🟡
 
