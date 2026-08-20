@@ -6,6 +6,7 @@ import { verificar as packs } from "./packs.mjs";
 import { verificar as sessao } from "./sessao.mjs";
 import { verificar as features } from "./features.mjs";
 import { verificar as apiRoutes } from "./api-routes.mjs";
+import { verificar as nomenclatura } from "./nomenclatura.mjs";
 
 export const GUARDS = {
   isolamento,
@@ -15,6 +16,7 @@ export const GUARDS = {
   sessao,
   features,
   "api-routes": apiRoutes,
+  nomenclatura,
 };
 
 const raiz = process.argv[2] ?? process.cwd();

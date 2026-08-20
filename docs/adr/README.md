@@ -21,6 +21,7 @@ Um ADR aceito **não é editado**. Se a decisão muda, escreve-se um novo que o 
 | [0011](./0011-musica-do-evento-sem-direito-de-sincronizacao.md) | Música do evento: link e sugestão sim, áudio embutido não | Accepted |
 | [0012](./0012-menores-sem-perguntar-idade.md) | Menores: nivelar por cima em vez de perguntar idade | Accepted |
 | [0013](./0013-acesso-por-conta-sob-rls.md) | Acesso por conta sob RLS (`app.account_id` + `comConta`) | Accepted |
+| [0014](./0014-convencao-pt-en-na-base-de-codigo.md) | Convenção PT/EN: EN na borda e barrels, sem alias PT reverso | Accepted |
 
 ## Status
 

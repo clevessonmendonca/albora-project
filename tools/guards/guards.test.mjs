@@ -8,6 +8,7 @@ import { verificar as packs } from "./packs.mjs";
 import { verificar as sessao } from "./sessao.mjs";
 import { verificar as features } from "./features.mjs";
 import { verificar as apiRoutes } from "./api-routes.mjs";
+import { verificar as nomenclatura } from "./nomenclatura.mjs";
 
 /**
  * O auto-teste de cada guard.
@@ -30,6 +31,7 @@ const GUARDS = [
   ["sessao", sessao],
   ["features", features],
   ["api-routes", apiRoutes],
+  ["nomenclatura", nomenclatura],
 ];
 
 describe.each(GUARDS)("guard %s", (nome, verificar) => {

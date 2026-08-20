@@ -9,18 +9,7 @@ export type {
 } from "./tipos";
 
 export type { QueueBody, QueueDetails, Queue, QueueItem } from "./fila";
-export type {
-  QueueBody as CorpoItem,
-  QueueDetails as DetalhesItem,
-  Queue as Fila,
-  QueueItem as ItemFila,
-} from "./fila";
 export { shouldGiveUp, retryWaitSeconds, MAX_ATTEMPTS } from "./fila";
-export {
-  shouldGiveUp as deveDesistir,
-  retryWaitSeconds as esperaAntesDeRetentar,
-  MAX_ATTEMPTS as MAX_TENTATIVAS,
-} from "./fila";
 
 export type { GateDeInteracao, ModoInteracao } from "./interacao";
 export { interacaoAberta, modoInteracao } from "./interacao";
@@ -52,11 +41,8 @@ export type { ErroMidia, TipoAceito, TipoEntrada, TipoVideo } from "./midia";
 export {
   detectarTipo,
   isHeic,
-  isHeic as ehHeic,
   isVideoMime,
-  isVideoMime as ehMimeVideo,
   isVideoBytes,
-  isVideoBytes as ehVideo,
   LADO_MAIOR,
   MAX_BYTES,
   MAX_BYTES_VIDEO,
@@ -99,7 +85,6 @@ export type { Orientacao, Transformacao } from "./exif";
 export { dimensoesCorrigidas, lerCapturadaEm, lerOrientacao, temExif, temGeolocalizacao, transformacaoParaOrientacao } from "./exif";
 
 export type { Target, Device, Plan } from "./redimensionar";
-export type { Target as Alvo, Device as Aparelho, Plan as Plano } from "./redimensionar";
 export {
   fullTarget,
   targetForLongerSide,
@@ -111,26 +96,9 @@ export {
   PIXEL_CAP,
   pixelCapForDevice,
 } from "./redimensionar";
-export {
-  fullTarget as alvoFull,
-  targetForLongerSide as alvoParaLadoMaior,
-  targetThatFits as alvoQueCabe,
-  thumbTarget as alvoThumb,
-  THUMB_SIDE as LADO_THUMB,
-  planProcessing as planejarProcessamento,
-  QUALITY as QUALIDADE,
-  PIXEL_CAP as TETO_PIXELS,
-  pixelCapForDevice as tetoParaAparelho,
-} from "./redimensionar";
 
 export type { SendResult, DrainSummary, Transport } from "./envio";
-export type {
-  SendResult as Resultado,
-  DrainSummary as ResumoDrenagem,
-  Transport as Transporte,
-} from "./envio";
 export { drain, sendItem } from "./envio";
-export { drain as drenar, sendItem as enviarItem } from "./envio";
 
 export {
   isValidSlug,
@@ -483,8 +451,6 @@ export {
 export type { PadroesDoEvento as EventDefaults } from "./menores";
 /** English alias — prefer for new code. @see PoliticaDeMenores */
 export type { PoliticaDeMenores as MinorsPolicy } from "./menores";
-/** PT alias — prefer `eventDefaults`. */
-export { eventDefaults as padroesDoEvento } from "./menores";
 /** English alias — prefer for new code. @see denunciasParaSegurar */
 export { denunciasParaSegurar as reportsToHold } from "./menores";
 /** English alias — prefer for new code. @see compartilhamentoExternoPadrao */

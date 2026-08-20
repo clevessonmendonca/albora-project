@@ -141,6 +141,7 @@ Disciplina que depende de lembrar não é disciplina. Bloqueantes no CI desde o 
 | Conformidade de tokens | Hex literal ou cor arbitrária em componente |
 | Disciplina de packs | `core` importa de `pack` |
 | Sessão | Token aparece em querystring ou em log |
+| Nomenclatura | Alias PT reverso ou seção legado num barrel (`ADR 0014`) |
 | Cabeçalhos de mídia | CSP, `nosniff` ou `Content-Disposition` divergem do contrato |
 | Segredos | Segredo em commit |
 | Dependências | Vulnerabilidade conhecida; lockfile ausente |
