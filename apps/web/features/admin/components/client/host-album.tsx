@@ -90,6 +90,21 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
+      {canExport ? (
+        <AdminSection>
+          <h2 className="m-0 mb-2 font-titulo text-xl">O livro</h2>
+          <p className="m-0 mb-4 text-sm text-ink-2">
+            PDF A4 com a diagramação por slots do álbum curado (preview sRGB).
+          </p>
+          <a
+            href={`/api/admin/events/${eventoId}/book/pdf`}
+            className={`${adminClasses.secondaryButton} inline-flex no-underline`}
+          >
+            Baixar PDF do livro
+          </a>
+        </AdminSection>
+      ) : null}
+
       {canExport ? <HostExport eventoId={eventoId} /> : null}
       {canExport ? <HostDriveExport eventoId={eventoId} /> : null}
       <AdminSection>
