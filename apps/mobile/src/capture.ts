@@ -6,6 +6,7 @@ import {
   temGeolocalizacao,
   validarConteudo,
   validarDeclaracao,
+  type FiltroAplicado,
   type Plan,
   type Queue,
   type QueueItem,
@@ -29,6 +30,7 @@ export type CaptureResult =
 /**
  * Copia o still, processa (orientação + resize + reencode) e enfileira.
  * O reencode tira EXIF/GPS — o URLSession só continua com arquivo (ADR 0008/0010).
+ * `filtro` é a escolha do convidado na tira de presets; ausente = sem cor.
  */
 export async function persistCapture(input: {
   source: CaptureSource;
@@ -38,6 +40,7 @@ export async function persistCapture(input: {
   destDir: string;
   plan?: Plan;
   device?: { memoryGb: number; cores: number };
+  filtro?: FiltroAplicado;
   now?: () => number;
   id?: () => string;
 }): Promise<CaptureResult> {
@@ -87,6 +90,7 @@ export async function persistCapture(input: {
     const processada = await processarFoto(brutos, mime, bufferDrawer, {
       plan: input.plan ?? "gratis",
       device: input.device ?? { memoryGb: 4, cores: 4 },
+      ...(input.filtro ? { filtro: input.filtro } : {}),
     });
 
     if (!input.files.write) {

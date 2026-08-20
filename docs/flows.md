@@ -105,7 +105,9 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Feliz:** parear → sessão SecureStore → câmera enfileira stills em disco; **drain** da fila nativa (`drainGuestQueue` / `drainFileQueue`) no caminho da câmera; **feed** lê `GET /api/feed` + `POST /api/media/urls`.
 
-**EXIF/GPS 🟡:** Câmera captura com `exif: false`. `persistCapture` roda `processarFoto` + `bufferDrawer` (jpeg-js) — reencode remove EXIF/GPS; presets CSS via `aplicarFiltroCss`. Gap: tira de filtros na UI; galeria/HEIC; Skia para qualidade.
+**EXIF/GPS 🟡:** Câmera captura com `exif: false`. `persistCapture` roda `processarFoto` + `bufferDrawer` (jpeg-js) — reencode remove EXIF/GPS; presets CSS via `aplicarFiltroCss` / `aplicarPorPixel`.
+
+**Tira de filtros ✅:** após disparar, `photo.tsx` abre step de revisão com `FilterStrip` (ScrollView horizontal de chips de preset). Convidado escolhe preset (ou "Original") e toca "Enviar" → `filtroFromPreset(id)` converte para `FiltroAplicado` e `persistCapture` passa `filtro` para `processarFoto`. Math de cor vive em `@albora/core`; sem duplicação. Gap: preview ao vivo do filtro sobre a foto; slider de intensidade; galeria/HEIC; Skia para qualidade.
 
 **Upload em segundo plano 🟡:** PUT presigned via `uploadAsync` + `FileSystemSessionType.BACKGROUND` (`put-file.ts`); task `albora-guest-upload-drain` registra `BackgroundFetch` para drenar a fila. Falta prova em aparelho com app fechado.
 

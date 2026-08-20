@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Image, Pressable, View } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { randomUUID } from "expo-crypto";
 import { useFocusEffect, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { QUALITY } from "@albora/core";
+import { PRESETS, QUALITY, ordenarComRecomendado } from "@albora/core";
+import type { Preset } from "@albora/core";
 import { Button, Screen, Text } from "@albora/ui-native";
 import { persistCapture } from "../src/capture";
+import type { CaptureSource } from "../src/capture";
 import { diskFiles, guestQueue, mediaRoot } from "../src/disk";
+import { filtroFromPreset } from "../src/filtro";
+import { FilterStrip } from "../src/filter-strip";
 import { parseStoredSession, SESSION_STORE_KEY, type GuestSession } from "../src/session";
 import { drainGuestQueue } from "../src/drain-guest";
 
@@ -19,6 +23,13 @@ export default function PhotoScreen() {
   const [pending, setPending] = useState(0);
   const [busy, setBusy] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+
+  // Step "review": foto capturada aguardando escolha de filtro e envio.
+  const [pendingShot, setPendingShot] = useState<CaptureSource | null>(null);
+  const [filtroEscolhido, setFiltroEscolhido] = useState<Preset | null>(null);
+
+  // Presets na ordem padrão — sem recomendadoId do servidor nesta fatia.
+  const presets = ordenarComRecomendado(null);
 
   const refreshPending = useCallback(async () => {
     setPending((await guestQueue().list()).length);
@@ -88,6 +99,7 @@ export default function PhotoScreen() {
     );
   }
 
+  // Dispara: tira a foto e abre a tela de revisão/filtro.
   async function shoot() {
     if (busy || session === null || session === undefined) return;
     setBusy(true);
@@ -102,23 +114,8 @@ export default function PhotoScreen() {
         setErro("Não consegui tirar a foto. Tente de novo.");
         return;
       }
-
-      const result = await persistCapture({
-        source: { uri: shot.uri, width: shot.width, height: shot.height },
-        eventoId: session.eventoId,
-        queue: guestQueue(),
-        files: diskFiles(),
-        destDir: mediaRoot(),
-        id: () => randomUUID(),
-      });
-
-      if (!result.ok) {
-        setErro(result.erro);
-        return;
-      }
-
-      await refreshPending();
-      void tryDrain();
+      setPendingShot({ uri: shot.uri, width: shot.width, height: shot.height });
+      setFiltroEscolhido(null);
     } catch {
       setErro("Não consegui tirar a foto. Tente de novo.");
     } finally {
@@ -126,6 +123,102 @@ export default function PhotoScreen() {
     }
   }
 
+  // Descarta a foto pendente e volta para a câmera.
+  function descartarPendente() {
+    setPendingShot(null);
+    setFiltroEscolhido(null);
+    setErro(null);
+  }
+
+  // Enfileira a foto com (ou sem) o filtro escolhido.
+  async function enviar() {
+    if (!pendingShot || session === null || session === undefined) return;
+    setBusy(true);
+    setErro(null);
+    try {
+      const filtro = filtroEscolhido
+        ? filtroFromPreset(filtroEscolhido.id)
+        : undefined;
+
+      const result = await persistCapture({
+        source: pendingShot,
+        eventoId: session.eventoId,
+        queue: guestQueue(),
+        files: diskFiles(),
+        destDir: mediaRoot(),
+        id: () => randomUUID(),
+        ...(filtro ? { filtro } : {}),
+      });
+
+      if (!result.ok) {
+        setErro(result.erro);
+        return;
+      }
+
+      setPendingShot(null);
+      setFiltroEscolhido(null);
+      await refreshPending();
+      void tryDrain();
+    } catch {
+      setErro("Não consegui guardar a foto. Tente de novo.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // ── Tela de revisão: foto capturada + tira de filtros ────────────────────
+  if (pendingShot) {
+    return (
+      <View className="flex-1 bg-bg">
+        <View className="flex-row items-center justify-between px-6 pt-12">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Tirar outra foto"
+            onPress={descartarPendente}
+            disabled={busy}
+          >
+            <Text tone="muted">Tirar outra</Text>
+          </Pressable>
+          <Text tone="muted">Escolha um filtro</Text>
+          <View className="w-20" />
+        </View>
+
+        {/* Preview da foto capturada */}
+        <View className="mx-3 mt-3 flex-1 overflow-hidden rounded-superficie bg-superficie">
+          <Image
+            source={{ uri: pendingShot.uri }}
+            style={{ flex: 1 }}
+            resizeMode="contain"
+            accessibilityLabel="Foto capturada"
+          />
+        </View>
+
+        {erro ? (
+          <Text tone="critical" className="mt-3 px-6">
+            {erro}
+          </Text>
+        ) : null}
+
+        {/* Tira de presets */}
+        <View className="mt-4">
+          <FilterStrip
+            presets={presets}
+            escolhido={filtroEscolhido}
+            onEscolher={setFiltroEscolhido}
+          />
+        </View>
+
+        {/* Ações */}
+        <View className="px-6 pb-9 pt-4">
+          <Button onPress={() => void enviar()} disabled={busy}>
+            {busy ? "Enviando…" : "Enviar"}
+          </Button>
+        </View>
+      </View>
+    );
+  }
+
+  // ── Tela da câmera ────────────────────────────────────────────────────────
   return (
     <View className="flex-1 bg-bg">
       <View className="flex-row items-center justify-between px-6 pt-12">
