@@ -87,9 +87,9 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Feliz:** ZIP completo + ZIP álbum curado (via `selecionarParaAlbum`, sem rajadas, ~60 páginas), ambos com step-up (plano pago); jobs `plus_48h` / `d330_drive` (stub) / `d365_delete` (**fail-closed** sem export).
 
-**Runner:** `node tools/jobs/retention.mjs`.
+**Runner:** `node tools/jobs/retention.mjs` · export Drive: `pnpm drive-export` (ticks assíncronos; POST devolve 202).
 
-**Gap:** Drive OAuth real; livro PDF print-ready.
+**Gap:** Cloudflare Queues como gatilho do runner em produção; livro PDF print-ready.
 
 ---
 

@@ -109,7 +109,7 @@ Faltam três coisas para um evento real:
 | Item | Spec / referência |
 |---|---|
 | App nativo Expo — "segunda porta" na confirmação da 1ª foto | [017](./specs/task-017-app-expo-e-lojas.md), [ADR 0008](./adr/0008-app-nativo-como-segunda-porta.md) |
-| Recado dos anfitriões (áudio/texto do casal) | [019](./specs/task-019-recado-dos-anfitrioes.md) — **parcial** (texto no ar em `/admin/e/[id]/guestbook` e no hub do convidado; áudio ainda não) |
+| Recado dos anfitriões (áudio/texto do casal) | [019](./specs/task-019-recado-dos-anfitrioes.md) — **Feito** (texto + áudio presign/confirm, player no convidado) |
 | Compartilhar pra fora (moldura + consentimento externo) | [015](./specs/task-015-compartilhar.md) — **parcial** (minhas + moldura Stories + colagem + gate de consentimento; falta prova manual e polish) |
 | Identidade do casal (cores/fonte no admin) + seleção de missões na criação | [009](./specs/task-009-admin-e-pecas.md) — **feito** no wizard e em `/admin/e/[id]/identity` e `/missions` |
 | Painel ao vivo — participação sobre `expected_guests`, funil, últimas fotos | [009](./specs/task-009-admin-e-pecas.md) — **feito** em `/admin/e/[id]` e `/guests` (`via` = qr \| wa \| link) |
