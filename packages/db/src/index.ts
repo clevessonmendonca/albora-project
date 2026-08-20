@@ -460,3 +460,5 @@ export {
   revogarDrive,
   revogarDriveNaTransacao,
 } from "./drive-connections";
+
+export { signableKeys } from "./media-signable";

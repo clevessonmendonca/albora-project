@@ -7,6 +7,8 @@ import {
   requireGuestSession,
   unexpectedError,
 } from "@/lib/api";
+import { getPool } from "@/lib/db";
+import { withEvent, signableKeys } from "@albora/db";
 import { assinarGet } from "@/lib/r2";
 import { isRejected, validateBatch, GET_TTL_SECONDS } from "./lote";
 
@@ -37,6 +39,28 @@ export async function POST(req: Request) {
       });
     }
     return errorResponse(batch.status, batch.code, batch.message, batch.details);
+  }
+
+  // 🔴 Gate de moderação/pânico: chave válida pelo formato não implica que o
+  // upload ainda está publicado. Uma nova URL para mídia removida ou para
+  // evento em pânico não pode ser emitida — URLs já emitidas vencem no TTL.
+  try {
+    const signable = await withEvent(getPool(), auth.session.eventoId, (c) =>
+      signableKeys(c, auth.session.eventoId, batch.chaves),
+    );
+
+    if (signable.size < batch.chaves.length) {
+      console.warn("midia.urls_bloqueadas", {
+        eventoId: auth.session.eventoId,
+        sessaoId: auth.session.sessaoId,
+        bloqueadas: batch.chaves.length - signable.size,
+      });
+      return errorResponse(403, "midia.chave_invalida", "Chave não pertence a este evento", {
+        campos: ["chaves"],
+      });
+    }
+  } catch (e) {
+    return unexpectedError("midia.gate_moderacao", e);
   }
 
   try {

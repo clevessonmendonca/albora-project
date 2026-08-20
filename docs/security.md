@@ -305,7 +305,7 @@ Quatro cenários com resposta pré-escrita, porque nenhum deles admite improviso
 | 5 | 🟠 Política para nome ofensivo exibido no telão ([`flows.md` N3.3](./flows.md#32-o-nome--obrigatório-e-por-quê)) | **Resolvido** — host troca/oculta `display_name` no admin Convidados. Fotos ficam. Banimento adiado |
 | 6 | 🔴 Parecer jurídico sobre agrupamento facial como dado biométrico | Antes de **construir** a Fase 2 |
 | 7 | 🟡 Avaliação de busca por pessoa contra o ator A5 | Antes de **desenhar** o recurso |
-| 8 | 🟠 Emissão de URL de leitura conferir o estado de moderação (§4.3) | **1º evento** — é o que faz o botão de pânico valer para quem já tem a chave |
+| 8 | ✅ Emissão de URL de leitura conferir o estado de moderação (§4.3) | **Implementado** — `POST /api/media/urls` recusa novas assinaturas para uploads não-`published` ou quando `events.panic = true`; resposta idêntica à de chave inválida (`403 midia.chave_invalida`) |
 | 9 | ✅ Miniatura validada por magic bytes como o `full` (§4.3) | **Resolvido** — `confirm` inspeciona `${chave}/thumb` após validar `/full`; poster de vídeo exige `image/jpeg` |
 | 10 | 🟡 Domínio próprio de mídia de fato ligado, com `Content-Type` e `nosniff` fixados na resposta (§4.3) | Fecha a linha **Cabeçalhos** da §7 |
 
