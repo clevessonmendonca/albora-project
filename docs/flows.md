@@ -107,7 +107,11 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **EXIF/GPS 🟡:** Câmera captura com `exif: false`. `persistCapture` roda `processarFoto` + `bufferDrawer` (jpeg-js) — reencode remove EXIF/GPS; presets CSS via `aplicarFiltroCss` / `aplicarPorPixel`.
 
-**Tira de filtros ✅:** após disparar, `photo.tsx` abre step de revisão com `FilterStrip` (ScrollView horizontal de chips de preset). Convidado escolhe preset (ou "Original") e toca "Enviar" → `filtroFromPreset(id)` converte para `FiltroAplicado` e `persistCapture` passa `filtro` para `processarFoto`. Math de cor vive em `@albora/core`; sem duplicação. Gap: preview ao vivo do filtro sobre a foto; slider de intensidade; galeria/HEIC; Skia para qualidade.
+**Tira de filtros ✅:** após disparar, `photo.tsx` abre step de revisão com `FilterStrip` (ScrollView horizontal de chips de preset). Convidado escolhe preset (ou "Original") e toca "Enviar" → `filtroFromPreset(id)` converte para `FiltroAplicado` e `persistCapture` passa `filtro` para `processarFoto`. Math de cor vive em `@albora/core`; sem duplicação.
+
+**Preview ao vivo ✅:** ao tocar num chip, `photo.tsx` lê os bytes da câmera, chama `previewFiltrado` (downsample para ≤320 px + `bufferDrawer.filtrar`) com debounce de 150 ms e geração counter para cancelar in-flight. Resultado convertido para data URI e exibido no `<Image>` com `opacity: 0.6` durante o processamento; chip "Original" volta ao URI raw da câmera sem custo. `previewFiltrado` é pura e testada sem React Native em `preview-filtro.test.ts`.
+
+**Gap:** slider de intensidade; galeria/HEIC; Skia para qualidade.
 
 **Upload em segundo plano 🟡:** PUT presigned via `uploadAsync` + `FileSystemSessionType.BACKGROUND` (`put-file.ts`); task `albora-guest-upload-drain` registra `BackgroundFetch` para drenar a fila. Falta prova em aparelho com app fechado.
 

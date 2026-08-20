@@ -4,7 +4,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { randomUUID } from "expo-crypto";
 import { useFocusEffect, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { PRESETS, QUALITY, ordenarComRecomendado } from "@albora/core";
+import { QUALITY, ordenarComRecomendado } from "@albora/core";
 import type { Preset } from "@albora/core";
 import { Button, Screen, Text } from "@albora/ui-native";
 import { persistCapture } from "../src/capture";
@@ -12,6 +12,7 @@ import type { CaptureSource } from "../src/capture";
 import { diskFiles, guestQueue, mediaRoot } from "../src/disk";
 import { filtroFromPreset } from "../src/filtro";
 import { FilterStrip } from "../src/filter-strip";
+import { bytesParaDataUri, previewFiltrado } from "../src/preview-filtro";
 import { parseStoredSession, SESSION_STORE_KEY, type GuestSession } from "../src/session";
 import { drainGuestQueue } from "../src/drain-guest";
 
@@ -28,8 +29,50 @@ export default function PhotoScreen() {
   const [pendingShot, setPendingShot] = useState<CaptureSource | null>(null);
   const [filtroEscolhido, setFiltroEscolhido] = useState<Preset | null>(null);
 
+  // Preview ao vivo: data URI do thumb filtrado, ou null para mostrar o original.
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  // Contador de geração: incrementa a cada nova solicitação e cancela
+  // in-flight quando o chip muda antes de o processamento terminar.
+  const previewGenRef = useRef(0);
+
   // Presets na ordem padrão — sem recomendadoId do servidor nesta fatia.
   const presets = ordenarComRecomendado(null);
+
+  // Gera o preview filtrado com debounce de 150 ms.
+  // Chip mudou antes de terminar → previewGenRef detecta e descarta o resultado.
+  useEffect(() => {
+    if (!pendingShot || !filtroEscolhido) {
+      previewGenRef.current += 1;
+      setPreviewUri(null);
+      setPreviewLoading(false);
+      return;
+    }
+
+    const gen = ++previewGenRef.current;
+    setPreviewLoading(true);
+
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          const bytes = await diskFiles().readAll(pendingShot.uri);
+          const filtro = filtroFromPreset(filtroEscolhido.id);
+          if (!filtro || gen !== previewGenRef.current) return;
+
+          const resultado = await previewFiltrado(bytes, "image/jpeg", filtro);
+          if (gen !== previewGenRef.current) return;
+
+          setPreviewUri(bytesParaDataUri(resultado));
+        } catch {
+          // Erro silencioso: fallback para o URI original — nunca bloqueia o envio.
+        } finally {
+          if (gen === previewGenRef.current) setPreviewLoading(false);
+        }
+      })();
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [filtroEscolhido, pendingShot]);
 
   const refreshPending = useCallback(async () => {
     setPending((await guestQueue().list()).length);
@@ -127,6 +170,7 @@ export default function PhotoScreen() {
   function descartarPendente() {
     setPendingShot(null);
     setFiltroEscolhido(null);
+    setPreviewUri(null);
     setErro(null);
   }
 
@@ -157,6 +201,7 @@ export default function PhotoScreen() {
 
       setPendingShot(null);
       setFiltroEscolhido(null);
+      setPreviewUri(null);
       await refreshPending();
       void tryDrain();
     } catch {
@@ -183,11 +228,11 @@ export default function PhotoScreen() {
           <View className="w-20" />
         </View>
 
-        {/* Preview da foto capturada */}
+        {/* Preview da foto: original até o primeiro preset ser processado */}
         <View className="mx-3 mt-3 flex-1 overflow-hidden rounded-superficie bg-superficie">
           <Image
-            source={{ uri: pendingShot.uri }}
-            style={{ flex: 1 }}
+            source={{ uri: previewUri ?? pendingShot.uri }}
+            style={{ flex: 1, opacity: previewLoading ? 0.6 : 1 }}
             resizeMode="contain"
             accessibilityLabel="Foto capturada"
           />
