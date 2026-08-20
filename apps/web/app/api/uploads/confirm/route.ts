@@ -103,6 +103,22 @@ export async function POST(req: Request) {
       return errorResponse(422, recusa.code, "Arquivo recusado", recusa.details);
     }
 
+    const thumb = await inspecionarObjeto(`${chave}/thumb`);
+    if (!thumb) {
+      return errorResponse(409, "upload.thumb_ausente", "A miniatura ainda não chegou", {
+        chave: `${chave}/thumb`,
+      });
+    }
+
+    const recusaThumb = validarObjetoRecebido("image/jpeg", thumb.bytes, thumb.inicio);
+    if (recusaThumb) {
+      console.warn("confirm.thumb_recusada", {
+        eventoId: auth.session.eventoId,
+        ...recusaThumb.details,
+      });
+      return errorResponse(422, recusaThumb.code, "Miniatura recusada", recusaThumb.details);
+    }
+
     const resultado = await withEvent(getPool(), auth.session.eventoId, async (c) => {
       const daMissao =
         typeof desafioId === "string" && (await challengeBelongsToEvent(c, auth.session.eventoId, desafioId))
