@@ -59,3 +59,8 @@ export { EventHero, type EventHeroProps } from "./event-hero";
 export { PhotoCard, type PhotoCardProps } from "./photo-card";
 export { CommentSheet, type Comentario } from "./comment-sheet";
 export { EditorialTabs, type EditorialTabsItem, type EditorialTabsProps } from "./editorial-tabs";
+export {
+  PrintedCopyCard,
+  printedCopyRotation,
+  type PrintedCopyCardProps,
+} from "./printed-copy-card";
