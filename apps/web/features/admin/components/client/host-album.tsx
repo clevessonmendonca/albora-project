@@ -1,5 +1,6 @@
 "use client";
 
+import { PrintedCopyCard } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { HostExport } from "@/features/admin/components/client/host-export";
@@ -18,6 +19,15 @@ type Props = {
   eventoId: string;
   canExport?: boolean;
 };
+
+function legendaDaFoto(criadaEm: string, reacoes: number): string {
+  const quando = new Intl.DateTimeFormat("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(criadaEm));
+  if (reacoes <= 0) return quando;
+  return `${quando} · ${reacoes} ${reacoes === 1 ? "curtida" : "curtidas"}`;
+}
 
 export function HostAlbum({ eventoId, canExport = true }: Props) {
   const [itens, setItens] = useState<Item[]>([]);
@@ -102,26 +112,19 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-1.5">
-            {itens.map((item) => {
+          <div className="flex flex-wrap items-center justify-start gap-y-4 [&>*]:-mx-3">
+            {itens.map((item, indice) => {
               const ativo = selecionado === item.id;
               return (
-                <button
+                <PrintedCopyCard
                   key={item.id}
-                  type="button"
+                  index={indice}
+                  imageUrl={item.thumb}
+                  caption={legendaDaFoto(item.criadaEm, item.reacoes)}
+                  alt=""
+                  selected={ativo}
                   onClick={() => setSelecionado(ativo ? null : item.id)}
-                  className={`relative aspect-[3/4] cursor-pointer overflow-hidden rounded-token bg-superficie-alta p-0 ${
-                    ativo ? "border-2 border-acento" : "border border-linha"
-                  }`}
-                >
-                  {/* URL assinada, curta validade */}
-                  <img src={item.thumb} alt="" className="size-full object-cover" />
-                  {item.reacoes > 0 && (
-                    <span className="absolute bottom-1 right-1 rounded-pilula bg-bg-vidro-forte px-1.5 py-0.5 text-[0.6875rem]">
-                      {item.reacoes}
-                    </span>
-                  )}
-                </button>
+                />
               );
             })}
           </div>

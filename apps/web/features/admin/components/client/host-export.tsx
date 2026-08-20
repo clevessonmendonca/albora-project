@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
 import {
   abrirJob,
   comJob,
@@ -74,7 +74,7 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
   };
 
   return (
-    <AdminSection>
+    <AdminCard variant={estado.fase === "pronto" ? "highlight" : "default"}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="mb-2 mt-0 font-titulo text-lg">{titulo}</h2>
@@ -125,7 +125,7 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
       {estado.fase === "erro" && (
         <p className="mb-0 mt-4 text-[0.9rem] text-critico">Não foi possível baixar agora. Tente de novo.</p>
       )}
-    </AdminSection>
+    </AdminCard>
   );
 }
 

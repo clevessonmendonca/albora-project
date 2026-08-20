@@ -42,7 +42,7 @@ Este documento substitui o recorte “só MVP” por **entrega completa** alinha
 |---|---|---|
 | B1 | Coluna `events.plan` + cota de vídeo por convidado (grátis: 1) | **Feito** |
 | B2 | Upload de vídeo (presign/confirm/fila) | **Feito** |
-| B3 | Resolução 1600 vs 3500 por plano | Parcial (só redimensionamento) |
+| B3 | Resolução 1600 vs 3500 por plano | **Feito** (resize na fila + validação no confirm) |
 | B4 | Telão e feed reproduzem vídeo sem cortar vertical | **Feito** |
 
 ---
