@@ -542,7 +542,7 @@ Este documento é a fonte da verdade de **fronteiras**, e uma fronteira vale ant
 | Peças SVG/PDF | wizard e painel | Download no admin; placa A4 traz até 6 missões do editor (N1.6); falta prova impressa com 3 celulares |
 | Recado, música, missões, álbum, share Stories | features correspondentes | No ar. App Expo ainda não |
 | Baixar tudo (anfitrião) | spec 016 | Job + reauth por e-mail; ZIP autenticado em stream |
-| Export para o Drive + retenção D330/D358/D365 | spec drive-export | OAuth (`drive.file`), vault do refresh token, gate reforçado (`mayDeleteAtD365`), runner real (`tools/jobs/retention.mjs`). Export síncrono (sem fila) — evento grande de verdade precisa do encadeamento por Cloudflare Queues (§16, ainda não construído) |
+| Export para o Drive + retenção D330/D358/D365 | spec drive-export | OAuth, vault, gate D365, runner `retention.mjs`. Export Drive **assíncrono** (ticks + `pnpm drive-export` + `POST /api/jobs/drive-export`); binding Cloudflare Queues no spike |
 
 ### Ainda não construído (bloqueia o 1º evento real ou é Fase B/C)
 
@@ -550,7 +550,7 @@ Este documento é a fonte da verdade de **fronteiras**, e uma fronteira vale ant
 |---|---|---|
 | Prova das peças impressas | spec 009, roadmap A1 | Código gera SVG/PDF; ninguém mediu QR em papel com 3 celulares |
 | Verificação OAuth do Google (Testing → Production) | spec drive-export §1.4/§10, risco 1 | Bloqueante antes do 1º evento real que use o Drive: em "Testing" o refresh token expira em 7 dias |
-| Encadeamento do export do Drive por fila (Cloudflare Queues) | spec drive-export §7/§9, fase 5 | Export roda síncrono, um request só — vale para eventos pequenos de teste; 1.000+ fotos precisa do consumer da fila (ADR 0006) |
+| Encadeamento do export do Drive por fila (Cloudflare Queues) | spec drive-export §7/§9, fase 5 | **Parcial** — ticks assíncronos + consumer HTTP `/api/jobs/drive-export` + producer `DRIVE_EXPORT_QUEUE` no spike; falta consumer Worker wired ao binding |
 | App nativo Expo | ADR 0008–0010, spec 017 | `apps/mobile` é stub |
 | Classificador com modelo de ML | §9 | Heurística de magic bytes. O **gate** (silêncio → `sem-resposta` → parede segura) já é o produto |
 | Produção (Workers + R2 + Neon + Resend) | ADR 0006, roadmap A5 | Roda em localhost |
