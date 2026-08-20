@@ -174,9 +174,9 @@ export async function getAdminBookPdf(
       album,
       tituloDoCapitulo: (id) => chapterTitle(pack, id),
       imagens,
-      vendorTokens,
-      packTokens: pack?.tokens,
-      eventoTokens,
+      ...(vendorTokens ? { vendorTokens } : {}),
+      ...(pack?.tokens ? { packTokens: pack.tokens } : {}),
+      ...(eventoTokens ? { eventoTokens } : {}),
     });
 
     const slug = owned.evento.slug ?? "livro";
