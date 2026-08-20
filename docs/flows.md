@@ -93,13 +93,13 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Gap:** CMYK/Ghostscript para impressão profissional.
 
-## F9 — Fornecedor ✅/🟡
+## F9 — Fornecedor ✅
 
 **Feliz:** lead sob consulta; `vendor_members` / `event_members.planner` no schema; Insights portfólio `/admin/vendor/insights`; ACL `COUPLE_HOST_ROLES` (ZIP, billing, identidade) vs `ANY_HOST_ROLES` (painel) via `requireHostEventRole`; convite de equipe no admin (`GET`/`POST /api/admin/events/{id}/members` + painel Equipe).
 
 **White-label parcial ✅:** `vendors.brand_tokens` propaga para as superfícies do convidado. Cadeia completa: `resolverSlug` lê `brand_tokens` dentro do mesmo `comEvento` (policy `vendor_marca_do_evento`, migration 0047 — SELECT escopado a `app.event_id`, sem BYPASSRLS); `EventoPublico.vendorBrandTokens` transporta até `eventVars` e `darkEventVars`, que passam a camada `vendor` para `resolveTokens`. Isolamento garantido: o GUC `app.event_id` é `SET LOCAL` por transação — o convidado do evento A nunca lê os tokens do vendor do evento B.
 
-**Gap:** editor de `brand_tokens` no portal do fornecedor (UI admin); propagação para mobile (`eventVars` nativo).
+**Gap:** editor de `brand_tokens` no portal do fornecedor (UI admin) ✅ `PATCH /api/vendors/{id}/brand-tokens` — acento, papel, noite, tinta e background; só `admin` do fornecedor; `VendorBrandTokensEditor` com preview ao vivo via `resolveTokens`/`toVariables`. Gap remanescente: propagação para mobile (`eventVars` nativo).
 
 ---
 
@@ -115,7 +115,9 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Intensidade de preset ✅:** quando um preset está ativo, `IntensidadeChips` exibe 4 opções (25 %/50 %/75 %/100 %) abaixo da `FilterStrip`. Trocar preset reseta para 100 %. Mudar intensidade re-dispara o preview com debounce de 150 ms; o valor é passado como segundo argumento de `filtroFromPreset(id, intensidade)` tanto no preview quanto em `persistCapture`. Sem nova dependência — chips puros com `Pressable` do React Native.
 
-**Gap:** galeria/HEIC; Skia para qualidade.
+**Galeria ✅:** botão "Galeria" em `photo.tsx` abre `launchImageLibraryAsync` (imagens, `exif:false`). `normalizeSource` (`normalize-source.ts`) sempre converte para JPEG via `manipulateAsync` (cobre HEIC e URIs `ph://`/`content://`). `persistCapture` recebe `convertHeic` injetável como rede de segurança. Testes em `normalize-source.test.ts` e `capture.test.ts`.
+
+**Gap:** Skia para qualidade.
 
 **Upload em segundo plano 🟡:** PUT presigned via `uploadAsync` + `FileSystemSessionType.BACKGROUND` (`put-file.ts`); task `albora-guest-upload-drain` registra `BackgroundFetch` para drenar a fila. Falta prova em aparelho com app fechado.
 

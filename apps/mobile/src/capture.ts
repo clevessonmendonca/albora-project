@@ -43,6 +43,8 @@ export async function persistCapture(input: {
   filtro?: FiltroAplicado;
   now?: () => number;
   id?: () => string;
+  /** Rede de segurança: converte URI HEIC → URI JPEG antes de rejeitar. */
+  convertHeic?: (uri: string) => Promise<string>;
 }): Promise<CaptureResult> {
   if (input.eventoId.length === 0) {
     return { ok: false, erro: "Pareie de novo para tirar foto." };
@@ -65,6 +67,15 @@ export async function persistCapture(input: {
 
     if (isHeic(head)) {
       await input.files.remove(dest);
+      if (input.convertHeic) {
+        try {
+          const jpegUri = await input.convertHeic(input.source.uri);
+          const { convertHeic: _conv, ...rest } = input;
+          return persistCapture({ ...rest, source: { uri: jpegUri } });
+        } catch {
+          return { ok: false, erro: AVISO_HEIC };
+        }
+      }
       return { ok: false, erro: AVISO_HEIC };
     }
 

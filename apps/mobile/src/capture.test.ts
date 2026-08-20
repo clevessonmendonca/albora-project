@@ -140,7 +140,7 @@ describe("captura → arquivo → fila", () => {
     expect(files.files.has("fila/arquivos/lixo.jpg")).toBe(false);
   });
 
-  it("recusa HEIC — o acervo não aceita o que o telão não exibe", async () => {
+  it("recusa HEIC sem converter — o acervo não aceita o que o telão não exibe", async () => {
     const { files, queue, origem } = setup(HEIC);
     const result = await persistCapture({
       source: { uri: origem },
@@ -149,6 +149,52 @@ describe("captura → arquivo → fila", () => {
       files,
       destDir: "fila/arquivos",
       id: () => "heic",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.erro).toMatch(/HEIC/);
+    expect(await queue.list()).toEqual([]);
+  });
+
+  it("aceita HEIC quando convertHeic converte para JPEG e enfileira", async () => {
+    const jpeg = jpegSolido(32, 32);
+    const jpegUri = "/tmp/converted.jpg";
+
+    const { files, queue, origem } = setup(HEIC);
+    // Registra o JPEG convertido no FS em memória.
+    files.files.set(jpegUri, jpeg);
+
+    const convertHeic = async (_uri: string) => jpegUri;
+
+    const result = await persistCapture({
+      source: { uri: origem },
+      eventoId: "ev-1",
+      queue,
+      files,
+      destDir: "fila/arquivos",
+      id: () => "heic-conv",
+      convertHeic,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(await queue.list()).toHaveLength(1);
+  });
+
+  it("recusa HEIC mesmo com convertHeic quando o converter falha", async () => {
+    const { files, queue, origem } = setup(HEIC);
+
+    const convertHeic = async (_uri: string): Promise<string> => {
+      throw new Error("falha no conversor");
+    };
+
+    const result = await persistCapture({
+      source: { uri: origem },
+      eventoId: "ev-1",
+      queue,
+      files,
+      destDir: "fila/arquivos",
+      id: () => "heic-fail",
+      convertHeic,
     });
 
     expect(result.ok).toBe(false);

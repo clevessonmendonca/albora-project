@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Image, Pressable, ScrollView, View } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { randomUUID } from "expo-crypto";
+import * as ImagePicker from "expo-image-picker";
 import { useFocusEffect, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { QUALITY, ordenarComRecomendado } from "@albora/core";
@@ -12,6 +13,7 @@ import type { CaptureSource } from "../src/capture";
 import { diskFiles, guestQueue, mediaRoot } from "../src/disk";
 import { filtroFromPreset } from "../src/filtro";
 import { FilterStrip } from "../src/filter-strip";
+import { normalizeSource } from "../src/normalize-source";
 import { bytesParaDataUri, previewFiltrado } from "../src/preview-filtro";
 import { parseStoredSession, SESSION_STORE_KEY, type GuestSession } from "../src/session";
 import { drainGuestQueue } from "../src/drain-guest";
@@ -174,6 +176,47 @@ export default function PhotoScreen() {
     }
   }
 
+  // Abre a galeria do dispositivo e normaliza para JPEG (inclusive HEIC).
+  async function pickFromGallery() {
+    if (busy || session === null || session === undefined) return;
+    setBusy(true);
+    setErro(null);
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        exif: false,
+        quality: QUALITY.full,
+        allowsEditing: false,
+      });
+
+      if (result.canceled || !result.assets[0]) return;
+
+      const asset = result.assets[0];
+
+      // Sempre normaliza para JPEG: ph:// e content:// URIs não são legíveis
+      // com readHead, e HEIC é comum em iPhones com Formatos → Alta Eficiência.
+      const normalized = await normalizeSource({
+        head: new Uint8Array(0),
+        uri: asset.uri,
+        width: asset.width ?? undefined,
+        height: asset.height ?? undefined,
+        alwaysConvert: true,
+      });
+
+      if (!normalized.ok) {
+        setErro(normalized.erro);
+        return;
+      }
+
+      setPendingShot(normalized.source);
+      setFiltroEscolhido(null);
+    } catch {
+      setErro("Não consegui abrir a galeria. Tente de novo.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   // Descarta a foto pendente e volta para a câmera.
   function descartarPendente() {
     setPendingShot(null);
@@ -306,7 +349,21 @@ export default function PhotoScreen() {
         </Text>
       ) : null}
 
-      <View className="items-center px-7 pb-9 pt-5">
+      <View className="flex-row items-center justify-center gap-8 px-7 pb-9 pt-5">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Abrir galeria"
+          disabled={busy}
+          onPress={() => void pickFromGallery()}
+          className={`h-12 min-w-20 items-center justify-center rounded-pilula border border-linha bg-superficie px-4 ${
+            busy ? "opacity-55" : ""
+          }`}
+        >
+          <Text tone="muted" className="text-sm">
+            Galeria
+          </Text>
+        </Pressable>
+
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Fotografar"
@@ -318,6 +375,8 @@ export default function PhotoScreen() {
         >
           <View className="size-12 rounded-pilula bg-acento" />
         </Pressable>
+
+        <View className="w-20" />
       </View>
     </View>
   );
