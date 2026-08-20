@@ -16,9 +16,9 @@ function semFundoDaCamada(layer: TokenLayer): Omit<TokenLayer, "fundo" | "backgr
 }
 
 /**
- * `background` sobrepõe o fundo resolvido da cadeia marca → pack → evento,
+ * `background` sobrepõe o fundo resolvido da cadeia marca → vendor → pack → evento,
  * re-derivando `--bg`/`--ink`/`--acento` etc. Omitido, o comportamento é
- * idêntico ao fundo do evento/pack/marca.
+ * idêntico ao fundo do evento/pack/vendor/marca.
  */
 export function eventVars(event: EventoPublico, background?: Background): CSSProperties {
   const pack = PACKS[event.packId];
@@ -34,9 +34,15 @@ export function eventVars(event: EventoPublico, background?: Background): CSSPro
       ? identityLayer
       : undefined;
 
+  const vendorLayer =
+    event.vendorBrandTokens && Object.keys(event.vendorBrandTokens).length > 0
+      ? (event.vendorBrandTokens as TokenLayer)
+      : undefined;
+
   return toVariables(
     resolveTokens({
       marca: ALBORA_BRAND,
+      ...(vendorLayer ? { vendor: vendorLayer } : {}),
       ...(pack ? { pack: pack.tokens } : {}),
       ...(eventoLayer ? { evento: eventoLayer } : {}),
     }),

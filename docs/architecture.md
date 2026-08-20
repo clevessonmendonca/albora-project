@@ -229,22 +229,26 @@ Esta seção descreve a vantagem competitiva do produto. Trate-a como código de
 O evento carrega `identity_tokens` (paleta, tipografia, monograma, motivo). Esses tokens precisam sair idênticos em superfícies que não compartilham runtime: a placa impressa em gráfica, os cards de mesa, o preset aplicado às fotos, o telão e o álbum final. Se divergirem, o produto não entrega o que vende.
 
 ```
-          events.identity_tokens (JSONB)
-                      │
-                      ▼
-            ┌───────────────────┐
-            │  resolvedor       │  ← único, com fallback: evento → pack → marca
-            │  tokens → valores │
-            └─────────┬─────────┘
-                      │
-   ┌──────────┬────────┼────────┬──────────────┬─────────────┐
-   ▼          ▼        ▼        ▼              ▼             ▼
- CSS custom  modelo   pipeline  pipeline    moldura de   (futuros)
- properties  de telão SVG→PDF   de preset   compartilhar
- (web/PWA)   (4 tipos) (placa,  (cor sobre  (story 9:16,
-                       cards,    a foto)     colagem)
-                       livro)
+ vendors.brand_tokens (JSONB)        events.identity_tokens (JSONB)
+          │                                       │
+          └───────────────┬───────────────────────┘
+                          ▼
+            ┌───────────────────────────────────────┐
+            │  resolvedor                           │
+            │  marca → vendor → pack → evento       │  ← cadeia completa
+            │  tokens → valores com fallback        │
+            └───────────────┬───────────────────────┘
+                            │
+   ┌──────────┬─────────────┼────────┬──────────────┬─────────────┐
+   ▼          ▼             ▼        ▼              ▼             ▼
+ CSS custom  modelo        pipeline  pipeline    moldura de   (futuros)
+ properties  de telão      SVG→PDF   de preset   compartilhar
+ (web/PWA)   (4 tipos)     (placa,  (cor sobre  (story 9:16,
+                            cards,    a foto)     colagem)
+                            livro)
 ```
+
+A camada `vendor` entra entre a marca Albora e o pack vertical: o branding do canal B2B2C sobrepõe o piso Albora, mas perde para o pack e para a identidade do evento — o casal ainda ganha de todo mundo. `vendors.brand_tokens` é lido em `resolverSlug` dentro da mesma transação `comEvento` (policy `vendor_marca_do_evento`, migration 0047), então o isolamento por `app.event_id` garante que o convidado do evento A nunca enxerga os tokens do vendor do evento B.
 
 **Cinco renderizadores, um resolvedor.** O modelo de telão e a moldura de compartilhamento são artefatos de identidade como qualquer outro — o casal escolhe o layout do telão do mesmo jeito que escolhe a paleta, e a moldura do story carrega monograma, nomes e data resolvidos da mesma fonte.
 

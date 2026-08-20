@@ -23,6 +23,17 @@ export type EventoPublico = {
   filtroRecomendado: string | null;
   /** IANA do salão. Ancora taken_at, capítulos e a faixa 5h–7h. */
   fuso: string;
+  /**
+   * Tokens de marca do fornecedor B2B2C que criou este evento, ou `null`
+   * quando o evento não tem `vendor_id`. Alimenta a camada `vendor` do
+   * resolvedor (marca → vendor → pack → evento) nas superfícies do convidado.
+   *
+   * Lido dentro do mesmo `comEvento` que traz o evento, via a policy
+   * `vendor_marca_do_evento` (migration 0047): o isolamento é garantido pelo
+   * `app.event_id` da transação — o convidado do evento A nunca lê os tokens
+   * do vendor do evento B.
+   */
+  vendorBrandTokens: Record<string, unknown> | null;
 };
 
 export type Resolucao =
@@ -60,12 +71,24 @@ export async function resolverSlug(
   const evento = await comEvento(pool, encontrado.event_id, async (c) => {
     const { rows: e } = await c.query(
       `SELECT id, pack_id, starts_at, ends_at, interaction_opens_at, identity_tokens,
-              recommended_filter, timezone
+              recommended_filter, timezone, vendor_id
        FROM events WHERE id = $1`,
       [encontrado.event_id],
     );
     const linha = e[0];
     if (!linha) return null;
+
+    // Lê brand_tokens do vendor quando o evento tem vendor_id. A policy
+    // `vendor_marca_do_evento` (migration 0047) permite este SELECT dentro
+    // do comEvento porque app.event_id já está setado nesta transação.
+    let vendorBrandTokens: Record<string, unknown> | null = null;
+    if (linha.vendor_id) {
+      const { rows: v } = await c.query<{ brand_tokens: Record<string, unknown> }>(
+        `SELECT brand_tokens FROM vendors WHERE id = $1`,
+        [linha.vendor_id],
+      );
+      vendorBrandTokens = (v[0]?.brand_tokens ?? null) as Record<string, unknown> | null;
+    }
 
     return {
       eventoId: linha.id as string,
@@ -76,6 +99,7 @@ export async function resolverSlug(
       identityTokens: (linha.identity_tokens ?? {}) as Record<string, unknown>,
       filtroRecomendado: (linha.recommended_filter ?? null) as string | null,
       fuso: fusoOuPadrao((linha.timezone ?? null) as string | null),
+      vendorBrandTokens,
     };
   });
 

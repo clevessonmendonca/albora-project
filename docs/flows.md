@@ -97,7 +97,9 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Feliz:** lead sob consulta; `vendor_members` / `event_members.planner` no schema; Insights portfólio `/admin/vendor/insights`; ACL `COUPLE_HOST_ROLES` (ZIP, billing, identidade) vs `ANY_HOST_ROLES` (painel) via `requireHostEventRole`; convite de equipe no admin (`GET`/`POST /api/admin/events/{id}/members` + painel Equipe).
 
-**Gap:** white-label.
+**White-label parcial ✅:** `vendors.brand_tokens` propaga para as superfícies do convidado. Cadeia completa: `resolverSlug` lê `brand_tokens` dentro do mesmo `comEvento` (policy `vendor_marca_do_evento`, migration 0047 — SELECT escopado a `app.event_id`, sem BYPASSRLS); `EventoPublico.vendorBrandTokens` transporta até `eventVars` e `darkEventVars`, que passam a camada `vendor` para `resolveTokens`. Isolamento garantido: o GUC `app.event_id` é `SET LOCAL` por transação — o convidado do evento A nunca lê os tokens do vendor do evento B.
+
+**Gap:** editor de `brand_tokens` no portal do fornecedor (UI admin); propagação para mobile (`eventVars` nativo); peças PDF (`planBook`/`generateBookPdf` não passam camada vendor ainda).
 
 ---
 

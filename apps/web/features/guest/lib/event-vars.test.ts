@@ -3,7 +3,7 @@ import { ALBORA_BRAND, resolveTokens, toVariables } from "@albora/tokens";
 import { describe, expect, it } from "vitest";
 import { eventVars } from "./event-vars";
 
-function eventoFixture(): EventoPublico {
+function eventoFixture(overrides?: Partial<EventoPublico>): EventoPublico {
   return {
     eventoId: "11111111-1111-1111-1111-111111111111",
     packId: "pack-inexistente",
@@ -13,6 +13,8 @@ function eventoFixture(): EventoPublico {
     identityTokens: {},
     filtroRecomendado: null,
     fuso: "America/Sao_Paulo",
+    vendorBrandTokens: null,
+    ...overrides,
   };
 }
 
@@ -46,10 +48,7 @@ describe("eventVars aceita override de tema", () => {
   });
 
   it("o override vence o alias PT 'fundo' do identityTokens do evento", () => {
-    const event: EventoPublico = {
-      ...eventoFixture(),
-      identityTokens: { fundo: "escuro" },
-    };
+    const event = eventoFixture({ identityTokens: { fundo: "escuro" } });
 
     const vars = eventVars(event, "light") as Record<string, string>;
     const claro = toVariables(
@@ -58,5 +57,81 @@ describe("eventVars aceita override de tema", () => {
 
     expect(vars["--bg"]).toBe(claro["--bg"]);
     expect(vars["--ink"]).toBe(claro["--ink"]);
+  });
+});
+
+describe("eventVars — camada vendor (white-label)", () => {
+  const ACENTO_VENDOR = "#cc0000";
+
+  it("com vendorBrandTokens, o acento difere do padrão Albora", () => {
+    const event = eventoFixture({
+      vendorBrandTokens: { cores: { acento: ACENTO_VENDOR } },
+    });
+
+    const vars = eventVars(event) as Record<string, string>;
+    const padrao = toVariables(resolveTokens({ marca: ALBORA_BRAND })) as Record<string, string>;
+
+    expect(vars["--acento"]).toBe(ACENTO_VENDOR);
+    expect(vars["--acento"]).not.toBe(padrao["--acento"]);
+  });
+
+  it("sem vendorBrandTokens (null), o resultado é idêntico ao sem vendor", () => {
+    const comNull = eventVars(eventoFixture({ vendorBrandTokens: null })) as Record<string, string>;
+    const semCampo = eventVars(eventoFixture({ vendorBrandTokens: null })) as Record<
+      string,
+      string
+    >;
+
+    expect(comNull).toEqual(semCampo);
+  });
+
+  it("vendorBrandTokens vazio {} não altera o resultado", () => {
+    const comVazio = eventVars(eventoFixture({ vendorBrandTokens: {} })) as Record<string, string>;
+    const semVendor = eventVars(eventoFixture({ vendorBrandTokens: null })) as Record<
+      string,
+      string
+    >;
+
+    expect(comVazio).toEqual(semVendor);
+  });
+
+  it("identityTokens do evento vence vendor — evento ganha de todo mundo", () => {
+    const ACENTO_EVENTO = "#00ff00";
+    const event = eventoFixture({
+      vendorBrandTokens: { cores: { acento: ACENTO_VENDOR } },
+      identityTokens: { cores: { acento: ACENTO_EVENTO } },
+    });
+
+    const vars = eventVars(event) as Record<string, string>;
+
+    expect(vars["--acento"]).toBe(ACENTO_EVENTO);
+    expect(vars["--acento"]).not.toBe(ACENTO_VENDOR);
+  });
+
+  it("vendor vence a marca Albora mas perde para o pack", () => {
+    // O pack 'pack-inexistente' não existe em PACKS, então só marca e vendor concorrem.
+    // Com vendor definindo acento, ele deve ganhar da marca Albora.
+    const event = eventoFixture({
+      vendorBrandTokens: { cores: { acento: ACENTO_VENDOR } },
+    });
+
+    const vars = eventVars(event) as Record<string, string>;
+    const marcaVars = toVariables(resolveTokens({ marca: ALBORA_BRAND })) as Record<string, string>;
+
+    expect(vars["--acento"]).toBe(ACENTO_VENDOR);
+    expect(vars["--acento"]).not.toBe(marcaVars["--acento"]);
+  });
+
+  it("bg do evento vence vendor quando evento define background", () => {
+    const event = eventoFixture({
+      vendorBrandTokens: { background: "light" },
+      identityTokens: { background: "dark" },
+    });
+
+    const vars = eventVars(event) as Record<string, string>;
+    const escuro = toVariables(resolveTokens({ marca: ALBORA_BRAND })) as Record<string, string>;
+
+    // Evento definiu dark — bg deve coincidir com o escuro.
+    expect(vars["--bg"]).toBe(escuro["--bg"]);
   });
 });
