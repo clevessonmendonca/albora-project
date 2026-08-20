@@ -181,6 +181,26 @@ describe("createNativeTransport", () => {
 
     await expect(transport.sendBytes(PRESIGN.full, item())).rejects.toThrow(/GPS/);
   });
+
+  it("sendBytes usa putFile quando injetado (URLSession / upload nativo)", async () => {
+    const putFile = vi.fn(async () => ({ status: 200 }));
+
+    const transport = createNativeTransport({
+      origin: "http://localhost:3000",
+      cookie: "albora_sessao=tok",
+      readBytes: async () => JPEG_SEM_GPS,
+      putFile,
+    });
+
+    await transport.sendBytes(PRESIGN.full, item());
+
+    expect(putFile).toHaveBeenCalledWith({
+      caminho: "/tmp/a.jpg",
+      url: PRESIGN.full,
+      mime: "image/jpeg",
+    });
+    expect(fetch).not.toHaveBeenCalled();
+  });
 });
 
 describe("stripGpsOrReject", () => {

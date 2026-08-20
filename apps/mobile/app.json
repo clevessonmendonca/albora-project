@@ -16,11 +16,12 @@
     },
     "android": {
       "package": "app.albora.guest",
-      "permissions": ["CAMERA"]
+      "permissions": ["CAMERA", "RECEIVE_BOOT_COMPLETED", "WAKE_LOCK"]
     },
     "plugins": [
       "expo-router",
       "expo-secure-store",
+      "expo-background-fetch",
       [
         "expo-camera",
         {

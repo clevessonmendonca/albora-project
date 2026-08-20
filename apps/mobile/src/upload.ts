@@ -19,11 +19,20 @@ import { apiOrigin, cookieHeader, type GuestSession } from "./session";
  * Galeria/HEIC com GPS voltam a funcionar quando o Desenhista existir.
  */
 
+/** PUT a partir de arquivo — `URLSession` (iOS) / upload nativo (Android). */
+export type PutFile = (opts: {
+  caminho: string;
+  url: string;
+  mime: string;
+}) => Promise<{ status: number }>;
+
 export type NativeUploadDeps = {
   origin: string;
   cookie: string;
   readBytes: (path: string) => Promise<Uint8Array>;
   fetch?: typeof fetch;
+  /** Sem isto, o PUT lê os bytes e usa `fetch` (testes / fallback). */
+  putFile?: PutFile;
 };
 
 export function arquivoDoItem(item: QueueItem): { caminho: string; bytes: number } {
@@ -129,6 +138,15 @@ export function createNativeTransport(deps: NativeUploadDeps): Transport {
       const arquivo = arquivoDoItem(item);
       const bytes = await deps.readBytes(arquivo.caminho);
       stripGpsOrReject(bytes);
+      if (deps.putFile) {
+        const { status } = await deps.putFile({
+          caminho: arquivo.caminho,
+          url,
+          mime: item.mime,
+        });
+        if (status < 200 || status >= 300) throw new ApiError("put", status);
+        return;
+      }
       const copy = bytes.byteOffset === 0 && bytes.byteLength === bytes.buffer.byteLength
         ? bytes
         : bytes.slice();
@@ -161,6 +179,7 @@ export type DrainFileQueueOptions = {
   online?: () => boolean;
   fetch?: typeof fetch;
   origin?: string;
+  putFile?: PutFile;
 };
 
 let emCurso: Promise<DrainSummary> | null = null;
@@ -193,6 +212,7 @@ export async function drainFileQueue(
       cookie: cookieHeader(options.session.token),
       readBytes: options.readBytes,
       ...(options.fetch ? { fetch: options.fetch } : {}),
+      ...(options.putFile ? { putFile: options.putFile } : {}),
     });
 
     const summary = await drain(queue, transport, {

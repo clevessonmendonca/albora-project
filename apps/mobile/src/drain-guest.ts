@@ -1,6 +1,7 @@
 import type { DrainSummary, Queue } from "@albora/core";
 import { diskFiles } from "./disk";
 import { loadSession } from "./feed";
+import { putFileFromDisk } from "./put-file";
 import { drainFileQueue as drainWithSession } from "./upload";
 
 /**
@@ -14,5 +15,6 @@ export async function drainGuestQueue(queue: Queue): Promise<DrainSummary> {
     session,
     readBytes: (path) => files.readAll(path),
     removeFile: (path) => files.remove(path),
+    putFile: putFileFromDisk,
   });
 }

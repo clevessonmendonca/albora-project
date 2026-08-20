@@ -107,7 +107,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **EXIF/GPS 🟡:** Câmera captura com `exif: false`. `stripGpsOrReject` bloqueia PUT de foto com GPS (galeria/HEIC) devolvendo erro definitivo — **sem reencode**, coordenadas nunca sobem. Gap: `processarFoto` + Desenhista Expo = reencode que remove EXIF + aplica LUT; galeria/HEIC voltam a funcionar quando existir.
 
-**Gap 🟡:** PUT em segundo plano (`URLSession` / WorkManager); lojas / EAS.
+**Upload em segundo plano 🟡:** PUT presigned via `uploadAsync` + `FileSystemSessionType.BACKGROUND` (`put-file.ts`); task `albora-guest-upload-drain` registra `BackgroundFetch` para drenar a fila. Falta prova em aparelho com app fechado.
 
 ---
 
