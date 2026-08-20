@@ -24,8 +24,7 @@ import {
 import { getPool } from "@/lib/db";
 import { getDriveClient, getDriveVault } from "@/lib/drive";
 import { driveFolderUrl } from "@/lib/drive-export";
-import { processDriveExportJobAteFechar } from "@/lib/drive-export-worker";
-import { sendHostEmail } from "@/lib/email";
+import { scheduleDriveExportProcessing } from "@/lib/drive-export-scheduler";
 import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
@@ -63,35 +62,12 @@ function jobTemPendentes(job: JobExport): boolean {
   return job.itens.some((i) => !i.uploadedAt);
 }
 
-function depsDoWorker(hostEmail: string) {
-  return {
-    driveClient: getDriveClient(),
-    vault: getDriveVault(),
-    onPronto: async ({ total, job }: { total: number; job: JobExport; eventId: string }) => {
-      void sendHostEmail({
-        to: hostEmail,
-        subject: "Suas fotos já estão no Google Drive",
-        text: [
-          `${total} ${total === 1 ? "arquivo foi enviado" : "arquivos foram enviados"} para o Drive de vocês.`,
-          "",
-          job.driveFolderId ? driveFolderUrl(job.driveFolderId) : "",
-        ].join("\n"),
-      });
-    },
-  };
-}
-
-function agendarProcessamento(eventId: string, accountId: string, jobId: string, hostEmail: string) {
-  const pool = getPool();
-  const deps = depsDoWorker(hostEmail);
-  void processDriveExportJobAteFechar(pool, eventId, accountId, jobId, deps).catch((e) => {
-    console.error("drive_export.background_falhou", { eventId, jobId, erro: String(e) });
-  });
+function agendar(eventId: string, accountId: string, jobId: string, hostEmail: string) {
+  void scheduleDriveExportProcessing(getPool(), { eventId, jobId, accountId }, hostEmail);
 }
 
 /**
- * Cria (ou retoma) o job de Drive e devolve 202 — o upload roda em ticks via
- * `tools/jobs/drive-export.mjs` ou em background no dev server.
+ * Cria (ou retoma) o job de Drive e devolve 202 — ticks via fila/cron/background.
  */
 export async function postExportDrive(
   req: Request,
@@ -132,9 +108,10 @@ export async function postExportDrive(
 
     if (existente?.estado === "parcial" && jobTemPendentes(existente)) {
       await retomarExportDrive(getPool(), eventId, existente.id);
-      const retomado = (await jobExportPorId(getPool(), auth.host.accountId, eventId, existente.id)) ?? existente;
-      agendarProcessamento(eventId, auth.host.accountId, retomado.id, auth.host.email);
-      return jsonOk({ job: telaDoJobDrive(retomado) }, { status: 202 });
+      const retomado =
+        (await jobExportPorId(getPool(), auth.host.accountId, eventId, existente.id)) ?? existente;
+      agendar(eventId, auth.host.accountId, retomado.id, auth.host.email);
+      return jsonOk({ job: telaDoJobDrive({ ...retomado, estado: "enviando" }) }, { status: 202 });
     }
 
     const previa = await previaExportDrive(getPool(), auth.host.accountId, eventId);
@@ -177,11 +154,10 @@ export async function postExportDrive(
 
     console.log("drive_export_start", { eventId, fotos: job.fotos, async: true });
 
-    if (job.estado !== "enviando") {
-      return jsonOk({ job: telaDoJobDrive(job) }, { status: 202 });
+    if (job.estado === "enviando") {
+      agendar(eventId, auth.host.accountId, job.id, auth.host.email);
     }
 
-    agendarProcessamento(eventId, auth.host.accountId, job.id, auth.host.email);
     return jsonOk({ job: telaDoJobDrive(job) }, { status: 202 });
   } catch (e) {
     return unexpectedError("admin.export.drive", e);
