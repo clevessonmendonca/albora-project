@@ -2,9 +2,17 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { isPlatformOperator, listOpenSupportTicketsAdmin } from "@albora/db";
+import {
+  collectPlatformLiveMetrics,
+  isPlatformOperator,
+  listOpenSupportTicketsAdmin,
+  PLATFORM_SNAPSHOT_SCOPE_ID,
+  readAnalyticsSnapshot,
+  type PlatformLiveMetrics,
+} from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
+import { parsePlatformLiveMetrics } from "@/lib/platform-metrics";
 import {
   AdminSection,
   adminVars,
@@ -17,8 +25,25 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+async function carregarKpisPlatform(): Promise<{
+  metrics: PlatformLiveMetrics;
+  fonte: "snapshot" | "live";
+  computedAt: Date | null;
+}> {
+  const pool = getPool();
+  const snap = await readAnalyticsSnapshot(pool, "platform", PLATFORM_SNAPSHOT_SCOPE_ID, "live");
+  const parsed = snap ? parsePlatformLiveMetrics(snap.metrics) : null;
+  if (parsed) {
+    return { metrics: parsed, fonte: "snapshot", computedAt: snap!.computedAt };
+  }
+  const live = await collectPlatformLiveMetrics(pool);
+  return { metrics: live, fonte: "live", computedAt: null };
+}
+
 /**
  * Owner: volume e funil de landing — agregados, sem casal identificado.
+ * Prefere `analytics_snapshots` (scope=platform); cai na query live se o job
+ * ainda não rodou.
  */
 export default async function OpsInsightsPage() {
   const token = (await cookies()).get(HOST_COOKIE)?.value;
@@ -39,34 +64,21 @@ export default async function OpsInsightsPage() {
   }
 
   const pool = getPool();
-  const [{ rows: product }, tickets, { rows: platformKpis }] = await Promise.all([
-    pool.query<{ name: string; n: number }>(
-      `SELECT name, count(*)::int AS n FROM product_events
-        WHERE created_at > now() - interval '7 days'
-        GROUP BY name ORDER BY n DESC`,
-    ),
+  const [{ metrics: kpis, fonte, computedAt }, tickets] = await Promise.all([
+    carregarKpisPlatform(),
     listOpenSupportTicketsAdmin(pool, host.accountId, 5),
-    pool.query<{
-      events_with_activity: number;
-      total_uploads: number;
-      total_product_events: number;
-      open_tickets: number;
-    }>(
-      `SELECT
-        (SELECT count(DISTINCT event_id)::int FROM uploads
-          WHERE created_at > now() - interval '7 days') AS events_with_activity,
-        (SELECT count(*)::int FROM uploads
-          WHERE created_at > now() - interval '7 days') AS total_uploads,
-        (SELECT count(*)::int FROM product_events
-          WHERE created_at > now() - interval '7 days') AS total_product_events,
-        (SELECT count(*)::int FROM support_tickets
-          WHERE status IN ('open', 'pending')) AS open_tickets`,
-    ),
   ]);
 
-  const kpis = platformKpis[0];
+  const product = Object.entries(kpis.productEventsByName)
+    .map(([name, n]) => ({ name, n }))
+    .sort((a, b) => b.n - a.n);
 
-  console.log("ops.insights", { accountId: host.accountId });
+  console.log("ops.insights", { accountId: host.accountId, fonte });
+
+  const stamp =
+    fonte === "snapshot" && computedAt
+      ? `Snapshot · ${computedAt.toLocaleString("pt-BR")}`
+      : "Ao vivo (job ainda não materializou)";
 
   return (
     <main
@@ -81,8 +93,10 @@ export default async function OpsInsightsPage() {
         </p>
         <h1 className="m-0 font-titulo text-3xl font-light">Insights da Plataforma</h1>
         <p className="mt-2 text-ink-2">
-          Agregados dos últimos 7 dias — funil de landing, volume de eventos e fila de suporte.
+          Agregados dos últimos {kpis.windowDays} dias — funil de landing, volume de eventos e
+          fila de suporte.
         </p>
+        <p className="mt-1 text-xs text-ink-3">{stamp}</p>
       </header>
 
       <div className="flex flex-col gap-6">
@@ -91,25 +105,19 @@ export default async function OpsInsightsPage() {
           <ul className="list-none p-0">
             <li className="flex justify-between border-b border-linha py-3 text-sm">
               <span className="text-ink-2">Eventos com atividade</span>
-              <span className="font-titulo tabular-nums text-ink">
-                {kpis?.events_with_activity ?? 0}
-              </span>
+              <span className="font-titulo tabular-nums text-ink">{kpis.eventsWithActivity}</span>
             </li>
             <li className="flex justify-between border-b border-linha py-3 text-sm">
               <span className="text-ink-2">Total de uploads</span>
-              <span className="font-titulo tabular-nums text-ink">
-                {kpis?.total_uploads ?? 0}
-              </span>
+              <span className="font-titulo tabular-nums text-ink">{kpis.totalUploads}</span>
             </li>
             <li className="flex justify-between border-b border-linha py-3 text-sm">
               <span className="text-ink-2">Eventos de produto</span>
-              <span className="font-titulo tabular-nums text-ink">
-                {kpis?.total_product_events ?? 0}
-              </span>
+              <span className="font-titulo tabular-nums text-ink">{kpis.totalProductEvents}</span>
             </li>
             <li className="flex justify-between py-3 text-sm">
               <span className="text-ink-2">Tickets abertos</span>
-              <span className="font-titulo tabular-nums text-ink">{kpis?.open_tickets ?? 0}</span>
+              <span className="font-titulo tabular-nums text-ink">{kpis.openTickets}</span>
             </li>
           </ul>
         </AdminSection>
@@ -118,7 +126,7 @@ export default async function OpsInsightsPage() {
           <h2 className="m-0 mb-4 font-titulo text-xl">Funil de Landing</h2>
           {product.length === 0 ? (
             <p className="m-0 text-sm text-ink-3">
-              Nenhum evento de produto registrado nos últimos 7 dias.
+              Nenhum evento de produto registrado nos últimos {kpis.windowDays} dias.
             </p>
           ) : (
             <ul className="list-none p-0">

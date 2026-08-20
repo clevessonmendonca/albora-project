@@ -1,16 +1,17 @@
 #!/usr/bin/env node
 /**
- * Materializa analytics_snapshots (scope=event, period=live) para eventos abertos.
+ * Materializa analytics_snapshots:
+ * - scope=event, period=live — eventos abertos
+ * - scope=platform, period=live — KPIs cross-event (janela 7d)
  *
  *   DATABASE_URL=postgres://… node tools/jobs/analytics-snapshots.mjs
  *
- * Fonte da verdade: packages/db `materializeEventSnapshot` — lerFunilAgregado +
- * lerMetricasAoVivo + expected_guests → upsert com JSON só de agregados (sem
- * nomes, thumbs ou PII).
+ * Fonte da verdade: packages/db `materializeEventSnapshot` /
+ * `materializePlatformSnapshot`. JSON só de agregados (sem nomes, thumbs
+ * ou PII).
  *
- * DATABASE_URL precisa listar `events` cross-event (owner/superuser ou papel
- * BYPASSRLS), como o runner de retenção. Por evento a leitura passa por
- * SET LOCAL app.event_id via comEvento.
+ * DATABASE_URL precisa listar `events` / `uploads` cross-event
+ * (owner/superuser ou papel BYPASSRLS), como o runner de retenção.
  */
 import { createRequire } from "node:module";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
@@ -34,6 +35,7 @@ import pg from "pg";
 import {
   listOpenEventIdsForSnapshots,
   materializeEventSnapshot,
+  materializePlatformSnapshot,
 } from ${JSON.stringify(join(raiz, "packages/db/src/analytics.ts"))};
 
 const connectionString = process.env.DATABASE_URL ?? process.env.DATABASE_URL_DEV;
@@ -58,9 +60,21 @@ for (const eventId of ids) {
   }
 }
 
+try {
+  const p = await materializePlatformSnapshot(pool);
+  console.log("  platform", {
+    eventos: p.eventsWithActivity,
+    uploads: p.totalUploads,
+    tickets: p.openTickets,
+  });
+} catch (e) {
+  falhas += 1;
+  console.error("  falhou platform", String(e));
+}
+
 await pool.end();
 if (falhas > 0) process.exitCode = 1;
-console.log(\`pronto: \${ok} ok, \${falhas} falha(s)\`);
+console.log(\`pronto: \${ok} evento(s) ok, \${falhas} falha(s)\`);
 `;
 
 const localOutDir = join(aqui, ".tmp");

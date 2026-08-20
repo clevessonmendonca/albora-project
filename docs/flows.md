@@ -111,7 +111,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ---
 
-## F11 — Papéis e analytics ✅/🟡
+## F11 — Papéis e analytics ✅
 
 | Perfil | Rota | Dados |
 |---|---|---|
@@ -121,11 +121,11 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Schema:** `event_members`, `platform_operators`, `product_events`, `analytics_snapshots`, `support_*`.
 
-**Jobs:** `tools/jobs/analytics-snapshots.mjs` materializa `analytics_snapshots` (event/live) — rodando. Funil comercial dispara `account_created` / `event_created` / `qr_downloaded` / `checkout_started` / `checkout_paid`.
+**Jobs:** `tools/jobs/analytics-snapshots.mjs` materializa `analytics_snapshots` (event/live **e** platform/live). Funil comercial dispara `account_created` / `event_created` / `qr_downloaded` / `checkout_started` / `checkout_paid`.
 
-**Código:** KPIs cross-event básicos em `/ops/insights` (eventos com atividade, uploads, product_events, tickets abertos — 7d). Painel read-only em `/ops/e/[slug]/painel` mostra detalhes completos do evento sem impersonação.
+**Código:** `/ops/insights` lê snapshot `scope=platform` (fallback live). Painel read-only em `/ops/e/[slug]/painel` mostra detalhes completos do evento sem impersonação.
 
-**Gap:** agregador auditado completo da plataforma (scope=platform em analytics_snapshots).
+**Gap:** —
 
 ---
 

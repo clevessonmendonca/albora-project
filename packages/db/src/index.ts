@@ -403,12 +403,15 @@ export { marcaPublicaDoFornecedor as vendorPublicBranding } from "./vendor-porta
 /** English alias — preferred for new code. @see MarcaPublicaDoFornecedor */
 export type { MarcaPublicaDoFornecedor as VendorPublicBranding } from "./vendor-portal";
 
-export type { EventLiveMetrics, ProductEventName } from "./analytics";
+export type { EventLiveMetrics, PlatformLiveMetrics, ProductEventName } from "./analytics";
 export {
   collectEventLiveMetrics,
+  collectPlatformLiveMetrics,
   isProductEventName,
   listOpenEventIdsForSnapshots,
   materializeEventSnapshot,
+  materializePlatformSnapshot,
+  PLATFORM_SNAPSHOT_SCOPE_ID,
   PRODUCT_EVENT_NAMES,
   readAnalyticsSnapshot,
   recordProductEvent,

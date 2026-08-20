@@ -163,3 +163,85 @@ export async function listOpenEventIdsForSnapshots(
   );
   return rows.map((r) => r.id);
 }
+
+/** scope_id canônico do snapshot da plataforma (uma linha só). */
+export const PLATFORM_SNAPSHOT_SCOPE_ID = "albora";
+
+/** Agregados cross-event — sem nomes, thumbs, e-mails ou PII. */
+export type PlatformLiveMetrics = {
+  windowDays: number;
+  eventsWithActivity: number;
+  totalUploads: number;
+  totalProductEvents: number;
+  openTickets: number;
+  productEventsByName: Record<string, number>;
+};
+
+/**
+ * KPIs da plataforma (janela móvel). Precisa de pool BYPASSRLS / owner —
+ * mesma regra do job de retenção e de `listOpenEventIdsForSnapshots`.
+ */
+export async function collectPlatformLiveMetrics(
+  pool: Pool,
+  windowDays = 7,
+): Promise<PlatformLiveMetrics> {
+  const dias = Math.max(1, Math.floor(windowDays));
+  const [{ rows: kpis }, { rows: byName }] = await Promise.all([
+    pool.query<{
+      events_with_activity: number;
+      total_uploads: number;
+      total_product_events: number;
+      open_tickets: number;
+    }>(
+      `SELECT
+        (SELECT count(DISTINCT event_id)::int FROM uploads
+          WHERE created_at > now() - make_interval(days => $1)) AS events_with_activity,
+        (SELECT count(*)::int FROM uploads
+          WHERE created_at > now() - make_interval(days => $1)) AS total_uploads,
+        (SELECT count(*)::int FROM product_events
+          WHERE created_at > now() - make_interval(days => $1)) AS total_product_events,
+        (SELECT count(*)::int FROM support_tickets
+          WHERE status IN ('open', 'pending')) AS open_tickets`,
+      [dias],
+    ),
+    pool.query<{ name: string; n: number }>(
+      `SELECT name, count(*)::int AS n FROM product_events
+        WHERE created_at > now() - make_interval(days => $1)
+        GROUP BY name ORDER BY n DESC`,
+      [dias],
+    ),
+  ]);
+
+  const k = kpis[0];
+  const productEventsByName: Record<string, number> = {};
+  for (const row of byName) {
+    productEventsByName[row.name] = row.n;
+  }
+
+  return {
+    windowDays: dias,
+    eventsWithActivity: k?.events_with_activity ?? 0,
+    totalUploads: k?.total_uploads ?? 0,
+    totalProductEvents: k?.total_product_events ?? 0,
+    openTickets: k?.open_tickets ?? 0,
+    productEventsByName,
+  };
+}
+
+/**
+ * Materializa `analytics_snapshots` scope=platform period=live.
+ * Metrics JSON: só agregados (sem nomes/thumbs/PII).
+ */
+export async function materializePlatformSnapshot(
+  pool: Pool,
+  windowDays = 7,
+): Promise<PlatformLiveMetrics> {
+  const metrics = await collectPlatformLiveMetrics(pool, windowDays);
+  await upsertAnalyticsSnapshot(pool, {
+    scope: "platform",
+    scopeId: PLATFORM_SNAPSHOT_SCOPE_ID,
+    period: "live",
+    metrics: metrics as unknown as Record<string, unknown>,
+  });
+  return metrics;
+}
