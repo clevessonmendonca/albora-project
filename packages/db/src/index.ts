@@ -381,6 +381,7 @@ export {
 } from "./billing";
 
 export type {
+  BrandTokensDoFornecedor,
   MarcaPublicaDoFornecedor,
   ResumoDoFornecedor,
   VendorEventSummary,
@@ -390,6 +391,8 @@ export type {
   VendorStatus,
 } from "./vendor-portal";
 export {
+  atualizarBrandTokensDoFornecedor,
+  ErroBrandTokensInvalidos,
   ErroSemAcessoAoFornecedor,
   eventosDoFornecedor,
   marcaPublicaDoFornecedor,

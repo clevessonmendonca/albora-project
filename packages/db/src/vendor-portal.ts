@@ -232,6 +232,69 @@ export async function eventosDoFornecedor(
   });
 }
 
+const HEX_COR = /^#[0-9a-fA-F]{6}$/;
+
+function corHexValida(v: unknown): v is string {
+  return typeof v === "string" && HEX_COR.test(v);
+}
+
+export type BrandTokensDoFornecedor = {
+  cores?: {
+    acento?: string;
+    papel?: string;
+    noite?: string;
+    tinta?: string;
+  };
+  background?: "light" | "dark";
+};
+
+export class ErroBrandTokensInvalidos extends Error {
+  readonly code = "vendor.brand_tokens_invalidos";
+  constructor(readonly campos: string[]) {
+    super("brand_tokens com campos inválidos: " + campos.join(", "));
+  }
+}
+
+/**
+ * Valida e persiste `brand_tokens` do fornecedor — PATCH cirúrgico no JSONB,
+ * não substitui chaves fora do escopo do editor.
+ *
+ * Autorização em duas camadas: `comConta` (RLS) confirma pertencimento;
+ * o chamador (rota API) já verificou `role === "admin"` antes de chegar aqui.
+ * Nunca aceita hex literal sem validação — cada `cores.*` passa por `corHexValida`.
+ */
+export async function atualizarBrandTokensDoFornecedor(
+  pool: Pool,
+  accountId: string,
+  vendorId: string,
+  tokens: BrandTokensDoFornecedor,
+): Promise<boolean> {
+  const campos: string[] = [];
+
+  const coresEntradas = tokens.cores ?? {};
+  for (const [chave, valor] of Object.entries(coresEntradas)) {
+    if (valor !== undefined && valor !== null && !corHexValida(valor)) {
+      campos.push(`cores.${chave}`);
+    }
+  }
+  const bg = tokens.background;
+  if (bg !== undefined && bg !== "light" && bg !== "dark") {
+    campos.push("background");
+  }
+  if (campos.length > 0) throw new ErroBrandTokensInvalidos(campos);
+
+  return comConta(pool, accountId, async (c) => {
+    const { rowCount } = await c.query(
+      `UPDATE vendors
+          SET brand_tokens = brand_tokens || $1::jsonb
+        WHERE id = $2
+          AND id IN (SELECT vendor_id FROM vendor_members WHERE account_id = $3)`,
+      [JSON.stringify(tokens), vendorId, accountId],
+    );
+    return (rowCount ?? 0) > 0;
+  });
+}
+
 export type ResumoDoFornecedor = {
   totalEventos: number;
   totalFotos: number;

@@ -1,5 +1,6 @@
 import React from "react";
 import type { VendorPortalContext } from "../../data/load-vendor-portal";
+import { VendorBrandTokensEditor } from "../client/vendor-brand-tokens-editor";
 import { VendorSubscribeButton } from "../client/vendor-subscribe-button";
 import { VendorEventsList } from "./vendor-events-list";
 import { VendorShell } from "./vendor-shell";
@@ -31,6 +32,14 @@ export function VendorPortalScreen({
           currentPlan={vendor.plan}
           subscriptionStatus={subscriptionStatus}
         />
+        {role === "admin" && (
+          <section className="rounded-token border border-linha bg-superficie p-6">
+            <VendorBrandTokensEditor
+              vendorId={vendor.id}
+              initialBrandTokens={vendor.brandTokens}
+            />
+          </section>
+        )}
       </div>
     </VendorShell>
   );
