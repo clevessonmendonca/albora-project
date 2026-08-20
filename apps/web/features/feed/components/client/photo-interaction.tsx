@@ -5,7 +5,9 @@ import { useState } from "react";
 import { Star, CommentIcon, ShareIcon, MoreIcon } from "@albora/ui-web";
 import { useComments } from "@/features/feed/hooks/use-comments";
 import { useReaction, type ResultadoReacao } from "@/features/feed/hooks/use-reaction";
+import { useReactionList } from "@/features/feed/hooks/use-reaction-list";
 import { CommentSheet } from "./comment-sheet";
+import { ReactionListSheet } from "./reaction-list-sheet";
 import { ReportSheet } from "./report-sheet";
 
 const CLASSE_BOTAO_ICONE =
@@ -50,6 +52,7 @@ export function PhotoInteraction({
   const completo = interacao === "completo";
 
   const reacao = useReaction(uploadId, reacoesInicial, minhaInicial);
+  const listaReacoes = useReactionList(uploadId);
   const comentarios = useComments(uploadId, completo);
   const [denunciaAberta, setDenunciaAberta] = useState(false);
 
@@ -61,16 +64,30 @@ export function PhotoInteraction({
   return (
     <>
       <div className="flex items-center gap-5 text-ink">
-        <button
-          type="button"
-          aria-pressed={reacao.minha !== null}
-          disabled={reacao.alternando}
-          onClick={() => void alternarReacao()}
-          className={CLASSE_BOTAO_ICONE}
-        >
-          <Star size={24} filled={reacao.minha !== null} />
-          <span className="font-titulo text-[0.8125rem] tracking-rotulo">{reacao.reacoes}</span>
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            aria-pressed={reacao.minha !== null}
+            aria-label={reacao.minha ? "Remover curtida" : "Curtir"}
+            disabled={reacao.alternando}
+            onClick={() => void alternarReacao()}
+            className={CLASSE_BOTAO_ICONE}
+          >
+            <Star size={24} filled={reacao.minha !== null} />
+          </button>
+          {reacao.reacoes > 0 ? (
+            <button
+              type="button"
+              aria-label="Ver quem curtiu"
+              onClick={() => void listaReacoes.abrir()}
+              className={`${CLASSE_BOTAO_ICONE} underline-offset-2 hover:underline`}
+            >
+              <span className="font-titulo text-[0.8125rem] tracking-rotulo">{reacao.reacoes}</span>
+            </button>
+          ) : (
+            <span className="font-titulo text-[0.8125rem] tracking-rotulo">{reacao.reacoes}</span>
+          )}
+        </div>
 
         {completo && (
           <button
@@ -116,6 +133,7 @@ export function PhotoInteraction({
         )}
       </div>
 
+      <ReactionListSheet lista={listaReacoes} />
       {completo && <CommentSheet comentarios={comentarios} />}
       {completo && (
         <ReportSheet

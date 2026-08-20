@@ -168,6 +168,7 @@ export { janelaDoAlbum, listarMidiaDoAlbum, TETO_DO_ALBUM } from "./album-db";
 export {
   apagarReacao,
   gravarReacao,
+  listarReacoesDaMidia,
   midiaPublicadaDoEvento,
   reacaoDaSessao,
 } from "./reaction-db";
@@ -271,6 +272,8 @@ export { perfilDoConvidado as guestProfile } from "./guest-profile";
 export { criarStory as createStory } from "./story-db";
 /** English alias — preferred for new code. @see storiesAtivasDoEvento */
 export { storiesAtivasDoEvento as activeStoriesForEvent } from "./story-db";
+/** English alias — preferred for new code. @see listarReacoesDaMidia */
+export { listarReacoesDaMidia as listReactionsForMedia } from "./reaction-db";
 
 /** English alias — preferred for new code. @see denunciar */
 export { denunciar as reportMedia } from "./moderation-db";

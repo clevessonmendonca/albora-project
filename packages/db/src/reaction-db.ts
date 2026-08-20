@@ -1,9 +1,17 @@
 import type { PoolClient } from "pg";
+import { filtroSemBloqueio } from "./block-db";
 
 /**
  * Reacao por sessao (spec 008). A PK (upload_id, session_id) garante
  * idempotencia: reagir duas vezes e reagir uma vez.
  */
+
+export type ReacaoVisivel = { nome: string };
+
+function primeiroNome(displayName: string): string {
+  const partes = displayName.trim().split(/\s+/);
+  return partes[0] ?? displayName;
+}
 
 export async function midiaPublicadaDoEvento(
   cliente: PoolClient,
@@ -63,4 +71,25 @@ async function contarReacoesDaMidia(cliente: PoolClient, uploadId: string): Prom
     [uploadId],
   );
   return rows[0]?.total ?? 0;
+}
+
+/**
+ * "Quem curtiu" (spec social §5.5) — primeiro nome só, respeita bloqueio
+ * simétrico com quem lê. Ordem de chegada, sem ranking dramático.
+ */
+export async function listarReacoesDaMidia(
+  cliente: PoolClient,
+  uploadId: string,
+  sessaoLeitoraId: string,
+): Promise<ReacaoVisivel[]> {
+  const { rows } = await cliente.query<{ display_name: string }>(
+    `SELECT s.display_name
+       FROM reactions r
+       JOIN guest_sessions s ON s.id = r.session_id
+      WHERE r.upload_id = $1
+        AND ${filtroSemBloqueio("r.session_id", 2)}
+      ORDER BY r.created_at ASC`,
+    [uploadId, sessaoLeitoraId],
+  );
+  return rows.map((linha) => ({ nome: primeiroNome(linha.display_name) }));
 }

@@ -1,10 +1,11 @@
 import {
   apagarReacao,
-  comEvento,
-  gateDoEvento,
+  withEvent,
+  eventGate,
+  eventPack,
   gravarReacao,
+  listReactionsForMedia,
   midiaPublicadaDoEvento,
-  packDoEvento,
   reacaoDaSessao,
 } from "@albora/db";
 import { PACKS, isValidReaction } from "@albora/packs";
@@ -40,6 +41,23 @@ function parseUploadId(corpo: Corpo): string | null {
   return typeof corpo.uploadId === "string" && UUID_RE.test(corpo.uploadId) ? corpo.uploadId : null;
 }
 
+export async function GET(req: Request) {
+  const auth = await validarSessao(req);
+  if (auth instanceof Response) return auth;
+
+  const uploadId = parseUploadId({ uploadId: new URL(req.url).searchParams.get("uploadId") });
+  if (!uploadId) return errorResponse(422, "validation_error", "Foto inválida", { campos: ["uploadId"] });
+
+  try {
+    const nomes = await withEvent(getPool(), auth.session.eventoId, (c) =>
+      listReactionsForMedia(c, uploadId, auth.session.sessaoId),
+    );
+    return jsonOk({ nomes: nomes.map((item) => item.nome) });
+  } catch (e) {
+    return unexpectedError("reacao.get", e);
+  }
+}
+
 export async function PUT(req: Request) {
   const auth = await validarSessao(req);
   if (auth instanceof Response) return auth;
@@ -56,11 +74,11 @@ export async function PUT(req: Request) {
   const tipo = typeof parsed.data.tipo === "string" ? parsed.data.tipo : TIPO_PADRAO;
 
   try {
-    const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
+    const resultado = await withEvent(getPool(), auth.session.eventoId, async (c) => {
       // Reagir não espera o gate (ADR 0009, atualizado) — só o evento
       // precisa existir/ser visível sob RLS. Só comentário fica atrás do
       // horário que o casal escolheu (ver `/api/comments`).
-      const gate = await gateDoEvento(c, auth.session.eventoId);
+      const gate = await eventGate(c, auth.session.eventoId);
       if (!gate) {
         return { ok: false as const, code: "reacao.evento_ausente" };
       }
@@ -69,7 +87,7 @@ export async function PUT(req: Request) {
         return { ok: false as const, code: "reacao.midia_ausente" };
       }
 
-      const packId = await packDoEvento(c, auth.session.eventoId);
+      const packId = await eventPack(c, auth.session.eventoId);
       const pack = packId ? PACKS[packId] : undefined;
       if (!pack || !isValidReaction(pack, tipo)) {
         return { ok: false as const, code: "reacao.tipo_invalido" };
@@ -104,8 +122,8 @@ export async function DELETE(req: Request) {
   if (!uploadId) return errorResponse(422, "validation_error", "Foto inválida", { campos: ["uploadId"] });
 
   try {
-    const resultado = await comEvento(getPool(), auth.session.eventoId, async (c) => {
-      const gate = await gateDoEvento(c, auth.session.eventoId);
+    const resultado = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+      const gate = await eventGate(c, auth.session.eventoId);
       if (!gate) {
         return { ok: false as const, code: "reacao.evento_ausente" };
       }
