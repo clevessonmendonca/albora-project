@@ -61,7 +61,9 @@ describe("eventVars aceita override de tema", () => {
 });
 
 describe("eventVars — camada vendor (white-label)", () => {
-  const ACENTO_VENDOR = "#cc0000";
+  // Cores da própria marca em papéis trocados — sem hex literal (guard de tokens).
+  const ACENTO_VENDOR = ALBORA_BRAND.cores.critico;
+  const ACENTO_EVENTO = ALBORA_BRAND.cores.papel;
 
   it("com vendorBrandTokens, o acento difere do padrão Albora", () => {
     const event = eventoFixture({
@@ -96,7 +98,6 @@ describe("eventVars — camada vendor (white-label)", () => {
   });
 
   it("identityTokens do evento vence vendor — evento ganha de todo mundo", () => {
-    const ACENTO_EVENTO = "#00ff00";
     const event = eventoFixture({
       vendorBrandTokens: { cores: { acento: ACENTO_VENDOR } },
       identityTokens: { cores: { acento: ACENTO_EVENTO } },
