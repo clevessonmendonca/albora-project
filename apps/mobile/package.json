@@ -15,6 +15,7 @@
     "@albora/packs": "workspace:*",
     "@albora/tokens": "workspace:*",
     "@albora/ui-native": "workspace:*",
+    "@shopify/react-native-skia": "1.11.11",
     "expo": "~53.0.22",
     "expo-background-fetch": "~13.1.6",
     "expo-camera": "~16.1.11",

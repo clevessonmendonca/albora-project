@@ -13,9 +13,6 @@ import { apiOrigin, cookieHeader, type GuestSession } from "./session";
  * EXIF/GPS: A câmera já captura com `exif: false`, mas fotos da galeria ou
  * HEIC convertidos podem trazer GPS. `stripGpsOrReject` bloqueia o PUT de
  * qualquer imagem com coordenadas (LGPD § 001), devolvendo erro definitivo.
- *
- * TODO(F10-completar): presets só-CSS no Desenhista (Skia) + tira de filtros
- * na UI. Reencode + GPS strip + LUT por pixel já passam por `bufferDrawer`.
  */
 
 /** PUT a partir de arquivo — `URLSession` (iOS) / upload nativo (Android). */

@@ -33,7 +33,7 @@ function sampleNearest(
 
 /**
  * Redimensiona + aplica giro/espelho num único passe (origem → destino).
- * nearest-neighbor: suficiente para upload; Skia depois melhora a qualidade.
+ * nearest-neighbor: suficiente para testes em Node; `skiaDrawer` usa bicúbico em produção.
  */
 export function remapBuffer(
   src: Uint8ClampedArray,

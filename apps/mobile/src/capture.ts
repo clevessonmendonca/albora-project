@@ -6,6 +6,8 @@ import {
   temGeolocalizacao,
   validarConteudo,
   validarDeclaracao,
+  type Bitmap,
+  type Desenhista,
   type FiltroAplicado,
   type Plan,
   type Queue,
@@ -45,6 +47,13 @@ export async function persistCapture(input: {
   id?: () => string;
   /** Rede de segurança: converte URI HEIC → URI JPEG antes de rejeitar. */
   convertHeic?: (uri: string) => Promise<string>;
+  /**
+   * Desenhista a usar para decode/resize/encode/filtro.
+   * Padrão: `bufferDrawer` (jpeg-js) — compatível com Node e testes.
+   * Em produção: injetar `skiaDrawer` para qualidade bicúbica no resize.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TSaida=Uint8Array; TImagem é opaco dentro do pipeline
+  desenhista?: Desenhista<any, Uint8Array>;
 }): Promise<CaptureResult> {
   if (input.eventoId.length === 0) {
     return { ok: false, erro: "Pareie de novo para tirar foto." };
@@ -98,7 +107,8 @@ export async function persistCapture(input: {
     }
 
     const brutos = await input.files.readAll(dest);
-    const processada = await processarFoto(brutos, mime, bufferDrawer, {
+    const drawer = input.desenhista ?? (bufferDrawer as Desenhista<Bitmap, Uint8Array>);
+    const processada = await processarFoto(brutos, mime, drawer, {
       plan: input.plan ?? "gratis",
       device: input.device ?? { memoryGb: 4, cores: 4 },
       ...(input.filtro ? { filtro: input.filtro } : {}),

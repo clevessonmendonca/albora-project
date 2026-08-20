@@ -17,6 +17,7 @@ import { normalizeSource } from "../src/normalize-source";
 import { bytesParaDataUri, previewFiltrado } from "../src/preview-filtro";
 import { parseStoredSession, SESSION_STORE_KEY, type GuestSession } from "../src/session";
 import { drainGuestQueue } from "../src/drain-guest";
+import { skiaDrawer } from "../src/skia-drawer";
 
 export default function PhotoScreen() {
   const router = useRouter();
@@ -69,7 +70,7 @@ export default function PhotoScreen() {
           const filtro = filtroFromPreset(filtroEscolhido.id, intensidade);
           if (!filtro || gen !== previewGenRef.current) return;
 
-          const resultado = await previewFiltrado(bytes, "image/jpeg", filtro);
+          const resultado = await previewFiltrado(bytes, "image/jpeg", filtro, skiaDrawer);
           if (gen !== previewGenRef.current) return;
 
           setPreviewUri(bytesParaDataUri(resultado));
@@ -243,6 +244,7 @@ export default function PhotoScreen() {
         files: diskFiles(),
         destDir: mediaRoot(),
         id: () => randomUUID(),
+        desenhista: skiaDrawer,
         ...(filtro ? { filtro } : {}),
       });
 

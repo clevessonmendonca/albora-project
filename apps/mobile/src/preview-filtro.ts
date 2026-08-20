@@ -1,4 +1,4 @@
-import type { FiltroAplicado } from "@albora/core";
+import type { Bitmap, Desenhista, FiltroAplicado } from "@albora/core";
 import { lerOrientacao, thumbTarget, transformacaoParaOrientacao } from "@albora/core";
 import { bufferDrawer } from "./drawer";
 
@@ -13,31 +13,35 @@ import { bufferDrawer } from "./drawer";
  * funções de `@albora/core`. Quem lê o arquivo e converte para data URI
  * é o chamador (photo.tsx).
  *
- * @param bytes   Bytes brutos do JPEG capturado pela câmera.
- * @param mime    MIME da entrada (normalmente "image/jpeg").
- * @param filtro  Filtro a aplicar; `undefined` retorna o thumb sem cor.
- * @returns       Bytes JPEG da miniatura filtrada.
+ * @param bytes      Bytes brutos do JPEG capturado pela câmera.
+ * @param mime       MIME da entrada (normalmente "image/jpeg").
+ * @param filtro     Filtro a aplicar; `undefined` retorna o thumb sem cor.
+ * @param desenhista Implementação de decode/resize/filtro. Padrão: `bufferDrawer`
+ *                   (jpeg-js) — compatível com Node/testes. Em produção: `skiaDrawer`.
+ * @returns          Bytes JPEG da miniatura filtrada.
  */
 export async function previewFiltrado(
   bytes: Uint8Array,
   mime: string,
   filtro: FiltroAplicado | undefined,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TSaida=Uint8Array; TImagem é opaco dentro do pipeline
+  desenhista?: Desenhista<any, Uint8Array>,
 ): Promise<Uint8Array> {
+  const d = desenhista ?? (bufferDrawer as Desenhista<Bitmap, Uint8Array>);
   const orientacao = lerOrientacao(bytes);
   const { girar, espelhar, trocaEixos } = transformacaoParaOrientacao(orientacao);
 
-  const imagem = await bufferDrawer.decodificar(bytes, mime);
+  const imagem = await d.decodificar(bytes, mime);
 
   const larguraPe = trocaEixos ? imagem.altura : imagem.largura;
   const alturaPe = trocaEixos ? imagem.largura : imagem.altura;
 
   const target = thumbTarget(larguraPe, alturaPe);
-  const reduzida = await bufferDrawer.desenhar(imagem, target, { girar, espelhar });
+  const reduzida = await d.desenhar(imagem, target, { girar, espelhar });
 
-  const colorida =
-    filtro && bufferDrawer.filtrar ? await bufferDrawer.filtrar(reduzida, filtro) : reduzida;
+  const colorida = filtro && d.filtrar ? await d.filtrar(reduzida, filtro) : reduzida;
 
-  return bufferDrawer.codificar(colorida, "image/jpeg", 0.7);
+  return d.codificar(colorida, "image/jpeg", 0.7);
 }
 
 /**
