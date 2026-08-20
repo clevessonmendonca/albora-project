@@ -1,5 +1,7 @@
 import {
   aplicarAjustes,
+  aplicarFiltroCss,
+  aplicarIntensidade,
   aplicarPorPixel,
   type Bitmap,
   type Desenhista,
@@ -10,9 +12,8 @@ import { decode as jpegDecode, encode as jpegEncode } from "jpeg-js";
 /**
  * Desenhista Expo em buffer (jpeg-js) — mesma ordem de `processarFoto` que a web.
  *
- * Reencode remove EXIF/GPS. `filtrar` aplica passagem por pixel (35 mm) e
- * ajustes manuais. Presets só-CSS (`porPixel: false`) ainda não têm equivalente
- * sem canvas/Skia — a cor desses fica para a próxima fatia.
+ * Reencode remove EXIF/GPS. `filtrar` aplica passagem por pixel (35 mm),
+ * presets CSS via `aplicarFiltroCss`, e ajustes manuais.
  */
 
 export type BufferImage = Bitmap & { pixels: Uint8ClampedArray };
@@ -48,7 +49,6 @@ export function remapBuffer(
 
   for (let y = 0; y < target.height; y += 1) {
     for (let x = 0; x < target.width; x += 1) {
-      // Coordenada no espaço "já rotacionado" do destino, centrado.
       let lx = x - target.width / 2;
       let ly = y - target.height / 2;
 
@@ -110,8 +110,14 @@ export const bufferDrawer: Desenhista<BufferImage, Uint8Array> = {
 
     if (filtro.porPixel) {
       aplicarPorPixel(pixels, imagem.largura, imagem.altura, filtro.intensidade);
+    } else if (filtro.intensidade > 0) {
+      aplicarFiltroCss(
+        pixels,
+        imagem.largura,
+        imagem.altura,
+        aplicarIntensidade(filtro.ajustes, filtro.intensidade),
+      );
     }
-    // Presets CSS (`!porPixel`) sem Skia: não alteram cor nesta fatia.
     if (manuais) aplicarAjustes(pixels, imagem.largura, imagem.altura, manuais);
 
     return { largura: imagem.largura, altura: imagem.altura, pixels };

@@ -18,7 +18,7 @@ export type { AjustesManuais } from "./ajustes";
 export { AJUSTES_NEUTROS, aplicarAjustes, saoNeutros } from "./ajustes";
 
 export type { Ajustes, Filtro } from "./luts";
-export { aplicarIntensidade, NEUTRO, paraFiltroCss } from "./luts";
+export { aplicarFiltroCss, aplicarIntensidade, NEUTRO, paraFiltroCss } from "./luts";
 
 export type { Preset } from "./presets";
 export { aplicarPorPixel, ordenarComRecomendado, preset, PRESETS, TETO_POR_PIXEL_MS } from "./presets";

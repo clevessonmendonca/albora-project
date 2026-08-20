@@ -83,15 +83,15 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ---
 
-## F8 — Pós-evento 🟡
+## F8 — Pós-evento 🟡/✅
 
 **Feliz:** ZIP completo + ZIP álbum curado (via `selecionarParaAlbum`, sem rajadas, ~60 páginas), ambos com step-up (plano pago); jobs `plus_48h` / `d330_drive` (stub) / `d365_delete` (**fail-closed** sem export).
 
+**Livro PDF 🟡:** `GET /api/admin/events/{id}/book/pdf` — A4 sRGB com slots do núcleo (`planBook` + `generateBookPdf`); placeholders sem JPEG embutido nesta fatia. CTA no álbum admin.
+
 **Runner:** `node tools/jobs/retention.mjs` · export Drive: `pnpm drive-export` ou cron em `POST /api/jobs/drive-export` (Bearer `JOB_RUNNER_SECRET`). Em produção Cloudflare: fila `albora-drive-export` → consumer em `apps/web/cloudflare/worker.ts` (tick via `WORKER_SELF_REFERENCE`).
 
-**Gap:** livro PDF print-ready.
-
----
+**Gap:** embutir JPEGs no PDF + CMYK/Ghostscript.
 
 ## F9 — Fornecedor ✅/🟡
 
@@ -105,7 +105,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Feliz:** parear → sessão SecureStore → câmera enfileira stills em disco; **drain** da fila nativa (`drainGuestQueue` / `drainFileQueue`) no caminho da câmera; **feed** lê `GET /api/feed` + `POST /api/media/urls`.
 
-**EXIF/GPS 🟡:** Câmera captura com `exif: false`. `persistCapture` roda `processarFoto` + `bufferDrawer` (jpeg-js) — reencode remove EXIF/GPS antes de enfileirar. Gap: presets só-CSS (precisa Skia); tira de filtros na UI; galeria/HEIC ainda fora.
+**EXIF/GPS 🟡:** Câmera captura com `exif: false`. `persistCapture` roda `processarFoto` + `bufferDrawer` (jpeg-js) — reencode remove EXIF/GPS; presets CSS via `aplicarFiltroCss`. Gap: tira de filtros na UI; galeria/HEIC; Skia para qualidade.
 
 **Upload em segundo plano 🟡:** PUT presigned via `uploadAsync` + `FileSystemSessionType.BACKGROUND` (`put-file.ts`); task `albora-guest-upload-drain` registra `BackgroundFetch` para drenar a fila. Falta prova em aparelho com app fechado.
 
