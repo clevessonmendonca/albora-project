@@ -113,7 +113,9 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Preview ao vivo ✅:** ao tocar num chip, `photo.tsx` lê os bytes da câmera, chama `previewFiltrado` (downsample para ≤320 px + `bufferDrawer.filtrar`) com debounce de 150 ms e geração counter para cancelar in-flight. Resultado convertido para data URI e exibido no `<Image>` com `opacity: 0.6` durante o processamento; chip "Original" volta ao URI raw da câmera sem custo. `previewFiltrado` é pura e testada sem React Native em `preview-filtro.test.ts`.
 
-**Gap:** slider de intensidade; galeria/HEIC; Skia para qualidade.
+**Intensidade de preset ✅:** quando um preset está ativo, `IntensidadeChips` exibe 4 opções (25 %/50 %/75 %/100 %) abaixo da `FilterStrip`. Trocar preset reseta para 100 %. Mudar intensidade re-dispara o preview com debounce de 150 ms; o valor é passado como segundo argumento de `filtroFromPreset(id, intensidade)` tanto no preview quanto em `persistCapture`. Sem nova dependência — chips puros com `Pressable` do React Native.
+
+**Gap:** galeria/HEIC; Skia para qualidade.
 
 **Upload em segundo plano 🟡:** PUT presigned via `uploadAsync` + `FileSystemSessionType.BACKGROUND` (`put-file.ts`); task `albora-guest-upload-drain` registra `BackgroundFetch` para drenar a fila. Falta prova em aparelho com app fechado.
 

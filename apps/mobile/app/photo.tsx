@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Image, Pressable, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { randomUUID } from "expo-crypto";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -28,6 +28,8 @@ export default function PhotoScreen() {
   // Step "review": foto capturada aguardando escolha de filtro e envio.
   const [pendingShot, setPendingShot] = useState<CaptureSource | null>(null);
   const [filtroEscolhido, setFiltroEscolhido] = useState<Preset | null>(null);
+  // Intensidade do preset: 0–1. Reseta para 1 ao trocar preset.
+  const [intensidade, setIntensidade] = useState(1);
 
   // Preview ao vivo: data URI do thumb filtrado, ou null para mostrar o original.
   const [previewUri, setPreviewUri] = useState<string | null>(null);
@@ -39,8 +41,14 @@ export default function PhotoScreen() {
   // Presets na ordem padrão — sem recomendadoId do servidor nesta fatia.
   const presets = ordenarComRecomendado(null);
 
+  // Troca preset: reseta intensidade para 1 (pleno) e atualiza a escolha.
+  function handleEscolherFiltro(p: Preset | null) {
+    setIntensidade(1);
+    setFiltroEscolhido(p);
+  }
+
   // Gera o preview filtrado com debounce de 150 ms.
-  // Chip mudou antes de terminar → previewGenRef detecta e descarta o resultado.
+  // Chip ou intensidade mudou antes de terminar → previewGenRef detecta e descarta.
   useEffect(() => {
     if (!pendingShot || !filtroEscolhido) {
       previewGenRef.current += 1;
@@ -56,7 +64,7 @@ export default function PhotoScreen() {
       void (async () => {
         try {
           const bytes = await diskFiles().readAll(pendingShot.uri);
-          const filtro = filtroFromPreset(filtroEscolhido.id);
+          const filtro = filtroFromPreset(filtroEscolhido.id, intensidade);
           if (!filtro || gen !== previewGenRef.current) return;
 
           const resultado = await previewFiltrado(bytes, "image/jpeg", filtro);
@@ -72,7 +80,7 @@ export default function PhotoScreen() {
     }, 150);
 
     return () => clearTimeout(timer);
-  }, [filtroEscolhido, pendingShot]);
+  }, [filtroEscolhido, intensidade, pendingShot]);
 
   const refreshPending = useCallback(async () => {
     setPending((await guestQueue().list()).length);
@@ -170,6 +178,7 @@ export default function PhotoScreen() {
   function descartarPendente() {
     setPendingShot(null);
     setFiltroEscolhido(null);
+    setIntensidade(1);
     setPreviewUri(null);
     setErro(null);
   }
@@ -181,7 +190,7 @@ export default function PhotoScreen() {
     setErro(null);
     try {
       const filtro = filtroEscolhido
-        ? filtroFromPreset(filtroEscolhido.id)
+        ? filtroFromPreset(filtroEscolhido.id, intensidade)
         : undefined;
 
       const result = await persistCapture({
@@ -201,6 +210,7 @@ export default function PhotoScreen() {
 
       setPendingShot(null);
       setFiltroEscolhido(null);
+      setIntensidade(1);
       setPreviewUri(null);
       await refreshPending();
       void tryDrain();
@@ -249,9 +259,16 @@ export default function PhotoScreen() {
           <FilterStrip
             presets={presets}
             escolhido={filtroEscolhido}
-            onEscolher={setFiltroEscolhido}
+            onEscolher={handleEscolherFiltro}
           />
         </View>
+
+        {/* Chips de intensidade — visíveis só quando há preset ativo */}
+        {filtroEscolhido ? (
+          <View className="mt-3 px-4">
+            <IntensidadeChips valor={intensidade} onChange={setIntensidade} />
+          </View>
+        ) : null}
 
         {/* Ações */}
         <View className="px-6 pb-9 pt-4">
@@ -303,5 +320,44 @@ export default function PhotoScreen() {
         </Pressable>
       </View>
     </View>
+  );
+}
+
+// ── Chips de intensidade ──────────────────────────────────────────────────────
+
+const OPCOES_INTENSIDADE = [0.25, 0.5, 0.75, 1] as const;
+
+function IntensidadeChips({
+  valor,
+  onChange,
+}: {
+  valor: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerClassName="gap-2"
+    >
+      {OPCOES_INTENSIDADE.map((v) => (
+        <Pressable
+          key={v}
+          accessibilityRole="button"
+          accessibilityState={{ selected: valor === v }}
+          onPress={() => onChange(v)}
+          className={`h-8 min-w-14 items-center justify-center rounded-pilula border px-3 ${
+            valor === v ? "border-acento bg-acento" : "border-linha bg-superficie"
+          }`}
+        >
+          <Text
+            tone={valor === v ? "onAccent" : "muted"}
+            className="text-xs"
+          >
+            {Math.round(v * 100)}%
+          </Text>
+        </Pressable>
+      ))}
+    </ScrollView>
   );
 }
