@@ -3,7 +3,7 @@ import { Image, Pressable, ScrollView, View } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { randomUUID } from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { QUALITY, ordenarComRecomendado } from "@albora/core";
 import type { Preset } from "@albora/core";
@@ -21,6 +21,9 @@ import { skiaDrawer } from "../src/skia-drawer";
 
 export default function PhotoScreen() {
   const router = useRouter();
+  const { missao } = useLocalSearchParams<{ missao?: string }>();
+  const desafioId = typeof missao === "string" && missao.length > 0 ? missao : null;
+
   const camera = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [session, setSession] = useState<GuestSession | null | undefined>(undefined);
@@ -246,6 +249,7 @@ export default function PhotoScreen() {
         id: () => randomUUID(),
         desenhista: skiaDrawer,
         ...(filtro ? { filtro } : {}),
+        ...(desafioId ? { desafioId } : {}),
       });
 
       if (!result.ok) {

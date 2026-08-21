@@ -43,6 +43,7 @@ export async function persistCapture(input: {
   plan?: Plan;
   device?: { memoryGb: number; cores: number };
   filtro?: FiltroAplicado;
+  desafioId?: string | null;
   now?: () => number;
   id?: () => string;
   /** Rede de segurança: converte URI HEIC → URI JPEG antes de rejeitar. */
@@ -152,6 +153,7 @@ export async function persistCapture(input: {
       ...(processada.capturadaEm !== null ? { capturadaEmParede: true } : {}),
       largura: processada.largura,
       altura: processada.altura,
+      ...(input.desafioId != null ? { desafioId: input.desafioId } : {}),
     };
 
     await input.queue.enqueue(item);

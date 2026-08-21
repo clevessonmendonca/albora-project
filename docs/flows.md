@@ -129,6 +129,8 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Drain ao retornar ao primeiro plano ✅:** `subscribeForegroundDrain` (`foreground-drain.ts`) assina `AppState.change` em `_layout.tsx`; quando o app transita para `active`, chama `drainGuestQueue(guestQueue())`. Guard de reentrância impede chamadas paralelas. Sem sessão → no-op (retorno imediato com `{ enviados: 0 }`). Prova de app completamente fechado (killed) permanece 🟡 (depende de `BackgroundFetch` do SO).
 
+**Missões ✅:** `apps/mobile/src/missions.ts` encapsula `fetchMissoes(session)` contra `GET /api/missions` (handler `apps/web/lib/api/handlers/guest-missions.ts`). Endpoint requer sessão de convidado, aplica RLS via `withEvent` + `listChallenges`, resolve rótulo via `PACKS[packId]`. `(tabs)/missions.tsx` renderiza lista com check de conclusão por sessão; tocar numa missão navega para `/photo?missao=<uuid>`. `photo.tsx` lê `useLocalSearchParams({ missao })` e passa `desafioId` para `persistCapture`, que o inclui no `QueueItem` (campo `desafioId`). Pack sem missões → CTA de câmera livre sem `desafioId`. Testes em `src/missions.test.ts`.
+
 ---
 
 ## F11 — Papéis e analytics ✅
