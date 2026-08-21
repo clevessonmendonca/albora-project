@@ -2,6 +2,8 @@ import * as SecureStore from "expo-secure-store";
 import { apiOrigin, cookieHeader, parseStoredSession, SESSION_STORE_KEY, type GuestSession } from "./session";
 import { signMediaUrls } from "./sign-urls";
 
+export type ModoInteracao = "espelho" | "completo";
+
 export type FeedItem = {
   id: string;
   chaveThumb: string;
@@ -9,12 +11,16 @@ export type FeedItem = {
   mime: string;
   autor: string;
   thumbUrl?: string;
+  reacoes: number;
+  minhaReacao: string | null;
+  sessaoAutor?: string;
+  minha?: boolean;
 };
 
 export type FeedPage = {
   itens: FeedItem[];
   proximoCursor: string | null;
-  interacao?: string;
+  interacao: ModoInteracao;
 };
 
 export async function loadSession(): Promise<GuestSession | null> {
@@ -38,6 +44,10 @@ export async function fetchFeedPage(session: GuestSession, cursor?: string | nul
       chaveFull: string;
       mime: string;
       autor: string;
+      reacoes?: number;
+      minhaReacao?: string | null;
+      sessaoAutor?: string;
+      minha?: boolean;
     }>;
     proximoCursor?: string | null;
     interacao?: string;
@@ -47,16 +57,26 @@ export async function fetchFeedPage(session: GuestSession, cursor?: string | nul
   const chaves = itens.map((i) => i.chaveThumb).filter(Boolean);
   const urls = await signMediaUrls(session, chaves);
   const byKey = new Map(urls.map((u) => [u.chave, u.url]));
+  const interacao: ModoInteracao = data.interacao === "completo" ? "completo" : "espelho";
 
   return {
     itens: itens.map((i) => {
       const thumbUrl = byKey.get(i.chaveThumb);
-      return thumbUrl
-        ? { ...i, thumbUrl }
-        : { id: i.id, chaveThumb: i.chaveThumb, chaveFull: i.chaveFull, mime: i.mime, autor: i.autor };
+      return {
+        id: i.id,
+        chaveThumb: i.chaveThumb,
+        chaveFull: i.chaveFull,
+        mime: i.mime,
+        autor: i.autor,
+        reacoes: i.reacoes ?? 0,
+        minhaReacao: i.minhaReacao ?? null,
+        ...(i.sessaoAutor !== undefined ? { sessaoAutor: i.sessaoAutor } : {}),
+        ...(i.minha !== undefined ? { minha: i.minha } : {}),
+        ...(thumbUrl !== undefined ? { thumbUrl } : {}),
+      };
     }),
     proximoCursor: data.proximoCursor ?? null,
-    ...(data.interacao !== undefined ? { interacao: data.interacao } : {}),
+    interacao,
   };
 }
 
