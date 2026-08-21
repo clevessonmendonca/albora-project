@@ -109,7 +109,9 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 ## F10 — Expo ✅/🟡
 
-**Feliz:** parear → sessão SecureStore → câmera enfileira stills em disco; **drain** da fila nativa (`drainGuestQueue` / `drainFileQueue`) no caminho da câmera; **feed** lê `GET /api/feed` + `POST /api/media/urls`.
+**Feliz:** parear → sessão SecureStore → câmera enfileira stills em disco; **drain** da fila nativa (`drainGuestQueue` / `drainFileQueue`) no caminho da câmera; **feed** lê `GET /api/feed` + `POST /api/media/urls`; **álbum** lê `GET /api/album` (mesmo contrato da web) e exibe capítulos com thumb + contagem de fotos; pull-to-refresh; renovação automática ao expirar (`expiraEm`); sem sessão → CTA de parear.
+
+**Álbum ✅:** `apps/mobile/src/album.ts` encapsula `buscarAlbum(session)` com fallback tipado (`falha: "rede" | "sessao"`), `thumbDoCaptitulo` e `totalFotosCapitulo`. `album.tsx` renderiza `FlatList` de capítulos (thumb 56×56, título, contagem). Contrato de tipos local espelha `ServedAlbum` do servidor sem importar o pacote web. Testes em `src/album.test.ts` (15 casos, mock fetch).
 
 **EXIF/GPS 🟡:** Câmera captura com `exif: false`. `persistCapture` roda `processarFoto` + `bufferDrawer` (jpeg-js) — reencode remove EXIF/GPS; presets CSS via `aplicarFiltroCss` / `aplicarPorPixel`.
 
