@@ -1,5 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import { apiOrigin, cookieHeader, parseStoredSession, SESSION_STORE_KEY, type GuestSession } from "./session";
+import { signMediaUrls } from "./sign-urls";
 
 export type FeedItem = {
   id: string;
@@ -55,24 +56,7 @@ export async function fetchFeedPage(session: GuestSession, cursor?: string | nul
         : { id: i.id, chaveThumb: i.chaveThumb, chaveFull: i.chaveFull, mime: i.mime, autor: i.autor };
     }),
     proximoCursor: data.proximoCursor ?? null,
-    interacao: data.interacao,
+    ...(data.interacao !== undefined ? { interacao: data.interacao } : {}),
   };
 }
 
-async function signMediaUrls(
-  session: GuestSession,
-  chaves: string[],
-): Promise<Array<{ chave: string; url: string }>> {
-  if (chaves.length === 0) return [];
-  const res = await fetch(`${apiOrigin()}/api/media/urls`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      cookie: cookieHeader(session.token),
-    },
-    body: JSON.stringify({ chaves }),
-  });
-  if (!res.ok) return [];
-  const data = (await res.json()) as { urls?: Array<{ chave: string; url: string }> };
-  return data.urls ?? [];
-}
