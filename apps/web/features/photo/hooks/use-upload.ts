@@ -11,7 +11,7 @@ import {
   type DrainSummary,
   type TextoComposto,
 } from "@albora/core";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { drainAndReport } from "@/features/guest/lib/funnel-from-drain";
 import { reportFunnel } from "@/features/guest/lib/report-funnel";
 import { webDrawer } from "@/lib/drawer";
@@ -45,6 +45,18 @@ export function mensagemCotaVideo(cota: CotaVideo): string | null {
     return "Plano grátis: 1 vídeo por convidado. Fotos continuam ilimitadas.";
   }
   return `Plano grátis: até ${cota.limite} vídeos por convidado.`;
+}
+
+/**
+ * O que fazer quando a aba/PWA volta ao foco (visibilitychange / pageshow).
+ *
+ * Exportado para testes unitários — a lógica mora aqui, não no efeito.
+ */
+export type AcaoFoco = "drenar" | "atualizar" | "ignorar";
+
+export function resolverAcaoFoco(visivel: boolean, online: boolean): AcaoFoco {
+  if (!visivel) return "ignorar";
+  return online ? "drenar" : "atualizar";
 }
 
 const AVISO_HEIC =
@@ -86,6 +98,7 @@ export function useUpload(
   const [estado, setEstado] = useState<EstadoEnvio>(INICIAL);
   const [videosLocais, setVideosLocais] = useState(0);
   const planoRedimensionamento = planoParaRedimensionamento(opcoes.plano);
+  const drainingRef = useRef(false);
 
   const atualizarResumo = useCallback(async () => {
     const { itens, bytes } = await queueSummary();
@@ -94,16 +107,22 @@ export function useUpload(
 
   const drenarAgora = useCallback(async (): Promise<DrainSummary | null> => {
     if (!navigator.onLine) return null;
+    if (drainingRef.current) return null;
 
-    const resumo = await drainAndReport(webQueue, webTransport, {
-      online: () => navigator.onLine,
-    });
-    await atualizarResumo();
+    drainingRef.current = true;
+    try {
+      const resumo = await drainAndReport(webQueue, webTransport, {
+        online: () => navigator.onLine,
+      });
+      await atualizarResumo();
 
-    const falha = resumo.resultados.find((r) => r.estado !== "enviado");
-    setEstado((e) => ({ ...e, ultimoErro: falha && "motivo" in falha ? falha.motivo : null }));
+      const falha = resumo.resultados.find((r) => r.estado !== "enviado");
+      setEstado((e) => ({ ...e, ultimoErro: falha && "motivo" in falha ? falha.motivo : null }));
 
-    return resumo;
+      return resumo;
+    } finally {
+      drainingRef.current = false;
+    }
   }, [atualizarResumo]);
 
   /**
@@ -272,10 +291,29 @@ export function useUpload(
     // salão de festas com portal cativo.
     const relogio = setInterval(() => void drenarAgora(), 30_000);
 
+    // Convidado volta à aba/PWA após sair (bfcache, troca de app, notificação).
+    // Espelho do AppState drain no mobile — drena se online, atualiza contagens se não.
+    const aoVoltar = () => {
+      const acao = resolverAcaoFoco(document.visibilityState === "visible", navigator.onLine);
+      if (acao === "drenar") void drenarAgora();
+      else if (acao === "atualizar") void atualizarResumo();
+    };
+    const aoVisibilityChange = () => aoVoltar();
+    // `pageshow` com `persisted` sinaliza restauração de bfcache; carga normal
+    // já está coberta pelo mount acima.
+    const aoPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) aoVoltar();
+    };
+
+    document.addEventListener("visibilitychange", aoVisibilityChange);
+    window.addEventListener("pageshow", aoPageShow);
+
     return () => {
       window.removeEventListener("online", voltou);
       window.removeEventListener("offline", caiu);
       clearInterval(relogio);
+      document.removeEventListener("visibilitychange", aoVisibilityChange);
+      window.removeEventListener("pageshow", aoPageShow);
     };
   }, [atualizarResumo, drenarAgora]);
 

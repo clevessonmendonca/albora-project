@@ -61,6 +61,8 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Nuances:** gate `null` = fechado; PWA `start_url` = capa do evento; cota de vídeo pelo plano; confessionário = pergunta do pack → vídeo com `prompt_key`.
 
+**Dreno ao voltar à aba/PWA:** `visibilitychange` (visible) e `pageshow` (persisted=bfcache) disparam `drenarAgora` se `navigator.onLine`; offline só atualiza contagens. Guarda com `drainingRef` evita double-drain concorrente com o intervalo de 30 s. Espelho do AppState drain do mobile.
+
 ---
 
 ## F5 — Feed, álbum, missões, música, recado ✅
