@@ -123,6 +123,8 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Upload em segundo plano 🟡:** PUT presigned via `uploadAsync` + `FileSystemSessionType.BACKGROUND` (`put-file.ts`); task `albora-guest-upload-drain` registra `BackgroundFetch` para drenar a fila. Falta prova em aparelho com app fechado.
 
+**Drain ao retornar ao primeiro plano ✅:** `subscribeForegroundDrain` (`foreground-drain.ts`) assina `AppState.change` em `_layout.tsx`; quando o app transita para `active`, chama `drainGuestQueue(guestQueue())`. Guard de reentrância impede chamadas paralelas. Sem sessão → no-op (retorno imediato com `{ enviados: 0 }`). Prova de app completamente fechado (killed) permanece 🟡 (depende de `BackgroundFetch` do SO).
+
 ---
 
 ## F11 — Papéis e analytics ✅

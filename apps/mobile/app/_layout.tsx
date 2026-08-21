@@ -11,6 +11,9 @@ import {
   themeVariablesFromEvent,
 } from "../src/event-theme";
 import { ensureGuestUploadBackgroundTask } from "../src/background-drain";
+import { guestQueue } from "../src/disk";
+import { drainGuestQueue } from "../src/drain-guest";
+import { subscribeForegroundDrain } from "../src/foreground-drain";
 import { parseStoredSession, SESSION_STORE_KEY } from "../src/session";
 import "../global.css";
 import "../src/upload-task";
@@ -22,6 +25,10 @@ export default function RootLayout() {
 
   useEffect(() => {
     void ensureGuestUploadBackgroundTask();
+  }, []);
+
+  useEffect(() => {
+    return subscribeForegroundDrain(() => drainGuestQueue(guestQueue()));
   }, []);
 
   useEffect(() => {
