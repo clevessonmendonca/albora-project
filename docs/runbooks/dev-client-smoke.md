@@ -1,6 +1,6 @@
 # Runbook — smoke do dev client (Expo)
 
-> **Objetivo:** provar Skia, share, fila offline e background fetch em aparelho real.  
+> **Objetivo:** provar Skia, share, fila offline, passagem e background fetch em aparelho real.  
 > **Pré-requisito:** Expo Go **não** serve — use `eas build --profile development`.
 
 ## 1. Build
@@ -10,6 +10,7 @@ export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"; nvm use
 pnpm install
 cd apps/mobile
 pnpm fontes   # Fraunces + Instrument Sans em assets/fontes/
+eas init      # uma vez — grava EAS_PROJECT_ID (ver universal-links.md)
 # Ajuste EXPO_PUBLIC_API_URL em eas.json (development) para API acessível pelo celular
 eas build --profile development --platform android   # ou ios
 pnpm start --dev-client
@@ -17,9 +18,12 @@ pnpm start --dev-client
 
 ## 2. Parear
 
-1. Web aberta (`pnpm dev`) → `/e/festa-demo` → primeira foto → código de 4 dígitos.
-2. App → digitar código ou `albora://pair?codigo=1234` (deep link).
-3. Deve ir para **Feed**; reabrir app com sessão → index pula parear.
+1. Web aberta (`pnpm dev`) → `/e/festa-demo` → primeira foto → `/e/festa-demo/pair`.
+2. **App instalado:** toque **Abrir no app** (passagem one-shot) → deve ir direto ao **Feed**.
+3. **Sem app / debug:** digite os 4 dígitos ou `albora://pair?codigo=1234`.
+4. Reabrir app com sessão → index pula parear.
+
+Universal link HTTPS só com credenciais reais — ver [`universal-links.md`](./universal-links.md).
 
 ## 3. Câmera + Skia
 
@@ -51,3 +55,4 @@ pnpm start --dev-client
 | Fonte errada na moldura | `pnpm fontes` antes do build |
 | API unreachable | `EXPO_PUBLIC_API_URL` LAN/túnel, não `localhost` no device |
 | BG fetch negado | Ajustes iOS/Android → atualização em background |
+| Passagem não abre feed | Migration 0048 rodou? API `/api/app/parear` devolve `passagem`? |

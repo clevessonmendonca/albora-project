@@ -47,8 +47,10 @@ O pareamento chama `POST /api/app/parear/resgatar`. A web precisa estar no ar (`
 ### Build de desenvolvimento (EAS)
 
 1. Instale o EAS CLI (`npm i -g eas-cli`) e faça login (`eas login`).
-2. Ajuste `EXPO_PUBLIC_API_URL` em `eas.json` (perfil `development`) ou sobrescreva via secret/`.env` apontando para a API acessível pelo aparelho (LAN, túnel ou stable).
-3. Gere o binário:
+2. Rode **`eas init`** uma vez — grava `EAS_PROJECT_ID` (ver [`docs/runbooks/universal-links.md`](../../docs/runbooks/universal-links.md)).
+3. Copie `apps/mobile/.env.example` → `.env` e ajuste `EXPO_PUBLIC_API_URL` (LAN/túnel no aparelho).
+4. Ajuste `EXPO_PUBLIC_API_URL` em `eas.json` (perfil `development`) ou via secret.
+5. Gere o binário:
 
 ```bash
 cd apps/mobile
@@ -56,7 +58,7 @@ eas build --profile development --platform ios     # dispositivo físico (simula
 eas build --profile development --platform android # APK interno
 ```
 
-4. Instale o artefato no aparelho e conecte ao Metro:
+6. Instale o artefato no aparelho e conecte ao Metro:
 
 ```bash
 pnpm start --dev-client
@@ -70,4 +72,4 @@ Checklist completo: [`docs/runbooks/dev-client-smoke.md`](../../docs/runbooks/de
 
 ## O que ainda não está
 
-Ícone/fichas das lojas, `eas project:init` (project id no `app.json`). Universal links: placeholders em `public/.well-known` — substituir Team ID (iOS) e SHA256 (Android) antes de produção. A captura já deixa o JPEG na fila em disco; LUT/Skia, share, passagem web→app e fila offline estão no código — falta prova em aparelho via dev client.
+Ícone/fichas das lojas. Credenciais reais de App Link (`IOS_APP_TEAM_ID`, `ANDROID_APP_SHA256`) no deploy — placeholders até lá. `eas init` + rebuild após credenciais. A captura já deixa o JPEG na fila em disco; LUT/Skia, share, passagem web→app e fila offline estão no código — falta prova em aparelho via dev client ([`docs/runbooks/dev-client-smoke.md`](../../docs/runbooks/dev-client-smoke.md)).

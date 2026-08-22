@@ -133,7 +133,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Parear ✅:** index redireciona com sessão válida → feed; deep link `albora://pair?codigo=1234` preenche os quatro dígitos e **resgata sozinho**; `?passagem=` (token one-shot ADR 0009) resgata direto no feed; universal link `https://albora.app/e/{slug}/pair?…` cai em `app/e/[slug]/pair` → `/pair`.
 
-**Universal links 🟡:** `associatedDomains` + intent filter Android + `.well-known` placeholder na web; CTA **Abrir no app** usa `passagem` (zero digitação). Falta Team ID / SHA256 reais e `eas project:init`.
+**Universal links 🟡:** `app.config.ts` + rotas dinâmicas `/.well-known/*` (`IOS_APP_TEAM_ID`, `ANDROID_APP_SHA256`); CTA **Abrir no app** usa `passagem`. Runbook: [`docs/runbooks/universal-links.md`](./runbooks/universal-links.md). Falta credenciais reais no deploy + rebuild nativo.
 
 **EAS dev-client 🟡:** `expo-dev-client` + perfil `development` em `eas.json` (APK Android, iOS dispositivo físico, `UIBackgroundModes: fetch`, `eas-build-pre-install` copia fontes). Expo Go não carrega Skia nem background fetch — validação exige `eas build --profile development` + `pnpm start --dev-client`. Runbook: [`docs/runbooks/dev-client-smoke.md`](./runbooks/dev-client-smoke.md).
 
