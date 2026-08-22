@@ -16,8 +16,11 @@ export default defineConfig({
   test: {
     // Pre-push paralelo (jsdom + PDF + db) estoura o default 5s em testes
     // triviais de render. 15s não esconde hang real.
-    testTimeout: 15_000,
+    testTimeout: 30_000,
     hookTimeout: 60_000,
+    // Máquina saturada no pre-push: setup 388s / environment 585s com workers
+    // default. Metade dos cores deixa o render de componente abaixo do teto.
+    maxWorkers: "50%",
     // Dois projetos, dois environments: lógica pura roda em node (rápido,
     // sem DOM); render de componente (.test.tsx) precisa de jsdom. O
     // `environmentMatchGlobs` equivalente está deprecado no Vitest 3 —
@@ -42,8 +45,8 @@ export default defineConfig({
           exclude: EXCLUDE,
           setupFiles: ["./vitest.setup.ts"],
           // Render em paralelo sob carga do pre-push estoura o default 5s
-          // (FloatingNav, Button, RecapCard). 15s não esconde hang real.
-          testTimeout: 15_000,
+          // (FloatingNav, Button, RecapCard). 30s não esconde hang real.
+          testTimeout: 30_000,
         },
       },
     ],
