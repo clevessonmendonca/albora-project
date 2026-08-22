@@ -1,43 +1,119 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, Image, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, Pressable, View } from "react-native";
+import { useRouter } from "expo-router";
 import { Screen, Text } from "@albora/ui-native";
-import { buscarAlbum, thumbDoCaptitulo, totalFotosCapitulo, type CapituloAlbum } from "../../src/album";
+import {
+  buscarAlbum,
+  thumbDoCaptitulo,
+  totalFotosCapitulo,
+  type CapituloAlbum,
+  type FotoAlbum,
+} from "../../src/album";
 import { loadSession } from "../../src/feed";
+import type { ModoInteracao } from "../../src/feed";
 
-function ThumbCapitulo({ uri }: { uri: string | null }) {
-  if (!uri) {
-    return <View className="mr-3 h-14 w-14 rounded-xl bg-superficie-alta" />;
-  }
-  return (
-    <Image
-      source={{ uri }}
-      className="mr-3 h-14 w-14 rounded-xl"
-      accessibilityLabel="Capa do capítulo"
-    />
-  );
-}
-
-function ItemCapitulo({ capitulo }: { capitulo: CapituloAlbum }) {
-  const thumb = thumbDoCaptitulo(capitulo);
-  const total = totalFotosCapitulo(capitulo);
+// ─── Grid de fotos de um capítulo ─────────────────────────────────────────────
+function GridFotos({
+  fotos,
+  interacao,
+  onAbrirFoto,
+}: {
+  fotos: FotoAlbum[];
+  interacao: ModoInteracao;
+  onAbrirFoto: (foto: FotoAlbum, interacao: ModoInteracao) => void;
+}) {
+  if (fotos.length === 0) return null;
 
   return (
-    <View className="mb-3 flex-row items-center rounded-2xl bg-superficie p-3">
-      <ThumbCapitulo uri={thumb} />
-      <View className="flex-1">
-        <Text title className="text-base">
-          {capitulo.titulo}
-        </Text>
-        <Text tone="muted" className="mt-0.5 text-sm">
-          {total === 1 ? "1 foto" : `${total} fotos`}
-        </Text>
-      </View>
+    <View className="mt-2 flex-row flex-wrap gap-1 px-1 pb-2">
+      {fotos.map((foto) => (
+        <Pressable
+          key={foto.id}
+          onPress={() => onAbrirFoto(foto, interacao)}
+          accessibilityRole="button"
+          accessibilityLabel="Ver foto"
+          className="overflow-hidden rounded-lg"
+          style={{ width: "31.5%" }}
+        >
+          {foto.urlThumb ? (
+            <Image
+              source={{ uri: foto.urlThumb }}
+              className="aspect-square w-full"
+              resizeMode="cover"
+            />
+          ) : (
+            <View className="aspect-square w-full bg-superficie-alta" />
+          )}
+        </Pressable>
+      ))}
     </View>
   );
 }
 
+// ─── Item de capítulo (expansível) ────────────────────────────────────────────
+function ItemCapitulo({
+  capitulo,
+  expandido,
+  interacao,
+  onToggle,
+  onAbrirFoto,
+}: {
+  capitulo: CapituloAlbum;
+  expandido: boolean;
+  interacao: ModoInteracao;
+  onToggle: () => void;
+  onAbrirFoto: (foto: FotoAlbum, interacao: ModoInteracao) => void;
+}) {
+  const thumb = thumbDoCaptitulo(capitulo);
+  const total = totalFotosCapitulo(capitulo);
+  const todasAsFotos = capitulo.paginas.flatMap((p) => p.fotos);
+
+  return (
+    <View className="mb-3 overflow-hidden rounded-2xl bg-superficie">
+      <Pressable
+        onPress={onToggle}
+        accessibilityRole="button"
+        accessibilityLabel={expandido ? `Recolher ${capitulo.titulo}` : `Expandir ${capitulo.titulo}`}
+        className="flex-row items-center p-3"
+      >
+        {/* Thumb do capítulo */}
+        {thumb ? (
+          <Image
+            source={{ uri: thumb }}
+            className="mr-3 h-14 w-14 rounded-xl"
+            accessibilityLabel="Capa do capítulo"
+          />
+        ) : (
+          <View className="mr-3 h-14 w-14 rounded-xl bg-superficie-alta" />
+        )}
+
+        <View className="flex-1">
+          <Text title className="text-base">
+            {capitulo.titulo}
+          </Text>
+          <Text tone="muted" className="mt-0.5 text-sm">
+            {total === 1 ? "1 foto" : `${total} fotos`}
+          </Text>
+        </View>
+
+        <Text tone="muted" className="ml-2 text-base leading-none">
+          {expandido ? "▲" : "▼"}
+        </Text>
+      </Pressable>
+
+      {expandido && (
+        <GridFotos fotos={todasAsFotos} interacao={interacao} onAbrirFoto={onAbrirFoto} />
+      )}
+    </View>
+  );
+}
+
+// ─── Tela de álbum ────────────────────────────────────────────────────────────
 export default function AlbumScreen() {
+  const router = useRouter();
   const [capitulos, setCapitulos] = useState<CapituloAlbum[]>([]);
+  const [interacao, setInteracao] = useState<ModoInteracao>("espelho");
+  const [expandidoId, setExpandidoId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(false);
   const [semSessao, setSemSessao] = useState(false);
@@ -60,6 +136,9 @@ export default function AlbumScreen() {
         return;
       }
       setCapitulos(resultado.album.capitulos);
+      const modo: ModoInteracao =
+        resultado.album.interacao === "completo" ? "completo" : "espelho";
+      setInteracao(modo);
 
       if (renovacaoRef.current !== null) {
         clearTimeout(renovacaoRef.current);
@@ -84,6 +163,28 @@ export default function AlbumScreen() {
     };
     // só na montagem
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const abrirFoto = useCallback(
+    (foto: FotoAlbum, modoInteracao: ModoInteracao) => {
+      router.push({
+        pathname: "/photo-detail",
+        params: {
+          uploadId: foto.id,
+          fullUrl: foto.url,
+          interacao: modoInteracao,
+          minha: "0",
+          autor: "",
+          reacoes: "0",
+          minhaReacao: "",
+        },
+      });
+    },
+    [router],
+  );
+
+  const toggleExpandido = useCallback((id: string) => {
+    setExpandidoId((atual) => (atual === id ? null : id));
   }, []);
 
   if (loading) {
@@ -130,7 +231,15 @@ export default function AlbumScreen() {
             O álbum ainda está sendo montado. Volte em breve.
           </Text>
         }
-        renderItem={({ item }) => <ItemCapitulo capitulo={item} />}
+        renderItem={({ item }) => (
+          <ItemCapitulo
+            capitulo={item}
+            expandido={expandidoId === item.id}
+            interacao={interacao}
+            onToggle={() => toggleExpandido(item.id)}
+            onAbrirFoto={abrirFoto}
+          />
+        )}
       />
     </Screen>
   );

@@ -8,9 +8,11 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Text as RNText,
   TextInput,
   View,
 } from "react-native";
+import { useRouter } from "expo-router";
 import { Screen, Text } from "@albora/ui-native";
 import {
   fetchFeedPage,
@@ -26,6 +28,7 @@ import {
   type ComentarioItem,
 } from "../../src/comments";
 import { reportMedia, type MotivoDenuncia } from "../../src/report";
+import { fetchStories, type StoryItem } from "../../src/stories";
 import type { GuestSession } from "../../src/session";
 
 // ─── Estrela SVG via texto Unicode ────────────────────────────────────────────
@@ -34,6 +37,65 @@ function Estrela({ preenchida }: { preenchida: boolean }) {
     <Text className={`text-xl leading-none ${preenchida ? "text-acento" : "text-ink-2"}`}>
       {preenchida ? "★" : "☆"}
     </Text>
+  );
+}
+
+// ─── Tira de stories ──────────────────────────────────────────────────────────
+function StoriesRail({
+  itens,
+  onAdicionar,
+}: {
+  itens: StoryItem[];
+  onAdicionar: () => void;
+}) {
+  if (itens.length === 0) return null;
+
+  return (
+    <View className="mb-4">
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerClassName="gap-3 px-1 py-1"
+      >
+        {/* CTA para adicionar nova foto */}
+        <Pressable
+          onPress={onAdicionar}
+          accessibilityRole="button"
+          accessibilityLabel="Adicionar foto"
+          className="items-center gap-1"
+        >
+          <View className="h-14 w-14 items-center justify-center rounded-full border-2 border-acento bg-superficie">
+            <Text className="text-2xl leading-none text-acento">+</Text>
+          </View>
+          <RNText numberOfLines={1} className="text-[0.65rem] font-corpo text-ink-2">
+            Você
+          </RNText>
+        </Pressable>
+
+        {itens.map((story) => (
+          <View key={story.id} className="items-center gap-1">
+            <View className="h-14 w-14 overflow-hidden rounded-full border-2 border-acento">
+              {story.thumbUrl ? (
+                <Image
+                  source={{ uri: story.thumbUrl }}
+                  className="h-full w-full"
+                  accessibilityLabel={`Story de ${story.autor}`}
+                />
+              ) : (
+                <View className="h-full w-full items-center justify-center bg-superficie-alta">
+                  <Text className="text-lg font-medium text-ink-2">
+                    {story.autor.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <RNText numberOfLines={1} className="w-14 text-center text-[0.65rem] font-corpo text-ink-2">
+              {story.autor}
+            </RNText>
+          </View>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -262,11 +324,13 @@ function FeedCard({
   interacao,
   session,
   onAtualizarItem,
+  onAbrirDetalhe,
 }: {
   item: FeedItem;
   interacao: ModoInteracao;
   session: GuestSession;
   onAtualizarItem: (id: string, reacoes: number, minhaReacao: string | null) => void;
+  onAbrirDetalhe: (item: FeedItem) => void;
 }) {
   const completo = interacao === "completo";
   const [alternando, setAlternando] = useState(false);
@@ -285,11 +349,17 @@ function FeedCard({
 
   return (
     <View className="mb-4 overflow-hidden rounded-2xl bg-superficie">
-      {inicial.thumbUrl ? (
-        <Image source={{ uri: inicial.thumbUrl }} className="aspect-[4/5] w-full" />
-      ) : (
-        <View className="aspect-[4/5] w-full bg-superficie-alta" />
-      )}
+      <Pressable
+        onPress={() => onAbrirDetalhe(inicial)}
+        accessibilityRole="button"
+        accessibilityLabel={`Ver foto de ${inicial.autor}`}
+      >
+        {inicial.thumbUrl ? (
+          <Image source={{ uri: inicial.thumbUrl }} className="aspect-[4/5] w-full" />
+        ) : (
+          <View className="aspect-[4/5] w-full bg-superficie-alta" />
+        )}
+      </Pressable>
 
       <View className="px-3 pb-3 pt-2">
         <Text className="mb-2">{inicial.autor}</Text>
@@ -352,7 +422,7 @@ function FeedCard({
       {denunciaAberta && (
         <DenunciaSheet
           uploadId={inicial.id}
-          minha={inicial.minha}
+          minha={!!inicial.minha}
           session={session}
           onFechar={() => setDenunciaAberta(false)}
         />
@@ -363,13 +433,16 @@ function FeedCard({
 
 // ─── Tela principal ───────────────────────────────────────────────────────────
 export default function FeedScreen() {
+  const router = useRouter();
   const [itens, setItens] = useState<FeedItem[]>([]);
   const [interacao, setInteracao] = useState<ModoInteracao>("espelho");
   const [cursor, setCursor] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(false);
   const [semSessao, setSemSessao] = useState(false);
+  const [stories, setStories] = useState<StoryItem[]>([]);
   const sessionRef = useRef<GuestSession | null>(null);
+  const interacaoRef = useRef<ModoInteracao>("espelho");
 
   const carregar = useCallback(async (mais = false) => {
     setErro(false);
@@ -386,6 +459,14 @@ export default function FeedScreen() {
       setItens((antes) => (mais ? [...antes, ...page.itens] : page.itens));
       setCursor(page.proximoCursor);
       setInteracao(page.interacao);
+      interacaoRef.current = page.interacao;
+
+      // Carrega stories em paralelo só na primeira carga (não em "mais")
+      if (!mais) {
+        fetchStories(session).then(setStories).catch(() => {
+          // degrada silenciosamente
+        });
+      }
     } catch {
       setErro(true);
     } finally {
@@ -407,6 +488,21 @@ export default function FeedScreen() {
     },
     [],
   );
+
+  const abrirDetalhe = useCallback((item: FeedItem) => {
+    router.push({
+      pathname: "/photo-detail",
+      params: {
+        uploadId: item.id,
+        chaveFull: item.chaveFull,
+        interacao: interacaoRef.current,
+        minha: item.minha ? "1" : "0",
+        autor: item.autor,
+        reacoes: String(item.reacoes),
+        minhaReacao: item.minhaReacao ?? "",
+      },
+    });
+  }, [router]);
 
   if (loading) {
     return (
@@ -453,6 +549,12 @@ export default function FeedScreen() {
           onEndReached={() => {
             if (cursor) void carregar(true);
           }}
+          ListHeaderComponent={
+            <StoriesRail
+              itens={stories}
+              onAdicionar={() => router.push("/photo")}
+            />
+          }
           ListEmptyComponent={
             <Text tone="muted" className="mt-6">
               Ainda não tem foto no ar. Seja a primeira.
@@ -464,6 +566,7 @@ export default function FeedScreen() {
               interacao={interacao}
               session={session}
               onAtualizarItem={atualizarItem}
+              onAbrirDetalhe={abrirDetalhe}
             />
           )}
           ListFooterComponent={
