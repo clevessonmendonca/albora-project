@@ -1,11 +1,22 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TextInput, View } from "react-native";
+import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { Button, Screen, Text } from "@albora/ui-native";
 import { parseRedeemResponse, redeemUrl, SESSION_STORE_KEY } from "../src/session";
 
 const HOUSES = 4;
+
+function codigoDeDeepLink(url: string | null): string | null {
+  if (!url) return null;
+  const parsed = Linking.parse(url);
+  const raw = parsed.queryParams?.codigo;
+  const valor = Array.isArray(raw) ? raw[0] : raw;
+  if (typeof valor !== "string") return null;
+  const limpo = valor.replace(/\D/g, "").slice(0, HOUSES);
+  return limpo.length === HOUSES ? limpo : null;
+}
 
 export default function PairScreen() {
   const router = useRouter();
@@ -15,6 +26,18 @@ export default function PairScreen() {
 
   const code = digits.join("");
   const valid = /^\d{4}$/.test(code);
+
+  useEffect(() => {
+    void Linking.getInitialURL().then((url) => {
+      const preenchido = codigoDeDeepLink(url);
+      if (preenchido) setDigits(preenchido.split(""));
+    });
+    const sub = Linking.addEventListener("url", ({ url }) => {
+      const preenchido = codigoDeDeepLink(url);
+      if (preenchido) setDigits(preenchido.split(""));
+    });
+    return () => sub.remove();
+  }, []);
 
   function update(index: number, value: string) {
     const clean = value.replace(/\D/g, "").slice(-1);

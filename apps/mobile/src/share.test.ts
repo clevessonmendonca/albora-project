@@ -221,3 +221,47 @@ describe("compartilharRecap", () => {
     );
   });
 });
+
+describe("compartilharFotoPropria vídeo", () => {
+  it("assina thumb para moldura de vídeo", async () => {
+    const shareAsync = vi.fn(async () => undefined);
+    let chaveAssinada = "";
+    const fetchFn = vi.fn(async (url: string, init?: RequestInit) => {
+      if (String(url).includes("/api/share")) {
+        return Response.json({
+          ...apiCtx(),
+          mime: "video/mp4",
+          chaveFull: "e/x/full",
+          chaveThumb: "e/x/thumb",
+        });
+      }
+      if (String(url).includes("/api/media/urls")) {
+        const body = JSON.parse(String(init?.body ?? "{}")) as { chaves?: string[] };
+        chaveAssinada = body.chaves?.[0] ?? "";
+        return Response.json({ urls: [{ chave: chaveAssinada, url: "https://cdn/thumb.jpg" }] });
+      }
+      return new Response("no", { status: 404 });
+    });
+
+    const r = await compartilharFotoPropria({
+      session,
+      uploadId,
+      fetchFn: fetchFn as unknown as typeof fetch,
+      downloadAsync: (async () => ({
+        uri: "/tmp/thumb.jpg",
+        status: 200,
+        headers: {},
+        md5: null,
+        mimeType: "image/jpeg",
+      })) as never,
+      readBase64: async () => "AAAA",
+      measureImage: () => ({ largura: 1200, altura: 1600 }),
+      renderFrame: async () => new Uint8Array([1, 2, 3]),
+      shareAsync: shareAsync as never,
+      isAvailableAsync: async () => true,
+    });
+
+    expect(r).toEqual({ ok: true, moldura: true });
+    expect(chaveAssinada).toBe("e/x/thumb");
+  });
+});

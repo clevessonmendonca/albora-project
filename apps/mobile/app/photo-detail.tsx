@@ -290,6 +290,7 @@ export default function PhotoDetailScreen() {
     autor?: string;
     reacoes?: string;
     minhaReacao?: string;
+    mime?: string;
   }>();
 
   const {
@@ -301,11 +302,13 @@ export default function PhotoDetailScreen() {
     autor = "",
     reacoes: reacoesParam = "0",
     minhaReacao: minhaReacaoParam = "",
+    mime: mimeParam,
   } = params;
 
   const interacao: ModoInteracao = interacaoParam === "completo" ? "completo" : "espelho";
   const minha = minhaParam === "1";
   const completo = interacao === "completo";
+  const ehVideo = typeof mimeParam === "string" && mimeParam.startsWith("video/");
 
   const [fullUrl, setFullUrl] = useState<string | null>(fullUrlParam ?? null);
   const [assindo, setAssindo] = useState(!fullUrlParam && !!chaveFull);
@@ -457,7 +460,7 @@ export default function PhotoDetailScreen() {
               onPress={() => void compartilhar()}
               disabled={compartilhando}
               accessibilityRole="button"
-              accessibilityLabel="Compartilhar foto"
+              accessibilityLabel={ehVideo ? "Compartilhar poster do vídeo" : "Compartilhar foto"}
               className="flex-row items-center gap-2"
             >
               <Text className="text-2xl leading-none text-sobre-acento">
