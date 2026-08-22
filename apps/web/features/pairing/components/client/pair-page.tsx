@@ -1,5 +1,6 @@
 "use client";
 
+import { appPairSchemeLink, appPairUniversalLink } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PrimaryButton, SecondaryButton } from "@albora/ui-web";
@@ -47,6 +48,9 @@ export function PairPage({ slug }: { slug: string }) {
   }, [gerar]);
 
   const base = `/e/${encodeURIComponent(slug)}`;
+  const webOrigin = typeof window !== "undefined" ? window.location.origin : "https://albora.app";
+  const appLink = codigo ? appPairSchemeLink(codigo) : null;
+  const universalLink = codigo ? appPairUniversalLink(webOrigin, slug, codigo) : null;
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center bg-bg p-6 font-corpo text-ink">
@@ -56,7 +60,8 @@ export function PairPage({ slug }: { slug: string }) {
         {estado === "pronto" && codigo ? (
           <>
             <p className="m-0 leading-normal text-ink-2">
-              Seu código vale poucos minutos. Digite no app para continuar com a mesma sessão.
+              Com o app instalado, toque abaixo — zero digitação. Sem o app, digite os quatro números na
+              primeira abertura.
             </p>
             <p
               aria-live="polite"
@@ -69,6 +74,23 @@ export function PairPage({ slug }: { slug: string }) {
                 Expira às {expiraEm.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
               </p>
             )}
+            {appLink ? (
+              <PrimaryButton
+                onClick={() => {
+                  window.location.href = appLink;
+                }}
+              >
+                Abrir no app
+              </PrimaryButton>
+            ) : null}
+            {universalLink ? (
+              <a
+                href={universalLink}
+                className="m-0 text-center text-[0.85rem] text-ink-3 underline decoration-ink-3/40 underline-offset-2"
+              >
+                Link universal (quando o domínio estiver verificado)
+              </a>
+            ) : null}
             <SecondaryButton onClick={() => void gerar()}>Gerar outro código</SecondaryButton>
           </>
         ) : estado === "sem-sessao" ? (

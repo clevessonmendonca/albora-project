@@ -10,6 +10,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "app.albora.guest",
+      "associatedDomains": ["applinks:albora.app"],
       "infoPlist": {
         "NSCameraUsageDescription": "A câmera tira a foto da festa. Sem ela o app não tem o que enviar.",
         "NSPhotoLibraryUsageDescription": "Escolha fotos da sua galeria para enviar ao álbum da festa.",
@@ -18,7 +19,21 @@
     },
     "android": {
       "package": "app.albora.guest",
-      "permissions": ["CAMERA", "READ_MEDIA_IMAGES", "RECEIVE_BOOT_COMPLETED", "WAKE_LOCK"]
+      "permissions": ["CAMERA", "READ_MEDIA_IMAGES", "RECEIVE_BOOT_COMPLETED", "WAKE_LOCK"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "albora.app",
+              "pathPrefix": "/e/"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "plugins": [
       "expo-dev-client",

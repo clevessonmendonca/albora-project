@@ -70,4 +70,4 @@ Checklist completo: [`docs/runbooks/dev-client-smoke.md`](../../docs/runbooks/de
 
 ## O que ainda não está
 
-Universal links, ícone/fichas das lojas, EAS project id no `app.json`. A captura já deixa o JPEG na fila em disco; LUT/Skia, share e fila offline estão no código — falta prova em aparelho via dev client.
+Ícone/fichas das lojas, `eas project:init` (project id no `app.json`). Universal links: placeholders em `public/.well-known` — substituir Team ID (iOS) e SHA256 (Android) antes de produção. Token de transferência one-shot (ADR 0009) ainda não wired na API. A captura já deixa o JPEG na fila em disco; LUT/Skia, share e fila offline estão no código — falta prova em aparelho via dev client.

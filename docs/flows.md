@@ -131,7 +131,9 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Upload em segundo plano 🟡:** PUT presigned via `uploadAsync` + `FileSystemSessionType.BACKGROUND` (`put-file.ts`); task `albora-guest-upload-drain` registra `BackgroundFetch` para drenar a fila (sem sessão → `NoData`; com progresso → `NewData`). **Fila de envio ✅:** `/queue` lista pendentes/falhos com preview local, rótulos alinhados ao catálogo (`queue-status`) e **Tentar de novo** (`queue-retry` + drain). Badge “N na fila” na câmera abre a fila; Minhas linka **Ver fila →** quando há itens locais. **Telemetria ✅:** `drain-telemetry` grava último drain (origem foreground/background/manual) + status BG na `/queue`. **Rede ✅:** `@react-native-community/netinfo` (`online.ts`) — rótulos offline/sem sinal na fila e gate do drain. Falta prova com app killed.
 
-**Parear ✅:** index redireciona com sessão válida → feed; deep link `albora://pair?codigo=1234` preenche os quatro dígitos.
+**Parear ✅:** index redireciona com sessão válida → feed; deep link `albora://pair?codigo=1234` preenche os quatro dígitos e **resgata sozinho**; universal link `https://albora.app/e/{slug}/pair?codigo=…` cai em `app/e/[slug]/pair` → `/pair`.
+
+**Universal links 🟡:** `associatedDomains` + intent filter Android + `.well-known` placeholder na web; CTA **Abrir no app** em `/e/[slug]/pair` (`appPairSchemeLink`). Falta Team ID / SHA256 reais e `eas project:init`. Token de transferência one-shot (ADR 0009) ainda não existe na API — só código de 4 dígitos.
 
 **EAS dev-client 🟡:** `expo-dev-client` + perfil `development` em `eas.json` (APK Android, iOS dispositivo físico, `UIBackgroundModes: fetch`, `eas-build-pre-install` copia fontes). Expo Go não carrega Skia nem background fetch — validação exige `eas build --profile development` + `pnpm start --dev-client`. Runbook: [`docs/runbooks/dev-client-smoke.md`](./runbooks/dev-client-smoke.md).
 
