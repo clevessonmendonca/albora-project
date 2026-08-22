@@ -12,7 +12,8 @@
       "bundleIdentifier": "app.albora.guest",
       "infoPlist": {
         "NSCameraUsageDescription": "A câmera tira a foto da festa. Sem ela o app não tem o que enviar.",
-        "NSPhotoLibraryUsageDescription": "Escolha fotos da sua galeria para enviar ao álbum da festa."
+        "NSPhotoLibraryUsageDescription": "Escolha fotos da sua galeria para enviar ao álbum da festa.",
+        "UIBackgroundModes": ["fetch"]
       }
     },
     "android": {
@@ -20,6 +21,7 @@
       "permissions": ["CAMERA", "READ_MEDIA_IMAGES", "RECEIVE_BOOT_COMPLETED", "WAKE_LOCK"]
     },
     "plugins": [
+      "expo-dev-client",
       "expo-router",
       "expo-secure-store",
       "expo-background-fetch",

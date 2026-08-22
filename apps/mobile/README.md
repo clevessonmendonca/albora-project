@@ -7,7 +7,7 @@ Não há login, push, nem compra. ADR 0004, 0009 e 0010.
 ## Stack
 
 - Expo SDK 53 (React Native 0.79), Expo Router, New Architecture
-- Node 20 — o monorepo inteiro. SDK 54 puxa Metro que exige Node 22; aqui isso quebraria o CI.
+- Node 22 — `.nvmrc` na raiz do monorepo
 - NativeWind v4 consumindo `@albora/tokens` (um resolvedor, dois `ui-*`)
 - Fila em arquivo (`src/queue.ts`) — o `URLSession` iOS não aceita Blob
 - Câmera nativa (`expo-camera`) copia o still para disco e enfileira `corpo.tipo === "arquivo"`
@@ -15,9 +15,26 @@ Não há login, push, nem compra. ADR 0004, 0009 e 0010.
 
 ## Dev
 
+### Pré-requisitos
+
 ```bash
-export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"; nvm use 20.20.1
+export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"; nvm use   # lê .nvmrc → Node 22
 pnpm install
+```
+
+### Fontes da moldura de compartilhar
+
+As faces Fraunces/Instrument Sans vivem em `assets/fontes/` (gitignored). Copie antes de rodar:
+
+```bash
+pnpm --filter @albora/mobile fontes
+```
+
+O `prestart` já roda o script; em CI/EAS o passo é explícito se o build não passar por `expo start`.
+
+### Desenvolvimento local (Metro)
+
+```bash
 cd apps/mobile
 echo "EXPO_PUBLIC_API_URL=http://localhost:3000" > .env
 pnpm start
@@ -25,6 +42,30 @@ pnpm start
 
 O pareamento chama `POST /api/app/parear/resgatar`. A web precisa estar no ar (`pnpm dev`).
 
+**Expo Go não serve.** Skia (`@shopify/react-native-skia`), upload em segundo plano (`expo-background-fetch`) e composição de share exigem **dev client nativo** — binário compilado com `expo-dev-client`.
+
+### Build de desenvolvimento (EAS)
+
+1. Instale o EAS CLI (`npm i -g eas-cli`) e faça login (`eas login`).
+2. Ajuste `EXPO_PUBLIC_API_URL` em `eas.json` (perfil `development`) ou sobrescreva via secret/`.env` apontando para a API acessível pelo aparelho (LAN, túnel ou stable).
+3. Gere o binário:
+
+```bash
+cd apps/mobile
+eas build --profile development --platform ios     # dispositivo físico (simulator: false)
+eas build --profile development --platform android # APK interno
+```
+
+4. Instale o artefato no aparelho e conecte ao Metro:
+
+```bash
+pnpm start --dev-client
+```
+
+Valide em aparelho real: preview Skia na câmera, moldura de share (fontes `.woff`), drain da fila com app em background/fechado.
+
+Perfil `preview` (`channel: preview`) serve builds internos sem launcher de dev — smoke antes de loja.
+
 ## O que ainda não está
 
-LUT no still, PUT em segundo plano (`URLSession` / WorkManager), feed real, universal links, ícone/fichas das lojas, EAS project id. A captura já deixa o JPEG na fila em disco.
+Universal links, ícone/fichas das lojas, EAS project id no `app.json`. A captura já deixa o JPEG na fila em disco; LUT/Skia, share e fila offline estão no código — falta prova em aparelho via dev client.
