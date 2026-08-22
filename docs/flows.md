@@ -143,7 +143,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Recado (áudio) ✅:** `recado.tsx` toca o áudio dos anfitriões via `expo-av` (`tocarUrl` em `recado-audio.ts`); play/pause; falha soft.
 
-**Compartilhar ✅ (mínimo):** em `photo-detail` (foto própria) → `GET/POST /api/share` + download da full + `expo-sharing`. Moldura Skia 9:16 fica para a próxima leva.
+**Compartilhar ✅:** em `photo-detail` e em Minhas (foto enviada) → `GET/POST /api/share` + composição `compor` (`@albora/core`) + moldura Skia 9:16 (`share-skia-frame.ts`) + `expo-sharing`. Se Skia/compose falhar, cai no arquivo raw (nunca bloqueia). Vídeo usa `chaveThumb`. Fontes do sistema nesta fatia (cores/tokens do evento via `paletteForFrame`).
 
 **Confessionário ✅:** `app/confessional.tsx` lista prompts do pack; abre `/photo?prompt=…&video=1`; `persistCapture` enfileira vídeo com `promptKey` (sem Skia). Link em Missões.
 

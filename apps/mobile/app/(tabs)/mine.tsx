@@ -11,6 +11,7 @@ import {
 import { guestQueue } from "../../src/disk";
 import { loadSession, type ModoInteracao } from "../../src/feed";
 import type { GuestSession } from "../../src/session";
+import { compartilharFotoPropria } from "../../src/share";
 
 function EstadoBadge({ tipo }: { tipo: MinhaFoto["tipo"] }) {
   if (tipo === "enviada") return null;
@@ -33,14 +34,19 @@ function EstadoBadge({ tipo }: { tipo: MinhaFoto["tipo"] }) {
 function ItemFoto({
   foto,
   removendo,
+  compartilhando,
   onRemover,
+  onCompartilhar,
   onAbrir,
 }: {
   foto: MinhaFoto;
   removendo: boolean;
+  compartilhando: boolean;
   onRemover: (foto: MinhaFoto) => void;
+  onCompartilhar: (foto: MinhaFoto) => void;
   onAbrir: (foto: MinhaFoto) => void;
 }) {
+  const ocupado = removendo || compartilhando;
   return (
     <View className="mb-4 overflow-hidden rounded-2xl bg-superficie">
       <Pressable
@@ -61,7 +67,7 @@ function ItemFoto({
             <View className="aspect-[4/5] w-full bg-superficie-alta" />
           )}
           <EstadoBadge tipo={foto.tipo} />
-          {removendo ? (
+          {ocupado ? (
             <View className="absolute inset-0 items-center justify-center bg-bg/60">
               <ActivityIndicator />
             </View>
@@ -74,17 +80,32 @@ function ItemFoto({
         ) : null}
       </Pressable>
 
-      <Pressable
-        onPress={() => onRemover(foto)}
-        accessibilityRole="button"
-        accessibilityLabel="Remover foto"
-        className="border-t border-linha px-3 py-2"
-        disabled={removendo}
-      >
-        <Text tone="muted" className="text-center text-xs">
-          {removendo ? "Removendo…" : "Remover"}
-        </Text>
-      </Pressable>
+      <View className="flex-row border-t border-linha">
+        {foto.tipo === "enviada" ? (
+          <Pressable
+            onPress={() => onCompartilhar(foto)}
+            accessibilityRole="button"
+            accessibilityLabel="Compartilhar foto"
+            className="flex-1 px-2 py-2"
+            disabled={ocupado}
+          >
+            <Text tone="muted" className="text-center text-xs">
+              {compartilhando ? "…" : "↗ Compartilhar"}
+            </Text>
+          </Pressable>
+        ) : null}
+        <Pressable
+          onPress={() => onRemover(foto)}
+          accessibilityRole="button"
+          accessibilityLabel="Remover foto"
+          className="flex-1 border-l border-linha px-2 py-2"
+          disabled={ocupado}
+        >
+          <Text tone="muted" className="text-center text-xs">
+            {removendo ? "Removendo…" : "Remover"}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -97,6 +118,7 @@ export default function MineScreen() {
   const [semSessao, setSemSessao] = useState(false);
   const [session, setSession] = useState<GuestSession | null>(null);
   const [removendoId, setRemovendoId] = useState<string | null>(null);
+  const [compartilhandoId, setCompartilhandoId] = useState<string | null>(null);
   const interacaoRef = useRef<ModoInteracao>("espelho");
 
   const carregar = useCallback(async () => {
@@ -172,7 +194,7 @@ export default function MineScreen() {
   );
 
   async function remover(foto: MinhaFoto) {
-    if (removendoId !== null) return;
+    if (removendoId !== null || compartilhandoId !== null) return;
     setRemovendoId(foto.id);
     try {
       if (foto.tipo === "enviada") {
@@ -192,6 +214,28 @@ export default function MineScreen() {
       setRemovendoId(null);
     }
   }
+
+  const compartilhar = useCallback(
+    async (foto: MinhaFoto) => {
+      if (foto.tipo !== "enviada" || !session || compartilhandoId !== null) return;
+      setCompartilhandoId(foto.id);
+      try {
+        const r = await compartilharFotoPropria({
+          session,
+          uploadId: foto.id,
+          chaveFull: foto.chaveFull,
+        });
+        if (!r.ok) {
+          Alert.alert("Compartilhar", r.erro);
+        }
+      } catch {
+        Alert.alert("Compartilhar", "Não deu para compartilhar agora.");
+      } finally {
+        setCompartilhandoId(null);
+      }
+    },
+    [session, compartilhandoId],
+  );
 
   if (loading) {
     return (
@@ -244,7 +288,9 @@ export default function MineScreen() {
             <ItemFoto
               foto={item}
               removendo={removendoId === item.id}
+              compartilhando={compartilhandoId === item.id}
               onRemover={confirmarRemocao}
+              onCompartilhar={(f) => void compartilhar(f)}
               onAbrir={abrirDetalhe}
             />
           </View>
