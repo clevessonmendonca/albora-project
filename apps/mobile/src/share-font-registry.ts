@@ -4,7 +4,7 @@
  */
 import { Asset } from "expo-asset";
 import { Skia, matchFont, type SkFont, type SkTypefaceFontProvider } from "@shopify/react-native-skia";
-import { primeiraFamiliaFonte } from "./share-font-stack";
+import { familiaEmbutidaDaStack, primeiraFamiliaFonte } from "./share-font-stack";
 import { SHARE_FONT_MODULES } from "./share-font-modules";
 
 const FAMILIAS_EMBUTIDAS = ["Fraunces", "Instrument Sans"] as const;
@@ -14,11 +14,6 @@ const MODULOS: Record<FamiliaEmbutida, number> = SHARE_FONT_MODULES;
 
 let provider: SkTypefaceFontProvider | null = null;
 let carregando: Promise<void> | null = null;
-
-function familiaEmbutida(nome: string): FamiliaEmbutida | null {
-  if (nome === "Fraunces" || nome === "Instrument Sans") return nome;
-  return null;
-}
 
 async function registrarFamilia(mgr: SkTypefaceFontProvider, familia: FamiliaEmbutida): Promise<void> {
   const asset = Asset.fromModule(MODULOS[familia]);
@@ -63,8 +58,8 @@ export function matchShareFont(opts: {
   size: number;
   weight?: "normal" | "bold";
 }): SkFont {
-  const familia = primeiraFamiliaFonte(opts.stack);
-  const embutida = familiaEmbutida(familia);
+  const embutida = familiaEmbutidaDaStack(opts.stack);
+  const familia = embutida ?? primeiraFamiliaFonte(opts.stack);
   const style = {
     fontFamily: embutida ?? familia,
     fontSize: opts.size,

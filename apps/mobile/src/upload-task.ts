@@ -11,7 +11,7 @@ TaskManager.defineTask(GUEST_UPLOAD_TASK, async () => {
     const session = await loadSession();
     if (!session) return TaskManager.BackgroundFetchResult.NoData;
 
-    const summary = await drainGuestQueue(guestQueue());
+    const summary = await drainGuestQueue(guestQueue(), "background");
     if (summary.enviados > 0 || summary.retentar > 0) {
       return TaskManager.BackgroundFetchResult.NewData;
     }

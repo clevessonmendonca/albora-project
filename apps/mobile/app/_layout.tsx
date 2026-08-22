@@ -30,7 +30,7 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    return subscribeForegroundDrain(() => drainGuestQueue(guestQueue()));
+    return subscribeForegroundDrain(() => drainGuestQueue(guestQueue(), "foreground"));
   }, []);
 
   useEffect(() => {

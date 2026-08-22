@@ -3,7 +3,9 @@ import { Image, Pressable, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Button, Screen, Text } from "@albora/ui-native";
 import { guestQueue } from "../src/disk";
-import { drainGuestQueue } from "../src/drain-guest";
+import { drainGuestQueue, readDrainTelemetry } from "../src/drain-guest";
+import { lerStatusBackgroundFetch } from "../src/background-status";
+import { resumoDrainTexto, type DrainTelemetry } from "../src/drain-telemetry";
 import { linhasDaFila, type LinhaFila } from "../src/queue-status";
 import { reiniciarTodosFalhos } from "../src/queue-retry";
 
@@ -11,10 +13,15 @@ export default function QueueScreen() {
   const router = useRouter();
   const [linhas, setLinhas] = useState<LinhaFila[]>([]);
   const [drenando, setDrenando] = useState(false);
+  const [telemetria, setTelemetria] = useState<DrainTelemetry | null>(null);
+  const [bgRotulo, setBgRotulo] = useState<string | null>(null);
 
   const recarregar = useCallback(async () => {
     const itens = await guestQueue().list();
     setLinhas(linhasDaFila(itens, { enviandoId: drenando ? "primeiro" : null }));
+    setTelemetria(await readDrainTelemetry());
+    const bg = await lerStatusBackgroundFetch();
+    setBgRotulo(bg.rotulo);
   }, [drenando]);
 
   useEffect(() => {
@@ -25,7 +32,7 @@ export default function QueueScreen() {
     setDrenando(true);
     try {
       await reiniciarTodosFalhos(guestQueue());
-      await drainGuestQueue(guestQueue());
+      await drainGuestQueue(guestQueue(), "manual");
     } finally {
       setDrenando(false);
       await recarregar();
@@ -98,6 +105,13 @@ export default function QueueScreen() {
           ) : null}
         </View>
       </View>
+
+      {telemetria ? (
+        <Text tone="muted" className="mt-4 px-1 text-xs leading-relaxed">
+          {resumoDrainTexto(telemetria)}
+          {bgRotulo ? `\nBackground fetch: ${bgRotulo}.` : ""}
+        </Text>
+      ) : null}
     </Screen>
   );
 }

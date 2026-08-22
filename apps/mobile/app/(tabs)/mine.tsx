@@ -320,6 +320,7 @@ export default function MineScreen() {
   }, [session, selecionadas, colando]);
 
   const enviadasCount = fotos.filter((f) => f.tipo === "enviada").length;
+  const filaLocal = fotos.filter((f) => f.tipo !== "enviada").length;
   const enviadas = fotos.filter((f): f is MinhaFotoEnviada => f.tipo === "enviada");
   const idsRecap = useMemo(
     () => (session ? idsDoRecap(enviadas, session.eventoId) : []),
@@ -386,6 +387,19 @@ export default function MineScreen() {
           </Pressable>
         ) : null}
       </View>
+
+      {filaLocal > 0 ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Ver fila de envio"
+          onPress={() => router.push("/queue")}
+          className="mb-3 rounded-token border border-linha bg-superficie px-4 py-3"
+        >
+          <Text tone="accent" className="text-sm">
+            Ver fila → {filaLocal === 1 ? "1 pendente" : `${filaLocal} pendentes`}
+          </Text>
+        </Pressable>
+      ) : null}
 
       {recapTexto ? (
         <View className="mb-3 rounded-token border border-linha bg-superficie px-4 py-3">
