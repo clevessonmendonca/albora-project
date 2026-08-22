@@ -4,6 +4,7 @@ import {
   criarCodigoPareamentoApp,
   ErroResgateDePareamento,
   resgatarCodigoPareamentoApp,
+  resgatarPassagemPareamentoApp,
 } from "./app-pairing";
 import { criarSessao, resolverSessao } from "./sessions";
 import { prepararBanco, semear } from "./testes/banco";
@@ -41,6 +42,7 @@ describe("pareamento web → app", () => {
 
     const { code } = await criarCodigoPareamentoApp(
       app,
+      SEGREDO,
       dados.a.eventoId,
       sessaoId,
       daqui(15),
@@ -56,6 +58,49 @@ describe("pareamento web → app", () => {
     expect(depois).toEqual({ eventoId: dados.a.eventoId, sessaoId });
   });
 
+  it("passagem one-shot resgata a mesma sessao sem digitar codigo", async () => {
+    const { sessaoId } = await criarSessao(app, SEGREDO, {
+      eventoId: dados.a.eventoId,
+      nome: "Luiza",
+      consentimentoVersao: "v1",
+      duracaoHoras: 48,
+    });
+
+    const { passagem } = await criarCodigoPareamentoApp(
+      app,
+      SEGREDO,
+      dados.a.eventoId,
+      sessaoId,
+      daqui(15),
+    );
+
+    const resgatado = await resgatarPassagemPareamentoApp(app, SEGREDO, passagem, 48, new Date());
+    expect(resgatado.sessaoId).toBe(sessaoId);
+    expect(resgatado.slug).toBe("evento-a");
+  });
+
+  it("passagem e codigo compartilham o mesmo consumo — so um resgate", async () => {
+    const { sessaoId } = await criarSessao(app, SEGREDO, {
+      eventoId: dados.a.eventoId,
+      nome: "Rafa",
+      consentimentoVersao: "v1",
+      duracaoHoras: 48,
+    });
+
+    const { code, passagem } = await criarCodigoPareamentoApp(
+      app,
+      SEGREDO,
+      dados.a.eventoId,
+      sessaoId,
+      daqui(15),
+    );
+
+    await resgatarPassagemPareamentoApp(app, SEGREDO, passagem, 48, new Date());
+    await expect(
+      resgatarCodigoPareamentoApp(app, SEGREDO, code, 48, new Date()),
+    ).rejects.toMatchObject({ motivo: "ja_usado" });
+  });
+
   it("consome uma vez so: o segundo resgate falha", async () => {
     const { sessaoId } = await criarSessao(app, SEGREDO, {
       eventoId: dados.a.eventoId,
@@ -66,6 +111,7 @@ describe("pareamento web → app", () => {
 
     const { code } = await criarCodigoPareamentoApp(
       app,
+      SEGREDO,
       dados.a.eventoId,
       sessaoId,
       daqui(15),
@@ -87,6 +133,7 @@ describe("pareamento web → app", () => {
 
     const { code } = await criarCodigoPareamentoApp(
       app,
+      SEGREDO,
       dados.a.eventoId,
       sessaoId,
       daqui(-1),
@@ -101,6 +148,12 @@ describe("pareamento web → app", () => {
     ).rejects.toMatchObject({ motivo: "desconhecido" });
   });
 
+  it("passagem forjada recusa sem tocar no banco util", async () => {
+    await expect(
+      resgatarPassagemPareamentoApp(app, SEGREDO, "forjado.sem-assinatura", 48, new Date()),
+    ).rejects.toMatchObject({ motivo: "desconhecido" });
+  });
+
   it("novo codigo cancela o pendente anterior da mesma sessao", async () => {
     const { sessaoId } = await criarSessao(app, SEGREDO, {
       eventoId: dados.a.eventoId,
@@ -111,11 +164,12 @@ describe("pareamento web → app", () => {
 
     const primeiro = await criarCodigoPareamentoApp(
       app,
+      SEGREDO,
       dados.a.eventoId,
       sessaoId,
       daqui(15),
     );
-    await criarCodigoPareamentoApp(app, dados.a.eventoId, sessaoId, daqui(15));
+    await criarCodigoPareamentoApp(app, SEGREDO, dados.a.eventoId, sessaoId, daqui(15));
 
     await expect(
       resgatarCodigoPareamentoApp(app, SEGREDO, primeiro.code, 48, new Date()),

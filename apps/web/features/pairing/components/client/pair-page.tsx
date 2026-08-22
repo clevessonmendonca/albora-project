@@ -1,6 +1,9 @@
 "use client";
 
-import { appPairSchemeLink, appPairUniversalLink } from "@albora/core";
+import {
+  appPairSchemeLinkPassagem,
+  appPairUniversalLinkPassagem,
+} from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PrimaryButton, SecondaryButton } from "@albora/ui-web";
@@ -11,6 +14,7 @@ export function PairPage({ slug }: { slug: string }) {
   const router = useRouter();
   const [estado, setEstado] = useState<Estado>("carregando");
   const [codigo, setCodigo] = useState<string | null>(null);
+  const [passagem, setPassagem] = useState<string | null>(null);
   const [expiraEm, setExpiraEm] = useState<Date | null>(null);
   const vivo = useRef(true);
 
@@ -29,9 +33,10 @@ export function PairPage({ slug }: { slug: string }) {
         if (vivo.current) setEstado("erro");
         return;
       }
-      const corpo = (await r.json()) as { codigo: string; expiraEm: string };
+      const corpo = (await r.json()) as { codigo: string; expiraEm: string; passagem?: string };
       if (!vivo.current) return;
       setCodigo(corpo.codigo);
+      setPassagem(typeof corpo.passagem === "string" ? corpo.passagem : null);
       setExpiraEm(new Date(corpo.expiraEm));
       setEstado("pronto");
     } catch {
@@ -49,8 +54,8 @@ export function PairPage({ slug }: { slug: string }) {
 
   const base = `/e/${encodeURIComponent(slug)}`;
   const webOrigin = typeof window !== "undefined" ? window.location.origin : "https://albora.app";
-  const appLink = codigo ? appPairSchemeLink(codigo) : null;
-  const universalLink = codigo ? appPairUniversalLink(webOrigin, slug, codigo) : null;
+  const appLink = passagem ? appPairSchemeLinkPassagem(passagem) : null;
+  const universalLink = passagem ? appPairUniversalLinkPassagem(webOrigin, slug, passagem) : null;
 
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center bg-bg p-6 font-corpo text-ink">

@@ -1,10 +1,11 @@
-import { criarCodigoPareamentoApp, ErroResgateDePareamento, resgatarCodigoPareamentoApp } from "@albora/db";
+import { criarCodigoPareamentoApp, ErroResgateDePareamento, resgatarCodigoPareamentoApp, resgatarPassagemPareamentoApp } from "@albora/db";
 import {
   enforceRateLimit,
   errorResponse,
   jsonOk,
   parseFourDigitCode,
   parseJsonBody,
+  parsePassagemToken,
   requireConfig,
   requireGuestSession,
   sessionCookieHeader,
@@ -16,12 +17,13 @@ import { consume } from "@/lib/rate-limit-store";
 
 const CODE_TTL_MINUTES = 15;
 
-type RedeemBody = { codigo?: unknown };
+type RedeemBody = { codigo?: unknown; passagem?: unknown };
 
 /**
  * A web gera o codigo de 4 digitos para o app resgatar (spec A-11).
  *
  * O evento e a sessao vêm do cookie de quem já entrou — nunca do corpo.
+ * Também emite um token de passagem one-shot (ADR 0009) para link universal.
  */
 export async function postPairCode(req: Request) {
   const configError = requireConfig("app.parear", { log: false });
@@ -37,10 +39,13 @@ export async function postPairCode(req: Request) {
     });
   }
 
+  const cfg = config();
+
   try {
     const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000);
-    const { code, expiraEm: expires } = await criarCodigoPareamentoApp(
+    const { code, expiraEm: expires, passagem } = await criarCodigoPareamentoApp(
       getPool(),
+      cfg.sessionSecret,
       auth.session.eventoId,
       auth.session.sessaoId,
       expiresAt,
@@ -56,6 +61,7 @@ export async function postPairCode(req: Request) {
       codigo: code,
       expiraEm: expires.toISOString(),
       validadeMinutos: CODE_TTL_MINUTES,
+      passagem,
     });
   } catch (e) {
     return unexpectedError("app.parear", e);
@@ -63,9 +69,9 @@ export async function postPairCode(req: Request) {
 }
 
 /**
- * O app instalado digita o codigo e recebe a sessao da web (spec A-11).
+ * O app instalado resgata codigo ou passagem e recebe a sessao da web (spec A-11).
  *
- * Sem sessao previa: o codigo *é* a credencial. Resposta traz slug, sessaoId e
+ * Sem sessao previa: a credencial *é* o ticket. Resposta traz slug, sessaoId e
  * eventoId; o token vai no cookie HttpOnly (e no corpo para o cliente nativo).
  */
 export async function postRedeemPairCode(req: Request) {
@@ -81,19 +87,36 @@ export async function postRedeemPairCode(req: Request) {
   const parsed = await parseJsonBody<RedeemBody>(req);
   if (parsed instanceof Response) return parsed;
 
-  const code = parseFourDigitCode(parsed.data.codigo);
-  if (code instanceof Response) return code;
-
   const cfg = config();
+  const passagemRaw = typeof parsed.data.passagem === "string" ? parsed.data.passagem.trim() : "";
 
   try {
-    const redeemed = await resgatarCodigoPareamentoApp(
-      getPool(),
-      cfg.sessionSecret,
-      code,
-      cfg.duracaoSessaoHoras,
-      new Date(),
-    );
+    const redeemed =
+      passagemRaw.length > 0
+        ? await (async () => {
+            const passagem = parsePassagemToken(passagemRaw);
+            if (passagem instanceof Response) return passagem;
+            return resgatarPassagemPareamentoApp(
+              getPool(),
+              cfg.sessionSecret,
+              passagem,
+              cfg.duracaoSessaoHoras,
+              new Date(),
+            );
+          })()
+        : await (async () => {
+            const code = parseFourDigitCode(parsed.data.codigo);
+            if (code instanceof Response) return code;
+            return resgatarCodigoPareamentoApp(
+              getPool(),
+              cfg.sessionSecret,
+              code,
+              cfg.duracaoSessaoHoras,
+              new Date(),
+            );
+          })();
+
+    if (redeemed instanceof Response) return redeemed;
 
     console.log("app.pareamento_resgatado", {
       eventoId: redeemed.eventoId,

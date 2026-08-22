@@ -343,6 +343,7 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
       "event_id",
       "expires_at",
       "id",
+      "passagem_token_hash",
       "session_id",
       "status",
     ]);

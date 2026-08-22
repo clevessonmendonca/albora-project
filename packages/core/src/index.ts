@@ -113,6 +113,11 @@ export {
   caminhoDoEvento,
 } from "./qr";
 export { appPairSchemeLink, appPairUniversalLink, appPairUniversalPath } from "./app-pair-link";
+export {
+  appPairSchemeLinkPassagem,
+  appPairUniversalLinkPassagem,
+  appPairUniversalPathPassagem,
+} from "./app-pair-link";
 export { GUEST_SESSION_COOKIE } from "./sessao-cookie";
 
 export type {

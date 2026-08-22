@@ -20,3 +20,12 @@ export function parseFourDigitCode(value: unknown): string | Response {
   }
   return codigo;
 }
+
+/** Token opaco de passagem — mesmo formato do token de sessão. */
+export function parsePassagemToken(value: string): string | Response {
+  const passagem = value.trim();
+  if (!/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(passagem)) {
+    return errorResponse(422, "validation_error", "Passagem inválida", { campos: ["passagem"] });
+  }
+  return passagem;
+}

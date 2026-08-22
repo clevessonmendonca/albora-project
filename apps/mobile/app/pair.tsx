@@ -4,30 +4,38 @@ import * as Linking from "expo-linking";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { Button, Screen, Text } from "@albora/ui-native";
-import { parsePairCodigoFromUrl } from "../src/pair-link";
+import { parsePairCodigoFromUrl, parsePairPassagemFromUrl } from "../src/pair-link";
 import { parseRedeemResponse, redeemUrl, SESSION_STORE_KEY } from "../src/session";
 
 const HOUSES = 4;
+
+type RedeemPayload = { codigo?: string; passagem?: string };
 
 export default function PairScreen() {
   const router = useRouter();
   const refs = useRef<Array<TextInput | null>>([]);
   const [digits, setDigits] = useState<string[]>(() => Array(HOUSES).fill(""));
   const [state, setState] = useState<"edit" | "sending" | "refused" | "error">("edit");
-  const [autoRedeem, setAutoRedeem] = useState(false);
+  const [autoRedeem, setAutoRedeem] = useState<RedeemPayload | null>(null);
 
   const code = digits.join("");
   const valid = /^\d{4}$/.test(code);
 
   const redeem = useCallback(
-    async (codeToRedeem: string) => {
-      if (!/^\d{4}$/.test(codeToRedeem)) return;
-      setState("sending");
+    async (payload: RedeemPayload) => {
+      if (payload.passagem) {
+        setState("sending");
+      } else if (!payload.codigo || !/^\d{4}$/.test(payload.codigo)) {
+        return;
+      } else {
+        setState("sending");
+      }
+
       try {
         const response = await fetch(redeemUrl(), {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ codigo: codeToRedeem }),
+          body: JSON.stringify(payload),
         });
         const body: unknown = await response.json().catch(() => null);
         const session = parseRedeemResponse(body);
@@ -47,11 +55,17 @@ export default function PairScreen() {
 
   useEffect(() => {
     function apply(url: string | null) {
+      const passagem = parsePairPassagemFromUrl(url);
+      if (passagem) {
+        setState("edit");
+        setAutoRedeem({ passagem });
+        return;
+      }
       const preenchido = parsePairCodigoFromUrl(url);
       if (!preenchido) return;
       setDigits(preenchido.split(""));
       setState("edit");
-      setAutoRedeem(true);
+      setAutoRedeem({ codigo: preenchido });
     }
     void Linking.getInitialURL().then(apply);
     const sub = Linking.addEventListener("url", ({ url }) => apply(url));
@@ -59,10 +73,11 @@ export default function PairScreen() {
   }, []);
 
   useEffect(() => {
-    if (!autoRedeem || !valid || state !== "edit") return;
-    setAutoRedeem(false);
-    void redeem(code);
-  }, [autoRedeem, valid, state, code, redeem]);
+    if (!autoRedeem || state !== "edit") return;
+    const payload = autoRedeem;
+    setAutoRedeem(null);
+    void redeem(payload);
+  }, [autoRedeem, state, redeem]);
 
   function update(index: number, value: string) {
     const clean = value.replace(/\D/g, "").slice(-1);
@@ -101,7 +116,7 @@ export default function PairScreen() {
           <Text tone="critical">Código inválido ou expirado. Peça outro na web.</Text>
         ) : null}
         {state === "error" ? <Text tone="critical">Não deu para parear agora. Tente de novo.</Text> : null}
-        <Button onPress={() => void redeem(code)} disabled={!valid || state === "sending"}>
+        <Button onPress={() => void redeem({ codigo: code })} disabled={!valid || state === "sending"}>
           {state === "sending" ? "Entrando…" : "Continuar"}
         </Button>
       </View>

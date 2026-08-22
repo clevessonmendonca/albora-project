@@ -23,3 +23,25 @@ export function appPairUniversalLink(webOrigin: string, slug: string, codigo: st
   const base = webOrigin.replace(/\/$/, "");
   return `${base}${appPairUniversalPath(slug, codigo)}`;
 }
+
+function passagemLimpa(passagem: string): string {
+  const limpa = passagem.trim();
+  if (limpa.length === 0) {
+    throw new Error("passagem de pareamento ausente");
+  }
+  return limpa;
+}
+
+/** Deep link com token one-shot — zero digitação quando o app já está instalado. */
+export function appPairSchemeLinkPassagem(passagem: string): string {
+  return `albora://pair?passagem=${encodeURIComponent(passagemLimpa(passagem))}`;
+}
+
+export function appPairUniversalPathPassagem(slug: string, passagem: string): string {
+  return `/e/${encodeURIComponent(slug)}/pair?passagem=${encodeURIComponent(passagemLimpa(passagem))}`;
+}
+
+export function appPairUniversalLinkPassagem(webOrigin: string, slug: string, passagem: string): string {
+  const base = webOrigin.replace(/\/$/, "");
+  return `${base}${appPairUniversalPathPassagem(slug, passagem)}`;
+}

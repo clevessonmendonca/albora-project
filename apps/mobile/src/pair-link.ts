@@ -5,6 +5,12 @@ function codigoQuatroDigitos(raw: string): string | null {
   return limpo.length === CASAS ? limpo : null;
 }
 
+function passagemDaQuery(raw: string | null): string | null {
+  if (raw === null) return null;
+  const limpa = raw.trim();
+  return limpa.length > 0 ? limpa : null;
+}
+
 /**
  * Extrai o código de pareamento de deep link ou universal link.
  *
@@ -20,6 +26,21 @@ export function parsePairCodigoFromUrl(url: string | null | undefined): string |
   } catch {
     const match = url.match(/[?&]codigo=(\d{1,4})/i);
     if (match?.[1]) return codigoQuatroDigitos(match[1]);
+  }
+
+  return null;
+}
+
+/** Token one-shot da passagem web→app (ADR 0009). */
+export function parsePairPassagemFromUrl(url: string | null | undefined): string | null {
+  if (url === null || url === undefined || url.trim() === "") return null;
+
+  try {
+    const parsed = new URL(url);
+    return passagemDaQuery(parsed.searchParams.get("passagem"));
+  } catch {
+    const match = url.match(/[?&]passagem=([^&]+)/i);
+    if (match?.[1]) return passagemDaQuery(decodeURIComponent(match[1]));
   }
 
   return null;

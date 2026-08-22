@@ -58,6 +58,7 @@ export {
   criarCodigoPareamentoApp,
   ErroResgateDePareamento,
   resgatarCodigoPareamentoApp,
+  resgatarPassagemPareamentoApp,
 } from "./app-pairing";
 export type { MotivoParedeInvalida, ParedeResolvida } from "./wall";
 export {
