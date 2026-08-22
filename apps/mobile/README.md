@@ -66,6 +66,8 @@ Valide em aparelho real: preview Skia na câmera, moldura de share (fontes `.wof
 
 Perfil `preview` (`channel: preview`) serve builds internos sem launcher de dev — smoke antes de loja.
 
+Checklist completo: [`docs/runbooks/dev-client-smoke.md`](../../docs/runbooks/dev-client-smoke.md).
+
 ## O que ainda não está
 
 Universal links, ícone/fichas das lojas, EAS project id no `app.json`. A captura já deixa o JPEG na fila em disco; LUT/Skia, share e fila offline estão no código — falta prova em aparelho via dev client.
