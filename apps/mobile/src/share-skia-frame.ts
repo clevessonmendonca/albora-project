@@ -25,6 +25,7 @@ import {
   type ConteudoDaMoldura,
 } from "@albora/core";
 import type { FramePalette } from "./share-frame-palette";
+import { primeiraFamiliaFonte } from "./share-font-stack";
 
 function paintHex(hex: string): SkPaint {
   const paint = Skia.Paint();
@@ -32,9 +33,9 @@ function paintHex(hex: string): SkPaint {
   return paint;
 }
 
-function fontOf(size: number, weight: "normal" | "bold" = "normal"): SkFont {
+function fontOf(size: number, stack: string, weight: "normal" | "bold" = "normal"): SkFont {
   return matchFont({
-    fontFamily: "System",
+    fontFamily: primeiraFamiliaFonte(stack),
     fontSize: size,
     fontWeight: weight === "bold" ? "600" : "400",
     fontStyle: "normal",
@@ -103,24 +104,24 @@ function desenharFaixa(
     paintHex(paleta.superficie),
   );
 
-  drawCenteredText(canvas, conteudo.monograma, cx, y, fontOf(64, "bold"), paintHex(paleta.acento));
+  drawCenteredText(canvas, conteudo.monograma, cx, y, fontOf(64, paleta.fonteTitulo, "bold"), paintHex(paleta.acento));
   y += 56;
 
-  drawCenteredText(canvas, conteudo.titulo, cx, y, fontOf(36), paintHex(paleta.ink));
+  drawCenteredText(canvas, conteudo.titulo, cx, y, fontOf(36, paleta.fonteTitulo), paintHex(paleta.ink));
   y += 44;
 
-  drawCenteredText(canvas, conteudo.data, cx, y, fontOf(26), paintHex(paleta.ink2));
+  drawCenteredText(canvas, conteudo.data, cx, y, fontOf(26, paleta.fonteCorpo), paintHex(paleta.ink2));
   y += 36;
 
   if (conteudo.credito) {
-    drawCenteredText(canvas, conteudo.credito, cx, y, fontOf(26), paintHex(paleta.ink2));
+    drawCenteredText(canvas, conteudo.credito, cx, y, fontOf(26, paleta.fonteCorpo), paintHex(paleta.ink2));
     y += 32;
   }
 
   if (conteudo.legenda) {
     const legenda =
       conteudo.legenda.length > 80 ? `${conteudo.legenda.slice(0, 77)}…` : conteudo.legenda;
-    drawCenteredText(canvas, legenda, cx, y, fontOf(22), paintHex(paleta.ink2));
+    drawCenteredText(canvas, legenda, cx, y, fontOf(22, paleta.fonteCorpo), paintHex(paleta.ink2));
   }
 
   drawCenteredText(
@@ -128,7 +129,7 @@ function desenharFaixa(
     `albora.app/e/${conteudo.slug}`,
     cx,
     faixa.y + faixa.altura - 36,
-    fontOf(22),
+    fontOf(22, paleta.fonteCorpo),
     paintHex(paleta.ink2),
   );
 }

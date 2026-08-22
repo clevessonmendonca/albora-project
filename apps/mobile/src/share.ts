@@ -13,6 +13,7 @@ import {
   type ShareContext,
 } from "./share-compose";
 import type { FramePalette } from "./share-frame-palette";
+import { RECAP_MINIMO } from "./recap-select";
 
 export type { ShareContext } from "./share-compose";
 export {
@@ -321,5 +322,122 @@ export async function compartilharColagem(opts: {
     return { ok: true };
   } catch {
     return { ok: false, erro: "Não deu para compartilhar a colagem agora." };
+  }
+}
+
+/**
+ * Recap da noite — até 10 fotos com moldura, uma folha nativa por arquivo
+ * (paridade com o fallback web quando `navigator.share` não aceita vários).
+ * Fotos que falham na autorização/composição são puladas sem derrubar as outras.
+ */
+export async function compartilharRecap(opts: {
+  session: GuestSession;
+  uploadIds: string[];
+  fetchFn?: typeof fetch;
+  renderFrame?: RenderShareFrameFn;
+  measureImage?: (bytes: Uint8Array) => { largura: number; altura: number };
+  downloadAsync?: typeof FileSystem.downloadAsync;
+  readBase64?: (uri: string) => Promise<string>;
+  writeBase64?: (uri: string, b64: string) => Promise<void>;
+  shareAsync?: typeof Sharing.shareAsync;
+  isAvailableAsync?: typeof Sharing.isAvailableAsync;
+}): Promise<{ ok: true; compartilhados: number } | { ok: false; erro: string }> {
+  const fetchFn = opts.fetchFn ?? fetch;
+  const downloadAsync = opts.downloadAsync ?? FileSystem.downloadAsync;
+  const shareAsync = opts.shareAsync ?? Sharing.shareAsync;
+  const isAvailableAsync = opts.isAvailableAsync ?? Sharing.isAvailableAsync;
+  const measureImage = opts.measureImage ?? medirJpeg;
+  const readBase64 =
+    opts.readBase64 ??
+    (async (uri: string) =>
+      FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 }));
+  const writeBase64 =
+    opts.writeBase64 ??
+    (async (uri: string, b64: string) => {
+      await FileSystem.writeAsStringAsync(uri, b64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+    });
+
+  if (opts.uploadIds.length < RECAP_MINIMO) {
+    return { ok: false, erro: "Precisa de pelo menos 3 fotos para o recap." };
+  }
+
+  const available = await isAvailableAsync();
+  if (!available) return { ok: false, erro: "Compartilhar não está disponível neste aparelho." };
+
+  let consentOk = false;
+  const cache = FileSystem.cacheDirectory ?? "";
+  const uris: string[] = [];
+
+  try {
+    const render =
+      opts.renderFrame ?? (await import("./share-skia-frame")).renderShareFrame;
+
+    for (const uploadId of opts.uploadIds) {
+      const ctx = await fetchShareContext(opts.session, uploadId, fetchFn);
+      if (!ctx) continue;
+      if (ctx.evento.panico || ctx.midia.removida) continue;
+      if (!ctx.evento.compartilhamentoExternoLiberado) continue;
+
+      if (!consentOk && !ctx.sessao.consentimentoExterno) {
+        const ok = await registrarConsentimentoExterno(opts.session, true, fetchFn);
+        if (!ok) return { ok: false, erro: "Confirme o consentimento e tente de novo." };
+        consentOk = true;
+      }
+
+      const chave = chaveParaMoldura(ctx);
+      const urls = await signMediaUrls(opts.session, [chave], fetchFn);
+      const url = urls.find((u) => u.chave === chave)?.url ?? urls[0]?.url;
+      if (!url) continue;
+
+      const rawDest = `${cache}albora-recap-raw-${uploadId}.jpg`;
+      const framedDest = `${cache}albora-recap-${uploadId}.jpg`;
+      const dl = await downloadAsync(url, rawDest);
+      let shareUri = dl.uri;
+
+      try {
+        const b64 = await readBase64(dl.uri);
+        const bytes = decodeBase64(b64);
+        const dim = measureImage(bytes);
+        const composed = composeShareFrame({
+          ctx,
+          session: opts.session,
+          largura: dim.largura,
+          altura: dim.altura,
+        });
+        if (!composed.ok) continue;
+
+        const framed = await render({
+          bytes,
+          composicao: composed.composicao,
+          paleta: composed.paleta,
+        });
+        await writeBase64(framedDest, encodeBase64(framed));
+        shareUri = framedDest;
+      } catch {
+        // fallback raw desta foto
+      }
+
+      uris.push(shareUri);
+    }
+
+    if (uris.length === 0) {
+      return { ok: false, erro: "Não deu para montar o recap agora. Tenta de novo em pouco." };
+    }
+
+    for (let i = 0; i < uris.length; i += 1) {
+      await shareAsync(uris[i]!, {
+        mimeType: "image/jpeg",
+        dialogTitle:
+          uris.length > 1
+            ? `Recap da festa (${i + 1}/${uris.length})`
+            : "Recap da festa",
+      });
+    }
+
+    return { ok: true, compartilhados: uris.length };
+  } catch {
+    return { ok: false, erro: "Não deu para compartilhar o recap agora." };
   }
 }

@@ -11,8 +11,9 @@ import {
 import { guestQueue } from "../../src/disk";
 import { loadSession, type ModoInteracao } from "../../src/feed";
 import { buscarRecapPessoal, textoRecap, type RecapPessoal } from "../../src/recap";
+import { idsDoRecap } from "../../src/recap-select";
 import type { GuestSession } from "../../src/session";
-import { compartilharColagem, compartilharFotoPropria, MAX_DA_COLAGEM } from "../../src/share";
+import { compartilharColagem, compartilharFotoPropria, compartilharRecap, MAX_DA_COLAGEM } from "../../src/share";
 
 function EstadoBadge({ tipo }: { tipo: MinhaFoto["tipo"] }) {
   if (tipo === "enviada") return null;
@@ -163,6 +164,7 @@ export default function MineScreen() {
   const [modoColagem, setModoColagem] = useState(false);
   const [selecionadas, setSelecionadas] = useState<string[]>([]);
   const [colando, setColando] = useState(false);
+  const [recapCompartilhando, setRecapCompartilhando] = useState(false);
   const interacaoRef = useRef<ModoInteracao>("espelho");
 
   const carregar = useCallback(async () => {
@@ -317,7 +319,24 @@ export default function MineScreen() {
     }
   }, [session, selecionadas, colando]);
 
+  const compartilharRecapDaNoite = useCallback(async () => {
+    if (!session || recapCompartilhando || idsRecap.length === 0) return;
+    setRecapCompartilhando(true);
+    try {
+      const r = await compartilharRecap({ session, uploadIds: idsRecap });
+      if (!r.ok) {
+        Alert.alert("Recap", r.erro);
+      }
+    } catch {
+      Alert.alert("Recap", "Não deu para compartilhar o recap agora.");
+    } finally {
+      setRecapCompartilhando(false);
+    }
+  }, [session, idsRecap, recapCompartilhando]);
+
   const enviadasCount = fotos.filter((f) => f.tipo === "enviada").length;
+  const enviadas = fotos.filter((f): f is MinhaFotoEnviada => f.tipo === "enviada");
+  const idsRecap = session ? idsDoRecap(enviadas, session.eventoId) : [];
   const recapTexto = recap ? textoRecap(recap) : null;
 
   if (loading) {
@@ -368,6 +387,21 @@ export default function MineScreen() {
       {recapTexto ? (
         <View className="mb-3 rounded-token border border-linha bg-superficie px-4 py-3">
           <Text className="text-sm leading-relaxed">{recapTexto}</Text>
+          {idsRecap.length > 0 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Compartilhar recap da noite"
+              onPress={() => void compartilharRecapDaNoite()}
+              disabled={recapCompartilhando || modoColagem}
+              className={`mt-3 items-center rounded-pilula bg-acento px-4 py-2 ${
+                recapCompartilhando ? "opacity-55" : ""
+              }`}
+            >
+              <Text tone="onAccent" className="text-xs">
+                {recapCompartilhando ? "…" : `↗ Recap (${idsRecap.length} fotos)`}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
 

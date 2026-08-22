@@ -143,9 +143,9 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Recado (áudio) ✅:** `recado.tsx` toca o áudio dos anfitriões via `expo-av` (`tocarUrl` em `recado-audio.ts`); play/pause; falha soft.
 
-**Recap ✅:** card no topo de Minhas via `GET /api/guests/me/recap` (`buscarRecapPessoal` / `textoRecap`) — soft fail, some se zero fotos.
+**Recap ✅:** card no topo de Minhas via `GET /api/guests/me/recap` (`buscarRecapPessoal` / `textoRecap`) — soft fail, some se zero fotos. Com ≥3 fotos enviadas elegíveis, botão **Recap** monta até 10 molduras (`recap-select` + `compartilharRecap`) — uma folha nativa por foto (paridade com fallback web).
 
-**Compartilhar ✅:** em `photo-detail` e em Minhas (foto enviada) → `GET/POST /api/share` + composição `compor` (`@albora/core`) + moldura Skia 9:16 (`share-skia-frame.ts`) + `expo-sharing`. Se Skia/compose falhar, cai no arquivo raw (nunca bloqueia). Vídeo usa `chaveThumb`. Fontes do sistema nesta fatia (cores/tokens do evento via `paletteForFrame`).
+**Compartilhar ✅:** em `photo-detail` e em Minhas (foto enviada) → `GET/POST /api/share` + composição `compor` (`@albora/core`) + moldura Skia 9:16 (`share-skia-frame.ts`) + `expo-sharing`. Se Skia/compose falhar, cai no arquivo raw (nunca bloqueia). Vídeo usa `chaveThumb`. Tipografia da moldura usa a stack resolvida (`paletteForFrame` → `matchFont` com primeira família; Fraunces/Instrument Sans se o SO tiver, senão fallback).
 
 **Colagem ✅:** modo “Colagem” em Minhas (2–4 fotos enviadas) → `compartilharColagem` + `celulasDaColagem` + `renderShareCollage` (Skia). Sem fallback raw.
 

@@ -15,6 +15,7 @@ vi.mock("expo-sharing", () => ({
 
 import {
   compartilharFotoPropria,
+  compartilharRecap,
   fetchShareContext,
   registrarConsentimentoExterno,
 } from "./share";
@@ -156,6 +157,67 @@ describe("compartilharFotoPropria", () => {
     expect(shareAsync).toHaveBeenCalledWith(
       "/tmp/raw.jpg",
       expect.objectContaining({ mimeType: "image/jpeg" }),
+    );
+  });
+});
+
+describe("compartilharRecap", () => {
+  const ids = [
+    "33333333-3333-3333-3333-333333333333",
+    "44444444-4444-4444-4444-444444444444",
+    "55555555-5555-5555-5555-555555555555",
+  ];
+
+  it("recusa com menos de 3 fotos", async () => {
+    const r = await compartilharRecap({
+      session,
+      uploadIds: ids.slice(0, 2),
+      isAvailableAsync: async () => true,
+    });
+    expect(r).toEqual({ ok: false, erro: "Precisa de pelo menos 3 fotos para o recap." });
+  });
+
+  it("compartilha sequencialmente uma folha por foto", async () => {
+    const shareAsync = vi.fn(async () => undefined);
+    const writeBase64 = vi.fn(async () => undefined);
+    const fetchFn = vi.fn(async (url: string) => {
+      if (String(url).includes("/api/share")) return Response.json(apiCtx());
+      if (String(url).includes("/api/media/urls")) {
+        return Response.json({ urls: [{ chave: "e/x/full", url: "https://cdn/x.jpg" }] });
+      }
+      return new Response("no", { status: 404 });
+    });
+
+    const r = await compartilharRecap({
+      session,
+      uploadIds: ids,
+      fetchFn: fetchFn as unknown as typeof fetch,
+      downloadAsync: (async () => ({
+        uri: "/tmp/raw.jpg",
+        status: 200,
+        headers: {},
+        md5: null,
+        mimeType: "image/jpeg",
+      })) as never,
+      readBase64: async () => "AAAA",
+      writeBase64,
+      measureImage: () => ({ largura: 1200, altura: 1600 }),
+      renderFrame: async () => new Uint8Array([1, 2, 3]),
+      shareAsync: shareAsync as never,
+      isAvailableAsync: async () => true,
+    });
+
+    expect(r).toEqual({ ok: true, compartilhados: 3 });
+    expect(shareAsync).toHaveBeenCalledTimes(3);
+    expect(shareAsync).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("albora-recap-"),
+      expect.objectContaining({ dialogTitle: "Recap da festa (1/3)" }),
+    );
+    expect(shareAsync).toHaveBeenNthCalledWith(
+      3,
+      expect.any(String),
+      expect.objectContaining({ dialogTitle: "Recap da festa (3/3)" }),
     );
   });
 });
