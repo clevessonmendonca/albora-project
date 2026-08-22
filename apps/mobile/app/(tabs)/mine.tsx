@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Image, Pressable, View } from "react-native";
+import { useRouter } from "expo-router";
 import { Screen, Text } from "@albora/ui-native";
 import {
   carregarMinhasFotos,
   deletarFotoEnviada,
   type MinhaFoto,
+  type MinhaFotoEnviada,
 } from "../../src/my-photos";
 import { guestQueue } from "../../src/disk";
-import { loadSession } from "../../src/feed";
+import { loadSession, type ModoInteracao } from "../../src/feed";
 import type { GuestSession } from "../../src/session";
 
 function EstadoBadge({ tipo }: { tipo: MinhaFoto["tipo"] }) {
@@ -32,16 +34,20 @@ function ItemFoto({
   foto,
   removendo,
   onRemover,
+  onAbrir,
 }: {
   foto: MinhaFoto;
   removendo: boolean;
   onRemover: (foto: MinhaFoto) => void;
+  onAbrir: (foto: MinhaFoto) => void;
 }) {
   return (
     <View className="mb-4 overflow-hidden rounded-2xl bg-superficie">
       <Pressable
+        onPress={() => onAbrir(foto)}
         onLongPress={() => onRemover(foto)}
-        accessibilityLabel="Manter pressionado para remover"
+        accessibilityRole="button"
+        accessibilityLabel={foto.tipo === "enviada" ? "Ver foto" : "Manter pressionado para remover"}
         delayLongPress={400}
       >
         <View className="relative aspect-[4/5] w-full">
@@ -84,12 +90,14 @@ function ItemFoto({
 }
 
 export default function MineScreen() {
+  const router = useRouter();
   const [fotos, setFotos] = useState<MinhaFoto[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState(false);
   const [semSessao, setSemSessao] = useState(false);
   const [session, setSession] = useState<GuestSession | null>(null);
   const [removendoId, setRemovendoId] = useState<string | null>(null);
+  const interacaoRef = useRef<ModoInteracao>("espelho");
 
   const carregar = useCallback(async () => {
     setErro(false);
@@ -104,6 +112,7 @@ export default function MineScreen() {
       setSemSessao(false);
       const resultado = await carregarMinhasFotos(s, guestQueue());
       setFotos(resultado.fotos);
+      interacaoRef.current = resultado.interacao === "completo" ? "completo" : "espelho";
     } catch {
       setErro(true);
     } finally {
@@ -137,6 +146,29 @@ export default function MineScreen() {
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [removendoId, session],
+  );
+
+  const abrirDetalhe = useCallback(
+    (foto: MinhaFoto) => {
+      if (foto.tipo !== "enviada") {
+        Alert.alert("Foto em processamento", "Esta foto ainda está sendo enviada.");
+        return;
+      }
+      const enviada = foto as MinhaFotoEnviada;
+      router.push({
+        pathname: "/photo-detail",
+        params: {
+          uploadId: enviada.id,
+          chaveFull: enviada.chaveFull,
+          interacao: interacaoRef.current,
+          minha: "1",
+          autor: enviada.autor,
+          reacoes: String(enviada.reacoes ?? 0),
+          minhaReacao: "",
+        },
+      });
+    },
+    [router],
   );
 
   async function remover(foto: MinhaFoto) {
@@ -213,6 +245,7 @@ export default function MineScreen() {
               foto={item}
               removendo={removendoId === item.id}
               onRemover={confirmarRemocao}
+              onAbrir={abrirDetalhe}
             />
           </View>
         )}
