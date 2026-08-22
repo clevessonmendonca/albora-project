@@ -10,6 +10,7 @@ import {
 import { diskFiles } from "./disk";
 import { loadSession } from "./feed";
 import { putFileFromDisk } from "./put-file";
+import { estaOnline } from "./online";
 import { drainFileQueue as drainWithSession } from "./upload";
 
 const TELEMETRY_FILE = "albora-drain-telemetry.json";
@@ -44,11 +45,13 @@ export async function drainGuestQueue(
 ): Promise<DrainSummary> {
   const session = await loadSession();
   const files = diskFiles();
+  const online = await estaOnline();
   const summary = await drainWithSession(queue, {
     session,
     readBytes: (path) => files.readAll(path),
     removeFile: (path) => files.remove(path),
     putFile: putFileFromDisk,
+    online: () => online,
   });
 
   await persistDrainTelemetry(telemetryFromSummary(summary, origem), writeTelemetryFile, TELEMETRY_FILE);

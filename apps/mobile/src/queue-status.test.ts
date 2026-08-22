@@ -39,6 +39,10 @@ describe("rotuloEstadoFila", () => {
   it("sem sinal após retry", () => {
     expect(rotuloEstadoFila(item({ tentativas: 2 }), {}).estado).toBe("Na fila · sem sinal");
   });
+
+  it("offline sem tentativas", () => {
+    expect(rotuloEstadoFila(item(), { online: false }).estado).toBe("Na fila · offline");
+  });
 });
 
 describe("linhasDaFila", () => {

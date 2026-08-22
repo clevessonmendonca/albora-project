@@ -23,13 +23,19 @@ export function caminhoPreviewItem(item: QueueItem): string | null {
 /** Rótulos da tela Fila — espelha o catálogo `/telas`. */
 export function rotuloEstadoFila(
   item: QueueItem,
-  opts: { enviandoAgora?: boolean },
+  opts: { enviandoAgora?: boolean; online?: boolean },
 ): Pick<LinhaFila, "estado" | "falhou"> {
   if (shouldGiveUp(item)) {
     return { estado: "Falhou · tentar de novo", falhou: true };
   }
   if (opts.enviandoAgora) {
     return { estado: "Enviando…", falhou: false };
+  }
+  if (opts.online === false) {
+    return {
+      estado: item.tentativas > 0 ? "Na fila · sem sinal" : "Na fila · offline",
+      falhou: false,
+    };
   }
   if (item.tentativas > 0) {
     return { estado: "Na fila · sem sinal", falhou: false };
@@ -39,12 +45,15 @@ export function rotuloEstadoFila(
 
 export function linhasDaFila(
   itens: QueueItem[],
-  opts: { enviandoId?: string | null },
+  opts: { enviandoId?: string | null; online?: boolean },
 ): LinhaFila[] {
   const ordenados = [...itens].sort((a, b) => b.criadoEm - a.criadoEm);
   return ordenados.map((item, index) => {
     const enviandoAgora = opts.enviandoId === item.id || (index === 0 && opts.enviandoId === "primeiro");
-    const { estado, falhou } = rotuloEstadoFila(item, { enviandoAgora });
+    const { estado, falhou } = rotuloEstadoFila(item, {
+      enviandoAgora,
+      online: opts.online,
+    });
     return {
       id: item.id,
       tipo: tipoMidiaFila(item.mime),

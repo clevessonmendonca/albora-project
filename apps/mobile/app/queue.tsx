@@ -8,6 +8,7 @@ import { lerStatusBackgroundFetch } from "../src/background-status";
 import { resumoDrainTexto, type DrainTelemetry } from "../src/drain-telemetry";
 import { linhasDaFila, type LinhaFila } from "../src/queue-status";
 import { reiniciarTodosFalhos } from "../src/queue-retry";
+import { subscribeOnline } from "../src/online";
 
 export default function QueueScreen() {
   const router = useRouter();
@@ -15,14 +16,19 @@ export default function QueueScreen() {
   const [drenando, setDrenando] = useState(false);
   const [telemetria, setTelemetria] = useState<DrainTelemetry | null>(null);
   const [bgRotulo, setBgRotulo] = useState<string | null>(null);
+  const [online, setOnline] = useState(true);
 
   const recarregar = useCallback(async () => {
     const itens = await guestQueue().list();
-    setLinhas(linhasDaFila(itens, { enviandoId: drenando ? "primeiro" : null }));
+    setLinhas(linhasDaFila(itens, { enviandoId: drenando ? "primeiro" : null, online }));
     setTelemetria(await readDrainTelemetry());
     const bg = await lerStatusBackgroundFetch();
     setBgRotulo(bg.rotulo);
-  }, [drenando]);
+  }, [drenando, online]);
+
+  useEffect(() => {
+    return subscribeOnline(setOnline);
+  }, []);
 
   useEffect(() => {
     void recarregar();
