@@ -14,6 +14,10 @@ export default defineConfig({
     },
   },
   test: {
+    // Pre-push paralelo (jsdom + PDF + db) estoura o default 5s em testes
+    // triviais de render. 15s não esconde hang real.
+    testTimeout: 15_000,
+    hookTimeout: 60_000,
     // Dois projetos, dois environments: lógica pura roda em node (rápido,
     // sem DOM); render de componente (.test.tsx) precisa de jsdom. O
     // `environmentMatchGlobs` equivalente está deprecado no Vitest 3 —

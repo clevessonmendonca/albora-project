@@ -8,5 +8,7 @@ export default defineConfig({
     // apagar o banco embaixo do outro.
     fileParallelism: false,
     hookTimeout: 60_000,
+    // Criar evento + jobs de retenção sob carga do pre-push passa de 5s.
+    testTimeout: 30_000,
   },
 });
