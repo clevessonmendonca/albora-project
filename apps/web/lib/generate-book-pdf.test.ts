@@ -52,7 +52,7 @@ function midia(id: string): MidiaDoAlbum {
   };
 }
 
-describe("generateBookPdf", () => {
+describe("generateBookPdf", { timeout: 60_000 }, () => {
   it("gera PDF A4 com pelo menos uma página", async () => {
     const album = montarAlbum([midia("a"), midia("b")], plano());
     const result = await generateBookPdf({

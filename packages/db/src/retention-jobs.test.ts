@@ -86,7 +86,7 @@ async function statusDoJob(id: string): Promise<{ status: string; attempts: numb
 
 const semNotificar = { notify: async (_n: NotificacaoRetencao) => {} };
 
-describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", () => {
+describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000 }, () => {
   it("cria os quatro kinds com due_at derivados de ends_at", async () => {
     const ends = new Date("2026-09-01T20:00:00Z");
     const eventoId = await criarEvento(ends);

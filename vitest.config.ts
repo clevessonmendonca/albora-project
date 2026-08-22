@@ -37,6 +37,9 @@ export default defineConfig({
           include: ["packages/**/*.test.tsx", "apps/**/*.test.tsx"],
           exclude: EXCLUDE,
           setupFiles: ["./vitest.setup.ts"],
+          // Render em paralelo sob carga do pre-push estoura o default 5s
+          // (FloatingNav, Button, RecapCard). 15s não esconde hang real.
+          testTimeout: 15_000,
         },
       },
     ],
