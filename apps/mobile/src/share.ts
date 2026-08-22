@@ -1,7 +1,7 @@
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { decode as jpegDecode } from "jpeg-js";
-import type { Composicao } from "@albora/core";
+import type { Composicao, ConteudoDaMoldura } from "@albora/core";
 import { apiOrigin, cookieHeader, type GuestSession } from "./session";
 import { signMediaUrls } from "./sign-urls";
 import {
@@ -201,7 +201,7 @@ export async function compartilharFotoPropria(opts: {
 
 export type RenderShareCollageFn = (opts: {
   fotos: Array<{ bytes: Uint8Array; largura: number; altura: number }>;
-  conteudo: import("@albora/core").ConteudoDaMoldura;
+  conteudo: ConteudoDaMoldura;
   paleta: FramePalette;
   celulas: Array<{ x: number; y: number; largura: number; altura: number }>;
 }) => Promise<Uint8Array>;
