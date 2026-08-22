@@ -30,7 +30,15 @@ As faces Fraunces/Instrument Sans vivem em `assets/fontes/` (gitignored). Copie 
 pnpm --filter @albora/mobile fontes
 ```
 
-O `prestart` já roda o script; em CI/EAS o passo é explícito se o build não passar por `expo start`.
+### Ícones e splash (lojas)
+
+Rasteriza `brand/icones/icone-app-512.svg` para PNG do Expo:
+
+```bash
+pnpm --filter @albora/mobile icones
+```
+
+O `eas-build-pre-install` roda fontes + ícones; em CI/local use os dois antes de `eas build`.
 
 ### Desenvolvimento local (Metro)
 
@@ -72,4 +80,4 @@ Checklist completo: [`docs/runbooks/dev-client-smoke.md`](../../docs/runbooks/de
 
 ## O que ainda não está
 
-Ícone/fichas das lojas. Credenciais reais de App Link (`IOS_APP_TEAM_ID`, `ANDROID_APP_SHA256`) no deploy — placeholders até lá. `eas init` + rebuild após credenciais. A captura já deixa o JPEG na fila em disco; LUT/Skia, share, passagem web→app e fila offline estão no código — falta prova em aparelho via dev client ([`docs/runbooks/dev-client-smoke.md`](../../docs/runbooks/dev-client-smoke.md)).
+Capturas de tela e submit real (`eas submit`) — rascunho em [`store/listing.pt-BR.md`](store/listing.pt-BR.md), runbook [`docs/runbooks/publicacao-lojas.md`](../../docs/runbooks/publicacao-lojas.md). Credenciais reais de App Link no deploy. Falta prova em aparelho via dev client ([`docs/runbooks/dev-client-smoke.md`](../../docs/runbooks/dev-client-smoke.md)).

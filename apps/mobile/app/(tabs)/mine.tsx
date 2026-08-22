@@ -234,6 +234,7 @@ export default function MineScreen() {
           autor: enviada.autor,
           reacoes: String(enviada.reacoes ?? 0),
           minhaReacao: "",
+          mime: enviada.mime,
         },
       });
     },

@@ -6,8 +6,9 @@
   "scripts": {
     "start": "expo start",
     "fontes": "node scripts/copiar-fontes.mjs",
+    "icones": "node scripts/gerar-icones.mjs",
     "prestart": "node scripts/copiar-fontes.mjs",
-    "eas-build-pre-install": "node scripts/copiar-fontes.mjs",
+    "eas-build-pre-install": "node scripts/copiar-fontes.mjs && node scripts/gerar-icones.mjs",
     "ios": "expo start --ios",
     "android": "expo start --android",
     "typecheck": "tsc --noEmit",
@@ -51,6 +52,7 @@
     "@fontsource/instrument-sans": "^5.3.0",
     "@types/jpeg-js": "^0.3.7",
     "@types/react": "^19.1.0",
+    "sharp": "^0.34.3",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3"
   }

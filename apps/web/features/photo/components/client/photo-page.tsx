@@ -11,6 +11,7 @@ import {
   usePwaInstall,
 } from "@/features/photo/hooks/use-pwa-install";
 import { ErrorMessage, SecondaryButton } from "@albora/ui-web";
+import { AppOpenCta } from "@/features/pairing/components/client/app-open-cta";
 import { Details, type Place } from "./details";
 import { Editor } from "./editor";
 import { QueueHeader } from "./queue-panel";
@@ -524,8 +525,9 @@ function Confirmacao({
             onDispensar={dispensar}
             onPromptIos={avisarPromptIos}
           />
+          <AppOpenCta pairPath={`${base}/pair`} />
           <SecondaryButton onClick={() => router.push(`${base}/pair`)}>
-            Abrir no app com código
+            Ver código de 4 dígitos
           </SecondaryButton>
         </div>
       )}

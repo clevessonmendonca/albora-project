@@ -177,6 +177,9 @@ importers:
       '@types/react':
         specifier: ^19.1.0
         version: 19.2.18
+      sharp:
+        specifier: ^0.34.3
+        version: 0.34.5
       tailwindcss:
         specifier: ^3.4.17
         version: 3.4.19(yaml@2.9.0)
@@ -14291,7 +14294,6 @@ snapshots:
       '@img/sharp-win32-arm64': 0.34.5
       '@img/sharp-win32-ia32': 0.34.5
       '@img/sharp-win32-x64': 0.34.5
-    optional: true
 
   sharp@0.35.2:
     dependencies:

@@ -21,13 +21,36 @@
     "preview": {
       "distribution": "internal",
       "channel": "preview",
+      "ios": {
+        "simulator": false
+      },
+      "android": {
+        "buildType": "apk"
+      },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://SUBSTITUA.api.albora.app"
       }
     },
-    "production": {}
+    "production": {
+      "channel": "production",
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://SUBSTITUA.api.albora.app",
+        "EXPO_PUBLIC_APP_LINK_HOST": "albora.app"
+      }
+    }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "appleId": "SUBSTITUA@email.com",
+        "ascAppId": "SUBSTITUA",
+        "appleTeamId": "SUBSTITUA_TEAM_ID"
+      },
+      "android": {
+        "serviceAccountKeyPath": "./store/google-service-account.json",
+        "track": "internal"
+      }
+    }
   }
 }

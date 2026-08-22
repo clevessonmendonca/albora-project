@@ -133,9 +133,13 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Parear ✅:** index redireciona com sessão válida → feed; deep link `albora://pair?codigo=1234` preenche os quatro dígitos e **resgata sozinho**; `?passagem=` (token one-shot ADR 0009) resgata direto no feed; universal link `https://albora.app/e/{slug}/pair?…` cai em `app/e/[slug]/pair` → `/pair`.
 
-**Universal links 🟡:** `app.config.ts` + rotas dinâmicas `/.well-known/*` (`IOS_APP_TEAM_ID`, `ANDROID_APP_SHA256`); CTA **Abrir no app** usa `passagem`. Runbook: [`docs/runbooks/universal-links.md`](./runbooks/universal-links.md). Falta credenciais reais no deploy + rebuild nativo.
+**CTA 1ª foto ✅:** confirmação web → **Abrir no app** (`AppOpenCta` gera passagem on-click) + link para código manual.
 
-**EAS dev-client 🟡:** `expo-dev-client` + perfil `development` em `eas.json` (APK Android, iOS dispositivo físico, `UIBackgroundModes: fetch`, `eas-build-pre-install` copia fontes). Expo Go não carrega Skia nem background fetch — validação exige `eas build --profile development` + `pnpm start --dev-client`. Runbook: [`docs/runbooks/dev-client-smoke.md`](./runbooks/dev-client-smoke.md).
+**Universal links 🟡:** `app.config.ts` + rotas dinâmicas `/.well-known/*` (`IOS_APP_TEAM_ID`, `ANDROID_APP_SHA256`); CTA usa `passagem`. Runbook: [`docs/runbooks/universal-links.md`](./runbooks/universal-links.md). Falta credenciais reais no deploy + rebuild nativo.
+
+**Lojas 🟡:** ícones via `pnpm icones`, perfil `production` em `eas.json`, ficha [`apps/mobile/store/listing.pt-BR.md`](../apps/mobile/store/listing.pt-BR.md). Runbook: [`docs/runbooks/publicacao-lojas.md`](./runbooks/publicacao-lojas.md).
+
+**EAS / lojas 🟡:** `expo-dev-client` + perfis `development`/`preview`/`production` em `eas.json`; ícones via `pnpm icones` (brand SVG). Expo Go não carrega Skia nem background fetch — validação exige `eas build`. Runbooks: [`dev-client-smoke.md`](./runbooks/dev-client-smoke.md), [`publicacao-lojas.md`](./runbooks/publicacao-lojas.md).
 
 **Legenda e lugar ✅:** no step de revisão de `photo.tsx`, abaixo da tira de filtros, o convidado pode digitar uma legenda (máx 280 chars) e escolher um chip de lugar da lista fechada do pack (carregada via `GET /api/guest/event` → `PACKS[packId].lugares`). Ambos são opcionais e **nunca bloqueiam o envio**; se o pack não carregar, os chips simplesmente não aparecem. `persistCapture` recebe `legenda` e `lugar` e os inclui no `QueueItem`; o confirm já propagava esses campos para o banco. Sem novo campo no servidor.
 

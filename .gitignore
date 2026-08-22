@@ -33,6 +33,14 @@ apps/web/public/fontes/
 # Copiado de @fontsource/* por apps/mobile/scripts/copiar-fontes.mjs.
 apps/mobile/assets/fontes/
 
+# Rasterizados de brand/icones por apps/mobile/scripts/gerar-icones.mjs.
+apps/mobile/assets/icon.png
+apps/mobile/assets/adaptive-icon.png
+apps/mobile/assets/splash-icon.png
+
+# Credencial Play — nunca no git
+apps/mobile/store/google-service-account.json
+
 # Playwright
 playwright-report/
 test-results/

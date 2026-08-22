@@ -500,6 +500,7 @@ export default function FeedScreen() {
         autor: item.autor,
         reacoes: String(item.reacoes),
         minhaReacao: item.minhaReacao ?? "",
+        mime: item.mime,
       },
     });
   }, [router]);
