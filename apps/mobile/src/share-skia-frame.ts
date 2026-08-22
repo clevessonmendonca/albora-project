@@ -20,7 +20,9 @@ import {
 import {
   ALTURA_DA_COMPOSICAO,
   LARGURA_DA_COMPOSICAO,
+  faixaDaMarca,
   type Composicao,
+  type ConteudoDaMoldura,
 } from "@albora/core";
 import type { FramePalette } from "./share-frame-palette";
 
@@ -87,8 +89,12 @@ function desenharFoto(canvas: SkCanvas, imagem: SkImage, composicao: Composicao)
   canvas.restore();
 }
 
-function desenharFaixa(canvas: SkCanvas, composicao: Composicao, paleta: FramePalette) {
-  const { faixa, conteudo } = composicao;
+function desenharFaixa(
+  canvas: SkCanvas,
+  faixa: Composicao["faixa"],
+  conteudo: Composicao["conteudo"],
+  paleta: FramePalette,
+) {
   const cx = LARGURA_DA_COMPOSICAO / 2;
   let y = faixa.y + 72;
 
@@ -146,10 +152,71 @@ export async function renderShareFrame(opts: {
   );
 
   desenharFoto(canvas, imagem, opts.composicao);
-  desenharFaixa(canvas, opts.composicao, opts.paleta);
+  desenharFaixa(canvas, opts.composicao.faixa, opts.composicao.conteudo, opts.paleta);
 
   const snap = surface.makeImageSnapshot();
   const encoded = snap.encodeToBytes(ImageFormat.JPEG, 90);
   if (!encoded) throw new Error("Skia: falha ao codificar moldura");
+  return encoded;
+}
+
+function preencherCelula(
+  foto: { largura: number; altura: number },
+  celula: { x: number; y: number; largura: number; altura: number },
+) {
+  const fator = Math.max(celula.largura / foto.largura, celula.altura / foto.altura);
+  const largura = foto.largura * fator;
+  const altura = foto.altura * fator;
+  return {
+    x: celula.x + (celula.largura - largura) / 2,
+    y: celula.y + (celula.altura - altura) / 2,
+    largura,
+    altura,
+  };
+}
+
+export async function renderShareCollage(opts: {
+  fotos: Array<{ bytes: Uint8Array; largura: number; altura: number }>;
+  conteudo: ConteudoDaMoldura;
+  paleta: FramePalette;
+  celulas: Array<{ x: number; y: number; largura: number; altura: number }>;
+}): Promise<Uint8Array> {
+  const surface = Skia.Surface.Make(LARGURA_DA_COMPOSICAO, ALTURA_DA_COMPOSICAO);
+  if (!surface) throw new Error("Skia: falha ao criar surface da colagem");
+
+  const canvas = surface.getCanvas();
+  canvas.drawRect(
+    Skia.XYWHRect(0, 0, LARGURA_DA_COMPOSICAO, ALTURA_DA_COMPOSICAO),
+    paintHex(opts.paleta.bg),
+  );
+
+  for (let i = 0; i < opts.fotos.length; i += 1) {
+    const foto = opts.fotos[i]!;
+    const celula = opts.celulas[i]!;
+    const data = Skia.Data.fromBytes(foto.bytes);
+    const imagem = Skia.Image.MakeImageFromEncoded(data);
+    if (!imagem) continue;
+    const caixa = preencherCelula(foto, celula);
+    canvas.save();
+    canvas.clipRect(
+      Skia.XYWHRect(celula.x, celula.y, celula.largura, celula.altura),
+      ClipOp.Intersect,
+      true,
+    );
+    canvas.drawImageRectOptions(
+      imagem,
+      Skia.XYWHRect(0, 0, imagem.width(), imagem.height()),
+      Skia.XYWHRect(caixa.x, caixa.y, caixa.largura, caixa.altura),
+      FilterMode.Linear,
+      MipmapMode.Linear,
+    );
+    canvas.restore();
+  }
+
+  desenharFaixa(canvas, faixaDaMarca(), opts.conteudo, opts.paleta);
+
+  const snap = surface.makeImageSnapshot();
+  const encoded = snap.encodeToBytes(ImageFormat.JPEG, 90);
+  if (!encoded) throw new Error("Skia: falha ao codificar colagem");
   return encoded;
 }

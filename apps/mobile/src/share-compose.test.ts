@@ -122,3 +122,31 @@ describe("composeShareFrame", () => {
     expect(r.codigo).toBe("compartilhar.desligado_pelo_anfitriao");
   });
 });
+
+describe("composeShareCollage", () => {
+  it("autoriza colagem de 2 fotos", async () => {
+    const { composeShareCollage } = await import("./share-compose");
+    const r = composeShareCollage({
+      ctx: ctxBase(),
+      session,
+      fotos: [
+        { largura: 1200, altura: 1600 },
+        { largura: 1000, altura: 1400 },
+      ],
+    });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.celulas).toHaveLength(2);
+    expect(r.conteudo.slug).toBe("festa-demo");
+  });
+
+  it("rejeita uma foto só", async () => {
+    const { composeShareCollage } = await import("./share-compose");
+    const r = composeShareCollage({
+      ctx: ctxBase(),
+      session,
+      fotos: [{ largura: 1200, altura: 1600 }],
+    });
+    expect(r.ok).toBe(false);
+  });
+});

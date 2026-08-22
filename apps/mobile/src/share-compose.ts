@@ -1,8 +1,13 @@
 import {
+  autorizarColagem,
+  celulasDaColagem,
   compor,
+  conteudoDaMoldura,
   isVideoMime,
+  MAX_DA_COLAGEM,
   modeloRecomendado,
   type Composicao,
+  type ConteudoDaMoldura,
   type ConsentimentoExterno,
   type VeredictoDoClassificador,
 } from "@albora/core";
@@ -209,3 +214,93 @@ export function composeShareFrame(opts: {
 
   return { ok: true, composicao: resultado.composicao, paleta };
 }
+
+export type CollageFoto = {
+  bytes: Uint8Array;
+  largura: number;
+  altura: number;
+};
+
+export type ComposeCollageOk = {
+  ok: true;
+  conteudo: ConteudoDaMoldura;
+  paleta: FramePalette;
+  celulas: ReturnType<typeof celulasDaColagem>;
+};
+
+/**
+ * Autoriza e prepara colagem (2–4 fotos) — mesma matemática da web.
+ */
+export function composeShareCollage(opts: {
+  ctx: ShareContext;
+  session: GuestSession;
+  fotos: Array<{ largura: number; altura: number }>;
+  agora?: Date;
+}): ComposeCollageOk | ComposeFail {
+  const agora = opts.agora ?? new Date();
+  const { ctx, session } = opts;
+
+  if (opts.fotos.length < 2 || opts.fotos.length > MAX_DA_COLAGEM) {
+    return {
+      ok: false,
+      codigo:
+        opts.fotos.length < 2 ? "compartilhar.colagem_vazia" : "compartilhar.colagem_grande_demais",
+      mensagem: shareMessage(
+        opts.fotos.length < 2 ? "compartilhar.colagem_vazia" : "compartilhar.colagem_grande_demais",
+      ),
+    };
+  }
+
+  const sessao = {
+    sessaoId: session.sessaoId,
+    eventoId: session.eventoId,
+    nome: ctx.sessao.nome,
+    consentimentoDeEntrada: { versao: "v1", em: agora },
+    consentimentoExterno: mapExternalConsent(ctx.sessao.consentimentoExterno),
+  };
+
+  const evento = {
+    panico: ctx.evento.panico,
+    modoEndurecido: ctx.evento.modoEndurecido,
+    compartilhamentoExternoLiberado: ctx.evento.compartilhamentoExternoLiberado,
+  };
+
+  const midias = opts.fotos.map((f, i) => ({
+    id: `colagem-${i}`,
+    eventoId: session.eventoId,
+    sessaoDeOrigem: session.sessaoId,
+    largura: f.largura,
+    altura: f.altura,
+    legenda: null as string | null,
+    estado: {
+      removida: ctx.midia.removida,
+      liberadaPeloAnfitriao: ctx.midia.liberadaPeloAnfitriao,
+      denuncias: ctx.midia.denuncias,
+      classificador: ctx.midia.classificador,
+    },
+  }));
+
+  const autorizacao = autorizarColagem(midias, sessao, evento, agora);
+  if (!autorizacao.pode) {
+    return {
+      ok: false,
+      codigo: autorizacao.codigo,
+      mensagem: shareMessage(autorizacao.codigo),
+    };
+  }
+
+  const pack = PACKS[ctx.evento.packId];
+  const identidade = identityToFrame(
+    ctx.evento.slug,
+    new Date(ctx.evento.comecaEm),
+    ctx.evento.identityTokens,
+    pack,
+  );
+  const paleta = paletteForFrame(ctx.evento.identityTokens, pack);
+  const conteudo = conteudoDaMoldura(identidade, midias[0]!, sessao, agora);
+  const celulas = celulasDaColagem(midias.length);
+
+  return { ok: true, conteudo, paleta, celulas };
+}
+
+export { MAX_DA_COLAGEM };

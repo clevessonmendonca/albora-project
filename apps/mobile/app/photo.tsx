@@ -42,6 +42,8 @@ export default function PhotoScreen() {
   const [pending, setPending] = useState(0);
   const [busy, setBusy] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [gravando, setGravando] = useState(false);
+  const [segundosRestantes, setSegundosRestantes] = useState(20);
 
   // Step "review": foto capturada aguardando escolha de filtro e envio.
   const [pendingShot, setPendingShot] = useState<CaptureSource | null>(null);
@@ -196,14 +198,41 @@ export default function PhotoScreen() {
     );
   }
 
+  // Contagem regressiva do confessionário (máx 20s).
+  useEffect(() => {
+    if (!gravando) {
+      setSegundosRestantes(20);
+      return;
+    }
+    setSegundosRestantes(20);
+    const id = setInterval(() => {
+      setSegundosRestantes((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [gravando]);
+
   // Dispara: foto → revisão/filtro; vídeo (confessionário) → grava e enfileira.
   async function shoot() {
-    if (busy || session === null || session === undefined) return;
+    if (session === null || session === undefined) return;
+
+    // Segundo toque durante a gravação: encerra antes dos 20s.
+    if (modoVideo && gravando) {
+      try {
+        camera.current?.stopRecording();
+      } catch {
+        // soft — recordAsync ainda resolve
+      }
+      return;
+    }
+
+    if (busy) return;
     setBusy(true);
     setErro(null);
     try {
       if (modoVideo && promptKey) {
+        setGravando(true);
         const recording = await camera.current?.recordAsync({ maxDuration: 20 });
+        setGravando(false);
         if (!recording?.uri) {
           setErro("Não consegui gravar o vídeo. Tente de novo.");
           return;
@@ -239,6 +268,7 @@ export default function PhotoScreen() {
       setPendingShot({ uri: shot.uri, width: shot.width, height: shot.height });
       setFiltroEscolhido(null);
     } catch {
+      setGravando(false);
       setErro(
         modoVideo
           ? "Não consegui gravar o vídeo. Tente de novo."
@@ -246,6 +276,7 @@ export default function PhotoScreen() {
       );
     } finally {
       setBusy(false);
+      setGravando(false);
     }
   }
 
@@ -476,11 +507,22 @@ export default function PhotoScreen() {
           mode={modoVideo ? "video" : "picture"}
           style={{ flex: 1 }}
         />
+        {gravando ? (
+          <View className="absolute left-0 right-0 top-3 items-center">
+            <View className="rounded-pilula bg-bg/80 px-4 py-2">
+              <Text className="text-sm">
+                Gravando… {segundosRestantes}s · toque para parar
+              </Text>
+            </View>
+          </View>
+        ) : null}
       </View>
 
       {modoVideo && promptKey ? (
         <Text tone="muted" className="mt-2 px-6 text-center text-xs">
-          Confessionário — toque para gravar (até 20s)
+          {gravando
+            ? "Confessionário — gravando (máx. 20s)"
+            : "Confessionário — toque para gravar (até 20s)"}
         </Text>
       ) : null}
 
@@ -511,15 +553,19 @@ export default function PhotoScreen() {
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={modoVideo ? "Gravar vídeo" : "Fotografar"}
-          disabled={busy}
+          accessibilityLabel={
+            modoVideo ? (gravando ? "Parar gravação" : "Gravar vídeo") : "Fotografar"
+          }
+          disabled={busy && !gravando}
           onPress={() => void shoot()}
           className={`size-16 items-center justify-center rounded-pilula border-2 border-ink ${
-            busy ? "opacity-55" : ""
+            busy && !gravando ? "opacity-55" : ""
           }`}
         >
           <View
-            className={`size-12 rounded-pilula bg-acento ${modoVideo ? "rounded-token" : ""}`}
+            className={`size-12 bg-acento ${
+              modoVideo ? (gravando ? "size-8 rounded-token" : "rounded-token") : "rounded-pilula"
+            }`}
           />
         </Pressable>
 

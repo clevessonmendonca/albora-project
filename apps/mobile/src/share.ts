@@ -6,14 +6,22 @@ import { apiOrigin, cookieHeader, type GuestSession } from "./session";
 import { signMediaUrls } from "./sign-urls";
 import {
   chaveParaMoldura,
+  composeShareCollage,
   composeShareFrame,
+  MAX_DA_COLAGEM,
   parseShareContext,
   type ShareContext,
 } from "./share-compose";
 import type { FramePalette } from "./share-frame-palette";
 
 export type { ShareContext } from "./share-compose";
-export { parseShareContext, composeShareFrame, chaveParaMoldura } from "./share-compose";
+export {
+  parseShareContext,
+  composeShareFrame,
+  composeShareCollage,
+  chaveParaMoldura,
+  MAX_DA_COLAGEM,
+} from "./share-compose";
 
 export async function fetchShareContext(
   session: GuestSession,
@@ -188,5 +196,130 @@ export async function compartilharFotoPropria(opts: {
     return { ok: true, moldura };
   } catch {
     return { ok: false, erro: "Não deu para compartilhar agora." };
+  }
+}
+
+export type RenderShareCollageFn = (opts: {
+  fotos: Array<{ bytes: Uint8Array; largura: number; altura: number }>;
+  conteudo: import("@albora/core").ConteudoDaMoldura;
+  paleta: FramePalette;
+  celulas: Array<{ x: number; y: number; largura: number; altura: number }>;
+}) => Promise<Uint8Array>;
+
+/**
+ * Colagem 2–4 fotos próprias. Sem fallback raw (a colagem só faz sentido
+ * composta); falha soft com mensagem.
+ */
+export async function compartilharColagem(opts: {
+  session: GuestSession;
+  uploadIds: string[];
+  fetchFn?: typeof fetch;
+  renderCollage?: RenderShareCollageFn;
+  measureImage?: (bytes: Uint8Array) => { largura: number; altura: number };
+  downloadAsync?: typeof FileSystem.downloadAsync;
+  readBase64?: (uri: string) => Promise<string>;
+  writeBase64?: (uri: string, b64: string) => Promise<void>;
+  shareAsync?: typeof Sharing.shareAsync;
+  isAvailableAsync?: typeof Sharing.isAvailableAsync;
+}): Promise<{ ok: true } | { ok: false; erro: string }> {
+  const fetchFn = opts.fetchFn ?? fetch;
+  const downloadAsync = opts.downloadAsync ?? FileSystem.downloadAsync;
+  const shareAsync = opts.shareAsync ?? Sharing.shareAsync;
+  const isAvailableAsync = opts.isAvailableAsync ?? Sharing.isAvailableAsync;
+  const measureImage = opts.measureImage ?? medirJpeg;
+  const readBase64 =
+    opts.readBase64 ??
+    (async (uri: string) =>
+      FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 }));
+  const writeBase64 =
+    opts.writeBase64 ??
+    (async (uri: string, b64: string) => {
+      await FileSystem.writeAsStringAsync(uri, b64, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+    });
+
+  if (opts.uploadIds.length < 2 || opts.uploadIds.length > MAX_DA_COLAGEM) {
+    return {
+      ok: false,
+      erro:
+        opts.uploadIds.length < 2
+          ? "Escolha pelo menos 2 fotos para a colagem."
+          : "A colagem leva no máximo quatro fotos.",
+    };
+  }
+
+  const contextos: ShareContext[] = [];
+  for (const id of opts.uploadIds) {
+    const ctx = await fetchShareContext(opts.session, id, fetchFn);
+    if (!ctx) return { ok: false, erro: "Não deu para preparar a colagem." };
+    contextos.push(ctx);
+  }
+
+  const base = contextos[0]!;
+  if (base.evento.panico) {
+    return { ok: false, erro: "Essa festa não pode ser compartilhada agora." };
+  }
+  if (!base.evento.compartilhamentoExternoLiberado) {
+    return { ok: false, erro: "Compartilhamento externo ainda não foi liberado." };
+  }
+
+  if (!base.sessao.consentimentoExterno) {
+    const ok = await registrarConsentimentoExterno(opts.session, true, fetchFn);
+    if (!ok) return { ok: false, erro: "Confirme o consentimento e tente de novo." };
+    base.sessao.consentimentoExterno = {
+      versao: "externo-v1",
+      em: new Date().toISOString(),
+      revogadoEm: null,
+      nomeNaMoldura: true,
+    };
+  }
+
+  const available = await isAvailableAsync();
+  if (!available) return { ok: false, erro: "Compartilhar não está disponível neste aparelho." };
+
+  const cache = FileSystem.cacheDirectory ?? "";
+  const fotos: Array<{ bytes: Uint8Array; largura: number; altura: number }> = [];
+
+  try {
+    for (let i = 0; i < contextos.length; i += 1) {
+      const ctx = contextos[i]!;
+      const chave = chaveParaMoldura(ctx);
+      const urls = await signMediaUrls(opts.session, [chave], fetchFn);
+      const url = urls.find((u) => u.chave === chave)?.url ?? urls[0]?.url;
+      if (!url) return { ok: false, erro: "Foto indisponível para a colagem." };
+      const dest = `${cache}albora-colagem-${opts.uploadIds[i]}.jpg`;
+      const dl = await downloadAsync(url, dest);
+      const b64 = await readBase64(dl.uri);
+      const bytes = decodeBase64(b64);
+      const dim = measureImage(bytes);
+      fotos.push({ bytes, largura: dim.largura, altura: dim.altura });
+    }
+
+    const composed = composeShareCollage({
+      ctx: base,
+      session: opts.session,
+      fotos,
+    });
+    if (!composed.ok) return { ok: false, erro: composed.mensagem };
+
+    const render =
+      opts.renderCollage ?? (await import("./share-skia-frame")).renderShareCollage;
+    const framed = await render({
+      fotos,
+      conteudo: composed.conteudo,
+      paleta: composed.paleta,
+      celulas: composed.celulas,
+    });
+
+    const out = `${cache}albora-colagem-${opts.session.slug}.jpg`;
+    await writeBase64(out, encodeBase64(framed));
+    await shareAsync(out, {
+      mimeType: "image/jpeg",
+      dialogTitle: "Compartilhar colagem da festa",
+    });
+    return { ok: true };
+  } catch {
+    return { ok: false, erro: "Não deu para compartilhar a colagem agora." };
   }
 }

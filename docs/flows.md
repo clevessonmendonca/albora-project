@@ -143,9 +143,13 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Recado (áudio) ✅:** `recado.tsx` toca o áudio dos anfitriões via `expo-av` (`tocarUrl` em `recado-audio.ts`); play/pause; falha soft.
 
+**Recap ✅:** card no topo de Minhas via `GET /api/guests/me/recap` (`buscarRecapPessoal` / `textoRecap`) — soft fail, some se zero fotos.
+
 **Compartilhar ✅:** em `photo-detail` e em Minhas (foto enviada) → `GET/POST /api/share` + composição `compor` (`@albora/core`) + moldura Skia 9:16 (`share-skia-frame.ts`) + `expo-sharing`. Se Skia/compose falhar, cai no arquivo raw (nunca bloqueia). Vídeo usa `chaveThumb`. Fontes do sistema nesta fatia (cores/tokens do evento via `paletteForFrame`).
 
-**Confessionário ✅:** `app/confessional.tsx` lista prompts do pack; abre `/photo?prompt=…&video=1`; `persistCapture` enfileira vídeo com `promptKey` (sem Skia). Link em Missões.
+**Colagem ✅:** modo “Colagem” em Minhas (2–4 fotos enviadas) → `compartilharColagem` + `celulasDaColagem` + `renderShareCollage` (Skia). Sem fallback raw.
+
+**Confessionário ✅:** `app/confessional.tsx` lista prompts do pack; abre `/photo?prompt=…&video=1`; gravação com contagem regressiva 20s e toque para parar; `persistCapture` enfileira vídeo com `promptKey` (sem Skia). Vazio → CTA Missões. Link em Missões.
 
 ---
 

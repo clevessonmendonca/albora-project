@@ -119,10 +119,10 @@ export default function ConfessionalScreen() {
         </Text>
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.back()}
+          onPress={() => router.replace("/(tabs)/missions")}
           className="mt-6 items-center rounded-pilula bg-acento px-6 py-3"
         >
-          <Text tone="onAccent">Voltar</Text>
+          <Text tone="onAccent">Voltar às Missões</Text>
         </Pressable>
       </Screen>
     );

@@ -10,8 +10,9 @@ import {
 } from "../../src/my-photos";
 import { guestQueue } from "../../src/disk";
 import { loadSession, type ModoInteracao } from "../../src/feed";
+import { buscarRecapPessoal, textoRecap, type RecapPessoal } from "../../src/recap";
 import type { GuestSession } from "../../src/session";
-import { compartilharFotoPropria } from "../../src/share";
+import { compartilharColagem, compartilharFotoPropria, MAX_DA_COLAGEM } from "../../src/share";
 
 function EstadoBadge({ tipo }: { tipo: MinhaFoto["tipo"] }) {
   if (tipo === "enviada") return null;
@@ -35,29 +36,53 @@ function ItemFoto({
   foto,
   removendo,
   compartilhando,
+  modoColagem,
+  selecionada,
   onRemover,
   onCompartilhar,
   onAbrir,
+  onToggleColagem,
 }: {
   foto: MinhaFoto;
   removendo: boolean;
   compartilhando: boolean;
+  modoColagem: boolean;
+  selecionada: boolean;
   onRemover: (foto: MinhaFoto) => void;
   onCompartilhar: (foto: MinhaFoto) => void;
   onAbrir: (foto: MinhaFoto) => void;
+  onToggleColagem: (foto: MinhaFoto) => void;
 }) {
   const ocupado = removendo || compartilhando;
+  const enviada = foto.tipo === "enviada";
+
   return (
     <View className="mb-4 overflow-hidden rounded-2xl bg-superficie">
       <Pressable
-        onPress={() => onAbrir(foto)}
-        onLongPress={() => onRemover(foto)}
+        onPress={() => {
+          if (modoColagem && enviada) {
+            onToggleColagem(foto);
+            return;
+          }
+          onAbrir(foto);
+        }}
+        onLongPress={() => {
+          if (!modoColagem) onRemover(foto);
+        }}
         accessibilityRole="button"
-        accessibilityLabel={foto.tipo === "enviada" ? "Ver foto" : "Manter pressionado para remover"}
+        accessibilityLabel={
+          modoColagem && enviada
+            ? selecionada
+              ? "Tirar da colagem"
+              : "Incluir na colagem"
+            : enviada
+              ? "Ver foto"
+              : "Manter pressionado para remover"
+        }
         delayLongPress={400}
       >
         <View className="relative aspect-[4/5] w-full">
-          {foto.tipo === "enviada" && foto.thumbUrl ? (
+          {enviada && foto.thumbUrl ? (
             <Image
               source={{ uri: foto.thumbUrl }}
               className="aspect-[4/5] w-full"
@@ -67,45 +92,60 @@ function ItemFoto({
             <View className="aspect-[4/5] w-full bg-superficie-alta" />
           )}
           <EstadoBadge tipo={foto.tipo} />
+          {modoColagem && enviada ? (
+            <View
+              className={`absolute left-2 top-2 size-6 items-center justify-center rounded-pilula border-2 ${
+                selecionada ? "border-acento bg-acento" : "border-ink bg-bg/70"
+              }`}
+            >
+              {selecionada ? (
+                <Text tone="onAccent" className="text-xs">
+                  ✓
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
           {ocupado ? (
             <View className="absolute inset-0 items-center justify-center bg-bg/60">
               <ActivityIndicator />
             </View>
           ) : null}
         </View>
-        {foto.tipo === "enviada" && (foto.legenda ?? foto.lugar) ? (
+        {enviada && (foto.legenda ?? foto.lugar) ? (
           <Text tone="muted" className="px-3 py-2 text-sm">
             {foto.legenda ?? foto.lugar}
           </Text>
         ) : null}
       </Pressable>
 
-      <View className="flex-row border-t border-linha">
-        {foto.tipo === "enviada" ? (
+      {!modoColagem ? (
+        <View className="flex-row border-t border-linha">
+          {enviada ? (
+            <Pressable
+              onPress={() => onCompartilhar(foto)}
+              accessibilityRole="button"
+              accessibilityLabel="Compartilhar foto"
+              className="flex-1 px-2 py-2"
+              disabled={ocupado}
+            >
+              <Text tone="muted" className="text-center text-xs">
+                {compartilhando ? "…" : "↗ Compartilhar"}
+              </Text>
+            </Pressable>
+          ) : null}
           <Pressable
-            onPress={() => onCompartilhar(foto)}
+            onPress={() => onRemover(foto)}
             accessibilityRole="button"
-            accessibilityLabel="Compartilhar foto"
-            className="flex-1 px-2 py-2"
+            accessibilityLabel="Remover foto"
+            className="flex-1 border-l border-linha px-2 py-2"
             disabled={ocupado}
           >
             <Text tone="muted" className="text-center text-xs">
-              {compartilhando ? "…" : "↗ Compartilhar"}
+              {removendo ? "Removendo…" : "Remover"}
             </Text>
           </Pressable>
-        ) : null}
-        <Pressable
-          onPress={() => onRemover(foto)}
-          accessibilityRole="button"
-          accessibilityLabel="Remover foto"
-          className="flex-1 border-l border-linha px-2 py-2"
-          disabled={ocupado}
-        >
-          <Text tone="muted" className="text-center text-xs">
-            {removendo ? "Removendo…" : "Remover"}
-          </Text>
-        </Pressable>
-      </View>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -119,6 +159,10 @@ export default function MineScreen() {
   const [session, setSession] = useState<GuestSession | null>(null);
   const [removendoId, setRemovendoId] = useState<string | null>(null);
   const [compartilhandoId, setCompartilhandoId] = useState<string | null>(null);
+  const [recap, setRecap] = useState<RecapPessoal | null>(null);
+  const [modoColagem, setModoColagem] = useState(false);
+  const [selecionadas, setSelecionadas] = useState<string[]>([]);
+  const [colando, setColando] = useState(false);
   const interacaoRef = useRef<ModoInteracao>("espelho");
 
   const carregar = useCallback(async () => {
@@ -135,6 +179,8 @@ export default function MineScreen() {
       const resultado = await carregarMinhasFotos(s, guestQueue());
       setFotos(resultado.fotos);
       interacaoRef.current = resultado.interacao === "completo" ? "completo" : "espelho";
+      const r = await buscarRecapPessoal(s);
+      setRecap(r);
     } catch {
       setErro(true);
     } finally {
@@ -144,13 +190,12 @@ export default function MineScreen() {
 
   useEffect(() => {
     void carregar();
-    // só na montagem — AppState drain (outro agente) recarrega ao voltar ao foreground
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const confirmarRemocao = useCallback(
     (foto: MinhaFoto) => {
-      if (removendoId !== null) return;
+      if (removendoId !== null || modoColagem) return;
       Alert.alert(
         "Remover foto",
         foto.tipo === "enviada"
@@ -167,7 +212,7 @@ export default function MineScreen() {
       );
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [removendoId, session],
+    [removendoId, session, modoColagem],
   );
 
   const abrirDetalhe = useCallback(
@@ -194,7 +239,7 @@ export default function MineScreen() {
   );
 
   async function remover(foto: MinhaFoto) {
-    if (removendoId !== null || compartilhandoId !== null) return;
+    if (removendoId !== null || compartilhandoId !== null || colando) return;
     setRemovendoId(foto.id);
     try {
       if (foto.tipo === "enviada") {
@@ -208,6 +253,7 @@ export default function MineScreen() {
         await guestQueue().remove(foto.id);
       }
       setFotos((prev) => prev.filter((f) => f.id !== foto.id));
+      setSelecionadas((prev) => prev.filter((id) => id !== foto.id));
     } catch {
       Alert.alert("Erro", "Não foi possível remover a foto. Tente de novo.");
     } finally {
@@ -237,6 +283,43 @@ export default function MineScreen() {
     [session, compartilhandoId],
   );
 
+  const toggleColagem = useCallback((foto: MinhaFoto) => {
+    if (foto.tipo !== "enviada") return;
+    setSelecionadas((prev) => {
+      if (prev.includes(foto.id)) return prev.filter((id) => id !== foto.id);
+      if (prev.length >= MAX_DA_COLAGEM) {
+        Alert.alert("Colagem", "A colagem leva no máximo quatro fotos.");
+        return prev;
+      }
+      return [...prev, foto.id];
+    });
+  }, []);
+
+  const enviarColagem = useCallback(async () => {
+    if (!session || colando) return;
+    if (selecionadas.length < 2) {
+      Alert.alert("Colagem", "Escolha pelo menos 2 fotos.");
+      return;
+    }
+    setColando(true);
+    try {
+      const r = await compartilharColagem({ session, uploadIds: selecionadas });
+      if (!r.ok) {
+        Alert.alert("Colagem", r.erro);
+        return;
+      }
+      setModoColagem(false);
+      setSelecionadas([]);
+    } catch {
+      Alert.alert("Colagem", "Não deu para compartilhar a colagem agora.");
+    } finally {
+      setColando(false);
+    }
+  }, [session, selecionadas, colando]);
+
+  const enviadasCount = fotos.filter((f) => f.tipo === "enviada").length;
+  const recapTexto = recap ? textoRecap(recap) : null;
+
   if (loading) {
     return (
       <Screen>
@@ -260,9 +343,55 @@ export default function MineScreen() {
 
   return (
     <Screen>
-      <Text title className="mb-3 text-2xl">
-        Minhas fotos
-      </Text>
+      <View className="mb-3 flex-row items-center justify-between gap-2">
+        <Text title className="flex-1 text-2xl">
+          Minhas fotos
+        </Text>
+        {enviadasCount >= 2 ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={modoColagem ? "Cancelar colagem" : "Montar colagem"}
+            onPress={() => {
+              setModoColagem((v) => !v);
+              setSelecionadas([]);
+            }}
+            disabled={colando}
+            className="rounded-pilula border border-linha px-3 py-1.5"
+          >
+            <Text tone="muted" className="text-xs">
+              {modoColagem ? "Cancelar" : "Colagem"}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+
+      {recapTexto ? (
+        <View className="mb-3 rounded-token border border-linha bg-superficie px-4 py-3">
+          <Text className="text-sm leading-relaxed">{recapTexto}</Text>
+        </View>
+      ) : null}
+
+      {modoColagem ? (
+        <View className="mb-3 flex-row items-center justify-between gap-2">
+          <Text tone="muted" className="flex-1 text-xs">
+            {selecionadas.length}/{MAX_DA_COLAGEM} selecionadas · toque para marcar
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Compartilhar colagem"
+            onPress={() => void enviarColagem()}
+            disabled={colando || selecionadas.length < 2}
+            className={`rounded-pilula bg-acento px-4 py-2 ${
+              colando || selecionadas.length < 2 ? "opacity-55" : ""
+            }`}
+          >
+            <Text tone="onAccent" className="text-xs">
+              {colando ? "…" : "↗ Colagem"}
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       {erro && (
         <Text tone="muted" className="mb-3">
           Não carregou. Puxe para tentar de novo.
@@ -289,9 +418,12 @@ export default function MineScreen() {
               foto={item}
               removendo={removendoId === item.id}
               compartilhando={compartilhandoId === item.id}
+              modoColagem={modoColagem}
+              selecionada={selecionadas.includes(item.id)}
               onRemover={confirmarRemocao}
               onCompartilhar={(f) => void compartilhar(f)}
               onAbrir={abrirDetalhe}
+              onToggleColagem={toggleColagem}
             />
           </View>
         )}
