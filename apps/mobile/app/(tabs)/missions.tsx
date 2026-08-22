@@ -121,6 +121,7 @@ export default function MissionsScreen() {
             <Text tone="onAccent">Abrir câmera</Text>
           </Pressable>
         </View>
+        <MusicaLink onPress={() => router.push("/music")} />
       </Screen>
     );
   }
@@ -134,6 +135,17 @@ export default function MissionsScreen() {
         {missoes.filter((m) => m.feito).length}/{missoes.length} concluídas
       </Text>
 
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Ver recado dos anfitriões"
+        onPress={() => router.push("/recado")}
+        className="mt-2 self-start"
+      >
+        <Text tone="accent" className="text-xs">
+          Recado dos anfitriões →
+        </Text>
+      </Pressable>
+
       <ScrollView className="mt-4" showsVerticalScrollIndicator={false}>
         <View className="gap-3">
           {missoes.map((missao) => (
@@ -146,6 +158,7 @@ export default function MissionsScreen() {
             />
           ))}
         </View>
+        <MusicaLink onPress={() => router.push("/music")} />
       </ScrollView>
     </Screen>
   );
@@ -175,6 +188,21 @@ function MissaoCard({
       <Text className="flex-1 text-base leading-snug">{missao.titulo}</Text>
       <Text tone="muted" className="text-sm">
         {missao.feito ? "Feita" : "Fotografar →"}
+      </Text>
+    </Pressable>
+  );
+}
+
+function MusicaLink({ onPress }: { onPress: () => void }) {
+  return (
+    <Pressable
+      accessibilityRole="link"
+      accessibilityLabel="Música do casal"
+      onPress={onPress}
+      className="mt-4 items-center py-2"
+    >
+      <Text tone="accent" className="text-sm">
+        Música do casal →
       </Text>
     </Pressable>
   );

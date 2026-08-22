@@ -131,6 +131,8 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Missões ✅:** `apps/mobile/src/missions.ts` encapsula `fetchMissoes(session)` contra `GET /api/missions` (handler `apps/web/lib/api/handlers/guest-missions.ts`). Endpoint requer sessão de convidado, aplica RLS via `withEvent` + `listChallenges`, resolve rótulo via `PACKS[packId]`. `(tabs)/missions.tsx` renderiza lista com check de conclusão por sessão; tocar numa missão navega para `/photo?missao=<uuid>`. `photo.tsx` lê `useLocalSearchParams({ missao })` e passa `desafioId` para `persistCapture`, que o inclui no `QueueItem` (campo `desafioId`). Pack sem missões → CTA de câmera livre sem `desafioId`. Testes em `src/missions.test.ts`.
 
+**Música do casal ✅:** `apps/mobile/src/music.ts` encapsula `fetchMusica(session)` contra `GET /api/music` e `sugerirMusica(session, url)` contra `POST /api/music`. Tipos locais espelham `VisibleTrack`/`VisibleSuggestion` da web sem importar o pacote web. `app/music.tsx` (stack screen via file-based routing) exibe a faixa do casal (capa, rótulo, provedor) com botão "Abrir no provedor" via `Linking.openURL`; gate `interacao === "espelho"` bloqueia o formulário de sugestão antes da cerimônia; fila de sugestões ordenada por votos. Sem sessão → CTA de parear. `(tabs)/missions.tsx` expõe link secundário "Música do casal →" ao fim da lista. Testes em `src/music.test.ts` (17 casos, mock fetch).
+
 ---
 
 ## F11 — Papéis e analytics ✅
