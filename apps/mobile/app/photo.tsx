@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Image, Pressable, ScrollView, View } from "react-native";
+import { Image, Pressable, ScrollView, TextInput, View } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { randomUUID } from "expo-crypto";
 import * as ImagePicker from "expo-image-picker";
@@ -7,10 +7,12 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { QUALITY, ordenarComRecomendado } from "@albora/core";
 import type { Preset } from "@albora/core";
+import { PACKS, resolvePackText } from "@albora/packs";
 import { Button, Screen, Text } from "@albora/ui-native";
 import { persistCapture } from "../src/capture";
 import type { CaptureSource } from "../src/capture";
 import { diskFiles, guestQueue, mediaRoot } from "../src/disk";
+import { fetchGuestEventTheme } from "../src/event-theme";
 import { filtroFromPreset } from "../src/filtro";
 import { FilterStrip } from "../src/filter-strip";
 import { normalizeSource } from "../src/normalize-source";
@@ -18,6 +20,10 @@ import { bytesParaDataUri, previewFiltrado } from "../src/preview-filtro";
 import { parseStoredSession, SESSION_STORE_KEY, type GuestSession } from "../src/session";
 import { drainGuestQueue } from "../src/drain-guest";
 import { skiaDrawer } from "../src/skia-drawer";
+
+const MAX_LEGENDA = 280;
+
+type LugarOpcao = { id: string; titulo: string };
 
 export default function PhotoScreen() {
   const router = useRouter();
@@ -44,8 +50,36 @@ export default function PhotoScreen() {
   // in-flight quando o chip muda antes de o processamento terminar.
   const previewGenRef = useRef(0);
 
+  // Legenda e lugar — opcional, nunca bloqueia o envio.
+  const [legenda, setLegenda] = useState("");
+  const [lugarEscolhido, setLugarEscolhido] = useState<string | null>(null);
+  const [lugares, setLugares] = useState<LugarOpcao[]>([]);
+  const [perguntaDoLugar, setPerguntaDoLugar] = useState("Onde na festa?");
+
   // Presets na ordem padrão — sem recomendadoId do servidor nesta fatia.
   const presets = ordenarComRecomendado(null);
+
+  // Carrega os lugares do pack a partir do evento; best-effort (falha silenciosa).
+  useEffect(() => {
+    if (!session) return;
+    void (async () => {
+      try {
+        const theme = await fetchGuestEventTheme(session);
+        if (!theme) return;
+        const pack = PACKS[theme.packId];
+        if (!pack) return;
+        setPerguntaDoLugar(resolvePackText(pack, "lugar.pergunta"));
+        setLugares(
+          pack.lugares.map((l) => ({
+            id: l.id,
+            titulo: resolvePackText(pack, l.chaveTitulo),
+          })),
+        );
+      } catch {
+        // Soft failure — chips de lugar simplesmente não aparecem.
+      }
+    })();
+  }, [session]);
 
   // Troca preset: reseta intensidade para 1 (pleno) e atualiza a escolha.
   function handleEscolherFiltro(p: Preset | null) {
@@ -228,6 +262,8 @@ export default function PhotoScreen() {
     setIntensidade(1);
     setPreviewUri(null);
     setErro(null);
+    setLegenda("");
+    setLugarEscolhido(null);
   }
 
   // Enfileira a foto com (ou sem) o filtro escolhido.
@@ -240,6 +276,8 @@ export default function PhotoScreen() {
         ? filtroFromPreset(filtroEscolhido.id, intensidade)
         : undefined;
 
+      const legendaTrimada = legenda.trim() || null;
+
       const result = await persistCapture({
         source: pendingShot,
         eventoId: session.eventoId,
@@ -250,6 +288,8 @@ export default function PhotoScreen() {
         desenhista: skiaDrawer,
         ...(filtro ? { filtro } : {}),
         ...(desafioId ? { desafioId } : {}),
+        ...(legendaTrimada !== null ? { legenda: legendaTrimada } : {}),
+        ...(lugarEscolhido !== null ? { lugar: lugarEscolhido } : {}),
       });
 
       if (!result.ok) {
@@ -261,6 +301,8 @@ export default function PhotoScreen() {
       setFiltroEscolhido(null);
       setIntensidade(1);
       setPreviewUri(null);
+      setLegenda("");
+      setLugarEscolhido(null);
       await refreshPending();
       void tryDrain();
     } catch {
@@ -318,6 +360,53 @@ export default function PhotoScreen() {
             <IntensidadeChips valor={intensidade} onChange={setIntensidade} />
           </View>
         ) : null}
+
+        {/* Legenda e lugar — opcionais, nunca bloqueiam o envio */}
+        <View className="mt-4 px-6">
+          <TextInput
+            value={legenda}
+            onChangeText={(v) => setLegenda(v.slice(0, MAX_LEGENDA))}
+            placeholder="Legenda (opcional)"
+            maxLength={MAX_LEGENDA}
+            multiline
+            numberOfLines={2}
+            className="rounded-2xl bg-superficie px-3 py-2.5 font-corpo text-sm text-ink"
+            accessibilityLabel="Legenda da foto"
+          />
+          {lugares.length > 0 ? (
+            <View className="mt-3">
+              <Text tone="muted" className="mb-2 text-xs">
+                {perguntaDoLugar}
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerClassName="gap-2"
+              >
+                {lugares.map((l) => (
+                  <Pressable
+                    key={l.id}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: lugarEscolhido === l.id }}
+                    onPress={() => setLugarEscolhido(lugarEscolhido === l.id ? null : l.id)}
+                    className={`h-8 items-center justify-center rounded-pilula border px-3 ${
+                      lugarEscolhido === l.id
+                        ? "border-acento bg-acento"
+                        : "border-linha bg-superficie"
+                    }`}
+                  >
+                    <Text
+                      tone={lugarEscolhido === l.id ? "onAccent" : "muted"}
+                      className="text-xs"
+                    >
+                      {l.titulo}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
+        </View>
 
         {/* Ações */}
         <View className="px-6 pb-9 pt-4">

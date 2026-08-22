@@ -44,6 +44,10 @@ export async function persistCapture(input: {
   device?: { memoryGb: number; cores: number };
   filtro?: FiltroAplicado;
   desafioId?: string | null;
+  /** Legenda livre, máx 280 chars; null/undefined = sem legenda. */
+  legenda?: string | null;
+  /** Id fechado do pack (ex: "pista", "altar"); null/undefined = sem lugar. */
+  lugar?: string | null;
   now?: () => number;
   id?: () => string;
   /** Rede de segurança: converte URI HEIC → URI JPEG antes de rejeitar. */
@@ -154,6 +158,10 @@ export async function persistCapture(input: {
       largura: processada.largura,
       altura: processada.altura,
       ...(input.desafioId != null ? { desafioId: input.desafioId } : {}),
+      ...(input.legenda != null && input.legenda.trim().length > 0
+        ? { legenda: input.legenda.trim() }
+        : {}),
+      ...(input.lugar != null ? { lugar: input.lugar } : {}),
     };
 
     await input.queue.enqueue(item);

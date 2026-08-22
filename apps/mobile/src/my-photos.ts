@@ -133,4 +133,24 @@ export async function carregarMinhasFotos(
   };
 }
 
+/**
+ * Remove uma foto já confirmada no servidor.
+ * Espelha o que a web faz em `use-gallery.ts → remover`.
+ */
+export async function deletarFotoEnviada(
+  session: GuestSession,
+  uploadId: string,
+  fetchFn: typeof fetch = fetch,
+): Promise<{ ok: boolean }> {
+  const res = await fetchFn(`${apiOrigin()}/api/uploads`, {
+    method: "DELETE",
+    headers: {
+      "content-type": "application/json",
+      cookie: cookieHeader(session.token),
+    },
+    body: JSON.stringify({ uploadId }),
+  });
+  return { ok: res.ok };
+}
+
 export { MAX_ATTEMPTS };

@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { carregarMinhasFotos, fetchMinhasDoServidor, itemDaFilaParaFoto } from "./my-photos";
+import {
+  carregarMinhasFotos,
+  deletarFotoEnviada,
+  fetchMinhasDoServidor,
+  itemDaFilaParaFoto,
+} from "./my-photos";
 import type { GuestSession } from "./session";
 import { createFileQueue, memoryStore } from "./queue";
 import type { QueueItem } from "@albora/core";
@@ -164,5 +169,36 @@ describe("carregarMinhasFotos", () => {
     const resultado = await carregarMinhasFotos(sessao, queue, fetchFn);
     expect(resultado.fotos).toHaveLength(1);
     expect(resultado.fotos[0]?.tipo).toBe("falhou");
+  });
+});
+
+describe("deletarFotoEnviada", () => {
+  it("retorna ok:true quando o servidor responde 200", async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: true, status: 200 }) as unknown as typeof fetch;
+    const resultado = await deletarFotoEnviada(sessao, "foto-1", fetchFn);
+    expect(resultado.ok).toBe(true);
+  });
+
+  it("retorna ok:false quando o servidor responde 403", async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: false, status: 403 }) as unknown as typeof fetch;
+    const resultado = await deletarFotoEnviada(sessao, "foto-1", fetchFn);
+    expect(resultado.ok).toBe(false);
+  });
+
+  it("chama DELETE /api/uploads com o uploadId correto", async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: true, status: 200 }) as unknown as typeof fetch;
+    await deletarFotoEnviada(sessao, "foto-xyz", fetchFn);
+    expect(fetchFn).toHaveBeenCalledOnce();
+    const [url, opts] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
+    expect(url).toContain("/api/uploads");
+    expect(opts.method).toBe("DELETE");
+    expect(JSON.parse(opts.body as string)).toEqual({ uploadId: "foto-xyz" });
+  });
+
+  it("envia o cookie de sessão no cabeçalho", async () => {
+    const fetchFn = vi.fn().mockResolvedValue({ ok: true }) as unknown as typeof fetch;
+    await deletarFotoEnviada(sessao, "foto-abc", fetchFn);
+    const [, opts] = (fetchFn as ReturnType<typeof vi.fn>).mock.calls[0] as [string, RequestInit];
+    expect((opts.headers as Record<string, string>)["cookie"]).toContain("tok.x");
   });
 });
