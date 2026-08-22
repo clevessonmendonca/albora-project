@@ -48,6 +48,8 @@ export async function persistCapture(input: {
   legenda?: string | null;
   /** Id fechado do pack (ex: "pista", "altar"); null/undefined = sem lugar. */
   lugar?: string | null;
+  /** Chave do prompt do confessionário (exige vídeo). */
+  promptKey?: string | null;
   now?: () => number;
   id?: () => string;
   /** Rede de segurança: converte URI HEIC → URI JPEG antes de rejeitar. */
@@ -65,7 +67,8 @@ export async function persistCapture(input: {
   }
 
   const id = (input.id ?? defaultId)();
-  const dest = `${input.destDir.replace(/\/$/, "")}/${id}.jpg`;
+  const destBase = `${input.destDir.replace(/\/$/, "")}/${id}`;
+  let dest = `${destBase}.jpg`;
 
   try {
     await input.files.mkdir(input.destDir);
@@ -94,8 +97,41 @@ export async function persistCapture(input: {
     }
 
     if (isVideoBytes(head)) {
-      await input.files.remove(dest);
-      return { ok: false, erro: "Por agora o app só tira foto. Vídeo continua na web." };
+      // Confessionário: vídeo curto com promptKey — sem reencode Skia.
+      if (!input.promptKey) {
+        await input.files.remove(dest);
+        return { ok: false, erro: "Por agora o app só tira foto. Vídeo continua na web." };
+      }
+      const videoDest = `${destBase}.mp4`;
+      if (videoDest !== dest) {
+        await input.files.copy(dest, videoDest);
+        await input.files.remove(dest);
+        dest = videoDest;
+      }
+      const videoMeta = await input.files.info(dest);
+      const mime = detectarTipo(head) ?? "video/mp4";
+      const declarado = validarDeclaracao(mime, videoMeta.size ?? meta.size);
+      if (declarado) {
+        await input.files.remove(dest);
+        return { ok: false, erro: mensagem(declarado.code) };
+      }
+      const criadoEm = (input.now ?? Date.now)();
+      const item: QueueItem = {
+        id,
+        eventoId: input.eventoId,
+        corpo: { tipo: "arquivo", caminho: dest, bytes: videoMeta.size ?? meta.size },
+        mime,
+        criadoEm,
+        tentativas: 0,
+        capturadaEm: criadoEm,
+        promptKey: input.promptKey,
+        ...(input.desafioId != null ? { desafioId: input.desafioId } : {}),
+        ...(input.legenda != null && input.legenda.trim().length > 0
+          ? { legenda: input.legenda.trim() }
+          : {}),
+      };
+      await input.queue.enqueue(item);
+      return { ok: true, id, caminho: dest, tinhaGeolocalizacao: false };
     }
 
     const mime = detectarTipo(head) ?? "image/jpeg";
@@ -162,6 +198,7 @@ export async function persistCapture(input: {
         ? { legenda: input.legenda.trim() }
         : {}),
       ...(input.lugar != null ? { lugar: input.lugar } : {}),
+      ...(input.promptKey != null ? { promptKey: input.promptKey } : {}),
     };
 
     await input.queue.enqueue(item);

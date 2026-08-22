@@ -146,6 +146,17 @@ export default function MissionsScreen() {
         </Text>
       </Pressable>
 
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Abrir confessionário"
+        onPress={() => router.push("/confessional")}
+        className="mt-1 self-start"
+      >
+        <Text tone="accent" className="text-xs">
+          Confessionário →
+        </Text>
+      </Pressable>
+
       <ScrollView className="mt-4" showsVerticalScrollIndicator={false}>
         <View className="gap-3">
           {missoes.map((missao) => (

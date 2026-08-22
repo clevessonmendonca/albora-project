@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Dimensions,
   Image,
   KeyboardAvoidingView,
@@ -20,6 +21,7 @@ import { signMediaUrls } from "../src/sign-urls";
 import { toggleReaction } from "../src/reaction";
 import { deleteComment, listComments, postComment, type ComentarioItem } from "../src/comments";
 import { reportMedia, type MotivoDenuncia } from "../src/report";
+import { compartilharFotoPropria } from "../src/share";
 import type { GuestSession } from "../src/session";
 import type { ModoInteracao } from "../src/feed";
 
@@ -314,6 +316,7 @@ export default function PhotoDetailScreen() {
   const [alternando, setAlternando] = useState(false);
   const [comentariosAbertos, setComentariosAbertos] = useState(false);
   const [denunciaAberta, setDenunciaAberta] = useState(false);
+  const [compartilhando, setCompartilhando] = useState(false);
   const sessionRef = useRef<GuestSession | null>(null);
 
   // Assinar URL full via POST /api/media/urls (reutiliza o mesmo mecanismo do feed)
@@ -356,6 +359,18 @@ export default function PhotoDetailScreen() {
       setMinhaReacao(resultado.minha);
     }
     setAlternando(false);
+  };
+
+  const compartilhar = async () => {
+    if (!sessionRef.current || compartilhando || !minha) return;
+    setCompartilhando(true);
+    const r = await compartilharFotoPropria({
+      session: sessionRef.current,
+      uploadId,
+      ...(chaveFull ? { chaveFull } : {}),
+    });
+    setCompartilhando(false);
+    if (!r.ok) Alert.alert("Compartilhar", r.erro);
   };
 
   const session = sessionRef.current;
@@ -433,6 +448,21 @@ export default function PhotoDetailScreen() {
               className="flex-row items-center gap-2"
             >
               <Text className="text-2xl leading-none text-sobre-acento">💬</Text>
+            </Pressable>
+          )}
+
+          {/* Compartilhar — só foto própria */}
+          {minha && session && (
+            <Pressable
+              onPress={() => void compartilhar()}
+              disabled={compartilhando}
+              accessibilityRole="button"
+              accessibilityLabel="Compartilhar foto"
+              className="flex-row items-center gap-2"
+            >
+              <Text className="text-2xl leading-none text-sobre-acento">
+                {compartilhando ? "…" : "↗"}
+              </Text>
             </Pressable>
           )}
 

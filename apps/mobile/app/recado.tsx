@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, View } from "react-native";
 import * as SecureStore from "expo-secure-store";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -9,6 +9,7 @@ import {
   recortarTexto,
   type AudioRecado,
 } from "../src/recado";
+import { tocarUrl, type PlayerState } from "../src/recado-audio";
 import { parseStoredSession, SESSION_STORE_KEY, type GuestSession } from "../src/session";
 
 type Estado =
@@ -22,20 +23,33 @@ export default function RecadoScreen() {
   const router = useRouter();
   const [session, setSession] = useState<GuestSession | null>(null);
   const [estado, setEstado] = useState<Estado>({ tipo: "carregando" });
+  const [player, setPlayer] = useState<PlayerState>("idle");
+  const pararRef = useRef<(() => Promise<void>) | null>(null);
 
-  const carregar = useCallback(async (sess: GuestSession) => {
-    setEstado({ tipo: "carregando" });
-    const r = await buscarRecado(sess);
-    if (!r.ok) {
-      setEstado(r.falha === "sessao" ? { tipo: "semSessao" } : { tipo: "erro" });
-      return;
-    }
-    if (!r.mostrar || r.texto === null) {
-      setEstado({ tipo: "vazio" });
-      return;
-    }
-    setEstado({ tipo: "pronto", texto: r.texto, audio: r.audio, expandido: false });
+  const pararAudio = useCallback(async () => {
+    const fn = pararRef.current;
+    pararRef.current = null;
+    if (fn) await fn();
+    setPlayer("idle");
   }, []);
+
+  const carregar = useCallback(
+    async (sess: GuestSession) => {
+      await pararAudio();
+      setEstado({ tipo: "carregando" });
+      const r = await buscarRecado(sess);
+      if (!r.ok) {
+        setEstado(r.falha === "sessao" ? { tipo: "semSessao" } : { tipo: "erro" });
+        return;
+      }
+      if (!r.mostrar || r.texto === null) {
+        setEstado({ tipo: "vazio" });
+        return;
+      }
+      setEstado({ tipo: "pronto", texto: r.texto, audio: r.audio, expandido: false });
+    },
+    [pararAudio],
+  );
 
   useEffect(() => {
     void (async () => {
@@ -48,18 +62,42 @@ export default function RecadoScreen() {
       }
       await carregar(sess);
     })();
-  }, [carregar]);
+    return () => {
+      void pararAudio();
+    };
+  }, [carregar, pararAudio]);
 
   useFocusEffect(
     useCallback(() => {
       if (session) void carregar(session);
-    }, [session, carregar]),
+      return () => {
+        void pararAudio();
+      };
+    }, [session, carregar, pararAudio]),
   );
 
   const dispensar = useCallback(async () => {
+    await pararAudio();
     if (session) await marcarRecadoLido(session);
     router.back();
-  }, [session, router]);
+  }, [session, router, pararAudio]);
+
+  const alternarAudio = useCallback(
+    async (audio: AudioRecado) => {
+      if (player === "playing") {
+        await pararAudio();
+        return;
+      }
+      setPlayer("playing");
+      const ctrl = await tocarUrl(audio.url, { onStatus: setPlayer });
+      if (!ctrl) {
+        setPlayer("erro");
+        return;
+      }
+      pararRef.current = ctrl.parar;
+    },
+    [player, pararAudio],
+  );
 
   if (estado.tipo === "carregando") {
     return (
@@ -153,12 +191,21 @@ export default function RecadoScreen() {
 
         <View className="rounded-superficie border border-linha bg-superficie p-4">
           {audio !== null ? (
-            <View className="mb-3 flex-row items-center gap-2">
-              <View className="size-8 shrink-0 rounded-full bg-acento" />
-              <Text tone="muted" className="text-xs">
-                Áudio disponível ({Math.round(audio.duracaoSegundos)}s)
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={player === "playing" ? "Pausar áudio" : "Ouvir áudio"}
+              onPress={() => void alternarAudio(audio)}
+              className="mb-3 flex-row items-center gap-3 self-start rounded-pilula border border-linha bg-bg px-4 py-2"
+            >
+              <Text className="text-base text-acento">{player === "playing" ? "❚❚" : "▶"}</Text>
+              <Text className="text-xs">
+                {player === "playing"
+                  ? "Tocando…"
+                  : player === "erro"
+                    ? "Áudio indisponível"
+                    : `Ouvir áudio (${Math.round(audio.duracaoSegundos)}s)`}
               </Text>
-            </View>
+            </Pressable>
           ) : null}
 
           <Text className="text-base leading-relaxed">{corpo}</Text>

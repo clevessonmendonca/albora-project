@@ -41,3 +41,4 @@ coverage/
 .expo/
 apps/mobile/ios/
 apps/mobile/android/
+.pgdata

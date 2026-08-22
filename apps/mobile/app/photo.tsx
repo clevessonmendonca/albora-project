@@ -27,8 +27,14 @@ type LugarOpcao = { id: string; titulo: string };
 
 export default function PhotoScreen() {
   const router = useRouter();
-  const { missao } = useLocalSearchParams<{ missao?: string }>();
+  const { missao, prompt, video } = useLocalSearchParams<{
+    missao?: string;
+    prompt?: string;
+    video?: string;
+  }>();
   const desafioId = typeof missao === "string" && missao.length > 0 ? missao : null;
+  const promptKey = typeof prompt === "string" && prompt.length > 0 ? prompt : null;
+  const modoVideo = video === "1" && promptKey !== null;
 
   const camera = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
@@ -190,12 +196,37 @@ export default function PhotoScreen() {
     );
   }
 
-  // Dispara: tira a foto e abre a tela de revisão/filtro.
+  // Dispara: foto → revisão/filtro; vídeo (confessionário) → grava e enfileira.
   async function shoot() {
     if (busy || session === null || session === undefined) return;
     setBusy(true);
     setErro(null);
     try {
+      if (modoVideo && promptKey) {
+        const recording = await camera.current?.recordAsync({ maxDuration: 20 });
+        if (!recording?.uri) {
+          setErro("Não consegui gravar o vídeo. Tente de novo.");
+          return;
+        }
+        const r = await persistCapture({
+          source: { uri: recording.uri },
+          eventoId: session.eventoId,
+          queue: guestQueue(),
+          files: diskFiles(),
+          destDir: mediaRoot(),
+          id: () => randomUUID(),
+          promptKey,
+          ...(desafioId ? { desafioId } : {}),
+        });
+        if (!r.ok) {
+          setErro(r.erro);
+          return;
+        }
+        await tryDrain();
+        router.back();
+        return;
+      }
+
       const shot = await camera.current?.takePictureAsync({
         quality: QUALITY.full,
         exif: false,
@@ -208,7 +239,11 @@ export default function PhotoScreen() {
       setPendingShot({ uri: shot.uri, width: shot.width, height: shot.height });
       setFiltroEscolhido(null);
     } catch {
-      setErro("Não consegui tirar a foto. Tente de novo.");
+      setErro(
+        modoVideo
+          ? "Não consegui gravar o vídeo. Tente de novo."
+          : "Não consegui tirar a foto. Tente de novo.",
+      );
     } finally {
       setBusy(false);
     }
@@ -435,8 +470,19 @@ export default function PhotoScreen() {
       </View>
 
       <View className="mx-3 mt-3 min-h-[16rem] flex-1 overflow-hidden rounded-superficie bg-superficie">
-        <CameraView ref={camera} facing="back" style={{ flex: 1 }} />
+        <CameraView
+          ref={camera}
+          facing="back"
+          mode={modoVideo ? "video" : "picture"}
+          style={{ flex: 1 }}
+        />
       </View>
+
+      {modoVideo && promptKey ? (
+        <Text tone="muted" className="mt-2 px-6 text-center text-xs">
+          Confessionário — toque para gravar (até 20s)
+        </Text>
+      ) : null}
 
       {erro ? (
         <Text tone="critical" className="mt-3 px-6">
@@ -445,30 +491,36 @@ export default function PhotoScreen() {
       ) : null}
 
       <View className="flex-row items-center justify-center gap-8 px-7 pb-9 pt-5">
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Abrir galeria"
-          disabled={busy}
-          onPress={() => void pickFromGallery()}
-          className={`h-12 min-w-20 items-center justify-center rounded-pilula border border-linha bg-superficie px-4 ${
-            busy ? "opacity-55" : ""
-          }`}
-        >
-          <Text tone="muted" className="text-sm">
-            Galeria
-          </Text>
-        </Pressable>
+        {!modoVideo ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Abrir galeria"
+            disabled={busy}
+            onPress={() => void pickFromGallery()}
+            className={`h-12 min-w-20 items-center justify-center rounded-pilula border border-linha bg-superficie px-4 ${
+              busy ? "opacity-55" : ""
+            }`}
+          >
+            <Text tone="muted" className="text-sm">
+              Galeria
+            </Text>
+          </Pressable>
+        ) : (
+          <View className="w-20" />
+        )}
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Fotografar"
+          accessibilityLabel={modoVideo ? "Gravar vídeo" : "Fotografar"}
           disabled={busy}
           onPress={() => void shoot()}
           className={`size-16 items-center justify-center rounded-pilula border-2 border-ink ${
             busy ? "opacity-55" : ""
           }`}
         >
-          <View className="size-12 rounded-pilula bg-acento" />
+          <View
+            className={`size-12 rounded-pilula bg-acento ${modoVideo ? "rounded-token" : ""}`}
+          />
         </Pressable>
 
         <View className="w-20" />
