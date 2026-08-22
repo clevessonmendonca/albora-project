@@ -12,7 +12,6 @@ import {
   aplicarFiltroCss,
   aplicarIntensidade,
   aplicarPorPixel,
-  type Bitmap,
   type Desenhista,
 } from "@albora/core";
 
