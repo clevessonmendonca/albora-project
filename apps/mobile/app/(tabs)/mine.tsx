@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Image, Pressable, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Screen, Text } from "@albora/ui-native";
@@ -319,6 +319,14 @@ export default function MineScreen() {
     }
   }, [session, selecionadas, colando]);
 
+  const enviadasCount = fotos.filter((f) => f.tipo === "enviada").length;
+  const enviadas = fotos.filter((f): f is MinhaFotoEnviada => f.tipo === "enviada");
+  const idsRecap = useMemo(
+    () => (session ? idsDoRecap(enviadas, session.eventoId) : []),
+    [session, enviadas],
+  );
+  const recapTexto = recap ? textoRecap(recap) : null;
+
   const compartilharRecapDaNoite = useCallback(async () => {
     if (!session || recapCompartilhando || idsRecap.length === 0) return;
     setRecapCompartilhando(true);
@@ -333,11 +341,6 @@ export default function MineScreen() {
       setRecapCompartilhando(false);
     }
   }, [session, idsRecap, recapCompartilhando]);
-
-  const enviadasCount = fotos.filter((f) => f.tipo === "enviada").length;
-  const enviadas = fotos.filter((f): f is MinhaFotoEnviada => f.tipo === "enviada");
-  const idsRecap = session ? idsDoRecap(enviadas, session.eventoId) : [];
-  const recapTexto = recap ? textoRecap(recap) : null;
 
   if (loading) {
     return (

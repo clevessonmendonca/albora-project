@@ -11,7 +11,6 @@ import {
   MipmapMode,
   Skia,
   TileMode,
-  matchFont,
   type SkCanvas,
   type SkFont,
   type SkImage,
@@ -25,7 +24,7 @@ import {
   type ConteudoDaMoldura,
 } from "@albora/core";
 import type { FramePalette } from "./share-frame-palette";
-import { primeiraFamiliaFonte } from "./share-font-stack";
+import { ensureShareFonts, matchShareFont } from "./share-font-registry";
 
 function paintHex(hex: string): SkPaint {
   const paint = Skia.Paint();
@@ -34,12 +33,7 @@ function paintHex(hex: string): SkPaint {
 }
 
 function fontOf(size: number, stack: string, weight: "normal" | "bold" = "normal"): SkFont {
-  return matchFont({
-    fontFamily: primeiraFamiliaFonte(stack),
-    fontSize: size,
-    fontWeight: weight === "bold" ? "600" : "400",
-    fontStyle: "normal",
-  });
+  return matchShareFont({ stack, size, weight });
 }
 
 function drawCenteredText(
@@ -139,6 +133,7 @@ export async function renderShareFrame(opts: {
   composicao: Composicao;
   paleta: FramePalette;
 }): Promise<Uint8Array> {
+  await ensureShareFonts();
   const data = Skia.Data.fromBytes(opts.bytes);
   const imagem = Skia.Image.MakeImageFromEncoded(data);
   if (!imagem) throw new Error("Skia: falha ao decodificar foto do share");
@@ -182,6 +177,7 @@ export async function renderShareCollage(opts: {
   paleta: FramePalette;
   celulas: Array<{ x: number; y: number; largura: number; altura: number }>;
 }): Promise<Uint8Array> {
+  await ensureShareFonts();
   const surface = Skia.Surface.Make(LARGURA_DA_COMPOSICAO, ALTURA_DA_COMPOSICAO);
   if (!surface) throw new Error("Skia: falha ao criar surface da colagem");
 

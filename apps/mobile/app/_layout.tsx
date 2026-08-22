@@ -11,6 +11,7 @@ import {
   themeVariablesFromEvent,
 } from "../src/event-theme";
 import { ensureGuestUploadBackgroundTask } from "../src/background-drain";
+import { ensureShareFonts } from "../src/share-font-registry";
 import { guestQueue } from "../src/disk";
 import { drainGuestQueue } from "../src/drain-guest";
 import { subscribeForegroundDrain } from "../src/foreground-drain";
@@ -25,6 +26,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     void ensureGuestUploadBackgroundTask();
+    void ensureShareFonts();
   }, []);
 
   useEffect(() => {

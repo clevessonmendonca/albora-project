@@ -495,9 +495,16 @@ export default function PhotoScreen() {
         >
           <Text tone="muted">Voltar</Text>
         </Pressable>
-        <Text tone={pending > 0 ? "accent" : "muted"}>
-          {pending === 0 ? "Câmera" : pending === 1 ? "1 na fila" : `${pending} na fila`}
-        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={pending > 0 ? "Abrir fila de envio" : "Fila vazia"}
+          disabled={pending === 0}
+          onPress={() => router.push("/queue")}
+        >
+          <Text tone={pending > 0 ? "accent" : "muted"}>
+            {pending === 0 ? "Câmera" : pending === 1 ? "1 na fila" : `${pending} na fila`}
+          </Text>
+        </Pressable>
       </View>
 
       <View className="mx-3 mt-3 min-h-[16rem] flex-1 overflow-hidden rounded-superficie bg-superficie">

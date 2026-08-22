@@ -159,6 +159,12 @@ importers:
       '@babel/core':
         specifier: ^7.26.0
         version: 7.29.7
+      '@fontsource/fraunces':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/instrument-sans':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@types/jpeg-js':
         specifier: ^0.3.7
         version: 0.3.7
