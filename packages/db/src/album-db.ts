@@ -35,6 +35,7 @@ export { LARGURA_PADRAO, ALTURA_PADRAO } from "./dimensoes";
 export type MidiaDoAlbumComChave = MidiaDoAlbum & {
   chaveFull: string;
   chaveThumb: string;
+  mime: string;
 };
 
 export type JanelaDoAlbum = {
@@ -47,6 +48,7 @@ export type JanelaDoAlbum = {
 type Linha = {
   id: string;
   storage_key: string;
+  mime: string;
   session_id: string;
   challenge_id: string | null;
   place: string | null;
@@ -74,7 +76,7 @@ export async function listarMidiaDoAlbum(
   const teto = Math.min(Math.max(Math.trunc(limite), 1), TETO_DO_ALBUM);
 
   const { rows } = await cliente.query<Linha>(
-    `SELECT u.id, u.storage_key, u.session_id, u.challenge_id, u.place, u.created_at,
+    `SELECT u.id, u.storage_key, u.mime, u.session_id, u.challenge_id, u.place, u.created_at,
             u.taken_at, u.width, u.height, u.prompt_key,
             (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes
        FROM uploads u
@@ -99,6 +101,7 @@ export async function listarMidiaDoAlbum(
       reacoes: l.reacoes,
       chaveFull: l.storage_key,
       chaveThumb: thumbKeyFromFull(l.storage_key),
+      mime: l.mime,
     };
   });
 }

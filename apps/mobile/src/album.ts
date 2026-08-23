@@ -6,6 +6,7 @@ export type FotoAlbum = {
   id: string;
   url: string;
   urlThumb: string;
+  mime: string;
   missaoId: string | null;
   slot: SlotAlbum;
 };

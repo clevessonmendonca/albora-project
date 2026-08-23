@@ -62,6 +62,7 @@ function capituloComFotos(overrides: Partial<CapituloAlbum> = {}): CapituloAlbum
             id: "f-1",
             url: "https://cdn.example/full.jpg",
             urlThumb: "https://cdn.example/thumb.jpg",
+            mime: "image/jpeg",
             missaoId: null,
             slot: { id: "s-1", proporcao: "4/5", fracao: 1 },
           },
@@ -69,6 +70,7 @@ function capituloComFotos(overrides: Partial<CapituloAlbum> = {}): CapituloAlbum
             id: "f-2",
             url: "https://cdn.example/full2.jpg",
             urlThumb: "https://cdn.example/thumb2.jpg",
+            mime: "video/mp4",
             missaoId: "miss-1",
             slot: { id: "s-2", proporcao: "1/1", fracao: 0.5 },
           },
@@ -206,6 +208,7 @@ describe("totalFotosCapitulo", () => {
       id: "f-x",
       url: "https://cdn.example/f.jpg",
       urlThumb: "https://cdn.example/t.jpg",
+      mime: "image/jpeg",
       missaoId: null,
       slot: { id: "s-x", proporcao: "4/5", fracao: 1 },
     };

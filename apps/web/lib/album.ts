@@ -39,6 +39,7 @@ export type ServedPhoto = {
   id: string;
   url: string;
   urlThumb: string;
+  mime: string;
   missaoId: string | null;
   slot: ServedSlot;
 };
@@ -107,7 +108,7 @@ export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
   // A chave nunca sai do servidor; o mapa liga o id da foto montada à chave que
   // será assinada, sem confiar em campo que o núcleo não declara no seu tipo.
   const keyById = new Map(
-    data.midias.map((m) => [m.id, { full: m.chaveFull, thumb: m.chaveThumb }] as const),
+    data.midias.map((m) => [m.id, { full: m.chaveFull, thumb: m.chaveThumb, mime: m.mime }] as const),
   );
 
   const capitulos = await Promise.all(
@@ -133,6 +134,7 @@ export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
                 id: foto.midia.id,
                 url,
                 urlThumb,
+                mime: chave?.mime ?? "image/jpeg",
                 missaoId: foto.midia.missaoId,
                 slot: {
                   id: foto.slot.id,

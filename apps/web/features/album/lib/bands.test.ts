@@ -13,6 +13,7 @@ function foto(id: string, missaoId: string | null = null): ServedPhoto {
     id,
     url: `https://r2/${id}`,
     urlThumb: `https://r2/${id}/t`,
+    mime: "image/jpeg",
     missaoId,
     slot: { id: "a", proporcao: "retrato", fracao: 1 },
   };

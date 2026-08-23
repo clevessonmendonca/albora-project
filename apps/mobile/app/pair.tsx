@@ -1,36 +1,44 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { TextInput, View } from "react-native";
+import { Linking as RNLinking, Pressable, TextInput, View } from "react-native";
 import * as Linking from "expo-linking";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { Button, Screen, Text } from "@albora/ui-native";
-import { parsePairCodigoFromUrl, parsePairPassagemFromUrl } from "../src/pair-link";
-import { parseRedeemResponse, redeemUrl, SESSION_STORE_KEY } from "../src/session";
+import {
+  pairPayloadFromParams,
+  pairPayloadKey,
+  parsePairCodigoFromUrl,
+  parsePairPassagemFromUrl,
+  type PairRedeemPayload,
+} from "../src/pair-link";
+import { parseRedeemResponse, redeemUrl, SESSION_STORE_KEY, apiOrigin } from "../src/session";
 
 const HOUSES = 4;
 
-type RedeemPayload = { codigo?: string; passagem?: string };
-
 export default function PairScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ codigo?: string | string[]; passagem?: string | string[] }>();
   const refs = useRef<Array<TextInput | null>>([]);
+  const lastKey = useRef<string | null>(null);
   const [digits, setDigits] = useState<string[]>(() => Array(HOUSES).fill(""));
   const [state, setState] = useState<"edit" | "sending" | "refused" | "error">("edit");
-  const [autoRedeem, setAutoRedeem] = useState<RedeemPayload | null>(null);
+  const [autoRedeem, setAutoRedeem] = useState<PairRedeemPayload | null>(null);
 
   const code = digits.join("");
   const valid = /^\d{4}$/.test(code);
 
-  const redeem = useCallback(
-    async (payload: RedeemPayload) => {
-      if (payload.passagem) {
-        setState("sending");
-      } else if (!payload.codigo || !/^\d{4}$/.test(payload.codigo)) {
-        return;
-      } else {
-        setState("sending");
-      }
+  const enqueue = useCallback((payload: PairRedeemPayload) => {
+    const key = pairPayloadKey(payload);
+    if (lastKey.current === key) return;
+    lastKey.current = key;
+    if ("codigo" in payload) setDigits(payload.codigo.split(""));
+    setState("edit");
+    setAutoRedeem(payload);
+  }, []);
 
+  const redeem = useCallback(
+    async (payload: PairRedeemPayload) => {
+      setState("sending");
       try {
         const response = await fetch(redeemUrl(), {
           method: "POST",
@@ -54,23 +62,25 @@ export default function PairScreen() {
   );
 
   useEffect(() => {
+    const fromParams = pairPayloadFromParams(params);
+    if (fromParams) enqueue(fromParams);
+  }, [params, enqueue]);
+
+  useEffect(() => {
     function apply(url: string | null) {
       const passagem = parsePairPassagemFromUrl(url);
       if (passagem) {
-        setState("edit");
-        setAutoRedeem({ passagem });
+        enqueue({ passagem });
         return;
       }
       const preenchido = parsePairCodigoFromUrl(url);
       if (!preenchido) return;
-      setDigits(preenchido.split(""));
-      setState("edit");
-      setAutoRedeem({ codigo: preenchido });
+      enqueue({ codigo: preenchido });
     }
     void Linking.getInitialURL().then(apply);
     const sub = Linking.addEventListener("url", ({ url }) => apply(url));
     return () => sub.remove();
-  }, []);
+  }, [enqueue]);
 
   useEffect(() => {
     if (!autoRedeem || state !== "edit") return;
@@ -116,9 +126,21 @@ export default function PairScreen() {
           <Text tone="critical">Código inválido ou expirado. Peça outro na web.</Text>
         ) : null}
         {state === "error" ? <Text tone="critical">Não deu para parear agora. Tente de novo.</Text> : null}
-        <Button onPress={() => void redeem({ codigo: code })} disabled={!valid || state === "sending"}>
+        <Button
+          onPress={() => void redeem({ codigo: code })}
+          disabled={!valid || state === "sending"}
+        >
           {state === "sending" ? "Entrando…" : "Continuar"}
         </Button>
+        <Pressable
+          onPress={() => void RNLinking.openURL(`${apiOrigin()}/privacidade`)}
+          accessibilityRole="link"
+          accessibilityLabel="Privacidade"
+        >
+          <Text tone="muted" className="text-center text-sm underline">
+            Privacidade
+          </Text>
+        </Pressable>
       </View>
     </Screen>
   );

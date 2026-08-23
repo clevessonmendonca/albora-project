@@ -7,6 +7,7 @@
     "start": "expo start",
     "fontes": "node scripts/copiar-fontes.mjs",
     "icones": "node scripts/gerar-icones.mjs",
+    "feature-graphic": "node scripts/gerar-feature-graphic.mjs",
     "prestart": "node scripts/copiar-fontes.mjs",
     "eas-build-pre-install": "node scripts/copiar-fontes.mjs && node scripts/gerar-icones.mjs",
     "ios": "expo start --ios",

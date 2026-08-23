@@ -177,6 +177,7 @@ export default function AlbumScreen() {
           autor: "",
           reacoes: "0",
           minhaReacao: "",
+          mime: foto.mime,
         },
       });
     },

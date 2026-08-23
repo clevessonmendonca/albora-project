@@ -38,6 +38,9 @@ apps/mobile/assets/icon.png
 apps/mobile/assets/adaptive-icon.png
 apps/mobile/assets/splash-icon.png
 
+# Feature graphic Play (regenerável)
+apps/mobile/store/feature-graphic.png
+
 # Credencial Play — nunca no git
 apps/mobile/store/google-service-account.json
 

@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { parsePairCodigoFromUrl, parsePairPassagemFromUrl } from "./pair-link";
+import {
+  pairPayloadFromParams,
+  pairPayloadKey,
+  parsePairCodigoFromUrl,
+  parsePairPassagemFromUrl,
+} from "./pair-link";
 
 describe("parsePairCodigoFromUrl", () => {
   it("lê o scheme customizado", () => {
@@ -30,8 +35,27 @@ describe("parsePairPassagemFromUrl", () => {
   });
 
   it("prioriza passagem quando ambos existem no parse isolado", () => {
-    expect(
-      parsePairPassagemFromUrl("albora://pair?codigo=1234&passagem=abc.def"),
-    ).toBe("abc.def");
+    expect(parsePairPassagemFromUrl("albora://pair?codigo=1234&passagem=abc.def")).toBe("abc.def");
+  });
+});
+
+describe("pairPayloadFromParams", () => {
+  it("preferência passagem sobre codigo", () => {
+    expect(pairPayloadFromParams({ codigo: "1234", passagem: "tok.en" })).toEqual({
+      passagem: "tok.en",
+    });
+  });
+
+  it("aceita arrays do Expo Router", () => {
+    expect(pairPayloadFromParams({ codigo: ["9012"] })).toEqual({ codigo: "9012" });
+  });
+
+  it("chave estável para anti-duplicata", () => {
+    expect(pairPayloadKey({ passagem: "a.b" })).toBe("p:a.b");
+    expect(pairPayloadKey({ codigo: "1234" })).toBe("c:1234");
+  });
+
+  it("null sem params", () => {
+    expect(pairPayloadFromParams({})).toBeNull();
   });
 });
