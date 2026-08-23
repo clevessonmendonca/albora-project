@@ -35,7 +35,7 @@ Ajuste `EXPO_PUBLIC_API_URL` em `eas.json` (production) para API de produção.
 1. Preencha placeholders em `eas.json` → `submit.production`.
 2. Coloque `store/google-service-account.json` (gitignored) para Android.
 3. Revise [`store/listing.pt-BR.md`](../apps/mobile/store/listing.pt-BR.md).
-4. Publique política de privacidade em `/privacidade`.
+4. Confirme `https://albora.app/privacidade` no ar (`curl -sI` → 200; página em `apps/web/app/privacidade`).
 5. `eas submit -p ios --profile production` / `eas submit -p android --profile production`.
 
 ## 5. Capturas de tela
@@ -62,5 +62,6 @@ Só JS/assets — mudança nativa exige novo build.
 - [ ] `IOS_APP_TEAM_ID` + `ANDROID_APP_SHA256` no deploy web  
 - [ ] Passagem smoke OK em aparelho  
 - [ ] Ícones gerados (`pnpm icones`)  
-- [ ] Política de privacidade publicada  
+- [ ] `/privacidade` no ar (curl 200)  
+- [ ] URL de privacidade preenchida nas fichas das lojas  
 - [ ] Classificação etária / data safety (Play) preenchidos  

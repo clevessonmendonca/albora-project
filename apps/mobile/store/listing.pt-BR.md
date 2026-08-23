@@ -37,7 +37,9 @@ casamento,fotos,festa,convidados,álbum,memórias,casal,recepção
 
 ## URL de privacidade
 
-`https://albora.app/privacidade` — publicar página antes do submit.
+`https://albora.app/privacidade` (alias EN: `/privacy` → 308).
+
+Página em `apps/web/app/privacidade/page.tsx` — obrigatória no submit das lojas.
 
 ## Capturas necessárias
 
@@ -52,3 +54,16 @@ Gerar a partir de dev client em festa-demo — ver [`docs/runbooks/publicacao-lo
 
 > App para convidados de eventos privados. Login não existe — sessão anônima por QR.
 > Câmera e galeria só para enviar fotos ao álbum do evento.
+> Política de privacidade: https://albora.app/privacidade
+
+## Data safety (Google Play) — rascunho
+
+| Dado | Coletado? | Compartilhado? | Propósito |
+|------|-----------|----------------|-----------|
+| Fotos/vídeos | Sim (enviados pelo usuário) | Com outros convidados do mesmo evento + anfitrião | Funcionalidade do app |
+| Nome | Sim (primeiro nome) | No evento | Atribuição |
+| Local aproximado (EXIF) | Não — removido no upload | — | — |
+| Conta / e-mail do convidado | Não | — | — |
+| Compra in-app | Não | — | — |
+
+Criptografia em trânsito: HTTPS. Exclusão: Minhas + retenção ~365 dias nos servidores Albora.

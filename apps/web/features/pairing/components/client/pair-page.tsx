@@ -115,6 +115,12 @@ export function PairPage({ slug }: { slug: string }) {
         )}
 
         <SecondaryButton onClick={() => router.push(`${base}/cover`)}>Voltar à capa</SecondaryButton>
+        <a
+          href="/privacidade"
+          className="m-0 text-center text-[0.8rem] text-ink-3 underline decoration-ink-3/40 underline-offset-2"
+        >
+          Privacidade
+        </a>
       </div>
     </main>
   );

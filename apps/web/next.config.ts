@@ -39,6 +39,7 @@ const nextConfig: NextConfig = {
 
     return [
       { source: "/album", destination: "/scan", permanent: true },
+      { source: "/privacy", destination: "/privacidade", permanent: true },
       ...rootPtToEn.map(([pt, en]) => ({
         source: `/${pt}`,
         destination: `/${en}`,

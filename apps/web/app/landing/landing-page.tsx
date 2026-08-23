@@ -658,7 +658,15 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
           <Brand id="brand-footer" size={22} />
           <span className="font-titulo">Albora · o álbum coletivo da sua festa</span>
         </span>
-        <span className="text-ink-3">Feito no Brasil</span>
+        <span className="flex flex-wrap items-center gap-4 text-ink-3">
+          <a
+            href="/privacidade"
+            className="underline decoration-ink-3/40 underline-offset-2 hover:text-ink-2"
+          >
+            Privacidade
+          </a>
+          <span>Feito no Brasil</span>
+        </span>
       </footer>
 
       <LandingStickyCta

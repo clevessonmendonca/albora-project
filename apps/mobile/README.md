@@ -80,4 +80,4 @@ Checklist completo: [`docs/runbooks/dev-client-smoke.md`](../../docs/runbooks/de
 
 ## O que ainda não está
 
-Capturas de tela e submit real (`eas submit`) — rascunho em [`store/listing.pt-BR.md`](store/listing.pt-BR.md), runbook [`docs/runbooks/publicacao-lojas.md`](../../docs/runbooks/publicacao-lojas.md). Credenciais reais de App Link no deploy. Falta prova em aparelho via dev client ([`docs/runbooks/dev-client-smoke.md`](../../docs/runbooks/dev-client-smoke.md)).
+Capturas de tela e submit real (`eas submit`) — ficha em [`store/listing.pt-BR.md`](store/listing.pt-BR.md), privacidade em `/privacidade`, runbook [`docs/runbooks/publicacao-lojas.md`](../../docs/runbooks/publicacao-lojas.md). Credenciais reais de App Link no deploy. Falta prova em aparelho via dev client ([`docs/runbooks/dev-client-smoke.md`](../../docs/runbooks/dev-client-smoke.md)).

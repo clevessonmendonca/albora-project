@@ -137,7 +137,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Universal links 🟡:** `app.config.ts` + rotas dinâmicas `/.well-known/*` (`IOS_APP_TEAM_ID`, `ANDROID_APP_SHA256`); CTA usa `passagem`. Runbook: [`docs/runbooks/universal-links.md`](./runbooks/universal-links.md). Falta credenciais reais no deploy + rebuild nativo.
 
-**Lojas 🟡:** ícones via `pnpm icones`, perfil `production` em `eas.json`, ficha [`apps/mobile/store/listing.pt-BR.md`](../apps/mobile/store/listing.pt-BR.md). Runbook: [`docs/runbooks/publicacao-lojas.md`](./runbooks/publicacao-lojas.md).
+**Lojas 🟡:** ícones via `pnpm icones`, perfil `production` em `eas.json`, ficha [`apps/mobile/store/listing.pt-BR.md`](../apps/mobile/store/listing.pt-BR.md). **Privacidade ✅:** `/privacidade` (+ redirect `/privacy`). Runbook: [`docs/runbooks/publicacao-lojas.md`](./runbooks/publicacao-lojas.md).
 
 **EAS / lojas 🟡:** `expo-dev-client` + perfis `development`/`preview`/`production` em `eas.json`; ícones via `pnpm icones` (brand SVG). Expo Go não carrega Skia nem background fetch — validação exige `eas build`. Runbooks: [`dev-client-smoke.md`](./runbooks/dev-client-smoke.md), [`publicacao-lojas.md`](./runbooks/publicacao-lojas.md).
 

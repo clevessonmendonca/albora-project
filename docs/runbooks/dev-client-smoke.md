@@ -39,10 +39,16 @@ Universal link HTTPS só com credenciais reais — ver [`universal-links.md`](./
 ## 5. Share
 
 1. Minhas → foto enviada → **Compartilhar** (moldura Skia).
-2. Vídeo/confessionário → **Compartilhar poster** (thumb na moldura).
+2. Feed → vídeo → detalhe (mime passado) → **Compartilhar poster** (thumb).
 3. Recap (≥3 fotos) → botão Recap → folhas sequenciais.
 
-## 6. Background (🟡 manual)
+## 6. Passagem (1ª foto)
+
+1. Web: enviar 1ª foto → **Abrir no app** (não só o código).
+2. App abre no **Feed** com a mesma sessão (passagem consumida).
+3. Gerar outro código em `/pair` → link antigo deve falhar.
+
+## 7. Background (🟡 manual)
 
 1. Enfileirar com app em background 2–5 min.
 2. Matar app (swipe) → esperar 15+ min → reabrir.
