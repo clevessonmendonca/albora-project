@@ -97,7 +97,7 @@ export async function listPendingReactions(): Promise<PendenteReacao[]> {
       const lista = ((req.result as PendenteReacao[]) ?? []).sort((a, b) => a.criadoEm - b.criadoEm);
       devolve(lista);
     };
-  });
+  }).catch(() => []);
 }
 
 export async function removePendingReaction(id: string): Promise<void> {
@@ -132,7 +132,7 @@ export async function listPendingComments(): Promise<PendenteComentario[]> {
       );
       devolve(lista);
     };
-  });
+  }).catch(() => []);
 }
 
 export async function removePendingComment(id: string): Promise<void> {
