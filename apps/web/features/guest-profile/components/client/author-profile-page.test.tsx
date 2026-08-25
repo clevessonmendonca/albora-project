@@ -3,6 +3,11 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AuthorProfilePage } from "./author-profile-page";
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => "/e/ana-e-joao",
+}));
+
 /**
  * Smoke test da tela do meio (spec "autor clicável"): a página monta,
  * `useAuthorFeed` bate na API real de `/api/guests/[autorId]` (mockada aqui),
