@@ -1,5 +1,6 @@
 "use client";
 
+import type { ComponentType, ReactNode } from "react";
 import type { ModoInteracao } from "@albora/core";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { PostHeader } from "@albora/ui-web";
@@ -26,6 +27,9 @@ export function Post({
   compartilhando,
   url,
   autor,
+  autorHref,
+  linkComponent,
+  onVerAutor,
   legenda,
   lugar,
   isVideo,
@@ -44,7 +48,11 @@ export function Post({
   compartilhando?: boolean;
   url: string | null;
   autor: string;
+  autorHref?: string;
+  linkComponent?: ComponentType<{ href: string; className?: string; children?: ReactNode }> | "a";
+  onVerAutor?: ((sessaoId: string) => void) | undefined;
   legenda: string | null;
+
   lugar?: string | null;
   isVideo?: boolean;
   largura?: number;
@@ -56,7 +64,11 @@ export function Post({
   return (
     <article className="border-t border-linha">
       <div className="py-4">
-        <PostHeader author={autor} meta={meta} />
+        <PostHeader
+          author={autor}
+          meta={meta}
+          {...(autorHref ? { autorHref, linkComponent } : {})}
+        />
       </div>
 
       <div className="relative mb-3.5 aspect-4/5" style={aspecto ? { aspectRatio: aspecto } : undefined}>
@@ -96,6 +108,7 @@ export function Post({
           {...(onBloqueado ? { onBloqueado } : {})}
           {...(onCompartilhar ? { onCompartilhar } : {})}
           {...(compartilhando !== undefined ? { compartilhando } : {})}
+          {...(onVerAutor ? { onVerAutor } : {})}
         />
       </div>
 

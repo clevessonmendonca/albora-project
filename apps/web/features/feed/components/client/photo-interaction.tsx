@@ -25,6 +25,7 @@ type Props = {
   onBloqueado?: () => void;
   onCompartilhar?: () => void;
   compartilhando?: boolean;
+  onVerAutor?: ((sessaoId: string) => void) | undefined;
 };
 
 /**
@@ -48,6 +49,7 @@ export function PhotoInteraction({
   onBloqueado,
   onCompartilhar,
   compartilhando,
+  onVerAutor,
 }: Props) {
   const completo = interacao === "completo";
 
@@ -133,8 +135,8 @@ export function PhotoInteraction({
         )}
       </div>
 
-      <ReactionListSheet lista={listaReacoes} />
-      {completo && <CommentSheet comentarios={comentarios} />}
+      <ReactionListSheet lista={listaReacoes} {...(onVerAutor ? { onVerAutor } : {})} />
+      {completo && <CommentSheet comentarios={comentarios} {...(onVerAutor ? { onVerAutor } : {})} />}
       {completo && (
         <ReportSheet
           open={denunciaAberta}

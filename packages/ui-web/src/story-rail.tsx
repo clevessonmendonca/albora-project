@@ -8,6 +8,7 @@ export type StoryItem = {
   nome: string;
   capaUrl?: string | undefined;
   novo?: boolean | undefined;
+  onPress?: (() => void) | undefined;
 };
 
 function StorySquircle({
@@ -55,13 +56,29 @@ function StoryYou({ onAdd }: { onAdd?: (() => void) | undefined }) {
 }
 
 function StoryAvatar({ item }: { item: StoryItem }) {
-  return (
-    <div className="flex w-[3.75rem] shrink-0 flex-col items-center gap-1.5">
+  const inner = (
+    <>
       <StorySquircle destaque={item.novo} capaUrl={item.capaUrl}>
         {initials(item.nome)}
       </StorySquircle>
       <span className="w-full truncate text-center text-[0.6875rem] text-ink-3">{item.nome}</span>
-    </div>
+    </>
+  );
+
+  if (item.onPress) {
+    return (
+      <button
+        type="button"
+        onClick={item.onPress}
+        className="flex w-[3.75rem] shrink-0 flex-col items-center gap-1.5 border-none bg-transparent p-0"
+      >
+        {inner}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex w-[3.75rem] shrink-0 flex-col items-center gap-1.5">{inner}</div>
   );
 }
 

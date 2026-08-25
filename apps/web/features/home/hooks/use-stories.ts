@@ -15,6 +15,7 @@ export type StoryDaRede = {
   id: string;
   autor: string;
   chaveThumb: string;
+  sessaoId?: string | undefined;
 };
 
 export type EstadoStories = {
@@ -69,14 +70,17 @@ export function paraStoryItem(story: StoryDaRede, urls: Map<string, MediaUrl>): 
  * não `listarFeed`); reaproveitar o mecanismo de assinatura evita um segundo
  * caminho de URL com as mesmas garantias de TTL só reescrito.
  */
+const POLL_MS = 30_000;
+
 export function useStories(): EstadoStories {
   const [estado, setEstado] = useState<EstadoStories>(estadoInicialStories);
   const geracao = useRef(0);
 
   useEffect(() => {
-    const minha = ++geracao.current;
+    async function atualizar() {
+      const minha = ++geracao.current;
 
-    buscarStories().then(async (itens) => {
+      const itens = await buscarStories();
       if (minha !== geracao.current) return;
       setEstado((e) => ({ ...e, itens, carregado: true }));
 
@@ -90,7 +94,11 @@ export function useStories(): EstadoStories {
       } catch {
         // Enriquecimento: sem URL assinada, a story cai nas iniciais — não bloqueia a Home.
       }
-    });
+    }
+
+    void atualizar();
+    const intervalo = setInterval(() => void atualizar(), POLL_MS);
+    return () => clearInterval(intervalo);
   }, []);
 
   return estado;

@@ -36,6 +36,7 @@ export async function GET(req: Request) {
         id: s.id,
         autor: s.autor,
         chaveThumb: thumbKeyFromFull(s.storageKey),
+        sessaoId: s.sessaoId,
       })),
     });
   } catch (e) {

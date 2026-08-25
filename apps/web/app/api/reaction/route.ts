@@ -52,7 +52,7 @@ export async function GET(req: Request) {
     const nomes = await withEvent(getPool(), auth.session.eventoId, (c) =>
       listReactionsForMedia(c, uploadId, auth.session.sessaoId),
     );
-    return jsonOk({ nomes: nomes.map((item) => item.nome) });
+    return jsonOk({ reatores: nomes.map((item) => ({ nome: item.nome, sessaoId: item.sessaoId })) });
   } catch (e) {
     return unexpectedError("reacao.get", e);
   }

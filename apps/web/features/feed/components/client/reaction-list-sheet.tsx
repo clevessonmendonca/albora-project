@@ -3,7 +3,13 @@
 import { BottomSheet } from "@albora/ui-web";
 import type { ReactionListController } from "@/features/feed/hooks/use-reaction-list";
 
-export function ReactionListSheet({ lista }: { lista: ReactionListController }) {
+export function ReactionListSheet({
+  lista,
+  onVerAutor,
+}: {
+  lista: ReactionListController;
+  onVerAutor?: (sessaoId: string) => void;
+}) {
   return (
     <BottomSheet
       title="Quem curtiu"
@@ -19,14 +25,26 @@ export function ReactionListSheet({ lista }: { lista: ReactionListController }) 
         </p>
       )}
 
-      {!lista.carregando && !lista.erro && lista.nomes.length === 0 && (
+      {!lista.carregando && !lista.erro && lista.reatores.length === 0 && (
         <p className="m-0 text-[0.9rem] text-ink-2">Ninguém curtiu ainda.</p>
       )}
 
       <ul className="m-0 grid list-none gap-2 p-0">
-        {lista.nomes.map((nome, i) => (
-          <li key={`${nome}-${i}`} className="font-titulo text-[0.9375rem] tracking-titulo text-ink">
-            {nome}
+        {lista.reatores.map((reator, i) => (
+          <li key={`${reator.sessaoId}-${i}`}>
+            {reator.sessaoId && onVerAutor ? (
+              <button
+                type="button"
+                onClick={() => onVerAutor(reator.sessaoId)}
+                className="border-none bg-transparent p-0 font-titulo text-[0.9375rem] tracking-titulo text-ink underline cursor-pointer"
+              >
+                {reator.nome}
+              </button>
+            ) : (
+              <span className="font-titulo text-[0.9375rem] tracking-titulo text-ink">
+                {reator.nome}
+              </span>
+            )}
           </li>
         ))}
       </ul>

@@ -20,7 +20,7 @@ import {
   type FeedItem,
   type ModoInteracao,
 } from "../../src/feed";
-import { toggleReaction } from "../../src/reaction";
+import { toggleReaction, listReactions, type ReatorVisivel } from "../../src/reaction";
 import {
   deleteComment,
   listComments,
@@ -44,10 +44,14 @@ function Estrela({ preenchida }: { preenchida: boolean }) {
 function StoriesRail({
   itens,
   onAdicionar,
+  onSelectStory,
 }: {
   itens: StoryItem[];
   onAdicionar: () => void;
+  onSelectStory?: (story: StoryItem) => void;
 }) {
+  const [visto, setVisto] = useState<ReadonlySet<string>>(() => new Set());
+
   if (itens.length === 0) return null;
 
   return (
@@ -72,28 +76,41 @@ function StoriesRail({
           </RNText>
         </Pressable>
 
-        {itens.map((story) => (
-          <View key={story.id} className="items-center gap-1">
-            <View className="h-14 w-14 overflow-hidden rounded-full border-2 border-acento">
-              {story.thumbUrl ? (
-                <Image
-                  source={{ uri: story.thumbUrl }}
-                  className="h-full w-full"
-                  accessibilityLabel={`Story de ${story.autor}`}
-                />
-              ) : (
-                <View className="h-full w-full items-center justify-center bg-superficie-alta">
-                  <Text className="text-lg font-medium text-ink-2">
-                    {story.autor.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-              )}
-            </View>
-            <RNText numberOfLines={1} className="w-14 text-center text-[0.65rem] font-corpo text-ink-2">
-              {story.autor}
-            </RNText>
-          </View>
-        ))}
+        {itens.map((story) => {
+          const novo = !!story.sessaoId && !visto.has(story.id);
+          return (
+            <Pressable
+              key={story.id}
+              className="items-center gap-1"
+              onPress={() => {
+                if (!story.sessaoId) return;
+                setVisto((v) => (v.has(story.id) ? v : new Set([...v, story.id])));
+                onSelectStory?.(story);
+              }}
+              accessibilityRole={story.sessaoId ? "button" : "image"}
+              accessibilityLabel={`Story de ${story.autor}`}
+            >
+              <View className={`h-14 w-14 overflow-hidden rounded-full border-2 ${novo ? "border-acento" : "border-linha"}`}>
+                {story.thumbUrl ? (
+                  <Image
+                    source={{ uri: story.thumbUrl }}
+                    className="h-full w-full"
+                    accessibilityLabel={`Story de ${story.autor}`}
+                  />
+                ) : (
+                  <View className="h-full w-full items-center justify-center bg-superficie-alta">
+                    <Text className="text-lg font-medium text-ink-2">
+                      {story.autor.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <RNText numberOfLines={1} className="w-14 text-center text-[0.65rem] font-corpo text-ink-2">
+                {story.autor}
+              </RNText>
+            </Pressable>
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -109,6 +126,7 @@ function ComentariosSheet({
   session: GuestSession;
   onFechar: () => void;
 }) {
+  const router = useRouter();
   const [threads, setThreads] = useState<ComentarioItem[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [texto, setTexto] = useState("");
@@ -177,7 +195,16 @@ function ComentariosSheet({
             threads.map((t) => (
               <View key={t.id} className="mb-4">
                 <View className="rounded-2xl bg-superficie px-3 py-2.5">
-                  <Text className="text-[0.8rem] font-medium">{t.autor}</Text>
+                  {!t.meu && t.sessaoAutor ? (
+                    <Pressable
+                      onPress={() => router.push({ pathname: "/guest-profile", params: { autorId: t.sessaoAutor } })}
+                      accessibilityRole="link"
+                    >
+                      <Text className="text-[0.8rem] font-medium underline">{t.autor}</Text>
+                    </Pressable>
+                  ) : (
+                    <Text className="text-[0.8rem] font-medium">{t.autor}</Text>
+                  )}
                   <Text className="mt-0.5 text-sm">{t.texto}</Text>
                   {t.meu && (
                     <Pressable
@@ -193,7 +220,16 @@ function ComentariosSheet({
                 </View>
                 {t.respostas.map((r) => (
                   <View key={r.id} className="ml-6 mt-2 rounded-2xl bg-superficie px-3 py-2.5">
-                    <Text className="text-[0.8rem] font-medium">{r.autor}</Text>
+                    {!r.meu && r.sessaoAutor ? (
+                      <Pressable
+                        onPress={() => router.push({ pathname: "/guest-profile", params: { autorId: r.sessaoAutor } })}
+                        accessibilityRole="link"
+                      >
+                        <Text className="text-[0.8rem] font-medium underline">{r.autor}</Text>
+                      </Pressable>
+                    ) : (
+                      <Text className="text-[0.8rem] font-medium">{r.autor}</Text>
+                    )}
                     <Text className="mt-0.5 text-sm">{r.texto}</Text>
                   </View>
                 ))}
@@ -318,6 +354,95 @@ function DenunciaSheet({
   );
 }
 
+// ─── Sheet de quem curtiu ─────────────────────────────────────────────────────
+function ReacoesSheet({
+  uploadId,
+  session,
+  onFechar,
+}: {
+  uploadId: string;
+  session: GuestSession;
+  onFechar: () => void;
+}) {
+  const router = useRouter();
+  const [reatores, setReatores] = useState<ReatorVisivel[]>([]);
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() => {
+    listReactions(session, uploadId).then((r) => {
+      setReatores(r);
+      setCarregando(false);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadId]);
+
+  return (
+    <Modal visible animationType="slide" transparent onRequestClose={onFechar}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1"
+      >
+        <Pressable className="flex-1" onPress={onFechar} />
+        <View className="rounded-t-2xl bg-bg pb-safe">
+          <View className="flex-row items-center justify-between px-5 pb-3 pt-4">
+            <RNText className="font-titulo text-base font-semibold text-ink">Quem curtiu</RNText>
+            <Pressable onPress={onFechar} accessibilityRole="button" accessibilityLabel="Fechar">
+              <Text tone="muted">✕</Text>
+            </Pressable>
+          </View>
+
+          <ScrollView className="max-h-72 px-5" keyboardShouldPersistTaps="handled">
+            {carregando && (
+              <Text tone="muted" className="py-2 text-sm">
+                Carregando…
+              </Text>
+            )}
+            {!carregando && reatores.length === 0 && (
+              <Text tone="muted" className="py-2 text-sm">
+                Ninguém curtiu ainda.
+              </Text>
+            )}
+            {reatores.map((r, i) => (
+              <View key={`${r.sessaoId}-${i}`} className="py-2">
+                {r.sessaoId ? (
+                  <Pressable
+                    onPress={() => {
+                      onFechar();
+                      router.push({ pathname: "/guest-profile", params: { autorId: r.sessaoId } });
+                    }}
+                    accessibilityRole="link"
+                    accessibilityLabel={`Ver perfil de ${r.nome}`}
+                  >
+                    <Text className="underline">{r.nome}</Text>
+                  </Pressable>
+                ) : (
+                  <Text>{r.nome}</Text>
+                )}
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
+function AutorLink({ sessaoId, nome }: { sessaoId: string; nome: string }) {
+  const router = useRouter();
+  return (
+    <Pressable
+      onPress={() =>
+        router.push({ pathname: "/guest-profile", params: { autorId: sessaoId } })
+      }
+      accessibilityRole="link"
+      accessibilityLabel={`Ver perfil de ${nome}`}
+      className="mb-2 self-start"
+    >
+      <Text className="font-medium underline">{nome}</Text>
+    </Pressable>
+  );
+}
+
 // ─── Card de item do feed ─────────────────────────────────────────────────────
 function FeedCard({
   item: inicial,
@@ -336,6 +461,7 @@ function FeedCard({
   const [alternando, setAlternando] = useState(false);
   const [comentariosAbertos, setComentariosAbertos] = useState(false);
   const [denunciaAberta, setDenunciaAberta] = useState(false);
+  const [reacaoListaAberta, setReacaoListaAberta] = useState(false);
 
   const alternarReacao = async () => {
     if (alternando) return;
@@ -362,24 +488,35 @@ function FeedCard({
       </Pressable>
 
       <View className="px-3 pb-3 pt-2">
-        <Text className="mb-2">{inicial.autor}</Text>
+        {inicial.sessaoAutor ? (
+          <AutorLink sessaoId={inicial.sessaoAutor} nome={inicial.autor} />
+        ) : (
+          <Text className="mb-2">{inicial.autor}</Text>
+        )}
 
         <View className="flex-row items-center gap-4">
           {/* Estrela — sempre disponível (ADR 0009) */}
-          <Pressable
-            onPress={() => void alternarReacao()}
-            disabled={alternando}
-            accessibilityRole="button"
-            accessibilityLabel={inicial.minhaReacao ? "Remover curtida" : "Curtir"}
-            className="flex-row items-center gap-1.5"
-          >
-            <Estrela preenchida={inicial.minhaReacao !== null} />
+          <View className="flex-row items-center gap-1.5">
+            <Pressable
+              onPress={() => void alternarReacao()}
+              disabled={alternando}
+              accessibilityRole="button"
+              accessibilityLabel={inicial.minhaReacao ? "Remover curtida" : "Curtir"}
+            >
+              <Estrela preenchida={inicial.minhaReacao !== null} />
+            </Pressable>
             {inicial.reacoes > 0 && (
-              <Text tone="muted" className="text-sm">
-                {inicial.reacoes}
-              </Text>
+              <Pressable
+                onPress={() => setReacaoListaAberta(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Ver quem curtiu"
+              >
+                <Text tone="muted" className="text-sm underline">
+                  {inicial.reacoes}
+                </Text>
+              </Pressable>
             )}
-          </Pressable>
+          </View>
 
           {/* Comentários — só no modo completo */}
           {completo && (
@@ -410,6 +547,14 @@ function FeedCard({
           )}
         </View>
       </View>
+
+      {reacaoListaAberta && (
+        <ReacoesSheet
+          uploadId={inicial.id}
+          session={session}
+          onFechar={() => setReacaoListaAberta(false)}
+        />
+      )}
 
       {comentariosAbertos && (
         <ComentariosSheet
@@ -480,6 +625,17 @@ export default function FeedScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Polling de stories a cada 30s — novas stories aparecem sem refresh.
+  useEffect(() => {
+    const POLL_MS = 30_000;
+    const intervalo = setInterval(() => {
+      const session = sessionRef.current;
+      if (!session) return;
+      fetchStories(session).then(setStories).catch(() => {});
+    }, POLL_MS);
+    return () => clearInterval(intervalo);
+  }, []);
+
   const atualizarItem = useCallback(
     (id: string, reacoes: number, minhaReacao: string | null) => {
       setItens((lista) =>
@@ -501,6 +657,7 @@ export default function FeedScreen() {
         reacoes: String(item.reacoes),
         minhaReacao: item.minhaReacao ?? "",
         mime: item.mime,
+        sessaoAutor: item.sessaoAutor ?? "",
       },
     });
   }, [router]);
@@ -554,6 +711,13 @@ export default function FeedScreen() {
             <StoriesRail
               itens={stories}
               onAdicionar={() => router.push("/photo")}
+              onSelectStory={(story) =>
+                story.sessaoId &&
+                router.push({
+                  pathname: "/guest-profile",
+                  params: { autorId: story.sessaoId },
+                })
+              }
             />
           }
           ListEmptyComponent={

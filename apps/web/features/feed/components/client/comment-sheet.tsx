@@ -12,12 +12,14 @@ const CLASSE_ITEM_MENU =
 
 export function CommentSheet({
   comentarios,
+  onVerAutor,
 }: {
   comentarios: CommentsController;
+  onVerAutor?: (sessaoId: string) => void;
 }) {
   return (
     <BottomSheet
-      title="Comentários"
+      title={comentarios.total > 0 ? `Comentários (${comentarios.total})` : "Comentários"}
       open={comentarios.aberto}
       onClose={comentarios.fechar}
       titleId="sheet-comentarios-titulo"
@@ -38,7 +40,12 @@ export function CommentSheet({
       <ul className="m-0 grid list-none gap-3.5 p-0">
         {comentarios.threads.map((t) => (
           <li key={t.id}>
-            <LinhaComentario comentario={t} comentarios={comentarios} indent={0} />
+            <LinhaComentario
+              comentario={t}
+              comentarios={comentarios}
+              indent={0}
+              onVerAutor={onVerAutor}
+            />
           </li>
         ))}
       </ul>
@@ -98,18 +105,33 @@ function LinhaComentario({
   comentario,
   comentarios,
   indent,
+  onVerAutor,
 }: {
   comentario: ComentarioVisivel;
   comentarios: CommentsController;
   indent: number;
+  onVerAutor?: ((sessaoId: string) => void) | undefined;
 }) {
   const [menu, setMenu] = useState(false);
   const hora = formatarHora(comentario.criadaEm);
 
+  const nomeAutor =
+    !comentario.meu && !comentario.pendente && comentario.sessaoAutor && onVerAutor ? (
+      <button
+        type="button"
+        onClick={() => onVerAutor(comentario.sessaoAutor)}
+        className="border-none bg-transparent p-0 font-inherit text-ink underline cursor-pointer"
+      >
+        {comentario.autor}
+      </button>
+    ) : (
+      <span className="text-ink">{comentario.autor}</span>
+    );
+
   return (
     <div className={indent ? "ml-4" : undefined}>
       <p className={`m-0 leading-[1.45] ${indent ? "text-[0.8125rem]" : "text-[0.84375rem]"}`}>
-        <span className="text-ink">{comentario.autor}</span> {comentario.texto}
+        {nomeAutor} {comentario.texto}
         {hora && (
           <span className="ml-[0.35rem] text-[0.75rem] text-ink-3">
             · {hora}
@@ -175,7 +197,7 @@ function LinhaComentario({
       </div>
       {comentario.respostas.map((r) => (
         <div key={r.id} className="mt-[0.35rem]">
-          <LinhaComentario comentario={r} comentarios={comentarios} indent={1} />
+          <LinhaComentario comentario={r} comentarios={comentarios} indent={1} onVerAutor={onVerAutor} />
         </div>
       ))}
     </div>

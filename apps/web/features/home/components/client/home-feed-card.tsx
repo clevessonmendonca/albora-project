@@ -2,6 +2,7 @@
 
 import type { ModoInteracao } from "@albora/core";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { PhotoCard } from "@albora/ui-web";
 import { CommentSheet } from "@/features/feed/components/client/comment-sheet";
 import { useComments } from "@/features/feed/hooks/use-comments";
@@ -34,6 +35,7 @@ export function HomeFeedCard({
   base: string;
   onReacoes: (uploadId: string, resultado: ResultadoReacao) => void;
 }) {
+  const router = useRouter();
   const completo = interacao === "completo";
 
   const reacao = useReaction(item.id, item.reacoes, item.minhaReacao);
@@ -63,7 +65,12 @@ export function HomeFeedCard({
         {...(completo ? { onComentar: comentarios.abrir } : {})}
       />
 
-      {completo && <CommentSheet comentarios={comentarios} />}
+      {completo && (
+        <CommentSheet
+          comentarios={comentarios}
+          onVerAutor={(id) => router.push(`${base}/g/${encodeURIComponent(id)}`)}
+        />
+      )}
     </>
   );
 }

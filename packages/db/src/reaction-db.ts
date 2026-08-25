@@ -6,7 +6,7 @@ import { filtroSemBloqueio } from "./block-db";
  * idempotencia: reagir duas vezes e reagir uma vez.
  */
 
-export type ReacaoVisivel = { nome: string };
+export type ReacaoVisivel = { nome: string; sessaoId: string };
 
 function primeiroNome(displayName: string): string {
   const partes = displayName.trim().split(/\s+/);
@@ -82,8 +82,8 @@ export async function listarReacoesDaMidia(
   uploadId: string,
   sessaoLeitoraId: string,
 ): Promise<ReacaoVisivel[]> {
-  const { rows } = await cliente.query<{ display_name: string }>(
-    `SELECT s.display_name
+  const { rows } = await cliente.query<{ display_name: string; session_id: string }>(
+    `SELECT s.display_name, r.session_id
        FROM reactions r
        JOIN guest_sessions s ON s.id = r.session_id
       WHERE r.upload_id = $1
@@ -91,5 +91,5 @@ export async function listarReacoesDaMidia(
       ORDER BY r.created_at ASC`,
     [uploadId, sessaoLeitoraId],
   );
-  return rows.map((linha) => ({ nome: primeiroNome(linha.display_name) }));
+  return rows.map((linha) => ({ nome: primeiroNome(linha.display_name), sessaoId: linha.session_id }));
 }

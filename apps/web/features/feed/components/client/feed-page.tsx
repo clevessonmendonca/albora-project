@@ -2,6 +2,7 @@
 
 import { isVideoMime } from "@albora/core";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { groupByHour, type HourGroup } from "@/features/feed/lib/group-by-hour";
 import { useFeed, podeCarregarMais, type ItemVisivel } from "@/features/feed/hooks/use-feed";
@@ -83,6 +84,7 @@ export function FeedPage({
   sessaoId: string;
 }) {
   const base = `/e/${encodeURIComponent(slug)}`;
+  const router = useRouter();
   const [missionId, setMissaoId] = useState<string | null>(null);
   const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = useFeed(missionId);
   const compartilhar = useShare(eventoId, sessaoId);
@@ -291,6 +293,14 @@ export function FeedPage({
                   {...(item.reacoes !== undefined ? { reacoes: item.reacoes } : {})}
                   {...(item.minhaReacao !== undefined ? { minhaReacao: item.minhaReacao } : {})}
                   {...(item.sessaoAutor ? { sessaoAutor: item.sessaoAutor } : {})}
+                  {...(item.sessaoAutor
+                    ? {
+                        autorHref: `${base}/g/${encodeURIComponent(item.sessaoAutor)}`,
+                        linkComponent: Link,
+                        onVerAutor: (id: string) =>
+                          router.push(`${base}/g/${encodeURIComponent(id)}`),
+                      }
+                    : {})}
                   {...(item.minha !== undefined ? { minha: item.minha } : {})}
                   onReacoes={(resultado) => atualizarReacoes(item.id, resultado)}
                   onBloqueado={recomecar}
@@ -338,6 +348,7 @@ export function FeedPage({
             if (atual) void compartilhar.compartilhar(atual.id);
           }}
           compartilhando={compartilhar.compartilhandoId === itensAbertos[indice]?.id}
+          onVerAutor={(id) => router.push(`${base}/g/${encodeURIComponent(id)}`)}
         />
       )}
 

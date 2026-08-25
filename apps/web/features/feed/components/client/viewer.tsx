@@ -83,6 +83,7 @@ export function Viewer({
   removendo,
   onCompartilhar,
   compartilhando,
+  onVerAutor,
 }: {
   itens: ItemVisivel[];
   indice: number;
@@ -99,6 +100,7 @@ export function Viewer({
   removendo?: boolean;
   onCompartilhar?: () => void;
   compartilhando?: boolean;
+  onVerAutor?: ((sessaoId: string) => void) | undefined;
 }) {
   const [segurando, setSegurando] = useState(false);
 
@@ -361,7 +363,17 @@ export function Viewer({
         {atual && (
           <div className={cn("grid gap-[0.3rem]", CLASSE_SOMBRA_TEXTO)}>
             <p className="m-0 font-titulo text-[0.66rem] font-normal uppercase tracking-[0.2em] text-ink">
-              {atual.autor}
+              {atual.sessaoAutor && onVerAutor ? (
+                <button
+                  type="button"
+                  onClick={() => onVerAutor(atual.sessaoAutor!)}
+                  className="border-none bg-transparent p-0 font-inherit text-inherit underline cursor-pointer"
+                >
+                  {atual.autor}
+                </button>
+              ) : (
+                atual.autor
+              )}
               {atual.lugar ? ` · ${atual.lugar}` : ""}
             </p>
             {atual.legenda && (
@@ -379,6 +391,7 @@ export function Viewer({
               {...(onBloqueado ? { onBloqueado } : {})}
               {...(onCompartilhar ? { onCompartilhar } : {})}
               {...(compartilhando !== undefined ? { compartilhando } : {})}
+              {...(onVerAutor ? { onVerAutor } : {})}
             />
           </div>
         )}

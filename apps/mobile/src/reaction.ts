@@ -1,8 +1,32 @@
 import { apiOrigin, cookieHeader, type GuestSession } from "./session";
 
 export type ResultadoReacao = { reacoes: number; minha: string | null };
+export type ReatorVisivel = { nome: string; sessaoId: string };
 
 const TIPO_PADRAO = "estrela";
+
+/**
+ * Lista quem curtiu uma foto. Retorna vazio em 401/403/offline — falha fechado.
+ */
+export async function listReactions(
+  session: GuestSession,
+  uploadId: string,
+  fetchFn: typeof fetch = fetch,
+): Promise<ReatorVisivel[]> {
+  try {
+    const url = new URL(`${apiOrigin()}/api/reaction`);
+    url.searchParams.set("uploadId", uploadId);
+    url.searchParams.set("eventoId", session.eventoId);
+    const r = await fetchFn(url.toString(), {
+      headers: { cookie: cookieHeader(session.token) },
+    });
+    if (!r.ok) return [];
+    const data = (await r.json()) as { reatores?: ReatorVisivel[] };
+    return data.reatores ?? [];
+  } catch {
+    return [];
+  }
+}
 
 /**
  * Alterna a reação estrela de uma foto. Falha fechado: 401/403/offline

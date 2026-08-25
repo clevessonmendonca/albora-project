@@ -3,6 +3,7 @@
 import type { ItemDaGaleria } from "@albora/core";
 import { isVideoMime } from "@albora/core";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { webQueue } from "@/lib/queue";
 import { useShare } from "@/features/my-photos/hooks/use-share";
@@ -95,6 +96,7 @@ export function MyPhotosPage({
   refToken?: string | null;
 }) {
   const base = `/e/${encodeURIComponent(slug)}`;
+  const router = useRouter();
   const galeria = useGallery(eventoId);
   const compartilhar = useShare(eventoId, sessaoId);
   const recap = useRecap({ eventoId, sessaoId, slug, itens: galeria.itensVisiveis });
@@ -379,6 +381,7 @@ export function MyPhotosPage({
           removendo={galeria.removendoId === uploadAberto}
           onCompartilhar={compartilharAberta}
           compartilhando={compartilhar.compartilhandoId === uploadAberto}
+          onVerAutor={(id) => router.push(`${base}/g/${encodeURIComponent(id)}`)}
         />
       )}
 

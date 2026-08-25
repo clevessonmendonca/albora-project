@@ -8,7 +8,7 @@ import {
 
 describe("app-links", () => {
   it("usa placeholders quando env ausente", () => {
-    const cfg = readAppLinksConfig({});
+    const cfg = readAppLinksConfig({} as NodeJS.ProcessEnv);
     expect(appLinksReady(cfg)).toBe(false);
     expect(buildAppleAppSiteAssociation(cfg).applinks.details[0]?.appID).toBe(
       "SUBSTITUA_TEAM_ID.app.albora.guest",
@@ -23,7 +23,7 @@ describe("app-links", () => {
       IOS_APP_TEAM_ID: "AB12CD34EF",
       ANDROID_APP_SHA256: "AA:BB:CC, DD:EE:FF",
       APP_LINK_HOST: "https://albora.app",
-    });
+    } as unknown as NodeJS.ProcessEnv);
     expect(appLinksReady(cfg)).toBe(true);
     expect(buildAppleAppSiteAssociation(cfg).applinks.details[0]?.appID).toBe(
       "AB12CD34EF.app.albora.guest",

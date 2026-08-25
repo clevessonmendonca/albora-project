@@ -6,6 +6,7 @@ export type StoryItem = {
   autor: string;
   chaveThumb: string;
   thumbUrl?: string;
+  sessaoId?: string;
 };
 
 /**
@@ -25,7 +26,7 @@ export async function fetchStories(
     if (!res.ok) return [];
 
     const data = (await res.json()) as {
-      itens?: Array<{ id: string; autor: string; chaveThumb: string }>;
+      itens?: Array<{ id: string; autor: string; chaveThumb: string; sessaoId?: string }>;
     };
     const itens = Array.isArray(data.itens) ? data.itens : [];
     if (itens.length === 0) return [];
@@ -36,10 +37,13 @@ export async function fetchStories(
 
     return itens.map((i): StoryItem => {
       const thumbUrl = byKey.get(i.chaveThumb);
-      if (thumbUrl !== undefined) {
-        return { id: i.id, autor: i.autor, chaveThumb: i.chaveThumb, thumbUrl };
-      }
-      return { id: i.id, autor: i.autor, chaveThumb: i.chaveThumb };
+      return {
+        id: i.id,
+        autor: i.autor,
+        chaveThumb: i.chaveThumb,
+        ...(thumbUrl !== undefined ? { thumbUrl } : {}),
+        ...(i.sessaoId !== undefined ? { sessaoId: i.sessaoId } : {}),
+      };
     });
   } catch {
     return [];

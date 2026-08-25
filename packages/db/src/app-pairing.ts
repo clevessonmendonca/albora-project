@@ -75,7 +75,7 @@ async function emitirSessaoResgatada(
 async function motivoResgatePorLinha(
   pool: Pool,
   filtro: { code?: string; passagemHash?: Buffer },
-  agora: Date,
+  _agora: Date,
 ): Promise<never> {
   if (filtro.code !== undefined) {
     const { rows: atual } = await pool.query<{ status: string }>(

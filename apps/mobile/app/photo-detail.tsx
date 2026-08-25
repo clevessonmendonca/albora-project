@@ -18,7 +18,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Text } from "@albora/ui-native";
 import { loadSession } from "../src/feed";
 import { signMediaUrls } from "../src/sign-urls";
-import { toggleReaction } from "../src/reaction";
+import { toggleReaction, listReactions, type ReatorVisivel } from "../src/reaction";
 import { deleteComment, listComments, postComment, type ComentarioItem } from "../src/comments";
 import { reportMedia, type MotivoDenuncia } from "../src/report";
 import { compartilharFotoPropria } from "../src/share";
@@ -36,6 +36,71 @@ function Estrela({ preenchida }: { preenchida: boolean }) {
   );
 }
 
+// ─── Sheet de quem curtiu ─────────────────────────────────────────────────────
+function ReacoesSheet({
+  uploadId,
+  session,
+  onFechar,
+}: {
+  uploadId: string;
+  session: GuestSession;
+  onFechar: () => void;
+}) {
+  const router = useRouter();
+  const [reatores, setReatores] = useState<ReatorVisivel[]>([]);
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() => {
+    listReactions(session, uploadId).then((r) => {
+      setReatores(r);
+      setCarregando(false);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadId]);
+
+  return (
+    <Modal visible animationType="slide" transparent onRequestClose={onFechar}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1">
+        <Pressable className="flex-1" onPress={onFechar} />
+        <View className="rounded-t-2xl bg-bg pb-safe">
+          <View className="flex-row items-center justify-between px-5 pb-3 pt-4">
+            <RNText className="font-titulo text-base font-semibold text-ink">Quem curtiu</RNText>
+            <Pressable onPress={onFechar} accessibilityRole="button" accessibilityLabel="Fechar">
+              <Text tone="muted">✕</Text>
+            </Pressable>
+          </View>
+          <ScrollView className="max-h-72 px-5" keyboardShouldPersistTaps="handled">
+            {carregando && (
+              <Text tone="muted" className="py-2 text-sm">Carregando…</Text>
+            )}
+            {!carregando && reatores.length === 0 && (
+              <Text tone="muted" className="py-2 text-sm">Ninguém curtiu ainda.</Text>
+            )}
+            {reatores.map((r, i) => (
+              <View key={`${r.sessaoId}-${i}`} className="py-2">
+                {r.sessaoId ? (
+                  <Pressable
+                    onPress={() => {
+                      onFechar();
+                      router.push({ pathname: "/guest-profile", params: { autorId: r.sessaoId } });
+                    }}
+                    accessibilityRole="link"
+                    accessibilityLabel={`Ver perfil de ${r.nome}`}
+                  >
+                    <Text className="underline">{r.nome}</Text>
+                  </Pressable>
+                ) : (
+                  <Text>{r.nome}</Text>
+                )}
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
 // ─── Sheet de comentários ─────────────────────────────────────────────────────
 function ComentariosSheet({
   uploadId,
@@ -46,6 +111,7 @@ function ComentariosSheet({
   session: GuestSession;
   onFechar: () => void;
 }) {
+  const router = useRouter();
   const [threads, setThreads] = useState<ComentarioItem[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [texto, setTexto] = useState("");
@@ -114,7 +180,16 @@ function ComentariosSheet({
             threads.map((t) => (
               <View key={t.id} className="mb-4">
                 <View className="rounded-2xl bg-superficie px-3 py-2.5">
-                  <Text className="text-[0.8rem] font-medium">{t.autor}</Text>
+                  {!t.meu && t.sessaoAutor ? (
+                    <Pressable
+                      onPress={() => router.push({ pathname: "/guest-profile", params: { autorId: t.sessaoAutor } })}
+                      accessibilityRole="link"
+                    >
+                      <Text className="text-[0.8rem] font-medium underline">{t.autor}</Text>
+                    </Pressable>
+                  ) : (
+                    <Text className="text-[0.8rem] font-medium">{t.autor}</Text>
+                  )}
                   <Text className="mt-0.5 text-sm">{t.texto}</Text>
                   {t.meu && (
                     <Pressable
@@ -133,7 +208,16 @@ function ComentariosSheet({
                     key={r.id}
                     className="ml-6 mt-2 rounded-2xl bg-superficie px-3 py-2.5"
                   >
-                    <Text className="text-[0.8rem] font-medium">{r.autor}</Text>
+                    {!r.meu && r.sessaoAutor ? (
+                      <Pressable
+                        onPress={() => router.push({ pathname: "/guest-profile", params: { autorId: r.sessaoAutor } })}
+                        accessibilityRole="link"
+                      >
+                        <Text className="text-[0.8rem] font-medium underline">{r.autor}</Text>
+                      </Pressable>
+                    ) : (
+                      <Text className="text-[0.8rem] font-medium">{r.autor}</Text>
+                    )}
                     <Text className="mt-0.5 text-sm">{r.texto}</Text>
                   </View>
                 ))}
@@ -291,6 +375,7 @@ export default function PhotoDetailScreen() {
     reacoes?: string;
     minhaReacao?: string;
     mime?: string;
+    sessaoAutor?: string;
   }>();
 
   const {
@@ -303,6 +388,7 @@ export default function PhotoDetailScreen() {
     reacoes: reacoesParam = "0",
     minhaReacao: minhaReacaoParam = "",
     mime: mimeParam,
+    sessaoAutor = "",
   } = params;
 
   const interacao: ModoInteracao = interacaoParam === "completo" ? "completo" : "espelho";
@@ -319,6 +405,7 @@ export default function PhotoDetailScreen() {
   const [alternando, setAlternando] = useState(false);
   const [comentariosAbertos, setComentariosAbertos] = useState(false);
   const [denunciaAberta, setDenunciaAberta] = useState(false);
+  const [reacaoListaAberta, setReacaoListaAberta] = useState(false);
   const [compartilhando, setCompartilhando] = useState(false);
   const sessionRef = useRef<GuestSession | null>(null);
 
@@ -391,12 +478,24 @@ export default function PhotoDetailScreen() {
             <Text className="text-2xl leading-none text-sobre-acento">✕</Text>
           </Pressable>
           {autor.length > 0 && (
-            <RNText
-              numberOfLines={1}
-              className="flex-1 text-sm font-corpo text-sobre-acento"
-            >
-              {autor}
-            </RNText>
+            sessaoAutor.length > 0 ? (
+              <Pressable
+                onPress={() =>
+                  router.push({ pathname: "/guest-profile", params: { autorId: sessaoAutor } })
+                }
+                accessibilityRole="link"
+                accessibilityLabel={`Ver perfil de ${autor}`}
+                className="flex-1"
+              >
+                <RNText numberOfLines={1} className="flex-1 text-sm font-corpo text-sobre-acento underline">
+                  {autor}
+                </RNText>
+              </Pressable>
+            ) : (
+              <RNText numberOfLines={1} className="flex-1 text-sm font-corpo text-sobre-acento">
+                {autor}
+              </RNText>
+            )
           )}
         </View>
 
@@ -429,18 +528,25 @@ export default function PhotoDetailScreen() {
         {/* Barra de ações sociais */}
         <View className="flex-row items-center gap-6 px-5 py-4">
           {/* Estrela — sempre disponível (ADR 0009) */}
-          <Pressable
-            onPress={() => void alternarReacao()}
-            disabled={alternando || !session}
-            accessibilityRole="button"
-            accessibilityLabel={minhaReacao ? "Remover curtida" : "Curtir"}
-            className="flex-row items-center gap-2"
-          >
-            <Estrela preenchida={minhaReacao !== null} />
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              onPress={() => void alternarReacao()}
+              disabled={alternando || !session}
+              accessibilityRole="button"
+              accessibilityLabel={minhaReacao ? "Remover curtida" : "Curtir"}
+            >
+              <Estrela preenchida={minhaReacao !== null} />
+            </Pressable>
             {reacoes > 0 && (
-              <Text className="text-sm text-sobre-acento">{reacoes}</Text>
+              <Pressable
+                onPress={() => setReacaoListaAberta(true)}
+                accessibilityRole="button"
+                accessibilityLabel="Ver quem curtiu"
+              >
+                <Text className="text-sm underline text-sobre-acento">{reacoes}</Text>
+              </Pressable>
             )}
-          </Pressable>
+          </View>
 
           {/* Comentários — só no modo completo */}
           {completo && session && (
@@ -482,6 +588,14 @@ export default function PhotoDetailScreen() {
           )}
         </View>
       </SafeAreaView>
+
+      {reacaoListaAberta && session && (
+        <ReacoesSheet
+          uploadId={uploadId}
+          session={session}
+          onFechar={() => setReacaoListaAberta(false)}
+        />
+      )}
 
       {comentariosAbertos && session && (
         <ComentariosSheet

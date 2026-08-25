@@ -2,10 +2,12 @@
 
 import { useCallback, useState } from "react";
 
+export type ReatorVisivel = { nome: string; sessaoId: string };
+
 type Estado = {
   aberto: boolean;
   carregando: boolean;
-  nomes: string[];
+  reatores: ReatorVisivel[];
   erro: string | null;
 };
 
@@ -17,7 +19,7 @@ export function useReactionList(uploadId: string) {
   const [estado, setEstado] = useState<Estado>({
     aberto: false,
     carregando: false,
-    nomes: [],
+    reatores: [],
     erro: null,
   });
 
@@ -26,12 +28,12 @@ export function useReactionList(uploadId: string) {
   }, []);
 
   const abrir = useCallback(async () => {
-    setEstado({ aberto: true, carregando: true, nomes: [], erro: null });
+    setEstado({ aberto: true, carregando: true, reatores: [], erro: null });
     try {
       const res = await fetch(`/api/reaction?uploadId=${encodeURIComponent(uploadId)}`, {
         credentials: "same-origin",
       });
-      const corpo = (await res.json()) as { nomes?: string[]; mensagem?: string };
+      const corpo = (await res.json()) as { reatores?: ReatorVisivel[]; mensagem?: string };
       if (!res.ok) {
         setEstado((atual) => ({
           ...atual,
@@ -43,7 +45,7 @@ export function useReactionList(uploadId: string) {
       setEstado((atual) => ({
         ...atual,
         carregando: false,
-        nomes: corpo.nomes ?? [],
+        reatores: corpo.reatores ?? [],
       }));
     } catch {
       setEstado((atual) => ({

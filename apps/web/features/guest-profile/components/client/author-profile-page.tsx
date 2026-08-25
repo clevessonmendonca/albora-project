@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   BackIcon,
   EmptyState,
@@ -12,9 +13,13 @@ import {
   PostAuthorAvatar,
   SecondaryButton,
 } from "@albora/ui-web";
+import { CommentSheet } from "@/features/feed/components/client/comment-sheet";
+import { useComments } from "@/features/feed/hooks/use-comments";
+import { useReaction } from "@/features/feed/hooks/use-reaction";
+import { podeCarregarMais, type EstadoFeed, type ItemVisivel } from "@/features/feed/hooks/use-feed";
+import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
 import { formatQuando } from "@/features/home/lib/format-quando";
 import { useAuthorFeed } from "../../hooks/use-author-feed";
-import type { EstadoFeed } from "@/features/feed/hooks/use-feed";
 
 /**
  * O perfil de um convidado dentro do evento — nome + fotos publicadas por
@@ -61,16 +66,12 @@ export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: st
           {!estado.naoEncontrado && estado.feed.itens.length > 0 && (
             <div className="mt-5 grid gap-6">
               {estado.feed.itens.map((item) => (
-                <PhotoCard
+                <AuthorPhotoCard
                   key={item.id}
-                  autor={item.autor}
-                  quando={formatQuando(item.criadaEm)}
-                  {...(estado.feed.urls.get(item.chaveThumb)?.url
-                    ? { fotoUrl: estado.feed.urls.get(item.chaveThumb)!.url }
-                    : {})}
-                  curtidas={item.reacoes ?? 0}
-                  curtido={Boolean(item.minhaReacao)}
-                  comentarios={0}
+                  item={item}
+                  url={estado.feed.urls.get(item.chaveThumb)?.url ?? null}
+                  completo={estado.feed.interacao === "completo"}
+                  base={base}
                 />
               ))}
             </div>
@@ -81,6 +82,43 @@ export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: st
       </GuestShell>
 
       <FloatingNav active="inicio" base={base} linkComponent={Link} />
+    </>
+  );
+}
+
+function AuthorPhotoCard({
+  item,
+  url,
+  completo,
+  base,
+}: {
+  item: ItemVisivel;
+  url: string | null;
+  completo: boolean;
+  base: string;
+}) {
+  const router = useRouter();
+  const reacao = useReaction(item.id, item.reacoes, item.minhaReacao);
+  const comentarios = useComments(item.id, completo);
+
+  return (
+    <>
+      <PhotoCard
+        autor={item.autor}
+        quando={formatQuando(item.criadaEm)}
+        {...(url ? { fotoUrl: url } : {})}
+        curtidas={reacao.reacoes}
+        curtido={reacao.minha !== null}
+        comentarios={completo ? comentarios.total : 0}
+        onCurtir={() => void reacao.alternar()}
+        {...(completo ? { onComentar: comentarios.abrir } : {})}
+      />
+      {completo && (
+        <CommentSheet
+          comentarios={comentarios}
+          onVerAutor={(id) => router.push(`${base}/g/${encodeURIComponent(id)}`)}
+        />
+      )}
     </>
   );
 }
@@ -125,6 +163,8 @@ function CardLoading() {
 }
 
 function Rodape({ estado, onVerMais }: { estado: EstadoFeed; onVerMais: () => void }) {
+  const sentinela = useInfiniteScroll(onVerMais, podeCarregarMais(estado), estado.itens.length);
+
   if (estado.falha === "sessao") {
     return (
       <p className="mt-6 text-center text-[0.9rem] leading-relaxed text-ink-2">
@@ -147,10 +187,12 @@ function Rodape({ estado, onVerMais }: { estado: EstadoFeed; onVerMais: () => vo
   if (estado.fim || estado.cursor === null) return null;
 
   return (
-    <div className="mt-6">
-      <SecondaryButton onClick={onVerMais} disabled={estado.carregando}>
-        {estado.carregando ? "Carregando…" : "Ver mais"}
-      </SecondaryButton>
+    <div ref={sentinela} className="mt-6">
+      {estado.carregando && (
+        <p aria-live="polite" className="text-center text-[0.9rem] leading-relaxed text-ink-2">
+          Carregando mais fotos…
+        </p>
+      )}
     </div>
   );
 }

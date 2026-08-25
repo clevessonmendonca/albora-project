@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   Badge,
   EmptyState,
@@ -61,14 +61,28 @@ export function HomePage({
   const { estado, carregarMais, atualizarReacoes } = useFeed(null);
   const historias = useStories();
 
+  const [visto, setVisto] = useState<ReadonlySet<string>>(() => new Set());
+
   const primeiraCarga = !estado.jaCarregou && estado.carregando;
   const vazio = estado.jaCarregou && estado.itens.length === 0 && estado.falha === null;
   const espelho = estado.interacao === "espelho";
   const contagem = estado.itens.length > 0 ? `${estado.itens.length} fotos` : undefined;
 
   const stories: StoryItem[] = useMemo(
-    () => historias.itens.map((s) => paraStoryItem(s, historias.urls)),
-    [historias.itens, historias.urls],
+    () =>
+      historias.itens.map((s) => ({
+        ...paraStoryItem(s, historias.urls),
+        novo: !!s.sessaoId && !visto.has(s.id),
+        ...(s.sessaoId
+          ? {
+              onPress: () => {
+                setVisto((v) => (v.has(s.id) ? v : new Set([...v, s.id])));
+                router.push(`${base}/g/${encodeURIComponent(s.sessaoId!)}`);
+              },
+            }
+          : {}),
+      })),
+    [historias.itens, historias.urls, base, router, visto],
   );
 
   return (
