@@ -61,6 +61,15 @@ export interface DriveClient {
     mime: string,
     bytes: Uint8Array,
   ): Promise<{ fileId: string }>;
+  /** Variante streaming — envia sem bufferizar o arquivo inteiro na memória. */
+  uploadFileStream?(
+    accessToken: string,
+    folderId: string,
+    filename: string,
+    mime: string,
+    size: number,
+    body: ReadableStream<Uint8Array>,
+  ): Promise<{ fileId: string }>;
   revoke(refreshToken: string): Promise<void>;
 }
 
@@ -181,6 +190,34 @@ export function googleDriveClient(clientId: string, clientSecret: string): Drive
         method: "PUT",
         headers: { "content-type": mime, "content-length": String(bytes.byteLength) },
         body: Buffer.from(bytes),
+      });
+      if (!envio.ok) throw new ErroDriveApi(await codigoDeErro(envio), envio.status);
+      const corpo = (await envio.json()) as { id: string };
+      return { fileId: corpo.id };
+    },
+
+    async uploadFileStream(accessToken, folderId, filename, mime, size, body) {
+      const iniciar = await fetch(`${DRIVE_UPLOAD_API}/files?uploadType=resumable&fields=id`, {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          "content-type": "application/json; charset=UTF-8",
+          "x-upload-content-type": mime,
+          "x-upload-content-length": String(size),
+        },
+        body: JSON.stringify({ name: filename, parents: [folderId] }),
+      });
+      if (!iniciar.ok) throw new ErroDriveApi(await codigoDeErro(iniciar), iniciar.status);
+
+      const sessionUrl = iniciar.headers.get("location");
+      if (!sessionUrl) throw new ErroDriveApi("sessao_resumivel_sem_location", iniciar.status);
+
+      const envio = await fetch(sessionUrl, {
+        method: "PUT",
+        headers: { "content-type": mime, "content-length": String(size) },
+        body,
+        // @ts-expect-error -- Node 22+ / undici aceita ReadableStream; a tipagem do DOM ainda não reflete
+        duplex: "half",
       });
       if (!envio.ok) throw new ErroDriveApi(await codigoDeErro(envio), envio.status);
       const corpo = (await envio.json()) as { id: string };

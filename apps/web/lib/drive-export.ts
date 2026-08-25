@@ -37,11 +37,13 @@ export type ResultadoTickDrive = ResultadoExportDrive & {
   pausadoNoTick: boolean;
 };
 
+export type LeitorDeObjeto = Uint8Array | ReadableStream<Uint8Array>;
+
 export async function executarExportDrive(
   job: Pick<JobExport, "itens" | "driveFolderId">,
   driveClient: DriveClient,
   accessToken: string,
-  ler: (chave: string) => Promise<Uint8Array | null>,
+  ler: (chave: string) => Promise<LeitorDeObjeto | null>,
   marcarEnviado: (itemId: string, driveFileId: string) => Promise<void>,
 ): Promise<ResultadoExportDrive> {
   const tick = await avancarExportDrive(job, driveClient, accessToken, ler, marcarEnviado, {
@@ -59,7 +61,7 @@ export async function avancarExportDrive(
   job: Pick<JobExport, "itens" | "driveFolderId">,
   driveClient: DriveClient,
   accessToken: string,
-  ler: (chave: string) => Promise<Uint8Array | null>,
+  ler: (chave: string) => Promise<LeitorDeObjeto | null>,
   marcarEnviado: (itemId: string, driveFileId: string) => Promise<void>,
   opts?: { maxItens?: number },
 ): Promise<ResultadoTickDrive> {
@@ -81,12 +83,19 @@ export async function avancarExportDrive(
     }
     tentativasNesteTick += 1;
 
-    const bytes = await ler(item.chave).catch(() => null);
-    if (!bytes) continue;
+    const conteudo = await ler(item.chave).catch(() => null);
+    if (!conteudo) continue;
 
     const nome = `foto-${item.id}${EXTENSAO[item.mime] ?? ".bin"}`;
     try {
-      const { fileId } = await driveClient.uploadFile(accessToken, folderId, nome, item.mime, bytes);
+      let fileId: string;
+      if (conteudo instanceof ReadableStream && driveClient.uploadFileStream) {
+        ({ fileId } = await driveClient.uploadFileStream(accessToken, folderId, nome, item.mime, item.bytes, conteudo));
+      } else if (conteudo instanceof Uint8Array) {
+        ({ fileId } = await driveClient.uploadFile(accessToken, folderId, nome, item.mime, conteudo));
+      } else {
+        continue;
+      }
       await marcarEnviado(item.id, fileId);
       enviadas += 1;
     } catch (e) {

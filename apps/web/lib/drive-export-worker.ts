@@ -9,13 +9,13 @@ import {
 } from "@albora/db";
 import type { Pool } from "pg";
 import type { DriveClient } from "./drive-client";
-import { avancarExportDrive, driveFolderUrl, ITENS_POR_TICK_DRIVE } from "./drive-export";
-import { bufferObject } from "./r2";
+import { avancarExportDrive, driveFolderUrl, ITENS_POR_TICK_DRIVE, type LeitorDeObjeto } from "./drive-export";
+import { streamObject } from "./r2";
 
 export type DriveExportWorkerDeps = {
   driveClient: DriveClient;
   vault: DriveTokenVault;
-  ler?: (chave: string) => Promise<Uint8Array | null>;
+  ler?: (chave: string) => Promise<LeitorDeObjeto | null>;
   maxItens?: number;
   onPronto?: (ctx: { eventId: string; job: JobExport; total: number }) => Promise<void>;
 };
@@ -50,7 +50,7 @@ export async function processDriveExportJob(
     return true;
   }
 
-  const ler = deps.ler ?? ((chave: string) => bufferObject(chave));
+  const ler = deps.ler ?? ((chave: string) => streamObject(chave));
   const tick = await avancarExportDrive(
     job,
     deps.driveClient,

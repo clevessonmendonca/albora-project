@@ -450,7 +450,7 @@ function Confirmacao({
         <img
           className="amanhece mb-7 aspect-[3/4] w-[min(62vw,16rem)] shrink-0 rounded-superficie object-cover"
           src={url}
-          alt=""
+          alt="Foto enviada"
         />
       )}
 

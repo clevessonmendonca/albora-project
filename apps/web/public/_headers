@@ -2,6 +2,11 @@
 # /public sob Cloudflare Workers — o Assets os serve antes do Worker do Next.
 # Cabeçalho de asset estático se declara aqui, e só aqui.
 
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(self), microphone=(self), geolocation=(), interest-cohort=()
+
 /sw.js
   Cache-Control: no-cache
   Service-Worker-Allowed: /

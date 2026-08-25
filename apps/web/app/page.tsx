@@ -5,6 +5,10 @@ import { LandingPage } from "./landing/landing-page";
 export const metadata: Metadata = {
   title: "Albora — o álbum coletivo da sua festa",
   description: "As fotos que os seus convidados tiraram, reunidas num álbum só.",
+  openGraph: {
+    title: "Albora — o álbum coletivo da sua festa",
+    description: "As fotos que os seus convidados tiraram, reunidas num álbum só.",
+  },
 };
 
 export default function Home() {

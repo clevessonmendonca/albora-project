@@ -137,7 +137,7 @@ export function VendorSubscribeButton({ vendorId, role, currentPlan, subscriptio
         <p className="m-0 mt-4 text-[0.9375rem] text-ink">
           Assinatura {PLAN_LABEL[result.plan]} criada
           {result.stub ? " (ambiente de teste)" : ""}.{" "}
-          <a href={result.invoiceUrl} target="_blank" rel="noreferrer" className="text-acento">
+          <a href={result.invoiceUrl} target="_blank" rel="noopener noreferrer" className="text-acento">
             Pagar assinatura
           </a>
         </p>

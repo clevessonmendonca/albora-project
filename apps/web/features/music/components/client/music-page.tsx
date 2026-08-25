@@ -67,7 +67,7 @@ function CoupleTrack({ track, escolhaLabel }: { track: VisibleTrack; escolhaLabe
     <section className="grid gap-4 pt-2">
       <div className="relative mx-auto aspect-square w-full max-w-64 overflow-hidden rounded-superficie">
         {track.capaUrl ? (
-          <img src={track.capaUrl} alt="" className="block size-full object-cover saturate-[0.92]" />
+          <img src={track.capaUrl} alt="" loading="lazy" decoding="async" className="block size-full object-cover saturate-[0.92]" />
         ) : (
           <Frame label="" atmosphere variant={3} />
         )}

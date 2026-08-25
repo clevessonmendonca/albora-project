@@ -175,7 +175,7 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
           <a
             href={estado.job.abrirNoDrive}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             className={`${adminClasses.primaryButton} shrink-0`}
           >
             Abrir no Google Drive

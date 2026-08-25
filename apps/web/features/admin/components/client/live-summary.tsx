@@ -106,7 +106,7 @@ export function LiveSummary({ eventoId }: Props) {
                 className="relative aspect-[3/4] overflow-hidden rounded-token bg-superficie-alta"
               >
                 {/* URL assinada */}
-                <img src={f.thumb} alt="" className="size-full object-cover" />
+                <img src={f.thumb} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
               </span>
             ))}
           </div>
