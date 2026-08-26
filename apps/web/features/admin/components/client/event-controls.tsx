@@ -374,12 +374,30 @@ function Effect({ label, value }: { label: string; value: string }) {
 }
 
 function EventLink({ title, url }: { title: string; url: string }) {
+  const [copiado, setCopiado] = useState(false);
+
+  const copiar = () => {
+    void navigator.clipboard.writeText(url).then(() => {
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    });
+  };
+
   return (
-    <div className="mb-3.5">
+    <div className="mb-4">
       <span className="block text-xs uppercase tracking-rotulo text-ink-3">{title}</span>
-      <a href={url} className="break-all text-[0.95rem] text-acento">
-        {url}
-      </a>
+      <div className="mt-1 flex items-center gap-2">
+        <a href={url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-[0.875rem] text-acento no-underline">
+          {url}
+        </a>
+        <button
+          type="button"
+          onClick={copiar}
+          className="shrink-0 cursor-pointer rounded-pilula border border-linha bg-superficie-alta px-3 py-1 font-titulo text-[0.75rem] text-ink transition-colors"
+        >
+          {copiado ? "Copiado!" : "Copiar"}
+        </button>
+      </div>
     </div>
   );
 }

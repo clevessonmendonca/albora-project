@@ -54,10 +54,16 @@ export function Details({
         <textarea
           className="w-full resize-none border-0 border-b border-linha bg-transparent px-0.5 py-3 font-titulo text-[1.1rem] font-normal leading-[1.42] text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] placeholder:italic placeholder:text-ink-3 focus:border-acento motion-reduce:transition-none"
           value={legenda}
+          maxLength={MAX_LEGENDA}
           onChange={(e) => setLegenda(e.target.value.slice(0, MAX_LEGENDA))}
           rows={2}
           placeholder="Uma noite que ninguém esquece"
         />
+        {legenda.length > 0 && (
+          <span className="text-right text-[0.6875rem] tabular-nums text-ink-3">
+            {MAX_LEGENDA - legenda.length}
+          </span>
+        )}
       </label>
 
       <div className="mt-9 grid shrink-0 gap-3.5">
