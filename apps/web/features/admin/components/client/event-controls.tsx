@@ -344,6 +344,14 @@ export function EventControls({
         <EventLink title="Link do convidado" url={eventEntryUrl(origin, slug, "link")} />
         <EventLink title="WhatsApp" url={whatsappInviteUrl(origin, slug)} />
         <EventLink title="Telão" url={`${origin}/wall-display`} />
+        <a
+          href={eventEntryUrl(origin, slug, "link")}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-1 flex min-h-10 items-center justify-center rounded-pilula border border-linha bg-transparent px-4 text-center text-[0.875rem] text-ink no-underline"
+        >
+          Testar como convidado ↗
+        </a>
       </AdminSection>
 
       {error && (

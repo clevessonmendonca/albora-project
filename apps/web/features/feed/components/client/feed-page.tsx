@@ -299,7 +299,7 @@ export function FeedPage({
           )}
 
           {espelho && estado.itens.length > 0 && (
-            <MirrorGrid itens={estado.itens} urls={estado.urls} />
+            <MirrorGrid itens={estado.itens} urls={estado.urls} cameraPath={cameraPath} />
           )}
 
           {completo && estado.itens.length > 0 && (

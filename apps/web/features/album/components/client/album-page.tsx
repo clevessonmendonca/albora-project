@@ -16,6 +16,7 @@ import { ReportSheet } from "@/features/feed/components/client/report-sheet";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { useAlbum } from "../../hooks/use-album";
 import { chaptersFromAlbum, firstCoverUrl, flattenChapterPhotos } from "../../lib/bands";
+import type { AlbumBand } from "../../lib/bands";
 import { AlbumTimeline, AlbumTimelineLoading } from "./album-timeline";
 
 export type AlbumMission = { id: string; title: string };
@@ -117,14 +118,17 @@ export function AlbumPage({
                 className={cn(capitulo.nomear && "mt-8 first:mt-0")}
               >
                 {capitulo.nomear && (
-                  <h2
-                    className={cn(
-                      "mb-4 font-titulo text-[1.1875rem] font-light leading-[1.26] tracking-titulo",
-                      capitulo.faixas.some((f) => f.amanhecer) && "text-acento",
-                    )}
-                  >
-                    {capitulo.titulo}
-                  </h2>
+                  <div className="mb-4">
+                    <h2
+                      className={cn(
+                        "m-0 font-titulo text-[1.1875rem] font-light leading-[1.26] tracking-titulo",
+                        capitulo.faixas.some((f) => f.amanhecer) && "text-acento",
+                      )}
+                    >
+                      {capitulo.titulo}
+                    </h2>
+                    <ChapterTimeRange faixas={capitulo.faixas} />
+                  </div>
                 )}
                 <AlbumTimeline faixas={capitulo.faixas} onAbrir={setAberta} />
               </section>
@@ -145,6 +149,15 @@ export function AlbumPage({
       )}
     </>
   );
+}
+
+function ChapterTimeRange({ faixas }: { faixas: AlbumBand[] }) {
+  const horas = faixas.map((f) => f.hora).filter((h): h is number => h !== null);
+  if (horas.length === 0) return null;
+  const primeira = Math.min(...horas);
+  const ultima = Math.max(...horas);
+  const label = primeira === ultima ? `${primeira}h` : `${primeira}h – ${ultima}h`;
+  return <p className="m-0 mt-0.5 text-[0.8125rem] text-ink-3">{label}</p>;
 }
 
 function CoverHero({ src }: { src: string }) {
