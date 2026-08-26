@@ -24,11 +24,10 @@ export function SuggestionForm({
       const texto = await navigator.clipboard.readText();
       if (texto.trim()) setUrl(texto.trim());
     } catch {
-      setColando(false);
+      // permission denied or clipboard not supported
     } finally {
       setColando(false);
     }
-    setColando(false);
   }, []);
 
   return (
