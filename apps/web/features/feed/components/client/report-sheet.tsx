@@ -37,11 +37,12 @@ export function ReportSheet({
   const [enviando, setEnviando] = useState(false);
   const [confirmado, setConfirmado] = useState(false);
   const [motivo, setMotivo] = useState("");
-  const [kind, setKind] = useState<MotivoDeDenuncia>("ofensivo");
+  const [kind, setKind] = useState<MotivoDeDenuncia | null>(null);
 
   const opcoes = minha ? OPCOES.filter((o) => o.kind !== "aparece_na_foto") : OPCOES;
 
   const sinalizar = async () => {
+    if (kind === null) return;
     setEnviando(true);
     try {
       const r = await fetch("/api/media/report", {
@@ -85,7 +86,7 @@ export function ReportSheet({
   const fechar = () => {
     setConfirmado(false);
     setMotivo("");
-    setKind("ofensivo");
+    setKind(null);
     onClose();
   };
 
@@ -99,8 +100,8 @@ export function ReportSheet({
         <div className="flex gap-2">
           <SecondaryButton onClick={fechar}>Fechar</SecondaryButton>
           {!confirmado && (
-            <PrimaryButton disabled={enviando} onClick={() => void sinalizar()}>
-              {enviando ? "Enviando…" : "Enviar"}
+            <PrimaryButton disabled={enviando || kind === null} onClick={() => void sinalizar()}>
+              {enviando ? "Enviando…" : "Confirmar denúncia"}
             </PrimaryButton>
           )}
         </div>
