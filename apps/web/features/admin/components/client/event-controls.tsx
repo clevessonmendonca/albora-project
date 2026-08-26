@@ -241,6 +241,17 @@ export function EventControls({
                 }}
               />
             </label>
+            {interactionOpensAt && (
+              <p className="m-0 text-[0.875rem] text-acento-texto">
+                Agendada para{" "}
+                {new Date(interactionOpensAt).toLocaleString("pt-BR", {
+                  day: "2-digit",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+            )}
           </div>
         )}
         {gateOpen || interactionOpensAt ? (
