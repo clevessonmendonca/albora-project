@@ -5,7 +5,7 @@ import { ErrorMessage, PrimaryButton } from "@albora/ui-web";
 import { suggestionLabel } from "@/features/music/lib/suggestion-copy";
 import type { MusicState } from "@/features/music/hooks/use-music";
 import type { VisibleSuggestion } from "@/features/music/types/visible-suggestion";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 export function SuggestionForm({
   state,
@@ -15,8 +15,21 @@ export function SuggestionForm({
   onSuggest: (url: string) => Promise<boolean>;
 }) {
   const [url, setUrl] = useState("");
+  const [colando, setColando] = useState(false);
   const open = state.interaction === "completo";
   const canPaste = open && !state.capReached;
+
+  const colarDaAreaDeTransferencia = useCallback(async () => {
+    try {
+      const texto = await navigator.clipboard.readText();
+      if (texto.trim()) setUrl(texto.trim());
+    } catch {
+      setColando(false);
+    } finally {
+      setColando(false);
+    }
+    setColando(false);
+  }, []);
 
   return (
     <section className="grid gap-4 border-t border-linha pt-6">
@@ -46,9 +59,22 @@ export function SuggestionForm({
           }}
         >
           <label className="grid gap-2">
-            <span className="text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
-              Link da música
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
+                Link da música
+              </span>
+              <button
+                type="button"
+                disabled={colando}
+                onClick={() => {
+                  setColando(true);
+                  void colarDaAreaDeTransferencia();
+                }}
+                className="cursor-pointer border-none bg-transparent p-0 text-[0.6875rem] text-acento-texto disabled:cursor-default disabled:opacity-50"
+              >
+                {colando ? "Colando…" : "Colar da área de transferência"}
+              </button>
+            </div>
             <input
               type="url"
               value={url}

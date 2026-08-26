@@ -39,6 +39,8 @@ export function LiveSummary({ eventoId }: Props) {
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const primeiraFotoVista = useRef(false);
 
+  const [atualizando, setAtualizando] = useState(false);
+
   const carregar = useCallback(async () => {
     try {
       const r = await fetch(`/api/admin/events/${eventoId}`);
@@ -110,6 +112,17 @@ export function LiveSummary({ eventoId }: Props) {
         <p className="m-0 font-titulo text-lg">Ao vivo</p>
         <div className="flex items-center gap-2">
           {ultimaAtualizacao && <AtualizadoHa desde={ultimaAtualizacao} />}
+          <button
+            type="button"
+            disabled={atualizando}
+            onClick={() => {
+              setAtualizando(true);
+              void carregar().finally(() => setAtualizando(false));
+            }}
+            className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] disabled:cursor-default disabled:opacity-50"
+          >
+            {atualizando ? "…" : "⟳"}
+          </button>
           <span className="inline-flex items-center gap-1.5 rounded-pilula bg-acento px-2.5 py-1 font-titulo text-xs text-sobre-acento">
             <span className="size-[0.4rem] rounded-full bg-current" />
             festa

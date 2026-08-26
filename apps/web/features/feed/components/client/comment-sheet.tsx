@@ -116,6 +116,11 @@ function Composer({
           {comentarios.publicando ? "Enviando…" : "Enviar"}
         </button>
       </div>
+      {comentarios.texto.length > 0 && (
+        <span className="text-right text-[0.6875rem] tabular-nums text-ink-3">
+          {comentarios.maxCaracteres - comentarios.texto.length}
+        </span>
+      )}
 
       {comentarios.erro && (
         <p className="m-0 text-[0.85rem] text-critico">
