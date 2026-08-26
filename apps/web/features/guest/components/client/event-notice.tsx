@@ -1,5 +1,6 @@
 import { AlboraLogo } from "./albora-logo";
 import { RescueScanner } from "./rescue-scanner";
+import { EventCountdown } from "./event-countdown";
 
 /**
  * Saída com dignidade.
@@ -39,16 +40,7 @@ export function EventNotice({
           </h1>
           <p className="m-0 max-w-[34ch] text-[0.94rem] leading-[1.68] text-ink-2">{body}</p>
 
-          {at && (
-            <p className="mt-6 font-titulo text-[0.78rem] font-normal uppercase tracking-[0.2em] text-acento-texto">
-              {at.toLocaleString("pt-BR", {
-                day: "2-digit",
-                month: "long",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
-          )}
+          {at && <EventCountdown at={at.toISOString()} />}
         </div>
 
         <span className="min-h-6 flex-1" />
