@@ -77,6 +77,18 @@ export function WallClient({ initialVars }: { initialVars: Record<string, string
     contadores,
   } = useWallDisplay(fase, onNaoAutorizado);
 
+  useEffect(() => {
+    if (fase !== "exibindo") return;
+    function teclaPausa(ev: KeyboardEvent) {
+      if (ev.key === " " || ev.key === "p" || ev.key === "P") {
+        ev.preventDefault();
+        if (!alternandoPanico) void alternarPanico();
+      }
+    }
+    window.addEventListener("keydown", teclaPausa);
+    return () => window.removeEventListener("keydown", teclaPausa);
+  }, [fase, alternandoPanico, alternarPanico]);
+
   if (fase === "pareando") {
     return <WallPairingScreen variaveis={variaveis} codigo={codigo} />;
   }

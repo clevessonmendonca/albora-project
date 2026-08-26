@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
 import {
   Badge,
@@ -16,6 +16,39 @@ import {
 } from "@albora/ui-web";
 import type { AlbumServido } from "@/lib/album";
 import type { CoverMoment } from "../../types/cover";
+
+function BotaoConvidar({ slug, eventName }: { slug: string; eventName: string }) {
+  const [copiado, setCopiado] = useState(false);
+
+  async function convidar() {
+    const url = `${window.location.origin}/e/${encodeURIComponent(slug)}`;
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title: eventName, url });
+        return;
+      } catch {
+        // usuário cancelou o share nativo — tenta cópia silenciosa
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2500);
+    } catch {
+      // sem permissão de clipboard — ignora
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => void convidar()}
+      className="flex min-h-12 w-full items-center justify-center rounded-pilula border border-linha bg-transparent px-4 font-inherit text-[0.9375rem] text-ink cursor-pointer"
+    >
+      {copiado ? "Link copiado!" : "Convidar amigos"}
+    </button>
+  );
+}
 
 function IconeMusica({ tamanho = 20 }: { tamanho?: number }) {
   return (
@@ -237,8 +270,9 @@ export function CoverPage({
           </div>
         )}
 
-        <div className="px-6 pt-[1.125rem] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
+        <div className="grid gap-2.5 px-6 pt-[1.125rem] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
           <PrimaryButton onClick={() => router.push(`${base}/photo`)}>Enviar foto</PrimaryButton>
+          <BotaoConvidar slug={slug} eventName={eventName} />
         </div>
       </GuestShell>
       <FloatingNav base={base} linkComponent={Link} />
