@@ -1,7 +1,7 @@
 "use client";
 
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
-import { MissionBanner, Switch } from "@albora/ui-web";
+import { MissionBanner } from "@albora/ui-web";
 import { useMemo, useRef, useState } from "react";
 import {
   identityPreviewClassName,
@@ -10,7 +10,6 @@ import {
 import {
   moveMissionKey,
   reorderMissionKeys,
-  toggleMissionKey,
 } from "@/features/admin/lib/mission-keys";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 
@@ -73,6 +72,15 @@ export function MissionsEditor({
   const markDirty = (next: string[]) => {
     setSelected(next);
     setSaved(false);
+  };
+
+  const add = (key: string) => {
+    if (selected.includes(key)) return;
+    markDirty([...selected, key]);
+  };
+
+  const remove = (key: string) => {
+    markDirty(selected.filter((k) => k !== key));
   };
 
   const addCustom = () => {
@@ -163,44 +171,52 @@ export function MissionsEditor({
         </p>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(16rem,1fr)_minmax(14rem,18rem)]">
-          <div className="flex flex-col gap-2">
-            {selected.length === 0 && custom.length === 0 && (
-              <p className="m-0 rounded-token border border-linha bg-bg px-3 py-3 text-sm text-ink-2">
-                Modo livre — o convidado fotografa o que quiser.
-              </p>
-            )}
-
-            {selected.map((key, i) => (
-              <MissionRow
-                key={key}
-                title={resolvePackText(pack, key)}
-                checked
-                onToggle={() => markDirty(toggleMissionKey(selected, key, packKeys))}
-                onMove={(dir) => markDirty(moveMissionKey(selected, key, dir))}
-                canUp={i > 0}
-                canDown={i < selected.length - 1}
-                onDrop={(fromKey) => markDirty(reorderMissionKeys(selected, fromKey, key))}
-                dragKey={key}
-              />
-            ))}
-
-            {inactive.length > 0 && (
-              <>
-                <p className="mb-0 mt-3 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
-                  Do pack, desligadas
+          <div className="flex flex-col gap-4">
+            <div>
+              {selected.length === 0 && custom.length === 0 ? (
+                <p className="m-0 rounded-token border border-linha bg-bg px-3 py-3 text-sm text-ink-2">
+                  Modo livre — o convidado fotografa o que quiser.
                 </p>
-                {inactive.map((m) => (
-                  <MissionRow
-                    key={m.chaveTitulo}
-                    title={resolvePackText(pack, m.chaveTitulo)}
-                    checked={false}
-                    onToggle={() => markDirty(toggleMissionKey(selected, m.chaveTitulo, packKeys))}
-                  />
-                ))}
-              </>
+              ) : (
+                <ol className="m-0 list-none p-0 flex flex-col gap-2">
+                  {selected.map((key, i) => (
+                    <ActiveMissionRow
+                      key={key}
+                      index={i + 1}
+                      title={resolvePackText(pack, key)}
+                      canUp={i > 0}
+                      canDown={i < selected.length - 1}
+                      onMoveUp={() => markDirty(moveMissionKey(selected, key, -1))}
+                      onMoveDown={() => markDirty(moveMissionKey(selected, key, 1))}
+                      onRemove={() => remove(key)}
+                      onDrop={(fromKey) => markDirty(reorderMissionKeys(selected, fromKey, key))}
+                      dragKey={key}
+                    />
+                  ))}
+                </ol>
+              )}
+            </div>
+
+            {/* ── Missões disponíveis do pack ───────────────── */}
+            {inactive.length > 0 && (
+              <div>
+                <p className="mb-2 mt-1 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
+                  Disponíveis no pack
+                </p>
+                <ul className="m-0 list-none p-0 flex flex-col gap-2">
+                  {inactive.map((m) => (
+                    <InactiveMissionRow
+                      key={m.chaveTitulo}
+                      title={resolvePackText(pack, m.chaveTitulo)}
+                      onAdd={() => add(m.chaveTitulo)}
+                    />
+                  ))}
+                </ul>
+              </div>
             )}
           </div>
 
+          {/* ── Prévia da faixa na câmera ─────────────────── */}
           <div className={identityPreviewClassName} style={previewVars}>
             <p className="mb-3 mt-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
               Na câmera
@@ -260,18 +276,18 @@ export function MissionsEditor({
               )}
 
               <span className="flex shrink-0 gap-1">
-                <OrderButton label={`Subir ${m.titulo}`} disabled={i === 0} onClick={() => moveCustom(i, -1)}>
+                <IconButton label={`Subir ${m.titulo}`} disabled={i === 0} onClick={() => moveCustom(i, -1)}>
                   ↑
-                </OrderButton>
-                <OrderButton label={`Descer ${m.titulo}`} disabled={i === custom.length - 1} onClick={() => moveCustom(i, 1)}>
+                </IconButton>
+                <IconButton label={`Descer ${m.titulo}`} disabled={i === custom.length - 1} onClick={() => moveCustom(i, 1)}>
                   ↓
-                </OrderButton>
-                <OrderButton label={`Editar ${m.titulo}`} onClick={() => startEdit(i)}>
+                </IconButton>
+                <IconButton label={`Editar ${m.titulo}`} onClick={() => startEdit(i)}>
                   ✎
-                </OrderButton>
-                <OrderButton label={`Remover ${m.titulo}`} onClick={() => removeCustom(i)}>
+                </IconButton>
+                <IconButton label={`Remover ${m.titulo}`} onClick={() => removeCustom(i)}>
                   ×
-                </OrderButton>
+                </IconButton>
               </span>
             </div>
           ))}
@@ -327,70 +343,98 @@ export function MissionsEditor({
   );
 }
 
-function MissionRow({
+function ActiveMissionRow({
+  index,
   title,
-  checked,
-  onToggle,
-  onMove,
   canUp,
   canDown,
+  onMoveUp,
+  onMoveDown,
+  onRemove,
   onDrop,
   dragKey,
 }: {
+  index: number;
   title: string;
-  checked: boolean;
-  onToggle: () => void;
-  onMove?: (direction: -1 | 1) => void;
-  canUp?: boolean;
-  canDown?: boolean;
-  onDrop?: (fromKey: string) => void;
-  dragKey?: string;
+  canUp: boolean;
+  canDown: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onRemove: () => void;
+  onDrop: (fromKey: string) => void;
+  dragKey: string;
 }) {
   return (
-    <div
+    <li
       className="flex items-center gap-3 rounded-token border border-linha bg-bg p-3"
-      draggable={Boolean(dragKey)}
+      draggable
       onDragStart={(e) => {
-        if (!dragKey) return;
         e.dataTransfer.setData("text/plain", dragKey);
         e.dataTransfer.effectAllowed = "move";
       }}
       onDragOver={(e) => {
-        if (!onDrop) return;
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
       }}
       onDrop={(e) => {
-        if (!onDrop) return;
         e.preventDefault();
         onDrop(e.dataTransfer.getData("text/plain"));
       }}
     >
-      <Switch checked={checked} onChange={() => onToggle()} label={title} />
+      {/* Drag handle + index */}
+      <span
+        className="grid size-8 shrink-0 place-items-center rounded-token border border-linha bg-superficie text-[0.75rem] font-titulo text-ink-3 cursor-grab"
+        aria-hidden
+        title="Arraste para reordenar"
+      >
+        {index}
+      </span>
+
+      {/* Title */}
       <span className="min-w-0 flex-1 font-titulo text-[0.95rem] leading-snug">{title}</span>
-      {onMove && (
-        <span className="flex shrink-0 gap-1">
-          <OrderButton
-            label={`Subir ${title}`}
-            disabled={!canUp}
-            onClick={() => onMove(-1)}
-          >
-            ↑
-          </OrderButton>
-          <OrderButton
-            label={`Descer ${title}`}
-            disabled={!canDown}
-            onClick={() => onMove(1)}
-          >
-            ↓
-          </OrderButton>
-        </span>
-      )}
-    </div>
+
+      {/* Order arrows */}
+      <span className="flex shrink-0 gap-1">
+        <IconButton label={`Subir "${title}"`} disabled={!canUp} onClick={onMoveUp}>
+          ↑
+        </IconButton>
+        <IconButton label={`Descer "${title}"`} disabled={!canDown} onClick={onMoveDown}>
+          ↓
+        </IconButton>
+      </span>
+
+      {/* Remove */}
+      <IconButton label={`Remover "${title}"`} onClick={onRemove}>
+        ×
+      </IconButton>
+    </li>
   );
 }
 
-function OrderButton({
+function InactiveMissionRow({
+  title,
+  onAdd,
+}: {
+  title: string;
+  onAdd: () => void;
+}) {
+  return (
+    <li className="flex items-center gap-3 rounded-token border border-linha bg-superficie p-3 opacity-60">
+      <span className="min-w-0 flex-1 font-titulo text-[0.95rem] leading-snug text-ink-2">
+        {title}
+      </span>
+      <button
+        type="button"
+        onClick={onAdd}
+        className="shrink-0 cursor-pointer rounded-token border border-linha bg-bg px-3 py-1.5 font-titulo text-[0.8125rem] text-ink hover:bg-superficie-alta"
+      >
+        + Adicionar
+      </button>
+    </li>
+  );
+}
+
+function IconButton({
   label,
   disabled,
   onClick,
