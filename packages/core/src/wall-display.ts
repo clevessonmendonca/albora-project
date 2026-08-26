@@ -32,7 +32,10 @@ export type ModeloDeTelao =
   | "cheio"
   | "carrossel"
   | "dump"
-  | "tbt";
+  | "tbt"
+  | "grade"
+  | "destaque"
+  | "mosaico";
 
 export const MODELOS_DE_TELAO: readonly ModeloDeTelao[] = [
   "polaroide",
@@ -43,6 +46,9 @@ export const MODELOS_DE_TELAO: readonly ModeloDeTelao[] = [
   "carrossel",
   "dump",
   "tbt",
+  "grade",
+  "destaque",
+  "mosaico",
 ];
 
 /**
@@ -70,6 +76,12 @@ export const PERFIS: Readonly<Record<ModeloDeTelao, PerfilDoModelo>> = {
   carrossel: { fotos: 1, aceitaEmPe: true },
   dump: { fotos: 9, aceitaEmPe: true },
   tbt: { fotos: 1, aceitaEmPe: true, faixaPreferida: "popular" },
+  /** 2×2 grid, cada célula contain + fundo desfocado. */
+  grade: { fotos: 4, aceitaEmPe: true },
+  /** Hero esquerda (2/3) + quatro pequenas direita (2×2). */
+  destaque: { fotos: 5, aceitaEmPe: true },
+  /** Tríptico: duas colunas laterais com duas fotos cada, hero central. */
+  mosaico: { fotos: 5, aceitaEmPe: true },
 };
 
 /**

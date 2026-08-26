@@ -1,5 +1,6 @@
 import { isVideoMime } from "@albora/core";
 import { cn } from "@albora/ui-web";
+import type { CSSProperties } from "react";
 import type { Cena, ItemApi } from "../../lib/types";
 
 const PALCO =
@@ -7,6 +8,47 @@ const PALCO =
 
 const FUNDO_AMBIENTE =
   "absolute -inset-[8%] h-[116%] w-[116%] object-cover blur-[48px] brightness-[0.55]";
+
+/** Gap entre células dos layouts de grade — valor único para todos os modelos. */
+const GAP = "clamp(0.5rem,1.5vw,1.5rem)";
+
+/**
+ * Camada desfocada que preenche o contêiner com a própria imagem.
+ *
+ * Resolve o letterbox/pillarbox sem cortar: a foto em pé (9:16) que aparece
+ * numa célula 16:9 é `contain`, e o fundo cobre o espaço vazio com um blur
+ * da mesma imagem — sem mostrar barras pretas e sem decapar o rosto do topo.
+ */
+function FundoDesfocado({ src, mime }: { src: string; mime: string }) {
+  const cls =
+    "absolute inset-0 h-full w-full object-cover blur-[40px] brightness-[0.35] scale-[1.12]";
+  if (isVideoMime(mime)) {
+    return (
+      <video src={src} autoPlay muted playsInline loop aria-hidden className={cls} />
+    );
+  }
+  return <img src={src} alt="" aria-hidden className={cls} />;
+}
+
+/** Célula individual: contain + fundo desfocado. Nunca corta faces. */
+function CelulaContida({
+  item,
+  className,
+  style,
+}: {
+  item: ItemApi;
+  className?: string;
+  style?: CSSProperties;
+}) {
+  return (
+    <div className={cn("relative overflow-hidden", className)} style={style}>
+      <FundoDesfocado src={item.full} mime={item.mime} />
+      <div className="relative z-10 flex h-full w-full items-center justify-center">
+        <MidiaPalco src={item.full} mime={item.mime} enquadrar="contain" />
+      </div>
+    </div>
+  );
+}
 
 export function WallStage({
   cena,
@@ -18,6 +60,7 @@ export function WallStage({
   const itens = cena.ids.map(itemDe).filter((i): i is ItemApi => Boolean(i));
   if (itens.length === 0) return null;
 
+  // --- cheio: sangramento total — só aceita horizontal, sem contain ---
   if (cena.modelo === "cheio") {
     const only = itens[0]!;
     return (
@@ -28,6 +71,7 @@ export function WallStage({
     );
   }
 
+  // --- ambiente: 1 foto contain + fundo desfocado ---
   if (cena.modelo === "ambiente") {
     const only = itens[0]!;
     return (
@@ -53,31 +97,37 @@ export function WallStage({
     );
   }
 
-  if (cena.modelo === "polaroide" || cena.modelo === "carrossel" || cena.modelo === "tbt") {
+  // --- carrossel: 1 foto contain + blur bg, fade-in a cada troca ---
+  if (cena.modelo === "carrossel") {
     const only = itens[0]!;
-    const emoldurado = cena.modelo !== "carrossel";
+    return (
+      <div
+        key={only.id}
+        className="absolute inset-0 overflow-hidden"
+        style={{ animation: "wall-aparecer 0.9s ease-out" }}
+      >
+        <FundoDesfocado src={only.full} mime={only.mime} />
+        <div className={cn(PALCO, "relative z-10")}>
+          <MidiaPalco src={only.full} mime={only.mime} enquadrar="contain" />
+        </div>
+        <Credito autor={only.autor} reacoes={only.reacoes} />
+      </div>
+    );
+  }
+
+  // --- polaroide / tbt: emoldurado, 1 foto ---
+  if (cena.modelo === "polaroide" || cena.modelo === "tbt") {
+    const only = itens[0]!;
     return (
       <div className={PALCO}>
-        <figure
-          className={cn(
-            "m-0 flex max-h-[88vh] max-w-[min(70vw,60vh)] flex-col items-center",
-            emoldurado
-              ? "rounded-superficie bg-superficie p-[clamp(0.75rem,1.5vw,1.5rem)] shadow-polaroide"
-              : "bg-transparent p-0 shadow-none",
-          )}
-        >
+        <figure className="m-0 flex max-h-[88vh] max-w-[min(70vw,60vh)] flex-col items-center rounded-superficie bg-superficie p-[clamp(0.75rem,1.5vw,1.5rem)] shadow-polaroide">
           {cena.modelo === "tbt" && (
             <figcaption className="mb-2 self-start font-titulo text-[clamp(0.9rem,1.6vw,1.3rem)] uppercase tracking-rotulo text-acento">
               Mais cedo, na festa
             </figcaption>
           )}
           <MidiaPalco src={only.full} mime={only.mime} enquadrar="contain" />
-          <figcaption
-            className={cn(
-              "mt-3 flex w-full justify-between gap-4 text-[clamp(0.8rem,1.4vw,1.1rem)]",
-              emoldurado ? "text-ink-2" : "text-ink",
-            )}
-          >
+          <figcaption className="mt-3 flex w-full justify-between gap-4 text-[clamp(0.8rem,1.4vw,1.1rem)] text-ink-2">
             <span>{only.autor}</span>
             {only.reacoes > 0 && <span className="text-acento">★ {only.reacoes}</span>}
           </figcaption>
@@ -86,6 +136,91 @@ export function WallStage({
     );
   }
 
+  // --- grade: 2×2 grid, cada célula contain + blur bg ---
+  if (cena.modelo === "grade") {
+    return (
+      <div
+        className={cn(PALCO, "grid grid-cols-2 grid-rows-2")}
+        style={{ gap: GAP }}
+      >
+        {itens.map((it) => (
+          <CelulaContida key={it.id} item={it} className="rounded-superficie" />
+        ))}
+      </div>
+    );
+  }
+
+  // --- destaque: hero esquerda 2/3 + quatro pequenas direita 1/3 (2×2) ---
+  if (cena.modelo === "destaque") {
+    const [hero, s1, s2, s3, s4] = itens;
+    return (
+      <div
+        className={PALCO}
+        style={{
+          display: "grid",
+          gridTemplateAreas: '"hero s1 s2" "hero s3 s4"',
+          gridTemplateColumns: "2fr 1fr 1fr",
+          gridTemplateRows: "1fr 1fr",
+          gap: GAP,
+        }}
+      >
+        {hero && (
+          <CelulaContida
+            item={hero}
+            className="rounded-superficie"
+            style={{ gridArea: "hero" }}
+          />
+        )}
+        {([s1, s2, s3, s4] as const).map((it, i) =>
+          it ? (
+            <CelulaContida
+              key={it.id}
+              item={it}
+              className="rounded-superficie"
+              style={{ gridArea: (["s1", "s2", "s3", "s4"] as const)[i] }}
+            />
+          ) : null,
+        )}
+      </div>
+    );
+  }
+
+  // --- mosaico: tríptico — 2 laterais + hero central (double-wide) + 2 laterais ---
+  if (cena.modelo === "mosaico") {
+    const [hero, sm1, sm2, sm3, sm4] = itens;
+    return (
+      <div
+        className={PALCO}
+        style={{
+          display: "grid",
+          gridTemplateAreas: '"sm1 hero sm3" "sm2 hero sm4"',
+          gridTemplateColumns: "1fr 2fr 1fr",
+          gridTemplateRows: "1fr 1fr",
+          gap: GAP,
+        }}
+      >
+        {hero && (
+          <CelulaContida
+            item={hero}
+            className="rounded-superficie"
+            style={{ gridArea: "hero" }}
+          />
+        )}
+        {([sm1, sm2, sm3, sm4] as const).map((it, i) =>
+          it ? (
+            <CelulaContida
+              key={it.id}
+              item={it}
+              className="rounded-superficie"
+              style={{ gridArea: (["sm1", "sm2", "sm3", "sm4"] as const)[i] }}
+            />
+          ) : null,
+        )}
+      </div>
+    );
+  }
+
+  // --- mural / colagem / dump: grade simples sem blur bg ---
   const colunas = 3;
   const linhas = cena.modelo === "mural" ? 1 : cena.modelo === "colagem" ? 2 : 3;
   return (

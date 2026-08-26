@@ -179,3 +179,9 @@
     opacity: 1;
   }
 }
+
+/* Fade-in do carrossel a cada troca de foto — sem dependência externa. */
+@keyframes wall-aparecer {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
