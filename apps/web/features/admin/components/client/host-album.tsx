@@ -33,6 +33,7 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
   const [itens, setItens] = useState<Item[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(false);
+  const [erroAcao, setErroAcao] = useState<string | null>(null);
   const [ocultando, setOcultando] = useState<string | null>(null);
   const [selecionado, setSelecionado] = useState<string | null>(null);
 
@@ -56,6 +57,7 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
 
   const ocultar = async (midiaId: string) => {
     setOcultando(midiaId);
+    setErroAcao(null);
     try {
       const r = await fetch(`/api/admin/events/${eventoId}/album`, {
         method: "PATCH",
@@ -66,7 +68,7 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
       setItens((antes) => antes.filter((i) => i.id !== midiaId));
       setSelecionado(null);
     } catch {
-      setErro(true);
+      setErroAcao("Não foi possível ocultar a foto. Tente de novo.");
     } finally {
       setOcultando(null);
     }
@@ -164,6 +166,9 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
           >
             {ocultando ? "Ocultando…" : "Ocultar foto"}
           </button>
+          {erroAcao && (
+            <p className="mb-0 mt-3 text-sm text-critico">{erroAcao}</p>
+          )}
         </AdminSection>
       )}
     </div>
