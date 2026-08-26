@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import { cn } from "@albora/ui-web";
 import { useWallDisplay } from "../../lib/use-wall-display";
@@ -21,6 +21,37 @@ import { WallStage } from "./wall-stage";
  * modelos. 🔴 Nada corta na vertical: todo modelo desenha com `contain`, menos
  * `cheio`, que só recebe foto horizontal — a regra está no CSS e na seleção.
  */
+
+function WallClock() {
+  const [hora, setHora] = useState(() =>
+    new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+  );
+
+  useEffect(() => {
+    const atualizar = () =>
+      setHora(new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }));
+    const proxTick = 60_000 - (Date.now() % 60_000);
+    let id: ReturnType<typeof setTimeout>;
+    const iniciar = () => {
+      atualizar();
+      id = setInterval(atualizar, 60_000);
+    };
+    const primeiroTick = setTimeout(iniciar, proxTick);
+    return () => {
+      clearTimeout(primeiroTick);
+      clearInterval(id);
+    };
+  }, []);
+
+  return (
+    <time
+      dateTime={hora}
+      className="absolute left-[clamp(0.75rem,2vw,1.5rem)] bottom-[clamp(0.75rem,2vw,1.5rem)] font-titulo text-[clamp(0.9rem,1.6vw,1.2rem)] tabular-nums text-ink-2 opacity-70"
+    >
+      {hora}
+    </time>
+  );
+}
 
 export function WallClient({ initialVars }: { initialVars: Record<string, string> }) {
   const [fase, setFase] = useState<FaseWall>("pareando");
@@ -84,6 +115,7 @@ export function WallClient({ initialVars }: { initialVars: Record<string, string
         </div>
       )}
 
+      <WallClock />
       <WallParticipationCounter contadores={contadores} />
 
       <button

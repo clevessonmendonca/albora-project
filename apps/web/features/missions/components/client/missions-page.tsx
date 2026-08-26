@@ -54,6 +54,10 @@ export function MissionsPage({
             action={<Badge>{summary}</Badge>}
           />
 
+          {missions.length > 0 && (
+            <MissionsProgress done={doneCount} total={missions.length} />
+          )}
+
           {missions.length === 0 ? (
             <FreeModeState slug={slug} />
           ) : current ? (
@@ -118,6 +122,28 @@ export function MissionsPage({
 
       <FloatingNav active="missoes" base={base} linkComponent={Link} />
     </>
+  );
+}
+
+function MissionsProgress({ done, total }: { done: number; total: number }) {
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const concluidas = done === total;
+  return (
+    <div className="mb-5">
+      <div className="mb-1.5 flex justify-between text-xs text-ink-3">
+        <span>{done === total ? "Todas completas" : `${done} de ${total} missões`}</span>
+        <span className={concluidas ? "text-acento-texto" : ""}>{pct}%</span>
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-superficie-alta">
+        <div
+          className="h-full rounded-full transition-all duration-700"
+          style={{
+            width: `${pct}%`,
+            background: concluidas ? "var(--acento)" : "var(--ink-2)",
+          }}
+        />
+      </div>
+    </div>
   );
 }
 
