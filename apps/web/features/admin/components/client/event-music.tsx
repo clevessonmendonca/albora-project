@@ -20,6 +20,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
   const [suggestions, setSuggestions] = useState<HostSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [salvo, setSalvo] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -63,6 +64,8 @@ export function EventMusic({ eventId }: { eventId: string }) {
         return;
       }
       setCurrent(body.musica ?? null);
+      setSalvo(true);
+      setTimeout(() => setSalvo(false), 3000);
     } catch {
       setError("Não salvou agora. Tente de novo.");
     } finally {
@@ -102,7 +105,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
           saving || !url.trim() ? "opacity-60" : ""
         }`}
       >
-        {saving ? "Salvando…" : "Salvar música"}
+        {saving ? "Salvando…" : salvo ? "Salvo!" : "Salvar música"}
       </button>
 
       {error && <p className="m-0 text-sm text-critico">{error}</p>}
@@ -120,12 +123,22 @@ export function EventMusic({ eventId }: { eventId: string }) {
         ) : (
           <ul className="m-0 grid list-none gap-2 p-0">
             {suggestions.map((s) => (
-              <li key={`${s.provedor}:${s.tipo}:${s.url}`} className="text-[0.9rem] text-ink">
-                <a href={s.url} className="text-acento">
+              <li key={`${s.provedor}:${s.tipo}:${s.url}`} className="flex items-center justify-between gap-3 rounded-token bg-bg px-3 py-2.5 text-[0.9rem] text-ink">
+                <a href={s.url} target="_blank" rel="noopener noreferrer" className="min-w-0 truncate text-acento no-underline hover:underline">
                   {suggestionLabel(s)}
                 </a>
-                {" · "}
-                {s.votos === 1 ? "1 voto" : `${s.votos} votos`}
+                <div className="flex shrink-0 items-center gap-2">
+                  <span className="text-xs text-ink-3">
+                    {s.votos === 1 ? "1 voto" : `${s.votos} votos`}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setUrl(s.url)}
+                    className="cursor-pointer rounded-pilula border border-linha bg-superficie px-2.5 py-1 text-xs text-ink-2 hover:bg-superficie-alta"
+                  >
+                    Usar
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
