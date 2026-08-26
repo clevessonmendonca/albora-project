@@ -207,10 +207,26 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
       )}
 
       {estado.fase === "enviando" && (
-        <p className="mb-0 mt-4 text-[0.9rem] text-ink-2">
-          Enviando {estado.job.enviadas} de {estado.job.fotos}… Pode fechar esta tela — o upload continua em
-          segundo plano.
-        </p>
+        <div className="mt-4">
+          <div className="mb-2 flex items-baseline justify-between gap-3">
+            <p className="m-0 text-[0.9rem] text-ink-2">
+              Enviando para o Drive… Pode fechar esta tela.
+            </p>
+            <span className="shrink-0 tabular-nums text-[0.85rem] text-ink-3">
+              {estado.job.enviadas}/{estado.job.fotos}
+            </span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-superficie-alta">
+            <div
+              className="h-full rounded-full bg-acento transition-all duration-700"
+              style={{
+                width: estado.job.fotos > 0
+                  ? `${Math.round((estado.job.enviadas / estado.job.fotos) * 100)}%`
+                  : "0%",
+              }}
+            />
+          </div>
+        </div>
       )}
 
       {(estado.fase === "conectado_sem_export" ||

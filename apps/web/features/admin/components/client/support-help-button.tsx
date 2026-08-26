@@ -82,9 +82,9 @@ export function SupportHelpButton({ eventId }: { eventId: string }) {
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
-          disabled={saving}
+          disabled={saving || !subject.trim() || !body.trim()}
           onClick={() => void send()}
-          className={`${adminClasses.primaryButton} ${saving ? "opacity-60" : ""}`}
+          className={`${adminClasses.primaryButton} ${saving || !subject.trim() || !body.trim() ? "opacity-60" : ""}`}
         >
           {saving ? "Enviando…" : "Enviar"}
         </button>

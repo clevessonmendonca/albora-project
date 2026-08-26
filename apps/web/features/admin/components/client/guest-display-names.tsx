@@ -100,7 +100,9 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                     className="mt-3 flex flex-wrap items-center gap-2"
                     onSubmit={(e) => {
                       e.preventDefault();
-                      void patch(s.id, { acao: "renomear", nome: rascunho });
+                      const nome = rascunho.trim();
+                      if (!nome) return;
+                      void patch(s.id, { acao: "renomear", nome });
                     }}
                   >
                     <input
@@ -113,9 +115,9 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                     />
                     <button
                       type="submit"
-                      disabled={ocupado}
+                      disabled={ocupado || !rascunho.trim()}
                       className={`${adminClasses.primaryButtonSm} ${
-                        acao === `renomear:${s.id}` ? "opacity-60" : ""
+                        ocupado || !rascunho.trim() ? "opacity-60" : ""
                       }`}
                     >
                       {acao === `renomear:${s.id}` ? "Salvando…" : "Salvar"}

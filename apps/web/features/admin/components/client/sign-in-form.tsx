@@ -78,28 +78,35 @@ function RequestLink({ next }: { next: string | null }) {
       <p className="m-0 leading-relaxed text-ink-2">
         Enviaremos um link de acesso para o seu e-mail. Nenhuma senha necessária.
       </p>
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="voce@exemplo.com"
-        autoCapitalize="off"
-        autoCorrect="off"
-        spellCheck={false}
-        aria-label="Seu e-mail"
-        className="rounded-token border border-linha bg-bg px-4 py-3.5 text-base text-ink"
-      />
-      {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Não conseguimos enviar agora. Por favor, tente novamente.</p>}
-      <button
-        type="button"
-        onClick={() => void request()}
-        disabled={!valid || status === "sending"}
-        className={`cursor-pointer rounded-pilula border-none bg-acento px-4 py-3.5 font-titulo text-[1.05rem] text-sobre-acento ${
-          valid && status !== "sending" ? "opacity-100" : "opacity-50"
-        }`}
+      <form
+        className="flex flex-col gap-6"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void request();
+        }}
       >
-        {status === "sending" ? "Enviando…" : "Enviar link"}
-      </button>
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="voce@exemplo.com"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
+          aria-label="Seu e-mail"
+          className="rounded-token border border-linha bg-bg px-4 py-3.5 text-base text-ink"
+        />
+        {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Não conseguimos enviar agora. Por favor, tente novamente.</p>}
+        <button
+          type="submit"
+          disabled={!valid || status === "sending"}
+          className={`cursor-pointer rounded-pilula border-none bg-acento px-4 py-3.5 font-titulo text-[1.05rem] text-sobre-acento ${
+            valid && status !== "sending" ? "opacity-100" : "opacity-50"
+          }`}
+        >
+          {status === "sending" ? "Enviando…" : "Enviar link"}
+        </button>
+      </form>
     </Card>
   );
 }

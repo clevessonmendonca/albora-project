@@ -110,10 +110,10 @@ function Composer({
           type="submit"
           disabled={comentarios.publicando || comentarios.texto.trim() === ""}
           className={`min-h-11 cursor-pointer rounded-pilula border-none bg-acento px-4 text-[0.85rem] text-sobre-acento disabled:cursor-default ${
-            comentarios.texto.trim() === "" ? "opacity-50" : ""
+            comentarios.publicando || comentarios.texto.trim() === "" ? "opacity-50" : ""
           }`}
         >
-          Enviar
+          {comentarios.publicando ? "Enviando…" : "Enviar"}
         </button>
       </div>
 
