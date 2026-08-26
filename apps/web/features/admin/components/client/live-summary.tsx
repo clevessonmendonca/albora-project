@@ -36,6 +36,7 @@ export function LiveSummary({ eventoId }: Props) {
   const [resumo, setResumo] = useState<Resumo | null>(null);
   const [erro, setErro] = useState(false);
   const [primeiraFotoToast, setPrimeiraFotoToast] = useState(false);
+  const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const primeiraFotoVista = useRef(false);
 
   const carregar = useCallback(async () => {
@@ -45,6 +46,7 @@ export function LiveSummary({ eventoId }: Props) {
       const dados = (await r.json()) as Resumo;
       setResumo(dados);
       setErro(false);
+      setUltimaAtualizacao(new Date());
 
       if (!primeiraFotoVista.current && dados.totalFotos > 0) {
         const chave = `albora:primeiraFoto:${eventoId}`;
@@ -106,10 +108,13 @@ export function LiveSummary({ eventoId }: Props) {
 
       <div className="mb-4 flex items-center justify-between gap-4">
         <p className="m-0 font-titulo text-lg">Ao vivo</p>
-        <span className="inline-flex items-center gap-1.5 rounded-pilula bg-acento px-2.5 py-1 font-titulo text-xs text-sobre-acento">
-          <span className="size-[0.4rem] rounded-full bg-current" />
-          festa
-        </span>
+        <div className="flex items-center gap-2">
+          {ultimaAtualizacao && <AtualizadoHa desde={ultimaAtualizacao} />}
+          <span className="inline-flex items-center gap-1.5 rounded-pilula bg-acento px-2.5 py-1 font-titulo text-xs text-sobre-acento">
+            <span className="size-[0.4rem] rounded-full bg-current" />
+            festa
+          </span>
+        </div>
       </div>
 
       <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
@@ -167,6 +172,24 @@ export function LiveSummary({ eventoId }: Props) {
       )}
     </AdminSection>
   );
+}
+
+function AtualizadoHa({ desde }: { desde: Date }) {
+  const [segundos, setSegundos] = useState(0);
+
+  useEffect(() => {
+    const atualizar = () => setSegundos(Math.round((Date.now() - desde.getTime()) / 1000));
+    atualizar();
+    const id = setInterval(atualizar, 10_000);
+    return () => clearInterval(id);
+  }, [desde]);
+
+  const rotulo =
+    segundos < 10 ? "agora mesmo" :
+    segundos < 60 ? `há ${segundos}s` :
+    `há ${Math.round(segundos / 60)}min`;
+
+  return <span className="text-xs text-ink-3">{rotulo}</span>;
 }
 
 function Stat({

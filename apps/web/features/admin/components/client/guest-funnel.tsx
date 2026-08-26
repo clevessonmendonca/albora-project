@@ -52,6 +52,7 @@ type Props = {
 export function GuestFunnel({ eventoId }: Props) {
   const [resumo, setResumo] = useState<Resumo | null>(null);
   const [erro, setErro] = useState(false);
+  const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
 
   const carregar = useCallback(async () => {
     try {
@@ -59,6 +60,7 @@ export function GuestFunnel({ eventoId }: Props) {
       if (!r.ok) throw new Error("falhou");
       setResumo((await r.json()) as Resumo);
       setErro(false);
+      setUltimaAtualizacao(new Date());
     } catch {
       setErro(true);
     }
@@ -94,7 +96,12 @@ export function GuestFunnel({ eventoId }: Props) {
   return (
     <div className="flex flex-col gap-5">
       <AdminSection>
-        <h2 className="mb-3 mt-0 font-titulo text-lg">Participação ao vivo</h2>
+        <div className="mb-3 flex items-center justify-between gap-4">
+          <h2 className="m-0 font-titulo text-lg">Participação ao vivo</h2>
+          {ultimaAtualizacao && (
+            <TempoDesdeAtualizacao desde={ultimaAtualizacao} />
+          )}
+        </div>
         <p className="mb-4 mt-0 leading-relaxed text-ink-2">
           Números agregados, atualizados a cada 30 segundos. O denominador vem dos convidados
           esperados que você definiu na criação do evento.
@@ -119,18 +126,33 @@ export function GuestFunnel({ eventoId }: Props) {
           em algum ponto, vale investigar fricção.
         </p>
         <div className="flex flex-col gap-2">
-          {resumo.degraus.map((d) => (
-            <div
-              key={d.etapa}
-              className="grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-token bg-bg px-3 py-[0.65rem] text-sm"
-            >
-              <span className="text-ink">{ROTULO_ETAPA[d.etapa]}</span>
-              <span className="font-titulo tabular-nums text-acento-texto">{d.sessoes}</span>
-              <span className="min-w-12 text-right text-xs text-ink-3">
-                {d.retencao === null ? "—" : `${Math.round(d.retencao * 100)}%`}
-              </span>
-            </div>
-          ))}
+          {resumo.degraus.map((d) => {
+            const pctRetencao = d.retencao === null ? null : Math.round(d.retencao * 100);
+            const maxSessoes = resumo.degraus[0]?.sessoes ?? 1;
+            const larguraBarra = maxSessoes > 0 ? Math.round((d.sessoes / maxSessoes) * 100) : 0;
+            return (
+              <div key={d.etapa} className="rounded-token bg-bg px-3 py-2.5">
+                <div className="mb-1.5 flex items-baseline justify-between gap-3">
+                  <span className="text-sm text-ink">{ROTULO_ETAPA[d.etapa]}</span>
+                  <span className="shrink-0 text-xs text-ink-3">
+                    <span className="font-titulo tabular-nums text-acento-texto">{d.sessoes}</span>
+                    {pctRetencao !== null && (
+                      <span className="ml-1.5 text-ink-3">· {pctRetencao}%</span>
+                    )}
+                  </span>
+                </div>
+                <div className="h-1 overflow-hidden rounded-full bg-superficie-alta">
+                  <div
+                    className="h-full rounded-full transition-all duration-700"
+                    style={{
+                      width: `${larguraBarra}%`,
+                      background: larguraBarra >= 60 ? "var(--acento)" : larguraBarra >= 30 ? "var(--ink-2)" : "var(--critico)",
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </AdminSection>
 
@@ -185,6 +207,27 @@ export function GuestFunnel({ eventoId }: Props) {
         </AdminSection>
       )}
     </div>
+  );
+}
+
+function TempoDesdeAtualizacao({ desde }: { desde: Date }) {
+  const [segundos, setSegundos] = useState(0);
+
+  useEffect(() => {
+    const atualizar = () =>
+      setSegundos(Math.round((Date.now() - desde.getTime()) / 1000));
+    atualizar();
+    const id = setInterval(atualizar, 10_000);
+    return () => clearInterval(id);
+  }, [desde]);
+
+  const rotulo =
+    segundos < 10 ? "agora mesmo" :
+    segundos < 60 ? `há ${segundos}s` :
+    `há ${Math.round(segundos / 60)}min`;
+
+  return (
+    <span className="text-xs text-ink-3">{rotulo}</span>
   );
 }
 
