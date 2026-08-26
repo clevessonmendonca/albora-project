@@ -42,6 +42,7 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
   const [verPainelCompleto, setVerPainelCompleto] = useState(false);
   const [resumo, setResumo] = useState<Resumo | null>(null);
   const [erro, setErro] = useState(false);
+  const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
 
   const carregar = useCallback(async () => {
     try {
@@ -49,6 +50,7 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
       if (!r.ok) throw new Error("falhou");
       setResumo((await r.json()) as Resumo);
       setErro(false);
+      setUltimaAtualizacao(new Date());
     } catch {
       setErro(true);
     }
@@ -64,9 +66,14 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-4">
-        <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
-          {verPainelCompleto ? "Painel completo" : "Acompanhar"}
-        </p>
+        <div className="flex items-center gap-3">
+          <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
+            {verPainelCompleto ? "Painel completo" : "Acompanhar"}
+          </p>
+          {!verPainelCompleto && ultimaAtualizacao && (
+            <AtualizadoHa desde={ultimaAtualizacao} />
+          )}
+        </div>
         <label className="flex items-center gap-2.5 text-sm text-ink-2">
           Ver painel completo
           <Switch
@@ -134,6 +141,25 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
       )}
     </div>
   );
+}
+
+function AtualizadoHa({ desde }: { desde: Date }) {
+  const [segundos, setSegundos] = useState(0);
+
+  useEffect(() => {
+    const atualizar = () =>
+      setSegundos(Math.round((Date.now() - desde.getTime()) / 1000));
+    atualizar();
+    const id = setInterval(atualizar, 10_000);
+    return () => clearInterval(id);
+  }, [desde]);
+
+  const rotulo =
+    segundos < 10 ? "agora mesmo" :
+    segundos < 60 ? `há ${segundos}s` :
+    `há ${Math.round(segundos / 60)}min`;
+
+  return <span className="text-xs text-ink-3">{rotulo}</span>;
 }
 
 function BigStat({ n, rotulo }: { n: string; rotulo: string }) {

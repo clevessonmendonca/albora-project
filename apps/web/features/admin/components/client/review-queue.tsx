@@ -111,7 +111,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
         <div key={m.id} className="grid gap-2 rounded-token bg-bg p-3.5">
           <span className="text-[0.85rem] text-ink">
             Foto · {m.autor}
-            {m.denuncias > 0 ? ` · ${m.denuncias} denúncia(s)` : ""}
+            {m.denuncias > 0 ? ` · ${m.denuncias} ${m.denuncias === 1 ? "denúncia" : "denúncias"}` : ""}
             {rotuloDaFila(m)}
           </span>
           <div className="flex flex-wrap gap-2">
@@ -142,7 +142,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
       {comentarios.map((c) => (
         <div key={c.id} className="grid gap-2 rounded-token bg-bg p-3.5">
           <span className="text-[0.85rem] text-ink">
-            Comentário · {c.autor} · {c.denuncias} denúncia(s)
+            Comentário · {c.autor} · {c.denuncias} {c.denuncias === 1 ? "denúncia" : "denúncias"}
           </span>
           <p className="m-0 text-[0.9rem] leading-normal text-ink-2">{c.texto}</p>
           <div className="flex flex-wrap gap-2">
@@ -164,7 +164,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
                 acao === `remover:comentario:${c.id}` ? "opacity-60" : ""
               }`}
             >
-              {acao === `remover:comentario:${c.id}` ? "Removendo…" : "Ocultar"}
+              {acao === `remover:comentario:${c.id}` ? "Removendo…" : "Remover"}
             </button>
           </div>
         </div>
