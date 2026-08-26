@@ -50,10 +50,19 @@ export function WallClient({ initialVars }: { initialVars: Record<string, string
     return <WallPairingScreen variaveis={variaveis} codigo={codigo} />;
   }
 
+  const cenaKey = cena ? `${cena.modelo}-${cena.ids.join(",")}` : "vazio";
+
   return (
     <main style={variaveis as CSSProperties} className={SHELL}>
+      <style>{`
+        @keyframes wall-entrar { from { opacity: 0; } to { opacity: 1; } }
+        .wall-cena-entra { animation: wall-entrar 0.55s var(--curva) both; }
+        @media (prefers-reduced-motion: reduce) { .wall-cena-entra { animation: none !important; } }
+      `}</style>
       {!panico && cena ? (
-        <WallStage cena={cena} itemDe={itemDe} />
+        <div key={cenaKey} className="wall-cena-entra absolute inset-0">
+          <WallStage cena={cena} itemDe={itemDe} />
+        </div>
       ) : (
         <div className="absolute inset-0 grid place-items-center p-8">
           <div className="max-w-[32ch] text-center">

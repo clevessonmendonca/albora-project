@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { MoreIcon, SecondaryButton, BottomSheet } from "@albora/ui-web";
 import type { ComentarioVisivel, CommentsController } from "@/features/feed/hooks/use-comments";
 
@@ -17,6 +17,22 @@ export function CommentSheet({
   comentarios: CommentsController;
   onVerAutor?: (sessaoId: string) => void;
 }) {
+  const endRef = useRef<HTMLDivElement>(null);
+  const prevPublicando = useRef(false);
+
+  useEffect(() => {
+    if (prevPublicando.current && !comentarios.publicando) {
+      requestAnimationFrame(() => {
+        endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+    }
+    prevPublicando.current = comentarios.publicando;
+  }, [comentarios.publicando]);
+
+  const publicarEScrollar = useCallback(() => {
+    void comentarios.publicar();
+  }, [comentarios]);
+
   return (
     <BottomSheet
       title={comentarios.total > 0 ? `Comentários (${comentarios.total})` : "Comentários"}
@@ -24,7 +40,7 @@ export function CommentSheet({
       onClose={comentarios.fechar}
       titleId="sheet-comentarios-titulo"
       footer={
-        <Composer comentarios={comentarios} />
+        <Composer comentarios={comentarios} onPublicar={publicarEScrollar} />
       }
     >
       {comentarios.carregando && (
@@ -49,13 +65,25 @@ export function CommentSheet({
           </li>
         ))}
       </ul>
+      <div ref={endRef} />
     </BottomSheet>
   );
 }
 
-function Composer({ comentarios }: { comentarios: CommentsController }) {
+function Composer({
+  comentarios,
+  onPublicar,
+}: {
+  comentarios: CommentsController;
+  onPublicar: () => void;
+}) {
+  function aoSubmeter(e: React.FormEvent) {
+    e.preventDefault();
+    if (!comentarios.publicando && comentarios.texto.trim()) onPublicar();
+  }
+
   return (
-    <div className="grid gap-2">
+    <form onSubmit={aoSubmeter} className="grid gap-2">
       {comentarios.respostaA && (
         <p className="m-0 text-[0.8rem] text-ink-3">
           Respondendo…{" "}
@@ -79,9 +107,8 @@ function Composer({ comentarios }: { comentarios: CommentsController }) {
           className="min-h-11 flex-1 rounded-pilula border border-linha bg-bg px-3.5 text-[0.9rem] text-ink"
         />
         <button
-          type="button"
+          type="submit"
           disabled={comentarios.publicando || comentarios.texto.trim() === ""}
-          onClick={() => void comentarios.publicar()}
           className={`min-h-11 cursor-pointer rounded-pilula border-none bg-acento px-4 text-[0.85rem] text-sobre-acento disabled:cursor-default ${
             comentarios.texto.trim() === "" ? "opacity-50" : ""
           }`}
@@ -97,7 +124,7 @@ function Composer({ comentarios }: { comentarios: CommentsController }) {
       )}
 
       <SecondaryButton onClick={comentarios.fechar}>Fechar</SecondaryButton>
-    </div>
+    </form>
   );
 }
 

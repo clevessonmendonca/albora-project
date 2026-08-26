@@ -3,7 +3,7 @@
 import { isVideoMime } from "@albora/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { groupByHour, type HourGroup } from "@/features/feed/lib/group-by-hour";
 import { useFeed, podeCarregarMais, type ItemVisivel } from "@/features/feed/hooks/use-feed";
 import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
@@ -194,8 +194,30 @@ export function FeedPage({
   const completo = !espelho;
   const contagem = estado.itens.length > 0 ? `${estado.itens.length} fotos` : undefined;
 
+  const [gateAbriu, setGateAbriu] = useState(false);
+  const interacaoAnterior = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (interacaoAnterior.current === "espelho" && estado.interacao === "completo") {
+      setGateAbriu(true);
+    }
+    interacaoAnterior.current = estado.interacao;
+  }, [estado.interacao]);
+
+  useEffect(() => {
+    if (!gateAbriu) return;
+    const id = setTimeout(() => setGateAbriu(false), 6000);
+    return () => clearTimeout(id);
+  }, [gateAbriu]);
+
   return (
     <>
+      {gateAbriu && (
+        <GateAbertoOverlay
+          onFechar={() => setGateAbriu(false)}
+          cameraPath={cameraPath}
+        />
+      )}
       <GuestShell>
         <style>{`
           @keyframes feed-amanhecer {
@@ -499,6 +521,63 @@ function Recado({ texto }: { texto: string }) {
     <p className="mt-[calc(var(--espaco)*6)] text-center text-[0.9rem] leading-relaxed text-ink-2">
       {texto}
     </p>
+  );
+}
+
+function GateAbertoOverlay({
+  onFechar,
+  cameraPath,
+}: {
+  onFechar: () => void;
+  cameraPath: string;
+}) {
+  useEffect(() => {
+    function tecla(ev: KeyboardEvent) {
+      if (ev.key === "Escape") onFechar();
+    }
+    document.addEventListener("keydown", tecla);
+    return () => document.removeEventListener("keydown", tecla);
+  }, [onFechar]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Feed liberado"
+      className="fixed inset-0 z-40 grid place-items-center bg-bg-overlay p-6"
+      style={{ animation: "feed-amanhecer 0.35s var(--curva) both" }}
+      onClick={onFechar}
+    >
+      <div
+        className="grid w-full max-w-xs gap-5 rounded-superficie border border-linha bg-superficie p-6 text-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="m-0 text-[2rem] leading-none" aria-hidden>
+          🎉
+        </p>
+        <div>
+          <p className="m-0 font-titulo text-[1.2rem] font-normal">A festa está liberada</p>
+          <p className="m-0 mt-1.5 text-[0.9rem] leading-relaxed text-ink-2">
+            Comentários, reações e o feed completo abriram. Veja o que todo mundo fotografou.
+          </p>
+        </div>
+        <div className="grid gap-2.5">
+          <button
+            type="button"
+            onClick={onFechar}
+            className="min-h-12 cursor-pointer rounded-pilula border-none bg-acento px-6 font-inherit text-[0.9rem] font-medium text-sobre-acento"
+          >
+            Ver as fotos
+          </button>
+          <a
+            href={cameraPath}
+            className="grid min-h-12 place-items-center rounded-pilula border border-linha bg-transparent px-6 text-[0.9rem] text-ink no-underline"
+          >
+            Tirar foto
+          </a>
+        </div>
+      </div>
+    </div>
   );
 }
 

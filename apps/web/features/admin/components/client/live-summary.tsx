@@ -1,7 +1,7 @@
 "use client";
 
 import type { CodigoDaTese } from "@albora/core";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 
 type Resumo = {
@@ -35,13 +35,27 @@ type Props = {
 export function LiveSummary({ eventoId }: Props) {
   const [resumo, setResumo] = useState<Resumo | null>(null);
   const [erro, setErro] = useState(false);
+  const [primeiraFotoToast, setPrimeiraFotoToast] = useState(false);
+  const primeiraFotoVista = useRef(false);
 
   const carregar = useCallback(async () => {
     try {
       const r = await fetch(`/api/admin/events/${eventoId}`);
       if (!r.ok) throw new Error("falhou");
-      setResumo((await r.json()) as Resumo);
+      const dados = (await r.json()) as Resumo;
+      setResumo(dados);
       setErro(false);
+
+      if (!primeiraFotoVista.current && dados.totalFotos > 0) {
+        const chave = `albora:primeiraFoto:${eventoId}`;
+        try {
+          if (!sessionStorage.getItem(chave)) {
+            sessionStorage.setItem(chave, "1");
+            setPrimeiraFotoToast(true);
+          }
+        } catch {}
+        primeiraFotoVista.current = true;
+      }
     } catch {
       setErro(true);
     }
@@ -52,6 +66,12 @@ export function LiveSummary({ eventoId }: Props) {
     const id = window.setInterval(() => void carregar(), INTERVALO_MS);
     return () => window.clearInterval(id);
   }, [carregar]);
+
+  useEffect(() => {
+    if (!primeiraFotoToast) return;
+    const id = setTimeout(() => setPrimeiraFotoToast(false), 7000);
+    return () => clearTimeout(id);
+  }, [primeiraFotoToast]);
 
   if (erro && !resumo) {
     return (
@@ -74,6 +94,16 @@ export function LiveSummary({ eventoId }: Props) {
 
   return (
     <AdminSection>
+      {primeiraFotoToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="mb-4 rounded-token border border-acento bg-acento/10 px-3.5 py-3 text-[0.875rem] text-acento-texto"
+        >
+          🎉 A primeira foto chegou! O evento está ativo.
+        </div>
+      )}
+
       <div className="mb-4 flex items-center justify-between gap-4">
         <p className="m-0 font-titulo text-lg">Ao vivo</p>
         <span className="inline-flex items-center gap-1.5 rounded-pilula bg-acento px-2.5 py-1 font-titulo text-xs text-sobre-acento">
@@ -90,6 +120,29 @@ export function LiveSummary({ eventoId }: Props) {
         />
         <Stat n={String(resumo.totalFotos)} rotulo="fotos enviadas" />
         <Stat n={String(resumo.filaRevisao)} rotulo="na fila de revisão" />
+      </div>
+
+      <div className="mb-3">
+        <div className="mb-1.5 flex justify-between text-xs text-ink-3">
+          <span>
+            {resumo.sessoesComUpload} de {resumo.expectedGuests} convidados fotografaram
+          </span>
+          <span className={pct >= 40 ? destaqueClass : ""}>meta H1: 40%</span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-superficie-alta">
+          <div
+            className="h-full rounded-full transition-all duration-700"
+            style={{
+              width: `${Math.min(100, pct)}%`,
+              background:
+                pct >= 40
+                  ? "var(--acento)"
+                  : pct >= 20
+                    ? "var(--ink-2)"
+                    : "var(--critico)",
+            }}
+          />
+        </div>
       </div>
 
       <p className={`mb-4 mt-0 text-sm ${destaqueClass}`}>{ROTULO_VEREDITO[resumo.veredito]}</p>
