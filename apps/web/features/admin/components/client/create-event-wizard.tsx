@@ -487,12 +487,30 @@ function Result({ created }: { created: Created }) {
 }
 
 function Link({ title, url }: { title: string; url: string }) {
+  const [copiado, setCopiado] = useState(false);
+
+  const copiar = () => {
+    void navigator.clipboard.writeText(url).then(() => {
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    });
+  };
+
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-[0.8rem] uppercase tracking-rotulo text-ink-3">{title}</span>
-      <a href={url} className="break-all text-[0.95rem] text-acento">
-        {url}
-      </a>
+      <div className="flex items-center gap-2">
+        <a href={url} className="min-w-0 flex-1 break-all text-[0.95rem] text-acento">
+          {url}
+        </a>
+        <button
+          type="button"
+          onClick={copiar}
+          className="shrink-0 cursor-pointer rounded-pilula border border-linha bg-superficie-alta px-3 py-1 font-titulo text-[0.75rem] text-ink transition-colors"
+        >
+          {copiado ? "Copiado!" : "Copiar"}
+        </button>
+      </div>
     </div>
   );
 }
