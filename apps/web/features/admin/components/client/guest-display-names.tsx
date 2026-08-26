@@ -97,7 +97,7 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                 </div>
                 {estaEditando && (
                   <form
-                    className="mt-3 flex flex-wrap items-center gap-2"
+                    className="mt-3 grid gap-2"
                     onSubmit={(e) => {
                       e.preventDefault();
                       const nome = rascunho.trim();
@@ -105,31 +105,38 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                       void patch(s.id, { acao: "renomear", nome });
                     }}
                   >
-                    <input
-                      value={rascunho}
-                      onChange={(e) => setRascunho(e.target.value)}
-                      maxLength={40}
-                      autoFocus
-                      aria-label="Novo nome no telão"
-                      className="min-h-10 min-w-40 flex-1 rounded-token border border-linha bg-superficie px-3 text-sm text-ink outline-none focus:border-acento"
-                    />
-                    <button
-                      type="submit"
-                      disabled={ocupado || !rascunho.trim()}
-                      className={`${adminClasses.primaryButtonSm} ${
-                        ocupado || !rascunho.trim() ? "opacity-60" : ""
-                      }`}
-                    >
-                      {acao === `renomear:${s.id}` ? "Salvando…" : "Salvar"}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={ocupado}
-                      onClick={() => setEditando(null)}
-                      className="cursor-pointer rounded-pilula border border-linha bg-superficie-alta px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-ink"
-                    >
-                      Cancelar
-                    </button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <input
+                        value={rascunho}
+                        onChange={(e) => setRascunho(e.target.value)}
+                        maxLength={40}
+                        autoFocus
+                        aria-label="Novo nome no telão"
+                        className="min-h-10 min-w-40 flex-1 rounded-token border border-linha bg-superficie px-3 text-sm text-ink outline-none focus:border-acento"
+                      />
+                      <button
+                        type="submit"
+                        disabled={ocupado || !rascunho.trim()}
+                        className={`${adminClasses.primaryButtonSm} ${
+                          ocupado || !rascunho.trim() ? "opacity-60" : ""
+                        }`}
+                      >
+                        {acao === `renomear:${s.id}` ? "Salvando…" : "Salvar"}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={ocupado}
+                        onClick={() => setEditando(null)}
+                        className="cursor-pointer rounded-pilula border border-linha bg-superficie-alta px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-ink"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                    {rascunho.length > 0 && (
+                      <span className="text-right text-[0.6875rem] tabular-nums text-ink-3">
+                        {40 - rascunho.length}
+                      </span>
+                    )}
                   </form>
                 )}
               </div>

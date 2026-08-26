@@ -43,6 +43,7 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
   const [resumo, setResumo] = useState<Resumo | null>(null);
   const [erro, setErro] = useState(false);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
+  const [atualizando, setAtualizando] = useState(false);
 
   const carregar = useCallback(async () => {
     try {
@@ -72,6 +73,19 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
           </p>
           {!verPainelCompleto && ultimaAtualizacao && (
             <AtualizadoHa desde={ultimaAtualizacao} />
+          )}
+          {!verPainelCompleto && (
+            <button
+              type="button"
+              disabled={atualizando}
+              onClick={() => {
+                setAtualizando(true);
+                void carregar().finally(() => setAtualizando(false));
+              }}
+              className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] disabled:cursor-default disabled:opacity-50"
+            >
+              {atualizando ? "…" : "⟳"}
+            </button>
           )}
         </div>
         <label className="flex items-center gap-2.5 text-sm text-ink-2">
