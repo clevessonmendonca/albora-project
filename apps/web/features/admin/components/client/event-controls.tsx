@@ -165,7 +165,10 @@ export function EventControls({
         </div>
 
         <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-2">
-          <Effect label="Para segurar" value={`${defaults.denunciasParaSegurar} denúncia(s)`} />
+          <Effect
+            label="Para segurar"
+            value={`${defaults.denunciasParaSegurar} ${defaults.denunciasParaSegurar === 1 ? "denúncia" : "denúncias"}`}
+          />
           <Effect
             label="Compartilhar fora"
             value={defaults.compartilhamentoExterno ? "ligado" : "desligado"}

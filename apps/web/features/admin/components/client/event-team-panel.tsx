@@ -20,6 +20,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [convidado, setConvidado] = useState(false);
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"couple" | "planner">("couple");
 
@@ -31,8 +32,8 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
       if (!res.ok) throw new Error("Falha ao carregar membros");
       const data = (await res.json()) as { members?: EventMember[] };
       setMembers(data.members || []);
-    } catch (e) {
-      setError(String(e));
+    } catch {
+      setError("Não foi possível carregar a equipe agora. Recarregue a página.");
     } finally {
       setLoading(false);
     }
@@ -60,8 +61,10 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
       setMembers(data.members || []);
       setEmail("");
       setRole("couple");
+      setConvidado(true);
+      setTimeout(() => setConvidado(false), 4000);
     } catch (err) {
-      setError(String(err));
+      setError(err instanceof Error ? err.message : "Não foi possível convidar agora. Tente de novo.");
     } finally {
       setSaving(false);
     }
@@ -141,7 +144,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
             saving || !email.trim() ? "opacity-60" : ""
           }`}
         >
-          {saving ? "Convidando…" : "Convidar"}
+          {saving ? "Convidando…" : convidado ? "Convite enviado!" : "Convidar"}
         </button>
       </form>
     </AdminSection>
