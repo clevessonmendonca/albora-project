@@ -360,6 +360,11 @@ export function Viewer({
       </div>
 
       <footer className="relative z-2 grid gap-4 bg-veu-feed-base px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-8">
+        {/* Região viva: anuncia o autor da foto atual para leitores de tela. */}
+        <p className="sr-only" aria-live="polite" aria-atomic="true">
+          {atual ? `${indice + 1} de ${itens.length}: foto de ${atual.autor}` : ""}
+        </p>
+
         {atual && (
           <div className={cn("grid gap-[0.3rem]", CLASSE_SOMBRA_TEXTO)}>
             <p className="m-0 font-titulo text-[0.66rem] font-normal uppercase tracking-[0.2em] text-ink">

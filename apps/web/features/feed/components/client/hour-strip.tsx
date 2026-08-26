@@ -135,7 +135,7 @@ export function HourStripLoading() {
       {[0, 1, 2, 3].map((i) => (
         <span
           key={i}
-          className="feed-esperando block size-14 flex-none rounded-pilula border border-linha"
+          className="feed-esperando block size-14 flex-none rounded-full border border-linha"
         />
       ))}
     </div>

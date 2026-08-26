@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { SecondaryButton, BottomSheet } from "@albora/ui-web";
+import React, { useEffect, useRef, useState } from "react";
+import { MoreIcon, SecondaryButton, BottomSheet } from "@albora/ui-web";
 import type { ComentarioVisivel, CommentsController } from "@/features/feed/hooks/use-comments";
 
 const CLASSE_ACAO_SECUNDARIA =
@@ -164,35 +164,11 @@ function LinhaComentario({
           </button>
         )}
         {!comentario.meu && !comentario.pendente && comentario.sessaoAutor && (
-          <div className="relative">
-            <button type="button" onClick={() => setMenu((a) => !a)} className={CLASSE_ACAO_SECUNDARIA}>
-              ⋯
-            </button>
-            {menu && (
-              <div className="absolute left-0 top-full z-2 mt-[0.15rem] min-w-34 rounded-token border border-linha bg-bg py-[0.35rem]">
-                <button
-                  type="button"
-                  className={CLASSE_ITEM_MENU}
-                  onClick={() => {
-                    setMenu(false);
-                    void comentarios.denunciar(comentario.id);
-                  }}
-                >
-                  Denunciar
-                </button>
-                <button
-                  type="button"
-                  className={CLASSE_ITEM_MENU}
-                  onClick={() => {
-                    setMenu(false);
-                    void comentarios.bloquear(comentario.sessaoAutor);
-                  }}
-                >
-                  Bloquear {comentario.autor}
-                </button>
-              </div>
-            )}
-          </div>
+          <MenuOpcoes
+            autor={comentario.autor}
+            onDenunciar={() => void comentarios.denunciar(comentario.id)}
+            onBloquear={() => void comentarios.bloquear(comentario.sessaoAutor)}
+          />
         )}
       </div>
       {comentario.respostas.map((r) => (
@@ -200,6 +176,73 @@ function LinhaComentario({
           <LinhaComentario comentario={r} comentarios={comentarios} indent={1} onVerAutor={onVerAutor} />
         </div>
       ))}
+    </div>
+  );
+}
+
+function MenuOpcoes({
+  autor,
+  onDenunciar,
+  onBloquear,
+}: {
+  autor: string;
+  onDenunciar: () => void;
+  onBloquear: () => void;
+}) {
+  const [aberto, setAberto] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!aberto) return;
+    function fecharFora(ev: MouseEvent) {
+      if (ref.current && !ref.current.contains(ev.target as Node)) setAberto(false);
+    }
+    function tecla(ev: KeyboardEvent) {
+      if (ev.key === "Escape") setAberto(false);
+    }
+    document.addEventListener("mousedown", fecharFora);
+    document.addEventListener("keydown", tecla);
+    return () => {
+      document.removeEventListener("mousedown", fecharFora);
+      document.removeEventListener("keydown", tecla);
+    };
+  }, [aberto]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        aria-label="Mais opções"
+        aria-expanded={aberto}
+        onClick={() => setAberto((a) => !a)}
+        className={CLASSE_ACAO_SECUNDARIA}
+      >
+        <MoreIcon size={16} />
+      </button>
+      {aberto && (
+        <div className="absolute left-0 top-full z-10 mt-[0.15rem] min-w-34 rounded-token border border-linha bg-bg py-[0.35rem]">
+          <button
+            type="button"
+            className={CLASSE_ITEM_MENU}
+            onClick={() => {
+              setAberto(false);
+              onDenunciar();
+            }}
+          >
+            Denunciar
+          </button>
+          <button
+            type="button"
+            className={CLASSE_ITEM_MENU}
+            onClick={() => {
+              setAberto(false);
+              onBloquear();
+            }}
+          >
+            Bloquear {autor}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

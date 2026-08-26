@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 export function BottomSheet({
   title,
@@ -17,6 +17,18 @@ export function BottomSheet({
   footer?: ReactNode;
   titleId?: string;
 }) {
+  useEffect(() => {
+    if (!open) return;
+    function tecla(ev: KeyboardEvent) {
+      if (ev.key === "Escape") {
+        ev.stopPropagation();
+        onClose();
+      }
+    }
+    document.addEventListener("keydown", tecla);
+    return () => document.removeEventListener("keydown", tecla);
+  }, [open, onClose]);
+
   if (!open) return null;
 
   const headingId = titleId ?? "sheet-title";

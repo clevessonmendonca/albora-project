@@ -112,19 +112,15 @@ export function useComments(uploadId: string, habilitado: boolean) {
   }, [carregar]);
 
   const abrir = useCallback(() => {
+    if (!habilitado) return;
     setEstado((e) => ({ ...e, aberto: true }));
     void carregar();
-  }, [carregar]);
+  }, [habilitado, carregar]);
 
   const fechar = useCallback(() => {
     setEstado((e) => ({ ...e, aberto: false }));
     setRespostaA(null);
   }, []);
-
-  useEffect(() => {
-    if (!habilitado || estado.carregando) return;
-    if (estado.threads.length === 0 && !estado.erro) void carregar();
-  }, [habilitado, estado.threads.length, estado.carregando, estado.erro, carregar]);
 
   useEffect(() => {
     void drenar();

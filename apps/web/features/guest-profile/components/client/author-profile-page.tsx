@@ -81,7 +81,7 @@ export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: st
         </GuestMain>
       </GuestShell>
 
-      <FloatingNav active="inicio" base={base} linkComponent={Link} />
+      <FloatingNav base={base} linkComponent={Link} />
     </>
   );
 }

@@ -51,7 +51,7 @@ export function MirrorGrid({
               ) : (
                 <img
                   src={url}
-                  alt={item.legenda ?? ""}
+                  alt={item.legenda ?? `Foto de ${item.autor}`}
                   loading="lazy"
                   decoding="async"
                   className="block size-full object-cover"
