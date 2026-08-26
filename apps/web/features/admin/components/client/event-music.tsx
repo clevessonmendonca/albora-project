@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { suggestionLabel } from "@/features/music/lib/suggestion-copy";
 
@@ -21,7 +21,19 @@ export function EventMusic({ eventId }: { eventId: string }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [salvo, setSalvo] = useState(false);
+  const [colando, setColando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const colarLink = useCallback(async () => {
+    try {
+      const texto = await navigator.clipboard.readText();
+      if (texto.trim()) setUrl(texto.trim());
+    } catch {
+      // permission denied or not supported
+    } finally {
+      setColando(false);
+    }
+  }, []);
 
   useEffect(() => {
     void (async () => {
@@ -87,7 +99,20 @@ export function EventMusic({ eventId }: { eventId: string }) {
       )}
 
       <label className="flex flex-col gap-1.5">
-        <span className="text-xs uppercase tracking-rotulo text-ink-3">Link da faixa</span>
+        <div className="flex items-center justify-between">
+          <span className="text-xs uppercase tracking-rotulo text-ink-3">Link da faixa</span>
+          <button
+            type="button"
+            disabled={colando}
+            onClick={() => {
+              setColando(true);
+              void colarLink();
+            }}
+            className="cursor-pointer border-none bg-transparent p-0 text-xs text-acento-texto disabled:cursor-default disabled:opacity-50"
+          >
+            {colando ? "Colando…" : "Colar da área de transferência"}
+          </button>
+        </div>
         <input
           type="url"
           value={url}
