@@ -466,3 +466,6 @@ export {
 } from "./drive-connections";
 
 export { signableKeys } from "./media-signable";
+
+export type { MissaoInsight, HoraInsight } from "./insights";
+export { fotosPorMissao, fotosPorHora } from "./insights";

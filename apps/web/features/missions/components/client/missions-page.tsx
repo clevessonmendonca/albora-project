@@ -12,7 +12,7 @@ import {
   Star,
 } from "@albora/ui-web";
 
-export type VisibleMission = { id: string; title: string; done: boolean };
+export type VisibleMission = { id: string; title: string; done: boolean; emoji?: string | null };
 
 function turnIndex(missions: readonly VisibleMission[]): number {
   const open = missions.findIndex((m) => !m.done);
@@ -70,7 +70,7 @@ export function MissionsPage({
                   Missão de agora
                 </span>
                 <span className="font-titulo text-[1.375rem] leading-[1.15] tracking-titulo">
-                  {current.title}
+                  {current.emoji ? `${current.emoji} ` : ""}{current.title}
                 </span>
                 <span className="text-[0.8125rem] text-ink-2">Toque para fotografar</span>
               </Link>
@@ -212,7 +212,9 @@ function MissionItem({
     <>
       {icon}
       <span className="min-w-0 flex-1">
-        <span className="block font-titulo text-base leading-[1.25]">{mission.title}</span>
+        <span className="block font-titulo text-base leading-[1.25]">
+          {mission.emoji ? `${mission.emoji} ` : ""}{mission.title}
+        </span>
         <span className="text-[0.75rem] text-ink-3">
           {mission.done ? "Feita" : highlighted ? "Agora" : "Aberta"}
         </span>

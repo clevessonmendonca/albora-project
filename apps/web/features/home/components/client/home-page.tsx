@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { StoryViewer } from "./story-viewer";
 import {
   Badge,
   EmptyState,
@@ -62,6 +63,7 @@ export function HomePage({
   const historias = useStories();
 
   const [visto, setVisto] = useState<ReadonlySet<string>>(() => new Set());
+  const [storyIdx, setStoryIdx] = useState<number | null>(null);
 
   const primeiraCarga = !estado.jaCarregou && estado.carregando;
   const vazio = estado.jaCarregou && estado.itens.length === 0 && estado.falha === null;
@@ -76,8 +78,8 @@ export function HomePage({
         ...(s.sessaoId
           ? {
               onPress: () => {
-                setVisto((v) => (v.has(s.id) ? v : new Set([...v, s.id])));
-                router.push(`${base}/g/${encodeURIComponent(s.sessaoId!)}`);
+                const i = historias.itens.findIndex((h) => h.id === s.id);
+                setStoryIdx(i >= 0 ? i : null);
               },
             }
           : {}),
@@ -143,6 +145,17 @@ export function HomePage({
       </GuestShell>
 
       <FloatingNav active="inicio" base={base} linkComponent={Link} />
+
+      {storyIdx !== null && (
+        <StoryViewer
+          stories={historias.itens}
+          urls={historias.urls}
+          initialIndex={storyIdx}
+          vistos={visto}
+          onClose={() => setStoryIdx(null)}
+          onVisto={(id) => setVisto((v) => (v.has(id) ? v : new Set([...v, id])))}
+        />
+      )}
     </>
   );
 }

@@ -5,6 +5,10 @@ import type { EntradasPorVia } from "@albora/db";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 
+type MissaoInsightUI = { challengeId: string; titulo: string; emoji: string | null; fotos: number };
+type HoraInsightUI = { hora: number; fotos: number };
+type Insights = { missoes: MissaoInsightUI[]; horas: HoraInsightUI[] };
+
 type Resumo = {
   expectedGuests: number;
   totalSessoes: number;
@@ -48,16 +52,24 @@ function vereditoTextClass(veredito: CodigoDaTese): string {
  */
 export function EventInsights({ eventoId }: { eventoId: string }) {
   const [resumo, setResumo] = useState<Resumo | null>(null);
+  const [insights, setInsights] = useState<Insights | null>(null);
   const [erro, setErro] = useState(false);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const [atualizando, setAtualizando] = useState(false);
 
   const carregar = useCallback(async () => {
     try {
-      const r = await fetch(`/api/admin/events/${eventoId}/guests`);
-      if (!r.ok) throw new Error("falhou");
-      const data = (await r.json()) as Resumo;
+      const [rGuests, rInsights] = await Promise.all([
+        fetch(`/api/admin/events/${eventoId}/guests`),
+        fetch(`/api/admin/events/${eventoId}/insights`),
+      ]);
+      if (!rGuests.ok) throw new Error("falhou");
+      const data = (await rGuests.json()) as Resumo;
       setResumo(data);
+      if (rInsights.ok) {
+        const ins = (await rInsights.json()) as Insights;
+        setInsights(ins);
+      }
       setErro(false);
       setUltimaAtualizacao(new Date());
     } catch {
@@ -200,6 +212,27 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
           <Stat n={String(resumo.uploadsDepoisDoFeed)} rotulo="depois do feed" />
         </div>
       </AdminSection>
+
+      {insights && insights.missoes.length > 0 && (
+        <AdminSection>
+          <h2 className="mb-3 mt-0 font-titulo text-lg">Missões mais fotografadas</h2>
+          <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+            Ranking de engajamento por missão — sem identificar quem fotografou.
+          </p>
+          <MissoesRanking missoes={insights.missoes} />
+        </AdminSection>
+      )}
+
+      {insights && insights.horas.length > 0 && (
+        <AdminSection>
+          <h2 className="mb-3 mt-0 font-titulo text-lg">Hora de ouro</h2>
+          <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+            Distribuição de fotos por hora da festa. O pico indica o momento de maior
+            engajamento.
+          </p>
+          <HoraDeOuro horas={insights.horas} />
+        </AdminSection>
+      )}
     </div>
   );
 }
@@ -240,6 +273,69 @@ function Stat({
         {n}
       </p>
       <p className="mb-0 mt-1.5 text-xs text-ink-2">{rotulo}</p>
+    </div>
+  );
+}
+
+function MissoesRanking({ missoes }: { missoes: MissaoInsightUI[] }) {
+  const max = missoes[0]?.fotos ?? 1;
+  return (
+    <div className="flex flex-col gap-2">
+      {missoes.map((m, i) => {
+        const pct = max > 0 ? Math.round((m.fotos / max) * 100) : 0;
+        return (
+          <div key={m.challengeId} className="rounded-token bg-bg px-3 py-2.5">
+            <div className="mb-1.5 flex items-baseline justify-between gap-3">
+              <span className="flex items-baseline gap-1.5 text-sm text-ink">
+                <span className="w-4 shrink-0 text-xs tabular-nums text-ink-3">{i + 1}.</span>
+                {m.emoji ? <span>{m.emoji}</span> : null}
+                <span className="min-w-0 truncate">{m.titulo}</span>
+              </span>
+              <span className="shrink-0 font-titulo tabular-nums text-acento-texto">{m.fotos}</span>
+            </div>
+            <div className="h-1 overflow-hidden rounded-full bg-superficie-alta">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{ width: `${pct}%`, background: "var(--acento)" }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function HoraDeOuro({ horas }: { horas: HoraInsightUI[] }) {
+  const max = Math.max(...horas.map((h) => h.fotos), 1);
+  const pico = horas.reduce((acc, h) => (h.fotos > acc.fotos ? h : acc), horas[0]!);
+  return (
+    <div>
+      <p className="mb-3 mt-0 text-sm text-ink-2">
+        Pico às <span className="font-titulo text-acento-texto">{pico.hora}h</span> com{" "}
+        <span className="font-titulo text-acento-texto">{pico.fotos}</span> fotos.
+      </p>
+      <div className="flex items-end gap-1 overflow-x-auto pb-1" style={{ minHeight: "5rem" }}>
+        {horas.map((h) => {
+          const altPct = max > 0 ? Math.round((h.fotos / max) * 100) : 0;
+          const isPico = h.hora === pico.hora;
+          return (
+            <div key={h.hora} className="flex flex-1 flex-col items-center gap-1" style={{ minWidth: "1.5rem" }}>
+              <span className="text-[0.625rem] tabular-nums text-ink-3">{h.fotos}</span>
+              <div
+                className="w-full rounded-t-sm transition-all duration-700"
+                style={{
+                  height: `${Math.max(altPct, 4)}%`,
+                  background: isPico ? "var(--acento)" : "var(--ink-3)",
+                  maxHeight: "4rem",
+                  minHeight: "3px",
+                }}
+              />
+              <span className="text-[0.625rem] tabular-nums text-ink-3">{h.hora}h</span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
