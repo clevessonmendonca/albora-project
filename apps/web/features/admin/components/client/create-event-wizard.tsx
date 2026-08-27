@@ -401,7 +401,7 @@ function MissionList({
       {pack.missoes.map((m) => (
         <label
           key={m.id}
-          className="flex cursor-pointer items-center gap-3 rounded-token border border-linha p-3"
+          className="flex cursor-pointer items-center gap-3 rounded-token border border-linha p-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta"
         >
           <input
             type="checkbox"
@@ -500,13 +500,13 @@ function Link({ title, url }: { title: string; url: string }) {
     <div className="flex flex-col gap-1.5">
       <span className="text-[0.8rem] uppercase tracking-rotulo text-ink-3">{title}</span>
       <div className="flex items-center gap-2">
-        <a href={url} className="min-w-0 flex-1 break-all text-[0.95rem] text-acento">
+        <a href={url} className="min-w-0 flex-1 break-all text-[0.95rem] text-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
           {url}
         </a>
         <button
           type="button"
           onClick={copiar}
-          className="shrink-0 cursor-pointer rounded-pilula border border-linha bg-superficie-alta px-3 py-1 font-titulo text-[0.75rem] text-ink transition-colors"
+          className="shrink-0 cursor-pointer rounded-pilula border border-linha bg-superficie-alta px-3 py-1 font-titulo text-[0.75rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink-2"
         >
           {copiado ? "Copiado!" : "Copiar"}
         </button>

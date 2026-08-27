@@ -74,7 +74,7 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
           Placa A4, card de mesa e card de missão num arquivo ZIP — tudo que a gráfica
           precisa de uma vez só.
         </p>
-        <label className="mb-4 flex cursor-pointer items-center gap-2 text-[0.8125rem] text-ink-2">
+        <label className="mb-4 flex cursor-pointer items-center gap-2 text-[0.8125rem] text-ink-2 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
           <input
             type="checkbox"
             checked={includeSvg}
