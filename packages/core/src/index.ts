@@ -603,6 +603,19 @@ export { chaveRecadoValida as isGuestbookAudioKey } from "./chaves";
 export { derivarChaveExport as deriveExportKey } from "./chaves";
 /** English alias — prefer for new code. @see chaveExportValida */
 export { chaveExportValida as isExportKey } from "./chaves";
+/** English alias — prefer for new code. @see derivarChaveImagemCapa */
+export { derivarChaveImagemCapa as deriveCoverImageKey } from "./chaves";
+/** English alias — prefer for new code. @see chaveImagemCapaValida */
+export { chaveImagemCapaValida as isCoverImageKey } from "./chaves";
+
+export type { MimeImagemCapa as CoverImageMime } from "./imagem";
+export {
+  TIPOS_IMAGEM_CAPA as COVER_IMAGE_MIME_TYPES,
+  TETO_BYTES_IMAGEM_CAPA as MAX_COVER_IMAGE_BYTES,
+  normalizarMimeImagemCapa as normalizeCoverImageMime,
+  validarDeclaracaoImagemCapa as validateCoverImageDeclaration,
+  validarConteudoImagemCapa as validateCoverImageContent,
+} from "./imagem";
 /** English alias — prefer for new code. @see midiaExportavel */
 export { midiaExportavel as isExportableMedia } from "./acervo-export";
 /** English alias — prefer for new code. @see nomeNoZip */

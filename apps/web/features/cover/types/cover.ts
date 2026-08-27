@@ -20,4 +20,6 @@ export type CoverData = {
   musicLabel: string | null;
   hostMessageLabel: string;
   hasConfessional: boolean;
+  /** URL assinada da imagem de capa enviada pelo casal; null = usa primeira foto do álbum. */
+  coverImageUrl: string | null;
 };

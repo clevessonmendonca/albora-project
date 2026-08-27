@@ -6,10 +6,11 @@ import {
   eventPack,
   type EventoPublico,
 } from "@albora/db";
-import { exibirMusica } from "@albora/core";
+import { exibirMusica, VALIDADE_PRESIGN_SEGUNDOS } from "@albora/core";
 import { PACKS, resolvePackText } from "@albora/packs";
 import { getPool } from "@/lib/db";
 import { montarAlbumServido } from "@/lib/album";
+import { signGet } from "@/lib/r2";
 import { isInteractionOpen } from "../lib/is-interaction-open";
 import { missionForMoment } from "../lib/mission-for-moment";
 import { contributorsLabel } from "../lib/moment-contributors";
@@ -25,11 +26,14 @@ export type CoverInput = {
 export async function getCover(input: CoverInput): Promise<CoverData> {
   const { slug, eventoId, sessaoId, evento } = input;
 
-  const [challenges, packId, album, chosen] = await Promise.all([
+  const [challenges, packId, album, chosen, coverImageUrl] = await Promise.all([
     withEvent(getPool(), eventoId, (c) => listChallenges(c, eventoId, sessaoId)),
     withEvent(getPool(), eventoId, (c) => eventPack(c, eventoId)),
     montarAlbumServido(eventoId),
     withEvent(getPool(), eventoId, (c) => musicaDoCasal(c, eventoId)),
+    evento.coverImageKey
+      ? signGet(evento.coverImageKey, VALIDADE_PRESIGN_SEGUNDOS).then((u) => u.toString())
+      : Promise.resolve(null),
   ]);
 
   const pack = packId ? PACKS[packId] : undefined;
@@ -60,6 +64,7 @@ export async function getCover(input: CoverInput): Promise<CoverData> {
     musicLabel,
     hostMessageLabel: pack ? resolvePackText(pack, "recado.rotulo") : "Um recado",
     hasConfessional: (pack?.confessionario?.length ?? 0) > 0,
+    coverImageUrl,
   };
 }
 

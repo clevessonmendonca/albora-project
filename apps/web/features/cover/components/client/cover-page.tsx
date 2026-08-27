@@ -115,6 +115,7 @@ export function CoverPage({
   musicLabel,
   hostMessageLabel,
   hasConfessional = false,
+  coverImageUrl = null,
 }: {
   slug: string;
   eventName: string;
@@ -125,10 +126,11 @@ export function CoverPage({
   musicLabel: string | null;
   hostMessageLabel: string;
   hasConfessional?: boolean;
+  coverImageUrl?: string | null;
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
-  const hero = albumCoverUrl(album);
+  const hero = coverImageUrl ?? albumCoverUrl(album);
   const guests = album.contadores.convidados;
   const photos = album.contadores.fotos;
   const missions = album.contadores.missoes;

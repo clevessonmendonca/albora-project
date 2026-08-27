@@ -22,6 +22,16 @@ export function prefixoDoEvento(eventoId: string): string {
   return `events/${eventoId}/`;
 }
 
+/** Imagem de capa do evento — uma por evento, chave fixa. */
+export function derivarChaveImagemCapa(eventoId: string): string {
+  return `events/${eventoId}/cover/image`;
+}
+
+export function chaveImagemCapaValida(eventoId: string, chave: string): boolean {
+  if (!UUID_RE.test(eventoId)) return false;
+  return chave === `events/${eventoId}/cover/image`;
+}
+
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 

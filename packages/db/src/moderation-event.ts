@@ -30,6 +30,7 @@ export type EventoDoHost = ResumoEvento & {
   fuso: string;
   plan: PlanoDoEvento;
   title: string | null;
+  coverImageKey: string | null;
 };
 
 export type AtualizacaoModeracao = Partial<EstadoModeracao>;
@@ -49,10 +50,11 @@ type LinhaCompleta = {
   timezone: string;
   plan: string;
   title: string | null;
+  cover_image_key: string | null;
 };
 
 const COLUNAS =
-  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at, expected_guests, identity_tokens, timezone, plan, title";
+  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at, expected_guests, identity_tokens, timezone, plan, title, cover_image_key";
 
 function mapModeracao(l: Pick<LinhaCompleta, "panic" | "hardened" | "has_minors">): EstadoModeracao {
   return {
@@ -75,6 +77,7 @@ function mapEvento(l: LinhaCompleta): EventoDoHost {
     fuso: fusoOuPadrao(l.timezone),
     plan: parsePlanoDoEvento(l.plan),
     title: l.title,
+    coverImageKey: l.cover_image_key ?? null,
     moderacao: mapModeracao(l),
   };
 }

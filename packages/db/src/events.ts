@@ -34,6 +34,8 @@ export type EventoPublico = {
    * do vendor do evento B.
    */
   vendorBrandTokens: Record<string, unknown> | null;
+  /** Chave de storage da imagem de capa enviada pelo casal. Null = usa album. */
+  coverImageKey: string | null;
 };
 
 export type Resolucao =
@@ -61,7 +63,7 @@ export async function carregarEventoPublico(
 ): Promise<EventoPublico | null> {
   const { rows: e } = await cliente.query(
     `SELECT id, pack_id, starts_at, ends_at, interaction_opens_at, identity_tokens,
-            recommended_filter, timezone, vendor_id
+            recommended_filter, timezone, vendor_id, cover_image_key
      FROM events WHERE id = $1`,
     [eventoId],
   );
@@ -87,7 +89,20 @@ export async function carregarEventoPublico(
     filtroRecomendado: (linha.recommended_filter ?? null) as string | null,
     fuso: fusoOuPadrao((linha.timezone ?? null) as string | null),
     vendorBrandTokens,
+    coverImageKey: (linha.cover_image_key ?? null) as string | null,
   };
+}
+
+/** Persiste (ou apaga) a chave de storage da imagem de capa do evento. */
+export async function atualizarChaveImagemCapa(
+  cliente: PoolClient,
+  eventoId: string,
+  chave: string | null,
+): Promise<void> {
+  await cliente.query(
+    "UPDATE events SET cover_image_key = $1 WHERE id = $2",
+    [chave, eventoId],
+  );
 }
 
 /**
