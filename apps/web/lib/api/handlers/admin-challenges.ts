@@ -1,4 +1,4 @@
-import { withEvent, listChallenges, substituirDesafios } from "@albora/db";
+import { withEvent, listChallenges, substituirDesafios, substituirMissoesCustom } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import { parseMissionKeys } from "@/features/admin/lib/mission-keys";
 import {
@@ -14,16 +14,24 @@ import {
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 
-type Corpo = {
+const CUSTOM_TITLE_MAX = 120;
+
+type CorpoPut = {
   titleKeys?: unknown;
+  customMissions?: unknown;
 };
 
-function serializar(lista: Awaited<ReturnType<typeof listChallenges>>) {
-  return lista.map((d) => ({
+function serializarDesafio(d: Awaited<ReturnType<typeof listChallenges>>[number]) {
+  return {
     id: d.id,
-    titleKey: d.chaveTitulo,
+    titleKey: d.chaveTitulo ?? null,
+    customTitle: d.tituloCustom ?? null,
     position: d.ordem,
-  }));
+  };
+}
+
+function serializar(lista: Awaited<ReturnType<typeof listChallenges>>) {
+  return lista.map(serializarDesafio);
 }
 
 export async function GET(
@@ -77,17 +85,59 @@ export async function PUT(
     return errorResponse(422, "validation_error", "Pack inválido", { campos: ["packId"] });
   }
 
-  const parsed = await parseJsonBody<Corpo>(req);
+  const parsed = await parseJsonBody<CorpoPut>(req);
   if (parsed instanceof Response) return parsed;
-
-  const titleKeys = parseMissionKeys(pack, parsed.data.titleKeys);
-  if (!titleKeys) {
-    return errorResponse(422, "validation_error", "Missões inválidas", { campos: ["titleKeys"] });
-  }
+  const corpo = parsed.data;
 
   try {
+    // Pack missions
+    if (corpo.titleKeys !== undefined) {
+      const titleKeys = parseMissionKeys(pack, corpo.titleKeys);
+      if (!titleKeys) {
+        return errorResponse(422, "validation_error", "Missões inválidas", { campos: ["titleKeys"] });
+      }
+      await withEvent(getPool(), eventId, (c) =>
+        substituirDesafios(c, eventId, titleKeys),
+      );
+    }
+
+    // Custom missions
+    if (corpo.customMissions !== undefined) {
+      if (!Array.isArray(corpo.customMissions)) {
+        return errorResponse(422, "validation_error", "customMissions deve ser um array", {
+          campos: ["customMissions"],
+        });
+      }
+
+      const itens: { id?: string; titulo: string; posicao: number }[] = [];
+      for (const [i, item] of (corpo.customMissions as unknown[]).entries()) {
+        if (typeof item !== "object" || item === null) {
+          return errorResponse(422, "validation_error", `Item ${i} inválido`, {
+            campos: ["customMissions"],
+          });
+        }
+        const obj = item as Record<string, unknown>;
+        const titulo = typeof obj.titulo === "string" ? obj.titulo.trim() : "";
+        if (!titulo || titulo.length > CUSTOM_TITLE_MAX) {
+          return errorResponse(422, "validation_error", `Título da missão ${i + 1} inválido`, {
+            campos: ["customMissions"],
+          });
+        }
+        const entrada: { id?: string; titulo: string; posicao: number } = {
+          titulo,
+          posicao: typeof obj.posicao === "number" ? obj.posicao : i + 1000,
+        };
+        if (typeof obj.id === "string") entrada.id = obj.id;
+        itens.push(entrada);
+      }
+
+      await withEvent(getPool(), eventId, (c) =>
+        substituirMissoesCustom(c, eventId, itens),
+      );
+    }
+
     const challenges = await withEvent(getPool(), eventId, (c) =>
-      substituirDesafios(c, eventId, titleKeys),
+      listChallenges(c, eventId, null),
     );
     return jsonOk({ packId: owned.evento.packId, challenges: serializar(challenges) });
   } catch (e) {

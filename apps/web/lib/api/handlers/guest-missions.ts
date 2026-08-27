@@ -40,11 +40,12 @@ export async function GET(req: Request): Promise<Response> {
 
     const pack = packId ? (PACKS[packId] ?? null) : null;
 
-    const missoes: MissaoResposta[] = desafios.map((d) => ({
-      id: d.id,
-      titulo: pack ? resolvePackText(pack, d.chaveTitulo) : d.chaveTitulo,
-      feito: d.feito,
-    }));
+    const missoes: MissaoResposta[] = desafios.map((d) => {
+      const titulo =
+        d.tituloCustom ??
+        (pack && d.chaveTitulo ? resolvePackText(pack, d.chaveTitulo) : (d.chaveTitulo ?? ""));
+      return { id: d.id, titulo, feito: d.feito };
+    });
 
     return jsonOk({ missoes } satisfies MissoesResposta);
   } catch (e) {

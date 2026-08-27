@@ -139,7 +139,7 @@ export async function GET(
       cores: tokens.cores,
       missoes: missionTitlesForPrint(
         pack,
-        desafios.map((d) => d.chaveTitulo),
+        desafios.map((d) => d.chaveTitulo).filter((k): k is string => k !== null),
       ),
     };
 

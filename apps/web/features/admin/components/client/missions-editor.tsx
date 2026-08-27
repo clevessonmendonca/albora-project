@@ -2,7 +2,7 @@
 
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
 import { MissionBanner, Switch } from "@albora/ui-web";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   identityPreviewClassName,
   resolveIdentityPreviewVars,
@@ -14,11 +14,16 @@ import {
 } from "@/features/admin/lib/mission-keys";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 
+const CUSTOM_MAX = 120;
+
+type CustomMission = { id?: string; titulo: string; posicao: number };
+
 type Props = {
   eventId: string;
   packId: string;
   identityTokens: Record<string, unknown>;
   initialTitleKeys: string[];
+  initialCustomMissions: CustomMission[];
 };
 
 export function MissionsEditor({
@@ -26,15 +31,22 @@ export function MissionsEditor({
   packId,
   identityTokens,
   initialTitleKeys,
+  initialCustomMissions,
 }: Props) {
   const pack = PACKS[packId] as Pack | undefined;
   const packKeys = pack?.missoes.map((m) => m.chaveTitulo) ?? [];
+
   const [selected, setSelected] = useState<string[]>(() =>
     initialTitleKeys.filter((k) => packKeys.includes(k)),
   );
+  const [custom, setCustom] = useState<CustomMission[]>(initialCustomMissions);
+  const [draft, setDraft] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
+  const draftRef = useRef<HTMLInputElement>(null);
 
   const previewVars = useMemo(() => {
     if (!pack) return {};
@@ -51,10 +63,54 @@ export function MissionsEditor({
 
   const inactive = pack.missoes.filter((m) => !selected.includes(m.chaveTitulo));
   const first = selected[0];
-  const firstTitle = first ? resolvePackText(pack, first) : null;
+  const firstCustom = custom[0];
+  const previewTitle =
+    first ? resolvePackText(pack, first) : firstCustom?.titulo ?? null;
+  const previewTotal = selected.length + custom.length;
 
   const markDirty = (next: string[]) => {
     setSelected(next);
+    setSaved(false);
+  };
+
+  const addCustom = () => {
+    const titulo = draft.trim();
+    if (!titulo || titulo.length > CUSTOM_MAX) return;
+    const posicao = (custom[custom.length - 1]?.posicao ?? 0) + 1;
+    setCustom((prev) => [...prev, { titulo, posicao }]);
+    setDraft("");
+    setSaved(false);
+    draftRef.current?.focus();
+  };
+
+  const removeCustom = (idx: number) => {
+    setCustom((prev) => prev.filter((_, i) => i !== idx));
+    setSaved(false);
+  };
+
+  const startEdit = (idx: number) => {
+    setEditingId(String(idx));
+    setEditText(custom[idx]!.titulo);
+  };
+
+  const commitEdit = (idx: number) => {
+    const titulo = editText.trim();
+    if (titulo && titulo.length <= CUSTOM_MAX) {
+      setCustom((prev) =>
+        prev.map((m, i) => (i === idx ? { ...m, titulo } : m)),
+      );
+      setSaved(false);
+    }
+    setEditingId(null);
+  };
+
+  const moveCustom = (idx: number, dir: -1 | 1) => {
+    const next = [...custom];
+    const swap = idx + dir;
+    if (swap < 0 || swap >= next.length) return;
+    [next[idx], next[swap]] = [next[swap]!, next[idx]!];
+    const reindexed = next.map((m, i) => ({ ...m, posicao: i + 1 }));
+    setCustom(reindexed);
     setSaved(false);
   };
 
@@ -66,9 +122,23 @@ export function MissionsEditor({
       const r = await fetch(`/api/admin/events/${eventId}/challenges`, {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ titleKeys: selected }),
+        body: JSON.stringify({
+          titleKeys: selected,
+          customMissions: custom.map((m, i) => ({
+            ...(m.id ? { id: m.id } : {}),
+            titulo: m.titulo,
+            posicao: i + 1,
+          })),
+        }),
       });
       if (!r.ok) throw new Error("falhou");
+      const data = (await r.json()) as {
+        challenges: { id: string; titleKey: string | null; customTitle: string | null; position: number }[];
+      };
+      const updatedCustom = data.challenges
+        .filter((c) => c.customTitle !== null)
+        .map((c) => ({ id: c.id, titulo: c.customTitle!, posicao: c.position }));
+      setCustom(updatedCustom);
       setSaved(true);
     } catch {
       setError(true);
@@ -80,14 +150,14 @@ export function MissionsEditor({
   return (
     <div className="flex flex-col gap-5">
       <AdminSection>
+        <h2 className="mb-3 mt-0 font-titulo text-lg">Missões do pack</h2>
         <p className="mb-5 mt-0 leading-relaxed text-ink-2">
-          Liga e ordena as missões do pack. O convidado vê esta lista na aba Missões — sem texto
-          livre, para o vocabulário do evento continuar no pack.
+          Liga e ordena as missões do pack. O convidado vê esta lista na aba Missões.
         </p>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(16rem,1fr)_minmax(14rem,18rem)]">
           <div className="flex flex-col gap-2">
-            {selected.length === 0 && (
+            {selected.length === 0 && custom.length === 0 && (
               <p className="m-0 rounded-token border border-linha bg-bg px-3 py-3 text-sm text-ink-2">
                 Modo livre — o convidado fotografa o que quiser.
               </p>
@@ -130,14 +200,89 @@ export function MissionsEditor({
             </p>
             <div className="relative min-h-[11rem] overflow-hidden rounded-superficie bg-superficie">
               <div className="absolute inset-x-3 top-3">
-                {firstTitle ? (
-                  <MissionBanner index={1} total={selected.length} title={firstTitle} />
+                {previewTitle ? (
+                  <MissionBanner index={1} total={previewTotal} title={previewTitle} />
                 ) : (
                   <p className="m-0 text-sm text-ink-2">Sem faixa de missão — modo livre.</p>
                 )}
               </div>
             </div>
           </div>
+        </div>
+      </AdminSection>
+
+      <AdminSection>
+        <h2 className="mb-3 mt-0 font-titulo text-lg">Missões personalizadas</h2>
+        <p className="mb-5 mt-0 leading-relaxed text-ink-2">
+          Adicione missões com o texto exato que você quer — ideal para momentos únicos do evento.
+        </p>
+
+        <div className="flex flex-col gap-2">
+          {custom.map((m, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-2 rounded-token border border-linha bg-bg p-3"
+            >
+              {editingId === String(i) ? (
+                <input
+                  autoFocus
+                  value={editText}
+                  onChange={(e) => setEditText(e.target.value)}
+                  onBlur={() => commitEdit(i)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commitEdit(i);
+                    if (e.key === "Escape") setEditingId(null);
+                  }}
+                  maxLength={CUSTOM_MAX}
+                  className="min-w-0 flex-1 rounded-token border border-acento-borda bg-bg px-2 py-1 font-corpo text-sm text-ink outline-none"
+                />
+              ) : (
+                <span className="min-w-0 flex-1 font-titulo text-[0.95rem] leading-snug">
+                  {m.titulo}
+                </span>
+              )}
+
+              <span className="flex shrink-0 gap-1">
+                <OrderButton label={`Subir ${m.titulo}`} disabled={i === 0} onClick={() => moveCustom(i, -1)}>
+                  ↑
+                </OrderButton>
+                <OrderButton label={`Descer ${m.titulo}`} disabled={i === custom.length - 1} onClick={() => moveCustom(i, 1)}>
+                  ↓
+                </OrderButton>
+                <OrderButton label={`Editar ${m.titulo}`} onClick={() => startEdit(i)}>
+                  ✎
+                </OrderButton>
+                <OrderButton label={`Remover ${m.titulo}`} onClick={() => removeCustom(i)}>
+                  ×
+                </OrderButton>
+              </span>
+            </div>
+          ))}
+
+          <div className="mt-2 flex gap-2">
+            <input
+              ref={draftRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") addCustom(); }}
+              placeholder="Nova missão personalizada…"
+              maxLength={CUSTOM_MAX}
+              className="min-w-0 flex-1 rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-sm text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] placeholder:text-ink-3 focus:border-acento"
+            />
+            <button
+              type="button"
+              onClick={addCustom}
+              disabled={!draft.trim() || draft.trim().length > CUSTOM_MAX}
+              className={`${adminClasses.primaryButton} shrink-0 disabled:cursor-not-allowed disabled:opacity-40`}
+            >
+              Adicionar
+            </button>
+          </div>
+          {draft.trim().length > CUSTOM_MAX && (
+            <p className="m-0 text-sm text-critico">
+              Máximo {CUSTOM_MAX} caracteres.
+            </p>
+          )}
         </div>
 
         <div className="mt-6 flex items-center gap-4">

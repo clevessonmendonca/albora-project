@@ -4,25 +4,34 @@ export type ResolvedMission = { id: string; title: string };
 
 export type MissionWithStatus = ResolvedMission & { done: boolean };
 
+function resolveTitle(
+  packId: string,
+  chaveTitulo: string | null,
+  tituloCustom: string | null,
+): string {
+  if (tituloCustom) return tituloCustom;
+  const pack = PACKS[packId];
+  if (pack && chaveTitulo) return resolvePackText(pack, chaveTitulo);
+  return chaveTitulo ?? "";
+}
+
 export function resolveMissions(
   packId: string,
-  challenges: { id: string; chaveTitulo: string }[],
+  challenges: { id: string; chaveTitulo: string | null; tituloCustom: string | null }[],
 ): ResolvedMission[] {
-  const pack = PACKS[packId];
   return challenges.map((d) => ({
     id: d.id,
-    title: pack ? resolvePackText(pack, d.chaveTitulo) : d.chaveTitulo,
+    title: resolveTitle(packId, d.chaveTitulo, d.tituloCustom),
   }));
 }
 
 export function resolveMissionsWithStatus(
   packId: string,
-  challenges: { id: string; chaveTitulo: string; feito: boolean }[],
+  challenges: { id: string; chaveTitulo: string | null; tituloCustom: string | null; feito: boolean }[],
 ): MissionWithStatus[] {
-  const pack = PACKS[packId];
   return challenges.map((d) => ({
     id: d.id,
-    title: pack ? resolvePackText(pack, d.chaveTitulo) : d.chaveTitulo,
+    title: resolveTitle(packId, d.chaveTitulo, d.tituloCustom),
     done: d.feito,
   }));
 }

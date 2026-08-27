@@ -25,6 +25,46 @@ type Props = {
   initialIdentityTokens: Record<string, unknown>;
 };
 
+const FONT_OPTIONS = [
+  { id: "serif", label: "Serifa clássica", value: "Fraunces, Georgia, serif" },
+  {
+    id: "sans",
+    label: "Sem serifa",
+    value: "\"Instrument Sans\", ui-sans-serif, system-ui, -apple-system, sans-serif",
+  },
+] as const;
+
+type FontOptionId = (typeof FONT_OPTIONS)[number]["id"];
+
+function toPartialCores(v: unknown): Record<string, string> {
+  if (typeof v === "object" && v !== null) return v as Record<string, string>;
+  return {};
+}
+
+function toPartialFontes(v: unknown): Record<string, string> {
+  if (typeof v === "object" && v !== null) return v as Record<string, string>;
+  return {};
+}
+
+function resolveCustomAccent(tokens: Record<string, unknown>, presetAccent: string | undefined): string | null {
+  const saved = toPartialCores(tokens.cores).acento;
+  if (!saved || saved === presetAccent) return null;
+  return saved;
+}
+
+function resolveCustomFont(tokens: Record<string, unknown>, presetFont: string | undefined): FontOptionId | null {
+  const saved = toPartialFontes(tokens.fontes).titulo;
+  if (!saved || saved === presetFont) return null;
+  const match = FONT_OPTIONS.find((f) => f.value === saved);
+  return match ? match.id : null;
+}
+
+function resolveCustomBackground(tokens: Record<string, unknown>, presetBg: string | undefined): "dark" | "light" | null {
+  const saved = tokens.background as string | undefined;
+  if (!saved || saved === presetBg) return null;
+  return saved === "light" ? "light" : saved === "dark" ? "dark" : null;
+}
+
 export function IdentityEditor({
   eventId,
   packId,
@@ -33,32 +73,69 @@ export function IdentityEditor({
   initialIdentityTokens,
 }: Props) {
   const pack = PACKS[packId] as Pack | undefined;
-  const initialPreset =
-    typeof initialIdentityTokens.presetId === "string"
+
+  const getInitialPreset = () => {
+    const id = typeof initialIdentityTokens.presetId === "string"
       ? initialIdentityTokens.presetId
       : IDENTITY_MODELS[0]!.id;
+    return IDENTITY_MODELS.find((m) => m.id === id) ?? IDENTITY_MODELS[0]!;
+  };
 
-  const [presetId, setPresetId] = useState(initialPreset);
+  const [preset, setPreset] = useState(getInitialPreset);
   const [expectedGuests, setExpectedGuests] = useState(String(initialExpectedGuests));
   const [timezone, setTimezone] = useState(initialTimezone);
   const [wallModels, setWallModels] = useState<Set<WallDisplayModel>>(
     () => new Set(wallModelsFromTokens(initialIdentityTokens)),
   );
+
+  const presetAccent = toPartialCores(preset.camada.cores).acento;
+  const presetFont = toPartialFontes(preset.camada.fontes).titulo;
+  const presetBackground = preset.camada.background as string | undefined;
+
+  const [customAccent, setCustomAccent] = useState<string | null>(() =>
+    resolveCustomAccent(initialIdentityTokens, presetAccent),
+  );
+  const [customFont, setCustomFont] = useState<FontOptionId | null>(() =>
+    resolveCustomFont(initialIdentityTokens, presetFont),
+  );
+  const [customBackground, setCustomBackground] = useState<"dark" | "light" | null>(() =>
+    resolveCustomBackground(initialIdentityTokens, presetBackground),
+  );
+
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const preset = IDENTITY_MODELS.find((m) => m.id === presetId) ?? IDENTITY_MODELS[0]!;
   const wallProblems = wallDisplayChoiceProblems([...wallModels]);
 
   const identityTokens = useMemo(() => {
+    const presetCores = toPartialCores(preset.camada.cores);
+    const presetFontes = toPartialFontes(preset.camada.fontes);
+
+    const effectiveCores = customAccent
+      ? { ...presetCores, acento: customAccent }
+      : presetCores;
+
+    const effectiveFontValue = customFont
+      ? FONT_OPTIONS.find((f) => f.id === customFont)?.value
+      : undefined;
+    const effectiveFontes = effectiveFontValue
+      ? { ...presetFontes, titulo: effectiveFontValue }
+      : presetFontes;
+
+    const effectiveBackground =
+      customBackground ?? preset.camada.background;
+
     return {
       ...initialIdentityTokens,
       presetId: preset.id,
       ...preset.camada,
+      ...(Object.keys(effectiveCores).length > 0 ? { cores: effectiveCores } : {}),
+      ...(Object.keys(effectiveFontes).length > 0 ? { fontes: effectiveFontes } : {}),
+      ...(effectiveBackground ? { background: effectiveBackground } : {}),
       telaoModelos: [...wallModels],
     };
-  }, [initialIdentityTokens, preset, wallModels]);
+  }, [initialIdentityTokens, preset, wallModels, customAccent, customFont, customBackground]);
 
   const previewVars = useMemo(() => {
     if (!pack) return {};
@@ -92,6 +169,14 @@ export function IdentityEditor({
     }
   };
 
+  const changePreset = (m: (typeof IDENTITY_MODELS)[number]) => {
+    setPreset(m);
+    setCustomAccent(null);
+    setCustomFont(null);
+    setCustomBackground(null);
+    setSaved(false);
+  };
+
   if (!pack) {
     return (
       <AdminSection>
@@ -99,6 +184,8 @@ export function IdentityEditor({
       </AdminSection>
     );
   }
+
+  const effectiveBackground = customBackground ?? preset.camada.background ?? "dark";
 
   return (
     <div className="flex flex-col gap-5">
@@ -140,9 +227,10 @@ export function IdentityEditor({
           />
         </div>
 
+        {/* Palette presets */}
         <div className="mb-6">
           <label className="mb-3 block font-titulo text-sm text-ink">
-            Paleta de cores
+            Paleta base
           </label>
           <div className="grid grid-cols-[minmax(12rem,1fr)_minmax(14rem,1fr)] gap-5">
             <div className="flex flex-col gap-3">
@@ -150,12 +238,9 @@ export function IdentityEditor({
                 <button
                   key={m.id}
                   type="button"
-                  onClick={() => {
-                    setPresetId(m.id);
-                    setSaved(false);
-                  }}
+                  onClick={() => changePreset(m)}
                   className={`flex cursor-pointer items-center gap-3 rounded-token p-3 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                    presetId === m.id
+                    preset.id === m.id
                       ? "border-2 border-acento bg-superficie-alta"
                       : "border border-linha bg-bg hover:border-acento-texto"
                   }`}
@@ -171,12 +256,124 @@ export function IdentityEditor({
                 {resolvePackText(pack, "landing.exemplo.nome")}
               </p>
               <p className="mb-0 mt-3 text-sm text-ink-2">
-                Preview ao vivo da paleta selecionada.
+                Preview ao vivo da identidade.
               </p>
             </div>
           </div>
         </div>
 
+        {/* Custom accent color */}
+        <div className="mb-6">
+          <label className="mb-3 block font-titulo text-sm text-ink">
+            Cor de destaque
+          </label>
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="flex cursor-pointer items-center gap-2 rounded-token border border-linha bg-bg p-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto">
+              <span
+                className="size-7 shrink-0 rounded-full border border-linha"
+                style={{ background: customAccent ?? presetAccent ?? "transparent" }}
+              />
+              <span className="font-titulo text-sm text-ink">
+                {customAccent ? "Personalizada" : "Da paleta"}
+              </span>
+              <input
+                type="color"
+                className="sr-only"
+                value={customAccent ?? presetAccent ?? IDENTITY_MODELS[0]!.amostra}
+                onChange={(e) => {
+                  setCustomAccent(e.target.value);
+                  setSaved(false);
+                }}
+              />
+            </label>
+            {customAccent && (
+              <button
+                type="button"
+                onClick={() => {
+                  setCustomAccent(null);
+                  setSaved(false);
+                }}
+                className="rounded-token border border-linha bg-bg px-3 py-2 font-titulo text-sm text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
+              >
+                Usar cor da paleta
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Font style */}
+        <div className="mb-6">
+          <label className="mb-3 block font-titulo text-sm text-ink">
+            Estilo de fonte
+          </label>
+          <div className="flex gap-2">
+            {FONT_OPTIONS.map((opt) => {
+              const isActive = customFont
+                ? customFont === opt.id
+                : !presetFont || presetFont === opt.value || (opt.id === "serif" && !presetFont);
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => {
+                    const presetFontValue = toPartialFontes(preset.camada.fontes).titulo;
+                    setCustomFont(presetFontValue === opt.value ? null : opt.id);
+                    setSaved(false);
+                  }}
+                  className={`flex-1 cursor-pointer rounded-token p-3 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                    isActive
+                      ? "border-2 border-acento bg-superficie-alta"
+                      : "border border-linha bg-bg hover:border-acento-texto"
+                  }`}
+                >
+                  <span
+                    className="block text-base text-ink"
+                    style={{ fontFamily: opt.value }}
+                  >
+                    Aa
+                  </span>
+                  <span className="mt-1 block font-corpo text-xs text-ink-2">
+                    {opt.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Background mode */}
+        <div className="mb-6">
+          <label className="mb-3 block font-titulo text-sm text-ink">
+            Fundo padrão
+          </label>
+          <div className="flex gap-2">
+            {(["dark", "light"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => {
+                  const presetBg = preset.camada.background ?? "dark";
+                  setCustomBackground(presetBg === mode ? null : mode);
+                  setSaved(false);
+                }}
+                className={`flex-1 cursor-pointer rounded-token p-3 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                  effectiveBackground === mode
+                    ? "border-2 border-acento bg-superficie-alta"
+                    : "border border-linha bg-bg hover:border-acento-texto"
+                }`}
+              >
+                <span className="block text-lg">
+                  {mode === "dark" ? "●" : "○"}
+                </span>
+                <span className="mt-1 block font-corpo text-xs text-ink-2">
+                  {mode === "dark" ? "Escuro" : "Claro"}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Wall models */}
         <div>
           <h2 className="mb-3 mt-0 font-titulo text-lg">Modelos do telão</h2>
           <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">

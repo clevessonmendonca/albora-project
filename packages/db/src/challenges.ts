@@ -2,26 +2,19 @@ import type { PoolClient } from "pg";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+const CUSTOM_TITLE_MAX = 120;
+
 export type Desafio = {
   id: string;
-  /** Chave de vocabulário resolvida pelo pack. Nunca texto pronto. */
-  chaveTitulo: string;
+  /** Chave de vocabulário do pack. Null para missões personalizadas. */
+  chaveTitulo: string | null;
+  /** Texto livre do casal. Null para missões do pack. */
+  tituloCustom: string | null;
   ordem: number;
   /** Se **esta** sessão já mandou foto para ele. */
   feito: boolean;
 };
 
-/**
- * As missões do evento, com o que esta sessão já fez.
- *
- * O `LEFT JOIN` é por sessão, não por evento: "feito" tem de significar *você*
- * fez, senão a lista some para quem chegou depois — e chegar depois é o caso
- * comum, não a exceção.
- *
- * O `event_id` não aparece no `WHERE` porque a RLS já o aplica; ele está aqui
- * assim mesmo, na junção, porque uma política é uma linha de defesa e duas são
- * duas.
- */
 export async function listarDesafios(
   cliente: PoolClient,
   eventoId: string,
@@ -29,11 +22,12 @@ export async function listarDesafios(
 ): Promise<Desafio[]> {
   const { rows } = await cliente.query<{
     id: string;
-    title_key: string;
+    title_key: string | null;
+    custom_title: string | null;
     position: number;
     feito: boolean;
   }>(
-    `SELECT c.id, c.title_key, c.position,
+    `SELECT c.id, c.title_key, c.custom_title, c.position,
             EXISTS (
               SELECT 1 FROM uploads u
               WHERE u.challenge_id = c.id AND u.session_id = $2
@@ -47,27 +41,17 @@ export async function listarDesafios(
   return rows.map((l) => ({
     id: l.id,
     chaveTitulo: l.title_key,
+    tituloCustom: l.custom_title,
     ordem: l.position,
     feito: l.feito,
   }));
 }
 
-/**
- * Confere que a missão pertence a este evento antes de ela virar coluna.
- *
- * O id vem do cliente, e um id de outro casamento gravado aqui vazaria a
- * existência daquele evento pela porta dos fundos. A RLS já recusaria a FK,
- * mas o erro chegaria como violação de integridade — que é o tipo de falha que
- * o convidado vê como "não consegui enviar sua foto".
- */
 export async function desafioDoEvento(
   cliente: PoolClient,
   eventoId: string,
   desafioId: string,
 ): Promise<boolean> {
-  // Postgres estoura ao comparar uuid com texto que não é uuid. Um `false`
-  // aqui vira "sem missão" na foto; uma exceção viraria 500 no caminho
-  // crítico de sábado às 20h.
   if (!UUID.test(desafioId)) return false;
 
   const { rowCount } = await cliente.query(
@@ -78,16 +62,15 @@ export async function desafioDoEvento(
   return (rowCount ?? 0) > 0;
 }
 
+export type ItemMissao =
+  | { tipo: "pack"; chave: string }
+  | { tipo: "custom"; id?: string; titulo: string };
+
 /**
- * Troca o conjunto de missões do evento, na ordem recebida.
+ * Troca o conjunto completo de missões (pack + personalizadas) na ordem recebida.
  *
- * Linhas cuja `title_key` continua na lista **mantêm o id** — fotos já
- * ligadas a elas não perdem a missão. Quem sai é apagada; `uploads.challenge_id`
- * cai em NULL pela FK. Quem entra nasce com id novo.
- *
- * O conjunto fechado do pack é conferido **antes** de chegar aqui. Esta
- * função só impõe o que o banco consegue sozinho: sem duplicata, sem chave
- * vazia, e o `event_id` da transação (RLS), nunca um id de outro evento.
+ * Missões do pack: mantêm o id quando a chave permanece.
+ * Missões personalizadas: mantêm o id quando o id já existe; criam nova linha caso contrário.
  */
 export async function substituirDesafios(
   cliente: PoolClient,
@@ -101,11 +84,11 @@ export async function substituirDesafios(
     throw new Error("missões duplicadas");
   }
 
-  const { rows: atuais } = await cliente.query<{ id: string; title_key: string }>(
-    "SELECT id, title_key FROM challenges WHERE event_id = $1",
+  const { rows: atuais } = await cliente.query<{ id: string; title_key: string | null }>(
+    "SELECT id, title_key FROM challenges WHERE event_id = $1 AND title_key IS NOT NULL",
     [eventoId],
   );
-  const porChave = new Map(atuais.map((l) => [l.title_key, l.id]));
+  const porChave = new Map(atuais.map((l) => [l.title_key!, l.id]));
   const manter = new Set<string>();
 
   for (const [i, chave] of chaves.entries()) {
@@ -127,10 +110,65 @@ export async function substituirDesafios(
   }
 
   if (manter.size === 0) {
-    await cliente.query("DELETE FROM challenges WHERE event_id = $1", [eventoId]);
+    await cliente.query(
+      "DELETE FROM challenges WHERE event_id = $1 AND title_key IS NOT NULL",
+      [eventoId],
+    );
   } else {
     await cliente.query(
-      "DELETE FROM challenges WHERE event_id = $1 AND NOT (id = ANY($2::uuid[]))",
+      "DELETE FROM challenges WHERE event_id = $1 AND title_key IS NOT NULL AND NOT (id = ANY($2::uuid[]))",
+      [eventoId, [...manter]],
+    );
+  }
+
+  return listarDesafios(cliente, eventoId, null);
+}
+
+/** Substitui as missões personalizadas do evento preservando as do pack. */
+export async function substituirMissoesCustom(
+  cliente: PoolClient,
+  eventoId: string,
+  itens: readonly { id?: string; titulo: string; posicao: number }[],
+): Promise<Desafio[]> {
+  for (const item of itens) {
+    const titulo = item.titulo.trim();
+    if (!titulo || titulo.length > CUSTOM_TITLE_MAX) {
+      throw new Error(`título inválido: "${item.titulo.slice(0, 30)}"`);
+    }
+  }
+
+  const { rows: atuais } = await cliente.query<{ id: string }>(
+    "SELECT id FROM challenges WHERE event_id = $1 AND custom_title IS NOT NULL",
+    [eventoId],
+  );
+  const idsExistentes = new Set(atuais.map((r) => r.id));
+  const manter = new Set<string>();
+
+  for (const item of itens) {
+    const titulo = item.titulo.trim();
+    if (item.id && UUID.test(item.id) && idsExistentes.has(item.id)) {
+      await cliente.query(
+        "UPDATE challenges SET custom_title = $1, position = $2 WHERE id = $3 AND event_id = $4",
+        [titulo, item.posicao, item.id, eventoId],
+      );
+      manter.add(item.id);
+    } else {
+      const { rows } = await cliente.query<{ id: string }>(
+        "INSERT INTO challenges (event_id, custom_title, position) VALUES ($1, $2, $3) RETURNING id",
+        [eventoId, titulo, item.posicao],
+      );
+      manter.add(rows[0]!.id);
+    }
+  }
+
+  if (manter.size === 0) {
+    await cliente.query(
+      "DELETE FROM challenges WHERE event_id = $1 AND custom_title IS NOT NULL",
+      [eventoId],
+    );
+  } else {
+    await cliente.query(
+      "DELETE FROM challenges WHERE event_id = $1 AND custom_title IS NOT NULL AND NOT (id = ANY($2::uuid[]))",
       [eventoId, [...manter]],
     );
   }

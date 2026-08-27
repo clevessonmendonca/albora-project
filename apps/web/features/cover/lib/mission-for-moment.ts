@@ -3,7 +3,7 @@ import type { Pack } from "@albora/packs";
 export function missionForMoment(
   pack: Pack | undefined,
   momentId: string,
-  challenges: { id: string; chaveTitulo: string }[],
+  challenges: { id: string; chaveTitulo: string | null }[],
 ): string | null {
   if (!pack) return null;
   const template = pack.missoes.find((m) => m.id === momentId);

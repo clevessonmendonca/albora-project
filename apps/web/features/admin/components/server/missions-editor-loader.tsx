@@ -12,12 +12,21 @@ export async function MissionsEditorLoader({
 }) {
   const challenges = await getEventChallenges(eventId);
 
+  const titleKeys = challenges
+    .filter((d) => d.chaveTitulo !== null)
+    .map((d) => d.chaveTitulo!);
+
+  const customMissions = challenges
+    .filter((d) => d.tituloCustom !== null)
+    .map((d) => ({ id: d.id, titulo: d.tituloCustom!, posicao: d.ordem }));
+
   return (
     <MissionsEditor
       eventId={eventId}
       packId={packId}
       identityTokens={identityTokens}
-      initialTitleKeys={challenges.map((d) => d.chaveTitulo)}
+      initialTitleKeys={titleKeys}
+      initialCustomMissions={customMissions}
     />
   );
 }

@@ -17,8 +17,8 @@ export { migrar } from "./migrar";
 export type { LinhaUpload, ResultadoConfirm } from "./uploads";
 export { anotarUpload, confirmarUpload, ErroUploadDeOutroEvento, removerUploadProprio } from "./uploads";
 
-export type { Desafio } from "./challenges";
-export { desafioDoEvento, listarDesafios, substituirDesafios } from "./challenges";
+export type { Desafio, ItemMissao } from "./challenges";
+export { desafioDoEvento, listarDesafios, substituirDesafios, substituirMissoesCustom } from "./challenges";
 
 export type { EntradaFeed, ItemFeed, ModoFeed, PaginaFeed } from "./feed";
 export { codificarCursor, decodificarCursor, ErroCursorInvalido, gateDoEvento, listarFeed, TAMANHO_PAGINA } from "./feed";
@@ -248,6 +248,8 @@ export { listarDesafios as listChallenges } from "./challenges";
 export { desafioDoEvento as challengeBelongsToEvent } from "./challenges";
 /** English alias — preferred for new code. @see substituirDesafios */
 export { substituirDesafios as replaceChallenges } from "./challenges";
+/** English alias — preferred for new code. @see substituirMissoesCustom */
+export { substituirMissoesCustom as replaceCustomMissions } from "./challenges";
 
 /** English alias — preferred for new code. @see criarEvento */
 export { criarEvento as createEvent } from "./events";
