@@ -8,7 +8,7 @@ const CLASSE_ACAO_SECUNDARIA =
   "cursor-pointer border-none bg-transparent p-0 font-inherit text-[0.75rem] uppercase tracking-[0.06em] text-ink-3";
 
 const CLASSE_ITEM_MENU =
-  "block w-full cursor-pointer border-none bg-transparent px-3.5 py-2.5 text-left font-inherit text-[0.85rem] text-ink";
+  "block w-full cursor-pointer border-none bg-transparent px-3.5 py-2.5 text-left font-inherit text-[0.85rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta";
 
 export function CommentSheet({
   comentarios,
@@ -104,12 +104,12 @@ function Composer({
           maxLength={comentarios.maxCaracteres}
           placeholder={comentarios.respostaA ? "Sua resposta…" : "Escreva um comentário…"}
           onChange={(e) => comentarios.setTexto(e.target.value)}
-          className="min-h-11 flex-1 rounded-pilula border border-linha bg-bg px-3.5 text-[0.9rem] text-ink"
+          className="min-h-11 flex-1 rounded-pilula border border-linha bg-bg px-3.5 text-[0.9rem] text-ink outline-none focus:border-acento"
         />
         <button
           type="submit"
           disabled={comentarios.publicando || comentarios.texto.trim() === ""}
-          className={`min-h-11 cursor-pointer rounded-pilula border-none bg-acento px-4 text-[0.85rem] text-sobre-acento disabled:cursor-default ${
+          className={`min-h-11 cursor-pointer rounded-pilula border-none bg-acento px-4 text-[0.85rem] text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 disabled:cursor-default ${
             comentarios.publicando || comentarios.texto.trim() === "" ? "opacity-50" : ""
           }`}
         >

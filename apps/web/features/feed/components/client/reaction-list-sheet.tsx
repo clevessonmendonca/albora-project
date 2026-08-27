@@ -36,7 +36,7 @@ export function ReactionListSheet({
               <button
                 type="button"
                 onClick={() => onVerAutor(reator.sessaoId)}
-                className="border-none bg-transparent p-0 font-titulo text-[0.9375rem] tracking-titulo text-ink underline cursor-pointer"
+                className="cursor-pointer border-none bg-transparent p-0 font-titulo text-[0.9375rem] tracking-titulo text-ink underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
               >
                 {reator.nome}
               </button>
