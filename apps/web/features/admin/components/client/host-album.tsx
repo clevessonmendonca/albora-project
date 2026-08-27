@@ -95,7 +95,7 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
               setAtualizando(true);
               void carregar().finally(() => setAtualizando(false));
             }}
-            className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] disabled:cursor-default disabled:opacity-50"
+            className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
           >
             {atualizando ? "…" : "⟳"}
           </button>
@@ -142,7 +142,7 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
                 setAtualizando(true);
                 void carregar().finally(() => setAtualizando(false));
               }}
-              className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] disabled:cursor-default disabled:opacity-50"
+              className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
             >
               {atualizando ? "…" : "⟳"}
             </button>
