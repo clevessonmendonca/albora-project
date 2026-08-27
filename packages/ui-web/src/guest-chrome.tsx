@@ -58,7 +58,7 @@ export function GuestHeader({
   return (
     <div className="flex items-center justify-between gap-3 pb-3.5 pt-1.5">
       {homeHref ? (
-        <a href={homeHref} className={titleClass}>
+        <a href={homeHref} className={cn(titleClass, "transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75")}>
           {title}
         </a>
       ) : (
@@ -108,7 +108,7 @@ export function EmptyState({
       </div>
       <a
         href={cameraPath}
-        className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline"
+        className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
       >
         {cameraLabel}
       </a>

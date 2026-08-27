@@ -45,7 +45,7 @@ function StoryYou({ onAdd }: { onAdd?: (() => void) | undefined }) {
     <button
       type="button"
       onClick={onAdd}
-      className="flex w-[3.75rem] shrink-0 flex-col items-center gap-1.5"
+      className="flex w-[3.75rem] shrink-0 flex-col items-center gap-1.5 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75"
     >
       <StorySquircle className="border border-linha text-acento">
         <PlusIcon size={24} />
@@ -70,7 +70,7 @@ function StoryAvatar({ item }: { item: StoryItem }) {
       <button
         type="button"
         onClick={item.onPress}
-        className="flex w-[3.75rem] shrink-0 flex-col items-center gap-1.5 border-none bg-transparent p-0"
+        className="flex w-[3.75rem] shrink-0 flex-col items-center gap-1.5 border-none bg-transparent p-0 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75"
       >
         {inner}
       </button>

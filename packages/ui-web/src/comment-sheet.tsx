@@ -64,7 +64,7 @@ export function CommentSheet({
               placeholder="Escreva um comentário…"
               aria-invalid={erro ? true : undefined}
               aria-describedby={erro ? ERRO_ID : undefined}
-              className="min-h-[3.375rem] flex-1 border-0 border-b border-b-linha bg-transparent px-0.5 text-[0.9375rem] text-ink outline-none placeholder:italic placeholder:text-ink-3 focus:border-b-acento"
+              className="min-h-[3.375rem] flex-1 border-0 border-b border-b-linha bg-transparent px-0.5 text-[0.9375rem] text-ink outline-none placeholder:italic placeholder:text-ink-3 transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-b-acento"
             />
             <Button type="submit" variant="primary" size="lg">
               Enviar

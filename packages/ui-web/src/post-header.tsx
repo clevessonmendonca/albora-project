@@ -29,7 +29,7 @@ export function PostHeader({
   );
 
   const autorNode = autorHref ? (
-    <LinkComponent href={autorHref} className="flex-1 text-[0.84375rem] no-underline text-ink hover:underline">
+    <LinkComponent href={autorHref} className="flex-1 text-[0.84375rem] no-underline text-ink transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75">
       {author}
     </LinkComponent>
   ) : (

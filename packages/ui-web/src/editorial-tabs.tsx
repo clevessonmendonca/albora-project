@@ -27,8 +27,8 @@ export function EditorialTabs({ items, active, base, linkComponent }: EditorialT
             href={`${base}${item.suffix}`}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "flex min-h-[3rem] items-center border-b border-transparent text-[0.6875rem] uppercase tracking-rotulo no-underline",
-              isActive ? "border-acento text-ink" : "text-ink-3",
+              "flex min-h-[3rem] items-center border-b border-transparent text-[0.6875rem] uppercase tracking-rotulo no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
+              isActive ? "border-acento text-ink" : "text-ink-3 hover:text-ink-2",
             )}
           >
             {item.label}

@@ -161,7 +161,7 @@ export function CreateEventWizard() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={resolvePackText(pack, "landing.exemplo.nome")}
-              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none focus:border-acento"
+              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
             />
           </label>
           <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
@@ -169,7 +169,7 @@ export function CreateEventWizard() {
             <select
               value={packId}
               onChange={(e) => setPackId(e.target.value)}
-              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none focus:border-acento"
+              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
             >
               {OPTIONS.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -184,7 +184,7 @@ export function CreateEventWizard() {
               <select
                 value={vendorId}
                 onChange={(e) => setVendorId(e.target.value)}
-                className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none focus:border-acento"
+                className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
               >
                 <option value="">Minha conta</option>
                 {vendors.map((v) => (
@@ -204,7 +204,7 @@ export function CreateEventWizard() {
                   value={coupleEmail}
                   onChange={(e) => setCoupleEmail(e.target.value)}
                   placeholder="nome@exemplo.com"
-                  className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none focus:border-acento"
+                  className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
                 />
               </label>
               <p className="m-0 text-[0.8rem] text-ink-3">
@@ -220,7 +220,7 @@ export function CreateEventWizard() {
               min={1}
               value={expectedGuests}
               onChange={(e) => setExpectedGuests(e.target.value)}
-              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none focus:border-acento"
+              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
             />
           </label>
           <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
@@ -229,7 +229,7 @@ export function CreateEventWizard() {
               type="datetime-local"
               value={starts}
               onChange={(e) => setStarts(e.target.value)}
-              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none focus:border-acento"
+              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
             />
           </label>
           <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
@@ -238,7 +238,7 @@ export function CreateEventWizard() {
               type="datetime-local"
               value={ends}
               onChange={(e) => setEnds(e.target.value)}
-              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none focus:border-acento"
+              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
             />
           </label>
           <TimezoneField value={timezone} onChange={setTimezone} />

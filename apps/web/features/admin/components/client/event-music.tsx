@@ -118,7 +118,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://open.spotify.com/track/…"
-          className="w-full rounded-token border border-linha bg-bg px-3.5 py-[0.65rem] font-corpo text-[0.95rem] text-ink outline-none focus:border-acento"
+          className="w-full rounded-token border border-linha bg-bg px-3.5 py-[0.65rem] font-corpo text-[0.95rem] text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
         />
       </label>
 
@@ -149,7 +149,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
           <ul className="m-0 grid list-none gap-2 p-0">
             {suggestions.map((s) => (
               <li key={`${s.provedor}:${s.tipo}:${s.url}`} className="flex items-center justify-between gap-3 rounded-token bg-bg px-3 py-2.5 text-[0.9rem] text-ink">
-                <a href={s.url} target="_blank" rel="noopener noreferrer" className="min-w-0 truncate text-acento no-underline hover:underline">
+                <a href={s.url} target="_blank" rel="noopener noreferrer" className="min-w-0 truncate text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75">
                   {suggestionLabel(s)}
                 </a>
                 <div className="flex shrink-0 items-center gap-2">
