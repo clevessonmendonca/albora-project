@@ -4,7 +4,7 @@ import { Accent, Heading, Label, Section } from "../pieces";
 
 export function NoAppSection({
   pack,
-  t,
+  t: _t,
 }: {
   pack: Pack;
   t: (key: string) => string;
