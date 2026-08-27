@@ -40,6 +40,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
   const [comentarios, setComentarios] = useState<Comentario[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [acao, setAcao] = useState<string | null>(null);
+  const [acaoBulk, setAcaoBulk] = useState<"liberar" | "ocultar" | null>(null);
   const [erro, setErro] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
@@ -87,6 +88,27 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
     }
   };
 
+  const bulkMidia = async (acaoPedida: "liberar" | "ocultar") => {
+    setAcaoBulk(acaoPedida);
+    setErro(null);
+    try {
+      await Promise.allSettled(
+        midias.map((m) =>
+          fetch(`/api/admin/events/${eventoId}/review`, {
+            method: "PATCH",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ tipo: "midia", id: m.id, acao: acaoPedida }),
+          }),
+        ),
+      );
+      await carregar();
+    } catch {
+      setErro("Não foi possível concluir a ação em lote. Verifique a lista.");
+    } finally {
+      setAcaoBulk(null);
+    }
+  };
+
   if (carregando) {
     return <p className="m-0 text-[0.9rem] text-ink-3">Carregando…</p>;
   }
@@ -107,6 +129,32 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
+      {midias.length > 1 && (
+        <div className="flex items-center justify-between rounded-token border border-linha bg-bg px-3.5 py-2.5">
+          <span className="text-[0.8125rem] text-ink-3">
+            {midias.length} fotos aguardando
+          </span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              disabled={acao !== null || acaoBulk !== null}
+              onClick={() => void bulkMidia("liberar")}
+              className={`${adminClasses.primaryButtonSm} ${acaoBulk === "liberar" ? "opacity-60" : ""}`}
+            >
+              {acaoBulk === "liberar" ? "Liberando…" : `Liberar todas (${midias.length})`}
+            </button>
+            <button
+              type="button"
+              disabled={acao !== null || acaoBulk !== null}
+              onClick={() => void bulkMidia("ocultar")}
+              className={`${adminClasses.dangerButtonSm} ${acaoBulk === "ocultar" ? "opacity-60" : ""}`}
+            >
+              {acaoBulk === "ocultar" ? "Ocultando…" : `Ocultar todas (${midias.length})`}
+            </button>
+          </div>
+        </div>
+      )}
+
       {midias.map((m) => (
         <div key={m.id} className="grid gap-2 rounded-token bg-bg p-3.5">
           <span className="text-[0.85rem] text-ink">
