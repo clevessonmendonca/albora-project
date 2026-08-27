@@ -148,7 +148,7 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
             rows={6}
             maxLength={MAX_TEXT_CHARACTERS + 40}
             placeholder={exemplo}
-            className="resize-y rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink"
+            className="resize-y rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink outline-none focus:border-acento"
           />
           <span className={`text-[0.75rem] font-corpo ${longoDemais ? "text-critico" : "text-ink-3"}`}>
             {caracteres} / {MAX_TEXT_CHARACTERS}
@@ -175,7 +175,7 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
               setPublicaEm(e.target.value);
               setSaved(false);
             }}
-            className="rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink"
+            className="rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink outline-none focus:border-acento"
           />
           <span className="font-corpo text-[0.75rem] text-ink-3">
             Sem horário, nenhum convidado vê. Escolha quando mostrar.

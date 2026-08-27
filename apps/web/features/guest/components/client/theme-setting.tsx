@@ -57,8 +57,8 @@ export function ThemeSetting() {
               role="radio"
               aria-checked={ativa}
               onClick={() => escolher(opcao.valor)}
-              className={`min-h-[3.375rem] flex-1 rounded-token text-[0.8125rem] font-medium ${
-                ativa ? "bg-superficie-alta text-ink" : "text-ink-2"
+              className={`min-h-[3.375rem] flex-1 rounded-token text-[0.8125rem] font-medium transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                ativa ? "bg-superficie-alta text-ink" : "text-ink-2 hover:text-ink"
               }`}
             >
               {opcao.rotulo}

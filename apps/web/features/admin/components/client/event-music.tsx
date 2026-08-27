@@ -118,7 +118,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://open.spotify.com/track/…"
-          className="w-full rounded-token border border-linha bg-bg px-3.5 py-[0.65rem] font-corpo text-[0.95rem] text-ink"
+          className="w-full rounded-token border border-linha bg-bg px-3.5 py-[0.65rem] font-corpo text-[0.95rem] text-ink outline-none focus:border-acento"
         />
       </label>
 
