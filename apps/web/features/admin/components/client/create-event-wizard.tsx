@@ -4,11 +4,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import NextLink from "next/link";
 import { FUSO_PADRAO, type WallDisplayModel } from "@albora/core";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
-import { IDENTITY_MODELS } from "@albora/tokens";
+import { ALBORA_BRAND, IDENTITY_MODELS, type ModeloDeIdentidade } from "@albora/tokens";
 import { useSearchParams } from "next/navigation";
 import {
   identityPreviewClassName,
-  presetSwatchProps,
   resolveIdentityPreviewVars,
 } from "@/features/admin/lib/identity-preview";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
@@ -22,6 +21,22 @@ const STEPS = ["Tipo", "Evento", "Identidade", "Missões", "Confirmar"] as const
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const DEFAULT_MODELS: readonly WallDisplayModel[] = ["polaroide", "mural", "colagem", "dump"];
+
+const BRAND = ALBORA_BRAND.cores!;
+
+function normalizarBackground(bg: string | undefined): "light" | "dark" {
+  return bg === "light" || bg === "claro" ? "light" : "dark";
+}
+
+function presetParaCores(m: ModeloDeIdentidade) {
+  const modo = normalizarBackground(m.camada.background);
+  const acento = m.camada.cores?.acento ?? BRAND.acento!;
+  const base =
+    modo === "dark"
+      ? (m.camada.cores?.noite ?? BRAND.noite!)
+      : (m.camada.cores?.papel ?? BRAND.papel!);
+  return { acento, base, modo };
+}
 
 type Created = { slug: string; eventoId: string; planIntent: "free" | "celebration" };
 
@@ -40,6 +55,12 @@ export function CreateEventWizard() {
   const [timezone, setTimezone] = useState(FUSO_PADRAO);
   const [expectedGuests, setExpectedGuests] = useState("150");
   const [presetId, setPresetId] = useState(IDENTITY_MODELS[0]!.id);
+  const [presetAtivo, setPresetAtivo] = useState<string | null>(IDENTITY_MODELS[0]!.id);
+  const [acentoCor, setAcentoCor] = useState(() => presetParaCores(IDENTITY_MODELS[0]!).acento);
+  const [baseCor, setBaseCor] = useState(() => presetParaCores(IDENTITY_MODELS[0]!).base);
+  const [bgModo, setBgModo] = useState<"light" | "dark">(
+    () => presetParaCores(IDENTITY_MODELS[0]!).modo,
+  );
   const [checkedMissions, setCheckedMissions] = useState<Set<string>>(() => new Set());
   const [wallModels] = useState<Set<WallDisplayModel>>(() => new Set(DEFAULT_MODELS));
   const [status, setStatus] = useState<"editing" | "creating" | "error">("editing");
@@ -48,10 +69,6 @@ export function CreateEventWizard() {
   const [vendorId, setVendorId] = useState<string>("");
   const [coupleEmail, setCoupleEmail] = useState<string>("");
 
-  // Passo condicional (spec-canal-fornecedor §2, item 4): a maioria dos
-  // anfitriões não é membro de fornecedor nenhum — lista vazia é o caso comum
-  // e não muda a tela. Falha na busca degrada para "sem fornecedor", nunca
-  // trava a criação do evento por ela.
   useEffect(() => {
     let vivo = true;
     void fetch("/api/admin/vendors")
@@ -69,9 +86,6 @@ export function CreateEventWizard() {
 
   const datesValid = starts !== "" && ends !== "" && ends > starts;
   const guestsValid = Number(expectedGuests) > 0 && Number.isFinite(Number(expectedGuests));
-  // Criar sob fornecedor: o casal, não quem clica "criar", vira dono do
-  // evento (canManageCoupleOnly é do casal) — o e-mail dele é obrigatório
-  // aqui pra emitir o magic link que abre o painel para ele.
   const coupleEmailValid = vendorId === "" || EMAIL_RE.test(coupleEmail.trim());
 
   const initialMissions = useMemo(() => {
@@ -84,14 +98,19 @@ export function CreateEventWizard() {
 
   const preset = IDENTITY_MODELS.find((m) => m.id === presetId) ?? IDENTITY_MODELS[0]!;
 
-  const identityTokens = useMemo(() => {
-    const base: Record<string, unknown> = {
-      presetId: preset.id,
+  const identityTokens = useMemo((): Record<string, unknown> => {
+    return {
+      presetId,
       telaoModelos: [...wallModels],
       ...preset.camada,
+      cores: {
+        ...(preset.camada.cores ?? {}),
+        acento: acentoCor,
+        ...(bgModo === "dark" ? { noite: baseCor } : { papel: baseCor }),
+      },
+      background: bgModo,
     };
-    return base;
-  }, [preset, wallModels]);
+  }, [preset, wallModels, acentoCor, baseCor, bgModo, presetId]);
 
   const previewVars = useMemo(
     () => resolveIdentityPreviewVars(pack, identityTokens),
@@ -100,6 +119,15 @@ export function CreateEventWizard() {
 
   const canAdvance =
     step === 1 ? datesValid && guestsValid && coupleEmailValid : true;
+
+  function selecionarPreset(m: ModeloDeIdentidade) {
+    const { acento, base, modo } = presetParaCores(m);
+    setPresetId(m.id);
+    setPresetAtivo(m.id);
+    setAcentoCor(acento);
+    setBaseCor(base);
+    setBgModo(modo);
+  }
 
   const create = async () => {
     if (!datesValid || !guestsValid || !coupleEmailValid) return;
@@ -140,7 +168,7 @@ export function CreateEventWizard() {
         </p>
       )}
 
-      {/* Passo 0 — escolha do tipo via pills */}
+      {/* Passo 0 — tipo */}
       {step === 0 && (
         <div className="grid grid-cols-2 gap-3">
           {OPTIONS.map((opt) => (
@@ -160,7 +188,7 @@ export function CreateEventWizard() {
         </div>
       )}
 
-      {/* Passo 1 — nome, datas, convidados */}
+      {/* Passo 1 — evento */}
       {step === 1 && (
         <>
           <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
@@ -258,31 +286,93 @@ export function CreateEventWizard() {
         </>
       )}
 
-      {/* Passo 2 — identidade visual */}
+      {/* Passo 2 — identidade visual com color picker */}
       {step === 2 && (
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            {IDENTITY_MODELS.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => setPresetId(m.id)}
-                className={`flex cursor-pointer items-center gap-3 rounded-token p-3 text-left transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                  presetId === m.id
-                    ? "border-2 border-acento bg-superficie-alta"
-                    : "border border-linha bg-bg hover:border-acento-texto"
-                }`}
-              >
-                <span {...presetSwatchProps(m.amostra)} />
-                <span className="font-titulo text-base">{m.nome}</span>
-                {presetId === m.id && (
-                  <span className="ml-auto text-[0.75rem] uppercase tracking-rotulo text-acento-texto">
-                    selecionado
-                  </span>
-                )}
-              </button>
-            ))}
+        <div className="flex flex-col gap-5">
+          <div className="grid grid-cols-2 gap-2.5">
+            {IDENTITY_MODELS.map((m) => {
+              const ativo = presetAtivo === m.id;
+              return (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => selecionarPreset(m)}
+                  className={`flex cursor-pointer items-center gap-2.5 rounded-token p-3 text-left transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                    ativo
+                      ? "border-2 border-acento bg-superficie-alta"
+                      : "border border-linha bg-bg hover:border-acento-texto"
+                  }`}
+                >
+                  <span
+                    className="size-7 shrink-0 rounded-full border border-linha"
+                    style={{ backgroundColor: m.amostra }}
+                  />
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate font-titulo text-[0.9rem] text-ink">{m.nome}</span>
+                    <span className="text-[0.7rem] uppercase tracking-rotulo text-ink-3">
+                      {m.camada.background === "light" ? "Claro" : "Escuro"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
+
+          <div className="flex items-center gap-3">
+            <span className="h-px flex-1 bg-linha" />
+            <span className="shrink-0 text-[0.75rem] uppercase tracking-rotulo text-ink-3">
+              ou personalize
+            </span>
+            <span className="h-px flex-1 bg-linha" />
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[0.9rem] text-ink-2">Fundo</span>
+              <div className="flex gap-1 rounded-pilula border border-linha bg-bg p-0.5">
+                {(["light", "dark"] as const).map((modo) => (
+                  <button
+                    key={modo}
+                    type="button"
+                    onClick={() => {
+                      setBgModo(modo);
+                      setPresetAtivo(null);
+                      if (modo !== bgModo) {
+                        setBaseCor(modo === "dark" ? BRAND.noite! : BRAND.papel!);
+                      }
+                    }}
+                    className={`rounded-pilula px-3 py-1 text-[0.8rem] transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                      bgModo === modo
+                        ? "bg-superficie-alta text-ink shadow-sm"
+                        : "text-ink-3 hover:text-ink-2"
+                    }`}
+                  >
+                    {modo === "light" ? "Claro" : "Escuro"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <CorInput
+              label="Cor de destaque"
+              dica="Botões, links e elementos marcados"
+              value={acentoCor}
+              onChange={(cor) => {
+                setAcentoCor(cor);
+                setPresetAtivo(null);
+              }}
+            />
+            <CorInput
+              label={bgModo === "dark" ? "Fundo escuro" : "Fundo claro"}
+              dica={bgModo === "dark" ? "Tela principal do convidado" : "Superfície da página"}
+              value={baseCor}
+              onChange={(cor) => {
+                setBaseCor(cor);
+                setPresetAtivo(null);
+              }}
+            />
+          </div>
+
           <div className={`${identityPreviewClassName} rounded-superficie p-6`} style={previewVars}>
             <div className="mb-3 h-1 w-10 rounded-pilula bg-acento" />
             <p className="m-0 font-titulo text-2xl leading-tight text-acento-texto">
@@ -322,7 +412,7 @@ export function CreateEventWizard() {
           starts={starts}
           ends={ends}
           guests={Number(expectedGuests)}
-          presetNome={preset.nome}
+          presetNome={presetAtivo ? preset.nome : "Personalizado"}
           missionsCount={activeMissions.length}
         />
       )}
@@ -375,6 +465,45 @@ export function CreateEventWizard() {
         )}
       </div>
     </Shell>
+  );
+}
+
+function CorInput({
+  label,
+  dica,
+  value,
+  onChange,
+}: {
+  label: string;
+  dica: string;
+  value: string;
+  onChange: (cor: string) => void;
+}) {
+  return (
+    <label className="relative flex cursor-pointer items-center justify-between gap-4 rounded-token border border-linha bg-bg px-4 py-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto">
+      <div className="flex flex-col gap-0.5">
+        <span className="text-[0.9rem] text-ink">{label}</span>
+        <span className="text-[0.75rem] text-ink-3">{dica}</span>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">
+        <span
+          className="size-8 shrink-0 rounded-full border border-linha"
+          style={{
+            backgroundColor: value,
+            boxShadow: `0 0 0 2px var(--bg), 0 0 0 3.5px ${value}`,
+          }}
+        />
+        <span className="font-mono text-[0.78rem] uppercase tracking-wider text-ink-2">
+          {value.toUpperCase()}
+        </span>
+      </div>
+      <input
+        type="color"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+      />
+    </label>
   );
 }
 
