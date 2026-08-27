@@ -120,7 +120,7 @@ export function ReportSheet({
             {opcoes.map((o) => (
               <label
                 key={o.kind}
-                className="grid cursor-pointer grid-cols-[auto_1fr] items-start gap-2.5 rounded-token border border-linha px-3 py-2.5"
+                className="grid cursor-pointer grid-cols-[auto_1fr] items-start gap-2.5 rounded-token border border-linha px-3 py-2.5 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta"
               >
                 <input
                   type="radio"
@@ -147,7 +147,7 @@ export function ReportSheet({
                 maxLength={280}
                 rows={3}
                 onChange={(e) => setMotivo(e.target.value)}
-                className="w-full resize-y rounded-token border border-linha bg-bg px-3 py-2.5 font-inherit text-[0.9rem] text-ink"
+                className="w-full resize-y rounded-token border border-linha bg-bg px-3 py-2.5 font-inherit text-[0.9rem] text-ink outline-none focus:border-acento"
               />
               {motivo.length > 0 && (
                 <span className="text-right text-[0.6875rem] tabular-nums text-ink-3">
@@ -161,7 +161,7 @@ export function ReportSheet({
               type="button"
               disabled={enviando}
               onClick={() => void bloquear()}
-              className="mt-3 cursor-pointer border-none bg-transparent p-0 text-left font-inherit text-[0.85rem] text-ink-3 disabled:cursor-default"
+              className="mt-3 cursor-pointer border-none bg-transparent p-0 text-left font-inherit text-[0.85rem] text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink disabled:cursor-default"
             >
               Bloquear {autor ?? "autor"}
             </button>
