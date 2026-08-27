@@ -11,15 +11,24 @@ function responder(corpo: unknown, status = 200): Response {
   return new Response(JSON.stringify(corpo), { status });
 }
 
-/** Passo 0 (datas + convidados) até o passo final, clicando "Continuar". */
+/**
+ * A partir do passo 0 (Tipo), avança para o passo 1 (Evento), preenche datas
+ * e continua até o passo final (Confirmar), clicando "Continuar".
+ */
 function preencherDatasEAvancarAteCriar() {
+  // Passo 0 (Tipo) → passo 1 (Evento)
+  fireEvent.click(screen.getByText("Continuar"));
+
+  // Preenche datas e convidados no passo 1
   fireEvent.change(screen.getByLabelText("Começo"), {
     target: { value: "2026-09-01T18:00" },
   });
   fireEvent.change(screen.getByLabelText("Fim"), {
     target: { value: "2026-09-02T02:00" },
   });
-  for (let i = 0; i < 4; i++) {
+
+  // Passo 1 → 2 → 3 → 4 (Confirmar)
+  for (let i = 0; i < 3; i++) {
     fireEvent.click(screen.getByText("Continuar"));
   }
 }
@@ -50,10 +59,11 @@ describe("CreateEventWizard — passo condicional do fornecedor (spec-canal-forn
     render(<CreateEventWizard />);
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/admin/vendors"));
+    // No passo 0 (Tipo) o seletor nunca aparece; vendors vazio nunca mostra em nenhum passo
     expect(screen.queryByText("Criar sob")).not.toBeInTheDocument();
 
     preencherDatasEAvancarAteCriar();
-    fireEvent.click(screen.getByText("Criar e abrir painel"));
+    fireEvent.click(screen.getByText("Criar evento"));
 
     await waitFor(() => expect(screen.getByText("Evento criado")).toBeInTheDocument());
   });
@@ -81,6 +91,9 @@ describe("CreateEventWizard — passo condicional do fornecedor (spec-canal-forn
 
       render(<CreateEventWizard />);
 
+      // Avança do passo 0 (Tipo) para o passo 1 (Evento) onde o seletor aparece
+      fireEvent.click(screen.getByText("Continuar"));
+
       const seletor = await screen.findByLabelText("Criar sob");
       fireEvent.change(seletor, { target: { value: vendorId } });
 
@@ -88,14 +101,24 @@ describe("CreateEventWizard — passo condicional do fornecedor (spec-canal-forn
         target: { value: "casal@exemplo.com" },
       });
 
-      preencherDatasEAvancarAteCriar();
-      fireEvent.click(screen.getByText("Criar e abrir painel"));
+      // Preenche datas e avança do passo 1 até o passo final
+      fireEvent.change(screen.getByLabelText("Começo"), {
+        target: { value: "2026-09-01T18:00" },
+      });
+      fireEvent.change(screen.getByLabelText("Fim"), {
+        target: { value: "2026-09-02T02:00" },
+      });
+      for (let i = 0; i < 3; i++) {
+        fireEvent.click(screen.getByText("Continuar"));
+      }
+
+      fireEvent.click(screen.getByText("Criar evento"));
 
       await waitFor(() => expect(screen.getByText("Evento criado")).toBeInTheDocument());
     },
   );
 
-  it("com vínculo em vendor_members mas sem e-mail do casal: não avança do passo 0", async () => {
+  it("com vínculo em vendor_members mas sem e-mail do casal: não avança do passo 1", async () => {
     const vendorId = "11111111-1111-1111-1111-111111111111";
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
@@ -108,9 +131,13 @@ describe("CreateEventWizard — passo condicional do fornecedor (spec-canal-forn
 
     render(<CreateEventWizard />);
 
+    // Avança do passo 0 para o passo 1 (Evento)
+    fireEvent.click(screen.getByText("Continuar"));
+
     const seletor = await screen.findByLabelText("Criar sob");
     fireEvent.change(seletor, { target: { value: vendorId } });
 
+    // Preenche datas mas não o e-mail do casal
     fireEvent.change(screen.getByLabelText("Começo"), {
       target: { value: "2026-09-01T18:00" },
     });
@@ -118,6 +145,7 @@ describe("CreateEventWizard — passo condicional do fornecedor (spec-canal-forn
       target: { value: "2026-09-02T02:00" },
     });
 
+    // Continuar deve estar desabilitado sem o e-mail do casal
     expect(screen.getByText("Continuar")).toBeDisabled();
   });
 });
