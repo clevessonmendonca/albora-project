@@ -121,7 +121,7 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
                 type="button"
                 disabled={downloading !== null}
                 onClick={() => void download(f.id, "svg")}
-                className={`cursor-pointer rounded-pilula border border-linha bg-superficie px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-ink transition-opacity hover:bg-superficie-alta ${
+                className={`cursor-pointer rounded-pilula border border-linha bg-superficie px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta ${
                   downloading !== null ? "cursor-wait opacity-50" : ""
                 } ${downloading === `${f.id}-svg` ? "opacity-60" : ""}`}
               >

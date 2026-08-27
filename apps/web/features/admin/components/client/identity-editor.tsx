@@ -154,7 +154,7 @@ export function IdentityEditor({
                     setPresetId(m.id);
                     setSaved(false);
                   }}
-                  className={`flex cursor-pointer items-center gap-3 rounded-token p-3 text-left transition-colors ${
+                  className={`flex cursor-pointer items-center gap-3 rounded-token p-3 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                     presetId === m.id
                       ? "border-2 border-acento bg-superficie-alta"
                       : "border border-linha bg-bg hover:border-acento-texto"
@@ -204,7 +204,7 @@ export function IdentityEditor({
                     });
                     setSaved(false);
                   }}
-                  className={`cursor-pointer rounded-token p-3 font-titulo text-sm transition-colors ${
+                  className={`cursor-pointer rounded-token p-3 font-titulo text-sm transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                     selected
                       ? "border-2 border-acento bg-superficie-alta"
                       : "border border-linha bg-bg hover:border-acento-texto"

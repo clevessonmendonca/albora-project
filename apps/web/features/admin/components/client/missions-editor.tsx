@@ -237,7 +237,7 @@ function OrderButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="grid size-8 cursor-pointer place-items-center rounded-token border border-linha bg-superficie font-titulo text-sm text-ink disabled:cursor-default disabled:opacity-30"
+      className="grid size-8 cursor-pointer place-items-center rounded-token border border-linha bg-superficie font-titulo text-sm text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta disabled:cursor-default disabled:opacity-30"
     >
       {children}
     </button>
