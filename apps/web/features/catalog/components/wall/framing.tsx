@@ -10,6 +10,9 @@ const COMO_RESOLVE: Readonly<Record<WallDisplayModel, string>> = {
   carrossel: "Uma de cada vez, com as vizinhas espiando: é o que conta que existe mais.",
   dump: "Nove de uma vez. A mesa inteira aparece na mesma passada.",
   tbt: "Puxa da faixa antiga, não da recente. Retrospectiva da foto de cinco minutos atrás não é retrospectiva de nada.",
+  grade: "Quatro quadros em grade. Cada passada renova o conjunto inteiro.",
+  destaque: "Uma foto grande com quatro menores ao redor — a principal sempre respira.",
+  mosaico: "Cinco fotos em mosaico assimétrico. Tamanhos diferentes, nenhuma se repete.",
 };
 
 const MODEL_NAMES: Readonly<Record<WallDisplayModel, string>> = {
@@ -21,6 +24,9 @@ const MODEL_NAMES: Readonly<Record<WallDisplayModel, string>> = {
   carrossel: "Carrossel",
   dump: "Dump",
   tbt: "TBT",
+  grade: "Grade",
+  destaque: "Destaque",
+  mosaico: "Mosaico",
 };
 
 export function modelName(modelo: WallDisplayModel): string {

@@ -9,6 +9,9 @@ export const MODEL_NAMES: Readonly<Record<WallDisplayModel, string>> = {
   carrossel: "Carrossel",
   dump: "Dump",
   tbt: "TBT",
+  grade: "Grade",
+  destaque: "Destaque",
+  mosaico: "Mosaico",
 };
 
 export function profileText(modelo: WallDisplayModel): string {
