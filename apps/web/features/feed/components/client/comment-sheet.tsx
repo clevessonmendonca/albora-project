@@ -144,7 +144,6 @@ function LinhaComentario({
   indent: number;
   onVerAutor?: ((sessaoId: string) => void) | undefined;
 }) {
-  const [menu, setMenu] = useState(false);
   const hora = formatarHora(comentario.criadaEm);
 
   const nomeAutor =

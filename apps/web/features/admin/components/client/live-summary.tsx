@@ -57,7 +57,9 @@ export function LiveSummary({ eventoId }: Props) {
             sessionStorage.setItem(chave, "1");
             setPrimeiraFotoToast(true);
           }
-        } catch {}
+        } catch {
+          // sessionStorage blocked (private mode or permission denied)
+        }
         primeiraFotoVista.current = true;
       }
     } catch {

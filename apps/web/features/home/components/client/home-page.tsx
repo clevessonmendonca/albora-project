@@ -84,7 +84,7 @@ export function HomePage({
             }
           : {}),
       })),
-    [historias.itens, historias.urls, base, router, visto],
+    [historias.itens, historias.urls, visto],
   );
 
   return (
