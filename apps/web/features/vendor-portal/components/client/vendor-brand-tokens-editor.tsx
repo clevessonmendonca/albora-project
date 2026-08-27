@@ -122,7 +122,7 @@ export function VendorBrandTokensEditor({ vendorId, initialBrandTokens }: Props)
   };
 
   const campoClasse =
-    "w-full max-w-xs rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink focus:border-acento focus:outline-none";
+    "w-full max-w-xs rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento";
   const erroClasse = "mb-0 mt-1 text-xs text-critico";
 
   return (

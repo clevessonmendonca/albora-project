@@ -88,7 +88,7 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
           maxLength={6}
           placeholder="A2C4E6"
           aria-label="Código do telão"
-          className="border border-linha bg-bg px-4 py-3.5 text-center font-titulo text-[1.75rem] uppercase tracking-[0.35em] text-ink outline-none focus:border-acento"
+          className="border border-linha bg-bg px-4 py-3.5 text-center font-titulo text-[1.75rem] uppercase tracking-[0.35em] text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
           style={radiusStyle("var(--raio)")}
         />
 

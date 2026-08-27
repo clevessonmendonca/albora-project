@@ -47,7 +47,7 @@ export function QueueHeader({
         onClick={() => setAberto(true)}
         aria-haspopup="dialog"
         aria-expanded={aberto}
-        className="cursor-pointer border-0 bg-transparent p-0 font-[inherit]"
+        className="cursor-pointer border-0 bg-transparent p-0 font-[inherit] transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75"
       >
         {pendentes > 0 ? (
           <QueueLabel pending={pendentes} />
