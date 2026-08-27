@@ -82,7 +82,7 @@ export function SuggestionForm({
               autoComplete="off"
               inputMode="url"
               enterKeyHint="send"
-              className="min-h-11 w-full rounded-token border border-linha bg-superficie px-3.5 text-[0.95rem] text-ink outline-none placeholder:text-ink-3 focus:border-acento"
+              className="min-h-11 w-full rounded-token border border-linha bg-superficie px-3.5 text-[0.95rem] text-ink outline-none placeholder:text-ink-3 transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
             />
           </label>
           <PrimaryButton type="submit" disabled={state.submitting || url.trim() === ""}>
@@ -139,7 +139,7 @@ function SuggestionList({
           className="flex items-center gap-3 rounded-token border border-linha bg-superficie px-3.5 py-3"
         >
           <div className="min-w-0 flex-1">
-            <a href={s.url} className="block truncate text-[0.9rem] text-ink no-underline">
+            <a href={s.url} className="block truncate text-[0.9rem] text-ink no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75">
               {suggestionLabel(s)}
             </a>
             <p className="m-0 text-[0.75rem] text-ink-3">
