@@ -6,10 +6,7 @@ import { FUSO_PADRAO, type WallDisplayModel } from "@albora/core";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
 import { ALBORA_BRAND, IDENTITY_MODELS, type ModeloDeIdentidade } from "@albora/tokens";
 import { useSearchParams } from "next/navigation";
-import {
-  identityPreviewClassName,
-  resolveIdentityPreviewVars,
-} from "@/features/admin/lib/identity-preview";
+import { resolveIdentityPreviewVars } from "@/features/admin/lib/identity-preview";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
 import { TimezoneField } from "@/features/admin/components/client/timezone-field";
