@@ -91,7 +91,7 @@ export function PairPage({ slug }: { slug: string }) {
             {universalLink ? (
               <a
                 href={universalLink}
-                className="m-0 text-center text-[0.85rem] text-ink-3 underline decoration-ink-3/40 underline-offset-2"
+                className="m-0 text-center text-[0.85rem] text-ink-3 underline decoration-ink-3/40 underline-offset-2 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
               >
                 Link universal (quando o domínio estiver verificado)
               </a>
@@ -117,7 +117,7 @@ export function PairPage({ slug }: { slug: string }) {
         <SecondaryButton onClick={() => router.push(`${base}/cover`)}>Voltar à capa</SecondaryButton>
         <a
           href="/privacidade"
-          className="m-0 text-center text-[0.8rem] text-ink-3 underline decoration-ink-3/40 underline-offset-2"
+          className="m-0 text-center text-[0.8rem] text-ink-3 underline decoration-ink-3/40 underline-offset-2 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
         >
           Privacidade
         </a>

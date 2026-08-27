@@ -422,6 +422,7 @@ const ESTILO = `
     cursor: pointer;
     transition: opacity var(--tempo-rapido) var(--curva);
   }
+  .ed-chip:not(.ativo):hover { opacity: 0.75; }
   .ed-chip:active { opacity: 0.85; }
 
   .ed-mini {
@@ -480,6 +481,7 @@ const ESTILO = `
     cursor: pointer;
     transition: border-color var(--tempo-rapido) var(--curva), color var(--tempo-rapido) var(--curva);
   }
+  .ed-musica-item:not(.ativo):hover { border-color: var(--acento-borda); color: var(--ink); }
   .ed-musica-item.ativo {
     border-color: var(--acento);
     color: var(--ink);
@@ -614,6 +616,6 @@ const ESTILO = `
   @media (prefers-reduced-motion: reduce) {
     .ed-texto, .ed-aba, .ed-reset, .ed-mini, .ed-primario, .ed-chip, .ed-musica-item { transition: none; }
     .ed-primario:active:not(:disabled), .ed-chip:active { transform: none; opacity: 1; }
-    .ed-primario:hover:not(:disabled) { opacity: 1; }
+    .ed-primario:hover:not(:disabled), .ed-chip:not(.ativo):hover { opacity: 1; }
   }
 `;

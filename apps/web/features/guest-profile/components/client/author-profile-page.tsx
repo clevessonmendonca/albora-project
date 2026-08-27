@@ -126,7 +126,7 @@ function AuthorPhotoCard({
 function CabecalhoPerfil({ nome, base }: { nome: string | null; base: string }) {
   return (
     <header className="flex items-center gap-3 pb-3.5 pt-1.5">
-      <Link href={base} aria-label="Voltar para a Home" className="text-ink no-underline">
+      <Link href={base} aria-label="Voltar para a Home" className="text-ink no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70">
         <BackIcon />
       </Link>
       {nome && <PostAuthorAvatar name={nome} />}
