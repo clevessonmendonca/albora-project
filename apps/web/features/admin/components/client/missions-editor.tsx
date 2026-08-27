@@ -16,7 +16,7 @@ import { AdminSection, adminClasses } from "@/features/admin/components/server/a
 
 const CUSTOM_MAX = 120;
 
-type CustomMission = { id?: string; titulo: string; posicao: number };
+type CustomMission = { id?: string; titulo: string; posicao: number; emoji?: string | null };
 
 type Props = {
   eventId: string;
@@ -41,8 +41,10 @@ export function MissionsEditor({
   );
   const [custom, setCustom] = useState<CustomMission[]>(initialCustomMissions);
   const [draft, setDraft] = useState("");
+  const [draftEmoji, setDraftEmoji] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
+  const [editEmoji, setEditEmoji] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -77,8 +79,10 @@ export function MissionsEditor({
     const titulo = draft.trim();
     if (!titulo || titulo.length > CUSTOM_MAX) return;
     const posicao = (custom[custom.length - 1]?.posicao ?? 0) + 1;
-    setCustom((prev) => [...prev, { titulo, posicao }]);
+    const emoji = draftEmoji.trim() || null;
+    setCustom((prev) => [...prev, { titulo, posicao, emoji }]);
     setDraft("");
+    setDraftEmoji("");
     setSaved(false);
     draftRef.current?.focus();
   };
@@ -91,13 +95,15 @@ export function MissionsEditor({
   const startEdit = (idx: number) => {
     setEditingId(String(idx));
     setEditText(custom[idx]!.titulo);
+    setEditEmoji(custom[idx]!.emoji ?? "");
   };
 
   const commitEdit = (idx: number) => {
     const titulo = editText.trim();
     if (titulo && titulo.length <= CUSTOM_MAX) {
+      const emoji = editEmoji.trim() || null;
       setCustom((prev) =>
-        prev.map((m, i) => (i === idx ? { ...m, titulo } : m)),
+        prev.map((m, i) => (i === idx ? { ...m, titulo, emoji } : m)),
       );
       setSaved(false);
     }
@@ -128,16 +134,17 @@ export function MissionsEditor({
             ...(m.id ? { id: m.id } : {}),
             titulo: m.titulo,
             posicao: i + 1,
+            emoji: m.emoji ?? null,
           })),
         }),
       });
       if (!r.ok) throw new Error("falhou");
       const data = (await r.json()) as {
-        challenges: { id: string; titleKey: string | null; customTitle: string | null; position: number }[];
+        challenges: { id: string; titleKey: string | null; customTitle: string | null; emoji: string | null; position: number }[];
       };
       const updatedCustom = data.challenges
         .filter((c) => c.customTitle !== null)
-        .map((c) => ({ id: c.id, titulo: c.customTitle!, posicao: c.position }));
+        .map((c) => ({ id: c.id, titulo: c.customTitle!, posicao: c.position, emoji: c.emoji }));
       setCustom(updatedCustom);
       setSaved(true);
     } catch {
@@ -224,21 +231,31 @@ export function MissionsEditor({
               className="flex items-center gap-2 rounded-token border border-linha bg-bg p-3"
             >
               {editingId === String(i) ? (
-                <input
-                  autoFocus
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                  onBlur={() => commitEdit(i)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") commitEdit(i);
-                    if (e.key === "Escape") setEditingId(null);
-                  }}
-                  maxLength={CUSTOM_MAX}
-                  className="min-w-0 flex-1 rounded-token border border-acento-borda bg-bg px-2 py-1 font-corpo text-sm text-ink outline-none"
-                />
+                <>
+                  <input
+                    value={editEmoji}
+                    onChange={(e) => setEditEmoji(e.target.value)}
+                    placeholder="🎉"
+                    maxLength={4}
+                    aria-label="Emoji da missão"
+                    className="w-14 shrink-0 rounded-token border border-acento-borda bg-bg px-2 py-1 text-center font-corpo text-sm text-ink outline-none"
+                  />
+                  <input
+                    autoFocus
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    onBlur={() => commitEdit(i)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") commitEdit(i);
+                      if (e.key === "Escape") setEditingId(null);
+                    }}
+                    maxLength={CUSTOM_MAX}
+                    className="min-w-0 flex-1 rounded-token border border-acento-borda bg-bg px-2 py-1 font-corpo text-sm text-ink outline-none"
+                  />
+                </>
               ) : (
                 <span className="min-w-0 flex-1 font-titulo text-[0.95rem] leading-snug">
-                  {m.titulo}
+                  {m.emoji ? `${m.emoji} ` : ""}{m.titulo}
                 </span>
               )}
 
@@ -260,6 +277,14 @@ export function MissionsEditor({
           ))}
 
           <div className="mt-2 flex gap-2">
+            <input
+              value={draftEmoji}
+              onChange={(e) => setDraftEmoji(e.target.value)}
+              placeholder="🎉"
+              maxLength={4}
+              aria-label="Emoji opcional"
+              className="w-14 shrink-0 rounded-token border border-linha bg-bg px-2 py-[0.65rem] text-center font-corpo text-sm text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+            />
             <input
               ref={draftRef}
               value={draft}

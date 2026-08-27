@@ -12,6 +12,7 @@ const SECTIONS = [
   { label: "Missões", suffix: "/missions" },
   { label: "Identidade", suffix: "/identity" },
   { label: "Recado", suffix: "/guestbook" },
+  { label: "QR Code", suffix: "/qrcode" },
 ] as const;
 
 export function EventNav({ eventId }: { eventId: string }) {

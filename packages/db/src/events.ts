@@ -36,6 +36,8 @@ export type EventoPublico = {
   vendorBrandTokens: Record<string, unknown> | null;
   /** Chave de storage da imagem de capa enviada pelo casal. Null = usa album. */
   coverImageKey: string | null;
+  /** Nome personalizado do casal para o evento. Null = vocabulário do pack. */
+  title: string | null;
 };
 
 export type Resolucao =
@@ -63,7 +65,7 @@ export async function carregarEventoPublico(
 ): Promise<EventoPublico | null> {
   const { rows: e } = await cliente.query(
     `SELECT id, pack_id, starts_at, ends_at, interaction_opens_at, identity_tokens,
-            recommended_filter, timezone, vendor_id, cover_image_key
+            recommended_filter, timezone, vendor_id, cover_image_key, title
      FROM events WHERE id = $1`,
     [eventoId],
   );
@@ -90,6 +92,7 @@ export async function carregarEventoPublico(
     fuso: fusoOuPadrao((linha.timezone ?? null) as string | null),
     vendorBrandTokens,
     coverImageKey: (linha.cover_image_key ?? null) as string | null,
+    title: (linha.title ?? null) as string | null,
   };
 }
 

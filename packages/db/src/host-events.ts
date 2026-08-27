@@ -6,6 +6,8 @@ export type AtualizacaoConfigEvento = {
   expectedGuests?: number;
   identityTokens?: Record<string, unknown>;
   fuso?: string;
+  /** Nome personalizado do evento. String vazia remove (persiste null). */
+  title?: string | null;
 };
 
 /** Oculta uma foto do feed, álbum e telão (state = removed). Só o anfitrião. */
@@ -60,6 +62,12 @@ export async function atualizarConfigDoEvento(
     if (!fusoIanaValido(atualizacao.fuso)) throw new Error("timezone inválido");
     valores.push(atualizacao.fuso);
     partes.push(`timezone = $${valores.length}`);
+  }
+
+  if (atualizacao.title !== undefined) {
+    const t = typeof atualizacao.title === "string" ? atualizacao.title.trim() || null : null;
+    valores.push(t);
+    partes.push(`title = $${valores.length}`);
   }
 
   if (partes.length === 0) return true;

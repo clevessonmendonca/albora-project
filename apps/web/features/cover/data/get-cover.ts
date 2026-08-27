@@ -56,7 +56,7 @@ export async function getCover(input: CoverInput): Promise<CoverData> {
 
   return {
     slug,
-    eventName: pack ? resolvePackText(pack, "landing.exemplo.nome") : "A festa",
+    eventName: evento.title ?? (pack ? resolvePackText(pack, "landing.exemplo.nome") : "A festa"),
     startsAt: evento.comecaEm.toISOString(),
     album,
     moments,

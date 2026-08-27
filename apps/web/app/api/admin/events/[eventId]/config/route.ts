@@ -21,6 +21,7 @@ type Corpo = {
   timezone?: unknown;
   identityTokens?: unknown;
   telaoModelos?: unknown;
+  title?: unknown;
 };
 
 export async function GET(
@@ -72,6 +73,7 @@ export async function PATCH(
     expectedGuests?: number;
     identityTokens?: Record<string, unknown>;
     fuso?: string;
+    title?: string | null;
   } = {};
 
   if (corpo.expectedGuests !== undefined) {
@@ -118,9 +120,17 @@ export async function PATCH(
     atualizacao.identityTokens = tokens;
   }
 
+  if (corpo.title !== undefined) {
+    if (corpo.title !== null && typeof corpo.title !== "string") {
+      return errorResponse(422, "validation_error", "Título inválido", { campos: ["title"] });
+    }
+    const t = typeof corpo.title === "string" ? corpo.title.trim().slice(0, 120) || null : null;
+    atualizacao.title = t;
+  }
+
   if (Object.keys(atualizacao).length === 0) {
     return errorResponse(422, "validation_error", "Nada para atualizar", {
-      campos: ["expectedGuests", "timezone", "identityTokens"],
+      campos: ["expectedGuests", "timezone", "identityTokens", "title"],
     });
   }
 

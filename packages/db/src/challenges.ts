@@ -10,6 +10,8 @@ export type Desafio = {
   chaveTitulo: string | null;
   /** Texto livre do casal. Null para missões do pack. */
   tituloCustom: string | null;
+  /** Emoji opcional nas missões personalizadas. */
+  emoji: string | null;
   ordem: number;
   /** Se **esta** sessão já mandou foto para ele. */
   feito: boolean;
@@ -24,10 +26,11 @@ export async function listarDesafios(
     id: string;
     title_key: string | null;
     custom_title: string | null;
+    emoji: string | null;
     position: number;
     feito: boolean;
   }>(
-    `SELECT c.id, c.title_key, c.custom_title, c.position,
+    `SELECT c.id, c.title_key, c.custom_title, c.emoji, c.position,
             EXISTS (
               SELECT 1 FROM uploads u
               WHERE u.challenge_id = c.id AND u.session_id = $2
@@ -42,6 +45,7 @@ export async function listarDesafios(
     id: l.id,
     chaveTitulo: l.title_key,
     tituloCustom: l.custom_title,
+    emoji: l.emoji,
     ordem: l.position,
     feito: l.feito,
   }));
@@ -64,7 +68,7 @@ export async function desafioDoEvento(
 
 export type ItemMissao =
   | { tipo: "pack"; chave: string }
-  | { tipo: "custom"; id?: string; titulo: string };
+  | { tipo: "custom"; id?: string; titulo: string; emoji?: string | null };
 
 /**
  * Troca o conjunto completo de missões (pack + personalizadas) na ordem recebida.
@@ -128,7 +132,7 @@ export async function substituirDesafios(
 export async function substituirMissoesCustom(
   cliente: PoolClient,
   eventoId: string,
-  itens: readonly { id?: string; titulo: string; posicao: number }[],
+  itens: readonly { id?: string; titulo: string; posicao: number; emoji?: string | null }[],
 ): Promise<Desafio[]> {
   for (const item of itens) {
     const titulo = item.titulo.trim();
@@ -146,16 +150,17 @@ export async function substituirMissoesCustom(
 
   for (const item of itens) {
     const titulo = item.titulo.trim();
+    const emoji = item.emoji?.trim() || null;
     if (item.id && UUID.test(item.id) && idsExistentes.has(item.id)) {
       await cliente.query(
-        "UPDATE challenges SET custom_title = $1, position = $2 WHERE id = $3 AND event_id = $4",
-        [titulo, item.posicao, item.id, eventoId],
+        "UPDATE challenges SET custom_title = $1, position = $2, emoji = $3 WHERE id = $4 AND event_id = $5",
+        [titulo, item.posicao, emoji, item.id, eventoId],
       );
       manter.add(item.id);
     } else {
       const { rows } = await cliente.query<{ id: string }>(
-        "INSERT INTO challenges (event_id, custom_title, position) VALUES ($1, $2, $3) RETURNING id",
-        [eventoId, titulo, item.posicao],
+        "INSERT INTO challenges (event_id, custom_title, position, emoji) VALUES ($1, $2, $3, $4) RETURNING id",
+        [eventoId, titulo, item.posicao, emoji],
       );
       manter.add(rows[0]!.id);
     }

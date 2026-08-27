@@ -12,6 +12,7 @@ import { getPool } from "@/lib/db";
 export type MissaoResposta = {
   id: string;
   titulo: string;
+  emoji: string | null;
   feito: boolean;
 };
 
@@ -44,7 +45,7 @@ export async function GET(req: Request): Promise<Response> {
       const titulo =
         d.tituloCustom ??
         (pack && d.chaveTitulo ? resolvePackText(pack, d.chaveTitulo) : (d.chaveTitulo ?? ""));
-      return { id: d.id, titulo, feito: d.feito };
+      return { id: d.id, titulo, emoji: d.emoji ?? null, feito: d.feito };
     });
 
     return jsonOk({ missoes } satisfies MissoesResposta);

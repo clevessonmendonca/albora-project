@@ -23,6 +23,7 @@ type Props = {
   initialExpectedGuests: number;
   initialTimezone: string;
   initialIdentityTokens: Record<string, unknown>;
+  initialTitle: string | null;
 };
 
 const FONT_OPTIONS = [
@@ -71,6 +72,7 @@ export function IdentityEditor({
   initialExpectedGuests,
   initialTimezone,
   initialIdentityTokens,
+  initialTitle,
 }: Props) {
   const pack = PACKS[packId] as Pack | undefined;
 
@@ -102,6 +104,7 @@ export function IdentityEditor({
     resolveCustomBackground(initialIdentityTokens, presetBackground),
   );
 
+  const [title, setTitle] = useState(initialTitle ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -158,6 +161,7 @@ export function IdentityEditor({
           expectedGuests: Number(expectedGuests),
           timezone,
           identityTokens,
+          title: title.trim() || null,
         }),
       });
       if (!r.ok) throw new Error("falhou");
@@ -195,6 +199,26 @@ export function IdentityEditor({
           A identidade visual propaga para convidado, telão e peças impressas — um resolvedor,
           três superfícies. Tudo que você define aqui reflete instantaneamente nos três canais.
         </p>
+
+        <div className="mb-5">
+          <label className="mb-2 block font-titulo text-sm text-ink">
+            Nome do evento
+          </label>
+          <input
+            type="text"
+            maxLength={120}
+            placeholder="Ex.: João & Maria"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setSaved(false);
+            }}
+            className="w-full max-w-sm rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+          />
+          <p className="mb-0 mt-1.5 text-xs text-ink-3">
+            Aparece como título na capa do app. Deixe em branco para usar o nome do pack.
+          </p>
+        </div>
 
         <div className="mb-5">
           <label className="mb-2 block font-titulo text-sm text-ink">

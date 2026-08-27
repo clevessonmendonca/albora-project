@@ -26,6 +26,7 @@ function serializarDesafio(d: Awaited<ReturnType<typeof listChallenges>>[number]
     id: d.id,
     titleKey: d.chaveTitulo ?? null,
     customTitle: d.tituloCustom ?? null,
+    emoji: d.emoji ?? null,
     position: d.ordem,
   };
 }
@@ -109,7 +110,7 @@ export async function PUT(
         });
       }
 
-      const itens: { id?: string; titulo: string; posicao: number }[] = [];
+      const itens: { id?: string; titulo: string; posicao: number; emoji?: string | null }[] = [];
       for (const [i, item] of (corpo.customMissions as unknown[]).entries()) {
         if (typeof item !== "object" || item === null) {
           return errorResponse(422, "validation_error", `Item ${i} inválido`, {
@@ -123,9 +124,10 @@ export async function PUT(
             campos: ["customMissions"],
           });
         }
-        const entrada: { id?: string; titulo: string; posicao: number } = {
+        const entrada: { id?: string; titulo: string; posicao: number; emoji?: string | null } = {
           titulo,
           posicao: typeof obj.posicao === "number" ? obj.posicao : i + 1000,
+          emoji: typeof obj.emoji === "string" ? obj.emoji.trim() || null : null,
         };
         if (typeof obj.id === "string") entrada.id = obj.id;
         itens.push(entrada);

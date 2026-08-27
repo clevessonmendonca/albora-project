@@ -28,6 +28,7 @@ export default async function IdentityPage({
               initialExpectedGuests={evento.expectedGuests}
               initialTimezone={evento.fuso}
               initialIdentityTokens={evento.identityTokens}
+              initialTitle={evento.title}
             />
             <CoverImageEditor
               eventId={eventId}

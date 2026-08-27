@@ -68,7 +68,7 @@ describe("GET /api/missions", () => {
 
   it("resolve título pelo pack quando packId presente", async () => {
     mockListChallenges.mockResolvedValue([
-      { id: "d1", chaveTitulo: "missao.primeira_danca", ordem: 1, feito: false },
+      { id: "d1", chaveTitulo: "missao.primeira_danca", tituloCustom: null, emoji: null, ordem: 1, feito: false },
     ]);
     mockPackDoEvento.mockResolvedValue("casamento");
 
@@ -79,6 +79,7 @@ describe("GET /api/missions", () => {
         {
           id: "d1",
           titulo: "Resolvido: missao.primeira_danca",
+          emoji: null,
           feito: false,
         },
       ],
@@ -87,14 +88,14 @@ describe("GET /api/missions", () => {
 
   it("usa chaveTitulo como fallback quando packId nulo", async () => {
     mockListChallenges.mockResolvedValue([
-      { id: "d2", chaveTitulo: "missao.selfie_noivos", ordem: 1, feito: true },
+      { id: "d2", chaveTitulo: "missao.selfie_noivos", tituloCustom: null, emoji: null, ordem: 1, feito: true },
     ]);
     mockPackDoEvento.mockResolvedValue(null);
 
     await GET(makeRequest());
 
     expect(mockJsonOk).toHaveBeenCalledWith({
-      missoes: [{ id: "d2", titulo: "missao.selfie_noivos", feito: true }],
+      missoes: [{ id: "d2", titulo: "missao.selfie_noivos", emoji: null, feito: true }],
     });
   });
 
@@ -128,8 +129,8 @@ describe("GET /api/missions", () => {
 
   it("propaga campo feito corretamente", async () => {
     mockListChallenges.mockResolvedValue([
-      { id: "d1", chaveTitulo: "m1", ordem: 1, feito: true },
-      { id: "d2", chaveTitulo: "m2", ordem: 2, feito: false },
+      { id: "d1", chaveTitulo: "m1", tituloCustom: null, emoji: null, ordem: 1, feito: true },
+      { id: "d2", chaveTitulo: "m2", tituloCustom: null, emoji: null, ordem: 2, feito: false },
     ]);
 
     await GET(makeRequest());

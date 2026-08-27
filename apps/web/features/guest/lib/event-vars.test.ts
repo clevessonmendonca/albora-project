@@ -15,6 +15,7 @@ function eventoFixture(overrides?: Partial<EventoPublico>): EventoPublico {
     fuso: "America/Sao_Paulo",
     vendorBrandTokens: null,
     coverImageKey: null,
+    title: null,
     ...overrides,
   };
 }

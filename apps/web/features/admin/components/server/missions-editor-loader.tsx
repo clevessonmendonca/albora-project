@@ -18,7 +18,7 @@ export async function MissionsEditorLoader({
 
   const customMissions = challenges
     .filter((d) => d.tituloCustom !== null)
-    .map((d) => ({ id: d.id, titulo: d.tituloCustom!, posicao: d.ordem }));
+    .map((d) => ({ id: d.id, titulo: d.tituloCustom!, posicao: d.ordem, emoji: d.emoji }));
 
   return (
     <MissionsEditor
