@@ -196,7 +196,7 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
               Em desenvolvimento o link aparece aqui:{" "}
               <button
                 type="button"
-                className="cursor-pointer border-none bg-transparent p-0 text-acento underline"
+                className="cursor-pointer border-none bg-transparent p-0 text-acento underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
                 onClick={() => confirmarDev(estado.link!)}
               >
                 confirmar agora
@@ -239,7 +239,7 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
             type="button"
             disabled={busy}
             onClick={() => void desconectar()}
-            className="cursor-pointer border-none bg-transparent p-0 text-ink-3 underline"
+            className="cursor-pointer border-none bg-transparent p-0 text-ink-3 underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
           >
             Desconectar
           </button>

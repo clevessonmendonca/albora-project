@@ -594,6 +594,7 @@ const ESTILO = `
   transition: transform var(--tempo-rapido) var(--curva), opacity var(--tempo-rapido) var(--curva);
 }
 .foto-botao:disabled { cursor: default; }
+.foto-botao:hover:not(:disabled) { opacity: 0.9; }
 .foto-botao:active:not(:disabled) { transform: scale(0.972); }
 
 .foto-botao:focus-visible {
@@ -610,6 +611,7 @@ const ESTILO = `
 @media (prefers-reduced-motion: reduce) {
   .amanhece { animation: none; }
   .foto-botao { transition: none; }
+  .foto-botao:hover:not(:disabled) { opacity: 1; }
   .foto-botao:active:not(:disabled) { transform: none; }
 }
 `;

@@ -64,7 +64,7 @@ export function PwaInstallCta({
 
       <button
         type="button"
-        className="mt-2 min-h-11 border-0 bg-transparent p-0 text-left text-[0.85rem] leading-[1.5] text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] motion-reduce:transition-none"
+        className="mt-2 min-h-11 border-0 bg-transparent p-0 text-left text-[0.85rem] leading-[1.5] text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink motion-reduce:transition-none"
         onClick={onDispensar}
       >
         {COPY_DISPENSAR_CTA}

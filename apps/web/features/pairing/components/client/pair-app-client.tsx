@@ -81,7 +81,7 @@ export function PairApp() {
               autoComplete="one-time-code"
               maxLength={1}
               aria-label={`Dígito ${i + 1}`}
-              className="h-[3.75rem] w-[3.25rem] rounded-token border border-linha bg-bg p-0 text-center font-titulo text-[1.75rem] text-ink"
+              className="h-[3.75rem] w-[3.25rem] rounded-token border border-linha bg-bg p-0 text-center font-titulo text-[1.75rem] text-ink outline-none focus:border-acento"
             />
           ))}
         </div>

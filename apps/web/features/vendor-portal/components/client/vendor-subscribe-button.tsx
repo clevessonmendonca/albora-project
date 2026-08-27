@@ -113,10 +113,10 @@ export function VendorSubscribeButton({ vendorId, role, currentPlan, subscriptio
             disabled={submitting}
             aria-pressed={plan === candidato}
             onClick={() => setPlan(candidato)}
-            className={`cursor-pointer rounded-pilula border px-4 py-2 text-[0.875rem] ${
+            className={`cursor-pointer rounded-pilula border px-4 py-2 text-[0.875rem] transition-[border-color,opacity] duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
               plan === candidato
-                ? "border-acento bg-acento text-sobre-acento"
-                : "border-linha bg-superficie-alta text-ink"
+                ? "border-acento bg-acento text-sobre-acento hover:opacity-90"
+                : "border-linha bg-superficie-alta text-ink hover:border-acento-texto"
             } ${submitting ? "opacity-60" : ""}`}
           >
             {PLAN_LABEL[candidato]} · {moeda.format(VENDOR_PLAN_PRICE_CENTS[candidato] / 100)}/mês
@@ -137,7 +137,7 @@ export function VendorSubscribeButton({ vendorId, role, currentPlan, subscriptio
         <p className="m-0 mt-4 text-[0.9375rem] text-ink">
           Assinatura {PLAN_LABEL[result.plan]} criada
           {result.stub ? " (ambiente de teste)" : ""}.{" "}
-          <a href={result.invoiceUrl} target="_blank" rel="noopener noreferrer" className="text-acento">
+          <a href={result.invoiceUrl} target="_blank" rel="noopener noreferrer" className="text-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
             Pagar assinatura
           </a>
         </p>
