@@ -83,7 +83,12 @@ export function LiveSummary({ eventoId }: Props) {
     return (
       <AdminSection>
         <div className="flex items-start gap-3">
-          <span className="mt-0.5 shrink-0 text-critico">⚠</span>
+          <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center text-critico">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <path d="M8 3L14 13H2L8 3z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+              <path d="M8 7v2.5M8 11.5v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </span>
           <div>
             <p className="m-0 text-[0.9375rem] text-ink">Painel indisponível agora.</p>
             <p className="m-0 mt-1 text-[0.875rem] text-ink-3">
@@ -138,9 +143,12 @@ export function LiveSummary({ eventoId }: Props) {
               setAtualizando(true);
               void carregar().finally(() => setAtualizando(false));
             }}
-            className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+            className="cursor-pointer rounded-pilula border border-linha bg-transparent p-1.5 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+            aria-label="Atualizar agora"
           >
-            {atualizando ? "…" : "⟳"}
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden className={atualizando ? "opacity-50" : ""}>
+              <path d="M11 6.5A4.5 4.5 0 0 1 2 6.5M11 6.5V3.5M11 6.5H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
           <span className="inline-flex items-center gap-1.5 rounded-pilula bg-acento px-2.5 py-1 font-titulo text-xs text-sobre-acento">
             <span className="size-[0.4rem] rounded-full bg-current" />

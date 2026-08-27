@@ -240,12 +240,18 @@ export function EventControls({
             >
               {saving === "interaction" ? "Abrindo…" : "Abrir interação agora"}
             </button>
-            <label className="flex flex-col gap-1.5 text-sm text-ink-2">
-              Ou agendar
+            <div className="flex flex-col gap-1.5">
+              <label
+                htmlFor="interacao-agendar"
+                className="text-[0.7rem] uppercase tracking-rotulo text-ink-3"
+              >
+                Ou agendar
+              </label>
               <input
+                id="interacao-agendar"
                 type="datetime-local"
                 disabled={saving === "interaction"}
-                className="rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+                className="rounded-token border border-linha bg-bg px-3.5 py-3 font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento disabled:opacity-60"
                 onChange={(e) => {
                   const value = e.target.value;
                   if (!value) return;
@@ -253,7 +259,7 @@ export function EventControls({
                   void patch({ interacaoAbreEm: iso }, "interaction");
                 }}
               />
-            </label>
+            </div>
             {interactionOpensAt && (
               <p className="m-0 text-[0.875rem] text-acento-texto">
                 Agendada para{" "}

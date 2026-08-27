@@ -86,7 +86,18 @@ export function GuestFunnel({ eventoId }: Props) {
   if (!resumo) {
     return (
       <AdminSection>
-        <p className="m-0 text-[0.9375rem] text-ink-2">Carregando dados do evento…</p>
+        <div className="animate-pulse">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div className="h-6 w-48 rounded-token bg-superficie-alta" />
+            <div className="h-6 w-20 rounded-pilula bg-superficie-alta" />
+          </div>
+          <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-[4.5rem] rounded-token bg-superficie-alta" />
+            ))}
+          </div>
+          <div className="h-3.5 w-56 rounded-full bg-superficie-alta" />
+        </div>
       </AdminSection>
     );
   }
@@ -110,9 +121,12 @@ export function GuestFunnel({ eventoId }: Props) {
                 setAtualizando(true);
                 void carregar().finally(() => setAtualizando(false));
               }}
-              className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+              className="cursor-pointer rounded-pilula border border-linha bg-transparent p-1.5 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+              aria-label="Atualizar agora"
             >
-              {atualizando ? "…" : "⟳"}
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden className={atualizando ? "opacity-50" : ""}>
+                <path d="M11 6.5A4.5 4.5 0 0 1 2 6.5M11 6.5V3.5M11 6.5H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           </div>
         </div>
@@ -213,7 +227,6 @@ export function GuestFunnel({ eventoId }: Props) {
                 key={f.id}
                 className="aspect-[3/4] overflow-hidden rounded-token bg-superficie-alta"
               >
-                {/* URL assinada */}
                 <img src={f.thumb} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
               </span>
             ))}
