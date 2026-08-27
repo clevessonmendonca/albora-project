@@ -108,7 +108,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
               setColando(true);
               void colarLink();
             }}
-            className="cursor-pointer border-none bg-transparent p-0 text-xs text-acento-texto disabled:cursor-default disabled:opacity-50"
+            className="cursor-pointer border-none bg-transparent p-0 text-xs text-acento-texto transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70 disabled:cursor-default disabled:opacity-50"
           >
             {colando ? "Colando…" : "Colar da área de transferência"}
           </button>
@@ -159,7 +159,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
                   <button
                     type="button"
                     onClick={() => setUrl(s.url)}
-                    className="cursor-pointer rounded-pilula border border-linha bg-superficie px-2.5 py-1 text-xs text-ink-2 hover:bg-superficie-alta"
+                    className="cursor-pointer rounded-pilula border border-linha bg-superficie px-2.5 py-1 text-xs text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta"
                   >
                     Usar
                   </button>
