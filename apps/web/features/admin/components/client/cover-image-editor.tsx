@@ -18,9 +18,8 @@ type UploadState =
   | { fase: "erro"; mensagem: string }
   | { fase: "pronto" };
 
-export function CoverImageEditor({ eventId, initialCoverImageUrl, initialCoverImageKey }: Props) {
+export function CoverImageEditor({ eventId, initialCoverImageUrl }: Props) {
   const [url, setUrl] = useState<string | null>(initialCoverImageUrl);
-  const [chave, setChave] = useState<string | null>(initialCoverImageKey);
   const [estado, setEstado] = useState<UploadState>({ fase: "idle" });
   const [removing, setRemoving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -84,7 +83,6 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl, initialCoverIm
       });
       if (!r.ok) throw new Error(await r.text());
       const data = (await r.json()) as { chave: string; url: string };
-      setChave(data.chave);
       setUrl(data.url);
       setEstado({ fase: "pronto" });
     } catch {
@@ -98,7 +96,6 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl, initialCoverIm
       const r = await fetch(`/api/admin/events/${eventId}/cover-image`, { method: "DELETE" });
       if (!r.ok) throw new Error(await r.text());
       setUrl(null);
-      setChave(null);
       setEstado({ fase: "idle" });
     } catch {
       setEstado({ fase: "erro", mensagem: "Não foi possível remover a imagem." });
@@ -179,16 +176,24 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl, initialCoverIm
       )}
 
       {estado.fase === "pronto" && (
-        <p className="mt-3 text-sm text-verde">Imagem de capa salva.</p>
+        <span className="mt-3 inline-flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+            <path
+              d="M2 6l2.5 2.5L10 3.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Imagem salva
+        </span>
       )}
 
       {estado.fase === "erro" && (
         <p className="mt-3 text-sm text-critico">{estado.mensagem}</p>
       )}
 
-      {chave && estado.fase === "idle" && !url && (
-        <p className="mt-3 text-xs text-ink-3">Chave: {chave}</p>
-      )}
     </AdminSection>
   );
 }

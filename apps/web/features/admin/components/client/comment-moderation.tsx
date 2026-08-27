@@ -69,7 +69,23 @@ export function CommentModeration({ eventoId }: Props) {
   };
 
   if (carregando) {
-    return <p className="m-0 text-[0.9375rem] text-ink-2">Carregando comentários…</p>;
+    return (
+      <div className="flex flex-col gap-3">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="animate-pulse grid gap-2 rounded-token border border-linha bg-bg p-3.5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="h-3 w-1/4 rounded-full bg-superficie-alta" />
+              <div className="h-3 w-16 rounded-full bg-superficie-alta" />
+            </div>
+            <div className="space-y-1.5">
+              <div className="h-3 w-full rounded-full bg-superficie-alta" />
+              <div className="h-3 w-3/4 rounded-full bg-superficie-alta" />
+            </div>
+            <div className="h-6 w-28 rounded-pilula bg-superficie-alta" />
+          </div>
+        ))}
+      </div>
+    );
   }
 
   return (
@@ -89,9 +105,25 @@ export function CommentModeration({ eventoId }: Props) {
             setAtualizando(true);
             void carregar().finally(() => setAtualizando(false));
           }}
-          className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+          className="cursor-pointer rounded-pilula border border-linha bg-transparent p-1.5 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+          aria-label="Atualizar agora"
         >
-          {atualizando ? "…" : "⟳"}
+          <svg
+            width="13"
+            height="13"
+            viewBox="0 0 13 13"
+            fill="none"
+            aria-hidden
+            className={atualizando ? "opacity-50" : ""}
+          >
+            <path
+              d="M11 6.5A4.5 4.5 0 0 1 2 6.5M11 6.5V3.5M11 6.5H8"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
       </div>
 
@@ -110,10 +142,18 @@ export function CommentModeration({ eventoId }: Props) {
           <div key={c.id} className="grid gap-2 rounded-token border border-linha bg-bg p-3.5">
             <div className="flex items-start justify-between gap-3">
               <span className="font-titulo text-[0.85rem] text-ink">{c.autor}</span>
-              <span className="text-xs text-ink-3">
-                {c.denuncias > 0 ? `${c.denuncias} ${c.denuncias === 1 ? "denúncia" : "denúncias"}` : "sem denúncias"}
-                {c.classificador === "suspeito" ? " · filtro automático" : ""}
-              </span>
+              <div className="flex flex-wrap justify-end gap-1">
+                {c.denuncias > 0 && (
+                  <span className="rounded-pilula border border-critico px-2 py-0.5 text-[0.72rem] font-titulo text-critico">
+                    {c.denuncias === 1 ? "1 denúncia" : `${c.denuncias} denúncias`}
+                  </span>
+                )}
+                {c.classificador === "suspeito" && (
+                  <span className="rounded-pilula border border-linha px-2 py-0.5 text-[0.72rem] font-titulo text-ink-3">
+                    filtro auto
+                  </span>
+                )}
+              </div>
             </div>
             <p className="m-0 text-[0.9rem] leading-relaxed text-ink-2">{c.texto}</p>
             <button
