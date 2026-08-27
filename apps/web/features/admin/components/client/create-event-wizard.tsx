@@ -2,12 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import NextLink from "next/link";
-import {
-  FUSO_PADRAO,
-  WALL_DISPLAY_MODELS,
-  wallDisplayChoiceProblems,
-  type WallDisplayModel,
-} from "@albora/core";
+import { FUSO_PADRAO, type WallDisplayModel } from "@albora/core";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
 import { IDENTITY_MODELS } from "@albora/tokens";
 import { useSearchParams } from "next/navigation";
@@ -22,7 +17,7 @@ import { TimezoneField } from "@/features/admin/components/client/timezone-field
 
 const OPTIONS = Object.values(PACKS).map((p) => ({ id: p.id, nome: resolvePackText(p, "evento.nome") }));
 
-const STEPS = ["Quando", "Identidade", "Missões", "Parede", "Peças"] as const;
+const STEPS = ["Tipo", "Evento", "Identidade", "Missões", "Confirmar"] as const;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -46,9 +41,7 @@ export function CreateEventWizard() {
   const [expectedGuests, setExpectedGuests] = useState("150");
   const [presetId, setPresetId] = useState(IDENTITY_MODELS[0]!.id);
   const [checkedMissions, setCheckedMissions] = useState<Set<string>>(() => new Set());
-  const [wallModels, setWallModels] = useState<Set<WallDisplayModel>>(
-    () => new Set(DEFAULT_MODELS),
-  );
+  const [wallModels] = useState<Set<WallDisplayModel>>(() => new Set(DEFAULT_MODELS));
   const [status, setStatus] = useState<"editing" | "creating" | "error">("editing");
   const [created, setCreated] = useState<Created | null>(null);
   const [vendors, setVendors] = useState<VendorOption[]>([]);
@@ -87,11 +80,7 @@ export function CreateEventWizard() {
   }, [pack]);
 
   const activeMissions =
-    checkedMissions.size > 0
-      ? [...checkedMissions]
-      : initialMissions;
-
-  const wallProblems = wallDisplayChoiceProblems([...wallModels]);
+    checkedMissions.size > 0 ? [...checkedMissions] : initialMissions;
 
   const preset = IDENTITY_MODELS.find((m) => m.id === presetId) ?? IDENTITY_MODELS[0]!;
 
@@ -110,14 +99,10 @@ export function CreateEventWizard() {
   );
 
   const canAdvance =
-    step === 0
-      ? datesValid && guestsValid && coupleEmailValid
-      : step === 3
-        ? wallProblems.length === 0
-        : true;
+    step === 1 ? datesValid && guestsValid && coupleEmailValid : true;
 
   const create = async () => {
-    if (!datesValid || !guestsValid || !coupleEmailValid || wallProblems.length > 0) return;
+    if (!datesValid || !guestsValid || !coupleEmailValid) return;
     setStatus("creating");
     try {
       const r = await fetch("/api/admin/events", {
@@ -154,7 +139,29 @@ export function CreateEventWizard() {
           bloquear o convidado.
         </p>
       )}
+
+      {/* Passo 0 — escolha do tipo via pills */}
       {step === 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          {OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => setPackId(opt.id)}
+              className={`flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-token p-5 text-center transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                packId === opt.id
+                  ? "border-2 border-acento bg-superficie-alta text-ink"
+                  : "border border-linha bg-bg text-ink-2 hover:border-acento-texto hover:text-ink"
+              }`}
+            >
+              <span className="font-titulo text-base">{opt.nome}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Passo 1 — nome, datas, convidados */}
+      {step === 1 && (
         <>
           <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
             Nome do evento
@@ -165,20 +172,54 @@ export function CreateEventWizard() {
               className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
             />
           </label>
-          <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
-            Tipo de evento
-            <select
-              value={packId}
-              onChange={(e) => setPackId(e.target.value)}
-              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
-            >
-              {OPTIONS.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nome}
-                </option>
-              ))}
-            </select>
-          </label>
+
+          <div className="flex flex-col gap-2">
+            <div className="flex items-baseline justify-between">
+              <span className="text-[0.9rem] text-ink-2">Convidados esperados</span>
+              <span className="font-titulo text-2xl text-ink">{expectedGuests}</span>
+            </div>
+            <input
+              type="range"
+              min={10}
+              max={500}
+              step={10}
+              value={expectedGuests}
+              onChange={(e) => setExpectedGuests(e.target.value)}
+              style={{ accentColor: "var(--acento)" }}
+              className="w-full cursor-pointer"
+            />
+            <div className="flex justify-between text-[0.75rem] text-ink-3">
+              <span>10</span>
+              <span>500+</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
+              Começo
+              <input
+                type="datetime-local"
+                value={starts}
+                onChange={(e) => setStarts(e.target.value)}
+                className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+              />
+            </label>
+            <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
+              Fim
+              <input
+                type="datetime-local"
+                value={ends}
+                onChange={(e) => setEnds(e.target.value)}
+                className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+              />
+            </label>
+          </div>
+          {!datesValid && starts !== "" && ends !== "" && (
+            <p className="m-0 text-sm text-critico">O fim deve ser depois do começo.</p>
+          )}
+
+          <TimezoneField value={timezone} onChange={setTimezone} />
+
           {vendors.length > 0 && (
             <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
               Criar sob
@@ -214,75 +255,48 @@ export function CreateEventWizard() {
               </p>
             </>
           )}
-          <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
-            Convidados esperados
-            <input
-              type="number"
-              min={1}
-              value={expectedGuests}
-              onChange={(e) => setExpectedGuests(e.target.value)}
-              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
-            Começo
-            <input
-              type="datetime-local"
-              value={starts}
-              onChange={(e) => setStarts(e.target.value)}
-              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
-            Fim
-            <input
-              type="datetime-local"
-              value={ends}
-              onChange={(e) => setEnds(e.target.value)}
-              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
-            />
-          </label>
-          <TimezoneField value={timezone} onChange={setTimezone} />
         </>
       )}
 
-      {step === 1 && (
-        <div className="grid grid-cols-2 gap-5">
-          <div className="flex flex-col gap-3">
+      {/* Passo 2 — identidade visual */}
+      {step === 2 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
             {IDENTITY_MODELS.map((m) => (
               <button
                 key={m.id}
                 type="button"
                 onClick={() => setPresetId(m.id)}
-                className={`flex cursor-pointer items-center gap-3 rounded-token p-3 text-left ${
+                className={`flex cursor-pointer items-center gap-3 rounded-token p-3 text-left transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                   presetId === m.id
                     ? "border-2 border-acento bg-superficie-alta"
-                    : "border border-linha bg-bg hover:border-acento-texto transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]"
+                    : "border border-linha bg-bg hover:border-acento-texto"
                 }`}
               >
                 <span {...presetSwatchProps(m.amostra)} />
-                <span className="font-titulo">{m.nome}</span>
+                <span className="font-titulo text-base">{m.nome}</span>
+                {presetId === m.id && (
+                  <span className="ml-auto text-[0.75rem] uppercase tracking-rotulo text-acento-texto">
+                    selecionado
+                  </span>
+                )}
               </button>
             ))}
           </div>
-          <div className="flex flex-col gap-4">
-            <div className={identityPreviewClassName} style={previewVars}>
-              <div className="mb-2 h-1 w-12 rounded-pilula bg-acento" />
-              <p className="m-0 font-titulo text-xl text-acento-texto">
-                {resolvePackText(pack, "landing.exemplo.nome")}
-              </p>
-              <p className="mb-0 mt-2 text-sm text-ink-2">
-                Exemplo com tokens desta identidade
-              </p>
-            </div>
-            <p className="m-0 text-xs text-ink-3">
-              Preview ao vivo — o convidado vê isto com a mesma tipografia, cores e bordas.
+          <div className={`${identityPreviewClassName} rounded-superficie p-6`} style={previewVars}>
+            <div className="mb-3 h-1 w-10 rounded-pilula bg-acento" />
+            <p className="m-0 font-titulo text-2xl leading-tight text-acento-texto">
+              {title.trim() || resolvePackText(pack, "landing.exemplo.nome")}
+            </p>
+            <p className="mb-0 mt-2 text-[0.875rem] text-ink-2">
+              É assim que o convidado vai ver
             </p>
           </div>
         </div>
       )}
 
-      {step === 2 && (
+      {/* Passo 3 — missões */}
+      {step === 3 && (
         <MissionList
           pack={pack}
           checked={checkedMissions.size > 0 ? checkedMissions : new Set(initialMissions)}
@@ -300,48 +314,17 @@ export function CreateEventWizard() {
         />
       )}
 
-      {step === 3 && (
-        <>
-          <p className="m-0 text-[0.9375rem] leading-normal text-ink-2">
-            Marque os modelos que entram no rodízio da parede.
-          </p>
-          {wallProblems.length > 0 && (
-            <p className="m-0 text-sm text-critico">{wallProblems.join(" ")}</p>
-          )}
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2">
-            {WALL_DISPLAY_MODELS.map((model) => {
-              const selected = wallModels.has(model);
-              return (
-                <button
-                  key={model}
-                  type="button"
-                  onClick={() => {
-                    setWallModels((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(model)) next.delete(model);
-                      else next.add(model);
-                      return next;
-                    });
-                  }}
-                  className={`cursor-pointer rounded-token p-3 font-titulo text-sm transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                    selected
-                      ? "border-2 border-acento bg-superficie-alta"
-                      : "border border-linha bg-bg hover:border-acento-texto"
-                  }`}
-                >
-                  {model}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
-
+      {/* Passo 4 — confirmação */}
       {step === 4 && (
-        <p className="m-0 leading-relaxed text-ink-2">
-          Pronto para criar. Depois você baixa a placa com QR nos controles do evento — PDF
-          pronto para a gráfica.
-        </p>
+        <ConfirmSummary
+          packNome={OPTIONS.find((o) => o.id === packId)?.nome ?? ""}
+          title={title.trim() || resolvePackText(pack, "landing.exemplo.nome")}
+          starts={starts}
+          ends={ends}
+          guests={Number(expectedGuests)}
+          presetNome={preset.nome}
+          missionsCount={activeMissions.length}
+        />
       )}
 
       {status === "error" && (
@@ -381,13 +364,13 @@ export function CreateEventWizard() {
         ) : (
           <button
             type="button"
-            disabled={status === "creating" || !canAdvance}
+            disabled={status === "creating"}
             onClick={() => void create()}
             className={`${adminClasses.primaryButton} flex-1 py-3.5 text-[1.05rem] ${
               status === "creating" ? "opacity-60" : "opacity-100"
             }`}
           >
-            {status === "creating" ? "Criando…" : "Criar e abrir painel"}
+            {status === "creating" ? "Criando…" : "Criar evento"}
           </button>
         )}
       </div>
@@ -406,19 +389,91 @@ function MissionList({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      {pack.missoes.map((m) => (
-        <label
-          key={m.id}
-          className="flex cursor-pointer items-center gap-3 rounded-token border border-linha p-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta"
-        >
-          <input
-            type="checkbox"
-            checked={checked.has(m.chaveTitulo)}
-            onChange={() => onToggle(m.chaveTitulo)}
-          />
-          <span>{resolvePackText(pack, m.chaveTitulo)}</span>
-        </label>
-      ))}
+      {pack.missoes.map((m) => {
+        const isChecked = checked.has(m.chaveTitulo);
+        return (
+          <button
+            key={m.id}
+            type="button"
+            role="switch"
+            aria-checked={isChecked}
+            onClick={() => onToggle(m.chaveTitulo)}
+            className={`flex w-full cursor-pointer items-center justify-between gap-3 rounded-token border p-3 text-left transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+              isChecked
+                ? "border-acento bg-superficie-alta"
+                : "border-linha bg-bg opacity-60 hover:opacity-100"
+            }`}
+          >
+            <span className={`text-[0.9375rem] ${isChecked ? "text-ink" : "text-ink-2"}`}>
+              {resolvePackText(pack, m.chaveTitulo)}
+            </span>
+            <span
+              aria-hidden
+              className={`relative inline-flex h-6 w-11 shrink-0 rounded-pilula transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                isChecked ? "bg-acento" : "bg-linha"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-bg shadow-sm transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                  isChecked ? "translate-x-5" : "translate-x-0.5"
+                }`}
+              />
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function ConfirmSummary({
+  packNome,
+  title,
+  starts,
+  ends,
+  guests,
+  presetNome,
+  missionsCount,
+}: {
+  packNome: string;
+  title: string;
+  starts: string;
+  ends: string;
+  guests: number;
+  presetNome: string;
+  missionsCount: number;
+}) {
+  const fmt = (iso: string) =>
+    new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(iso));
+
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="m-0 text-[0.9375rem] text-ink-2">
+        Tudo certo — confirme os dados antes de criar.
+      </p>
+      <div className="flex flex-col gap-3 rounded-token border border-linha p-4">
+        <SummaryRow label="Tipo" value={packNome} />
+        <SummaryRow label="Nome" value={title} />
+        <SummaryRow label="Começo" value={fmt(starts)} />
+        <SummaryRow label="Fim" value={fmt(ends)} />
+        <SummaryRow label="Convidados" value={`~${guests} pessoas`} />
+        <SummaryRow label="Identidade" value={presetNome} />
+        <SummaryRow label="Missões" value={`${missionsCount} ativas`} />
+      </div>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4">
+      <span className="shrink-0 text-[0.75rem] uppercase tracking-rotulo text-ink-3">{label}</span>
+      <span className="text-right text-[0.9375rem] text-ink">{value}</span>
     </div>
   );
 }
@@ -461,7 +516,7 @@ function Result({ created }: { created: Created }) {
   };
 
   return (
-    <Shell title="Evento criado" step={4} total={5}>
+    <Shell title="Evento criado" step={STEPS.length - 1} total={STEPS.length}>
       <p className="m-0 leading-normal text-ink-2">
         Imprima o QR do link do convidado na mesa. Abra o telão numa TV do salão e pareie com o
         código que aparece nela.
@@ -508,7 +563,10 @@ function Link({ title, url }: { title: string; url: string }) {
     <div className="flex flex-col gap-1.5">
       <span className="text-[0.8rem] uppercase tracking-rotulo text-ink-3">{title}</span>
       <div className="flex items-center gap-2">
-        <a href={url} className="min-w-0 flex-1 break-all text-[0.95rem] text-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
+        <a
+          href={url}
+          className="min-w-0 flex-1 break-all text-[0.95rem] text-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
+        >
           {url}
         </a>
         <button
@@ -541,7 +599,7 @@ function Shell({
           {Array.from({ length: total }, (_, i) => (
             <span
               key={i}
-              className={`h-1 flex-1 rounded-pilula ${
+              className={`h-1 flex-1 rounded-pilula transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                 i <= step ? "bg-acento" : "bg-linha"
               }`}
             />
