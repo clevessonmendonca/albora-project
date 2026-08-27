@@ -21,6 +21,24 @@ function turnIndex(missions: readonly VisibleMission[]): number {
   return missions.length;
 }
 
+const ROMANOS = [
+  [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"],
+  [100, "C"], [90, "XC"], [50, "L"], [40, "XL"],
+  [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"],
+] as const;
+
+function toRoman(n: number): string {
+  let resto = n;
+  let resultado = "";
+  for (const [valor, simbolo] of ROMANOS) {
+    while (resto >= valor) {
+      resultado += simbolo;
+      resto -= valor;
+    }
+  }
+  return resultado;
+}
+
 function photoPathForMission(slug: string, missionId: string | null): string {
   const base = `/e/${encodeURIComponent(slug)}/photo`;
   if (!missionId) return base;
@@ -75,10 +93,10 @@ export function MissionsPage({
             <>
               <Link
                 href={photoPathForMission(slug, current.id)}
-                className="grid gap-3 rounded-token border border-acento-borda bg-acento-superficie-forte p-6 text-inherit no-underline"
+                className="grid gap-3 rounded-token border border-acento-borda bg-acento-superficie-forte p-6 text-inherit no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
               >
                 <span className="text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
-                  Missão de agora
+                  Missão {toRoman(turnIndex(missions))}
                 </span>
                 <span className="font-titulo text-[1.375rem] leading-[1.15] tracking-titulo">
                   {current.emoji ? `${current.emoji} ` : ""}{current.title}
@@ -91,11 +109,12 @@ export function MissionsPage({
                   Outras missões
                 </p>
                 <ul className="m-0 grid list-none gap-2 p-0">
-                  {missions.map((mission) => (
+                  {missions.map((mission, i) => (
                     <li key={mission.id}>
                       <MissionItem
                         slug={slug}
                         mission={mission}
+                        index={i + 1}
                         highlighted={mission.id === current.id}
                       />
                     </li>
@@ -147,7 +166,7 @@ function MissionsProgress({ done, total }: { done: number; total: number }) {
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-superficie-alta">
         <div
-          className="h-full rounded-full transition-all duration-700"
+          className="h-full rounded-full transition-all duration-700 ease-[var(--curva)]"
           style={{
             width: `${pct}%`,
             background: concluidas ? "var(--acento)" : "var(--ink-2)",
@@ -187,9 +206,9 @@ function CompletedList({
         Missões completadas
       </p>
       <ul className="m-0 grid list-none gap-2 p-0">
-        {missions.map((mission) => (
+        {missions.map((mission, i) => (
           <li key={mission.id}>
-            <MissionItem slug={slug} mission={mission} highlighted={false} />
+            <MissionItem slug={slug} mission={mission} index={i + 1} highlighted={false} />
           </li>
         ))}
       </ul>
@@ -200,10 +219,12 @@ function CompletedList({
 function MissionItem({
   slug,
   mission,
+  index,
   highlighted,
 }: {
   slug: string;
   mission: VisibleMission;
+  index: number;
   highlighted: boolean;
 }) {
   const icon = (
@@ -227,7 +248,7 @@ function MissionItem({
           {mission.emoji ? `${mission.emoji} ` : ""}{mission.title}
         </span>
         <span className="text-[0.75rem] text-ink-3">
-          {mission.done ? "Feita" : highlighted ? "Agora" : "Aberta"}
+          {mission.done ? "Feita" : `Missão ${toRoman(index)}`}
         </span>
       </span>
     </>

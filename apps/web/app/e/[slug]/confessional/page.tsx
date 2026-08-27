@@ -76,7 +76,7 @@ export default async function ConfessionalPage({ params }: Props) {
                   <li key={prompt.id}>
                     <Link
                       href={href}
-                      className="block rounded-token border border-linha bg-superficie px-5 py-4.5 text-inherit no-underline transition-colors duration-[var(--tempo-rapido)] hover:border-acento"
+                      className="block rounded-token border border-linha bg-superficie px-5 py-4.5 text-inherit no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento"
                     >
                       <span className="block font-titulo text-[1.125rem] font-light leading-[1.32]">
                         {label}
@@ -94,7 +94,7 @@ export default async function ConfessionalPage({ params }: Props) {
           <p className="mt-10 text-center">
             <Link
               href={`${base}/cover`}
-              className="font-titulo text-[0.8125rem] uppercase tracking-rotulo text-ink-2 no-underline transition-colors duration-[var(--tempo-rapido)] hover:text-acento"
+              className="font-titulo text-[0.8125rem] uppercase tracking-rotulo text-ink-2 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-acento"
             >
               Voltar à capa
             </Link>
