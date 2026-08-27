@@ -115,39 +115,48 @@ export function EventControls({
   return (
     <div className="flex flex-col gap-5">
       <AdminSection>
-        <p className="mb-4 mt-0 leading-relaxed text-ink-2">
-          Controles durante a festa. O pânico pausa o telão em segundos; marcar que há menores
-          torna a moderação mais rigorosa sem expor ninguém.
-        </p>
-
-        <button
-          type="button"
-          disabled={saving === "panic"}
-          onClick={() => void patch({ panico: !moderation.panic }, "panic")}
-          className={`${adminClasses.dangerButton} ${
-            moderation.panic ? "bg-ink-2" : "bg-critico"
-          } ${saving === "panic" ? "opacity-60" : ""}`}
-        >
-          {saving === "panic"
-            ? "Salvando…"
-            : moderation.panic
-              ? "Retomar telão"
-              : "Pausar telão"}
-        </button>
-
-        {moderation.panic && (
-          <p className="mb-0 mt-3 text-[0.9rem] text-critico">
-            O telão está pausado. Nenhuma foto nova aparece na parede.
-          </p>
-        )}
+        <div className="flex items-center justify-between gap-5">
+          <div>
+            <span
+              className={`block font-titulo text-[1.0625rem] ${
+                moderation.panic ? "text-critico" : "text-ink"
+              }`}
+            >
+              {moderation.panic ? "Telão pausado" : "Telão ativo"}
+            </span>
+            <span className="mt-1 block text-sm text-ink-3">
+              {moderation.panic
+                ? "Nenhuma foto nova aparece na parede."
+                : "Fotos aparecem no telão em tempo real."}
+            </span>
+          </div>
+          <button
+            type="button"
+            disabled={saving === "panic"}
+            onClick={() => void patch({ panico: !moderation.panic }, "panic")}
+            className={`shrink-0 cursor-pointer rounded-pilula border-none px-5 py-2.5 font-titulo text-[0.9375rem] text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 disabled:cursor-default disabled:opacity-50 ${
+              moderation.panic ? "bg-ink-2" : "bg-critico"
+            }`}
+          >
+            {saving === "panic"
+              ? "…"
+              : moderation.panic
+                ? "Retomar"
+                : "Pausar telão"}
+          </button>
+        </div>
       </AdminSection>
 
       <AdminSection>
-        <div className="flex items-center justify-between gap-4">
+        <h2 className="mb-4 mt-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
+          Proteções
+        </h2>
+
+        <div className="flex items-start justify-between gap-4">
           <div>
-            <span className="block font-titulo text-[1.0625rem]">Há menores nesta festa</span>
+            <span className="block font-titulo text-[1.0625rem]">Há menores</span>
             <span className="mt-1 block text-sm text-ink-3">
-              Uma denúncia já segura do telão. Compartilhar para fora nasce desligado.
+              Uma denúncia segura do telão. Compartilhar nasce desligado.
             </span>
           </div>
           {canManageCoupleOnly ? (
@@ -164,24 +173,28 @@ export function EventControls({
           )}
         </div>
 
-        <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-2">
-          <Effect
-            label="Para segurar"
-            value={`${defaults.denunciasParaSegurar} ${defaults.denunciasParaSegurar === 1 ? "denúncia" : "denúncias"}`}
-          />
-          <Effect
-            label="Compartilhar fora"
-            value={defaults.compartilhamentoExterno ? "ligado" : "desligado"}
-          />
-          <Effect
-            label="Gate"
-            value={gateOpen ? "aberto" : defaults.gateComecaFechado ? "fechado" : "aberto"}
-          />
-        </div>
-      </AdminSection>
+        {moderation.hasMinors && (
+          <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-2">
+            <Effect
+              label="Para segurar"
+              value={`${defaults.denunciasParaSegurar} ${
+                defaults.denunciasParaSegurar === 1 ? "denúncia" : "denúncias"
+              }`}
+            />
+            <Effect
+              label="Compartilhar fora"
+              value={defaults.compartilhamentoExterno ? "ligado" : "desligado"}
+            />
+            <Effect
+              label="Gate"
+              value={gateOpen ? "aberto" : defaults.gateComecaFechado ? "fechado" : "aberto"}
+            />
+          </div>
+        )}
 
-      <AdminSection>
-        <div className="flex items-center justify-between gap-4">
+        <div className="my-4 h-px bg-linha" />
+
+        <div className="flex items-start justify-between gap-4">
           <div>
             <span className="block font-titulo text-[1.0625rem]">Modo endurecido</span>
             <span className="mt-1 block text-sm text-ink-3">
@@ -270,10 +283,6 @@ export function EventControls({
 
       <AdminSection>
         <h2 className="mb-3 mt-0 font-titulo text-lg">Moderação e convidados</h2>
-        <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
-          A fila de revisão e o funil de participação têm páginas próprias — números agregados,
-          sem lista nominal.
-        </p>
         <div className="flex flex-wrap gap-3">
           <Link href={`/admin/e/${eventId}/moderation`} className={adminClasses.primaryButton}>
             Abrir moderação
@@ -355,14 +364,16 @@ export function EventControls({
 
       <AdminSection>
         <h2 className="mb-4 mt-0 font-titulo text-lg">Links do evento</h2>
-        <EventLink title="Link do convidado" url={eventEntryUrl(origin, slug, "link")} />
-        <EventLink title="WhatsApp" url={whatsappInviteUrl(origin, slug)} />
-        <EventLink title="Telão" url={`${origin}/wall-display`} />
+        <div className="flex flex-col gap-3">
+          <EventLink title="Convidado" url={eventEntryUrl(origin, slug, "link")} />
+          <EventLink title="WhatsApp" url={whatsappInviteUrl(origin, slug)} />
+          <EventLink title="Telão" url={`${origin}/wall-display`} />
+        </div>
         <a
           href={eventEntryUrl(origin, slug, "link")}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-1 flex min-h-10 items-center justify-center rounded-pilula border border-linha bg-transparent px-4 text-center text-[0.875rem] text-ink no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
+          className="mt-4 flex min-h-10 items-center justify-center rounded-pilula border border-linha bg-transparent px-4 text-center text-[0.875rem] text-ink-2 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink"
         >
           Testar como convidado ↗
         </a>
@@ -395,7 +406,7 @@ function EventLink({ title, url }: { title: string; url: string }) {
   };
 
   return (
-    <div className="mb-4">
+    <div>
       <span className="block text-xs uppercase tracking-rotulo text-ink-3">{title}</span>
       <div className="mt-1 flex items-center gap-2">
         <a href={url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-[0.875rem] text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">

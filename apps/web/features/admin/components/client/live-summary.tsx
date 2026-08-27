@@ -82,7 +82,15 @@ export function LiveSummary({ eventoId }: Props) {
   if (erro && !resumo) {
     return (
       <AdminSection>
-        <p className="m-0 text-critico">Não foi possível carregar o painel agora. Tente recarregar a página.</p>
+        <div className="flex items-start gap-3">
+          <span className="mt-0.5 shrink-0 text-critico">⚠</span>
+          <div>
+            <p className="m-0 text-[0.9375rem] text-ink">Painel indisponível agora.</p>
+            <p className="m-0 mt-1 text-[0.875rem] text-ink-3">
+              Recarregue a página para tentar de novo.
+            </p>
+          </div>
+        </div>
       </AdminSection>
     );
   }
@@ -90,7 +98,16 @@ export function LiveSummary({ eventoId }: Props) {
   if (!resumo) {
     return (
       <AdminSection>
-        <p className="m-0 text-ink-2">Carregando painel…</p>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <div className="h-6 w-16 animate-pulse rounded-token bg-superficie-alta" />
+          <div className="h-6 w-20 animate-pulse rounded-pilula bg-superficie-alta" />
+        </div>
+        <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
+          {[0, 1, 2, 3].map((i) => (
+            <div key={i} className="h-[4.5rem] animate-pulse rounded-token bg-superficie-alta" />
+          ))}
+        </div>
+        <div className="h-1.5 animate-pulse rounded-full bg-superficie-alta" />
       </AdminSection>
     );
   }
@@ -139,7 +156,11 @@ export function LiveSummary({ eventoId }: Props) {
           rotulo="convidados com foto"
         />
         <Stat n={String(resumo.totalFotos)} rotulo="fotos enviadas" />
-        <Stat n={String(resumo.filaRevisao)} rotulo="na fila de revisão" />
+        <Stat
+          n={String(resumo.filaRevisao)}
+          rotulo="na fila de revisão"
+          {...(resumo.filaRevisao > 0 ? { destaqueClass: "text-critico" } : {})}
+        />
       </div>
 
       <div className="mb-3">
@@ -147,9 +168,9 @@ export function LiveSummary({ eventoId }: Props) {
           <span>
             {resumo.sessoesComUpload} de {resumo.expectedGuests} convidados fotografaram
           </span>
-          <span className={pct >= 40 ? destaqueClass : ""}>meta H1: 40%</span>
+          <span className={pct >= 40 ? destaqueClass : "text-ink-3"}>meta: 40%</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-superficie-alta">
+        <div className="relative h-1.5 overflow-hidden rounded-full bg-superficie-alta">
           <div
             className="h-full rounded-full transition-all duration-700"
             style={{
@@ -162,6 +183,11 @@ export function LiveSummary({ eventoId }: Props) {
                     : "var(--critico)",
             }}
           />
+          <div
+            aria-hidden
+            className="absolute inset-y-0 w-px bg-bg/60"
+            style={{ left: "40%" }}
+          />
         </div>
       </div>
 
@@ -169,17 +195,30 @@ export function LiveSummary({ eventoId }: Props) {
 
       {resumo.ultimas.length > 0 && (
         <>
-          <p className="mb-2 mt-0 text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
-            Chegando agora
-          </p>
-          <div className="grid grid-cols-4 gap-1.5">
-            {resumo.ultimas.map((f) => (
+          <div className="mb-2 mt-0 flex items-center gap-2">
+            <span className="text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
+              Chegando agora
+            </span>
+            <span className="h-px flex-1 bg-linha" />
+          </div>
+          <div
+            className="grid gap-1.5"
+            style={{
+              gridTemplateColumns: `repeat(${Math.min(resumo.ultimas.length, 6)}, 1fr)`,
+            }}
+          >
+            {resumo.ultimas.slice(0, 6).map((f) => (
               <span
                 key={f.id}
                 className="relative aspect-[3/4] overflow-hidden rounded-token bg-superficie-alta"
               >
-                {/* URL assinada */}
-                <img src={f.thumb} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
+                <img
+                  src={f.thumb}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="size-full object-cover"
+                />
               </span>
             ))}
           </div>
