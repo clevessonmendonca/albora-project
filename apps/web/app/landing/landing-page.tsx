@@ -95,7 +95,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
         </LandingCtaLink>
       </header>
 
-      <HeroSection pack={pack} t={t} live={live} />
+      <HeroSection pack={pack} t={t} {...(live !== undefined ? { live } : {})} />
       <NoAppSection pack={pack} t={t} />
       <ScrollDemoSection
         example={example}
