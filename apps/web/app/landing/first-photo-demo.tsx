@@ -185,7 +185,7 @@ export function FirstPhotoDemo({ packHint }: { packHint?: string }) {
               value={name}
               onChange={(ev) => setName(ev.target.value)}
               placeholder="Ex.: Ana"
-              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-ink outline-none"
+              className="rounded-token border border-linha bg-bg px-3.5 py-3 text-ink outline-none focus:border-acento"
               style={transition("border-color", "var(--tempo-rapido)")}
             />
             <p className="m-0 text-[0.75rem] leading-[1.4] text-ink-3">
@@ -198,7 +198,7 @@ export function FirstPhotoDemo({ packHint }: { packHint?: string }) {
             >
               Entrar na festa
             </button>
-            <button type="button" onClick={goBack} className="text-[0.75rem] text-ink-3 underline">
+            <button type="button" onClick={goBack} className="text-[0.75rem] text-ink-3 underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink">
               Voltar ao QR
             </button>
           </form>
@@ -221,13 +221,13 @@ export function FirstPhotoDemo({ packHint }: { packHint?: string }) {
               onChange={handleFile}
               className="sr-only"
             />
-            <button type="button" onClick={handleSkipPhoto} className="text-[0.75rem] text-ink-3 underline">
+            <button type="button" onClick={handleSkipPhoto} className="text-[0.75rem] text-ink-3 underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink">
               Prefiro só simular
             </button>
             <p className="m-0 text-[0.6875rem] leading-[1.4] text-ink-3">
               Essa foto fica só no seu navegador. É uma demonstração — nada é enviado a lugar nenhum.
             </p>
-            <button type="button" onClick={goBack} className="text-[0.75rem] text-ink-3 underline">
+            <button type="button" onClick={goBack} className="text-[0.75rem] text-ink-3 underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink">
               Voltar
             </button>
           </div>
