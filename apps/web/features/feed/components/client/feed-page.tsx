@@ -562,14 +562,6 @@ function Rodape({
   );
 }
 
-function Recado({ texto }: { texto: string }) {
-  return (
-    <p className="mt-[calc(var(--espaco)*6)] text-center text-[0.9rem] leading-relaxed text-ink-2">
-      {texto}
-    </p>
-  );
-}
-
 function GateAbertoOverlay({
   onFechar,
   cameraPath,
