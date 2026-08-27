@@ -256,7 +256,7 @@ export function CreateEventWizard() {
                 className={`flex cursor-pointer items-center gap-3 rounded-token p-3 text-left ${
                   presetId === m.id
                     ? "border-2 border-acento bg-superficie-alta"
-                    : "border border-linha bg-bg"
+                    : "border border-linha bg-bg hover:border-acento-texto transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]"
                 }`}
               >
                 <span {...presetSwatchProps(m.amostra)} />
@@ -322,10 +322,10 @@ export function CreateEventWizard() {
                       return next;
                     });
                   }}
-                  className={`cursor-pointer rounded-token p-3 font-titulo text-sm ${
+                  className={`cursor-pointer rounded-token p-3 font-titulo text-sm transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                     selected
                       ? "border-2 border-acento bg-superficie-alta"
-                      : "border border-linha bg-bg"
+                      : "border border-linha bg-bg hover:border-acento-texto"
                   }`}
                 >
                   {model}
