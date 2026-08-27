@@ -1,7 +1,6 @@
 import { PACKS, resolvePackText } from "@albora/packs";
 import { withEvent, eventPack } from "@albora/db";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
 import { guestSession, isSameEventSession } from "@/features/guest/data/guest-session";
 import { EventNotice } from "@/features/guest/components/client/event-notice";
