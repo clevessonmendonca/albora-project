@@ -35,7 +35,7 @@ export function EventNav({ eventId }: { eventId: string }) {
               "rounded-pilula px-4 py-2 font-titulo text-sm no-underline",
               active
                 ? "bg-acento text-sobre-acento"
-                : "border border-linha bg-superficie text-ink",
+                : "border border-linha bg-superficie text-ink hover:bg-superficie-alta transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
             ].join(" ")}
           >
             {label}
