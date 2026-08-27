@@ -522,7 +522,11 @@ function Rodape({
 
   if (estado.falha === "sessao") {
     return (
-      <Recado texto="Sua entrada expirou. Escaneie o QR da mesa de novo para continuar vendo as fotos." />
+      <p className="mt-[calc(var(--espaco)*6)] text-center text-[0.9rem] leading-relaxed text-ink-2">
+        Sua entrada expirou.{" "}
+        <a href="/scan" className="text-acento underline">Escaneie o QR da mesa</a>{" "}
+        de novo para continuar.
+      </p>
     );
   }
 
