@@ -322,7 +322,7 @@ export function Viewer({
                 disabled={removendo}
                 onClick={onRemover}
                 className={cn(
-                  "grid size-12 place-items-center rounded-full border border-linha bg-transparent font-inherit text-[1.1rem] text-ink",
+                  "grid size-12 place-items-center rounded-full border border-linha bg-transparent font-inherit text-[1.1rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento hover:text-acento",
                   CLASSE_SOMBRA_TEXTO,
                   removendo ? "cursor-wait" : "cursor-pointer",
                 )}
@@ -334,7 +334,7 @@ export function Viewer({
               type="button"
               onClick={onSair}
               className={cn(
-                "min-h-12 min-w-12 rounded-pilula border border-linha bg-transparent px-[1.1rem] font-inherit text-[0.9rem] text-ink cursor-pointer",
+                "min-h-12 min-w-12 cursor-pointer rounded-pilula border border-linha bg-transparent px-[1.1rem] font-inherit text-[0.9rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto",
                 CLASSE_SOMBRA_TEXTO,
               )}
             >
@@ -372,7 +372,7 @@ export function Viewer({
                 <button
                   type="button"
                   onClick={() => onVerAutor(atual.sessaoAutor!)}
-                  className="border-none bg-transparent p-0 font-inherit text-inherit underline cursor-pointer"
+                  className="cursor-pointer border-none bg-transparent p-0 font-inherit text-inherit underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
                 >
                   {atual.autor}
                 </button>
@@ -405,7 +405,7 @@ export function Viewer({
             tela não otimiza tempo de tela, ela devolve a pessoa para a câmera. */}
         <a
           href={cameraPath}
-          className="grid min-h-13.5 place-items-center rounded-pilula bg-acento px-[2.1rem] text-[1.02rem] font-medium tracking-rotulo text-sobre-acento no-underline"
+          className="grid min-h-13.5 place-items-center rounded-pilula bg-acento px-[2.1rem] text-[1.02rem] font-medium tracking-rotulo text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80"
         >
           Tirar foto
         </a>

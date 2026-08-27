@@ -70,7 +70,7 @@ export function RecapSheet({
           type="button"
           onClick={onFechar}
           aria-label="Fechar recap"
-          className="min-h-11 min-w-11 cursor-pointer rounded-pilula border border-linha bg-transparent px-4 text-[0.9rem] text-ink"
+          className="min-h-11 min-w-11 cursor-pointer rounded-pilula border border-linha bg-transparent px-4 text-[0.9rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
         >
           Fechar
         </button>

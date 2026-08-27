@@ -82,7 +82,7 @@ export function GuestbookAudioField({
               recorder.descartar();
               if (!recorder.pending && saved) onRemoveSaved();
             }}
-            className="cursor-pointer border-0 bg-transparent p-0 font-corpo text-sm text-ink-3"
+            className="cursor-pointer border-0 bg-transparent p-0 font-corpo text-sm text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
           >
             Remover áudio
           </button>
