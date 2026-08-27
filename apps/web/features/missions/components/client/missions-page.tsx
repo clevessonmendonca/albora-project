@@ -236,7 +236,7 @@ function MissionItem({
   }
 
   return (
-    <Link href={photoPathForMission(slug, mission.id)} className={`${shellClass} text-inherit no-underline`}>
+    <Link href={photoPathForMission(slug, mission.id)} className={`${shellClass} text-inherit no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta`}>
       {body}
     </Link>
   );

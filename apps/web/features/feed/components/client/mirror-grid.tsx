@@ -70,7 +70,7 @@ export function MirrorGrid({
       {cameraPath && (
         <a
           href={cameraPath}
-          className="flex min-h-12 items-center justify-center rounded-pilula bg-acento px-6 text-[0.9375rem] font-medium text-sobre-acento no-underline"
+          className="flex min-h-12 items-center justify-center rounded-pilula bg-acento px-6 text-[0.9375rem] font-medium text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80"
         >
           Tirar foto
         </a>

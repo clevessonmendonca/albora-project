@@ -66,12 +66,12 @@ export function ScanPage() {
                 autoCapitalize="none"
                 spellCheck={false}
                 aria-label="Código ou link da festa"
-                className="min-h-[52px] w-full rounded-pilula border border-linha bg-bg px-3.5 text-base text-ink"
+                className="min-h-[52px] w-full rounded-pilula border border-linha bg-bg px-3.5 text-base text-ink outline-none focus:border-acento"
               />
               <button
                 type="submit"
                 disabled={qr.codigo.trim().length === 0}
-                className="min-h-[52px] cursor-pointer rounded-pilula border-none bg-acento font-[inherit] font-semibold text-sobre-acento disabled:cursor-default disabled:opacity-45"
+                className="min-h-[52px] cursor-pointer rounded-pilula border-none bg-acento font-[inherit] font-semibold text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 disabled:cursor-default disabled:opacity-45"
               >
                 Entrar
               </button>
@@ -85,7 +85,7 @@ export function ScanPage() {
             <button
               type="button"
               onClick={() => setShowLinkForm(true)}
-              className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2"
+              className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
             >
               Já tenho o link
             </button>
@@ -98,7 +98,7 @@ export function ScanPage() {
                 setShowLinkForm(false);
                 qr.setEscaneando(true);
               }}
-              className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2"
+              className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
             >
               Escanear o QR
             </button>
@@ -108,7 +108,7 @@ export function ScanPage() {
             <button
               type="button"
               onClick={() => qr.setEscaneando(false)}
-              className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2"
+              className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
             >
               Cancelar
             </button>
