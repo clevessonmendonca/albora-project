@@ -459,7 +459,7 @@ function FilterTab({
         "[transition:color_var(--tempo-rapido)_var(--curva)]",
         active
           ? "border-b border-b-acento text-ink"
-          : "border-b border-b-transparent text-ink-3",
+          : "border-b border-b-transparent text-ink-3 hover:text-ink-2",
       )}
     >
       {children}

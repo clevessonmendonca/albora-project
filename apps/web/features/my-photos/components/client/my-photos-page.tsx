@@ -273,7 +273,7 @@ export function MyPhotosPage({
                       aria-label="Remover esta foto"
                       disabled={galeria.removendoId === item.id}
                       onClick={() => void galeria.remover(item)}
-                      className="absolute right-1 top-1 z-[1] grid min-h-7 min-w-7 cursor-pointer place-items-center rounded-full border-0 bg-bg-vidro-opaco p-0 text-xs text-ink-2 disabled:cursor-wait"
+                      className="absolute right-1 top-1 z-[1] grid min-h-7 min-w-7 cursor-pointer place-items-center rounded-full border-0 bg-bg-vidro-opaco p-0 text-xs text-ink-2 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80 disabled:cursor-wait"
                     >
                       ×
                     </button>
@@ -283,7 +283,7 @@ export function MyPhotosPage({
                       type="button"
                       aria-label={isVideo ? "Abrir este vídeo" : "Abrir esta foto"}
                       onClick={() => abrirEnviada(item.id)}
-                      className="size-full cursor-pointer overflow-hidden rounded-token border-0 bg-transparent p-0"
+                      className="size-full cursor-pointer overflow-hidden rounded-token border-0 bg-transparent p-0 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
                     >
                       <div className="relative size-full border border-linha bg-superficie">
                         <MiniaturaMinhas

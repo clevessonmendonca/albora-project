@@ -193,13 +193,13 @@ export function CoverPage({
         <p className="m-0 px-[1.125rem] pb-2 text-center text-[0.75rem] text-ink-3">
           {hasConfessional && (
             <>
-              <Link href={`${base}/confessional`} className="text-ink-2 underline">
+              <Link href={`${base}/confessional`} className="text-ink-2 underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70">
                 Confessionário
               </Link>
               {" · "}
             </>
           )}
-          <Link href="/wall-pair" className="text-ink-2 underline">
+          <Link href="/wall-pair" className="text-ink-2 underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70">
             Ligar telão
           </Link>
         </p>
@@ -208,7 +208,7 @@ export function CoverPage({
           <div className="flex min-h-0 flex-1 flex-col">
             <div className="flex items-baseline justify-between px-[1.125rem] pb-3">
               <span className="font-titulo text-base">Os momentos</span>
-              <Link href={`${base}/album`} className="text-[0.6875rem] text-ink-3 no-underline">
+              <Link href={`${base}/album`} className="text-[0.6875rem] text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink-2">
                 ver álbum
               </Link>
             </div>
@@ -224,7 +224,7 @@ export function CoverPage({
                   <Link
                     key={moment.id}
                     href={hrefAlbum}
-                    className={`relative aspect-[9/16] shrink-0 snap-center overflow-hidden rounded-token text-inherit no-underline ${
+                    className={`relative aspect-[9/16] shrink-0 snap-center overflow-hidden rounded-token text-inherit no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 ${
                       central ? "w-[9.25rem]" : "w-20 opacity-60"
                     }`}
                   >

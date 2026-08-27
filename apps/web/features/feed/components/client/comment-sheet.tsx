@@ -5,7 +5,7 @@ import { MoreIcon, SecondaryButton, BottomSheet } from "@albora/ui-web";
 import type { ComentarioVisivel, CommentsController } from "@/features/feed/hooks/use-comments";
 
 const CLASSE_ACAO_SECUNDARIA =
-  "cursor-pointer border-none bg-transparent p-0 font-inherit text-[0.75rem] uppercase tracking-[0.06em] text-ink-3";
+  "cursor-pointer border-none bg-transparent p-0 font-inherit text-[0.75rem] uppercase tracking-[0.06em] text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink";
 
 const CLASSE_ITEM_MENU =
   "block w-full cursor-pointer border-none bg-transparent px-3.5 py-2.5 text-left font-inherit text-[0.85rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta";
@@ -90,7 +90,7 @@ function Composer({
           <button
             type="button"
             onClick={comentarios.cancelarResposta}
-            className="cursor-pointer border-none bg-transparent p-0 font-inherit text-acento"
+            className="cursor-pointer border-none bg-transparent p-0 font-inherit text-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
           >
             Cancelar
           </button>
@@ -152,7 +152,7 @@ function LinhaComentario({
       <button
         type="button"
         onClick={() => onVerAutor(comentario.sessaoAutor)}
-        className="border-none bg-transparent p-0 font-inherit text-ink underline cursor-pointer"
+        className="cursor-pointer border-none bg-transparent p-0 font-inherit text-ink underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
       >
         {comentario.autor}
       </button>
