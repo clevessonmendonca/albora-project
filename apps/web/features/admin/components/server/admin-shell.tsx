@@ -33,7 +33,7 @@ export function AdminShell({ title, subtitle, back, children }: AdminShellProps)
           {back && (
             <Link
               href={back.href}
-              className="mb-3.5 inline-block text-sm tracking-[0.01em] text-ink-3 no-underline"
+              className="mb-3.5 inline-block text-sm tracking-[0.01em] text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
             >
               ← {back.label}
             </Link>
@@ -87,5 +87,5 @@ export const adminClasses = {
     "inline-block w-auto cursor-pointer border-none bg-critico px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-sobre-acento rounded-pilula transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80",
   secondaryButton:
     "inline-block cursor-pointer border border-linha bg-superficie-alta px-[1.4rem] py-3 font-titulo text-base text-ink no-underline rounded-pilula transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto",
-  listLink: "block border-b border-linha py-4 text-ink no-underline",
+  listLink: "block border-b border-linha py-4 text-ink no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-acento-texto",
 } as const;
