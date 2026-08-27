@@ -117,7 +117,7 @@ export function RecapSheet({
         {ultimaTela && refToken && (
           <p className="m-0 text-center text-[0.8rem] leading-normal text-ink-2">
             Curtiu o álbum? Depois da sua festa você também pode ter um.{" "}
-            <a href={`/?ref=${encodeURIComponent(refToken)}`} className="text-ink underline">
+            <a href={`/?ref=${encodeURIComponent(refToken)}`} className="text-ink underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70">
               Conhecer a Albora
             </a>
           </p>
