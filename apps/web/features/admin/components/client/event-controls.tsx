@@ -362,7 +362,7 @@ export function EventControls({
           href={eventEntryUrl(origin, slug, "link")}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-1 flex min-h-10 items-center justify-center rounded-pilula border border-linha bg-transparent px-4 text-center text-[0.875rem] text-ink no-underline"
+          className="mt-1 flex min-h-10 items-center justify-center rounded-pilula border border-linha bg-transparent px-4 text-center text-[0.875rem] text-ink no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
         >
           Testar como convidado ↗
         </a>
@@ -398,13 +398,13 @@ function EventLink({ title, url }: { title: string; url: string }) {
     <div className="mb-4">
       <span className="block text-xs uppercase tracking-rotulo text-ink-3">{title}</span>
       <div className="mt-1 flex items-center gap-2">
-        <a href={url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-[0.875rem] text-acento no-underline">
+        <a href={url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-[0.875rem] text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
           {url}
         </a>
         <button
           type="button"
           onClick={copiar}
-          className="shrink-0 cursor-pointer rounded-pilula border border-linha bg-superficie-alta px-3 py-1 font-titulo text-[0.75rem] text-ink transition-colors"
+          className="shrink-0 cursor-pointer rounded-pilula border border-linha bg-superficie-alta px-3 py-1 font-titulo text-[0.75rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink-2"
         >
           {copiado ? "Copiado!" : "Copiar"}
         </button>
