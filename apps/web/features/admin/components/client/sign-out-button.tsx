@@ -17,7 +17,7 @@ export function SignOutButton() {
       type="button"
       onClick={signOut}
       disabled={signingOut}
-      className="cursor-pointer rounded-pilula border border-linha bg-transparent px-[1.1rem] py-2.5 text-[0.95rem] text-ink-2 disabled:cursor-default"
+      className="cursor-pointer rounded-pilula border border-linha bg-transparent px-[1.1rem] py-2.5 text-[0.95rem] text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto disabled:cursor-default"
     >
       {signingOut ? "Saindo…" : "Sair"}
     </button>

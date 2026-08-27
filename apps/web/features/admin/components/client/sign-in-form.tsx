@@ -94,13 +94,13 @@ function RequestLink({ next }: { next: string | null }) {
           autoCorrect="off"
           spellCheck={false}
           aria-label="Seu e-mail"
-          className="rounded-token border border-linha bg-bg px-4 py-3.5 text-base text-ink"
+          className="rounded-token border border-linha bg-bg px-4 py-3.5 text-base text-ink outline-none focus:border-acento"
         />
         {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Não conseguimos enviar agora. Por favor, tente novamente.</p>}
         <button
           type="submit"
           disabled={!valid || status === "sending"}
-          className={`cursor-pointer rounded-pilula border-none bg-acento px-4 py-3.5 font-titulo text-[1.05rem] text-sobre-acento ${
+          className={`cursor-pointer rounded-pilula border-none bg-acento px-4 py-3.5 font-titulo text-[1.05rem] text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 disabled:cursor-default ${
             valid && status !== "sending" ? "opacity-100" : "opacity-50"
           }`}
         >
@@ -142,7 +142,7 @@ function Confirm({ token, next }: { token: string; next: string | null }) {
         type="button"
         onClick={() => void signIn()}
         disabled={status === "signingIn"}
-        className={`cursor-pointer rounded-pilula border-none bg-acento px-4 py-3.5 font-titulo text-[1.05rem] text-sobre-acento ${
+        className={`cursor-pointer rounded-pilula border-none bg-acento px-4 py-3.5 font-titulo text-[1.05rem] text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 disabled:cursor-default ${
           status === "signingIn" ? "opacity-50" : "opacity-100"
         }`}
       >
