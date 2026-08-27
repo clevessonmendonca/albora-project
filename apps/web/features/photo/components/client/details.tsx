@@ -19,7 +19,7 @@ const CLASSE_ROTULO =
   "font-titulo text-[0.7rem] font-normal uppercase tracking-[0.28em] text-ink-3";
 
 const CLASSE_LUGAR =
-  "min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent px-[1.15rem] font-titulo text-[0.9rem] font-normal text-ink-2 transition-[color,border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-acento focus-visible:outline-offset-[5px] motion-reduce:transition-none";
+  "min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent px-[1.15rem] font-titulo text-[0.9rem] font-normal text-ink-2 transition-[color,border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink focus-visible:outline focus-visible:outline-1 focus-visible:outline-acento focus-visible:outline-offset-[5px] motion-reduce:transition-none";
 
 export function Details({
   places,
@@ -91,14 +91,14 @@ export function Details({
       <div className="grid shrink-0 gap-2">
         <button
           type="button"
-          className="min-h-14 cursor-pointer rounded-pilula border-0 bg-ink px-6 text-[0.97rem] font-medium tracking-rotulo text-bg transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] active:scale-[0.97] focus-visible:outline focus-visible:outline-1 focus-visible:outline-acento focus-visible:outline-offset-[5px] motion-reduce:transition-none motion-reduce:active:scale-100"
+          className="min-h-14 cursor-pointer rounded-pilula border-0 bg-ink px-6 text-[0.97rem] font-medium tracking-rotulo text-bg transition-[transform,opacity] duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:scale-[0.97] focus-visible:outline focus-visible:outline-1 focus-visible:outline-acento focus-visible:outline-offset-[5px] motion-reduce:transition-none motion-reduce:active:scale-100"
           onClick={concluir}
         >
           Pronto
         </button>
         <button
           type="button"
-          className="min-h-12 cursor-pointer border-0 bg-transparent font-titulo text-[0.7rem] font-normal uppercase tracking-[0.22em] text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] focus-visible:outline focus-visible:outline-1 focus-visible:outline-acento focus-visible:outline-offset-[5px] motion-reduce:transition-none"
+          className="min-h-12 cursor-pointer border-0 bg-transparent font-titulo text-[0.7rem] font-normal uppercase tracking-[0.22em] text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink-2 focus-visible:outline focus-visible:outline-1 focus-visible:outline-acento focus-visible:outline-offset-[5px] motion-reduce:transition-none"
           onClick={concluir}
         >
           Pular
