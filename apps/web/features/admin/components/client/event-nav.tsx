@@ -8,7 +8,7 @@ const SECTIONS = [
   { label: "Insights", suffix: "/insights" },
   { label: "Convidados", suffix: "/guests" },
   { label: "Moderação", suffix: "/moderation" },
-  { label: "O álbum", suffix: "/album" },
+  { label: "Álbum", suffix: "/album" },
   { label: "Missões", suffix: "/missions" },
   { label: "Identidade", suffix: "/identity" },
   { label: "Recado", suffix: "/guestbook" },
@@ -20,29 +20,34 @@ export function EventNav({ eventId }: { eventId: string }) {
   const base = `/admin/e/${eventId}`;
 
   return (
-    <nav className="mb-6 flex flex-wrap gap-2" aria-label="Seções do evento">
-      {SECTIONS.map(({ label, suffix }) => {
-        const href = `${base}${suffix}`;
-        const active =
-          suffix === ""
-            ? pathname === base || pathname === `${base}/`
-            : pathname.startsWith(href);
+    <nav
+      className="mb-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      aria-label="Seções do evento"
+    >
+      <div className="flex gap-1.5 pb-px">
+        {SECTIONS.map(({ label, suffix }) => {
+          const href = `${base}${suffix}`;
+          const active =
+            suffix === ""
+              ? pathname === base || pathname === `${base}/`
+              : pathname.startsWith(href);
 
-        return (
-          <Link
-            key={href}
-            href={href}
-            className={[
-              "rounded-pilula px-4 py-2 font-titulo text-sm no-underline",
-              active
-                ? "bg-acento text-sobre-acento"
-                : "border border-linha bg-superficie text-ink hover:bg-superficie-alta transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
-            ].join(" ")}
-          >
-            {label}
-          </Link>
-        );
-      })}
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={[
+                "shrink-0 rounded-pilula px-3.5 py-1.5 font-titulo text-sm no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
+                active
+                  ? "bg-acento text-sobre-acento"
+                  : "border border-linha bg-superficie text-ink hover:bg-superficie-alta",
+              ].join(" ")}
+            >
+              {label}
+            </Link>
+          );
+        })}
+      </div>
     </nav>
   );
 }

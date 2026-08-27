@@ -61,11 +61,24 @@ function RequestLink({ next }: { next: string | null }) {
   if (status === "sent") {
     return (
       <Card title="Verifique seu e-mail">
-        <p className="m-0 leading-relaxed text-ink-2">
-          Se houver uma conta associada, o link de acesso já está a caminho.
-        </p>
+        <div className="flex items-start gap-3.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-acento text-sobre-acento">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
+              <path
+                d="M2.5 8l3.5 3.5L12.5 4"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <p className="m-0 leading-relaxed text-ink-2">
+            Se houver uma conta associada, o link de acesso já está a caminho.
+          </p>
+        </div>
         {devLink && (
-          <a href={devLink} className="break-all text-acento">
+          <a href={devLink} className="break-all text-[0.85rem] text-acento">
             Abrir link (dev)
           </a>
         )}
@@ -92,18 +105,27 @@ function RequestLink({ next }: { next: string | null }) {
           void request();
         }}
       >
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="voce@exemplo.com"
-          autoCapitalize="off"
-          autoCorrect="off"
-          spellCheck={false}
-          aria-label="Seu e-mail"
-          className="rounded-token border border-linha bg-bg px-4 py-3.5 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
-        />
-        {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Não conseguimos enviar agora. Por favor, tente novamente.</p>}
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[0.8rem] uppercase tracking-rotulo text-ink-3" htmlFor="email-input">
+            Seu e-mail
+          </label>
+          <input
+            id="email-input"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="voce@exemplo.com"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+            className="rounded-token border border-linha bg-bg px-4 py-3.5 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+          />
+        </div>
+        {status === "error" && (
+          <p className="m-0 text-[0.875rem] text-critico">
+            Não conseguimos enviar agora. Por favor, tente novamente.
+          </p>
+        )}
         <button
           type="submit"
           disabled={!valid || status === "sending"}
@@ -145,7 +167,7 @@ function Confirm({ token, next }: { token: string; next: string | null }) {
         Toque abaixo para confirmar e entrar no seu painel.
       </p>
       {status === "error" && (
-        <p className="m-0 text-[0.9rem] text-critico">
+        <p className="m-0 text-[0.875rem] text-critico">
           Este link está inválido ou expirou.{" "}
           <a href="/admin/sign-in" className="underline">
             Solicite um novo link.
@@ -160,7 +182,7 @@ function Confirm({ token, next }: { token: string; next: string | null }) {
           status === "signingIn" ? "opacity-50" : "opacity-100"
         }`}
       >
-        {status === "signingIn" ? "Entrando…" : "Entrar"}
+        {status === "signingIn" ? "Entrando…" : "Entrar no painel"}
       </button>
     </Card>
   );
@@ -169,9 +191,12 @@ function Confirm({ token, next }: { token: string; next: string | null }) {
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <main className="fixed inset-0 grid place-items-center bg-bg p-6 font-corpo text-ink">
-      <div className="flex w-full max-w-[26rem] flex-col gap-6 rounded-superficie bg-superficie p-9">
-        <h1 className="m-0 font-titulo text-2xl font-light tracking-titulo">{title}</h1>
-        {children}
+      <div className="flex w-full max-w-[26rem] flex-col overflow-hidden rounded-superficie bg-superficie shadow-alta">
+        <div className="h-[3px] bg-acento" />
+        <div className="flex flex-col gap-6 px-9 py-9">
+          <h1 className="m-0 font-titulo text-2xl font-light tracking-titulo">{title}</h1>
+          {children}
+        </div>
       </div>
     </main>
   );
