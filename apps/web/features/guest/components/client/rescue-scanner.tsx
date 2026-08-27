@@ -137,7 +137,10 @@ const ESTILO = `
   background: var(--ink);
   color: var(--bg);
   cursor: pointer;
-  transition: transform var(--tempo-rapido) var(--curva);
+  transition: transform var(--tempo-rapido) var(--curva), opacity var(--tempo-rapido) var(--curva);
+}
+.resgate-primario:hover:not(:disabled) {
+  opacity: 0.88;
 }
 .resgate-primario:disabled {
   opacity: 0.4;
@@ -158,7 +161,10 @@ const ESTILO = `
   border: 1px solid var(--linha);
   border-radius: var(--raio-pilula);
   cursor: pointer;
-  transition: transform var(--tempo-rapido) var(--curva);
+  transition: transform var(--tempo-rapido) var(--curva), opacity var(--tempo-rapido) var(--curva);
+}
+.resgate-fino:hover {
+  opacity: 0.75;
 }
 .resgate-fino:active {
   transform: scale(0.972);
@@ -209,6 +215,10 @@ const ESTILO = `
   .resgate-primario:active:not(:disabled),
   .resgate-fino:active {
     transform: none;
+  }
+  .resgate-primario:hover:not(:disabled),
+  .resgate-fino:hover {
+    opacity: 1;
   }
 }
 `;

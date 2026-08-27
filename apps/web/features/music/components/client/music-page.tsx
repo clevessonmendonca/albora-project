@@ -81,7 +81,7 @@ function CoupleTrack({ track, escolhaLabel }: { track: VisibleTrack; escolhaLabe
       <div className="flex items-center justify-center gap-4">
         <a
           href={track.url}
-          className="grid size-[3.25rem] place-items-center rounded-full bg-acento text-base text-sobre-acento no-underline"
+          className="grid size-[3.25rem] place-items-center rounded-full bg-acento text-base text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80"
           aria-label="Abrir no app de música"
         >
           ▶
@@ -89,7 +89,7 @@ function CoupleTrack({ track, escolhaLabel }: { track: VisibleTrack; escolhaLabe
         <span className="text-[0.85rem] tabular-nums text-ink-3">—:——</span>
       </div>
 
-      <a href={track.url} className="block text-center text-[0.9rem] text-acento no-underline">
+      <a href={track.url} className="block text-center text-[0.9rem] text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
         Abrir no {providerLabel(track.provedor)}
       </a>
     </section>

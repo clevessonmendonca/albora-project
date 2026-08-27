@@ -52,7 +52,7 @@ export function HostMessageCard({
             <button
               type="button"
               onClick={() => setExpandido(true)}
-              className="mt-1.5 cursor-pointer border-0 bg-transparent p-0 text-[0.75rem] text-acento-texto"
+              className="mt-1.5 cursor-pointer border-0 bg-transparent p-0 text-[0.75rem] text-acento-texto transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
             >
               ver inteiro
             </button>
@@ -62,7 +62,7 @@ export function HostMessageCard({
           type="button"
           onClick={fechar}
           aria-label="Seguir"
-          className="cursor-pointer border-0 bg-transparent p-0 text-[0.75rem] text-ink-3"
+          className="cursor-pointer border-0 bg-transparent p-0 text-[0.75rem] text-ink-3 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
         >
           Seguir
         </button>
@@ -111,7 +111,7 @@ function VoiceNotePlayer({ audio }: { audio: AudioRecado }) {
         type="button"
         onClick={toggle}
         aria-label={playing ? "Pausar recado" : "Ouvir recado"}
-        className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-acento text-[0.65rem] text-sobre-acento"
+        className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-acento text-[0.65rem] text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80"
       >
         {playing ? "❚❚" : "▶"}
       </button>

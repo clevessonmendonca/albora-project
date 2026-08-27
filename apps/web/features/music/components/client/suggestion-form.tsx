@@ -69,7 +69,7 @@ export function SuggestionForm({
                   setColando(true);
                   void colarDaAreaDeTransferencia();
                 }}
-                className="cursor-pointer border-none bg-transparent p-0 text-[0.6875rem] text-acento-texto disabled:cursor-default disabled:opacity-50"
+                className="cursor-pointer border-none bg-transparent p-0 text-[0.6875rem] text-acento-texto transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70 disabled:cursor-default disabled:opacity-50"
               >
                 {colando ? "Colando…" : "Colar da área de transferência"}
               </button>
@@ -151,7 +151,7 @@ function SuggestionList({
               type="button"
               disabled={submitting}
               onClick={() => void onVote(s.url)}
-              className="min-h-11 shrink-0 cursor-pointer rounded-pilula border border-linha bg-transparent px-3 text-[0.75rem] uppercase tracking-rotulo text-acento disabled:opacity-50"
+              className="min-h-11 shrink-0 cursor-pointer rounded-pilula border border-linha bg-transparent px-3 text-[0.75rem] uppercase tracking-rotulo text-acento transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto disabled:opacity-50"
             >
               Também quero
             </button>
