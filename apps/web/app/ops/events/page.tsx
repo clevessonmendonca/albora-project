@@ -55,7 +55,7 @@ export default async function OpsEventsLookupPage({
     >
       <header className="mb-8">
         <p className="m-0 mb-6">
-          <Link href="/ops" className="text-acento no-underline">
+          <Link href="/ops" className="text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75">
             ← Console
           </Link>
         </p>
@@ -78,7 +78,7 @@ export default async function OpsEventsLookupPage({
               defaultValue={slug}
               placeholder="meu-evento-especial"
               autoComplete="off"
-              className="w-full rounded-token border border-linha bg-bg px-4 py-3 font-titulo text-ink outline-none transition-colors focus:border-acento"
+              className="w-full rounded-token border border-linha bg-bg px-4 py-3 font-titulo text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
             />
           </div>
           <div className="flex items-end">

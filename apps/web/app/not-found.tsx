@@ -7,7 +7,7 @@ export default function NotFound() {
       <p className="mt-2 text-sm text-ink-2">O endereço que você acessou não existe.</p>
       <Link
         href="/"
-        className="mt-6 rounded-token border border-linha bg-superficie px-6 py-2.5 text-sm no-underline text-ink"
+        className="mt-6 rounded-token border border-linha bg-superficie px-6 py-2.5 text-sm no-underline text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
       >
         Voltar ao início
       </Link>

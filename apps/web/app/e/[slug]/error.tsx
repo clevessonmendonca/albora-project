@@ -8,7 +8,7 @@ export default function GuestError({ reset }: { error: Error & { digest?: string
       <button
         type="button"
         onClick={reset}
-        className="mt-6 rounded-token border border-linha bg-superficie px-6 py-2.5 text-sm"
+        className="mt-6 rounded-token border border-linha bg-superficie px-6 py-2.5 text-sm transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
       >
         Tentar de novo
       </button>

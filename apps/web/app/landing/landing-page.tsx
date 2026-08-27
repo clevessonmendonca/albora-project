@@ -259,11 +259,11 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
                 Montar é grátis · não pedimos cartão · você decide antes de imprimir o QR
               </p>
               <p className="m-0 mt-3 text-[0.84375rem]">
-                <a href="/scan" className="text-ink-3 underline">
+                <a href="/scan" className="text-ink-3 underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink-2">
                   Já tem o QR da festa? Escanear ou colar o link
                 </a>
                 {" · "}
-                <LandingDemoLink href={HREF_DEMO} packHint={pack.id} className="text-ink-3 underline">
+                <LandingDemoLink href={HREF_DEMO} packHint={pack.id} className="text-ink-3 underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink-2">
                   Abrir a demo
                 </LandingDemoLink>
               </p>
@@ -661,7 +661,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
         <span className="flex flex-wrap items-center gap-4 text-ink-3">
           <a
             href="/privacidade"
-            className="underline decoration-ink-3/40 underline-offset-2 hover:text-ink-2"
+            className="underline decoration-ink-3/40 underline-offset-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink-2"
           >
             Privacidade
           </a>

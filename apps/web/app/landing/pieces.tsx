@@ -12,10 +12,10 @@ import React, { type CSSProperties, type ReactNode } from "react";
  */
 
 export const pillClasses =
-  "pilula inline-flex items-center justify-center whitespace-nowrap rounded-pilula bg-ink px-8 py-4 font-medium text-bg no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80";
+  "pilula inline-flex items-center justify-center whitespace-nowrap rounded-pilula bg-ink px-8 py-4 font-medium text-bg no-underline";
 
 export const lightPillClasses =
-  "pilula inline-flex items-center justify-center whitespace-nowrap rounded-pilula bg-superficie-alta px-8 py-4 font-normal text-ink no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80";
+  "pilula inline-flex items-center justify-center whitespace-nowrap rounded-pilula bg-superficie-alta px-8 py-4 font-normal text-ink no-underline";
 
 export function Label({ children }: { children: ReactNode }) {
   return (

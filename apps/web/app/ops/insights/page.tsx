@@ -87,7 +87,7 @@ export default async function OpsInsightsPage() {
     >
       <header className="mb-8">
         <p className="m-0 mb-6">
-          <Link href="/ops" className="text-acento no-underline">
+          <Link href="/ops" className="text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75">
             ← Console
           </Link>
         </p>

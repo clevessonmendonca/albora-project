@@ -66,7 +66,7 @@ export function ScanPage() {
                 autoCapitalize="none"
                 spellCheck={false}
                 aria-label="Código ou link da festa"
-                className="min-h-[52px] w-full rounded-pilula border border-linha bg-bg px-3.5 text-base text-ink outline-none focus:border-acento"
+                className="min-h-[52px] w-full rounded-pilula border border-linha bg-bg px-3.5 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
               />
               <button
                 type="submit"

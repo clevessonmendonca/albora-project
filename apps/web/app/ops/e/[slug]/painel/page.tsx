@@ -76,7 +76,7 @@ export default async function OpsPainelEventoPage({
       >
         <header className="mb-8">
           <p className="m-0 mb-6">
-            <Link href="/ops/events" className="text-acento no-underline">
+            <Link href="/ops/events" className="text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75">
               ← Buscar eventos
             </Link>
           </p>
@@ -136,7 +136,7 @@ export default async function OpsPainelEventoPage({
       >
         <header className="mb-8">
           <p className="m-0 mb-6">
-            <Link href={`/ops/e/${slug}`} className="text-acento no-underline">
+            <Link href={`/ops/e/${slug}`} className="text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75">
               ← Voltar
             </Link>
           </p>
@@ -157,7 +157,7 @@ export default async function OpsPainelEventoPage({
     >
       <header className="mb-8">
         <p className="m-0 mb-6">
-          <Link href={`/ops/e/${slug}`} className="text-acento no-underline">
+          <Link href={`/ops/e/${slug}`} className="text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75">
             ← Voltar
           </Link>
         </p>
@@ -186,7 +186,7 @@ export default async function OpsPainelEventoPage({
                 href={guestUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-acento underline"
+                className="text-acento underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75"
               >
                 {guestUrl}
               </a>
