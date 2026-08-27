@@ -69,6 +69,13 @@ function RequestLink({ next }: { next: string | null }) {
             Abrir link (dev)
           </a>
         )}
+        <button
+          type="button"
+          onClick={() => setStatus("editing")}
+          className="cursor-pointer rounded-pilula border border-linha bg-transparent px-4 py-3 font-inherit text-[0.9rem] text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
+        >
+          Reenviar ou trocar e-mail
+        </button>
       </Card>
     );
   }
@@ -137,7 +144,14 @@ function Confirm({ token, next }: { token: string; next: string | null }) {
       <p className="m-0 leading-relaxed text-ink-2">
         Toque abaixo para confirmar e entrar no seu painel.
       </p>
-      {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Este link está inválido ou expirou. Por favor, solicite outro.</p>}
+      {status === "error" && (
+        <p className="m-0 text-[0.9rem] text-critico">
+          Este link está inválido ou expirou.{" "}
+          <a href="/admin/sign-in" className="underline">
+            Solicite um novo link.
+          </a>
+        </p>
+      )}
       <button
         type="button"
         onClick={() => void signIn()}

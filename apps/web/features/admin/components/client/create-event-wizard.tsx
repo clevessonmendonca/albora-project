@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import NextLink from "next/link";
 import {
   FUSO_PADRAO,
   WALL_DISPLAY_MODELS,
@@ -350,7 +351,14 @@ export function CreateEventWizard() {
       )}
 
       <div className="mt-2 flex gap-3">
-        {step > 0 && (
+        {step === 0 ? (
+          <NextLink
+            href="/admin"
+            className={`${adminClasses.secondaryButton} px-4 py-3.5 no-underline`}
+          >
+            Cancelar
+          </NextLink>
+        ) : (
           <button
             type="button"
             onClick={() => setStep((p) => p - 1)}

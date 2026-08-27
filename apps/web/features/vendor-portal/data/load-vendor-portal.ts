@@ -66,7 +66,7 @@ export async function loadVendorPortal(vendorSlug: string): Promise<VendorPortal
 
   const token = (await cookies()).get(HOST_COOKIE)?.value;
   const host = await hostFromToken(token);
-  if (!host) redirect("/admin/sign-in");
+  if (!host) redirect(`/admin/sign-in?next=/f/${encodeURIComponent(vendorSlug)}`);
 
   const role = await roleForAccountOnVendor(getPool(), host.accountId, vendor.id);
   if (!role) notFound();

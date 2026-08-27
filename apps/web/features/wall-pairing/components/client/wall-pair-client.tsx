@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import type { CSSProperties } from "react";
 import { PrimaryButton, radiusStyle } from "@albora/ui-web";
@@ -62,9 +63,15 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
           <div className="text-center">
             <h1 style={titleStyle}>Telão ligado</h1>
             <p style={bodyStyle}>
-              As fotos publicadas já estão aparecendo na tela do salão. Você pode fechar esta aba.
+              As fotos publicadas já estão aparecendo na tela do salão.
             </p>
           </div>
+          <Link
+            href="/scan"
+            className="block text-center text-[0.9rem] text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
+          >
+            Voltar ao evento
+          </Link>
         </div>
       </Shell>
     );
@@ -94,7 +101,10 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
 
         {status === "no-session" && (
           <p style={alertStyle}>
-            Você precisa estar na festa para autorizar o telão. Entre pelo QR da mesa primeiro.
+            Você precisa estar na festa para autorizar o telão.{" "}
+            <Link href="/scan" className="underline">
+              Entre pelo QR da mesa.
+            </Link>
           </p>
         )}
         {status === "rejected" && (

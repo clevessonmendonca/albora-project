@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function AdminError({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-bg px-8 font-corpo text-ink">
@@ -12,6 +14,12 @@ export default function AdminError({ reset }: { error: Error & { digest?: string
       >
         Tentar de novo
       </button>
+      <Link
+        href="/admin"
+        className="mt-3 text-sm text-ink-2 underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+      >
+        Ir ao painel
+      </Link>
     </div>
   );
 }

@@ -39,7 +39,15 @@ export default async function ConfessionalPage({ params }: Props) {
     eventPack(c, r.evento.eventoId),
   );
   const pack = packId ? PACKS[packId] : undefined;
-  if (!pack?.confessionario?.length) notFound();
+  if (!pack?.confessionario?.length) {
+    return (
+      <EventNotice
+        title="Confessionário indisponível"
+        body="Este evento não tem confessionário ativo."
+        showRescue
+      />
+    );
+  }
 
   const base = `/e/${encodeURIComponent(slug)}`;
   const title = resolvePackText(pack, "confessionario.titulo");

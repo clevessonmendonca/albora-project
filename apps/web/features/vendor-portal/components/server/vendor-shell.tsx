@@ -1,4 +1,5 @@
 import React, { type CSSProperties, type ReactNode } from "react";
+import Link from "next/link";
 import { ALBORA_BRAND, resolveTokens, toVariables, type TokenLayer } from "@albora/tokens";
 
 /**
@@ -46,6 +47,12 @@ export function VendorShell({
       style={vendorVars(brandTokens)}
     >
       <header className="mb-10">
+        <Link
+          href="/admin"
+          className="mb-3 block text-[0.75rem] uppercase tracking-rotulo text-ink-3 no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+        >
+          ← Painel
+        </Link>
         <p className="m-0 text-[0.8125rem] uppercase tracking-rotulo text-ink-3">{vendorName}</p>
         <h1 className="m-0 font-titulo text-[1.875rem] font-light tracking-titulo">{title}</h1>
         {subtitle && <p className="mt-2 text-[0.9rem] text-ink-3">{subtitle}</p>}
