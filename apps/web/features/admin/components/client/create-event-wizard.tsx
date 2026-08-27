@@ -35,7 +35,13 @@ function presetParaCores(m: ModeloDeIdentidade) {
     modo === "dark"
       ? (m.camada.cores?.noite ?? BRAND.noite!)
       : (m.camada.cores?.papel ?? BRAND.papel!);
-  return { acento, base, modo };
+  // Em dark: texto é a cor clara (papel) sobre fundo escuro
+  // Em light: texto é a cor escura (tinta) sobre fundo claro
+  const texto =
+    modo === "dark"
+      ? (m.camada.cores?.papel ?? BRAND.papel!)
+      : (m.camada.cores?.tinta ?? BRAND.tinta!);
+  return { acento, base, texto, modo };
 }
 
 type Created = { slug: string; eventoId: string; planIntent: "free" | "celebration" };
@@ -58,6 +64,7 @@ export function CreateEventWizard() {
   const [presetAtivo, setPresetAtivo] = useState<string | null>(IDENTITY_MODELS[0]!.id);
   const [acentoCor, setAcentoCor] = useState(() => presetParaCores(IDENTITY_MODELS[0]!).acento);
   const [baseCor, setBaseCor] = useState(() => presetParaCores(IDENTITY_MODELS[0]!).base);
+  const [textoCor, setTextoCor] = useState(() => presetParaCores(IDENTITY_MODELS[0]!).texto);
   const [bgModo, setBgModo] = useState<"light" | "dark">(
     () => presetParaCores(IDENTITY_MODELS[0]!).modo,
   );
@@ -106,11 +113,13 @@ export function CreateEventWizard() {
       cores: {
         ...(preset.camada.cores ?? {}),
         acento: acentoCor,
-        ...(bgModo === "dark" ? { noite: baseCor } : { papel: baseCor }),
+        ...(bgModo === "dark"
+          ? { noite: baseCor, papel: textoCor }
+          : { papel: baseCor, tinta: textoCor }),
       },
       background: bgModo,
     };
-  }, [preset, wallModels, acentoCor, baseCor, bgModo, presetId]);
+  }, [preset, wallModels, acentoCor, baseCor, textoCor, bgModo, presetId]);
 
   const previewVars = useMemo(
     () => resolveIdentityPreviewVars(pack, identityTokens),
@@ -121,12 +130,21 @@ export function CreateEventWizard() {
     step === 1 ? datesValid && guestsValid && coupleEmailValid : true;
 
   function selecionarPreset(m: ModeloDeIdentidade) {
-    const { acento, base, modo } = presetParaCores(m);
+    const { acento, base, texto, modo } = presetParaCores(m);
     setPresetId(m.id);
     setPresetAtivo(m.id);
     setAcentoCor(acento);
     setBaseCor(base);
+    setTextoCor(texto);
     setBgModo(modo);
+  }
+
+  function trocarModo(modo: "light" | "dark") {
+    if (modo === bgModo) return;
+    setBgModo(modo);
+    setPresetAtivo(null);
+    setBaseCor(modo === "dark" ? BRAND.noite! : BRAND.papel!);
+    setTextoCor(modo === "dark" ? BRAND.papel! : BRAND.tinta!);
   }
 
   const create = async () => {
@@ -194,6 +212,7 @@ export function CreateEventWizard() {
           <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
             Nome do evento
             <input
+              autoFocus
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder={resolvePackText(pack, "landing.exemplo.nome")}
@@ -286,62 +305,79 @@ export function CreateEventWizard() {
         </>
       )}
 
-      {/* Passo 2 — identidade visual com color picker */}
+      {/* Passo 2 — identidade visual */}
       {step === 2 && (
         <div className="flex flex-col gap-5">
+          {/* Grid de presets com 3 pontos de cor */}
           <div className="grid grid-cols-2 gap-2.5">
             {IDENTITY_MODELS.map((m) => {
               const ativo = presetAtivo === m.id;
+              const cores = presetParaCores(m);
               return (
                 <button
                   key={m.id}
                   type="button"
                   onClick={() => selecionarPreset(m)}
-                  className={`flex cursor-pointer items-center gap-2.5 rounded-token p-3 text-left transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                  className={`flex cursor-pointer flex-col gap-2.5 rounded-token p-3.5 text-left transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                     ativo
                       ? "border-2 border-acento bg-superficie-alta"
                       : "border border-linha bg-bg hover:border-acento-texto"
                   }`}
                 >
-                  <span
-                    className="size-7 shrink-0 rounded-full border border-linha"
-                    style={{ backgroundColor: m.amostra }}
-                  />
-                  <div className="flex min-w-0 flex-col">
-                    <span className="truncate font-titulo text-[0.9rem] text-ink">{m.nome}</span>
-                    <span className="text-[0.7rem] uppercase tracking-rotulo text-ink-3">
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className="size-5 shrink-0 rounded-full border border-linha"
+                      style={{ backgroundColor: cores.base }}
+                    />
+                    <span
+                      className="size-5 shrink-0 rounded-full border border-linha"
+                      style={{ backgroundColor: cores.acento }}
+                    />
+                    <span
+                      className="size-5 shrink-0 rounded-full border border-linha"
+                      style={{ backgroundColor: cores.texto }}
+                    />
+                    {ativo && (
+                      <span className="ml-auto text-[0.65rem] uppercase tracking-rotulo text-acento-texto">
+                        ✓
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="m-0 font-titulo text-[0.9rem] text-ink">{m.nome}</p>
+                    <p className="m-0 text-[0.7rem] uppercase tracking-rotulo text-ink-3">
                       {m.camada.background === "light" ? "Claro" : "Escuro"}
-                    </span>
+                    </p>
                   </div>
                 </button>
               );
             })}
           </div>
 
+          {/* Divisor */}
           <div className="flex items-center gap-3">
             <span className="h-px flex-1 bg-linha" />
-            <span className="shrink-0 text-[0.75rem] uppercase tracking-rotulo text-ink-3">
-              ou personalize
+            <span className="shrink-0 text-[0.72rem] uppercase tracking-rotulo text-ink-3">
+              ou crie a sua paleta
             </span>
             <span className="h-px flex-1 bg-linha" />
           </div>
 
+          {/* Controles de personalização */}
           <div className="flex flex-col gap-3">
+            {/* Toggle de modo */}
             <div className="flex items-center justify-between">
-              <span className="text-[0.9rem] text-ink-2">Fundo</span>
+              <div>
+                <p className="m-0 text-[0.9rem] text-ink">Fundo</p>
+                <p className="m-0 text-[0.75rem] text-ink-3">Tom geral da tela do convidado</p>
+              </div>
               <div className="flex gap-1 rounded-pilula border border-linha bg-bg p-0.5">
                 {(["light", "dark"] as const).map((modo) => (
                   <button
                     key={modo}
                     type="button"
-                    onClick={() => {
-                      setBgModo(modo);
-                      setPresetAtivo(null);
-                      if (modo !== bgModo) {
-                        setBaseCor(modo === "dark" ? BRAND.noite! : BRAND.papel!);
-                      }
-                    }}
-                    className={`rounded-pilula px-3 py-1 text-[0.8rem] transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                    onClick={() => trocarModo(modo)}
+                    className={`rounded-pilula px-3 py-1.5 text-[0.8rem] transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                       bgModo === modo
                         ? "bg-superficie-alta text-ink shadow-sm"
                         : "text-ink-3 hover:text-ink-2"
@@ -355,7 +391,7 @@ export function CreateEventWizard() {
 
             <CorInput
               label="Cor de destaque"
-              dica="Botões, links e elementos marcados"
+              dica="Botões, marcações e links"
               value={acentoCor}
               onChange={(cor) => {
                 setAcentoCor(cor);
@@ -363,24 +399,48 @@ export function CreateEventWizard() {
               }}
             />
             <CorInput
-              label={bgModo === "dark" ? "Fundo escuro" : "Fundo claro"}
-              dica={bgModo === "dark" ? "Tela principal do convidado" : "Superfície da página"}
+              label={bgModo === "dark" ? "Canvas escuro" : "Canvas claro"}
+              dica={bgModo === "dark" ? "Cor de fundo principal" : "Cor de fundo principal"}
               value={baseCor}
               onChange={(cor) => {
                 setBaseCor(cor);
                 setPresetAtivo(null);
               }}
             />
+            <CorInput
+              label={bgModo === "dark" ? "Tom do texto" : "Cor do texto"}
+              dica={bgModo === "dark" ? "Títulos e parágrafos sobre fundo escuro" : "Títulos e parágrafos"}
+              value={textoCor}
+              onChange={(cor) => {
+                setTextoCor(cor);
+                setPresetAtivo(null);
+              }}
+            />
           </div>
 
-          <div className={`${identityPreviewClassName} rounded-superficie p-6`} style={previewVars}>
-            <div className="mb-3 h-1 w-10 rounded-pilula bg-acento" />
-            <p className="m-0 font-titulo text-2xl leading-tight text-acento-texto">
-              {title.trim() || resolvePackText(pack, "landing.exemplo.nome")}
-            </p>
-            <p className="mb-0 mt-2 text-[0.875rem] text-ink-2">
-              É assim que o convidado vai ver
-            </p>
+          {/* Preview ao vivo */}
+          <div className="overflow-hidden rounded-superficie bg-bg font-corpo text-ink" style={previewVars}>
+            <div className="flex items-center justify-between border-b border-linha px-5 py-3">
+              <span className="text-[0.65rem] uppercase tracking-rotulo text-ink-3">Prévia</span>
+              <div className="flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-acento" />
+                <span className="size-2 rounded-full bg-acento opacity-50" />
+                <span className="size-2 rounded-full bg-acento opacity-25" />
+              </div>
+            </div>
+            <div className="p-5">
+              <div className="mb-3 h-[0.2rem] w-10 rounded-pilula bg-acento" />
+              <p className="m-0 font-titulo text-xl leading-snug text-acento-texto">
+                {title.trim() || resolvePackText(pack, "landing.exemplo.nome")}
+              </p>
+              <p className="mb-5 mt-1.5 text-[0.8125rem] text-ink-2">
+                Missão · Foto no altar
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="h-9 flex-1 rounded-token bg-acento opacity-90" />
+                <span className="h-9 w-20 rounded-token border border-linha opacity-60" />
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -413,6 +473,7 @@ export function CreateEventWizard() {
           ends={ends}
           guests={Number(expectedGuests)}
           presetNome={presetAtivo ? preset.nome : "Personalizado"}
+          paleta={[baseCor, acentoCor, textoCor]}
           missionsCount={activeMissions.length}
         />
       )}
@@ -485,7 +546,7 @@ function CorInput({
         <span className="text-[0.9rem] text-ink">{label}</span>
         <span className="text-[0.75rem] text-ink-3">{dica}</span>
       </div>
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2.5">
         <span
           className="size-8 shrink-0 rounded-full border border-linha"
           style={{
@@ -493,7 +554,7 @@ function CorInput({
             boxShadow: `0 0 0 2px var(--bg), 0 0 0 3.5px ${value}`,
           }}
         />
-        <span className="font-mono text-[0.78rem] uppercase tracking-wider text-ink-2">
+        <span className="w-[4.5rem] font-mono text-[0.78rem] uppercase tracking-wider text-ink-2">
           {value.toUpperCase()}
         </span>
       </div>
@@ -562,6 +623,7 @@ function ConfirmSummary({
   ends,
   guests,
   presetNome,
+  paleta,
   missionsCount,
 }: {
   packNome: string;
@@ -570,6 +632,7 @@ function ConfirmSummary({
   ends: string;
   guests: number;
   presetNome: string;
+  paleta: [string, string, string];
   missionsCount: number;
 }) {
   const fmt = (iso: string) =>
@@ -591,7 +654,23 @@ function ConfirmSummary({
         <SummaryRow label="Começo" value={fmt(starts)} />
         <SummaryRow label="Fim" value={fmt(ends)} />
         <SummaryRow label="Convidados" value={`~${guests} pessoas`} />
-        <SummaryRow label="Identidade" value={presetNome} />
+        <div className="flex items-center justify-between gap-4">
+          <span className="shrink-0 text-[0.75rem] uppercase tracking-rotulo text-ink-3">
+            Identidade
+          </span>
+          <div className="flex items-center gap-3">
+            <div className="flex gap-1">
+              {paleta.map((cor, i) => (
+                <span
+                  key={i}
+                  className="size-4 rounded-full border border-linha"
+                  style={{ backgroundColor: cor }}
+                />
+              ))}
+            </div>
+            <span className="text-right text-[0.9375rem] text-ink">{presetNome}</span>
+          </div>
+        </div>
         <SummaryRow label="Missões" value={`${missionsCount} ativas`} />
       </div>
     </div>
