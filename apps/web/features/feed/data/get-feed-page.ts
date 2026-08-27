@@ -18,6 +18,7 @@ export type FeedPageData = {
   copy: { missionTitle: string };
   cameraPath: string;
   hostMessageLabel: string;
+  anfitriaoPlural: string;
 };
 
 export async function getFeedPage(input: FeedPageInput): Promise<FeedPageData> {
@@ -36,5 +37,6 @@ export async function getFeedPage(input: FeedPageInput): Promise<FeedPageData> {
     copy: { missionTitle: packText(evento.packId, "missao.titulo") },
     cameraPath: `/e/${encodeURIComponent(slug)}/photo`,
     hostMessageLabel: packText(evento.packId, "recado.rotulo"),
+    anfitriaoPlural: packText(evento.packId, "anfitriao.plural"),
   };
 }

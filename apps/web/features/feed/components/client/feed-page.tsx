@@ -71,6 +71,7 @@ export function FeedPage({
   copy,
   cameraPath,
   hostMessageLabel,
+  anfitriaoPlural,
   eventoId,
   sessaoId,
 }: {
@@ -80,6 +81,7 @@ export function FeedPage({
   copy: FeedCopy;
   cameraPath: string;
   hostMessageLabel: string;
+  anfitriaoPlural: string;
   eventoId: string;
   sessaoId: string;
 }) {
@@ -286,7 +288,7 @@ export function FeedPage({
 
           {espelho && estado.jaCarregou && (
             <GateNotice>
-              Comentários abrem no horário escolhido pelos noivos. Pode curtir à vontade —
+              Comentários abrem no horário escolhido por {anfitriaoPlural}. Pode curtir à vontade —
               continue fotografando, tudo já está no álbum.
             </GateNotice>
           )}
@@ -316,7 +318,7 @@ export function FeedPage({
 
           {estado.midiaIndisponivel && (
             <p className="mb-4 text-[0.9rem] leading-relaxed text-ink-2">
-              As fotos ainda não abriram. Elas aparecem sozinhas quando os noivos liberarem.
+              As fotos ainda não abriram. Elas aparecem sozinhas quando {anfitriaoPlural} liberarem.
             </p>
           )}
 

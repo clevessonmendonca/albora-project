@@ -50,11 +50,13 @@ export function HomePage({
   eventName,
   coverHref,
   cameraPath,
+  anfitriaoPlural,
 }: {
   slug: string;
   eventName: string;
   coverHref: string;
   cameraPath: string;
+  anfitriaoPlural: string;
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
@@ -102,7 +104,7 @@ export function HomePage({
           {espelho && estado.jaCarregou && (
             <div className="mt-4">
               <GateNotice>
-                Comentários abrem no horário escolhido pelos noivos. Pode curtir à vontade —
+                Comentários abrem no horário escolhido por {anfitriaoPlural}. Pode curtir à vontade —
                 continue fotografando, tudo já está no álbum.
               </GateNotice>
             </div>

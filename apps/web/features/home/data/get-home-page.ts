@@ -1,5 +1,5 @@
 import type { EventoPublico } from "@albora/db";
-import { eventNameFromPack } from "@/features/guest/lib/pack-text";
+import { eventNameFromPack, packText } from "@/features/guest/lib/pack-text";
 
 export type HomePageInput = {
   slug: string;
@@ -11,6 +11,7 @@ export type HomePageData = {
   eventName: string;
   coverHref: string;
   cameraPath: string;
+  anfitriaoPlural: string;
 };
 
 /**
@@ -27,5 +28,6 @@ export function getHomePage({ slug, evento }: HomePageInput): HomePageData {
     eventName: eventNameFromPack(evento.packId),
     coverHref: `${base}/cover`,
     cameraPath: `${base}/photo`,
+    anfitriaoPlural: packText(evento.packId, "anfitriao.plural"),
   };
 }
