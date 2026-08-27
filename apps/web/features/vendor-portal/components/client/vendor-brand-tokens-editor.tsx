@@ -180,7 +180,7 @@ export function VendorBrandTokensEditor({ vendorId, initialBrandTokens }: Props)
                     setBackground(valor);
                     setSalvo(false);
                   }}
-                  className={`cursor-pointer rounded-token px-4 py-2 font-titulo text-sm transition-colors ${
+                  className={`cursor-pointer rounded-token px-4 py-2 font-titulo text-sm transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                     background === valor
                       ? "border-2 border-acento bg-superficie-alta text-ink"
                       : "border border-linha bg-bg text-ink-2 hover:border-acento-texto"
@@ -274,7 +274,7 @@ export function VendorBrandTokensEditor({ vendorId, initialBrandTokens }: Props)
                 if (bg === "light" || bg === "dark") setBackground(bg);
                 setSalvo(false);
               }}
-              className="flex cursor-pointer items-center gap-2 rounded-token border border-linha bg-bg px-3 py-2 text-sm transition-colors hover:border-acento-texto"
+              className="flex cursor-pointer items-center gap-2 rounded-token border border-linha bg-bg px-3 py-2 text-sm transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
             >
               <span
                 className="inline-block size-4 shrink-0 rounded-full"
@@ -292,7 +292,7 @@ export function VendorBrandTokensEditor({ vendorId, initialBrandTokens }: Props)
           type="button"
           disabled={!podeAlternar || salvando}
           onClick={() => void salvar()}
-          className={`rounded-token bg-acento px-5 py-[0.65rem] font-titulo text-sm text-sobre-acento transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-acento ${
+          className={`rounded-token bg-acento px-5 py-[0.65rem] font-titulo text-sm text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-acento ${
             !podeAlternar || salvando ? "cursor-not-allowed opacity-50" : "cursor-pointer"
           }`}
         >

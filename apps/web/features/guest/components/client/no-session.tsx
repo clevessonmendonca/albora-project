@@ -14,7 +14,7 @@ export function NoSession({ slug }: { slug: string }) {
         </p>
         <a
           href={`/e/${encodeURIComponent(slug)}`}
-          className="flex min-h-14 items-center justify-center rounded-token bg-ink text-[1.05rem] font-medium text-bg no-underline"
+          className="flex min-h-14 items-center justify-center rounded-token bg-ink text-[1.05rem] font-medium text-bg no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80"
         >
           Entrar
         </a>
