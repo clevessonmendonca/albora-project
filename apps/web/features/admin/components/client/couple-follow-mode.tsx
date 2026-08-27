@@ -28,16 +28,9 @@ function vereditoTextClass(veredito: CodigoDaTese): string {
 
 type Props = {
   eventoId: string;
-  /** O painel denso (planner/owner), pronto no servidor — exibido quando o casal liga o toggle. */
   dense: ReactNode;
 };
 
-/**
- * Modo Acompanhar do casal: foto-first, poucos números grandes, sem os
- * controles de pânico/moderação do painel denso (esses continuam exclusivos
- * de `EventControls`, atrás do mesmo `canManageCoupleOnly`/role de sempre).
- * Reusa o mesmo endpoint e padrão de URL assinada de `LiveSummary`.
- */
 export function CoupleFollowMode({ eventoId, dense }: Props) {
   const [verPainelCompleto, setVerPainelCompleto] = useState(false);
   const [resumo, setResumo] = useState<Resumo | null>(null);
@@ -67,7 +60,7 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
             {verPainelCompleto ? "Painel completo" : "Acompanhar"}
           </p>
@@ -82,9 +75,25 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
                 setAtualizando(true);
                 void carregar().finally(() => setAtualizando(false));
               }}
-              className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+              className="cursor-pointer rounded-pilula border border-linha bg-transparent p-1.5 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+              aria-label="Atualizar agora"
             >
-              {atualizando ? "…" : "⟳"}
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 13 13"
+                fill="none"
+                aria-hidden
+                className={atualizando ? "opacity-50" : ""}
+              >
+                <path
+                  d="M11 6.5A4.5 4.5 0 0 1 2 6.5M11 6.5V3.5M11 6.5H8"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
           )}
         </div>
@@ -112,7 +121,19 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
 
           {!resumo && !erro && (
             <AdminCard>
-              <p className="m-0 text-ink-2">Carregando…</p>
+              <div className="animate-pulse flex flex-col gap-4">
+                <div className="flex gap-8">
+                  <div className="flex flex-col gap-2">
+                    <div className="h-10 w-20 rounded-token bg-superficie-alta" />
+                    <div className="h-3 w-36 rounded-full bg-superficie-alta" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <div className="h-10 w-16 rounded-token bg-superficie-alta" />
+                    <div className="h-3 w-28 rounded-full bg-superficie-alta" />
+                  </div>
+                </div>
+                <div className="h-3.5 w-56 rounded-full bg-superficie-alta" />
+              </div>
             </AdminCard>
           )}
 
@@ -136,13 +157,12 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
                   <p className="mb-3 mt-0 text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
                     Chegando agora
                   </p>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {resumo.ultimas.map((f) => (
                       <span
                         key={f.id}
                         className="relative aspect-[3/4] overflow-hidden rounded-token bg-superficie-alta shadow-suave"
                       >
-                        {/* URL assinada */}
                         <img src={f.thumb} alt="" loading="lazy" decoding="async" className="size-full object-cover" />
                       </span>
                     ))}

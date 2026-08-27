@@ -66,6 +66,21 @@ function resolveCustomBackground(tokens: Record<string, unknown>, presetBg: stri
   return saved === "light" ? "light" : saved === "dark" ? "dark" : null;
 }
 
+function modelLabel(id: string): string {
+  return id
+    .split(/[-_]/)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="mb-2.5 block text-[0.7rem] uppercase tracking-rotulo text-ink-3">
+      {children}
+    </span>
+  );
+}
+
 export function IdentityEditor({
   eventId,
   packId,
@@ -194,16 +209,13 @@ export function IdentityEditor({
   return (
     <div className="flex flex-col gap-5">
       <AdminSection>
-        <h2 className="mb-3 mt-0 font-titulo text-lg">Configuração do evento</h2>
-        <p className="mb-6 mt-0 leading-relaxed text-ink-2">
-          A identidade visual propaga para convidado, telão e peças impressas — um resolvedor,
-          três superfícies. Tudo que você define aqui reflete instantaneamente nos três canais.
+        <h2 className="mb-1 mt-0 font-titulo text-lg">Configuração do evento</h2>
+        <p className="mb-7 mt-1.5 text-[0.875rem] leading-relaxed text-ink-2">
+          A identidade propaga para convidado, telão e peças impressas — um resolvedor, três superfícies.
         </p>
 
         <div className="mb-5">
-          <label className="mb-2 block font-titulo text-sm text-ink">
-            Nome do evento
-          </label>
+          <FieldLabel>Nome do evento</FieldLabel>
           <input
             type="text"
             maxLength={120}
@@ -213,7 +225,7 @@ export function IdentityEditor({
               setTitle(e.target.value);
               setSaved(false);
             }}
-            className="w-full max-w-sm rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+            className="w-full max-w-sm rounded-token border border-linha bg-bg px-3.5 py-3 font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
           />
           <p className="mb-0 mt-1.5 text-xs text-ink-3">
             Aparece como título na capa do app. Deixe em branco para usar o nome do pack.
@@ -221,9 +233,7 @@ export function IdentityEditor({
         </div>
 
         <div className="mb-5">
-          <label className="mb-2 block font-titulo text-sm text-ink">
-            Convidados esperados
-          </label>
+          <FieldLabel>Convidados esperados</FieldLabel>
           <input
             type="number"
             min={1}
@@ -232,7 +242,7 @@ export function IdentityEditor({
               setExpectedGuests(e.target.value);
               setSaved(false);
             }}
-            className="w-full max-w-xs rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+            className="w-full max-w-xs rounded-token border border-linha bg-bg px-3.5 py-3 font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
           />
           {!guestsValid && expectedGuests !== "" && (
             <p className="mb-0 mt-2 text-sm text-critico">
@@ -241,7 +251,7 @@ export function IdentityEditor({
           )}
         </div>
 
-        <div className="mb-6">
+        <div className="mb-7">
           <TimezoneField
             value={timezone}
             onChange={(fuso) => {
@@ -252,49 +262,50 @@ export function IdentityEditor({
         </div>
 
         {/* Palette presets */}
-        <div className="mb-6">
-          <label className="mb-3 block font-titulo text-sm text-ink">
-            Paleta base
-          </label>
-          <div className="grid grid-cols-[minmax(12rem,1fr)_minmax(14rem,1fr)] gap-5">
-            <div className="flex flex-col gap-3">
-              {IDENTITY_MODELS.map((m) => (
+        <div className="mb-7">
+          <FieldLabel>Paleta base</FieldLabel>
+          <div className="flex flex-col gap-2">
+            {IDENTITY_MODELS.map((m) => {
+              const selected = preset.id === m.id;
+              return (
                 <button
                   key={m.id}
                   type="button"
                   onClick={() => changePreset(m)}
-                  className={`flex cursor-pointer items-center gap-3 rounded-token p-3 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                    preset.id === m.id
+                  className={`flex cursor-pointer items-center gap-3 rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                    selected
                       ? "border-2 border-acento bg-superficie-alta"
                       : "border border-linha bg-bg hover:border-acento-texto"
                   }`}
                 >
                   <span {...presetSwatchProps(m.amostra)} />
-                  <span className="font-titulo">{m.nome}</span>
+                  <span className="flex-1 font-titulo text-[0.9rem] text-ink">{m.nome}</span>
+                  <span
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                      selected ? "border-acento bg-acento" : "border-linha bg-bg"
+                    }`}
+                  >
+                    {selected && <span className="h-2 w-2 rounded-full bg-sobre-acento" />}
+                  </span>
                 </button>
-              ))}
-            </div>
-
-            <div className={identityPreviewClassName} style={previewVars}>
-              <p className="m-0 font-titulo text-xl text-acento-texto">
-                {resolvePackText(pack, "landing.exemplo.nome")}
-              </p>
-              <p className="mb-0 mt-3 text-sm text-ink-2">
-                Preview ao vivo da identidade.
-              </p>
-            </div>
+              );
+            })}
+          </div>
+          <div className={`mt-3 ${identityPreviewClassName}`} style={previewVars}>
+            <p className="m-0 font-titulo text-xl text-acento-texto">
+              {resolvePackText(pack, "landing.exemplo.nome")}
+            </p>
+            <p className="mb-0 mt-2 text-sm text-ink-2">Preview ao vivo</p>
           </div>
         </div>
 
         {/* Custom accent color */}
-        <div className="mb-6">
-          <label className="mb-3 block font-titulo text-sm text-ink">
-            Cor de destaque
-          </label>
+        <div className="mb-7">
+          <FieldLabel>Cor de destaque</FieldLabel>
           <div className="flex flex-wrap items-center gap-3">
-            <label className="flex cursor-pointer items-center gap-2 rounded-token border border-linha bg-bg p-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto">
+            <label className="flex cursor-pointer items-center gap-2.5 rounded-token border border-linha bg-bg px-3.5 py-2.5 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto">
               <span
-                className="size-7 shrink-0 rounded-full border border-linha"
+                className="h-5 w-5 shrink-0 rounded-full border border-linha"
                 style={{ background: customAccent ?? presetAccent ?? "transparent" }}
               />
               <span className="font-titulo text-sm text-ink">
@@ -317,7 +328,7 @@ export function IdentityEditor({
                   setCustomAccent(null);
                   setSaved(false);
                 }}
-                className="rounded-token border border-linha bg-bg px-3 py-2 font-titulo text-sm text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
+                className="rounded-token border border-linha bg-bg px-3.5 py-2.5 font-titulo text-sm text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
               >
                 Usar cor da paleta
               </button>
@@ -326,10 +337,8 @@ export function IdentityEditor({
         </div>
 
         {/* Font style */}
-        <div className="mb-6">
-          <label className="mb-3 block font-titulo text-sm text-ink">
-            Estilo de fonte
-          </label>
+        <div className="mb-7">
+          <FieldLabel>Estilo de fonte</FieldLabel>
           <div className="flex gap-2">
             {FONT_OPTIONS.map((opt) => {
               const isActive = customFont
@@ -344,21 +353,19 @@ export function IdentityEditor({
                     setCustomFont(presetFontValue === opt.value ? null : opt.id);
                     setSaved(false);
                   }}
-                  className={`flex-1 cursor-pointer rounded-token p-3 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                  className={`flex-1 cursor-pointer rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                     isActive
                       ? "border-2 border-acento bg-superficie-alta"
                       : "border border-linha bg-bg hover:border-acento-texto"
                   }`}
                 >
                   <span
-                    className="block text-base text-ink"
+                    className="block text-lg text-ink"
                     style={{ fontFamily: opt.value }}
                   >
                     Aa
                   </span>
-                  <span className="mt-1 block font-corpo text-xs text-ink-2">
-                    {opt.label}
-                  </span>
+                  <span className="mt-1 block font-corpo text-xs text-ink-2">{opt.label}</span>
                 </button>
               );
             })}
@@ -366,50 +373,59 @@ export function IdentityEditor({
         </div>
 
         {/* Background mode */}
-        <div className="mb-6">
-          <label className="mb-3 block font-titulo text-sm text-ink">
-            Fundo padrão
-          </label>
+        <div className="mb-7">
+          <FieldLabel>Fundo padrão</FieldLabel>
           <div className="flex gap-2">
-            {(["dark", "light"] as const).map((mode) => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => {
-                  const presetBg = preset.camada.background ?? "dark";
-                  setCustomBackground(presetBg === mode ? null : mode);
-                  setSaved(false);
-                }}
-                className={`flex-1 cursor-pointer rounded-token p-3 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                  effectiveBackground === mode
-                    ? "border-2 border-acento bg-superficie-alta"
-                    : "border border-linha bg-bg hover:border-acento-texto"
-                }`}
-              >
-                <span className="block text-lg">
-                  {mode === "dark" ? "●" : "○"}
-                </span>
-                <span className="mt-1 block font-corpo text-xs text-ink-2">
-                  {mode === "dark" ? "Escuro" : "Claro"}
-                </span>
-              </button>
-            ))}
+            {(["dark", "light"] as const).map((mode) => {
+              const active = effectiveBackground === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => {
+                    const presetBg = preset.camada.background ?? "dark";
+                    setCustomBackground(presetBg === mode ? null : mode);
+                    setSaved(false);
+                  }}
+                  className={`flex flex-1 cursor-pointer items-center gap-2.5 rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                    active
+                      ? "border-2 border-acento bg-superficie-alta"
+                      : "border border-linha bg-bg hover:border-acento-texto"
+                  }`}
+                >
+                  {mode === "dark" ? (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 text-ink-2">
+                      <path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5z" fill="currentColor" />
+                    </svg>
+                  ) : (
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 text-ink-2">
+                      <circle cx="8" cy="8" r="2.75" fill="currentColor" />
+                      <path d="M8 1.5V3M8 13v1.5M1.5 8H3M13 8h1.5M3.6 3.6l1 1M11.4 11.4l1 1M11.4 3.6l1-1M3.6 11.4l1-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  )}
+                  <div>
+                    <span className="block font-titulo text-sm text-ink">
+                      {mode === "dark" ? "Escuro" : "Claro"}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Wall models */}
         <div>
-          <h2 className="mb-3 mt-0 font-titulo text-lg">Modelos do telão</h2>
-          <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
-            Escolha os modelos que entram no rodízio da parede. A mudança vale para a próxima
-            foto que subir.
+          <h2 className="mb-1 mt-0 font-titulo text-lg">Modelos do telão</h2>
+          <p className="mb-4 mt-1.5 text-[0.875rem] leading-relaxed text-ink-2">
+            Escolha os modelos que entram no rodízio da parede. A mudança vale para a próxima foto que subir.
           </p>
           {wallProblems.length > 0 && (
             <div className="mb-4 rounded-token border border-critico bg-superficie px-4 py-3">
               <p className="m-0 text-sm text-critico">{wallProblems.join(" ")}</p>
             </div>
           )}
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-2">
+          <div className="flex flex-col gap-2">
             {WALL_DISPLAY_MODELS.map((model) => {
               const selected = wallModels.has(model);
               return (
@@ -425,20 +441,31 @@ export function IdentityEditor({
                     });
                     setSaved(false);
                   }}
-                  className={`cursor-pointer rounded-token p-3 font-titulo text-sm transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                  className={`flex cursor-pointer items-center gap-3 rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                     selected
                       ? "border-2 border-acento bg-superficie-alta"
                       : "border border-linha bg-bg hover:border-acento-texto"
                   }`}
                 >
-                  {model}
+                  <span
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                      selected ? "border-acento bg-acento" : "border-linha bg-bg"
+                    }`}
+                  >
+                    {selected && (
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden className="text-sobre-acento">
+                        <path d="M2 5l2.5 2.5L8 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </span>
+                  <span className="font-titulo text-[0.9rem] text-ink">{modelLabel(model)}</span>
                 </button>
               );
             })}
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center gap-4">
+        <div className="mt-8 flex flex-wrap items-center gap-3">
           <button
             type="button"
             disabled={!canSave || saving}
@@ -447,16 +474,19 @@ export function IdentityEditor({
               !canSave || saving ? "cursor-not-allowed opacity-50" : ""
             }`}
           >
-            {saving ? "Salvando alterações…" : "Salvar identidade"}
+            {saving ? "Salvando…" : "Salvar identidade"}
           </button>
           {saved && (
-            <span className="text-sm text-acento-texto">
-              ✓ Alterações salvas com sucesso
+            <span className="flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path d="M2 6l2.5 2.5L10 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Salvo
             </span>
           )}
           {error && (
             <span className="text-sm text-critico">
-              Não foi possível salvar agora. Tente novamente em instantes.
+              Não foi possível salvar agora. Tente de novo.
             </span>
           )}
         </div>
