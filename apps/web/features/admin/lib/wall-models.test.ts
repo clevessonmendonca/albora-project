@@ -16,7 +16,7 @@ describe("parseWallModels", () => {
   });
 
   it("recusa desconhecido, duplicata e formato errado", () => {
-    expect(parseWallModels(["mosaico"])).toBeNull();
+    expect(parseWallModels(["modelo-inexistente"])).toBeNull();
     expect(parseWallModels(["polaroide", "polaroide"])).toBeNull();
     expect(parseWallModels("polaroide")).toBeNull();
     expect(parseWallModels([1])).toBeNull();
@@ -33,7 +33,7 @@ describe("wallModelsFromTokens", () => {
 
   it("cai no recorte do wizard quando falta ou é inválido", () => {
     expect(wallModelsFromTokens({})).toEqual([...DEFAULT_WALL_MODELS]);
-    expect(wallModelsFromTokens({ telaoModelos: ["mosaico"] })).toEqual([
+    expect(wallModelsFromTokens({ telaoModelos: ["modelo-inexistente"] })).toEqual([
       ...DEFAULT_WALL_MODELS,
     ]);
   });
@@ -53,6 +53,6 @@ describe("wallModelsChoiceError", () => {
 
   it("recusa lista vazia e valor inválido", () => {
     expect(wallModelsChoiceError([])).toEqual(["nenhum modelo escolhido"]);
-    expect(wallModelsChoiceError(["mosaico"])).toEqual(["modelos da parede inválidos"]);
+    expect(wallModelsChoiceError(["modelo-inexistente"])).toEqual(["modelos da parede inválidos"]);
   });
 });
