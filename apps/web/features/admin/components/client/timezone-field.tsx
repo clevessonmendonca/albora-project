@@ -21,7 +21,7 @@ export function TimezoneField({
       <select
         value={value || FUSO_PADRAO}
         onChange={(e) => onChange(e.target.value)}
-        className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink"
+        className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none focus:border-acento"
       >
         {extra.map((f) => (
           <option key={f.id} value={f.id}>

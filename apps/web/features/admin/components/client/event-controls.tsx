@@ -232,7 +232,7 @@ export function EventControls({
               <input
                 type="datetime-local"
                 disabled={saving === "interaction"}
-                className="rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink"
+                className="rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink outline-none focus:border-acento"
                 onChange={(e) => {
                   const value = e.target.value;
                   if (!value) return;
