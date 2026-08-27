@@ -33,7 +33,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
       const data = (await res.json()) as { members?: EventMember[] };
       setMembers(data.members || []);
     } catch {
-      setError("Não foi possível carregar a equipe agora. Recarregue a página.");
+      setError("Não foi possível carregar a equipe agora.");
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,19 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
 
       {loading && <p className="m-0 text-[0.9rem] text-ink-3">Carregando…</p>}
 
-      {error && <p className="m-0 text-sm text-critico">{error}</p>}
+      {error && (
+        <div className="flex items-center justify-between gap-3">
+          <p className="m-0 text-sm text-critico">{error}</p>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => void loadMembers()}
+            className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] disabled:cursor-default disabled:opacity-50"
+          >
+            Tentar de novo
+          </button>
+        </div>
+      )}
 
       {!loading && members.length === 0 && (
         <p className="mb-4 mt-0 text-[0.9rem] text-ink-3">
