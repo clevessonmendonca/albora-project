@@ -11,7 +11,11 @@ import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
 import { TimezoneField } from "@/features/admin/components/client/timezone-field";
 
-const OPTIONS = Object.values(PACKS).map((p) => ({ id: p.id, nome: resolvePackText(p, "evento.nome") }));
+const OPTIONS = Object.values(PACKS).map((p) => ({
+  id: p.id,
+  nome: resolvePackText(p, "evento.nome"),
+  rotulo: resolvePackText(p, "landing.rotulo"),
+}));
 
 const STEPS = ["Tipo", "Evento", "Identidade", "Missões", "Confirmar"] as const;
 
@@ -191,13 +195,20 @@ export function CreateEventWizard() {
               key={opt.id}
               type="button"
               onClick={() => setPackId(opt.id)}
-              className={`flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-token p-5 text-center transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+              className={`flex cursor-pointer flex-col gap-2 rounded-token p-4 text-left transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                 packId === opt.id
-                  ? "border-2 border-acento bg-superficie-alta text-ink"
-                  : "border border-linha bg-bg text-ink-2 hover:border-acento-texto hover:text-ink"
+                  ? "border-2 border-acento bg-superficie-alta"
+                  : "border border-linha bg-bg hover:border-acento-texto"
               }`}
             >
-              <span className="font-titulo text-base">{opt.nome}</span>
+              <span
+                className={`font-titulo text-base capitalize ${packId === opt.id ? "text-ink" : "text-ink-2"}`}
+              >
+                {opt.nome}
+              </span>
+              <span className="line-clamp-2 text-[0.75rem] leading-snug text-ink-3">
+                {opt.rotulo}
+              </span>
             </button>
           ))}
         </div>
@@ -258,6 +269,15 @@ export function CreateEventWizard() {
               />
             </label>
           </div>
+          {datesValid && (
+            <p className="m-0 text-[0.8rem] text-ink-3">
+              Duração:{" "}
+              {Math.round(
+                (new Date(ends).getTime() - new Date(starts).getTime()) / 3_600_000,
+              )}
+              h
+            </p>
+          )}
           {!datesValid && starts !== "" && ends !== "" && (
             <p className="m-0 text-sm text-critico">O fim deve ser depois do começo.</p>
           )}
@@ -458,12 +478,14 @@ export function CreateEventWizard() {
               return next;
             });
           }}
+          total={pack.missoes.length}
         />
       )}
 
       {/* Passo 4 — confirmação */}
       {step === 4 && (
         <ConfirmSummary
+          pack={pack}
           packNome={OPTIONS.find((o) => o.id === packId)?.nome ?? ""}
           title={title.trim() || resolvePackText(pack, "landing.exemplo.nome")}
           starts={starts}
@@ -472,6 +494,7 @@ export function CreateEventWizard() {
           presetNome={presetAtivo ? preset.nome : "Personalizado"}
           paleta={[baseCor, acentoCor, textoCor]}
           missionsCount={activeMissions.length}
+          previewVars={previewVars}
         />
       )}
 
@@ -569,13 +592,23 @@ function MissionList({
   pack,
   checked,
   onToggle,
+  total,
 }: {
   pack: Pack;
   checked: Set<string>;
   onToggle: (key: string) => void;
+  total: number;
 }) {
+  const activeCount = pack.missoes.filter((m) => checked.has(m.chaveTitulo)).length;
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
+      <div className="flex items-baseline justify-between">
+        <span className="text-[0.8rem] uppercase tracking-rotulo text-ink-3">
+          {activeCount} de {total} ativas
+        </span>
+        <span className="text-[0.75rem] text-ink-3">toque para ativar</span>
+      </div>
+      <div className="flex flex-col gap-2">
       {pack.missoes.map((m) => {
         const isChecked = checked.has(m.chaveTitulo);
         return (
@@ -609,11 +642,13 @@ function MissionList({
           </button>
         );
       })}
+      </div>
     </div>
   );
 }
 
 function ConfirmSummary({
+  pack,
   packNome,
   title,
   starts,
@@ -622,7 +657,9 @@ function ConfirmSummary({
   presetNome,
   paleta,
   missionsCount,
+  previewVars,
 }: {
+  pack: Pack;
   packNome: string;
   title: string;
   starts: string;
@@ -631,6 +668,7 @@ function ConfirmSummary({
   presetNome: string;
   paleta: [string, string, string];
   missionsCount: number;
+  previewVars: React.CSSProperties;
 }) {
   const fmt = (iso: string) =>
     new Intl.DateTimeFormat("pt-BR", {
@@ -640,11 +678,27 @@ function ConfirmSummary({
       minute: "2-digit",
     }).format(new Date(iso));
 
+  const missaoExemplo = pack.missoes[0]
+    ? resolvePackText(pack, pack.missoes[0].chaveTitulo)
+    : "Missão";
+
   return (
     <div className="flex flex-col gap-4">
-      <p className="m-0 text-[0.9375rem] text-ink-2">
-        Tudo certo — confirme os dados antes de criar.
-      </p>
+      <div
+        className="overflow-hidden rounded-token font-corpo"
+        style={previewVars}
+      >
+        <div className="bg-bg px-5 py-4">
+          <div className="mb-2.5 h-[0.2rem] w-8 rounded-pilula bg-acento" />
+          <p className="m-0 font-titulo text-lg leading-snug text-acento-texto">{title}</p>
+          <p className="mb-4 mt-1 text-[0.78rem] text-ink-2">Missão · {missaoExemplo}</p>
+          <div className="flex gap-2">
+            <span className="h-8 flex-1 rounded-token bg-acento opacity-90" />
+            <span className="h-8 w-16 rounded-token border border-linha opacity-50" />
+          </div>
+        </div>
+      </div>
+
       <div className="flex flex-col gap-3 rounded-token border border-linha p-4">
         <SummaryRow label="Tipo" value={packNome} />
         <SummaryRow label="Nome" value={title} />
