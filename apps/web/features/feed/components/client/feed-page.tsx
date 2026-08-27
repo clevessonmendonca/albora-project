@@ -565,13 +565,13 @@ function GateAbertoOverlay({
           <button
             type="button"
             onClick={onFechar}
-            className="min-h-12 cursor-pointer rounded-pilula border-none bg-acento px-6 font-inherit text-[0.9rem] font-medium text-sobre-acento"
+            className="min-h-12 cursor-pointer rounded-pilula border-none bg-acento px-6 font-inherit text-[0.9rem] font-medium text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80"
           >
             Ver as fotos
           </button>
           <a
             href={cameraPath}
-            className="grid min-h-12 place-items-center rounded-pilula border border-linha bg-transparent px-6 text-[0.9rem] text-ink no-underline"
+            className="grid min-h-12 place-items-center rounded-pilula border border-linha bg-transparent px-6 text-[0.9rem] text-ink no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
           >
             Tirar foto
           </a>
