@@ -139,7 +139,8 @@ export function WallClient({ initialVars }: { initialVars: Record<string, string
           "absolute right-[clamp(0.75rem,2vw,1.5rem)] bottom-[clamp(0.75rem,2vw,1.5rem)]",
           "min-h-11 min-w-11 rounded-pilula border border-linha bg-bg-vidro px-[0.85rem] py-2",
           "font-[inherit] text-[clamp(0.75rem,1.2vw,0.95rem)] uppercase tracking-[0.04em] text-ink-2 backdrop-blur-[6px]",
-          alternandoPanico ? "cursor-wait opacity-60" : "cursor-pointer opacity-85",
+          "transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)]",
+          alternandoPanico ? "cursor-wait opacity-60" : "cursor-pointer opacity-85 hover:opacity-100",
         )}
       >
         {alternandoPanico ? "…" : panico ? "Retomar" : "Pausar"}

@@ -79,7 +79,7 @@ function Disc({
       aria-label="Abrir foto"
       onClick={onAbrir}
       className={cn(
-        "relative block size-11 cursor-pointer overflow-hidden rounded-full border-0 bg-superficie p-0",
+        "relative block size-11 cursor-pointer overflow-hidden rounded-full border-0 bg-superficie p-0 transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] motion-safe:hover:scale-[1.08] motion-reduce:transition-none",
         amanhecer && "shadow-[inset_0_0_0_1px_var(--acento)]",
       )}
     >
