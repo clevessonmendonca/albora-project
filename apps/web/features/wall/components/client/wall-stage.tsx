@@ -104,7 +104,7 @@ export function WallStage({
       <div
         key={only.id}
         className="absolute inset-0 overflow-hidden"
-        style={{ animation: "wall-aparecer 0.9s ease-out" }}
+        style={{ animation: "wall-aparecer 0.9s var(--curva)" }}
       >
         <FundoDesfocado src={only.full} mime={only.mime} />
         <div className={cn(PALCO, "relative z-10")}>
