@@ -189,25 +189,36 @@ export function CreateEventWizard() {
 
       {/* Passo 0 — tipo */}
       {step === 0 && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-2.5">
           {OPTIONS.map((opt) => (
             <button
               key={opt.id}
               type="button"
               onClick={() => setPackId(opt.id)}
-              className={`flex cursor-pointer flex-col gap-2 rounded-token p-4 text-left transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+              className={`flex w-full cursor-pointer items-start justify-between gap-4 rounded-token p-5 text-left transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                 packId === opt.id
                   ? "border-2 border-acento bg-superficie-alta"
-                  : "border border-linha bg-bg hover:border-acento-texto"
+                  : "border border-linha bg-superficie hover:border-acento-texto"
               }`}
             >
+              <div className="flex flex-col gap-1.5">
+                <span className="font-titulo text-[1.0625rem] capitalize text-ink">
+                  {opt.nome}
+                </span>
+                <span className="text-[0.8375rem] leading-relaxed text-ink-3">
+                  {opt.rotulo}
+                </span>
+              </div>
               <span
-                className={`font-titulo text-base capitalize ${packId === opt.id ? "text-ink" : "text-ink-2"}`}
+                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                  packId === opt.id
+                    ? "border-acento bg-acento"
+                    : "border-linha bg-transparent"
+                }`}
               >
-                {opt.nome}
-              </span>
-              <span className="line-clamp-2 text-[0.75rem] leading-snug text-ink-3">
-                {opt.rotulo}
+                {packId === opt.id && (
+                  <span className="h-2 w-2 rounded-full bg-sobre-acento" />
+                )}
               </span>
             </button>
           ))}
@@ -504,11 +515,11 @@ export function CreateEventWizard() {
         </p>
       )}
 
-      <div className="mt-2 flex gap-3">
+      <div className="mt-3 flex items-center gap-4">
         {step === 0 ? (
           <NextLink
             href="/admin"
-            className={`${adminClasses.secondaryButton} px-4 py-3.5 no-underline`}
+            className="shrink-0 text-[0.875rem] text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
           >
             Cancelar
           </NextLink>
@@ -516,9 +527,9 @@ export function CreateEventWizard() {
           <button
             type="button"
             onClick={() => setStep((p) => p - 1)}
-            className={`${adminClasses.secondaryButton} px-4 py-3.5`}
+            className="shrink-0 cursor-pointer border-none bg-transparent p-0 text-[0.875rem] text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
           >
-            Voltar
+            ← Voltar
           </button>
         )}
         {step < STEPS.length - 1 ? (
@@ -526,7 +537,7 @@ export function CreateEventWizard() {
             type="button"
             disabled={!canAdvance}
             onClick={() => setStep((p) => p + 1)}
-            className={`${adminClasses.primaryButton} flex-1 py-3.5 text-[1.05rem] ${
+            className={`${adminClasses.primaryButton} flex-1 py-3.5 text-center text-[1.05rem] ${
               canAdvance ? "opacity-100" : "opacity-50"
             }`}
           >
@@ -537,7 +548,7 @@ export function CreateEventWizard() {
             type="button"
             disabled={status === "creating"}
             onClick={() => void create()}
-            className={`${adminClasses.primaryButton} flex-1 py-3.5 text-[1.05rem] ${
+            className={`${adminClasses.primaryButton} flex-1 py-3.5 text-center text-[1.05rem] ${
               status === "creating" ? "opacity-60" : "opacity-100"
             }`}
           >
@@ -776,19 +787,36 @@ function Result({ created }: { created: Created }) {
 
   return (
     <Shell title="Evento criado" step={STEPS.length - 1} total={STEPS.length}>
-      <p className="m-0 leading-normal text-ink-2">
-        Imprima o QR do link do convidado na mesa. Abra o telão numa TV do salão e pareie com o
-        código que aparece nela.
-      </p>
-      <Link title="Controles durante a festa" url={`${origin}/admin/e/${created.eventoId}`} />
-      <Link title="Link do convidado" url={eventEntryUrl(origin, created.slug, "link")} />
-      <Link title="WhatsApp" url={whatsappInviteUrl(origin, created.slug)} />
+      <div className="flex items-center gap-3.5">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-acento text-sobre-acento">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden>
+            <path
+              d="M3 9.5l4 4L15 5"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+        <p className="m-0 leading-relaxed text-ink-2">
+          Imprima o QR e cole na mesa. Abra o telão numa TV do salão e pareie com o código que
+          aparece nele.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Link title="Controles durante a festa" url={`${origin}/admin/e/${created.eventoId}`} />
+        <Link title="Link do convidado" url={eventEntryUrl(origin, created.slug, "link")} />
+        <Link title="WhatsApp" url={whatsappInviteUrl(origin, created.slug)} />
+      </div>
+
       {created.planIntent === "celebration" && (
         <button
           type="button"
           disabled={paying}
           onClick={() => void startCheckout()}
-          className={`${adminClasses.primaryButton} block w-full py-3.5 text-center text-[1.05rem] ${
+          className={`${adminClasses.primaryButton} w-full py-3.5 text-center text-[1.05rem] ${
             paying ? "opacity-60" : ""
           }`}
         >
@@ -852,23 +880,35 @@ function Shell({
   children: React.ReactNode;
 }) {
   return (
-    <main className="fixed inset-0 grid place-items-center overflow-y-auto bg-bg p-6 font-corpo text-ink">
-      <div className="flex w-full max-w-[36rem] flex-col gap-[1.1rem] rounded-superficie bg-superficie p-8">
-        <div className="flex gap-1.5">
-          {Array.from({ length: total }, (_, i) => (
-            <span
-              key={i}
-              className={`h-1 flex-1 rounded-pilula transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                i <= step ? "bg-acento" : "bg-linha"
-              }`}
-            />
-          ))}
+    <main className="fixed inset-0 flex flex-col bg-bg font-corpo text-ink">
+      <div className="flex-none border-b border-linha px-6 py-4">
+        <div className="mx-auto max-w-[34rem]">
+          <div className="mb-3 flex items-center justify-between">
+            <span className="text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
+              Novo evento
+            </span>
+            <span className="text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
+              {step + 1} de {total}
+            </span>
+          </div>
+          <div className="flex gap-1">
+            {Array.from({ length: total }, (_, i) => (
+              <span
+                key={i}
+                className={`h-[3px] flex-1 rounded-full transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                  i <= step ? "bg-acento" : "bg-superficie-alta"
+                }`}
+              />
+            ))}
+          </div>
         </div>
-        <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
-          Passo {step + 1} de {total}
-        </p>
-        <h1 className="m-0 font-titulo text-2xl">{title}</h1>
-        {children}
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        <div className="mx-auto flex w-full max-w-[34rem] flex-col gap-5 px-6 py-8">
+          <h1 className="m-0 font-titulo text-[1.75rem] font-light">{title}</h1>
+          {children}
+        </div>
       </div>
     </main>
   );
