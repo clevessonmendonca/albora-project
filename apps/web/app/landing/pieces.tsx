@@ -1,5 +1,7 @@
 import { cn } from "@albora/ui-web";
 import React, { type CSSProperties, type ReactNode } from "react";
+import { Reveal } from "./interactives";
+import { WIDTH, SECTION_PADDING } from "./landing-data";
 
 /**
  * Repeated landing pieces from v4 — the pill, the label, the warm ground and
@@ -154,4 +156,25 @@ export function transition(property: string, duration = "var(--tempo)"): CSSProp
     transitionDuration: duration,
     transitionTimingFunction: "var(--curva)",
   };
+}
+
+export function Section({
+  children,
+  id,
+  className,
+  reveal,
+}: {
+  children: React.ReactNode;
+  id?: string;
+  className?: string;
+  reveal?: boolean;
+}) {
+  return (
+    <section
+      {...(id ? { id } : {})}
+      className={cn("mx-auto", WIDTH, className ?? SECTION_PADDING)}
+    >
+      {reveal ? <Reveal>{children}</Reveal> : children}
+    </section>
+  );
 }
