@@ -207,7 +207,7 @@ export function CoverPage({
           <Shortcut
             href={`${base}/album`}
             label="Álbum"
-            value={String(photos)}
+            value={photos > 0 ? String(photos) : "em breve"}
             icon={<GridIcon size={20} />}
             primary
             valueClass={photoFlash ? "cover-foto-flash" : ""}

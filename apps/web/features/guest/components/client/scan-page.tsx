@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { GuestShell } from "@albora/ui-web";
 import { useScanQr } from "@/features/guest/hooks/scan-qr";
@@ -23,6 +24,14 @@ export function ScanPage() {
   return (
     <GuestShell hideStatusBar>
       <div className="flex min-h-dvh flex-1 flex-col">
+        <div className="flex justify-end px-[1.125rem] pt-[max(0.75rem,env(safe-area-inset-top))]">
+          <Link
+            href="/"
+            className="text-[0.75rem] uppercase tracking-rotulo text-ink-3 no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+          >
+            Início
+          </Link>
+        </div>
         {!showLinkForm && (
           <div className="relative min-h-0 flex-1 bg-superficie">
             {qr.escaneando && (
