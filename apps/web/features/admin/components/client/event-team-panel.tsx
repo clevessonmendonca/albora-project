@@ -131,7 +131,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={saving}
-            className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none focus:border-acento"
+            className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
             placeholder="nome@exemplo.com"
           />
         </label>
@@ -142,7 +142,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
             value={role}
             onChange={(e) => setRole(e.target.value as "couple" | "planner")}
             disabled={saving}
-            className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none focus:border-acento"
+            className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
           >
             <option value="couple">Casal (acesso completo)</option>
             <option value="planner">Cerimonialista (moderação e painel)</option>
