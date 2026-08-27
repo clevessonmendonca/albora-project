@@ -94,7 +94,7 @@ function RequestLink({ next }: { next: string | null }) {
           autoCorrect="off"
           spellCheck={false}
           aria-label="Seu e-mail"
-          className="rounded-token border border-linha bg-bg px-4 py-3.5 text-base text-ink outline-none focus:border-acento"
+          className="rounded-token border border-linha bg-bg px-4 py-3.5 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
         />
         {status === "error" && <p className="m-0 text-[0.9rem] text-critico">Não conseguimos enviar agora. Por favor, tente novamente.</p>}
         <button

@@ -121,7 +121,7 @@ export function IdentityEditor({
               setExpectedGuests(e.target.value);
               setSaved(false);
             }}
-            className="w-full max-w-xs rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink focus:border-acento focus:outline-none"
+            className="w-full max-w-xs rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
           />
           {!guestsValid && expectedGuests !== "" && (
             <p className="mb-0 mt-2 text-sm text-critico">

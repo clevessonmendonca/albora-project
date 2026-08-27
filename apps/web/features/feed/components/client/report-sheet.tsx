@@ -147,7 +147,7 @@ export function ReportSheet({
                 maxLength={280}
                 rows={3}
                 onChange={(e) => setMotivo(e.target.value)}
-                className="w-full resize-y rounded-token border border-linha bg-bg px-3 py-2.5 font-inherit text-[0.9rem] text-ink outline-none focus:border-acento"
+                className="w-full resize-y rounded-token border border-linha bg-bg px-3 py-2.5 font-inherit text-[0.9rem] text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
               />
               {motivo.length > 0 && (
                 <span className="text-right text-[0.6875rem] tabular-nums text-ink-3">
