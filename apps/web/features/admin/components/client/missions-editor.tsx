@@ -197,7 +197,6 @@ export function MissionsEditor({
               )}
             </div>
 
-            {/* ── Missões disponíveis do pack ───────────────── */}
             {inactive.length > 0 && (
               <div>
                 <p className="mb-2 mt-1 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
@@ -216,7 +215,6 @@ export function MissionsEditor({
             )}
           </div>
 
-          {/* ── Prévia da faixa na câmera ─────────────────── */}
           <div className={identityPreviewClassName} style={previewVars}>
             <p className="mb-3 mt-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
               Na câmera
@@ -277,16 +275,16 @@ export function MissionsEditor({
 
               <span className="flex shrink-0 gap-1">
                 <IconButton label={`Subir ${m.titulo}`} disabled={i === 0} onClick={() => moveCustom(i, -1)}>
-                  ↑
+                  <IcoUp />
                 </IconButton>
                 <IconButton label={`Descer ${m.titulo}`} disabled={i === custom.length - 1} onClick={() => moveCustom(i, 1)}>
-                  ↓
+                  <IcoDown />
                 </IconButton>
                 <IconButton label={`Editar ${m.titulo}`} onClick={() => startEdit(i)}>
-                  ✎
+                  <IcoPencil />
                 </IconButton>
                 <IconButton label={`Remover ${m.titulo}`} onClick={() => removeCustom(i)}>
-                  ×
+                  <IcoX />
                 </IconButton>
               </span>
             </div>
@@ -326,7 +324,7 @@ export function MissionsEditor({
           )}
         </div>
 
-        <div className="mt-6 flex items-center gap-4">
+        <div className="mt-6 flex flex-wrap items-center gap-3">
           <button
             type="button"
             disabled={saving}
@@ -335,7 +333,14 @@ export function MissionsEditor({
           >
             {saving ? "Salvando…" : "Salvar missões"}
           </button>
-          {saved && <span className="text-sm text-ink-3">Salvo.</span>}
+          {saved && (
+            <span className="flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path d="M2 6l2.5 2.5L10 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Salvo
+            </span>
+          )}
           {error && <span className="text-sm text-critico">Não foi possível salvar.</span>}
         </div>
       </AdminSection>
@@ -344,15 +349,7 @@ export function MissionsEditor({
 }
 
 function ActiveMissionRow({
-  index,
-  title,
-  canUp,
-  canDown,
-  onMoveUp,
-  onMoveDown,
-  onRemove,
-  onDrop,
-  dragKey,
+  index, title, canUp, canDown, onMoveUp, onMoveDown, onRemove, onDrop, dragKey,
 }: {
   index: number;
   title: string;
@@ -381,7 +378,6 @@ function ActiveMissionRow({
         onDrop(e.dataTransfer.getData("text/plain"));
       }}
     >
-      {/* Drag handle + index */}
       <span
         className="grid size-8 shrink-0 place-items-center rounded-token border border-linha bg-superficie text-[0.75rem] font-titulo text-ink-3 cursor-grab"
         aria-hidden
@@ -390,34 +386,25 @@ function ActiveMissionRow({
         {index}
       </span>
 
-      {/* Title */}
       <span className="min-w-0 flex-1 font-titulo text-[0.95rem] leading-snug">{title}</span>
 
-      {/* Order arrows */}
       <span className="flex shrink-0 gap-1">
         <IconButton label={`Subir "${title}"`} disabled={!canUp} onClick={onMoveUp}>
-          ↑
+          <IcoUp />
         </IconButton>
         <IconButton label={`Descer "${title}"`} disabled={!canDown} onClick={onMoveDown}>
-          ↓
+          <IcoDown />
         </IconButton>
       </span>
 
-      {/* Remove */}
       <IconButton label={`Remover "${title}"`} onClick={onRemove}>
-        ×
+        <IcoX />
       </IconButton>
     </li>
   );
 }
 
-function InactiveMissionRow({
-  title,
-  onAdd,
-}: {
-  title: string;
-  onAdd: () => void;
-}) {
+function InactiveMissionRow({ title, onAdd }: { title: string; onAdd: () => void }) {
   return (
     <li className="flex items-center gap-3 rounded-token border border-linha bg-superficie p-3 opacity-60">
       <span className="min-w-0 flex-1 font-titulo text-[0.95rem] leading-snug text-ink-2">
@@ -435,15 +422,12 @@ function InactiveMissionRow({
 }
 
 function IconButton({
-  label,
-  disabled,
-  onClick,
-  children,
+  label, disabled, onClick, children,
 }: {
   label: string;
   disabled?: boolean;
   onClick: () => void;
-  children: string;
+  children: React.ReactNode;
 }) {
   return (
     <button
@@ -451,9 +435,41 @@ function IconButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="grid size-8 cursor-pointer place-items-center rounded-token border border-linha bg-superficie font-titulo text-sm text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta disabled:cursor-default disabled:opacity-30"
+      className="grid size-8 cursor-pointer place-items-center rounded-token border border-linha bg-superficie text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta disabled:cursor-default disabled:opacity-30"
     >
       {children}
     </button>
+  );
+}
+
+function IcoUp() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+      <path d="M6 9V3M3.5 5.5L6 3l2.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IcoDown() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+      <path d="M6 3v6M3.5 6.5L6 9l2.5-2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IcoPencil() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+      <path d="M8.5 2l1.5 1.5L3.5 10H2V8.5L8.5 2z" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IcoX() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
+      <path d="M1.5 1.5l7 7M8.5 1.5l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
   );
 }

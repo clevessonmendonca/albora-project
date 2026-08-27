@@ -124,7 +124,16 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
   if (loading) {
     return (
       <AdminSection>
-        <p className="m-0 text-ink-3">Carregando…</p>
+        <div className="animate-pulse flex flex-col gap-4">
+          <div className="h-3 w-32 rounded-full bg-superficie-alta" />
+          <div className="h-36 rounded-token bg-superficie-alta" />
+          <div className="h-3 w-48 rounded-full bg-superficie-alta" />
+          <div className="h-10 rounded-token bg-superficie-alta" />
+          <div className="mt-2 flex gap-3">
+            <div className="h-10 w-32 rounded-pilula bg-superficie-alta" />
+            <div className="h-10 w-40 rounded-pilula bg-superficie-alta" />
+          </div>
+        </div>
       </AdminSection>
     );
   }
@@ -137,9 +146,12 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
           convidado vê uma vez, no horário que vocês escolherem.
         </p>
 
-        <label className="flex flex-col gap-1.5 font-titulo text-sm">
-          Texto
+        <div className="flex flex-col gap-2">
+          <label htmlFor="guestbook-texto" className="text-[0.7rem] uppercase tracking-rotulo text-ink-3">
+            Texto
+          </label>
           <textarea
+            id="guestbook-texto"
             value={texto}
             onChange={(e) => {
               setTexto(e.target.value);
@@ -153,7 +165,7 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
           <span className={`text-[0.75rem] font-corpo ${longoDemais ? "text-critico" : "text-ink-3"}`}>
             {caracteres} / {MAX_TEXT_CHARACTERS}
           </span>
-        </label>
+        </div>
 
         <GuestbookAudioField
           saved={removerAudio ? null : audioSalvo}
@@ -166,9 +178,12 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
           recorder={recorder}
         />
 
-        <label className="mt-5 flex flex-col gap-1.5 font-titulo text-sm">
-          Aparece a partir de
+        <div className="mt-5 flex flex-col gap-2">
+          <label htmlFor="guestbook-publica" className="text-[0.7rem] uppercase tracking-rotulo text-ink-3">
+            Aparece a partir de
+          </label>
           <input
+            id="guestbook-publica"
             type="datetime-local"
             value={publicaEm}
             onChange={(e) => {
@@ -177,10 +192,10 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
             }}
             className="rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
           />
-          <span className="font-corpo text-[0.75rem] text-ink-3">
+          <span className="text-[0.75rem] text-ink-3">
             Sem horário, nenhum convidado vê. Escolha quando mostrar.
           </span>
-        </label>
+        </div>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <button
@@ -203,7 +218,14 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
           >
             Salvar e publicar agora
           </button>
-          {saved && <span className="text-sm text-ink-3">Salvo.</span>}
+          {saved && (
+            <span className="flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path d="M2 6l2.5 2.5L10 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Salvo
+            </span>
+          )}
           {error && <span className="text-sm text-critico">{error}</span>}
         </div>
       </AdminSection>

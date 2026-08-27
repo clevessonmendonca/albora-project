@@ -77,9 +77,21 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
 
   if (carregando) {
     return (
-      <AdminSection>
-        <p className="m-0 text-ink-2">Carregando álbum…</p>
-      </AdminSection>
+      <div className="flex flex-col gap-5">
+        <AdminSection>
+          <div className="animate-pulse">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div className="h-3.5 w-52 rounded-full bg-superficie-alta" />
+              <div className="h-8 w-20 rounded-pilula bg-superficie-alta" />
+            </div>
+            <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="aspect-[3/4] rounded-token bg-superficie-alta" />
+              ))}
+            </div>
+          </div>
+        </AdminSection>
+      </div>
     );
   }
 
@@ -95,9 +107,12 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
               setAtualizando(true);
               void carregar().finally(() => setAtualizando(false));
             }}
-            className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+            className="cursor-pointer rounded-pilula border border-linha bg-transparent p-1.5 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+            aria-label="Atualizar agora"
           >
-            {atualizando ? "…" : "⟳"}
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden className={atualizando ? "opacity-50" : ""}>
+              <path d="M11 6.5A4.5 4.5 0 0 1 2 6.5M11 6.5V3.5M11 6.5H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </button>
         </div>
       </AdminSection>
@@ -142,9 +157,12 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
                 setAtualizando(true);
                 void carregar().finally(() => setAtualizando(false));
               }}
-              className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+              className="cursor-pointer rounded-pilula border border-linha bg-transparent p-1.5 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+              aria-label="Atualizar agora"
             >
-              {atualizando ? "…" : "⟳"}
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden className={atualizando ? "opacity-50" : ""}>
+                <path d="M11 6.5A4.5 4.5 0 0 1 2 6.5M11 6.5V3.5M11 6.5H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </button>
           </div>
         </div>
