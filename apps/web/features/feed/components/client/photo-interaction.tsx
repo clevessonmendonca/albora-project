@@ -11,7 +11,7 @@ import { ReactionListSheet } from "./reaction-list-sheet";
 import { ReportSheet } from "./report-sheet";
 
 const CLASSE_BOTAO_ICONE =
-  "flex min-h-11 cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 font-inherit text-inherit disabled:cursor-default";
+  "flex min-h-11 cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 font-inherit text-inherit transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70 disabled:cursor-default";
 
 type Props = {
   uploadId: string;
