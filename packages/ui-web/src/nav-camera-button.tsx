@@ -32,7 +32,7 @@ export function NavCameraButton({ href, linkComponent, lift = "-mt-5" }: NavCame
   const L = linkComponent ?? "a";
 
   return (
-    <L href={href} aria-label="Mandar foto ou vídeo" className={cn(className, "no-underline")}>
+    <L href={href} aria-label="Mandar foto ou vídeo" className={cn(className, "no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90")}>
       <CameraIcon />
     </L>
   );

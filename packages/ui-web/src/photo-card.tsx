@@ -30,7 +30,7 @@ export type PhotoCardProps = {
 };
 
 const ACAO_CLASSE =
-  "inline-flex min-h-[3.375rem] min-w-[3.375rem] cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 font-inherit text-inherit disabled:cursor-default";
+  "inline-flex min-h-[3.375rem] min-w-[3.375rem] cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 font-inherit text-inherit disabled:cursor-default transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70";
 
 /** Card de foto do feed social do convidado — cabeçalho, mídia e barra de ações. */
 export function PhotoCard({

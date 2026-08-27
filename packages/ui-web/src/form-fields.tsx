@@ -46,7 +46,7 @@ export function ConsentCheckbox({
       />
       <span
         className={cn(
-          "grid size-[1.375rem] shrink-0 place-items-center rounded-[0.4375rem] border text-[0.8125rem]",
+          "grid size-[1.375rem] shrink-0 place-items-center rounded-[0.4375rem] border text-[0.8125rem] transition-[border-color,background-color] duration-[var(--tempo-rapido)] ease-[var(--curva)]",
           checked
             ? "border-acento bg-acento text-sobre-acento"
             : "border-linha bg-transparent text-transparent",
@@ -81,7 +81,7 @@ export function TextLink({
         ev.stopPropagation();
         onClick();
       }}
-      className={cn(className, "cursor-pointer")}
+      className={cn(className, "cursor-pointer transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75")}
     >
       {children}
     </button>

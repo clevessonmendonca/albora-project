@@ -53,7 +53,7 @@ export function SupportHelpButton({ eventId }: { eventId: string }) {
         <input
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
-          className="rounded-token border border-linha bg-bg px-3 py-2 font-corpo text-base text-ink outline-none focus:border-acento"
+          className="rounded-token border border-linha bg-bg px-3 py-2 font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
           placeholder="Telão não liga"
         />
       </label>
@@ -63,7 +63,7 @@ export function SupportHelpButton({ eventId }: { eventId: string }) {
           value={body}
           onChange={(e) => setBody(e.target.value)}
           rows={4}
-          className="rounded-token border border-linha bg-bg px-3 py-2 font-corpo text-base text-ink outline-none focus:border-acento"
+          className="rounded-token border border-linha bg-bg px-3 py-2 font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
           placeholder="Sem nomes de convidados, sem colar legendas."
         />
       </label>
@@ -72,7 +72,7 @@ export function SupportHelpButton({ eventId }: { eventId: string }) {
         <select
           value={priority}
           onChange={(e) => setPriority(e.target.value as "p0" | "p1" | "p2")}
-          className="rounded-token border border-linha bg-bg px-3 py-2 font-corpo text-base text-ink outline-none focus:border-acento"
+          className="rounded-token border border-linha bg-bg px-3 py-2 font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
         >
           <option value="p0">P0 — festa ao vivo agora</option>
           <option value="p1">P1 — esta semana, antes da festa</option>
