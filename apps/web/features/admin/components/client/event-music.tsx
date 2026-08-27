@@ -93,7 +93,9 @@ export function EventMusic({ eventId }: { eventId: string }) {
       </p>
 
       {loading ? (
-        <p className="m-0 text-[0.9rem] text-ink-3">Carregando…</p>
+        <div className="animate-pulse rounded-token bg-superficie-alta px-3.5 py-3">
+          <div className="h-3 w-2/3 rounded-full bg-bg" />
+        </div>
       ) : (
         current && <p className="m-0 text-[0.9rem] text-ink">Agora: {current.rotulo}</p>
       )}
@@ -122,16 +124,32 @@ export function EventMusic({ eventId }: { eventId: string }) {
         />
       </label>
 
-      <button
-        type="button"
-        disabled={saving || !url.trim()}
-        onClick={() => void save()}
-        className={`${adminClasses.primaryButton} ${
-          saving || !url.trim() ? "opacity-60" : ""
-        }`}
-      >
-        {saving ? "Salvando…" : salvo ? "Salvo!" : "Salvar música"}
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={saving || !url.trim()}
+          onClick={() => void save()}
+          className={`${adminClasses.primaryButton} ${
+            saving || !url.trim() ? "opacity-60" : ""
+          }`}
+        >
+          {saving ? "Salvando…" : "Salvar música"}
+        </button>
+        {salvo && (
+          <span className="flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+              <path
+                d="M2 6l2.5 2.5L10 3.5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Salvo
+          </span>
+        )}
+      </div>
 
       {error && <p className="m-0 text-sm text-critico">{error}</p>}
 
@@ -140,7 +158,17 @@ export function EventMusic({ eventId }: { eventId: string }) {
           Sugestões dos convidados
         </p>
         {loading ? (
-          <p className="m-0 text-[0.9rem] text-ink-3">Carregando…</p>
+          <div className="flex flex-col gap-2">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="animate-pulse flex items-center justify-between rounded-token bg-bg px-3 py-2.5"
+              >
+                <div className="h-3 w-1/2 rounded-full bg-superficie-alta" />
+                <div className="h-6 w-12 rounded-pilula bg-superficie-alta" />
+              </div>
+            ))}
+          </div>
         ) : suggestions.length === 0 ? (
           <p className="m-0 text-[0.9rem] text-ink-2">
             Nenhum pedido ainda. Quando o feed abrir para os convidados, as sugestões aparecem aqui.

@@ -139,7 +139,9 @@ export function EventControls({
             }`}
           >
             {saving === "panic"
-              ? "…"
+              ? moderation.panic
+                ? "Pausando…"
+                : "Retomando…"
               : moderation.panic
                 ? "Retomar"
                 : "Pausar telão"}
@@ -421,9 +423,24 @@ function EventLink({ title, url }: { title: string; url: string }) {
         <button
           type="button"
           onClick={copiar}
-          className="shrink-0 cursor-pointer rounded-pilula border border-linha bg-superficie-alta px-3 py-1 font-titulo text-[0.75rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink-2"
+          className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-pilula border border-linha bg-superficie-alta px-3 py-1 font-titulo text-[0.75rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink-2"
         >
-          {copiado ? "Copiado!" : "Copiar"}
+          {copiado ? (
+            <>
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path
+                  d="M2 6l2.5 2.5L10 3.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Copiado!
+            </>
+          ) : (
+            "Copiar"
+          )}
         </button>
       </div>
     </div>

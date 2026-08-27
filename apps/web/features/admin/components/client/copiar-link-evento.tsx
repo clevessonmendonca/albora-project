@@ -29,9 +29,24 @@ export function CopiarLinkEvento({ slug }: { slug: string }) {
     <button
       type="button"
       onClick={() => void copiar()}
-      className={adminClasses.secondaryButton}
+      className={`inline-flex items-center gap-1.5 ${adminClasses.secondaryButton}`}
     >
-      {copiado ? "Link copiado!" : `Copiar link · /e/${slug}`}
+      {copiado ? (
+        <>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+            <path
+              d="M2 6l2.5 2.5L10 3.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          Link copiado!
+        </>
+      ) : (
+        `Copiar link · /e/${slug}`
+      )}
     </button>
   );
 }
