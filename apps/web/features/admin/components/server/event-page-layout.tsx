@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { AdminShell } from "@/features/admin/components/server/admin-shell";
 import { EventNav } from "@/features/admin/components/client/event-nav";
 import { CoupleFollowMode } from "@/features/admin/components/client/couple-follow-mode";
+import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
 import { showsFollowMode } from "@/features/admin/lib/follow-mode";
 import { loadEventPage, type AdminEventPageContext } from "@/features/admin/data/load-event-page";
 
@@ -34,6 +35,9 @@ export async function EventPageLayout({
       back={{ label: "Seus eventos", href: "/admin" }}
     >
       <EventNav eventId={eventId} />
+      <div className="flex justify-end py-3">
+        <CopiarLinkEvento slug={ctx.evento.slug} />
+      </div>
       {showsFollowMode(ctx.role, allowFollowMode) ? (
         <CoupleFollowMode eventoId={eventId} dense={content} />
       ) : (

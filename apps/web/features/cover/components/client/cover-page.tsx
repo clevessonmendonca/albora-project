@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
 import {
   Badge,
@@ -84,12 +84,14 @@ function Shortcut({
   value,
   icon,
   primary = false,
+  valueClass,
 }: {
   href: string;
   label: string;
   value: string;
   icon: ReactNode;
   primary?: boolean;
+  valueClass?: string;
 }) {
   return (
     <Link
@@ -100,7 +102,7 @@ function Shortcut({
     >
       {icon}
       <span className="text-[0.625rem] uppercase tracking-rotulo">{label}</span>
-      <span className={`text-[0.6875rem] ${primary ? "text-ink" : "text-ink-2"}`}>{value}</span>
+      <span className={`text-[0.6875rem] ${primary ? "text-ink" : "text-ink-2"} ${valueClass ?? ""}`}>{value}</span>
     </Link>
   );
 }
@@ -134,6 +136,18 @@ export function CoverPage({
   const [photos, setPhotos] = useState(album.contadores.fotos);
   const guests = album.contadores.convidados;
   const missions = album.contadores.missoes;
+  const photoInitialized = useRef(false);
+  const [photoFlash, setPhotoFlash] = useState(false);
+
+  useEffect(() => {
+    if (!photoInitialized.current) {
+      photoInitialized.current = true;
+      return;
+    }
+    setPhotoFlash(true);
+    const t = setTimeout(() => setPhotoFlash(false), 700);
+    return () => clearTimeout(t);
+  }, [photos]);
 
   useEffect(() => {
     const poll = async () => {
@@ -155,6 +169,16 @@ export function CoverPage({
   return (
     <>
       <GuestShell>
+        <style>{`
+          @keyframes cover-foto-flash {
+            0%,100% { color: inherit }
+            40% { color: var(--acento-texto) }
+          }
+          .cover-foto-flash { animation: cover-foto-flash 700ms var(--curva) both }
+          @media (prefers-reduced-motion: reduce) {
+            .cover-foto-flash { animation: none !important }
+          }
+        `}</style>
         <div className="relative h-[20.5rem] shrink-0">
           {hero ? (
             <img src={hero} alt="" className="absolute inset-0 size-full object-cover" />
@@ -186,6 +210,7 @@ export function CoverPage({
             value={String(photos)}
             icon={<GridIcon size={20} />}
             primary
+            valueClass={photoFlash ? "cover-foto-flash" : ""}
           />
           <Shortcut
             href={`${base}/feed`}

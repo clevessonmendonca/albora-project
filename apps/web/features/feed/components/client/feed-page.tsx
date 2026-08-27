@@ -197,6 +197,10 @@ export function FeedPage({
   const [gateAbriu, setGateAbriu] = useState(false);
   const interacaoAnterior = useRef<string | null>(null);
 
+  const prevFirstId = useRef<string | null>(null);
+  const [novosNoTopo, setNovosNoTopo] = useState(false);
+  const firstItemId = estado.itens[0]?.id ?? null;
+
   useEffect(() => {
     if (interacaoAnterior.current === "espelho" && estado.interacao === "completo") {
       setGateAbriu(true);
@@ -209,6 +213,23 @@ export function FeedPage({
     const id = setTimeout(() => setGateAbriu(false), 6000);
     return () => clearTimeout(id);
   }, [gateAbriu]);
+
+  useEffect(() => {
+    const prev = prevFirstId.current;
+    prevFirstId.current = firstItemId;
+    if (prev !== null && firstItemId !== null && firstItemId !== prev) {
+      setNovosNoTopo(true);
+    }
+  }, [firstItemId]);
+
+  useEffect(() => {
+    if (!novosNoTopo) return;
+    const handle = () => {
+      if (window.scrollY < 120) setNovosNoTopo(false);
+    };
+    window.addEventListener("scroll", handle, { passive: true });
+    return () => window.removeEventListener("scroll", handle);
+  }, [novosNoTopo]);
 
   return (
     <>
@@ -230,10 +251,29 @@ export function FeedPage({
           }
           .feed-amanhece { animation: feed-amanhecer var(--tempo-lento) var(--curva) both; }
           .feed-esperando { animation: feed-respirar 1900ms var(--curva) infinite; }
+          @keyframes feed-pill-entra {
+            from { transform: translate(-50%, -2.5rem); opacity: 0 }
+            to   { transform: translate(-50%, 0);       opacity: 1 }
+          }
+          .feed-pill { animation: feed-pill-entra 280ms var(--curva) both }
           @media (prefers-reduced-motion: reduce) {
             .feed-amanhece, .feed-esperando { animation: none !important; }
+            .feed-pill { animation: none !important; }
           }
         `}</style>
+
+        {novosNoTopo && !aberto && (
+          <button
+            type="button"
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: "smooth" });
+              setNovosNoTopo(false);
+            }}
+            className="feed-pill fixed left-1/2 top-16 z-30 flex cursor-pointer items-center gap-1.5 rounded-pilula border-none bg-acento px-4 py-2 text-[0.8125rem] text-sobre-acento shadow-md"
+          >
+            ↑ Novas fotos
+          </button>
+        )}
 
         <GuestMain>
           <GuestHeader
