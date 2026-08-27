@@ -3,6 +3,7 @@
 import type { CodigoDaTese } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { useModerationCount } from "./moderation-count-context";
 
 type Resumo = {
   expectedGuests: number;
@@ -38,6 +39,7 @@ export function LiveSummary({ eventoId }: Props) {
   const [primeiraFotoToast, setPrimeiraFotoToast] = useState(false);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const primeiraFotoVista = useRef(false);
+  const { setCount } = useModerationCount();
 
   const [atualizando, setAtualizando] = useState(false);
 
@@ -49,6 +51,7 @@ export function LiveSummary({ eventoId }: Props) {
       setResumo(dados);
       setErro(false);
       setUltimaAtualizacao(new Date());
+      setCount(dados.filaRevisao);
 
       if (!primeiraFotoVista.current && dados.totalFotos > 0) {
         const chave = `albora:primeiraFoto:${eventoId}`;
@@ -65,7 +68,7 @@ export function LiveSummary({ eventoId }: Props) {
     } catch {
       setErro(true);
     }
-  }, [eventoId]);
+  }, [eventoId, setCount]);
 
   useEffect(() => {
     void carregar();

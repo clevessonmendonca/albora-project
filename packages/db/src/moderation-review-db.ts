@@ -12,6 +12,7 @@ import {
   limiarDenuncias,
   paraEstadoDoEvento,
 } from "./moderation-event";
+import { thumbKeyFromFull } from "./storage-key";
 
 const PUBLICADO = "published";
 
@@ -27,6 +28,7 @@ export type MidiaParaRevisao = {
   classificador: string | null;
   criadaEm: Date;
   motivo: MotivoDaFila;
+  thumbKey: string;
 };
 
 export type ComentarioParaRevisao = {
@@ -58,8 +60,9 @@ export async function listarMidiaParaRevisao(
     pedidos_de_remocao: number;
     classifier_verdict: string | null;
     released_by_host: boolean;
+    storage_key: string;
   }>(
-    `SELECT u.id, s.display_name, u.created_at, u.classifier_verdict, u.released_by_host,
+    `SELECT u.id, s.display_name, u.created_at, u.classifier_verdict, u.released_by_host, u.storage_key,
             ${SQL_DENUNCIAS_QUE_SEGURAM} AS denuncias,
             ${SQL_PEDIDOS_DE_REMOCAO} AS pedidos_de_remocao
        FROM uploads u
@@ -90,6 +93,7 @@ export async function listarMidiaParaRevisao(
         classificador: l.classifier_verdict,
         criadaEm: l.created_at,
         motivo,
+        thumbKey: thumbKeyFromFull(l.storage_key),
       },
     ];
   });

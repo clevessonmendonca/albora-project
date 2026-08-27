@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { useModerationCount } from "./moderation-count-context";
 
 type Midia = {
   id: string;
@@ -10,6 +11,7 @@ type Midia = {
   pedidosDeRemocao?: number;
   motivo: string;
   criadaEm: string;
+  thumb?: string;
 };
 
 type Comentario = {
@@ -69,6 +71,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
   const [acao, setAcao] = useState<string | null>(null);
   const [acaoBulk, setAcaoBulk] = useState<"liberar" | "ocultar" | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const { setCount } = useModerationCount();
 
   const carregar = useCallback(async () => {
     setErro(null);
@@ -78,14 +81,16 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
       const corpo = (await r.json()) as { midias: Midia[]; comentarios: Comentario[] };
       setMidias(corpo.midias);
       setComentarios(corpo.comentarios);
-      onTotalChange?.(corpo.midias.length + corpo.comentarios.length);
+      const total = corpo.midias.length + corpo.comentarios.length;
+      onTotalChange?.(total);
+      setCount(total);
     } catch {
       setErro("Não foi possível carregar a lista de revisão agora.");
       onTotalChange?.(0);
     } finally {
       setCarregando(false);
     }
-  }, [eventoId, onTotalChange]);
+  }, [eventoId, onTotalChange, setCount]);
 
   useEffect(() => {
     void carregar();
@@ -211,51 +216,64 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
       {hasBoth && <SectionHeader label="Fotos" count={midias.length} />}
 
       {midias.map((m) => (
-        <div key={m.id} className="flex flex-col gap-2.5 rounded-token border border-linha bg-bg p-3.5">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <span className="block font-titulo text-[0.875rem] text-ink">{m.autor}</span>
-              {m.criadaEm && (
-                <span className="mt-0.5 block text-[0.76rem] text-ink-3">
-                  {formatarHora(m.criadaEm)}
-                </span>
-              )}
+        <div key={m.id} className="flex gap-3 rounded-token border border-linha bg-bg p-3.5">
+          {m.thumb && (
+            <div className="aspect-[3/4] w-16 shrink-0 overflow-hidden rounded-token bg-superficie-alta">
+              <img
+                src={m.thumb}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="size-full object-cover"
+              />
             </div>
-            <div className="flex flex-wrap justify-end gap-1">
-              {m.denuncias > 0 && (
-                <ChipStatus
-                  critico
-                  label={`${m.denuncias} ${m.denuncias === 1 ? "denúncia" : "denúncias"}`}
-                />
-              )}
-              {(m.pedidosDeRemocao ?? 0) > 0 && (
-                <ChipStatus critico label="remoção pedida" />
-              )}
-              {m.motivo === "endurecido" && <ChipStatus label="aguardando" />}
-              {m.motivo === "classificador" && <ChipStatus label="filtro auto" />}
+          )}
+          <div className="flex min-w-0 flex-1 flex-col gap-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <span className="block font-titulo text-[0.875rem] text-ink">{m.autor}</span>
+                {m.criadaEm && (
+                  <span className="mt-0.5 block text-[0.76rem] text-ink-3">
+                    {formatarHora(m.criadaEm)}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap justify-end gap-1">
+                {m.denuncias > 0 && (
+                  <ChipStatus
+                    critico
+                    label={`${m.denuncias} ${m.denuncias === 1 ? "denúncia" : "denúncias"}`}
+                  />
+                )}
+                {(m.pedidosDeRemocao ?? 0) > 0 && (
+                  <ChipStatus critico label="remoção pedida" />
+                )}
+                {m.motivo === "endurecido" && <ChipStatus label="aguardando" />}
+                {m.motivo === "classificador" && <ChipStatus label="filtro auto" />}
+              </div>
             </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={acao !== null}
-              onClick={() => void patch("midia", m.id, "liberar")}
-              className={`${adminClasses.primaryButtonSm} ${
-                acao === `liberar:midia:${m.id}` ? "opacity-60" : ""
-              }`}
-            >
-              {acao === `liberar:midia:${m.id}` ? "Aprovando…" : "Aprovar"}
-            </button>
-            <button
-              type="button"
-              disabled={acao !== null}
-              onClick={() => void patch("midia", m.id, "ocultar")}
-              className={`${adminClasses.dangerButtonSm} ${
-                acao === `ocultar:midia:${m.id}` ? "opacity-60" : ""
-              }`}
-            >
-              {acao === `ocultar:midia:${m.id}` ? "Ocultando…" : "Ocultar"}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={acao !== null}
+                onClick={() => void patch("midia", m.id, "liberar")}
+                className={`${adminClasses.primaryButtonSm} ${
+                  acao === `liberar:midia:${m.id}` ? "opacity-60" : ""
+                }`}
+              >
+                {acao === `liberar:midia:${m.id}` ? "Aprovando…" : "Aprovar"}
+              </button>
+              <button
+                type="button"
+                disabled={acao !== null}
+                onClick={() => void patch("midia", m.id, "ocultar")}
+                className={`${adminClasses.dangerButtonSm} ${
+                  acao === `ocultar:midia:${m.id}` ? "opacity-60" : ""
+                }`}
+              >
+                {acao === `ocultar:midia:${m.id}` ? "Ocultando…" : "Ocultar"}
+              </button>
+            </div>
           </div>
         </div>
       ))}

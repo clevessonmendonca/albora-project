@@ -19,41 +19,18 @@ import {
   UUID_RE,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
+import { assinarGet } from "@/lib/r2";
 import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
 
-function serializar(
-  midias: Awaited<ReturnType<typeof listarMidiaParaRevisao>>,
-  comentarios: Awaited<ReturnType<typeof listarComentariosParaRevisao>>,
-) {
-  return {
-    midias: midias.map((m) => ({
-      id: m.id,
-      autor: m.autor,
-      denuncias: m.denuncias,
-      pedidosDeRemocao: m.pedidosDeRemocao,
-      classificador: m.classificador,
-      motivo: m.motivo,
-      criadaEm: m.criadaEm.toISOString(),
-    })),
-    comentarios: comentarios.map((c) => ({
-      id: c.id,
-      midiaId: c.midiaId,
-      autor: c.autor,
-      texto: c.texto,
-      denuncias: c.denuncias,
-      classificador: c.classificador,
-      criadaEm: c.criadaEm.toISOString(),
-    })),
-  };
-}
+const VALIDADE_GET_SEGUNDOS = 900;
 
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },
 ) {
-  const cfgErr = requireConfig("admin");
+  const cfgErr = requireConfig("admin", { mediaOrigin: true });
   if (cfgErr) return cfgErr;
 
   const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
@@ -69,9 +46,36 @@ export async function GET(
         listarMidiaParaRevisao(c, eventId),
         listarComentariosParaRevisao(c, eventId),
       ]);
-      return serializar(midias, comentarios);
+      return { midias, comentarios };
     });
-    return jsonOk(fila);
+
+    const [midiasSerializadas, comentariosSerializados] = await Promise.all([
+      Promise.all(
+        fila.midias.map(async (m) => ({
+          id: m.id,
+          autor: m.autor,
+          denuncias: m.denuncias,
+          pedidosDeRemocao: m.pedidosDeRemocao,
+          classificador: m.classificador,
+          motivo: m.motivo,
+          criadaEm: m.criadaEm.toISOString(),
+          thumb: await assinarGet(m.thumbKey, VALIDADE_GET_SEGUNDOS),
+        })),
+      ),
+      Promise.resolve(
+        fila.comentarios.map((c) => ({
+          id: c.id,
+          midiaId: c.midiaId,
+          autor: c.autor,
+          texto: c.texto,
+          denuncias: c.denuncias,
+          classificador: c.classificador,
+          criadaEm: c.criadaEm.toISOString(),
+        })),
+      ),
+    ]);
+
+    return jsonOk({ midias: midiasSerializadas, comentarios: comentariosSerializados });
   } catch (e) {
     return unexpectedError("admin.revisao.get", e);
   }

@@ -44,6 +44,7 @@ describe("fila de revisao", () => {
     );
 
     expect(fila.some((m) => m.id === uploadId)).toBe(true);
+    expect(fila.find((m) => m.id === uploadId)?.thumbKey).toContain("/thumb");
 
     const liberou = await comEvento(app, dados.a.eventoId, (c) =>
       liberarMidiaDoEvento(c, uploadId),
