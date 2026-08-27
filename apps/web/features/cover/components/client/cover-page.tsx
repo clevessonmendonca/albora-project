@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
 import {
   Badge,
@@ -131,9 +131,25 @@ export function CoverPage({
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
   const hero = coverImageUrl ?? albumCoverUrl(album);
+  const [photos, setPhotos] = useState(album.contadores.fotos);
   const guests = album.contadores.convidados;
-  const photos = album.contadores.fotos;
   const missions = album.contadores.missoes;
+
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const r = await fetch(`/api/e/${encodeURIComponent(slug)}/stats`);
+        if (r.ok) {
+          const d = (await r.json()) as { fotos: number };
+          setPhotos(d.fotos);
+        }
+      } catch {
+        // degradar silenciosamente: o contador estático fica visível
+      }
+    };
+    const id = setInterval(() => void poll(), 60_000);
+    return () => clearInterval(id);
+  }, [slug]);
   const centerIndex = moments.length > 1 ? 1 : 0;
 
   return (

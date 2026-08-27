@@ -138,6 +138,13 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
           <Stat n={String(resumo.expectedGuests)} rotulo="esperados" />
           <Stat n={String(resumo.totalFotos)} rotulo="fotos no ar" />
           <Stat n={String(resumo.sharesTotais)} rotulo="compartilhamentos" />
+          {insights?.horas && insights.horas.length > 0 && (() => {
+            const pico = insights.horas.reduce((a, h) => (h.fotos > a.fotos ? h : a), insights.horas[0]!);
+            return <Stat n={`${pico.hora}h`} rotulo="hora de pico" destaqueClass="text-ink" />;
+          })()}
+          {insights?.missoes && insights.missoes[0] && (
+            <Stat n={String(insights.missoes[0].fotos)} rotulo={`missão: ${insights.missoes[0].titulo.slice(0, 14)}`} destaqueClass="text-ink" />
+          )}
         </div>
         <p className={`m-0 text-sm font-medium ${destaqueClass}`}>
           {ROTULO_VEREDITO[resumo.veredito]}
@@ -215,7 +222,16 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
 
       {insights && insights.missoes.length > 0 && (
         <AdminSection>
-          <h2 className="mb-3 mt-0 font-titulo text-lg">Missões mais fotografadas</h2>
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <h2 className="m-0 font-titulo text-lg">Missões mais fotografadas</h2>
+            <button
+              type="button"
+              onClick={() => downloadInsightsCsv(insights)}
+              className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink"
+            >
+              ↓ CSV
+            </button>
+          </div>
           <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
             Ranking de engajamento por missão — sem identificar quem fotografou.
           </p>
@@ -275,6 +291,31 @@ function Stat({
       <p className="mb-0 mt-1.5 text-xs text-ink-2">{rotulo}</p>
     </div>
   );
+}
+
+function downloadInsightsCsv(insights: Insights): void {
+  const rows: string[] = [
+    "Secao,Posicao,Titulo,Hora,Fotos",
+    ...insights.missoes.map((m, i) =>
+      [
+        "missao",
+        i + 1,
+        `"${(m.titulo ?? "").replace(/"/g, '""')}"`,
+        "",
+        m.fotos,
+      ].join(","),
+    ),
+    ...insights.horas.map((h) =>
+      ["hora", "", "", h.hora, h.fotos].join(","),
+    ),
+  ];
+  const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `insights.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function MissoesRanking({ missoes }: { missoes: MissaoInsightUI[] }) {
