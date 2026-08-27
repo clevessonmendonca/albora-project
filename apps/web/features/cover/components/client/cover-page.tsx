@@ -43,7 +43,7 @@ function BotaoConvidar({ slug, eventName }: { slug: string; eventName: string })
     <button
       type="button"
       onClick={() => void convidar()}
-      className="flex min-h-12 w-full items-center justify-center rounded-pilula border border-linha bg-transparent px-4 font-inherit text-[0.9375rem] text-ink cursor-pointer"
+      className="flex min-h-12 w-full cursor-pointer items-center justify-center rounded-pilula border border-linha bg-transparent px-4 font-inherit text-[0.9375rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
     >
       {copiado ? "Link copiado!" : "Convidar amigos"}
     </button>
@@ -94,7 +94,7 @@ function Shortcut({
   return (
     <Link
       href={href}
-      className={`flex flex-col items-center gap-[0.3125rem] rounded-token bg-superficie px-1 py-3 no-underline ${
+      className={`flex flex-col items-center gap-[0.3125rem] rounded-token bg-superficie px-1 py-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta ${
         primary ? "text-ink" : "text-ink-2 opacity-85"
       }`}
     >
