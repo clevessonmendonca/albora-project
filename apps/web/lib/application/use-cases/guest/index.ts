@@ -68,3 +68,15 @@ export {
   type GetGuestEventInput,
   type GuestEventOutput,
 } from "./get-guest-event";
+
+export {
+  getGuestbook,
+  type GetGuestbookInput,
+  type GetGuestbookOutput,
+} from "./get-guestbook";
+
+export {
+  markGuestbookReadUseCase,
+  type MarkGuestbookReadInput,
+  type MarkGuestbookReadOutput,
+} from "./mark-guestbook-read";
