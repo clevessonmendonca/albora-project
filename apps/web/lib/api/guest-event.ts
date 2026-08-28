@@ -5,11 +5,7 @@ type GuestSessionIds = {
   sessaoId: string;
 };
 
-/**
- * Recusa pedido cujo `evento` não é o da sessão. Query ausente (`null`) e
- * campo de corpo ausente (`undefined`) passam — o resto, inclusive `null`
- * no JSON, é outro evento.
- */
+/** Recusa `evento` que não bate com a sessão; `null` (query ausente) e `undefined` (campo ausente) passam — `null` no JSON é outro evento. */
 export function rejectGuestEventMismatch(
   requested: unknown,
   session: GuestSessionIds,

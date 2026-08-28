@@ -16,16 +16,7 @@ const PAIRING_CODE = /^[A-HJ-NP-Z2-9]{6}$/;
 
 type Body = { codigo?: unknown };
 
-/**
- * Alguém que já está no evento autoriza o telão (spec 010).
- *
- * 🔴 O evento vem da **sessão de quem autoriza**, nunca do corpo nem da TV.
- * Convidado ou anfitrião serve — o crachá que sai daqui só lê o que já é
- * público, e ninguém sobe foto por ele. Sem sessão, 401: não dá para ligar o
- * telão de um evento em que você não entrou.
- *
- * Plano grátis: recusa aqui (TV / quem autoriza), nunca paywall na pista.
- */
+/** Autoriza telão (spec 010): evento da sessão de quem autoriza, nunca do corpo; crachá só lê público; sem sessão → 401; plano grátis recusado aqui, nunca paywall na pista. */
 export async function POST(req: Request) {
   const auth = await requireGuestSession(req, "Entre no evento antes de ligar o telão");
   if (auth instanceof Response) return auth;

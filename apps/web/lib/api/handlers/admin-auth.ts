@@ -36,18 +36,7 @@ function safeAdminNext(raw: unknown): string | null {
   return next;
 }
 
-/**
- * O anfitrião pede um magic link (spec 009).
- *
- * O token vira um link `/admin/sign-in?m=…` e é **entregue por e-mail** — o único
- * canal em produção. Em dev não há e-mail: a rota devolve o link no corpo,
- * atrás de `APP_ENV=dev`, para o desenvolvedor clicar. Fora de dev, o link
- * **nunca** volta na resposta: devolvê-lo a um POST anônimo seria dar login de
- * qualquer conta a quem souber o e-mail.
- *
- * A resposta é a mesma tenha ou não a conta — "se existe, enviamos" — para não
- * virar um oráculo de quais e-mails têm conta.
- */
+/** Magic link do anfitrião (spec 009): entregue só por e-mail em prod; fora de dev, link nunca volta na resposta (daria login a quem souber o e-mail); resposta idêntica com/sem conta. */
 export async function postSignIn(req: Request) {
   const cfgErr = requireConfig("admin");
   if (cfgErr) return cfgErr;
@@ -122,14 +111,7 @@ export async function postSignOut(req: Request) {
   return jsonOk({ ok: true }, { headers: { "set-cookie": clearHostCookie() } });
 }
 
-/**
- * Consome o magic link e abre a sessão de host (spec 009).
- *
- * O token chega no **corpo** de um POST — nunca na querystring, que o guard
- * `sessao` reprova. A página `/admin/sign-in?m=…` lê o `m` e o manda aqui quando
- * o anfitrião confirma, o que também evita que o pré-fetch de um cliente de
- * e-mail consuma o link sozinho. O crachá volta em cookie `HttpOnly`.
- */
+/** Consome magic link (token no corpo, nunca na querystring): pré-fetch de e-mail não consome o link; crachá volta em cookie `HttpOnly`. */
 export async function postSession(req: Request) {
   const cfgErr = requireConfig("admin");
   if (cfgErr) return cfgErr;

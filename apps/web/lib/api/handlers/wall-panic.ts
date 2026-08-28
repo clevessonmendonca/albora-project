@@ -4,12 +4,7 @@ import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 import { wallFromRequest } from "@/lib/wall";
 
-/**
- * Pausa ou retoma a parede a partir do telão (spec 011).
- *
- * O crachá da TV só lê mídia — exceto este único toggle de segurança, para
- * quem está no salão não precisar abrir o admin.
- */
+/** Pausa/retoma a parede a partir do telão (spec 011): único toggle do crachá da TV — quem está no salão não precisa abrir o admin. */
 export async function PATCH(req: Request) {
   const configError = requireConfig("parede");
   if (configError) return configError;

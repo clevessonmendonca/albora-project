@@ -78,10 +78,7 @@ async function requireHostRecado(req: Request, eventId: string) {
   return auth;
 }
 
-/**
- * Presign do áudio do recado. A chave sai daqui, nunca do JSON do cliente.
- * O token do convidado não passa por esta rota.
- */
+/** Presign do áudio: chave derivada aqui, nunca do cliente; token do convidado não passa por esta rota. */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },

@@ -39,11 +39,7 @@ async function screenPayload(
   };
 }
 
-/**
- * O convidado le o recado do evento da sessao dele. Nada alem — em
- * particular, nao autoriza gravar. Se o recado nao carregar, a resposta
- * e vazia e a camera continua livre.
- */
+/** Convidado lê o recado do evento da sessão — não autoriza gravar; recado sem carregar = resposta vazia, câmera segue. */
 export async function GET(req: Request) {
   const auth = await requireGuestSession(req);
   if (auth instanceof Response) return auth;
@@ -68,11 +64,7 @@ export async function GET(req: Request) {
   }
 }
 
-/**
- * Marca o recado como lido para esta sessao. O id do recado sai do evento
- * da sessao, nunca do corpo — mandar um id de outra festa nao troca de
- * evento.
- */
+/** Marca recado como lido: id sai do evento da sessão, nunca do corpo — id de outra festa não troca de evento. */
 export async function POST(req: Request) {
   const auth = await requireGuestSession(req);
   if (auth instanceof Response) return auth;

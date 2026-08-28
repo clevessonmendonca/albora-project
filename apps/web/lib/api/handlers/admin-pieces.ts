@@ -74,10 +74,7 @@ function invalidPiece(problemas: string[], avisos: string[]): Response {
   });
 }
 
-/**
- * Gera peça impressa (SVG, PDF ou ZIP das três) com sangria, QR nível H e URL
- * legível. `tipo=pdf` é vetorial no request — dezenas de KB, não raster 300 dpi.
- */
+/** Gera peça impressa (SVG, PDF ou ZIP) com sangria, QR nível H e URL legível — `tipo=pdf` é vetorial, dezenas de KB, não raster 300dpi. */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },

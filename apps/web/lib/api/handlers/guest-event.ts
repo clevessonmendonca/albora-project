@@ -8,10 +8,7 @@ import {
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
 
-/**
- * Tema do evento para o app Expo — pack, identidade e brand_tokens do vendor.
- * O eventoId vem só da sessão; nunca do query string.
- */
+/** Tema do evento para o app Expo (pack, identidade, brand_tokens): eventoId vem só da sessão, nunca do query string. */
 export async function getGuestEvent(req: Request) {
   const auth = await requireGuestSession(req);
   if (auth instanceof Response) return auth;
