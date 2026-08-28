@@ -21,9 +21,7 @@ function mockFetchNetworkError(): typeof fetch {
   return vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
 }
 
-// ---------------------------------------------------------------------------
 // fetchMusica
-// ---------------------------------------------------------------------------
 
 describe("fetchMusica", () => {
   it("retorna faixa e sugestões em resposta 200", async () => {
@@ -121,9 +119,7 @@ describe("fetchMusica", () => {
   });
 });
 
-// ---------------------------------------------------------------------------
 // sugerirMusica
-// ---------------------------------------------------------------------------
 
 describe("sugerirMusica", () => {
   it("retorna sugestões atualizadas em sucesso 200", async () => {
