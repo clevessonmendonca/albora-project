@@ -1,7 +1,3 @@
-/**
- * Sem sessão não há superfície do convidado: a identidade é escopada a um
- * evento (ADR 0009). O caminho de volta é o QR — a tela oferece o atalho.
- */
 export function NoSession({ slug }: { slug: string }) {
   return (
     <main className="grid min-h-dvh place-items-center bg-bg px-6 py-8 font-corpo text-ink">

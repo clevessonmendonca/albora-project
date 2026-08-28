@@ -5,11 +5,6 @@ import { useEffect, useState } from "react";
 import { GuestShell } from "@albora/ui-web";
 import { useScanQr } from "@/features/guest/hooks/scan-qr";
 
-/**
- * A-01 · Scanner de QR — primeira superfície antes do evento.
- *
- * Visor ao vivo em tela cheia; fallback "Já tenho o link" para colar o código.
- */
 export function ScanPage() {
   const qr = useScanQr();
   const { podeEscanear, setEscaneando } = qr;

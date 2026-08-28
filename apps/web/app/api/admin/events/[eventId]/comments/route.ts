@@ -57,7 +57,6 @@ export async function GET(
   }
 }
 
-/** Remove comentário publicado pelo anfitrião (spec 014). */
 export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },

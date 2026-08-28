@@ -26,13 +26,6 @@ function calcTexto(isoAt: string): string {
   });
 }
 
-/**
- * Contagem regressiva até o início do evento.
- *
- * Atualiza a cada 30 s enquanto estiver na tela. Para eventos a mais de 24 h,
- * exibe data e hora por extenso; dentro das 24 h exibe "em X h Y min" para
- * dar a sensação correta de proximidade.
- */
 export function EventCountdown({ at }: { at: string }) {
   const [texto, setTexto] = useState(() => calcTexto(at));
 

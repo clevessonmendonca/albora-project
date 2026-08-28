@@ -19,13 +19,6 @@ import {
   DisplayTitle,
 } from "@albora/ui-web";
 
-/**
- * Do QR à sessão em três toques: consentir, digitar o nome, entrar.
- *
- * Layout espelha `EntryScreen` em `/telas` — uma pergunta por bloco, fundo
- * escuro, sem logotipo no topo (a festa é o herói, não a marca).
- */
-
 const CONSENTIMENTO = "v1";
 const NOME_SALVO = "albora:nome";
 

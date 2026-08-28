@@ -1,12 +1,6 @@
 import { ALBORA_BRAND } from "@albora/tokens";
 
-/**
- * O logotipo Albora numa cor só, herdada de `--ink`.
- *
- * A fonte vem de `ALBORA_BRAND`, não de `--fonte-titulo`: o token de título é
- * sobrescrito pela fonte do casal, e a marca é a moldura — se o evento
- * repintasse o logotipo, ele deixaria de ser assinatura.
- */
+/** Usa ALBORA_BRAND, não --fonte-titulo: o evento sobrescreve o título, mas nunca a assinatura da marca. */
 export function AlboraLogo({ width = "9.5rem" }: { width?: string | undefined }) {
   return (
     <svg

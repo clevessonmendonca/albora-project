@@ -87,7 +87,6 @@ type Corpo = {
   acao?: unknown;
 };
 
-/** Libera ou remove item retido na fila de revisão (spec 011, 014). */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },

@@ -3,12 +3,6 @@
 import Link from "next/link";
 import { useScanQr } from "@/features/guest/hooks/scan-qr";
 
-/**
- * A saída de toda tela sem saída — versão compacta para avisos.
- *
- * O campo de código vem primeiro; o botão de escanear só onde o aparelho
- * decodifica QR sozinho via `BarcodeDetector`.
- */
 export function RescueScanner() {
   const qr = useScanQr();
 

@@ -50,7 +50,6 @@ function comoAbertura(v: unknown): Date | null | undefined {
   return d;
 }
 
-/** Painel ao vivo: participação, fotos e fila de revisão (spec 009). */
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },
@@ -109,11 +108,6 @@ export async function GET(
   }
 }
 
-/**
- * Toggles de moderacao do evento (roadmap A2, spec 011, ADR 0012).
- *
- * A conta vem da sessao de host; `withAccount` impede alterar evento alheio.
- */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },

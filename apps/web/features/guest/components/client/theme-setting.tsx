@@ -14,17 +14,7 @@ const OPCOES: { valor: GuestThemeChoice; rotulo: string }[] = [
   { valor: "system", rotulo: "Sistema" },
 ];
 
-/**
- * Config de aparência do convidado, dentro de "Minhas" — substitui o botão
- * sol/lua que ficava fixo em toda tela. Mesma lógica de sempre: `data-tema`
- * em `#guest-root` + cookie (`guest-theme.ts`); só que atrás de uma escolha
- * explícita de 3 vias, não de um toggle sempre visível.
- *
- * O estado inicial assume "system" e se corrige para o que já está no DOM
- * assim que monta — o fundo da página nunca pisca (isso já é resolvido pelo
- * `<style>` anti-flash do layout, antes deste componente existir); o pior
- * caso aqui é o rádio certo acender um frame depois.
- */
+/** O estado inicial assume "system" e corrigi um frame depois — o anti-flash fica no layout, não aqui. */
 export function ThemeSetting() {
   const [escolha, setEscolha] = useState<GuestThemeChoice>("system");
 
