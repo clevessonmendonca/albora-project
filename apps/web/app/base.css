@@ -43,7 +43,7 @@ body {
 }
 
 .animate-star-bounce {
-  animation: star-bounce 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: star-bounce 500ms var(--curva);
 }
 
 @media (prefers-reduced-motion: reduce) {
