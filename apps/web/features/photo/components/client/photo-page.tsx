@@ -135,9 +135,7 @@ export function PhotoPage({
     const primeiro = arquivos[0];
     if (!primeiro) return;
 
-    // Uma foto passa pelo editor. Um lote não: quem sobe dez do rolo no
-    // domingo de manhã não quer escolher filtro dez vezes, e uma entrada de
-    // fila por arquivo é o que a N5.6 pede.
+    // Uma foto passa pelo editor; um lote não — quem sobe dez do rolo não quer escolher filtro dez vezes, uma entrada de fila por arquivo é o que N5.6 pede.
     if (arquivos.length === 1) {
       const inicio = new Uint8Array(await primeiro.slice(0, 16).arrayBuffer());
       if (isVideoBytes(inicio)) {
@@ -175,9 +173,7 @@ export function PhotoPage({
     texto: TextoComposto | undefined,
     musicTrackId: string | undefined,
   ) {
-    // O composer marca a foto como story quando o convidado escreveu algo ou
-    // anexou uma faixa pelo sticker de música (spec 020, sub-etapas a e b) —
-    // as duas ferramentas do composer até a sub-etapa c chegar.
+    // Composer marca a foto como story quando o convidado escreve algo ou anexa faixa pelo sticker de música (spec 020, sub-etapas a e b) — até a sub-etapa c chegar.
     const r = await enfileirarFoto({
       arquivo,
       filtro,

@@ -3,10 +3,7 @@ import type { VisibleSuggestion } from "@/features/music/types/visible-suggestio
 
 export function queueForScreen(fila: readonly FaixaSugerida[]): VisibleSuggestion[] {
   return fila.map((f) => ({
-    // `id` só falta quando a fila vem da reconstrução em memória de
-    // `registrarSugestao`, e essa fila nunca chega até aqui — as duas rotas
-    // sempre serializam o resultado fresco de `listarSugestoes`. `chave` é o
-    // fallback só para não vazar `undefined` no contrato.
+    // `id` só falta na fila reconstruída em memória de `registrarSugestao`, que nunca chega até aqui (ambas as rotas serializam `listarSugestoes` fresco) — `chave` é fallback pra não vazar `undefined`.
     id: f.id ?? f.chave,
     provedor: f.link.provedor,
     tipo: f.link.tipo,

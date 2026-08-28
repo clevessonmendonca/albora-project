@@ -170,13 +170,7 @@ export async function POST(req: Request) {
         promptKey: prompt,
       });
 
-      // Marca a story na MESMA transação do confirm, mas atrás de um SAVEPOINT:
-      // a story é enriquecimento, o confirm da foto é o dado essencial. Sem o
-      // savepoint, um erro em `createStory` abortaria a transação inteira e
-      // desfaria o confirm da foto — violando "a story degrada, nunca falha".
-      // Com ele, a falha da story reverte só o próprio INSERT; a foto commita.
-      // Idempotente via `UNIQUE (upload_id)`: o retry da fila offline marcando
-      // duas vezes não duplica.
+      // Story marcada na mesma transação do confirm, atrás de SAVEPOINT — falha em createStory reverte só a story, nunca o confirm da foto (story degrada, nunca falha); idempotente via UNIQUE (upload_id).
       if (story === true) {
         await c.query("SAVEPOINT marcar_story");
         try {

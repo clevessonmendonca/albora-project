@@ -15,9 +15,7 @@ import { desenharTextoNoContexto, estiloTextoDoStory } from "./story-text";
 type Img = Bitmap & { bitmap: ImageBitmap };
 
 function contexto(largura: number, altura: number) {
-  // `OffscreenCanvas` mantém o trabalho fora da thread da interface: num
-  // aparelho modesto, redimensionar 12 MP na main thread congela a tela e o
-  // convidado acha que travou.
+  // `OffscreenCanvas` tira o trabalho da thread da interface — redimensionar 12MP na main thread congela a tela num aparelho modesto e o convidado acha que travou.
   const canvas =
     typeof OffscreenCanvas !== "undefined"
       ? new OffscreenCanvas(largura, altura)
@@ -76,9 +74,7 @@ export const webDrawer: Desenhista<Img, Blob> = {
     const { canvas, ctx } = contexto(imagem.largura, imagem.altura);
     ctx.drawImage(imagem.bitmap, 0, 0);
 
-    // `convertToBlob` reencoda do zero — e é exatamente isso que remove o
-    // EXIF, e o GPS junto. A remoção não é uma etapa separada que alguém pode
-    // esquecer de chamar: ela é consequência de existir uma saída.
+    // `convertToBlob` reencoda do zero, o que remove EXIF (e GPS junto) — a remoção não é etapa separada que alguém pode esquecer, é consequência de existir a saída.
     return canvas.convertToBlob({ type: mime, quality: qualidade });
   },
 
@@ -92,9 +88,7 @@ export const webDrawer: Desenhista<Img, Blob> = {
     }
     ctx.drawImage(imagem.bitmap, 0, 0);
 
-    // Preset e ajustes dividem um único `getImageData`/`putImageData`. Duas
-    // varreduras da imagem inteira num Android de entrada é o que faz o
-    // convidado achar que travou.
+    // Preset e ajustes dividem um único `getImageData`/`putImageData` — duas varreduras da imagem num Android de entrada é o que faz o convidado achar que travou.
     if (filtro.porPixel || manuais) {
       const quadro = ctx.getImageData(0, 0, imagem.largura, imagem.altura);
 

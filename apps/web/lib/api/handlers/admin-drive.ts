@@ -116,10 +116,7 @@ export async function getDriveConnect(
   const cfgErr = requireDriveConfig("admin.drive.connect");
   if (cfgErr) return cfgErr;
 
-  // Nome do parâmetro deliberadamente não é "token" (guard de sessão,
-  // tools/guards/sessao.mjs): mesma disciplina do `?exportar=` do ZIP —
-  // uma credencial de uso único e TTL curto (15min) ainda assim evita a
-  // palavra literal que o guard varre em toda querystring do produto.
+  // Nome do parâmetro deliberadamente não é "token" (guard tools/guards/sessao.mjs) — mesma disciplina do `?exportar=` do ZIP, evita a palavra literal mesmo sendo credencial de uso único com TTL curto (15min).
   const confirmacao = new URL(req.url).searchParams.get("confirmacao") ?? "";
   if (!confirmacao) {
     return errorResponse(422, "validation_error", "Confirme a conexão", { campos: ["confirmacao"] });
@@ -234,9 +231,7 @@ export async function getDriveStatus(
   if (auth instanceof Response) return auth;
 
   try {
-    // Gate de tempo do spec §4: a seção só fica ativa depois que a festa
-    // terminou — não é um cron, é o casal decidindo quando, a qualquer
-    // momento a partir daí.
+    // Gate de tempo do spec §4: seção só ativa depois que a festa terminou — não é cron, é o casal decidindo quando, a partir daí.
     const podeExportar = Date.now() >= auth.evento.terminaEm.getTime();
     const conexao = await conexaoDrive(getPool(), eventId);
     if (!conexao) return jsonOk({ conexao: null, podeExportar });
@@ -280,9 +275,7 @@ export async function postDriveDisconnect(
     } catch (e) {
       const codigo = e instanceof ErroDriveApi ? e.code : "erro_desconhecido";
       console.warn("drive.revoke_falhou", { eventId, motivo: codigo });
-      // Segue mesmo assim: revogar do nosso lado é o que importa para
-      // parar de usar o token — se o Google já invalidou por conta própria,
-      // a chamada de revoke pode falhar sem que isso seja um problema real.
+      // Segue mesmo assim: revogar do nosso lado é o que importa pra parar de usar o token — falha aqui pode só significar que o Google já invalidou por conta própria.
     }
 
     await revogarDrive(getPool(), eventId);

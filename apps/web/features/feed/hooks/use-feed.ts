@@ -327,9 +327,7 @@ export function useFeed(missaoId: string | null) {
     let vivo = true;
 
     async function renovar(porRelogio: boolean) {
-      // Um pedido em voo não é motivo para desistir da janela nova: ela chegou
-      // depois, e sem esta marca a foto aberta ficaria sem o arquivo cheio até
-      // o tique seguinte.
+      // Pedido em voo não cancela a janela nova — sem esta marca, a foto aberta ficaria sem o arquivo cheio até o próximo tique.
       if (buscandoUrls.current) {
         refazer.current = true;
         return;

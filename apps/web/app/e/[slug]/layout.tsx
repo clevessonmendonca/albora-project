@@ -19,11 +19,7 @@ export default async function Layout({
 
   if (r.estado !== "aberto") return children;
 
-  // `eventVars` carrega `identityTokens` do evento — dado do anfitrião, não
-  // validado por formato em nenhuma camada anterior. Antes de interpolar no
-  // `<style>` bruto, cada var passa por `sanearVars`: valor que quebraria o
-  // parser CSS (e abriria injeção de seletor/`@import`/`url()`) cai no
-  // fallback da marca, nunca fica ausente.
+  // `eventVars` traz dado do anfitrião não validado por formato — antes de interpolar no `<style>` bruto, cada var passa por `sanearVars`, que evita injeção CSS (seletor/@import/url()) caindo no fallback da marca.
   const claro = sanearVars(
     eventVars(r.evento, "light") as Record<string, string>,
     marcaVars("light") as Record<string, string>,

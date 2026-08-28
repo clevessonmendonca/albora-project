@@ -75,9 +75,7 @@ export async function PUT(req: Request) {
 
   try {
     const resultado = await withEvent(getPool(), auth.session.eventoId, async (c) => {
-      // Reagir não espera o gate (ADR 0009, atualizado) — só o evento
-      // precisa existir/ser visível sob RLS. Só comentário fica atrás do
-      // horário que o casal escolheu (ver `/api/comments`).
+      // Reagir não espera o gate (ADR 0009) — só evento precisa existir/ser visível sob RLS; só comentário fica atrás do horário do casal (ver `/api/comments`).
       const gate = await eventGate(c, auth.session.eventoId);
       if (!gate) {
         return { ok: false as const, code: "reacao.evento_ausente" };

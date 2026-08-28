@@ -23,9 +23,7 @@ export async function GET(req: Request) {
 
   try {
     const resumo = await withEvent(getPool(), auth.session.eventoId, async (c) => {
-      // event_id no WHERE é redundante com a RLS (SET LOCAL app.event_id já
-      // filtra) — mantido como segunda camada do mesmo invariante, no mesmo
-      // espírito das outras consultas escopadas por sessão deste pacote.
+      // event_id no WHERE é redundante com a RLS — mantido como segunda camada do mesmo invariante.
       const { rows } = await c.query<{ fotos: number; curtidas: number }>(
         `SELECT
             count(DISTINCT u.id)::int AS fotos,

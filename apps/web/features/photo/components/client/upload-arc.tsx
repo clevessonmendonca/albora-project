@@ -33,9 +33,7 @@ export function UploadArc({
   online: boolean;
   lado?: number | undefined;
 }) {
-  // O pico é o total de bytes que a fila já teve nesta rodada. Sem ele não há
-  // denominador: a fila só informa o que **falta**, e uma foto nova entrando
-  // encolheria a barra em vez de alongá-la.
+  // Pico é o total de bytes que a fila já teve nesta rodada — sem ele não há denominador, já que a fila só informa o que falta.
   const [pico, setPico] = useState(0);
 
   useEffect(() => {

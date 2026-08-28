@@ -52,9 +52,7 @@ export default async function Pagina({ params, searchParams }: Props) {
   }
 
   if (r.estado === "slug_rotacionado") {
-    // A placa já saiu da gráfica e o QR na mão da pessoa é o velho. Quem
-    // escaneou a antiga precisa de orientação e de um caminho, nunca de um
-    // erro seco (N1.5).
+    // QR antigo ainda aponta pra placa trocada — orienta com caminho, nunca erro seco (N1.5).
     return (
       <EventNotice
         title="Esse código foi trocado"
@@ -87,10 +85,7 @@ export default async function Pagina({ params, searchParams }: Props) {
 
   const sessao = await guestSessionFromToken((await cookies()).get(GUEST_SESSION_COOKIE)?.value);
 
-  // Com sessão do MESMO evento, a raiz é a Home (stories + feed) — nunca o
-  // EntryFlow de novo. Sem sessão, ou sessão de outro evento (o crachá não é
-  // transferível entre festas), o fluxo abaixo continua intacto: nome +
-  // consentimento antes de qualquer captura.
+  // Sessão do MESMO evento vai direto pra Home; sem sessão ou de outro evento (token não é transferível entre festas), segue o fluxo nome + consentimento antes da captura.
   if (isSameEventSession(sessao, r.evento.eventoId)) {
     return (
       <Suspense fallback={<HomePageSkeleton />}>

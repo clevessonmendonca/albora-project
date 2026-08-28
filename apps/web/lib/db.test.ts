@@ -16,9 +16,7 @@ describe("getAggregatorPool", () => {
 
   it("falha alto (ConfigError) quando a env está ausente — nunca um default inseguro", async () => {
     delete process.env[VAR];
-    // `ConfigError` importado do módulo fresco (pós `resetModules`), não do
-    // topo do arquivo: o topo carregaria uma segunda instância de "./config",
-    // e `instanceof` contra a classe errada falharia mesmo com o erro certo.
+    // `ConfigError` importado do módulo fresco (pós `resetModules`) — o topo carregaria outra instância de "./config", e `instanceof` falharia mesmo com o erro certo.
     const { getAggregatorPool } = await import("./db");
     const { ConfigError } = await import("./config");
 

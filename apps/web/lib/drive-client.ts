@@ -97,9 +97,7 @@ export function googleDriveClient(clientId: string, clientSecret: string): Drive
         expires_in: number;
       };
       if (!corpo.refresh_token) {
-        // Sem `prompt=consent` o Google só reemite refresh_token na primeira
-        // autorização — a rota de connect sempre manda `prompt=consent`
-        // exatamente para nunca cair aqui.
+        // Sem `prompt=consent` o Google só reemite refresh_token na primeira autorização — a rota de connect sempre manda `prompt=consent` pra nunca cair aqui.
         throw new ErroDriveApi("refresh_token_ausente", res.status);
       }
       return {
@@ -220,9 +218,7 @@ export function googleDriveClient(clientId: string, clientSecret: string): Drive
         headers: { "content-type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({ token: refreshToken }),
       });
-      // Google devolve 200 mesmo se o token já não valia — idempotente por
-      // desenho. Só um erro de rede/5xx é reportado; nunca derruba a
-      // desconexão do admin por causa disso.
+      // Google devolve 200 mesmo se o token já não valia — idempotente por desenho; só erro de rede/5xx é reportado, nunca derruba a desconexão do admin.
       if (!res.ok && res.status < 500) throw new ErroDriveApi(await codigoDeErro(res), res.status);
     },
   };

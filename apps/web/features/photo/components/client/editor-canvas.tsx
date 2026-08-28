@@ -65,9 +65,7 @@ export function EditorCanvas({
       onDegradar,
     });
 
-    // O texto entra depois da cor, no mesmo canvas — a mesma função que vai
-    // compor a foto final (`webDrawer.compor`), para a prévia não mostrar uma
-    // posição e a story sair com outra.
+    // Texto entra depois da cor, no mesmo canvas — mesma função que compõe a foto final (`webDrawer.compor`), pra prévia e story não divergirem de posição.
     if (texto && texto.conteudo.trim()) {
       const ctx = tela.getContext("2d");
       if (ctx) desenharTextoNoContexto(ctx, tela.width, tela.height, texto, estiloTextoDoStory());
@@ -75,10 +73,7 @@ export function EditorCanvas({
   }, [previa, escolhido, intensidade, degradar, ajustes, onDegradar, texto]);
 
   useEffect(() => {
-    // Um desenho por quadro, sempre o último. Arrastar um slider dispara
-    // dezenas de eventos por segundo e cada desenho varre a imagem inteira:
-    // sem a coalescência o Android de entrada acumula trabalho e a prévia
-    // parece morta, que é o convidado desistindo da foto.
+    // Um desenho por quadro, sempre o último — sem essa coalescência, o slider dispara dezenas de varreduras/s e o Android acumula trabalho até a prévia parecer morta.
     quadroAgendado.current = requestAnimationFrame(() => {
       quadroAgendado.current = null;
       desenharPrevia();

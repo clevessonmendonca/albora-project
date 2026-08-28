@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { cssDasVars, estiloAntiFlash, sanearVars, valorCssSeguro } from "./theme-style";
 
-// Sem hex literal e sem "cubic-bezier(" neste arquivo por design: o guard de
-// tokens (tools/guards/tokens.mjs) escaneia toda `apps/web/features`, testes
-// inclusive, e não abre exceção pra fixture — só valores reais de var, então
-// os exemplos aqui usam formatos igualmente válidos de CSS (comprimento,
-// rgb(), pilha de fonte, clamp()) que não colidem com a regra do produto.
+// Sem hex literal nem cubic-bezier( neste arquivo por design — o guard tools/guards/tokens.mjs escaneia testes também, sem exceção pra fixture, então os exemplos usam formatos reais de CSS (comprimento, rgb(), pilha de fonte, clamp()).
 
 describe("valorCssSeguro", () => {
   it("aceita comprimento, rgb(), clamp() e pilha de fonte — formatos reais dos tokens", () => {
@@ -78,10 +74,7 @@ describe("estiloAntiFlash — CSS final nunca carrega injeção, mesmo com ident
     expect(css).not.toContain("evil.example");
     expect(css).toContain("--acento: 2rem;");
 
-    // Só as 5 chaves { / } dos 4 blocos declarados no helper — nenhuma sobra
-    // do valor malicioso, que teria fechado e reaberto blocos extra. O bloco
-    // de media tem duas: a do próprio @media e a do seletor interno; os
-    // outros três, uma cada — 5 no total.
+    // Só as 5 chaves { / } dos 4 blocos do helper — nenhuma sobra do valor malicioso, que teria fechado/reaberto blocos extra (media conta duas, os outros três uma cada).
     expect(css.match(/\{/g)?.length).toBe(5);
     expect(css.match(/\}/g)?.length).toBe(5);
   });

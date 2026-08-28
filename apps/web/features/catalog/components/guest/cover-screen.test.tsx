@@ -75,10 +75,7 @@ describe("CoverScreen", () => {
   });
 
   it("não hardcoda hex nas classes — só tokens semânticos", () => {
-    // O `style` inline vem de `resolveTokens` (valores reais resolvidos em runtime,
-    // o mecanismo canônico do produto) — não é hex hardcodado pelo componente.
-    // O que este componente controla são as classes, e é ali que o guard de
-    // tokens (tools/guards/tokens.mjs) reprova hex literal.
+    // `style` inline vem de `resolveTokens` em runtime, não é hex hardcodado — o componente só controla classes, e é ali que o guard tools/guards/tokens.mjs reprova hex literal.
     const { container } = render(<CoverScreen pack={WEDDING} moments={MOMENTS} background="dark" />);
 
     for (const el of container.querySelectorAll("[class]")) {

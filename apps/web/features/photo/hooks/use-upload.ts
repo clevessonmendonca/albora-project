@@ -123,9 +123,7 @@ export function useUpload(
       };
 
       try {
-        // Assinatura antes de tudo: o `type` do arquivo vem vazio ou mentiroso
-        // no iOS, e ler o arquivo inteiro para descobrir que é um vídeo de 300
-        // MB é o próprio travamento que a recusa deveria evitar.
+        // Assinatura antes de tudo — `type` do arquivo vem vazio/mentiroso no iOS, e ler o arquivo inteiro pra descobrir que é vídeo de 300MB é o travamento que a recusa deveria evitar.
         const inicio = new Uint8Array(await arquivo.slice(0, 16).arrayBuffer());
 
         if (isVideoBytes(inicio)) {
@@ -168,9 +166,7 @@ export function useUpload(
 
         const bytes = new Uint8Array(await arquivo.arrayBuffer());
 
-        // HEIC que o aparelho decodifica sai JPEG do `processarFoto` sem etapa
-        // extra. O que ele não decodifica não tem conversão possível aqui — e
-        // subir o original contaminaria o acervo com o que o telão não exibe.
+        // HEIC que o aparelho decodifica sai JPEG do `processarFoto` sem etapa extra — o que não decodifica não tem conversão possível aqui, e subir o original contaminaria o acervo com o que o telão não exibe.
         const heic = isHeic(inicio);
         if (heic && !(await deviceDecodes(bytes, "image/heic"))) {
           return recusar(AVISO_HEIC);
@@ -260,9 +256,7 @@ export function useUpload(
     window.addEventListener("online", voltou);
     window.addEventListener("offline", caiu);
 
-    // Tentativa periódica para o caso de o evento `online` não disparar —
-    // acontece quando o WiFi conecta mas não tem saída, que é o padrão de
-    // salão de festas com portal cativo.
+    // Tentativa periódica pro caso de `online` não disparar — acontece quando o WiFi conecta mas não tem saída, padrão de salão com portal cativo.
     const relogio = setInterval(() => void drenarAgora(), 30_000);
 
     // Convidado volta à aba/PWA após sair (bfcache, troca de app, notificação).

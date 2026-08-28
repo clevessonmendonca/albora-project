@@ -61,9 +61,7 @@ function withStore<T>(
         };
         tx.onabort = () => {
           db.close();
-          // QuotaExceededError chega como abort da transação, não como
-          // exceção do put. Sem distinguir, "sem espaço" viraria "erro
-          // desconhecido" — e a nuance N6.6 manda avisar e subir na hora.
+          // QuotaExceededError chega como abort da transação, não exceção do put — sem distinguir, "sem espaço" viraria "erro desconhecido" (nuance N6.6 manda avisar na hora).
           reject(tx.error?.name === "QuotaExceededError" ? new QueueQuotaExceededError() : tx.error);
         };
         tx.onerror = () => {
@@ -110,9 +108,7 @@ export const webQueue: Queue = {
       const req = store.get(id);
       req.onsuccess = () => {
         const item = req.result as QueueItem | undefined;
-        // Ler e gravar na MESMA transação: em duas, uma aba concorrente
-        // sobrescreveria a contagem e o item nunca alcançaria o teto de
-        // tentativas — retentaria para sempre.
+        // Ler e gravar na MESMA transação — em duas, uma aba concorrente sobrescreveria a contagem e o item nunca alcançaria o teto de tentativas.
         if (item) store.put({ ...item, tentativas: (item.tentativas ?? 0) + 1 });
       };
     });

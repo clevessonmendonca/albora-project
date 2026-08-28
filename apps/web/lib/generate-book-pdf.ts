@@ -72,9 +72,7 @@ export async function generateBookPdf(input: BookPdfInput): Promise<BookPdfResul
   let semFotos = 0;
 
   for (const page of plans) {
-    // Página física = A4 + sangria dos quatro lados (BOOK_CUT_MM).
-    // O conteúdo é deslocado BOOK_BLEED_MM para que as coordenadas dos slots
-    // (calculadas em espaço A4 por planBook) caiam dentro da área de corte.
+    // Página física = A4 + sangria dos quatro lados (BOOK_CUT_MM) — conteúdo desloca BOOK_BLEED_MM pra coordenadas dos slots (calculadas em espaço A4 por planBook) caírem dentro da área de corte.
     const pdfPage = doc.addPage([mm(BOOK_CUT_MM.width), mm(BOOK_CUT_MM.height)]);
     const pageH = pdfPage.getHeight();
     const bleedPt = mm(BOOK_BLEED_MM);

@@ -131,9 +131,7 @@ export function desenharPreviaNoCanvas({
 
   let fonte: ImageData;
 
-  // O resultado do preset fica guardado porque arrastar Vinheta não muda o
-  // preset: sem isto, cada quadro refaria também a passagem por pixel do
-  // 35 mm, que é uma varredura inteira da imagem por nada.
+  // Resultado do preset fica em cache porque arrastar Vinheta não muda o preset — sem isso, cada quadro refaria a passagem por pixel do 35 mm à toa.
   if (guardado && guardado.chave === chave) {
     fonte = guardado.quadro;
   } else {
@@ -151,9 +149,7 @@ export function desenharPreviaNoCanvas({
       aplicarPorPixel(fonte.data, previa.width, previa.height, intensidade);
       const gasto = performance.now() - antes;
 
-      // A medida é do trabalho de verdade, não de uma sonda à parte. Se a
-      // projeção para o tamanho cheio passa do teto, o preset cai para a
-      // aproximação em CSS e a foto sai parecida em vez de sair tarde.
+      // Medida é do trabalho real, não de sonda à parte — se a projeção pro tamanho cheio passa do teto, o preset cai pra aproximação em CSS e a foto sai parecida em vez de tarde.
       const projecao = (gasto * 2500 * 1875) / (previa.width * previa.height);
       if (projecao > TETO_POR_PIXEL_MS) onDegradar();
     }

@@ -38,10 +38,7 @@ export async function GET(req: Request) {
       );
       const tokens = rows[0]?.identity_tokens ?? {};
       const telaoModelos = wallDisplayRotationModels(tokens.telaoModelos) as WallDisplayModel[];
-      // Contagem total do evento (não a janela de rotação de `listarMidiaDaParede`,
-      // que é capada): o total honesto de "N fotos · M pessoas" para a prova
-      // social do telão. Sob `withEvent` a RLS já escopa por evento — o COUNT
-      // não cruza eventos. `::int` para o node-pg devolver número, não string.
+      // Contagem total do evento (não a janela capada de `listarMidiaDaParede`) para o "N fotos · M pessoas" honesto do telão — RLS de `withEvent` garante que o COUNT não cruza eventos; `::int` pro node-pg devolver número.
       const { rows: contagem } = await c.query<{ fotos: number; convidados: number }>(
         `SELECT COUNT(*)::int AS fotos,
                 COUNT(DISTINCT session_id)::int AS convidados

@@ -43,9 +43,7 @@ export function RecapSheet({
   if (!aberto) return null;
 
   const atual = quadros[indiceAtivo];
-  // Só na última tela do carrossel, depois de compartilhar — nunca em cada
-  // foto individual, senão o convite viraria propaganda dentro da lembrança
-  // (mesmo instinto do TP7 que bloqueia marca d'água na foto, spec A1 §4.1).
+  // Só na última tela do carrossel, nunca em cada foto — senão o convite viraria propaganda dentro da lembrança (mesmo instinto do TP7, spec A1 §4.1).
   const ultimaTela = quadros.length > 0 && indiceAtivo === quadros.length - 1;
 
   return (

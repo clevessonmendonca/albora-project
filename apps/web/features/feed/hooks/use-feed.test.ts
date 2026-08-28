@@ -276,9 +276,7 @@ describe("sincronização do topo ao vivo", () => {
 describe("contrato com a rota do feed", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  // Os argumentos entram na assinatura porque o teste confere a URL pedida:
-  // um `vi.fn()` sem parâmetros tipa `mock.calls` como tupla vazia, e aí
-  // `calls[0][0]` não compila.
+  // Argumentos na assinatura porque o teste confere a URL pedida — `vi.fn()` sem parâmetros tipa `mock.calls` como tupla vazia e `calls[0][0]` não compila.
   const responder = (corpo: unknown, status = 200) =>
     vi.fn<(...args: unknown[]) => Promise<Response>>(() =>
       Promise.resolve(new Response(JSON.stringify(corpo), { status })),

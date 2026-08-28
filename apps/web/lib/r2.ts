@@ -23,9 +23,7 @@ export async function signPut(key: string, mime: string, ttlSeconds: number) {
   const url = objectUrl(key);
   url.searchParams.set("X-Amz-Expires", String(ttlSeconds));
 
-  // `allHeaders: false` deixa o content-type fora da assinatura, e é
-  // deliberado: o navegador manda o dele e o PUT não quebra. Medido na task
-  // 001 — `SignedHeaders: host`.
+  // `allHeaders: false` deixa content-type fora da assinatura de propósito — o navegador manda o dele e o PUT não quebra (medido na task 001, `SignedHeaders: host`).
   const signed = await client().sign(new Request(url, { method: "PUT", headers: { "content-type": mime } }), {
     aws: { signQuery: true, allHeaders: false },
   });

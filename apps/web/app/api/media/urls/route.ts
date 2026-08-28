@@ -41,9 +41,7 @@ export async function POST(req: Request) {
     return errorResponse(batch.status, batch.code, batch.message, batch.details);
   }
 
-  // 🔴 Gate de moderação/pânico: chave válida pelo formato não implica que o
-  // upload ainda está publicado. Uma nova URL para mídia removida ou para
-  // evento em pânico não pode ser emitida — URLs já emitidas vencem no TTL.
+  // 🔴 Gate de moderação/pânico: chave válida não implica upload publicado — URL nova não pode ser emitida para mídia removida ou evento em pânico (URLs já emitidas vencem no TTL).
   try {
     const signable = await withEvent(getPool(), auth.session.eventoId, (c) =>
       signableKeys(c, auth.session.eventoId, batch.chaves),

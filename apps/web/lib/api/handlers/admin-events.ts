@@ -153,9 +153,7 @@ export async function POST(req: Request) {
       });
     }
 
-    // Porta na borda, além da que `criarEvento` reconfere em `vendor_members`:
-    // só admin/staff daquele fornecedor cria evento "sob" ele. Checa ANTES de
-    // emitir magic link nenhum — recusa não deve criar conta de ninguém.
+    // Porta na borda, além da que `criarEvento` reconfere em `vendor_members` — só admin/staff do fornecedor cria evento sob ele; checa ANTES de emitir magic link, recusa não deve criar conta.
     const vendorRole = await roleForAccountOnVendor(getPool(), auth.host.accountId, vendorId);
     if (vendorRole !== "admin" && vendorRole !== "staff") {
       return errorResponse(403, "vendor.no_access", "Conta sem acesso a este fornecedor");
@@ -163,22 +161,14 @@ export async function POST(req: Request) {
   }
 
   try {
-    // Discriminado junto: só existe se `vendorId` existe, e sempre com
-    // `coupleAccountId` — nunca um `vendorId` sem dono resolvido chegando a
-    // `criarEvento`.
+    // Discriminado junto: só existe se `vendorId` existe, e sempre com `coupleAccountId` — nunca `vendorId` sem dono resolvido chegando a `criarEvento`.
     let vendorExtras: { vendorId: string; coupleAccountId: string } | undefined;
     let magicLinkToken: string | undefined;
     if (vendorId !== undefined) {
       const expiresAt = new Date(Date.now() + VALIDADE_MAGIC_LINK_MINUTOS * 60 * 1000);
       const magicLink = await emitirMagicLink(getPool(), config().sessionSecret, coupleEmail, expiresAt);
 
-      // O casal precisa ser uma conta DIFERENTE de quem está autenticado —
-      // se o membro do fornecedor usar o próprio e-mail, `emitirMagicLink`
-      // resolveria pra conta dele mesmo, e ele nasceria owner (com
-      // `canManageCoupleOnly`) por coincidência de e-mail. `criarEvento` já
-      // recusa isso como defesa em profundidade, mas aqui rejeita ANTES de
-      // gastar o trabalho de criar o evento — a conta/magic link já emitidos
-      // são inofensivos (idempotentes, nunca enviados).
+      // Casal precisa ser conta DIFERENTE de quem está autenticado — se o membro do fornecedor usar o próprio e-mail, ele nasceria owner por coincidência; `criarEvento` já recusa isso em profundidade, mas aqui rejeita ANTES de criar o evento (magic link já emitido é idempotente/inofensivo).
       if (magicLink.accountId === auth.host.accountId) {
         return errorResponse(
           422,

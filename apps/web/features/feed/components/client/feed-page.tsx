@@ -426,9 +426,7 @@ function Filtro({
   return (
     <div
       role="group"
-      // O nome que esta festa dá às missões fica na etiqueta acessível: com a
-      // tira de horas logo acima, mais uma linha de rótulo visível empurraria a
-      // primeira foto para fora da tela.
+      // Nome das missões fica só na etiqueta acessível — uma linha de rótulo visível empurraria a primeira foto para fora da tela.
       aria-label={rotulo}
       className="mx-[calc(var(--espaco)*-5)] mb-[calc(var(--espaco)*5)] mt-[calc(var(--espaco)*3)] flex gap-[calc(var(--espaco)*6)] overflow-x-auto border-b border-linha px-[calc(var(--espaco)*5)] [scrollbar-width:none]"
     >

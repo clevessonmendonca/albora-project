@@ -56,9 +56,7 @@ export function validateBatch(raw: unknown, eventId: string): AcceptedBatch | Re
       };
     }
 
-    // 🔴 A chave pertence a este evento, ou não existe para nós. Sem esta
-    // checagem, pedir a chave do casamento do vizinho é ler o casamento do
-    // vizinho.
+    // 🔴 A chave pertence a este evento, ou não existe para nós — sem esta checagem, dá para ler a chave do evento do vizinho.
     if (!key.startsWith(prefix) || !KEY_FORMAT.test(key)) {
       return {
         status: 403,

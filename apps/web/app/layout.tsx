@@ -27,9 +27,7 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // Esqueleto: o evento real entra na 003, com os tokens vindo do banco.
-  // O que importa aqui é que já existe UM ponto de resolução, e nenhum
-  // componente abaixo escolhe cor.
+  // Esqueleto: evento real entra na 003 (tokens do banco) — já existe UM ponto de resolução, nenhum componente abaixo escolhe cor.
   const tokens = resolveTokens({ marca: ALBORA_BRAND, pack: WEDDING.tokens ?? {} });
 
   return (

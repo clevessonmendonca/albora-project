@@ -38,9 +38,7 @@ self.addEventListener("install", (evento) => {
     (async () => {
       const cache = await caches.open(CASCA);
 
-      // Item a item, engolindo falha: com `addAll`, um único 404 aborta o
-      // install inteiro e o convidado fica sem SW — sem Background Sync e sem
-      // abertura offline. O casco vale mais que o ícone.
+      // Item a item, engolindo falha — com `addAll`, um único 404 aborta o install inteiro e o convidado fica sem SW (sem Background Sync, sem abertura offline); o casco vale mais que o ícone.
       await Promise.all(PRECACHE.map((url) => cache.add(url).catch(() => undefined)));
 
       await self.skipWaiting();
@@ -78,17 +76,9 @@ self.addEventListener("fetch", (evento) => {
     return;
   }
 
-  // Achado do spike: sem este ramo, um arquivo precacheado nunca era lido. Um
-  // `<script src>` não é `navigate` nem mora em `/_next/static/`, então caía
-  // direto na rede — e offline a página renderizava inteira com o script
-  // faltando. Falha silenciosa: parece funcionando.
+  // Achado do spike: sem este ramo, arquivo precacheado nunca era lido — `<script src>` não é `navigate` nem mora em `/_next/static/`, caía na rede e offline a página renderizava com o script faltando (falha silenciosa, parece funcionando).
   //
-  // Só o que foi precacheado de propósito entra em cache primeiro. A versão
-  // anterior aplicava a regra a **tudo** que não fosse estático nem navegação,
-  // e aí a carga RSC entrava junto: ela é acoplada ao build, então servir a
-  // guardada contra chunk novo derruba a página inteira com "Application
-  // error" — e derruba para quem já visitou, que é justamente o convidado que
-  // volta no meio da festa.
+  // Só o que foi precacheado de propósito entra em cache primeiro — a versão anterior aplicava a regra a tudo que não era estático/navegação, e a carga RSC (acoplada ao build) servida contra chunk novo derrubava a página com "Application error" pra quem já visitou.
   if (PRECACHE.includes(url.pathname)) {
     evento.respondWith(cachePrimeiro(requisicao, CASCA));
     return;
@@ -100,18 +90,12 @@ self.addEventListener("fetch", (evento) => {
 self.addEventListener("sync", (evento) => {
   if (evento.tag !== TAG_DRENAGEM) return;
 
-  // `online: () => true` não é otimismo: o evento `sync` só dispara quando o
-  // navegador já restabeleceu conectividade, e `navigator.onLine` dentro do SW
-  // responde por um contexto que pode ter acordado agora. Consultá-lo aqui
-  // cancelaria a drenagem exatamente na hora em que ela deveria acontecer.
+  // `online: () => true` não é otimismo — `sync` só dispara com conectividade restabelecida, e `navigator.onLine` no SW responde por contexto que pode ter acordado agora; consultá-lo cancelaria a drenagem na hora certa.
   evento.waitUntil(drainAndReport(webQueue, webTransport, { online: () => true }));
 });
 
 async function cachePrimeiro(requisicao: Request, nomeDoCache: string): Promise<Response> {
-  // Escopado ao cache pedido. Sem `cacheName` a busca varre todos os caches da
-  // origem, e aí o parâmetro é decorativo: uma entrada da casca respondia a
-  // uma busca do estático, e a limpeza por prefixo do `activate` deixava de
-  // valer como garantia.
+  // Escopado ao cache pedido — sem `cacheName` a busca varre todos os caches da origem, uma entrada da casca respondia a busca do estático, e a limpeza por prefixo do `activate` deixava de valer como garantia.
   const guardado = await caches.match(requisicao, { cacheName: nomeDoCache });
   if (guardado) return guardado;
 
