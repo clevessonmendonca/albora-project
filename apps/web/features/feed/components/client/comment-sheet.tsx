@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { MoreIcon, SecondaryButton, BottomSheet } from "@albora/ui-web";
+import { MoreIcon, SecondaryButton, BottomSheet, announce } from "@albora/ui-web";
 import type { ComentarioVisivel, CommentsController } from "@/features/feed/hooks/use-comments";
 
 const CLASSE_ACAO_SECUNDARIA =
@@ -29,8 +29,11 @@ export function CommentSheet({
     prevPublicando.current = comentarios.publicando;
   }, [comentarios.publicando]);
 
-  const publicarEScrollar = useCallback(() => {
-    void comentarios.publicar();
+  const publicarEScrollar = useCallback(async () => {
+    const sucesso = await comentarios.publicar();
+    if (sucesso) {
+      announce("Comentário enviado");
+    }
   }, [comentarios]);
 
   return (

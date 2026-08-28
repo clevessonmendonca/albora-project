@@ -347,6 +347,9 @@ export function useFeed(missaoId: string | null, periodo: PeriodoTemporal = "tud
     let vivo = true;
 
     async function renovar(porRelogio: boolean) {
+      // Não renova quando tab está em background — economiza battery e network
+      if (porRelogio && document.visibilityState === 'hidden') return;
+
       // Pedido em voo não cancela a janela nova — sem esta marca, a foto aberta ficaria sem o arquivo cheio até o próximo tique.
       if (buscandoUrls.current) {
         refazer.current = true;
@@ -382,9 +385,18 @@ export function useFeed(missaoId: string | null, periodo: PeriodoTemporal = "tud
     void renovar(false);
     const relogio = setInterval(() => void renovar(true), INTERVALO_DE_RENOVACAO_MS);
 
+    // Renova URLs quando tab volta a ficar visível
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void renovar(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       vivo = false;
       clearInterval(relogio);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [estado, janela]);
 

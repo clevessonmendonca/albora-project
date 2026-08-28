@@ -25,6 +25,7 @@ import {
   ErrorMessage,
   Badge,
   cn,
+  LiveAnnouncer,
 } from "@albora/ui-web";
 import { Post, PostLoading } from "./post";
 import { MirrorGrid, MirrorGridLoading } from "./mirror-grid";
@@ -125,6 +126,7 @@ export function FeedPage({
   return (
     <>
       <FeedStyles />
+      <LiveAnnouncer />
 
       {gate.gateOpened && <GateOpenedOverlay onClose={gate.close} cameraPath={cameraPath} />}
 
