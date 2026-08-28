@@ -5,18 +5,9 @@ import { cn } from "./variants";
 
 export type PhotoCardProps = {
   autor: string;
-  /**
-   * Link para o perfil de quem tirou a foto. Opcional e retrocompatível: só
-   * existe quando o servidor manda o id do autor (`sessaoAutor`), que é
-   * depois do gate — antes disso o nome fica só texto, nunca clicável.
-   */
+  /** Link do autor — só após o gate; antes disso é só texto, nunca clicável. */
   autorHref?: string;
-  /**
-   * Componente de link a usar quando `autorHref` existe. Padrão `"a"` — o
-   * pacote não depende de Next, então quem tem `next/link` disponível injeta
-   * (mesmo padrão de `FloatingNavProps.linkComponent`), e sem isso o toque no
-   * autor recarrega a página inteira em vez de navegar client-side.
-   */
+  /** Componente de link injetável — padrão `"a"`; sem Next.js injetado o toque recarrega a página em vez de navegar client-side. */
   linkComponent?: ElementType;
   quando: string;
   fotoUrl?: string;

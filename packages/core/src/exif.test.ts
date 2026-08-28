@@ -11,13 +11,7 @@ import {
 
 type Entrada = { tag: number; tipo: 3 | 4; valor: number };
 
-/**
- * Monta um JPEG mínimo com bloco EXIF de verdade.
- *
- * Fixture binária construída, não arquivo baixado: o teste precisa poder
- * dizer "esta foto tem orientação 6 e GPS" sem depender de um .jpg no repo
- * que ninguém sabe de onde veio nem consegue auditar.
- */
+/** Fixture binária construída, não arquivo baixado — o teste precisa poder dizer "esta foto tem orientação 6 e GPS" sem depender de um .jpg que ninguém consegue auditar. */
 function jpegComExif(entradas: Entrada[], littleEndian = true): Uint8Array {
   const tiff: number[] = [];
   const u16 = (n: number) =>

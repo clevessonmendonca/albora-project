@@ -6,14 +6,7 @@ import { QUALITY } from "./redimensionar";
 
 type Img = Bitmap & { rotulo: string };
 
-/**
- * Canvas falso que **registra a ordem** das operações.
- *
- * Não prova que os pixels saem certos — isso só um olho num aparelho prova.
- * Prova o que de fato quebra nesta função: a sequência. Ler o EXIF depois de
- * reencodar, ou planejar o tamanho sobre as dimensões cruas, são bugs de
- * ordem, e ordem é verificável aqui.
- */
+/** Registra a ordem das operações — bugs de sequência (EXIF após reencoding, dimensões cruas antes de redimensionar) são verificáveis aqui; pixel correto só num aparelho. */
 function desenhistaFalso(original: Bitmap) {
   const chamadas: string[] = [];
 
