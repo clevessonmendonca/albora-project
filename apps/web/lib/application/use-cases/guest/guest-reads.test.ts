@@ -233,7 +233,7 @@ describe("Guest Read Use Cases", () => {
       const eventoPublico = {
         eventoId: "evt-123",
         packId: "wedding",
-        identityTokens: { primary: "#ff6b6b", secondary: "#4ecdc4" },
+        identityTokens: { primary: "var(--color-primary)", secondary: "var(--color-secondary)" },
         vendorBrandTokens: { logo: "url-logo" },
         filtroRecomendado: "warm",
         fuso: "America/Sao_Paulo",
