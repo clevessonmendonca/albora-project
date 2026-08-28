@@ -621,8 +621,7 @@ export default function FeedScreen() {
 
   useEffect(() => {
     void carregar(false);
-    // só na montagem
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só na montagem
   }, []);
 
   // Polling de stories a cada 30s — novas stories aparecem sem refresh.
