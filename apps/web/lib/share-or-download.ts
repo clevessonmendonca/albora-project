@@ -1,37 +1,6 @@
-export type ShareOutcome = "shared" | "downloaded" | "cancelled";
-
-export const compartilhado: ShareOutcome = "shared";
-export const baixado: ShareOutcome = "downloaded";
-export const cancelado: ShareOutcome = "cancelled";
-
-export function shareWasAborted(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "name" in error &&
-    (error as { name: string }).name === "AbortError"
-  );
-}
-
-/** Folha nativa com o arquivo; se o aparelho não souber, baixa o composto. */
-export async function shareOrDownload(blob: Blob, nomeArquivo: string): Promise<ShareOutcome> {
-  const arquivo = new File([blob], nomeArquivo, { type: blob.type || "image/jpeg" });
-
-  if (typeof navigator.share === "function" && navigator.canShare?.({ files: [arquivo] })) {
-    try {
-      await navigator.share({ files: [arquivo] });
-      return "shared";
-    } catch (error) {
-      if (shareWasAborted(error)) return "cancelled";
-      throw error;
-    }
-  }
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = nomeArquivo;
-  link.click();
-  URL.revokeObjectURL(url);
-  return "downloaded";
-}
+/**
+ * @deprecated Importar de `@/lib/utils` na nova estrutura.
+ * Este arquivo mantém retrocompatibilidade temporária.
+ */
+export type { ShareOrDownloadOptions } from "./utils/share-or-download";
+export { shareOrDownload } from "./utils/share-or-download";
