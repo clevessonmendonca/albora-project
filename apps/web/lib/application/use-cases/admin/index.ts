@@ -77,3 +77,8 @@ export {
   type ConsumeMagicLinkInput,
   type ConsumeMagicLinkResult,
 } from "./consume-magic-link";
+
+export {
+  processRetentionJobs,
+  type ProcessRetentionJobsOutput,
+} from "./process-retention-jobs";
