@@ -1,26 +1,21 @@
-import { Botao } from "@albora/ui-web";
+import { WEDDING, landingProblems } from "@albora/packs";
+import type { Metadata } from "next";
+import { LandingPage } from "./landing/landing-page";
 
-/**
- * Página de esqueleto. A landing é a task 013 e as telas do convidado são da
- * 005 em diante — esta existe só para `pnpm dev` ter o que servir e para os
- * guards terem código real para varrer.
- */
+export const metadata: Metadata = {
+  title: "Albora — o álbum coletivo da sua festa",
+  description: "As fotos que os seus convidados tiraram, reunidas num álbum só.",
+  openGraph: {
+    title: "Albora — o álbum coletivo da sua festa",
+    description: "As fotos que os seus convidados tiraram, reunidas num álbum só.",
+  },
+};
+
 export default function Home() {
-  return (
-    <main
-      style={{
-        background: "var(--fundo)",
-        color: "var(--frente)",
-        fontFamily: "var(--fonte-corpo)",
-        minHeight: "100vh",
-        display: "grid",
-        placeItems: "center",
-        gap: "1rem",
-      }}
-    >
-      <h1 style={{ fontFamily: "var(--fonte-titulo)" }}>Albora</h1>
-      <p style={{ opacity: 0.6 }}>Esqueleto da task 002.</p>
-      <Botao>Botão</Botao>
-    </main>
-  );
+  // Chave faltando vira a própria chave em corpo 74px na frente de quem ia
+  // pagar. Falhar no build é barato; falhar na landing não é.
+  const problemas = landingProblems(WEDDING);
+  if (problemas.length > 0) throw new Error(problemas.join("; "));
+
+  return <LandingPage pack={WEDDING} />;
 }

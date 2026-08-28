@@ -1,113 +1,111 @@
-import { prefixoDoEvento, validarConteudo } from "@albora/core";
-import { comEvento, confirmarUpload, ErroUploadDeOutroEvento } from "@albora/db";
-import { banco } from "@/lib/banco";
-import { config, ErroConfig } from "@/lib/config";
+import { recordFunnelEvent } from "@/features/guest/lib/record-funnel";
+import {
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireConfig,
+  requireGuestSession,
+  unexpectedError,
+  enforceRateLimit,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
 import { inspecionarObjeto } from "@/lib/r2";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
-import { sessaoDaRequisicao } from "@/lib/sessao";
+import { confirmUpload } from "@/lib/application/use-cases/guest";
+import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import { confirmUploadSchema } from "@/lib/infrastructure/api/validators";
 
 export const dynamic = "force-dynamic";
 
-type Corpo = { uploadId?: unknown; chave?: unknown; mime?: unknown; legenda?: unknown };
-
-/**
- * Persiste o upload — **validando, não confiando**.
- *
- * Tudo que o cliente manda aqui já passou pelas mãos dele: a chave, o tipo, o
- * tamanho. O único fato confiável é o objeto que está no bucket, e é ele que
- * este endpoint lê.
- */
 export async function POST(req: Request) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("confirm.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const configError = requireConfig("confirm");
+  if (configError) return configError;
 
-  const sessao = await sessaoDaRequisicao(req);
-  if (!sessao) return erro(401, "sessao.invalida", "Sessão inválida");
+  const auth = await requireGuestSession(req);
+  if (auth instanceof Response) return auth;
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const limited = enforceRateLimit(req, auth.session, {
+    message: "Muitas fotos de uma vez",
+  });
+  if (limited) return limited;
 
-  const { uploadId, chave, mime, legenda } = corpo;
-  if (typeof uploadId !== "string" || typeof chave !== "string" || typeof mime !== "string") {
-    return erro(422, "validation_error", "Dados incompletos", {
-      campos: ["uploadId", "chave", "mime"],
-    });
-  }
+  const parsed = await parseJsonBody(req);
+  if (parsed instanceof Response) return parsed;
 
-  // 🔴 A chave pertence a este evento, ou não existe para nós. Sem esta
-  // checagem, um convidado do evento A confirmaria contra um objeto do B e
-  // traria a foto de outra festa para dentro da sua.
-  if (!chave.startsWith(prefixoDoEvento(sessao.eventoId))) {
-    console.warn("confirm.chave_de_outro_evento", {
-      eventoId: sessao.eventoId,
-      sessaoId: sessao.sessaoId,
-    });
-    return erro(403, "upload.chave_invalida", "Chave não pertence a este evento");
-  }
+  const validated = validateBody(parsed.data, confirmUploadSchema);
+  if (validated instanceof Response) return validated;
 
   try {
-    // O objeto precisa existir. Confirmar antes do PUT terminar criaria linha
-    // apontando para nada — e uma galeria com foto que não abre.
-    const objeto = await inspecionarObjeto(`${chave}/full`);
+    // Inspecionar objetos no R2 (infraestrutura)
+    const objeto = await inspecionarObjeto(`${validated.chave}/full`);
     if (!objeto) {
-      return erro(409, "upload.objeto_ausente", "O arquivo ainda não chegou", {
-        chave: `${chave}/full`,
-      });
+      return errorResponse(
+        409,
+        "upload.objeto_ausente",
+        "O arquivo ainda não chegou",
+        {
+          chave: `${validated.chave}/full`,
+        },
+      );
     }
 
-    // Magic bytes. O `Content-Type` foi declarado pelo cliente e não vale
-    // nada: um "JPEG" que é HTML servido da origem do app é XSS armazenado
-    // com alcance de festa inteira.
-    const conteudoInvalido = validarConteudo(mime, objeto.inicio);
-    if (conteudoInvalido) {
-      console.warn("confirm.conteudo_recusado", {
-        eventoId: sessao.eventoId,
-        ...conteudoInvalido.details,
-      });
-      return erro(422, conteudoInvalido.code, "Arquivo recusado", conteudoInvalido.details);
+    const thumb = await inspecionarObjeto(`${validated.chave}/thumb`);
+    if (!thumb) {
+      return errorResponse(
+        409,
+        "upload.thumb_ausente",
+        "A miniatura ainda não chegou",
+        {
+          chave: `${validated.chave}/thumb`,
+        },
+      );
     }
 
-    const resultado = await comEvento(banco(), sessao.eventoId, (c) =>
-      confirmarUpload(c, {
-        uploadId,
-        eventId: sessao.eventoId,
-        sessionId: sessao.sessaoId,
-        challengeId: null,
-        storageKey: `${chave}/full`,
-        mime,
+    // Delegar validações e confirmação ao use case
+    const resultado = await confirmUpload(
+      {
+        eventoId: auth.session.eventoId,
+        sessaoId: auth.session.sessaoId,
+        uploadId: validated.uploadId,
+        chave: validated.chave,
+        mime: validated.mime,
         bytes: objeto.bytes,
-        caption: typeof legenda === "string" ? legenda.slice(0, 280) : null,
-      }),
+        inicio: objeto.inicio,
+        thumbBytes: thumb.bytes,
+        thumbInicio: thumb.inicio,
+        legenda: validated.legenda,
+        lugar: validated.lugar,
+        desafioId: validated.desafioId,
+        promptKey: validated.promptKey,
+        capturadaEm: validated.capturadaEm,
+        capturadaEmParede: validated.capturadaEmParede,
+        largura: validated.largura,
+        altura: validated.altura,
+        story: validated.story,
+        musicTrackId: validated.musicTrackId,
+      },
+      () => getPool().connect(),
     );
 
-    console.log("confirm.ok", {
-      eventoId: sessao.eventoId,
-      uploadId,
-      estado: resultado.estado,
-      bytes: objeto.bytes,
-    });
-
-    // 200 nos dois casos: retry é o caminho normal, não a exceção, e o
-    // cliente que reenvia depois de perder a resposta precisa poder tirar o
-    // item da fila com tranquilidade.
-    return ok({ uploadId, estado: resultado.estado });
-  } catch (e) {
-    if (e instanceof ErroUploadDeOutroEvento) {
-      // Mesma resposta de chave inválida: distinguir contaria ao convidado
-      // que aquele id existe em outra festa.
-      return erro(403, "upload.chave_invalida", "Chave não pertence a este evento");
+    if (!resultado.ok) {
+      const status = resultado.code === "upload.chave_invalida" ? 403 : 422;
+      return errorResponse(
+        status,
+        resultado.code,
+        resultado.message,
+        resultado.details,
+      );
     }
-    return erroInesperado("confirm", e);
+
+    if (resultado.estado === "criado") {
+      await recordFunnelEvent(
+        auth.session.eventoId,
+        auth.session.sessaoId,
+        "upload_ok",
+      );
+    }
+
+    return jsonOk({ uploadId: resultado.uploadId, estado: resultado.estado });
+  } catch (e) {
+    return unexpectedError("confirm", e);
   }
 }

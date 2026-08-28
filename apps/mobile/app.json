@@ -1,0 +1,62 @@
+{
+  "expo": {
+    "name": "Albora",
+    "slug": "albora",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "scheme": "albora",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.albora.guest",
+      "associatedDomains": ["applinks:albora.app"],
+      "infoPlist": {
+        "NSCameraUsageDescription": "A câmera tira a foto da festa. Sem ela o app não tem o que enviar.",
+        "NSPhotoLibraryUsageDescription": "Escolha fotos da sua galeria para enviar ao álbum da festa.",
+        "UIBackgroundModes": ["fetch"]
+      }
+    },
+    "android": {
+      "package": "app.albora.guest",
+      "permissions": ["CAMERA", "READ_MEDIA_IMAGES", "RECEIVE_BOOT_COMPLETED", "WAKE_LOCK"],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "albora.app",
+              "pathPrefix": "/e/"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
+    },
+    "plugins": [
+      "expo-dev-client",
+      "expo-router",
+      "expo-secure-store",
+      "expo-background-fetch",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "A câmera tira a foto da festa. Sem ela o app não tem o que enviar.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Escolha fotos da sua galeria para enviar ao álbum da festa."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

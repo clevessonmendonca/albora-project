@@ -95,7 +95,7 @@ Publicado em `https://albora-spike.albora-dev.workers.dev/spike`.
 | 4 | Encerrar o navegador | ✅ **No iPhone**, relatado pelo mantenedor |
 | 5 | Presign + PUT de 800 KB | ✅ `200` pelo navegador, local **e publicado**. Objeto de 800 KB no bucket |
 | 6 | Log do Worker durante o PUT | ✅ Ver abaixo — a evidência mais forte da tarefa |
-| 7 | iPhone e Android antigo | 🟡 **iPhone sim, Android não testado.** Ver abaixo |
+| 7 | iPhone e Android antigo | ✅ **Os dois**, relatado pelo mantenedor |
 | 8 | Background Sync | 🟡 **Código provado**, comportamento de aparelho não. Ver abaixo |
 
 **A prova 6, no Worker publicado.** `wrangler tail` durante um PUT de 819 200 bytes registrou **um único evento**:
@@ -127,7 +127,7 @@ O relato foi global, sem detalhe por prova. Fica registrado assim, e não como s
 
 Vale notar o que isso significa: **o iPhone é o caso difícil**, não o fácil. Safari despeja armazenamento sob pressão, limpa dado após 7 dias sem uso e não tem Background Sync. Passar nele é a evidência mais cara de conseguir.
 
-**A perna Android continua sem teste**, com a hipótese declarada de que funciona. É hipótese razoável — o Chrome é mais permissivo que o Safari em tudo que estas provas medem, e o piso de compatibilidade calculado abaixo mostra que nada aqui pede motor recente. Mas **hipótese não é medida**, e fica escrito para não virar fato por repetição.
+**A perna Android foi fechada depois**, também pelo mantenedor, também com relato global. A hipótese que estava escrita aqui — de que o Chrome é mais permissivo que o Safari em tudo que estas provas medem — se confirmou. Fica o registro de que ela era hipótese até ser medida.
 
 **O [ADR 0010](../adr/0010-expo-para-o-app-do-convidado.md) reduziu muito o custo dessa lacuna.** Com o app do convidado em Expo, o upload em segundo plano no Android passa a ser WorkManager nativo, não Background Sync do navegador. O que continua sem medição é só o comportamento da **web** no Android — o caminho de quem escaneia o QR e nunca instala.
 

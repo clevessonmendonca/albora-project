@@ -1,16 +1,10 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { comAgregacao, comEvento, ErroEventoAusente } from "./evento";
+import { comAgregacao, comConta, comEvento, ErroEventoAusente } from "./event";
+import { ErroSemAcessoAoFornecedor, eventosDoFornecedor, resumoDoFornecedor } from "./vendor-portal";
 import { prepararBanco, semear } from "./testes/banco";
 
-/**
- * A suíte de isolamento. Contra banco real, **nunca mock** — testar
- * isolamento contra mock prova que o mock está isolado.
- *
- * Roda como `albora_app`, papel comum sem BYPASSRLS, porque superuser ignora
- * RLS mesmo com FORCE. Uma suíte conectada como dono passaria enxergando
- * tudo e diria que está tudo certo.
- */
+/** Contra banco real como `albora_app` (sem BYPASSRLS) — superuser ignora RLS mesmo com FORCE; mock de RLS prova que o mock isola. */
 
 let admin: pg.Pool;
 let app: pg.Pool;
@@ -25,6 +19,14 @@ const TABELAS_DE_EVENTO = [
   "uploads",
   "reactions",
   "funnel_events",
+  "comments",
+  "event_music",
+  "music_suggestions",
+  "reports",
+  "recado",
+  "recado_lido",
+  "export_jobs",
+  "drive_connections",
 ];
 
 beforeAll(async () => {
@@ -97,14 +99,7 @@ describe("2 — id conhecido do outro evento não é alcançável", () => {
 });
 
 describe("3 — sem app.event_id, o sistema falha fechado", () => {
-  /**
-   * Este é o teste que pegou o bug.
-   *
-   * Ao commitar, um GUC customizado definido por `SET LOCAL` não volta a
-   * NULL — volta a string vazia. E `''::uuid` não "não casa": estoura. Sem
-   * `NULLIF` na política, uma conexão nova devolvia zero linhas e uma
-   * reciclada por outro evento devolvia erro, na mesma pool.
-   */
+  // `SET LOCAL` retorna '' (não NULL) ao commitar — `''::uuid` estoura; sem NULLIF na política, conexão reciclada dava erro no próximo evento.
   it("conexão reciclada, que já serviu um evento, não estoura nem vaza", async () => {
     await comEvento(app, dados.a.eventoId, async (c) => {
       await c.query("SELECT count(*) FROM uploads");
@@ -220,16 +215,35 @@ describe("6 — agregação cruza eventos, e fica auditada", () => {
   });
 });
 
-/**
- * A única tabela com `event_id` que fica fora da RLS, e por quê.
- *
- * Resolver o token do convidado exige descobrir o `event_id`, e descobrir o
- * `event_id` exige o token resolvido. Circular. A saída é uma porta pequena
- * fora da política — e a disciplina é mantê-la pequena, o que o teste abaixo
- * impõe: qualquer coluna nova aqui reprova o CI.
- */
+/** Tabelas fora da RLS com justificativa: circular (resolve token → event_id, mas event_id só existe após o token) — o teste reprova qualquer coluna nova aqui. */
 const FORA_DA_RLS = new Map([
   ["session_tokens", "porta de entrada: resolve token → event_id, antes de haver contexto"],
+  ["event_slugs", "porta do QR: resolve slug → event_id. O slug não é segredo — está impresso na mesa"],
+  ["wall_tokens", "porta da TV: resolve crachá → event_id, mesmo circular da sessão. Só leitura"],
+  [
+    "wall_pairings",
+    "porta de pareamento da TV: nasce sem evento e ganha um quando alguém autoriza — resolve por código e por token de poll antes de haver contexto",
+  ],
+  [
+    "app_pairings",
+    "porta de pareamento web → app: resolve código → (event_id, session_id) antes de haver contexto — só mapeamento, sem PII",
+  ],
+  [
+    "retention_jobs",
+    "runner pós-evento: lista due cross-event sem PII de convidado — só event_id, kind e status",
+  ],
+  [
+    "billing_payments",
+    "cobrança Asaas: webhook marca pago e aplica plan sem app.event_id; sem PII de convidado",
+  ],
+  [
+    "support_tickets",
+    "inbox de suporte: event_id opcional; isolamento por app.account_id (conta), não por evento",
+  ],
+  [
+    "event_members",
+    "papéis couple/planner: isolamento por app.account_id (conta), não por evento do convidado",
+  ],
 ]);
 
 describe("7 — nenhuma tabela nova escapa da política", () => {
@@ -239,9 +253,7 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
        WHERE table_name = 'session_tokens' ORDER BY column_name`,
     );
 
-    // Sem PII, sem nome de convidado, sem conteúdo de evento. Quem ler esta
-    // tabela inteira sabe que existem sessões e a quais eventos pertencem —
-    // e nada mais. Toda coluna a mais aqui está pedindo para sair da RLS.
+    // Sem PII, sem nome de convidado, sem conteúdo de evento — quem ler esta tabela inteira sabe que existem sessões e a quais eventos pertencem, nada mais; toda coluna a mais está pedindo para sair da RLS.
     expect(rows.map((r) => r.coluna)).toEqual([
       "created_at",
       "event_id",
@@ -249,6 +261,60 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
       "revoked_at",
       "session_id",
       "token_hash",
+    ]);
+  });
+
+  it("a porta da parede não cresce, e não tem sessão", async () => {
+    const { rows } = await admin.query<{ coluna: string }>(
+      `SELECT column_name AS coluna FROM information_schema.columns
+       WHERE table_name = 'wall_tokens' ORDER BY column_name`,
+    );
+
+    // Uma coluna a menos que `session_tokens`, e a ausência é a decisão: a parede não é uma pessoa — inventar `session_id` para ela faria a auditoria atribuir a um convidado o que uma TV fez sozinha, e abriria a porta para reusar o crachá como sessão, que é o que autoriza subir foto.
+    expect(rows.map((r) => r.coluna)).toEqual([
+      "created_at",
+      "event_id",
+      "expires_at",
+      "revoked_at",
+      "token_hash",
+    ]);
+  });
+
+  it("a porta de pareamento não cresce, e não guarda nome nem conteúdo", async () => {
+    const { rows } = await admin.query<{ coluna: string }>(
+      `SELECT column_name AS coluna FROM information_schema.columns
+       WHERE table_name = 'wall_pairings' ORDER BY column_name`,
+    );
+
+    // Só o mapeamento código/token → evento, mais o consentimento de quem ligou — nenhuma coluna de convidado, nenhuma foto; quem ler esta tabela inteira sabe que existem pareamentos e a quais eventos foram presos, nada além.
+    expect(rows.map((r) => r.coluna)).toEqual([
+      "code",
+      "consent_version",
+      "created_at",
+      "event_id",
+      "expires_at",
+      "id",
+      "poll_token_hash",
+      "status",
+    ]);
+  });
+
+  it("a porta de pareamento do app não cresce, e não guarda nome nem conteúdo", async () => {
+    const { rows } = await admin.query<{ coluna: string }>(
+      `SELECT column_name AS coluna FROM information_schema.columns
+       WHERE table_name = 'app_pairings' ORDER BY column_name`,
+    );
+
+    // Só o mapeamento código → (event_id, session_id) — sem nome de convidado, sem foto; quem ler esta tabela inteira sabe que existem códigos de pareamento e a quais sessões pertencem, nada além.
+    expect(rows.map((r) => r.coluna)).toEqual([
+      "code",
+      "created_at",
+      "event_id",
+      "expires_at",
+      "id",
+      "passagem_token_hash",
+      "session_id",
+      "status",
     ]);
   });
 
@@ -284,6 +350,7 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
     const porTabela = new Map(rows.map((r) => [r.tabela, r.expressao]));
 
     for (const tabela of TABELAS_DE_EVENTO) {
+      if (tabela === "events") continue;
       const expressao = porTabela.get(tabela);
       expect(expressao, `${tabela} sem política`).toBeTruthy();
       expect(expressao, `${tabela} não filtra por app.event_id`).toContain("app.event_id");
@@ -295,6 +362,325 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
       "SELECT qual::text AS expressao FROM pg_policies WHERE tablename = 'events'",
     );
 
-    expect(rows[0]?.expressao).toContain("app.event_id");
+    // Desde o ADR 0013 há duas políticas em events (evento e conta); basta que
+    // alguma feche por app.event_id.
+    expect(rows.some((r) => r.expressao?.includes("app.event_id"))).toBe(true);
   });
 });
+
+describe("8 — a conta vê os seus eventos, e só os seus (ADR 0013)", () => {
+  it("comConta enxerga o evento da conta, nunca o de outra", async () => {
+    const daContaA = await comConta(app, dados.a.contaId, async (c) => {
+      const { rows } = await c.query<{ id: string }>("SELECT id FROM events");
+      return rows.map((r) => r.id);
+    });
+
+    expect(daContaA).toContain(dados.a.eventoId);
+    expect(daContaA).not.toContain(dados.b.eventoId);
+  });
+
+  it("o caminho de evento não abre nada pela política de conta", async () => {
+    // O convidado seta app.event_id, não app.account_id: a política de conta
+    // vira account_id = NULL e não soma nada. Vê um evento, o do contexto.
+    const vistos = await comEvento(app, dados.a.eventoId, async (c) => {
+      const { rows } = await c.query<{ n: number }>("SELECT count(*)::int AS n FROM events");
+      return rows[0]!.n;
+    });
+
+    expect(vistos).toBe(1);
+  });
+
+  it("uma conta não cria evento para outra — o WITH CHECK recusa", async () => {
+    await expect(
+      comConta(app, dados.a.contaId, async (c) => {
+        await c.query(
+          `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
+           VALUES ($1, 'pack-um', 'roubado-de-b', now(), now() + interval '1 hour')`,
+          [dados.b.contaId],
+        );
+      }),
+    ).rejects.toThrow();
+
+    // E nada foi criado: a recusa é antes da linha, não depois.
+    const { rows } = await admin.query("SELECT id FROM events WHERE slug = 'roubado-de-b'");
+    expect(rows).toHaveLength(0);
+  });
+
+  it("sem account_id válido, comConta falha alto — não assume padrão", async () => {
+    await expect(comConta(app, "", async () => 1)).rejects.toThrow(/account/i);
+  });
+});
+
+describe("9 — missão duplicada no mesmo evento é recusada pelo banco", () => {
+  it("o segundo INSERT da mesma title_key no mesmo evento estoura UNIQUE", async () => {
+    await comEvento(app, dados.a.eventoId, async (c) => {
+      await c.query(
+        "INSERT INTO challenges (event_id, title_key, position) VALUES ($1, $2, $3)",
+        [dados.a.eventoId, "missao.unica", 1],
+      );
+    });
+
+    await expect(
+      comEvento(app, dados.a.eventoId, async (c) => {
+        await c.query(
+          "INSERT INTO challenges (event_id, title_key, position) VALUES ($1, $2, $3)",
+          [dados.a.eventoId, "missao.unica", 2],
+        );
+      }),
+    ).rejects.toMatchObject({ code: "23505", constraint: "challenges_event_id_title_key_key" });
+  });
+
+  it("a mesma chave em outro evento cabe — unicidade é por evento, não global", async () => {
+    await comEvento(app, dados.a.eventoId, async (c) => {
+      await c.query(
+        "INSERT INTO challenges (event_id, title_key, position) VALUES ($1, $2, $3)",
+        [dados.a.eventoId, "missao.nos-dois", 1],
+      );
+    });
+
+    await expect(
+      comEvento(app, dados.b.eventoId, async (c) => {
+        await c.query(
+          "INSERT INTO challenges (event_id, title_key, position) VALUES ($1, $2, $3)",
+          [dados.b.eventoId, "missao.nos-dois", 1],
+        );
+      }),
+    ).resolves.toBeUndefined();
+  });
+});
+
+/** 10 — vendor_id: query nunca sai sem `WHERE vendor_id = $1`, atrás de porta RLS normal — `albora_agregador` tem SELECT em tudo, contenção é o WHERE. */
+describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
+  let vendorXId: string;
+  let vendorYId: string;
+  let membroXId: string;
+  let eventoExtraXId: string;
+
+  beforeAll(async () => {
+    const { rows: vx } = await admin.query<{ id: string }>(
+      "INSERT INTO vendors (name) VALUES ($1) RETURNING id",
+      ["Fornecedor X"],
+    );
+    vendorXId = vx[0]!.id;
+    const { rows: vy } = await admin.query<{ id: string }>(
+      "INSERT INTO vendors (name) VALUES ($1) RETURNING id",
+      ["Fornecedor Y"],
+    );
+    vendorYId = vy[0]!.id;
+
+    // Os eventos A e B do seed principal (contas distintas, ADR 0013) passam a pertencer a um fornecedor cada — o mesmo par que já prova isolamento por event_id agora prova isolamento por vendor_id.
+    await admin.query("UPDATE events SET vendor_id = $1 WHERE id = $2", [vendorXId, dados.a.eventoId]);
+    await admin.query("UPDATE events SET vendor_id = $1 WHERE id = $2", [vendorYId, dados.b.eventoId]);
+
+    const { rows: membro } = await admin.query<{ id: string }>(
+      "INSERT INTO accounts (email) VALUES ($1) RETURNING id",
+      ["membro-fornecedor-x@exemplo.test"],
+    );
+    membroXId = membro[0]!.id;
+    await admin.query(
+      "INSERT INTO vendor_members (vendor_id, account_id, role) VALUES ($1, $2, 'admin')",
+      [vendorXId, membroXId],
+    );
+
+    // Segundo evento sob vendorX, dono de conta diferente de dados.a — prova que resumoDoFornecedor soma por vendor_id, não por account_id: o dono deste evento nem é vendor_members de X, só o evento pertence a X.
+    const { rows: extra } = await admin.query<{ id: string }>(
+      `INSERT INTO events (account_id, vendor_id, pack_id, slug, starts_at, ends_at, expected_guests)
+       VALUES ($1, $2, 'pack-um', 'evento-extra-x', now(), now() + interval '4 hours', 50)
+       RETURNING id`,
+      [dados.b.contaId, vendorXId],
+    );
+    eventoExtraXId = extra[0]!.id;
+    const { rows: sessaoExtra } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'convidado-extra-x', 'v1', now()) RETURNING id`,
+      [eventoExtraXId],
+    );
+    await admin.query(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 800000)`,
+      [eventoExtraXId, sessaoExtra[0]!.id, `events/${eventoExtraXId}/2026/08/foto/extra`],
+    );
+  });
+
+  it("eventosDoFornecedor nunca devolve evento de outro vendor_id", async () => {
+    const eventos = await eventosDoFornecedor(app, agregador, membroXId, vendorXId, () => {});
+
+    expect(eventos.map((e) => e.id)).toContain(dados.a.eventoId);
+    expect(eventos.map((e) => e.id)).not.toContain(dados.b.eventoId);
+  });
+
+  it("a checagem de pertencimento roda sob RLS normal — bloqueia ANTES de auditar", async () => {
+    const registros: { motivo: string; em: Date }[] = [];
+
+    // dados.b.contaId é dono do evento B, mas não é vendor_members de X: a
+    // primeira porta recusa antes de o agregador entrar em cena.
+    await expect(
+      eventosDoFornecedor(app, agregador, dados.b.contaId, vendorXId, (r) => registros.push(r)),
+    ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
+    expect(registros).toHaveLength(0);
+  });
+
+  it("vendor_membro (RLS de vendors) só deixa o membro ver a própria linha", async () => {
+    const vistoPeloMembro = await comConta(app, membroXId, async (c) => {
+      const { rows } = await c.query<{ id: string }>("SELECT id FROM vendors");
+      return rows.map((r) => r.id);
+    });
+    expect(vistoPeloMembro).toContain(vendorXId);
+    expect(vistoPeloMembro).not.toContain(vendorYId);
+
+    const vistoPorQuemNaoEMembro = await comConta(app, dados.b.contaId, async (c) => {
+      const { rows } = await c.query<{ id: string }>("SELECT id FROM vendors");
+      return rows.map((r) => r.id);
+    });
+    expect(vistoPorQuemNaoEMembro).toHaveLength(0);
+  });
+
+  it("a contenção é a query, não o GRANT do papel agregador", async () => {
+    // O papel albora_agregador tem SELECT em toda tabela (migration 0002), por design — sem o WHERE vendor_id = $1 que eventosDoFornecedor sempre usa, uma consulta no MESMO papel veria os dois vendors; a disciplina tem de ser na query de aplicação, nunca no GRANT.
+    const registros: { motivo: string; em: Date }[] = [];
+    const semFiltro = await comAgregacao(
+      agregador,
+      "teste:prova-de-contencao-por-query",
+      (r) => registros.push(r),
+      async (c) => {
+        const { rows } = await c.query<{ vendor_id: string }>(
+          "SELECT DISTINCT vendor_id FROM events WHERE vendor_id IS NOT NULL",
+        );
+        return rows.map((r) => r.vendor_id);
+      },
+    );
+    expect(semFiltro).toEqual(expect.arrayContaining([vendorXId, vendorYId]));
+
+    // eventosDoFornecedor, atrás do mesmo papel, nunca devolve isso: está
+    // fechado por vendor_id = $1 com $1 já confirmado na primeira porta.
+    const doX = await eventosDoFornecedor(app, agregador, membroXId, vendorXId, () => {});
+    expect(doX.every((e) => e.id !== dados.b.eventoId)).toBe(true);
+  });
+
+  describe("resumoDoFornecedor — agregado por vendor_id, nunca soma o outro fornecedor", () => {
+    it("soma eventos, fotos e H1 só através dos eventos do próprio vendor_id", async () => {
+      const registros: { motivo: string; em: Date }[] = [];
+      const resumo = await resumoDoFornecedor(app, agregador, membroXId, vendorXId, (r) =>
+        registros.push(r),
+      );
+
+      // vendorX tem dois eventos (eventoA, expected_guests=150; e eventoExtraX, expected_guests=50), um upload publicado cada — o upload de eventoB (vendorY) nunca entra nesta soma.
+      expect(resumo).toEqual({
+        totalEventos: 2,
+        totalFotos: 2,
+        h1Medio: 2 / 200,
+      });
+      expect(registros).toHaveLength(1);
+      expect(registros[0]?.motivo).toBe(`vendor_insights:${vendorXId}`);
+    });
+
+    it("vendorY soma só o próprio evento, isolado do upload extra de X", async () => {
+      const membroY = await admin.query<{ id: string }>(
+        "INSERT INTO accounts (email) VALUES ($1) RETURNING id",
+        ["membro-fornecedor-y@exemplo.test"],
+      );
+      const membroYId = membroY.rows[0]!.id;
+      await admin.query(
+        "INSERT INTO vendor_members (vendor_id, account_id, role) VALUES ($1, $2, 'staff')",
+        [vendorYId, membroYId],
+      );
+
+      const resumo = await resumoDoFornecedor(app, agregador, membroYId, vendorYId, () => {});
+      expect(resumo).toEqual({ totalEventos: 1, totalFotos: 1, h1Medio: 1 / 150 });
+    });
+
+    it("conta sem vínculo em vendor_members é recusada ANTES de qualquer agregação", async () => {
+      const registros: { motivo: string; em: Date }[] = [];
+      await expect(
+        resumoDoFornecedor(app, agregador, dados.b.contaId, vendorXId, (r) => registros.push(r)),
+      ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
+      expect(registros).toHaveLength(0);
+    });
+
+    it("membro de X pedindo o vendorId de Y é recusado na primeira porta", async () => {
+      await expect(
+        resumoDoFornecedor(app, agregador, membroXId, vendorYId, () => {}),
+      ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
+    });
+
+    it("vendorId que não é uuid é recusado antes de tocar o banco", async () => {
+      await expect(
+        resumoDoFornecedor(app, agregador, membroXId, "nao-e-um-uuid", () => {}),
+      ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
+    });
+  });
+});
+
+/** 11 — `drive_connections`: event_id é PK (uma conexão por evento), RLS padrão; refresh token nunca em claro — ciphertext/iv/tag, mesmo argumento do hash de sessão. */
+describe("11 — drive_connections: RLS por event_id, e o refresh token nunca em claro", () => {
+  beforeAll(async () => {
+    const inserir = (eventoId: string, contaId: string, folderId: string) =>
+      admin.query(
+        `INSERT INTO drive_connections
+           (event_id, account_id, drive_folder_id, drive_account_email, refresh_ciphertext, refresh_iv, refresh_tag, key_version)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 1)`,
+        [
+          eventoId,
+          contaId,
+          folderId,
+          `casal-${folderId}@exemplo.test`,
+          Buffer.from("ciphertext-fake"),
+          Buffer.from("iv-fake-12b."),
+          Buffer.from("tag-fake-16bytes"),
+        ],
+      );
+    await inserir(dados.a.eventoId, dados.a.contaId, "folder-a");
+    await inserir(dados.b.eventoId, dados.b.contaId, "folder-b");
+  });
+
+  it("o contexto do evento A nunca enxerga a linha do evento B, mesmo com a PK em mãos", async () => {
+    const vistas = await comEvento(app, dados.a.eventoId, async (c) => {
+      const { rows } = await c.query("SELECT event_id FROM drive_connections");
+      return rows;
+    });
+    expect(vistas).toHaveLength(1);
+    expect(vistas[0].event_id).toBe(dados.a.eventoId);
+
+    const tentativaDireta = await comEvento(app, dados.a.eventoId, async (c) => {
+      const { rows } = await c.query("SELECT event_id FROM drive_connections WHERE event_id = $1", [
+        dados.b.eventoId,
+      ]);
+      return rows;
+    });
+    expect(tentativaDireta).toHaveLength(0);
+  });
+
+  it("sem app.event_id, zero linhas — mesmo para quem conectou o Drive", async () => {
+    const cliente = await app.connect();
+    try {
+      const { rows } = await cliente.query("SELECT count(*)::int AS n FROM drive_connections");
+      expect(rows[0].n).toBe(0);
+    } finally {
+      cliente.release();
+    }
+  });
+
+  it("a linha nunca guarda o refresh token em texto puro — só ciphertext/iv/tag/key_version", async () => {
+    const { rows } = await admin.query<{ coluna: string }>(
+      `SELECT column_name AS coluna FROM information_schema.columns
+       WHERE table_name = 'drive_connections' ORDER BY column_name`,
+    );
+    const colunas = rows.map((r) => r.coluna);
+    expect(colunas).not.toContain("refresh_token");
+    expect(colunas).toEqual(
+      expect.arrayContaining(["refresh_ciphertext", "refresh_iv", "refresh_tag", "key_version"]),
+    );
+  });
+
+  it("event_id é a própria chave primária — reconectar é UPSERT, nunca acumula linha", async () => {
+    await expect(
+      admin.query(
+        `INSERT INTO drive_connections
+           (event_id, account_id, drive_folder_id, refresh_ciphertext, refresh_iv, refresh_tag, key_version)
+         VALUES ($1, $2, 'folder-a-duplicada', $3, $4, $5, 1)`,
+        [dados.a.eventoId, dados.a.contaId, Buffer.from("x"), Buffer.from("y"), Buffer.from("z")],
+      ),
+    ).rejects.toMatchObject({ code: "23505" });
+  });
+});
+

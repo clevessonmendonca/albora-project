@@ -1,89 +1,90 @@
-import { derivarChaveMidia, validarDeclaracao, VALIDADE_PRESIGN_SEGUNDOS } from "@albora/core";
-import { config, ErroConfig } from "@/lib/config";
-import { consumir } from "@/lib/limite";
+import {
+  canUploadVideo,
+  deriveMediaKey,
+  isVideoMime,
+  validateDeclaration,
+  VALIDADE_PRESIGN_SEGUNDOS,
+} from "@albora/core";
+import { withEvent, contarVideosDaSessao, planoDoEvento } from "@albora/db";
+import { recordFunnelEvent } from "@/features/guest/lib/record-funnel";
+import {
+  enforceRateLimit,
+  errorResponse,
+  jsonOk,
+  parseJsonBody,
+  requireConfig,
+  requireGuestSession,
+  unexpectedError,
+} from "@/lib/api";
+import { getPool } from "@/lib/db";
 import { assinarPut } from "@/lib/r2";
-import { erro, erroInesperado, ok } from "@/lib/resposta";
-import { identidadeParaLimite, sessaoDaRequisicao } from "@/lib/sessao";
 
 export const dynamic = "force-dynamic";
 
-type Corpo = { uploadId?: unknown; mime?: unknown; bytes?: unknown };
+type Body = { uploadId?: unknown; mime?: unknown; bytes?: unknown };
 
-/**
- * Emite dois PUT presigned — full e thumb — e mais nada.
- *
- * O servidor **nunca toca nos bytes de mídia**: os dois sistemas do caminho
- * crítico são object storage e Postgres, e este endpoint é a única coisa
- * entre eles. Medido na task 001: 21 bytes de corpo aqui contra 819 200 no
- * storage.
- */
 export async function POST(req: Request) {
-  try {
-    config();
-  } catch (e) {
-    if (e instanceof ErroConfig) {
-      console.error("presign.config_ausente", { faltando: e.faltando });
-      return erro(503, "config.missing", "Serviço indisponível");
-    }
-    throw e;
-  }
+  const configError = requireConfig("presign");
+  if (configError) return configError;
 
-  const sessao = await sessaoDaRequisicao(req);
-  if (!sessao) return erro(401, "sessao.invalida", "Sessão inválida");
+  const auth = await requireGuestSession(req);
+  if (auth instanceof Response) return auth;
 
-  // Circuito no portão: um pedido condenado não consome assinatura, nem cota,
-  // nem espaço no bucket.
-  const limite = consumir(identidadeParaLimite(req, sessao), 120, 60, Date.now());
-  if (!limite.permitido) {
-    return erro(429, "limite.excedido", "Muitas fotos de uma vez", {
-      retry_after_seconds: limite.resetEmSegundos,
-    });
-  }
+  const limited = enforceRateLimit(req, auth.session, {
+    message: "Muitas fotos de uma vez",
+  });
+  if (limited) return limited;
 
-  let corpo: Corpo;
-  try {
-    corpo = (await req.json()) as Corpo;
-  } catch {
-    return erro(422, "validation_error", "Corpo inválido", { campo: "body" });
-  }
+  const parsed = await parseJsonBody<Body>(req);
+  if (parsed instanceof Response) return parsed;
 
-  const { uploadId, mime, bytes } = corpo;
+  const { uploadId, mime, bytes } = parsed.data;
   if (typeof uploadId !== "string" || typeof mime !== "string" || typeof bytes !== "number") {
-    return erro(422, "validation_error", "Dados incompletos", {
+    return errorResponse(422, "validation_error", "Dados incompletos", {
       campos: ["uploadId", "mime", "bytes"],
     });
   }
 
-  const invalido = validarDeclaracao(mime, bytes);
-  if (invalido) return erro(422, invalido.code, "Arquivo recusado", invalido.details);
+  const invalid = validateDeclaration(mime, bytes);
+  if (invalid) return errorResponse(422, invalid.code, "Arquivo recusado", invalid.details);
 
-  // 🔴 A chave é derivada aqui, a partir do event_id da **sessão**. O cliente
-  // não a informa e não a escolhe, nem no presign nem no confirm — ADR 0002 e
-  // ADR 0004. Aceitar chave do cliente é o caminho mais curto para um evento
-  // escrever dentro do outro.
-  const chave = derivarChaveMidia(sessao.eventoId, uploadId, "full").replace(/\/full$/, "");
+  if (isVideoMime(mime)) {
+    const quota = await withEvent(getPool(), auth.session.eventoId, async (c) => {
+      const plan = await planoDoEvento(c, auth.session.eventoId);
+      const uploaded = await contarVideosDaSessao(c, auth.session.eventoId, auth.session.sessaoId);
+      return { plan, uploaded };
+    });
+
+    if (!canUploadVideo(quota.plan, quota.uploaded)) {
+      return errorResponse(403, "video.cota_esgotada", "Limite de vídeos atingido para este convidado");
+    }
+  }
+
+  const key = deriveMediaKey(auth.session.eventoId, uploadId, "full").replace(/\/full$/, "");
 
   try {
-    const [full, thumb] = await Promise.all([
-      assinarPut(`${chave}/full`, mime, VALIDADE_PRESIGN_SEGUNDOS),
-      assinarPut(`${chave}/thumb`, mime, VALIDADE_PRESIGN_SEGUNDOS),
-    ]);
+    const full = await assinarPut(`${key}/full`, mime, VALIDADE_PRESIGN_SEGUNDOS);
+    const thumb = isVideoMime(mime)
+      ? await assinarPut(`${key}/thumb`, "image/jpeg", VALIDADE_PRESIGN_SEGUNDOS)
+      : await assinarPut(`${key}/thumb`, mime, VALIDADE_PRESIGN_SEGUNDOS);
 
     console.log("presign.emitido", {
-      eventoId: sessao.eventoId,
-      sessaoId: sessao.sessaoId,
-      chave,
+      eventoId: auth.session.eventoId,
+      sessaoId: auth.session.sessaoId,
+      chave: key,
       bytes,
     });
 
-    return ok({
+    await recordFunnelEvent(auth.session.eventoId, auth.session.sessaoId, "upload_start");
+
+    return jsonOk({
       uploadId,
-      chave,
+      chave: key,
       full,
       thumb,
       expiraEm: Date.now() + VALIDADE_PRESIGN_SEGUNDOS * 1000,
     });
   } catch (e) {
-    return erroInesperado("presign.assinar", e);
+    return unexpectedError("presign.assinar", e);
   }
 }

@@ -11,14 +11,7 @@ const URL_ADMIN =
 
 export const SENHA_APP = "app-de-teste";
 
-/**
- * Prepara o banco de teste e devolve duas pools.
- *
- * A distinção entre elas é o ponto da suíte inteira: **superuser ignora RLS
- * mesmo com FORCE**. Uma suíte que conecta como dono do container passaria
- * enxergando tudo e diria que o isolamento funciona. Por isso `app` conecta
- * como papel comum, sem BYPASSRLS — do jeito que a aplicação vai conectar.
- */
+/** `app` conecta como `albora_app` (sem BYPASSRLS) — superuser ignora RLS mesmo com FORCE; uma suíte conectada como dono diria que o isolamento funciona. */
 export async function prepararBanco() {
   const admin = new pg.Pool({ connectionString: URL_ADMIN, max: 4 });
 
@@ -47,20 +40,32 @@ export async function prepararBanco() {
   };
 }
 
-/** Dois eventos com dado próprio. A prova é A nunca enxergar B. */
+/** Dois eventos sob contas distintas (ADR 0013) — A nunca enxerga evento de B, nem por event_id nem por account_id. */
 export async function semear(admin: pg.Pool) {
-  const { rows: conta } = await admin.query(
-    "INSERT INTO accounts (email) VALUES ('anfitriao@exemplo.test') RETURNING id",
-  );
+  const conta = async (email: string) => {
+    const { rows } = await admin.query("INSERT INTO accounts (email) VALUES ($1) RETURNING id", [
+      email,
+    ]);
+    return rows[0].id as string;
+  };
+  const contaAId = await conta("anfitriao-a@exemplo.test");
+  const contaBId = await conta("anfitriao-b@exemplo.test");
   await admin.query("INSERT INTO packs (id) VALUES ('pack-um'), ('pack-dois')");
 
-  const criar = async (slug: string, pack: string) => {
+  const criar = async (slug: string, pack: string, accountId: string) => {
     const { rows } = await admin.query(
       `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
        VALUES ($1, $2, $3, now(), now() + interval '6 hours') RETURNING id`,
-      [conta[0].id, pack, slug],
+      [accountId, pack, slug],
     );
     const eventoId = rows[0].id as string;
+
+    // O slug vive na porta fora da RLS (migration 0004); a migration faz
+    // backfill de quem já existia, e quem nasce depois precisa da linha.
+    await admin.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [
+      slug,
+      eventoId,
+    ]);
 
     const { rows: sessao } = await admin.query(
       `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
@@ -78,5 +83,8 @@ export async function semear(admin: pg.Pool) {
     return { eventoId, sessaoId, uploadId: upload[0].id as string };
   };
 
-  return { a: await criar("evento-a", "pack-um"), b: await criar("evento-b", "pack-dois") };
+  return {
+    a: { ...(await criar("evento-a", "pack-um", contaAId)), contaId: contaAId },
+    b: { ...(await criar("evento-b", "pack-dois", contaBId)), contaId: contaBId },
+  };
 }

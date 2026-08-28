@@ -2,13 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Pool } from "pg";
 
-/**
- * Aplica migrations em ordem, uma vez cada.
- *
- * Forward-only: nenhuma migration ja aplicada e reescrita. Se a decisao
- * mudar, escreve-se outra — reescrever uma que ja rodou causa desvio de
- * schema entre replicas e backup que nao restaura.
- */
+/** Forward-only — reescrever migration já aplicada desvia schema entre réplicas e quebra restore do backup. */
 export async function migrar(pool: Pool, diretorio: string): Promise<string[]> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS _migrations (
@@ -32,8 +26,7 @@ export async function migrar(pool: Pool, diretorio: string): Promise<string[]> {
     const sql = readFileSync(join(diretorio, nome), "utf8");
     const cliente = await pool.connect();
     try {
-      // DDL em transação: uma migration que falha no meio não deixa metade
-      // do schema aplicada, que é o estado impossível de diagnosticar.
+      // DDL em transação — falha no meio não deixa schema parcialmente aplicado.
       await cliente.query("BEGIN");
       await cliente.query(sql);
       await cliente.query("INSERT INTO _migrations (nome) VALUES ($1)", [nome]);

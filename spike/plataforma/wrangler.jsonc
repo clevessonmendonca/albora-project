@@ -13,5 +13,8 @@
   },
   "vars": {
     "R2_BUCKET": "albora-spike"
+  },
+  "queues": {
+    "producers": [{ "binding": "DRIVE_EXPORT_QUEUE", "queue": "albora-drive-export" }]
   }
 }

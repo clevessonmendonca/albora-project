@@ -31,7 +31,7 @@ Não podem ser quebradas sem discussão prévia. Se uma tarefa pedir para quebra
 
 ### Isolamento entre eventos
 
-- **Toda tabela com dado de evento tem `event_id`** (UUID, NOT NULL, FK). RLS **FORÇADO**, política filtrando por `event_id = current_setting('app.event_id', true)::uuid`.
+- **Toda tabela com dado de evento tem `event_id`** (UUID, NOT NULL, FK). RLS **FORÇADO**, política filtrando por `event_id = NULLIF(current_setting('app.event_id', true), '')::uuid`. O `NULLIF` é obrigatório: depois do `SET LOCAL`, o GUC volta a `''`, e `''::uuid` estoura em vez de falhar fechado.
 - **Sempre `SET LOCAL`, nunca `SET`.** Pooling em modo transação devolve a conexão a cada COMMIT; um setting de sessão vaza para o próximo cliente. O mesmo vale para locks: `pg_advisory_xact_lock`, nunca `pg_advisory_lock`.
 - **Nunca escreva query que cruza eventos** fora de um caminho de agregação explícito (dashboard do fornecedor, observabilidade). Esses usam papel dedicado com `BYPASSRLS` e são auditados.
 - **Chaves de storage são derivadas no servidor**, sempre `events/{event_id}/...`. O cliente **nunca** informa a chave — nem no presign, nem no confirm.
