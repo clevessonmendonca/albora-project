@@ -63,7 +63,8 @@ export function FeedEmptyState({
       {!espelho && (
         <Link
           href={cameraPath}
-          className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-acento px-[calc(var(--espaco)*6)] font-corpo text-[0.9375rem] font-medium tracking-[0.05em] text-sobre-acento transition-transform duration-[var(--tempo-micro)] hover:scale-[0.977] active:scale-[0.977]"
+          className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-acento font-corpo text-[0.9375rem] font-medium tracking-[0.05em] text-sobre-acento transition-transform duration-[var(--tempo-micro)] hover:scale-[0.977] active:scale-[0.977]"
+          style={{ paddingInline: "calc(var(--espaco) * 6)" }}
         >
           Tirar foto
         </Link>
