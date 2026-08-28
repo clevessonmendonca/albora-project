@@ -8,6 +8,7 @@ import { groupByHour } from "@/features/feed/lib/group-by-hour";
 import { useFeed } from "@/features/feed/hooks/use-feed";
 import { useFeedViewer } from "@/features/feed/hooks/use-feed-viewer";
 import { useFeedFilter, type FilterMission } from "@/features/feed/hooks/use-feed-filter";
+import { useTemporalFilter } from "@/features/feed/hooks/use-temporal-filter";
 import { useReducedMotion } from "@/features/feed/hooks/use-reduced-motion";
 import { useNewItemsNotification } from "@/features/feed/hooks/use-new-items-notification";
 import { useGateTransition } from "@/features/feed/hooks/use-gate-transition";
@@ -30,9 +31,11 @@ import { MirrorGrid, MirrorGridLoading } from "./mirror-grid";
 import { Viewer } from "./viewer";
 import { HourStrip, HourStripLoading } from "./hour-strip";
 import { FeedFilterPanel } from "../ui/feed-filter-panel";
+import { TemporalFilter } from "../ui/temporal-filter";
 import { FeedFooter } from "../ui/feed-footer";
 import { GateOpenedOverlay } from "../ui/gate-opened-overlay";
 import { NewPhotosButton } from "../ui/new-photos-button";
+import { FeedEmptyState } from "../ui/feed-empty-state";
 
 export type FeedCopy = {
   missionTitle: string;
@@ -66,7 +69,11 @@ export function FeedPage({
 
   // Core hooks
   const filtro = useFeedFilter(missions);
-  const { estado, carregarMais, recomecar, atualizarReacoes } = useFeed(filtro.missionId);
+  const temporal = useTemporalFilter();
+  const { estado, carregarMais, recomecar, atualizarReacoes } = useFeed(
+    filtro.missionId,
+    temporal.periodo
+  );
   const compartilhar = useShare(eventoId, sessaoId);
 
   // UI state hooks
@@ -122,6 +129,10 @@ export function FeedPage({
           {primeiraCarga && completo && <HourStripLoading />}
           {primeiraCarga && espelho && <MirrorGridLoading />}
 
+          {completo && (
+            <TemporalFilter periodo={temporal.periodo} onSelect={temporal.setPeriodo} />
+          )}
+
           {completo && grupos.length > 0 && (
             <HourStrip
               grupos={grupos}
@@ -159,17 +170,11 @@ export function FeedPage({
           )}
 
           {vazio && (
-            <EmptyState
-              title={
-                completo && filtro.missionId !== null
-                  ? "Ninguém fez essa ainda."
-                  : "Ainda não tem foto aqui."
-              }
-              lede={
-                completo && filtro.missionId !== null
-                  ? "Sua foto pode ser a primeira."
-                  : "Seja o primeiro a fotografar."
-              }
+            <FeedEmptyState
+              interacao={estado.interacao}
+              filtroMissao={filtro.missionId}
+              filtroMissaoTitulo={filtro.filtroAtivo?.title}
+              filtroPeriodo={temporal.periodo}
               cameraPath={cameraPath}
             />
           )}
@@ -179,7 +184,7 @@ export function FeedPage({
           )}
 
           {completo && estado.itens.length > 0 && (
-            <FeedColumn withDivider>
+            <FeedColumn withDivider key={`feed-${temporal.periodo}`}>
               {estado.itens.map((item) => {
                 const isVideo = isVideoMime(item.mime);
                 const chaveMidia = isVideo ? item.chaveFull : item.chaveThumb;
@@ -278,7 +283,11 @@ function FeedColumn({
   children: React.ReactNode;
   withDivider?: boolean;
 }) {
-  return <div className={cn("grid", withDivider && "border-t border-linha")}>{children}</div>;
+  return (
+    <div className={cn("grid feed-fade", withDivider && "border-t border-linha")}>
+      {children}
+    </div>
+  );
 }
 
 function FeedStyles() {
@@ -292,15 +301,20 @@ function FeedStyles() {
         0%, 100% { opacity: 1; }
         50%      { opacity: 0.55; }
       }
+      @keyframes feed-fade-in {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+      }
       .feed-amanhece { animation: feed-amanhecer var(--tempo-lento) var(--curva) both; }
       .feed-esperando { animation: feed-respirar 1900ms var(--curva) infinite; }
+      .feed-fade { animation: feed-fade-in 200ms var(--curva) both; }
       @keyframes feed-pill-entra {
         from { transform: translate(-50%, -2.5rem); opacity: 0 }
         to   { transform: translate(-50%, 0);       opacity: 1 }
       }
       .feed-pill { animation: feed-pill-entra 280ms var(--curva) both }
       @media (prefers-reduced-motion: reduce) {
-        .feed-amanhece, .feed-esperando { animation: none !important; }
+        .feed-amanhece, .feed-esperando, .feed-fade { animation: none !important; }
         .feed-pill { animation: none !important; }
       }
     `}</style>
