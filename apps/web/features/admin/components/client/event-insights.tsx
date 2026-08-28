@@ -4,6 +4,7 @@ import type { CodigoDaTese, DegrauDoFunil, EtapaDaEspinha } from "@albora/core";
 import type { EntradasPorVia } from "@albora/db";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
 type MissaoInsightUI = { challengeId: string; titulo: string; emoji: string | null; fotos: number };
 type HoraInsightUI = { hora: number; fotos: number };
@@ -125,21 +126,14 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
         <div className="mb-3 flex items-center justify-between gap-4">
           <h2 className="m-0 font-titulo text-lg">A festa está pegando?</h2>
           <div className="flex items-center gap-2">
-            {ultimaAtualizacao && <TempoDesdeAtualizacao desde={ultimaAtualizacao} />}
-            <button
-              type="button"
-              disabled={atualizando}
+            {ultimaAtualizacao && <AtualizadoHa desde={ultimaAtualizacao} />}
+            <RefreshButton
+              loading={atualizando}
               onClick={() => {
                 setAtualizando(true);
                 void carregar().finally(() => setAtualizando(false));
               }}
-              className="cursor-pointer rounded-pilula border border-linha bg-transparent p-1.5 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
-              aria-label="Atualizar agora"
-            >
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden className={atualizando ? "opacity-50" : ""}>
-                <path d="M11 6.5A4.5 4.5 0 0 1 2 6.5M11 6.5V3.5M11 6.5H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
+            />
           </div>
         </div>
         <p className="mb-5 mt-0 leading-relaxed text-ink-2">
@@ -265,25 +259,6 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
       )}
     </div>
   );
-}
-
-function TempoDesdeAtualizacao({ desde }: { desde: Date }) {
-  const [segundos, setSegundos] = useState(0);
-
-  useEffect(() => {
-    const atualizar = () =>
-      setSegundos(Math.round((Date.now() - desde.getTime()) / 1000));
-    atualizar();
-    const id = setInterval(atualizar, 10_000);
-    return () => clearInterval(id);
-  }, [desde]);
-
-  const rotulo =
-    segundos < 10 ? "agora mesmo" :
-    segundos < 60 ? `há ${segundos}s` :
-    `há ${Math.round(segundos / 60)}min`;
-
-  return <span className="text-xs text-ink-3">{rotulo}</span>;
 }
 
 function Stat({

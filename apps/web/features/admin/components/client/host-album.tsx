@@ -3,6 +3,7 @@
 import { PrintedCopyCard } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { RefreshButton } from "./refresh-control";
 import { HostExport } from "@/features/admin/components/client/host-export";
 import { HostDriveExport } from "@/features/admin/components/client/host-drive-export";
 
@@ -100,20 +101,13 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
       <AdminSection>
         <div className="flex items-center justify-between gap-4">
           <p className="m-0 text-critico">Não foi possível carregar o álbum. Tente de novo.</p>
-          <button
-            type="button"
-            disabled={atualizando}
+          <RefreshButton
+            loading={atualizando}
             onClick={() => {
               setAtualizando(true);
               void carregar().finally(() => setAtualizando(false));
             }}
-            className="cursor-pointer rounded-pilula border border-linha bg-transparent p-1.5 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
-            aria-label="Atualizar agora"
-          >
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden className={atualizando ? "opacity-50" : ""}>
-              <path d="M11 6.5A4.5 4.5 0 0 1 2 6.5M11 6.5V3.5M11 6.5H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+          />
         </div>
       </AdminSection>
     );
@@ -150,20 +144,13 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
             <span className="rounded-pilula bg-superficie-alta px-3 py-1.5 font-titulo text-[0.8125rem]">
               {itens.length} {itens.length === 1 ? "foto" : "fotos"}
             </span>
-            <button
-              type="button"
-              disabled={atualizando}
+            <RefreshButton
+              loading={atualizando}
               onClick={() => {
                 setAtualizando(true);
                 void carregar().finally(() => setAtualizando(false));
               }}
-              className="cursor-pointer rounded-pilula border border-linha bg-transparent p-1.5 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
-              aria-label="Atualizar agora"
-            >
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden className={atualizando ? "opacity-50" : ""}>
-                <path d="M11 6.5A4.5 4.5 0 0 1 2 6.5M11 6.5V3.5M11 6.5H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </button>
+            />
           </div>
         </div>
 

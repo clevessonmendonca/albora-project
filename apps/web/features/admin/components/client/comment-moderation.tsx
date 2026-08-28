@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { RefreshButton } from "./refresh-control";
 
 type Props = {
   eventoId: string;
@@ -98,33 +99,13 @@ export function CommentModeration({ eventoId }: Props) {
               ? "1 comentário"
               : `${lista.length} comentários`}
         </span>
-        <button
-          type="button"
-          disabled={atualizando}
+        <RefreshButton
+          loading={atualizando}
           onClick={() => {
             setAtualizando(true);
             void carregar().finally(() => setAtualizando(false));
           }}
-          className="cursor-pointer rounded-pilula border border-linha bg-transparent p-1.5 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
-          aria-label="Atualizar agora"
-        >
-          <svg
-            width="13"
-            height="13"
-            viewBox="0 0 13 13"
-            fill="none"
-            aria-hidden
-            className={atualizando ? "opacity-50" : ""}
-          >
-            <path
-              d="M11 6.5A4.5 4.5 0 0 1 2 6.5M11 6.5V3.5M11 6.5H8"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+        />
       </div>
 
       {lista.length === 0 ? (

@@ -4,6 +4,7 @@ import type { CodigoDaTese } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { useModerationCount } from "./moderation-count-context";
+import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
 type Resumo = {
   expectedGuests: number;
@@ -139,20 +140,13 @@ export function LiveSummary({ eventoId }: Props) {
         <p className="m-0 font-titulo text-lg">Ao vivo</p>
         <div className="flex items-center gap-2">
           {ultimaAtualizacao && <AtualizadoHa desde={ultimaAtualizacao} />}
-          <button
-            type="button"
-            disabled={atualizando}
+          <RefreshButton
+            loading={atualizando}
             onClick={() => {
               setAtualizando(true);
               void carregar().finally(() => setAtualizando(false));
             }}
-            className="cursor-pointer rounded-pilula border border-linha bg-transparent p-1.5 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
-            aria-label="Atualizar agora"
-          >
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden className={atualizando ? "opacity-50" : ""}>
-              <path d="M11 6.5A4.5 4.5 0 0 1 2 6.5M11 6.5V3.5M11 6.5H8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+          />
           <span className="inline-flex items-center gap-1.5 rounded-pilula bg-acento px-2.5 py-1 font-titulo text-xs text-sobre-acento">
             <span className="size-[0.4rem] rounded-full bg-current" />
             festa
@@ -237,24 +231,6 @@ export function LiveSummary({ eventoId }: Props) {
       )}
     </AdminSection>
   );
-}
-
-function AtualizadoHa({ desde }: { desde: Date }) {
-  const [segundos, setSegundos] = useState(0);
-
-  useEffect(() => {
-    const atualizar = () => setSegundos(Math.round((Date.now() - desde.getTime()) / 1000));
-    atualizar();
-    const id = setInterval(atualizar, 10_000);
-    return () => clearInterval(id);
-  }, [desde]);
-
-  const rotulo =
-    segundos < 10 ? "agora mesmo" :
-    segundos < 60 ? `há ${segundos}s` :
-    `há ${Math.round(segundos / 60)}min`;
-
-  return <span className="text-xs text-ink-3">{rotulo}</span>;
 }
 
 function Stat({
