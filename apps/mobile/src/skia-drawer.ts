@@ -15,32 +15,14 @@ import {
   type Desenhista,
 } from "@albora/core";
 
-/**
- * Handle opaco para imagens Skia — só vive no processo nativo.
- *
- * Nunca importe este módulo de arquivos *.test.ts: o módulo nativo não
- * carrega em Node. Use `bufferDrawer` (jpeg-js) nos testes.
- */
+/** Handle opaco para imagens Skia — só vive no processo nativo. Nunca importe este módulo de arquivos *.test.ts: o módulo nativo não carrega em Node. Use `bufferDrawer` (jpeg-js) nos testes. */
 export type SkiaImageHandle = { largura: number; altura: number; sk: SkImage };
 
 function saoNeutrosSafe(m: { luz: number; calor: number; contraste: number; vinheta: number }): boolean {
   return m.luz === 0 && m.calor === 0 && m.contraste === 0 && m.vinheta === 0;
 }
 
-/**
- * Desenhista Expo usando Skia (GPU) — substitui o bufferDrawer (jpeg-js) na
- * produção. Resize com bicúbico (drawImageRectOptions + FilterMode.Linear /
- * MipmapMode.Linear): qualidade visualmente superior ao nearest-neighbor do
- * bufferDrawer sem custo perceptível de tempo.
- *
- * `filtrar` lê os pixels da imagem Skia, delega a matemática ao @albora/core
- * (mesmas funções `aplicarFiltroCss`/`aplicarPorPixel`/`aplicarAjustes` do
- * bufferDrawer) e cria uma nova SkImage — sem divergência de LUT entre os dois
- * caminhos.
- *
- * GPU ColorFilter (ColorMatrix direto no shader) fica fora do escopo desta
- * fatia; a passagem por pixel do core já cobre a estética necessária.
- */
+/** Desenhista Expo usando Skia (GPU) — substitui o bufferDrawer (jpeg-js) na produção. Resize com bicúbico (drawImageRectOptions + FilterMode.Linear / MipmapMode.Linear): qualidade visualmente superior ao nearest-neighbor do bufferDrawer sem custo perceptível de tempo. `filtrar` lê os pixels da imagem Skia, delega a matemática ao @albora/core (mesmas funções `aplicarFiltroCss`/`aplicarPorPixel`/`aplicarAjustes` do bufferDrawer) e cria uma nova SkImage — sem divergência de LUT entre os dois caminhos. GPU ColorFilter (ColorMatrix direto no shader) fica fora do escopo desta fatia; a passagem por pixel do core já cobre a estética necessária. */
 export const skiaDrawer: Desenhista<SkiaImageHandle, Uint8Array> = {
   async decodificar(bytes) {
     const data = Skia.Data.fromBytes(bytes);

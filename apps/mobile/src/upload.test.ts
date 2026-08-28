@@ -14,10 +14,7 @@ import {
 
 const JPEG_SEM_GPS = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, ...new Array(64).fill(0), 0xff, 0xd9]);
 
-/**
- * JPEG mínimo com EXIF+GPS para teste de bloqueio.
- * Réplica do helper de exif.test.ts, necessário porque não é exportado.
- */
+/** JPEG mínimo com EXIF+GPS para teste de bloqueio. Réplica do helper de exif.test.ts, necessário porque não é exportado. */
 function jpegComGps(): Uint8Array {
   const PONTEIRO_GPS = 0x8825;
   const tiff: number[] = [];

@@ -2,10 +2,7 @@ import { apiOrigin, cookieHeader, type GuestSession } from "./session";
 
 export type RecapPessoal = { fotos: number; curtidas: number };
 
-/**
- * Busca o recap pessoal (`GET /api/guests/me/recap`).
- * Qualquer falha → null; Minhas nunca depende disto para abrir.
- */
+/** Busca o recap pessoal (`GET /api/guests/me/recap`). Qualquer falha → null; Minhas nunca depende disto para abrir. */
 export async function buscarRecapPessoal(
   session: GuestSession,
   fetchFn: typeof fetch = fetch,

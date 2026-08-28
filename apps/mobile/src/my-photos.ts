@@ -100,11 +100,7 @@ export function itemDaFilaParaFoto(item: QueueItem): MinhaFotoPendente | MinhaFo
   };
 }
 
-/**
- * Busca as fotos do servidor e mescla com os itens pendentes/falhos da fila
- * local. Os itens da fila que o servidor já confirma são excluídos da lista
- * local para evitar duplicatas.
- */
+/** Busca as fotos do servidor e mescla com os itens pendentes/falhos da fila local. Os itens da fila que o servidor já confirma são excluídos da lista local para evitar duplicatas. */
 export async function carregarMinhasFotos(
   session: GuestSession,
   queue: Queue,
@@ -133,10 +129,7 @@ export async function carregarMinhasFotos(
   };
 }
 
-/**
- * Remove uma foto já confirmada no servidor.
- * Espelha o que a web faz em `use-gallery.ts → remover`.
- */
+/** Remove uma foto já confirmada no servidor. Espelha o que a web faz em `use-gallery.ts → remover`. */
 export async function deletarFotoEnviada(
   session: GuestSession,
   uploadId: string,

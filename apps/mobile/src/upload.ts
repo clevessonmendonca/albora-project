@@ -9,11 +9,7 @@ import {
 } from "@albora/core";
 import { apiOrigin, cookieHeader, type GuestSession } from "./session";
 
-/**
- * EXIF/GPS: A câmera já captura com `exif: false`, mas fotos da galeria ou
- * HEIC convertidos podem trazer GPS. `stripGpsOrReject` bloqueia o PUT de
- * qualquer imagem com coordenadas (LGPD § 001), devolvendo erro definitivo.
- */
+/** EXIF/GPS: A câmera já captura com `exif: false`, mas fotos da galeria ou HEIC convertidos podem trazer GPS. `stripGpsOrReject` bloqueia o PUT de qualquer imagem com coordenadas (LGPD § 001), devolvendo erro definitivo. */
 
 /** PUT a partir de arquivo — `URLSession` (iOS) / upload nativo (Android). */
 export type PutFile = (opts: {
@@ -95,11 +91,7 @@ async function codigoDeErro(res: Response): Promise<string | undefined> {
   }
 }
 
-/**
- * Verifica GPS e rejeita o PUT se presente. Sem canvas nativo (F10 gap), não
- * há reencode para remover EXIF; bloqueio total é preferível a vazamento de
- * coordenadas. Mensagem de erro definitivo para não retentar.
- */
+/** Verifica GPS e rejeita o PUT se presente. Sem canvas nativo (F10 gap), não há reencode para remover EXIF; bloqueio total é preferível a vazamento de coordenadas. Mensagem de erro definitivo para não retentar. */
 export function stripGpsOrReject(bytes: Uint8Array): void {
   if (temGeolocalizacao(bytes)) {
     throw Object.assign(
@@ -180,10 +172,7 @@ export type DrainFileQueueOptions = {
 
 let emCurso: Promise<DrainSummary> | null = null;
 
-/**
- * Drena a fila em arquivo: presign → PUT no storage → confirm, com cookie
- * de sessão. A sequência vive em `@albora/core`; aqui só o transporte nativo.
- */
+/** Drena a fila em arquivo: presign → PUT no storage → confirm, com cookie de sessão. A sequência vive em `@albora/core`; aqui só o transporte nativo. */
 export async function drainFileQueue(
   queue: Queue,
   options: DrainFileQueueOptions,

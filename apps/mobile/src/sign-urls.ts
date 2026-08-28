@@ -1,10 +1,6 @@
 import { apiOrigin, cookieHeader, type GuestSession } from "./session";
 
-/**
- * Pede URLs assinadas de curta duração para os objetos no storage. Usado
- * tanto pelo feed quanto por Minhas. Falha silenciosa (retorna []): a imagem
- * simplesmente não carrega, mas o app não quebra.
- */
+/** Pede URLs assinadas de curta duração para os objetos no storage. Usado tanto pelo feed quanto por Minhas. Falha silenciosa (retorna []): a imagem simplesmente não carrega, mas o app não quebra. */
 export async function signMediaUrls(
   session: GuestSession,
   chaves: string[],

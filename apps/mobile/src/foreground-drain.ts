@@ -9,15 +9,7 @@ type AppStateLike = {
 
 type DrainFn = () => Promise<unknown>;
 
-/**
- * Assina mudanças de AppState e drena a fila de upload quando o app retorna
- * ao primeiro plano (`active`). Guard de reentrância: se o drain anterior
- * ainda não terminou, a chamada duplicada é descartada silenciosamente.
- *
- * @param drain  Função de drenagem — injetável para facilitar testes.
- * @param appState  Opcional; padrão `AppState` do React Native.
- * @returns Função de cancelamento adequada para cleanup de `useEffect`.
- */
+/** Assina mudanças de AppState e drena a fila de upload quando o app retorna ao primeiro plano (`active`). Guard de reentrância: se o drain anterior ainda não terminou, a chamada duplicada é descartada silenciosamente. @param drain Função de drenagem — injetável para facilitar testes. @param appState Opcional; padrão `AppState` do React Native. @returns Função de cancelamento adequada para cleanup de `useEffect`. */
 export function subscribeForegroundDrain(
   drain: DrainFn,
   appState: AppStateLike = AppState,

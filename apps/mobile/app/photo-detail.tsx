@@ -350,19 +350,7 @@ function DenunciaSheet({
 }
 
 // ─── Tela de detalhe ──────────────────────────────────────────────────────────
-/**
- * Rota de detalhe / lightbox de uma foto.
- *
- * Parâmetros (todos strings, convertidos internamente):
- * - uploadId       — ID do upload (para reações, comentários, denúncia)
- * - chaveFull      — chave de storage da versão full (assina via POST /api/media/urls)
- * - fullUrl        — URL já assinada (álbum já resolve as URLs; omitir chaveFull)
- * - interacao      — "espelho" | "completo"
- * - minha          — "1" se a foto é do próprio convidado
- * - autor          — nome do autor
- * - reacoes        — contagem inicial (string numérica)
- * - minhaReacao    — emoji/tipo da reação atual ou "" (vazio = sem reação)
- */
+/** Rota de detalhe / lightbox de uma foto. Parâmetros (todos strings, convertidos internamente): - uploadId — ID do upload (para reações, comentários, denúncia) - chaveFull — chave de storage da versão full (assina via POST /api/media/urls) - fullUrl — URL já assinada (álbum já resolve as URLs; omitir chaveFull) - interacao — "espelho" | "completo" - minha — "1" se a foto é do próprio convidado - autor — nome do autor - reacoes — contagem inicial (string numérica) - minhaReacao — emoji/tipo da reação atual ou "" (vazio = sem reação) */
 export default function PhotoDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{

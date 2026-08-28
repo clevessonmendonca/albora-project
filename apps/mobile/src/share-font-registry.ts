@@ -1,7 +1,4 @@
-/**
- * Fontes OFL embutidas para molduras Skia — paridade com web/PDF.
- * Nunca importe de `*.test.ts` (nativo + assets).
- */
+/** Fontes OFL embutidas para molduras Skia — paridade com web/PDF. Nunca importe de `*.test.ts` (nativo + assets). */
 import { Asset } from "expo-asset";
 import { Skia, matchFont, type SkFont, type SkTypefaceFontProvider } from "@shopify/react-native-skia";
 import { familiaEmbutidaDaStack, primeiraFamiliaFonte } from "./share-font-stack";

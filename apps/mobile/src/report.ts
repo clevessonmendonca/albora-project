@@ -2,10 +2,7 @@ import { apiOrigin, cookieHeader, type GuestSession } from "./session";
 
 export type MotivoDenuncia = "ofensivo" | "aparece_na_foto";
 
-/**
- * Denuncia uma mídia ao anfitrião. Falha fechado: 401/403/offline retornam
- * false sem lançar exceção.
- */
+/** Denuncia uma mídia ao anfitrião. Falha fechado: 401/403/offline retornam false sem lançar exceção. */
 export async function reportMedia(
   session: GuestSession,
   uploadId: string,

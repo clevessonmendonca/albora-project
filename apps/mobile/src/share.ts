@@ -88,10 +88,7 @@ export type RenderShareFrameFn = (opts: {
   paleta: FramePalette;
 }) => Promise<Uint8Array>;
 
-/**
- * Compartilha a foto própria com moldura Skia 9:16 quando possível.
- * Se a composição/render falhar, cai no arquivo raw (nunca bloqueia o share).
- */
+/** Compartilha a foto própria com moldura Skia 9:16 quando possível. Se a composição/render falhar, cai no arquivo raw (nunca bloqueia o share). */
 export async function compartilharFotoPropria(opts: {
   session: GuestSession;
   uploadId: string;
@@ -207,10 +204,7 @@ export type RenderShareCollageFn = (opts: {
   celulas: Array<{ x: number; y: number; largura: number; altura: number }>;
 }) => Promise<Uint8Array>;
 
-/**
- * Colagem 2–4 fotos próprias. Sem fallback raw (a colagem só faz sentido
- * composta); falha soft com mensagem.
- */
+/** Colagem 2–4 fotos próprias. Sem fallback raw (a colagem só faz sentido composta); falha soft com mensagem. */
 export async function compartilharColagem(opts: {
   session: GuestSession;
   uploadIds: string[];
@@ -325,11 +319,7 @@ export async function compartilharColagem(opts: {
   }
 }
 
-/**
- * Recap da noite — até 10 fotos com moldura, uma folha nativa por arquivo
- * (paridade com o fallback web quando `navigator.share` não aceita vários).
- * Fotos que falham na autorização/composição são puladas sem derrubar as outras.
- */
+/** Recap da noite — até 10 fotos com moldura, uma folha nativa por arquivo (paridade com o fallback web quando `navigator.share` não aceita vários). Fotos que falham na autorização/composição são puladas sem derrubar as outras. */
 export async function compartilharRecap(opts: {
   session: GuestSession;
   uploadIds: string[];

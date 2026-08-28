@@ -1,9 +1,4 @@
-/**
- * Renderizador Skia da moldura 9:16 — quinto renderizador (spec 015 / architecture §6).
- *
- * Nunca importe este módulo de arquivos *.test.ts: o nativo não carrega em Node.
- * Nos testes injete `renderFrame` em `compartilharFotoPropria`.
- */
+/** Renderizador Skia da moldura 9:16 — quinto renderizador (spec 015 / architecture §6). Nunca importe este módulo de arquivos *.test.ts: o nativo não carrega em Node. Nos testes injete `renderFrame` em `compartilharFotoPropria`. */
 import {
   ClipOp,
   FilterMode,

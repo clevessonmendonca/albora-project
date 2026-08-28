@@ -35,10 +35,7 @@ export async function readDrainTelemetry(): Promise<DrainTelemetry | null> {
   return readPersistedDrainTelemetry(readTelemetryFile, TELEMETRY_FILE);
 }
 
-/**
- * Wiring Expo: sessão no SecureStore + bytes no FileSystem.
- * A lógica testável mora em `upload.ts` (sem imports nativos).
- */
+/** Wiring Expo: sessão no SecureStore + bytes no FileSystem. A lógica testável mora em `upload.ts` (sem imports nativos). */
 export async function drainGuestQueue(
   queue: Queue,
   origem: OrigemDrain = "manual",

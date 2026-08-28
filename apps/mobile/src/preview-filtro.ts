@@ -2,24 +2,7 @@ import type { Bitmap, Desenhista, FiltroAplicado } from "@albora/core";
 import { lerOrientacao, thumbTarget, transformacaoParaOrientacao } from "@albora/core";
 import { bufferDrawer } from "./drawer";
 
-/**
- * Gera uma miniatura com o filtro aplicado para exibição no step de revisão.
- *
- * Downsampla para ≤320 px no lado maior antes de filtrar — o custo de cor
- * fica proporcional ao tamanho da tela, não do sensor (12 MP → ~320 px² é
- * ~200× mais rápido que filtrar o original).
- *
- * Pura e testável sem React Native: só usa `bufferDrawer` (jpeg-js) e
- * funções de `@albora/core`. Quem lê o arquivo e converte para data URI
- * é o chamador (photo.tsx).
- *
- * @param bytes      Bytes brutos do JPEG capturado pela câmera.
- * @param mime       MIME da entrada (normalmente "image/jpeg").
- * @param filtro     Filtro a aplicar; `undefined` retorna o thumb sem cor.
- * @param desenhista Implementação de decode/resize/filtro. Padrão: `bufferDrawer`
- *                   (jpeg-js) — compatível com Node/testes. Em produção: `skiaDrawer`.
- * @returns          Bytes JPEG da miniatura filtrada.
- */
+/** Gera uma miniatura com o filtro aplicado para exibição no step de revisão. Downsampla para ≤320 px no lado maior antes de filtrar — o custo de cor fica proporcional ao tamanho da tela, não do sensor (12 MP → ~320 px² é ~200× mais rápido que filtrar o original). Pura e testável sem React Native: só usa `bufferDrawer` (jpeg-js) e funções de `@albora/core`. Quem lê o arquivo e converte para data URI é o chamador (photo.tsx). @param bytes Bytes brutos do JPEG capturado pela câmera. @param mime MIME da entrada (normalmente "image/jpeg"). @param filtro Filtro a aplicar; `undefined` retorna o thumb sem cor. @param desenhista Implementação de decode/resize/filtro. Padrão: `bufferDrawer` (jpeg-js) — compatível com Node/testes. Em produção: `skiaDrawer`. @returns Bytes JPEG da miniatura filtrada. */
 export async function previewFiltrado(
   bytes: Uint8Array,
   mime: string,
@@ -44,12 +27,7 @@ export async function previewFiltrado(
   return d.codificar(colorida, "image/jpeg", 0.7);
 }
 
-/**
- * Converte bytes JPEG para data URI — helper de conveniência para o Image do RN.
- *
- * Processa em chunks de 8 KiB para não estourar a pilha de chamadas no
- * String.fromCharCode de imagens maiores.
- */
+/** Converte bytes JPEG para data URI — helper de conveniência para o Image do RN. Processa em chunks de 8 KiB para não estourar a pilha de chamadas no String.fromCharCode de imagens maiores. */
 export function bytesParaDataUri(bytes: Uint8Array): string {
   let binary = "";
   const chunkSize = 8192;

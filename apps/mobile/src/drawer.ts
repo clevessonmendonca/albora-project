@@ -9,12 +9,7 @@ import {
 } from "@albora/core";
 import { decode as jpegDecode, encode as jpegEncode } from "jpeg-js";
 
-/**
- * Desenhista Expo em buffer (jpeg-js) — mesma ordem de `processarFoto` que a web.
- *
- * Reencode remove EXIF/GPS. `filtrar` aplica passagem por pixel (35 mm),
- * presets CSS via `aplicarFiltroCss`, e ajustes manuais.
- */
+/** Desenhista Expo em buffer (jpeg-js) — mesma ordem de `processarFoto` que a web. Reencode remove EXIF/GPS. `filtrar` aplica passagem por pixel (35 mm), presets CSS via `aplicarFiltroCss`, e ajustes manuais. */
 
 export type BufferImage = Bitmap & { pixels: Uint8ClampedArray };
 
@@ -31,10 +26,7 @@ function sampleNearest(
   return [src[i]!, src[i + 1]!, src[i + 2]!, src[i + 3]!];
 }
 
-/**
- * Redimensiona + aplica giro/espelho num único passe (origem → destino).
- * nearest-neighbor: suficiente para testes em Node; `skiaDrawer` usa bicúbico em produção.
- */
+/** Redimensiona + aplica giro/espelho num único passe (origem → destino). nearest-neighbor: suficiente para testes em Node; `skiaDrawer` usa bicúbico em produção. */
 export function remapBuffer(
   src: Uint8ClampedArray,
   sw: number,

@@ -13,10 +13,7 @@ function join(root: string, name: string): string {
   return `${root.replace(/\/$/, "")}/${name}`;
 }
 
-/**
- * Fila em arquivos. O iOS `URLSession` em segundo plano só continua se o
- * corpo estiver em disco (ADR 0008/0010). IndexedDB não serve aqui.
- */
+/** Fila em arquivos. O iOS `URLSession` em segundo plano só continua se o corpo estiver em disco (ADR 0008/0010). IndexedDB não serve aqui. */
 export function createFileQueue(store: JsonStore, root: string): Queue {
   async function load(): Promise<QueueItem[]> {
     const raw = await store.read(join(root, INDEX));

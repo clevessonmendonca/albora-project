@@ -19,11 +19,7 @@ function primeiroParam(valor: string | string[] | undefined): string | null {
 
 export type PairRedeemPayload = { codigo: string } | { passagem: string };
 
-/**
- * Extrai o código de pareamento de deep link ou universal link.
- *
- * Aceita `albora://pair?codigo=1234` e `https://host/e/slug/pair?codigo=1234`.
- */
+/** Extrai o código de pareamento de deep link ou universal link. Aceita `albora://pair?codigo=1234` e `https://host/e/slug/pair?codigo=1234`. */
 export function parsePairCodigoFromUrl(url: string | null | undefined): string | null {
   if (url === null || url === undefined || url.trim() === "") return null;
 
@@ -54,10 +50,7 @@ export function parsePairPassagemFromUrl(url: string | null | undefined): string
   return null;
 }
 
-/**
- * Payload a partir de query params do Expo Router (`/pair?passagem=` ou `?codigo=`).
- * Preferência: passagem > codigo.
- */
+/** Payload a partir de query params do Expo Router (`/pair?passagem=` ou `?codigo=`). Preferência: passagem > codigo. */
 export function pairPayloadFromParams(params: {
   codigo?: string | string[];
   passagem?: string | string[];

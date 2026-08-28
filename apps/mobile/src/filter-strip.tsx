@@ -2,16 +2,7 @@ import { Pressable, ScrollView } from "react-native";
 import { Text } from "@albora/ui-native";
 import type { Preset } from "@albora/core";
 
-/**
- * Tira horizontal de presets de cor para o convidado escolher antes de enviar.
- *
- * O convidado toca num chip para selecionar; toca no mesmo chip de novo (ou no
- * "Original") para remover o filtro. O preset aplicado sai de `processarFoto`
- * via `bufferDrawer.filtrar` — a tira não faz math de cor, só exibe nomes.
- *
- * Tokens: bg-acento (selecionado), bg-superficie (idle), text-sobre-acento /
- * text-ink-2 para texto — nenhum hex.
- */
+/** Tira horizontal de presets de cor para o convidado escolher antes de enviar. O convidado toca num chip para selecionar; toca no mesmo chip de novo (ou no "Original") para remover o filtro. O preset aplicado sai de `processarFoto` via `bufferDrawer.filtrar` — a tira não faz math de cor, só exibe nomes. Tokens: bg-acento (selecionado), bg-superficie (idle), text-sobre-acento / text-ink-2 para texto — nenhum hex. */
 export function FilterStrip({
   presets,
   escolhido,

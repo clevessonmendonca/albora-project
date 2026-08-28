@@ -29,11 +29,7 @@ export type CaptureResult =
   | { ok: true; id: string; caminho: string; tinhaGeolocalizacao: boolean }
   | { ok: false; erro: string };
 
-/**
- * Copia o still, processa (orientação + resize + reencode) e enfileira.
- * O reencode tira EXIF/GPS — o URLSession só continua com arquivo (ADR 0008/0010).
- * `filtro` é a escolha do convidado na tira de presets; ausente = sem cor.
- */
+/** Copia o still, processa (orientação + resize + reencode) e enfileira. O reencode tira EXIF/GPS — o URLSession só continua com arquivo (ADR 0008/0010). `filtro` é a escolha do convidado na tira de presets; ausente = sem cor. */
 export async function persistCapture(input: {
   source: CaptureSource;
   eventoId: string;
@@ -54,11 +50,7 @@ export async function persistCapture(input: {
   id?: () => string;
   /** Rede de segurança: converte URI HEIC → URI JPEG antes de rejeitar. */
   convertHeic?: (uri: string) => Promise<string>;
-  /**
-   * Desenhista a usar para decode/resize/encode/filtro.
-   * Padrão: `bufferDrawer` (jpeg-js) — compatível com Node e testes.
-   * Em produção: injetar `skiaDrawer` para qualidade bicúbica no resize.
-   */
+  /** Desenhista a usar para decode/resize/encode/filtro. Padrão: `bufferDrawer` (jpeg-js) — compatível com Node e testes. Em produção: injetar `skiaDrawer` para qualidade bicúbica no resize. */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TSaida=Uint8Array; TImagem é opaco dentro do pipeline
   desenhista?: Desenhista<any, Uint8Array>;
 }): Promise<CaptureResult> {

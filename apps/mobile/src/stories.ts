@@ -9,12 +9,7 @@ export type StoryItem = {
   sessaoId?: string;
 };
 
-/**
- * Busca as stories ativas do evento e resolve as URLs assinadas das miniaturas.
- *
- * Nunca lança. Stories são enriquecimento (CLAUDE.md, "degrada, nunca falha"):
- * qualquer falha de rede ou resposta fora de 2xx devolve lista vazia.
- */
+/** Busca as stories ativas do evento e resolve as URLs assinadas das miniaturas. Nunca lança. Stories são enriquecimento (CLAUDE.md, "degrada, nunca falha"): qualquer falha de rede ou resposta fora de 2xx devolve lista vazia. */
 export async function fetchStories(
   session: GuestSession,
   fetchFn: typeof fetch = fetch,

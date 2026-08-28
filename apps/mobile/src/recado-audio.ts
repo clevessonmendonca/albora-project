@@ -2,10 +2,7 @@ import { Audio } from "expo-av";
 
 export type PlayerState = "idle" | "playing" | "paused" | "erro";
 
-/**
- * Player mínimo de áudio do recado — falha soft (nunca derruba a tela).
- * Injete `createSound` / `setAudioMode` nos testes.
- */
+/** Player mínimo de áudio do recado — falha soft (nunca derruba a tela). Injete `createSound` / `setAudioMode` nos testes. */
 export async function tocarUrl(
   url: string,
   opts?: {
