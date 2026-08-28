@@ -21,6 +21,12 @@ export default defineConfig({
     // Máquina saturada no pre-push: setup 388s / environment 585s com workers
     // default. Metade dos cores deixa o render de componente abaixo do teto.
     maxWorkers: "50%",
+    // Forçar inline dos pacotes monorepo para evitar "Unexpected token 'export'"
+    server: {
+      deps: {
+        inline: ["@albora/core", "@albora/db", "@albora/packs"],
+      },
+    },
     // Dois projetos, dois environments: lógica pura roda em node (rápido,
     // sem DOM); render de componente (.test.tsx) precisa de jsdom. O
     // `environmentMatchGlobs` equivalente está deprecado no Vitest 3 —
