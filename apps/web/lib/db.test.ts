@@ -1,14 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-/**
- * `getAggregatorPool` é o bloqueador que a V1 do canal do fornecedor
- * sinalizou: sem `DATABASE_URL_AGGREGATOR`, nada pode cair de volta em
- * `getPool()` — a política `vendor_membro`/`isolamento_evento` continuaria
- * de pé, mas sob o papel comum a leitura cross-vendor simplesmente
- * devolveria zero linhas, silenciosamente. Falhar alto aqui é a diferença
- * entre um deploy que quebra no boot do primeiro request e um "meus
- * eventos" vazio para todo fornecedor.
- */
+/** `getAggregatorPool` sem `DATABASE_URL_AGGREGATOR` NÃO pode cair em `getPool()` — leitura cross-vendor devolveria zero linhas silenciosamente em vez de quebrar no boot. */
 describe("getAggregatorPool", () => {
   const VAR = "DATABASE_URL_AGGREGATOR";
   const original = process.env[VAR];

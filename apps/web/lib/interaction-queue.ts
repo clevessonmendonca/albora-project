@@ -1,7 +1,4 @@
-/**
- * Fila offline de reações e comentários (spec 008 + 014). Separada da fila de
- * upload: bytes de foto e toques sociais têm ciclos de vida diferentes.
- */
+/** Fila offline de reações e comentários (spec 008+014) — separada da de upload: bytes e toques sociais têm ciclos de vida diferentes. */
 
 const BANCO = "albora-interacao";
 const VERSAO = 2;

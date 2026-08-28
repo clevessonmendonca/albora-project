@@ -3,11 +3,7 @@ import { readFileSync } from "node:fs";
 
 const require = createRequire(import.meta.url);
 
-/**
- * Faces estáticas OFL já no lockfile — Fraunces 600 e Instrument Sans 400,
- * subset `latin` (ã, ç, é cabem). Sem fetch em runtime: o CI não fala com
- * Google Fonts.
- */
+/** Faces OFL no lockfile (Fraunces 600, Instrument Sans 400, subset latin) — sem fetch em runtime; CI não fala com Google Fonts. */
 const SERIF = "@fontsource/fraunces/files/fraunces-latin-600-normal.woff";
 const SANS = "@fontsource/instrument-sans/files/instrument-sans-latin-400-normal.woff";
 

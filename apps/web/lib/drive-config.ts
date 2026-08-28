@@ -1,16 +1,6 @@
 import { ConfigError } from "./config";
 
-/**
- * Config do Google Drive — validada só no primeiro uso da rota de Drive,
- * NUNCA em `config()` global (CLAUDE.md, instrução do mantenedor: as chaves
- * chegam depois, e ambientes que nunca usam Drive não podem quebrar no boot
- * por falta delas). Mesma disciplina de segredo: `driveConfig()` lança
- * `ConfigError` — a mesma classe que já valida `SESSION_SECRET`/R2 — nunca
- * um default inseguro.
- *
- * Três segredos, três domínios de confiança, nunca compartilhados entre si
- * nem com `SESSION_SECRET`: comprometer um não expõe os outros.
- */
+/** Config do Drive: validada só no primeiro uso, nunca em `config()` global — ambientes sem Drive não podem quebrar no boot; `ConfigError`, nunca default inseguro. Três segredos isolados: comprometer um não expõe os outros. */
 
 export type DriveConfig = {
   oauthClientId: string;

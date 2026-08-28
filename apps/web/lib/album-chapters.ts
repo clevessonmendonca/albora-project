@@ -8,12 +8,7 @@ import {
 } from "@albora/core";
 import { resolvePackText, type Pack } from "@albora/packs";
 
-/**
- * Os capítulos da noite são os momentos do pack, na ordem em que ela acontece.
- * Sem momentos, o núcleo monta um capítulo só (`a-noite`).
- * Confessionário é capítulo virtual no núcleo (mídia com `promptKey`), não
- * entra na fatia por hora.
- */
+/** Capítulos = momentos do pack em ordem; sem momentos → `a-noite`; confessionário é capítulo virtual (mídia com `promptKey`), não entra na fatia por hora. */
 export function chapterIdsFromPack(pack: Pack | undefined): string[] {
   return pack?.momentos?.map((m) => m.id) ?? [];
 }
@@ -25,10 +20,7 @@ export function planAlbumChapters(
   return planejarCapitulos(janela, chapterIdsFromPack(pack));
 }
 
-/**
- * Título que o convidado lê. Momento do pack resolve pelo vocabulário;
- * `a-noite` e `sem-hora` são do álbum; `confessionario` usa a chave do pack.
- */
+/** Título que o convidado lê: momento do pack resolve pelo vocabulário; `a-noite`/`sem-hora` são do álbum; `confessionario` usa a chave do pack. */
 export function chapterTitle(pack: Pack | undefined, id: string): string {
   if (id === CAPITULO_SEM_HORA) return "Durante a festa";
   if (id === CAPITULO_UNICO) return "A noite";

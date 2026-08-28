@@ -1,14 +1,6 @@
 import type { QueueItem, RespostaPresign, Transport } from "@albora/core";
 
-/**
- * O `Transport` da web. Camada fina: a sequência e o retry vivem em
- * `@albora/core`, aqui só se fala com a rede.
- *
- * O corpo do item pode ser `Blob` (web) ou referência de arquivo (Expo). Esta
- * implementação só sabe do primeiro — e falha alto no segundo em vez de
- * mandar `undefined` para o storage, que gravaria um objeto de zero byte e
- * pareceria sucesso.
- */
+/** Transport da web: sequência e retry em `@albora/core`; só `Blob` aqui — corpo não-Blob falha alto em vez de mandar `undefined` e gravar zero byte com aparência de sucesso. */
 
 function corpoDoItem(item: QueueItem): Blob {
   if (item.corpo.tipo !== "blob") {
@@ -110,10 +102,7 @@ export class ApiError extends Error {
     super(`${etapa} ${status}${codigo ? ` (${codigo})` : ""}`);
   }
 
-  /**
-   * Erro que não melhora com retry: o item deve virar falha visível em vez de
-   * queimar as seis tentativas contra uma parede.
-   */
+  /** Erro que não melhora com retry: item deve virar falha visível em vez de queimar as seis tentativas contra uma parede. */
   get definitivo(): boolean {
     return this.status === 401 || this.status === 403 || this.status === 422;
   }
