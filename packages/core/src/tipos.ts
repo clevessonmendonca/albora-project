@@ -1,10 +1,4 @@
-/**
- * O núcleo não sabe que casamento existe.
- *
- * Nenhum identificador aqui pode conter `noiva`, `noivo`, `casamento` ou
- * qualquer outra palavra de domínio: isso vive no pack. O teste de sanidade é
- * trocar o pack de um evento e a UI inteira mudar sem tocar neste arquivo.
- */
+/** Nenhum identificador contém palavra de domínio (`noiva`, `casamento`, …) — isso vive no pack. Trocar o pack muda toda a UI sem tocar aqui. */
 
 export type EventoId = string & { readonly __marca: "EventoId" };
 export type SessaoId = string & { readonly __marca: "SessaoId" };

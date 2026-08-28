@@ -1,11 +1,4 @@
-/**
- * A chave de storage é derivada no servidor. Sempre.
- *
- * O cliente nunca informa e nunca escolhe — nem no presign, nem no confirm
- * (ADR 0002, ADR 0004). Está aqui em vez de dentro da rota porque a rota é
- * camada fina de transporte: se a derivação morar lá, a segunda rota que
- * precisar dela vai copiar, e a cópia vai divergir.
- */
+/** Chave derivada no servidor — cliente nunca informa nem escolhe (nem no presign, nem no confirm). Centralizado aqui para evitar cópias divergentes. */
 export function derivarChaveMidia(
   eventoId: string,
   uuid: string,
@@ -35,10 +28,7 @@ export function chaveImagemCapaValida(eventoId: string, chave: string): boolean 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/**
- * Áudio do recado dos anfitriões (spec 019). Conjunto fechado, separado da
- * foto do convidado: a rota de leitura do feed não assina o que mora aqui.
- */
+/** A rota de leitura do feed não assina o que mora aqui — separação intencional do recado dos anfitriões. */
 export function derivarChaveRecado(eventoId: string, uuid: string): string {
   return `events/${eventoId}/recado/${uuid}`;
 }
@@ -58,11 +48,7 @@ export function chaveThumbDeFull(chaveFull: string): string {
   return `${chaveFull}/thumb`;
 }
 
-/**
- * ZIP do acervo (spec 016). Mora ao lado da mídia do convidado, mas fora do
- * conjunto que a rota de leitura do feed assina — `export/` não é `full` nem
- * `thumb`, e o lote de URLs do convidado recusa essa forma de propósito.
- */
+/** `export/` fica ao lado da mídia do convidado mas fora do conjunto que o feed assina — o lote de URLs recusa essa forma de propósito. */
 export function derivarChaveExport(eventoId: string, jobId: string): string {
   return `events/${eventoId}/export/${jobId}.zip`;
 }
