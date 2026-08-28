@@ -1,49 +1,19 @@
-/**
- * A hora é a unidade que a pessoa escolhe nos stories.
- *
- * Escolher "23h" é escolher um trecho da noite que ela viveu — chegou, dançou,
- * brindou. Uma lista contínua de trezentas fotos não tem onde a pessoa entrar,
- * e por isso ela não entra: rola um pouco e sai. A hora dá o ponto de entrada e,
- * mais importante, dá o **fim** — o grupo acaba, e é aí que o caminho de volta
- * para a câmera aparece.
- */
+/** Hora como unidade de navegação — dá ponto de entrada E fim ao grupo (300 fotos sem grupos não têm onde entrar). */
 
 export type ItemWithTimestamp = { id: string; criadaEm: string | Date };
 
 export type HourGroup<T> = {
-  /**
-   * Início da hora, no fuso do aparelho. É a chave do grupo, e não o número da
-   * hora: uma festa que passa da meia-noite tem 23h de sábado e 23h de domingo,
-   * e juntar as duas embaralharia a noite inteira.
-   */
+  /** Início da hora no fuso local — chave do grupo, não número; festa que passa da meia-noite tem 23h de sábado E 23h de domingo. */
   inicio: Date;
   /** Hora local, 0–23. Só para rótulo. */
   hora: number;
   /** Ordem cronológica crescente — a hora se desenrola, não retrocede. */
   itens: T[];
-  /**
-   * `false` quando ainda há página por carregar e esta hora pode receber itens.
-   *
-   * Só o grupo mais antigo pode estar incompleto: o feed entrega do mais novo
-   * para o mais velho, então toda hora acima dela já veio inteira. Quem toca um
-   * grupo incompleto precisa fechá-lo antes de exibir — começar no meio da hora
-   * e ver a fila reordenar embaixo do dedo é pior que esperar.
-   */
+  /** `false` quando a hora pode receber mais itens (só o grupo mais antigo); tocar grupo incompleto antes de fechar é pior que esperar. */
   completo: boolean;
 };
 
-/**
- * Agrupa por hora. Grupos do mais recente para o mais antigo; itens de cada
- * grupo em ordem crescente.
- *
- * A ordem dos grupos e a ordem dentro do grupo são opostas de propósito. A
- * pessoa quer entrar no que acabou de acontecer — daí o grupo mais recente
- * primeiro. Dentro da hora, ela quer a hora acontecendo na ordem em que
- * aconteceu.
- *
- * Item com instante ilegível é descartado, e não agrupado sob uma chave `NaN`
- * que engoliria todos os outros defeituosos no mesmo balde.
- */
+/** Grupos do mais recente para o mais antigo; itens de cada grupo em ordem crescente — opostas de propósito. Item ilegível é descartado. */
 export function groupByHour<T extends ItemWithTimestamp>(
   itens: readonly T[],
   opcoes: { temMais: boolean },

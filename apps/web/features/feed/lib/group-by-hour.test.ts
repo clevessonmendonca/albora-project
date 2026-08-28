@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { groupByHour, hourLabel } from "./group-by-hour";
 
-/**
- * As datas são construídas com o construtor local (`new Date(ano, mes, ...)`)
- * de propósito: o agrupamento é no fuso do aparelho, e um literal ISO com `Z`
- * faria o teste passar em São Paulo e falhar no CI em UTC.
- */
+/** Datas com construtor local (não ISO `Z`) — agrupamento é no fuso do aparelho; `Z` faria o teste falhar no CI em UTC. */
 function em(hora: number, minuto: number, dia = 9): Date {
   return new Date(2026, 7, dia, hora, minuto, 0, 0);
 }

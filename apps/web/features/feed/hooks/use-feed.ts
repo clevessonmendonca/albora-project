@@ -4,31 +4,9 @@ import { isVideoMime, type ModoInteracao } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { isExpired, mediaUrls, type MediaUrl } from "@/lib/media";
 
-/**
- * O feed do convidado, do lado do cliente.
- *
- * Ele existe para o convidado ver o que os outros mandaram e, por isso, mandar
- * mais (ADR 0009). Nada aqui premia ficar: a página é curta, a próxima só vem
- * quando alguém pede, e não há laço que se realimente sozinho.
- *
- * 🔴 A regra do gate **não** mora aqui. Quem decide o que é visível é o
- * servidor; repetir a decisão no cliente criaria uma segunda fonte de verdade,
- * e ela divergiria no primeiro botão de pânico.
- */
+/** Feed do convidado no cliente — a regra do gate mora no servidor; repetir aqui criaria segunda fonte de verdade que diverge no primeiro botão de pânico. */
 
-/**
- * A projeção que a tela enxerga.
- *
- * `chaveFull` e `criadaEm` **entram**, porque o visualizador em tela cheia e a
- * tira de horas passaram a viver nesta mesma tela: o arquivo cheio é o que a
- * tela cheia mostra, e o instante é o que forma a hora. Buscá-los por um segundo
- * caminho seria pedir a mesma página do feed duas vezes por aparelho.
- *
- * `reacoes` e `minhaReacao` chegam em qualquer modo — reagir não espera o
- * gate (ADR 0009, atualizado). `sessaoAutor` e `minha` continuam só depois
- * do gate: são identidade do autor (perfil clicável, bloqueio, compartilhar),
- * e essa parte segue esperando o horário que os noivos escolherem.
- */
+/** `chaveFull`/`criadaEm` entram (evita segundo round-trip); `reacoes`/`minhaReacao` em qualquer modo; `sessaoAutor`/`minha` só pós-gate (identidade do autor). */
 export type ItemVisivel = {
   id: string;
   chaveThumb: string;
@@ -68,29 +46,12 @@ export type PaginaVisivel = {
   interacao: ModoInteracao;
 };
 
-/**
- * Se ainda faz sentido pedir a próxima página: nem o fim da lista, nem uma
- * falha pendente.
- *
- * Falha fica de fora de propósito — depois de um erro quem tenta de novo é
- * o convidado, pelo botão. Sem esta exclusão, o sentinela de rolagem
- * (`useInfiniteScroll`) reenviaria a mesma página que acabou de falhar a
- * cada novo quadro em que ainda estiver visível, virando retentativa em
- * laço em vez de UI que espera o toque.
- *
- * `carregando` fica de fora também: enquanto uma busca está em voo o
- * sentinela continua observado, e é o guard dentro de `carregarMais` que
- * evita o pedido duplicado — aqui só decide se vale continuar observando.
- */
+/** Próxima página faz sentido: não é fim nem falha pendente (falha exige toque do convidado; `carregando` é guardado por `carregarMais`). */
 export function podeCarregarMais(estado: EstadoFeed): boolean {
   return !estado.fim && estado.falha === null;
 }
 
-/**
- * Já nasce carregando: é o estado que o servidor renderiza, e por isso a
- * primeira tela chega com as molduras no lugar em vez de um vazio que pisca
- * até o efeito rodar. Em 3G lento essa diferença é a tela inteira.
- */
+/** Nasce `carregando: true` — estado do servidor, primeira tela com molduras no lugar sem piscar vazio (3G lento: essa diferença é a tela inteira). */
 export function estadoInicial(): EstadoFeed {
   return {
     itens: [],
@@ -105,12 +66,7 @@ export function estadoInicial(): EstadoFeed {
   };
 }
 
-/**
- * Junta a página nova ao que já está na tela, sem repetir item.
- *
- * O cursor `(created_at, id)` já impede a repetição entre páginas seguidas; a
- * deduplicação cobre a retentativa, em que a mesma página chega duas vezes.
- */
+/** Junta página nova sem repetir item — cursor `(created_at, id)` impede repetição; deduplicação cobre retentativa. */
 export function comPagina(estado: EstadoFeed, pagina: PaginaVisivel): EstadoFeed {
   const vistos = new Set(estado.itens.map((i) => i.id));
   const novos = pagina.itens.filter((i) => !vistos.has(i.id));
@@ -127,24 +83,12 @@ export function comPagina(estado: EstadoFeed, pagina: PaginaVisivel): EstadoFeed
   };
 }
 
-/**
- * Guarda o motivo e **preserva o que já está na tela**.
- *
- * Vale para o cursor recusado com 422: descartar os itens jogaria a rolagem
- * para o topo sozinha, que é pior que o erro. Quem volta ao começo é o
- * convidado, por toque próprio.
- */
+/** Guarda o motivo preservando o que está na tela — descartar jogaria a rolagem ao topo, pior que o erro; quem volta é o convidado por toque. */
 export function comFalha(estado: EstadoFeed, falha: FalhaFeed): EstadoFeed {
   return { ...estado, carregando: false, jaCarregou: true, falha };
 }
 
-/**
- * Volta ao começo mantendo o cache de URLs — trocar o filtro e voltar não
- * repete o pedido de mídia das mesmas fotos.
- *
- * Sai daqui já carregando porque a busca da primeira página vem logo atrás;
- * sem isso a grade pisca vazia entre a troca de filtro e a resposta.
- */
+/** Volta ao início mantendo cache de URLs (troca de filtro não repede mídia); nasce `carregando` para não piscar vazio. */
 export function reiniciado(estado: EstadoFeed): EstadoFeed {
   return {
     ...estado,
@@ -157,17 +101,7 @@ export function reiniciado(estado: EstadoFeed): EstadoFeed {
   };
 }
 
-/**
- * As chaves da tela que ainda não têm URL viva, em lote e sem repetição.
- *
- * Uma requisição por foto no meio de uma rolagem é a própria travada — daí o
- * lote. `isExpired` conta a folga de renovação: pedir no instante da expiração
- * já chega tarde.
- *
- * `extras` é a janela do visualizador em tela cheia — o arquivo cheio da foto
- * aberta e das próximas. Entra no mesmo lote de propósito: são as mesmas chaves,
- * do mesmo evento, e dois lotes seriam duas requisições para a mesma resposta.
- */
+/** Chaves sem URL viva em lote (`extras` inclui janela do visualizador tela cheia) — uma requisição por foto travaria a rolagem. */
 export function chavesSemUrl(
   estado: EstadoFeed,
   agora: number,
@@ -189,13 +123,7 @@ export function chavesSemUrl(
   return [...faltando];
 }
 
-/**
- * Devolve o **mesmo objeto** quando a resposta não traz informação nova.
- *
- * Uma resposta parcial — chaves que o servidor não soube assinar — voltaria
- * igual na tentativa seguinte, e um objeto novo a cada volta faria o efeito que
- * busca URLs pedir sem parar no meio da rolagem.
- */
+/** Devolve o mesmo objeto quando não há URL nova — objeto novo a cada volta faria o efeito buscar sem parar. */
 export function comUrls(estado: EstadoFeed, novas: Map<string, MediaUrl>): EstadoFeed {
   const urls = new Map(estado.urls);
   let mudou = false;

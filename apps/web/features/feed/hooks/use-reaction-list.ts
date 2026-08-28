@@ -11,10 +11,7 @@ type Estado = {
   erro: string | null;
 };
 
-/**
- * Lista simples de quem curtiu (spec social §5.5) — carrega sob demanda ao
- * abrir o sheet, nunca no render inicial do feed.
- */
+/** Lista de quem curtiu (spec social §5.5) — carrega sob demanda ao abrir o sheet, nunca no render inicial. */
 export function useReactionList(uploadId: string) {
   const [estado, setEstado] = useState<Estado>({
     aberto: false,
