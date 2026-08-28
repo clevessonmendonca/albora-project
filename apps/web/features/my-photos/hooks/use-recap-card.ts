@@ -3,11 +3,7 @@
 import { useEffect, useState } from "react";
 import { buscarRecapPessoal, type RecapPessoal } from "@/features/my-photos/lib/recap-card";
 
-/**
- * Estado do recap pessoal para a tela de "Minhas fotos". Começa `null` e só
- * troca se a busca voltar com dado válido — no carregamento e em qualquer
- * falha o card simplesmente não aparece (ver `buscarRecapPessoal`).
- */
+/** Estado do recap pessoal: começa `null` e só troca com dado válido — em qualquer falha o card não aparece. */
 export function useRecapCard(): RecapPessoal | null {
   const [recap, setRecap] = useState<RecapPessoal | null>(null);
 

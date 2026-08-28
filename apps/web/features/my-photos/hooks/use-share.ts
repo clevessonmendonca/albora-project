@@ -27,11 +27,7 @@ import {
   type ConsentimentoExternoBruto,
 } from "@/features/my-photos/lib/share-gate";
 
-/**
- * Exportado (e a busca abaixo também) para `use-recap.ts` reusar a mesma
- * resposta de `/api/share` — duplicar aqui divergiria no primeiro ajuste
- * feito de um lado só, igual ao motivo de `itemDeRede` em `use-feed.ts`.
- */
+/** Exportado para `use-recap.ts` reusar a mesma resposta de `/api/share` — duplicar divergiria no primeiro ajuste feito de um lado só. */
 export type ContextoApi = {
   chaveFull: string;
   chaveThumb: string;

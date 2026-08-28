@@ -14,11 +14,7 @@ function movimentoReduzido(): boolean {
   }
 }
 
-/**
- * Sobe o número exibido até `alvo` (spec A4). Pula direto para `alvo` sob
- * `prefers-reduced-motion: reduce` — o produto não depende da animação para
- * comunicar o valor, só a usa quando o sistema permite.
- */
+/** Sobe o exibido até `alvo` (spec A4); pula direto sob `prefers-reduced-motion` — a animação é opcional, não essencial. */
 export function useContadorAoVivo(alvo: number): number {
   const [exibido, setExibido] = useState(alvo);
 

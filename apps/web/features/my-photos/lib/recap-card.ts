@@ -1,14 +1,6 @@
 export type RecapPessoal = { fotos: number; curtidas: number };
 
-/**
- * Busca o recap pessoal do próprio convidado (spec item 5) em
- * `GET /api/guests/me/recap` — quantas fotos ele mandou e quantas reações
- * recebeu, nesta sessão.
- *
- * Enriquecimento puro: qualquer falha (rede, sessão, agregação no servidor,
- * corpo inesperado) devolve `null`, e quem chama simplesmente não mostra o
- * card. A tela de "Minhas fotos" nunca depende disto para abrir.
- */
+/** `GET /api/guests/me/recap`: enriquecimento puro — qualquer falha devolve `null` e quem chama não mostra o card; a tela nunca depende disto para abrir. */
 export async function buscarRecapPessoal(): Promise<RecapPessoal | null> {
   try {
     const r = await fetch("/api/guests/me/recap", { credentials: "same-origin" });

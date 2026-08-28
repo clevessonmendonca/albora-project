@@ -1,14 +1,6 @@
 import type { ContadoresDaParede } from "./types";
 
-/**
- * O contador público (spec A4): a mesma dupla que `album.contadores` já
- * expõe ao convidado — fotos publicadas e convidados distintos do evento
- * corrente, depois do gate de moderação. `/api/wall` não inclui esse campo
- * hoje (a janela que a parede lê é a rotação, capada em `TETO_DA_PAREDE`/
- * `WALL_DISPLAY_CACHE_LIMIT`, não o total da noite) — por isso a validação
- * é estrita e falha para `null`: nunca inventa "847 fotos" a partir de uma
- * janela de 50/60 itens.
- */
+/** Contador público spec A4: validação estrita — `/api/wall` devolve a janela de rotação, não o total da noite; `null` em vez de inventar "847 fotos" a partir de 50 itens. */
 export function paraContadoresDaParede(valor: unknown): ContadoresDaParede | null {
   if (typeof valor !== "object" || valor === null) return null;
 

@@ -1,15 +1,7 @@
 import { isVideoMime, prefixoDoEvento } from "@albora/core";
 import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 
-/**
- * A seleção do recap (spec de crescimento A2): as fotos do PRÓPRIO convidado,
- * DESTE evento, que melhor representam a noite — aqui, engajamento (reação) e
- * recência, sem curadoria por IA.
- *
- * Fica fora de `@albora/core` de propósito: esta task não edita `packages/**`.
- * Se a mesma regra precisar valer para o app nativo um dia, o lugar certo para
- * subir é o pacote — não duplicar às pressas aqui.
- */
+/** Seleção do recap A2: fotos do próprio convidado neste evento ordenadas por engajamento+recência, sem curadoria por IA. */
 
 /** Abaixo disto não há recap: um carrossel de 1–2 fotos é igual a compartilhar cada uma direto. */
 export const RECAP_MINIMO = 3;
@@ -26,20 +18,12 @@ export type CandidataRecap = {
   reacoes: number;
 };
 
-/**
- * Segunda barreira, redundante com o filtro que a rota do servidor já aplica:
- * toda chave deste evento começa em `events/{event_id}/...` (`derivarChaveMidia`
- * em `packages/core/src/chaves.ts`). Um item que chegasse aqui de outro evento —
- * bug upstream, resposta de cache errada — não entra no recap mesmo assim.
- */
+/** Segunda barreira: chave deve começar em `events/{event_id}/...` — item de outro evento (bug upstream, cache errado) não entra no recap. */
 export function pertenceAoEvento(chaveFull: string, eventoId: string): boolean {
   return chaveFull.startsWith(prefixoDoEvento(eventoId));
 }
 
-/**
- * As candidatas ao recap: só foto (nunca vídeo — o recap é imagem pronta para
- * o story), com chave de mídia, e do evento corrente.
- */
+/** Candidatas ao recap: só foto (nunca vídeo — imagem pronta para o story), com chave de mídia, do evento corrente. */
 export function elegiveisParaRecap(
   itens: readonly ItemVisivel[],
   eventoId: string,
@@ -57,13 +41,7 @@ export function elegiveisParaRecap(
     }));
 }
 
-/**
- * Ordena por reação — o sinal de "melhor" que o produto já tem, sem curadoria
- * por IA (ADR 0007) — e, empatado, pela mais recente. Corta em `RECAP_MAXIMO`.
- *
- * Devolve `[]` abaixo de `RECAP_MINIMO`: sem fotos suficientes, não há recap
- * para oferecer, e a tela que chama isto decide não mostrar o convite.
- */
+/** Ordena por reação (sem IA, ADR 0007), empatado pela mais recente; corta em `RECAP_MAXIMO`. Devolve `[]` abaixo de `RECAP_MINIMO` — a tela decide não mostrar o convite. */
 export function selecionarRecap(candidatas: readonly CandidataRecap[]): string[] {
   if (candidatas.length < RECAP_MINIMO) return [];
 

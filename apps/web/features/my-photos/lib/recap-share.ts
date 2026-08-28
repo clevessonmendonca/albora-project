@@ -1,14 +1,6 @@
 import { shareOrDownload, shareWasAborted, type ShareOutcome } from "@/lib/share-or-download";
 
-/**
- * O recap é um carrossel — Web Share API nível 2 aceita vários arquivos numa
- * chamada só, e é isso que deixa o convidado postar em UM toque em vez de N
- * folhas nativas em sequência (cada post é o anúncio orgânico da spec A2).
- *
- * Onde o aparelho não aceita múltiplos arquivos, cai para `shareOrDownload`
- * foto a foto — a mesma folha que o share de uma foto já usa, sem duplicar a
- * decisão de share-vs-download.
- */
+/** Web Share API nível 2 envia todos os arquivos numa chamada (1 toque = 1 post orgânico, spec A2); aparelho sem suporte a múltiplos arquivos cai para `shareOrDownload` foto a foto. */
 export async function compartilharRecap(
   blobs: readonly Blob[],
   nomeBase: string,

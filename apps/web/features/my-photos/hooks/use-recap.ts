@@ -21,18 +21,7 @@ import { compartilharRecap } from "@/features/my-photos/lib/recap-share";
 import { idsDoRecap } from "@/features/my-photos/lib/recap";
 import { mapExternalConsent, needsExternalConsent } from "@/features/my-photos/lib/share-gate";
 
-/**
- * O recap do convidado (spec de crescimento A2): um carrossel das melhores
- * fotos DELE, DESTE evento, já com a moldura da identidade — pronto para o
- * story em um toque.
- *
- * Reusa a mesma autorização, o mesmo consentimento externo e a mesma
- * composição do share de uma foto (`use-share.ts`), foto por foto: o recap
- * não é um caminho novo de moderação, é o mesmo caminho chamado N vezes.
- * Uma foto que falha (moderação, mídia indisponível, corte de moldura) sai
- * da lista sem derrubar as outras — a mesma disciplina de "um item ruim não
- * pode levar os outros nove" que já vale para a fila de upload.
- */
+/** Recap A2: carrossel das melhores fotos do convidado, com moldura da identidade — reusa a mesma autorização/moderação de `use-share.ts` foto por foto; falha individual sai sem derrubar as outras. */
 
 export type QuadroDoRecap = { id: string; url: string };
 

@@ -1,9 +1,4 @@
-/**
- * Passo de aproximação do número exibido até o alvo do contador público
- * (spec A4): sempre sobe, nunca conta pra trás — uma queda por moderação
- * salta direto para o novo valor, sem "desanimar" o placar — e desacelera
- * perto do alvo em vez de saltar de uma vez.
- */
+/** Passo de aproximação ao alvo (spec A4): sempre sobe (queda por moderação salta direto, sem "desanimar"), desacelera próximo do alvo. */
 export function proximoValorExibido(atual: number, alvo: number): number {
   if (alvo <= atual) return alvo;
   const diferenca = alvo - atual;
