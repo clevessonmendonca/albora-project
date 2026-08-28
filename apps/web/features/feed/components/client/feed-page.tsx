@@ -30,7 +30,6 @@ import {
 } from "@albora/ui-web";
 import { Post, PostLoading } from "./post";
 import { MirrorGrid, MirrorGridLoading } from "./mirror-grid";
-import { Viewer } from "./viewer";
 import { HourStrip, HourStripLoading } from "./hour-strip";
 import { FeedFilterPanel } from "../ui/feed-filter-panel";
 import { TemporalFilter } from "../ui/temporal-filter";
@@ -38,6 +37,16 @@ import { FeedFooter } from "../ui/feed-footer";
 import { GateOpenedOverlay } from "../ui/gate-opened-overlay";
 import { NewPhotosButton } from "../ui/new-photos-button";
 import { FeedEmptyState } from "../ui/feed-empty-state";
+
+// Code splitting: lazy load heavy components
+const Viewer = dynamic(() => import("./viewer").then(m => ({ default: m.Viewer })), {
+  ssr: false,
+});
+
+const ShareConsentSheet = dynamic(
+  () => import("@/features/my-photos/components/client/share-consent-sheet").then(m => ({ default: m.ShareConsentSheet })),
+  { ssr: false }
+);
 
 export type FeedCopy = {
   missionTitle: string;
