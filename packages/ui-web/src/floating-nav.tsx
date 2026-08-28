@@ -7,11 +7,7 @@ import { cn } from "./variants";
 export type FloatingNavTab = "inicio" | "missoes" | "album" | "minhas";
 
 export type FloatingNavProps = {
-  /**
-   * Ausente quando a tela atual não corresponde a nenhum dos quatro slots
-   * (ex.: `/feed`, `/music`, `/cover`) — realçar o slot mais próximo
-   * enganaria o convidado, que tocaria num ícone "atual" e sairia da tela.
-   */
+  /** Ausente quando a tela não corresponde a nenhum slot — realçar o mais próximo enganaria o convidado. */
   active?: FloatingNavTab;
   base: string;
   linkComponent?: ElementType;

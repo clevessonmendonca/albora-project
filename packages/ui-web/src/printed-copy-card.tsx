@@ -44,10 +44,6 @@ function CopyBody({
   );
 }
 
-/**
- * Cópia impressa da superfície clara (DESIGN.md §4) — foto como objeto físico,
- * não card genérico. Usada no álbum do admin e em vitrines editoriais.
- */
 export function PrintedCopyCard({
   imageUrl,
   caption,

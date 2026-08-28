@@ -2,12 +2,7 @@ import type { ReactNode } from "react";
 import { GridIcon, PersonIcon } from "./icons";
 import { Star } from "./star";
 
-/**
- * Os três atalhos do rodapé do convidado que são idênticos nos três navs —
- * `TabBar`, `GuestTabBar` e `FloatingNav` concordam em label, ícone, destino
- * e coluna do grid. Só "Feed"/"Início" diverge (rota e label conforme o
- * nav), por isso fica de fora daqui e cada nav define o seu.
- */
+/** Tabs idênticas nos três navs — Feed/Início fica de fora porque rota e label divergem por nav. */
 export type SharedGuestTabId = "missoes" | "album" | "minhas";
 
 export type SharedGuestTabDef = {

@@ -6,15 +6,10 @@ export type NavCameraButtonProps = {
   /** Sem `href` o botão é decorativo (catálogo estático, sem navegação). */
   href?: string;
   linkComponent?: ElementType;
-  /**
-   * Quanto o botão sobe da barra: `-mt-5` nos navs ancorados na borda
-   * inferior (`TabBar`, `GuestTabBar`), `-mt-6` no `FloatingNav`, que flutua
-   * com borda visível em todo o perímetro.
-   */
+  /** `-mt-5` em TabBar/GuestTabBar; `-mt-6` em FloatingNav (que flutua com borda no perímetro). */
   lift?: string;
 };
 
-/** Botão de câmera central, repetido nos três navs do convidado. */
 export function NavCameraButton({ href, linkComponent, lift = "-mt-5" }: NavCameraButtonProps) {
   const className = cn(
     "col-start-3 grid size-[3.375rem] place-items-center justify-self-center rounded-full bg-acento text-sobre-acento shadow-acento",
