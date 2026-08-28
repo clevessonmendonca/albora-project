@@ -151,3 +151,21 @@ export {
   type GeneratePrintPiecesResult,
   type PrintPieceRequest,
 } from "./generate-print-pieces";
+
+export {
+  presignGuestbookAudioUpload,
+  type PresignGuestbookAudioInput,
+  type PresignGuestbookAudioResult,
+} from "./presign-guestbook-audio";
+
+export {
+  confirmGuestbookAudioUpload,
+  type ConfirmGuestbookAudioInput,
+  type ConfirmGuestbookAudioResult,
+} from "./confirm-guestbook-audio";
+
+export {
+  deleteGuestbookAudio,
+  type DeleteGuestbookAudioInput,
+  type DeleteGuestbookAudioResult,
+} from "./delete-guestbook-audio";
