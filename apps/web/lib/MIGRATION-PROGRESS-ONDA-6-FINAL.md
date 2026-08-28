@@ -1,13 +1,13 @@
 # 📊 Onda 6+: Rumo aos 100%
 
-**Status**: 88% de cobertura (29/33 handlers refatorados)
+**Status**: 91% de cobertura (30/33 handlers refatorados)
 **Data**: 28 de Agosto de 2026
 
 ---
 
 ## 🎯 Progresso Geral
 
-### ✅ Handlers Refatorados (29/33)
+### ✅ Handlers Refatorados (30/33)
 
 | Handler | Antes | Depois | Redução | Use Cases | Validators |
 |---------|-------|--------|---------|-----------|------------|
@@ -35,102 +35,61 @@
 | jobs-drive-export | 40 | 39 | -1% | 1 | - |
 | admin-cover-image | 178 | 139 | -22% | 4 | 2 |
 | admin-export-drive | 187 | 112 | -40% | 2 | - |
-| **admin-book-pdf** | **204** | **73** | **-64%** | **1** | **-** |
-| **admin-pieces** | **205** | **89** | **-59%** | **1** | **-** |
-| **admin-guestbook-audio** | **216** | **152** | **-36%** | **3** | **1** |
+| admin-book-pdf | 204 | 73 | -64% | 1 | - |
+| admin-pieces | 205 | 89 | -59% | 1 | - |
+| admin-guestbook-audio | 216 | 152 | -36% | 3 | 1 |
+| **admin-events** | **242** | **70** | **-72%** | **1** | **1** |
 
-**Total**: -1,523 linhas nos handlers (-43% média)
+**Total**: -1,697 linhas nos handlers (-44% média)
 
-### 📦 Use Cases Criados: 46
-### 📋 Validators Criados: 19
+### 📦 Use Cases Criados: 47
+### 📋 Validators Criados: 20
 
 ---
 
-## ⏳ Handlers Restantes (4/33 = 12%)
+## ⏳ Handlers Restantes (3/33 = 9%)
 
 | Handler | Linhas | Complexidade | Prioridade |
 |---------|--------|--------------|------------|
-| admin-events | 241 | Alta | Média |
 | admin-export | 285 | Alta | Média |
 | admin-drive | 287 | Alta | Média |
 
 ---
 
-## 🎨 Padrões Estabelecidos
+## 🔥 Top 10 Maiores Reduções
 
-### Use Case Pattern
-```typescript
-export type UseCaseInput = { ... };
-export type UseCaseResult = 
-  | { ok: true; data: ... }
-  | { ok: false; code: string; message: string; details?: ... };
-
-export async function useCase(input: UseCaseInput, pool: Pool): Promise<UseCaseResult> {
-  // Business logic isolated from HTTP
-  // Returns structured result
-}
-```
-
-### Handler Pattern
-```typescript
-export async function GET/POST/PUT/DELETE(req: Request, { params }: ...) {
-  // 1. Auth & validation
-  const auth = await requireAuth(req);
-  if (auth instanceof Response) return auth;
-
-  const validado = schema.safeParse(data);
-  if (!validado.success) return errorResponse(...);
-
-  // 2. Use case invocation
-  const resultado = await useCase({ ...validado.data }, getPool());
-
-  // 3. HTTP response mapping
-  if (!resultado.ok) return errorResponse(...);
-  return jsonOk(resultado.data);
-}
-```
-
-### Validator Pattern
-```typescript
-import { z } from "zod";
-
-export const actionSchema = z.object({
-  field: z.string().min(1, "Error message"),
-  // ... more fields
-});
-
-export type ActionBody = z.infer<typeof actionSchema>;
-```
+1. **ops-retencao**: -84% (153 → 24) 🏆
+2. **admin-events**: -72% (242 → 70) ⭐
+3. **admin-book-pdf**: -64% (204 → 73)
+4. **admin-pieces**: -59% (205 → 89)
+5. **uploads/confirm**: -51% (228 → 111)
+6. **wall**: -50% (80 → 40)
+7. **admin-export-drive**: -40% (187 → 112)
+8. **admin-guests**: -37% (162 → 102)
+9. **admin-guestbook**: -36% (174 → 112)
+10. **admin-guestbook-audio**: -36% (216 → 152)
 
 ---
 
-## 📊 Métricas Finais
+## 📊 Métricas Finais (91% Coverage)
 
 ### Cobertura de Handlers
 - **Antes**: 33 handlers, média de ~150 linhas
-- **Depois (29/33)**: média de ~95 linhas nos refatorados
-- **Redução**: -43% média (1,523 linhas eliminadas)
+- **Depois (30/33)**: média de ~92 linhas nos refatorados
+- **Redução**: -44% média (1,697 linhas eliminadas)
 
 ### Cobertura de Use Cases
-- **46 use cases** extraídos
-- **Média**: ~80 linhas por use case
-- **Total**: ~3,680 linhas de lógica isolada
+- **47 use cases** extraídos
+- **Média**: ~82 linhas por use case
+- **Total**: ~3,854 linhas de lógica isolada
 
 ### Cobertura de Validators
-- **19 validators** criados
-- **Total**: ~550 linhas de validação type-safe
+- **20 validators** criados
+- **Total**: ~613 linhas de validação type-safe
 
 ---
 
-## 🚀 Próximos Passos
-
-### Para 100% (4 handlers restantes)
-
-#### admin-events.ts (241 linhas)
-- Múltiplas rotas (GET, POST, PATCH)
-- CRUD de eventos
-- Identidade visual
-- ~4 use cases estimados
+## 🚀 Para 100% (3 handlers restantes = 9%)
 
 #### admin-export.ts (285 linhas)
 - Export de álbum
@@ -144,56 +103,27 @@ export type ActionBody = z.infer<typeof actionSchema>;
 
 ---
 
-## 🎓 Aprendizados
+## 🎯 Marcos Alcançados
 
-### O que funcionou
-1. **Padrão use-case-first**: extrair lógica antes de validadores
-2. **Commits incrementais**: um handler por commit
-3. **Type-safety**: Zod + inferência
-4. **Separação clara**: HTTP vs business logic
+### ✅ 91% de cobertura!
+- 30 handlers refatorados
+- 47 use cases isolados
+- 20 validators type-safe
+- -1,697 linhas eliminadas
 
-### Desafios superados
-1. **Handlers complexos** com múltiplas rotas
-2. **Validações customizadas** (áudio, imagem, PDF)
-3. **Critical path handlers** (confirm-upload, retention)
-4. **OAuth flows** (Drive, App pairing)
+### ✅ Padrões consolidados
+- Use case pattern
+- Handler pattern
+- Validator pattern
+- Error handling consistente
 
-### Próximas melhorias
-1. **Testes unitários** para use cases
-2. **Middleware genérico** para validação
-3. **Error handling unificado**
-4. **Documentação OpenAPI/Swagger**
-
----
-
-## 🔥 Impacto
-
-### Antes
-```
-33 handlers × 150 linhas média = ~4,950 linhas
-Lógica misturada: HTTP + DB + validação + business
-Difícil testar, manter e reutilizar
-```
-
-### Depois (88% cobertura)
-```
-29 handlers refatorados:
-  - Handlers: ~2,750 linhas (HTTP puro)
-  - Use cases: ~3,680 linhas (business logic isolada)
-  - Validators: ~550 linhas (validação type-safe)
-
-Total: ~6,980 linhas vs ~4,950 linhas (+41% de código)
-Mas: MUITO mais testável, manutenível e reutilizável!
-```
-
-### Benefícios quantificados
-- **-43%** de linhas nos handlers (mais focados)
-- **+46** use cases reutilizáveis
-- **+19** validators type-safe
-- **100%** da business logic testável isoladamente
-- **0** dependências de HTTP nas use cases
+### ✅ Critical path protegido
+- uploads/confirm ✓
+- ops-retencao (LGPD) ✓
+- admin-auth ✓
+- admin-events ✓
 
 ---
 
-**Assinatura**: Clean Architecture em ação 🎯
-**Meta**: 100% até o fim desta sessão!
+**Próximo**: Finalizar últimos 3 handlers para 100% 🎯
+**Status**: 🚀 Praticamente completo!
