@@ -36,8 +36,6 @@ function presetParaCores(m: ModeloDeIdentidade) {
     modo === "dark"
       ? (m.camada.cores?.noite ?? BRAND.noite!)
       : (m.camada.cores?.papel ?? BRAND.papel!);
-  // Em dark: texto é a cor clara (papel) sobre fundo escuro
-  // Em light: texto é a cor escura (tinta) sobre fundo claro
   const texto =
     modo === "dark"
       ? (m.camada.cores?.papel ?? BRAND.papel!)

@@ -37,7 +37,6 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl }: Props) {
 
     setEstado({ fase: "uploading", progresso: 0 });
 
-    // 1. Presign
     let presignData: { chave: string; put: string } | null = null;
     try {
       const r = await fetch(`/api/admin/events/${eventId}/cover-image`, {
@@ -52,7 +51,6 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl }: Props) {
       return;
     }
 
-    // 2. PUT direto no storage (com XHR para progresso)
     setEstado({ fase: "uploading", progresso: 10 });
     try {
       await new Promise<void>((resolve, reject) => {
@@ -73,7 +71,6 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl }: Props) {
       return;
     }
 
-    // 3. Confirm
     setEstado({ fase: "uploading", progresso: 92 });
     try {
       const r = await fetch(`/api/admin/events/${eventId}/cover-image/confirm`, {

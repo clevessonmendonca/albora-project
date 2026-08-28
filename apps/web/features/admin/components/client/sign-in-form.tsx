@@ -3,17 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 
-/**
- * Host panel sign-in (spec 009).
- *
- * Two screens on the same route: without `?m=`, the email form that requests
- * the link; with `?m=`, the button that confirms and opens the session. The
- * token is only consumed on click — never on load — so an email client's
- * prefetch cannot spend the link on its own.
- *
- * `?next=` (path under /admin) survives magic-link via the API and redirects
- * after Confirm — so Completo from the landing lands on the wizard with plano.
- */
+/** Token consumed on click, not load — email prefetch cannot spend the magic link. */
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

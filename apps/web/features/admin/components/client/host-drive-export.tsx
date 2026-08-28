@@ -15,12 +15,6 @@ import {
   type EstadoDrive,
 } from "@/features/admin/hooks/use-host-drive-export";
 
-/**
- * Terceira seção ao lado de `HostExport` (spec drive-export §4) — self-serve,
- * sem download: o resultado é a própria pasta no Drive do casal. Sem
- * downgrade de UX quando falta espaço — o botão de ZIP (`HostExport`)
- * continua sempre visível como saída garantida.
- */
 export function HostDriveExport({ eventoId }: { eventoId: string }) {
   const [estado, setEstado] = useState<EstadoDrive>(estadoInicialDrive());
   const [busy, setBusy] = useState(false);
@@ -62,9 +56,7 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
     return () => window.clearInterval(id);
   }, [estado.fase, carregar]);
 
-  // O e-mail de confirmação de conexão leva de volta pra cá com o token —
-  // a navegação para o Google acontece por redirect de servidor
-  // (`/drive/connect`), nunca por fetch.
+  // driveConectar vem via redirect do servidor (/drive/connect), nunca por fetch direto.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("driveConectar");

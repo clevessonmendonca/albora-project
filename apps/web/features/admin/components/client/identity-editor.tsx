@@ -261,7 +261,6 @@ export function IdentityEditor({
           />
         </div>
 
-        {/* Palette presets */}
         <div className="mb-7">
           <FieldLabel>Paleta base</FieldLabel>
           <div className="flex flex-col gap-2">
@@ -299,7 +298,6 @@ export function IdentityEditor({
           </div>
         </div>
 
-        {/* Custom accent color */}
         <div className="mb-7">
           <FieldLabel>Cor de destaque</FieldLabel>
           <div className="flex flex-wrap items-center gap-3">
@@ -336,7 +334,6 @@ export function IdentityEditor({
           </div>
         </div>
 
-        {/* Font style */}
         <div className="mb-7">
           <FieldLabel>Estilo de fonte</FieldLabel>
           <div className="flex gap-2">
@@ -372,7 +369,6 @@ export function IdentityEditor({
           </div>
         </div>
 
-        {/* Background mode */}
         <div className="mb-7">
           <FieldLabel>Fundo padrão</FieldLabel>
           <div className="flex gap-2">
@@ -414,7 +410,6 @@ export function IdentityEditor({
           </div>
         </div>
 
-        {/* Wall models */}
         <div>
           <h2 className="mb-1 mt-0 font-titulo text-lg">Modelos do telão</h2>
           <p className="mb-4 mt-1.5 text-[0.875rem] leading-relaxed text-ink-2">
