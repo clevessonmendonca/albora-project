@@ -60,3 +60,20 @@ export {
   type UpdateSessionNameInput,
   type UpdateSessionNameResult,
 } from "./update-session-name";
+
+export {
+  issueMagicLink,
+  type IssueMagicLinkInput,
+  type IssueMagicLinkOutput,
+} from "./issue-magic-link";
+
+export {
+  revokeHostSession,
+  type RevokeHostSessionInput,
+} from "./revoke-host-session";
+
+export {
+  consumeMagicLink,
+  type ConsumeMagicLinkInput,
+  type ConsumeMagicLinkResult,
+} from "./consume-magic-link";

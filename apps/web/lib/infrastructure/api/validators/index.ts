@@ -14,3 +14,4 @@ export * from "./admin-schemas";
 export * from "./app-pair-schemas";
 export * from "./challenge-schemas";
 export * from "./guest-schemas";
+export * from "./auth-schemas";

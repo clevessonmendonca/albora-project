@@ -1,40 +1,23 @@
 import {
-  consumirMagicLink,
-  emitirMagicLink,
-  ErroMagicLinkInvalido,
-  recordProductEvent,
-  revogarHostSessao,
-  VALIDADE_HOST_SESSAO_HORAS,
-  VALIDADE_MAGIC_LINK_MINUTOS,
-} from "@albora/db";
-import {
   clearHostCookie,
   enforceRateLimit,
   errorResponse,
   hostCookie,
   hostTokenFromRequest,
   jsonOk,
-  parseJsonBody,
   requireConfig,
   unexpectedError,
 } from "@/lib/api";
 import { config } from "@/lib/config";
 import { getPool } from "@/lib/db";
-import { sendHostEmail } from "@/lib/email";
 import { consume } from "@/lib/rate-limit-store";
-
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-type SignInBody = { email?: unknown; next?: unknown };
-type SessionBody = { token?: unknown };
-
-function safeAdminNext(raw: unknown): string | null {
-  if (typeof raw !== "string") return null;
-  const next = raw.trim();
-  if (!next.startsWith("/admin")) return null;
-  if (next.startsWith("//") || next.includes("://") || next.includes("\\")) return null;
-  return next;
-}
+import {
+  issueMagicLink,
+  revokeHostSession,
+  consumeMagicLink,
+} from "@/lib/application/use-cases/admin";
+import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import { signInSchema, consumeMagicLinkSchema } from "@/lib/infrastructure/api/validators";
 
 /** Magic link do anfitrião (spec 009): entregue só por e-mail em prod; fora de dev, link nunca volta na resposta (daria login a quem souber o e-mail); resposta idêntica com/sem conta. */
 export async function postSignIn(req: Request) {
@@ -49,43 +32,22 @@ export async function postSignIn(req: Request) {
     });
   }
 
-  const parsed = await parseJsonBody<SignInBody>(req);
-  if (parsed instanceof Response) return parsed;
-
-  const email = typeof parsed.data.email === "string" ? parsed.data.email.trim() : "";
-  if (!EMAIL.test(email)) {
-    return errorResponse(422, "validation_error", "E-mail inválido", { campos: ["email"] });
-  }
+  const validation = await validateBody(req, signInSchema);
+  if (validation instanceof Response) return validation;
 
   try {
-    const expiresAt = new Date(Date.now() + VALIDADE_MAGIC_LINK_MINUTOS * 60 * 1000);
-    const result = await emitirMagicLink(getPool(), config().sessionSecret, email, expiresAt);
-    const { token, isNewAccount } = result;
-    
-    if (isNewAccount) {
-      void recordProductEvent(getPool(), "account_created");
-    }
+    const resultado = await issueMagicLink(
+      {
+        sessionSecret: config().sessionSecret,
+        email: validation.email,
+        next: validation.next,
+        requestOrigin: new URL(req.url).origin,
+        isDev: process.env.APP_ENV === "dev",
+      },
+      getPool(),
+    );
 
-    const next = safeAdminNext(parsed.data.next);
-    const nextQ = next ? `&next=${encodeURIComponent(next)}` : "";
-    const link = `${new URL(req.url).origin}/admin/sign-in?m=${token}${nextQ}`;
-
-    void sendHostEmail({
-      to: email,
-      subject: "Seu link para entrar na Albora",
-      text: [
-        "Para entrar no painel, abra este link (válido por poucos minutos):",
-        "",
-        link,
-        "",
-        "Se você não pediu isso, ignore este e-mail.",
-      ].join("\n"),
-    });
-
-    console.log("admin.magic_link_emitido", {});
-
-    const dev = process.env.APP_ENV === "dev";
-    return jsonOk(dev ? { enviado: true, link } : { enviado: true });
+    return jsonOk(resultado);
   } catch (e) {
     return unexpectedError("admin.entrar", e);
   }
@@ -100,13 +62,13 @@ export async function postSignOut(req: Request) {
   if (limited) return limited;
 
   const token = hostTokenFromRequest(req);
-  if (token) {
-    try {
-      await revogarHostSessao(getPool(), config().sessionSecret, token);
-    } catch {
-      // Sair é best-effort: mesmo que a revogação falhe, o cookie some.
-    }
-  }
+  await revokeHostSession(
+    {
+      sessionSecret: config().sessionSecret,
+      token,
+    },
+    getPool(),
+  );
 
   return jsonOk({ ok: true }, { headers: { "set-cookie": clearHostCookie() } });
 }
@@ -123,35 +85,23 @@ export async function postSession(req: Request) {
   });
   if (limited) return limited;
 
-  const parsed = await parseJsonBody<SessionBody>(req);
-  if (parsed instanceof Response) return parsed;
+  const validation = await validateBody(req, consumeMagicLinkSchema);
+  if (validation instanceof Response) return validation;
 
-  const token = typeof parsed.data.token === "string" ? parsed.data.token : "";
-  if (!token) {
-    return errorResponse(422, "validation_error", "Link inválido", { campos: ["token"] });
+  const resultado = await consumeMagicLink(
+    {
+      sessionSecret: config().sessionSecret,
+      token: validation.token,
+    },
+    getPool(),
+  );
+
+  if (!resultado.ok) {
+    return errorResponse(409, resultado.code, resultado.message);
   }
 
-  try {
-    const expiresAt = new Date(Date.now() + VALIDADE_HOST_SESSAO_HORAS * 3600 * 1000);
-    const session = await consumirMagicLink(
-      getPool(),
-      config().sessionSecret,
-      token,
-      expiresAt,
-      new Date(),
-    );
-
-    console.log("admin.sessao_criada", { accountId: session.accountId });
-
-    return jsonOk(
-      { ok: true },
-      { headers: { "set-cookie": hostCookie(session.token, VALIDADE_HOST_SESSAO_HORAS) } },
-    );
-  } catch (e) {
-    if (e instanceof ErroMagicLinkInvalido) {
-      console.warn("admin.magic_link_recusado", { motivo: e.motivo });
-      return errorResponse(409, "admin.link_invalido", "Link inválido ou expirado");
-    }
-    return unexpectedError("admin.sessao", e);
-  }
+  return jsonOk(
+    { ok: true },
+    { headers: { "set-cookie": hostCookie(resultado.token, resultado.validadeHoras) } },
+  );
 }
