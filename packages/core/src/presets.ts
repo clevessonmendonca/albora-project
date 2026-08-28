@@ -1,25 +1,12 @@
 import type { Ajustes } from "./luts";
 
-/**
- * Os oito filtros. Sete resolvem em `filter` de CSS; o 35 mm precisa de
- * passagem por pixel, porque faz quatro coisas que CSS não sabe fazer: ombro
- * nas altas, viés verde nos médios, halação em volta da luz e grão.
- *
- * Ficam no núcleo porque a coerência estética entre todas as fotos do acervo é
- * o que o produto vende — e duas implementações da mesma curva produzem duas
- * estéticas no mesmo álbum (ADR 0007).
- */
+/** 35 mm requer passagem por pixel: ombro nas altas, viés verde, halação e grão — quatro efeitos que CSS não sabe fazer (ADR 0007). */
 
 export type Preset = {
   id: string;
   nome: string;
   ajustes: Ajustes;
-  /**
-   * Quando `true`, `ajustes` é a **degradação** e não o filtro: o resultado
-   * bom sai de `aplicarPorPixel`. Em aparelho onde a passagem por pixel passa
-   * de `TETO_POR_PIXEL_MS`, o CSS assume e a foto sai parecida em vez de sair
-   * tarde.
-   */
+  /** `true` → `ajustes` é degradação CSS; o resultado real sai de `aplicarPorPixel`. Cai pro CSS se exceder `TETO_POR_PIXEL_MS`. */
   porPixel?: boolean;
 };
 
@@ -71,14 +58,6 @@ export function preset(id: string): Preset | undefined {
   return PRESETS.find((p) => p.id === id);
 }
 
-/**
- * Ordena a tira com o recomendado em primeiro lugar.
- *
- * O recomendado é convite, não imposição: ele encabeça a lista e ganha selo,
- * mas quem aplica é o convidado. Aplicar sozinho tiraria a escolha de quem
- * tirou a foto, e a coerência do acervo deixaria de ser adesão para virar
- * padrão silencioso (N5.9).
- */
 export function ordenarComRecomendado(recomendadoId: string | null): Preset[] {
   const recomendado = recomendadoId ? preset(recomendadoId) : undefined;
   if (!recomendado) return [...PRESETS];
@@ -86,11 +65,7 @@ export function ordenarComRecomendado(recomendadoId: string | null): Preset[] {
   return [recomendado, ...PRESETS.filter((p) => p.id !== recomendado.id)];
 }
 
-/**
- * Acima disto a passagem por pixel deixa de valer a pena e o preset cai para
- * a aproximação em CSS. Medido contra o pior caso previsto: Android de entrada
- * com foto de 12 MP.
- */
+/** Limiar em ms acima do qual o preset cai para CSS. Medido no pior caso: Android de entrada, foto de 12 MP. */
 export const TETO_POR_PIXEL_MS = 1500;
 
 const PONTO_DO_OMBRO = 0.72;
@@ -101,13 +76,7 @@ const LIMIAR_DE_HALACAO = 0.78;
 const FORCA_DA_HALACAO = 0.5;
 const FORCA_DO_GRAO = 9;
 
-/**
- * Roll-off nas altas.
- *
- * Sensor digital corta a alta em 1,0 e o brilho da luminária vira um disco
- * branco chapado; filme comprime. É a diferença mais visível entre uma foto de
- * festa noturna que parece filme e uma que parece foto de celular.
- */
+/** Roll-off nas altas — digital clipa em 1.0 (disco branco chapado); filme comprime. Maior diferença visual entre "celular" e "filme". */
 function ombro(v: number): number {
   if (v <= PONTO_DO_OMBRO) return v;
 
@@ -118,12 +87,7 @@ function ombro(v: number): number {
   return PONTO_DO_OMBRO + comprimido * faixa;
 }
 
-/**
- * Grão determinístico: a mesma foto sai com o mesmo grão sempre.
- *
- * Não é capricho — sem determinismo, reabrir o editor mudaria a foto, e a
- * miniatura da tira não corresponderia ao que o convidado vai receber.
- */
+/** Grão determinístico — sem isso, reabrir o editor mudaria a foto e a miniatura divergiria do resultado final. */
 function ruido(indice: number): number {
   let x = Math.imul(indice ^ 0x9e3779b9, 2654435761) >>> 0;
   x ^= x >>> 15;
@@ -137,12 +101,7 @@ function luminancia(r: number, g: number, b: number): number {
   return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
 }
 
-/**
- * Máscara de halação: onde há luz forte, borrada para vazar nos vizinhos.
- *
- * Caixa separável em duas passagens — o custo é linear no número de pixels, e
- * não quadrático no raio, que é o que tornaria isto inviável no aparelho fraco.
- */
+/** Blur de caixa separável (2 passagens) — O(n) em pixels, não O(n·r²); quadrático tornaria inviável no aparelho fraco. */
 function mascaraDeHalacao(dados: Uint8ClampedArray, largura: number, altura: number): Float32Array {
   const total = largura * altura;
   const mascara = new Float32Array(total);
@@ -190,15 +149,7 @@ function misturar(de: number, para: number, t: number): number {
   return de + (para - de) * t;
 }
 
-/**
- * Aplica o 35 mm nos pixels, **no lugar**.
- *
- * Recebe e devolve bytes crus de propósito: assim a matemática roda igual em
- * `ImageData` do canvas da web e no buffer do Expo, e — o que importa mais —
- * é testável sem navegador nenhum.
- *
- * `intensidade` 0 devolve a imagem intacta; 1 aplica cheio.
- */
+/** Opera em bytes crus para rodar igual no canvas web e no buffer Expo, e ser testável sem navegador. `intensidade` 0 = intacta, 1 = cheio. */
 export function aplicarPorPixel(
   dados: Uint8ClampedArray,
   largura: number,
