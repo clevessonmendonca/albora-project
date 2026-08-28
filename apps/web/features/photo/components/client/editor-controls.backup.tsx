@@ -3,11 +3,8 @@
 import { AJUSTES_NEUTROS, saoNeutros, type AjustesManuais, type Preset, type TextoComposto } from "@albora/core";
 import type { Dispatch, SetStateAction } from "react";
 import type { FaixaVotada } from "./editor-musica";
-import { ButtonAba } from "../editor/button-aba";
-import { FiltrosTab } from "../editor/filtros-tab";
-import { AjustesTab } from "../editor/ajustes-tab";
-import { TextoTab } from "../editor/texto-tab";
-import { PainelMusica } from "../editor/painel-musica";
+import { LIMITE_TEXTO } from "./editor-texto";
+import { PASSOS_BIPOLAR, PASSOS_UNIPOLAR, SEM_FILTRO } from "./editor-lut";
 
 type Aba = "filtros" | "ajustes" | "texto" | "musica";
 
@@ -38,32 +35,6 @@ export function EditorHeader({
   );
 }
 
-type EditorControlsProps = {
-  aba: Aba;
-  onAba: (aba: Aba) => void;
-  ajustes: AjustesManuais;
-  onAjustes: Dispatch<SetStateAction<AjustesManuais>>;
-  escolhido: Preset | null;
-  onEscolhido: (preset: Preset | null) => void;
-  intensidade: number;
-  onIntensidade: (valor: number) => void;
-  presets: readonly Preset[];
-  recomendadoId: string | null;
-  tiras: Map<string, string>;
-  previaPronta: boolean;
-  texto: TextoComposto | null;
-  onTexto: (conteudo: string) => void;
-  onRemoverTexto: () => void;
-  musicas: readonly FaixaVotada[];
-  musicaId: string | null;
-  onMusica: (id: string | null) => void;
-  onEnviar: () => void;
-};
-
-/**
- * Controles do editor de foto.
- * Orquestra 4 abas: filtros, ajustes, texto, música.
- */
 export function EditorControls({
   aba,
   onAba,
@@ -84,35 +55,40 @@ export function EditorControls({
   musicaId,
   onMusica,
   onEnviar,
-}: EditorControlsProps) {
+}: {
+  aba: Aba;
+  onAba: (aba: Aba) => void;
+  ajustes: AjustesManuais;
+  onAjustes: Dispatch<SetStateAction<AjustesManuais>>;
+  escolhido: Preset | null;
+  onEscolhido: (preset: Preset | null) => void;
+  intensidade: number;
+  onIntensidade: (valor: number) => void;
+  presets: readonly Preset[];
+  recomendadoId: string | null;
+  tiras: Map<string, string>;
+  previaPronta: boolean;
+  /** Texto do composer, se o convidado já escreveu algo (spec 020). */
+  texto: TextoComposto | null;
+  onTexto: (conteudo: string) => void;
+  onRemoverTexto: () => void;
+  /** As faixas votadas para o sticker de música (spec 020, sub-etapa b). */
+  musicas: readonly FaixaVotada[];
+  musicaId: string | null;
+  onMusica: (id: string | null) => void;
+  onEnviar: () => void;
+}) {
   const podeZerar = !saoNeutros(ajustes);
 
   return (
     <footer className="grid gap-3 px-6 pb-6">
-      {/* Header das abas */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center">
         <span />
         <div className="flex gap-7">
-          <ButtonAba
-            rotulo="Filtros"
-            ativa={aba === "filtros"}
-            onClick={() => onAba("filtros")}
-          />
-          <ButtonAba
-            rotulo="Ajustes"
-            ativa={aba === "ajustes"}
-            onClick={() => onAba("ajustes")}
-          />
-          <ButtonAba
-            rotulo="Texto"
-            ativa={aba === "texto"}
-            onClick={() => onAba("texto")}
-          />
-          <ButtonAba
-            rotulo="Música"
-            ativa={aba === "musica"}
-            onClick={() => onAba("musica")}
-          />
+          <ButtonAba rotulo="Filtros" ativa={aba === "filtros"} onClick={() => onAba("filtros")} />
+          <ButtonAba rotulo="Ajustes" ativa={aba === "ajustes"} onClick={() => onAba("ajustes")} />
+          <ButtonAba rotulo="Texto" ativa={aba === "texto"} onClick={() => onAba("texto")} />
+          <ButtonAba rotulo="Música" ativa={aba === "musica"} onClick={() => onAba("musica")} />
         </div>
         {podeZerar && aba === "ajustes" ? (
           <button
@@ -127,51 +103,247 @@ export function EditorControls({
         )}
       </div>
 
-      {/* Conteúdo das abas */}
       {aba === "filtros" && (
-        <FiltrosTab
-          escolhido={escolhido}
-          onEscolhido={onEscolhido}
-          intensidade={intensidade}
-          onIntensidade={onIntensidade}
-          presets={presets}
-          recomendadoId={recomendadoId}
-          tiras={tiras}
-        />
+        <>
+          <div className="flex gap-2.5 overflow-x-auto pb-1.5 [scrollbar-width:none]">
+            <Chip
+              rotulo="Original"
+              miniatura={tiras.get(SEM_FILTRO)}
+              ativo={escolhido === null}
+              onClick={() => onEscolhido(null)}
+            />
+            {presets.map((p) => (
+              <Chip
+                key={p.id}
+                rotulo={p.nome}
+                miniatura={tiras.get(p.id)}
+                ativo={escolhido?.id === p.id}
+                sugerido={p.id === recomendadoId}
+                onClick={() => {
+                  onEscolhido(p);
+                  onIntensidade(1);
+                }}
+              />
+            ))}
+          </div>
+
+          {escolhido && (
+            <Deslizante
+              rotulo="Intensidade"
+              min={0}
+              max={PASSOS_UNIPOLAR}
+              valor={intensidade}
+              onMudar={onIntensidade}
+            />
+          )}
+        </>
       )}
 
       {aba === "ajustes" && (
-        <AjustesTab ajustes={ajustes} onAjustes={onAjustes} />
+        <div>
+          <Deslizante
+            rotulo="Luz"
+            min={-PASSOS_BIPOLAR}
+            max={PASSOS_BIPOLAR}
+            valor={ajustes.luz}
+            onMudar={(v) => onAjustes((a) => ({ ...a, luz: v }))}
+          />
+          <Deslizante
+            rotulo="Calor"
+            min={-PASSOS_BIPOLAR}
+            max={PASSOS_BIPOLAR}
+            valor={ajustes.calor}
+            onMudar={(v) => onAjustes((a) => ({ ...a, calor: v }))}
+          />
+          <Deslizante
+            rotulo="Contraste"
+            min={-PASSOS_BIPOLAR}
+            max={PASSOS_BIPOLAR}
+            valor={ajustes.contraste}
+            onMudar={(v) => onAjustes((a) => ({ ...a, contraste: v }))}
+          />
+          <Deslizante
+            rotulo="Vinheta"
+            min={0}
+            max={PASSOS_UNIPOLAR}
+            valor={ajustes.vinheta}
+            onMudar={(v) => onAjustes((a) => ({ ...a, vinheta: v }))}
+          />
+        </div>
       )}
 
       {aba === "texto" && (
-        <TextoTab
-          texto={texto}
-          onTexto={onTexto}
-          onRemoverTexto={onRemoverTexto}
-        />
+        <div className="grid gap-2">
+          <input
+            className="ed-texto-input"
+            type="text"
+            inputMode="text"
+            placeholder="Escreva alguma coisa…"
+            aria-label="Texto sobre a foto"
+            maxLength={LIMITE_TEXTO}
+            value={texto?.conteudo ?? ""}
+            onChange={(e) => onTexto(e.target.value)}
+          />
+          <div className="flex items-center justify-between">
+            <p className="m-0 text-[0.78rem] leading-[1.5] text-ink-3">
+              Arraste na foto para posicionar
+            </p>
+            {texto && (
+              <button className="ed-reset" onClick={onRemoverTexto}>
+                Remover
+              </button>
+            )}
+          </div>
+        </div>
       )}
 
-      {aba === "musica" && (
-        <PainelMusica
-          musicas={musicas}
-          musicaId={musicaId}
-          onMusica={onMusica}
-        />
-      )}
+      {aba === "musica" && <PainelMusica musicas={musicas} musicaId={musicaId} onMusica={onMusica} />}
 
-      {/* Botão primário */}
-      <button
-        className="ed-primario"
-        onClick={onEnviar}
-        disabled={!previaPronta}
-      >
+      <button className="ed-primario" onClick={onEnviar} disabled={!previaPronta}>
         Enviar
       </button>
     </footer>
   );
 }
 
+/** Tocar na faixa já escolhida desmarca — o toggle de story é "escreveu algo ou escolheu música", não um botão separado. */
+function PainelMusica({
+  musicas,
+  musicaId,
+  onMusica,
+}: {
+  musicas: readonly FaixaVotada[];
+  musicaId: string | null;
+  onMusica: (id: string | null) => void;
+}) {
+  if (musicas.length === 0) {
+    return (
+      <p className="m-0 text-[0.82rem] leading-[1.5] text-ink-3">
+        Nenhuma música votada ainda. Peça para alguém sugerir uma na aba de música do evento.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="ed-musica-lista m-0 grid list-none gap-2 overflow-y-auto p-0">
+      {musicas.map((m) => {
+        const ativa = musicaId === m.id;
+        return (
+          <li key={m.id}>
+            <button
+              type="button"
+              className={`ed-musica-item ${ativa ? "ativo" : ""}`}
+              aria-pressed={ativa}
+              onClick={() => onMusica(ativa ? null : m.id)}
+            >
+              {m.rotulo}
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+function ButtonAba({
+  rotulo,
+  ativa,
+  onClick,
+}: {
+  rotulo: string;
+  ativa: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className={`ed-aba border-b ${ativa ? "border-acento text-acento-texto" : "border-transparent text-ink-3"}`}
+      aria-pressed={ativa}
+      onClick={onClick}
+    >
+      {rotulo}
+    </button>
+  );
+}
+
+/** `valor` em unidade de contrato (−1…1 ou 0…1); `min`/`max` são a escala que o convidado lê. */
+function Deslizante({
+  rotulo,
+  min,
+  max,
+  valor,
+  onMudar,
+}: {
+  rotulo: string;
+  min: number;
+  max: number;
+  valor: number;
+  onMudar: (valor: number) => void;
+}) {
+  const bruto = Math.round(valor * max);
+  const posicao = ((bruto - min) / (max - min)) * 100;
+  // O preenchimento nasce no neutro, não na ponta esquerda: num controle que
+  // vai de −50 a 50 é o desvio que interessa, e é ele que a barra mostra.
+  const neutro = min < 0 ? ((0 - min) / (max - min)) * 100 : 0;
+
+  const de = Math.min(neutro, posicao);
+  const ate = Math.max(neutro, posicao);
+
+  return (
+    <label className="ed-linha">
+      <span className="ed-rotulo">{rotulo}</span>
+      <input
+        className="ed-faixa"
+        type="range"
+        min={min}
+        max={max}
+        value={bruto}
+        onChange={(e) => onMudar(Number(e.target.value) / max)}
+        style={
+          {
+            "--trilho": `linear-gradient(to right, var(--linha) 0 ${de}%, var(--acento) ${de}% ${ate}%, var(--linha) ${ate}% 100%)`,
+          } as React.CSSProperties
+        }
+      />
+      <output className="ed-valor">{bruto}</output>
+    </label>
+  );
+}
+
+function Chip({
+  rotulo,
+  miniatura,
+  ativo,
+  sugerido,
+  onClick,
+}: {
+  rotulo: string;
+  miniatura?: string | undefined;
+  ativo: boolean;
+  sugerido?: boolean | undefined;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      className={`ed-chip ${ativo ? "ativo" : ""} ${ativo || sugerido ? "text-acento-texto" : "text-ink-3"}`}
+      onClick={onClick}
+      aria-pressed={ativo}
+    >
+      <span
+        className="ed-mini"
+        style={{
+          backgroundImage: miniatura ? `url(${miniatura})` : undefined,
+        }}
+      >
+        {/* O selo do filtro que os noivos sugerem. Disco pequeno, não etiqueta:
+            âmbar entra como metal, e o primeiro lugar na tira já é o destaque. */}
+        {sugerido && <span className="ed-selo" aria-hidden="true" />}
+      </span>
+      <span className="ed-nome">{rotulo}</span>
+    </button>
+  );
+}
+
+/** Trilho e botão só existem como pseudo-elemento; regras `-webkit-`/`-moz-` separadas — juntas, o pseudo desconhecido invalida a regra inteira no outro navegador. */
 const ESTILO = `
   .ed-texto {
     font: inherit;
@@ -379,6 +551,11 @@ const ESTILO = `
     outline: none;
   }
 
+  /*
+    Trilho de 1,5px: progresso é filete, não barra. O botão continua largo
+    porque quem arrasta está de pé, no escuro — a área de toque é o input
+    inteiro, de 48px de altura.
+  */
   .ed-faixa::-webkit-slider-runnable-track {
     height: 1.5px;
     background: var(--trilho);
