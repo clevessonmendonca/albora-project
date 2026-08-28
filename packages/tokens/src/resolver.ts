@@ -41,21 +41,7 @@ function canonicalize(tokens: Tokens): Tokens {
   };
 }
 
-/**
- * O resolvedor. Um só, para todos os renderizadores — web, nativo, telão,
- * SVG de impressão e moldura de compartilhamento (ADR 0003).
- *
- * Nenhum renderizador implementa o seu. Se dois implementarem, a identidade
- * do casal propaga num e não no outro, e a placa impressa deixa de combinar
- * com o telão — que é a coerência que o produto vende.
- *
- * Cadeia: marca → vendor → pack → evento. O evento ganha porque é a
- * identidade de quem pagou; o fornecedor (branding do canal B2B2C, quando o
- * evento tem `vendor_id`) entra entre a marca e o vertical.
- *
- * Camadas ainda podem trazer `fundo: "claro"|"escuro"` de JSON antigo; a
- * saída é sempre `background: "light"|"dark"`.
- */
+/** Um resolvedor para todos os renderizadores (ADR 0003) — cadeia marca → vendor → pack → evento; dois resolvedores fazem a placa impressa deixar de combinar com o telão. */
 export function resolveTokens(input: ResolutionInput): Tokens {
   const layers = [input.vendor, input.pack, input.evento].filter(
     (layer): layer is TokenLayer => layer !== undefined,
@@ -74,15 +60,7 @@ export function resolveTokens(input: ResolutionInput): Tokens {
   );
 }
 
-/**
- * A escala que o componente consome, já resolvida para o chão escolhido.
- *
- * **Trocar o chão re-deriva o acento.** Não é trocar uma cor, é trocar um
- * conjunto: o mesmo âmbar que é seguro sobre noite reprova contraste sobre
- * papel, e deixar o casal escolher a cor sem re-derivar entregaria uma
- * interface ilegível às 22h num salão escuro. A validação é trabalho do
- * sistema, nunca escolha de quem paga.
- */
+/** Escala resolvida para o chão — trocar o chão re-deriva o acento (âmbar seguro sobre noite reprova sobre papel); validação é do sistema, nunca escolha do casal. */
 export function resolveScale(tokens: Tokens): SemanticScale {
   return escalaDoFundo(tokens.cores, canonicalize(tokens).background);
 }

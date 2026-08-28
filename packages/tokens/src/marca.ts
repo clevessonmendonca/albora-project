@@ -1,14 +1,6 @@
 import type { Tokens } from "./types";
 
-/**
- * O piso da cadeia. Um evento sem identidade nenhuma resolve para isto, e o
- * resultado precisa ser um produto apresentável — não um placeholder.
- *
- * Os valores são os de `brand/LEIA-ME.md` — o pacote de marca é o artefato
- * produzido, e é a ele que os 46 SVGs obedecem. Se divergirem, a placa
- * impressa deixa de combinar com o telão, que é a coerência que o produto
- * vende — e a divergência entra por aqui, não por outro lugar.
- */
+/** Piso da cadeia (brand/LEIA-ME.md) — os 46 SVGs obedecem a este artefato; divergência aqui faz a placa não combinar com o telão. */
 export const ALBORA_BRAND: Tokens = {
   cores: {
     papel: "#F4F0E9",

@@ -1,12 +1,4 @@
-/**
- * Contraste, calculado — não conferido no olho.
- *
- * O `DESIGN.md` §2 diz que trocar o chão **re-deriva o acento**, e que essa
- * validação é trabalho do sistema, nunca escolha do casal. Um casal pode
- * escolher qualquer cor; a que ele escolheu pode ser ilegível sobre o chão que
- * ele escolheu. Quem resolve isso é este arquivo, uma vez, para todos os
- * renderizadores.
- */
+/** Contraste calculado (DESIGN.md §2): trocar o chão re-deriva o acento — validação é do sistema, não da escolha do casal. */
 
 export type Rgb = { r: number; g: number; b: number };
 
@@ -69,16 +61,7 @@ function misturar(cor: Rgb, alvo: Rgb, t: number): Rgb {
   };
 }
 
-/**
- * `base` coberta por `tom` com opacidade `t`, achatado em hex opaco.
- *
- * É a operação que o `DESIGN.md` §2 chama de "todo neutro é opacidade". Vem
- * achatada porque superfície precisa ser opaca — elevação sai da cor, não de
- * sombra, e sombra sobre foto de festa suja a imagem.
- *
- * Devolve `base` intacta quando algum lado não é hex: neutro errado é feio,
- * neutro ausente é tela em branco.
- */
+/** `base` coberta por `tom` com opacidade `t`, achatado em hex opaco — sombra sobre foto de festa suja; devolve `base` quando hex inválido: neutro errado é feio, ausente é tela em branco. */
 export function misturarHex(base: string, tom: string, t: number): string {
   const a = lerHex(base);
   const b = lerHex(tom);
@@ -87,27 +70,7 @@ export function misturarHex(base: string, tom: string, t: number): string {
   return paraHex(misturar(a, b, t));
 }
 
-/**
- * Devolve a cor mais próxima da original que alcança contraste de texto sobre
- * o fundo dado. Escurece sobre fundo claro, clareia sobre fundo escuro.
- *
- * "Mais próxima" é a regra inteira: puxar direto para preto passaria no
- * contraste e apagaria a cor do casal, que é justamente o que o produto
- * promete propagar. Caminha em passos pequenos e para no primeiro que serve.
- *
- * Devolve a cor original quando ela não é hex válido — validação de entrada é
- * de quem recebe o dado do casal, e falhar aqui apagaria a identidade inteira
- * por causa de um campo malformado.
- */
-/**
- * O rótulo que vai **em cima** de um preenchimento — o inverso de
- * `acentoLegivelSobre`, que resolve a cor do acento contra o chão.
- *
- * Existe porque o botão de acento não tem resposta óbvia: sobre o âmbar da
- * marca, `papel` dá 2,6:1 e o branco dá 3,0:1 — os dois reprovam, e os dois
- * parecem certos numa captura de tela. Escolhe entre os candidatos por
- * contraste medido e, se nenhum servir, caminha o melhor até servir.
- */
+/** Rótulo sobre preenchimento de acento — sobre âmbar, papel dá 2,6:1 e branco dá 3,0:1, ambos reprovam; escolhe por contraste medido e caminha o melhor até servir. */
 export function textoSobre(preenchimento: string, ...candidatos: string[]): string {
   const chao = lerHex(preenchimento);
   const cores = candidatos.map(lerHex).filter((c): c is Rgb => c !== null);

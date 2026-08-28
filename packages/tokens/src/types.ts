@@ -1,13 +1,4 @@
-/**
- * As cinco cores. Não seis.
- *
- * Todo neutro do produto é opacidade sobre `papel` ou `noite` — nunca uma
- * rampa de cinza derivada. Rampa derivada perde a temperatura da paleta a cada
- * passo, e três telas depois a interface virou cinza de produto.
- *
- * `tinta` e `noite` são coisas diferentes e o erro de tratá-las como uma só é
- * visível: `tinta` é texto sobre claro, `noite` é o chão escuro do convidado.
- */
+/** Cinco cores — neutros são opacidade sobre `papel`/`noite`, nunca rampa de cinza (que perde temperatura a cada passo); `tinta` é texto, `noite` é chão escuro. */
 export type Colors = {
   papel: string;
   tinta: string;
@@ -26,25 +17,16 @@ export type Fonts = {
 export type Scale = {
   /** O raio padrão. Card, campo, botão retangular. */
   raio: string;
-  /**
-   * Pílula. É a forma dominante da identidade — na landing dos designers ela
-   * aparece 22 vezes contra 6 do raio de card. Botão, chip e selo usam esta.
-   */
+  /** Pílula — forma dominante (22 × landing vs 6 do card); botão, chip e selo usam esta. */
   raioPilula: string;
-  /**
-   * Superfície grande. Cresce com a tela: num celular um raio de 48px comeria
-   * a foto, e num telão um de 28px some.
-   */
+  /** Superfície grande — cresce com a tela; 48px num celular come a foto, 28px num telão some. */
   raioSuperficie: string;
   /** Mídia — foto e vídeo no card do feed do convidado. */
   raioMedia: string;
   espaco: string;
 };
 
-/**
- * Uma curva, três durações. A landing usa exatamente isso, e é o que faz o
- * conjunto parecer uma coisa só em vez de nove animações independentes.
- */
+/** Uma curva, três durações — é o que faz o conjunto parecer uma coisa só em vez de nove animações independentes. */
 export type Motion = {
   curva: string;
   rapido: string;
@@ -52,11 +34,7 @@ export type Motion = {
   lento: string;
 };
 
-/**
- * Tracking muda de sinal com o tamanho: título grande fecha, rótulo pequeno
- * abre. É a diferença entre tipografia ajustada e tipografia padrão do
- * navegador — e ela aparece antes de qualquer outra coisa.
- */
+/** Tracking muda de sinal com o tamanho — título grande fecha, rótulo pequeno abre; diferença entre tipografia ajustada e padrão do navegador. */
 export type Tracking = {
   titulo: string;
   rotulo: string;
@@ -76,14 +54,7 @@ export type Tokens = {
   background: Background;
 };
 
-/**
- * O que os componentes de fato consomem.
- *
- * Existe para que nenhuma tela precise decidir "quanto de opacidade num texto
- * secundário" — essa decisão é do sistema, e tomada uma vez. Componente que
- * escolhe o próprio neutro é o mesmo defeito que componente com hex literal,
- * só que invisível para o guard.
- */
+/** O que os componentes consomem — nenhum decide "quanto de opacidade no texto secundário"; componente que escolhe o próprio neutro é o mesmo defeito que hex literal, invisível ao guard. */
 export type SemanticScale = {
   /** Fundo de página. */
   bg: string;
@@ -103,10 +74,7 @@ export type SemanticScale = {
   acento: string;
   /** O único seguro para texto em qualquer chão. */
   acentoTexto: string;
-  /**
-   * Rótulo **sobre** o preenchimento de acento. É o outro lado de
-   * `acentoTexto`, e não é o `bg`: sobre âmbar, papel reprova contraste.
-   */
+  /** Rótulo sobre preenchimento de acento — não é `bg`: sobre âmbar, papel reprova contraste. */
   sobreAcento: string;
   critico: string;
 };
@@ -126,11 +94,7 @@ export type TokenLayer = {
 export type ResolutionInput = {
   /** A marca Albora. Piso da cadeia, sempre presente. */
   marca: Tokens;
-  /**
-   * O fornecedor (branding do canal B2B2C) — só entra quando `events.vendor_id`
-   * existe. Fica entre `marca` e `pack`: perde para o vertical e para o
-   * evento, ganha do piso Albora.
-   */
+  /** Fornecedor (B2B2C): só quando `events.vendor_id` existe; entre `marca` e `pack` — perde para o vertical e o evento, ganha do piso Albora. */
   vendor?: TokenLayer;
   /** O vertical — casamento, 15 anos, formatura. */
   pack?: TokenLayer;

@@ -1,18 +1,6 @@
 import type { TokenLayer } from "./types";
 
-/**
- * Os modelos de identidade que a Albora oferece pronto.
- *
- * Cada um é uma `CamadaTokens` de evento, não um tema paralelo — é a mesma
- * camada que o casal sobrescreve depois no admin. Isso mantém a promessa do
- * [ADR 0003]: um resolvedor, N renderizadores. Um "tema da landing" separado
- * seria a segunda implementação que o ADR proíbe.
- *
- * A landing dos designers já tratava identidade como **cinco decisões**, não
- * uma paleta: cor, fonte, raio, densidade e tracking. "Meia-noite" e "Jardim"
- * usam raios de 2px e 999px e espaços de 18px e 30px — trocar só a cor entre
- * os dois não produziria nem de longe a mesma diferença.
- */
+/** Modelos prontos como `TokenLayer` — mesma camada que o casal sobrescreve no admin (ADR 0003); identidade são cinco decisões (cor, fonte, raio, densidade, tracking), não uma paleta. */
 export type ModeloDeIdentidade = {
   id: string;
   nome: string;

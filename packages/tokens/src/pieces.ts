@@ -1,18 +1,7 @@
 import { contraste, lerHex } from "./cor";
 import type { Colors } from "./types";
 
-/**
- * As regras da peça impressa (spec 009).
- *
- * Vivem aqui e não no `core` por um motivo só: a regra central é *"a
- * identidade colore a peça, nunca o código"*, e decidir isso exige a mesma
- * matemática de contraste que já resolve o texto. Duplicá-la no `core` criaria
- * o segundo resolvedor que o ADR 0003 existe para impedir — e a divergência
- * apareceria em papel, depois de impresso.
- *
- * Nada aqui desenha. São medidas e recusas: quem desenha é o pipeline
- * SVG → PDF. Uma peça vetorial cabe no request; raster a 300 dpi iria para fila.
- */
+/** Regras da peça impressa (spec 009): identidade colore, nunca o código; duplicar a matemática de contraste no `core` criaria o segundo resolvedor que o ADR 0003 proíbe. */
 
 /** Sangria: o corte da gráfica nunca cai exatamente na linha. */
 export const BLEED_MM = 3;
@@ -20,22 +9,10 @@ export const BLEED_MM = 3;
 /** Área de segurança: nada de conteúdo entre a borda e esta margem. */
 export const SAFE_AREA_MM = 5;
 
-/**
- * O menor QR que sobrevive à festa.
- *
- * O papel vai ser dobrado, molhado e fotografado tremido de 40 cm, com a luz
- * do salão. Abaixo disto o gerador **recusa**: recusar na geração é barato, e
- * descobrir na festa é irreversível.
- */
+/** Menor QR que sobrevive ao papel dobrado, molhado e fotografado tremido — recusar na geração é barato; descobrir na festa é irreversível. */
 export const QR_MIN_MM = 30;
 
-/**
- * O contraste que o código exige, acima do que o texto exige.
- *
- * 4.5 é o limiar de leitura humana; o sensor de um celular velho em luz baixa
- * é pior que o olho. 7 é a margem que separa "escaneia na tela" de "escaneia
- * no papel", que é o modo de falha que a spec chama de mais caro do produto.
- */
+/** Contraste mínimo do QR — 4.5 é leitura humana; 7 separa "escaneia na tela" de "escaneia no papel" (modo de falha mais caro do produto). */
 export const QR_CONTRAST_RATIO = 7;
 
 /** Preto e branco absolutos. O último recurso quando a identidade não dá conta. */
@@ -76,21 +53,11 @@ export type QrInk = {
   modulo: string;
   /** O fundo, incluindo a zona de silêncio. */
   fundo: string;
-  /**
-   * `true` quando a identidade do evento não alcançou o contraste e a peça
-   * caiu para preto sobre branco. O admin avisa; ninguém descobre no papel.
-   */
+  /** `true` quando a identidade não alcançou o contraste e recuou para preto sobre branco — o admin avisa antes de imprimir. */
   recuouParaAbsoluto: boolean;
 };
 
-/**
- * A tinta do código.
- *
- * Tenta vestir o QR com as cores do evento — tinta ou noite sobre papel — e
- * **recua para preto sobre branco** quando elas não alcançam o contraste.
- * Âmbar sobre noite é lindo no preview e não escaneia em luz baixa; a
- * identidade colore a moldura, o texto e o fundo da peça, nunca o código.
- */
+/** Tinta do código — veste com cores do evento, recua para preto sobre branco quando não alcança contraste; âmbar sobre noite não escaneia em luz baixa. */
 export function qrInk(colors: Colors): QrInk {
   const background = colors.papel;
   const light = lerHex(background);
@@ -128,13 +95,7 @@ export type PieceLayout = {
   margem: number;
 };
 
-/**
- * Vazio quando a peça pode ir para a gráfica.
- *
- * Mesma convenção de `problemasDoPack`: cada string é um defeito, e a lista
- * vazia é a aprovação. O chamador decide se bloqueia o download ou só avisa —
- * mas ninguém gera um PDF sem passar por aqui.
- */
+/** Lista vazia = aprovada para a gráfica; cada string é um defeito — ninguém gera PDF sem passar por aqui. */
 export function pieceProblems(layout: PieceLayout, colors: Colors): string[] {
   const problems: string[] = [];
   const measures = pieceMeasures(layout.formato);
@@ -171,13 +132,7 @@ export function pieceProblems(layout: PieceLayout, colors: Colors): string[] {
   return problems;
 }
 
-/**
- * O aviso de cor, dado **antes** do download.
- *
- * A tela é RGB e a gráfica é CMYK; o âmbar sempre sai mais apagado no papel.
- * Avisar antes é expectativa e avisar depois é reclamação — por isso isto é
- * uma função no contrato, e não uma nota de rodapé que alguém esquece de pôr.
- */
+/** Aviso RGB→CMYK antes do download — avisar depois é reclamação; está no contrato para ninguém esquecer de expor. */
 export function colorWarning(colors: Colors): string {
   return `A tela mostra RGB e a gráfica imprime CMYK: ${colors.acento} vai sair um pouco mais apagado no papel. Peça uma prova impressa antes da tiragem inteira.`;
 }

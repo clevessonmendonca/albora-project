@@ -16,11 +16,7 @@ export type GuestThemeInput = {
   background?: Background | undefined;
 };
 
-/**
- * Resolve a cadeia marca → vendor → pack → evento para CSS variables.
- * Usado pela web (`eventVars`) e pelo Expo (`event-theme` nativo) — um só
- * resolvedor, dois renderizadores (ADR 0003).
- */
+/** Cadeia marca → vendor → pack → evento para CSS variables — um resolvedor, dois renderizadores (ADR 0003). */
 export function resolveGuestThemeVariables(input: GuestThemeInput): Record<string, string> {
   const identityLayer = input.identityTokens as TokenLayer;
   const hasIdentityLayer = Object.keys(input.identityTokens).length > 0;

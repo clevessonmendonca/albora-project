@@ -1,13 +1,7 @@
 import { resolveScale } from "./resolver";
 import type { Tokens } from "./types";
 
-/**
- * Um formato de saída, dois consumidores.
- *
- * A web injeta como custom properties; o React Native lê o mesmo objeto via
- * NativeWind. É o que mantém o ADR 0003 de pé com duas superfícies: se cada
- * lado tivesse o seu formato, seriam dois temas com um nome só.
- */
+/** Um formato, dois consumidores (web + NativeWind) — formatos separados seriam dois temas com um nome, quebrando o ADR 0003. */
 export function toVariables(tokens: Tokens): Record<string, string> {
   const scale = resolveScale(tokens);
 

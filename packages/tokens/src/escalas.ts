@@ -1,23 +1,9 @@
 import { acentoLegivelSobre, misturarHex, textoSobre } from "./cor";
 import type { Background, Colors, SemanticScale } from "./types";
 
-/**
- * A escala **derivada** das cinco cores, nunca uma lista de hexes.
- *
- * Lista fixa parece equivalente e não é: ela fica calibrada para a base do dia
- * em que foi escrita. Quando o chão mudou de `#14100E` para `#0C0A09`, uma
- * lista fixa teria continuado a devolver superfícies clareadas na medida do
- * preto antigo — e o defeito é invisível em revisão, porque cada valor
- * isolado continua parecendo certo.
- *
- * Derivar é o que faz "todo neutro é opacidade" (`DESIGN.md` §2) ser verdade
- * mecânica em vez de promessa.
- */
+/** Escala derivada das cinco cores — lista fixa fica calibrada para o chão do dia em que foi escrita; derivar é o que faz "todo neutro é opacidade" ser verdade mecânica. */
 
-/**
- * As opacidades da rampa, medidas a partir da escala publicada no `DESIGN.md`
- * §2. São a proporção, não a cor — é o que sobrevive à troca de base.
- */
+/** Opacidades da rampa (DESIGN.md §2): são proporção, não cor — sobrevivem à troca de base. */
 const RAMPA = {
   superficie: 0.045,
   superficieAlta: 0.095,
@@ -28,22 +14,7 @@ const RAMPA = {
 
 const BRANCO = "#FFFFFF";
 
-/**
- * O chão escuro não é o `noite` cru.
- *
- * `noite` é o extremo da marca, e extremo é fim de escala, não superfície de
- * leitura: um app inteiro em `#0C0A09` lê como buraco preto, some a
- * profundidade entre página e card e faz a cor do evento não aparecer em
- * lugar nenhum — o casal escolheu uma cor e o preto absoluto engole todas.
- *
- * O `claro()` já fazia isto: a página é `sobre(0.03)` e não o papel puro. Aqui
- * a assimetria era acidente, não decisão. Levantar o chão em 9% da distância
- * até o papel dá um cinza **quente**, porque quem clareia é o papel do evento,
- * e não um cinza neutro colado por fora.
- *
- * A rampa continua sendo a mesma do `DESIGN.md` §2 — ela passa a ser medida
- * **a partir do chão**, que é o que "elevação" sempre quis dizer.
- */
+/** Chão escuro não é `noite` cru — `noite` é extremo de escala; levantar 9% dá cinza quente (clareia com o papel do evento, não cinza neutro) e a rampa mede a partir daqui. */
 const CHAO_ESCURO = 0.09;
 
 function escuro(c: Colors): SemanticScale {
