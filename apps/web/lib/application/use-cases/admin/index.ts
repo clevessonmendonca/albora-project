@@ -144,3 +144,10 @@ export {
   type GenerateBookPdfInput,
   type GenerateBookPdfResult,
 } from "./generate-book-pdf";
+
+export {
+  generatePrintPieces,
+  type GeneratePrintPiecesInput,
+  type GeneratePrintPiecesResult,
+  type PrintPieceRequest,
+} from "./generate-print-pieces";

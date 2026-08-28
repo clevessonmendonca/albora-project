@@ -1,10 +1,3 @@
-import { withAccount, withEvent, listChallenges, recordProductEvent } from "@albora/db";
-import { PACKS } from "@albora/packs";
-import {
-  ALBORA_BRAND,
-  resolveTokens,
-  type TokenLayer,
-} from "@albora/tokens";
 import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
@@ -14,65 +7,10 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
-import { generatePiecePdf } from "@/lib/generate-piece-pdf";
-import { generatePieceSvg } from "@/lib/generate-piece-svg";
-import { packPrintPieces, PRINT_FORMATS } from "@/lib/pack-print-pieces";
 import { parsePiecesQuery, PIECE_TYPES } from "@/lib/parse-pieces-query";
-import { missionTitlesForPrint } from "@/lib/piece-missions";
-import { identityToFrame } from "@/lib/frame-identity";
-import { eventEntryUrl } from "@/lib/qr";
+import { PRINT_FORMATS } from "@/lib/pack-print-pieces";
 import { consume } from "@/lib/rate-limit-store";
-
-async function tokensDoEvento(
-  accountId: string,
-  eventId: string,
-): Promise<{
-  slug: string;
-  packId: string;
-  comecaEm: Date;
-  identityTokens: Record<string, unknown>;
-} | null> {
-  return withAccount(getPool(), accountId, async (c) => {
-    const { rows } = await c.query<{
-      slug: string;
-      pack_id: string;
-      starts_at: Date;
-      identity_tokens: unknown;
-    }>("SELECT slug, pack_id, starts_at, identity_tokens FROM events WHERE id = $1", [eventId]);
-    const linha = rows[0];
-    if (!linha) return null;
-    return {
-      slug: linha.slug,
-      packId: linha.pack_id,
-      comecaEm: linha.starts_at,
-      identityTokens: (linha.identity_tokens ?? {}) as Record<string, unknown>,
-    };
-  });
-}
-
-function pieceFile(
-  body: BodyInit,
-  contentType: string,
-  filename: string,
-  avisos: string[],
-): Response {
-  return new Response(body, {
-    status: 200,
-    headers: {
-      "content-type": contentType,
-      "cache-control": "no-store",
-      "content-disposition": `attachment; filename="${filename}"`,
-      "x-albora-avisos": encodeURIComponent(JSON.stringify(avisos)),
-    },
-  });
-}
-
-function invalidPiece(problemas: string[], avisos: string[]): Response {
-  return errorResponse(422, "peca.invalida", "Esta peça não passa na validação", {
-    problemas,
-    avisos,
-  });
-}
+import { generatePrintPieces, type PrintPieceRequest } from "@/lib/application/use-cases/admin";
 
 /** Gera peça impressa (SVG, PDF ou ZIP) com sangria, QR nível H e URL legível — `tipo=pdf` é vetorial, dezenas de KB, não raster 300dpi. */
 export async function GET(
@@ -106,98 +44,45 @@ export async function GET(
   }
 
   try {
-    const [dados, desafios] = await Promise.all([
-      tokensDoEvento(auth.host.accountId, eventId),
-      withEvent(getPool(), eventId, (c) => listChallenges(c, eventId, null)),
-    ]);
-    if (!dados) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
+    const request: PrintPieceRequest = 
+      pedido.kind === "zip"
+        ? { kind: "zip", includeSvg: pedido.includeSvg }
+        : { kind: "single", tipo: pedido.tipo, formato: pedido.formato };
 
-    const pack = PACKS[dados.packId];
-    const tokens = resolveTokens({
-      marca: ALBORA_BRAND,
-      ...(pack ? { pack: pack.tokens } : {}),
-      evento: dados.identityTokens as TokenLayer,
-    });
-
-    const identidade = identityToFrame(
-      dados.slug,
-      dados.comecaEm,
-      dados.identityTokens,
-      pack,
-    );
-
-    const origem = url.origin;
-    const base = {
-      urlQr: eventEntryUrl(origem, dados.slug, "qr"),
-      urlLegivel: `${url.host}/e/${dados.slug}`,
-      monograma: identidade.monograma,
-      titulo: identidade.titulo,
-      data: identidade.data,
-      cores: tokens.cores,
-      missoes: missionTitlesForPrint(
-        pack,
-        desafios.map((d) => d.chaveTitulo).filter((k): k is string => k !== null),
-      ),
-    };
-
-    if (pedido.kind === "zip") {
-      const resultado = await packPrintPieces(base, {
-        slug: dados.slug,
-        includeSvg: pedido.includeSvg,
-      });
-      if (resultado.problemas.length > 0) return invalidPiece(resultado.problemas, resultado.avisos);
-      
-      void recordProductEvent(getPool(), "qr_downloaded");
-      
-      console.log("admin.pecas_zip", {
+    const resultado = await generatePrintPieces(
+      {
         accountId: auth.host.accountId,
         eventId,
-        arquivos: resultado.arquivos,
-      });
-      return pieceFile(
-        Buffer.from(resultado.zip),
-        "application/zip",
-        `albora-${dados.slug}-pecas.zip`,
-        resultado.avisos,
+        pedido: request,
+        origin: url.origin,
+        host: url.host,
+      },
+      getPool(),
+    );
+
+    if (!resultado.ok) {
+      return errorResponse(
+        422,
+        resultado.code,
+        resultado.message,
+        resultado.details,
       );
     }
 
-    const entrada = { ...base, formato: pedido.formato };
+    const body = 
+      resultado.kind === "zip" ? Buffer.from(resultado.zip) :
+      resultado.kind === "pdf" ? Buffer.from(resultado.pdf) :
+      resultado.svg;
 
-    if (pedido.tipo === "pdf") {
-      const resultado = await generatePiecePdf(entrada);
-      if (resultado.problemas.length > 0) return invalidPiece(resultado.problemas, resultado.avisos);
-      
-      void recordProductEvent(getPool(), "qr_downloaded");
-      
-      console.log("admin.peca_gerada", {
-        accountId: auth.host.accountId,
-        eventId,
-        formato: pedido.formato,
-        tipo: pedido.tipo,
-      });
-      return pieceFile(
-        Buffer.from(resultado.pdf),
-        "application/pdf",
-        `albora-${dados.slug}-${pedido.formato}.pdf`,
-        resultado.avisos,
-      );
-    }
-
-    const resultado = await generatePieceSvg(entrada);
-    if (resultado.problemas.length > 0) return invalidPiece(resultado.problemas, resultado.avisos);
-    console.log("admin.peca_gerada", {
-      accountId: auth.host.accountId,
-      eventId,
-      formato: pedido.formato,
-      tipo: pedido.tipo,
+    return new Response(body, {
+      status: 200,
+      headers: {
+        "content-type": resultado.contentType,
+        "cache-control": "no-store",
+        "content-disposition": `attachment; filename="${resultado.filename}"`,
+        "x-albora-avisos": encodeURIComponent(JSON.stringify(resultado.avisos)),
+      },
     });
-    return pieceFile(
-      resultado.svg,
-      "image/svg+xml; charset=utf-8",
-      `albora-${dados.slug}-${pedido.formato}.svg`,
-      resultado.avisos,
-    );
   } catch (e) {
     return unexpectedError("admin.pecas", e);
   }
