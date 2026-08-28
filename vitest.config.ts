@@ -24,7 +24,7 @@ export default defineConfig({
     // Forçar inline dos pacotes monorepo para evitar "Unexpected token 'export'"
     server: {
       deps: {
-        inline: ["@albora/core", "@albora/db", "@albora/packs"],
+        inline: ["@albora/core", "@albora/db", "@albora/packs", "zod"],
       },
     },
     // Dois projetos, dois environments: lógica pura roda em node (rápido,

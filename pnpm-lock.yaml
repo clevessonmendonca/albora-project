@@ -240,6 +240,9 @@ importers:
       react-dom:
         specifier: ^19.1.1
         version: 19.2.8(react@19.2.8)
+      zod:
+        specifier: ^4.5.1
+        version: 4.5.1
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260426.1
@@ -7245,6 +7248,9 @@ packages:
 
   zod@4.4.3:
     resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+
+  zod@4.5.1:
+    resolution: {integrity: sha512-P3GqeAEOEDqKvafVGLezbg+39YW/ze4xrD4qdS0adOY8eoI3zfjv1PQM4UwQzgT8mZKXEbqtVt8K+ZKGqkMFKg==}
 
 snapshots:
 
@@ -15217,3 +15223,5 @@ snapshots:
       zod: 4.4.3
 
   zod@4.4.3: {}
+
+  zod@4.5.1: {}
