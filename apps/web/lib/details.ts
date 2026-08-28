@@ -1,37 +1,20 @@
 import { instanteDaParedeNoFuso } from "@albora/core";
 import { isValidPlace, PACKS } from "@albora/packs";
 
-/**
- * Normalização de legenda e lugar, num lugar só.
- *
- * Os dois campos entram por duas portas — junto do `confirm` e pela rota de
- * anotação — e uma normalização diferente em cada porta seria a mesma coisa
- * que não ter nenhuma.
- */
+/** Normalização de legenda e lugar em um lugar só — entram por `confirm` e pela rota de anotação; normalização diferente em cada porta = nenhuma. */
 
 export const MAX_CAPTION = 280;
 
-/**
- * Devolve `null` para qualquer coisa que não seja texto com conteúdo.
- *
- * `null` é o sinal de "não mexe": o `COALESCE` do UPDATE preserva o que já
- * estava lá, e é isso que permite anotar só o lugar sem apagar a legenda.
- */
+/** `null` = "não mexe": o `COALESCE` do UPDATE preserva o que estava — permite anotar só o lugar sem apagar a legenda. */
 export function cleanCaption(valor: unknown): string | null {
   if (typeof valor !== "string") return null;
 
-  // Controles fora — a legenda vai para o telão, e caractere de controle
-  // projetado numa parede é bug de layout na frente de 150 pessoas.
   const limpa = valor.replace(/[\p{Cc}\p{Cf}]/gu, " ").trim().slice(0, MAX_CAPTION);
 
   return limpa.length > 0 ? limpa : null;
 }
 
-/**
- * Conjunto fechado, resolvido pelo pack do evento — nunca pelo que o cliente
- * mandou. É o que impede uma coordenada de entrar pela porta da frente depois
- * de o EXIF ter sido removido no cliente (N6.9).
- */
+/** Conjunto fechado resolvido pelo pack — impede coordenada entrar pela porta da frente depois do EXIF removido no cliente (N6.9). */
 export function acceptedPlace(packId: string | null, valor: unknown): string | null {
   if (typeof valor !== "string" || !packId) return null;
 
@@ -45,13 +28,7 @@ const ANO_MIN = 1990;
 const ANO_MAX = 2100;
 const LADO_MAX = 20_000;
 
-/**
- * Instante declarado pelo cliente, lido do EXIF **antes** do reencode.
- *
- * O servidor não relê o arquivo: o GPS já saiu. Confere só que é uma data
- * real dentro de um século plausível; a janela do evento o núcleo do álbum
- * aplica, caindo no `created_at` quando o relógio do aparelho mentiu.
- */
+/** Instante declarado do EXIF (pré-reencode): só valida data plausível (1990–2100) — janela do evento o álbum aplica; relógio mentido cai no `created_at`. */
 export function acceptedTakenAt(valor: unknown): Date | null {
   if (typeof valor !== "string" || valor.length < 10 || valor.length > 40) return null;
 
@@ -64,20 +41,14 @@ export function acceptedTakenAt(valor: unknown): Date | null {
   return em;
 }
 
-/**
- * Parede do EXIF no IANA do evento. O cliente manda os componentes da câmera
- * como UTC; daqui sai o instante absoluto que o álbum agrupa.
- */
+/** Converte parede EXIF do cliente (UTC da câmera) para o fuso IANA do evento — instante absoluto que o álbum agrupa. */
 export function acceptedTakenAtInTimeZone(valor: unknown, fuso: string): Date | null {
   const parede = acceptedTakenAt(valor);
   if (!parede) return null;
   return instanteDaParedeNoFuso(parede, fuso);
 }
 
-/**
- * Par de dimensões já em pé. Um lado só não serve — misturar largura real
- * com altura padrão vira paisagem no slot de retrato e corta cabeça.
- */
+/** Par de dimensões ambos válidos — um lado só misturaria largura real com altura padrão e viraria paisagem no slot de retrato. */
 export function acceptedSize(largura: unknown, altura: unknown): {
   width: number;
   height: number;

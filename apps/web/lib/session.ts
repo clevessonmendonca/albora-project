@@ -5,13 +5,7 @@ import { config } from "./config";
 
 export { GUEST_SESSION_COOKIE };
 
-/**
- * O token vive em cookie `HttpOnly`, e **nunca na URL**.
- *
- * Na URL ele vaza por referer, histórico, print de tela e no grupo do
- * WhatsApp — que é literalmente o segundo canal de distribuição do evento.
- * O guard `sessao` do CI reprova querystring com token.
- */
+/** Token em cookie `HttpOnly`, nunca na URL — na URL vaza por referer, histórico e print; `sessao` guard do CI reprova querystring com token. */
 export function sessionCookieHeader(token: string, durationHours: number): string {
   const attrs = [
     `${GUEST_SESSION_COOKIE}=${token}`,
@@ -39,11 +33,7 @@ export function tokenFromRequest(req: Request): string | null {
   return null;
 }
 
-/**
- * Resolve a sessão da requisição. Devolve `null` quando não há sessão válida
- * — quem chama decide o status, porque "sem cookie" e "token inválido" têm a
- * mesma resposta para o cliente e significados diferentes no log.
- */
+/** Resolve a sessão da requisição; `null` quando inválida — quem chama decide o status, "sem cookie" e "token inválido" têm a mesma resposta mas significados diferentes no log. */
 export async function guestSessionFromRequest(req: Request): Promise<SessaoResolvida | null> {
   const token = tokenFromRequest(req);
   if (!token) return null;
@@ -55,13 +45,7 @@ export async function guestSessionFromRequest(req: Request): Promise<SessaoResol
   }
 }
 
-/**
- * A mesma resolução, a partir do cookie já lido pelo servidor.
- *
- * Existe para o componente de servidor, que não recebe `Request`. Uma segunda
- * forma de ler o token seria uma segunda chance de errar — por isso as duas
- * terminam em `resolveSession`.
- */
+/** Mesma resolução a partir do cookie já lido (componente de servidor não recebe `Request`); as duas terminam em `resolveSession` — uma forma de ler = uma chance de errar. */
 export async function guestSessionFromToken(
   token: string | undefined,
 ): Promise<SessaoResolvida | null> {

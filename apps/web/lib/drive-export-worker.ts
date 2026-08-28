@@ -20,10 +20,7 @@ export type DriveExportWorkerDeps = {
   onPronto?: (ctx: { eventId: string; job: JobExport; total: number }) => Promise<void>;
 };
 
-/**
- * Um tick de processamento do job `enviando` — chamado pelo runner cron ou em
- * background no dev server. Retorna `true` se o job fechou neste tick.
- */
+/** Um tick do job `enviando`: chamado pelo runner cron ou dev server em background; retorna `true` se fechou neste tick. */
 export async function processDriveExportJob(
   pool: Pool,
   eventId: string,

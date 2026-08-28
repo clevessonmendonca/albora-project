@@ -1,16 +1,7 @@
 import type { JobExport } from "@albora/db";
 import { ErroDriveApi, type DriveClient } from "./drive-client";
 
-/**
- * O laço de upload em si (spec drive-export §5.2/§7) — dependências
- * injetadas (`DriveClient`, leitor de bytes, marcador de progresso) para
- * ficar testável sem rede nem banco. Roda em série, um arquivo por vez —
- * mesma razão da drenagem em série do convidado (`architecture.md` §5.4):
- * é a cota de escrita do Drive por usuário, paralelismo só multiplica 403.
- *
- * `avancarExportDrive` processa um tick (até `ITENS_POR_TICK_DRIVE` itens);
- * o runner `tools/jobs/drive-export.mjs` retoma jobs `enviando` até fechar.
- */
+/** Laço de upload para Drive (spec §5.2/§7): dependências injetadas para ficar testável; série por vez — paralelismo multiplica 403 na cota do Drive. */
 
 const EXTENSAO: Record<string, string> = {
   "image/jpeg": ".jpg",
@@ -53,10 +44,7 @@ export async function executarExportDrive(
   return { estado, enviadas, total, quotaEsgotada };
 }
 
-/**
- * Um tick do export — processa até `maxItens` pendentes e para. O runner
- * (ou o dev server em background) chama de novo até `concluido`.
- */
+/** Um tick do export: processa até `maxItens` pendentes e para — runner chama de novo até `concluido`. */
 export async function avancarExportDrive(
   job: Pick<JobExport, "itens" | "driveFolderId">,
   driveClient: DriveClient,

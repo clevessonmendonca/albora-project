@@ -1,12 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-/**
- * `driveConfig()` é lazy de propósito (CLAUDE.md, instrução do mantenedor):
- * as chaves do Drive chegam depois, e ambientes sem uso de Drive não podem
- * quebrar no boot por falta delas. O contrato que importa: falta de env
- * nunca vira um default inseguro, sempre `ConfigError` — e só no primeiro
- * uso da rota, nunca em `config()` global.
- */
+/** `driveConfig()` é lazy: chaves chegam depois do boot; falta de env → `ConfigError` no primeiro uso da rota, nunca default inseguro, nunca em `config()` global. */
 const VARS = [
   "DRIVE_OAUTH_CLIENT_ID",
   "DRIVE_OAUTH_CLIENT_SECRET",

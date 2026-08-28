@@ -1,13 +1,6 @@
 import type { TextoComposto } from "@albora/core";
 
-/**
- * O texto do composer (spec 020, sub-etapa a), desenhado num canvas 2D.
- *
- * Uma função só, dois chamadores: a prévia do editor (`EditorCanvas`, no
- * mesmo `<canvas>` que já aplica o LUT) e a foto final (`webDrawer.compor`,
- * na mesma passagem de cor de `processarFoto`). Divergir as duas seria a
- * story mostrar uma posição na prévia e sair com outra no álbum.
- */
+/** Texto do composer (spec 020a) em canvas 2D: uma função para prévia e foto final — divergir as duas mostraria posição errada no álbum. */
 
 type Ctx2d = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
 
@@ -24,12 +17,7 @@ const COR_TOKEN = "--ink";
 const CONTORNO_TOKEN = "--bg";
 const FONTE_TOKEN = "--fonte-titulo";
 
-/**
- * Lê o valor **já resolvido** dos tokens do evento no `:root` — o mesmo valor
- * que o resto da superfície do convidado usa via `var(--ink)` em CSS. O
- * canvas 2D não entende `var()`; isto é o equivalente em JS do que o CSS já
- * faz sozinho, não um segundo resolvedor de tokens (ADR 0003, um só).
- */
+/** Lê tokens já resolvidos no `:root` — canvas 2D não entende `var()`; equivale ao que o CSS faz, não é um segundo resolvedor (ADR 0003). */
 export function estiloTextoDoStory(
   raiz: HTMLElement = document.documentElement,
 ): EstiloTextoDoStory {
@@ -48,12 +36,7 @@ const LARGURA_MAXIMA_FRACAO = 0.86;
 const ALTURA_LINHA_FRACAO = 1.22;
 const CONTORNO_FRACAO = 0.08;
 
-/**
- * Quebra em linhas que cabem em `larguraMaxima`, palavra a palavra.
- *
- * Uma palavra sozinha maior que a largura não é cortada — sai numa linha só,
- * mais larga: cortar no meio da palavra é pior que deixar vazar.
- */
+/** Quebra em linhas que cabem em `larguraMaxima`; palavra única maior que a largura sai numa linha só — cortar no meio é pior que vazar. */
 export function quebrarLinhas(ctx: Ctx2d, conteudo: string, larguraMaxima: number): string[] {
   const palavras = conteudo.trim().split(/\s+/);
   const linhas: string[] = [];
@@ -73,19 +56,7 @@ export function quebrarLinhas(ctx: Ctx2d, conteudo: string, larguraMaxima: numbe
   return linhas;
 }
 
-/**
- * Desenha o texto do composer sobre o que já está no canvas — a foto, já
- * com o LUT aplicado (ou a prévia dela).
- *
- * `texto.x`/`texto.y` são o centro do bloco de texto, fração 0–1 de
- * `largura`/`altura`; `texto.tamanho` é a fonte, fração 0–1 de `largura`. As
- * três são resolução-independentes de propósito: a mesma story vale para a
- * prévia de 1000 px e para a foto em tamanho de subida sem recálculo.
- *
- * Contorno mais preenchimento, sem sombra: legível sobre qualquer foto —
- * clara, escura, texturada — sem depender de a foto combinar com o tema do
- * evento, que é o problema que o Instagram resolve do mesmo jeito.
- */
+/** Desenha texto sobre o canvas (foto + LUT); coordenadas são frações 0–1 de largura/altura — resolução-independentes. Contorno + preenchimento, sem sombra: legível sobre qualquer foto. */
 export function desenharTextoNoContexto(
   ctx: Ctx2d,
   largura: number,

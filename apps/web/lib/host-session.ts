@@ -2,14 +2,7 @@ import { resolverHostSessao, type HostResolvida } from "@albora/db";
 import { getPool } from "./db";
 import { config } from "./config";
 
-/**
- * A sessão do anfitrião, do lado da rota (spec 009).
- *
- * Cookie `HttpOnly` `albora_host`, **nunca** na URL — como a do convidado, e
- * pelo mesmo guard. É outra credencial: resolve `account_id` (a camada de
- * conta), não `event_id`. Um cookie separado com nome próprio para que a sessão
- * de host e a de convidado nunca se confundam no mesmo navegador.
- */
+/** Sessão do anfitrião: cookie HttpOnly `albora_host`, nunca na URL; resolve `account_id`, não `event_id` — nome próprio para não confundir com a sessão do convidado. */
 
 export const HOST_COOKIE = "albora_host";
 

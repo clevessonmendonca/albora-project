@@ -1,20 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { desenharTextoNoContexto, estiloTextoDoStory, quebrarLinhas } from "./story-text";
 
-/**
- * `.test.tsx` de propósito, sem JSX nenhum: as asserções de estilo dependem
- * de `document`/`getComputedStyle`, e é a extensão — não o conteúdo — que
- * decide o environment jsdom nesta suíte (`vitest.config.ts`).
- */
+/** `.test.tsx` (sem JSX): extensão ativa jsdom em `vitest.config.ts` — asserções de estilo precisam de `document`/`getComputedStyle`. */
 
 const ESTILO = { cor: "rgb(250,250,248)", contorno: "rgb(10,10,12)", fonte: "Sans" };
 
-/**
- * Contexto 2D falso: mede "1 pixel por caractere" e registra as chamadas de
- * desenho, sem depender de canvas real. Não prova pixel — prova a ordem e os
- * números, que é o que quebra aqui (posição errada, contorno antes do
- * preenchimento na ordem errada, quebra de linha que vaza).
- */
+/** Contexto 2D falso (1px/char): registra chamadas sem canvas real — prova ordem e posições, não pixels. */
 function ctxFalso() {
   const chamadas: string[] = [];
   const ctx = {
