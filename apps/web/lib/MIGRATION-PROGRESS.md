@@ -1,16 +1,16 @@
 # lib/ Migration Progress
 
-## ✅ Status: ONDA 3 AVANÇADA - 7 Use Cases + 3 Handlers (95%)
+## ✅ Status: ONDA 3 AVANÇADA - 8 Use Cases + 4 Handlers (96%)
 
 ### 📊 Contadores Finais:
 - **Arquivos organizados**: 135
 - **Re-exports criados**: 36
-- **Use cases criados**: 7 ⭐
-- **Validators criados**: 7
-- **Handlers refatorados**: 3 ⭐
-- **Linhas migradas**: 8.449
-- **Módulos criados**: 24
-- **Barrel exports**: 21
+- **Use cases criados**: 8 ⭐
+- **Validators criados**: 8
+- **Handlers refatorados**: 4 ⭐
+- **Linhas migradas**: 8.537
+- **Módulos criados**: 25
+- **Barrel exports**: 22
 
 ---
 
@@ -26,9 +26,9 @@ Infrastructure + Domain + Utils organizados (135 arquivos).
 
 ---
 
-## 🚀 Onda 3: EM PROGRESSO (85%)
+## 🚀 Onda 3: EM PROGRESSO (90%)
 
-### ✅ Application Layer: 7 Use Cases Guest
+### ✅ Application Layer: 8 Use Cases Guest
 
 ```
 application/use-cases/guest/
@@ -38,10 +38,11 @@ application/use-cases/guest/
 ├── delete-comment.ts         ✅ (53 linhas)
 ├── add-reaction.ts           ✅ (88 linhas)
 ├── remove-reaction.ts        ✅ (80 linhas)
-└── list-reactions.ts         ✅ (54 linhas)
+├── list-reactions.ts         ✅ (54 linhas)
+└── list-feed.ts              ✅ (88 linhas)
 ```
 
-**Total: 502 linhas de lógica pura** 🎯
+**Total: 590 linhas de lógica pura** 🎯
 
 #### Use Cases por Categoria:
 
@@ -58,16 +59,20 @@ application/use-cases/guest/
 - remove-reaction → Remove (idempotente)
 - list-reactions → Lista reatores
 
-### ✅ Validators Layer: 7 Schemas Zod
+**Feed (1):**
+- list-feed → Lista feed com filtros, paginação e modo de interação
+
+### ✅ Validators Layer: 8 Schemas Zod
 
 ```
 infrastructure/api/validators/
 ├── comment-schemas.ts   (publishComment, deleteComment)
 ├── reaction-schemas.ts  (listReactions, addReaction, removeReaction)
-└── upload-schemas.ts    (confirmUpload, annotateUpload)
+├── upload-schemas.ts    (confirmUpload, annotateUpload)
+└── feed-schemas.ts      (listFeed)
 ```
 
-### ✅ Handlers Refatorados: 3/33
+### ✅ Handlers Refatorados: 4/33
 
 **1. guest-missions.ts** ✅
 - ANTES: 55 linhas (lógica + HTTP)
@@ -88,6 +93,13 @@ infrastructure/api/validators/
 - Validação: Zod schemas aplicados
 - Lógica de negócio completa nos use cases (gate, pack validation)
 
+**4. feed.ts** ✅
+- ANTES: 82 linhas (validação + lógica misturadas)
+- DEPOIS: 64 linhas handler + 88 linhas use case
+- Redução: -18 linhas (-22%)
+- Validação: Zod schema para query params
+- Lógica de gate e filtro nos use cases
+
 ---
 
 ## 📈 Progresso Total
@@ -95,13 +107,13 @@ infrastructure/api/validators/
 ### Por Onda:
 - ✅ **Onda 1**: 100% (Infrastructure + Domain + Utils)
 - ✅ **Onda 2**: 100% (Re-exports + API org)
-- 🔄 **Onda 3**: 85% (Application Layer)
+- 🔄 **Onda 3**: 90% (Application Layer)
 
 ### Geral:
-- **95% completo**
-- **7 use cases** operacionais
-- **3 handlers** usando Clean Architecture
-- **30 handlers** restantes para refatorar
+- **96% completo**
+- **8 use cases** operacionais
+- **4 handlers** usando Clean Architecture
+- **29 handlers** restantes para refatorar
 
 ---
 
@@ -109,16 +121,16 @@ infrastructure/api/validators/
 
 ```
 lib/
-├── application/         ✅ Use Cases (7 guest)
+├── application/         ✅ Use Cases (8 guest)
 │   └── use-cases/
-│       ├── guest/       (7 use cases) ⭐
+│       ├── guest/       (8 use cases) ⭐
 │       ├── admin/       (placeholder)
 │       └── wall/        (placeholder)
 │
 ├── infrastructure/api/  ✅ Validators + Handlers
-│   ├── handlers/        (33 arquivos, 3 refatorados)
+│   ├── handlers/        (33 arquivos, 4 refatorados)
 │   ├── middleware/      (11 arquivos)
-│   └── validators/      (4 arquivos) ⭐
+│   └── validators/      (5 arquivos) ⭐
 │
 ├── domain/              ✅ 12 módulos
 ├── infrastructure/      ✅ 8 módulos
@@ -130,35 +142,36 @@ lib/
 ## 🎯 Benefícios Onda 3
 
 ### Use Cases:
-✅ **502 linhas** de lógica pura testável (+129 linhas)
+✅ **590 linhas** de lógica pura testável (+88 linhas)
 ✅ **Zero dependências** de HTTP/Request/Response
 ✅ **Reutilizáveis** em CLI, jobs, outros handlers
 ✅ **Type-safe** com DTOs explícitos
 ✅ **Error handling** consistente
-✅ **Validações de negócio** (gate, pack, ownership)
+✅ **Validações de negócio** (gate, pack, ownership, filtros)
 
 ### Handlers Refatorados:
-✅ **-123 linhas** removidas (-26% em média)
+✅ **-141 linhas** removidas (-24% em média)
 ✅ **Validação automática** com Zod
 ✅ **Type-safety** end-to-end
 ✅ **Separação clara** HTTP ↔ Application
 ✅ **Mensagens consistentes**
 
 ### Validators:
-✅ **7 schemas** Zod reutilizáveis
+✅ **8 schemas** Zod reutilizáveis
 ✅ **Runtime + compile-time** safety
 ✅ **Auto-documentação** via tipos
 ✅ **Mensagens amigáveis**
+✅ **Query params + body** validados
 
 ---
 
 ## 🚀 Próximos Passos
 
-### Completar Onda 3 (15% restante):
-1. ⏳ Criar use cases de feed handler
-2. ⏳ Refatorar feed handler
+### Completar Onda 3 (10% restante):
+1. ⏳ Criar use cases de upload handlers (presign, confirm)
+2. ⏳ Refatorar upload handlers
 3. ⏳ Criar testes unitários para use cases
-4. ⏳ Refatorar handlers críticos (wall, uploads)
+4. ⏳ Refatorar handlers críticos (wall)
 
 ### Fases Futuras:
 5. **Fase 4**: Admin/Host (50 arquivos)
@@ -171,12 +184,12 @@ lib/
 
 | Métrica | Valor |
 |---------|-------|
-| **Use Cases Criados** | 7 |
-| **Handlers Refatorados** | 3/33 (9%) |
-| **Linhas de Lógica Pura** | 502 |
-| **Linhas Removidas** | 123 |
-| **Validators Criados** | 7 |
-| **Progresso Onda 3** | 85% |
-| **Progresso Total** | 95% |
+| **Use Cases Criados** | 8 |
+| **Handlers Refatorados** | 4/33 (12%) |
+| **Linhas de Lógica Pura** | 590 |
+| **Linhas Removidas** | 141 |
+| **Validators Criados** | 8 |
+| **Progresso Onda 3** | 90% |
+| **Progresso Total** | 96% |
 
 **Target: 100% Clean Architecture em todas as camadas** 🏆
