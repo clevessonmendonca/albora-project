@@ -125,3 +125,16 @@ export {
   type GetCoverImageInput,
   type GetCoverImageOutput,
 } from "./get-cover-image-url";
+
+export {
+  createOrResumeDriveExport,
+  type CreateDriveExportInput,
+  type CreateDriveExportResult,
+  type DriveExportJobScreen,
+} from "./create-drive-export";
+
+export {
+  getLatestDriveExport,
+  type GetDriveExportInput,
+  type GetDriveExportOutput,
+} from "./get-drive-export";
