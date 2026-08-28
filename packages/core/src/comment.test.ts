@@ -91,8 +91,7 @@ describe("o gate manda no comentário", () => {
   });
 
   it("no instante exato da abertura já publica", () => {
-    // Fronteira do gate: `>=`, não `>`. Um horário fixo de 22:00 que só abre
-    // às 22:00:01 é o tipo de defeito que ninguém vê e todo mundo sente.
+    // Fronteira do gate: `>=`, não `>`. Um horário fixo de 22:00 que só abre às 22:00:01 é o tipo de defeito que ninguém vê e todo mundo sente.
     const naHora: EventoDoComentario = { id: "evt_1", interacaoAbreEm: AGORA };
 
     expect(publicarComentario(pedido(), naHora, [], AGORA).ok).toBe(true);
@@ -101,16 +100,14 @@ describe("o gate manda no comentário", () => {
 
 describe("isolamento entre eventos", () => {
   it("sessão de outro evento é recusada", () => {
-    // Verificação 7. Aqui é a mesma regra que o banco cobra sob RLS: o que
-    // este teste impede é a rota confiar no `eventoId` que veio no corpo.
+    // Verificação 7. Aqui é a mesma regra que o banco cobra sob RLS: o que este teste impede é a rota confiar no `eventoId` que veio no corpo.
     expect(
       publicarComentario(pedido({ eventoId: "evt_2" }), ABERTO, [], AGORA),
     ).toEqual({ ok: false, codigo: "comentario.outro_evento" });
   });
 
   it("o evento errado é recusado antes de olhar o gate", () => {
-    // Se a ordem invertesse, quem está de fora descobriria pelo código de erro
-    // se a interação daquele evento já abriu.
+    // Se a ordem invertesse, quem está de fora descobriria pelo código de erro se a interação daquele evento já abriu.
     expect(
       publicarComentario(pedido({ eventoId: "evt_2" }), FECHADO, [], AGORA).ok,
     ).toBe(false);
@@ -233,8 +230,7 @@ describe("thread com um nível", () => {
   });
 
   it("responder a comentário de outra foto ou de outro evento dá o mesmo código", () => {
-    // Códigos distintos responderiam, para quem tentasse ids no escuro, se um
-    // id alheio existe em algum lugar.
+    // Códigos distintos responderiam, para quem tentasse ids no escuro, se um id alheio existe em algum lugar.
     const outraFoto = comentario({ id: "cmt_x", midiaId: "mid_2" });
     const outroEvento = comentario({ id: "cmt_y", eventoId: "evt_2" });
 
@@ -312,8 +308,7 @@ describe("quem remove", () => {
   });
 
   it("anfitrião de outro evento não remove nada", () => {
-    // Sem esta checagem, o papel de anfitrião atravessaria a fronteira do
-    // evento e apagaria comentário da festa de outro casal.
+    // Sem esta checagem, o papel de anfitrião atravessaria a fronteira do evento e apagaria comentário da festa de outro casal.
     expect(
       podeRemoverComentario(doAutor, {
         eventoId: "evt_2",
@@ -343,8 +338,7 @@ describe("moderação de comentário é a mesma escada da foto", () => {
   });
 
   it("duas denúncias tiram o comentário da vista", () => {
-    // Verificação 3. É a mesma contagem da foto no telão: uma só entregaria o
-    // silenciamento a qualquer desafeto.
+    // Verificação 3. É a mesma contagem da foto no telão: uma só entregaria o silenciamento a qualquer desafeto.
     expect(
       decidirExibicaoDoComentario(estadoDoComentario({ denuncias: 2 }), estadoDaMidia(), CALMA),
     ).toEqual({ visivel: false, codigo: "moderacao.denuncias" });
@@ -377,8 +371,7 @@ describe("moderação de comentário é a mesma escada da foto", () => {
   });
 
   it("o botão de pânico leva o comentário junto com a foto", () => {
-    // Verificação 5. A escada roda duas vezes, então não existe uma segunda
-    // regra de pânico para esquecer de atualizar quando a primeira mudar.
+    // Verificação 5. A escada roda duas vezes, então não existe uma segunda regra de pânico para esquecer de atualizar quando a primeira mudar.
     expect(
       decidirExibicaoDoComentario(estadoDoComentario(), estadoDaMidia(), {
         ...CALMA,
@@ -420,8 +413,7 @@ describe("moderação de comentário é a mesma escada da foto", () => {
   });
 
   it("comentário liberado em foto que ainda aguarda aprovação não aparece", () => {
-    // O defeito que isto impede é o comentário sobreviver à foto em modo
-    // endurecido: a legenda apareceria sem a imagem que ela legenda.
+    // O defeito que isto impede é o comentário sobreviver à foto em modo endurecido: a legenda apareceria sem a imagem que ela legenda.
     expect(
       decidirExibicaoDoComentario(
         estadoDoComentario({ liberadoPeloAnfitriao: true }),
@@ -432,8 +424,7 @@ describe("moderação de comentário é a mesma escada da foto", () => {
   });
 
   it("remoção e pânico vencem a liberação do anfitrião", () => {
-    // A precedência vem inteira de `decidirExibicao`: se este teste cair, é
-    // porque alguém escreveu uma escada paralela para texto.
+    // A precedência vem inteira de `decidirExibicao`: se este teste cair, é porque alguém escreveu uma escada paralela para texto.
     const liberado = estadoDoComentario({ liberadoPeloAnfitriao: true });
 
     expect(
@@ -445,8 +436,7 @@ describe("moderação de comentário é a mesma escada da foto", () => {
   });
 
   it("modo endurecido segura o comentário mesmo com a foto já aprovada", () => {
-    // Aprovar a imagem não aprova o texto embaixo dela: o anfitrião ligou o
-    // modo endurecido porque algo aconteceu, e o texto é a superfície nova.
+    // Aprovar a imagem não aprova o texto embaixo dela: o anfitrião ligou o modo endurecido porque algo aconteceu, e o texto é a superfície nova.
     expect(
       decidirExibicaoDoComentario(
         estadoDoComentario(),
@@ -457,8 +447,7 @@ describe("moderação de comentário é a mesma escada da foto", () => {
   });
 
   it("foto com classificador mudo não esconde a thread", () => {
-    // A foto pode estar segura do telão por silêncio do classificador; isso é
-    // assunto do telão, e não motivo para sumir com a conversa no app.
+    // A foto pode estar segura do telão por silêncio do classificador; isso é assunto do telão, e não motivo para sumir com a conversa no app.
     expect(
       decidirExibicaoDoComentario(
         estadoDoComentario(),

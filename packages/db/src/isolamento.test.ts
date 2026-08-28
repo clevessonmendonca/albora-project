@@ -35,8 +35,7 @@ beforeAll(async () => {
   app = pools.app;
   agregador = pools.agregador;
   dados = await semear(admin);
-  // Aquecimento: no Neon a primeira consulta acorda o compute, e o timeout
-  // apareceria como falha de isolamento.
+  // Aquecimento: no Neon a primeira consulta acorda o compute, e o timeout apareceria como falha de isolamento.
   await app.query("SELECT 1");
 }, 60_000);
 
@@ -147,8 +146,7 @@ describe("5 — o setting não vaza entre transações da mesma conexão", () =>
       return rows[0].n as number;
     });
 
-    // Sem SET LOCAL, esta segunda transação herdaria o setting da primeira —
-    // que é exatamente o vazamento que o pooling em modo transação causa.
+    // Sem SET LOCAL, esta segunda transação herdaria o setting da primeira — que é exatamente o vazamento que o pooling em modo transação causa.
     const semContexto = await (async () => {
       const c = await soPool.connect();
       try {
@@ -335,8 +333,7 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
     for (const t of rows) {
       if (FORA_DA_RLS.has(t.tabela)) continue;
       expect(t.ativo, `${t.tabela} sem RLS habilitado`).toBe(true);
-      // ENABLE sozinho não vale para o dono da tabela, e a aplicação costuma
-      // conectar como dono. É o FORCE que fecha.
+      // ENABLE sozinho não vale para o dono da tabela, e a aplicação costuma conectar como dono. É o FORCE que fecha.
       expect(t.forcado, `${t.tabela} com RLS habilitado mas não FORÇADO`).toBe(true);
     }
   });
@@ -362,8 +359,7 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
       "SELECT qual::text AS expressao FROM pg_policies WHERE tablename = 'events'",
     );
 
-    // Desde o ADR 0013 há duas políticas em events (evento e conta); basta que
-    // alguma feche por app.event_id.
+    // Desde o ADR 0013 há duas políticas em events (evento e conta); basta que alguma feche por app.event_id.
     expect(rows.some((r) => r.expressao?.includes("app.event_id"))).toBe(true);
   });
 });
@@ -380,8 +376,7 @@ describe("8 — a conta vê os seus eventos, e só os seus (ADR 0013)", () => {
   });
 
   it("o caminho de evento não abre nada pela política de conta", async () => {
-    // O convidado seta app.event_id, não app.account_id: a política de conta
-    // vira account_id = NULL e não soma nada. Vê um evento, o do contexto.
+    // O convidado seta app.event_id, não app.account_id: a política de conta vira account_id = NULL e não soma nada. Vê um evento, o do contexto.
     const vistos = await comEvento(app, dados.a.eventoId, async (c) => {
       const { rows } = await c.query<{ n: number }>("SELECT count(*)::int AS n FROM events");
       return rows[0]!.n;
@@ -512,8 +507,7 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
   it("a checagem de pertencimento roda sob RLS normal — bloqueia ANTES de auditar", async () => {
     const registros: { motivo: string; em: Date }[] = [];
 
-    // dados.b.contaId é dono do evento B, mas não é vendor_members de X: a
-    // primeira porta recusa antes de o agregador entrar em cena.
+    // dados.b.contaId é dono do evento B, mas não é vendor_members de X: a primeira porta recusa antes de o agregador entrar em cena.
     await expect(
       eventosDoFornecedor(app, agregador, dados.b.contaId, vendorXId, (r) => registros.push(r)),
     ).rejects.toBeInstanceOf(ErroSemAcessoAoFornecedor);
@@ -551,8 +545,7 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
     );
     expect(semFiltro).toEqual(expect.arrayContaining([vendorXId, vendorYId]));
 
-    // eventosDoFornecedor, atrás do mesmo papel, nunca devolve isso: está
-    // fechado por vendor_id = $1 com $1 já confirmado na primeira porta.
+    // eventosDoFornecedor, atrás do mesmo papel, nunca devolve isso: está fechado por vendor_id = $1 com $1 já confirmado na primeira porta.
     const doX = await eventosDoFornecedor(app, agregador, membroXId, vendorXId, () => {});
     expect(doX.every((e) => e.id !== dados.b.eventoId)).toBe(true);
   });

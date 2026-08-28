@@ -70,8 +70,7 @@ export function planProcessing(input: {
 
   return {
     full,
-    // A miniatura sai do alvo já reduzido, não do original: reprocessar o
-    // original dobraria o pico de memória no aparelho mais fraco.
+    // A miniatura sai do alvo já reduzido, não do original: reprocessar o original dobraria o pico de memória no aparelho mais fraco.
     thumb: thumbTarget(full.width, full.height),
     quality: QUALITY,
   };

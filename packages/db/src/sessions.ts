@@ -36,8 +36,7 @@ export async function criarSessao(
     );
     const id = rows[0]!.id;
 
-    // Mesma transação: um token sem sessão, ou uma sessão sem token, seria um
-    // convidado que consentiu e não consegue subir foto.
+    // Mesma transação: um token sem sessão, ou uma sessão sem token, seria um convidado que consentiu e não consegue subir foto.
     await c.query(
       `INSERT INTO session_tokens (token_hash, event_id, session_id, expires_at)
        VALUES ($1, $2, $3, now() + make_interval(hours => $4))`,

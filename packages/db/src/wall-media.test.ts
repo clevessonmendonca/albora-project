@@ -37,8 +37,7 @@ describe("a parede lê só o evento do crachá", () => {
   });
 
   it("mesmo pedindo o id do outro evento, a RLS não o entrega", async () => {
-    // Passar o event_id de B para uma transação escopada em A não pode furar a
-    // política: o filtro no SQL e a RLS concordam, e o resultado é vazio.
+    // Passar o event_id de B para transação escopada em A não fura a política — filtro SQL e RLS concordam, resultado é vazio.
     const cruzado = await comEvento(app, dados.a.eventoId, (c) =>
       listarMidiaDaParede(c, dados.b.eventoId),
     );

@@ -182,8 +182,7 @@ describe("transformação a aplicar nos pixels", () => {
   });
 
   it("as quatro orientações espelhadas são tratadas", () => {
-    // Ignorá-las produz a foto invertida — num casamento, a aliança na mão
-    // errada.
+    // Ignorá-las produz a foto invertida — num casamento, a aliança na mão errada.
     for (const o of [2, 4, 5, 7] as Orientacao[]) {
       expect(transformacaoParaOrientacao(o).espelhar).toBe(true);
     }

@@ -115,8 +115,7 @@ describe("o feed de um evento nunca enxerga foto de outro", () => {
   });
 
   it("cursor forjado com o instante de uma foto do outro evento não a alcança", async () => {
-    // O cursor é opaco, mas nada impede o cliente de montar um. Ele desloca a
-    // janela e não escolhe o evento — quem escolhe é a política de RLS.
+    // O cursor é opaco, mas nada impede o cliente de montar um. Ele desloca a janela e não escolhe o evento — quem escolhe é a política de RLS.
     const cursor = codificarCursor("2031-01-01 00:00:00+00", dados.b.uploadId);
     const pagina = await feedDe(dados.a, { cursor });
 
@@ -153,8 +152,7 @@ describe("o feed lê exatamente o que a moderação liberou", () => {
     const antes = await feedDe(dados.a);
     expect(antes.itens.map((i) => i.id)).toContain(foto);
 
-    // É o botão de pânico: uma coluna, uma escrita, e o feed acompanha sem
-    // saber que ele existe.
+    // É o botão de pânico: uma coluna, uma escrita, e o feed acompanha sem saber que ele existe.
     await admin.query("UPDATE uploads SET state = 'removida' WHERE id = $1", [foto]);
 
     const depois = await feedDe(dados.a);
@@ -553,8 +551,7 @@ describe("paginação por cursor", () => {
 
     expect(new Set(vistos).size).toBe(vistos.length);
     expect(vistos).toEqual([...originais].reverse());
-    // Ela nasceu acima do cursor: aparece ao recarregar do topo, nunca no meio
-    // da rolagem que já passou por ali.
+    // Ela nasceu acima do cursor: aparece ao recarregar do topo, nunca no meio da rolagem que já passou por ali.
     expect(vistos).not.toContain(intrusa);
   });
 

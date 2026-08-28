@@ -168,15 +168,13 @@ export function aplicarPorPixel(
     const g = dados[p + 1] ?? 0;
     const b = dados[p + 2] ?? 0;
 
-    // O grão de filme é mais visível nos médios: nas sombras o preto o come,
-    // nas altas a luz o apaga.
+    // O grão de filme é mais visível nos médios: nas sombras o preto o come, nas altas a luz o apaga.
     const pesoDosMedios = 1 - Math.abs(luminancia(r, g, b) * 2 - 1);
     const grao = ruido(i) * FORCA_DO_GRAO * pesoDosMedios;
     const halo = (halacao[i] ?? 0) * FORCA_DA_HALACAO * 255;
     const verde = VIES_VERDE * pesoDosMedios * 255;
 
-    // A halação de filme é quente: vaza no vermelho e no verde, quase nada no
-    // azul. Vazar igual nos três daria véu cinza, não luz.
+    // A halação de filme é quente: vaza no vermelho e no verde, quase nada no azul. Vazar igual nos três daria véu cinza, não luz.
     dados[p] = misturar(r, curva(r) + grao + halo, forca);
     dados[p + 1] = misturar(g, curva(g) + grao + halo * 0.62 + verde, forca);
     dados[p + 2] = misturar(b, curva(b) + grao + halo * 0.18, forca);
