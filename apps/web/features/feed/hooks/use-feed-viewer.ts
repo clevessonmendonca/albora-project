@@ -12,6 +12,7 @@ import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
  * - Gerencia navegação entre fotos
  * - Marca grupos como vistos
  * - Controla overflow do body quando viewer está aberto
+ * - Salva e restaura posição do scroll com smooth scroll (respeitando prefers-reduced-motion)
  */
 
 type Aberto = { inicio: number; itemId: string };
@@ -26,6 +27,7 @@ export function useFeedViewer(grupos: HourGroup<ItemVisivel>[]) {
   const [aberto, setAberto] = useState<Aberto | null>(null);
   const [preparando, setPreparando] = useState<number | null>(null);
   const [vistos, setVistos] = useState<ReadonlySet<number>>(() => new Set());
+  const scrollSalvo = useRef<number | null>(null);
 
   const grupoAberto = aberto
     ? grupos.find((g) => g.inicio.getTime() === aberto.inicio)
@@ -36,6 +38,8 @@ export function useFeedViewer(grupos: HourGroup<ItemVisivel>[]) {
   const indiceAtual = achado >= 0 ? achado : 0;
 
   const abrir = useCallback((grupo: HourGroup<ItemVisivel>) => {
+    scrollSalvo.current = window.scrollY;
+    
     const inicio = grupo.inicio.getTime();
     const primeiro = grupo.itens[0];
 
@@ -48,7 +52,18 @@ export function useFeedViewer(grupos: HourGroup<ItemVisivel>[]) {
     }
   }, []);
 
-  const fechar = useCallback(() => setAberto(null), []);
+  const fechar = useCallback(() => {
+    setAberto(null);
+    
+    if (scrollSalvo.current !== null) {
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({ 
+        top: scrollSalvo.current, 
+        behavior: prefersReducedMotion ? "auto" : "smooth"
+      });
+      scrollSalvo.current = null;
+    }
+  }, []);
 
   const navegarPara = useCallback(
     (indice: number) => {
