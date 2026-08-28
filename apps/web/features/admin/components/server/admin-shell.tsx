@@ -4,11 +4,7 @@ import { cva } from "@albora/ui-web";
 import Link from "next/link";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
-/**
- * O admin é superfície clara por padrão (DESIGN.md §2: admin é papel, não
- * noite) — a marca resolve para `dark` porque é o chão do convidado, então o
- * default aqui precisa sobrescrever, não herdar.
- */
+/** Admin é superfície clara — a marca resolve `dark` (chão do convidado), então o default aqui sobrescreve. */
 export function adminVars(background: Background = "light"): CSSProperties {
   return toVariables(
     resolveTokens({ marca: ALBORA_BRAND, pack: { background } }),
@@ -71,7 +67,6 @@ export function AdminCard({
   return <section className={adminCardVariants({ variant, className })}>{children}</section>;
 }
 
-/** Alias de `AdminCard` variant default — migração dos consumidores é outra task. */
 export function AdminSection({ children }: { children: ReactNode }) {
   return <AdminCard>{children}</AdminCard>;
 }
