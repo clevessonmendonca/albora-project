@@ -1,8 +1,2 @@
-/**
- * A tag do Background Sync (N6.2).
- *
- * Mora num arquivo próprio porque tem dois donos que nunca se importam: a aba
- * registra, o Service Worker ouve. Duas cópias da string seriam uma drenagem
- * que nunca dispara, sem erro nenhum em lugar nenhum.
- */
+/** Tag do Background Sync (N6.2) — arquivo próprio porque a aba registra e o SW ouve; duas cópias seriam drenagem que nunca dispara. */
 export const TAG_DRENAGEM = "albora-drenar-fila";

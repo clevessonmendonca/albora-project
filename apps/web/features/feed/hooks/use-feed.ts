@@ -236,13 +236,7 @@ export async function buscarPagina(missaoId: string | null, cursor: string | nul
   };
 }
 
-/**
- * O código de erro da resposta, quando o corpo é JSON e o traz.
- *
- * Exportado porque `use-author-feed.ts` lê a mesma forma de resposta de
- * `/api/guests/:id` e ramifica no mesmo `code` — duplicar esta função
- * divergiria no primeiro ajuste feito de um lado só.
- */
+/** Exportada porque `use-author-feed.ts` lê `/api/guests/:id` com a mesma forma e ramifica no mesmo `code` — duplicar divergiria. */
 export async function codigoDoErro(res: Response): Promise<string | null> {
   try {
     const corpo = (await res.json()) as { code?: string };
@@ -252,23 +246,13 @@ export async function codigoDoErro(res: Response): Promise<string | null> {
   }
 }
 
-/**
- * Uma tentativa a cada meio minuto renova o que isExpired sem virar tráfego de fundo.
- *
- * Exportada porque `use-author-feed.ts` renova URLs assinadas no mesmo ritmo —
- * duplicar o valor divergiria no primeiro ajuste feito de um lado só.
- */
+/** Exportada porque `use-author-feed.ts` renova URLs assinadas no mesmo ritmo — duplicar o valor divergiria. */
 export const INTERVALO_DE_RENOVACAO_MS = 30_000;
 
 /** Enquanto o gate está fechado, confere se a interação abriu (spec 007). */
 const INTERVALO_DO_GATE_MS = 30_000;
 
-/**
- * Mescla a primeira página do servidor no topo do feed.
- *
- * Fotos retiradas por pânico ou moderação somem da janela recente sem
- * reiniciar a rolagem inteira — o convidado só perde o que o telão já perdeu.
- */
+/** Mescla a primeira página do servidor no topo do feed; fotos retiradas somem sem reiniciar a rolagem — convidado só perde o que o telão já perdeu. */
 export function sincronizarTopo(estado: EstadoFeed, pagina: PaginaVisivel): EstadoFeed {
   if (pagina.itens.length === 0) return { ...estado, interacao: pagina.interacao };
 
@@ -302,15 +286,7 @@ export function useFeed(missaoId: string | null) {
   const ultimoLote = useRef("");
   const refazer = useRef(false);
 
-  /**
-   * A janela do visualizador em tela cheia, pedida pela tela em vez de recebida
-   * por parâmetro: ela é derivada dos itens que este mesmo gancho devolve, e
-   * passá-la de volta como argumento fecharia um ciclo em cima do render.
-   *
-   * A assinatura mora no estado para reabrir o efeito; a lista mora numa ref
-   * porque o relógio de renovação vive dentro dele — sem isso, o tique de 30s
-   * continuaria pedindo a janela de uma foto que a pessoa já passou.
-   */
+  /** Janela do visualizador em tela cheia: pedida pela tela (não parâmetro) — seria ciclo; assinatura no estado reabre efeito; lista em ref para o relógio não pedir janela antiga. */
   const [janela, setJanela] = useState("");
   const janelaViva = useRef<readonly string[]>([]);
 

@@ -3,15 +3,7 @@ import { webQueue } from "../lib/queue";
 import { webTransport } from "../lib/transport";
 import { TAG_DRENAGEM } from "./tag";
 
-/**
- * O Service Worker do convidado. Compilado por `scripts/construir-sw.mjs`.
- *
- * A sequência presign → PUT → confirm **não** é reescrita aqui: `drain`, a
- * fila e o transporte são exatamente os que a aba usa (ADR 0010). Escrever o
- * laço de novo em JS solto seria uma segunda fonte da verdade, e o sintoma da
- * divergência seria foto que sobe com a aba aberta e some com a aba fechada —
- * que é justamente o caso que a N6.2 existe para cobrir.
- */
+/** SW do convidado (scripts/construir-sw.mjs) — drain/fila/transporte são os mesmos da aba (ADR 0010); reescrever seria segunda fonte da verdade. */
 
 declare const __VERSAO_SW__: string;
 
@@ -22,11 +14,7 @@ type EventoDeBusca = EventoComEspera & {
   respondWith(resposta: Response | Promise<Response>): void;
 };
 
-/**
- * O escopo global do Service Worker não existe em `lib.dom`, e trocar a lib do
- * app inteiro para `webworker` quebraria todo o resto de `apps/web`. Declarado
- * aqui só a superfície que este arquivo usa.
- */
+/** Escopo global do SW não existe em `lib.dom`; trocar para `webworker` quebraria todo o app — declarado aqui só o que este arquivo usa. */
 interface EscopoDoServiceWorker {
   readonly location: { readonly origin: string };
   readonly clients: { claim(): Promise<void> };
@@ -144,11 +132,7 @@ async function redePrimeiro(requisicao: Request): Promise<Response> {
   }
 }
 
-/**
- * Guarda uma cópia sem segurar a resposta: `cache.put` só resolve quando o
- * corpo inteiro chegou, e aguardá-lo atrasaria a navegação pelo tempo do
- * download completo.
- */
+/** Guarda sem aguardar: `cache.put` só resolve quando o corpo inteiro chegou — aguardá-lo atrasaria a navegação pelo tempo do download. */
 function guardar(nomeDoCache: string, requisicao: Request, resposta: Response): void {
   if (!resposta.ok || resposta.type !== "basic") return;
 
