@@ -1,24 +1,26 @@
 # Onda 4 Migration Progress
 
-## ✅ Status: ONDA 4 AVANÇADA - 4 Use Cases + 4 Handlers (25%)
+## ✅ Status: ONDA 4 AVANÇADA - 6 Use Cases + 5 Handlers (40%)
 
 ### 📊 Contadores Atuais:
-- **Use cases admin criados**: 2
+- **Use cases admin criados**: 4
 - **Use cases wall criados**: 2
-- **Validators criados**: 1 (wall)
-- **Handlers refatorados**: 4
-- **Linhas de use cases**: 239
-- **Linhas de validators**: 24
+- **Validators criados**: 2 (1 admin + 1 wall)
+- **Handlers refatorados**: 5
+- **Linhas de use cases**: 351
+- **Linhas de validators**: 40
 
 ---
 
 ## ✅ Use Cases Criados
 
-### Admin (2):
+### Admin (4):
 ```
 application/use-cases/admin/
 ├── list-admin-vendors.ts      ✅ (40 linhas)
-└── get-event-insights.ts      ✅ (68 linhas)
+├── get-event-insights.ts      ✅ (68 linhas)
+├── get-event-music.ts         ✅ (38 linhas)
+└── set-event-music.ts         ✅ (74 linhas)
 ```
 
 ### Wall (2):
@@ -32,15 +34,21 @@ application/use-cases/wall/
 
 ## ✅ Validators Criados
 
+### Admin (1):
+```
+infrastructure/api/validators/
+└── admin-schemas.ts           ✅ (16 linhas - setMusicSchema)
+```
+
 ### Wall (1):
 ```
 infrastructure/api/validators/
-└── wall-schemas.ts            ✅ (24 linhas)
+└── wall-schemas.ts            ✅ (24 linhas - authorizeWallSchema)
 ```
 
 ---
 
-## ✅ Handlers Refatorados: 4
+## ✅ Handlers Refatorados: 5
 
 **1. admin-vendors.ts** ✅
 - ANTES: 25 linhas
@@ -52,12 +60,17 @@ infrastructure/api/validators/
 - DEPOIS: 42 linhas (-10, -19%)
 - Lógica extraída: 68 linhas
 
-**3. wall-panic.ts** ✅
+**3. admin-music.ts** ✅
+- ANTES: 113 linhas (GET + PUT)
+- DEPOIS: 99 linhas (-14, -12%)
+- Lógica extraída: 112 linhas (2 use cases)
+
+**4. wall-panic.ts** ✅
 - ANTES: 35 linhas
 - DEPOIS: 44 linhas (+9)
 - Lógica extraída: 42 linhas
 
-**4. wall-authorize.ts** ✅
+**5. wall-authorize.ts** ✅
 - ANTES: 77 linhas
 - DEPOIS: 54 linhas (-23, -30%)
 - Lógica extraída: 89 linhas + 24 validator
@@ -67,46 +80,37 @@ infrastructure/api/validators/
 ## 📈 Progresso Total (Todas as Ondas)
 
 - **Ondas 1-3**: 100% completas
-- **Onda 4**: 25%
-- **Total use cases**: 14 (10 guest + 2 admin + 2 wall)
-- **Total lógica pura**: 1.161 linhas
-- **Total validators**: 9 (8 guest + 1 wall)
-- **Handlers refatorados**: 10/33 (30%)
+- **Onda 4**: 40%
+- **Total use cases**: 16 (10 guest + 4 admin + 2 wall)
+- **Total lógica pura**: 1.273 linhas
+- **Total validators**: 10 (8 guest + 1 admin + 1 wall)
+- **Handlers refatorados**: 11/33 (33%)
 
 ---
 
 ## 🎯 Benefícios Onda 4
 
 ### Use Cases:
-✅ **239 linhas** de lógica admin/wall pura
-✅ **Planos validados** no use case (wall-authorize)
-✅ **Error handling** consistente com códigos específicos
+✅ **351 linhas** de lógica admin/wall pura
+✅ **Music link validation** no use case
+✅ **Plan validation** isolada (wall-authorize)
+✅ **Error handling** consistente
 
 ### Handlers:
-✅ **-24 linhas** removidas em média
-✅ **Validação Zod** para wall (pairing code)
-✅ **Separação clara** HTTP ↔ Application
+✅ **-38 linhas** removidas total
+✅ **Validação Zod** para admin e wall
+✅ **GET + PUT** separados em use cases distintos
 
 ---
 
 ## 🚀 Próximos Passos Onda 4
 
-### Handlers Admin Restantes:
-- ⏳ admin-music.ts (113 linhas)
+### Handlers Admin Restantes (3):
 - ⏳ admin-challenges.ts (148 linhas)
 - ⏳ admin-auth.ts (157 linhas)
 - ⏳ admin-guests.ts (161 linhas)
-- ⏳ admin-guestbook.ts (173 linhas)
-- ⏳ admin-events.ts (241 linhas)
 
-### Handlers Wall Restantes:
+### Handlers Wall Restantes (1):
 - ⏳ wall-pair.ts (129 linhas)
 
----
-
-## 🎖️ Meta Onda 4
-
-- **10-15 use cases** admin/wall → 14% alcançado
-- **10-12 handlers** refatorados → 33% alcançado
-- **Validators** para endpoints complexos → 1 criado
-- **Clean Architecture** consolidada em toda API
+**Meta: Completar Onda 4 com 8-10 use cases e 6-8 handlers refatorados**
