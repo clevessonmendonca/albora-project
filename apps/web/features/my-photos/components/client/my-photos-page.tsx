@@ -10,77 +10,36 @@ import { useShare } from "@/features/my-photos/hooks/use-share";
 import { useGallery } from "@/features/my-photos/hooks/use-gallery";
 import { useRecap } from "@/features/my-photos/hooks/use-recap";
 import { useRecapCard } from "@/features/my-photos/hooks/use-recap-card";
+import { useReducedMotion } from "@/features/feed/hooks/use-reduced-motion";
 import { Viewer } from "@/features/feed/components/client/viewer";
 import {
   FloatingNav,
-  PrimaryButton,
   GuestHeader,
   GuestShell,
   EmptyState,
   GuestMain,
   ErrorMessage,
+  Badge,
 } from "@albora/ui-web";
-import { Badge } from "@albora/ui-web";
 import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
 import { RecapSheet } from "@/features/my-photos/components/client/recap-sheet";
 import { RecapCard } from "@/features/my-photos/components/client/recap-card";
 import { ThemeSetting } from "@/features/guest/components/client/theme-setting";
+import {
+  GalleryItem,
+  RecapSection,
+  ColagemSection,
+  RetrySection,
+} from "../ui";
+import { rotuloEstado } from "../../lib/utils";
 
-function rotuloEstado(estado: ItemDaGaleria["estado"]): string {
-  if (estado === "subindo") return "Subindo…";
-  if (estado === "falhou") return "Não subiu";
-  return "";
-}
-
-function MiniaturaMinhas({
-  isVideo,
-  url,
-  urlVideo,
-  pendente,
-}: {
-  isVideo: boolean;
-  url: string | undefined;
-  urlVideo: string | null | undefined;
-  pendente: boolean;
-}) {
-  const cobertura = "block size-full object-cover";
-
-  if (isVideo && pendente && url) {
-    return <video src={url} muted playsInline preload="metadata" className={cobertura} />;
-  }
-
-  if (isVideo && url) {
-    return (
-      <>
-        <img src={url} alt="" loading="lazy" decoding="async" className={cobertura} />
-        <IndicadorVideo />
-      </>
-    );
-  }
-
-  if (isVideo && urlVideo) {
-    return <video src={urlVideo} muted playsInline preload="metadata" className={cobertura} />;
-  }
-
-  if (url) {
-    return <img src={url} alt="" loading="lazy" decoding="async" className={cobertura} />;
-  }
-
-  return <div className="size-full bg-linha" />;
-}
-
-function IndicadorVideo() {
-  return (
-    <span
-      aria-hidden
-      className="pointer-events-none absolute inset-0 grid place-items-center bg-gradient-video-scrim-forte"
-    >
-      <span className="grid size-8 place-items-center rounded-full border border-linha bg-bg-vidro text-xs">
-        ▶
-      </span>
-    </span>
-  );
-}
+type MyPhotosPageProps = {
+  slug: string;
+  eventoId: string;
+  sessaoId: string;
+  cameraPath: string;
+  refToken?: string | null;
+};
 
 export function MyPhotosPage({
   slug,
@@ -88,29 +47,35 @@ export function MyPhotosPage({
   sessaoId,
   cameraPath,
   refToken,
-}: {
-  slug: string;
-  eventoId: string;
-  sessaoId: string;
-  cameraPath: string;
-  refToken?: string | null;
-}) {
+}: MyPhotosPageProps) {
   const base = `/e/${encodeURIComponent(slug)}`;
   const router = useRouter();
+
+  // Core hooks
   const galeria = useGallery(eventoId);
   const compartilhar = useShare(eventoId, sessaoId);
-  const recap = useRecap({ eventoId, sessaoId, slug, itens: galeria.itensVisiveis });
+  const recap = useRecap({
+    eventoId,
+    sessaoId,
+    slug,
+    itens: galeria.itensVisiveis,
+  });
   const recapPessoal = useRecapCard();
+  const movimentoReduzido = useReducedMotion();
+
+  // Local state
   const [locais, setLocais] = useState<Map<string, string>>(new Map());
-  const [mimesLocais, setMimesLocais] = useState<Map<string, string>>(new Map());
+  const [mimesLocais, setMimesLocais] = useState<Map<string, string>>(
+    new Map()
+  );
   const [indiceAberto, setIndiceAberto] = useState<number | null>(null);
-  const movimentoReduzido = usarMovimentoReduzido();
 
   const consentimentoAberto =
     compartilhar.pedindoConsentimento !== null ||
     compartilhar.pedindoColagem !== null ||
     recap.pedindoConsentimento;
 
+  // Setup local preview URLs
   useEffect(() => {
     let cancelado = false;
     const criadas: string[] = [];
@@ -119,6 +84,7 @@ export function MyPhotosPage({
       const fila = await webQueue.list();
       const mapa = new Map<string, string>();
       const mimes = new Map<string, string>();
+
       for (const item of fila) {
         if (item.eventoId !== eventoId) continue;
         if (item.corpo.tipo === "blob") {
@@ -128,6 +94,7 @@ export function MyPhotosPage({
           mimes.set(item.id, item.mime);
         }
       }
+
       if (!cancelado) {
         setLocais(mapa);
         setMimesLocais(mimes);
@@ -140,6 +107,7 @@ export function MyPhotosPage({
     };
   }, [eventoId, galeria.itens]);
 
+  // Derived state
   const resumo = useMemo(() => {
     if (galeria.resumo.subindo > 0) {
       return `${galeria.resumo.enviadas} enviadas · ${galeria.resumo.subindo} subindo`;
@@ -148,16 +116,20 @@ export function MyPhotosPage({
   }, [galeria.resumo]);
 
   const idsFotosEnviadas = useMemo(
-    () => galeria.itens.filter((i) => i.estado === "enviada" && !galeria.isVideo(i)).map((i) => i.id),
-    [galeria],
+    () =>
+      galeria.itens
+        .filter((i) => i.estado === "enviada" && !galeria.isVideo(i))
+        .map((i) => i.id),
+    [galeria]
   );
 
+  // Viewer handlers
   const abrirEnviada = useCallback(
     (id: string) => {
       const indice = galeria.itensVisiveis.findIndex((i) => i.id === id);
       if (indice >= 0) setIndiceAberto(indice);
     },
-    [galeria.itensVisiveis],
+    [galeria.itensVisiveis]
   );
 
   const sairViewer = useCallback(() => setIndiceAberto(null), []);
@@ -167,7 +139,7 @@ export function MyPhotosPage({
       if (i < 0 || i >= galeria.itensVisiveis.length) return;
       setIndiceAberto(i);
     },
-    [galeria.itensVisiveis.length],
+    [galeria.itensVisiveis.length]
   );
 
   const removerAberta = useCallback(async () => {
@@ -191,14 +163,21 @@ export function MyPhotosPage({
       if (recap.pedindoConsentimento) {
         void recap.confirmarConsentimento(nomeNaMoldura);
       } else if (compartilhar.pedindoColagem) {
-        void compartilhar.confirmarConsentimentoColagem(compartilhar.pedindoColagem, nomeNaMoldura);
+        void compartilhar.confirmarConsentimentoColagem(
+          compartilhar.pedindoColagem,
+          nomeNaMoldura
+        );
       } else if (compartilhar.pedindoConsentimento) {
-        void compartilhar.confirmarConsentimento(compartilhar.pedindoConsentimento, nomeNaMoldura);
+        void compartilhar.confirmarConsentimento(
+          compartilhar.pedindoConsentimento,
+          nomeNaMoldura
+        );
       }
     },
-    [compartilhar, recap],
+    [compartilhar, recap]
   );
 
+  // Body overflow management
   useEffect(() => {
     if (indiceAberto === null) return;
     const antes = document.body.style.overflow;
@@ -208,8 +187,12 @@ export function MyPhotosPage({
     };
   }, [indiceAberto]);
 
+  // Auto-close viewer if out of bounds
   useEffect(() => {
-    if (indiceAberto !== null && indiceAberto >= galeria.itensVisiveis.length) {
+    if (
+      indiceAberto !== null &&
+      indiceAberto >= galeria.itensVisiveis.length
+    ) {
       setIndiceAberto(null);
     }
   }, [indiceAberto, galeria.itensVisiveis.length]);
@@ -240,11 +223,15 @@ export function MyPhotosPage({
 
           <RecapCard recap={recapPessoal} />
 
-          {galeria.falha && <ErrorMessage>Não deu para carregar agora.</ErrorMessage>}
+          {galeria.falha && (
+            <ErrorMessage>Não deu para carregar agora.</ErrorMessage>
+          )}
 
           {compartilhar.erro && <ErrorMessage>{compartilhar.erro}</ErrorMessage>}
 
-          {recap.erro && !recap.aberto && <ErrorMessage>{recap.erro}</ErrorMessage>}
+          {recap.erro && !recap.aberto && (
+            <ErrorMessage>{recap.erro}</ErrorMessage>
+          )}
 
           {!galeria.carregando && galeria.itens.length === 0 && (
             <EmptyState
@@ -254,11 +241,17 @@ export function MyPhotosPage({
             />
           )}
 
+          {/* Gallery Grid */}
           <ul className="m-0 grid list-none grid-cols-3 gap-1 p-0">
             {galeria.itens.map((item) => {
-              const url = item.estado === "enviada" ? galeria.urlDe(item) : locais.get(item.id);
+              const url =
+                item.estado === "enviada"
+                  ? galeria.urlDe(item)
+                  : locais.get(item.id);
               const urlVideo =
-                item.estado === "enviada" ? galeria.urlCheia(item) : locais.get(item.id);
+                item.estado === "enviada"
+                  ? galeria.urlCheia(item)
+                  : locais.get(item.id);
               const isVideo =
                 item.estado === "enviada"
                   ? galeria.isVideo(item)
@@ -266,105 +259,50 @@ export function MyPhotosPage({
               const rotulo = rotuloEstado(item.estado);
 
               return (
-                <li key={item.id} className="relative aspect-square">
-                  {item.estado !== "enviada" && (
-                    <button
-                      type="button"
-                      aria-label="Remover esta foto"
-                      disabled={galeria.removendoId === item.id}
-                      onClick={() => void galeria.remover(item)}
-                      className="absolute right-1 top-1 z-[1] grid min-h-7 min-w-7 cursor-pointer place-items-center rounded-full border-0 bg-bg-vidro-opaco p-0 text-xs text-ink-2 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80 disabled:cursor-wait"
-                    >
-                      ×
-                    </button>
-                  )}
-                  {item.estado === "enviada" ? (
-                    <button
-                      type="button"
-                      aria-label={isVideo ? "Abrir este vídeo" : "Abrir esta foto"}
-                      onClick={() => abrirEnviada(item.id)}
-                      className="size-full cursor-pointer overflow-hidden rounded-token border-0 bg-transparent p-0 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
-                    >
-                      <div className="relative size-full border border-linha bg-superficie">
-                        <MiniaturaMinhas
-                          isVideo={isVideo}
-                          url={url ?? undefined}
-                          urlVideo={urlVideo ?? undefined}
-                          pendente={false}
-                        />
-                      </div>
-                    </button>
-                  ) : (
-                    <div className="relative size-full overflow-hidden rounded-token border border-linha bg-superficie">
-                      <MiniaturaMinhas
-                        isVideo={isVideo}
-                        url={url ?? undefined}
-                        urlVideo={urlVideo ?? undefined}
-                        pendente
-                      />
-                    </div>
-                  )}
-
-                  {rotulo && (
-                    <span
-                      className={`absolute inset-x-1 bottom-1 rounded-pilula bg-bg-vidro-suave px-[0.35rem] py-[0.2rem] text-center text-[0.625rem] uppercase tracking-[0.06em] ${
-                        item.estado === "falhou" ? "text-critico" : "text-ink-2"
-                      }`}
-                    >
-                      {rotulo}
-                    </span>
-                  )}
-                </li>
+                <GalleryItem
+                  key={item.id}
+                  item={item}
+                  url={url ?? undefined}
+                  urlVideo={urlVideo ?? undefined}
+                  isVideo={isVideo}
+                  rotulo={rotulo}
+                  removendoId={galeria.removendoId}
+                  onRemover={galeria.remover}
+                  onAbrir={abrirEnviada}
+                />
               );
             })}
           </ul>
 
-          {recap.disponivel && (
-            <div className="mt-8 rounded-token border border-linha bg-superficie px-5 py-5">
-              <p className="m-0 font-titulo text-d-inline font-light">Recap da festa</p>
-              <p className="mb-4 mt-2 text-t-body leading-relaxed text-ink-2">
-                Suas {recap.quantidade} melhores fotos, com a moldura desta festa, prontas para o story.
-              </p>
-              <PrimaryButton disabled={recap.montando} onClick={() => void recap.abrir()}>
-                {recap.montando ? "Montando…" : "Ver meu recap"}
-              </PrimaryButton>
-            </div>
-          )}
+          {/* Sections */}
+          <RecapSection
+            disponivel={recap.disponivel}
+            quantidade={recap.quantidade}
+            montando={recap.montando}
+            onAbrir={() => void recap.abrir()}
+          />
 
-          {idsFotosEnviadas.length >= 2 && (
-            <div className="mt-8 rounded-token border border-linha bg-superficie px-5 py-5">
-              <p className="m-0 font-titulo text-d-inline font-light">Colagem da noite</p>
-              <p className="mb-4 mt-2 text-t-body leading-relaxed text-ink-2">
-                Até quatro fotos suas, com a moldura desta festa, prontas para postar.
-              </p>
-              <PrimaryButton
-                disabled={compartilhar.colagemIds !== null}
-                onClick={() => void compartilhar.compartilharColagem(idsFotosEnviadas.slice(0, 4))}
-              >
-                {compartilhar.colagemIds ? "Montando…" : "Criar colagem"}
-              </PrimaryButton>
-            </div>
-          )}
+          <ColagemSection
+            visible={idsFotosEnviadas.length >= 2}
+            montando={compartilhar.colagemIds !== null}
+            onCriar={() =>
+              void compartilhar.compartilharColagem(
+                idsFotosEnviadas.slice(0, 4)
+              )
+            }
+          />
 
-          {galeria.resumo.falhou > 0 && (
-            <div className="mt-8 rounded-token border border-linha bg-superficie px-5 py-4">
-              <p className="m-0 mb-3 text-t-body text-ink-2">
-                {galeria.resumo.falhou === 1 
-                  ? "Uma foto não subiu. Tenta de novo?" 
-                  : `${galeria.resumo.falhou} fotos não subiram. Tenta de novo?`}
-              </p>
-              <PrimaryButton
-                disabled={galeria.drenando}
-                onClick={() => void galeria.tentarDeNovo()}
-              >
-                {galeria.drenando ? "Enviando…" : "Tentar de novo"}
-              </PrimaryButton>
-            </div>
-          )}
+          <RetrySection
+            count={galeria.resumo.falhou}
+            drenando={galeria.drenando}
+            onRetry={() => void galeria.tentarDeNovo()}
+          />
+
           <ThemeSetting />
         </GuestMain>
       </GuestShell>
 
+      {/* Viewer */}
       {indiceAberto !== null && galeria.itensVisiveis[indiceAberto] && (
         <Viewer
           itens={galeria.itensVisiveis}
@@ -385,6 +323,7 @@ export function MyPhotosPage({
         />
       )}
 
+      {/* Sheets */}
       <RecapSheet
         aberto={recap.aberto}
         quadros={recap.quadros}
@@ -409,18 +348,4 @@ export function MyPhotosPage({
       <FloatingNav active="minhas" base={base} linkComponent={Link} />
     </>
   );
-}
-
-function usarMovimentoReduzido(): boolean {
-  const [reduzido, setReduzido] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduzido(mq.matches);
-    const ouvir = () => setReduzido(mq.matches);
-    mq.addEventListener("change", ouvir);
-    return () => mq.removeEventListener("change", ouvir);
-  }, []);
-
-  return reduzido;
 }
