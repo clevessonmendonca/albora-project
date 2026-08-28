@@ -1,58 +1,61 @@
 import {
-  apagarReacao,
-  withEvent,
-  eventGate,
-  eventPack,
-  gravarReacao,
-  listReactionsForMedia,
-  midiaPublicadaDoEvento,
-  reacaoDaSessao,
-} from "@albora/db";
-import { PACKS, isValidReaction } from "@albora/packs";
-import {
-  enforceRateLimit,
   errorResponse,
   jsonOk,
   parseJsonBody,
   rejectGuestEventQueryMismatch,
   requireGuestSession,
   unexpectedError,
-  UUID_RE,
+  enforceRateLimit,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
+import {
+  listReactions,
+  addReaction,
+  removeReaction,
+} from "@/lib/application/use-cases/guest";
+import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import {
+  listReactionsSchema,
+  addReactionSchema,
+  removeReactionSchema,
+} from "@/lib/infrastructure/api/validators";
 
 export const dynamic = "force-dynamic";
 
 const TIPO_PADRAO = "estrela";
 
-type Corpo = { uploadId?: unknown; tipo?: unknown };
-
 async function validarSessao(req: Request) {
   const auth = await requireGuestSession(req);
   if (auth instanceof Response) return auth;
 
-  const mismatch = rejectGuestEventQueryMismatch(req, auth.session, "reacao.evento_divergente");
+  const mismatch = rejectGuestEventQueryMismatch(
+    req,
+    auth.session,
+    "reacao.evento_divergente",
+  );
   if (mismatch) return mismatch;
 
   return auth;
-}
-
-function parseUploadId(corpo: Corpo): string | null {
-  return typeof corpo.uploadId === "string" && UUID_RE.test(corpo.uploadId) ? corpo.uploadId : null;
 }
 
 export async function GET(req: Request) {
   const auth = await validarSessao(req);
   if (auth instanceof Response) return auth;
 
-  const uploadId = parseUploadId({ uploadId: new URL(req.url).searchParams.get("uploadId") });
-  if (!uploadId) return errorResponse(422, "validation_error", "Foto inválida", { campos: ["uploadId"] });
+  const query = Object.fromEntries(new URL(req.url).searchParams);
+  const validated = validateBody(query, listReactionsSchema);
+  if (validated instanceof Response) return validated;
 
   try {
-    const nomes = await withEvent(getPool(), auth.session.eventoId, (c) =>
-      listReactionsForMedia(c, uploadId, auth.session.sessaoId),
+    const result = await listReactions(
+      {
+        eventoId: auth.session.eventoId,
+        sessaoId: auth.session.sessaoId,
+        uploadId: validated.uploadId,
+      },
+      () => getPool().connect(),
     );
-    return jsonOk({ reatores: nomes.map((item) => ({ nome: item.nome, sessaoId: item.sessaoId })) });
+    return jsonOk({ reatores: result.reatores });
   } catch (e) {
     return unexpectedError("reacao.get", e);
   }
@@ -65,35 +68,24 @@ export async function PUT(req: Request) {
   const limited = enforceRateLimit(req, auth.session);
   if (limited) return limited;
 
-  const parsed = await parseJsonBody<Corpo>(req);
+  const parsed = await parseJsonBody(req);
   if (parsed instanceof Response) return parsed;
 
-  const uploadId = parseUploadId(parsed.data);
-  if (!uploadId) return errorResponse(422, "validation_error", "Foto inválida", { campos: ["uploadId"] });
+  const validated = validateBody(parsed.data, addReactionSchema);
+  if (validated instanceof Response) return validated;
 
-  const tipo = typeof parsed.data.tipo === "string" ? parsed.data.tipo : TIPO_PADRAO;
+  const tipo = validated.tipo || TIPO_PADRAO;
 
   try {
-    const resultado = await withEvent(getPool(), auth.session.eventoId, async (c) => {
-      // Reagir não espera o gate (ADR 0009) — só evento precisa existir/ser visível sob RLS; só comentário fica atrás do horário do casal (ver `/api/comments`).
-      const gate = await eventGate(c, auth.session.eventoId);
-      if (!gate) {
-        return { ok: false as const, code: "reacao.evento_ausente" };
-      }
-
-      if (!(await midiaPublicadaDoEvento(c, auth.session.eventoId, uploadId))) {
-        return { ok: false as const, code: "reacao.midia_ausente" };
-      }
-
-      const packId = await eventPack(c, auth.session.eventoId);
-      const pack = packId ? PACKS[packId] : undefined;
-      if (!pack || !isValidReaction(pack, tipo)) {
-        return { ok: false as const, code: "reacao.tipo_invalido" };
-      }
-
-      const reacoes = await gravarReacao(c, auth.session.eventoId, uploadId, auth.session.sessaoId, tipo);
-      return { ok: true as const, reacoes, minha: tipo };
-    });
+    const resultado = await addReaction(
+      {
+        eventoId: auth.session.eventoId,
+        sessaoId: auth.session.sessaoId,
+        uploadId: validated.uploadId,
+        tipo,
+      },
+      () => getPool().connect(),
+    );
 
     if (!resultado.ok) {
       const status = resultado.code === "reacao.evento_ausente" ? 403 : 422;
@@ -113,33 +105,24 @@ export async function DELETE(req: Request) {
   const limited = enforceRateLimit(req, auth.session);
   if (limited) return limited;
 
-  const parsed = await parseJsonBody<Corpo>(req);
+  const parsed = await parseJsonBody(req);
   if (parsed instanceof Response) return parsed;
 
-  const uploadId = parseUploadId(parsed.data);
-  if (!uploadId) return errorResponse(422, "validation_error", "Foto inválida", { campos: ["uploadId"] });
+  const validated = validateBody(parsed.data, removeReactionSchema);
+  if (validated instanceof Response) return validated;
 
   try {
-    const resultado = await withEvent(getPool(), auth.session.eventoId, async (c) => {
-      const gate = await eventGate(c, auth.session.eventoId);
-      if (!gate) {
-        return { ok: false as const, code: "reacao.evento_ausente" };
-      }
+    const resultado = await removeReaction(
+      {
+        eventoId: auth.session.eventoId,
+        sessaoId: auth.session.sessaoId,
+        uploadId: validated.uploadId,
+      },
+      () => getPool().connect(),
+    );
 
-      const tinha = await reacaoDaSessao(c, uploadId, auth.session.sessaoId);
-      if (!tinha) {
-        const { rows } = await c.query<{ total: number }>(
-          "SELECT count(*)::int AS total FROM reactions WHERE upload_id = $1",
-          [uploadId],
-        );
-        return { ok: true as const, reacoes: rows[0]?.total ?? 0, minha: null };
-      }
-
-      const reacoes = await apagarReacao(c, uploadId, auth.session.sessaoId);
-      return { ok: true as const, reacoes, minha: null };
-    });
-
-    if (!resultado.ok) return errorResponse(403, resultado.code, "Reação recusada");
+    if (!resultado.ok)
+      return errorResponse(403, resultado.code, "Reação recusada");
 
     return jsonOk({ reacoes: resultado.reacoes, minha: resultado.minha });
   } catch (e) {

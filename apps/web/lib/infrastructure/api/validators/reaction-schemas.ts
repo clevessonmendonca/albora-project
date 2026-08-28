@@ -7,13 +7,20 @@
 import { z } from "zod";
 
 /**
- * Schema para adicionar reação (POST).
+ * Schema para listar reações (GET query params).
+ */
+export const listReactionsSchema = z.object({
+  uploadId: z.string().uuid("ID de upload inválido"),
+});
+
+export type ListReactionsQuery = z.infer<typeof listReactionsSchema>;
+
+/**
+ * Schema para adicionar reação (PUT).
  */
 export const addReactionSchema = z.object({
   uploadId: z.string().uuid("ID de upload inválido"),
-  tipo: z.enum(["curtir", "amar", "rir", "chorar", "aplaudir"], {
-    errorMap: () => ({ message: "Tipo de reação inválido" }),
-  }),
+  tipo: z.string().min(1, "Tipo de reação obrigatório"),
 });
 
 export type AddReactionBody = z.infer<typeof addReactionSchema>;

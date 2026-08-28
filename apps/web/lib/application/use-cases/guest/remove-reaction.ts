@@ -4,7 +4,12 @@
  * Remove a reação de uma sessão em uma foto.
  */
 
-import { withEvent, removerReacao } from "@albora/db";
+import {
+  withEvent,
+  eventGate,
+  reacaoDaSessao,
+  apagarReacao,
+} from "@albora/db";
 import type { PoolClient } from "pg";
 
 export type RemoveReactionInput = {
@@ -14,17 +19,20 @@ export type RemoveReactionInput = {
 };
 
 export type RemoveReactionResult =
-  | { ok: true }
-  | { ok: false; code: string; message: string };
+  | { ok: true; reacoes: number; minha: null }
+  | { ok: false; code: string };
 
 /**
  * Remove a reação de uma foto.
  * 
- * Se não havia reação, a operação é idempotente (sucesso).
+ * Validações:
+ * - Evento existe e está visível (gate)
+ * 
+ * Se não havia reação, a operação é idempotente (retorna total atual).
  * 
  * @param input - IDs do evento, sessão e upload
  * @param getClient - Factory de conexão
- * @returns Resultado da remoção
+ * @returns Total de reações após a remoção
  */
 export async function removeReaction(
   input: RemoveReactionInput,
@@ -33,24 +41,39 @@ export async function removeReaction(
   const client = await getClient();
 
   try {
-    await withEvent(
-      { query: client.query.bind(client) } as any,
+    const resultado = await withEvent(
+      { query: client.query.bind(client) } as PoolClient,
       input.eventoId,
-      (c) =>
-        removerReacao(c, {
-          eventoId: input.eventoId,
-          sessaoId: input.sessaoId,
-          uploadId: input.uploadId,
-        }),
+      async (c) => {
+        const gate = await eventGate(c, input.eventoId);
+        if (!gate) {
+          return { ok: false as const, code: "reacao.evento_ausente" };
+        }
+
+        const tinha = await reacaoDaSessao(
+          c,
+          input.uploadId,
+          input.sessaoId,
+        );
+        if (!tinha) {
+          // Idempotente: retorna o total atual se não tinha reação
+          const { rows } = await c.query<{ total: number }>(
+            "SELECT count(*)::int AS total FROM reactions WHERE upload_id = $1",
+            [input.uploadId],
+          );
+          return {
+            ok: true as const,
+            reacoes: rows[0]?.total ?? 0,
+            minha: null,
+          };
+        }
+
+        const reacoes = await apagarReacao(c, input.uploadId, input.sessaoId);
+        return { ok: true as const, reacoes, minha: null };
+      },
     );
 
-    return { ok: true };
-  } catch (e) {
-    return {
-      ok: false,
-      code: "reacao.remocao_falhou",
-      message: "Não foi possível remover a reação",
-    };
+    return resultado;
   } finally {
     client.release();
   }
