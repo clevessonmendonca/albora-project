@@ -140,25 +140,14 @@ export function comUrls(estado: EstadoFeed, novas: Map<string, MediaUrl>): Estad
   return { ...estado, urls, midiaIndisponivel: false };
 }
 
-/**
- * Devolve o **mesmo objeto** quando a falha já estava marcada.
- *
- * É o que encerra o ciclo: o efeito que busca URLs reage à mudança de estado,
- * e um objeto novo a cada falha o faria pedir de novo sem parar.
- */
+/** Mesmo objeto quando falha já estava marcada — objeto novo a cada falha faria o efeito de URL pedir sem parar. */
 export function comFalhaDeMidia(estado: EstadoFeed): EstadoFeed {
   return estado.midiaIndisponivel ? estado : { ...estado, midiaIndisponivel: true };
 }
 
 export type RespostaFeed = { ok: true; pagina: PaginaVisivel } | { ok: false; falha: FalhaFeed };
 
-/**
- * O formato de item na rede — o mesmo em `/api/feed` e `/api/guests/:id`
- * (ambos serializam `ItemFeed` de `packages/db/src/feed.ts`). Exportado com
- * `itemDeRede` para que os dois lados do cliente concordem sobre como
- * desserializar, em vez de manter duas cópias que só divergem no primeiro
- * ajuste feito de um lado.
- */
+/** Formato de item da rede (`/api/feed` e `/api/guests/:id`); exportado com `itemDeRede` para que os dois lados concordem na desserialização. */
 export type ItemDaRede = {
   id: string;
   chaveThumb: string;
@@ -196,11 +185,7 @@ export function itemDeRede(i: ItemDaRede): ItemVisivel {
   };
 }
 
-/**
- * Uma página do feed. O cursor volta como veio — **nunca** um deslocamento
- * calculado aqui: numa festa chegam fotos enquanto a pessoa rola, e o
- * deslocamento repete um item e engole outro a cada foto nova.
- */
+/** Página do feed — cursor volta como veio (nunca deslocamento calculado aqui; foto nova durante a rolagem repetiria/engolia item). */
 export async function buscarPagina(missaoId: string | null, cursor: string | null): Promise<RespostaFeed> {
   const parametros = new URLSearchParams();
   if (missaoId !== null) parametros.set("missao", missaoId);
