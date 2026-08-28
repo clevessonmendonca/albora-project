@@ -167,7 +167,7 @@ describe("redeemAppPairSchema → redeemAppPair Contract", () => {
 
     it("deve rejeitar passagem com caracteres especiais não permitidos", () => {
       const input = {
-        passagem: "abc@123#456",
+        passagem: "abc@123!456",
       };
 
       expect(() => redeemAppPairSchema.parse(input)).toThrow(/Passagem inválida/i);
