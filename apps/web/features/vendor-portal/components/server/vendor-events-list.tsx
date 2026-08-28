@@ -13,12 +13,7 @@ function capitalizado(texto: string): string {
   return texto.length === 0 ? texto : texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
-/**
- * Rótulo do grupo vem do vocabulário do pack (`evento.nome`) via
- * `resolvePackText` — nunca string de domínio hardcodada aqui. Pack fora do
- * catálogo cai para o próprio `packId`, o mesmo atalho que
- * `adminEventDisplayName` usa para `slug` quando falta título.
- */
+/** Rótulo via `resolvePackText` — nunca string de domínio hardcodada; pack desconhecido cai para `packId`. */
 function packGroupLabel(packId: string): string {
   const pack = PACKS[packId];
   return capitalizado(pack ? resolvePackText(pack, "evento.nome") : packId);
@@ -42,13 +37,7 @@ function agruparPorPack(eventos: VendorEventSummary[]): PackGroup[] {
   }));
 }
 
-/**
- * B1-mínimo é leitura: nenhum item da lista linka para `/admin/e/{id}`.
- * Entrar num evento específico ainda exige `roleForAccountOnEvent` (spec §2)
- * — hoje só populado quando o fornecedor cria o evento pelo wizard (V2b,
- * fora deste corte). Linkar aqui produziria 404 para o membro do portal em
- * qualquer evento que ele não tenha sido convidado individualmente.
- */
+/** Sem link para `/admin/e/{id}` — membros sem `roleForAccountOnEvent` individual receberiam 404 (spec §2, fora deste corte). */
 export function VendorEventsList({ eventos }: { eventos: VendorEventSummary[] }) {
   if (eventos.length === 0) {
     return (

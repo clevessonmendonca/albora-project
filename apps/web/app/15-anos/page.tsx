@@ -7,11 +7,7 @@ export const metadata: Metadata = {
   description: "As fotos que os seus convidados tiraram, reunidas num álbum só.",
 };
 
-/**
- * O mesmo componente, outro pack. É a verificação 6 da spec 013 executável
- * como rota: se algo aqui precisar divergir da rota `/`, o vocabulário deixou
- * de dar conta e a diferença virou código.
- */
+/** Spec 013, verificação 6 — se divergir da rota `/`, o vocabulário deixou de dar conta e a diferença virou código. */
 export default function FifteenYearsPage() {
   const problemas = landingProblems(FIFTEEN_YEARS);
   if (problemas.length > 0) throw new Error(problemas.join("; "));

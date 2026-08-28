@@ -17,9 +17,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/**
- * Inbox da equipe owner. Best practice: fila por prioridade/SLA, sem galeria.
- */
+/** Inbox da equipe owner — fila por prioridade/SLA, sem galeria. */
 export default async function OpsSupportPage() {
   const token = (await cookies()).get(HOST_COOKIE)?.value;
   const host = await hostFromToken(token);

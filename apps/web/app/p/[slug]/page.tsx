@@ -5,17 +5,7 @@ import { getPublicEventMetadata } from "@/features/public-event/data/get-public-
 import { getPublicEventPage } from "@/features/public-event/data/get-public-event-page";
 import { PublicEventView } from "@/features/public-event/components/server/public-event-view";
 
-/**
- * A vitrine pública do evento (C1 do mapa de crescimento) — prova social,
- * um gostinho do álbum já moderado, e o CTA "monte o seu".
- *
- * Superfície nova, deliberadamente separada de `/e/[slug]` (a entrada do
- * convidado, sem sessão e `robots: { index: false }` por desenho — ver o
- * comentário lá). Esta rota é o oposto: SEO de marca por evento, cada
- * casamento como porta de entrada indexada — nunca cauda longa. `revalidate`
- * mantém o número de fotos razoavelmente fresco sem consultar o banco a cada
- * hit de crawler.
- */
+/** SEO de marca por evento — separada de `/e/[slug]` (que é `robots: index: false`); `revalidate: 60` evita consulta ao banco em cada hit de crawler. */
 export const revalidate = 60;
 
 type Props = { params: Promise<{ slug: string }> };

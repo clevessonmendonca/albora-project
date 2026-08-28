@@ -1,16 +1,4 @@
-/**
- * O logo animado do pacote de marca, **inlinado**.
- *
- * Servido por `<img>` ele não desenha: as animações CSS de dentro do SVG não
- * rodam nesse contexto, e como todo elemento dela começa em `opacity: 0` o
- * resultado é um cabeçalho vazio — foi o que aconteceu. Inline, o CSS vive no
- * documento e a animação roda.
- *
- * As classes e os ids vêm prefixados com `mk-`/`mk` porque agora dividem
- * espaço com a página: um `.nome` solto colidiria com qualquer coisa.
- *
- * O `prefers-reduced-motion` já vem tratado dentro do próprio SVG do pacote.
- */
+/** Inline, não `<img>` — animações CSS do SVG não rodam em `<img>`; prefixo `mk-`/`mk` evita colisão de id/classe no documento. */
 export function AnimatedBrand({ height = "2rem" }: { height?: string }) {
   return (
     <span

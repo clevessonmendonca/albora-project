@@ -3,10 +3,7 @@ import { VendorPortalScreen } from "@/features/vendor-portal/components/server/v
 
 export const dynamic = "force-dynamic";
 
-/**
- * `/f/{vendorSlug}` — painel "meus eventos" do fornecedor (B1-mínimo, spec
- * §1.2/§6). Leitura só; billing, wizard e criação de evento são V2b.
- */
+/** Leitura só — billing, wizard e criação de evento são V2b. */
 export default async function VendorPortalPage({
   params,
 }: {

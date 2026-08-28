@@ -11,10 +11,7 @@ export const metadata: Metadata = {
 
 const ATUALIZADO_EM = "22 de agosto de 2026";
 
-/**
- * Página pública exigida pelas lojas (App Store / Play) e pelo convite do app.
- * Texto alinhado ao ADR 0004, retenção D365 e ao consentimento v1 da entrada.
- */
+/** Exigida pelas lojas e pelo convite do app — texto alinhado ao ADR 0004, retenção D365 e consentimento v1. */
 export default function PrivacidadePage() {
   const vars = toVariables(resolveTokens({ marca: ALBORA_BRAND })) as CSSProperties;
 

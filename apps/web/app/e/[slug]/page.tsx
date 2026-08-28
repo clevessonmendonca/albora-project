@@ -14,14 +14,7 @@ import { isSameEventSession } from "@/features/guest/data/guest-session";
 import { HomeContent } from "@/features/home/components/server/home-content";
 import { HomePageSkeleton } from "@/features/home/components/skeletons/home-page-skeleton";
 
-/**
- * A rota do QR. É a **exceção arquitetural** declarada no ADR 0005: o
- * servidor entrega o casco e as meta tags, e o resto é cliente.
- *
- * O casco existe por um motivo concreto: quando alguém manda o link no grupo
- * do WhatsApp — que é o segundo canal de distribuição do evento — a
- * pré-visualização precisa aparecer. Um SPA puro mostraria uma caixa vazia.
- */
+/** Exceção do ADR 0005 — casco SSR existe para meta tags no WhatsApp; SPA puro mostraria caixa vazia. */
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ via?: string }> };

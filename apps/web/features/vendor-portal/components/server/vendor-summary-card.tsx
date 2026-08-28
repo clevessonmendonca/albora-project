@@ -6,12 +6,7 @@ type Props = {
   resumo: ResumoDoFornecedor;
 };
 
-/**
- * Card de resumo do fornecedor — o gancho de uso recorrente do B2B2C (mapa de
- * novas implementações, item 6). `resumo.h1Medio` já vem ponderado por
- * `resumoDoFornecedor` (Σ sessoesComUpload / Σ expectedGuests através de
- * todos os eventos do vendor) — este componente só formata, nunca recalcula.
- */
+/** `resumo.h1Medio` chega ponderado de `resumoDoFornecedor` — este componente só formata, nunca recalcula. */
 export function VendorSummaryCard({ vendorName, resumo }: Props) {
   const pct = Math.round(resumo.h1Medio * 100);
 

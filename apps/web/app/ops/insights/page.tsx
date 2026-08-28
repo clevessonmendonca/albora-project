@@ -40,11 +40,7 @@ async function carregarKpisPlatform(): Promise<{
   return { metrics: live, fonte: "live", computedAt: null };
 }
 
-/**
- * Owner: volume e funil de landing — agregados, sem casal identificado.
- * Prefere `analytics_snapshots` (scope=platform); cai na query live se o job
- * ainda não rodou.
- */
+/** Agregados sem casal identificado — prefere `analytics_snapshots`; cai na query live se o job ainda não rodou. */
 export default async function OpsInsightsPage() {
   const token = (await cookies()).get(HOST_COOKIE)?.value;
   const host = await hostFromToken(token);

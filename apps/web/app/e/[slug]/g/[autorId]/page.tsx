@@ -12,14 +12,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/**
- * O perfil de um convidado (`autorId` = `guest_sessions.id`) dentro do
- * evento. O servidor só decide se a festa está aberta e se há sessão — quem
- * decide se este `autorId` existe, pertence a este evento e não está
- * bloqueado é `/api/guests/[autorId]`, do lado do cliente (`useAuthorFeed`),
- * a mesma checagem de sempre: nenhum dado de outro evento entra aqui pelo
- * SSR, porque o SSR não busca o perfil.
- */
+/** SSR não busca o perfil — isolamento de evento feito pelo cliente em `/api/guests/[autorId]` (`useAuthorFeed`). */
 export default async function Pagina({
   params,
 }: {

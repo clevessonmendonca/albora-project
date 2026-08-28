@@ -1,10 +1,4 @@
-/**
- * A marca da v4: o arco do amanhecer com o sol logo abaixo da linha.
- *
- * O degradê sobe de `acento-texto` para `acento` — os dois já resolvidos pelo
- * chão em que o cabeçalho está. Um `stop-color` fixo aqui seria o mesmo hex
- * literal que o guard reprova, só que escondido dentro de um SVG.
- */
+/** `stop-color` usa tokens — um hex literal aqui seria o mesmo que o guard reprova, só que escondido dentro de um SVG. */
 export function Brand({ size = 26, id }: { size?: number; id: string }) {
   return (
     <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">

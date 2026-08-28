@@ -12,11 +12,7 @@ export const metadata: Metadata = {
 
 type Props = { searchParams: Promise<{ codigo?: string }> };
 
-/**
- * `?codigo=` é o link de WhatsApp ("recebi o código, quero entrar") — mesmo
- * comportamento de autoenvio que `/{slug}` já tem, não uma segunda confirmação.
- * Código com formato inválido cai no scanner normal, para a pessoa corrigir.
- */
+/** `?codigo=` é o link do WhatsApp — autoenvio igual a `/{slug}`; formato inválido cai no scanner normal. */
 export default async function GuestScanPage({ searchParams }: Props) {
   const { codigo } = await searchParams;
   const slug = typeof codigo === "string" ? extractSlug(codigo) : null;

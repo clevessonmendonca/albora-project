@@ -19,10 +19,7 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/**
- * Lookup read-only por ?slug= — só platform_operators.
- * Mesmos KPIs do Insights do casal; sem thumbs nem nomes.
- */
+/** Só platform_operators — KPIs agregados do Insights do casal; sem thumbs nem nomes. */
 export default async function OpsEventsLookupPage({
   searchParams,
 }: {

@@ -10,17 +10,7 @@ import { auditarAgregacaoDoPortal } from "@/features/vendor-portal/lib/audit";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Insights do cerimonialista — resumo agregado por fornecedor no topo (o
- * gancho de uso recorrente do B2B2C), seguido da lista dos eventos da conta.
- *
- * O resumo só aparece para fornecedores em que esta conta é
- * admin/staff (`vendorsDaConta`, porta sob RLS normal) — conta sem nenhum
- * `vendor_members` não vê a seção, sem erro. `resumoDoFornecedor` repete a
- * mesma checagem de pertencimento por dentro antes de cruzar `vendor_id` pela
- * pool agregadora (defesa em profundidade, mesma disciplina de
- * `eventosDoFornecedor`).
- */
+/** `resumoDoFornecedor` revalida pertencimento antes de cruzar `vendor_id` pela pool agregadora — defesa em profundidade. */
 export default async function VendorInsightsPage() {
   const token = (await cookies()).get(HOST_COOKIE)?.value;
   const host = await hostFromToken(token);

@@ -24,11 +24,7 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-/**
- * A vitrine do admin mobile-first. Vive fora do `/telas` (onde o anfitrião é
- * desktop) porque é uma superfície nova: o mesmo anfitrião, agora no bolso, pra
- * a cerimonialista operar de pé no salão. `noindex` — peça de trabalho.
- */
+/** Vitrine mobile-first do admin — `noindex`, peça de trabalho. */
 export default function AdminCatalogPage() {
   const pack = WEDDING;
   const problemas = landingProblems(pack);

@@ -5,10 +5,7 @@ import { cn } from "@albora/ui-web";
 import { LandingCtaLink } from "./landing-cta-link";
 import { pillClasses } from "./pieces";
 
-/**
- * CTA fixo mobile que aparece após scroll (30-50% da página).
- * Usa apenas tokens, sem hex.
- */
+/** CTA fixo mobile após scroll — apenas tokens, sem hex. */
 export function LandingStickyCta({
   href,
   packHint,

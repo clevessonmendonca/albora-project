@@ -4,12 +4,7 @@ import { WallPairClient } from "@/features/wall-pairing/components/client/wall-p
 
 export const dynamic = "force-dynamic";
 
-/**
- * Autorizar o telão (spec 010). O código chega pré-preenchido quando a pessoa
- * escaneia o QR da tela; digitado à mão quando ela abre pelas configurações.
- * Tema neutro da marca — o evento só se revela depois de autorizar, e é a
- * sessão que o define, não esta rota.
- */
+/** Código pré-preenchido pelo QR ou digitado à mão — tema neutro até autorizar; o evento é definido pela sessão, não por esta rota. */
 export default async function Pagina({
   searchParams,
 }: {

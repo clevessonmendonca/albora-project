@@ -12,10 +12,7 @@ export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
 
-/**
- * Confessionário: o convidado escolhe uma pergunta do pack e grava um vídeo.
- * A gravação reusa a câmera (`/photo?prompt=…&video=1`).
- */
+/** Confessionário — gravação reusa a câmera via `/photo?prompt=…&video=1`. */
 export default async function ConfessionalPage({ params }: Props) {
   const { slug } = await params;
   const r = await resolveOpenEvent(slug);

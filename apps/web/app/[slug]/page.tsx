@@ -1,10 +1,6 @@
 import { redirect } from "next/navigation";
 
-/**
- * URL impressa na peça: `albora.com.br/{slug}` (N1.4).
- * O parser do QR já entende esse formato; o Next precisa de uma page.
- * Rotas estáticas (`/admin`, `/scan`, `/e`, …) ganham da dinâmica.
- */
+/** URL curta da peça impressa (N1.4) — redireciona para `/e/{slug}`; rotas estáticas ganham da dinâmica. */
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
