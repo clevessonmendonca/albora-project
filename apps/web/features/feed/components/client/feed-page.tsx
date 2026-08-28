@@ -19,7 +19,6 @@ import {
   GateNotice,
   GuestHeader,
   GuestShell,
-  EmptyState,
   GuestMain,
   ErrorMessage,
   Badge,
@@ -33,6 +32,7 @@ import { FeedFilterPanel } from "../ui/feed-filter-panel";
 import { FeedFooter } from "../ui/feed-footer";
 import { GateOpenedOverlay } from "../ui/gate-opened-overlay";
 import { NewPhotosButton } from "../ui/new-photos-button";
+import { FeedEmptyState } from "../ui/feed-empty-state";
 
 export type FeedCopy = {
   missionTitle: string;
@@ -159,17 +159,10 @@ export function FeedPage({
           )}
 
           {vazio && (
-            <EmptyState
-              title={
-                completo && filtro.missionId !== null
-                  ? "Ninguém fez essa ainda."
-                  : "Ainda não tem foto aqui."
-              }
-              lede={
-                completo && filtro.missionId !== null
-                  ? "Sua foto pode ser a primeira."
-                  : "Seja o primeiro a fotografar."
-              }
+            <FeedEmptyState
+              interacao={estado.interacao}
+              filtroMissao={filtro.missionId}
+              filtroMissaoTitulo={filtro.filtroAtivo?.title}
               cameraPath={cameraPath}
             />
           )}
