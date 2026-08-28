@@ -11,6 +11,13 @@ export { TabBar, type GuestTab } from "./tab-bar";
 export { NavCameraButton, type NavCameraButtonProps } from "./nav-camera-button";
 export { SHARED_GUEST_TABS, type SharedGuestTabDef, type SharedGuestTabId } from "./nav-tabs";
 export { StatusBar } from "./status-bar";
+
+// Generic UI Components (Phase 3 - Shared Components)
+export { ProgressBar } from "./progress-bar";
+export { Slider } from "./slider";
+export { FilterChip } from "./filter-chip";
+export { SectionHeader } from "./section-header";
+
 export {
   DisplayTitle,
   EmptyState,
