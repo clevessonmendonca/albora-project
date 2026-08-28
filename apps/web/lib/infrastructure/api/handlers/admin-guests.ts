@@ -1,34 +1,17 @@
 import {
-  withEvent,
-  definirNomeDaSessaoDoHost,
-  ErroNomeInvalido,
-  lerFunilAgregado,
-  lerMetricasAoVivo,
-  listarSessoesDoHost,
-} from "@albora/db";
-import { decideThesis, type CodigoDaTese } from "@albora/core";
-import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
   jsonOk,
-  parseJsonBody,
   requireConfig,
   requireHostEvent,
   requireHostSession,
   unexpectedError,
-  UUID_RE,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
-import { assinarGet } from "@/lib/r2";
-
-const GET_TTL_SECONDS = 900;
-
-type Corpo = {
-  sessaoId?: unknown;
-  acao?: unknown;
-  nome?: unknown;
-};
+import { getGuestMetrics, updateSessionName } from "@/lib/application/use-cases/admin";
+import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import { updateSessionNameSchema } from "@/lib/infrastructure/api/validators";
 
 /** Funil agregado (spec 009 B-07) e nomes no telão (flows.md N3.3). */
 export async function GET(
@@ -55,47 +38,12 @@ export async function GET(
     if (owned instanceof Response) return owned;
     const { evento } = owned;
 
-    const data = await withEvent(getPool(), eventId, async (c) => {
-      const [metricas, funil, sessoes] = await Promise.all([
-        lerMetricasAoVivo(c, eventId),
-        lerFunilAgregado(c, eventId),
-        listarSessoesDoHost(c, eventId),
-      ]);
-      return { metricas, funil, sessoes };
-    });
-
-    const veredito = decideThesis({
-      expectedGuests: evento.expectedGuests,
-      sessoesComUpload: data.metricas.sessoesComUpload,
-    });
-
-    const ultimas = await Promise.all(
-      data.metricas.ultimas.map(async (f) => ({
-        id: f.id,
-        criadaEm: f.criadaEm.toISOString(),
-        thumb: await assinarGet(f.chaveThumb, GET_TTL_SECONDS),
-      })),
+    const resultado = await getGuestMetrics(
+      { eventId, expectedGuests: evento.expectedGuests },
+      getPool(),
     );
 
-    return jsonOk({
-      expectedGuests: evento.expectedGuests,
-      totalSessoes: data.funil.totalSessoes,
-      sessoesComUpload: data.metricas.sessoesComUpload,
-      totalFotos: data.metricas.totalFotos,
-      sharesTotais: data.metricas.sharesTotais,
-      participacao: veredito.taxa,
-      veredito: veredito.codigo as CodigoDaTese,
-      degraus: data.funil.degraus,
-      uploadsAntesDoFeed: data.funil.uploadsAntesDoFeed,
-      uploadsDepoisDoFeed: data.funil.uploadsDepoisDoFeed,
-      entradasPorVia: data.funil.entradasPorVia,
-      ultimas,
-      sessoes: data.sessoes.map((s) => ({
-        id: s.id,
-        nome: s.nome,
-        fotos: s.fotos,
-      })),
-    });
+    return jsonOk(resultado);
   } catch (e) {
     return unexpectedError("admin.convidados", e);
   }
@@ -123,39 +71,32 @@ export async function PATCH(
   const owned = await requireHostEvent(auth.host.accountId, eventId);
   if (owned instanceof Response) return owned;
 
-  const parsed = await parseJsonBody<Corpo>(req);
-  if (parsed instanceof Response) return parsed;
-  const corpo = parsed.data;
+  const validation = await validateBody(req, updateSessionNameSchema);
+  if (validation instanceof Response) return validation;
 
-  const sessaoId = typeof corpo.sessaoId === "string" ? corpo.sessaoId : "";
-  if (!sessaoId || !UUID_RE.test(sessaoId)) {
-    return errorResponse(422, "validation_error", "Sessão inválida", { campos: ["sessaoId"] });
-  }
-
-  const acao = corpo.acao === "ocultar" || corpo.acao === "renomear" ? corpo.acao : null;
-  if (!acao) {
-    return errorResponse(422, "validation_error", "Ação inválida", { campos: ["acao"] });
-  }
-
-  try {
-    const atualizada = await definirNomeDaSessaoDoHost(
-      getPool(),
-      auth.host.accountId,
+  const resultado = await updateSessionName(
+    {
+      accountId: auth.host.accountId,
       eventId,
-      sessaoId,
-      acao === "ocultar"
-        ? { acao: "ocultar" }
-        : { acao: "renomear", nome: typeof corpo.nome === "string" ? corpo.nome : "" },
+      sessaoId: validation.sessaoId,
+      acao: validation.acao,
+      nome: validation.nome,
+    },
+    getPool(),
+  );
+
+  if (!resultado.ok) {
+    return errorResponse(
+      resultado.code === "sessao.nao_encontrada" ? 404 : 422,
+      resultado.code,
+      resultado.message,
+      resultado.code === "validation_error" ? { campos: ["nome"] } : undefined,
     );
-    if (!atualizada) {
-      return errorResponse(404, "sessao.nao_encontrada", "Convidado não encontrado");
-    }
-    console.log("admin.nome_sessao", { eventoId: eventId, sessaoId, acao });
-    return jsonOk({ id: atualizada.id, nome: atualizada.nome, fotos: atualizada.fotos });
-  } catch (e) {
-    if (e instanceof ErroNomeInvalido) {
-      return errorResponse(422, "validation_error", "Nome inválido", { campos: ["nome"] });
-    }
-    return unexpectedError("admin.convidados.nome", e);
   }
+
+  return jsonOk({
+    id: resultado.id,
+    nome: resultado.nome,
+    fotos: resultado.fotos,
+  });
 }

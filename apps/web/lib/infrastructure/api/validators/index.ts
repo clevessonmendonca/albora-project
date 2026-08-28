@@ -12,3 +12,5 @@ export * from "./feed-schemas";
 export * from "./wall-schemas";
 export * from "./admin-schemas";
 export * from "./app-pair-schemas";
+export * from "./challenge-schemas";
+export * from "./guest-schemas";
