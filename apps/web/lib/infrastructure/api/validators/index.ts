@@ -11,3 +11,4 @@ export * from "./upload-schemas";
 export * from "./feed-schemas";
 export * from "./wall-schemas";
 export * from "./admin-schemas";
+export * from "./app-pair-schemas";

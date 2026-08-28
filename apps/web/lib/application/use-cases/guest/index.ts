@@ -92,3 +92,15 @@ export {
   type SuggestMusicInput,
   type SuggestMusicResult,
 } from "./suggest-music";
+
+export {
+  createAppPairing,
+  type CreateAppPairingInput,
+  type CreateAppPairingOutput,
+} from "./create-app-pairing";
+
+export {
+  redeemAppPairing,
+  type RedeemAppPairingInput,
+  type RedeemAppPairingResult,
+} from "./redeem-app-pairing";

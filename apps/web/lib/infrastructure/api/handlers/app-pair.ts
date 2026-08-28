@@ -1,11 +1,7 @@
-import { criarCodigoPareamentoApp, ErroResgateDePareamento, resgatarCodigoPareamentoApp, resgatarPassagemPareamentoApp } from "@albora/db";
 import {
   enforceRateLimit,
   errorResponse,
   jsonOk,
-  parseFourDigitCode,
-  parseJsonBody,
-  parsePassagemToken,
   requireConfig,
   requireGuestSession,
   sessionCookieHeader,
@@ -14,10 +10,9 @@ import {
 import { config } from "@/lib/config";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
-
-const CODE_TTL_MINUTES = 15;
-
-type RedeemBody = { codigo?: unknown; passagem?: unknown };
+import { createAppPairing, redeemAppPairing } from "@/lib/application/use-cases/guest";
+import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import { redeemAppPairSchema } from "@/lib/infrastructure/api/validators";
 
 /** Gera código de 4 dígitos para o app resgatar (spec A-11): evento e sessão do cookie, nunca do corpo; também emite passagem one-shot (ADR 0009). */
 export async function postPairCode(req: Request) {
@@ -37,26 +32,20 @@ export async function postPairCode(req: Request) {
   const cfg = config();
 
   try {
-    const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000);
-    const { code, expiraEm: expires, passagem } = await criarCodigoPareamentoApp(
+    const resultado = await createAppPairing(
+      {
+        eventoId: auth.session.eventoId,
+        sessaoId: auth.session.sessaoId,
+        sessionSecret: cfg.sessionSecret,
+      },
       getPool(),
-      cfg.sessionSecret,
-      auth.session.eventoId,
-      auth.session.sessaoId,
-      expiresAt,
     );
 
-    console.log("app.pareamento_criado", {
-      eventoId: auth.session.eventoId,
-      sessaoId: auth.session.sessaoId,
-      expiraEm: expires.toISOString(),
-    });
-
     return jsonOk({
-      codigo: code,
-      expiraEm: expires.toISOString(),
-      validadeMinutos: CODE_TTL_MINUTES,
-      passagem,
+      codigo: resultado.codigo,
+      expiraEm: resultado.expiraEm.toISOString(),
+      validadeMinutos: resultado.validadeMinutos,
+      passagem: resultado.passagem,
     });
   } catch (e) {
     return unexpectedError("app.parear", e);
@@ -74,63 +63,36 @@ export async function postRedeemPairCode(req: Request) {
   });
   if (limited) return limited;
 
-  const parsed = await parseJsonBody<RedeemBody>(req);
-  if (parsed instanceof Response) return parsed;
+  const validation = await validateBody(req, redeemAppPairSchema);
+  if (validation instanceof Response) return validation;
 
   const cfg = config();
-  const passagemRaw = typeof parsed.data.passagem === "string" ? parsed.data.passagem.trim() : "";
 
-  try {
-    const redeemed =
-      passagemRaw.length > 0
-        ? await (async () => {
-            const passagem = parsePassagemToken(passagemRaw);
-            if (passagem instanceof Response) return passagem;
-            return resgatarPassagemPareamentoApp(
-              getPool(),
-              cfg.sessionSecret,
-              passagem,
-              cfg.duracaoSessaoHoras,
-              new Date(),
-            );
-          })()
-        : await (async () => {
-            const code = parseFourDigitCode(parsed.data.codigo);
-            if (code instanceof Response) return code;
-            return resgatarCodigoPareamentoApp(
-              getPool(),
-              cfg.sessionSecret,
-              code,
-              cfg.duracaoSessaoHoras,
-              new Date(),
-            );
-          })();
+  const resultado = await redeemAppPairing(
+    {
+      sessionSecret: cfg.sessionSecret,
+      duracaoSessaoHoras: cfg.duracaoSessaoHoras,
+      codigo: validation.codigo,
+      passagem: validation.passagem,
+    },
+    getPool(),
+  );
 
-    if (redeemed instanceof Response) return redeemed;
-
-    console.log("app.pareamento_resgatado", {
-      eventoId: redeemed.eventoId,
-      sessaoId: redeemed.sessaoId,
-    });
-
-    return jsonOk(
-      {
-        slug: redeemed.slug,
-        sessaoId: redeemed.sessaoId,
-        token: redeemed.token,
-        eventoId: redeemed.eventoId,
-      },
-      {
-        headers: {
-          "set-cookie": sessionCookieHeader(redeemed.token, cfg.duracaoSessaoHoras),
-        },
-      },
-    );
-  } catch (e) {
-    if (e instanceof ErroResgateDePareamento) {
-      console.warn("app.resgate_recusado", { motivo: e.motivo });
-      return errorResponse(409, "app.pareamento_invalido", "Código inválido ou expirado");
-    }
-    return unexpectedError("app.parear.resgatar", e);
+  if (!resultado.ok) {
+    return errorResponse(409, resultado.code, resultado.message);
   }
+
+  return jsonOk(
+    {
+      slug: resultado.slug,
+      sessaoId: resultado.sessaoId,
+      token: resultado.token,
+      eventoId: resultado.eventoId,
+    },
+    {
+      headers: {
+        "set-cookie": sessionCookieHeader(resultado.token, cfg.duracaoSessaoHoras),
+      },
+    },
+  );
 }

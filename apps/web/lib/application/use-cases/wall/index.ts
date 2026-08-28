@@ -34,3 +34,11 @@ export {
   type GetWallThemeInput,
   type GetWallThemeOutput,
 } from "./get-wall-theme";
+
+export {
+  getWallFeed,
+  type GetWallFeedInput,
+  type GetWallFeedOutput,
+  type WallMediaItem,
+  type WallCounters,
+} from "./get-wall-feed";
