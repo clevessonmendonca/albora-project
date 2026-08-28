@@ -203,7 +203,7 @@ export function FeedPage({
                       : {})}
                     {...(item.minha !== undefined ? { minha: item.minha } : {})}
                     onReacoes={(resultado) => atualizarReacoes(item.id, resultado)}
-                    onBloqueado=={recomecar}
+                    onBloqueado={recomecar}
                     onCompartilhar={() => void compartilhar.compartilhar(item.id)}
                     compartilhando={compartilhar.compartilhandoId === item.id}
                     url={estado.urls.get(chaveMidia)?.url ?? null}
