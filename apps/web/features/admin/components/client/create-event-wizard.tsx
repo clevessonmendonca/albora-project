@@ -185,7 +185,6 @@ export function CreateEventWizard() {
         </p>
       )}
 
-      {/* Passo 0 — tipo */}
       {step === 0 && (
         <div className="flex flex-col gap-2.5">
           {OPTIONS.map((opt) => (
@@ -223,7 +222,6 @@ export function CreateEventWizard() {
         </div>
       )}
 
-      {/* Passo 1 — evento */}
       {step === 1 && (
         <>
           <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
@@ -331,10 +329,8 @@ export function CreateEventWizard() {
         </>
       )}
 
-      {/* Passo 2 — identidade visual */}
       {step === 2 && (
         <div className="flex flex-col gap-5">
-          {/* Grid de presets com 3 pontos de cor */}
           <div className="grid grid-cols-2 gap-2.5">
             {IDENTITY_MODELS.map((m) => {
               const ativo = presetAtivo === m.id;
@@ -380,7 +376,6 @@ export function CreateEventWizard() {
             })}
           </div>
 
-          {/* Divisor */}
           <div className="flex items-center gap-3">
             <span className="h-px flex-1 bg-linha" />
             <span className="shrink-0 text-[0.72rem] uppercase tracking-rotulo text-ink-3">
@@ -389,9 +384,7 @@ export function CreateEventWizard() {
             <span className="h-px flex-1 bg-linha" />
           </div>
 
-          {/* Controles de personalização */}
           <div className="flex flex-col gap-3">
-            {/* Toggle de modo */}
             <div className="flex items-center justify-between">
               <div>
                 <p className="m-0 text-[0.9rem] text-ink">Fundo</p>
@@ -444,7 +437,6 @@ export function CreateEventWizard() {
             />
           </div>
 
-          {/* Preview ao vivo */}
           <div className="overflow-hidden rounded-superficie bg-bg font-corpo text-ink" style={previewVars}>
             <div className="flex items-center justify-between border-b border-linha px-5 py-3">
               <span className="text-[0.65rem] uppercase tracking-rotulo text-ink-3">Prévia</span>
@@ -471,7 +463,6 @@ export function CreateEventWizard() {
         </div>
       )}
 
-      {/* Passo 3 — missões */}
       {step === 3 && (
         <MissionList
           pack={pack}
@@ -491,7 +482,6 @@ export function CreateEventWizard() {
         />
       )}
 
-      {/* Passo 4 — confirmação */}
       {step === 4 && (
         <ConfirmSummary
           pack={pack}
