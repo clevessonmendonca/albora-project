@@ -175,3 +175,21 @@ export {
   type CreateEventInput,
   type CreateEventResult,
 } from "./create-event";
+
+export {
+  requestExportStepUp,
+  type RequestExportStepUpInput,
+  type RequestExportStepUpResult,
+} from "./request-export-step-up";
+
+export {
+  createExportJob,
+  type CreateExportJobInput,
+  type CreateExportJobResult,
+} from "./create-export-job";
+
+export {
+  getLatestExportJob,
+  type GetLatestExportJobInput,
+  type GetLatestExportJobOutput,
+} from "./get-latest-export-job";

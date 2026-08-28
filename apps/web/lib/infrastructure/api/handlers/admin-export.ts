@@ -1,24 +1,11 @@
-import { nomeDoArquivoZip, podeBaixarZip, resolver, selecionarParaAlbum, planejarCapitulos, TETO_DE_PAGINAS_PADRAO } from "@albora/core";
-import {
-  withEvent,
-  consumirStepUp,
-  criarJobExport,
-  emitirStepUp,
-  ErroMagicLinkInvalido,
-  jobExportMaisRecente,
-  jobExportPorId,
-  midiaParaCuradoria,
-  planoDoEvento,
-  VALIDADE_STEP_UP_MINUTOS,
-  type JobExport,
-} from "@albora/db";
-import { PACKS } from "@albora/packs";
+import { nomeDoArquivoZip } from "@albora/core";
+import { jobExportPorId, type JobExport } from "@albora/db";
 import {
   ADMIN_SESSION_REQUIRED,
+  COUPLE_HOST_ROLES,
   errorResponse,
   jsonOk,
   parseJsonBody,
-  COUPLE_HOST_ROLES,
   requireConfig,
   requireHostEventRole,
   requireHostSession,
@@ -27,14 +14,22 @@ import {
 } from "@/lib/api";
 import { config } from "@/lib/config";
 import { getPool } from "@/lib/db";
-import { sendHostEmail } from "@/lib/email";
-import { acervoZipStream } from "@/lib/export-stream";
 import { consume } from "@/lib/rate-limit-store";
+import { acervoZipStream } from "@/lib/export-stream";
 import { streamObject } from "@/lib/r2";
+import {
+  requestExportStepUp,
+  createExportJob,
+  getLatestExportJob,
+} from "@/lib/application/use-cases/admin";
+import {
+  createExportSchema,
+  getExportSchema,
+  getExportFileSchema,
+  type CreateExportBody,
+} from "@/lib/infrastructure/api/validators";
 
 export const dynamic = "force-dynamic";
-
-type CreateBody = { token?: unknown; curated?: unknown };
 
 async function requireOwnedEvent(req: Request, eventId: string) {
   const cfgErr = requireConfig("admin", { mediaOrigin: true });
@@ -51,17 +46,6 @@ async function requireOwnedEvent(req: Request, eventId: string) {
   if (owned instanceof Response) return owned;
 
   return { host: auth.host, evento: owned.evento };
-}
-
-function telaDoJob(eventId: string, job: JobExport) {
-  return {
-    id: job.id,
-    estado: job.estado,
-    modo: job.modo,
-    fotos: job.fotos,
-    criadoEm: job.criadoEm.toISOString(),
-    baixar: job.estado === "pronto" ? `/api/admin/events/${eventId}/export/arquivo?job=${job.id}` : null,
-  };
 }
 
 /** Pede o segundo fator: um magic link de uso único (spec 009). */
@@ -81,37 +65,23 @@ export async function postReauth(
   }
 
   try {
-    const plan = await withEvent(getPool(), eventId, (c) => planoDoEvento(c, eventId));
-    if (!podeBaixarZip(plan)) {
-      return errorResponse(
-        403,
-        "plano.zip",
-        "O download em ZIP entra no plano Completo. Subir de plano não interrompe os convidados.",
-      );
+    const resultado = await requestExportStepUp(
+      {
+        eventId,
+        accountId: auth.host.accountId,
+        hostEmail: auth.host.email,
+        sessionSecret: config().sessionSecret,
+        requestOrigin: new URL(req.url).origin,
+        isDev: process.env.APP_ENV === "dev",
+      },
+      getPool(),
+    );
+
+    if (!resultado.ok) {
+      return errorResponse(403, resultado.code, resultado.message);
     }
 
-    const expiresAt = new Date(Date.now() + VALIDADE_STEP_UP_MINUTOS * 60 * 1000);
-    const { token } = await emitirStepUp(getPool(), config().sessionSecret, auth.host.accountId, expiresAt);
-    const origin = new URL(req.url).origin;
-    const link = `${origin}/admin/e/${eventId}/album?exportar=${token}`;
-
-    void sendHostEmail({
-      to: auth.host.email,
-      subject: "Confirme o download do álbum",
-      text: [
-        "Alguém pediu para baixar todas as fotos deste evento.",
-        "Se foi você, abra o link abaixo. Ele vale por 15 minutos e só funciona uma vez.",
-        "",
-        link,
-        "",
-        "Se não foi você, ignore este e-mail. Sem a confirmação o download não começa.",
-      ].join("\n"),
-    });
-
-    console.log("admin.export.reauth", { accountId: auth.host.accountId });
-
-    const dev = process.env.APP_ENV === "dev";
-    return jsonOk(dev ? { enviado: true, link } : { enviado: true });
+    return jsonOk(resultado.link ? { enviado: true, link: resultado.link } : { enviado: true });
   } catch (e) {
     return unexpectedError("admin.export.reauth", e);
   }
@@ -133,77 +103,35 @@ export async function postExport(
     });
   }
 
-  const parsed = await parseJsonBody<CreateBody>(req);
+  const parsed = await parseJsonBody<CreateExportBody>(req);
   if (parsed instanceof Response) return parsed;
-  const token = typeof parsed.data.token === "string" ? parsed.data.token : "";
-  const curated = parsed.data.curated === true;
-  if (!token) {
-    return errorResponse(422, "validation_error", "Confirme o download", { campos: ["token"] });
-  }
 
-  try {
-    await consumirStepUp(getPool(), config().sessionSecret, token, auth.host.accountId, new Date());
-  } catch (e) {
-    if (e instanceof ErroMagicLinkInvalido) {
-      return errorResponse(409, "admin.reauth_invalida", "Confirmação inválida ou expirada");
-    }
-    return unexpectedError("admin.export.reauth", e);
-  }
-
-  try {
-    let curatedIds: string[] | undefined;
-    if (curated) {
-      const data = await midiaParaCuradoria(getPool(), eventId);
-      if (data.janela && data.midias.length > 0) {
-        const pack = data.packId ? PACKS[data.packId] : undefined;
-        const plano = {
-          janela: {
-            comecaEm: data.janela.comecaEm,
-            terminaEm: data.janela.terminaEm,
-            offsetMinutos: data.janela.offsetMinutos,
-          },
-          capitulos: planejarCapitulos(
-            {
-              comecaEm: data.janela.comecaEm,
-              terminaEm: data.janela.terminaEm,
-              offsetMinutos: data.janela.offsetMinutos,
-            },
-            pack?.momentos?.map((m) => m.id) ?? [],
-          ),
-          tetoDePaginas: TETO_DE_PAGINAS_PADRAO,
-        };
-        const resolvidas = resolver(data.midias, plano);
-        const selecao = selecionarParaAlbum(resolvidas, plano);
-        curatedIds = selecao.mantidas.map((m) => m.id);
-      }
-    }
-
-    const opts = curated && curatedIds ? { curated, curatedIds } : curated ? { curated } : undefined;
-    const job = await criarJobExport(getPool(), auth.host.accountId, eventId, opts);
-    if (!job) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
-
-    console.log("admin.export.job", {
-      accountId: auth.host.accountId,
-      modo: job.modo,
-      fotos: job.fotos,
-      estado: job.estado,
+  const validado = createExportSchema.safeParse(parsed.data);
+  if (!validado.success) {
+    return errorResponse(422, "validation_error", validado.error.errors[0]?.message ?? "Dados inválidos", {
+      erros: validado.error.errors,
     });
+  }
 
-    if (job.estado === "pronto") {
-      const origin = new URL(req.url).origin;
-      void sendHostEmail({
-        to: auth.host.email,
-        subject: "As fotos da festa estão prontas",
-        text: [
-          `O álbum está pronto: ${job.fotos} ${job.fotos === 1 ? "arquivo" : "arquivos"}.`,
-          "Entre no painel para baixar. O download pede que você esteja conectado.",
-          "",
-          `${origin}/admin/e/${eventId}/album`,
-        ].join("\n"),
-      });
+  try {
+    const resultado = await createExportJob(
+      {
+        eventId,
+        accountId: auth.host.accountId,
+        hostEmail: auth.host.email,
+        sessionSecret: config().sessionSecret,
+        requestOrigin: new URL(req.url).origin,
+        ...validado.data,
+      },
+      getPool(),
+    );
+
+    if (!resultado.ok) {
+      const statusCode = resultado.code === "admin.reauth_invalida" ? 409 : 404;
+      return errorResponse(statusCode, resultado.code, resultado.message);
     }
 
-    return jsonOk({ job: telaDoJob(eventId, job) }, { status: 202 });
+    return jsonOk({ job: resultado.job }, { status: 202 });
   } catch (e) {
     return unexpectedError("admin.export", e);
   }
@@ -227,10 +155,19 @@ export async function getExport(
   try {
     const url = new URL(req.url);
     const modoParam = url.searchParams.get("modo");
-    const modo: "full" | "curated" | undefined =
-      modoParam === "curated" ? "curated" : modoParam === "full" ? "full" : undefined;
-    const job = await jobExportMaisRecente(getPool(), auth.host.accountId, eventId, modo);
-    return jsonOk({ job: job ? telaDoJob(eventId, job) : null });
+    const validado = getExportSchema.safeParse({ modo: modoParam });
+    const modo = validado.success ? validado.data.modo : undefined;
+
+    const resultado = await getLatestExportJob(
+      {
+        eventId,
+        accountId: auth.host.accountId,
+        modo,
+      },
+      getPool(),
+    );
+
+    return jsonOk({ job: resultado.job });
   } catch (e) {
     return unexpectedError("admin.export", e);
   }
@@ -253,12 +190,13 @@ export async function getArquivo(
   }
 
   const jobId = new URL(req.url).searchParams.get("job");
-  if (!jobId || !UUID_RE.test(jobId)) {
+  const validado = getExportFileSchema.safeParse({ job: jobId });
+  if (!validado.success) {
     return errorResponse(422, "validation_error", "Job inválido", { campos: ["job"] });
   }
 
   try {
-    const job = await jobExportPorId(getPool(), auth.host.accountId, eventId, jobId);
+    const job = await jobExportPorId(getPool(), auth.host.accountId, eventId, validado.data.job);
     if (!job) return errorResponse(404, "export.nao_encontrado", "Export não encontrado");
     if (job.estado !== "pronto") {
       return errorResponse(409, "export.vazio", "Ainda não há fotos publicadas para baixar");
