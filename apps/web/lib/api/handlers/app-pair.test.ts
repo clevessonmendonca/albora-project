@@ -19,7 +19,7 @@ const mockResgatarCodigo = vi.fn();
 const mockResgatarPassagem = vi.fn();
 
 vi.mock("@/lib/api", async (importOriginal) => {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- vi.mock importOriginal retorna valor, não tipo
   const actual = await importOriginal<typeof import("@/lib/api")>();
   return {
     ...actual,

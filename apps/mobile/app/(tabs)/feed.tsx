@@ -373,7 +373,7 @@ function ReacoesSheet({
       setReatores(r);
       setCarregando(false);
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- recarrega só quando o upload muda
   }, [uploadId]);
 
   return (
