@@ -9,3 +9,4 @@ export * from "./comment-schemas";
 export * from "./reaction-schemas";
 export * from "./upload-schemas";
 export * from "./feed-schemas";
+export * from "./wall-schemas";

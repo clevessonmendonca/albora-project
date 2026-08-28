@@ -1,5 +1,3 @@
-import { podeUsarTelao } from "@albora/core";
-import { autorizarPareamento, withEvent, ErroAutorizacaoDePareamento, planoDoEvento } from "@albora/db";
 import {
   errorResponse,
   jsonOk,
@@ -9,16 +7,16 @@ import {
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
-
-const WALL_CONSENT_VERSION = "1";
-
-const PAIRING_CODE = /^[A-HJ-NP-Z2-9]{6}$/;
-
-type Body = { codigo?: unknown };
+import { authorizeWallPairing } from "@/lib/application/use-cases/wall";
+import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import { authorizeWallSchema } from "@/lib/infrastructure/api/validators";
 
 /** Autoriza telão (spec 010): evento da sessão de quem autoriza, nunca do corpo; crachá só lê público; sem sessão → 401; plano grátis recusado aqui, nunca paywall na pista. */
 export async function POST(req: Request) {
-  const auth = await requireGuestSession(req, "Entre no evento antes de ligar o telão");
+  const auth = await requireGuestSession(
+    req,
+    "Entre no evento antes de ligar o telão",
+  );
   if (auth instanceof Response) return auth;
 
   const limit = consume(`autorizar:${auth.rateLimitKey}`, 20, 60, Date.now());
@@ -28,49 +26,29 @@ export async function POST(req: Request) {
     });
   }
 
-  const parsed = await parseJsonBody<Body>(req);
+  const parsed = await parseJsonBody(req);
   if (parsed instanceof Response) return parsed;
 
-  const codigo =
-    typeof parsed.data.codigo === "string" ? parsed.data.codigo.trim().toUpperCase() : "";
-  if (!PAIRING_CODE.test(codigo)) {
-    return errorResponse(422, "validation_error", "Código inválido", { campos: ["codigo"] });
-  }
+  const validated = validateBody(parsed.data, authorizeWallSchema);
+  if (validated instanceof Response) return validated;
 
   try {
-    const plan = await withEvent(getPool(), auth.session.eventoId, (c) =>
-      planoDoEvento(c, auth.session.eventoId),
-    );
-    if (!podeUsarTelao(plan)) {
-      return errorResponse(
-        403,
-        "plano.telao",
-        "O telão entra no plano Completo. No painel do anfitrião dá para subir de plano sem travar a festa.",
-      );
-    }
-
-    await autorizarPareamento(
+    const resultado = await authorizeWallPairing(
+      {
+        eventoId: auth.session.eventoId,
+        sessaoId: auth.session.sessaoId,
+        codigo: validated.codigo,
+      },
       getPool(),
-      codigo,
-      auth.session.eventoId,
-      WALL_CONSENT_VERSION,
-      new Date(),
     );
 
-    console.log("parede.pareamento_autorizado", {
-      eventoId: auth.session.eventoId,
-      sessaoId: auth.session.sessaoId,
-    });
+    if (!resultado.ok) {
+      const status = resultado.code === "plano.telao" ? 403 : 409;
+      return errorResponse(status, resultado.code, resultado.message);
+    }
 
     return jsonOk({ autorizado: true });
   } catch (e) {
-    if (e instanceof ErroAutorizacaoDePareamento) {
-      console.warn("parede.autorizacao_recusada", {
-        eventoId: auth.session.eventoId,
-        motivo: e.motivo,
-      });
-      return errorResponse(409, "parede.pareamento_invalido", "Código inválido ou expirado");
-    }
     return unexpectedError("parede.autorizar", e);
   }
 }

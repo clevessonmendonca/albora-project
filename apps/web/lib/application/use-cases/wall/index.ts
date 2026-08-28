@@ -9,3 +9,9 @@ export {
   type ToggleWallPanicInput,
   type ToggleWallPanicOutput,
 } from "./toggle-wall-panic";
+
+export {
+  authorizeWallPairing,
+  type AuthorizeWallPairingInput,
+  type AuthorizeWallPairingResult,
+} from "./authorize-wall-pairing";
