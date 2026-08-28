@@ -1,15 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type * as ApiModule from "@/lib/api";
 
-/**
- * Testes focados na validação de magic bytes da thumb (§10 item 9).
- *
- * O `full` já era validado; o objetivo aqui é provar que o mesmo portão
- * existe para `${chave}/thumb` e que os códigos de erro são consistentes.
- *
- * Fixtures de bytes: 16 bytes (PREFIXO_MAGIC_BYTES) bastam para todos os
- * formatos, conforme provado em packages/core/src/midia.test.ts.
- */
+/** Valida magic bytes da thumb (§10/9) — mesmo portão que `full`; 16 bytes (PREFIXO_MAGIC_BYTES) cobrem todos os formatos. */
 
 const EVENT_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 const SESSION_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";

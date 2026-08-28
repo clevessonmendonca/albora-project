@@ -60,16 +60,7 @@ function validarBody(raw: RawBody): BrandTokensDoFornecedor | string[] {
   return payload;
 }
 
-/**
- * PATCH `brand_tokens` do fornecedor — acento, background e neutros opcionais.
- *
- * Só `admin` do fornecedor pode alterar — `staff` é leitura; sessão ausente
- * recebe 401 antes. `roleForAccountOnVendor` é o portão de papel; mesma
- * convenção de `POST /api/vendors/[vendorId]/subscription`.
- *
- * Hex literais nunca chegam ao banco sem validação: `validarBody` rejeita
- * qualquer string fora de `#[0-9a-fA-F]{6}` antes de `atualizarBrandTokensDoFornecedor`.
- */
+/** Só `admin` do fornecedor pode alterar — hex validado por `validarBody` antes de chegar ao banco; `roleForAccountOnVendor` é o portão de papel. */
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ vendorId: string }> },

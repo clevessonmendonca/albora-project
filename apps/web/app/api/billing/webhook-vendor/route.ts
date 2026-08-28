@@ -13,12 +13,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-/**
- * `motivo`/`em` são opacos por desenho (`vendorId` é UUID, nunca nome de
- * casal nem e-mail) — mesmo espírito de `auditarAgregacaoDoPortal`
- * (`features/vendor-portal/lib/audit.ts`), duplicado aqui em vez de
- * importado porque o webhook está fora do escopo de arquivo do portal.
- */
+/** `motivo`/`em` opacos (UUID, nunca PII) — duplicado de `auditarAgregacaoDoPortal` porque webhook está fora do escopo do portal. */
 function auditarWebhookDeAssinatura(registro: { motivo: string; em: Date }): void {
   console.log("vendor_billing.webhook_agregacao", {
     motivo: registro.motivo,
@@ -26,21 +21,7 @@ function auditarWebhookDeAssinatura(registro: { motivo: string; em: Date }): voi
   });
 }
 
-/**
- * Webhook Asaas — assinatura do fornecedor (Modelo A, spec §4.4). Única
- * escrita de `vendors.status`/`plan` pago (via `ativarPlanoDoFornecedor`,
- * `withAggregation`/BYPASSRLS auditado).
- *
- * Autenticidade validada ANTES de qualquer leitura de corpo —
- * `parseVendorWebhook` confere o token `asaas-access-token` antes de tocar
- * `payment.subscription`; token divergente devolve 401 sem processar nada.
- * Um POST forjado nunca chega a `markVendorSubscriptionByAsaasId`.
- *
- * Idempotente em duas camadas: `claimWebhookEvent` por `asaas_event_id`
- * (replay do mesmo evento é `{ duplicate: true }`, sem segunda escrita) e
- * `markVendorSubscriptionByAsaasId` por `asaas_subscription_id` (evento de
- * assinatura desconhecida devolve `null`, sem quebrar a resposta 200).
- */
+/** Webhook Asaas: token validado ANTES do corpo (401 sem processar POST forjado); idempotente via `claimWebhookEvent` (asaas_event_id) e `markVendorSubscriptionByAsaasId` (asaas_subscription_id). */
 export async function POST(req: Request) {
   let body: unknown;
   try {

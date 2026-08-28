@@ -10,17 +10,7 @@ import { getPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-/**
- * O recap pessoal do convidado (item 5 do mapa de crescimento): quantas fotos
- * a PRÓPRIA sessão mandou e quantas reações elas receberam. Reforço positivo
- * no topo de "Minhas fotos" — nunca um modal de saída, que não é confiável em
- * PWA mobile (`beforeunload`/`visibilitychange` não disparam de forma
- * garantida).
- *
- * `sessaoId` e `eventoId` vêm sempre da sessão resolvida pelo cookie, nunca
- * de entrada do cliente — o mesmo dado que a galeria de "minhas fotos" já usa
- * para se escopar à própria sessão.
- */
+/** Recap pessoal: fotos e reações da própria sessão (cookie, nunca do cliente) — sem modal de saída (não confiável em PWA mobile). */
 export async function GET(req: Request) {
   const auth = await requireGuestSession(req);
   if (auth instanceof Response) return auth;

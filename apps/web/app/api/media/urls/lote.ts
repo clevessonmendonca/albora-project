@@ -1,30 +1,12 @@
 import { eventPrefix } from "@albora/core";
 
-/**
- * Teto do lote. Uma página de feed são 24 itens e duas variantes cada, e é
- * essa a conta: 48 com folga. Sem teto, a lista vira caminho de enumeração e
- * de esgotamento — uma requisição pedindo dez mil chaves custa dez mil
- * assinaturas.
- */
+/** Teto do lote (página de feed = 24 × 2 variantes) — sem teto, uma requisição pede dez mil chaves e custa dez mil assinaturas. */
 export const KEY_CAP = 60;
 
-/**
- * Validade da URL de leitura.
- *
- * Curta o bastante para uma URL que vazou no grupo do WhatsApp não valer a
- * noite; longa o bastante para uma rolagem de feed não expirar no meio dela —
- * o cliente renova com 60s de folga (`RENEWAL_BUFFER_MS`).
- */
+/** URL curta o bastante para não valer a noite se vazar; longa o bastante para o feed não expirar no meio da rolagem (cliente renova com 60s de folga). */
 export const GET_TTL_SECONDS = 900;
 
-/**
- * A forma exata que `deriveMediaKey` produz.
- *
- * Conferir só o prefixo do evento deixaria de fora tudo que **mais tarde**
- * more debaixo de `events/{id}/` e não seja foto de convidado — export do
- * acervo, artefato de job. Conjunto fechado de variantes é o que impede que a
- * rota de leitura do feed vire chave-mestra do que ainda vai ser escrito ali.
- */
+/** Conjunto fechado de variantes (full|thumb) — prefixo do evento sozinho deixaria passar export e artefatos de job, virando chave-mestra do que vai ser escrito depois. */
 const KEY_FORMAT =
   /^events\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/\d{4}\/\d{2}\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/(full|thumb)$/i;
 
@@ -41,14 +23,7 @@ export function isRejected(batch: AcceptedBatch | RejectedBatch): batch is Rejec
   return "code" in batch;
 }
 
-/**
- * Confere o lote pedido contra o evento da sessão, antes de qualquer
- * assinatura.
- *
- * Chave de outro evento e chave malformada saem com a **mesma** resposta de
- * propósito: distinguir contaria ao pedinte se aquele id existe em outra
- * festa, que é exatamente o que ele queria descobrir.
- */
+/** Chave de outro evento e malformada retornam a mesma resposta — distinguir revelaria se aquele id existe em outra festa. */
 export function validateBatch(raw: unknown, eventId: string): AcceptedBatch | RejectedBatch {
   if (!Array.isArray(raw)) {
     return {

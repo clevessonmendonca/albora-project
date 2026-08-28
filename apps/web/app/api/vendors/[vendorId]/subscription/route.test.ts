@@ -4,13 +4,7 @@ import type * as ApiModule from "@/lib/api";
 const VENDOR_ID = "11111111-1111-1111-1111-111111111111";
 const ACCOUNT_ID = "22222222-2222-2222-2222-222222222222";
 
-/**
- * Dinheiro mockado no boundary — `resolveBilling`/`createVendorSubscription`
- * nunca chamam rede real aqui. O que este arquivo prova é o portão do
- * servidor: uma assinatura `pending`/`active` já existente barra a rota antes
- * de qualquer chamada ao provedor, mesmo que a UI (que já escondia o botão)
- * seja ignorada por uma chamada direta à API.
- */
+/** Billing mockado no boundary — prova que assinatura `pending`/`active` existente barra antes de qualquer chamada ao provedor, mesmo com chamada direta à API. */
 
 const { requireConfig, requireHostSession } = vi.hoisted(() => ({
   requireConfig: vi.fn(() => null),

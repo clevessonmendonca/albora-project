@@ -31,17 +31,7 @@ function isVendorPlan(v: unknown): v is VendorPlan {
   return typeof v === "string" && (VENDOR_PLANS as readonly string[]).includes(v);
 }
 
-/**
- * Espelha `latestSubscriptionStatus` de `load-vendor-portal.ts` — mesma razão
- * para ficar como query inline em vez de função em `@albora/db`:
- * `vendor_subscriptions` não tem RLS própria, então este `WHERE vendor_id =
- * $1` é a única contenção, e `vendorId` aqui já passou por
- * `roleForAccountOnVendor` (nunca um valor cru do cliente).
- *
- * Fecha, no servidor, o mesmo buraco que a UI já fechou escondendo o botão:
- * sem isto, duas abas ou uma chamada direta à API criam duas assinaturas
- * `pending` para o mesmo fornecedor e cobram duas vezes no Asaas.
- */
+/** `vendor_subscriptions` sem RLS — `WHERE vendor_id = $1` é a única contenção (vendorId já passou por `roleForAccountOnVendor`); evita assinatura dupla por duas abas ou chamada direta. */
 async function hasPendingOrActiveVendorSubscription(pool: Pool, vendorId: string): Promise<boolean> {
   const { rows } = await pool.query<{ blocked: boolean }>(
     `SELECT EXISTS (
@@ -53,25 +43,7 @@ async function hasPendingOrActiveVendorSubscription(pool: Pool, vendorId: string
   return rows[0]?.blocked ?? false;
 }
 
-/**
- * Assinatura fixa do fornecedor — Modelo A, tipo Gathmo (spec §4.4). SEM
- * split de gateway: o fornecedor paga um plano mensal fixo à plataforma; ele
- * cobra o casal por fora, no canal dele.
- *
- * Só `admin` de `vendor_members` assina — `staff` nunca cobra, sessão
- * ausente nunca chega aqui (`requireHostSession` primeiro). Esta rota nunca
- * ativa plano: só registra a assinatura como `pending`
- * (`createVendorSubscription`) e devolve o link de pagamento do provedor.
- * `ativarPlanoDoFornecedor` só roda depois, no webhook, quando o Asaas
- * confirma o pagamento — nunca aqui, e nunca a partir de um valor que o
- * cliente possa forjar.
- *
- * `hasPendingOrActiveVendorSubscription` roda logo depois do gate de papel e
- * antes de qualquer chamada de rede ao Asaas — o portal já escondia o botão
- * de assinar com `pending`/`active`, mas isso é só UI; sem esta checagem no
- * servidor, duas abas ou uma chamada direta à API criavam uma segunda
- * assinatura e cobravam duas vezes.
- */
+/** Só registra assinatura como `pending` — `ativarPlanoDoFornecedor` roda no webhook, nunca aqui; verificação de duplicata antes de qualquer chamada ao Asaas (UI não é suficiente). */
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ vendorId: string }> },

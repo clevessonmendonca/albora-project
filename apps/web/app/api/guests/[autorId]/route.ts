@@ -19,14 +19,7 @@ import { getPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-/**
- * O perfil de um convidado dentro do evento — nome + fotos publicadas dele.
- *
- * Só existe depois do gate: antes disso o feed nem manda `sessaoAutor` para o
- * cliente, então não há como o convidado ter chegado a este id por um toque
- * legítimo. Um id forjado antes do gate devolve "não encontrado", igual a um
- * id de outro evento — a RLS e a regra de bloqueio fazem o resto.
- */
+/** Perfil do convidado — só após gate; id forjado antes do gate ou de outro evento devolve "não encontrado" (RLS + bloqueio). */
 export async function GET(req: Request, { params }: { params: Promise<{ autorId: string }> }) {
   const { autorId } = await params;
 
