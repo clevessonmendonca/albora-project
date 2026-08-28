@@ -18,3 +18,15 @@ export {
   type ChallengeStat,
   type HourStat,
 } from "./get-event-insights";
+
+export {
+  getEventMusic,
+  type GetEventMusicInput,
+  type GetEventMusicOutput,
+} from "./get-event-music";
+
+export {
+  setEventMusic,
+  type SetEventMusicInput,
+  type SetEventMusicResult,
+} from "./set-event-music";

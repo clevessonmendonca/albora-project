@@ -1,10 +1,3 @@
-import { ordenarSugestoes, parseMusicLink } from "@albora/core";
-import {
-  withEvent,
-  definirMusicaDoCasal,
-  listarSugestoes,
-  musicaDoCasal,
-} from "@albora/db";
 import { queueForScreen } from "@/features/music/lib/queue-for-screen";
 import {
   ADMIN_SESSION_REQUIRED,
@@ -17,10 +10,14 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
-import { metadadoParaFaixaDoCasal, serializarMusicaDoCasal } from "@/lib/music-track";
+import { serializarMusicaDoCasal } from "@/lib/music-track";
 import { consume } from "@/lib/rate-limit-store";
-
-type Corpo = { url?: unknown };
+import {
+  getEventMusic,
+  setEventMusic,
+} from "@/lib/application/use-cases/admin";
+import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import { setMusicSchema } from "@/lib/infrastructure/api/validators";
 
 export async function GET(
   req: Request,
@@ -37,14 +34,10 @@ export async function GET(
   if (owned instanceof Response) return owned;
 
   try {
-    const corpo = await withEvent(getPool(), eventId, async (c) => {
-      const musica = await musicaDoCasal(c, eventId);
-      const fila = ordenarSugestoes(await listarSugestoes(c, eventId));
-      return { musica, fila };
-    });
+    const result = await getEventMusic({ eventId }, getPool());
     return jsonOk({
-      musica: serializarMusicaDoCasal(corpo.musica),
-      sugestoes: queueForScreen(corpo.fila),
+      musica: serializarMusicaDoCasal(result.musica),
+      sugestoes: queueForScreen(result.sugestoes),
     });
   } catch (e) {
     return unexpectedError("admin.musica.get", e);
@@ -64,7 +57,12 @@ export async function PUT(
 
   const { eventId } = await params;
 
-  const limite = consume(`admin_musica:${auth.host.accountId}`, 30, 60, Date.now());
+  const limite = consume(
+    `admin_musica:${auth.host.accountId}`,
+    30,
+    60,
+    Date.now(),
+  );
   if (!limite.allowed) {
     return errorResponse(429, "limite.excedido", "Espere um instante", {
       retry_after_seconds: limite.resetInSeconds,
@@ -74,39 +72,27 @@ export async function PUT(
   const owned = await requireHostEvent(auth.host.accountId, eventId);
   if (owned instanceof Response) return owned;
 
-  const parsed = await parseJsonBody<Corpo>(req);
+  const parsed = await parseJsonBody(req);
   if (parsed instanceof Response) return parsed;
-  const corpo = parsed.data;
 
-  if (typeof corpo.url !== "string" || corpo.url.trim() === "") {
-    return errorResponse(422, "validation_error", "Cole o link da faixa", { campos: ["url"] });
-  }
-
-  const lido = parseMusicLink(corpo.url.trim());
-  if (!lido.ok) {
-    return errorResponse(422, lido.erro.code, "Link não aceito", lido.erro.details);
-  }
+  const validated = validateBody(parsed.data, setMusicSchema);
+  if (validated instanceof Response) return validated;
 
   try {
-    const metadado = await metadadoParaFaixaDoCasal(lido.link);
-
-    await withEvent(getPool(), eventId, (c) =>
-      definirMusicaDoCasal(c, {
-        eventoId: eventId,
-        link: lido.link,
-        metadado,
-      }),
+    const resultado = await setEventMusic(
+      {
+        eventId,
+        accountId: auth.host.accountId,
+        url: validated.url,
+      },
+      getPool(),
     );
 
-    const musica = await withEvent(getPool(), eventId, (c) => musicaDoCasal(c, eventId));
+    if (!resultado.ok) {
+      return errorResponse(422, resultado.code, resultado.message, resultado.details);
+    }
 
-    console.log("admin.musica_definida", {
-      accountId: auth.host.accountId,
-      eventId,
-      provedor: lido.link.provedor,
-    });
-
-    return jsonOk({ musica: serializarMusicaDoCasal(musica) });
+    return jsonOk({ musica: serializarMusicaDoCasal(resultado.musica) });
   } catch (e) {
     return unexpectedError("admin.musica.put", e);
   }
