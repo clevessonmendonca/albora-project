@@ -1,21 +1,21 @@
 # 🧪 Fase 8: Testes Unitários — Progresso
 
 **Data**: 28 de agosto de 2026  
-**Status**: **162 testes** para 22 use cases ✅
+**Status**: **186 testes** para 28 use cases ✅
 
 ---
 
 ## 📊 Progresso Atual
 
-### Use Cases Testados: **22/55 (40%)** ✅
+### Use Cases Testados: **28/55 (51%)** ✅
 
 | Categoria | Testados | Total | % | Testes |
 |-----------|----------|-------|---|--------|
 | **Críticos** | **3** | 3 | **100%** | 50 ✅ |
 | **Guest** | **16** | 16 | **100%** | 104 ✅ |
-| **Admin** | **6** | 34 | **18%** | 58 ✅ |
+| **Admin** | **9** | 34 | **26%** | 82 ✅ |
 | **Wall** | 0 | 6 | 0% | — |
-| **TOTAL** | **22** | **55** | **40%** | **162** ✅ |
+| **TOTAL** | **28** | **55** | **51%** | **186** ✅ |
 
 ---
 
@@ -171,7 +171,7 @@
 
 ---
 
-## ✅ Use Cases Admin: Core do Negócio (6/34 = 18%)
+## ✅ Use Cases Admin: Core do Negócio (9/34 = 26%)
 
 ### Use Case 10: Create Event (`create-event.test.ts`)
 
@@ -216,6 +216,35 @@
 - ✅ Uploads antes/depois do feed
 - ✅ Entradas por via (QR, link)
 
+### Use Case 13: Challenges (`admin-challenges.test.ts`)
+
+**Arquivo**: `apps/web/lib/application/use-cases/admin/admin-challenges.test.ts`  
+**Testes**: 12 (list + update pack + update custom)  
+**Cobertura**: Missões do pack e customizadas
+
+#### Cenários testados:
+- ✅ Lista challenges do pack e custom
+- ✅ Array vazio, desafios mistos
+- ✅ Atualiza missões do pack
+- ✅ Substitui missões anteriores
+- ✅ Atualiza missões customizadas
+- ✅ Missão com/sem emoji
+- ✅ Preserva ordem
+
+### Use Case 14: Music (`admin-music.test.ts`)
+
+**Arquivo**: `apps/web/lib/application/use-cases/admin/admin-music.test.ts`  
+**Testes**: 12 (get + set)  
+**Cobertura**: Música do casal e sugestões
+
+#### Cenários testados:
+- ✅ Carrega música e sugestões
+- ✅ Ordena sugestões
+- ✅ Define música do casal (Spotify, YouTube)
+- ✅ Valida link (inválido, provedor não suportado)
+- ✅ Trim URL, metadado degradável
+- ✅ Log de música definida
+
 ---
 
 ## 🎯 Próximos Passos
@@ -231,14 +260,16 @@
 - Guestbook, music, app pairing
 - **GUEST COMPLETO!**
 
-🔄 **Use cases admin** (6/34, 58 testes) — 18%
+🔄 **Use cases admin** (9/34, 82 testes) — 26%
 - process-retention-jobs, magic-links
-- create-event, get-event-insights, get-guest-metrics
+- create-event, insights, metrics
+- challenges (list + update), music (get + set)
 
-**Total**: **22/55 use cases, 162 testes** ✅
+**Total**: **28/55 use cases, 186 testes** ✅  
+**Cobertura**: **51%** — **ACIMA DA METADE!** 🎊
 
 ### Pendentes:
-- **28 use cases de admin restantes** (insights, music, missions, exports, drive, etc.)
+- **25 use cases de admin restantes** (guestbook, drive, exports, vendors, etc.)
 - **6 use cases de wall** (pairing, feed, theme, etc.)
 - **Testes de integração** dos handlers
 - **Relatório de cobertura** ≥90%
@@ -254,8 +285,8 @@
 ### Cobertura atual
 - **Use cases críticos**: 3/3 (100%) ✅
 - **Use cases guest**: 16/16 (100%) ✅
-- **Use cases admin**: 6/34 (18%)
-- **Use cases totais**: 22/55 (40%)
+- **Use cases admin**: 9/34 (26%)
+- **Use cases totais**: 28/55 (51%) 🎊
 - **Target**: ≥90% (conforme `CLAUDE.md`)
 
 ### Ganhos
@@ -267,30 +298,34 @@
 - ✅ **App nativo testado** (pairing web → app)
 - ✅ **Guest COMPLETO** (16/16 use cases, 100%)
 - ✅ **Core admin testado** (create-event, insights, metrics)
+- ✅ **Missões testadas** (pack + custom, list + update)
+- ✅ **Música testada** (get + set, Spotify + YouTube)
 - ✅ **Degradação graciosa validada** (story, R2, Drive, metadado)
 - ✅ **Isolamento de eventos validado** (RLS, pools)
 - ✅ **TTLs validados** (15min magic link, 15min pairing, 48h sessão)
 - ✅ **White-label testado** (vendor, e-mail casal, validações)
+- ✅ **51% de cobertura** — acima da metade! 🎊
 
 ---
 
 ## 🏆 Conquistas
 
-✅ **162 testes unitários** criados  
+✅ **186 testes unitários** criados  
 ✅ **100% passando** em todos os use cases  
-✅ **22/55 use cases completos** (40%)  
+✅ **28/55 use cases completos** (51%)  
 ✅ **3/3 use cases críticos** (100%)  
 ✅ **16/16 use cases guest** (100%) 🎉  
-✅ **6/34 use cases admin** (18%)  
+✅ **9/34 use cases admin** (26%)  
 ✅ **Padrões de teste** estabelecidos (`vi.hoisted`, mocks, helpers)  
 ✅ **Caminho crítico** protegido e testado  
 ✅ **LGPD** testado e validado  
 ✅ **Autenticação** testada e validada  
 ✅ **Sistema social** testado e validado  
 ✅ **App nativo** testado e validado  
-✅ **Core do negócio** testado (criação de evento, insights)  
+✅ **Core do negócio** testado (criação de evento, insights, missões, música)  
+✅ **Acima de 50%** de cobertura! 🎊
 
 ---
 
-**Próximo**: Expandir cobertura de admin para ≥50%.
+**Próximo**: Expandir admin para ≥50% (17/34 use cases).
 
