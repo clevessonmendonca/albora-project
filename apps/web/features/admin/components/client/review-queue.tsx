@@ -145,14 +145,20 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
     return (
       <div className="flex flex-col gap-3">
         {Array.from({ length: 3 }, (_, i) => (
-          <div key={i} className="animate-pulse rounded-token bg-bg p-3.5">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="h-3 w-1/3 rounded-full bg-superficie-alta" />
-              <div className="h-5 w-16 rounded-pilula bg-superficie-alta" />
-            </div>
-            <div className="flex gap-2">
-              <div className="h-7 w-20 rounded-pilula bg-superficie-alta" />
-              <div className="h-7 w-16 rounded-pilula bg-superficie-alta" />
+          <div key={i} className="animate-pulse flex gap-3 rounded-token border border-linha bg-bg p-3.5">
+            <div className="aspect-[3/4] w-16 shrink-0 rounded-token bg-superficie-alta" />
+            <div className="flex flex-1 flex-col gap-2.5">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex flex-col gap-1.5">
+                  <div className="h-3 w-28 rounded-full bg-superficie-alta" />
+                  <div className="h-2.5 w-16 rounded-full bg-superficie-alta" />
+                </div>
+                <div className="h-5 w-16 rounded-pilula bg-superficie-alta" />
+              </div>
+              <div className="flex gap-2">
+                <div className="h-7 w-20 rounded-pilula bg-superficie-alta" />
+                <div className="h-7 w-16 rounded-pilula bg-superficie-alta" />
+              </div>
             </div>
           </div>
         ))}
