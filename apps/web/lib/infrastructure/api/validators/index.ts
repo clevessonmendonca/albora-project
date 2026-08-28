@@ -18,3 +18,4 @@ export * from "./auth-schemas";
 export * from "./guestbook-admin-schemas";
 export * from "./guestbook-audio-schemas";
 export * from "./cover-image-schemas";
+export * from "./event-schemas";

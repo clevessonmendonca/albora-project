@@ -169,3 +169,9 @@ export {
   type DeleteGuestbookAudioInput,
   type DeleteGuestbookAudioResult,
 } from "./delete-guestbook-audio";
+
+export {
+  createEvent,
+  type CreateEventInput,
+  type CreateEventResult,
+} from "./create-event";
