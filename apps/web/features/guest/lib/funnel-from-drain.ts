@@ -9,13 +9,7 @@ import {
 } from "@albora/core";
 import { reportFunnel } from "./report-funnel";
 
-/**
- * O que o cliente anuncia depois de um dreno. `upload_start` e `upload_ok`
- * nascem no servidor; daqui só sai falha e a tentativa seguinte.
- *
- * `tentativasPorId` é o valor **antes** do dreno: depois do fail o item já
- * foi incrementado, e misturar os dois viraria retry na primeira queda.
- */
+/** Eventos de funil pós-dreno: `upload_start`/`upload_ok` nascem no servidor; `tentativasPorId` é o valor PRÉ-dreno (pós-fail já foi incrementado — misturar viraria retry na primeira queda). */
 export function funnelEventsFromDrain(
   resultados: readonly SendResult[],
   tentativasPorId: ReadonlyMap<string, number>,

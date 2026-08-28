@@ -9,11 +9,7 @@ import {
 } from "@albora/tokens";
 import type { CSSProperties } from "react";
 
-/**
- * `background` sobrepõe o fundo resolvido da cadeia marca → vendor → pack → evento,
- * re-derivando `--bg`/`--ink`/`--acento` etc. Omitido, o comportamento é
- * idêntico ao fundo do evento/pack/vendor/marca.
- */
+/** `background` sobrepõe o fundo da cadeia marca → vendor → pack → evento, re-derivando `--bg`/`--ink`/`--acento`. Omitido, usa o fundo do evento. */
 export function eventVars(event: EventoPublico, background?: Background): CSSProperties {
   const pack = PACKS[event.packId];
   return resolveGuestThemeVariables({
@@ -24,12 +20,7 @@ export function eventVars(event: EventoPublico, background?: Background): CSSPro
   }) as CSSProperties;
 }
 
-/**
- * A marca sozinha, sem pack e sem `identityTokens` do evento — o fallback
- * seguro de cada var quando o valor do evento não passa pelo saneador de
- * `theme-style.ts`. Depende só do fundo: a marca é o piso da cadeia de
- * resolução, nunca falta e nunca é dado de terceiro.
- */
+/** Fallback seguro da marca pura (sem pack/evento) — piso da cadeia de resolução, nunca dado de terceiro. */
 export function marcaVars(background: Background): CSSProperties {
   return toVariables(resolveTokens({ marca: ALBORA_BRAND, evento: { background } })) as CSSProperties;
 }

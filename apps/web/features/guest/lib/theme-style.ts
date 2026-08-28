@@ -1,39 +1,17 @@
-/**
- * Serialização segura das CSS vars do evento para o `<style>` anti-flash
- * do convidado.
- *
- * `identityTokens` é dado do casal — vem de formulário do anfitrião, não de
- * código — e a pipeline de tokens devolve o valor original intacto quando
- * ele não é um hex válido (decisão de resiliência visual, não de
- * segurança). Sem este filtro, um valor como
- * `"red} .x{background:url(https://evil/x)"` fecha o bloco de regra,
- * injeta um seletor novo e pode declarar `@import` — um terceiro na rota
- * crítica, proibido. Fail-closed: valor suspeito nunca chega ao `<style>`;
- * cai no valor da marca, nunca fica ausente (var ausente quebra quem a
- * consome).
- */
+/** Saneador de CSS vars do evento: dado do casal é terceiro; valor suspeito (`};@import`) fecha bloco e injeta seletor — fail-closed, cai na marca, nunca ausente. */
 const PADRAO_INSEGURO = /[;{}<>\\@]|url\(|\/\*|\*\/|expression\(/i;
 
 export function valorCssSeguro(valor: string): boolean {
   return !PADRAO_INSEGURO.test(valor);
 }
 
-/**
- * Cada var do evento passa pelo filtro; a insegura cai no valor
- * equivalente do fallback (a marca, resolvida pro mesmo fundo) — nunca
- * some.
- */
+/** Cada var passa pelo filtro; insegura cai no fallback da marca — nunca some. */
 export function sanearVars(
   vars: Record<string, string>,
   fallback: Record<string, string>,
 ): Record<string, string> {
   const resultado: Record<string, string> = {};
   for (const [chave, valor] of Object.entries(vars)) {
-    // `fallback[chave]` é `string | undefined` sob `noUncheckedIndexedAccess`.
-    // Na prática `fallback` sempre tem as mesmas chaves de `vars` (ambos vêm
-    // de `toVariables`, que devolve um conjunto fixo) — o `""` só existiria
-    // numa chave que nem o fallback da marca reconhece, e mesmo assim é
-    // seguro: string vazia não contém nenhum caractere da lista proibida.
     resultado[chave] = valorCssSeguro(valor) ? valor : fallback[chave] ?? "";
   }
   return resultado;
@@ -45,12 +23,7 @@ export function cssDasVars(vars: Record<string, string>): string {
     .join(" ");
 }
 
-/**
- * Os 4 blocos do padrão theme-aware: claro cru, escuro sob media guardado
- * por `:not([data-tema="light"])`, e o override explícito `[data-tema]`
- * ganhando nas duas direções. Espera vars já saneadas por `sanearVars` —
- * este helper só serializa e monta a cascata, não valida.
- */
+/** 4 blocos theme-aware: claro, escuro sob media, overrides `[data-tema]` nas duas direções. Espera vars já saneadas — só serializa a cascata. */
 export function estiloAntiFlash(
   claro: Record<string, string>,
   escuro: Record<string, string>,

@@ -1,11 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { goToEvent } from "./scan-qr";
 
-/**
- * `goToEvent` gravava `via="qr"` sempre, mesmo para código digitado —
- * inflando `entradasPorVia.qr` no funil com gente que nunca abriu a câmera
- * (A3, spec-a1-share-a3-resgate.md §2.1). Cada chamador passa o `via` certo.
- */
+/** `goToEvent` gravava `via="qr"` para código digitado — inflava `entradasPorVia.qr` com gente que nunca abriu câmera; cada chamador passa o `via` certo. */
 describe("goToEvent", () => {
   afterEach(() => {
     vi.unstubAllGlobals();

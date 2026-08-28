@@ -2,13 +2,7 @@ import type { EventoDoFunil, EntryVia } from "@albora/core";
 import { withEvent, recordFunnelEvent as insertFunnelEvent, recordFunnelEntry as insertFunnelEntry } from "@albora/db";
 import { getPool } from "@/lib/db";
 
-/**
- * Telemetria do funil: nunca quebra o caminho do convidado.
- *
- * Transação própria, fora do confirm e da criação de sessão. Se o INSERT
- * falhar, a foto e o token já estão salvos — e o painel fica cego daquele
- * passo, não o sábado inteiro.
- */
+/** Telemetria do funil: transação própria, fora do confirm/sessão — INSERT falho deixa o painel cego daquele passo, nunca quebra o sábado inteiro. */
 export async function recordFunnelEvent(
   eventId: string,
   sessionId: string,

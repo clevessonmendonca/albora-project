@@ -15,11 +15,7 @@ type ConstrutorDetector = {
   getSupportedFormats?: () => Promise<string[]>;
 };
 
-/**
- * `via` distingue câmera lida de código digitado — bug de instrumentação
- * (`goToEvent` gravava `qr` para os dois casos) inflava `entradasPorVia.qr`
- * com gente que nunca abriu a câmera.
- */
+/** `via` distingue câmera de código digitado — sem ele `goToEvent` gravava `qr` para ambos e inflava o funil. */
 export function goToEvent(slug: string, via: ViaDeEntrada) {
   window.location.href = eventEntryPath(slug, via);
 }

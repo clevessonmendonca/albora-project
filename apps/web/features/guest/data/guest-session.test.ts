@@ -5,12 +5,7 @@ import { isSameEventSession } from "./guest-session";
 const EVENTO_A = "11111111-1111-1111-1111-111111111111";
 const EVENTO_B = "22222222-2222-2222-2222-222222222222";
 
-/**
- * `isSameEventSession` é a decisão que a raiz `/e/[slug]` usa para escolher
- * entre a Home (stories + feed) e o `EntryFlow` — a mesma escolha que o ADR
- * 0008/CLAUDE.md trata como invariante: sem sessão do mesmo evento, o
- * consentimento continua antes de qualquer captura.
- */
+/** `isSameEventSession`: sem sessão do mesmo evento a raiz cai no `EntryFlow` — consentimento antes de qualquer captura (ADR 0008). */
 describe("isSameEventSession", () => {
   it("sem sessão, não é a mesma sessão — cai no EntryFlow", () => {
     expect(isSameEventSession(null, EVENTO_A)).toBe(false);
@@ -25,14 +20,7 @@ describe("isSameEventSession", () => {
   });
 });
 
-/**
- * A3 (código de resgate): `/scan?codigo=` redireciona para `/e/[slug]?via=code`
- * — a MESMA rota que `qr`/`wa`/`link` já usam, nunca um caminho de sessão
- * paralelo. `isSameEventSession` não recebe `via` na assinatura: a decisão de
- * pular o `EntryFlow` e cair direto na Home olha só para `eventoId` da sessão
- * existente, então reentrar por código digitado não repete nome/consentimento
- * — de graça, sem código novo em `/e/[slug]`.
- */
+/** A3: `/scan?codigo=` redireciona para a mesma rota `qr`/`wa`/`link`; `isSameEventSession` olha só o `eventoId`, então reentrar por código não repede nome/consentimento. */
 describe("reentrada por /scan?codigo= não pergunta nome/consentimento de novo", () => {
   it("'code' é um via válido, não cai em 'link' por engano", () => {
     expect(parseEntryVia("code")).toBe("code");
