@@ -4,11 +4,7 @@ import { comEvento } from "./event";
 import { contarDenuncias, denunciar, ErroMidiaDeOutroEvento } from "./moderation-db";
 import { prepararBanco, semear } from "./testes/banco";
 
-/**
- * A denúncia contra banco real, nunca mock: o que importa provar é que a RLS a
- * escopa ao evento do contexto e que a PK (upload_id, session_id) faz uma
- * sessão contar uma vez — mock de RLS prova que o mock isola.
- */
+/** Contra banco real — RLS escopa ao evento e PK (upload_id, session_id) evita dupla denúncia; mock de RLS prova que o mock isola. */
 
 let admin: pg.Pool;
 let app: pg.Pool;

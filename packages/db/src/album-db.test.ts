@@ -4,11 +4,7 @@ import { janelaDoAlbum, listarMidiaDoAlbum } from "./album-db";
 import { comEvento } from "./event";
 import { prepararBanco, semear } from "./testes/banco";
 
-/**
- * A leitura do álbum contra banco real, nunca mock: o que importa provar é que
- * a RLS a escopa ao evento do contexto, e mock de RLS prova que o mock isola. O
- * álbum é derivado da mídia publicada — a mesma coluna do feed e da parede.
- */
+/** Contra banco real — RLS escopa ao evento; álbum deriva da mesma coluna do feed e da parede; mock de RLS prova que o mock isola. */
 
 let admin: pg.Pool;
 let app: pg.Pool;

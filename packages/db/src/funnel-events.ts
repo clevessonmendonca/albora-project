@@ -14,17 +14,7 @@ export class ErroEventoDoFunilInvalido extends Error {
   }
 }
 
-/**
- * Grava um passo do funil. `event_id` sai do GUC da transação, nunca do
- * chamador — a mesma regra das outras escritas de convidado.
- *
- * Eventos únicos (QR, entrada, consentimento, primeira abertura do feed) não
- * duplicam na mesma sessão: refresh e toque duplo contam uma vez. Captura e
- * envio se repetem a cada foto.
- *
- * Devolve se uma linha nova nasceu. Sessão de outro evento é invisível sob
- * RLS e conta como não gravado — o mesmo silêncio de "não existe".
- */
+/** `event_id` do GUC, nunca do chamador; eventos únicos não duplicam por sessão; sessão de outro evento é invisível sob RLS — o mesmo silêncio de "não existe". */
 export async function registrarEventoDoFunil(
   cliente: PoolClient,
   entrada: { sessaoId: string; name: string },

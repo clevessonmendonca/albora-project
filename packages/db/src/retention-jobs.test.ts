@@ -12,11 +12,7 @@ import { comEvento } from "./event";
 import { VaultDeTokenDrive } from "./drive-token-vault";
 import { prepararBanco, semear } from "./testes/banco";
 
-/**
- * Contra banco real (`admin`, bypassa RLS) — o runner de retenção precisa de
- * uma credencial cross-event, a mesma exigência já documentada em
- * `tools/jobs/analytics-snapshots.mjs`.
- */
+/** Contra banco real como `admin` (bypassa RLS) — runner de retenção é cross-event, mesma exigência dos analytics snapshots. */
 
 let admin: pg.Pool;
 let dados: Awaited<ReturnType<typeof semear>>;
@@ -24,13 +20,7 @@ let dados: Awaited<ReturnType<typeof semear>>;
 const HORA = 3600 * 1000;
 const DIA = 24 * HORA;
 
-/**
- * `planRetention` só mantém itens com `dueAt > agendamento - 24h` (a mesma
- * janela que evita recriar um `plus_48h` de um evento de anos atrás). Os
- * testes por isto escolhem `ends_at` para que o `due_at` do kind sob teste
- * caia dentro dessa janela — perto o bastante de "agora" pra existir, e já
- * vencido o bastante pra ser processável.
- */
+/** `planRetention` só mantém itens com `dueAt > agendamento - 24h` — `ends_at` dos testes é escolhido para que `due_at` caia dentro da janela. */
 function endsParaDueHaPouco(offsetDoKindMs: number, dueHaMs: number): Date {
   return new Date(Date.now() - offsetDoKindMs - dueHaMs);
 }

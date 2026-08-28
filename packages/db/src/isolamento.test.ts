@@ -4,14 +4,7 @@ import { comAgregacao, comConta, comEvento, ErroEventoAusente } from "./event";
 import { ErroSemAcessoAoFornecedor, eventosDoFornecedor, resumoDoFornecedor } from "./vendor-portal";
 import { prepararBanco, semear } from "./testes/banco";
 
-/**
- * A suíte de isolamento. Contra banco real, **nunca mock** — testar
- * isolamento contra mock prova que o mock está isolado.
- *
- * Roda como `albora_app`, papel comum sem BYPASSRLS, porque superuser ignora
- * RLS mesmo com FORCE. Uma suíte conectada como dono passaria enxergando
- * tudo e diria que está tudo certo.
- */
+/** Contra banco real como `albora_app` (sem BYPASSRLS) — superuser ignora RLS mesmo com FORCE; mock de RLS prova que o mock isola. */
 
 let admin: pg.Pool;
 let app: pg.Pool;
@@ -106,14 +99,7 @@ describe("2 — id conhecido do outro evento não é alcançável", () => {
 });
 
 describe("3 — sem app.event_id, o sistema falha fechado", () => {
-  /**
-   * Este é o teste que pegou o bug.
-   *
-   * Ao commitar, um GUC customizado definido por `SET LOCAL` não volta a
-   * NULL — volta a string vazia. E `''::uuid` não "não casa": estoura. Sem
-   * `NULLIF` na política, uma conexão nova devolvia zero linhas e uma
-   * reciclada por outro evento devolvia erro, na mesma pool.
-   */
+  // `SET LOCAL` retorna '' (não NULL) ao commitar — `''::uuid` estoura; sem NULLIF na política, conexão reciclada dava erro no próximo evento.
   it("conexão reciclada, que já serviu um evento, não estoura nem vaza", async () => {
     await comEvento(app, dados.a.eventoId, async (c) => {
       await c.query("SELECT count(*) FROM uploads");
@@ -229,14 +215,7 @@ describe("6 — agregação cruza eventos, e fica auditada", () => {
   });
 });
 
-/**
- * A única tabela com `event_id` que fica fora da RLS, e por quê.
- *
- * Resolver o token do convidado exige descobrir o `event_id`, e descobrir o
- * `event_id` exige o token resolvido. Circular. A saída é uma porta pequena
- * fora da política — e a disciplina é mantê-la pequena, o que o teste abaixo
- * impõe: qualquer coluna nova aqui reprova o CI.
- */
+/** Tabelas fora da RLS com justificativa: circular (resolve token → event_id, mas event_id só existe após o token) — o teste reprova qualquer coluna nova aqui. */
 const FORA_DA_RLS = new Map([
   ["session_tokens", "porta de entrada: resolve token → event_id, antes de haver contexto"],
   ["event_slugs", "porta do QR: resolve slug → event_id. O slug não é segredo — está impresso na mesa"],
@@ -480,13 +459,7 @@ describe("9 — missão duplicada no mesmo evento é recusada pelo banco", () =>
   });
 });
 
-/**
- * 10 — canal do fornecedor: a mesma disciplina do event_id, agora para
- * vendor_id. Bloqueante (spec §6, riscos): `comAgregacao` nunca teve uso real
- * em produção até `eventosDoFornecedor`, e a contenção não é o GRANT do papel
- * `albora_agregador` (que tem SELECT em tudo) — é a query nunca sair sem
- * `WHERE vendor_id = $1`, atrás de uma primeira porta sob RLS normal.
- */
+/** 10 — vendor_id: query nunca sai sem `WHERE vendor_id = $1`, atrás de porta RLS normal — `albora_agregador` tem SELECT em tudo, contenção é o WHERE. */
 describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
   let vendorXId: string;
   let vendorYId: string;
@@ -658,13 +631,7 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
   });
 });
 
-/**
- * 11 — `drive_connections` (spec drive-export §1/§3.1): `event_id` é a
- * própria PK — só existe uma conexão por evento — e a mesma RLS de evento de
- * qualquer outra tabela. O refresh token nunca aparece em claro nem aqui:
- * os campos são ciphertext/iv/tag, o mesmo argumento já aplicado ao hash do
- * token de sessão do convidado.
- */
+/** 11 — `drive_connections`: event_id é PK (uma conexão por evento), RLS padrão; refresh token nunca em claro — ciphertext/iv/tag, mesmo argumento do hash de sessão. */
 describe("11 — drive_connections: RLS por event_id, e o refresh token nunca em claro", () => {
   beforeAll(async () => {
     const inserir = (eventoId: string, contaId: string, folderId: string) =>

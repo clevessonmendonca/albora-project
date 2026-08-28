@@ -5,10 +5,7 @@ import { comEvento } from "./event";
 import { listarMidiaDaParede } from "./wall-media";
 import { prepararBanco, semear } from "./testes/banco";
 
-/**
- * A leitura da parede contra banco real, nunca mock: o que importa provar é que
- * a RLS a escopa ao evento do crachá, e mock de RLS prova que o mock isola.
- */
+/** Contra banco real — RLS escopa ao evento do crachá; mock de RLS prova que o mock isola. */
 
 let admin: pg.Pool;
 let app: pg.Pool;

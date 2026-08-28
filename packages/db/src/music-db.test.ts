@@ -10,11 +10,7 @@ import {
 } from "./music-db";
 import { prepararBanco, semear } from "./testes/banco";
 
-/**
- * A musica contra banco real, nunca mock: o que importa provar e que a RLS
- * escopa a sugestao e a escolha ao evento do cracha, e que a UNIQUE faz a mesma
- * sessao sugerir a mesma faixa uma vez so. Mock de RLS prova que o mock isola.
- */
+/** Contra banco real — RLS escopa ao evento do crachá; UNIQUE impede sugestão duplicada da mesma sessão; mock de RLS prova que o mock isola. */
 
 let admin: pg.Pool;
 let app: pg.Pool;

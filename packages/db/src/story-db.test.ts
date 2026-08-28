@@ -18,12 +18,7 @@ function faixa(url: string): LinkDeMusica {
 
 const FAIXA = faixa("https://open.spotify.com/track/4cOdK2wGLETKBW3PvgPWqT");
 
-/**
- * Um upload publicado a mais, fora do que `semear` já cria — os testes de
- * música precisam de um `uploadId` que ainda não tem story (o `UNIQUE
- * (upload_id)` faria `criarStory` cair no fallback de "já existe" e nunca
- * exercitar o INSERT com `music_track_id`).
- */
+/** Upload extra sem story — sem ele `UNIQUE (upload_id)` faria `criarStory` cair no fallback antes de exercitar o INSERT com `music_track_id`. */
 async function criarUploadPublicado(eventoId: string, sessaoId: string): Promise<string> {
   const { rows } = await admin.query<{ id: string }>(
     `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes)

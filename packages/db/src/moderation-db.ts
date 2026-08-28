@@ -11,10 +11,7 @@ export const SQL_DENUNCIAS_QUE_SEGURAM =
 export const SQL_PEDIDOS_DE_REMOCAO =
   `(SELECT count(*)::int FROM reports rp WHERE rp.upload_id = u.id AND rp.kind = 'aparece_na_foto')`;
 
-/**
- * 🔴 SELECT sob RLS antes do INSERT, não FK: FK ignora RLS e gravaria linha inerte para upload de outro evento;
- * distinguir "existe em outra festa" de "não existe" vazaria o id. `event_id` vem do GUC, nunca do cliente.
- */
+/** 🔴 SELECT sob RLS antes do INSERT (não FK) — FK ignora RLS e gravaria linha inerte de outro evento; distinguir existência vazaria o id; `event_id` do GUC. */
 export async function denunciar(
   cliente: PoolClient,
   entrada: {

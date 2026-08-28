@@ -6,11 +6,7 @@ import { comEvento } from "./event";
 import { codificarCursor, ErroCursorInvalido, gateDoEvento, listarFeed } from "./feed";
 import { prepararBanco, semear } from "./testes/banco";
 
-/**
- * Contra banco real, como `albora_app` — papel comum, sem BYPASSRLS. Testar
- * isolamento contra mock prova que o mock está isolado; testar como superuser
- * prova menos ainda, porque ele ignora RLS mesmo com FORCE.
- */
+/** Contra banco real como `albora_app` (sem BYPASSRLS) — superuser ignora RLS mesmo com FORCE; mock de RLS prova que o mock isola. */
 
 let admin: pg.Pool;
 let app: pg.Pool;
@@ -56,13 +52,7 @@ async function criarFoto(entrada: {
   return id;
 }
 
-/**
- * `sessaoId` é sempre obrigatório em `EntradaFeed`, mesmo em `modo:
- * "espelho"` — reagir não espera o gate (ADR 0009, atualizado), então o
- * servidor sempre precisa saber quem lê para responder a própria reação.
- * `OpcoesFeed` cai de volta em `d.sessaoId` quando o teste não passa um
- * leitor específico.
- */
+/** `sessaoId` obrigatório mesmo em modo espelho — reagir não espera gate (ADR 0009); servidor precisa saber quem lê para responder a própria reação. */
 type OpcoesFeed = {
   modo?: "espelho" | "completo";
   missaoId?: string | null;

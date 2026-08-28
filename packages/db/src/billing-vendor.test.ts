@@ -7,12 +7,7 @@ import {
 } from "./billing";
 import { prepararBanco, semear } from "./testes/banco";
 
-/**
- * Assinatura do fornecedor (Modelo A). Nenhuma chamada de rede: o SDK do
- * Asaas vive em `apps/web/lib/billing` (fora de `packages/db`), atrás da
- * interface `BillingProvider` — o que se testa aqui é só a plumbing de
- * banco que o webhook chama depois de o provedor confirmar por fora.
- */
+/** Assinatura do fornecedor: SDK Asaas fica em `apps/web/lib/billing` atrás de `BillingProvider` — testa só a plumbing de banco que o webhook chama. */
 
 let admin: pg.Pool;
 let app: pg.Pool;

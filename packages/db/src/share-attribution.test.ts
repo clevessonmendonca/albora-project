@@ -26,11 +26,7 @@ afterAll(async () => {
 
 const daquiA = (horas: number) => new Date(Date.now() + horas * 3600_000);
 
-/**
- * Evento sem passar por `criarEvento` — o mesmo padrão de `semear`, sem
- * mintar ref_token. Existe pra isolar o teste de retry-em-colisão de
- * `mintarRefDeCompartilhamento` do mint automático que `criarEvento` já faz.
- */
+/** Evento sem `criarEvento` — isola o teste de retry-em-colisão de `mintarRefDeCompartilhamento` do mint automático que `criarEvento` já faz. */
 async function eventoNu(slug: string, packId: string, accountId: string): Promise<string> {
   const { rows } = await admin.query<{ id: string }>(
     `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)

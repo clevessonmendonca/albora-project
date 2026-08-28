@@ -11,14 +11,7 @@ const URL_ADMIN =
 
 export const SENHA_APP = "app-de-teste";
 
-/**
- * Prepara o banco de teste e devolve duas pools.
- *
- * A distinção entre elas é o ponto da suíte inteira: **superuser ignora RLS
- * mesmo com FORCE**. Uma suíte que conecta como dono do container passaria
- * enxergando tudo e diria que o isolamento funciona. Por isso `app` conecta
- * como papel comum, sem BYPASSRLS — do jeito que a aplicação vai conectar.
- */
+/** `app` conecta como `albora_app` (sem BYPASSRLS) — superuser ignora RLS mesmo com FORCE; uma suíte conectada como dono diria que o isolamento funciona. */
 export async function prepararBanco() {
   const admin = new pg.Pool({ connectionString: URL_ADMIN, max: 4 });
 
@@ -47,11 +40,7 @@ export async function prepararBanco() {
   };
 }
 
-/**
- * Dois eventos com dado próprio, e — desde o ADR 0013 — sob **contas
- * distintas**. A prova é dupla: A nunca enxerga o evento de B, nem por evento
- * nem por conta.
- */
+/** Dois eventos sob contas distintas (ADR 0013) — A nunca enxerga evento de B, nem por event_id nem por account_id. */
 export async function semear(admin: pg.Pool) {
   const conta = async (email: string) => {
     const { rows } = await admin.query("INSERT INTO accounts (email) VALUES ($1) RETURNING id", [

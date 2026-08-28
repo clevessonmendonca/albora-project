@@ -5,11 +5,7 @@ import { gravarComentario, listarComentariosDaFoto, removerComentario } from "./
 import { comEvento } from "./event";
 import { prepararBanco, semear } from "./testes/banco";
 
-/**
- * Comentário contra banco real, nunca mock: o que importa provar é que a RLS o
- * escopa ao evento do contexto, e que a remoção só alcança o próprio autor —
- * mock de RLS prova que o mock isola.
- */
+/** Contra banco real — RLS escopa ao evento e remoção só alcança o próprio autor; mock de RLS prova que o mock isola. */
 
 let admin: pg.Pool;
 let app: pg.Pool;
