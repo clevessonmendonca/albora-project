@@ -30,7 +30,8 @@ export function GuestMain({
   reserveTabBarSpace?: boolean;
 }) {
   return (
-    <div
+    <main
+      id="main-content"
       className={cn(
         "flex flex-1 flex-col px-[1.125rem]",
         reserveTabBarSpace
@@ -39,7 +40,7 @@ export function GuestMain({
       )}
     >
       {children}
-    </div>
+    </main>
   );
 }
 

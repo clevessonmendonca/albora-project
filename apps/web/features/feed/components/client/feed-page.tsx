@@ -3,6 +3,7 @@
 import { isVideoMime } from "@albora/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useCallback, useMemo } from "react";
 import { groupByHour } from "@/features/feed/lib/group-by-hour";
 import { useFeed } from "@/features/feed/hooks/use-feed";
@@ -14,7 +15,6 @@ import { useNewItemsNotification } from "@/features/feed/hooks/use-new-items-not
 import { useGateTransition } from "@/features/feed/hooks/use-gate-transition";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
 import { useShare } from "@/features/my-photos/hooks/use-share";
-import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
 import {
   FloatingNav,
   GateNotice,
@@ -26,6 +26,7 @@ import {
   Badge,
   cn,
   LiveAnnouncer,
+  SkipLink,
 } from "@albora/ui-web";
 import { Post, PostLoading } from "./post";
 import { MirrorGrid, MirrorGridLoading } from "./mirror-grid";
@@ -125,6 +126,7 @@ export function FeedPage({
 
   return (
     <>
+      <SkipLink />
       <FeedStyles />
       <LiveAnnouncer />
 
@@ -298,7 +300,11 @@ function FeedColumn({
   withDivider?: boolean;
 }) {
   return (
-    <div className={cn("grid feed-fade", withDivider && "border-t border-linha")}>
+    <div
+      role="feed"
+      aria-label="Feed de fotos"
+      className={cn("grid feed-fade", withDivider && "border-t border-linha")}
+    >
       {children}
     </div>
   );

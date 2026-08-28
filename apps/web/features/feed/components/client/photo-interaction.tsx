@@ -88,7 +88,7 @@ export const PhotoInteraction = memo(function PhotoInteraction({
 
   return (
     <>
-      <div className="flex items-center gap-5 text-ink">
+      <div className="flex items-center gap-3.5 text-ink">
         <div className="flex items-center gap-1.5">
           <button
             type="button"
