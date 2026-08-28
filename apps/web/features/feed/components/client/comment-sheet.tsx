@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { MoreIcon, SecondaryButton, BottomSheet } from "@albora/ui-web";
+import { MoreIcon, SecondaryButton, BottomSheet, announce } from "@albora/ui-web";
 import type { ComentarioVisivel, CommentsController } from "@/features/feed/hooks/use-comments";
 
 const CLASSE_ACAO_SECUNDARIA =
@@ -29,8 +29,11 @@ export function CommentSheet({
     prevPublicando.current = comentarios.publicando;
   }, [comentarios.publicando]);
 
-  const publicarEScrollar = useCallback(() => {
-    void comentarios.publicar();
+  const publicarEScrollar = useCallback(async () => {
+    const sucesso = await comentarios.publicar();
+    if (sucesso) {
+      announce("Comentário enviado");
+    }
   }, [comentarios]);
 
   return (
@@ -98,7 +101,11 @@ function Composer({
       )}
 
       <div className="flex gap-2">
+        <label htmlFor="comment-input" className="sr-only">
+          {comentarios.respostaA ? "Sua resposta" : "Escrever comentário"}
+        </label>
         <input
+          id="comment-input"
           type="text"
           value={comentarios.texto}
           maxLength={comentarios.maxCaracteres}
@@ -109,6 +116,7 @@ function Composer({
         <button
           type="submit"
           disabled={comentarios.publicando || comentarios.texto.trim() === ""}
+          aria-label={comentarios.publicando ? "Enviando comentário" : "Enviar comentário"}
           className={`min-h-11 cursor-pointer rounded-pilula border-none bg-acento px-4 text-[0.85rem] text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 disabled:cursor-default ${
             comentarios.publicando || comentarios.texto.trim() === "" ? "opacity-50" : ""
           }`}
@@ -188,7 +196,10 @@ function LinhaComentario({
           <button
             type="button"
             disabled={comentarios.publicando}
-            onClick={() => void comentarios.remover(comentario.id)}
+            onClick={() => {
+              void comentarios.remover(comentario.id);
+              announce("Comentário removido");
+            }}
             className={`${CLASSE_ACAO_SECUNDARIA} disabled:cursor-default`}
           >
             Remover
@@ -222,14 +233,22 @@ function MenuOpcoes({
 }) {
   const [aberto, setAberto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const firstButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!aberto) return;
+    
+    // Focus trap: foca o primeiro botão ao abrir
+    firstButtonRef.current?.focus();
+    
     function fecharFora(ev: MouseEvent) {
       if (ref.current && !ref.current.contains(ev.target as Node)) setAberto(false);
     }
     function tecla(ev: KeyboardEvent) {
-      if (ev.key === "Escape") setAberto(false);
+      if (ev.key === "Escape") {
+        setAberto(false);
+        ev.stopPropagation();
+      }
     }
     document.addEventListener("mousedown", fecharFora);
     document.addEventListener("keydown", tecla);
@@ -251,23 +270,32 @@ function MenuOpcoes({
         <MoreIcon size={16} />
       </button>
       {aberto && (
-        <div className="absolute left-0 top-full z-10 mt-[0.15rem] min-w-34 rounded-token border border-linha bg-bg py-[0.35rem]">
+        <div
+          role="menu"
+          aria-label="Opções do comentário"
+          className="absolute left-0 top-full z-10 mt-[0.15rem] min-w-34 rounded-token border border-linha bg-bg py-[0.35rem]"
+        >
           <button
+            ref={firstButtonRef}
             type="button"
+            role="menuitem"
             className={CLASSE_ITEM_MENU}
             onClick={() => {
               setAberto(false);
               onDenunciar();
+              announce("Comentário denunciado");
             }}
           >
             Denunciar
           </button>
           <button
             type="button"
+            role="menuitem"
             className={CLASSE_ITEM_MENU}
             onClick={() => {
               setAberto(false);
               onBloquear();
+              announce(`${autor} bloqueado`);
             }}
           >
             Bloquear {autor}
