@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentType, ReactNode } from "react";
+import { memo, type ComponentType, type ReactNode } from "react";
 import type { ModoInteracao } from "@albora/core";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { PostHeader } from "@albora/ui-web";
@@ -8,7 +8,7 @@ import type { ResultadoReacao } from "@/features/feed/hooks/use-reaction";
 import { cssAspectRatio } from "@/lib/media-aspect";
 import { tempoRelativo } from "@/lib/tempo-relativo";
 
-export function Post({
+export const Post = memo(function Post({
   uploadId,
   interacao,
   reacoes,
@@ -58,7 +58,7 @@ export function Post({
 
   return (
     <article className="border-t border-linha">
-      <div className="py-5 mb-1">
+      <div className="py-3 mb-0.5 sm:py-4 sm:mb-1">
         <PostHeader
           author={autor}
           meta={lugar ?? null}
@@ -67,7 +67,7 @@ export function Post({
         />
       </div>
 
-      <div className="relative mb-3.5 aspect-4/5" style={aspecto ? { aspectRatio: aspecto } : undefined}>
+      <div className="relative mb-2.5 sm:mb-3 aspect-4/5" style={aspecto ? { aspectRatio: aspecto } : undefined}>
         {url ? (
           isVideo ? (
             <video
@@ -91,7 +91,7 @@ export function Post({
         )}
       </div>
 
-      <div className="pb-3">
+      <div className="pb-2 sm:pb-2.5">
         <PhotoInteraction
           uploadId={uploadId}
           interacao={interacao}
@@ -109,18 +109,18 @@ export function Post({
       </div>
 
       {legenda && (
-        <p className="mb-4.5 text-[0.875rem] leading-[1.68] text-ink">
+        <p className="mb-3 sm:mb-3.5 text-[0.875rem] leading-[1.68] text-ink">
           {legenda}
         </p>
       )}
     </article>
   );
-}
+});
 
 export function PostLoading() {
   return (
     <article aria-hidden className="border-t border-linha pb-4">
-      <div className="flex gap-2.5 py-3.5">
+      <div className="flex gap-2.5 py-3">
         <span className="feed-esperando size-7.5 rounded-full bg-superficie-alta" />
         <span className="feed-esperando h-3.5 w-24 self-center rounded-pilula bg-superficie-alta" />
       </div>

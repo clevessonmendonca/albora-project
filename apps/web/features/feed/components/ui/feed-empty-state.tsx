@@ -52,18 +52,19 @@ export function FeedEmptyState({
 
   return (
     <div className="flex min-h-[380px] flex-col items-center justify-center px-[calc(var(--espaco)*8)] py-[calc(var(--espaco)*12)] text-center">
-      <p className="mb-[calc(var(--espaco)*3)] font-titulo text-[1.68rem] font-light leading-[1.17] tracking-[-0.012em] text-ink">
+      <p className="mb-[calc(var(--espaco)*3)] font-titulo font-light leading-[1.17] tracking-[-0.012em] text-ink" style={{ fontSize: "clamp(1.25rem, 5vw, 1.68rem)" }}>
         {titulo}
       </p>
 
-      <p className="mb-[calc(var(--espaco)*8)] max-w-[420px] text-[0.9375rem] leading-relaxed text-ink-2">
+      <p className="mb-[calc(var(--espaco)*8)] max-w-[420px] leading-relaxed text-ink-2" style={{ fontSize: "clamp(0.875rem, 3vw, 0.9375rem)" }}>
         {sugestao}
       </p>
 
       {!espelho && (
         <Link
           href={cameraPath}
-          className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-acento px-[calc(var(--espaco)*6)] font-corpo text-[0.9375rem] font-medium tracking-[0.05em] text-sobre-acento transition-transform duration-[var(--tempo-micro)] hover:scale-[0.977] active:scale-[0.977]"
+          className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-acento font-corpo text-[0.9375rem] font-medium tracking-[0.05em] text-sobre-acento transition-transform duration-[var(--tempo-micro)] hover:scale-[0.977] active:scale-[0.977]"
+          style={{ paddingInline: "calc(var(--espaco) * 6)" }}
         >
           Tirar foto
         </Link>

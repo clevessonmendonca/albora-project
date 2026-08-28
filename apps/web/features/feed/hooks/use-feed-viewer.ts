@@ -28,12 +28,14 @@ export function useFeedViewer(grupos: HourGroup<ItemVisivel>[]) {
   const [preparando, setPreparando] = useState<number | null>(null);
   const [vistos, setVistos] = useState<ReadonlySet<number>>(() => new Set());
   const scrollSalvo = useRef<number | null>(null);
+  const itensRef = useRef<ItemVisivel[]>([]);
 
   const grupoAberto = aberto
     ? grupos.find((g) => g.inicio.getTime() === aberto.inicio)
     : null;
 
   const itensAbertos = grupoAberto?.itens ?? [];
+  itensRef.current = itensAbertos;
   const achado = grupoAberto ? itensAbertos.findIndex((i) => i.id === aberto?.itemId) : -1;
   const indiceAtual = achado >= 0 ? achado : 0;
 
@@ -67,11 +69,11 @@ export function useFeedViewer(grupos: HourGroup<ItemVisivel>[]) {
 
   const navegarPara = useCallback(
     (indice: number) => {
-      const alvo = itensAbertos[indice];
+      const alvo = itensRef.current[indice];
       if (!alvo) return;
       setAberto((atual) => (atual ? { inicio: atual.inicio, itemId: alvo.id } : atual));
     },
-    [itensAbertos],
+    [],
   );
 
   // Fecha hora incompleta antes de abrir

@@ -57,9 +57,11 @@ function FilterTab({
       type="button"
       onClick={onClick}
       aria-pressed={active}
+      aria-current={active ? "page" : undefined}
       className={cn(
         "max-w-56 min-h-12 flex-none cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap border-none bg-transparent p-0 font-titulo text-[0.68rem] font-normal uppercase tracking-[0.2em]",
         "[transition:color_var(--tempo-rapido)_var(--curva)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acento focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
         active
           ? "border-b border-b-acento text-ink"
           : "border-b border-b-transparent text-ink-3 hover:text-ink-2",

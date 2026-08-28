@@ -64,14 +64,15 @@ function Circulo({
   onAbrir: () => void;
 }) {
   return (
-    <button
+      <button
       type="button"
       onClick={onAbrir}
       disabled={bloqueado}
       aria-label={`Ver ${hourLabel(hora)}`}
       className={cn(
-        "flex w-15 flex-none flex-col items-center gap-1.5 border-none bg-transparent p-0 font-inherit text-ink",
+        "flex w-15 flex-none flex-col items-center gap-1.5 border-none bg-transparent p-0 font-inherit text-ink rounded-md",
         "[transition:opacity_var(--tempo-rapido)_var(--curva)]",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acento focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
         bloqueado ? "cursor-default opacity-45" : "cursor-pointer opacity-100",
       )}
     >

@@ -46,7 +46,7 @@ export function PostHeader({
   const hasTimestamp = Boolean(timestamp);
 
   return (
-    <div className="flex items-center gap-2.5 py-1">
+    <div className="flex items-center gap-2.5">
       {avatarNode}
       {hasTimestamp ? (
         <div className="flex-1 min-w-0">
