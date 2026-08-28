@@ -4,13 +4,7 @@ import { WEDDING } from "./casamento";
 import { FIFTEEN_YEARS } from "./quinze-anos";
 import { isValidConfessionPrompt, isValidMissionKey, isValidPlace, PACKS, packProblems, resolvePackText } from "./index";
 
-/**
- * O teste de sanidade do CLAUDE.md: trocar o pack de um evento muda toda a UI
- * sem tocar uma linha do núcleo.
- *
- * Ele só tem valor com dois packs. Com um, passaria mesmo que o vocabulário de
- * casamento estivesse escrito dentro do núcleo.
- */
+/** Sanidade do CLAUDE.md — só tem valor com dois packs; com um, passaria mesmo que o vocabulário de casamento estivesse no núcleo. */
 describe("trocar o pack muda a UI, não o núcleo", () => {
   it("a mesma chave devolve texto diferente por pack", () => {
     expect(resolvePackText(WEDDING, "anfitriao.plural")).toBe("os noivos");
@@ -20,11 +14,6 @@ describe("trocar o pack muda a UI, não o núcleo", () => {
   });
 
   it("todo pack registrado responde ao que o núcleo pede", () => {
-    // Antes este teste exigia conjuntos de chaves idênticos. Isso deixou de
-    // valer quando missão e lugar entraram no vocabulário: um casamento tem
-    // altar e um aniversário não, e igualar os conjuntos forçaria um pack a
-    // inventar lugares que a festa não tem. O que precisa bater é o que o
-    // núcleo desenha — e isso `packProblems` verifica por chave.
     for (const [id, pack] of Object.entries(PACKS)) {
       expect(packProblems(pack), id).toEqual([]);
     }
@@ -45,8 +34,6 @@ describe("trocar o pack muda a UI, não o núcleo", () => {
   });
 
   it("lugar fora da lista do pack é recusado", () => {
-    // É a validação de conjunto fechado que o confirm usa. Campo livre aqui
-    // seria a mesma superfície de abuso do nome, projetada no telão.
     expect(isValidPlace(WEDDING, "altar")).toBe(true);
     expect(isValidPlace(FIFTEEN_YEARS, "altar")).toBe(false);
     expect(isValidPlace(WEDDING, "-22.9068,-43.1729")).toBe(false);

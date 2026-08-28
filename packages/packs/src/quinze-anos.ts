@@ -1,13 +1,6 @@
 import type { Pack } from "./tipos";
 
-/**
- * O segundo pack existe desde a task 002 de propósito.
- *
- * Um pack só não prova nada: com um, é impossível saber se o núcleo é
- * genérico ou se o vocabulário de casamento está grudado nele. Dois packs
- * tornam o teste de sanidade executável — trocar o pack muda a UI inteira
- * sem tocar no núcleo.
- */
+/** Dois packs existem de propósito — com um só é impossível saber se o núcleo é genérico ou se o vocabulário de casamento está grudado nele. */
 export const QUINZE_ANOS: Pack = {
   id: "quinze-anos",
   vocabulario: {

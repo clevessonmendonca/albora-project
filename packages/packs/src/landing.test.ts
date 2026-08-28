@@ -1,11 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { LANDING_VOCABULARY_KEYS, PACKS, landingProblems, resolvePackText } from "./index";
 
-/**
- * A landing é vendida por pack, e um pack sem copy renderiza `landing.titulo`
- * em corpo 74px. `resolvePackText()` devolve a chave de propósito — barato numa tela
- * interna, caro na porta de entrada do funil.
- */
+/** Pack sem copy renderiza `landing.titulo` em corpo 74px na porta do funil — `resolvePackText()` devolve a chave de propósito, que é barato aqui e catastrófico lá. */
 describe("vocabulário de landing", () => {
   const packs = Object.entries(PACKS);
 
@@ -20,16 +16,11 @@ describe("vocabulário de landing", () => {
   });
 
   it("cada pack diz a própria coisa no herói", () => {
-    // Dois packs com o mesmo título significa que a landing é genérica e a
-    // troca de pack não prova nada — que é o teste de sanidade do CLAUDE.md.
     const titulos = packs.map(([, p]) => resolvePackText(p, "landing.titulo"));
     expect(new Set(titulos).size).toBe(titulos.length);
   });
 
   it("cada pack conta o próprio arco da noite", () => {
-    // Um casamento tem cerimônia e um aniversário tem valsa de entrada. Dois
-    // packs com o mesmo arco significariam que os capítulos são decoração, e
-    // não o vocabulário da festa que o pack existe para carregar.
     const arcos = packs.map(([, p]) =>
       (p.momentos ?? []).map((m) => resolvePackText(p, m.chaveTitulo)).join(" · "),
     );
@@ -39,9 +30,7 @@ describe("vocabulário de landing", () => {
   });
 
   it("nenhum pack nomeia a missão de desafio", () => {
-    // O produto chama de missão em toda superfície. Um pack que escreve
-    // "desafio" deixa a marca incoerente dentro da própria página, e a palavra
-    // carrega competição, que é o oposto do convite.
+    // "desafio" carrega competição — oposto do convite.
     for (const [, pack] of packs) {
       for (const [chave, valor] of Object.entries(pack.vocabulario)) {
         expect(valor.toLowerCase(), chave).not.toMatch(/\bdesafios?\b/);

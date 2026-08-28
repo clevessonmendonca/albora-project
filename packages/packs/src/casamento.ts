@@ -1,11 +1,6 @@
 import type { Pack } from "./tipos";
 
-/**
- * Casamento é um pack, não o núcleo.
- *
- * Este é o único lugar do repositório onde "noivos" pode aparecer. Se essa
- * palavra vazar para `core`, `ui-*` ou schema, o guard de packs reprova.
- */
+/** O único lugar do repositório onde "noivos" pode aparecer — se vazar para core, ui-* ou schema, o guard reprova. */
 export const CASAMENTO: Pack = {
   id: "casamento",
   vocabulario: {
