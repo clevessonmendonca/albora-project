@@ -6,6 +6,8 @@ import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { AdminCard } from "@/features/admin/components/server/admin-shell";
 
 type Resumo = {
+  expectedGuests: number;
+  sessoesComUpload: number;
   totalFotos: number;
   participacao: number;
   veredito: CodigoDaTese;
@@ -143,7 +145,7 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
                 <div className="grid grid-cols-2 gap-4">
                   <BigStat
                     n={`${Math.round(resumo.participacao * 100)}%`}
-                    rotulo="dos convidados já fotografaram"
+                    rotulo={`${resumo.sessoesComUpload} de ${resumo.expectedGuests} convidados`}
                   />
                   <BigStat n={String(resumo.totalFotos)} rotulo="fotos na festa" />
                 </div>

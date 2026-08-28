@@ -196,15 +196,31 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
           </select>
         </div>
 
-        <button
-          type="submit"
-          disabled={saving || !email.trim()}
-          className={`${adminClasses.primaryButton} ${
-            saving || !email.trim() ? "opacity-60" : ""
-          }`}
-        >
-          {saving ? "Convidando…" : convidado ? "Convite enviado!" : "Convidar"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="submit"
+            disabled={saving || !email.trim()}
+            className={`${adminClasses.primaryButton} ${
+              saving || !email.trim() ? "opacity-60" : ""
+            }`}
+          >
+            {saving ? "Convidando…" : "Convidar"}
+          </button>
+          {convidado && (
+            <span className="flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path
+                  d="M2 6l2.5 2.5L10 3.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              Convite enviado
+            </span>
+          )}
+        </div>
       </form>
     </AdminSection>
   );
