@@ -83,9 +83,7 @@ describe("o catálogo é fechado, e é fechado num lugar só", () => {
   });
 
   it("host que apenas termina em um host aceito é recusado", () => {
-    // O defeito que isto impede é comparar com `endsWith`: `notspotify.com`
-    // termina em `spotify.com`, e `open.spotify.com.evil.com` termina em
-    // qualquer coisa que se queira. Comparação é igualdade, sempre.
+    // Impede comparar com `endsWith`: `notspotify.com` termina em `spotify.com`, e `open.spotify.com.evil.com` termina em qualquer coisa — comparação é igualdade, sempre.
     expect(erro("https://notspotify.com/track/4cOdK2wGLETKBW3PvgPWqT")).toBe(
       "musica.provedor_fora_da_lista",
     );
@@ -146,9 +144,7 @@ describe("a URL é entrada não confiável", () => {
   });
 
   it("`constructor` não é provedor nem é tipo de conteúdo", () => {
-    // O defeito que isto impede é a tabela de consulta ser objeto literal:
-    // `{}["constructor"]` responde com algo herdado do protótipo, e o tipo
-    // `Record<string, T>` esconde isso em tempo de compilação.
+    // Impede a tabela de consulta ser objeto literal: `{}["constructor"]` responde com algo herdado do protótipo, e o tipo `Record<string, T>` esconde isso em tempo de compilação.
     expect(erro("https://constructor/track/4cOdK2wGLETKBW3PvgPWqT")).toBe(
       "musica.provedor_fora_da_lista",
     );

@@ -21,18 +21,14 @@ export async function sendItem(
   queue: Queue,
 ): Promise<SendResult> {
   if (shouldGiveUp(item)) {
-    // Desistir **não** apaga o item: ele vira falha visível na galeria, com
-    // "tentar de novo". Apagar em silêncio é a foto sumindo sem explicação,
-    // que é o pior modo de falha deste produto.
+    // Desistir **não** apaga o item — ele vira falha visível na galeria, com "tentar de novo"; apagar em silêncio é a foto sumindo sem explicação, o pior modo de falha deste produto.
     return { estado: "desistiu", id: item.id, motivo: "tentativas esgotadas" };
   }
 
   try {
     const presign = await transport.presign(item);
 
-    // A ordem importa: os bytes vão para o storage **antes** do confirm. Um
-    // confirm que chega primeiro cria linha apontando para objeto que não
-    // existe — foto na galeria que não abre.
+    // A ordem importa: os bytes vão para o storage **antes** do confirm — um confirm que chega primeiro cria linha apontando para objeto que não existe, foto na galeria que não abre.
     await transport.sendBytes(presign.full, item);
 
     const thumbnail = item.thumb ?? item.poster;
@@ -42,19 +38,14 @@ export async function sendItem(
 
     await transport.confirm(item, presign);
 
-    // Só remove depois do confirm aceito. Remover antes é perder a foto se o
-    // confirm falhar, e o confirm é idempotente justamente para tolerar que
-    // esta remoção não aconteça.
+    // Só remove depois do confirm aceito — remover antes é perder a foto se o confirm falhar, e o confirm é idempotente justamente para tolerar que esta remoção não aconteça.
     await queue.remove(item.id);
 
     return { estado: "enviado", id: item.id };
   } catch (e) {
     const motivo = e instanceof Error ? e.message : String(e);
 
-    // Erro que não melhora com retry — sessão expirada, chave recusada,
-    // arquivo inválido. Insistir seis vezes contra uma parede só atrasa as
-    // fotos seguintes da fila e esconde do convidado que aquela precisa da
-    // atenção dele.
+    // Erro que não melhora com retry (sessão expirada, chave recusada, arquivo inválido) — insistir contra uma parede só atrasa as fotos seguintes da fila e esconde do convidado que aquela precisa de atenção.
     if (isTerminalError(e)) {
       return { estado: "desistiu", id: item.id, motivo };
     }

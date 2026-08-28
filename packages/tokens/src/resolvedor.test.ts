@@ -83,10 +83,7 @@ describe("cadeia marca → vendor → pack → evento (canal do fornecedor)", ()
 
 describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
   it("âmbar reprova para texto sobre papel", () => {
-    // O DESIGN.md afirma que âmbar sobre papel não serve para texto. Este
-    // teste existe para que a afirmação e a paleta não divirjam em silêncio —
-    // e ele já pegou uma troca de base: com o âmbar do `brand/` a razão mudou
-    // de 2,47 para 2,74, e continua reprovando.
+    // O DESIGN.md afirma que âmbar sobre papel não serve para texto; este teste existe para que a afirmação e a paleta não divirjam em silêncio — já pegou uma troca de base, a razão mudou de 2,47 para 2,74 e continua reprovando.
     const r = razao(ALBORA_BRAND.cores.acento, ALBORA_BRAND.cores.papel);
 
     expect(r).toBeLessThan(CONTRASTE_DE_TEXTO);
@@ -110,9 +107,7 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
   });
 
   it("o rótulo do botão de acento é legível sobre o preenchimento", () => {
-    // O outro lado do teste acima: lá o acento é texto sobre o chão, aqui o
-    // acento é o chão. As duas escolhas óbvias reprovam — papel dá 2,7:1 e o
-    // branco não chega a 3:1 — e as duas parecem certas numa captura de tela.
+    // O outro lado do teste acima: lá o acento é texto sobre o chão, aqui o acento é o chão — as duas escolhas óbvias reprovam (papel dá 2,7:1, branco não chega a 3:1) e ambas parecem certas numa captura de tela.
     for (const background of ["dark", "light"] as const) {
       const e = resolveScale({ ...ALBORA_BRAND, background });
 
@@ -142,9 +137,7 @@ describe("trocar o chão re-deriva o acento", () => {
     const escuro = resolveScale(ALBORA_BRAND);
     const claro = resolveScale({ ...ALBORA_BRAND, background: "light" });
 
-    // Cada chão recebe o seu, e nenhum dos dois é o acento cru: a versão
-    // anterior afirmava que o escuro passava intacto, o que só era verdade
-    // enquanto o chão era o preto absoluto.
+    // Cada chão recebe o seu, e nenhum dos dois é o acento cru — a versão anterior afirmava que o escuro passava intacto, o que só era verdade enquanto o chão era o preto absoluto.
     expect(escuro.acentoTexto).not.toBe(claro.acentoTexto);
     expect(razao(escuro.acentoTexto, escuro.bg)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
     expect(razao(claro.acentoTexto, claro.bg)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
@@ -155,10 +148,7 @@ describe("trocar o chão re-deriva o acento", () => {
   });
 
   it("o chão escuro não é o extremo cru da marca", () => {
-    // Um app inteiro no `noite` puro lê como buraco preto: some a
-    // profundidade entre página e card, e a cor que o casal escolheu não
-    // aparece em lugar nenhum. O `claro()` sempre levantou a página do papel
-    // puro; a assimetria no escuro era acidente.
+    // Um app inteiro no `noite` puro lê como buraco preto: some a profundidade entre página e card, e a cor que o casal escolheu não aparece em lugar nenhum — `claro()` sempre levantou a página do papel puro, a assimetria no escuro era acidente.
     const escuro = resolveScale(ALBORA_BRAND);
 
     expect(escuro.bg).not.toBe(ALBORA_BRAND.cores.noite);

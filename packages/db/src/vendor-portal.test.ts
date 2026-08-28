@@ -186,10 +186,7 @@ describe("marcaPublicaDoFornecedor — resolução pública, sem sessão de cont
   });
 
   it("um visitante sem sessão (sem app.account_id) resolve a marca do mesmo jeito", async () => {
-    // Nenhuma chamada de comConta aqui — a marca pública não passa pela
-    // política vendor_membro, é exatamente o caminho de agregação que o
-    // dashboard usa, com motivo diferente e sem a primeira porta de
-    // pertencimento (não há conta para pertencer a nada).
+    // Nenhuma chamada de comConta aqui — a marca pública não passa pela política vendor_membro, é o mesmo caminho de agregação do dashboard, com motivo diferente e sem a primeira porta de pertencimento (não há conta para pertencer a nada).
     const marca = await marcaPublicaDoFornecedor(agregador, "buffet-y", () => {});
     expect(marca?.id).toBe(vendorYId);
   });

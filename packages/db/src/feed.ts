@@ -126,9 +126,7 @@ export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Pro
   const sessaoIdxParam = parametros.length;
   const minha = `, (SELECT r.kind FROM reactions r WHERE r.upload_id = u.id AND r.session_id = $${sessaoIdxParam}) AS minha_reacao`;
 
-  // O bloqueio simétrico só se aplica quando a identidade do autor já é
-  // visível (modo completo) — antes disso não há perfil nem foto "de fulano"
-  // para esconder, é espelho puro do telão.
+  // O bloqueio simétrico só se aplica quando a identidade do autor já é visível (modo completo) — antes disso não há perfil nem foto "de fulano" para esconder, é espelho puro do telão.
   if (entrada.modo === "completo") {
     filtros.push(filtroSemBloqueio("u.session_id", sessaoIdxParam));
   }
@@ -202,9 +200,7 @@ export function decodificarCursor(bruto: string): { instante: string; id: string
   const instante = texto.slice(0, separador);
   const id = texto.slice(separador + 1);
 
-  // Postgres estoura ao comparar com texto que não é timestamp nem uuid, e um
-  // cursor chega do cliente. A recusa aqui é um 422; lá seria 500 com a
-  // consulta na mensagem.
+  // Postgres estoura ao comparar com texto que não é timestamp nem uuid, e um cursor chega do cliente — a recusa aqui é um 422; lá seria 500 com a consulta na mensagem.
   if (!INSTANTE.test(instante) || !UUID.test(id)) throw new ErroCursorInvalido();
 
   return { instante, id };

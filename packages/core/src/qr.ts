@@ -26,9 +26,7 @@ export function extractSlug(content: string): string | null {
 
   const url = asUrl(raw);
 
-  // `javascript:` e `data:` também são URL válida, e o que decide não é isto —
-  // é o formato fechado lá embaixo. Recusar aqui só evita que um esquema
-  // exótico chegue à extração de caminho parecendo legítimo.
+  // `javascript:` e `data:` também são URL válida; o que decide é o formato fechado lá embaixo — recusar aqui só evita que um esquema exótico chegue à extração de caminho parecendo legítimo.
   if (url !== null && url.protocol !== "https:" && url.protocol !== "http:") return null;
 
   const candidate = url === null ? raw : eventSegment(url);

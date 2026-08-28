@@ -146,10 +146,7 @@ describe("podeProcessarAgora — grace window: nunca cedo, atraso é seguro", ()
     const jobEventoY = { kind: "d365_delete" as const, dueAt };
     const agora = new Date(dueAt.getTime() + GRACE_MINUTOS_DELETE * 60_000 + 5_000);
 
-    // A função é pura: o mesmo dueAt produz a mesma decisão para os dois
-    // eventos — a exclusão mútua real (não processar o mesmo job duas vezes
-    // em runners concorrentes) é responsabilidade do pg_advisory_xact_lock em
-    // `retention-jobs.ts`, não desta função.
+    // A função é pura: o mesmo dueAt produz a mesma decisão para os dois eventos — a exclusão mútua real (não processar o mesmo job duas vezes em runners concorrentes) é do pg_advisory_xact_lock em `retention-jobs.ts`, não desta função.
     expect(podeProcessarAgora(jobEventoX, agora)).toBe(true);
     expect(podeProcessarAgora(jobEventoY, agora)).toBe(true);
   });

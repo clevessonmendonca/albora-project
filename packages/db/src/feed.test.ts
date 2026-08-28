@@ -338,9 +338,7 @@ describe("gate de interação", () => {
   });
 
   it("o horário lido é o que o núcleo compara — antes fecha, depois abre", async () => {
-    // A regra vive em `modoInteracao()` do @albora/core, que este pacote não
-    // importa. O que se prova aqui é o insumo dela: o instante da coluna,
-    // inteiro, dos dois lados da fronteira.
+    // A regra vive em `modoInteracao()` do @albora/core, que este pacote não importa — o que se prova aqui é o insumo dela: o instante da coluna, inteiro, dos dois lados da fronteira.
     const gate = await comEvento(app, dados.a.eventoId, (c) => gateDoEvento(c, dados.a.eventoId));
 
     expect(ANTES_DO_GATE.getTime() >= gate!.interacaoAbreEm!.getTime()).toBe(false);

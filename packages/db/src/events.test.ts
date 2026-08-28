@@ -247,10 +247,7 @@ describe("o anfitrião cria um evento sob um fornecedor (spec-canal-fornecedor �
         ]),
       );
 
-      // O critério de aceite desta correção: `roleForAccountOnEvent` resolve
-      // o fornecedor como `planner` (canManageCoupleOnly=false na aplicação,
-      // load-event-page.ts) e o casal como `owner` (canManageCoupleOnly=true)
-      // — nunca o contrário.
+      // Critério de aceite desta correção: `roleForAccountOnEvent` resolve o fornecedor como `planner` (canManageCoupleOnly=false, load-event-page.ts) e o casal como `owner` (canManageCoupleOnly=true) — nunca o contrário.
       expect(await roleForAccountOnEvent(app, dados.a.contaId, eventoId)).toBe("planner");
       expect(await roleForAccountOnEvent(app, coupleAccountId, eventoId)).toBe("owner");
     },
@@ -352,10 +349,7 @@ describe("o anfitrião cria um evento sob um fornecedor (spec-canal-fornecedor �
         }),
       ).rejects.toBeInstanceOf(ErroContaDoCasalInvalida);
 
-      // Nenhuma linha nasce em `events` — e como `event_members.event_id` é
-      // FK pra `events`, a ausência de evento já prova a ausência de
-      // qualquer `event_members` desta tentativa (não há `eventoId` pra
-      // referenciar): o guard estoura antes de qualquer INSERT na transação.
+      // Nenhuma linha nasce em `events` — como `event_members.event_id` é FK pra `events`, a ausência de evento já prova a ausência de `event_members` desta tentativa: o guard estoura antes de qualquer INSERT na transação.
       const { rows: linhaEvento } = await admin.query(
         "SELECT 1 FROM events WHERE vendor_id = $1",
         [vendorId],

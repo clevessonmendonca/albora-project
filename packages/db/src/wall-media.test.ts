@@ -86,9 +86,7 @@ describe("a parede lê só o evento do crachá", () => {
   });
 
   it("duas sessões distintas denunciando seguram a foto do telão", async () => {
-    // O sensor da sala: duas denúncias de sessões diferentes tiram do telão,
-    // uma só não. É `decidirExibicao` na superfície telao, alimentada pela
-    // contagem de `reports`.
+    // O sensor da sala: duas denúncias de sessões diferentes tiram do telão, uma só não — é `decidirExibicao` na superfície telao, alimentada pela contagem de `reports`.
     const { rows: outra } = await admin.query<{ id: string }>(
       `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
        VALUES ($1, 'Léo', '1', now()) RETURNING id`,

@@ -157,9 +157,7 @@ describe("geolocalização", () => {
   });
 
   it("o ponteiro de GPS é LONG — lê os quatro bytes, não dois", () => {
-    // Com leitura de 16 bits, um offset acima de 65535 viraria 0 e o GPS
-    // passaria despercebido. É o caso de uma foto com EXIF grande, que é
-    // justamente a foto de celular moderno.
+    // Com leitura de 16 bits, um offset acima de 65535 viraria 0 e o GPS passaria despercebido — é o caso de uma foto com EXIF grande, justamente a foto de celular moderno.
     const comGpsLonge = jpegComExif([{ tag: PONTEIRO_GPS, tipo: 4, valor: 70_000 }]);
 
     expect(temGeolocalizacao(comGpsLonge)).toBe(true);

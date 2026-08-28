@@ -81,9 +81,7 @@ function estadoDoComentario(parcial: Partial<EstadoDoComentario> = {}): EstadoDo
 
 describe("o gate manda no comentário", () => {
   it("antes do gate, recusa", () => {
-    // Verificação 1 da spec. O mesmo gate da reação e do feed: um comentário
-    // que passa antes da hora é o celular do primo apitando na troca de
-    // alianças.
+    // Verificação 1 da spec — mesmo gate da reação e do feed: comentário antes da hora é o celular do primo apitando na troca de alianças.
     for (const evento of [FECHADO, SEM_DATA]) {
       expect(publicarComentario(pedido(), evento, [], AGORA)).toEqual({
         ok: false,
@@ -146,9 +144,7 @@ describe("o texto é entrada não confiável", () => {
   });
 
   it("espaço de largura zero também é vazio", () => {
-    // `trim` não remove U+200B nem a marca de direção: sem esta checagem, um
-    // comentário invisível fica pendurado na foto de alguém, poluindo sem dar
-    // o que denunciar.
+    // `trim` não remove U+200B nem a marca de direção — sem esta checagem, um comentário invisível fica pendurado na foto de alguém, poluindo sem dar o que denunciar.
     for (const bruto of ["\u200B", "\uFEFF\u200D", " \u00AD \u2060 "]) {
       expect(validarTexto(bruto).ok).toBe(false);
     }
@@ -169,9 +165,7 @@ describe("o texto é entrada não confiável", () => {
   });
 
   it("conta ponto de código, não unidade UTF-16", () => {
-    // Emoji fora do BMP ocupa duas unidades em `.length`. Contar por unidade
-    // daria metade do teto a quem escreve com emoji — e partiria o par
-    // substituto se algum dia isso virasse corte em vez de recusa.
+    // Emoji fora do BMP ocupa duas unidades em `.length` — contar por unidade daria metade do teto a quem escreve com emoji, e partiria o par substituto se isso virasse corte em vez de recusa.
     const emojis = "\u{1F389}".repeat(MAX_CARACTERES);
 
     expect(emojis.length).toBe(MAX_CARACTERES * 2);
@@ -179,9 +173,7 @@ describe("o texto é entrada não confiável", () => {
   });
 
   it("não escapa nada: o texto sai do validador como entrou", () => {
-    // Verificação 2 é sobre render, não sobre gravação. Escapar aqui gravaria
-    // `&lt;script&gt;` no banco e o convidado veria a entidade HTML na tela
-    // depois que o template escapasse de novo.
+    // Verificação 2 é sobre render, não gravação — escapar aqui gravaria `&lt;script&gt;` no banco e o convidado veria a entidade HTML na tela depois que o template escapasse de novo.
     const bruto = "<script>alert(1)</script> & 'aspas'";
 
     expect(validarTexto(bruto)).toEqual({ ok: true, texto: bruto });
@@ -211,9 +203,7 @@ describe("thread com um nível", () => {
   });
 
   it("resposta de resposta sobe para a raiz em vez de recusar", () => {
-    // O defeito que isto impede é duplo: thread infinita (superfície de abuso
-    // e de render) e, do outro lado, um erro na cara de quem tocou em
-    // "responder" numa resposta às 22h.
+    // Impede defeito duplo: thread infinita (superfície de abuso e de render) e erro na cara de quem tocou em "responder" numa resposta às 22h.
     const raiz = comentario({ id: "cmt_raiz" });
     const resposta = comentario({ id: "cmt_resp", respostaA: "cmt_raiz", criadoEm: min(5) });
 
@@ -277,9 +267,7 @@ describe("montar a thread para desenhar", () => {
   });
 
   it("resposta órfã some junto com a raiz, não vira comentário de topo", () => {
-    // Verificações 3 e 5: quando a raiz sai da vista (denúncia, remoção,
-    // pânico), promover a resposta a topo ressuscitaria a discussão sem o
-    // começo — exatamente o que o anfitrião acabou de mandar apagar.
+    // Verificações 3 e 5 — quando a raiz sai da vista (denúncia, remoção, pânico), promover a resposta a topo ressuscitaria a discussão sem o começo, o que o anfitrião acabou de mandar apagar.
     const orfa = comentario({ id: "orfa", respostaA: "cmt_removido", criadoEm: min(1) });
 
     expect(montarThread([orfa], "mid_1")).toEqual([]);
@@ -368,10 +356,7 @@ describe("moderação de comentário é a mesma escada da foto", () => {
   });
 
   it("classificador fora do ar publica assim mesmo", () => {
-    // Verificação 6, e a divergência deliberada em relação ao telão: o
-    // classificador é enriquecimento, e enriquecimento degrada, nunca derruba.
-    // O código continua estável para a auditoria saber que publicou sem
-    // parecer.
+    // Verificação 6 — divergência deliberada do telão: classificador é enriquecimento, que degrada mas nunca derruba; o código continua estável para a auditoria saber que publicou sem parecer.
     expect(
       decidirExibicaoDoComentario(
         estadoDoComentario({ classificador: "sem-resposta" }),
@@ -420,9 +405,7 @@ describe("moderação de comentário é a mesma escada da foto", () => {
   });
 
   it("a liberação do anfitrião vence denúncia, classificador e modo endurecido", () => {
-    // É o caminho do falso positivo, que a spec 011 registra como o risco mais
-    // provável. A foto precisa estar liberada também: em modo endurecido ela
-    // segura primeiro, e comentário em foto que ninguém aprovou não aparece.
+    // Caminho do falso positivo (spec 011, risco mais provável) — a foto precisa estar liberada também: em modo endurecido ela segura primeiro, e comentário em foto não aprovada não aparece.
     expect(
       decidirExibicaoDoComentario(
         estadoDoComentario({
@@ -508,9 +491,7 @@ describe("a auditoria guarda a decisão, não a frase", () => {
   });
 
   it("a linha não tem campo para o texto nem para o nome de quem escreveu", () => {
-    // Comentário de festa cita nome de gente que nunca abriu o produto. PII
-    // crua em log é violação, e a auditoria é onde ela escapa porque "é
-    // interno".
+    // Comentário de festa cita nome de gente que nunca abriu o produto — PII crua em log é violação, e a auditoria é onde ela escapa porque "é interno".
     const linha = registrarDecisaoDoComentario(
       { eventoId: "e", midiaId: "m", comentarioId: "c", ator: "ses_opaca" },
       decidirExibicaoDoComentario(estadoDoComentario(), estadoDaMidia(), CALMA),
@@ -531,9 +512,7 @@ describe("a auditoria guarda a decisão, não a frase", () => {
 
 describe("reação em comentário não existe", () => {
   it("o módulo não exporta nada de reação", () => {
-    // Regra de escopo da spec 014, não lacuna. O teste existe porque "curtir
-    // comentário" é a coisa mais fácil de alguém acrescentar sem perceber que
-    // está reabrindo uma decisão.
+    // Regra de escopo da spec 014, não lacuna — "curtir comentário" é a coisa mais fácil de alguém acrescentar sem perceber que está reabrindo uma decisão.
     expect(Object.keys(modulo).filter((k) => /rea[cç]|curtir/i.test(k))).toEqual([]);
   });
 });

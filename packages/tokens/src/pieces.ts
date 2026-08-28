@@ -116,9 +116,7 @@ export function pieceProblems(layout: PieceLayout, colors: Colors): string[] {
     );
   }
 
-  // Câmera velha, permissão de câmera negada, código riscado por uma taça: a
-  // URL embaixo é o único caminho que sobra, e ela some primeiro em revisão
-  // de layout porque "polui".
+  // Câmera velha, permissão de câmera negada, código riscado por uma taça: a URL embaixo é o único caminho que sobra, e ela some primeiro em revisão de layout porque "polui".
   if (layout.url.trim() === "") {
     problems.push("falta a URL legível sob o QR");
   }

@@ -597,9 +597,7 @@ describe("quando há mais foto que slot", () => {
   });
 
   it("no aperto, a proteção do convidado cede antes da do capítulo", () => {
-    // Todo mundo mandou uma foto só: as duas proteções não cabem juntas. O
-    // capítulo vazio é buraco na linha do tempo, que é o que o álbum promete
-    // organizar; o convidado continua com as fotos dele na galeria.
+    // Todo mundo mandou uma foto só: as duas proteções não cabem juntas — capítulo vazio é buraco na linha do tempo, que é o que o álbum promete organizar; o convidado continua com as fotos dele na galeria.
     const base = new Date("2026-08-09T01:00:00Z").getTime();
     const festa = Array.from({ length: 4 }, (_, i) =>
       foto({ id: `f${i}`, sessaoId: `s${i}`, capturadaEm: new Date(base + i * 60_000) }),

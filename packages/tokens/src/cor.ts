@@ -89,10 +89,7 @@ export function acentoLegivelSobre(acento: string, ...superficies: string[]): st
   const serve = (c: Rgb) => chaos.every((chao) => contraste(c, chao) >= CONTRASTE_DE_TEXTO);
   if (serve(cor)) return paraHex(cor);
 
-  // O extremo sai da superfície mais parecida com o acento — é contra ela que
-  // o contraste é pior, e é ela que decide para que lado caminhar. Usar o
-  // fundo da página daria a resposta certa no escuro e errada no claro, onde
-  // a página é um degrau mais escura que o card.
+  // O extremo sai da superfície mais parecida com o acento — é contra ela que o contraste é pior, e ela decide para que lado caminhar; usar o fundo da página daria a resposta certa no escuro e errada no claro.
   const pior = chaos.reduce((a, b) =>
     contraste(cor, a) <= contraste(cor, b) ? a : b,
   );

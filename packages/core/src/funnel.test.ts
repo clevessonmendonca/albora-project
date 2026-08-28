@@ -74,9 +74,7 @@ describe("a métrica principal", () => {
   });
 
   it("lança quando não há denominador, em vez de devolver zero", () => {
-    // Defeito que este teste impede: `expected_guests` em branco no admin
-    // viraria 0%, e 0% é "tese errada, parar" — a decisão mais cara do projeto
-    // tomada por um campo não preenchido.
+    // Impede `expected_guests` em branco no admin virar 0%, e 0% é "tese errada, parar" — a decisão mais cara do projeto tomada por um campo não preenchido.
     for (const expectedGuests of [0, -1, Number.NaN]) {
       expect(() => taxaDeParticipacao({ expectedGuests, sessoesComUpload: 48 })).toThrow(
         MetricaInvalida,
@@ -152,9 +150,7 @@ describe("instalação nunca é lida sozinha", () => {
   });
 
   it("a leitura devolve as duas taxas, sempre", () => {
-    // Defeito que este teste impede: alguém expor a taxa de instalação sozinha
-    // no painel. Se este objeto ganhar um caminho que devolva só instalação, a
-    // asserção das chaves quebra.
+    // Impede alguém expor a taxa de instalação sozinha no painel — se este objeto ganhar um caminho que devolva só instalação, a asserção das chaves quebra.
     const leitura = lerPlataforma(evento());
 
     expect(Object.keys(leitura).sort()).toEqual(["instalacao", "participacao"]);
@@ -194,9 +190,7 @@ describe("instalação nunca é lida sozinha", () => {
   });
 
   it("uma pessoa a mais em cem não é veredito, três são", () => {
-    // Sem margem de ruído, um convidado de diferença entre dois casamentos vira
-    // "prejuízo" e o produto muda por causa dele. A segunda asserção existe
-    // para a margem não virar mordaça: movimento real continua sendo lido.
+    // Sem margem de ruído, um convidado de diferença entre dois casamentos vira "prejuízo" — a segunda asserção existe para a margem não virar mordaça: movimento real continua sendo lido.
     expect(
       compararPlataforma(
         evento({ sessoesComUpload: 45, sessoesComInstalacao: 20 }),
@@ -229,9 +223,7 @@ describe("a ordem do funil", () => {
   });
 
   it("captura sem consentimento tem código próprio", () => {
-    // Defeito que este teste impede: tratar como desordem genérica de
-    // instrumentação. Não é — é captura antes do consentimento versionado e
-    // datado, e precisa de um código auditável só dela.
+    // Impede tratar como desordem genérica de instrumentação — não é: é captura antes do consentimento versionado e datado, e precisa de um código auditável só dela.
     expect(validarSequencia(["page_open", "capture"])).toMatchObject({
       valida: false,
       codigo: "funil.captura_sem_consentimento",
@@ -285,16 +277,12 @@ describe("a ordem do funil", () => {
   });
 
   it("entrar por link, sem QR, é válido", () => {
-    // Defeito que este teste impede: exigir `qr_scan` antes de `page_open`
-    // descartaria como inválida toda sessão que veio do link no WhatsApp — ou
-    // seja, participação real virando zero no painel.
+    // Impede exigir `qr_scan` antes de `page_open`, o que descartaria como inválida toda sessão vinda do link no WhatsApp — participação real virando zero no painel.
     expect(validarSequencia(["page_open", "consent", "capture", "upload_start"]).valida).toBe(true);
   });
 
   it("o CTA de instalação na entrada é válido", () => {
-    // Defeito que este teste impede: exigir `upload_ok` antes de
-    // `install_prompt` rejeitaria a variante de entrada do experimento dos três
-    // primeiros casamentos, que é justamente o que se quer medir.
+    // Impede exigir `upload_ok` antes de `install_prompt`, o que rejeitaria a variante de entrada do experimento dos três primeiros casamentos, justamente o que se quer medir.
     expect(validarSequencia(["page_open", "install_prompt", "install_dismiss"]).valida).toBe(true);
   });
 
@@ -358,9 +346,7 @@ describe("onde a participação se perdeu", () => {
   });
 
   it("evento perdido no meio nunca produz retenção acima de 100%", () => {
-    // Defeito que este teste impede: contar por presença do evento. O `consent`
-    // que não chegou faria `capture` (2) parecer maior que `consent` (1) — e um
-    // painel com retenção de 200% faz o casal decidir sobre número inventado.
+    // Impede contar por presença do evento — `consent` que não chegou faria `capture` (2) parecer maior que `consent` (1), e retenção de 200% faz o casal decidir sobre número inventado.
     const passos = degraus([
       SESSAO_FELIZ,
       ["qr_scan", "page_open", "capture", "upload_start", "upload_ok"],

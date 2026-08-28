@@ -69,9 +69,7 @@ describe("o comentário lê só o evento do contexto", () => {
   });
 
   it("mesmo pedindo a foto do outro evento, a RLS não a entrega", async () => {
-    // Passar o par (event_id, upload_id) de B para uma transação escopada em A
-    // não pode furar a política: o filtro no SQL e a RLS concordam, e o
-    // resultado é vazio.
+    // Passar o par (event_id, upload_id) de B para uma transação escopada em A não pode furar a política — filtro no SQL e RLS concordam, resultado é vazio.
     const cruzado = await comEvento(app, dados.a.eventoId, (c) =>
       listarComentariosDaFoto(c, dados.b.eventoId, dados.b.uploadId),
     );

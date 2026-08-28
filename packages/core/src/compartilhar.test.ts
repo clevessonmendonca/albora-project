@@ -139,9 +139,7 @@ describe("a mídia não sai do perímetro sem prova de autoria", () => {
 
 describe("o consentimento de saída é um segundo ato", () => {
   it("o consentimento da entrada não autoriza sair do evento", () => {
-    // O defeito que este teste impede: reaproveitar o checkbox da porta como
-    // base para o compartilhamento externo, que é justamente o que a LGPD não
-    // aceita — consentimento que não descreve o uso não é consentimento.
+    // Impede reaproveitar o checkbox da porta como base para o compartilhamento externo — a LGPD não aceita, consentimento que não descreve o uso não é consentimento.
     const soEntrou = sessao({ consentimentoExterno: null });
 
     expect(soEntrou.consentimentoDeEntrada.versao).toBe("v1");
@@ -269,9 +267,7 @@ describe("a moderação é a mesma, e a régua é a do telão", () => {
   });
 
   it("classificador sem resposta: a galeria publica, o compartilhamento não", () => {
-    // O defeito que este teste impede: usar a superfície "galeria" na
-    // delegação. Ela falha aberta de propósito, e falhar aberto para fora do
-    // perímetro é irreversível de um jeito que a galeria não é.
+    // Impede usar a superfície "galeria" na delegação — ela falha aberta de propósito, e falhar aberto para fora do perímetro é irreversível de um jeito que a galeria não é.
     const semResposta = midia({ estado: estado({ classificador: "sem-resposta" }) });
 
     expect(decidirExibicao(semResposta.estado, EVENTO_LIBERADO, "galeria").visivel).toBe(true);
@@ -311,9 +307,7 @@ describe("🔴 a moldura nunca corta o topo nem a base", () => {
   });
 
   it("a foto 9:16 não ganha a moldura cheia, porque a faixa da marca comeu 320px", () => {
-    // O defeito que este teste impede: preencher o canvas 1080×1920 inteiro com
-    // a foto 9:16 e desenhar a marca por cima — que é exatamente a marca d'água
-    // sobre a imagem que a spec proíbe.
+    // Impede preencher o canvas 1080×1920 inteiro com a foto 9:16 e desenhar a marca por cima — exatamente a marca d'água sobre a imagem que a spec proíbe.
     const noveDezesseis = { largura: 1080, altura: 1920 };
 
     expect(cobreSemPerderTopo(noveDezesseis, areaDaFoto("cheia"))).toBe(false);

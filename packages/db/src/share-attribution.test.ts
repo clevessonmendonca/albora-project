@@ -85,9 +85,7 @@ describe("criarEvento mint o ref_token na mesma transação do slug", () => {
     let tentativas = 0;
     const randQueVaria = () => {
       tentativas += 1;
-      // Primeira tentativa gera o mesmo "aaaa…a" de eventoX — colide no
-      // `ref_token` (não no `event_id`, que já é outro). O retry só termina
-      // quando o rand varia.
+      // Primeira tentativa gera o mesmo "aaaa…a" de eventoX — colide no `ref_token` (não no `event_id`, que já é outro); o retry só termina quando o rand varia.
       return tentativas === 1 ? 0 : Math.random();
     };
 

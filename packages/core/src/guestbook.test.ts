@@ -76,9 +76,7 @@ describe("o agendamento é do anfitrião", () => {
 
 describe("o salão é barulhento: o texto é o corpo", () => {
   it("recusa recado sem texto, mesmo com áudio perfeito", () => {
-    // Às 23h com música alta, um recado só em áudio é inaudível. Aceitar aqui
-    // criaria um recado que ninguém consegue receber, e a falha só apareceria
-    // na festa.
+    // Às 23h com música alta, um recado só em áudio é inaudível — aceitar aqui criaria um recado que ninguém consegue receber, e a falha só apareceria na festa.
     expect(validarRascunho(rascunho({ texto: "" }))).toEqual({
       code: "recado.texto_obrigatorio",
     });
@@ -235,9 +233,7 @@ describe("entrega uma vez por sessão", () => {
 
 describe("isolamento entre eventos", () => {
   it("sessão do evento A não lê o recado do evento B", () => {
-    // Verificação 4, na camada de aplicação. O RLS é a primeira defesa e
-    // continua sendo a que vale; esta pega o payload mal montado antes de a
-    // tela existir.
+    // Verificação 4, na camada de aplicação — o RLS é a primeira defesa e continua sendo a que vale; esta pega o payload mal montado antes de a tela existir.
     const doOutroEvento = recado({ eventoId: "evt_b" });
 
     expect(decidirEntrega(doOutroEvento, SESSAO, [], DEPOIS)).toEqual({
@@ -285,10 +281,7 @@ describe("degradação: o recado é enriquecimento", () => {
   });
 
   it("o caminho da câmera fica livre em todo estado possível de entrega", () => {
-    // A prova de que um recado nunca bloqueia o envio de foto: a matriz
-    // inteira de códigos × estados de áudio, mais dois estados incoerentes que
-    // a validação deveria ter impedido. Se algum caminho pudesse fechar a
-    // câmera, ele apareceria aqui.
+    // Prova de que um recado nunca bloqueia o envio de foto: matriz inteira de códigos × estados de áudio, mais dois estados incoerentes que a validação deveria ter impedido.
     const porCodigo: Record<CodigoDeEntrega, Entrega> = {
       "recado.inexistente": decidirEntrega(null, SESSAO, [], DEPOIS),
       "recado.outro_evento": decidirEntrega(recado({ eventoId: "evt_b" }), SESSAO, [], DEPOIS),

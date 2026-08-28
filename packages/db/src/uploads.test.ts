@@ -34,10 +34,7 @@ const entrada = (uploadId: string, d: { eventoId: string; sessaoId: string }) =>
 
 describe("confirm é idempotente sob concorrência", () => {
   it("dois retries do mesmo uploadId ao mesmo tempo dão uma linha, nunca erro", async () => {
-    // O caso real: sinal ruim, o cliente retenta antes de a primeira resposta
-    // chegar. Antes do lock isto dava um sucesso e um 403 — que o transporte
-    // trata como definitivo, e a foto sumia da fila. Achado pelo arnês de
-    // carga, não por revisão.
+    // O caso real: sinal ruim, o cliente retenta antes de a primeira resposta chegar — antes do lock isto dava um sucesso e um 403, que o transporte trata como definitivo e a foto sumia da fila. Achado pelo arnês de carga, não por revisão.
     const uploadId = randomUUID();
 
     const resultados = await Promise.allSettled([

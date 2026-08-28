@@ -224,9 +224,7 @@ describe("os oito modelos e a escolha do casal", () => {
   });
 
   it("recusa escolha em que nenhum modelo aceita foto em pé", () => {
-    // O defeito que isto impede é o pior tipo: o telão roda a noite inteira
-    // parecendo funcionar, mostrando só o quarto deitado do acervo, e ninguém
-    // descobre até o dia seguinte.
+    // Impede o pior tipo de defeito: o telão roda a noite inteira parecendo funcionar, mostrando só o quarto deitado do acervo, e ninguém descobre até o dia seguinte.
     expect(problemasDaEscolha(["cheio"])).toHaveLength(1);
     expect(problemasDaEscolha(["cheio"])[0]).toContain("em pé");
   });

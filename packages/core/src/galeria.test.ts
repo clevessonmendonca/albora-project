@@ -61,9 +61,7 @@ describe("a galeria mostra o que ainda não subiu", () => {
   });
 
   it("não conta em dobro entre o confirm e a limpeza da fila", () => {
-    // O confirm é idempotente pelo id do cliente: por um instante o mesmo
-    // item existe nos dois lados, e mostrá-lo duas vezes faria o convidado
-    // achar que mandou em dobro.
+    // O confirm é idempotente pelo id do cliente — por um instante o mesmo item existe nos dois lados, e mostrá-lo duas vezes faria o convidado achar que mandou em dobro.
     const galeria = montarGaleria([enviada("a", 5)], [naFila("a", 5)], EVENTO);
 
     expect(galeria).toHaveLength(1);

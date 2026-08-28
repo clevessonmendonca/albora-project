@@ -116,9 +116,7 @@ describe("vinheta", () => {
   });
 
   it("fecha igual na foto em pé e na deitada", () => {
-    // Três de cada quatro fotos de festa são verticais: se a normalização não
-    // fosse pela diagonal, a vinheta fecharia muito mais pelos lados que pelo
-    // topo, e o canto de uma 32×96 não bateria com o da mesma foto girada.
+    // Três de cada quatro fotos de festa são verticais — se a normalização não fosse pela diagonal, a vinheta fecharia mais pelos lados que pelo topo, e o canto de uma 32×96 não bateria com o da mesma foto girada.
     const emPe = uniforme(32, 96, 128);
     const deitada = uniforme(96, 32, 128);
 

@@ -106,10 +106,7 @@ describe("story a partir de um upload confirmado", () => {
       }),
     );
 
-    // Conectado sob app.event_id = A: pedir a listagem passando o eventoId de
-    // B no parâmetro não deveria devolver nada — a RLS decide pela conexão,
-    // não pelo argumento da função. Prova que a segunda camada (WHERE) não é
-    // a única, e que a primeira (RLS) fecha mesmo se a segunda falhar.
+    // Conectado sob app.event_id = A: pedir a listagem com o eventoId de B no parâmetro não deveria devolver nada — a RLS decide pela conexão, não pelo argumento; prova que a primeira camada (RLS) fecha mesmo se a segunda (WHERE) falhar.
     const comParametroErrado = await comEvento(app, dados.a.eventoId, (c) =>
       storiesAtivasDoEvento(c, dados.b.eventoId),
     );

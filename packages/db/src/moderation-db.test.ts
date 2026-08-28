@@ -49,10 +49,7 @@ describe("a denúncia é escopada ao evento do contexto", () => {
   });
 
   it("mesmo com o id da foto do outro evento em mãos, a RLS não deixa denunciar", async () => {
-    // Passar o upload_id de B para uma transação escopada em A não pode furar a
-    // política. A checagem de visibilidade sob RLS recusa antes do INSERT —
-    // porque a FK ignoraria a RLS e gravaria linha inerte. Mesma recusa que um
-    // id inexistente: distinguir vazaria que a foto existe em outra festa.
+    // Passar o upload_id de B para uma transação escopada em A não pode furar a política — a checagem de visibilidade sob RLS recusa antes do INSERT, porque a FK ignoraria a RLS; mesma recusa que id inexistente, para não vazar que a foto existe em outra festa.
     await expect(
       comEvento(app, dados.a.eventoId, (c) =>
         denunciar(c, { uploadId: dados.b.uploadId, sessaoId: dados.a.sessaoId }),

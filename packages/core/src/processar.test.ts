@@ -130,9 +130,7 @@ describe("a ordem das operações", () => {
   });
 
   it("os ajustes manuais entram na mesma passagem do preset, e a miniatura sai dela", async () => {
-    // Uma segunda passagem só para os ajustes custaria outra varredura da
-    // imagem inteira; e uma miniatura tirada de antes deles deixaria a tira do
-    // telão com uma cor e o álbum com outra.
+    // Uma segunda passagem só para os ajustes custaria outra varredura da imagem inteira; miniatura tirada de antes deles deixaria a tira do telão com uma cor e o álbum com outra.
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     await processarFoto(semExif, "image/jpeg", desenhista, {

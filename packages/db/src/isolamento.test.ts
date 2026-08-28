@@ -253,9 +253,7 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
        WHERE table_name = 'session_tokens' ORDER BY column_name`,
     );
 
-    // Sem PII, sem nome de convidado, sem conteúdo de evento. Quem ler esta
-    // tabela inteira sabe que existem sessões e a quais eventos pertencem —
-    // e nada mais. Toda coluna a mais aqui está pedindo para sair da RLS.
+    // Sem PII, sem nome de convidado, sem conteúdo de evento — quem ler esta tabela inteira sabe que existem sessões e a quais eventos pertencem, nada mais; toda coluna a mais está pedindo para sair da RLS.
     expect(rows.map((r) => r.coluna)).toEqual([
       "created_at",
       "event_id",
@@ -272,11 +270,7 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
        WHERE table_name = 'wall_tokens' ORDER BY column_name`,
     );
 
-    // Uma coluna a menos que `session_tokens`, e a ausência é a decisão: a
-    // parede não é uma pessoa. Inventar `session_id` para ela faria a
-    // auditoria atribuir a um convidado o que uma TV fez sozinha — e abriria
-    // a porta para alguém reusar o crachá como sessão, que é o que autoriza
-    // subir foto.
+    // Uma coluna a menos que `session_tokens`, e a ausência é a decisão: a parede não é uma pessoa — inventar `session_id` para ela faria a auditoria atribuir a um convidado o que uma TV fez sozinha, e abriria a porta para reusar o crachá como sessão, que é o que autoriza subir foto.
     expect(rows.map((r) => r.coluna)).toEqual([
       "created_at",
       "event_id",
@@ -292,9 +286,7 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
        WHERE table_name = 'wall_pairings' ORDER BY column_name`,
     );
 
-    // Só o mapeamento código/token → evento, mais o consentimento de quem ligou.
-    // Nenhuma coluna de convidado, nenhuma foto. Quem ler esta tabela inteira
-    // sabe que existem pareamentos e a quais eventos foram presos — nada além.
+    // Só o mapeamento código/token → evento, mais o consentimento de quem ligou — nenhuma coluna de convidado, nenhuma foto; quem ler esta tabela inteira sabe que existem pareamentos e a quais eventos foram presos, nada além.
     expect(rows.map((r) => r.coluna)).toEqual([
       "code",
       "consent_version",
@@ -313,9 +305,7 @@ describe("7 — nenhuma tabela nova escapa da política", () => {
        WHERE table_name = 'app_pairings' ORDER BY column_name`,
     );
 
-    // Só o mapeamento código → (event_id, session_id). Sem nome de convidado,
-    // sem foto. Quem ler esta tabela inteira sabe que existem códigos de
-    // pareamento e a quais sessões pertencem — nada além.
+    // Só o mapeamento código → (event_id, session_id) — sem nome de convidado, sem foto; quem ler esta tabela inteira sabe que existem códigos de pareamento e a quais sessões pertencem, nada além.
     expect(rows.map((r) => r.coluna)).toEqual([
       "code",
       "created_at",
@@ -478,9 +468,7 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
     );
     vendorYId = vy[0]!.id;
 
-    // Os eventos A e B do seed principal (contas distintas, ADR 0013) passam
-    // a pertencer a um fornecedor cada — o mesmo par que já prova isolamento
-    // por event_id agora prova isolamento por vendor_id.
+    // Os eventos A e B do seed principal (contas distintas, ADR 0013) passam a pertencer a um fornecedor cada — o mesmo par que já prova isolamento por event_id agora prova isolamento por vendor_id.
     await admin.query("UPDATE events SET vendor_id = $1 WHERE id = $2", [vendorXId, dados.a.eventoId]);
     await admin.query("UPDATE events SET vendor_id = $1 WHERE id = $2", [vendorYId, dados.b.eventoId]);
 
@@ -494,9 +482,7 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
       [vendorXId, membroXId],
     );
 
-    // Segundo evento sob vendorX, dono de conta diferente de dados.a — prova
-    // que resumoDoFornecedor soma por vendor_id, não por account_id: o dono
-    // deste evento nem é vendor_members de X, só o evento pertence a X.
+    // Segundo evento sob vendorX, dono de conta diferente de dados.a — prova que resumoDoFornecedor soma por vendor_id, não por account_id: o dono deste evento nem é vendor_members de X, só o evento pertence a X.
     const { rows: extra } = await admin.query<{ id: string }>(
       `INSERT INTO events (account_id, vendor_id, pack_id, slug, starts_at, ends_at, expected_guests)
        VALUES ($1, $2, 'pack-um', 'evento-extra-x', now(), now() + interval '4 hours', 50)
@@ -550,11 +536,7 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
   });
 
   it("a contenção é a query, não o GRANT do papel agregador", async () => {
-    // O papel albora_agregador tem SELECT em toda tabela (migration 0002) —
-    // por design, não por acidente. Sem o WHERE vendor_id = $1 que
-    // eventosDoFornecedor sempre usa, uma consulta no MESMO papel veria os
-    // dois vendors. Este teste documenta por que a disciplina tem de ser na
-    // query de aplicação, nunca no GRANT.
+    // O papel albora_agregador tem SELECT em toda tabela (migration 0002), por design — sem o WHERE vendor_id = $1 que eventosDoFornecedor sempre usa, uma consulta no MESMO papel veria os dois vendors; a disciplina tem de ser na query de aplicação, nunca no GRANT.
     const registros: { motivo: string; em: Date }[] = [];
     const semFiltro = await comAgregacao(
       agregador,
@@ -582,9 +564,7 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
         registros.push(r),
       );
 
-      // vendorX tem dois eventos (eventoA, expected_guests=150; e
-      // eventoExtraX, expected_guests=50), um upload publicado cada — o
-      // upload de eventoB (vendorY) nunca entra nesta soma.
+      // vendorX tem dois eventos (eventoA, expected_guests=150; e eventoExtraX, expected_guests=50), um upload publicado cada — o upload de eventoB (vendorY) nunca entra nesta soma.
       expect(resumo).toEqual({
         totalEventos: 2,
         totalFotos: 2,

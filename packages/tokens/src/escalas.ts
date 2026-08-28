@@ -22,9 +22,7 @@ function escuro(c: Colors): SemanticScale {
   const acima = (t: number) => sobre(CHAO_ESCURO + t);
 
   const bg = sobre(CHAO_ESCURO);
-  // Texto de acento aparece em card também, e no escuro o card é MAIS claro
-  // que a página. Derivar só contra o chão aprovaria uma cor que some em cima
-  // da superfície elevada.
+  // Texto de acento aparece em card também, e no escuro o card é MAIS claro que a página — derivar só contra o chão aprovaria uma cor que some em cima da superfície elevada.
   const superficieAlta = acima(RAMPA.superficieAlta);
 
   return {

@@ -106,9 +106,7 @@ export type MotivoSessaoInvalida = "assinatura" | "desconhecido" | "expirado" | 
 export class ErroSessaoInvalida extends Error {
   readonly code = "sessao.invalida";
   constructor(readonly motivo: MotivoSessaoInvalida) {
-    // A mensagem é genérica de propósito: o motivo serve para log e métrica,
-    // não para a resposta. "expirado" e "desconhecido" contam ao atacante se
-    // ele acertou um token que já existiu.
+    // A mensagem é genérica de propósito: o motivo serve para log e métrica, não para a resposta — "expirado" e "desconhecido" contam ao atacante se ele acertou um token que já existiu.
     super("sessão inválida");
   }
 }

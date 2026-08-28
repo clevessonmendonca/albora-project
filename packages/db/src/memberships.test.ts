@@ -62,11 +62,7 @@ describe("roleForAccountOnEvent", () => {
 
 describe("listEventMembers", () => {
   it("owner consegue listar mas RLS bloqueia sem policy dedicada", async () => {
-    // 🔴 RLS `conta_membro` só permite ver a própria membership. Adicionar policy
-    // cross-account geraria recursão com `conta_membro_evento_leitura` (0034).
-    // ACL é na API: `requireHostEventRole` valida acesso antes de chamar.
-    // Este teste documenta a limitação; a feature funciona em produção porque a
-    // API valida permissões antes da query chegar ao banco.
+    // 🔴 RLS `conta_membro` só permite ver a própria membership — policy cross-account geraria recursão com `conta_membro_evento_leitura` (0034); ACL é na API (`requireHostEventRole` valida antes de chamar), e este teste documenta a limitação.
     const members = await listEventMembers(app, dados.a.contaId, dados.a.eventoId);
     // RLS bloqueia: só devolve as próprias memberships (1 de 3)
     expect(members.length).toBeLessThanOrEqual(3);

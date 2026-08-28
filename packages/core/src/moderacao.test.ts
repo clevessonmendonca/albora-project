@@ -149,9 +149,7 @@ describe("a fila de revisão", () => {
   });
 
   it("silêncio do classificador entra na fila — o admin é avisado", () => {
-    // Spec 011 verificação 2. NULL ainda não rodou: quem mapeia isso é a
-    // leitura do banco (`interpretarVeredicto` na parede, nulo→limpo na fila
-    // para não encher de foto à espera do job).
+    // Spec 011 verificação 2 — NULL ainda não rodou: quem mapeia isso é a leitura do banco (`interpretarVeredicto` na parede, nulo→limpo na fila para não encher de foto à espera do job).
     expect(precisaDeRevisao(midia({ classificador: "sem-resposta" }), CALMA)).toBe(true);
   });
 
@@ -171,9 +169,7 @@ describe("a fila de revisão", () => {
   });
 
   it("com menores, a fila enxerga a foto que o telão segurou com 1 denúncia", () => {
-    // Regressão: o limiar da fila tem de acompanhar o de `decidirExibicao`. Com
-    // menores (ADR 0012) o telão segura em 1; a fila presa em 2 esconderia a
-    // foto sem recurso.
+    // Regressão: o limiar da fila tem de acompanhar o de `decidirExibicao` — com menores (ADR 0012) o telão segura em 1, e a fila presa em 2 esconderia a foto sem recurso.
     const uma = midia({ denuncias: 1 });
 
     expect(decidirExibicao(uma, CALMA, "telao", 1)).toEqual({
