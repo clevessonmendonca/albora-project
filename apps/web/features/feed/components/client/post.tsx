@@ -7,13 +7,6 @@ import { PostHeader } from "@albora/ui-web";
 import type { ResultadoReacao } from "@/features/feed/hooks/use-reaction";
 import { cssAspectRatio } from "@/lib/media-aspect";
 
-/**
- * Uma publicação no feed — layout de `FeedScreen` em `/telas`.
- *
- * Cabeçalho com iniciais, foto no aspecto persistido (4:5 se o confirm
- * não gravou o par), estrela + comentário embaixo.
- */
-
 export function Post({
   uploadId,
   interacao,

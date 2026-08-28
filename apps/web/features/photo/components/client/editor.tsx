@@ -18,19 +18,7 @@ import { carregarImagemEditor, type Escolha } from "./editor-lut";
 
 export type { Escolha };
 
-/**
- * O editor. A foto já foi tirada pela câmera nativa; aqui só se escolhe cor.
- *
- * Cada miniatura da tira mostra **a foto do próprio convidado**, não uma
- * amostra genérica: escolher filtro olhando a foto de outra pessoa é escolher
- * no escuro. E as miniaturas saem de uma redução de 150 px feita uma vez —
- * oito cópias do original travaram o aparelho no protótipo.
- *
- * Filtro e ajustes se alternam em duas abas porque a tira de oito miniaturas e
- * os quatro controles não cabem juntos na tela de um celular sem empurrar a
- * prévia para fora — e é a prévia que decide a escolha.
- */
-
+/** Miniaturas da tira saem de redução a 150 px feita uma vez — oito cópias do original travaram o aparelho no protótipo. */
 type Aba = "filtros" | "ajustes" | "texto" | "musica";
 
 export function Editor({
