@@ -1,7 +1,6 @@
 "use client";
 
-// global-error substitui <html> inteiro — tokens/Tailwind não estão
-// disponíveis. Cores em rgb() para não disparar o guard de hex.
+// global-error substitui <html> inteiro — tokens/Tailwind não estão disponíveis; cores em rgb() para não disparar o guard de hex.
 
 export default function GlobalError({
   reset,

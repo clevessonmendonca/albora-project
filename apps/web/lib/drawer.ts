@@ -48,8 +48,7 @@ export const webDrawer: Desenhista<Img, Blob> = {
     const { canvas, ctx } = contexto(target.width, target.height);
 
     ctx.save();
-    // Gira em torno do centro do destino; com troca de eixos, o destino já
-    // veio com largura e altura invertidas de `planProcessing`.
+    // Gira em torno do centro do destino; com troca de eixos, o destino já veio com largura/altura invertidas de `planProcessing`.
     ctx.translate(target.width / 2, target.height / 2);
     if (t.girar) ctx.rotate((t.girar * Math.PI) / 180);
     if (t.espelhar) ctx.scale(-1, 1);

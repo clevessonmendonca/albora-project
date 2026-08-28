@@ -15,8 +15,7 @@ export function sessionCookieHeader(token: string, durationHours: number): strin
     `Max-Age=${durationHours * 3600}`,
   ];
 
-  // Sem Secure em dev, senão o cookie não gruda em http://localhost e o
-  // fluxo inteiro parece quebrado por um motivo que não é o real.
+  // Sem Secure em dev, senão o cookie não gruda em http://localhost e o fluxo parece quebrado por outro motivo.
   if (process.env.APP_ENV !== "dev") attrs.push("Secure");
 
   return attrs.join("; ");

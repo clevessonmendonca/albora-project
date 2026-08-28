@@ -211,8 +211,7 @@ export function googleDriveClient(clientId: string, clientSecret: string): Drive
     },
 
     async revoke(refreshToken) {
-      // Corpo, nunca querystring: evita o token em log de acesso/proxy, e o
-      // endpoint do Google aceita as duas formas igualmente.
+      // Corpo, nunca querystring: evita o token em log de acesso/proxy — o endpoint do Google aceita as duas formas.
       const res = await fetch(REVOKE_ENDPOINT, {
         method: "POST",
         headers: { "content-type": "application/x-www-form-urlencoded" },

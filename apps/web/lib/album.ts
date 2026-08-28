@@ -88,8 +88,7 @@ export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
 
   const album = montarAlbum(data.midias, plan);
 
-  // A chave nunca sai do servidor; o mapa liga o id da foto montada à chave que
-  // será assinada, sem confiar em campo que o núcleo não declara no seu tipo.
+  // A chave nunca sai do servidor; o mapa liga o id da foto à chave assinada, sem confiar em campo fora do tipo do núcleo.
   const keyById = new Map(
     data.midias.map((m) => [m.id, { full: m.chaveFull, thumb: m.chaveThumb, mime: m.mime }] as const),
   );

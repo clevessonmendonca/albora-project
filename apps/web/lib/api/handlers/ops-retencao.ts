@@ -56,8 +56,7 @@ function emailDeAviso(n: NotificacaoRetencao): Parameters<typeof sendHostEmail>[
 async function notificarHost(n: NotificacaoRetencao): Promise<void> {
   const mail = emailDeAviso(n);
   if (!mail) return;
-  // sendHostEmail absorve falhas internamente — duplica a defesa de
-  // notificarSemQuebrar que já envolve esta função no processRetentionJob.
+  // sendHostEmail absorve falhas internamente — duplica a defesa de notificarSemQuebrar no processRetentionJob.
   await sendHostEmail(mail);
 }
 
@@ -110,8 +109,7 @@ export async function postOpsRetencao(req: Request) {
 
       processados++;
 
-      // d365_delete: apagar bytes no R2 depois do commit (spec §1.6).
-      // Falha individual não para o loop; 404 já é sucesso (idempotente).
+      // d365_delete: apagar bytes no R2 depois do commit — falha individual não para o loop, 404 já é sucesso.
       if (resultado.status === "done" && resultado.chavesParaApagar?.length) {
         for (const key of resultado.chavesParaApagar) {
           try {
@@ -130,8 +128,7 @@ export async function postOpsRetencao(req: Request) {
         });
       }
 
-      // d365_delete: revogar refresh token no Google depois do commit (spec §1.6).
-      // Enriquecimento — o purge dos nossos dados já commitou independentemente.
+      // d365_delete: revogar refresh token no Google depois do commit — enriquecimento, o purge já commitou.
       if (resultado.status === "done" && resultado.driveRefreshTokenParaRevogar) {
         try {
           await getDriveClient().revoke(resultado.driveRefreshTokenParaRevogar);

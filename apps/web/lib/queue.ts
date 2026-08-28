@@ -26,8 +26,7 @@ function openDb(): Promise<IDBDatabase> {
     try {
       req = indexedDB.open(DB_NAME, VERSION);
     } catch (e) {
-      // Safari em navegação privada lança aqui em vez de devolver erro. O
-      // convidado precisa saber disso na entrada, não depois de tirar a foto.
+      // Safari em navegação privada lança aqui em vez de devolver erro — o convidado precisa saber na entrada.
       reject(new QueueUnavailableError(e));
       return;
     }
@@ -82,15 +81,13 @@ export const webQueue: Queue = {
     if (!item.eventoId) return Promise.reject(new Error("item sem eventoId"));
 
     return withStore<void>("readwrite", (store) => {
-      // `put`, não `add`: reenfileirar o mesmo id depois de uma falha é o
-      // caminho normal, e `add` estouraria com ConstraintError.
+      // `put`, não `add`: reenfileirar o mesmo id depois de uma falha é o caminho normal, `add` estouraria.
       store.put(item);
     });
   },
 
   list(): Promise<QueueItem[]> {
-    // Pelo índice de criação: a foto mais antiga sobe primeiro, senão um
-    // convidado que tira dez fotos vê a primeira ficar para trás.
+    // Pelo índice de criação: a foto mais antiga sobe primeiro, senão quem tira dez fotos vê a primeira ficar para trás.
     return withStore<QueueItem[]>("readonly", (store, settle) => {
       const req = store.index("criadoEm").getAll();
       req.onsuccess = () => settle((req.result as QueueItem[]) ?? []);
@@ -115,8 +112,7 @@ export const webQueue: Queue = {
   },
 
   annotate(id: string, details: QueueDetails): Promise<boolean> {
-    // Mesma transação, mesmo motivo do `markAttempt`: o drenador pode
-    // estar mexendo neste item enquanto o convidado digita a legenda.
+    // Mesma transação, mesmo motivo do `markAttempt`: o drenador pode estar mexendo no item enquanto digita a legenda.
     return withStore<boolean>("readwrite", (store, settle) => {
       settle(false);
 

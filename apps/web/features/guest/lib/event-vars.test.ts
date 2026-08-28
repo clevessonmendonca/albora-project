@@ -112,8 +112,7 @@ describe("eventVars — camada vendor (white-label)", () => {
   });
 
   it("vendor vence a marca Albora mas perde para o pack", () => {
-    // O pack 'pack-inexistente' não existe em PACKS, então só marca e vendor concorrem.
-    // Com vendor definindo acento, ele deve ganhar da marca Albora.
+    // O pack 'pack-inexistente' não existe em PACKS, então só marca e vendor concorrem — vendor deve ganhar da marca Albora.
     const event = eventoFixture({
       vendorBrandTokens: { cores: { acento: ACENTO_VENDOR } },
     });

@@ -132,14 +132,12 @@ export function FeedPage({
     if (primeiro) setAberto({ inicio: preparando, itemId: primeiro.id });
   }, [preparando, grupos, estado.carregando, carregarMais]);
 
-  // A foto pode sair do feed pelo botão de pânico enquanto alguém a olha. Some
-  // do grupo, o grupo some da lista, e a tela volta para onde há saída.
+  // A foto pode sair do feed pelo botão de pânico enquanto alguém a olha — some do grupo, e a tela volta para onde há saída.
   useEffect(() => {
     if (aberto && !grupoAberto) setAberto(null);
   }, [aberto, grupoAberto]);
 
-  // Sem isto o dedo atravessa a tela filled e rola o feed atrás dela — e a pessoa
-  // fecha a hora num lugar da lista que não é o que ela deixou.
+  // Sem isto o dedo atravessa a tela filled e rola o feed atrás dela, fechando a hora num lugar diferente do que a pessoa deixou.
   useEffect(() => {
     if (!grupoAberto) return;
 

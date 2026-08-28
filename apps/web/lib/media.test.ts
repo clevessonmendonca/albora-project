@@ -162,8 +162,7 @@ describe("mídia nunca sai da origem da aplicação", () => {
   });
 
   it("recusa subir quando o domínio de mídia é subdomínio do domínio raiz", () => {
-    // Cada evento é um `<slug>.<raiz>`: um evento de slug `midia` passaria a
-    // ser servido da mesma origem que a mídia dele.
+    // Cada evento é um `<slug>.<raiz>`: um evento de slug `midia` passaria a ser servido da mesma origem que a mídia.
     ambiente("albora.com.br", "midia.albora.com.br");
     expect(() => config()).toThrow(ErroOrigemDeMidia);
   });

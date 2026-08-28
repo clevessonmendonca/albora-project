@@ -281,8 +281,7 @@ function Deslizante({
 }) {
   const bruto = Math.round(valor * max);
   const posicao = ((bruto - min) / (max - min)) * 100;
-  // O preenchimento nasce no neutro, não na ponta esquerda: num controle que
-  // vai de −50 a 50 é o desvio que interessa, e é ele que a barra mostra.
+  // O preenchimento nasce no neutro, não na ponta esquerda — num controle de −50 a 50 é o desvio que interessa.
   const neutro = min < 0 ? ((0 - min) / (max - min)) * 100 : 0;
 
   const de = Math.min(neutro, posicao);

@@ -14,8 +14,7 @@ export const webTransport: Transport = {
     const res = await fetch("/api/uploads/presign", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      // O cookie de sessão vai sozinho; o token nunca entra no corpo nem na
-      // URL, e é de lá que o servidor tira o event_id para derivar a chave.
+      // O cookie de sessão vai sozinho; é de lá que o servidor tira o event_id para derivar a chave, nunca do corpo/URL.
       credentials: "same-origin",
       body: JSON.stringify({
         uploadId: item.id,
@@ -29,8 +28,7 @@ export const webTransport: Transport = {
   },
 
   async sendBytes(url, item) {
-    // Direto no object storage. O servidor não vê estes bytes — é a regra do
-    // caminho crítico, e o que faz a conta do produto fechar.
+    // Direto no object storage — o servidor não vê estes bytes, é a regra do caminho crítico que faz a conta fechar.
     const res = await fetch(url, {
       method: "PUT",
       body: corpoDoItem(item),

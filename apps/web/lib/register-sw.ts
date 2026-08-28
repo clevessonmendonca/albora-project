@@ -11,8 +11,7 @@ export async function registerServiceWorker(): Promise<void> {
     const registro = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
     await pedirDrenagemEmSegundoPlano(registro);
   } catch {
-    // Navegação privada, política do navegador, origem sem HTTPS. Nada disso
-    // impede subir foto pela aba aberta — só tira a drenagem em segundo plano.
+    // Navegação privada, política do navegador, origem sem HTTPS — nada disso impede subir foto pela aba aberta.
   }
 }
 

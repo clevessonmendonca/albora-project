@@ -9,8 +9,7 @@ export function getPool(): pg.Pool {
     pool = new pg.Pool({
       connectionString: config().databaseUrl,
       max: 5,
-      // O caminho crítico não pode ficar pendurado esperando conexão: melhor
-      // devolver erro que o cliente reenfileira do que segurar o convidado.
+      // O caminho crítico não pode ficar pendurado esperando conexão: melhor devolver erro que segurar o convidado.
       connectionTimeoutMillis: 5_000,
       idleTimeoutMillis: 30_000,
     });

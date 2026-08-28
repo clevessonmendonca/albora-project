@@ -56,8 +56,7 @@ describe("enfileirar, listar, remover", () => {
 describe("reenfileirar é o caminho normal", () => {
   it("o mesmo id sobrescreve em vez de estourar", async () => {
     await webQueue.enqueue(item("a", 1000));
-    // `add` daria ConstraintError aqui; o convidado perderia a foto por causa
-    // de um retry.
+    // `add` daria ConstraintError aqui; o convidado perderia a foto por causa de um retry.
     await webQueue.enqueue({ ...item("a", 1000), tentativas: 2 });
 
     const itens = await webQueue.list();
@@ -115,8 +114,7 @@ describe("anotar enquanto a foto ainda está na fila", () => {
   });
 
   it("devolve false quando o item já saiu da fila", async () => {
-    // É o sinal de "a anotação é do banco, não da fila". Sem ele, a legenda de
-    // uma foto que subiu rápido sumiria em silêncio.
+    // É o sinal de "a anotação é do banco, não da fila" — sem ele, a legenda de uma foto que subiu rápido sumiria.
     expect(await webQueue.annotate("nunca-existiu", { legenda: "oi" })).toBe(false);
   });
 
@@ -134,8 +132,7 @@ describe("resumo para a tela", () => {
     await webQueue.enqueue(item("a", 1000, 800_000));
     await webQueue.enqueue(item("b", 2000, 200_000));
 
-    // É o que responde "as suas oito estão aqui" — sem isso o convidado para
-    // de mandar por dúvida, não por desinteresse.
+    // É o que responde "as suas oito estão aqui" — sem isso o convidado para de mandar por dúvida, não desinteresse.
     expect(await queueSummary()).toEqual({ itens: 2, bytes: 1_000_000 });
   });
 

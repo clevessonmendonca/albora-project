@@ -128,8 +128,7 @@ export function PhotoPage({
 
   async function escolheu(ev: React.ChangeEvent<HTMLInputElement>) {
     const arquivos = [...(ev.target.files ?? [])];
-    // Zera antes de seguir: sem isso, fotografar a mesma coisa duas vezes
-    // seguidas não dispara o evento na segunda.
+    // Zera antes de seguir: sem isso, fotografar a mesma coisa duas vezes seguidas não dispara o evento na segunda.
     ev.target.value = "";
 
     const primeiro = arquivos[0];

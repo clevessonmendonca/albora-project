@@ -101,8 +101,7 @@ export function useAuthorFeed(autorId: string) {
 
       const r = await buscarPaginaDoAutor(autorId, cursor);
 
-      // Resposta de um perfil que o convidado já trocou não entra na tela — e
-      // sai sem liberar a trava, que já pertence à busca que a substituiu.
+      // Resposta de um perfil que o convidado já trocou não entra na tela — sai sem liberar a trava da busca que a substituiu.
       if (minha !== geracao.current) return;
 
       buscandoPagina.current = false;
