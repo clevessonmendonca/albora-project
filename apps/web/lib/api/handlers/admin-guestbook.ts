@@ -95,11 +95,7 @@ export async function GET(
   }
 }
 
-/**
- * O anfitriao escreve ou edita o recado (spec 019). Um por evento: o
- * primeiro INSERT cria, o seguinte UPDATE troca texto e horario. A chave
- * de storage, se vier no JSON, e recusada — o cliente nunca a informa.
- */
+/** Anfitrião escreve/edita o recado (spec 019): um por evento; chave de storage no JSON é recusada — cliente nunca a informa. */
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },

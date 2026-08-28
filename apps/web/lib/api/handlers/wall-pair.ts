@@ -17,14 +17,7 @@ import {
 
 const PAIRING_TTL_SECONDS = 10 * 60;
 
-/**
- * A TV abre um pareamento (spec 010).
- *
- * Sem sessão e sem evento — a TV ainda não pertence a nenhum. O servidor
- * devolve um **código** curto para a tela e guarda o **token de poll** num
- * cookie `HttpOnly`: o segredo de máquina nunca aparece na tela nem no corpo da
- * resposta. Quem já está no evento é que autoriza, e é de lá que o evento vem.
- */
+/** TV abre pareamento (spec 010): sem sessão/evento ainda; código curto para a tela, token de poll em cookie HttpOnly — segredo nunca aparece na tela ou no corpo. */
 export async function POST(req: Request) {
   const configError = requireConfig("parede");
   if (configError) return configError;
@@ -55,18 +48,7 @@ export async function POST(req: Request) {
   }
 }
 
-/**
- * O poll da TV (spec 010).
- *
- * Lê o token de poll do cookie e pergunta ao banco. Enquanto pendente, diz
- * pendente. Quando autorizado, o banco **consome** o pareamento e emite o
- * crachá; aqui ele vira o cookie `albora_parede` e o cookie de pareamento é
- * apagado. O crachá nunca aparece no corpo nem na URL — só no cookie `HttpOnly`,
- * como a sessão do convidado.
- *
- * Junto vai o tema do evento (cor e fonte do casal), para a TV se pintar antes
- * do primeiro quadro sem precisar de outra chamada.
- */
+/** Poll da TV (spec 010): banco consome o pareamento e emite o crachá; vira `albora_parede` (HttpOnly), cookie de pareamento apagado; tema do evento junto para pintar antes do primeiro quadro. */
 export async function GET(req: Request) {
   try {
     config();

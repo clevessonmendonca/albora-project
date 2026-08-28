@@ -51,11 +51,7 @@ export async function GET(
   }
 }
 
-/**
- * O casal cola o link da faixa (spec 018). Título e artista são
- * enriquecimento: o mesmo resolvedor das sugestões tenta preencher; se
- * falhar, grava o link e a UI cai para a URL crua.
- */
+/** Casal cola link da faixa (spec 018): título e artista são enriquecimento — falha → grava o link e UI cai para a URL crua. */
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },

@@ -19,12 +19,7 @@ const CODE_TTL_MINUTES = 15;
 
 type RedeemBody = { codigo?: unknown; passagem?: unknown };
 
-/**
- * A web gera o codigo de 4 digitos para o app resgatar (spec A-11).
- *
- * O evento e a sessao vêm do cookie de quem já entrou — nunca do corpo.
- * Também emite um token de passagem one-shot (ADR 0009) para link universal.
- */
+/** Gera código de 4 dígitos para o app resgatar (spec A-11): evento e sessão do cookie, nunca do corpo; também emite passagem one-shot (ADR 0009). */
 export async function postPairCode(req: Request) {
   const configError = requireConfig("app.parear", { log: false });
   if (configError) return configError;
@@ -68,12 +63,7 @@ export async function postPairCode(req: Request) {
   }
 }
 
-/**
- * O app instalado resgata codigo ou passagem e recebe a sessao da web (spec A-11).
- *
- * Sem sessao previa: a credencial *é* o ticket. Resposta traz slug, sessaoId e
- * eventoId; o token vai no cookie HttpOnly (e no corpo para o cliente nativo).
- */
+/** App resgata código/passagem e recebe a sessão da web (spec A-11): credencial é o ticket; token no cookie HttpOnly e no corpo para o cliente nativo. */
 export async function postRedeemPairCode(req: Request) {
   const configError = requireConfig("app.parear.resgatar", { log: false });
   if (configError) return configError;

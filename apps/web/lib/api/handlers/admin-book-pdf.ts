@@ -51,11 +51,7 @@ function slotIdsDoAlbum(album: ReturnType<typeof montarAlbum>, teto: number): st
 const TETO_SLOTS_PDF = 80;
 const TETO_BYTES_THUMB = 512 * 1024;
 
-/**
- * Busca a thumb de cada mídia que aparece nas páginas do livro.
- * Prioriza `/thumb`; cai para `/full` se a thumb não existir.
- * Pula silenciosamente se o objeto ultrapassar TETO_BYTES_THUMB.
- */
+/** Thumb de cada mídia do livro: prioriza `/thumb`, cai para `/full`; pula silenciosamente acima de `TETO_BYTES_THUMB`. */
 async function fetchThumbsParaPdf(
   ids: string[],
   midias: MidiaDoAlbumComChave[],
@@ -86,10 +82,7 @@ async function fetchThumbsParaPdf(
   return imagens;
 }
 
-/**
- * PDF sRGB do livro curado (slots do núcleo).
- * Thumbs do R2 embutidas — gap: CMYK (Ghostscript) na fatia seguinte.
- */
+/** PDF sRGB do livro curado: thumbs do R2 embutidas — CMYK (Ghostscript) fica para a fatia seguinte. */
 export async function getAdminBookPdf(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },

@@ -45,33 +45,7 @@ function asDate(v: unknown, fuso: string): Date | null {
   return instanteLocalNoFuso(v, fuso);
 }
 
-/**
- * O anfitrião cria um evento (spec 009).
- *
- * 🔴 A conta vem da **sessão de host**, nunca do corpo — é `withAccount` dentro de
- * `criarEvento` que prende a linha a ela. O `packId` é conferido contra o
- * conjunto fechado do registro de packs antes de tocar no banco: pack inválido
- * é 422, não um 500 de violação de FK.
- *
- * `vendorId` (wizard do portal do fornecedor, spec-canal-fornecedor §2) exige
- * `coupleEmail` — o casal, nunca o fornecedor, é quem vira dono do evento
- * (`canManageCoupleOnly` é do casal, CLAUDE.md/spec §2). `roleForAccountOnVendor`
- * confere admin/staff no fornecedor ANTES de qualquer trabalho — `criarEvento`
- * reconfere `vendor_members` na mesma transação, defesa em profundidade, nunca
- * a única porta. `emitirMagicLink` resolve-ou-cria a conta do casal pelo
- * e-mail; o token vira o `coupleAccountId` que `criarEvento` grava como dono
- * — o membro do fornecedor entra como `planner`. O magic link é **entregue por
- * e-mail** ao casal, nunca devolvido no corpo desta resposta: casal é host, e
- * host usa magic link por desenho (não é a regra do convidado, que nunca
- * recebe e-mail). `ErroSemAcessoAoFornecedor`/`ErroContaDoCasalInvalida` viram
- * 403/422, nunca um 500.
- *
- * 🔴 O casal precisa ser uma conta DIFERENTE de quem está autenticado — se o
- * membro do fornecedor usar o próprio e-mail como `coupleEmail`,
- * `emitirMagicLink` resolveria pra conta dele mesmo, e sem este guard ele
- * nasceria owner (com `canManageCoupleOnly`) por coincidência de e-mail.
- * Recusado aqui (422) e de novo em `criarEvento` (defesa em profundidade).
- */
+/** Cria evento (spec 009): conta da sessão de host, nunca do corpo; `packId` validado antes do banco (422, não 500 de FK); `coupleEmail` ≠ conta logada (guard + defesa em `criarEvento`); magic link entregue por e-mail, nunca no corpo. */
 export async function POST(req: Request) {
   const cfgErr = requireConfig("admin");
   if (cfgErr) return cfgErr;

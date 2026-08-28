@@ -12,10 +12,7 @@ function autorizado(req: Request): boolean {
   return req.headers.get("authorization") === `Bearer ${secret}`;
 }
 
-/**
- * Consumer HTTP da fila / cron do export Drive (spec §9).
- * `Authorization: Bearer $JOB_RUNNER_SECRET` — em dev sem segredo, só localhost.
- */
+/** Consumer HTTP da fila/cron do export Drive (spec §9): `Authorization: Bearer $JOB_RUNNER_SECRET`; em dev sem segredo, só localhost. */
 export async function postJobsDriveExport(req: Request) {
   if (!autorizado(req)) {
     return errorResponse(401, "job.nao_autorizado", "Não autorizado");

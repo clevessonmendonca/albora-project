@@ -61,12 +61,7 @@ async function notificarHost(n: NotificacaoRetencao): Promise<void> {
   await sendHostEmail(mail);
 }
 
-/**
- * Tenta obter o vault do Drive sem derrubar o runner quando o Drive não está
- * configurado (ambiente sem segredos de OAuth). `processRetentionJob` trata
- * `vault: undefined` como "não revogar no Google — apenas marcar revogado no
- * banco". O purge de bytes no R2 e o commit da transação continuam normalmente.
- */
+/** Vault do Drive opcional: sem segredos OAuth, `processRetentionJob` recebe `undefined` e só marca revogado no banco; purge R2 e commit continuam. */
 function vaultSeConfigurado() {
   try {
     driveConfig();
@@ -76,25 +71,7 @@ function vaultSeConfigurado() {
   }
 }
 
-/**
- * Runner HTTP dos jobs de retenção LGPD (spec drive-export §6).
- *
- * `Authorization: Bearer $CRON_SECRET` — em dev sem segredo, só APP_ENV=dev.
- *
- * Chamado por Cloudflare Cron Trigger diário. Um POST sem corpo faz a
- * varredura completa: lista jobs vencidos e processa um a um.
- *
- * Design:
- * - Listagem usa `getAggregatorPool()` (BYPASSRLS) — a query cruza eventos
- *   sem `app.event_id` setado; pool comum devolveria zero linhas.
- * - Processamento usa `getPool()` — `processRetentionJob` seta `app.event_id`
- *   via SET LOCAL dentro da transação antes de qualquer escrita RLS-protegida.
- * - Purge de bytes no R2 acontece DEPOIS do commit (spec §1.6): se falhar,
- *   o próximo ciclo reenvia (idempotente — 404 é sucesso).
- * - Revogação do token Drive acontece DEPOIS do commit pelos mesmos motivos.
- * - Todo side-effect pós-commit (R2, Google) é wrapped em try/catch para
- *   não interromper o processamento dos demais eventos no mesmo sweep.
- */
+/** Runner LGPD (spec §6): listagem via `getAggregatorPool()` (BYPASSRLS, cruza eventos); processamento via `getPool()` com `SET LOCAL`; purge R2 e revogação Drive pós-commit (idempotentes, try/catch para não parar o sweep). */
 export async function postOpsRetencao(req: Request) {
   if (!autorizado(req)) {
     return errorResponse(401, "job.nao_autorizado", "Não autorizado");

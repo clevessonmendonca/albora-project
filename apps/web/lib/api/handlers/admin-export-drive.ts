@@ -66,9 +66,7 @@ function agendar(eventId: string, accountId: string, jobId: string, hostEmail: s
   void scheduleDriveExportProcessing(getPool(), { eventId, jobId, accountId }, hostEmail);
 }
 
-/**
- * Cria (ou retoma) o job de Drive e devolve 202 — ticks via fila/cron/background.
- */
+/** Cria ou retoma job de Drive e devolve 202 — ticks via fila/cron/background. */
 export async function postExportDrive(
   req: Request,
   { params }: { params: Promise<{ eventId: string }> },

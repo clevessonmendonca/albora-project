@@ -1,8 +1,4 @@
-/**
- * API response envelope: stable `code`, generic `message`, optional `details`.
- *
- * Clients branch on `code`, not on `message` copy. Internals stay in server logs.
- */
+/** API response envelope: `code` estável para lógica de cliente, `message` genérico — detalhes internos ficam no log do servidor. */
 
 export type ErrorDetails = Record<string, unknown>;
 

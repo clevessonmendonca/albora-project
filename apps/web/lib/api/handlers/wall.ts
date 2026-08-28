@@ -9,19 +9,7 @@ import { assinarGet } from "@/lib/r2";
 
 const GET_TTL_SECONDS = 900;
 
-/**
- * O que a parede lê — e nada mais.
- *
- * 1. **Crachá, não sessão.** A rota resolve pela `wall_tokens`; um crachá só
- *    lê, e é o que faz ser seguro deixá-lo numa TV pendurada no salão.
- * 2. **O evento vem do crachá, nunca da URL.** Não há parâmetro de evento aqui:
- *    o crachá já carrega o seu, e a RLS confere de novo dentro de `withEvent`.
- * 3. **O servidor nunca toca nos bytes.** Ele assina a URL de leitura e o
- *    navegador da TV busca a foto direto no storage, como no resto do produto.
- * 4. **A parede falha fechada no classificador.** `listarMidiaDaParede` lê
- *    `published` e segura NULL / `sem-resposta` / suspeito. A galeria (feed)
- *    não. O poll dispara a classificação em fire-and-forget — fora do confirm.
- */
+/** Parede: crachá não sessão (TV pendurada no salão); evento do crachá, nunca da URL; servidor assina URL, TV busca direto no storage; falha fechada — `published` segura NULL/suspeito. */
 export async function GET(req: Request) {
   const configError = requireConfig("parede", { mediaOrigin: true });
   if (configError) return configError;
