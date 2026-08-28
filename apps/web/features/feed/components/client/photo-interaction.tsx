@@ -67,7 +67,11 @@ export function PhotoInteraction({
             onClick={() => void alternarReacao()}
             className={CLASSE_BOTAO_ICONE}
           >
-            <Star size={24} filled={reacao.minha !== null} />
+            <Star 
+              size={24} 
+              filled={reacao.minha !== null}
+              className={reacao.minha !== null ? "text-acento" : "text-ink-2"}
+            />
           </button>
           {reacao.reacoes > 0 ? (
             <button
@@ -76,10 +80,14 @@ export function PhotoInteraction({
               onClick={() => void listaReacoes.abrir()}
               className={`${CLASSE_BOTAO_ICONE} underline-offset-2 hover:underline`}
             >
-              <span className="font-titulo text-[0.8125rem] tracking-rotulo">{reacao.reacoes}</span>
+              <span className="font-titulo text-[0.8125rem] tracking-rotulo text-ink">
+                {reacao.reacoes}
+              </span>
             </button>
           ) : (
-            <span className="font-titulo text-[0.8125rem] tracking-rotulo">{reacao.reacoes}</span>
+            <span className="font-titulo text-[0.8125rem] tracking-rotulo text-ink-3">
+              {reacao.reacoes}
+            </span>
           )}
         </div>
 

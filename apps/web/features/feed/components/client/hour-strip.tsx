@@ -8,7 +8,7 @@ import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 /** Cada círculo é uma hora, não uma pessoa — 200 convidados dariam 200 alvos. Nenhuma contagem: antes do gate não chega do servidor, e depois seria placar de popularidade. */
 
 const CLASSE_TIRA =
-  "mx-[calc(var(--espaco)*-5)] mb-4 flex gap-3.5 overflow-x-auto px-[calc(var(--espaco)*5)] [scrollbar-width:none]";
+  "mx-[calc(var(--espaco)*-5)] mb-4 flex gap-5 overflow-x-auto px-[calc(var(--espaco)*5)] [scrollbar-width:none]";
 
 export function HourStrip({
   grupos,

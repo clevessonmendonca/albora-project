@@ -107,7 +107,7 @@ export function FeedPage({
           <GuestHeader
             title={eventTitle}
             homeHref={`${base}/cover`}
-            action={contagem ? <Badge>{contagem}</Badge> : undefined}
+            action={contagem ? <Badge tone="outline">{contagem}</Badge> : undefined}
           />
 
           <HostMessageCard label={hostMessageLabel} hostName={eventTitle} />
@@ -153,9 +153,8 @@ export function FeedPage({
 
           {primeiraCarga && completo && (
             <FeedColumn>
-              {[0, 1].map((i) => (
-                <PostLoading key={i} />
-              ))}
+              <PostLoading />
+              <PostLoading />
             </FeedColumn>
           )}
 
@@ -204,13 +203,14 @@ export function FeedPage({
                       : {})}
                     {...(item.minha !== undefined ? { minha: item.minha } : {})}
                     onReacoes={(resultado) => atualizarReacoes(item.id, resultado)}
-                    onBloqueado={recomecar}
+                    onBloqueado=={recomecar}
                     onCompartilhar={() => void compartilhar.compartilhar(item.id)}
                     compartilhando={compartilhar.compartilhandoId === item.id}
                     url={estado.urls.get(chaveMidia)?.url ?? null}
                     autor={item.autor}
                     legenda={item.legenda}
                     lugar={item.lugar}
+                    criadaEm={item.criadaEm}
                     isVideo={isVideo}
                     {...(item.largura !== undefined ? { largura: item.largura } : {})}
                     {...(item.altura !== undefined ? { altura: item.altura } : {})}
