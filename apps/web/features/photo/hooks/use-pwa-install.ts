@@ -79,11 +79,7 @@ export function deveMostrarCtaPwa(opts: {
   return opts.promptNativo || opts.precisaInstrucaoIos;
 }
 
-/**
- * Captura o prompt nativo no Android e decide se o iOS precisa da instrução
- * manual (Compartilhar → Tela de Início). O CTA em si só aparece depois do
- * confirm da primeira foto — quem chama aplica `deveMostrarCtaPwa`.
- */
+/** Captura prompt nativo (Android) ou detecta instrução manual (iOS); CTA aparece só pós-confirm da primeira foto. */
 export function usePwaInstall() {
   const promptRef = useRef<PromptInstalacao | null>(null);
   const promptIosRef = useRef(false);

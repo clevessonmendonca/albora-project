@@ -14,12 +14,7 @@ export type HomePageData = {
   anfitriaoPlural: string;
 };
 
-/**
- * `eventName` sai do texto de exemplo do pack (mesma fonte que `/cover` e
- * `/feed` já usam via `eventNameFromPack`). Não existe ainda um campo de
- * "nome do casal" configurável pelo anfitrião em `EventoPublico` — quando
- * existir, troca aqui, num lugar só.
- */
+/** `eventName` via `eventNameFromPack` — quando o campo de título for configurável, troca aqui, num lugar só. */
 export function getHomePage({ slug, evento }: HomePageInput): HomePageData {
   const base = `/e/${encodeURIComponent(slug)}`;
 

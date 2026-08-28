@@ -6,11 +6,7 @@ import { drainAndReport } from "@/features/guest/lib/funnel-from-drain";
 import { webQueue } from "@/lib/queue";
 import { webTransport } from "@/lib/transport";
 
-/**
- * Resumo da fila de um evento — só leitura e dreno, sem enfileirar.
- *
- * Vive no layout para a pílula global; a câmera mantém `useUpload` completo.
- */
+/** Resumo da fila (só leitura/dreno) — vive no layout para a pílula global; câmera usa `useUpload` completo. */
 export function useEventQueue(eventoId: string) {
   const [pendentes, setPendentes] = useState(0);
   const [bytesPendentes, setBytesPendentes] = useState(0);

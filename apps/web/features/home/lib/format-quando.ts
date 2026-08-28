@@ -1,9 +1,4 @@
-/**
- * "23:05" no relógio local — mesma leitura de `formatarHora` em
- * `features/feed/components/client/comment-sheet.tsx`. Data inválida devolve
- * string vazia em vez de "Invalid Date": o card mostra a foto sem horário,
- * nunca um erro literal.
- */
+/** Hora local "23:05" — data inválida devolve string vazia (card mostra foto sem horário, nunca "Invalid Date"). */
 export function formatQuando(iso: string): string {
   const data = new Date(iso);
   if (Number.isNaN(data.getTime())) return "";

@@ -4,13 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { StoryItem } from "@albora/ui-web";
 import { mediaUrls, type MediaUrl } from "@/lib/media";
 
-/**
- * Uma story real, do jeito que `/api/stories` devolve — id, primeiro nome do
- * autor (a mesma concessão `ler.identidade` do comentário/reação, nunca mais
- * que isso) e a chave da miniatura. Sem URL: a rota de stories não assina
- * nada, a mesma separação que o feed já faz entre "o que é a foto" e "onde
- * buscar o byte".
- */
+/** Story de `/api/stories`: id, primeiro nome do autor (concessão `ler.identidade`) e chave da miniatura — sem URL (assinatura é separada). */
 export type StoryDaRede = {
   id: string;
   autor: string;
@@ -28,15 +22,7 @@ export function estadoInicialStories(): EstadoStories {
   return { itens: [], urls: new Map(), carregado: false };
 }
 
-/**
- * Busca as stories ativas do evento da sessão.
- *
- * Nunca lança. Story é enriquecimento da Home (CLAUDE.md, "degrada, nunca
- * falha"): uma falha de rede ou uma resposta que não é 2xx devolve lista
- * vazia, do mesmo jeito que "sem stories agora" — a Home não tem por que
- * mostrar um aviso de erro para a tira do topo quando o feed embaixo segue
- * funcionando normalmente.
- */
+/** Busca stories ativas — nunca lança (degrada para lista vazia em falha de rede ou não-2xx). */
 export async function buscarStories(): Promise<StoryDaRede[]> {
   try {
     const res = await fetch("/api/stories", { credentials: "same-origin" });
@@ -49,27 +35,12 @@ export async function buscarStories(): Promise<StoryDaRede[]> {
   }
 }
 
-/**
- * Uma story pronta para `StoryRail` — `nome` e `capaUrl` no formato que o
- * componente do kit espera. `capaUrl` fica `undefined` (não `null`) quando a
- * URL ainda não chegou ou a busca de URL falhou: `StorySquircle` já cai nas
- * iniciais nesse caso, sem estado de erro visível — a mesma degradação da
- * story inteira, um nível abaixo.
- */
+/** Story para `StoryRail`; `capaUrl` é `undefined` (não `null`) quando URL não chegou — `StorySquircle` cai nas iniciais sem erro visível. */
 export function paraStoryItem(story: StoryDaRede, urls: Map<string, MediaUrl>): StoryItem {
   return { id: story.id, nome: story.autor, capaUrl: urls.get(story.chaveThumb)?.url };
 }
 
-/**
- * As stories reais do evento, para o rail da Home.
- *
- * Dois passos de rede, não um: `/api/stories` devolve a lista (id, autor,
- * chave), e a URL assinada da miniatura vem de `mediaUrls` — o MESMO
- * resolvedor que o feed usa para as fotos do mural. Um lote separado da
- * primeira página do feed, porque é uma resposta diferente (`storiesAtivasDoEvento`,
- * não `listarFeed`); reaproveitar o mecanismo de assinatura evita um segundo
- * caminho de URL com as mesmas garantias de TTL só reescrito.
- */
+/** Stories do evento para o rail — dois passos de rede (lista via `/api/stories`, URL via `mediaUrls`); reusa o mesmo resolvedor de assinatura do feed. */
 const POLL_MS = 30_000;
 
 export function useStories(): EstadoStories {

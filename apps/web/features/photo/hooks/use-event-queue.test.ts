@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-/**
- * A lógica de "o que fazer ao voltar ao foco" em useEventQueue é idêntica
- * à de useUpload (resolverAcaoFoco), mas inlineada. Estes testes garantem
- * que as duas permanecessem em sincronia se divergirem.
- */
+/** Lógica de foco em useEventQueue é idêntica a useUpload (resolverAcaoFoco) mas inlineada — estes testes garantem sincronia. */
 
 type AcaoFoco = "drenar" | "atualizar" | "ignorar";
 

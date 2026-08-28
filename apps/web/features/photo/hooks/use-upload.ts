@@ -19,18 +19,9 @@ import { deviceDecodes, prepareVideo } from "@/lib/image";
 import { QueueQuotaExceededError, webQueue, queueSummary } from "@/lib/queue";
 import { webTransport } from "@/lib/transport";
 
-/**
- * O laço de upload do convidado, num lugar só.
- *
- * Ele nunca sobe direto: **toda foto passa pela fila**, mesmo com sinal bom.
- * Um caminho rápido que pula a fila é um caminho que se comporta diferente
- * quando o sinal cai — e o sinal cai. Uma fonte da verdade, um caminho.
- */
+/** Laço de upload num lugar só — toda foto passa pela fila, mesmo com sinal bom; sem caminho rápido que diverge quando o sinal cai. */
 
-/**
- * Plano e cota vêm do servidor — o convidado nunca vê paywall, só aviso antes
- * de gravar (spec 006, N5.3).
- */
+/** Cota vem do servidor — convidado nunca vê paywall, só aviso antes de gravar (spec 006/N5.3). */
 export type CotaVideo = {
   limite: number | null;
   enviados: number;
@@ -47,11 +38,7 @@ export function mensagemCotaVideo(cota: CotaVideo): string | null {
   return `Plano grátis: até ${cota.limite} vídeos por convidado.`;
 }
 
-/**
- * O que fazer quando a aba/PWA volta ao foco (visibilitychange / pageshow).
- *
- * Exportado para testes unitários — a lógica mora aqui, não no efeito.
- */
+/** Ação ao voltar ao foco (visibilitychange/pageshow) — exportado para testes unitários. */
 export type AcaoFoco = "drenar" | "atualizar" | "ignorar";
 
 export function resolverAcaoFoco(visivel: boolean, online: boolean): AcaoFoco {
@@ -125,13 +112,7 @@ export function useUpload(
     }
   }, [atualizarResumo]);
 
-  /**
-   * Processa e enfileira. Devolve quando o item está **na fila**, não quando
-   * subiu: o convidado precisa poder tirar a próxima foto imediatamente, e a
-   * subida acontece atrás dele.
-   *
-   * O `id` devolvido é o que a tela de detalhes usa para anotar depois.
-   */
+  /** Processa e enfileira; devolve quando está na fila (não quando subiu); `id` é usado pela tela de detalhes para anotar. */
   const enfileirarFoto = useCallback(
     async ({ arquivo, filtro, texto, desafioId, promptKey, story, musicTrackId }: PedidoEnvio) => {
       setEstado((e) => ({ ...e, processando: true, ultimoErro: null }));
@@ -247,14 +228,7 @@ export function useUpload(
     [eventoId, atualizarResumo, drenarAgora, opcoes, planoRedimensionamento, videosLocais],
   );
 
-  /**
-   * Legenda e lugar, escritos enquanto a foto sobe.
-   *
-   * Duas portas para o mesmo dado, porque o item pode estar dos dois lados da
-   * linha: ainda na fila, e aí quem guarda é a fila; ou já confirmado, e aí
-   * quem guarda é o banco. Nunca falha de forma visível — a foto já está no
-   * álbum, e é ela que importa.
-   */
+  /** Legenda/lugar escritos enquanto sobe — tenta a fila primeiro, depois o banco; falha silenciosa (foto já está salva). */
   const anotar = useCallback(async (id: string, detalhes: QueueDetails): Promise<void> => {
     try {
       if (await webQueue.annotate(id, detalhes)) return;
