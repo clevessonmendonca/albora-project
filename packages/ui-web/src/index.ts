@@ -73,3 +73,4 @@ export {
 } from "./printed-copy-card";
 export { ToastContainer, showToast } from "./toast";
 export { AnimatedCounter } from "./animated-counter";
+export { LiveAnnouncer, announce } from "./live-announcer";

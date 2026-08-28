@@ -3,7 +3,7 @@
 import { isVideoMime } from "@albora/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { groupByHour } from "@/features/feed/lib/group-by-hour";
 import { useFeed } from "@/features/feed/hooks/use-feed";
 import { useFeedViewer } from "@/features/feed/hooks/use-feed-viewer";
@@ -98,6 +98,29 @@ export function FeedPage({
 
   // Badge de contagem
   const contagem = estado.itens.length > 0 ? `${estado.itens.length} fotos` : undefined;
+
+  // Event handlers memoized
+  const handleVerAutor = useCallback((id: string) => {
+    router.push(`${base}/g/${encodeURIComponent(id)}`);
+  }, [router, base]);
+
+  const handleCompartilhar = useCallback((uploadId: string) => {
+    void compartilhar.compartilhar(uploadId);
+  }, [compartilhar]);
+
+  const handleCompartilharViewer = useCallback(() => {
+    const atual = viewer.itensAbertos[viewer.indiceAtual];
+    if (atual) void compartilhar.compartilhar(atual.id);
+  }, [viewer.itensAbertos, viewer.indiceAtual, compartilhar]);
+
+  const handleConfirmarConsentimento = useCallback((nomeNaMoldura: string) => {
+    if (compartilhar.pedindoConsentimento) {
+      void compartilhar.confirmarConsentimento(
+        compartilhar.pedindoConsentimento,
+        nomeNaMoldura
+      );
+    }
+  }, [compartilhar]);
 
   return (
     <>
@@ -202,14 +225,13 @@ export function FeedPage({
                       ? {
                           autorHref: `${base}/g/${encodeURIComponent(item.sessaoAutor)}`,
                           linkComponent: Link,
-                          onVerAutor: (id: string) =>
-                            router.push(`${base}/g/${encodeURIComponent(id)}`),
+                          onVerAutor: handleVerAutor,
                         }
                       : {})}
                     {...(item.minha !== undefined ? { minha: item.minha } : {})}
                     onReacoes={(resultado) => atualizarReacoes(item.id, resultado)}
-                    onBloqueado=={recomecar}
-                    onCompartilhar={() => void compartilhar.compartilhar(item.id)}
+                    onBloqueado={recomecar}
+                    onCompartilhar={() => handleCompartilhar(item.id)}
                     compartilhando={compartilhar.compartilhandoId === item.id}
                     url={estado.urls.get(chaveMidia)?.url ?? null}
                     autor={item.autor}
@@ -249,28 +271,18 @@ export function FeedPage({
           onSair={viewer.fechar}
           onReacoes={atualizarReacoes}
           onBloqueado={recomecar}
-          onCompartilhar={() => {
-            const atual = viewer.itensAbertos[viewer.indiceAtual];
-            if (atual) void compartilhar.compartilhar(atual.id);
-          }}
+          onCompartilhar={handleCompartilharViewer}
           compartilhando={
             compartilhar.compartilhandoId === viewer.itensAbertos[viewer.indiceAtual]?.id
           }
-          onVerAutor={(id) => router.push(`${base}/g/${encodeURIComponent(id)}`)}
+          onVerAutor={handleVerAutor}
         />
       )}
 
       <ShareConsentSheet
         open={compartilhar.pedindoConsentimento !== null}
         onClose={() => compartilhar.cancelarConsentimento()}
-        onConfirm={(nomeNaMoldura) => {
-          if (compartilhar.pedindoConsentimento) {
-            void compartilhar.confirmarConsentimento(
-              compartilhar.pedindoConsentimento,
-              nomeNaMoldura
-            );
-          }
-        }}
+        onConfirm={handleConfirmarConsentimento}
       />
     </>
   );

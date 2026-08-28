@@ -1,8 +1,8 @@
 "use client";
 
 import type { ModoInteracao } from "@albora/core";
-import { useState } from "react";
-import { Star, CommentIcon, ShareIcon, MoreIcon, AnimatedCounter, showToast } from "@albora/ui-web";
+import { memo, useCallback, useState } from "react";
+import { Star, CommentIcon, ShareIcon, MoreIcon, AnimatedCounter, showToast, announce } from "@albora/ui-web";
 import { useComments } from "@/features/feed/hooks/use-comments";
 import { useReaction, type ResultadoReacao } from "@/features/feed/hooks/use-reaction";
 import { useReactionList } from "@/features/feed/hooks/use-reaction-list";
@@ -29,7 +29,7 @@ type Props = {
 };
 
 /** Reação não espera gate (ADR 0009); comentário, compartilhar, denunciar e bloquear esperam `interacao === "completo"`. */
-export function PhotoInteraction({
+export const PhotoInteraction = memo(function PhotoInteraction({
   uploadId,
   interacao,
   reacoesInicial,
@@ -51,7 +51,7 @@ export function PhotoInteraction({
   const [denunciaAberta, setDenunciaAberta] = useState(false);
   const [animandoStar, setAnimandoStar] = useState(false);
 
-  const alternarReacao = async () => {
+  const alternarReacao = useCallback(async () => {
     const curtindo = reacao.minha === null;
     
     if (curtindo) {
@@ -63,22 +63,28 @@ export function PhotoInteraction({
     
     if (!resultado) {
       showToast("Não foi possível curtir. Tente novamente.", "error");
+      announce("Erro ao curtir");
       return;
     }
     
-    if (resultado) onReacoes?.(resultado);
-  };
+    if (resultado) {
+      onReacoes?.(resultado);
+      announce(curtindo ? "Curtiu" : "Removeu curtida");
+    }
+  }, [reacao.minha, reacao.alternar, onReacoes]);
 
-  const handleCompartilhar = async () => {
+  const handleCompartilhar = useCallback(async () => {
     if (!onCompartilhar) return;
     
     try {
       await onCompartilhar();
       showToast("Preparado para stories", "success");
+      announce("Foto preparada para compartilhar no stories");
     } catch {
       showToast("Não foi possível preparar. Tente novamente.", "error");
+      announce("Erro ao preparar foto");
     }
-  };
+  }, [onCompartilhar]);
 
   return (
     <>
@@ -180,4 +186,4 @@ export function PhotoInteraction({
       )}
     </>
   );
-}
+});

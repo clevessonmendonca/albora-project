@@ -432,11 +432,19 @@ export function useFeed(missaoId: string | null, periodo: PeriodoTemporal = "tud
     }));
   }, []);
 
-  return { 
-    estado: { ...estado, itens: itensFiltrados }, 
-    carregarMais, 
-    recomecar, 
-    pedirChaves, 
-    atualizarReacoes 
-  };
+  const estadoFinal = useMemo(
+    () => ({ ...estado, itens: itensFiltrados }),
+    [estado, itensFiltrados]
+  );
+
+  return useMemo(
+    () => ({ 
+      estado: estadoFinal, 
+      carregarMais, 
+      recomecar, 
+      pedirChaves, 
+      atualizarReacoes 
+    }),
+    [estadoFinal, carregarMais, recomecar, pedirChaves, atualizarReacoes]
+  );
 }

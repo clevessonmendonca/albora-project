@@ -3,7 +3,7 @@ import "./base.css";
 import "./fontes.css";
 import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import { WEDDING } from "@albora/packs";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
 
 export const metadata: Metadata = {
@@ -24,6 +24,13 @@ export const metadata: Metadata = {
     icon: "/favicon.svg",
     apple: "/icone-app-512.svg",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  maximumScale: 5,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

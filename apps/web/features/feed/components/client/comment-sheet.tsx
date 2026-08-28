@@ -98,7 +98,11 @@ function Composer({
       )}
 
       <div className="flex gap-2">
+        <label htmlFor="comment-input" className="sr-only">
+          {comentarios.respostaA ? "Sua resposta" : "Escrever comentário"}
+        </label>
         <input
+          id="comment-input"
           type="text"
           value={comentarios.texto}
           maxLength={comentarios.maxCaracteres}
@@ -109,6 +113,7 @@ function Composer({
         <button
           type="submit"
           disabled={comentarios.publicando || comentarios.texto.trim() === ""}
+          aria-label={comentarios.publicando ? "Enviando comentário" : "Enviar comentário"}
           className={`min-h-11 cursor-pointer rounded-pilula border-none bg-acento px-4 text-[0.85rem] text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 disabled:cursor-default ${
             comentarios.publicando || comentarios.texto.trim() === "" ? "opacity-50" : ""
           }`}
