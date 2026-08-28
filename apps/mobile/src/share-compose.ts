@@ -143,10 +143,7 @@ export type ComposeFail = {
   mensagem: string;
 };
 
-/**
- * Monta a composição 9:16 com o mesmo `compor` da web.
- * Dimensões vêm da imagem baixada (full ou thumb de vídeo).
- */
+/** Monta composição 9:16 com o mesmo `compor` da web; dimensões da imagem baixada (full ou thumb de vídeo). */
 export function composeShareFrame(opts: {
   ctx: ShareContext;
   session: GuestSession;
@@ -228,9 +225,7 @@ export type ComposeCollageOk = {
   celulas: ReturnType<typeof celulasDaColagem>;
 };
 
-/**
- * Autoriza e prepara colagem (2–4 fotos) — mesma matemática da web.
- */
+/** Autoriza e prepara colagem (2–4 fotos) — mesma matemática da web. */
 export function composeShareCollage(opts: {
   ctx: ShareContext;
   session: GuestSession;

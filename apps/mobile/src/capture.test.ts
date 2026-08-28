@@ -18,9 +18,7 @@ function jpegSolido(w = 8, h = 8): Uint8Array {
   return new Uint8Array(jpegEncode({ data, width: w, height: h }, 90).data);
 }
 
-/**
- * JPEG mínimo com EXIF+GPS (mesmo padrão de upload.test).
- */
+/** JPEG mínimo com EXIF+GPS (mesmo padrão de upload.test). */
 function jpegComGps(): Uint8Array {
   const base = jpegSolido(16, 16);
   const PONTEIRO_GPS = 0x8825;

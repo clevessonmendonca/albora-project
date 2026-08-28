@@ -12,10 +12,7 @@ export type ComentarioItem = {
 
 export type ListaComentarios = { threads: ComentarioItem[] };
 
-/**
- * Busca comentários de uma foto. Retorna lista vazia em 401/403/offline
- * — falha fechado, sem lançar.
- */
+/** Busca comentários de uma foto — retorna lista vazia em 401/403/offline, falha fechado. */
 export async function listComments(
   session: GuestSession,
   uploadId: string,
@@ -36,9 +33,7 @@ export async function listComments(
   }
 }
 
-/**
- * Publica um comentário. Retorna o id gerado ou null em falha.
- */
+/** Publica um comentário; retorna id gerado ou null em falha. */
 export async function postComment(
   session: GuestSession,
   uploadId: string,
@@ -69,9 +64,7 @@ export async function postComment(
   }
 }
 
-/**
- * Remove um comentário próprio. Falha fechado.
- */
+/** Remove um comentário próprio — falha fechado. */
 export async function deleteComment(
   session: GuestSession,
   comentarioId: string,

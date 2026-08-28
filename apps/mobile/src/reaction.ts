@@ -5,9 +5,7 @@ export type ReatorVisivel = { nome: string; sessaoId: string };
 
 const TIPO_PADRAO = "estrela";
 
-/**
- * Lista quem curtiu uma foto. Retorna vazio em 401/403/offline — falha fechado.
- */
+/** Lista quem curtiu uma foto — retorna vazio em 401/403/offline, falha fechado. */
 export async function listReactions(
   session: GuestSession,
   uploadId: string,
@@ -28,10 +26,7 @@ export async function listReactions(
   }
 }
 
-/**
- * Alterna a reação estrela de uma foto. Falha fechado: 401/403/offline
- * retornam null sem lançar exceção.
- */
+/** Alterna a reação estrela de uma foto — 401/403/offline retornam null, falha fechado. */
 export async function toggleReaction(
   session: GuestSession,
   uploadId: string,
