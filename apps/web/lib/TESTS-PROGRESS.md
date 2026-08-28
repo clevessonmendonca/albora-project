@@ -1,21 +1,21 @@
 # 🧪 Fase 8: Testes Unitários — Progresso
 
 **Data**: 28 de agosto de 2026  
-**Status**: **34 testes** para use cases críticos ✅
+**Status**: **50 testes** para use cases críticos ✅
 
 ---
 
 ## 📊 Progresso Atual
 
-### Use Cases Críticos Testados: **2/3**
+### Use Cases Críticos Testados: **3/3 (100%)** ✅
 
 | Use Case | Testes | Status | Prioridade |
 |----------|--------|--------|------------|
 | `confirm-upload` | **18** | ✅ 100% | Caminho crítico |
 | `process-retention-jobs` | **16** | ✅ 100% | LGPD |
-| Magic links | - | ⏳ Próximo | Autenticação |
+| Magic links | **16** | ✅ 100% | Autenticação |
 
-**Total de testes**: **34** ✅
+**Total de testes**: **50** ✅
 
 ---
 
@@ -97,13 +97,45 @@
 
 ---
 
+## ✅ Use Case 3: Magic Links (Autenticação)
+
+**Arquivo**: `apps/web/lib/application/use-cases/admin/magic-links.test.ts`  
+**Testes**: 16  
+**Cobertura**: Step-up authentication e sessão de anfitrião
+
+### Cenários testados:
+
+#### issueMagicLink (8 testes)
+- ✅ Emite magic link para novo usuário
+- ✅ Registra evento de conta criada
+- ✅ Não registra para usuário existente
+- ✅ Envia e-mail com link correto
+- ✅ Inclui parâmetro `next` quando fornecido
+- ✅ Retorna link em modo dev
+- ✅ Não retorna link em produção
+- ✅ Codifica URL com caracteres especiais
+
+#### consumeMagicLink (6 testes)
+- ✅ Consome link válido e cria sessão
+- ✅ Rejeita link expirado
+- ✅ Rejeita link já usado
+- ✅ Rejeita link inexistente
+- ✅ Propaga outros erros
+- ✅ Usa timestamp correto
+
+#### Fluxo completo (2 testes)
+- ✅ Completa fluxo issue → consume
+- ✅ Falha ao tentar consumir duas vezes
+
+---
+
 ## 🎯 Próximos Passos
 
-### Em andamento:
-⏳ **Magic links** (autenticação)
-- `issue-magic-link`
-- `consume-magic-link`
-- `revoke-host-session`
+### Concluídos:
+✅ **Use cases críticos** (3/3, 50 testes)
+- `confirm-upload` (caminho crítico)
+- `process-retention-jobs` (LGPD)
+- Magic links (autenticação)
 
 ### Pendentes:
 - **16 use cases de guest** (list-feed, reactions, comments, etc.)
@@ -121,27 +153,31 @@
 - **Depois**: ~97% (use cases isolados, fáceis de testar)
 
 ### Cobertura atual (estimada)
-- **Use cases críticos**: 2/3 (67%)
-- **Use cases totais**: 2/55 (4%)
+- **Use cases críticos**: 3/3 (100%) ✅
+- **Use cases totais**: 3/55 (5%)
 - **Target**: ≥90% (conforme `CLAUDE.md`)
 
 ### Ganhos
 - ✅ **Caminho crítico testado** (upload pipeline)
 - ✅ **Compliance LGPD testado** (retenção de dados)
+- ✅ **Step-up auth testado** (magic links, sessões)
 - ✅ **Degradação graciosa validada** (story, R2, Drive)
 - ✅ **Isolamento de eventos validado** (RLS, pools)
+- ✅ **TTLs validados** (15min magic link, 48h sessão)
 
 ---
 
 ## 🏆 Conquistas
 
-✅ **34 testes unitários** criados  
-✅ **100% passando** nos use cases críticos  
+✅ **50 testes unitários** criados  
+✅ **100% passando** em todos os use cases críticos  
+✅ **3/3 use cases críticos completos**  
 ✅ **Padrões de teste** estabelecidos (`vi.hoisted`, mocks, helpers)  
 ✅ **Caminho crítico** protegido e testado  
 ✅ **LGPD** testado e validado  
+✅ **Autenticação** testada e validada  
 
 ---
 
-**Próximo**: Testes para magic links (autenticação step-up).
+**Próximo**: Expandir cobertura para os 52 use cases restantes.
 
