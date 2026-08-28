@@ -3,10 +3,14 @@
 import { isVideoMime } from "@albora/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { groupByHour, type HourGroup } from "@/features/feed/lib/group-by-hour";
-import { useFeed, podeCarregarMais, type ItemVisivel } from "@/features/feed/hooks/use-feed";
-import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
+import { useMemo } from "react";
+import { groupByHour } from "@/features/feed/lib/group-by-hour";
+import { useFeed } from "@/features/feed/hooks/use-feed";
+import { useFeedViewer } from "@/features/feed/hooks/use-feed-viewer";
+import { useFeedFilter, type FilterMission } from "@/features/feed/hooks/use-feed-filter";
+import { useReducedMotion } from "@/features/feed/hooks/use-reduced-motion";
+import { useNewItemsNotification } from "@/features/feed/hooks/use-new-items-notification";
+import { useGateTransition } from "@/features/feed/hooks/use-gate-transition";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
 import { useShare } from "@/features/my-photos/hooks/use-share";
 import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
@@ -17,30 +21,34 @@ import {
   GuestShell,
   EmptyState,
   GuestMain,
-  SecondaryButton,
   ErrorMessage,
+  Badge,
   cn,
 } from "@albora/ui-web";
-import { Badge } from "@albora/ui-web";
 import { Post, PostLoading } from "./post";
 import { MirrorGrid, MirrorGridLoading } from "./mirror-grid";
-import { viewerKeys, Viewer } from "./viewer";
+import { Viewer } from "./viewer";
 import { HourStrip, HourStripLoading } from "./hour-strip";
-
-/** Scroll infinito substitui "toque" (design doc §5.4). Câmera fixa — ação primária que some embaixo não existe. Ao sair do visualizador volta ao feed. */
-
-export type FilterMission = { id: string; title: string };
+import { FeedFilterPanel } from "../ui/feed-filter-panel";
+import { FeedFooter } from "../ui/feed-footer";
+import { GateOpenedOverlay } from "../ui/gate-opened-overlay";
+import { NewPhotosButton } from "../ui/new-photos-button";
 
 export type FeedCopy = {
-  /** Como esta festa chama a lista de missões. Vem resolvido do pack. */
   missionTitle: string;
 };
 
-/** Identidade estável: `[]` novo a cada render reabriria o efeito à toa. */
-const SEM_CHAVES: string[] = [];
-const SEM_ITENS: ItemVisivel[] = [];
-
-type Aberto = { inicio: number; itemId: string };
+type FeedPageProps = {
+  slug: string;
+  eventTitle: string;
+  missions: FilterMission[];
+  copy: FeedCopy;
+  cameraPath: string;
+  hostMessageLabel: string;
+  anfitriaoPlural: string;
+  eventoId: string;
+  sessaoId: string;
+};
 
 export function FeedPage({
   slug,
@@ -52,203 +60,53 @@ export function FeedPage({
   anfitriaoPlural,
   eventoId,
   sessaoId,
-}: {
-  slug: string;
-  eventTitle: string;
-  missions: FilterMission[];
-  copy: FeedCopy;
-  cameraPath: string;
-  hostMessageLabel: string;
-  anfitriaoPlural: string;
-  eventoId: string;
-  sessaoId: string;
-}) {
+}: FeedPageProps) {
   const base = `/e/${encodeURIComponent(slug)}`;
   const router = useRouter();
-  const [missionId, setMissaoId] = useState<string | null>(null);
-  const { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes } = useFeed(missionId);
+
+  // Core hooks
+  const filtro = useFeedFilter(missions);
+  const { estado, carregarMais, recomecar, atualizarReacoes } = useFeed(filtro.missionId);
   const compartilhar = useShare(eventoId, sessaoId);
 
-  const [aberto, setAberto] = useState<Aberto | null>(null);
-  const [preparando, setPreparando] = useState<number | null>(null);
-  const [vistos, setVistos] = useState<ReadonlySet<number>>(() => new Set());
-  const movimentoReduzido = usarMovimentoReduzido();
+  // UI state hooks
+  const movimentoReduzido = useReducedMotion();
+  const newItems = useNewItemsNotification(estado.itens[0]?.id ?? null);
+  const gate = useGateTransition(estado.interacao);
 
-  const primeiraCarga = !estado.jaCarregou && estado.carregando;
-  const vazio = estado.jaCarregou && estado.itens.length === 0 && estado.falha === null;
-
-  // Hora só fecha quando não há mais página E sem falha — falha "com mais" deixaria alguém esperando para sempre.
-  const temMais = !estado.fim && estado.falha === null;
-  const grupos = useMemo(
-    () => groupByHour(estado.itens, { temMais }),
-    [estado.itens, temMais],
-  );
-
-  const grupoAberto = aberto
-    ? grupos.find((g) => g.inicio.getTime() === aberto.inicio)
-    : undefined;
-
-  const itensAbertos = grupoAberto?.itens ?? SEM_ITENS;
-  const achado = grupoAberto ? itensAbertos.findIndex((i) => i.id === aberto?.itemId) : -1;
-  const indice = achado >= 0 ? achado : 0;
-
-  const janela = useMemo(
-    () => (grupoAberto ? viewerKeys(itensAbertos, indice) : SEM_CHAVES),
-    [grupoAberto, itensAbertos, indice],
-  );
-
-  useEffect(() => {
-    pedirChaves(janela);
-  }, [pedirChaves, janela]);
-
-  const irPara = useCallback(
-    (i: number) => {
-      const alvo = itensAbertos[i];
-      if (!alvo) return;
-      setAberto((atual) => (atual ? { inicio: atual.inicio, itemId: alvo.id } : atual));
-    },
-    [itensAbertos],
-  );
-
-  const sair = useCallback(() => setAberto(null), []);
-
-  // Fecha hora incompleta antes de abrir — a mais antiga ainda pode receber foto e reordenaria embaixo do dedo enquanto a próxima página chega.
-  useEffect(() => {
-    if (preparando === null) return;
-
-    const grupo = grupos.find((g) => g.inicio.getTime() === preparando);
-    if (!grupo) {
-      setPreparando(null);
-      return;
-    }
-
-    if (!grupo.completo) {
-      if (!estado.carregando) carregarMais();
-      return;
-    }
-
-    const primeiro = grupo.itens[0];
-    setPreparando(null);
-    if (primeiro) setAberto({ inicio: preparando, itemId: primeiro.id });
-  }, [preparando, grupos, estado.carregando, carregarMais]);
-
-  // A foto pode sair do feed pelo botão de pânico enquanto alguém a olha. Some
-  // do grupo, o grupo some da lista, e a tela volta para onde há saída.
-  useEffect(() => {
-    if (aberto && !grupoAberto) setAberto(null);
-  }, [aberto, grupoAberto]);
-
-  // Sem isto o dedo atravessa a tela filled e rola o feed atrás dela — e a pessoa
-  // fecha a hora num lugar da lista que não é o que ela deixou.
-  useEffect(() => {
-    if (!grupoAberto) return;
-
-    const antes = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = antes;
-    };
-  }, [grupoAberto]);
-
-  function abrir(grupo: HourGroup<ItemVisivel>) {
-    const inicio = grupo.inicio.getTime();
-    const primeiro = grupo.itens[0];
-
-    setVistos((antes) => (antes.has(inicio) ? antes : new Set(antes).add(inicio)));
-
-    if (grupo.completo && primeiro) setAberto({ inicio, itemId: primeiro.id });
-    else setPreparando(inicio);
-  }
-
+  // Derived state
   const espelho = estado.interacao === "espelho";
   const completo = !espelho;
+  const primeiraCarga = !estado.jaCarregou && estado.carregando;
+  const vazio = estado.jaCarregou && estado.itens.length === 0 && estado.falha === null;
+  const temMais = !estado.fim && estado.falha === null;
+
+  const grupos = useMemo(
+    () => groupByHour(estado.itens, { temMais }),
+    [estado.itens, temMais]
+  );
+
+  // Viewer state
+  const viewer = useFeedViewer(grupos);
+
+  // Badge de contagem
   const contagem = estado.itens.length > 0 ? `${estado.itens.length} fotos` : undefined;
-
-  const [gateAbriu, setGateAbriu] = useState(false);
-  const interacaoAnterior = useRef<string | null>(null);
-
-  const prevFirstId = useRef<string | null>(null);
-  const [novosNoTopo, setNovosNoTopo] = useState(false);
-  const firstItemId = estado.itens[0]?.id ?? null;
-
-  useEffect(() => {
-    if (interacaoAnterior.current === "espelho" && estado.interacao === "completo") {
-      setGateAbriu(true);
-    }
-    interacaoAnterior.current = estado.interacao;
-  }, [estado.interacao]);
-
-  useEffect(() => {
-    if (!gateAbriu) return;
-    const id = setTimeout(() => setGateAbriu(false), 6000);
-    return () => clearTimeout(id);
-  }, [gateAbriu]);
-
-  useEffect(() => {
-    const prev = prevFirstId.current;
-    prevFirstId.current = firstItemId;
-    if (prev !== null && firstItemId !== null && firstItemId !== prev) {
-      setNovosNoTopo(true);
-    }
-  }, [firstItemId]);
-
-  useEffect(() => {
-    if (!novosNoTopo) return;
-    const handle = () => {
-      if (window.scrollY < 120) setNovosNoTopo(false);
-    };
-    window.addEventListener("scroll", handle, { passive: true });
-    return () => window.removeEventListener("scroll", handle);
-  }, [novosNoTopo]);
 
   return (
     <>
-      {gateAbriu && (
-        <GateAbertoOverlay
-          onFechar={() => setGateAbriu(false)}
-          cameraPath={cameraPath}
-        />
+      <FeedStyles />
+
+      {gate.gateOpened && <GateOpenedOverlay onClose={gate.close} cameraPath={cameraPath} />}
+
+      {newItems.hasNew && !viewer.grupoAberto && (
+        <NewPhotosButton onClick={newItems.scrollToTop} />
       )}
+
       <GuestShell>
-        <style>{`
-          @keyframes feed-amanhecer {
-            from { opacity: 0; filter: brightness(0.4) saturate(0.6); }
-            to   { opacity: 1; filter: none; }
-          }
-          @keyframes feed-respirar {
-            0%, 100% { opacity: 1; }
-            50%      { opacity: 0.55; }
-          }
-          .feed-amanhece { animation: feed-amanhecer var(--tempo-lento) var(--curva) both; }
-          .feed-esperando { animation: feed-respirar 1900ms var(--curva) infinite; }
-          @keyframes feed-pill-entra {
-            from { transform: translate(-50%, -2.5rem); opacity: 0 }
-            to   { transform: translate(-50%, 0);       opacity: 1 }
-          }
-          .feed-pill { animation: feed-pill-entra 280ms var(--curva) both }
-          @media (prefers-reduced-motion: reduce) {
-            .feed-amanhece, .feed-esperando { animation: none !important; }
-            .feed-pill { animation: none !important; }
-          }
-        `}</style>
-
-        {novosNoTopo && !aberto && (
-          <button
-            type="button"
-            onClick={() => {
-              window.scrollTo({ top: 0, behavior: "smooth" });
-              setNovosNoTopo(false);
-            }}
-            className="feed-pill fixed left-1/2 top-16 z-30 flex cursor-pointer items-center gap-1.5 rounded-pilula border-none bg-acento px-4 py-2 text-[0.8125rem] text-sobre-acento shadow-md"
-          >
-            ↑ Novas fotos
-          </button>
-        )}
-
         <GuestMain>
           <GuestHeader
             title={eventTitle}
-            homeHref={`/e/${encodeURIComponent(slug)}/cover`}
+            homeHref={`${base}/cover`}
             action={contagem ? <Badge>{contagem}</Badge> : undefined}
           />
 
@@ -256,8 +114,8 @@ export function FeedPage({
 
           {espelho && estado.jaCarregou && (
             <GateNotice>
-              Comentários abrem no horário escolhido por {anfitriaoPlural}. Pode curtir à vontade —
-              continue fotografando, tudo já está no álbum.
+              Comentários abrem no horário escolhido por {anfitriaoPlural}. Pode curtir à vontade
+              — continue fotografando, tudo já está no álbum.
             </GateNotice>
           )}
 
@@ -268,42 +126,51 @@ export function FeedPage({
             <HourStrip
               grupos={grupos}
               urls={estado.urls}
-              vistos={vistos}
-              preparando={preparando}
+              vistos={viewer.vistos}
+              preparando={viewer.preparando}
               rotulo="Horas da festa"
-              onAbrir={abrir}
+              onAbrir={viewer.abrir}
             />
           )}
 
           {completo && missions.length > 0 && (
-            <Filtro
-              rotulo={copy.missionTitle}
+            <FeedFilterPanel
+              label={copy.missionTitle}
               missions={missions}
-              escolhida={missionId}
-              onEscolher={setMissaoId}
+              selected={filtro.missionId}
+              onSelect={filtro.setFiltro}
             />
           )}
 
           {estado.midiaIndisponivel && (
             <p className="mb-4 text-[0.9rem] leading-relaxed text-ink-2">
-              As fotos ainda não abriram. Elas aparecem sozinhas quando {anfitriaoPlural} liberarem.
+              As fotos ainda não abriram. Elas aparecem sozinhas quando {anfitriaoPlural}{" "}
+              liberarem.
             </p>
           )}
 
           {compartilhar.erro && <ErrorMessage>{compartilhar.erro}</ErrorMessage>}
 
           {primeiraCarga && completo && (
-            <Coluna>
+            <FeedColumn>
               {[0, 1].map((i) => (
                 <PostLoading key={i} />
               ))}
-            </Coluna>
+            </FeedColumn>
           )}
 
           {vazio && (
             <EmptyState
-              title={completo && missionId !== null ? "Ninguém fez essa ainda." : "Ainda não tem foto aqui."}
-              lede={completo && missionId !== null ? "Sua foto pode ser a primeira." : "Seja o primeiro a fotografar."}
+              title={
+                completo && filtro.missionId !== null
+                  ? "Ninguém fez essa ainda."
+                  : "Ainda não tem foto aqui."
+              }
+              lede={
+                completo && filtro.missionId !== null
+                  ? "Sua foto pode ser a primeira."
+                  : "Seja o primeiro a fotografar."
+              }
               cameraPath={cameraPath}
             />
           )}
@@ -313,73 +180,77 @@ export function FeedPage({
           )}
 
           {completo && estado.itens.length > 0 && (
-            <Coluna comDivisor>
+            <FeedColumn withDivider>
               {estado.itens.map((item) => {
                 const isVideo = isVideoMime(item.mime);
                 const chaveMidia = isVideo ? item.chaveFull : item.chaveThumb;
                 return (
-                <Post
-                  key={item.id}
-                  uploadId={item.id}
-                  interacao={estado.interacao}
-                  {...(item.reacoes !== undefined ? { reacoes: item.reacoes } : {})}
-                  {...(item.minhaReacao !== undefined ? { minhaReacao: item.minhaReacao } : {})}
-                  {...(item.sessaoAutor ? { sessaoAutor: item.sessaoAutor } : {})}
-                  {...(item.sessaoAutor
-                    ? {
-                        autorHref: `${base}/g/${encodeURIComponent(item.sessaoAutor)}`,
-                        linkComponent: Link,
-                        onVerAutor: (id: string) =>
-                          router.push(`${base}/g/${encodeURIComponent(id)}`),
-                      }
-                    : {})}
-                  {...(item.minha !== undefined ? { minha: item.minha } : {})}
-                  onReacoes={(resultado) => atualizarReacoes(item.id, resultado)}
-                  onBloqueado={recomecar}
-                  onCompartilhar={() => void compartilhar.compartilhar(item.id)}
-                  compartilhando={compartilhar.compartilhandoId === item.id}
-                  url={estado.urls.get(chaveMidia)?.url ?? null}
-                  autor={item.autor}
-                  legenda={item.legenda}
-                  lugar={item.lugar}
-                  isVideo={isVideo}
-                  {...(item.largura !== undefined ? { largura: item.largura } : {})}
-                  {...(item.altura !== undefined ? { altura: item.altura } : {})}
-                />
-              );
+                  <Post
+                    key={item.id}
+                    uploadId={item.id}
+                    interacao={estado.interacao}
+                    {...(item.reacoes !== undefined ? { reacoes: item.reacoes } : {})}
+                    {...(item.minhaReacao !== undefined
+                      ? { minhaReacao: item.minhaReacao }
+                      : {})}
+                    {...(item.sessaoAutor ? { sessaoAutor: item.sessaoAutor } : {})}
+                    {...(item.sessaoAutor
+                      ? {
+                          autorHref: `${base}/g/${encodeURIComponent(item.sessaoAutor)}`,
+                          linkComponent: Link,
+                          onVerAutor: (id: string) =>
+                            router.push(`${base}/g/${encodeURIComponent(id)}`),
+                        }
+                      : {})}
+                    {...(item.minha !== undefined ? { minha: item.minha } : {})}
+                    onReacoes={(resultado) => atualizarReacoes(item.id, resultado)}
+                    onBloqueado={recomecar}
+                    onCompartilhar={() => void compartilhar.compartilhar(item.id)}
+                    compartilhando={compartilhar.compartilhandoId === item.id}
+                    url={estado.urls.get(chaveMidia)?.url ?? null}
+                    autor={item.autor}
+                    legenda={item.legenda}
+                    lugar={item.lugar}
+                    isVideo={isVideo}
+                    {...(item.largura !== undefined ? { largura: item.largura } : {})}
+                    {...(item.altura !== undefined ? { altura: item.altura } : {})}
+                  />
+                );
               })}
-            </Coluna>
+            </FeedColumn>
           )}
 
-          <Rodape
+          <FeedFooter
             estado={estado}
-            temItens={estado.itens.length > 0}
-            onVerMais={carregarMais}
-            onRecomecar={recomecar}
+            hasItems={estado.itens.length > 0}
+            onLoadMore={carregarMais}
+            onRetry={recomecar}
           />
         </GuestMain>
       </GuestShell>
 
       <FloatingNav base={base} linkComponent={Link} />
 
-      {completo && grupoAberto && (
+      {completo && viewer.grupoAberto && (
         <Viewer
-          itens={itensAbertos}
-          indice={indice}
-          hora={grupoAberto.hora}
+          itens={viewer.itensAbertos}
+          indice={viewer.indiceAtual}
+          hora={viewer.grupoAberto.hora}
           urls={estado.urls}
           interacao={estado.interacao}
           cameraPath={cameraPath}
           movimentoReduzido={movimentoReduzido}
-          onIr={irPara}
-          onSair={sair}
+          onIr={viewer.navegarPara}
+          onSair={viewer.fechar}
           onReacoes={atualizarReacoes}
           onBloqueado={recomecar}
           onCompartilhar={() => {
-            const atual = itensAbertos[indice];
+            const atual = viewer.itensAbertos[viewer.indiceAtual];
             if (atual) void compartilhar.compartilhar(atual.id);
           }}
-          compartilhando={compartilhar.compartilhandoId === itensAbertos[indice]?.id}
+          compartilhando={
+            compartilhar.compartilhandoId === viewer.itensAbertos[viewer.indiceAtual]?.id
+          }
           onVerAutor={(id) => router.push(`${base}/g/${encodeURIComponent(id)}`)}
         />
       )}
@@ -389,7 +260,10 @@ export function FeedPage({
         onClose={() => compartilhar.cancelarConsentimento()}
         onConfirm={(nomeNaMoldura) => {
           if (compartilhar.pedindoConsentimento) {
-            void compartilhar.confirmarConsentimento(compartilhar.pedindoConsentimento, nomeNaMoldura);
+            void compartilhar.confirmarConsentimento(
+              compartilhar.pedindoConsentimento,
+              nomeNaMoldura
+            );
           }
         }}
       />
@@ -397,205 +271,38 @@ export function FeedPage({
   );
 }
 
-/** Uma foto por vez, em destaque — coluna única como `FeedScreen`. */
-function Coluna({
+function FeedColumn({
   children,
-  comDivisor,
+  withDivider,
 }: {
   children: React.ReactNode;
-  comDivisor?: boolean;
+  withDivider?: boolean;
 }) {
-  return (
-    <div className={cn("grid", comDivisor && "border-t border-linha")}>
-      {children}
-    </div>
-  );
+  return <div className={cn("grid", withDivider && "border-t border-linha")}>{children}</div>;
 }
 
-function Filtro({
-  rotulo,
-  missions,
-  escolhida,
-  onEscolher,
-}: {
-  rotulo: string;
-  missions: FilterMission[];
-  escolhida: string | null;
-  onEscolher: (id: string | null) => void;
-}) {
+function FeedStyles() {
   return (
-    <div
-      role="group"
-      // Nome das missões fica só na etiqueta acessível — uma linha de rótulo visível empurraria a primeira foto para fora da tela.
-      aria-label={rotulo}
-      className="mx-[calc(var(--espaco)*-5)] mb-[calc(var(--espaco)*5)] mt-[calc(var(--espaco)*3)] flex gap-[calc(var(--espaco)*6)] overflow-x-auto border-b border-linha px-[calc(var(--espaco)*5)] [scrollbar-width:none]"
-    >
-      <FilterTab active={escolhida === null} onClick={() => onEscolher(null)}>
-        Tudo
-      </FilterTab>
-
-      {missions.map((m) => (
-        <FilterTab
-          key={m.id}
-          active={escolhida === m.id}
-          onClick={() => onEscolher(escolhida === m.id ? null : m.id)}
-        >
-          {m.title}
-        </FilterTab>
-      ))}
-    </div>
+    <style>{`
+      @keyframes feed-amanhecer {
+        from { opacity: 0; filter: brightness(0.4) saturate(0.6); }
+        to   { opacity: 1; filter: none; }
+      }
+      @keyframes feed-respirar {
+        0%, 100% { opacity: 1; }
+        50%      { opacity: 0.55; }
+      }
+      .feed-amanhece { animation: feed-amanhecer var(--tempo-lento) var(--curva) both; }
+      .feed-esperando { animation: feed-respirar 1900ms var(--curva) infinite; }
+      @keyframes feed-pill-entra {
+        from { transform: translate(-50%, -2.5rem); opacity: 0 }
+        to   { transform: translate(-50%, 0);       opacity: 1 }
+      }
+      .feed-pill { animation: feed-pill-entra 280ms var(--curva) both }
+      @media (prefers-reduced-motion: reduce) {
+        .feed-amanhece, .feed-esperando { animation: none !important; }
+        .feed-pill { animation: none !important; }
+      }
+    `}</style>
   );
-}
-
-/** Sublinhado, nunca pílula preenchida: é vocabulário de menu impresso. */
-function FilterTab({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        "max-w-56 min-h-12 flex-none cursor-pointer overflow-hidden text-ellipsis whitespace-nowrap border-none bg-transparent p-0 font-titulo text-[0.68rem] font-normal uppercase tracking-[0.2em]",
-        "[transition:color_var(--tempo-rapido)_var(--curva)]",
-        active
-          ? "border-b border-b-acento text-ink"
-          : "border-b border-b-transparent text-ink-3 hover:text-ink-2",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
-
-function Rodape({
-  estado,
-  temItens,
-  onVerMais,
-  onRecomecar,
-}: {
-  estado: ReturnType<typeof useFeed>["estado"];
-  temItens: boolean;
-  onVerMais: () => void;
-  onRecomecar: () => void;
-}) {
-  const sentinela = useInfiniteScroll(onVerMais, podeCarregarMais(estado), estado.itens.length);
-
-  if (estado.falha === "sessao") {
-    return (
-      <p className="mt-[calc(var(--espaco)*6)] text-center text-[0.9rem] leading-relaxed text-ink-2">
-        Sua entrada expirou.{" "}
-        <a href="/scan" className="text-acento underline">Escaneie o QR da mesa</a>{" "}
-        de novo para continuar.
-      </p>
-    );
-  }
-
-  if (estado.falha !== null) {
-    return (
-      <div className="mt-[calc(var(--espaco)*6)] text-center">
-        <p className="mb-3 text-[0.9rem] leading-relaxed text-ink-2">
-          Não consegui carregar mais fotos agora.
-        </p>
-        {/* Recomeçar do topo é toque do convidado, nunca efeito colateral do
-            erro: uma lista que se rebobina sozinha perde o lugar de quem rolou. */}
-        <SecondaryButton
-          onClick={estado.falha === "cursor" || !temItens ? onRecomecar : onVerMais}
-        >
-          Tentar de novo
-        </SecondaryButton>
-      </div>
-    );
-  }
-
-  if (estado.fim || estado.cursor === null) return null;
-
-  return (
-    <div ref={sentinela} className="mt-[calc(var(--espaco)*6)]">
-      {estado.carregando && (
-        <p aria-live="polite" className="text-center text-[0.9rem] leading-relaxed text-ink-2">
-          Carregando mais fotos…
-        </p>
-      )}
-    </div>
-  );
-}
-
-function GateAbertoOverlay({
-  onFechar,
-  cameraPath,
-}: {
-  onFechar: () => void;
-  cameraPath: string;
-}) {
-  useEffect(() => {
-    function tecla(ev: KeyboardEvent) {
-      if (ev.key === "Escape") onFechar();
-    }
-    document.addEventListener("keydown", tecla);
-    return () => document.removeEventListener("keydown", tecla);
-  }, [onFechar]);
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Feed liberado"
-      className="fixed inset-0 z-40 grid place-items-center bg-bg-overlay p-6"
-      style={{ animation: "feed-amanhecer 0.35s var(--curva) both" }}
-      onClick={onFechar}
-    >
-      <div
-        className="grid w-full max-w-xs gap-5 rounded-superficie border border-linha bg-superficie p-6 text-center"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <p className="m-0 text-[2rem] leading-none" aria-hidden>
-          🎉
-        </p>
-        <div>
-          <p className="m-0 font-titulo text-[1.2rem] font-normal">A festa está liberada</p>
-          <p className="m-0 mt-1.5 text-[0.9rem] leading-relaxed text-ink-2">
-            Comentários, reações e o feed completo abriram. Veja o que todo mundo fotografou.
-          </p>
-        </div>
-        <div className="grid gap-2.5">
-          <button
-            type="button"
-            onClick={onFechar}
-            className="min-h-12 cursor-pointer rounded-pilula border-none bg-acento px-6 font-inherit text-[0.9rem] font-medium text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80"
-          >
-            Ver as fotos
-          </button>
-          <a
-            href={cameraPath}
-            className="grid min-h-12 place-items-center rounded-pilula border border-linha bg-transparent px-6 text-[0.9rem] text-ink no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
-          >
-            Tirar foto
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function usarMovimentoReduzido(): boolean {
-  const [reduzido, setReduzido] = useState(false);
-
-  useEffect(() => {
-    const consulta = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const aplicar = () => setReduzido(consulta.matches);
-
-    aplicar();
-    consulta.addEventListener("change", aplicar);
-    return () => consulta.removeEventListener("change", aplicar);
-  }, []);
-
-  return reduzido;
 }
