@@ -1,8 +1,20 @@
 /**
  * Admin Use Cases
  * 
- * Casos de uso do administrador: gerenciamento de eventos, exports, configurações.
+ * Casos de uso do administrador: eventos, export, insights, vendors, etc.
  */
 
-// Placeholder - use cases serão criados na Fase 4
-export {};
+export {
+  listAdminVendors,
+  type ListAdminVendorsInput,
+  type ListAdminVendorsOutput,
+  type VendorInfo,
+} from "./list-admin-vendors";
+
+export {
+  getEventInsights,
+  type GetEventInsightsInput,
+  type GetEventInsightsOutput,
+  type ChallengeStat,
+  type HourStat,
+} from "./get-event-insights";

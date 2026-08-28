@@ -1,4 +1,3 @@
-import { vendorsDaConta } from "@albora/db";
 import {
   ADMIN_SESSION_REQUIRED,
   jsonOk,
@@ -7,6 +6,7 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
+import { listAdminVendors } from "@/lib/application/use-cases/admin";
 
 /** Fornecedores que a conta administra ou é staff — alimenta o wizard de criação (spec §2.4); lista vazia é o caso comum, nunca 404. */
 export async function GET(req: Request) {
@@ -17,8 +17,11 @@ export async function GET(req: Request) {
   if (auth instanceof Response) return auth;
 
   try {
-    const vendors = await vendorsDaConta(getPool(), auth.host.accountId);
-    return jsonOk({ vendors });
+    const result = await listAdminVendors(
+      { accountId: auth.host.accountId },
+      getPool(),
+    );
+    return jsonOk({ vendors: result.vendors });
   } catch (e) {
     return unexpectedError("admin.vendors", e);
   }

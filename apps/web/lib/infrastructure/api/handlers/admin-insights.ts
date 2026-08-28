@@ -1,5 +1,3 @@
-import { fotosPorMissao, fotosPorHora, withEvent } from "@albora/db";
-import { PACKS, resolvePackText } from "@albora/packs";
 import {
   ADMIN_SESSION_REQUIRED,
   jsonOk,
@@ -9,6 +7,7 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
+import { getEventInsights } from "@/lib/application/use-cases/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -27,25 +26,16 @@ export async function GET(
   if (owned instanceof Response) return owned;
 
   try {
-    const [missoes, horas] = await withEvent(getPool(), eventId, (c) =>
-      Promise.all([
-        fotosPorMissao(c, eventId),
-        fotosPorHora(c, eventId, owned.evento.fuso ?? "UTC"),
-      ]),
+    const result = await getEventInsights(
+      {
+        eventId,
+        packId: owned.evento.packId,
+        fuso: owned.evento.fuso ?? "UTC",
+      },
+      getPool(),
     );
 
-    const pack = owned.evento.packId ? (PACKS[owned.evento.packId] ?? null) : null;
-
-    const missaoSer = missoes.map((m) => ({
-      challengeId: m.challengeId,
-      titulo:
-        m.customTitle ??
-        (pack && m.titleKey ? resolvePackText(pack, m.titleKey) : (m.titleKey ?? "")),
-      emoji: m.emoji,
-      fotos: m.fotos,
-    }));
-
-    return jsonOk({ missoes: missaoSer, horas });
+    return jsonOk({ missoes: result.missoes, horas: result.horas });
   } catch (e) {
     return unexpectedError("admin.insights", e);
   }

@@ -1,8 +1,11 @@
 /**
  * Wall Use Cases
  * 
- * Casos de uso do telão: feed em tempo real, pareamento, sincronização.
+ * Casos de uso do telão: authorize, pair, panic.
  */
 
-// Placeholder - use cases serão criados na Fase 5
-export {};
+export {
+  toggleWallPanic,
+  type ToggleWallPanicInput,
+  type ToggleWallPanicOutput,
+} from "./toggle-wall-panic";
