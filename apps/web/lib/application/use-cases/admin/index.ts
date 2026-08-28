@@ -138,3 +138,9 @@ export {
   type GetDriveExportInput,
   type GetDriveExportOutput,
 } from "./get-drive-export";
+
+export {
+  generateBookPdfUseCase,
+  type GenerateBookPdfInput,
+  type GenerateBookPdfResult,
+} from "./generate-book-pdf";
