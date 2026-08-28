@@ -14,10 +14,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-/**
- * Webhook Asaas — única escrita de `events.plan` pago (via aplicarPlanoPago).
- * Idempotente por `asaas_event_id`.
- */
+/** Webhook Asaas — única escrita de `events.plan` pago (via `aplicarPlanoPago`); idempotente por `asaas_event_id`. */
 export async function POST(req: Request) {
   let body: unknown;
   try {

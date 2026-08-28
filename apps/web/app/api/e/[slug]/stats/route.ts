@@ -4,11 +4,7 @@ import { getPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Contagem pública de fotos e convidados de um evento por slug.
- * O slug está impresso nas mesas e é público por design — o retorno é só
- * dado agregado, sem PII.
- */
+/** Contagem pública por slug (impresso nas mesas) — dado agregado, sem PII. */
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ slug: string }> },

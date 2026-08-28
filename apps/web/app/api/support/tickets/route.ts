@@ -20,10 +20,7 @@ type Body = {
   priority?: unknown;
 };
 
-/**
- * O anfitrião abre um ticket. Sem PII de convidado — só assunto, texto e
- * evento opcional. Fora do caminho crítico de sábado.
- */
+/** Ticket do anfitrião — sem PII de convidado; fora do caminho crítico. */
 export async function POST(req: Request) {
   const cfgErr = requireConfig("admin");
   if (cfgErr) return cfgErr;

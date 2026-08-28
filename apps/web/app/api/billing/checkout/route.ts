@@ -31,11 +31,7 @@ type Body = {
   billingType?: unknown;
 };
 
-/**
- * Host autenticado inicia checkout Asaas (ou stub em APP_ENV=dev sem chave).
- * Evento permanece `free` até o webhook (ou /api/billing/simulate em stub).
- * Só couple/owner — planner não muda plano.
- */
+/** Host inicia checkout Asaas (stub em dev); evento fica `free` até o webhook; só couple/owner, planner não muda plano. */
 export async function POST(req: Request) {
   const cfgErr = requireConfig("admin");
   if (cfgErr) return cfgErr;

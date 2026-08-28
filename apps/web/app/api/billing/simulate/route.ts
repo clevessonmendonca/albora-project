@@ -15,9 +15,7 @@ export const dynamic = "force-dynamic";
 
 type Body = { asaasPaymentId?: unknown };
 
-/**
- * Só em APP_ENV=dev: simula PAYMENT_RECEIVED do stub sem Asaas.
- */
+/** Só em APP_ENV=dev: simula PAYMENT_RECEIVED do stub sem Asaas. */
 export async function POST(req: Request) {
   if (process.env.APP_ENV !== "dev") {
     return errorResponse(404, "not_found", "Não encontrado");

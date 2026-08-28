@@ -19,13 +19,7 @@ const CONSENTIMENTO_VIGENTE = "v1";
 
 type Corpo = { eventoId?: unknown; nome?: unknown; consentimento?: unknown; via?: unknown };
 
-/**
- * Terceiro toque do fluxo: QR → consentimento → nome → sessão.
- *
- * Não existe login aqui nem em lugar nenhum. A primeira foto nunca passa por
- * loja de aplicativos nem por tela de autenticação — é a regra que decide a
- * H1, e a H1 decide se o negócio existe.
- */
+/** QR → consentimento → nome → sessão. Não existe login — primeira foto nunca passa por autenticação (regra que decide a H1). */
 export async function POST(req: Request) {
   const configError = requireConfig("sessions");
   if (configError) return configError;
