@@ -3,10 +3,7 @@ import type { MetadataRoute } from "next";
 
 type Props = { params: Promise<{ slug: string }> };
 
-/**
- * Manifest do evento: PWA instalado a partir do convidado abre a capa da festa,
- * não a landing de marketing.
- */
+/** Manifest do evento: PWA instalado a partir do QR abre a capa da festa, não a landing. */
 export default async function manifest({ params }: Props): Promise<MetadataRoute.Manifest> {
   const { slug } = await params;
   const chao = toVariables(ALBORA_BRAND)["--bg"]!;

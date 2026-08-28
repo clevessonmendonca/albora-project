@@ -6,13 +6,7 @@ export type PublicEventMetadata = {
   nomeDoEvento: string;
 };
 
-/**
- * Só o nome, para `generateMetadata`. Não faz a leitura agregada nem assina
- * URL — a `<head>` não precisa da vitrine, e duplicar aquele custo a cada
- * crawler seria caro de propósito nenhum. A página em si (`getPublicEventPage`)
- * resolve o slug de novo, a mesma duplicação que `/e/[slug]/page.tsx` já
- * aceita entre `generateMetadata` e o corpo da rota.
- */
+/** Só o nome para `generateMetadata` — sem leitura agregada nem assinatura de URL (crawler não merece esse custo). */
 export async function getPublicEventMetadata(slug: string): Promise<PublicEventMetadata | null> {
   const resolucao = await resolverSlug(getPool(), slug, new Date());
 

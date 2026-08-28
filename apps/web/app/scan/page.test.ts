@@ -10,12 +10,7 @@ vi.mock("next/navigation", () => ({ redirect: redirectMock }));
 
 import GuestScanPage from "./page";
 
-/**
- * `?codigo=` é o link de WhatsApp — "recebi o código, quero entrar". Recomendação
- * do spec-a1-share-a3-resgate.md §4.5: autoenvia, sem confirmar de novo, mesmo
- * comportamento que `/{slug}` já tem. `via=code` (nunca `qr`) porque não passou
- * pela câmera.
- */
+/** `?codigo=` é o link de WhatsApp (spec §4.5): autoenvia sem confirmar, mesmo que `/{slug}`; `via=code` porque não passou pela câmera. */
 describe("GuestScanPage — ?codigo= autoenvia à prova de tia", () => {
   afterEach(() => {
     redirectMock.mockClear();

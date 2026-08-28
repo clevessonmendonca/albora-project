@@ -1,14 +1,7 @@
 import { ALBORA_BRAND, toVariables } from "@albora/tokens";
 import type { MetadataRoute } from "next";
 
-/**
- * O manifest sai do resolvedor, não de um JSON com hex escrito à mão.
- *
- * A cor daqui é a que o sistema operacional pinta atrás do app enquanto ele
- * abre. Um hex fixo aqui descolaria do chão que o produto de fato pinta, e o
- * sintoma é um piscar de cor errada em toda abertura — a primeira coisa que o
- * convidado vê.
- */
+/** Manifest via resolvedor de tokens — hex fixo causaria piscar de cor errada na abertura (SO usa esse valor como chão). */
 export default function manifest(): MetadataRoute.Manifest {
   const chao = toVariables(ALBORA_BRAND)["--bg"]!;
 

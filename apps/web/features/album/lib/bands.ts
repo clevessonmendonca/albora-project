@@ -19,10 +19,7 @@ export type AlbumChapterView = {
 
 const SEM_HORA = "sem-hora";
 
-/**
- * A unidade do álbum é a hora. Páginas do mesmo instante (lugares diferentes)
- * viram uma faixa só — o convidado navega a noite, não o layout.
- */
+/** Unidade do álbum = hora; páginas do mesmo instante viram uma faixa — o convidado navega a noite, não o layout. */
 export function bandsFromPages(
   paginas: readonly ServedPage[],
   missaoId: string | null = null,
@@ -68,11 +65,7 @@ export function bandsFromAlbum(
   );
 }
 
-/**
- * Capítulos na ordem em que o núcleo montou, cada um com as faixas de hora
- * lá dentro. Capítulo sem foto (filtro de missão, fatia vazia) some — lista
- * vazia só quando não há o que mostrar.
- */
+/** Capítulos na ordem do núcleo, com faixas de hora; capítulo sem foto some. */
 export function chaptersFromAlbum(
   album: ServedAlbum,
   missaoId: string | null = null,

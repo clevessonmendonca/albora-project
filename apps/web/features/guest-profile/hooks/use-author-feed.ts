@@ -18,28 +18,14 @@ import {
   type PaginaVisivel,
 } from "@/features/feed/hooks/use-feed";
 
-/**
- * O perfil de um convidado, do lado do cliente — as fotos publicadas por uma
- * sessão, dentro deste evento.
- *
- * Reaproveita o reducer do feed principal (`comPagina`, `comFalha`,
- * `chavesSemUrl`, `comUrls`, `estadoInicial`): cursor, deduplicação e lote de
- * URLs assinadas são a mesma regra, e duplicar essa lógica aqui divergiria no
- * primeiro ajuste feito só de um lado. O que muda é a rota (`/api/guests/:id`
- * em vez de `/api/feed`) e a ausência do polling de gate — o perfil só existe
- * depois que a interação abriu, então não há "abriu agora" para vigiar.
- */
+/** Perfil do convidado no cliente — reusa reducer do feed (`comPagina`…`estadoInicial`); muda só a rota (`/api/guests/:id`) e ausência do gate-poll. */
 
 /** Além dos motivos do feed: o id não corresponde a ninguém que este leitor possa ver. */
 export type FalhaPerfil = FalhaFeed | "nao_encontrado";
 
 export type EstadoPerfil = {
   nome: string | null;
-  /**
-   * Terminal, não motivo de "tentar de novo": id de outro evento, sessão
-   * bloqueada ou perfil que ainda não existe (antes do gate) chegam aqui do
-   * mesmo jeito — quem lê não tem como distinguir os três, e não deveria.
-   */
+  /** Terminal: id de outro evento, sessão bloqueada ou antes do gate chegam aqui do mesmo jeito — indistinguíveis por design. */
   naoEncontrado: boolean;
   feed: EstadoFeed;
 };

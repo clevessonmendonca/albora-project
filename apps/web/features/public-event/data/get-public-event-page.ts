@@ -39,24 +39,7 @@ const TTL_DA_THUMB_SEGUNDOS = 300;
 /** Onde o CTA "monte o seu" aponta — o mesmo destino do botão grátis da landing. */
 export const CTA_MONTAR_O_SEU = "/admin/new?plano=free";
 
-/**
- * O que a página pública lê: agregado e já moderado do evento do slug —
- * nunca dado de convidado.
- *
- * Duas leituras, as mais estritas do pacote pra cada finalidade:
- * `lerMetricasAoVivo` para a contagem (`state = 'published'`) e
- * `listarMidiaDaParede` para a vitrine — a mesma leitura do telão, que
- * reavalia denúncia, veredito do classificador e pânico a cada chamada
- * (`wall-media.ts`). `paraVitrinePublica` descarta o `autor` (primeiro nome
- * de quem enviou) antes de qualquer assinatura de URL: uma página indexável
- * não tem PII de convidado, o telão tem porque é uma TV num salão fechado.
- *
- * `desconhecido` e `slug_rotacionado` devolvem `null` — o slug rotacionado
- * não resolve aqui por decisão: a placa mudou, e orientar quem escaneou a
- * antiga é papel de `/e/[slug]`, não desta vitrine. Os outros três estados
- * (`aberto`, `nao_comecou`, `encerrado`) sempre respondem: a página é a
- * vitrine permanente do evento, viva antes, durante e depois da festa.
- */
+/** Página pública: agregado moderado (`listarMidiaDaParede`), sem PII (`paraVitrinePublica` descarta `autor`); `desconhecido`/`slug_rotacionado` → null. */
 export async function getPublicEventPage(slug: string): Promise<PublicEventPageData | null> {
   const resolucao = await resolverSlug(getPool(), slug, new Date());
 
