@@ -34,13 +34,7 @@ export function resetarCachePrevia(cache: CachePrevia) {
   cache.rascunho = null;
 }
 
-/**
- * Uma miniatura por preset, gerada uma vez.
- *
- * Vai como blob e não como `filter` de CSS na tag porque o 35 mm não existe em
- * CSS — e uma tira onde sete chips mostram a verdade e um mostra outra coisa é
- * pior do que não ter tira.
- */
+/** Miniatura por preset como blob — não como `filter` CSS porque o 35 mm não existe em CSS. */
 export async function miniatura(base: ImageBitmap, preset: Preset | null): Promise<string> {
   const tela = document.createElement("canvas");
   tela.width = base.width;

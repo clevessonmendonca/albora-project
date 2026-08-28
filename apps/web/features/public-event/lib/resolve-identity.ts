@@ -8,16 +8,7 @@ export type PublicEventIdentity = {
   mensagemVazia: string;
 };
 
-/**
- * Nome, data e a mensagem de "ainda vazio" — a mesma fonte que a peça
- * impressa usa (`identityToFrame`, `apps/web/lib/frame-identity.ts`).
- *
- * `identityTokens.titulo` é o campo do anfitrião quando ele existir; hoje
- * nenhuma tela do admin o preenche, então cai sempre no exemplo do pack
- * (`landing.exemplo.nome`) — o mesmo placeholder que `/e/[slug]` e a Home já
- * mostram (`features/guest/lib/pack-text.ts`). Nenhuma string de domínio
- * aparece aqui: tudo sai do vocabulário do pack.
- */
+/** Nome/data/vazio — mesma fonte da peça impressa (`identityToFrame`); cai no exemplo do pack quando `titulo` não está preenchido; sem string de domínio. */
 export function resolvePublicEventIdentity(slug: string, evento: EventoPublico): PublicEventIdentity {
   const pack = PACKS[evento.packId];
   const identidade = identityToFrame(slug, evento.comecaEm, evento.identityTokens, pack);

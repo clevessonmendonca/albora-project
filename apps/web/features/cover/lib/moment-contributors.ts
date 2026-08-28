@@ -2,12 +2,7 @@ export type ContributorCount = { name: string; fotos: number };
 
 const MAX_NOMES = 2;
 
-/**
- * "Ana fotografou esse momento" / "Ana e João fotografaram esse momento" /
- * "Ana, João e +3 fotografaram esse momento" — reforço social leve do P2 do
- * mapa. `counts` já vem ordenado por quem mais contribuiu; nunca mais que
- * `MAX_NOMES` nomes aparecem, o resto vira "+N".
- */
+/** Label de contribuidores do momento (P2): "Ana fotografou…" / "Ana e João…" / "Ana, João e +N…"; max `MAX_NOMES` nomes, o resto vira "+N". */
 export function contributorsLabel(counts: ContributorCount[]): string | null {
   if (counts.length === 0) return null;
 

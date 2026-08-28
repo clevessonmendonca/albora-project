@@ -70,12 +70,7 @@ export async function getCover(input: CoverInput): Promise<CoverData> {
 
 type MomentoSemLabel = { missionFilterId: string | null };
 
-/**
- * "Quem mais fotografou esse momento" (mapa, oportunidade P2) — reaproveita
- * `challenge_id` já coletado, sem tabela nova. Uma query só para todos os
- * momentos da capa; `filtroSemBloqueio` aplica a mesma regra simétrica do
- * feed, para quem já bloqueou não aparecer como contribuidor pra quem leu.
- */
+/** Contribuidores por momento (P2): reusa `challenge_id`, uma query para todos; `filtroSemBloqueio` aplica regra simétrica do feed. */
 async function contribuidoresDosMomentos(
   eventoId: string,
   sessaoId: string,

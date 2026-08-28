@@ -1,22 +1,13 @@
 import { suggestionLabel } from "@/features/music/lib/suggestion-copy";
 
-/**
- * O sticker de música do composer (spec 020, sub-etapa b): lista as faixas
- * que os convidados já votaram (`music-db`, a mesma fila de `/api/music`) —
- * não inventa uma segunda fonte de sugestão.
- */
+/** Sticker de música do composer (spec 020/b): faixas votadas de `/api/music`, sem segunda fonte de sugestão. */
 
 export type FaixaVotada = {
   id: string;
   rotulo: string;
 };
 
-/**
- * Lê `sugestoes` da resposta de `/api/music`, a mesma forma que
- * `VisibleSuggestion` serializa. Item sem `id` (fila reconstruída sem
- * persistência) ou sem os campos mínimos some da lista em vez de quebrar o
- * sticker — a mesma tolerância de `readSuggestions` em `use-music.ts`.
- */
+/** Lê `sugestoes` de `/api/music`; item sem `id` ou campos mínimos some em vez de quebrar o sticker (mesma tolerância de `readSuggestions`). */
 export function faixasVotadas(sugestoes: unknown): FaixaVotada[] {
   if (!Array.isArray(sugestoes)) return [];
 
