@@ -24,7 +24,7 @@ export function FeedFilterPanel({
     <div
       role="group"
       aria-label={label}
-      className="mx-[calc(var(--espaco)*-5)] mb-[calc(var(--espaco)*5)] mt-[calc(var(--espaco)*3)] flex gap-[calc(var(--espaco)*6)] overflow-x-auto border-b border-linha px-[calc(var(--espaco)*5)] [scrollbar-width:none]"
+      className="mx-[calc(var(--espaco)*-5)] mb-[calc(var(--espaco)*5)] mt-[calc(var(--espaco)*3)] flex gap-[calc(var(--espaco)*6)] overflow-x-auto border-b border-linha px-[calc(var(--espaco)*5)] py-3 [scrollbar-width:none]"
     >
       <FilterTab active={selected === null} onClick={() => onSelect(null)}>
         Tudo

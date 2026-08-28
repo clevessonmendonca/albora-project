@@ -6,6 +6,7 @@ import { estiloAntiFlash, sanearVars } from "@/features/guest/lib/theme-style";
 import { readThemePreference, THEME_COOKIE } from "@/features/guest/lib/theme-preference";
 import { GlobalQueue } from "@/features/photo/components/client/global-queue";
 import { guestSession, isSameEventSession } from "@/features/guest/data/guest-session";
+import { ToastContainer } from "@albora/ui-web";
 
 export default async function Layout({
   children,
@@ -38,6 +39,7 @@ export default async function Layout({
       <style>{estiloAntiFlash(claro, escuro)}</style>
       <link rel="manifest" href={`/e/${encodeURIComponent(slug)}/manifest.webmanifest`} />
       {withSession && <GlobalQueue eventoId={session.eventoId} />}
+      <ToastContainer />
       {children}
     </div>
   );

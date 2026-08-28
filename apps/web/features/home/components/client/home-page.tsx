@@ -143,10 +143,10 @@ function CardLoading() {
   return (
     <div aria-hidden className="grid gap-3">
       <div className="flex items-center gap-2.5">
-        <span className="size-[1.875rem] rounded-full bg-ink-skeleton" />
-        <span className="h-3.5 w-24 rounded-pilula bg-ink-skeleton" />
+        <span className="size-[1.875rem] rounded-full bg-ink-skeleton animate-pulse" />
+        <span className="h-3.5 w-24 rounded-pilula bg-ink-skeleton animate-pulse" />
       </div>
-      <div className="aspect-4/5 rounded-media bg-ink-skeleton" />
+      <div className="aspect-4/5 rounded-media bg-ink-skeleton animate-pulse" />
     </div>
   );
 }

@@ -12,11 +12,13 @@ export function PostAuthorAvatar({ name }: { name: string }) {
 export function PostHeader({
   author,
   meta,
+  timestamp,
   autorHref,
   linkComponent: LinkComponent = "a",
 }: {
   author: string;
   meta?: string | null;
+  timestamp?: string | null;
   autorHref?: string | undefined;
   linkComponent?: ComponentType<{ href: string; className?: string; children?: ReactNode }> | "a";
 }) {
@@ -29,18 +31,37 @@ export function PostHeader({
   );
 
   const autorNode = autorHref ? (
-    <LinkComponent href={autorHref} className="flex-1 text-[0.84375rem] no-underline text-ink transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75">
+    <LinkComponent
+      href={autorHref}
+      className="font-medium text-[0.875rem] text-ink no-underline truncate transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75"
+    >
       {author}
     </LinkComponent>
   ) : (
-    <span className="flex-1 text-[0.84375rem]">{author}</span>
+    <span className="font-medium text-[0.875rem] text-ink truncate">{author}</span>
   );
+
+  // Se timestamp existe, mostra em linha própria com meta (lugar)
+  // Se não, meta vai ao lado do nome (legado)
+  const hasTimestamp = Boolean(timestamp);
 
   return (
     <div className="flex items-center gap-2.5 py-1">
       {avatarNode}
-      {autorNode}
-      {meta && <span className="text-[0.6875rem] text-ink-3">{meta}</span>}
+      {hasTimestamp ? (
+        <div className="flex-1 min-w-0">
+          {autorNode}
+          <p className="m-0 font-titulo text-[0.6875rem] uppercase tracking-[0.2em] text-ink-3">
+            {timestamp}
+            {meta && ` · ${meta}`}
+          </p>
+        </div>
+      ) : (
+        <>
+          {autorNode}
+          {meta && <span className="text-[0.6875rem] text-ink-3">{meta}</span>}
+        </>
+      )}
     </div>
   );
 }

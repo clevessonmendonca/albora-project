@@ -6,6 +6,7 @@ import { PhotoInteraction } from "@/features/feed/components/client/photo-intera
 import { PostHeader } from "@albora/ui-web";
 import type { ResultadoReacao } from "@/features/feed/hooks/use-reaction";
 import { cssAspectRatio } from "@/lib/media-aspect";
+import { tempoRelativo } from "@/lib/tempo-relativo";
 
 export function Post({
   uploadId,
@@ -25,6 +26,7 @@ export function Post({
   onVerAutor,
   legenda,
   lugar,
+  criadaEm,
   isVideo,
   largura,
   altura,
@@ -45,21 +47,22 @@ export function Post({
   linkComponent?: ComponentType<{ href: string; className?: string; children?: ReactNode }> | "a";
   onVerAutor?: ((sessaoId: string) => void) | undefined;
   legenda: string | null;
-
   lugar?: string | null;
+  criadaEm?: string;
   isVideo?: boolean;
   largura?: number;
   altura?: number;
 }) {
-  const meta = lugar ? `· ${lugar}` : null;
+  const timestamp = criadaEm ? tempoRelativo(criadaEm) : null;
   const aspecto = cssAspectRatio(largura, altura);
 
   return (
     <article className="border-t border-linha">
-      <div className="py-4">
+      <div className="py-5 mb-1">
         <PostHeader
           author={autor}
-          meta={meta}
+          meta={lugar ?? null}
+          timestamp={timestamp}
           {...(autorHref ? { autorHref, linkComponent } : {})}
         />
       </div>
@@ -78,7 +81,7 @@ export function Post({
             <img
               className="feed-amanhece block size-full bg-bg object-contain"
               src={url}
-              alt={legenda ?? ""}
+              alt={legenda || `Foto de ${autor}`}
               loading="lazy"
               decoding="async"
             />
@@ -106,8 +109,8 @@ export function Post({
       </div>
 
       {legenda && (
-        <p className="mb-4.5 text-[0.875rem] leading-[1.5] text-ink-2">
-          <span className="font-titulo text-ink">{autor}</span> {legenda}
+        <p className="mb-4.5 text-[0.875rem] leading-[1.68] text-ink">
+          {legenda}
         </p>
       )}
     </article>

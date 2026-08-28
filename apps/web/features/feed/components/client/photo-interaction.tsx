@@ -2,7 +2,7 @@
 
 import type { ModoInteracao } from "@albora/core";
 import { useState } from "react";
-import { Star, CommentIcon, ShareIcon, MoreIcon } from "@albora/ui-web";
+import { Star, CommentIcon, ShareIcon, MoreIcon, AnimatedCounter, showToast } from "@albora/ui-web";
 import { useComments } from "@/features/feed/hooks/use-comments";
 import { useReaction, type ResultadoReacao } from "@/features/feed/hooks/use-reaction";
 import { useReactionList } from "@/features/feed/hooks/use-reaction-list";
@@ -11,7 +11,7 @@ import { ReactionListSheet } from "./reaction-list-sheet";
 import { ReportSheet } from "./report-sheet";
 
 const CLASSE_BOTAO_ICONE =
-  "flex min-h-11 cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 font-inherit text-inherit transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70 disabled:cursor-default";
+  "flex min-h-11 cursor-pointer items-center gap-1.5 border-none bg-transparent p-0 font-inherit text-inherit transition-[opacity,transform] duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-acento focus-visible:ring-offset-2 focus-visible:ring-offset-bg active:scale-[0.96] disabled:cursor-default disabled:opacity-50 motion-reduce:transition-none motion-reduce:transform-none";
 
 type Props = {
   uploadId: string;
@@ -49,10 +49,35 @@ export function PhotoInteraction({
   const listaReacoes = useReactionList(uploadId);
   const comentarios = useComments(uploadId, completo);
   const [denunciaAberta, setDenunciaAberta] = useState(false);
+  const [animandoStar, setAnimandoStar] = useState(false);
 
   const alternarReacao = async () => {
+    const curtindo = reacao.minha === null;
+    
+    if (curtindo) {
+      setAnimandoStar(true);
+      setTimeout(() => setAnimandoStar(false), 500);
+    }
+
     const resultado = await reacao.alternar();
+    
+    if (!resultado) {
+      showToast("Não foi possível curtir. Tente novamente.", "error");
+      return;
+    }
+    
     if (resultado) onReacoes?.(resultado);
+  };
+
+  const handleCompartilhar = async () => {
+    if (!onCompartilhar) return;
+    
+    try {
+      await onCompartilhar();
+      showToast("Preparado para stories", "success");
+    } catch {
+      showToast("Não foi possível preparar. Tente novamente.", "error");
+    }
   };
 
   return (
@@ -67,7 +92,12 @@ export function PhotoInteraction({
             onClick={() => void alternarReacao()}
             className={CLASSE_BOTAO_ICONE}
           >
-            <Star size={24} filled={reacao.minha !== null} />
+            <Star 
+              size={24} 
+              filled={reacao.minha !== null}
+              animating={animandoStar}
+              className={reacao.minha !== null ? "text-acento" : "text-ink-2"}
+            />
           </button>
           {reacao.reacoes > 0 ? (
             <button
@@ -76,10 +106,15 @@ export function PhotoInteraction({
               onClick={() => void listaReacoes.abrir()}
               className={`${CLASSE_BOTAO_ICONE} underline-offset-2 hover:underline`}
             >
-              <span className="font-titulo text-[0.8125rem] tracking-rotulo">{reacao.reacoes}</span>
+              <AnimatedCounter
+                value={reacao.reacoes}
+                className="font-titulo text-[0.8125rem] tracking-rotulo text-ink"
+              />
             </button>
           ) : (
-            <span className="font-titulo text-[0.8125rem] tracking-rotulo">{reacao.reacoes}</span>
+            <span className="font-titulo text-[0.8125rem] tracking-rotulo text-ink-3">
+              0
+            </span>
           )}
         </div>
 
@@ -91,9 +126,12 @@ export function PhotoInteraction({
             className={CLASSE_BOTAO_ICONE}
           >
             <CommentIcon size={22} />
-            <span className="font-titulo text-[0.8125rem] tracking-rotulo">
-              {comentarios.total > 0 ? comentarios.total : ""}
-            </span>
+            {comentarios.total > 0 && (
+              <AnimatedCounter
+                value={comentarios.total}
+                className="font-titulo text-[0.8125rem] tracking-rotulo"
+              />
+            )}
           </button>
         )}
 
@@ -102,7 +140,7 @@ export function PhotoInteraction({
             type="button"
             aria-label="Compartilhar no Instagram ou WhatsApp"
             disabled={compartilhando}
-            onClick={onCompartilhar}
+            onClick={() => void handleCompartilhar()}
             className={CLASSE_BOTAO_ICONE}
           >
             <ShareIcon size={21} />

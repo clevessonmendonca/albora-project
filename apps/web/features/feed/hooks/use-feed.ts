@@ -1,8 +1,10 @@
 "use client";
 
 import { isVideoMime, type ModoInteracao } from "@albora/core";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 import { isExpired, mediaUrls, type MediaUrl } from "@/lib/media";
+import type { PeriodoTemporal } from "./use-temporal-filter";
+import { calcularLimiteInferior, calcularLimiteSuperior } from "./use-temporal-filter";
 
 /** Feed do convidado no cliente — a regra do gate mora no servidor; repetir aqui criaria segunda fonte de verdade que diverge no primeiro botão de pânico. */
 
@@ -278,7 +280,20 @@ export function sincronizarTopo(estado: EstadoFeed, pagina: PaginaVisivel): Esta
   return { ...estado, itens, interacao: pagina.interacao };
 }
 
-export function useFeed(missaoId: string | null) {
+function itemNoPeriodo(item: ItemVisivel, periodo: PeriodoTemporal, agora: Date): boolean {
+  if (periodo === "tudo") return true;
+  
+  const criadaEm = new Date(item.criadaEm);
+  const limiteInferior = calcularLimiteInferior(periodo, agora);
+  const limiteSuperior = calcularLimiteSuperior(periodo, agora);
+
+  if (limiteInferior && criadaEm < limiteInferior) return false;
+  if (limiteSuperior && criadaEm >= limiteSuperior) return false;
+  
+  return true;
+}
+
+export function useFeed(missaoId: string | null, periodo: PeriodoTemporal = "tudo") {
   const [estado, setEstado] = useState<EstadoFeed>(estadoInicial);
   const geracao = useRef(0);
   const buscandoPagina = useRef(false);
@@ -295,6 +310,11 @@ export function useFeed(missaoId: string | null) {
     const assinatura = chaves.join(" ");
     setJanela((antes) => (antes === assinatura ? antes : assinatura));
   }, []);
+
+  const itensFiltrados = useMemo(
+    () => estado.itens.filter((item) => itemNoPeriodo(item, periodo, new Date())),
+    [estado.itens, periodo]
+  );
 
   const carregar = useCallback(
     async (cursor: string | null) => {
@@ -412,5 +432,11 @@ export function useFeed(missaoId: string | null) {
     }));
   }, []);
 
-  return { estado, carregarMais, recomecar, pedirChaves, atualizarReacoes };
+  return { 
+    estado: { ...estado, itens: itensFiltrados }, 
+    carregarMais, 
+    recomecar, 
+    pedirChaves, 
+    atualizarReacoes 
+  };
 }
