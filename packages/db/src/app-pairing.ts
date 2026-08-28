@@ -1,15 +1,6 @@
 import type { Pool } from "pg";
 import { assinaturaValida, emitirToken, hashDoToken } from "./token";
 
-/**
- * Pareamento web → app (spec A-11 + ADR 0009).
- *
- * A sessao ja existe na web. Ela gera um codigo curto; o app digita e recebe
- * um token opaco para a mesma sessao e o mesmo evento — nao cria conta nova.
- *
- * Com app instalado, um token de passagem one-shot no link evita digitacao.
- */
-
 const TAMANHO_CODIGO = 4;
 const MAX_TENTATIVAS_DE_CODIGO = 8;
 
@@ -102,11 +93,6 @@ async function motivoResgatePorLinha(
   throw new ErroResgateDePareamento("desconhecido");
 }
 
-/**
- * Abre ou renova o codigo de pareamento para a sessao da web.
- *
- * Cancela pendentes anteriores da mesma sessao — so um codigo vivo por vez.
- */
 export async function criarCodigoPareamentoApp(
   pool: Pool,
   segredo: string,
@@ -139,12 +125,7 @@ export async function criarCodigoPareamentoApp(
   throw new Error("não foi possível gerar um código de pareamento livre");
 }
 
-/**
- * O app resgata o codigo e recebe um token novo para a sessao existente.
- *
- * Consome o codigo de uma vez — dois resgates simultaneos nao emitem dois
- * tokens: so um `UPDATE ... RETURNING` casa com `status = 'pendente'`.
- */
+/** UPDATE … WHERE status = 'pendente' RETURNING — dois resgates simultâneos emitem exatamente um token. */
 export async function resgatarCodigoPareamentoApp(
   pool: Pool,
   segredo: string,
@@ -174,11 +155,7 @@ export async function resgatarCodigoPareamentoApp(
   return motivoResgatePorLinha(pool, { code }, agora);
 }
 
-/**
- * O app instalado troca o token de passagem one-shot pela mesma sessao.
- *
- * Assinatura validada antes do banco — token forjado nao paga round-trip.
- */
+/** Assinatura validada antes do banco — token forjado não paga round-trip. */
 export async function resgatarPassagemPareamentoApp(
   pool: Pool,
   segredo: string,

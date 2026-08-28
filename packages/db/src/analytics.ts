@@ -88,10 +88,7 @@ export async function readAnalyticsSnapshot(
   return { metrics: r.metrics, computedAt: r.computed_at };
 }
 
-/**
- * KPIs agregados do casal (H1, funil, vias) — sem thumbs/nomes.
- * Só dentro do caminho de evento (`comEvento`).
- */
+/** KPIs agregados — sem PII. Só dentro de comEvento. */
 export async function collectEventLiveMetrics(
   pool: Pool,
   eventId: string,
@@ -131,10 +128,7 @@ export async function collectEventLiveMetrics(
   });
 }
 
-/**
- * Materializa `analytics_snapshots` scope=event period=live.
- * Metrics JSON: só agregados (sem nomes/thumbs/PII).
- */
+/** Materializa analytics_snapshots scope=event; metrics sem PII. */
 export async function materializeEventSnapshot(pool: Pool, eventId: string): Promise<EventLiveMetrics> {
   const metrics = await collectEventLiveMetrics(pool, eventId);
   await upsertAnalyticsSnapshot(pool, {
@@ -146,10 +140,7 @@ export async function materializeEventSnapshot(pool: Pool, eventId: string): Pro
   return metrics;
 }
 
-/**
- * Eventos na janela aberta (starts → ends + 48h).
- * Lista cross-event: o pool do job precisa BYPASSRLS / owner (como retention).
- */
+/** Lista cross-event: pool do job precisa BYPASSRLS/owner. */
 export async function listOpenEventIdsForSnapshots(
   pool: Pool,
   agora: Date = new Date(),
@@ -177,10 +168,7 @@ export type PlatformLiveMetrics = {
   productEventsByName: Record<string, number>;
 };
 
-/**
- * KPIs da plataforma (janela móvel). Precisa de pool BYPASSRLS / owner —
- * mesma regra do job de retenção e de `listOpenEventIdsForSnapshots`.
- */
+/** Pool deve ter BYPASSRLS/owner — cruza eventos sem RLS. */
 export async function collectPlatformLiveMetrics(
   pool: Pool,
   windowDays = 7,
@@ -228,10 +216,7 @@ export async function collectPlatformLiveMetrics(
   };
 }
 
-/**
- * Materializa `analytics_snapshots` scope=platform period=live.
- * Metrics JSON: só agregados (sem nomes/thumbs/PII).
- */
+/** Materializa analytics_snapshots scope=platform; metrics sem PII. */
 export async function materializePlatformSnapshot(
   pool: Pool,
   windowDays = 7,

@@ -1,7 +1,3 @@
-/**
- * O contrato do pipeline de upload. Compartilhado pelas duas superfícies.
- */
-
 export type PedidoPresign = {
   mime: string;
   bytes: number;
@@ -31,14 +27,7 @@ export type PedidoConfirm = {
   legenda?: string | null;
 };
 
-/**
- * Validade da assinatura.
- *
- * Curta o suficiente para uma URL vazada não valer nada por muito tempo, e
- * longa o suficiente para um upload de 12 MB terminar num 3G de salão de
- * festas. Dez minutos é o meio-termo; abaixo disso a fila offline começa a
- * apresentar URL expirada como falha de upload.
- */
+/** 10 min: URL vazada não vira link longo; abaixo disso upload de 12 MB em 3G de salão expirava. */
 export const VALIDADE_PRESIGN_SEGUNDOS = 600;
 
 export function presignExpirou(resposta: RespostaPresign, agora: number): boolean {

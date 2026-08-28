@@ -1,8 +1,2 @@
-/**
- * Nome do cookie da sessão do convidado.
- *
- * Uma constante só: a web grava HttpOnly; o app nativo manda o mesmo nome
- * no header. Duplicar a string é o tipo de divergência que o ADR 0010 existe
- * para impedir.
- */
+/** Uma constante só: web grava HttpOnly; app nativo manda no header. Duplicar cria divergência (ADR 0010). */
 export const GUEST_SESSION_COOKIE = "albora_sessao";

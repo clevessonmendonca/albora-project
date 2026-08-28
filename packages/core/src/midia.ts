@@ -1,12 +1,3 @@
-/**
- * Validação de mídia. Compartilhada pelas duas superfícies e pelo servidor.
- *
- * O cliente usa para não enfileirar o que vai ser recusado; o servidor usa
- * porque **cliente não é fonte de verdade**. A mesma regra nos dois lados é o
- * que evita a divergência clássica: o app aceita, o servidor recusa, e o
- * convidado vê a foto sumir sem explicação.
- */
-
 import type { PlanoDoEvento } from "./plano-evento";
 import { planoParaRedimensionamento } from "./plano-evento";
 
@@ -16,27 +7,14 @@ export type TipoAceito = (typeof TIPOS_ACEITOS)[number];
 export const TIPOS_VIDEO = ["video/mp4", "video/quicktime"] as const;
 export type TipoVideo = (typeof TIPOS_VIDEO)[number];
 
-/**
- * O que o cliente pode **tentar decodificar** — não o que pode subir.
- *
- * HEIC entra e sai JPEG no aparelho (N5.2). Ele nunca entra em
- * `TIPOS_ACEITOS`: bastava isso para o servidor passar a assinar upload do
- * arquivo exato que a galeria e o telão não exibem.
- */
+/** HEIC entra aqui mas sai JPEG no aparelho — nunca entra em `TIPOS_ACEITOS` ou o servidor assinaria algo que telão não exibe. */
 export const TIPOS_ENTRADA = [...TIPOS_ACEITOS, "image/heic", "image/heif"] as const;
 export type TipoEntrada = (typeof TIPOS_ENTRADA)[number];
 
-/** Teto por foto. Acima disso o cliente redimensiona antes de enfileirar. */
 export const MAX_BYTES = 12 * 1024 * 1024;
 
-/** Teto por vídeo (~30s em 1080p, §5.1 do doc de produto). */
 export const MAX_BYTES_VIDEO = 50 * 1024 * 1024;
 
-/**
- * Quantos bytes o confirm lê do objeto `/full` no storage. JPEG cabe em 3,
- * PNG em 8, WEBP e ISO-BMFF (mp4 / .mov) em 12. Dezesseis cobre todos sem
- * puxar a foto pelo servidor.
- */
 export const PREFIXO_MAGIC_BYTES = 16;
 
 export const LADO_MAIOR = {
@@ -52,14 +30,7 @@ export function isVideoMime(mime: string): mime is TipoVideo {
   return (TIPOS_VIDEO as readonly string[]).includes(mime);
 }
 
-/**
- * Assinaturas de arquivo. O `Content-Type` é declarado pelo cliente e não
- * vale nada: um "JPEG" que na verdade é HTML servido da origem do app é XSS
- * armazenado com alcance de festa inteira.
- *
- * Isto é a primeira camada; a segunda é o domínio próprio de mídia. As duas
- * juntas, nunca uma só.
- */
+/** Content-Type do cliente não vale: "JPEG" que é HTML é XSS armazenado. Esta é a 1ª camada; domínio próprio é a 2ª. */
 const ASSINATURAS: { mime: TipoAceito; bytes: number[]; deslocamento: number }[] = [
   { mime: "image/jpeg", bytes: [0xff, 0xd8, 0xff], deslocamento: 0 },
   { mime: "image/png", bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], deslocamento: 0 },
@@ -81,11 +52,7 @@ export function detectarTipo(inicio: Uint8Array): TipoAceito | null {
   return null;
 }
 
-/**
- * Contêiner ISO-BMFF: `ftyp` nos bytes 4..7, e a marca do formato em 8..11.
- * HEIC, MP4 e o `.mov` do iPhone são todos o mesmo contêiner — o que os
- * separa é só a marca.
- */
+/** ISO-BMFF: `ftyp` nos bytes 4..7, marca em 8..11 — HEIC, MP4 e .mov do iPhone são o mesmo contêiner. */
 const FTYP = [0x66, 0x74, 0x79, 0x70];
 
 const MARCAS_HEIC = [
@@ -115,16 +82,12 @@ function marcaIsoBmff(inicio: Uint8Array): string | null {
   return marca;
 }
 
-/**
- * Detecta HEIC/HEIF pelos bytes, nunca pelo `File.type` — no iOS ele vem
- * vazio ou mentiroso, e é o convidado de iPhone que a N5.2 protege.
- */
+/** Detecta pelos bytes, nunca pelo `File.type` — no iOS vem vazio ou mentiroso. */
 export function isHeic(inicio: Uint8Array): boolean {
   const marca = marcaIsoBmff(inicio);
   return marca !== null && MARCAS_HEIC.includes(marca);
 }
 
-/** Vídeo em contêiner ISO-BMFF, incluindo o `.mov` do iPhone (marca `qt  `). */
 export function isVideoBytes(inicio: Uint8Array): boolean {
   const marca = marcaIsoBmff(inicio);
   return marca !== null && MARCAS_VIDEO.includes(marca);
@@ -136,11 +99,6 @@ export type ErroMidia =
   | { code: "midia.grande_demais"; details: { bytes: number; limite: number } }
   | { code: "midia.conteudo_nao_confere"; details: { declarado: string; detectado: string | null } };
 
-/**
- * Valida o que o cliente declarou, **antes** de assinar a URL.
- * Rate limit e recusa acontecem no portão: um pedido condenado não deve
- * consumir assinatura, nem cota, nem espaço no bucket.
- */
 export function validarDeclaracao(mime: string, bytes: number): ErroMidia | null {
   if (isVideoMime(mime)) {
     if (bytes <= 0 || bytes > MAX_BYTES_VIDEO) {
@@ -158,11 +116,6 @@ export function validarDeclaracao(mime: string, bytes: number): ErroMidia | null
   return null;
 }
 
-/**
- * Valida o objeto que **de fato** chegou no storage. Roda no confirm, e é o
- * que transforma "o cliente disse que era JPEG" em "os primeiros bytes são
- * de um JPEG".
- */
 export function validarConteudo(mimeDeclarado: string, inicio: Uint8Array): ErroMidia | null {
   if (isVideoMime(mimeDeclarado)) {
     if (!isVideoBytes(inicio)) {
@@ -184,10 +137,6 @@ export function validarConteudo(mimeDeclarado: string, inicio: Uint8Array): Erro
   return null;
 }
 
-/**
- * O portão do confirm: tamanho real do objeto no storage + magic bytes do
- * prefixo. Nem o MIME do presign nem o do `File.type` entram aqui.
- */
 export function validarObjetoRecebido(
   mimeDeclarado: string,
   bytes: number,
@@ -196,11 +145,6 @@ export function validarObjetoRecebido(
   return validarDeclaracao(mimeDeclarado, bytes) ?? validarConteudo(mimeDeclarado, inicio);
 }
 
-/**
- * O cliente redimensiona no plano antes do PUT (2500 grátis / 3500 pago).
- * O confirm valida o par declarado — quem pular o resize no cliente não ganha
- * resolução extra no acervo (roadmap B3).
- */
 export function dimensoesDentroDoPlano(
   largura: number,
   altura: number,

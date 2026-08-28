@@ -2,16 +2,6 @@ import type { Pool } from "pg";
 import { emitirCrachaDaParede } from "./wall";
 import { assinaturaValida, emitirToken, hashDoToken } from "./token";
 
-/**
- * O pareamento do telão, do lado do banco (spec 010).
- *
- * A TV cria um pareamento, mostra o código e guarda o token de poll. Quem já
- * está no evento autoriza pelo código — e o `event_id` vem da **sessão de quem
- * autoriza**, nunca da TV. Depois a TV troca o token de poll pelo crachá de
- * leitura. Guarda-se o hash do token de poll, nunca o token, como em toda
- * credencial do produto.
- */
-
 /** Sem I, O, 0, 1, L: some a ambiguidade de quem digita o código olhando a TV. */
 const ALFABETO = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const TAMANHO_CODIGO = 6;
@@ -50,11 +40,6 @@ function ehColisaoDeChave(e: unknown): boolean {
   return typeof e === "object" && e !== null && (e as { code?: string }).code === "23505";
 }
 
-/**
- * Abre um pareamento. Devolve o código para a tela e o token de poll para o
- * cookie da TV. Repete se sortear um código já em uso — a chance é ínfima, mas
- * a colisão não pode virar erro na cara de quem só abriu o telão.
- */
 export async function criarPareamento(
   pool: Pool,
   segredo: string,
@@ -78,13 +63,7 @@ export async function criarPareamento(
   throw new Error("não foi possível gerar um código de pareamento livre");
 }
 
-/**
- * Autoriza um pareamento pelo código, prendendo-o ao evento de quem autoriza.
- *
- * 🔴 `eventoId` vem da sessão do autorizador — a TV não escolhe o evento que vai
- * mostrar. Único uso: só transita de `pendente`, e um código já usado ou
- * expirado é recusado com motivo próprio, sem revelar qual dos dois.
- */
+/** 🔴 eventoId vem da sessão do autorizador — a TV não escolhe o evento que vai mostrar. */
 export async function autorizarPareamento(
   pool: Pool,
   code: string,
@@ -112,16 +91,7 @@ export async function autorizarPareamento(
   throw new ErroAutorizacaoDePareamento("expirado");
 }
 
-/**
- * O poll da TV. Enquanto pendente, diz pendente. Quando autorizado, **consome**
- * o pareamento e emite o crachá — atômico no `UPDATE ... RETURNING`, então dois
- * polls simultâneos não emitem dois crachás: só um casa com `status =
- * 'autorizado'`, o outro vê zero linhas.
- *
- * Token de poll desconhecido, expirado ou já consumido devolve `expirado` — a
- * TV que perdeu a janela repareia, e nada aqui distingue os casos para quem
- * está só tentando adivinhar.
- */
+/** UPDATE … WHERE status = 'autorizado' RETURNING: dois polls simultâneos emitem exatamente um crachá. Token desconhecido ou consumido devolve 'expirado'. */
 export async function finalizarPareamento(
   pool: Pool,
   segredo: string,

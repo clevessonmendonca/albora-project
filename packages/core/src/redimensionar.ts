@@ -1,31 +1,14 @@
 import { LADO_MAIOR } from "./midia";
 
-/**
- * Quanto reduzir, e quando desistir de reduzir.
- *
- * Pura de propósito: é a parte da pipeline de imagem que decide se um
- * aparelho de quatro anos conclui o upload ou fica sem memória, e essa
- * decisão precisa ser testável sem canvas, sem navegador e sem aparelho.
- */
-
 export type Plan = "gratis" | "pago";
 
 export type Target = { width: number; height: number };
 
 export const THUMB_SIDE = 320;
 
-/**
- * A qualidade cai junto com o tamanho porque artefato de compressão é menos
- * visível em imagem menor — e o que importa aqui é o peso no 3G do salão.
- */
+/** Qualidade cai com o tamanho: artefato é menos visível em imagem menor, e o peso no 3G é o que importa. */
 export const QUALITY = { full: 0.82, thumb: 0.7 } as const;
 
-/**
- * Reduz mantendo proporção, **nunca aumenta**.
- *
- * Ampliar uma foto pequena não acrescenta informação: só gasta banda do
- * convidado e memória do aparelho para entregar a mesma imagem borrada.
- */
 export function targetForLongerSide(width: number, height: number, longerSide: number): Target {
   const longer = Math.max(width, height);
   if (longer <= longerSide) return { width, height };
@@ -45,28 +28,14 @@ export function thumbTarget(width: number, height: number): Target {
   return targetForLongerSide(width, height, THUMB_SIDE);
 }
 
-/**
- * Teto de pixels que o aparelho aguenta num canvas.
- *
- * O Safari do iOS derruba canvas acima de um limite de área e devolve tela
- * em branco — **sem erro**. Um Android antigo simplesmente mata a aba. Os
- * dois modos de falha são silenciosos, e é por isso que existe um teto em
- * vez de um try/catch.
- */
+/** Safari iOS derruba canvas silenciosamente sem erro; Android antigo mata a aba — teto em vez de try/catch. */
 export const PIXEL_CAP = {
   /** Aparelho declarado de pouca memória, ou detectado como antigo. */
   modest: 2048 * 2048,
   standard: 4096 * 4096,
 } as const;
 
-/**
- * Degrada a resolução até caber no teto do aparelho — **degradar, nunca
- * falhar**.
- *
- * Uma foto menor entra no álbum. Uma foto que não processa vira convidado
- * que desiste, e o custo disso é participação, que é a única métrica que
- * decide o produto.
- */
+/** Degrada, nunca falha: foto menor entra no álbum; foto que não processa vira desistência. */
 export function targetThatFits(target: Target, pixelCap: number): Target {
   const pixels = target.width * target.height;
   if (pixels <= pixelCap) return target;
@@ -80,13 +49,6 @@ export function targetThatFits(target: Target, pixelCap: number): Target {
 
 export type Device = { memoryGb?: number | undefined; cores?: number | undefined };
 
-/**
- * Escolhe o teto a partir do que o navegador informa.
- *
- * Na dúvida assume o padrão: um aparelho capaz tratado como modesto entrega
- * foto pior a todo mundo, e a maioria dos aparelhos numa festa é capaz. O
- * caso modesto é exceção, e exceção não pode virar regra por precaução.
- */
 export function pixelCapForDevice(device: Device): number {
   const { memoryGb, cores } = device;
 

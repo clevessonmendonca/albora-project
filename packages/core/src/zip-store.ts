@@ -1,11 +1,4 @@
-/**
- * ZIP STORE em stream. Um arquivo por vez, sem comprimir — JPEG e MP4 já
- * chegaram compactados, e deflate no servidor carregaria o blob inteiro.
- *
- * Data descriptor (bit 3) deixa o CRC e o tamanho saírem **depois** dos
- * bytes, que é o que permite puxar o objeto do storage em pedaços.
- */
-
+/** Data descriptor (bit 3) deixa CRC e tamanho saírem depois dos bytes — permite streaming do storage. */
 const LOCAL = 0x04034b50;
 const DESCRIPTOR = 0x08074b50;
 const CENTRAL = 0x02014b50;

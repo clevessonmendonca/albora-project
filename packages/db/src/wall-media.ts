@@ -8,17 +8,7 @@ import {
 } from "./moderation-event";
 import { thumbKeyFromFull } from "./storage-key";
 
-/**
- * O que a parede lê (spec 010 + 011).
- *
- * 🔴 A base é uma fonte de verdade só sobre o que é público, e é a mesma do
- * feed: `state = 'published'`. Sobre ela roda `decidirExibicao()` do
- * `@albora/core` na superfície `telao` — o afinamento que só o telão tem:
- * segura com N denúncias de sessões distintas (o melhor sensor da sala), com o
- * classificador suspeito **ou em silêncio**, e sob pânico ou modo endurecido
- * do evento. A decisão é do núcleo, e este módulo só a alimenta com o que o
- * banco tem.
- */
+/** 🔴 Fonte de verdade do telão: state = 'published', depois decidirExibicao() no núcleo — pânico e classificador silencioso seguram aqui. */
 
 const PUBLICADO = "published";
 
@@ -35,11 +25,7 @@ export type MidiaNaParede = {
   criadaEm: Date;
   /** Concessão `ler.contagem`. */
   reacoes: number;
-  /**
-   * Par persistido no confirm. Ausente na fila antiga — o telão mede no
-   * cliente; não inventa 1080×1920, que escolheria modelo de retrato para
-   * vídeo deitado.
-   */
+  /** Ausente na fila antiga — não inventa 1080×1920, que escolheria retrato para vídeo deitado. */
   largura?: number;
   altura?: number;
 };
@@ -58,14 +44,7 @@ type Linha = {
   height: number | null;
 };
 
-/**
- * As fotos públicas do evento, mais recentes primeiro, de dentro de uma
- * transação já escopada por `comEvento`.
- *
- * O `event_id` no WHERE é redundante sob RLS e vai mesmo assim: duas camadas
- * para a mesma invariante, como no resto do pacote. A parede é só leitura —
- * nenhuma escrita passa por aqui, por isso o crachá pode ficar na TV.
- */
+/** event_id no WHERE redundante sob RLS — duas camadas para a mesma invariante. */
 export async function listarMidiaDaParede(
   cliente: PoolClient,
   eventoId: string,

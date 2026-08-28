@@ -16,14 +16,6 @@ export type NovaSessao = {
   via?: ViaDeEntrada;
 };
 
-/**
- * Cria a sessão e emite o token.
- *
- * O nome é obrigatório por decisão de produto: custa um toque no recurso mais
- * escasso do projeto e paga três coisas que não existem sem ele — atribuição
- * no telão, que é o mecanismo de recrutamento; "suas fotos" depois da festa; e
- * responsabilização num modelo onde tudo vai à parede por padrão.
- */
 export async function criarSessao(
   pool: Pool,
   segredo: string,
@@ -58,14 +50,7 @@ export async function criarSessao(
   return { token, sessaoId };
 }
 
-/**
- * Resolve o token apresentado. É a porta de entrada de toda requisição do
- * convidado, e a única consulta do produto que roda fora da RLS.
- *
- * A ordem importa: assinatura primeiro, banco depois. Token forjado custa
- * microssegundos em vez de uma consulta — com 200 celulares na mesma antena e
- * um convidado entediado, essa diferença é a fila do banco no pico da festa.
- */
+/** Única consulta fora da RLS. Assinatura primeiro — token forjado custa microssegundos, não uma consulta ao banco. */
 export async function resolverSessao(
   pool: Pool,
   segredo: string,
@@ -96,12 +81,7 @@ export async function resolverSessao(
   return { eventoId: linha.event_id, sessaoId: linha.session_id };
 }
 
-/**
- * Revoga todas as sessões de um evento, e só dele.
- *
- * É o que o ADR 0004 exige: poder derrubar um evento inteiro sem tocar em
- * quem está subindo foto em outro, na mesma noite.
- */
+/** Revoga só as sessões deste evento — derruba uma festa sem tocar em outra na mesma noite. */
 export async function revogarSessoesDoEvento(pool: Pool, eventoId: string): Promise<number> {
   const { rowCount } = await pool.query(
     "UPDATE session_tokens SET revoked_at = now() WHERE event_id = $1 AND revoked_at IS NULL",

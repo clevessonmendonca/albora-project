@@ -43,11 +43,7 @@ export function ehAmanhecer(em: Date, offsetMinutos: number): boolean {
   return HORAS_DO_AMANHECER.includes(horaNoEvento(em, offsetMinutos));
 }
 
-/**
- * A parede do EXIF (componentes UTC = o que a câmera gravou, sem fuso) vira
- * instante absoluto no offset do evento. Sem isto, 21h em Brasília viraria
- * 21h UTC e a faixa da noite cairia três horas cedo.
- */
+/** Sem isto, 21h em Brasília vira 21h UTC e a faixa da noite cai três horas cedo. */
 export function instanteDaParede(parede: Date, offsetMinutos: number): Date {
   return new Date(parede.getTime() - offsetMinutos * 60_000);
 }

@@ -3,13 +3,7 @@ import type { PoolClient } from "pg";
 const PUBLICADO = "published";
 const REMOVIDO = "removed";
 
-/**
- * A forma do comentário como o núcleo (`@albora/core`) o conhece: `respostaA`
- * é `parent_id`, `midiaId` é `upload_id`. Espelha `Comentario` do core de
- * propósito — este pacote repete a forma para poder alimentar `montarThread` e
- * `publicarComentario` sem que a fronteira `pack → core` seja invertida por um
- * import.
- */
+/** Espelha Comentario do core para alimentar montarThread sem inverter a dependência pack → core. */
 export type ComentarioGravado = {
   id: string;
   eventoId: string;
@@ -20,7 +14,6 @@ export type ComentarioGravado = {
   criadoEm: Date;
 };
 
-/** Um comentário para exibição: o gravado, mais o primeiro nome de quem comentou. */
 export type ComentarioComAutor = ComentarioGravado & {
   /** Concessão `ler.identidade`: o primeiro nome de quem comentou, nunca o contato. */
   autor: string;
@@ -72,16 +65,7 @@ function paraGravado(l: LinhaGravada): ComentarioGravado {
   };
 }
 
-/**
- * Os comentários publicados de uma foto, do mais antigo para o mais novo, de
- * dentro de uma transação já escopada por `comEvento`.
- *
- * Serve às duas leituras: alimenta `montarThread` na exibição, e é a lista de
- * existentes que `publicarComentario` usa para ancorar uma resposta na raiz. O
- * `event_id` no WHERE é redundante sob RLS e vai mesmo assim — duas camadas
- * para a mesma invariante, como no resto do pacote. O JOIN em `guest_sessions`
- * deixa de fora comentário cujo autor já não existe (`session_id` nulo).
- */
+/** event_id no WHERE é redundante sob RLS — duas camadas para a mesma invariante. JOIN exclui comentário de sessão inexistente. */
 export async function listarComentariosDaFoto(
   cliente: PoolClient,
   eventoId: string,
@@ -100,15 +84,7 @@ export async function listarComentariosDaFoto(
   return rows.map(paraComAutor);
 }
 
-/**
- * Grava o comentário, uma vez só.
- *
- * O `event_id` **não vem do cliente**: vem da sessão, e a RLS ainda o confere —
- * duas camadas para a mesma invariante. `ON CONFLICT (id) DO NOTHING` faz um
- * retry com o mesmo id devolver a linha existente em vez de duplicar; um id
- * que conflita mas não é visível pertence a outro evento (a RLS o esconde), e a
- * resposta correta é a mesma de "não existe" — dizê-lo já vazaria informação.
- */
+/** 🔴 event_id vem da sessão, não do cliente. ON CONFLICT (id) DO NOTHING: retry devolve existente; id invisível pertence a outro evento. */
 export async function gravarComentario(
   cliente: PoolClient,
   entrada: {
@@ -143,15 +119,7 @@ export async function gravarComentario(
   return paraGravado(existente);
 }
 
-/**
- * Remoção suave pelo autor: marca `removed`, e o comentário some de toda
- * leitura, que só lê `published`.
- *
- * O `session_id` no WHERE é o que impede um convidado de apagar o comentário de
- * outro — a RLS garante o evento, ela não sabe de quem é o comentário dentro
- * dele. É a mesma guarda de `anotarUpload`. Devolve `false` quando nada casou —
- * sessão errada ou comentário que sumiu — nunca erro.
- */
+/** session_id no WHERE impede apagar comentário de outro convidado — RLS garante o evento, não a autoria. */
 export async function removerComentario(
   cliente: PoolClient,
   entrada: { comentarioId: string; sessaoId: string },

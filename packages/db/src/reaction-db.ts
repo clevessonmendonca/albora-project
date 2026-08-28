@@ -1,11 +1,6 @@
 import type { PoolClient } from "pg";
 import { filtroSemBloqueio } from "./block-db";
 
-/**
- * Reacao por sessao (spec 008). A PK (upload_id, session_id) garante
- * idempotencia: reagir duas vezes e reagir uma vez.
- */
-
 export type ReacaoVisivel = { nome: string; sessaoId: string };
 
 function primeiroNome(displayName: string): string {
@@ -73,10 +68,6 @@ async function contarReacoesDaMidia(cliente: PoolClient, uploadId: string): Prom
   return rows[0]?.total ?? 0;
 }
 
-/**
- * "Quem curtiu" (spec social §5.5) — primeiro nome só, respeita bloqueio
- * simétrico com quem lê. Ordem de chegada, sem ranking dramático.
- */
 export async function listarReacoesDaMidia(
   cliente: PoolClient,
   uploadId: string,

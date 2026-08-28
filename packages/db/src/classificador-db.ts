@@ -12,13 +12,7 @@ export type UploadPendenteDeClassificacao = {
   criadaEm: Date;
 };
 
-/**
- * Fotos publicadas cujo classificador ainda não rodou.
- *
- * Só dentro de `comEvento`: o `event_id` no WHERE é redundante sob RLS e vai
- * mesmo assim. Não cruza eventos — o job recebe o id no payload (poll da
- * parede) e classifica aquele casamento.
- */
+/** event_id no WHERE redundante sob RLS — duas camadas para a mesma invariante. Não cruza eventos. */
 export async function listarUploadsPendentesDeClassificacao(
   cliente: PoolClient,
   eventoId: string,

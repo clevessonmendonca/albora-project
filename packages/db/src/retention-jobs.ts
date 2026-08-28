@@ -11,13 +11,7 @@ import {
 } from "@albora/core";
 import { comEvento } from "./event";
 
-/**
- * O runner de retenção (spec drive-export §6). Todo o estado sensível
- * (gate do D365, lock por evento, reenvio no máximo uma vez) mora aqui, em
- * `@albora/db`, porque depende de transação/RLS/lock — o texto do e-mail e a
- * decisão de alertar ops ficam do lado de quem chama (`deps.notify`), porque
- * isso é HTTP/copy, e este pacote não faz chamada de rede.
- */
+/** @albora/db não faz chamada de rede — texto do e-mail e alertas ficam em deps.notify, do lado do chamador. */
 
 const DIAS_REENVIO: Partial<Record<RetentionKind, number>> = {
   d330_drive: 7,
@@ -54,12 +48,7 @@ export type DueRetentionJob = {
   endsAt: Date;
 };
 
-/**
- * Lista jobs vencidos. Exige pool cross-event (BYPASSRLS ou superuser) — como
- * o runner de `analytics-snapshots.mjs` já documenta: sem isso, o JOIN em
- * `events` devolve zero linhas sob RLS comum, e o sintoma é "nada vence
- * nunca", não um erro.
- */
+/** Pool deve ter BYPASSRLS/superuser — sem isso o JOIN em events devolve zero e o sintoma é silencioso. */
 export async function listDueRetentionJobs(pool: Pool, limit = 50): Promise<DueRetentionJob[]> {
   const { rows } = await pool.query<{
     id: string;
@@ -112,13 +101,7 @@ export type NotificacaoRetencao =
 export type DepsProcessarRetencao = {
   /** Nunca deve derrubar o processamento — falha de e-mail é enriquecimento, não caminho crítico. */
   notify: (n: NotificacaoRetencao) => void | Promise<void>;
-  /**
-   * Presente só quando o runner sabe falar com o Drive — permite abrir o
-   * refresh token ANTES do purge (ainda com `status='conectado'`) para o
-   * chamador revogar no Google depois do commit (spec §1.6). Ausente = a
-   * revogação no Google não acontece; `drive_connections` é marcada
-   * `revogado` do mesmo jeito (a garantia de isolamento não depende disto).
-   */
+  /** Abre o refresh ANTES do purge — depois, drive_connections está 'revogado' e a função de leitura não devolve mais. */
   vault?: DriveTokenVault;
   now?: Date;
 };
@@ -129,19 +112,7 @@ export type ResultadoRetentionJob =
   | { status: "skipped"; reason: MotivoRecusaD365; diasDeAtraso: number }
   | { status: "failed"; error: string };
 
-/**
- * Processa um job vencido, sob `pg_advisory_xact_lock` por evento (spec §6.3)
- * — duas invocações concorrentes do runner (cron + manual, por exemplo) nunca
- * processam o mesmo evento duas vezes na mesma janela.
- *
- * `d330_drive`/`d358_warn` reenviam no máximo uma vez (`attempts`), depois
- * ficam `done` para sempre — mesmo espírito de "sem spam" do §6.6.
- *
- * `d365_delete` fail-closed: `mayDeleteAtD365` decide. Quando recusa, o job
- * volta para `failed` (não `skipped`) DE PROPÓSITO — precisa continuar sendo
- * pego pelo próximo ciclo do runner (`listDueRetentionJobs` só lista
- * `pending`/`failed`) até haver export `pronto` e atual, nunca uma vez só.
- */
+/** pg_advisory_xact_lock por evento — dois runners concorrentes não processam o mesmo evento. d365_delete fail-closed: recusa volta 'failed' (não 'skipped') para ser pego no próximo ciclo. */
 export async function processRetentionJob(
   pool: Pool,
   job: DueRetentionJob,
@@ -216,9 +187,7 @@ export async function processRetentionJob(
     }
 
     const chavesParaApagar = await chavesDoAcervo(cliente, job.eventId);
-    // Abre o refresh token ANTES do purge — depois dele `drive_connections`
-    // vira 'revogado' e `refreshTokenDoEvento` (status-gated) não devolveria
-    // mais nada. O chamador revoga no Google DEPOIS do commit (spec §1.6).
+    // Abre o refresh ANTES do purge — depois drive_connections vira 'revogado' e refreshTokenDoEvento não devolve mais.
     const driveRefreshTokenParaRevogar = deps.vault
       ? await abrirRefreshTokenParaRevogar(cliente, job.eventId, deps.vault)
       : undefined;
@@ -294,13 +263,7 @@ async function notificarSemQuebrar(deps: DepsProcessarRetencao, n: NotificacaoRe
   }
 }
 
-/**
- * O melhor export candidato a cobrir o D365 (spec §5.3) — entre QUALQUER
- * destino (zip conta como backup tanto quanto Drive) e só `mode='full'`
- * (o álbum curado exclui fotos por desenho; nunca cobre o acervo inteiro).
- * `published_snapshot` NULL (jobs anteriores à migration 0041) vira 0 —
- * fail-closed: não há como confiar num export sem saber quanto ele cobriu.
- */
+/** mode='full' apenas — curated exclui fotos por desenho. published_snapshot NULL vira 0: fail-closed. */
 async function melhorExportParaRetencao(
   cliente: PoolClient,
   eventId: string,
@@ -363,17 +326,12 @@ async function abrirRefreshTokenParaRevogar(
       keyVersion: l.key_version,
     });
   } catch {
-    // Chave rotacionada e indisponível, ou dado corrompido — a revogação no
-    // Google é enriquecimento; o purge da nossa cópia segue de qualquer jeito.
+    // Chave indisponível ou dado corrompido — revogação no Google é enriquecimento; purge segue mesmo assim.
     return undefined;
   }
 }
 
-/**
- * A parte que o banco garante: os ponteiros somem e a conexão de Drive é
- * revogada. Os bytes no R2 são apagados por quem chama (`chavesParaApagar` no
- * retorno) — `@albora/db` não fala com storage.
- */
+/** Apaga ponteiros e revoga Drive; bytes no storage ficam para o chamador (chavesParaApagar). */
 async function purgarAcervo(cliente: PoolClient, eventId: string): Promise<void> {
   await cliente.query(
     "UPDATE uploads SET state = 'purged' WHERE event_id = $1 AND state IN ('published', 'removed')",

@@ -10,27 +10,13 @@ import {
   type TipoDeConteudo,
 } from "@albora/core";
 
-/**
- * Persistencia da musica do casal (spec 018, camada 1 do ADR 0011): metadado e
- * link, nunca bytes de audio.
- *
- * O `event_id` **nao vem do cliente**: vem da transacao ja escopada por
- * `comEvento`, e a politica de RLS ainda o confere — duas camadas para a mesma
- * invariante. O `provider` gravado e conferido contra o conjunto fechado do
- * nucleo antes de qualquer escrita: o que nao esta em `PROVEDORES` nao entra.
- */
+/** 🔴 event_id vem da transação comEvento, não do cliente. provider conferido contra PROVEDORES antes de qualquer escrita. */
 
 function provedorNoConjunto(provedor: string): provedor is Provedor {
   return (PROVEDORES as readonly string[]).includes(provedor);
 }
 
-/**
- * Recusa provedor fora do conjunto fechado antes do INSERT.
- *
- * O `link` chega ja parseado por `lerLinkDeMusica`, que valida o host — esta e
- * a segunda barreira, na fronteira da escrita, para o caso de o chamador montar
- * um `LinkDeMusica` a mao.
- */
+/** Segunda barreira no INSERT: provider deve estar em PROVEDORES do núcleo. */
 export class ErroProvedorForaDoConjunto extends Error {
   readonly code = "musica.provedor_fora_da_lista";
   constructor(readonly provedor: string) {
@@ -65,13 +51,6 @@ export function linkDaLinha(l: {
   };
 }
 
-/**
- * Grava (ou substitui) a faixa escolhida pelo casal. Uma por evento — o
- * `ON CONFLICT (event_id) DO UPDATE` troca a escolha sem criar uma segunda.
- *
- * O metadado e opcional: sem titulo, a exibicao cai para o link cru. Resolver
- * capa e titulo e enriquecimento e mora fora deste caminho.
- */
 export async function definirMusicaDoCasal(
   cliente: PoolClient,
   entrada: { eventoId: string; link: LinkDeMusica; metadado: MetadadoDaMusica | null },
@@ -109,11 +88,6 @@ export async function definirMusicaDoCasal(
   );
 }
 
-/**
- * A musica do casal, de dentro de uma transacao ja escopada. Devolve `null`
- * quando o evento nao tem musica configurada — todas as telas funcionam sem
- * buraco de layout, que e a verificacao 5 da spec.
- */
 export async function musicaDoCasal(
   cliente: PoolClient,
   eventoId: string,
@@ -133,17 +107,7 @@ export async function musicaDoCasal(
   return { link: linkDaLinha(l), metadado };
 }
 
-/**
- * Enfileira a sugestao de um convidado, uma vez so.
- *
- * `ON CONFLICT DO NOTHING` sobre `(event_id, session_id, provider,
- * content_type, identifier)`: a mesma sessao sugerindo a mesma faixa duas vezes
- * continua valendo um voto — como a reacao, sobrevive a toque duplo e a retry
- * de rede. `inserida` distingue voto novo de repetido para o log.
- *
- * O teto por sessao e o gate de interacao sao regra de dominio e ficam em
- * `registrarSugestao` do nucleo, avaliados antes desta chamada.
- */
+/** ON CONFLICT (event_id, session_id, provider, content_type, identifier) DO NOTHING — retry idempotente, mesmo voto vale um. */
 export async function adicionarSugestao(
   cliente: PoolClient,
   entrada: {
@@ -197,15 +161,7 @@ export function metadadoDaSugestao(l: { title: string | null; artist: string | n
   return { titulo: l.title, artista: l.artist, capaUrl: null };
 }
 
-/**
- * A fila de sugestoes do evento, reconstruida como `FaixaSugerida[]` para
- * `ordenarSugestoes` do nucleo consumir.
- *
- * Uma linha por faixa: as sessoes distintas viram os votos, e a primeira a
- * chegar fixa `primeiroEm` — o desempate estavel que impede a lista de se
- * reordenar sozinha no telao. A ordenacao final e do nucleo, nao daqui; a
- * clausula `ORDER BY` existe so para o primeiro a sugerir sair primeiro.
- */
+/** Uma linha por faixa; sessões distintas viram votos; primeira a chegar fixa primeiroEm — desempate estável. */
 export async function listarSugestoes(
   cliente: PoolClient,
   eventoId: string,
@@ -238,9 +194,7 @@ export async function listarSugestoes(
     const metadado = metadadoDaSugestao(l);
 
     if (existente === undefined) {
-      // A primeira linha a chegar pra esta faixa fixa `id` junto com
-      // `primeiroEm` — o mesmo desempate estável, e o `id` que `criarStory`
-      // valida quando a story anexa esta faixa.
+      // Fixa id e primeiroEm na primeira linha — desempate estável; id validado por criarStory.
       porChave.set(chave, {
         chave,
         link,

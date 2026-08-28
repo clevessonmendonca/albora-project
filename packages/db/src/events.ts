@@ -23,16 +23,7 @@ export type EventoPublico = {
   filtroRecomendado: string | null;
   /** IANA do salão. Ancora taken_at, capítulos e a faixa 5h–7h. */
   fuso: string;
-  /**
-   * Tokens de marca do fornecedor B2B2C que criou este evento, ou `null`
-   * quando o evento não tem `vendor_id`. Alimenta a camada `vendor` do
-   * resolvedor (marca → vendor → pack → evento) nas superfícies do convidado.
-   *
-   * Lido dentro do mesmo `comEvento` que traz o evento, via a policy
-   * `vendor_marca_do_evento` (migration 0047): o isolamento é garantido pelo
-   * `app.event_id` da transação — o convidado do evento A nunca lê os tokens
-   * do vendor do evento B.
-   */
+  /** Isolado pelo `app.event_id` da transação — convidado do evento A nunca lê tokens do vendor do evento B. */
   vendorBrandTokens: Record<string, unknown> | null;
   /** Chave de storage da imagem de capa enviada pelo casal. Null = usa album. */
   coverImageKey: string | null;
@@ -45,20 +36,8 @@ export type Resolucao =
   | { estado: "encerrado" | "slug_rotacionado"; evento: EventoPublico }
   | { estado: "desconhecido" };
 
-/**
- * Janela em que a fila ainda pode drenar depois de a festa acabar.
- *
- * Não é generosidade: é o convidado que fotografou às 2h, guardou o celular
- * sem sinal e só abriu o app no domingo à tarde. Fechar no fim do evento
- * jogaria fora exatamente as fotos do fim da festa.
- */
 export const HORAS_APOS_EVENTO = 48;
 
-/**
- * Monta `EventoPublico` a partir do cliente já sob `comEvento` — incluindo
- * `vendorBrandTokens` via policy `vendor_marca_do_evento` (migration 0047).
- * Usado pelo QR (`resolverSlug`) e pelo tema do app (`GET /api/guest/event`).
- */
 export async function carregarEventoPublico(
   cliente: PoolClient,
   eventoId: string,
@@ -108,11 +87,6 @@ export async function atualizarChaveImagemCapa(
   );
 }
 
-/**
- * Resolve o slug do QR. É a primeira coisa que roda quando alguém escaneia a
- * placa da mesa, e a única consulta além do token que precisa acontecer antes
- * de existir contexto de evento.
- */
 export async function resolverSlug(
   pool: Pool,
   slug: string,
@@ -144,13 +118,7 @@ export async function resolverSlug(
   return { estado: "aberto", evento };
 }
 
-/**
- * O pack do evento, de dentro de uma transação já escopada.
- *
- * Existe para o servidor validar contra conjunto fechado o que o cliente
- * manda — lugar, missão, filtro. Whitelist vinda do banco, não do corpo da
- * requisição.
- */
+/** Whitelist vinda do banco — lugar, missão e filtro são validados contra ela, nunca contra o corpo da requisição. */
 export async function packDoEvento(cliente: PoolClient, eventoId: string): Promise<string | null> {
   const { rows } = await cliente.query<{ pack_id: string }>(
     "SELECT pack_id FROM events WHERE id = $1",
@@ -160,10 +128,7 @@ export async function packDoEvento(cliente: PoolClient, eventoId: string): Promi
   return rows[0]?.pack_id ?? null;
 }
 
-/**
- * IANA persistido do evento, de dentro de uma transação já escopada.
- * Ausente ou inválido cai no default — o álbum e o confirm nunca ficam sem âncora.
- */
+/** Ausente ou inválido cai no default — o álbum e o confirm nunca ficam sem âncora de fuso. */
 export async function fusoDoEvento(cliente: PoolClient, eventoId: string): Promise<string> {
   const { rows } = await cliente.query<{ timezone: string }>(
     "SELECT timezone FROM events WHERE id = $1",
@@ -212,60 +177,19 @@ export type NovoEvento = {
   missoes?: readonly string[];
   /** Nome amigável no painel. Ausente = vocabulário do pack. */
   title?: string | null;
-  /**
-   * Evento nasce vinculado a este fornecedor: grava `events.vendor_id` e
-   * `plan = 'vendor'`. Conferido contra `vendor_members` dentro da mesma
-   * transação — sob a conta de `accountId` (o membro do fornecedor
-   * autenticado), nunca aceito só porque o cliente mandou o id.
-   */
+  /** Conferido contra `vendor_members` na transação — nunca aceito só porque o cliente mandou o id. */
   vendorId?: string;
   /**
-   * Obrigatório quando `vendorId` está presente: a conta do CASAL, resolvida
-   * (ou criada) via `emitirMagicLink` por quem chama — nunca a do membro do
-   * fornecedor. Vira `events.account_id` (dona da fatura, `canManageCoupleOnly`)
-   * e entra em `event_members` como `couple`. `accountId` (quem está
-   * autenticado) entra separadamente como `planner`. Ausente quando `vendorId`
-   * também está ausente — o caminho de hoje, `accountId` é dono.
-   *
-   * 🔴 Precisa ser DIFERENTE de `accountId`: se o membro do fornecedor usar o
-   * próprio e-mail como e-mail do casal, `emitirMagicLink` resolve pra conta
-   * dele mesmo, e sem este guard o GUC nunca trocaria — ele nasceria owner
-   * por coincidência de e-mail. `criarEvento` recusa antes de qualquer INSERT.
+   * 🔴 Precisa ser DIFERENTE de `accountId`: e-mail igual faria o fornecedor nascer owner por coincidência.
+   * Conta do casal; `accountId` entra como `planner`.
    */
   coupleAccountId?: string;
 };
 
 /**
- * Cria o evento de uma conta (spec 009).
- *
- * 🔴 Roda em `comConta`: a política `conta_evento` de `events` e o `WITH CHECK`
- * garantem que a linha nasce presa ao `account_id` setado em `app.account_id`
- * — uma conta não cria evento para outra. O `event_slugs` (fora da RLS) e o
- * `events` nascem na mesma transação: um evento sem porta de QR não existiria
- * para o convidado.
- *
- * O slug é sorteado e reaposta na colisão — improvável, mas não pode virar erro
- * na cara do casal que só quis criar a festa. O `pack_id` é conferido pela FK:
- * pack fora do conjunto estoura antes de qualquer linha.
- *
- * `vendorId` (canal do fornecedor, spec-canal-fornecedor §2) é opcional: quando
- * presente, o pertencimento a `vendor_members` é conferido dentro desta mesma
- * transação, sob a conta de `accountId` — o cliente nunca decide por conta
- * própria em que fornecedor o evento nasce. O evento ganha `plan = 'vendor'`,
- * mas o **dono** (`events.account_id`, e o papel `couple` em `event_members`)
- * é `coupleAccountId`, nunca o membro do fornecedor: `canManageCoupleOnly`
- * (ZIP, "há menores", assinar completo) é do casal, nunca do fornecedor
- * (CLAUDE.md/spec §2). O membro do fornecedor entra em `event_members` como
- * `planner` — mesmo papel operacional de um cerimonialista convidado.
- *
- * 🔴 Isso exige `SET LOCAL app.account_id` **duas vezes** dentro da mesma
- * transação: a política `conta_evento`/`conta_membro` (`WITH CHECK`) exige
- * que `account_id` da linha case com `app.account_id` no momento do INSERT —
- * não existe um único GUC que sirva para checar `vendor_members` sob a conta
- * do fornecedor E gravar `events`/o `couple` de `event_members` sob a conta do
- * casal. `SET LOCAL` é escopado à transação, não à conexão: reafirmá-lo várias
- * vezes antes de cada escrita mantém tudo atômico num único `BEGIN…COMMIT`,
- * sem tocar `roleForAccountOnEvent` nem a política.
+ * 🔴 `SET LOCAL app.account_id` duas vezes na mesma transação: `conta_evento`/`conta_membro` exige que a linha
+ * case com o GUC no momento do INSERT — não há um GUC único para checar vendor_members (fornecedor) E gravar
+ * events/couple (casal). `event_slugs` e `events` nascem na mesma transação — evento sem QR não existe.
  */
 export async function criarEvento(
   pool: Pool,
@@ -306,12 +230,7 @@ export async function criarEvento(
   const donoDoEvento = entrada.vendorId !== undefined ? entrada.coupleAccountId! : entrada.accountId;
 
   return comConta(pool, entrada.accountId, async (c) => {
-    // Portão antes de qualquer INSERT: confere pertencimento em
-    // `vendor_members` sob a conta de quem está autenticado (`app.account_id`
-    // ainda é `entrada.accountId` aqui) — nunca confia no `vendorId` que o
-    // cliente mandou. RLS de `vendor_members` (`conta_vendor_member`) já
-    // restringe a linha por `account_id`; o `AND account_id = $2` explícito é
-    // defesa em profundidade, mesma forma de `roleForAccountOnVendor`.
+    // Nunca confia no vendorId que o cliente mandou — confere pertencimento antes de qualquer INSERT.
     if (entrada.vendorId !== undefined) {
       const { rowCount } = await c.query(
         "SELECT 1 FROM vendor_members WHERE vendor_id = $1 AND account_id = $2",
@@ -381,13 +300,6 @@ export async function criarEvento(
           );
         }
 
-        // scheduleRetentionJobs (spec drive-export §10, risco #4): esta era a
-        // única chamada real do produto e, até aqui, reimplementava a mesma
-        // lista de retention_jobs à mão em vez de usar `planRetention`
-        // (@albora/core) — as duas listas podiam divergir silenciosamente.
-        // `agendarRetencaoNaTransacao` roda dentro desta mesma transação
-        // (retention_jobs não tem RLS de evento, então não precisa de um
-        // `comEvento` próprio aqui).
         await agendarRetencaoNaTransacao(c, eventoId, entrada.terminaEm);
 
         const missoes = entrada.missoes ?? [];
@@ -411,10 +323,7 @@ export async function criarEvento(
   });
 }
 
-/**
- * Rotaciona o slug. O antigo **não** é apagado: ele continua resolvendo, como
- * inativo, para quem escanear a placa que já foi impressa.
- */
+/** O slug antigo não é apagado — continua resolvendo (inativo) para quem escanear a placa impressa. */
 export async function rotacionarSlug(
   pool: Pool,
   eventoId: string,

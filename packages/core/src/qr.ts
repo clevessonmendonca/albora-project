@@ -1,11 +1,4 @@
-/**
- * O conteúdo de um QR é dado de terceiro.
- *
- * A placa fica seis horas numa mesa sem ninguém olhando, e um adesivo colado
- * por cima do original é ataque real. Por isso o host do QR nunca é destino:
- * só o slug sobrevive, e o caminho é remontado aqui, com `via` no query.
- */
-
+/** Conteúdo de QR é dado de terceiro — host nunca é destino, só o slug sobrevive e o caminho é remontado aqui. */
 import type { ViaDeEntrada } from "./funnel";
 
 /** Minúscula, dígito e hífen entre blocos. Sem hífen na ponta, sem hífen duplo. */
@@ -14,7 +7,6 @@ const PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MIN_LENGTH = 2;
 const MAX_LENGTH = 64;
 
-/** Um QR guarda alguns milhares de caracteres. Nada legítimo chega perto. */
 const CONTENT_LIMIT = 2048;
 
 /** Marcas de acento na forma decomposta — `NFD` separa a letra do acento. */
@@ -28,12 +20,6 @@ export function isValidSlug(value: string): boolean {
   );
 }
 
-/**
- * Extrai o slug do que veio do QR ou do que a pessoa digitou.
- *
- * Aceita URL completa, URL curta impressa (N1.4) e o código sozinho. Devolve
- * `null` para qualquer coisa que não passe no formato — nunca o conteúdo cru.
- */
 export function extractSlug(content: string): string | null {
   const raw = content.trim();
   if (raw.length === 0 || raw.length > CONTENT_LIMIT) return null;

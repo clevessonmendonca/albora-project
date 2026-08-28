@@ -70,12 +70,6 @@ export type ItemMissao =
   | { tipo: "pack"; chave: string }
   | { tipo: "custom"; id?: string; titulo: string; emoji?: string | null };
 
-/**
- * Troca o conjunto completo de missões (pack + personalizadas) na ordem recebida.
- *
- * Missões do pack: mantêm o id quando a chave permanece.
- * Missões personalizadas: mantêm o id quando o id já existe; criam nova linha caso contrário.
- */
 export async function substituirDesafios(
   cliente: PoolClient,
   eventoId: string,

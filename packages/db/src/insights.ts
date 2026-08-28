@@ -13,11 +13,7 @@ export type HoraInsight = {
   fotos: number;
 };
 
-/**
- * Contagem de fotos por missão para o evento.
- * Inclui apenas missões que têm ao menos uma foto.
- * Agrega sem expor dados individuais de convidado.
- */
+/** Agrega sem expor dados individuais de convidado. */
 export async function fotosPorMissao(
   cliente: PoolClient,
   eventoId: string,
@@ -48,10 +44,6 @@ export async function fotosPorMissao(
   }));
 }
 
-/**
- * Contagem de fotos por hora UTC (0–23) para o evento.
- * Permite ao casal ver a "hora de ouro" da festa.
- */
 export async function fotosPorHora(
   cliente: PoolClient,
   eventoId: string,

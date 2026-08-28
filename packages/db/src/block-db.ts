@@ -2,10 +2,7 @@ import type { PoolClient } from "pg";
 
 export type ResultadoBloqueio = { registrado: boolean };
 
-/**
- * Bloqueio simetrico dentro do evento (spec 014). Uma linha so — quem le
- * filtra nos dois sentidos. Sem aviso ao bloqueado.
- */
+/** Uma linha, filtra nos dois sentidos; sem aviso ao bloqueado. */
 export async function bloquearConvidado(
   cliente: PoolClient,
   entrada: { eventoId: string; bloqueadorId: string; bloqueadoId: string },

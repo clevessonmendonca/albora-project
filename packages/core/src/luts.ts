@@ -1,12 +1,4 @@
-/**
- * Filtros paramétricos. Sem IA generativa, por decisão do ADR 0007.
- *
- * A matemática vive aqui porque os dois renderizadores precisam produzir
- * exatamente a mesma imagem. Se o app e a web interpretarem o mesmo filtro de
- * formas diferentes, o álbum sai com duas estéticas — e coerência entre todas
- * as fotos é literalmente o que o produto vende.
- */
-
+/** Sem IA generativa (ADR 0007). Matemática aqui para os dois renderizadores produzirem a mesma imagem. */
 export type Ajustes = {
   sepia: number;
   saturacao: number;
@@ -28,10 +20,6 @@ export const NEUTRO: Ajustes = {
   contraste: 1,
 };
 
-/**
- * Intensidade contínua, de 0 a 1: interpola entre o neutro e o filtro cheio.
- * É o que permite ao convidado escolher "um pouco" em vez de tudo ou nada.
- */
 export function aplicarIntensidade(ajustes: Ajustes, intensidade: number): Ajustes {
   const t = Math.min(1, Math.max(0, intensidade));
   const entre = (de: number, para: number) => de + (para - de) * t;
@@ -45,7 +33,6 @@ export function aplicarIntensidade(ajustes: Ajustes, intensidade: number): Ajust
   };
 }
 
-/** Serializa para a sintaxe de `filter` — entendida por Canvas e por RN. */
 export function paraFiltroCss(a: Ajustes): string {
   return [
     `sepia(${a.sepia})`,
@@ -56,15 +43,7 @@ export function paraFiltroCss(a: Ajustes): string {
   ].join(" ");
 }
 
-/**
- * Aplica `Ajustes` (receita CSS: sepia → saturate → hue-rotate → brightness →
- * contrast) **nos pixels**, na mesma ordem de `paraFiltroCss`.
- *
- * Existe para o Desenhista Expo (sem `ctx.filter`) produzir a mesma estética
- * que a web — ADR 0007 / ADR 0010. Matemática aproximada do Filter Effects;
- * não é bit-idêntica ao Safari, e não precisa ser: o produto vende coerência
- * entre fotos do mesmo aparelho, não pixel-perfect cross-engine.
- */
+/** Aplica ajustes por pixel na mesma ordem de `paraFiltroCss` — para Expo (sem ctx.filter) produzir mesma estética. */
 export function aplicarFiltroCss(
   dados: Uint8ClampedArray,
   _largura: number,

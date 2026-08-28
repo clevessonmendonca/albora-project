@@ -61,11 +61,7 @@ type LinhaUpload = {
   state: string;
 };
 
-/**
- * Emite o segundo fator da spec 009: um token de uso único, na camada de
- * conta. Não abre sessão nova — a sessão longa continua, e o export exige
- * este token além dela.
- */
+/** Token de segundo fator — uso único. Não abre sessão nova; a sessão longa continua, o export exige este além dela. */
 export async function emitirStepUp(
   pool: Pool,
   segredo: string,
@@ -81,13 +77,7 @@ export async function emitirStepUp(
   return { token };
 }
 
-/**
- * Consome o step-up. Atômico: dois cliques no mesmo link só passam uma vez.
- * A conta do token tem de ser a da sessão — senão é o token de outro anfitrião.
- * `acao` distingue o segundo fator do ZIP (`ACAO_EXPORT_ACERVO`) do de
- * conectar o Drive (`ACAO_DRIVE_CONNECT`, spec drive-export §1.3) — um token
- * emitido para uma ação nunca serve para a outra.
- */
+/** 🔴 Atômico (UPDATE RETURNING); account_id do token deve bater com o da sessão; acao distingue ZIP de Drive. */
 export async function consumirStepUp(
   pool: Pool,
   segredo: string,
@@ -155,15 +145,7 @@ export async function criarJobExport(
   });
 }
 
-/**
- * O export para o Drive do casal (spec drive-export §4/§7) — sempre
- * `mode='full'` (o Drive é a cópia completa, não o álbum curado) e nasce
- * `enviando`: o upload em si acontece depois, item a item, em
- * `avancarExportDrive` — nunca bloqueia esta chamada.
- *
- * `driveFolderId` já veio de `files.create` (a pasta nasce vazia antes desta
- * chamada) — esta função só grava o job, nunca fala com o Drive.
- */
+/** Grava o job apenas — nunca fala com o Drive; upload item a item acontece depois em avancarExportDrive. */
 export async function criarJobExportDrive(
   pool: Pool,
   accountId: string,
@@ -205,12 +187,7 @@ export async function criarJobExportDrive(
   });
 }
 
-/**
- * Progresso por item (spec §3.2/§7) — um objeto por vez, nunca o lote
- * inteiro de uma vez: uma falha no meio não perde o que já subiu. Marca
- * `pronto`/`parcial` quando não sobra nenhum item sem `uploadedAt`
- * (`falharam` conta como "não sobra mais o que tentar", mas nunca `pronto`).
- */
+/** Um item por vez — falha no meio não descarta o que já subiu. */
 export async function marcarItemDriveEnviado(
   pool: Pool,
   eventoId: string,

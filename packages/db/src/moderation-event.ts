@@ -117,12 +117,7 @@ export async function buscarEventoDoHost(
   });
 }
 
-/**
- * Toggles de moderacao durante a festa (spec 011, ADR 0012).
- *
- * Roda em `comConta`: a politica `conta_evento` impede alterar evento de
- * outra conta. Retorna `null` se o evento nao existe ou nao pertence ao host.
- */
+/** comConta: política conta_evento impede alterar evento de outra conta. null se não existe ou não pertence ao host. */
 export async function atualizarModeracaoDoEvento(
   pool: Pool,
   accountId: string,
@@ -186,10 +181,7 @@ export async function abrirInteracaoDoEvento(
   });
 }
 
-/**
- * Agenda (ou reabre) o gate para um instante. `null` fecha de novo.
- * Instantes no passado equivalem a "aberto agora".
- */
+/** null fecha o gate de volta; instantes no passado equivalem a aberto agora. */
 export async function agendarInteracaoDoEvento(
   pool: Pool,
   accountId: string,
@@ -211,12 +203,7 @@ export async function agendarInteracaoDoEvento(
   });
 }
 
-/**
- * Alterna o pânico do evento (spec 011).
- *
- * Usado pelo crachá da parede: quem está no salão pausa a exibição sem abrir
- * o admin. Roda em `comEvento`, não em `comConta`.
- */
+/** Crachá da parede usa comEvento, não comConta — quem pausa a exibição não é necessariamente o host. */
 export async function alternarPanicoDoEvento(
   pool: Pool,
   eventoId: string,

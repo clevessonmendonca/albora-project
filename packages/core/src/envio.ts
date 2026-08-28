@@ -1,15 +1,6 @@
 import { shouldGiveUp, retryWaitSeconds, type Queue, type QueueItem } from "./fila";
 import type { RespostaPresign } from "./upload";
 
-/**
- * O orquestrador de envio: pega um item da fila e o leva até o `confirm`.
- *
- * Mora em `core` porque a **sequência** é a mesma nas duas superfícies — o que
- * muda é o transporte, que cada app injeta (ADR 0010). Duas cópias desta
- * ordem divergiriam em silêncio, e o sintoma seria foto que sobe na web e
- * some no app.
- */
-
 export type Transport = {
   presign(item: QueueItem): Promise<RespostaPresign>;
   sendBytes(url: string, item: QueueItem): Promise<void>;
@@ -23,13 +14,7 @@ export type SendResult =
   | { estado: "retentar"; id: string; esperaSegundos: number; motivo: string }
   | { estado: "desistiu"; id: string; motivo: string };
 
-/**
- * Envia um item. **Nunca lança** — devolve o que aconteceu.
- *
- * Um envio que estoura no meio de um laço derruba os itens seguintes junto, e
- * aí uma foto corrompida leva as outras nove embora. O erro é valor, não
- * exceção, justamente para o laço continuar.
- */
+/** Nunca lança: erro é valor para o laço continuar e não derrubar os itens seguintes. */
 export async function sendItem(
   item: QueueItem,
   transport: Transport,
@@ -85,10 +70,7 @@ export async function sendItem(
   }
 }
 
-/**
- * Estrutural, não por `instanceof`: o erro nasce no transporte, que é do app,
- * e `core` não conhece as classes de nenhum dos dois.
- */
+/** Estrutural, não por instanceof: o erro nasce no transporte que é do app, core não conhece as classes. */
 function isTerminalError(e: unknown): boolean {
   return typeof e === "object" && e !== null && (e as { definitivo?: unknown }).definitivo === true;
 }
@@ -100,13 +82,7 @@ export type DrainSummary = {
   resultados: SendResult[];
 };
 
-/**
- * Drena a fila inteira, em série.
- *
- * Em série de propósito: 200 celulares na mesma antena já saturam o enlace, e
- * subir dez fotos em paralelo do mesmo aparelho piora o tempo de todo mundo —
- * inclusive o dele. A fila existe para espalhar no tempo, não para amontoar.
- */
+/** Em série de propósito: paralelo do mesmo aparelho satura o enlace de 200 celulares na mesma antena. */
 export async function drain(
   queue: Queue,
   transport: Transport,

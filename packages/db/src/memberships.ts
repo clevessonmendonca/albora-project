@@ -13,10 +13,6 @@ export type EventMember = {
   createdAt: Date;
 };
 
-/**
- * Membro do evento. Fotos ficam com `events.account_id`; papéis operacionais
- * entram aqui (couple | planner).
- */
 export async function addEventMember(
   cliente: PoolClient,
   entrada: { eventId: string; accountId: string; role: EventMemberRole },
@@ -29,16 +25,7 @@ export async function addEventMember(
   );
 }
 
-/**
- * Lista membros do evento (couple | planner) com seus e-mails.
- * 
- * 🔴 IMPORTANTE: RLS de `event_members` só permite ver a própria membership
- * (`conta_membro`). Criar policy cross-account geraria recursão com
- * `conta_membro_evento_leitura` (0034). Por isso a ACL é na aplicação:
- * `requireHostEventRole` valida acesso ANTES de chamar esta função. A query
- * inline reforça a validação como defesa em profundidade, mas a proteção real
- * está na API.
- */
+/** 🔴 RLS só permite ver a própria membership — a ACL cross-account é na aplicação (requireHostEventRole) antes desta chamada. */
 export async function listEventMembers(
   pool: Pool,
   accountId: string,
@@ -82,10 +69,6 @@ export async function ensureCoupleMember(
   });
 }
 
-/**
- * Papel da conta neste evento. `owner` se `events.account_id` casa (equivalente
- * a couple para ACL); senão o papel em `event_members`; senão `null`.
- */
 export async function roleForAccountOnEvent(
   pool: Pool,
   accountId: string,

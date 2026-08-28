@@ -57,9 +57,6 @@ function midiaDaLinha(l: LinhaComModeracao): EstadoDaMidia {
   };
 }
 
-/**
- * Comentarios visiveis para a sessao leitora: moderação + bloqueio simetrico.
- */
 export async function listarComentariosVisiveisDaFoto(
   cliente: PoolClient,
   eventoId: string,
@@ -104,9 +101,6 @@ export async function listarComentariosVisiveisDaFoto(
     .map(paraComAutor);
 }
 
-/**
- * Denuncia de comentario — uma sessao, uma vez (spec 014).
- */
 export async function denunciarComentario(
   cliente: PoolClient,
   entrada: { comentarioId: string; sessaoId: string },
@@ -137,9 +131,6 @@ export type ComentarioModeracao = {
   classificador: string | null;
 };
 
-/**
- * Comentários recentes do evento para o painel do anfitrião, denúncias primeiro.
- */
 export async function listarComentariosParaModeracao(
   cliente: PoolClient,
   eventoId: string,

@@ -5,29 +5,14 @@ import { thumbKeyFromFull } from "./storage-key";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/**
- * `timestamptz` no formato texto do Postgres, com microssegundos e deslocamento
- * explícito. O cursor guarda esta string, e não um `Date`: `Date` tem
- * milissegundo, a coluna tem microssegundo, e a diferença é item repetido ou
- * item pulado entre duas páginas de uma festa que recebe foto o tempo todo.
- */
+/** `Date` tem milissegundo, a coluna tem microssegundo — diferença é item repetido ou pulado entre páginas. */
 const INSTANTE = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d{1,6})?[+-]\d{2}(:\d{2}){0,2}$/;
 
-/**
- * O único estado que o feed lê.
- *
- * 🔴 Não existe segunda fonte de verdade sobre o que é público. A foto que o
- * botão de pânico tira do telão sai daqui pela mesma consulta, no mesmo
- * instante, porque é a mesma coluna.
- */
+/** 🔴 Única fonte de verdade — pânico tira do telão pela mesma coluna, na mesma consulta. */
 const PUBLICADO = "published";
 
 export const TAMANHO_PAGINA = 24;
 
-/**
- * O que a superfície pode mostrar. Vem de `modoInteracao()` do `@albora/core`,
- * que é onde a regra do gate mora — este pacote repete a forma, nunca a regra.
- */
 export type ModoFeed = "espelho" | "completo";
 
 export type ItemFeed = {
@@ -41,10 +26,7 @@ export type ItemFeed = {
   lugar: string | null;
   autor: string;
   criadaEm: Date;
-  /**
-   * Sempre presente, em qualquer modo. Reagir não espera o gate (ADR 0009,
-   * atualizado) — só comentário e identidade do autor esperam.
-   */
+  /** Sempre presente — reagir não espera o gate (ADR 0009). */
   reacoes?: number;
   /** Tipo da reação desta sessão. Sempre presente, mesmo antes do gate. */
   minhaReacao?: string | null;
@@ -52,10 +34,7 @@ export type ItemFeed = {
   sessaoAutor?: string;
   /** Foto enviada pela sessão que está lendo. Só depois do gate. */
   minha?: boolean;
-  /**
-   * Par persistido no confirm. Ausente na fila antiga — o quadro do feed
-   * cai no 4:5; não inventa 1080×1920, que faria vídeo deitado parecer em pé.
-   */
+  /** Ausente na fila antiga — cai no 4:5; nunca inventar 1080×1920, que faria vídeo deitado parecer em pé. */
   largura?: number;
   altura?: number;
 };
@@ -65,15 +44,7 @@ export type PaginaFeed = {
   proximoCursor: string | null;
 };
 
-/**
- * `sessaoId` é sempre obrigatório, mesmo em `modo: "espelho"`: reagir não
- * espera o gate (ADR 0009, atualizado), e sem a sessão de quem lê o servidor
- * não sabe dizer se *esta* sessão já reagiu à foto. Isso também mantém de
- * graça a amarra que a união discriminada garantia antes — `autorId` sem
- * `sessaoId` não compila mais porque `sessaoId` nunca é opcional — e é ela
- * quem aciona `filtroSemBloqueio`, o cenário mais perigoso de todos (perfil
- * de um convidado bloqueado, vazado por completo) segue impossível de montar.
- */
+/** `sessaoId` sempre obrigatório — sem ela o servidor não detecta reação prévia nem aplica `filtroSemBloqueio`. */
 export type EntradaFeed = {
   eventoId: string;
   modo: ModoFeed;
@@ -81,12 +52,7 @@ export type EntradaFeed = {
   cursor: string | null;
   limite?: number;
   sessaoId: string;
-  /**
-   * Filtro por dono da foto — o perfil de um convidado (spec do "autor
-   * clicável"). Só tem efeito em `modo: "completo"`: antes do gate o
-   * servidor nem manda `sessaoAutor`, então não existe id de perfil legítimo
-   * para filtrar por ele. Passado em `modo: "espelho"` é ignorado.
-   */
+  /** Só tem efeito em `modo: "completo"` — antes do gate não há `sessaoAutor` legítimo para filtrar. */
   autorId?: string;
 };
 
@@ -107,14 +73,7 @@ type LinhaFeed = {
   minha_reacao?: string | null;
 };
 
-/**
- * O horário em que a interação abre, de dentro de uma transação já escopada.
- *
- * Devolve `null` quando o evento não é visível — que sob RLS é o mesmo que não
- * existir. Quem chama traduz isso em página vazia, nunca em erro: uma sessão de
- * outro evento tem de receber "não há nada aqui", e não a confirmação de que
- * aquele id existe em algum lugar.
- */
+/** `null` quando invisível sob RLS — sessão de outro evento recebe "vazio", não confirmação de existência. */
 export async function gateDoEvento(
   cliente: PoolClient,
   eventoId: string,
@@ -132,19 +91,7 @@ export async function gateDoEvento(
   return { interacaoAbreEm: linha.interaction_opens_at };
 }
 
-/**
- * Uma página do feed, mais recente primeiro.
- *
- * **Cursor, nunca OFFSET.** Numa festa chegam fotos enquanto a pessoa rola: com
- * OFFSET, cada foto nova empurra a janela e o convidado vê o mesmo item duas
- * vezes e perde outro no meio. O cursor é a posição `(created_at, id)` do
- * último item entregue, e foto nova nasce *acima* dela — nunca é revisitada nem
- * atropela o que ainda falta descer.
- *
- * O par existe porque `created_at` sozinho não é único: duas fotos confirmadas
- * no mesmo microssegundo empatariam, e um empate num cursor é exatamente o item
- * que some.
- */
+/** Cursor `(created_at, id)`, nunca OFFSET — foto nova não empurra janela. Par porque `created_at` sozinho não é único. */
 export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Promise<PaginaFeed> {
   const limite = Math.min(Math.max(entrada.limite ?? TAMANHO_PAGINA, 1), TAMANHO_PAGINA);
 
@@ -236,12 +183,7 @@ function paraItem(linha: LinhaFeed, modo: ModoFeed, sessaoLeitora: string): Item
   return item;
 }
 
-/**
- * O cursor é opaco para o cliente e não carrega nada que ele já não tenha: o
- * instante e o id do último item que recebeu. Sem `event_id` dentro — um cursor
- * de outra festa não teria como virar caminho até ela, e a RLS ainda o pararia,
- * mas nem chega a existir a chance.
- */
+/** Sem `event_id` — cursor de outra festa não vira caminho até ela; RLS pararia de qualquer forma. */
 export function codificarCursor(instante: string, id: string): string {
   return Buffer.from(`${instante}|${id}`, "utf8").toString("base64url");
 }

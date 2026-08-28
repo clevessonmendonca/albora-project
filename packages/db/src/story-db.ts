@@ -6,26 +6,13 @@ const PUBLICADO = "published";
 const JANELA_HORAS = 24;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/**
- * A faixa anexada à story pelo sticker de música (spec 020, sub-etapa b) —
- * `link`/`metadado` no mesmo formato de `MusicaDoEvento`, para a tela usar
- * `exibirMusica` do núcleo sem um segundo formato.
- */
 export type FaixaDaStory = {
   id: string;
   link: LinkDeMusica;
   metadado: MetadadoDaMusica | null;
 };
 
-/**
- * Uma story para exibicao: o marcador gravado, mais o que a tela precisa da
- * midia e de quem enviou, sem uma segunda consulta.
- *
- * `autor` e so o primeiro nome (concessao `ler.identidade`), nunca contato —
- * mesma regra do comentario e da reacao. `musica` e `null` quando o convidado
- * nao anexou nenhuma faixa, ou quando a faixa anexada nao existe mais no
- * evento — enriquecimento, nunca condicao para a story aparecer.
- */
+/** autor é só o primeiro nome (concessão ler.identidade) — nunca contato. musica é null quando ausente, nunca condição para a story aparecer. */
 export type StoryAtiva = {
   id: string;
   eventoId: string;
@@ -76,11 +63,7 @@ function musicaDaLinha(l: LinhaAtiva): FaixaDaStory | null {
   };
 }
 
-/**
- * `null` quando o id não é sequer um uuid, ou quando não é uma sugestão do
- * mesmo evento — os dois casos tratados igual, sem lançar. Ver o porquê no
- * docstring de `criarStory`.
- */
+/** null para id malformado ou fora do evento — os dois casos tratados igual, sem distinguir. */
 async function faixaValidaNoEvento(
   cliente: PoolClient,
   eventoId: string,
@@ -110,28 +93,7 @@ function paraAtiva(l: LinhaAtiva): StoryAtiva {
   };
 }
 
-/**
- * Marca um upload já confirmado como story, uma vez só.
- *
- * `UNIQUE (upload_id)` mais `ON CONFLICT DO NOTHING`: o mesmo `uploadId`
- * confirmando story duas vezes — o caso normal do confirm reenviado pela fila
- * offline (retry com sinal ruim) — devolve a story existente em vez de
- * duplicar ou estourar. `expiraEm` nasce fixo em `criadoEm + 24h`; a
- * expiração é filtro de leitura, não job de exclusão.
- *
- * O `event_id` **não vem do cliente**: vem da sessão que confirma o upload, e
- * a RLS ainda o confere — duas camadas para a mesma invariante. O upload
- * precisa existir, pertencer ao mesmo evento e estar publicado: uma story de
- * um upload de outro evento, ou de um upload removido/pendente, não entra.
- *
- * `musicTrackId` (sticker de música, sub-etapa b) é enriquecimento dentro do
- * enriquecimento: nunca derruba a criação da story. Um id malformado, de
- * outro evento, ou de uma sugestão que não existe mais vira `null` em vez de
- * estourar — a foto e a story sobem sem música em vez de sumirem (CLAUDE.md,
- * "música degrada, nunca falha"). Por isso a checagem vive aqui, ANTES do
- * INSERT: um FK inválido faria o INSERT inteiro falhar, e o confirm só tem um
- * SAVEPOINT em volta de `criarStory` inteiro, não um por campo.
- */
+/** 🔴 event_id vem da sessão, não do cliente. ON CONFLICT (upload_id) DO NOTHING: retry idempotente. musicTrackId é enriquecimento — id inválido vira null ANTES do INSERT (FK inválido falha tudo). */
 export async function criarStory(
   cliente: PoolClient,
   entrada: { eventoId: string; sessaoId: string; uploadId: string; musicTrackId?: string | null },
@@ -164,15 +126,7 @@ export async function criarStory(
   return existente ? { id: existente.id, criada: false } : null;
 }
 
-/**
- * As stories ainda dentro da janela de 24h, do mais novo para o mais velho —
- * ordem de mural, não de chegada.
- *
- * `expira_em > now()` é o filtro inteiro da expiração: sem job de delete, a
- * linha continua existindo depois de vencer, só sai da leitura. O JOIN em
- * `guest_sessions` deixa de fora a story cujo autor já não existe, mesma
- * guarda de `listarComentariosDaFoto`.
- */
+/** expira_em > now(): sem job de delete — linha vencida continua no banco, só sai da leitura. */
 export async function storiesAtivasDoEvento(
   cliente: PoolClient,
   eventoId: string,

@@ -1,17 +1,6 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
-/**
- * O token opaco da sessão do convidado (ADR 0004).
- *
- * Mora do lado do servidor, não em `@albora/core`, porque depende de segredo
- * e de crypto de plataforma. O cliente só carrega a string — e é assim que
- * ela atravessa web e app sem que o app precise saber assinar nada.
- *
- * **Opaco, nunca JWT legível.** Não há segredo dentro, mas também não há
- * razão para publicar estrutura a um público que inclui o primo adolescente
- * da noiva. Ser referência a estado no servidor é o que permite revogar um
- * evento inteiro sem derrubar quem está subindo foto em outro.
- */
+/** Referência a estado no servidor — permite revogar um evento inteiro sem derrubar outros. Opaco, nunca JWT. */
 
 const BYTES_ALEATORIOS = 32;
 const TAMANHO_ASSINATURA = 32;
@@ -33,13 +22,7 @@ export function emitirToken(segredo: string): TokenEmitido {
   return { token, hash: hashDoToken(token) };
 }
 
-/**
- * Verifica a assinatura **sem tocar no banco**.
- *
- * É o que faz um token forjado custar microssegundos em vez de uma consulta.
- * Com 200 convidados na mesma antena, e um deles entediado, essa diferença é
- * a fila do banco no pico da festa.
- */
+/** Sem tocar no banco — token forjado custa microssegundos, não uma consulta. */
 export function assinaturaValida(segredo: string, token: string): boolean {
   exigirSegredo(segredo);
 

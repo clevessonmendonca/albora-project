@@ -2,11 +2,6 @@ import type { Pool, PoolClient } from "pg";
 import type { DriveTokenVault } from "@albora/core";
 import { comEvento } from "./event";
 
-/**
- * A conexão do Google Drive do casal (spec drive-export §1/§3.1). `event_id`
- * é a própria PK — só existe uma por evento, reconectar substitui (UPSERT).
- */
-
 export type DriveConnectionStatus = "conectado" | "expirado" | "revogado";
 
 export type DriveConnection = {
@@ -41,11 +36,7 @@ function deLinha(l: Linha): DriveConnection {
   };
 }
 
-/**
- * Sela o refresh token (`vault.seal`, nunca em claro) e grava a conexão.
- * `ON CONFLICT` substitui a linha inteira: reconectar troca a pasta e o
- * refresh token antigo — nunca acumula.
- */
+/** vault.seal antes do INSERT — o refresh token nunca entra no banco em claro. */
 export async function conectarDrive(
   pool: Pool,
   vault: DriveTokenVault,

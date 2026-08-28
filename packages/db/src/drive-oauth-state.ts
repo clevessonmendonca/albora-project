@@ -1,18 +1,6 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
-/**
- * O `state` do handshake OAuth do Drive (spec drive-export §1.3).
- *
- * Diferente do token de sessão do convidado (`token.ts`), este carrega o
- * payload dentro de si — `eventId`/`accountId`/`nonce` — porque o callback é
- * a única porta do fluxo sem cookie de host garantido (o Google pode devolver
- * numa aba nova, num navegador diferente do que abriu o consentimento). A
- * verificação é só HMAC, **sem tocar banco**: um `state` forjado custa
- * microssegundos, nunca uma consulta.
- *
- * Segredo dedicado (`DRIVE_OAUTH_STATE_SECRET`) — nunca o `SESSION_SECRET`
- * do convidado. Comprometer um não expõe o outro (blast radius separado).
- */
+/** HMAC-only — state forjado/expirado nunca toca banco. Segredo dedicado DRIVE_OAUTH_STATE_SECRET, separado do SESSION_SECRET: blast radius isolado. */
 
 const TTL_PADRAO_MS = 10 * 60 * 1000;
 
@@ -40,11 +28,7 @@ export function emitirEstadoOAuthDrive(
   return `${corpoB64}.${assinatura.toString("base64url")}`;
 }
 
-/**
- * `null` para: assinatura inválida, formato errado, JSON corrompido, ou TTL
- * vencido. De propósito não distingue qual — um state forjado e um state
- * expirado devem custar o mesmo, e nenhum dos dois toca o banco.
- */
+/** null para assinatura inválida, formato errado ou TTL vencido — propositalmente indistinto, nenhum toca banco. */
 export function abrirEstadoOAuthDrive(
   segredo: string,
   estado: string,

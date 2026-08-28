@@ -1,11 +1,6 @@
 import type { Plan } from "./redimensionar";
 
-/**
- * Planos do evento — espelham a coluna `events.plan` e o §5.2 do doc de produto.
- *
- * O convidado nunca vê nome de plano; estes valores só orientam limites no
- * servidor e avisos no admin.
- */
+/** O convidado nunca vê nome de plano — orienta limites no servidor e avisos no admin. */
 export type PlanoDoEvento = "free" | "celebration" | "vendor";
 
 /** Vídeos por convidado. `null` = sem teto prático. */
@@ -25,7 +20,6 @@ export function podeEnviarVideo(plano: PlanoDoEvento, enviados: number): boolean
   return enviados < limite;
 }
 
-/** Resolução de imagem: planos pagos sobem para 3500px (§6.3). */
 export function planoParaRedimensionamento(plano: PlanoDoEvento): Plan {
   return plano === "free" ? "gratis" : "pago";
 }
@@ -35,7 +29,6 @@ export function podeUsarTelao(plano: PlanoDoEvento): boolean {
   return plano !== "free";
 }
 
-/** ZIP do acervo só nos planos pagos (doc de produto §5.2). */
 export function podeBaixarZip(plano: PlanoDoEvento): boolean {
   return plano !== "free";
 }

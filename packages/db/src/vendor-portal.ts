@@ -19,11 +19,6 @@ export class ErroSemAcessoAoFornecedor extends Error {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/**
- * Papel da conta no fornecedor. Irmão de `roleForAccountOnEvent`
- * (memberships.ts), mesma forma: `comConta`/`app.account_id`, `null` se não
- * pertence. O fornecedor é ortogonal a `HostEventRole` — nenhuma mudança lá.
- */
 export async function roleForAccountOnVendor(
   pool: Pool,
   accountId: string,
@@ -47,17 +42,7 @@ export type VendorMembership = {
   role: VendorRole;
 };
 
-/**
- * Fornecedores que esta conta administra ou em que atua como staff — irmã de
- * `roleForAccountOnVendor`, mesma porta (`comConta`/`app.account_id`).
- *
- * Alimenta o passo condicional do wizard de criação de evento
- * (spec-canal-fornecedor §2, item 4): "se a sessão de host tem
- * `vendor_members`, oferece criar sob aquele fornecedor". Nunca decide por
- * si só em que fornecedor o evento nasce — só lista o que a própria conta já
- * comprovadamente pertence; `criarEvento` reconfirma o pertencimento na
- * escrita.
- */
+/** Só lista — criarEvento reconfirma o pertencimento na escrita; esta função não autoriza nada. */
 export async function vendorsDaConta(pool: Pool, accountId: string): Promise<VendorMembership[]> {
   return comConta(pool, accountId, async (c) => {
     const { rows } = await c.query<{
@@ -94,21 +79,7 @@ export type MarcaPublicaDoFornecedor = {
 /** `slug` já é um segmento de URL — mesmo caractere que `event_slugs` aceita. */
 const SLUG = /^[a-z0-9-]{1,80}$/;
 
-/**
- * Resolve `vendorSlug → marca` para a landing pública do portal (spec §3), sem
- * exigir sessão de conta — o mesmo espírito de `resolverSlug` para eventos.
- *
- * `vendors` difere de `events`: a RLS forçada por `vendor_membro` (migration
- * 0037) não tem um GUC próprio tipo `app.event_id` que a query possa setar
- * para "só esta linha" — a política exige pertencimento em `vendor_members`,
- * que um visitante sem sessão nunca tem. Por isso a única porta legítima é
- * `comAgregacao`/`albora_agregador`, com `motivo` fixo e auditado, e a query
- * **fechada em duas frentes**: `WHERE slug = $1` (nunca um `SELECT` genérico)
- * e só as colunas de branding — nunca `vendor_members`, nunca dado de conta.
- *
- * Devolve `null` para slug desconhecido ou malformado (404 na borda, não erro
- * — a mesma semântica de `resolverSlug` devolvendo `"desconhecido"`).
- */
+/** 🔴 vendors sem GUC próprio: RLS exige pertencimento em vendor_members, que visitante sem sessão não tem. Usa comAgregacao; query fechada em WHERE slug = $1 — nunca vendor_members, nunca dado de conta. */
 export async function marcaPublicaDoFornecedor(
   poolAgregacao: Pool,
   slug: string,
@@ -171,28 +142,7 @@ function mapVendorEventSummary(row: {
   };
 }
 
-/**
- * "Meus eventos" do painel do fornecedor — duas portas, nunca uma.
- *
- * 1. Confere pertencimento sob RLS normal (`comConta`/`app.account_id`), com
- *    `poolConta` — a pool comum do app, **sem** BYPASSRLS. Só entra em
- *    `comAgregacao` quem já provou que está em `vendor_members` daquele
- *    `vendor_id`. Se esta porta também rodasse sob BYPASSRLS, um bug nela
- *    abriria "qualquer conta vê qualquer fornecedor".
- * 2. SÓ ENTÃO cruza eventos com `comAgregacao`/`albora_agregador`, usando
- *    `poolAgregacao` — a pool conectada como o papel `BYPASSRLS` — com
- *    `motivo` fixo e `auditar()`. É a única rota autorizada a ler N eventos
- *    de contas potencialmente diferentes. A query é fechada por
- *    `WHERE vendor_id = $1` com `$1` já confirmado no passo 1 — nunca um
- *    `SELECT` genérico.
- *
- * 🔴 `poolConta` e `poolAgregacao` são pools DIFERENTES, conectadas com
- * credenciais diferentes (`albora_app` sem BYPASSRLS, `albora_agregador`
- * com BYPASSRLS). Passar a mesma pool nos dois argumentos quebra a
- * garantia: `comAgregacao` sobre uma conexão sem BYPASSRLS não estoura —
- * devolve silenciosamente zero linhas, porque a RLS de `events` continua
- * ativa e nenhum `app.event_id`/`app.account_id` foi setado na transação.
- */
+/** 🔴 Duas pools distintas obrigatórias: poolConta (sem BYPASSRLS) verifica pertencimento; poolAgregacao (BYPASSRLS, auditado) cruza eventos. Mesma pool nos dois argumentos silencia zero linhas sem erro. */
 export async function eventosDoFornecedor(
   poolConta: Pool,
   poolAgregacao: Pool,
@@ -255,14 +205,7 @@ export class ErroBrandTokensInvalidos extends Error {
   }
 }
 
-/**
- * Valida e persiste `brand_tokens` do fornecedor — PATCH cirúrgico no JSONB,
- * não substitui chaves fora do escopo do editor.
- *
- * Autorização em duas camadas: `comConta` (RLS) confirma pertencimento;
- * o chamador (rota API) já verificou `role === "admin"` antes de chegar aqui.
- * Nunca aceita hex literal sem validação — cada `cores.*` passa por `corHexValida`.
- */
+/** comConta confirma pertencimento; hex de cores passou por corHexValida — nunca literal sem validação. */
 export async function atualizarBrandTokensDoFornecedor(
   pool: Pool,
   accountId: string,
@@ -298,35 +241,10 @@ export async function atualizarBrandTokensDoFornecedor(
 export type ResumoDoFornecedor = {
   totalEventos: number;
   totalFotos: number;
-  /**
-   * H1 médio ponderado: `Σ sessoesComUpload / Σ expectedGuests` através de
-   * todos os eventos do fornecedor — não a média simples das taxas por
-   * evento. Ponderado porque um evento de 30 convidados e outro de 300 não
-   * têm o mesmo peso estatístico; a média simples deixaria a festa pequena
-   * puxar o número tanto quanto a grande. Mesmo denominador de
-   * `taxaDeParticipacao` (funnel.ts) e mesmo filtro de `lerMetricasAoVivo`
-   * (`state = 'published'`, sessão distinta) — só que somado através de
-   * `vendor_id` em vez de fechado num `event_id`.
-   *
-   * `0` quando `totalEventos === 0` ou todo evento tem `expected_guests = 0`
-   * (não deveria acontecer — a coluna tem `CHECK (expected_guests > 0)` —
-   * mas o cálculo não divide por zero mesmo assim).
-   */
   h1Medio: number;
 };
 
-/**
- * Resumo agregado do fornecedor para o topo do painel de insights — mesmo
- * padrão de duas portas de `eventosDoFornecedor` (spec canal-fornecedor §6):
- * pertencimento sob RLS normal PRIMEIRO, cruzamento cross-evento só depois,
- * atrás de `comAgregacao`/`albora_agregador`, auditado, fechado por
- * `WHERE vendor_id = $1` com `$1` já confirmado no passo 1.
- *
- * Duas queries, não uma: `events` e `uploads` agregados juntos numa única
- * query com `JOIN` inflaria `sum(expected_guests)` uma vez por foto do
- * evento (produto cartesiano evento×upload) — o mesmo defeito que motivou
- * `Promise.all` em `lerMetricasAoVivo` em vez de um único `SELECT`.
- */
+/** Mesma guarda de duas portas de eventosDoFornecedor. Duas queries (não JOIN) — um JOIN events×uploads inflaria sum(expected_guests) uma vez por foto. */
 export async function resumoDoFornecedor(
   poolConta: Pool,
   poolAgregacao: Pool,

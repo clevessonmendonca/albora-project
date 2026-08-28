@@ -1,14 +1,4 @@
-/**
- * O funil do convidado e os números que decidem o MVP (spec 012).
- *
- * É o último portão antes do casamento real. Se a festa acaba e o painel não
- * diz **onde** a participação se perdeu, o MVP inteiro terá sido em vão — por
- * isso a decisão de validar, mexer em fricção ou parar mora aqui, pura e
- * testada, e não numa planilha montada depois com apego emocional envolvido.
- *
- * Nenhuma função deste módulo recebe nome, telefone ou e-mail. O painel
- * precisa de contagem, e o que não entra não vaza.
- */
+/** Nenhuma função deste módulo recebe nome, telefone ou e-mail — painel precisa de contagem, não de PII. */
 
 const EVENTOS = [
   "qr_scan",
@@ -35,7 +25,6 @@ const VIAS = ["qr", "wa", "link", "code"] as const;
 
 export type ViaDeEntrada = (typeof VIAS)[number];
 
-/** Canal pelo qual o convidado abriu `/e/[slug]`. Conjunto fechado, como os eventos. */
 export const VIAS_DE_ENTRADA: readonly ViaDeEntrada[] = VIAS;
 
 export function ehViaDeEntrada(valor: string): valor is ViaDeEntrada {
@@ -52,12 +41,7 @@ export function eventosDeEntrada(via: ViaDeEntrada): readonly EventoDoFunil[] {
   return via === "qr" ? ["qr_scan", "page_open", "consent"] : ["page_open", "consent"];
 }
 
-/**
- * Validação de conjunto fechado para o que chega da rede.
- *
- * `kind` vem do cliente. Sem esta porta, um valor novo entra no banco, não cai
- * em nenhum degrau e o painel passa a mentir para menos sem ninguém perceber.
- */
+/** Sem esta porta, valor desconhecido entra no banco e o painel passa a mentir para menos. */
 export function ehEventoDoFunil(valor: string): valor is EventoDoFunil {
   return (EVENTOS_DO_FUNIL as readonly string[]).includes(valor);
 }
@@ -75,14 +59,7 @@ export type EtapaDaEspinha = (typeof ESPINHA)[number];
 
 export const ESPINHA_DO_FUNIL: readonly EtapaDaEspinha[] = ESPINHA;
 
-/**
- * O que precisa ter acontecido antes de cada evento.
- *
- * `page_open` não exige `qr_scan`: a entrada também acontece por link no
- * WhatsApp, e reprovar essas sessões descartaria participação real.
- * `install_prompt` não exige nada porque o CTA de entrada é uma das variantes
- * medidas nos três primeiros casamentos.
- */
+/** `page_open` não exige `qr_scan` — WhatsApp e link também entram; reprovar descartaria participação real. */
 export const PRE_REQUISITOS: Readonly<Record<EventoDoFunil, readonly EventoDoFunil[]>> = {
   qr_scan: [],
   page_open: [],
@@ -99,12 +76,7 @@ export const PRE_REQUISITOS: Readonly<Record<EventoDoFunil, readonly EventoDoFun
   feed_open: [],
 };
 
-/**
- * Eventos que um refresh ou um toque duplo não pode contar de novo.
- *
- * A espinha do meio — captura e envio — se repete a cada foto. QR, entrada,
- * consentimento e a primeira abertura do feed não: são um por sessão.
- */
+/** Um por sessão — a espinha central repete a cada foto, estes não. */
 const UNICOS: ReadonlySet<EventoDoFunil> = new Set([
   "qr_scan",
   "page_open",
@@ -134,14 +106,7 @@ export type Sequencia =
       faltando: EventoDoFunil[];
     };
 
-/**
- * Se a sequência de uma sessão é possível, e onde ela quebrou.
- *
- * Repetição é normal e não invalida nada — uma sessão manda várias fotos, e
- * cada uma tem seu `capture`, `upload_start` e eventuais `upload_fail`/`retry`.
- * Captura sem consentimento tem código próprio porque não é desordem de
- * instrumentação: é captura antes do consentimento versionado e datado.
- */
+/** Captura sem consentimento tem código próprio — não é desordem de instrumentação. */
 export function validarSequencia(eventos: readonly EventoDoFunil[]): Sequencia {
   const vistos = new Set<EventoDoFunil>();
 
@@ -171,12 +136,7 @@ function indiceDaEtapa(etapa: EtapaDaEspinha): number {
   return (ESPINHA_DO_FUNIL as readonly EventoDoFunil[]).indexOf(etapa);
 }
 
-/**
- * A etapa mais avançada que a sessão alcançou, ou `null` se nenhuma.
- *
- * "Mais avançada", e não "última registrada": o evento que chega depois de um
- * retry não faz a sessão andar para trás.
- */
+/** Mais avançada, não última registrada — retry não faz a sessão andar para trás. */
 export function ondeParou(eventos: readonly EventoDoFunil[]): EtapaDaEspinha | null {
   let maior = -1;
 
@@ -195,14 +155,7 @@ export type DegrauDoFunil = {
   retencao: number | null;
 };
 
-/**
- * Quantas sessões chegaram a cada etapa da espinha.
- *
- * Conta pela etapa mais avançada alcançada, não pela presença do evento: um
- * `consent` perdido na rede não pode fazer `capture` parecer maior que
- * `consent`. Retenção acima de 100% é sempre defeito de instrumentação, e um
- * painel que a mostra faz o casal decidir sobre um número inventado.
- */
+/** Conta pela etapa mais avançada, não pela presença do evento — `consent` perdido na rede não infla `capture`. */
 export function degraus(sessoes: readonly (readonly EventoDoFunil[])[]): DegrauDoFunil[] {
   const alcancadas = sessoes
     .map(ondeParou)
@@ -234,12 +187,7 @@ export type Perda = {
   retencao: number;
 };
 
-/**
- * O degrau onde mais gente se perdeu, ou `null` quando não houve queda.
- *
- * Perda absoluta, não relativa: perder 60 de 120 é onde mexer, mesmo que outro
- * degrau tenha retenção pior perdendo 2 de 3.
- */
+/** Perda absoluta, não relativa — 60 de 120 é onde mexer mesmo que outro degrau perca 2 de 3. */
 export function maiorPerda(passos: readonly DegrauDoFunil[]): Perda | null {
   let pior: Perda | null = null;
 
@@ -277,20 +225,12 @@ export class MetricaInvalida extends Error {
 }
 
 export type ContagemDoEvento = {
-  /** Vem do admin. É o denominador que decide o negócio. */
   expectedGuests: number;
   /** Sessões distintas com pelo menos um `upload_ok`. */
   sessoesComUpload: number;
 };
 
-/**
- * A métrica principal: `sessoes_com_upload / expected_guests`.
- *
- * Lança quando não há denominador em vez de devolver zero. `expected_guests`
- * não preenchido é campo faltando no admin; devolvido como 0% ele vira "tese
- * errada, parar" — a decisão mais cara do projeto tomada por um formulário em
- * branco.
- */
+/** Lança sem denominador — `expected_guests` vazio como 0% vira "parar" por formulário em branco. */
 export function taxaDeParticipacao(contagem: ContagemDoEvento): number {
   const { expectedGuests, sessoesComUpload } = contagem;
 
@@ -305,7 +245,6 @@ export function taxaDeParticipacao(contagem: ContagemDoEvento): number {
   return sessoesComUpload / expectedGuests;
 }
 
-/** Escritos antes de olhar o resultado, e é para isso que servem. */
 export const PISO_DA_TESE = 0.4;
 export const PISO_DA_FRICCAO = 0.25;
 
@@ -316,14 +255,7 @@ export type Veredito = {
   codigo: CodigoDaTese;
 };
 
-/**
- * A definição de pronto: ≥40% valida · 25–40% mexe em fricção · <25% para.
- *
- * Recebe a contagem e não a taxa pronta, de propósito: quem passa `40` querendo
- * dizer 40% não consegue, e a fronteira de 25% não vira "validada" por causa de
- * unidade trocada. Devolve a taxa junto do código para que a decisão fique
- * registrada com o número que a produziu.
- */
+/** Recebe contagem, não taxa — quem passa `40` querendo dizer 40% não consegue. */
 export function decidirTese(contagem: ContagemDoEvento): Veredito {
   const taxa = taxaDeParticipacao(contagem);
 
@@ -343,13 +275,7 @@ export type LeituraDePlataforma = {
   instalacao: number;
 };
 
-/**
- * As duas taxas, sempre juntas.
- *
- * Não existe função neste módulo que devolva instalação sozinha, e a ausência é
- * a regra: instalação subindo com participação caindo é prejuízo, e quem lê só
- * metade comemora exatamente esse caso.
- */
+/** Sempre as duas — instalação subindo com participação caindo é prejuízo, não ganho. */
 export function lerPlataforma(contagem: ContagemDePlataforma): LeituraDePlataforma {
   const participacao = taxaDeParticipacao(contagem);
 
@@ -363,12 +289,7 @@ export function lerPlataforma(contagem: ContagemDePlataforma): LeituraDePlatafor
   };
 }
 
-/**
- * Variação abaixo da qual nada aconteceu.
- *
- * Um ponto percentual é uma pessoa em cento e vinte. Sem esta faixa, ruído de
- * arredondamento entre dois eventos vira veredito de prejuízo.
- */
+/** 1 pp = 1 pessoa em 120 — sem margem, ruído de arredondamento vira veredito de prejuízo. */
 export const MARGEM_DE_RUIDO = 0.01;
 
 export type CodigoDePlataforma =
@@ -383,12 +304,7 @@ export type ComparacaoDePlataforma = {
   codigo: CodigoDePlataforma;
 };
 
-/**
- * A variação entre duas taxas, arredondada a 0,01 ponto percentual.
- *
- * Sem o arredondamento, `0,44 − 0,45` dá `−0,010000000000000009` e uma
- * diferença de exatamente uma pessoa cai fora da margem por erro de binário.
- */
+/** Sem arredondamento, `0.44 − 0.45` dá `−0.010000000000000009` — erro de binário cai fora da margem. */
 function variacao(antes: number, depois: number): number {
   return Math.round((depois - antes) * 1e4) / 1e4;
 }

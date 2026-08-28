@@ -1,15 +1,6 @@
 import type { Pool } from "pg";
 import { assinaturaValida, emitirToken, hashDoToken } from "./token";
 
-/**
- * O login do anfitrião por magic link (spec 009).
- *
- * Duas credenciais, e a mesma disciplina do resto do produto: guarda o hash,
- * nunca o token. O magic link é de uso único e vida curta; a sessão de host
- * dura mais e é revogável. Ambas vivem na camada de conta, acima do evento —
- * resolvem `account_id`, nunca leem dado de evento.
- */
-
 /** Validade do magic link. Curta: é um link de e-mail, não uma sessão. */
 export const VALIDADE_MAGIC_LINK_MINUTOS = 15;
 /** Validade da sessão de host depois de consumir o link. */
@@ -35,14 +26,7 @@ export class ErroHostSessaoInvalida extends Error {
   }
 }
 
-/**
- * Emite um magic link para um e-mail, criando a conta se ela ainda não existe.
- *
- * Devolve o token para quem chama montar o link e **entregá-lo por e-mail** — em
- * produção, o único canal. Nunca devolver o link na resposta a um POST anônimo
- * seria dar login de qualquer conta a qualquer um; quem expõe o link é a rota,
- * e só em dev.
- */
+/** Token devolvido para entrega por e-mail — nunca na resposta de POST anônimo. */
 export async function emitirMagicLink(
   pool: Pool,
   segredo: string,
@@ -74,13 +58,7 @@ export async function emitirMagicLink(
   return { token, accountId, isNewAccount: !jaExistia };
 }
 
-/**
- * Consome o magic link e abre uma sessão de host.
- *
- * 🔴 Uso único, atômico: o `UPDATE ... WHERE used_at IS NULL RETURNING` garante
- * que dois cliques no mesmo link só produzem uma sessão. Assinatura primeiro,
- * banco depois, pelo mesmo motivo da sessão do convidado.
- */
+/** 🔴 Uso único, atômico: `UPDATE … WHERE used_at IS NULL RETURNING` — dois cliques produzem uma sessão só. */
 export async function consumirMagicLink(
   pool: Pool,
   segredo: string,
@@ -119,10 +97,7 @@ export async function consumirMagicLink(
   return { token: sessaoToken, accountId: linha.account_id };
 }
 
-/**
- * Resolve a sessão de host. Assinatura primeiro, banco depois. Junta o e-mail da
- * conta para o painel — nunca dado de evento, que é de outra camada.
- */
+/** Assinatura antes do banco. Junta e-mail da conta — nunca dado de evento. */
 export async function resolverHostSessao(
   pool: Pool,
   segredo: string,

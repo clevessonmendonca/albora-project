@@ -4,32 +4,14 @@ import type { PoolClient } from "pg";
 import { dimensoesDoAlbum } from "./dimensoes";
 import { thumbKeyFromFull } from "./storage-key";
 
-/**
- * O que o álbum da noite lê (spec 016).
- *
- * 🔴 A mesma fonte de verdade do feed e da parede: `state = 'published'`. O
- * álbum é derivado — não guarda uma segunda regra de visibilidade, porque duas
- * divergem e a que sobra é a errada. A foto que o botão de pânico tira sai
- * daqui pela mesma coluna, no mesmo instante.
- *
- * O álbum é montado por `montarAlbum()` do `@albora/core` sobre estas linhas.
- * `taken_at` chega no `confirm` a partir da leitura de EXIF feita antes do
- * reencode; `width`/`height` vêm das dimensões já em pé — foto processada ou
- * `videoWidth`/`videoHeight` lidos no cliente antes do upload. Ausentes —
- * fila antiga, decoder mudo — `capturadaEm` nulo cai no `created_at` pela
- * regra do núcleo, e a proporção assume retrato.
- */
+/** 🔴 Mesma fonte de verdade do feed: state = 'published'. Álbum derivado — uma segunda regra de visibilidade divergiria e a errada prevaleceria. */
 
 const PUBLICADO = "published";
 
 /** Teto da varredura. O álbum lê a noite inteira; o núcleo é quem poda páginas. */
 export const TETO_DO_ALBUM = 2000;
 
-/**
- * Proporção assumida enquanto `width`/`height` não são persistidos. Retrato,
- * porque encaixar a foto de festa em qualquer outra forma corta o topo — a
- * mesma regra vermelha que o telão e o layout do álbum impõem.
- */
+/** Proporção padrão: retrato. Outra forma corta o topo — mesma regra vermelha do telão. */
 export { LARGURA_PADRAO, ALTURA_PADRAO } from "./dimensoes";
 
 export type MidiaDoAlbumComChave = MidiaDoAlbum & {
@@ -60,14 +42,7 @@ type Linha = {
   reacoes: number;
 };
 
-/**
- * As fotos públicas do evento, para o álbum, de dentro de uma transação já
- * escopada por `comEvento`.
- *
- * O `event_id` no WHERE é redundante sob RLS e vai mesmo assim: duas camadas
- * para a mesma invariante, como no resto do pacote. Só leitura — nenhuma
- * escrita passa por aqui.
- */
+/** event_id no WHERE redundante sob RLS — duas camadas para a mesma invariante. */
 export async function listarMidiaDoAlbum(
   cliente: PoolClient,
   eventoId: string,
@@ -106,10 +81,7 @@ export async function listarMidiaDoAlbum(
   });
 }
 
-/**
- * A janela do evento, que ancora as horas do álbum. Ausente quando o evento não
- * é visível — sob RLS, o mesmo que não existir; quem chama trata como álbum vazio.
- */
+/** null quando o evento não é visível sob RLS — quem chama trata como álbum vazio. */
 export async function janelaDoAlbum(
   cliente: PoolClient,
   eventoId: string,

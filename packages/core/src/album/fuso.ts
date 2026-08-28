@@ -29,11 +29,7 @@ export function fusoOuPadrao(fuso: string | null | undefined): string {
   return fuso && fusoIanaValido(fuso) ? fuso : FUSO_PADRAO;
 }
 
-/**
- * Offset civil do IANA naquele instante. Sem DST no Brasil o número é estável;
- * fora dele (Honolulu, Nova York no verão) muda, e é isso que o álbum precisa
- * para a faixa das 5h não cair na hora de Brasília.
- */
+/** Offset civil no instante — fora do Brasil o DST muda o valor e a faixa de 5h cairia na hora de Brasília. */
 export function offsetMinutosDoFuso(fuso: string, instante: Date): number {
   const iana = fusoOuPadrao(fuso);
   const nome = new Intl.DateTimeFormat("en-US", {
@@ -52,10 +48,7 @@ export function offsetMinutosDoFuso(fuso: string, instante: Date): number {
   return sinal * (Number(m[2]) * 60 + Number(m[3] ?? "0"));
 }
 
-/**
- * Parede do EXIF (componentes UTC = relógio da câmera) vira instante no IANA
- * do evento. Recalcula o offset no resultado para não errar a virada de DST.
- */
+/** Recalcula offset no resultado para não errar virada de DST ao converter hora de parede do EXIF. */
 export function instanteDaParedeNoFuso(parede: Date, fuso: string): Date {
   const primeiro = instanteDaParede(parede, offsetMinutosDoFuso(fuso, parede));
   const offsetNoInstante = offsetMinutosDoFuso(fuso, primeiro);
@@ -65,10 +58,7 @@ export function instanteDaParedeNoFuso(parede: Date, fuso: string): Date {
 
 const NAIVE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/;
 
-/**
- * `datetime-local` (`YYYY-MM-DDTHH:mm`) é parede no fuso do evento. ISO com
- * offset (`Z` ou `±hh:mm`) permanece instante absoluto.
- */
+/** `YYYY-MM-DDTHH:mm` (datetime-local) é parede no fuso; ISO com `Z`/offset permanece absoluto. */
 export function instanteLocalNoFuso(valor: string, fuso: string): Date | null {
   const naive = NAIVE.exec(valor);
   if (naive) {

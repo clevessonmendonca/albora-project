@@ -21,15 +21,8 @@ export type ResultadoConfirm =
   | { estado: "ja_existia"; upload: LinhaUpload };
 
 /**
- * Persiste o upload, uma vez só.
- *
- * **Retry é o caminho normal, não a exceção.** O convidado está num salão com
- * 200 celulares na mesma antena; o mesmo `uploadId` vai chegar duas, três
- * vezes. `ON CONFLICT DO NOTHING` faz a segunda chamada devolver a linha
- * existente em vez de duplicar a foto no álbum ou estourar violação de chave.
- *
- * O `event_id` **não vem do cliente**: vem da sessão, e a política de RLS
- * ainda o confere. Duas camadas para a mesma invariante.
+ * `ON CONFLICT DO NOTHING` + `pg_advisory_xact_lock` — retry é caminho normal; dois paralelos sem lock davam um 403
+ * e a foto era descartada da fila. `event_id` vem da sessão, nunca do cliente; RLS confere em segunda camada.
  */
 export async function confirmarUpload(
   cliente: PoolClient,
@@ -109,17 +102,7 @@ export async function confirmarUpload(
   return { estado: "ja_existia", upload: existente };
 }
 
-/**
- * Legenda e lugar, escritos **depois** de a foto já estar salva (§3.6).
- *
- * A anotação é enriquecimento: a foto não depende dela para existir. Por isso
- * chega numa chamada à parte, e por isso um `false` aqui — sessão errada,
- * upload que sumiu — nunca vira erro na cara do convidado.
- *
- * O `session_id` no `WHERE` é o que impede um convidado de escrever legenda na
- * foto de outro. A RLS garante o evento; ela não sabe de quem é a foto dentro
- * dele.
- */
+/** `session_id` no WHERE — RLS garante o evento, ela não sabe de quem é a foto dentro dele. */
 export async function anotarUpload(
   cliente: PoolClient,
   entrada: {

@@ -1,16 +1,7 @@
 import { detectarTipo } from "./midia";
 import type { VeredictoDoClassificador } from "./moderacao";
 
-/**
- * Classificação da thumb, fora do caminho crítico (spec 011 / security.md §4.5).
- *
- * Publicar nunca espera isto. Quando o provedor cala ou estoura o tempo, o
- * veredicto é `sem-resposta`: a galeria publica, o telão segura.
- *
- * Não há fornecedor de ML neste repositório. O padrão de produção é o
- * heurístico (foto com assinatura válida → limpo). `stub` existe só atrás de
- * env, para CI. Troca-se o provedor, não o gate.
- */
+/** Fora do caminho crítico — provedor silencioso vira `sem-resposta`; galeria publica, telão segura. */
 
 export type EntradaDeImagem = {
   bytes: Uint8Array;
@@ -45,10 +36,7 @@ export const provedorHeuristico: ProvedorDeClassificadorDeImagem = {
 
 export type NomeDoProvedorDeImagem = "heuristico" | "silencio" | "stub";
 
-/**
- * Produção: `heuristico` (padrão). `silencio` força sem-resposta.
- * `stub` só com `CLASSIFICADOR_IMAGEM_PROVEDOR=stub`.
- */
+/** `stub` só com `CLASSIFICADOR_IMAGEM_PROVEDOR=stub`; `silencio` força sem-resposta. */
 export function provedorDeImagemDoAmbiente(
   env: Record<string, string | undefined> = process.env,
 ): ProvedorDeClassificadorDeImagem {

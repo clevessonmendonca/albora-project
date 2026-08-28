@@ -5,12 +5,7 @@ import type { CapituloPlanejado, JanelaDoEvento } from "./types";
 const HORA_MS = 3_600_000;
 const PRIMEIRA_HORA_DO_AMANHECER = HORAS_DO_AMANHECER[0]!;
 
-/**
- * O primeiro instante da janela cuja hora local é a do amanhecer (5h).
- *
- * Só vale se cai **depois** do começo: um evento que já abre de manhã não
- * ganha um capítulo “depois” retroativo — o arco inteiro é a noite que tem.
- */
+/** Só vale depois do começo — evento que já abre de manhã não ganha capítulo “depois” retroativo. */
 export function primeiroAmanhecerNaJanela(janela: JanelaDoEvento): Date | null {
   let t = inicioDaHoraNoEvento(janela.comecaEm, janela.offsetMinutos);
   if (t.getTime() < janela.comecaEm.getTime()) t = new Date(t.getTime() + HORA_MS);
@@ -28,15 +23,6 @@ export function primeiroAmanhecerNaJanela(janela: JanelaDoEvento): Date | null {
   return null;
 }
 
-/**
- * Fatia a janela nos ids que o pack chama de momentos. O núcleo não conhece
- * o pack: recebe a lista ordenada e devolve `comecaEm`. Sem ids, a montagem
- * cai em `a-noite` — um capítulo só, a noite inteira.
- *
- * Se a janela atravessa o amanhecer, o último id começa às 5h locais. O resto
- * reparte o que veio antes. Sem amanhecer na janela, a fatia é igual do
- * começo ao fim.
- */
 export function planejarCapitulos(
   janela: JanelaDoEvento,
   ids: readonly string[],

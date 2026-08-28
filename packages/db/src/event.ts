@@ -1,19 +1,8 @@
 import type { Pool, PoolClient } from "pg";
 
 /**
- * O único lugar do produto que abre acesso ao banco num caminho de evento.
- *
- * Três coisas que ele garante, e que nenhuma delas sobrevive a ser
- * reimplementada num segundo lugar:
- *
- * 1. **Transação sempre.** `SET LOCAL` só existe dentro de uma. Sem
- *    transação o setting não é aplicado, a política não casa com nada e o
- *    sintoma é "sumiu tudo" — não "vazou tudo". Erro silencioso e enganoso.
- * 2. **`SET LOCAL`, nunca `SET`.** O pooling em modo transação devolve a
- *    conexão a cada COMMIT; um setting de sessão vaza para o próximo cliente,
- *    que é outro casamento.
- * 3. **Devolve a conexão em toda saída**, inclusive exceção e cancelamento.
- *    Conexão vazada leva o setting junto.
+ * 🔴 `SET LOCAL`, nunca `SET` — pooling devolve a conexão a cada COMMIT e um setting de sessão vaza para o próximo
+ * cliente. Sem transação o setting não é aplicado e o sintoma é "sumiu tudo", não "vazou tudo".
  */
 export async function comEvento<T>(
   pool: Pool,
@@ -52,17 +41,7 @@ export class ErroEventoAusente extends Error {
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-/**
- * O caminho do anfitrião, irmão de `comEvento` (ADR 0013).
- *
- * Seta `app.account_id` em vez de `app.event_id`: a política `conta_evento`
- * de `events` abre os eventos da conta, e o `WITH CHECK` dela impede criar
- * evento para outra. Mesma disciplina — transação sempre, `SET LOCAL` nunca
- * `SET`, conexão devolvida em toda saída.
- *
- * 🔴 O `contaId` vem **sempre** da sessão de host resolvida, nunca do cliente:
- * é ele que decide quais eventos a transação enxerga.
- */
+/** 🔴 `contaId` vem sempre da sessão de host resolvida, nunca do cliente — é ele que decide quais eventos a transação enxerga. */
 export async function comConta<T>(
   pool: Pool,
   contaId: string,
@@ -92,14 +71,7 @@ export class ErroContaAusente extends Error {
   }
 }
 
-/**
- * Caminho que cruza eventos, por desenho: painel do fornecedor e
- * observabilidade. Exige papel com BYPASSRLS e **registra a chamada**.
- *
- * Não é conveniência — é a única porta declarada. Se alguém precisar cruzar
- * eventos e não passar por aqui, a auditoria não vê, e o que a auditoria não
- * vê não aconteceu.
- */
+/** Única porta declarada para cruzar eventos — quem não passa aqui não aparece na auditoria. */
 export async function comAgregacao<T>(
   pool: Pool,
   motivo: string,

@@ -22,14 +22,7 @@ export type BillingPayment = {
   invoiceUrl: string | null;
 };
 
-/**
- * A rede de segurança do índice único parcial `vendor_subscriptions_pendente_unica`
- * (migration 0043) — fecha, no banco, a corrida que o `SELECT` de
- * `hasPendingOrActiveVendorSubscription` só reduz: duas chamadas concorrentes
- * passam pelo mesmo `SELECT` antes de qualquer `INSERT` confirmar, e sem o
- * índice as duas criavam assinatura. Com o índice, a segunda estoura 23505 —
- * o chamador usa isto para devolver o mesmo 409 amigável, não um 500.
- */
+/** Índice parcial fecha a race condition que o SELECT só reduz — 23505 = assinatura duplicada; devolver 409, não 500. */
 export function ehAssinaturaDuplicada(e: unknown): boolean {
   return typeof e === "object" && e !== null && (e as { code?: string }).code === "23505";
 }
@@ -145,9 +138,6 @@ export async function markPaymentPaidByAsaasId(
   return { eventId: row.event_id, plan: row.plan, accountId: row.account_id };
 }
 
-/**
- * Única escrita de plano pago em produção (via webhook).
- */
 export async function aplicarPlanoPago(
   pool: Pool,
   eventId: string,
@@ -157,14 +147,6 @@ export async function aplicarPlanoPago(
     await c.query(`UPDATE events SET plan = $2 WHERE id = $1`, [eventId, plan]);
   });
 }
-
-// ─────────────────────────────────────────────────────────────
-// Assinatura do fornecedor — Modelo A (tipo Gathmo, ver spec §4.1).
-// O fornecedor assina um plano fixo mensal na plataforma; ele cobra o casal
-// por fora, no canal dele. Zero split de gateway: reusa billing_customers
-// (por accountId) e o mesmo desenho de billing_payments/webhook, só que sem
-// event_id — a linha aqui mapeia asaas_subscription_id → vendor_id.
-// ─────────────────────────────────────────────────────────────
 
 export type VendorSubscriptionStatus = "pending" | "active" | "overdue" | "canceled";
 
@@ -179,13 +161,7 @@ export type VendorSubscription = {
   updatedAt: Date;
 };
 
-/**
- * Registra a assinatura antes de chamar o Asaas — espelha `createBillingPayment`.
- * O chamador (rota `POST /api/vendors/{id}/subscription`, fora do escopo desta
- * mudança) confere `roleForAccountOnVendor(pool, accountId, vendorId) === "admin"`
- * antes de invocar esta função; ela não repete a checagem porque não tem como
- * fazê-lo sob RLS sem reabrir a mesma consulta duas vezes na mesma transação.
- */
+/** Não confere roleForAccountOnVendor — impossível sob RLS sem duplicar a consulta; o chamador deve verificar antes. */
 export async function createVendorSubscription(
   pool: Pool,
   entrada: {
@@ -242,18 +218,7 @@ export async function markVendorSubscriptionByAsaasId(
   return { vendorId: row.vendor_id, accountId: row.account_id, plan: row.plan };
 }
 
-/**
- * Única escrita de `vendors.status`/`plan` pago, via webhook — espelha
- * `aplicarPlanoPago`.
- *
- * `aplicarPlanoPago` escapa a RLS de `events` porque `comEvento` seta
- * `app.event_id` para exatamente o id da linha, e a política de isolamento
- * por evento casa por `id`. `vendors` não tem esse escape: a única política
- * (`vendor_membro`) exige pertencimento em `vendor_members`, que o webhook —
- * sem sessão de conta — não tem. Por isso esta escrita usa `comAgregacao`
- * (BYPASSRLS, auditado), com `motivo` fechado ao `vendorId` já resolvido por
- * `markVendorSubscriptionByAsaasId`, nunca um `UPDATE` sem filtro.
- */
+/** 🔴 vendors não tem escape por app.event_id — webhook sem sessão não tem vendor_membro. Usa comAgregacao (BYPASSRLS, auditado), nunca UPDATE sem filtro. */
 export async function ativarPlanoDoFornecedor(
   pool: Pool,
   vendorId: string,

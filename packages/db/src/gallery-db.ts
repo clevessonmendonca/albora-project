@@ -17,12 +17,7 @@ export type MidiaMinha = {
   minhaReacao?: string | null;
 };
 
-/**
- * Fotos confirmadas desta sessão no evento (spec 008).
- *
- * Inclui o que a moderação escondeu do feed alheio: a galeria pessoal responde
- * "chegou?", não "está público?". Só some o que a própria sessão removeu.
- */
+/** Galeria pessoal: inclui moderado, exclui só o que a própria sessão removeu — responde "chegou?", não "está público?". */
 export async function listarMinhasDoEvento(
   cliente: PoolClient,
   sessaoId: string,

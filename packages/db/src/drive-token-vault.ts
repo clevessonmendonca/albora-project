@@ -1,20 +1,7 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
 import type { DriveTokenVault, SealedToken } from "@albora/core";
 
-/**
- * Implementação concreta do vault (spec drive-export §2). AES-256-GCM porque
- * é autenticado: uma alteração no ciphertext (bit flip, truncamento) estoura
- * na abertura em vez de devolver lixo que passaria como refresh token válido
- * até o Google recusar.
- *
- * `keyVersion` permite rotação sem downtime: uma linha selada com a chave
- * antiga continua abrindo até o próximo refresh, que já resela com a chave
- * atual. Não é reencriptação em massa — é lazy, no caminho que já toca o
- * token.
- *
- * Nunca loga a chave, o plaintext, nem o ciphertext — só `keyVersion` em
- * mensagens de erro, que é seguro por design (não é segredo).
- */
+/** AES-256-GCM (autenticado): bit flip estoura na abertura em vez de entregar lixo como refresh token válido. keyVersion rotaciona sem downtime — lazy, resela no próximo uso. Nunca loga chave, plaintext ou ciphertext. */
 
 const ALGORITMO = "aes-256-gcm";
 const TAMANHO_IV = 12;

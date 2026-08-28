@@ -1,13 +1,7 @@
 import type { Pool } from "pg";
 import { assinaturaValida, emitirToken, hashDoToken } from "./token";
 
-/**
- * O crachá da parede, do lado do banco.
- *
- * Guarda o **hash**, nunca o token — mesma disciplina de `session_tokens`. Um
- * dump do banco não entrega a parede de ninguém: o token só existe na URL que
- * o anfitrião abriu na TV.
- */
+/** Hash do token, nunca o token — dump do banco não entrega a parede de ninguém. */
 
 export type ParedeResolvida = { eventoId: string };
 
@@ -36,12 +30,7 @@ export async function emitirCrachaDaParede(
   return token;
 }
 
-/**
- * Resolve o crachá apresentado pela TV.
- *
- * Assinatura primeiro, banco depois, pelo mesmo motivo de `resolverSessao`:
- * crachá forjado custa microssegundos em vez de uma consulta.
- */
+/** Assinatura antes do banco — crachá forjado custa microssegundos, não uma consulta. */
 export async function resolverParede(
   pool: Pool,
   segredo: string,
@@ -71,12 +60,7 @@ export async function resolverParede(
   return { eventoId: linha.event_id };
 }
 
-/**
- * Derruba a parede de um evento sem tocar em outro, e sem tocar nas sessões.
- *
- * É o cabo saindo da TV no meio da festa: os convidados continuam subindo
- * foto, e a parede para.
- */
+/** Revoga só a parede; sessões dos convidados continuam intactas. */
 export async function revogarParedesDoEvento(pool: Pool, eventoId: string): Promise<number> {
   const { rowCount } = await pool.query(
     "UPDATE wall_tokens SET revoked_at = now() WHERE event_id = $1 AND revoked_at IS NULL",

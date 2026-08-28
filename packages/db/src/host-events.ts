@@ -32,11 +32,7 @@ export async function ocultarMidiaDoHost(
   });
 }
 
-/**
- * Atualiza identidade, fuso e convidados esperados (spec 009 B-03).
- *
- * Roda em `comConta`: a política `conta_evento` impede alterar evento alheio.
- */
+/** comConta: política conta_evento impede alterar evento alheio. */
 export async function atualizarConfigDoEvento(
   pool: Pool,
   accountId: string,

@@ -1,15 +1,6 @@
 import { prefixoDoEvento } from "./chaves";
 
-/**
- * O que entra no "baixar tudo" do anfitrião (spec 016).
- *
- * A mesma coluna do álbum, do feed e da parede: só `published`. Ocultar no
- * admin, o pânico e a moderação já tiraram a foto dessa coluna — o ZIP não
- * inventa uma segunda regra de visibilidade.
- *
- * A chave tem de ser a `full` deste evento. Thumb, recado, peça impressa e
- * o próprio ZIP de export moram debaixo do mesmo prefixo e **não** entram.
- */
+/** Só `published` e `chave` `/full` do evento — o ZIP não inventa segunda regra de visibilidade. */
 
 export const TETO_DO_EXPORT = 2000;
 
@@ -18,11 +9,7 @@ export const ACAO_EXPORT_ACERVO = "export_acervo";
 /** Step-up antes da primeira conexão de Drive (spec drive-export §1.3) — reusa o mesmo `host_step_up`, ação distinta. */
 export const ACAO_DRIVE_CONNECT = "drive_connect";
 
-/**
- * `enviando`/`parcial`/`quota_insuficiente` só existem para `destination='drive'`
- * (spec drive-export §5) — o ZIP continua tudo-ou-nada, sempre
- * `pronto`/`vazio`/`falhou`.
- */
+/** `enviando`/`parcial`/`quota_insuficiente` só existem para Drive — ZIP é tudo-ou-nada. */
 export type EstadoDoExport = "pronto" | "vazio" | "falhou" | "enviando" | "parcial" | "quota_insuficiente";
 
 export type ItemDoAcervo = {

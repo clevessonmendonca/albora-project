@@ -1,19 +1,7 @@
 import type { Pool, PoolClient } from "pg";
 import { comAgregacao } from "./event";
 
-/**
- * Atribuição de origem do compartilhamento (spec A1).
- *
- * A moldura na foto já leva de volta ao MESMO evento (`frame-renderer.ts`,
- * `via=link`) — canal viral que já funciona e que este arquivo não toca. O
- * que falta é a ponte pra FORA do evento: um convite discreto no recap que
- * aponta pra landing genérica (`/?ref=<ref_token>`), pra medir "quantas
- * visitas terminam em alguém criando a própria festa".
- *
- * `ref_token` é opaco, um por evento, mintado uma vez e nunca rotaciona —
- * não é o slug (que rotaciona) nem o `event_id` cru (chave interna não deve
- * circular em querystring pública que passa por Analytics/pixel de terceiro).
- */
+/** ref_token opaco por evento — event_id cru não deve circular em querystring pública (Analytics, pixel de terceiro). */
 
 const ALFABETO_REF = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const TAMANHO_REF = 24;
@@ -33,13 +21,7 @@ function ehColisaoDeRef(e: unknown): boolean {
   return typeof e === "object" && e !== null && (e as { code?: string }).code === "23505";
 }
 
-/**
- * Mintado uma vez, dentro da mesma transação de `criarEvento` — nunca
- * rotaciona. Mesmo padrão de retry-em-colisão de `gerarSlug`.
- *
- * 🔴 Exige `app.event_id` já resolvido na transação (RLS de `event_share_refs`
- * é o padrão comum) — `criarEvento` seta o GUC antes de chamar isto.
- */
+/** 🔴 Exige app.event_id resolvido na transação — criarEvento seta o GUC antes de chamar. Nunca rotaciona. */
 export async function mintarRefDeCompartilhamento(
   cliente: PoolClient,
   eventoId: string,
@@ -70,13 +52,7 @@ export async function refDoEvento(cliente: PoolClient, eventoId: string): Promis
   return rows[0]?.ref_token ?? null;
 }
 
-/**
- * Só usada pelo job de reconciliação, via `comAgregacao` — nunca em caminho
- * de convidado. Casa `product_events.origin_ref` com `event_share_refs` pra
- * alimentar `analytics_snapshots` (scope='event'). Enriquecimento, nunca
- * bloqueante: se este job falhar, o share e o `origin_ref` já gravados não
- * são afetados.
- */
+/** Via comAgregacao — nunca em caminho de convidado; falha não afeta o share já gravado. */
 export async function eventoDoRef(
   pool: Pool,
   refToken: string,

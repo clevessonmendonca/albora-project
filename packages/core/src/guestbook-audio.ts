@@ -1,14 +1,8 @@
 import { TETO_AUDIO_SEGUNDOS } from "./guestbook";
 
-/**
- * Tipos que o anfitrião pode gravar ou anexar. WAV fica de fora de
- * propósito: 60 s sem compressão passam do teto de bytes e viram upload
- * sem limite prático.
- */
 export const TIPOS_AUDIO_RECADO = ["audio/webm", "audio/mp4", "audio/mpeg", "audio/ogg"] as const;
 export type TipoAudioRecado = (typeof TIPOS_AUDIO_RECADO)[number];
 
-/** Teto de 60 s de voz comprimida, com folga para o MediaRecorder do Safari. */
 export const TETO_BYTES_AUDIO_RECADO = 4 * 1024 * 1024;
 
 export const ACEITE_AUDIO_VERSAO = "v1";
@@ -102,11 +96,7 @@ function ehWav(inicio: Uint8Array): boolean {
   );
 }
 
-/**
- * O Content-Type do cliente não vale nada: um "webm" que é HTML servido da
- * origem do app é XSS armazenado. WAV recusado mesmo declarado como outro
- * tipo — é o arquivo que estoura o teto sem compressão.
- */
+/** Content-Type do cliente não vale: "webm" servindo HTML da origem é XSS armazenado. */
 export function validarConteudoAudio(mimeDeclarado: string, inicio: Uint8Array): ErroAudioRecado | null {
   if (ehWav(inicio)) {
     return { code: "recado.audio_conteudo_nao_confere", details: { declarado: mimeDeclarado } };
