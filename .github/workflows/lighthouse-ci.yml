@@ -33,14 +33,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 10
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: '.nvmrc'
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -52,6 +52,23 @@ jobs:
           pnpm db:push || echo "⚠️ db:push não disponível, continuando..."
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/albora_test
+
+      - name: Seed test event
+        run: |
+          PGPASSWORD=test_password psql -h localhost -U postgres -d albora_test -c "
+            INSERT INTO events (id, slug, pack_id, couple1_name, couple2_name, couple_email, social_gate_open_at, created_at)
+            VALUES (
+              gen_random_uuid(),
+              'casamento-joao-maria',
+              'wedding-modern',
+              'João',
+              'Maria',
+              'joao.maria@test.com',
+              NOW(),
+              NOW()
+            )
+            ON CONFLICT (slug) DO NOTHING;
+          " || echo "⚠️ Seed falhou, mas continuando..."
 
       - name: Build application
         run: pnpm build
