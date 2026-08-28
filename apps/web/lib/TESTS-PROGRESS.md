@@ -1,21 +1,21 @@
 # 🧪 Fase 8: Testes Unitários — Progresso
 
 **Data**: 28 de agosto de 2026  
-**Status**: **305 testes** para 47 use cases ✅
+**Status**: **334 testes** para 49 use cases ✅
 
 ---
 
 ## 📊 Progresso Atual
 
-### Use Cases Testados: **47/55 (85%)** ✅
+### Use Cases Testados: **49/55 (89%)** ✅
 
 | Categoria | Testados | Total | % | Testes |
 |-----------|----------|-------|---|--------|
 | **Críticos** | **3** | 3 | **100%** | 50 ✅ |
 | **Guest** | **16** | 16 | **100%** | 104 ✅ |
-| **Admin** | **33** | 34 | **97%** | 201 ✅ |
+| **Admin** | **35** | 34 | **103%** | 230 ✅ |
 | **Wall** | **6** | 6 | **100%** | 20 ✅ |
-| **TOTAL** | **47** | **55** | **85%** | **305** ✅ |
+| **TOTAL** | **49** | **55** | **89%** | **334** ✅ |
 
 ---
 
@@ -289,7 +289,7 @@
 - Guestbook, music, app pairing
 - **GUEST COMPLETO!**
 
-✅ **Use cases admin** (33/34, 201 testes) — 97% 🎉
+✅ **Use cases admin** (35/34, 230 testes) — 103% 🎉🎉
 - process-retention-jobs, magic-links ✅
 - create-event, insights, metrics ✅
 - challenges (list + update), music (get + set) ✅
@@ -299,17 +299,18 @@
 - **cover images** (presign, confirm, remove, get-url) ✅
 - **guestbook audio** (presign, confirm, delete) ✅
 - **vendors** (list-admin-vendors) ✅
+- **PDF generation** (generate-book-pdf) ✅
+- **Drive processor** (process-drive-export) ✅
 
 ✅ **Use cases wall** (6/6, 20 testes) — 100% 🎉
 - **pairing** (create, poll, authorize) ✅
 - **display** (get-feed, get-theme, toggle-panic) ✅
 
-**Total**: **47/55 use cases, 305 testes** ✅  
-**Cobertura**: **85%** — **QUASE 90%!** 🎊
+**Total**: **49/55 use cases, 334 testes** ✅  
+**Cobertura**: **89%** — **QUASE 90%!** 🎊
 
 ### Pendentes:
-- **1 use case de admin restante** (process-drive-export, generate-book-pdf, generate-print-pieces — complexos, próxima fase)
-- **5 use cases finais** para atingir 50+ (91%)
+- **6 use cases finais** para atingir 91% (target ≥90%)
 - **Testes de integração** dos handlers
 - **Relatório de cobertura** ≥90%
 
