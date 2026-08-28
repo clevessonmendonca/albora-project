@@ -193,3 +193,33 @@ export {
   type GetLatestExportJobInput,
   type GetLatestExportJobOutput,
 } from "./get-latest-export-job";
+
+export {
+  requestDriveStepUp,
+  type RequestDriveStepUpInput,
+  type RequestDriveStepUpResult,
+} from "./request-drive-step-up";
+
+export {
+  initiateDriveConnection,
+  type InitiateDriveConnectionInput,
+  type InitiateDriveConnectionResult,
+} from "./initiate-drive-connection";
+
+export {
+  completeDriveConnection,
+  type CompleteDriveConnectionInput,
+  type CompleteDriveConnectionResult,
+} from "./complete-drive-connection";
+
+export {
+  getDriveConnectionStatus,
+  type GetDriveStatusInput,
+  type GetDriveStatusOutput,
+} from "./get-drive-connection-status";
+
+export {
+  disconnectDrive,
+  type DisconnectDriveInput,
+  type DisconnectDriveResult,
+} from "./disconnect-drive";
