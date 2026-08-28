@@ -23,6 +23,7 @@ type ExportSectionProps = {
 
 function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: ExportSectionProps) {
   const [estado, setEstado] = useState<EstadoExport>(estadoInicial);
+  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const confirmou = useRef(false);
 
@@ -34,7 +35,7 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
   useEffect(() => {
     void lerJob(eventoId, modo).then((r) => {
       if (r.ok) aplicarJob(r.job);
-    });
+    }).finally(() => setLoading(false));
   }, [eventoId, modo, aplicarJob]);
 
   useEffect(() => {
@@ -72,6 +73,20 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
     if (!r.ok) setEstado({ fase: "erro" });
     else aplicarJob(r.job);
   };
+
+  if (loading) {
+    return (
+      <AdminCard>
+        <div className="animate-pulse flex flex-wrap items-start justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <div className="h-5 w-36 rounded-token bg-superficie-alta" />
+            <div className="h-3.5 w-64 rounded-full bg-superficie-alta" />
+          </div>
+          <div className="h-9 w-28 shrink-0 rounded-token bg-superficie-alta" />
+        </div>
+      </AdminCard>
+    );
+  }
 
   return (
     <AdminCard variant={estado.fase === "pronto" ? "highlight" : "default"}>

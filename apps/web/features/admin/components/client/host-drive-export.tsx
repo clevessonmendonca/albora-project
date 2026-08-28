@@ -125,7 +125,19 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
     else void carregar();
   };
 
-  if (estado.fase === "carregando") return null;
+  if (estado.fase === "carregando") {
+    return (
+      <AdminSection>
+        <div className="animate-pulse flex flex-wrap items-start justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <div className="h-5 w-52 rounded-token bg-superficie-alta" />
+            <div className="h-3.5 w-80 rounded-full bg-superficie-alta" />
+          </div>
+          <div className="h-9 w-36 shrink-0 rounded-token bg-superficie-alta" />
+        </div>
+      </AdminSection>
+    );
+  }
 
   return (
     <AdminSection>
