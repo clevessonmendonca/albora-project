@@ -231,6 +231,7 @@ export function Viewer({
       role="dialog"
       aria-modal="true"
       aria-label={`Fotos das ${hourLabel(hora)}`}
+      aria-describedby="viewer-help"
       onPointerDown={pressionou}
       onPointerUp={largou}
       onPointerCancel={soltar}
@@ -341,6 +342,13 @@ export function Viewer({
         {/* Região viva: anuncia o autor da foto atual para leitores de tela. */}
         <p className="sr-only" aria-live="polite" aria-atomic="true">
           {atual ? `${indice + 1} de ${itens.length}: foto de ${atual.autor}` : ""}
+        </p>
+        
+        {/* Documentação de atalhos de teclado para screen readers */}
+        <p id="viewer-help" className="sr-only">
+          Use as setas esquerda e direita para navegar entre fotos. 
+          Tecla Home vai para a primeira foto, End para a última. 
+          Pressione Escape para fechar o visualizador.
         </p>
 
         {atual && (

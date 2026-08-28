@@ -230,14 +230,22 @@ function MenuOpcoes({
 }) {
   const [aberto, setAberto] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const firstButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!aberto) return;
+    
+    // Focus trap: foca o primeiro botão ao abrir
+    firstButtonRef.current?.focus();
+    
     function fecharFora(ev: MouseEvent) {
       if (ref.current && !ref.current.contains(ev.target as Node)) setAberto(false);
     }
     function tecla(ev: KeyboardEvent) {
-      if (ev.key === "Escape") setAberto(false);
+      if (ev.key === "Escape") {
+        setAberto(false);
+        ev.stopPropagation();
+      }
     }
     document.addEventListener("mousedown", fecharFora);
     document.addEventListener("keydown", tecla);
@@ -259,23 +267,32 @@ function MenuOpcoes({
         <MoreIcon size={16} />
       </button>
       {aberto && (
-        <div className="absolute left-0 top-full z-10 mt-[0.15rem] min-w-34 rounded-token border border-linha bg-bg py-[0.35rem]">
+        <div
+          role="menu"
+          aria-label="Opções do comentário"
+          className="absolute left-0 top-full z-10 mt-[0.15rem] min-w-34 rounded-token border border-linha bg-bg py-[0.35rem]"
+        >
           <button
+            ref={firstButtonRef}
             type="button"
+            role="menuitem"
             className={CLASSE_ITEM_MENU}
             onClick={() => {
               setAberto(false);
               onDenunciar();
+              announce("Comentário denunciado");
             }}
           >
             Denunciar
           </button>
           <button
             type="button"
+            role="menuitem"
             className={CLASSE_ITEM_MENU}
             onClick={() => {
               setAberto(false);
               onBloquear();
+              announce(`${autor} bloqueado`);
             }}
           >
             Bloquear {autor}
