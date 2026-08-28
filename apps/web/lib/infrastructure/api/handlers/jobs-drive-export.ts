@@ -1,8 +1,6 @@
-import { errorResponse, jsonOk, parseJsonBody, requireDriveConfig, unexpectedError } from "@/lib/api";
+import { errorResponse, jsonOk, requireDriveConfig, unexpectedError } from "@/lib/api";
 import { getPool } from "@/lib/db";
-import type { DriveExportTickMessage } from "@/lib/drive-export-queue";
-import { parseDriveExportTickMessage } from "@/lib/drive-export-tick-message";
-import { sweepDriveExportJobs, tickDriveExportJob } from "@/lib/drive-export-scheduler";
+import { processDriveExport, parseDriveExportMessage } from "@/lib/application/use-cases/admin";
 
 export const dynamic = "force-dynamic";
 
@@ -22,17 +20,16 @@ export async function postJobsDriveExport(req: Request) {
   if (cfgErr) return cfgErr;
 
   try {
-    const parsed = await parseJsonBody<DriveExportTickMessage | Record<string, never>>(req);
-    if (parsed instanceof Response) return parsed;
+    const body = await req.json();
+    const tick = parseDriveExportMessage(body);
 
-    const tick = parseDriveExportTickMessage(parsed.data);
     if (tick) {
-      const resultado = await tickDriveExportJob(getPool(), tick);
-      return jsonOk({ modo: "tick", ...resultado });
+      const resultado = await processDriveExport({ mode: "tick", message: tick }, getPool());
+      return jsonOk(resultado);
     }
 
-    const varredura = await sweepDriveExportJobs(getPool());
-    return jsonOk({ modo: "sweep", ...varredura });
+    const resultado = await processDriveExport({ mode: "sweep" }, getPool());
+    return jsonOk(resultado);
   } catch (e) {
     return unexpectedError("jobs.drive_export", e);
   }
