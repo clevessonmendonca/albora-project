@@ -19,15 +19,6 @@ import {
 } from "./pieces";
 import { Stationery } from "./showcases";
 
-/**
- * The three v4 pieces that respond to gesture.
- *
- * All render on the server in the first state and only then hydrate — spec
- * 013 check 2 is "the page works without JS until the CTA", and a demo that
- * only exists after hydration would leave a hole in the middle of the page
- * on an old Android on 4G.
- */
-
 const STEPS = [
   {
     title: "O QR na mesa",
@@ -141,13 +132,7 @@ function Phone({
   );
 }
 
-/**
- * The v4 scroll demo: a 300vh track and a stuck card that advances three
- * steps as the page goes down.
- *
- * Off-screen the observer is disconnected. A `scroll` listener on the whole
- * page across six sections is per-frame work nobody sees.
- */
+/** Desconecta quando sai da tela — scroll listener na página inteira por seis seções é trabalho por frame que ninguém vê. */
 export function ScrollDemo({ example, mission }: { example: string; mission: string }) {
   const track = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(0);
@@ -244,13 +229,7 @@ export function ScrollDemo({ example, mission }: { example: string; mission: str
   );
 }
 
-/**
- * The wall wearing each identity model.
- *
- * The whole frame is redrawn by the resolver — color, font, radius, density
- * and tracking at once. If it ever diverges from the real wall, someone
- * wrote the second resolver that ADR 0003 forbids.
- */
+/** Cada seleção redesenha cor, fonte, raio e densidade — o mesmo resolvedor do ADR 0003, sem segundo caminho. */
 export function IdentityWall({ example }: { example: string }) {
   const [selected, setSelected] = useState(IDENTITY_MODELS[0]?.id ?? "");
   const model =
@@ -345,12 +324,7 @@ export function IdentityWall({ example }: { example: string }) {
   );
 }
 
-/**
- * The v4 mission grid, on the dark card.
- *
- * The card receives dark ground from the same resolver instead of a
- * hand-inverted palette — the same swap the guest sees at 11pm, proven here.
- */
+/** Fundo escuro pelo mesmo resolvedor — não paleta invertida à mão; é o swap que o convidado vê às 23h, provado aqui. */
 export function Missions({
   missions,
   title,
@@ -450,22 +424,7 @@ export function Missions({
   );
 }
 
-/**
- * Enters when it comes into view, once.
- *
- * Three decisions that are not style:
- *
- * - **Starts visible and JS hides.** The opposite would leave the whole page
- *   blank for anyone with JS off or slow, and spec 013 check 2 is exactly
- *   that the page works without JS. Anyone who does not hydrate sees everything.
- * - **Disconnects on reveal.** A live observer after it has done its job is
- *   per-frame work nobody sees, on a page that already has a 300vh demo
- *   listening to scroll.
- * - **Honors `prefers-reduced-motion` in JS itself.** The CSS rule zeroes the
- *   transition, but the element would still start at `opacity: 0` until the
- *   observer fires — and on an old Android that is a blink. Here it never
- *   starts hidden.
- */
+/** Começa visível e JS esconde (spec 013 check 2); desconecta ao revelar; reduced-motion no JS — sem isso o elemento começaria em `opacity:0` até o observer disparar (blink em Android lento). */
 export function Reveal({
   children,
   delay = 0,

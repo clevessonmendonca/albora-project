@@ -3,11 +3,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FirstPhotoDemo } from "./first-photo-demo";
 
-/**
- * `URL.createObjectURL`/`revokeObjectURL` não existem no jsdom por padrão.
- * A demo nunca envia a foto a lugar nenhum — só precisa da API do browser
- * para desenhar a pré-visualização local.
- */
+/** `URL.createObjectURL`/`revokeObjectURL` não existem no jsdom — stub só da API de preview local; a demo não envia a lugar nenhum. */
 beforeEach(() => {
   vi.stubGlobal("URL", {
     ...URL,

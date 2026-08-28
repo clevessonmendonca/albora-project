@@ -14,21 +14,7 @@ import { fireLandingProduct } from "./landing-product";
 import { Frame, lightPillClasses, pillClasses, radiusStyle, transition } from "./pieces";
 import { Qr } from "./showcases";
 
-/**
- * A demo interativa "primeira foto sem app" (feature D3 do mapa de crescimento).
- *
- * A maior objeção do casal é "meus convidados vão instalar um aplicativo?".
- * O ADR 0008 já resolve isso no produto — a primeira foto nunca passa por
- * loja de app nem login — mas a landing só afirmava em texto. Aqui o
- * visitante toca os quatro passos com as próprias mãos, num telefone
- * desenhado na tela, e não pede nada que a sessão do convidado também não
- * pede: sem e-mail, sem senha, sem instalar nada até o fim.
- *
- * A foto que o visitante escolhe no passo 3 nunca sai do navegador — é um
- * `URL.createObjectURL` local, nunca um upload. Uma demo que fingisse subir
- * a foto de alguém para provar um ponto seria o próprio problema que o
- * produto resolve.
- */
+/** A foto do visitante nunca sai do navegador — `URL.createObjectURL` local, nunca upload (demo que subisse provaria o problema que o produto resolve). */
 
 type DemoStep = "qr" | "nome" | "foto" | "pronto";
 

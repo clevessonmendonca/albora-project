@@ -4,16 +4,6 @@ import React, { type CSSProperties } from "react";
 import { hourLabel } from "@/features/feed/lib/group-by-hour";
 import { Frame } from "./pieces";
 
-/**
- * The showcases: stationery, open album and the night timeline.
- *
- * None of them uses a photo, and that is a decision, not a gap. All three
- * are drawn with the same event tokens — swapping identity redraws all
- * three at once, which is the ADR 0003 proof the page sells. A screenshot
- * of a finished piece would prove none of that: it would freeze on a
- * single identity.
- */
-
 function Finder({ corner, pupil }: { corner: CSSProperties; pupil: string }) {
   return (
     <span
@@ -27,13 +17,7 @@ function Finder({ corner, pupil }: { corner: CSSProperties; pupil: string }) {
   );
 }
 
-/**
- * `cell` is the edge of a module as a percentage of the frame.
- *
- * A 40px QR with a 13% module turns gray: the finders vanish and the piece
- * reads as an empty box. A small piece gets a large module, which is what a
- * print shop would do anyway.
- */
+/** `cell` é % do módulo — com 13% num QR de 40px os finders somem e o código vai a branco; peças pequenas precisam de módulo grande. */
 export function Qr({ size, cell = "13.5%" }: { size: string; cell?: string }) {
   return (
     <span
@@ -55,17 +39,7 @@ export function Qr({ size, cell = "13.5%" }: { size: string; cell?: string }) {
   );
 }
 
-/**
- * The polaroid: assembled frame, waiting for the photo.
- *
- * The photo box sits on **dark** ground because a party photo is a night
- * photo. It is the same resolver the guest app uses at 11pm, not a hand-
- * inverted palette, and that is what makes the printed copy and the screen
- * match.
- *
- * The bottom margin is thicker than the other three. That disproportion is
- * the polaroid; equal margins turn it into a picture frame.
- */
+/** Chão escuro pelo mesmo resolvedor do app às 23h (não paleta invertida); margem inferior mais larga — margens iguais viram moldura, não polaroid. */
 export function Polaroid({
   caption,
   rotation,
@@ -99,12 +73,7 @@ export function Polaroid({
   );
 }
 
-/**
- * A photo frame on night ground, for callers sitting on light paper.
- *
- * A party photo is a late-night photo. A light slot on light paper vanishes,
- * and a vanished album chapter announces no chapter at all.
- */
+/** Chão escuro em slot de festa — slot claro sobre papel claro some, e slot sumido anuncia capítulo sem fotos. */
 export function NightSlot({
   variant,
   ratio,
@@ -166,13 +135,7 @@ function Paper({
   );
 }
 
-/**
- * What goes to print on the table: the plaque, the card, the letter and the stamp.
- *
- * It sits **inside** the caller's CSS variable scope on purpose. That cascade
- * swaps identity on the four pieces, without a prop threading through four
- * components to say what CSS already knows.
- */
+/** Vive dentro do escopo CSS do chamador — o cascade troca a identidade das quatro peças sem prop threading a quatro componentes. */
 export function Stationery({ example }: { example: string }) {
   return (
     <div className="grid auto-rows-start grid-cols-[repeat(auto-fit,minmax(11rem,1fr))] gap-[clamp(0.875rem,2vw,1.5rem)]">
@@ -258,13 +221,7 @@ function Caption({ children }: { children: React.ReactNode }) {
   );
 }
 
-/**
- * The open book, laid out by slots.
- *
- * Slots and never free positioning because that is what the product is:
- * `CLAUDE.md` refuses a canvas editor, and a landing that showed a photo
- * dragged anywhere would promise the wrong tool.
- */
+/** Slots, nunca posicionamento livre — CLAUDE.md recusa canvas editor; landing com foto arrastável prometeria a ferramenta errada. */
 export function OpenAlbum() {
   return (
     <div className="grid grid-cols-2 gap-0.5 overflow-hidden rounded-superficie bg-ink-superficie p-0.5 shadow-alta">
@@ -289,12 +246,7 @@ export function OpenAlbum() {
   );
 }
 
-/**
- * The night ordering itself.
- *
- * Bands come from `hourLabel`, the same function that orders the real album.
- * If the hour format ever changes there, it changes here too.
- */
+/** Bandas de `hourLabel` — mesma função do álbum real; formato muda lá, muda aqui. */
 const NIGHT = [
   { hour: 19, title: "A chegada", photos: 34, strips: 3 },
   { hour: 21, title: "A mesa", photos: 118, strips: 6 },

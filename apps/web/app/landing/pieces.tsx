@@ -3,16 +3,6 @@ import React, { type CSSProperties, type ReactNode } from "react";
 import { Reveal } from "./interactives";
 import { WIDTH, SECTION_PADDING } from "./landing-data";
 
-/**
- * Repeated landing pieces from v4 — the pill, the label, the warm ground and
- * the photo frame.
- *
- * They exist so the same drawing is not retyped in nine places and diverges
- * in three. No literal colors: v4 writes `#FFF6E9` and here that is paper
- * warmed by the event amber, which is what makes the landing change look
- * when the couple changes theirs.
- */
-
 export const pillClasses =
   "pilula inline-flex items-center justify-center whitespace-nowrap rounded-pilula bg-ink px-8 py-4 font-medium text-bg no-underline";
 
@@ -54,14 +44,6 @@ export function Accent({ children }: { children: ReactNode }) {
   return <em className="font-normal italic text-acento-texto">{children}</em>;
 }
 
-/**
- * The place of a photo.
- *
- * With `src`, it is the photo. Without, it is a **declared** hole — drawn as
- * proof of development, with crop marks and a caption bar, instead of a
- * broken `<img>` or a gray rectangle. Neutral gray reads as a design
- * decision and survives review; this does not.
- */
 export function Frame({
   label,
   radius: curvature,
@@ -74,13 +56,7 @@ export function Frame({
   radius: string;
   src?: string;
   priority?: boolean;
-  /**
-   * Out-of-focus lights, for the slot that waits for a night-party photo.
-   *
-   * They are small and discreet on purpose: a blur covering the whole frame
-   * reads as a broken image loading, which is how the first version of this
-   * frame went wrong.
-   */
+  /** Full-frame blur reads as broken-image (was a bug in v1) — keep lights small. */
   atmosphere?: boolean;
   /** Offsets the lights so five slots side by side do not repeat the same sky. */
   variant?: number;
