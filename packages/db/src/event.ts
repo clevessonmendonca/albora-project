@@ -1,25 +1,20 @@
 import type { Pool, PoolClient } from "pg";
 
-/**
- * 🔴 `SET LOCAL`, nunca `SET` — pooling devolve a conexão a cada COMMIT e um setting de sessão vaza para o próximo
- * cliente. Sem transação o setting não é aplicado e o sintoma é "sumiu tudo", não "vazou tudo".
- */
+/** 🔴 `SET LOCAL`, nunca `SET` — sem transação o setting não aplica ("sumiu tudo"); com sessão ele vaza para o próximo cliente ("outro casamento"). */
 export async function comEvento<T>(
   pool: Pool,
   eventoId: string,
   executar: (cliente: PoolClient) => Promise<T>,
 ): Promise<T> {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(eventoId)) {
-    // Falha alto em vez de assumir padrão. Um job sem event_id no payload
-    // precisa quebrar, não processar contra um evento arbitrário.
+    // Job sem event_id no payload precisa quebrar, não processar contra um evento arbitrário.
     throw new ErroEventoAusente(eventoId);
   }
 
   const cliente = await pool.connect();
   try {
     await cliente.query("BEGIN");
-    // Parametrizado: event_id vem de payload de job e de rota, e concatenar
-    // aqui seria injeção no lugar mais caro possível.
+    // event_id vem de payload de job e de rota — concatenar seria injeção no lugar mais caro possível.
     await cliente.query("SELECT set_config('app.event_id', $1, true)", [eventoId]);
     const resultado = await executar(cliente);
     await cliente.query("COMMIT");

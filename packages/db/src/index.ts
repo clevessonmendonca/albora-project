@@ -1,13 +1,4 @@
-/**
- * A regra que este pacote existe para impor, e que o guard de isolamento
- * verifica estaticamente desde a task 002:
- *
- * Toda tabela com dado de evento tem `event_id` NOT NULL, RLS **FORÇADO**, e
- * todo acesso passa por `comEvento()` — que abre transação e faz `SET LOCAL`.
- * Nunca `SET`, nunca `pg_advisory_lock` de sessão: o pooling em modo
- * transação devolve a conexão a cada COMMIT, e o que sobrar vaza para o
- * próximo cliente, que é outro casamento.
- */
+/** RLS forçado: toda tabela com event_id passa por `comEvento()` + `SET LOCAL` — nunca `SET`, nunca lock de sessão; pooling em modo transação vaza setting de sessão para o próximo cliente. */
 
 export const SETTING_EVENTO = "app.event_id";
 

@@ -114,10 +114,7 @@ export async function listSupportTicketsForAccount(
   });
 }
 
-/**
- * Inbox /ops: o operador lê a fila sob `app.account_id` + política
- * `ops_ticket_lista` (sem BYPASSRLS no caminho do Next).
- */
+/** Lê sob `app.account_id` + política `ops_ticket_lista` — sem BYPASSRLS no caminho do Next. */
 export async function listOpenSupportTicketsAdmin(
   pool: Pool,
   operatorAccountId: string,

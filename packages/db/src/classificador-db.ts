@@ -42,10 +42,7 @@ export async function listarUploadsPendentesDeClassificacao(
   }));
 }
 
-/**
- * Grava o veredicto só se ainda estiver nulo: o primeiro escritor ganha.
- * Retry de dois polls da parede no mesmo instante não sobrescreve.
- */
+/** Primeiro escritor ganha — `WHERE classifier_verdict IS NULL` impede que retry de dois polls simultâneos sobrescreva. */
 export async function gravarVeredictoUpload(
   cliente: PoolClient,
   uploadId: string,

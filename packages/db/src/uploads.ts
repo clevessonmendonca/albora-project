@@ -20,10 +20,7 @@ export type ResultadoConfirm =
   | { estado: "criado"; upload: LinhaUpload }
   | { estado: "ja_existia"; upload: LinhaUpload };
 
-/**
- * `ON CONFLICT DO NOTHING` + `pg_advisory_xact_lock` — retry é caminho normal; dois paralelos sem lock davam um 403
- * e a foto era descartada da fila. `event_id` vem da sessão, nunca do cliente; RLS confere em segunda camada.
- */
+/** `pg_advisory_xact_lock` — dois confirms paralelos sem lock davam 403 e a foto era descartada da fila; `event_id` vem da sessão, nunca do cliente. */
 export async function confirmarUpload(
   cliente: PoolClient,
   entrada: {
@@ -43,15 +40,7 @@ export async function confirmarUpload(
     promptKey?: string | null;
   },
 ): Promise<ResultadoConfirm> {
-  // Serializa os confirms do MESMO uploadId. Sem isto, dois retries em
-  // paralelo — o caso normal num salão com sinal ruim — davam um sucesso e um
-  // erro: o `ON CONFLICT DO NOTHING` do segundo não devolvia linha, e o SELECT
-  // seguinte não enxergava a linha do primeiro, que ainda não tinha commitado.
-  // O erro virava 403, o transporte marcava como definitivo e a foto era
-  // descartada da fila. Achado pelo arnês de carga.
-  //
-  // `xact`, nunca de sessão: o pooling em modo transação devolve a conexão a
-  // cada COMMIT, e um lock de sessão vazaria para o próximo cliente.
+  // `xact`, nunca de sessão — pooling em modo transação devolve a conexão a cada COMMIT; lock de sessão vazaria para o próximo cliente.
   await cliente.query("SELECT pg_advisory_xact_lock(hashtext($1))", [entrada.uploadId]);
 
   const returning = `id, event_id AS "eventId", session_id AS "sessionId",
@@ -93,9 +82,7 @@ export async function confirmarUpload(
 
   const existente = existentes[0];
   if (!existente) {
-    // A linha existe (o INSERT conflitou) mas não é visível: pertence a outro
-    // evento. É a RLS trabalhando, e a resposta correta é a mesma de "não
-    // existe" — dizer "já existe em outro evento" já vaza informação.
+    // RLS esconde a linha de outro evento — dizer "já existe em outro evento" vazaria informação; trata como inexistente.
     throw new ErroUploadDeOutroEvento(entrada.uploadId);
   }
 

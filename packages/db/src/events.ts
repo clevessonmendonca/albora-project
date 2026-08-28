@@ -111,8 +111,7 @@ export async function resolverSlug(
   const limite = new Date(evento.terminaEm.getTime() + HORAS_APOS_EVENTO * 3600_000);
   if (agora >= limite) return { estado: "encerrado", evento };
 
-  // Antes de começar o evento existe e é legítimo — só não é hora. A tela
-  // diz quando é, em vez de dizer que não existe.
+  // Evento existe e é legítimo — a tela diz quando começa, não que não existe.
   if (agora < evento.comecaEm) return { estado: "nao_comecou", evento };
 
   return { estado: "aberto", evento };
@@ -179,18 +178,11 @@ export type NovoEvento = {
   title?: string | null;
   /** Conferido contra `vendor_members` na transação — nunca aceito só porque o cliente mandou o id. */
   vendorId?: string;
-  /**
-   * 🔴 Precisa ser DIFERENTE de `accountId`: e-mail igual faria o fornecedor nascer owner por coincidência.
-   * Conta do casal; `accountId` entra como `planner`.
-   */
+  /** 🔴 Deve ser DIFERENTE de `accountId` — igual faria o fornecedor nascer owner por coincidência; `accountId` entra como `planner`. */
   coupleAccountId?: string;
 };
 
-/**
- * 🔴 `SET LOCAL app.account_id` duas vezes na mesma transação: `conta_evento`/`conta_membro` exige que a linha
- * case com o GUC no momento do INSERT — não há um GUC único para checar vendor_members (fornecedor) E gravar
- * events/couple (casal). `event_slugs` e `events` nascem na mesma transação — evento sem QR não existe.
- */
+/** 🔴 `SET LOCAL app.account_id` duas vezes: `conta_evento`/`conta_membro` exige GUC correto no INSERT; `event_slugs` e `events` nascem juntos — evento sem QR não existe. */
 export async function criarEvento(
   pool: Pool,
   entrada: NovoEvento,
@@ -218,11 +210,7 @@ export async function criarEvento(
     throw new ErroContaDoCasalInvalida();
   }
 
-  // 🔴 Defesa em profundidade: mesmo que a borda (admin-events.ts) deixe
-  // passar, o casal não pode ser a MESMA conta do membro do fornecedor. Sem
-  // este guard, `donoDoEvento === entrada.accountId` e o `if` abaixo nunca
-  // troca o GUC — o fornecedor nasceria owner por coincidência de e-mail, a
-  // exata fronteira que este arquivo existe para fechar.
+  // 🔴 Defesa em profundidade: mesmo com borda permissiva, casal ≠ fornecedor — e-mail igual faria fornecedor nascer owner, a fronteira que este arquivo fecha.
   if (entrada.vendorId !== undefined && entrada.coupleAccountId === entrada.accountId) {
     throw new ErroContaDoCasalInvalida();
   }
@@ -239,10 +227,7 @@ export async function criarEvento(
       if (!rowCount) throw new ErroSemAcessoAoFornecedor(entrada.vendorId);
     }
 
-    // Canal do fornecedor: o evento nasce do CASAL, não de quem clicou
-    // "criar". `conta_evento`/`conta_membro` exigem `account_id = app.account_id`
-    // no `WITH CHECK` — reseta o GUC para o dono antes de qualquer escrita
-    // que carregue essa coluna.
+    // Canal do fornecedor: evento nasce do CASAL — reseta GUC antes de qualquer escrita que `conta_evento`/`conta_membro` (WITH CHECK) valida.
     if (donoDoEvento !== entrada.accountId) {
       await c.query("SELECT set_config('app.account_id', $1, true)", [donoDoEvento]);
     }
@@ -271,10 +256,7 @@ export async function criarEvento(
         );
         const eventoId = rows[0]!.id;
 
-        // `event_share_refs` está sob a mesma política de isolamento comum
-        // (event_id via NULLIF), mas `criarEvento` roda em `comConta`
-        // (app.account_id) — o GUC de evento precisa existir antes desta e de
-        // qualquer outra escrita RLS-por-evento nesta transação.
+        // `criarEvento` roda em `comConta` — event_id GUC precisa existir antes de qualquer escrita RLS-por-evento nesta transação.
         await c.query("SELECT set_config('app.event_id', $1, true)", [eventoId]);
 
         await c.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [slug, eventoId]);
@@ -288,9 +270,7 @@ export async function criarEvento(
         );
 
         if (entrada.vendorId !== undefined) {
-          // `app.account_id` volta pro membro do fornecedor — a mesma linha de
-          // `conta_membro` que valeu pro `couple` acima exige account_id =
-          // app.account_id também aqui, e agora a linha é a do fornecedor.
+          // `conta_membro` (WITH CHECK) exige account_id = app.account_id — reseta GUC pro membro do fornecedor antes do INSERT.
           await c.query("SELECT set_config('app.account_id', $1, true)", [entrada.accountId]);
           await c.query(
             `INSERT INTO event_members (event_id, account_id, role)

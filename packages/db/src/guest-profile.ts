@@ -7,16 +7,7 @@ export type PerfilConvidado = {
   nome: string;
 };
 
-/**
- * O nome do dono de um `sessaoAutor` do feed, visto pelos olhos de quem lê —
- * a base do perfil que abre quando o convidado toca no autor de uma foto.
- *
- * Devolve `null` quando o id não existe neste evento (RLS já garante isso: a
- * linha de outra festa nem aparece) ou quando há bloqueio simétrico entre
- * quem lê e quem é dono — a mesma regra que já esconde as fotos dele do feed,
- * repetida aqui para que o perfil não vaze pelo cabeçalho o que a grade já
- * recusa a mostrar.
- */
+/** Bloqueio simétrico filtra aqui também — o perfil não pode vazar pelo cabeçalho o que a grade do feed já recusa a mostrar. */
 export async function perfilDoConvidado(
   cliente: PoolClient,
   entrada: { eventoId: string; autorId: string; leitorId: string },

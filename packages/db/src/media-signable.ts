@@ -4,22 +4,7 @@ function fullKeyFromAny(key: string): string {
   return key.endsWith("/thumb") ? `${key.slice(0, -"/thumb".length)}/full` : key;
 }
 
-/**
- * Retorna o subconjunto das chaves de armazenamento que podem receber URL
- * assinada de leitura.
- *
- * Duas condições precisam ser verdadeiras ao mesmo tempo:
- * 1. `events.panic = false` — pânico bloqueia qualquer emissão no evento.
- * 2. O upload correspondente a cada chave (normalizada thumb→full) existe com
- *    `state = 'published'` visível sob a transação já escopada por `comEvento`.
- *
- * Ausência de upload e remoção são propositalmente indistinguíveis no retorno:
- * o chamador trata qualquer chave fora do conjunto como inválida, sem revelar
- * qual condição disparou o bloqueio.
- *
- * As chaves no retorno estão na forma original (full ou thumb) — não
- * normalizadas — para que a comparação com o pedido original seja direta.
- */
+/** Ausência de upload e remoção são intencionalmente indistinguíveis — chave fora do conjunto é inválida sem revelar qual condição disparou o bloqueio. */
 export async function signableKeys(
   cliente: PoolClient,
   eventoId: string,

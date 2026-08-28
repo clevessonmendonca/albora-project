@@ -94,12 +94,7 @@ export async function lerFunilAgregado(
   };
 }
 
-/**
- * Quantos `share` este evento teve (spec A1) — `share` já é gravado por
- * `registrarEventoDoFunil`, não é evento único, repete por foto. Índice
- * dedicado em `(event_id, name)` (migration 0039): sem ele o filtro por
- * `name` varre toda a tabela via o FK implícito de `event_id`.
- */
+/** `share` repete por foto; índice `(event_id, name)` (migration 0039) — sem ele o filtro por `name` varre a tabela inteira. */
 export async function contarSharesDoEvento(cliente: PoolClient, eventoId: string): Promise<number> {
   const { rows } = await cliente.query<{ n: number }>(
     `SELECT count(*)::int AS n FROM funnel_events WHERE event_id = $1 AND name = 'share'`,

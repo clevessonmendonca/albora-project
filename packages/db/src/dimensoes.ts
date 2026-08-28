@@ -1,11 +1,4 @@
-/**
- * Par de dimensões persistido em `uploads.width` / `uploads.height`.
- *
- * Um lado só não serve: misturar largura real com altura padrão vira paisagem
- * no slot de retrato e corta cabeça. Ausente — fila antiga, decoder mudo —
- * quem lê decide o fallback. O álbum assume retrato; feed e parede omitem e
- * medem no cliente.
- */
+/** Um lado só não serve — largura real com altura padrão vira paisagem no slot de retrato e corta cabeça; ausente, quem lê decide o fallback. */
 
 export const LARGURA_PADRAO = 1080;
 export const ALTURA_PADRAO = 1920;
