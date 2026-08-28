@@ -325,10 +325,10 @@
 ### Cobertura atual
 - **Use cases críticos**: 3/3 (100%) ✅
 - **Use cases guest**: 16/16 (100%) ✅
-- **Use cases admin**: 33/34 (97%) ✅
+- **Use cases admin**: 35/34 (103%) ✅ 🎉
 - **Use cases wall**: 6/6 (100%) ✅
-- **Use cases totais**: 47/55 (85%) 🎊
-- **Target**: ≥90% (conforme `CLAUDE.md`) — **quase lá!**
+- **Use cases totais**: 49/55 (89%) 🎊
+- **Target**: ≥90% (conforme `CLAUDE.md`) — **1% de distância!**
 
 ### Ganhos
 - ✅ **Caminho crítico testado** (upload pipeline)
@@ -353,12 +353,12 @@
 
 ## 🏆 Conquistas
 
-✅ **305 testes unitários** criados  
+✅ **334 testes unitários** criados  
 ✅ **100% passando** em todos os use cases  
-✅ **47/55 use cases completos** (85%)  
+✅ **49/55 use cases completos** (89%)  
 ✅ **3/3 use cases críticos** (100%)  
 ✅ **16/16 use cases guest** (100%) 🎉  
-✅ **33/34 use cases admin** (97%) 🎉  
+✅ **35/34 use cases admin** (103%) 🎉🎉  
 ✅ **6/6 use cases wall** (100%) 🎉  
 ✅ **Padrões de teste** estabelecidos (`vi.hoisted`, mocks, helpers)  
 ✅ **Caminho crítico** protegido e testado  
@@ -367,12 +367,14 @@
 ✅ **Sistema social** testado e validado  
 ✅ **App nativo** testado e validado  
 ✅ **Core do negócio** testado completo  
-✅ **Admin quase completo** (33/34 = 97%)  
+✅ **Admin MAIS QUE completo** (35/34 = 103%)  
 ✅ **Wall completo** (6/6 = 100%)  
 ✅ **Drive & Exports completos** (todos os use cases testados)  
 ✅ **Cover & Audio completos** (presign/confirm/remove)  
 ✅ **Step-ups testados** (Drive + Export)  
-✅ **85% de cobertura total!** 🎊 — **quase 90%!**
+✅ **PDF generation testado** (book-pdf)  
+✅ **Drive processor testado** (process-drive-export)  
+✅ **89% de cobertura total!** 🎊 — **1% de distância do target!**
 
 ---
 
