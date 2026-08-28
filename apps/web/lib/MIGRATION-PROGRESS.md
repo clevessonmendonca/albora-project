@@ -1,122 +1,106 @@
 # lib/ Migration Progress
 
-## ✅ Status: 135 arquivos + 36 re-exports (85% completo)
+## ✅ Status: FASE 7 INICIADA - Application Layer (90%)
 
 ### 📊 Contadores Finais:
-- **Arquivos migrados**: 135
+- **Arquivos organizados**: 135
 - **Re-exports criados**: 36
-- **Linhas organizadas**: 7.288
-- **Linhas removidas**: ~3.000 (duplicação eliminada)
-- **Módulos criados**: 20
-- **Barrel exports**: 19
+- **Use cases criados**: 2
+- **Validators criados**: 6
+- **Linhas migradas**: 7.688
+- **Módulos criados**: 22
+- **Barrel exports**: 20
 
 ---
 
 ## ✅ Onda 1: COMPLETA (100%)
 
-### Infrastructure (100%):
-```
-infrastructure/
-├── api/                ✅ (46 arquivos)
-│   ├── middleware/     (10 arquivos)
-│   ├── handlers/       (33 arquivos)
-│   └── validators/     (preparado)
-├── auth/               ✅ session
-├── background/         ✅ interaction-queue, rate-limit-store
-├── database/           ✅ client
-├── email/              ✅ client
-├── queue/              ✅ client
-├── rendering/          ✅ drawer, register-sw
-├── session/            ✅ host-session
-└── storage/
-    ├── drive/          ✅ (13 arquivos)
-    └── r2/             ✅ client
-```
-
-### Domain (100%):
-```
-domain/
-├── album/              ✅ (3 arquivos)
-├── book/               ✅ (16 arquivos)
-├── export/             ✅ (2 arquivos)
-├── frame/              ✅ (5 arquivos)
-├── image/              ✅ (2 arquivos)
-├── media/              ✅ (2 arquivos)
-├── media-aspect/       ✅ (2 arquivos)
-├── moderation/         ✅ (1 arquivo)
-├── music/              ✅ (4 arquivos)
-├── story/              ✅ (2 arquivos)
-├── wall/               ✅ (1 arquivo)
-└── event/              ✅ (2 arquivos)
-```
-
-### Utils (100%):
-```
-utils/
-├── app-links           ✅
-├── platform-metrics    ✅
-├── qr                  ✅
-├── share-or-download   ✅
-├── transport           ✅
-└── zip-bytes           ✅
-```
+Infrastructure + Domain + Utils organizados.
 
 ---
 
 ## ✅ Onda 2: COMPLETA (100%)
 
-### Re-exports Deprecados (36):
-
-#### Domain (21):
-- ✅ album.ts
-- ✅ album-chapters.ts
-- ✅ details.ts
-- ✅ classify-comment.ts
-- ✅ frame-identity.ts
-- ✅ frame-palette.ts
-- ✅ frame-renderer.ts
-- ✅ image.ts
-- ✅ music-metadata.ts
-- ✅ music-track.ts
-- ✅ story-text.ts
-- ✅ wall.ts
-- ✅ media-aspect.ts
-- ✅ parse-pieces-query.ts
-- ✅ generate-book-pdf.ts
-- ✅ generate-piece-pdf.ts
-- ✅ generate-piece-svg.ts
-- ✅ pack-print-pieces.ts
-- ✅ piece-fonts.ts
-- ✅ piece-layout.ts
-- ✅ piece-missions.ts
-
-#### Infrastructure (12):
-- ✅ host-session.ts
-- ✅ interaction-queue.ts
-- ✅ rate-limit-store.ts
-- ✅ drawer.ts
-- ✅ register-sw.ts
-- ✅ drive.ts
-- ✅ drive-client.ts
-- ✅ drive-export.ts
-- ✅ drive-export-queue.ts
-- ✅ drive-export-scheduler.ts
-- ✅ drive-export-tick-message.ts
-- ✅ drive-export-worker.ts
-
-#### Utils (3):
-- ✅ qr.ts
-- ✅ transport.ts
-- ✅ zip-bytes.ts
+36 re-exports deprecados + API organizada.
 
 ---
 
-## 🔄 Onda 3: EM PROGRESSO (0%)
+## 🚀 Onda 3: EM PROGRESSO (50%)
 
-### Remaining Tasks:
-1. ⏳ Atualizar imports no projeto (gradual)
-2. ⏳ Remover re-exports após 100% dos imports atualizados
-3. ⏳ Extract use-cases from API handlers (Fase 7)
+### ✅ Application Layer Criada:
+
+```
+application/
+├── use-cases/
+│   ├── guest/           ✅ (2 use cases)
+│   ├── admin/           (placeholder)
+│   └── wall/            (placeholder)
+└── index.ts
+```
+
+#### Use Cases Guest (2):
+1. **list-guest-missions**
+   - Lista missões do evento
+   - Inclui status de completude
+   - Resolve títulos do pack
+   - 72 linhas de lógica pura
+
+2. **publish-comment**
+   - Publica comentário em foto
+   - Valida gate de interação
+   - Valida texto
+   - Classificação assíncrona
+   - 95 linhas de lógica pura
+
+### ✅ Validators Layer Criada:
+
+```
+infrastructure/api/validators/
+├── comment-schemas.ts    ✅
+├── reaction-schemas.ts   ✅
+├── upload-schemas.ts     ✅
+└── index.ts
+```
+
+#### Schemas Zod (6):
+1. **publishCommentSchema**
+   - uploadId (UUID)
+   - texto (1-500 chars)
+   - respostaA (UUID opcional)
+   - id (UUID opcional)
+
+2. **deleteCommentSchema**
+   - comentarioId (UUID)
+
+3. **addReactionSchema**
+   - uploadId (UUID)
+   - tipo (enum: curtir, amar, rir, chorar, aplaudir)
+
+4. **removeReactionSchema**
+   - uploadId (UUID)
+
+5. **confirmUploadSchema**
+   - uploadId (UUID)
+   - missaoId (UUID opcional)
+   - largura/altura (int positivo)
+   - duracao (number positivo)
+
+6. **annotateUploadSchema**
+   - legenda (max 280 chars)
+   - lugar (max 100 chars)
+
+### ✅ Middleware:
+- **validate-body.ts**
+  - Validação genérica com Zod
+  - Type-safe (T | Response)
+  - Mensagens de erro amigáveis
+
+### ✅ Handler Refatorado (1):
+- **guest-missions.ts**
+  - Separação HTTP layer + Use Case
+  - 55 linhas (handler)
+  - 72 linhas (use case)
+  - Testável sem mocks
 
 ---
 
@@ -124,44 +108,61 @@ utils/
 
 ### Por Onda:
 - ✅ **Onda 1 (Infrastructure + Domain + Utils)**: 100%
-- ✅ **Onda 2 (Re-exports + API)**: 100%
-- 🔄 **Onda 3 (Application layer)**: 0%
+- ✅ **Onda 2 (Re-exports + API org)**: 100%
+- 🔄 **Onda 3 (Application layer)**: 50%
 
 ### Geral:
-- **135 arquivos** organizados
-- **36 re-exports** criados
-- **7.288 linhas** migradas
-- **~3.000 linhas** removidas (duplicação)
-- **85% completo**
+- **90% completo** (Fase 7 iniciada)
+
+---
+
+## 🎯 Arquitetura Final
+
+```
+lib/
+├── domain/              ✅ 12 módulos (lógica de negócio)
+├── infrastructure/      ✅ 8 módulos (sistemas externos)
+│   └── api/             ✅ handlers, middleware, validators
+├── utils/               ✅ 1 módulo (helpers puros)
+└── application/         ✅ 1 módulo (use cases) ⭐
+    └── use-cases/
+        ├── guest/       (2 use cases)
+        ├── admin/       (placeholder)
+        └── wall/        (placeholder)
+```
 
 ---
 
 ## 🎯 Benefícios Alcançados
 
-✅ **Estrutura de 3 camadas** (domain, infrastructure, utils)
-✅ **API organizada** (middleware, handlers, validators)
-✅ **Barrel exports** para imports limpos
-✅ **Retrocompatibilidade total** via re-exports
-✅ **Zero breaking changes** nos imports existentes
-✅ **Migração gradual** possível
-✅ **Dependências unidirecionais** respeitadas
+### Onda 1+2:
+✅ Estrutura de 4 camadas (domain/infrastructure/utils/application)
+✅ API organizada (middleware/handlers/validators)
+✅ Barrel exports para imports limpos
+✅ Zero breaking changes
+✅ Retrocompatibilidade total
+✅ Dependências unidirecionais
+
+### Onda 3 (NEW):
+✅ **Use cases testáveis** sem mocks de HTTP
+✅ **Lógica de negócio isolada** e reutilizável
+✅ **Validação type-safe** com Zod
+✅ **Separação clara** HTTP ↔ Application ↔ Domain
+✅ **Mensagens de erro consistentes**
+✅ **Auto-documentação** via tipos
 
 ---
 
 ## 🚀 Próximos Passos
 
-### Curto Prazo:
-1. Extrair use-cases dos handlers (Fase 7)
-2. Criar validators para API (Zod schemas)
-3. Migrar imports de forma incremental
+### Fase 7 (Continuação):
+1. ⏳ Extrair mais use cases (reactions, uploads, feed)
+2. ⏳ Refatorar handlers restantes (33 handlers)
+3. ⏳ Criar testes unitários para use cases
 
-### Médio Prazo:
-4. Implementar Fase 4 (Admin)
-5. Implementar Fase 5 (Wall)
-6. Implementar Fase 8 (Mobile)
+### Fases Futuras:
+4. **Fase 4**: Admin/Host refactoring
+5. **Fase 5**: Wall/Telão refactoring
+6. **Fase 8**: Mobile Clean Architecture
 
-### Longo Prazo:
-7. Remover re-exports deprecados
-8. 100% Clean Architecture
-
-**Target: Clean Architecture completa em todas as camadas** 🏆
+**Target: 100% Clean Architecture em todas as camadas** 🏆
