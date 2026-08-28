@@ -82,10 +82,7 @@ export async function sweepDriveExportJobs(pool: Pool, limite = 20): Promise<{ t
   return { ticks: jobs.length, fechados };
 }
 
-/**
- * Agenda processamento após POST do admin — fila/HTTP em prod, background no
- * dev server quando não há binding nem APP_URL.
- */
+/** Agenda processamento após POST do admin: fila/HTTP em prod, background no dev server sem binding nem APP_URL. */
 export async function scheduleDriveExportProcessing(
   pool: Pool,
   message: DriveExportTickMessage,

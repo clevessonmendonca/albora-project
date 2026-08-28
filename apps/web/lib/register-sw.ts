@@ -1,12 +1,6 @@
 import { TAG_DRENAGEM } from "../sw/tag";
 
-/**
- * Registra o Service Worker e pede a drenagem em segundo plano (N6.2).
- *
- * **Nunca lança.** É o passo 2 do §3.1 e roda atrás da tela do QR: o caminho
- * da primeira foto continua inteiro sem Service Worker nenhum, e um erro aqui
- * viraria uma tela de falha antes de o convidado ter feito qualquer coisa.
- */
+/** Registra o SW e pede drenagem em segundo plano (N6.2); nunca lança — caminho da primeira foto continua sem SW, e um erro viraria tela de falha antes de o convidado fazer qualquer coisa. */
 
 type GerenciadorDeSincronia = { register(tag: string): Promise<void> };
 
@@ -22,11 +16,7 @@ export async function registerServiceWorker(): Promise<void> {
   }
 }
 
-/**
- * Por capacidade, nunca por user-agent: quem não tem Background Sync não
- * recebe erro, e quem passar a ter ganha o recurso sem trocar esta linha. No
- * iOS a fila sobe na próxima abertura, pelo laço da própria aba (N6.2).
- */
+/** Por capacidade, nunca por user-agent: quem não tem Background Sync não recebe erro; iOS sobe na próxima abertura pelo laço da aba (N6.2). */
 async function pedirDrenagemEmSegundoPlano(registro: ServiceWorkerRegistration): Promise<void> {
   if (!("sync" in registro)) return;
 

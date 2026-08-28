@@ -13,12 +13,7 @@ export function missionCap(formato: PieceFormat): number {
   return 0;
 }
 
-/**
- * Títulos prontos para imprimir, na ordem do editor.
- *
- * Só aceita chave de vocabulário do pack — o mesmo conjunto do editor de
- * missões. Texto livre e chave de outro pack caem fora: a placa não inventa.
- */
+/** Títulos para imprimir, na ordem do editor: só chave de vocabulário do pack; texto livre e chave de outro pack caem fora — a placa não inventa. */
 export function missionTitlesForPrint(pack: Pack | undefined, keys: readonly string[]): string[] {
   if (!pack) return [];
   const titles: string[] = [];

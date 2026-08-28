@@ -137,10 +137,7 @@ describe("validade da URL", () => {
   });
 });
 
-/**
- * `config()` memoíza só quando passa, e por isso o caso que **não** lança vem
- * por último: depois dele os stubs de ambiente já não têm efeito.
- */
+/** `config()` memoíza só quando passa — o caso que NÃO lança vem por último: depois dele os stubs de ambiente não têm efeito. */
 describe("mídia nunca sai da origem da aplicação", () => {
   afterEach(() => vi.unstubAllEnvs());
 

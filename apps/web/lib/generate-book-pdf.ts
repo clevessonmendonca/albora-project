@@ -53,9 +53,7 @@ export type BookPdfResult = {
   semFotos: number;
 };
 
-/**
- * PDF sRGB do livro curado — uma página A4 por `Pagina` do núcleo.
- */
+/** PDF sRGB do livro curado: uma página A4 por `Pagina` do núcleo. */
 export async function generateBookPdf(input: BookPdfInput): Promise<BookPdfResult> {
   const plans = planBook(input.album, input.tituloDoCapitulo);
   const faces = loadPrintFonts();

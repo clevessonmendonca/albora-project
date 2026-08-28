@@ -1,20 +1,6 @@
 import type { QueueDetails, Queue, QueueItem } from "@albora/core";
 
-/**
- * Adaptador web da fila: IndexedDB direto, sem wrapper.
- *
- * O contrato vive em `@albora/core` e o app Expo terá o seu, sobre SQLite mais
- * sistema de arquivos (ADR 0010). O que não pode existir é uma terceira versão
- * da *lógica* — a fila é a fonte da verdade do produto, e duas fontes divergem
- * em silêncio.
- *
- * Sem biblioteca de abstração por decisão: a fila é a peça que decide a H1,
- * e uma camada a mais entre ela e o navegador é uma camada a mais para
- * comportar-se diferente no Safari de um iPhone de 2019.
- *
- * `DB_NAME` / `STORE` são strings persistidas. Trocar o valor esvazia a fila
- * offline do convidado.
- */
+/** Adaptador web da fila: IndexedDB direto, sem wrapper — camada a mais entre a fila e o navegador é mais uma chance de comportar-se diferente no Safari de 2019. `DB_NAME`/`STORE` são persistidos: trocar esvazia a fila offline. */
 
 const DB_NAME = "albora-fila";
 const VERSION = 1;

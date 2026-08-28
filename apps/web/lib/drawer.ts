@@ -10,16 +10,7 @@ import {
 } from "@albora/core";
 import { desenharTextoNoContexto, estiloTextoDoStory } from "./story-text";
 
-/**
- * O `Desenhista` da web. Camada fina de propósito.
- *
- * Toda decisão — qual orientação aplicar, qual tamanho, em que ordem — já foi
- * tomada e testada em `@albora/core`. Aqui só se desenha. É o que permite ao
- * app Expo ter o seu equivalente sem reabrir nenhuma daquelas decisões.
- *
- * ⚠️ Esta é a única parte do pipeline que não tem teste automatizado: pixel
- * só se verifica com olho em aparelho. A prova está no runbook da task 004.
- */
+/** `Desenhista` da web: camada fina — toda decisão já tomada em `@albora/core`; aqui só se desenha. ⚠️ Sem teste automatizado — pixel só se verifica com olho em aparelho (runbook task 004). */
 
 type Img = Bitmap & { bitmap: ImageBitmap };
 
@@ -42,10 +33,7 @@ function contexto(largura: number, altura: number) {
   return { canvas: canvas as OffscreenCanvas, ctx };
 }
 
-/**
- * `transferToImageBitmap` só existe no `OffscreenCanvas`. No Safari antigo,
- * onde `contexto` cai para um `<canvas>` de elemento, o caminho é o assíncrono.
- */
+/** `transferToImageBitmap` só existe no `OffscreenCanvas` — Safari antigo cai para `<canvas>` de elemento, usa o caminho assíncrono. */
 function paraBitmap(canvas: OffscreenCanvas): Promise<ImageBitmap> {
   return canvas.transferToImageBitmap
     ? Promise.resolve(canvas.transferToImageBitmap())

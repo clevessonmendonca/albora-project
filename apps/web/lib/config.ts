@@ -1,10 +1,4 @@
-/**
- * Config validada na entrada, não no primeiro uso.
- *
- * Falta de segredo tem de quebrar onde se lê o log de deploy, não no meio de
- * um upload de sábado às 20h. E `SESSION_SECRET` ausente é pior que erro: o
- * token passaria a ser forjável e nada no comportamento denunciaria.
- */
+/** Config validada na entrada: falta de segredo quebra no log de deploy, não no upload de sábado; `SESSION_SECRET` ausente é pior que erro — token forjável sem nenhum sintoma. */
 
 export type Config = {
   sessionSecret: string;
@@ -62,18 +56,7 @@ export function config(): Config {
   return c;
 }
 
-/**
- * Recusa subir se a mídia puder sair da origem da aplicação.
- *
- * Arquivo de convidado servido da origem do app roda com os cookies do app:
- * é XSS armazenado com alcance de festa inteira (§4.3 de `docs/security.md`).
- * Subdomínio do domínio raiz conta como a mesma coisa, porque cada evento é um
- * `<slug>.<raiz>` — um domínio de mídia ali colide com o slug de mesmo nome e
- * **se torna** a origem do app.
- *
- * `MEDIA_DOMAIN` ainda não assina nada nesta fase, e é conferido de todo jeito:
- * o guard tem de existir antes do dia em que alguém ligar o knob, não depois.
- */
+/** Guard de `MEDIA_DOMAIN`: mídia na origem do app roda com os cookies do app → XSS com alcance de festa inteira (§4.3); subdomínio da raiz também é bloqueado — `<slug>.<raiz>` colidiria com o app. Guard ativo antes de ligar o knob. */
 function checkOriginSeparation(mediaOrigin: string): void {
   const root = parseHost(process.env.APP_ROOT_DOMAIN ?? "");
   const declared = parseHost(process.env.MEDIA_DOMAIN ?? "");
@@ -91,10 +74,7 @@ function checkOriginSeparation(mediaOrigin: string): void {
   }
 }
 
-/**
- * Só o host, em minúsculas e sem porta: cookie não é escopado por porta, então
- * mesma máquina em porta diferente é a mesma origem para o que interessa aqui.
- */
+/** Host em minúsculas sem porta: cookie não é escopado por porta — porta diferente é a mesma origem para o que importa aqui. */
 function parseHost(value: string): string {
   return value
     .trim()

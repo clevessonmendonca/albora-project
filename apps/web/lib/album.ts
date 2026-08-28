@@ -11,26 +11,9 @@ import { chapterTitle, planAlbumChapters } from "./album-chapters";
 import { getPool } from "./db";
 import { signGet } from "./r2";
 
-/**
- * A montagem servida do álbum da noite (spec 016).
- *
- * O servidor **nunca serve mídia**: assina URLs de leitura e o navegador busca
- * os bytes direto no object storage. A montagem é derivada — corre
- * `montarAlbum()` do `@albora/core` sobre a mídia publicada do evento, e o
- * núcleo é a única fonte da diagramação por slots. Os capítulos da noite
- * saem dos momentos do pack, fatiados na janela do evento — `taken_at` já
- * está no upload; não há segundo pipeline de captura. Mídia com `promptKey`
- * (confessionário) vira capítulo virtual no núcleo, com título via pack.
- *
- * O que sai daqui não carrega contagem de reação (verificação 5 da spec: sem
- * contagem visível), nem a chave de storage, nem nome de convidado. O que o
- * cliente recebe é onde cada foto entra na página e a URL para buscá-la.
- */
+/** Montagem do álbum (spec 016): servidor assina URLs, navegador busca direto no storage; núcleo é a única fonte de diagramação; sem reação, chave ou nome na resposta. */
 
-/**
- * Validade da URL de leitura, igual à do lote da mídia. O cliente renova o
- * álbum inteiro de uma vez quando `expiraEm` passa.
- */
+/** Validade da URL de leitura, igual ao lote de mídia — cliente renova o álbum inteiro quando `expiraEm` passa. */
 export const GET_URL_TTL_SECONDS = 900;
 
 export type ServedSlot = { id: string; proporcao: string; fracao: number };
