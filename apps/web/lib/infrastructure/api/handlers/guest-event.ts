@@ -1,15 +1,15 @@
-import { carregarEventoPublico, withEvent } from "@albora/db";
 import {
-  enforceRateLimit,
   errorResponse,
   jsonOk,
   requireGuestSession,
   unexpectedError,
+  enforceRateLimit,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
+import { getGuestEvent } from "@/lib/application/use-cases/guest";
 
 /** Tema do evento para o app Expo (pack, identidade, brand_tokens): eventoId vem só da sessão, nunca do query string. */
-export async function getGuestEvent(req: Request) {
+export async function getGuestEventHandler(req: Request) {
   const auth = await requireGuestSession(req);
   if (auth instanceof Response) return auth;
 
@@ -20,8 +20,9 @@ export async function getGuestEvent(req: Request) {
   if (limited) return limited;
 
   try {
-    const evento = await withEvent(getPool(), auth.session.eventoId, (c) =>
-      carregarEventoPublico(c, auth.session.eventoId),
+    const evento = await getGuestEvent(
+      { eventoId: auth.session.eventoId },
+      () => getPool().connect(),
     );
 
     if (!evento) {

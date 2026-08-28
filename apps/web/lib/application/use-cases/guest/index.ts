@@ -62,3 +62,9 @@ export {
   type ConfirmUploadInput,
   type ConfirmUploadResult,
 } from "./confirm-upload";
+
+export {
+  getGuestEvent,
+  type GetGuestEventInput,
+  type GuestEventOutput,
+} from "./get-guest-event";
