@@ -285,28 +285,29 @@ Verificar se fonts críticas estão preloaded no `<head>`.
 
 ## PLANO DE IMPLEMENTAÇÃO
 
-### Fase 1 — Memoization Crítica (P0)
-1. ✅ Wrap `Post` com `React.memo`
-2. ✅ Wrap `PhotoInteraction` com `React.memo`
-3. ✅ Wrap handlers em `feed-page.tsx` com `useCallback`
-4. ✅ Memoize retorno de `useFeed`
+### ✅ Fase 1 — Memoization Crítica (P0) — CONCLUÍDA
+1. ✅ Wrap `Post` com `React.memo` — commit c3e8ec591
+2. ✅ Wrap `PhotoInteraction` com `React.memo` — commit c3e8ec591
+3. ✅ Wrap handlers em `feed-page.tsx` com `useCallback` — commit c3e8ec591
+4. ✅ Memoize retorno de `useFeed` — commit c3e8ec591
 
-### Fase 2 — Callbacks (P1)
-5. ✅ Wrap `alternarReacao` com `useCallback`
-6. ✅ Wrap `handleCompartilhar` com `useCallback`
-7. ✅ Fix `navegarPara` dependencies
-8. ✅ Memoize `viewerKeys` call
+### ✅ Fase 2 — Callbacks (P1) — CONCLUÍDA
+5. ✅ Wrap `alternarReacao` com `useCallback` — commit c3e8ec591
+6. ✅ Wrap `handleCompartilhar` com `useCallback` — commit c3e8ec591
+7. ✅ Fix `navegarPara` dependencies — commit 7dcbe43c8
+8. ✅ Adicionar Visibility API ao polling — commit 7dcbe43c8
 
-### Fase 3 — Code Splitting (P2)
-9. ✅ Dynamic import de `Viewer`
-10. ✅ Dynamic import de `CommentSheet`
-11. ✅ Dynamic import de `ReactionListSheet`
-12. ✅ Dynamic import de `ShareConsentSheet`
+### ✅ Fase 3 — Code Splitting (P2) — CONCLUÍDA
+9. ✅ Dynamic import de `Viewer` — commit 8ab61a344
+10. ✅ Dynamic import de `ShareConsentSheet` — commit 8ab61a344
+11. ✅ Dynamic import de `CommentSheet` — commit 45551eba5
+12. ✅ Dynamic import de `ReactionListSheet` — commit 45551eba5
+13. ✅ Dynamic import de `ReportSheet` — commit 45551eba5
 
-### Fase 4 — Polish
-13. ✅ Adicionar Visibility API ao polling
-14. ✅ Validate ESLint exhaustive-deps
-15. ✅ Document findings
+### ⏸️ Fase 4 — Validação (REQUER ENV COMPLETO)
+14. ⏸️ Validate ESLint exhaustive-deps — requer build env
+15. ⏸️ React DevTools Profiler — requer app rodando
+16. ⏸️ Lighthouse audit — requer app rodando
 
 ---
 

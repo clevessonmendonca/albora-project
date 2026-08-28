@@ -196,7 +196,10 @@ function LinhaComentario({
           <button
             type="button"
             disabled={comentarios.publicando}
-            onClick={() => void comentarios.remover(comentario.id)}
+            onClick={() => {
+              void comentarios.remover(comentario.id);
+              announce("Comentário removido");
+            }}
             className={`${CLASSE_ACAO_SECUNDARIA} disabled:cursor-default`}
           >
             Remover
