@@ -1,9 +1,6 @@
 import type { VendorPlan } from "@albora/db";
 
-/**
- * Porta de cobrança — Asaas atrás desta interface para trocar depois.
- * Fora do caminho crítico de sábado: checkout e webhook só.
- */
+/** Porta de cobrança — Asaas atrás desta interface; fora do caminho crítico: checkout e webhook só. */
 
 export type CheckoutPlan = "celebration" | "vendor";
 
@@ -31,11 +28,7 @@ export type WebhookPaymentEvent = {
   status: "CONFIRMED" | "RECEIVED" | "OVERDUE" | "REFUNDED" | "DELETED" | "OTHER";
 };
 
-/**
- * Assinatura do fornecedor — Modelo A (tipo Gathmo, spec §4.1). Sem split de
- * gateway: o fornecedor paga um plano fixo mensal à plataforma; ele cobra o
- * casal por fora, no canal dele.
- */
+/** Assinatura do fornecedor — Modelo A (spec §4.1); sem split: fornecedor paga plano fixo e cobra o casal por fora. */
 export type CreateVendorSubscriptionInput = {
   vendorId: string;
   accountId: string;
@@ -79,13 +72,7 @@ export type BillingProvider = {
 
 export const CELEBRATION_PRICE_CENTS = 19900;
 
-/**
- * Preço mensal por tier do fornecedor (Modelo A, assinatura fixa — spec
- * §4.1/§4.4). Valores provisórios de MVP, mesma disciplina de
- * `CELEBRATION_PRICE_CENTS`: nenhuma decisão de precificação definitiva foi
- * tomada em `docs/product/`; ajustar aqui não exige migration nem mudança de
- * schema.
- */
+/** Preço mensal por tier (Modelo A, §4.1/§4.4) — provisório de MVP; ajustar aqui não exige migration. */
 export const VENDOR_PLAN_PRICE_CENTS: Record<VendorPlan, number> = {
   starter: 9900,
   studio: 24900,

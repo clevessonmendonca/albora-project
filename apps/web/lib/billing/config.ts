@@ -1,9 +1,4 @@
-/**
- * Env Asaas:
- * - ASAAS_API_KEY — obrigatória fora de stub; sem ela em APP_ENV=dev usa stub local
- * - ASAAS_SANDBOX — "0" = API de produção; qualquer outro valor (ou ausente) = sandbox
- * - ASAAS_WEBHOOK_TOKEN — header asaas-access-token; obrigatório fora de stub
- */
+/** Env Asaas: ASAAS_API_KEY obrigatória fora de stub; ASAAS_SANDBOX "0"=prod (ausente=sandbox seguro); ASAAS_WEBHOOK_TOKEN=header asaas-access-token. */
 
 export type AsaasEnvConfig = {
   apiKey: string;

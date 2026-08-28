@@ -1,9 +1,4 @@
-/**
- * Aspecto a partir do par persistido no confirm.
- *
- * Sem par, a tela decide o fallback (4:5 no feed; o telão mede no cliente).
- * Inventar 1080×1920 aqui faria vídeo deitado parecer em pé.
- */
+/** Aspecto a partir do par persistido no confirm — sem par a tela decide o fallback; inventar 1080×1920 aqui faria vídeo deitado parecer em pé. */
 export function persistedSize(
   largura: number | undefined,
   altura: number | undefined,

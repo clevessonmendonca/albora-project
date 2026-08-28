@@ -1,13 +1,4 @@
-/**
- * Entrega de e-mail ao anfitrião. Resend já está no template de ambiente
- * para o magic link; o aviso de "baixar tudo" reusa o mesmo canal.
- *
- * Sem `RESEND_API_KEY` o envio degrada: o job e o download autenticado
- * continuam. Falha de e-mail nunca derruba o export — terceiro fora do
- * caminho crítico.
- *
- * 🔴 Nunca logar o endereço. E-mail é PII.
- */
+/** Entrega de e-mail via Resend; sem RESEND_API_KEY degrada (job e download continuam) — terceiro fora do crítico. E-mail é PII: nunca logar o endereço. */
 
 export type HostEmail = {
   to: string;

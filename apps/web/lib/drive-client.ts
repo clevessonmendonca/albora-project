@@ -1,16 +1,4 @@
-/**
- * Toda chamada à API do Google fica atrás desta interface (CLAUDE.md,
- * instrução do mantenedor) — nos testes, mock no boundary (um objeto que
- * implementa `DriveClient`), nunca chamada de rede real, nunca token real.
- *
- * Escopo mínimo `drive.file` (spec §1.2): o app só cria e edita o que ele
- * mesmo criou — nunca lista, nunca lê, nunca apaga o que já existia no Drive
- * do casal antes de conectar.
- *
- * Nunca loga token, e-mail do Google, código de autorização, ou corpo de
- * resposta do token endpoint (spec §2/§8) — só código de erro do Google
- * (`invalid_grant`, `storageQuotaExceeded`, etc.) e contagens.
- */
+/** DriveClient: toda chamada à API do Google aqui — mock no boundary nos testes; escopo mínimo `drive.file`; nunca loga token, e-mail ou código de autorização. */
 
 export type DriveTokens = {
   accessToken: string;

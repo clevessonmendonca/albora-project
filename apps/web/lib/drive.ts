@@ -3,12 +3,7 @@ import { VaultDeTokenDrive } from "@albora/db";
 import { driveConfig } from "./drive-config";
 import { googleDriveClient, type DriveClient } from "./drive-client";
 
-/**
- * Fiação da camada de Drive — memoizada como `getPool()`, mas só construída
- * depois que `driveConfig()` já validou os segredos (chamador chama
- * `requireDriveConfig` antes). `keyVersion` fixo em 1 por ora: rotação
- * (spec §2) troca este número e passa a versão antiga como `chavesAntigas`.
- */
+/** Memoizada como `getPool()`, mas construída só depois de `driveConfig()` validar segredos. `keyVersion` fixo em 1; rotação (spec §2) troca e passa versão antiga como `chavesAntigas`. */
 
 let vault: DriveTokenVault | null = null;
 

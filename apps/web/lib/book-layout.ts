@@ -4,18 +4,10 @@ import { BLEED_MM } from "@albora/tokens";
 /** A4 retrato em mm — área de corte (trim), sem sangria. */
 export const BOOK_PAGE_MM = { width: 210, height: 297 } as const;
 
-/**
- * Sangria do livro: compartilha o valor das peças impressas (`BLEED_MM`).
- * Toda linha de corte pode sair deslocada ±1–2 mm; a sangria garante que
- * o fundo extravase o suficiente para não aparecer borda branca.
- */
+/** Sangria do livro: mesmo `BLEED_MM` das peças impressas — garante fundo extravase ±1–2 mm de desvio de corte sem borda branca. */
 export const BOOK_BLEED_MM: number = BLEED_MM;
 
-/**
- * Caixa de corte (cut box) com sangria dos quatro lados.
- * É o tamanho físico que vai para a impressora / para o `addPage` do pdf-lib.
- * O conteúdo é deslocado `BOOK_BLEED_MM` em x e y para ficar na área de corte.
- */
+/** Caixa de corte (cut box) com sangria — tamanho físico para impressora/pdf-lib; conteúdo deslocado `BOOK_BLEED_MM` em x e y. */
 export const BOOK_CUT_MM = {
   width: BOOK_PAGE_MM.width + BOOK_BLEED_MM * 2,
   height: BOOK_PAGE_MM.height + BOOK_BLEED_MM * 2,
@@ -42,10 +34,7 @@ export type BookPagePlan = {
   slots: BookSlotBox[];
 };
 
-/**
- * Posiciona os slots de uma página do núcleo dentro da área útil A4.
- * Diagramação por slots — nunca posicionamento livre (task-020 B-09).
- */
+/** Posiciona slots de uma página do núcleo na área útil A4 — diagramação por slots, nunca posicionamento livre (task-020 B-09). */
 export function planBookPage(
   pagina: Pagina,
   opts: { titulo: string; numero: number },

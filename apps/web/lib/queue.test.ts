@@ -4,14 +4,7 @@ import { shouldGiveUp, retryWaitSeconds, MAX_ATTEMPTS } from "@albora/core";
 import { beforeEach, describe, expect, it } from "vitest";
 import { webQueue, clearQueue, queueSummary } from "./queue";
 
-/**
- * Contra IndexedDB de verdade, não contra um dublê escrito à mão.
- *
- * A fila é o que decide se a foto do convidado sobrevive ao sinal cair, e
- * testá-la contra um mock provaria que o mock funciona. `fake-indexeddb` é a
- * implementação real da especificação rodando em memória — a mesma classe de
- * escolha da suíte de isolamento contra Postgres.
- */
+/** `fake-indexeddb` — implementação real da spec em memória, não mock escrito à mão; a fila decide se a foto sobrevive ao sinal cair. */
 
 const item = (id: string, criadoEm: number, bytes = 800_000): QueueItem => ({
   id,

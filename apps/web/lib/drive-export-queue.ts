@@ -1,9 +1,4 @@
-/**
- * Fila do export Drive — Cloudflare Queues em produção, fallback local no dev.
- *
- * Payload mínimo: um tick por mensagem. Se o job não fechou, re-enfileira o
- * mesmo payload (encadeamento spec drive-export §9).
- */
+/** Fila do export Drive — Cloudflare Queues em prod, fallback local no dev; um tick por mensagem, re-enfileira se o job não fechou (spec drive-export §9). */
 
 export type { DriveExportTickMessage } from "@/lib/drive-export-tick-message";
 

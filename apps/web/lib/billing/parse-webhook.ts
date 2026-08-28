@@ -10,10 +10,7 @@ export type ParseVendorWebhookResult =
   | { error: "token" }
   | null;
 
-/**
- * Parse + auth do webhook Asaas. Independente de ter API key
- * (o webhook é o escritor de plano pago; o stub só emula o payload).
- */
+/** Parse + auth do webhook Asaas — independente de API key; stub só emula o payload. */
 export function parseWebhook(
   headers: Headers,
   body: unknown,
@@ -51,17 +48,7 @@ export function parseWebhook(
   };
 }
 
-/**
- * Parse + auth do webhook Asaas para pagamentos de **assinatura** do
- * fornecedor (Modelo A, spec §4.4). Token verificado ANTES de qualquer
- * leitura de corpo — um POST forjado nunca chega a `payment.subscription`.
- *
- * Asaas envia o mesmo formato de evento de pagamento (`PAYMENT_CONFIRMED`
- * etc.), mas com `payment.subscription` preenchido quando o pagamento nasceu
- * de uma assinatura recorrente. Payload sem esse campo não é assinatura —
- * devolve `null` (ignorado), nunca tentativa de correlacionar por
- * `asaas_subscription_id`.
- */
+/** Parse + auth do webhook de assinatura do fornecedor (Modelo A, §4.4) — token verificado ANTES do corpo; sem `payment.subscription` → null, nunca correlação por id. */
 export function parseVendorWebhook(
   headers: Headers,
   body: unknown,

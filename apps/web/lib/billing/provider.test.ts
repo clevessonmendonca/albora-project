@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { stubBillingProvider } from "./provider";
 
-/**
- * Só o stub — o boundary pago (`asaasProviderFromConfig`) nunca é chamado em
- * teste (CLAUDE.md: "NUNCA chamada real paga, NUNCA cobrança real").
- */
+/** Só o stub — `asaasProviderFromConfig` nunca é chamado em teste (NUNCA chamada real paga). */
 describe("stubBillingProvider — createSubscription", () => {
   it("devolve um id de assinatura fake, nunca chama rede", async () => {
     const provider = stubBillingProvider();

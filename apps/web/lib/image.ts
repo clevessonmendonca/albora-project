@@ -1,20 +1,8 @@
-/**
- * Whether **this** device decodes **this** format — asked of the decoder, not the user-agent.
- *
- * Safari opens HEIC natively and JPEG conversion is free in `processPhoto`; most
- * desktop Chrome and Android do not. User-agent strings lie both ways. The only
- * reliable answer is to try (N5.2).
- */
+/** HEIC support: asked of the decoder, not the UA string — UA strings lie both ways; try decode (N5.2). */
 
 const supported = new Set<string>();
 
-/**
- * Memoizes **success only** on purpose.
- *
- * A "yes" is device capability and does not change mid-event. A "no" may be the
- * file, not the device — caching failure would reject every following HEIC from
- * that guest after one truncated gallery pick.
- */
+/** Memoiza só sucesso: "não" pode ser o arquivo, não o dispositivo — cachear falha rejeitaria todo HEIC depois de um pick truncado. */
 export async function deviceDecodes(bytes: Uint8Array, mime: string): Promise<boolean> {
   if (supported.has(mime)) return true;
 
@@ -41,14 +29,7 @@ export function forgetSupportedFormats(): void {
   supported.clear();
 }
 
-/**
- * First video frame as JPEG — becomes `/thumb` in storage — plus the real
- * display size, which the confirm persists so album/feed/wall do not assume
- * 1080×1920 portrait.
- *
- * Poster degrades to `null`: video still uploads. Size degrades the same way
- * when the decoder is silent; the UI then falls back.
- */
+/** Primeiro frame como JPEG (→ `/thumb`) + tamanho real de exibição que o confirm persiste; degrada graciosamente — vídeo ainda sobe. */
 
 export type VideoPrep = {
   largura: number;
@@ -56,11 +37,7 @@ export type VideoPrep = {
   poster: Blob | null;
 };
 
-/**
- * Display size after the browser applies rotation. `videoWidth`/`videoHeight`
- * are already upright; sending the file's coded size would swap landscape
- * iPhone clips into portrait slots.
- */
+/** Tamanho após rotação do browser — `videoWidth`/`videoHeight` já estão em pé; tamanho codificado viraria clip deitado em slot retrato. */
 export function videoDisplaySize(video: {
   videoWidth: number;
   videoHeight: number;

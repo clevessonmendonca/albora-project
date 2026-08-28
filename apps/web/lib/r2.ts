@@ -2,14 +2,7 @@ import { PREFIXO_MAGIC_BYTES } from "@albora/core";
 import { AwsClient } from "aws4fetch";
 import { config } from "./config";
 
-/**
- * Assinatura, inspeção no confirm, e leitura da thumb no classificador.
- *
- * No caminho crítico (presign/confirm/parede) o servidor **não** trafega a
- * foto: emite URL e lê no máximo `PREFIXO_MAGIC_BYTES` do objeto `/full`.
- * O classificador da spec 011 é enriquecimento — lê só a thumb, com teto,
- * fora do PUT do convidado. Magic bytes da thumb não substituem o confirm.
- */
+/** Servidor não trafega foto: emite URL presignada e lê no máximo `PREFIXO_MAGIC_BYTES` no confirm. Classificador lê só a thumb (spec 011), fora do PUT do convidado. */
 
 function client(): AwsClient {
   const { r2 } = config();
@@ -40,15 +33,7 @@ export async function signPut(key: string, mime: string, ttlSeconds: number) {
   return signed.url;
 }
 
-/**
- * O caminho de leitura, irmão do `signPut`: o navegador busca os bytes no
- * storage, e o servidor continua sem tocá-los.
- *
- * A assinatura prende a chave — trocar `/full` por `/thumb` na URL emitida dá
- * 403, medido contra o bucket. E o `content-disposition` vai explícito porque
- * o que o R2 guardou veio do cliente, e §4.3 de `docs/security.md` exige que
- * a resposta declare o que é.
- */
+/** Assinatura prende a chave — trocar `/full` por `/thumb` dá 403; `content-disposition` explícito: §4.3 exige que a resposta declare o que é. */
 export async function signGet(key: string, ttlSeconds: number) {
   const url = objectUrl(key);
   url.searchParams.set("X-Amz-Expires", String(ttlSeconds));
@@ -67,11 +52,7 @@ export function rangeDoPrefixoMagic(): string {
   return `bytes=0-${PREFIXO_MAGIC_BYTES - 1}`;
 }
 
-/**
- * Interpreta a resposta do GET com Range. Copia só o prefixo — se o storage
- * ignorar o Range e devolver o objeto inteiro (200), o ArrayBuffer grande
- * não fica preso no `inicio` via `subarray`.
- */
+/** Interpreta GET com Range — copia só o prefixo; se storage ignorar Range (200), ArrayBuffer grande não fica preso em `inicio`. */
 export function metadadosDaInspecao(
   status: number,
   headers: Headers,
@@ -92,13 +73,7 @@ export function metadadosDaInspecao(
   return { bytes, inicio };
 }
 
-/**
- * Confere o que **de fato** chegou no bucket — a variante `/full`, no confirm.
- *
- * Lê só os primeiros bytes, com Range: o suficiente para os magic bytes e
- * nada perto de trafegar a foto pelo servidor. É o que transforma "o cliente
- * disse que era JPEG" em "os primeiros bytes são de um JPEG".
- */
+/** Confere o que chegou no bucket (confirm): lê só os primeiros bytes com Range — transforma "cliente disse JPEG" em "bytes são JPEG". */
 export async function inspectObject(key: string): Promise<ObjectMetadata | null> {
   const res = await client().fetch(objectUrl(key).toString(), {
     method: "GET",
@@ -108,10 +83,7 @@ export async function inspectObject(key: string): Promise<ObjectMetadata | null>
   return metadadosDaInspecao(res.status, res.headers, new Uint8Array(await res.arrayBuffer()));
 }
 
-/**
- * Lê o objeto como stream. O export do acervo puxa um arquivo por vez e
- * joga no ZIP — `arrayBuffer()` aqui carregaria a noite inteira na memória.
- */
+/** Lê como stream — export puxa um arquivo por vez para o ZIP; `arrayBuffer()` carregaria a noite inteira na memória. */
 export async function streamObject(key: string): Promise<ReadableStream<Uint8Array> | null> {
   const res = await client().fetch(objectUrl(key).toString(), { method: "GET" });
   if (res.status === 404) return null;
@@ -121,11 +93,7 @@ export async function streamObject(key: string): Promise<ReadableStream<Uint8Arr
 
 const TETO_DA_THUMB = 512 * 1024;
 
-/**
- * Lê a thumb para o classificador (spec 011). Fora do caminho crítico: o
- * upload continua PUT direto no storage. Teto de 512 KiB — a thumb é barata
- * de propósito; objeto maior que isso não é thumb e o classificador cala.
- */
+/** Lê a thumb para o classificador (spec 011) — fora do crítico; teto 512 KiB: maior que isso não é thumb e o classificador cala. */
 export async function readThumb(key: string): Promise<Uint8Array | null> {
   const res = await client().fetch(objectUrl(key).toString(), {
     method: "GET",
@@ -140,15 +108,7 @@ export async function readThumb(key: string): Promise<Uint8Array | null> {
   return new Uint8Array(await res.arrayBuffer());
 }
 
-/**
- * Apaga o objeto do storage — só o D365 chama isto (`tools/jobs/retention.mjs`).
- * Nenhum outro caminho do produto apaga bytes: "ocultar" no admin e "remover"
- * do convidado só mudam `uploads.state`, os bytes continuam (permite
- * reverter). D365 é a exceção deliberada e irreversível.
- *
- * 404 conta como sucesso — idempotente: reprocessar um evento já purgado
- * (retry do runner) não pode estourar por causa de um objeto que já sumiu.
- */
+/** Só o D365 apaga (retention.mjs) — outros caminhos mudam `uploads.state`, bytes ficam. 404 conta como sucesso: idempotente por desenho. */
 export async function deleteObject(key: string): Promise<void> {
   const url = objectUrl(key);
   const signed = await client().sign(new Request(url, { method: "DELETE" }), {
@@ -160,14 +120,7 @@ export async function deleteObject(key: string): Promise<void> {
   }
 }
 
-/**
- * Lê o objeto inteiro na memória — usado pelo export síncrono para o Drive
- * (spec drive-export §9, fase 4: "sem fila ainda, para eventos pequenos de
- * teste"). Stopgap deliberado: quando o encadeamento por fila (Cloudflare
- * Queues) chegar, o consumer deve subir por stream/chunk, não bufferizar
- * uma foto full-res inteira por request — o ZIP (`streamObject` direto) já
- * faz isso certo e continua sendo o padrão para portar.
- */
+/** Bufferiza o objeto — stopgap para export síncrono (spec §9, fase 4); quando a fila chegar, usar `streamObject` por stream/chunk. */
 export async function bufferObject(key: string): Promise<Uint8Array | null> {
   const stream = await streamObject(key);
   if (!stream) return null;
