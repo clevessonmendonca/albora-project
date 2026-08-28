@@ -15,12 +15,7 @@ export type PublicEventViewProps = {
 
 const FORMATADOR = new Intl.NumberFormat("pt-BR");
 
-/**
- * A landing pública de um evento — prova social, gostinho do álbum já
- * moderado, e o CTA "monte o seu". Sem sessão, sem PII de convidado: os
- * números vêm de agregado (`totalFotos`/`totalPessoas`), e a vitrine só
- * carrega o que `paraVitrinePublica` deixou passar.
- */
+/** Sem sessão e sem PII — os números são agregados e a vitrine só carrega o que `paraVitrinePublica` filtrou. */
 export function PublicEventView({
   estado,
   nomeDoEvento,

@@ -11,18 +11,7 @@ import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { Frame } from "./frame";
 
-/**
- * A hora correndo em tela cheia, aberta pela tira do feed.
- *
- * O avanço é por **toque**: direita avança, esquerda volta. Deslizar existe
- * junto — nunca no lugar — porque quem está de pé com um copo na outra mão
- * toca, não desliza. Toque longo segura a foto onde está.
- *
- * A tela acaba de propósito. Quando a hora termina, ela devolve a pessoa para o
- * feed, onde a ação primária é a câmera: o social existe para disparar a próxima
- * foto ([ADR 0009](../../../../../docs/adr/0009-app-social-do-convidado.md)),
- * não para prender.
- */
+/** Avanço por toque (quem está de pé com um copo toca, não desliza). Ao acabar devolve ao feed — o social existe para disparar a próxima foto, não para prender (ADR 0009). */
 
 const DURACAO_MS = 5_000;
 /** Acima disto o dedo está segurando, não tocando. */
@@ -34,13 +23,7 @@ const SUPRESSAO_MS = 600;
 
 const CLASSE_SOMBRA_TEXTO = "[text-shadow:0_1px_4px_var(--bg)]";
 
-/**
- * A janela do reprodutor, em ordem de urgência: o que está na tela, o que
- * chega no próximo toque, e só então a vizinhança.
- *
- * Chave vazia fica de fora — item cuja resposta veio sem o arquivo cheio não
- * pode virar um pedido de assinatura para a string vazia.
- */
+/** Chave vazia fica de fora — item sem arquivo cheio não vira pedido de assinatura para string vazia. */
 export function viewerKeys(itens: readonly ItemVisivel[], indice: number): string[] {
   const chaves: string[] = [];
   const atual = itens[indice];
@@ -124,12 +107,7 @@ export function Viewer({
     if (indice > 0) onIr(indice - 1);
   }
 
-  /**
-   * O arquivo cheio das próximas entra no cache do navegador enquanto a atual
-   * está na tela. É isto que faz o toque parecer instantâneo: sem o
-   * pré-carregamento, cada avanço começa uma conexão nova e a foto aparece
-   * depois do gesto.
-   */
+  // Pré-carrega as próximas — sem isso cada avanço começa uma conexão nova e a foto aparece depois do gesto.
   useEffect(() => {
     const alvos: string[] = [];
     for (const passo of [1, 2]) {
@@ -154,10 +132,7 @@ export function Viewer({
     });
   }, [indice, itens, urls]);
 
-  /**
-   * Avanço automático. Só começa quando há o que olhar — contar cinco segundos
-   * de tela preta não é ritmo, é a foto perdida — e para no toque longo.
-   */
+  // Não conta enquanto não há mídia na tela — cinco segundos de preto não é ritmo, é foto perdida.
   useEffect(() => {
     if (movimentoReduzido || segurando || !temMidia || isVideo) return;
 
@@ -219,7 +194,7 @@ export function Viewer({
     }
   }
 
-  /** O toque em si é o clique do botão da zona — é ele que o teclado também aciona. */
+  // O toque em si é o clique do botão da zona — é ele que o teclado também aciona.
   function tocou(acao: () => void) {
     return () => {
       if (Date.now() < suprimirAte.current) return;
@@ -227,11 +202,7 @@ export function Viewer({
     };
   }
 
-  /**
-   * Teclado no documento, e não no elemento: enquanto o foco não estiver dentro
-   * da tela filled — e depois de um toque ele fica no `body` — um `onKeyDown` de
-   * elemento nunca recebe o `Escape`, que é o atalho de sair.
-   */
+  // Listener no documento, não no elemento — após um toque o foco vai para o body e onKeyDown de elemento nunca recebe Escape.
   useEffect(() => {
     function tecla(ev: KeyboardEvent) {
       if (ev.key === "ArrowRight") {

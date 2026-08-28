@@ -3,13 +3,7 @@
 import React from "react";
 import type { RecapPessoal } from "@/features/my-photos/lib/recap-card";
 
-/**
- * Reforço positivo no topo de "Minhas fotos" (spec item 5): "você mandou X
- * fotos, curtida Y vezes". Fecha o loop de participação reusando dados que
- * já existem — nunca um modal de saída, que não é confiável em PWA mobile.
- *
- * Sem fotos ainda, não há nada para celebrar: o card simplesmente some.
- */
+/** Sem fotos = some. Nunca modal de saída — não é confiável em PWA mobile. */
 export function RecapCard({ recap }: { recap: RecapPessoal | null }) {
   if (!recap || recap.fotos <= 0) return null;
 

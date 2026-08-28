@@ -3,13 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 import { useRecap } from "./use-recap";
 
-/**
- * `use-recap` orquestra rede (contexto de compartilhamento + URL de mídia) e
- * composição visual (`loadImage`/`drawFrame`, canvas). O canvas real não
- * existe em jsdom — por isso o renderizador é mockado na fronteira do SDK,
- * igual a `share-or-download.test.ts` mocka a folha nativa: a composição em
- * si (moldura, recorte) já tem cobertura própria em `packages/core`.
- */
+/** Canvas não existe em jsdom — renderizador mockado na fronteira do SDK; composição visual tem cobertura própria em `packages/core`. */
 
 vi.mock("@/lib/frame-renderer", () => ({
   loadImage: vi.fn(async () => ({ naturalWidth: 1080, naturalHeight: 1920 })),
@@ -69,12 +63,7 @@ function responder(corpo: unknown, status = 200): Response {
   return new Response(JSON.stringify(corpo), { status });
 }
 
-/**
- * Extrai `uploadId` sem usar o construtor `URL` — o `beforeEach` deste
- * arquivo troca o `URL` global por um stub que só tem `createObjectURL`/
- * `revokeObjectURL` (o que existe em jsdom), então `new URL(...)` aqui
- * quebraria o próprio teste, não o código sob teste.
- */
+// `URL` global aqui é stub com só `createObjectURL`/`revokeObjectURL` — `new URL(...)` quebraria o próprio teste.
 function idDaQuery(url: string): string {
   const match = /uploadId=([^&]+)/.exec(url);
   return match ? match[1]! : "";

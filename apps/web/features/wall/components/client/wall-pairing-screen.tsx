@@ -5,11 +5,7 @@ import QRCode from "qrcode";
 import { cn } from "@albora/ui-web";
 import { SHELL } from "../../lib/types";
 
-/**
- * A TV mostra o código e um QR para `/wall-pair?codigo=`.
- * Quem já entrou na festa (convidado ou anfitrião com sessão) autoriza —
- * não existe tela de "configurações" do convidado.
- */
+/** Quem autoriza é quem já entrou na festa (convidado ou anfitrião com sessão) — não há tela de configurações do convidado. */
 export function WallPairingScreen({
   variaveis,
   codigo,

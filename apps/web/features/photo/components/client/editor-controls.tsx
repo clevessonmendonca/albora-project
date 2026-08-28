@@ -206,13 +206,7 @@ export function EditorControls({
   );
 }
 
-/**
- * O sticker de música (spec 020, sub-etapa b): lista as faixas já votadas
- * pelos convidados (`music-db`, mesma fila de `/api/music`) e deixa
- * escolher uma para anexar à story. Tocar na já escolhida desmarca — não é
- * um segundo toggle "postar como story" (essa decisão continua sendo
- * "escreveu algo ou escolheu música", como já documentado em `photo-page`).
- */
+/** Tocar na faixa já escolhida desmarca — o toggle de story é "escreveu algo ou escolheu música", não um botão separado. */
 function PainelMusica({
   musicas,
   musicaId,
@@ -271,10 +265,7 @@ function ButtonAba({
   );
 }
 
-/**
- * Um controle contínuo. `valor` chega e sai em unidade de contrato (−1 a 1 ou
- * 0 a 1); `min` e `max` são a escala que o convidado lê.
- */
+/** `valor` em unidade de contrato (−1…1 ou 0…1); `min`/`max` são a escala que o convidado lê. */
 function Deslizante({
   rotulo,
   min,
@@ -352,12 +343,7 @@ function Chip({
   );
 }
 
-/**
- * Vive num `<style>` e não em estilo inline porque trilho e botão do controle
- * só existem como pseudo-elemento. As regras `-webkit-` e `-moz-` ficam
- * separadas de propósito: juntas, o pseudo-elemento desconhecido invalidaria a
- * regra inteira nos dois navegadores.
- */
+/** Trilho e botão só existem como pseudo-elemento; regras `-webkit-`/`-moz-` separadas — juntas, o pseudo desconhecido invalida a regra inteira no outro navegador. */
 const ESTILO = `
   .ed-texto {
     font: inherit;

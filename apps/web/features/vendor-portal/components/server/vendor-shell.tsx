@@ -2,17 +2,7 @@ import React, { type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import { ALBORA_BRAND, resolveTokens, toVariables, type TokenLayer } from "@albora/tokens";
 
-/**
- * A camada `vendor` do resolvedor (packages/tokens/src/resolver.ts) — cadeia
- * `marca → vendor → pack → evento`. O portal não tem pack/evento (é a
- * conta do fornecedor, não uma festa específica); `pack: { background }`
- * segue o mesmo atalho que `adminVars` já usa para fixar o chão claro do
- * admin sem herdar o `dark` da marca-piso.
- *
- * `brandTokens` é `Record<string, unknown>` até aqui (mesmo formato bruto de
- * `events.identity_tokens`, packages/db/src/events.ts) — o cast para
- * `TokenLayer` é decisão de app, nunca de `@albora/db`.
- */
+/** `brandTokens` chega como `Record<string, unknown>` (formato bruto de `events.identity_tokens`) — o cast para `TokenLayer` é decisão de app, nunca de `@albora/db`. */
 export function vendorVars(brandTokens: Record<string, unknown>): CSSProperties {
   return toVariables(
     resolveTokens({

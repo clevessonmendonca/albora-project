@@ -2,19 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-/**
- * O arco de `brand/animadas/loader-progresso.svg`, controlado pela fila.
- *
- * Mesma geometria da marca: o arco se traça enquanto a foto sobe, e é o gesto
- * do logotipo nascendo (`DESIGN.md` §1b). Nada de id nem de gradiente aqui —
- * classe e id de SVG embutido são globais no documento, e `.flash` do
- * `logo-animado-*` desligaria o flash da captura sem avisar.
- *
- * O traço é chapado, e não o degradê do arquivo, por duas razões: abaixo de
- * 32px o degradê vira cor chapada de qualquer forma (§1b), e o degradê do
- * pacote é âmbar fixo — nenhum componente pode assumir que o acento do evento
- * é âmbar.
- */
+/** Sem id nem gradiente — id de SVG inline é global (conflitaria com `.flash`), e o degradê seria âmbar fixo quando o acento do evento pode ser outro. */
 
 /** π × 21. O arco é o semicírculo de raio 21 do pacote de marca. */
 const COMPRIMENTO = 65.97;

@@ -12,13 +12,7 @@ const FUNDO_AMBIENTE =
 /** Gap entre células dos layouts de grade — valor único para todos os modelos. */
 const GAP = "clamp(0.5rem,1.5vw,1.5rem)";
 
-/**
- * Camada desfocada que preenche o contêiner com a própria imagem.
- *
- * Resolve o letterbox/pillarbox sem cortar: a foto em pé (9:16) que aparece
- * numa célula 16:9 é `contain`, e o fundo cobre o espaço vazio com um blur
- * da mesma imagem — sem mostrar barras pretas e sem decapar o rosto do topo.
- */
+/** Preenche o letterbox com blur da própria imagem — foto em pé (`contain`) sem barras pretas e sem decapar o rosto no topo. */
 function FundoDesfocado({ src, mime }: { src: string; mime: string }) {
   const cls =
     "absolute inset-0 h-full w-full object-cover blur-[40px] brightness-[0.35] scale-[1.12]";

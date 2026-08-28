@@ -11,21 +11,7 @@ const CLASSE_PLACEHOLDER =
   "absolute inset-x-[8%] inset-y-[12%] rounded-token border border-linha";
 const CLASSE_TRANSICAO = "[transition:opacity_var(--tempo-rapido)_var(--curva)]";
 
-/**
- * A mídia dentro do quadro 9:16, **sem cortar**.
- *
- * Três de cada quatro fotos de festa são verticais, e a tela do celular é
- * vertical: essas preenchem quase tudo sozinhas. O problema é a minoria
- * horizontal — encaixá-la à força num quadro vertical descartaria as laterais,
- * e é lá que está metade da mesa.
- *
- * A saída é o modelo **Ambiente** do `docs/flows.md` §5.0: a imagem inteira,
- * `contain`, com a própria foto desfocada estendendo o fundo. Nada é
- * descartado, e o quadro não fica com duas tarjas mortas em cima e embaixo.
- *
- * Vídeo usa o mesmo enquadramento: `contain`, fundo desfocado da miniatura
- * quando existe, e o arquivo cheio toca mudo — o reprodutor avança no `ended`.
- */
+/** `contain` + fundo desfocado — foto horizontal não perde as laterais e não gera tarjas pretas (modelo Ambiente, docs/flows.md §5.0). */
 export function Frame({
   urlThumb,
   urlCheia,

@@ -27,29 +27,7 @@ import { MirrorGrid, MirrorGridLoading } from "./mirror-grid";
 import { viewerKeys, Viewer } from "./viewer";
 import { HourStrip, HourStripLoading } from "./hour-strip";
 
-/**
- * O feed do convidado: a tira de horas no topo e as fotos em coluna única
- * embaixo, numa tela só.
- *
- * Ele existe para uma coisa só: o convidado ver o que os outros mandaram e,
- * por isso, mandar mais (ADR 0009). Três decisões de tela saem direto daí, e
- * nenhuma é estética:
- *
- * - **A próxima página chega sozinha.** Pivô assumido pelo mantenedor no
- *   design doc `2026-08-17-convidado-social-moderno-design.md` §5.4, que
- *   substitui a regra antiga de "toque, nunca rolagem infinita". O gatilho
- *   troca de botão para `useInfiniteScroll` — a paginação por cursor de
- *   `useFeed` continua a mesma, só quem a chama muda.
- * - **A barra da câmera é fixa.** Em coluna única cada foto ocupa quase a tela
- *   inteira, e o fim da lista fica longe: uma ação primária que só aparece lá
- *   embaixo não existe. Ela não sai da tela em nenhum estado — nem no vazio,
- *   nem no erro, nem com o visualizador aberto, que carrega a sua.
- * - **A tela filled devolve para o feed.** A hora acaba, e o que sobra é a
- *   câmera.
- *
- * Nada de contagem: antes do gate ela nem chega do servidor, e depois dele
- * quem a mostra é outra tarefa.
- */
+/** Scroll infinito substitui "toque" (design doc §5.4). Câmera fixa — ação primária que some embaixo não existe. Ao sair do visualizador volta ao feed. */
 
 export type FilterMission = { id: string; title: string };
 
@@ -99,11 +77,7 @@ export function FeedPage({
   const primeiraCarga = !estado.jaCarregou && estado.carregando;
   const vazio = estado.jaCarregou && estado.itens.length === 0 && estado.falha === null;
 
-  /**
-   * Uma hora só está fechada quando não há mais página **e** nada falhou. Falha
-   * que ainda promete "vem mais" faria quem espera a hora fechar esperar para
-   * sempre.
-   */
+  // Hora só fecha quando não há mais página E sem falha — falha "com mais" deixaria alguém esperando para sempre.
   const temMais = !estado.fim && estado.falha === null;
   const grupos = useMemo(
     () => groupByHour(estado.itens, { temMais }),
@@ -138,13 +112,7 @@ export function FeedPage({
 
   const sair = useCallback(() => setAberto(null), []);
 
-  /**
-   * Uma hora incompleta é fechada **antes** de abrir.
-   *
-   * O feed vem do mais novo para o mais velho, então a hora mais antiga da lista
-   * é a única que ainda pode receber foto. Começar a tocar no meio dela faria a
-   * fila reordenar embaixo do dedo enquanto a próxima página chega.
-   */
+  // Fecha hora incompleta antes de abrir — a mais antiga ainda pode receber foto e reordenaria embaixo do dedo enquanto a próxima página chega.
   useEffect(() => {
     if (preparando === null) return;
 

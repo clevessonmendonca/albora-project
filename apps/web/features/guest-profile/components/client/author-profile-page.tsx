@@ -21,12 +21,7 @@ import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
 import { formatQuando } from "@/features/home/lib/format-quando";
 import { useAuthorFeed } from "../../hooks/use-author-feed";
 
-/**
- * O perfil de um convidado dentro do evento — nome + fotos publicadas por
- * ele. `useAuthorFeed` já bate em `/api/guests/[autorId]`, que aplica RLS,
- * gate e bloqueio simétrico; esta tela só monta o que ele devolve, sem
- * decisão própria sobre visibilidade (spec "autor clicável", ADR 0009).
- */
+/** Sem decisão de visibilidade própria — RLS, gate e bloqueio ficam em `/api/guests/[autorId]`; esta tela só monta o que a API devolve (ADR 0009). */
 export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: string }) {
   const base = `/e/${encodeURIComponent(slug)}`;
   const { estado, carregarMais } = useAuthorFeed(autorId);

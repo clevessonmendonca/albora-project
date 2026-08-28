@@ -3,13 +3,7 @@
 import React, { type ReactNode } from "react";
 import { Badge, GuestShell, MissionBanner } from "@albora/ui-web";
 
-/**
- * O visor é decorativo (nenhum feed de câmera real: a captura sai do app
- * nativo do aparelho, ver `photo-page.tsx`), mas ocupa a tela inteira e todo
- * controle vive sobreposto a ele — padrão de câmera de iPhone/Instagram, não
- * o card com margem que telas de conteúdo usam. `onBack` é obrigatório: uma
- * tela sem saída no meio do caminho crítico já foi o bug reportado.
- */
+/** Visor decorativo — captura sai da câmera nativa (ver `photo-page.tsx`). `onBack` obrigatório: tela sem saída no caminho crítico foi bug reportado. */
 export function CameraView({
   eventTitle,
   headerAction,

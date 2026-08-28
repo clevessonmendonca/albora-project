@@ -5,17 +5,7 @@ import { hourLabel, type HourGroup } from "@/features/feed/lib/group-by-hour";
 import type { MediaUrl } from "@/lib/media";
 import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 
-/**
- * A tira de horas no topo do feed.
- *
- * Cada círculo é **uma hora da festa**, não uma pessoa. Num casamento de 200
- * convidados, um círculo por convidado seriam 200 alvos de 76px com uma foto
- * cada; a hora dá de quatro a seis, e é o recorte que a pessoa reconhece —
- * chegou, dançou, brindou ([`group-by-hour.ts`](../../lib/group-by-hour.ts)).
- *
- * Nenhuma contagem aparece aqui. Antes do gate ela nem chega do servidor, e
- * mostrar "14 fotos" às 23h seria placar de popularidade numa festa.
- */
+/** Cada círculo é uma hora, não uma pessoa — 200 convidados dariam 200 alvos. Nenhuma contagem: antes do gate não chega do servidor, e depois seria placar de popularidade. */
 
 const CLASSE_TIRA =
   "mx-[calc(var(--espaco)*-5)] mb-4 flex gap-3.5 overflow-x-auto px-[calc(var(--espaco)*5)] [scrollbar-width:none]";

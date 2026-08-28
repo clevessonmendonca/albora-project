@@ -9,11 +9,7 @@ function responder(corpo: unknown, status = 200): Response {
   return new Response(JSON.stringify(corpo), { status });
 }
 
-/**
- * O gate de papel aqui é conveniência de UI — a rota
- * `POST /api/vendors/{id}/subscription` revalida `role === "admin"` no
- * servidor (V2b) e é o teste que importa para a garantia de segurança.
- */
+/** Gate de papel é UI — segurança real é revalidada pela rota no servidor (V2b). */
 describe("VendorSubscribeButton", () => {
   afterEach(() => vi.unstubAllGlobals());
 

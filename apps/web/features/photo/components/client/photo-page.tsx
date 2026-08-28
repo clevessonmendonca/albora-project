@@ -18,15 +18,7 @@ import { QueueHeader } from "./queue-panel";
 import { CameraView } from "./camera-view";
 import { PwaInstallCta } from "./pwa-install-cta";
 
-/**
- * O caminho crítico inteiro, em cinco toques: consentir, nome, missão, câmera,
- * enviar. Legenda e lugar vêm depois e não contam — a subida já começou (§3.1).
- *
- * Não monta preview de câmera: `capture="environment"` abre a câmera nativa do
- * aparelho, que é a que o convidado já sabe usar e a única que funciona igual
- * em iPhone velho e Android novo. Preview próprio custaria HDR e modo noturno,
- * e às 22h no escuro é aí que a foto se ganha (N5.7).
- */
+/** `capture="environment"` usa a câmera nativa — preview próprio custaria HDR e modo noturno, que às 22h no escuro é onde a foto se ganha (N5.7). */
 
 export type PhotoMission = { id: string; title: string; done: boolean };
 
@@ -34,10 +26,7 @@ export type PhotoCopy = {
   placeQuestion: string;
 };
 
-/**
- * Escondido do olho, presente no layout. `display: none` num input de arquivo
- * clicado por código já custou `capture` ignorado em Safari.
- */
+/** `display: none` num input clicado por código já custou `capture` ignorado em Safari — mantido com absolute/opacity. */
 const ESCONDIDO = "absolute size-px opacity-0 pointer-events-none";
 
 type Etapa =
@@ -375,12 +364,6 @@ export function PhotoPage({
   return null;
 }
 
-/**
- * A confirmação. A foto **amanhece**: entra escura e clareia até a cor cheia.
- *
- * Não é enfeite — é o retorno visual de que aquele arquivo virou uma foto no
- * álbum, no único instante em que o convidado está olhando para saber isso.
- */
 function Confirmacao({
   slug,
   arquivo,

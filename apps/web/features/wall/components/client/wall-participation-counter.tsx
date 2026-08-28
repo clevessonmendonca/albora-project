@@ -6,17 +6,7 @@ import { useContadorAoVivo } from "../../lib/use-animated-counter";
 import { rotuloDosContadores } from "../../lib/participation";
 import type { ContadoresDaParede } from "../../lib/types";
 
-/**
- * O contador público (spec A4): prova social ao vivo do evento corrente, só
- * do que já passou pelo gate de moderação — a mesma dupla fotos/convidados
- * que `album.contadores` mostra ao convidado. Overlay puro sobre o
- * `WallStage`: não participa do enquadramento, então nenhum modelo perde
- * área de foto por causa dele.
- *
- * `contadores` vem `null` enquanto `/api/wall` não incluir o campo — o
- * componente some, nunca estima o total a partir da janela de rotação da
- * parede (capada, não é a noite inteira).
- */
+/** Some quando `contadores` é `null` — nunca estima o total da janela de rotação, que não é a noite inteira. */
 export function WallParticipationCounter({
   contadores,
 }: {

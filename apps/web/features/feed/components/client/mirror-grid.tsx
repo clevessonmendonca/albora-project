@@ -4,12 +4,7 @@ import { isVideoMime } from "@albora/core";
 import type { MediaUrl } from "@/lib/media";
 import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 
-/**
- * Parede espelhada antes do gate — layout de `BeforeGateScreen` em `/telas`.
- *
- * Grade 2×N, sem reação, sem comentário, sem stories: a interação ainda não
- * abriu, e desenhar botões trancados mentiria (ADR 0009).
- */
+/** Antes do gate — sem reação, sem comentário: desenhar botões trancados mentiria (ADR 0009). */
 
 export function MirrorGrid({
   itens,

@@ -3,13 +3,7 @@
 import { cn } from "@albora/ui-web";
 import { useState } from "react";
 
-/**
- * Legenda e lugar, **com a foto já subindo**.
- *
- * Por isso não custa toque no caminho crítico: esse tempo ia passar de
- * qualquer jeito. E por isso os dois botões de saída levam ao mesmo lugar —
- * uma tela opcional que parece obrigatória é uma tela obrigatória (N6.8).
- */
+/** Legenda e lugar enquanto a foto já sobe — os dois botões levam ao mesmo lugar: tela opcional que parece obrigatória vira obrigatória (N6.8). */
 
 export type Place = { id: string; title: string };
 

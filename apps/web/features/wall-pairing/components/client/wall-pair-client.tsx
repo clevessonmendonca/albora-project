@@ -5,14 +5,7 @@ import { useState } from "react";
 import type { CSSProperties } from "react";
 import { PrimaryButton, radiusStyle } from "@albora/ui-web";
 
-/**
- * A tela que liga o telão (spec 010).
- *
- * Aberta por quem já está no evento — pelo QR do telão (código pré-preenchido)
- * ou digitando o código nas configurações. Autoriza com a **sessão** de quem
- * está aqui; o evento sai dela, nunca do campo. Consentir é ligar: expor as
- * fotos publicadas numa tela do salão é decisão de quem toca o botão.
- */
+/** Autoriza com a sessão — o evento sai dela, nunca do campo; o código só identifica o telão, não o evento. */
 
 const CODE_PATTERN = /^[A-HJ-NP-Z2-9]{6}$/;
 

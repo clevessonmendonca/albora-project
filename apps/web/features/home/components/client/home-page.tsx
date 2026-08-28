@@ -21,30 +21,7 @@ import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
 import { paraStoryItem, useStories } from "../../hooks/use-stories";
 import { HomeFeedCard } from "./home-feed-card";
 
-/**
- * A Home do convidado com sessão: stories no topo, feed vivo embaixo.
- *
- * Os itens vêm de `useFeed` — o mesmo gancho de `/feed` (spec 008/014, ADR
- * 0009), reaproveitado em vez de duplicado: cursor, gate e renovação de URL
- * já resolvidos ali. O que muda aqui é a composição visual (`PhotoCard` +
- * `StoryRail` do kit novo, `FloatingNav` em vez de `GuestTabBar`) e a
- * ausência da tira de horas e do visualizador em tela cheia — a Home é a
- * porta de entrada, não a leitura funda; quem quer isso vai pra `/feed`.
- *
- * A próxima página chega sozinha: pivô assumido pelo mantenedor no design
- * doc `2026-08-17-convidado-social-moderno-design.md` §5.4, que substitui a
- * regra antiga de "toque, nunca rolagem infinita" do `DESIGN.md` §1. O
- * gatilho troca de botão para `useInfiniteScroll` (sentinela +
- * `IntersectionObserver`); a paginação por cursor de `useFeed` não muda uma
- * linha — só quem a chama muda.
- *
- * O rail do topo (`StoryRail`) e a lista embaixo (`PhotoCard` via
- * `HomeFeedCard`) são a distinção visual entre story e post: story é a
- * entidade efêmera de `@albora/db` (janela de 24h, `useStories`/`/api/stories`),
- * post é o feed permanente de `useFeed`/`/api/feed`. São duas fontes de rede
- * e dois componentes diferentes de propósito — a story some da tira depois
- * de vencer sem nunca ter estado misturada ao mural.
- */
+/** Reutiliza `useFeed` de `/feed` sem duplicar cursor/gate; scroll infinito substitui "toque" (design doc §5.4). Story e post são fontes separadas — story some após 24h sem ter estado no mural. */
 export function HomePage({
   slug,
   eventName,

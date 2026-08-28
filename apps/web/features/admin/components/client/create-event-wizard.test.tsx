@@ -11,10 +11,6 @@ function responder(corpo: unknown, status = 200): Response {
   return new Response(JSON.stringify(corpo), { status });
 }
 
-/**
- * A partir do passo 0 (Tipo), avança para o passo 1 (Evento), preenche datas
- * e continua até o passo final (Confirmar), clicando "Continuar".
- */
 function preencherDatasEAvancarAteCriar() {
   // Passo 0 (Tipo) → passo 1 (Evento)
   fireEvent.click(screen.getByText("Continuar"));
@@ -33,13 +29,7 @@ function preencherDatasEAvancarAteCriar() {
   }
 }
 
-/**
- * O passo aqui é conveniência de UI: quem valida pertencimento real a
- * `vendor_members` é `criarEvento` no servidor (V2c), na mesma transação de
- * `comConta`. O que este teste garante é a UI — o passo só aparece quando
- * `GET /api/admin/vendors` devolve algo, e o `vendorId` escolhido é o único
- * dado extra que viaja no corpo de `POST /api/admin/events`.
- */
+/** Valida só a UI — autorização real de `vendor_members` fica em `criarEvento` (V2c). O passo aparece quando `/api/admin/vendors` devolve algo, e `vendorId` é o único campo extra no POST. */
 describe("CreateEventWizard — passo condicional do fornecedor (spec-canal-fornecedor §2)", () => {
   afterEach(() => vi.unstubAllGlobals());
 

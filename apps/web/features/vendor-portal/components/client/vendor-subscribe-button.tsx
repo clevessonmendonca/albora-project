@@ -34,17 +34,7 @@ const SUBSCRIPTION_STATUS_LABEL: Record<"active" | "pending", string> = {
   pending: "Aguardando confirmação",
 };
 
-/**
- * Gatilho de UI para `POST /api/vendors/{vendorId}/subscription` (V2b) — o
- * gate de papel aqui é conveniência de exibição, não a segurança: a rota
- * revalida `role === "admin"` no servidor de qualquer forma.
- *
- * `subscriptionStatus` vem de `loadVendorPortal` (leitura da assinatura mais
- * recente em `vendor_subscriptions`). `active`/`pending` mostram o estado em
- * vez do formulário — sem isso, admin clica "assinar" duas vezes e gera duas
- * cobranças `pending`. `overdue`/`canceled`/ausente caem para o fluxo normal:
- * assinatura vencida ou cancelada pode ser refeita.
- */
+/** Gate de papel é UI — a rota revalida `role === "admin"` no servidor (V2b). Mostra estado `active`/`pending` em vez do formulário para evitar dupla cobrança. */
 export function VendorSubscribeButton({ vendorId, role, currentPlan, subscriptionStatus }: Props) {
   const [plan, setPlan] = useState<VendorPlan>(currentPlan);
   const [submitting, setSubmitting] = useState(false);

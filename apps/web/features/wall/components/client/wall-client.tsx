@@ -10,17 +10,7 @@ import { WallPairingScreen } from "./wall-pairing-screen";
 import { WallParticipationCounter } from "./wall-participation-counter";
 import { WallStage } from "./wall-stage";
 
-/**
- * O telão do salão (spec 010), em duas fases.
- *
- * **Parear:** a TV pede um código, mostra na tela, e faz poll. Alguém que já
- * está no evento — convidado ou anfitrião — digita o código no app e autoriza.
- * O crachá volta num cookie `HttpOnly`; a TV nunca toca nele.
- *
- * **Exibir:** com o crachá no cookie, a TV lê `/api/wall` e roda os oito
- * modelos. 🔴 Nada corta na vertical: todo modelo desenha com `contain`, menos
- * `cheio`, que só recebe foto horizontal — a regra está no CSS e na seleção.
- */
+/** Nada corta na vertical — `contain` em todos os modelos exceto `cheio`, que só recebe foto horizontal (regra no CSS e na seleção). */
 
 function WallClock() {
   const [hora, setHora] = useState(() =>

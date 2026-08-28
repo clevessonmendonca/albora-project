@@ -11,10 +11,7 @@ type Props = {
   eventId: string;
   /** Ex.: "Convidados". Omita no painel ao vivo. */
   section?: string;
-  /**
-   * Habilita o modo Acompanhar do casal nesta seção — hoje só a "Ao vivo".
-   * Cosmético/de exibição; `canManageCoupleOnly` continua o único gate de ação.
-   */
+  /** Cosmético — habilita o modo Acompanhar nesta seção; `canManageCoupleOnly` é o único gate de ação real. */
   allowFollowMode?: boolean;
   children: ReactNode | ((ctx: AdminEventPageContext) => ReactNode);
 };

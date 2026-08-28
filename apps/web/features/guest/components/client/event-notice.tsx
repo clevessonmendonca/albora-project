@@ -2,18 +2,7 @@ import { AlboraLogo } from "./albora-logo";
 import { RescueScanner } from "./rescue-scanner";
 import { EventCountdown } from "./event-countdown";
 
-/**
- * Saída com dignidade.
- *
- * Todo estado que não abre a festa passa por aqui, e nenhum deles é um erro
- * do convidado. Ele escaneou um QR numa mesa: a tela diz o que aconteceu e
- * qual é o próximo passo, sem código de erro e sem culpa.
- *
- * `resgate` liga o campo de código e o escaneamento. Só entra onde a pessoa
- * está no endereço **errado** — código desconhecido e slug rotacionado. Em
- * "já foi" e "ainda não começou" o código está certo, e oferecer um scanner
- * ali seria mentir sobre o que resolve o problema.
- */
+/** `showRescue` só entra em código desconhecido — em "já foi" e "ainda não começou" o endereço está certo e um scanner seria desorientador. */
 export function EventNotice({
   title,
   body,

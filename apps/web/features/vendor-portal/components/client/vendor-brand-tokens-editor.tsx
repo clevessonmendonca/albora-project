@@ -52,16 +52,7 @@ function extrairCorOpcional(tokens: Record<string, unknown>, chave: string): str
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
 
-/**
- * Editor minimal de `brand_tokens` do fornecedor.
- *
- * Edita: `cores.acento` (cor de destaque), `background` e opcionalmente
- * `cores.papel`, `cores.noite`, `cores.tinta`. Preview ao vivo via
- * `resolveTokens` + `toVariables`, o mesmo resolvedor do convidado e do telão.
- *
- * Hex literais nunca chegam aqui por código — só por input controlado do
- * usuário, e apenas após `HEX.test()`.
- */
+/** Hex nunca vem de código — só de input do usuário após `HEX.test()`. Preview usa o mesmo resolvedor do convidado e do telão. */
 export function VendorBrandTokensEditor({ vendorId, initialBrandTokens }: Props) {
   const [acento, setAcento] = useState(extrairAcento(initialBrandTokens));
   const [background, setBackground] = useState<Background>(extrairBackground(initialBrandTokens));

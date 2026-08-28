@@ -11,10 +11,6 @@ type Props = {
   label?: string;
 };
 
-/**
- * Gera passagem one-shot na hora e abre o deep link nativo.
- * Falha soft → navega para a tela de código manual.
- */
 export function AppOpenCta({ pairPath, label = "Abrir no app" }: Props) {
   const router = useRouter();
   const [estado, setEstado] = useState<"pronto" | "gerando">("pronto");

@@ -47,10 +47,7 @@ function vereditoTextClass(veredito: CodigoDaTese): string {
   return "text-critico";
 }
 
-/**
- * Insights do casal: só agregados. Sem nomes, sem thumbs, sem receita.
- * A moderação de nomes fica em Convidados.
- */
+/** Só agrega métricas — sem nomes, sem thumbs, sem receita. Moderação de nomes fica em Convidados. */
 export function EventInsights({ eventoId }: { eventoId: string }) {
   const [resumo, setResumo] = useState<Resumo | null>(null);
   const [insights, setInsights] = useState<Insights | null>(null);

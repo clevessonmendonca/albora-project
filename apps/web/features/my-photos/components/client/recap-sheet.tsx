@@ -4,14 +4,7 @@ import React, { useEffect } from "react";
 import { ErrorMessage, PrimaryButton, ShareIcon } from "@albora/ui-web";
 import type { QuadroDoRecap } from "@/features/my-photos/hooks/use-recap";
 
-/**
- * O carrossel do recap em tela cheia — as fotos já com a moldura da
- * identidade, uma tela de story por vez (spec de crescimento A2).
- *
- * Só monta depois que `use-recap` já compôs os quadros (`aberto`): esta tela
- * não sabe buscar nem compor nada, só mostra o que chegou pronto e devolve o
- * toque de avançar/voltar/compartilhar/fechar.
- */
+/** Só mostra quadros já compostos — não busca nem compõe nada; a orquestração fica em `use-recap`. */
 export function RecapSheet({
   aberto,
   quadros,

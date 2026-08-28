@@ -8,13 +8,7 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/e/ana-e-joao",
 }));
 
-/**
- * Smoke test da tela do meio (spec "autor clicável"): a página monta,
- * `useAuthorFeed` bate na API real de `/api/guests/[autorId]` (mockada aqui),
- * e o resultado aparece na tela — nome, foto e o estado terminal de
- * `naoEncontrado`. Não testa curtida/comentário: esta tela não os oferece
- * (leitura, não interação).
- */
+/** Smoke da tela autor clicável — não testa curtida/comentário porque a tela não os oferece (só leitura). */
 
 const AUTOR_ID = "11111111-1111-1111-1111-111111111111";
 

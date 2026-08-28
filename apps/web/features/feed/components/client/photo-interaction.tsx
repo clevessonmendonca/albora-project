@@ -28,15 +28,7 @@ type Props = {
   onVerAutor?: ((sessaoId: string) => void) | undefined;
 };
 
-/**
- * Barra de estrela + comentário numa foto do feed (spec 008 + 014).
- *
- * A estrela nunca espera o gate — reagir é liberado assim que a mídia
- * publica (ADR 0009, atualizado). Comentário, compartilhar, denunciar e
- * bloquear continuam atrás de `interacao === "completo"`: são eles que
- * carregam identidade do autor (`sessaoAutor`/`minha`) e o horário que o
- * casal escolheu.
- */
+/** Reação não espera gate (ADR 0009); comentário, compartilhar, denunciar e bloquear esperam `interacao === "completo"`. */
 export function PhotoInteraction({
   uploadId,
   interacao,
