@@ -20,3 +20,4 @@ export * from "./guestbook-audio-schemas";
 export * from "./cover-image-schemas";
 export * from "./event-schemas";
 export * from "./export-schemas";
+export * from "./drive-schemas";
