@@ -1,16 +1,3 @@
-/**
- * Comentário em foto, com resposta (spec 014, ADR 0009).
- *
- * Três coisas vêm de fora e não são reimplementadas aqui: o gate de interação
- * (`interacao.ts`), a precedência de moderação (`moderacao.ts`) e a regra de
- * quem remove o quê (`galeria.ts`). Gate reimplementado é gate que abre em
- * horário diferente; precedência reimplementada é o botão de pânico valendo
- * para foto e não valendo para o texto embaixo dela.
- *
- * Reação em comentário não existe, em nenhuma fase — é decisão de escopo da
- * spec, não lacuna de implementação.
- */
-
 import { podeRemover } from "./galeria";
 import { interacaoAberta, type GateDeInteracao } from "./interacao";
 import {
@@ -36,14 +23,7 @@ export type Comentario = {
 
 export const MAX_CARACTERES = 500;
 
-/**
- * Uma resposta, e só. Resposta de resposta pendura na mesma raiz.
- *
- * Thread infinita é duas superfícies ruins ao mesmo tempo: de render, porque
- * o quinto nível não cabe num celular de 360px, e de abuso, porque enterrar
- * texto sob dez níveis é o jeito barato de escapar de quem está moderando. O
- * teto também é o que a superfície lê para saber quanto indentar.
- */
+/** Resposta de resposta pendura na mesma raiz — thread infinita é veículo de abuso e impossível de indentar. */
 export const PROFUNDIDADE_MAXIMA = 1;
 
 export type CodigoDeComentario =
@@ -55,26 +35,14 @@ export type CodigoDeComentario =
 
 /* ── texto ──────────────────────────────────────────────────────────── */
 
-/**
- * O que o convidado digitou não vira nada visível.
- *
- * Espaço comum o `trim` resolve; junta-linhas, marca de direção e espaço de
- * largura zero não, e um comentário só deles renderiza em branco na foto de
- * alguém — que é exatamente o que serve para poluir sem dar o que denunciar.
- */
+/** Zero-width e marcas de direção renderizam em branco — poluem sem dar o que denunciar. */
 const INVISIVEIS = /[\s\u00AD\u180E\u200B-\u200F\u2060\uFEFF]/gu;
 
 export type TextoValidado =
   | { ok: true; texto: string }
   | { ok: false; codigo: "comentario.texto_vazio" | "comentario.texto_longo" };
 
-/**
- * Devolve o texto aparado, **sem escapar**.
- *
- * Escapar aqui gravaria `&lt;script&gt;` no banco e voltaria escapado de novo
- * no template — o convidado veria a própria entidade HTML na tela. As duas
- * camadas da spec são servidor e template, as duas na saída.
- */
+/** Não escapa — gravar `&lt;script&gt;` no banco devolveria a entidade HTML na tela; XSS é responsabilidade do template. */
 export function validarTexto(bruto: string): TextoValidado {
   const texto = bruto.trim();
 
@@ -82,8 +50,7 @@ export function validarTexto(bruto: string): TextoValidado {
     return { ok: false, codigo: "comentario.texto_vazio" };
   }
 
-  // Ponto de código, não unidade UTF-16: contar `.length` cortaria um
-  // comentário de emoji na metade do teto e partiria o par substituto.
+  // Ponto de código, não `.length` (UTF-16): `.length` partiria par substituto de emoji na metade do teto.
   if ([...texto].length > MAX_CARACTERES) {
     return { ok: false, codigo: "comentario.texto_longo" };
   }
@@ -122,14 +89,10 @@ function ancoraDaResposta(
       c.midiaId === pedido.midiaId,
   );
 
-  // Um código só para "não existe", "é de outra foto" e "é de outro evento".
-  // Separar os três responderia, para quem tentasse ids no escuro, se um id
-  // alheio existe em algum lugar.
+  // Um código para os três casos — separar revelaria, por enumeração, se um id alheio existe em algum lugar.
   if (alvo === undefined) return { ok: false, codigo: "comentario.resposta_ausente" };
 
-  // Sobe para a raiz em vez de recusar: quem toca em "responder" numa resposta
-  // não pode encontrar erro às 22h. Rende no máximo `PROFUNDIDADE_MAXIMA`
-  // porque `alvo.respostaA`, quando existe, já é a raiz.
+  // Sobe para a raiz — reply em reply nunca gera erro às 22h; `alvo.respostaA` já é raiz quando existe.
   return { ok: true, respostaA: alvo.respostaA ?? alvo.id };
 }
 
@@ -139,8 +102,7 @@ export function publicarComentario(
   existentes: readonly Comentario[],
   agora: Date,
 ): ResultadoDePublicacao {
-  // Isolamento antes do gate: recusar sessão de outro evento sem antes contar
-  // se a interação daqui já abriu.
+  // Isolamento antes do gate: evento divergente nunca vaza pelo contador de interação aberta.
   if (pedido.eventoId !== evento.id) {
     return { ok: false, codigo: "comentario.outro_evento" };
   }
@@ -180,14 +142,7 @@ function maisAntigoPrimeiro(a: Comentario, b: Comentario): number {
   return a.criadoEm.getTime() - b.criadoEm.getTime() || a.id.localeCompare(b.id);
 }
 
-/**
- * Agrupa em raízes e respostas, do mais antigo para o mais novo.
- *
- * Recebe apenas o que `decidirExibicaoDoComentario` já liberou: resposta cuja
- * raiz não está na lista **some junto**, em vez de ser promovida a topo — o
- * anfitrião que apagou o comentário de cima não pode ver a discussão dele
- * ressuscitar sem o começo.
- */
+/** Resposta cuja raiz foi removida some junto — anfitrião não pode ver discussão ressuscitar sem começo. */
 export function montarThread(
   comentarios: readonly Comentario[],
   midiaId: string,
@@ -219,11 +174,7 @@ export type AtorDaRemocao = {
   ehAnfitriao: boolean;
 };
 
-/**
- * O autor remove o próprio, o anfitrião remove qualquer um — dentro do evento
- * dele. O papel de anfitrião não atravessa evento: sem a checagem de
- * `eventoId`, um anfitrião apagaria comentário da festa de outro casal.
- */
+/** Papel de anfitrião não atravessa evento — sem checar `eventoId` ele apagaria comentário de outro casal. */
 export function podeRemoverComentario(
   comentario: Pick<Comentario, "eventoId" | "sessaoId">,
   ator: AtorDaRemocao,
@@ -242,11 +193,7 @@ export type EstadoDoComentario = {
   liberadoPeloAnfitriao: boolean;
 };
 
-/**
- * O comentário chega junto com a foto, para quem não escolheu lê-lo item a
- * item. É a mesma passividade do telão, e é por ela que a denúncia tira
- * comentário da vista sem esperar ninguém acordar.
- */
+/** Passivo como o telão — denúncia tira da vista sem esperar intervenção manual. */
 const SUPERFICIE_DO_COMENTARIO: Superficie = "telao";
 
 function comoMidia(estado: EstadoDoComentario): EstadoDaMidia {
@@ -261,10 +208,7 @@ function comoMidia(estado: EstadoDoComentario): EstadoDaMidia {
 function decidirTexto(estado: EstadoDaMidia, evento: EstadoDoEvento): Decisao {
   const decisao = decidirExibicao(estado, evento, SUPERFICIE_DO_COMENTARIO);
 
-  // A única divergência em relação à mídia, e é a regra do caminho crítico
-  // aplicada a texto: classificador mudo é enriquecimento fora do ar, e
-  // enriquecimento degrada, nunca derruba. O código estável continua o mesmo
-  // para a auditoria registrar que publicou sem parecer do classificador.
+  // Enriquecimento degrada, nunca derruba: sem resposta do classificador o texto publica (código preservado para auditoria).
   if (decisao.codigo === "moderacao.classificador_sem_resposta") {
     return { visivel: true, codigo: decisao.codigo };
   }
@@ -272,11 +216,7 @@ function decidirTexto(estado: EstadoDaMidia, evento: EstadoDoEvento): Decisao {
   return decisao;
 }
 
-/**
- * A mesma escada de `decidirExibicao`, aplicada duas vezes: primeiro à foto,
- * depois ao comentário. É o que faz o botão de pânico e a remoção da foto
- * levarem os comentários dela junto sem uma segunda regra para manter em dia.
- */
+/** Aplica `decidirExibicao` à foto e depois ao comentário — pânico e remoção levam os comentários junto. */
 export function decidirExibicaoDoComentario(
   comentario: EstadoDoComentario,
   midia: EstadoDaMidia,
@@ -299,13 +239,7 @@ export type EntradaDeAuditoriaDeComentario = {
   em: string;
 };
 
-/**
- * A linha de auditoria de uma decisão sobre comentário.
- *
- * Não existe campo para o texto, e é de propósito: comentário de festa cita
- * nome de gente que nunca abriu o produto, e a auditoria guarda a decisão, não
- * a frase. Quem precisar da frase busca pelo `comentarioId`, sob a mesma RLS.
- */
+/** Auditoria guarda a decisão, não o texto — comentário cita nome de quem nunca abriu o produto (PII). */
 export function registrarDecisaoDoComentario(
   entrada: Omit<EntradaDeAuditoriaDeComentario, "visivel" | "codigo" | "em">,
   decisao: Decisao,

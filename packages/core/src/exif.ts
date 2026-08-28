@@ -1,17 +1,4 @@
-/**
- * Leitura de EXIF, antes de destruí-lo.
- *
- * O EXIF é removido no cliente, antes do upload: coordenada de GPS em foto de
- * convidado é exposição real de LGPD, e a foto do casamento de alguém não
- * precisa carregar o endereço da casa da avó.
- *
- * **Mas remover não basta, e é aqui que quase todo mundo erra.** Reencodar
- * pelo canvas apaga o EXIF de graça — inclusive a tag de orientação. O
- * iPhone fotografa em paisagem gravando os pixels de lado e corrigindo pela
- * tag; sem ela, a foto entra no álbum deitada. Por isso a ordem é: **ler a
- * orientação, aplicar nos pixels, e só então reencodar.**
- */
-
+/** Ler orientação ANTES de reencodar: reencode apaga o EXIF inclusive a tag de orientação — foto entraria deitada. */
 export type Orientacao = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 const MARCADOR_APP1 = 0xffe1;
@@ -27,10 +14,6 @@ const TIPO_LONG = 4;
 
 type Tiff = { visao: DataView; inicio: number; littleEndian: boolean };
 
-/**
- * Localiza o bloco TIFF dentro do APP1. Devolve `null` quando não há EXIF —
- * o que é o caso de toda imagem que já passou por reencode.
- */
 function acharTiff(bytes: Uint8Array): Tiff | null {
   if (bytes.length < 4 || bytes[0] !== 0xff || bytes[1] !== 0xd8) return null;
 
@@ -83,8 +66,7 @@ function percorrerIfd0(
     if (entrada + 12 > visao.byteLength) return;
 
     const tag = visao.getUint16(entrada, littleEndian);
-    // O valor de uma entrada SHORT mora nos dois primeiros bytes do campo de
-    // 4; LONG ocupa os quatro. Ler sempre 16 bits daria offset errado no GPS.
+    // SHORT mora nos 2 primeiros bytes do campo de 4; ler sempre 16 bits daria offset errado no GPS.
     const tipo = visao.getUint16(entrada + 2, littleEndian);
     const valor =
       tipo === TIPO_SHORT
@@ -176,10 +158,7 @@ function parseExifDate(texto: string): Date | null {
   return em;
 }
 
-/**
- * Orientação declarada pela câmera. `1` quando não há EXIF — que é o mesmo
- * que "os pixels já estão certos", e é o padrão seguro.
- */
+/** 1 quando não há EXIF — equivale a "pixels já estão certos", é o padrão seguro. */
 export function lerOrientacao(bytes: Uint8Array): Orientacao {
   const tiff = acharTiff(bytes);
   if (!tiff) return 1;
@@ -194,13 +173,7 @@ export function lerOrientacao(bytes: Uint8Array): Orientacao {
   return achada;
 }
 
-/**
- * Diz se a imagem carrega bloco de GPS.
- *
- * Serve para **verificar** que a remoção funcionou, não para decidir se ela
- * acontece: o EXIF sai de toda foto, sempre, tenha GPS ou não. Uma remoção
- * condicional é uma remoção que um dia não roda.
- */
+/** Para verificar que a remoção funcionou — o EXIF sai sempre, não condicionalmente. Remoção condicional um dia não roda. */
 export function temGeolocalizacao(bytes: Uint8Array): boolean {
   const tiff = acharTiff(bytes);
   if (!tiff) return false;
@@ -217,17 +190,7 @@ export function temExif(bytes: Uint8Array): boolean {
   return acharTiff(bytes) !== null;
 }
 
-/**
- * Instante de captura declarado no EXIF, **antes** de o reencode apagá-lo.
- *
- * Os componentes UTC do `Date` são os da parede da câmera, sem fuso: o EXIF
- * não traz offset. Quem persiste aplica o fuso do evento — nunca o do
- * aparelho — via `instanteDaParede`.
- *
- * Prefere DateTimeOriginal, cai em DateTimeDigitized e por último no
- * DateTime do IFD0. Ausente ou ilegível devolve `null`; o álbum cai no
- * `created_at`.
- */
+/** UTC do `Date` são os da parede da câmera sem fuso — EXIF não traz offset; quem persiste aplica fuso do evento. */
 export function lerCapturadaEm(bytes: Uint8Array): Date | null {
   const tiff = acharTiff(bytes);
   if (!tiff) return null;
@@ -258,13 +221,7 @@ export type Transformacao = {
   trocaEixos: boolean;
 };
 
-/**
- * A transformação que devolve os pixels à posição em que a foto foi vista.
- *
- * As oito orientações do EXIF incluem quatro espelhadas. Elas são raras, mas
- * ignorá-las produz a foto invertida — e num casamento isso é a aliança na
- * mão errada.
- */
+/** As 8 orientações incluem 4 espelhadas — ignorar produz foto invertida. */
 export function transformacaoParaOrientacao(o: Orientacao): Transformacao {
   const tabela: Record<Orientacao, Transformacao> = {
     1: { girar: 0, espelhar: false, trocaEixos: false },

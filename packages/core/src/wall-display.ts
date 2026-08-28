@@ -1,21 +1,7 @@
-/**
- * A fila da parede e a escolha de enquadramento (spec 010).
- *
- * Lógica pura, sem DOM e sem rede: é ela que decide **o que** sobe na parede e
- * **como** cabe. Quem desenha é o renderizador; quem busca é o stream com
- * queda para polling. Separado assim porque a regra vermelha da spec precisa
- * de teste, e teste de "nenhum rosto cortado" não se escreve contra um `<img>`.
- */
-
 export type ItemDoTelao = {
   id: string;
   criadaEm: Date;
-  /**
-   * Quantas vezes já subiu na parede.
-   *
-   * O decaimento é por **exibição**, não só por tempo: sem isto a foto das 21h
-   * com muitas reações fica na parede até as 3h.
-   */
+  /** Decaimento por exibição, não só por tempo: sem isto a foto mais reagida monopoliza a parede. */
   exibicoes: number;
   reacoes: number;
   largura: number;
@@ -51,17 +37,7 @@ export const MODELOS_DE_TELAO: readonly ModeloDeTelao[] = [
   "mosaico",
 ];
 
-/**
- * O que cada modelo é, em número.
- *
- * `aceitaEmPe` é a regra vermelha virada dado: três de cada quatro fotos de
- * festa são verticais, e `cheio` sangra até a borda. `faixaPreferida` existe
- * porque **TBT não é layout, é seleção** — polaroide e colagem dizem *como* a
- * foto aparece; TBT diz *qual* aparece. Misturar as duas coisas num campo só
- * teria feito o telão sortear uma foto recente e chamá-la de retrospectiva.
- */
 export type PerfilDoModelo = {
-  /** Quantas fotos o modelo mostra de uma vez. */
   fotos: number;
   aceitaEmPe: boolean;
   faixaPreferida?: Faixa;
@@ -76,22 +52,12 @@ export const PERFIS: Readonly<Record<ModeloDeTelao, PerfilDoModelo>> = {
   carrossel: { fotos: 1, aceitaEmPe: true },
   dump: { fotos: 9, aceitaEmPe: true },
   tbt: { fotos: 1, aceitaEmPe: true, faixaPreferida: "popular" },
-  /** 2×2 grid, cada célula contain + fundo desfocado. */
   grade: { fotos: 4, aceitaEmPe: true },
-  /** Hero esquerda (2/3) + quatro pequenas direita (2×2). */
   destaque: { fotos: 5, aceitaEmPe: true },
-  /** Tríptico: duas colunas laterais com duas fotos cada, hero central. */
   mosaico: { fotos: 5, aceitaEmPe: true },
 };
 
-/**
- * Vazio quando a escolha do casal pode ir para a parede.
- *
- * A recusa que importa: uma seleção só com `cheio` deixaria **três de cada
- * quatro fotos sem nenhuma forma de aparecer**, porque só ele recusa foto em
- * pé. O telão rodaria a noite inteira parecendo funcionar, mostrando só o
- * quarto deitado do acervo, e ninguém descobriria até o dia seguinte.
- */
+/** Vazio quando escolha é válida; seleção sem nenhum modelo que aceita foto em pé deixaria 3/4 do acervo invisível. */
 export function problemasDaEscolha(escolhidos: readonly ModeloDeTelao[]): string[] {
   if (escolhidos.length === 0) return ["nenhum modelo escolhido"];
 
@@ -110,7 +76,6 @@ function ehModeloDeTelao(valor: unknown): valor is ModeloDeTelao {
   return typeof valor === "string" && MODELOS_CONHECIDOS.has(valor);
 }
 
-/** Normaliza a escolha do casal; inválida ou ausente volta ao rodízio completo. */
 export function modelosDoRodizio(escolhidos: unknown): readonly ModeloDeTelao[] {
   if (!Array.isArray(escolhidos) || escolhidos.length === 0) {
     return MODELOS_DE_TELAO;
@@ -124,13 +89,10 @@ export function modelosDoRodizio(escolhidos: unknown): readonly ModeloDeTelao[] 
   return filtrados;
 }
 
-/** Quanto tempo uma foto conta como "recente". */
 export const JANELA_RECENTE_MS = 12 * 60 * 1000;
 
-/** Meia-vida da popularidade no tempo. */
 const MEIA_VIDA_MS = 90 * 60 * 1000;
 
-/** Os pesos das três faixas, na ordem em que o sorteio as atravessa. */
 export const PESOS: Readonly<Record<Faixa, number>> = {
   "nunca-exibida": 0.5,
   recente: 0.25,
@@ -141,15 +103,7 @@ export function ehVertical(item: Pick<ItemDoTelao, "largura" | "altura">): boole
   return item.altura > item.largura;
 }
 
-/**
- * Os modelos em que esta foto cabe **sem corte**.
- *
- * 🔴 A regra vermelha da spec: três de cada quatro fotos de festa são
- * verticais, e encaixar 9:16 em 16:9 descarta dois terços da imagem pelo topo
- * e pela base — o topo é onde estão as cabeças. `cheio` sangra até a borda, e
- * por isso só aceita foto horizontal. Os outros quatro resolvem o
- * enquadramento sem recortar.
- */
+/** Modelos onde a foto cabe sem corte — cheio só aceita horizontal pois sangra até a borda e cortaria cabeças. */
 export function modelosPermitidos(
   item: Pick<ItemDoTelao, "largura" | "altura">,
 ): ModeloDeTelao[] {
@@ -170,13 +124,7 @@ export function faixaDe(item: ItemDoTelao, agora: Date): Faixa {
   return "popular";
 }
 
-/**
- * A popularidade, gasta por exibição e por tempo.
- *
- * As duas quedas se multiplicam de propósito: só tempo deixa a foto muito
- * reagida ocupar a parede a noite toda, e só exibição deixa a foto de 21h
- * voltar para o topo quando a fila esvazia.
- */
+/** Multiplicativo de propósito: queda só por tempo deixa a mais reagida na parede toda noite; só por exibição ressuscita fotos antigas. */
 export function pontuacaoPopular(item: ItemDoTelao, agora: Date): number {
   const idade = Math.max(0, agora.getTime() - item.criadaEm.getTime());
   const porTempo = Math.pow(0.5, idade / MEIA_VIDA_MS);
@@ -186,9 +134,7 @@ export function pontuacaoPopular(item: ItemDoTelao, agora: Date): number {
 
 function ordenar(faixa: Faixa, itens: ItemDoTelao[], agora: Date): ItemDoTelao[] {
   if (faixa === "nunca-exibida") {
-    // A que espera há mais tempo vai primeiro. Ordenar pela mais nova aqui
-    // deixaria a foto do começo da festa nunca subir, e a verificação 6 da
-    // spec é justamente que toda foto apareça pelo menos uma vez.
+    // A mais antiga vai primeiro — ordenar pela mais nova deixaria a foto do começo da festa nunca subir.
     return [...itens].sort((a, b) => a.criadaEm.getTime() - b.criadaEm.getTime());
   }
 
@@ -203,21 +149,11 @@ export type EscolhaDoTelao = {
   agora: Date;
   /** Injetado para o teste ser determinístico. */
   sorteio?: () => number;
-  /**
-   * Quando o modelo da vez é `cheio`, a fila filtra as verticais antes de
-   * sortear — em vez de escolher uma foto e depois descobrir que ela não cabe.
-   */
+  /** Modelo em vigor: filtra inelegíveis antes do sorteio. */
   modelo?: ModeloDeTelao;
 };
 
-/**
- * A próxima da parede, ou `null` quando não há nada elegível.
- *
- * A faixa sai do sorteio ponderado; se a sorteada estiver vazia, cai para as
- * outras na ordem de prioridade em vez de devolver nada. Uma parede que
- * mostra o vazio porque a faixa da vez esvaziou é pior que uma parede que
- * repete.
- */
+/** Próxima da parede (null se vazio); faixa sorteada cai para as outras em vez de devolver nada. */
 export function proximaDoTelao(
   itens: readonly ItemDoTelao[],
   { agora, sorteio = Math.random, modelo }: EscolhaDoTelao,
@@ -261,14 +197,7 @@ export function proximaDoTelao(
   return null;
 }
 
-/**
- * O teto do cache local.
- *
- * Sem teto duro a aba cresce durante quatro horas e a TV mata a página no
- * meio da festa — o risco que a própria spec registra. Guardar as mais novas
- * é o certo: com o cabo arrancado, o que a parede tem para mostrar é o fim da
- * festa, não o começo.
- */
+/** Sem teto duro a aba cresce por horas e a TV mata a página no meio da festa. */
 export const TETO_DO_CACHE = 50;
 
 export function podarCache(

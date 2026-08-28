@@ -2,18 +2,6 @@ import { MAX_ATTEMPTS } from "./fila";
 import type { QueueItem } from "./fila";
 import type { GateDeInteracao } from "./interacao";
 
-/**
- * A galeria pessoal e a reação (spec 008).
- *
- * As duas resolvem coisas diferentes, e a galeria é a que justifica a semana:
- * o convidado subiu oito fotos numa festa com sinal ruim e não faz ideia se
- * chegaram. Sem um lugar que diga "as suas oito estão aqui", ele para de
- * mandar **por dúvida, não por desinteresse**.
- *
- * Por isso a fila local entra na mesma lista do que já está no servidor. Uma
- * galeria que só mostra o confirmado responde à pergunta errada.
- */
-
 export type EstadoNaGaleria = "enviada" | "subindo" | "falhou";
 
 export type MidiaEnviada = {
@@ -32,17 +20,6 @@ export type ItemDaGaleria = {
   tentativas: number;
 };
 
-/**
- * Junta o que o servidor confirmou com o que ainda está na fila do aparelho.
- *
- * A prova 5 da spec — matar o app com 3 pendentes, reabrir e ver os 3 ainda
- * marcados — só passa porque a fila é a fonte da verdade do que não subiu, e
- * ela sobrevive ao fechamento do app.
- *
- * Ordena da mais nova para a mais velha, misturando as duas origens: separar
- * "as suas" de "as pendentes" em duas listas obrigaria o convidado a somar de
- * cabeça para responder "mandei tudo?".
- */
 export function montarGaleria(
   enviadas: readonly MidiaEnviada[],
   fila: readonly QueueItem[],
@@ -60,9 +37,7 @@ export function montarGaleria(
 
   const daFila: ItemDaGaleria[] = fila
     .filter((i) => i.eventoId === eventoId)
-    // O confirm é idempotente pelo id do cliente: entre o `confirm` e a
-    // limpeza da fila o mesmo item existe nos dois lados, e mostrá-lo duas
-    // vezes faria o convidado achar que mandou em dobro.
+    // Idempotência: entre confirm e limpeza da fila o item existe nos dois lados — sem isso aparece em dobro para o convidado.
     .filter((i) => !confirmadas.has(i.id))
     .map((i) => ({
       id: i.id,
@@ -95,19 +70,7 @@ export function resumirGaleria(itens: readonly ItemDaGaleria[]): ResumoDaGaleria
 
 /* ── reação ─────────────────────────────────────────────────────────── */
 
-/**
- * O botão de reagir nunca espera o gate — só o comentário espera (ADR 0009,
- * atualizado). Reagir é o gesto mais barato que existe no app e é ele quem dá
- * ao convidado o primeiro sinal de "chegou" antes mesmo de a interação abrir;
- * segue em `podeReagir`, e não inline nos dois call sites (rota de reação e
- * feed), porque as duas superfícies leem a mesma resposta — é o mesmo motivo
- * que já valia quando a regra era o inverso.
- *
- * `evento`/`agora` seguem na assinatura porque este é o par de `modoInteracao`
- * que os dois call sites já chamam com esses argumentos; usá-los aqui de novo
- * um dia (por exemplo, se a moderação global precisar suspender reação sem
- * mudar o gate de comentário) não pede assinatura nova.
- */
+/** Reação nunca espera o gate (ADR 0009); comentário espera. As duas superfícies leem esta função. */
 export function podeReagir(_evento: GateDeInteracao, _agora: Date): boolean {
   return true;
 }
@@ -118,13 +81,7 @@ export type Reacao = {
   tipo: string;
 };
 
-/**
- * Idempotente por `(sessaoId, midiaId)`: reagir duas vezes é reagir uma vez.
- *
- * É o que faz o botão sobreviver a toque duplo e a retry de rede sem inflar
- * contagem — a prova 1 da spec. Trocar o tipo **substitui**, e não soma: uma
- * sessão tem no máximo uma reação por foto.
- */
+/** Idempotente por (sessaoId, midiaId): toque duplo e retry não inflam contagem. */
 export function aplicarReacao(
   reacoes: readonly Reacao[],
   nova: Reacao,
@@ -147,13 +104,7 @@ export function contarReacoes(reacoes: readonly Reacao[], midiaId: string): numb
   return reacoes.filter((r) => r.midiaId === midiaId).length;
 }
 
-/**
- * Quem pode remover a mídia.
- *
- * O token do convidado autoriza remover **a própria** mídia, e nada além
- * (ADR 0004). A verificação 7 da spec roda isto contra banco real; aqui é a
- * mesma regra, no lugar onde as duas superfícies a leem.
- */
+/** ADR 0004: o token autoriza remover só a própria mídia. */
 export function podeRemover(midiaDaSessao: string, sessaoId: string): boolean {
   return midiaDaSessao === sessaoId;
 }
