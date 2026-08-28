@@ -15,3 +15,4 @@ export * from "./app-pair-schemas";
 export * from "./challenge-schemas";
 export * from "./guest-schemas";
 export * from "./auth-schemas";
+export * from "./guestbook-admin-schemas";

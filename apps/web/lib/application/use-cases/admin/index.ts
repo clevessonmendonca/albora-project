@@ -82,3 +82,16 @@ export {
   processRetentionJobs,
   type ProcessRetentionJobsOutput,
 } from "./process-retention-jobs";
+
+export {
+  getAdminGuestbook,
+  type GetAdminGuestbookInput,
+  type GetAdminGuestbookOutput,
+  type SerializedGuestbook,
+} from "./get-admin-guestbook";
+
+export {
+  upsertGuestbook,
+  type UpsertGuestbookInput,
+  type UpsertGuestbookResult,
+} from "./upsert-guestbook";

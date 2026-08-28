@@ -1,21 +1,8 @@
-import {
-  type GuestbookError,
-  validateGuestbookCreation,
-  validateGuestbookDraft,
-  type GuestbookEntry,
-} from "@albora/core";
-import {
-  updateGuestbook,
-  withEvent,
-  GuestbookExistsError,
-  insertGuestbook,
-  eventGuestbook,
-} from "@albora/db";
+import { type GuestbookError } from "@albora/core";
 import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
   jsonOk,
-  parseJsonBody,
   requireConfig,
   requireHostEvent,
   requireHostSession,
@@ -23,29 +10,17 @@ import {
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
-import { clientSentStorageKey } from "./guestbook-body";
-import { signGuestbookAudio } from "./guestbook-audio-url";
+import {
+  getAdminGuestbook,
+  upsertGuestbook,
+} from "@/lib/application/use-cases/admin";
+import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import {
+  upsertGuestbookSchema,
+  clientSentStorageKey,
+} from "@/lib/infrastructure/api/validators";
 
 export const dynamic = "force-dynamic";
-
-type Corpo = {
-  texto?: unknown;
-  publicaEm?: unknown;
-  chave?: unknown;
-  audio?: unknown;
-};
-
-async function serializar(recado: GuestbookEntry | null) {
-  if (!recado) return { recado: null };
-  return {
-    recado: {
-      id: recado.id,
-      texto: recado.texto,
-      publicaEm: recado.publicaEm?.toISOString() ?? null,
-      audio: await signGuestbookAudio(recado.audio),
-    },
-  };
-}
 
 function mapErro(erro: GuestbookError) {
   switch (erro.code) {
@@ -55,22 +30,15 @@ function mapErro(erro: GuestbookError) {
       return errorResponse(422, erro.code, "Texto longo demais", erro.details);
     case "recado.audio_vazio":
     case "recado.audio_longo_demais":
-      return errorResponse(422, erro.code, "Áudio inválido", "details" in erro ? erro.details : undefined);
+      return errorResponse(
+        422,
+        erro.code,
+        "Áudio inválido",
+        "details" in erro ? erro.details : undefined,
+      );
     case "recado.ja_existe":
       return errorResponse(409, erro.code, "Este evento já tem um recado", erro.details);
   }
-}
-
-function parsePublicaEm(valor: unknown): Date | null | Response {
-  if (valor === undefined || valor === null || valor === "") return null;
-  if (typeof valor !== "string") {
-    return errorResponse(422, "validation_error", "Horário inválido", { campos: ["publicaEm"] });
-  }
-  const data = new Date(valor);
-  if (Number.isNaN(data.getTime())) {
-    return errorResponse(422, "validation_error", "Horário inválido", { campos: ["publicaEm"] });
-  }
-  return data;
 }
 
 export async function GET(
@@ -88,8 +56,8 @@ export async function GET(
   if (owned instanceof Response) return owned;
 
   try {
-    const recado = await withEvent(getPool(), eventId, (c) => eventGuestbook(c, eventId));
-    return jsonOk(await serializar(recado));
+    const resultado = await getAdminGuestbook({ eventId }, getPool());
+    return jsonOk(resultado);
   } catch (e) {
     return unexpectedError("admin.recado.get", e);
   }
@@ -118,56 +86,27 @@ export async function PUT(
   const owned = await requireHostEvent(auth.host.accountId, eventId);
   if (owned instanceof Response) return owned;
 
-  const parsed = await parseJsonBody<Corpo>(req);
-  if (parsed instanceof Response) return parsed;
-  const corpo = parsed.data;
+  const bodyValidation = await validateBody(req, upsertGuestbookSchema);
+  if (bodyValidation instanceof Response) return bodyValidation;
 
-  if (clientSentStorageKey(corpo as Record<string, unknown>)) {
+  // Additional validation: check if client sent storage key
+  const rawBody = await req.clone().json();
+  if (clientSentStorageKey(rawBody as Record<string, unknown>)) {
     return errorResponse(422, "recado.chave_do_cliente", "A chave de storage não vem do cliente");
   }
 
-  if (typeof corpo.texto !== "string") {
-    return errorResponse(422, "validation_error", "Texto inválido", { campos: ["texto"] });
+  const resultado = await upsertGuestbook(
+    {
+      eventId,
+      texto: bodyValidation.texto,
+      publicaEm: bodyValidation.publicaEm,
+    },
+    getPool(),
+  );
+
+  if (!resultado.ok) {
+    return mapErro(resultado.erro);
   }
 
-  const publicaEm = parsePublicaEm(corpo.publicaEm);
-  if (publicaEm instanceof Response) return publicaEm;
-
-  const rascunho = { texto: corpo.texto, audio: null, publicaEm };
-
-  try {
-    const salvo = await withEvent(getPool(), eventId, async (c) => {
-      const existente = await eventGuestbook(c, eventId);
-
-      if (existente === null) {
-        const erro = validateGuestbookCreation([], eventId, rascunho);
-        if (erro) return { ok: false as const, erro };
-        const recado = await insertGuestbook(c, {
-          eventoId: eventId,
-          texto: rascunho.texto.trim(),
-          publicaEm,
-        });
-        return { ok: true as const, recado };
-      }
-
-      const erro = validateGuestbookDraft(rascunho);
-      if (erro) return { ok: false as const, erro };
-      const recado = await updateGuestbook(c, {
-        eventoId: eventId,
-        texto: rascunho.texto.trim(),
-        publicaEm,
-      });
-      return { ok: true as const, recado: recado ?? existente };
-    });
-
-    if (!salvo.ok) return mapErro(salvo.erro);
-
-    console.log("admin.recado_salvo", { accountId: auth.host.accountId, eventId });
-    return jsonOk(await serializar(salvo.recado));
-  } catch (e) {
-    if (e instanceof GuestbookExistsError) {
-      return errorResponse(409, e.code, "Este evento já tem um recado", { eventoId: eventId });
-    }
-    return unexpectedError("admin.recado.put", e);
-  }
+  return jsonOk({ recado: resultado.recado });
 }
