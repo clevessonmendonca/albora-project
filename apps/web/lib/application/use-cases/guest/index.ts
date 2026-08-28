@@ -56,3 +56,9 @@ export {
   type ListFeedOutput,
   type FeedInteractionMode,
 } from "./list-feed";
+
+export {
+  confirmUpload,
+  type ConfirmUploadInput,
+  type ConfirmUploadResult,
+} from "./confirm-upload";

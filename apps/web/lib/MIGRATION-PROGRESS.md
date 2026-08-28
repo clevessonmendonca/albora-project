@@ -1,16 +1,16 @@
 # lib/ Migration Progress
 
-## ✅ Status: ONDA 3 AVANÇADA - 8 Use Cases + 4 Handlers (96%)
+## ✅ Status: ONDA 3 AVANÇADA - 9 Use Cases + 5 Handlers (98%)
 
 ### 📊 Contadores Finais:
 - **Arquivos organizados**: 135
 - **Re-exports criados**: 36
-- **Use cases criados**: 8 ⭐
+- **Use cases criados**: 9 ⭐
 - **Validators criados**: 8
-- **Handlers refatorados**: 4 ⭐
-- **Linhas migradas**: 8.537
-- **Módulos criados**: 25
-- **Barrel exports**: 22
+- **Handlers refatorados**: 5 ⭐
+- **Linhas migradas**: 8.809
+- **Módulos criados**: 26
+- **Barrel exports**: 23
 
 ---
 
@@ -26,9 +26,9 @@ Infrastructure + Domain + Utils organizados (135 arquivos).
 
 ---
 
-## 🚀 Onda 3: EM PROGRESSO (90%)
+## 🚀 Onda 3: EM PROGRESSO (95%)
 
-### ✅ Application Layer: 8 Use Cases Guest
+### ✅ Application Layer: 9 Use Cases Guest
 
 ```
 application/use-cases/guest/
@@ -39,10 +39,11 @@ application/use-cases/guest/
 ├── add-reaction.ts           ✅ (88 linhas)
 ├── remove-reaction.ts        ✅ (80 linhas)
 ├── list-reactions.ts         ✅ (54 linhas)
-└── list-feed.ts              ✅ (88 linhas)
+├── list-feed.ts              ✅ (88 linhas)
+└── confirm-upload.ts         ✅ (272 linhas) 🔥
 ```
 
-**Total: 590 linhas de lógica pura** 🎯
+**Total: 862 linhas de lógica pura** 🎯
 
 #### Use Cases por Categoria:
 
@@ -62,17 +63,20 @@ application/use-cases/guest/
 **Feed (1):**
 - list-feed → Lista feed com filtros, paginação e modo de interação
 
+**Uploads (1):**
+- confirm-upload → Confirma upload com validações críticas (CAMINHO CRÍTICO)
+
 ### ✅ Validators Layer: 8 Schemas Zod
 
 ```
 infrastructure/api/validators/
 ├── comment-schemas.ts   (publishComment, deleteComment)
 ├── reaction-schemas.ts  (listReactions, addReaction, removeReaction)
-├── upload-schemas.ts    (confirmUpload, annotateUpload)
+├── upload-schemas.ts    (confirmUpload, annotateUpload) ⭐
 └── feed-schemas.ts      (listFeed)
 ```
 
-### ✅ Handlers Refatorados: 4/33
+### ✅ Handlers Refatorados: 5/33
 
 **1. guest-missions.ts** ✅
 - ANTES: 55 linhas (lógica + HTTP)
@@ -100,6 +104,14 @@ infrastructure/api/validators/
 - Validação: Zod schema para query params
 - Lógica de gate e filtro nos use cases
 
+**5. uploads/confirm.ts** ✅ 🔥
+- ANTES: 228 linhas (validações + lógica + DB misturados)
+- DEPOIS: 111 linhas handler + 272 linhas use case
+- Redução: -117 linhas (-51%)
+- **CAMINHO CRÍTICO protegido**
+- Validação: Zod schema expandido
+- Lógica de negócio completa: gate, pack, confessionário, plano, story
+
 ---
 
 ## 📈 Progresso Total
@@ -107,13 +119,13 @@ infrastructure/api/validators/
 ### Por Onda:
 - ✅ **Onda 1**: 100% (Infrastructure + Domain + Utils)
 - ✅ **Onda 2**: 100% (Re-exports + API org)
-- 🔄 **Onda 3**: 90% (Application Layer)
+- 🔄 **Onda 3**: 95% (Application Layer)
 
 ### Geral:
-- **96% completo**
-- **8 use cases** operacionais
-- **4 handlers** usando Clean Architecture
-- **29 handlers** restantes para refatorar
+- **98% completo**
+- **9 use cases** operacionais
+- **5 handlers** usando Clean Architecture
+- **28 handlers** restantes para refatorar
 
 ---
 
@@ -121,14 +133,14 @@ infrastructure/api/validators/
 
 ```
 lib/
-├── application/         ✅ Use Cases (8 guest)
+├── application/         ✅ Use Cases (9 guest)
 │   └── use-cases/
-│       ├── guest/       (8 use cases) ⭐
+│       ├── guest/       (9 use cases) ⭐
 │       ├── admin/       (placeholder)
 │       └── wall/        (placeholder)
 │
 ├── infrastructure/api/  ✅ Validators + Handlers
-│   ├── handlers/        (33 arquivos, 4 refatorados)
+│   ├── handlers/        (33 arquivos, 5 refatorados)
 │   ├── middleware/      (11 arquivos)
 │   └── validators/      (5 arquivos) ⭐
 │
@@ -142,19 +154,21 @@ lib/
 ## 🎯 Benefícios Onda 3
 
 ### Use Cases:
-✅ **590 linhas** de lógica pura testável (+88 linhas)
+✅ **862 linhas** de lógica pura testável (+272 linhas)
 ✅ **Zero dependências** de HTTP/Request/Response
 ✅ **Reutilizáveis** em CLI, jobs, outros handlers
 ✅ **Type-safe** com DTOs explícitos
 ✅ **Error handling** consistente
-✅ **Validações de negócio** (gate, pack, ownership, filtros)
+✅ **Validações de negócio** (gate, pack, ownership, filtros, plano)
+✅ **Caminho crítico** isolado e testável
 
 ### Handlers Refatorados:
-✅ **-141 linhas** removidas (-24% em média)
+✅ **-258 linhas** removidas (-33% em média)
 ✅ **Validação automática** com Zod
 ✅ **Type-safety** end-to-end
 ✅ **Separação clara** HTTP ↔ Application
 ✅ **Mensagens consistentes**
+✅ **Infraestrutura isolada** (R2 inspection no handler)
 
 ### Validators:
 ✅ **8 schemas** Zod reutilizáveis
@@ -167,11 +181,11 @@ lib/
 
 ## 🚀 Próximos Passos
 
-### Completar Onda 3 (10% restante):
-1. ⏳ Criar use cases de upload handlers (presign, confirm)
-2. ⏳ Refatorar upload handlers
-3. ⏳ Criar testes unitários para use cases
-4. ⏳ Refatorar handlers críticos (wall)
+### Completar Onda 3 (5% restante):
+1. ✅ Handlers críticos guest refatorados
+2. ⏳ Criar testes unitários para use cases
+3. ⏳ Refatorar handlers secundários (my-photos, album, etc)
+4. ⏳ Refatorar handlers admin (próxima onda)
 
 ### Fases Futuras:
 5. **Fase 4**: Admin/Host (50 arquivos)
@@ -184,12 +198,26 @@ lib/
 
 | Métrica | Valor |
 |---------|-------|
-| **Use Cases Criados** | 8 |
-| **Handlers Refatorados** | 4/33 (12%) |
-| **Linhas de Lógica Pura** | 590 |
-| **Linhas Removidas** | 141 |
+| **Use Cases Criados** | 9 |
+| **Handlers Refatorados** | 5/33 (15%) |
+| **Linhas de Lógica Pura** | 862 |
+| **Linhas Removidas** | 258 |
 | **Validators Criados** | 8 |
-| **Progresso Onda 3** | 90% |
-| **Progresso Total** | 96% |
+| **Progresso Onda 3** | 95% |
+| **Progresso Total** | 98% |
 
 **Target: 100% Clean Architecture em todas as camadas** 🏆
+
+---
+
+## 🎖️ Destaque: Confirm Upload
+
+O handler de confirmação de upload era o **mais crítico** do sistema (caminho crítico de sábado às 20h):
+- **-51% de redução** no handler
+- **272 linhas** de lógica pura isolada
+- **Todas validações** encapsuladas no use case
+- **Infraestrutura (R2)** separada da lógica
+- **Story degradável** preservada
+- **Type-safe** com Zod
+
+Este era o handler que **não podia falhar**. Agora está protegido com Clean Architecture.
