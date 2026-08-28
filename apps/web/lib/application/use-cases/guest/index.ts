@@ -80,3 +80,15 @@ export {
   type MarkGuestbookReadInput,
   type MarkGuestbookReadOutput,
 } from "./mark-guestbook-read";
+
+export {
+  getGuestMusic,
+  type GetGuestMusicInput,
+  type GetGuestMusicOutput,
+} from "./get-guest-music";
+
+export {
+  suggestMusic,
+  type SuggestMusicInput,
+  type SuggestMusicResult,
+} from "./suggest-music";

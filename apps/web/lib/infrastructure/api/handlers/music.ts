@@ -1,18 +1,3 @@
-import {
-  chaveDaFaixa,
-  interactionMode,
-  ordenarSugestoes,
-  parseMusicLink,
-  registrarSugestao,
-  type MetadadoDaMusica,
-} from "@albora/core";
-import {
-  adicionarSugestao,
-  withEvent,
-  eventGate,
-  listarSugestoes,
-  musicaDoCasal,
-} from "@albora/db";
 import { queueForScreen } from "@/features/music/lib/queue-for-screen";
 import {
   enforceRateLimit,
@@ -25,8 +10,8 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
-import { buscarMetadadoDaMusica } from "@/lib/music-metadata";
 import { serializarMusicaDoCasal } from "@/lib/music-track";
+import { getGuestMusic, suggestMusic } from "@/lib/application/use-cases/guest";
 
 type Corpo = { url?: unknown; evento?: unknown };
 
@@ -37,27 +22,25 @@ export async function GET(req: Request) {
   const limited = enforceRateLimit(req, auth.session);
   if (limited) return limited;
 
-  const mismatch = rejectGuestEventQueryMismatch(req, auth.session, "musica.evento_divergente");
+  const mismatch = rejectGuestEventQueryMismatch(
+    req,
+    auth.session,
+    "musica.evento_divergente",
+  );
   if (mismatch) return mismatch;
 
   try {
-    const corpo = await withEvent(getPool(), auth.session.eventoId, async (c) => {
-      const gate = await eventGate(c, auth.session.eventoId);
-      const escolhida = await musicaDoCasal(c, auth.session.eventoId);
-      const fila = ordenarSugestoes(await listarSugestoes(c, auth.session.eventoId));
-      return {
-        escolhida,
-        fila,
-        interacao: gate ? interactionMode(gate, new Date()) : ("espelho" as const),
-      };
-    });
+    const result = await getGuestMusic(
+      { eventoId: auth.session.eventoId },
+      getPool(),
+    );
 
-    const musica = serializarMusicaDoCasal(corpo.escolhida);
+    const musica = serializarMusicaDoCasal(result.escolhida);
 
     return jsonOk({
       musica,
-      sugestoes: queueForScreen(corpo.fila),
-      interacao: corpo.interacao,
+      sugestoes: queueForScreen(result.sugestoes),
+      interacao: result.interacao,
     });
   } catch (e) {
     return unexpectedError("musica.get", e);
@@ -82,65 +65,33 @@ export async function POST(req: Request) {
   if (mismatch) return mismatch;
 
   if (typeof parsed.data.url !== "string") {
-    return errorResponse(422, "validation_error", "Dados incompletos", { campos: ["url"] });
-  }
-
-  const lido = parseMusicLink(parsed.data.url);
-  if (!lido.ok) {
-    console.warn("musica.link_recusado", { eventoId: auth.session.eventoId, code: lido.erro.code });
-    return errorResponse(422, lido.erro.code, "Link não aceito", lido.erro.details);
-  }
-  const link = lido.link;
-  const chave = chaveDaFaixa(link);
-
-  let metadado: MetadadoDaMusica | null = null;
-  try {
-    const filaAtual = await withEvent(getPool(), auth.session.eventoId, (c) =>
-      listarSugestoes(c, auth.session.eventoId),
-    );
-    const existente = filaAtual.find((f) => f.chave === chave);
-    metadado = existente?.metadado?.titulo
-      ? (existente.metadado ?? null)
-      : await buscarMetadadoDaMusica(link);
-  } catch {
-    metadado = null;
+    return errorResponse(422, "validation_error", "Dados incompletos", {
+      campos: ["url"],
+    });
   }
 
   try {
-    const resultado = await withEvent(getPool(), auth.session.eventoId, async (c) => {
-      const gate = await eventGate(c, auth.session.eventoId);
-      if (!gate) return { tipo: "fechado" as const };
-
-      const fila = await listarSugestoes(c, auth.session.eventoId);
-      const decisao = registrarSugestao(fila, { sessaoId: auth.session.sessaoId, link }, gate, new Date());
-      if (!decisao.ok) return { tipo: "recusada" as const, erro: decisao.erro };
-
-      await adicionarSugestao(c, {
+    const resultado = await suggestMusic(
+      {
         eventoId: auth.session.eventoId,
         sessaoId: auth.session.sessaoId,
-        link,
-        metadado,
-      });
-      const atual = ordenarSugestoes(await listarSugestoes(c, auth.session.eventoId));
-      return { tipo: "aceita" as const, fila: atual };
-    });
+        url: parsed.data.url,
+      },
+      getPool(),
+    );
 
-    if (resultado.tipo === "fechado") {
-      return errorResponse(403, "musica.interacao_fechada", "A interação ainda não abriu");
+    if (!resultado.ok) {
+      const status =
+        resultado.code === "musica.interacao_fechada" ? 403 : 422;
+      return errorResponse(
+        status,
+        resultado.code,
+        resultado.message,
+        resultado.details,
+      );
     }
 
-    if (resultado.tipo === "recusada") {
-      const status = resultado.erro.code === "musica.interacao_fechada" ? 403 : 422;
-      return errorResponse(status, resultado.erro.code, "Sugestão recusada", resultado.erro.details);
-    }
-
-    console.log("musica.sugestao", {
-      eventoId: auth.session.eventoId,
-      sessaoId: auth.session.sessaoId,
-      provedor: link.provedor,
-    });
-
-    return jsonOk({ aceita: true, sugestoes: queueForScreen(resultado.fila) });
+    return jsonOk({ aceita: true, sugestoes: queueForScreen(resultado.sugestoes) });
   } catch (e) {
     return unexpectedError("musica.post", e);
   }
