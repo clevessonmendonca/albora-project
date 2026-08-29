@@ -3,9 +3,9 @@
 import { isVideoMime } from "@albora/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { groupByHour, type HourGroup } from "@/features/feed/lib/group-by-hour";
-import { useFeed, podeCarregarMais, type ItemVisivel } from "@/features/feed/hooks/use-feed";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { groupByHour } from "@/features/feed/lib/group-by-hour";
+import { useFeed, podeCarregarMais } from "@/features/feed/hooks/use-feed";
 import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
 import { useFeedViewer } from "@/features/feed/hooks/use-feed-viewer";
 import { useFeedFilter, type FilterMission as FilterMissionType } from "@/features/feed/hooks/use-feed-filter";
@@ -369,7 +369,7 @@ function Filtro({
   rotulo: string;
   missions: FilterMission[];
   escolhida: string | null;
-  onEscolher: (id: string) => void;
+  onEscolher: (id: string | null) => void;
 }) {
   return (
     <div
@@ -378,7 +378,7 @@ function Filtro({
       aria-label={rotulo}
       className="mx-[calc(var(--espaco)*-5)] mb-[calc(var(--espaco)*5)] mt-[calc(var(--espaco)*3)] flex gap-[calc(var(--espaco)*6)] overflow-x-auto border-b border-linha px-[calc(var(--espaco)*5)] [scrollbar-width:none]"
     >
-      <FilterTab active={escolhida === null} onClick={() => onEscolher(null as any)}>
+      <FilterTab active={escolhida === null} onClick={() => onEscolher(null)}>
         Tudo
       </FilterTab>
 

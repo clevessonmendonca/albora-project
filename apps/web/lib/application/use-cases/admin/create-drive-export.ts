@@ -15,7 +15,7 @@ import {
   type JobExport,
 } from "@albora/db";
 import type { Pool } from "pg";
-import { getDriveClient, getDriveVault, type DriveVault } from "@/lib/drive";
+import { getDriveClient, type DriveVault } from "@/lib/drive";
 import { driveFolderUrl } from "@/lib/drive-export";
 import { scheduleDriveExportProcessing } from "@/lib/drive-export-scheduler";
 

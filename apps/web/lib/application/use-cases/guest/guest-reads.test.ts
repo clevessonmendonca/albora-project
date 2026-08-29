@@ -8,18 +8,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   listFeedUseCase,
   type ListFeedInput,
-  type ListFeedOutput,
 } from "./list-feed";
 import {
   getGuestEvent,
   resetGuestEventCache,
   type GetGuestEventInput,
-  type GuestEventOutput,
 } from "./get-guest-event";
 import {
   listGuestMissions,
   type ListGuestMissionsInput,
-  type ListGuestMissionsOutput,
 } from "./list-guest-missions";
 import type { Pool, PoolClient } from "pg";
 

@@ -66,8 +66,8 @@ vi.mock("@/lib/drive-export", () => ({
 
 describe("createOrResumeDriveExport", () => {
   let mockPool: Pool;
-  let mockVault: any;
-  let mockClient: any;
+  let mockVault: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- mock do vault Drive
+  let mockClient: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- mock do client Drive
 
   beforeEach(() => {
     vi.clearAllMocks();

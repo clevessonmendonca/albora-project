@@ -8,17 +8,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   addReaction,
   type AddReactionInput,
-  type AddReactionResult,
 } from "./add-reaction";
 import {
   removeReaction,
   type RemoveReactionInput,
-  type RemoveReactionResult,
 } from "./remove-reaction";
 import {
   listReactions,
   type ListReactionsInput,
-  type ListReactionsOutput,
 } from "./list-reactions";
 import type { Pool, PoolClient } from "pg";
 

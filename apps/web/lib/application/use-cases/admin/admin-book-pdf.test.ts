@@ -82,7 +82,7 @@ vi.mock("@/lib/r2", () => ({
 
 describe("generateBookPdfUseCase - Validação", () => {
   let mockPool: Pool;
-  let mockClient: any;
+  let mockClient: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- mock de query sem PoolClient
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -189,7 +189,7 @@ describe("generateBookPdfUseCase - Validação", () => {
 
 describe("generateBookPdfUseCase - Geração bem-sucedida", () => {
   let mockPool: Pool;
-  let mockClient: any;
+  let mockClient: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- mock de query sem PoolClient
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -315,7 +315,7 @@ describe("generateBookPdfUseCase - Geração bem-sucedida", () => {
 
 describe("generateBookPdfUseCase - Pack", () => {
   let mockPool: Pool;
-  let mockClient: any;
+  let mockClient: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- mock de query sem PoolClient
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -400,7 +400,7 @@ describe("generateBookPdfUseCase - Pack", () => {
 
 describe("generateBookPdfUseCase - Tokens", () => {
   let mockPool: Pool;
-  let mockClient: any;
+  let mockClient: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- mock de query sem PoolClient
 
   beforeEach(() => {
     vi.clearAllMocks();

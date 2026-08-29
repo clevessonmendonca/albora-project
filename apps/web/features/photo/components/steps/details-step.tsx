@@ -16,7 +16,7 @@ type DetailsStepProps = {
  * Permite adicionar contexto opcional à foto.
  */
 export function DetailsStep({
-  arquivo,
+  arquivo: _arquivo,
   uploadId,
   onConfirm,
   onBack,

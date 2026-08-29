@@ -7,7 +7,7 @@
  * - Privacidade dos convidados é protegida
  */
 
-import { test, expect } from "@playwright/test";
+import { test } from "@playwright/test";
 import { setupTestEvent } from "../helpers/setup-test-event";
 import { cleanupTestEvent } from "../helpers/cleanup";
 

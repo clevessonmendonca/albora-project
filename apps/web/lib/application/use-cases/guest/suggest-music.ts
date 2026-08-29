@@ -76,55 +76,51 @@ export async function suggestMusic(
     metadado = null;
   }
 
-  try {
-    const resultado = await withEvent(pool, input.eventoId, async (c) => {
-      const gate = await eventGate(c, input.eventoId);
-      if (!gate) return { tipo: "fechado" as const };
+  const resultado = await withEvent(pool, input.eventoId, async (c) => {
+    const gate = await eventGate(c, input.eventoId);
+    if (!gate) return { tipo: "fechado" as const };
 
-      const fila = await listarSugestoes(c, input.eventoId);
-      const decisao = registrarSugestao(
-        fila,
-        { sessaoId: input.sessaoId, link },
-        gate,
-        new Date(),
-      );
-      if (!decisao.ok) return { tipo: "recusada" as const, erro: decisao.erro };
+    const fila = await listarSugestoes(c, input.eventoId);
+    const decisao = registrarSugestao(
+      fila,
+      { sessaoId: input.sessaoId, link },
+      gate,
+      new Date(),
+    );
+    if (!decisao.ok) return { tipo: "recusada" as const, erro: decisao.erro };
 
-      await adicionarSugestao(c, {
-        eventoId: input.eventoId,
-        sessaoId: input.sessaoId,
-        link,
-        metadado,
-      });
-      const atual = ordenarSugestoes(await listarSugestoes(c, input.eventoId));
-      return { tipo: "aceita" as const, fila: atual };
-    });
-
-    if (resultado.tipo === "fechado") {
-      return {
-        ok: false,
-        code: "musica.interacao_fechada",
-        message: "A interação ainda não abriu",
-      };
-    }
-
-    if (resultado.tipo === "recusada") {
-      return {
-        ok: false,
-        code: resultado.erro.code,
-        message: "Sugestão recusada",
-        details: resultado.erro.details,
-      };
-    }
-
-    console.log("musica.sugestao", {
+    await adicionarSugestao(c, {
       eventoId: input.eventoId,
       sessaoId: input.sessaoId,
-      provedor: link.provedor,
+      link,
+      metadado,
     });
+    const atual = ordenarSugestoes(await listarSugestoes(c, input.eventoId));
+    return { tipo: "aceita" as const, fila: atual };
+  });
 
-    return { ok: true, sugestoes: resultado.fila };
-  } catch (e) {
-    throw e;
+  if (resultado.tipo === "fechado") {
+    return {
+      ok: false,
+      code: "musica.interacao_fechada",
+      message: "A interação ainda não abriu",
+    };
   }
+
+  if (resultado.tipo === "recusada") {
+    return {
+      ok: false,
+      code: resultado.erro.code,
+      message: "Sugestão recusada",
+      details: resultado.erro.details,
+    };
+  }
+
+  console.log("musica.sugestao", {
+    eventoId: input.eventoId,
+    sessaoId: input.sessaoId,
+    provedor: link.provedor,
+  });
+
+  return { ok: true, sugestoes: resultado.fila };
 }

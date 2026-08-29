@@ -169,8 +169,8 @@ describe("initiateDriveConnection", () => {
 
 describe("completeDriveConnection", () => {
   let mockPool: Pool;
-  let mockClient: any;
-  let mockVault: any;
+  let mockClient: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- mock do client Drive
+  let mockVault: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- mock do vault Drive
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -297,8 +297,8 @@ describe("completeDriveConnection", () => {
 
 describe("disconnectDrive", () => {
   let mockPool: Pool;
-  let mockClient: any;
-  let mockVault: any;
+  let mockClient: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- mock do client Drive
+  let mockVault: any; // eslint-disable-line @typescript-eslint/no-explicit-any -- mock do vault Drive
 
   beforeEach(() => {
     vi.clearAllMocks();

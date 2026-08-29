@@ -20,7 +20,6 @@ import {
   GateNotice,
   GuestHeader,
   GuestShell,
-  EmptyState,
   GuestMain,
   ErrorMessage,
   Badge,

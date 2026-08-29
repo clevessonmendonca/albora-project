@@ -8,17 +8,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   listComments,
   type ListCommentsInput,
-  type ListCommentsOutput,
 } from "./list-comments";
 import {
   publishCommentUseCase,
   type PublishCommentInput,
-  type PublishCommentResult,
 } from "./publish-comment";
 import {
   deleteComment,
   type DeleteCommentInput,
-  type DeleteCommentResult,
 } from "./delete-comment";
 import type { Pool, PoolClient } from "pg";
 
@@ -200,33 +197,6 @@ describe("Comments", () => {
           respostaA: null,
           criadoEm: new Date("2026-08-28T20:00:00Z"),
           sessaoId: "sess-1",
-        },
-        {
-          id: "cmt-3",
-          autor: "C",
-          texto: "Outra resposta",
-          respostaA: "cmt-1",
-          criadoEm: new Date("2026-08-28T20:10:00Z"),
-          sessaoId: "sess-3",
-        },
-      ];
-
-      const comentariosOrdenados = [
-        {
-          id: "cmt-1",
-          autor: "A",
-          texto: "Inicial",
-          respostaA: null,
-          criadoEm: new Date("2026-08-28T20:00:00Z"),
-          sessaoId: "sess-1",
-        },
-        {
-          id: "cmt-2",
-          autor: "B",
-          texto: "Resposta",
-          respostaA: "cmt-1",
-          criadoEm: new Date("2026-08-28T20:05:00Z"),
-          sessaoId: "sess-2",
         },
         {
           id: "cmt-3",
