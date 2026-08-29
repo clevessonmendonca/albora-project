@@ -1,12 +1,6 @@
-export * from "./constants";
-export * from "./config-guard";
-export * from "./drive-config-guard";
-export * from "./guest-auth";
-export * from "./guest-event";
-export * from "./host-auth";
-export * from "./host-event";
-export * from "./host-event-role";
-export * from "./parse-json";
-export * from "./rate-limit";
-export * from "./response";
-export * from "./validation";
+/**
+ * @deprecated Importar de `@/lib/infrastructure/api` na nova estrutura.
+ * Este arquivo mantém retrocompatibilidade temporária.
+ */
+
+export * from "@/lib/infrastructure/api";

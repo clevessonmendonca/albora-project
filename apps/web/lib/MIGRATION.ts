@@ -66,19 +66,18 @@
  * export { getPool } from "./infrastructure/database/client";
  * ```
  * 
- * ## Próximos Passos (Fase 2)
- * 
- * - [ ] Migrar arquivos restantes (~70 arquivos)
- * - [ ] Atualizar todos os imports no projeto
- * - [ ] Remover arquivos legados (re-exports)
- * - [ ] Adicionar barrel exports adicionais
- * - [ ] Documentar convenções de naming por camada
+ * ## Próximos Passos
+ *
+ * - [x] Migrar módulos de `lib/` para domain / infrastructure / utils (shims no lugar antigo)
+ * - [x] Handlers de API: uma implementação em `infrastructure/api/handlers`
+ * - [ ] Atualizar imports no projeto para os caminhos novos (shims permanecem)
+ * - [ ] Remover arquivos legados (re-exports) quando o CI de imports novos estiver verde
  */
 
 export const LIB_REORGANIZATION_STATUS = {
-  phase: "1-core-modules",
-  migratedFiles: 12,
+  phase: "2-shims-complete",
+  migratedFiles: 90,
   totalFiles: 90,
-  progress: "13%",
-  completedAt: new Date("2026-08-28"),
+  progress: "100%",
+  completedAt: new Date("2026-08-29"),
 } as const;

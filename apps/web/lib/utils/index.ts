@@ -4,3 +4,4 @@ export * from "./platform-metrics";
 export * from "./qr";
 export * from "./transport";
 export * from "./zip-bytes";
+export * from "./tempo-relativo";
