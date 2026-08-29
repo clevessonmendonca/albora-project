@@ -30,6 +30,7 @@ export const Post = memo(function Post({
   isVideo,
   largura,
   altura,
+  onAbrir,
 }: {
   uploadId: string;
   interacao: ModoInteracao;
@@ -52,9 +53,11 @@ export const Post = memo(function Post({
   isVideo?: boolean;
   largura?: number;
   altura?: number;
+  onAbrir?: () => void;
 }) {
   const timestamp = criadaEm ? tempoRelativo(criadaEm) : null;
   const aspecto = cssAspectRatio(largura, altura);
+  const rotuloAbrir = isVideo ? `Abrir vídeo de ${autor}` : `Abrir foto de ${autor}`;
 
   return (
     <article data-testid={`post-${uploadId}`} className="border-t border-linha">
@@ -69,7 +72,32 @@ export const Post = memo(function Post({
 
       <div className="relative mb-2.5 sm:mb-3 aspect-4/5" style={aspecto ? { aspectRatio: aspecto } : undefined}>
         {url ? (
-          isVideo ? (
+          onAbrir ? (
+            <button
+              type="button"
+              onClick={onAbrir}
+              aria-label={rotuloAbrir}
+              className="block size-full cursor-pointer border-0 bg-transparent p-0"
+            >
+              {isVideo ? (
+                <video
+                  className="feed-amanhece pointer-events-none block size-full bg-bg object-contain"
+                  src={url}
+                  playsInline
+                  preload="metadata"
+                  muted
+                />
+              ) : (
+                <img
+                  className="feed-amanhece block size-full bg-bg object-contain"
+                  src={url}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
+              )}
+            </button>
+          ) : isVideo ? (
             <video
               className="feed-amanhece block size-full bg-bg object-contain"
               src={url}

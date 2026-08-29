@@ -12,6 +12,14 @@ import {
 } from "@/features/photo/hooks/use-pwa-install";
 import { ErrorMessage, SecondaryButton } from "@albora/ui-web";
 import { AppOpenCta } from "@/features/pairing/components/client/app-open-cta";
+import { MissionCompletionToast } from "@/features/missions/components/ui/mission-completion-toast";
+import {
+  marcoMissao,
+  persistirProgressoMissoes,
+  photoPathForMission,
+  proximaMissao,
+  rotuloCtaAposEnvio,
+} from "@/features/missions/lib/missions-utils";
 import { Details, type Place } from "./details";
 import { Editor } from "./editor";
 import { QueueHeader } from "./queue-panel";
@@ -91,6 +99,7 @@ export function PhotoPage({
     if (initialMissions.length === 0) return null;
     return initialMissions.find((m) => !m.done)?.id ?? null;
   });
+  const [recemCompleta, setRecemCompleta] = useState<PhotoMission | null>(null);
   const [lugarPre, setLugarPre] = useState<string | null>(null);
   const [recentes, setRecentes] = useState<string[]>([]);
   const [enviadas, setEnviadas] = useState(0);
@@ -103,7 +112,18 @@ export function PhotoPage({
 
   function irParaCamera(missaoId: string | null) {
     setEscolhida(missaoId);
+    setRecemCompleta(null);
     setEtapa({ nome: "camera" });
+  }
+
+  function completarMissaoAtual() {
+    if (!escolhida) {
+      setRecemCompleta(null);
+      return;
+    }
+    const atual = missions.find((m) => m.id === escolhida) ?? null;
+    setMissions((m) => m.map((x) => (x.id === escolhida ? { ...x, done: true } : x)));
+    setRecemCompleta(atual ? { ...atual, done: true } : null);
   }
 
   function dispararCamera() {
@@ -146,9 +166,7 @@ export function PhotoPage({
         });
         if (r.ok) {
           setEnviadas((n) => n + 1);
-          if (escolhida) {
-            setMissions((m) => m.map((x) => (x.id === escolhida ? { ...x, done: true } : x)));
-          }
+          completarMissaoAtual();
           setEtapa({ nome: "pronto", arquivo: primeiro });
           registrarRecente(primeiro);
         }
@@ -186,10 +204,7 @@ export function PhotoPage({
     if (!r.ok) return;
 
     setEnviadas((n) => n + 1);
-
-    if (escolhida) {
-      setMissions((m) => m.map((x) => (x.id === escolhida ? { ...x, done: true } : x)));
-    }
+    completarMissaoAtual();
 
     setEtapa({ nome: "detalhes", uploadId: r.id, arquivo });
   }
@@ -246,7 +261,14 @@ export function PhotoPage({
         instalar={instalar}
         dispensar={dispensar}
         avisarPromptIos={avisarPromptIos}
-        onOutra={() => setEtapa({ nome: "camera" })}
+        onOutra={() => irParaCamera(escolhida)}
+        onProxima={() => {
+          const next = proximaMissao(missions);
+          if (next) router.replace(photoPathForMission(slug, next.id), { scroll: false });
+          irParaCamera(next?.id ?? null);
+        }}
+        missions={missions}
+        recemCompleta={recemCompleta}
       />
     );
   }
@@ -376,6 +398,9 @@ function Confirmacao({
   dispensar,
   avisarPromptIos,
   onOutra,
+  onProxima,
+  missions,
+  recemCompleta,
 }: {
   slug: string;
   arquivo: File;
@@ -392,6 +417,9 @@ function Confirmacao({
   dispensar: () => void;
   avisarPromptIos: () => void;
   onOutra: () => void;
+  onProxima: () => void;
+  missions: PhotoMission[];
+  recemCompleta: PhotoMission | null;
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
@@ -399,6 +427,14 @@ function Confirmacao({
   const [musica, setMusica] = useState<{ rotulo: string; url: string; provedor: string } | null>(
     null,
   );
+  const [toastAberto, setToastAberto] = useState(recemCompleta !== null);
+  const proxima = proximaMissao(missions);
+  const ctaPrimario = rotuloCtaAposEnvio(proxima);
+  const feitas = missions.filter((m) => m.done).length;
+
+  useEffect(() => {
+    persistirProgressoMissoes(missions);
+  }, [missions]);
 
   useEffect(() => {
     const u = URL.createObjectURL(arquivo);
@@ -513,12 +549,15 @@ function Confirmacao({
 
       <button
         className="foto-botao min-h-14 shrink-0 border-0 bg-ink text-[0.97rem] font-medium text-bg"
-        onClick={onOutra}
+        onClick={proxima ? onProxima : onOutra}
       >
-        Continuar tirando
+        {ctaPrimario}
       </button>
 
       <div className="mt-4 flex shrink-0 flex-col gap-2.5">
+        {proxima && (
+          <SecondaryButton onClick={onOutra}>Continuar tirando</SecondaryButton>
+        )}
         {numero === 1 && (
           <SecondaryButton onClick={() => router.push(`${base}/my-photos`)}>
             Ver minha foto
@@ -533,6 +572,16 @@ function Confirmacao({
           Voltar
         </SecondaryButton>
       </div>
+
+      {toastAberto && recemCompleta && (
+        <MissionCompletionToast
+          missionTitle={recemCompleta.title}
+          milestone={marcoMissao(feitas, missions.length)}
+          slug={slug}
+          onDismiss={() => setToastAberto(false)}
+          acimaDaNav={false}
+        />
+      )}
     </main>
   );
 }

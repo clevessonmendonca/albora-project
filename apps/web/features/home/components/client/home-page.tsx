@@ -1,8 +1,10 @@
 "use client";
 
+import { isVideoMime } from "@albora/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
+import { useCallback, useMemo, useState } from "react";
 import { StoryViewer } from "./story-viewer";
 import {
   Badge,
@@ -18,11 +20,20 @@ import {
 } from "@albora/ui-web";
 import { useFeed, podeCarregarMais, type EstadoFeed } from "@/features/feed/hooks/use-feed";
 import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
+import { useProfileViewer } from "@/features/guest-profile/hooks/use-profile-viewer";
+import { useReducedMotion } from "@/features/feed/hooks/use-reduced-motion";
+import { FeedStyles } from "@/features/feed/components/client/feed-styles";
 import { paraStoryItem, useStories } from "../../hooks/use-stories";
 import { HomeFeedCard } from "./home-feed-card";
+import { PostLoading } from "@/features/feed/components/client/post";
 import { MissionsBadge } from "@/features/missions/components/ui/missions-badge";
-import { photoPathForMission } from "@/features/missions/lib/missions-utils";
+import { photoPathForMission, proximaMissao } from "@/features/missions/lib/missions-utils";
 import type { MissionWithStatus } from "@/features/guest/lib/resolved-missions";
+
+const Viewer = dynamic(
+  () => import("@/features/feed/components/client/viewer").then((m) => ({ default: m.Viewer })),
+  { ssr: false },
+);
 
 /** Reutiliza `useFeed` de `/feed` sem duplicar cursor/gate; scroll infinito substitui "toque" (design doc §5.4). Story e post são fontes separadas — story some após 24h sem ter estado no mural. */
 export function HomePage({
@@ -45,6 +56,8 @@ export function HomePage({
 
   const { estado, carregarMais, atualizarReacoes } = useFeed(null);
   const historias = useStories();
+  const viewer = useProfileViewer();
+  const movimentoReduzido = useReducedMotion();
 
   const [visto, setVisto] = useState<ReadonlySet<string>>(() => new Set());
   const [storyIdx, setStoryIdx] = useState<number | null>(null);
@@ -53,6 +66,13 @@ export function HomePage({
   const vazio = estado.jaCarregou && estado.itens.length === 0 && estado.falha === null;
   const espelho = estado.interacao === "espelho";
   const contagem = estado.itens.length > 0 ? `${estado.itens.length} fotos` : undefined;
+
+  const handleVerAutor = useCallback(
+    (id: string) => {
+      router.push(`${base}/g/${encodeURIComponent(id)}`);
+    },
+    [router, base],
+  );
 
   const stories: StoryItem[] = useMemo(
     () =>
@@ -73,6 +93,7 @@ export function HomePage({
 
   return (
     <>
+      <FeedStyles />
       <GuestShell>
         <GuestMain>
           <GuestHeader
@@ -97,9 +118,9 @@ export function HomePage({
           )}
 
           {primeiraCarga && (
-            <div className="mt-5 grid gap-6">
-              <CardLoading />
-              <CardLoading />
+            <div className="mt-5 grid">
+              <PostLoading />
+              <PostLoading />
             </div>
           )}
 
@@ -115,16 +136,22 @@ export function HomePage({
 
           {estado.itens.length > 0 && (
             <div className="mt-5 grid gap-6">
-              {estado.itens.map((item) => (
-                <HomeFeedCard
-                  key={item.id}
-                  item={item}
-                  interacao={estado.interacao}
-                  base={base}
-                  url={estado.urls.get(item.chaveThumb)?.url ?? null}
-                  onReacoes={atualizarReacoes}
-                />
-              ))}
+              {estado.itens.map((item, indice) => {
+                const isVideo = isVideoMime(item.mime);
+                const chaveMidia = isVideo ? item.chaveFull : item.chaveThumb;
+                return (
+                  <HomeFeedCard
+                    key={item.id}
+                    item={item}
+                    interacao={estado.interacao}
+                    base={base}
+                    url={estado.urls.get(chaveMidia)?.url ?? null}
+                    onReacoes={atualizarReacoes}
+                    onAbrir={() => viewer.abrir(indice)}
+                    onVerAutor={handleVerAutor}
+                  />
+                );
+              })}
             </div>
           )}
 
@@ -144,13 +171,34 @@ export function HomePage({
           onVisto={(id) => setVisto((v) => (v.has(id) ? v : new Set([...v, id])))}
         />
       )}
+
+      {viewer.indice !== null && estado.itens.length > 0 && (
+        <Viewer
+          itens={estado.itens}
+          indice={viewer.indice}
+          hora={
+            estado.itens[viewer.indice]
+              ? new Date(estado.itens[viewer.indice].criadaEm).getHours()
+              : 0
+          }
+          rotulo={eventName}
+          urls={estado.urls}
+          interacao={estado.interacao}
+          cameraPath={cameraPath}
+          movimentoReduzido={movimentoReduzido}
+          onIr={viewer.navegar}
+          onSair={viewer.fechar}
+          onReacoes={atualizarReacoes}
+          onVerAutor={handleVerAutor}
+        />
+      )}
     </>
   );
 }
 
 function MissionsCue({ slug, missions }: { slug: string; missions: MissionWithStatus[] }) {
   const done = missions.filter((m) => m.done).length;
-  const current = missions.find((m) => !m.done) ?? null;
+  const current = proximaMissao(missions);
   const href = current
     ? photoPathForMission(slug, current.id)
     : `/e/${encodeURIComponent(slug)}/missions`;
@@ -173,16 +221,6 @@ function MissionsCue({ slug, missions }: { slug: string; missions: MissionWithSt
   );
 }
 
-function CardLoading() {
-  return (
-    <div aria-hidden className="grid gap-3">
-      <div className="flex items-center gap-2.5">
-        <span className="size-[1.875rem] rounded-full bg-ink-skeleton animate-pulse" />
-        <span className="h-3.5 w-24 rounded-pilula bg-ink-skeleton animate-pulse" />
-      </div>
-      <div className="aspect-4/5 rounded-media bg-ink-skeleton animate-pulse" />
-    </div>
-  );
 }
 
 function Rodape({ estado, onVerMais }: { estado: EstadoFeed; onVerMais: () => void }) {

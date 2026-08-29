@@ -1,5 +1,9 @@
 import type { VisibleMission } from "../components/client/missions-page";
 
+export const MISSIONS_PROGRESS_KEY = "albora_missions_last_state";
+
+export type MarcoMissao = "individual" | "halfway" | "all";
+
 const ROMANOS = [
   [1000, "M"],
   [900, "CM"],
@@ -38,4 +42,31 @@ export function photoPathForMission(slug: string, missionId: string | null): str
   const base = `/e/${encodeURIComponent(slug)}/photo`;
   if (!missionId) return base;
   return `${base}?missao=${encodeURIComponent(missionId)}`;
+}
+
+export function proximaMissao<T extends { done: boolean }>(missions: readonly T[]): T | null {
+  return missions.find((m) => !m.done) ?? null;
+}
+
+export function rotuloCtaAposEnvio(proxima: { title: string } | null): string {
+  return proxima ? `Próxima: ${proxima.title}` : "Continuar tirando";
+}
+
+export function marcoMissao(feitas: number, total: number): MarcoMissao {
+  if (total > 0 && feitas === total) return "all";
+  if (total >= 4 && feitas === Math.floor(total / 2)) return "halfway";
+  return "individual";
+}
+
+export function chaveProgressoMissoes(missions: readonly { id: string; done: boolean }[]): string {
+  return missions.map((m) => `${m.id}:${m.done}`).join("|");
+}
+
+export function persistirProgressoMissoes(missions: readonly { id: string; done: boolean }[]): void {
+  if (missions.length === 0) return;
+  try {
+    localStorage.setItem(MISSIONS_PROGRESS_KEY, chaveProgressoMissoes(missions));
+  } catch {
+    /* quota / modo privado — o toast degrada, o upload não */
+  }
 }

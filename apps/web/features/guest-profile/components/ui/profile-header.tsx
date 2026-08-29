@@ -7,20 +7,20 @@ import { ProfileStats } from "./profile-stats";
 
 export function ProfileHeader({
   nome,
-  base,
+  backHref,
   totalFotos,
   totalCurtidas,
 }: {
   nome: string | null;
-  base: string;
+  backHref: string;
   totalFotos: number | null;
   totalCurtidas: number | null;
 }) {
   return (
     <header className="flex items-start gap-3 pb-4 pt-1.5">
       <Link
-        href={base}
-        aria-label="Voltar para a Home"
+        href={backHref}
+        aria-label="Voltar"
         className="mt-1 text-ink no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
       >
         <BackIcon />

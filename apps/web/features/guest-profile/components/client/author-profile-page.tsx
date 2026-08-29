@@ -35,7 +35,7 @@ export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: st
         <GuestMain>
           <ProfileHeader
             nome={estado.nome}
-            base={base}
+            backHref={`${base}/cover`}
             totalFotos={estado.stats?.totalFotos ?? null}
             totalCurtidas={estado.stats?.totalCurtidas ?? null}
           />

@@ -11,6 +11,7 @@ type MissionCompletionToastProps = {
   slug: string;
   milestone: "individual" | "halfway" | "all" | null;
   onDismiss: () => void;
+  acimaDaNav?: boolean;
 };
 
 export function MissionCompletionToast({
@@ -20,6 +21,7 @@ export function MissionCompletionToast({
   slug,
   milestone,
   onDismiss,
+  acimaDaNav = true,
 }: MissionCompletionToastProps) {
   const title =
     milestone === "all"
@@ -28,9 +30,13 @@ export function MissionCompletionToast({
         ? "Metade das missões completas"
         : `${missionTitle} completa`;
 
+  const posicao = acimaDaNav
+    ? "bottom-[calc(var(--safe-inset-bottom,0px)+5.5rem)]"
+    : "bottom-6";
+
   return (
     <div
-      className="fixed bottom-[calc(var(--safe-inset-bottom,0px)+5.5rem)] left-1/2 z-40 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-token border border-acento-borda bg-acento-superficie px-5 py-4 shadow-e2"
+      className={`fixed ${posicao} left-1/2 z-40 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-token border border-acento-borda bg-acento-superficie px-5 py-4 shadow-e2`}
       role="status"
       aria-live="polite"
     >

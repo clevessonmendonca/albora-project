@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Badge, Frame } from "@albora/ui-web";
+import { photoPathForMission } from "@/features/missions/lib/missions-utils";
 import type { CoverMoment } from "../../types/cover";
 
 type MomentCardProps = {
   moment: CoverMoment;
-  base: string;
+  slug: string;
   index: number;
   central: boolean;
   interactionOpen: boolean;
@@ -12,18 +13,17 @@ type MomentCardProps = {
 
 export function MomentCard({
   moment,
-  base,
+  slug,
   index,
   central,
   interactionOpen,
 }: MomentCardProps) {
-  const hrefAlbum = moment.missionFilterId
-    ? `${base}/album?missao=${encodeURIComponent(moment.missionFilterId)}`
-    : `${base}/album`;
+  const href = photoPathForMission(slug, moment.missionFilterId);
 
   return (
     <Link
-      href={hrefAlbum}
+      href={href}
+      aria-label={`Fotografar ${moment.title}`}
       className={`relative aspect-[9/16] shrink-0 snap-center overflow-hidden rounded-token text-inherit no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 ${
         central ? "w-[9.25rem]" : "w-20 opacity-60"
       }`}

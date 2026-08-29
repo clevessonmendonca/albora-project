@@ -5,10 +5,11 @@ import { MomentCard } from "./moment-card";
 type MomentsSectionProps = {
   moments: CoverMoment[];
   base: string;
+  slug: string;
   interactionOpen: boolean;
 };
 
-export function MomentsSection({ moments, base, interactionOpen }: MomentsSectionProps) {
+export function MomentsSection({ moments, base, slug, interactionOpen }: MomentsSectionProps) {
   if (moments.length === 0) return null;
 
   const centerIndex = moments.length > 1 ? 1 : 0;
@@ -30,7 +31,7 @@ export function MomentsSection({ moments, base, interactionOpen }: MomentsSectio
           <MomentCard
             key={moment.id}
             moment={moment}
-            base={base}
+            slug={slug}
             index={i}
             central={i === centerIndex}
             interactionOpen={interactionOpen}

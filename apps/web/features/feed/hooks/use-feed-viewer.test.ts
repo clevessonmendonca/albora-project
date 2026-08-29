@@ -6,7 +6,7 @@ import type { ItemVisivel } from "./use-feed";
 describe("useFeedViewer", () => {
   const criarGrupo = (inicio: Date, completo: boolean, itens: ItemVisivel[]): HourGroup<ItemVisivel> => ({
     inicio,
-    hora: "12:00",
+    hora: 12,
     itens,
     completo,
   });
@@ -114,6 +114,35 @@ describe("useFeedViewer", () => {
 
     expect(result.current.grupoAberto).toBeNull();
     expect(result.current.preparando).toBe(grupo.inicio.getTime());
+  });
+
+  it("abre o item clicado mesmo com a hora ainda incompleta", () => {
+    const item1 = criarItem("1");
+    const item2 = criarItem("2");
+    const grupo = criarGrupo(new Date(), false, [item1, item2]);
+
+    const { result } = renderHook(() => useFeedViewer([grupo]));
+
+    act(() => {
+      result.current.abrir(grupo, "2");
+    });
+
+    expect(result.current.grupoAberto).toBe(grupo);
+    expect(result.current.indiceAtual).toBe(1);
+  });
+
+  it("abre o item pedido num grupo completo, não o primeiro", () => {
+    const item1 = criarItem("1");
+    const item2 = criarItem("2");
+    const grupo = criarGrupo(new Date(), true, [item1, item2]);
+
+    const { result } = renderHook(() => useFeedViewer([grupo]));
+
+    act(() => {
+      result.current.abrir(grupo, "2");
+    });
+
+    expect(result.current.indiceAtual).toBe(1);
   });
 
   it("não adiciona grupo já visto novamente no set", () => {

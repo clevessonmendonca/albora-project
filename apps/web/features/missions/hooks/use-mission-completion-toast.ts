@@ -2,14 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { VisibleMission } from "../components/client/missions-page";
+import {
+  chaveProgressoMissoes,
+  marcoMissao,
+  MISSIONS_PROGRESS_KEY,
+  persistirProgressoMissoes,
+  proximaMissao,
+  type MarcoMissao,
+} from "../lib/missions-utils";
 
 type CompletionEvent = {
   mission: VisibleMission;
   nextMission: VisibleMission | null;
-  milestone: "individual" | "halfway" | "all";
+  milestone: MarcoMissao;
 };
-
-const STORAGE_KEY = "albora_missions_last_state";
 
 export function useMissionCompletionToast(missions: VisibleMission[]) {
   const [event, setEvent] = useState<CompletionEvent | null>(null);
@@ -18,19 +24,25 @@ export function useMissionCompletionToast(missions: VisibleMission[]) {
   useEffect(() => {
     if (missions.length === 0) return;
 
-    const currentState = missions.map((m) => `${m.id}:${m.done}`).join("|");
-    const savedState = lastStateRef.current ?? localStorage.getItem(STORAGE_KEY);
+    const currentState = chaveProgressoMissoes(missions);
+    let savedState = lastStateRef.current;
+    if (savedState === null) {
+      try {
+        savedState = localStorage.getItem(MISSIONS_PROGRESS_KEY);
+      } catch {
+        savedState = null;
+      }
+    }
     lastStateRef.current = currentState;
 
     if (!savedState || savedState === currentState) {
-      localStorage.setItem(STORAGE_KEY, currentState);
+      persistirProgressoMissoes(missions);
       return;
     }
 
     const previous = savedState.split("|");
     const oldDone = previous.filter((s) => s.endsWith(":true")).length;
     const newDone = missions.filter((m) => m.done).length;
-    const total = missions.length;
 
     if (newDone > oldDone) {
       const justCompleted = missions.find((m, i) => {
@@ -39,16 +51,15 @@ export function useMissionCompletionToast(missions: VisibleMission[]) {
       });
 
       if (justCompleted) {
-        const nextMission = missions.find((m) => !m.done) ?? null;
-        let milestone: CompletionEvent["milestone"] = "individual";
-        if (newDone === total) milestone = "all";
-        else if (total >= 4 && newDone === Math.floor(total / 2)) milestone = "halfway";
-
-        setEvent({ mission: justCompleted, nextMission, milestone });
+        setEvent({
+          mission: justCompleted,
+          nextMission: proximaMissao(missions),
+          milestone: marcoMissao(newDone, missions.length),
+        });
       }
     }
 
-    localStorage.setItem(STORAGE_KEY, currentState);
+    persistirProgressoMissoes(missions);
   }, [missions]);
 
   return { event, dismiss: () => setEvent(null) };

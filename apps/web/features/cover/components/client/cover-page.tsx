@@ -120,7 +120,7 @@ export function CoverPage({
           </Link>
         </p>
 
-        <MomentsSection moments={moments} base={base} interactionOpen={interactionOpen} />
+        <MomentsSection moments={moments} base={base} slug={slug} interactionOpen={interactionOpen} />
 
         <div className="grid gap-2.5 px-6 pt-[1.125rem] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
           <PrimaryButton onClick={() => router.push(`${base}/photo`)}>

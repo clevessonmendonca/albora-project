@@ -39,29 +39,32 @@ export function useFeedViewer(grupos: HourGroup<ItemVisivel>[]) {
   const achado = grupoAberto ? itensAbertos.findIndex((i) => i.id === aberto?.itemId) : -1;
   const indiceAtual = achado >= 0 ? achado : 0;
 
-  const abrir = useCallback((grupo: HourGroup<ItemVisivel>) => {
+  const abrir = useCallback((grupo: HourGroup<ItemVisivel>, itemId?: string) => {
     scrollSalvo.current = window.scrollY;
-    
+
     const inicio = grupo.inicio.getTime();
-    const primeiro = grupo.itens[0];
+    const alvo = (itemId && grupo.itens.find((i) => i.id === itemId)) || grupo.itens[0];
 
     setVistos((antes) => (antes.has(inicio) ? antes : new Set(antes).add(inicio)));
 
-    if (grupo.completo && primeiro) {
-      setAberto({ inicio, itemId: primeiro.id });
-    } else {
-      setPreparando(inicio);
+    if (alvo && (grupo.completo || itemId)) {
+      setAberto({ inicio, itemId: alvo.id });
+      return;
     }
+
+    setPreparando(inicio);
   }, []);
 
   const fechar = useCallback(() => {
     setAberto(null);
     
     if (scrollSalvo.current !== null) {
-      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      window.scrollTo({ 
-        top: scrollSalvo.current, 
-        behavior: prefersReducedMotion ? "auto" : "smooth"
+      const prefersReducedMotion =
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.scrollTo({
+        top: scrollSalvo.current,
+        behavior: prefersReducedMotion ? "auto" : "smooth",
       });
       scrollSalvo.current = null;
     }

@@ -221,6 +221,13 @@ export function MyPhotosPage({
             }
           />
 
+          <Link
+            href={`${base}/g/${encodeURIComponent(sessaoId)}`}
+            className="mb-4 block text-[0.8125rem] text-acento-texto no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80 hover:underline"
+          >
+            Ver meu perfil
+          </Link>
+
           <RecapCard recap={recapPessoal} />
 
           {galeria.falha && (

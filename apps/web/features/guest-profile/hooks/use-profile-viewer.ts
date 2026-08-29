@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useProfileViewer() {
   const [indice, setIndice] = useState<number | null>(null);
@@ -18,6 +18,15 @@ export function useProfileViewer() {
       scrollSalvo.current = null;
     }
   }, []);
+
+  useEffect(() => {
+    if (indice === null) return;
+    const antes = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = antes;
+    };
+  }, [indice]);
 
   return { indice, abrir, fechar, navegar: setIndice };
 }
