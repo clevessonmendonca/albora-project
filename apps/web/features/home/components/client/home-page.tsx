@@ -221,8 +221,6 @@ function MissionsCue({ slug, missions }: { slug: string; missions: MissionWithSt
   );
 }
 
-}
-
 function Rodape({ estado, onVerMais }: { estado: EstadoFeed; onVerMais: () => void }) {
   const sentinela = useInfiniteScroll(onVerMais, podeCarregarMais(estado), estado.itens.length);
 
