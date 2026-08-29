@@ -8,6 +8,8 @@ import {
   prefixoDoEvento,
   validarObjetoRecebido,
   withinPlanDimensions,
+  logger,
+  metrics,
 } from "@albora/core";
 import {
   withEvent,
@@ -85,12 +87,11 @@ export async function confirmUpload(
   input: ConfirmUploadInput,
   getClient: () => Promise<PoolClient>,
 ): Promise<ConfirmUploadResult> {
-  // Validar prefixo do evento na chave
+  const log = logger.child({ eventId: input.eventoId, uploadId: input.uploadId });
+
   if (!input.chave.startsWith(prefixoDoEvento(input.eventoId))) {
-    console.warn("confirm.chave_de_outro_evento", {
-      eventoId: input.eventoId,
-      sessaoId: input.sessaoId,
-    });
+    log.warn({ sessaoId: input.sessaoId }, "confirm.chave_de_outro_evento");
+    metrics.increment("upload.failed", 1, { eventId: input.eventoId, reason: "invalid_key" });
     return {
       ok: false,
       code: "upload.chave_invalida",
@@ -98,13 +99,10 @@ export async function confirmUpload(
     };
   }
 
-  // Validar objeto full
   const recusa = validarObjetoRecebido(input.mime, input.bytes, input.inicio);
   if (recusa) {
-    console.warn("confirm.conteudo_recusado", {
-      eventoId: input.eventoId,
-      ...recusa.details,
-    });
+    log.warn({ ...recusa.details }, "confirm.conteudo_recusado");
+    metrics.increment("upload.failed", 1, { eventId: input.eventoId, reason: "content_rejected" });
     return {
       ok: false,
       code: recusa.code,
@@ -113,17 +111,14 @@ export async function confirmUpload(
     };
   }
 
-  // Validar thumb
   const recusaThumb = validarObjetoRecebido(
     "image/jpeg",
     input.thumbBytes,
     input.thumbInicio,
   );
   if (recusaThumb) {
-    console.warn("confirm.thumb_recusada", {
-      eventoId: input.eventoId,
-      ...recusaThumb.details,
-    });
+    log.warn({ ...recusaThumb.details }, "confirm.thumb_recusada");
+    metrics.increment("upload.failed", 1, { eventId: input.eventoId, reason: "thumb_rejected" });
     return {
       ok: false,
       code: recusaThumb.code,
@@ -212,11 +207,7 @@ export async function confirmUpload(
             await c.query("RELEASE SAVEPOINT marcar_story");
           } catch {
             await c.query("ROLLBACK TO SAVEPOINT marcar_story");
-            console.warn("confirm.story_falhou", {
-              eventoId: input.eventoId,
-              sessaoId: input.sessaoId,
-              uploadId: input.uploadId,
-            });
+            log.warn("confirm.story_falhou");
           }
         }
 

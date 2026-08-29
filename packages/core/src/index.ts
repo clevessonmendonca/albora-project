@@ -795,3 +795,9 @@ export { podeRemoverComentario as canRemoveComment } from "./comment";
 export { registrarDecisaoDoComentario as registerCommentDecision } from "./comment";
 /** English alias — prefer for new code. @see validarTexto */
 export { validarTexto as validateCommentText } from "./comment";
+
+export { logger, childLogger, maskPii } from "./logger/index.js";
+export type { LogContext } from "./logger/index.js";
+
+export { metrics, configureMetrics, resetMetrics, withTiming } from "./metrics/index.js";
+export type { MetricTags, MetricsProvider } from "./metrics/index.js";

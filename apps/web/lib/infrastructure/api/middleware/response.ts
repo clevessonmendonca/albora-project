@@ -1,5 +1,7 @@
 /** API response envelope: `code` estável para lógica de cliente, `message` genérico — detalhes internos ficam no log do servidor. */
 
+import { logger, metrics } from "@albora/core";
+
 export type ErrorDetails = Record<string, unknown>;
 
 export function errorResponse(
@@ -22,6 +24,7 @@ export function jsonOk(body: unknown, init?: ResponseInit) {
 }
 
 export function unexpectedError(context: string, e: unknown) {
-  console.error("erro.inesperado", { contexto: context, erro: String(e) });
+  logger.error({ contexto: context, err: e }, "erro.inesperado");
+  metrics.increment("http.errors", 1, { context, status: "500" });
   return errorResponse(500, "erro.interno", "Não foi possível concluir");
 }
