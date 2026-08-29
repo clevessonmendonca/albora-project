@@ -11,7 +11,7 @@ import { config } from "@/lib/config";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 import { createAppPairing, redeemAppPairing } from "@/lib/application/use-cases/guest";
-import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import { validateRequestBody } from "@/lib/infrastructure/api/middleware/validate-body";
 import { redeemAppPairSchema } from "@/lib/infrastructure/api/validators";
 
 /** Gera código de 4 dígitos para o app resgatar (spec A-11): evento e sessão do cookie, nunca do corpo; também emite passagem one-shot (ADR 0009). */
@@ -63,7 +63,7 @@ export async function postRedeemPairCode(req: Request) {
   });
   if (limited) return limited;
 
-  const validation = await validateBody(req, redeemAppPairSchema);
+  const validation = await validateRequestBody(req, redeemAppPairSchema);
   if (validation instanceof Response) return validation;
 
   const cfg = config();

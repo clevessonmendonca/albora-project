@@ -16,7 +16,7 @@ import {
   updatePackMissions,
   updateCustomMissions,
 } from "@/lib/application/use-cases/admin";
-import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import { validateRequestBody } from "@/lib/infrastructure/api/middleware/validate-body";
 import { updateChallengesSchema } from "@/lib/infrastructure/api/validators";
 
 export async function GET(
@@ -71,7 +71,7 @@ export async function PUT(
     return errorResponse(422, "validation_error", "Pack inválido", { campos: ["packId"] });
   }
 
-  const validation = await validateBody(req, updateChallengesSchema);
+  const validation = await validateRequestBody(req, updateChallengesSchema);
   if (validation instanceof Response) return validation;
 
   try {

@@ -104,8 +104,8 @@ describe("POST /api/app/parear", () => {
 
 describe("POST /api/app/parear/resgatar", () => {
   it("resgata por passagem quando enviada", async () => {
-    mockParseJsonBody.mockResolvedValue({ data: { passagem: "tok.en" } });
-    mockParsePassagemToken.mockReturnValue("tok.en");
+    mockParseJsonBody.mockResolvedValue({ data: { passagem: "passagem_ok" } });
+    mockParsePassagemToken.mockReturnValue("passagem_ok");
     mockResgatarPassagem.mockResolvedValue({
       slug: "festa-demo",
       sessaoId: "sess-1",
@@ -117,7 +117,7 @@ describe("POST /api/app/parear/resgatar", () => {
       new Request("http://localhost/api/app/parear/resgatar", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ passagem: "tok.en" }),
+        body: JSON.stringify({ passagem: "passagem_ok" }),
       }),
     );
 

@@ -16,7 +16,7 @@ import {
   revokeHostSession,
   consumeMagicLink,
 } from "@/lib/application/use-cases/admin";
-import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import { validateRequestBody } from "@/lib/infrastructure/api/middleware/validate-body";
 import { signInSchema, consumeMagicLinkSchema } from "@/lib/infrastructure/api/validators";
 
 /** Magic link do anfitrião (spec 009): entregue só por e-mail em prod; fora de dev, link nunca volta na resposta (daria login a quem souber o e-mail); resposta idêntica com/sem conta. */
@@ -32,7 +32,7 @@ export async function postSignIn(req: Request) {
     });
   }
 
-  const validation = await validateBody(req, signInSchema);
+  const validation = await validateRequestBody(req, signInSchema);
   if (validation instanceof Response) return validation;
 
   try {
@@ -85,7 +85,7 @@ export async function postSession(req: Request) {
   });
   if (limited) return limited;
 
-  const validation = await validateBody(req, consumeMagicLinkSchema);
+  const validation = await validateRequestBody(req, consumeMagicLinkSchema);
   if (validation instanceof Response) return validation;
 
   const resultado = await consumeMagicLink(

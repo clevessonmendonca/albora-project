@@ -98,9 +98,9 @@ export async function POST(req: Request): Promise<Response> {
   );
   if (mismatch) return mismatch;
 
-  // Parse e valida body
-  const body = await parseJsonBody(req);
-  const validated = validateBody(body, publishCommentSchema);
+  const parsed = await parseJsonBody(req);
+  if (parsed instanceof Response) return parsed;
+  const validated = validateBody(parsed.data, publishCommentSchema);
   if (validated instanceof Response) return validated;
 
   try {
@@ -156,9 +156,9 @@ export async function DELETE(req: Request): Promise<Response> {
   );
   if (mismatch) return mismatch;
 
-  // Parse e valida body
-  const body = await parseJsonBody(req);
-  const validated = validateBody(body, deleteCommentSchema);
+  const parsed = await parseJsonBody(req);
+  if (parsed instanceof Response) return parsed;
+  const validated = validateBody(parsed.data, deleteCommentSchema);
   if (validated instanceof Response) return validated;
 
   try {

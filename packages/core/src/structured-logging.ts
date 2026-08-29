@@ -14,8 +14,8 @@ const PII_FIELDS = new Set(["name", "email", "phone", "cpf", "displayName", "fir
  * Mascara valor de PII
  * 
  * @example
- * maskPii("João Silva") => "J***a"
- * maskPii("joao@example.com") => "j***@e***.com"
+ * maskPii("João Silva") => "Joã****ilva"
+ * maskPii("joao@example.com") => "j***@e***"
  * maskPii("11987654321") => "119****4321"
  */
 export function maskPii(value: string): string {

@@ -13,7 +13,7 @@ import {
   removeCoverImage,
   getCoverImageUrl,
 } from "@/lib/application/use-cases/admin";
-import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import { validateRequestBody } from "@/lib/infrastructure/api/middleware/validate-body";
 import {
   presignCoverImageSchema,
   confirmCoverImageSchema,
@@ -50,7 +50,7 @@ export async function POST(
   const ctx = await requireAuth(req, eventId);
   if (ctx instanceof Response) return ctx;
 
-  const validation = await validateBody(req, presignCoverImageSchema);
+  const validation = await validateRequestBody(req, presignCoverImageSchema);
   if (validation instanceof Response) return validation;
 
   const resultado = await presignCoverImageUpload({
@@ -76,7 +76,7 @@ export async function confirmPOST(
   const ctx = await requireAuth(req, eventId);
   if (ctx instanceof Response) return ctx;
 
-  const validation = await validateBody(req, confirmCoverImageSchema);
+  const validation = await validateRequestBody(req, confirmCoverImageSchema);
   if (validation instanceof Response) return validation;
 
   const resultado = await confirmCoverImageUpload(

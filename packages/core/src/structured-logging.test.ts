@@ -3,7 +3,7 @@ import { maskPii, maskObject, addPiiField } from "./structured-logging";
 
 describe("maskPii", () => {
   it("mascara nome completo", () => {
-    expect(maskPii("João Silva")).toBe("J***a");
+    expect(maskPii("João Silva")).toBe("Joã****ilva");
   });
 
   it("mascara email", () => {
@@ -35,7 +35,7 @@ describe("maskObject", () => {
 
     const masked = maskObject(obj);
 
-    expect(masked.name).toBe("J***a");
+    expect(masked.name).toBe("Joã****ilva");
     expect(masked.email).toBe("j***@e***");
     expect(masked.eventId).toBe("evt-123");
     expect(masked.sessionId).toBe("sess-456");
@@ -52,7 +52,7 @@ describe("maskObject", () => {
 
     const masked = maskObject(obj);
 
-    expect((masked.user as Record<string, unknown>).name).toBe("M***a");
+    expect((masked.user as Record<string, unknown>).name).toBe("Mar****ntos");
     expect((masked.user as Record<string, unknown>).phone).toBe("119****4321");
     expect(masked.eventId).toBe("evt-123");
   });

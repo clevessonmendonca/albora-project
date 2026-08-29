@@ -3,6 +3,7 @@ import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
   jsonOk,
+  parseJsonBody,
   requireConfig,
   requireHostEvent,
   requireHostSession,
@@ -86,14 +87,15 @@ export async function PUT(
   const owned = await requireHostEvent(auth.host.accountId, eventId);
   if (owned instanceof Response) return owned;
 
-  const bodyValidation = await validateBody(req, upsertGuestbookSchema);
-  if (bodyValidation instanceof Response) return bodyValidation;
+  const parsed = await parseJsonBody(req);
+  if (parsed instanceof Response) return parsed;
 
-  // Additional validation: check if client sent storage key
-  const rawBody = await req.clone().json();
-  if (clientSentStorageKey(rawBody as Record<string, unknown>)) {
+  if (clientSentStorageKey(parsed.data)) {
     return errorResponse(422, "recado.chave_do_cliente", "A chave de storage não vem do cliente");
   }
+
+  const bodyValidation = validateBody(parsed.data, upsertGuestbookSchema);
+  if (bodyValidation instanceof Response) return bodyValidation;
 
   const resultado = await upsertGuestbook(
     {

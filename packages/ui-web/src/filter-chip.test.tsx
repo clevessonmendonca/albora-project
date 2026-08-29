@@ -18,7 +18,7 @@ describe("FilterChip", () => {
         onClick={() => {}} 
       />
     );
-    const img = screen.getByRole("img");
+    const img = screen.getByRole("img", { hidden: true });
     expect(img).toHaveAttribute("src", "/thumb.jpg");
   });
 

@@ -10,7 +10,7 @@ import {
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 import { getGuestMetrics, updateSessionName } from "@/lib/application/use-cases/admin";
-import { validateBody } from "@/lib/infrastructure/api/middleware/validate-body";
+import { validateRequestBody } from "@/lib/infrastructure/api/middleware/validate-body";
 import { updateSessionNameSchema } from "@/lib/infrastructure/api/validators";
 
 /** Funil agregado (spec 009 B-07) e nomes no telão (flows.md N3.3). */
@@ -71,7 +71,7 @@ export async function PATCH(
   const owned = await requireHostEvent(auth.host.accountId, eventId);
   if (owned instanceof Response) return owned;
 
-  const validation = await validateBody(req, updateSessionNameSchema);
+  const validation = await validateRequestBody(req, updateSessionNameSchema);
   if (validation instanceof Response) return validation;
 
   const resultado = await updateSessionName(
