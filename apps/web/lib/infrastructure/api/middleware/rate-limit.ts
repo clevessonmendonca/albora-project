@@ -2,7 +2,7 @@ import type { SessaoResolvida } from "@albora/db";
 import { consume } from "@/lib/rate-limit-store";
 import { limitIdentity } from "@/lib/session";
 import { errorResponse } from "./response";
-import { DEFAULT_RATE_LIMIT } from "./constants";
+import { DEFAULT_RATE_LIMIT } from "../constants";
 
 export type RateLimitOptions = {
   max?: number;

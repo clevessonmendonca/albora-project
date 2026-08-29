@@ -1,4 +1,4 @@
-import { UUID_RE } from "./constants";
+import { UUID_RE } from "../constants";
 import { errorResponse } from "./response";
 
 export function parseUuidParam(

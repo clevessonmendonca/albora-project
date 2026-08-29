@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parsePiecesQuery, PIECE_TYPES } from "./parse-pieces-query";
-import { PRINT_FORMATS } from "./pack-print-pieces";
+import { PRINT_FORMATS } from "../book/pack-print-pieces";
 
 describe("parsePiecesQuery", () => {
   it("tipo=zip não exige formato e o SVG fica opt-in", () => {

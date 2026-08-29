@@ -17,8 +17,8 @@ describe("getAggregatorPool", () => {
   it("falha alto (ConfigError) quando a env está ausente — nunca um default inseguro", async () => {
     delete process.env[VAR];
     // `ConfigError` importado do módulo fresco (pós `resetModules`) — o topo carregaria outra instância de "./config", e `instanceof` falharia mesmo com o erro certo.
-    const { getAggregatorPool } = await import("./db");
-    const { ConfigError } = await import("./config");
+    const { getAggregatorPool } = await import("./client");
+    const { ConfigError } = await import("../../config");
 
     let erro: unknown;
     try {
@@ -33,7 +33,7 @@ describe("getAggregatorPool", () => {
 
   it("devolve uma pool própria e memoizada quando a env existe", async () => {
     process.env[VAR] = "postgres://albora_agregador:senha@localhost:55432/albora";
-    const { getAggregatorPool } = await import("./db");
+    const { getAggregatorPool } = await import("./client");
 
     const primeira = getAggregatorPool();
     const segunda = getAggregatorPool();

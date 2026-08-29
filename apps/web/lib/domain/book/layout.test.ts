@@ -7,7 +7,7 @@ import {
   type MidiaDoAlbum,
 } from "@albora/core";
 import { BLEED_MM } from "@albora/tokens";
-import { planBook, planBookPage, BOOK_BLEED_MM, BOOK_CUT_MM, BOOK_PAGE_MM } from "./book-layout";
+import { planBook, planBookPage, BOOK_BLEED_MM, BOOK_CUT_MM, BOOK_PAGE_MM } from "./layout";
 
 const janela = {
   comecaEm: new Date("2026-08-09T21:00:00.000Z"),

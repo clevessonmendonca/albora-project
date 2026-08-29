@@ -10,7 +10,6 @@ import {
   parseMusicLink,
   registrarSugestao,
   type MetadadoDaMusica,
-  type MusicLink,
 } from "@albora/core";
 import {
   adicionarSugestao,

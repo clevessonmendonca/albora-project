@@ -1,4 +1,4 @@
-import { ConfigError } from "./config";
+import { ConfigError } from "../../../config";
 
 /** Config do Drive: validada só no primeiro uso, nunca em `config()` global — ambientes sem Drive não podem quebrar no boot; `ConfigError`, nunca default inseguro. Três segredos isolados: comprometer um não expõe os outros. */
 

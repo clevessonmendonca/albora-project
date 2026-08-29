@@ -21,7 +21,7 @@ import {
   type ListGuestMissionsInput,
   type ListGuestMissionsOutput,
 } from "./list-guest-missions";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 // Mocks usando vi.hoisted
 const {
@@ -91,12 +91,14 @@ function createMockClient(): PoolClient {
 describe("Guest Read Use Cases", () => {
   let mockClient: PoolClient;
   let getClient: () => Promise<PoolClient>;
+  let mockPool: Pool;
 
   beforeEach(() => {
     vi.clearAllMocks();
     resetGuestEventCache();
     mockClient = createMockClient();
     getClient = vi.fn().mockResolvedValue(mockClient);
+    mockPool = { connect: vi.fn() } as unknown as Pool;
 
     // Defaults
     mockWithEvent.mockImplementation(async (_client, _eventId, fn) => fn(mockClient));
@@ -244,7 +246,7 @@ describe("Guest Read Use Cases", () => {
       mockCarregarEventoPublico.mockResolvedValue(eventoPublico);
 
       const input = createGetEventInput();
-      const result = await getGuestEvent(input, getClient);
+      const result = await getGuestEvent(input, mockPool);
 
       expect(result).toEqual(eventoPublico);
     });
@@ -253,7 +255,7 @@ describe("Guest Read Use Cases", () => {
       mockCarregarEventoPublico.mockResolvedValue(null);
 
       const input = createGetEventInput({ eventoId: "evt-inexistente" });
-      const result = await getGuestEvent(input, getClient);
+      const result = await getGuestEvent(input, mockPool);
 
       expect(result).toBeNull();
     });
@@ -269,7 +271,7 @@ describe("Guest Read Use Cases", () => {
       });
 
       const input = createGetEventInput();
-      const result = await getGuestEvent(input, getClient);
+      const result = await getGuestEvent(input, mockPool);
 
       expect(result?.identityTokens).toEqual({
         fontFamily: "Playfair",
@@ -277,16 +279,7 @@ describe("Guest Read Use Cases", () => {
       });
     });
 
-    it("deve liberar client após execução", async () => {
-      mockCarregarEventoPublico.mockResolvedValue(null);
-
-      const input = createGetEventInput();
-      await getGuestEvent(input, getClient);
-
-      expect(mockClient.release).toHaveBeenCalled();
-    });
-
-    it("reusa o resultado por 60s sem nova conexão", async () => {
+    it("reusa o resultado por 60s sem nova consulta", async () => {
       vi.useFakeTimers();
       const eventoPublico = {
         eventoId: "evt-123",
@@ -299,15 +292,14 @@ describe("Guest Read Use Cases", () => {
       mockCarregarEventoPublico.mockResolvedValue(eventoPublico);
 
       const input = createGetEventInput();
-      await getGuestEvent(input, getClient);
-      await getGuestEvent(input, getClient);
+      await getGuestEvent(input, mockPool);
+      await getGuestEvent(input, mockPool);
 
-      expect(getClient).toHaveBeenCalledTimes(1);
       expect(mockCarregarEventoPublico).toHaveBeenCalledTimes(1);
 
       vi.advanceTimersByTime(60_000);
-      await getGuestEvent(input, getClient);
-      expect(getClient).toHaveBeenCalledTimes(2);
+      await getGuestEvent(input, mockPool);
+      expect(mockCarregarEventoPublico).toHaveBeenCalledTimes(2);
       vi.useRealTimers();
     });
 
@@ -315,10 +307,10 @@ describe("Guest Read Use Cases", () => {
       mockCarregarEventoPublico.mockResolvedValue(null);
 
       const input = createGetEventInput();
-      await getGuestEvent(input, getClient);
-      await getGuestEvent(input, getClient);
+      await getGuestEvent(input, mockPool);
+      await getGuestEvent(input, mockPool);
 
-      expect(getClient).toHaveBeenCalledTimes(2);
+      expect(mockCarregarEventoPublico).toHaveBeenCalledTimes(2);
     });
   });
 

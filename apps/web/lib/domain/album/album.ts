@@ -8,8 +8,8 @@ import {
 import { withEvent, eventGate, janelaDoAlbum, listarMidiaDoAlbum, eventPack } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import { chapterTitle, planAlbumChapters } from "./album-chapters";
-import { getPool } from "./db";
-import { signGet } from "./r2";
+import { getPool } from "../../infrastructure/database/client";
+import { signGet } from "../../infrastructure/storage/r2-client";
 
 /** Montagem do álbum (spec 016): servidor assina URLs, navegador busca direto no storage; núcleo é a única fonte de diagramação; sem reação, chave ou nome na resposta. */
 

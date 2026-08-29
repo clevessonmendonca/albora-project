@@ -2,7 +2,7 @@ import "fake-indexeddb/auto";
 import type { QueueItem } from "@albora/core";
 import { shouldGiveUp, retryWaitSeconds, MAX_ATTEMPTS } from "@albora/core";
 import { beforeEach, describe, expect, it } from "vitest";
-import { webQueue, clearQueue, queueSummary } from "./queue";
+import { webQueue, clearQueue, queueSummary } from "./client";
 
 /** `fake-indexeddb` — implementação real da spec em memória, não mock escrito à mão; a fila decide se a foto sobrevive ao sinal cair. */
 

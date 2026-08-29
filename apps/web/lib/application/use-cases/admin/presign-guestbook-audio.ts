@@ -10,7 +10,7 @@ import {
   normalizeGuestbookAudioMime,
   VALIDADE_PRESIGN_SEGUNDOS,
   validateGuestbookAudioDeclaration,
-  type GuestbookAudioMime,
+  type TipoAudioRecado as GuestbookAudioMime,
 } from "@albora/core";
 import { assinarPut } from "@/lib/r2";
 

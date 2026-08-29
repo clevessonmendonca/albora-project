@@ -1,5 +1,5 @@
 import { carregarEventoPublico, withEvent } from "@albora/db";
-import type { PoolClient } from "pg";
+import type { Pool } from "pg";
 import { MemoryTtlCache } from "@/lib/infrastructure/cache";
 
 export type GuestEventOutput = {
@@ -25,36 +25,28 @@ export function resetGuestEventCache(): void {
 
 export async function getGuestEvent(
   input: GetGuestEventInput,
-  getClient: () => Promise<PoolClient>,
+  pool: Pool,
 ): Promise<GuestEventOutput> {
   const cached = guestEventCache.get(input.eventoId);
   if (cached) return structuredClone(cached);
 
-  const client = await getClient();
+  const evento = await withEvent(pool, input.eventoId, (c) =>
+    carregarEventoPublico(c, input.eventoId),
+  );
 
-  try {
-    const evento = await withEvent(
-      { query: client.query.bind(client) } as PoolClient,
-      input.eventoId,
-      (c) => carregarEventoPublico(c, input.eventoId),
-    );
-
-    if (!evento) {
-      return null;
-    }
-
-    const output: NonNullable<GuestEventOutput> = {
-      eventoId: evento.eventoId,
-      packId: evento.packId,
-      identityTokens: evento.identityTokens,
-      vendorBrandTokens: evento.vendorBrandTokens,
-      filtroRecomendado: evento.filtroRecomendado,
-      fuso: evento.fuso,
-    };
-
-    guestEventCache.set(input.eventoId, structuredClone(output), GUEST_EVENT_CACHE_TTL_MS);
-    return output;
-  } finally {
-    client.release();
+  if (!evento) {
+    return null;
   }
+
+  const output: NonNullable<GuestEventOutput> = {
+    eventoId: evento.eventoId,
+    packId: evento.packId,
+    identityTokens: evento.identityTokens,
+    vendorBrandTokens: evento.vendorBrandTokens,
+    filtroRecomendado: evento.filtroRecomendado,
+    fuso: evento.fuso,
+  };
+
+  guestEventCache.set(input.eventoId, structuredClone(output), GUEST_EVENT_CACHE_TTL_MS);
+  return output;
 }

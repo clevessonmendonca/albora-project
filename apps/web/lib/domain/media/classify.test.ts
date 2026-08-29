@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   classifyPendingForEvent,
   type ClassifierDependencies,
-} from "./classify-media";
+} from "./classify";
 import type { UploadPendenteDeClassificacao } from "@albora/db";
 
 const EVENTO = "11111111-1111-1111-1111-111111111111";

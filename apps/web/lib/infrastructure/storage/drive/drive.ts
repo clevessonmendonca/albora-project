@@ -15,6 +15,8 @@ export function getDriveVault(): DriveTokenVault {
   return vault;
 }
 
+export type DriveVault = DriveTokenVault;
+
 let client: DriveClient | null = null;
 
 export function getDriveClient(): DriveClient {
