@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import type { ModoInteracao } from "@albora/core";
 import { isVideoMime } from "@albora/core";
 import Link from "next/link";

@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, type ComponentType, type ReactNode } from "react";
+import React, { memo, type ComponentType, type ReactNode } from "react";
 import type { ModoInteracao } from "@albora/core";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { PostHeader } from "@albora/ui-web";

@@ -1,3 +1,4 @@
+import React from "react";
 import Link from "next/link";
 import { Badge, Frame } from "@albora/ui-web";
 import { photoPathForMission } from "@/features/missions/lib/missions-utils";
