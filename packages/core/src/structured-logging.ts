@@ -28,11 +28,11 @@ export function maskPii(value: string): string {
     return `${maskedLocal}@${maskedDomain}`;
   }
 
-  if (value.length > 8) {
+  if (/^\d+$/.test(value) && value.length > 8) {
     return value.slice(0, 3) + "****" + value.slice(-4);
   }
 
-  return value[0] + "***" + (value.length > 1 ? value[value.length - 1] : "");
+  return value[0] + "***" + value[value.length - 1];
 }
 
 /**

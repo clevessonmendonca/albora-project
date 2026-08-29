@@ -40,7 +40,13 @@ export function FeedFooter({ estado, hasItems, onLoadMore, onRetry }: FeedFooter
     );
   }
 
-  if (estado.fim || estado.cursor === null) return null;
+  if (estado.fim || estado.cursor === null) {
+    return hasItems ? (
+      <p data-testid="end-of-feed" className="sr-only">
+        Fim do feed
+      </p>
+    ) : null;
+  }
 
   return (
     <div ref={sentinela} className="mt-[calc(var(--espaco)*6)]">

@@ -795,3 +795,26 @@ export { podeRemoverComentario as canRemoveComment } from "./comment";
 export { registrarDecisaoDoComentario as registerCommentDecision } from "./comment";
 /** English alias — prefer for new code. @see validarTexto */
 export { validarTexto as validateCommentText } from "./comment";
+
+export type {
+  ErrorSeverity,
+  ErrorContext,
+  CapturedError,
+  ErrorTrackingProvider,
+} from "./error-tracking";
+export {
+  configureErrorTracking,
+  captureException,
+  captureMessage,
+  setUserContext,
+  setErrorContext,
+  withErrorTracking,
+} from "./error-tracking";
+
+export { maskPii, maskObject, logger, addPiiField, createLogContext } from "./structured-logging";
+
+export type { WebVitalName, WebVitalRating, WebVitalMetric, WebVitalsSession, WebVitalsStats } from "./web-vitals";
+export { WEB_VITAL_THRESHOLDS, getWebVitalRating, aggregateWebVitals, shouldSample } from "./web-vitals";
+
+export type { ApiMetric, ApiPerformanceStats } from "./performance-monitoring";
+export { aggregateApiMetrics, extractRoute, isSlowRequest } from "./performance-monitoring";

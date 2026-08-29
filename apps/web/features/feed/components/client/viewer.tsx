@@ -230,6 +230,7 @@ export function Viewer({
     <div
       role="dialog"
       aria-modal="true"
+      data-testid="viewer"
       aria-label={`Fotos das ${hourLabel(hora)}`}
       aria-describedby="viewer-help"
       onPointerDown={pressionou}

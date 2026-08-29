@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 import { cva } from "./variants";
 
 const badgeVariants = cva({
@@ -17,10 +17,15 @@ export function Badge({
   tone,
   className,
   children,
+  ...rest
 }: {
   tone?: "neutral" | "accent" | "outline";
   className?: string;
   children: ReactNode;
-}) {
-  return <span className={badgeVariants({ tone, className })}>{children}</span>;
+} & Omit<HTMLAttributes<HTMLSpanElement>, "className">) {
+  return (
+    <span className={badgeVariants({ tone, className })} {...rest}>
+      {children}
+    </span>
+  );
 }

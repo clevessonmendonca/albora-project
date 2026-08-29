@@ -104,6 +104,7 @@ export const PhotoInteraction = memo(function PhotoInteraction({
           <button
             type="button"
             aria-pressed={reacao.minha !== null}
+            data-testid="like-button"
             aria-label={reacao.minha ? "Remover curtida" : "Curtir"}
             disabled={reacao.alternando}
             onClick={() => void alternarReacao()}

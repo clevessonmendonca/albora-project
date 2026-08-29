@@ -57,7 +57,7 @@ export const Post = memo(function Post({
   const aspecto = cssAspectRatio(largura, altura);
 
   return (
-    <article className="border-t border-linha">
+    <article data-testid={`post-${uploadId}`} className="border-t border-linha">
       <div className="py-3 mb-0.5 sm:py-4 sm:mb-1">
         <PostHeader
           author={autor}
