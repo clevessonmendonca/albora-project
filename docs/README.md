@@ -18,7 +18,7 @@ Este diretório é a fonte da verdade de tudo que não é código: arquitetura, 
 | Pasta | O que vive lá |
 |---|---|
 | [`adr/`](./adr/README.md) | Architecture Decision Records — cada decisão vinculante, datada e imutável |
-| [`product/`](./product/) | Os documentos de produto e branding. Origem de tudo |
+| [`product/`](./product/) | Os documentos de produto e branding. Origem de tudo — ver [`product/plano-implementacao-produto.md`](./product/plano-implementacao-produto.md) para prioridades atuais |
 | `design/` | Artefatos do trabalho de design: DNA, tokens, sistema, mockups |
 | `runbooks/` | Procedimentos operacionais: dev local, deploy, dia do evento, restore |
 | `specs/` | Contrato por tarefa, escrito antes do código |
@@ -34,6 +34,9 @@ Este diretório é a fonte da verdade de tudo que não é código: arquitetura, 
 | Camadas, dependências, onde a lógica mora, teste | `engineering.md` |
 | Decisões arquiteturais vinculantes | `adr/` |
 | Posicionamento, escopo, roadmap, riscos | `product/albora-produto-arquitetura.md` |
+| Prioridades pós-discovery (NOW/NEXT/LATER) | `product/plano-implementacao-produto.md` |
+| Concorrência e pricing (mercado) | `product/inteligencia-competitiva.md` · `product/estrategia-precificacao.md` |
+| Dia do evento (ops) | `runbooks/dia-do-evento.md` |
 | O que a landing **mostra** (planos e preço na UI) | `apps/web/app/landing/landing-page.tsx` — rascunhos em `product/README.md` |
 | Modelo de negócio / preço **draft** | `product/albora-produto-arquitetura.md` §5.2 (não é a UI) |
 | Voz, tom, copy, anti-padrões de comunicação | `product/albora-branding-marketing.md` |
