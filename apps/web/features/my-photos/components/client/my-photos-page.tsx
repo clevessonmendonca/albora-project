@@ -19,6 +19,8 @@ import {
   GuestMain,
   ErrorMessage,
   Badge,
+  LiveAnnouncer,
+  SkipLink,
 } from "@albora/ui-web";
 import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
 import { RecapSheet } from "@/features/my-photos/components/client/recap-sheet";
@@ -206,6 +208,8 @@ export function MyPhotosPage({
 
   return (
     <>
+      <SkipLink />
+      <LiveAnnouncer />
       <GuestShell>
         <GuestMain>
           <GuestHeader

@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { EmptyState, FloatingNav, GuestMain, GuestShell, SecondaryButton } from "@albora/ui-web";
+import { EmptyState, FloatingNav, GuestMain, GuestShell, LiveAnnouncer, SecondaryButton, SkipLink } from "@albora/ui-web";
 import { Viewer } from "@/features/feed/components/client/viewer";
 import { useReducedMotion } from "@/features/feed/hooks/use-reduced-motion";
 import { podeCarregarMais, type EstadoFeed } from "@/features/feed/hooks/use-feed";
@@ -31,6 +31,8 @@ export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: st
 
   return (
     <>
+      <SkipLink />
+      <LiveAnnouncer />
       <GuestShell>
         <GuestMain>
           <ProfileHeader
@@ -72,7 +74,7 @@ export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: st
         <Viewer
           itens={estado.feed.itens}
           indice={viewer.indice}
-          hora={0}
+          hora={horaDoItem(estado.feed.itens[viewer.indice])}
           rotulo={estado.nome ?? "Perfil"}
           urls={estado.feed.urls}
           interacao={estado.feed.interacao}
@@ -85,6 +87,10 @@ export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: st
       )}
     </>
   );
+}
+
+function horaDoItem(item: { criadaEm: string } | undefined): number {
+  return item ? new Date(item.criadaEm).getHours() : 0;
 }
 
 function PerfilIndisponivel() {

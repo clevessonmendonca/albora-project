@@ -1,6 +1,10 @@
+import { SkipLink } from "@albora/ui-web";
+
 export function NoSession({ slug }: { slug: string }) {
   return (
-    <main className="grid min-h-dvh place-items-center bg-bg px-6 py-8 font-corpo text-ink">
+    <>
+      <SkipLink />
+      <main id="main-content" className="grid min-h-dvh place-items-center bg-bg px-6 py-8 font-corpo text-ink">
       <div className="w-full max-w-sm text-center">
         <h1 className="mb-3 font-titulo text-[1.6rem] font-medium [text-wrap:balance]">
           Falta você entrar
@@ -16,5 +20,6 @@ export function NoSession({ slug }: { slug: string }) {
         </a>
       </div>
     </main>
+    </>
   );
 }

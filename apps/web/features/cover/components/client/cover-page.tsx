@@ -1,9 +1,19 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
-import { FloatingNav, GuestShell, PrimaryButton, GridIcon, StackIcon, Star } from "@albora/ui-web";
+import {
+  FloatingNav,
+  GuestShell,
+  LiveAnnouncer,
+  PrimaryButton,
+  GridIcon,
+  StackIcon,
+  Star,
+  SkipLink,
+} from "@albora/ui-web";
 import type { AlbumServido } from "@/lib/album";
 import type { CoverMoment } from "../../types/cover";
 import { useStatsPolling } from "../../hooks/use-stats-polling";
@@ -27,7 +37,7 @@ export function CoverPage({
   interactionOpen,
   musicLabel,
   hostMessageLabel,
-  hasConfessional = false,
+  confessionalTitle = null,
   coverImageUrl = null,
 }: {
   slug: string;
@@ -38,7 +48,7 @@ export function CoverPage({
   interactionOpen: boolean;
   musicLabel: string | null;
   hostMessageLabel: string;
-  hasConfessional?: boolean;
+  confessionalTitle?: string | null;
   coverImageUrl?: string | null;
 }) {
   const router = useRouter();
@@ -52,6 +62,8 @@ export function CoverPage({
 
   return (
     <>
+      <SkipLink />
+      <LiveAnnouncer />
       <GuestShell>
         <style>{`
           @keyframes cover-foto-flash {
@@ -66,6 +78,7 @@ export function CoverPage({
 
         <CoverHero hero={hero} />
 
+        <main id="main-content" className="flex min-h-0 flex-1 flex-col">
         <CoverEventInfo eventName={eventName} startsAt={startsAt} guests={guests} />
 
         <HostMessageCard label={hostMessageLabel} hostName={eventName} />
@@ -101,13 +114,13 @@ export function CoverPage({
         </div>
 
         <p className="m-0 px-[1.125rem] pb-2 text-center text-[0.75rem] text-ink-3">
-          {hasConfessional && (
+          {confessionalTitle && (
             <>
               <Link
                 href={`${base}/confessional`}
                 className="text-ink-2 underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
               >
-                Confessionário
+                {confessionalTitle}
               </Link>
               {" · "}
             </>
@@ -128,6 +141,7 @@ export function CoverPage({
           </PrimaryButton>
           <InviteButton slug={slug} eventName={eventName} />
         </div>
+        </main>
       </GuestShell>
       <FloatingNav base={base} linkComponent={Link} />
     </>

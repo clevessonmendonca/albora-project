@@ -6,7 +6,7 @@ import { guestSession, isSameEventSession } from "@/features/guest/data/guest-se
 import { EventNotice } from "@/features/guest/components/client/event-notice";
 import { NoSession } from "@/features/guest/components/client/no-session";
 import { getPool } from "@/lib/db";
-import { FloatingNav, GuestHeader, GuestMain, GuestShell, SkipLink } from "@albora/ui-web";
+import { FloatingNav, GuestHeader, GuestMain, GuestShell, LiveAnnouncer, SkipLink } from "@albora/ui-web";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +52,7 @@ export default async function ConfessionalPage({ params }: Props) {
   return (
     <>
       <SkipLink />
+      <LiveAnnouncer />
       <GuestShell>
         <GuestMain>
           <GuestHeader title={title} homeHref={`${base}/cover`} />

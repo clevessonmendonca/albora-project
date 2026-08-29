@@ -10,7 +10,7 @@ import {
   deveMostrarCtaPwa,
   usePwaInstall,
 } from "@/features/photo/hooks/use-pwa-install";
-import { ErrorMessage, SecondaryButton } from "@albora/ui-web";
+import { ErrorMessage, SecondaryButton, SkipLink } from "@albora/ui-web";
 import { AppOpenCta } from "@/features/pairing/components/client/app-open-cta";
 import { MissionCompletionToast } from "@/features/missions/components/ui/mission-completion-toast";
 import {
@@ -462,7 +462,9 @@ function Confirmacao({
   }, []);
 
   return (
-    <main className="flex min-h-dvh flex-col bg-bg px-8 pb-9 pt-10 font-corpo text-ink">
+    <>
+      <SkipLink />
+      <main id="main-content" className="flex min-h-dvh flex-col bg-bg px-8 pb-9 pt-10 font-corpo text-ink">
       <style>{ESTILO}</style>
 
       {url && (
@@ -587,6 +589,7 @@ function Confirmacao({
         />
       )}
     </main>
+    </>
   );
 }
 

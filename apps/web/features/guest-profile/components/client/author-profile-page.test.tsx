@@ -66,6 +66,10 @@ describe("AuthorProfilePage", () => {
     });
 
     expect(await screen.findByLabelText("Foto de Marina, 1 de 1")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ir para o conteúdo" })).toHaveAttribute(
+      "href",
+      "#main-content",
+    );
     expect(screen.getByText("Fotos")).toBeInTheDocument();
     expect(screen.getByText("Curtidas")).toBeInTheDocument();
   });

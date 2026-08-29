@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Badge, FloatingNav, GuestHeader, GuestMain, GuestShell } from "@albora/ui-web";
+import { Badge, FloatingNav, GuestHeader, GuestMain, GuestShell, LiveAnnouncer, SkipLink } from "@albora/ui-web";
 import { useMissionsProgress } from "../../hooks/use-missions-progress";
 import { useCelebration } from "../../hooks/use-celebration";
 import { useMissionCompletionToast } from "../../hooks/use-mission-completion-toast";
@@ -33,6 +33,8 @@ export function MissionsPage({
 
   return (
     <>
+      <SkipLink />
+      <LiveAnnouncer />
       {celeb && <CelebrationOverlay onDismiss={dismiss} />}
       {completion.event && !celeb && (
         <MissionCompletionToast
