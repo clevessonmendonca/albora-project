@@ -23,11 +23,11 @@ Prioridade absoluta. Nada em NEXT compete com isto.
 
 | ID | Entrega | Tipo | Dono | Referência | Prova de pronto |
 |---|---|---|---|---|---|
-| **N1** | Prova física QR (3 celulares × papel real) | Ops | Produto + anfitrião | [`../runbooks/dia-do-evento.md`](../runbooks/dia-do-evento.md) §2 | 100% scan em 15–45cm, luz baixa |
+| **N1** | Prova física QR (3 celulares × papel real) | Ops | Produto + anfitrião | [`../runbooks/prova-qr-fisica.md`](../runbooks/prova-qr-fisica.md) | 100% scan em 15–45cm, luz baixa |
 | **N2** | Deploy produção (CF + R2 + Neon + Resend) | Eng/Ops | Infra | [`../runbooks/deploy-producao.md`](../runbooks/deploy-producao.md) | Magic link recebido; convidado em HTTPS |
 | **N3** | Carga 150 uploads / 20 min em infra prod | Eng | QA | `roadmap.md` A4, `runbooks/carga.md` | Gate verde |
-| **N4** | Jurídico: controlador vs. operador LGPD | Legal | Fundador | `architecture.md` anexo A | Parecer escrito |
-| **N5** | Procedimento menores (ADR 0012) | Produto + legal | Produto | ADR 0012, spec 011 | Doc assinado antes evento |
+| **N4** | Jurídico: controlador vs. operador LGPD | Legal | Fundador | [`../legal/esboco-controlador-operador-lgpd.md`](../legal/esboco-controlador-operador-lgpd.md) | Parecer escrito |
+| **N5** | Procedimento menores (ADR 0012) | Produto + legal | Produto | [`../legal/procedimento-conteudo-ilegal-menores.md`](../legal/procedimento-conteudo-ilegal-menores.md) | Doc assinado antes evento |
 | **N6** | Casamento #1 instrumentado | Ops | Todos | [`experimentos-validacao.md`](./experimentos-validacao.md) E1 | Funil completo + gravação TikTok |
 | **N7** | Runbook dia-D + roteiro microfone | Produto | Produto | `runbooks/dia-do-evento.md` + admin `/pre-event` | Anfitrião imprime checklist |
 | **N8** | Fechar data casamento #1 | Comercial | Fundador | produto §8 Fase 0 | Data no calendário |
@@ -133,3 +133,4 @@ Template completo: [`experimentos-validacao.md`](./experimentos-validacao.md) §
 | Data | Mudança |
 |---|---|
 | 2026-08-29 | Plano criado pós-discovery. Prioriza ops + ajustes copy/UX sobre features novas. |
+| 2026-08-29 | N1/N4/N5: runbook prova QR, esboço LGPD e procedimento menores publicados; folha registrável no admin. |

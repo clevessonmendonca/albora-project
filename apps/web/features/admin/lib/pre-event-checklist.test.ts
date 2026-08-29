@@ -35,5 +35,6 @@ describe("buildPreEventSections", () => {
     expect(antes?.items.some((i) => i.href === "/admin/e/evt-1/guests")).toBe(true);
     expect(antes?.items.some((i) => i.href === "https://albora.app/wall-display")).toBe(true);
     expect(antes?.items.some((i) => i.href?.includes("#controle-interacao"))).toBe(true);
+    expect(antes?.items.some((i) => i.href?.includes("#prova-qr-fisica"))).toBe(true);
   });
 });

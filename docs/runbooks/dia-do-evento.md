@@ -22,7 +22,7 @@ Maximizar **participação na primeira hora** e **zero incidente no telão**, se
 | ✓ | Item | Como verificar |
 |---|---|---|
 | ☐ | Peças impressas (placa A4 + cards por mesa) | PDF do admin baixado |
-| ☐ | **Prova QR** — 3 celulares, luz baixa, 15–45cm | Ver §3 abaixo |
+| ☐ | **Prova QR** — 3 celulares, luz baixa, 15–45cm | Ver [`prova-qr-fisica.md`](./prova-qr-fisica.md) e admin `#prova-qr-fisica` |
 | ☐ | Plano pago se telão/ZIP/vídeo | `plan=celebration` no admin |
 | ☐ | `expected_guests` preenchido | Painel convidados |
 | ☐ | Missões escolhidas (8–12) | Editor missões |
@@ -38,6 +38,8 @@ Maximizar **participação na primeira hora** e **zero incidente no telão**, se
 ## 3. Prova física do QR (bloqueante)
 
 **Por quê:** QR ilegível = participação zero. Concorrente Olhares vende "como PIX" — nosso QR precisa funcionar igual ou melhor.
+
+**Runbook completo:** [`prova-qr-fisica.md`](./prova-qr-fisica.md) · **Folha registrável:** `/admin/e/[eventId]/pre-event#prova-qr-fisica`
 
 ### Procedimento
 
@@ -146,3 +148,4 @@ Maximizar **participação na primeira hora** e **zero incidente no telão**, se
 | Data | Mudança |
 |---|---|
 | 2026-08-29 | Runbook criado pós-discovery produto |
+| 2026-08-29 | Link para runbook prova QR dedicado (N1) |

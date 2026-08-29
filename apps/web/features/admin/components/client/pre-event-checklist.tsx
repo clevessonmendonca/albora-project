@@ -10,6 +10,7 @@ import {
   writePreEventChecklist,
   type PreEventChecklistState,
 } from "@/features/admin/lib/pre-event-checklist";
+import { QrProofSheet } from "@/features/admin/components/client/qr-proof-sheet";
 
 export function PreEventChecklist({
   eventId,
@@ -138,6 +139,10 @@ export function PreEventChecklist({
           </ul>
         </AdminCard>
       ))}
+
+      <div id="prova-qr-fisica">
+        <QrProofSheet eventId={eventId} />
+      </div>
 
       <div id="roteiro-mc">
         <AdminCard className="print:break-inside-avoid">

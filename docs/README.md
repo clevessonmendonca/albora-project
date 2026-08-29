@@ -21,6 +21,7 @@ Este diretório é a fonte da verdade de tudo que não é código: arquitetura, 
 | [`product/`](./product/) | Os documentos de produto e branding. Origem de tudo — ver [`product/plano-implementacao-produto.md`](./product/plano-implementacao-produto.md) para prioridades atuais |
 | `design/` | Artefatos do trabalho de design: DNA, tokens, sistema, mockups |
 | `runbooks/` | Procedimentos operacionais: dev local, deploy, dia do evento, restore |
+| `legal/` | Rascunhos jurídicos e procedimentos legais (revisão advogado antes do 1º evento) |
 | `specs/` | Contrato por tarefa, escrito antes do código |
 | [`roadmap.md`](./roadmap.md) | Estado operacional: o que falta no código para o 1º evento real |
 
@@ -37,7 +38,10 @@ Este diretório é a fonte da verdade de tudo que não é código: arquitetura, 
 | Prioridades pós-discovery (NOW/NEXT/LATER) | `product/plano-implementacao-produto.md` |
 | Concorrência e pricing (mercado) | `product/inteligencia-competitiva.md` · `product/estrategia-precificacao.md` |
 | Dia do evento (ops) | `runbooks/dia-do-evento.md` |
+| Prova física QR (N1) | `runbooks/prova-qr-fisica.md` · admin `/pre-event#prova-qr-fisica` |
 | Deploy produção | `runbooks/deploy-producao.md` |
+| LGPD controlador/operador (N4) | `legal/esboco-controlador-operador-lgpd.md` |
+| Conteúdo ilegal com menor (N5) | `legal/procedimento-conteudo-ilegal-menores.md` |
 | Teste de carga 150/20 | `runbooks/carga.md` · `pnpm carga` · `pnpm carga:smoke` |
 | O que a landing **mostra** (planos e preço na UI) | `apps/web/app/landing/landing-page.tsx` — rascunhos em `product/README.md` |
 | Modelo de negócio / preço **draft** | `product/albora-produto-arquitetura.md` §5.2 (não é a UI) |
