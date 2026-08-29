@@ -100,4 +100,4 @@ Lacuna dita vale mais que checklist verde.
 - **Rede degradada.** O `CLAUDE.md` pede carga "com rede degradada" e o arnês roda na rede que tiver. Latência e perda de pacote não são simuladas.
 - **O cliente.** Ele fala HTTP direto: não exercita fila em IndexedDB, Service Worker, processamento de imagem no aparelho, nem a bateria. O caminho do convidado de verdade passa por tudo isso.
 - **Concorrência de leitura.** Telão e feed lendo enquanto 150 uploads sobem não é medido.
-- **A execução completa de 150.** Até esta data só houve execução pequena (6 uploads) contra o dev local. **O portão de MVP continua aberto** até alguém rodar o padrão contra um ambiente parecido com produção e anexar o JSON aqui.
+- **A execução completa de 150.** Até esta data só houve execução pequena (6 uploads) contra o dev local. **O portão de MVP continua aberto** até alguém rodar o padrão contra um ambiente parecido com produção e anexar o JSON em [`carga-registros/README.md`](./carga-registros/README.md). Ver [`carga-producao.md`](./carga-producao.md).

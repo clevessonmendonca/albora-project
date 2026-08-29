@@ -42,7 +42,7 @@ Este diretório é a fonte da verdade de tudo que não é código: arquitetura, 
 | Deploy produção | `runbooks/deploy-producao.md` |
 | LGPD controlador/operador (N4) | `legal/esboco-controlador-operador-lgpd.md` |
 | Conteúdo ilegal com menor (N5) | `legal/procedimento-conteudo-ilegal-menores.md` |
-| Teste de carga 150/20 | `runbooks/carga.md` · `pnpm carga` · `pnpm carga:smoke` |
+| Teste de carga 150/20 | `runbooks/carga-producao.md` · `runbooks/carga.md` · `pnpm carga` · `pnpm carga:smoke` |
 | O que a landing **mostra** (planos e preço na UI) | `apps/web/app/landing/landing-page.tsx` — rascunhos em `product/README.md` |
 | Modelo de negócio / preço **draft** | `product/albora-produto-arquitetura.md` §5.2 (não é a UI) |
 | Voz, tom, copy, anti-padrões de comunicação | `product/albora-branding-marketing.md` |

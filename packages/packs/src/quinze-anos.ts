@@ -55,6 +55,8 @@ export const QUINZE_ANOS: Pack = {
     "landing.plano.completo": "Celebração",
     "landing.fechamento": "No dia seguinte, você acorda com centenas de fotos que",
     "landing.fechamento.destaque": "ninguém contratou para tirar.",
+    "landing.veteran.titulo": "Você esteve numa festa de 15 anos com Albora?",
+    "landing.veteran.lede": "Quer o mesmo no seu?",
 
     "reacao.estrela": "Estrela",
     "reacao.riso": "Riso",

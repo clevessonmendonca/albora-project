@@ -3,7 +3,13 @@ import { LandingVeteranCtaLink } from "../landing-veteran-cta";
 import { Heading, Section, pillClasses } from "../pieces";
 import { HREF_CRIAR_ALBUM } from "../landing-data";
 
-export function VeteranSection({ packId }: { packId: string }) {
+export function VeteranSection({
+  packId,
+  t,
+}: {
+  packId: string;
+  t: (key: string) => string;
+}) {
   return (
     <Section reveal className="pt-0">
       <div
@@ -14,10 +20,10 @@ export function VeteranSection({ packId }: { packId: string }) {
         )}
       >
         <Heading size="clamp(1.375rem, 3vw, 2rem)" className="mx-auto max-w-[28ch]">
-          Você esteve num casamento com Albora?
+          {t("landing.veteran.titulo")}
         </Heading>
         <p className="mx-auto mt-3 mb-0 max-w-[36ch] text-[1.0625rem] leading-[1.55] text-ink-2">
-          Quer o mesmo no seu?
+          {t("landing.veteran.lede")}
         </p>
         <LandingVeteranCtaLink
           href={HREF_CRIAR_ALBUM}

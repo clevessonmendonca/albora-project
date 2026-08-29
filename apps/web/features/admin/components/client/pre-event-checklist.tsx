@@ -50,7 +50,7 @@ export function PreEventChecklist({
           [data-admin-shell-back] { display: none !important; }
           body { background: white !important; }
           .print\\:hidden { display: none !important; }
-          .pre-event-print { box-shadow: none !important; border: 1px solid #ddd !important; }
+          .pre-event-print { box-shadow: none !important; border: 1px solid var(--linha) !important; }
         }
       `}</style>
       <div className="pre-event-print flex flex-col gap-5 print:block">

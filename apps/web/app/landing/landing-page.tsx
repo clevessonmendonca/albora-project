@@ -109,7 +109,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
       <IdentitySection example={example} t={t} />
       <BookSection places={places} />
       <IncludedSection />
-      <VeteranSection packId={pack.id} />
+      <VeteranSection packId={pack.id} t={t} />
       <PricingSection packId={pack.id} t={t} />
       <FaqSection />
       <ClosingSection packId={pack.id} t={t} />

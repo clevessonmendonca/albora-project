@@ -23,6 +23,7 @@
     "carga": "node tools/carga/executar.mjs",
     "carga:smoke": "CARGA_TOTAL=6 CARGA_DURACAO_MIN=1 CARGA_CONVIDADOS=3 CARGA_PICOS=1 node tools/carga/executar.mjs",
     "carga:limpar": "node tools/carga/limpar.mjs",
+    "deploy:smoke": "node tools/deploy/smoke.mjs",
     "drive-export": "node tools/jobs/drive-export.mjs",
     "db:up": "docker compose up -d --wait postgres",
     "db:down": "docker compose down -v",

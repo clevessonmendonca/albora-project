@@ -58,6 +58,8 @@ export const CASAMENTO: Pack = {
     "landing.plano.completo": "Celebração",
     "landing.fechamento": "No dia seguinte, você acorda com centenas de fotos que",
     "landing.fechamento.destaque": "ninguém contratou para tirar.",
+    "landing.veteran.titulo": "Você esteve num casamento com Albora?",
+    "landing.veteran.lede": "Quer o mesmo no seu?",
 
     "reacao.estrela": "Estrela",
     "reacao.riso": "Riso",
