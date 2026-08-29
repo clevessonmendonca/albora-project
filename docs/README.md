@@ -37,6 +37,8 @@ Este diretório é a fonte da verdade de tudo que não é código: arquitetura, 
 | Prioridades pós-discovery (NOW/NEXT/LATER) | `product/plano-implementacao-produto.md` |
 | Concorrência e pricing (mercado) | `product/inteligencia-competitiva.md` · `product/estrategia-precificacao.md` |
 | Dia do evento (ops) | `runbooks/dia-do-evento.md` |
+| Deploy produção | `runbooks/deploy-producao.md` |
+| Teste de carga 150/20 | `runbooks/carga.md` · `pnpm carga` · `pnpm carga:smoke` |
 | O que a landing **mostra** (planos e preço na UI) | `apps/web/app/landing/landing-page.tsx` — rascunhos em `product/README.md` |
 | Modelo de negócio / preço **draft** | `product/albora-produto-arquitetura.md` §5.2 (não é a UI) |
 | Voz, tom, copy, anti-padrões de comunicação | `product/albora-branding-marketing.md` |

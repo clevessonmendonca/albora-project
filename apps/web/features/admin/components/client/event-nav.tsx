@@ -33,6 +33,7 @@ export function EventNav({ eventId }: { eventId: string }) {
 
   return (
     <nav
+      data-admin-nav
       className="mb-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       aria-label="Seções do evento"
     >

@@ -17,6 +17,8 @@ Maximizar **participação na primeira hora** e **zero incidente no telão**, se
 
 ## 2. Checklist — 7 dias antes
 
+> **No admin:** `/admin/e/[eventId]/pre-event` — mesma lista, com links e impressão.
+
 | ✓ | Item | Como verificar |
 |---|---|---|
 | ☐ | Peças impressas (placa A4 + cards por mesa) | PDF do admin baixado |

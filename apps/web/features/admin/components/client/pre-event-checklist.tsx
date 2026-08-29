@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
 import {
   MC_SCRIPTS,
   buildPreEventSections,
@@ -41,8 +41,19 @@ export function PreEventChecklist({
   );
 
   return (
-    <div className="flex flex-col gap-5 print:block">
-      <AdminSection className="print:border-0 print:shadow-none">
+    <>
+      <style>{`
+        @media print {
+          header, nav, aside, footer,
+          [data-admin-nav], [data-admin-shell-header],
+          [data-admin-shell-back] { display: none !important; }
+          body { background: white !important; }
+          .print\\:hidden { display: none !important; }
+          .pre-event-print { box-shadow: none !important; border: 1px solid #ddd !important; }
+        }
+      `}</style>
+      <div className="pre-event-print flex flex-col gap-5 print:block">
+      <AdminCard>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h2 className="m-0 font-titulo text-lg">Checklist pré-evento</h2>
@@ -64,10 +75,10 @@ export function PreEventChecklist({
             </button>
           </div>
         </div>
-      </AdminSection>
+      </AdminCard>
 
       {sections.map((section) => (
-        <AdminSection key={section.id} className="print:break-inside-avoid">
+        <AdminCard key={section.id} className="print:break-inside-avoid">
           <h3 className="m-0 mb-4 font-titulo text-base">{section.title}</h3>
           <ul className="m-0 grid list-none gap-3 p-0">
             {section.items.map((item) => {
@@ -125,10 +136,11 @@ export function PreEventChecklist({
               );
             })}
           </ul>
-        </AdminSection>
+        </AdminCard>
       ))}
 
-      <AdminSection id="roteiro-mc" className="print:break-inside-avoid">
+      <div id="roteiro-mc">
+        <AdminCard className="print:break-inside-avoid">
         <h3 className="m-0 mb-2 font-titulo text-base">Roteiro para o microfone</h3>
         <p className="mt-0 mb-4 text-[0.875rem] text-ink-3">
           Copie ou envie por WhatsApp para o MC. Adapte se o plano for grátis (sem telão) ou se o
@@ -149,7 +161,9 @@ export function PreEventChecklist({
             </blockquote>
           ))}
         </div>
-      </AdminSection>
+        </AdminCard>
+      </div>
     </div>
+    </>
   );
 }
