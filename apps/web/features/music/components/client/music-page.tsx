@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   Badge,
+  EmptyState,
   ErrorMessage,
   FloatingNav,
   Frame,
@@ -37,14 +38,10 @@ export function MusicPage({ slug, escolhaLabel }: { slug: string; escolhaLabel: 
           )}
 
           {!state.loading && !state.track && !state.failure && (
-            <div className="grid gap-3 py-8 text-center">
-              <p className="m-0 font-titulo text-[1.25rem] leading-[1.2] text-ink-2">
-                A trilha ainda não foi escolhida
-              </p>
-              <p className="m-0 text-[0.9375rem] leading-relaxed text-ink-3">
-                Quando os anfitriões escolherem a música da festa, ela aparece aqui.
-              </p>
-            </div>
+            <EmptyState
+              title="A trilha ainda não foi escolhida"
+              lede="Quando os anfitriões escolherem a música da festa, ela aparece aqui."
+            />
           )}
 
           {state.failure === "session" && (
