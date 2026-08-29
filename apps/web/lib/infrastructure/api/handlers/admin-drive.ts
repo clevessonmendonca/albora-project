@@ -28,6 +28,8 @@ import {
   driveCallbackSchema,
 } from "@/lib/infrastructure/api/validators";
 
+export { VALIDADE_STEP_UP_DRIVE_MINUTOS } from "@/lib/application/use-cases/admin/request-drive-step-up";
+
 async function requireOwnedEvent(req: Request, eventId: string) {
   const cfgErr = requireConfig("admin", { log: false });
   if (cfgErr) return cfgErr;
