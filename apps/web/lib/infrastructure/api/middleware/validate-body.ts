@@ -5,7 +5,7 @@
  */
 
 import type { ZodSchema } from "zod";
-import { errorResponse } from "../response";
+import { errorResponse } from "./response";
 
 /**
  * Valida o body de uma requisição usando um schema Zod.
@@ -29,7 +29,8 @@ export function validateBody<T>(
   const result = schema.safeParse(body);
 
   if (!result.success) {
-    const firstError = result.error.errors[0];
+    const issues = result.error.issues ?? [];
+    const firstError = issues[0];
     return errorResponse(
       422,
       "validation.failed",

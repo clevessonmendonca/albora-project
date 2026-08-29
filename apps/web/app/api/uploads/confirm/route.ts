@@ -1,8 +1,10 @@
+import { metrics } from "@albora/core";
 import { recordFunnelEvent } from "@/features/guest/lib/record-funnel";
 import {
   errorResponse,
   jsonOk,
   parseJsonBody,
+  RATE_LIMITS,
   requireConfig,
   requireGuestSession,
   unexpectedError,
@@ -24,6 +26,7 @@ export async function POST(req: Request) {
   if (auth instanceof Response) return auth;
 
   const limited = enforceRateLimit(req, auth.session, {
+    ...RATE_LIMITS.upload,
     message: "Muitas fotos de uma vez",
   });
   if (limited) return limited;
@@ -102,6 +105,7 @@ export async function POST(req: Request) {
         auth.session.sessaoId,
         "upload_ok",
       );
+      metrics.increment("upload.confirmed");
     }
 
     return jsonOk({ uploadId: resultado.uploadId, estado: resultado.estado });

@@ -1,7 +1,9 @@
+import { logger } from "@albora/core";
 import { ErroCursorInvalido } from "@albora/db";
 import {
   errorResponse,
   jsonOk,
+  RATE_LIMITS,
   rejectGuestEventQueryMismatch,
   requireGuestSession,
   unexpectedError,
@@ -18,7 +20,7 @@ export async function GET(req: Request) {
   const auth = await requireGuestSession(req);
   if (auth instanceof Response) return auth;
 
-  const limited = enforceRateLimit(req, auth.session);
+  const limited = enforceRateLimit(req, auth.session, RATE_LIMITS.feed);
   if (limited) return limited;
 
   const mismatch = rejectGuestEventQueryMismatch(
@@ -43,14 +45,15 @@ export async function GET(req: Request) {
       () => getPool().connect(),
     );
 
-    console.log("feed.pagina", {
-      eventoId: auth.session.eventoId,
-      sessaoId: auth.session.sessaoId,
-      itens: pagina.itens.length,
-      comFiltro: validated.missao !== null,
-      continua: pagina.proximoCursor !== null,
-      interacao: pagina.interacao,
-    });
+    logger.info(
+      {
+        eventId: auth.session.eventoId,
+        itens: pagina.itens.length,
+        comFiltro: validated.missao !== null,
+        continua: pagina.proximoCursor !== null,
+      },
+      "feed.pagina",
+    );
 
     return jsonOk(pagina);
   } catch (e) {

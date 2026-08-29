@@ -22,6 +22,7 @@ const ISENTAS = [
   "parede/",
   "app/parear/",
   "jobs/",
+  "health/",
 ];
 
 const AUTH_CONVIDADO =

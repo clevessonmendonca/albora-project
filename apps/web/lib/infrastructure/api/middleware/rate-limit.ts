@@ -25,9 +25,12 @@ export function enforceRateLimit(
   const key = options.keyPrefix ? `${options.keyPrefix}${base}` : base;
   const limit = consume(key, max, windowSec, Date.now());
   if (!limit.allowed) {
-    return errorResponse(429, "limite.excedido", message, {
+    const res = errorResponse(429, "limite.excedido", message, {
       retry_after_seconds: limit.resetInSeconds,
     });
+    const headers = new Headers(res.headers);
+    headers.set("Retry-After", String(limit.resetInSeconds));
+    return new Response(res.body, { status: 429, headers });
   }
   return null;
 }

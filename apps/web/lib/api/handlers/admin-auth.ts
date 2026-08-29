@@ -15,6 +15,7 @@ import {
   hostTokenFromRequest,
   jsonOk,
   parseJsonBody,
+  RATE_LIMITS,
   requireConfig,
   unexpectedError,
 } from "@/lib/api";
@@ -42,11 +43,19 @@ export async function postSignIn(req: Request) {
   if (cfgErr) return cfgErr;
 
   const ip = req.headers.get("cf-connecting-ip") ?? req.headers.get("x-forwarded-for") ?? "sem-ip";
-  const limit = consume(`admin_entrar:${ip.split(",")[0]!.trim()}`, 10, 60, Date.now());
+  const limit = consume(
+    `admin_entrar:${ip.split(",")[0]!.trim()}`,
+    RATE_LIMITS.magicLink.max,
+    RATE_LIMITS.magicLink.windowSec,
+    Date.now(),
+  );
   if (!limit.allowed) {
-    return errorResponse(429, "limite.excedido", "Espere um instante", {
+    const res = errorResponse(429, "limite.excedido", "Espere um instante", {
       retry_after_seconds: limit.resetInSeconds,
     });
+    const headers = new Headers(res.headers);
+    headers.set("Retry-After", String(limit.resetInSeconds));
+    return new Response(res.body, { status: 429, headers });
   }
 
   const parsed = await parseJsonBody<SignInBody>(req);
@@ -117,7 +126,7 @@ export async function postSession(req: Request) {
   if (cfgErr) return cfgErr;
 
   const limited = enforceRateLimit(req, null, {
-    max: 10,
+    ...RATE_LIMITS.consumeMagicLink,
     keyPrefix: "admin_sessao:",
     message: "Muitas tentativas",
   });

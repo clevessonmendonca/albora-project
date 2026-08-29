@@ -43,6 +43,9 @@ describe("enforceRateLimit", () => {
     expect(corpo.code).toBe("limite.excedido");
     expect(corpo.message).toBe("Muitas tentativas");
     expect(corpo.details?.retry_after_seconds).toBeGreaterThan(0);
+    expect(limited!.headers.get("Retry-After")).toBe(
+      String(corpo.details?.retry_after_seconds),
+    );
   });
 
   it("prefixos diferentes não compartilham bucket", () => {

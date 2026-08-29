@@ -2,6 +2,8 @@ import {
   canUploadVideo,
   deriveMediaKey,
   isVideoMime,
+  logger,
+  metrics,
   validateDeclaration,
   VALIDADE_PRESIGN_SEGUNDOS,
 } from "@albora/core";
@@ -12,6 +14,7 @@ import {
   errorResponse,
   jsonOk,
   parseJsonBody,
+  RATE_LIMITS,
   requireConfig,
   requireGuestSession,
   unexpectedError,
@@ -31,6 +34,7 @@ export async function POST(req: Request) {
   if (auth instanceof Response) return auth;
 
   const limited = enforceRateLimit(req, auth.session, {
+    ...RATE_LIMITS.upload,
     message: "Muitas fotos de uma vez",
   });
   if (limited) return limited;
@@ -68,12 +72,8 @@ export async function POST(req: Request) {
       ? await assinarPut(`${key}/thumb`, "image/jpeg", VALIDADE_PRESIGN_SEGUNDOS)
       : await assinarPut(`${key}/thumb`, mime, VALIDADE_PRESIGN_SEGUNDOS);
 
-    console.log("presign.emitido", {
-      eventoId: auth.session.eventoId,
-      sessaoId: auth.session.sessaoId,
-      chave: key,
-      bytes,
-    });
+    logger.info({ eventId: auth.session.eventoId, bytes }, "presign.emitido");
+    metrics.increment("upload.started");
 
     await recordFunnelEvent(auth.session.eventoId, auth.session.sessaoId, "upload_start");
 

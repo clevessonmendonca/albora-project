@@ -3,9 +3,9 @@ import type * as ApiModule from "@/lib/api";
 
 /** Valida magic bytes da thumb (§10/9) — mesmo portão que `full`; 16 bytes (PREFIXO_MAGIC_BYTES) cobrem todos os formatos. */
 
-const EVENT_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
-const SESSION_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
-const UPLOAD_ID = "upload-id-1";
+const EVENT_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const SESSION_ID = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const UPLOAD_ID = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 const CHAVE = `events/${EVENT_ID}/2026/08/${SESSION_ID}`;
 
 /** JPEG: 0xFF 0xD8 0xFF + padding */
@@ -70,6 +70,10 @@ vi.mock("@/lib/db", () => ({
   getPool: () => ({}),
 }));
 
+vi.mock("@/lib/application/use-cases/guest", () => ({
+  confirmUpload,
+}));
+
 vi.mock("@/lib/details", () => ({
   cleanCaption: (v: unknown) => v ?? null,
   acceptedPlace: () => null,
@@ -127,6 +131,11 @@ describe("POST /api/uploads/confirm — validação da thumb (§10 item 9)", () 
       if (key.endsWith("/full")) return { bytes: 800_000, inicio: JPEG_INICIO };
       return { bytes: 5_000, inicio: HTML_INICIO };
     });
+    confirmUpload.mockResolvedValue({
+      ok: false,
+      code: "midia.conteudo_nao_confere",
+      message: "Arquivo recusado",
+    });
 
     const res = await POST(req());
 
@@ -144,7 +153,7 @@ describe("POST /api/uploads/confirm — validação da thumb (§10 item 9)", () 
     withEvent.mockImplementation(async (_pool: unknown, _eventId: unknown, fn: (c: unknown) => Promise<unknown>) =>
       fn({ query: vi.fn().mockResolvedValue({ rows: [] }) }),
     );
-    confirmUpload.mockResolvedValue({ estado: "criado" });
+    confirmUpload.mockResolvedValue({ ok: true, uploadId: UPLOAD_ID, estado: "criado" });
 
     const res = await POST(req());
 
@@ -173,7 +182,7 @@ describe("POST /api/uploads/confirm — validação da thumb (§10 item 9)", () 
     withEvent.mockImplementation(async (_pool: unknown, _eventId: unknown, fn: (c: unknown) => Promise<unknown>) =>
       fn({ query: vi.fn().mockResolvedValue({ rows: [] }) }),
     );
-    confirmUpload.mockResolvedValue({ estado: "criado" });
+    confirmUpload.mockResolvedValue({ ok: true, uploadId: UPLOAD_ID, estado: "criado" });
 
     const res = await POST(req({ uploadId: UPLOAD_ID, chave: CHAVE, mime: "video/mp4" }));
 
@@ -194,6 +203,11 @@ describe("POST /api/uploads/confirm — validação da thumb (§10 item 9)", () 
 
     parseJsonBody.mockResolvedValue({
       data: { uploadId: UPLOAD_ID, chave: CHAVE, mime: "video/mp4" },
+    });
+    confirmUpload.mockResolvedValue({
+      ok: false,
+      code: "midia.conteudo_nao_confere",
+      message: "Arquivo recusado",
     });
 
     const res = await POST(req({ uploadId: UPLOAD_ID, chave: CHAVE, mime: "video/mp4" }));

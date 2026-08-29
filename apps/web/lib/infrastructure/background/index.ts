@@ -19,6 +19,7 @@ export {
 } from "./interaction-queue";
 
 export {
-  RateLimitStore,
-  type RateLimitConfig,
+  consume,
+  reset,
+  type RateLimitResult,
 } from "./rate-limit-store";

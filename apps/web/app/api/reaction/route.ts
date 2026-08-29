@@ -2,6 +2,7 @@ import {
   errorResponse,
   jsonOk,
   parseJsonBody,
+  RATE_LIMITS,
   rejectGuestEventQueryMismatch,
   requireGuestSession,
   unexpectedError,
@@ -65,7 +66,7 @@ export async function PUT(req: Request) {
   const auth = await validarSessao(req);
   if (auth instanceof Response) return auth;
 
-  const limited = enforceRateLimit(req, auth.session);
+  const limited = enforceRateLimit(req, auth.session, RATE_LIMITS.reactionWrite);
   if (limited) return limited;
 
   const parsed = await parseJsonBody(req);
@@ -102,7 +103,7 @@ export async function DELETE(req: Request) {
   const auth = await validarSessao(req);
   if (auth instanceof Response) return auth;
 
-  const limited = enforceRateLimit(req, auth.session);
+  const limited = enforceRateLimit(req, auth.session, RATE_LIMITS.reactionWrite);
   if (limited) return limited;
 
   const parsed = await parseJsonBody(req);
