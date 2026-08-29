@@ -10,7 +10,7 @@ describe("FilterChip", () => {
   });
 
   it("mostra thumbnail quando fornecido", () => {
-    render(
+    const { container } = render(
       <FilterChip 
         label="Vintage" 
         thumbnail="/thumb.jpg" 
@@ -18,7 +18,7 @@ describe("FilterChip", () => {
         onClick={() => {}} 
       />
     );
-    const img = screen.getByRole("img", { hidden: true });
+    const img = container.querySelector("img");
     expect(img).toHaveAttribute("src", "/thumb.jpg");
   });
 
