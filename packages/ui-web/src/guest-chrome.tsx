@@ -96,7 +96,7 @@ export function EmptyState({
 }: {
   title: string;
   lede: string;
-  cameraPath: string;
+  cameraPath?: string;
   cameraLabel?: string;
 }) {
   return (
@@ -107,12 +107,14 @@ export function EmptyState({
         </p>
         <p className="m-0 leading-relaxed text-ink-2">{lede}</p>
       </div>
-      <a
-        href={cameraPath}
-        className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
-      >
-        {cameraLabel}
-      </a>
+      {cameraPath ? (
+        <a
+          href={cameraPath}
+          className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
+        >
+          {cameraLabel}
+        </a>
+      ) : null}
     </div>
   );
 }

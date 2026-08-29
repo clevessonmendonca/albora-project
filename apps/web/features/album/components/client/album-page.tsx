@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { GuestHeader, GuestShell, EmptyState, GuestMain, cn } from "@albora/ui-web";
+import { photoPathForMission } from "@/features/missions/lib/missions-utils";
 import { useAlbum } from "../../hooks/use-album";
 import { useAlbumFilter } from "../../hooks/use-album-filter";
 import type { AlbumMission } from "../../hooks/use-album-filter";
@@ -81,7 +82,7 @@ export function AlbumPage({
                   ? "Sua foto pode ser a primeira."
                   : "Seja o primeiro a fotografar esta noite."
               }
-              cameraPath={cameraPath}
+              cameraPath={missionId ? photoPathForMission(slug, missionId) : cameraPath}
             />
           )}
 

@@ -49,7 +49,6 @@ export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: st
               <EmptyState
                 title="Ainda não tem foto aqui."
                 lede="Quando esta pessoa mandar uma foto, ela aparece aqui."
-                cameraPath={cameraPath}
               />
             </div>
           )}

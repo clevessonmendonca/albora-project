@@ -8,6 +8,7 @@ import { useCallback, useMemo } from "react";
 import { groupByHour } from "@/features/feed/lib/group-by-hour";
 import { useFeed } from "@/features/feed/hooks/use-feed";
 import { useFeedViewer } from "@/features/feed/hooks/use-feed-viewer";
+import { useProfileViewer } from "@/features/guest-profile/hooks/use-profile-viewer";
 import { useFeedFilter, type FilterMission } from "@/features/feed/hooks/use-feed-filter";
 import { useTemporalFilter } from "@/features/feed/hooks/use-temporal-filter";
 import { useReducedMotion } from "@/features/feed/hooks/use-reduced-motion";
@@ -20,7 +21,6 @@ import {
   GateNotice,
   GuestHeader,
   GuestShell,
-  EmptyState,
   GuestMain,
   ErrorMessage,
   Badge,
@@ -107,6 +107,7 @@ export function FeedPage({
 
   // Viewer state
   const viewer = useFeedViewer(grupos);
+  const mirror = useProfileViewer();
 
   // Badge de contagem
   const contagem = estado.itens.length > 0 ? `${estado.itens.length} fotos` : undefined;
@@ -151,7 +152,7 @@ export function FeedPage({
 
       {gate.gateOpened && <GateOpenedOverlay onClose={gate.close} cameraPath={cameraPath} />}
 
-      {newItems.hasNew && !viewer.grupoAberto && (
+      {newItems.hasNew && !viewer.grupoAberto && mirror.indice === null && (
         <NewPhotosButton onClick={newItems.scrollToTop} />
       )}
 
@@ -226,7 +227,12 @@ export function FeedPage({
           )}
 
           {espelho && estado.itens.length > 0 && (
-            <MirrorGrid itens={estado.itens} urls={estado.urls} cameraPath={cameraPath} />
+            <MirrorGrid
+              itens={estado.itens}
+              urls={estado.urls}
+              cameraPath={cameraPath}
+              onAbrir={mirror.abrir}
+            />
           )}
 
           {completo && estado.itens.length > 0 && (
@@ -281,6 +287,26 @@ export function FeedPage({
       </GuestShell>
 
       <FloatingNav base={base} linkComponent={Link} />
+
+      {espelho && mirror.indice !== null && estado.itens.length > 0 && (
+        <Viewer
+          itens={estado.itens}
+          indice={mirror.indice}
+          hora={
+            estado.itens[mirror.indice]
+              ? new Date(estado.itens[mirror.indice].criadaEm).getHours()
+              : 0
+          }
+          urls={estado.urls}
+          interacao={estado.interacao}
+          cameraPath={cameraPath}
+          movimentoReduzido={movimentoReduzido}
+          onIr={mirror.navegar}
+          onSair={mirror.fechar}
+          onReacoes={atualizarReacoes}
+          onVerAutor={handleVerAutor}
+        />
+      )}
 
       {completo && viewer.grupoAberto && (
         <Viewer

@@ -17,6 +17,8 @@ import {
   SecondaryButton,
   StoryRail,
   type StoryItem,
+  SkipLink,
+  LiveAnnouncer,
 } from "@albora/ui-web";
 import { useFeed, podeCarregarMais, type EstadoFeed } from "@/features/feed/hooks/use-feed";
 import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
@@ -93,7 +95,9 @@ export function HomePage({
 
   return (
     <>
+      <SkipLink />
       <FeedStyles />
+      <LiveAnnouncer />
       <GuestShell>
         <GuestMain>
           <GuestHeader

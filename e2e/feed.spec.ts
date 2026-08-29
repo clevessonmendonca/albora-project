@@ -68,3 +68,21 @@ test.describe("Feed do convidado — navegação", () => {
     await expect(media).not.toHaveAttribute("src", srcInicial ?? "", { timeout: 3_000 });
   });
 });
+
+test.describe("Feed do convidado — espelho", () => {
+  test("abre o viewer ao tocar uma miniatura da grade", async ({ page }) => {
+    test.skip(!E2E_FULL, "Requer pnpm db:semear e E2E_FULL=1");
+    await entrarNoEvento(page);
+    await page.goto("/e/festa-demo/feed");
+    const thumb = page.locator('[data-testid^="mirror-photo-"]').first();
+    const temGrade = await thumb.count();
+    if (temGrade === 0) {
+      test.skip(true, "Evento demo já está em modo completo");
+    }
+    await expect(thumb).toBeVisible({ timeout: 10_000 });
+    await thumb.click();
+    await expect(page.getByTestId("viewer")).toBeVisible({ timeout: 5_000 });
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("viewer")).toBeHidden({ timeout: 3_000 });
+  });
+});

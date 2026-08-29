@@ -16,7 +16,6 @@ import { MissionCompletionToast } from "@/features/missions/components/ui/missio
 import {
   marcoMissao,
   persistirProgressoMissoes,
-  photoPathForMission,
   proximaMissao,
   rotuloCtaAposEnvio,
 } from "@/features/missions/lib/missions-utils";
@@ -177,10 +176,16 @@ export function PhotoPage({
       return;
     }
 
+    let algumOk = false;
     for (const arquivo of arquivos) {
       const r = await enfileirarFoto({ arquivo, desafioId: escolhida, promptKey });
-      if (r.ok) setEnviadas((n) => n + 1);
+      if (r.ok) {
+        algumOk = true;
+        setEnviadas((n) => n + 1);
+      }
     }
+    if (!algumOk) return;
+    completarMissaoAtual();
     setEtapa({ nome: "pronto", arquivo: primeiro });
     registrarRecente(primeiro);
   }
@@ -264,7 +269,6 @@ export function PhotoPage({
         onOutra={() => irParaCamera(escolhida)}
         onProxima={() => {
           const next = proximaMissao(missions);
-          if (next) router.replace(photoPathForMission(slug, next.id), { scroll: false });
           irParaCamera(next?.id ?? null);
         }}
         missions={missions}

@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { type ModoInteracao } from "@albora/core";
 import Link from "next/link";
 import type { PeriodoTemporal } from "../../hooks/use-temporal-filter";
@@ -26,13 +27,11 @@ function rotuloFiltroPeriodo(periodo: PeriodoTemporal): string {
 }
 
 export function FeedEmptyState({
-  interacao,
   filtroMissao,
   filtroMissaoTitulo,
   filtroPeriodo = "tudo",
   cameraPath,
 }: FeedEmptyStateProps) {
-  const espelho = interacao === "espelho";
   const temFiltroMissao = filtroMissao !== null;
   const temFiltroPeriodo = filtroPeriodo !== "tudo";
 
@@ -60,15 +59,12 @@ export function FeedEmptyState({
         {sugestao}
       </p>
 
-      {!espelho && (
-        <Link
-          href={cameraPath}
-          className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-acento font-corpo text-[0.9375rem] font-medium tracking-[0.05em] text-sobre-acento transition-transform duration-[var(--tempo-micro)] hover:scale-[0.977] active:scale-[0.977]"
-          style={{ paddingInline: "calc(var(--espaco) * 6)" }}
-        >
-          Tirar foto
-        </Link>
-      )}
+      <Link
+        href={cameraPath}
+        className="inline-flex min-h-[54px] items-center justify-center rounded-pilula bg-acento px-6 font-corpo text-[0.9375rem] font-medium tracking-[0.05em] text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
+      >
+        Tirar foto
+      </Link>
     </div>
   );
 }

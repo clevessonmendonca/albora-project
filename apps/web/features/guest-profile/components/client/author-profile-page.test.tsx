@@ -85,5 +85,6 @@ describe("AuthorProfilePage", () => {
     render(<AuthorProfilePage slug="ana-e-joao" autorId={AUTOR_ID} />);
 
     expect(await screen.findByText("Ainda não tem foto aqui.")).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Tirar foto" })).not.toBeInTheDocument();
   });
 });
