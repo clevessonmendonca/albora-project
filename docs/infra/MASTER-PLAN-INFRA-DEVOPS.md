@@ -8,14 +8,24 @@
 
 ### ✅ FASES CONCLUÍDAS
 
-| Fase | Escopo | Status | Testes | Cobertura |
-|------|--------|--------|--------|-----------|
-| **Fase 1** | Testes Unitários | ✅ COMPLETA | 344 unit tests | 100% (57/57 use cases) |
-| **Fase 2.1** | Contract Tests (Zod schemas) | ✅ COMPLETA | 169 contract tests | 100% (16/16 schemas) |
-| **Fase 3** | E2E Tests (Playwright) | ✅ COMPLETA | 28 E2E tests | Fluxo crítico + resilience |
-| **Fase 4** | Lighthouse CI | ✅ COMPLETA | Performance budgets | Core Web Vitals |
+| Fase | Escopo | Status |
+|------|--------|--------|
+| **Fase 1** | Testes Unitários | ✅ COMPLETA |
+| **Fase 2.1** | Contract Tests (Zod schemas) | ✅ COMPLETA |
+| **Fase 3** | E2E Tests (Playwright) | ✅ COMPLETA |
+| **Fase 4** | Lighthouse CI | ✅ COMPLETA |
+| **Fase 5** | Auditoria & Arquitetura (Opção A) | ✅ COMPLETA |
+| **Fase 6** | Segurança (headers, rate limit, OWASP) | ✅ COMPLETA |
+| **Fase 7** | Ambientes & CI/CD | ✅ COMPLETA |
+| **Fase 8** | Observabilidade | ✅ COMPLETA |
+| **Fase 9** | Performance & Capacity | ✅ COMPLETA |
+| **Fase 10** | Disaster Recovery | ✅ COMPLETA |
+| **Fase 11** | Custo | ✅ COMPLETA |
+| **Fase 12** | Documentação operacional | ✅ COMPLETA |
 
-**Total de Testes Validados:** 541 testes (100% passing)
+**Total de Testes Validados (Fases 1–4):** 541 testes (histórico)
+
+**Fases 9–12 (esta onda):** índices 0052, cache TTL da identidade, perfis `pnpm carga` (sem k6/Redis), dump/restore, RPO/RTO, runbooks, `COST.md`, onboarding.
 
 **Conquistas:**
 - ✅ Clean Architecture aplicada (55 use cases, 22 validators)
@@ -23,6 +33,7 @@
 - ✅ Performance monitoring (Lighthouse)
 - ✅ RLS enforcement testado
 - ✅ Critical path protegido (upload pipeline)
+- ✅ Opção A (Cloudflare/Neon/R2/Resend) documentada e operável
 
 ---
 
@@ -898,58 +909,12 @@ Teste 4: Soak Test (Longa Duração)
 
 **Ferramentas:**
 
-```
-1. k6 (recomendado, open source)
-2. Artillery (alternativa)
-3. Locust (Python, se preferir)
-```
-
-**Exemplo k6:**
-
-```javascript
-// tests/performance/upload-flow.k6.js
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-
-export let options = {
-  stages: [
-    { duration: '2m', target: 50 },  // ramp-up
-    { duration: '5m', target: 50 },  // stay at 50
-    { duration: '2m', target: 150 }, // spike
-    { duration: '5m', target: 150 }, // stay at 150
-    { duration: '2m', target: 0 },   // ramp-down
-  ],
-  thresholds: {
-    http_req_duration: ['p(95)<1000'], // 95% < 1s
-    http_req_failed: ['rate<0.01'],    // <1% errors
-  },
-};
-
-export default function () {
-  // Simular upload flow
-  let presign = http.post('https://staging.albora.app/api/uploads/presign', {
-    headers: { 'Authorization': `Bearer ${__ENV.GUEST_TOKEN}` },
-  });
-  
-  check(presign, { 'presign success': (r) => r.status === 200 });
-  
-  // Upload para R2 (simulado)
-  sleep(2);
-  
-  let confirm = http.post('https://staging.albora.app/api/uploads/confirm', {
-    headers: { 'Authorization': `Bearer ${__ENV.GUEST_TOKEN}` },
-  });
-  
-  check(confirm, { 'confirm success': (r) => r.status === 200 });
-  
-  sleep(5);
-}
-```
+O repositório já tem `tools/carga` (`pnpm carga`). Perfis `fumaca|gate|pico|normal|stress|soak` via `CARGA_PERFIL`. **Não** adicionar k6.
 
 **Deliverable:**
-- `tests/performance/` com scripts k6
-- Relatório de load testing
-- Identificação de gargalos
+- Perfis no arnês existente + `docs/infra/PERFORMANCE.md`
+- Relatório JSON do arnês (`CARGA_SAIDA`)
+- Portão MVP: `CARGA_PERFIL=gate` antes do 1º evento
 
 ---
 
@@ -1641,22 +1606,13 @@ Total MVP: $0-120/mês
 
 ## 🚀 PRÓXIMA AÇÃO IMEDIATA
 
-Agora que as **Fases 1-4 (Testes)** estão 100% completas, a próxima ação é:
+Fases 5–12 estão no repositório. O que ainda é **fora do git**:
 
-### ➡️ INICIAR FASE 5: AUDITORIA & ARQUITETURA
-
-**Primeira Tarefa:**
-```
-1. Ler este documento completo
-2. Fazer auditoria da aplicação (stack, dependências, secrets)
-3. Criar docs/infra/AUDITORIA-STACK.md
-4. Identificar arquitetura atual
-5. Comparar alternativas (Opções A, B, C)
-6. Recomendar arquitetura inicial
-7. Apresentar para decisão
-```
-
-**Não implementar infraestrutura antes dessa análise.**
+1. Comprar/apontar `albora.social.br` (DNS Cloudflare)
+2. GitHub Environments `staging` / `production` + secrets `STAGING_` / `PROD_` + `CLOUDFLARE_API_TOKEN`
+3. `STAGING_URL` / `PROD_URL` para smoke
+4. Rodar `CARGA_PERFIL=gate` contra staging com R2 real e anexar o JSON
+5. Primeiro restore mensal (preencher tabela em `RPO-RTO.md`)
 
 ---
 

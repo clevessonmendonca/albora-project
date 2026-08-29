@@ -20,7 +20,9 @@ Este diretório é a fonte da verdade de tudo que não é código: arquitetura, 
 | [`adr/`](./adr/README.md) | Architecture Decision Records — cada decisão vinculante, datada e imutável |
 | [`product/`](./product/) | Os documentos de produto e branding. Origem de tudo |
 | `design/` | Artefatos do trabalho de design: DNA, tokens, sistema, mockups |
-| `runbooks/` | Procedimentos operacionais: dev local, deploy, dia do evento, restore |
+| [`infra/`](./infra/ARCHITECTURE.md) | Operação: ambientes, deploy, backup, custo, performance |
+| [`ONBOARDING.md`](./ONBOARDING.md) | Checklist dos primeiros dias |
+| `runbooks/` | Procedimentos operacionais: incidentes, carga, restore |
 | `specs/` | Contrato por tarefa, escrito antes do código |
 | [`roadmap.md`](./roadmap.md) | Estado operacional: o que falta no código para o 1º evento real |
 
@@ -43,6 +45,8 @@ Este diretório é a fonte da verdade de tudo que não é código: arquitetura, 
 | Contrato de implementação de uma tarefa | `specs/task-N.md` |
 | O que falta no código para o 1º evento | `roadmap.md` |
 | Procedimento operacional | `runbooks/` |
+| Infra, ambientes, custo, DR | `infra/` (começar por `infra/ARCHITECTURE.md`) |
+| Onboarding | `ONBOARDING.md` |
 
 Quando `architecture.md` e um ADR discordam, o ADR vence e `architecture.md` está desatualizado — corrija na mesma MR.
 
