@@ -93,6 +93,9 @@ jobs:
       # Cobertura report-only (sem threshold bloqueante): packages/**/src,
       # apps/web/lib, apps/web/features e apps/web/app/api — ver vitest.config.ts.
       - run: pnpm test:coverage
+      - name: Dependency audit (report-only)
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
       # Orçamento de First Load JS nas rotas do convidado (gate pós-H1, CLAUDE.md).
       # Report-only até calibrarmos os limites com builds estáveis no CI.
       - name: Orçamento de bundle (convidado, report-only)
