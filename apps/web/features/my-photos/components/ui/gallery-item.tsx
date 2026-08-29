@@ -5,8 +5,8 @@ import { MiniaturaMinhas } from "../ui/miniatura-minhas";
 
 type GalleryItemProps = {
   item: ItemDaGaleria;
-  url?: string;
-  urlVideo?: string | null;
+  url?: string | undefined;
+  urlVideo?: string | null | undefined;
   isVideo: boolean;
   rotulo: string;
   removendoId: string | null;

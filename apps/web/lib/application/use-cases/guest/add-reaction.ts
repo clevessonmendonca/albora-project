@@ -12,7 +12,7 @@ import {
   gravarReacao,
 } from "@albora/db";
 import { PACKS, isValidReaction } from "@albora/packs";
-import type { PoolClient } from "pg";
+import type { Pool } from "pg";
 
 export type ReactionType = "curtir" | "amar" | "rir" | "chorar" | "aplaudir";
 
@@ -43,15 +43,9 @@ export type AddReactionResult =
  */
 export async function addReaction(
   input: AddReactionInput,
-  getClient: () => Promise<PoolClient>,
+  pool: Pool,
 ): Promise<AddReactionResult> {
-  const client = await getClient();
-
-  try {
-    const resultado = await withEvent(
-      { query: client.query.bind(client) } as PoolClient,
-      input.eventoId,
-      async (c) => {
+  return withEvent(pool, input.eventoId, async (c) => {
         // Reagir não espera o gate (ADR 0009) — só evento precisa existir/ser visível sob RLS
         const gate = await eventGate(c, input.eventoId);
         if (!gate) {
@@ -78,11 +72,5 @@ export async function addReaction(
           input.tipo,
         );
         return { ok: true as const, reacoes, minha: input.tipo };
-      },
-    );
-
-    return resultado;
-  } finally {
-    client.release();
-  }
+      });
 }

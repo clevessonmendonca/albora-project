@@ -37,7 +37,7 @@ export async function processDriveExport(
   }
 
   const varredura = await sweepDriveExportJobs(pool);
-  return { modo: "sweep", ...varredura };
+  return { modo: "sweep", varredura };
 }
 
 export function parseDriveExportMessage(

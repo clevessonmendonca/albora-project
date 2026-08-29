@@ -3,7 +3,8 @@
  *
  * Carrega recado do casal para o admin.
  */
-import { withEvent, eventGuestbook, type GuestbookEntry } from "@albora/db";
+import { withEvent, eventGuestbook } from "@albora/db";
+import type { Recado as GuestbookEntry } from "@albora/core";
 import type { Pool } from "pg";
 import { signGuestbookAudio } from "@/lib/infrastructure/api/handlers/guestbook-audio-url";
 

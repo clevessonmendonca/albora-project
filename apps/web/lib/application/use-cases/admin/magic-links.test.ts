@@ -8,12 +8,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   issueMagicLink,
   type IssueMagicLinkInput,
-  type IssueMagicLinkOutput,
 } from "./issue-magic-link";
 import {
   consumeMagicLink,
   type ConsumeMagicLinkInput,
-  type ConsumeMagicLinkResult,
 } from "./consume-magic-link";
 import type { Pool } from "pg";
 

@@ -1,6 +1,6 @@
 /**
  * Domain: Album
- * 
+ *
  * Lógica de negócio para montagem e servimento do álbum de fotos.
  */
 
@@ -12,7 +12,6 @@ export {
   type ServedPage,
   type ServedChapter,
   type ServedAlbum,
-  // Deprecated exports
   VALIDADE_GET_SEGUNDOS,
   type SlotServido,
   type FotoServida,
@@ -29,4 +28,11 @@ export {
   chapterHeadingVisible,
 } from "./album-chapters";
 
-export { type UploadDetails, setUploadDetails } from "./details";
+export {
+  MAX_CAPTION,
+  cleanCaption,
+  acceptedPlace,
+  acceptedTakenAt,
+  acceptedTakenAtInTimeZone,
+  acceptedSize,
+} from "./details";

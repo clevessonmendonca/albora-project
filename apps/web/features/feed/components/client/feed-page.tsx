@@ -135,11 +135,11 @@ export function FeedPage({
     if (atual) void compartilhar.compartilhar(atual.id);
   }, [viewer.itensAbertos, viewer.indiceAtual, compartilhar]);
 
-  const handleConfirmarConsentimento = useCallback((nomeNaMoldura: string) => {
+  const handleConfirmarConsentimento = useCallback((nomeNaMoldura: boolean) => {
     if (compartilhar.pedindoConsentimento) {
       void compartilhar.confirmarConsentimento(
         compartilhar.pedindoConsentimento,
-        nomeNaMoldura
+        nomeNaMoldura,
       );
     }
   }, [compartilhar]);
@@ -220,7 +220,9 @@ export function FeedPage({
             <FeedEmptyState
               interacao={estado.interacao}
               filtroMissao={filtro.missionId}
-              filtroMissaoTitulo={filtro.filtroAtivo?.title}
+              {...(filtro.filtroAtivo?.title
+                ? { filtroMissaoTitulo: filtro.filtroAtivo.title }
+                : {})}
               filtroPeriodo={temporal.periodo}
               cameraPath={cameraPath}
             />
@@ -292,11 +294,7 @@ export function FeedPage({
         <Viewer
           itens={estado.itens}
           indice={mirror.indice}
-          hora={
-            estado.itens[mirror.indice]
-              ? new Date(estado.itens[mirror.indice].criadaEm).getHours()
-              : 0
-          }
+          hora={horaDoItem(estado.itens[mirror.indice])}
           urls={estado.urls}
           interacao={estado.interacao}
           cameraPath={cameraPath}
@@ -336,6 +334,10 @@ export function FeedPage({
       />
     </>
   );
+}
+
+function horaDoItem(item: { criadaEm: string } | undefined): number {
+  return item ? new Date(item.criadaEm).getHours() : 0;
 }
 
 function FeedColumn({

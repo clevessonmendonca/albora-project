@@ -3,6 +3,9 @@
  * Este arquivo mantém retrocompatibilidade temporária.
  */
 export {
-  getMediaDimensions,
-  type MediaDimensions,
+  deviceDecodes,
+  forgetSupportedFormats,
+  prepareVideo,
+  videoDisplaySize,
+  type VideoPrep,
 } from "./domain/image/image";

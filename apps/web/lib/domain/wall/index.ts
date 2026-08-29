@@ -1,11 +1,16 @@
 /**
  * Domain: Wall
- * 
+ *
  * Lógica de negócio para o telão.
  */
 
 export {
-  buildWallFeed,
-  type WallPhoto,
-  type WallFeed,
+  WALL_COOKIE,
+  PAIRING_COOKIE,
+  badgeFromRequest,
+  pollTokenFromRequest,
+  wallFromRequest,
+  badgeCookie,
+  pairingCookie,
+  clearCookie,
 } from "./wall";

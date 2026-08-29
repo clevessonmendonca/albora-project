@@ -169,8 +169,8 @@ describe("initiateDriveConnection", () => {
 
 describe("completeDriveConnection", () => {
   let mockPool: Pool;
-  let mockClient: any;
-  let mockVault: any;
+  let mockClient: Record<string, ReturnType<typeof vi.fn>>;
+  let mockVault: object;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -297,8 +297,8 @@ describe("completeDriveConnection", () => {
 
 describe("disconnectDrive", () => {
   let mockPool: Pool;
-  let mockClient: any;
-  let mockVault: any;
+  let mockClient: Record<string, ReturnType<typeof vi.fn>>;
+  let mockVault: object;
 
   beforeEach(() => {
     vi.clearAllMocks();

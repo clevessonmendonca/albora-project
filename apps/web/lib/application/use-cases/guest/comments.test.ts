@@ -8,17 +8,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   listComments,
   type ListCommentsInput,
-  type ListCommentsOutput,
 } from "./list-comments";
 import {
   publishCommentUseCase,
   type PublishCommentInput,
-  type PublishCommentResult,
 } from "./publish-comment";
 import {
   deleteComment,
   type DeleteCommentInput,
-  type DeleteCommentResult,
 } from "./delete-comment";
 import type { PoolClient } from "pg";
 

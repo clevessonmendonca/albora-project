@@ -1,6 +1,6 @@
 import { PREFIXO_MAGIC_BYTES } from "@albora/core";
 import { AwsClient } from "aws4fetch";
-import { config } from "./config";
+import { config } from "@/lib/config";
 
 /** Servidor não trafega foto: emite URL presignada e lê no máximo `PREFIXO_MAGIC_BYTES` no confirm. Classificador lê só a thumb (spec 011), fora do PUT do convidado. */
 

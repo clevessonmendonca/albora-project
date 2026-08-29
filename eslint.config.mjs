@@ -19,6 +19,7 @@ export default tseslint.config(
       "apps/mobile/babel.config.js",
       "apps/mobile/tailwind.config.js",
       "tools/jobs/.tmp/**",
+      "**/*.backup.tsx",
     ],
   },
   js.configs.recommended,

@@ -35,14 +35,14 @@ export async function POST(req: Request) {
 
   const validado = createEventSchema.safeParse(parsed.data);
   if (!validado.success) {
-    const firstError = validado.error.errors[0];
+    const firstError = validado.error.issues[0];
     return errorResponse(
       422,
       "validation_error",
       firstError?.message ?? "Dados inválidos",
       {
-        campos: validado.error.errors.map((e) => e.path.join(".")),
-        erros: validado.error.errors,
+        campos: validado.error.issues.map((e) => e.path.join(".")),
+        erros: validado.error.issues,
       },
     );
   }

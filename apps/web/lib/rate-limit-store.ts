@@ -3,6 +3,7 @@
  * Este arquivo mantém retrocompatibilidade temporária.
  */
 export {
-  RateLimitStore,
-  type RateLimitConfig,
+  consume,
+  reset,
+  type RateLimitResult,
 } from "./infrastructure/background/rate-limit-store";

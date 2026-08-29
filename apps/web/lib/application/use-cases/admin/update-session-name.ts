@@ -11,7 +11,7 @@ export type UpdateSessionNameInput = {
   eventId: string;
   sessaoId: string;
   acao: "ocultar" | "renomear";
-  nome?: string;
+  nome?: string | undefined;
 };
 
 export type UpdateSessionNameResult =
