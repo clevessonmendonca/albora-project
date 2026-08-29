@@ -1,0 +1,79 @@
+# Dump semanal do banco de staging — artefato no GitHub, retenção 30 dias.
+# Produção: disparo manual com Environment `production` (approval).
+# A connection string nunca é impressa. Restore: docs/infra/BACKUP-RESTORE.md.
+
+name: Backup do banco
+
+on:
+  schedule:
+    - cron: "0 3 * * 0"
+  workflow_dispatch:
+    inputs:
+      alvo:
+        description: "staging (padrão) ou production (exige approval do Environment)"
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+
+concurrency:
+  group: backup-db-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  backup-staging:
+    if: ${{ github.event_name == 'schedule' || inputs.alvo == 'staging' }}
+    name: Dump staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cliente Postgres
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Conferir secret
+        run: |
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "::error::STAGING_DATABASE_URL ausente"
+            exit 1
+          fi
+      - name: Dump
+        run: bash scripts/backup/database-export.sh artifacts/backups/albora-staging.dump
+      - name: Verificar dump
+        run: bash scripts/backup/verify-dump.sh artifacts/backups/albora-staging.dump
+      - uses: actions/upload-artifact@v4
+        with:
+          name: db-staging-${{ github.run_id }}
+          path: artifacts/backups/albora-staging.dump
+          retention-days: 30
+
+  backup-production:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.alvo == 'production' }}
+    name: Dump production
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    env:
+      DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cliente Postgres
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Conferir secret
+        run: |
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "::error::PROD_DATABASE_URL ausente"
+            exit 1
+          fi
+      - name: Dump
+        run: bash scripts/backup/database-export.sh artifacts/backups/albora-production.dump
+      - name: Verificar dump
+        run: bash scripts/backup/verify-dump.sh artifacts/backups/albora-production.dump
+      - uses: actions/upload-artifact@v4
+        with:
+          name: db-production-${{ github.run_id }}
+          path: artifacts/backups/albora-production.dump
+          retention-days: 30

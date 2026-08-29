@@ -48,6 +48,9 @@ apps/mobile/store/google-service-account.json
 playwright-report/
 test-results/
 
+# Dumps locais de backup (scripts/backup) — nunca commitar
+artifacts/
+
 # Vitest coverage (artefato de CI, não fonte)
 coverage/
 

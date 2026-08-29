@@ -139,6 +139,12 @@ Qualquer acesso direto a production deve ser registrado no canal de operações.
 
 ---
 
+## PITR
+
+O RPO de 24 h (`docs/infra/RPO-RTO.md`) assume PITR ligado na branch `main`. Confira a janela no console do plano atual (free costuma ser ~24 h). Dump semanal: `docs/infra/BACKUP-RESTORE.md`. `pg_dump` usa o endpoint **direto**, não o pooler.
+
+---
+
 ## Referências
 
 - Neon Branching docs: https://neon.tech/docs/guides/branching

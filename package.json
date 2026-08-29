@@ -22,6 +22,8 @@
     "bundle:budget:report": "node tools/bundle/orcamento-convidado.mjs --report-only",
     "carga": "node tools/carga/executar.mjs",
     "carga:limpar": "node tools/carga/limpar.mjs",
+    "db:backup": "bash scripts/backup/database-export.sh",
+    "db:restore": "bash scripts/backup/database-restore.sh",
     "drive-export": "node tools/jobs/drive-export.mjs",
     "db:up": "docker compose up -d --wait postgres",
     "db:down": "docker compose down -v",
