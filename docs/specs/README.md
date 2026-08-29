@@ -82,6 +82,9 @@ Origem: [`../product/plano-implementacao-produto.md`](../product/plano-implement
 | [023](./task-023-copy-moderacao-landing.md) | Copy moderação landing | Galeria pública + telão protegido |
 | [024](./task-024-landing-convidado-veterano.md) | Landing convidado veterano | CTA maior intenção |
 | [025](./task-025-checklist-pre-evento.md) | Checklist pré-evento admin | Runbook espelhado no painel |
+| [026](./task-026-wizard-expected-guests.md) | Wizard convidados presentes | Denominador H1 explícito |
+
+Status implementação P1–P6: **entregue** na branch `cursor/product-discovery-plan-8a09` (PR #18).
 
 Ops (sem spec de código): [`../runbooks/dia-do-evento.md`](../runbooks/dia-do-evento.md) · experimentos [`../product/experimentos-validacao.md`](../product/experimentos-validacao.md).
 

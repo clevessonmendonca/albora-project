@@ -38,14 +38,14 @@ Prioridade absoluta. Nada em NEXT compete com isto.
 
 | ID | Ajuste | Problema | Escopo | Spec sugerida |
 |---|---|---|---|---|
-| **P1** | **Estado do gate na capa** — copy explícita ("Interação abre após a cerimônia" / "Feed liberado") | Convidado abre feed antes do gate e frustra | UI convidado `/cover` | `task-021-gate-capa-copy.md` |
-| **P2** | **Fila falha visível** — após N retries, CTA "Tentar de novo" sempre visível em `/my-photos` e fila global | Foto some em silêncio (reviews Dots) | `@albora/core` fila + UI | `task-022-fila-falha-visivel.md` |
-| **P3** | **Corrigir copy moderação na landing** — galeria publica + telão protegido | Contradiz produto real | `landing/` | `task-023-copy-moderacao-landing.md` |
-| **P4** | **Seção landing convidado-veterano** — "Esteve num casamento Albora?" | Maior intenção, zero copy | `landing/` | `task-024-landing-convidado-veterano.md` |
-| **P5** | **Wizard: `expected_guests` obrigatório com hint** — "Quantos convidados presentes? Usamos para participação" | Denominador H1 errado | Admin wizard | Verificar se já ok; senão spec |
-| **P6** | **Checklist pré-evento no admin** — peças impressas, telão pareado, gate, menores, microfone | Anfitrião esquece passo | Admin `/admin/e/[id]` | `task-025-checklist-pre-evento.md` |
+| **P1** | **Estado do gate na capa** — copy explícita ("Interação abre após a cerimônia" / "Feed liberado") | Convidado abre feed antes do gate e frustra | UI convidado `/cover` | `task-021-gate-capa-copy.md` ✅ |
+| **P2** | **Fila falha visível** — após N retries, CTA "Tentar de novo" sempre visível em `/my-photos` e fila global | Foto some em silêncio (reviews Dots) | `@albora/core` fila + UI | `task-022-fila-falha-visivel.md` ✅ |
+| **P3** | **Corrigir copy moderação na landing** — galeria publica + telão protegido | Contradiz produto real | `landing/` | `task-023-copy-moderacao-landing.md` ✅ |
+| **P4** | **Seção landing convidado-veterano** — "Esteve num casamento Albora?" | Maior intenção, zero copy | `landing/` | `task-024-landing-convidado-veterano.md` ✅ |
+| **P5** | **Wizard: `expected_guests` obrigatório com hint** — "Quantos convidados presentes? Usamos para participação" | Denominador H1 errado | Admin wizard | `task-026-wizard-expected-guests.md` ✅ |
+| **P6** | **Checklist pré-evento no admin** — peças impressas, telão pareado, gate, menores, microfone | Anfitrião esquece passo | Admin `/admin/e/[id]` | `task-025-checklist-pre-evento.md` ✅ |
 
-**Regra:** P1–P3 antes do casamento #1. P4–P6 desejável, não bloqueante.
+**Regra:** P1–P3 antes do casamento #1. P4–P6 desejável, não bloqueante — **todos entregues em código**.
 
 ---
 
@@ -110,6 +110,7 @@ Novas specs a criar (quando eng pegar):
 | `task-023-copy-moderacao-landing.md` | P3 |
 | `task-024-landing-convidado-veterano.md` | P4 |
 | `task-025-checklist-pre-evento.md` | P6 |
+| `task-026-wizard-expected-guests.md` | P5 |
 
 Specs existentes que **permanecem** na fila eng: 012 (carga), 017 (app), drive-export, 015 (share polish).
 

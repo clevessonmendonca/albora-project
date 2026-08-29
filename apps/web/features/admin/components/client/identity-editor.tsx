@@ -233,10 +233,12 @@ export function IdentityEditor({
         </div>
 
         <div className="mb-5">
-          <FieldLabel>Convidados esperados</FieldLabel>
+          <FieldLabel>Quantos convidados presentes?</FieldLabel>
           <input
             type="number"
             min={1}
+            max={999}
+            required
             value={expectedGuests}
             onChange={(e) => {
               setExpectedGuests(e.target.value);
@@ -244,6 +246,9 @@ export function IdentityEditor({
             }}
             className="w-full max-w-xs rounded-token border border-linha bg-bg px-3.5 py-3 font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
           />
+          <p className="mb-0 mt-1.5 text-xs text-ink-3">
+            Estimativa de quem vai estar na festa. Usamos para medir a participação.
+          </p>
           {!guestsValid && expectedGuests !== "" && (
             <p className="mb-0 mt-2 text-sm text-critico">
               Informe um número válido de convidados esperados.
