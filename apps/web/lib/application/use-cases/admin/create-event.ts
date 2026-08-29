@@ -27,11 +27,11 @@ export type CreateEventInput = {
   timezone: string;
   expectedGuests: number;
   identityTokens: Record<string, unknown>;
-  missoes?: string[];
-  telaoModelos?: string[];
+  missoes?: string[] | undefined;
+  telaoModelos?: string[] | undefined;
   title: string | null;
-  vendorId?: string;
-  coupleEmail?: string;
+  vendorId?: string | undefined;
+  coupleEmail?: string | undefined;
   requestOrigin: string;
 };
 
@@ -45,7 +45,7 @@ export type CreateEventResult =
       ok: false;
       code: string;
       message: string;
-      details?: Record<string, unknown>;
+      details?: Record<string, unknown> | undefined;
     };
 
 export async function createEvent(

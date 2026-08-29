@@ -5,7 +5,7 @@
  */
 
 import { carregarEventoPublico, withEvent } from "@albora/db";
-import type { PoolClient } from "pg";
+import type { Pool } from "pg";
 
 export type GuestEventOutput = {
   eventoId: string;
@@ -31,30 +31,22 @@ export type GetGuestEventInput = {
  */
 export async function getGuestEvent(
   input: GetGuestEventInput,
-  getClient: () => Promise<PoolClient>,
+  pool: Pool,
 ): Promise<GuestEventOutput> {
-  const client = await getClient();
+  const evento = await withEvent(pool, input.eventoId, (c) =>
+    carregarEventoPublico(c, input.eventoId),
+  );
 
-  try {
-    const evento = await withEvent(
-      { query: client.query.bind(client) } as PoolClient,
-      input.eventoId,
-      (c) => carregarEventoPublico(c, input.eventoId),
-    );
-
-    if (!evento) {
-      return null;
-    }
-
-    return {
-      eventoId: evento.eventoId,
-      packId: evento.packId,
-      identityTokens: evento.identityTokens,
-      vendorBrandTokens: evento.vendorBrandTokens,
-      filtroRecomendado: evento.filtroRecomendado,
-      fuso: evento.fuso,
-    };
-  } finally {
-    client.release();
+  if (!evento) {
+    return null;
   }
+
+  return {
+    eventoId: evento.eventoId,
+    packId: evento.packId,
+    identityTokens: evento.identityTokens,
+    vendorBrandTokens: evento.vendorBrandTokens,
+    filtroRecomendado: evento.filtroRecomendado,
+    fuso: evento.fuso,
+  };
 }

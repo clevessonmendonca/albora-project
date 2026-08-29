@@ -117,10 +117,11 @@ export function WebVitalsCollector({
   sessionId?: string;
 }) {
   useEffect(() => {
-    initWebVitals((metric) => sendWebVital(metric, { eventId, sessionId }), {
-      eventId,
-      sessionId,
-    });
+    const opts = {
+      ...(eventId !== undefined ? { eventId } : {}),
+      ...(sessionId !== undefined ? { sessionId } : {}),
+    };
+    initWebVitals((metric) => sendWebVital(metric, opts), opts);
   }, [eventId, sessionId]);
 
   return null;

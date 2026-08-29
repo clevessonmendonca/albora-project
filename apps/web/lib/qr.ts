@@ -8,4 +8,8 @@ export {
   eventPath,
   eventEntryPath,
   eventEntryUrl,
+  whatsappInviteUrl,
+  slugValido,
+  extrairSlug,
+  caminhoDoEvento,
 } from "./utils/qr";

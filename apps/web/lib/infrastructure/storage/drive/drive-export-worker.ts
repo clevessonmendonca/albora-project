@@ -10,7 +10,7 @@ import {
 import type { Pool } from "pg";
 import type { DriveClient } from "./drive-client";
 import { avancarExportDrive, driveFolderUrl, ITENS_POR_TICK_DRIVE, type LeitorDeObjeto } from "./drive-export";
-import { streamObject } from "./r2";
+import { streamObject } from "@/lib/r2";
 
 export type DriveExportWorkerDeps = {
   driveClient: DriveClient;

@@ -21,6 +21,3 @@ export * from "./middleware/adapt-event-id";
 export * from "./config-guard";
 export * from "./drive-config-guard";
 export * from "./constants";
-
-// Handlers are exported from their respective modules
-export * from "./handlers";

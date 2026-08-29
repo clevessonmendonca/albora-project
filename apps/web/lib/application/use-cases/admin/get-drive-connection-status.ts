@@ -34,7 +34,7 @@ export async function getDriveConnectionStatus(
   return {
     conexao: {
       status: conexao.status,
-      email: conexao.driveAccountEmail,
+      email: conexao.driveAccountEmail ?? "",
       conectadoEm: conexao.connectedAt.toISOString(),
     },
     podeExportar,

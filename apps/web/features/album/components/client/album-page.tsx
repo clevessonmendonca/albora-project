@@ -5,6 +5,8 @@ import { GuestHeader, GuestShell, EmptyState, GuestMain, cn } from "@albora/ui-w
 import { useAlbum } from "../../hooks/use-album";
 import { useAlbumFilter } from "../../hooks/use-album-filter";
 import type { AlbumMission } from "../../hooks/use-album-filter";
+
+export type { AlbumMission };
 import { useAlbumViewer } from "../../hooks/use-album-viewer";
 import { chaptersFromAlbum, firstCoverUrl, flattenChapterPhotos } from "../../lib/bands";
 import { AlbumTimeline, AlbumTimelineLoading } from "./album-timeline";

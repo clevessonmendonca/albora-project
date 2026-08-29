@@ -10,7 +10,6 @@ import {
   normalizeGuestbookAudioMime,
   VALIDADE_PRESIGN_SEGUNDOS,
   validateGuestbookAudioDeclaration,
-  type GuestbookAudioMime,
 } from "@albora/core";
 import { assinarPut } from "@/lib/r2";
 
@@ -33,7 +32,7 @@ export type PresignGuestbookAudioResult =
       ok: false;
       code: string;
       message: string;
-      details?: Record<string, unknown>;
+      details?: Record<string, unknown> | undefined;
     };
 
 export async function presignGuestbookAudioUpload(
@@ -91,7 +90,7 @@ export async function presignGuestbookAudioUpload(
   }
 
   const chave = deriveGuestbookAudioKey(input.eventId, randomUUID());
-  const put = await assinarPut(chave, mimeNormalizado as GuestbookAudioMime, VALIDADE_PRESIGN_SEGUNDOS);
+  const put = await assinarPut(chave, mimeNormalizado, VALIDADE_PRESIGN_SEGUNDOS);
 
   console.log("admin.recado_audio.presign", {
     accountId: input.accountId,

@@ -10,7 +10,7 @@ import {
   reacaoDaSessao,
   apagarReacao,
 } from "@albora/db";
-import type { PoolClient } from "pg";
+import type { Pool } from "pg";
 
 export type RemoveReactionInput = {
   eventoId: string;
@@ -36,15 +36,9 @@ export type RemoveReactionResult =
  */
 export async function removeReaction(
   input: RemoveReactionInput,
-  getClient: () => Promise<PoolClient>,
+  pool: Pool,
 ): Promise<RemoveReactionResult> {
-  const client = await getClient();
-
-  try {
-    const resultado = await withEvent(
-      { query: client.query.bind(client) } as PoolClient,
-      input.eventoId,
-      async (c) => {
+  return withEvent(pool, input.eventoId, async (c) => {
         const gate = await eventGate(c, input.eventoId);
         if (!gate) {
           return { ok: false as const, code: "reacao.evento_ausente" };
@@ -70,11 +64,5 @@ export async function removeReaction(
 
         const reacoes = await apagarReacao(c, input.uploadId, input.sessaoId);
         return { ok: true as const, reacoes, minha: null };
-      },
-    );
-
-    return resultado;
-  } finally {
-    client.release();
-  }
+      });
 }

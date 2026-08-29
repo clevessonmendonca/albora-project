@@ -3,6 +3,7 @@
  * Este arquivo mantém retrocompatibilidade temporária.
  */
 export {
-  guestTransport,
+  webTransport,
+  ApiError,
   type Transport,
 } from "./utils/transport";

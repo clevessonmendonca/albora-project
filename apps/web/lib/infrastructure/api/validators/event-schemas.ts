@@ -42,7 +42,7 @@ export const createEventSchema = z.object({
     .optional()
     .transform((val) => val ?? 150),
   identityTokens: z
-    .record(z.unknown())
+    .record(z.string(), z.unknown())
     .optional()
     .transform((val) => val ?? {}),
   missoes: z.array(z.string()).optional(),
@@ -59,19 +59,13 @@ export const createEventSchema = z.object({
   coupleEmail: z
     .string()
     .optional()
-    .refine(
-      (val, ctx) => {
-        const parent = ctx.path[0];
-        const hasVendor = parent && typeof parent === "object" && "vendorId" in parent;
-        if (hasVendor && !val) return false;
-        if (val && !EMAIL.test(val.trim())) return false;
-        return true;
-      },
-      {
-        message: "E-mail do casal obrigatório quando há fornecedor",
-      },
-    )
+    .refine((val) => !val || EMAIL.test(val.trim()), {
+      message: "E-mail do casal obrigatório quando há fornecedor",
+    })
     .transform((val) => (val ? val.trim() : undefined)),
+}).refine((data) => !data.vendorId || !!data.coupleEmail, {
+  message: "E-mail do casal obrigatório quando há fornecedor",
+  path: ["coupleEmail"],
 });
 
 export type CreateEventBody = z.infer<typeof createEventSchema>;

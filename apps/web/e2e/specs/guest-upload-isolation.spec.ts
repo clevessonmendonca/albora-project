@@ -101,9 +101,6 @@ test.describe("Isolamento RLS entre Eventos", () => {
       await page.goto(`/${event1.slug}`);
       await page.waitForLoadState("networkidle");
 
-      // Salva cookies/storage do evento 1
-      const event1Cookies = await page.context().cookies();
-
       // Tenta acessar feed do evento 2
       await page.goto(`/${event2.slug}/feed`);
       await page.waitForLoadState("networkidle");

@@ -1,4 +1,3 @@
-import React from "react";
 import { renderHook, act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { useFeedViewer } from "./use-feed-viewer";

@@ -82,7 +82,7 @@ export const PhotoInteraction = memo(function PhotoInteraction({
       onReacoes?.(resultado);
       announce(curtindo ? "Curtiu" : "Removeu curtida");
     }
-  }, [reacao.minha, reacao.alternar, onReacoes]);
+  }, [reacao, onReacoes]);
 
   const handleCompartilhar = useCallback(async () => {
     if (!onCompartilhar) return;
@@ -110,11 +110,10 @@ export const PhotoInteraction = memo(function PhotoInteraction({
             onClick={() => void alternarReacao()}
             className={CLASSE_BOTAO_ICONE}
           >
-            <Star 
-              size={24} 
+            <Star
+              size={24}
               filled={reacao.minha !== null}
-              animating={animandoStar}
-              className={reacao.minha !== null ? "text-acento" : "text-ink-2"}
+              className={`${reacao.minha !== null ? "text-acento" : "text-ink-2"}${animandoStar ? " scale-110 transition-transform duration-[var(--tempo-rapido)]" : ""}`}
             />
           </button>
           {reacao.reacoes > 0 ? (

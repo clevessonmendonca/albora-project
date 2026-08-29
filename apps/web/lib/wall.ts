@@ -3,7 +3,12 @@
  * Este arquivo mantém retrocompatibilidade temporária.
  */
 export {
-  buildWallFeed,
-  type WallPhoto,
-  type WallFeed,
+  WALL_COOKIE,
+  PAIRING_COOKIE,
+  badgeFromRequest,
+  pollTokenFromRequest,
+  wallFromRequest,
+  badgeCookie,
+  pairingCookie,
+  clearCookie,
 } from "./domain/wall/wall";

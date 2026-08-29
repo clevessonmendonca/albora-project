@@ -41,7 +41,7 @@ const {
   mockCleanCaption: vi.fn((caption?: string) => caption?.trim() || null),
   mockAcceptedPlace: vi.fn((packId: string | null, place?: string) => place?.trim() || null),
   mockAcceptedTakenAt: vi.fn((timestamp?: string | number) => timestamp ? new Date(timestamp) : null),
-  mockAcceptedTakenAtInTimeZone: vi.fn((timestamp: string | number | undefined, tz: string) => timestamp ? new Date(timestamp) : null),
+  mockAcceptedTakenAtInTimeZone: vi.fn((timestamp: string | number | undefined, _tz: string) => timestamp ? new Date(timestamp) : null),
   mockAcceptedSize: vi.fn((width?: number, height?: number) => width && height ? { width, height } : null),
 }));
 

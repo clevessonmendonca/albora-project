@@ -9,7 +9,7 @@ import type { Pool } from "pg";
 export type GetLatestExportJobInput = {
   eventId: string;
   accountId: string;
-  modo?: "full" | "curated";
+  modo?: "full" | "curated" | undefined;
 };
 
 export type GetLatestExportJobOutput = {

@@ -19,10 +19,10 @@ export type PackMissionsInput = {
 };
 
 export type CustomMissionInput = {
-  id?: string;
+  id?: string | undefined;
   titulo: string;
   posicao: number;
-  emoji?: string | null;
+  emoji?: string | null | undefined;
 };
 
 export type CustomMissionsInput = {
@@ -66,8 +66,15 @@ export async function updateCustomMissions(
   input: CustomMissionsInput,
   pool: Pool,
 ): Promise<UpdateChallengesOutput> {
+  const itens = input.customMissions.map((m) => ({
+    titulo: m.titulo,
+    posicao: m.posicao,
+    ...(m.id !== undefined ? { id: m.id } : {}),
+    ...(m.emoji !== undefined ? { emoji: m.emoji } : {}),
+  }));
+
   await withEvent(pool, input.eventId, (c) =>
-    substituirMissoesCustom(c, input.eventId, input.customMissions),
+    substituirMissoesCustom(c, input.eventId, itens),
   );
 
   const challenges = await withEvent(pool, input.eventId, (c) =>

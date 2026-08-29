@@ -83,7 +83,7 @@ export async function POST(req: Request) {
         story: validated.story,
         musicTrackId: validated.musicTrackId,
       },
-      () => getPool().connect(),
+      getPool(),
     );
 
     if (!resultado.ok) {
