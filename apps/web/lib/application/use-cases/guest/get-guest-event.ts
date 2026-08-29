@@ -1,11 +1,6 @@
-/**
- * Use Case: Get Guest Event
- * 
- * Carrega dados públicos do evento para o app do convidado.
- */
-
 import { carregarEventoPublico, withEvent } from "@albora/db";
 import type { PoolClient } from "pg";
+import { MemoryTtlCache } from "@/lib/infrastructure/cache";
 
 export type GuestEventOutput = {
   eventoId: string;
@@ -20,19 +15,21 @@ export type GetGuestEventInput = {
   eventoId: string;
 };
 
-/**
- * Carrega os dados públicos do evento (pack, identidade, brand_tokens).
- * 
- * Usado pelo app Expo para configurar tema e identidade visual.
- * 
- * @param input - eventoId
- * @param getClient - Factory de conexão
- * @returns Dados públicos do evento ou null se não encontrado
- */
+export const GUEST_EVENT_CACHE_TTL_MS = 60_000;
+
+const guestEventCache = new MemoryTtlCache<NonNullable<GuestEventOutput>>(256);
+
+export function resetGuestEventCache(): void {
+  guestEventCache.clear();
+}
+
 export async function getGuestEvent(
   input: GetGuestEventInput,
   getClient: () => Promise<PoolClient>,
 ): Promise<GuestEventOutput> {
+  const cached = guestEventCache.get(input.eventoId);
+  if (cached) return structuredClone(cached);
+
   const client = await getClient();
 
   try {
@@ -46,7 +43,7 @@ export async function getGuestEvent(
       return null;
     }
 
-    return {
+    const output: NonNullable<GuestEventOutput> = {
       eventoId: evento.eventoId,
       packId: evento.packId,
       identityTokens: evento.identityTokens,
@@ -54,6 +51,9 @@ export async function getGuestEvent(
       filtroRecomendado: evento.filtroRecomendado,
       fuso: evento.fuso,
     };
+
+    guestEventCache.set(input.eventoId, structuredClone(output), GUEST_EVENT_CACHE_TTL_MS);
+    return output;
   } finally {
     client.release();
   }

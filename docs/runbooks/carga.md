@@ -45,6 +45,7 @@ Falha fechado de propósito. Um `ALVO` digitado errado não roda contra o lugar 
 
 | Variável | Padrão | O que é |
 |---|---|---|
+| `CARGA_PERFIL` | — | `fumaca` \| `gate` \| `pico` \| `normal` \| `stress` \| `soak` — defaults; `CARGA_*` explícito ganha |
 | `CARGA_TOTAL` | 150 | Uploads no total |
 | `CARGA_DURACAO_MIN` | 20 | Janela |
 | `CARGA_CONVIDADOS` | 50 | Sessões distintas |
@@ -52,6 +53,14 @@ Falha fechado de propósito. Um `ALVO` digitado errado não roda contra o lugar 
 | `CARGA_FRACAO_PICO` | 0.7 | Fração dos uploads que cai dentro de rajada |
 | `CARGA_SESSOES_POR_MINUTO` | 9 | Teto de criação de sessão |
 | `CARGA_SAIDA` | — | Caminho do JSON de saída |
+
+```bash
+CARGA_PERFIL=fumaca pnpm carga
+CARGA_PERFIL=gate pnpm carga
+CARGA_PERFIL=soak pnpm carga   # 4 h; só local
+```
+
+Tabela e o que cada perfil prova: `docs/infra/PERFORMANCE.md`. Não há k6 neste repositório.
 
 **Por que rajada e não taxa constante.** 150 uploads em 20 minutos não é um a cada 8 segundos: é ninguém por três minutos e quarenta de uma vez quando o bolo é cortado. Taxa constante mede um sistema que não existe.
 

@@ -8,6 +8,39 @@
 
 const LOCAIS = new Set(["localhost", "127.0.0.1", "::1", "0.0.0.0"]);
 
+/**
+ * Perfis nomeados do arnês existente — não é k6. Cada um só muda os
+ * defaults de rajada; variáveis `CARGA_*` explícitas continuam ganhando.
+ *
+ * fumaca  — prova que o arnês sobe (CI semanal)
+ * gate    — portão MVP: 150 uploads / 20 min
+ * pico    — mesmo volume, mais sessões (salão cheio)
+ * normal  — janela mais longa, rajada mais diluída
+ * stress  — acima do portão, para achar o teto
+ * soak    — horas, carga moderada; só local/manual (não no CI)
+ */
+export const PERFIS_DE_CARGA = {
+  fumaca: { total: 6, duracaoMin: 1, convidados: 3, picos: 1 },
+  gate: { total: 150, duracaoMin: 20, convidados: 50 },
+  pico: { total: 150, duracaoMin: 20, convidados: 150 },
+  normal: { total: 300, duracaoMin: 30, convidados: 50, picos: 2, fracaoEmPico: 0.4 },
+  stress: { total: 400, duracaoMin: 20, convidados: 200, picos: 6, fracaoEmPico: 0.85 },
+  soak: { total: 200, duracaoMin: 240, convidados: 30, picos: 8, fracaoEmPico: 0.3 },
+};
+
+/** @param {Record<string, string|undefined>} env */
+function perfilOuVazio(env) {
+  const nome = env.CARGA_PERFIL;
+  if (!nome) return {};
+  const perfil = PERFIS_DE_CARGA[nome];
+  if (!perfil) {
+    throw new ErroDeConfig(
+      `CARGA_PERFIL desconhecido: ${nome}. Use: ${Object.keys(PERFIS_DE_CARGA).join(", ")}`,
+    );
+  }
+  return perfil;
+}
+
 /** @param {string} alvo */
 export function ehLocal(alvo) {
   // `URL` devolve IPv6 entre colchetes; sem tirá-los, `[::1]` não casaria e o
@@ -76,18 +109,21 @@ export function lerConfig(env) {
     throw new ErroDeConfig(`CARGA_EVENTO_ID não é uuid: ${eventoId}`);
   }
 
+  const perfil = perfilOuVazio(env);
+
   const config = {
     alvo,
     local,
     evento,
     eventoId: eventoId ?? null,
+    perfil: env.CARGA_PERFIL ?? null,
 
-    total: numero(env, "CARGA_TOTAL", 150),
-    duracaoMs: numero(env, "CARGA_DURACAO_MIN", 20) * 60_000,
-    convidados: numero(env, "CARGA_CONVIDADOS", 50),
+    total: numero(env, "CARGA_TOTAL", perfil.total ?? 150),
+    duracaoMs: numero(env, "CARGA_DURACAO_MIN", perfil.duracaoMin ?? 20) * 60_000,
+    convidados: numero(env, "CARGA_CONVIDADOS", perfil.convidados ?? 50),
 
-    picos: numero(env, "CARGA_PICOS", 4),
-    fracaoEmPico: numero(env, "CARGA_FRACAO_PICO", 0.7),
+    picos: numero(env, "CARGA_PICOS", perfil.picos ?? 4),
+    fracaoEmPico: numero(env, "CARGA_FRACAO_PICO", perfil.fracaoEmPico ?? 0.7),
     duracaoPicoMs: numero(env, "CARGA_PICO_SEG", 45) * 1000,
     semente: env.CARGA_SEMENTE ?? "sabado-22h",
 

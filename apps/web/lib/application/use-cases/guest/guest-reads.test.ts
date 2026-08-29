@@ -12,6 +12,7 @@ import {
 } from "./list-feed";
 import {
   getGuestEvent,
+  resetGuestEventCache,
   type GetGuestEventInput,
   type GuestEventOutput,
 } from "./get-guest-event";
@@ -93,6 +94,7 @@ describe("Guest Read Use Cases", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    resetGuestEventCache();
     mockClient = createMockClient();
     getClient = vi.fn().mockResolvedValue(mockClient);
 
@@ -282,6 +284,41 @@ describe("Guest Read Use Cases", () => {
       await getGuestEvent(input, getClient);
 
       expect(mockClient.release).toHaveBeenCalled();
+    });
+
+    it("reusa o resultado por 60s sem nova conexão", async () => {
+      vi.useFakeTimers();
+      const eventoPublico = {
+        eventoId: "evt-123",
+        packId: "wedding",
+        identityTokens: { fontFamily: "Playfair" },
+        vendorBrandTokens: null,
+        filtroRecomendado: null,
+        fuso: "UTC",
+      };
+      mockCarregarEventoPublico.mockResolvedValue(eventoPublico);
+
+      const input = createGetEventInput();
+      await getGuestEvent(input, getClient);
+      await getGuestEvent(input, getClient);
+
+      expect(getClient).toHaveBeenCalledTimes(1);
+      expect(mockCarregarEventoPublico).toHaveBeenCalledTimes(1);
+
+      vi.advanceTimersByTime(60_000);
+      await getGuestEvent(input, getClient);
+      expect(getClient).toHaveBeenCalledTimes(2);
+      vi.useRealTimers();
+    });
+
+    it("nao cacheia evento ausente", async () => {
+      mockCarregarEventoPublico.mockResolvedValue(null);
+
+      const input = createGetEventInput();
+      await getGuestEvent(input, getClient);
+      await getGuestEvent(input, getClient);
+
+      expect(getClient).toHaveBeenCalledTimes(2);
     });
   });
 

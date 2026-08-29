@@ -21,13 +21,16 @@ on:
   workflow_dispatch:
     inputs:
       perfil:
-        description: "gate = 150 uploads / 20 min (portão MVP); fumaca = 6 / 1 min"
+        description: "fumaca = 6/1min; gate = 150/20min (portão MVP); pico/normal/stress = perfis locais documentados"
         required: true
         default: fumaca
         type: choice
         options:
           - fumaca
           - gate
+          - pico
+          - normal
+          - stress
   schedule:
     # Domingo 06:00 UTC — só fumaça; o portão completo leva ~25 min e é manual.
     - cron: "0 6 * * 0"
@@ -40,7 +43,7 @@ jobs:
   carga:
     name: Carga — pipeline de upload
     runs-on: ubuntu-latest
-    timeout-minutes: ${{ inputs.perfil == 'gate' && 45 || 15 }}
+    timeout-minutes: ${{ inputs.perfil == 'stress' && 50 || inputs.perfil == 'normal' && 50 || inputs.perfil == 'pico' && 45 || inputs.perfil == 'gate' && 45 || 15 }}
     services:
       postgres:
         image: postgres:18-alpine
@@ -112,27 +115,7 @@ jobs:
           exit 1
 
       - name: Rodar arnês de carga
-        run: |
-          case "$CARGA_PERFIL" in
-            gate)
-              echo "Perfil gate — 150 uploads / 20 min (portão MVP, CLAUDE.md)"
-              export CARGA_TOTAL=150
-              export CARGA_DURACAO_MIN=20
-              export CARGA_CONVIDADOS=50
-              ;;
-            fumaca)
-              echo "Perfil fumaça — 6 uploads / 1 min (validação do arnês no CI)"
-              export CARGA_TOTAL=6
-              export CARGA_DURACAO_MIN=1
-              export CARGA_CONVIDADOS=3
-              export CARGA_PICOS=1
-              ;;
-            *)
-              echo "::error::Perfil desconhecido: $CARGA_PERFIL"
-              exit 1
-              ;;
-          esac
-          pnpm carga
+        run: pnpm carga
 
       - name: Publicar relatório JSON
         uses: actions/upload-artifact@v4

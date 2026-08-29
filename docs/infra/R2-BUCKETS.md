@@ -181,5 +181,6 @@ bash scripts/ci/smoke-test.sh https://staging.albora.vercel.app
 - Cloudflare R2 docs: https://developers.cloudflare.com/r2/
 - CORS R2: https://developers.cloudflare.com/r2/buckets/cors/
 - Object Lock: https://developers.cloudflare.com/r2/buckets/object-lock/
+- Cache na borda (não assinar Cache-Control no PUT): `docs/infra/CDN.md`
 - Ambientes: `docs/infra/AMBIENTES.md`
 - Smoke test: `scripts/ci/smoke-test.sh`

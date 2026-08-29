@@ -90,4 +90,29 @@ describe("lerConfig", () => {
     expect(lerConfig({ CARGA_IP_POR_CONVIDADO: "true" }).ipPorConvidado).toBe(false);
     expect(lerConfig({ CARGA_IP_POR_CONVIDADO: "1" }).ipPorConvidado).toBe(true);
   });
+
+  it("aplica defaults do perfil gate", () => {
+    const c = lerConfig({ CARGA_PERFIL: "gate" });
+    expect(c.perfil).toBe("gate");
+    expect(c.total).toBe(150);
+    expect(c.duracaoMs).toBe(20 * 60_000);
+    expect(c.convidados).toBe(50);
+  });
+
+  it("aplica defaults do perfil soak", () => {
+    const c = lerConfig({ CARGA_PERFIL: "soak" });
+    expect(c.total).toBe(200);
+    expect(c.duracaoMs).toBe(240 * 60_000);
+    expect(c.convidados).toBe(30);
+  });
+
+  it("variável explícita ganha do perfil", () => {
+    const c = lerConfig({ CARGA_PERFIL: "fumaca", CARGA_TOTAL: "12" });
+    expect(c.total).toBe(12);
+    expect(c.convidados).toBe(3);
+  });
+
+  it("recusa perfil desconhecido", () => {
+    expect(() => lerConfig({ CARGA_PERFIL: "k6" })).toThrow(ErroDeConfig);
+  });
 });
