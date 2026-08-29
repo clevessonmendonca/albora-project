@@ -16,6 +16,9 @@ export const QUINZE_ANOS: Pack = {
     "musica.escolha": "Escolha da aniversariante",
     "telao.vazio": "As primeiras fotos aparecem aqui",
     "lugar.pergunta": "Onde na festa?",
+    "interacao.aberta": "Feed liberado — veja o que rolou",
+    "interacao.fechada": "Interação abre depois da entrada",
+    "interacao.fechada.agendada": "Interação abre às {hora}",
     "recado.rotulo": "Um recado da aniversariante",
     "recado.exemplo":
       "Obrigada por vir. Tirem fotos — eu quero ver a festa pelos olhos de vocês.",

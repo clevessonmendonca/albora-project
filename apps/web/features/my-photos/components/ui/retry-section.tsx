@@ -19,8 +19,8 @@ export function RetrySection({ count, drenando, onRetry }: RetrySectionProps) {
     <div className="mt-8 rounded-token border border-linha bg-superficie px-5 py-4">
       <p className="m-0 mb-3 text-t-body text-ink-2">
         {count === 1
-          ? "Uma foto não subiu. Tenta de novo?"
-          : `${count} fotos não subiram. Tenta de novo?`}
+          ? "Guardamos a foto no celular. Vamos tentar de novo?"
+          : `Guardamos ${count} fotos no celular. Vamos tentar de novo?`}
       </p>
       <PrimaryButton disabled={drenando} onClick={onRetry}>
         {drenando ? "Enviando…" : "Tentar de novo"}

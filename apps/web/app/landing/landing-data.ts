@@ -81,7 +81,7 @@ export const QUESTIONS = [
   },
   {
     q: "E se alguém mandar uma foto inadequada?",
-    a: "Por padrão tudo aparece, porque no dia da festa ninguém vai ficar aprovando foto numa fila. O que protege roda sozinho: um filtro checa cada foto antes de ela subir, qualquer convidado pode denunciar, e você tira do ar em um toque.",
+    a: "Por padrão tudo aparece na galeria — porque no dia da festa ninguém fica aprovando fila. O que protege o telão é automático: o classificador segura o impróprio, qualquer convidado pode denunciar, e você tira do telão em um toque. Se preferir, dá pra ligar aprovação manual.",
   },
   {
     q: "As fotos ficam com vocês?",

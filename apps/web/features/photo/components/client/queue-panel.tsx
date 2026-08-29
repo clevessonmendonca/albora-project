@@ -1,18 +1,17 @@
 "use client";
 
 import type { QueueItem } from "@albora/core";
-import { MAX_ATTEMPTS, isVideoMime } from "@albora/core";
+import { isVideoMime, shouldGiveUp } from "@albora/core";
 import { useCallback, useEffect, useState } from "react";
 import { PrimaryButton, SecondaryButton, BottomSheet } from "@albora/ui-web";
 import { webQueue } from "@/lib/queue";
+import { reiniciarItemFalho, reiniciarTodosFalhos } from "@/lib/queue-retry";
+import { rotuloEstadoFila } from "@/lib/queue-status";
 import { UploadArc } from "./upload-arc";
 import { QueueLabel } from "./camera-view";
 
-function rotuloEstado(item: QueueItem, online: boolean): string {
-  if (item.tentativas >= MAX_ATTEMPTS) return "Aguardando";
-  if (!online) return "Vai subir quando voltar o sinal";
-  if (item.tentativas > 0) return "Subindo…";
-  return "Na fila";
+function rotuloEstado(item: Parameters<typeof rotuloEstadoFila>[0], online: boolean): string {
+  return rotuloEstadoFila(item, { online }).estado;
 }
 
 function urlMiniatura(item: QueueItem): string | null {
@@ -112,7 +111,13 @@ function PainelFila({
     };
   }, [itens]);
 
-  const temFalha = itens.some((i) => i.tentativas >= MAX_ATTEMPTS);
+  const temFalha = itens.some((i) => shouldGiveUp(i));
+
+  const tentarDeNovo = useCallback(async () => {
+    await reiniciarTodosFalhos(webQueue);
+    await onDrenar();
+    await recarregar();
+  }, [onDrenar, recarregar]);
 
   return (
     <BottomSheet
@@ -124,8 +129,8 @@ function PainelFila({
         <div className="flex gap-2">
           <SecondaryButton onClick={onClose}>Fechar</SecondaryButton>
           {temFalha && online && (
-            <PrimaryButton disabled={drenando} onClick={() => void onDrenar()}>
-              {drenando ? "Enviando…" : "Enviar agora"}
+            <PrimaryButton disabled={drenando} onClick={() => void tentarDeNovo()}>
+              {drenando ? "Enviando…" : "Tentar de novo"}
             </PrimaryButton>
           )}
         </div>
@@ -142,7 +147,17 @@ function PainelFila({
       ) : (
         <ul className="m-0 grid list-none gap-2.5 p-0">
           {itens.map((item) => (
-            <LinhaFila key={item.id} item={item} online={online} />
+            <LinhaFila
+              key={item.id}
+              item={item}
+              online={online}
+              drenando={drenando}
+              onRetry={async () => {
+                await reiniciarItemFalho(webQueue, item.id);
+                await onDrenar();
+                await recarregar();
+              }}
+            />
           ))}
         </ul>
       )}
@@ -150,10 +165,20 @@ function PainelFila({
   );
 }
 
-function LinhaFila({ item, online }: { item: QueueItem; online: boolean }) {
+function LinhaFila({
+  item,
+  online,
+  drenando,
+  onRetry,
+}: {
+  item: QueueItem;
+  online: boolean;
+  drenando: boolean;
+  onRetry: () => Promise<void>;
+}) {
   const url = urlMiniatura(item);
   const video = isVideoMime(item.mime);
-  const falhou = item.tentativas >= MAX_ATTEMPTS;
+  const { falhou } = rotuloEstadoFila(item, { online });
 
   return (
     <li className="flex items-center gap-3 rounded-superficie bg-superficie p-2.5">
@@ -169,7 +194,17 @@ function LinhaFila({ item, online }: { item: QueueItem; online: boolean }) {
         <span className={`mt-0.5 block text-[0.78rem] leading-[1.5] ${falhou ? "text-ink-2" : "text-ink-3"}`}>
           {rotuloEstado(item, online)}
         </span>
+        {item.tentativas > 0 && !falhou && (
+          <span className="mt-0.5 block text-[0.72rem] text-ink-3">
+            Tentativa {item.tentativas}
+          </span>
+        )}
       </span>
+      {falhou && online && (
+        <SecondaryButton disabled={drenando} onClick={() => void onRetry()}>
+          Tentar de novo
+        </SecondaryButton>
+      )}
     </li>
   );
 }

@@ -5,6 +5,6 @@ import type { ItemDaGaleria } from "@albora/core";
  */
 export function rotuloEstado(estado: ItemDaGaleria["estado"]): string {
   if (estado === "subindo") return "Subindo…";
-  if (estado === "falhou") return "Não subiu";
+  if (estado === "falhou") return "Guardamos no celular. Vamos tentar de novo.";
   return "";
 }

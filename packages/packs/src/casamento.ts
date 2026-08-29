@@ -17,6 +17,9 @@ export const CASAMENTO: Pack = {
     "musica.escolha": "Escolha dos noivos",
     "telao.vazio": "As primeiras fotos aparecem aqui",
     "lugar.pergunta": "Onde na festa?",
+    "interacao.aberta": "Feed liberado — veja o que rolou",
+    "interacao.fechada": "Interação abre após a cerimônia",
+    "interacao.fechada.agendada": "Interação abre às {hora}",
     "recado.rotulo": "Um recado dos noivos",
     "recado.exemplo":
       "Obrigado por estar com a gente hoje. Tirem fotos — as suas também são as nossas.",

@@ -7,6 +7,7 @@ import { FloatingNav, GuestShell, PrimaryButton, GridIcon, StackIcon, Star } fro
 import type { AlbumServido } from "@/lib/album";
 import type { CoverMoment } from "../../types/cover";
 import { useStatsPolling } from "../../hooks/use-stats-polling";
+import { useInteractionGate } from "../../hooks/use-interaction-gate";
 import { usePhotoFlash } from "../../hooks/use-photo-flash";
 import { albumCoverUrl, truncateLabel } from "../../lib/cover-utils";
 import {
@@ -24,7 +25,11 @@ export function CoverPage({
   startsAt,
   album,
   moments,
-  interactionOpen,
+  interactionOpen: interactionOpenInitial,
+  interactionBannerLabel: interactionBannerInitial,
+  interactionOpensAt,
+  interactionLabels,
+  fuso,
   musicLabel,
   hostMessageLabel,
   hasConfessional = false,
@@ -36,6 +41,14 @@ export function CoverPage({
   album: AlbumServido;
   moments: CoverMoment[];
   interactionOpen: boolean;
+  interactionBannerLabel: string;
+  interactionOpensAt: string | null;
+  interactionLabels: {
+    aberta: string;
+    fechada: string;
+    fechadaAgendada: string;
+  };
+  fuso: string;
   musicLabel: string | null;
   hostMessageLabel: string;
   hasConfessional?: boolean;
@@ -49,6 +62,16 @@ export function CoverPage({
 
   const photos = useStatsPolling(slug, album.contadores.fotos);
   const photoFlash = usePhotoFlash(photos);
+  const { open: interactionOpen, label: interactionBannerLabel } = useInteractionGate(
+    slug,
+    {
+      open: interactionOpenInitial,
+      label: interactionBannerInitial,
+      opensAtIso: interactionOpensAt,
+      fuso,
+    },
+    interactionLabels,
+  );
 
   return (
     <>
@@ -67,6 +90,13 @@ export function CoverPage({
         <CoverHero hero={hero} />
 
         <CoverEventInfo eventName={eventName} startsAt={startsAt} guests={guests} />
+
+        <p
+          className="mx-[1.125rem] mt-3 mb-0 rounded-superficie bg-superficie px-3.5 py-2.5 text-center text-[0.8125rem] leading-[1.55] text-ink-2"
+          role="status"
+        >
+          {interactionBannerLabel}
+        </p>
 
         <HostMessageCard label={hostMessageLabel} hostName={eventName} />
 
