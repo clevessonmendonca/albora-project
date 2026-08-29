@@ -2,5 +2,20 @@
  * @deprecated Importar de `@/lib/infrastructure/storage` na nova estrutura.
  * Este arquivo mantém retrocompatibilidade temporária.
  */
-export type { R2UploadResult, PresignedPutUrlOptions } from "./infrastructure/storage/r2-client";
-export { getR2Client, uploadMedia, presignedPutUrl } from "./infrastructure/storage/r2-client";
+export {
+  signPut,
+  signGet,
+  inspectObject,
+  streamObject,
+  readThumb,
+  deleteObject,
+  bufferObject,
+  rangeDoPrefixoMagic,
+  metadadosDaInspecao,
+  assinarPut,
+  assinarGet,
+  inspecionarObjeto,
+  lerThumb,
+  type ObjectMetadata,
+  type MetadadosObjeto,
+} from "./infrastructure/storage/r2-client";

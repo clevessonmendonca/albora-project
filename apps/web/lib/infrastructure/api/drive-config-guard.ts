@@ -1,6 +1,6 @@
 import { ConfigError } from "@/lib/config";
 import { driveConfig } from "@/lib/drive-config";
-import { errorResponse } from "./response";
+import { errorResponse } from "./middleware/response";
 
 /** Espelha `requireConfig` mas para segredos do Drive — validados só no primeiro uso, nunca em `config()` global; ambientes sem Drive não quebram no boot. */
 export function requireDriveConfig(context: string): Response | null {

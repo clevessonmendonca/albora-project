@@ -13,6 +13,7 @@ export type ItemVisivel = {
   id: string;
   chaveThumb: string;
   chaveFull: string;
+  chavePoster?: string | undefined;
   mime: string;
   autor: string;
   legenda: string | null;

@@ -1,4 +1,4 @@
-import { TAG_DRENAGEM } from "../sw/tag";
+import { TAG_DRENAGEM } from "@/sw/tag";
 
 /** Registra o SW e pede drenagem em segundo plano (N6.2); nunca lança — caminho da primeira foto continua sem SW, e um erro viraria tela de falha antes de o convidado fazer qualquer coisa. */
 

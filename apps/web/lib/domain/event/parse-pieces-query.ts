@@ -1,5 +1,5 @@
 import type { PieceFormat } from "@albora/tokens";
-import { PRINT_FORMATS } from "./pack-print-pieces";
+import { PRINT_FORMATS } from "../book/pack-print-pieces";
 
 export const PIECE_TYPES = ["svg", "pdf", "zip"] as const;
 export type PieceType = (typeof PIECE_TYPES)[number];

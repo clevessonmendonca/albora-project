@@ -37,7 +37,7 @@ export type ConfirmGuestbookAudioResult =
       ok: false;
       code: string;
       message: string;
-      details?: Record<string, unknown>;
+      details?: Record<string, unknown> | undefined;
     };
 
 export async function confirmGuestbookAudioUpload(
@@ -116,7 +116,7 @@ export async function confirmGuestbookAudioUpload(
       ok: false,
       code: conteudo.code,
       message: "Arquivo recusado",
-      details: conteudo.details,
+      details: "details" in conteudo ? conteudo.details : undefined,
     };
   }
 

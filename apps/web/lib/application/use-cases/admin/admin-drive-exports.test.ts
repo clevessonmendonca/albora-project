@@ -66,8 +66,11 @@ vi.mock("@/lib/drive-export", () => ({
 
 describe("createOrResumeDriveExport", () => {
   let mockPool: Pool;
-  let mockVault: any;
-  let mockClient: any;
+  let mockVault: object;
+  let mockClient: {
+    refreshAccessToken: ReturnType<typeof vi.fn>;
+    getAbout: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();

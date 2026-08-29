@@ -15,7 +15,7 @@ import {
   type JobExport,
 } from "@albora/db";
 import type { Pool } from "pg";
-import { getDriveClient, getDriveVault, type DriveVault } from "@/lib/drive";
+import { getDriveClient, type DriveVault } from "@/lib/drive";
 import { driveFolderUrl } from "@/lib/drive-export";
 import { scheduleDriveExportProcessing } from "@/lib/drive-export-scheduler";
 
@@ -71,7 +71,7 @@ export type CreateDriveExportResult =
       ok: false;
       code: string;
       message: string;
-      details?: Record<string, unknown>;
+      details?: Record<string, unknown> | undefined;
     };
 
 export async function createOrResumeDriveExport(

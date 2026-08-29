@@ -1,2 +1,12 @@
-export { processMedia, type MediaProcessResult } from "./process";
-export { classifyMedia, type MediaClassification } from "./classify";
+export {
+  mediaUrls,
+  isExpired,
+  RENEWAL_BUFFER_MS,
+  MediaError,
+  type MediaUrl,
+} from "./process";
+export {
+  classifyPendingForEvent,
+  classifyMediaAfter,
+  type ClassifierDependencies,
+} from "./classify";

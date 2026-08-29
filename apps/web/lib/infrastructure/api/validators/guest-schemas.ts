@@ -11,7 +11,7 @@ import { z } from "zod";
 export const updateSessionNameSchema = z.object({
   sessaoId: z.string().uuid("ID de sessão inválido"),
   acao: z.enum(["ocultar", "renomear"], {
-    errorMap: () => ({ message: "Ação deve ser 'ocultar' ou 'renomear'" }),
+    error: "Ação deve ser 'ocultar' ou 'renomear'",
   }),
   nome: z.string().optional(),
 });

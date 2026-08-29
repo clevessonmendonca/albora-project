@@ -13,8 +13,8 @@ import type { Pool } from "pg";
 export type RedeemAppPairingInput = {
   sessionSecret: string;
   duracaoSessaoHoras: number;
-  codigo?: string;
-  passagem?: string;
+  codigo?: string | undefined;
+  passagem?: string | undefined;
 };
 
 export type RedeemAppPairingResult =

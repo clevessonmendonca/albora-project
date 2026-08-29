@@ -10,7 +10,6 @@
 import { test, expect } from "@playwright/test";
 import { setupTestEvent } from "../helpers/setup-test-event";
 import { cleanupTestEvent } from "../helpers/cleanup";
-import path from "path";
 
 test.describe("Performance em Rede Lenta (3G)", () => {
   test("deve carregar página em rede 3G em tempo aceitável", async ({
@@ -72,14 +71,6 @@ test.describe("Performance em Rede Lenta (3G)", () => {
 
       await page.goto(`/${event.slug}`);
       await page.waitForLoadState("networkidle");
-
-      // Procura por indicadores de loading na página
-      const loadingIndicators = [
-        page.locator('[data-testid="loading"]'),
-        page.locator('text=/carregando|loading/i'),
-        page.locator('[role="progressbar"]'),
-        page.locator('.spinner, .loading'),
-      ];
 
       console.log("🔍 Procurando indicadores de loading...");
 

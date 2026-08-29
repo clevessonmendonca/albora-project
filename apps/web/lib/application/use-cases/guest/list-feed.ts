@@ -10,20 +10,19 @@ import {
   challengeBelongsToEvent,
   eventGate,
   listFeed,
-  ErroCursorInvalido,
   type PaginaFeed,
 } from "@albora/db";
-import type { PoolClient } from "pg";
+import type { Pool } from "pg";
 
 const VAZIO: PaginaFeed = { itens: [], proximoCursor: null };
 
-export type FeedInteractionMode = "espelho" | "aberto" | "limitado";
+export type FeedInteractionMode = "espelho" | "completo";
 
 export type ListFeedInput = {
   eventoId: string;
   sessaoId: string;
-  missaoId?: string | null;
-  cursor?: string | null;
+  missaoId?: string | null | undefined;
+  cursor?: string | null | undefined;
 };
 
 export type ListFeedOutput = {
@@ -47,42 +46,30 @@ export type ListFeedOutput = {
  */
 export async function listFeedUseCase(
   input: ListFeedInput,
-  getClient: () => Promise<PoolClient>,
+  pool: Pool,
 ): Promise<ListFeedOutput> {
-  const client = await getClient();
+  return withEvent(pool, input.eventoId, async (c) => {
+    const gate = await eventGate(c, input.eventoId);
+    if (!gate) return { ...VAZIO, interacao: "espelho" as const };
 
-  try {
-    const pagina = await withEvent(
-      { query: client.query.bind(client) } as PoolClient,
-      input.eventoId,
-      async (c) => {
-        const gate = await eventGate(c, input.eventoId);
-        if (!gate) return { ...VAZIO, interacao: "espelho" as const };
+    const interacao = modoInteracao(gate, new Date());
 
-        const interacao = modoInteracao(gate, new Date());
+    if (
+      input.missaoId !== null &&
+      input.missaoId !== undefined &&
+      !(await challengeBelongsToEvent(c, input.eventoId, input.missaoId))
+    ) {
+      return { ...VAZIO, interacao };
+    }
 
-        if (
-          input.missaoId !== null &&
-          input.missaoId !== undefined &&
-          !(await challengeBelongsToEvent(c, input.eventoId, input.missaoId))
-        ) {
-          return { ...VAZIO, interacao };
-        }
+    const itens = await listFeed(c, {
+      eventoId: input.eventoId,
+      modo: interacao,
+      missaoId: input.missaoId ?? null,
+      cursor: input.cursor ?? null,
+      sessaoId: input.sessaoId,
+    });
 
-        const itens = await listFeed(c, {
-          eventoId: input.eventoId,
-          modo: interacao,
-          missaoId: input.missaoId,
-          cursor: input.cursor,
-          sessaoId: input.sessaoId,
-        });
-
-        return { ...itens, interacao };
-      },
-    );
-
-    return pagina;
-  } finally {
-    client.release();
-  }
+    return { ...itens, interacao };
+  });
 }

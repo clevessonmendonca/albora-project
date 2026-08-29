@@ -16,7 +16,7 @@ export type ChallengeStat = {
 };
 
 export type HourStat = {
-  hora: string;
+  hora: number;
   fotos: number;
 };
 

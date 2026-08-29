@@ -180,11 +180,7 @@ export function HomePage({
         <Viewer
           itens={estado.itens}
           indice={viewer.indice}
-          hora={
-            estado.itens[viewer.indice]
-              ? new Date(estado.itens[viewer.indice].criadaEm).getHours()
-              : 0
-          }
+          hora={horaDoItem(estado.itens[viewer.indice])}
           rotulo={eventName}
           urls={estado.urls}
           interacao={estado.interacao}
@@ -198,6 +194,10 @@ export function HomePage({
       )}
     </>
   );
+}
+
+function horaDoItem(item: { criadaEm: string } | undefined): number {
+  return item ? new Date(item.criadaEm).getHours() : 0;
 }
 
 function MissionsCue({ slug, missions }: { slug: string; missions: MissionWithStatus[] }) {

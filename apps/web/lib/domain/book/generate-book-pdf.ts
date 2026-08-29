@@ -2,7 +2,7 @@ import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage, type RGB } from "pdf-lib";
 import type { Album } from "@albora/core";
 import { ALBORA_BRAND, lerHex, resolveTokens, toVariables, type TokenLayer } from "@albora/tokens";
-import { planBook, BOOK_BLEED_MM, BOOK_CUT_MM, BOOK_MARGIN_MM, BOOK_PAGE_MM, type BookPagePlan } from "./book-layout";
+import { planBook, BOOK_BLEED_MM, BOOK_CUT_MM, BOOK_MARGIN_MM, BOOK_PAGE_MM, type BookPagePlan } from "./layout";
 import { loadPrintFonts } from "./piece-fonts";
 
 const MM_TO_PT = 72 / 25.4;

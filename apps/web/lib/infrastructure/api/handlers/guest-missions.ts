@@ -55,7 +55,7 @@ export async function GET(req: Request): Promise<Response> {
         eventoId: auth.session.eventoId,
         sessaoId: auth.session.sessaoId,
       },
-      () => getPool().connect(),
+      getPool(),
     );
 
     // 5. Serialização

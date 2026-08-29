@@ -1,5 +1,7 @@
 import type { QueueItem, RespostaPresign, Transport } from "@albora/core";
 
+export type { Transport };
+
 /** Transport da web: sequência e retry em `@albora/core`; só `Blob` aqui — corpo não-Blob falha alto em vez de mandar `undefined` e gravar zero byte com aparência de sucesso. */
 
 function corpoDoItem(item: QueueItem): Blob {

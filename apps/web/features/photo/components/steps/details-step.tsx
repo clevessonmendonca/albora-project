@@ -6,7 +6,7 @@ import { SecondaryButton } from "@albora/ui-web";
 type DetailsStepProps = {
   arquivo: File;
   uploadId: string;
-  onConfirm: (details: { legenda?: string; lugar?: string }) => void;
+  onConfirm: (details: { legenda?: string | undefined; lugar?: string | undefined }) => void;
   onBack: () => void;
   isSubmitting?: boolean;
 };
@@ -16,7 +16,7 @@ type DetailsStepProps = {
  * Permite adicionar contexto opcional à foto.
  */
 export function DetailsStep({
-  arquivo,
+  arquivo: _arquivo,
   uploadId,
   onConfirm,
   onBack,

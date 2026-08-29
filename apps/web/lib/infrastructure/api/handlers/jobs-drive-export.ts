@@ -21,7 +21,9 @@ export async function postJobsDriveExport(req: Request) {
 
   try {
     const body = await req.json();
-    const tick = parseDriveExportMessage(body);
+    const tick = parseDriveExportMessage(
+      body && typeof body === "object" ? (body as Record<string, unknown>) : {},
+    );
 
     if (tick) {
       const resultado = await processDriveExport({ mode: "tick", message: tick }, getPool());

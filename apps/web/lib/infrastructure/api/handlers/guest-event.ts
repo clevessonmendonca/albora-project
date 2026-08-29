@@ -22,7 +22,7 @@ export async function getGuestEventHandler(req: Request) {
   try {
     const evento = await getGuestEvent(
       { eventoId: auth.session.eventoId },
-      () => getPool().connect(),
+      getPool(),
     );
 
     if (!evento) {

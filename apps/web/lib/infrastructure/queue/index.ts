@@ -1,1 +1,7 @@
-export { enqueueTask, type EnqueueTaskPayload } from "./client";
+export {
+  webQueue,
+  queueSummary,
+  clearQueue,
+  QueueUnavailableError,
+  QueueQuotaExceededError,
+} from "./client";
