@@ -38,7 +38,11 @@ describe("metrics", () => {
     configureMetrics({
       increment() {},
       timing(name, _ms, tags) {
-        timings.push({ name, error: tags?.error });
+        if (tags?.error !== undefined) {
+          timings.push({ name, error: tags.error });
+        } else {
+          timings.push({ name });
+        }
       },
       gauge() {},
     });
@@ -50,7 +54,9 @@ describe("metrics", () => {
       }),
     ).rejects.toThrow("boom");
 
-    expect(timings[0]).toEqual({ name: "job.ok", error: undefined });
-    expect(timings[1]).toEqual({ name: "job.fail", error: "true" });
+    expect(timings[0]?.name).toBe("job.ok");
+    expect(timings[0]?.error).toBeUndefined();
+    expect(timings[1]?.name).toBe("job.fail");
+    expect(timings[1]?.error).toBe("true");
   });
 });

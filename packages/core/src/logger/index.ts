@@ -46,7 +46,7 @@ export function childLogger(context: LogContext) {
 export function maskPii(value: string): string {
   if (!value) return value;
   if (value.includes("@")) {
-    const [local, domain] = value.split("@");
+    const [local = "", domain = ""] = value.split("@");
     return `${local.slice(0, 2)}***@${domain}`;
   }
   if (/^\+?\d{8,}$/.test(value.replace(/\s/g, ""))) {
