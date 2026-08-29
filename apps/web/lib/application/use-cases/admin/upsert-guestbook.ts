@@ -28,7 +28,7 @@ export type UpsertGuestbookInput = {
 export type UpsertGuestbookResult =
   | {
       ok: true;
-      recado: SerializedGuestbook;
+      recado: NonNullable<SerializedGuestbook>;
     }
   | {
       ok: false;

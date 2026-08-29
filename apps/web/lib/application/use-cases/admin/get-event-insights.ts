@@ -64,5 +64,5 @@ export async function getEventInsights(
     fotos: m.fotos,
   }));
 
-  return { missoes: missaoSer, horas };
+  return { missoes: missaoSer, horas: horas.map((h) => ({ hora: String(h.hora), fotos: h.fotos })) };
 }

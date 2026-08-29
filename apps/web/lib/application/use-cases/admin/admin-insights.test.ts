@@ -159,7 +159,7 @@ describe("getEventInsights", () => {
     const input = createInput();
     const result = await getEventInsights(input, mockPool);
 
-    expect(result.missoes[0].titulo).toBe("Título Customizado");
+    expect(result.missoes[0]!.titulo).toBe("Título Customizado");
     expect(mockResolvePackText).not.toHaveBeenCalled();
   });
 
@@ -182,7 +182,7 @@ describe("getEventInsights", () => {
     const input = createInput();
     const result = await getEventInsights(input, mockPool);
 
-    expect(result.missoes[0].titulo).toBe("Brinde");
+    expect(result.missoes[0]!.titulo).toBe("Brinde");
     expect(mockResolvePackText).toHaveBeenCalledWith(PACKS.wedding, "missao.brinde");
   });
 
@@ -204,7 +204,7 @@ describe("getEventInsights", () => {
     const input = createInput({ packId: null });
     const result = await getEventInsights(input, mockPool);
 
-    expect(result.missoes[0].titulo).toBe("missao.test");
+    expect(result.missoes[0]!.titulo).toBe("missao.test");
   });
 
   it("deve usar titleKey vazio quando não há título", async () => {
@@ -225,7 +225,7 @@ describe("getEventInsights", () => {
     const input = createInput();
     const result = await getEventInsights(input, mockPool);
 
-    expect(result.missoes[0].titulo).toBe("");
+    expect(result.missoes[0]!.titulo).toBe("");
   });
 });
 

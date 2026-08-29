@@ -104,7 +104,7 @@ describe("Magic Links", () => {
         expect.any(Date),
       );
 
-      const expiresAt = mockEmitirMagicLink.mock.calls[0][3];
+      const expiresAt = mockEmitirMagicLink.mock.calls[0]![3];
       const now = Date.now();
       const expectedExpiry = now + 15 * 60 * 1000;
       expect(expiresAt.getTime()).toBeGreaterThanOrEqual(expectedExpiry - 1000);
@@ -259,7 +259,7 @@ describe("Magic Links", () => {
         expect.any(Date),
       );
 
-      const expiresAt = mockConsumirMagicLink.mock.calls[0][3];
+      const expiresAt = mockConsumirMagicLink.mock.calls[0]![3];
       const now = Date.now();
       const expectedExpiry = now + 48 * 3600 * 1000;
       expect(expiresAt.getTime()).toBeGreaterThanOrEqual(expectedExpiry - 1000);
@@ -325,7 +325,7 @@ describe("Magic Links", () => {
       await consumeMagicLink(input, pool);
 
       const afterCall = Date.now();
-      const consumedAt = mockConsumirMagicLink.mock.calls[0][4];
+      const consumedAt = mockConsumirMagicLink.mock.calls[0]![4];
 
       expect(consumedAt.getTime()).toBeGreaterThanOrEqual(beforeCall);
       expect(consumedAt.getTime()).toBeLessThanOrEqual(afterCall);

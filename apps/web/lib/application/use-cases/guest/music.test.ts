@@ -89,14 +89,14 @@ describe("getGuestMusic", () => {
     mockEventGate.mockResolvedValue(gateMock);
     mockMusicaDoCasal.mockResolvedValue(escolhidaMock);
     mockListarSugestoes.mockResolvedValue(sugestoesMock);
-    mockInteractionMode.mockReturnValue("aberto");
+    mockInteractionMode.mockReturnValue("completo");
 
     const input = createInput();
     const result = await getGuestMusic(input, mockPool);
 
     expect(result.escolhida).toEqual(escolhidaMock);
     expect(result.sugestoes).toEqual(sugestoesMock);
-    expect(result.interacao).toBe("aberto");
+    expect(result.interacao).toBe("completo");
 
     expect(mockWithEvent).toHaveBeenCalledWith(mockPool, "evt-123", expect.any(Function));
     expect(mockEventGate).toHaveBeenCalledWith(expect.anything(), "evt-123");

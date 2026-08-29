@@ -32,7 +32,7 @@ export type ConfirmCoverImageResult =
       ok: false;
       code: string;
       message: string;
-      details?: Record<string, unknown>;
+      details?: Record<string, unknown> | undefined;
     };
 
 export async function confirmCoverImageUpload(

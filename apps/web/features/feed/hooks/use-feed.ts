@@ -19,6 +19,7 @@ export type ItemVisivel = {
   lugar: string | null;
   /** Instante do JSON, não `Date`: quem agrupa por hora converte. */
   criadaEm: string;
+  chavePoster?: string | undefined;
   largura?: number;
   altura?: number;
   reacoes?: number;

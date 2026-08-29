@@ -35,7 +35,7 @@ describe("updateChallengesSchema → updateChallenges Contract", () => {
       const validated = updateChallengesSchema.parse(input);
 
       expect(validated.customMissions).toHaveLength(1);
-      expect(validated.customMissions?.[0].titulo).toBe("Foto com os padrinhos");
+      expect(validated.customMissions?.[0]!.titulo).toBe("Foto com os padrinhos");
       expect(validated.titleKeys).toBeUndefined();
     });
 
@@ -69,8 +69,8 @@ describe("updateChallengesSchema → updateChallenges Contract", () => {
 
       const validated = updateChallengesSchema.parse(input);
 
-      expect(validated.customMissions?.[0].id).toBeUndefined();
-      expect(validated.customMissions?.[0].titulo).toBe("Nova missão");
+      expect(validated.customMissions?.[0]!.id).toBeUndefined();
+      expect(validated.customMissions?.[0]!.titulo).toBe("Nova missão");
     });
 
     it("deve validar customMission sem emoji", () => {
@@ -86,7 +86,7 @@ describe("updateChallengesSchema → updateChallenges Contract", () => {
       const validated = updateChallengesSchema.parse(input);
 
       // Schema transform retorna null quando emoji não é fornecido
-      expect(validated.customMissions?.[0].emoji).toBe(null);
+      expect(validated.customMissions?.[0]!.emoji).toBe(null);
     });
 
     it("deve trimar título da missão", () => {
@@ -101,7 +101,7 @@ describe("updateChallengesSchema → updateChallenges Contract", () => {
 
       const validated = updateChallengesSchema.parse(input);
 
-      expect(validated.customMissions?.[0].titulo).toBe("Título com espaços");
+      expect(validated.customMissions?.[0]!.titulo).toBe("Título com espaços");
     });
 
     it("deve trimar emoji", () => {
@@ -117,7 +117,7 @@ describe("updateChallengesSchema → updateChallenges Contract", () => {
 
       const validated = updateChallengesSchema.parse(input);
 
-      expect(validated.customMissions?.[0].emoji).toBe("🎉");
+      expect(validated.customMissions?.[0]!.emoji).toBe("🎉");
     });
 
     it("deve transformar emoji vazio em null", () => {
@@ -133,7 +133,7 @@ describe("updateChallengesSchema → updateChallenges Contract", () => {
 
       const validated = updateChallengesSchema.parse(input);
 
-      expect(validated.customMissions?.[0].emoji).toBe(null);
+      expect(validated.customMissions?.[0]!.emoji).toBe(null);
     });
 
     it("deve validar múltiplas customMissions", () => {
@@ -148,9 +148,9 @@ describe("updateChallengesSchema → updateChallenges Contract", () => {
       const validated = updateChallengesSchema.parse(input);
 
       expect(validated.customMissions).toHaveLength(3);
-      expect(validated.customMissions?.[0].posicao).toBe(0);
-      expect(validated.customMissions?.[1].posicao).toBe(1);
-      expect(validated.customMissions?.[2].posicao).toBe(2);
+      expect(validated.customMissions?.[0]!.posicao).toBe(0);
+      expect(validated.customMissions?.[1]!.posicao).toBe(1);
+      expect(validated.customMissions?.[2]!.posicao).toBe(2);
     });
 
     it("deve aceitar título no limite (120 caracteres)", () => {
@@ -165,7 +165,7 @@ describe("updateChallengesSchema → updateChallenges Contract", () => {
 
       const validated = updateChallengesSchema.parse(input);
 
-      expect(validated.customMissions?.[0].titulo).toHaveLength(120);
+      expect(validated.customMissions?.[0]!.titulo).toHaveLength(120);
     });
   });
 

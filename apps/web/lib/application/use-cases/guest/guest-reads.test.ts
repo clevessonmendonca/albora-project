@@ -90,20 +90,17 @@ function createMockClient(): PoolClient {
 
 describe("Guest Read Use Cases", () => {
   let mockClient: PoolClient;
-  let getClient: () => Promise<PoolClient>;
   let mockPool: Pool;
 
   beforeEach(() => {
     vi.clearAllMocks();
     resetGuestEventCache();
     mockClient = createMockClient();
-    getClient = vi.fn().mockResolvedValue(mockClient);
     mockPool = { connect: vi.fn() } as unknown as Pool;
 
-    // Defaults
     mockWithEvent.mockImplementation(async (_client, _eventId, fn) => fn(mockClient));
-    mockEventGate.mockResolvedValue({ visible: true, interactionStartsAt: null });
-    mockModoInteracao.mockReturnValue("aberto");
+    mockEventGate.mockResolvedValue({ interacaoAbreEm: new Date(0) });
+    mockModoInteracao.mockReturnValue("completo");
   });
 
   describe("listFeedUseCase", () => {
@@ -127,12 +124,12 @@ describe("Guest Read Use Cases", () => {
       });
 
       const input = createListFeedInput();
-      const result = await listFeedUseCase(input, getClient);
+      const result = await listFeedUseCase(input, mockPool);
 
       expect(result).toEqual({
         itens: feedItens,
         proximoCursor: "cursor-next",
-        interacao: "aberto",
+        interacao: "completo",
       });
     });
 
@@ -140,7 +137,7 @@ describe("Guest Read Use Cases", () => {
       mockEventGate.mockResolvedValue(null);
 
       const input = createListFeedInput();
-      const result = await listFeedUseCase(input, getClient);
+      const result = await listFeedUseCase(input, mockPool);
 
       expect(result).toEqual({
         itens: [],
@@ -155,12 +152,12 @@ describe("Guest Read Use Cases", () => {
       mockChallengeBelongsToEvent.mockResolvedValue(false);
 
       const input = createListFeedInput({ missaoId: "mission-999" });
-      const result = await listFeedUseCase(input, getClient);
+      const result = await listFeedUseCase(input, mockPool);
 
       expect(result).toEqual({
         itens: [],
         proximoCursor: null,
-        interacao: "aberto",
+        interacao: "completo",
       });
 
       expect(mockListFeed).not.toHaveBeenCalled();
@@ -174,7 +171,7 @@ describe("Guest Read Use Cases", () => {
       });
 
       const input = createListFeedInput({ missaoId: "mission-1" });
-      await listFeedUseCase(input, getClient);
+      await listFeedUseCase(input, mockPool);
 
       expect(mockListFeed).toHaveBeenCalledWith(
         mockClient,
@@ -191,7 +188,7 @@ describe("Guest Read Use Cases", () => {
       });
 
       const input = createListFeedInput({ cursor: "cursor-page1" });
-      await listFeedUseCase(input, getClient);
+      await listFeedUseCase(input, mockPool);
 
       expect(mockListFeed).toHaveBeenCalledWith(
         mockClient,
@@ -202,14 +199,14 @@ describe("Guest Read Use Cases", () => {
     });
 
     it("deve retornar diferentes modos de interação", async () => {
-      const modos = ["espelho", "aberto", "limitado"] as const;
+      const modos = ["espelho", "completo"] as const;
 
       for (const modo of modos) {
         mockModoInteracao.mockReturnValue(modo);
         mockListFeed.mockResolvedValue({ itens: [], proximoCursor: null });
 
         const input = createListFeedInput();
-        const result = await listFeedUseCase(input, getClient);
+        const result = await listFeedUseCase(input, mockPool);
 
         expect(result.interacao).toBe(modo);
       }
@@ -219,9 +216,9 @@ describe("Guest Read Use Cases", () => {
       mockListFeed.mockResolvedValue({ itens: [], proximoCursor: null });
 
       const input = createListFeedInput();
-      await listFeedUseCase(input, getClient);
+      await listFeedUseCase(input, mockPool);
 
-      expect(mockClient.release).toHaveBeenCalled();
+      expect(mockWithEvent).toHaveBeenCalled();
     });
   });
 
@@ -346,7 +343,7 @@ describe("Guest Read Use Cases", () => {
       mockResolvePackText.mockReturnValue("Primeira dança");
 
       const input = createListMissionsInput();
-      const result = await listGuestMissions(input, getClient);
+      const result = await listGuestMissions(input, mockPool);
 
       expect(result.missoes).toHaveLength(2);
       expect(result.missoes[0]).toEqual({
@@ -377,9 +374,9 @@ describe("Guest Read Use Cases", () => {
       mockResolvePackText.mockReturnValue("Título do Pack");
 
       const input = createListMissionsInput();
-      const result = await listGuestMissions(input, getClient);
+      const result = await listGuestMissions(input, mockPool);
 
-      expect(result.missoes[0].titulo).toBe("Título Personalizado");
+      expect(result.missoes[0]!.titulo).toBe("Título Personalizado");
     });
 
     it("deve retornar array vazio quando não há missões", async () => {
@@ -387,7 +384,7 @@ describe("Guest Read Use Cases", () => {
       mockPackDoEvento.mockResolvedValue("wedding");
 
       const input = createListMissionsInput();
-      const result = await listGuestMissions(input, getClient);
+      const result = await listGuestMissions(input, mockPool);
 
       expect(result.missoes).toEqual([]);
     });
@@ -405,9 +402,9 @@ describe("Guest Read Use Cases", () => {
       mockPackDoEvento.mockResolvedValue(null);
 
       const input = createListMissionsInput();
-      const result = await listGuestMissions(input, getClient);
+      const result = await listGuestMissions(input, mockPool);
 
-      expect(result.missoes[0].titulo).toBe("Missão sem pack");
+      expect(result.missoes[0]!.titulo).toBe("Missão sem pack");
     });
 
     it("deve liberar client após execução", async () => {
@@ -415,9 +412,9 @@ describe("Guest Read Use Cases", () => {
       mockPackDoEvento.mockResolvedValue(null);
 
       const input = createListMissionsInput();
-      await listGuestMissions(input, getClient);
+      await listGuestMissions(input, mockPool);
 
-      expect(mockClient.release).toHaveBeenCalled();
+      expect(mockWithEvent).toHaveBeenCalled();
     });
   });
 });

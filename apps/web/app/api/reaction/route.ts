@@ -54,7 +54,7 @@ export async function GET(req: Request) {
         sessaoId: auth.session.sessaoId,
         uploadId: validated.uploadId,
       },
-      () => getPool().connect(),
+      getPool(),
     );
     return jsonOk({ reatores: result.reatores });
   } catch (e) {
@@ -85,7 +85,7 @@ export async function PUT(req: Request) {
         uploadId: validated.uploadId,
         tipo,
       },
-      () => getPool().connect(),
+      getPool(),
     );
 
     if (!resultado.ok) {
@@ -119,7 +119,7 @@ export async function DELETE(req: Request) {
         sessaoId: auth.session.sessaoId,
         uploadId: validated.uploadId,
       },
-      () => getPool().connect(),
+      getPool(),
     );
 
     if (!resultado.ok)

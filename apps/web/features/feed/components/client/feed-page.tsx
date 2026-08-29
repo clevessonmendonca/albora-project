@@ -124,7 +124,7 @@ export function FeedPage({
     if (atual) void compartilhar.compartilhar(atual.id);
   }, [viewer.itensAbertos, viewer.indiceAtual, compartilhar]);
 
-  const handleConfirmarConsentimento = useCallback((nomeNaMoldura: string) => {
+  const handleConfirmarConsentimento = useCallback((nomeNaMoldura: boolean) => {
     if (compartilhar.pedindoConsentimento) {
       void compartilhar.confirmarConsentimento(
         compartilhar.pedindoConsentimento,

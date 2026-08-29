@@ -6,7 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { confirmUpload, type ConfirmUploadInput } from "./confirm-upload";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 // Mocks das dependências usando vi.hoisted para evitar problemas de hoisting
 const {
@@ -50,6 +50,8 @@ vi.mock("@albora/core", () => ({
   prefixoDoEvento: mockPrefixoDoEvento,
   validarObjetoRecebido: mockValidarObjetoRecebido,
   withinPlanDimensions: mockWithinPlanDimensions,
+  logger: { child: () => ({ warn: vi.fn(), info: vi.fn() }) },
+  metrics: { increment: vi.fn() },
 }));
 
 vi.mock("@albora/db", () => ({
@@ -92,9 +94,9 @@ function createValidInput(overrides?: Partial<ConfirmUploadInput>): ConfirmUploa
     chave: "events/evt-123/uploads/upl-789",
     mime: "image/jpeg",
     bytes: 1024000,
-    inicio: new ArrayBuffer(16),
+    inicio: new Uint8Array(16),
     thumbBytes: 50000,
-    thumbInicio: new ArrayBuffer(16),
+    thumbInicio: new Uint8Array(16),
     legenda: "Foto da festa",
     lugar: "Salão principal",
     desafioId: "challenge-1",
@@ -116,12 +118,12 @@ function createMockClient(): PoolClient {
 
 describe("confirmUpload", () => {
   let mockClient: PoolClient;
-  let getClient: () => Promise<PoolClient>;
+  let mockPool: Pool;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockClient = createMockClient();
-    getClient = vi.fn().mockResolvedValue(mockClient);
+    mockPool = { connect: vi.fn() } as unknown as Pool;
 
     // Reset mocks para valores padrão
     mockPrefixoDoEvento.mockImplementation((eventId: string) => `events/${eventId}`);
@@ -140,14 +142,14 @@ describe("confirmUpload", () => {
         chave: "events/evt-999/uploads/upl-789",
       });
 
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
         code: "upload.chave_invalida",
         message: "Chave não pertence a este evento",
       });
-      expect(getClient).not.toHaveBeenCalled();
+      expect(mockWithEvent).not.toHaveBeenCalled();
     });
 
     it("deve rejeitar objeto com conteúdo inválido", async () => {
@@ -157,7 +159,7 @@ describe("confirmUpload", () => {
       });
 
       const input = createValidInput();
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -176,7 +178,7 @@ describe("confirmUpload", () => {
         });
 
       const input = createValidInput();
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -202,7 +204,7 @@ describe("confirmUpload", () => {
       mockChallengeBelongsToEvent.mockResolvedValue(true);
 
       const input = createValidInput({ desafioId: "challenge-1" });
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result.ok).toBe(true);
       expect(mockChallengeBelongsToEvent).toHaveBeenCalledWith(
@@ -216,7 +218,7 @@ describe("confirmUpload", () => {
       mockChallengeBelongsToEvent.mockResolvedValue(false);
 
       const input = createValidInput({ desafioId: "challenge-999" });
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result.ok).toBe(true);
       expect(mockConfirmUploadDB).toHaveBeenCalledWith(
@@ -236,7 +238,7 @@ describe("confirmUpload", () => {
         promptKey: "confession-1",
       });
 
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -253,7 +255,7 @@ describe("confirmUpload", () => {
         promptKey: "confession-1",
       });
 
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result.ok).toBe(true);
       expect(mockConfirmUploadDB).toHaveBeenCalledWith(
@@ -278,7 +280,7 @@ describe("confirmUpload", () => {
         altura: 3000,
       });
 
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -298,7 +300,7 @@ describe("confirmUpload", () => {
         altura: 8000,
       });
 
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result.ok).toBe(true);
       expect(mockWithinPlanDimensions).not.toHaveBeenCalled();
@@ -319,21 +321,21 @@ describe("confirmUpload", () => {
       mockWithinPlanDimensions.mockReturnValue({ ok: true });
 
       const input = createValidInput();
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result).toEqual({
         ok: true,
         uploadId: "upl-789",
         estado: "criado",
       });
-      expect(mockClient.release).toHaveBeenCalled();
+      expect(mockWithEvent).toHaveBeenCalled();
     });
 
     it("deve confirmar upload com sucesso (estado: duplicado)", async () => {
       mockConfirmUploadDB.mockResolvedValue({ estado: "duplicado" });
 
       const input = createValidInput({ mime: "video/mp4" });
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result).toEqual({
         ok: true,
@@ -346,7 +348,7 @@ describe("confirmUpload", () => {
       mockConfirmUploadDB.mockResolvedValue({ estado: "aprovacao" });
 
       const input = createValidInput({ mime: "video/mp4" });
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result).toEqual({
         ok: true,
@@ -372,7 +374,7 @@ describe("confirmUpload", () => {
         .mockResolvedValueOnce(undefined);
 
       const input = createValidInput({ story: true, musicTrackId: "track-1" });
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result.ok).toBe(true);
       expect(mockCreateStory).toHaveBeenCalledWith(mockClient, {
@@ -392,7 +394,7 @@ describe("confirmUpload", () => {
         .mockResolvedValueOnce(undefined);
 
       const input = createValidInput({ story: true });
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result).toEqual({
         ok: true,
@@ -404,7 +406,7 @@ describe("confirmUpload", () => {
 
     it("não deve criar story quando não solicitado", async () => {
       const input = createValidInput({ story: false });
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result.ok).toBe(true);
       expect(mockCreateStory).not.toHaveBeenCalled();
@@ -422,14 +424,14 @@ describe("confirmUpload", () => {
       mockWithEvent.mockRejectedValue(new UploadConflictError("Chave não pertence ao evento"));
 
       const input = createValidInput();
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
         code: "upload.chave_invalida",
         message: "Chave não pertence a este evento",
       });
-      expect(mockClient.release).toHaveBeenCalled();
+      expect(mockWithEvent).toHaveBeenCalled();
     });
 
     it("deve propagar outros erros", async () => {
@@ -437,8 +439,8 @@ describe("confirmUpload", () => {
 
       const input = createValidInput();
 
-      await expect(confirmUpload(input, getClient)).rejects.toThrow("Database error");
-      expect(mockClient.release).toHaveBeenCalled();
+      await expect(confirmUpload(input, mockPool)).rejects.toThrow("Database error");
+      expect(mockWithEvent).toHaveBeenCalled();
     });
 
     it("deve sempre liberar o client, mesmo em erro de validação", async () => {
@@ -448,12 +450,12 @@ describe("confirmUpload", () => {
       });
 
       const input = createValidInput();
-      const result = await confirmUpload(input, getClient);
+      const result = await confirmUpload(input, mockPool);
 
       expect(result.ok).toBe(false);
       // Client NÃO é obtido neste caso (validação precoce, antes de getClient)
       // Então o release não é chamado, o que está correto!
-      expect(getClient).not.toHaveBeenCalled();
+      expect(mockWithEvent).not.toHaveBeenCalled();
     });
   });
 });

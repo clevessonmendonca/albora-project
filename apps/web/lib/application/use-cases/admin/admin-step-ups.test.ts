@@ -106,7 +106,7 @@ describe("requestDriveStepUp", () => {
     const input = createInput();
     await requestDriveStepUp(input, mockPool);
 
-    const callArgs = mockEmitirStepUp.mock.calls[0];
+    const callArgs = mockEmitirStepUp.mock.calls[0]!;
     const expiresAt = callArgs[3] as Date;
     const expectedMs = VALIDADE_STEP_UP_DRIVE_MINUTOS * 60 * 1000;
     const diff = expiresAt.getTime() - beforeCall;
@@ -121,7 +121,7 @@ describe("requestDriveStepUp", () => {
     const input = createInput();
     await requestDriveStepUp(input, mockPool);
 
-    const emailCall = mockSendHostEmail.mock.calls[0][0];
+    const emailCall = mockSendHostEmail.mock.calls[0]![0];
     expect(emailCall.text).toContain("https://albora.app/admin/e/evt-123/album?driveConectar=token-xyz");
     expect(emailCall.text).toContain("15 minutos");
   });
@@ -211,7 +211,7 @@ describe("requestExportStepUp", () => {
     const input = createInput();
     await requestExportStepUp(input, mockPool);
 
-    const callArgs = mockEmitirStepUp.mock.calls[0];
+    const callArgs = mockEmitirStepUp.mock.calls[0]!;
     const expiresAt = callArgs[3] as Date;
     const expectedMs = VALIDADE_STEP_UP_MINUTOS * 60 * 1000;
     const diff = expiresAt.getTime() - beforeCall;
@@ -229,7 +229,7 @@ describe("requestExportStepUp", () => {
     const input = createInput();
     await requestExportStepUp(input, mockPool);
 
-    const emailCall = mockSendHostEmail.mock.calls[0][0];
+    const emailCall = mockSendHostEmail.mock.calls[0]![0];
     expect(emailCall.text).toContain("https://albora.app/admin/e/evt-123/album?exportar=token-xyz");
     expect(emailCall.text).toContain("15 minutos");
   });

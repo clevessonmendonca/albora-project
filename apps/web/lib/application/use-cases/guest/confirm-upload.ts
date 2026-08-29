@@ -1,9 +1,3 @@
-/**
- * Use Case: Confirm Upload
- * 
- * Confirma um upload de mídia após validações completas de negócio.
- */
-
 import {
   prefixoDoEvento,
   validarObjetoRecebido,
@@ -22,7 +16,7 @@ import {
   planoDoEvento,
 } from "@albora/db";
 import { isValidConfessionPrompt, PACKS } from "@albora/packs";
-import type { PoolClient } from "pg";
+import type { Pool } from "pg";
 import {
   cleanCaption,
   acceptedPlace,
@@ -38,19 +32,19 @@ export type ConfirmUploadInput = {
   chave: string;
   mime: string;
   bytes: number;
-  inicio: ArrayBuffer;
+  inicio: Uint8Array;
   thumbBytes: number;
-  thumbInicio: ArrayBuffer;
-  legenda?: string;
-  lugar?: string;
-  desafioId?: string;
-  promptKey?: string;
-  capturadaEm?: string | number;
-  capturadaEmParede?: boolean;
-  largura?: number;
-  altura?: number;
-  story?: boolean;
-  musicTrackId?: string;
+  thumbInicio: Uint8Array;
+  legenda?: string | undefined;
+  lugar?: string | undefined;
+  desafioId?: string | undefined;
+  promptKey?: string | undefined;
+  capturadaEm?: string | number | undefined;
+  capturadaEmParede?: boolean | undefined;
+  largura?: number | undefined;
+  altura?: number | undefined;
+  story?: boolean | undefined;
+  musicTrackId?: string | undefined;
 };
 
 export type ConfirmUploadResult =
@@ -63,29 +57,17 @@ export type ConfirmUploadResult =
       ok: false;
       code: string;
       message: string;
-      details?: Record<string, unknown>;
+      details?: Record<string, unknown> | undefined;
     };
 
-/**
- * Confirma upload de mídia com validações completas.
- * 
- * Validações:
- * - Chave pertence ao evento
- * - Objeto e thumb existem e são válidos
- * - Missão pertence ao evento (se informada)
- * - Pack/confessionário são válidos
- * - Tamanho respeita limites do plano
- * 
- * Cria story opcionalmente (degrada em caso de falha).
- * 
- * @param input - Dados do upload e metadados
- * @param getClient - Factory de conexão
- * @returns Resultado da confirmação ou erro
- * @throws {UploadConflictError} Se chave não pertence ao evento
- */
+type ConfirmInner =
+  | { ok: true; resultado: Awaited<ReturnType<typeof confirmUploadDB>> }
+  | { erro: "confessionario.video" }
+  | { erro: "upload.resolucao_acima_do_plano"; limite: number; ladoMaior: number };
+
 export async function confirmUpload(
   input: ConfirmUploadInput,
-  getClient: () => Promise<PoolClient>,
+  pool: Pool,
 ): Promise<ConfirmUploadResult> {
   const log = logger.child({ eventId: input.eventoId, uploadId: input.uploadId });
 
@@ -127,93 +109,81 @@ export async function confirmUpload(
     };
   }
 
-  const client = await getClient();
-
   try {
-    const resultado = await withEvent(
-      { query: client.query.bind(client) } as PoolClient,
-      input.eventoId,
-      async (c) => {
-        // Validar missão
-        const daMissao =
-          input.desafioId &&
-          (await challengeBelongsToEvent(c, input.eventoId, input.desafioId))
-            ? input.desafioId
-            : null;
+    const resultado: ConfirmInner = await withEvent(pool, input.eventoId, async (c) => {
+      const daMissao =
+        input.desafioId &&
+        (await challengeBelongsToEvent(c, input.eventoId, input.desafioId))
+          ? input.desafioId
+          : null;
 
-        // Validar pack e confessionário
-        const packId = await eventPack(c, input.eventoId);
-        const pack = packId ? PACKS[packId] : undefined;
-        let prompt: string | null = null;
-        if (input.promptKey && pack && isValidConfessionPrompt(pack, input.promptKey)) {
-          if (!input.mime.startsWith("video/")) {
-            return { erro: "confessionario.video" as const };
-          }
-          prompt = input.promptKey;
+      const packId = await eventPack(c, input.eventoId);
+      const pack = packId ? PACKS[packId] : undefined;
+      let prompt: string | null = null;
+      if (input.promptKey && pack && isValidConfessionPrompt(pack, input.promptKey)) {
+        if (!input.mime.startsWith("video/")) {
+          return { erro: "confessionario.video" as const };
         }
+        prompt = input.promptKey;
+      }
 
-        // Preparar metadados
-        const fuso = await eventTimeZone(c, input.eventoId);
-        const tamanho = acceptedSize(input.largura, input.altura);
-        const takenAt =
-          input.capturadaEmParede === true
-            ? acceptedTakenAtInTimeZone(input.capturadaEm, fuso)
-            : acceptedTakenAt(input.capturadaEm);
+      const fuso = await eventTimeZone(c, input.eventoId);
+      const tamanho = acceptedSize(input.largura, input.altura);
+      const takenAt =
+        input.capturadaEmParede === true
+          ? acceptedTakenAtInTimeZone(input.capturadaEm, fuso)
+          : acceptedTakenAt(input.capturadaEm);
 
-        // Validar limites do plano (apenas para imagens)
-        if (!input.mime.startsWith("video/") && tamanho) {
-          const plano = await planoDoEvento(c, input.eventoId);
-          const limite = withinPlanDimensions(
-            tamanho.width,
-            tamanho.height,
-            plano,
-          );
-          if (!limite.ok) {
-            return {
-              erro: "upload.resolucao_acima_do_plano" as const,
-              limite: limite.limite,
-              ladoMaior: limite.ladoMaior,
-            };
-          }
+      if (!input.mime.startsWith("video/") && tamanho) {
+        const plano = await planoDoEvento(c, input.eventoId);
+        const limite = withinPlanDimensions(
+          tamanho.width,
+          tamanho.height,
+          plano,
+        );
+        if (!limite.ok) {
+          return {
+            erro: "upload.resolucao_acima_do_plano" as const,
+            limite: limite.limite,
+            ladoMaior: limite.ladoMaior,
+          };
         }
+      }
 
-        // Confirmar upload
-        const confirmado = await confirmUploadDB(c, {
-          uploadId: input.uploadId,
-          eventId: input.eventoId,
-          sessionId: input.sessaoId,
-          challengeId: daMissao,
-          storageKey: `${input.chave}/full`,
-          mime: input.mime,
-          bytes: input.bytes,
-          caption: cleanCaption(input.legenda),
-          place: acceptedPlace(packId, input.lugar),
-          takenAt,
-          width: tamanho?.width ?? null,
-          height: tamanho?.height ?? null,
-          promptKey: prompt,
-        });
+      const confirmado = await confirmUploadDB(c, {
+        uploadId: input.uploadId,
+        eventId: input.eventoId,
+        sessionId: input.sessaoId,
+        challengeId: daMissao,
+        storageKey: `${input.chave}/full`,
+        mime: input.mime,
+        bytes: input.bytes,
+        caption: cleanCaption(input.legenda),
+        place: acceptedPlace(packId, input.lugar),
+        takenAt,
+        width: tamanho?.width ?? null,
+        height: tamanho?.height ?? null,
+        promptKey: prompt,
+      });
 
-        // Criar story (degradável)
-        if (input.story === true) {
-          await c.query("SAVEPOINT marcar_story");
-          try {
-            await createStory(c, {
-              eventoId: input.eventoId,
-              sessaoId: input.sessaoId,
-              uploadId: input.uploadId,
-              musicTrackId: input.musicTrackId || null,
-            });
-            await c.query("RELEASE SAVEPOINT marcar_story");
-          } catch {
-            await c.query("ROLLBACK TO SAVEPOINT marcar_story");
-            log.warn("confirm.story_falhou");
-          }
+      if (input.story === true) {
+        await c.query("SAVEPOINT marcar_story");
+        try {
+          await createStory(c, {
+            eventoId: input.eventoId,
+            sessaoId: input.sessaoId,
+            uploadId: input.uploadId,
+            musicTrackId: input.musicTrackId || null,
+          });
+          await c.query("RELEASE SAVEPOINT marcar_story");
+        } catch {
+          await c.query("ROLLBACK TO SAVEPOINT marcar_story");
+          log.warn("confirm.story_falhou");
         }
+      }
 
-        return { ok: true as const, resultado: confirmado };
-      },
-    );
+      return { ok: true as const, resultado: confirmado };
+    });
 
     if ("erro" in resultado) {
       if (resultado.erro === "confessionario.video") {
@@ -246,7 +216,7 @@ export async function confirmUpload(
     return {
       ok: true,
       uploadId: input.uploadId,
-      estado: confirmado.estado,
+      estado: confirmado.estado === "ja_existia" ? "duplicado" : confirmado.estado,
     };
   } catch (e) {
     if (e instanceof UploadConflictError) {
@@ -257,7 +227,5 @@ export async function confirmUpload(
       };
     }
     throw e;
-  } finally {
-    client.release();
   }
 }

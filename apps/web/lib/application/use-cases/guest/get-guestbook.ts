@@ -8,6 +8,7 @@ import {
   buildGuestbookScreen,
   decideDelivery,
   guestbookScreenHasContent,
+  type GuestbookAudio,
   type GuestbookEntry,
 } from "@albora/core";
 import { guestbookReads, eventGuestbook, withEvent } from "@albora/db";
@@ -24,7 +25,7 @@ export type GetGuestbookOutput = {
   tela: {
     texto: string | null;
     camera: string | null;
-    audio: string | null;
+    audio: GuestbookAudio | null;
   };
   recado: GuestbookEntry | null;
   leituras: Awaited<ReturnType<typeof guestbookReads>>;

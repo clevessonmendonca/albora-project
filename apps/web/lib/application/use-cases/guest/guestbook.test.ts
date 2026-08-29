@@ -64,7 +64,7 @@ describe("getGuestbook", () => {
       texto: "Obrigado por vir",
       audio: "url-audio",
     };
-    const leiturasMock = [];
+    const leiturasMock: Array<{ sessaoId: string; lidoEm: Date }> = [];
 
     mockWithEvent.mockImplementation(async (_pool, _eventId, callback) =>
       callback({} as PoolClient),

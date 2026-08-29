@@ -16,16 +16,12 @@ export default defineConfig({
 
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-
-  /* Opt out of parallel tests on CI */
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 1 : 2,
 
   /* Reporter to use */
-  reporter: [
-    ["html"],
-    ["list"],
-    ...(process.env.CI ? [["github" as const]] : []),
-  ],
+  reporter: process.env.CI
+    ? [["html"], ["list"], ["github"]]
+    : [["html"], ["list"]],
 
   /* Shared settings for all projects */
   use: {

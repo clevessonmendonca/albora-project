@@ -4,7 +4,7 @@
  * Lista música escolhida do casal e fila de sugestões.
  */
 
-import { interactionMode, ordenarSugestoes } from "@albora/core";
+import { interactionMode, ordenarSugestoes, type ModoInteracao } from "@albora/core";
 import {
   withEvent,
   eventGate,
@@ -20,7 +20,7 @@ export type GetGuestMusicInput = {
 export type GetGuestMusicOutput = {
   escolhida: Awaited<ReturnType<typeof musicaDoCasal>>;
   sugestoes: Awaited<ReturnType<typeof listarSugestoes>>;
-  interacao: "espelho" | "aberto" | "limitado";
+  interacao: ModoInteracao;
 };
 
 /**

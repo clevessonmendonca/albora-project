@@ -18,9 +18,9 @@ describe("feed-service", () => {
 
     it("retorna chaves para janela ao redor do índice", () => {
       const itens: ItemVisivel[] = [
-        { id: "1", chaveThumb: "thumb1", chaveFull: "full1", mime: "image/jpeg" } as ItemVisivel,
-        { id: "2", chaveThumb: "thumb2", chaveFull: "full2", mime: "image/jpeg" } as ItemVisivel,
-        { id: "3", chaveThumb: "thumb3", chaveFull: "full3", mime: "image/jpeg" } as ItemVisivel,
+        { id: "1", chaveThumb: "thumb1", chaveFull: "full1", mime: "image/jpeg", autor: "A", legenda: null, lugar: null, criadaEm: new Date().toISOString() },
+        { id: "2", chaveThumb: "thumb2", chaveFull: "full2", mime: "image/jpeg", autor: "A", legenda: null, lugar: null, criadaEm: new Date().toISOString() },
+        { id: "3", chaveThumb: "thumb3", chaveFull: "full3", mime: "image/jpeg", autor: "A", legenda: null, lugar: null, criadaEm: new Date().toISOString() },
       ];
       
       const result = calcularJanelaPrefetch(itens, 1, 1);
@@ -37,7 +37,11 @@ describe("feed-service", () => {
           chaveFull: "full1",
           chavePoster: "poster1",
           mime: "video/mp4",
-        } as ItemVisivel,
+          autor: "A",
+          legenda: null,
+          lugar: null,
+          criadaEm: new Date().toISOString(),
+        },
       ];
       
       const result = calcularJanelaPrefetch(itens, 0, 1);

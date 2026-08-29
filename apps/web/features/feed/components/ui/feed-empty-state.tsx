@@ -7,8 +7,8 @@ import type { PeriodoTemporal } from "../../hooks/use-temporal-filter";
 type FeedEmptyStateProps = {
   interacao: ModoInteracao;
   filtroMissao: string | null;
-  filtroMissaoTitulo?: string;
-  filtroPeriodo?: PeriodoTemporal;
+  filtroMissaoTitulo?: string | undefined;
+  filtroPeriodo?: PeriodoTemporal | undefined;
   cameraPath: string;
 };
 

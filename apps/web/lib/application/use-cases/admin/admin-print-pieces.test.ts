@@ -150,8 +150,7 @@ describe("generatePrintPieces", () => {
     const result = await generatePrintPieces(input, mockPool);
 
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.kind).toBe("zip");
+    if (result.ok && result.kind === "zip") {
       expect(result.zip).toEqual(new Uint8Array([1, 2, 3]));
       expect(result.filename).toBe("albora-maria-joao-pecas.zip");
       expect(result.contentType).toBe("application/zip");
@@ -215,15 +214,14 @@ describe("generatePrintPieces", () => {
     });
 
     const input = createInput({
-      pedido: { kind: "single", tipo: "pdf", formato: "a4" },
+      pedido: { kind: "single", tipo: "pdf", formato: "placa-a4" },
     });
     const result = await generatePrintPieces(input, mockPool);
 
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.kind).toBe("pdf");
+    if (result.ok && result.kind === "pdf") {
       expect(result.pdf).toEqual(new Uint8Array([7, 8, 9]));
-      expect(result.filename).toBe("albora-maria-joao-a4.pdf");
+      expect(result.filename).toBe("albora-maria-joao-placa-a4.pdf");
       expect(result.contentType).toBe("application/pdf");
     }
   });
@@ -254,15 +252,14 @@ describe("generatePrintPieces", () => {
     });
 
     const input = createInput({
-      pedido: { kind: "single", tipo: "svg", formato: "a4" },
+      pedido: { kind: "single", tipo: "svg", formato: "placa-a4" },
     });
     const result = await generatePrintPieces(input, mockPool);
 
     expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.kind).toBe("svg");
+    if (result.ok && result.kind === "svg") {
       expect(result.svg).toBe("<svg>...</svg>");
-      expect(result.filename).toBe("albora-maria-joao-a4.svg");
+      expect(result.filename).toBe("albora-maria-joao-placa-a4.svg");
       expect(result.contentType).toBe("image/svg+xml; charset=utf-8");
       expect(result.avisos).toEqual(["Aviso SVG"]);
     }
@@ -313,7 +310,7 @@ describe("generatePrintPieces", () => {
     mockResolveTokens.mockReturnValue({ cores: { primary: "var(--color-primary)" } });
 
     const input = createInput({
-      pedido: { kind: "single", tipo: "svg", formato: "a4" },
+      pedido: { kind: "single", tipo: "svg", formato: "placa-a4" },
     });
     mockGeneratePieceSvg.mockResolvedValue({
       svg: "<svg></svg>",

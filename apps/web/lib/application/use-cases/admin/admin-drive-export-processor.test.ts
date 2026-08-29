@@ -59,6 +59,7 @@ describe("processDriveExport - modo tick", () => {
     const result = await processDriveExport({ mode: "tick", message }, mockPool);
 
     expect(result.modo).toBe("tick");
+    if (result.modo !== "tick") throw new Error("esperado tick");
     expect(result.resultado).toEqual({
       fechou: true,
       reenfileirado: false,
@@ -77,6 +78,7 @@ describe("processDriveExport - modo tick", () => {
     const result = await processDriveExport({ mode: "tick", message }, mockPool);
 
     expect(result.modo).toBe("tick");
+    if (result.modo !== "tick") throw new Error("esperado tick");
     expect(result.resultado).toEqual({
       fechou: false,
       reenfileirado: true,
@@ -111,6 +113,7 @@ describe("processDriveExport - modo tick", () => {
     const result = await processDriveExport({ mode: "tick", message }, mockPool);
 
     expect(result.modo).toBe("tick");
+    if (result.modo !== "tick") throw new Error("esperado tick");
     expect(result.resultado.fechou).toBe(false);
     expect(result.resultado.reenfileirado).toBe(false);
   });
@@ -161,8 +164,8 @@ describe("processDriveExport - modo sweep", () => {
 
     expect(result.modo).toBe("sweep");
     if (result.modo === "sweep") {
-      expect(result.ticks).toBe(5);
-      expect(result.fechados).toBe(3);
+      expect(result.varredura.ticks).toBe(5);
+      expect(result.varredura.fechados).toBe(3);
     }
     expect(mockSweepDriveExportJobs).toHaveBeenCalledWith(mockPool);
     expect(mockSweepDriveExportJobs).toHaveBeenCalledTimes(1);
@@ -178,8 +181,8 @@ describe("processDriveExport - modo sweep", () => {
 
     expect(result.modo).toBe("sweep");
     if (result.modo === "sweep") {
-      expect(result.ticks).toBe(0);
-      expect(result.fechados).toBe(0);
+      expect(result.varredura.ticks).toBe(0);
+      expect(result.varredura.fechados).toBe(0);
     }
   });
 
@@ -193,8 +196,8 @@ describe("processDriveExport - modo sweep", () => {
 
     expect(result.modo).toBe("sweep");
     if (result.modo === "sweep") {
-      expect(result.ticks).toBe(20);
-      expect(result.fechados).toBe(15);
+      expect(result.varredura.ticks).toBe(20);
+      expect(result.varredura.fechados).toBe(15);
     }
   });
 
@@ -208,9 +211,9 @@ describe("processDriveExport - modo sweep", () => {
 
     expect(result.modo).toBe("sweep");
     if (result.modo === "sweep") {
-      expect(result.ticks).toBe(10);
-      expect(result.fechados).toBe(10);
-      expect(result.ticks).toBe(result.fechados);
+      expect(result.varredura.ticks).toBe(10);
+      expect(result.varredura.fechados).toBe(10);
+      expect(result.varredura.ticks).toBe(result.varredura.fechados);
     }
   });
 
@@ -224,8 +227,8 @@ describe("processDriveExport - modo sweep", () => {
 
     expect(result.modo).toBe("sweep");
     if (result.modo === "sweep") {
-      expect(result.ticks).toBe(8);
-      expect(result.fechados).toBe(0);
+      expect(result.varredura.ticks).toBe(8);
+      expect(result.varredura.fechados).toBe(0);
     }
   });
 

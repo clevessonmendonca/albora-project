@@ -1,16 +1,16 @@
-/**
- * Helper para criar eventos de teste no banco de dados
- *
- * Uso:
- * ```typescript
- * const event = await setupTestEvent({
- *   slug: 'casamento-joao-maria',
- *   packId: 'wedding-modern',
- * });
- * ```
- */
-
+import { Pool } from "pg";
 import { comEvento } from "@albora/db";
+
+let pool: Pool | null = null;
+
+function getE2ePool(): Pool {
+  if (!pool) {
+    const url = process.env.DATABASE_URL;
+    if (!url) throw new Error("DATABASE_URL é obrigatório para e2e");
+    pool = new Pool({ connectionString: url });
+  }
+  return pool;
+}
 
 export interface SetupTestEventOptions {
   slug?: string;
@@ -32,13 +32,19 @@ export interface TestEvent {
   createdAt: Date;
 }
 
-/**
- * Cria um evento de teste no banco de dados
- */
+export type TestUpload = {
+  id: string;
+  event_id: string;
+  key: string;
+  mime: string;
+  mission: string | null;
+  status: string;
+  created_at: Date;
+};
+
 export async function setupTestEvent(
-  options: SetupTestEventOptions = {}
+  options: SetupTestEventOptions = {},
 ): Promise<TestEvent> {
-  // Gera valores padrão
   const timestamp = Date.now();
   const slug = options.slug || `test-event-${timestamp}`;
   const packId = options.packId || "wedding-modern";
@@ -46,13 +52,22 @@ export async function setupTestEvent(
   const couple1Name = options.coupleNames?.couple1 || "João";
   const couple2Name = options.coupleNames?.couple2 || "Maria";
 
-  // Cria o evento usando comEvento (sem event_id, cria novo)
-  const result = await comEvento<TestEvent>(null, async (client) => {
-    const res = await client.query(
+  const client = await getE2ePool().connect();
+  try {
+    await client.query("BEGIN");
+    const res = await client.query<{
+      id: string;
+      slug: string;
+      pack_id: string;
+      social_gate_open_at: Date | null;
+      couple1_name: string;
+      couple2_name: string;
+      created_at: Date;
+    }>(
       `
       INSERT INTO events (
-        slug, 
-        pack_id, 
+        slug,
+        pack_id,
         social_gate_open_at,
         couple1_name,
         couple2_name,
@@ -60,10 +75,10 @@ export async function setupTestEvent(
         vendor_id
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING 
-        id, 
-        slug, 
-        pack_id, 
+      RETURNING
+        id,
+        slug,
+        pack_id,
         social_gate_open_at,
         couple1_name,
         couple2_name,
@@ -76,32 +91,35 @@ export async function setupTestEvent(
         couple1Name,
         couple2Name,
         `test-${timestamp}@albora.test`,
-        null, // vendor_id (não obrigatório)
-      ]
+        null,
+      ],
     );
 
+    const row = res.rows[0];
+    if (!row) throw new Error("falha ao criar evento de teste");
+    await client.query("COMMIT");
     return {
-      id: res.rows[0].id,
-      slug: res.rows[0].slug,
-      packId: res.rows[0].pack_id,
-      socialGateOpenAt: res.rows[0].social_gate_open_at,
-      couple1Name: res.rows[0].couple1_name,
-      couple2Name: res.rows[0].couple2_name,
-      createdAt: res.rows[0].created_at,
+      id: row.id,
+      slug: row.slug,
+      packId: row.pack_id,
+      socialGateOpenAt: row.social_gate_open_at,
+      couple1Name: row.couple1_name,
+      couple2Name: row.couple2_name,
+      createdAt: row.created_at,
     };
-  });
-
-  return result;
+  } catch (erro) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw erro;
+  } finally {
+    client.release();
+  }
 }
 
-/**
- * Busca uploads de um evento de teste
- */
-export async function getEventUploads(eventId: string) {
-  return await comEvento(eventId, async (client) => {
-    const result = await client.query(
+export async function getEventUploads(eventId: string): Promise<TestUpload[]> {
+  return comEvento(getE2ePool(), eventId, async (client) => {
+    const result = await client.query<TestUpload>(
       `
-      SELECT 
+      SELECT
         id,
         event_id,
         key,
@@ -113,25 +131,30 @@ export async function getEventUploads(eventId: string) {
       WHERE event_id = $1
       ORDER BY created_at DESC
     `,
-      [eventId]
+      [eventId],
     );
 
     return result.rows;
   });
 }
 
-/**
- * Busca um evento de teste pelo slug
- */
 export async function getEventBySlug(slug: string): Promise<TestEvent | null> {
-  // Busca sem event_id (não aplica RLS)
-  return await comEvento(null, async (client) => {
-    const result = await client.query(
+  const client = await getE2ePool().connect();
+  try {
+    const result = await client.query<{
+      id: string;
+      slug: string;
+      pack_id: string;
+      social_gate_open_at: Date | null;
+      couple1_name: string;
+      couple2_name: string;
+      created_at: Date;
+    }>(
       `
-      SELECT 
-        id, 
-        slug, 
-        pack_id, 
+      SELECT
+        id,
+        slug,
+        pack_id,
         social_gate_open_at,
         couple1_name,
         couple2_name,
@@ -139,22 +162,22 @@ export async function getEventBySlug(slug: string): Promise<TestEvent | null> {
       FROM events
       WHERE slug = $1
     `,
-      [slug]
+      [slug],
     );
 
-    if (result.rows.length === 0) {
-      return null;
-    }
+    const row = result.rows[0];
+    if (!row) return null;
 
     return {
-      id: result.rows[0].id,
-      slug: result.rows[0].slug,
-      packId: result.rows[0].pack_id,
-      socialGateOpenAt: result.rows[0].social_gate_open_at,
-      couple1Name: result.rows[0].couple1_name,
-      couple2Name: result.rows[0].couple2_name,
-      createdAt: result.rows[0].created_at,
+      id: row.id,
+      slug: row.slug,
+      packId: row.pack_id,
+      socialGateOpenAt: row.social_gate_open_at,
+      couple1Name: row.couple1_name,
+      couple2Name: row.couple2_name,
+      createdAt: row.created_at,
     };
-  });
+  } finally {
+    client.release();
+  }
 }
-

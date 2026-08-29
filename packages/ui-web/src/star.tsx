@@ -6,6 +6,7 @@ export function Star({
   size?: number;
   filled?: boolean;
   className?: string;
+  animating?: boolean;
 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" className={className}>

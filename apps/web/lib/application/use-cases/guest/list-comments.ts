@@ -1,16 +1,10 @@
-/**
- * Use Case: List Comments
- * 
- * Lista os comentários visíveis de uma foto, organizados em thread.
- */
-
 import {
   type ComentarioComAutor,
   withEvent,
   listarComentariosVisiveisDaFoto,
 } from "@albora/db";
 import { buildCommentThread } from "@albora/core";
-import type { PoolClient } from "pg";
+import type { Pool } from "pg";
 
 export type CommentAuthor = {
   id: string;
@@ -32,42 +26,43 @@ export type ListCommentsOutput = {
   comentarios: CommentAuthor[];
 };
 
-/**
- * Lista comentários de uma foto.
- * 
- * @param input - Evento, upload e sessão atual
- * @param getClient - Factory de conexão
- * @returns Lista de comentários ordenados por thread
- */
+function serializar(c: ComentarioComAutor, sessaoAtual: string): CommentAuthor {
+  return {
+    id: c.id,
+    autor: c.autor,
+    texto: c.texto,
+    respostaA: c.respostaA,
+    criadaEm: c.criadoEm.toISOString(),
+    meu: c.sessaoId === sessaoAtual,
+    sessaoAutor: c.sessaoId,
+  };
+}
+
 export async function listComments(
   input: ListCommentsInput,
-  getClient: () => Promise<PoolClient>,
+  pool: Pool,
 ): Promise<ListCommentsOutput> {
-  const client = await getClient();
-
-  try {
-    const comentarios = await withEvent(
-      { query: client.query.bind(client) } as any,
+  const comentarios = await withEvent(pool, input.eventoId, (c) =>
+    listarComentariosVisiveisDaFoto(
+      c,
       input.eventoId,
-      (c) => listarComentariosVisiveisDaFoto(c, input.uploadId),
-    );
+      input.uploadId,
+      input.currentSessionId,
+    ),
+  );
 
-    // Ordena por thread (domínio)
-    const thread = buildCommentThread(comentarios);
+  const porId = new Map(comentarios.map((c) => [c.id, c]));
+  const thread = buildCommentThread(comentarios, input.uploadId);
 
-    // Serializa para JSON
-    const serialized = thread.map((c) => ({
-      id: c.id,
-      autor: c.autor,
-      texto: c.texto,
-      respostaA: c.respostaA,
-      criadaEm: c.criadoEm.toISOString(),
-      meu: c.sessaoId === input.currentSessionId,
-      sessaoAutor: c.sessaoId,
-    }));
-
-    return { comentarios: serialized };
-  } finally {
-    client.release();
+  const serialized: CommentAuthor[] = [];
+  for (const t of thread) {
+    const raiz = porId.get(t.raiz.id);
+    if (raiz) serialized.push(serializar(raiz, input.currentSessionId));
+    for (const resposta of t.respostas) {
+      const item = porId.get(resposta.id);
+      if (item) serialized.push(serializar(item, input.currentSessionId));
+    }
   }
+
+  return { comentarios: serialized };
 }

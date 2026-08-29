@@ -1,13 +1,6 @@
-/**
- * Use Case: List Guest Missions
- * 
- * Lista as missões disponíveis para um convidado, incluindo
- * o status de completude de cada uma.
- */
-
 import { withEvent, listChallenges, packDoEvento } from "@albora/db";
 import { PACKS, resolvePackText } from "@albora/packs";
-import type { PoolClient } from "pg";
+import type { Pool } from "pg";
 
 export type GuestMission = {
   id: string;
@@ -25,48 +18,31 @@ export type ListGuestMissionsOutput = {
   missoes: GuestMission[];
 };
 
-/**
- * Lista as missões do evento para o convidado.
- * 
- * @param input - ID do evento e sessão do convidado
- * @param pool - Pool de conexões do banco
- * @returns Lista de missões com status
- */
 export async function listGuestMissions(
   input: ListGuestMissionsInput,
-  getClient: () => Promise<PoolClient>,
+  pool: Pool,
 ): Promise<ListGuestMissionsOutput> {
-  const client = await getClient();
-  
-  try {
-    const { desafios, packId } = await withEvent(
-      { query: client.query.bind(client) } as any,
-      input.eventoId,
-      async (c) => {
-        const [d, p] = await Promise.all([
-          listChallenges(c, input.eventoId, input.sessaoId),
-          packDoEvento(c, input.eventoId),
-        ]);
-        return { desafios: d, packId: p };
-      },
-    );
+  const { desafios, packId } = await withEvent(pool, input.eventoId, async (c) => {
+    const [d, p] = await Promise.all([
+      listChallenges(c, input.eventoId, input.sessaoId),
+      packDoEvento(c, input.eventoId),
+    ]);
+    return { desafios: d, packId: p };
+  });
 
-    const pack = packId ? (PACKS[packId] ?? null) : null;
+  const pack = packId ? (PACKS[packId] ?? null) : null;
 
-    const missoes: GuestMission[] = desafios.map((d) => {
-      const titulo =
-        d.tituloCustom ??
-        (pack && d.chaveTitulo ? resolvePackText(pack, d.chaveTitulo) : (d.chaveTitulo ?? ""));
-      return {
-        id: d.id,
-        titulo,
-        emoji: d.emoji ?? null,
-        feito: d.feito,
-      };
-    });
+  const missoes: GuestMission[] = desafios.map((d) => {
+    const titulo =
+      d.tituloCustom ??
+      (pack && d.chaveTitulo ? resolvePackText(pack, d.chaveTitulo) : (d.chaveTitulo ?? ""));
+    return {
+      id: d.id,
+      titulo,
+      emoji: d.emoji ?? null,
+      feito: d.feito,
+    };
+  });
 
-    return { missoes };
-  } finally {
-    client.release();
-  }
+  return { missoes };
 }

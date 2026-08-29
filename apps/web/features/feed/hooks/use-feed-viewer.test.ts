@@ -7,7 +7,7 @@ import type { ItemVisivel } from "./use-feed";
 describe("useFeedViewer", () => {
   const criarGrupo = (inicio: Date, completo: boolean, itens: ItemVisivel[]): HourGroup<ItemVisivel> => ({
     inicio,
-    hora: "12:00",
+    hora: 12,
     itens,
     completo,
   });

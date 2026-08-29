@@ -42,7 +42,7 @@ export const createEventSchema = z.object({
     .optional()
     .transform((val) => val ?? 150),
   identityTokens: z
-    .record(z.unknown())
+    .record(z.string(), z.unknown())
     .optional()
     .transform((val) => val ?? {}),
   missoes: z.array(z.string()).optional(),
@@ -60,10 +60,7 @@ export const createEventSchema = z.object({
     .string()
     .optional()
     .refine(
-      (val, ctx) => {
-        const parent = ctx.path[0];
-        const hasVendor = parent && typeof parent === "object" && "vendorId" in parent;
-        if (hasVendor && !val) return false;
+      (val) => {
         if (val && !EMAIL.test(val.trim())) return false;
         return true;
       },
