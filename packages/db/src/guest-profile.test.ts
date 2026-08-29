@@ -31,6 +31,8 @@ describe("perfil de um convidado", () => {
     );
 
     expect(perfil?.nome).toBe(`convidado-evento-a`);
+    expect(perfil?.totalFotos).toBe(1);
+    expect(perfil?.totalCurtidas).toBe(0);
   });
 
   it("id de sessão de outro evento não existe aqui — RLS, não erro", async () => {

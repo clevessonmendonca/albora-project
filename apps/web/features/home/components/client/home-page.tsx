@@ -20,6 +20,9 @@ import { useFeed, podeCarregarMais, type EstadoFeed } from "@/features/feed/hook
 import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
 import { paraStoryItem, useStories } from "../../hooks/use-stories";
 import { HomeFeedCard } from "./home-feed-card";
+import { MissionsBadge } from "@/features/missions/components/ui/missions-badge";
+import { photoPathForMission } from "@/features/missions/lib/missions-utils";
+import type { MissionWithStatus } from "@/features/guest/lib/resolved-missions";
 
 /** Reutiliza `useFeed` de `/feed` sem duplicar cursor/gate; scroll infinito substitui "toque" (design doc §5.4). Story e post são fontes separadas — story some após 24h sem ter estado no mural. */
 export function HomePage({
@@ -28,12 +31,14 @@ export function HomePage({
   coverHref,
   cameraPath,
   anfitriaoPlural,
+  missions = [],
 }: {
   slug: string;
   eventName: string;
   coverHref: string;
   cameraPath: string;
   anfitriaoPlural: string;
+  missions?: MissionWithStatus[];
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
@@ -75,6 +80,10 @@ export function HomePage({
             homeHref={coverHref}
             action={contagem ? <Badge>{contagem}</Badge> : undefined}
           />
+
+          {missions.length > 0 && (
+            <MissionsCue slug={slug} missions={missions} />
+          )}
 
           <StoryRail items={stories} onAdd={() => router.push(cameraPath)} />
 
@@ -136,6 +145,31 @@ export function HomePage({
         />
       )}
     </>
+  );
+}
+
+function MissionsCue({ slug, missions }: { slug: string; missions: MissionWithStatus[] }) {
+  const done = missions.filter((m) => m.done).length;
+  const current = missions.find((m) => !m.done) ?? null;
+  const href = current
+    ? photoPathForMission(slug, current.id)
+    : `/e/${encodeURIComponent(slug)}/missions`;
+
+  return (
+    <Link
+      href={href}
+      className="mb-4 flex items-center justify-between gap-3 border-b border-linha py-3 text-inherit no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
+    >
+      <span className="min-w-0">
+        <span className="block text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
+          {current ? "Próxima missão" : "Missões"}
+        </span>
+        <span className="block truncate font-titulo text-[0.9375rem] tracking-titulo text-ink">
+          {current ? current.title : "Todas completas"}
+        </span>
+      </span>
+      <MissionsBadge done={done} total={missions.length} variant="compact" />
+    </Link>
   );
 }
 

@@ -3,28 +3,24 @@
 import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  BackIcon,
-  EmptyState,
-  FloatingNav,
-  GuestMain,
-  GuestShell,
-  PhotoCard,
-  PostAuthorAvatar,
-  SecondaryButton,
-} from "@albora/ui-web";
-import { CommentSheet } from "@/features/feed/components/client/comment-sheet";
-import { useComments } from "@/features/feed/hooks/use-comments";
-import { useReaction } from "@/features/feed/hooks/use-reaction";
-import { podeCarregarMais, type EstadoFeed, type ItemVisivel } from "@/features/feed/hooks/use-feed";
+import { EmptyState, FloatingNav, GuestMain, GuestShell, SecondaryButton } from "@albora/ui-web";
+import { Viewer } from "@/features/feed/components/client/viewer";
+import { useReducedMotion } from "@/features/feed/hooks/use-reduced-motion";
+import { podeCarregarMais, type EstadoFeed } from "@/features/feed/hooks/use-feed";
 import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
-import { formatQuando } from "@/features/home/lib/format-quando";
 import { useAuthorFeed } from "../../hooks/use-author-feed";
+import { useProfileViewer } from "../../hooks/use-profile-viewer";
+import { PhotoGrid } from "../ui/photo-grid";
+import { ProfileHeader } from "../ui/profile-header";
 
 /** Sem decisão de visibilidade própria — RLS, gate e bloqueio ficam em `/api/guests/[autorId]`; esta tela só monta o que a API devolve (ADR 0009). */
 export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: string }) {
+  const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
+  const cameraPath = `${base}/photo`;
   const { estado, carregarMais } = useAuthorFeed(autorId);
+  const viewer = useProfileViewer();
+  const movimentoReduzido = useReducedMotion();
 
   const primeiraCarga = !estado.feed.jaCarregou && estado.feed.carregando;
   const vazio =
@@ -37,39 +33,34 @@ export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: st
     <>
       <GuestShell>
         <GuestMain>
-          <CabecalhoPerfil nome={estado.nome} base={base} />
+          <ProfileHeader
+            nome={estado.nome}
+            base={base}
+            totalFotos={estado.stats?.totalFotos ?? null}
+            totalCurtidas={estado.stats?.totalCurtidas ?? null}
+          />
 
           {estado.naoEncontrado && <PerfilIndisponivel />}
 
-          {!estado.naoEncontrado && primeiraCarga && (
-            <div className="mt-5 grid gap-6">
-              <CardLoading />
-              <CardLoading />
-            </div>
-          )}
+          {!estado.naoEncontrado && primeiraCarga && <GradeLoading />}
 
           {!estado.naoEncontrado && vazio && (
             <div className="mt-5">
               <EmptyState
                 title="Ainda não tem foto aqui."
                 lede="Quando esta pessoa mandar uma foto, ela aparece aqui."
-                cameraPath={`${base}/photo`}
+                cameraPath={cameraPath}
               />
             </div>
           )}
 
-          {!estado.naoEncontrado && estado.feed.itens.length > 0 && (
-            <div className="mt-5 grid gap-6">
-              {estado.feed.itens.map((item) => (
-                <AuthorPhotoCard
-                  key={item.id}
-                  item={item}
-                  url={estado.feed.urls.get(item.chaveThumb)?.url ?? null}
-                  completo={estado.feed.interacao === "completo"}
-                  base={base}
-                />
-              ))}
-            </div>
+          {!estado.naoEncontrado && estado.feed.itens.length > 0 && estado.nome && (
+            <PhotoGrid
+              itens={estado.feed.itens}
+              urls={estado.feed.urls}
+              autor={estado.nome}
+              onAbrir={viewer.abrir}
+            />
           )}
 
           {!estado.naoEncontrado && <Rodape estado={estado.feed} onVerMais={carregarMais} />}
@@ -77,58 +68,23 @@ export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: st
       </GuestShell>
 
       <FloatingNav base={base} linkComponent={Link} />
-    </>
-  );
-}
 
-function AuthorPhotoCard({
-  item,
-  url,
-  completo,
-  base,
-}: {
-  item: ItemVisivel;
-  url: string | null;
-  completo: boolean;
-  base: string;
-}) {
-  const router = useRouter();
-  const reacao = useReaction(item.id, item.reacoes, item.minhaReacao);
-  const comentarios = useComments(item.id, completo);
-
-  return (
-    <>
-      <PhotoCard
-        autor={item.autor}
-        quando={formatQuando(item.criadaEm)}
-        {...(url ? { fotoUrl: url } : {})}
-        curtidas={reacao.reacoes}
-        curtido={reacao.minha !== null}
-        comentarios={completo ? comentarios.total : 0}
-        onCurtir={() => void reacao.alternar()}
-        {...(completo ? { onComentar: comentarios.abrir } : {})}
-      />
-      {completo && (
-        <CommentSheet
-          comentarios={comentarios}
+      {viewer.indice !== null && estado.feed.itens.length > 0 && (
+        <Viewer
+          itens={estado.feed.itens}
+          indice={viewer.indice}
+          hora={0}
+          rotulo={estado.nome ?? "Perfil"}
+          urls={estado.feed.urls}
+          interacao={estado.feed.interacao}
+          cameraPath={cameraPath}
+          movimentoReduzido={movimentoReduzido}
+          onIr={viewer.navegar}
+          onSair={viewer.fechar}
           onVerAutor={(id) => router.push(`${base}/g/${encodeURIComponent(id)}`)}
         />
       )}
     </>
-  );
-}
-
-function CabecalhoPerfil({ nome, base }: { nome: string | null; base: string }) {
-  return (
-    <header className="flex items-center gap-3 pb-3.5 pt-1.5">
-      <Link href={base} aria-label="Voltar para a Home" className="text-ink no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70">
-        <BackIcon />
-      </Link>
-      {nome && <PostAuthorAvatar name={nome} />}
-      <span className="flex-1 truncate font-titulo text-[1.125rem] tracking-titulo text-ink">
-        {nome ?? "Perfil"}
-      </span>
-    </header>
   );
 }
 
@@ -145,14 +101,12 @@ function PerfilIndisponivel() {
   );
 }
 
-function CardLoading() {
+function GradeLoading() {
   return (
-    <div aria-hidden className="grid gap-3">
-      <div className="flex items-center gap-2.5">
-        <span className="size-[1.875rem] rounded-full bg-ink-skeleton" />
-        <span className="h-3.5 w-24 rounded-pilula bg-ink-skeleton" />
-      </div>
-      <div className="aspect-4/5 rounded-media bg-ink-skeleton" />
+    <div aria-hidden className="mt-1 grid grid-cols-3 gap-1">
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <span key={i} className="aspect-square bg-ink-skeleton animate-pulse" />
+      ))}
     </div>
   );
 }

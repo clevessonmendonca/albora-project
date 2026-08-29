@@ -40,6 +40,8 @@ describe("AuthorProfilePage", () => {
   it("monta, busca o perfil e mostra o nome do autor e a foto dele", async () => {
     stubFetch({
       nome: "Marina",
+      totalFotos: 1,
+      totalCurtidas: 3,
       itens: [
         {
           id: "foto-1",
@@ -63,8 +65,9 @@ describe("AuthorProfilePage", () => {
       expect(screen.getAllByText("Marina").length).toBeGreaterThan(0);
     });
 
-    expect(await screen.findByAltText("Foto de Marina")).toBeInTheDocument();
-    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(await screen.findByLabelText("Foto de Marina, 1 de 1")).toBeInTheDocument();
+    expect(screen.getByText("Fotos")).toBeInTheDocument();
+    expect(screen.getByText("Curtidas")).toBeInTheDocument();
   });
 
   it("perfil não encontrado (id de outro evento, bloqueado, ou antes do gate) mostra o estado terminal", async () => {
