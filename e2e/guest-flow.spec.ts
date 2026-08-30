@@ -4,14 +4,17 @@ const E2E_FULL = !!process.env.E2E_FULL;
 const SLUG = "festa-demo";
 
 /**
- * JPEG mínimo válido: SOI + marcador JFIF APP0 + EOI.
- * Suficiente para o browser não rejeitar o tipo, sem depender de um fixture
- * real em disco.
+ * PNG 1×1 válido de verdade (não só magic bytes) — o editor decodifica a
+ * imagem no cliente via createImageBitmap antes de habilitar "Enviar", e
+ * um JPEG com só SOI+APP0+EOI (sem dados de scan) falha nesse decode e
+ * deixa o botão preso disabled. PNG mínimo é trivial de escrever à mão e
+ * decodifica igual, então segue self-contained sem depender de fixture
+ * em disco (mesmo truque do apps/web/e2e/fixtures/photo-test.jpg).
  */
-const JPEG_MINIMO = Buffer.from([
-  0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
-  0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xff, 0xd9,
-]);
+const JPEG_MINIMO = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+  "base64",
+);
 
 /**
  * Intercepta presign, PUT no storage e confirm — sem R2 real.
@@ -138,18 +141,18 @@ test.describe("smoke — fluxo do convidado", () => {
       buffer: JPEG_MINIMO,
     });
 
-    // 9. Editor abriu — confirma o envio (Enviar fica desabilitado até a
+    // 8. Editor abriu — confirma o envio (Enviar fica desabilitado até a
     // prévia do LUT terminar de carregar, o click já espera isso).
     const presignPromise = page.waitForRequest("**/api/uploads/presign", {
       timeout: 15_000,
     });
     await page.getByRole("button", { name: /^enviar$/i }).click();
 
-    // 10. Garante que o presign foi chamado — upload foi disparado
+    // 9. Garante que o presign foi chamado — upload foi disparado
     const req = await presignPromise;
     expect(req.method()).toBe("POST");
 
-    // 11. Aguarda o confirm — ciclo de upload completo (presign → PUT → confirm)
+    // 10. Aguarda o confirm — ciclo de upload completo (presign → PUT → confirm)
     await page.waitForRequest("**/api/uploads/confirm", { timeout: 20_000 });
   });
 });
