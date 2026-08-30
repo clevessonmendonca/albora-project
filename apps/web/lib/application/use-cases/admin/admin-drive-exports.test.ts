@@ -10,6 +10,8 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { createOrResumeDriveExport } from "./create-drive-export";
 import { getLatestDriveExport } from "./get-drive-export";
 import type { Pool } from "pg";
+import type { DriveClient } from "@/lib/drive-client";
+import type { DriveTokenVault } from "@albora/core";
 
 // Mocks usando vi.hoisted
 const {
@@ -66,17 +68,17 @@ vi.mock("@/lib/drive-export", () => ({
 
 describe("createOrResumeDriveExport", () => {
   let mockPool: Pool;
-  let mockVault: any;
-  let mockClient: any;
+  let mockVault: DriveTokenVault;
+  let mockClient: DriveClient;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockPool = {} as Pool;
-    mockVault = {};
+    mockVault = {} as DriveTokenVault;
     mockClient = {
       refreshAccessToken: vi.fn(),
       getAbout: vi.fn(),
-    };
+    } as unknown as DriveClient;
     mockGetDriveClient.mockReturnValue(mockClient);
     mockGetDriveVault.mockReturnValue(mockVault);
   });
@@ -187,10 +189,12 @@ describe("createOrResumeDriveExport", () => {
       bytesTotal: 5000000,
     });
     mockRefreshTokenDoEvento.mockResolvedValue("refresh-token");
-    mockClient.refreshAccessToken.mockResolvedValue({
+    vi.mocked(mockClient.refreshAccessToken).mockResolvedValue({
       accessToken: "access-token",
+      expiresInSeconds: 3600,
     });
-    mockClient.getAbout.mockResolvedValue({
+    vi.mocked(mockClient.getAbout).mockResolvedValue({
+      email: "user@gmail.com",
       quota: {
         limitBytes: 15000000000,
         usageBytes: 10000000000,
@@ -227,10 +231,12 @@ describe("createOrResumeDriveExport", () => {
       bytesTotal: 5000000000,
     });
     mockRefreshTokenDoEvento.mockResolvedValue("refresh-token");
-    mockClient.refreshAccessToken.mockResolvedValue({
+    vi.mocked(mockClient.refreshAccessToken).mockResolvedValue({
       accessToken: "access-token",
+      expiresInSeconds: 3600,
     });
-    mockClient.getAbout.mockResolvedValue({
+    vi.mocked(mockClient.getAbout).mockResolvedValue({
+      email: "user@gmail.com",
       quota: {
         limitBytes: 15000000000,
         usageBytes: 14000000000,
@@ -257,7 +263,7 @@ describe("createOrResumeDriveExport", () => {
       bytesTotal: 1000,
     });
     mockRefreshTokenDoEvento.mockResolvedValue("refresh-token");
-    mockClient.refreshAccessToken.mockRejectedValue(new Error("invalid_grant"));
+    vi.mocked(mockClient.refreshAccessToken).mockRejectedValue(new Error("invalid_grant"));
 
     const input = createInput();
     const result = await createOrResumeDriveExport(input, mockPool, mockVault);

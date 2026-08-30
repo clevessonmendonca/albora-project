@@ -11,6 +11,7 @@ export const PRODUCT_EVENT_NAMES = [
   "landing_scroll_50",
   "landing_demo",
   "landing_cta",
+  "landing_veteran_cta",
   "account_created",
   "event_created",
   "qr_downloaded",

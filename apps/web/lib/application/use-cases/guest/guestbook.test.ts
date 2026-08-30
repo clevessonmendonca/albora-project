@@ -64,7 +64,7 @@ describe("getGuestbook", () => {
       texto: "Obrigado por vir",
       audio: "url-audio",
     };
-    const leiturasMock = [];
+    const leiturasMock: unknown[] = [];
 
     mockWithEvent.mockImplementation(async (_pool, _eventId, callback) =>
       callback({} as PoolClient),
@@ -311,7 +311,7 @@ describe("markGuestbookReadUseCase", () => {
 
   it("deve passar data atual para decisão de entrega", async () => {
     const recadoMock = { id: "rec-1", titulo: "Teste" };
-    const agora = new Date();
+    const _agora = new Date();
 
     mockWithEvent.mockImplementation(async (_pool, _eventId, callback) =>
       callback({} as PoolClient),

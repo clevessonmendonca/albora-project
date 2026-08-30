@@ -10,7 +10,7 @@ import {
   normalizeGuestbookAudioMime,
   VALIDADE_PRESIGN_SEGUNDOS,
   validateGuestbookAudioDeclaration,
-  type GuestbookAudioMime,
+  type TipoAudioRecado as GuestbookAudioMime,
 } from "@albora/core";
 import { assinarPut } from "@/lib/r2";
 
@@ -76,7 +76,7 @@ export async function presignGuestbookAudioUpload(
           ok: false,
           code: invalido.code,
           message: "Áudio inválido",
-          details: "details" in invalido ? invalido.details : undefined,
+          ...("details" in invalido ? { details: invalido.details } : {}),
         };
     }
   }

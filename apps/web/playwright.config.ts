@@ -1,4 +1,4 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices, type ReporterDescription } from "@playwright/test";
 
 /**
  * Configuração do Playwright para testes E2E do Albora
@@ -18,13 +18,13 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
 
   /* Opt out of parallel tests on CI */
-  workers: process.env.CI ? 1 : undefined,
+  ...(process.env.CI ? { workers: 1 } : {}),
 
   /* Reporter to use */
   reporter: [
     ["html"],
     ["list"],
-    ...(process.env.CI ? [["github" as const]] : []),
+    ...(process.env.CI ? ([["github"]] as ReporterDescription[]) : []),
   ],
 
   /* Shared settings for all projects */

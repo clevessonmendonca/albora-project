@@ -17,12 +17,6 @@ import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 
 type Aberto = { inicio: number; itemId: string };
 
-type ViewerState = {
-  grupoAberto: HourGroup<ItemVisivel> | null;
-  indiceAtual: number;
-  vistos: ReadonlySet<number>;
-};
-
 export function useFeedViewer(grupos: HourGroup<ItemVisivel>[]) {
   const [aberto, setAberto] = useState<Aberto | null>(null);
   const [preparando, setPreparando] = useState<number | null>(null);

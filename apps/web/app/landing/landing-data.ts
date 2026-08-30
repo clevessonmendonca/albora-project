@@ -2,6 +2,7 @@ export const WIDTH = "max-w-[78rem]";
 export const SIDE_PADDING = "px-[clamp(1.125rem,4vw,2.75rem)]";
 export const SECTION_PADDING = `py-[clamp(2.5rem,6vw,5.5rem)] ${SIDE_PADDING}`;
 
+export const HREF_CRIAR_ALBUM = "/admin/new";
 export const HREF_CRIAR_GRATIS = "/admin/new?plano=free";
 export const HREF_CRIAR_COMPLETO = "/admin/new?plano=celebration";
 export const HREF_FORNECEDOR =
@@ -81,7 +82,7 @@ export const QUESTIONS = [
   },
   {
     q: "E se alguém mandar uma foto inadequada?",
-    a: "Por padrão tudo aparece, porque no dia da festa ninguém vai ficar aprovando foto numa fila. O que protege roda sozinho: um filtro checa cada foto antes de ela subir, qualquer convidado pode denunciar, e você tira do ar em um toque.",
+    a: "Por padrão tudo aparece na galeria — porque no dia da festa ninguém fica aprovando fila. O que protege o telão é automático: o classificador segura o impróprio, qualquer convidado pode denunciar, e você tira do telão em um toque. Se preferir, dá pra ligar aprovação manual.",
   },
   {
     q: "As fotos ficam com vocês?",

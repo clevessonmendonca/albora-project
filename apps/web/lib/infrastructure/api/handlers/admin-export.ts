@@ -108,8 +108,8 @@ export async function postExport(
 
   const validado = createExportSchema.safeParse(parsed.data);
   if (!validado.success) {
-    return errorResponse(422, "validation_error", validado.error.errors[0]?.message ?? "Dados inválidos", {
-      erros: validado.error.errors,
+    return errorResponse(422, "validation_error", validado.error.issues[0]?.message ?? "Dados inválidos", {
+      erros: validado.error.issues,
     });
   }
 

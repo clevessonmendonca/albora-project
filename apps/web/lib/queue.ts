@@ -1,6 +1,11 @@
 /**
- * @deprecated Importar de `@/lib/infrastructure/queue` na nova estrutura.
+ * @deprecated Importar de `@/lib/infrastructure/queue/client` na nova estrutura.
  * Este arquivo mantém retrocompatibilidade temporária.
  */
-export type { EnqueueTaskPayload } from "./infrastructure/queue/client";
-export { enqueueTask } from "./infrastructure/queue/client";
+export {
+  clearQueue,
+  queueSummary,
+  webQueue,
+  QueueQuotaExceededError,
+  QueueUnavailableError,
+} from "./infrastructure/queue/client";

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { FloatingNav } from "@albora/ui-web";
-import { AlbumPage, type AlbumMission } from "./album-page";
+import { AlbumPage } from "./album-page";
+import type { AlbumMission } from "../../hooks/use-album-filter";
 
 export function AlbumWithTabs({
   slug,

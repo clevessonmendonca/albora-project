@@ -95,7 +95,12 @@ export async function PUT(
         {
           eventId,
           packId: owned.evento.packId,
-          customMissions: validation.customMissions,
+          customMissions: validation.customMissions.map((m) => ({
+            ...(m.id !== undefined ? { id: m.id } : {}),
+            titulo: m.titulo,
+            posicao: m.posicao,
+            emoji: m.emoji,
+          })),
         },
         getPool(),
       );

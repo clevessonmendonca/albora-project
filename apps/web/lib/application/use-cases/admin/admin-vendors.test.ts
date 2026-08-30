@@ -67,8 +67,8 @@ describe("listAdminVendors", () => {
     const input = createInput();
     const result = await listAdminVendors(input, mockPool);
 
-    expect(result.vendors[0].role).toBe("admin");
-    expect(result.vendors[1].role).toBe("staff");
+    expect(result.vendors[0]!.role).toBe("admin");
+    expect(result.vendors[1]!.role).toBe("staff");
   });
 
   it("deve funcionar com múltiplos vendors", async () => {

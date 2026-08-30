@@ -1,5 +1,5 @@
 import { config, ErroConfig, ErroOrigemDeMidia } from "@/lib/config";
-import { errorResponse } from "./response";
+import { errorResponse } from "./middleware/response";
 
 export type RequireConfigOptions = {
   log?: boolean;

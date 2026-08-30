@@ -17,6 +17,14 @@ export type CoverData = {
   album: AlbumServido;
   moments: CoverMoment[];
   interactionOpen: boolean;
+  interactionBannerLabel: string;
+  interactionOpensAt: string | null;
+  interactionLabels: {
+    aberta: string;
+    fechada: string;
+    fechadaAgendada: string;
+  };
+  fuso: string;
   musicLabel: string | null;
   hostMessageLabel: string;
   hasConfessional: boolean;

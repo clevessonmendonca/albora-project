@@ -7,7 +7,7 @@
 
 import { withEvent, listChallenges, packDoEvento } from "@albora/db";
 import { PACKS, resolvePackText } from "@albora/packs";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 export type GuestMission = {
   id: string;
@@ -39,8 +39,18 @@ export async function listGuestMissions(
   const client = await getClient();
   
   try {
+    // withEvent (comEvento) chama pool.connect() para abrir a transação com o SET LOCAL
+    // de RLS — o client já foi obtido acima, então o "pool" aqui só devolve esse mesmo
+    // client; release() fica no-op porque quem fecha a conexão é o finally deste use case.
+    const pool = {
+      connect: async () => ({
+        query: client.query.bind(client),
+        release: () => {},
+      }),
+    } as unknown as Pool;
+
     const { desafios, packId } = await withEvent(
-      { query: client.query.bind(client) } as any,
+      pool,
       input.eventoId,
       async (c) => {
         const [d, p] = await Promise.all([

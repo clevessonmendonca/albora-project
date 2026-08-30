@@ -5,7 +5,7 @@
  */
 
 import { carregarEventoPublico, withEvent } from "@albora/db";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 export type GuestEventOutput = {
   eventoId: string;
@@ -37,7 +37,7 @@ export async function getGuestEvent(
 
   try {
     const evento = await withEvent(
-      { query: client.query.bind(client) } as PoolClient,
+      { query: client.query.bind(client) } as unknown as Pool,
       input.eventoId,
       (c) => carregarEventoPublico(c, input.eventoId),
     );

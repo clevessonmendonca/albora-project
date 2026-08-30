@@ -59,10 +59,12 @@ describe("processDriveExport - modo tick", () => {
     const result = await processDriveExport({ mode: "tick", message }, mockPool);
 
     expect(result.modo).toBe("tick");
-    expect(result.resultado).toEqual({
-      fechou: true,
-      reenfileirado: false,
-    });
+    if (result.modo === "tick") {
+      expect(result.resultado).toEqual({
+        fechou: true,
+        reenfileirado: false,
+      });
+    }
     expect(mockTickDriveExportJob).toHaveBeenCalledWith(mockPool, message);
     expect(mockTickDriveExportJob).toHaveBeenCalledTimes(1);
   });
@@ -77,10 +79,12 @@ describe("processDriveExport - modo tick", () => {
     const result = await processDriveExport({ mode: "tick", message }, mockPool);
 
     expect(result.modo).toBe("tick");
-    expect(result.resultado).toEqual({
-      fechou: false,
-      reenfileirado: true,
-    });
+    if (result.modo === "tick") {
+      expect(result.resultado).toEqual({
+        fechou: false,
+        reenfileirado: true,
+      });
+    }
     expect(mockTickDriveExportJob).toHaveBeenCalledWith(mockPool, message);
   });
 
@@ -111,8 +115,10 @@ describe("processDriveExport - modo tick", () => {
     const result = await processDriveExport({ mode: "tick", message }, mockPool);
 
     expect(result.modo).toBe("tick");
-    expect(result.resultado.fechou).toBe(false);
-    expect(result.resultado.reenfileirado).toBe(false);
+    if (result.modo === "tick") {
+      expect(result.resultado.fechou).toBe(false);
+      expect(result.resultado.reenfileirado).toBe(false);
+    }
   });
 
   it("deve propagar erro do tickDriveExportJob", async () => {

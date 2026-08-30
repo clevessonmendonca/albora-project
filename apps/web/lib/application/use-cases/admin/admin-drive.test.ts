@@ -14,6 +14,8 @@ import { completeDriveConnection } from "./complete-drive-connection";
 import { disconnectDrive } from "./disconnect-drive";
 import { getDriveConnectionStatus } from "./get-drive-connection-status";
 import type { Pool } from "pg";
+import type { DriveClient } from "@/lib/drive-client";
+import type { DriveTokenVault } from "@albora/core";
 
 // Mocks usando vi.hoisted
 const {
@@ -169,8 +171,8 @@ describe("initiateDriveConnection", () => {
 
 describe("completeDriveConnection", () => {
   let mockPool: Pool;
-  let mockClient: any;
-  let mockVault: any;
+  let mockClient: DriveClient;
+  let mockVault: DriveTokenVault;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -179,8 +181,8 @@ describe("completeDriveConnection", () => {
       exchangeCode: vi.fn(),
       createFolder: vi.fn(),
       getAbout: vi.fn(),
-    };
-    mockVault = {};
+    } as unknown as DriveClient;
+    mockVault = {} as DriveTokenVault;
   });
 
   const createInput = (overrides = {}) => ({
@@ -199,15 +201,17 @@ describe("completeDriveConnection", () => {
       eventId: "evt-123",
       accountId: "acc-456",
     });
-    mockClient.exchangeCode.mockResolvedValue({
+    vi.mocked(mockClient.exchangeCode).mockResolvedValue({
       accessToken: "access-token",
       refreshToken: "refresh-token",
+      expiresInSeconds: 3600,
     });
-    mockClient.createFolder.mockResolvedValue({
+    vi.mocked(mockClient.createFolder).mockResolvedValue({
       folderId: "folder-id",
     });
-    mockClient.getAbout.mockResolvedValue({
+    vi.mocked(mockClient.getAbout).mockResolvedValue({
       email: "user@gmail.com",
+      quota: { limitBytes: null, usageBytes: 0 },
     });
     mockConectarDrive.mockResolvedValue(undefined);
 
@@ -282,7 +286,7 @@ describe("completeDriveConnection", () => {
       eventId: "evt-123",
       accountId: "acc-456",
     });
-    mockClient.exchangeCode.mockRejectedValue(new ErroDriveApi("invalid_grant"));
+    vi.mocked(mockClient.exchangeCode).mockRejectedValue(new ErroDriveApi("invalid_grant"));
 
     const input = createInput();
     const result = await completeDriveConnection(input, mockPool, mockClient, mockVault);
@@ -297,16 +301,16 @@ describe("completeDriveConnection", () => {
 
 describe("disconnectDrive", () => {
   let mockPool: Pool;
-  let mockClient: any;
-  let mockVault: any;
+  let mockClient: DriveClient;
+  let mockVault: DriveTokenVault;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockPool = {} as Pool;
     mockClient = {
       revoke: vi.fn(),
-    };
-    mockVault = {};
+    } as unknown as DriveClient;
+    mockVault = {} as DriveTokenVault;
   });
 
   const createInput = (overrides = {}) => ({
@@ -316,7 +320,7 @@ describe("disconnectDrive", () => {
 
   it("deve desconectar Drive com sucesso", async () => {
     mockRefreshTokenDoEvento.mockResolvedValue("refresh-token");
-    mockClient.revoke.mockResolvedValue(undefined);
+    vi.mocked(mockClient.revoke).mockResolvedValue(undefined);
     mockRevogarDrive.mockResolvedValue(undefined);
 
     const input = createInput();
@@ -348,7 +352,7 @@ describe("disconnectDrive", () => {
 
   it("deve continuar mesmo se revoke falhar", async () => {
     mockRefreshTokenDoEvento.mockResolvedValue("refresh-token");
-    mockClient.revoke.mockRejectedValue(new ErroDriveApi("revoke_failed"));
+    vi.mocked(mockClient.revoke).mockRejectedValue(new ErroDriveApi("revoke_failed"));
     mockRevogarDrive.mockResolvedValue(undefined);
 
     const input = createInput();

@@ -25,7 +25,7 @@ describe("driveConfig", () => {
 
   it("falha alto (ConfigError) quando as quatro envs estão ausentes", async () => {
     const { driveConfig } = await import("./drive-config");
-    const { ConfigError } = await import("./config");
+    const { ConfigError } = await import("@/lib/config");
 
     let erro: unknown;
     try {
@@ -45,7 +45,7 @@ describe("driveConfig", () => {
     // DRIVE_TOKEN_ENC_KEY ausente de propósito
 
     const { driveConfig } = await import("./drive-config");
-    const { ConfigError } = await import("./config");
+    const { ConfigError } = await import("@/lib/config");
     let erro: unknown;
     try {
       driveConfig();
@@ -63,7 +63,7 @@ describe("driveConfig", () => {
     process.env.DRIVE_TOKEN_ENC_KEY = Buffer.alloc(32, 1).toString("base64");
 
     const { driveConfig } = await import("./drive-config");
-    const { ConfigError } = await import("./config");
+    const { ConfigError } = await import("@/lib/config");
     expect(() => driveConfig()).toThrow(ConfigError);
   });
 
@@ -74,7 +74,7 @@ describe("driveConfig", () => {
     process.env.DRIVE_TOKEN_ENC_KEY = Buffer.alloc(16, 1).toString("base64");
 
     const { driveConfig } = await import("./drive-config");
-    const { ConfigError } = await import("./config");
+    const { ConfigError } = await import("@/lib/config");
     expect(() => driveConfig()).toThrow(ConfigError);
   });
 
@@ -99,7 +99,7 @@ describe("driveConfig", () => {
     process.env.DRIVE_TOKEN_ENC_KEY = Buffer.alloc(32, 1).toString("base64");
 
     const { driveConfig } = await import("./drive-config");
-    const { ConfigError } = await import("./config");
+    const { ConfigError } = await import("@/lib/config");
     expect(() => driveConfig()).toThrow(ConfigError);
   });
 });

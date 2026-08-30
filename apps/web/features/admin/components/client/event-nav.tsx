@@ -10,6 +10,7 @@ type Section = { label: string; suffix: string };
 const GROUPS: Section[][] = [
   [
     { label: "Ao vivo", suffix: "" },
+    { label: "Pré-evento", suffix: "/pre-event" },
     { label: "Moderação", suffix: "/moderation" },
   ],
   [
@@ -32,6 +33,7 @@ export function EventNav({ eventId }: { eventId: string }) {
 
   return (
     <nav
+      data-admin-nav
       className="mb-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       aria-label="Seções do evento"
     >

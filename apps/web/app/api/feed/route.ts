@@ -37,8 +37,8 @@ export async function GET(req: Request) {
       {
         eventoId: auth.session.eventoId,
         sessaoId: auth.session.sessaoId,
-        missaoId: validated.missao,
-        cursor: validated.cursor,
+        missaoId: validated.missao ?? null,
+        cursor: validated.cursor ?? null,
       },
       () => getPool().connect(),
     );

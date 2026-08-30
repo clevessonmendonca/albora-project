@@ -1,6 +1,6 @@
 import { resolverHostSessao, type HostResolvida } from "@albora/db";
-import { getPool } from "./db";
-import { config } from "./config";
+import { getPool } from "@/lib/db";
+import { config } from "@/lib/config";
 
 /** Sessão do anfitrião: cookie HttpOnly `albora_host`, nunca na URL; resolve `account_id`, não `event_id` — nome próprio para não confundir com a sessão do convidado. */
 

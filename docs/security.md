@@ -289,7 +289,7 @@ Quatro cenários com resposta pré-escrita, porque nenhum deles admite improviso
 |---|---|---|
 | **Conteúdo impróprio no telão** | Anfitrião remove; propaga em segundos | Revisar por que passou o classificador |
 | **Link vazou durante a festa** | Rotacionar slug. Sessões ativas continuam | Avisar o anfitrião pelo admin |
-| **Conteúdo ilegal com menor** | Preservar, não deletar. Bloquear acesso | Procedimento legal escrito. **Precisa existir antes do 1º evento** |
+| **Conteúdo ilegal com menor** | Preservar, não deletar. Bloquear acesso | [`legal/procedimento-conteudo-ilegal-menores.md`](./legal/procedimento-conteudo-ilegal-menores.md) |
 | **Pedido de titular** (remoção, acesso) | Registrar com data — o prazo legal já está correndo | Depende de controlador vs. operador (§5.3) |
 
 ---
@@ -298,8 +298,8 @@ Quatro cenários com resposta pré-escrita, porque nenhum deles admite improviso
 
 | # | Item | Bloqueia |
 |---|---|---|
-| 1 | 🔴 Procedimento para conteúdo ilegal com menor | **1º evento** |
-| 2 | 🟠 Controlador vs. operador, com advogado | **1º evento** |
+| 1 | 🔴 Procedimento para conteúdo ilegal com menor | **1º evento** — rascunho em [`legal/procedimento-conteudo-ilegal-menores.md`](./legal/procedimento-conteudo-ilegal-menores.md); falta parecer |
+| 2 | 🟠 Controlador vs. operador, com advogado | **1º evento** — esboço em [`legal/esboco-controlador-operador-lgpd.md`](./legal/esboco-controlador-operador-lgpd.md) |
 | 3 | 🟠 Caminho de remoção para quem aparece na foto e não a enviou | **Pedido ao anfitrião** (`reports.kind = aparece_na_foto`). Host decide. Sem auto-remoção. |
 | 4 | 🟠 Posição sobre imagem de crianças | **1º evento** |
 | 5 | 🟠 Política para nome ofensivo exibido no telão ([`flows.md` N3.3](./flows.md#32-o-nome--obrigatório-e-por-quê)) | **Resolvido** — host troca/oculta `display_name` no admin Convidados. Fotos ficam. Banimento adiado |

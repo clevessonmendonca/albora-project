@@ -58,8 +58,8 @@ export async function POST(
 
   const validado = presignGuestbookAudioSchema.safeParse(parsed.data);
   if (!validado.success) {
-    return errorResponse(422, "validation_error", validado.error.errors[0]?.message ?? "Dados inválidos", {
-      erros: validado.error.errors,
+    return errorResponse(422, "validation_error", validado.error.issues[0]?.message ?? "Dados inválidos", {
+      erros: validado.error.issues,
     });
   }
 
@@ -125,8 +125,8 @@ export async function confirmPOST(
 
   const validado = confirmGuestbookAudioSchema.safeParse(parsed.data);
   if (!validado.success) {
-    return errorResponse(422, "validation_error", validado.error.errors[0]?.message ?? "Dados inválidos", {
-      erros: validado.error.errors,
+    return errorResponse(422, "validation_error", validado.error.issues[0]?.message ?? "Dados inválidos", {
+      erros: validado.error.issues,
     });
   }
 

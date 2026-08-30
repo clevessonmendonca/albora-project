@@ -2,7 +2,7 @@
 
 type ChipProps = {
   rotulo: string;
-  miniatura?: string;
+  miniatura?: string | undefined;
   ativo: boolean;
   sugerido?: boolean;
   onClick: () => void;

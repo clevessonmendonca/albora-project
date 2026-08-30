@@ -20,7 +20,7 @@ import {
   planoDoEvento,
 } from "@albora/db";
 import { isValidConfessionPrompt, PACKS } from "@albora/packs";
-import type { PoolClient } from "pg";
+import type { Pool } from "pg";
 import {
   cleanCaption,
   acceptedPlace,
@@ -36,26 +36,26 @@ export type ConfirmUploadInput = {
   chave: string;
   mime: string;
   bytes: number;
-  inicio: ArrayBuffer;
+  inicio: Uint8Array;
   thumbBytes: number;
-  thumbInicio: ArrayBuffer;
-  legenda?: string;
-  lugar?: string;
-  desafioId?: string;
-  promptKey?: string;
-  capturadaEm?: string | number;
-  capturadaEmParede?: boolean;
-  largura?: number;
-  altura?: number;
-  story?: boolean;
-  musicTrackId?: string;
+  thumbInicio: Uint8Array;
+  legenda?: string | undefined;
+  lugar?: string | undefined;
+  desafioId?: string | undefined;
+  promptKey?: string | undefined;
+  capturadaEm?: string | number | undefined;
+  capturadaEmParede?: boolean | undefined;
+  largura?: number | undefined;
+  altura?: number | undefined;
+  story?: boolean | undefined;
+  musicTrackId?: string | undefined;
 };
 
 export type ConfirmUploadResult =
   | {
       ok: true;
       uploadId: string;
-      estado: "criado" | "duplicado" | "aprovacao";
+      estado: "criado" | "duplicado";
     }
   | {
       ok: false;
@@ -77,13 +77,13 @@ export type ConfirmUploadResult =
  * Cria story opcionalmente (degrada em caso de falha).
  * 
  * @param input - Dados do upload e metadados
- * @param getClient - Factory de conexão
+ * @param pool - Pool de conexões
  * @returns Resultado da confirmação ou erro
  * @throws {UploadConflictError} Se chave não pertence ao evento
  */
 export async function confirmUpload(
   input: ConfirmUploadInput,
-  getClient: () => Promise<PoolClient>,
+  pool: Pool,
 ): Promise<ConfirmUploadResult> {
   // Validar prefixo do evento na chave
   if (!input.chave.startsWith(prefixoDoEvento(input.eventoId))) {
@@ -132,11 +132,9 @@ export async function confirmUpload(
     };
   }
 
-  const client = await getClient();
-
   try {
     const resultado = await withEvent(
-      { query: client.query.bind(client) } as PoolClient,
+      pool,
       input.eventoId,
       async (c) => {
         // Validar missão
@@ -255,7 +253,7 @@ export async function confirmUpload(
     return {
       ok: true,
       uploadId: input.uploadId,
-      estado: confirmado.estado,
+      estado: confirmado.estado === "ja_existia" ? "duplicado" : "criado",
     };
   } catch (e) {
     if (e instanceof UploadConflictError) {
@@ -266,7 +264,5 @@ export async function confirmUpload(
       };
     }
     throw e;
-  } finally {
-    client.release();
   }
 }

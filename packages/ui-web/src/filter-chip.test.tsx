@@ -10,15 +10,18 @@ describe("FilterChip", () => {
   });
 
   it("mostra thumbnail quando fornecido", () => {
-    render(
-      <FilterChip 
-        label="Vintage" 
-        thumbnail="/thumb.jpg" 
-        active={false} 
-        onClick={() => {}} 
+    const { container } = render(
+      <FilterChip
+        label="Vintage"
+        thumbnail="/thumb.jpg"
+        active={false}
+        onClick={() => {}}
       />
     );
-    const img = screen.getByRole("img");
+    // A imagem é decorativa (alt="") de propósito: o label ao lado já dá o
+    // nome acessível do botão, então ela não tem role="img" — é
+    // role="presentation" por spec ARIA. Consultar via querySelector, não getByRole.
+    const img = container.querySelector("img");
     expect(img).toHaveAttribute("src", "/thumb.jpg");
   });
 

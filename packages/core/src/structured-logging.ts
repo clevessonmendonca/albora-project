@@ -28,7 +28,10 @@ export function maskPii(value: string): string {
     return `${maskedLocal}@${maskedDomain}`;
   }
 
-  if (value.length > 8) {
+  // Números longos (telefone, CPF) preservam início/fim para conferência sem expor o valor;
+  // nomes e outros textos mostram só a primeira e a última letra do valor inteiro.
+  const isNumeric = /\d/.test(value) && /^[\d\s()+-]+$/.test(value);
+  if (isNumeric && value.length > 8) {
     return value.slice(0, 3) + "****" + value.slice(-4);
   }
 

@@ -29,4 +29,4 @@ export {
   chapterHeadingVisible,
 } from "./album-chapters";
 
-export { type UploadDetails, setUploadDetails } from "./details";
+export * from "./details";

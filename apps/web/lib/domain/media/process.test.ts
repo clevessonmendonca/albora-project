@@ -4,8 +4,8 @@ import {
   isRejected,
   KEY_CAP,
   validateBatch,
-} from "../app/api/media/urls/lote";
-import { config, ErroOrigemDeMidia } from "./config";
+} from "../../../app/api/media/urls/lote";
+import { config, ErroOrigemDeMidia } from "../../config";
 
 const EVENTO = "3c465e29-f183-4436-92f5-df06d5b7f289";
 const OUTRO_EVENTO = "9f1c2b04-77aa-4d1e-8b3c-0f5e6a7d8c91";

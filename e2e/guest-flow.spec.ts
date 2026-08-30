@@ -4,14 +4,17 @@ const E2E_FULL = !!process.env.E2E_FULL;
 const SLUG = "festa-demo";
 
 /**
- * JPEG mínimo válido: SOI + marcador JFIF APP0 + EOI.
- * Suficiente para o browser não rejeitar o tipo, sem depender de um fixture
- * real em disco.
+ * PNG 1×1 válido de verdade (não só magic bytes) — o editor decodifica a
+ * imagem no cliente via createImageBitmap antes de habilitar "Enviar", e
+ * um JPEG com só SOI+APP0+EOI (sem dados de scan) falha nesse decode e
+ * deixa o botão preso disabled. PNG mínimo é trivial de escrever à mão e
+ * decodifica igual, então segue self-contained sem depender de fixture
+ * em disco (mesmo truque do apps/web/e2e/fixtures/photo-test.jpg).
  */
-const JPEG_MINIMO = Buffer.from([
-  0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
-  0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xff, 0xd9,
-]);
+const JPEG_MINIMO = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+  "base64",
+);
 
 /**
  * Intercepta presign, PUT no storage e confirm — sem R2 real.
@@ -123,21 +126,27 @@ test.describe("smoke — fluxo do convidado", () => {
     await page.getByRole("button", { name: /enviar foto/i }).click();
     await page.waitForURL(`**/e/${SLUG}/photo`, { waitUntil: "domcontentloaded" });
 
-    // 6. Tela de captura carregou — file input presente (oculto, mas acessível)
-    const fileInput = page.locator('input[type="file"]');
+    // 6. Tela de captura carregou — file input de foto presente (oculto, mas
+    // acessível); a tela também tem inputs de galeria (multiple) e vídeo, daí
+    // o seletor precisar do par accept+capture pra não colidir com os outros.
+    const fileInput = page.locator('input[type="file"][accept="image/*"][capture="environment"]');
     await expect(fileInput).toBeAttached({ timeout: 10_000 });
 
-    // 7. Registra a espera ANTES de acionar o input — evita corrida
-    const presignPromise = page.waitForRequest("**/api/uploads/presign", {
-      timeout: 15_000,
-    });
-
-    // 8. Injeta o arquivo — simula o convidado escolhendo uma foto
+    // 7. Injeta o arquivo — simula o convidado escolhendo uma foto. Uma foto
+    // única sempre passa pelo editor (filtro/LUT) antes do upload — só um
+    // lote de vários arquivos pula direto pra fila (ver photo-page.tsx).
     await fileInput.setInputFiles({
       name: "foto-e2e.jpg",
       mimeType: "image/jpeg",
       buffer: JPEG_MINIMO,
     });
+
+    // 8. Editor abriu — confirma o envio (Enviar fica desabilitado até a
+    // prévia do LUT terminar de carregar, o click já espera isso).
+    const presignPromise = page.waitForRequest("**/api/uploads/presign", {
+      timeout: 15_000,
+    });
+    await page.getByRole("button", { name: /^enviar$/i }).click();
 
     // 9. Garante que o presign foi chamado — upload foi disparado
     const req = await presignPromise;

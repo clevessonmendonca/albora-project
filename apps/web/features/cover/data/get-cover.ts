@@ -11,7 +11,10 @@ import { PACKS, resolvePackText } from "@albora/packs";
 import { getPool } from "@/lib/db";
 import { montarAlbumServido } from "@/lib/album";
 import { signGet } from "@/lib/r2";
-import { isInteractionOpen } from "../lib/is-interaction-open";
+import {
+  interactionBannerLabels,
+  resolveInteractionBanner,
+} from "../lib/interaction-banner";
 import { missionForMoment } from "../lib/mission-for-moment";
 import { contributorsLabel } from "../lib/moment-contributors";
 import type { CoverData } from "../types/cover";
@@ -54,13 +57,23 @@ export async function getCover(input: CoverInput): Promise<CoverData> {
       : null,
   }));
 
+  const labels = interactionBannerLabels(pack);
+  const gate = resolveInteractionBanner(
+    { interacaoAbreEm: evento.interacaoAbreEm, fuso: evento.fuso },
+    labels,
+  );
+
   return {
     slug,
     eventName: evento.title ?? (pack ? resolvePackText(pack, "landing.exemplo.nome") : "A festa"),
     startsAt: evento.comecaEm.toISOString(),
     album,
     moments,
-    interactionOpen: isInteractionOpen(evento),
+    interactionOpen: gate.open,
+    interactionBannerLabel: gate.label,
+    interactionOpensAt: gate.opensAtIso,
+    interactionLabels: labels,
+    fuso: evento.fuso,
     musicLabel,
     hostMessageLabel: pack ? resolvePackText(pack, "recado.rotulo") : "Um recado",
     hasConfessional: (pack?.confessionario?.length ?? 0) > 0,

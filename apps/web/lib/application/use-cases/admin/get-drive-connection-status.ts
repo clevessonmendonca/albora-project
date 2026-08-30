@@ -14,7 +14,7 @@ export type GetDriveStatusInput = {
 export type GetDriveStatusOutput = {
   conexao: {
     status: string;
-    email: string;
+    email: string | null;
     conectadoEm: string;
   } | null;
   podeExportar: boolean;

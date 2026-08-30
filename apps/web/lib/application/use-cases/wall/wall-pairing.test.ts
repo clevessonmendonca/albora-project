@@ -66,7 +66,7 @@ describe("createWallPairing", () => {
   });
 
   it("deve criar pareamento com sucesso", async () => {
-    const mockExpira = new Date(Date.now() + PAIRING_TTL_SECONDS * 1000);
+    const _mockExpira = new Date(Date.now() + PAIRING_TTL_SECONDS * 1000);
     mockCriarPareamento.mockResolvedValue({
       code: "ABC123",
       pollToken: "poll-token-xyz",

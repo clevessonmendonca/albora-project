@@ -24,11 +24,12 @@ export function AdminShell({ title, subtitle, back, children }: AdminShellProps)
       className="min-h-dvh bg-bg p-[clamp(1.5rem,5vw,4rem)] font-[family-name:var(--fonte-corpo)] text-ink"
       style={adminVars()}
     >
-      <header className="mb-10 flex items-start justify-between gap-6">
+      <header className="mb-10 flex items-start justify-between gap-6" data-admin-shell-header>
         <div>
           {back && (
             <Link
               href={back.href}
+              data-admin-shell-back
               className="mb-3.5 inline-block text-sm tracking-[0.01em] text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
             >
               ← {back.label}
@@ -59,16 +60,22 @@ export function AdminCard({
   variant,
   children,
   className,
+  id,
 }: {
   variant?: "default" | "highlight";
   children: ReactNode;
   className?: string;
+  id?: string | undefined;
 }) {
-  return <section className={adminCardVariants({ variant, className })}>{children}</section>;
+  return (
+    <section id={id} className={adminCardVariants({ variant, className })}>
+      {children}
+    </section>
+  );
 }
 
-export function AdminSection({ children }: { children: ReactNode }) {
-  return <AdminCard>{children}</AdminCard>;
+export function AdminSection({ children, id }: { children: ReactNode; id?: string }) {
+  return <AdminCard id={id}>{children}</AdminCard>;
 }
 
 export const adminClasses = {

@@ -1,3 +1,7 @@
+/**
+ * @vitest-environment jsdom
+ */
+import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useFeedFilter, type FilterMission } from "./use-feed-filter";
 

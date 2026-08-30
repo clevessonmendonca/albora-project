@@ -82,7 +82,7 @@ export const PhotoInteraction = memo(function PhotoInteraction({
       onReacoes?.(resultado);
       announce(curtindo ? "Curtiu" : "Removeu curtida");
     }
-  }, [reacao.minha, reacao.alternar, onReacoes]);
+  }, [reacao, onReacoes]);
 
   const handleCompartilhar = useCallback(async () => {
     if (!onCompartilhar) return;

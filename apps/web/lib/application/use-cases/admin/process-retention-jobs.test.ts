@@ -5,10 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  processRetentionJobs,
-  type ProcessRetentionJobsOutput,
-} from "./process-retention-jobs";
+import { processRetentionJobs } from "./process-retention-jobs";
 import type { Pool } from "pg";
 
 // Mocks usando vi.hoisted

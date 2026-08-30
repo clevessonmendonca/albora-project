@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@albora/ui-web";
-import type { FilterMission } from "../hooks/use-feed-filter";
+import type { FilterMission } from "../../hooks/use-feed-filter";
 
 type FeedFilterPanelProps = {
   label: string;

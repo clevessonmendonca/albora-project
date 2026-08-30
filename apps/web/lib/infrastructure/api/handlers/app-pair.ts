@@ -2,6 +2,7 @@ import {
   enforceRateLimit,
   errorResponse,
   jsonOk,
+  parseJsonBody,
   requireConfig,
   requireGuestSession,
   sessionCookieHeader,
@@ -63,7 +64,10 @@ export async function postRedeemPairCode(req: Request) {
   });
   if (limited) return limited;
 
-  const validation = await validateBody(req, redeemAppPairSchema);
+  const parsed = await parseJsonBody(req);
+  if (parsed instanceof Response) return parsed;
+
+  const validation = validateBody(parsed.data, redeemAppPairSchema);
   if (validation instanceof Response) return validation;
 
   const cfg = config();
@@ -72,8 +76,8 @@ export async function postRedeemPairCode(req: Request) {
     {
       sessionSecret: cfg.sessionSecret,
       duracaoSessaoHoras: cfg.duracaoSessaoHoras,
-      codigo: validation.codigo,
-      passagem: validation.passagem,
+      ...(validation.codigo !== undefined ? { codigo: validation.codigo } : {}),
+      ...(validation.passagem !== undefined ? { passagem: validation.passagem } : {}),
     },
     getPool(),
   );

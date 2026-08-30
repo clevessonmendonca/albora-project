@@ -279,16 +279,16 @@ describe("confirmUploadSchema → confirmUpload Contract", () => {
         uploadId: string;
         chave: string;
         mime: string;
-        legenda?: string;
-        lugar?: string;
-        desafioId?: string;
-        promptKey?: string;
-        capturadaEm?: string | number;
-        capturadaEmParede?: boolean;
-        largura?: number;
-        altura?: number;
-        story?: boolean;
-        musicTrackId?: string;
+        legenda?: string | undefined;
+        lugar?: string | undefined;
+        desafioId?: string | undefined;
+        promptKey?: string | undefined;
+        capturadaEm?: string | number | undefined;
+        capturadaEmParede?: boolean | undefined;
+        largura?: number | undefined;
+        altura?: number | undefined;
+        story?: boolean | undefined;
+        musicTrackId?: string | undefined;
       } = validated;
 
       expect(_typeCheck).toBeDefined();

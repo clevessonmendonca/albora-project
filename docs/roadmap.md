@@ -1,6 +1,7 @@
 # Roadmap — produto completo
 
-> **Atualizado:** 2026-08-15
+> **Atualizado:** 2026-08-29
+> **Prioridades de produto (discovery):** [`product/plano-implementacao-produto.md`](./product/plano-implementacao-produto.md) — este roadmap continua focado em **código/ops** para o 1º evento.
 > **Referência visual:** [`/telas`](../apps/web/app/telas/page.tsx) (web) · [`/telas-admin`](../apps/web/app/telas-admin/page.tsx) (anfitrião mobile) — toda tela nova ou refatorada deve espelhar estes catálogos (Instagram dentro do evento, estrela no lugar do coração, gate honesto).
 > **Mapa de ondas:** [`specs/task-020-mapa-de-telas.md`](./specs/task-020-mapa-de-telas.md)
 

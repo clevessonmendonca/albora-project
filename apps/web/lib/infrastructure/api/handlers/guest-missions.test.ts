@@ -24,7 +24,14 @@ vi.mock("@albora/db", () => ({
 }));
 
 vi.mock("@/lib/db", () => ({
-  getPool: vi.fn(() => ({})),
+  // O use case (list-guest-missions.ts) obtém um client via getPool().connect() —
+  // igual ao handler de comments.ts — então o pool mockado precisa expor connect().
+  getPool: vi.fn(() => ({
+    connect: vi.fn(async () => ({
+      query: vi.fn(),
+      release: vi.fn(),
+    })),
+  })),
 }));
 
 vi.mock("@albora/packs", () => ({

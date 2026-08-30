@@ -12,7 +12,7 @@ import {
   gravarReacao,
 } from "@albora/db";
 import { PACKS, isValidReaction } from "@albora/packs";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 export type ReactionType = "curtir" | "amar" | "rir" | "chorar" | "aplaudir";
 
@@ -48,8 +48,18 @@ export async function addReaction(
   const client = await getClient();
 
   try {
+    // withEvent (comEvento) chama pool.connect() para abrir a transação com o SET LOCAL
+    // de RLS — o client já foi obtido acima, então o "pool" aqui só devolve esse mesmo
+    // client; release() fica no-op porque quem fecha a conexão é o finally deste use case.
+    const pool = {
+      connect: async () => ({
+        query: client.query.bind(client),
+        release: () => {},
+      }),
+    } as unknown as Pool;
+
     const resultado = await withEvent(
-      { query: client.query.bind(client) } as PoolClient,
+      pool,
       input.eventoId,
       async (c) => {
         // Reagir não espera o gate (ADR 0009) — só evento precisa existir/ser visível sob RLS

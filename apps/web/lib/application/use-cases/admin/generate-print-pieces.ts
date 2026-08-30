@@ -8,6 +8,7 @@ import { PACKS } from "@albora/packs";
 import {
   ALBORA_BRAND,
   resolveTokens,
+  type PieceFormat,
   type TokenLayer,
 } from "@albora/tokens";
 import type { Pool } from "pg";
@@ -54,7 +55,7 @@ export type PrintPieceRequest =
   | {
       kind: "single";
       tipo: "pdf" | "svg";
-      formato: string;
+      formato: PieceFormat;
     };
 
 export type GeneratePrintPiecesInput = {

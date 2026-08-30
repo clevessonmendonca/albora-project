@@ -10,6 +10,10 @@ function autorizado(req: Request): boolean {
   return req.headers.get("authorization") === `Bearer ${secret}`;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 /** Consumer HTTP da fila/cron do export Drive (spec §9): `Authorization: Bearer $JOB_RUNNER_SECRET`; em dev sem segredo, só localhost. */
 export async function postJobsDriveExport(req: Request) {
   if (!autorizado(req)) {
@@ -20,8 +24,8 @@ export async function postJobsDriveExport(req: Request) {
   if (cfgErr) return cfgErr;
 
   try {
-    const body = await req.json();
-    const tick = parseDriveExportMessage(body);
+    const body: unknown = await req.json();
+    const tick = isRecord(body) ? parseDriveExportMessage(body) : null;
 
     if (tick) {
       const resultado = await processDriveExport({ mode: "tick", message: tick }, getPool());

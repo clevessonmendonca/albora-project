@@ -22,10 +22,9 @@ export type ProcessDriveExportOutput =
       modo: "tick";
       resultado: Awaited<ReturnType<typeof tickDriveExportJob>>;
     }
-  | {
+  | ({
       modo: "sweep";
-      varredura: Awaited<ReturnType<typeof sweepDriveExportJobs>>;
-    };
+    } & Awaited<ReturnType<typeof sweepDriveExportJobs>>);
 
 export async function processDriveExport(
   input: ProcessDriveExportInput,
