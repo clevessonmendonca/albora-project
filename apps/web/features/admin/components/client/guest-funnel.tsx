@@ -1,6 +1,11 @@
 "use client";
 
-import type { CodigoDaTese, DegrauDoFunil, EtapaDaEspinha } from "@albora/core";
+import type {
+  CodigoDaTese,
+  DegrauDoFunil,
+  EtapaDaEspinha,
+  LeituraDeIntencao,
+} from "@albora/core";
 import type { EntradasPorVia } from "@albora/db";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
@@ -15,6 +20,7 @@ type Resumo = {
   sharesTotais: number;
   participacao: number;
   veredito: CodigoDaTese;
+  intencao?: LeituraDeIntencao;
   degraus: DegrauDoFunil[];
   uploadsAntesDoFeed: number;
   uploadsDepoisDoFeed: number;
@@ -136,6 +142,17 @@ export function GuestFunnel({ eventoId }: Props) {
         </div>
 
         <p className={`m-0 text-sm ${destaqueClass}`}>{ROTULO_VEREDITO[resumo.veredito]}</p>
+
+        {resumo.intencao?.codigo === "funil.intencao_frustrada" && (
+          <p className="m-0 mt-2 text-sm leading-relaxed text-ink-2">
+            {resumo.intencao.frustradas === 1
+              ? "1 convidado tirou foto e o envio não completou."
+              : `${resumo.intencao.frustradas} convidados tiraram foto e o envio não completou.`}{" "}
+            Com esses envios, a participação seria de{" "}
+            {Math.round(resumo.intencao.participacaoPotencial * 100)}%. Vale checar o sinal do
+            salão antes de concluir qualquer coisa sobre o produto.
+          </p>
+        )}
       </AdminSection>
 
       <AdminSection>

@@ -7,6 +7,7 @@ import {
   ehEventoUnicoDoFunil,
   ESPINHA_DO_FUNIL,
   EVENTOS_DO_FUNIL,
+  lerIntencao,
   lerPlataforma,
   maiorPerda,
   MetricaInvalida,
@@ -376,5 +377,48 @@ describe("onde a participação se perdeu", () => {
   it("funil sem queda e funil sem sessão não inventam um culpado", () => {
     expect(maiorPerda(degraus([SESSAO_FELIZ, SESSAO_FELIZ]))).toBe(null);
     expect(maiorPerda(degraus([]))).toBe(null);
+  });
+});
+
+describe("intenção — separar quem não quis de quem não conseguiu", () => {
+  it("captura que virou envio é intenção entregue", () => {
+    const l = lerIntencao({ expectedGuests: 100, sessoesComUpload: 48, sessoesComCaptura: 50 });
+
+    expect(l.codigo).toBe("funil.intencao_entregue");
+    expect(l.frustradas).toBe(2);
+    expect(l.participacao).toBeCloseTo(0.48);
+    expect(l.participacaoPotencial).toBeCloseTo(0.5);
+  });
+
+  it("salão sem sinal: tese reprova, mas a intenção estava lá", () => {
+    const contagem = { expectedGuests: 100, sessoesComUpload: 12, sessoesComCaptura: 46 };
+
+    // O veredito sozinho mandaria parar…
+    expect(decidirTese(contagem).codigo).toBe("funil.parar");
+
+    // …e a leitura de intenção mostra que o produto sequer foi testado.
+    const l = lerIntencao(contagem);
+    expect(l.codigo).toBe("funil.intencao_frustrada");
+    expect(l.frustradas).toBe(34);
+    expect(l.participacaoPotencial).toBeCloseTo(0.46);
+  });
+
+  it("ninguém capturou: não é frustração, é ausência", () => {
+    const l = lerIntencao({ expectedGuests: 100, sessoesComUpload: 0, sessoesComCaptura: 0 });
+
+    expect(l.codigo).toBe("funil.intencao_ausente");
+    expect(l.frustradas).toBe(0);
+  });
+
+  it("mais envio que captura é instrumentação quebrada, não métrica", () => {
+    expect(() =>
+      lerIntencao({ expectedGuests: 100, sessoesComUpload: 10, sessoesComCaptura: 4 }),
+    ).toThrow(MetricaInvalida);
+  });
+
+  it("herda a recusa de denominador ausente", () => {
+    expect(() =>
+      lerIntencao({ expectedGuests: 0, sessoesComUpload: 0, sessoesComCaptura: 0 }),
+    ).toThrow(MetricaInvalida);
   });
 });

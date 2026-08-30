@@ -9,7 +9,7 @@ import {
   lerMetricasAoVivo,
   listarSessoesDoHost,
 } from "@albora/db";
-import { decideThesis, type CodigoDaTese } from "@albora/core";
+import { decideThesis, lerIntencao, type CodigoDaTese, type LeituraDeIntencao } from "@albora/core";
 import type { Pool } from "pg";
 import { assinarGet } from "@/lib/r2";
 
@@ -40,6 +40,8 @@ export type GuestMetricsOutput = {
   sharesTotais: number;
   participacao: number;
   veredito: CodigoDaTese;
+  /** Quem quis e não conseguiu — separa falha de rede de falta de participação. */
+  intencao: LeituraDeIntencao;
   degraus: Awaited<ReturnType<typeof lerFunilAgregado>>["degraus"];
   uploadsAntesDoFeed: number;
   uploadsDepoisDoFeed: number;
@@ -66,6 +68,18 @@ export async function getGuestMetrics(
     sessoesComUpload: data.metricas.sessoesComUpload,
   });
 
+  // `degraus` já conta por etapa mais avançada alcançada — `capture` é a fronteira
+  // entre "não quis" e "quis e não conseguiu".
+  const capturaram =
+    data.funil.degraus.find((d) => d.etapa === "capture")?.sessoes ??
+    data.metricas.sessoesComUpload;
+
+  const intencao = lerIntencao({
+    expectedGuests: input.expectedGuests,
+    sessoesComUpload: data.metricas.sessoesComUpload,
+    sessoesComCaptura: Math.max(capturaram, data.metricas.sessoesComUpload),
+  });
+
   const ultimas = await Promise.all(
     data.metricas.ultimas.map(async (f) => ({
       id: f.id,
@@ -82,6 +96,7 @@ export async function getGuestMetrics(
     sharesTotais: data.metricas.sharesTotais,
     participacao: veredito.taxa,
     veredito: veredito.codigo as CodigoDaTese,
+    intencao,
     degraus: data.funil.degraus,
     uploadsAntesDoFeed: data.funil.uploadsAntesDoFeed,
     uploadsDepoisDoFeed: data.funil.uploadsDepoisDoFeed,
