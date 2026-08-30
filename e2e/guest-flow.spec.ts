@@ -129,23 +129,27 @@ test.describe("smoke — fluxo do convidado", () => {
     const fileInput = page.locator('input[type="file"][accept="image/*"][capture="environment"]');
     await expect(fileInput).toBeAttached({ timeout: 10_000 });
 
-    // 7. Registra a espera ANTES de acionar o input — evita corrida
-    const presignPromise = page.waitForRequest("**/api/uploads/presign", {
-      timeout: 15_000,
-    });
-
-    // 8. Injeta o arquivo — simula o convidado escolhendo uma foto
+    // 7. Injeta o arquivo — simula o convidado escolhendo uma foto. Uma foto
+    // única sempre passa pelo editor (filtro/LUT) antes do upload — só um
+    // lote de vários arquivos pula direto pra fila (ver photo-page.tsx).
     await fileInput.setInputFiles({
       name: "foto-e2e.jpg",
       mimeType: "image/jpeg",
       buffer: JPEG_MINIMO,
     });
 
-    // 9. Garante que o presign foi chamado — upload foi disparado
+    // 9. Editor abriu — confirma o envio (Enviar fica desabilitado até a
+    // prévia do LUT terminar de carregar, o click já espera isso).
+    const presignPromise = page.waitForRequest("**/api/uploads/presign", {
+      timeout: 15_000,
+    });
+    await page.getByRole("button", { name: /^enviar$/i }).click();
+
+    // 10. Garante que o presign foi chamado — upload foi disparado
     const req = await presignPromise;
     expect(req.method()).toBe("POST");
 
-    // 10. Aguarda o confirm — ciclo de upload completo (presign → PUT → confirm)
+    // 11. Aguarda o confirm — ciclo de upload completo (presign → PUT → confirm)
     await page.waitForRequest("**/api/uploads/confirm", { timeout: 20_000 });
   });
 });
