@@ -8,6 +8,19 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/e/ana-e-joao",
 }));
 
+// jsdom não implementa matchMedia (gap conhecido) — o Viewer consulta
+// prefers-reduced-motion, então precisa de um stub.
+window.matchMedia ??= (query: string) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addListener: () => {},
+  removeListener: () => {},
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  dispatchEvent: () => false,
+});
+
 /** Smoke da tela autor clicável — não testa curtida/comentário porque a tela não os oferece (só leitura). */
 
 const AUTOR_ID = "11111111-1111-1111-1111-111111111111";
@@ -40,6 +53,8 @@ describe("AuthorProfilePage", () => {
   it("monta, busca o perfil e mostra o nome do autor e a foto dele", async () => {
     stubFetch({
       nome: "Marina",
+      totalFotos: 1,
+      totalCurtidas: 3,
       itens: [
         {
           id: "foto-1",
@@ -63,8 +78,13 @@ describe("AuthorProfilePage", () => {
       expect(screen.getAllByText("Marina").length).toBeGreaterThan(0);
     });
 
-    expect(await screen.findByAltText("Foto de Marina")).toBeInTheDocument();
-    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(await screen.findByLabelText("Foto de Marina, 1 de 1")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ir para o conteúdo" })).toHaveAttribute(
+      "href",
+      "#main-content",
+    );
+    expect(screen.getByText("Fotos")).toBeInTheDocument();
+    expect(screen.getByText("Curtidas")).toBeInTheDocument();
   });
 
   it("perfil não encontrado (id de outro evento, bloqueado, ou antes do gate) mostra o estado terminal", async () => {
