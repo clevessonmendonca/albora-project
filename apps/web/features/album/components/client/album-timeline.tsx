@@ -32,7 +32,12 @@ export function AlbumTimeline({
           <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
             {faixa.fotos.map((foto) => (
               <li key={foto.id}>
-                <Disc foto={foto} amanhecer={faixa.amanhecer} onAbrir={() => onAbrir(foto)} />
+                <Disc
+                  foto={foto}
+                  amanhecer={faixa.amanhecer}
+                  hora={faixa.hora}
+                  onAbrir={() => onAbrir(foto)}
+                />
               </li>
             ))}
           </ul>
@@ -65,18 +70,22 @@ export function AlbumTimelineLoading() {
 function Disc({
   foto,
   amanhecer,
+  hora,
   onAbrir,
 }: {
   foto: ServedPhoto;
   amanhecer: boolean;
+  hora: number | null;
   onAbrir: () => void;
 }) {
   const src = foto.urlThumb || foto.url;
+  const rotulo =
+    hora === null ? "Abrir foto" : `Abrir foto das ${hourLabel(hora)}`;
 
   return (
     <button
       type="button"
-      aria-label="Abrir foto"
+      aria-label={rotulo}
       onClick={onAbrir}
       className={cn(
         "relative block size-11 cursor-pointer overflow-hidden rounded-full border-0 bg-superficie p-0 transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] motion-safe:hover:scale-[1.08] motion-reduce:transition-none",
