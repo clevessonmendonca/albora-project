@@ -106,7 +106,9 @@ export {
   QUALITY,
   PIXEL_CAP,
   pixelCapForDevice,
+  ladoMaiorParaRede,
 } from "./redimensionar";
+export type { Rede } from "./redimensionar";
 
 export type { SendResult, DrainSummary, Transport } from "./envio";
 export { drain, sendItem } from "./envio";

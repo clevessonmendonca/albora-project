@@ -24,6 +24,36 @@ export function fullTarget(width: number, height: number, plan: Plan): Target {
   return targetForLongerSide(width, height, LADO_MAIOR[plan]);
 }
 
+/** O que o aparelho declara sobre a rede — tudo opcional: navegador que não implementa a API não muda nada. */
+export type Rede = {
+  /** `navigator.connection.saveData`: o dono do aparelho pediu para economizar. */
+  economiaDeDados?: boolean | undefined;
+  /** `navigator.connection.effectiveType`. */
+  tipoEfetivo?: string | undefined;
+};
+
+/**
+ * Teto de lado maior considerando a rede do convidado.
+ *
+ * 39% dos donos de celular no Brasil ficaram sem pacote de dados nos últimos três
+ * meses — 68% entre pré-pagos (CETIC, TIC Domicílios 2025). Foto que come o pacote
+ * do convidado é foto que ele não manda, e convidado que não manda é o único jeito
+ * de a participação ir a zero.
+ *
+ * Só reduz em dois casos: `saveData` ligado (pedido explícito do dono do aparelho)
+ * e 2g (onde um envio de 3500px não termina antes de o convidado desistir). 3g fica
+ * de fora de propósito — ali o upload conclui, e resolução é o que o casal comprou.
+ */
+export function ladoMaiorParaRede(plan: Plan, rede: Rede): number {
+  const base = LADO_MAIOR[plan];
+  const econômico =
+    rede.economiaDeDados === true ||
+    rede.tipoEfetivo === "2g" ||
+    rede.tipoEfetivo === "slow-2g";
+
+  return econômico ? Math.min(base, LADO_MAIOR.gratis) : base;
+}
+
 export function thumbTarget(width: number, height: number): Target {
   return targetForLongerSide(width, height, THUMB_SIDE);
 }
@@ -64,9 +94,16 @@ export function planProcessing(input: {
   height: number;
   plan: Plan;
   device: Device;
+  rede?: Rede | undefined;
 }): { full: Target; thumb: Target; quality: typeof QUALITY } {
   const cap = pixelCapForDevice(input.device);
-  const full = targetThatFits(fullTarget(input.width, input.height, input.plan), cap);
+  const lado = input.rede
+    ? ladoMaiorParaRede(input.plan, input.rede)
+    : LADO_MAIOR[input.plan];
+  const full = targetThatFits(
+    targetForLongerSide(input.width, input.height, lado),
+    cap,
+  );
 
   return {
     full,

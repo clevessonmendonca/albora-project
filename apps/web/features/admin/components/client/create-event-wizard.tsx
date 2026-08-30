@@ -58,7 +58,10 @@ export function CreateEventWizard() {
   const [starts, setStarts] = useState("");
   const [ends, setEnds] = useState("");
   const [timezone, setTimezone] = useState(FUSO_PADRAO);
-  const [expectedGuests, setExpectedGuests] = useState("150");
+  // Sem valor inicial: participação (`sessoes_com_upload / expected_guests`) é a
+  // métrica que decide a tese, e um default preenchido vira denominador inventado
+  // sempre que o anfitrião não olha o campo.
+  const [expectedGuests, setExpectedGuests] = useState("");
   const [presetId, setPresetId] = useState(IDENTITY_MODELS[0]!.id);
   const [presetAtivo, setPresetAtivo] = useState<string | null>(IDENTITY_MODELS[0]!.id);
   const [acentoCor, setAcentoCor] = useState(() => presetParaCores(IDENTITY_MODELS[0]!).acento);
@@ -246,6 +249,7 @@ export function CreateEventWizard() {
             <div className="flex items-baseline justify-between gap-3">
               <input
                 id="expected-guests"
+                placeholder="—"
                 type="number"
                 min={1}
                 max={999}
