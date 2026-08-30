@@ -193,7 +193,7 @@ describe("confirmGuestbookAudioUpload", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.recado.id).toBe("gb-1");
-      expect(result.recado.audio.url).toBe("https://r2.example.com/signed-audio");
+      expect(result.recado.audio!.url).toBe("https://r2.example.com/signed-audio");
     }
   });
 

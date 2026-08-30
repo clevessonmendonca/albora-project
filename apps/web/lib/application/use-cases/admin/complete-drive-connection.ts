@@ -3,11 +3,11 @@
  *
  * Completa OAuth flow: troca code, cria pasta, salva refresh token.
  */
+import type { DriveTokenVault } from "@albora/core";
 import { abrirEstadoOAuthDrive, conectarDrive } from "@albora/db";
 import type { Pool } from "pg";
 import type { DriveClient } from "@/lib/drive-client";
 import { ErroDriveApi } from "@/lib/drive-client";
-import type { DriveVault } from "@/lib/drive";
 
 export type CompleteDriveConnectionInput = {
   eventId: string;
@@ -39,7 +39,7 @@ export async function completeDriveConnection(
   input: CompleteDriveConnectionInput,
   pool: Pool,
   client: DriveClient,
-  vault: DriveVault,
+  vault: DriveTokenVault,
 ): Promise<CompleteDriveConnectionResult> {
   const estado = abrirEstadoOAuthDrive(input.oauthStateSecret, input.state);
   

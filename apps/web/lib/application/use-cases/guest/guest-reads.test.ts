@@ -8,17 +8,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   listFeedUseCase,
   type ListFeedInput,
-  type ListFeedOutput,
 } from "./list-feed";
 import {
   getGuestEvent,
   type GetGuestEventInput,
-  type GuestEventOutput,
 } from "./get-guest-event";
 import {
   listGuestMissions,
   type ListGuestMissionsInput,
-  type ListGuestMissionsOutput,
 } from "./list-guest-missions";
 import type { PoolClient } from "pg";
 
@@ -350,7 +347,7 @@ describe("Guest Read Use Cases", () => {
       const input = createListMissionsInput();
       const result = await listGuestMissions(input, getClient);
 
-      expect(result.missoes[0].titulo).toBe("Título Personalizado");
+      expect(result.missoes[0]?.titulo).toBe("Título Personalizado");
     });
 
     it("deve retornar array vazio quando não há missões", async () => {
@@ -378,7 +375,7 @@ describe("Guest Read Use Cases", () => {
       const input = createListMissionsInput();
       const result = await listGuestMissions(input, getClient);
 
-      expect(result.missoes[0].titulo).toBe("Missão sem pack");
+      expect(result.missoes[0]?.titulo).toBe("Missão sem pack");
     });
 
     it("deve liberar client após execução", async () => {

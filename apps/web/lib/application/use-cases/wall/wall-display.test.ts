@@ -109,9 +109,9 @@ describe("getWallFeed", () => {
     const result = await getWallFeed(input, mockPool);
 
     expect(result.itens).toHaveLength(1);
-    expect(result.itens[0].id).toBe("m1");
-    expect(result.itens[0].autor).toBe("João");
-    expect(result.itens[0].reacoes).toBe(5);
+    expect(result.itens[0]!.id).toBe("m1");
+    expect(result.itens[0]!.autor).toBe("João");
+    expect(result.itens[0]!.reacoes).toBe(5);
     expect(result.panico).toBe(false);
     expect(result.telaoModelos).toEqual(["grid"]);
     expect(result.contadores.fotos).toBe(100);

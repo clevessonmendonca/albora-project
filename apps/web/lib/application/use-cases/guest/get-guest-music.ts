@@ -20,7 +20,7 @@ export type GetGuestMusicInput = {
 export type GetGuestMusicOutput = {
   escolhida: Awaited<ReturnType<typeof musicaDoCasal>>;
   sugestoes: Awaited<ReturnType<typeof listarSugestoes>>;
-  interacao: "espelho" | "aberto" | "limitado";
+  interacao: "espelho" | "completo";
 };
 
 /**

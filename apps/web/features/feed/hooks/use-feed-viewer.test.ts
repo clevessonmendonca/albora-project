@@ -1,12 +1,29 @@
+/**
+ * @vitest-environment jsdom
+ */
+import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useFeedViewer } from "./use-feed-viewer";
 import type { HourGroup } from "../lib/group-by-hour";
 import type { ItemVisivel } from "./use-feed";
 
+// jsdom não implementa matchMedia (gap conhecido) — o hook consulta
+// prefers-reduced-motion ao restaurar o scroll, então precisa de um stub.
+window.matchMedia ??= (query: string) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addListener: () => {},
+  removeListener: () => {},
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  dispatchEvent: () => false,
+});
+
 describe("useFeedViewer", () => {
   const criarGrupo = (inicio: Date, completo: boolean, itens: ItemVisivel[]): HourGroup<ItemVisivel> => ({
     inicio,
-    hora: "12:00",
+    hora: 12,
     itens,
     completo,
   });

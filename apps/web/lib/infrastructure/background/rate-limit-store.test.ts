@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { consume, reset } from "./rate-limit-store";
-import { limitIdentity } from "./session";
+import { limitIdentity } from "../auth/session";
 
 beforeEach(reset);
 

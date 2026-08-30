@@ -2,8 +2,8 @@
 
 type MiniaturaMinhasProps = {
   isVideo: boolean;
-  url?: string;
-  urlVideo?: string | null;
+  url?: string | undefined;
+  urlVideo?: string | null | undefined;
   pendente: boolean;
 };
 

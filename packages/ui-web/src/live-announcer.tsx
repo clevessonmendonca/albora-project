@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 
-let announceQueue: string[] = [];
-let listeners = new Set<() => void>();
+const announceQueue: string[] = [];
+const listeners = new Set<() => void>();
 
 export function announce(message: string) {
   announceQueue.push(message);

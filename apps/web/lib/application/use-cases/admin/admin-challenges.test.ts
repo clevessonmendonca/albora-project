@@ -153,8 +153,8 @@ describe("listChallengesUseCase", () => {
     const result = await listChallengesUseCase(input, mockPool);
 
     expect(result.challenges).toHaveLength(2);
-    expect(result.challenges[0].titleKey).toBe("missao.noivos");
-    expect(result.challenges[1].customTitle).toBe("Custom");
+    expect(result.challenges[0]!.titleKey).toBe("missao.noivos");
+    expect(result.challenges[1]!.customTitle).toBe("Custom");
   });
 });
 
@@ -202,7 +202,7 @@ describe("updatePackMissions", () => {
 
     expect(result.packId).toBe("wedding");
     expect(result.challenges).toHaveLength(2);
-    expect(result.challenges[0].titleKey).toBe("missao.noivos");
+    expect(result.challenges[0]!.titleKey).toBe("missao.noivos");
 
     expect(mockSubstituirDesafios).toHaveBeenCalledWith(
       expect.anything(),
@@ -231,7 +231,7 @@ describe("updatePackMissions", () => {
     const result = await updatePackMissions(input, mockPool);
 
     expect(result.challenges).toHaveLength(1);
-    expect(result.challenges[0].titleKey).toBe("missao.nova");
+    expect(result.challenges[0]!.titleKey).toBe("missao.nova");
   });
 
   it("deve aceitar lista vazia de missões", async () => {
@@ -300,8 +300,8 @@ describe("updateCustomMissions", () => {
 
     expect(result.packId).toBe("wedding");
     expect(result.challenges).toHaveLength(2);
-    expect(result.challenges[0].customTitle).toBe("Missão 1");
-    expect(result.challenges[0].emoji).toBe("📷");
+    expect(result.challenges[0]!.customTitle).toBe("Missão 1");
+    expect(result.challenges[0]!.emoji).toBe("📷");
 
     expect(mockSubstituirMissoesCustom).toHaveBeenCalledWith(
       expect.anything(),
@@ -337,8 +337,8 @@ describe("updateCustomMissions", () => {
     });
     const result = await updateCustomMissions(input, mockPool);
 
-    expect(result.challenges[0].id).toBe("chal-existing");
-    expect(result.challenges[0].customTitle).toBe("Missão Atualizada");
+    expect(result.challenges[0]!.id).toBe("chal-existing");
+    expect(result.challenges[0]!.customTitle).toBe("Missão Atualizada");
   });
 
   it("deve criar missões sem emoji", async () => {
@@ -361,7 +361,7 @@ describe("updateCustomMissions", () => {
     });
     const result = await updateCustomMissions(input, mockPool);
 
-    expect(result.challenges[0].emoji).toBeNull();
+    expect(result.challenges[0]!.emoji).toBeNull();
   });
 
   it("deve aceitar lista vazia de missões customizadas", async () => {
@@ -417,8 +417,8 @@ describe("updateCustomMissions", () => {
     });
     const result = await updateCustomMissions(input, mockPool);
 
-    expect(result.challenges[0].position).toBe(3);
-    expect(result.challenges[1].position).toBe(1);
-    expect(result.challenges[2].position).toBe(2);
+    expect(result.challenges[0]!.position).toBe(3);
+    expect(result.challenges[1]!.position).toBe(1);
+    expect(result.challenges[2]!.position).toBe(2);
   });
 });

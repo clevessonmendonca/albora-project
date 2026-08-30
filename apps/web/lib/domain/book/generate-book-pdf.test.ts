@@ -9,7 +9,7 @@ import {
   type MidiaDoAlbum,
 } from "@albora/core";
 import { ALBORA_BRAND } from "@albora/tokens";
-import { BOOK_CUT_MM } from "./book-layout";
+import { BOOK_CUT_MM } from "./layout";
 import { generateBookPdf } from "./generate-book-pdf";
 
 /** JPEG 8×8 cinza — suficiente para pdf-lib embedJpg. */

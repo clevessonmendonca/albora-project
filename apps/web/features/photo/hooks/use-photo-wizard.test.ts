@@ -1,3 +1,6 @@
+/**
+ * @vitest-environment jsdom
+ */
 import { describe, it, expect } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { usePhotoWizard } from "./use-photo-wizard";
@@ -53,15 +56,6 @@ describe("usePhotoWizard", () => {
     act(() => {
       result.current.capture(file);
     });
-
-    // Simular transição para details (seria feito via upload)
-    // Para o teste, vamos forçar o estado
-    const stateComDetails = {
-      step: "details" as const,
-      arquivo: file,
-      uploadId: "upload-123",
-      missao: null,
-    };
 
     // Aqui normalmente seria através do fluxo de upload
     // Mas para o teste podemos confirmar direto

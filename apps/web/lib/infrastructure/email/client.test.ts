@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { sendHostEmail } from "./email";
+import { sendHostEmail } from "./client";
 
 describe("e-mail do anfitrião degrada sem Resend", () => {
   afterEach(() => {

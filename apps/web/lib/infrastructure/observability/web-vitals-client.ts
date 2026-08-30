@@ -36,15 +36,22 @@ export function initWebVitals(handler: VitalsHandler, config: WebVitalsConfig = 
     return;
   }
 
-  const sendMetric = (metric: any) => {
+  const sendMetric = (metric: unknown) => {
     try {
+      const m = metric as {
+        name: WebVitalMetric["name"];
+        value: number;
+        delta: number;
+        id: string;
+        navigationType?: WebVitalMetric["navigationType"];
+      };
       const vitalsMetric: WebVitalMetric = {
-        name: metric.name as any,
-        value: metric.value,
-        rating: getWebVitalRating(metric.name, metric.value),
-        delta: metric.delta,
-        id: metric.id,
-        navigationType: metric.navigationType || "navigate",
+        name: m.name,
+        value: m.value,
+        rating: getWebVitalRating(m.name, m.value),
+        delta: m.delta,
+        id: m.id,
+        navigationType: m.navigationType || "navigate",
       };
 
       if (debug) {
@@ -100,6 +107,7 @@ export async function sendWebVital(
         keepalive: true,
       }).catch(() => {});
     }
-  } catch (e) {
+  } catch {
+    // best-effort: envio de analytics nunca deve quebrar o fluxo do cliente
   }
 }

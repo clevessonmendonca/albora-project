@@ -30,13 +30,13 @@ export function calcularJanelaPrefetch(
     if (!item) continue;
     
     const isVideo = item.mime.startsWith("video/");
-    const chave = isVideo ? item.chaveFull : item.chaveThumb;
-    
-    if (chave) chaves.push(chave);
-    
-    // Para vídeos, também pre-fetch o poster
-    if (isVideo && item.chavePoster) {
-      chaves.push(item.chavePoster);
+
+    // chaveThumb serve de poster/fundo desfocado tanto pra foto quanto pra vídeo (Frame)
+    if (item.chaveThumb) chaves.push(item.chaveThumb);
+
+    // Vídeo precisa também do arquivo completo
+    if (isVideo && item.chaveFull) {
+      chaves.push(item.chaveFull);
     }
   }
   

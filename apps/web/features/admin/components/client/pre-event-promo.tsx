@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AdminCard, AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
 import {
   buildPreEventSections,
   readPreEventChecklist,

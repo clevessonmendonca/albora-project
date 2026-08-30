@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { zipEntriesFromJob } from "./export-stream";
+import { zipEntriesFromJob } from "./stream";
 
 const EVENTO = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 const OUTRO = "ffffffff-bbbb-cccc-dddd-eeeeeeeeeeee";

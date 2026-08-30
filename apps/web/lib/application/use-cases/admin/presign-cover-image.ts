@@ -55,7 +55,7 @@ export async function presignCoverImageUpload(
       ok: false,
       code: invalido,
       message: invalido === "imagem.vazia" ? "Imagem vazia" : "Imagem grande demais",
-      details: invalido === "imagem.grande_demais" ? { limite_bytes: 10 * 1024 * 1024 } : undefined,
+      ...(invalido === "imagem.grande_demais" ? { details: { limite_bytes: 10 * 1024 * 1024 } } : {}),
     };
   }
 

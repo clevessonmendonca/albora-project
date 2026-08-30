@@ -14,8 +14,9 @@ import {
   retomarExportDrive,
   type JobExport,
 } from "@albora/db";
+import type { DriveTokenVault } from "@albora/core";
 import type { Pool } from "pg";
-import { getDriveClient, getDriveVault, type DriveVault } from "@/lib/drive";
+import { getDriveClient } from "@/lib/drive";
 import { driveFolderUrl } from "@/lib/drive-export";
 import { scheduleDriveExportProcessing } from "@/lib/drive-export-scheduler";
 
@@ -77,7 +78,7 @@ export type CreateDriveExportResult =
 export async function createOrResumeDriveExport(
   input: CreateDriveExportInput,
   pool: Pool,
-  vault: DriveVault,
+  vault: DriveTokenVault,
 ): Promise<CreateDriveExportResult> {
   if (Date.now() < input.eventoTerminaEm.getTime()) {
     return {

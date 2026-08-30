@@ -80,7 +80,7 @@ export async function PATCH(
       eventId,
       sessaoId: validation.sessaoId,
       acao: validation.acao,
-      nome: validation.nome,
+      ...(validation.nome !== undefined ? { nome: validation.nome } : {}),
     },
     getPool(),
   );

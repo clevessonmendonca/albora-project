@@ -3,11 +3,11 @@
  *
  * Revoga refresh token no Google e marca conexão como revogada.
  */
+import type { DriveTokenVault } from "@albora/core";
 import { refreshTokenDoEvento, revogarDrive } from "@albora/db";
 import type { Pool } from "pg";
 import type { DriveClient } from "@/lib/drive-client";
 import { ErroDriveApi } from "@/lib/drive-client";
-import type { DriveVault } from "@/lib/drive";
 
 export type DisconnectDriveInput = {
   eventId: string;
@@ -28,7 +28,7 @@ export async function disconnectDrive(
   input: DisconnectDriveInput,
   pool: Pool,
   client: DriveClient,
-  vault: DriveVault,
+  vault: DriveTokenVault,
 ): Promise<DisconnectDriveResult> {
   const refreshToken = await refreshTokenDoEvento(pool, vault, input.eventId);
   

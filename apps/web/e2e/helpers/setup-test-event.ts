@@ -11,6 +11,7 @@
  */
 
 import { comEvento } from "@albora/db";
+import { getPool, getAggregatorPool } from "@/lib/db";
 
 export interface SetupTestEventOptions {
   slug?: string;
@@ -46,13 +47,12 @@ export async function setupTestEvent(
   const couple1Name = options.coupleNames?.couple1 || "João";
   const couple2Name = options.coupleNames?.couple2 || "Maria";
 
-  // Cria o evento usando comEvento (sem event_id, cria novo)
-  const result = await comEvento<TestEvent>(null, async (client) => {
-    const res = await client.query(
-      `
+  // Cria o evento — ainda não existe event_id para escopar RLS, usa o papel BYPASSRLS
+  const res = await getAggregatorPool().query(
+    `
       INSERT INTO events (
-        slug, 
-        pack_id, 
+        slug,
+        pack_id,
         social_gate_open_at,
         couple1_name,
         couple2_name,
@@ -60,48 +60,45 @@ export async function setupTestEvent(
         vendor_id
       )
       VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING 
-        id, 
-        slug, 
-        pack_id, 
+      RETURNING
+        id,
+        slug,
+        pack_id,
         social_gate_open_at,
         couple1_name,
         couple2_name,
         created_at
     `,
-      [
-        slug,
-        packId,
-        socialGateOpenAt,
-        couple1Name,
-        couple2Name,
-        `test-${timestamp}@albora.test`,
-        null, // vendor_id (não obrigatório)
-      ]
-    );
+    [
+      slug,
+      packId,
+      socialGateOpenAt,
+      couple1Name,
+      couple2Name,
+      `test-${timestamp}@albora.test`,
+      null, // vendor_id (não obrigatório)
+    ]
+  );
 
-    return {
-      id: res.rows[0].id,
-      slug: res.rows[0].slug,
-      packId: res.rows[0].pack_id,
-      socialGateOpenAt: res.rows[0].social_gate_open_at,
-      couple1Name: res.rows[0].couple1_name,
-      couple2Name: res.rows[0].couple2_name,
-      createdAt: res.rows[0].created_at,
-    };
-  });
-
-  return result;
+  return {
+    id: res.rows[0].id,
+    slug: res.rows[0].slug,
+    packId: res.rows[0].pack_id,
+    socialGateOpenAt: res.rows[0].social_gate_open_at,
+    couple1Name: res.rows[0].couple1_name,
+    couple2Name: res.rows[0].couple2_name,
+    createdAt: res.rows[0].created_at,
+  };
 }
 
 /**
  * Busca uploads de um evento de teste
  */
 export async function getEventUploads(eventId: string) {
-  return await comEvento(eventId, async (client) => {
+  return await comEvento(getPool(), eventId, async (client) => {
     const result = await client.query(
       `
-      SELECT 
+      SELECT
         id,
         event_id,
         key,
@@ -124,14 +121,13 @@ export async function getEventUploads(eventId: string) {
  * Busca um evento de teste pelo slug
  */
 export async function getEventBySlug(slug: string): Promise<TestEvent | null> {
-  // Busca sem event_id (não aplica RLS)
-  return await comEvento(null, async (client) => {
-    const result = await client.query(
-      `
-      SELECT 
-        id, 
-        slug, 
-        pack_id, 
+  // Busca sem event_id — cruza eventos, usa o papel BYPASSRLS
+  const result = await getAggregatorPool().query(
+    `
+      SELECT
+        id,
+        slug,
+        pack_id,
         social_gate_open_at,
         couple1_name,
         couple2_name,
@@ -139,22 +135,20 @@ export async function getEventBySlug(slug: string): Promise<TestEvent | null> {
       FROM events
       WHERE slug = $1
     `,
-      [slug]
-    );
+    [slug]
+  );
 
-    if (result.rows.length === 0) {
-      return null;
-    }
+  if (result.rows.length === 0) {
+    return null;
+  }
 
-    return {
-      id: result.rows[0].id,
-      slug: result.rows[0].slug,
-      packId: result.rows[0].pack_id,
-      socialGateOpenAt: result.rows[0].social_gate_open_at,
-      couple1Name: result.rows[0].couple1_name,
-      couple2Name: result.rows[0].couple2_name,
-      createdAt: result.rows[0].created_at,
-    };
-  });
+  return {
+    id: result.rows[0].id,
+    slug: result.rows[0].slug,
+    packId: result.rows[0].pack_id,
+    socialGateOpenAt: result.rows[0].social_gate_open_at,
+    couple1Name: result.rows[0].couple1_name,
+    couple2Name: result.rows[0].couple2_name,
+    createdAt: result.rows[0].created_at,
+  };
 }
-

@@ -104,7 +104,7 @@ export async function confirmGuestbookAudioUpload(
           ok: false,
           code: tamanho.code,
           message: "Áudio inválido",
-          details: "details" in tamanho ? tamanho.details : undefined,
+          ...("details" in tamanho ? { details: tamanho.details } : {}),
         };
     }
   }
@@ -116,7 +116,7 @@ export async function confirmGuestbookAudioUpload(
       ok: false,
       code: conteudo.code,
       message: "Arquivo recusado",
-      details: conteudo.details,
+      ...("details" in conteudo ? { details: conteudo.details } : {}),
     };
   }
 

@@ -10,6 +10,19 @@ import {
 } from "./feed-service";
 import type { ItemVisivel } from "../hooks/use-feed";
 
+function criarItemVisivel(overrides: Partial<ItemVisivel> & Pick<ItemVisivel, "id">): ItemVisivel {
+  return {
+    chaveThumb: "",
+    chaveFull: "",
+    mime: "image/jpeg",
+    autor: "Convidado",
+    legenda: null,
+    lugar: null,
+    criadaEm: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
 describe("feed-service", () => {
   describe("calcularJanelaPrefetch", () => {
     it("retorna array vazio para lista vazia", () => {
@@ -18,31 +31,30 @@ describe("feed-service", () => {
 
     it("retorna chaves para janela ao redor do índice", () => {
       const itens: ItemVisivel[] = [
-        { id: "1", chaveThumb: "thumb1", chaveFull: "full1", mime: "image/jpeg" } as ItemVisivel,
-        { id: "2", chaveThumb: "thumb2", chaveFull: "full2", mime: "image/jpeg" } as ItemVisivel,
-        { id: "3", chaveThumb: "thumb3", chaveFull: "full3", mime: "image/jpeg" } as ItemVisivel,
+        criarItemVisivel({ id: "1", chaveThumb: "thumb1", chaveFull: "full1" }),
+        criarItemVisivel({ id: "2", chaveThumb: "thumb2", chaveFull: "full2" }),
+        criarItemVisivel({ id: "3", chaveThumb: "thumb3", chaveFull: "full3" }),
       ];
-      
+
       const result = calcularJanelaPrefetch(itens, 1, 1);
       expect(result).toContain("thumb1");
       expect(result).toContain("thumb2");
       expect(result).toContain("thumb3");
     });
 
-    it("inclui poster para vídeos", () => {
+    it("inclui a chave completa além da miniatura para vídeos", () => {
       const itens: ItemVisivel[] = [
-        {
+        criarItemVisivel({
           id: "1",
           chaveThumb: "thumb1",
           chaveFull: "full1",
-          chavePoster: "poster1",
           mime: "video/mp4",
-        } as ItemVisivel,
+        }),
       ];
-      
+
       const result = calcularJanelaPrefetch(itens, 0, 1);
       expect(result).toContain("full1");
-      expect(result).toContain("poster1");
+      expect(result).toContain("thumb1");
     });
   });
 

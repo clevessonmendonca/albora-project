@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PREFIXO_MAGIC_BYTES } from "@albora/core";
-import { metadadosDaInspecao, rangeDoPrefixoMagic } from "./r2";
+import { metadadosDaInspecao, rangeDoPrefixoMagic } from "./r2-client";
 
 function jpegPrefixo(tamanho = PREFIXO_MAGIC_BYTES): Uint8Array {
   const corpo = new Uint8Array(tamanho);

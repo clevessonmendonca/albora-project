@@ -1,6 +1,6 @@
 /**
  * Infrastructure: Background Processing
- * 
+ *
  * Filas offline e processamento em background.
  */
 
@@ -18,7 +18,4 @@ export {
   type CommentAction,
 } from "./interaction-queue";
 
-export {
-  RateLimitStore,
-  type RateLimitConfig,
-} from "./rate-limit-store";
+export * from "./rate-limit-store";

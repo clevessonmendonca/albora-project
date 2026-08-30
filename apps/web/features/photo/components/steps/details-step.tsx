@@ -16,7 +16,7 @@ type DetailsStepProps = {
  * Permite adicionar contexto opcional à foto.
  */
 export function DetailsStep({
-  arquivo,
+  arquivo: _arquivo,
   uploadId,
   onConfirm,
   onBack,
@@ -27,9 +27,11 @@ export function DetailsStep({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const legendaTrim = legenda.trim();
+    const lugarTrim = lugar.trim();
     onConfirm({
-      legenda: legenda.trim() || undefined,
-      lugar: lugar.trim() || undefined,
+      ...(legendaTrim ? { legenda: legendaTrim } : {}),
+      ...(lugarTrim ? { lugar: lugarTrim } : {}),
     });
   };
 

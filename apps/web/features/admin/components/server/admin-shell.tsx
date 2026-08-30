@@ -60,16 +60,22 @@ export function AdminCard({
   variant,
   children,
   className,
+  id,
 }: {
   variant?: "default" | "highlight";
   children: ReactNode;
   className?: string;
+  id?: string | undefined;
 }) {
-  return <section className={adminCardVariants({ variant, className })}>{children}</section>;
+  return (
+    <section id={id} className={adminCardVariants({ variant, className })}>
+      {children}
+    </section>
+  );
 }
 
-export function AdminSection({ children }: { children: ReactNode }) {
-  return <AdminCard>{children}</AdminCard>;
+export function AdminSection({ children, id }: { children: ReactNode; id?: string }) {
+  return <AdminCard id={id}>{children}</AdminCard>;
 }
 
 export const adminClasses = {

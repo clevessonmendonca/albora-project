@@ -52,8 +52,8 @@ describe("maskObject", () => {
 
     const masked = maskObject(obj);
 
-    expect((masked.user as any).name).toBe("M***a");
-    expect((masked.user as any).phone).toBe("119****4321");
+    expect((masked.user as Record<string, unknown>).name).toBe("M***s");
+    expect((masked.user as Record<string, unknown>).phone).toBe("119****4321");
     expect(masked.eventId).toBe("evt-123");
   });
 

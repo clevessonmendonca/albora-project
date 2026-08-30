@@ -1,3 +1,3 @@
-export { appLinks, type AppLinksOptions } from "./app-links";
-export { shareOrDownload, type ShareOrDownloadOptions } from "./share-or-download";
-export { getPlatformMetrics, type PlatformMetrics } from "./platform-metrics";
+export * from "./app-links";
+export * from "./share-or-download";
+export * from "./platform-metrics";

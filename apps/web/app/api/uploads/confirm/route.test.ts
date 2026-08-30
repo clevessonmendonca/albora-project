@@ -5,7 +5,7 @@ import type * as ApiModule from "@/lib/api";
 
 const EVENT_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 const SESSION_ID = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
-const UPLOAD_ID = "upload-id-1";
+const UPLOAD_ID = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 const CHAVE = `events/${EVENT_ID}/2026/08/${SESSION_ID}`;
 
 /** JPEG: 0xFF 0xD8 0xFF + padding */

@@ -8,17 +8,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   addReaction,
   type AddReactionInput,
-  type AddReactionResult,
 } from "./add-reaction";
 import {
   removeReaction,
   type RemoveReactionInput,
-  type RemoveReactionResult,
 } from "./remove-reaction";
 import {
   listReactions,
   type ListReactionsInput,
-  type ListReactionsOutput,
 } from "./list-reactions";
 import type { PoolClient } from "pg";
 
@@ -348,7 +345,7 @@ describe("Reactions", () => {
       const result = await listReactions(input, getClient);
 
       expect(result.reatores).toHaveLength(2);
-      expect(result.reatores[0].sessaoId).toBe("sess-456");
+      expect(result.reatores[0]!.sessaoId).toBe("sess-456");
     });
 
     it("deve liberar client após execução", async () => {
@@ -392,7 +389,7 @@ describe("Reactions", () => {
       const listResult = await listReactions(listInput, getClient);
 
       expect(listResult.reatores).toHaveLength(1);
-      expect(listResult.reatores[0].nome).toBe("João");
+      expect(listResult.reatores[0]!.nome).toBe("João");
 
       // 3. Remover reação
       mockReacaoDaSessao.mockResolvedValue({ tipo: "curtir" });

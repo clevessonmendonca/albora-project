@@ -56,11 +56,9 @@ test.describe("Story Degradável", () => {
             page.locator('[data-testid="upload-success"]'),
           ];
 
-          let successFound = false;
           for (const indicator of successIndicators) {
             const visible = await indicator.isVisible({ timeout: 2000 }).catch(() => false);
             if (visible) {
-              successFound = true;
               console.log("✅ Upload completou com sucesso mesmo com Story falhando!");
               break;
             }

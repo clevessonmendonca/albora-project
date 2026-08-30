@@ -10,14 +10,13 @@ import {
   challengeBelongsToEvent,
   eventGate,
   listFeed,
-  ErroCursorInvalido,
   type PaginaFeed,
 } from "@albora/db";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 const VAZIO: PaginaFeed = { itens: [], proximoCursor: null };
 
-export type FeedInteractionMode = "espelho" | "aberto" | "limitado";
+export type FeedInteractionMode = "espelho" | "completo";
 
 export type ListFeedInput = {
   eventoId: string;
@@ -53,7 +52,7 @@ export async function listFeedUseCase(
 
   try {
     const pagina = await withEvent(
-      { query: client.query.bind(client) } as PoolClient,
+      { query: client.query.bind(client) } as unknown as Pool,
       input.eventoId,
       async (c) => {
         const gate = await eventGate(c, input.eventoId);
@@ -72,8 +71,8 @@ export async function listFeedUseCase(
         const itens = await listFeed(c, {
           eventoId: input.eventoId,
           modo: interacao,
-          missaoId: input.missaoId,
-          cursor: input.cursor,
+          missaoId: input.missaoId ?? null,
+          cursor: input.cursor ?? null,
           sessaoId: input.sessaoId,
         });
 

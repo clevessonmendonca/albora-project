@@ -1,6 +1,6 @@
 import { resolverParede, type ParedeResolvida } from "@albora/db";
-import { getPool } from "./db";
-import { config } from "./config";
+import { getPool } from "@/lib/db";
+import { config } from "@/lib/config";
 
 /** Credenciais do telão: ambas em cookie HttpOnly, nunca na URL — `albora_parede` (crachá só-leitura, `wall_tokens`) e `albora_pareamento` (poll até virar crachá). TV não pode subir foto. */
 

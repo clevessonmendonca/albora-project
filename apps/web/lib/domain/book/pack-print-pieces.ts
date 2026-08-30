@@ -2,7 +2,7 @@ import type { PieceFormat } from "@albora/tokens";
 import { generatePiecePdf } from "./generate-piece-pdf";
 import { generatePieceSvg } from "./generate-piece-svg";
 import type { PieceInput } from "./piece-layout";
-import { buildZip } from "./zip-bytes";
+import { buildZip } from "@/lib/utils/zip-bytes";
 
 export const PRINT_FORMATS: PieceFormat[] = ["placa-a4", "card-de-mesa", "card-de-missao"];
 

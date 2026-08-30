@@ -8,7 +8,7 @@ import {
   type Bitmap,
   type Desenhista,
 } from "@albora/core";
-import { desenharTextoNoContexto, estiloTextoDoStory } from "./story-text";
+import { desenharTextoNoContexto, estiloTextoDoStory } from "@/lib/domain/story/story-text";
 
 /** `Desenhista` da web: camada fina — toda decisão já tomada em `@albora/core`; aqui só se desenha. ⚠️ Sem teste automatizado — pixel só se verifica com olho em aparelho (runbook task 004). */
 

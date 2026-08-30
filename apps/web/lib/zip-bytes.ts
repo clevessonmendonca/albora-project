@@ -3,6 +3,6 @@
  * Este arquivo mantém retrocompatibilidade temporária.
  */
 export {
-  createZipBytes,
+  buildZip,
   type ZipFile,
 } from "./utils/zip-bytes";

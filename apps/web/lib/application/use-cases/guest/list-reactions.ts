@@ -5,7 +5,7 @@
  */
 
 import { withEvent, listReactionsForMedia } from "@albora/db";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 export type ReactionReactor = {
   nome: string;
@@ -37,7 +37,7 @@ export async function listReactions(
 
   try {
     const nomes = await withEvent(
-      { query: client.query.bind(client) } as PoolClient,
+      { query: client.query.bind(client) } as unknown as Pool,
       input.eventoId,
       (c) => listReactionsForMedia(c, input.uploadId, input.sessaoId),
     );

@@ -1,6 +1,5 @@
 "use client";
 
-import type { ItemDaGaleria } from "@albora/core";
 import { isVideoMime } from "@albora/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

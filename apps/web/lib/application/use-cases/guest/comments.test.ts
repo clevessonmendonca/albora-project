@@ -8,17 +8,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   listComments,
   type ListCommentsInput,
-  type ListCommentsOutput,
 } from "./list-comments";
 import {
   publishCommentUseCase,
   type PublishCommentInput,
-  type PublishCommentResult,
 } from "./publish-comment";
 import {
   deleteComment,
   type DeleteCommentInput,
-  type DeleteCommentResult,
 } from "./delete-comment";
 import type { PoolClient } from "pg";
 
@@ -27,6 +24,7 @@ const {
   mockWithEvent,
   mockEventGate,
   mockListarComentariosVisiveisDaFoto,
+  mockListarComentariosDaFoto,
   mockBuildCommentThread,
   mockInteractionOpen,
   mockValidateCommentText,
@@ -47,6 +45,7 @@ const {
     mockWithEvent: vi.fn(),
     mockEventGate: vi.fn(),
     mockListarComentariosVisiveisDaFoto: vi.fn(),
+    mockListarComentariosDaFoto: vi.fn(),
     mockBuildCommentThread: vi.fn(),
     mockInteractionOpen: vi.fn(),
     mockValidateCommentText: vi.fn(),
@@ -63,6 +62,7 @@ vi.mock("@albora/db", () => ({
   withEvent: mockWithEvent,
   eventGate: mockEventGate,
   listarComentariosVisiveisDaFoto: mockListarComentariosVisiveisDaFoto,
+  listarComentariosDaFoto: mockListarComentariosDaFoto,
   gravarComentario: mockGravarComentario,
   removerComentario: mockRemoverComentario,
   ErroComentarioDeOutroEvento,
@@ -100,7 +100,23 @@ describe("Comments", () => {
     mockWithEvent.mockImplementation(async (_client, _eventId, fn) => fn(mockClient));
     mockEventGate.mockResolvedValue({ visible: true, interactionStartsAt: null });
     mockInteractionOpen.mockReturnValue(true);
-    mockValidateCommentText.mockReturnValue("comentario.ok");
+    // validateCommentText (validarTexto) retorna { ok, texto } | { ok: false, codigo } —
+    // nunca uma string crua. Ver packages/core/src/comment.ts.
+    mockValidateCommentText.mockImplementation((texto: string) => ({ ok: true, texto }));
+    // listarComentariosDaFoto é usada por publishCommentUseCase para validar a âncora
+    // de resposta antes de chamar publishComment (domínio).
+    mockListarComentariosDaFoto.mockResolvedValue([]);
+    // gravarComentario (persistência) roda depois de publishComment (domínio) validar —
+    // default genérico para testes que não checam a forma exata do resultado.
+    mockGravarComentario.mockResolvedValue({
+      id: "cmt-default",
+      eventoId: "evt-123",
+      midiaId: "upl-456",
+      sessaoId: "sess-456",
+      texto: "texto",
+      respostaA: null,
+      criadoEm: new Date(),
+    });
   });
 
   describe("listComments", () => {
@@ -132,7 +148,11 @@ describe("Comments", () => {
       ];
 
       mockListarComentariosVisiveisDaFoto.mockResolvedValue(comentariosDb);
-      mockBuildCommentThread.mockReturnValue(comentariosDb);
+      // buildCommentThread (montarThread) devolve { raiz, respostas }[] — nunca a lista
+      // achatada. Ver packages/core/src/comment.ts.
+      mockBuildCommentThread.mockReturnValue([
+        { raiz: comentariosDb[0], respostas: [comentariosDb[1]] },
+      ]);
 
       const input = createListInput();
       const result = await listComments(input, getClient);
@@ -224,12 +244,21 @@ describe("Comments", () => {
       ];
 
       mockListarComentariosVisiveisDaFoto.mockResolvedValue(comentariosDb);
-      mockBuildCommentThread.mockReturnValue(comentariosOrdenados);
+      // buildCommentThread (montarThread) devolve { raiz, respostas }[] — nunca a lista
+      // achatada. Ver packages/core/src/comment.ts.
+      mockBuildCommentThread.mockReturnValue([
+        {
+          raiz: comentariosOrdenados[0],
+          respostas: [comentariosOrdenados[1], comentariosOrdenados[2]],
+        },
+      ]);
 
       const input = createListInput();
       await listComments(input, getClient);
 
-      expect(mockBuildCommentThread).toHaveBeenCalledWith(comentariosDb);
+      // buildCommentThread (montarThread) recebe (comentarios, midiaId) — ver assinatura
+      // em packages/core/src/comment.ts.
+      expect(mockBuildCommentThread).toHaveBeenCalledWith(comentariosDb, input.uploadId);
     });
 
     it("deve marcar comentários da sessão atual como 'meu'", async () => {
@@ -243,12 +272,16 @@ describe("Comments", () => {
           sessaoId: "sess-current",
         },
       ]);
-      mockBuildCommentThread.mockImplementation((c) => c);
+      // buildCommentThread (montarThread) devolve { raiz, respostas }[] — nunca a lista
+      // achatada. Ver packages/core/src/comment.ts.
+      mockBuildCommentThread.mockImplementation((c: unknown[]) =>
+        c.map((raiz) => ({ raiz, respostas: [] })),
+      );
 
       const input = createListInput({ currentSessionId: "sess-current" });
       const result = await listComments(input, getClient);
 
-      expect(result.comentarios[0].meu).toBe(true);
+      expect(result.comentarios[0]?.meu).toBe(true);
     });
 
     it("deve liberar client após execução", async () => {
@@ -275,17 +308,33 @@ describe("Comments", () => {
     });
 
     it("deve publicar comentário com sucesso", async () => {
+      // publishComment (domínio) devolve Comentario — sem `autor` (esse campo só existe
+      // em ComentarioComAutor). gravarComentario (persistência) é uma etapa separada,
+      // chamada depois, e é o valor dela que vira o resultado final do use case.
+      const comentarioValidado = {
+        id: "cmt-new",
+        eventoId: "evt-123",
+        midiaId: "upl-789",
+        sessaoId: "sess-456",
+        texto: "Que foto incrível!",
+        respostaA: null,
+        criadoEm: new Date(),
+      };
       const comentarioGravado = {
         id: "cmt-new",
-        autor: "João",
+        eventoId: "evt-123",
+        midiaId: "upl-789",
+        sessaoId: "sess-456",
         texto: "Que foto incrível!",
+        respostaA: null,
         criadoEm: new Date(),
       };
 
       mockPublishComment.mockResolvedValue({
         ok: true,
-        comentario: comentarioGravado,
+        comentario: comentarioValidado,
       });
+      mockGravarComentario.mockResolvedValue(comentarioGravado);
 
       const input = createPublishInput();
       const result = await publishCommentUseCase(input, getClient);
@@ -331,7 +380,7 @@ describe("Comments", () => {
     });
 
     it("deve validar texto vazio", async () => {
-      mockValidateCommentText.mockReturnValue("comentario.vazio");
+      mockValidateCommentText.mockReturnValue({ ok: false, codigo: "comentario.vazio" });
 
       const input = createPublishInput({ texto: "" });
       const result = await publishCommentUseCase(input, getClient);
@@ -346,7 +395,7 @@ describe("Comments", () => {
     });
 
     it("deve validar texto muito longo", async () => {
-      mockValidateCommentText.mockReturnValue("comentario.muito_longo");
+      mockValidateCommentText.mockReturnValue({ ok: false, codigo: "comentario.muito_longo" });
 
       const input = createPublishInput({ texto: "a".repeat(1001) });
       const result = await publishCommentUseCase(input, getClient);
@@ -359,9 +408,11 @@ describe("Comments", () => {
     });
 
     it("deve falhar se upload não existe", async () => {
+      // publishComment (domínio) devolve { ok: false, codigo }, nunca `code` —
+      // ver ResultadoDePublicacao em packages/core/src/comment.ts.
       mockPublishComment.mockResolvedValue({
         ok: false,
-        code: "comentario.upload_ausente",
+        codigo: "comentario.upload_ausente",
       });
 
       const input = createPublishInput({ uploadId: "upl-inexistente" });
@@ -375,9 +426,11 @@ describe("Comments", () => {
     });
 
     it("deve falhar se comentário pai não existe (resposta)", async () => {
+      // publishComment (domínio) devolve { ok: false, codigo }, nunca `code` —
+      // ver ResultadoDePublicacao em packages/core/src/comment.ts.
       mockPublishComment.mockResolvedValue({
         ok: false,
-        code: "comentario.pai_ausente",
+        codigo: "comentario.pai_ausente",
       });
 
       const input = createPublishInput({ respostaA: "cmt-inexistente" });
@@ -399,9 +452,13 @@ describe("Comments", () => {
       const input = createPublishInput({ commentId: "cmt-custom" });
       await publishCommentUseCase(input, getClient);
 
+      // publicarComentario(pedido, evento, existentes, agora) — 4 argumentos, nenhum é
+      // função. Ver assinatura em packages/core/src/comment.ts.
       expect(mockPublishComment).toHaveBeenCalledWith(
         expect.objectContaining({ id: "cmt-custom" }),
-        expect.any(Function),
+        expect.anything(),
+        expect.anything(),
+        expect.any(Date),
       );
     });
 
@@ -435,8 +492,7 @@ describe("Comments", () => {
 
       expect(mockRemoverComentario).toHaveBeenCalledWith(
         mockClient,
-        "cmt-789",
-        "sess-456",
+        { comentarioId: "cmt-789", sessaoId: "sess-456" },
       );
     });
 
@@ -488,14 +544,27 @@ describe("Comments", () => {
   describe("Fluxo completo: publish → list → delete", () => {
     it("deve completar ciclo de vida do comentário", async () => {
       // 1. Publicar comentário
+      // publishComment (domínio) devolve Comentario — sem `autor`.
       mockPublishComment.mockResolvedValue({
         ok: true,
         comentario: {
           id: "cmt-flow",
-          autor: "João",
+          eventoId: "evt-flow",
+          midiaId: "upl-flow",
+          sessaoId: "sess-flow",
           texto: "Comentário de teste",
+          respostaA: null,
           criadoEm: new Date(),
         },
+      });
+      mockGravarComentario.mockResolvedValue({
+        id: "cmt-flow",
+        eventoId: "evt-flow",
+        midiaId: "upl-flow",
+        sessaoId: "sess-flow",
+        texto: "Comentário de teste",
+        respostaA: null,
+        criadoEm: new Date(),
       });
 
       const publishInput = {
@@ -520,7 +589,11 @@ describe("Comments", () => {
           sessaoId: "sess-flow",
         },
       ]);
-      mockBuildCommentThread.mockImplementation((c) => c);
+      // buildCommentThread (montarThread) devolve { raiz, respostas }[] — nunca a lista
+      // achatada. Ver packages/core/src/comment.ts.
+      mockBuildCommentThread.mockImplementation((c: unknown[]) =>
+        c.map((raiz) => ({ raiz, respostas: [] })),
+      );
 
       const listInput = {
         eventoId: "evt-flow",
@@ -530,7 +603,7 @@ describe("Comments", () => {
       const listResult = await listComments(listInput, getClient);
 
       expect(listResult.comentarios).toHaveLength(1);
-      expect(listResult.comentarios[0].texto).toBe("Comentário de teste");
+      expect(listResult.comentarios[0]?.texto).toBe("Comentário de teste");
 
       // 3. Remover comentário
       mockRemoverComentario.mockResolvedValue(undefined);

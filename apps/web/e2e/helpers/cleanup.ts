@@ -8,6 +8,7 @@
  */
 
 import { comEvento } from "@albora/db";
+import { getPool, getAggregatorPool } from "@/lib/db";
 
 /**
  * Remove um evento de teste e todos os dados relacionados
@@ -22,7 +23,7 @@ import { comEvento } from "@albora/db";
  * 7. Eventos
  */
 export async function cleanupTestEvent(eventId: string): Promise<void> {
-  await comEvento(eventId, async (client) => {
+  await comEvento(getPool(), eventId, async (client) => {
     // 1. Reações (FK → uploads)
     await client.query("DELETE FROM reactions WHERE event_id = $1", [eventId]);
 
@@ -93,16 +94,14 @@ export async function cleanupMultipleTestEvents(
  * ⚠️ USE COM CUIDADO! Só em ambiente de teste!
  */
 export async function cleanupAllTestEvents(): Promise<void> {
-  await comEvento(null, async (client) => {
-    const result = await client.query(
-      "SELECT id FROM events WHERE slug LIKE 'test-event-%'"
-    );
+  const result = await getAggregatorPool().query(
+    "SELECT id FROM events WHERE slug LIKE 'test-event-%'"
+  );
 
-    const eventIds = result.rows.map((row) => row.id);
+  const eventIds: string[] = result.rows.map((row) => row.id);
 
-    for (const eventId of eventIds) {
-      await cleanupTestEvent(eventId);
-    }
-  });
+  for (const eventId of eventIds) {
+    await cleanupTestEvent(eventId);
+  }
 }
 

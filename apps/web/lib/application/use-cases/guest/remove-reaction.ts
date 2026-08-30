@@ -10,7 +10,7 @@ import {
   reacaoDaSessao,
   apagarReacao,
 } from "@albora/db";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 export type RemoveReactionInput = {
   eventoId: string;
@@ -41,8 +41,18 @@ export async function removeReaction(
   const client = await getClient();
 
   try {
+    // withEvent (comEvento) chama pool.connect() para abrir a transação com o SET LOCAL
+    // de RLS — o client já foi obtido acima, então o "pool" aqui só devolve esse mesmo
+    // client; release() fica no-op porque quem fecha a conexão é o finally deste use case.
+    const pool = {
+      connect: async () => ({
+        query: client.query.bind(client),
+        release: () => {},
+      }),
+    } as unknown as Pool;
+
     const resultado = await withEvent(
-      { query: client.query.bind(client) } as PoolClient,
+      pool,
       input.eventoId,
       async (c) => {
         const gate = await eventGate(c, input.eventoId);

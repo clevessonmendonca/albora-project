@@ -1,1 +1,1 @@
-export { createExportStream, type ExportStreamOptions } from "./stream";
+export * from "./stream";

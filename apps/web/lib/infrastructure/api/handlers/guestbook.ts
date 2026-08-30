@@ -1,3 +1,4 @@
+import type { GuestbookAudio } from "@albora/core";
 import {
   enforceRateLimit,
   jsonOk,
@@ -38,7 +39,10 @@ export async function GET(req: Request) {
       getPool(),
     );
 
-    const audio = await signGuestbookAudio(result.tela.audio);
+    // get-guestbook.ts's GetGuestbookOutput mistypes tela.audio as `string | null`; at runtime it is
+    // the GuestbookAudio | null that @albora/core's buildGuestbookScreen returns (own tsc error there,
+    // outside this file's scope — narrow assertion until that annotation is corrected).
+    const audio = await signGuestbookAudio(result.tela.audio as GuestbookAudio | null);
 
     return jsonOk({
       mostrar: result.mostrar,

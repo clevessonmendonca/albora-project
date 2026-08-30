@@ -1,4 +1,4 @@
-import type { Queue, QueueItem } from "@albora/core";
+import type { Queue } from "@albora/core";
 import { shouldGiveUp } from "@albora/core";
 
 /** Zera tentativas de um item que esgotou o backoff — re-enfileira intacto. */
