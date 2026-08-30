@@ -1,31 +1,41 @@
 "use client";
 
+import React from "react";
 import { isVideoMime } from "@albora/core";
 import type { MediaUrl } from "@/lib/media";
 import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 
-/** Antes do gate — sem reação, sem comentário: desenhar botões trancados mentiria (ADR 0009). */
+/** Antes do gate — sem reação, sem comentário: desenhar botões trancados mentiria (ADR 0009). O toque abre o viewer; a estrela vive lá, respeitando o gate. */
 
 export function MirrorGrid({
   itens,
   urls,
   cameraPath,
+  onAbrir,
 }: {
   itens: readonly ItemVisivel[];
   urls: Map<string, MediaUrl>;
   cameraPath?: string;
+  onAbrir: (indice: number) => void;
 }) {
   return (
     <div className="grid gap-3">
       <div className="grid grid-cols-2 gap-1.5">
-        {itens.map((item) => {
+        {itens.map((item, indice) => {
           const isVideo = isVideoMime(item.mime);
           const url = urls.get(item.chaveThumb)?.url;
+          const rotulo = isVideo
+            ? `Abrir vídeo de ${item.autor}`
+            : `Abrir foto de ${item.autor}`;
 
           return (
-            <div
+            <button
               key={item.id}
-              className="relative aspect-square overflow-hidden rounded-token bg-superficie"
+              type="button"
+              onClick={() => onAbrir(indice)}
+              data-testid={`mirror-photo-${item.id}`}
+              aria-label={rotulo}
+              className="relative aspect-square cursor-pointer overflow-hidden rounded-token border-0 bg-superficie p-0"
             >
               {url ? (
                 isVideo ? (
@@ -49,7 +59,7 @@ export function MirrorGrid({
                 ) : (
                   <img
                     src={url}
-                    alt={item.legenda ?? `Foto de ${item.autor}`}
+                    alt=""
                     loading="lazy"
                     decoding="async"
                     className="block size-full object-cover"
@@ -58,7 +68,7 @@ export function MirrorGrid({
               ) : (
                 <div className="feed-esperando size-full border border-linha" />
               )}
-            </div>
+            </button>
           );
         })}
       </div>
