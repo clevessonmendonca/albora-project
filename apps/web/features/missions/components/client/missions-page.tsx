@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Badge, FloatingNav, GuestHeader, GuestMain, GuestShell } from "@albora/ui-web";
+import { FloatingNav, GuestHeader, GuestMain, GuestShell } from "@albora/ui-web";
 import { useMissionsProgress } from "../../hooks/use-missions-progress";
 import { useCelebration } from "../../hooks/use-celebration";
+import { useMissionCompletionToast } from "../../hooks/use-mission-completion-toast";
 import { photoPathForMission, toRoman, turnIndex } from "../../lib/missions-utils";
 import {
   MissionsProgress,
@@ -12,6 +13,8 @@ import {
   CompletedList,
   CelebrationOverlay,
   CameraButton,
+  MissionsBadge,
+  MissionCompletionToast,
 } from "../ui";
 
 export type VisibleMission = { id: string; title: string; done: boolean; emoji?: string | null };
@@ -24,18 +27,35 @@ export function MissionsPage({
   missions: VisibleMission[];
 }) {
   const base = `/e/${encodeURIComponent(slug)}`;
-  const { doneCount, allDone, current, summary } = useMissionsProgress(missions);
+  const { doneCount, allDone, current } = useMissionsProgress(missions);
   const { celeb, dismiss } = useCelebration(allDone);
+  const completion = useMissionCompletionToast(missions);
 
   return (
     <>
       {celeb && <CelebrationOverlay onDismiss={dismiss} />}
+      {completion.event && !celeb && (
+        <MissionCompletionToast
+          missionTitle={completion.event.mission.title}
+          milestone={completion.event.milestone}
+          slug={slug}
+          onDismiss={completion.dismiss}
+          {...(completion.event.nextMission
+            ? {
+                nextMissionTitle: completion.event.nextMission.title,
+                nextMissionId: completion.event.nextMission.id,
+              }
+            : {})}
+        />
+      )}
       <GuestShell>
         <GuestMain>
           <GuestHeader
             title="Missões"
             homeHref={`/e/${encodeURIComponent(slug)}/cover`}
-            action={<Badge>{summary}</Badge>}
+            action={
+              missions.length > 0 ? <MissionsBadge done={doneCount} total={missions.length} /> : undefined
+            }
           />
 
           {missions.length > 0 && <MissionsProgress done={doneCount} total={missions.length} />}
