@@ -38,6 +38,10 @@ describe("CameraView", () => {
     const { onBack } = setup();
 
     const voltar = screen.getByRole("button", { name: "Voltar" });
+    expect(screen.getByRole("link", { name: "Ir para o conteúdo" })).toHaveAttribute(
+      "href",
+      "#main-content",
+    );
     fireEvent.click(voltar);
 
     expect(onBack).toHaveBeenCalledTimes(1);

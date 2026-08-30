@@ -119,7 +119,10 @@ export function EmptyState({
 
 export function EntryColumn({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col justify-center gap-7 px-7 pb-12">
+    <div
+      id="main-content"
+      className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col justify-center gap-7 px-7 pb-12"
+    >
       {children}
     </div>
   );

@@ -6,7 +6,14 @@ import {
 } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PrimaryButton, SecondaryButton } from "@albora/ui-web";
+import {
+  GuestHeader,
+  GuestMain,
+  GuestShell,
+  PrimaryButton,
+  SecondaryButton,
+  SkipLink,
+} from "@albora/ui-web";
 
 type Estado = "carregando" | "pronto" | "sem-sessao" | "erro";
 
@@ -58,8 +65,12 @@ export function PairPage({ slug }: { slug: string }) {
   const universalLink = passagem ? appPairUniversalLinkPassagem(webOrigin, slug, passagem) : null;
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-bg p-6 font-corpo text-ink">
-      <div className="flex w-full max-w-md flex-col gap-5 rounded-superficie bg-superficie p-8">
+    <>
+      <SkipLink />
+      <GuestShell>
+        <GuestMain reserveTabBarSpace={false}>
+          <GuestHeader title="Parear o app" homeHref={`${base}/cover`} />
+          <div className="flex flex-1 flex-col justify-center gap-5 py-6">
         <h1 className="m-0 font-titulo text-2xl [text-wrap:balance]">Abra o app e digite</h1>
 
         {estado === "pronto" && codigo ? (
@@ -121,7 +132,9 @@ export function PairPage({ slug }: { slug: string }) {
         >
           Privacidade
         </a>
-      </div>
-    </main>
+          </div>
+        </GuestMain>
+      </GuestShell>
+    </>
   );
 }

@@ -76,7 +76,8 @@ export async function getCover(input: CoverInput): Promise<CoverData> {
     fuso: evento.fuso,
     musicLabel,
     hostMessageLabel: pack ? resolvePackText(pack, "recado.rotulo") : "Um recado",
-    hasConfessional: (pack?.confessionario?.length ?? 0) > 0,
+    confessionalTitle:
+      pack?.confessionario?.length ? resolvePackText(pack, "confessionario.titulo") : null,
     coverImageUrl,
   };
 }
