@@ -72,7 +72,7 @@ export async function GET(req: Request): Promise<Response> {
         uploadId,
         currentSessionId: auth.session.sessaoId,
       },
-      () => getPool().connect(),
+      getPool(),
     );
 
     return jsonOk(result);
@@ -114,7 +114,7 @@ export async function POST(req: Request): Promise<Response> {
         respostaA: validated.respostaA ?? null,
         commentId: validated.id ?? randomUUID(),
       },
-      () => getPool().connect(),
+      getPool(),
     );
 
     if (!result.ok) {
@@ -169,7 +169,7 @@ export async function DELETE(req: Request): Promise<Response> {
         sessaoId: auth.session.sessaoId,
         comentarioId: validated.comentarioId,
       },
-      () => getPool().connect(),
+      getPool(),
     );
 
     if (!result.ok) {

@@ -17,7 +17,7 @@ import {
   listReactions,
   type ListReactionsInput,
 } from "./list-reactions";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 // Mocks usando vi.hoisted
 const {
@@ -71,12 +71,12 @@ function createMockClient(): PoolClient {
 
 describe("Reactions", () => {
   let mockClient: PoolClient;
-  let getClient: () => Promise<PoolClient>;
+  let mockPool: Pool;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockClient = createMockClient();
-    getClient = vi.fn().mockResolvedValue(mockClient);
+    mockPool = {} as unknown as Pool;
 
     // Defaults
     mockEventGate.mockResolvedValue({ visible: true });
@@ -99,7 +99,7 @@ describe("Reactions", () => {
       mockGravarReacao.mockResolvedValue(5);
 
       const input = createAddInput();
-      const result = await addReaction(input, getClient);
+      const result = await addReaction(input, mockPool);
 
       expect(result).toEqual({
         ok: true,
@@ -120,7 +120,7 @@ describe("Reactions", () => {
       mockEventGate.mockResolvedValue(null);
 
       const input = createAddInput();
-      const result = await addReaction(input, getClient);
+      const result = await addReaction(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -134,7 +134,7 @@ describe("Reactions", () => {
       mockMidiaPublicadaDoEvento.mockResolvedValue(false);
 
       const input = createAddInput();
-      const result = await addReaction(input, getClient);
+      const result = await addReaction(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -148,7 +148,7 @@ describe("Reactions", () => {
       mockIsValidReaction.mockReturnValue(false);
 
       const input = createAddInput({ tipo: "tipo_invalido" });
-      const result = await addReaction(input, getClient);
+      const result = await addReaction(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -162,7 +162,7 @@ describe("Reactions", () => {
       // Primeira reação
       mockGravarReacao.mockResolvedValueOnce(1);
       const input1 = createAddInput({ tipo: "curtir" });
-      const result1 = await addReaction(input1, getClient);
+      const result1 = await addReaction(input1, mockPool);
 
       expect(result1).toEqual({
         ok: true,
@@ -173,7 +173,7 @@ describe("Reactions", () => {
       // Segunda reação (substitui)
       mockGravarReacao.mockResolvedValueOnce(1);
       const input2 = createAddInput({ tipo: "amar" });
-      const result2 = await addReaction(input2, getClient);
+      const result2 = await addReaction(input2, mockPool);
 
       expect(result2).toEqual({
         ok: true,
@@ -188,22 +188,13 @@ describe("Reactions", () => {
       for (const tipo of tiposValidos) {
         mockGravarReacao.mockResolvedValue(1);
         const input = createAddInput({ tipo });
-        const result = await addReaction(input, getClient);
+        const result = await addReaction(input, mockPool);
 
         expect(result.ok).toBe(true);
         if (result.ok) {
           expect(result.minha).toBe(tipo);
         }
       }
-    });
-
-    it("deve liberar client mesmo em caso de erro", async () => {
-      mockEventGate.mockResolvedValue(null);
-
-      const input = createAddInput();
-      await addReaction(input, getClient);
-
-      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
@@ -222,7 +213,7 @@ describe("Reactions", () => {
       mockApagarReacao.mockResolvedValue(4);
 
       const input = createRemoveInput();
-      const result = await removeReaction(input, getClient);
+      const result = await removeReaction(input, mockPool);
 
       expect(result).toEqual({
         ok: true,
@@ -241,7 +232,7 @@ describe("Reactions", () => {
       mockEventGate.mockResolvedValue(null);
 
       const input = createRemoveInput();
-      const result = await removeReaction(input, getClient);
+      const result = await removeReaction(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -258,7 +249,7 @@ describe("Reactions", () => {
       });
 
       const input = createRemoveInput();
-      const result = await removeReaction(input, getClient);
+      const result = await removeReaction(input, mockPool);
 
       expect(result).toEqual({
         ok: true,
@@ -276,22 +267,13 @@ describe("Reactions", () => {
       });
 
       const input = createRemoveInput();
-      const result = await removeReaction(input, getClient);
+      const result = await removeReaction(input, mockPool);
 
       expect(result).toEqual({
         ok: true,
         reacoes: 0,
         minha: null,
       });
-    });
-
-    it("deve liberar client mesmo em caso de erro", async () => {
-      mockEventGate.mockResolvedValue(null);
-
-      const input = createRemoveInput();
-      await removeReaction(input, getClient);
-
-      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
@@ -313,7 +295,7 @@ describe("Reactions", () => {
       ]);
 
       const input = createListInput();
-      const result = await listReactions(input, getClient);
+      const result = await listReactions(input, mockPool);
 
       expect(result).toEqual({
         reatores: [
@@ -328,7 +310,7 @@ describe("Reactions", () => {
       mockListReactionsForMedia.mockResolvedValue([]);
 
       const input = createListInput();
-      const result = await listReactions(input, getClient);
+      const result = await listReactions(input, mockPool);
 
       expect(result).toEqual({
         reatores: [],
@@ -342,19 +324,10 @@ describe("Reactions", () => {
       ]);
 
       const input = createListInput({ sessaoId: "sess-456" });
-      const result = await listReactions(input, getClient);
+      const result = await listReactions(input, mockPool);
 
       expect(result.reatores).toHaveLength(2);
       expect(result.reatores[0]!.sessaoId).toBe("sess-456");
-    });
-
-    it("deve liberar client após execução", async () => {
-      mockListReactionsForMedia.mockResolvedValue([]);
-
-      const input = createListInput();
-      await listReactions(input, getClient);
-
-      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
@@ -368,7 +341,7 @@ describe("Reactions", () => {
         uploadId: "upl-flow",
         tipo: "curtir",
       };
-      const addResult = await addReaction(addInput, getClient);
+      const addResult = await addReaction(addInput, mockPool);
 
       expect(addResult).toEqual({
         ok: true,
@@ -386,7 +359,7 @@ describe("Reactions", () => {
         sessaoId: "sess-flow",
         uploadId: "upl-flow",
       };
-      const listResult = await listReactions(listInput, getClient);
+      const listResult = await listReactions(listInput, mockPool);
 
       expect(listResult.reatores).toHaveLength(1);
       expect(listResult.reatores[0]!.nome).toBe("João");
@@ -400,7 +373,7 @@ describe("Reactions", () => {
         sessaoId: "sess-flow",
         uploadId: "upl-flow",
       };
-      const removeResult = await removeReaction(removeInput, getClient);
+      const removeResult = await removeReaction(removeInput, mockPool);
 
       expect(removeResult).toEqual({
         ok: true,

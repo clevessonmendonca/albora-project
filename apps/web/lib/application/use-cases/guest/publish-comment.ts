@@ -19,7 +19,7 @@ import {
   gravarComentario,
   listarComentariosDaFoto,
 } from "@albora/db";
-import type { Pool, PoolClient } from "pg";
+import type { Pool } from "pg";
 import { classifyCommentAfter } from "@/lib/classify-comment";
 
 export type PublishCommentInput = {
@@ -45,98 +45,82 @@ export type PublishCommentResult =
  * - Comentário pai existe (se resposta)
  * 
  * @param input - Dados do comentário
- * @param getClient - Factory de conexão ao banco
+ * @param pool - Pool de conexões
  * @returns Resultado com comentário gravado ou erro
  */
 export async function publishCommentUseCase(
   input: PublishCommentInput,
-  getClient: () => Promise<PoolClient>,
+  pool: Pool,
 ): Promise<PublishCommentResult> {
-  const client = await getClient();
+  // Validação do gate
+  const gate = await withEvent(pool, input.eventoId, (c) =>
+    eventGate(c, input.eventoId),
+  );
 
-  try {
-    // withEvent (comEvento) chama pool.connect() para abrir a transação com o SET LOCAL
-    // de RLS — o client já foi obtido acima, então o "pool" aqui só devolve esse mesmo
-    // client; release() fica no-op porque quem fecha a conexão é o finally deste use case.
-    const pool = {
-      connect: async () => ({
-        query: client.query.bind(client),
-        release: () => {},
-      }),
-    } as unknown as Pool;
+  if (!gate || !interactionOpen(gate, new Date())) {
+    return {
+      ok: false,
+      code: "comentario.gate_fechado",
+      message: "Comentários ainda não estão liberados",
+    };
+  }
 
-    // Validação do gate
-    const gate = await withEvent(pool, input.eventoId, (c) =>
-      eventGate(c, input.eventoId),
+  // Validação do texto
+  const textValidation = validateCommentText(input.texto);
+  if (!textValidation.ok) {
+    return {
+      ok: false,
+      code: textValidation.codigo,
+      message: "Texto do comentário inválido",
+    };
+  }
+
+  // Publicar comentário (lógica de domínio) + gravação, na mesma transação
+  const result = await withEvent(pool, input.eventoId, async (c) => {
+    const existentes = await listarComentariosDaFoto(
+      c,
+      input.eventoId,
+      input.uploadId,
     );
 
-    if (!gate || !interactionOpen(gate, new Date())) {
-      return {
-        ok: false,
-        code: "comentario.gate_fechado",
-        message: "Comentários ainda não estão liberados",
-      };
-    }
+    const publicado = publishComment(
+      {
+        id: input.commentId ?? randomUUID(),
+        eventoId: input.eventoId,
+        midiaId: input.uploadId,
+        sessaoId: input.sessaoId,
+        texto: textValidation.texto,
+        respostaA: input.respostaA,
+      },
+      { interacaoAbreEm: gate.interacaoAbreEm, id: input.eventoId },
+      existentes,
+      new Date(),
+    );
 
-    // Validação do texto
-    const textValidation = validateCommentText(input.texto);
-    if (!textValidation.ok) {
-      return {
-        ok: false,
-        code: textValidation.codigo,
-        message: "Texto do comentário inválido",
-      };
-    }
+    if (!publicado.ok) return publicado;
 
-    // Publicar comentário (lógica de domínio) + gravação, na mesma transação
-    const result = await withEvent(pool, input.eventoId, async (c) => {
-      const existentes = await listarComentariosDaFoto(
-        c,
-        input.eventoId,
-        input.uploadId,
-      );
-
-      const publicado = publishComment(
-        {
-          id: input.commentId ?? randomUUID(),
-          eventoId: input.eventoId,
-          midiaId: input.uploadId,
-          sessaoId: input.sessaoId,
-          texto: textValidation.texto,
-          respostaA: input.respostaA,
-        },
-        { interacaoAbreEm: gate.interacaoAbreEm, id: input.eventoId },
-        existentes,
-        new Date(),
-      );
-
-      if (!publicado.ok) return publicado;
-
-      const gravado = await gravarComentario(c, {
-        id: publicado.comentario.id,
-        eventoId: publicado.comentario.eventoId,
-        midiaId: publicado.comentario.midiaId,
-        sessaoId: publicado.comentario.sessaoId,
-        respostaA: publicado.comentario.respostaA,
-        texto: publicado.comentario.texto,
-      });
-
-      return { ok: true as const, comentario: gravado };
+    const gravado = await gravarComentario(c, {
+      id: publicado.comentario.id,
+      eventoId: publicado.comentario.eventoId,
+      midiaId: publicado.comentario.midiaId,
+      sessaoId: publicado.comentario.sessaoId,
+      respostaA: publicado.comentario.respostaA,
+      texto: publicado.comentario.texto,
     });
 
-    if (!result.ok) {
-      return {
-        ok: false,
-        code: result.codigo,
-        message: "Falha ao publicar comentário",
-      };
-    }
+    return { ok: true as const, comentario: gravado };
+  });
 
-    // Classificação assíncrona (não bloqueia resposta)
-    classifyCommentAfter(input.eventoId, result.comentario.id, input.texto);
-
-    return { ok: true, comentario: result.comentario };
-  } finally {
-    client.release();
+  if (!result.ok) {
+    return {
+      ok: false,
+      code: result.codigo,
+      message: "Falha ao publicar comentário",
+    };
   }
+
+  // Classificação assíncrona (não bloqueia resposta)
+  classifyCommentAfter(input.eventoId, result.comentario.id, input.texto);
+
+  return { ok: true, comentario: result.comentario };
 }

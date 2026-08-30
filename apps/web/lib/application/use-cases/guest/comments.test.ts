@@ -17,7 +17,7 @@ import {
   deleteComment,
   type DeleteCommentInput,
 } from "./delete-comment";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 // Mocks usando vi.hoisted
 const {
@@ -89,12 +89,12 @@ function createMockClient(): PoolClient {
 
 describe("Comments", () => {
   let mockClient: PoolClient;
-  let getClient: () => Promise<PoolClient>;
+  let mockPool: Pool;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockClient = createMockClient();
-    getClient = vi.fn().mockResolvedValue(mockClient);
+    mockPool = {} as unknown as Pool;
 
     // Defaults
     mockWithEvent.mockImplementation(async (_client, _eventId, fn) => fn(mockClient));
@@ -155,7 +155,7 @@ describe("Comments", () => {
       ]);
 
       const input = createListInput();
-      const result = await listComments(input, getClient);
+      const result = await listComments(input, mockPool);
 
       expect(result.comentarios).toHaveLength(2);
       expect(result.comentarios[0]).toEqual({
@@ -183,7 +183,7 @@ describe("Comments", () => {
       mockBuildCommentThread.mockReturnValue([]);
 
       const input = createListInput();
-      const result = await listComments(input, getClient);
+      const result = await listComments(input, mockPool);
 
       expect(result.comentarios).toEqual([]);
     });
@@ -254,7 +254,7 @@ describe("Comments", () => {
       ]);
 
       const input = createListInput();
-      await listComments(input, getClient);
+      await listComments(input, mockPool);
 
       // buildCommentThread (montarThread) recebe (comentarios, midiaId) — ver assinatura
       // em packages/core/src/comment.ts.
@@ -279,19 +279,9 @@ describe("Comments", () => {
       );
 
       const input = createListInput({ currentSessionId: "sess-current" });
-      const result = await listComments(input, getClient);
+      const result = await listComments(input, mockPool);
 
       expect(result.comentarios[0]?.meu).toBe(true);
-    });
-
-    it("deve liberar client após execução", async () => {
-      mockListarComentariosVisiveisDaFoto.mockResolvedValue([]);
-      mockBuildCommentThread.mockReturnValue([]);
-
-      const input = createListInput();
-      await listComments(input, getClient);
-
-      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
@@ -337,7 +327,7 @@ describe("Comments", () => {
       mockGravarComentario.mockResolvedValue(comentarioGravado);
 
       const input = createPublishInput();
-      const result = await publishCommentUseCase(input, getClient);
+      const result = await publishCommentUseCase(input, mockPool);
 
       expect(result).toEqual({
         ok: true,
@@ -355,7 +345,7 @@ describe("Comments", () => {
       mockInteractionOpen.mockReturnValue(false);
 
       const input = createPublishInput();
-      const result = await publishCommentUseCase(input, getClient);
+      const result = await publishCommentUseCase(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -370,7 +360,7 @@ describe("Comments", () => {
       mockEventGate.mockResolvedValue(null);
 
       const input = createPublishInput();
-      const result = await publishCommentUseCase(input, getClient);
+      const result = await publishCommentUseCase(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -383,7 +373,7 @@ describe("Comments", () => {
       mockValidateCommentText.mockReturnValue({ ok: false, codigo: "comentario.vazio" });
 
       const input = createPublishInput({ texto: "" });
-      const result = await publishCommentUseCase(input, getClient);
+      const result = await publishCommentUseCase(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -398,7 +388,7 @@ describe("Comments", () => {
       mockValidateCommentText.mockReturnValue({ ok: false, codigo: "comentario.muito_longo" });
 
       const input = createPublishInput({ texto: "a".repeat(1001) });
-      const result = await publishCommentUseCase(input, getClient);
+      const result = await publishCommentUseCase(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -416,7 +406,7 @@ describe("Comments", () => {
       });
 
       const input = createPublishInput({ uploadId: "upl-inexistente" });
-      const result = await publishCommentUseCase(input, getClient);
+      const result = await publishCommentUseCase(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -434,7 +424,7 @@ describe("Comments", () => {
       });
 
       const input = createPublishInput({ respostaA: "cmt-inexistente" });
-      const result = await publishCommentUseCase(input, getClient);
+      const result = await publishCommentUseCase(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -450,7 +440,7 @@ describe("Comments", () => {
       });
 
       const input = createPublishInput({ commentId: "cmt-custom" });
-      await publishCommentUseCase(input, getClient);
+      await publishCommentUseCase(input, mockPool);
 
       // publicarComentario(pedido, evento, existentes, agora) — 4 argumentos, nenhum é
       // função. Ver assinatura em packages/core/src/comment.ts.
@@ -460,15 +450,6 @@ describe("Comments", () => {
         expect.anything(),
         expect.any(Date),
       );
-    });
-
-    it("deve liberar client mesmo em caso de erro", async () => {
-      mockInteractionOpen.mockReturnValue(false);
-
-      const input = createPublishInput();
-      await publishCommentUseCase(input, getClient);
-
-      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
@@ -486,7 +467,7 @@ describe("Comments", () => {
       mockRemoverComentario.mockResolvedValue(undefined);
 
       const input = createDeleteInput();
-      const result = await deleteComment(input, getClient);
+      const result = await deleteComment(input, mockPool);
 
       expect(result).toEqual({ ok: true });
 
@@ -500,7 +481,7 @@ describe("Comments", () => {
       mockWithEvent.mockRejectedValue(new ErroComentarioDeOutroEvento());
 
       const input = createDeleteInput();
-      const result = await deleteComment(input, getClient);
+      const result = await deleteComment(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -513,7 +494,7 @@ describe("Comments", () => {
       mockRemoverComentario.mockRejectedValue(new Error("Not found"));
 
       const input = createDeleteInput();
-      const result = await deleteComment(input, getClient);
+      const result = await deleteComment(input, mockPool);
 
       expect(result).toEqual({
         ok: false,
@@ -526,18 +507,9 @@ describe("Comments", () => {
       mockRemoverComentario.mockRejectedValue(new Error("Comment not found"));
 
       const input = createDeleteInput();
-      const result = await deleteComment(input, getClient);
+      const result = await deleteComment(input, mockPool);
 
       expect(result.ok).toBe(false);
-    });
-
-    it("deve liberar client mesmo em caso de erro", async () => {
-      mockWithEvent.mockRejectedValue(new ErroComentarioDeOutroEvento());
-
-      const input = createDeleteInput();
-      await deleteComment(input, getClient);
-
-      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
@@ -574,7 +546,7 @@ describe("Comments", () => {
         texto: "Comentário de teste",
         respostaA: null,
       };
-      const publishResult = await publishCommentUseCase(publishInput, getClient);
+      const publishResult = await publishCommentUseCase(publishInput, mockPool);
 
       expect(publishResult.ok).toBe(true);
 
@@ -600,7 +572,7 @@ describe("Comments", () => {
         uploadId: "upl-flow",
         currentSessionId: "sess-flow",
       };
-      const listResult = await listComments(listInput, getClient);
+      const listResult = await listComments(listInput, mockPool);
 
       expect(listResult.comentarios).toHaveLength(1);
       expect(listResult.comentarios[0]?.texto).toBe("Comentário de teste");
@@ -613,7 +585,7 @@ describe("Comments", () => {
         sessaoId: "sess-flow",
         comentarioId: "cmt-flow",
       };
-      const deleteResult = await deleteComment(deleteInput, getClient);
+      const deleteResult = await deleteComment(deleteInput, mockPool);
 
       expect(deleteResult).toEqual({ ok: true });
     });

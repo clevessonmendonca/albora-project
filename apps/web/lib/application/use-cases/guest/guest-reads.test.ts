@@ -18,7 +18,7 @@ import {
   listGuestMissions,
   type ListGuestMissionsInput,
 } from "./list-guest-missions";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 // Mocks usando vi.hoisted
 const {
@@ -87,13 +87,13 @@ function createMockClient(): PoolClient {
 
 describe("Guest Read Use Cases", () => {
   let mockClient: PoolClient;
-  let getClient: () => Promise<PoolClient>;
+  let mockPool: Pool;
 
   beforeEach(() => {
     vi.clearAllMocks();
     resetGuestEventCache();
     mockClient = createMockClient();
-    getClient = vi.fn().mockResolvedValue(mockClient);
+    mockPool = {} as unknown as Pool;
 
     // Defaults
     mockWithEvent.mockImplementation(async (_client, _eventId, fn) => fn(mockClient));
@@ -122,7 +122,7 @@ describe("Guest Read Use Cases", () => {
       });
 
       const input = createListFeedInput();
-      const result = await listFeedUseCase(input, getClient);
+      const result = await listFeedUseCase(input, mockPool);
 
       expect(result).toEqual({
         itens: feedItens,
@@ -135,7 +135,7 @@ describe("Guest Read Use Cases", () => {
       mockEventGate.mockResolvedValue(null);
 
       const input = createListFeedInput();
-      const result = await listFeedUseCase(input, getClient);
+      const result = await listFeedUseCase(input, mockPool);
 
       expect(result).toEqual({
         itens: [],
@@ -150,7 +150,7 @@ describe("Guest Read Use Cases", () => {
       mockChallengeBelongsToEvent.mockResolvedValue(false);
 
       const input = createListFeedInput({ missaoId: "mission-999" });
-      const result = await listFeedUseCase(input, getClient);
+      const result = await listFeedUseCase(input, mockPool);
 
       expect(result).toEqual({
         itens: [],
@@ -169,7 +169,7 @@ describe("Guest Read Use Cases", () => {
       });
 
       const input = createListFeedInput({ missaoId: "mission-1" });
-      await listFeedUseCase(input, getClient);
+      await listFeedUseCase(input, mockPool);
 
       expect(mockListFeed).toHaveBeenCalledWith(
         mockClient,
@@ -186,7 +186,7 @@ describe("Guest Read Use Cases", () => {
       });
 
       const input = createListFeedInput({ cursor: "cursor-page1" });
-      await listFeedUseCase(input, getClient);
+      await listFeedUseCase(input, mockPool);
 
       expect(mockListFeed).toHaveBeenCalledWith(
         mockClient,
@@ -204,19 +204,10 @@ describe("Guest Read Use Cases", () => {
         mockListFeed.mockResolvedValue({ itens: [], proximoCursor: null });
 
         const input = createListFeedInput();
-        const result = await listFeedUseCase(input, getClient);
+        const result = await listFeedUseCase(input, mockPool);
 
         expect(result.interacao).toBe(modo);
       }
-    });
-
-    it("deve liberar client após execução", async () => {
-      mockListFeed.mockResolvedValue({ itens: [], proximoCursor: null });
-
-      const input = createListFeedInput();
-      await listFeedUseCase(input, getClient);
-
-      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
@@ -241,7 +232,7 @@ describe("Guest Read Use Cases", () => {
       mockCarregarEventoPublico.mockResolvedValue(eventoPublico);
 
       const input = createGetEventInput();
-      const result = await getGuestEvent(input, getClient);
+      const result = await getGuestEvent(input, mockPool);
 
       expect(result).toEqual(eventoPublico);
     });
@@ -250,7 +241,7 @@ describe("Guest Read Use Cases", () => {
       mockCarregarEventoPublico.mockResolvedValue(null);
 
       const input = createGetEventInput({ eventoId: "evt-inexistente" });
-      const result = await getGuestEvent(input, getClient);
+      const result = await getGuestEvent(input, mockPool);
 
       expect(result).toBeNull();
     });
@@ -266,21 +257,12 @@ describe("Guest Read Use Cases", () => {
       });
 
       const input = createGetEventInput();
-      const result = await getGuestEvent(input, getClient);
+      const result = await getGuestEvent(input, mockPool);
 
       expect(result?.identityTokens).toEqual({
         fontFamily: "Playfair",
         spacing: "16px",
       });
-    });
-
-    it("deve liberar client após execução", async () => {
-      mockCarregarEventoPublico.mockResolvedValue(null);
-
-      const input = createGetEventInput();
-      await getGuestEvent(input, getClient);
-
-      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 
@@ -316,7 +298,7 @@ describe("Guest Read Use Cases", () => {
       mockResolvePackText.mockReturnValue("Primeira dança");
 
       const input = createListMissionsInput();
-      const result = await listGuestMissions(input, getClient);
+      const result = await listGuestMissions(input, mockPool);
 
       expect(result.missoes).toHaveLength(2);
       expect(result.missoes[0]).toEqual({
@@ -347,7 +329,7 @@ describe("Guest Read Use Cases", () => {
       mockResolvePackText.mockReturnValue("Título do Pack");
 
       const input = createListMissionsInput();
-      const result = await listGuestMissions(input, getClient);
+      const result = await listGuestMissions(input, mockPool);
 
       expect(result.missoes[0]?.titulo).toBe("Título Personalizado");
     });
@@ -357,7 +339,7 @@ describe("Guest Read Use Cases", () => {
       mockPackDoEvento.mockResolvedValue("wedding");
 
       const input = createListMissionsInput();
-      const result = await listGuestMissions(input, getClient);
+      const result = await listGuestMissions(input, mockPool);
 
       expect(result.missoes).toEqual([]);
     });
@@ -375,19 +357,9 @@ describe("Guest Read Use Cases", () => {
       mockPackDoEvento.mockResolvedValue(null);
 
       const input = createListMissionsInput();
-      const result = await listGuestMissions(input, getClient);
+      const result = await listGuestMissions(input, mockPool);
 
       expect(result.missoes[0]?.titulo).toBe("Missão sem pack");
-    });
-
-    it("deve liberar client após execução", async () => {
-      mockListChallenges.mockResolvedValue([]);
-      mockPackDoEvento.mockResolvedValue(null);
-
-      const input = createListMissionsInput();
-      await listGuestMissions(input, getClient);
-
-      expect(mockClient.release).toHaveBeenCalled();
     });
   });
 });

@@ -9,7 +9,7 @@ import {
   removerComentario,
   ErroComentarioDeOutroEvento,
 } from "@albora/db";
-import type { Pool, PoolClient } from "pg";
+import type { Pool } from "pg";
 
 export type DeleteCommentInput = {
   eventoId: string;
@@ -29,26 +29,14 @@ export type DeleteCommentResult =
  * - Comentário pertence à sessão (ownership)
  * 
  * @param input - IDs do evento, sessão e comentário
- * @param getClient - Factory de conexão
+ * @param pool - Pool de conexões
  * @returns Resultado da remoção
  */
 export async function deleteComment(
   input: DeleteCommentInput,
-  getClient: () => Promise<PoolClient>,
+  pool: Pool,
 ): Promise<DeleteCommentResult> {
-  const client = await getClient();
-
   try {
-    // withEvent (comEvento) chama pool.connect() para abrir a transação com o SET LOCAL
-    // de RLS — o client já foi obtido acima, então o "pool" aqui só devolve esse mesmo
-    // client; release() fica no-op porque quem fecha a conexão é o finally deste use case.
-    const pool = {
-      connect: async () => ({
-        query: client.query.bind(client),
-        release: () => {},
-      }),
-    } as unknown as Pool;
-
     await withEvent(pool, input.eventoId, (c) =>
       removerComentario(c, {
         comentarioId: input.comentarioId,
@@ -72,7 +60,5 @@ export async function deleteComment(
       code: "comentario.remocao_falhou",
       message: "Não foi possível remover o comentário",
     };
-  } finally {
-    client.release();
   }
 }
