@@ -18,6 +18,8 @@ export type PhotoCardProps = {
   onComentar?: () => void;
   onCompartilhar?: () => void;
   onSalvar?: () => void;
+  /** Toque na foto abre o visualizador em tela cheia; ausente = foto não interativa. */
+  onAbrir?: () => void;
 };
 
 const ACAO_CLASSE =
@@ -36,6 +38,7 @@ export function PhotoCard({
   onComentar,
   onCompartilhar,
   onSalvar,
+  onAbrir,
 }: PhotoCardProps) {
   const L = linkComponent ?? "a";
 
@@ -63,13 +66,30 @@ export function PhotoCard({
 
       <div className="overflow-hidden rounded-media bg-superficie-alta">
         {fotoUrl ? (
-          <img
-            src={fotoUrl}
-            alt={`Foto de ${autor}`}
-            className="block aspect-4/5 size-full object-cover"
-            loading="lazy"
-            decoding="async"
-          />
+          onAbrir ? (
+            <button
+              type="button"
+              onClick={onAbrir}
+              aria-label={`Ver foto de ${autor} ampliada`}
+              className="block aspect-4/5 size-full cursor-pointer appearance-none border-none bg-transparent p-0"
+            >
+              <img
+                src={fotoUrl}
+                alt={`Foto de ${autor}`}
+                className="block aspect-4/5 size-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
+            </button>
+          ) : (
+            <img
+              src={fotoUrl}
+              alt={`Foto de ${autor}`}
+              className="block aspect-4/5 size-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+          )
         ) : (
           <div className="aspect-4/5" />
         )}
