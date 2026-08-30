@@ -11,6 +11,7 @@ import {
 } from "./list-feed";
 import {
   getGuestEvent,
+  resetGuestEventCache,
   type GetGuestEventInput,
 } from "./get-guest-event";
 import {
@@ -90,6 +91,7 @@ describe("Guest Read Use Cases", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    resetGuestEventCache();
     mockClient = createMockClient();
     getClient = vi.fn().mockResolvedValue(mockClient);
 
