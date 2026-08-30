@@ -56,7 +56,7 @@ jobs:
           --health-retries 20
     env:
       # Valores dummy só para subir o dev server — nunca secrets reais no repo.
-      SESSION_SECRET: ci-carga-not-a-real-secret
+      SESSION_SECRET: ci-carga-not-a-real-secret-32chars
       DATABASE_URL: postgres://albora:albora@localhost:55432/albora
       APP_ROOT_DOMAIN: localhost:3000
       R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
