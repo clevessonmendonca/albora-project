@@ -1,5 +1,6 @@
 import type { Pack } from "@albora/packs";
 import { FirstPhotoDemo } from "../first-photo-demo";
+import { QrAoVivo } from "../qr-ao-vivo";
 import { Accent, Heading, Label, Section } from "../pieces";
 
 export function NoAppSection({
@@ -21,6 +22,7 @@ export function NoAppSection({
         bolso um segundo antes.
       </p>
       <FirstPhotoDemo packHint={pack.id} />
+      <QrAoVivo packHint={pack.id} />
     </Section>
   );
 }
