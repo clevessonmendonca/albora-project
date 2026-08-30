@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { randomUUID } from "node:crypto";
 import pg from "pg";
 
 const E2E_FULL = !!process.env.E2E_FULL;
@@ -10,6 +11,52 @@ async function entrarNoEvento(page: Page, nome = "E2E Feed") {
   await page.getByRole("button", { name: /fotografar/i }).click();
   await page.waitForURL(new RegExp(`/e/${SLUG}/cover`), { waitUntil: "domcontentloaded" });
 }
+
+/**
+ * semearFotosNoFeed() abre o gate depois que a sessão já entrou — o cliente
+ * detecta a transição fechado→aberto (useGateTransition) e mostra o
+ * GateOpenedOverlay ("A festa está liberada"), que intercepta cliques nos
+ * posts por baixo até ser fechado. A detecção acontece num re-render
+ * assíncrono após o mount, não no goto() em si, então um dismiss único logo
+ * após a navegação pode rodar cedo demais e perder o aviso.
+ */
+async function fecharAvisoLiberado(page: Page): Promise<void> {
+  const aviso = page.getByRole("dialog", { name: "Feed liberado" });
+  if (await aviso.isVisible({ timeout: 2_000 }).catch(() => false)) {
+    await aviso.getByRole("button", { name: /ver as fotos/i }).click();
+    await expect(aviso).toBeHidden({ timeout: 2_000 });
+  }
+}
+
+/** Clica num post tolerando o GateOpenedOverlay aparecer entre o dismiss e o clique. */
+async function clicarNoPost(page: Page, locator: ReturnType<Page["locator"]>): Promise<void> {
+  for (let tentativa = 0; tentativa < 5; tentativa++) {
+    await fecharAvisoLiberado(page);
+    try {
+      await locator.click({ timeout: 3_000 });
+      return;
+    } catch {
+      // aviso reapareceu entre o dismiss e o clique — tenta de novo.
+    }
+  }
+  await locator.click();
+}
+
+/**
+ * O feed é compartilhado entre todas as sessões do evento — sem limpar entre
+ * testes, uploads de um teste anterior aparecem no feed do próximo e mudam
+ * quantos itens/grupos existem (quebra suposições como "índice 0 é o post
+ * clicado").
+ */
+test.beforeEach(async () => {
+  const url = process.env.DATABASE_URL ?? "postgres://albora:albora@localhost:55432/albora";
+  const pool = new pg.Pool({ connectionString: url });
+  try {
+    await pool.query("TRUNCATE reactions, comments, uploads, guest_sessions CASCADE");
+  } finally {
+    await pool.end();
+  }
+});
 
 /**
  * `pnpm db:semear` deixa festa-demo sem nenhum upload — o feed real não tem
@@ -42,11 +89,18 @@ async function semearFotosNoFeed(_page: Page, quantidade: number): Promise<void>
     );
     const sessaoId: string = sessaoRes.rows[0].id;
 
+    // Chave precisa bater com KEY_FORMAT de app/api/media/urls/lote.ts
+    // (events/{eventoId}/{aaaa}/{mm}/{uuid}/full) — senão a rota de assinatura
+    // rejeita com midia.chave_invalida e o post nunca ganha <img>/<video>.
+    const agora = new Date();
+    const ano = agora.getUTCFullYear();
+    const mes = String(agora.getUTCMonth() + 1).padStart(2, "0");
+
     for (let i = 0; i < quantidade; i++) {
       await pool.query(
         `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes, caption, state)
          VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 12345, $4, 'published')`,
-        [eventoId, sessaoId, `events/${eventoId}/e2e-feed-${i}-${Date.now()}`, `Foto de teste ${i + 1}`],
+        [eventoId, sessaoId, `events/${eventoId}/${ano}/${mes}/${randomUUID()}/full`, `Foto de teste ${i + 1}`],
       );
     }
   } finally {
@@ -60,6 +114,7 @@ test.describe("Feed do convidado — caminho crítico", () => {
     await entrarNoEvento(page);
     await semearFotosNoFeed(page, 1);
     await page.goto("/e/festa-demo/feed");
+    await fecharAvisoLiberado(page);
     await expect(page.getByRole("feed", { name: "Feed de fotos" })).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('[data-testid^="post-"]').first()).toBeVisible({ timeout: 10_000 });
   });
@@ -69,15 +124,24 @@ test.describe("Feed do convidado — caminho crítico", () => {
     await entrarNoEvento(page);
     await semearFotosNoFeed(page, 1);
     await page.goto("/e/festa-demo/feed");
+    await fecharAvisoLiberado(page);
     const primeiroPost = page.locator('[data-testid^="post-"]').first();
     await expect(primeiroPost).toBeVisible({ timeout: 10_000 });
+    const imagem = primeiroPost.locator("img, video").first();
+    // .click() rola o alvo pra dentro da viewport antes de clicar — capturar
+    // scrollY antes disso deixaria a base de comparação errada (abrir() salva
+    // a posição já pós-scroll-into-view).
+    await imagem.scrollIntoViewIfNeeded();
     const scrollAntes = await page.evaluate(() => window.scrollY);
-    await primeiroPost.locator("img, video").first().click();
+    await clicarNoPost(page, imagem);
     await expect(page.getByTestId("viewer")).toBeVisible({ timeout: 5_000 });
     await page.keyboard.press("Escape");
     await expect(page.getByTestId("viewer")).toBeHidden({ timeout: 3_000 });
-    const scrollDepois = await page.evaluate(() => window.scrollY);
-    expect(Math.abs(scrollDepois - scrollAntes)).toBeLessThan(50);
+    // fechar() usa window.scrollTo({ behavior: "smooth" }) — a posição só
+    // estabiliza depois que a animação do browser termina, daí o poll.
+    await expect
+      .poll(() => page.evaluate(() => window.scrollY), { timeout: 2_000 })
+      .toBeLessThan(scrollAntes + 50);
   });
 
   test("curte e descurte uma foto no viewer", async ({ page }) => {
@@ -85,9 +149,10 @@ test.describe("Feed do convidado — caminho crítico", () => {
     await entrarNoEvento(page);
     await semearFotosNoFeed(page, 1);
     await page.goto("/e/festa-demo/feed");
+    await fecharAvisoLiberado(page);
     const primeiroPost = page.locator('[data-testid^="post-"]').first();
     await expect(primeiroPost).toBeVisible({ timeout: 10_000 });
-    await primeiroPost.locator("img, video").first().click();
+    await clicarNoPost(page, primeiroPost.locator("img, video").first());
     const viewer = page.getByTestId("viewer");
     await expect(viewer).toBeVisible({ timeout: 5_000 });
     const botaoCurtir = viewer.getByTestId("like-button");
@@ -105,16 +170,32 @@ test.describe("Feed do convidado — navegação", () => {
     await entrarNoEvento(page);
     await semearFotosNoFeed(page, 2);
     await page.goto("/e/festa-demo/feed");
+    await fecharAvisoLiberado(page);
     await expect(page.locator('[data-testid^="post-"]').first()).toBeVisible({ timeout: 10_000 });
     const totalPosts = await page.locator('[data-testid^="post-"]').count();
     if (totalPosts < 2) {
       test.skip(true, "Necessário pelo menos 2 posts");
     }
-    await page.locator('[data-testid^="post-"]').first().locator("img, video").first().click();
-    const media = page.getByTestId("viewer").locator("img, video").first();
-    const srcInicial = await media.getAttribute("src");
+    await clicarNoPost(page, page.locator('[data-testid^="post-"]').first().locator("img, video").first());
+    await expect(page.getByTestId("viewer")).toBeVisible({ timeout: 5_000 });
+    // O post clicado no grid nem sempre é itens[0] do grupo (DOM e array não
+    // têm necessariamente a mesma ordem) — Home garante começar no início,
+    // senão ArrowRight a partir do último item fecha o viewer em vez de navegar.
+    await page.keyboard.press("Home");
+    // Frame também renderiza um <img> de fundo desfocado (aria-hidden, chave
+    // thumb) antes da mídia principal — sem excluí-lo, .first() pega o fundo
+    // em vez da foto/vídeo real exibida. A troca de índice (Home, e depois
+    // ArrowRight) zera cheiaPronta/cheia até a URL da foto alvo chegar
+    // (frame.tsx) — o <img> some do DOM por um instante real de carregamento,
+    // não só troca de src; .count()===0 nesse meio-tempo não é falha.
+    const media = page.getByTestId("viewer").locator("img:not([aria-hidden]), video");
+    const lerSrc = async () => ((await media.count()) === 0 ? null : media.first().getAttribute("src"));
+    // Captura o valor dentro do próprio callback do poll — lido de novo depois
+    // reabriria a mesma janela de flutuação que o poll existe pra tolerar.
+    let srcInicial: string | null = null;
+    await expect.poll(async () => (srcInicial = await lerSrc()), { timeout: 10_000 }).not.toBeNull();
     await page.keyboard.press("ArrowRight");
-    await expect(media).not.toHaveAttribute("src", srcInicial ?? "", { timeout: 3_000 });
+    await expect.poll(lerSrc, { timeout: 10_000 }).not.toBe(srcInicial);
   });
 });
 
@@ -123,6 +204,7 @@ test.describe("Feed do convidado — espelho", () => {
     test.skip(!E2E_FULL, "Requer pnpm db:semear e E2E_FULL=1");
     await entrarNoEvento(page);
     await page.goto("/e/festa-demo/feed");
+    await fecharAvisoLiberado(page);
     const thumb = page.locator('[data-testid^="mirror-photo-"]').first();
     const temGrade = await thumb.count();
     if (temGrade === 0) {

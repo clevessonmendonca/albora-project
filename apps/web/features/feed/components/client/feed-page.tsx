@@ -4,10 +4,11 @@ import { isVideoMime } from "@albora/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { groupByHour } from "@/features/feed/lib/group-by-hour";
 import { useFeed } from "@/features/feed/hooks/use-feed";
 import { useFeedViewer } from "@/features/feed/hooks/use-feed-viewer";
+import { viewerKeys } from "./viewer-keys";
 import { useFeedFilter, type FilterMission } from "@/features/feed/hooks/use-feed-filter";
 import { useTemporalFilter } from "@/features/feed/hooks/use-temporal-filter";
 import { useReducedMotion } from "@/features/feed/hooks/use-reduced-motion";
@@ -81,7 +82,7 @@ export function FeedPage({
   // Core hooks
   const filtro = useFeedFilter(missions);
   const temporal = useTemporalFilter();
-  const { estado, carregarMais, recomecar, atualizarReacoes } = useFeed(
+  const { estado, carregarMais, recomecar, atualizarReacoes, pedirChaves } = useFeed(
     filtro.missionId,
     temporal.periodo
   );
@@ -106,6 +107,13 @@ export function FeedPage({
 
   // Viewer state
   const viewer = useFeedViewer(grupos);
+
+  // Sem isto, chavesSemUrl() só assina thumb (chaveFull fica reservada a
+  // vídeo no laço da grade) — a foto em tela cheia nunca ganharia o arquivo
+  // cheio. pedirChaves() é o canal que o hook já expõe pra essa janela.
+  useEffect(() => {
+    pedirChaves(viewer.grupoAberto ? viewerKeys(viewer.itensAbertos, viewer.indiceAtual) : []);
+  }, [viewer.grupoAberto, viewer.itensAbertos, viewer.indiceAtual, pedirChaves]);
 
   // Badge de contagem
   const contagem = estado.itens.length > 0 ? `${estado.itens.length} fotos` : undefined;
