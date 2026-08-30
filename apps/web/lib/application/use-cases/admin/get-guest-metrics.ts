@@ -9,7 +9,14 @@ import {
   lerMetricasAoVivo,
   listarSessoesDoHost,
 } from "@albora/db";
-import { decideThesis, lerIntencao, type CodigoDaTese, type LeituraDeIntencao } from "@albora/core";
+import {
+  decideThesis,
+  denominadorDaParticipacao,
+  lerIntencao,
+  type CodigoDaTese,
+  type LeituraDeIntencao,
+  type OrigemDoDenominador,
+} from "@albora/core";
 import type { Pool } from "pg";
 import { assinarGet } from "@/lib/r2";
 
@@ -18,6 +25,8 @@ const GET_TTL_SECONDS = 900;
 export type GuestMetricsInput = {
   eventId: string;
   expectedGuests: number;
+  /** Presença confirmada após a festa. Ausente = ainda vale a estimativa. */
+  actualGuests?: number | null | undefined;
 };
 
 export type SessionSummary = {
@@ -34,6 +43,9 @@ export type RecentPhoto = {
 
 export type GuestMetricsOutput = {
   expectedGuests: number;
+  /** O número efetivamente usado como denominador. */
+  denominador: number;
+  origemDoDenominador: OrigemDoDenominador;
   totalSessoes: number;
   sessoesComUpload: number;
   totalFotos: number;
@@ -63,8 +75,15 @@ export async function getGuestMetrics(
     return { metricas, funil, sessoes };
   });
 
-  const veredito = decideThesis({
+  // Presença confirmada ganha da estimativa: a diferença entre convidado e
+  // presente é grande o bastante para mover o veredito de faixa.
+  const denominador = denominadorDaParticipacao({
     expectedGuests: input.expectedGuests,
+    actualGuests: input.actualGuests,
+  });
+
+  const veredito = decideThesis({
+    expectedGuests: denominador.valor,
     sessoesComUpload: data.metricas.sessoesComUpload,
   });
 
@@ -75,7 +94,7 @@ export async function getGuestMetrics(
     data.metricas.sessoesComUpload;
 
   const intencao = lerIntencao({
-    expectedGuests: input.expectedGuests,
+    expectedGuests: denominador.valor,
     sessoesComUpload: data.metricas.sessoesComUpload,
     sessoesComCaptura: Math.max(capturaram, data.metricas.sessoesComUpload),
   });
@@ -90,6 +109,8 @@ export async function getGuestMetrics(
 
   return {
     expectedGuests: input.expectedGuests,
+    denominador: denominador.valor,
+    origemDoDenominador: denominador.origem,
     totalSessoes: data.funil.totalSessoes,
     sessoesComUpload: data.metricas.sessoesComUpload,
     totalFotos: data.metricas.totalFotos,

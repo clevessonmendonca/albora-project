@@ -51,7 +51,11 @@ vi.mock("@albora/db", () => ({
 // `lerIntencao` é pura e sem dependência — mockar significaria testar o dublê.
 vi.mock("@albora/core", async (importOriginal) => {
   const real = await importOriginal<typeof AlboraCore>();
-  return { lerIntencao: real.lerIntencao, decideThesis: mockDecideThesis };
+  return {
+    lerIntencao: real.lerIntencao,
+    denominadorDaParticipacao: real.denominadorDaParticipacao,
+    decideThesis: mockDecideThesis,
+  };
 });
 
 vi.mock("@albora/packs", () => ({

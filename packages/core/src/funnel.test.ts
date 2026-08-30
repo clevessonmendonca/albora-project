@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   compararPlataforma,
   decidirTese,
+  denominadorDaParticipacao,
   degraus,
   ehEventoDoFunil,
   ehEventoUnicoDoFunil,
@@ -420,5 +421,50 @@ describe("intenção — separar quem não quis de quem não conseguiu", () => {
     expect(() =>
       lerIntencao({ expectedGuests: 0, sessoesComUpload: 0, sessoesComCaptura: 0 }),
     ).toThrow(MetricaInvalida);
+  });
+});
+
+describe("denominador — estimativa antes, presença confirmada depois", () => {
+  it("sem confirmação, vale a estimativa", () => {
+    expect(denominadorDaParticipacao({ expectedGuests: 150 })).toEqual({
+      valor: 150,
+      origem: "estimado",
+    });
+    expect(denominadorDaParticipacao({ expectedGuests: 150, actualGuests: null })).toEqual({
+      valor: 150,
+      origem: "estimado",
+    });
+  });
+
+  it("confirmada ganha da estimativa", () => {
+    expect(denominadorDaParticipacao({ expectedGuests: 200, actualGuests: 120 })).toEqual({
+      valor: 120,
+      origem: "confirmado",
+    });
+  });
+
+  it("a diferença entre convidado e presente move o veredito de faixa", () => {
+    // 60 envios: 30% sobre a estimativa de 200 (mexer em fricção),
+    // 50% sobre os 120 que apareceram de verdade (tese validada).
+    const envios = 60;
+
+    const estimado = denominadorDaParticipacao({ expectedGuests: 200 });
+    const confirmado = denominadorDaParticipacao({ expectedGuests: 200, actualGuests: 120 });
+
+    expect(
+      decidirTese({ expectedGuests: estimado.valor, sessoesComUpload: envios }).codigo,
+    ).toBe("funil.mexe_em_friccao");
+    expect(
+      decidirTese({ expectedGuests: confirmado.valor, sessoesComUpload: envios }).codigo,
+    ).toBe("funil.tese_validada");
+  });
+
+  it("confirmação inválida não derruba a leitura, cai na estimativa", () => {
+    for (const actualGuests of [0, -5, Number.NaN]) {
+      expect(denominadorDaParticipacao({ expectedGuests: 150, actualGuests })).toEqual({
+        valor: 150,
+        origem: "estimado",
+      });
+    }
   });
 });

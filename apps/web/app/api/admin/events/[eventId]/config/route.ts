@@ -18,6 +18,7 @@ export const dynamic = "force-dynamic";
 
 type Corpo = {
   expectedGuests?: unknown;
+  actualGuests?: unknown;
   timezone?: unknown;
   identityTokens?: unknown;
   telaoModelos?: unknown;
@@ -40,6 +41,7 @@ export async function GET(
 
   return jsonOk({
     expectedGuests: owned.evento.expectedGuests,
+    actualGuests: owned.evento.actualGuests,
     timezone: owned.evento.fuso,
     identityTokens: owned.evento.identityTokens,
     packId: owned.evento.packId,
@@ -74,6 +76,7 @@ export async function PATCH(
     identityTokens?: Record<string, unknown>;
     fuso?: string;
     title?: string | null;
+    actualGuests?: number | null;
   } = {};
 
   if (corpo.expectedGuests !== undefined) {
@@ -89,6 +92,27 @@ export async function PATCH(
       });
     }
     atualizacao.expectedGuests = n;
+  }
+
+  // `null` é intencional: limpa uma confirmação errada e devolve o denominador
+  // para a estimativa, em vez de deixar um número errado fixado no veredito.
+  if (corpo.actualGuests !== undefined) {
+    if (corpo.actualGuests === null) {
+      atualizacao.actualGuests = null;
+    } else {
+      if (typeof corpo.actualGuests !== "number" || !Number.isFinite(corpo.actualGuests)) {
+        return errorResponse(422, "validation_error", "Presença confirmada inválida", {
+          campos: ["actualGuests"],
+        });
+      }
+      const n = Math.trunc(corpo.actualGuests);
+      if (n <= 0) {
+        return errorResponse(422, "validation_error", "Presença confirmada inválida", {
+          campos: ["actualGuests"],
+        });
+      }
+      atualizacao.actualGuests = n;
+    }
   }
 
   if (corpo.timezone !== undefined) {
@@ -130,7 +154,7 @@ export async function PATCH(
 
   if (Object.keys(atualizacao).length === 0) {
     return errorResponse(422, "validation_error", "Nada para atualizar", {
-      campos: ["expectedGuests", "timezone", "identityTokens", "title"],
+      campos: ["expectedGuests", "actualGuests", "timezone", "identityTokens", "title"],
     });
   }
 
@@ -148,6 +172,7 @@ export async function PATCH(
 
     return jsonOk({
       expectedGuests: owned.evento.expectedGuests,
+      actualGuests: owned.evento.actualGuests,
       timezone: owned.evento.fuso,
       identityTokens: owned.evento.identityTokens,
     });

@@ -245,6 +245,36 @@ export function taxaDeParticipacao(contagem: ContagemDoEvento): number {
   return sessoesComUpload / expectedGuests;
 }
 
+export type Denominador = {
+  /** Estimativa do anfitrião, preenchida antes da festa. */
+  expectedGuests: number;
+  /** Presença confirmada depois da festa. `null` enquanto ninguém confirmou. */
+  actualGuests?: number | null | undefined;
+};
+
+export type OrigemDoDenominador = "confirmado" | "estimado";
+
+/**
+ * Qual número vale como denominador da participação.
+ *
+ * Presença confirmada ganha da estimativa sempre que existe: a estimativa é
+ * preenchida meses antes, e a diferença entre convidado e presente é grande o
+ * bastante para mover o veredito de faixa. Enquanto ninguém confirma, a
+ * estimativa segue valendo — a leitura nunca fica sem denominador.
+ */
+export function denominadorDaParticipacao(d: Denominador): {
+  valor: number;
+  origem: OrigemDoDenominador;
+} {
+  const confirmado = d.actualGuests;
+
+  if (typeof confirmado === "number" && Number.isFinite(confirmado) && confirmado > 0) {
+    return { valor: confirmado, origem: "confirmado" };
+  }
+
+  return { valor: d.expectedGuests, origem: "estimado" };
+}
+
 export type ContagemDeIntencao = ContagemDoEvento & {
   /** Sessões distintas que chegaram a `capture` — quis fotografar. */
   sessoesComCaptura: number;
