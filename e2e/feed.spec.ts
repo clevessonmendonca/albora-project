@@ -167,6 +167,10 @@ test.describe("Feed do convidado — caminho crítico", () => {
 test.describe("Feed do convidado — navegação", () => {
   test("navega entre fotos no viewer com setas", async ({ page }) => {
     test.skip(!E2E_FULL, "Requer pnpm db:semear e E2E_FULL=1");
+    // CI roda contra `next dev` (playwright.config.ts raiz) — compilação sob
+    // demanda da rota + 2 rodadas de pedirChaves()/fetch podem passar de 10s
+    // num runner compartilhado, mesmo sem nada errado no fluxo.
+    test.setTimeout(60_000);
     await entrarNoEvento(page);
     await semearFotosNoFeed(page, 2);
     await page.goto("/e/festa-demo/feed");
@@ -193,9 +197,9 @@ test.describe("Feed do convidado — navegação", () => {
     // Captura o valor dentro do próprio callback do poll — lido de novo depois
     // reabriria a mesma janela de flutuação que o poll existe pra tolerar.
     let srcInicial: string | null = null;
-    await expect.poll(async () => (srcInicial = await lerSrc()), { timeout: 10_000 }).not.toBeNull();
+    await expect.poll(async () => (srcInicial = await lerSrc()), { timeout: 25_000 }).not.toBeNull();
     await page.keyboard.press("ArrowRight");
-    await expect.poll(lerSrc, { timeout: 10_000 }).not.toBe(srcInicial);
+    await expect.poll(lerSrc, { timeout: 25_000 }).not.toBe(srcInicial);
   });
 });
 
