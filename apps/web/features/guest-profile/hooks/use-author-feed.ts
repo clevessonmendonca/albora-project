@@ -23,19 +23,25 @@ import {
 /** Além dos motivos do feed: o id não corresponde a ninguém que este leitor possa ver. */
 export type FalhaPerfil = FalhaFeed | "nao_encontrado";
 
+export type StatsPerfil = {
+  totalFotos: number;
+  totalCurtidas: number;
+};
+
 export type EstadoPerfil = {
   nome: string | null;
   /** Terminal: id de outro evento, sessão bloqueada ou antes do gate chegam aqui do mesmo jeito — indistinguíveis por design. */
   naoEncontrado: boolean;
+  stats: StatsPerfil | null;
   feed: EstadoFeed;
 };
 
 export function estadoInicialPerfil(): EstadoPerfil {
-  return { nome: null, naoEncontrado: false, feed: estadoInicial() };
+  return { nome: null, naoEncontrado: false, stats: null, feed: estadoInicial() };
 }
 
 export type RespostaPerfil =
-  | { ok: true; nome: string; pagina: PaginaVisivel }
+  | { ok: true; nome: string; stats: StatsPerfil; pagina: PaginaVisivel }
   | { ok: false; falha: FalhaPerfil };
 
 export async function buscarPaginaDoAutor(
@@ -63,7 +69,13 @@ export async function buscarPaginaDoAutor(
     return { ok: false, falha: code === "feed.cursor_invalido" ? "cursor" : "rede" };
   }
 
-  let corpo: { nome?: unknown; itens?: ItemDaRede[]; proximoCursor?: string | null };
+  let corpo: {
+    nome?: unknown;
+    totalFotos?: unknown;
+    totalCurtidas?: unknown;
+    itens?: ItemDaRede[];
+    proximoCursor?: string | null;
+  };
   try {
     corpo = (await res.json()) as typeof corpo;
   } catch {
@@ -72,11 +84,16 @@ export async function buscarPaginaDoAutor(
 
   if (typeof corpo.nome !== "string") return { ok: false, falha: "nao_encontrado" };
 
+  const totalFotos = typeof corpo.totalFotos === "number" && Number.isFinite(corpo.totalFotos) ? corpo.totalFotos : 0;
+  const totalCurtidas =
+    typeof corpo.totalCurtidas === "number" && Number.isFinite(corpo.totalCurtidas) ? corpo.totalCurtidas : 0;
+
   const itens: ItemVisivel[] = (corpo.itens ?? []).map(itemDeRede);
 
   return {
     ok: true,
     nome: corpo.nome,
+    stats: { totalFotos, totalCurtidas },
     pagina: {
       itens,
       proximoCursor: corpo.proximoCursor ?? null,
@@ -107,7 +124,14 @@ export function useAuthorFeed(autorId: string) {
 
       buscandoPagina.current = false;
       setEstado((e) => {
-        if (r.ok) return { nome: r.nome, naoEncontrado: false, feed: comPagina(e.feed, r.pagina) };
+        if (r.ok) {
+          return {
+            nome: r.nome,
+            stats: r.stats,
+            naoEncontrado: false,
+            feed: comPagina(e.feed, r.pagina),
+          };
+        }
         if (r.falha === "nao_encontrado") {
           return {
             ...e,

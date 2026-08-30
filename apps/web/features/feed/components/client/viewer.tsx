@@ -54,6 +54,7 @@ export function Viewer({
   itens,
   indice,
   hora,
+  rotulo,
   urls,
   interacao,
   cameraPath,
@@ -71,6 +72,7 @@ export function Viewer({
   itens: ItemVisivel[];
   indice: number;
   hora: number;
+  rotulo?: string;
   urls: Map<string, MediaUrl>;
   interacao: ModoInteracao;
   cameraPath: string;
@@ -230,7 +232,7 @@ export function Viewer({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`Fotos das ${hourLabel(hora)}`}
+      aria-label={rotulo ?? `Fotos das ${hourLabel(hora)}`}
       aria-describedby="viewer-help"
       onPointerDown={pressionou}
       onPointerUp={largou}
@@ -290,7 +292,7 @@ export function Viewer({
               CLASSE_SOMBRA_TEXTO,
             )}
           >
-            {hourLabel(hora)}
+            {rotulo ?? hourLabel(hora)}
           </p>
 
           <div className="flex items-center gap-2">
