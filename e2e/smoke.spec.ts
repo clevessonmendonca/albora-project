@@ -63,9 +63,7 @@ test.describe("smoke", () => {
   test("telão carrega tela de pareamento", async ({ page }) => {
     await page.goto("/telao");
     await expect(page.getByText(/para ligar o telão/i)).toBeVisible();
-    await expect(
-      page.getByText(/no app do evento, abra as configurações/i),
-    ).toBeVisible();
+    await expect(page.getByText(/abra a festa no celular/i)).toBeVisible();
 
     if (E2E_FULL) {
       await expect(page.locator("main")).toContainText(/[A-Z0-9]{6}/, { timeout: 15_000 });
@@ -87,7 +85,7 @@ test.describe("smoke", () => {
     await page.goto("/e/festa-demo/my-photos");
     await expect(page.getByText(/minhas fotos/i)).toBeVisible();
     await expect(page.getByText(/carregando/i)).toBeHidden({ timeout: 15_000 });
-    await expect(page.getByText(/suas fotos aparecem aqui/i)).toBeVisible();
+    await expect(page.getByText(/suas fotos vão aparecer aqui/i)).toBeVisible();
     await expect(page.locator("body")).toContainText(/0 fotos/i);
   });
 

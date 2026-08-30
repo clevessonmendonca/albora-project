@@ -123,8 +123,10 @@ test.describe("smoke — fluxo do convidado", () => {
     await page.getByRole("button", { name: /enviar foto/i }).click();
     await page.waitForURL(`**/e/${SLUG}/photo`, { waitUntil: "domcontentloaded" });
 
-    // 6. Tela de captura carregou — file input presente (oculto, mas acessível)
-    const fileInput = page.locator('input[type="file"]');
+    // 6. Tela de captura carregou — file input de foto presente (oculto, mas
+    // acessível); a tela também tem inputs de galeria (multiple) e vídeo, daí
+    // o seletor precisar do par accept+capture pra não colidir com os outros.
+    const fileInput = page.locator('input[type="file"][accept="image/*"][capture="environment"]');
     await expect(fileInput).toBeAttached({ timeout: 10_000 });
 
     // 7. Registra a espera ANTES de acionar o input — evita corrida
