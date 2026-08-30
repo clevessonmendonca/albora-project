@@ -7,6 +7,7 @@ import { readThemePreference, THEME_COOKIE } from "@/features/guest/lib/theme-pr
 import { GlobalQueue } from "@/features/photo/components/client/global-queue";
 import { guestSession, isSameEventSession } from "@/features/guest/data/guest-session";
 import { ToastContainer } from "@albora/ui-web";
+import { WebVitalsCollector } from "@/lib/infrastructure/observability/web-vitals-client";
 
 export default async function Layout({
   children,
@@ -39,6 +40,9 @@ export default async function Layout({
       <style>{estiloAntiFlash(claro, escuro)}</style>
       <link rel="manifest" href={`/e/${encodeURIComponent(slug)}/manifest.webmanifest`} />
       {withSession && <GlobalQueue eventoId={session.eventoId} />}
+      {withSession && (
+        <WebVitalsCollector eventId={session.eventoId} sessionId={session.sessaoId} />
+      )}
       <ToastContainer />
       {children}
     </div>
