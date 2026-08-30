@@ -4,10 +4,11 @@ import { isVideoMime } from "@albora/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { groupByHour } from "@/features/feed/lib/group-by-hour";
 import { useFeed } from "@/features/feed/hooks/use-feed";
 import { useFeedViewer } from "@/features/feed/hooks/use-feed-viewer";
+import { viewerKeys } from "./viewer-keys";
 import { useFeedFilter, type FilterMission } from "@/features/feed/hooks/use-feed-filter";
 import { useTemporalFilter } from "@/features/feed/hooks/use-temporal-filter";
 import { useReducedMotion } from "@/features/feed/hooks/use-reduced-motion";
@@ -28,6 +29,7 @@ import {
   SkipLink,
 } from "@albora/ui-web";
 import { Post, PostLoading } from "./post";
+import { FeedStyles } from "./feed-styles";
 import { MirrorGrid, MirrorGridLoading } from "./mirror-grid";
 import { HourStrip, HourStripLoading } from "./hour-strip";
 import { FeedFilterPanel } from "../ui/feed-filter-panel";
@@ -80,7 +82,7 @@ export function FeedPage({
   // Core hooks
   const filtro = useFeedFilter(missions);
   const temporal = useTemporalFilter();
-  const { estado, carregarMais, recomecar, atualizarReacoes } = useFeed(
+  const { estado, carregarMais, recomecar, atualizarReacoes, pedirChaves } = useFeed(
     filtro.missionId,
     temporal.periodo
   );
@@ -106,10 +108,33 @@ export function FeedPage({
   // Viewer state
   const viewer = useFeedViewer(grupos);
 
+  // Sem isto, chavesSemUrl() só assina thumb (chaveFull fica reservada a
+  // vídeo no laço da grade) — a foto em tela cheia nunca ganharia o arquivo
+  // cheio. pedirChaves() é o canal que o hook já expõe pra essa janela.
+  useEffect(() => {
+    pedirChaves(viewer.grupoAberto ? viewerKeys(viewer.itensAbertos, viewer.indiceAtual) : []);
+  }, [viewer.grupoAberto, viewer.itensAbertos, viewer.indiceAtual, pedirChaves]);
+
   // Badge de contagem
   const contagem = estado.itens.length > 0 ? `${estado.itens.length} fotos` : undefined;
 
   // Event handlers memoized
+  const handleAbrirItem = useCallback(
+    (itemId: string) => {
+      const grupo = grupos.find((g) => g.itens.some((i) => i.id === itemId));
+      if (grupo) viewer.abrir(grupo, itemId);
+    },
+    [grupos, viewer],
+  );
+
+  const handleAbrirMirror = useCallback(
+    (indice: number) => {
+      const item = estado.itens[indice];
+      if (item) handleAbrirItem(item.id);
+    },
+    [estado.itens, handleAbrirItem],
+  );
+
   const handleVerAutor = useCallback((id: string) => {
     router.push(`${base}/g/${encodeURIComponent(id)}`);
   }, [router, base]);
@@ -215,7 +240,12 @@ export function FeedPage({
           )}
 
           {espelho && estado.itens.length > 0 && (
-            <MirrorGrid itens={estado.itens} urls={estado.urls} cameraPath={cameraPath} />
+            <MirrorGrid
+              itens={estado.itens}
+              urls={estado.urls}
+              cameraPath={cameraPath}
+              onAbrir={handleAbrirMirror}
+            />
           )}
 
           {completo && estado.itens.length > 0 && (
@@ -253,6 +283,7 @@ export function FeedPage({
                     isVideo={isVideo}
                     {...(item.largura !== undefined ? { largura: item.largura } : {})}
                     {...(item.altura !== undefined ? { altura: item.altura } : {})}
+                    onAbrir={() => handleAbrirItem(item.id)}
                   />
                 );
               })}
@@ -270,7 +301,7 @@ export function FeedPage({
 
       <FloatingNav base={base} linkComponent={Link} />
 
-      {completo && viewer.grupoAberto && (
+      {viewer.grupoAberto && (
         <Viewer
           itens={viewer.itensAbertos}
           indice={viewer.indiceAtual}
@@ -315,36 +346,5 @@ function FeedColumn({
     >
       {children}
     </div>
-  );
-}
-
-function FeedStyles() {
-  return (
-    <style>{`
-      @keyframes feed-amanhecer {
-        from { opacity: 0; filter: brightness(0.4) saturate(0.6); }
-        to   { opacity: 1; filter: none; }
-      }
-      @keyframes feed-respirar {
-        0%, 100% { opacity: 1; }
-        50%      { opacity: 0.55; }
-      }
-      @keyframes feed-fade-in {
-        from { opacity: 0; }
-        to   { opacity: 1; }
-      }
-      .feed-amanhece { animation: feed-amanhecer var(--tempo-lento) var(--curva) both; }
-      .feed-esperando { animation: feed-respirar 1900ms var(--curva) infinite; }
-      .feed-fade { animation: feed-fade-in 200ms var(--curva) both; }
-      @keyframes feed-pill-entra {
-        from { transform: translate(-50%, -2.5rem); opacity: 0 }
-        to   { transform: translate(-50%, 0);       opacity: 1 }
-      }
-      .feed-pill { animation: feed-pill-entra 280ms var(--curva) both }
-      @media (prefers-reduced-motion: reduce) {
-        .feed-amanhece, .feed-esperando, .feed-fade { animation: none !important; }
-        .feed-pill { animation: none !important; }
-      }
-    `}</style>
   );
 }

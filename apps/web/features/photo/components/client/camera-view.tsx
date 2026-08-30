@@ -1,7 +1,7 @@
 "use client";
 
 import React, { type ReactNode } from "react";
-import { Badge, GuestShell, MissionBanner } from "@albora/ui-web";
+import { Badge, GuestShell, MissionBanner, SkipLink } from "@albora/ui-web";
 
 /** Visor decorativo — captura sai da câmera nativa (ver `photo-page.tsx`). `onBack` obrigatório: tela sem saída no caminho crítico foi bug reportado. */
 export function CameraView({
@@ -33,7 +33,8 @@ export function CameraView({
 }) {
   return (
     <GuestShell hideStatusBar>
-      <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-superficie bg-superficie-vignette">
+      <SkipLink />
+      <div id="main-content" className="relative flex min-h-0 flex-1 flex-col overflow-hidden bg-superficie bg-superficie-vignette">
         <div className="relative z-[3] grid grid-cols-[auto_1fr_auto] items-center gap-2 px-3 pb-2 pt-[calc(0.625rem+env(safe-area-inset-top))]">
           <BackButton onClick={onBack} />
           <span className="min-w-0 truncate text-center font-titulo text-[0.9375rem] tracking-titulo text-ink">

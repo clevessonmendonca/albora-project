@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { GuestShell } from "@albora/ui-web";
+import { GuestShell, SkipLink } from "@albora/ui-web";
 import { useScanQr } from "@/features/guest/hooks/scan-qr";
 
 export function ScanPage() {
@@ -18,6 +18,7 @@ export function ScanPage() {
 
   return (
     <GuestShell hideStatusBar>
+      <SkipLink href="#scan-visor" />
       <div className="flex min-h-dvh flex-1 flex-col">
         <div className="flex justify-end px-[1.125rem] pt-[max(0.75rem,env(safe-area-inset-top))]">
           <Link
@@ -28,7 +29,7 @@ export function ScanPage() {
           </Link>
         </div>
         {!showLinkForm && (
-          <div className="relative min-h-0 flex-1 bg-superficie">
+          <div id="scan-visor" className="relative min-h-0 flex-1 bg-superficie">
             {qr.escaneando && (
               <>
                 <video

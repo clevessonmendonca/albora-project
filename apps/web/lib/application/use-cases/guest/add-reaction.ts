@@ -12,7 +12,7 @@ import {
   gravarReacao,
 } from "@albora/db";
 import { PACKS, isValidReaction } from "@albora/packs";
-import type { Pool, PoolClient } from "pg";
+import type { Pool } from "pg";
 
 export type ReactionType = "curtir" | "amar" | "rir" | "chorar" | "aplaudir";
 
@@ -38,61 +38,37 @@ export type AddReactionResult =
  * Se a sessão já tinha uma reação no upload, substitui.
  * 
  * @param input - Dados da reação
- * @param getClient - Factory de conexão
+ * @param pool - Pool de conexões
  * @returns Resultado com total de reações ou erro
  */
 export async function addReaction(
   input: AddReactionInput,
-  getClient: () => Promise<PoolClient>,
+  pool: Pool,
 ): Promise<AddReactionResult> {
-  const client = await getClient();
+  return withEvent(pool, input.eventoId, async (c) => {
+    // Reagir não espera o gate (ADR 0009) — só evento precisa existir/ser visível sob RLS
+    const gate = await eventGate(c, input.eventoId);
+    if (!gate) {
+      return { ok: false as const, code: "reacao.evento_ausente" };
+    }
 
-  try {
-    // withEvent (comEvento) chama pool.connect() para abrir a transação com o SET LOCAL
-    // de RLS — o client já foi obtido acima, então o "pool" aqui só devolve esse mesmo
-    // client; release() fica no-op porque quem fecha a conexão é o finally deste use case.
-    const pool = {
-      connect: async () => ({
-        query: client.query.bind(client),
-        release: () => {},
-      }),
-    } as unknown as Pool;
+    if (!(await midiaPublicadaDoEvento(c, input.eventoId, input.uploadId))) {
+      return { ok: false as const, code: "reacao.midia_ausente" };
+    }
 
-    const resultado = await withEvent(
-      pool,
+    const packId = await eventPack(c, input.eventoId);
+    const pack = packId ? PACKS[packId] : undefined;
+    if (!pack || !isValidReaction(pack, input.tipo)) {
+      return { ok: false as const, code: "reacao.tipo_invalido" };
+    }
+
+    const reacoes = await gravarReacao(
+      c,
       input.eventoId,
-      async (c) => {
-        // Reagir não espera o gate (ADR 0009) — só evento precisa existir/ser visível sob RLS
-        const gate = await eventGate(c, input.eventoId);
-        if (!gate) {
-          return { ok: false as const, code: "reacao.evento_ausente" };
-        }
-
-        if (
-          !(await midiaPublicadaDoEvento(c, input.eventoId, input.uploadId))
-        ) {
-          return { ok: false as const, code: "reacao.midia_ausente" };
-        }
-
-        const packId = await eventPack(c, input.eventoId);
-        const pack = packId ? PACKS[packId] : undefined;
-        if (!pack || !isValidReaction(pack, input.tipo)) {
-          return { ok: false as const, code: "reacao.tipo_invalido" };
-        }
-
-        const reacoes = await gravarReacao(
-          c,
-          input.eventoId,
-          input.uploadId,
-          input.sessaoId,
-          input.tipo,
-        );
-        return { ok: true as const, reacoes, minha: input.tipo };
-      },
+      input.uploadId,
+      input.sessaoId,
+      input.tipo,
     );
-
-    return resultado;
-  } finally {
-    client.release();
-  }
+    return { ok: true as const, reacoes, minha: input.tipo };
+  });
 }

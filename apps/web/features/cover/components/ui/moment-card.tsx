@@ -17,13 +17,16 @@ export function MomentCard({
   central,
   interactionOpen,
 }: MomentCardProps) {
-  const hrefAlbum = moment.missionFilterId
-    ? `${base}/album?missao=${encodeURIComponent(moment.missionFilterId)}`
-    : `${base}/album`;
+  // Rota direto pra câmera da missão: o fluxo de captura é o que gera participação
+  // (N5.6), não a galeria — mesma lógica de `photoPathForMission` em missions-utils.
+  const hrefPhoto = moment.missionFilterId
+    ? `${base}/photo?missao=${encodeURIComponent(moment.missionFilterId)}`
+    : `${base}/photo`;
 
   return (
     <Link
-      href={hrefAlbum}
+      href={hrefPhoto}
+      aria-label={`Fotografar ${moment.title}`}
       className={`relative aspect-[9/16] shrink-0 snap-center overflow-hidden rounded-token text-inherit no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 ${
         central ? "w-[9.25rem]" : "w-20 opacity-60"
       }`}

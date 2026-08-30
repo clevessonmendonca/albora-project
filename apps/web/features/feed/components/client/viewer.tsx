@@ -11,6 +11,8 @@ import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { Frame } from "./frame";
 
+export { viewerKeys } from "./viewer-keys";
+
 /** Avanço por toque (quem está de pé com um copo toca, não desliza). Ao acabar devolve ao feed — o social existe para disparar a próxima foto, não para prender (ADR 0009). */
 
 const DURACAO_MS = 5_000;
@@ -23,37 +25,11 @@ const SUPRESSAO_MS = 600;
 
 const CLASSE_SOMBRA_TEXTO = "[text-shadow:0_1px_4px_var(--bg)]";
 
-/** Chave vazia fica de fora — item sem arquivo cheio não vira pedido de assinatura para string vazia. */
-export function viewerKeys(itens: readonly ItemVisivel[], indice: number): string[] {
-  const chaves: string[] = [];
-  const atual = itens[indice];
-
-  if (atual) {
-    if (isVideoMime(atual.mime)) chaves.push(atual.chaveFull);
-    else chaves.push(atual.chaveThumb, atual.chaveFull);
-  }
-
-  for (const passo of [1, 2]) {
-    const proximo = itens[indice + passo];
-    if (!proximo) continue;
-    if (isVideoMime(proximo.mime)) chaves.push(proximo.chaveFull);
-    else chaves.push(proximo.chaveThumb, proximo.chaveFull);
-  }
-
-  for (const passo of [-1, 3, 4]) {
-    const vizinho = itens[indice + passo];
-    if (!vizinho) continue;
-    if (isVideoMime(vizinho.mime)) chaves.push(vizinho.chaveFull);
-    else chaves.push(vizinho.chaveThumb);
-  }
-
-  return [...new Set(chaves.filter(Boolean))];
-}
-
 export function Viewer({
   itens,
   indice,
   hora,
+  rotulo,
   urls,
   interacao,
   cameraPath,
@@ -71,6 +47,7 @@ export function Viewer({
   itens: ItemVisivel[];
   indice: number;
   hora: number;
+  rotulo?: string;
   urls: Map<string, MediaUrl>;
   interacao: ModoInteracao;
   cameraPath: string;
@@ -230,7 +207,8 @@ export function Viewer({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label={`Fotos das ${hourLabel(hora)}`}
+      data-testid="viewer"
+      aria-label={rotulo ?? `Fotos das ${hourLabel(hora)}`}
       aria-describedby="viewer-help"
       onPointerDown={pressionou}
       onPointerUp={largou}
@@ -290,7 +268,7 @@ export function Viewer({
               CLASSE_SOMBRA_TEXTO,
             )}
           >
-            {hourLabel(hora)}
+            {rotulo ?? hourLabel(hora)}
           </p>
 
           <div className="flex items-center gap-2">

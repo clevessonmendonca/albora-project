@@ -17,6 +17,7 @@ export function HomeFeedCard({
   interacao,
   base,
   onReacoes,
+  onAbrir,
 }: {
   item: ItemVisivel;
   url: string | null;
@@ -24,6 +25,8 @@ export function HomeFeedCard({
   /** Raiz do evento (`/e/{slug}`) — monta o link do perfil do autor. */
   base: string;
   onReacoes: (uploadId: string, resultado: ResultadoReacao) => void;
+  /** Toque na foto abre o Viewer compartilhado no lugar; ausente = card sem lightbox. */
+  onAbrir?: () => void;
 }) {
   const router = useRouter();
   const completo = interacao === "completo";
@@ -53,6 +56,7 @@ export function HomeFeedCard({
         comentarios={completo ? comentarios.total : 0}
         onCurtir={() => void alternarCurtida()}
         {...(completo ? { onComentar: comentarios.abrir } : {})}
+        {...(onAbrir ? { onAbrir } : {})}
       />
 
       {completo && (

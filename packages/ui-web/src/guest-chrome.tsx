@@ -96,7 +96,7 @@ export function EmptyState({
 }: {
   title: string;
   lede: string;
-  cameraPath: string;
+  cameraPath?: string;
   cameraLabel?: string;
 }) {
   return (
@@ -107,19 +107,24 @@ export function EmptyState({
         </p>
         <p className="m-0 leading-relaxed text-ink-2">{lede}</p>
       </div>
-      <a
-        href={cameraPath}
-        className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
-      >
-        {cameraLabel}
-      </a>
+      {cameraPath ? (
+        <a
+          href={cameraPath}
+          className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
+        >
+          {cameraLabel}
+        </a>
+      ) : null}
     </div>
   );
 }
 
 export function EntryColumn({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col justify-center gap-7 px-7 pb-12">
+    <div
+      id="main-content"
+      className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col justify-center gap-7 px-7 pb-12"
+    >
       {children}
     </div>
   );

@@ -17,6 +17,7 @@ import {
   EventLabel,
   SecondaryText,
   DisplayTitle,
+  SkipLink,
 } from "@albora/ui-web";
 
 const CONSENTIMENTO = "v1";
@@ -97,7 +98,9 @@ export function EntryFlow({
   }
 
   return (
-    <GuestShell>
+    <>
+      <SkipLink />
+      <GuestShell>
       <link rel="manifest" href={`/e/${encodeURIComponent(slug)}/manifest.webmanifest`} />
 
       {etapa === "recusou" ? (
@@ -154,5 +157,6 @@ export function EntryFlow({
         </form>
       )}
     </GuestShell>
+    </>
   );
 }

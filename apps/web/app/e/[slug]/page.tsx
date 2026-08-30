@@ -89,7 +89,7 @@ export default async function Pagina({ params, searchParams }: Props) {
   if (isSameEventSession(sessao, r.evento.eventoId)) {
     return (
       <Suspense fallback={<HomePageSkeleton />}>
-        <HomeContent slug={slug} evento={r.evento} />
+        <HomeContent slug={slug} evento={r.evento} sessaoId={sessao.sessaoId} />
       </Suspense>
     );
   }

@@ -1,10 +1,15 @@
 "use client";
 
 import { useMemo } from "react";
-import { GuestHeader, GuestShell, EmptyState, GuestMain, cn } from "@albora/ui-web";
+import { useRouter } from "next/navigation";
+import { GuestHeader, GuestShell, EmptyState, GuestMain, LiveAnnouncer, SkipLink, cn } from "@albora/ui-web";
+import { photoPathForMission } from "@/features/missions/lib/missions-utils";
+import { albumPath } from "../../lib/album-path";
 import { useAlbum } from "../../hooks/use-album";
 import { useAlbumFilter } from "../../hooks/use-album-filter";
 import type { AlbumMission } from "../../hooks/use-album-filter";
+
+export type { AlbumMission };
 import { useAlbumViewer } from "../../hooks/use-album-viewer";
 import { chaptersFromAlbum, firstCoverUrl, flattenChapterPhotos } from "../../lib/bands";
 import { AlbumTimeline, AlbumTimelineLoading } from "./album-timeline";
@@ -28,8 +33,14 @@ export function AlbumPage({
   initialMission?: string | null;
   cameraPath: string;
 }) {
+  const router = useRouter();
   const { missionId, setFiltro } = useAlbumFilter(missions, initialMission);
   const { estado, recarregar } = useAlbum();
+
+  function selecionar(id: string | null) {
+    setFiltro(id);
+    router.replace(albumPath(slug, id), { scroll: false });
+  }
 
   const capitulos = useMemo(
     () => (estado.album ? chaptersFromAlbum(estado.album, missionId) : []),
@@ -45,6 +56,8 @@ export function AlbumPage({
 
   return (
     <>
+      <SkipLink />
+      <LiveAnnouncer />
       <GuestShell>
         <style>{`
           @keyframes album-respirar {
@@ -68,7 +81,7 @@ export function AlbumPage({
           {estado.album && <AlbumCounters contadores={estado.album.contadores} />}
 
           {missions.length > 0 && (
-            <AlbumFilters missions={missions} selected={missionId} onSelect={setFiltro} />
+            <AlbumFilters missions={missions} selected={missionId} onSelect={selecionar} />
           )}
 
           {primeiraCarga && <AlbumTimelineLoading />}
@@ -81,7 +94,7 @@ export function AlbumPage({
                   ? "Sua foto pode ser a primeira."
                   : "Seja o primeiro a fotografar esta noite."
               }
-              cameraPath={cameraPath}
+              cameraPath={missionId ? photoPathForMission(slug, missionId) : cameraPath}
             />
           )}
 

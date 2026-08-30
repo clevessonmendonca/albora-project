@@ -40,7 +40,7 @@ export async function GET(req: Request) {
         missaoId: validated.missao ?? null,
         cursor: validated.cursor ?? null,
       },
-      () => getPool().connect(),
+      getPool(),
     );
 
     console.log("feed.pagina", {
