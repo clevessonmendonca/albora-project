@@ -135,7 +135,7 @@ jobs:
           pnpm carga
 
       - name: Publicar relatório JSON
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: carga-${{ env.CARGA_PERFIL }}-${{ github.run_id }}
