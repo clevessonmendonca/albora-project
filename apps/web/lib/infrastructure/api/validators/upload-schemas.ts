@@ -7,16 +7,27 @@
 import { z } from "zod";
 
 /**
+ * Detalhe que o cliente manda como `null` quando não existe.
+ *
+ * `transport.confirm` (web) e `confirmPayload` (mobile) montam o corpo com
+ * `?? null`, e `.optional()` sozinho aceita só `undefined` — a foto sem legenda,
+ * sem lugar e sem missão, que é o caminho padrão do convidado, tomava 422.
+ * Normaliza para `undefined` para o domínio não precisar saber da diferença.
+ */
+const detalheOpcional = <T extends z.ZodTypeAny>(base: T) =>
+  base.nullish().transform((v) => v ?? undefined);
+
+/**
  * Schema para confirmação de upload (POST).
  */
 export const confirmUploadSchema = z.object({
   uploadId: z.string().uuid("ID de upload inválido"),
   chave: z.string().min(1, "Chave obrigatória"),
   mime: z.string().min(1, "MIME type obrigatório"),
-  legenda: z.string().optional(),
-  lugar: z.string().optional(),
-  desafioId: z.string().uuid("ID de desafio inválido").optional(),
-  promptKey: z.string().optional(),
+  legenda: detalheOpcional(z.string()),
+  lugar: detalheOpcional(z.string()),
+  desafioId: detalheOpcional(z.string().uuid("ID de desafio inválido")),
+  promptKey: detalheOpcional(z.string()),
   capturadaEm: z.union([z.string(), z.number()]).optional(),
   capturadaEmParede: z.boolean().optional(),
   largura: z.number().int().positive("Largura inválida").optional(),

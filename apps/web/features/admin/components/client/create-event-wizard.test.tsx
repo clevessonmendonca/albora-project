@@ -23,6 +23,12 @@ function preencherDatasEAvancarAteCriar() {
     target: { value: "2026-09-02T02:00" },
   });
 
+  // Sem default: o campo nasce vazio de propósito (denominador da participação),
+  // então preenchê-lo faz parte de avançar o passo.
+  fireEvent.change(screen.getByLabelText("Quantos convidados presentes?"), {
+    target: { value: "120" },
+  });
+
   // Passo 1 → 2 → 3 → 4 (Confirmar)
   for (let i = 0; i < 3; i++) {
     fireEvent.click(screen.getByText("Continuar"));
@@ -97,6 +103,9 @@ describe("CreateEventWizard — passo condicional do fornecedor (spec-canal-forn
       });
       fireEvent.change(screen.getByLabelText("Fim"), {
         target: { value: "2026-09-02T02:00" },
+      });
+      fireEvent.change(screen.getByLabelText("Quantos convidados presentes?"), {
+        target: { value: "120" },
       });
       for (let i = 0; i < 3; i++) {
         fireEvent.click(screen.getByText("Continuar"));

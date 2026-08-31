@@ -245,6 +245,92 @@ export function taxaDeParticipacao(contagem: ContagemDoEvento): number {
   return sessoesComUpload / expectedGuests;
 }
 
+export type Denominador = {
+  /** Estimativa do anfitrião, preenchida antes da festa. */
+  expectedGuests: number;
+  /** Presença confirmada depois da festa. `null` enquanto ninguém confirmou. */
+  actualGuests?: number | null | undefined;
+};
+
+export type OrigemDoDenominador = "confirmado" | "estimado";
+
+/**
+ * Qual número vale como denominador da participação.
+ *
+ * Presença confirmada ganha da estimativa sempre que existe: a estimativa é
+ * preenchida meses antes, e a diferença entre convidado e presente é grande o
+ * bastante para mover o veredito de faixa. Enquanto ninguém confirma, a
+ * estimativa segue valendo — a leitura nunca fica sem denominador.
+ */
+export function denominadorDaParticipacao(d: Denominador): {
+  valor: number;
+  origem: OrigemDoDenominador;
+} {
+  const confirmado = d.actualGuests;
+
+  if (typeof confirmado === "number" && Number.isFinite(confirmado) && confirmado > 0) {
+    return { valor: confirmado, origem: "confirmado" };
+  }
+
+  return { valor: d.expectedGuests, origem: "estimado" };
+}
+
+export type ContagemDeIntencao = ContagemDoEvento & {
+  /** Sessões distintas que chegaram a `capture` — quis fotografar. */
+  sessoesComCaptura: number;
+};
+
+export type CodigoDeIntencao =
+  | "funil.intencao_entregue"
+  | "funil.intencao_frustrada"
+  | "funil.intencao_ausente";
+
+export type LeituraDeIntencao = {
+  participacao: number;
+  /** Sessões que capturaram e nunca chegaram a `upload_ok`. */
+  frustradas: number;
+  /** Participação que existiria se toda captura tivesse virado envio. */
+  participacaoPotencial: number;
+  codigo: CodigoDeIntencao;
+};
+
+/** Acima disto, o que separa a tese do piso é entrega, não vontade. */
+export const PISO_DA_FRUSTRACAO = 0.1;
+
+/**
+ * Separa "não quis" de "quis e não conseguiu".
+ *
+ * `taxaDeParticipacao` sozinha trata as duas como a mesma coisa, e elas pedem
+ * decisões opostas: falta de vontade é problema de produto e roteiro; captura que
+ * não vira envio é rede, aparelho ou fila. Dois terços da área rural produtiva
+ * brasileira não tinham 4G/5G na medição de 2024 — sem esta leitura, um salão sem
+ * sinal reprova a tese e ninguém percebe que o produto não foi testado.
+ *
+ * Nunca é veredito sozinha: acompanha `decidirTese`, não substitui.
+ */
+export function lerIntencao(contagem: ContagemDeIntencao): LeituraDeIntencao {
+  const participacao = taxaDeParticipacao(contagem);
+  const { expectedGuests, sessoesComUpload, sessoesComCaptura } = contagem;
+
+  if (!Number.isFinite(sessoesComCaptura) || sessoesComCaptura < sessoesComUpload) {
+    throw new MetricaInvalida("funil.numerador_invalido");
+  }
+
+  const frustradas = sessoesComCaptura - sessoesComUpload;
+  const participacaoPotencial = sessoesComCaptura / expectedGuests;
+
+  if (sessoesComCaptura === 0) {
+    return { participacao, frustradas, participacaoPotencial, codigo: "funil.intencao_ausente" };
+  }
+
+  const codigo =
+    frustradas / sessoesComCaptura >= PISO_DA_FRUSTRACAO
+      ? "funil.intencao_frustrada"
+      : "funil.intencao_entregue";
+
+  return { participacao, frustradas, participacaoPotencial, codigo };
+}
+
 export const PISO_DA_TESE = 0.4;
 export const PISO_DA_FRICCAO = 0.25;
 

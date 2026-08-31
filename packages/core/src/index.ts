@@ -106,7 +106,9 @@ export {
   QUALITY,
   PIXEL_CAP,
   pixelCapForDevice,
+  ladoMaiorParaRede,
 } from "./redimensionar";
+export type { Rede } from "./redimensionar";
 
 export type { SendResult, DrainSummary, Transport } from "./envio";
 export { drain, sendItem } from "./envio";
@@ -206,7 +208,12 @@ export type {
   CodigoDeSequencia,
   ComparacaoDePlataforma,
   ContagemDePlataforma,
+  CodigoDeIntencao,
+  ContagemDeIntencao,
+  Denominador,
   ContagemDoEvento,
+  LeituraDeIntencao,
+  OrigemDoDenominador,
   DegrauDoFunil,
   EtapaDaEspinha,
   EventoDoFunil,
@@ -230,12 +237,15 @@ export {
   PRE_REQUISITOS,
   compararPlataforma,
   decidirTese,
+  denominadorDaParticipacao,
   degraus,
   ehEventoDoFunil,
   ehEventoUnicoDoFunil,
+  lerIntencao,
   lerPlataforma,
   maiorPerda,
   ondeParou,
+  PISO_DA_FRUSTRACAO,
   taxaDeParticipacao,
   validarSequencia,
 } from "./funnel";

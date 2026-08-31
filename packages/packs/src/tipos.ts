@@ -14,6 +14,9 @@ export type Pack = {
   momentos?: { id: string; chaveTitulo: string; chaveDesc: string }[];
   /** Conjunto fechado (spec 008) — emoji livre projetado para 150 pessoas é a mesma superfície de abuso de `lugares`; id fora da lista não vira linha no banco. */
   reacoes?: { id: string; chaveTitulo: string }[];
+  /** Id do pack cujas festas acontecem antes desta. Núcleo não sabe que casamento
+   *  tem noivado — quem sabe é o pack, e a UI pergunta em vez de assumir. */
+  sugereAntes?: string;
   tokens?: TokenLayer;
 };
 
@@ -32,6 +35,7 @@ export const texto = resolvePackText;
 /** Missão e lugar ficam fora — um casamento tem altar e um aniversário não; forçar o mesmo conjunto exigiria inventar lugares que a festa não tem. */
 export const CORE_VOCABULARY_KEYS = [
   "evento.nome",
+  "evento.descricao",
   "anfitriao.plural",
   "convidado.saudacao",
   "missao.titulo",
@@ -71,6 +75,21 @@ export const LANDING_VOCABULARY_KEYS = [
 export const CHAVES_DA_LANDING = LANDING_VOCABULARY_KEYS;
 
 /** Chave faltando na landing vira a própria chave em corpo 74px na frente de quem ia pagar. */
+/**
+ * O pack se propõe a ter landing própria?
+ *
+ * Landing é opcional (ver `Pack.momentos`): pack escolhido dentro do wizard, ou
+ * white-label, não tem funil e não deve carregar copy de marketing. Declarar
+ * *qualquer* peça de landing é o que sinaliza a intenção — e aí o conjunto tem de
+ * estar completo, porque meia copy vaza `landing.titulo` cru na porta do funil.
+ */
+export function temLandingPropria(pack: Pack): boolean {
+  if (pack.momentos && pack.momentos.length > 0) return true;
+  return LANDING_VOCABULARY_KEYS.some((chave) => Boolean(pack.vocabulario[chave]));
+}
+
+export const hasOwnLanding = temLandingPropria;
+
 export function landingProblems(pack: Pack): string[] {
   const problemas = LANDING_VOCABULARY_KEYS.filter((chave) => !pack.vocabulario[chave]).map(
     (chave) => `falta a chave de landing ${chave}`,

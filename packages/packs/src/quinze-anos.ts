@@ -5,6 +5,7 @@ export const QUINZE_ANOS: Pack = {
   id: "quinze-anos",
   vocabulario: {
     "evento.nome": "aniversário de 15 anos",
+    "evento.descricao": "A entrada, a valsa e a pista até o fim.",
     "anfitriao.plural": "a aniversariante",
     "convidado.saudacao": "Chegou a hora da festa",
     "missao.titulo": "Missões da noite",

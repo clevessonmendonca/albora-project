@@ -96,6 +96,13 @@ async function principal() {
   const resultado = { confirmados: 0, perdidos: 0, comRetry: 0, retriesGastos: 0 };
 
   console.log(`\nrajada  ${config.total} capturas em ${config.duracaoMs / 60_000} min — começando\n`);
+  if (config.semStorage) {
+    console.log(
+      "  AVISO  CARGA_SEM_STORAGE=1 — mede sessão e presign, e para aí.\n" +
+        "         PUT e confirm dependem do storage: o confirm consulta o objeto\n" +
+        "         antes de gravar. Resultado PARCIAL — não cumpre o gate de carga.\n",
+    );
+  }
   relogio.inicio = performance.now();
   const progresso = setInterval(() => {
     const min = (desdeOInicio() / 60_000).toFixed(1);
@@ -125,7 +132,9 @@ async function principal() {
     concorrenciaMaxima: emVoo.maximo,
   };
 
-  const idempotencia = await provarIdempotencia({ cliente, config, eventoId, vivos, criados, fotos });
+  const idempotencia = config.semStorage
+    ? { veredito: "NÃO VERIFICADO — exige storage (CARGA_SEM_STORAGE=1)", provas: [] }
+    : await provarIdempotencia({ cliente, config, eventoId, vivos, criados, fotos });
 
   const execucao = {
     config,
@@ -232,6 +241,11 @@ async function subirComRetry({ convidado, item, cliente, config, medidas, criado
       if (!criados.chaves.includes(presign.resposta.chave)) {
         criados.chaves.push(presign.resposta.chave);
       }
+
+      // O `confirm` consulta o objeto no storage antes de gravar a linha; sem
+      // storage ele não falha, ele pendura. Então o modo sem storage termina no
+      // presign — e o relatório diz que terminou ali.
+      if (config.semStorage) return { ok: true, tentativas: tentativa };
 
       const put = await cliente.enviarBytes({ url: presign.resposta.full, corpo: item.foto });
       anotar("put", put, tentativa);
@@ -357,9 +371,15 @@ function vereditoFinal(config, resultado, idempotencia, medidas) {
   const cincoxx = medidas.filter((m) => !m.ok && m.status >= 500).length;
   if (cincoxx > 0) motivos.push(`${cincoxx} resposta(s) 5xx`);
 
-  return motivos.length === 0
-    ? `PASSOU — ${resultado.confirmados} de ${config.total} confirmados, nenhum perdido`
-    : `FALHOU — ${motivos.join("; ")}`;
+  if (motivos.length > 0) return `FALHOU — ${motivos.join("; ")}`;
+
+  // Sem o PUT não houve upload: o gate mede o caminho inteiro, e um registro
+  // que dissesse "PASSOU" aqui viraria prova de algo que não foi medido.
+  if (config.semStorage) {
+    return `PARCIAL — ${resultado.confirmados} de ${config.total} chegaram ao presign; PUT e confirm não executados (CARGA_SEM_STORAGE=1). Não cumpre o gate.`;
+  }
+
+  return `PASSOU — ${resultado.confirmados} de ${config.total} confirmados, nenhum perdido`;
 }
 
 function maiorVale(instantes) {

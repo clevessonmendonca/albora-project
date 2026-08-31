@@ -70,6 +70,8 @@ Não podem ser quebradas sem discussão prévia. Se uma tarefa pedir para quebra
 ### Dados e privacidade
 
 - **Migrations são forward-only em produção.** Nunca reescreva uma migration já aplicada — escreva outra.
+- **Mídia de convidado nunca vira material de marketing.** Nem do Albora, nem do fornecedor white-label, em nenhuma superfície — site, redes, apresentação comercial, case. A única exceção é autorização escrita e específica; se houver menor na foto, do responsável legal. O STJ (REsp 1.628.700/MG) firmou que dano à imagem de menor publicada sem autorização do representante legal é `in re ipsa` — e **sem exigir finalidade comercial**, diferente da Súmula 403. "Não vendemos a foto" não é defesa.
+
 - **Nunca logar PII crua.** Nome de convidado, telefone, e-mail: mascarados em log, sempre.
 - **Retenção é cumprida por job, não por promessa.** Export para a nuvem do casal no dia 330, delete no dia 365.
 - **Excluir conta exclui de verdade, e rápido.** Memórias automáticas são opt-in; desligar em um toque, sem fricção e sem tentativa de retenção.

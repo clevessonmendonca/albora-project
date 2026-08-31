@@ -26,6 +26,8 @@ export type EventoDoHost = ResumoEvento & {
   moderacao: EstadoModeracao;
   interacaoAbreEm: Date | null;
   expectedGuests: number;
+  /** Presença confirmada depois da festa. `null` = ainda vale a estimativa. */
+  actualGuests: number | null;
   identityTokens: Record<string, unknown>;
   fuso: string;
   plan: PlanoDoEvento;
@@ -46,6 +48,7 @@ type LinhaCompleta = {
   has_minors: boolean;
   interaction_opens_at: Date | null;
   expected_guests: number;
+  actual_guests: number | null;
   identity_tokens: Record<string, unknown>;
   timezone: string;
   plan: string;
@@ -54,7 +57,7 @@ type LinhaCompleta = {
 };
 
 const COLUNAS =
-  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at, expected_guests, identity_tokens, timezone, plan, title, cover_image_key";
+  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at, expected_guests, actual_guests, identity_tokens, timezone, plan, title, cover_image_key";
 
 function mapModeracao(l: Pick<LinhaCompleta, "panic" | "hardened" | "has_minors">): EstadoModeracao {
   return {
@@ -73,6 +76,7 @@ function mapEvento(l: LinhaCompleta): EventoDoHost {
     terminaEm: l.ends_at,
     interacaoAbreEm: l.interaction_opens_at,
     expectedGuests: l.expected_guests,
+    actualGuests: l.actual_guests,
     identityTokens: l.identity_tokens ?? {},
     fuso: fusoOuPadrao(l.timezone),
     plan: parsePlanoDoEvento(l.plan),

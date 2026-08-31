@@ -39,7 +39,11 @@ export async function GET(
     const { evento } = owned;
 
     const resultado = await getGuestMetrics(
-      { eventId, expectedGuests: evento.expectedGuests },
+      {
+        eventId,
+        expectedGuests: evento.expectedGuests,
+        actualGuests: evento.actualGuests,
+      },
       getPool(),
     );
 

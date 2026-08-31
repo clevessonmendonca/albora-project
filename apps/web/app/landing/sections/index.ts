@@ -8,6 +8,7 @@ export { AlbumChaptersSection } from "./album-chapters";
 export { IdentitySection } from "./identity";
 export { BookSection } from "./book";
 export { IncludedSection } from "./included";
+export { AntesDaFestaSection } from "./antes-da-festa";
 export { VeteranSection } from "./veteran";
 export { PricingSection } from "./pricing";
 export { FaqSection } from "./faq";

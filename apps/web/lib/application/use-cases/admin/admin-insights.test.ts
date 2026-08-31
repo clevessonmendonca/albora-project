@@ -7,6 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import type * as AlboraCore from "@albora/core";
 import { getEventInsights } from "./get-event-insights";
 import { getGuestMetrics } from "./get-guest-metrics";
 import type { Pool, PoolClient } from "pg";
@@ -47,9 +48,15 @@ vi.mock("@albora/db", () => ({
   listarSessoesDoHost: mockListarSessoesDoHost,
 }));
 
-vi.mock("@albora/core", () => ({
-  decideThesis: mockDecideThesis,
-}));
+// `lerIntencao` é pura e sem dependência — mockar significaria testar o dublê.
+vi.mock("@albora/core", async (importOriginal) => {
+  const real = await importOriginal<typeof AlboraCore>();
+  return {
+    lerIntencao: real.lerIntencao,
+    denominadorDaParticipacao: real.denominadorDaParticipacao,
+    decideThesis: mockDecideThesis,
+  };
+});
 
 vi.mock("@albora/packs", () => ({
   PACKS,

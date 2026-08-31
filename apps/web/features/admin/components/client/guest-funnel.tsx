@@ -1,6 +1,11 @@
 "use client";
 
-import type { CodigoDaTese, DegrauDoFunil, EtapaDaEspinha } from "@albora/core";
+import type {
+  CodigoDaTese,
+  DegrauDoFunil,
+  EtapaDaEspinha,
+  LeituraDeIntencao,
+} from "@albora/core";
 import type { EntradasPorVia } from "@albora/db";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
@@ -14,7 +19,10 @@ type Resumo = {
   totalFotos: number;
   sharesTotais: number;
   participacao: number;
+  denominador?: number;
+  origemDoDenominador?: "confirmado" | "estimado";
   veredito: CodigoDaTese;
+  intencao?: LeituraDeIntencao;
   degraus: DegrauDoFunil[];
   uploadsAntesDoFeed: number;
   uploadsDepoisDoFeed: number;
@@ -52,6 +60,8 @@ type Props = {
 
 export function GuestFunnel({ eventoId }: Props) {
   const [resumo, setResumo] = useState<Resumo | null>(null);
+  const [presenca, setPresenca] = useState("");
+  const [salvandoPresenca, setSalvandoPresenca] = useState(false);
   const [erro, setErro] = useState(false);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const [atualizando, setAtualizando] = useState(false);
@@ -105,6 +115,27 @@ export function GuestFunnel({ eventoId }: Props) {
 
   const pct = Math.round(resumo.participacao * 100);
   const destaqueClass = vereditoTextClass(resumo.veredito);
+  const confirmada = resumo.origemDoDenominador === "confirmado";
+
+  async function confirmarPresenca() {
+    const n = Number(presenca);
+    if (!Number.isFinite(n) || n <= 0) return;
+
+    setSalvandoPresenca(true);
+    try {
+      const r = await fetch(`/api/admin/events/${eventoId}/config`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ actualGuests: Math.trunc(n) }),
+      });
+      if (r.ok) {
+        setPresenca("");
+        await carregar();
+      }
+    } finally {
+      setSalvandoPresenca(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -123,12 +154,17 @@ export function GuestFunnel({ eventoId }: Props) {
           </div>
         </div>
         <p className="mb-4 mt-0 leading-relaxed text-ink-2">
-          Números agregados, atualizados a cada 30 segundos. O denominador vem dos convidados
-          esperados que você definiu na criação do evento.
+          Números agregados, atualizados a cada 30 segundos.{" "}
+          {confirmada
+            ? "A participação usa a presença que você confirmou depois da festa."
+            : "A participação usa a estimativa que você deu na criação do evento."}
         </p>
 
         <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
-          <Stat n={String(resumo.expectedGuests)} rotulo="esperados" />
+          <Stat
+            n={String(resumo.denominador ?? resumo.expectedGuests)}
+            rotulo={confirmada ? "presentes" : "esperados"}
+          />
           <Stat n={String(resumo.sessoesComUpload)} rotulo="fotografaram" />
           <Stat n={`${pct}%`} rotulo="participação" destaqueClass={destaqueClass} />
           <Stat n={String(resumo.totalFotos)} rotulo="fotos no ar" />
@@ -136,6 +172,51 @@ export function GuestFunnel({ eventoId }: Props) {
         </div>
 
         <p className={`m-0 text-sm ${destaqueClass}`}>{ROTULO_VEREDITO[resumo.veredito]}</p>
+
+        {resumo.intencao?.codigo === "funil.intencao_frustrada" && (
+          <p className="m-0 mt-2 text-sm leading-relaxed text-ink-2">
+            {resumo.intencao.frustradas === 1
+              ? "1 convidado tirou foto e o envio não completou."
+              : `${resumo.intencao.frustradas} convidados tiraram foto e o envio não completou.`}{" "}
+            Com esses envios, a participação seria de{" "}
+            {Math.round(resumo.intencao.participacaoPotencial * 100)}%. Vale checar o sinal do
+            salão antes de concluir qualquer coisa sobre o produto.
+          </p>
+        )}
+      </AdminSection>
+
+      <AdminSection>
+        <h2 className="mb-2 mt-0 font-titulo text-lg">
+          {confirmada ? "Presença confirmada" : "Confirmar quem apareceu"}
+        </h2>
+        <p className="mb-3 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+          {confirmada
+            ? `A participação está sendo calculada sobre ${resumo.denominador} presentes. Se o número mudar, é só enviar de novo.`
+            : "Convidado e presente não são o mesmo número, e a diferença muda a leitura da participação. Depois da festa, informe quantos apareceram de fato."}
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="sr-only" htmlFor="presenca-real">
+            Quantas pessoas apareceram
+          </label>
+          <input
+            id="presenca-real"
+            type="number"
+            min={1}
+            inputMode="numeric"
+            placeholder={String(resumo.denominador ?? resumo.expectedGuests)}
+            value={presenca}
+            onChange={(e) => setPresenca(e.target.value)}
+            className="w-28 rounded-token border border-linha bg-bg px-3 py-2 font-titulo text-lg text-ink outline-none transition-[border-color] focus:border-acento"
+          />
+          <button
+            type="button"
+            disabled={salvandoPresenca || Number(presenca) <= 0}
+            onClick={() => void confirmarPresenca()}
+            className="min-h-11 cursor-pointer rounded-pilula bg-acento px-5 text-sm font-medium text-sobre-acento transition-opacity hover:opacity-90 disabled:cursor-default disabled:opacity-50"
+          >
+            {salvandoPresenca ? "Salvando…" : "Confirmar presença"}
+          </button>
+        </div>
       </AdminSection>
 
       <AdminSection>

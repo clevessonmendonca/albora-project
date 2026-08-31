@@ -43,6 +43,7 @@ Prioridade absoluta. Nada em NEXT compete com isto.
 | **P3** | **Corrigir copy moderação na landing** — galeria publica + telão protegido | Contradiz produto real | `landing/` | `task-023-copy-moderacao-landing.md` ✅ |
 | **P4** | **Seção landing convidado-veterano** — "Esteve num casamento Albora?" | Maior intenção, zero copy | `landing/` | `task-024-landing-convidado-veterano.md` ✅ |
 | **P5** | **Wizard: `expected_guests` obrigatório com hint** — "Quantos convidados presentes? Usamos para participação" | Denominador H1 errado | Admin wizard | `task-026-wizard-expected-guests.md` ✅ |
+| **P7** | **Congelamento de features** — lista explícita do que não entra até o casamento nº 1 medido | Superfície nova é custo fixo sobre zero usuários | [`congelamento-de-features.md`](./congelamento-de-features.md) | Documento vigente |
 | **P6** | **Checklist pré-evento no admin** — peças impressas, telão pareado, gate, menores, microfone | Anfitrião esquece passo | Admin `/admin/e/[id]` | `task-025-checklist-pre-evento.md` ✅ |
 
 **Regra:** P1–P3 antes do casamento #1. P4–P6 desejável, não bloqueante — **todos entregues em código**.

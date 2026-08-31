@@ -71,11 +71,14 @@ export function metadadosDaInspecao(
   return { bytes, inicio };
 }
 
+const INSPECT_TIMEOUT_MS = 5_000;
+
 /** Confere o que chegou no bucket (confirm): lê só os primeiros bytes com Range — transforma "cliente disse JPEG" em "bytes são JPEG". */
 export async function inspectObject(key: string): Promise<ObjectMetadata | null> {
   const res = await client().fetch(objectUrl(key).toString(), {
     method: "GET",
     headers: { Range: rangeDoPrefixoMagic() },
+    signal: AbortSignal.timeout(INSPECT_TIMEOUT_MS),
   });
 
   return metadadosDaInspecao(res.status, res.headers, new Uint8Array(await res.arrayBuffer()));

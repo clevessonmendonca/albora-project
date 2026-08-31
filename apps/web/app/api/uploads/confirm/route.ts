@@ -35,8 +35,15 @@ export async function POST(req: Request) {
   if (validated instanceof Response) return validated;
 
   try {
-    // Inspecionar objetos no R2 (infraestrutura)
-    const objeto = await inspecionarObjeto(`${validated.chave}/full`);
+    let objeto;
+    try {
+      objeto = await inspecionarObjeto(`${validated.chave}/full`);
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "TimeoutError") {
+        return errorResponse(503, "upload.storage_indisponivel", "Storage temporariamente indisponível");
+      }
+      throw e;
+    }
     if (!objeto) {
       return errorResponse(
         409,
@@ -48,7 +55,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const thumb = await inspecionarObjeto(`${validated.chave}/thumb`);
+    let thumb;
+    try {
+      thumb = await inspecionarObjeto(`${validated.chave}/thumb`);
+    } catch (e) {
+      if (e instanceof DOMException && e.name === "TimeoutError") {
+        return errorResponse(503, "upload.storage_indisponivel", "Storage temporariamente indisponível");
+      }
+      throw e;
+    }
     if (!thumb) {
       return errorResponse(
         409,

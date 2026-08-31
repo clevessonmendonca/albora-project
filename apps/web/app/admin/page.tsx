@@ -25,7 +25,17 @@ export default async function AdminPage() {
   if (!host) redirect("/admin/sign-in");
 
   const eventos = await listarEventosDoHost(getPool(), host.accountId);
+
   const agora = new Date();
+  // Qual pack sugerir vem do próprio pack, nunca de string aqui. Só sugere
+  // enquanto dá tempo de usar, e some assim que o anfitrião já criou um.
+  const sugerido = eventos
+    .filter((e) => !e.terminaEm || e.terminaEm >= agora)
+    .map((e) => PACKS[e.packId]?.sugereAntes)
+    .find((id): id is string => Boolean(id && PACKS[id]));
+
+  const packSugerido =
+    sugerido && !eventos.some((e) => e.packId === sugerido) ? PACKS[sugerido] : undefined;
 
   return (
     <AdminShell title="Seu painel" subtitle={host.email}>
@@ -106,6 +116,23 @@ export default async function AdminPage() {
               );
             })}
           </div>
+
+          {packSugerido && (
+            <div className="mt-4 rounded-superficie border border-linha bg-superficie-alta px-5 py-4">
+              <p className="m-0 font-titulo text-[1.0625rem] text-ink">
+                {resolvePackText(packSugerido, "sugestao.titulo")}
+              </p>
+              <p className="m-0 mt-1.5 text-[0.875rem] leading-relaxed text-ink-2">
+                {resolvePackText(packSugerido, "sugestao.lede")}
+              </p>
+              <Link
+                href="/admin/new"
+                className={`${adminClasses.primaryButtonSm} mt-3.5 inline-flex`}
+              >
+                {resolvePackText(packSugerido, "sugestao.cta")}
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </AdminShell>

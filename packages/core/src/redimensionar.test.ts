@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   fullTarget,
+  ladoMaiorParaRede,
   PIXEL_CAP,
   pixelCapForDevice,
   planProcessing,
@@ -68,6 +69,42 @@ describe("teto de pixels — degradar, nunca falhar", () => {
     // maioria dos aparelhos numa festa é capaz.
     expect(pixelCapForDevice({})).toBe(PIXEL_CAP.standard);
     expect(pixelCapForDevice({ memoryGb: 8, cores: 8 })).toBe(PIXEL_CAP.standard);
+  });
+});
+
+describe("teto por rede — o pacote de dados do convidado", () => {
+  it("rede desconhecida não reduz nada", () => {
+    expect(ladoMaiorParaRede("pago", {})).toBe(3500);
+    expect(ladoMaiorParaRede("gratis", {})).toBe(2500);
+  });
+
+  it("saveData ligado reduz o pago ao teto do grátis", () => {
+    expect(ladoMaiorParaRede("pago", { economiaDeDados: true })).toBe(2500);
+  });
+
+  it("2g reduz; 3g e 4g não", () => {
+    expect(ladoMaiorParaRede("pago", { tipoEfetivo: "slow-2g" })).toBe(2500);
+    expect(ladoMaiorParaRede("pago", { tipoEfetivo: "2g" })).toBe(2500);
+    expect(ladoMaiorParaRede("pago", { tipoEfetivo: "3g" })).toBe(3500);
+    expect(ladoMaiorParaRede("pago", { tipoEfetivo: "4g" })).toBe(3500);
+  });
+
+  it("nunca amplia o grátis, mesmo em rede boa", () => {
+    expect(ladoMaiorParaRede("gratis", { tipoEfetivo: "4g" })).toBe(2500);
+    expect(ladoMaiorParaRede("gratis", { economiaDeDados: true })).toBe(2500);
+  });
+
+  it("planProcessing aplica o teto de rede sem a foto deixar de sair", () => {
+    const p = planProcessing({
+      width: 4032,
+      height: 3024,
+      plan: "pago",
+      device: { memoryGb: 8, cores: 8 },
+      rede: { economiaDeDados: true },
+    });
+
+    expect(Math.max(p.full.width, p.full.height)).toBe(2500);
+    expect(ratio(p.full)).toBeCloseTo(4032 / 3024, 2);
   });
 });
 

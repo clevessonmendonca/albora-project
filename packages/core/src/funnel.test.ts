@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   compararPlataforma,
   decidirTese,
+  denominadorDaParticipacao,
   degraus,
   ehEventoDoFunil,
   ehEventoUnicoDoFunil,
   ESPINHA_DO_FUNIL,
   EVENTOS_DO_FUNIL,
+  lerIntencao,
   lerPlataforma,
   maiorPerda,
   MetricaInvalida,
@@ -376,5 +378,93 @@ describe("onde a participação se perdeu", () => {
   it("funil sem queda e funil sem sessão não inventam um culpado", () => {
     expect(maiorPerda(degraus([SESSAO_FELIZ, SESSAO_FELIZ]))).toBe(null);
     expect(maiorPerda(degraus([]))).toBe(null);
+  });
+});
+
+describe("intenção — separar quem não quis de quem não conseguiu", () => {
+  it("captura que virou envio é intenção entregue", () => {
+    const l = lerIntencao({ expectedGuests: 100, sessoesComUpload: 48, sessoesComCaptura: 50 });
+
+    expect(l.codigo).toBe("funil.intencao_entregue");
+    expect(l.frustradas).toBe(2);
+    expect(l.participacao).toBeCloseTo(0.48);
+    expect(l.participacaoPotencial).toBeCloseTo(0.5);
+  });
+
+  it("salão sem sinal: tese reprova, mas a intenção estava lá", () => {
+    const contagem = { expectedGuests: 100, sessoesComUpload: 12, sessoesComCaptura: 46 };
+
+    // O veredito sozinho mandaria parar…
+    expect(decidirTese(contagem).codigo).toBe("funil.parar");
+
+    // …e a leitura de intenção mostra que o produto sequer foi testado.
+    const l = lerIntencao(contagem);
+    expect(l.codigo).toBe("funil.intencao_frustrada");
+    expect(l.frustradas).toBe(34);
+    expect(l.participacaoPotencial).toBeCloseTo(0.46);
+  });
+
+  it("ninguém capturou: não é frustração, é ausência", () => {
+    const l = lerIntencao({ expectedGuests: 100, sessoesComUpload: 0, sessoesComCaptura: 0 });
+
+    expect(l.codigo).toBe("funil.intencao_ausente");
+    expect(l.frustradas).toBe(0);
+  });
+
+  it("mais envio que captura é instrumentação quebrada, não métrica", () => {
+    expect(() =>
+      lerIntencao({ expectedGuests: 100, sessoesComUpload: 10, sessoesComCaptura: 4 }),
+    ).toThrow(MetricaInvalida);
+  });
+
+  it("herda a recusa de denominador ausente", () => {
+    expect(() =>
+      lerIntencao({ expectedGuests: 0, sessoesComUpload: 0, sessoesComCaptura: 0 }),
+    ).toThrow(MetricaInvalida);
+  });
+});
+
+describe("denominador — estimativa antes, presença confirmada depois", () => {
+  it("sem confirmação, vale a estimativa", () => {
+    expect(denominadorDaParticipacao({ expectedGuests: 150 })).toEqual({
+      valor: 150,
+      origem: "estimado",
+    });
+    expect(denominadorDaParticipacao({ expectedGuests: 150, actualGuests: null })).toEqual({
+      valor: 150,
+      origem: "estimado",
+    });
+  });
+
+  it("confirmada ganha da estimativa", () => {
+    expect(denominadorDaParticipacao({ expectedGuests: 200, actualGuests: 120 })).toEqual({
+      valor: 120,
+      origem: "confirmado",
+    });
+  });
+
+  it("a diferença entre convidado e presente move o veredito de faixa", () => {
+    // 60 envios: 30% sobre a estimativa de 200 (mexer em fricção),
+    // 50% sobre os 120 que apareceram de verdade (tese validada).
+    const envios = 60;
+
+    const estimado = denominadorDaParticipacao({ expectedGuests: 200 });
+    const confirmado = denominadorDaParticipacao({ expectedGuests: 200, actualGuests: 120 });
+
+    expect(
+      decidirTese({ expectedGuests: estimado.valor, sessoesComUpload: envios }).codigo,
+    ).toBe("funil.mexe_em_friccao");
+    expect(
+      decidirTese({ expectedGuests: confirmado.valor, sessoesComUpload: envios }).codigo,
+    ).toBe("funil.tese_validada");
+  });
+
+  it("confirmação inválida não derruba a leitura, cai na estimativa", () => {
+    for (const actualGuests of [0, -5, Number.NaN]) {
+      expect(denominadorDaParticipacao({ expectedGuests: 150, actualGuests })).toEqual({
+        valor: 150,
+        origem: "estimado",
+      });
+    }
   });
 });
