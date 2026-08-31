@@ -51,17 +51,20 @@ jobs:
 
       - name: Setup test database
         run: |
-          # Aguarda Postgres estar pronto
           sleep 5
-          # Roda migrations (ajustar comando conforme seu projeto)
-          pnpm db:push || echo "⚠️ db:push não disponível, continuando..."
+          for f in packages/db/migrations/*.sql; do
+            echo "applying $f ..."
+            PGPASSWORD=test_password psql -h localhost -U postgres -d albora_test -f "$f"
+          done
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/albora_test
+          DATABASE_URL_AGGREGATOR: postgresql://postgres:test_password@localhost:5432/albora_test
 
       - name: Build application
         run: pnpm build
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/albora_test
+          DATABASE_URL_AGGREGATOR: postgresql://postgres:test_password@localhost:5432/albora_test
           SKIP_ENV_VALIDATION: true
 
       - name: Run E2E tests
@@ -70,6 +73,7 @@ jobs:
           pnpm test:e2e
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/albora_test
+          DATABASE_URL_AGGREGATOR: postgresql://postgres:test_password@localhost:5432/albora_test
           CI: true
 
       - name: Upload Playwright report
