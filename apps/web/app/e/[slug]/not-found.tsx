@@ -3,9 +3,9 @@ import Link from "next/link";
 export default function EventNotFound() {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-bg px-8 font-corpo text-ink">
-      <p className="text-lg font-medium">Festa não encontrada</p>
+      <p className="text-lg font-medium">Esse endereço não abre nenhuma festa</p>
       <p className="mt-2 text-sm text-ink-2">
-        Este link pode ter mudado ou expirado. Escaneie o QR da mesa para entrar.
+        Pode ser uma letra trocada. Tente de novo pelo código da mesa.
       </p>
       <Link
         href="/scan"
