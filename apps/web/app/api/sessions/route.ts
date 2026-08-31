@@ -25,7 +25,7 @@ export async function POST(req: Request) {
   if (configError) return configError;
 
   const limited = enforceRateLimit(req, null, {
-    max: 10,
+    max: 60,
     message: "Muitas tentativas",
   });
   if (limited) return limited;

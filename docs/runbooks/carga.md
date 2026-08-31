@@ -75,12 +75,12 @@ Falha fechado de propósito. Um `ALVO` digitado errado não roda contra o lugar 
 | `CARGA_CONVIDADOS` | 50 | Sessões distintas |
 | `CARGA_PICOS` | 4 | Rajadas na janela |
 | `CARGA_FRACAO_PICO` | 0.7 | Fração dos uploads que cai dentro de rajada |
-| `CARGA_SESSOES_POR_MINUTO` | 9 | Teto de criação de sessão |
+| `CARGA_SESSOES_POR_MINUTO` | 55 | Teto de criação de sessão |
 | `CARGA_SAIDA` | — | Caminho do JSON de saída |
 
 **Por que rajada e não taxa constante.** 150 uploads em 20 minutos não é um a cada 8 segundos: é ninguém por três minutos e quarenta de uma vez quando o bolo é cortado. Taxa constante mede um sistema que não existe.
 
-**Por que 9 sessões por minuto.** O limite de `/api/sessions` é por IP, e num salão os 200 convidados estão atrás de um NAT só. Criar sessão mais rápido mede o rate limit, não o pipeline. Use `CARGA_IP_POR_CONVIDADO=1` para medir o pipeline sem esse teto.
+**Por que 55 sessões por minuto.** O limite de `/api/sessions` é 60 por minuto por IP. O arnês fica 5 abaixo para não medir o rate limit em vez do pipeline. Use `CARGA_IP_POR_CONVIDADO=1` para ignorar esse teto.
 
 ---
 

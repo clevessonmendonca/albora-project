@@ -97,10 +97,7 @@ export function lerConfig(env) {
     qualidade: numero(env, "CARGA_QUALIDADE", 82),
     grao: numero(env, "CARGA_GRAO", 20),
 
-    // O limite de /api/sessions é 10 por minuto **por IP**, e num salão os 200
-    // convidados estão atrás de um NAT só. Criar sessão mais rápido que isto
-    // mede o rate limit, não o pipeline.
-    sessoesPorMinuto: numero(env, "CARGA_SESSOES_POR_MINUTO", 9),
+    sessoesPorMinuto: numero(env, "CARGA_SESSOES_POR_MINUTO", 55),
     ipPorConvidado: env.CARGA_IP_POR_CONVIDADO === "1",
     // O PUT vai direto ao object storage — o servidor nunca vê esses bytes. Sem
     // storage provisionado o PUT trava e leva junto a medição de sessão, presign
