@@ -7,9 +7,15 @@ export async function register() {
   }
 }
 
-export const onRequestError = async (...args: Parameters<NonNullable<typeof import("@sentry/nextjs").sentryOnRequestError>>) => {
-  const { sentryOnRequestError } = await import("@sentry/nextjs");
+export async function onRequestError(
+  ...args: [
+    error: unknown,
+    request: { path: string; method: string; headers: Record<string, string | string[] | undefined> },
+    context: { routerKind: string; routePath: string; routeType: string },
+  ]
+) {
   if (process.env.SENTRY_DSN) {
-    return sentryOnRequestError(...args);
+    const { captureRequestError } = await import("@sentry/nextjs");
+    captureRequestError(...args);
   }
-};
+}

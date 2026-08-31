@@ -134,9 +134,11 @@ const nextConfig: NextConfig = {
 
 export default withSentryConfig(nextConfig, {
   silent: !process.env.CI,
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  disableSourceMapUpload: !process.env.SENTRY_AUTH_TOKEN,
-  hideSourceMaps: true,
+  ...(process.env.SENTRY_ORG && { org: process.env.SENTRY_ORG }),
+  ...(process.env.SENTRY_PROJECT && { project: process.env.SENTRY_PROJECT }),
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+    deleteSourcemapsAfterUpload: true,
+  },
   tunnelRoute: "/monitoring",
 });
