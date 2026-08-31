@@ -50,9 +50,13 @@ jobs:
       - name: Setup test database
         run: |
           sleep 5
-          pnpm db:push || echo "⚠️ db:push não disponível, continuando..."
+          for f in packages/db/migrations/*.sql; do
+            echo "applying $f ..."
+            PGPASSWORD=test_password psql -h localhost -U postgres -d albora_test -f "$f"
+          done
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/albora_test
+          DATABASE_URL_AGGREGATOR: postgresql://postgres:test_password@localhost:5432/albora_test
 
       - name: Seed test event
         run: |
@@ -75,6 +79,7 @@ jobs:
         run: pnpm build
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/albora_test
+          DATABASE_URL_AGGREGATOR: postgresql://postgres:test_password@localhost:5432/albora_test
           SKIP_ENV_VALIDATION: true
           NODE_ENV: production
 
@@ -85,6 +90,7 @@ jobs:
           echo $! > server.pid
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/albora_test
+          DATABASE_URL_AGGREGATOR: postgresql://postgres:test_password@localhost:5432/albora_test
           PORT: 3000
 
       - name: Wait for server to be ready
