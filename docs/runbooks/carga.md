@@ -13,9 +13,13 @@ O arnês mira **só o pipeline de upload**: `POST /api/sessions` → `POST /api/
 | Banco de pé | `pnpm db:up` |
 | Evento semeado | `pnpm db:semear` — cria `festa-demo` |
 | Servidor | `pnpm dev`, ou um deploy |
-| Credenciais de R2 | no ambiente, se quiser que o `PUT` seja real |
+| Credenciais de R2 | no ambiente, **de verdade** — ver abaixo |
 
 Sem `R2_*` no ambiente, o `presign` falha e **isso é um resultado legítimo**: significa que o ambiente não está configurado, não que o pipeline está quebrado. Relate como tal.
+
+**Credencial falsa é pior que credencial ausente.** Com `R2_*` preenchido com valores inventados, o `presign` **sucede** — ele só assina uma URL, não fala com o storage — e o `PUT` fica pendurado num host que não existe. A execução trava com `confirmados 0` e `em voo` parado, sem erro. Se você vir esse sintoma, o problema é a credencial, não o pipeline.
+
+Não dá para apontar o `PUT` para um MinIO local: a origem da mídia é `https://<conta>.r2.cloudflarestorage.com`, e o guard de separação de origem (§4.3 de `docs/security.md`) recusa `localhost` de propósito. **O gate exige storage provisionado de verdade** — não é contornável em máquina de dev.
 
 ---
 
@@ -27,7 +31,28 @@ pnpm carga
 
 # execução pequena, para provar que o arnês funciona
 CARGA_TOTAL=6 CARGA_DURACAO_MIN=1 CARGA_CONVIDADOS=3 CARGA_PICOS=1 pnpm carga
+
+# sem storage: mede servidor, pula o PUT — resultado PARCIAL
+CARGA_SEM_STORAGE=1 pnpm carga
 ```
+
+### `CARGA_SEM_STORAGE=1` — o que ele mede e o que não mede
+
+Mede **sessão e presign, e para aí.**
+
+O `PUT` vai direto ao object storage, então o servidor nunca vê esses bytes. E o
+`confirm` chama `inspecionarObjeto` antes de gravar a linha — sem storage ele não
+falha, ele **pendura**. Por isso o modo termina no presign em vez de fingir que
+mediu o resto.
+
+Não mede: subida dos bytes, gravação da linha de upload, idempotência do
+`confirm` sob concorrência, nem a fila offline com `PUT` lento — que é o cenário
+de salão. Ou seja: não mede a parte mais interessante. Serve para checar rate
+limit de sessão e throughput de assinatura, e para exercitar o arnês.
+
+O veredito sai como `PARCIAL` e o processo sai com código 1, **nunca** `PASSOU`.
+Isto é uma ferramenta de diagnóstico; **não cumpre o gate de carga** e o registro
+gerado não vale como prova dele.
 
 ### Alvo que não é localhost
 

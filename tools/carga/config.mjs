@@ -102,6 +102,11 @@ export function lerConfig(env) {
     // mede o rate limit, não o pipeline.
     sessoesPorMinuto: numero(env, "CARGA_SESSOES_POR_MINUTO", 9),
     ipPorConvidado: env.CARGA_IP_POR_CONVIDADO === "1",
+    // O PUT vai direto ao object storage — o servidor nunca vê esses bytes. Sem
+    // storage provisionado o PUT trava e leva junto a medição de sessão, presign
+    // e confirm, que são justamente as etapas que passam pelo servidor.
+    // Resultado com isto ligado é PARCIAL e a saída diz isso.
+    semStorage: env.CARGA_SEM_STORAGE === "1",
 
     tentativas: numero(env, "CARGA_TENTATIVAS", 6),
     provasDeIdempotencia: numero(env, "CARGA_IDEMPOTENCIA", 3),
