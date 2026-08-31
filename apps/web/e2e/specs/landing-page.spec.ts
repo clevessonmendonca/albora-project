@@ -18,11 +18,7 @@ test.describe("Landing Page do Evento", () => {
     // 1. Setup: Cria evento de teste
     const event = await setupTestEvent({
       slug: `test-landing-${Date.now()}`,
-      packId: "wedding-modern",
-      coupleNames: {
-        couple1: "João",
-        couple2: "Maria",
-      },
+      packId: "casamento",
     });
 
     try {
@@ -76,7 +72,7 @@ test.describe("Landing Page do Evento", () => {
       expect(foundEvent).not.toBeNull();
       expect(foundEvent?.id).toBe(event.id);
       expect(foundEvent?.slug).toBe(event.slug);
-      expect(foundEvent?.packId).toBe("wedding-modern");
+      expect(foundEvent?.packId).toBe("casamento");
 
       console.log(`✅ Evento persistido no DB: ${event.slug}`);
     } finally {
