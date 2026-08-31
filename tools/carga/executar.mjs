@@ -133,7 +133,7 @@ async function principal() {
   };
 
   const idempotencia = config.semStorage
-    ? { veredito: "NÃO VERIFICADO — exige storage (CARGA_SEM_STORAGE=1)", casos: [] }
+    ? { veredito: "NÃO VERIFICADO — exige storage (CARGA_SEM_STORAGE=1)", provas: [] }
     : await provarIdempotencia({ cliente, config, eventoId, vivos, criados, fotos });
 
   const execucao = {

@@ -156,9 +156,10 @@ export function formatarRelatorio(execucao) {
         ]),
       ),
     );
-    partes.push("");
-    partes.push(`  ${idempotencia.veredito}`);
   }
+
+  partes.push("");
+  partes.push(`  ${idempotencia.veredito}`);
 
   partes.push("");
   partes.push("═".repeat(72));
