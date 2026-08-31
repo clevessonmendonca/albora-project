@@ -19,6 +19,20 @@ describe("trocar o pack muda a UI, não o núcleo", () => {
     }
   });
 
+  it("todo pack tem descrição própria — o wizard não pode depender de copy de landing", () => {
+    // `resolvePackText` devolve a chave quando falta. O wizard usava
+    // `landing.rotulo`, então pack sem funil renderizava a string "landing.rotulo"
+    // na tela de criação do evento.
+    for (const [id, pack] of Object.entries(PACKS)) {
+      const desc = resolvePackText(pack, "evento.descricao");
+      expect(desc, id).not.toBe("evento.descricao");
+      expect(desc.length, id).toBeGreaterThan(10);
+    }
+
+    const descricoes = Object.values(PACKS).map((p) => resolvePackText(p, "evento.descricao"));
+    expect(new Set(descricoes).size).toBe(descricoes.length);
+  });
+
   it("missão e lugar podem divergir entre packs", () => {
     expect(WEDDING.lugares.map((l) => l.id)).toContain("altar");
     expect(FIFTEEN_YEARS.lugares.map((l) => l.id)).not.toContain("altar");

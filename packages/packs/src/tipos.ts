@@ -32,6 +32,7 @@ export const texto = resolvePackText;
 /** Missão e lugar ficam fora — um casamento tem altar e um aniversário não; forçar o mesmo conjunto exigiria inventar lugares que a festa não tem. */
 export const CORE_VOCABULARY_KEYS = [
   "evento.nome",
+  "evento.descricao",
   "anfitriao.plural",
   "convidado.saudacao",
   "missao.titulo",

@@ -20,6 +20,7 @@ export const PRE_CASAMENTO: Pack = {
   id: "pre-casamento",
   vocabulario: {
     "evento.nome": "comemoração",
+    "evento.descricao": "Noivado, chá de panela, despedida — as festas antes da festa.",
     "anfitriao.plural": "os noivos",
     "convidado.saudacao": "Que bom que você veio",
     "missao.titulo": "Missões da comemoração",

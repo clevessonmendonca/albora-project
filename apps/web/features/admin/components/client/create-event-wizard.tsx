@@ -14,7 +14,9 @@ import { TimezoneField } from "@/features/admin/components/client/timezone-field
 const OPTIONS = Object.values(PACKS).map((p) => ({
   id: p.id,
   nome: resolvePackText(p, "evento.nome"),
-  rotulo: resolvePackText(p, "landing.rotulo"),
+  // Descrição do núcleo, nunca copy de landing: pack escolhido aqui pode não ter
+  // funil próprio, e `resolvePackText` devolveria a chave crua na tela de criação.
+  rotulo: resolvePackText(p, "evento.descricao"),
 }));
 
 const STEPS = ["Tipo", "Evento", "Identidade", "Missões", "Confirmar"] as const;
