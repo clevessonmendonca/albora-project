@@ -7,6 +7,40 @@
 
 ---
 
+## 0. ⚠️ Desatualizado por lei nova — revisar antes de usar
+
+> **Sinalizado em 2026-08-30 por levantamento de mercado. Não é parecer jurídico.**
+
+Este documento foi escrito sob a LGPD e o Marco Civil. Desde então entrou em vigor uma
+camada que ele não considera:
+
+- **Lei 15.211/2025 (ECA Digital)**, em vigor desde **17/03/2026**, regulamentada pelo
+  **Decreto 12.880/2026**. Impõe remoção de conteúdo **independentemente de ordem
+  judicial** e **reporte às autoridades** — o que este documento ainda trata como
+  *"possível dever de comunicação — confirmar com advogado"* (§7). Deixou de ser possível
+  dever; é obrigação autônoma.
+- **Sanções administrativas do ECA Digital** previstas para começar em **novembro/2026**;
+  fiscalização formal a partir de **janeiro/2027**.
+- **Precedente ANPD TikTok (25/08/2026, R$ 153,7 mi):** duas das cinco infrações foram
+  **não ter adotado medidas para impedir** tratamento de dados de menores. Ignorância
+  deliberada foi tratada como infração, não como defesa — o que pede que a decisão da
+  [ADR 0012](../adr/0012-menores-sem-perguntar-idade.md) seja **registrada como escolha
+  de proporcionalidade fundamentada**, não como preferência de produto.
+
+**Consequência prática imediata:** a ficha das lojas
+([`listing.pt-BR.md`](../../apps/mobile/store/listing.pt-BR.md)) declara
+`Classificação: 4+ / Livre`. Metadado de classificação etária pode ser lido como idade
+mínima e ativar o dever de suspender acesso do art. 24, §4º do ECA Digital. **Revisar com
+advogado antes de publicar nas lojas (spec 017).**
+
+**Perguntas abertas para o advogado**, na ordem de gravidade: (1) o Albora está no escopo
+do ECA Digital e é "rede social" na definição legal? (2) o REsp 1.628.700/MG, que dispensa
+finalidade comercial para dano `in re ipsa` à imagem de criança, alcança adolescente de 15
+anos? (3) app instalável com código de 4 dígitos configura "conta ou perfil" para efeito do
+art. 24?
+
+---
+
 ## 1. Escopo
 
 Este procedimento aplica-se quando há **indício ou certeza** de conteúdo que envolve exploração sexual de criança ou adolescente (CSAM), ou outro material ilegal envolvendo menor, em mídia enviada ao Albora.
