@@ -3,17 +3,19 @@
 
 > **Status:** rascunho de fundação — consolidação das decisões tomadas até aqui
 > **Nome do produto:** **Albora** (definido — pendente de busca no INPI, ver §13.11)
-> **Última revisão:** agosto/2026
+> **Última revisão:** agosto/2026 (§2.2 concorrência atualizada 2026-08-29)
 
 ---
 
 ## 1. Sumário executivo
 
-Produto **web (sem download para o convidado)** que coleta, organiza e devolve as fotos tiradas pelos convidados durante um casamento, usando **desafios fotográficos** para aumentar a participação e **identidade visual do evento** para dar coerência estética ao resultado.
+Produto que coleta, organiza e devolve as fotos tiradas pelos convidados durante um casamento, usando **desafios fotográficos** para aumentar a participação e **identidade visual do evento** para dar coerência estética ao resultado.
 
 **A tese:** o fotógrafo profissional cobre o oficial; ninguém cobre o espontâneo. Existem 100–200 câmeras na festa e o material delas se perde em 200 rolos diferentes.
 
-**A cunha (wedge):** produto **brasileiro**, **sem download**, **nativo de casamento**, **vendido pelo cerimonialista**. A categoria "álbum compartilhado" já existe e está povoada — a combinação acima, não.
+**A cunha (wedge):** produto **brasileiro**, **sem download para começar**, **nativo de casamento**, **vendido pelo cerimonialista**. A categoria "álbum compartilhado" já existe e está povoada — a combinação acima, não.
+
+**A porta e a casa.** A primeira foto entra pela **web, sem login e sem download** — essa é a linha dura, e é ela que decide a hipótese abaixo. Depois dela existe um **aplicativo**, e é nele que o produto acontece por inteiro para quem ficou: feed, stories, reações, comentários e a galeria do próprio convidado. Ver [ADR 0009](../adr/0009-app-social-do-convidado.md) e [ADR 0010](../adr/0010-expo-para-o-app-do-convidado.md).
 
 **A hipótese que decide tudo:** ≥ 40% dos convidados presentes enviam ao menos 1 foto. Se falhar, nada mais importa.
 
@@ -44,10 +46,11 @@ POV, Kululu, Wedbox, Wedibox, Guestpix, GuestCam, Fotify, WedUploader, PixelPart
 
 | Player | O que faz | Fraqueza |
 |---|---|---|
-| **Olhares** | Slideshow ao vivo, cards de desafio, templates para imprimir, sem download | Concorrente mais próximo do escopo |
-| **Meu Casar** | Álbum colaborativo via QR/URL, sem app | Genérico |
+| **Olhares** | Browser sem app; telão Pro; desafios/cards; **R$ 47–67** promo (2026-08); +1500 casamentos claim | Genérico; templates ≠ identidade propagada; preço agressivo vs. Albora R$ 199 — ver [`inteligencia-competitiva.md`](./inteligencia-competitiva.md) |
+| **Meu Casar** | Álbum colaborativo via QR/URL, sem app | Genérico; grátis embutido no site |
+| **PicWedding** | Feed privado + moderação + ZIP (BR emergente) | Feed como produto; sem tokens |
 | **Lejour Capture** | Galeria de fotos dos convidados (Grupo Fast Shop) | Feature de plataforma maior |
-| **Dots. Memories** | App de memórias com forte tração via TikTok (PT/ES) | **Exige download, iOS-first, genérico** |
+| **Dots. Memories** | App + web; TikTok PT/ES; reviews: upload falha/lag | **App-first na experiência completa; instabilidade no dia D** |
 
 **Incumbentes por adjacência (o risco real):**
 
@@ -62,7 +65,7 @@ POV, Kululu, Wedbox, Wedibox, Guestpix, GuestCam, Fotify, WedUploader, PixelPart
 1. **Não competir em site / convite / RSVP / lista de presentes.** São grátis porque financiados pela lista de presentes. Sem virar fintech, não há como competir com grátis.
 2. **Não competir em armazenamento.** Concorrente já promete "ilimitado grátis". Perde-se essa briga.
 3. **Não construir editor de canvas.** É competir com o Canva na competência central do Canva, com custo de anos-pessoa.
-4. **Não construir comunidade.** Cold start + rotatividade total da população a cada 12 meses = pior tipo de comunidade possível.
+4. **Não construir comunidade entre eventos.** Cold start + rotatividade total da população a cada 12 meses = pior tipo de comunidade possível. Dentro de um evento é outra coisa: ali o social é o mecanismo que faz a foto subir, e ele morre junto com a festa ([ADR 0009](../adr/0009-app-social-do-convidado.md)).
 5. **A fronteira aberta:** ninguém propaga a identidade visual do casamento **até o dia da festa** — placa, cards, preset das fotos, telão e álbum final. O iCasei para no convite.
 
 ---
@@ -75,7 +78,7 @@ POV, Kululu, Wedbox, Wedibox, Guestpix, GuestCam, Fotify, WedUploader, PixelPart
 
 | Eixo | Concorrentes | Nós |
 |---|---|---|
-| Acesso do convidado | App / download | **Web pura, zero download** |
+| Acesso do convidado | Download antes de participar | **Zero download para a primeira foto** — o app existe, mas nunca é pedágio |
 | Escopo | Álbum genérico | **Nativo de casamento** |
 | Estética | Sem controle | **Identidade propagada (tokens)** |
 | Localização | Traduzido | **WhatsApp, Pix, impressão, LGPD** |
@@ -158,8 +161,11 @@ O fornecedor é multi-evento por natureza: um espaço faz casamento, 15 anos e c
 | Superfície | Usuário | Plataforma |
 |---|---|---|
 | **Admin** | Noivos (2 pessoas) | Web responsivo |
-| **Convidado** | 100–200 pessoas, 1 dia | **PWA, sem login, sem download** |
+| **Convidado** | 100–200 pessoas, 1 dia | **Web sem login e sem download** para entrar · **app** para continuar |
 | **Telão** | Projetor/TV do salão | URL fullscreen |
+
+> **"Sem login" é absoluto. "Sem download" vale para a primeira foto.**
+> O convidado não cria conta, não digita senha, não espera e-mail nem SMS — nunca, em nenhuma fase ([ADR 0009](../adr/0009-app-social-do-convidado.md)). O que mudou é a segunda metade da frase: existe aplicativo, ele é onde o produto acontece por inteiro, e ele nunca é condição para participar. A tecnologia do app é **Expo / React Native** ([ADR 0010](../adr/0010-expo-para-o-app-do-convidado.md)); a web continua entregando captura, feed, stories e reações para quem nunca instalar.
 
 ### 4.2 Fluxo do convidado (o caminho crítico)
 
@@ -179,30 +185,42 @@ Escaneia QR
 **Meta:** ≤ 4 toques entre escanear o QR e a primeira foto subir.
 **Regra:** o CTA de instalação vem **depois** do primeiro upload, nunca antes (§4.5).
 
+**A passagem para o app não pode parecer quebrada.** Quem instala depois de já ter mandado uma foto precisa encontrar essa foto lá dentro — do contrário o app estreia falhando, logo depois do único gesto que a pessoa fez. Com o app já instalado, o CTA abre direto e leva a sessão junto. Com o app ainda por instalar, a confirmação mostra um **código de quatro dígitos** — a única coisa que o convidado digita na vida. Quem ignorar os dois caminhos escaneia o QR da mesa de novo e não perde nada além do vínculo com o que já mandou. Ver [ADR 0009](../adr/0009-app-social-do-convidado.md).
+
 ### 4.3 Escopo do MVP
 
 **ENTRA:**
 - Admin: criar evento, escolher 8–12 desafios, gerar QR + PDF de impressão (placa A4 + cards de mesa), moderar, baixar ZIP
 - Convidado: fluxo completo acima, 3 presets, fila offline
+- **Feed e stories do evento, com o gate de interação** — é o mecanismo que faz a foto subir (§4.4), não um extra
+- Reação única e anônima (❤️)
 - Telão: URL fullscreen, autoplay, só aprovadas
 - Compartilhar no Instagram via `navigator.share()` com moldura da identidade
-- Reação única e anônima (❤️)
 - Pós-evento: galeria permanente + ZIP
 
-**FICA DE FORA:**
-App nativo · login de convidado · vídeo · save the date · site · convite · canvas · IA generativa · reconhecimento facial · comunidade · WhatsApp API · Google Drive · Canva · split de pagamento · checkout · comentários · multi-idioma
+**FICA PARA DEPOIS — existe no produto, não cabe nas 6 semanas:**
+**App do convidado** ([ADR 0010](../adr/0010-expo-para-o-app-do-convidado.md)) · **comentários** ([ADR 0009](../adr/0009-app-social-do-convidado.md)) · vídeo · agrupamento facial · WhatsApp API · Google Drive · split de pagamento · checkout · save the date · site · convite · Canva · multi-idioma
+
+**NÃO EXISTE, em nenhuma fase:**
+Login de convidado · editor de canvas · IA generativa sobre a mídia do convidado ([ADR 0007](../adr/0007-ai-policy-luts-not-generation.md)) · comunidade entre eventos
+
+> A distinção acima é a coisa toda. *"Não vai existir"* é decisão de produto; *"não entra nas 6 semanas"* é sequenciamento. App e comentários migraram da primeira lista para a segunda — continuam fora do MVP, e é só isso que continua verdade sobre eles.
 
 **Pagamento no MVP:** Pix manual. Não construir checkout para os 10 primeiros eventos.
 
 ### 4.4 Decisões de produto contraintuitivas
 
-**Engajamento é anti-objetivo.**
-Métrica de app social = tempo em tela. Métrica de produto de casamento = o oposto. Se os convidados passarem a festa rolando feed, a noiva odeia o produto.
+**O social é o mecanismo, não o fim.**
+Quem paga são os noivos; o que eles querem é ficar com as fotos que os 200 convidados tiraram; o que impede é o convidado não subir. Feed, stories, reações e comentários existem para atacar exatamente esse obstáculo — quem abre o feed para ver a foto que o primo mandou manda mais três.
 
-- **Durante o evento:** interface de captura. Sem scroll infinito, sem notificação.
-- **Depois do evento:** aí sim, stories e feed completos.
+Daí sai o critério único, que resolve toda discussão de escopo social: **julga-se por volume de upload e participação, nunca por tempo de tela.** Se comentário não faz subir mais foto, comentário é custo — de moderação, de LGPD e de código — e sai. Se faz, fica e cresce. A pergunta de desempate é sempre *"isso aumenta a chance de a tia mandar a foto que está no rolo dela?"*.
 
-**Sem comentários.** Comentário em foto de casamento é drama familiar garantido e fila de moderação infinita.
+**Quem decide quando a interação abre são os noivos.**
+O que protege a festa não é proibir a interação — é o **gate temporal**, configurável no admin, com padrão *após a cerimônia*. Antes do gate o convidado sobe foto e vê o que está no telão; depois, liberam-se feed, reação e comentário. Notificação fica **desligada** até existir decisão própria, e por esse mesmo critério: aviso a cada curtida aumenta tempo de tela e não aumenta upload.
+
+> As regras *"engajamento durante o evento é anti-objetivo"* e *"sem comentários, em nenhuma fase"* estavam neste documento e foram **revogadas** pelo [ADR 0009](../adr/0009-app-social-do-convidado.md) — eram síntese de assistente tratada como decisão do dono do produto. Comentário tem resposta, como em qualquer lugar; o que segurava era o custo de moderação de texto, e isso virou sequenciamento, não veto.
+
+**O grafo morre com a festa.** A identidade do convidado é escopada a **um** evento: não existe conta Albora e não vai existir. A mesma pessoa em dois casamentos são duas sessões, dois históricos, duas galerias — ela escaneia o QR de novo. É o que permite ter rede social sem virar rede social, e é o que mantém o isolamento entre eventos intacto.
 
 **Stories como formato de consumo, não de vaidade.** Resolve o problema real: 2.000 fotos numa grade é inutilizável. Cada desafio vira um ring. E o **telão é o mesmo reel em autoplay** — uma pipeline de render, duas superfícies.
 
@@ -210,12 +228,12 @@ Métrica de app social = tempo em tela. Métrica de produto de casamento = o opo
 
 **O app é a experiência completa. A web é a rampa de entrada.**
 
-O convidado nunca é bloqueado por uma loja de aplicativos, mas é ativamente convidado a instalar — porque é no app que mora o produto inteiro: stories, reações, feed, notificação de fotos novas e acesso permanente ao álbum.
+O convidado nunca é bloqueado por uma loja de aplicativos, mas é ativamente convidado a instalar — porque é no app que mora o produto inteiro: feed, stories, reações, comentários, a galeria do que ele mandou e o compartilhamento para fora ([ADR 0009](../adr/0009-app-social-do-convidado.md)).
 
 | Superfície | Usuários | Frequência | Plataforma |
 |---|---|---|---|
 | Convidado | 100–200 | Festa + pós-evento | **App promovido, web como entrada** |
-| Noivos / anfitrião | 2 | 12 meses seguidos | **App** |
+| Noivos / anfitrião | 2 | 12 meses seguidos | Web responsivo (admin) |
 | Fornecedor | 1 | Toda semana | Web dashboard |
 
 #### Divisão de capacidades
@@ -224,12 +242,16 @@ O convidado nunca é bloqueado por uma loja de aplicativos, mas é ativamente co
 |---|---|---|
 | Capturar e enviar | ✅ | ✅ |
 | Ver o álbum | ✅ | ✅ |
-| Stories e reações | ✅ | ✅ |
-| Notificação de fotos novas | ❌ | ✅ |
-| Acesso permanente e multi-evento | ❌ | ✅ |
+| Feed, stories e reações | ✅ | ✅ |
+| Comentar | ✅ | ✅ |
+| Câmera, fila e upload em segundo plano com APIs nativas | parcial | ✅ |
+| Notificação de fotos novas | ❌ | ✅ (desligada até haver decisão) |
+| Ícone permanente e presença na loja | parcial | ✅ |
 | Receber "suas fotos" (§4.6) | por link | ✅ nativo |
 
-> ⚙️ **Nota técnica:** stories, reações e feed funcionam em PWA — não são exclusivos de nativo. O que o app realmente destrava é **push, permanência e presença na loja**. A comunicação deve prometer isso, não capacidades que a web já tem.
+> ⚙️ **Nota técnica:** feed, stories, reações e comentários funcionam na web — não são exclusivos de nativo, e quem nunca instalar participa a noite inteira do mesmo jeito. O que o app realmente destrava é **fila e câmera nativas, permanência e presença na loja**. A comunicação promete isso, não capacidades que a web já tem.
+>
+> ⚠️ E **nada disso é multi-evento.** O app não guarda uma conta que segue a pessoa de casamento em casamento — isso não existe, por decisão (§4.4). O que o app dá é o álbum daquele evento sempre à mão.
 
 #### A regra única
 
@@ -251,7 +273,7 @@ Depois do primeiro upload, o convidado já teve valor e o convite deixa de ser p
 | Fim da festa | "Suas fotos ficam salvas — instale para acessar sempre" |
 | Pós-evento (link/WhatsApp) | "Veja o álbum completo no app" |
 
-> A oferta é sempre **"receba suas fotos"**, nunca **"veja os stories agora"** — o CTA não pode competir com a festa (§4.4).
+> A oferta é sempre **"receba suas fotos"** — é a que funciona em qualquer momento da noite, inclusive antes de o gate de interação abrir (§4.4). Prometer *"veja os stories agora"* é pior de duas formas: pode estar fechado quando o convidado tocar, e coloca o CTA competindo com a festa.
 
 #### Captura
 
@@ -259,17 +281,20 @@ Depois do primeiro upload, o convidado já teve valor e o convite deixa de ser p
 |---|---|---|
 | `<input type="file" accept="image/*" capture>` | **Máxima** (câmera nativa: HDR, modo noturno) | ❌ aplica depois |
 | `getUserMedia` | Menor | ✅ preview ao vivo |
-| App nativo | Máxima | ✅ |
+| App (Expo) | Máxima | ✅ |
 
 #### Sequência de entrega
 
 ```
-MVP      → web + PWA instalável, com CTA de instalação em todos os pontos
-Fase 2   → app nativo (convidado e anfitrião): push, loja, multi-evento
+MVP      → web completa (captura, feed, stories, reações, gate de interação)
+             + PWA instalável, com CTA de instalação em todos os pontos
+Fase 2   → comentários · app do convidado em Expo/React Native
 Sempre   → web nunca bloqueada; app nunca obrigatório para a 1ª foto
 ```
 
-⚠️ **Realidade de prazo:** app nativo não cabe nas 6 semanas do MVP junto com o resto. O **PWA instalável** entrega ícone na tela inicial, janela standalone e — no Android e no iOS 16.4+ instalado — push. Para o convidado é indistinguível de app. O nativo entra na Fase 2 para loja e paridade no iOS.
+⚠️ **Realidade de prazo: o app não entra no primeiro casamento, e isso é sequência, não hesitação.** Publicar em loja tem dependências que não se controlam — revisão da Apple sem prazo garantido, e conta nova no Google exigindo 12 testadores por 14 dias contínuos. A data do casamento não move e não há mitigação para revisão que demora. Somando o custo de escrever a interface do convidado duas vezes, as 6 semanas comportam **uma** superfície completa: a web, porque não depende de terceiro para existir e porque testa a H1 com todos os convidados, não só com quem instalou. Ver [ADR 0010](../adr/0010-expo-para-o-app-do-convidado.md).
+
+Até o app existir, o **PWA instalável** é o que o CTA oferece: ícone na tela inicial, janela standalone e — no Android e no iOS 16.4+ instalado — push. Não é substituto do app; é o que mantém o CTA e a métrica de instalação em pé desde o primeiro evento.
 
 #### Experimento nos 3 primeiros casamentos (§9)
 
@@ -306,7 +331,9 @@ Foto de casamento é **ativo morto**: não muda, não tem informação nova. Not
 
 Quem casou terá chá de bebê em 2 anos, aniversário de 1 ano do filho em 3; os pais fazem bodas; o irmão se forma.
 
-O produto deixa de ser *"app do meu casamento"* (que acabou) e vira **"o app dos eventos da nossa família"**. Retenção honesta: a pessoa volta porque **precisa**, não porque foi cutucada. Conecta diretamente com a estratégia de verticais (§3.3) — uma decisão resolve dois problemas.
+O produto deixa de ser *"app do meu casamento"* (que acabou) e vira **"o produto dos eventos da nossa família"**. Retenção honesta: a pessoa volta porque **precisa**, não porque foi cutucada. Conecta diretamente com a estratégia de verticais (§3.3) — uma decisão resolve dois problemas.
+
+⚠️ **Ela volta como anfitriã, não como conta que atravessa eventos.** Quem foi convidado no casamento e daqui a dois anos vai fazer o chá de bebê entra pela porta de quem cria um evento — que é onde existe conta (§6.2). Como convidado, a identidade continua morrendo com a festa (§4.4). Confundir os dois é o caminho mais curto para quebrar o isolamento entre eventos.
 
 Bônus: a identidade visual **persiste e evolui** — o chá de bebê herda a paleta do casamento.
 
@@ -317,11 +344,11 @@ Bônus: a identidade visual **persiste e evolui** — o chá de bebê herda a pa
 | 1 | **"Suas fotos" por convidado** (agrupamento facial → WhatsApp) | É presente, não marketing. Abre relacionamento com as 150 pessoas certas. **Maior ROI** |
 | 2 | **Aniversário de 1 ano** — retrospectiva curada + oferta de álbum | Data real, carga emocional real, momento comercial natural. Repete sem cansar |
 | 3 | **Álbum físico** | Galeria digital decai; livro na estante não. Correção do LTV |
-| 4 | **Multi-evento na mesma conta** | O que de fato sustenta o app instalado |
+| 4 | **Multi-evento na mesma conta de anfitrião** | O que de fato sustenta o produto instalado. Vale para quem cria evento, nunca para a sessão de convidado |
 | 5 | **Stories arquivados por desafio** | Consumo pós-evento |
 | 6 | **"Reviver a festa"** — telão em replay cronológico | Barato: o render já existe |
 
-**Não fazer:** notificação semanal de TBT · streaks · gamificação de acesso · feed social permanente. É engajamento farmado, e vale a mesma regra da §4.4.
+**Não fazer:** notificação semanal de TBT · streaks · gamificação de acesso · feed que sobrevive à festa e liga um evento ao outro. É engajamento farmado — e o critério da §4.4 é o mesmo: nada disso faz subir mais foto.
 
 #### Memórias sensíveis — regra de produto
 
@@ -360,6 +387,8 @@ Franquia permanente do R2: 10 GB, 1M Class A, 10M Class B por mês → **os prim
 > ⚠️ **O que é caro é vídeo.** 30s em 1080p ≈ 30–50 MB. Cem convidados × 2 vídeos = 6–10 GB por evento (5–8× tudo o resto). **Vídeo é a variável de custo, e por isso é o gate natural do plano pago.**
 
 ### 5.2 Planos
+
+> **Draft de modelo de negócio**, não a landing. O que o visitante vê em `/` está em `apps/web/app/landing/landing-page.tsx`: Grátis R$ 0 · Completo R$ 199 único · Fornecedor sob consulta. Ver [`README.md`](./README.md). Esta tabela não foi alterada para “inventar” o R$ 149/mês na UI.
 
 | | **Grátis** | **Celebração — R$ 199 único** | **Fornecedor — R$ 149/mês** |
 |---|---|---|---|
@@ -488,6 +517,8 @@ uploads (
 reactions (
   upload_id, session_id, kind, created_at
 )
+-- comentário, item de feed e story entram aqui quando chegarem,
+-- todos com event_id e sob a mesma política de isolamento (ADR 0009)
 
 funnel_events (
   id, event_id, session_id, kind, meta JSONB, created_at
@@ -532,8 +563,8 @@ vendors (
 ### 6.4 Telão
 
 ```
-GET /telao/:slug           → HTML fullscreen, sem chrome
-GET /api/telao/:slug/sse   → stream de novos IDs aprovados
+GET /wall-display           → HTML fullscreen do telão, sem chrome
+GET /api/wall               → estado e mídia do telão pareado (alias EN de /api/parede)
 ```
 
 - Cliente pré-carrega as próximas N imagens
@@ -552,6 +583,7 @@ GET /api/telao/:slug/sse   → stream de novos IDs aprovados
 - Classificador NSFW roda **no thumb** (barato) antes de liberar para o telão
 - Botão "remover minha foto" acessível ao convidado via session token
 - **Com feed e reações, moderação deixa de ser feature e vira requisito** — o produto passa a *difundir* imagem de terceiros, não só coletar
+- **Com comentário, ela deixa de ser sobre foto e passa a ser sobre conteúdo.** É a consequência mais pesada do [ADR 0009](../adr/0009-app-social-do-convidado.md) e a que não pode ser adiada: o botão de pânico precisa remover comentário, denúncia em texto segue o mesmo caminho da denúncia em foto, e passa a existir **bloqueio entre convidados dentro do evento** — que não existia antes. Por isso comentário só entra depois da moderação de texto, nunca antes
 
 ### 6.6 Ciclo de vida do armazenamento
 
@@ -670,12 +702,12 @@ Plataformas de fotógrafo (Pixieset, Pic-Time, Fotop) — o fotógrafo é canal,
 | 3 | Admin + geração de QR e PDF de impressão |
 | 4 | Telão + moderação + ZIP |
 | 5 | Teste de carga + share com moldura + **PWA instalável** + polimento |
-| 6 | **Casamento real** |
+| 6 | **Casamento real — entregue pela web** ([ADR 0010](../adr/0010-expo-para-o-app-do-convidado.md)) |
 
-> Incluir no MVP, a custo ~zero: **sistema de packs com 1 pack publicado** (§6.10), **schema genérico** (§6.2) e **PWA instalável** (§4.5). Nenhum dos três adiciona feature — os três evitam retrabalho caro.
+> Incluir no MVP, a custo ~zero: **sistema de packs com 1 pack publicado** (§6.10), **schema genérico** (§6.2), **PWA instalável** (§4.5) e a **separação entre o que se escreve uma vez e o que se escreve por superfície** — tokens, packs, regras de domínio e contrato da fila fora dos componentes. Nenhum dos quatro adiciona feature; os quatro evitam retrabalho caro. O último é o que impede que a chegada do app vire reescrita ([ADR 0010](../adr/0010-expo-para-o-app-do-convidado.md)).
 
 ### Fase 2 — Pós-validação
-Entrega por WhatsApp ("suas fotos", §4.6) · agrupamento facial · stories completos · export para Drive · **app nativo (convidado e anfitrião)** — push, loja, multi-evento (§4.5) · **multi-evento na mesma conta**
+Entrega por WhatsApp ("suas fotos", §4.6) · agrupamento facial · export para Drive · **comentários**, depois da moderação de texto ([ADR 0009](../adr/0009-app-social-do-convidado.md)) · **app do convidado em Expo/React Native** — fila e câmera nativas, loja, presença permanente ([ADR 0010](../adr/0010-expo-para-o-app-do-convidado.md)) · **multi-evento na conta do anfitrião**
 
 ### Fase 3 — Escala
 Camada de identidade visual completa · portal do fornecedor + white-label · split de pagamento · papelaria impressa · **2º pack: 15 anos** (mesmo canal de fornecedor, CAC ≈ zero) · aniversário de 1 ano automatizado
@@ -761,6 +793,8 @@ Depois de **3 casamentos reais com anúncio feito no microfone:**
 
 **Métrica de plataforma:** `instalações / convidados_presentes` — acompanhada **sempre junto** da participação, nunca isolada. Instalação que sobe com participação caindo é prejuízo (§4.5).
 
+**Métrica das funcionalidades sociais:** upload por sessão **antes e depois** da primeira abertura do feed. Feed, stories, reações e comentários existem para fazer subir mais foto — se não movem esse número, saem, por mais que movam tempo de tela. Tempo de tela **não é métrica deste produto** ([ADR 0009](../adr/0009-app-social-do-convidado.md)).
+
 **Secundárias:** taxa de conclusão de desafios · tempo médio de upload · taxa de retry · % que compartilha no Instagram · conversão grátis → pago
 
 ---
@@ -769,10 +803,13 @@ Depois de **3 casamentos reais com anúncio feito no microfone:**
 
 | Risco | Severidade | Mitigação |
 |---|---|---|
-| **Convidado não participa** | 🔴 Crítico | Zero download; anúncio no microfone; ≤ 4 toques |
+| **Convidado não participa** | 🔴 Crítico | Zero download até a 1ª foto; anúncio no microfone; ≤ 4 toques; feed como mecanismo (§4.4) |
 | **Churn estrutural** (uso único) | 🔴 Crítico | Canal B2B2C via fornecedor; upsell de impressão |
 | **Rede ruim no salão** | 🟠 Alto | Compressão client-side, fila offline, retry |
 | **Foto inadequada no telão** | 🟠 Alto | Moderação obrigatória + classificador NSFW |
+| **Comentário como superfície de assédio** | 🟠 Alto | Moderação de texto antes do comentário existir; denúncia, bloqueio entre convidados e botão de pânico que alcança texto (§6.5) |
+| **App atrasa por revisão de loja** | 🟡 Médio | A web entrega o casamento real sozinha; o app não é dependência da H1 ([ADR 0010](../adr/0010-expo-para-o-app-do-convidado.md)) |
+| **Web e app divergem** (interface escrita duas vezes) | 🟡 Médio | Tela que existe em uma superfície e não na outra por mais de um ciclo é dívida de produto, e aparece em revisão de MR |
 | **LGPD / direito de imagem** | 🟠 Alto | Consentimento versionado, EXIF removido, remoção self-service |
 | **Incumbente copia** (iCasei/Lejour) | 🟠 Alto | Velocidade + canal de fornecedor + foco no dia da festa |
 | **Concorrente promete "storage ilimitado grátis"** | 🟡 Médio | Não competir em storage; competir em experiência |
@@ -801,15 +838,15 @@ Depois de **3 casamentos reais com anúncio feito no microfone:**
 
 | # | Decisão | Motivo |
 |---|---|---|
-| 1 | **App é a experiência completa; web é a rampa de entrada.** CTA de instalação em todos os pontos, mas a 1ª foto nunca passa por loja | Decisão do fundador. Captura a permanência e o push do app sem arriscar a H1 — a web nunca bloqueia |
+| 1 | **App é a experiência completa; web é a rampa de entrada.** CTA de instalação em todos os pontos, mas a 1ª foto nunca passa por loja | Decisão do fundador. Captura a permanência do app sem arriscar a H1 — a web nunca bloqueia. Detalhada no [ADR 0009](../adr/0009-app-social-do-convidado.md) |
 | 2 | Cloudflare R2, não S3 | Egress zero muda a economia inteira |
 | 3 | Sem editor de canvas | Competir com o Canva na competência dele |
-| 4 | Sem comunidade | Rotatividade total da base a cada 12 meses |
+| 4 | Sem comunidade **entre eventos** | Rotatividade total da base a cada 12 meses. Dentro do evento o social existe e é o mecanismo (dec. 19) |
 | 5 | Site/convite/RSVP **adiados para a Fase 4**, com condições de entrada explícitas (§8) | São grátis porque financiados pela lista de presentes. Entrar sem canal próprio = competir com grátis e perder. Entrar **depois** do canal = upsell natural sobre base cativa |
 | 6 | Assinatura só para fornecedor | Casal tem uso único; mensalidade vira refém |
 | 7 | Nunca limitar convidados | Convidado é canal de distribuição, não custo |
 | 8 | Identidade visual como tokens propagados | Único fosso defensável e alinhado à experiência técnica |
-| 9 | Engajamento é anti-objetivo durante o evento | Feed durante a festa estraga a festa |
+| 9 | ~~Engajamento é anti-objetivo durante o evento~~ → **quem decide quando a interação abre são os noivos**, por gate configurável com padrão "após a cerimônia" | **Revogada** pelo [ADR 0009](../adr/0009-app-social-do-convidado.md): era síntese de assistente, não decisão do dono. O que protege a festa é o gate, não a ausência de feed |
 | 10 | Pix manual nos 10 primeiros eventos | Não construir checkout antes de validar H1 |
 | 11 | **Núcleo genérico, experiência especializada, marketing vertical** | Genericizar sem virar Dots. Memories. A experiência de casamento nunca piora por outro vertical |
 | 12 | **Schema e packs genéricos desde o commit 1** | Custa ~0 agora, semanas depois — e a conta chega no pior momento |
@@ -819,6 +856,8 @@ Depois de **3 casamentos reais com anúncio feito no microfone:**
 | 16 | **Livro de fotos: montar grátis, exportar pago** | Cobrança no pico do desejo. Slots em vez de editor livre — layout profissional com ~10% da engenharia |
 | 17 | **Export antes de impressão própria** | Valida demanda sem herdar logística. "O arquivo é seu" é diferencial que ninguém oferece |
 | 18 | **Compressão sobe para 3500px em planos pagos** | Habilita livro de 30cm a 300dpi. Storage custa R$0,10/evento e destrava produto de R$400 |
+| 19 | **O app do convidado é uma rede social do evento, a serviço do álbum dos noivos** — feed, stories, reações, comentários e galeria própria são de primeira classe, e o grafo morre com a festa | [ADR 0009](../adr/0009-app-social-do-convidado.md). Ver, reagir e ser visto faz subir mais foto — e o convidado não é o cliente, é a fonte. Sem conta Albora, identidade escopada a um evento |
+| 20 | **App do convidado em Expo / React Native**, com a web seguindo em Next.js | [ADR 0010](../adr/0010-expo-para-o-app-do-convidado.md). App nativo de verdade em vez de site reempacotado, ao custo assumido de escrever a interface do convidado duas vezes. Não sai a tempo do primeiro casamento |
 
 ---
 

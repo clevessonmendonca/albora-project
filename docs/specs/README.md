@@ -29,29 +29,72 @@ Seis semanas, uma pessoa, noites e fins de semana. A data do casamento não move
 | # | Tarefa | Entrega verificável | Sem. |
 |---|---|---|---|
 | **001** | [Verificação de plataforma](./task-001-verificacao-plataforma.md) | SW registra sob OpenNext · IndexedDB persiste · PUT presigned chega no R2 | 1 |
-| [002](./task-002-monorepo-e-guards.md) | Monorepo, esqueleto e guards de CI | `pnpm dev` sobe · os quatro guards bloqueiam de propósito | 1 |
+| [002](./task-002-monorepo-e-guards.md) | Monorepo, esqueleto e guards de CI | `pnpm dev` sobe · os cinco guards bloqueiam de propósito | 1 |
 | [003](./task-003-schema-rls-isolamento.md) | Schema, RLS e testes de isolamento | Evento A não lê o B contra banco real, com id mal configurado | 1 |
-| [004](./task-004-pipeline-upload.md) | Pipeline de upload ponta a ponta | Foto do celular chega no R2 e aparece na galeria, com a rede caindo no meio | 2 |
-| [005](./task-005-sessao-convidado.md) | Sessão do convidado e consentimento | QR → consentimento → nome → sessão, em ≤ 3 toques | 2 |
+| [004](./task-004-pipeline-upload.md) | Pipeline de upload ponta a ponta | Foto do celular chega no R2, com a rede caindo no meio | 2 |
+| [005](./task-005-sessao-convidado.md) | Sessão do convidado e passagem web→app | QR → sessão em ≤ 3 toques · a sessão da web chega no app instalado | 2 |
 | [006](./task-006-missoes-captura-editor.md) | Missões, captura e editor | Cinco toques do QR à foto no telão | 3 |
-| [007](./task-007-admin-e-pecas.md) | Admin: evento, missões, geração de peças | PDF sai pronto para gráfica, com QR que escaneia impresso | 3–4 |
-| [008](./task-008-telao.md) | Telão | Roda 4h sem intervenção, sobrevive a queda de rede e a reload | 4 |
-| [009](./task-009-moderacao.md) | Moderação, denúncia e botão de pânico | Foto sai da parede em menos de 5s | 4 |
-| [010](./task-010-carga-e-pwa.md) | Teste de carga e PWA instalável | **150 uploads em 20 min** · instala no Android e no iOS | 5 |
-| [011](./task-011-landing-e-conversao.md) | Landing e conversão | LCP < 2s em 4G · demo escaneia e entra num evento real | 5 |
+| [007](./task-007-feed-e-stories.md) | **Feed e stories** | Uploads por sessão sobem depois da 1ª abertura do feed | 3 |
+| [008](./task-008-reacoes-e-galeria.md) | **Reações e galeria pessoal** | 3 pendentes sobrevivem a matar o app, e o convidado os vê | 4 |
+| [009](./task-009-admin-e-pecas.md) | Admin: evento, missões, peças, gate de interação | PDF pronto para gráfica · o casal abre a interação em um toque | 4 |
+| [010](./task-010-telao.md) | Telão | Roda 4h sem intervenção, sobrevive a queda de rede e a reload | 5 |
+| [011](./task-011-moderacao.md) | Moderação, denúncia, bloqueio e botão de pânico | Foto sai da parede em menos de 5s | 5 |
+| [012](./task-012-carga-e-app.md) | Teste de carga e app instalável | **150 uploads em 20 min** · instala no Android e no iOS | 5 |
 | — | **Casamento real** | A métrica que decide o negócio | 6 |
 
 > A tarefa 001 é **spike descartável**. O código dela não vai para produção — ela existe só para responder sim ou não. Se der não, o ADR 0005 é reaberto antes de qualquer outra linha.
+
+### As três decisões de escopo, e o porquê de cada uma
+
+**Feed e reações entraram no MVP.** O [ADR 0009](../adr/0009-app-social-do-convidado.md) aposta que o social é o mecanismo que faz o convidado subir foto. A H1 — ≥40% de participação — é justamente o que o MVP existe para medir. Entregar o MVP sem o feed testaria a hipótese antiga com o produto novo, e o resultado não decidiria nada.
+
+**A landing saiu do MVP** e virou a [013](./task-013-landing-e-conversao.md). Ela converte estranhos, e no primeiro casamento não existem estranhos — o casal já está contratado. É a semana que paga o feed. Se isso doer, a alternativa honesta não é cortar a landing pela metade: é adiar a data.
+
+**Comentário ficou de fora**, mesmo sendo pedido explícito. Pelo próprio critério do ADR 0009, é a funcionalidade social de menor alavanca sobre upload e maior custo — moderação de texto, LGPD e superfície nova para o perseguidor. Ele volta na [014](./task-014-comentarios.md), com a instrumentação da 007 e da 008 dizendo se interação move upload de verdade.
+
+**O risco desta sequência, dito de frente:** ela é mais apertada que a anterior. Se a semana 4 escorregar, o corte é a **008**, não a 007 — ver o que os outros mandaram move mais upload do que receber reação na própria foto.
 
 ## Depois do MVP — Fase 2
 
 | # | Tarefa | Origem |
 |---|---|---|
-| [012](./task-012-recados.md) | Recados | Sem thread, abrindo depois da cerimônia |
-| [013](./task-013-compartilhar.md) | Compartilhar com moldura | O único canal viral gratuito. ~1 dia |
-| [014](./task-014-album-da-noite.md) | Álbum da noite | A linha do tempo por hora |
+| [013](./task-013-landing-e-conversao.md) | Landing e conversão | Sai do MVP por escopo, não por importância |
+| [014](./task-014-comentarios.md) | Comentários | Com thread. Exige a 011 pronta |
+| [015](./task-015-compartilhar.md) | Compartilhar com moldura | O único canal viral gratuito. Tem pendência de consentimento |
+| [016](./task-016-album-da-noite.md) | Álbum da noite | A linha do tempo por hora |
+| [017](./task-017-app-expo-e-lojas.md) | App Expo e lojas | Nativo, com o domínio vindo de `packages/core`. **US$ 99/ano + US$ 25** |
+| [018](./task-018-musica-do-casal.md) | A música do casal | Link e sugestão. Áudio embutido **não** — [ADR 0011](../adr/0011-musica-do-evento-sem-direito-de-sincronizacao.md) |
+| [019](./task-019-recado-dos-anfitrioes.md) | O recado dos anfitriões | **Sem data.** Voz do próprio anfitrião, que o ADR 0011 não alcança. Áudio de convidado fica fora |
+
+Ideia ainda sem spec mora em [`docs/ideias.md`](../ideias.md), com o motivo de
+cada recusa junto. Estar lá não é roadmap e não pode ser citado em copy.
 
 Fora de spec por decisão de roadmap: entrega por WhatsApp, agrupamento facial (bloqueado em parecer jurídico), export para Drive, livro de fotos, portal do fornecedor, multi-evento, checkout.
+
+## Pós-discovery — ajustes de produto (agosto/2026)
+
+Origem: [`../product/plano-implementacao-produto.md`](../product/plano-implementacao-produto.md). **Priorizar P1–P3 antes do 1º casamento.**
+
+| # | Tarefa | Entrega |
+|---|---|---|
+| [021](./task-021-gate-capa-copy.md) | Copy do gate na capa | Convidado sabe se interação está aberta |
+| [022](./task-022-fila-falha-visivel.md) | Fila: falha visível | Foto nunca some em silêncio |
+| [023](./task-023-copy-moderacao-landing.md) | Copy moderação landing | Galeria pública + telão protegido |
+| [024](./task-024-landing-convidado-veterano.md) | Landing convidado veterano | CTA maior intenção |
+| [025](./task-025-checklist-pre-evento.md) | Checklist pré-evento admin | Runbook espelhado no painel |
+| [026](./task-026-wizard-expected-guests.md) | Wizard convidados presentes | Denominador H1 explícito |
+
+Status implementação P1–P6: **entregue** na branch `cursor/product-discovery-plan-8a09` (PR #18).
+
+Ops (sem spec de código): [`../runbooks/dia-do-evento.md`](../runbooks/dia-do-evento.md) · experimentos [`../product/experimentos-validacao.md`](../product/experimentos-validacao.md).
+
+## O critério que decide escopo social
+
+Do [ADR 0009](../adr/0009-app-social-do-convidado.md), e vale para toda spec daqui em diante:
+
+> Quem paga são os noivos. O que eles querem é ficar com as fotos dos 200 convidados. O que impede é o convidado não subir. O social é o mecanismo.
+
+**Toda funcionalidade social se julga por volume de upload, nunca por tempo de tela.** A pergunta é sempre *"isso aumenta a chance de a tia mandar a foto que está no rolo dela?"*. É por isso que as specs 007 e 008 têm instrumentação de upload como prova, e não "a tela renderiza".
 
 ## A stack, concreta
 
