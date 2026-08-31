@@ -15,13 +15,6 @@ Um ADR aceito **não é editado**. Se a decisão muda, escreve-se um novo que o 
 | [0005](./0005-runtime-stack.md) | Runtime e stack: TypeScript ponta a ponta com Next.js no Cloudflare | Accepted |
 | [0006](./0006-hosting-platform.md) | Plataforma de hospedagem: Cloudflare Workers + R2 + Neon | Accepted |
 | [0007](./0007-ai-policy-luts-not-generation.md) | IA: classificação sim, geração não. O visual sai de LUT | Accepted |
-| [0008](./0008-app-nativo-como-segunda-porta.md) | App nativo como segunda porta, nunca como a primeira | Superseded por [0009](./0009-app-social-do-convidado.md) |
-| [0009](./0009-app-social-do-convidado.md) | O app do convidado é social, e o social vive dentro do evento | Accepted |
-| [0010](./0010-expo-para-o-app-do-convidado.md) | Expo para o app do convidado, com o domínio compartilhado | Accepted |
-| [0011](./0011-musica-do-evento-sem-direito-de-sincronizacao.md) | Música do evento: link e sugestão sim, áudio embutido não | Accepted |
-| [0012](./0012-menores-sem-perguntar-idade.md) | Menores: nivelar por cima em vez de perguntar idade | Accepted |
-| [0013](./0013-acesso-por-conta-sob-rls.md) | Acesso por conta sob RLS (`app.account_id` + `comConta`) | Accepted |
-| [0014](./0014-convencao-pt-en-na-base-de-codigo.md) | Convenção PT/EN: EN na borda e barrels, sem alias PT reverso | Accepted |
 
 ## Status
 
@@ -39,7 +32,8 @@ Vivem em [`../product/`](../product/) e devem virar ADR quando tocarem implement
 - Site, convite, RSVP e lista de presentes adiados para a Fase 4, com condições de entrada explícitas
 - Lista de presentes como bifurcação estratégica — registrada para não ser tomada por impulso
 - Sem editor de canvas; diagramação por slots
-- Sem comunidade entre eventos (comentário **existe** dentro do evento — [ADR 0009](./0009-app-social-do-convidado.md), spec 014)
+- Sem comentários em foto
+- Sem comunidade
 - Assinatura mensal só para fornecedor; nunca para o casal
 - Nunca limitar convidados
 - Núcleo genérico, experiência especializada, marketing vertical

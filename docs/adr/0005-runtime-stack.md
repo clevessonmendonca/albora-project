@@ -26,7 +26,7 @@ apps/
     /             landing
     /e/[slug]     convidado (PWA)
     /admin        anfitrião
-    /wall-display   telão (EN; /telao redireciona 308)
+    /telao/[slug] telão
 packages/
   ui/             tokens + primitivas
   tokens/         resolvedor identity_tokens → valores
@@ -47,19 +47,3 @@ O SSR resolve de graça uma coisa que o SPA exigiria trabalho: as meta tags de p
 **Custo assumido: o SSR do Next briga com o PWA do convidado.** Service Worker, fila em IndexedDB e funcionamento offline são padrões de aplicação cliente, e o modelo do App Router empurra para o servidor. A rota `/e/[slug]` é deliberadamente client-heavy: o servidor entrega o casco e as meta tags, e o resto é cliente. **Essa rota é a exceção arquitetural do projeto e precisa estar escrita**, ou alguém vai "consertar" o padrão e quebrar a fila offline — que é a nuance que decide a H1.
 
 **Verificação obrigatória na semana 1.** Antes de construir qualquer tela, provar ponta a ponta: Service Worker registrando sob OpenNext, IndexedDB persistindo entre sessões, e um PUT presigned direto no R2. É o risco técnico real do projeto, e o roadmap já manda começar por ele.
-
-## Resultado da verificação — 2026-08-10
-
-Feita pela [task 001](../specs/task-001-verificacao-plataforma.md), em spike descartável publicado no Cloudflare. **As três perguntas deste ADR têm resposta sim.** A decisão fica confirmada; nada aqui é reaberto.
-
-O Service Worker registra, ativa e controla a página sob OpenNext — e o risco previsto de ele não sair no escopo certo **não se materializou**: o adaptador já serve `/public` como asset estático na raiz, fora do pipeline de render. A fila em IndexedDB sobreviveu a fechar a aba e, no iPhone, a encerrar o navegador. O PUT presigned chega no R2 pelo navegador.
-
-A prova mais forte foi a do caminho crítico. Durante um PUT de 819 200 bytes, o Worker registrou **um único evento** — `POST /api/spike/presign`, com `content-length: 21` e 71 ms de CPU. Nenhum `PUT`. A regra do `CLAUDE.md` de que o servidor nunca toca nos bytes de mídia deixou de ser intenção e virou medida, com proporção de cerca de 39 000 para 1.
-
-**O que se descobriu, e não estava previsto:**
-
-O `headers()` do `next.config` **não alcança arquivos de `/public` sob OpenNext** — o Workers Assets os serve antes do Worker do Next. Apareceu justamente no `/sw.js`, onde cabeçalho errado de cache é o que congela um Service Worker antigo em produção. Corrigido com `public/_headers`. É exatamente a categoria de aresta que este ADR assumiu como custo, e o custo se pagou: apareceu na semana 1, num spike, e não num sábado às 20h.
-
-O achado que pagou a tarefa sozinho não foi do OpenNext, e sim do próprio código: um arquivo estava no precache do Service Worker e **nunca era lido**, porque o handler de `fetch` não tratava aquele tipo de requisição. Online ninguém percebia. Offline, a página abria inteira e hidratada **e a fila não existia** — o convidado tiraria a foto sem sinal e ela não entraria em fila nenhuma. Nenhum teste unitário pegaria: o arquivo estava no cache, o teste do cache passaria. Só quebrou porque a prova offline rodou com o servidor derrubado de verdade e alguém verificou se a fila existia, não só se a página aparecia.
-
-**O que ficou sem medir:** a perna Android da prova 7, por falta de aparelho. O impacto disso caiu depois do [ADR 0010](./0010-expo-para-o-app-do-convidado.md), que leva o upload em segundo plano para API nativa — resta o comportamento da web no Android, para quem escaneia o QR e nunca instala.

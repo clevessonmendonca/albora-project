@@ -29,4 +29,4 @@ Nada sai do navegador — a foto que você tirar não é enviada a lugar nenhum.
 
 **O teto conhecido:** as imagens são abstratas. As referências que guiaram a direção — Aesop, LEEMA, Le Labo — são 80% fotografia de gente em luz boa. Trocar os gradientes gerados por **oito a dez fotos reais de festa** muda mais a percepção da página do que qualquer ajuste de CSS restante. É o próximo passo de maior retorno, e depende de material, não de código.
 
-**Não construído neste HTML:** vídeo no herói com play/pause (§3.2 do doc de landing pede, e precisa de arquivo real). O produto em `apps/web` já tem galeria, pânico no telão e aviso de slug rotacionado — este arquivo é o protótipo de 2026-08-09, não o app.
+**Não construído:** vídeo no herói com play/pause (§3.2 do doc de landing pede, e precisa de arquivo real), galeria pós-evento, botão de pânico na tela do telão, aviso de rotação de slug invalidando material impresso.

@@ -4,55 +4,5 @@
 node_modules/
 .omc/
 .DS_Store
-
-# Build
-.next/
-.open-next/
 .wrangler/
-dist/
-*.tsbuildinfo
-next-env.d.ts
-
-# Artefato de `apps/web/scripts/construir-sw.mjs`. A fonte é apps/web/sw/sw.ts.
-apps/web/public/sw.js
-
-# Resultados de execucao do arnes de carga. O JSON e artefato, nao fonte.
-tools/carga/execucoes/
-
-# Artefato de bundle temporário (analytics-snapshots.mjs)
-tools/jobs/.tmp/
-
-# Artefato de bundle temporário (retention.mjs) — precisa ficar dentro de
-# apps/web/ pra resolução de módulo do Node achar aws4fetch (só instalado
-# ali, pnpm não hoisteia pra raiz por padrão).
-apps/web/.tmp-retention-job/
-
-# Copiado de @fontsource-variable/fraunces por scripts/copiar-fontes.mjs.
-apps/web/public/fontes/
-
-# Copiado de @fontsource/* por apps/mobile/scripts/copiar-fontes.mjs.
-apps/mobile/assets/fontes/
-
-# Rasterizados de brand/icones por apps/mobile/scripts/gerar-icones.mjs.
-apps/mobile/assets/icon.png
-apps/mobile/assets/adaptive-icon.png
-apps/mobile/assets/splash-icon.png
-
-# Feature graphic Play (regenerável)
-apps/mobile/store/feature-graphic.png
-
-# Credencial Play — nunca no git
-apps/mobile/store/google-service-account.json
-
-# Playwright
-playwright-report/
-test-results/
-
-# Vitest coverage (artefato de CI, não fonte)
-coverage/
-
-# Expo (CNG — ios/android nascem no prebuild, não no git)
-.expo/
-apps/mobile/ios/
-apps/mobile/android/
-.pgdata
+.next/
