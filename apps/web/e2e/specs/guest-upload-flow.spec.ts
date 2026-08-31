@@ -17,8 +17,8 @@ test.describe("Fluxo Completo de Upload (Caminho Crítico)", () => {
     // 1. Setup: Cria evento de teste
     const event = await setupTestEvent({
       slug: `test-upload-${Date.now()}`,
-      packId: "wedding-modern",
-      socialGateOpenAt: new Date(), // Gate social aberto
+      packId: "casamento",
+      interactionOpensAt: new Date(),
     });
 
     try {

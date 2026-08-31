@@ -4,8 +4,8 @@
  * Uso:
  * ```typescript
  * const event = await setupTestEvent({
- *   slug: 'casamento-joao-maria',
- *   packId: 'wedding-modern',
+ *   slug: 'test-event-123',
+ *   packId: 'casamento',
  * });
  * ```
  */
@@ -16,77 +16,67 @@ import { getPool, getAggregatorPool } from "@/lib/db";
 export interface SetupTestEventOptions {
   slug?: string;
   packId?: string;
-  socialGateOpenAt?: Date;
-  coupleNames?: {
-    couple1: string;
-    couple2: string;
-  };
+  interactionOpensAt?: Date;
 }
 
 export interface TestEvent {
   id: string;
   slug: string;
   packId: string;
-  socialGateOpenAt: Date | null;
-  couple1Name: string;
-  couple2Name: string;
+  accountId: string;
+  interactionOpensAt: Date | null;
   createdAt: Date;
 }
 
 /**
- * Cria um evento de teste no banco de dados
+ * Cria um evento de teste no banco de dados.
+ *
+ * Cria a conta dona do evento junto — o FK é NOT NULL.
  */
 export async function setupTestEvent(
   options: SetupTestEventOptions = {}
 ): Promise<TestEvent> {
-  // Gera valores padrão
   const timestamp = Date.now();
   const slug = options.slug || `test-event-${timestamp}`;
-  const packId = options.packId || "wedding-modern";
-  const socialGateOpenAt = options.socialGateOpenAt || new Date();
-  const couple1Name = options.coupleNames?.couple1 || "João";
-  const couple2Name = options.coupleNames?.couple2 || "Maria";
+  const packId = options.packId || "casamento";
+  const interactionOpensAt = options.interactionOpensAt || new Date();
 
-  // Cria o evento — ainda não existe event_id para escopar RLS, usa o papel BYPASSRLS
-  const res = await getAggregatorPool().query(
+  const pool = getAggregatorPool();
+
+  const acct = await pool.query(
+    `INSERT INTO accounts (email) VALUES ($1) RETURNING id`,
+    [`test-${timestamp}@albora.test`]
+  );
+  const accountId: string = acct.rows[0].id;
+
+  const res = await pool.query(
     `
       INSERT INTO events (
+        account_id,
         slug,
         pack_id,
-        social_gate_open_at,
-        couple1_name,
-        couple2_name,
-        couple_email,
-        vendor_id
+        starts_at,
+        ends_at,
+        interaction_opens_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, NOW(), NOW() + interval '6 hours', $4)
       RETURNING
         id,
         slug,
         pack_id,
-        social_gate_open_at,
-        couple1_name,
-        couple2_name,
+        account_id,
+        interaction_opens_at,
         created_at
     `,
-    [
-      slug,
-      packId,
-      socialGateOpenAt,
-      couple1Name,
-      couple2Name,
-      `test-${timestamp}@albora.test`,
-      null, // vendor_id (não obrigatório)
-    ]
+    [accountId, slug, packId, interactionOpensAt]
   );
 
   return {
     id: res.rows[0].id,
     slug: res.rows[0].slug,
     packId: res.rows[0].pack_id,
-    socialGateOpenAt: res.rows[0].social_gate_open_at,
-    couple1Name: res.rows[0].couple1_name,
-    couple2Name: res.rows[0].couple2_name,
+    accountId: res.rows[0].account_id,
+    interactionOpensAt: res.rows[0].interaction_opens_at,
     createdAt: res.rows[0].created_at,
   };
 }
@@ -121,16 +111,14 @@ export async function getEventUploads(eventId: string) {
  * Busca um evento de teste pelo slug
  */
 export async function getEventBySlug(slug: string): Promise<TestEvent | null> {
-  // Busca sem event_id — cruza eventos, usa o papel BYPASSRLS
   const result = await getAggregatorPool().query(
     `
       SELECT
         id,
         slug,
         pack_id,
-        social_gate_open_at,
-        couple1_name,
-        couple2_name,
+        account_id,
+        interaction_opens_at,
         created_at
       FROM events
       WHERE slug = $1
@@ -146,9 +134,8 @@ export async function getEventBySlug(slug: string): Promise<TestEvent | null> {
     id: result.rows[0].id,
     slug: result.rows[0].slug,
     packId: result.rows[0].pack_id,
-    socialGateOpenAt: result.rows[0].social_gate_open_at,
-    couple1Name: result.rows[0].couple1_name,
-    couple2Name: result.rows[0].couple2_name,
+    accountId: result.rows[0].account_id,
+    interactionOpensAt: result.rows[0].interaction_opens_at,
     createdAt: result.rows[0].created_at,
   };
 }

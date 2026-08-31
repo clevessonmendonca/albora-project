@@ -61,17 +61,14 @@ jobs:
       - name: Seed test event
         run: |
           PGPASSWORD=test_password psql -h localhost -U postgres -d albora_test -c "
-            INSERT INTO events (id, slug, pack_id, couple1_name, couple2_name, couple_email, social_gate_open_at, created_at)
-            VALUES (
-              gen_random_uuid(),
-              'casamento-joao-maria',
-              'wedding-modern',
-              'João',
-              'Maria',
-              'joao.maria@test.com',
-              NOW(),
-              NOW()
+            WITH acct AS (
+              INSERT INTO accounts (email) VALUES ('test@albora.test')
+              ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
+              RETURNING id
             )
+            INSERT INTO events (account_id, slug, pack_id, starts_at, ends_at, interaction_opens_at)
+            SELECT id, 'casamento-joao-maria', 'casamento', NOW(), NOW() + interval '6 hours', NOW()
+            FROM acct
             ON CONFLICT (slug) DO NOTHING;
           " || echo "⚠️ Seed falhou, mas continuando..."
 
