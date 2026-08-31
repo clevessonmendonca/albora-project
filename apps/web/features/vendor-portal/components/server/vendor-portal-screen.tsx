@@ -1,0 +1,46 @@
+import React from "react";
+import type { VendorPortalContext } from "../../data/load-vendor-portal";
+import { VendorBrandTokensEditor } from "../client/vendor-brand-tokens-editor";
+import { VendorSubscribeButton } from "../client/vendor-subscribe-button";
+import { VendorEventsList } from "./vendor-events-list";
+import { VendorShell } from "./vendor-shell";
+
+const ROLE_LABEL: Record<string, string> = {
+  admin: "Administrador",
+  staff: "Equipe",
+};
+
+export function VendorPortalScreen({
+  vendor,
+  role,
+  eventos,
+  subscriptionStatus,
+}: VendorPortalContext) {
+  return (
+    <VendorShell
+      vendorName={vendor.name}
+      whiteLabelFull={vendor.plan === "agency"}
+      brandTokens={vendor.brandTokens}
+      title="Meus eventos"
+      subtitle={`${ROLE_LABEL[role] ?? role} · plano ${vendor.plan}`}
+    >
+      <div className="flex flex-col gap-5">
+        <VendorEventsList eventos={eventos} />
+        <VendorSubscribeButton
+          vendorId={vendor.id}
+          role={role}
+          currentPlan={vendor.plan}
+          subscriptionStatus={subscriptionStatus}
+        />
+        {role === "admin" && (
+          <section className="rounded-token border border-linha bg-superficie p-6">
+            <VendorBrandTokensEditor
+              vendorId={vendor.id}
+              initialBrandTokens={vendor.brandTokens}
+            />
+          </section>
+        )}
+      </div>
+    </VendorShell>
+  );
+}

@@ -1,0 +1,15 @@
+export { HeroSection } from "./hero";
+export { NoAppSection } from "./no-app";
+export { ScrollDemoSection } from "./scroll-demo";
+export { ExperienceSection } from "./experience";
+export { MomentsSection } from "./moments";
+export { MissionsSection } from "./missions-section";
+export { AlbumChaptersSection } from "./album-chapters";
+export { IdentitySection } from "./identity";
+export { BookSection } from "./book";
+export { IncludedSection } from "./included";
+export { AntesDaFestaSection } from "./antes-da-festa";
+export { VeteranSection } from "./veteran";
+export { PricingSection } from "./pricing";
+export { FaqSection } from "./faq";
+export { ClosingSection } from "./closing";

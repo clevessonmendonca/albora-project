@@ -1,0 +1,48 @@
+import type { ReactNode } from "react";
+import { AdminShell } from "@/features/admin/components/server/admin-shell";
+import { EventNav } from "@/features/admin/components/client/event-nav";
+import { CoupleFollowMode } from "@/features/admin/components/client/couple-follow-mode";
+import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
+import { ModerationCountProvider } from "@/features/admin/components/client/moderation-count-context";
+import { showsFollowMode } from "@/features/admin/lib/follow-mode";
+import { loadEventPage, type AdminEventPageContext } from "@/features/admin/data/load-event-page";
+
+type Props = {
+  eventId: string;
+  /** Ex.: "Convidados". Omita no painel ao vivo. */
+  section?: string;
+  /** Cosmético — habilita o modo Acompanhar nesta seção; `canManageCoupleOnly` é o único gate de ação real. */
+  allowFollowMode?: boolean;
+  children: ReactNode | ((ctx: AdminEventPageContext) => ReactNode);
+};
+
+export async function EventPageLayout({
+  eventId,
+  section,
+  allowFollowMode = false,
+  children,
+}: Props) {
+  const ctx = await loadEventPage(eventId);
+  const subtitle = section ? `/${ctx.evento.slug} · ${section}` : `/${ctx.evento.slug}`;
+  const content = typeof children === "function" ? children(ctx) : children;
+
+  return (
+    <AdminShell
+      title={ctx.name}
+      subtitle={subtitle}
+      back={{ label: "Seus eventos", href: "/admin" }}
+    >
+      <ModerationCountProvider>
+        <EventNav eventId={eventId} />
+        <div className="flex justify-end py-3">
+          <CopiarLinkEvento slug={ctx.evento.slug} />
+        </div>
+        {showsFollowMode(ctx.role, allowFollowMode) ? (
+          <CoupleFollowMode eventoId={eventId} dense={content} />
+        ) : (
+          content
+        )}
+      </ModerationCountProvider>
+    </AdminShell>
+  );
+}

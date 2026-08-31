@@ -1,0 +1,188 @@
+/*
+ * O que precisa de media query, keyframe, pseudo-elemento ou estado.
+ *
+ * O resto da landing usa Tailwind + tokens semânticos. Nada aqui inventa cor
+ * ou tempo: tudo sai dos mesmos tokens, inclusive a curva, que é uma só no
+ * produto inteiro.
+ */
+
+/* ── responsivo ──────────────────────────────────────────────────────── */
+
+.nav-topo {
+  display: none;
+}
+
+@media (max-width: 52rem) {
+  .cta-fixo {
+    display: flex;
+    align-items: center;
+  }
+}
+
+@media (min-width: 60rem) {
+  .nav-topo {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.heroi-titulo em {
+  display: block;
+}
+
+@media (max-width: 44rem) {
+  .pergunta {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+}
+
+/* ── estados ─────────────────────────────────────────────────────────── */
+
+.pilula {
+  transition:
+    transform var(--tempo-rapido) var(--curva),
+    filter var(--tempo-rapido) var(--curva);
+}
+
+.pilula:hover {
+  filter: brightness(1.08);
+}
+
+.pilula:active {
+  transform: scale(0.97);
+}
+
+.elo {
+  transition: color var(--tempo-rapido) var(--curva);
+}
+
+.elo:hover {
+  color: var(--ink);
+}
+
+.cartao {
+  box-shadow: var(--shadow-suave);
+  transition:
+    transform var(--tempo) var(--curva),
+    box-shadow var(--tempo) var(--curva);
+}
+
+.cartao:hover {
+  transform: translateY(-0.25rem);
+  box-shadow: var(--shadow-alta);
+}
+
+.faixa-fotos {
+  flex-wrap: wrap;
+}
+
+.leque {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.leque > * {
+  margin-left: -1.125rem;
+  margin-right: -1.125rem;
+}
+
+.leque > *:nth-child(even) {
+  margin-top: -1.25rem;
+}
+
+.polaroide {
+  position: relative;
+  transition:
+    translate var(--tempo) var(--curva),
+    scale var(--tempo) var(--curva);
+}
+
+.polaroide:hover {
+  translate: 0 -0.625rem;
+  scale: 1.03;
+  z-index: 2;
+}
+
+@media (max-width: 44rem) {
+  .leque > * {
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
+  }
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 3px;
+  border-radius: var(--raio-pilula);
+}
+
+/* ── movimento ───────────────────────────────────────────────────────── */
+
+.pulso {
+  animation: pulso 2.4s var(--curva) infinite;
+}
+
+@keyframes pulso {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.brilho::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 35%,
+    color-mix(in srgb, var(--acento) 22%, transparent) 50%,
+    transparent 65%
+  );
+  transform: translateX(-100%);
+  animation: brilho 3.2s var(--curva) infinite;
+  pointer-events: none;
+}
+
+@keyframes brilho {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.entra {
+  animation: entra 0.9s var(--curva) both;
+}
+
+.entra-2 {
+  animation: entra 0.9s var(--curva) 0.12s both;
+}
+
+.entra-3 {
+  animation: entra 0.9s var(--curva) 0.24s both;
+}
+
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

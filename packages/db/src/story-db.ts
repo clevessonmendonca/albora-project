@@ -1,0 +1,150 @@
+import type { PoolClient } from "pg";
+import type { LinkDeMusica, MetadadoDaMusica } from "@albora/core";
+import { linkDaLinha, metadadoDaSugestao } from "./music-db";
+
+const PUBLICADO = "published";
+const JANELA_HORAS = 24;
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export type FaixaDaStory = {
+  id: string;
+  link: LinkDeMusica;
+  metadado: MetadadoDaMusica | null;
+};
+
+/** autor é só o primeiro nome (concessão ler.identidade) — nunca contato. musica é null quando ausente, nunca condição para a story aparecer. */
+export type StoryAtiva = {
+  id: string;
+  eventoId: string;
+  uploadId: string;
+  sessaoId: string;
+  storageKey: string;
+  mime: string;
+  autor: string;
+  criadaEm: Date;
+  expiraEm: Date;
+  musica: FaixaDaStory | null;
+};
+
+type LinhaAtiva = {
+  id: string;
+  event_id: string;
+  upload_id: string;
+  session_id: string;
+  storage_key: string;
+  mime: string;
+  display_name: string;
+  created_at: Date;
+  expira_em: Date;
+  music_id: string | null;
+  music_provider: string | null;
+  music_content_type: string | null;
+  music_identifier: string | null;
+  music_region: string | null;
+  music_url: string | null;
+  music_title: string | null;
+  music_artist: string | null;
+};
+
+function musicaDaLinha(l: LinhaAtiva): FaixaDaStory | null {
+  if (l.music_id === null || l.music_provider === null || l.music_content_type === null) {
+    return null;
+  }
+  return {
+    id: l.music_id,
+    link: linkDaLinha({
+      provider: l.music_provider,
+      content_type: l.music_content_type,
+      identifier: l.music_identifier ?? "",
+      region: l.music_region,
+      url: l.music_url ?? "",
+    }),
+    metadado: metadadoDaSugestao({ title: l.music_title, artist: l.music_artist }),
+  };
+}
+
+/** null para id malformado ou fora do evento — os dois casos tratados igual, sem distinguir. */
+async function faixaValidaNoEvento(
+  cliente: PoolClient,
+  eventoId: string,
+  musicTrackId: string | null | undefined,
+): Promise<string | null> {
+  if (!musicTrackId || !UUID_RE.test(musicTrackId)) return null;
+
+  const { rowCount } = await cliente.query(
+    "SELECT 1 FROM music_suggestions WHERE id = $1 AND event_id = $2",
+    [musicTrackId, eventoId],
+  );
+  return (rowCount ?? 0) > 0 ? musicTrackId : null;
+}
+
+function paraAtiva(l: LinhaAtiva): StoryAtiva {
+  return {
+    id: l.id,
+    eventoId: l.event_id,
+    uploadId: l.upload_id,
+    sessaoId: l.session_id,
+    storageKey: l.storage_key,
+    mime: l.mime,
+    autor: l.display_name,
+    criadaEm: l.created_at,
+    expiraEm: l.expira_em,
+    musica: musicaDaLinha(l),
+  };
+}
+
+/** 🔴 event_id vem da sessão, não do cliente. ON CONFLICT (upload_id) DO NOTHING: retry idempotente. musicTrackId é enriquecimento — id inválido vira null ANTES do INSERT (FK inválido falha tudo). */
+export async function criarStory(
+  cliente: PoolClient,
+  entrada: { eventoId: string; sessaoId: string; uploadId: string; musicTrackId?: string | null },
+): Promise<{ id: string; criada: boolean } | null> {
+  const { rowCount: existe } = await cliente.query(
+    "SELECT 1 FROM uploads WHERE id = $1 AND event_id = $2 AND state = $3",
+    [entrada.uploadId, entrada.eventoId, PUBLICADO],
+  );
+  if (!existe) return null;
+
+  const musicTrackId = await faixaValidaNoEvento(cliente, entrada.eventoId, entrada.musicTrackId);
+
+  const { rows: inseridas } = await cliente.query<{ id: string }>(
+    `INSERT INTO story (event_id, session_id, upload_id, music_track_id, expira_em)
+     VALUES ($1, $2, $3, $4, now() + ($5 * interval '1 hour'))
+     ON CONFLICT (upload_id) DO NOTHING
+     RETURNING id`,
+    [entrada.eventoId, entrada.sessaoId, entrada.uploadId, musicTrackId, JANELA_HORAS],
+  );
+
+  const criada = inseridas[0];
+  if (criada) return { id: criada.id, criada: true };
+
+  const { rows: existentes } = await cliente.query<{ id: string }>(
+    "SELECT id FROM story WHERE upload_id = $1",
+    [entrada.uploadId],
+  );
+
+  const existente = existentes[0];
+  return existente ? { id: existente.id, criada: false } : null;
+}
+
+/** expira_em > now(): sem job de delete — linha vencida continua no banco, só sai da leitura. */
+export async function storiesAtivasDoEvento(
+  cliente: PoolClient,
+  eventoId: string,
+): Promise<StoryAtiva[]> {
+  const { rows } = await cliente.query<LinhaAtiva>(
+    `SELECT s.id, s.event_id, s.upload_id, s.session_id, s.expira_em, s.created_at,
+            u.storage_key, u.mime, g.display_name,
+            ms.id AS music_id, ms.provider AS music_provider, ms.content_type AS music_content_type,
+            ms.identifier AS music_identifier, ms.region AS music_region, ms.url AS music_url,
+            ms.title AS music_title, ms.artist AS music_artist
+       FROM story s
+       JOIN uploads u ON u.id = s.upload_id AND u.event_id = s.event_id
+       JOIN guest_sessions g ON g.id = s.session_id AND g.event_id = s.event_id
+       LEFT JOIN music_suggestions ms ON ms.id = s.music_track_id AND ms.event_id = s.event_id
+      WHERE s.event_id = $1 AND s.expira_em > now()
+      ORDER BY s.created_at DESC, s.id DESC`,
+    [eventoId],
+  );
+
+  return rows.map(paraAtiva);
+}

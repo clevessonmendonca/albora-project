@@ -1,0 +1,147 @@
+# Teste de carga do pipeline de upload — NÃO bloqueia o CI principal (ci.yml).
+#
+# O que valida (CLAUDE.md, "Gates de qualidade — MVP"):
+#   **150 uploads em 20 minutos** antes do 1º evento real — portão não negociável.
+#
+# O arnês (`pnpm carga` → tools/carga/executar.mjs) mede só o caminho crítico:
+#   POST /api/sessions → POST /api/uploads/presign → PUT no object storage →
+#   POST /api/uploads/confirm
+#
+# Perfil `gate`   — 150 capturas / 20 min, rajada (padrão do portão MVP).
+# Perfil `fumaca` — 6 capturas / 1 min; prova que o arnês e o ambiente CI sobem.
+#
+# Credenciais R2 vêm de GitHub Actions secrets (nunca commitadas):
+#   R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET
+#
+# Disparo: manual (workflow_dispatch) ou agendado (fumaça semanal).
+
+name: Teste de carga
+
+on:
+  workflow_dispatch:
+    inputs:
+      perfil:
+        description: "gate = 150 uploads / 20 min (portão MVP); fumaca = 6 / 1 min"
+        required: true
+        default: fumaca
+        type: choice
+        options:
+          - fumaca
+          - gate
+  schedule:
+    # Domingo 06:00 UTC — só fumaça; o portão completo leva ~25 min e é manual.
+    - cron: "0 6 * * 0"
+
+concurrency:
+  group: carga-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  carga:
+    name: Carga — pipeline de upload
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.perfil == 'gate' && 45 || 15 }}
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: albora
+          POSTGRES_PASSWORD: albora
+          POSTGRES_DB: albora
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U albora"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      # Valores dummy só para subir o dev server — nunca secrets reais no repo.
+      SESSION_SECRET: ci-carga-not-a-real-secret-32chars
+      DATABASE_URL: postgres://albora:albora@localhost:55432/albora
+      APP_ROOT_DOMAIN: localhost:3000
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      ALVO: http://localhost:3000
+      CARGA_SAIDA: tools/carga/execucoes/ci
+      CARGA_IP_POR_CONVIDADO: "1"
+      CARGA_PERFIL: ${{ inputs.perfil || 'fumaca' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verificar secrets R2
+        run: |
+          faltando=""
+          for nome in R2_ACCOUNT_ID R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET; do
+            if [ -z "${!nome}" ]; then
+              faltando="$faltando $nome"
+            fi
+          done
+          if [ -n "$faltando" ]; then
+            echo "::error::Secrets ausentes no repositório:$faltando"
+            echo "Configure em Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Semear banco (festa-demo)
+        run: pnpm db:semear
+
+      - name: Subir dev server
+        run: pnpm dev > /tmp/albora-dev.log 2>&1 &
+
+      - name: Aguardar servidor
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf --max-time 2 http://localhost:3000/ >/dev/null; then
+              echo "servidor pronto após ${i} tentativa(s)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::dev server não respondeu em 120s"
+          tail -n 80 /tmp/albora-dev.log || true
+          exit 1
+
+      - name: Rodar arnês de carga
+        run: |
+          case "$CARGA_PERFIL" in
+            gate)
+              echo "Perfil gate — 150 uploads / 20 min (portão MVP, CLAUDE.md)"
+              export CARGA_TOTAL=150
+              export CARGA_DURACAO_MIN=20
+              export CARGA_CONVIDADOS=50
+              ;;
+            fumaca)
+              echo "Perfil fumaça — 6 uploads / 1 min (validação do arnês no CI)"
+              export CARGA_TOTAL=6
+              export CARGA_DURACAO_MIN=1
+              export CARGA_CONVIDADOS=3
+              export CARGA_PICOS=1
+              ;;
+            *)
+              echo "::error::Perfil desconhecido: $CARGA_PERFIL"
+              exit 1
+              ;;
+          esac
+          pnpm carga
+
+      - name: Publicar relatório JSON
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: carga-${{ env.CARGA_PERFIL }}-${{ github.run_id }}
+          path: tools/carga/execucoes/ci/
+          retention-days: 30
+
+      - name: Log do dev server (falha)
+        if: failure()
+        run: tail -n 120 /tmp/albora-dev.log || true

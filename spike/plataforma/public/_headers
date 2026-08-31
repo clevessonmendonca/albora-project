@@ -1,0 +1,10 @@
+# Achado do spike: o `headers()` do next.config NÃO alcança arquivos de
+# /public sob OpenNext — o Workers Assets os serve antes do Worker do Next.
+# Cabeçalho de asset estático se declara aqui.
+
+/sw.js
+  Cache-Control: no-cache
+  Service-Worker-Allowed: /
+
+/fila-idb.js
+  Cache-Control: no-cache

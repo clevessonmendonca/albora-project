@@ -1,0 +1,168 @@
+name: CI
+
+on:
+  push:
+    branches: [main, homol, stable]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Job dedicado e visível de propósito. Se os guards fossem um passo dentro
+  # de "test", uma reprovação de isolamento apareceria como "testes falharam"
+  # — e a diferença entre isso e "um evento leu dado de outro" é a diferença
+  # entre um bug e um incidente.
+  guards:
+    name: Guards
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: isolamento
+        run: node tools/guards/isolamento.mjs
+      - name: tokens
+        run: node tools/guards/tokens.mjs
+      - name: dominio
+        run: node tools/guards/dominio.mjs
+      - name: packs
+        run: node tools/guards/packs.mjs
+      - name: sessao
+        run: node tools/guards/sessao.mjs
+      - name: features
+        run: node tools/guards/features.mjs
+      - name: api-routes
+        run: node tools/guards/api-routes.mjs
+
+  # Job separado, com nome próprio, de propósito. Se o isolamento reprovasse
+  # dentro de "testes", a falha apareceria como "testes falharam" — e a
+  # diferença entre isso e "um evento leu dado de outro" é a diferença entre
+  # um bug e um incidente. Também é o que impede um refactor de apagar a rede
+  # de segurança em silêncio: sumir com o job é visível na lista de checks.
+  isolamento:
+    name: Isolamento entre eventos
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: albora
+          POSTGRES_PASSWORD: albora
+          POSTGRES_DB: albora
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U albora"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # Contra banco real, nunca mock: testar isolamento contra mock prova que
+      # o mock está isolado.
+      - run: pnpm test:isolamento
+        env:
+          TEST_DATABASE_URL: postgres://albora:albora@localhost:55432/albora
+
+  verificar:
+    name: Typecheck, lint e testes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      # Inclui o auto-teste de cada guard: guard sem auto-teste pode parar de
+      # verificar e continuar verde.
+      # Cobertura report-only (sem threshold bloqueante): packages/**/src,
+      # apps/web/lib, apps/web/features e apps/web/app/api — ver vitest.config.ts.
+      - run: pnpm test:coverage
+      # Orçamento de First Load JS nas rotas do convidado (gate pós-H1, CLAUDE.md).
+      # Report-only até calibrarmos os limites com builds estáveis no CI.
+      - name: Orçamento de bundle (convidado, report-only)
+        run: pnpm bundle:budget:report
+        continue-on-error: true
+      - name: Publicar cobertura (artefato)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 14
+
+  e2e-smoke:
+    name: E2E smoke (convidado)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: albora
+          POSTGRES_PASSWORD: albora
+          POSTGRES_DB: albora
+        ports: ["55432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U albora"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      # Valores dummy só para subir o dev server no CI — nunca secrets reais.
+      SESSION_SECRET: ci-e2e-smoke-not-a-real-secret-32ch
+      R2_ACCOUNT_ID: "00000000000000000000000000000000"
+      R2_ACCESS_KEY_ID: ci
+      R2_SECRET_ACCESS_KEY: ci
+      R2_BUCKET: albora-ci
+      DATABASE_URL: postgres://albora:albora@localhost:55432/albora
+      APP_ROOT_DOMAIN: localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Semear banco para fluxo do convidado
+        run: pnpm db:semear
+      # Landing sempre; fluxo completo do convidado com E2E_FULL=1.
+      - run: pnpm test:e2e:full
+        env:
+          E2E_FULL: "1"
+      - name: Publicar relatório Playwright
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
