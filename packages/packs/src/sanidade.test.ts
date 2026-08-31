@@ -33,6 +33,38 @@ describe("trocar o pack muda a UI, não o núcleo", () => {
     expect(new Set(descricoes).size).toBe(descricoes.length);
   });
 
+  it("sugereAntes aponta para pack registrado, e nem todo pack tem um", () => {
+    // A seção de festas anteriores na landing e o convite no admin são
+    // controlados por isto. Apontar para um id inexistente sumiria com a seção
+    // em silêncio; e um pack que não tem festas anteriores não deve declarar.
+    for (const [id, pack] of Object.entries(PACKS)) {
+      if (pack.sugereAntes === undefined) continue;
+      expect(PACKS[pack.sugereAntes], `${id} aponta para pack inexistente`).toBeDefined();
+      expect(pack.sugereAntes, `${id} não pode sugerir a si mesmo`).not.toBe(id);
+    }
+
+    expect(WEDDING.sugereAntes).toBe("pre-casamento");
+    // Aniversário de 15 anos não tem noivado nem chá de panela.
+    expect(FIFTEEN_YEARS.sugereAntes).toBeUndefined();
+  });
+
+  it("o pack sugerido traz a copy do convite — sem ela a seção sai sem texto", () => {
+    for (const pack of Object.values(PACKS)) {
+      if (!pack.sugereAntes) continue;
+      const sugerido = PACKS[pack.sugereAntes]!;
+      for (const chave of [
+        "sugestao.rotulo",
+        "sugestao.chamada",
+        "sugestao.titulo",
+        "sugestao.lede",
+        "sugestao.efeito",
+        "sugestao.cta",
+      ]) {
+        expect(resolvePackText(sugerido, chave), chave).not.toBe(chave);
+      }
+    }
+  });
+
   it("missão e lugar podem divergir entre packs", () => {
     expect(WEDDING.lugares.map((l) => l.id)).toContain("altar");
     expect(FIFTEEN_YEARS.lugares.map((l) => l.id)).not.toContain("altar");

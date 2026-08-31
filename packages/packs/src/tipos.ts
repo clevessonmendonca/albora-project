@@ -14,6 +14,9 @@ export type Pack = {
   momentos?: { id: string; chaveTitulo: string; chaveDesc: string }[];
   /** Conjunto fechado (spec 008) — emoji livre projetado para 150 pessoas é a mesma superfície de abuso de `lugares`; id fora da lista não vira linha no banco. */
   reacoes?: { id: string; chaveTitulo: string }[];
+  /** Id do pack cujas festas acontecem antes desta. Núcleo não sabe que casamento
+   *  tem noivado — quem sabe é o pack, e a UI pergunta em vez de assumir. */
+  sugereAntes?: string;
   tokens?: TokenLayer;
 };
 

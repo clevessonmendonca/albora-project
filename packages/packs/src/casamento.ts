@@ -3,6 +3,7 @@ import type { Pack } from "./tipos";
 /** O único lugar do repositório onde "noivos" pode aparecer — se vazar para core, ui-* ou schema, o guard reprova. */
 export const CASAMENTO: Pack = {
   id: "casamento",
+  sugereAntes: "pre-casamento",
   vocabulario: {
     "evento.nome": "casamento",
     "evento.descricao": "A festa inteira, do altar à última música.",

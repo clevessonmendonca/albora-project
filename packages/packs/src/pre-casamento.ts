@@ -21,6 +21,22 @@ export const PRE_CASAMENTO: Pack = {
   vocabulario: {
     "evento.nome": "comemoração",
     "evento.descricao": "Noivado, chá de panela, despedida — as festas antes da festa.",
+    "sugestao.titulo": "Entre o sim e a festa existem outras festas",
+    "sugestao.lede":
+      "Noivado, chá de panela, despedida, ensaio — são as mesmas pessoas, e cada uma abre um álbum. Quando chegar o casamento, os seus convidados já vão saber como funciona.",
+    "sugestao.cta": "Criar álbum de uma comemoração",
+    "sugestao.rotulo": "Não começa no dia do casamento",
+    "sugestao.chamada": "O álbum do noivado inteiro, não só da última noite.",
+    "sugestao.efeito":
+      "Começar cedo tem um efeito prático: quando chega o casamento, os seus convidados já sabem como funciona — e é isso que decide quantas fotos aparecem.",
+    "ocasiao.noivado": "Noivado",
+    "ocasiao.noivado.quando": "12 a 18 meses antes",
+    "ocasiao.cha": "Chá de panela",
+    "ocasiao.cha.quando": "3 a 6 meses antes",
+    "ocasiao.despedida": "Despedida",
+    "ocasiao.despedida.quando": "semanas antes",
+    "ocasiao.ensaio": "Ensaio",
+    "ocasiao.ensaio.quando": "1 a 3 meses antes",
     "anfitriao.plural": "os noivos",
     "convidado.saudacao": "Que bom que você veio",
     "missao.titulo": "Missões da comemoração",
