@@ -68,7 +68,7 @@ jobs:
       CARGA_IP_POR_CONVIDADO: "1"
       CARGA_PERFIL: ${{ inputs.perfil || 'fumaca' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Verificar secrets R2
         run: |
