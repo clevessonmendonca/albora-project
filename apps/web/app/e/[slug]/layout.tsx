@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
 import { eventVars, marcaVars } from "@/features/guest/lib/event-vars";
 import { estiloAntiFlash, sanearVars } from "@/features/guest/lib/theme-style";
@@ -18,6 +19,8 @@ export default async function Layout({
 }) {
   const { slug } = await params;
   const r = await resolveOpenEvent(slug);
+
+  if (r.estado === "desconhecido") notFound();
 
   if (r.estado !== "aberto") return children;
 
