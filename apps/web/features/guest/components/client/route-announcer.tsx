@@ -7,9 +7,9 @@ import { announce } from "@albora/ui-web";
 const ROUTE_NAMES: Record<string, string> = {
   "": "Início",
   "/feed": "Feed",
-  "/missoes": "Missões",
+  "/missions": "Missões",
   "/album": "Álbum",
-  "/minhas": "Minhas fotos",
+  "/my-photos": "Minhas fotos",
   "/photo": "Mandar foto",
   "/music": "Música",
 };
