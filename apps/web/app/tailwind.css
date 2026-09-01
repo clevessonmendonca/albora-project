@@ -176,6 +176,13 @@
   --shadow-scan-mascara: 0 0 0 9999px color-mix(in srgb, var(--noite) 35%, transparent);
 }
 
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--acento-texto);
+    outline-offset: 2px;
+  }
+}
+
 @keyframes skeleton-pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.45; }

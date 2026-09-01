@@ -66,6 +66,7 @@ export function FloatingNav({ active, base, linkComponent }: FloatingNavProps) {
 
   return (
     <nav
+      aria-label="Navegação principal"
       className="fixed inset-x-4 z-40 grid grid-cols-[1fr_1fr_auto_1fr_1fr] items-center rounded-pilula border border-linha bg-superficie-alta px-2 py-2"
       style={{ bottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
     >

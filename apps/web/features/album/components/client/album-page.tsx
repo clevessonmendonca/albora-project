@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { GuestHeader, GuestShell, EmptyState, GuestMain, LiveAnnouncer, SkipLink, cn } from "@albora/ui-web";
+import { GuestHeader, GuestShell, EmptyState, GuestMain, SkipLink, cn } from "@albora/ui-web";
 import { photoPathForMission } from "@/features/missions/lib/missions-utils";
 import { albumPath } from "../../lib/album-path";
 import { useAlbum } from "../../hooks/use-album";
@@ -57,7 +57,7 @@ export function AlbumPage({
   return (
     <>
       <SkipLink />
-      <LiveAnnouncer />
+
       <GuestShell>
         <style>{`
           @keyframes album-respirar {

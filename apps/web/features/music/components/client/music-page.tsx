@@ -10,7 +10,6 @@ import {
   GuestHeader,
   GuestMain,
   GuestShell,
-  LiveAnnouncer,
   SecondaryText,
   SkipLink,
 } from "@albora/ui-web";
@@ -26,7 +25,7 @@ export function MusicPage({ slug, escolhaLabel }: { slug: string; escolhaLabel: 
   return (
     <>
       <SkipLink />
-      <LiveAnnouncer />
+
       <GuestShell>
         <GuestMain reserveTabBarSpace>
           <GuestHeader

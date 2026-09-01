@@ -15,7 +15,7 @@ const TABS = [TAB_FEED, ...SHARED_GUEST_TABS];
 
 export function TabBar({ active }: { active: GuestTab }) {
   return (
-    <nav className="relative grid grid-cols-[1fr_1fr_auto_1fr_1fr] items-center border-t border-linha bg-bg px-3 pt-2.5 pb-[1.625rem]">
+    <div role="presentation" className="relative grid grid-cols-[1fr_1fr_auto_1fr_1fr] items-center border-t border-linha bg-bg px-3 pt-2.5 pb-[1.625rem]">
       {TABS.map((tab) => (
         <span
           key={tab.id}
@@ -29,6 +29,6 @@ export function TabBar({ active }: { active: GuestTab }) {
       ))}
 
       <NavCameraButton />
-    </nav>
+    </div>
   );
 }
