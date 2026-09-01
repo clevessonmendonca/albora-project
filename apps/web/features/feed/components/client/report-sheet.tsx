@@ -52,7 +52,7 @@ export function ReportSheet({
         body: JSON.stringify({
           uploadId,
           kind,
-          motivo: kind === "ofensivo" && motivo.trim() ? motivo.trim() : undefined,
+          motivo: motivo.trim() || undefined,
         }),
       });
       if (r.ok) {
@@ -140,7 +140,7 @@ export function ReportSheet({
               </label>
             ))}
           </fieldset>
-          {kind === "ofensivo" && (
+          {kind !== null && (
             <label className="mt-3 grid gap-[0.35rem] text-[0.85rem] text-ink-3">
               Motivo (opcional)
               <textarea

@@ -1,20 +1,30 @@
+import { GuestShell, EntryColumn, FinePrint } from "@albora/ui-web";
+
 export function NoSession({ slug }: { slug: string }) {
   return (
-    <main className="grid min-h-dvh place-items-center bg-bg px-6 py-8 font-corpo text-ink">
-      <div className="w-full max-w-sm text-center">
-        <h1 className="mb-3 font-titulo text-[1.6rem] font-medium [text-wrap:balance]">
-          Falta você entrar
-        </h1>
-        <p className="mb-7 leading-normal text-ink-2">
-          É rápido: diz seu primeiro nome e as fotos da festa aparecem.
-        </p>
+    <GuestShell hideStatusBar>
+      <EntryColumn>
+        <div className="text-center">
+          <span className="mx-auto mb-5 grid size-16 place-items-center rounded-full bg-superficie-alta text-[1.75rem]">
+            📸
+          </span>
+          <h1 className="mb-3 font-titulo text-[clamp(1.5rem,7vw,1.75rem)] font-medium leading-[1.14] tracking-titulo [text-wrap:balance]">
+            Falta você entrar
+          </h1>
+          <p className="m-0 leading-relaxed text-ink-2">
+            É rápido: diz seu primeiro nome e as fotos da festa aparecem.
+          </p>
+        </div>
+
         <a
           href={`/e/${encodeURIComponent(slug)}`}
-          className="flex min-h-14 items-center justify-center rounded-token bg-ink text-[1.05rem] font-medium text-bg no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80"
+          className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
         >
           Entrar
         </a>
-      </div>
-    </main>
+
+        <FinePrint>Só leva alguns segundos.</FinePrint>
+      </EntryColumn>
+    </GuestShell>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { ModoInteracao } from "@albora/core";
 import {
   Badge,
+  FloatingNav,
   GuestHeader,
   GuestShell,
   EmptyState,
@@ -147,6 +149,8 @@ export function AlbumPage({
           onProxima={() => ir(1)}
         />
       )}
+
+      <FloatingNav active="album" base={`/e/${encodeURIComponent(slug)}`} linkComponent={Link} />
     </>
   );
 }
