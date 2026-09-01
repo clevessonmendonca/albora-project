@@ -1,3 +1,4 @@
+import React from "react";
 import { GuestShell, EntryColumn, FinePrint } from "@albora/ui-web";
 
 export function NoSession({ slug }: { slug: string }) {
