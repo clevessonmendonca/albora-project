@@ -18,6 +18,16 @@ export function ScanPage() {
 
   return (
     <GuestShell hideStatusBar>
+      <style>{`
+        @keyframes scan-sweep {
+          0%,100% { top: 18% }
+          50% { top: 78% }
+        }
+        .scan-line { animation: scan-sweep 2.4s var(--curva) infinite }
+        @media (prefers-reduced-motion: reduce) {
+          .scan-line { animation: none !important; display: none }
+        }
+      `}</style>
       <div className="flex min-h-dvh flex-1 flex-col">
         <div className="flex justify-end px-[1.125rem] pt-[max(0.75rem,env(safe-area-inset-top))]">
           <Link
@@ -41,6 +51,10 @@ export function ScanPage() {
                 <span
                   aria-hidden
                   className="pointer-events-none absolute inset-[18%] rounded-token border border-acento shadow-scan-mascara"
+                />
+                <span
+                  aria-hidden
+                  className="scan-line pointer-events-none absolute left-[20%] right-[20%] h-px bg-acento opacity-60"
                 />
                 <p className="absolute left-[1.125rem] right-[1.125rem] top-[max(1rem,env(safe-area-inset-top))] m-0 text-center font-titulo text-lg font-normal tracking-titulo text-ink [text-shadow:0_1px_4px_var(--bg)]">
                   Aponte para o QR da festa
