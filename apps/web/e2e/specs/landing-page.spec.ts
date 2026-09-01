@@ -22,8 +22,8 @@ test.describe("Landing Page do Evento", () => {
     });
 
     try {
-      // 2. Navega para a landing page do evento
-      await page.goto(`/${event.slug}`);
+      // 2. Navega para a landing page do evento (via /e/ direto, sem redirect)
+      await page.goto(`/e/${event.slug}`);
 
       // 3. Aguarda a página carregar
       await page.waitForLoadState("networkidle");
@@ -31,8 +31,8 @@ test.describe("Landing Page do Evento", () => {
       // 4. Valida que a página carregou (não é 404)
       await expect(page).not.toHaveTitle(/404/i);
 
-      // 5. Valida que o slug está presente na URL
-      expect(page.url()).toContain(event.slug);
+      // 5. Valida que a URL contém /e/{slug}
+      expect(page.url()).toContain(`/e/${event.slug}`);
 
       // 6. Valida que há conteúdo visível na página
       const body = page.locator("body");
@@ -51,11 +51,14 @@ test.describe("Landing Page do Evento", () => {
   });
 
   test("deve retornar 404 para evento inexistente", async ({ page }) => {
-    // 1. Navega para um slug que não existe
-    const response = await page.goto("/evento-que-nao-existe-12345");
+    // 1. Navega direto para /e/ com slug inexistente (sem redirect do [slug])
+    const response = await page.goto("/e/evento-que-nao-existe-12345");
 
     // 2. Valida que retorna 404
     expect(response?.status()).toBe(404);
+
+    // 3. Valida que mostra mensagem amigável
+    await expect(page.getByText(/esse endereço não abre nenhuma festa/i)).toBeVisible();
   });
 
   test("deve persistir evento no banco de dados", async () => {

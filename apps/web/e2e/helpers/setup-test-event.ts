@@ -71,6 +71,12 @@ export async function setupTestEvent(
     [accountId, slug, packId, interactionOpensAt]
   );
 
+  const eventoId = res.rows[0].id;
+  await pool.query(
+    "INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)",
+    [slug, eventoId]
+  );
+
   return {
     id: res.rows[0].id,
     slug: res.rows[0].slug,
@@ -91,10 +97,10 @@ export async function getEventUploads(eventId: string) {
       SELECT
         id,
         event_id,
-        key,
+        storage_key,
         mime,
-        mission,
-        status,
+        challenge_id,
+        state,
         created_at
       FROM uploads
       WHERE event_id = $1

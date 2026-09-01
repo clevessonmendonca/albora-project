@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
 import { eventVars, marcaVars } from "@/features/guest/lib/event-vars";
 import { estiloAntiFlash, sanearVars } from "@/features/guest/lib/theme-style";
@@ -8,6 +9,7 @@ import { GlobalQueue } from "@/features/photo/components/client/global-queue";
 import { guestSession, isSameEventSession } from "@/features/guest/data/guest-session";
 import { ToastContainer } from "@albora/ui-web";
 import { WebVitalsCollector } from "@/lib/infrastructure/observability/web-vitals-client";
+import { OfflineBanner } from "@/features/guest/components/client/offline-banner";
 
 export default async function Layout({
   children,
@@ -18,6 +20,8 @@ export default async function Layout({
 }) {
   const { slug } = await params;
   const r = await resolveOpenEvent(slug);
+
+  if (r.estado === "desconhecido") notFound();
 
   if (r.estado !== "aberto") return children;
 
@@ -43,6 +47,7 @@ export default async function Layout({
       {withSession && (
         <WebVitalsCollector eventId={session.eventoId} sessionId={session.sessaoId} />
       )}
+      <OfflineBanner />
       <ToastContainer />
       {children}
     </div>

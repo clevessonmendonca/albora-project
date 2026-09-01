@@ -47,7 +47,7 @@ jobs:
       - name: Install Playwright browsers
         run: |
           cd apps/web
-          npx playwright install chromium --with-deps
+          npx playwright install chromium webkit --with-deps
 
       - name: Setup test database
         run: |
@@ -74,6 +74,11 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/albora_test
           DATABASE_URL_AGGREGATOR: postgresql://postgres:test_password@localhost:5432/albora_test
+          SESSION_SECRET: e2e-test-secret-not-for-production-use
+          R2_ACCOUNT_ID: fake-account-id
+          R2_ACCESS_KEY_ID: fake-access-key
+          R2_SECRET_ACCESS_KEY: fake-secret-key
+          R2_BUCKET: fake-test-bucket
           CI: true
 
       - name: Upload Playwright report

@@ -19,7 +19,7 @@ test.describe("Múltiplas Missões", () => {
     });
 
     try {
-      await page.goto(`/${event.slug}`);
+      await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
       console.log("✅ Landing page carregada");
@@ -46,9 +46,9 @@ test.describe("Múltiplas Missões", () => {
         
         // Tenta navegar para página de missões
         const navAttempts = [
-          `/${event.slug}/missoes`,
-          `/${event.slug}/desafios`,
-          `/${event.slug}/challenges`,
+          `/e/${event.slug}/missoes`,
+          `/e/${event.slug}/desafios`,
+          `/e/${event.slug}/challenges`,
         ];
 
         for (const url of navAttempts) {
@@ -74,7 +74,7 @@ test.describe("Múltiplas Missões", () => {
 
     try {
       // Navega para página de upload/foto
-      await page.goto(`/${event.slug}/foto`);
+      await page.goto(`/e/${event.slug}/photo`);
       await page.waitForLoadState("networkidle");
 
       // Procura por seletor de missão
@@ -120,7 +120,7 @@ test.describe("Múltiplas Missões", () => {
     });
 
     try {
-      await page.goto(`/${event.slug}`);
+      await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
       // Procura por indicadores de progresso
@@ -162,7 +162,7 @@ test.describe("Múltiplas Missões", () => {
       const photoPath = path.resolve(__dirname, "../fixtures/photo-test.jpg");
 
       // Simula upload para primeira missão
-      await page.goto(`/${event.slug}/foto`);
+      await page.goto(`/e/${event.slug}/photo`);
       await page.waitForLoadState("networkidle");
 
       const fileInput = page.locator('input[type="file"]').first();
@@ -187,7 +187,7 @@ test.describe("Múltiplas Missões", () => {
           console.log("✅ Primeiro upload enviado");
 
           // Tenta fazer segundo upload
-          await page.goto(`/${event.slug}/foto`);
+          await page.goto(`/e/${event.slug}/photo`);
           await page.waitForLoadState("networkidle");
 
           const fileInput2 = page.locator('input[type="file"]').first();

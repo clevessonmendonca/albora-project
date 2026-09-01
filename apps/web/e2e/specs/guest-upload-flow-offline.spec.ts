@@ -23,7 +23,7 @@ test.describe("Resiliência de Rede", () => {
 
     try {
       // 1. Navega para a landing page
-      await page.goto(`/${event.slug}`);
+      await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
       console.log("✅ Página carregada");
@@ -36,7 +36,7 @@ test.describe("Resiliência de Rede", () => {
       await page.waitForTimeout(1000);
 
       // 4. Tenta navegar (deve falhar)
-      const response = await page.goto(`/${event.slug}/foto`).catch(() => null);
+      const response = await page.goto(`/e/${event.slug}/photo`).catch(() => null);
 
       // 5. Valida que a navegação falhou
       expect(response).toBeNull();
@@ -49,7 +49,7 @@ test.describe("Resiliência de Rede", () => {
 
       // 7. Aguarda e tenta novamente
       await page.waitForTimeout(1000);
-      await page.goto(`/${event.slug}`);
+      await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
       console.log("✅ Página carregou após reconexão");
@@ -67,7 +67,7 @@ test.describe("Resiliência de Rede", () => {
 
     try {
       // Navega para página de upload
-      await page.goto(`/${event.slug}/foto`);
+      await page.goto(`/e/${event.slug}/photo`);
       await page.waitForLoadState("networkidle");
 
       // Intercepta requisições de upload para simular timeout
@@ -126,7 +126,7 @@ test.describe("Resiliência de Rede", () => {
 
     try {
       // 1. Carrega a página com rede online
-      await page.goto(`/${event.slug}`);
+      await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
       console.log("✅ Página inicial carregada (online)");

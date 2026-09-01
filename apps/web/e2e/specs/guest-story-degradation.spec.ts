@@ -27,7 +27,7 @@ test.describe("Story Degradável", () => {
         await route.abort("failed");
       });
 
-      await page.goto(`/${event.slug}/foto`);
+      await page.goto(`/e/${event.slug}/photo`);
       await page.waitForLoadState("networkidle");
 
       const fileInput = page.locator('input[type="file"]').first();
@@ -104,7 +104,7 @@ test.describe("Story Degradável", () => {
       console.log("🚫 APIs opcionais bloqueadas");
 
       // Navega para landing page
-      await page.goto(`/${event.slug}`);
+      await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
       // Página deve carregar normalmente
@@ -114,7 +114,7 @@ test.describe("Story Degradável", () => {
       console.log("✅ Landing page carregou sem APIs opcionais");
 
       // Tenta acessar página de upload
-      await page.goto(`/${event.slug}/foto`);
+      await page.goto(`/e/${event.slug}/photo`);
       await page.waitForLoadState("networkidle");
 
       // Página de upload deve carregar
@@ -141,7 +141,7 @@ test.describe("Story Degradável", () => {
         await route.abort("failed");
       });
 
-      await page.goto(`/${event.slug}`);
+      await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
       // Procura por mensagens de erro amigáveis (não técnicas)
@@ -175,16 +175,16 @@ test.describe("Story Degradável", () => {
         await route.abort("failed");
       });
 
-      await page.goto(`/${event.slug}`);
+      await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
       console.log("✅ Landing page carregada");
 
       // Tenta navegar para outras páginas
       const pages = [
-        `/${event.slug}/feed`,
-        `/${event.slug}/foto`,
-        `/${event.slug}/missoes`,
+        `/e/${event.slug}/feed`,
+        `/e/${event.slug}/photo`,
+        `/e/${event.slug}/missoes`,
       ];
 
       for (const url of pages) {

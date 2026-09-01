@@ -88,6 +88,11 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/albora_test
           DATABASE_URL_AGGREGATOR: postgresql://postgres:test_password@localhost:5432/albora_test
+          SESSION_SECRET: ci-test-secret-not-for-production-use
+          R2_ACCOUNT_ID: fake-account-id
+          R2_ACCESS_KEY_ID: fake-access-key
+          R2_SECRET_ACCESS_KEY: fake-secret-key
+          R2_BUCKET: fake-test-bucket
           PORT: 3000
 
       - name: Wait for server to be ready

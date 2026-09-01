@@ -83,7 +83,7 @@ test.describe("smoke", () => {
 
     await entrarNoEvento(page);
     await page.goto("/e/festa-demo/my-photos");
-    await expect(page.getByText(/minhas fotos/i)).toBeVisible();
+    await expect(page.getByRole("link", { name: /minhas fotos/i })).toBeVisible();
     await expect(page.getByText(/carregando/i)).toBeHidden({ timeout: 15_000 });
     await expect(page.getByText(/suas fotos vão aparecer aqui/i)).toBeVisible();
     await expect(page.locator("body")).toContainText(/0 fotos/i);

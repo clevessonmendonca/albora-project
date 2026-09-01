@@ -11,11 +11,34 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Albora",
+  applicationCategory: "PhotographyApplication",
+  operatingSystem: "Web",
+  description: "As fotos que os seus convidados tiraram, reunidas num álbum só.",
+  url: "https://albora.com.br",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "BRL",
+  },
+};
+
 export default function Home() {
   // Chave faltando vira a própria chave em corpo 74px na frente de quem ia
   // pagar. Falhar no build é barato; falhar na landing não é.
   const problemas = landingProblems(WEDDING);
   if (problemas.length > 0) throw new Error(problemas.join("; "));
 
-  return <LandingPage pack={WEDDING} />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <LandingPage pack={WEDDING} />
+    </>
+  );
 }

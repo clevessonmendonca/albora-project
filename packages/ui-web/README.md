@@ -6,27 +6,19 @@ Sistema de design consolidado do Albora, usado na web (convidado, admin) e como 
 
 ## Componentes Consolidados
 
-### Skeleton
+### EmptyState
 ```tsx
-import { Skeleton, SkeletonCard } from "@albora/ui-web";
+import { EmptyState } from "@albora/ui-web";
 
-<Skeleton className="h-12 w-full" />
-<Skeleton variant="circle" width="2.5rem" />
-<Skeleton variant="text" lines={3} />
-<SkeletonCard /> {/* Post skeleton completo */}
-```
-
-### EmptyStateCard
-```tsx
-import { EmptyStateCard, CameraIcon } from "@albora/ui-web";
-
-<EmptyStateCard
-  icon={<CameraIcon size={48} />}
+<EmptyState
   title="Nenhuma foto ainda"
-  description="As fotos compartilhadas aparecerão aqui"
-  action={<Button>Tire a primeira foto</Button>}
+  lede="As fotos compartilhadas aparecerão aqui"
+  cameraPath="/photo"
+  cameraLabel="Tire a primeira foto"
 />
 ```
+
+Não há componente de skeleton/loading no design system hoje — se uma tela precisar de um estado de carregamento, ele ainda está por construir.
 
 ## Motion Tokens
 

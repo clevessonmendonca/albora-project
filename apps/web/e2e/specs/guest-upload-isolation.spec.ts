@@ -30,7 +30,7 @@ test.describe("Isolamento RLS entre Eventos", () => {
       console.log(`🔐 Testando isolamento entre ${event1.slug} e ${event2.slug}`);
 
       // Faz upload no evento 1
-      await page.goto(`/${event1.slug}/foto`);
+      await page.goto(`/e/${event1.slug}/photo`);
       await page.waitForLoadState("networkidle");
 
       const fileInput1 = page.locator('input[type="file"]').first();
@@ -66,7 +66,7 @@ test.describe("Isolamento RLS entre Eventos", () => {
       expect(event2Uploads.length).toBe(0);
 
       // Navega para o evento 2 e verifica que não vê uploads do evento 1
-      await page.goto(`/${event2.slug}/feed`);
+      await page.goto(`/e/${event2.slug}/feed`);
       await page.waitForLoadState("networkidle");
 
       // Se houver feed, deve estar vazio ou não mostrar uploads do evento 1
@@ -98,11 +98,11 @@ test.describe("Isolamento RLS entre Eventos", () => {
 
     try {
       // Tenta acessar feed do evento 2 a partir do contexto do evento 1
-      await page.goto(`/${event1.slug}`);
+      await page.goto(`/e/${event1.slug}`);
       await page.waitForLoadState("networkidle");
 
       // Tenta acessar feed do evento 2
-      await page.goto(`/${event2.slug}/feed`);
+      await page.goto(`/e/${event2.slug}/feed`);
       await page.waitForLoadState("networkidle");
 
       // Deve ver feed vazio (não deve ver dados do evento 1)

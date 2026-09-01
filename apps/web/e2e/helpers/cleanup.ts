@@ -11,68 +11,27 @@ import { comEvento } from "@albora/db";
 import { getPool, getAggregatorPool } from "@/lib/db";
 
 /**
- * Remove um evento de teste e todos os dados relacionados
+ * Remove um evento de teste e todos os dados relacionados.
  *
- * Ordem de deleção respeitando foreign keys:
- * 1. Reações
- * 2. Comentários
- * 3. Uploads
- * 4. Sessões
- * 5. Missões customizadas
- * 6. Stories
- * 7. Eventos
+ * Ordem de deleção respeita FK — filhos antes de pais.
+ * Tabelas com ON DELETE CASCADE dispensariam isso, mas
+ * a deleção explícita garante que comEvento/RLS cobre tudo.
  */
 export async function cleanupTestEvent(eventId: string): Promise<void> {
   await comEvento(getPool(), eventId, async (client) => {
-    // 1. Reações (FK → uploads)
     await client.query("DELETE FROM reactions WHERE event_id = $1", [eventId]);
-
-    // 2. Comentários (FK → uploads)
     await client.query("DELETE FROM comments WHERE event_id = $1", [eventId]);
-
-    // 3. Uploads (FK → events)
+    await client.query("DELETE FROM recado_lido WHERE event_id = $1", [eventId]);
+    await client.query("DELETE FROM recado WHERE event_id = $1", [eventId]);
+    await client.query("DELETE FROM story WHERE event_id = $1", [eventId]);
     await client.query("DELETE FROM uploads WHERE event_id = $1", [eventId]);
-
-    // 4. Sessões (FK → events)
-    await client.query("DELETE FROM guest_sessions WHERE event_id = $1", [
-      eventId,
-    ]);
-    await client.query("DELETE FROM host_sessions WHERE event_id = $1", [
-      eventId,
-    ]);
-
-    // 5. Missões customizadas (FK → events)
-    await client.query("DELETE FROM custom_missions WHERE event_id = $1", [
-      eventId,
-    ]);
-
-    // 6. Stories (FK → events)
-    await client.query("DELETE FROM stories WHERE event_id = $1", [eventId]);
-
-    // 7. Guestbook (FK → events)
-    await client.query("DELETE FROM guestbooks WHERE event_id = $1", [eventId]);
-
-    // 8. Music suggestions (FK → events)
-    await client.query("DELETE FROM music_suggestions WHERE event_id = $1", [
-      eventId,
-    ]);
-
-    // 9. Drive exports (FK → events)
-    await client.query("DELETE FROM drive_exports WHERE event_id = $1", [
-      eventId,
-    ]);
-
-    // 10. Export jobs (FK → events)
-    await client.query("DELETE FROM export_jobs WHERE event_id = $1", [
-      eventId,
-    ]);
-
-    // 11. Wall pairings (FK → events)
-    await client.query("DELETE FROM wall_pairings WHERE event_id = $1", [
-      eventId,
-    ]);
-
-    // 12. Evento principal
+    await client.query("DELETE FROM guest_sessions WHERE event_id = $1", [eventId]);
+    await client.query("DELETE FROM music_suggestions WHERE event_id = $1", [eventId]);
+    await client.query("DELETE FROM export_jobs WHERE event_id = $1", [eventId]);
+    await client.query("DELETE FROM drive_connections WHERE event_id = $1", [eventId]);
+    await client.query("DELETE FROM wall_pairings WHERE event_id = $1", [eventId]);
+    await client.query("DELETE FROM challenges WHERE event_id = $1", [eventId]);
+    await client.query("DELETE FROM event_slugs WHERE event_id = $1", [eventId]);
     await client.query("DELETE FROM events WHERE id = $1", [eventId]);
   });
 }
@@ -104,4 +63,3 @@ export async function cleanupAllTestEvents(): Promise<void> {
     await cleanupTestEvent(eventId);
   }
 }
-

@@ -4,6 +4,7 @@ import { parseEntryVia } from "@albora/core";
 import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import type { CSSProperties } from "react";
 import { getPool } from "@/lib/db";
@@ -42,13 +43,7 @@ export default async function Pagina({ params, searchParams }: Props) {
   const r = await resolverSlug(getPool(), slug, new Date());
 
   if (r.estado === "desconhecido") {
-    return (
-      <EventNotice
-        title="Esse endereço não abre nenhuma festa"
-        body="Pode ser uma letra trocada. Tente de novo pelo código da mesa."
-        showRescue
-      />
-    );
+    notFound();
   }
 
   if (r.estado === "slug_rotacionado") {

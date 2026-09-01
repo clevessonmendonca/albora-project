@@ -16,6 +16,11 @@ export function CelebrationOverlay({ onDismiss }: { onDismiss: () => void }) {
         .celeb-overlay { animation:celebFadeIn .25s var(--curva) forwards, celebFadeOut .4s var(--curva) 2.35s forwards }
         .celeb-icon { animation:celebBounce .55s var(--curva) .2s both }
         .celeb-particle { animation:celebFloat var(--celeb-dur,1.8s) var(--curva) var(--celeb-delay,0s) both }
+        @media (prefers-reduced-motion:reduce) {
+          .celeb-overlay { animation:none; opacity:1 }
+          .celeb-icon { animation:none }
+          .celeb-particle { animation:none; display:none }
+        }
       `}</style>
       <button
         type="button"
