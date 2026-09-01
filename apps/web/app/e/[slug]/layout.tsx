@@ -9,6 +9,7 @@ import { GlobalQueue } from "@/features/photo/components/client/global-queue";
 import { guestSession, isSameEventSession } from "@/features/guest/data/guest-session";
 import { ToastContainer } from "@albora/ui-web";
 import { WebVitalsCollector } from "@/lib/infrastructure/observability/web-vitals-client";
+import { OfflineBanner } from "@/features/guest/components/client/offline-banner";
 
 export default async function Layout({
   children,
@@ -46,6 +47,7 @@ export default async function Layout({
       {withSession && (
         <WebVitalsCollector eventId={session.eventoId} sessionId={session.sessaoId} />
       )}
+      <OfflineBanner />
       <ToastContainer />
       {children}
     </div>
