@@ -25,9 +25,13 @@ export function Dialog({
     const el = ref.current;
     if (!el) return;
     if (open) {
-      if (!el.open) el.showModal();
+      if (!el.open) {
+        if (typeof el.showModal === "function") el.showModal();
+        else el.setAttribute("open", "");
+      }
     } else if (el.open) {
-      el.close();
+      if (typeof el.close === "function") el.close();
+      else el.removeAttribute("open");
     }
   }, [open]);
 
