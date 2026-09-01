@@ -10,6 +10,7 @@ import {
 import { parsePlanoDoEvento } from "@albora/core";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
+import { SkipLink } from "@albora/ui-web";
 import {
   AdminSection,
   adminVars,
@@ -45,13 +46,17 @@ export default async function OpsPainelEventoPage({
   const allowed = await isPlatformOperator(getPool(), host.accountId);
   if (!allowed) {
     return (
+      <>
+      <SkipLink />
       <main
+        id="main-content"
         className="mx-auto min-h-dvh max-w-lg bg-bg px-6 py-16 font-[family-name:var(--fonte-corpo)] text-ink"
         style={adminVars()}
       >
         <h1 className="font-titulo text-2xl">Ops</h1>
         <p className="mt-3 text-ink-2">Sem acesso.</p>
       </main>
+      </>
     );
   }
 
@@ -70,7 +75,10 @@ export default async function OpsPainelEventoPage({
 
   if (!porta) {
     return (
+      <>
+      <SkipLink />
       <main
+        id="main-content"
         className="mx-auto min-h-dvh max-w-4xl bg-bg px-6 py-12 font-[family-name:var(--fonte-corpo)] text-ink"
         style={adminVars()}
       >
@@ -86,6 +94,7 @@ export default async function OpsPainelEventoPage({
           </p>
         </header>
       </main>
+      </>
     );
   }
 
@@ -130,7 +139,10 @@ export default async function OpsPainelEventoPage({
 
   if (!eventDetails) {
     return (
+      <>
+      <SkipLink />
       <main
+        id="main-content"
         className="mx-auto min-h-dvh max-w-4xl bg-bg px-6 py-12 font-[family-name:var(--fonte-corpo)] text-ink"
         style={adminVars()}
       >
@@ -144,6 +156,7 @@ export default async function OpsPainelEventoPage({
           <p className="mt-2 text-ink-2">Os dados deste evento não estão disponíveis.</p>
         </header>
       </main>
+      </>
     );
   }
 
@@ -151,7 +164,10 @@ export default async function OpsPainelEventoPage({
   const guestUrl = `https://albora.com.br/e/${eventDetails.slug}`;
 
   return (
+    <>
+    <SkipLink />
     <main
+      id="main-content"
       className="mx-auto min-h-dvh max-w-4xl bg-bg px-6 py-12 font-[family-name:var(--fonte-corpo)] text-ink"
       style={adminVars()}
     >
@@ -278,5 +294,6 @@ export default async function OpsPainelEventoPage({
         </div>
       </div>
     </main>
+    </>
   );
 }

@@ -13,6 +13,7 @@ import {
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
 import { parsePlatformLiveMetrics } from "@/lib/platform-metrics";
+import { SkipLink } from "@albora/ui-web";
 import {
   AdminSection,
   adminVars,
@@ -49,13 +50,17 @@ export default async function OpsInsightsPage() {
   const allowed = await isPlatformOperator(getPool(), host.accountId);
   if (!allowed) {
     return (
+      <>
+      <SkipLink />
       <main
+        id="main-content"
         className="mx-auto min-h-dvh max-w-lg bg-bg px-6 py-16 font-[family-name:var(--fonte-corpo)] text-ink"
         style={adminVars()}
       >
         <h1 className="font-titulo text-2xl">Ops</h1>
         <p className="mt-3 text-ink-2">Sem acesso.</p>
       </main>
+      </>
     );
   }
 
@@ -77,7 +82,10 @@ export default async function OpsInsightsPage() {
       : "Ao vivo (job ainda não materializou)";
 
   return (
+    <>
+    <SkipLink />
     <main
+      id="main-content"
       className="mx-auto min-h-dvh max-w-4xl bg-bg px-6 py-12 font-[family-name:var(--fonte-corpo)] text-ink"
       style={adminVars()}
     >
@@ -163,5 +171,6 @@ export default async function OpsInsightsPage() {
         </AdminSection>
       </div>
     </main>
+    </>
   );
 }

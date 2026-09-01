@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { isPlatformOperator } from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
+import { SkipLink } from "@albora/ui-web";
 import {
   AdminSection,
   adminClasses,
@@ -26,18 +27,25 @@ export default async function OpsHomePage() {
   const allowed = await isPlatformOperator(getPool(), host.accountId);
   if (!allowed) {
     return (
+      <>
+      <SkipLink />
       <main
+        id="main-content"
         className="mx-auto min-h-dvh max-w-lg bg-bg px-6 py-16 font-[family-name:var(--fonte-corpo)] text-ink"
         style={adminVars()}
       >
         <h1 className="font-titulo text-2xl">Ops</h1>
         <p className="mt-3 text-ink-2">Só da equipe Albora.</p>
       </main>
+      </>
     );
   }
 
   return (
+    <>
+    <SkipLink />
     <main
+      id="main-content"
       className="mx-auto min-h-dvh max-w-4xl bg-bg px-6 py-12 font-[family-name:var(--fonte-corpo)] text-ink"
       style={adminVars()}
     >
@@ -80,5 +88,6 @@ export default async function OpsHomePage() {
         </AdminSection>
       </div>
     </main>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 import React, { type CSSProperties, type ReactNode } from "react";
 import { ALBORA_BRAND, toVariables, resolveTokens, type Background } from "@albora/tokens";
-import { cva } from "@albora/ui-web";
+import { cva, SkipLink } from "@albora/ui-web";
 import Link from "next/link";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
@@ -20,7 +20,10 @@ type AdminShellProps = {
 
 export function AdminShell({ title, subtitle, back, children }: AdminShellProps) {
   return (
+    <>
+    <SkipLink />
     <main
+      id="main-content"
       className="min-h-dvh bg-bg p-[clamp(1.5rem,5vw,4rem)] font-[family-name:var(--fonte-corpo)] text-ink"
       style={adminVars()}
     >
@@ -42,6 +45,7 @@ export function AdminShell({ title, subtitle, back, children }: AdminShellProps)
       </header>
       {children}
     </main>
+    </>
   );
 }
 
