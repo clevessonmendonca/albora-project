@@ -2,6 +2,54 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
+export function useFocusTrap(active: boolean) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const previousFocus = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!active) return;
+    previousFocus.current = document.activeElement as HTMLElement | null;
+
+    const el = containerRef.current;
+    if (!el) return;
+
+    const focusFirst = () => {
+      const focusable = el.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      focusable[0]?.focus();
+    };
+
+    requestAnimationFrame(focusFirst);
+
+    const handleTab = (ev: KeyboardEvent) => {
+      if (ev.key !== "Tab") return;
+      const focusable = el.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+
+      if (ev.shiftKey && document.activeElement === first) {
+        ev.preventDefault();
+        last.focus();
+      } else if (!ev.shiftKey && document.activeElement === last) {
+        ev.preventDefault();
+        first.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleTab);
+    return () => {
+      document.removeEventListener("keydown", handleTab);
+      previousFocus.current?.focus();
+    };
+  }, [active]);
+
+  return containerRef;
+}
+
 export function BottomSheet({
   title,
   open,
@@ -20,6 +68,7 @@ export function BottomSheet({
   const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const trapRef = useFocusTrap(open);
 
   useEffect(() => {
     if (open) {
@@ -63,6 +112,7 @@ export function BottomSheet({
 
   return (
     <div
+      ref={trapRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby={headingId}
@@ -85,7 +135,7 @@ export function BottomSheet({
             type="button"
             aria-label="Fechar"
             onClick={onClose}
-            className="grid size-8 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-lg text-ink-3 transition-colors duration-[var(--tempo-rapido,0.3s)] ease-[var(--curva)] hover:bg-linha hover:text-ink active:bg-linha"
+            className="grid size-8 cursor-pointer place-items-center rounded-full border-0 bg-transparent text-lg text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-linha hover:text-ink active:bg-linha"
           >
             ×
           </button>

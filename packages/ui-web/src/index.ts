@@ -24,7 +24,7 @@ export {
   SecondaryText,
   TAB_BAR_INSET,
 } from "./guest-chrome";
-export { BottomSheet } from "./sheet";
+export { BottomSheet, useFocusTrap } from "./sheet";
 export {
   Skeleton,
   SkeletonCard,

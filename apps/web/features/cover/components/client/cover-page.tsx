@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
 import {
   Badge,
+  CameraIcon,
   FloatingNav,
   Frame,
   GridIcon,
@@ -314,7 +315,12 @@ export function CoverPage({
         )}
 
         <div className="grid gap-2.5 px-6 pt-[1.125rem] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
-          <PrimaryButton onClick={() => router.push(`${base}/photo`)}>Enviar foto</PrimaryButton>
+          <PrimaryButton onClick={() => router.push(`${base}/photo`)}>
+            <span className="flex items-center justify-center gap-2">
+              <CameraIcon size={18} />
+              Enviar foto
+            </span>
+          </PrimaryButton>
           <BotaoConvidar slug={slug} eventName={eventName} />
         </div>
       </GuestShell>

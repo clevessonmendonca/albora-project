@@ -12,6 +12,7 @@ import {
   GuestMain,
   SecondaryButton,
   cn,
+  useFocusTrap,
 } from "@albora/ui-web";
 import type { ServedPhoto } from "@/lib/album";
 import { ReportSheet } from "@/features/feed/components/client/report-sheet";
@@ -313,6 +314,7 @@ function Lightbox({
 }) {
   const [pedidoAberto, setPedidoAberto] = useState(false);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const trapRef = useFocusTrap(!pedidoAberto);
 
   useEffect(() => {
     const tecla = (ev: KeyboardEvent) => {
@@ -346,6 +348,7 @@ function Lightbox({
 
   return (
     <div
+      ref={trapRef}
       role="dialog"
       aria-modal="true"
       aria-label="Foto do álbum"
@@ -358,14 +361,14 @@ function Lightbox({
     >
       <button
         type="button"
-        aria-label="Pedir para tirar esta foto"
+        aria-label="Sinalizar esta foto"
         className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20 min-h-11 rounded-pilula border border-linha bg-superficie px-4 py-2 font-titulo text-[0.6875rem] uppercase tracking-rotulo text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento hover:text-acento"
         onClick={(ev) => {
           ev.stopPropagation();
           setPedidoAberto(true);
         }}
       >
-        Pedir para tirar
+        Sinalizar
       </button>
       <button
         type="button"

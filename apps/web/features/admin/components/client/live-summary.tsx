@@ -111,7 +111,7 @@ export function LiveSummary({ eventoId }: Props) {
           <div className="h-6 w-16 animate-pulse rounded-token bg-superficie-alta" />
           <div className="h-6 w-20 animate-pulse rounded-pilula bg-superficie-alta" />
         </div>
-        <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fit,minmax(7rem,1fr))]">
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="h-[4.5rem] animate-pulse rounded-token bg-superficie-alta" />
           ))}
@@ -136,7 +136,7 @@ export function LiveSummary({ eventoId }: Props) {
         </div>
       )}
 
-      <div className="mb-4 flex items-center justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 sm:gap-4">
         <p className="m-0 font-titulo text-lg">Ao vivo</p>
         <div className="flex items-center gap-2">
           {ultimaAtualizacao && <AtualizadoHa desde={ultimaAtualizacao} />}
@@ -154,7 +154,7 @@ export function LiveSummary({ eventoId }: Props) {
         </div>
       </div>
 
-      <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-[repeat(auto-fit,minmax(7rem,1fr))]">
         <Stat n={`${pct}%`} rotulo="participação" destaqueClass={destaqueClass} />
         <Stat
           n={`${resumo.sessoesComUpload}/${resumo.expectedGuests}`}
@@ -206,12 +206,7 @@ export function LiveSummary({ eventoId }: Props) {
             </span>
             <span className="h-px flex-1 bg-linha" />
           </div>
-          <div
-            className="grid gap-1.5"
-            style={{
-              gridTemplateColumns: `repeat(${Math.min(resumo.ultimas.length, 6)}, 1fr)`,
-            }}
-          >
+          <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-6">
             {resumo.ultimas.slice(0, 6).map((f) => (
               <span
                 key={f.id}
