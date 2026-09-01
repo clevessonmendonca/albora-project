@@ -67,8 +67,7 @@ export default async function Pagina({ params, searchParams }: Props) {
   }
 
   if (r.estado === "nao_comecou") {
-    // Existe e é legítimo — só não é hora. Dizer quando é vale mais que
-    // dizer que não pode.
+    // Existe e é legítimo — só não é hora. Dizer quando é vale mais que dizer que não pode.
     return (
       <EventNotice
         title="Ainda não começou"

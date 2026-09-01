@@ -118,8 +118,7 @@ export async function listarFeed(cliente: PoolClient, entrada: EntradaFeed): Pro
     );
   }
 
-  // Reagir não espera o gate (ADR 0009, atualizado): a contagem e a própria
-  // reação da sessão são calculadas em qualquer modo.
+  // Reagir não espera o gate (ADR 0009, atualizado): a contagem e a própria reação da sessão são calculadas em qualquer modo.
   const contagem = ", (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes";
 
   parametros.push(entrada.sessaoId);

@@ -118,8 +118,7 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
   });
 
   it("acento escolhido pelo casal também recebe rótulo legível", () => {
-    // A cor vem de quem paga e pode ser qualquer uma. Um âmbar claro derruba a
-    // escolha para o lado escuro; se o rótulo fosse fixo, o botão sumiria.
+    // A cor vem de quem paga e pode ser qualquer uma — âmbar claro derruba a escolha para o lado escuro; rótulo fixo faria o botão sumir.
     for (const acento of ["#FFE08A", "#2B1A0E", "#D9793C"]) {
       const e = resolveScale({
         ...ALBORA_BRAND,
@@ -162,8 +161,7 @@ describe("trocar o chão re-deriva o acento", () => {
   });
 
   it("acento próprio do casal também é re-derivado, não aceito cru", () => {
-    // O amarelo é o caso que mais aparece e o que mais reprova: some sobre
-    // papel e ninguém percebe até a festa.
+    // O amarelo é o caso que mais aparece e o que mais reprova — some sobre papel e ninguém percebe até a festa.
     const claro = resolveScale({
       ...ALBORA_BRAND,
       background: "light",
@@ -171,14 +169,12 @@ describe("trocar o chão re-deriva o acento", () => {
     });
 
     expect(razao(claro.acentoTexto, claro.bg)).toBeGreaterThan(CONTRASTE_DE_TEXTO);
-    // O preenchimento continua sendo a cor que o casal escolheu: é só o texto
-    // que precisa de luminância de leitura.
+    // O preenchimento continua sendo a cor que o casal escolheu — é só o texto que precisa de luminância de leitura.
     expect(claro.acento).toBe("#F2C744");
   });
 
   it("a rampa de neutro acompanha a base, não fica fixa", () => {
-    // O defeito que este teste impede: escala calibrada para um preto antigo
-    // continua parecendo certa valor a valor, e só brigada com o chão novo.
+    // O defeito que este teste impede: escala calibrada para um preto antigo continua parecendo certa valor a valor, e só briga com o chão novo.
     const nossa = resolveScale(ALBORA_BRAND);
     const outroChao = resolveScale({
       ...ALBORA_BRAND,
@@ -215,8 +211,7 @@ describe("a saída entrega a escala pronta", () => {
   it("o componente não escolhe nem chão nem neutro", () => {
     const v = toVariables(resolveTokens({ marca: ALBORA_BRAND }));
 
-    // Derivado, não copiado da marca: o componente recebe o chão pronto e
-    // não tem como escolher o extremo por conta própria.
+    // Derivado, não copiado da marca: o componente recebe o chão pronto e não tem como escolher o extremo por conta própria.
     expect(v["--bg"]).toBeDefined();
     expect(v["--bg"]).not.toBe(ALBORA_BRAND.cores.noite);
     expect(v["--ink-2"]).toBeDefined();

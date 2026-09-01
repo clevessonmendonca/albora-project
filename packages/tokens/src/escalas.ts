@@ -47,8 +47,7 @@ function claro(c: Colors): SemanticScale {
   const bg = sobre(0.03);
 
   return {
-    // No claro a elevação sobe para o branco, então a página fica um degrau
-    // ABAIXO do card. Invertido em relação ao escuro, e de propósito.
+    // No claro a elevação sobe para o branco, então a página fica um degrau ABAIXO do card — invertido em relação ao escuro, e de propósito.
     bg,
     superficie: c.papel,
     superficieAlta: misturarHex(c.papel, BRANCO, 0.55),

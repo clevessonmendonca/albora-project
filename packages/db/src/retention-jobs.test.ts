@@ -199,8 +199,7 @@ describe("processRetentionJob — avisos (d330_drive/d358_warn): reenvio no máx
     expect(status.status).toBe("done");
     expect(status.attempts).toBe(2);
 
-    // Terceira chamada nunca reenvia de novo — já é terminal (status 'done'
-    // sob o lock, curto-circuita antes de qualquer notify).
+    // Terceira chamada nunca reenvia de novo — já é terminal (status 'done' sob o lock, curto-circuita antes de qualquer notify).
     job = await jobDoEvento(eventoId, "d330_drive");
     const bemDepois = new Date(oitoDiasDepois.getTime() + 30 * 24 * 3600 * 1000);
     expect(
@@ -401,8 +400,7 @@ describe("processRetentionJob — d365_delete: o gate fail-closed", () => {
     );
     const job = await jobDoEvento(eventoId, "d365_delete");
     const r = await processRetentionJob(admin, job, semNotificar);
-    // 'vazio' entra no mesmo balde de "não é pronto" do core — fail-closed
-    // por desenho: mesmo um acervo vazio exige um export 'pronto' explícito.
+    // 'vazio' entra no mesmo balde de "não é pronto" do core — fail-closed por desenho: mesmo um acervo vazio exige um export 'pronto' explícito.
     expect(r).toEqual({ status: "skipped", reason: "export_parcial", diasDeAtraso: expect.any(Number) });
   });
 
@@ -442,8 +440,7 @@ describe("processRetentionJob — lock por evento (pg_advisory_xact_lock)", () =
     expect([a.status, b.status].sort()).toEqual(["done", "done"]);
     const status = await statusDoJob(job.id);
     expect(status.status).toBe("done");
-    // attempts incrementa uma vez por execução real — sob o lock, a segunda
-    // invocação encontra o status já 'done' e sai sem tocar attempts de novo.
+    // attempts incrementa uma vez por execução real — sob o lock, a segunda invocação encontra o status já 'done' e sai sem tocar attempts de novo.
     expect(status.attempts).toBe(1);
   });
 });

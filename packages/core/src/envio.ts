@@ -84,8 +84,7 @@ export async function drain(
   const resultados: SendResult[] = [];
 
   for (const item of items.slice(0, limit)) {
-    // Reconfere a cada item: o sinal cai no meio da drenagem, e insistir
-    // offline só queima tentativas de itens que ainda não falharam.
+    // Reconfere a cada item: o sinal cai no meio da drenagem, e insistir offline só queima tentativas de itens que ainda não falharam.
     if (!options.online()) break;
     resultados.push(await sendItem(item, transport, queue));
   }

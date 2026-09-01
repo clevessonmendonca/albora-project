@@ -27,8 +27,7 @@ const jsonLd = {
 };
 
 export default function Home() {
-  // Chave faltando vira a própria chave em corpo 74px na frente de quem ia
-  // pagar. Falhar no build é barato; falhar na landing não é.
+  // Chave faltando vira a própria chave em corpo 74px na frente de quem ia pagar — falhar no build é barato.
   const problemas = landingProblems(WEDDING);
   if (problemas.length > 0) throw new Error(problemas.join("; "));
 

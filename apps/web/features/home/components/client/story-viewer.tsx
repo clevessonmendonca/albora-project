@@ -66,7 +66,7 @@ export function StoryViewer({ stories, urls, initialIndex, onClose, onVisto }: P
     return () => {
       if (frameRef.current !== null) cancelAnimationFrame(frameRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- timer reinicia ao trocar slide ou direção
   }, [idx, ir]);
 
   // Fecha com Escape

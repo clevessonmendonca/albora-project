@@ -12,8 +12,7 @@ export const ALBORA_BRAND: Tokens = {
   },
   fontes: {
     titulo: "Fraunces, Georgia, serif",
-    // A pilha do sistema fica atrás como rede: se o arquivo não chegar, o
-    // texto sai numa sans decente em vez de num serif de fallback.
+    // A pilha do sistema fica atrás como rede: se o arquivo não chegar, o texto sai numa sans decente em vez de num serif de fallback.
     corpo: "\"Instrument Sans\", ui-sans-serif, system-ui, -apple-system, sans-serif",
   },
   escala: {
@@ -25,8 +24,7 @@ export const ALBORA_BRAND: Tokens = {
     espaco: "0.25rem",
   },
   movimento: {
-    // Uma curva só, em tudo. Nove curvas diferentes é o que faz uma interface
-    // parecer nove interfaces.
+    // Uma curva só, em tudo — nove curvas diferentes é o que faz uma interface parecer nove interfaces.
     curva: "cubic-bezier(0.2, 0, 0, 1)",
     rapido: "0.3s",
     medio: "0.35s",
@@ -36,8 +34,7 @@ export const ALBORA_BRAND: Tokens = {
     titulo: "-0.02em",
     rotulo: "0.05em",
   },
-  // Escuro por física, não por estética: tela branca às 22h contrai a pupila e
-  // a pessoa perde a festa de vista. Ver `DESIGN.md` §2.
+  // Escuro por física, não por estética: tela branca às 22h contrai a pupila e a pessoa perde a festa de vista — ver `DESIGN.md` §2.
   background: "dark",
 };
 

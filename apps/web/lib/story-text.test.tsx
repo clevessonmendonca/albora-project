@@ -77,8 +77,7 @@ describe("desenharTextoNoContexto", () => {
 
   it("múltiplas linhas ficam centradas verticalmente em torno de y", () => {
     const { ctx, chamadas } = ctxFalso();
-    // largura máxima = 10*0.86 = 8.6 → "abcde" (5) cabe, "abcde fghij" (11)
-    // não → duas linhas.
+    // largura máxima = 10*0.86 = 8.6 → "abcde" (5) cabe, "abcde fghij" (11) não → duas linhas.
     desenharTextoNoContexto(
       ctx,
       10,

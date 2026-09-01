@@ -115,13 +115,13 @@ export default function Painel() {
       navigator.serviceWorker.removeEventListener("message", daSW);
       navigator.serviceWorker.removeEventListener("controllerchange", trocouControlador);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- listeners da SW só na montagem; `registrar` é estável
   }, [registrar]);
 
   useEffect(() => {
     void recarregarFila();
     void listarObjetos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só na montagem
   }, []);
 
   /* ── Provas 3 e 4: a fila sobrevive à aba e ao navegador ───── */

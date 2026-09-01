@@ -52,9 +52,7 @@ async function mockCaminhoUpload(page: Page): Promise<void> {
 }
 
 test.describe("smoke — fluxo do convidado", () => {
-  // Todos os testes abaixo dependem de pnpm db:semear porque a resolução do
-  // slug (/e/[slug]/page.tsx) é server-side e não interceptável via route().
-  // A validação na CI roda com E2E_FULL=1 após o seed.
+  // Todos os testes abaixo dependem de pnpm db:semear porque a resolução do slug (/e/[slug]/page.tsx) é server-side e não interceptável via route(). A validação na CI roda com E2E_FULL=1 após o seed.
 
   test("tela de entrada: campo de nome, consentimento pré-marcado e botão desabilitado", async ({
     page,

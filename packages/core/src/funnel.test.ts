@@ -50,8 +50,7 @@ describe("o conjunto é fechado", () => {
   });
 
   it("recusa kind que não está no contrato", () => {
-    // `kind` chega do cliente. Sem porta fechada, um valor novo entra no banco,
-    // não cai em nenhum degrau e o painel passa a mentir para menos.
+    // `kind` chega do cliente. Sem porta fechada, um valor novo entra no banco, não cai em nenhum degrau e o painel passa a mentir para menos.
     expect(ehEventoDoFunil("upload_ok")).toBe(true);
     expect(ehEventoDoFunil("uploadOk")).toBe(false);
     expect(ehEventoDoFunil("install")).toBe(false);
@@ -97,8 +96,7 @@ describe("a métrica principal", () => {
   });
 
   it("aceita mais gente do que a esperada sem quebrar", () => {
-    // Convidado a mais que apareceu é dado real; travar em 100% esconderia que
-    // o denominador do admin estava errado.
+    // Convidado a mais que apareceu é dado real; travar em 100% esconderia que o denominador do admin estava errado.
     expect(taxaDeParticipacao({ expectedGuests: 80, sessoesComUpload: 100 })).toBeCloseTo(1.25);
   });
 });
@@ -118,8 +116,7 @@ describe("a definição de pronto, escrita antes de olhar o resultado", () => {
   });
 
   it("25% exatos ainda mexem em fricção", () => {
-    // A fronteira inferior é inclusiva. Sem teste, 25% cravado vira "parar" e o
-    // produto morre por um sinal de comparação.
+    // A fronteira inferior é inclusiva. Sem teste, 25% cravado vira "parar" e o produto morre por um sinal de comparação.
     expect(decidirTese({ expectedGuests: 100, sessoesComUpload: 25 }).codigo).toBe(
       "funil.mexe_em_friccao",
     );
@@ -130,8 +127,7 @@ describe("a definição de pronto, escrita antes de olhar o resultado", () => {
   });
 
   it("o veredito carrega a taxa junto do código", () => {
-    // O número que produziu a decisão fica registrado com ela: é o que impede
-    // reinterpretar o resultado dois meses depois.
+    // O número que produziu a decisão fica registrado com ela: é o que impede reinterpretar o resultado dois meses depois.
     expect(decidirTese({ expectedGuests: 200, sessoesComUpload: 61 })).toEqual({
       taxa: 0.305,
       codigo: "funil.mexe_em_friccao",
@@ -172,8 +168,7 @@ describe("instalação nunca é lida sozinha", () => {
   });
 
   it("instalação subindo sem derrubar participação é ganho", () => {
-    // É a variante de CTA na entrada vencendo o experimento dos três primeiros
-    // casamentos — e só vence se a participação ficar de pé.
+    // É a variante de CTA na entrada vencendo o experimento dos três primeiros casamentos — e só vence se a participação ficar de pé.
     expect(
       compararPlataforma(
         evento({ sessoesComUpload: 45, sessoesComInstalacao: 20 }),

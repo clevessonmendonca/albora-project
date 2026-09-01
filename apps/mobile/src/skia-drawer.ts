@@ -54,8 +54,7 @@ export const skiaDrawer: Desenhista<SkiaImageHandle, Uint8Array> = {
     const src = Skia.XYWHRect(0, 0, imagem.largura, imagem.altura);
     const dst = Skia.XYWHRect(0, 0, dstW, dstH);
 
-    // FilterMode.Linear + MipmapMode.Linear: bilinear com mipmap —
-    // qualidade equivalente a bicúbico para downscale de foto, sem custo extra.
+    // FilterMode.Linear + MipmapMode.Linear: bilinear com mipmap — qualidade equivalente a bicúbico para downscale de foto, sem custo extra.
     canvas.drawImageRectOptions(imagem.sk, src, dst, FilterMode.Linear, MipmapMode.Linear);
     canvas.restore();
 
@@ -76,8 +75,7 @@ export const skiaDrawer: Desenhista<SkiaImageHandle, Uint8Array> = {
     const w = imagem.largura;
     const h = imagem.altura;
 
-    // Lê pixels RGBA não-premultiplicado para que o math do core funcione igual
-    // ao bufferDrawer (jpeg-js também devolve RGBA não-premultiplicado).
+    // Lê pixels RGBA não-premultiplicado para que o math do core funcione igual ao bufferDrawer (jpeg-js também devolve RGBA não-premultiplicado).
     const raw = imagem.sk.readPixels(0, 0, {
       colorType: ColorType.RGBA_8888,
       alphaType: AlphaType.Unpremul,

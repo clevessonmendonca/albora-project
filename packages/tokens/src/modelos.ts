@@ -38,8 +38,7 @@ export const MODELOS_DE_IDENTIDADE: ModeloDeIdentidade[] = [
     amostra: "#2C3554",
     camada: {
       cores: { noite: "#151A2B", papel: "#E7E9F5", acento: "#9AA6E0" },
-      // O único modelo sem serifa no título: a diferença entre "Meia-noite" e
-      // "Amanhecer" é de voz, não de tom.
+      // O único modelo sem serifa no título: a diferença entre "Meia-noite" e "Amanhecer" é de voz, não de tom.
       fontes: { titulo: "var(--fonte-corpo)" },
       escala: { raio: "0.125rem", espaco: "1.125rem" },
       tracking: { rotulo: "0.12em" },

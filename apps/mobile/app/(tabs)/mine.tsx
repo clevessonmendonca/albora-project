@@ -192,7 +192,7 @@ export default function MineScreen() {
 
   useEffect(() => {
     void carregar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só na montagem
   }, []);
 
   const confirmarRemocao = useCallback(
@@ -213,7 +213,7 @@ export default function MineScreen() {
         ],
       );
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `remover` é estável; deps explícitas evitam re-render
     [removendoId, session, modoColagem],
   );
 

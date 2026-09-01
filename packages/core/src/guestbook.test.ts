@@ -47,8 +47,7 @@ const SESSAO: SessaoDoRecado = { id: "ses_1", eventoId: "evt_a" };
 
 describe("o agendamento é do anfitrião", () => {
   it("antes da hora ninguém vê; a partir dela, todos", () => {
-    // Verificação 1 da spec: agenda para daqui a 2 min, e antes da hora
-    // nenhum convidado vê nada.
+    // Verificação 1 da spec: agenda para daqui a 2 min, e antes da hora nenhum convidado vê nada.
     expect(recadoPublicado(recado(), ANTES)).toBe(false);
     expect(recadoPublicado(recado(), DEPOIS)).toBe(true);
   });
@@ -58,14 +57,12 @@ describe("o agendamento é do anfitrião", () => {
   });
 
   it("sem horário marcado o recado não existe para o convidado", () => {
-    // Falha fechada: rascunho salvo pela metade no admin não pode vazar para
-    // a festa por ausência de agendamento.
+    // Falha fechada: rascunho salvo pela metade no admin não pode vazar para a festa por ausência de agendamento.
     expect(recadoPublicado(recado({ publicaEm: null }), DEPOIS)).toBe(false);
   });
 
   it("responde igual ao gate da interação, no mesmo instante", () => {
-    // Se as duas mecânicas divergirem no `>=`, a festa passa a ter dois
-    // horários — e o sintoma aparece só no minuto da virada.
+    // Se as duas mecânicas divergirem no `>=`, a festa passa a ter dois horários — e o sintoma aparece só no minuto da virada.
     for (const agora of [ANTES, ABERTURA, DEPOIS]) {
       expect(recadoPublicado({ publicaEm: ABERTURA }, agora)).toBe(
         interacaoAberta({ interacaoAbreEm: ABERTURA }, agora),
@@ -117,8 +114,7 @@ describe("os tetos", () => {
   });
 
   it("gravação de duração zero é recusada como áudio, não aceita como ausência", () => {
-    // Um objeto de áudio com 0 s é gravação que falhou, e passaria a assinar
-    // upload de um arquivo vazio.
+    // Um objeto de áudio com 0 s é gravação que falhou, e passaria a assinar upload de um arquivo vazio.
     expect(validarRascunho(rascunho({ audio: { duracaoSegundos: 0 } }))).toEqual({
       code: "recado.audio_vazio",
     });
@@ -133,8 +129,7 @@ describe("os tetos", () => {
 
 describe("o cliente não informa a chave de storage", () => {
   it("o rascunho não tem campo de chave nem no áudio", () => {
-    // Verificação 5. A ausência é estrutural: não há onde o cliente escrever
-    // a chave, então não há o que a rota precise lembrar de ignorar.
+    // Verificação 5. A ausência é estrutural: não há onde o cliente escrever a chave, então não há o que a rota precise lembrar de ignorar.
     const r = rascunho();
 
     expect(Object.keys(r).sort()).toEqual(["audio", "publicaEm", "texto"]);
@@ -151,8 +146,7 @@ describe("um recado por evento", () => {
   });
 
   it("recado do evento B não bloqueia a gravação do evento A", () => {
-    // Um recado por evento é fronteira de produto, não trava global. Contar
-    // sem filtrar por evento faria o segundo casamento do sábado nascer mudo.
+    // Um recado por evento é fronteira de produto, não trava global. Contar sem filtrar por evento faria o segundo casamento do sábado nascer mudo.
     expect(validarCriacao([recado({ eventoId: "evt_b" })], "evt_a", rascunho())).toBeNull();
   });
 
@@ -180,8 +174,7 @@ describe("entrega uma vez por sessão", () => {
   });
 
   it("marcar de novo é idempotente e preserva a hora da primeira leitura", () => {
-    // Reabrir o app não é ler de novo. Sobrescrever a data faria "uma vez por
-    // sessão" virar "uma vez por abertura" na hora de auditar.
+    // Reabrir o app não é ler de novo. Sobrescrever a data faria "uma vez por sessão" virar "uma vez por abertura" na hora de auditar.
     const r = recado();
     const uma = marcarLido([], r, SESSAO.id, DEPOIS);
     const outra = marcarLido(uma, r, SESSAO.id, new Date("2026-08-12T02:00:00Z"));
@@ -202,8 +195,7 @@ describe("entrega uma vez por sessão", () => {
   });
 
   it("a linha de leitura não tem campo para nome do convidado", () => {
-    // PII crua em tabela de evento é violação, e leitura é onde ela mais
-    // escapa porque "é só telemetria".
+    // PII crua em tabela de evento é violação, e leitura é onde ela mais escapa porque "é só telemetria".
     const [linha] = marcarLido([], recado(), SESSAO.id, DEPOIS);
 
     expect(Object.keys(linha ?? {}).sort()).toEqual([
@@ -311,8 +303,7 @@ describe("degradação: o recado é enriquecimento", () => {
   });
 
   it("recado incoerente sem texto não segura o convidado na tela", () => {
-    // `mostrar: true` com texto vazio só acontece se algo tiver escapado da
-    // validação. Mesmo assim a tela não tem corpo, e o app não para nela.
+    // `mostrar: true` com texto vazio só acontece se algo tiver escapado da validação. Mesmo assim a tela não tem corpo, e o app não para nela.
     const entrega: Entrega = {
       mostrar: true,
       codigo: "recado.entregar",

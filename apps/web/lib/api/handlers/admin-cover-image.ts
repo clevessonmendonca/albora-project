@@ -37,8 +37,7 @@ async function requireAuth(req: Request, eventId: string) {
     });
   }
 
-  // Verifica posse do evento: comConta já aplica RLS por account_id, mas
-  // queremos 404 explícito antes de qualquer operação de storage.
+  // Verifica posse do evento: comConta já aplica RLS por account_id, mas queremos 404 explícito antes do storage.
   const { buscarEventoDoHost } = await import("@albora/db");
   const evento = await buscarEventoDoHost(getPool(), auth.host.accountId, eventId);
   if (!evento) {

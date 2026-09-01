@@ -28,8 +28,7 @@ describe("redução mantém proporção e nunca amplia", () => {
   });
 
   it("não amplia foto já pequena", () => {
-    // Ampliar não acrescenta informação: gasta banda do convidado e memória
-    // do aparelho para entregar a mesma imagem borrada.
+    // Ampliar não acrescenta informação: gasta banda do convidado e memória do aparelho para entregar a mesma imagem borrada.
     expect(targetForLongerSide(800, 600, 2500)).toEqual({ width: 800, height: 600 });
   });
 
@@ -65,8 +64,7 @@ describe("teto de pixels — degradar, nunca falhar", () => {
   });
 
   it("na dúvida assume o padrão", () => {
-    // Tratar aparelho capaz como modesto entrega foto pior a todo mundo, e a
-    // maioria dos aparelhos numa festa é capaz.
+    // Tratar aparelho capaz como modesto entrega foto pior a todo mundo, e a maioria dos aparelhos numa festa é capaz.
     expect(pixelCapForDevice({})).toBe(PIXEL_CAP.standard);
     expect(pixelCapForDevice({ memoryGb: 8, cores: 8 })).toBe(PIXEL_CAP.standard);
   });
@@ -134,8 +132,7 @@ describe("plano completo de processamento", () => {
   });
 
   it("a miniatura sai do alvo reduzido, não do original", () => {
-    // Reprocessar o original dobraria o pico de memória justamente no
-    // aparelho mais fraco.
+    // Reprocessar o original dobraria o pico de memória justamente no aparelho mais fraco.
     const p = planProcessing({
       width: 8000,
       height: 6000,

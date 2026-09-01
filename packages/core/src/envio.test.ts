@@ -86,8 +86,7 @@ describe("caminho feliz", () => {
     const r = await sendItem(item("a1"), transport, ctx.queue);
 
     expect(r.estado).toBe("enviado");
-    // Confirm antes dos bytes criaria linha apontando para objeto que não
-    // existe — foto na galeria que não abre.
+    // Confirm antes dos bytes criaria linha apontando para objeto que não existe — foto na galeria que não abre.
     expect(chamadas).toEqual(["presign:a1", "bytes:a1", "confirm:a1"]);
   });
 
@@ -182,8 +181,7 @@ describe("a foto não se perde quando algo falha", () => {
 
     await sendItem(item("a1"), transport, ctx.queue);
 
-    // Remover antes do confirm perderia a foto; o confirm tolera a segunda
-    // chamada justamente para esta remoção poder não acontecer.
+    // Remover antes do confirm perderia a foto; o confirm tolera a segunda chamada justamente para esta remoção poder não acontecer.
     expect(await ctx.queue.list()).toHaveLength(1);
   });
 
@@ -219,8 +217,7 @@ describe("erro definitivo não vira retry", () => {
 
     const r = await sendItem(item("a1"), transport, ctx.queue);
 
-    // Insistir contra uma parede atrasa as fotos seguintes e esconde do
-    // convidado que aquela precisa da atenção dele.
+    // Insistir contra uma parede atrasa as fotos seguintes e esconde do convidado que aquela precisa da atenção dele.
     expect(r.estado).toBe("desistiu");
     expect(ctx.items.get("a1")?.tentativas).toBe(0);
     expect(await ctx.queue.list()).toHaveLength(1);
@@ -242,8 +239,7 @@ describe("desistir não é apagar", () => {
     const r = await sendItem(item("a1", MAX_ATTEMPTS), transport, ctx.queue);
 
     expect(r.estado).toBe("desistiu");
-    // Apagar em silêncio é a foto sumindo sem explicação — o pior modo de
-    // falha deste produto.
+    // Apagar em silêncio é a foto sumindo sem explicação — o pior modo de falha deste produto.
     expect(await ctx.queue.list()).toHaveLength(1);
     expect(chamadas).toEqual([]);
   });

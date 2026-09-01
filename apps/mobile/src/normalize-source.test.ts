@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { normalizeSource } from "./normalize-source";
 
-// expo-image-manipulator carrega React Native que usa sintaxe Flow — inacessível
-// no vitest/node. Como todos os testes injetam `manipulate`, o default nunca roda.
+// expo-image-manipulator carrega React Native que usa sintaxe Flow — inacessível no vitest/node. Como todos os testes injetam `manipulate`, o default nunca roda.
 vi.mock("expo-image-manipulator", () => ({
   manipulateAsync: vi.fn(),
   SaveFormat: { JPEG: "jpeg" },

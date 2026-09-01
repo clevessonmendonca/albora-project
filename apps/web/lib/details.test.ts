@@ -19,8 +19,7 @@ describe("legenda", () => {
   });
 
   it("tira caractere de controle e de formatação", () => {
-    // Vai para o telão. Um override de direção projetado numa parede inverte a
-    // linha inteira na frente de 150 pessoas.
+    // Vai para o telão — um override de direção projetado numa parede inverte a linha na frente de 150 pessoas.
     expect(cleanCaption("linha um‮dois")).toBe("linha um dois");
     expect(cleanCaption("quebra\u0000nula")).toBe("quebra nula");
   });

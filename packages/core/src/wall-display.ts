@@ -170,8 +170,7 @@ export function proximaDoTelao(
 
   const ordem: Faixa[] = ["nunca-exibida", "recente", "popular"];
 
-  // TBT pede a faixa antiga em vez de sortear: um modelo chamado retrospectiva
-  // que mostra a foto de cinco minutos atrás não é retrospectiva de nada.
+  // TBT pede a faixa antiga em vez de sortear: um modelo chamado retrospectiva que mostra a foto de cinco minutos atrás não é retrospectiva de nada.
   const preferida = modelo ? PERFIS[modelo].faixaPreferida : undefined;
 
   let sorteada: Faixa = preferida ?? "popular";

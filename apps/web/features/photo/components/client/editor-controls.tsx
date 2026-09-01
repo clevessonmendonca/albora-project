@@ -172,6 +172,7 @@ export function EditorControls({
   );
 }
 
+/** Trilho e botão só existem como pseudo-elemento; regras `-webkit-`/`-moz-` separadas — juntas, o pseudo desconhecido invalida a regra inteira no outro navegador. */
 const ESTILO = `
   .ed-texto {
     font: inherit;

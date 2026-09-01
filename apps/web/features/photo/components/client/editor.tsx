@@ -63,8 +63,7 @@ export function Editor({
         if (!vivo) return;
         setMusicas(faixasVotadas(corpo.sugestoes));
       } catch {
-        // Degrada: o sticker de música é enriquecimento do composer, e sem
-        // lista o convidado ainda edita e envia a foto normalmente.
+        // Degrada: o sticker de música é enriquecimento do composer, sem lista o convidado ainda edita e envia normalmente.
       }
     })();
 

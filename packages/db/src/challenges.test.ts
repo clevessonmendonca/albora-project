@@ -54,8 +54,7 @@ describe("missões do evento", () => {
   });
 
   it("'feito' é por sessão, não por evento", async () => {
-    // Quem chega às 23h precisa ver a lista inteira aberta, e não a lista que
-    // os outros já cumpriram.
+    // Quem chega às 23h precisa ver a lista inteira aberta, e não a lista que os outros já cumpriram.
     const uploadId = randomUUID();
 
     await comEvento(app, dados.a.eventoId, (c) =>
@@ -244,8 +243,7 @@ describe("anotar é do dono da foto", () => {
   });
 
   it("outra sessão do MESMO evento não escreve na foto alheia", async () => {
-    // A RLS garante o evento e para por aí. Dentro do evento, quem separa uma
-    // foto da outra é o `session_id` — e é a única coisa que separa.
+    // A RLS garante o evento e para por aí. Dentro do evento, quem separa uma foto da outra é o `session_id` — e é a única coisa que separa.
     const uploadId = await fotoDe(dados.a);
     const { rows: outra } = await admin.query(
       `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
@@ -269,8 +267,7 @@ describe("anotar é do dono da foto", () => {
   });
 
   it("null preserva o que já estava lá", async () => {
-    // Anotar só o lugar não pode apagar a legenda: as duas caixas são
-    // independentes, e o convidado preenche uma de cada vez.
+    // Anotar só o lugar não pode apagar a legenda: as duas caixas são independentes, e o convidado preenche uma de cada vez.
     const uploadId = await fotoDe(dados.a);
 
     await comEvento(app, dados.a.eventoId, (c) =>
