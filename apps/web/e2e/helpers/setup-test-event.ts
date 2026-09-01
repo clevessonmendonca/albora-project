@@ -71,6 +71,12 @@ export async function setupTestEvent(
     [accountId, slug, packId, interactionOpensAt]
   );
 
+  const eventoId = res.rows[0].id;
+  await pool.query(
+    "INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)",
+    [slug, eventoId]
+  );
+
   return {
     id: res.rows[0].id,
     slug: res.rows[0].slug,

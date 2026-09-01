@@ -31,6 +31,7 @@ export async function cleanupTestEvent(eventId: string): Promise<void> {
     await client.query("DELETE FROM drive_connections WHERE event_id = $1", [eventId]);
     await client.query("DELETE FROM wall_pairings WHERE event_id = $1", [eventId]);
     await client.query("DELETE FROM challenges WHERE event_id = $1", [eventId]);
+    await client.query("DELETE FROM event_slugs WHERE event_id = $1", [eventId]);
     await client.query("DELETE FROM events WHERE id = $1", [eventId]);
   });
 }
