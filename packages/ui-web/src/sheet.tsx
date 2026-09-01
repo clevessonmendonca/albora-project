@@ -66,14 +66,14 @@ export function BottomSheet({
       role="dialog"
       aria-modal="true"
       aria-labelledby={headingId}
-      className="fixed inset-0 z-[35] grid place-items-end p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] transition-[background-color] duration-[var(--tempo-medio,0.35s)] ease-[var(--curva,cubic-bezier(0.2,0,0,1))]"
+      className="fixed inset-0 z-[35] grid place-items-end p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] transition-[background-color] duration-[var(--tempo-medio)] ease-[var(--curva)]"
       style={{ backgroundColor: visible ? "var(--bg-overlay, rgba(0,0,0,0.45))" : "transparent" }}
       onClick={onClose}
       onTransitionEnd={handleTransitionEnd}
     >
       <div
         ref={panelRef}
-        className="grid max-h-[min(78dvh,32rem)] w-[min(26rem,100%)] grid-rows-[auto_1fr_auto] gap-3.5 overflow-hidden rounded-superficie border border-linha bg-superficie p-5 transition-transform duration-[var(--tempo-medio,0.35s)] ease-[var(--curva,cubic-bezier(0.2,0,0,1))] motion-reduce:transition-none"
+        className="grid max-h-[min(78dvh,32rem)] w-[min(26rem,100%)] grid-rows-[auto_1fr_auto] gap-3.5 overflow-hidden rounded-superficie border border-linha bg-superficie p-5 transition-transform duration-[var(--tempo-medio)] ease-[var(--curva)] motion-reduce:transition-none"
         style={{ transform: visible ? "translateY(0)" : "translateY(100%)" }}
         onClick={(ev) => ev.stopPropagation()}
       >
