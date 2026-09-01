@@ -25,6 +25,13 @@ export {
   TAB_BAR_INSET,
 } from "./guest-chrome";
 export { BottomSheet } from "./sheet";
+export {
+  Skeleton,
+  SkeletonCard,
+  SkeletonFeed,
+  SkeletonGrid,
+  SkeletonText,
+} from "./skeleton";
 export { ConsentNote, ErrorMessage, GateNotice, MissionBanner } from "./notice";
 export { authorInitials, PostAuthorAvatar, PostHeader } from "./post-header";
 export { PrimaryButton, SecondaryButton } from "./guest-buttons";

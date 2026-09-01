@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { ModoInteracao } from "@albora/core";
 import {
@@ -312,6 +312,7 @@ function Lightbox({
   onProxima: () => void;
 }) {
   const [pedidoAberto, setPedidoAberto] = useState(false);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const tecla = (ev: KeyboardEvent) => {
@@ -324,6 +325,23 @@ function Lightbox({
     return () => window.removeEventListener("keydown", tecla);
   }, [onSair, onAnterior, onProxima, pedidoAberto]);
 
+  const onTouchStart = useCallback((ev: React.TouchEvent) => {
+    const t = ev.touches[0];
+    if (t) touchStart.current = { x: t.clientX, y: t.clientY };
+  }, []);
+
+  const onTouchEnd = useCallback((ev: React.TouchEvent) => {
+    if (!touchStart.current || pedidoAberto) return;
+    const t = ev.changedTouches[0];
+    if (!t) return;
+    const dx = t.clientX - touchStart.current.x;
+    const dy = t.clientY - touchStart.current.y;
+    touchStart.current = null;
+    if (Math.abs(dx) < 50 || Math.abs(dy) > Math.abs(dx)) return;
+    if (dx > 0) onAnterior();
+    else onProxima();
+  }, [onAnterior, onProxima, pedidoAberto]);
+
   const src = foto.url || foto.urlThumb;
 
   return (
@@ -335,6 +353,8 @@ function Lightbox({
       onClick={() => {
         if (!pedidoAberto) onSair();
       }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       <button
         type="button"
@@ -369,21 +389,29 @@ function Lightbox({
       <button
         type="button"
         aria-label="Foto anterior"
-        className="absolute top-16 bottom-0 left-0 w-1/3 cursor-pointer border-0 bg-transparent"
+        className="group absolute top-16 bottom-0 left-0 w-1/3 cursor-pointer border-0 bg-transparent"
         onClick={(ev) => {
           ev.stopPropagation();
           onAnterior();
         }}
-      />
+      >
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 grid size-10 place-items-center rounded-full bg-bg-vidro text-lg text-ink opacity-0 backdrop-blur-sm transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] group-hover:opacity-80 group-active:opacity-100">
+          ‹
+        </span>
+      </button>
       <button
         type="button"
         aria-label="Próxima foto"
-        className="absolute top-16 bottom-0 right-0 w-1/3 cursor-pointer border-0 bg-transparent"
+        className="group absolute top-16 bottom-0 right-0 w-1/3 cursor-pointer border-0 bg-transparent"
         onClick={(ev) => {
           ev.stopPropagation();
           onProxima();
         }}
-      />
+      >
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 grid size-10 place-items-center rounded-full bg-bg-vidro text-lg text-ink opacity-0 backdrop-blur-sm transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] group-hover:opacity-80 group-active:opacity-100">
+          ›
+        </span>
+      </button>
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 z-30 flex items-end justify-center pb-[max(1.5rem,env(safe-area-inset-bottom))]"
         onClick={(ev) => ev.stopPropagation()}

@@ -9,7 +9,8 @@ import {
   GuestHeader,
   GuestMain,
   GuestShell,
-  SecondaryText,
+  Skeleton,
+  SkeletonText,
 } from "@albora/ui-web";
 import { SuggestionForm } from "@/features/music/components/client/suggestion-form";
 import { useMusic } from "@/features/music/hooks/use-music";
@@ -30,7 +31,7 @@ export function MusicPage({ slug, escolhaLabel }: { slug: string; escolhaLabel: 
             action={state.loading ? <Badge>Carregando…</Badge> : undefined}
           />
 
-          {state.loading && <SecondaryText>Carregando…</SecondaryText>}
+          {state.loading && <MusicSkeleton />}
 
           {!state.loading && state.track && (
             <CoupleTrack track={state.track} escolhaLabel={escolhaLabel} />
@@ -98,6 +99,22 @@ function CoupleTrack({ track, escolhaLabel }: { track: VisibleTrack; escolhaLabe
         Abrir no {providerLabel(track.provedor)}
       </a>
     </section>
+  );
+}
+
+function MusicSkeleton() {
+  return (
+    <div aria-hidden className="grid gap-4 pt-2">
+      <Skeleton className="mx-auto aspect-square w-full max-w-64" rounded="rounded-superficie" />
+      <Skeleton className="mx-auto h-6 w-3/5" rounded="rounded-pilula" />
+      <Skeleton className="mx-auto h-3 w-1/4" rounded="rounded-pilula" />
+      <div className="my-2 flex h-10 items-end justify-center gap-[3px]">
+        {Array.from({ length: 24 }, (_, i) => (
+          <Skeleton key={i} className="h-[40%] w-[3px]" rounded="rounded-pilula" />
+        ))}
+      </div>
+      <SkeletonText lines={2} className="mx-auto max-w-48" />
+    </div>
   );
 }
 

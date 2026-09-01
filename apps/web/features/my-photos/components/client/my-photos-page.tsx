@@ -19,6 +19,7 @@ import {
   EmptyState,
   GuestMain,
   ErrorMessage,
+  SkeletonGrid,
 } from "@albora/ui-web";
 import { Badge } from "@albora/ui-web";
 import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
@@ -245,6 +246,10 @@ export function MyPhotosPage({
           {compartilhar.erro && <ErrorMessage>{compartilhar.erro}</ErrorMessage>}
 
           {recap.erro && !recap.aberto && <ErrorMessage>{recap.erro}</ErrorMessage>}
+
+          {galeria.carregando && galeria.itens.length === 0 && (
+            <SkeletonGrid count={6} className="mt-2" />
+          )}
 
           {!galeria.carregando && galeria.itens.length === 0 && (
             <EmptyState
