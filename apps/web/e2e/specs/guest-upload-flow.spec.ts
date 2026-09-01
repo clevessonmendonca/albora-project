@@ -24,16 +24,15 @@ test.describe("Fluxo Completo de Upload (Caminho Crítico)", () => {
     try {
       console.log(`🎯 Testando fluxo de upload para evento: ${event.slug}`);
 
-      // 2. Navega para a landing page do evento
-      await page.goto(`/${event.slug}`);
+      // 2. Navega para a landing page do evento (direto em /e/, sem redirect)
+      await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
       console.log("✅ Landing page carregada");
 
       // 3. Verifica se existe botão de câmera/upload
-      // (Procura por vários seletores possíveis)
       const uploadButton = page.locator(
-        'button:has-text("Câmera"), button:has-text("Enviar Foto"), a[href*="foto"], a[href*="upload"], [data-testid="camera-button"], [data-testid="upload-button"]'
+        'button:has-text("Câmera"), button:has-text("Enviar Foto"), a[href*="photo"], a[href*="upload"], [data-testid="camera-button"], [data-testid="upload-button"]'
       ).first();
 
       const uploadButtonVisible = await uploadButton.isVisible({ timeout: 5000 }).catch(() => false);
@@ -43,13 +42,13 @@ test.describe("Fluxo Completo de Upload (Caminho Crítico)", () => {
         await uploadButton.click();
         await page.waitForLoadState("networkidle");
       } else {
-        console.log("⚠️ Botão de upload não encontrado, tentando navegar direto para /foto");
-        await page.goto(`/${event.slug}/foto`);
+        console.log("⚠️ Botão de upload não encontrado, tentando navegar direto para /photo");
+        await page.goto(`/e/${event.slug}/photo`);
         await page.waitForLoadState("networkidle");
       }
 
       // 4. Valida que estamos na página de upload
-      expect(page.url()).toMatch(/\/(foto|upload|camera)/i);
+      expect(page.url()).toMatch(/\/(photo|upload|camera)/i);
       console.log("✅ Página de upload acessada");
 
       // 5. Procura por input de arquivo
@@ -144,8 +143,8 @@ test.describe("Fluxo Completo de Upload (Caminho Crítico)", () => {
     });
 
     try {
-      // Navega para página de upload
-      await page.goto(`/${event.slug}/foto`);
+      // Navega para página de upload (direto em /e/, sem redirect)
+      await page.goto(`/e/${event.slug}/photo`);
       await page.waitForLoadState("networkidle");
 
       // Seleciona foto
@@ -181,7 +180,7 @@ test.describe("Fluxo Completo de Upload (Caminho Crítico)", () => {
     });
 
     try {
-      await page.goto(`/${event.slug}/foto`);
+      await page.goto(`/e/${event.slug}/photo`);
       await page.waitForLoadState("networkidle");
 
       const fileInput = page.locator('input[type="file"]').first();
