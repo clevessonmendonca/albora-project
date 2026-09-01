@@ -35,7 +35,7 @@ test.describe("Performance em Rede Lenta (3G)", () => {
       const startTime = Date.now();
 
       // Navega para landing page
-      await page.goto(`/${event.slug}`, { timeout: 15000 });
+      await page.goto(`/e/${event.slug}`, { timeout: 15000 });
       await page.waitForLoadState("networkidle", { timeout: 15000 });
 
       // Calcula tempo total
@@ -69,7 +69,7 @@ test.describe("Performance em Rede Lenta (3G)", () => {
         await route.continue();
       });
 
-      await page.goto(`/${event.slug}`);
+      await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
       console.log("🔍 Procurando indicadores de loading...");
@@ -92,7 +92,7 @@ test.describe("Performance em Rede Lenta (3G)", () => {
     });
 
     try {
-      await page.goto(`/${event.slug}`);
+      await page.goto(`/e/${event.slug}`);
       
       // Não aguarda networkidle, testa se já pode interagir
       await page.waitForLoadState("domcontentloaded");
@@ -125,7 +125,7 @@ test.describe("Performance em Rede Lenta (3G)", () => {
     });
 
     try {
-      await page.goto(`/${event.slug}`);
+      await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
       // Captura todas as imagens da página

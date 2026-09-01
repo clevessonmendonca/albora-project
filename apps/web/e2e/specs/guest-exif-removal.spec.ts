@@ -18,7 +18,7 @@ test.describe("Remoção de EXIF (LGPD)", () => {
     });
 
     try {
-      await page.goto(`/${event.slug}/foto`);
+      await page.goto(`/e/${event.slug}/photo`);
       await page.waitForLoadState("networkidle");
 
       // Procura por input de arquivo
@@ -55,7 +55,7 @@ test.describe("Remoção de EXIF (LGPD)", () => {
     });
 
     try {
-      await page.goto(`/${event.slug}/foto`);
+      await page.goto(`/e/${event.slug}/photo`);
       await page.waitForLoadState("networkidle");
 
       // Este teste valida que há um fluxo de preview
@@ -100,10 +100,10 @@ test.describe("Remoção de EXIF (LGPD)", () => {
     try {
       // Navega pela aplicação procurando menções a privacidade
       const pagesToCheck = [
-        `/${event.slug}`,
-        `/${event.slug}/foto`,
-        `/${event.slug}/sobre`,
-        `/${event.slug}/privacidade`,
+        `/e/${event.slug}`,
+        `/e/${event.slug}/photo`,
+        `/e/${event.slug}/sobre`,
+        `/e/${event.slug}/privacidade`,
       ];
 
       let privacyMentioned = false;
@@ -150,7 +150,7 @@ test.describe("Remoção de EXIF (LGPD)", () => {
     });
 
     try {
-      await page.goto(`/${event.slug}`);
+      await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
       // Procura por modal/banner de consentimento
