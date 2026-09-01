@@ -25,7 +25,7 @@ export function QrCodePrint({ eventName, guestUrl, svgString }: Props) {
       <AdminCard className="qr-print-area">
         <div className="flex flex-col items-center gap-6 py-4">
           <div
-            className="w-56 rounded-token bg-white p-3 shadow-sm"
+            className="w-56 rounded-token bg-white p-3 shadow-suave"
             dangerouslySetInnerHTML={{ __html: svgString }}
           />
 

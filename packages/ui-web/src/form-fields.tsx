@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { cn } from "./variants";
+import { TextField } from "./text-field";
 
 export function NameField({
   value,
@@ -13,15 +14,16 @@ export function NameField({
   placeholder: string;
 }) {
   return (
-    <input
+    <TextField
+      label=""
       value={value}
-      onChange={(ev) => onChange(ev.target.value)}
+      onChange={(ev) => onChange((ev.target as HTMLInputElement).value)}
       placeholder={placeholder}
       maxLength={40}
       required
       autoComplete="given-name"
       enterKeyHint="go"
-      className="w-full rounded-token border-0 border-b-2 border-b-acento bg-superficie px-[1.125rem] py-[1.0625rem] font-titulo text-[1.375rem] text-ink outline-none"
+      inputClassName="border-0 border-b-2 border-b-acento px-[1.125rem] py-[1.0625rem] font-titulo text-[1.375rem]"
     />
   );
 }

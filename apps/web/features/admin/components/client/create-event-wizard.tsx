@@ -426,7 +426,7 @@ export function CreateEventWizard() {
                     onClick={() => trocarModo(modo)}
                     className={`rounded-pilula px-3 py-1.5 text-[0.8rem] transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                       bgModo === modo
-                        ? "bg-superficie-alta text-ink shadow-sm"
+                        ? "bg-superficie-alta text-ink shadow-suave"
                         : "text-ink-3 hover:text-ink-2"
                     }`}
                   >
@@ -661,7 +661,7 @@ function MissionList({
               }`}
             >
               <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-bg shadow-sm transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-bg shadow-suave transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                   isChecked ? "translate-x-5" : "translate-x-0.5"
                 }`}
               />
