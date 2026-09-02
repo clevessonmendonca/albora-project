@@ -7,7 +7,8 @@ import { estiloAntiFlash, sanearVars } from "@/features/guest/lib/theme-style";
 import { readThemePreference, THEME_COOKIE } from "@/features/guest/lib/theme-preference";
 import { GlobalQueue } from "@/features/photo/components/client/global-queue";
 import { guestSession, isSameEventSession } from "@/features/guest/data/guest-session";
-import { ToastContainer } from "@albora/ui-web";
+import { ToastContainer, LiveAnnouncer } from "@albora/ui-web";
+import { RouteAnnouncer } from "@/features/guest/components/client/route-announcer";
 import { WebVitalsCollector } from "@/lib/infrastructure/observability/web-vitals-client";
 import { OfflineBanner } from "@/features/guest/components/client/offline-banner";
 
@@ -49,6 +50,8 @@ export default async function Layout({
       )}
       <OfflineBanner />
       <ToastContainer />
+      <LiveAnnouncer />
+      <RouteAnnouncer />
       {children}
     </div>
   );

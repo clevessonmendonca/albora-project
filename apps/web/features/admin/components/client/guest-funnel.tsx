@@ -131,6 +131,8 @@ export function GuestFunnel({ eventoId }: Props) {
       if (r.ok) {
         setPresenca("");
         await carregar();
+      } else {
+        setErro(true);
       }
     } finally {
       setSalvandoPresenca(false);

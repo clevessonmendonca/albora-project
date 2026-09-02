@@ -28,7 +28,7 @@ export function OfflineBanner() {
     <div
       role="status"
       aria-live="assertive"
-      className="fixed inset-x-0 top-[env(safe-area-inset-top)] z-50 flex items-center justify-center gap-2 bg-ink px-4 py-2.5 text-center text-sm font-medium text-bg"
+      className="fixed inset-x-0 top-[env(safe-area-inset-top)] z-toast flex items-center justify-center gap-2 bg-ink px-4 py-2.5 text-center text-sm font-medium text-bg"
     >
       <span aria-hidden="true" className="inline-block size-2 rounded-full bg-critico" />
       Sem conexão — suas fotos estão seguras e sobem quando voltar

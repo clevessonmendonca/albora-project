@@ -6,7 +6,6 @@ import { HostMessageCard } from "@/features/guest/components/client/host-message
 import {
   FloatingNav,
   GuestShell,
-  LiveAnnouncer,
   PrimaryButton,
   GridIcon,
   StackIcon,
@@ -85,7 +84,6 @@ export function CoverPage({
   return (
     <>
       <SkipLink />
-      <LiveAnnouncer />
       <GuestShell>
         <style>{`
           @keyframes cover-foto-flash {

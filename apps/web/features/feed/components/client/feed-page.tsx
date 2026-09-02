@@ -25,7 +25,6 @@ import {
   ErrorMessage,
   Badge,
   cn,
-  LiveAnnouncer,
   SkipLink,
 } from "@albora/ui-web";
 import { Post, PostLoading } from "./post";
@@ -161,7 +160,7 @@ export function FeedPage({
     <>
       <SkipLink />
       <FeedStyles />
-      <LiveAnnouncer />
+
 
       {gate.gateOpened && <GateOpenedOverlay onClose={gate.close} cameraPath={cameraPath} />}
 
