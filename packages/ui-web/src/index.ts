@@ -11,6 +11,12 @@ export { TabBar, type GuestTab } from "./tab-bar";
 export { NavCameraButton, type NavCameraButtonProps } from "./nav-camera-button";
 export { SHARED_GUEST_TABS, type SharedGuestTabDef, type SharedGuestTabId } from "./nav-tabs";
 export { StatusBar } from "./status-bar";
+
+export { ProgressBar } from "./progress-bar";
+export { Slider } from "./slider";
+export { FilterChip } from "./filter-chip";
+export { SectionHeader } from "./section-header";
+
 export {
   DisplayTitle,
   EmptyState,
@@ -24,6 +30,7 @@ export {
   SecondaryText,
   TAB_BAR_INSET,
 } from "./guest-chrome";
+export { Dialog } from "./dialog";
 export { BottomSheet, useFocusTrap } from "./sheet";
 export {
   Skeleton,
@@ -36,6 +43,8 @@ export { ConsentNote, ErrorMessage, GateNotice, MissionBanner } from "./notice";
 export { authorInitials, PostAuthorAvatar, PostHeader } from "./post-header";
 export { PrimaryButton, SecondaryButton } from "./guest-buttons";
 export { ConsentCheckbox, NameField, TextLink } from "./form-fields";
+export { TextField } from "./text-field";
+export { Select } from "./select";
 export {
   PHONE_HEIGHT,
   PHONE_WIDTH,
@@ -71,3 +80,7 @@ export {
   printedCopyRotation,
   type PrintedCopyCardProps,
 } from "./printed-copy-card";
+export { ToastContainer, showToast } from "./toast";
+export { AnimatedCounter } from "./animated-counter";
+export { LiveAnnouncer, announce } from "./live-announcer";
+export { SkipLink } from "./skip-link";
