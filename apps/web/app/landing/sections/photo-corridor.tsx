@@ -12,7 +12,7 @@ const CORRIDOR_CARDS = [
   { src: "/landing/hero.webp", badge: "Bolo", stats: "56 fotos" },
   { src: "/landing/dancefloor.webp", badge: "Buquê", stats: "31 fotos" },
   { src: "/landing/guest.webp", badge: "Entrada", stats: "92 fotos" },
-  { src: "/landing/album.webp", badge: "Dança dos noivos", stats: "48 fotos" },
+  { src: "/landing/album.webp", badge: "Primeira dança", stats: "48 fotos" },
   { src: "/landing/hero.webp", badge: "Mesa do bolo", stats: "67 fotos" },
   { src: "/landing/dancefloor.webp", badge: "Pôr do sol", stats: "39 fotos" },
 ] as const;
