@@ -101,7 +101,7 @@ function CorridorCard({
         backfaceVisibility: "hidden",
         transitionProperty: "transform, opacity",
         transitionDuration: "var(--tempo-medio, 0.45s)",
-        transitionTimingFunction: "var(--curva, cubic-bezier(0.22, 1, 0.36, 1))",
+        transitionTimingFunction: "var(--curva)",
         ...radiusStyle("var(--raio-superficie)"),
       }}
     >
