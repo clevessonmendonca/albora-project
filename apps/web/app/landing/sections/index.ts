@@ -11,3 +11,5 @@ export { IncludedSection } from "./included";
 export { PricingSection } from "./pricing";
 export { FaqSection } from "./faq";
 export { ClosingSection } from "./closing";
+export { PhotoCorridorSection } from "./photo-corridor";
+export { ChoresEliminatedSection } from "./chores-eliminated";
