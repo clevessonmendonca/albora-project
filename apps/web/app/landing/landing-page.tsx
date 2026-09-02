@@ -21,6 +21,8 @@ import {
   IdentitySection,
   BookSection,
   ChoresEliminatedSection,
+  AntesDaFestaSection,
+  VeteranSection,
   PricingSection,
   FaqSection,
   ClosingSection,
@@ -110,6 +112,8 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
       <IdentitySection example={example} t={t} />
       <BookSection places={places} />
       <ChoresEliminatedSection />
+      <AntesDaFestaSection packId={pack.id} />
+      <VeteranSection packId={pack.id} t={t} />
       <PricingSection packId={pack.id} t={t} />
       <FaqSection />
       <ClosingSection packId={pack.id} t={t} />

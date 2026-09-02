@@ -5,6 +5,7 @@ export const QUINZE_ANOS: Pack = {
   id: "quinze-anos",
   vocabulario: {
     "evento.nome": "aniversário de 15 anos",
+    "evento.descricao": "A entrada, a valsa e a pista até o fim.",
     "anfitriao.plural": "a aniversariante",
     "convidado.saudacao": "Chegou a hora da festa",
     "missao.titulo": "Missões da noite",
@@ -16,6 +17,9 @@ export const QUINZE_ANOS: Pack = {
     "musica.escolha": "Escolha da aniversariante",
     "telao.vazio": "As primeiras fotos aparecem aqui",
     "lugar.pergunta": "Onde na festa?",
+    "interacao.aberta": "Feed liberado — veja o que rolou",
+    "interacao.fechada": "Interação abre depois da entrada",
+    "interacao.fechada.agendada": "Interação abre às {hora}",
     "recado.rotulo": "Um recado da aniversariante",
     "recado.exemplo":
       "Obrigada por vir. Tirem fotos — eu quero ver a festa pelos olhos de vocês.",
@@ -52,6 +56,8 @@ export const QUINZE_ANOS: Pack = {
     "landing.plano.completo": "Celebração",
     "landing.fechamento": "No dia seguinte, você acorda com centenas de fotos que",
     "landing.fechamento.destaque": "ninguém contratou para tirar.",
+    "landing.veteran.titulo": "Você esteve numa festa de 15 anos com Albora?",
+    "landing.veteran.lede": "Quer o mesmo no seu?",
 
     "reacao.estrela": "Estrela",
     "reacao.riso": "Riso",

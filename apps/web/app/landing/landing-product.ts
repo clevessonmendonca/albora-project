@@ -5,6 +5,7 @@
 export type LandingProductName =
   | "landing_view"
   | "landing_cta"
+  | "landing_veteran_cta"
   | "landing_scroll_50"
   | "landing_demo";
 

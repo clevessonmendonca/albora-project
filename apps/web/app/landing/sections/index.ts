@@ -13,3 +13,5 @@ export { FaqSection } from "./faq";
 export { ClosingSection } from "./closing";
 export { PhotoCorridorSection } from "./photo-corridor";
 export { ChoresEliminatedSection } from "./chores-eliminated";
+export { AntesDaFestaSection } from "./antes-da-festa";
+export { VeteranSection } from "./veteran";

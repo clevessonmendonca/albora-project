@@ -24,7 +24,7 @@ export function PricingSection({
         "Convidados e fotos sem limite",
         "Missões e galeria",
         "Resolução reduzida",
-        "Álbum por 30 dias",
+        "O álbum fica no ar por 12 meses",
       ],
       cta: "Criar álbum grátis",
       href: HREF_CRIAR_GRATIS,
@@ -35,11 +35,12 @@ export function PricingSection({
       price: "R$ 199",
       period: "pagamento único",
       items: [
+        "As fotos saem com a cara do seu evento",
         "Resolução original e vídeo",
         `Telão ao vivo nos ${IDENTITY_MODELS.length} modelos`,
-        "Download em ZIP",
-        "Identidade do evento aplicada",
+        "Livro pronto para gráfica e download em ZIP",
         "12 meses, com exportação para a sua nuvem",
+        "7 dias para desistir e receber tudo de volta",
       ],
       cta: t("landing.cta"),
       href: HREF_CRIAR_COMPLETO,
@@ -64,10 +65,16 @@ export function PricingSection({
     <Section id="planos" reveal>
       <Heading
         size="clamp(1.75rem, 4.2vw, 3.25rem)"
-        className="mb-[clamp(1.625rem,3.5vw,2.875rem)] max-w-[41.25rem]"
+        className="mb-6 max-w-[41.25rem]"
       >
         {t("landing.planos.titulo")}
       </Heading>
+
+      <p className="m-0 mb-[clamp(1.625rem,3.5vw,2.875rem)] max-w-[46ch] text-[clamp(1rem,1.4vw,1.09375rem)] leading-normal text-ink-2">
+        Você já vai contratar um fotógrafo para o oficial. O que ninguém cobre é
+        o resto da festa — e é isso que fica aqui, com a cara do seu evento e um
+        livro pronto no fim.
+      </p>
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(16.5rem,1fr))] gap-4">
         {plans.map((plan) => (

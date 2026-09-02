@@ -3,8 +3,10 @@ import type { Pack } from "./tipos";
 /** O único lugar do repositório onde "noivos" pode aparecer — se vazar para core, ui-* ou schema, o guard reprova. */
 export const CASAMENTO: Pack = {
   id: "casamento",
+  sugereAntes: "pre-casamento",
   vocabulario: {
     "evento.nome": "casamento",
+    "evento.descricao": "A festa inteira, do altar à última música.",
     "anfitriao.plural": "os noivos",
     "convidado.saudacao": "Que bom te ver aqui",
     "missao.titulo": "Missões da festa",
@@ -17,6 +19,9 @@ export const CASAMENTO: Pack = {
     "musica.escolha": "Escolha dos noivos",
     "telao.vazio": "As primeiras fotos aparecem aqui",
     "lugar.pergunta": "Onde na festa?",
+    "interacao.aberta": "Feed liberado — veja o que rolou",
+    "interacao.fechada": "Interação abre após a cerimônia",
+    "interacao.fechada.agendada": "Interação abre às {hora}",
     "recado.rotulo": "Um recado dos noivos",
     "recado.exemplo":
       "Obrigado por estar com a gente hoje. Tirem fotos — as suas também são as nossas.",
@@ -55,6 +60,8 @@ export const CASAMENTO: Pack = {
     "landing.plano.completo": "Celebração",
     "landing.fechamento": "No dia seguinte, você acorda com centenas de fotos que",
     "landing.fechamento.destaque": "ninguém contratou para tirar.",
+    "landing.veteran.titulo": "Você esteve num casamento com Albora?",
+    "landing.veteran.lede": "Quer o mesmo no seu?",
 
     "reacao.estrela": "Estrela",
     "reacao.riso": "Riso",

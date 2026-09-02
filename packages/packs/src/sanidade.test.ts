@@ -19,6 +19,45 @@ describe("trocar o pack muda a UI, não o núcleo", () => {
     }
   });
 
+  it("todo pack tem descrição própria", () => {
+    for (const [id, pack] of Object.entries(PACKS)) {
+      const desc = resolvePackText(pack, "evento.descricao");
+      expect(desc, id).not.toBe("evento.descricao");
+      expect(desc.length, id).toBeGreaterThan(10);
+    }
+
+    const descricoes = Object.values(PACKS).map((p) => resolvePackText(p, "evento.descricao"));
+    expect(new Set(descricoes).size).toBe(descricoes.length);
+  });
+
+  it("sugereAntes aponta para pack registrado, e nem todo pack tem um", () => {
+    for (const [id, pack] of Object.entries(PACKS)) {
+      if (pack.sugereAntes === undefined) continue;
+      expect(PACKS[pack.sugereAntes], `${id} aponta para pack inexistente`).toBeDefined();
+      expect(pack.sugereAntes, `${id} não pode sugerir a si mesmo`).not.toBe(id);
+    }
+
+    expect(WEDDING.sugereAntes).toBe("pre-casamento");
+    expect(FIFTEEN_YEARS.sugereAntes).toBeUndefined();
+  });
+
+  it("o pack sugerido traz a copy do convite", () => {
+    for (const pack of Object.values(PACKS)) {
+      if (!pack.sugereAntes) continue;
+      const sugerido = PACKS[pack.sugereAntes]!;
+      for (const chave of [
+        "sugestao.rotulo",
+        "sugestao.chamada",
+        "sugestao.titulo",
+        "sugestao.lede",
+        "sugestao.efeito",
+        "sugestao.cta",
+      ]) {
+        expect(resolvePackText(sugerido, chave), chave).not.toBe(chave);
+      }
+    }
+  });
+
   it("missão e lugar podem divergir entre packs", () => {
     expect(WEDDING.lugares.map((l) => l.id)).toContain("altar");
     expect(FIFTEEN_YEARS.lugares.map((l) => l.id)).not.toContain("altar");
