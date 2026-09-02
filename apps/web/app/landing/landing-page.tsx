@@ -19,7 +19,8 @@ import {
   AlbumChaptersSection,
   IdentitySection,
   BookSection,
-  IncludedSection,
+  PhotoCorridorSection,
+  ChoresEliminatedSection,
   AntesDaFestaSection,
   VeteranSection,
   PricingSection,
@@ -105,11 +106,12 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
       />
       <ExperienceSection />
       <MomentsSection t={t} />
+      <PhotoCorridorSection />
       <MissionsSection missions={missions} t={t} />
       <AlbumChaptersSection eventMoments={eventMoments} />
       <IdentitySection example={example} t={t} />
       <BookSection places={places} />
-      <IncludedSection />
+      <ChoresEliminatedSection />
       <AntesDaFestaSection packId={pack.id} />
       <VeteranSection packId={pack.id} t={t} />
       <PricingSection packId={pack.id} t={t} />
