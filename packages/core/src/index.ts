@@ -603,6 +603,34 @@ export { chaveRecadoValida as isGuestbookAudioKey } from "./chaves";
 export { derivarChaveExport as deriveExportKey } from "./chaves";
 /** English alias — prefer for new code. @see chaveExportValida */
 export { chaveExportValida as isExportKey } from "./chaves";
+
+export { maskPii, maskObject, addPiiField, logger, createLogContext } from "./structured-logging";
+
+export type {
+  WebVitalName,
+  WebVitalRating,
+  WebVitalMetric,
+  WebVitalHandler,
+  WebVitalsSession,
+  WebVitalsStats,
+} from "./web-vitals";
+export { WEB_VITAL_THRESHOLDS, getWebVitalRating, aggregateWebVitals, shouldSample } from "./web-vitals";
+
+export type {
+  ErrorSeverity,
+  ErrorContext,
+  CapturedError,
+  ErrorTrackingProvider,
+} from "./error-tracking";
+export {
+  configureErrorTracking,
+  captureException,
+  captureMessage,
+  setUserContext,
+  setErrorContext,
+  withErrorTracking,
+} from "./error-tracking";
+
 /** English alias — prefer for new code. @see derivarChaveImagemCapa */
 export { derivarChaveImagemCapa as deriveCoverImageKey } from "./chaves";
 /** English alias — prefer for new code. @see chaveImagemCapaValida */
