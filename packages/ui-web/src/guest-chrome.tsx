@@ -30,7 +30,8 @@ export function GuestMain({
   reserveTabBarSpace?: boolean;
 }) {
   return (
-    <div
+    <main
+      id="main-content"
       className={cn(
         "flex flex-1 flex-col px-[1.125rem]",
         reserveTabBarSpace
@@ -39,7 +40,7 @@ export function GuestMain({
       )}
     >
       {children}
-    </div>
+    </main>
   );
 }
 
@@ -95,23 +96,25 @@ export function EmptyState({
 }: {
   title: string;
   lede: string;
-  cameraPath: string;
+  cameraPath?: string;
   cameraLabel?: string;
 }) {
   return (
     <div className="grid gap-5 py-[calc(var(--espaco)*8)] text-center">
       <div>
-        <p className="mb-1.5 font-titulo text-[1.6rem] font-medium leading-snug tracking-titulo [text-wrap:balance]">
+        <p className="mb-1.5 font-titulo font-medium leading-snug tracking-titulo [text-wrap:balance]" style={{ fontSize: "clamp(1.25rem, 5vw, 1.6rem)" }}>
           {title}
         </p>
         <p className="m-0 leading-relaxed text-ink-2">{lede}</p>
       </div>
-      <a
-        href={cameraPath}
-        className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
-      >
-        {cameraLabel}
-      </a>
+      {cameraPath ? (
+        <a
+          href={cameraPath}
+          className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
+        >
+          {cameraLabel}
+        </a>
+      ) : null}
     </div>
   );
 }
