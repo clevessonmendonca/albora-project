@@ -13,6 +13,7 @@ import type { JanelaDoEvento, MidiaDoAlbum, CapituloPlanejado } from "./types";
 const janela: JanelaDoEvento = {
   comecaEm: new Date("2026-09-01T21:00:00Z"),
   terminaEm: new Date("2026-09-02T05:00:00Z"),
+  offsetMinutos: -180,
 };
 
 function midia(overrides: Partial<MidiaDoAlbum> = {}): MidiaDoAlbum {
