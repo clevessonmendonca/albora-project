@@ -4,6 +4,7 @@ import type { CodigoDaTese, DegrauDoFunil, EtapaDaEspinha } from "@albora/core";
 import type { EntradasPorVia } from "@albora/db";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { downloadFromApi, triggerBlobDownload } from "@/features/admin/lib/download-file";
 import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
 type MissaoInsightUI = { challengeId: string; titulo: string; emoji: string | null; fotos: number };
@@ -54,6 +55,8 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
   const [erro, setErro] = useState(false);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const [atualizando, setAtualizando] = useState(false);
+  const [baixandoCsv, setBaixandoCsv] = useState(false);
+  const [erroCsv, setErroCsv] = useState<string | null>(null);
 
   const carregar = useCallback(async () => {
     try {
@@ -80,6 +83,19 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
     const id = window.setInterval(() => void carregar(), INTERVALO_MS);
     return () => window.clearInterval(id);
   }, [carregar]);
+
+  const baixarCsv = useCallback(async () => {
+    setErroCsv(null);
+    setBaixandoCsv(true);
+    try {
+      const blob = await downloadFromApi(`/api/admin/events/${eventoId}/insights/csv`);
+      triggerBlobDownload(blob, `insights-${eventoId}.csv`);
+    } catch (e) {
+      setErroCsv(e instanceof Error ? e.message : "Não baixou agora.");
+    } finally {
+      setBaixandoCsv(false);
+    }
+  }, [eventoId]);
 
   if (erro && !resumo) {
     return (
@@ -124,6 +140,14 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
           <h2 className="m-0 font-titulo text-lg">A festa está pegando?</h2>
           <div className="flex items-center gap-2">
             {ultimaAtualizacao && <AtualizadoHa desde={ultimaAtualizacao} />}
+            <button
+              type="button"
+              disabled={baixandoCsv}
+              onClick={() => void baixarCsv()}
+              className={`cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink ${baixandoCsv ? "cursor-wait opacity-60" : ""}`}
+            >
+              {baixandoCsv ? "Gerando…" : "↓ CSV"}
+            </button>
             <RefreshButton
               loading={atualizando}
               onClick={() => {
@@ -137,6 +161,7 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
           A pergunta da noite em números ao vivo. Dados agregados, atualizados a cada 30
           segundos — sem nomes nem fotos de convidado.
         </p>
+        {erroCsv && <p className="mb-5 mt-0 text-sm text-critico">{erroCsv}</p>}
         <div className="mb-5 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
           <Stat n={`${pct}%`} rotulo="H1 participação" destaqueClass={destaqueClass} />
           <Stat n={String(resumo.sessoesComUpload)} rotulo="fotografaram" />
@@ -227,16 +252,7 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
 
       {insights && insights.missoes.length > 0 && (
         <AdminSection>
-          <div className="mb-3 flex items-center justify-between gap-4">
-            <h2 className="m-0 font-titulo text-lg">Missões mais fotografadas</h2>
-            <button
-              type="button"
-              onClick={() => downloadInsightsCsv(insights)}
-              className="cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink"
-            >
-              ↓ CSV
-            </button>
-          </div>
+          <h2 className="mb-3 mt-0 font-titulo text-lg">Missões mais fotografadas</h2>
           <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
             Ranking de engajamento por missão — sem identificar quem fotografou.
           </p>
@@ -277,31 +293,6 @@ function Stat({
       <p className="mb-0 mt-1.5 text-xs text-ink-2">{rotulo}</p>
     </div>
   );
-}
-
-function downloadInsightsCsv(insights: Insights): void {
-  const rows: string[] = [
-    "Secao,Posicao,Titulo,Hora,Fotos",
-    ...insights.missoes.map((m, i) =>
-      [
-        "missao",
-        i + 1,
-        `"${(m.titulo ?? "").replace(/"/g, '""')}"`,
-        "",
-        m.fotos,
-      ].join(","),
-    ),
-    ...insights.horas.map((h) =>
-      ["hora", "", "", h.hora, h.fotos].join(","),
-    ),
-  ];
-  const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `insights.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
 }
 
 function MissoesRanking({ missoes }: { missoes: MissaoInsightUI[] }) {
