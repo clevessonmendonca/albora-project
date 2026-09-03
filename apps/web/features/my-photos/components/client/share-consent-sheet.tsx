@@ -1,11 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { CONSENTIMENTO_EXTERNO_VIGENTE, textoDoConsentimento } from "@albora/core";
 import {
   BottomSheet,
   Button,
   ConsentCheckbox,
 } from "@albora/ui-web";
+
+// Fonte da verdade em @albora/core: mesmo texto que o painel de auditoria
+// LGPD do anfitrião lê.
+const TEXTO_CONSENTIMENTO_EXTERNO =
+  textoDoConsentimento("externo", CONSENTIMENTO_EXTERNO_VIGENTE) ?? "";
 
 export function ShareConsentSheet({
   open,
@@ -35,11 +41,7 @@ export function ShareConsentSheet({
         </div>
       }
     >
-      <p className="m-0 text-t-body leading-relaxed text-ink-2">
-        A foto vai sair com a moldura desta festa: monograma, nomes, data e o
-        endereço da Albora. Quem receber no Instagram ou WhatsApp pode guardar
-        para sempre — não dá para desfazer depois.
-      </p>
+      <p className="m-0 text-t-body leading-relaxed text-ink-2">{TEXTO_CONSENTIMENTO_EXTERNO}</p>
       <ConsentCheckbox checked={nomeNaMoldura} onChange={setNomeNaMoldura}>
         Incluir meu primeiro nome na moldura
       </ConsentCheckbox>

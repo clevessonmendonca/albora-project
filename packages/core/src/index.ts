@@ -815,3 +815,21 @@ export { podeRemoverComentario as canRemoveComment } from "./comment";
 export { registrarDecisaoDoComentario as registerCommentDecision } from "./comment";
 /** English alias — prefer for new code. @see validarTexto */
 export { validarTexto as validateCommentText } from "./comment";
+
+export type { TipoDeConsentimento, VersaoDeConsentimento } from "./consent-versions";
+export {
+  CONSENTIMENTO_ENTRADA_VIGENTE,
+  CONSENTIMENTO_EXTERNO_VIGENTE,
+  rotuloDoConsentimento,
+  textoDoConsentimento,
+  versaoVigente as versaoVigenteDoConsentimento,
+  VERSOES_DE_CONSENTIMENTO,
+} from "./consent-versions";
+/** English alias — prefer for new code. @see TipoDeConsentimento */
+export type { TipoDeConsentimento as ConsentKind } from "./consent-versions";
+/** English alias — prefer for new code. @see VersaoDeConsentimento */
+export type { VersaoDeConsentimento as ConsentVersion } from "./consent-versions";
+/** English alias — prefer for new code. @see VERSOES_DE_CONSENTIMENTO */
+export { VERSOES_DE_CONSENTIMENTO as CONSENT_VERSIONS } from "./consent-versions";
+/** English alias — prefer for new code. @see textoDoConsentimento */
+export { textoDoConsentimento as consentVersionText } from "./consent-versions";

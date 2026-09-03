@@ -1,6 +1,7 @@
 "use client";
 
 import type { EntryVia } from "@albora/core";
+import { CONSENTIMENTO_ENTRADA_VIGENTE, textoDoConsentimento } from "@albora/core";
 import { useEffect, useState } from "react";
 import { registerServiceWorker } from "@/lib/register-sw";
 import {
@@ -20,11 +21,14 @@ import {
   SkipLink,
 } from "@albora/ui-web";
 
-const CONSENTIMENTO = "v1";
+// Fonte da verdade em @albora/core: mesmo texto que o painel de auditoria
+// LGPD do anfitrião lê — divergir aqui faria a auditoria mentir sobre o que
+// o convidado realmente aceitou.
+const CONSENTIMENTO = CONSENTIMENTO_ENTRADA_VIGENTE;
 const NOME_SALVO = "albora:nome";
 
 const TEXTO_CONSENTIMENTO_COMPLETO =
-  "As fotos e vídeos que você enviar ficam visíveis para quem participa desta festa — no álbum, no feed e no telão, conforme os anfitriões liberarem. Seus dados ficam neste evento até o prazo de retenção definido pelos anfitriões. Você pode pedir a remoção das suas fotos a qualquer momento.";
+  textoDoConsentimento("entrada", CONSENTIMENTO_ENTRADA_VIGENTE) ?? "";
 
 type Etapa = "entrada" | "recusou";
 

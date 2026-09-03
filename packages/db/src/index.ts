@@ -470,3 +470,10 @@ export { signableKeys } from "./media-signable";
 
 export type { MissaoInsight, HoraInsight } from "./insights";
 export { fotosPorMissao, fotosPorHora } from "./insights";
+
+export type { AceiteDeConsentimento, AceiteDeConsentimentoExterno } from "./consent-db";
+export { aceitesDeEntradaPorVersao, aceitesExternosPorVersao } from "./consent-db";
+/** English alias — preferred for new code. @see aceitesDeEntradaPorVersao */
+export { aceitesDeEntradaPorVersao as entryConsentAcceptancesByVersion } from "./consent-db";
+/** English alias — preferred for new code. @see aceitesExternosPorVersao */
+export { aceitesExternosPorVersao as externalConsentAcceptancesByVersion } from "./consent-db";

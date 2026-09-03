@@ -1,5 +1,5 @@
 import { createSession, ErroNomeInvalido } from "@albora/db";
-import { parseEntryVia } from "@albora/core";
+import { CONSENTIMENTO_ENTRADA_VIGENTE, parseEntryVia } from "@albora/core";
 import { recordFunnelEntry } from "@/features/guest/lib/record-funnel";
 import {
   sessionCookieHeader,
@@ -15,7 +15,7 @@ import { config } from "@/lib/config";
 
 export const dynamic = "force-dynamic";
 
-const CONSENTIMENTO_VIGENTE = "v1";
+const CONSENTIMENTO_VIGENTE = CONSENTIMENTO_ENTRADA_VIGENTE;
 
 type Corpo = { eventoId?: unknown; nome?: unknown; consentimento?: unknown; via?: unknown };
 

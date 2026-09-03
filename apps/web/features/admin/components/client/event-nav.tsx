@@ -23,6 +23,7 @@ const GROUPS: Section[][] = [
     { label: "Identidade", suffix: "/identity" },
     { label: "Recado", suffix: "/guestbook" },
     { label: "QR Code", suffix: "/qrcode" },
+    { label: "Consentimento", suffix: "/consent" },
   ],
 ];
 
