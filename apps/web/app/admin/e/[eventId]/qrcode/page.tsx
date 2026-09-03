@@ -29,6 +29,8 @@ export default async function QrCodePage({
 
         return (
           <QrCodePrint
+            eventId={eventId}
+            slug={evento.slug}
             eventName={evento.title ?? evento.slug}
             guestUrl={guestUrl}
             svgString={svgString}
