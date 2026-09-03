@@ -18,10 +18,36 @@ html,
 body {
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
 /* O chão vem do token: `<body>` transparente empresta o branco do navegador. */
 body {
   background: var(--bg);
   color: var(--ink);
+}
+
+@keyframes star-bounce {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.18);
+  }
+  60% {
+    transform: scale(0.94);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-star-bounce {
+  animation: star-bounce 500ms var(--curva);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-star-bounce {
+    animation: none;
+  }
 }

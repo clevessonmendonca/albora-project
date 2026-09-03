@@ -97,7 +97,7 @@ export function buildPreEventSections(
         },
         {
           id: "menores",
-          label: '"Há menores" ligado, se aplicável',
+          label: "“Há menores” ligado, se aplicável",
           href: `${base}#controle-menores`,
         },
         {

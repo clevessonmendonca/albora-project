@@ -9,7 +9,7 @@ export default function MyPhotosError({ reset }: { error: Error & { digest?: str
   return (
     <div className="flex min-h-[50dvh] flex-col items-center justify-center px-8 text-center font-corpo text-ink">
       <p className="text-lg font-medium">Suas fotos não carregaram</p>
-      <p className="mt-2 text-sm text-ink-2">Suas fotos estão seguras. Tente recarregar.</p>
+      <p className="mt-2 text-sm text-ink-2">Elas estão seguras. Tente recarregar.</p>
       <button
         type="button"
         onClick={reset}

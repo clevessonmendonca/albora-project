@@ -9,7 +9,7 @@ export default function FeedError({ reset }: { error: Error & { digest?: string 
   return (
     <div className="flex min-h-[50dvh] flex-col items-center justify-center px-8 text-center font-corpo text-ink">
       <p className="text-lg font-medium">O feed não carregou</p>
-      <p className="mt-2 text-sm text-ink-2">Tente recarregar a página.</p>
+      <p className="mt-2 text-sm text-ink-2">Suas fotos estão seguras. Tente recarregar.</p>
       <button
         type="button"
         onClick={reset}
