@@ -149,7 +149,7 @@ export function EventControls({
         </div>
       </AdminSection>
 
-      <AdminSection>
+      <AdminSection id="controle-menores">
         <h2 className="mb-4 mt-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
           Proteções
         </h2>
@@ -212,7 +212,7 @@ export function EventControls({
         </div>
       </AdminSection>
 
-      <AdminSection>
+      <AdminSection id="controle-interacao">
         <h2 className="mb-3 mt-0 font-titulo text-lg">Interação social</h2>
         <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
           Reações e comentários no feed só aparecem depois que vocês liberarem.

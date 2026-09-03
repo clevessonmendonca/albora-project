@@ -2,6 +2,7 @@ import { buscarEventoDoHost, roleForAccountOnEvent, type EventoDoHost, type Host
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { adminEventDisplayName } from "@/features/admin/lib/event-display-name";
+import { preEventStorageKey } from "@/features/admin/lib/pre-event-checklist";
 import { getPool } from "@/lib/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 
@@ -12,6 +13,7 @@ export type AdminEventPageContext = {
   role: HostEventRole;
   /** ZIP, Assinar Completo, haMenores — só couple/owner. */
   canManageCoupleOnly: boolean;
+  checklistStorageKey: string;
 };
 
 export async function loadEventPage(eventoId: string): Promise<AdminEventPageContext> {
@@ -32,5 +34,6 @@ export async function loadEventPage(eventoId: string): Promise<AdminEventPageCon
     name: adminEventDisplayName(evento),
     role,
     canManageCoupleOnly: role === "owner" || role === "couple",
+    checklistStorageKey: preEventStorageKey(host.accountId, eventoId),
   };
 }

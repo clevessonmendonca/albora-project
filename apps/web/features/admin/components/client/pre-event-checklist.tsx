@@ -161,7 +161,7 @@ export function PreEventChecklist({
                 {script.title}
               </cite>
               <p className="mb-0 mt-2 text-[0.9375rem] leading-[1.65] text-ink-2">
-                &ldquo;{script.text}&rdquo;
+                “{script.text}”
               </p>
             </blockquote>
           ))}

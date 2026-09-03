@@ -67,8 +67,12 @@ export function AdminCard({
   return <section className={adminCardVariants({ variant, className })}>{children}</section>;
 }
 
-export function AdminSection({ children }: { children: ReactNode }) {
-  return <AdminCard>{children}</AdminCard>;
+export function AdminSection({ children, id }: { children: ReactNode; id?: string }) {
+  return (
+    <section id={id} className={adminCardVariants()}>
+      {children}
+    </section>
+  );
 }
 
 export const adminClasses = {
