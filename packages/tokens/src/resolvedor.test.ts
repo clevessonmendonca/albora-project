@@ -117,6 +117,25 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
     }
   });
 
+  it("texto secundário e terciário são legíveis sobre superfícies elevadas", () => {
+    for (const background of ["dark", "light"] as const) {
+      const e = resolveScale({ ...ALBORA_BRAND, background });
+
+      expect(razao(e.ink, e.superficie), `ink/superficie/${background}`).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+      expect(razao(e.ink2, e.superficie), `ink2/superficie/${background}`).toBeGreaterThan(3);
+      expect(razao(e.ink, e.superficieAlta), `ink/superficieAlta/${background}`).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+      expect(razao(e.acentoTexto, e.superficie), `acento/superficie/${background}`).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+    }
+  });
+
+  it("ink3 é distinguível mas intencionalmente abaixo de AA", () => {
+    for (const background of ["dark", "light"] as const) {
+      const e = resolveScale({ ...ALBORA_BRAND, background });
+
+      expect(razao(e.ink3, e.bg), `ink3/${background}`).toBeGreaterThan(1.5);
+    }
+  });
+
   it("acento escolhido pelo casal também recebe rótulo legível", () => {
     // A cor vem de quem paga e pode ser qualquer uma — âmbar claro derruba a escolha para o lado escuro; rótulo fixo faria o botão sumir.
     for (const acento of ["#FFE08A", "#2B1A0E", "#D9793C"]) {
