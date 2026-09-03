@@ -1,0 +1,84 @@
+{
+  "version": "1.0",
+  "description": "Sentry alert rules for Albora critical routes",
+  "rules": [
+    {
+      "name": "Media presign: rate > 5 errors/min",
+      "condition": {
+        "event.type": "error",
+        "tags.route": "/api/uploads/presign",
+        "threshold": {
+          "type": "rate",
+          "value": 5,
+          "window": 60
+        }
+      },
+      "actions": [
+        {
+          "service": "slack",
+          "channel": "#ops-alerts"
+        },
+        {
+          "service": "pagerduty",
+          "severity": "warning"
+        }
+      ],
+      "notes": "Presign endpoint (media upload initialization) is critical path to first photo upload. Rate > 5/min indicates systemic issue with R2 signing or validation."
+    },
+    {
+      "name": "Wall display: any error",
+      "condition": {
+        "event.type": "error",
+        "tags.route": "/api/wall/*"
+      },
+      "actions": [
+        {
+          "service": "slack",
+          "channel": "#ops-alerts"
+        },
+        {
+          "service": "pagerduty",
+          "severity": "critical"
+        }
+      ],
+      "notes": "Wall (telão) display is live during event. Any error means guests see blank screen or missing photos."
+    },
+    {
+      "name": "Billing: any error",
+      "condition": {
+        "event.type": "error",
+        "tags.route": "/api/billing/*"
+      },
+      "actions": [
+        {
+          "service": "slack",
+          "channel": "#ops-alerts"
+        },
+        {
+          "service": "pagerduty",
+          "severity": "high"
+        }
+      ],
+      "notes": "Billing operations must not fail silently. Errors indicate payment processing or webhook handling issues."
+    },
+    {
+      "name": "Operations/maintenance: any error",
+      "condition": {
+        "event.type": "error",
+        "tags.route": "/api/ops/*"
+      },
+      "actions": [
+        {
+          "service": "slack",
+          "channel": "#ops-alerts"
+        },
+        {
+          "service": "pagerduty",
+          "severity": "high"
+        }
+      ],
+      "notes": "Ops endpoint (retention jobs, support tasks, etc.) must not fail silently. Data loss or orphaned records possible."
+    }
+  ],
+  "sentry_cli_usage": "This file documents the alert rules that need to be configured in Sentry. To apply these rules programmatically, use the script apply-alerts.sh with a valid SENTRY_AUTH_TOKEN. Until credentials are available, rules should be configured via Sentry UI at: https://sentry.io/settings/<org-slug>/projects/<project-slug>/alerts/"
+}

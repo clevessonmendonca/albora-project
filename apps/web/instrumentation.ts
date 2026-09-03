@@ -15,7 +15,29 @@ export async function onRequestError(
   ]
 ) {
   if (process.env.SENTRY_DSN) {
-    const { captureRequestError } = await import("@sentry/nextjs");
-    captureRequestError(...args);
+    const { captureRequestError, withScope, setTag } = await import("@sentry/nextjs");
+
+    // Tag with critical route paths for alerting
+    const [error, request] = args;
+    const path = request.path || "";
+
+    const criticalPaths = [
+      "/api/uploads/presign",
+      "/api/wall/",
+      "/api/billing/",
+      "/api/ops/",
+    ];
+    const isCritical = criticalPaths.some((p) => path.includes(p));
+
+    // Capture with route context
+    if (isCritical) {
+      withScope(() => {
+        setTag("critical_route", "true");
+        setTag("route", path);
+        captureRequestError(...args);
+      });
+    } else {
+      captureRequestError(...args);
+    }
   }
 }
