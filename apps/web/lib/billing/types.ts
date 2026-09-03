@@ -52,6 +52,18 @@ export type WebhookVendorSubscriptionEvent = {
   status: "CONFIRMED" | "RECEIVED" | "OVERDUE" | "REFUNDED" | "DELETED" | "OTHER";
 };
 
+/** Uma cobrança, para o histórico do anfitrião (admin/billing) — `status` é o valor cru do provedor (Asaas: PENDING, RECEIVED, CONFIRMED, OVERDUE…), a UI decide a cor. */
+export type PaymentSummary = {
+  id: string;
+  status: string;
+  amountCents: number;
+  billingType: string | null;
+  description: string | null;
+  createdAt: string;
+  dueDate: string | null;
+  invoiceUrl: string | null;
+};
+
 export type BillingProvider = {
   ensureCustomer(email: string, externalRef: string, name?: string): Promise<string>;
   createCheckout(input: CreateCheckoutInput & { customerId: string }): Promise<CreateCheckoutResult>;
@@ -68,6 +80,7 @@ export type BillingProvider = {
     body: unknown,
     expectedAccessToken: string | null,
   ): WebhookVendorSubscriptionEvent | { error: string } | null;
+  listPayments(customerId: string): Promise<PaymentSummary[]>;
 };
 
 export const CELEBRATION_PRICE_CENTS = 19900;

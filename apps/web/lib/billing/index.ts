@@ -5,6 +5,7 @@ export type {
   CreateCheckoutResult,
   CreateVendorSubscriptionInput,
   CreateVendorSubscriptionResult,
+  PaymentSummary,
   WebhookPaymentEvent,
   WebhookVendorSubscriptionEvent,
 } from "./types";
