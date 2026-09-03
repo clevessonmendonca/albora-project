@@ -1,0 +1,22 @@
+name: Drive export jobs
+
+on:
+  schedule:
+    - cron: "30 4 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: drive-export-cron
+  cancel-in-progress: false
+
+jobs:
+  drive-export:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Trigger drive-export endpoint
+        run: |
+          curl -sf -X POST "${{ secrets.APP_URL }}/api/jobs/drive-export" \
+            -H "Authorization: Bearer ${{ secrets.JOB_RUNNER_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --max-time 120

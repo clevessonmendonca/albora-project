@@ -1,0 +1,22 @@
+name: Retention jobs (LGPD)
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: retention-cron
+  cancel-in-progress: false
+
+jobs:
+  retention:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Trigger retention endpoint
+        run: |
+          curl -sf -X POST "${{ secrets.APP_URL }}/api/ops/retencao" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --max-time 120
