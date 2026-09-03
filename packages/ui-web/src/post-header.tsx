@@ -41,14 +41,25 @@ export function PostHeader({
     <span className="font-medium text-[0.875rem] text-ink truncate">{author}</span>
   );
 
+  const hasTimestamp = Boolean(timestamp);
+
   return (
-    <div className="flex items-center gap-2.5 py-1">
+    <div className="flex items-center gap-2.5">
       {avatarNode}
-      <div className="flex min-w-0 flex-1 flex-col">
-        {autorNode}
-        {timestamp && <span className="text-[0.6875rem] text-ink-3">{timestamp}</span>}
-      </div>
-      {meta && <span className="text-[0.6875rem] text-ink-3">{meta}</span>}
+      {hasTimestamp ? (
+        <div className="flex-1 min-w-0">
+          {autorNode}
+          <p className="m-0 font-titulo text-[0.6875rem] uppercase tracking-[0.2em] text-ink-3">
+            {timestamp}
+            {meta && ` · ${meta}`}
+          </p>
+        </div>
+      ) : (
+        <>
+          {autorNode}
+          {meta && <span className="text-[0.6875rem] text-ink-3">{meta}</span>}
+        </>
+      )}
     </div>
   );
 }
