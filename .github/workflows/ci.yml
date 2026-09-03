@@ -124,7 +124,7 @@ jobs:
           --health-retries 20
     env:
       # Valores dummy só para subir o dev server no CI — nunca secrets reais.
-      SESSION_SECRET: ci-e2e-smoke-not-a-real-secret
+      SESSION_SECRET: ci-e2e-smoke-not-a-real-secret-32ch
       R2_ACCOUNT_ID: "00000000000000000000000000000000"
       R2_ACCESS_KEY_ID: ci
       R2_SECRET_ACCESS_KEY: ci
