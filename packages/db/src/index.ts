@@ -136,6 +136,7 @@ export {
   limiarDenuncias,
   listarEventosDoHost,
   paraEstadoDoEvento,
+  publicarEvento,
 } from "./moderation-event";
 
 export type { ComentarioParaRevisao, MidiaParaRevisao } from "./moderation-review-db";

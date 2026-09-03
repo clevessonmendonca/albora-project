@@ -29,6 +29,7 @@ export default async function EventPage({
             plan={evento.plan}
             initial={evento.moderacao}
             initialInteractionOpensAt={evento.interacaoAbreEm?.toISOString() ?? null}
+            initialStatus={evento.status}
             canManageCoupleOnly={canManageCoupleOnly}
           />
           <EventTeamPanel eventId={evento.eventoId} canManageTeam={canManageCoupleOnly} />

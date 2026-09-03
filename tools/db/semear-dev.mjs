@@ -119,8 +119,8 @@ async function semear() {
   );
 
   const { rows: evento } = await pool.query(
-    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, interaction_opens_at, recommended_filter, plan)
-     VALUES ($1, 'casamento', $2, now() - interval '1 hour', now() + interval '6 hours', now() + interval '2 hours', $3, 'celebration')
+    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, interaction_opens_at, recommended_filter, plan, status)
+     VALUES ($1, 'casamento', $2, now() - interval '1 hour', now() + interval '6 hours', now() + interval '2 hours', $3, 'celebration', 'active')
      RETURNING id`,
     [conta[0].id, SLUG, FILTRO_RECOMENDADO],
   );
@@ -144,8 +144,8 @@ async function semear() {
   // Um segundo evento, já encerrado, para conferir a tela de "já foi" sem
   // ter de mexer no relógio.
   const { rows: velho } = await pool.query(
-    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
-     VALUES ($1, 'quinze-anos', 'festa-encerrada', now() - interval '10 days', now() - interval '9 days')
+    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status)
+     VALUES ($1, 'quinze-anos', 'festa-encerrada', now() - interval '10 days', now() - interval '9 days', 'active')
      RETURNING id`,
     [conta[0].id],
   );

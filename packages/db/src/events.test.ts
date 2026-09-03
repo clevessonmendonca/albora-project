@@ -111,7 +111,7 @@ describe("rotação de slug", () => {
 });
 
 describe("o anfitrião cria o evento", () => {
-  it("cria sob a própria conta, e o slug abre o novo evento", async () => {
+  it("cria sob a própria conta, e o slug já existe — mas em rascunho", async () => {
     const { eventoId, slug } = await criarEvento(app, {
       accountId: dados.a.contaId,
       packId: "pack-um",
@@ -126,9 +126,11 @@ describe("o anfitrião cria o evento", () => {
     );
     expect(rows[0]?.account_id).toBe(dados.a.contaId);
 
-    // E o slug, criado na mesma transação, resolve o evento.
+    // O slug, criado na mesma transação, já resolve o evento — mas em
+    // rascunho: o gate de publicação (task 6, gap I1) barra o convidado até
+    // o anfitrião publicar de propósito.
     const r = await resolverSlug(app, slug, new Date());
-    expect(r.estado).toBe("aberto");
+    expect(r.estado).toBe("rascunho");
     expect(r.estado !== "desconhecido" && r.evento.eventoId).toBe(eventoId);
   });
 

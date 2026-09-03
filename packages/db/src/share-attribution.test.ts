@@ -29,8 +29,8 @@ const daquiA = (horas: number) => new Date(Date.now() + horas * 3600_000);
 /** Evento sem `criarEvento` — isola o teste de retry-em-colisão de `mintarRefDeCompartilhamento` do mint automático que `criarEvento` já faz. */
 async function eventoNu(slug: string, packId: string, accountId: string): Promise<string> {
   const { rows } = await admin.query<{ id: string }>(
-    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
-     VALUES ($1, $2, $3, now(), now() + interval '6 hours') RETURNING id`,
+    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status)
+     VALUES ($1, $2, $3, now(), now() + interval '6 hours', 'active') RETURNING id`,
     [accountId, packId, slug],
   );
   return rows[0]!.id;

@@ -10,6 +10,7 @@ export type EstadoDoEvento =
   | "nao_comecou"
   | "encerrado"
   | "slug_rotacionado"
+  | "rascunho"
   | "desconhecido";
 
 export type EventoPublico = {
@@ -29,11 +30,13 @@ export type EventoPublico = {
   coverImageKey: string | null;
   /** Nome personalizado do casal para o evento. Null = vocabulário do pack. */
   title: string | null;
+  /** `draft` = anfitrião ainda não publicou; convidado não entra (task 6, gap I1). */
+  status: "draft" | "active" | "ended";
 };
 
 export type Resolucao =
   | { estado: "aberto" | "nao_comecou"; evento: EventoPublico }
-  | { estado: "encerrado" | "slug_rotacionado"; evento: EventoPublico }
+  | { estado: "encerrado" | "slug_rotacionado" | "rascunho"; evento: EventoPublico }
   | { estado: "desconhecido" };
 
 export const HORAS_APOS_EVENTO = 48;
@@ -44,7 +47,7 @@ export async function carregarEventoPublico(
 ): Promise<EventoPublico | null> {
   const { rows: e } = await cliente.query(
     `SELECT id, pack_id, starts_at, ends_at, interaction_opens_at, identity_tokens,
-            recommended_filter, timezone, vendor_id, cover_image_key, title
+            recommended_filter, timezone, vendor_id, cover_image_key, title, status
      FROM events WHERE id = $1`,
     [eventoId],
   );
@@ -72,6 +75,7 @@ export async function carregarEventoPublico(
     vendorBrandTokens,
     coverImageKey: (linha.cover_image_key ?? null) as string | null,
     title: (linha.title ?? null) as string | null,
+    status: linha.status as "draft" | "active" | "ended",
   };
 }
 
@@ -105,6 +109,10 @@ export async function resolverSlug(
   );
 
   if (!evento) return { estado: "desconhecido" };
+
+  // Rascunho vence rotação de slug: o anfitrião ainda não publicou, então nem
+  // o QR mais novo deve chegar no convidado (task 6, gap I1).
+  if (evento.status === "draft") return { estado: "rascunho", evento };
 
   if (!encontrado.active) return { estado: "slug_rotacionado", evento };
 

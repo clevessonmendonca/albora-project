@@ -57,6 +57,17 @@ export default async function Pagina({ params, searchParams }: Props) {
     );
   }
 
+  if (r.estado === "rascunho") {
+    // Anfitrião ainda não publicou (task 6, gap I1) — o QR pode já estar na
+    // placa, mas o convidado não entra até a decisão explícita de publicar.
+    return (
+      <EventNotice
+        title="Evento ainda não disponível"
+        body="Os anfitriões estão preparando tudo. Volte em breve!"
+      />
+    );
+  }
+
   if (r.estado === "encerrado") {
     return (
       <EventNotice

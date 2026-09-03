@@ -39,8 +39,8 @@ async function criarEvento(endsAt: Date, contaId?: string) {
   const conta = contaId ?? dados.a.contaId;
   const slug = `evt-${Math.random().toString(36).slice(2, 10)}`;
   const { rows } = await admin.query<{ id: string }>(
-    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
-     VALUES ($1, 'pack-um', $2, $3, $4) RETURNING id`,
+    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status)
+     VALUES ($1, 'pack-um', $2, $3, $4, 'active') RETURNING id`,
     [conta, slug, new Date(endsAt.getTime() - 6 * 3600 * 1000), endsAt],
   );
   const eventoId = rows[0]!.id;

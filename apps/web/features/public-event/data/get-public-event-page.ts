@@ -43,7 +43,13 @@ export const CTA_MONTAR_O_SEU = "/admin/new?plano=free";
 export async function getPublicEventPage(slug: string): Promise<PublicEventPageData | null> {
   const resolucao = await resolverSlug(getPool(), slug, new Date());
 
-  if (resolucao.estado === "desconhecido" || resolucao.estado === "slug_rotacionado") {
+  if (
+    resolucao.estado === "desconhecido" ||
+    resolucao.estado === "slug_rotacionado" ||
+    resolucao.estado === "rascunho"
+  ) {
+    // Rascunho: anfitrião não publicou (task 6, gap I1) — a vitrine pública
+    // não existe até lá, igual a slug desconhecido.
     return null;
   }
 

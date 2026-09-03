@@ -10,7 +10,11 @@ export type PublicEventMetadata = {
 export async function getPublicEventMetadata(slug: string): Promise<PublicEventMetadata | null> {
   const resolucao = await resolverSlug(getPool(), slug, new Date());
 
-  if (resolucao.estado === "desconhecido" || resolucao.estado === "slug_rotacionado") {
+  if (
+    resolucao.estado === "desconhecido" ||
+    resolucao.estado === "slug_rotacionado" ||
+    resolucao.estado === "rascunho"
+  ) {
     return null;
   }
 

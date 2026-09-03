@@ -54,8 +54,11 @@ export async function semear(admin: pg.Pool) {
 
   const criar = async (slug: string, pack: string, accountId: string) => {
     const { rows } = await admin.query(
-      `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
-       VALUES ($1, $2, $3, now(), now() + interval '6 hours') RETURNING id`,
+      // status explícito: sem isso o DEFAULT 'draft' (migration 0056) faria
+      // todo evento semeado nascer em rascunho, e a suíte inteira assume
+      // evento já publicado — só o gap I1 (task 6) testa 'draft' de propósito.
+      `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status)
+       VALUES ($1, $2, $3, now(), now() + interval '6 hours', 'active') RETURNING id`,
       [accountId, pack, slug],
     );
     const eventoId = rows[0].id as string;

@@ -484,8 +484,8 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
 
     // Segundo evento sob vendorX, dono de conta diferente de dados.a — prova que resumoDoFornecedor soma por vendor_id, não por account_id: o dono deste evento nem é vendor_members de X, só o evento pertence a X.
     const { rows: extra } = await admin.query<{ id: string }>(
-      `INSERT INTO events (account_id, vendor_id, pack_id, slug, starts_at, ends_at, expected_guests)
-       VALUES ($1, $2, 'pack-um', 'evento-extra-x', now(), now() + interval '4 hours', 50)
+      `INSERT INTO events (account_id, vendor_id, pack_id, slug, starts_at, ends_at, expected_guests, status)
+       VALUES ($1, $2, 'pack-um', 'evento-extra-x', now(), now() + interval '4 hours', 50, 'active')
        RETURNING id`,
       [dados.b.contaId, vendorXId],
     );

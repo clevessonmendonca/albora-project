@@ -22,8 +22,8 @@ async function semearDados(adm: pg.Pool) {
 
   const criar = async (slug: string) => {
     const { rows: e } = await adm.query(
-      `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
-       VALUES ($1, 'signable-pack', $2, now(), now() + interval '6 hours') RETURNING id`,
+      `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status)
+       VALUES ($1, 'signable-pack', $2, now(), now() + interval '6 hours', 'active') RETURNING id`,
       [contaId, slug],
     );
     const id = e[0].id as string;

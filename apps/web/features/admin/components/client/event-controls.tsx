@@ -22,7 +22,7 @@ type Moderation = {
   hasMinors: boolean;
 };
 
-type SavingField = "panic" | "hasMinors" | "hardened" | "interaction" | null;
+type SavingField = "panic" | "hasMinors" | "hardened" | "interaction" | "status" | null;
 
 type Props = {
   eventId: string;
@@ -30,6 +30,7 @@ type Props = {
   plan: "free" | "celebration" | "vendor";
   initial: WireModeration;
   initialInteractionOpensAt: string | null;
+  initialStatus: "draft" | "active" | "ended";
   canManageCoupleOnly?: boolean;
 };
 
@@ -47,10 +48,12 @@ export function EventControls({
   plan,
   initial,
   initialInteractionOpensAt,
+  initialStatus,
   canManageCoupleOnly = true,
 }: Props) {
   const [moderation, setModeration] = useState(() => fromWire(initial));
   const [interactionOpensAt, setInteractionOpensAt] = useState(initialInteractionOpensAt);
+  const [status, setStatus] = useState(initialStatus);
   const [saving, setSaving] = useState<SavingField>(null);
   const [error, setError] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
@@ -69,6 +72,7 @@ export function EventControls({
     setError(false);
     const previousModeration = moderation;
     const previousGate = interactionOpensAt;
+    const previousStatus = status;
 
     if ("panico" in body && typeof body.panico === "boolean") {
       setModeration((m) => ({ ...m, panic: body.panico as boolean }));
@@ -85,6 +89,7 @@ export function EventControls({
         typeof body.interacaoAbreEm === "string" ? body.interacaoAbreEm : null,
       );
     }
+    if (body.status === "active") setStatus("active");
 
     try {
       const r = await fetch(`/api/admin/events/${eventId}`, {
@@ -96,14 +101,17 @@ export function EventControls({
       const response = (await r.json()) as {
         moderacao: WireModeration;
         interacaoAbreEm?: string | null;
+        status?: "draft" | "active" | "ended";
       };
       setModeration(fromWire(response.moderacao));
       if (response.interacaoAbreEm !== undefined) {
         setInteractionOpensAt(response.interacaoAbreEm);
       }
+      if (response.status !== undefined) setStatus(response.status);
     } catch {
       setModeration(previousModeration);
       setInteractionOpensAt(previousGate);
+      setStatus(previousStatus);
       setError(true);
     } finally {
       setSaving(null);
@@ -114,6 +122,31 @@ export function EventControls({
 
   return (
     <div className="flex flex-col gap-5">
+      {status === "draft" && (
+        <AdminSection>
+          <div className="flex items-center justify-between gap-5">
+            <div>
+              <span className="block font-titulo text-[1.0625rem] text-ink">
+                Evento em rascunho
+              </span>
+              <span className="mt-1 block text-sm text-ink-3">
+                Convidado não acessa até você publicar.
+              </span>
+            </div>
+            <button
+              type="button"
+              disabled={saving === "status"}
+              onClick={() => void patch({ status: "active" }, "status")}
+              className={`${adminClasses.primaryButton} shrink-0 ${
+                saving === "status" ? "opacity-60" : ""
+              }`}
+            >
+              {saving === "status" ? "Publicando…" : "Publicar evento"}
+            </button>
+          </div>
+        </AdminSection>
+      )}
+
       <AdminSection>
         <div className="flex items-center justify-between gap-5">
           <div>

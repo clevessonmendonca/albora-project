@@ -60,8 +60,8 @@ beforeAll(async () => {
 
   const evento = async (slug: string, vendorId: string, accountId: string) => {
     const { rows } = await admin.query<{ id: string }>(
-      `INSERT INTO events (account_id, vendor_id, pack_id, slug, starts_at, ends_at)
-       VALUES ($1, $2, 'pack-um', $3, now(), now() + interval '4 hours')
+      `INSERT INTO events (account_id, vendor_id, pack_id, slug, starts_at, ends_at, status)
+       VALUES ($1, $2, 'pack-um', $3, now(), now() + interval '4 hours', 'active')
        RETURNING id`,
       [accountId, vendorId, slug],
     );
