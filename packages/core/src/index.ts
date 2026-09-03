@@ -85,7 +85,8 @@ export { presignExpirou, VALIDADE_PRESIGN_SEGUNDOS } from "./upload";
 export type { Orientacao, Transformacao } from "./exif";
 export { dimensoesCorrigidas, lerCapturadaEm, lerOrientacao, temExif, temGeolocalizacao, transformacaoParaOrientacao } from "./exif";
 
-export type { Target, Device, Plan } from "./redimensionar";
+export type { Target, Device, Plan, Rede } from "./redimensionar";
+export { ladoMaiorParaRede } from "./redimensionar";
 export {
   fullTarget,
   targetForLongerSide,

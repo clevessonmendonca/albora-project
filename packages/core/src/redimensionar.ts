@@ -24,6 +24,21 @@ export function fullTarget(width: number, height: number, plan: Plan): Target {
   return targetForLongerSide(width, height, LADO_MAIOR[plan]);
 }
 
+export type Rede = {
+  economiaDeDados?: boolean | undefined;
+  tipoEfetivo?: string | undefined;
+};
+
+export function ladoMaiorParaRede(plan: Plan, rede: Rede): number {
+  const base = LADO_MAIOR[plan];
+  const econômico =
+    rede.economiaDeDados === true ||
+    rede.tipoEfetivo === "2g" ||
+    rede.tipoEfetivo === "slow-2g";
+
+  return econômico ? Math.min(base, LADO_MAIOR.gratis) : base;
+}
+
 export function thumbTarget(width: number, height: number): Target {
   return targetForLongerSide(width, height, THUMB_SIDE);
 }
@@ -64,13 +79,19 @@ export function planProcessing(input: {
   height: number;
   plan: Plan;
   device: Device;
+  rede?: Rede | undefined;
 }): { full: Target; thumb: Target; quality: typeof QUALITY } {
   const cap = pixelCapForDevice(input.device);
-  const full = targetThatFits(fullTarget(input.width, input.height, input.plan), cap);
+  const lado = input.rede
+    ? ladoMaiorParaRede(input.plan, input.rede)
+    : LADO_MAIOR[input.plan];
+  const full = targetThatFits(
+    targetForLongerSide(input.width, input.height, lado),
+    cap,
+  );
 
   return {
     full,
-    // A miniatura sai do alvo já reduzido, não do original: reprocessar o original dobraria o pico de memória no aparelho mais fraco.
     thumb: thumbTarget(full.width, full.height),
     quality: QUALITY,
   };

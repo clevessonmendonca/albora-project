@@ -7,7 +7,14 @@ import {
   transformacaoParaOrientacao,
   type Orientacao,
 } from "./exif";
-import { planProcessing, QUALITY, type Device, type Plan, type Target } from "./redimensionar";
+import {
+  planProcessing,
+  QUALITY,
+  type Device,
+  type Plan,
+  type Rede,
+  type Target,
+} from "./redimensionar";
 
 export type Bitmap = { largura: number; altura: number };
 
@@ -70,6 +77,7 @@ export type FotoProcessada<TSaida> = {
 export type OpcoesProcessamento = {
   plan: Plan;
   device: Device;
+  rede?: Rede | undefined;
   mimeSaida?: string;
   /** Ausente = sem filtro. O preset é escolha do convidado, nunca padrão. */
   filtro?: FiltroAplicado;
@@ -101,6 +109,7 @@ export async function processarFoto<TImagem extends Bitmap, TSaida>(
     height: altura,
     plan: opcoes.plan,
     device: opcoes.device,
+    rede: opcoes.rede,
   });
 
   const emPe = await desenhista.desenhar(original, planned.full, { girar, espelhar });
