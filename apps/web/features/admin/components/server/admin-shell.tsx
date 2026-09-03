@@ -1,6 +1,6 @@
 import React, { type CSSProperties, type ReactNode } from "react";
 import { ALBORA_BRAND, toVariables, resolveTokens, type Background } from "@albora/tokens";
-import { cva } from "@albora/ui-web";
+import { cva, SkipLink } from "@albora/ui-web";
 import Link from "next/link";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
@@ -20,16 +20,20 @@ type AdminShellProps = {
 
 export function AdminShell({ title, subtitle, back, children }: AdminShellProps) {
   return (
+    <>
+    <SkipLink />
     <main
+      id="main-content"
       className="min-h-dvh bg-bg p-[clamp(1.5rem,5vw,4rem)] font-[family-name:var(--fonte-corpo)] text-ink"
       style={adminVars()}
     >
-      <header className="mb-10 flex items-start justify-between gap-6">
+      <header className="mb-10 flex items-start justify-between gap-6" data-admin-shell-header>
         <div>
           {back && (
             <Link
               href={back.href}
               className="mb-3.5 inline-block text-sm tracking-[0.01em] text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
+              data-admin-shell-back
             >
               ← {back.label}
             </Link>
@@ -41,6 +45,7 @@ export function AdminShell({ title, subtitle, back, children }: AdminShellProps)
       </header>
       {children}
     </main>
+    </>
   );
 }
 
@@ -59,20 +64,18 @@ export function AdminCard({
   variant,
   children,
   className,
+  id,
 }: {
   variant?: "default" | "highlight";
   children: ReactNode;
   className?: string;
+  id?: string | undefined;
 }) {
-  return <section className={adminCardVariants({ variant, className })}>{children}</section>;
+  return <section id={id} className={adminCardVariants({ variant, className })}>{children}</section>;
 }
 
 export function AdminSection({ children, id }: { children: ReactNode; id?: string }) {
-  return (
-    <section id={id} className={adminCardVariants()}>
-      {children}
-    </section>
-  );
+  return <AdminCard id={id}>{children}</AdminCard>;
 }
 
 export const adminClasses = {
