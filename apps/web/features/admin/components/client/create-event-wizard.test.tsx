@@ -23,6 +23,10 @@ function preencherDatasEAvancarAteCriar() {
     target: { value: "2026-09-02T02:00" },
   });
 
+  fireEvent.change(screen.getByLabelText("Quantos convidados presentes?"), {
+    target: { value: "120" },
+  });
+
   // Passo 1 → 2 → 3 → 4 (Confirmar)
   for (let i = 0; i < 3; i++) {
     fireEvent.click(screen.getByText("Continuar"));
@@ -98,6 +102,9 @@ describe("CreateEventWizard — passo condicional do fornecedor (spec-canal-forn
       fireEvent.change(screen.getByLabelText("Fim"), {
         target: { value: "2026-09-02T02:00" },
       });
+      fireEvent.change(screen.getByLabelText("Quantos convidados presentes?"), {
+        target: { value: "120" },
+      });
       for (let i = 0; i < 3; i++) {
         fireEvent.click(screen.getByText("Continuar"));
       }
@@ -137,5 +144,31 @@ describe("CreateEventWizard — passo condicional do fornecedor (spec-canal-forn
 
     // Continuar deve estar desabilitado sem o e-mail do casal
     expect(screen.getByText("Continuar")).toBeDisabled();
+  });
+
+  it("sem convidados válidos: não avança do passo 1", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input) === "/api/admin/vendors") return responder({ vendors: [] });
+      throw new Error(`fetch inesperado: ${input}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<CreateEventWizard />);
+    fireEvent.click(screen.getByText("Continuar"));
+
+    fireEvent.change(screen.getByLabelText("Começo"), {
+      target: { value: "2026-09-01T18:00" },
+    });
+    fireEvent.change(screen.getByLabelText("Fim"), {
+      target: { value: "2026-09-02T02:00" },
+    });
+    fireEvent.change(screen.getByLabelText("Quantos convidados presentes?"), {
+      target: { value: "" },
+    });
+
+    expect(screen.getByText("Continuar")).toBeDisabled();
+    expect(
+      screen.getByText("Informe quantos convidados você espera na festa."),
+    ).toBeInTheDocument();
   });
 });

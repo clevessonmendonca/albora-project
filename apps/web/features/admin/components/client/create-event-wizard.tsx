@@ -14,7 +14,7 @@ import { TimezoneField } from "@/features/admin/components/client/timezone-field
 const OPTIONS = Object.values(PACKS).map((p) => ({
   id: p.id,
   nome: resolvePackText(p, "evento.nome"),
-  rotulo: resolvePackText(p, "landing.rotulo"),
+  rotulo: resolvePackText(p, "evento.descricao"),
 }));
 
 const STEPS = ["Tipo", "Evento", "Identidade", "Missões", "Confirmar"] as const;
@@ -58,7 +58,7 @@ export function CreateEventWizard() {
   const [starts, setStarts] = useState("");
   const [ends, setEnds] = useState("");
   const [timezone, setTimezone] = useState(FUSO_PADRAO);
-  const [expectedGuests, setExpectedGuests] = useState("150");
+  const [expectedGuests, setExpectedGuests] = useState("");
   const [presetId, setPresetId] = useState(IDENTITY_MODELS[0]!.id);
   const [presetAtivo, setPresetAtivo] = useState<string | null>(IDENTITY_MODELS[0]!.id);
   const [acentoCor, setAcentoCor] = useState(() => presetParaCores(IDENTITY_MODELS[0]!).acento);
@@ -236,24 +236,32 @@ export function CreateEventWizard() {
           </label>
 
           <div className="flex flex-col gap-2">
-            <div className="flex items-baseline justify-between">
-              <span className="text-[0.9rem] text-ink-2">Convidados esperados</span>
-              <span className="font-titulo text-2xl text-ink">{expectedGuests}</span>
+            <label htmlFor="expected-guests" className="text-[0.9rem] text-ink-2">
+              Quantos convidados presentes?
+            </label>
+            <p className="m-0 text-[0.8125rem] leading-relaxed text-ink-3">
+              Estimativa de quem vai estar na festa. Usamos para medir a participação — a métrica
+              principal do álbum.
+            </p>
+            <div className="flex items-baseline justify-between gap-3">
+              <input
+                id="expected-guests"
+                placeholder="—"
+                type="number"
+                min={1}
+                max={999}
+                required
+                value={expectedGuests}
+                onChange={(e) => setExpectedGuests(e.target.value)}
+                className="w-[5.5rem] rounded-token border border-linha bg-bg px-3 py-2 font-titulo text-xl text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+              />
+              <span className="text-[0.8125rem] text-ink-3">pessoas na festa</span>
             </div>
-            <input
-              type="range"
-              min={10}
-              max={500}
-              step={10}
-              value={expectedGuests}
-              onChange={(e) => setExpectedGuests(e.target.value)}
-              style={{ accentColor: "var(--acento)" }}
-              className="w-full cursor-pointer"
-            />
-            <div className="flex justify-between text-[0.75rem] text-ink-3">
-              <span>10</span>
-              <span>500+</span>
-            </div>
+            {!guestsValid && (
+              <p className="m-0 text-sm text-critico">
+                Informe quantos convidados você espera na festa.
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -398,7 +406,7 @@ export function CreateEventWizard() {
                     onClick={() => trocarModo(modo)}
                     className={`rounded-pilula px-3 py-1.5 text-[0.8rem] transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                       bgModo === modo
-                        ? "bg-superficie-alta text-ink shadow-sm"
+                        ? "bg-superficie-alta text-ink shadow-suave"
                         : "text-ink-3 hover:text-ink-2"
                     }`}
                   >
@@ -633,7 +641,7 @@ function MissionList({
               }`}
             >
               <span
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-bg shadow-sm transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-bg shadow-suave transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                   isChecked ? "translate-x-5" : "translate-x-0.5"
                 }`}
               />
@@ -703,7 +711,7 @@ function ConfirmSummary({
         <SummaryRow label="Nome" value={title} />
         <SummaryRow label="Começo" value={fmt(starts)} />
         <SummaryRow label="Fim" value={fmt(ends)} />
-        <SummaryRow label="Convidados" value={`~${guests} pessoas`} />
+        <SummaryRow label="Convidados presentes" value={`~${guests} pessoas`} />
         <div className="flex items-center justify-between gap-4">
           <span className="shrink-0 text-[0.75rem] uppercase tracking-rotulo text-ink-3">
             Identidade
