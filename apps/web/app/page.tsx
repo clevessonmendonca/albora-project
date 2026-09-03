@@ -8,6 +8,14 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Albora — o álbum coletivo da sua festa",
     description: "As fotos que os seus convidados tiraram, reunidas num álbum só.",
+    images: [
+      {
+        url: "/landing/hero.webp",
+        width: 1200,
+        height: 630,
+        alt: "Albora — o álbum coletivo da sua festa",
+      },
+    ],
   },
 };
 
@@ -16,7 +24,7 @@ const jsonLd = {
   "@type": "SoftwareApplication",
   name: "Albora",
   applicationCategory: "PhotographyApplication",
-  operatingSystem: "Web",
+  operatingSystem: "Web, iOS, Android",
   description: "As fotos que os seus convidados tiraram, reunidas num álbum só.",
   url: "https://albora.com.br",
   offers: {
