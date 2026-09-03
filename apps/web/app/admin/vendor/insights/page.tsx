@@ -50,7 +50,17 @@ export default async function VendorInsightsPage() {
       {resumos.length > 0 && (
         <div className="flex flex-col gap-3">
           {resumos.map(({ vendor, resumo }) => (
-            <VendorSummaryCard key={vendor.vendorId} vendorName={vendor.name} resumo={resumo} />
+            <div key={vendor.vendorId} className="flex flex-col gap-2">
+              <VendorSummaryCard vendorName={vendor.name} resumo={resumo} />
+              {vendor.role === "admin" && (
+                <Link
+                  href={`/admin/vendor/${vendor.vendorId}/settings`}
+                  className="self-end text-[0.8125rem] text-ink-3 underline"
+                >
+                  Configurações do fornecedor
+                </Link>
+              )}
+            </div>
           ))}
         </div>
       )}

@@ -378,7 +378,11 @@ export {
 } from "./billing";
 
 export type {
+  AtualizarFornecedorEntrada,
   BrandTokensDoFornecedor,
+  CriarFornecedorEntrada,
+  FornecedorCriado,
+  FornecedorDaConta,
   MarcaPublicaDoFornecedor,
   ResumoDoFornecedor,
   VendorEventSummary,
@@ -389,9 +393,14 @@ export type {
 } from "./vendor-portal";
 export {
   atualizarBrandTokensDoFornecedor,
+  atualizarFornecedor,
+  criarFornecedor,
   ErroBrandTokensInvalidos,
+  ErroDadosDeFornecedorInvalidos,
   ErroSemAcessoAoFornecedor,
+  ErroSlugDeFornecedorEmUso,
   eventosDoFornecedor,
+  fornecedorParaConta,
   marcaPublicaDoFornecedor,
   resumoDoFornecedor,
   roleForAccountOnVendor,

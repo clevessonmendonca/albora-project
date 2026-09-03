@@ -1,8 +1,15 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
+  atualizarBrandTokensDoFornecedor,
+  atualizarFornecedor,
+  criarFornecedor,
+  ErroBrandTokensInvalidos,
+  ErroDadosDeFornecedorInvalidos,
   ErroSemAcessoAoFornecedor,
+  ErroSlugDeFornecedorEmUso,
   eventosDoFornecedor,
+  fornecedorParaConta,
   marcaPublicaDoFornecedor,
   roleForAccountOnVendor,
   vendorsDaConta,
@@ -210,5 +217,174 @@ describe("marcaPublicaDoFornecedor — resolução pública, sem sessão de cont
     expect(marca).not.toHaveProperty("commissionBps");
     expect(marca).not.toHaveProperty("customDomain");
     expect(Object.keys(marca ?? {}).sort()).toEqual(["brandTokens", "id", "name", "plan", "slug"]);
+  });
+});
+
+describe("criarFornecedor — onboarding self-serve (task 15)", () => {
+  it("cria vendors + vendor_members(admin) na mesma transação e devolve vendorId/slug", async () => {
+    const registros: { motivo: string; em: Date }[] = [];
+    const criado = await criarFornecedor(
+      agregador,
+      outsiderAccountId,
+      { name: "Espaço Novo", slug: `espaco-novo-${Date.now()}` },
+      (r) => registros.push(r),
+    );
+    expect(criado.vendorId).toMatch(/^[0-9a-f-]{36}$/i);
+    expect(registros).toHaveLength(1);
+    expect(registros[0]?.motivo).toBe(`vendor_onboarding:criar:${outsiderAccountId}`);
+
+    const role = await roleForAccountOnVendor(app, outsiderAccountId, criado.vendorId);
+    expect(role).toBe("admin");
+  });
+
+  it("slug duplicado: ErroSlugDeFornecedorEmUso, nenhuma linha nova criada", async () => {
+    await expect(
+      criarFornecedor(
+        agregador,
+        outsiderAccountId,
+        { name: "Duplicado", slug: "buffet-x" },
+        () => {},
+      ),
+    ).rejects.toBeInstanceOf(ErroSlugDeFornecedorEmUso);
+  });
+
+  it("slug fora do charset: ErroDadosDeFornecedorInvalidos, nada é auditado", async () => {
+    const registros: { motivo: string; em: Date }[] = [];
+    await expect(
+      criarFornecedor(
+        agregador,
+        outsiderAccountId,
+        { name: "Nome válido", slug: "Slug Inválido!" },
+        (r) => registros.push(r),
+      ),
+    ).rejects.toBeInstanceOf(ErroDadosDeFornecedorInvalidos);
+    expect(registros).toHaveLength(0);
+  });
+
+  it("nome curto demais: ErroDadosDeFornecedorInvalidos", async () => {
+    await expect(
+      criarFornecedor(
+        agregador,
+        outsiderAccountId,
+        { name: "A", slug: `curto-${Date.now()}` },
+        () => {},
+      ),
+    ).rejects.toBeInstanceOf(ErroDadosDeFornecedorInvalidos);
+  });
+});
+
+describe("fornecedorParaConta — leitura para a tela de configurações do admin", () => {
+  it("admin lê o próprio fornecedor com plan/status/brandTokens/role", async () => {
+    const vendor = await fornecedorParaConta(app, adminAccountId, vendorXId);
+    expect(vendor).toMatchObject({
+      id: vendorXId,
+      name: "Buffet X",
+      slug: "buffet-x",
+      plan: "starter",
+      status: "trial",
+      role: "admin",
+    });
+  });
+
+  it("staff também lê, com role='staff'", async () => {
+    const vendor = await fornecedorParaConta(app, staffAccountId, vendorXId);
+    expect(vendor?.role).toBe("staff");
+  });
+
+  it("quem não é membro recebe null, não erro", async () => {
+    expect(await fornecedorParaConta(app, outsiderAccountId, vendorXId)).toBeNull();
+  });
+
+  it("membro de X não lê Y", async () => {
+    expect(await fornecedorParaConta(app, adminAccountId, vendorYId)).toBeNull();
+  });
+
+  it("vendorId fora do formato UUID: null, sem estourar", async () => {
+    expect(await fornecedorParaConta(app, adminAccountId, "nao-e-uuid")).toBeNull();
+  });
+});
+
+describe("atualizarFornecedor — só admin altera nome/slug", () => {
+  it("admin atualiza o nome", async () => {
+    const ok = await atualizarFornecedor(app, adminAccountId, vendorXId, {
+      name: "Buffet X Renovado",
+    });
+    expect(ok).toBe(true);
+    const vendor = await fornecedorParaConta(app, adminAccountId, vendorXId);
+    expect(vendor?.name).toBe("Buffet X Renovado");
+
+    await atualizarFornecedor(app, adminAccountId, vendorXId, { name: "Buffet X" });
+  });
+
+  it("staff não consegue atualizar — devolve false, não erro", async () => {
+    const ok = await atualizarFornecedor(app, staffAccountId, vendorXId, {
+      name: "Tentativa Staff",
+    });
+    expect(ok).toBe(false);
+  });
+
+  it("conta fora do fornecedor: false, sem erro", async () => {
+    const ok = await atualizarFornecedor(app, outsiderAccountId, vendorXId, {
+      name: "Invasão",
+    });
+    expect(ok).toBe(false);
+  });
+
+  it("slug fora do charset: ErroDadosDeFornecedorInvalidos", async () => {
+    await expect(
+      atualizarFornecedor(app, adminAccountId, vendorXId, { slug: "Slug Inválido!" }),
+    ).rejects.toBeInstanceOf(ErroDadosDeFornecedorInvalidos);
+  });
+
+  it("slug já usado por outro fornecedor: ErroSlugDeFornecedorEmUso", async () => {
+    await expect(
+      atualizarFornecedor(app, adminAccountId, vendorXId, { slug: "buffet-y" }),
+    ).rejects.toBeInstanceOf(ErroSlugDeFornecedorEmUso);
+  });
+
+  it("sem campos: false, sem tocar o banco", async () => {
+    expect(await atualizarFornecedor(app, adminAccountId, vendorXId, {})).toBe(false);
+  });
+});
+
+describe("atualizarBrandTokensDoFornecedor — cores, background e logoUrl", () => {
+  it("admin atualiza cores e background", async () => {
+    const ok = await atualizarBrandTokensDoFornecedor(app, adminAccountId, vendorXId, {
+      cores: { acento: "#abcdef" },
+      background: "dark",
+    });
+    expect(ok).toBe(true);
+  });
+
+  it("logoUrl https válida é aceita e persiste", async () => {
+    const ok = await atualizarBrandTokensDoFornecedor(app, adminAccountId, vendorXId, {
+      logoUrl: "https://cdn.exemplo.test/logo.png",
+    });
+    expect(ok).toBe(true);
+    const marca = await marcaPublicaDoFornecedor(agregador, "buffet-x", () => {});
+    expect(marca?.brandTokens.logoUrl).toBe("https://cdn.exemplo.test/logo.png");
+  });
+
+  it("logoUrl sem https: ErroBrandTokensInvalidos", async () => {
+    await expect(
+      atualizarBrandTokensDoFornecedor(app, adminAccountId, vendorXId, {
+        logoUrl: "http://inseguro.test/logo.png",
+      }),
+    ).rejects.toBeInstanceOf(ErroBrandTokensInvalidos);
+  });
+
+  it("cor hex inválida: ErroBrandTokensInvalidos com o campo listado", async () => {
+    await expect(
+      atualizarBrandTokensDoFornecedor(app, adminAccountId, vendorXId, {
+        cores: { acento: "vermelho" },
+      }),
+    ).rejects.toMatchObject({ campos: ["cores.acento"] });
+  });
+
+  it("conta fora do fornecedor: false, sem erro", async () => {
+    const ok = await atualizarBrandTokensDoFornecedor(app, outsiderAccountId, vendorXId, {
+      background: "light",
+    });
+    expect(ok).toBe(false);
   });
 });

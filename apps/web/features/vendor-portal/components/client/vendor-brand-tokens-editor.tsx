@@ -50,7 +50,13 @@ function extrairCorOpcional(tokens: Record<string, unknown>, chave: string): str
   return "";
 }
 
+function extrairLogoUrl(tokens: Record<string, unknown>): string {
+  const v = tokens.logoUrl;
+  return typeof v === "string" ? v : "";
+}
+
 const HEX = /^#[0-9a-fA-F]{6}$/;
+const URL_LOGO = /^https:\/\/\S{1,2000}$/;
 
 /** Hex nunca vem de código — só de input do usuário após `HEX.test()`. Preview usa o mesmo resolvedor do convidado e do telão. */
 export function VendorBrandTokensEditor({ vendorId, initialBrandTokens }: Props) {
@@ -59,6 +65,7 @@ export function VendorBrandTokensEditor({ vendorId, initialBrandTokens }: Props)
   const [papel, setPapel] = useState(extrairCorOpcional(initialBrandTokens, "papel"));
   const [noite, setNoite] = useState(extrairCorOpcional(initialBrandTokens, "noite"));
   const [tinta, setTinta] = useState(extrairCorOpcional(initialBrandTokens, "tinta"));
+  const [logoUrl, setLogoUrl] = useState(extrairLogoUrl(initialBrandTokens));
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
@@ -78,7 +85,9 @@ export function VendorBrandTokensEditor({ vendorId, initialBrandTokens }: Props)
   const papelInvalido = papel !== "" && !HEX.test(papel);
   const noiteInvalido = noite !== "" && !HEX.test(noite);
   const tintaInvalido = tinta !== "" && !HEX.test(tinta);
-  const podeAlternar = !acentoInvalido && !papelInvalido && !noiteInvalido && !tintaInvalido;
+  const logoUrlInvalido = logoUrl !== "" && !URL_LOGO.test(logoUrl);
+  const podeAlternar =
+    !acentoInvalido && !papelInvalido && !noiteInvalido && !tintaInvalido && !logoUrlInvalido;
 
   const salvar = async () => {
     if (!podeAlternar) return;
@@ -94,6 +103,7 @@ export function VendorBrandTokensEditor({ vendorId, initialBrandTokens }: Props)
 
       const body: Record<string, unknown> = { background };
       if (Object.keys(cores).length > 0) body.cores = cores;
+      if (URL_LOGO.test(logoUrl)) body.logoUrl = logoUrl;
 
       const r = await fetch(`/api/vendors/${vendorId}/brand-tokens`, {
         method: "PATCH",
@@ -183,6 +193,24 @@ export function VendorBrandTokensEditor({ vendorId, initialBrandTokens }: Props)
             </div>
           </div>
 
+          <div>
+            <label className="mb-2 block font-titulo text-sm text-ink" htmlFor="vendor-logo-url">
+              Logo (URL de imagem já hospedada)
+            </label>
+            <input
+              id="vendor-logo-url"
+              type="text"
+              value={logoUrl}
+              onChange={(e) => {
+                setLogoUrl(e.target.value.trim());
+                setSalvo(false);
+              }}
+              placeholder="https://…"
+              className={campoClasse}
+            />
+            {logoUrlInvalido && <p className={erroClasse}>Precisa começar com https://</p>}
+          </div>
+
           <details className="rounded-token border border-linha bg-superficie px-4 py-3">
             <summary className="cursor-pointer font-titulo text-sm text-ink-2">
               Neutros opcionais
@@ -231,6 +259,13 @@ export function VendorBrandTokensEditor({ vendorId, initialBrandTokens }: Props)
           aria-label="Preview da marca"
           data-testid="brand-preview"
         >
+          {!logoUrlInvalido && logoUrl !== "" && (
+            <img
+              src={logoUrl}
+              alt="Logo do fornecedor"
+              className="mb-3 h-10 w-auto max-w-full object-contain"
+            />
+          )}
           <p className="m-0 font-titulo text-xl text-acento-texto">Pré-visualização</p>
           <p className="mb-0 mt-3 text-sm text-ink-2">
             A identidade ao vivo — mesma cadeia do convidado.

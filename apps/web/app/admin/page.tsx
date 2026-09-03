@@ -135,6 +135,13 @@ export default async function AdminPage() {
           )}
         </div>
       )}
+      <p className="mt-6 text-[0.8125rem] text-ink-3">
+        Cerimonialista ou espaço de festas?{" "}
+        <Link href="/admin/vendor/new" className="text-ink-2 underline">
+          Crie o portal do fornecedor
+        </Link>
+        .
+      </p>
     </AdminShell>
   );
 }
