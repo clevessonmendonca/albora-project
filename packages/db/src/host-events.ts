@@ -4,6 +4,8 @@ import { comConta, comEvento } from "./event";
 
 export type AtualizacaoConfigEvento = {
   expectedGuests?: number;
+  /** `null` limpa a confirmação e devolve o denominador para a estimativa. */
+  actualGuests?: number | null;
   identityTokens?: Record<string, unknown>;
   fuso?: string;
   /** Nome personalizado do evento. String vazia remove (persiste null). */
@@ -47,6 +49,17 @@ export async function atualizarConfigDoEvento(
     if (!Number.isFinite(n) || n <= 0) throw new Error("expected_guests inválido");
     valores.push(n);
     partes.push(`expected_guests = $${valores.length}`);
+  }
+
+  if (atualizacao.actualGuests !== undefined) {
+    if (atualizacao.actualGuests === null) {
+      valores.push(null);
+    } else {
+      const n = Math.trunc(atualizacao.actualGuests);
+      if (!Number.isFinite(n) || n <= 0) throw new Error("actual_guests inválido");
+      valores.push(n);
+    }
+    partes.push(`actual_guests = $${valores.length}`);
   }
 
   if (atualizacao.identityTokens !== undefined) {

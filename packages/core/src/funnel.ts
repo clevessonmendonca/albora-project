@@ -331,3 +331,64 @@ export function compararPlataforma(
 
   return { anterior: antes, atual: depois, codigo };
 }
+
+export type Denominador = {
+  expectedGuests: number;
+  actualGuests?: number | null | undefined;
+};
+
+export type OrigemDoDenominador = "confirmado" | "estimado";
+
+export function denominadorDaParticipacao(d: Denominador): {
+  valor: number;
+  origem: OrigemDoDenominador;
+} {
+  const confirmado = d.actualGuests;
+
+  if (typeof confirmado === "number" && Number.isFinite(confirmado) && confirmado > 0) {
+    return { valor: confirmado, origem: "confirmado" };
+  }
+
+  return { valor: d.expectedGuests, origem: "estimado" };
+}
+
+export type ContagemDeIntencao = ContagemDoEvento & {
+  sessoesComCaptura: number;
+};
+
+export type CodigoDeIntencao =
+  | "funil.intencao_entregue"
+  | "funil.intencao_frustrada"
+  | "funil.intencao_ausente";
+
+export type LeituraDeIntencao = {
+  participacao: number;
+  frustradas: number;
+  participacaoPotencial: number;
+  codigo: CodigoDeIntencao;
+};
+
+export const PISO_DA_FRUSTRACAO = 0.1;
+
+export function lerIntencao(contagem: ContagemDeIntencao): LeituraDeIntencao {
+  const participacao = taxaDeParticipacao(contagem);
+  const { expectedGuests, sessoesComUpload, sessoesComCaptura } = contagem;
+
+  if (!Number.isFinite(sessoesComCaptura) || sessoesComCaptura < sessoesComUpload) {
+    throw new MetricaInvalida("funil.numerador_invalido");
+  }
+
+  const frustradas = sessoesComCaptura - sessoesComUpload;
+  const participacaoPotencial = sessoesComCaptura / expectedGuests;
+
+  if (sessoesComCaptura === 0) {
+    return { participacao, frustradas, participacaoPotencial, codigo: "funil.intencao_ausente" };
+  }
+
+  const codigo =
+    frustradas / sessoesComCaptura >= PISO_DA_FRUSTRACAO
+      ? "funil.intencao_frustrada"
+      : "funil.intencao_entregue";
+
+  return { participacao, frustradas, participacaoPotencial, codigo };
+}
