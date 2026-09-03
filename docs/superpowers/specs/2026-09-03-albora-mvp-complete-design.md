@@ -417,15 +417,37 @@ Animações informativas (progress bar, upload arc) usam `animation-duration` in
 
 ---
 
-## 8. Fora de Escopo (Explícito)
+## 8. Fora de Escopo — Reanálise Completa (2026-09-03)
 
-- **Site de casamento / convite / RSVP / lista de presentes** — Fase 4+
-- **IA generativa em mídia** — Bloqueado por ADR 0007
-- **Conta Albora cross-evento** — Bloqueado por ADR 0009
-- **Push notifications** — Spike na Onda 3, implementação só com ADR próprio
-- **WhatsApp Business API** — Feature de vendor/escala, não MVP
-- **App para anfitrião** — Admin é web-only no MVP
-- **Impressão de livro físico** — PDF generation existe, impressão sob demanda é Fase 3
+Cada item reanalisado independente dos ADRs, com base na infra existente, complexidade restante e valor de produto.
+
+| Item | Infra existente | Custo restante | Valor | Veredito |
+|---|---|---|---|---|
+| A. Site/RSVP/presentes | Só tokens/i18n | G-GG (200h+) | Baixo-médio | **KEEP OUT** |
+| B. IA classificação | Plugável, heurístico | P-M (16-32h/módulo) | Alto (curadoria livro) | **BRING IN parcial** |
+| C. Conta cross-evento | Zero | M-GG | Baixo, sem demanda | **KEEP OUT** |
+| D. Push notifications | DI `notify` pronta, zero deps | M (40-56h) | Médio, 2-3 gatilhos | **SPIKE FIRST** |
+| E. WhatsApp API | Só link wa.me manual | M-G | Médio-alto, caro em escala | **KEEP OUT** |
+| F. Admin mobile | 14 telas desenhadas em catálogo | M MVP (24-32h) | Alto no dia D (segurança) | **SPIKE → BRING IN MVP** |
+| G. Livro impresso | Motor PDF+CMYK profissional pronto | P manual (8-16h) | Alto | **BRING IN fake door** |
+
+### Detalhes por item
+
+**A) Site/RSVP/presentes — KEEP OUT.** Concorre com ferramentas gratuitas (Zankyou, iCasei). Fase 4 no roadmap com condições de entrada explícitas. Não agrega valor diferencial.
+
+**B) IA classificação — BRING IN parcial (Onda 3/4, pós-H1).** ADR 0007 já autoriza classificação (moderação + curadoria do livro). Interface plugável existe. Geração na mídia permanece KEEP OUT permanente — regra não negociável.
+
+**C) Conta cross-evento — KEEP OUT.** ADR mais deliberado dos 7. Zero evidência de demanda. Reabertura implica repensar RLS, tenancy e o princípio "sem login". Gatilho de reabertura não disparou.
+
+**D) Push notifications — SPIKE FIRST (Onda 3, pós-H1).** Infraestrutura `notify` com DI já desenhada. Só 2-3 gatilhos fazem sentido (gate aberto, recap pronto). Precisa ADR próprio. ~40-56h total.
+
+**E) WhatsApp Business API — KEEP OUT.** Custo por evento pode comer margem. Validar primeiro via X6 (concierge manual). Automatizar só com evidência de ROI.
+
+**F) Admin mobile — SPIKE FIRST curto → BRING IN MVP.** 14 telas mobile-first já desenhadas em catálogo (`apps/web/app/telas-admin/`) mas não conectadas ao admin real. MVP: pânico + moderação + painel ao vivo (~24-32h). Justificável como exceção de robustez — segurança do caminho crítico, não feature nova.
+
+**G) Livro impresso — BRING IN via fake door manual.** Motor de PDF completo (~2.177 linhas) com sangria 3mm, fontes embarcadas, tokens resolvidos. Runbook CMYK profissional com perfis ICC (FOGRA39). Fake door manual (X9, D+30 pós-H1) = ~8-16h. SKU automatizado fica bloqueado pelo congelamento.
+
+> **Nota:** Todos os itens BRING IN e SPIKE estão dentro do congelamento de features (`docs/product/congelamento-de-features.md`). Execução requer decisão explícita e registrada do fundador.
 
 ---
 
