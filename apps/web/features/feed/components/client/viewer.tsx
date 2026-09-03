@@ -209,6 +209,10 @@ export function Viewer({
         else onSair();
       } else if (ev.key === "ArrowLeft") {
         if (indice > 0) onIr(indice - 1);
+      } else if (ev.key === "Home") {
+        if (indice > 0) onIr(0);
+      } else if (ev.key === "End") {
+        if (indice < itens.length - 1) onIr(itens.length - 1);
       } else if (ev.key === "Escape") {
         onSair();
       } else {
@@ -226,17 +230,22 @@ export function Viewer({
       role="dialog"
       aria-modal="true"
       aria-label={`Fotos das ${hourLabel(hora)}`}
+      aria-describedby="viewer-help"
+      data-testid="viewer"
       onPointerDown={pressionou}
       onPointerUp={largou}
       onPointerCancel={soltar}
-      className="fixed inset-0 z-10 grid grid-rows-[auto_1fr_auto] overflow-hidden bg-bg font-corpo text-ink touch-manipulation select-none"
+      className="fixed inset-0 z-10 grid grid-rows-[auto_1fr_auto] overflow-hidden bg-bg font-corpo text-ink touch-manipulation select-none viewer-entra"
     >
       <style>{`
         .st-zona { appearance: none; background: transparent; border: none; padding: 0; cursor: pointer; }
         .st-zona:focus-visible { outline: 1px solid var(--acento); outline-offset: -8px; }
         @keyframes st-correr { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+        @keyframes viewer-fade-in { from { opacity: 0; } to { opacity: 1; } }
+        .viewer-entra { animation: viewer-fade-in var(--tempo-rapido) var(--curva) both; }
         @media (prefers-reduced-motion: reduce) {
           .st-corrida { animation: none !important; transform: scaleX(1); }
+          .viewer-entra { animation: none !important; }
         }
       `}</style>
 
@@ -380,6 +389,11 @@ export function Viewer({
           Tirar foto
         </a>
       </footer>
+
+      <p id="viewer-help" className="sr-only">
+        Setas navegam entre fotos. Tecla Home vai para a primeira foto, End para a última.
+        Pressione Escape para fechar o visualizador.
+      </p>
     </div>
   );
 }

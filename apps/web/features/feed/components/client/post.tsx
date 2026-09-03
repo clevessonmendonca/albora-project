@@ -1,13 +1,14 @@
 "use client";
 
-import type { ComponentType, ReactNode } from "react";
+import { memo, type ComponentType, type ReactNode } from "react";
 import type { ModoInteracao } from "@albora/core";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { PostHeader } from "@albora/ui-web";
 import type { ResultadoReacao } from "@/features/feed/hooks/use-reaction";
 import { cssAspectRatio } from "@/lib/media-aspect";
+import { tempoRelativo } from "@/lib/tempo-relativo";
 
-export function Post({
+export const Post = memo(function Post({
   uploadId,
   interacao,
   reacoes,
@@ -25,6 +26,7 @@ export function Post({
   onVerAutor,
   legenda,
   lugar,
+  criadaEm,
   isVideo,
   largura,
   altura,
@@ -47,19 +49,21 @@ export function Post({
   legenda: string | null;
 
   lugar?: string | null;
+  criadaEm?: string;
   isVideo?: boolean;
   largura?: number;
   altura?: number;
 }) {
-  const meta = lugar ? `· ${lugar}` : null;
+  const timestamp = criadaEm ? tempoRelativo(criadaEm) : null;
   const aspecto = cssAspectRatio(largura, altura);
 
   return (
-    <article className="border-t border-linha">
+    <article data-testid={`post-${uploadId}`} className="border-t border-linha">
       <div className="py-4">
         <PostHeader
           author={autor}
-          meta={meta}
+          meta={lugar ?? null}
+          timestamp={timestamp}
           {...(autorHref ? { autorHref, linkComponent } : {})}
         />
       </div>
@@ -112,7 +116,7 @@ export function Post({
       )}
     </article>
   );
-}
+});
 
 export function PostLoading() {
   return (
