@@ -1,7 +1,12 @@
 import { randomUUID } from "node:crypto";
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { desafioDoEvento, listarDesafios, substituirDesafios } from "./challenges";
+import {
+  desafioDoEvento,
+  listarDesafios,
+  substituirDesafios,
+  substituirMissoesCustom,
+} from "./challenges";
 import { comEvento } from "./event";
 import { prepararBanco, semear } from "./testes/banco";
 import { anotarUpload, confirmarUpload } from "./uploads";
@@ -200,6 +205,61 @@ describe("substituir missões", () => {
       listarDesafios(c, dados.a.eventoId, dados.a.sessaoId),
     );
     expect(lista.map((d) => d.chaveTitulo)).toEqual(["missao.ok"]);
+  });
+});
+
+describe("missões personalizadas — prazo opcional", () => {
+  it("cria sem prazo (deadline null) e sem quebrar o pack", async () => {
+    const lista = await comEvento(app, dados.a.eventoId, async (c) => {
+      await substituirDesafios(c, dados.a.eventoId, ["missao.pack-fixo"]);
+      return substituirMissoesCustom(c, dados.a.eventoId, [
+        { titulo: "Foto com a torta", posicao: 1000 },
+      ]);
+    });
+
+    const custom = lista.find((d) => d.tituloCustom === "Foto com a torta");
+    expect(custom?.deadline).toBeNull();
+    expect(lista.map((d) => d.chaveTitulo)).toContain("missao.pack-fixo");
+  });
+
+  it("grava, atualiza e limpa o prazo", async () => {
+    const futuro = new Date(Date.now() + 3_600_000).toISOString();
+    const outro = new Date(Date.now() + 7_200_000).toISOString();
+
+    const { comPrazo, atualizada, limpa } = await comEvento(app, dados.a.eventoId, async (c) => {
+      const criada = await substituirMissoesCustom(c, dados.a.eventoId, [
+        { titulo: "Missão com prazo", posicao: 2000, deadline: futuro },
+      ]);
+      const id = criada.find((d) => d.tituloCustom === "Missão com prazo")!.id;
+
+      const depoisDeAtualizar = await substituirMissoesCustom(c, dados.a.eventoId, [
+        { id, titulo: "Missão com prazo", posicao: 2000, deadline: outro },
+      ]);
+
+      const depoisDeLimpar = await substituirMissoesCustom(c, dados.a.eventoId, [
+        { id, titulo: "Missão com prazo", posicao: 2000, deadline: null },
+      ]);
+
+      return {
+        comPrazo: criada.find((d) => d.id === id),
+        atualizada: depoisDeAtualizar.find((d) => d.id === id),
+        limpa: depoisDeLimpar.find((d) => d.id === id),
+      };
+    });
+
+    expect(comPrazo?.deadline).toBe(futuro);
+    expect(atualizada?.deadline).toBe(outro);
+    expect(limpa?.deadline).toBeNull();
+  });
+
+  it("prazo inválido falha alto, não grava metade", async () => {
+    await expect(
+      comEvento(app, dados.a.eventoId, (c) =>
+        substituirMissoesCustom(c, dados.a.eventoId, [
+          { titulo: "Missão quebrada", posicao: 3000, deadline: "não-é-data" },
+        ]),
+      ),
+    ).rejects.toThrow(/prazo inválido/i);
   });
 });
 

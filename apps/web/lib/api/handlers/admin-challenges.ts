@@ -27,6 +27,7 @@ function serializarDesafio(d: Awaited<ReturnType<typeof listChallenges>>[number]
     titleKey: d.chaveTitulo ?? null,
     customTitle: d.tituloCustom ?? null,
     emoji: d.emoji ?? null,
+    deadline: d.deadline ?? null,
     position: d.ordem,
   };
 }
@@ -110,7 +111,13 @@ export async function PUT(
         });
       }
 
-      const itens: { id?: string; titulo: string; posicao: number; emoji?: string | null }[] = [];
+      const itens: {
+        id?: string;
+        titulo: string;
+        posicao: number;
+        emoji?: string | null;
+        deadline?: string | null;
+      }[] = [];
       for (const [i, item] of (corpo.customMissions as unknown[]).entries()) {
         if (typeof item !== "object" || item === null) {
           return errorResponse(422, "validation_error", `Item ${i} inválido`, {
@@ -124,10 +131,26 @@ export async function PUT(
             campos: ["customMissions"],
           });
         }
-        const entrada: { id?: string; titulo: string; posicao: number; emoji?: string | null } = {
+        let deadline: string | null = null;
+        if (typeof obj.deadline === "string" && obj.deadline.trim() !== "") {
+          if (Number.isNaN(Date.parse(obj.deadline))) {
+            return errorResponse(422, "validation_error", `Prazo da missão ${i + 1} inválido`, {
+              campos: ["customMissions"],
+            });
+          }
+          deadline = obj.deadline;
+        }
+        const entrada: {
+          id?: string;
+          titulo: string;
+          posicao: number;
+          emoji?: string | null;
+          deadline?: string | null;
+        } = {
           titulo,
           posicao: typeof obj.posicao === "number" ? obj.posicao : i + 1000,
           emoji: typeof obj.emoji === "string" ? obj.emoji.trim() || null : null,
+          deadline,
         };
         if (typeof obj.id === "string") entrada.id = obj.id;
         itens.push(entrada);

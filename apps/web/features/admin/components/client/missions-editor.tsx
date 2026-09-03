@@ -15,7 +15,31 @@ import { AdminSection, adminClasses } from "@/features/admin/components/server/a
 
 const CUSTOM_MAX = 120;
 
-type CustomMission = { id?: string; titulo: string; posicao: number; emoji?: string | null };
+type CustomMission = {
+  id?: string;
+  titulo: string;
+  posicao: number;
+  emoji?: string | null;
+  deadline?: string | null;
+};
+
+/** ISO 8601 → valor aceito por `<input type="datetime-local">`, em horário local. */
+function toDatetimeLocalValue(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function formatDeadline(iso: string): string {
+  return new Date(iso).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 type Props = {
   eventId: string;
@@ -41,9 +65,11 @@ export function MissionsEditor({
   const [custom, setCustom] = useState<CustomMission[]>(initialCustomMissions);
   const [draft, setDraft] = useState("");
   const [draftEmoji, setDraftEmoji] = useState("");
+  const [draftDeadline, setDraftDeadline] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
   const [editEmoji, setEditEmoji] = useState("");
+  const [editDeadline, setEditDeadline] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -88,9 +114,11 @@ export function MissionsEditor({
     if (!titulo || titulo.length > CUSTOM_MAX) return;
     const posicao = (custom[custom.length - 1]?.posicao ?? 0) + 1;
     const emoji = draftEmoji.trim() || null;
-    setCustom((prev) => [...prev, { titulo, posicao, emoji }]);
+    const deadline = draftDeadline ? new Date(draftDeadline).toISOString() : null;
+    setCustom((prev) => [...prev, { titulo, posicao, emoji, deadline }]);
     setDraft("");
     setDraftEmoji("");
+    setDraftDeadline("");
     setSaved(false);
     draftRef.current?.focus();
   };
@@ -104,14 +132,16 @@ export function MissionsEditor({
     setEditingId(String(idx));
     setEditText(custom[idx]!.titulo);
     setEditEmoji(custom[idx]!.emoji ?? "");
+    setEditDeadline(toDatetimeLocalValue(custom[idx]!.deadline));
   };
 
   const commitEdit = (idx: number) => {
     const titulo = editText.trim();
     if (titulo && titulo.length <= CUSTOM_MAX) {
       const emoji = editEmoji.trim() || null;
+      const deadline = editDeadline ? new Date(editDeadline).toISOString() : null;
       setCustom((prev) =>
-        prev.map((m, i) => (i === idx ? { ...m, titulo, emoji } : m)),
+        prev.map((m, i) => (i === idx ? { ...m, titulo, emoji, deadline } : m)),
       );
       setSaved(false);
     }
@@ -143,16 +173,30 @@ export function MissionsEditor({
             titulo: m.titulo,
             posicao: i + 1,
             emoji: m.emoji ?? null,
+            deadline: m.deadline ?? null,
           })),
         }),
       });
       if (!r.ok) throw new Error("falhou");
       const data = (await r.json()) as {
-        challenges: { id: string; titleKey: string | null; customTitle: string | null; emoji: string | null; position: number }[];
+        challenges: {
+          id: string;
+          titleKey: string | null;
+          customTitle: string | null;
+          emoji: string | null;
+          deadline: string | null;
+          position: number;
+        }[];
       };
       const updatedCustom = data.challenges
         .filter((c) => c.customTitle !== null)
-        .map((c) => ({ id: c.id, titulo: c.customTitle!, posicao: c.position, emoji: c.emoji }));
+        .map((c) => ({
+          id: c.id,
+          titulo: c.customTitle!,
+          posicao: c.position,
+          emoji: c.emoji,
+          deadline: c.deadline,
+        }));
       setCustom(updatedCustom);
       setSaved(true);
     } catch {
@@ -242,51 +286,91 @@ export function MissionsEditor({
           {custom.map((m, i) => (
             <div
               key={i}
-              className="flex items-center gap-2 rounded-token border border-linha bg-bg p-3"
+              className="flex flex-col gap-2 rounded-token border border-linha bg-bg p-3"
             >
-              {editingId === String(i) ? (
-                <>
-                  <input
-                    value={editEmoji}
-                    onChange={(e) => setEditEmoji(e.target.value)}
-                    placeholder="🎉"
-                    maxLength={4}
-                    aria-label="Emoji da missão"
-                    className="w-14 shrink-0 rounded-token border border-acento-borda bg-bg px-2 py-1 text-center font-corpo text-sm text-ink outline-none"
-                  />
-                  <input
-                    autoFocus
-                    value={editText}
-                    onChange={(e) => setEditText(e.target.value)}
-                    onBlur={() => commitEdit(i)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") commitEdit(i);
-                      if (e.key === "Escape") setEditingId(null);
-                    }}
-                    maxLength={CUSTOM_MAX}
-                    className="min-w-0 flex-1 rounded-token border border-acento-borda bg-bg px-2 py-1 font-corpo text-sm text-ink outline-none"
-                  />
-                </>
-              ) : (
-                <span className="min-w-0 flex-1 font-titulo text-[0.95rem] leading-snug">
-                  {m.emoji ? `${m.emoji} ` : ""}{m.titulo}
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {editingId === String(i) ? (
+                  <>
+                    <input
+                      value={editEmoji}
+                      onChange={(e) => setEditEmoji(e.target.value)}
+                      placeholder="🎉"
+                      maxLength={4}
+                      aria-label="Emoji da missão"
+                      className="w-14 shrink-0 rounded-token border border-acento-borda bg-bg px-2 py-1 text-center font-corpo text-sm text-ink outline-none"
+                    />
+                    <input
+                      autoFocus
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") commitEdit(i);
+                        if (e.key === "Escape") setEditingId(null);
+                      }}
+                      maxLength={CUSTOM_MAX}
+                      className="min-w-0 flex-1 rounded-token border border-acento-borda bg-bg px-2 py-1 font-corpo text-sm text-ink outline-none"
+                    />
+                  </>
+                ) : (
+                  <span className="min-w-0 flex-1 font-titulo text-[0.95rem] leading-snug">
+                    {m.emoji ? `${m.emoji} ` : ""}{m.titulo}
+                  </span>
+                )}
 
-              <span className="flex shrink-0 gap-1">
-                <IconButton label={`Subir ${m.titulo}`} disabled={i === 0} onClick={() => moveCustom(i, -1)}>
-                  <IcoUp />
-                </IconButton>
-                <IconButton label={`Descer ${m.titulo}`} disabled={i === custom.length - 1} onClick={() => moveCustom(i, 1)}>
-                  <IcoDown />
-                </IconButton>
-                <IconButton label={`Editar ${m.titulo}`} onClick={() => startEdit(i)}>
-                  <IcoPencil />
-                </IconButton>
-                <IconButton label={`Remover ${m.titulo}`} onClick={() => removeCustom(i)}>
-                  <IcoX />
-                </IconButton>
-              </span>
+                <span className="flex shrink-0 gap-1">
+                  <IconButton label={`Subir ${m.titulo}`} disabled={i === 0} onClick={() => moveCustom(i, -1)}>
+                    <IcoUp />
+                  </IconButton>
+                  <IconButton label={`Descer ${m.titulo}`} disabled={i === custom.length - 1} onClick={() => moveCustom(i, 1)}>
+                    <IcoDown />
+                  </IconButton>
+                  {editingId === String(i) ? (
+                    <IconButton label={`Confirmar ${m.titulo}`} onClick={() => commitEdit(i)}>
+                      <IcoCheck />
+                    </IconButton>
+                  ) : (
+                    <IconButton label={`Editar ${m.titulo}`} onClick={() => startEdit(i)}>
+                      <IcoPencil />
+                    </IconButton>
+                  )}
+                  <IconButton label={`Remover ${m.titulo}`} onClick={() => removeCustom(i)}>
+                    <IcoX />
+                  </IconButton>
+                </span>
+              </div>
+
+              {editingId === String(i) ? (
+                <div className="flex items-center gap-2">
+                  <label
+                    htmlFor={`prazo-edit-${i}`}
+                    className="shrink-0 text-[0.7rem] uppercase tracking-rotulo text-ink-3"
+                  >
+                    Prazo opcional
+                  </label>
+                  <input
+                    id={`prazo-edit-${i}`}
+                    type="datetime-local"
+                    value={editDeadline}
+                    onChange={(e) => setEditDeadline(e.target.value)}
+                    className="rounded-token border border-acento-borda bg-bg px-2 py-1 font-corpo text-sm text-ink outline-none"
+                  />
+                  {editDeadline && (
+                    <button
+                      type="button"
+                      onClick={() => setEditDeadline("")}
+                      className="cursor-pointer bg-transparent p-0 font-corpo text-[0.8125rem] text-ink-3 underline hover:text-ink"
+                    >
+                      Remover prazo
+                    </button>
+                  )}
+                </div>
+              ) : (
+                m.deadline && (
+                  <span className="text-[0.75rem] text-ink-3">
+                    Até {formatDeadline(m.deadline)}
+                  </span>
+                )
+              )}
             </div>
           ))}
 
@@ -322,6 +406,21 @@ export function MissionsEditor({
               Máximo {CUSTOM_MAX} caracteres.
             </p>
           )}
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="prazo-nova-missao"
+              className="shrink-0 text-[0.7rem] uppercase tracking-rotulo text-ink-3"
+            >
+              Prazo opcional
+            </label>
+            <input
+              id="prazo-nova-missao"
+              type="datetime-local"
+              value={draftDeadline}
+              onChange={(e) => setDraftDeadline(e.target.value)}
+              className="rounded-token border border-linha bg-bg px-2 py-1 font-corpo text-sm text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+            />
+          </div>
         </div>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -470,6 +569,14 @@ function IcoX() {
   return (
     <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
       <path d="M1.5 1.5l7 7M8.5 1.5l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IcoCheck() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+      <path d="M2 6l2.5 2.5L10 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
