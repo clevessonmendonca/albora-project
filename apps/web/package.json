@@ -8,6 +8,7 @@
     "dev": "next dev",
     "prebuild": "pnpm sw:build --producao && pnpm fontes",
     "build": "next build",
+    "bundle:budget": "BUNDLE_BUDGET_BUILD=1 next build && node -e \"const fs=require('fs');const dir='.next/static/chunks';const files=fs.readdirSync(dir).filter(f=>f.endsWith('.js'));const total=files.reduce((s,f)=>s+fs.statSync(dir+'/'+f).size,0);const kb=Math.round(total/1024);console.log('Total JS:',kb,'KB');if(kb>350){console.error('OVER BUDGET: '+kb+'KB > 350KB');process.exit(1)}\"",
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "fontes": "node scripts/copiar-fontes.mjs",
