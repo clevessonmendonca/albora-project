@@ -1,5 +1,6 @@
 import { isVideoMime } from "@albora/core";
 import { cn } from "@albora/ui-web";
+import Image from "next/image";
 import type { CSSProperties } from "react";
 import type { Cena, ItemApi } from "../../lib/types";
 
@@ -38,7 +39,13 @@ function CelulaContida({
     <div className={cn("relative overflow-hidden", className)} style={style}>
       <FundoDesfocado src={item.full} mime={item.mime} />
       <div className="relative z-10 flex h-full w-full items-center justify-center">
-        <MidiaPalco src={item.full} mime={item.mime} enquadrar="contain" />
+        <MidiaPalco
+          src={item.full}
+          mime={item.mime}
+          enquadrar="contain"
+          largura={item.largura}
+          altura={item.altura}
+        />
       </div>
     </div>
   );
@@ -59,7 +66,7 @@ export function WallStage({
     const only = itens[0]!;
     return (
       <div className="absolute inset-0">
-        <MidiaPalco src={only.full} mime={only.mime} enquadrar="cover" />
+        <MidiaPalco src={only.full} mime={only.mime} enquadrar="cover" priority />
         <Credito autor={only.autor} reacoes={only.reacoes} />
       </div>
     );
@@ -84,7 +91,14 @@ export function WallStage({
           <img src={only.full} alt="" aria-hidden className={FUNDO_AMBIENTE} />
         )}
         <div className={PALCO}>
-          <MidiaPalco src={only.full} mime={only.mime} enquadrar="contain" />
+          <MidiaPalco
+            src={only.full}
+            mime={only.mime}
+            enquadrar="contain"
+            largura={only.largura}
+            altura={only.altura}
+            priority
+          />
         </div>
         <Credito autor={only.autor} reacoes={only.reacoes} />
       </div>
@@ -102,7 +116,14 @@ export function WallStage({
       >
         <FundoDesfocado src={only.full} mime={only.mime} />
         <div className={cn(PALCO, "relative z-10")}>
-          <MidiaPalco src={only.full} mime={only.mime} enquadrar="contain" />
+          <MidiaPalco
+            src={only.full}
+            mime={only.mime}
+            enquadrar="contain"
+            largura={only.largura}
+            altura={only.altura}
+            priority
+          />
         </div>
         <Credito autor={only.autor} reacoes={only.reacoes} />
       </div>
@@ -120,7 +141,14 @@ export function WallStage({
               Mais cedo, na festa
             </figcaption>
           )}
-          <MidiaPalco src={only.full} mime={only.mime} enquadrar="contain" />
+          <MidiaPalco
+            src={only.full}
+            mime={only.mime}
+            enquadrar="contain"
+            largura={only.largura}
+            altura={only.altura}
+            priority
+          />
           <figcaption className="mt-3 flex w-full justify-between gap-4 text-[clamp(0.8rem,1.4vw,1.1rem)] text-ink-2">
             <span>{only.autor}</span>
             {only.reacoes > 0 && <span className="text-acento">★ {only.reacoes}</span>}
@@ -230,7 +258,13 @@ export function WallStage({
           key={it.id}
           className="relative flex min-h-0 min-w-0 items-center justify-center"
         >
-          <MidiaPalco src={it.full} mime={it.mime} enquadrar="contain" />
+          <MidiaPalco
+            src={it.full}
+            mime={it.mime}
+            enquadrar="contain"
+            largura={it.largura}
+            altura={it.altura}
+          />
         </div>
       ))}
     </div>
@@ -241,10 +275,16 @@ function MidiaPalco({
   src,
   mime,
   enquadrar,
+  largura,
+  altura,
+  priority = false,
 }: {
   src: string;
   mime: string;
   enquadrar: "contain" | "cover";
+  largura?: number | undefined;
+  altura?: number | undefined;
+  priority?: boolean;
 }) {
   const classes = cn(
     "block rounded-superficie",
@@ -266,7 +306,23 @@ function MidiaPalco({
     );
   }
 
-  return <img src={src} alt="" className={classes} />;
+  if (enquadrar === "cover") {
+    return (
+      <Image src={src} alt="" fill sizes="100vw" priority={priority} className={classes} />
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt=""
+      width={largura ?? 1600}
+      height={altura ?? 1200}
+      sizes="100vw"
+      priority={priority}
+      className={classes}
+    />
+  );
 }
 
 function Credito({ autor, reacoes }: { autor: string; reacoes: number }) {

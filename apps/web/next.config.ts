@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
   serverExternalPackages: ["pdf-lib", "@pdf-lib/fontkit"],
   transpilePackages: ["@albora/core", "@albora/packs", "@albora/tokens", "@albora/ui-web"],
+  images: {
+    loader: "custom",
+    loaderFile: "./lib/image-loader.ts",
+  },
   typescript: {
     // Só para `pnpm bundle:budget*` — mede First Load JS sem bloquear o gate principal de build.
     ignoreBuildErrors: process.env.BUNDLE_BUDGET_BUILD === "1",

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Badge, Frame } from "@albora/ui-web";
 import type { CoverMoment } from "../../types/cover";
 
@@ -32,7 +33,13 @@ export function MomentCard({
       }`}
     >
       {moment.thumbUrl ? (
-        <img src={moment.thumbUrl} alt="" className="absolute inset-0 size-full object-cover" />
+        <Image
+          src={moment.thumbUrl}
+          alt=""
+          fill
+          sizes="(max-width: 640px) 50vw, 33vw"
+          className="object-cover"
+        />
       ) : (
         <Frame label="" atmosphere variant={index * 6 + 2} />
       )}

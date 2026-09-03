@@ -1,6 +1,7 @@
 "use client";
 
 import React, { memo, type ComponentType, type ReactNode } from "react";
+import Image from "next/image";
 import type { ModoInteracao } from "@albora/core";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { PostHeader } from "@albora/ui-web";
@@ -88,12 +89,12 @@ export const Post = memo(function Post({
                   muted
                 />
               ) : (
-                <img
-                  className="feed-amanhece block size-full bg-bg object-contain"
+                <Image
+                  className="feed-amanhece bg-bg object-contain"
                   src={url}
                   alt=""
-                  loading="lazy"
-                  decoding="async"
+                  fill
+                  sizes="(max-width: 640px) 100vw, 50vw"
                 />
               )}
             </button>
@@ -106,12 +107,12 @@ export const Post = memo(function Post({
               preload="metadata"
             />
           ) : (
-            <img
-              className="feed-amanhece block size-full bg-bg object-contain"
+            <Image
+              className="feed-amanhece bg-bg object-contain"
               src={url}
               alt={legenda || `Foto de ${autor}`}
-              loading="lazy"
-              decoding="async"
+              fill
+              sizes="(max-width: 640px) 100vw, 50vw"
             />
           )
         ) : (
