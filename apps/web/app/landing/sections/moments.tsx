@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Accent, Heading, Label, Section, radiusStyle } from "../pieces";
 import { SURFACES } from "../landing-data";
 
@@ -17,17 +18,16 @@ export function MomentsSection({
         {t("landing.momentos.lede")}
       </p>
 
-      <div className="mt-[clamp(2.5rem,6vw,4.25rem)] overflow-hidden rounded-superficie shadow-alta">
-        <img
+      <div
+        className="relative mt-[clamp(2.5rem,6vw,4.25rem)] h-[clamp(18rem,40vw,32rem)] overflow-hidden rounded-superficie shadow-alta"
+        style={radiusStyle("var(--raio-superficie)")}
+      >
+        <Image
           src="/landing/dancefloor.webp"
           alt="Pista de dança vista de cima, com luzes e convidados dançando"
-          loading="lazy"
-          decoding="async"
-          className="block w-full object-cover"
-          style={{
-            ...radiusStyle("var(--raio-superficie)"),
-            maxHeight: "clamp(18rem, 40vw, 32rem)",
-          }}
+          fill
+          sizes="(min-width: 78rem) 1248px, 100vw"
+          className="object-cover"
         />
       </div>
 

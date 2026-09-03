@@ -7,3 +7,6 @@ export function alboraImageLoader({ src, width, quality }: ImageLoaderProps): st
   const q = quality ?? 75;
   return `${R2_PUBLIC}/cdn-cgi/image/width=${width},quality=${q},format=auto/${src}`;
 }
+
+/** next.config.ts `images.loaderFile` requires a default export. */
+export default alboraImageLoader;

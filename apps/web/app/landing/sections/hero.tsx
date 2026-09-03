@@ -1,5 +1,6 @@
 import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import type { Pack } from "@albora/packs";
+import Image from "next/image";
 import type { CSSProperties } from "react";
 import { LandingCtaLink } from "../landing-cta-link";
 import { LandingDemoLink } from "../landing-demo-link";
@@ -34,12 +35,12 @@ export function HeroSection({
           minHeight: "clamp(30rem, 58vw, 42rem)",
         }}
       >
-        <img
+        <Image
           src="/landing/hero.webp"
           alt="Convidados fotografando com celulares em jantar festivo à luz de velas"
-          loading="eager"
-          decoding="async"
-          fetchPriority="high"
+          fill
+          priority
+          sizes="100vw"
           className="absolute inset-0 h-full w-full object-cover"
         />
 

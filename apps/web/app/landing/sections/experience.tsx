@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Label, Heading, Section, radiusStyle } from "../pieces";
 import { STEPS, NUMBERS } from "../landing-data";
 
@@ -6,16 +7,15 @@ export function ExperienceSection() {
     <Section id="experiencia" reveal>
       <div className="rounded-superficie bg-acento-superficie-suave p-[clamp(1.75rem,4vw,3.75rem)]">
         <div
-          className="mb-[clamp(1.5rem,3vw,2.5rem)] overflow-hidden"
+          className="relative mb-[clamp(1.5rem,3vw,2.5rem)] h-[clamp(12rem,26vw,20rem)] overflow-hidden"
           style={radiusStyle("var(--raio)")}
         >
-          <img
+          <Image
             src="/landing/guest.webp"
             alt="Convidada fotografando com o celular durante a festa"
-            loading="lazy"
-            decoding="async"
-            className="block h-[clamp(12rem,26vw,20rem)] w-full object-cover object-top"
-            style={radiusStyle("var(--raio)")}
+            fill
+            sizes="(min-width: 78rem) 1248px, 100vw"
+            className="object-cover object-top"
           />
         </div>
 

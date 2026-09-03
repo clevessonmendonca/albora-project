@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
+import Image from "next/image";
 import { cn } from "@albora/ui-web";
 import { Accent, Heading, Label, radiusStyle, transition } from "../pieces";
 import { SIDE_PADDING } from "../landing-data";
@@ -99,11 +100,11 @@ function CorridorCard({
         ...radiusStyle("var(--raio-superficie)"),
       }}
     >
-      <img
+      <Image
         src={card.src}
         alt={card.badge}
-        loading="lazy"
-        decoding="async"
+        fill
+        sizes="220px"
         className="absolute inset-0 h-full w-full object-cover"
       />
       <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/60 to-transparent p-4 pt-10">
