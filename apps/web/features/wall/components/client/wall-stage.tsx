@@ -330,7 +330,7 @@ function Credito({ autor, reacoes }: { autor: string; reacoes: number }) {
     <div
       className={cn(
         "absolute bottom-[clamp(1rem,3vw,3rem)] left-[clamp(1rem,3vw,3rem)]",
-        "flex items-center gap-3 rounded-pilula px-4 py-2 backdrop-blur",
+        "flex items-center gap-3 rounded-pilula px-4 py-2",
         "bg-bg-overlay-medio text-[clamp(0.85rem,1.4vw,1.15rem)] text-ink",
       )}
     >

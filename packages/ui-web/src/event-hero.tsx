@@ -37,7 +37,7 @@ export function EventHero({ fotoUrl, overline, titulo, data, onBack, actions }: 
                 type="button"
                 onClick={onBack}
                 aria-label="Voltar"
-                className="grid size-9 place-items-center rounded-full bg-bg-vidro text-ink backdrop-blur-sm"
+                className="grid size-9 place-items-center rounded-full bg-bg-vidro text-ink"
               >
                 <BackIcon />
               </button>

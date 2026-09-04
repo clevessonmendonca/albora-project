@@ -62,6 +62,13 @@ const CURVA_LITERAL =
   /cubic-bezier\s*\(|\b(?:ease-in-out|ease-out|ease-in)\b|\d\s*m?s\s+(?:ease|linear)\b/;
 
 /**
+ * Glassmorphism é anti-padrão bloqueante do CLAUDE.md — o produto usa
+ * profundidade por scrim/elevação, nunca vidro fosco. `bg-bg-vidro` (scrim
+ * translúcido sólido) fica; só a camada de blur é proibida.
+ */
+const BACKDROP_BLUR = /backdrop-blur\b|backdrop-filter\b/;
+
+/**
  * Exceções por arquivo, com motivo. **Nunca afrouxar a regra** — é o plano
  * escrito no risco da task 002. Arquivo só entra aqui se a cor for
  * genuinamente independente da identidade do evento.
@@ -81,6 +88,11 @@ export function verificar(raiz) {
     for (const caminho of arquivos(`${raiz}/${alvo}`, [".ts", ".tsx", ".css"])) {
       if (EXCECOES.has(basename(caminho))) continue;
 
+      // `*.test.*` fica de fora só da checagem de blur: `not.toMatch(/backdrop-blur/)`
+      // é regex literal, não comentário — `linhasDeCodigo` não o esconde, e é
+      // checagem de ausência, não uso do anti-padrão.
+      const ehArquivoDeTeste = /\.test\.[cm]?[jt]sx?$/.test(caminho);
+
       // Sem `else`: uma linha pode burlar de três formas ao mesmo tempo, e
       // relatar só a primeira faz o autor corrigir uma e ser reprovado de novo.
       linhasDeCodigo(caminho).forEach((semComentario, i) => {
@@ -98,6 +110,9 @@ export function verificar(raiz) {
         }
         if (CURVA_LITERAL.test(semComentario) && !semComentario.includes("var(--curva)")) {
           violacoes.push(violacao(raiz, caminho, i, semComentario, "curva literal — o produto tem uma só: var(--curva)"));
+        }
+        if (!ehArquivoDeTeste && BACKDROP_BLUR.test(semComentario)) {
+          violacoes.push(violacao(raiz, caminho, i, semComentario, "glassmorphism — backdrop-blur/backdrop-filter é anti-padrão bloqueante; use bg-*-vidro (scrim sólido), não vidro fosco"));
         }
       });
     }

@@ -24,7 +24,7 @@ export function WallParticipationCounter({
       className={cn(
         "absolute left-[clamp(0.75rem,2vw,1.5rem)] top-[clamp(0.75rem,2vw,1.5rem)]",
         "flex items-center gap-[clamp(0.4rem,1vw,0.65rem)]",
-        "rounded-pilula border border-linha bg-bg-vidro backdrop-blur-[6px]",
+        "rounded-pilula border border-linha bg-bg-vidro",
         "px-[clamp(0.85rem,1.6vw,1.35rem)] py-[clamp(0.45rem,1vw,0.7rem)]",
         "text-[clamp(0.8rem,1.3vw,1.05rem)] text-ink",
       )}
