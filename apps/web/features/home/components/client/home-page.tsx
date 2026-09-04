@@ -115,6 +115,17 @@ export function HomePage({
     <>
       <SkipLink />
 
+      <style>{`
+        @keyframes home-trilho-revela {
+          from { opacity: 0; transform: translateY(0.5rem); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .home-trilho-anima { animation: home-trilho-revela var(--tempo-lento) var(--curva) both; }
+        @media (prefers-reduced-motion: reduce) {
+          .home-trilho-anima { animation: none !important; }
+        }
+      `}</style>
+
       <GuestShell>
         <GuestMain>
           <GuestHeader
@@ -125,7 +136,9 @@ export function HomePage({
 
           {missions.length > 0 && <MissionsCue slug={slug} missions={missions} />}
 
-          <StoryRail items={stories} onAdd={() => router.push(cameraPath)} />
+          <div className="home-trilho-anima">
+            <StoryRail items={stories} onAdd={() => router.push(cameraPath)} />
+          </div>
 
           {espelho && estado.jaCarregou && (
             <div className="mt-4">
@@ -219,7 +232,7 @@ function MissionsCue({ slug, missions }: { slug: string; missions: MissionWithSt
   return (
     <Link
       href={href}
-      className="mb-4 flex items-center justify-between gap-3 border-b border-linha py-3 text-inherit no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
+      className="elev-1 mb-4 flex min-h-11 items-center justify-between gap-3 rounded-token px-4 py-3.5 text-inherit no-underline transition-[transform,opacity] duration-instantaneo ease-mola active:scale-[0.98] hover:opacity-90"
     >
       <span className="min-w-0">
         <span className="block text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
@@ -236,7 +249,7 @@ function MissionsCue({ slug, missions }: { slug: string; missions: MissionWithSt
 
 function CardLoading() {
   return (
-    <div aria-hidden className="grid gap-3">
+    <div aria-hidden className="elev-1 grid gap-3 rounded-token p-3.5">
       <div className="flex items-center gap-2.5">
         <span className="size-[1.875rem] rounded-full bg-ink-skeleton animate-pulse" />
         <span className="h-3.5 w-24 rounded-pilula bg-ink-skeleton animate-pulse" />
