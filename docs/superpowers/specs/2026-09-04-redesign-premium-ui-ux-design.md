@@ -152,6 +152,16 @@ Cada tela redesenhada segue o mesmo ciclo:
 3. Verificar no browser (desktop + mobile), acessibilidade (contraste, teclado, reduced-motion), sem regressão.
 4. Provar com screenshot antes/depois.
 
+### Decomposição inteligente (regra de tamanho de tarefa)
+
+Nenhuma tela fica de fora, e a onda decompõe por inteligência — **não** por regra fixa de "1 tela = 1 tarefa":
+
+- **Tela pesada vira várias tarefas/steps.** Câmera/editor não é uma tarefa: vira câmera → editor (por aba: LUT, texto, música) → confirmação. Feed vira lista → interações (curtir/reagir) → comment sheet → viewer. Identity editor do admin vira editor de token → preview ao vivo → upload de capa. O wizard de criar evento vira um passo por tarefa quando cada passo carrega seu próprio julgamento.
+- **Tela/estado faltando, cria-se.** Se um fluxo pede estado que não existe — empty state, erro, loading, timeout, offline, permissão negada, passo de onboarding/ativação — vira tarefa nova; não fica buraco.
+- **Critério de corte:** separa em tarefas/steps distintos sempre que um reviewer pudesse aprovar uma parte e reprovar a outra. Cada tarefa termina num entregável testável e verificável isolado.
+- **Tela simples fica uma tarefa só** (YAGNI — não inflar).
+- Cada plano de onda **enumera explicitamente cada tela** como tarefa nomeada antes do despacho, e quebra as complexas em partes nomeadas. Uma tela sem tarefa é um defeito do plano.
+
 ## 7. Verificação e qualidade
 
 - **Guards permanecem bloqueantes:** tokens (nenhum hex), isolamento entre eventos, packs. Rodam em todo commit.
