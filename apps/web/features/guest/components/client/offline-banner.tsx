@@ -28,10 +28,12 @@ export function OfflineBanner() {
     <div
       role="status"
       aria-live="assertive"
-      className="fixed inset-x-0 top-[env(safe-area-inset-top)] z-toast flex items-center justify-center gap-2 bg-ink px-4 py-2.5 text-center text-sm font-medium text-bg"
+      className="fixed inset-x-0 top-[env(safe-area-inset-top)] z-toast flex items-center justify-center gap-2 rounded-b-media bg-ink px-4 py-3 text-center shadow-suave"
     >
-      <span aria-hidden="true" className="inline-block size-2 rounded-full bg-critico" />
-      Sem conexão — suas fotos estão seguras e sobem quando voltar
+      <span aria-hidden="true" className="inline-block size-2 shrink-0 rounded-full bg-acento" />
+      <p className="m-0 tipo-caption font-medium text-bg">
+        Sem conexão — suas fotos estão seguras e sobem quando voltar
+      </p>
     </div>
   );
 }

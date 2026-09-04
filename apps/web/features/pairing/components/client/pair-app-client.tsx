@@ -61,9 +61,9 @@ export function PairApp() {
 
   return (
     <main className="fixed inset-0 grid place-items-center bg-bg p-6 font-corpo text-ink">
-      <div className="flex w-full max-w-md flex-col gap-5 rounded-superficie bg-superficie p-8">
-        <h1 className="m-0 font-titulo text-2xl">Digite o código</h1>
-        <p className="m-0 leading-normal text-ink-2">
+      <div className="elev-2 flex w-full max-w-md flex-col gap-5 rounded-superficie p-8">
+        <h1 className="tipo-subtitle m-0 text-ink">Digite o código</h1>
+        <p className="m-0 tipo-body text-ink-2">
           Quatro números que aparecem na web depois da primeira foto.
         </p>
 
@@ -87,12 +87,12 @@ export function PairApp() {
         </div>
 
         {estado === "recusado" && (
-          <p className="m-0 text-[0.9rem] text-critico">
+          <p className="m-0 tipo-caption text-critico">
             Código inválido ou expirado. Peça outro na web.
           </p>
         )}
         {estado === "erro" && (
-          <p className="m-0 text-[0.9rem] text-critico">
+          <p className="m-0 tipo-caption text-critico">
             Não deu para parear agora. Tente de novo.
           </p>
         )}
