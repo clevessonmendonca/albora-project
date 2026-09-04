@@ -37,36 +37,54 @@ export function WallPairingScreen({
   return (
     <main
       style={variaveis as CSSProperties}
-      className={cn(SHELL, "grid place-items-center p-8")}
+      className={cn(SHELL, "bg-superficie-vignette grid place-items-center p-8")}
     >
-      <div className="max-w-[40ch] text-center">
-        <p className="m-0 text-[clamp(0.95rem,1.8vw,1.25rem)] uppercase tracking-rotulo text-ink-2">
-          Para ligar o telão
-        </p>
-        
-        <div className="my-8">
-          <p className="m-0 mb-3 text-[0.95rem] text-ink-3">
+      <style>{`
+        @keyframes parede-pareamento-entra {
+          from { opacity: 0; transform: translateY(0.75rem) scale(0.99); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .parede-pareamento-entra { animation: parede-pareamento-entra var(--tempo-lento) var(--curva) both; }
+        @media (prefers-reduced-motion: reduce) {
+          .parede-pareamento-entra { animation: none !important; }
+        }
+      `}</style>
+
+      <div className="parede-pareamento-entra grid w-full max-w-[75rem] items-center gap-[clamp(2rem,5vw,4.5rem)] text-center md:grid-cols-[1.3fr_auto] md:text-left">
+        <div>
+          <p className="tipo-label m-0 uppercase tracking-rotulo text-ink-2">Para ligar o telão</p>
+
+          <p className="tipo-body m-0 mb-2 mt-6 text-[clamp(0.95rem,1.6vw,1.2rem)] text-ink-3">
             1. Abra a festa no celular
           </p>
-          <p className="my-8 font-titulo text-[clamp(3.5rem,14vw,9rem)] font-light leading-none tracking-[0.18em] text-acento tabular-nums">
+          <p
+            aria-live="polite"
+            className="tipo-display m-0 font-titulo text-[clamp(4rem,13vw,8.5rem)] font-normal leading-none tracking-[0.14em] text-acento tabular-nums"
+          >
             {codigo ?? "······"}
           </p>
-          <p className="m-0 mt-3 text-[0.95rem] text-ink-3">
+          <p className="tipo-body m-0 mt-6 text-[clamp(0.95rem,1.6vw,1.2rem)] text-ink-3">
             2. Autorize este código · 3. Pronto
           </p>
         </div>
 
-        {qrDataUrl ? (
-          <img
-            src={qrDataUrl}
-            alt="QR para autorizar o telão"
-            className="mx-auto mb-7 size-[min(13rem,42vw)] rounded-token bg-bg p-2.5 shadow-suave"
-          />
-        ) : null}
-        
-        <p className="m-0 max-w-[36ch] text-[clamp(0.95rem,1.8vw,1.25rem)] leading-relaxed text-ink-2">
-          Ou escaneie o QR acima para autorizar. Vale para qualquer pessoa que já entrou no evento.
-        </p>
+        <div className="grid justify-items-center gap-4 md:justify-items-start">
+          {qrDataUrl ? (
+            <img
+              src={qrDataUrl}
+              alt="QR para autorizar o telão"
+              className="size-[min(15rem,44vw)] rounded-superficie bg-bg p-3.5 shadow-alta"
+            />
+          ) : (
+            <div
+              aria-hidden
+              className="size-[min(15rem,44vw)] rounded-superficie bg-bg shadow-alta"
+            />
+          )}
+          <p className="tipo-body m-0 max-w-[26ch] text-[clamp(0.9rem,1.5vw,1.1rem)] leading-relaxed text-ink-2">
+            Ou escaneie o QR ao lado. Vale para qualquer pessoa que já entrou no evento.
+          </p>
+        </div>
       </div>
     </main>
   );

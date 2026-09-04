@@ -22,19 +22,19 @@ export function WallParticipationCounter({
       role="status"
       aria-label={rotuloDosContadores(contadores)}
       className={cn(
-        "absolute left-[clamp(0.75rem,2vw,1.5rem)] top-[clamp(0.75rem,2vw,1.5rem)]",
+        "parede-subir absolute left-[clamp(0.75rem,2vw,1.5rem)] top-[clamp(0.75rem,2vw,1.5rem)]",
         "flex items-center gap-[clamp(0.4rem,1vw,0.65rem)]",
-        "rounded-pilula border border-linha bg-bg-vidro",
+        "tipo-body rounded-pilula border border-linha bg-bg-vidro shadow-suave",
         "px-[clamp(0.85rem,1.6vw,1.35rem)] py-[clamp(0.45rem,1vw,0.7rem)]",
         "text-[clamp(0.8rem,1.3vw,1.05rem)] text-ink",
       )}
     >
-      <span className="tabular-nums">{fotos}</span>
+      <span className="font-titulo tabular-nums">{fotos}</span>
       <span className="text-ink-2">{fotos === 1 ? "foto" : "fotos"}</span>
       <span aria-hidden className="text-ink-3">
         ·
       </span>
-      <span className="tabular-nums">{convidados}</span>
+      <span className="font-titulo tabular-nums">{convidados}</span>
       <span className="text-ink-2">{convidados === 1 ? "pessoa" : "pessoas"}</span>
     </div>
   );
