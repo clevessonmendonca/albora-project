@@ -240,8 +240,8 @@ export function MyPhotosPage({
             />
           )}
 
-          {/* Gallery Grid */}
-          <ul className="m-0 grid list-none grid-cols-3 gap-1 p-0">
+          {/* Gallery Grid — mesma respiração da grade do álbum (Task 9) */}
+          <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-4">
             {galeria.itens.map((item) => {
               const url =
                 item.estado === "enviada"
