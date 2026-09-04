@@ -136,7 +136,7 @@ Onde "site moderno com efeitos, minimalista" mais vive. Storytelling guiado por 
 
 A arquitetura dita a ordem. Fundação primeiro (propaga a tudo), depois superfície por superfície, tela por tela.
 
-**Onda 0 — Fundação e primitivos.** Evolui tokens onde o híbrido pede (ritmo de espaçamento, escala tipográfica, sistema de movimento, hierarquia de elevação). Eleva os primitivos `ui-web`. Sozinha, isto já levanta o produto inteiro. É a maior alavanca.
+**Onda 0 — Fundação e primitivos. ✅ CONCLUÍDA (2026-09-04).** Evolui tokens onde o híbrido pede (escala tipográfica nomeada, sistema de movimento mola/saída/instantâneo, hierarquia de elevação elev-0..3). Eleva os primitivos `ui-web` (Button, Card, Sheet, Dialog, campos de formulário, TabBar, FloatingNav, EmptyState). Removeu todo glassmorphism (5 usos) e travou o guard contra reintrodução. Sozinha, isto já levanta o produto inteiro. É a maior alavanca. Plano: `docs/superpowers/plans/2026-09-04-redesign-onda-0-fundacao.md` (9 tasks, todas aprovadas, whole-branch review PASS).
 
 **Onda 1 — Convidado PWA (H1-crítico).** Tela por tela: entrada, cover/home, câmera/editor, confirmação, feed, álbum, missões, minhas-fotos, música, perfil.
 
