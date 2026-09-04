@@ -107,13 +107,13 @@ function CorridorCard({
         sizes="220px"
         className="absolute inset-0 h-full w-full object-cover"
       />
-      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/60 to-transparent p-4 pt-10">
+      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-video-scrim-forte p-4 pt-10">
         <span
           className="rounded-pilula bg-acento px-2.5 py-1 text-[0.6875rem] font-semibold uppercase tracking-rotulo text-sobre-acento"
         >
           {card.badge}
         </span>
-        <span className="text-[0.75rem] text-white/80">{card.stats}</span>
+        <span className="text-[0.75rem] text-bg/80">{card.stats}</span>
       </div>
     </article>
   );

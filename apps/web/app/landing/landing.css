@@ -39,18 +39,26 @@
 
 /* ── estados ─────────────────────────────────────────────────────────── */
 
+/*
+ * Toque físico, não linear: pílula e cartão respondem com a mola (`--mola`) —
+ * a mesma curva de sobra/assentamento do resto do produto — enquanto cor e
+ * sombra, que não têm massa, seguem a curva padrão. É a distinção do
+ * `apple-design`: física em manipulação direta, curva-padrão em tudo que só
+ * aparece.
+ */
 .pilula {
   transition:
-    transform var(--tempo-rapido) var(--curva),
+    transform var(--tempo-rapido) var(--mola),
     filter var(--tempo-rapido) var(--curva);
 }
 
 .pilula:hover {
   filter: brightness(1.08);
+  transform: translateY(-0.0625rem);
 }
 
 .pilula:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 
 .elo {
@@ -64,12 +72,12 @@
 .cartao {
   box-shadow: var(--shadow-suave);
   transition:
-    transform var(--tempo) var(--curva),
+    transform var(--tempo) var(--mola),
     box-shadow var(--tempo) var(--curva);
 }
 
 .cartao:hover {
-  transform: translateY(-0.25rem);
+  transform: translateY(-0.3125rem);
   box-shadow: var(--shadow-alta);
 }
 
@@ -155,6 +163,25 @@ summary:focus-visible {
 @keyframes brilho {
   to {
     transform: translateX(100%);
+  }
+}
+
+/**
+ * Deriva lenta do herói — Ken Burns discreto, nunca decorativo o bastante
+ * para competir com o título. `will-change` só aqui: é a única animação que
+ * roda o tempo inteiro em vez de uma vez na entrada.
+ */
+.heroi-imagem {
+  animation: deriva 26s var(--curva) infinite alternate;
+  will-change: transform;
+}
+
+@keyframes deriva {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
   }
 }
 

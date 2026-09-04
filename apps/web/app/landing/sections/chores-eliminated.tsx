@@ -101,7 +101,7 @@ export function ChoresEliminatedSection() {
           className="m-0 mt-[clamp(1.5rem,3vw,2.5rem)] grid list-none grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-x-[clamp(2rem,5vw,4rem)] p-0"
           style={{
             backgroundImage:
-              "radial-gradient(circle, var(--bg)/8 1px, transparent 1px)",
+              "radial-gradient(circle, color-mix(in srgb, var(--bg) 8%, transparent) 1px, transparent 1px)",
             backgroundSize: "1.5rem 1.5rem",
           }}
         >

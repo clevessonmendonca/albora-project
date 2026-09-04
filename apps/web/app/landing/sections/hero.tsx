@@ -41,7 +41,7 @@ export function HeroSection({
           fill
           priority
           sizes="100vw"
-          className="absolute inset-0 h-full w-full object-cover"
+          className="heroi-imagem absolute inset-0 h-full w-full object-cover"
         />
 
         {/* Gradient forte no lado do texto — garante legibilidade total */}

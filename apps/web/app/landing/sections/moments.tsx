@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Reveal } from "../interactives";
 import { Accent, Heading, Label, Section, radiusStyle } from "../pieces";
 import { SURFACES } from "../landing-data";
 
@@ -32,15 +33,17 @@ export function MomentsSection({
       </div>
 
       <div className="mt-[clamp(2.25rem,5vw,3.75rem)] grid grid-cols-[repeat(auto-fit,minmax(13rem,1fr))] gap-x-[clamp(1.25rem,3vw,2.75rem)]">
-        {SURFACES.map((s) => (
-          <div key={s.label} className="border-t border-linha py-5">
-            <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
-              {s.label}
-            </p>
-            <p className="m-0 mt-2 text-sm leading-normal text-ink-2">
-              {s.caption}
-            </p>
-          </div>
+        {SURFACES.map((s, i) => (
+          <Reveal key={s.label} delay={i * 80}>
+            <div className="border-t border-linha py-5">
+              <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
+                {s.label}
+              </p>
+              <p className="m-0 mt-2 text-sm leading-normal text-ink-2">
+                {s.caption}
+              </p>
+            </div>
+          </Reveal>
         ))}
       </div>
     </Section>

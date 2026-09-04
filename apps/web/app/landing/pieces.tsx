@@ -11,12 +11,16 @@ export const lightPillClasses =
 
 export function Label({ children }: { children: ReactNode }) {
   return (
-    <p className="mb-4 text-[0.8125rem] uppercase tracking-rotulo text-acento-texto">
-      {children}
-    </p>
+    <p className="tipo-label mb-4 uppercase text-acento-texto">{children}</p>
   );
 }
 
+/**
+ * Fraunces display via `.tipo-display` — uma escala só, herdada de
+ * `tipografia.css`. `size` continua por chamada (cada seção pede um peso
+ * visual diferente); o que a escala fixa é família, entrelinha e tracking,
+ * pra não haver três tipografias de título convivendo na mesma rolagem.
+ */
 export function Heading({
   children,
   size = "clamp(1.75rem, 4.2vw, 3.25rem)",
@@ -28,10 +32,7 @@ export function Heading({
 }) {
   return (
     <h2
-      className={cn(
-        "m-0 font-titulo font-light leading-[1.03] tracking-titulo text-balance",
-        className,
-      )}
+      className={cn("tipo-display m-0 font-light text-balance", className)}
       style={{ fontSize: size }}
     >
       {children}

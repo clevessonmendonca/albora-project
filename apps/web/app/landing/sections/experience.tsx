@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Reveal } from "../interactives";
 import { Label, Heading, Section, radiusStyle } from "../pieces";
 import { STEPS, NUMBERS } from "../landing-data";
 
@@ -32,20 +33,19 @@ export function ExperienceSection() {
             </p>
 
             {STEPS.map((p, i) => (
-              <div
-                key={p.title}
-                className="flex items-start gap-[1.125rem] border-t border-linha py-5"
-              >
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-superficie-alta font-titulo text-acento-texto">
-                  {i + 1}
-                </span>
-                <span>
-                  <span className="block">{p.title}</span>
-                  <span className="mt-[0.3125rem] block text-[0.84375rem] leading-normal text-ink-2">
-                    {p.desc}
+              <Reveal key={p.title} delay={i * 90}>
+                <div className="flex items-start gap-[1.125rem] border-t border-linha py-5">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-superficie-alta font-titulo text-acento-texto">
+                    {i + 1}
                   </span>
-                </span>
-              </div>
+                  <span>
+                    <span className="block">{p.title}</span>
+                    <span className="mt-[0.3125rem] block text-[0.84375rem] leading-normal text-ink-2">
+                      {p.desc}
+                    </span>
+                  </span>
+                </div>
+              </Reveal>
             ))}
 
             <a
@@ -57,16 +57,15 @@ export function ExperienceSection() {
           </div>
 
           <div className="grid grid-cols-[repeat(auto-fit,minmax(9.375rem,1fr))] gap-[0.875rem]">
-            {NUMBERS.map((x) => (
-              <div
-                key={x.o}
-                className="cartao rounded-superficie bg-superficie-alta p-6"
-              >
-                <p className="m-0 font-titulo text-[clamp(1.875rem,3.4vw,2.625rem)] font-light tabular-nums leading-none tracking-titulo text-acento-texto">
-                  {x.n}
-                </p>
-                <p className="m-0 mt-3 leading-normal text-ink-2">{x.o}</p>
-              </div>
+            {NUMBERS.map((x, i) => (
+              <Reveal key={x.o} delay={i * 80}>
+                <div className="cartao rounded-superficie bg-superficie-alta p-6">
+                  <p className="m-0 font-titulo text-[clamp(1.875rem,3.4vw,2.625rem)] font-light tabular-nums leading-none tracking-titulo text-acento-texto">
+                    {x.n}
+                  </p>
+                  <p className="m-0 mt-3 leading-normal text-ink-2">{x.o}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
