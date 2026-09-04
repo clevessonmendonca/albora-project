@@ -11,7 +11,7 @@ import {
 } from "@albora/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { EditorCanvas } from "./editor-canvas";
-import { EditorControls, EditorHeader, EditorStyles } from "./editor-controls";
+import { EditorControls, EditorHeader } from "./editor-controls";
 import { faixasVotadas, type FaixaVotada } from "./editor-musica";
 import { comConteudo, textoTemConteudo } from "./editor-texto";
 import { carregarImagemEditor, type Escolha } from "./editor-lut";
@@ -118,8 +118,6 @@ export function Editor({
 
   return (
     <div className="grid h-dvh grid-rows-[auto_1fr_auto] gap-3">
-      <EditorStyles />
-
       <EditorHeader
         escolhido={escolhido}
         onDescartar={onDescartar}

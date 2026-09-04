@@ -1,14 +1,15 @@
 type FilterChipProps = {
   label: string;
-  thumbnail?: string;
+  thumbnail?: string | undefined;
   active: boolean;
-  suggested?: boolean;
+  suggested?: boolean | undefined;
   onClick: () => void;
 };
 
 /**
  * Chip de filtro com thumbnail opcional.
- * Mostra preview visual e marca sugerido/ativo.
+ * Mostra preview visual e marca sugerido/ativo. Toque dá feedback de mola
+ * (é um alvo tocado repetidamente ao comparar presets, não uma revelação).
  */
 export function FilterChip({
   label,
@@ -22,27 +23,21 @@ export function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`flex flex-col items-center gap-1.5 rounded-token border px-3 py-2 transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+      className={`flex min-h-11 w-16 shrink-0 flex-col items-center gap-1.5 rounded-token border bg-transparent px-1 py-1 transition-[border-color,color,transform] duration-instantaneo ease-mola active:scale-95 motion-reduce:active:scale-100 ${
         active
           ? "border-acento bg-acento-superficie text-acento-texto"
           : "border-linha bg-superficie text-ink-3 hover:border-acento-borda hover:text-ink-2"
       }`}
     >
       {thumbnail && (
-        <div className="relative size-12 overflow-hidden rounded-token">
-          <img
-            src={thumbnail}
-            alt=""
-            className="size-full object-cover"
-          />
+        <div className="relative size-16 overflow-hidden rounded-token bg-superficie-alta shadow-suave">
+          <img src={thumbnail} alt="" className="size-full object-cover" />
           {suggested && !active && (
             <div className="absolute right-1 top-1 size-2 rounded-full bg-acento" />
           )}
         </div>
       )}
-      <span className="text-[0.75rem] font-medium">
-        {label}
-      </span>
+      <span className="tipo-label w-full truncate text-center uppercase">{label}</span>
     </button>
   );
 }
