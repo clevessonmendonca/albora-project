@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { AtualizadoHa, RefreshButton } from "./refresh-control";
@@ -73,7 +74,7 @@ export function ConsentVersions({ eventoId }: { eventoId: string }) {
   if (erro && !dados) {
     return (
       <AdminSection>
-        <p className="m-0 text-critico">
+        <p role="alert" className="tipo-body m-0 text-critico">
           Não foi possível carregar as versões de consentimento agora. Recarregue a página ou
           tente em instantes.
         </p>
@@ -105,7 +106,7 @@ export function ConsentVersions({ eventoId }: { eventoId: string }) {
     <div className="flex flex-col gap-5">
       <AdminSection>
         <div className="mb-3 flex items-center justify-between gap-4">
-          <h2 className="m-0 font-titulo text-lg">Consentimento</h2>
+          <h2 className="tipo-subtitle m-0 text-ink">Consentimento</h2>
           <div className="flex items-center gap-2">
             {ultimaAtualizacao && <AtualizadoHa desde={ultimaAtualizacao} />}
             <RefreshButton
@@ -117,7 +118,7 @@ export function ConsentVersions({ eventoId }: { eventoId: string }) {
             />
           </div>
         </div>
-        <p className="m-0 leading-relaxed text-ink-2">
+        <p className="tipo-body m-0 text-ink-2">
           Cada versão de consentimento é datada e versionada — aqui fica o texto exato que os
           convidados aceitaram e quantos aceitaram cada versão. Uso de auditoria LGPD, sem
           nomes individuais.
@@ -129,8 +130,8 @@ export function ConsentVersions({ eventoId }: { eventoId: string }) {
         if (lista.length === 0) return null;
         return (
           <AdminSection key={tipo}>
-            <h3 className="m-0 font-titulo text-base">{ROTULO_TIPO[tipo]}</h3>
-            <p className="mb-4 mt-1.5 text-[0.8125rem] leading-relaxed text-ink-3">
+            <h3 className="tipo-body m-0 font-medium text-ink">{ROTULO_TIPO[tipo]}</h3>
+            <p className="tipo-caption mb-4 mt-1.5 text-ink-3">
               {DESCRICAO_TIPO[tipo]}
             </p>
             <div className="flex flex-col gap-3">
@@ -151,34 +152,28 @@ function VersionCard({ versao }: { versao: VersaoDeConsentimento }) {
   return (
     <div className="rounded-token border border-linha bg-bg p-4">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="font-titulo text-sm text-ink">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="tipo-body font-medium text-ink">
             {versao.rotulo ?? `Versão ${versao.versao}`}
           </span>
-          <span className="rounded-pilula bg-superficie-alta px-2 py-0.5 text-[0.6875rem] text-ink-3">
-            {versao.versao}
-          </span>
+          <Badge tone="neutral">{versao.versao}</Badge>
           {versao.vigente ? (
-            <span className="rounded-pilula bg-acento px-2 py-0.5 text-[0.6875rem] text-sobre-acento">
-              vigente
-            </span>
+            <Badge tone="accent">vigente</Badge>
           ) : (
-            <span className="rounded-pilula border border-linha px-2 py-0.5 text-[0.6875rem] text-ink-3">
-              versão anterior
-            </span>
+            <Badge tone="outline">versão anterior</Badge>
           )}
         </div>
         <div className="flex items-baseline gap-1">
-          <span className="font-titulo text-xl tabular-nums text-acento-texto">
+          <span className="tipo-subtitle tabular-nums text-acento-texto">
             {versao.aceites}
           </span>
-          <span className="text-xs text-ink-3">
+          <span className="tipo-caption text-ink-3">
             {versao.aceites === 1 ? "aceite" : "aceites"}
           </span>
         </div>
       </div>
 
-      <div className="mb-3 grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-x-4 gap-y-1 text-xs text-ink-3">
+      <div className="mb-3 grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-x-4 gap-y-1 tipo-caption text-ink-3">
         <span>Primeiro aceite: {formatarData(versao.primeiroAceiteEm)}</span>
         <span>Último aceite: {formatarData(versao.ultimoAceiteEm)}</span>
         {versao.revogados !== null && (
@@ -193,18 +188,18 @@ function VersionCard({ versao }: { versao: VersaoDeConsentimento }) {
           <button
             type="button"
             onClick={() => setAberto((v) => !v)}
-            className="cursor-pointer border-none bg-transparent p-0 text-[0.8125rem] text-acento-texto underline underline-offset-2"
+            className="tipo-caption inline-flex min-h-11 items-center cursor-pointer border-none bg-transparent p-0 text-acento-texto underline underline-offset-2"
           >
             {aberto ? "Ocultar texto completo" : "Ler texto completo"}
           </button>
           {aberto && (
-            <p className="mb-0 mt-2 rounded-token bg-superficie-alta p-3 text-[0.8125rem] leading-relaxed text-ink-2">
+            <p className="tipo-caption mb-0 mt-2 rounded-token bg-superficie-alta p-3 leading-relaxed text-ink-2">
               {versao.texto}
             </p>
           )}
         </>
       ) : (
-        <p className="m-0 text-[0.8125rem] italic text-ink-3">
+        <p className="tipo-caption m-0 italic text-ink-3">
           Texto desta versão não está mais no registro do produto.
         </p>
       )}

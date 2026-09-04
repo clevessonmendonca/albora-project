@@ -3,6 +3,12 @@
 import { useState } from "react";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 
+/**
+ * ≥44px de alvo de toque — override local do Sm compartilhado (`adminClasses.primaryButtonSm`),
+ * mesmo padrão de host-album.tsx/review-queue.tsx.
+ */
+const ALVO_TOQUE = "min-h-11 px-5";
+
 const FORMATS = [
   { id: "placa-a4", label: "Placa A4", size: "210×297 mm + sangria 3 mm" },
   { id: "card-de-mesa", label: "Card de mesa", size: "100×140 mm + sangria 3 mm" },
@@ -60,27 +66,27 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
 
   return (
     <div>
-      <p className="mb-5 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
+      <p className="tipo-body mb-5 mt-0 text-ink-2">
         PDF pronto para a gráfica, com sangria de 3 mm e marcas de corte. SVG se o estúdio pedir
         para editar. A tela mostra RGB e a impressão sai CMYK — sempre peça uma prova colorida
         antes da tiragem final.
       </p>
 
       <div className="mb-6 rounded-token border border-linha bg-superficie-alta px-5 py-5">
-        <p className="mb-3 mt-0 text-[0.9375rem] font-titulo leading-relaxed text-ink">
+        <p className="tipo-body mb-3 mt-0 font-medium text-ink">
           Pacote completo
         </p>
-        <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-2">
+        <p className="tipo-caption mb-4 mt-0 text-ink-2">
           Placa A4, card de mesa e card de missão num arquivo ZIP — tudo que a gráfica
           precisa de uma vez só.
         </p>
-        <label className="mb-4 flex cursor-pointer items-center gap-2 text-[0.8125rem] text-ink-2 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
+        <label className="tipo-caption mb-4 flex min-h-11 cursor-pointer items-center gap-2 text-ink-2 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
           <input
             type="checkbox"
             checked={includeSvg}
             onChange={(e) => setIncludeSvg(e.target.checked)}
             disabled={downloading !== null}
-            className="cursor-pointer"
+            className="size-4 cursor-pointer"
           />
           Incluir arquivos SVG editáveis
         </label>
@@ -96,22 +102,22 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
         </button>
       </div>
 
-      <p className="mb-3 mt-0 text-[0.8125rem] uppercase tracking-rotulo text-ink-3">
+      <p className="tipo-label mb-3 mt-0 text-ink-3">
         Arquivos individuais
       </p>
       <div className="flex flex-col gap-4">
         {FORMATS.map((f) => (
           <div key={f.id} className="rounded-token border border-linha bg-bg px-4 py-3.5">
-            <p className="mb-3 mt-0 font-titulo text-[0.9375rem] text-ink">
+            <p className="tipo-body mb-3 mt-0 font-medium text-ink">
               {f.label}
             </p>
-            <p className="mb-3 mt-0 text-[0.8125rem] text-ink-3">{f.size}</p>
+            <p className="tipo-caption mb-3 mt-0 text-ink-3">{f.size}</p>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 disabled={downloading !== null}
                 onClick={() => void download(f.id, "pdf")}
-                className={`${adminClasses.primaryButtonSm} ${
+                className={`${adminClasses.primaryButtonSm} ${ALVO_TOQUE} ${
                   downloading !== null ? "cursor-wait opacity-50" : ""
                 } ${downloading === `${f.id}-pdf` ? "opacity-60" : ""}`}
               >
@@ -121,7 +127,7 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
                 type="button"
                 disabled={downloading !== null}
                 onClick={() => void download(f.id, "svg")}
-                className={`cursor-pointer rounded-pilula border border-linha bg-superficie px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta ${
+                className={`${ALVO_TOQUE} inline-flex cursor-pointer items-center justify-center rounded-pilula border border-linha bg-superficie font-titulo text-[0.8125rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta ${
                   downloading !== null ? "cursor-wait opacity-50" : ""
                 } ${downloading === `${f.id}-svg` ? "opacity-60" : ""}`}
               >
@@ -132,8 +138,8 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
         ))}
       </div>
       {error && (
-        <div className="mt-4 rounded-token border border-critico bg-superficie px-4 py-3">
-          <p className="m-0 text-sm text-critico">{error}</p>
+        <div role="alert" className="mt-4 rounded-token border border-critico bg-superficie px-4 py-3">
+          <p className="tipo-caption m-0 text-critico">{error}</p>
         </div>
       )}
     </div>

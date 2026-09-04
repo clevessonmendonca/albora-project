@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@albora/ui-web";
 import { useEffect, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 
@@ -34,9 +35,9 @@ const ROTULO_FORMA: Record<string, string> = {
   UNDEFINED: "—",
 };
 
-function statusClasse(status: string): string {
+function statusTone(status: string): "accent" | "critico" | "neutral" {
   if (status === "CONFIRMED" || status === "RECEIVED" || status === "RECEIVED_IN_CASH") {
-    return "bg-acento-superficie text-acento-texto";
+    return "accent";
   }
   if (
     status === "OVERDUE" ||
@@ -44,9 +45,9 @@ function statusClasse(status: string): string {
     status === "DELETED" ||
     status.startsWith("CHARGEBACK")
   ) {
-    return "bg-critico-superficie text-critico";
+    return "critico";
   }
-  return "bg-ink-suave text-ink-2";
+  return "neutral";
 }
 
 function formatarValor(cents: number): string {
@@ -85,7 +86,7 @@ export function BillingHistory() {
   if (erro) {
     return (
       <AdminSection>
-        <p className="m-0 text-critico">
+        <p role="alert" className="tipo-body m-0 text-critico">
           Não foi possível carregar o histórico agora. Recarregue a página ou tente em instantes.
         </p>
       </AdminSection>
@@ -110,8 +111,8 @@ export function BillingHistory() {
     return (
       <AdminSection>
         <div className="py-8 text-center">
-          <p className="mb-2 mt-0 text-[0.9375rem] text-ink">Nenhuma cobrança ainda</p>
-          <p className="m-0 text-[0.8125rem] leading-relaxed text-ink-3">
+          <p className="tipo-body mb-2 mt-0 text-ink">Nenhuma cobrança ainda</p>
+          <p className="tipo-caption m-0 text-ink-3">
             Assim que o evento fizer o primeiro checkout, ele aparece aqui.
           </p>
         </div>
@@ -128,27 +129,23 @@ export function BillingHistory() {
             className="flex flex-wrap items-center justify-between gap-3 rounded-token bg-bg px-3.5 py-3"
           >
             <div className="min-w-0">
-              <p className="m-0 text-sm text-ink">{formatarData(p.createdAt)}</p>
-              <p className="m-0 mt-0.5 text-[0.75rem] text-ink-3">
+              <p className="tipo-body m-0 text-ink">{formatarData(p.createdAt)}</p>
+              <p className="tipo-caption m-0 mt-0.5 text-ink-3">
                 {p.billingType ? (ROTULO_FORMA[p.billingType] ?? p.billingType) : "—"}
                 {p.description ? ` · ${p.description}` : ""}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-3">
-              <span className="font-titulo tabular-nums text-ink">
+              <span className="tipo-body font-medium tabular-nums text-ink">
                 {formatarValor(p.amountCents)}
               </span>
-              <span
-                className={`rounded-pilula px-2.5 py-1 text-[0.72rem] font-medium ${statusClasse(p.status)}`}
-              >
-                {ROTULO_STATUS[p.status] ?? p.status}
-              </span>
+              <Badge tone={statusTone(p.status)}>{ROTULO_STATUS[p.status] ?? p.status}</Badge>
               {p.invoiceUrl && (
                 <a
                   href={p.invoiceUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[0.75rem] text-ink-3 underline-offset-2 hover:text-ink hover:underline"
+                  className="tipo-caption inline-flex min-h-11 items-center text-ink-3 underline-offset-2 hover:text-ink hover:underline"
                 >
                   Ver fatura
                 </a>

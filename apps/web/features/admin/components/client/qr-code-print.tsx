@@ -70,11 +70,11 @@ export function QrCodePrint({ eventId, slug, eventName, guestUrl, svgString }: P
           />
 
           <div className="text-center">
-            <p className="mb-1 mt-0 font-titulo text-xl">{eventName}</p>
-            <p className="mb-0 mt-0 break-all font-mono text-sm text-ink-2">{guestUrl}</p>
+            <p className="tipo-subtitle mb-1 mt-0 text-ink">{eventName}</p>
+            <p className="tipo-caption mb-0 mt-0 break-all font-mono text-ink-2">{guestUrl}</p>
           </div>
 
-          <p className="mb-0 mt-0 max-w-xs text-center text-sm leading-relaxed text-ink-3">
+          <p className="tipo-caption mb-0 mt-0 max-w-xs text-center text-ink-3">
             Aponte a câmera do celular para o QR Code e comece a enviar fotos.
           </p>
         </div>
@@ -107,8 +107,8 @@ export function QrCodePrint({ eventId, slug, eventName, guestUrl, svgString }: P
       </div>
 
       {error && (
-        <div className="print:hidden mt-4 flex justify-center">
-          <p className="m-0 max-w-xs rounded-token border border-critico bg-superficie px-4 py-3 text-center text-sm text-critico">
+        <div role="alert" className="print:hidden mt-4 flex justify-center">
+          <p className="tipo-caption m-0 max-w-xs rounded-token border border-critico bg-superficie px-4 py-3 text-center text-critico">
             {error}
           </p>
         </div>

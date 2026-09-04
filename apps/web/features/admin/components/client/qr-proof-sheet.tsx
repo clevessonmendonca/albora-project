@@ -10,15 +10,15 @@ import {
 export function QrProofSheet({ eventId }: { eventId: string }) {
   return (
     <AdminCard className="print:break-inside-avoid">
-      <h3 className="m-0 mb-2 font-titulo text-base">Prova física do QR</h3>
-      <p className="mt-0 mb-4 max-w-[52ch] text-[0.875rem] leading-relaxed text-ink-3">
+      <h3 className="tipo-subtitle m-0 mb-2 text-ink">Prova física do QR</h3>
+      <p className="tipo-caption mt-0 mb-4 max-w-[52ch] text-ink-3">
         Imprima peças na gráfica e teste com 3 celulares antes do casamento. Critério: 3/3
         aparelhos scaneiam em ≤5 s a 30 cm, luz baixa. Detalhes em{" "}
         <span className="text-ink-2">docs/runbooks/prova-qr-fisica.md</span>.
       </p>
 
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[36rem] border-collapse text-[0.8125rem]">
+        <table className="tipo-caption w-full min-w-[36rem] border-collapse">
           <thead>
             <tr className="border-b border-linha text-left text-ink-3">
               <th className="py-2 pr-3 font-normal">Aparelho</th>
@@ -62,7 +62,7 @@ export function QrProofSheet({ eventId }: { eventId: string }) {
         </table>
       </div>
 
-      <dl className="mt-4 grid gap-2 text-[0.8125rem] text-ink-2 sm:grid-cols-2">
+      <dl className="tipo-caption mt-4 grid gap-2 text-ink-2 sm:grid-cols-2">
         <div>
           <dt className="text-ink-3">Data da prova</dt>
           <dd className="m-0 mt-1 min-h-[1.25rem] border-b border-linha" />
@@ -81,7 +81,7 @@ export function QrProofSheet({ eventId }: { eventId: string }) {
         </div>
       </dl>
 
-      <p className="mb-0 mt-4 text-[0.8125rem] text-ink-3">
+      <p className="tipo-caption mb-0 mt-4 text-ink-3">
         Resultado: ☐ APROVADO &nbsp; ☐ REPROVADO — não ir ao casamento sem aprovar.
       </p>
     </AdminCard>
