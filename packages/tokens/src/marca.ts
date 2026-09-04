@@ -28,6 +28,9 @@ export const ALBORA_BRAND: Tokens = {
     // Uma curva só, em tudo. Nove curvas diferentes é o que faz uma interface
     // parecer nove interfaces.
     curva: "cubic-bezier(0.2, 0, 0, 1)",
+    mola: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+    saida: "cubic-bezier(0.4, 0, 1, 1)",
+    instantaneo: "0.15s",
     rapido: "0.3s",
     medio: "0.35s",
     lento: "0.5s",

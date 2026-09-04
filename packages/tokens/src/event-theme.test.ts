@@ -33,4 +33,11 @@ describe("resolveGuestThemeVariables", () => {
     const escuro = resolveGuestThemeVariables({ identityTokens: {} });
     expect(claro["--bg"]).not.toBe(escuro["--bg"]);
   });
+
+  it("emite as vars de movimento estendidas", () => {
+    const vars = toVariables(ALBORA_BRAND);
+    expect(vars["--mola"]).toBe("cubic-bezier(0.34, 1.56, 0.64, 1)");
+    expect(vars["--saida"]).toBe("cubic-bezier(0.4, 0, 1, 1)");
+    expect(vars["--instantaneo"]).toBe("0.15s");
+  });
 });

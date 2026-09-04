@@ -152,6 +152,10 @@
   --tracking-titulo: var(--tracking-titulo);
   --tracking-rotulo: var(--tracking-rotulo);
 
+  --ease-mola: var(--mola);
+  --ease-saida: var(--saida);
+  --transition-duration-instantaneo: var(--instantaneo);
+
   --z-index-base: 1;
   --z-index-dropdown: 10;
   --z-index-sticky: 20;
