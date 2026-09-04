@@ -264,7 +264,7 @@ export function Viewer({
         <div className="flex items-center justify-between gap-4">
           <p
             className={cn(
-              "m-0 font-titulo text-[0.7rem] font-normal uppercase tracking-[0.24em] text-ink-2",
+              "tipo-label m-0 uppercase text-ink-2",
               CLASSE_SOMBRA_TEXTO,
             )}
           >
@@ -279,7 +279,7 @@ export function Viewer({
                 disabled={removendo}
                 onClick={onRemover}
                 className={cn(
-                  "grid size-12 place-items-center rounded-full border border-linha bg-transparent font-inherit text-[1.1rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento hover:text-acento",
+                  "grid size-12 place-items-center rounded-full border border-linha bg-transparent font-inherit text-[1.1rem] text-ink transition-[color,border-color,transform] duration-instantaneo ease-mola hover:border-acento hover:text-acento active:scale-[0.94]",
                   CLASSE_SOMBRA_TEXTO,
                   removendo ? "cursor-wait" : "cursor-pointer",
                 )}
@@ -291,7 +291,7 @@ export function Viewer({
               type="button"
               onClick={onSair}
               className={cn(
-                "min-h-12 min-w-12 cursor-pointer rounded-pilula border border-linha bg-transparent px-[1.1rem] font-inherit text-[0.9rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto",
+                "min-h-12 min-w-12 cursor-pointer rounded-pilula border border-linha bg-transparent px-[1.1rem] font-inherit text-[0.9rem] text-ink transition-[border-color,transform] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.96]",
                 CLASSE_SOMBRA_TEXTO,
               )}
             >
@@ -331,12 +331,12 @@ export function Viewer({
 
         {atual && (
           <div className={cn("grid gap-[0.3rem]", CLASSE_SOMBRA_TEXTO)}>
-            <p className="m-0 font-titulo text-[0.66rem] font-normal uppercase tracking-[0.2em] text-ink">
+            <p className="tipo-label m-0 uppercase text-ink">
               {atual.sessaoAutor && onVerAutor ? (
                 <button
                   type="button"
                   onClick={() => onVerAutor(atual.sessaoAutor!)}
-                  className="cursor-pointer border-none bg-transparent p-0 font-inherit text-inherit underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+                  className="cursor-pointer border-none bg-transparent p-0 font-inherit text-inherit underline transition-opacity duration-instantaneo ease-mola hover:opacity-70"
                 >
                   {atual.autor}
                 </button>
@@ -346,7 +346,7 @@ export function Viewer({
               {atual.lugar ? ` · ${atual.lugar}` : ""}
             </p>
             {atual.legenda && (
-              <p className="m-0 text-[0.95rem] leading-normal text-ink-2">{atual.legenda}</p>
+              <p className="tipo-body m-0 leading-normal text-ink-2">{atual.legenda}</p>
             )}
             <PhotoInteraction
               uploadId={atual.id}
@@ -369,7 +369,7 @@ export function Viewer({
             tela não otimiza tempo de tela, ela devolve a pessoa para a câmera. */}
         <a
           href={cameraPath}
-          className="grid min-h-13.5 place-items-center rounded-pilula bg-acento px-[2.1rem] text-[1.02rem] font-medium tracking-rotulo text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80"
+          className="grid min-h-13.5 place-items-center rounded-pilula bg-acento px-[2.1rem] text-[1.02rem] font-medium tracking-rotulo text-sobre-acento shadow-suave no-underline transition-transform duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97]"
         >
           Tirar foto
         </a>
