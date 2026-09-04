@@ -20,7 +20,7 @@ export function MirrorGrid({
 }) {
   return (
     <div className="grid gap-3">
-      <div className="grid grid-cols-2 gap-1.5">
+      <div className="grid grid-cols-2 gap-2">
         {itens.map((item, indice) => {
           const isVideo = isVideoMime(item.mime);
           const url = urls.get(item.chaveThumb)?.url;
@@ -35,7 +35,7 @@ export function MirrorGrid({
               onClick={() => onAbrir(indice)}
               data-testid={`mirror-photo-${item.id}`}
               aria-label={rotulo}
-              className="relative aspect-square cursor-pointer overflow-hidden rounded-token border-0 bg-superficie p-0"
+              className="relative aspect-square cursor-pointer overflow-hidden rounded-media border-0 bg-superficie-alta p-0 transition-transform duration-instantaneo ease-mola active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               {url ? (
                 isVideo ? (
@@ -75,7 +75,7 @@ export function MirrorGrid({
       {cameraPath && (
         <a
           href={cameraPath}
-          className="flex min-h-12 items-center justify-center rounded-pilula bg-acento px-6 text-[0.9375rem] font-medium text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80"
+          className="flex min-h-12 items-center justify-center rounded-pilula bg-acento px-6 text-[0.9375rem] font-medium text-sobre-acento shadow-suave no-underline transition-transform duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
         >
           Tirar foto
         </a>
@@ -86,12 +86,9 @@ export function MirrorGrid({
 
 export function MirrorGridLoading() {
   return (
-    <div aria-hidden className="grid grid-cols-2 gap-1.5">
+    <div aria-hidden className="grid grid-cols-2 gap-2">
       {[0, 1, 2, 3, 4, 5].map((i) => (
-        <span
-          key={i}
-          className="feed-esperando aspect-square rounded-token border border-linha"
-        />
+        <span key={i} className="feed-esperando aspect-square rounded-media bg-superficie-alta" />
       ))}
     </div>
   );

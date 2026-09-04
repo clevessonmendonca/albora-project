@@ -24,7 +24,6 @@ import {
   GuestMain,
   ErrorMessage,
   Badge,
-  cn,
   SkipLink,
 } from "@albora/ui-web";
 import { Post, PostLoading } from "./post";
@@ -161,7 +160,6 @@ export function FeedPage({
       <SkipLink />
       <FeedStyles />
 
-
       {gate.gateOpened && <GateOpenedOverlay onClose={gate.close} cameraPath={cameraPath} />}
 
       {newItems.hasNew && !viewer.grupoAberto && (
@@ -248,7 +246,7 @@ export function FeedPage({
           )}
 
           {completo && estado.itens.length > 0 && (
-            <FeedColumn withDivider key={`feed-${temporal.periodo}`}>
+            <FeedColumn key={`feed-${temporal.periodo}`}>
               {estado.itens.map((item) => {
                 const isVideo = isVideoMime(item.mime);
                 const chaveMidia = isVideo ? item.chaveFull : item.chaveThumb;
@@ -330,19 +328,9 @@ export function FeedPage({
   );
 }
 
-function FeedColumn({
-  children,
-  withDivider,
-}: {
-  children: React.ReactNode;
-  withDivider?: boolean;
-}) {
+function FeedColumn({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      role="feed"
-      aria-label="Feed de fotos"
-      className={cn("grid feed-fade", withDivider && "border-t border-linha")}
-    >
+    <div role="feed" aria-label="Feed de fotos" className="grid feed-fade">
       {children}
     </div>
   );

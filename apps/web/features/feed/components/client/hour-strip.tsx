@@ -8,7 +8,7 @@ import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 /** Cada círculo é uma hora, não uma pessoa — 200 convidados dariam 200 alvos. Nenhuma contagem: antes do gate não chega do servidor, e depois seria placar de popularidade. */
 
 const CLASSE_TIRA =
-  "mx-[calc(var(--espaco)*-5)] mb-4 flex gap-5 overflow-x-auto px-[calc(var(--espaco)*5)] [scrollbar-width:none]";
+  "mx-[calc(var(--espaco)*-5)] mb-4 flex snap-x snap-proximity gap-5 overflow-x-auto scroll-smooth px-[calc(var(--espaco)*5)] [scrollbar-width:none]";
 
 export function HourStrip({
   grupos,
@@ -70,16 +70,18 @@ function Circulo({
       disabled={bloqueado}
       aria-label={`Ver ${hourLabel(hora)}`}
       className={cn(
-        "flex w-15 flex-none flex-col items-center gap-1.5 border-none bg-transparent p-0 font-inherit text-ink rounded-md",
-        "[transition:opacity_var(--tempo-rapido)_var(--curva)]",
+        "flex w-15 flex-none snap-start flex-col items-center gap-1.5 rounded-md border-none bg-transparent p-0 font-inherit text-ink",
+        "transition-[opacity,transform] duration-instantaneo ease-mola motion-reduce:transition-none",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acento focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
-        bloqueado ? "cursor-default opacity-45" : "cursor-pointer opacity-100",
+        bloqueado
+          ? "cursor-default opacity-45"
+          : "cursor-pointer opacity-100 active:scale-95 motion-reduce:active:scale-100",
       )}
     >
       <span
         className={cn(
           "block size-14 rounded-full p-0.5",
-          visto ? "bg-linha" : "bg-acento",
+          visto ? "bg-linha" : "bg-acento shadow-suave",
         )}
       >
         <span className="relative block size-full overflow-hidden rounded-full bg-superficie">
