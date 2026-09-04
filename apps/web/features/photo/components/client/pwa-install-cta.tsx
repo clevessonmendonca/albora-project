@@ -30,7 +30,7 @@ export function PwaInstallCta({
   if (!mostrar) return null;
 
   return (
-    <div className="mb-4">
+    <div>
       {promptNativo && (
         <SecondaryButton onClick={onInstalar}>Instalar na tela inicial</SecondaryButton>
       )}

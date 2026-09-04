@@ -8,7 +8,15 @@ import { useEffect, useState } from "react";
 const COMPRIMENTO = 65.97;
 
 const ESTILO = `
-.arco-envio-traco { transition: stroke-dashoffset var(--tempo-rapido) var(--curva); }
+/* Física, não easing linear: o traço persegue o progresso real e pode
+   ultrapassar de leve antes de assentar — lê como algo empurrando a foto
+   pra fora, não uma barra de progresso. */
+.arco-envio-traco { transition: stroke-dashoffset var(--tempo-rapido) var(--mola); }
+@keyframes arco-envio-entrar {
+  from { opacity: 0; transform: scale(0.82); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.arco-envio-entra { animation: arco-envio-entrar var(--tempo-rapido) var(--mola) both; }
 .arco-envio-rotulo {
   font-family: var(--fonte-titulo);
   font-size: 0.6rem;
@@ -19,6 +27,7 @@ const ESTILO = `
 }
 @media (prefers-reduced-motion: reduce) {
   .arco-envio-traco { transition: none; }
+  .arco-envio-entra { animation: none; }
 }
 `;
 
@@ -51,7 +60,7 @@ export function UploadArc({
       <span
         role="status"
         aria-label={rotulo(pendentes, online)}
-        className="inline-flex items-center gap-[calc(var(--espaco)*2)]"
+        className="arco-envio-entra inline-flex items-center gap-[calc(var(--espaco)*2)]"
       >
         <svg viewBox="0 0 64 64" width={lado} height={lado} aria-hidden="true">
           <path
