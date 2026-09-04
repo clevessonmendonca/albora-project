@@ -1,4 +1,5 @@
 import "./tailwind.css";
+import "./tipografia.css";
 import "./base.css";
 import "./fontes.css";
 import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";

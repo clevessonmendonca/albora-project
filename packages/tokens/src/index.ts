@@ -31,6 +31,7 @@ export {
   qrInk,
   SAFE_AREA_MM,
 } from "./pieces";
+export * from "./tipografia";
 export type { Rgb } from "./cor";
 export {
   acentoLegivelSobre,
