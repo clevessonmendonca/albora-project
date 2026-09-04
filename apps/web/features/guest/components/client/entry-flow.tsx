@@ -2,11 +2,13 @@
 
 import type { EntryVia } from "@albora/core";
 import { CONSENTIMENTO_ENTRADA_VIGENTE, textoDoConsentimento } from "@albora/core";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { registerServiceWorker } from "@/lib/register-sw";
 import {
   PrimaryButton,
   SecondaryButton,
+  Button,
+  Card,
   NameField,
   GuestShell,
   EntryColumn,
@@ -20,6 +22,18 @@ import {
   DisplayTitle,
   SkipLink,
 } from "@albora/ui-web";
+
+/**
+ * Entrada suave da coluna — uma vez, na curva-base do produto (nunca a
+ * mola de press/overlay). O kill-switch global de `prefers-reduced-motion`
+ * (base.css) já zera durações; a media query aqui é redundância defensiva,
+ * mesmo padrão do telão (`wall-client.tsx`).
+ */
+const ENTRADA_MOTION_CSS = `
+  @keyframes entrada-subir { from { opacity: 0; transform: translateY(0.75rem); } to { opacity: 1; transform: translateY(0); } }
+  .entrada-anima { animation: entrada-subir var(--tempo-lento) var(--curva) both; }
+  @media (prefers-reduced-motion: reduce) { .entrada-anima { animation: none !important; } }
+`;
 
 // Fonte da verdade em @albora/core: mesmo texto que o painel de auditoria
 // LGPD do anfitrião lê — divergir aqui faria a auditoria mentir sobre o que
@@ -51,9 +65,16 @@ export function EntryFlow({
   const [mostrarTextoCompleto, setMostrarTextoCompleto] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  // Data discreta ao lado da versão do consentimento — calculada no cliente
+  // pra não arriscar descompasso de fuso/locale entre o render do servidor
+  // e a hidratação (o mesmo motivo do nome vindo de localStorage).
+  const [dataConsentimento, setDataConsentimento] = useState<string | null>(null);
 
   useEffect(() => {
     void registerServiceWorker();
+    setDataConsentimento(
+      new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long" }).format(new Date()),
+    );
     try {
       const salvo = localStorage.getItem(NOME_SALVO);
       if (salvo) setNome(salvo);
@@ -105,37 +126,53 @@ export function EntryFlow({
     <>
       <SkipLink />
       <GuestShell>
+      <style>{ENTRADA_MOTION_CSS}</style>
       <link rel="manifest" href={`/e/${encodeURIComponent(slug)}/manifest.webmanifest`} />
 
       {etapa === "recusou" ? (
-        <EntryColumn>
-          <div className="grid gap-4 text-center">
-            <p className="m-0 font-titulo text-[1.5rem] leading-[1.2] tracking-titulo text-ink">
-              Tudo bem.
-            </p>
-            <p className="m-0 text-[0.9375rem] leading-relaxed text-ink-3">
-              Se mudar de ideia, é só voltar pelo QR da mesa.
-            </p>
-          </div>
-          <SecondaryButton onClick={() => setEtapa("entrada")}>Voltar</SecondaryButton>
-        </EntryColumn>
-      ) : (
-        <form onSubmit={entrar} className="flex flex-1 flex-col">
+        <div className="entrada-anima flex flex-1 flex-col">
           <EntryColumn>
-            <div className="grid gap-3">
+            <div className="grid gap-4 text-center">
+              <p className="m-0 font-titulo text-[1.5rem] leading-[1.2] tracking-titulo text-ink">
+                Tudo bem.
+              </p>
+              <p className="m-0 text-[0.9375rem] leading-relaxed text-ink-3">
+                Se mudar de ideia, é só voltar pelo QR da mesa.
+              </p>
+            </div>
+            <SecondaryButton onClick={() => setEtapa("entrada")}>Voltar</SecondaryButton>
+          </EntryColumn>
+        </div>
+      ) : (
+        <form onSubmit={entrar} className="entrada-anima flex flex-1 flex-col">
+          <EntryColumn>
+            <div>
               <EventLabel>{nomeEvento}</EventLabel>
               <DisplayTitle>{saudacao}</DisplayTitle>
               <SecondaryText>Como você quer aparecer nas fotos que enviar?</SecondaryText>
             </div>
 
-            <NameField value={nome} onChange={setNome} placeholder="Tio João" />
+            <NameField
+              value={nome}
+              onChange={setNome}
+              placeholder="Tio João"
+              ariaLabel="Seu nome"
+              autoFocus
+            />
 
-            <ConsentCheckbox checked={consentiu} onChange={setConsentiu}>
-              Concordo que as fotos que eu enviar apareçam para quem está nesta festa.{" "}
-              <TextLink onClick={() => setMostrarTextoCompleto((v) => !v)}>
-                Ler o texto completo
-              </TextLink>
-            </ConsentCheckbox>
+            <Card elevation={1} className="grid gap-3">
+              <ConsentCheckbox checked={consentiu} onChange={setConsentiu}>
+                Concordo que as fotos que eu enviar apareçam para quem está nesta festa.{" "}
+                <TextLink onClick={() => setMostrarTextoCompleto((v) => !v)}>
+                  Ler o texto completo
+                </TextLink>
+              </ConsentCheckbox>
+
+              <p className="m-0 pl-9 text-[0.6875rem] leading-snug text-ink-3">
+                Versão {CONSENTIMENTO}
+                {dataConsentimento ? ` · ${dataConsentimento}` : ""}
+              </p>
+            </Card>
 
             {mostrarTextoCompleto && (
               <ConsentNote>{TEXTO_CONSENTIMENTO_COMPLETO}</ConsentNote>
@@ -149,9 +186,9 @@ export function EntryFlow({
                 {enviando ? "Entrando…" : "Fotografar"}
               </PrimaryButton>
 
-              <SecondaryButton type="button" onClick={() => setEtapa("recusou")}>
+              <Button type="button" variant="tertiary" size="sm" width="full" onClick={() => setEtapa("recusou")}>
                 Prefiro não
-              </SecondaryButton>
+              </Button>
             </div>
 
             {erro && <ErrorMessage>{erro}</ErrorMessage>}

@@ -9,12 +9,15 @@ export function NameField({
   onChange,
   placeholder,
   ariaLabel,
+  autoFocus,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   /** Nome acessível do campo — não há rótulo visível por design; padrão cai no placeholder. */
   ariaLabel?: string;
+  /** Foco de entrada — a tela de entrada leva o convidado direto ao teclado, sem toque extra. */
+  autoFocus?: boolean;
 }) {
   return (
     <TextField
@@ -27,6 +30,7 @@ export function NameField({
       required
       autoComplete="given-name"
       enterKeyHint="go"
+      autoFocus={autoFocus ?? false}
       inputClassName="border-0 border-b-2 border-b-acento px-[1.125rem] py-[1.0625rem] font-titulo text-[1.375rem]"
     />
   );

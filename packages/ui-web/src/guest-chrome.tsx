@@ -77,11 +77,7 @@ export function EventLabel({ children }: { children: ReactNode }) {
 }
 
 export function DisplayTitle({ children }: { children: ReactNode }) {
-  return (
-    <h1 className="mt-3.5 font-titulo text-[clamp(1.75rem,8vw,2rem)] font-light leading-[1.1] tracking-titulo [text-wrap:balance]">
-      {children}
-    </h1>
-  );
+  return <h1 className="tipo-title tipo-balance mt-3.5">{children}</h1>;
 }
 
 export function SecondaryText({ children }: { children: ReactNode }) {
