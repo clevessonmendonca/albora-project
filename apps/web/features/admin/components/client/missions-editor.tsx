@@ -1,7 +1,7 @@
 "use client";
 
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
-import { MissionBanner } from "@albora/ui-web";
+import { Badge, MissionBanner, Switch } from "@albora/ui-web";
 import { useMemo, useRef, useState } from "react";
 import {
   identityPreviewClassName,
@@ -14,6 +14,12 @@ import {
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 
 const CUSTOM_MAX = 120;
+
+/**
+ * ≥44px de alvo de toque para reordenar/alternar — override local do IconButton,
+ * mesmo padrão de review-queue.tsx/host-album.tsx (T8-T10): `size-11` = 2.75rem = 44px.
+ */
+const ALVO_TOQUE_ICONE = "size-11";
 
 type CustomMission = {
   id?: string;
@@ -83,7 +89,7 @@ export function MissionsEditor({
   if (!pack) {
     return (
       <AdminSection>
-        <p className="m-0 text-critico">Pack do evento não encontrado.</p>
+        <p className="tipo-body m-0 text-critico">Pack do evento não encontrado.</p>
       </AdminSection>
     );
   }
@@ -209,8 +215,8 @@ export function MissionsEditor({
   return (
     <div className="flex flex-col gap-5">
       <AdminSection>
-        <h2 className="mb-3 mt-0 font-titulo text-lg">Missões do pack</h2>
-        <p className="mb-5 mt-0 leading-relaxed text-ink-2">
+        <h2 className="tipo-subtitle m-0 mb-3 text-ink">Missões do pack</h2>
+        <p className="tipo-body mb-5 mt-0 text-ink-2">
           Liga e ordena as missões do pack. O convidado vê esta lista na aba Missões.
         </p>
 
@@ -218,7 +224,7 @@ export function MissionsEditor({
           <div className="flex flex-col gap-4">
             <div>
               {selected.length === 0 && custom.length === 0 ? (
-                <p className="m-0 rounded-token border border-linha bg-bg px-3 py-3 text-sm text-ink-2">
+                <p className="tipo-body m-0 rounded-token border border-linha bg-bg px-3 py-3 text-ink-2">
                   Modo livre — o convidado fotografa o que quiser.
                 </p>
               ) : (
@@ -232,7 +238,7 @@ export function MissionsEditor({
                       canDown={i < selected.length - 1}
                       onMoveUp={() => markDirty(moveMissionKey(selected, key, -1))}
                       onMoveDown={() => markDirty(moveMissionKey(selected, key, 1))}
-                      onRemove={() => remove(key)}
+                      onToggleOff={() => remove(key)}
                       onDrop={(fromKey) => markDirty(reorderMissionKeys(selected, fromKey, key))}
                       dragKey={key}
                     />
@@ -243,15 +249,13 @@ export function MissionsEditor({
 
             {inactive.length > 0 && (
               <div>
-                <p className="mb-2 mt-1 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
-                  Disponíveis no pack
-                </p>
+                <p className="tipo-label mb-2 mt-1 text-ink-3">Disponíveis no pack</p>
                 <ul className="m-0 list-none p-0 flex flex-col gap-2">
                   {inactive.map((m) => (
                     <InactiveMissionRow
                       key={m.chaveTitulo}
                       title={resolvePackText(pack, m.chaveTitulo)}
-                      onAdd={() => add(m.chaveTitulo)}
+                      onToggleOn={() => add(m.chaveTitulo)}
                     />
                   ))}
                 </ul>
@@ -260,15 +264,13 @@ export function MissionsEditor({
           </div>
 
           <div className={identityPreviewClassName} style={previewVars}>
-            <p className="mb-3 mt-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
-              Na câmera
-            </p>
+            <p className="tipo-label mb-3 mt-0 text-ink-3">Na câmera</p>
             <div className="relative min-h-[11rem] overflow-hidden rounded-superficie bg-superficie">
               <div className="absolute inset-x-3 top-3">
                 {previewTitle ? (
                   <MissionBanner index={1} total={previewTotal} title={previewTitle} />
                 ) : (
-                  <p className="m-0 text-sm text-ink-2">Sem faixa de missão — modo livre.</p>
+                  <p className="tipo-body m-0 text-ink-2">Sem faixa de missão — modo livre.</p>
                 )}
               </div>
             </div>
@@ -277,8 +279,8 @@ export function MissionsEditor({
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-3 mt-0 font-titulo text-lg">Missões personalizadas</h2>
-        <p className="mb-5 mt-0 leading-relaxed text-ink-2">
+        <h2 className="tipo-subtitle m-0 mb-3 text-ink">Missões personalizadas</h2>
+        <p className="tipo-body mb-5 mt-0 text-ink-2">
           Adicione missões com o texto exato que você quer — ideal para momentos únicos do evento.
         </p>
 
@@ -308,6 +310,7 @@ export function MissionsEditor({
                         if (e.key === "Escape") setEditingId(null);
                       }}
                       maxLength={CUSTOM_MAX}
+                      aria-label="Título da missão"
                       className="min-w-0 flex-1 rounded-token border border-acento-borda bg-bg px-2 py-1 font-corpo text-sm text-ink outline-none"
                     />
                   </>
@@ -341,10 +344,7 @@ export function MissionsEditor({
 
               {editingId === String(i) ? (
                 <div className="flex items-center gap-2">
-                  <label
-                    htmlFor={`prazo-edit-${i}`}
-                    className="shrink-0 text-[0.7rem] uppercase tracking-rotulo text-ink-3"
-                  >
+                  <label htmlFor={`prazo-edit-${i}`} className="tipo-label shrink-0 text-ink-3">
                     Prazo opcional
                   </label>
                   <input
@@ -366,7 +366,7 @@ export function MissionsEditor({
                 </div>
               ) : (
                 m.deadline && (
-                  <span className="text-[0.75rem] text-ink-3">
+                  <span className="tipo-caption text-ink-3">
                     Até {formatDeadline(m.deadline)}
                   </span>
                 )
@@ -374,52 +374,65 @@ export function MissionsEditor({
             </div>
           ))}
 
-          <div className="mt-2 flex gap-2">
-            <input
-              value={draftEmoji}
-              onChange={(e) => setDraftEmoji(e.target.value)}
-              placeholder="🎉"
-              maxLength={4}
-              aria-label="Emoji opcional"
-              className="w-14 shrink-0 rounded-token border border-linha bg-bg px-2 py-[0.65rem] text-center font-corpo text-sm text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
-            />
-            <input
-              ref={draftRef}
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") addCustom(); }}
-              placeholder="Nova missão personalizada…"
-              maxLength={CUSTOM_MAX}
-              className="min-w-0 flex-1 rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-sm text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] placeholder:text-ink-3 focus:border-acento"
-            />
-            <button
-              type="button"
-              onClick={addCustom}
-              disabled={!draft.trim() || draft.trim().length > CUSTOM_MAX}
-              className={`${adminClasses.primaryButton} shrink-0 disabled:cursor-not-allowed disabled:opacity-40`}
-            >
-              Adicionar
-            </button>
-          </div>
-          {draft.trim().length > CUSTOM_MAX && (
-            <p className="m-0 text-sm text-critico">
-              Máximo {CUSTOM_MAX} caracteres.
-            </p>
-          )}
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor="prazo-nova-missao"
-              className="shrink-0 text-[0.7rem] uppercase tracking-rotulo text-ink-3"
-            >
-              Prazo opcional
-            </label>
-            <input
-              id="prazo-nova-missao"
-              type="datetime-local"
-              value={draftDeadline}
-              onChange={(e) => setDraftDeadline(e.target.value)}
-              className="rounded-token border border-linha bg-bg px-2 py-1 font-corpo text-sm text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
-            />
+          <div className="mt-2 flex flex-col gap-3 rounded-token border border-dashed border-linha bg-superficie p-4">
+            <p className="tipo-label m-0 text-ink-3">Nova missão personalizada</p>
+            <div className="flex flex-wrap items-end gap-2">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="emoji-nova-missao" className="tipo-label text-ink-3">
+                  Emoji
+                </label>
+                <input
+                  id="emoji-nova-missao"
+                  value={draftEmoji}
+                  onChange={(e) => setDraftEmoji(e.target.value)}
+                  placeholder="🎉"
+                  maxLength={4}
+                  className="w-14 shrink-0 rounded-token border border-linha bg-bg px-2 py-[0.65rem] text-center font-corpo text-sm text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+                />
+              </div>
+              <div className="flex min-w-[12rem] flex-1 flex-col gap-1.5">
+                <label htmlFor="titulo-nova-missao" className="tipo-label text-ink-3">
+                  Título
+                </label>
+                <input
+                  id="titulo-nova-missao"
+                  ref={draftRef}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") addCustom(); }}
+                  placeholder="Nova missão personalizada…"
+                  maxLength={CUSTOM_MAX}
+                  className="min-w-0 flex-1 rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-sm text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] placeholder:text-ink-3 focus:border-acento"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="prazo-nova-missao" className="tipo-label text-ink-3">
+                  Prazo opcional
+                </label>
+                <input
+                  id="prazo-nova-missao"
+                  type="datetime-local"
+                  value={draftDeadline}
+                  onChange={(e) => setDraftDeadline(e.target.value)}
+                  className="rounded-token border border-linha bg-bg px-2 py-1 font-corpo text-sm text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={addCustom}
+                disabled={!draft.trim() || draft.trim().length > CUSTOM_MAX}
+                className={`${adminClasses.secondaryButton} shrink-0 disabled:cursor-not-allowed disabled:opacity-40`}
+              >
+                Adicionar
+              </button>
+              {draft.trim().length > CUSTOM_MAX && (
+                <p role="alert" className="tipo-caption m-0 text-critico">
+                  Máximo {CUSTOM_MAX} caracteres.
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -433,14 +446,20 @@ export function MissionsEditor({
             {saving ? "Salvando…" : "Salvar missões"}
           </button>
           {saved && (
-            <span className="flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                <path d="M2 6l2.5 2.5L10 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Salvo
+            <span role="status">
+              <Badge tone="accent" className="gap-1.5">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                  <path d="M2 6l2.5 2.5L10 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                Salvo
+              </Badge>
             </span>
           )}
-          {error && <span className="text-sm text-critico">Não foi possível salvar.</span>}
+          {error && (
+            <span role="alert" className="tipo-body text-critico">
+              Não foi possível salvar.
+            </span>
+          )}
         </div>
       </AdminSection>
     </div>
@@ -448,7 +467,7 @@ export function MissionsEditor({
 }
 
 function ActiveMissionRow({
-  index, title, canUp, canDown, onMoveUp, onMoveDown, onRemove, onDrop, dragKey,
+  index, title, canUp, canDown, onMoveUp, onMoveDown, onToggleOff, onDrop, dragKey,
 }: {
   index: number;
   title: string;
@@ -456,7 +475,7 @@ function ActiveMissionRow({
   canDown: boolean;
   onMoveUp: () => void;
   onMoveDown: () => void;
-  onRemove: () => void;
+  onToggleOff: () => void;
   onDrop: (fromKey: string) => void;
   dragKey: string;
 }) {
@@ -478,7 +497,7 @@ function ActiveMissionRow({
       }}
     >
       <span
-        className="grid size-8 shrink-0 place-items-center rounded-token border border-linha bg-superficie text-[0.75rem] font-titulo text-ink-3 cursor-grab"
+        className={`grid ${ALVO_TOQUE_ICONE} shrink-0 place-items-center rounded-token border border-linha bg-superficie text-[0.8125rem] font-titulo text-ink-3 cursor-grab`}
         aria-hidden
         title="Arraste para reordenar"
       >
@@ -496,26 +515,18 @@ function ActiveMissionRow({
         </IconButton>
       </span>
 
-      <IconButton label={`Remover "${title}"`} onClick={onRemove}>
-        <IcoX />
-      </IconButton>
+      <Switch checked label={`Desativar "${title}"`} onChange={onToggleOff} />
     </li>
   );
 }
 
-function InactiveMissionRow({ title, onAdd }: { title: string; onAdd: () => void }) {
+function InactiveMissionRow({ title, onToggleOn }: { title: string; onToggleOn: () => void }) {
   return (
-    <li className="flex items-center gap-3 rounded-token border border-linha bg-superficie p-3 opacity-60">
+    <li className="flex items-center gap-3 rounded-token border border-linha bg-superficie p-3">
       <span className="min-w-0 flex-1 font-titulo text-[0.95rem] leading-snug text-ink-2">
         {title}
       </span>
-      <button
-        type="button"
-        onClick={onAdd}
-        className="shrink-0 cursor-pointer rounded-token border border-linha bg-bg px-3 py-1.5 font-titulo text-[0.8125rem] text-ink hover:bg-superficie-alta"
-      >
-        + Adicionar
-      </button>
+      <Switch checked={false} label={`Ativar "${title}"`} onChange={onToggleOn} />
     </li>
   );
 }
@@ -534,7 +545,7 @@ function IconButton({
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="grid size-8 cursor-pointer place-items-center rounded-token border border-linha bg-superficie text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta disabled:cursor-default disabled:opacity-30"
+      className={`grid ${ALVO_TOQUE_ICONE} cursor-pointer place-items-center rounded-token border border-linha bg-superficie text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta disabled:cursor-default disabled:opacity-30`}
     >
       {children}
     </button>
