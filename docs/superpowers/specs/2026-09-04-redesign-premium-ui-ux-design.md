@@ -140,7 +140,7 @@ A arquitetura dita a ordem. Fundação primeiro (propaga a tudo), depois superf�
 
 **Onda 1 — Convidado PWA (H1-crítico). ✅ CONCLUÍDA (2026-09-04).** Tela por tela: entrada, cover/home, câmera/editor, confirmação, feed (lista + interações), álbum, missões, minhas-fotos, música, perfil/estados/pairing. 13 telas redesenhadas, todas revisadas e aprovadas; whole-branch review PASS. Plano: `docs/superpowers/plans/2026-09-04-redesign-onda-1-convidado.md`. Achados de produto sinalizados como chips separados (consent pré-marcado LGPD; deadline de missão não chega ao convidado). Verificação: 1690 testes + guards verdes; fundação propaga (48px/pílula, Fraunces, zero vidro). Pixel-QA de rotas semeadas fica como QA manual.
 
-**Onda 2 — Admin.** Tela por tela: lista/wizard, home do evento, identidade, insights/guests, moderação, álbum, missões, guestbook, consentimento, pieces/QR, billing, vendor.
+**Onda 2 — Admin. ✅ CONCLUÍDA (2026-09-04).** Tela por tela: shell, sign-in, lista, wizard, home do evento, identidade (com preview ao vivo), insights, guests, moderação, álbum, missões, guestbook, consentimento/pieces-QR/billing/música, vendor. 14 telas redesenhadas, todas revisadas e aprovadas; whole-branch review PASS. Fix wave: Switch com hit-area ≥44px (levanta admin+convidado) + remoção de strings de domínio hardcodadas + hardening do guard `dominio` (agora varre `apps/web/features`, fechando um blind spot que deixava "casamento" passar). Plano: `docs/superpowers/plans/2026-09-04-redesign-onda-2-admin.md`. Verificação: 197 testes + 8 guards verdes; pixel-QA de rota admin (cookie HttpOnly) fica como QA manual.
 
 **Onda 3 — Telão + Landing.** Modelos do telão + polimento de movimento; seções da landing + scroll storytelling.
 
