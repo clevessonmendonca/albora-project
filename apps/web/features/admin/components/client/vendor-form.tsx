@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { Button, TextField } from "@albora/ui-web";
 
 type Props =
   | { mode: "create" }
@@ -31,6 +31,10 @@ export function VendorForm(props: Props) {
   const nomeValido = name.trim().length >= 2 && name.trim().length <= 120;
   const slugValido = SLUG_RE.test(slug);
   const podeSalvar = nomeValido && slugValido && status !== "salvando";
+
+  const slugHint = !slugTocado ? "Segue o nome automaticamente até você editar." : undefined;
+  const slugError =
+    slug !== "" && !slugValido ? "Use só letras minúsculas, números e hífen." : undefined;
 
   function mudarNome(v: string) {
     setName(v);
@@ -84,67 +88,48 @@ export function VendorForm(props: Props) {
     }
   }
 
-  const campoClasse =
-    "w-full max-w-sm rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento";
-
   return (
     <form
-      className="flex flex-col gap-5"
+      className="flex max-w-sm flex-col gap-6"
       onSubmit={(e) => {
         e.preventDefault();
         void salvar();
       }}
     >
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[0.8rem] uppercase tracking-rotulo text-ink-3" htmlFor="vendor-name">
-          Nome do fornecedor
-        </label>
-        <input
-          id="vendor-name"
-          type="text"
-          value={name}
-          onChange={(e) => mudarNome(e.target.value)}
-          placeholder="ex: Buffet da Serra"
-          className={campoClasse}
-        />
-      </div>
+      <TextField
+        id="vendor-name"
+        label="Nome do fornecedor"
+        value={name}
+        onChange={(e) => mudarNome(e.target.value)}
+        placeholder="ex: Buffet da Serra"
+        autoComplete="organization"
+      />
 
-      <div className="flex flex-col gap-1.5">
-        <label className="text-[0.8rem] uppercase tracking-rotulo text-ink-3" htmlFor="vendor-slug">
-          Identificador (URL)
-        </label>
-        <input
-          id="vendor-slug"
-          type="text"
-          value={slug}
-          onChange={(e) => mudarSlug(e.target.value)}
-          placeholder="ex: buffet-da-serra"
-          className={campoClasse}
-        />
-        {slug !== "" && !slugValido && (
-          <p className="m-0 text-xs text-critico">
-            Use só letras minúsculas, números e hífen.
-          </p>
-        )}
-      </div>
+      <TextField
+        id="vendor-slug"
+        label="Identificador (URL)"
+        value={slug}
+        onChange={(e) => mudarSlug(e.target.value)}
+        placeholder="ex: buffet-da-serra"
+        {...(slugHint ? { hint: slugHint } : {})}
+        {...(slugError ? { error: slugError } : {})}
+      />
 
-      {status === "erro" && erro && <p className="m-0 text-sm text-critico">{erro}</p>}
+      {status === "erro" && erro && (
+        <p role="alert" className="tipo-caption m-0 text-critico">
+          {erro}
+        </p>
+      )}
 
       <div className="flex items-center gap-4">
-        <button
-          type="submit"
-          disabled={!podeSalvar}
-          className={`${adminClasses.primaryButton} border-none ${
-            !podeSalvar ? "cursor-not-allowed opacity-50" : ""
-          }`}
-        >
+        <Button type="submit" disabled={!podeSalvar}>
           {status === "salvando"
             ? "Salvando…"
             : props.mode === "create"
               ? "Criar fornecedor"
               : "Salvar"}
-        </button>
-        {salvo && <span className="text-sm text-acento-texto">✓ Salvo</span>}
+        </Button>
+        {salvo && <span className="tipo-caption text-acento-texto">✓ Salvo</span>}
       </div>
     </form>
   );

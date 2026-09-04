@@ -18,7 +18,7 @@ export default async function NewVendorPage() {
       back={{ label: "Painel", href: "/admin" }}
     >
       <AdminSection>
-        <p className="mb-5 mt-0 leading-relaxed text-ink-2">
+        <p className="tipo-body mb-6 mt-0 text-ink-2">
           Depois de criar, configure cores e logo na tela de identidade — a mesma marca aparece
           em todas as festas que este fornecedor gerenciar.
         </p>
