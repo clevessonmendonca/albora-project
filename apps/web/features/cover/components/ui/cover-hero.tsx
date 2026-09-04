@@ -7,9 +7,12 @@ type CoverHeroProps = {
 
 export function CoverHero({ hero }: CoverHeroProps) {
   return (
-    <div className="relative h-[20.5rem] shrink-0">
+    <div className="capa-hero-anima relative h-[20.5rem] shrink-0 overflow-hidden">
       {hero ? (
-        <Image src={hero} alt="" fill sizes="100vw" className="object-cover" />
+        // object-top: a capa raramente é 9:16 exata, então o corte tende a
+        // sobrar em cima ou embaixo — puxar pro topo protege o rosto (regra
+        // não-negociável de identidade visual), nunca o centro.
+        <Image src={hero} alt="" fill sizes="100vw" className="object-cover object-top" />
       ) : (
         <Frame label="" atmosphere variant={1} />
       )}

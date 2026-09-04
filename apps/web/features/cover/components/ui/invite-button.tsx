@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
+import { Button } from "@albora/ui-web";
 
 type InviteButtonProps = {
   slug: string;
@@ -30,12 +31,8 @@ export function InviteButton({ slug, eventName }: InviteButtonProps) {
   }
 
   return (
-    <button
-      type="button"
-      onClick={() => void convidar()}
-      className="flex min-h-12 w-full cursor-pointer items-center justify-center rounded-pilula border border-linha bg-transparent px-4 font-inherit text-[0.9375rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
-    >
+    <Button type="button" variant="secondary" width="full" onClick={() => void convidar()}>
       {copiado ? "Link copiado!" : "Convidar amigos"}
-    </button>
+    </Button>
   );
 }

@@ -91,8 +91,29 @@ export function CoverPage({
             40% { color: var(--acento-texto) }
           }
           .cover-foto-flash { animation: cover-foto-flash 700ms var(--curva) both }
+
+          /*
+           * Revelação suave do herói ao montar — a foto assenta (leve zoom-out),
+           * o nome do evento sobe/aparece junto, sem atraso entre os dois: um
+           * único gesto de "chegar". Sempre na curva-base do produto, nunca a
+           * mola (reservada a press/overlay). O kill-switch global de
+           * prefers-reduced-motion (base.css) já zera durações; a media query
+           * abaixo é redundância defensiva, mesmo padrão do entry-flow.
+           */
+          @keyframes capa-hero-revela {
+            from { opacity: 0; transform: scale(1.03) }
+            to   { opacity: 1; transform: scale(1) }
+          }
+          @keyframes capa-texto-revela {
+            from { opacity: 0; transform: translateY(0.625rem) }
+            to   { opacity: 1; transform: translateY(0) }
+          }
+          .capa-hero-anima { animation: capa-hero-revela var(--tempo-lento) var(--curva) both }
+          .capa-texto-anima { animation: capa-texto-revela var(--tempo-lento) var(--curva) both }
           @media (prefers-reduced-motion: reduce) {
-            .cover-foto-flash { animation: none !important }
+            .cover-foto-flash,
+            .capa-hero-anima,
+            .capa-texto-anima { animation: none !important }
           }
         `}</style>
 

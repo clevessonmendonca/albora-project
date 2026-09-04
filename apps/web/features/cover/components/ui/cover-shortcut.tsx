@@ -21,7 +21,7 @@ export function CoverShortcut({
   return (
     <Link
       href={href}
-      className={`flex flex-col items-center gap-[0.3125rem] rounded-token bg-superficie px-1 py-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta ${
+      className={`elev-1 flex min-h-11 flex-col items-center justify-center gap-[0.3125rem] rounded-token px-1 py-3 no-underline transition-[transform,background-color] duration-instantaneo ease-mola active:scale-[0.97] hover:bg-superficie-alta ${
         primary ? "text-ink" : "text-ink-2 opacity-85"
       }`}
     >

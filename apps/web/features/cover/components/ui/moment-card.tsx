@@ -28,8 +28,8 @@ export function MomentCard({
     <Link
       href={hrefPhoto}
       aria-label={`Fotografar ${moment.title}`}
-      className={`relative aspect-[9/16] shrink-0 snap-center overflow-hidden rounded-token text-inherit no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 ${
-        central ? "w-[9.25rem]" : "w-20 opacity-60"
+      className={`relative aspect-[9/16] shrink-0 snap-center overflow-hidden rounded-token text-inherit no-underline transition-[opacity,transform] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] ${
+        central ? "w-[9.25rem] shadow-alta" : "w-20 opacity-60 shadow-suave"
       }`}
     >
       {moment.thumbUrl ? (
@@ -38,7 +38,7 @@ export function MomentCard({
           alt=""
           fill
           sizes="(max-width: 640px) 50vw, 33vw"
-          className="object-cover"
+          className="object-cover object-top"
         />
       ) : (
         <Frame label="" atmosphere variant={index * 6 + 2} />
