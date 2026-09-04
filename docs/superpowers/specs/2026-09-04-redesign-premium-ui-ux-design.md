@@ -138,7 +138,7 @@ A arquitetura dita a ordem. Fundação primeiro (propaga a tudo), depois superf�
 
 **Onda 0 — Fundação e primitivos. ✅ CONCLUÍDA (2026-09-04).** Evolui tokens onde o híbrido pede (escala tipográfica nomeada, sistema de movimento mola/saída/instantâneo, hierarquia de elevação elev-0..3). Eleva os primitivos `ui-web` (Button, Card, Sheet, Dialog, campos de formulário, TabBar, FloatingNav, EmptyState). Removeu todo glassmorphism (5 usos) e travou o guard contra reintrodução. Sozinha, isto já levanta o produto inteiro. É a maior alavanca. Plano: `docs/superpowers/plans/2026-09-04-redesign-onda-0-fundacao.md` (9 tasks, todas aprovadas, whole-branch review PASS).
 
-**Onda 1 — Convidado PWA (H1-crítico).** Tela por tela: entrada, cover/home, câmera/editor, confirmação, feed, álbum, missões, minhas-fotos, música, perfil.
+**Onda 1 — Convidado PWA (H1-crítico). ✅ CONCLUÍDA (2026-09-04).** Tela por tela: entrada, cover/home, câmera/editor, confirmação, feed (lista + interações), álbum, missões, minhas-fotos, música, perfil/estados/pairing. 13 telas redesenhadas, todas revisadas e aprovadas; whole-branch review PASS. Plano: `docs/superpowers/plans/2026-09-04-redesign-onda-1-convidado.md`. Achados de produto sinalizados como chips separados (consent pré-marcado LGPD; deadline de missão não chega ao convidado). Verificação: 1690 testes + guards verdes; fundação propaga (48px/pílula, Fraunces, zero vidro). Pixel-QA de rotas semeadas fica como QA manual.
 
 **Onda 2 — Admin.** Tela por tela: lista/wizard, home do evento, identidade, insights/guests, moderação, álbum, missões, guestbook, consentimento, pieces/QR, billing, vendor.
 
