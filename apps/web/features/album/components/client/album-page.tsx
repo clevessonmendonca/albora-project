@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { GuestHeader, GuestShell, EmptyState, GuestMain, SkipLink, cn } from "@albora/ui-web";
+import { CameraIcon, GuestHeader, GuestShell, GuestMain, SkipLink, cn } from "@albora/ui-web";
 import { photoPathForMission } from "@/features/missions/lib/missions-utils";
 import { albumPath } from "../../lib/album-path";
 import { useAlbum } from "../../hooks/use-album";
@@ -64,9 +64,14 @@ export function AlbumPage({
             0%, 100% { opacity: 1; }
             50%      { opacity: 0.55; }
           }
+          @keyframes album-capa-surge {
+            from { opacity: 0; transform: scale(1.03); }
+            to   { opacity: 1; transform: scale(1); }
+          }
           .album-esperando { animation: album-respirar 1900ms var(--curva) infinite; }
+          .album-capa-entra { animation: album-capa-surge var(--tempo-lento) var(--curva) both; }
           @media (prefers-reduced-motion: reduce) {
-            .album-esperando { animation: none !important; }
+            .album-esperando, .album-capa-entra { animation: none !important; }
           }
         `}</style>
 
@@ -87,15 +92,28 @@ export function AlbumPage({
           {primeiraCarga && <AlbumTimelineLoading />}
 
           {vazio && (
-            <EmptyState
-              title={missionId ? "Ninguém fez essa ainda." : "Ainda não há fotos no álbum."}
-              lede={
-                missionId
+            <div className="flex flex-col items-center py-[calc(var(--espaco)*8)] text-center">
+              <div
+                aria-hidden
+                className="mb-4 grid size-14 place-items-center rounded-full bg-superficie-alta text-ink-3"
+              >
+                <CameraIcon size={24} />
+              </div>
+              <p className="tipo-subtitle tipo-balance mb-2 text-ink">
+                {missionId ? "Ninguém fez essa ainda." : "Ainda não há fotos no álbum."}
+              </p>
+              <p className="tipo-body mb-6 max-w-[24rem] text-ink-2">
+                {missionId
                   ? "Sua foto pode ser a primeira."
-                  : "Seja o primeiro a fotografar esta noite."
-              }
-              cameraPath={missionId ? photoPathForMission(slug, missionId) : cameraPath}
-            />
+                  : "Seja o primeiro a fotografar esta noite."}
+              </p>
+              <a
+                href={missionId ? photoPathForMission(slug, missionId) : cameraPath}
+                className="grid min-h-[3.375rem] w-full place-items-center rounded-pilula bg-acento px-[1.125rem] font-medium text-sobre-acento no-underline shadow-suave transition-transform duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
+              >
+                Tirar foto
+              </a>
+            </div>
           )}
 
           {capitulos.length > 0 &&
@@ -103,13 +121,13 @@ export function AlbumPage({
               <section
                 key={capitulo.id}
                 aria-label={capitulo.titulo}
-                className={cn(capitulo.nomear && "mt-8 first:mt-0")}
+                className={cn(capitulo.nomear && "mt-9 first:mt-0")}
               >
                 {capitulo.nomear && (
-                  <div className="mb-4">
+                  <div className="mb-4 border-b border-linha pb-3">
                     <h2
                       className={cn(
-                        "m-0 font-titulo text-[1.1875rem] font-light leading-[1.26] tracking-titulo",
+                        "tipo-subtitle tipo-balance m-0 text-ink",
                         capitulo.faixas.some((f) => f.amanhecer) && "text-acento",
                       )}
                     >
