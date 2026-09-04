@@ -8,14 +8,18 @@ export function NameField({
   value,
   onChange,
   placeholder,
+  ariaLabel,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
+  /** Nome acessível do campo — não há rótulo visível por design; padrão cai no placeholder. */
+  ariaLabel?: string;
 }) {
   return (
     <TextField
       label=""
+      aria-label={ariaLabel ?? placeholder}
       value={value}
       onChange={(ev) => onChange((ev.target as HTMLInputElement).value)}
       placeholder={placeholder}
@@ -38,17 +42,25 @@ export function ConsentCheckbox({
   children: ReactNode;
 }) {
   return (
-    <label className={cn("flex items-start gap-3", onChange ? "cursor-pointer" : "cursor-default")}>
+    <label
+      data-testid="consent-checkbox-hit-area"
+      className={cn(
+        "flex min-h-11 items-start gap-3",
+        onChange ? "cursor-pointer" : "cursor-default",
+      )}
+    >
       <input
         type="checkbox"
         checked={checked}
         readOnly={!onChange}
         onChange={onChange ? (ev) => onChange(ev.target.checked) : undefined}
-        className="pointer-events-none absolute size-px opacity-0"
+        className="peer pointer-events-none absolute size-px opacity-0"
       />
       <span
+        data-testid="consent-checkbox-visual"
         className={cn(
-          "grid size-[1.375rem] shrink-0 place-items-center rounded-[0.4375rem] border text-[0.8125rem] transition-[border-color,background-color] duration-[var(--tempo-rapido)] ease-[var(--curva)]",
+          "grid size-6 shrink-0 place-items-center rounded-[0.4375rem] border text-[0.8125rem] transition-[border-color,background-color,box-shadow] duration-[var(--tempo-rapido)] ease-[var(--curva)]",
+          "peer-focus-visible:ring-2 peer-focus-visible:ring-acento-texto",
           checked
             ? "border-acento bg-acento text-sobre-acento"
             : "border-linha bg-transparent text-transparent",
