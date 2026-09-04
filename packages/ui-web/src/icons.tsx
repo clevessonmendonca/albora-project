@@ -184,3 +184,19 @@ export function MoonIcon({ size = 22 }: IconProps) {
     </svg>
   );
 }
+
+export function MusicNoteIcon({ size = 22 }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path
+        d="M9 17.5V5.7a1 1 0 0 1 .8-1L18.8 3a1 1 0 0 1 1.2 1v10.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="6.5" cy="17.5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="17.5" cy="14.5" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}

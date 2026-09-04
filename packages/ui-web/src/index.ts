@@ -57,6 +57,7 @@ export {
   HeartIcon,
   MoonIcon,
   MoreIcon,
+  MusicNoteIcon,
   PersonIcon,
   PlusIcon,
   ShareIcon,
