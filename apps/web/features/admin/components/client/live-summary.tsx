@@ -1,6 +1,7 @@
 "use client";
 
 import type { CodigoDaTese } from "@albora/core";
+import { Badge } from "@albora/ui-web";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { useModerationCount } from "./moderation-count-context";
@@ -94,8 +95,8 @@ export function LiveSummary({ eventoId }: Props) {
             </svg>
           </span>
           <div>
-            <p className="m-0 text-[0.9375rem] text-ink">Painel indisponível agora.</p>
-            <p className="m-0 mt-1 text-[0.875rem] text-ink-3">
+            <p className="tipo-body m-0 text-ink">Painel indisponível agora.</p>
+            <p className="tipo-caption m-0 mt-1 text-ink-3">
               Recarregue a página para tentar de novo.
             </p>
           </div>
@@ -130,14 +131,23 @@ export function LiveSummary({ eventoId }: Props) {
         <div
           role="status"
           aria-live="polite"
-          className="mb-4 rounded-token border border-acento bg-acento/10 px-3.5 py-3 text-[0.875rem] text-acento-texto"
+          className="tipo-caption mb-4 rounded-token border border-acento bg-acento/10 px-3.5 py-3 text-acento-texto"
         >
           🎉 A primeira foto chegou! O evento está ativo.
         </div>
       )}
 
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <p className="m-0 font-titulo text-lg">Ao vivo</p>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2.5">
+          <h2 className="tipo-subtitle m-0 text-ink">Ao vivo</h2>
+          <Badge tone="accent">
+            <span
+              aria-hidden
+              className="size-1.5 shrink-0 animate-pulse rounded-full bg-current motion-reduce:animate-none"
+            />
+            festa
+          </Badge>
+        </div>
         <div className="flex items-center gap-2">
           {ultimaAtualizacao && <AtualizadoHa desde={ultimaAtualizacao} />}
           <RefreshButton
@@ -147,10 +157,6 @@ export function LiveSummary({ eventoId }: Props) {
               void carregar().finally(() => setAtualizando(false));
             }}
           />
-          <span className="inline-flex items-center gap-1.5 rounded-pilula bg-acento px-2.5 py-1 font-titulo text-xs text-sobre-acento">
-            <span className="size-[0.4rem] rounded-full bg-current" />
-            festa
-          </span>
         </div>
       </div>
 
@@ -169,7 +175,7 @@ export function LiveSummary({ eventoId }: Props) {
       </div>
 
       <div className="mb-3">
-        <div className="mb-1.5 flex justify-between text-xs text-ink-3">
+        <div className="tipo-label mb-1.5 flex justify-between text-ink-3">
           <span>
             {resumo.sessoesComUpload} de {resumo.expectedGuests} convidados fotografaram
           </span>
@@ -196,14 +202,12 @@ export function LiveSummary({ eventoId }: Props) {
         </div>
       </div>
 
-      <p className={`mb-4 mt-0 text-sm ${destaqueClass}`}>{ROTULO_VEREDITO[resumo.veredito]}</p>
+      <p className={`tipo-caption mb-4 mt-0 ${destaqueClass}`}>{ROTULO_VEREDITO[resumo.veredito]}</p>
 
       {resumo.ultimas.length > 0 && (
         <>
           <div className="mb-2 mt-0 flex items-center gap-2">
-            <span className="text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
-              Chegando agora
-            </span>
+            <span className="tipo-label text-acento-texto">Chegando agora</span>
             <span className="h-px flex-1 bg-linha" />
           </div>
           <div
@@ -249,7 +253,7 @@ function Stat({
       >
         {n}
       </p>
-      <p className="mb-0 mt-1.5 text-xs text-ink-2">{rotulo}</p>
+      <p className="tipo-label mb-0 mt-1.5 text-ink-2">{rotulo}</p>
     </div>
   );
 }

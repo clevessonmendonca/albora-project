@@ -19,7 +19,7 @@ export function AtualizadoHa({ desde }: { desde: Date }) {
         ? `há ${segundos}s`
         : `há ${Math.round(segundos / 60)}min`;
 
-  return <span className="text-xs text-ink-3">{rotulo}</span>;
+  return <span className="tipo-label text-ink-3">{rotulo}</span>;
 }
 
 export function RefreshButton({
@@ -36,7 +36,7 @@ export function RefreshButton({
       type="button"
       disabled={loading}
       onClick={onClick}
-      className="cursor-pointer rounded-pilula border border-linha bg-transparent p-1.5 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+      className="inline-flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-pilula border border-linha bg-transparent text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
       aria-label={label}
     >
       <svg

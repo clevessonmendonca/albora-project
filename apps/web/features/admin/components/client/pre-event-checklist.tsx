@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge, ProgressBar } from "@albora/ui-web";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
@@ -56,17 +57,27 @@ export function PreEventChecklist({
       <div className="pre-event-print flex flex-col gap-5 print:block">
       <AdminCard>
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="m-0 font-titulo text-lg">Checklist pré-evento</h2>
-            <p className="mt-2 mb-0 max-w-[42ch] text-[0.9375rem] leading-relaxed text-ink-2">
+          <div className="min-w-0 flex-1">
+            <h2 className="tipo-subtitle m-0 text-ink">Checklist pré-evento</h2>
+            <p className="tipo-body mt-2 mb-0 max-w-[42ch] text-ink-2">
               Espelha o runbook operacional. Marque conforme for concluindo — salva neste
               navegador.
             </p>
+            <div className="mt-3 max-w-[24rem]">
+              <ProgressBar
+                current={done}
+                total={total}
+                label="Progresso neste navegador"
+                completedLabel="Checklist completo neste navegador"
+              />
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-pilula bg-superficie-alta px-3 py-1.5 font-titulo text-sm text-ink-2">
-              {done}/{total}
-            </span>
+            <Badge tone={done >= total && total > 0 ? "accent" : "neutral"}>
+              <span className="tabular-nums">
+                {done}/{total}
+              </span>
+            </Badge>
             <button
               type="button"
               className={`${adminClasses.secondaryButton} print:hidden`}
@@ -80,58 +91,58 @@ export function PreEventChecklist({
 
       {sections.map((section) => (
         <AdminCard key={section.id} className="print:break-inside-avoid">
-          <h3 className="m-0 mb-4 font-titulo text-base">{section.title}</h3>
+          <h3 className="tipo-subtitle m-0 mb-4 text-ink">{section.title}</h3>
           <ul className="m-0 grid list-none gap-3 p-0">
             {section.items.map((item) => {
               const isChecked = Boolean(checked[item.id]);
               return (
-                <li
-                  key={item.id}
-                  className="flex items-start gap-3 rounded-token border border-linha bg-bg px-3.5 py-3"
-                >
-                  <input
-                    id={`pre-event-${item.id}`}
-                    type="checkbox"
-                    checked={isChecked}
-                    onChange={() => toggle(item.id)}
-                    className="mt-1 size-4 shrink-0 accent-[var(--acento)]"
-                  />
-                  <label htmlFor={`pre-event-${item.id}`} className="min-w-0 flex-1 cursor-pointer">
-                    <span
-                      className={`block text-[0.9375rem] leading-snug ${
-                        isChecked ? "text-ink-3 line-through" : "text-ink"
-                      }`}
-                    >
-                      {item.label}
+                <li key={item.id} className="rounded-token border border-linha bg-bg">
+                  <label
+                    htmlFor={`pre-event-${item.id}`}
+                    className="flex min-h-11 cursor-pointer items-start gap-3 px-3.5 py-3"
+                  >
+                    <input
+                      id={`pre-event-${item.id}`}
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={() => toggle(item.id)}
+                      className="mt-1 size-4 shrink-0 accent-[var(--acento)]"
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span
+                        className={`tipo-body block ${
+                          isChecked ? "text-ink-3 line-through" : "text-ink"
+                        }`}
+                      >
+                        {item.label}
+                      </span>
+                      {item.hint && (
+                        <span className="tipo-caption mt-1 block text-ink-3">{item.hint}</span>
+                      )}
+                      {item.href && (
+                        <span className="mt-2 block print:hidden">
+                          {item.external ? (
+                            <a
+                              href={item.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="tipo-caption text-acento no-underline hover:opacity-80"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Abrir ↗
+                            </a>
+                          ) : (
+                            <Link
+                              href={item.href}
+                              className="tipo-caption text-acento no-underline hover:opacity-80"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Ir para etapa →
+                            </Link>
+                          )}
+                        </span>
+                      )}
                     </span>
-                    {item.hint && (
-                      <span className="mt-1 block text-[0.8125rem] leading-snug text-ink-3">
-                        {item.hint}
-                      </span>
-                    )}
-                    {item.href && (
-                      <span className="mt-2 block print:hidden">
-                        {item.external ? (
-                          <a
-                            href={item.href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[0.8125rem] text-acento no-underline hover:opacity-80"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            Abrir ↗
-                          </a>
-                        ) : (
-                          <Link
-                            href={item.href}
-                            className="text-[0.8125rem] text-acento no-underline hover:opacity-80"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            Ir para etapa →
-                          </Link>
-                        )}
-                      </span>
-                    )}
                   </label>
                 </li>
               );
@@ -146,8 +157,8 @@ export function PreEventChecklist({
 
       <div id="roteiro-mc">
         <AdminCard className="print:break-inside-avoid">
-        <h3 className="m-0 mb-2 font-titulo text-base">Roteiro para o microfone</h3>
-        <p className="mt-0 mb-4 text-[0.875rem] text-ink-3">
+        <h3 className="tipo-subtitle m-0 mb-2 text-ink">Roteiro para o microfone</h3>
+        <p className="tipo-caption mt-0 mb-4 text-ink-3">
           Copie ou envie por WhatsApp para o MC. Adapte se o plano for grátis (sem telão) ou se o
           gate ainda estiver fechado.
         </p>
@@ -157,12 +168,8 @@ export function PreEventChecklist({
               key={script.id}
               className="m-0 rounded-token border border-linha bg-bg px-4 py-3.5"
             >
-              <cite className="not-italic text-[0.75rem] uppercase tracking-rotulo text-ink-3">
-                {script.title}
-              </cite>
-              <p className="mb-0 mt-2 text-[0.9375rem] leading-[1.65] text-ink-2">
-                “{script.text}”
-              </p>
+              <cite className="tipo-label not-italic text-ink-3">{script.title}</cite>
+              <p className="tipo-body mb-0 mt-2 leading-[1.65] text-ink-2">“{script.text}”</p>
             </blockquote>
           ))}
         </div>

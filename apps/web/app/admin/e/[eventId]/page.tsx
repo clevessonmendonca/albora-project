@@ -16,12 +16,7 @@ export default async function EventPage({
   return (
     <EventPageLayout eventId={eventId} allowFollowMode>
       {({ evento, canManageCoupleOnly, checklistStorageKey }) => (
-        <>
-          <PreEventPromo
-            eventId={evento.eventoId}
-            storageKey={checklistStorageKey}
-            startsAt={evento.comecaEm}
-          />
+        <div className="flex flex-col gap-5">
           <LiveSummary eventoId={eventId} />
           <EventControls
             eventId={evento.eventoId}
@@ -32,8 +27,13 @@ export default async function EventPage({
             initialStatus={evento.status}
             canManageCoupleOnly={canManageCoupleOnly}
           />
+          <PreEventPromo
+            eventId={evento.eventoId}
+            storageKey={checklistStorageKey}
+            startsAt={evento.comecaEm}
+          />
           <EventTeamPanel eventId={evento.eventoId} canManageTeam={canManageCoupleOnly} />
-        </>
+        </div>
       )}
     </EventPageLayout>
   );

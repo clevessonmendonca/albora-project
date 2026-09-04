@@ -1,7 +1,7 @@
 "use client";
 
 import { interacaoAberta, eventDefaults } from "@albora/core";
-import { Switch } from "@albora/ui-web";
+import { Badge, Switch } from "@albora/ui-web";
 import Link from "next/link";
 import { useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
@@ -124,12 +124,10 @@ export function EventControls({
     <div className="flex flex-col gap-5">
       {status === "draft" && (
         <AdminSection>
-          <div className="flex items-center justify-between gap-5">
+          <div className="flex flex-wrap items-center justify-between gap-5">
             <div>
-              <span className="block font-titulo text-[1.0625rem] text-ink">
-                Evento em rascunho
-              </span>
-              <span className="mt-1 block text-sm text-ink-3">
+              <span className="tipo-subtitle block text-ink">Evento em rascunho</span>
+              <span className="tipo-caption mt-1 block text-ink-3">
                 Convidado não acessa até você publicar.
               </span>
             </div>
@@ -148,49 +146,36 @@ export function EventControls({
       )}
 
       <AdminSection>
-        <div className="flex items-center justify-between gap-5">
+        <div className="flex flex-wrap items-center justify-between gap-5">
           <div>
-            <span
-              className={`block font-titulo text-[1.0625rem] ${
-                moderation.panic ? "text-critico" : "text-ink"
-              }`}
-            >
-              {moderation.panic ? "Telão pausado" : "Telão ativo"}
-            </span>
-            <span className="mt-1 block text-sm text-ink-3">
+            <div className="mb-1.5 flex flex-wrap items-center gap-2">
+              <span className="tipo-subtitle text-ink">Telão</span>
+              <Badge tone={moderation.panic ? "critico" : "accent"}>
+                {moderation.panic ? "Pausado" : "Ativo"}
+              </Badge>
+            </div>
+            <span className="tipo-caption block text-ink-3">
               {moderation.panic
                 ? "Nenhuma foto nova aparece na parede."
                 : "Fotos aparecem no telão em tempo real."}
             </span>
           </div>
-          <button
-            type="button"
+          <Switch
+            checked={!moderation.panic}
+            label={moderation.panic ? "Retomar telão" : "Pausar telão"}
             disabled={saving === "panic"}
-            onClick={() => void patch({ panico: !moderation.panic }, "panic")}
-            className={`shrink-0 cursor-pointer rounded-pilula border-none px-5 py-2.5 font-titulo text-[0.9375rem] text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 disabled:cursor-default disabled:opacity-50 ${
-              moderation.panic ? "bg-ink-2" : "bg-critico"
-            }`}
-          >
-            {saving === "panic"
-              ? moderation.panic
-                ? "Pausando…"
-                : "Retomando…"
-              : moderation.panic
-                ? "Retomar"
-                : "Pausar telão"}
-          </button>
+            onChange={(v) => void patch({ panico: !v }, "panic")}
+          />
         </div>
       </AdminSection>
 
       <AdminSection id="controle-menores">
-        <h2 className="mb-4 mt-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
-          Proteções
-        </h2>
+        <h2 className="tipo-label m-0 mb-4 text-ink-3">Proteções</h2>
 
         <div className="flex items-start justify-between gap-4">
           <div>
-            <span className="block font-titulo text-[1.0625rem]">Há menores</span>
-            <span className="mt-1 block text-sm text-ink-3">
+            <span className="tipo-subtitle block text-ink">Há menores</span>
+            <span className="tipo-caption mt-1 block text-ink-3">
               Uma denúncia segura do telão. Compartilhar nasce desligado.
             </span>
           </div>
@@ -202,7 +187,7 @@ export function EventControls({
               onChange={(v) => void patch({ haMenores: v }, "hasMinors")}
             />
           ) : (
-            <span className="shrink-0 text-sm text-ink-3">
+            <span className="tipo-caption shrink-0 text-ink-3">
               {moderation.hasMinors ? "Sim" : "Não"}
             </span>
           )}
@@ -231,8 +216,8 @@ export function EventControls({
 
         <div className="flex items-start justify-between gap-4">
           <div>
-            <span className="block font-titulo text-[1.0625rem]">Modo endurecido</span>
-            <span className="mt-1 block text-sm text-ink-3">
+            <span className="tipo-subtitle block text-ink">Modo endurecido</span>
+            <span className="tipo-caption mt-1 block text-ink-3">
               Novas fotos e comentários ficam na fila até você liberar.
             </span>
           </div>
@@ -246,13 +231,18 @@ export function EventControls({
       </AdminSection>
 
       <AdminSection id="controle-interacao">
-        <h2 className="mb-3 mt-0 font-titulo text-lg">Interação social</h2>
-        <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <h2 className="tipo-subtitle m-0 text-ink">Interação social</h2>
+          <Badge tone={gateOpen ? "accent" : interactionOpensAt ? "outline" : "neutral"}>
+            {gateOpen ? "Aberta" : interactionOpensAt ? "Agendada" : "Fechada"}
+          </Badge>
+        </div>
+        <p className="tipo-body mb-4 mt-0 text-ink-2">
           Reações e comentários no feed só aparecem depois que vocês liberarem.
           Sem horário, os convidados veem as fotos mas não interagem.
         </p>
         {gateOpen ? (
-          <p className="m-0 text-[0.9rem] text-ink">
+          <p className="tipo-caption m-0 text-ink">
             Aberta desde{" "}
             {interactionOpensAt
               ? new Date(interactionOpensAt).toLocaleString("pt-BR", {
@@ -276,10 +266,7 @@ export function EventControls({
               {saving === "interaction" ? "Abrindo…" : "Abrir interação agora"}
             </button>
             <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="interacao-agendar"
-                className="text-[0.7rem] uppercase tracking-rotulo text-ink-3"
-              >
+              <label htmlFor="interacao-agendar" className="tipo-label text-ink-3">
                 Ou agendar
               </label>
               <input
@@ -296,7 +283,7 @@ export function EventControls({
               />
             </div>
             {interactionOpensAt && (
-              <p className="m-0 text-[0.875rem] text-acento-texto">
+              <p className="tipo-caption m-0 text-acento-texto">
                 Agendada para{" "}
                 {new Date(interactionOpensAt).toLocaleString("pt-BR", {
                   day: "2-digit",
@@ -323,7 +310,7 @@ export function EventControls({
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-3 mt-0 font-titulo text-lg">Moderação e convidados</h2>
+        <h2 className="tipo-subtitle m-0 mb-3 text-ink">Moderação e convidados</h2>
         <div className="flex flex-wrap gap-3">
           <Link href={`/admin/e/${eventId}/moderation`} className={adminClasses.primaryButton}>
             Abrir moderação
@@ -335,8 +322,8 @@ export function EventControls({
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-3 mt-0 font-titulo text-lg">Preciso de ajuda</h2>
-        <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
+        <h2 className="tipo-subtitle m-0 mb-3 text-ink">Preciso de ajuda</h2>
+        <p className="tipo-body mb-4 mt-0 text-ink-2">
           Fala com a equipe Albora. Em festa ao vivo, marque prioridade alta.
         </p>
         <SupportHelpButton eventId={eventId} />
@@ -344,8 +331,8 @@ export function EventControls({
 
       {canManageCoupleOnly && plan === "free" && (
         <AdminSection>
-          <h2 className="mb-3 mt-0 font-titulo text-lg">Assinar Completo</h2>
-          <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
+          <h2 className="tipo-subtitle m-0 mb-3 text-ink">Assinar Completo</h2>
+          <p className="tipo-body mb-4 mt-0 text-ink-2">
             Telão, ZIP e vídeos ilimitados. O convidado não vê cobrança — o plano sobe no
             próximo poll.
           </p>
@@ -394,17 +381,17 @@ export function EventControls({
       )}
 
       <AdminSection>
-        <h2 className="mb-4 mt-0 font-titulo text-lg">Música do casal</h2>
+        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Música do casal</h2>
         <EventMusic eventId={eventId} />
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-4 mt-0 font-titulo text-lg">Peças para imprimir</h2>
+        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Peças para imprimir</h2>
         <EventPieces eventId={eventId} slug={slug} />
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-4 mt-0 font-titulo text-lg">Links do evento</h2>
+        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Links do evento</h2>
         <div className="flex flex-col gap-3">
           <EventLink title="Convidado" url={eventEntryUrl(origin, slug, "link")} />
           <EventLink title="WhatsApp" url={whatsappInviteUrl(origin, slug)} />
@@ -414,14 +401,16 @@ export function EventControls({
           href={eventEntryUrl(origin, slug, "link")}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 flex min-h-10 items-center justify-center rounded-pilula border border-linha bg-transparent px-4 text-center text-[0.875rem] text-ink-2 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink"
+          className="tipo-caption mt-4 flex min-h-11 items-center justify-center rounded-pilula border border-linha bg-transparent px-4 text-center text-ink-2 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink"
         >
           Testar como convidado ↗
         </a>
       </AdminSection>
 
       {error && (
-        <p className="m-0 text-[0.9rem] text-critico">Não salvou agora. Tente de novo.</p>
+        <p role="alert" className="tipo-body m-0 text-critico">
+          Não salvou agora. Tente de novo.
+        </p>
       )}
     </div>
   );
@@ -429,9 +418,9 @@ export function EventControls({
 
 function Effect({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-token bg-bg px-3 py-2.5 text-[0.8125rem]">
-      <span className="block text-ink-3">{label}</span>
-      <span className="mt-0.5 block text-ink">{value}</span>
+    <div className="rounded-token bg-bg px-3 py-2.5">
+      <span className="tipo-label block text-ink-3">{label}</span>
+      <span className="tipo-caption mt-0.5 block text-ink">{value}</span>
     </div>
   );
 }
@@ -448,15 +437,15 @@ function EventLink({ title, url }: { title: string; url: string }) {
 
   return (
     <div>
-      <span className="block text-xs uppercase tracking-rotulo text-ink-3">{title}</span>
+      <span className="tipo-label block text-ink-3">{title}</span>
       <div className="mt-1 flex items-center gap-2">
-        <a href={url} target="_blank" rel="noopener noreferrer" className="min-w-0 flex-1 truncate text-[0.875rem] text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
+        <a href={url} target="_blank" rel="noopener noreferrer" className="tipo-caption min-w-0 flex-1 truncate text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
           {url}
         </a>
         <button
           type="button"
           onClick={copiar}
-          className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-pilula border border-linha bg-superficie-alta px-3 py-1 font-titulo text-[0.75rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink-2"
+          className="tipo-label inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded-pilula border border-linha bg-superficie-alta px-3 text-ink transition-[transform,border-color,color] duration-instantaneo ease-mola hover:border-acento-texto hover:text-ink-2 active:scale-[0.97]"
         >
           {copiado ? (
             <>
