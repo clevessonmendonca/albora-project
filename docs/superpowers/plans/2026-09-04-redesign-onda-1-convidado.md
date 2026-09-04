@@ -28,10 +28,9 @@
 
 Cada task de redesign segue este ciclo (não repetido nos steps de cada task — é o contrato global):
 1. **Ler** os arquivos reais da tela (rota + componentes client/server + skeletons + hooks) antes de editar.
-2. **Renderizar o estado atual** (build de produção — `cd apps/web && pnpm exec next build && pnpm exec next start -p 3100` — o dev server tem um bug de webpack HMR no browser embutido; produção não). Screenshot "antes".
-3. **Redesenhar** aplicando o sistema Albora Premium: hierarquia tipográfica (`.tipo-*`), ritmo de espaçamento generoso (escala 4px do Tailwind), profundidade (`.elev-*`), movimento (mola/saída), primitivos premium (Button/Card/Sheet/campos/nav/EmptyState), uma ação primária clara, estados (loading/empty/erro) intencionais.
-4. **Verificar:** suíte `apps/web` verde; guards verdes; a11y (contraste no escuro, teclado, `aria-current`/labels, reduced-motion); browser desktop + mobile (`resize_window` mobile 375px). Screenshot "depois".
-5. **Commit** com escopo `feat(<área>):` (ex.: `feat(guest): redesign entry flow`).
+2. **Redesenhar** aplicando o sistema Albora Premium: hierarquia tipográfica (`.tipo-*`), ritmo de espaçamento generoso (escala 4px do Tailwind), profundidade (`.elev-*`), movimento (mola/saída), primitivos premium (Button/Card/Sheet/campos/nav/EmptyState), uma ação primária clara, estados (loading/empty/erro) intencionais.
+3. **Verificar (código, sem build):** suíte de testes da área verde; guards verdes; `tsc` limpo; a11y por asserção (labels, `aria-current`, `role`, alvos ≥44px, reduced-motion). **NÃO rodar `next build`/`next start` por task** — o build de produção trava e bloqueia o commit (aprendido no T1). A verificação visual real (build de produção + screenshots desktop+mobile de todas as telas) é **consolidada na Task 14**.
+4. **Commit** com escopo `feat(<área>):` (ex.: `feat(guest): redesign entry flow`).
 
 Regra de decomposição: se uma tela for pesada demais para uma task (o implementer sente que um reviewer aprovaria uma parte e reprovaria outra), reportar DONE_WITH_CONCERNS descrevendo o corte sugerido; o controller divide.
 
