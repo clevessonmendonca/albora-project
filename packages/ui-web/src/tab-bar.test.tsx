@@ -32,4 +32,17 @@ describe("TabBar", () => {
     expect(camera?.querySelector("svg")).toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
+
+  it("marca a aba ativa com aria-current e cor de texto-acento; inativas sem aria-current", () => {
+    render(<TabBar active="feed" />);
+
+    const ativo = screen.getByText("Feed");
+    expect(ativo).toHaveAttribute("aria-current", "page");
+    expect(ativo.className).toContain("text-acento-texto");
+
+    for (const label of ["Missões", "Álbum", "Minhas"]) {
+      const inativo = screen.getByText(label);
+      expect(inativo).not.toHaveAttribute("aria-current");
+    }
+  });
 });

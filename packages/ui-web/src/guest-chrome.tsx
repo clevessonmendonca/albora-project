@@ -91,30 +91,51 @@ export function SecondaryText({ children }: { children: ReactNode }) {
 export function EmptyState({
   title,
   lede,
+  titulo,
+  descricao,
+  icon,
   cameraPath,
   cameraLabel = "Tirar foto",
+  acao,
 }: {
-  title: string;
-  lede: string;
+  /** @deprecated usar `titulo` */
+  title?: string;
+  /** @deprecated usar `descricao` */
+  lede?: string;
+  titulo?: string;
+  descricao?: string;
+  /** Decorativo — o título já carrega o significado, então some do leitor de tela. */
+  icon?: ReactNode;
   cameraPath?: string;
   cameraLabel?: string;
+  /** Sobrepõe o CTA padrão de câmera quando presente. */
+  acao?: ReactNode;
 }) {
+  const tituloFinal = titulo ?? title ?? "";
+  const descricaoFinal = descricao ?? lede ?? "";
+  const acaoFinal =
+    acao ??
+    (cameraPath ? (
+      <a
+        href={cameraPath}
+        className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
+      >
+        {cameraLabel}
+      </a>
+    ) : null);
+
   return (
-    <div className="grid gap-5 py-[calc(var(--espaco)*8)] text-center">
-      <div>
-        <p className="mb-1.5 font-titulo font-medium leading-snug tracking-titulo [text-wrap:balance]" style={{ fontSize: "clamp(1.25rem, 5vw, 1.6rem)" }}>
-          {title}
-        </p>
-        <p className="m-0 leading-relaxed text-ink-2">{lede}</p>
-      </div>
-      {cameraPath ? (
-        <a
-          href={cameraPath}
-          className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
-        >
-          {cameraLabel}
-        </a>
+    <div className="grid gap-6 py-[calc(var(--espaco)*8)] text-center">
+      {icon ? (
+        <div className="flex justify-center text-ink-3" aria-hidden="true">
+          {icon}
+        </div>
       ) : null}
+      <div>
+        <p className="m-0 mb-1.5 tipo-title tipo-balance">{tituloFinal}</p>
+        <p className="m-0 tipo-body text-ink-2">{descricaoFinal}</p>
+      </div>
+      {acaoFinal}
     </div>
   );
 }
