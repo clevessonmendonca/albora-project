@@ -35,10 +35,10 @@ export function EventNav({ eventId }: { eventId: string }) {
   return (
     <nav
       data-admin-nav
-      className="mb-6 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="mb-8 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       aria-label="Seções do evento"
     >
-      <div className="flex items-center gap-1.5 pb-px">
+      <div className="flex items-center gap-2 pb-px">
         {GROUPS.map((group, gi) => (
           <Fragment key={gi}>
             {gi > 0 && (
@@ -59,8 +59,9 @@ export function EventNav({ eventId }: { eventId: string }) {
                 <Link
                   key={href}
                   href={href}
+                  aria-current={active ? "page" : undefined}
                   className={[
-                    "relative shrink-0 rounded-pilula px-3.5 py-1.5 font-titulo text-sm no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
+                    "relative shrink-0 rounded-pilula px-3.5 py-1.5 font-titulo text-sm no-underline transition-colors duration-[var(--tempo)] ease-[var(--curva)] min-h-11 inline-flex items-center",
                     active
                       ? "bg-acento text-sobre-acento"
                       : "border border-linha bg-superficie text-ink hover:bg-superficie-alta",

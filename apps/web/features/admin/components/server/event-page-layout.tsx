@@ -34,7 +34,7 @@ export async function EventPageLayout({
     >
       <ModerationCountProvider>
         <EventNav eventId={eventId} />
-        <div className="flex justify-end py-3">
+        <div className="mb-6 flex justify-end">
           <CopiarLinkEvento slug={ctx.evento.slug} />
         </div>
         {showsFollowMode(ctx.role, allowFollowMode) ? (
