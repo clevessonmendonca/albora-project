@@ -34,7 +34,7 @@ export function PainelMusica({
           <li key={m.id}>
             <button
               type="button"
-              className={`tipo-body flex min-h-11 w-full items-center rounded-token border px-3 text-left transition-[border-color,color] duration-instantaneo ease-mola active:scale-[0.99] motion-reduce:active:scale-100 ${
+              className={`tipo-body flex min-h-11 w-full items-center rounded-token border px-3 text-left transition-[border-color,color] duration-instantaneo ease-mola active:scale-[0.99] motion-reduce:active:scale-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-acento-texto focus-visible:outline-offset-2 ${
                 ativa
                   ? "border-acento text-ink"
                   : "border-linha text-ink-2 hover:border-acento-borda hover:text-ink"

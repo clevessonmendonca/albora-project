@@ -21,7 +21,7 @@ const ABAS: readonly { id: Aba; rotulo: string }[] = [
 
 /** Botão de texto discreto (header/reset) — mesma física de toque (mola) dos demais alvos da tela, nunca a curva de revelação. */
 const BOTAO_TEXTO =
-  "tipo-label min-h-11 uppercase text-ink-3 transition-[color,transform] duration-instantaneo ease-mola hover:text-ink-2 active:scale-95 motion-reduce:active:scale-100";
+  "tipo-label min-h-11 rounded-token uppercase text-ink-3 transition-[color,transform] duration-instantaneo ease-mola hover:text-ink-2 active:scale-95 motion-reduce:active:scale-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-acento-texto focus-visible:outline-offset-2";
 
 export function EditorHeader({
   escolhido,

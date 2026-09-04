@@ -15,13 +15,21 @@ type SliderProps = {
  * o preenchimento é uma custom property (`--track-bg`, injetada via `style`)
  * lida direto pelos pseudo-elementos de trilho — herança de custom property
  * chega neles, mas `background` no `<input>` não pinta o track no WebKit.
+ *
+ * `bg-[var(--track-bg)]` compilaria pra `background-color`, e um
+ * `linear-gradient(...)` é inválido em `background-color` (não pinta nada).
+ * A sintaxe de propriedade arbitrária `[background:var(--track-bg)]` gera o
+ * shorthand `background`, que aceita gradiente.
  */
 const TRILHO =
-  "[&::-webkit-slider-runnable-track]:h-[3px] [&::-webkit-slider-runnable-track]:rounded-token [&::-webkit-slider-runnable-track]:bg-[var(--track-bg)] [&::-moz-range-track]:h-[3px] [&::-moz-range-track]:rounded-token [&::-moz-range-track]:bg-[var(--track-bg)]";
+  "[&::-webkit-slider-runnable-track]:h-[3px] [&::-webkit-slider-runnable-track]:rounded-token [&::-webkit-slider-runnable-track]:[background:var(--track-bg)] [&::-moz-range-track]:h-[3px] [&::-moz-range-track]:rounded-token [&::-moz-range-track]:[background:var(--track-bg)]";
 const CURSOR =
   "[&::-webkit-slider-thumb]:size-6 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-pilula [&::-webkit-slider-thumb]:bg-ink [&::-webkit-slider-thumb]:shadow-suave [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:duration-instantaneo [&::-webkit-slider-thumb]:ease-mola " +
   "[&::-moz-range-thumb]:size-6 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-pilula [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-ink [&::-moz-range-thumb]:shadow-suave " +
   "active:[&::-webkit-slider-thumb]:scale-110 active:[&::-moz-range-thumb]:scale-110 motion-reduce:active:[&::-webkit-slider-thumb]:scale-100 motion-reduce:active:[&::-moz-range-thumb]:scale-100";
+/** Foco de teclado no thumb (não há `:focus-visible` nativo pro pseudo-elemento de thumb — o anel sai no próprio input, coerente com o `--acento` que o resto da tela usa). */
+const FOCO =
+  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-acento-texto focus-visible:outline-offset-2";
 
 /**
  * Slider (range input) estilizado.
@@ -58,7 +66,7 @@ export function Slider({
         value={normalizedValue}
         onChange={(e) => onChange(Number(e.target.value) / max)}
         aria-label={label}
-        className={`min-h-11 cursor-pointer appearance-none bg-transparent ${TRILHO} ${CURSOR}`}
+        className={`min-h-11 cursor-pointer appearance-none bg-transparent ${TRILHO} ${CURSOR} ${FOCO}`}
         style={
           {
             "--track-bg": `linear-gradient(to right, var(--linha) 0 ${start}%, var(--acento) ${start}% ${end}%, var(--linha) ${end}% 100%)`,

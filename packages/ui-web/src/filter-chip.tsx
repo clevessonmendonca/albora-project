@@ -23,7 +23,7 @@ export function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`flex min-h-11 w-16 shrink-0 flex-col items-center gap-1.5 rounded-token border bg-transparent px-1 py-1 transition-[border-color,color,transform] duration-instantaneo ease-mola active:scale-95 motion-reduce:active:scale-100 ${
+      className={`flex min-h-11 w-16 shrink-0 flex-col items-center gap-1.5 rounded-token border bg-transparent px-1 py-1 transition-[border-color,color,transform] duration-instantaneo ease-mola active:scale-95 motion-reduce:active:scale-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-acento-texto focus-visible:outline-offset-2 ${
         active
           ? "border-acento bg-acento-superficie text-acento-texto"
           : "border-linha bg-superficie text-ink-3 hover:border-acento-borda hover:text-ink-2"

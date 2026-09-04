@@ -16,7 +16,7 @@ export function ButtonAba({ rotulo, ativa, onClick }: ButtonAbaProps) {
   return (
     <button
       type="button"
-      className={`tipo-label flex min-h-11 items-center justify-center uppercase transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+      className={`tipo-label flex min-h-11 items-center justify-center rounded-token uppercase transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-acento-texto focus-visible:outline-offset-2 ${
         ativa ? "text-ink" : "text-ink-3 hover:text-ink-2"
       }`}
       aria-pressed={ativa}
