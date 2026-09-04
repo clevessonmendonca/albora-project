@@ -1,8 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Badge } from "@albora/ui-web";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { useModerationCount } from "./moderation-count-context";
+
+/**
+ * ≥44px de alvo de toque — override local do Sm compartilhado (`adminClasses.*ButtonSm`),
+ * sem editar admin-shell.tsx (mesmo padrão de host-album.tsx/T8). `min-h-11` garante a
+ * altura mínima independente de qual padding vertical vence a cascata.
+ */
+const ALVO_TOQUE = "min-h-11 px-5";
 
 type Midia = {
   id: string;
@@ -37,29 +45,14 @@ function formatarHora(iso: string): string {
   });
 }
 
-function ChipStatus({ label, critico }: { label: string; critico?: boolean }) {
-  return (
-    <span
-      className={[
-        "rounded-pilula border px-2 py-0.5 text-[0.72rem] font-titulo",
-        critico
-          ? "border-critico text-critico"
-          : "border-linha text-ink-3",
-      ].join(" ")}
-    >
-      {label}
-    </span>
-  );
-}
-
 function SectionHeader({ label, count }: { label: string; count: number }) {
   return (
     <div className="flex items-center gap-2">
       <span className="text-[0.7rem] uppercase tracking-rotulo text-ink-3">{label}</span>
       <div className="h-px flex-1 bg-linha" />
-      <span className="rounded-pilula bg-superficie-alta px-1.5 py-0.5 text-[0.7rem] font-titulo text-ink-3">
+      <Badge tone="neutral" className="px-2 py-0.5 text-[0.7rem]">
         {count}
-      </span>
+      </Badge>
     </div>
   );
 }
@@ -146,7 +139,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
       <div className="flex flex-col gap-3">
         {Array.from({ length: 3 }, (_, i) => (
           <div key={i} className="animate-pulse flex gap-3 rounded-token border border-linha bg-bg p-3.5">
-            <div className="aspect-[3/4] w-16 shrink-0 rounded-token bg-superficie-alta" />
+            <div className="aspect-[3/4] w-24 shrink-0 rounded-media bg-superficie-alta sm:w-28" />
             <div className="flex flex-1 flex-col gap-2.5">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex flex-col gap-1.5">
@@ -203,7 +196,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
               type="button"
               disabled={acao !== null || acaoBulk !== null}
               onClick={() => void bulkMidia("liberar")}
-              className={`${adminClasses.primaryButtonSm} ${acaoBulk === "liberar" ? "opacity-60" : ""}`}
+              className={`${adminClasses.primaryButtonSm} ${ALVO_TOQUE} ${acaoBulk === "liberar" ? "opacity-60" : ""}`}
             >
               {acaoBulk === "liberar" ? "Aprovando…" : `Aprovar todas (${midias.length})`}
             </button>
@@ -211,7 +204,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
               type="button"
               disabled={acao !== null || acaoBulk !== null}
               onClick={() => void bulkMidia("ocultar")}
-              className={`${adminClasses.dangerButtonSm} ${acaoBulk === "ocultar" ? "opacity-60" : ""}`}
+              className={`${adminClasses.dangerButtonSm} ${ALVO_TOQUE} ${acaoBulk === "ocultar" ? "opacity-60" : ""}`}
             >
               {acaoBulk === "ocultar" ? "Ocultando…" : `Ocultar todas (${midias.length})`}
             </button>
@@ -223,17 +216,34 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
 
       {midias.map((m) => (
         <div key={m.id} className="flex gap-3 rounded-token border border-linha bg-bg p-3.5">
-          {m.thumb && (
-            <div className="aspect-[3/4] w-16 shrink-0 overflow-hidden rounded-token bg-superficie-alta">
+          <div className="aspect-[3/4] w-24 shrink-0 overflow-hidden rounded-media bg-superficie-alta sm:w-28">
+            {m.thumb ? (
               <img
                 src={m.thumb}
                 alt=""
                 loading="lazy"
                 decoding="async"
-                className="size-full object-cover"
+                className="size-full object-cover object-top"
               />
-            </div>
-          )}
+            ) : (
+              <div className="flex size-full items-center justify-center text-ink-3">
+                <svg width="22" height="22" viewBox="0 0 20 20" fill="none" aria-hidden>
+                  <path
+                    d="M3 5.5A1.5 1.5 0 0 1 4.5 4h11A1.5 1.5 0 0 1 17 5.5v9a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 14.5v-9Z"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                  />
+                  <path
+                    d="M3 12.5l3.5-3.5 3 3 2.5-2.5L17 13"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
           <div className="flex min-w-0 flex-1 flex-col gap-2.5">
             <div className="flex items-start justify-between gap-2">
               <div>
@@ -246,16 +256,13 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
               </div>
               <div className="flex flex-wrap justify-end gap-1">
                 {m.denuncias > 0 && (
-                  <ChipStatus
-                    critico
-                    label={`${m.denuncias} ${m.denuncias === 1 ? "denúncia" : "denúncias"}`}
-                  />
+                  <Badge tone="critico">
+                    {`${m.denuncias} ${m.denuncias === 1 ? "denúncia" : "denúncias"}`}
+                  </Badge>
                 )}
-                {(m.pedidosDeRemocao ?? 0) > 0 && (
-                  <ChipStatus critico label="remoção pedida" />
-                )}
-                {m.motivo === "endurecido" && <ChipStatus label="aguardando" />}
-                {m.motivo === "classificador" && <ChipStatus label="filtro auto" />}
+                {(m.pedidosDeRemocao ?? 0) > 0 && <Badge tone="critico">remoção pedida</Badge>}
+                {m.motivo === "endurecido" && <Badge tone="outline">aguardando</Badge>}
+                {m.motivo === "classificador" && <Badge tone="outline">filtro auto</Badge>}
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -263,7 +270,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
                 type="button"
                 disabled={acao !== null}
                 onClick={() => void patch("midia", m.id, "liberar")}
-                className={`${adminClasses.primaryButtonSm} ${
+                className={`${adminClasses.primaryButtonSm} ${ALVO_TOQUE} ${
                   acao === `liberar:midia:${m.id}` ? "opacity-60" : ""
                 }`}
               >
@@ -273,7 +280,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
                 type="button"
                 disabled={acao !== null}
                 onClick={() => void patch("midia", m.id, "ocultar")}
-                className={`${adminClasses.dangerButtonSm} ${
+                className={`${adminClasses.dangerButtonSm} ${ALVO_TOQUE} ${
                   acao === `ocultar:midia:${m.id}` ? "opacity-60" : ""
                 }`}
               >
@@ -291,10 +298,9 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
           <div className="flex items-start justify-between gap-2">
             <span className="font-titulo text-[0.875rem] text-ink">{c.autor}</span>
             {c.denuncias > 0 && (
-              <ChipStatus
-                critico
-                label={`${c.denuncias} ${c.denuncias === 1 ? "denúncia" : "denúncias"}`}
-              />
+              <Badge tone="critico">
+                {`${c.denuncias} ${c.denuncias === 1 ? "denúncia" : "denúncias"}`}
+              </Badge>
             )}
           </div>
           <p className="m-0 rounded-token bg-superficie-alta px-3 py-2.5 text-[0.9rem] leading-relaxed text-ink-2">
@@ -305,7 +311,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
               type="button"
               disabled={acao !== null}
               onClick={() => void patch("comentario", c.id, "liberar")}
-              className={`${adminClasses.primaryButtonSm} ${
+              className={`${adminClasses.primaryButtonSm} ${ALVO_TOQUE} ${
                 acao === `liberar:comentario:${c.id}` ? "opacity-60" : ""
               }`}
             >
@@ -315,7 +321,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
               type="button"
               disabled={acao !== null}
               onClick={() => void patch("comentario", c.id, "remover")}
-              className={`${adminClasses.dangerButtonSm} ${
+              className={`${adminClasses.dangerButtonSm} ${ALVO_TOQUE} ${
                 acao === `remover:comentario:${c.id}` ? "opacity-60" : ""
               }`}
             >
@@ -325,7 +331,11 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
         </div>
       ))}
 
-      {erro && <p className="m-0 text-sm text-critico">{erro}</p>}
+      {erro && (
+        <p role="alert" className="m-0 text-sm text-critico">
+          {erro}
+        </p>
+      )}
     </div>
   );
 }

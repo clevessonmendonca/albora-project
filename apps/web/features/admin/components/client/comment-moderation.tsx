@@ -1,8 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { Badge } from "@albora/ui-web";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { RefreshButton } from "./refresh-control";
+
+/**
+ * ≥44px de alvo de toque — override local do Sm compartilhado (`adminClasses.dangerButtonSm`),
+ * sem editar admin-shell.tsx (mesmo padrão de host-album.tsx/T8 e review-queue.tsx).
+ * `min-h-11` garante a altura mínima independente de qual padding vertical vence a cascata.
+ */
+const ALVO_TOQUE = "min-h-11 px-5";
 
 type Props = {
   eventoId: string;
@@ -125,15 +133,11 @@ export function CommentModeration({ eventoId }: Props) {
               <span className="font-titulo text-[0.85rem] text-ink">{c.autor}</span>
               <div className="flex flex-wrap justify-end gap-1">
                 {c.denuncias > 0 && (
-                  <span className="rounded-pilula border border-critico px-2 py-0.5 text-[0.72rem] font-titulo text-critico">
+                  <Badge tone="critico">
                     {c.denuncias === 1 ? "1 denúncia" : `${c.denuncias} denúncias`}
-                  </span>
+                  </Badge>
                 )}
-                {c.classificador === "suspeito" && (
-                  <span className="rounded-pilula border border-linha px-2 py-0.5 text-[0.72rem] font-titulo text-ink-3">
-                    filtro auto
-                  </span>
-                )}
+                {c.classificador === "suspeito" && <Badge tone="outline">filtro auto</Badge>}
               </div>
             </div>
             <p className="m-0 text-[0.9rem] leading-relaxed text-ink-2">{c.texto}</p>
@@ -141,7 +145,7 @@ export function CommentModeration({ eventoId }: Props) {
               type="button"
               disabled={removendo === c.id}
               onClick={() => void remover(c.id)}
-              className={`${adminClasses.dangerButtonSm} justify-self-start ${
+              className={`${adminClasses.dangerButtonSm} ${ALVO_TOQUE} justify-self-start ${
                 removendo === c.id ? "cursor-wait opacity-50" : ""
               }`}
             >
@@ -152,7 +156,7 @@ export function CommentModeration({ eventoId }: Props) {
       )}
 
       {erro && (
-        <div className="rounded-token border border-critico bg-superficie px-4 py-3">
+        <div role="alert" className="rounded-token border border-critico bg-superficie px-4 py-3">
           <p className="m-0 text-sm text-critico">{erro}</p>
         </div>
       )}
