@@ -90,6 +90,7 @@
   --color-ink-suave: color-mix(in srgb, var(--ink) 8%, transparent);
   --color-noite-overlay: color-mix(in srgb, var(--noite) 35%, transparent);
   --color-noite-vidro: color-mix(in srgb, var(--noite) 45%, transparent);
+  --color-scrim-modal: color-mix(in srgb, var(--noite) 55%, transparent);
   --color-amostra-clara: color-mix(in srgb, var(--acento) 58%, var(--bg));
   --color-amostra-escura: color-mix(in srgb, var(--acento) 65%, var(--ink));
 
@@ -213,4 +214,11 @@
 @keyframes wall-aparecer {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+@layer components {
+  .elev-0 { background: var(--bg); box-shadow: none; }
+  .elev-1 { background: var(--superficie); box-shadow: var(--shadow-suave); }
+  .elev-2 { background: var(--superficie-alta); box-shadow: var(--shadow-alta); }
+  .elev-3 { background: var(--superficie-alta); box-shadow: var(--shadow-alta); }
 }
