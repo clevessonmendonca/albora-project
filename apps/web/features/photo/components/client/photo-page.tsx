@@ -528,7 +528,7 @@ function Confirmacao({
           <p className="m-0 text-[0.88rem] leading-[1.68] text-ink-2">
             {musica.rotulo}
             {" · "}
-            <a href={musica.url} className="text-acento underline decoration-1 underline-offset-2">
+            <a href={musica.url} className="text-acento-texto underline decoration-1 underline-offset-2">
               Abrir no {musica.provedor}
             </a>
           </p>
