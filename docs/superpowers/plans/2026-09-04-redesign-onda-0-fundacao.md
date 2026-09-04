@@ -575,6 +575,44 @@ git commit -m "docs(redesign): mark Onda 0 (foundation) complete"
 
 ---
 
+### Task 9: Remover glassmorphism dos primitivos + telão + guard (achado do T8)
+
+Descoberto na verificação visual do T8 (build de produção, `getComputedStyle`): **5 usos de `backdrop-blur` em runtime** — glassmorphism, anti-padrão bloqueante do CLAUDE.md — que o guard de tokens NÃO pega (só checa hex). Dois estão em primitivos `ui-web` compartilhados (propagam a todas as telas), três no telão. Pré-existentes, mas violam a regra "sem vidro" que é central ao redesign. Remove o vidro e trava o guard pra impedir regressão.
+
+**Files:**
+- Modify: `packages/ui-web/src/floating-button.tsx:5` — remover `backdrop-blur-sm` (manter `bg-bg-vidro`, que é scrim translúcido sólido, não blur).
+- Modify: `packages/ui-web/src/event-hero.tsx:40` — remover `backdrop-blur-sm` (idem).
+- Modify: `apps/web/features/wall/components/client/wall-participation-counter.tsx:27` — remover `backdrop-blur-[6px]`.
+- Modify: `apps/web/features/wall/components/client/wall-stage.tsx:333` — remover `backdrop-blur`; se a pílula ficar transparente demais sem o blur, garantir um fundo sólido de scrim (`bg-noite-vidro` ou `bg-bg-vidro`, tokens já existentes).
+- Modify: `apps/web/features/wall/components/client/wall-client.tsx:131` — remover `backdrop-blur-[6px]`.
+- Modify: `tools/guards/tokens.mjs` — adicionar regra bloqueante que detecta `backdrop-blur` e `backdrop-filter` em `apps/web`/`packages` (`.tsx`/`.ts`/`.css`), ignorando arquivos de teste (as asserções `not.toMatch(/backdrop-blur/)` em `*.test.tsx` são checagens de ausência, não uso).
+
+**Interfaces:**
+- Consumes: tokens de scrim já existentes (`bg-bg-vidro` = `color-mix(bg 72%, transparent)`, `bg-noite-vidro`). Nenhuma API pública muda; só classes internas.
+- Produces: guard `tokens.mjs` estendido rejeitando `backdrop-blur`/`backdrop-filter` fora de testes.
+
+Nota: `bg-bg-vidro` (fundo translúcido sólido) permanece — é scrim, não vidro. Remover só a camada de `backdrop-blur*` converte "vidro fosco" em "tinta translúcida quente", exatamente a abordagem "profundidade por scrim/elevação, sem blur" do spec §4.4.
+
+- [ ] **Step 1: Escrever o teste do guard que falha primeiro (ou rodar o guard e ver que hoje passa apesar do blur).** Confirmar o estado atual: `node tools/guards/tokens.mjs` passa mesmo com os 5 blurs (guard cego a backdrop). Anotar como baseline.
+
+- [ ] **Step 2: Remover `backdrop-blur*` dos 5 arquivos de produção** listados. Em cada, apagar só a classe `backdrop-blur*`, preservando o resto do className e o fundo. Em `wall-stage.tsx:333`, verificar visualmente/por leitura que resta um fundo (se não houver `bg-*` na pílula, adicionar `bg-noite-vidro`).
+
+- [ ] **Step 3: Estender `tools/guards/tokens.mjs`** para varrer os mesmos arquivos que já varre e falhar (exit ≠ 0) ao encontrar `backdrop-blur` ou `backdrop-filter`, EXCETO em arquivos `*.test.*`. Seguir o padrão das regras existentes do guard (regex + lista de arquivos + mensagem com caminho:linha).
+
+- [ ] **Step 4: Rodar o guard e ver passar** (agora que os 5 usos sumiram): `node tools/guards/tokens.mjs` → `✓`. E confirmar que ele FALHA se um blur for reintroduzido (teste manual: adicionar `backdrop-blur-sm` temporário num arquivo, rodar, ver falhar, remover).
+
+- [ ] **Step 5: Rodar as suítes afetadas.** Run: `source ~/.nvm/nvm.sh && nvm use 22 && pnpm exec vitest run packages/ui-web/src && pnpm exec vitest run apps/web/features/wall`
+Expected: verde (o wall tem testes; `floating-button`/`event-hero` são usados por vários screens). Nenhuma regressão.
+
+- [ ] **Step 6: Commit**
+
+```bash
+git add packages/ui-web/src/floating-button.tsx packages/ui-web/src/event-hero.tsx apps/web/features/wall/components/client/wall-participation-counter.tsx apps/web/features/wall/components/client/wall-stage.tsx apps/web/features/wall/components/client/wall-client.tsx tools/guards/tokens.mjs
+git commit -m "fix(ui): remove glassmorphism (backdrop-blur) + guard against it"
+```
+
+---
+
 ## Self-Review (feito na escrita)
 
 - **Cobertura do spec §4 (sistema evoluído):** §4.2 tipografia → T1; §4.3 movimento → T2; §4.4 elevação → T3; §4.5 primitivos → T4 (botão), T5 (card/sheet/dialog), T6 (forms), T7 (nav/empty). §4.1 ritmo de espaçamento → coberto pela escala 4px nativa do Tailwind v4 (documentada no spec; sem token novo necessário) + aplicada nos primitivos T4-T7. Verificação → T8.
