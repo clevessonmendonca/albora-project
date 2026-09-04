@@ -2,6 +2,7 @@
 
 import React from "react";
 import { FUSO_PADRAO, FUSOS_DO_EVENTO } from "@albora/core";
+import { Select } from "@albora/ui-web";
 
 export function TimezoneField({
   value,
@@ -16,24 +17,17 @@ export function TimezoneField({
       : [{ id: value, rotulo: value }];
 
   return (
-    <label className="flex flex-col gap-1.5 text-[0.9rem] text-ink-2">
-      Fuso horário
-      <select
-        value={value || FUSO_PADRAO}
-        onChange={(e) => onChange(e.target.value)}
-        className="rounded-token border border-linha bg-bg px-3.5 py-3 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
-      >
-        {extra.map((f) => (
-          <option key={f.id} value={f.id}>
-            {f.rotulo}
-          </option>
-        ))}
-        {FUSOS_DO_EVENTO.map((f) => (
-          <option key={f.id} value={f.id}>
-            {f.rotulo}
-          </option>
-        ))}
-      </select>
-    </label>
+    <Select label="Fuso horário" value={value || FUSO_PADRAO} onChange={(e) => onChange(e.target.value)}>
+      {extra.map((f) => (
+        <option key={f.id} value={f.id}>
+          {f.rotulo}
+        </option>
+      ))}
+      {FUSOS_DO_EVENTO.map((f) => (
+        <option key={f.id} value={f.id}>
+          {f.rotulo}
+        </option>
+      ))}
+    </Select>
   );
 }
