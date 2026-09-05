@@ -22,3 +22,9 @@ export { listAccounts } from "./accounts/list-accounts";
 
 export type { AccountDetail, GetAccountInput } from "./accounts/get-account";
 export { getAccount } from "./accounts/get-account";
+
+export type { EventAdminRow, EventAdminStatus, ListEventsInput } from "./events/list-events";
+export { listEvents } from "./events/list-events";
+
+export type { EventDetailAdmin, GetEventInput } from "./events/get-event";
+export { getEvent } from "./events/get-event";

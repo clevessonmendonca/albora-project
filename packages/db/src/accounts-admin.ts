@@ -30,8 +30,14 @@ export type AccountAdminRow = {
   lastAccessAt: Date | null;
 };
 
-/** `j••••@gmail.com` — nunca o e-mail cru. Local-part com 1-2 chars visíveis, resto mascarado; domínio intacto (é preciso identificar o provedor sem expor a caixa). */
-function maskEmail(email: string): string {
+/**
+ * `j••••@gmail.com` — nunca o e-mail cru. Local-part com 1-2 chars visíveis, resto mascarado; domínio intacto (é preciso identificar o provedor sem expor a caixa).
+ *
+ * Exportada porque `events-admin.ts` (T6, coluna "anfitrião") reaproveita a
+ * mesma máscara em vez de duplicar a regra — duas fórmulas de mascaramento
+ * divergindo é o mesmo risco que `LAST_LOGIN_BASIS` documenta para H1.
+ */
+export function maskEmail(email: string): string {
   const [local, domain] = email.split("@");
   if (!local || !domain) return "••••@••••";
   const visivel = local.slice(0, Math.min(2, local.length));

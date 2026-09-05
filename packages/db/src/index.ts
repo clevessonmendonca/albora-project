@@ -516,3 +516,6 @@ export type {
   AccountEventSummary, ListAccountsAdminFilter,
 } from "./accounts-admin";
 export { getAccountDetailAdmin, listAccountsAdmin } from "./accounts-admin";
+
+export type { EventAdminRow, EventAdminStatus, EventDetailAdmin, ListEventsAdminFilter } from "./events-admin";
+export { getEventDetailAdmin, isH1Calculavel, listEventsAdmin } from "./events-admin";
