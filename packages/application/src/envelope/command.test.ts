@@ -98,6 +98,22 @@ describe("executeCommand", () => {
     expect(Number(depois.rows[0]!.n) - Number(antes.rows[0]!.n)).toBe(1);
   });
 
+  it("toda transação de comando marca app.staff_command para políticas de escrita de staff", async () => {
+    let marcador: string | undefined;
+    await executeCommand({ pool: app }, {
+      actor: actor({ roles: ["finance"] }),
+      capability: "subscription.mutate",
+      reason: "prova do marcador de transação",
+      target: { kind: "subscription" },
+      action: "test.staff_command_marker",
+      run: async (tx) => {
+        const { rows } = await tx.query<{ valor: string }>("SELECT current_setting('app.staff_command', true) AS valor");
+        marcador = rows[0]?.valor;
+      },
+    });
+    expect(marcador).toBe("true");
+  });
+
   it("auditoria que falha desfaz o efeito de run — prova do rollback", async () => {
     // CREATE TABLE exige privilégio de schema que `albora_app` não tem por
     // desenho (migration 0002: só DML nas tabelas existentes, nunca DDL) —

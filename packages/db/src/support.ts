@@ -197,3 +197,109 @@ export async function isPlatformOperator(pool: Pool, accountId: string): Promise
     return rows.length > 0;
   });
 }
+
+export type SupportMessageRow = {
+  id: string;
+  ticketId: string;
+  authorKind: "host" | "operator";
+  authorAccountId: string | null;
+  authorStaffId: string | null;
+  body: string;
+  createdAt: Date;
+};
+
+export type SupportTicketAdmin = SupportTicket & { assigneeStaffId: string | null };
+
+/** Cross-conta por desenho — chamada sob `withPlatformAggregation` (T5), nunca com o pool comum. */
+export async function getSupportTicketAdmin(pool: Pool, ticketId: string): Promise<SupportTicketAdmin | null> {
+  const { rows } = await pool.query<{
+    id: string; account_id: string; event_id: string | null; subject: string;
+    status: SupportStatus; priority: SupportPriority; sla_due_at: Date | null;
+    created_at: Date; assignee_staff_id: string | null;
+  }>(
+    `SELECT id, account_id, event_id, subject, status, priority, sla_due_at, created_at, assignee_staff_id
+       FROM support_tickets WHERE id = $1`,
+    [ticketId],
+  );
+  const t = rows[0];
+  if (!t) return null;
+  return {
+    id: t.id, accountId: t.account_id, eventId: t.event_id, subject: t.subject,
+    status: t.status, priority: t.priority, slaDueAt: t.sla_due_at, createdAt: t.created_at,
+    assigneeStaffId: t.assignee_staff_id,
+  };
+}
+
+/** Cross-conta por desenho — mesma disciplina de `getSupportTicketAdmin`. */
+export async function listSupportMessagesAdmin(pool: Pool, ticketId: string): Promise<SupportMessageRow[]> {
+  const { rows } = await pool.query<{
+    id: string; ticket_id: string; author_kind: "host" | "operator";
+    author_account_id: string | null; author_staff_id: string | null; body: string; created_at: Date;
+  }>(
+    `SELECT id, ticket_id, author_kind, author_account_id, author_staff_id, body, created_at
+       FROM support_messages WHERE ticket_id = $1 ORDER BY created_at ASC`,
+    [ticketId],
+  );
+  return rows.map((m) => ({
+    id: m.id, ticketId: m.ticket_id, authorKind: m.author_kind,
+    authorAccountId: m.author_account_id, authorStaffId: m.author_staff_id, body: m.body, createdAt: m.created_at,
+  }));
+}
+
+/** Roda dentro da tx de `executeCommand` — exige `app.staff_command` (migration 0063). */
+export async function respondSupportTicketOnClient(
+  client: PoolClient,
+  entrada: { ticketId: string; staffId: string; body: string },
+): Promise<SupportMessageRow> {
+  const { rows } = await client.query<{
+    id: string; ticket_id: string; author_kind: "host" | "operator";
+    author_account_id: string | null; author_staff_id: string | null; body: string; created_at: Date;
+  }>(
+    `INSERT INTO support_messages (ticket_id, author_kind, author_staff_id, body)
+     VALUES ($1, 'operator', $2, $3)
+     RETURNING id, ticket_id, author_kind, author_account_id, author_staff_id, body, created_at`,
+    [entrada.ticketId, entrada.staffId, entrada.body.slice(0, 4000)],
+  );
+  const m = rows[0]!;
+  await client.query(
+    `UPDATE support_tickets SET updated_at = now(), status = CASE WHEN status = 'open' THEN 'pending' ELSE status END
+      WHERE id = $1`,
+    [entrada.ticketId],
+  );
+  return {
+    id: m.id, ticketId: m.ticket_id, authorKind: m.author_kind,
+    authorAccountId: m.author_account_id, authorStaffId: m.author_staff_id, body: m.body, createdAt: m.created_at,
+  };
+}
+
+export async function assignSupportTicketOnClient(
+  client: PoolClient,
+  entrada: { ticketId: string; staffId: string | null },
+): Promise<void> {
+  await client.query("UPDATE support_tickets SET assignee_staff_id = $2, updated_at = now() WHERE id = $1", [
+    entrada.ticketId,
+    entrada.staffId,
+  ]);
+}
+
+export async function updateSupportTicketStatusOnClient(
+  client: PoolClient,
+  entrada: { ticketId: string; status: SupportStatus },
+): Promise<void> {
+  await client.query("UPDATE support_tickets SET status = $2, updated_at = now() WHERE id = $1", [
+    entrada.ticketId,
+    entrada.status,
+  ]);
+}
+
+/** Muda a prioridade E recomputa o SLA a partir de AGORA — reclassificar um p2 pra p0 reabre a janela, não herda o prazo do p2. */
+export async function updateSupportTicketPriorityOnClient(
+  client: PoolClient,
+  entrada: { ticketId: string; priority: SupportPriority },
+): Promise<void> {
+  await client.query("UPDATE support_tickets SET priority = $2, sla_due_at = $3, updated_at = now() WHERE id = $1", [
+    entrada.ticketId,
+    entrada.priority,
+    slaDueAt(entrada.priority),
+  ]);
+}

@@ -32,6 +32,11 @@ export async function executeCommand<T>(
   const client = await deps.pool.connect();
   try {
     await client.query("BEGIN");
+    // Porta de escrita para staff em tabelas com FORCE RLS que não têm
+    // política própria de staff (ex.: support_tickets/support_messages,
+    // migration 0063) — só existe dentro da transação de um comando já
+    // autorizado, nunca fora dela.
+    await client.query("SELECT set_config('app.staff_command', 'true', true)");
     const result = await input.run(client);
     await insertAuditLog(client, {
       actorKind: "staff",

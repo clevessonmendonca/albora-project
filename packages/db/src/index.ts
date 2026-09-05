@@ -349,14 +349,20 @@ export { emitirStepUp as issueStepUp } from "./export-db";
 /** English alias — preferred for new code. @see consumirStepUp */
 export { consumirStepUp as consumeStepUp } from "./export-db";
 
-export type { SupportPriority, SupportStatus, SupportTicket } from "./support";
+export type { SupportMessageRow, SupportPriority, SupportStatus, SupportTicket, SupportTicketAdmin } from "./support";
 export {
+  assignSupportTicketOnClient,
   createSupportTicket,
+  getSupportTicketAdmin,
   isPlatformOperator,
   listOpenSupportTicketsAdmin,
+  listSupportMessagesAdmin,
   listSupportTicketsForAccount,
   listSupportTicketsForEvent,
+  respondSupportTicketOnClient,
   slaDueAt,
+  updateSupportTicketPriorityOnClient,
+  updateSupportTicketStatusOnClient,
 } from "./support";
 
 export type { EventMember, EventMemberRole, HostEventRole } from "./memberships";

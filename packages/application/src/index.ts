@@ -48,3 +48,12 @@ export { listAudit } from "./audit/list-audit-log";
 
 export type { ListSecurityInput, SecurityEventGroup, SecurityEventKind, SecurityEventRow } from "./security/list-security-events";
 export { groupSecurityEvents, listSecurity } from "./security/list-security-events";
+
+export type { AssignTicketInput } from "./support/assign-ticket";
+export { assignTicket } from "./support/assign-ticket";
+export type { RespondTicketInput } from "./support/respond-ticket";
+export { respondTicket } from "./support/respond-ticket";
+export type { UpdateTicketStatusInput } from "./support/update-ticket-status";
+export { updateTicketStatus } from "./support/update-ticket-status";
+export type { UpdateTicketPriorityInput } from "./support/update-ticket-priority";
+export { updateTicketPriority } from "./support/update-ticket-priority";
