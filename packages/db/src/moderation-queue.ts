@@ -62,7 +62,16 @@ export async function claimNextForModeration(
   return rows.map((r) => ({ uploadId: r.upload_id, eventId: r.event_id, attempts: r.attempts }));
 }
 
-/** Categorias e escores do provedor, nunca a imagem — `result` é `jsonb`, serializado explicitamente (node-postgres não converte objeto JS sozinho). */
+/**
+ * Categorias e escores do provedor, nunca a imagem — `result` é `jsonb`,
+ * serializado explicitamente (node-postgres não converte objeto JS sozinho).
+ *
+ * `AND status = 'claimed'` é o que impede um worker zumbi (preso em
+ * `readThumb`, reivindicado de novo por `reclaimStaleModeration` depois dos
+ * 600s) de reescrever, quando finalmente destravar, uma linha que outro
+ * worker já concluiu — sem isso o resultado do worker vivo seria sobrescrito
+ * pelo atrasado, e a linha de fila oscilaria sem necessidade.
+ */
 export async function completeModeration(
   client: PoolClient,
   uploadId: string,
@@ -71,7 +80,7 @@ export async function completeModeration(
   await client.query(
     `UPDATE photo_moderation
         SET status = 'done', provider = $2, result = $3, completed_at = now()
-      WHERE upload_id = $1`,
+      WHERE upload_id = $1 AND status = 'claimed'`,
     [uploadId, outcome.provider, JSON.stringify(outcome.result ?? {})],
   );
 }
@@ -85,6 +94,13 @@ export async function completeModeration(
  * Abaixo do teto volta pra `pending` (o próximo claim pega de novo); no teto
  * marca `failed` e para de tentar. Um statement só — ler e depois escrever
  * separado abriria corrida entre dois workers falhando o mesmo item.
+ *
+ * `AND status = 'claimed'` no WHERE, mesma razão de `completeModeration`:
+ * sem isso um worker zumbi que destrava depois do reclaim devolveria a
+ * `pending` (ou marcaria `failed`) uma linha que um worker mais rápido já
+ * tinha marcado `done` — o próximo claim classificaria de novo algo já
+ * resolvido. Sem linha `claimed` casando, o `UPDATE` não afeta nada e a
+ * chamada é tratada como "retry" (não há `failed` possível a reportar).
  */
 export async function failModeration(
   client: PoolClient,
@@ -94,7 +110,7 @@ export async function failModeration(
   const { rows } = await client.query<{ status: string }>(
     `UPDATE photo_moderation
         SET status = CASE WHEN attempts >= $2 THEN 'failed' ELSE 'pending' END
-      WHERE upload_id = $1
+      WHERE upload_id = $1 AND status = 'claimed'
       RETURNING status`,
     [uploadId, maxAttempts],
   );

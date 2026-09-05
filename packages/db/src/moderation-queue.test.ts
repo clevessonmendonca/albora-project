@@ -140,6 +140,11 @@ describe("completeModeration", () => {
     await comEvento(app, dados.a.eventoId, (c) =>
       enqueueModeration(c, { uploadId, eventId: dados.a.eventoId }),
     );
+    // completeModeration só age sobre linha `claimed` (guarda contra worker
+    // zumbi) — sem o claim aqui o UPDATE não casaria nenhuma linha.
+    await comEvento(app, dados.a.eventoId, (c) =>
+      claimNextForModeration(c, dados.a.eventoId, 1),
+    );
 
     await comEvento(app, dados.a.eventoId, (c) =>
       completeModeration(c, uploadId, {
@@ -213,6 +218,57 @@ describe("failModeration", () => {
       claimNextForModeration(c, dados.a.eventoId, 10),
     );
     expect(restantes.map((i) => i.uploadId)).not.toContain(uploadId);
+  });
+});
+
+describe("completeModeration e failModeration ignoram linha que não está claimed", () => {
+  it("completeModeration não sobrescreve uma linha já done — guarda contra worker zumbi que destrava depois de outro já ter concluído", async () => {
+    const uploadId = await criarUpload(dados.a.eventoId, dados.a.sessaoId);
+    await comEvento(app, dados.a.eventoId, (c) =>
+      enqueueModeration(c, { uploadId, eventId: dados.a.eventoId }),
+    );
+    await comEvento(app, dados.a.eventoId, (c) =>
+      claimNextForModeration(c, dados.a.eventoId, 1),
+    );
+    await comEvento(app, dados.a.eventoId, (c) =>
+      completeModeration(c, uploadId, { provider: "rapido", result: {} }),
+    );
+    expect(await statusDe(uploadId)).toBe("done");
+
+    // Worker atrasado (preso em readThumb, já reclamado por outro) destrava
+    // e tenta concluir de novo — não pode reescrever o que o worker rápido
+    // já gravou.
+    await comEvento(app, dados.a.eventoId, (c) =>
+      completeModeration(c, uploadId, { provider: "atrasado", result: {} }),
+    );
+
+    const { rows } = await admin.query(
+      "SELECT status, provider FROM photo_moderation WHERE upload_id = $1",
+      [uploadId],
+    );
+    expect(rows[0].status).toBe("done");
+    expect(rows[0].provider).toBe("rapido");
+  });
+
+  it("failModeration não devolve a pending (nem marca failed) uma linha já done", async () => {
+    const uploadId = await criarUpload(dados.a.eventoId, dados.a.sessaoId);
+    await comEvento(app, dados.a.eventoId, (c) =>
+      enqueueModeration(c, { uploadId, eventId: dados.a.eventoId }),
+    );
+    await comEvento(app, dados.a.eventoId, (c) =>
+      claimNextForModeration(c, dados.a.eventoId, 1),
+    );
+    await comEvento(app, dados.a.eventoId, (c) =>
+      completeModeration(c, uploadId, { provider: "rapido", result: {} }),
+    );
+
+    // Sem linha `claimed` casando, o UPDATE não afeta nada — não há como
+    // reportar "failed", então o retorno é o mesmo de um retry qualquer.
+    const resultado = await comEvento(app, dados.a.eventoId, (c) =>
+      failModeration(c, uploadId, 3),
+    );
+    expect(resultado).toBe("retry");
+    expect(await statusDe(uploadId)).toBe("done");
   });
 });
 
