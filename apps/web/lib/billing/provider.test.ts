@@ -19,3 +19,18 @@ describe("stubBillingProvider — createSubscription", () => {
     expect(result.status).toBe("PENDING");
   });
 });
+
+describe("mutações de assinatura", () => {
+  it("stub: updateSubscription/cancelSubscription/refundPayment devolvem status determinístico", async () => {
+    const provider = stubBillingProvider();
+    await expect(
+      provider.updateSubscription({ subscriptionId: "sub-stub-1", plan: "studio" }),
+    ).resolves.toEqual({ status: "ACTIVE" });
+    await expect(provider.cancelSubscription({ subscriptionId: "sub-stub-1" })).resolves.toEqual({
+      status: "CANCELED",
+    });
+    await expect(
+      provider.refundPayment({ paymentId: "pay-stub-1", amountCents: 19900 }),
+    ).resolves.toEqual({ status: "REFUNDED" });
+  });
+});

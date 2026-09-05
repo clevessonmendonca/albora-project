@@ -6,9 +6,11 @@ import {
   VENDOR_PLAN_PRICE_CENTS,
   type VendorSubscriptionAdminRow,
 } from "@albora/application";
+import { hasCapability } from "@albora/core";
 import { DataTable, MetricCard, PageHeader, StatusBadge, type DataTableColumn, type StatusBadgeTone } from "@albora/ui-web";
 import { resolveActor } from "@/lib/console/actor";
 import { getAggregatorPool, getPool } from "@/lib/db";
+import { SubscriptionActions } from "@/features/console/components/client/subscription-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -35,13 +37,19 @@ function formatarReais(centavos: number): string {
 }
 
 /**
- * Tela só-leitura (§8.1.5) — mutação de plano, cortesia, cancelamento e
- * reembolso chegam na Onda C, com `executeCommand`, política de limiar e
- * auditoria transacional (ADR 0016). Nenhum botão de ação aqui de propósito.
+ * Mutação de plano, cortesia, cancelamento e reembolso chegam por
+ * `executeCommand`, política de limiar e auditoria transacional (ADR
+ * 0016) — ver `SubscriptionActions`. A coluna de ações só aparece pra
+ * quem tem `subscription.mutate` e/ou `subscription.refund*`; sem
+ * nenhuma das duas, a tela continua idêntica à Onda B (só leitura).
  */
 export default async function SubscriptionsPage() {
   const actor = await resolveActor();
   if (!actor) redirect("/console/login");
+
+  const podeMutar = hasCapability(actor.roles, "subscription.mutate");
+  const podeReembolsar =
+    hasCapability(actor.roles, "subscription.refund") || hasCapability(actor.roles, "subscription.refund.approve");
 
   const deps = { pool: getPool(), aggregatorPool: getAggregatorPool() };
   const reason = "abrir /console/subscriptions";
@@ -91,13 +99,30 @@ export default async function SubscriptionsPage() {
       align: "end",
       render: (r) => formatarReais(VENDOR_PLAN_PRICE_CENTS[r.plan]),
     },
+    ...(podeMutar || podeReembolsar
+      ? [
+          {
+            key: "acoes",
+            header: "Ações",
+            render: (r: VendorSubscriptionAdminRow) => (
+              <SubscriptionActions
+                subscriptionId={r.subscriptionId}
+                vendorId={r.vendorId}
+                plan={r.plan}
+                podeMutar={podeMutar}
+                podeReembolsar={podeReembolsar}
+              />
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
     <>
       <PageHeader
         title="Assinaturas"
-        description="Assinatura de fornecedor na plataforma — leitura. Trocar plano, cortesia, cancelar e reembolsar chegam na Onda C."
+        description="Assinatura de fornecedor na plataforma. Cortesia e cancelamento mutam pelo Asaas, nunca direto no banco — o webhook confirma o estado."
       />
 
       <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

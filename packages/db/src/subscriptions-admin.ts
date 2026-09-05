@@ -3,6 +3,10 @@ import type { Pool } from "pg";
 export type VendorSubscriptionAdminRow = {
   vendorId: string;
   vendorName: string;
+  /** id local (`vendor_subscriptions.id`) — alvo das mutações da T6, nunca exposto ao Asaas. */
+  subscriptionId: string;
+  /** id da assinatura no Asaas — é o que o `BillingProvider` recebe, nunca o `subscriptionId` local. */
+  asaasSubscriptionId: string;
   plan: "starter" | "studio" | "agency";
   status: "pending" | "active" | "overdue" | "canceled";
   /**
@@ -53,13 +57,15 @@ export async function listVendorSubscriptionsAdmin(
   const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
 
   const { rows } = await pool.query<{
+    subscription_id: string;
+    asaas_subscription_id: string;
     vendor_id: string;
     vendor_name: string;
     plan: VendorSubscriptionAdminRow["plan"];
     status: VendorSubscriptionAdminRow["status"];
     overdue_days: number | null;
   }>(
-    `SELECT vs.vendor_id, v.name AS vendor_name, vs.plan, vs.status,
+    `SELECT vs.id AS subscription_id, vs.asaas_subscription_id, vs.vendor_id, v.name AS vendor_name, vs.plan, vs.status,
             CASE WHEN vs.status = 'overdue'
                  THEN extract(day FROM now() - vs.updated_at)::int
                  ELSE NULL
@@ -76,6 +82,8 @@ export async function listVendorSubscriptionsAdmin(
     rows: rows.map((r) => ({
       vendorId: r.vendor_id,
       vendorName: r.vendor_name,
+      subscriptionId: r.subscription_id,
+      asaasSubscriptionId: r.asaas_subscription_id,
       plan: r.plan,
       status: r.status,
       nextChargeAt: null,

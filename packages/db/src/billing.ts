@@ -256,6 +256,44 @@ export async function listBillingPaymentsForAccountAdmin(
   return rows.map((r) => ({ id: r.id, status: r.status, plan: r.plan, amountCents: r.amount_cents, createdAt: r.created_at }));
 }
 
+export type VendorSubscriptionByIdAdmin = {
+  id: string;
+  vendorId: string;
+  accountId: string;
+  asaasSubscriptionId: string;
+  plan: VendorPlan;
+  status: VendorSubscriptionStatus;
+};
+
+/** Cross-conta por desenho — usada pelos comandos de mutação (T6), nunca pela leitura da tela (que já tem `subscriptionId` embutido). */
+export async function getVendorSubscriptionByIdAdmin(
+  pool: Pool,
+  subscriptionId: string,
+): Promise<VendorSubscriptionByIdAdmin | null> {
+  const { rows } = await pool.query<{
+    id: string;
+    vendor_id: string;
+    account_id: string;
+    asaas_subscription_id: string;
+    plan: VendorPlan;
+    status: VendorSubscriptionStatus;
+  }>(
+    "SELECT id, vendor_id, account_id, asaas_subscription_id, plan, status FROM vendor_subscriptions WHERE id = $1",
+    [subscriptionId],
+  );
+  const r = rows[0];
+  return r
+    ? {
+        id: r.id,
+        vendorId: r.vendor_id,
+        accountId: r.account_id,
+        asaasSubscriptionId: r.asaas_subscription_id,
+        plan: r.plan,
+        status: r.status,
+      }
+    : null;
+}
+
 export async function paymentByAsaasId(
   pool: Pool,
   asaasPaymentId: string,

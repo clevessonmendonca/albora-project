@@ -1,13 +1,22 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
-const { resolveActorMock, listSubscriptionsMock, getPlatformRevenueMock, redirectMock } = vi.hoisted(() => ({
+const {
+  resolveActorMock,
+  listSubscriptionsMock,
+  getPlatformRevenueMock,
+  redirectMock,
+  SubscriptionActionsMock,
+} = vi.hoisted(() => ({
   resolveActorMock: vi.fn(),
   listSubscriptionsMock: vi.fn(),
   getPlatformRevenueMock: vi.fn(),
   redirectMock: vi.fn(() => {
     throw new Error("redirect");
   }),
+  // Mock só pra identidade — a T6 já testa o componente sozinho
+  // (subscription-actions.test.tsx); aqui só interessa o gate de capacidade.
+  SubscriptionActionsMock: vi.fn((_props: Record<string, unknown>) => null),
 }));
 
 vi.mock("@/lib/console/actor", () => ({ resolveActor: resolveActorMock }));
@@ -17,12 +26,15 @@ vi.mock("@albora/application", () => ({
   getPlatformRevenue: getPlatformRevenueMock,
   VENDOR_PLAN_PRICE_CENTS: { starter: 9900, studio: 24900, agency: 59900 },
 }));
+vi.mock("@/features/console/components/client/subscription-actions", () => ({
+  SubscriptionActions: SubscriptionActionsMock,
+}));
 vi.mock("next/navigation", () => ({ redirect: redirectMock }));
 
 import SubscriptionsPage from "./page";
 
-function actor() {
-  return { staffUserId: "s1", roles: ["owner"], sessionId: "sess", requestId: "req", reauthenticatedAt: null };
+function actor(roles: string[] = ["owner"]) {
+  return { staffUserId: "s1", roles, sessionId: "sess", requestId: "req", reauthenticatedAt: null };
 }
 
 const OVERDUE_BASIS =
@@ -32,6 +44,8 @@ const CHURN_BASIS = "última atualização do registro (sem canceled_at dedicado
 function montarAssinatura(overrides: {
   vendorId?: string;
   vendorName?: string;
+  subscriptionId?: string;
+  asaasSubscriptionId?: string;
   plan?: "starter" | "studio" | "agency";
   status?: "pending" | "active" | "overdue" | "canceled";
   overdueDaysValue?: number | null;
@@ -40,6 +54,8 @@ function montarAssinatura(overrides: {
   return {
     vendorId: overrides.vendorId ?? "vendor-1",
     vendorName: overrides.vendorName ?? "Estúdio X",
+    subscriptionId: overrides.subscriptionId ?? "sub-row-1",
+    asaasSubscriptionId: overrides.asaasSubscriptionId ?? "sub-asaas-row-1",
     plan: overrides.plan ?? ("studio" as const),
     status: overrides.status ?? ("active" as const),
     nextChargeAt: null,
@@ -60,8 +76,12 @@ function revenuePadrao(overrides: { overdueCount?: number; churned30dValue?: num
   };
 }
 
-async function pagina(assinaturas: ReturnType<typeof montarAssinatura>[], revenue = revenuePadrao()) {
-  resolveActorMock.mockResolvedValueOnce(actor());
+async function pagina(
+  assinaturas: ReturnType<typeof montarAssinatura>[],
+  revenue = revenuePadrao(),
+  quemAcessa = actor(),
+) {
+  resolveActorMock.mockResolvedValueOnce(quemAcessa);
   listSubscriptionsMock.mockResolvedValueOnce({ rows: assinaturas, nextCursor: null });
   getPlatformRevenueMock.mockResolvedValueOnce(revenue);
 
@@ -111,18 +131,38 @@ describe("SubscriptionsPage", () => {
     expect(serializado).not.toContain(OVERDUE_BASIS);
   });
 
-  it("nenhum controle de mutação na tela — sem botão de cancelar, reembolsar, cortesia ou trocar plano, nem formulário", async () => {
-    const serializado = await pagina([montarAssinatura({ status: "overdue", overdueDaysValue: 1 })]);
+  it("ator sem subscription.mutate e sem subscription.refund* não vê a coluna de ações", async () => {
+    // compliance tem accounts/lgpd/retention/audit/security — nenhuma capacidade de assinatura (roles.ts).
+    const serializado = await pagina(
+      [montarAssinatura({ status: "overdue", overdueDaysValue: 1 })],
+      revenuePadrao(),
+      actor(["compliance"]),
+    );
 
-    expect(serializado).not.toMatch(/<form\b/);
-    expect(serializado).not.toMatch(/\binput\b/);
+    expect(serializado).not.toContain("Ações");
+    expect(SubscriptionActionsMock).not.toHaveBeenCalled();
+  });
 
-    const controles = [...serializado.matchAll(/<button\b[^>]*>([\s\S]*?)<\/button>/g)].map((m) => m[1] ?? "");
-    for (const termo of ["cancelar", "reembolsar", "cortesia", "trocar plano", "suspender", "aplicar"]) {
-      for (const controle of controles) {
-        expect(controle.toLowerCase()).not.toContain(termo);
-      }
-    }
+  it("dono vê a coluna de ações e o componente recebe subscriptionId/plan/capacidades corretos", async () => {
+    const serializado = await pagina(
+      [montarAssinatura({ subscriptionId: "sub-abc", vendorId: "vendor-abc", plan: "agency" })],
+      revenuePadrao(),
+      actor(["owner"]),
+    );
+
+    expect(serializado).toContain("Ações");
+    expect(SubscriptionActionsMock.mock.calls[0]?.[0]).toMatchObject({
+      subscriptionId: "sub-abc",
+      vendorId: "vendor-abc",
+      plan: "agency",
+      podeMutar: true,
+      podeReembolsar: true,
+    });
+  });
+
+  it("financeiro (subscription.mutate + subscription.refund, sem refund.approve) também vê a coluna", async () => {
+    const serializado = await pagina([montarAssinatura()], revenuePadrao(), actor(["finance"]));
+    expect(serializado).toContain("Ações");
   });
 
   it("sem ator resolvido, redireciona para /console/login sem chamar listSubscriptions", async () => {

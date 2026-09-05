@@ -69,4 +69,12 @@ describe("listVendorSubscriptionsAdmin", () => {
     expect(rows.some((r) => r.vendorId === overdueId)).toBe(true);
     expect(rows.some((r) => r.vendorId === canceledId)).toBe(false);
   });
+
+  it("expõe subscriptionId e asaasSubscriptionId, não só o vendorId", async () => {
+    const vendorId = await vendorComAssinatura("active", "1 day");
+    const { rows } = await listVendorSubscriptionsAdmin(agregador, { limit: 50 });
+    const linha = rows.find((r) => r.vendorId === vendorId);
+    expect(linha?.subscriptionId).toBeTruthy();
+    expect(linha?.asaasSubscriptionId).toMatch(/^sub-/);
+  });
 });

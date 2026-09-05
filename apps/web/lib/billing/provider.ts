@@ -159,6 +159,44 @@ function asaasProviderFromConfig(c: AsaasEnvConfig): BillingProvider {
       }));
     },
 
+    async updateSubscription(input) {
+      const body: Record<string, unknown> = {};
+      if (input.plan) body.description = `Albora Fornecedor — plano ${input.plan}`;
+      if (typeof input.amountCents === "number") body.value = input.amountCents / 100;
+      if (typeof input.discountPercent === "number") {
+        body.discount = { value: input.discountPercent, dueDateLimitDays: 0, type: "PERCENTAGE" };
+      }
+      const res = await asaasFetch(`/subscriptions/${input.subscriptionId}`, {
+        method: "PUT",
+        apiKey: c.apiKey,
+        baseUrl: c.baseUrl,
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(`asaas.subscription.update: ${res.status} ${await res.text()}`);
+      const parsed = (await res.json()) as { status: string };
+      return { status: parsed.status };
+    },
+    async cancelSubscription(input) {
+      const res = await asaasFetch(`/subscriptions/${input.subscriptionId}`, {
+        method: "DELETE",
+        apiKey: c.apiKey,
+        baseUrl: c.baseUrl,
+      });
+      if (!res.ok) throw new Error(`asaas.subscription.cancel: ${res.status} ${await res.text()}`);
+      return { status: "CANCELED" };
+    },
+    async refundPayment(input) {
+      const body = typeof input.amountCents === "number" ? { value: input.amountCents / 100 } : {};
+      const res = await asaasFetch(`/payments/${input.paymentId}/refund`, {
+        method: "POST",
+        apiKey: c.apiKey,
+        baseUrl: c.baseUrl,
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error(`asaas.payment.refund: ${res.status} ${await res.text()}`);
+      return { status: "REFUNDED" };
+    },
+
     parseWebhook,
     parseVendorWebhook,
   };
@@ -195,6 +233,15 @@ export function stubBillingProvider(): BillingProvider {
     },
     async listPayments() {
       return [];
+    },
+    async updateSubscription() {
+      return { status: "ACTIVE" };
+    },
+    async cancelSubscription() {
+      return { status: "CANCELED" };
+    },
+    async refundPayment() {
+      return { status: "REFUNDED" };
     },
     parseWebhook,
     parseVendorWebhook,

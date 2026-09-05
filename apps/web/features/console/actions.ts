@@ -5,11 +5,15 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  applySubscriptionCourtesy,
   assignTicket,
+  cancelSubscription as cancelSubscriptionUseCase,
+  changeSubscriptionPlan,
   CommandDeniedError,
   completeStaffLogin,
   completeStaffReauth,
   ReauthRequiredError,
+  refundPayment,
   requestStaffLogin,
   requestStaffReauth,
   respondTicket,
@@ -23,6 +27,7 @@ import { sendHostEmail } from "@/lib/email";
 import { resolveActor } from "@/lib/console/actor";
 import { clearStaffSession, issueStaffSession, markStaffReauthenticated } from "@/lib/console/staff-session";
 import { config } from "@/lib/config";
+import { getBillingProvider } from "@/lib/billing";
 
 /**
  * HMAC, nunca sha256 puro: o espaço IPv4 tem 2^32 entradas, então hash sem
@@ -228,6 +233,89 @@ export async function updateTicketPriorityAction(ticketId: string, priority: Sup
   try {
     await updateTicketPriority({ pool: getPool() }, { actor, ticketId, priority });
     revalidatePath("/console/support");
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+/**
+ * Mutações de assinatura (T6): cada ação chama seu comando por
+ * `executeCommand`, nunca escreve `vendor_subscriptions`/`billing_payments`
+ * direto — o webhook do Asaas (`billing_webhook_events`, idempotente)
+ * continua sendo a fonte da verdade sobre o estado local. `getBillingProvider()`
+ * é o `BillingProvider` real (Asaas) ou o stub de dev — a única instância
+ * criada aqui, na borda; `packages/application` só conhece o shape por
+ * `SubscriptionBillingPort`.
+ */
+export async function changeSubscriptionPlanAction(
+  subscriptionId: string,
+  newPlan: "starter" | "studio" | "agency",
+  amountCents: number,
+  reason: string,
+): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await changeSubscriptionPlan(
+      { pool: getPool(), billing: getBillingProvider() },
+      { actor, reason, subscriptionId, newPlan, amountCents },
+    );
+    revalidatePath("/console/subscriptions");
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+export async function applySubscriptionCourtesyAction(
+  subscriptionId: string,
+  discountPercent: number,
+  reason: string,
+): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await applySubscriptionCourtesy(
+      { pool: getPool(), billing: getBillingProvider() },
+      { actor, reason, subscriptionId, discountPercent },
+    );
+    revalidatePath("/console/subscriptions");
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+export async function cancelSubscriptionAction(subscriptionId: string, reason: string): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await cancelSubscriptionUseCase(
+      { pool: getPool(), billing: getBillingProvider() },
+      { actor, reason, subscriptionId },
+    );
+    revalidatePath("/console/subscriptions");
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+export async function refundPaymentAction(
+  paymentId: string,
+  asaasPaymentId: string,
+  amountCents: number,
+  reason: string,
+): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await refundPayment(
+      { pool: getPool(), billing: getBillingProvider() },
+      { actor, reason, paymentId, asaasPaymentId, amountCents },
+    );
+    revalidatePath("/console/subscriptions");
     return { ok: true };
   } catch (erro) {
     return traduzErroDeComando(erro);

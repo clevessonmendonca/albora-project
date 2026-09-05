@@ -65,3 +65,13 @@ export type { ListTicketQueueInput } from "./support/list-ticket-queue";
 export { listTicketQueue } from "./support/list-ticket-queue";
 export type { GetTicketDetailInput, TicketCustomerContext, TicketDetailResult } from "./support/get-ticket-detail";
 export { getTicketDetail } from "./support/get-ticket-detail";
+
+export type { SubscriptionBillingPort } from "./subscriptions/billing-port";
+export type { ChangeSubscriptionPlanInput } from "./subscriptions/change-plan";
+export { changeSubscriptionPlan } from "./subscriptions/change-plan";
+export type { ApplySubscriptionCourtesyInput } from "./subscriptions/apply-courtesy";
+export { applySubscriptionCourtesy } from "./subscriptions/apply-courtesy";
+export type { CancelSubscriptionInput } from "./subscriptions/cancel-subscription";
+export { cancelSubscription } from "./subscriptions/cancel-subscription";
+export type { RefundPaymentInput } from "./subscriptions/refund-payment";
+export { refundPayment } from "./subscriptions/refund-payment";

@@ -64,6 +64,16 @@ export type PaymentSummary = {
   invoiceUrl: string | null;
 };
 
+export type UpdateSubscriptionInput = {
+  subscriptionId: string;
+  plan?: "starter" | "studio" | "agency";
+  amountCents?: number;
+  discountPercent?: number;
+};
+export type CancelSubscriptionInput = { subscriptionId: string };
+export type RefundPaymentInput = { paymentId: string; amountCents?: number };
+export type BillingMutationResult = { status: string };
+
 export type BillingProvider = {
   ensureCustomer(email: string, externalRef: string, name?: string): Promise<string>;
   createCheckout(input: CreateCheckoutInput & { customerId: string }): Promise<CreateCheckoutResult>;
@@ -81,6 +91,10 @@ export type BillingProvider = {
     expectedAccessToken: string | null,
   ): WebhookVendorSubscriptionEvent | { error: string } | null;
   listPayments(customerId: string): Promise<PaymentSummary[]>;
+  /** Troca de plano e cortesia/desconto passam pelo mesmo método — os dois mexem nos termos da mesma assinatura no Asaas (PUT /subscriptions/{id}). */
+  updateSubscription(input: UpdateSubscriptionInput): Promise<BillingMutationResult>;
+  cancelSubscription(input: CancelSubscriptionInput): Promise<BillingMutationResult>;
+  refundPayment(input: RefundPaymentInput): Promise<BillingMutationResult>;
 };
 
 export const CELEBRATION_PRICE_CENTS = 19900;
