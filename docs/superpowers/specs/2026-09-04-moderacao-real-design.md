@@ -1,7 +1,7 @@
 # Moderação real — um classificador que olha o conteúdo, não o formato
 
 **Data:** 2026-09-04
-**Status:** design proposto, aguardando revisão do dono
+**Status:** revisão 2 — provedor decidido pelo dono (OpenAI Moderation), moderação movida para o pipeline de mídia
 **Faixa de migration reservada:** 0062–0064
 
 ## 1. O problema
@@ -51,21 +51,31 @@ Não são o objetivo deste projeto, mas afetam diretamente se a moderação func
 
 **4.2 A deduplicação de execução é em memória de processo.** `const inFlight = new Set<string>()` em `classify.ts:21` só protege dentro de uma instância. Em serverless com múltiplas instâncias, N instâncias classificam o mesmo lote em paralelo. O `WHERE classifier_verdict IS NULL` em `classificador-db.ts:53` impede sobrescrita — então não corrompe — mas gasta N vezes o custo do provedor. Com provedor pago, isso é dinheiro real.
 
-## 5. A decisão central: qual provedor
+## 5. O provedor — decidido
 
-Três caminhos, com o trade-off que importa sendo **onde a mídia do convidado passa**.
+**Decisão do dono: OpenAI Moderation para o MVP, atrás da porta `ProvedorDeClassificadorDeImagem` que já existe.**
 
-**A. API de visão de terceiro** (Rekognition Moderation, Google Vision SafeSearch, Azure Content Safety). Acurácia madura, sem modelo para manter, custo por imagem. Preço: a mídia do convidado entra no pipeline de um fornecedor externo, com termos dele. O ADR 0007 fecha assim a discussão sobre geração — *"sem isso, a foto nunca sai do R2"*. Moderação é explicitamente sancionada pela arquitetura §9, mas a exposição continua real e precisa de contrato de tratamento de dados e menção na política de privacidade.
+O que essa escolha compra: um classificador que de fato avalia conteúdo (sexual, violência, automutilação) sem custo de API no início, sem modelo para manter e sem infraestrutura de inferência própria — que é o que travaria a entrega, já que o produto sequer publicou em produção ainda.
 
-**B. Modelo local no thumb.** Roda no próprio worker/job, sem terceiro, custo marginal zero por imagem, mídia nunca sai da nossa infra. Acurácia menor que a das APIs maduras, e alguém tem que escolher e versionar o modelo.
+O que ela custa, e o que precisa existir antes do primeiro evento real:
 
-**C. Dois níveis: local primeiro, terceiro só na faixa incerta.** O modelo local resolve os casos claros nas duas pontas; só o meio ambíguo — que é minoria — vai para a API. Corta custo e exposição de uma vez.
+**Verificar antes de implementar, não assumir.** Preço, limite de taxa, suporte a imagem e política de retenção/treino da API de moderação mudam. A implementação começa confirmando os termos vigentes na documentação oficial. Este documento não afirma que é gratuita nem que o conteúdo não é retido — afirma que isso é a primeira coisa a checar.
 
-**Recomendação: começar por B, com a porta pronta para C.**
+**Três pendências de conformidade, não de código:**
 
-O motivo é a assimetria do erro, não a economia. O produto já tem uma rede: falso positivo é recuperável (a foto vai para a fila e o anfitrião libera em um toque); falso negativo não é (já apareceu na parede). Um modelo local com limiar deslocado para o lado seguro captura a cauda óbvia, que é onde mora o risco real, sem colocar a mídia de nenhum convidado dentro de um terceiro na primeira versão. E como o thumb já é derivado e pequeno, o dia em que C fizer sentido, o que sai daqui é um thumb de faixa incerta — não o acervo.
+| Pendência | Por quê |
+|---|---|
+| DPA (contrato de tratamento de dados) com o provedor | Mídia de convidado passa a ser tratada por terceiro |
+| Linha explícita na política de privacidade | O convidado consente com o uso da foto no evento; envio para moderação externa é tratamento que precisa estar declarado |
+| Base legal para transferência internacional (LGPD Art. 33) | O provedor processa fora do Brasil |
 
-**Isto é decisão do dono, não minha.** Se a escolha for A desde já, o desenho abaixo não muda: só troca a implementação atrás da mesma porta, e ganha uma seção de contrato e política de privacidade.
+Isso não é zelo excessivo. O `CLAUDE.md` cita o STJ (REsp 1.628.700/MG): dano à imagem de menor publicada sem autorização do representante legal é `in re ipsa`, **sem exigir finalidade comercial** — e este produto fotografa festas onde há criança. "Era só para moderar" não é defesa se o tratamento não estava declarado.
+
+**O que reduz a exposição, e já é o comportamento do código:** o que sai é o **thumb**, derivado e pequeno (`chaveThumbDeFull`), nunca o full. Não é o acervo que atravessa a fronteira; é uma miniatura, uma vez por mídia, para decidir um booleano.
+
+**A porta é o que impede casamento com o fornecedor.** `ProvedorDeClassificadorDeImagem` já existe e `provedorDeImagemDoAmbiente` já seleciona por variável de ambiente. OpenAI entra como mais um nome ao lado de `heuristico`, `silencio` e `stub`. Trocar por Google SafeSearch, por um modelo self-hosted, ou por uma composição dos dois, é mudar uma string de ambiente e escrever um arquivo — nunca tocar o motor de decisão. Moderação não vira dependência estrutural do domínio.
+
+**Caminho de saída já mapeado**, para quando o volume ou a conformidade pedirem: modelo local (por exemplo um NSFW de licença permissiva) resolvendo as duas pontas óbvias, e o provedor externo consultado só na faixa incerta. Não é trabalho desta fase; é a razão de a porta existir.
 
 ## 6. Calibragem — a parte que não pode ser no olho
 
@@ -107,9 +117,63 @@ O que muda: um provedor real tem latência e modo de falha maiores que uma checa
 
 ## 9. Correções que entram junto
 
-**9.1 Gatilho próprio.** A classificação deixa de depender do poll do telão. Passa a ter disparo próprio, no confirm do upload e/ou num job periódico por evento ativo. O gatilho do telão pode ficar como reforço, não como única porta.
+### 9.1 Moderação pertence ao pipeline da mídia, não ao telão
 
-**9.2 Dedup entre instâncias.** O `Set` em memória vira `pg_advisory_xact_lock` por evento — travamento transacional, nunca de sessão, como o resto do projeto já faz. Isso resolve o desperdício de custo com múltiplas instâncias.
+Esta é a correção arquitetural do documento, e ela é conceitual antes de ser técnica.
+
+Hoje:
+
+```
+telão aberto → poll → classificação
+```
+
+Logo, evento sem telão aberto é evento com foto não classificada. A moderação virou efeito colateral de uma superfície de exibição.
+
+Passa a ser:
+
+```
+upload confirmado → pipeline de mídia → moderação → status
+                                                      ├── telão
+                                                      ├── feed
+                                                      ├── galeria
+                                                      └── livro
+```
+
+O disparo passa a ser o **confirm do upload**, com um job periódico por evento ativo como rede para o que escapar. O gatilho do telão permanece apenas como reforço — nunca como única porta. Todo consumidor lê o mesmo status; nenhum consumidor produz o status.
+
+### 9.2 Estado de moderação vira tabela, não memória de processo
+
+O `Set` em memória de `classify.ts:21` não sobrevive a mais de uma instância: N workers classificam o mesmo lote e o custo do provedor é pago N vezes. O `WHERE classifier_verdict IS NULL` impede corrupção, não desperdício.
+
+Substituição — tabela própria com claim explícito:
+
+```sql
+CREATE TABLE photo_moderation (
+  upload_id   uuid PRIMARY KEY REFERENCES uploads(id) ON DELETE CASCADE,
+  event_id    uuid NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+  status      text NOT NULL CHECK (status IN ('pending','claimed','done','failed')),
+  provider    text,
+  attempts    int  NOT NULL DEFAULT 0,
+  claimed_at  timestamptz,
+  completed_at timestamptz,
+  result      jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX photo_moderation_pendentes ON photo_moderation (event_id, status);
+
+ALTER TABLE photo_moderation ENABLE ROW LEVEL SECURITY;
+ALTER TABLE photo_moderation FORCE  ROW LEVEL SECURITY;
+CREATE POLICY isolamento_evento ON photo_moderation
+  USING (event_id = NULLIF(current_setting('app.event_id', true), '')::uuid);
+```
+
+**O `event_id` e a RLS não são opcionais.** A regra do projeto é que toda tabela com dado de evento tem `event_id` NOT NULL e RLS **forçada** — `ENABLE` sozinho não vale para o dono da tabela, e a aplicação conecta como dono. O `NULLIF` é obrigatório porque, após o `SET LOCAL`, o GUC volta a string vazia e `''::uuid` estoura em vez de falhar fechado. Sem isso, a tabela de moderação seria a única porta do sistema sem isolamento entre eventos.
+
+`result` guarda o retorno bruto do provedor — categorias e escores — que é o insumo para recalibrar limiar depois sem reclassificar tudo. **Nunca** guarda a imagem, nem qualquer PII.
+
+O claim é `UPDATE ... WHERE status = 'pending' RETURNING`, num só statement: primeiro escritor ganha, sem corrida. Onde precisar de lock, `pg_advisory_xact_lock` por evento — transacional, nunca de sessão, como o resto do projeto.
+
+`attempts` existe para o que falha: o provedor cai, o registro volta a `pending` com contador, e depois de N tentativas vira `failed` — que o motor de decisão lê como `sem-resposta`, ou seja, galeria abre e telão fecha. O comportamento seguro continua sendo o padrão.
 
 ## 10. Testes
 
