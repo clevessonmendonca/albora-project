@@ -1,9 +1,9 @@
 # Runbook — carga em produção (N3)
 
 > **Status:** operacional — portão bloqueante antes do 1º casamento real
-> **Última revisão:** 2026-08-29
+> **Última revisão:** 2026-09-05
 > **Origem:** [`plano-implementacao-produto.md`](../product/plano-implementacao-produto.md) N3 · [`carga.md`](./carga.md)
-> **Pré-requisito:** deploy N2 concluído ([`deploy-producao.md`](./deploy-producao.md))
+> **Pré-requisito:** deploy N2 concluído em `homol` ([`deploy-producao.md`](./deploy-producao.md) §3) — o portão roda no ladder **antes** da promoção `homol` → `main`, contra o `env.homol` de `apps/web/wrangler.jsonc`
 
 ---
 
@@ -19,10 +19,10 @@ O arnês mede só: `POST /api/sessions` → `presign` → `PUT` R2 → `confirm`
 
 | Item | Detalhe |
 |---|---|
-| Host HTTPS | Deploy estável ou homol — ex. `https://stable.albora.app` |
+| Host HTTPS | `env.homol` já deployado via `.github/workflows/deploy.yml` (job `deploy-homol`) — ex. `https://homol.albora.com.br` (domínio de `.env.homol.example`); rodar em `stable` só se homol ainda não existir |
 | Evento de teste | Slug dedicado (não evento real de cliente) — ex. `carga-gate-2026` |
-| R2 configurado | Presign e PUT reais no bucket prod |
-| Neon prod | `DATABASE_URL` com driver transação (WebSocket) |
+| R2 configurado | Presign e PUT reais no bucket `albora-media-homol` (ou `-prod`, se o portão rodar contra prod) |
+| Neon | `DATABASE_URL` do ambiente alvo (branch homol ou projeto prod), driver transação (WebSocket) |
 | Janela | ~25 min sem deploy concorrente |
 | CI opcional | Workflow **Teste de carga** → perfil `gate` (requer secrets R2) |
 
@@ -33,8 +33,8 @@ O arnês mede só: `POST /api/sessions` → `presign` → `PUT` R2 → `confirm`
 Substitua host e slug. A confirmação **deve ser o hostname exato** (sem `https://`):
 
 ```bash
-ALVO=https://stable.albora.app \
-CARGA_CONFIRMO_ALVO=stable.albora.app \
+ALVO=https://homol.albora.com.br \
+CARGA_CONFIRMO_ALVO=homol.albora.com.br \
 CARGA_EVENTO=carga-gate-2026 \
 CARGA_TOTAL=150 \
 CARGA_DURACAO_MIN=20 \
@@ -42,6 +42,11 @@ CARGA_CONVIDADOS=50 \
 CARGA_SAIDA=docs/runbooks/carga-registros/gate-$(date +%Y%m%d).json \
 pnpm carga
 ```
+
+(Trocar `homol.albora.com.br` por `stable.albora.app` ou pelo domínio de prod
+decidido conforme o alvo real do portão — o essencial é `ALVO` e
+`CARGA_CONFIRMO_ALVO` apontarem para o mesmo host, sempre HTTPS real, nunca
+localhost.)
 
 **Limpeza depois** (exporte `DATABASE_URL` e `R2_*` no shell):
 
@@ -110,3 +115,4 @@ Perfil `gate` no CI usa Postgres service + dev local — **não substitui** carg
 | Data | Mudança |
 |---|---|
 | 2026-08-29 | Runbook N3 criado pós-discovery |
+| 2026-09-05 | Alvo padrão trocado para `env.homol` (`apps/web/wrangler.jsonc`), deployado via `.github/workflows/deploy.yml`; pré-requisito aponta para o ladder real (portão roda antes de `homol` → `main`) |
