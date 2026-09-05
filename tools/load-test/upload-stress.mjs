@@ -3,6 +3,8 @@ import { check, sleep } from "k6";
 import { Rate, Trend } from "k6/metrics";
 import { uuidv4 } from "https://jslib.k6.io/k6-utils/1.4.0/index.js";
 
+/* global __ENV, open */ // runtime globals do k6, não do Node
+
 const uploadLatency = new Trend("upload_latency", true);
 const presignLatency = new Trend("presign_latency", true);
 const r2UploadLatency = new Trend("r2_upload_latency", true);
@@ -70,7 +72,7 @@ export default function () {
   let presignData;
   try {
     presignData = presignRes.json();
-  } catch (e) {
+  } catch {
     uploadFailRate.add(1);
     return;
   }
