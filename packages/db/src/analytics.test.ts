@@ -25,10 +25,10 @@ describe("REF_TOKEN_RE / isRefToken", () => {
 describe("recordProductEvent", () => {
   it("grava origin_ref quando informado", async () => {
     const { pool, query } = poolFalso();
-    await recordProductEvent(pool, "landing_cta", { anonId: "anon", packHint: "casamento", originRef: "x".repeat(24) });
+    await recordProductEvent(pool, "landing_cta", { anonId: "anon", packHint: "pack-teste", originRef: "x".repeat(24) });
     const [sql, params] = query.mock.calls[0]!;
     expect(sql).toMatch(/origin_ref/);
-    expect(params).toEqual(["landing_cta", "anon", "casamento", "x".repeat(24)]);
+    expect(params).toEqual(["landing_cta", "anon", "pack-teste", "x".repeat(24)]);
   });
   it("origin_ref é null por padrão", async () => {
     const { pool, query } = poolFalso();

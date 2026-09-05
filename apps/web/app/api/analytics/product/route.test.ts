@@ -18,7 +18,7 @@ describe("POST /api/analytics/product — originRef", () => {
 
   it("grava originRef válido", async () => {
     const ref = "r".repeat(24);
-    const res = await POST(req({ name: "landing_cta", anonId: "a1", packHint: "casamento", originRef: ref }));
+    const res = await POST(req({ name: "landing_cta", anonId: "a1", packHint: "pack-teste", originRef: ref }));
     expect(res.status).toBe(200);
     const params = poolQuery.mock.calls[0]![1] as unknown[];
     expect(params[3]).toBe(ref);
