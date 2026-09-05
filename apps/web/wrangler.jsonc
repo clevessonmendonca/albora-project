@@ -60,6 +60,13 @@
       "observability": {
         "enabled": true
       },
+      // Sweep de retenção LGPD (POST /api/ops/retencao, CRON_SECRET) — d330 export para a
+      // nuvem do casal, d365 delete definitivo (CLAUDE.md: "Retenção é cumprida por job, não
+      // por promessa"). Cadência diária conservadora; ajustar só com decisão explícita do
+      // dono — ver docs/runbooks/deploy-producao.md.
+      "triggers": {
+        "crons": ["0 4 * * *"]
+      },
       // Não-secretas — o resto (DATABASE_URL, R2_*, SESSION_SECRET, RESEND_API_KEY, ASAAS_*, ...)
       // é `wrangler secret put --env homol`, nunca aqui. Ver .env.homol.example.
       "vars": {
@@ -95,6 +102,13 @@
       },
       "observability": {
         "enabled": true
+      },
+      // Sweep de retenção LGPD (POST /api/ops/retencao, CRON_SECRET) — d330 export para a
+      // nuvem do casal, d365 delete definitivo (CLAUDE.md: "Retenção é cumprida por job, não
+      // por promessa"). Cadência diária conservadora; ajustar só com decisão explícita do
+      // dono — ver docs/runbooks/deploy-producao.md.
+      "triggers": {
+        "crons": ["0 4 * * *"]
       },
       // Não-secretas — o resto (DATABASE_URL, R2_*, SESSION_SECRET, RESEND_API_KEY, ASAAS_*, ...)
       // é `wrangler secret put --env prod`, nunca aqui. Ver .env.prod.example.

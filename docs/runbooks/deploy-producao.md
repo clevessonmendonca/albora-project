@@ -27,6 +27,7 @@ Convidado e anfitrião em **HTTPS de produção**, com e-mail de magic link func
 | ☐ | Branch `stable` deployável, promovida para `homol` a pedido do mantenedor | Pipeline verde em `homol` |
 | ☐ | Evento demo ou staging com slug conhecido | QR abre `/e/…/photo` |
 | ☐ | **Teste de carga** 150/20 contra este host | [`carga-producao.md`](./carga-producao.md) |
+| ☐ | Cron Trigger de retenção disparou (§2.2) | `wrangler tail --env prod \| grep retencao.cron_ok` no dia seguinte ao deploy |
 
 ### Secrets GitHub (Actions)
 
@@ -71,6 +72,26 @@ Smoke pós-deploy (rodado automaticamente pelo workflow se `vars.HOMOL_URL`/`var
 node tools/deploy/smoke.mjs https://homol.albora.com.br
 bash scripts/ci/smoke-test.sh https://homol.albora.com.br   # /api/health/{live,ready}
 ```
+
+### 2.2 Cron Trigger — retenção LGPD (d330 export, d365 delete)
+
+`apps/web/wrangler.jsonc` (`env.homol`/`env.prod`) declara `triggers.crons` disparando o
+`scheduled` handler do Worker (`apps/web/cloudflare/worker.ts`), que chama
+`POST /api/ops/retencao` via self-fetch (`WORKER_SELF_REFERENCE`), autenticado por
+`Bearer $CRON_SECRET`. Cadência: `0 4 * * *` (diária, 04:00 UTC) — escolha conservadora,
+não uma decisão de produto; ajustar exige decisão explícita do dono.
+
+Verificar que disparou (não há endpoint de status — só log):
+
+```bash
+wrangler tail --env prod   # ou --env homol
+# procurar "retencao.cron_ok" (sucesso) ou "retencao.cron_falhou"/"retencao.cron_erro"
+```
+
+Sem `CRON_SECRET` configurado (`wrangler secret put CRON_SECRET --env prod`), o handler
+loga `retencao.cron_sem_segredo` e não chama o endpoint — silencioso por design (mesmo
+padrão do `JOB_RUNNER_SECRET` da fila de export), então **confirmar o secret antes do 1º
+evento**, não confiar só no cron existir.
 
 Migrations em prod (forward-only — ver `docs/db/MIGRATION-SAFETY.md` antes de rodar):
 
