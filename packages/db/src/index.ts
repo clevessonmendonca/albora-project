@@ -349,7 +349,10 @@ export { emitirStepUp as issueStepUp } from "./export-db";
 /** English alias — preferred for new code. @see consumirStepUp */
 export { consumirStepUp as consumeStepUp } from "./export-db";
 
-export type { SupportMessageRow, SupportPriority, SupportStatus, SupportTicket, SupportTicketAdmin } from "./support";
+export type {
+  SupportMessageRow, SupportPriority, SupportStatus, SupportTicket, SupportTicketAdmin,
+  SupportTicketQueueFilter,
+} from "./support";
 export {
   assignSupportTicketOnClient,
   createSupportTicket,
@@ -359,6 +362,7 @@ export {
   listSupportMessagesAdmin,
   listSupportTicketsForAccount,
   listSupportTicketsForEvent,
+  listSupportTicketsQueueAdmin,
   respondSupportTicketOnClient,
   slaDueAt,
   updateSupportTicketPriorityOnClient,
@@ -368,7 +372,10 @@ export {
 export type { EventMember, EventMemberRole, HostEventRole } from "./memberships";
 export { addEventMember, ensureCoupleMember, listEventMembers, roleForAccountOnEvent } from "./memberships";
 
-export type { BillingPayment, BillingPaymentStatus, VendorSubscription, VendorSubscriptionStatus } from "./billing";
+export type {
+  BillingPayment, BillingPaymentStatus, BillingPaymentSummaryAdmin,
+  VendorSubscription, VendorSubscriptionStatus,
+} from "./billing";
 export {
   aplicarPlanoPago,
   asaasCustomerIdForAccount,
@@ -377,6 +384,7 @@ export {
   createBillingPayment,
   createVendorSubscription,
   ehAssinaturaDuplicada,
+  listBillingPaymentsForAccountAdmin,
   markPaymentPaidByAsaasId,
   markVendorSubscriptionByAsaasId,
   paymentByAsaasId,
@@ -487,7 +495,7 @@ export { aceitesDeEntradaPorVersao as entryConsentAcceptancesByVersion } from ".
 /** English alias — preferred for new code. @see aceitesExternosPorVersao */
 export { aceitesExternosPorVersao as externalConsentAcceptancesByVersion } from "./consent-db";
 
-export type { ResolvedStaffSession, StaffUserRow, StaffUserStatus } from "./staff";
+export type { ActiveStaffOption, ResolvedStaffSession, StaffUserRow, StaffUserStatus } from "./staff";
 export {
   assignStaffRole,
   consumeStaffMagicLink,
@@ -497,6 +505,7 @@ export {
   findSessionEvenIfRevoked,
   findStaffByEmail,
   findStaffById,
+  listActiveStaffUsers,
   listStaffRoles,
   markReauthenticated,
   removeStaffRole,
@@ -524,7 +533,7 @@ export type {
   AccountAdminRow, AccountAdminStatus, AccountAdminType, AccountDetailAdmin,
   AccountEventSummary, ListAccountsAdminFilter, RawAccountContact,
 } from "./accounts-admin";
-export { getAccountDetailAdmin, getRawAccountContact, listAccountsAdmin } from "./accounts-admin";
+export { getAccountDetailAdmin, getRawAccountContact, listAccountsAdmin, maskEmail } from "./accounts-admin";
 
 export type { EventAdminRow, EventAdminStatus, EventDetailAdmin, ListEventsAdminFilter } from "./events-admin";
 export { getEventDetailAdmin, isH1Calculavel, listEventsAdmin } from "./events-admin";

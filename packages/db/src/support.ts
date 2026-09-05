@@ -303,3 +303,54 @@ export async function updateSupportTicketPriorityOnClient(
     slaDueAt(entrada.priority),
   ]);
 }
+
+export type SupportTicketQueueFilter = {
+  statuses?: SupportStatus[];
+  assigneeStaffId?: string;
+  limit: number;
+};
+
+/**
+ * Cross-conta por desenho — chamada sob `withPlatformAggregation`.
+ * Ordenação FIXA por `sla_due_at ASC NULLS LAST` — é o que "queima", não a
+ * criação nem a prioridade (spec §8.1.6). Prioridade e criação entram só
+ * como desempate visual na UI, nunca como ORDER BY primário.
+ */
+export async function listSupportTicketsQueueAdmin(
+  pool: Pool,
+  filter: SupportTicketQueueFilter,
+): Promise<{ rows: SupportTicketAdmin[] }> {
+  const clauses: string[] = [];
+  const params: unknown[] = [];
+  if (filter.statuses?.length) {
+    params.push(filter.statuses);
+    clauses.push(`status = ANY($${params.length})`);
+  }
+  if (filter.assigneeStaffId) {
+    params.push(filter.assigneeStaffId);
+    clauses.push(`assignee_staff_id = $${params.length}`);
+  }
+  params.push(filter.limit);
+  const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+
+  const { rows } = await pool.query<{
+    id: string; account_id: string; event_id: string | null; subject: string;
+    status: SupportStatus; priority: SupportPriority; sla_due_at: Date | null;
+    created_at: Date; assignee_staff_id: string | null;
+  }>(
+    `SELECT id, account_id, event_id, subject, status, priority, sla_due_at, created_at, assignee_staff_id
+       FROM support_tickets
+       ${where}
+      ORDER BY sla_due_at ASC NULLS LAST, created_at ASC
+      LIMIT $${params.length}`,
+    params,
+  );
+
+  return {
+    rows: rows.map((t) => ({
+      id: t.id, accountId: t.account_id, eventId: t.event_id, subject: t.subject,
+      status: t.status, priority: t.priority, slaDueAt: t.sla_due_at, createdAt: t.created_at,
+      assigneeStaffId: t.assignee_staff_id,
+    })),
+  };
+}

@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   ativarPlanoDoFornecedor,
   createVendorSubscription,
+  listBillingPaymentsForAccountAdmin,
   markVendorSubscriptionByAsaasId,
 } from "./billing";
 import { prepararBanco, semear } from "./testes/banco";
@@ -89,5 +90,29 @@ describe("ativarPlanoDoFornecedor — única escrita de vendors.status/plan pago
     expect(rows[0]).toEqual({ status: "active", plan: "studio" });
     expect(registros).toHaveLength(1);
     expect(registros[0]?.motivo).toBe(`billing_webhook:vendor:${vendorId}`);
+  });
+});
+
+describe("listBillingPaymentsForAccountAdmin", () => {
+  it("lista pagamentos da conta, mais recente primeiro", async () => {
+    await prepararBanco();
+    const { rows: acc } = await admin.query<{ id: string }>(
+      "INSERT INTO accounts (email) VALUES ('pagador@exemplo.test') RETURNING id",
+    );
+    await admin.query("INSERT INTO packs (id) VALUES ('pack-pgto')");
+    const { rows: evento } = await admin.query<{ id: string }>(
+      `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status)
+       VALUES ($1, 'pack-pgto', 'evento-pgto', now(), now() + interval '6 hours', 'active') RETURNING id`,
+      [acc[0]!.id],
+    );
+    await admin.query(
+      `INSERT INTO billing_payments (account_id, event_id, asaas_payment_id, status, plan, amount_cents)
+       VALUES ($1, $2, 'pay-1', 'confirmed', 'celebration', 19900)`,
+      [acc[0]!.id, evento[0]!.id],
+    );
+
+    const pagamentos = await listBillingPaymentsForAccountAdmin(agregador, acc[0]!.id);
+    expect(pagamentos).toHaveLength(1);
+    expect(pagamentos[0]?.amountCents).toBe(19900);
   });
 });

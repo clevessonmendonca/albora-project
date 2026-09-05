@@ -10,6 +10,7 @@ import {
   createStaffUser,
   findSessionEvenIfRevoked,
   findStaffByEmail,
+  listActiveStaffUsers,
   markReauthenticated,
   resolveStaffSession,
   revokeSessionChain,
@@ -171,5 +172,24 @@ describe("findStaffByEmail", () => {
     await createStaffUser(admin, { email: "Maiuscula@Equipe.test", name: "Maiuscula" });
     const achado = await findStaffByEmail(admin, "MAIUSCULA@equipe.TEST");
     expect(achado?.email).toBe("maiuscula@equipe.test");
+  });
+});
+
+describe("listActiveStaffUsers", () => {
+  it("lista só staff active, ordenado por nome, para o dropdown de atribuição", async () => {
+    const zed = await createStaffUser(admin, { email: "zed-ativo@equipe.test", name: "Zed Ativo" });
+    const ana = await createStaffUser(admin, { email: "ana-ativo@equipe.test", name: "Ana Ativa" });
+    const suspenso = await createStaffUser(admin, { email: "suspenso-lista@equipe.test", name: "Suspenso Lista" });
+    await admin.query("UPDATE staff_users SET status = 'suspended' WHERE id = $1", [suspenso.id]);
+
+    const opcoes = await listActiveStaffUsers(admin);
+    const ids = opcoes.map((o) => o.id);
+    expect(ids).toContain(zed.id);
+    expect(ids).toContain(ana.id);
+    expect(ids).not.toContain(suspenso.id);
+
+    const posAna = opcoes.findIndex((o) => o.id === ana.id);
+    const posZed = opcoes.findIndex((o) => o.id === zed.id);
+    expect(posAna).toBeLessThan(posZed);
   });
 });

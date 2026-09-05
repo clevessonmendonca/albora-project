@@ -184,3 +184,13 @@ export async function findSessionEvenIfRevoked(
 export async function markReauthenticated(db: Queryable, tokenHash: string): Promise<void> {
   await db.query("UPDATE staff_sessions SET reauthenticated_at = now() WHERE token_hash = $1", [tokenHash]);
 }
+
+export type ActiveStaffOption = { id: string; name: string; email: string };
+
+/** Para o dropdown "Atribuir a" — só staff `active` aparece como opção. */
+export async function listActiveStaffUsers(db: Queryable): Promise<ActiveStaffOption[]> {
+  const { rows } = await db.query<{ id: string; name: string; email: string }>(
+    "SELECT id, name, email FROM staff_users WHERE status = 'active' ORDER BY name",
+  );
+  return rows;
+}

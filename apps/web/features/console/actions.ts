@@ -2,17 +2,22 @@
 
 import { createHmac } from "node:crypto";
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
+  assignTicket,
   CommandDeniedError,
   completeStaffLogin,
   completeStaffReauth,
   ReauthRequiredError,
   requestStaffLogin,
   requestStaffReauth,
+  respondTicket,
   revealAccountPii,
+  updateTicketPriority,
+  updateTicketStatus,
 } from "@albora/application";
-import { findStaffById } from "@albora/db";
+import { findStaffById, type SupportPriority, type SupportStatus } from "@albora/db";
 import { getPool } from "@/lib/db";
 import { sendHostEmail } from "@/lib/email";
 import { resolveActor } from "@/lib/console/actor";
@@ -156,5 +161,75 @@ export async function revealAccountPiiAction(
     if (erro instanceof CommandDeniedError) return { ok: false, error: erro.message };
     if (erro instanceof ReauthRequiredError) return { ok: false, error: "reautenticação exigida" };
     throw erro;
+  }
+}
+
+export type SimpleActionResult = { ok: true } | { ok: false; error: string };
+
+/** Traduz os erros do envelope de comando pra uma forma que o client component mostra sem re-lançar — mesma disciplina de `revealAccountPiiAction`. */
+function traduzErroDeComando(erro: unknown): SimpleActionResult {
+  if (erro instanceof CommandDeniedError) return { ok: false, error: erro.message };
+  if (erro instanceof ReauthRequiredError) return { ok: false, error: "reautenticação exigida" };
+  throw erro;
+}
+
+/**
+ * Ações da mesa de suporte (T5): cada uma chama um dos quatro comandos da
+ * T4 por `executeCommand`, que já grava sua própria auditoria com um motivo
+ * derivado da própria ação (ver comentário de `respondTicket`) — não existe
+ * um "motivo" livre digitado pelo operador para atribuir, mudar status ou
+ * prioridade; o registro substantivo é a própria mudança.
+ *
+ * `revalidatePath` depois de cada sucesso: os `<Select>` de status/
+ * prioridade/responsável são controlados pelo `ticket` que a página server
+ * carregou, não por estado local — sem isso, o React devolveria o select à
+ * opção antiga no re-render seguinte à troca (o valor "voltaria sozinho"),
+ * porque a prop `ticket` nunca teria mudado.
+ */
+export async function respondTicketAction(ticketId: string, body: string): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await respondTicket({ pool: getPool() }, { actor, ticketId, body });
+    revalidatePath("/console/support");
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+export async function assignTicketAction(ticketId: string, assigneeStaffId: string | null): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await assignTicket({ pool: getPool() }, { actor, ticketId, assigneeStaffId });
+    revalidatePath("/console/support");
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+export async function updateTicketStatusAction(ticketId: string, status: SupportStatus): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await updateTicketStatus({ pool: getPool() }, { actor, ticketId, status });
+    revalidatePath("/console/support");
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+export async function updateTicketPriorityAction(ticketId: string, priority: SupportPriority): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await updateTicketPriority({ pool: getPool() }, { actor, ticketId, priority });
+    revalidatePath("/console/support");
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
   }
 }

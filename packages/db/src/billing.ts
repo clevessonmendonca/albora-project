@@ -230,6 +230,32 @@ export async function ativarPlanoDoFornecedor(
   });
 }
 
+export type BillingPaymentSummaryAdmin = {
+  id: string;
+  status: BillingPaymentStatus;
+  plan: "celebration" | "vendor";
+  amountCents: number;
+  createdAt: Date;
+};
+
+/** Cross-conta por desenho — chamada sob `withPlatformAggregation` (mesa de suporte, T5; reembolso, T6). */
+export async function listBillingPaymentsForAccountAdmin(
+  pool: Pool,
+  accountId: string,
+  limit = 20,
+): Promise<BillingPaymentSummaryAdmin[]> {
+  const { rows } = await pool.query<{
+    id: string; status: BillingPaymentStatus; plan: "celebration" | "vendor";
+    amount_cents: number; created_at: Date;
+  }>(
+    `SELECT id, status, plan, amount_cents, created_at
+       FROM billing_payments WHERE account_id = $1
+      ORDER BY created_at DESC LIMIT $2`,
+    [accountId, limit],
+  );
+  return rows.map((r) => ({ id: r.id, status: r.status, plan: r.plan, amountCents: r.amount_cents, createdAt: r.created_at }));
+}
+
 export async function paymentByAsaasId(
   pool: Pool,
   asaasPaymentId: string,

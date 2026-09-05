@@ -6,6 +6,7 @@ import {
   createSupportTicket,
   getSupportTicketAdmin,
   listSupportMessagesAdmin,
+  listSupportTicketsQueueAdmin,
   respondSupportTicketOnClient,
   updateSupportTicketPriorityOnClient,
   updateSupportTicketStatusOnClient,
@@ -88,5 +89,32 @@ describe("mutações de staff em support_tickets", () => {
     const daEquipe = mensagens.find((m) => m.authorKind === "operator");
     expect(daEquipe?.authorStaffId).toBe(staffId);
     expect(daEquipe?.body).toBe("já estou vendo");
+  });
+});
+
+describe("listSupportTicketsQueueAdmin", () => {
+  it("ordena por sla_due_at mais próximo primeiro, ignorando criação/prioridade", async () => {
+    await prepararBanco();
+    const { a } = await semear(admin);
+    const longe = await createSupportTicket(admin, a.contaId, { subject: "p2 antigo", body: "x", priority: "p2" });
+    const perto = await createSupportTicket(admin, a.contaId, { subject: "p0 recente", body: "y", priority: "p0" });
+
+    const fila = await listSupportTicketsQueueAdmin(agregador, { statuses: ["open", "pending"], limit: 50 });
+    const posicaoPerto = fila.rows.findIndex((t) => t.id === perto.id);
+    const posicaoLonge = fila.rows.findIndex((t) => t.id === longe.id);
+    expect(posicaoPerto).toBeLessThan(posicaoLonge);
+  });
+
+  it("filtro por assigneeStaffId reflete no resultado", async () => {
+    await prepararBanco();
+    const { a } = await semear(admin);
+    const ticket = await createSupportTicket(admin, a.contaId, { subject: "dúvida", body: "x" });
+    const { rows: staff } = await admin.query<{ id: string }>(
+      "INSERT INTO staff_users (email, name) VALUES ('resp@albora.com', 'Resp') RETURNING id",
+    );
+    await admin.query("UPDATE support_tickets SET assignee_staff_id = $2 WHERE id = $1", [ticket.id, staff[0]!.id]);
+
+    const comFiltro = await listSupportTicketsQueueAdmin(agregador, { assigneeStaffId: staff[0]!.id, limit: 50 });
+    expect(comFiltro.rows.map((t) => t.id)).toEqual([ticket.id]);
   });
 });

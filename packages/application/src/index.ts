@@ -11,6 +11,9 @@ export { resetRateLimit } from "./staff/rate-limit";
 export type { RequestStaffLoginInput, RequestStaffLoginResult } from "./staff/request-login";
 export { requestStaffLogin } from "./staff/request-login";
 
+export type { ActiveStaffOption, ListActiveStaffInput } from "./staff/list-active-staff";
+export { listActiveStaff } from "./staff/list-active-staff";
+
 export type { CompleteStaffReauthInput, CompleteStaffReauthResult } from "./staff/complete-reauth";
 export { completeStaffReauth } from "./staff/complete-reauth";
 export type { RequestStaffReauthInput, RequestStaffReauthResult } from "./staff/request-reauth";
@@ -57,3 +60,8 @@ export type { UpdateTicketStatusInput } from "./support/update-ticket-status";
 export { updateTicketStatus } from "./support/update-ticket-status";
 export type { UpdateTicketPriorityInput } from "./support/update-ticket-priority";
 export { updateTicketPriority } from "./support/update-ticket-priority";
+
+export type { ListTicketQueueInput } from "./support/list-ticket-queue";
+export { listTicketQueue } from "./support/list-ticket-queue";
+export type { GetTicketDetailInput, TicketCustomerContext, TicketDetailResult } from "./support/get-ticket-detail";
+export { getTicketDetail } from "./support/get-ticket-detail";
