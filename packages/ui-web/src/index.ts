@@ -86,3 +86,8 @@ export {
   type DataTableColumn,
   type DataTableProps,
 } from "./data-table";
+export { BarChart, Donut, Sparkline, type ChartSeriesPoint } from "./chart";
+export { MetricCard, type MetricCardProps } from "./metric-card";
+export { PageHeader } from "./page-header";
+export { StatusBadge, type StatusBadgeTone } from "./status-badge";
+export { ConsoleEmptyState } from "./empty-state";
