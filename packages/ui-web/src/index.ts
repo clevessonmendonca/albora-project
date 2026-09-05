@@ -80,3 +80,9 @@ export { AnimatedCounter } from "./animated-counter";
 export { LiveAnnouncer, announce } from "./live-announcer";
 export { Skeleton } from "./skeleton";
 export { SkipLink } from "./skip-link";
+export {
+  DataTable,
+  type DataTableActiveFilter,
+  type DataTableColumn,
+  type DataTableProps,
+} from "./data-table";
