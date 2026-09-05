@@ -1,7 +1,7 @@
 # Redesign Premium — UI/UX Albora
 
 **Data:** 2026-09-04
-**Status:** Spec aprovado para planejamento
+**Status:** ✅ Executado — Ondas 0–3 concluídas (2026-09-04), branch `feat/redesign-premium-ui`
 **Escopo:** Todas as superfícies de produção (convidado PWA, admin, telão, landing), tela por tela.
 
 ---
@@ -142,7 +142,7 @@ A arquitetura dita a ordem. Fundação primeiro (propaga a tudo), depois superf�
 
 **Onda 2 — Admin. ✅ CONCLUÍDA (2026-09-04).** Tela por tela: shell, sign-in, lista, wizard, home do evento, identidade (com preview ao vivo), insights, guests, moderação, álbum, missões, guestbook, consentimento/pieces-QR/billing/música, vendor. 14 telas redesenhadas, todas revisadas e aprovadas; whole-branch review PASS. Fix wave: Switch com hit-area ≥44px (levanta admin+convidado) + remoção de strings de domínio hardcodadas + hardening do guard `dominio` (agora varre `apps/web/features`, fechando um blind spot que deixava "casamento" passar). Plano: `docs/superpowers/plans/2026-09-04-redesign-onda-2-admin.md`. Verificação: 197 testes + 8 guards verdes; pixel-QA de rota admin (cookie HttpOnly) fica como QA manual.
 
-**Onda 3 — Telão + Landing.** Modelos do telão + polimento de movimento; seções da landing + scroll storytelling.
+**Onda 3 — Telão + Landing. ✅ CONCLUÍDA (2026-09-04).** Telão: redesign cinematográfico dos 11 modelos no-crop (cross-fades na curva base, parallax ambiente, código de pareamento gigante em `.tipo-display`, counter refinado, input de pareamento acessível) — zero lógica tocada (rotação/pairing/pânico/counter-math/core/tokens/api intocados), sem corte de rosto. 5 arquivos (`86e7448`). Landing: scroll storytelling Apple-style — `.tipo-display`/`.tipo-label` propagando tipo a todas as seções via `pieces`, `<Reveal>` escalonado, Ken Burns discreto no herói, mola física em pílula/cartão; 3 fixes reais (scrim de vídeo por token no photo-corridor, `color-mix` válido no chores-eliminated, IncludedSection órfã religada). 10 arquivos (`074ef37`). Ambas revisadas; whole-branch review Onda 3 (opus) PASS. Verificação: 32 testes telão + 8 landing + 8 guards verdes; pixel-QA de telão/landing renderizados fica como QA manual. **Com isto o redesign premium (Ondas 0–3) está completo no branch `feat/redesign-premium-ui`.**
 
 ### Método por tela (todas as ondas)
 
