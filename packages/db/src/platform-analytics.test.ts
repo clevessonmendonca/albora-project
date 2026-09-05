@@ -24,6 +24,7 @@ afterAll(async () => {
 
 describe("platformParticipationInWindow", () => {
   it("soma expected_guests e sessões-com-upload só dos eventos na janela", async () => {
+    await prepararBanco();
     const { a, b } = await semear(admin);
     await admin.query("UPDATE events SET expected_guests = 100, starts_at = now() - interval '1 day' WHERE id = $1", [a.eventoId]);
     await admin.query("UPDATE events SET expected_guests = 50, starts_at = now() - interval '40 days' WHERE id = $1", [b.eventoId]);
@@ -58,6 +59,7 @@ describe("platformParticipationDailySeries", () => {
 
 describe("platformFunnelInWindow", () => {
   it("agrega degraus cross-evento a partir de funnel_events", async () => {
+    await prepararBanco();
     const { a } = await semear(admin);
     await admin.query(
       `INSERT INTO funnel_events (event_id, session_id, name) VALUES ($1, $2, 'qr_scan'), ($1, $2, 'page_open'), ($1, $2, 'consent')`,
@@ -74,6 +76,7 @@ describe("platformFunnelInWindow", () => {
 
 describe("platformVolumeInWindow", () => {
   it("conta eventos e fotos na janela", async () => {
+    await prepararBanco();
     const { a } = await semear(admin);
     const volume = await platformVolumeInWindow(agregador, {
       from: new Date(0),

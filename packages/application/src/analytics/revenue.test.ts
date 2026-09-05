@@ -22,7 +22,7 @@ afterAll(async () => {
 });
 
 function actor(roles: string[] = ["owner"]) {
-  return { staffUserId: "s1", roles: roles as never, sessionId: "sess", requestId: "req", reauthenticatedAt: null };
+  return { staffUserId: "11111111-1111-1111-1111-111111111111", roles: roles as never, sessionId: "sess", requestId: "req", reauthenticatedAt: null };
 }
 
 async function criarFornecedorComAssinatura(status: string, plan: "starter" | "studio" | "agency") {

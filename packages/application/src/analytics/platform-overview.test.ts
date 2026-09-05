@@ -22,7 +22,7 @@ afterAll(async () => {
 });
 
 function actor(roles: string[] = ["owner"]) {
-  return { staffUserId: "s1", roles: roles as never, sessionId: "sess", requestId: "req", reauthenticatedAt: null };
+  return { staffUserId: "11111111-1111-1111-1111-111111111111", roles: roles as never, sessionId: "sess", requestId: "req", reauthenticatedAt: null };
 }
 
 describe("getPlatformOverview", () => {
@@ -48,8 +48,12 @@ describe("getPlatformOverview", () => {
   });
 
   it("evento com expected_guests e upload na janela produz H1 real, não null", async () => {
-    const { a } = await semear(admin);
+    const { a, b } = await semear(admin);
     await admin.query("UPDATE events SET expected_guests = 10, starts_at = now() - interval '1 day' WHERE id = $1", [a.eventoId]);
+    // `semear` cria DOIS eventos. A H1 de plataforma soma expected_guests de
+    // todos os eventos da janela, então sem tirar `b` daqui o denominador seria
+    // 10 + os convidados de `b`, e a asserção mediria outra coisa.
+    await admin.query("UPDATE events SET starts_at = now() - interval '400 days' WHERE id = $1", [b.eventoId]);
 
     const overview = await getPlatformOverview(
       { pool: app, aggregatorPool: agregador },
