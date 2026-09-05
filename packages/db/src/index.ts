@@ -460,3 +460,11 @@ export { signableKeys } from "./media-signable";
 
 export type { MissaoInsight, HoraInsight } from "./insights";
 export { fotosPorMissao, fotosPorHora } from "./insights";
+
+export type { ClaimedItem } from "./moderation-queue";
+export {
+  claimNextForModeration,
+  completeModeration,
+  enqueueModeration,
+  failModeration,
+} from "./moderation-queue";
