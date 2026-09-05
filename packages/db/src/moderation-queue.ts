@@ -111,13 +111,47 @@ export async function failModeration(
  * de fora: `claimNextForModeration` só pega `pending`, reincluir `failed`
  * aqui não geraria nenhum reprocessamento, só ruído na varredura.
  */
+/**
+ * Devolve para `pending` os itens presos em `claimed` além do prazo.
+ *
+ * O claim não tem dono nem heartbeat: se o processo morre entre reivindicar e
+ * concluir — instância serverless reciclando no meio do lote, deploy, OOM — a
+ * linha fica `claimed` para sempre, órfã de qualquer claim futuro. A direção
+ * é segura (sem veredito, o telão fecha), mas é um buraco silencioso: aquele
+ * lote nunca mais é classificado e ninguém fica sabendo.
+ *
+ * `attempts` NÃO é decrementado: a tentativa perdida foi consumida de
+ * verdade, e preservá-la é o que impede um item envenenado de ser
+ * reivindicado em laço infinito — ele esgota o teto e vira `failed`.
+ */
+export async function reclaimStaleModeration(
+  client: PoolClient,
+  eventId: string,
+  staleAfterSeconds: number,
+): Promise<number> {
+  const { rowCount } = await client.query(
+    `UPDATE photo_moderation
+        SET status = 'pending'
+      WHERE event_id = $1
+        AND status = 'claimed'
+        AND claimed_at < now() - make_interval(secs => $2)`,
+    [eventId, staleAfterSeconds],
+  );
+  return rowCount ?? 0;
+}
+
+/** Inclui eventos cujos itens estão presos em `claimed`: sem isso o job periódico nunca visitaria o evento que precisa de `reclaimStaleModeration`. */
 export async function listEventsWithPendingModeration(
   pool: Pool,
   limit = 100,
+  staleAfterSeconds = 600,
 ): Promise<string[]> {
   const { rows } = await pool.query<{ event_id: string }>(
-    `SELECT DISTINCT event_id FROM photo_moderation WHERE status = 'pending' LIMIT $1`,
-    [limit],
+    `SELECT DISTINCT event_id FROM photo_moderation
+      WHERE status = 'pending'
+         OR (status = 'claimed' AND claimed_at < now() - make_interval(secs => $2))
+      LIMIT $1`,
+    [limit, staleAfterSeconds],
   );
   return rows.map((r) => r.event_id);
 }

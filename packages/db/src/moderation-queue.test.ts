@@ -3,6 +3,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { comEvento } from "./event";
 import {
   claimNextForModeration,
+  reclaimStaleModeration,
   completeModeration,
   enqueueModeration,
   failModeration,
@@ -242,6 +243,79 @@ describe("listEventsWithPendingModeration — rede de segurança da Task 6", () 
     const eventos = await listEventsWithPendingModeration(admin, 100);
 
     expect(eventos).not.toContain(dados.b.eventoId);
+  });
+});
+
+describe("reclaimStaleModeration", () => {
+  it("devolve a pending o claim orfao de processo morto, sem zerar attempts", async () => {
+    const uploadId = await criarUpload(dados.a.eventoId, dados.a.sessaoId);
+    await comEvento(app, dados.a.eventoId, (c) =>
+      enqueueModeration(c, { uploadId, eventId: dados.a.eventoId }),
+    );
+    await comEvento(app, dados.a.eventoId, (c) =>
+      claimNextForModeration(c, dados.a.eventoId, 1),
+    );
+    expect(await statusDe(uploadId)).toBe("claimed");
+
+    // Simula o processo que morreu: o claim ficou para tras no tempo.
+    await admin.query(
+      "UPDATE photo_moderation SET claimed_at = now() - interval '1 hour' WHERE upload_id = $1",
+      [uploadId],
+    );
+
+    const devolvidos = await comEvento(app, dados.a.eventoId, (c) =>
+      reclaimStaleModeration(c, dados.a.eventoId, 600),
+    );
+    expect(devolvidos).toBe(1);
+    expect(await statusDe(uploadId)).toBe("pending");
+
+    // attempts preservado: a tentativa perdida foi real, e e o que impede
+    // um item envenenado de ser reivindicado em laco infinito.
+    const { rows } = await admin.query<{ attempts: number }>(
+      "SELECT attempts FROM photo_moderation WHERE upload_id = $1",
+      [uploadId],
+    );
+    expect(rows[0]!.attempts).toBe(1);
+
+    const [rec] = await comEvento(app, dados.a.eventoId, (c) =>
+      claimNextForModeration(c, dados.a.eventoId, 1),
+    );
+    expect(rec?.uploadId).toBe(uploadId);
+  });
+
+  it("nao mexe em claim recente", async () => {
+    const uploadId = await criarUpload(dados.a.eventoId, dados.a.sessaoId);
+    await comEvento(app, dados.a.eventoId, (c) =>
+      enqueueModeration(c, { uploadId, eventId: dados.a.eventoId }),
+    );
+    await comEvento(app, dados.a.eventoId, (c) =>
+      claimNextForModeration(c, dados.a.eventoId, 1),
+    );
+
+    const devolvidos = await comEvento(app, dados.a.eventoId, (c) =>
+      reclaimStaleModeration(c, dados.a.eventoId, 600),
+    );
+    expect(devolvidos).toBe(0);
+    expect(await statusDe(uploadId)).toBe("claimed");
+  });
+
+  it("evento com item preso em claimed aparece para o job periodico", async () => {
+    const uploadId = await criarUpload(dados.a.eventoId, dados.a.sessaoId);
+    await comEvento(app, dados.a.eventoId, (c) =>
+      enqueueModeration(c, { uploadId, eventId: dados.a.eventoId }),
+    );
+    await comEvento(app, dados.a.eventoId, (c) =>
+      claimNextForModeration(c, dados.a.eventoId, 1),
+    );
+    await admin.query(
+      "UPDATE photo_moderation SET claimed_at = now() - interval '1 hour' WHERE upload_id = $1",
+      [uploadId],
+    );
+
+    // Sem isto o job periodico nunca visitaria o evento, e o item ficaria
+    // orfao para sempre com o telao fechado nele em silencio.
+    const eventos = await listEventsWithPendingModeration(admin, 100, 600);
+    expect(eventos).toContain(dados.a.eventoId);
   });
 });
 

@@ -469,4 +469,5 @@ export {
   enqueueModeration,
   failModeration,
   listEventsWithPendingModeration,
+  reclaimStaleModeration,
 } from "./moderation-queue";

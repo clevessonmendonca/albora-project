@@ -8,6 +8,7 @@ import {
 import {
   buscarUploadsParaClassificar,
   claimNextForModeration,
+  reclaimStaleModeration,
   completeModeration,
   failModeration,
   saveUploadVerdict,
@@ -18,10 +19,14 @@ import {
 import { getPool } from "@/lib/db";
 import { readThumb } from "@/lib/r2";
 
+/** Um lote não deveria levar tanto; além disso, presume-se processo morto. */
+const RECLAIM_APOS_SEGUNDOS = 600;
 const LIMIT = 8;
 const MAX_ATTEMPTS = 3;
 
 export type ClassifierDependencies = {
+  /** Devolve a `pending` claims órfãos de processo morto. Roda ANTES do claim, senão o item preso nunca mais é visto. */
+  reclaim: (eventId: string) => Promise<number>;
   claim: (eventId: string, limit: number) => Promise<ClaimedItem[]>;
   getUploads: (
     eventId: string,
@@ -66,6 +71,11 @@ export async function classifyPendingForEvent(
   limit = LIMIT,
   maxAttempts = MAX_ATTEMPTS,
 ): Promise<number> {
+  // Antes de reivindicar: devolver à fila o que ficou preso em `claimed` por
+  // processo que morreu no meio do lote. Sem isso o item é órfão permanente —
+  // o telão fecha nele para sempre, em silêncio.
+  await deps.reclaim(eventId);
+
   const claimed = await deps.claim(eventId, limit);
   if (claimed.length === 0) return 0;
 
@@ -165,6 +175,10 @@ function productionDependencies(): ClassifierDependencies {
   const providerName = (process.env.CLASSIFICADOR_IMAGEM_PROVEDOR ?? "heuristico").trim();
 
   return {
+    reclaim: (eventId) =>
+      withEvent(pool, eventId, (c) =>
+        reclaimStaleModeration(c, eventId, RECLAIM_APOS_SEGUNDOS),
+      ),
     claim: (eventId, limit) =>
       withEvent(pool, eventId, (c) => claimNextForModeration(c, eventId, limit)),
     getUploads: (eventId, uploadIds) =>

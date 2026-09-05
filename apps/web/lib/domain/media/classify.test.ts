@@ -36,6 +36,7 @@ function upload(parcial: Partial<UploadParaClassificar> = {}): UploadParaClassif
  */
 function deps(parcial: Partial<ClassifierDependencies> = {}): ClassifierDependencies {
   return {
+    reclaim: async () => 0,
     claim: async () => [claimado()],
     getUploads: async () => new Map([[UPLOAD, upload()]]),
     readThumb: async () => jpegMinimo(),
