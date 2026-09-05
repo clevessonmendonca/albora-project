@@ -1,4 +1,5 @@
 import { detectarTipo } from "./midia";
+import { provedorOpenAi } from "./classificador-openai";
 import type { VeredictoDoClassificador } from "./moderacao";
 
 /** Fora do caminho crítico — provedor silencioso vira `sem-resposta`; galeria publica, telão segura. */
@@ -34,7 +35,7 @@ export const provedorHeuristico: ProvedorDeClassificadorDeImagem = {
   },
 };
 
-export type NomeDoProvedorDeImagem = "heuristico" | "silencio" | "stub";
+export type NomeDoProvedorDeImagem = "heuristico" | "silencio" | "stub" | "openai";
 
 /** `stub` só com `CLASSIFICADOR_IMAGEM_PROVEDOR=stub`; `silencio` força sem-resposta. */
 export function provedorDeImagemDoAmbiente(
@@ -44,6 +45,13 @@ export function provedorDeImagemDoAmbiente(
   if (nome === "stub") return provedorStub(env.CLASSIFICADOR_IMAGEM_STUB);
   if (nome === "silencio") {
     return { async classificar() { return "sem-resposta"; } };
+  }
+  if (nome === "openai") {
+    const modelo = env.CLASSIFICADOR_IMAGEM_OPENAI_MODELO;
+    return provedorOpenAi({
+      apiKey: env.CLASSIFICADOR_IMAGEM_OPENAI_API_KEY,
+      ...(modelo !== undefined && { modelo }),
+    });
   }
   return provedorHeuristico;
 }
