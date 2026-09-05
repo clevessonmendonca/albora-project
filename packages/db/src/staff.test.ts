@@ -1,6 +1,7 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createHash, randomBytes } from "node:crypto";
+import { authorize } from "@albora/core";
 import {
   assignStaffRole,
   consumeStaffMagicLink,
@@ -9,6 +10,7 @@ import {
   createStaffUser,
   findSessionEvenIfRevoked,
   findStaffByEmail,
+  markReauthenticated,
   resolveStaffSession,
   revokeSessionChain,
   revokeStaffSession,
@@ -87,6 +89,47 @@ describe("resolveStaffSession", () => {
     const resolvida = await resolveStaffSession(admin, hash, { idleMaxSeconds: 1800 });
     expect(resolvida?.staffUserId).toBe(staff.id);
     expect(resolvida?.reauthenticatedAt).toBeNull();
+  });
+});
+
+describe("markReauthenticated", () => {
+  it("carimba reauthenticated_at na sessão existente (mesmo token_hash), não cria sessão nova", async () => {
+    const staff = await createStaffUser(admin, { email: "reauth-carimbo@equipe.test", name: "Carimbo" });
+    const hash = tokenHash();
+    await createStaffSession(admin, { staffUserId: staff.id, tokenHash: hash, expiresAt: new Date(Date.now() + 3_600_000) });
+
+    await markReauthenticated(admin, hash);
+
+    const resolvida = await resolveStaffSession(admin, hash, { idleMaxSeconds: 1800 });
+    expect(resolvida?.reauthenticatedAt).not.toBeNull();
+
+    const { rows } = await admin.query<{ n: string }>(
+      "SELECT count(*)::text AS n FROM staff_sessions WHERE staff_user_id = $1",
+      [staff.id],
+    );
+    expect(Number(rows[0]?.n)).toBe(1);
+  });
+
+  it("depois do carimbo, authorize para lgpd.delete_account devolve allowed em vez de needsReauth", async () => {
+    const staff = await createStaffUser(admin, { email: "reauth-destrava@equipe.test", name: "Destrava" });
+    await assignStaffRole(admin, staff.id, "compliance");
+    const hash = tokenHash();
+    await createStaffSession(admin, { staffUserId: staff.id, tokenHash: hash, expiresAt: new Date(Date.now() + 3_600_000) });
+
+    const antes = await resolveStaffSession(admin, hash, { idleMaxSeconds: 1800 });
+    const decisaoAntes = authorize({
+      actor: { staffUserId: staff.id, roles: ["compliance"], sessionId: hash, requestId: "req-1", reauthenticatedAt: antes?.reauthenticatedAt ?? null },
+      capability: "lgpd.delete_account",
+    });
+    expect(decisaoAntes.kind).toBe("needsReauth");
+
+    await markReauthenticated(admin, hash);
+    const depois = await resolveStaffSession(admin, hash, { idleMaxSeconds: 1800 });
+    const decisaoDepois = authorize({
+      actor: { staffUserId: staff.id, roles: ["compliance"], sessionId: hash, requestId: "req-2", reauthenticatedAt: depois?.reauthenticatedAt ?? null },
+      capability: "lgpd.delete_account",
+    });
+    expect(decisaoDepois).toEqual({ kind: "allowed" });
   });
 });
 

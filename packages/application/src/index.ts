@@ -11,6 +11,11 @@ export { resetRateLimit } from "./staff/rate-limit";
 export type { RequestStaffLoginInput, RequestStaffLoginResult } from "./staff/request-login";
 export { requestStaffLogin } from "./staff/request-login";
 
+export type { CompleteStaffReauthInput, CompleteStaffReauthResult } from "./staff/complete-reauth";
+export { completeStaffReauth } from "./staff/complete-reauth";
+export type { RequestStaffReauthInput, RequestStaffReauthResult } from "./staff/request-reauth";
+export { REAUTH_LINK_TTL_MINUTES, requestStaffReauth } from "./staff/request-reauth";
+
 export type { ApproximateMetric, MetricWithBaseline } from "./analytics/types";
 export type { PlatformOverview, PlatformOverviewInput } from "./analytics/platform-overview";
 export { getPlatformOverview } from "./analytics/platform-overview";

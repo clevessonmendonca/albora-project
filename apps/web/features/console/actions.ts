@@ -3,10 +3,12 @@
 import { createHmac } from "node:crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { completeStaffLogin, requestStaffLogin } from "@albora/application";
+import { completeStaffLogin, completeStaffReauth, requestStaffLogin, requestStaffReauth } from "@albora/application";
+import { findStaffById } from "@albora/db";
 import { getPool } from "@/lib/db";
 import { sendHostEmail } from "@/lib/email";
-import { clearStaffSession, issueStaffSession } from "@/lib/console/staff-session";
+import { resolveActor } from "@/lib/console/actor";
+import { clearStaffSession, issueStaffSession, markStaffReauthenticated } from "@/lib/console/staff-session";
 import { config } from "@/lib/config";
 
 /**
@@ -63,4 +65,63 @@ export async function completeLoginAction(token: string): Promise<{ ok: boolean 
 export async function signOutAction(): Promise<void> {
   await clearStaffSession();
   redirect("/console/login");
+}
+
+/**
+ * Step-up de reautenticação: quem chama já está logado (`resolveActor`) —
+ * diferente de `requestLoginAction`, que atende visitante anônimo. Sem
+ * actor válido, redireciona pro login em vez de silenciosamente não fazer
+ * nada, porque não há e-mail de destino sem um staff resolvido.
+ */
+export async function requestReauthAction(): Promise<{ sent: boolean }> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+
+  const staff = await findStaffById(getPool(), actor.staffUserId);
+  if (!staff) redirect("/console/login");
+
+  const jar = await headers();
+  const origin = jar.get("origin") ?? "";
+  const ipHash = await currentIpHash();
+
+  await requestStaffReauth(getPool(), {
+    staffUserId: staff.id,
+    email: staff.email,
+    ipHash,
+    sendEmail: async ({ to, token }: { to: string; token: string }) => {
+      void sendHostEmail({
+        to,
+        subject: "Confirme que é você — ação sensível no console",
+        text: [
+          "Uma ação sensível no console pede reautenticação recente:",
+          "",
+          `${origin}/console/reauth?m=${token}`,
+          "",
+          "Se você não pediu isso, ignore este e-mail.",
+        ].join("\n"),
+      });
+    },
+  });
+
+  return { sent: true };
+}
+
+/**
+ * Diferente de `completeLoginAction`: aqui NÃO se emite sessão nova — a
+ * sessão já existe. `completeStaffReauth` já garante que o link pertence ao
+ * `staffUserId` do actor atual (a checagem de posse fica na camada de
+ * aplicação, testável sem cookie). Se passar, `markStaffReauthenticated`
+ * carimba a sessão que o cookie desta requisição já resolve — mesma sessão,
+ * sem rotação.
+ */
+export async function completeReauthAction(token: string): Promise<{ ok: boolean }> {
+  const actor = await resolveActor();
+  if (!actor) return { ok: false };
+
+  const ipHash = await currentIpHash();
+  const result = await completeStaffReauth(getPool(), { token, ipHash, staffUserId: actor.staffUserId });
+  if (!result.ok) return { ok: false };
+
+  await markStaffReauthenticated();
+  return { ok: true };
 }
