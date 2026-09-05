@@ -5,6 +5,9 @@ import { comAgregacao } from "./event";
 
 const ALFABETO_REF = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const TAMANHO_REF = 24;
+
+export { REF_TOKEN_RE, isRefToken } from "@albora/core";
+
 const MAX_TENTATIVAS_REF = 6;
 
 export type RefDeCompartilhamento = { refToken: string };
