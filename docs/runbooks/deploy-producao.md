@@ -22,8 +22,10 @@ Convidado e anfitrião em **HTTPS de produção**, com e-mail de magic link func
 | ☐ | Neon projeto prod + branch homol, `DATABASE_URL`/`DATABASE_URL_DIRECT` de cada um carregados via `wrangler secret put --env homol\|prod` | Migrações aplicadas (`docs/db/MIGRATION-SAFETY.md`) |
 | ☐ | Driver Neon em **modo transação** (WebSocket) | RLS com `SET LOCAL` — ver ADR 0006 |
 | ☐ | Domínio de produção **decidido e registrado** — ⚠️ ainda em aberto (`docs/architecture.md` Anexo A item 2; `.env.prod.example` assume `albora.com.br` só como suposição de template) | `curl -I https://…` → 200 só depois de decidido |
+| ☐ | **Depois** do domínio decidido: `routes`/`custom_domain` adicionado em `env.prod` de `wrangler.jsonc` **e** `workers_dev: false` no mesmo commit (ver comentário no arquivo, §3.2) — nenhuma das duas ainda existe | Worker só responde no domínio real, `*.workers.dev` não fica como segunda origem pública |
 | ☐ | Resend: domínio verificado, `RESEND_API_KEY` por ambiente | Magic link chega em <1 min |
 | ☐ | Todas as variáveis de `.env.homol.example`/`.env.prod.example` carregadas via `wrangler secret put --env homol\|prod` (nunca no repo) | `wrangler secret list --env homol\|prod` |
+| ☐ | **GitHub Environment `production` configurado com Required reviewers** — ⚠️ ação do dono, não do repositório (Settings → Environments → New environment → `production` → Required reviewers). Sem isso o GitHub cria o Environment sem proteção na primeira execução e a tag publica sem aprovação de ninguém | Settings → Environments → `production` mostra reviewer(s) configurado(s) — não só o nome do Environment existindo |
 | ☐ | Branch `stable` deployável, promovida para `homol` a pedido do mantenedor | Pipeline verde em `homol` |
 | ☐ | Evento demo ou staging com slug conhecido | QR abre `/e/…/photo` |
 | ☐ | **Teste de carga** 150/20 contra este host | [`carga-producao.md`](./carga-producao.md) |

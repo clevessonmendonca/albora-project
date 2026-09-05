@@ -125,6 +125,16 @@
         "APP_URL": "https://albora.com.br",
         "APP_LINK_HOST": "albora.com.br"
       }
+      // PENDENTE — decisão do dono, não escolhida aqui (Anexo A item 2 de
+      // docs/architecture.md: "albora.com.br" nos exemplos vs. "albora.app" nos
+      // defaults de código em APP_LINK_HOST/RESEND_FROM, domínio ainda não registrado).
+      // Sem isto, `wrangler deploy --env prod` só é alcançável em
+      // albora-web-prod.<subdomínio>.workers.dev. Quando o domínio for decidido e
+      // registrado, adicionar NA MESMA mudança (uma sem a outra é pior que nenhuma):
+      //   "routes": [{ "pattern": "SEU_DOMINIO/*", "custom_domain": true }],
+      //   "workers_dev": false
+      // Setar só "workers_dev": false sem "routes" deixaria o Worker de prod sem
+      // nenhuma origem acessível. Checklist: docs/runbooks/deploy-producao.md §2.
     }
   }
 }
