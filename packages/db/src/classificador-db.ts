@@ -1,5 +1,5 @@
 import type { VeredictoDoClassificador } from "@albora/core";
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 const PUBLICADO = "published";
 
@@ -40,6 +40,29 @@ export async function listarUploadsPendentesDeClassificacao(
     mime: l.mime,
     criadaEm: l.created_at,
   }));
+}
+
+/**
+ * Rede de segurança: quais eventos têm upload publicado sem veredito, mesmo
+ * quando `photo_moderation` não tem NENHUMA linha para eles — o caso em que
+ * `enqueueModeration` falhou por completo sob o SAVEPOINT do confirm
+ * (`confirm-upload.ts`) e a mídia nunca chegou a existir na fila, então
+ * `listEventsWithPendingModeration` (que só olha `photo_moderation`) nunca
+ * veria o evento. Cruza eventos de propósito, mesma família de
+ * `listEventsWithPendingModeration`: roda no pool do papel `BYPASSRLS`,
+ * devolve só `event_id`.
+ */
+export async function listEventsWithOrphanedUploads(
+  pool: Pool,
+  limit = 100,
+): Promise<string[]> {
+  const { rows } = await pool.query<{ event_id: string }>(
+    `SELECT DISTINCT event_id FROM uploads
+      WHERE state = $1 AND classifier_verdict IS NULL
+      LIMIT $2`,
+    [PUBLICADO, limit],
+  );
+  return rows.map((r) => r.event_id);
 }
 
 export type UploadParaClassificar = {

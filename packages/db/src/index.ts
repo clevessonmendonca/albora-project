@@ -151,6 +151,7 @@ export {
   TETO_DO_CLASSIFICADOR,
   gravarVeredictoUpload,
   listarUploadsPendentesDeClassificacao,
+  listEventsWithOrphanedUploads,
   buscarUploadsParaClassificar,
 } from "./classificador-db";
 

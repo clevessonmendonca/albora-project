@@ -4,6 +4,7 @@ import {
   buscarUploadsParaClassificar,
   gravarVeredictoUpload,
   listarUploadsPendentesDeClassificacao,
+  listEventsWithOrphanedUploads,
 } from "./classificador-db";
 import { comEvento } from "./event";
 import { prepararBanco, semear } from "./testes/banco";
@@ -91,5 +92,36 @@ describe("buscarUploadsParaClassificar (Task 6 — join com a fila de moderaçã
       buscarUploadsParaClassificar(c, dados.a.eventoId, []),
     );
     expect(encontrados.size).toBe(0);
+  });
+});
+
+describe("listEventsWithOrphanedUploads — rede de segurança pro confirm que falhou ao enfileirar", () => {
+  it("lista o evento com upload publicado sem veredito, mesmo sem NENHUMA linha em photo_moderation", async () => {
+    // Nunca passa por enqueueModeration — simula o confirm que falhou por
+    // completo sob o SAVEPOINT, então a mídia não existe na fila normal.
+    const { rows } = await admin.query<{ id: string }>(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 800000) RETURNING id`,
+      [dados.a.eventoId, dados.a.sessaoId, `events/${dados.a.eventoId}/2026/08/orfao/full`],
+    );
+    const uploadOrfaoId = rows[0]!.id;
+
+    const { rows: naFila } = await admin.query(
+      "SELECT 1 FROM photo_moderation WHERE upload_id = $1",
+      [uploadOrfaoId],
+    );
+    expect(naFila).toHaveLength(0); // confirma o cenário: órfão de verdade, sem linha na fila
+
+    const eventos = await listEventsWithOrphanedUploads(admin, 100);
+    expect(eventos).toContain(dados.a.eventoId);
+  });
+
+  it("não lista evento cujos uploads já têm veredito", async () => {
+    await admin.query("UPDATE uploads SET classifier_verdict = 'limpo' WHERE event_id = $1", [
+      dados.b.eventoId,
+    ]);
+
+    const eventos = await listEventsWithOrphanedUploads(admin, 100);
+    expect(eventos).not.toContain(dados.b.eventoId);
   });
 });
