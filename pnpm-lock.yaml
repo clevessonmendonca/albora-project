@@ -192,6 +192,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@albora/application':
+        specifier: workspace:*
+        version: link:../../packages/application
       '@albora/core':
         specifier: workspace:*
         version: link:../../packages/core

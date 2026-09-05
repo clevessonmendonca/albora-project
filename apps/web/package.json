@@ -26,6 +26,7 @@
     "lighthouse:upload": "lhci upload"
   },
   "dependencies": {
+    "@albora/application": "workspace:*",
     "@albora/core": "workspace:*",
     "@albora/db": "workspace:*",
     "@albora/packs": "workspace:*",
