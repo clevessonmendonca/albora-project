@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type * as AlboraDb from "@albora/db";
 
 const db = vi.hoisted(() => ({
   withEvent: vi.fn(),
@@ -8,7 +9,7 @@ const db = vi.hoisted(() => ({
   listarMidiaDaParede: vi.fn(),
 }));
 vi.mock("@albora/db", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@albora/db")>();
+  const actual = await importOriginal<typeof AlboraDb>();
   return {
     ...actual,
     withEvent: db.withEvent,

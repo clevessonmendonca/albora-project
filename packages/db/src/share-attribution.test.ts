@@ -7,6 +7,7 @@ import { contarSharesDoEvento } from "./funnel-aggregate";
 import { registrarEventoDoFunil } from "./funnel-events";
 import {
   eventoDoRef,
+  isRefToken,
   mintarRefDeCompartilhamento,
   refDoEvento,
   resumoAtribuicaoViral,
@@ -158,7 +159,10 @@ describe("isolamento entre eventos", () => {
 
 describe("mintarRefDeCompartilhamento nunca rotaciona", () => {
   it("mintar de novo pro mesmo evento estoura por unicidade de event_id", async () => {
-    await comEvento(app, dados.a.eventoId, (c) => mintarRefDeCompartilhamento(c, dados.a.eventoId));
+    const { refToken } = await comEvento(app, dados.a.eventoId, (c) =>
+      mintarRefDeCompartilhamento(c, dados.a.eventoId),
+    );
+    expect(isRefToken(refToken)).toBe(true);
 
     await expect(
       comEvento(app, dados.a.eventoId, (c) => mintarRefDeCompartilhamento(c, dados.a.eventoId)),
@@ -230,7 +234,7 @@ describe("resumoAtribuicaoViral", () => {
     await recordProductEvent(admin, "event_created", { originRef: "x".repeat(24) });
 
     const auditoria: { motivo: string; em: Date }[] = [];
-    const resumo = await resumoAtribuicaoViral(admin, (r) => auditoria.push(r));
+    const resumo = await resumoAtribuicaoViral(agregador, (r) => auditoria.push(r));
 
     expect(resumo.eventosOriginados).toBe(3);
     expect(resumo.porOrigem).toEqual([{ eventoOrigemId: dados.a.eventoId, criados: 3 }]);

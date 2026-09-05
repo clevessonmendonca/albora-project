@@ -54,7 +54,7 @@ Toda copy resolve pelo vocabulário do pack (`resolvePackText`). Nenhuma string 
 
 ## 4. Compartilhamento pelo convidado
 
-Reusa o padrão de `recap-share.ts` (`navigator.share` com fallback copiar-link). Nova ação "compartilhar o álbum" em minhas-fotos/álbum compartilha `https://<host>/p/<slug>?ref=<token>`. O OG do `/p/[slug]` já existe (`get-public-event-metadata.ts`). Emite `guest.share` (§6).
+Reusa o padrão de `recap-share.ts` (`navigator.share` com fallback copiar-link). Nova ação "compartilhar o álbum" em minhas-fotos/álbum compartilha `https://<host>/p/<slug>` — **sem** `?ref`: o matcher do middleware cobre só `/` e `/15-anos`, então um ref em `/p/` não gravaria cookie; a atribuição viaja no CTA do próprio álbum público (`/?ref=<token>`, §2.5), um passo depois. (Decisão ratificada em 2026-09-05 na review final de P1.) O OG do `/p/[slug]` já existe (`get-public-event-metadata.ts`). Emite `guest_share_album` (§6).
 
 ## 5. Memórias automáticas
 

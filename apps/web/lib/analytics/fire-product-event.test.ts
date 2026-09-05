@@ -19,12 +19,12 @@ describe("fireProductEvent", () => {
   it("POSTa name, anonId, packHint e originRef", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response("{}"));
     vi.stubGlobal("fetch", fetchMock);
-    fireProductEvent("guest_share_album", { packHint: "casamento", originRef: "z".repeat(24) });
+    fireProductEvent("guest_share_album", { packHint: "pack-teste", originRef: "z".repeat(24) });
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(url).toBe("/api/analytics/product");
     const body = JSON.parse((init as RequestInit).body as string);
-    expect(body).toMatchObject({ name: "guest_share_album", packHint: "casamento", originRef: "z".repeat(24) });
+    expect(body).toMatchObject({ name: "guest_share_album", packHint: "pack-teste", originRef: "z".repeat(24) });
     expect(typeof body.anonId).toBe("string");
   });
 

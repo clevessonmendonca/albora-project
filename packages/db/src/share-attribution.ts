@@ -79,7 +79,8 @@ export type ResumoAtribuicaoViral = {
  * Quantos eventos foram criados a partir de um ref de convidado, e de qual
  * evento cada ref veio. `product_events` é anônimo (sem RLS); a resolução
  * ref → evento de origem cruza eventos e por isso passa por `comAgregacao`
- * (BYPASSRLS, auditado) — o único caminho permitido para isso.
+ * (auditado) — o pool deve ser o do papel agregador (BYPASSRLS); com o pool
+ * da aplicação a resolução devolve vazio em silêncio.
  */
 export async function resumoAtribuicaoViral(
   pool: Pool,
