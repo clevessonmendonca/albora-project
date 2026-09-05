@@ -47,7 +47,9 @@ export default defineConfig({
     ],
     coverage: {
       provider: "v8",
-      reporter: ["text-summary", "lcov"],
+      // `json-summary` alimenta `tools/coverage/piso-global.mjs` (ver abaixo)
+      // com o agregado `coverage/coverage-summary.json`.
+      reporter: ["text-summary", "lcov", "json-summary"],
       reportsDirectory: "coverage",
       include: [
         "packages/**/src/**/*.ts",
@@ -64,27 +66,52 @@ export default defineConfig({
       ],
       // Gates MVP (CLAUDE.md): ≥60% global, ≥90% no pipeline de upload.
       //
-      // O pipeline de upload JÁ está na meta (99,5% de linhas medido em
-      // 2026-09-05) e entra abaixo com o número real do CLAUDE.md — arquivo
-      // que caia abaixo de 90% reprova a MR.
+      // `perFile: true` abaixo é REAL, ao contrário do que dizia o comentário
+      // anterior desta MR: sem ele o Vitest compara o AGREGADO de cada grupo
+      // de glob contra o piso, não cada arquivo — um arquivo a 50% dilui-se
+      // atrás de outro a 100% no mesmo grupo e o CI passa verde (achado A0 do
+      // review de gates: era o que acontecia com `packages/core/src/upload.ts`
+      // a 50%/0% dentro de um grupo ~99%, hoje coberto por `upload.test.ts`).
       //
-      // O global ainda não chegou aos 60%: o medido é 36,7% de linhas. O piso
-      // aqui é o VALOR MEDIDO, arredondado para baixo, e não a meta — ligar em
-      // 60 hoje reprovaria toda MR e o gate seria desligado de novo na semana
-      // seguinte. O que este número impede a partir de agora é a cobertura
-      // CAIR, que é o comportamento perigoso. Subir é degrau com data, não
-      // decreto: cada MR que cobrir código novo pode subir o piso junto.
+      // `perFile` só existe no Vitest 3.2.7 como flag ÚNICA e GLOBAL —
+      // confirmado lendo `resolveThresholds`/`checkThresholds` em
+      // `node_modules/vitest/dist/chunks/coverage.*.js`: os dois leem um
+      // único `this.options.thresholds?.perFile`, aplicado a TODO conjunto de
+      // threshold resolvido (o "global" e cada grupo de glob), sem forma de
+      // escopar por grupo. Por isso o piso global (lines/statements/
+      // functions/branches) NÃO mora mais aqui: com `perFile` ligado, um piso
+      // global aqui seria cobrado arquivo a arquivo e reprovaria quase todo
+      // arquivo do repo a 36% de linhas — não é essa a garantia que o piso
+      // global promete (ele é sobre o AGREGADO). O piso global agora é
+      // checado por `tools/coverage/piso-global.mjs`, chamado logo depois
+      // deste comando em `pnpm test:coverage` — os valores e o motivo de cada
+      // um (inclusive `functions`/`branches` com folga honesta) estão
+      // documentados naquele arquivo, não duplicados aqui.
+      //
+      // Cobertura sob gate de 90% hoje: as quatro rotas de
+      // `apps/web/app/api/uploads/**`, os hooks `use-upload`/`use-event-queue`,
+      // `confirm-upload.ts` e os módulos puros de `packages/core/src/`. Isso é
+      // PARTE do caminho crítico do convidado, não o caminho inteiro: a
+      // camada de infraestrutura que esses módulos chamam —
+      // `apps/web/lib/infrastructure/queue/client.ts` (83,8%),
+      // `apps/web/lib/utils/transport.ts` (81,4%),
+      // `apps/web/lib/infrastructure/storage/r2-client.ts` (23,5%) e
+      // `apps/web/lib/domain/image/image.ts` (88,0%) — ainda não está sob
+      // gate de 90% e continua caindo no piso global. Trazê-la para 90% é
+      // ~135 linhas de teste novo, tarefa própria (não incluída nesta
+      // correção); os arquivos de import direto (`apps/web/lib/{queue,
+      // transport,r2,image}.ts`) são barris `@deprecated` de uma linha cada —
+      // colocá-los no glob não mediria nada.
       //
       // Nunca use `coverage.exclude` para fazer um número fechar — o CLAUDE.md
       // só admite exclusão por linha, com motivo, revisada na MR.
       thresholds: {
-        lines: 36,
-        statements: 36,
-        functions: 70,
-        branches: 83,
+        perFile: true,
 
-        // Pipeline de upload — o caminho crítico do convidado. Arquivos
-        // casados por estes globs saem da conta global e são avaliados aqui.
+        // Pipeline de upload — parte do caminho crítico do convidado (ver
+        // nota acima sobre a camada de infraestrutura, ainda fora do gate).
+        // Arquivos casados por estes globs saem da conta global e são
+        // avaliados aqui, POR ARQUIVO.
         "apps/web/app/api/uploads/**": {
           lines: 90, statements: 90, functions: 90, branches: 85,
         },
