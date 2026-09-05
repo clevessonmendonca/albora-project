@@ -1,6 +1,6 @@
 "use client";
 
-/** Helpers de product_events da landing — só client. */
+import { fireProductEvent, refDaUrl } from "@/lib/analytics/fire-product-event";
 
 export type LandingProductName =
   | "landing_view"
@@ -9,16 +9,7 @@ export type LandingProductName =
   | "landing_scroll_50"
   | "landing_demo";
 
-function anonId(): string {
-  return typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `a${Date.now()}`;
-}
-
+/** A landing encaminha o `?ref=` da URL: quem chegou por um convidado é atribuído já no primeiro evento. */
 export function fireLandingProduct(name: LandingProductName, packHint?: string) {
-  void fetch("/api/analytics/product", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ name, anonId: anonId(), packHint: packHint ?? null }),
-  }).catch(() => {});
+  fireProductEvent(name, { packHint: packHint ?? null, originRef: refDaUrl() });
 }
