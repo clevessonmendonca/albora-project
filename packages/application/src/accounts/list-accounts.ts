@@ -11,10 +11,14 @@ import type { ApproximateMetric } from "../analytics/types";
 
 export type { AccountAdminStatus, AccountAdminType } from "@albora/db";
 
-/** Ninguém escreveu a query que produz esse número duas vezes; é a mesma
+/**
+ * Ninguém escreveu a query que produz esse número duas vezes; é a mesma
  * ressalva descrita em `accounts-admin.ts`, só que carregada até quem lê o
- * dado, não apenas quem escreveu a query. */
-const LAST_LOGIN_BASIS =
+ * dado, não apenas quem escreveu a query. Exportado porque `get-account.ts`
+ * (T5, mesma ressalva no detalhe de uma conta só) reaproveita o texto em vez
+ * de duplicar a explicação em dois lugares que podem divergir com o tempo.
+ */
+export const LAST_LOGIN_BASIS =
   "aproximado por último login (host_sessions.created_at) — não é a última ação, porque accounts não guarda last_used_at de host";
 
 /**

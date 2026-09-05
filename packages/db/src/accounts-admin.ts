@@ -1,4 +1,6 @@
 import type { Pool } from "pg";
+import { comEvento } from "./event";
+import { aceitesDeEntradaPorVersao, type AceiteDeConsentimento } from "./consent-db";
 
 export type AccountAdminType = "host" | "vendor";
 
@@ -149,4 +151,75 @@ export async function listAccountsAdmin(
   const last = rows[rows.length - 1];
   const nextCursor = rows.length === filter.limit && last ? encodeCursor(last.created_at, last.id) : null;
   return { rows: mapped, nextCursor };
+}
+
+export type AccountEventSummary = { id: string; title: string | null; startsAt: Date; status: string };
+
+export type AccountDetailAdmin = AccountAdminRow & {
+  events: AccountEventSummary[];
+  consentsByVersion: AceiteDeConsentimento[];
+};
+
+/**
+ * Sob `withPlatformAggregation` — mesma leitura cross-tenant de
+ * `listAccountsAdmin`, agora para uma conta só (tela Conta — detalhe,
+ * §8.1.3). Tipo/plano/status seguem a mesma derivação da listagem: nenhuma
+ * coluna própria em `accounts`, então fornecedor vs. anfitrião sai de
+ * `vendor_members`, e o status de anfitrião é sempre `'active'` (ver
+ * comentário de `AccountAdminStatus`).
+ *
+ * Consentimentos entram só como contagem agregada por versão
+ * (`aceitesDeEntradaPorVersao`) — nunca nome de convidado; é por isso que
+ * a leitura passa por `comEvento` (RLS por `event_id`) evento a evento, em
+ * vez de uma única query cross-evento direto no agregador.
+ */
+export async function getAccountDetailAdmin(pool: Pool, accountId: string): Promise<AccountDetailAdmin | null> {
+  const { rows } = await pool.query<{
+    id: string;
+    email: string;
+    created_at: Date;
+    is_vendor: boolean;
+    vendor_plan: string | null;
+    vendor_status: AccountAdminStatus | null;
+    event_plan: string | null;
+    last_access_at: Date | null;
+  }>(
+    `SELECT a.id, a.email, a.created_at,
+            EXISTS(SELECT 1 FROM vendor_members vm WHERE vm.account_id = a.id) AS is_vendor,
+            (SELECT v.plan FROM vendor_members vm JOIN vendors v ON v.id = vm.vendor_id
+              WHERE vm.account_id = a.id LIMIT 1) AS vendor_plan,
+            (SELECT v.status FROM vendor_members vm JOIN vendors v ON v.id = vm.vendor_id
+              WHERE vm.account_id = a.id LIMIT 1) AS vendor_status,
+            (SELECT e.plan FROM events e WHERE e.account_id = a.id
+              ORDER BY e.created_at DESC LIMIT 1) AS event_plan,
+            (SELECT max(hs.created_at) FROM host_sessions hs WHERE hs.account_id = a.id) AS last_access_at
+       FROM accounts a WHERE a.id = $1`,
+    [accountId],
+  );
+  const conta = rows[0];
+  if (!conta) return null;
+
+  const { rows: eventos } = await pool.query<{ id: string; title: string | null; starts_at: Date; status: string }>(
+    `SELECT id, title, starts_at, status FROM events WHERE account_id = $1 ORDER BY starts_at DESC`,
+    [accountId],
+  );
+
+  const consentsByVersion: AceiteDeConsentimento[] = [];
+  for (const evento of eventos) {
+    const aceites = await comEvento(pool, evento.id, (c) => aceitesDeEntradaPorVersao(c, evento.id));
+    consentsByVersion.push(...aceites);
+  }
+
+  return {
+    id: conta.id,
+    maskedEmail: maskEmail(conta.email),
+    type: conta.is_vendor ? "vendor" : "host",
+    plan: conta.vendor_plan ?? conta.event_plan,
+    status: conta.vendor_status ?? "active",
+    eventCount: eventos.length,
+    createdAt: conta.created_at,
+    lastAccessAt: conta.last_access_at,
+    events: eventos.map((e) => ({ id: e.id, title: e.title, startsAt: e.starts_at, status: e.status })),
+    consentsByVersion,
+  };
 }

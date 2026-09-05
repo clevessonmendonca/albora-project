@@ -511,5 +511,8 @@ export {
   platformVolumeInWindow,
 } from "./platform-analytics";
 
-export type { AccountAdminRow, AccountAdminStatus, AccountAdminType, ListAccountsAdminFilter } from "./accounts-admin";
-export { listAccountsAdmin } from "./accounts-admin";
+export type {
+  AccountAdminRow, AccountAdminStatus, AccountAdminType, AccountDetailAdmin,
+  AccountEventSummary, ListAccountsAdminFilter,
+} from "./accounts-admin";
+export { getAccountDetailAdmin, listAccountsAdmin } from "./accounts-admin";

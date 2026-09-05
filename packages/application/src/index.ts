@@ -19,3 +19,6 @@ export { getPlatformRevenue, VENDOR_PLAN_PRICE_CENTS } from "./analytics/revenue
 
 export type { AccountAdminRow, AccountAdminStatus, AccountAdminType, ListAccountsInput } from "./accounts/list-accounts";
 export { listAccounts } from "./accounts/list-accounts";
+
+export type { AccountDetail, GetAccountInput } from "./accounts/get-account";
+export { getAccount } from "./accounts/get-account";

@@ -12,16 +12,19 @@ import {
 } from "@albora/ui-web";
 import type { AccountAdminRow, AccountAdminStatus, AccountAdminType } from "@albora/application";
 
-const ROTULO_TIPO: Record<AccountAdminType, string> = { host: "Anfitrião", vendor: "Fornecedor" };
+// Exportados: a tela de detalhe (`accounts/[id]/page.tsx`, T5) reaproveita o
+// mesmo rótulo/tom — duas telas mostrando o mesmo status com texto diferente
+// seria a mesma inconsistência que o resolvedor único de tokens existe pra evitar.
+export const ROTULO_TIPO: Record<AccountAdminType, string> = { host: "Anfitrião", vendor: "Fornecedor" };
 
-const ROTULO_STATUS: Record<AccountAdminStatus, string> = {
+export const ROTULO_STATUS: Record<AccountAdminStatus, string> = {
   trial: "Trial",
   active: "Ativa",
   suspended: "Suspensa",
   churned: "Encerrada",
 };
 
-const TOM_STATUS: Record<AccountAdminStatus, StatusBadgeTone> = {
+export const TOM_STATUS: Record<AccountAdminStatus, StatusBadgeTone> = {
   trial: "neutral",
   active: "positive",
   suspended: "critico",

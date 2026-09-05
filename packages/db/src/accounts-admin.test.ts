@@ -1,6 +1,6 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { listAccountsAdmin } from "./accounts-admin";
+import { getAccountDetailAdmin, listAccountsAdmin } from "./accounts-admin";
 import { prepararBanco, semear } from "./testes/banco";
 
 let admin: pg.Pool;
@@ -72,5 +72,40 @@ describe("listAccountsAdmin", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]?.id).toBe(a.contaId);
     expect(rows[0]?.maskedEmail).not.toContain("anfitriao-a@exemplo.test");
+  });
+});
+
+describe("getAccountDetailAdmin", () => {
+  it("conta inexistente devolve null", async () => {
+    await prepararBanco();
+    const detalhe = await getAccountDetailAdmin(agregador, "00000000-0000-0000-0000-000000000000");
+    expect(detalhe).toBeNull();
+  });
+
+  it("conta existente traz eventos e consentimentos agregados, sem nome de convidado", async () => {
+    await prepararBanco();
+    const { a } = await semear(admin);
+    const detalhe = await getAccountDetailAdmin(agregador, a.contaId);
+    expect(detalhe?.events).toHaveLength(1);
+    expect(detalhe?.events[0]?.id).toBe(a.eventoId);
+    expect(detalhe?.consentsByVersion.some((c) => c.versao === "v1")).toBe(true);
+    expect(JSON.stringify(detalhe?.consentsByVersion)).not.toContain("convidado-evento-a");
+  });
+
+  it("e-mail vem mascarado no detalhe, igual à listagem", async () => {
+    await prepararBanco();
+    const { a } = await semear(admin);
+    const detalhe = await getAccountDetailAdmin(agregador, a.contaId);
+    expect(detalhe?.maskedEmail).toMatch(/^.{1,2}•+@/);
+    expect(detalhe?.maskedEmail).not.toContain("anfitriao-a@exemplo.test");
+  });
+
+  it("conta de evento B não vaza consentimento de A (isolamento por event_id, ADR 0013)", async () => {
+    await prepararBanco();
+    const { a, b } = await semear(admin);
+    const detalheA = await getAccountDetailAdmin(agregador, a.contaId);
+    const detalheB = await getAccountDetailAdmin(agregador, b.contaId);
+    expect(detalheA?.events.map((e) => e.id)).not.toContain(b.eventoId);
+    expect(detalheB?.events.map((e) => e.id)).not.toContain(a.eventoId);
   });
 });
