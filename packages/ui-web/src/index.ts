@@ -91,3 +91,6 @@ export { MetricCard, type MetricCardProps } from "./metric-card";
 export { PageHeader } from "./page-header";
 export { StatusBadge, type StatusBadgeTone } from "./status-badge";
 export { ConsoleEmptyState } from "./empty-state";
+export { EntityHeader, type EntityHeaderStatus } from "./entity-header";
+export { FilterBar } from "./filter-bar";
+export { DetailPanel, type DetailPanelSection } from "./detail-panel";
