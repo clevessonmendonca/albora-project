@@ -1,10 +1,16 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { recordProductEvent } from "./analytics";
 import { comEvento } from "./event";
 import { criarEvento } from "./events";
 import { contarSharesDoEvento } from "./funnel-aggregate";
 import { registrarEventoDoFunil } from "./funnel-events";
-import { eventoDoRef, mintarRefDeCompartilhamento, refDoEvento } from "./share-attribution";
+import {
+  eventoDoRef,
+  mintarRefDeCompartilhamento,
+  refDoEvento,
+  resumoAtribuicaoViral,
+} from "./share-attribution";
 import { prepararBanco, semear } from "./testes/banco";
 
 let admin: pg.Pool;
@@ -209,5 +215,25 @@ describe("contarSharesDoEvento", () => {
       contarSharesDoEvento(c, dados.b.eventoId),
     );
     expect(totalDeB).toBe(0);
+  });
+});
+
+describe("resumoAtribuicaoViral", () => {
+  it("conta event_created por ref e resolve o evento de origem", async () => {
+    // dois eventos semeados: A (origem) e B (qualquer)
+    const refA = await comEvento(app, dados.a.eventoId, (c) => refDoEvento(c, dados.a.eventoId));
+    expect(refA).not.toBeNull();
+
+    // três criações atribuídas a A, uma sem atribuição, uma com ref desconhecido
+    for (let i = 0; i < 3; i++) await recordProductEvent(admin, "event_created", { originRef: refA });
+    await recordProductEvent(admin, "event_created");
+    await recordProductEvent(admin, "event_created", { originRef: "x".repeat(24) });
+
+    const auditoria: { motivo: string; em: Date }[] = [];
+    const resumo = await resumoAtribuicaoViral(admin, (r) => auditoria.push(r));
+
+    expect(resumo.eventosOriginados).toBe(3);
+    expect(resumo.porOrigem).toEqual([{ eventoOrigemId: dados.a.eventoId, criados: 3 }]);
+    expect(auditoria.length).toBeGreaterThan(0);
   });
 });
