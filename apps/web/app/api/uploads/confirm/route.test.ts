@@ -33,11 +33,6 @@ vi.mock("@/lib/api", async (importOriginal) => {
   return { ...actual, requireGuestSession, enforceRateLimit, requireConfig, parseJsonBody };
 });
 
-vi.mock("@albora/core", async (importOriginal) => {
-  const actual = await importOriginal<Record<string, unknown>>();
-  return { ...actual, prefixoDoEvento: (_id: string) => `events/${_id}/` };
-});
-
 const { withEvent, confirmUpload, challengeBelongsToEvent, eventTimeZone, eventPack, planoDoEvento } =
   vi.hoisted(() => ({
     withEvent: vi.fn(),
