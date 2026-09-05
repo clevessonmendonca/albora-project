@@ -63,11 +63,17 @@ describe("executeCommand", () => {
     ).rejects.toThrow(ReauthRequiredError);
   });
 
+  // Usa reembolso acima do limiar, nao impersonacao: `impersonate.request`
+  // deixou de ter politica (criar o pedido e permitido ao suporte; quem exige
+  // aprovacao e ativar a sessao, como invariante do comando). Reembolso e o
+  // caso vivo de needsApproval — `finance` tem `subscription.refund` mas nao
+  // `subscription.refund.approve`, entao nao aprova o proprio pedido.
   it("needsApproval vira ApprovalRequiredError", async () => {
     await expect(
       executeCommand({ pool: app }, {
-        actor: actor({ roles: ["support"] }), capability: "impersonate.request",
-        reason: "cliente pediu ajuda visual", target: { kind: "account" }, action: "impersonate.request",
+        actor: actor({ roles: ["finance"] }), capability: "subscription.refund",
+        context: { amountCents: 100_000 },
+        reason: "cliente pediu reembolso integral", target: { kind: "subscription" }, action: "subscription.refund",
         run: async () => null,
       }),
     ).rejects.toThrow(ApprovalRequiredError);
