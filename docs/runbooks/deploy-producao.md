@@ -72,7 +72,7 @@ Deploy via GitHub:
 
 - **stable** — Actions → **Deploy stable** → Run workflow (confirmar com `deploy-stable`).
 - **homol** — Actions → **Deploy** → Run workflow, **a partir do branch `homol`** (confirmar com `deploy-homol`). O job recusa rodar se o ref não for `homol`.
-- **prod** — nunca manual. Só `git tag vX.Y.Z <sha-em-main> && git push origin vX.Y.Z`. O job confirma que o SHA da tag é ancestral de `main` antes de publicar, e roda atrás do GitHub Environment `production` (approval) — mesmo padrão que `backup.yml` já usa para `inputs.alvo == production`.
+- **prod** — nunca manual. Só `git tag vX.Y.Z <sha-em-main> && git push origin vX.Y.Z`. O job confirma que o SHA da tag é ancestral de `main` antes de publicar, **confirma que o CI (`ci.yml`) terminou com sucesso nesse mesmo commit** (consulta os check runs pela API — não reexecuta os testes), e roda atrás do GitHub Environment `production` (approval) — mesmo padrão que `backup.yml` já usa para `inputs.alvo == production`. Um hotfix empurrado direto para `main` sem PR só passa se o CI tiver rodado (e passado) para aquele SHA antes da tag ser criada.
 
 Smoke pós-deploy (rodado automaticamente pelo workflow; exige `vars.HOMOL_URL`/`vars.PROD_URL` configuradas, senão o job falha — comando abaixo é o mesmo, para rodar manual):
 

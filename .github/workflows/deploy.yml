@@ -85,6 +85,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment: production
+    # checks: read é explícito (não depende do default de permissão do repo) —
+    # necessário para "Confirmar que o CI (ci.yml) passou neste commit" ler check-runs.
+    permissions:
+      contents: read
+      checks: read
     concurrency:
       group: deploy-production
       cancel-in-progress: false
@@ -100,6 +105,41 @@ jobs:
             echo "::error::Tag ${{ github.ref_name }} (${{ github.sha }}) não está em main — prod só sai de tag em main (CLAUDE.md)."
             exit 1
           fi
+
+      # Uma tag pode ser criada em qualquer commit de main, inclusive um push direto
+      # sem PR — nesse caminho nada garante que o CI (.github/workflows/ci.yml) rodou
+      # para este SHA. Não repete os testes aqui (isso duplicaria ci.yml, que é de
+      # outra frente); em vez disso consulta os check runs que ci.yml já produziu
+      # para este commit e falha fechado se algum dos jobs esperados não passou.
+      - name: Confirmar que o CI (ci.yml) passou neste commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          sha="${{ github.sha }}"
+          esperados=("Guards" "Isolamento entre eventos" "Typecheck, lint e testes" "E2E smoke (convidado)" "Build")
+          runs_json="$(gh api "repos/${{ github.repository }}/commits/$sha/check-runs" --paginate --jq '[.check_runs[]]')"
+          faltando=0
+          for nome in "${esperados[@]}"; do
+            # Pega a run mais recente com esse nome (retry de workflow pode gerar mais de uma).
+            linha="$(echo "$runs_json" | jq -c --arg n "$nome" '[.[] | select(.name == $n)] | sort_by(.started_at) | last')"
+            if [ "$linha" = "null" ] || [ -z "$linha" ]; then
+              echo "::error::Check run \"$nome\" (ci.yml) não encontrado para o commit $sha — CI não rodou aqui."
+              faltando=1
+              continue
+            fi
+            estado="$(echo "$linha" | jq -r '.status')"
+            conclusao="$(echo "$linha" | jq -r '.conclusion')"
+            if [ "$estado" != "completed" ] || [ "$conclusao" != "success" ]; then
+              echo "::error::Check run \"$nome\" não terminou com sucesso (status=$estado conclusion=$conclusao)."
+              faltando=1
+            fi
+          done
+          if [ "$faltando" -ne 0 ]; then
+            echo "::error::CI (ci.yml) não confirma sucesso para $sha — deploy de produção bloqueado. Rode o CI neste commit (push em main, ou reexecute o workflow) antes de empurrar a tag."
+            exit 1
+          fi
+          echo "CI (ci.yml) confirmado com sucesso para $sha."
 
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v7
