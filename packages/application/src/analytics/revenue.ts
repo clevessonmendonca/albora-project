@@ -1,5 +1,5 @@
 import type { Pool } from "pg";
-import type { Actor } from "@albora/core";
+import { logger, type Actor } from "@albora/core";
 import { withPlatformAggregation } from "../platform/aggregation";
 import type { ApproximateMetric } from "./types";
 
@@ -16,6 +16,45 @@ export const VENDOR_PLAN_PRICE_CENTS: Record<"starter" | "studio" | "agency", nu
   studio: 24900,
   agency: 59900,
 };
+
+
+export type LinhaPlanoStatus = { plan: string; status: string; n: number };
+
+/**
+ * Soma pura, isolada da query para poder ser testada sem banco.
+ *
+ * Plano sem preço no mapa NÃO entra no MRR e é devolvido em `unknownPlans`:
+ * `undefined * n` daria `NaN`, e um `NaN` somado ao MRR se propaga em silêncio
+ * até o painel do dono — pior que faltar a linha, porque parece um número.
+ * Hoje o CHECK da migration 0037 restringe a 'starter'|'studio'|'agency', então
+ * isso só acende se alguém adicionar plano sem atualizar o mapa de preço.
+ */
+export function computeRevenueTotals(linhas: readonly LinhaPlanoStatus[]): {
+  mrrCents: number;
+  activeSubscriptions: number;
+  overdueCount: number;
+  unknownPlans: string[];
+} {
+  let mrrCents = 0;
+  let activeSubscriptions = 0;
+  let overdueCount = 0;
+  const unknownPlans = new Set<string>();
+
+  for (const linha of linhas) {
+    if (linha.status === "active") {
+      const preco = VENDOR_PLAN_PRICE_CENTS[linha.plan as keyof typeof VENDOR_PLAN_PRICE_CENTS];
+      if (typeof preco !== "number") {
+        unknownPlans.add(linha.plan);
+      } else {
+        mrrCents += preco * linha.n;
+      }
+      activeSubscriptions += linha.n;
+    }
+    if (linha.status === "overdue") overdueCount += linha.n;
+  }
+
+  return { mrrCents, activeSubscriptions, overdueCount, unknownPlans: [...unknownPlans] };
+}
 
 export type PlatformRevenue = {
   mrrCents: number;
@@ -54,15 +93,10 @@ export async function getPlatformRevenue(
           WHERE status = 'canceled' AND updated_at >= now() - interval '30 days'`,
       );
 
-      let mrrCents = 0;
-      let activeSubscriptions = 0;
-      let overdueCount = 0;
-      for (const linha of porPlanoEStatus) {
-        if (linha.status === "active") {
-          mrrCents += VENDOR_PLAN_PRICE_CENTS[linha.plan] * linha.n;
-          activeSubscriptions += linha.n;
-        }
-        if (linha.status === "overdue") overdueCount += linha.n;
+      const { mrrCents, activeSubscriptions, overdueCount, unknownPlans } =
+        computeRevenueTotals(porPlanoEStatus);
+      if (unknownPlans.length > 0) {
+        logger.warn("analytics.revenue.plano_sem_preco", { plans: unknownPlans });
       }
 
       return {
