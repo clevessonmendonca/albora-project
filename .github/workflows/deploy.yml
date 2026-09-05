@@ -1,0 +1,117 @@
+# Deploy — homol e produção.
+#
+# Ladder (CLAUDE.md): stable (teste, deploy-stable.yml) → homol → main (prod).
+# Promoção stable→homol e homol→main só a pedido explícito do mantenedor —
+# este workflow só publica; quem decide fazer a promoção do branch é humano.
+#
+# homol: manual (workflow_dispatch), sempre a partir do branch `homol`.
+# prod:  só tag `v*` em `main` — nunca workflow_dispatch, nunca branch de
+#        feature. O job confirma que o SHA da tag está em `main` antes de
+#        publicar, e roda atrás do GitHub Environment `production` (approval),
+#        no mesmo padrão que `.github/workflows/backup.yml` já usa.
+#
+# Secrets no repositório (Settings → Secrets → Actions):
+#   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID — mesma conta CF de deploy-stable.yml;
+#     `--env homol|prod` troca só o Worker de destino, não a credencial de deploy.
+# Segredo de runtime do Worker (DATABASE_URL, R2_*, SESSION_SECRET, ASAAS_*, ...)
+# NÃO passa por este workflow — é `wrangler secret put --env homol|prod`
+# (ver .env.homol.example / .env.prod.example). Este workflow só builda e publica código.
+
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Digite "deploy-homol" para confirmar (só a partir do branch homol)'
+        required: true
+        type: string
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  deploy-homol:
+    name: Cloudflare Workers (homol)
+    if: github.event_name == 'workflow_dispatch' && inputs.confirm == 'deploy-homol'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: deploy-homol
+      cancel-in-progress: false
+    steps:
+      - name: Confirmar branch homol
+        if: github.ref != 'refs/heads/homol'
+        run: |
+          echo "::error::Deploy de homol só roda a partir do branch homol (ref atual: ${{ github.ref }})."
+          exit 1
+
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Deploy @albora/web (homol)
+        working-directory: apps/web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm cf:deploy:homol
+
+      - name: Smoke pós-deploy
+        if: vars.HOMOL_URL != ''
+        env:
+          ALVO: ${{ vars.HOMOL_URL }}
+        run: |
+          node tools/deploy/smoke.mjs "$ALVO"
+          bash scripts/ci/smoke-test.sh "$ALVO"
+
+  deploy-prod:
+    name: Cloudflare Workers (prod)
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Confirmar que a tag está em main
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor "${{ github.sha }}" origin/main; then
+            echo "::error::Tag ${{ github.ref_name }} (${{ github.sha }}) não está em main — prod só sai de tag em main (CLAUDE.md)."
+            exit 1
+          fi
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Deploy @albora/web (prod)
+        working-directory: apps/web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: pnpm cf:deploy:prod
+
+      - name: Smoke pós-deploy
+        if: vars.PROD_URL != ''
+        env:
+          ALVO: ${{ vars.PROD_URL }}
+        run: |
+          node tools/deploy/smoke.mjs "$ALVO"
+          bash scripts/ci/smoke-test.sh "$ALVO"
