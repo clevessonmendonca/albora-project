@@ -1,6 +1,6 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { getAccountDetailAdmin, listAccountsAdmin } from "./accounts-admin";
+import { getAccountDetailAdmin, getRawAccountContact, listAccountsAdmin } from "./accounts-admin";
 import { prepararBanco, semear } from "./testes/banco";
 
 let admin: pg.Pool;
@@ -107,5 +107,20 @@ describe("getAccountDetailAdmin", () => {
     const detalheB = await getAccountDetailAdmin(agregador, b.contaId);
     expect(detalheA?.events.map((e) => e.id)).not.toContain(b.eventoId);
     expect(detalheB?.events.map((e) => e.id)).not.toContain(a.eventoId);
+  });
+});
+
+describe("getRawAccountContact", () => {
+  it("devolve o e-mail cru, não mascarado", async () => {
+    await prepararBanco();
+    const { a } = await semear(admin);
+    const contato = await getRawAccountContact(agregador, a.contaId);
+    expect(contato?.email).toBe("anfitriao-a@exemplo.test");
+  });
+
+  it("conta inexistente devolve null", async () => {
+    await prepararBanco();
+    const contato = await getRawAccountContact(agregador, "00000000-0000-0000-0000-000000000000");
+    expect(contato).toBeNull();
   });
 });

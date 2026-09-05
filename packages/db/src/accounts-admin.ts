@@ -1,6 +1,9 @@
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import { comEvento } from "./event";
 import { aceitesDeEntradaPorVersao, type AceiteDeConsentimento } from "./consent-db";
+
+/** Aceita `Pool` (chamada avulsa, ex.: teste) ou `PoolClient` (dentro da tx de `executeCommand`). */
+type Queryable = Pool | PoolClient;
 
 export type AccountAdminType = "host" | "vendor";
 
@@ -228,4 +231,19 @@ export async function getAccountDetailAdmin(pool: Pool, accountId: string): Prom
     events: eventos.map((e) => ({ id: e.id, title: e.title, startsAt: e.starts_at, status: e.status })),
     consentsByVersion,
   };
+}
+
+export type RawAccountContact = { email: string };
+
+/**
+ * ÚNICO lugar em `packages/db` que devolve o e-mail de conta sem máscara —
+ * `listAccountsAdmin`/`getAccountDetailAdmin` mascaram sempre. Chamado só
+ * por `revealAccountPii`, dentro de `executeCommand` (recebe o `tx` da
+ * transação do comando, não um pool avulso), nunca por uma tela de leitura
+ * direto.
+ */
+export async function getRawAccountContact(db: Queryable, accountId: string): Promise<RawAccountContact | null> {
+  const { rows } = await db.query<{ email: string }>("SELECT email FROM accounts WHERE id = $1", [accountId]);
+  const row = rows[0];
+  return row ? { email: row.email } : null;
 }

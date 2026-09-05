@@ -3,7 +3,15 @@
 import { createHmac } from "node:crypto";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { completeStaffLogin, completeStaffReauth, requestStaffLogin, requestStaffReauth } from "@albora/application";
+import {
+  CommandDeniedError,
+  completeStaffLogin,
+  completeStaffReauth,
+  ReauthRequiredError,
+  requestStaffLogin,
+  requestStaffReauth,
+  revealAccountPii,
+} from "@albora/application";
 import { findStaffById } from "@albora/db";
 import { getPool } from "@/lib/db";
 import { sendHostEmail } from "@/lib/email";
@@ -124,4 +132,29 @@ export async function completeReauthAction(token: string): Promise<{ ok: boolean
 
   await markStaffReauthenticated();
   return { ok: true };
+}
+
+export type RevealAccountPiiActionResult = { ok: true; email: string } | { ok: false; error: string };
+
+/**
+ * Primeira mutação da Onda C ponta a ponta por `executeCommand` — a
+ * autorização e a auditoria acontecem dentro de `revealAccountPii`, nunca
+ * aqui. Este server action só resolve o ator e traduz os erros do envelope
+ * para uma forma que o client component consegue mostrar sem re-lançar.
+ */
+export async function revealAccountPiiAction(
+  accountId: string,
+  reason: string,
+): Promise<RevealAccountPiiActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+
+  try {
+    const resultado = await revealAccountPii({ pool: getPool() }, { actor, reason, accountId });
+    return { ok: true, email: resultado.email };
+  } catch (erro) {
+    if (erro instanceof CommandDeniedError) return { ok: false, error: erro.message };
+    if (erro instanceof ReauthRequiredError) return { ok: false, error: "reautenticação exigida" };
+    throw erro;
+  }
 }

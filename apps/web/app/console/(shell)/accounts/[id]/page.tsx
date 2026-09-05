@@ -1,10 +1,12 @@
 import React from "react";
 import { notFound, redirect } from "next/navigation";
 import { getAccount } from "@albora/application";
+import { hasCapability } from "@albora/core";
 import { DetailPanel, EntityHeader } from "@albora/ui-web";
 import { resolveActor } from "@/lib/console/actor";
 import { getAggregatorPool, getPool } from "@/lib/db";
 import { ROTULO_STATUS, ROTULO_TIPO, TOM_STATUS } from "@/features/console/components/client/accounts-table";
+import { RevealPiiButton } from "@/features/console/components/client/reveal-pii-button";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +37,7 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
         title={conta.maskedEmail}
         subtitle={ROTULO_TIPO[conta.type]}
         status={{ tone: TOM_STATUS[conta.status], label: ROTULO_STATUS[conta.status] }}
+        actions={hasCapability(actor.roles, "accounts.pii.reveal") ? <RevealPiiButton accountId={id} /> : undefined}
       />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <DetailPanel

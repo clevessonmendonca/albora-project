@@ -1,13 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
 
-const { resolveActorMock, getAccountMock } = vi.hoisted(() => ({
+const { resolveActorMock, getAccountMock, RevealPiiButtonMock } = vi.hoisted(() => ({
   resolveActorMock: vi.fn(),
   getAccountMock: vi.fn(),
+  // Mock só pra identidade (comparado por referência abaixo) — evita puxar
+  // a cadeia real de `reveal-pii-button.tsx` -> `@/features/console/actions`
+  // -> `@albora/db`/`@/lib/email` só pra testar o gate de capacidade.
+  RevealPiiButtonMock: vi.fn(() => null),
 }));
 
 vi.mock("@/lib/console/actor", () => ({ resolveActor: resolveActorMock }));
 vi.mock("@/lib/db", () => ({ getPool: vi.fn(), getAggregatorPool: vi.fn() }));
 vi.mock("@albora/application", () => ({ getAccount: getAccountMock }));
+vi.mock("@/features/console/components/client/reveal-pii-button", () => ({
+  RevealPiiButton: RevealPiiButtonMock,
+}));
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(),
   notFound: vi.fn(() => {
@@ -16,6 +23,13 @@ vi.mock("next/navigation", () => ({
 }));
 
 import AccountDetailPage from "./page";
+import { RevealPiiButton } from "@/features/console/components/client/reveal-pii-button";
+
+/** `<>{EntityHeader}{div}</>` — `actions` é prop do primeiro filho do Fragment. */
+function acoesDoCabecalho(pageElement: unknown): { type: unknown } | undefined {
+  const el = pageElement as { props: { children: Array<{ props: { actions?: { type: unknown } } }> } };
+  return el.props.children[0]?.props.actions;
+}
 
 function actor() {
   return { staffUserId: "s1", roles: ["owner"], sessionId: "sess", requestId: "req", reauthenticatedAt: null };
@@ -114,5 +128,21 @@ describe("AccountDetailPage", () => {
     expect(texto).toContain("v1");
     expect(texto).toContain("aceite(s)");
     expect(texto).not.toContain("convidado-");
+  });
+
+  it("com accounts.pii.reveal mostra o botão de revelar contato", async () => {
+    resolveActorMock.mockResolvedValueOnce({ ...actor(), roles: ["support"] });
+    getAccountMock.mockResolvedValueOnce(contaBase());
+
+    const element = await AccountDetailPage({ params: Promise.resolve({ id: "acc-1" }) });
+    expect(acoesDoCabecalho(element)?.type).toBe(RevealPiiButton);
+  });
+
+  it("sem accounts.pii.reveal não mostra o botão", async () => {
+    resolveActorMock.mockResolvedValueOnce({ ...actor(), roles: ["engineering"] });
+    getAccountMock.mockResolvedValueOnce(contaBase());
+
+    const element = await AccountDetailPage({ params: Promise.resolve({ id: "acc-1" }) });
+    expect(acoesDoCabecalho(element)).toBeUndefined();
   });
 });

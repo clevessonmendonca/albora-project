@@ -516,9 +516,9 @@ export {
 
 export type {
   AccountAdminRow, AccountAdminStatus, AccountAdminType, AccountDetailAdmin,
-  AccountEventSummary, ListAccountsAdminFilter,
+  AccountEventSummary, ListAccountsAdminFilter, RawAccountContact,
 } from "./accounts-admin";
-export { getAccountDetailAdmin, listAccountsAdmin } from "./accounts-admin";
+export { getAccountDetailAdmin, getRawAccountContact, listAccountsAdmin } from "./accounts-admin";
 
 export type { EventAdminRow, EventAdminStatus, EventDetailAdmin, ListEventsAdminFilter } from "./events-admin";
 export { getEventDetailAdmin, isH1Calculavel, listEventsAdmin } from "./events-admin";
