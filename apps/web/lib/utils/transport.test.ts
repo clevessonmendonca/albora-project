@@ -176,6 +176,72 @@ describe("webTransport", () => {
       }),
     ).rejects.toMatchObject({ etapa: "confirm", status: 422, codigo: "upload.invalido" });
   });
+
+  it("presign sem corpo JSON de erro ainda estoura ApiError, sem código", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response("não é json", { status: 500 }));
+
+    await expect(webTransport.presign(itemBlob)).rejects.toMatchObject({
+      etapa: "presign",
+      status: 500,
+      codigo: undefined,
+    });
+  });
+
+  it("erro de rede propaga sem embrulhar em ApiError — quem decide o retry é a fila", async () => {
+    const falhaDeRede = new TypeError("Failed to fetch");
+    vi.mocked(fetch).mockRejectedValueOnce(falhaDeRede);
+
+    await expect(webTransport.presign(itemBlob)).rejects.toBe(falhaDeRede);
+  });
+
+  it("sendBytes envia PUT com o content-type do item e o corpo é o Blob", async () => {
+    await webTransport.sendBytes("https://storage.test/full", itemBlob);
+
+    const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("https://storage.test/full");
+    expect(init.method).toBe("PUT");
+    expect(init.body).toBe(itemBlob.corpo.blob);
+    expect((init.headers as Record<string, string>)["content-type"]).toBe("image/jpeg");
+  });
+
+  it("sendBytes recusa corpo de arquivo (não é Blob na web) sem chegar a chamar fetch", async () => {
+    await expect(
+      webTransport.sendBytes("https://storage.test/full", {
+        ...itemBlob,
+        corpo: { tipo: "arquivo", caminho: "/tmp/foto.jpg", bytes: 1 },
+      }),
+    ).rejects.toThrow("não é enviável pela web");
+
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("sendBytes: storage recusando o PUT vira ApiError sem tentar ler corpo de erro", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 403 }));
+
+    await expect(webTransport.sendBytes("https://storage.test/full", itemBlob)).rejects.toMatchObject({
+      etapa: "put",
+      status: 403,
+    });
+  });
+
+  it("sendPoster envia PUT do poster com content-type de imagem", async () => {
+    const poster = new Blob(["p"], { type: "image/jpeg" });
+    await webTransport.sendPoster!("https://storage.test/poster", poster);
+
+    const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("https://storage.test/poster");
+    expect(init.method).toBe("PUT");
+    expect(init.body).toBe(poster);
+    expect((init.headers as Record<string, string>)["content-type"]).toBe("image/jpeg");
+  });
+
+  it("sendPoster: storage recusando o PUT vira ApiError", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response(null, { status: 500 }));
+
+    await expect(
+      webTransport.sendPoster!("https://storage.test/poster", new Blob(["p"])),
+    ).rejects.toMatchObject({ etapa: "put", status: 500 });
+  });
 });
 
 describe("ApiError", () => {
