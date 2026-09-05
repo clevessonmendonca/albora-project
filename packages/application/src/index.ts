@@ -16,3 +16,6 @@ export type { PlatformOverview, PlatformOverviewInput } from "./analytics/platfo
 export { getPlatformOverview } from "./analytics/platform-overview";
 export type { PlatformRevenue, PlatformRevenueInput } from "./analytics/revenue";
 export { getPlatformRevenue, VENDOR_PLAN_PRICE_CENTS } from "./analytics/revenue";
+
+export type { AccountAdminRow, AccountAdminStatus, AccountAdminType, ListAccountsInput } from "./accounts/list-accounts";
+export { listAccounts } from "./accounts/list-accounts";
