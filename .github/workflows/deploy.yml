@@ -64,10 +64,13 @@ jobs:
         run: pnpm cf:deploy:homol
 
       - name: Smoke pós-deploy
-        if: vars.HOMOL_URL != ''
         env:
           ALVO: ${{ vars.HOMOL_URL }}
         run: |
+          if [ -z "$ALVO" ]; then
+            echo "::error::vars.HOMOL_URL não está configurada (Settings → Secrets and variables → Actions → Variables). Sem ela o smoke pós-deploy não pode rodar, e um deploy sem smoke não prova nada — configure a variável em vez de pular o passo."
+            exit 1
+          fi
           node tools/deploy/smoke.mjs "$ALVO"
           bash scripts/ci/smoke-test.sh "$ALVO"
 
@@ -109,9 +112,12 @@ jobs:
         run: pnpm cf:deploy:prod
 
       - name: Smoke pós-deploy
-        if: vars.PROD_URL != ''
         env:
           ALVO: ${{ vars.PROD_URL }}
         run: |
+          if [ -z "$ALVO" ]; then
+            echo "::error::vars.PROD_URL não está configurada (Settings → Secrets and variables → Actions → Variables). Sem ela o smoke pós-deploy não pode rodar, e um deploy sem smoke não prova nada — configure a variável em vez de pular o passo."
+            exit 1
+          fi
           node tools/deploy/smoke.mjs "$ALVO"
           bash scripts/ci/smoke-test.sh "$ALVO"
