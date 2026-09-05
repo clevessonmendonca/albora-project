@@ -69,6 +69,7 @@ tickets.read / .write / .assign   Fila de suporte
 subscription.read            Ver assinaturas e pagamentos
 subscription.mutate          Trocar plano, cortesia, cancelar
 subscription.refund          Emitir reembolso
+subscription.refund.approve  Aprovar reembolso acima do limiar (só `owner`) — o solicitante nunca aprova o próprio
 lgpd.dsar.read / .execute    Pedidos de titular
 lgpd.delete_account          Excluir conta a pedido (irreversível)
 retention.read               Fila de retenção (d330/d365)
@@ -84,7 +85,7 @@ security.read                Ler eventos de segurança
 |---|---|
 | `owner` | Todas |
 | `support` | `analytics.platform.read`, `accounts.read`, `accounts.pii.reveal`, `events.read`, `tickets.*`, `subscription.read`, `impersonate.request` |
-| `finance` | `analytics.platform.read`, `accounts.read`, `subscription.*` (incl. `refund`), `tickets.read` |
+| `finance` | `analytics.platform.read`, `accounts.read`, `subscription.read`, `subscription.mutate`, `subscription.refund`, `tickets.read` — **sem** `subscription.refund.approve` |
 | `compliance` | `accounts.read`, `accounts.pii.reveal`, `lgpd.*`, `retention.read`, `audit.read`, `security.read`, `events.read` |
 | `engineering` | `analytics.platform.read`, `events.read`, `retention.read`, `tickets.read`, `security.read` |
 
@@ -106,7 +107,7 @@ Políticas conhecidas nesta fase (limiares definidos na Onda C, com o dono):
 
 | Capacidade | Política |
 |---|---|
-| `subscription.refund` | Acima de limiar → `needsApproval` por `owner` |
+| `subscription.refund` | Acima de limiar → `needsApproval` por `subscription.refund.approve` (só `owner`) |
 | `lgpd.delete_account` | Sempre `needsReauth` — irreversível |
 | `impersonate.request` | Sempre `needsApproval` por `owner` (que pode auto-aprovar) |
 | `staff.manage` (atribuir papel) | Sempre `needsReauth` |

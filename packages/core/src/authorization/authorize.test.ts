@@ -94,7 +94,18 @@ describe("política de refund", () => {
       capability: "subscription.refund",
       context: { amountCents: REFUND_APPROVAL_THRESHOLD_CENTS + 1 },
     });
-    expect(decisao).toEqual({ kind: "needsApproval", approverCapability: "subscription.refund" });
+    expect(decisao).toEqual({
+      kind: "needsApproval",
+      approverCapability: "subscription.refund.approve",
+    });
+  });
+
+  // Trava de regressão: se alguém der `.approve` ao financeiro, o aprovador passa
+  // a ser o próprio solicitante e a exigência de aprovação vira decoração.
+  it("finance NÃO aprova o próprio reembolso", () => {
+    expect(hasCapability(["finance"], "subscription.refund")).toBe(true);
+    expect(hasCapability(["finance"], "subscription.refund.approve")).toBe(false);
+    expect(hasCapability(["owner"], "subscription.refund.approve")).toBe(true);
   });
 
   it("sem amountCents é negado", () => {

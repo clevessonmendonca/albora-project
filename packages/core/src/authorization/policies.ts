@@ -25,8 +25,11 @@ function refundPolicy(): Policy {
     if (typeof amountCents !== "number") {
       return { kind: "denied", reason: "valor do reembolso é obrigatório" };
     }
+    // Aprovador precisa ser capacidade que o solicitante NÃO tem: `finance` tem
+    // `subscription.refund`, então exigir aprovação por ela deixaria o financeiro
+    // aprovar a si mesmo — a escalação não escalaria. `.approve` é só do owner.
     if (amountCents > REFUND_APPROVAL_THRESHOLD_CENTS) {
-      return { kind: "needsApproval", approverCapability: "subscription.refund" };
+      return { kind: "needsApproval", approverCapability: "subscription.refund.approve" };
     }
     return { kind: "allowed" };
   };

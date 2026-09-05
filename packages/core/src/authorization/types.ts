@@ -2,6 +2,7 @@ export type Capability =
   | "analytics.platform.read" | "accounts.read" | "accounts.pii.reveal" | "events.read"
   | "tickets.read" | "tickets.write" | "tickets.assign"
   | "subscription.read" | "subscription.mutate" | "subscription.refund"
+  | "subscription.refund.approve"
   | "lgpd.dsar.read" | "lgpd.dsar.execute" | "lgpd.delete_account"
   | "retention.read" | "impersonate.request" | "impersonate.approve"
   | "staff.manage" | "audit.read" | "security.read";
