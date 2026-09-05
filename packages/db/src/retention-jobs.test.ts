@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   agendarRetencaoNaTransacao,
   listDueRetentionJobs,
+  listRetentionJobsAdmin,
   processRetentionJob,
   scheduleRetentionJobs,
   type DueRetentionJob,
@@ -448,5 +449,64 @@ describe("processRetentionJob — lock por evento (pg_advisory_xact_lock)", () =
     // attempts incrementa uma vez por execução real — sob o lock, a segunda
     // invocação encontra o status já 'done' e sai sem tocar attempts de novo.
     expect(status.attempts).toBe(1);
+  });
+});
+
+// `due_at` sempre relativo a `Date.now()` — nunca literal (ver nota do
+// commit 23df916): os quatro kinds só existem quando derivados de um
+// `ends_at` no futuro, então uma data fixa vira bomba-relógio.
+describe("listRetentionJobsAdmin", () => {
+  it("traz pendente mesmo sem due_at vencido, diferente de listDueRetentionJobs", async () => {
+    const eventoId = await criarEvento(new Date(Date.now() + HORA));
+    await admin.query(
+      `INSERT INTO retention_jobs (event_id, kind, status, due_at)
+       VALUES ($1, 'plus_48h', 'pending', now() + interval '10 days')`,
+      [eventoId],
+    );
+
+    const { rows } = await listRetentionJobsAdmin(admin, { status: "pending", limit: 100 });
+    expect(rows.some((r) => r.eventId === eventoId)).toBe(true);
+
+    // listDueRetentionJobs é o runner: só o que está due agora — não devolve este.
+    const vencidos = await listDueRetentionJobs(admin, 100);
+    expect(vencidos.some((j) => j.eventId === eventoId)).toBe(false);
+  });
+
+  it("filtra por status failed — nunca devolve o pending do mesmo evento", async () => {
+    const eventoId = await criarEvento(new Date(Date.now() + HORA));
+    const { rows: falhado } = await admin.query<{ id: string }>(
+      `INSERT INTO retention_jobs (event_id, kind, status, due_at, last_error)
+       VALUES ($1, 'd330_drive', 'failed', now() + interval '5 days', 'export_missing')
+       RETURNING id`,
+      [eventoId],
+    );
+    await admin.query(
+      `INSERT INTO retention_jobs (event_id, kind, status, due_at)
+       VALUES ($1, 'plus_48h', 'pending', now() + interval '1 day')`,
+      [eventoId],
+    );
+
+    const { rows } = await listRetentionJobsAdmin(admin, { status: "failed", limit: 100 });
+    expect(rows.every((r) => r.status === "failed")).toBe(true);
+    expect(rows.some((r) => r.id === falhado[0]!.id)).toBe(true);
+    expect(rows.some((r) => r.eventId === eventoId && r.status === "pending")).toBe(false);
+  });
+
+  it("sem filtro de status, falhado aparece antes de pendente do mesmo evento (falhado é trabalho, não item comum)", async () => {
+    const eventoId = await criarEvento(new Date(Date.now() + HORA));
+    await admin.query(
+      `INSERT INTO retention_jobs (event_id, kind, status, due_at)
+       VALUES ($1, 'plus_48h', 'pending', now() + interval '1 day')`,
+      [eventoId],
+    );
+    await admin.query(
+      `INSERT INTO retention_jobs (event_id, kind, status, due_at, last_error)
+       VALUES ($1, 'd358_warn', 'failed', now() + interval '2 days', 'algum erro')`,
+      [eventoId],
+    );
+
+    const { rows } = await listRetentionJobsAdmin(admin, { limit: 100 });
+    const doEvento = rows.filter((r) => r.eventId === eventoId);
+    expect(doEvento[0]?.status).toBe("failed");
   });
 });

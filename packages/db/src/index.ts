@@ -430,12 +430,15 @@ export {
 export type {
   DepsProcessarRetencao,
   DueRetentionJob,
+  ListRetentionJobsAdminFilter,
   NotificacaoRetencao,
   ResultadoRetentionJob,
+  RetentionJobAdminRow,
 } from "./retention-jobs";
 export {
   agendarRetencaoNaTransacao,
   listDueRetentionJobs,
+  listRetentionJobsAdmin,
   markRetentionJob,
   processRetentionJob,
   scheduleRetentionJobs,

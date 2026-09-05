@@ -48,6 +48,70 @@ export type DueRetentionJob = {
   endsAt: Date;
 };
 
+export type RetentionJobAdminRow = {
+  id: string;
+  eventId: string;
+  kind: RetentionKind;
+  status: "pending" | "running" | "done" | "skipped" | "failed";
+  dueAt: Date;
+  attempts: number;
+  lastError: string | null;
+};
+
+export type ListRetentionJobsAdminFilter = { status?: string; limit: number };
+
+/**
+ * Diferente de `listDueRetentionJobs`: não filtra por `due_at` nem por
+ * status pendente/falhado — a tela de console (§10.3) mostra a fila
+ * inteira (pendente, concluído, falhado), porque "cumprimos porque o cron
+ * existe" não é evidência; o runner (`listDueRetentionJobs`) continua só
+ * com o que está due agora, papel diferente. Falhados sempre no topo:
+ * falha de retenção é obrigação legal descumprida, não um item de lista
+ * como outro qualquer.
+ */
+export async function listRetentionJobsAdmin(
+  pool: Pool,
+  filter: ListRetentionJobsAdminFilter,
+): Promise<{ rows: RetentionJobAdminRow[]; nextCursor: null }> {
+  const clauses: string[] = [];
+  const params: unknown[] = [];
+  if (filter.status) {
+    params.push(filter.status);
+    clauses.push(`status = $${params.length}`);
+  }
+  params.push(filter.limit);
+  const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+
+  const { rows } = await pool.query<{
+    id: string;
+    event_id: string;
+    kind: RetentionKind;
+    status: "pending" | "running" | "done" | "skipped" | "failed";
+    due_at: Date;
+    attempts: number;
+    last_error: string | null;
+  }>(
+    `SELECT id, event_id, kind, status, due_at, attempts, last_error
+       FROM retention_jobs ${where}
+      ORDER BY (status = 'failed') DESC, due_at ASC
+      LIMIT $${params.length}`,
+    params,
+  );
+
+  return {
+    rows: rows.map((r) => ({
+      id: r.id,
+      eventId: r.event_id,
+      kind: r.kind,
+      status: r.status,
+      dueAt: r.due_at,
+      attempts: r.attempts,
+      lastError: r.last_error,
+    })),
+    nextCursor: null,
+  };
+}
+
 /** Pool deve ter BYPASSRLS/superuser — sem isso o JOIN em events devolve zero e o sintoma é silencioso. */
 export async function listDueRetentionJobs(pool: Pool, limit = 50): Promise<DueRetentionJob[]> {
   const { rows } = await pool.query<{
