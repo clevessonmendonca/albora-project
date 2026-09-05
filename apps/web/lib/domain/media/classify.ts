@@ -10,7 +10,9 @@ import {
   claimNextForModeration,
   reclaimStaleModeration,
   completeModeration,
+  enqueueModeration,
   failModeration,
+  listPendingClassifierUploads,
   saveUploadVerdict,
   withEvent,
   type ClaimedItem,
@@ -130,6 +132,19 @@ export async function classifyPendingForEvent(
     // extração que falhar ou estourar o tempo cai no mesmo `sem-resposta` de
     // qualquer classificação silenciosa — nunca `"limpo"`.
     const verdict = await deps.classify({ bytes, mime: "image/jpeg" });
+
+    if (verdict === "sem-resposta") {
+      // Silêncio do provedor (timeout, 429/5xx, corpo malformado) é falha
+      // retentável, não veredito definitivo — mesmo caminho de `readThumb`
+      // acima. Nada de `complete` aqui: isso marcaria a fila `done` e
+      // `saveVerdict` gravaria via `WHERE classifier_verdict IS NULL`,
+      // irreversível. Só quando `falharOuEncerrar` esgota as tentativas é
+      // que "sem-resposta" vira veredito final gravado.
+      await falharOuEncerrar(eventId, item.uploadId, maxAttempts, deps);
+      processed += 1;
+      continue;
+    }
+
     await deps.complete(eventId, item.uploadId, {
       provider: deps.provider ?? "desconhecido",
       result: { veredicto: verdict },
@@ -152,6 +167,50 @@ async function falharOuEncerrar(
   if (resultado === "failed") {
     await deps.saveVerdict(eventId, uploadId, "sem-resposta");
   }
+}
+
+export type OrphanEnqueueDependencies = {
+  listPending: (eventId: string, limit: number) => Promise<{ id: string }[]>;
+  enqueue: (eventId: string, uploadId: string) => Promise<void>;
+};
+
+/**
+ * Rede de segurança do job periódico: enfileira uploads publicados sem
+ * veredito que não têm (ou perderam) linha em `photo_moderation` — o caso em
+ * que `enqueueModeration` falhou por completo sob o SAVEPOINT do confirm
+ * (`confirm-upload.ts`) e a mídia nunca chegou a existir na fila, ficando
+ * invisível para `listEventsWithPendingModeration` e para
+ * `classifyPendingForEvent`. `enqueue` é idempotente (`ON CONFLICT DO
+ * NOTHING` na PK `upload_id`), então reenfileirar um item que já está na
+ * fila não tem efeito.
+ */
+export async function enqueueOrphanedUploads(
+  eventId: string,
+  deps: OrphanEnqueueDependencies,
+  limit = LIMIT,
+): Promise<number> {
+  const uploads = await deps.listPending(eventId, limit);
+  for (const upload of uploads) {
+    await deps.enqueue(eventId, upload.id);
+  }
+  return uploads.length;
+}
+
+export async function enqueueOrphanedUploadsForEventNow(
+  eventId: string,
+  limit = LIMIT,
+): Promise<number> {
+  return enqueueOrphanedUploads(eventId, productionOrphanDependencies(), limit);
+}
+
+function productionOrphanDependencies(): OrphanEnqueueDependencies {
+  const pool = getPool();
+  return {
+    listPending: (eventId, limit) =>
+      withEvent(pool, eventId, (c) => listPendingClassifierUploads(c, eventId, limit)),
+    enqueue: (eventId, uploadId) =>
+      withEvent(pool, eventId, (c) => enqueueModeration(c, { uploadId, eventId })),
+  };
 }
 
 /** Roda uma leva de verdade (aguarda o resultado) — usado pelo disparo do confirm, pelo reforço do telão e pelo job periódico. */

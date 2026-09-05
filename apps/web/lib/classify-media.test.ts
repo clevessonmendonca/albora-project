@@ -255,11 +255,15 @@ describe("classifyPendingForEvent", () => {
     it("classificação do quadro do vídeo que estoura o tempo vira sem-resposta, nunca limpo — `classify` (classificarImagem de produção) já absorve o timeout, o caminho real é coberto em classificador-imagem.test.ts", async () => {
       const gravados: string[] = [];
 
+      // "sem-resposta" vindo do provedor é falha retentável (mesmo caminho
+      // de `readThumb`), não veredito imediato — só grava quando as
+      // tentativas se esgotam (`fail` devolve "failed").
       const n = await classifyPendingForEvent(
         EVENTO,
         deps({
           getUploads: async () => new Map([[UPLOAD, upload({ mime: "video/mp4" })]]),
           classify: async () => "sem-resposta",
+          fail: async () => "failed",
           saveVerdict: async (_e, _id, v) => {
             gravados.push(v);
           },
