@@ -34,3 +34,6 @@ export { listSubscriptions, OVERDUE_DAYS_BASIS } from "./subscriptions/list-subs
 
 export type { ListRetentionJobsInput, RetentionJobAdminRow } from "./retention/list-retention-jobs";
 export { listRetentionJobs, sanitizeRetentionError } from "./retention/list-retention-jobs";
+
+export type { AuditRow, AuditTargetKind, ListAuditInput } from "./audit/list-audit-log";
+export { listAudit } from "./audit/list-audit-log";
