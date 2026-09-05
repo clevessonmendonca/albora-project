@@ -39,6 +39,8 @@ jobs:
         run: node tools/guards/features.mjs
       - name: api-routes
         run: node tools/guards/api-routes.mjs
+      - name: camadas
+        run: node tools/guards/camadas.mjs
 
   # Job separado, com nome próprio, de propósito. Se o isolamento reprovasse
   # dentro de "testes", a falha apareceria como "testes falharam" — e a
