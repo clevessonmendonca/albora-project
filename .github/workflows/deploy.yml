@@ -61,6 +61,11 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # NEXT_PUBLIC_* é inlinada pelo Next.js no build (`opennextjs-cloudflare build`,
+          # dentro de `cf:deploy:homol`) — nunca `wrangler secret put`/`vars`, que só
+          # existem em runtime do Worker e chegam depois do bundle do cliente pronto.
+          NEXT_PUBLIC_APP_ENV: homol
+          NEXT_PUBLIC_SENTRY_DSN: ${{ vars.HOMOL_SENTRY_DSN }}
         run: pnpm cf:deploy:homol
 
       - name: Smoke pós-deploy
@@ -109,6 +114,11 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # NEXT_PUBLIC_* é inlinada pelo Next.js no build (`opennextjs-cloudflare build`,
+          # dentro de `cf:deploy:prod`) — nunca `wrangler secret put`/`vars`, que só
+          # existem em runtime do Worker e chegam depois do bundle do cliente pronto.
+          NEXT_PUBLIC_APP_ENV: prod
+          NEXT_PUBLIC_SENTRY_DSN: ${{ vars.PROD_SENTRY_DSN }}
         run: pnpm cf:deploy:prod
 
       - name: Smoke pós-deploy

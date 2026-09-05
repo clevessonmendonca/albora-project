@@ -38,9 +38,17 @@ Convidado e anfitrião em **HTTPS de produção**, com e-mail de magic link func
 | `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET` | Arnês de carga CI (`carga.yml`) — não confundir com o secret do Worker, que é `wrangler secret put`, não secret do GitHub |
 | `HOMOL_DATABASE_URL`, `PROD_DATABASE_URL` | Só para `backup.yml` (dump). Convenção prefixada por ambiente — **não** o `DATABASE_URL` genérico que uma revisão anterior deste runbook citava; o runtime do Worker nunca lê secret do GitHub, só `wrangler secret put` |
 
-Variáveis opcionais `vars.HOMOL_URL` / `vars.PROD_URL` (Settings → Secrets and
-variables → Actions → Variables) disparam o smoke pós-deploy de
-`.github/workflows/deploy.yml` automaticamente.
+Variáveis `vars.HOMOL_URL` / `vars.PROD_URL` (Settings → Secrets and variables →
+Actions → Variables) são **obrigatórias** para o smoke pós-deploy de
+`.github/workflows/deploy.yml` — sem elas o passo falha o job em vez de ser
+pulado (um smoke que se ausenta em silêncio é pior que nenhum).
+
+Variáveis `vars.HOMOL_SENTRY_DSN` / `vars.PROD_SENTRY_DSN` (mesmo lugar) — se
+configuradas, viram `NEXT_PUBLIC_SENTRY_DSN` no build do passo de deploy
+correspondente. Não são secret: um DSN de cliente Sentry fica no bundle que
+todo convidado baixa, mas precisam existir em tempo de **build**, não como
+`wrangler secret put` (ver comentário em `.env.prod.example`/`.env.homol.example`).
+Sem elas, o Sentry do cliente simplesmente não inicializa — silencioso, sem erro.
 
 ---
 
@@ -66,7 +74,7 @@ Deploy via GitHub:
 - **homol** — Actions → **Deploy** → Run workflow, **a partir do branch `homol`** (confirmar com `deploy-homol`). O job recusa rodar se o ref não for `homol`.
 - **prod** — nunca manual. Só `git tag vX.Y.Z <sha-em-main> && git push origin vX.Y.Z`. O job confirma que o SHA da tag é ancestral de `main` antes de publicar, e roda atrás do GitHub Environment `production` (approval) — mesmo padrão que `backup.yml` já usa para `inputs.alvo == production`.
 
-Smoke pós-deploy (rodado automaticamente pelo workflow se `vars.HOMOL_URL`/`vars.PROD_URL` estiverem configuradas; rodar manual senão):
+Smoke pós-deploy (rodado automaticamente pelo workflow; exige `vars.HOMOL_URL`/`vars.PROD_URL` configuradas, senão o job falha — comando abaixo é o mesmo, para rodar manual):
 
 ```bash
 node tools/deploy/smoke.mjs https://homol.albora.com.br
