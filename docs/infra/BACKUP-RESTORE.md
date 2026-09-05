@@ -51,9 +51,24 @@ bash scripts/backup/verify-dump.sh albora-production.dump
 #    Restaurar primeiro num branch Neon de rascunho (Console → Create branch
 #    → branch vazio) e só then apontar produção pra lá se validado.
 export RESTORE_DATABASE_URL="postgresql://.../branch-de-rascunho?sslmode=require"
-export CONFIRM_RESTORE="$(node --input-type=module -e 'console.log(new URL(process.env.RESTORE_DATABASE_URL).hostname)')"
+
+#    🔴 DIGITE o host abaixo OLHANDO para ele. Não derive de
+#    RESTORE_DATABASE_URL, não copie com $(...), não use variável.
+#    O guard existe para forçar um humano a ler o destino; derivá-lo da
+#    mesma variável que ele confere torna a checagem tautológica — passa
+#    sempre, inclusive apontada para o primary de produção.
+export CONFIRM_RESTORE=ep-xxxx-xxxx.sa-east-1.aws.neon.tech   # ← troque, digitando
+
 bash scripts/backup/database-restore.sh albora-production.dump
 ```
+
+> **Por que digitar à mão.** `pg_restore --clean --if-exists` **dropa o schema
+> do alvo** antes de recriar. Se `RESTORE_DATABASE_URL` tiver sobrado apontando
+> para produção de um passo anterior no mesmo shell — e o §1 deste documento
+> manda mexer em `DATABASE_URL`/`DATABASE_URL_DIRECT` —, uma confirmação
+> derivada concorda com o valor errado e o backup é escrito por cima do banco
+> vivo. Digitar o host é o único momento em que alguém olha para onde a
+> restauração vai.
 
 `database-restore.sh` (já existe em `scripts/backup/`) exige `CONFIRM_RESTORE`
 igual ao **hostname** exato de `RESTORE_DATABASE_URL` antes de rodar — mesmo
