@@ -37,3 +37,6 @@ export { listRetentionJobs, sanitizeRetentionError } from "./retention/list-rete
 
 export type { AuditRow, AuditTargetKind, ListAuditInput } from "./audit/list-audit-log";
 export { listAudit } from "./audit/list-audit-log";
+
+export type { ListSecurityInput, SecurityEventGroup, SecurityEventKind, SecurityEventRow } from "./security/list-security-events";
+export { groupSecurityEvents, listSecurity } from "./security/list-security-events";
