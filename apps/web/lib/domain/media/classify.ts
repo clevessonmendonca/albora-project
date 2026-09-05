@@ -103,7 +103,23 @@ export async function classifyPendingForEvent(
       continue;
     }
 
-    const verdict = await deps.classify({ bytes, mime: upload.mime });
+    // A thumb é sempre JPEG (client-side: `foto.thumb` na captura de imagem,
+    // `posterFromVideo` na de vídeo — ver `confirm-upload.ts`, que valida a
+    // thumb como "image/jpeg" independente de `upload.mime`). Vídeo não tem
+    // classificador próprio (task 7): reusa este classificador de imagem
+    // sobre o quadro-poster extraído no cliente, nunca sobre os bytes do
+    // vídeo. `upload.mime` aqui seria "video/mp4"/"video/quicktime" e
+    // rotularia a data URI errado para o provedor — por isso é sempre
+    // "image/jpeg", nunca `upload.mime`.
+    //
+    // Invariante: um quadro não cobre um vídeo inteiro. O gate de vídeo é
+    // por construção mais fraco que o de imagem estática; a compensação é a
+    // denúncia (`aparece_na_foto`/`ofensivo`) e o modo endurecido do evento,
+    // não uma cobertura completa do conteúdo. Vídeo sem quadro extraível
+    // nunca chega aqui (confirm exige thumb, ver `uploads/confirm/route.ts`);
+    // extração que falhar ou estourar o tempo cai no mesmo `sem-resposta` de
+    // qualquer classificação silenciosa — nunca `"limpo"`.
+    const verdict = await deps.classify({ bytes, mime: "image/jpeg" });
     await deps.complete(eventId, item.uploadId, {
       provider: deps.provider ?? "desconhecido",
       result: { veredicto: verdict },

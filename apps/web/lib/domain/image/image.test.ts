@@ -182,4 +182,65 @@ describe("prepareVideo", () => {
       vi.restoreAllMocks();
     }
   });
+
+  it("busca o quadro do meio, não o primeiro — início de vídeo de festa costuma vir tremido/preto (task 7)", async () => {
+    const video: {
+      muted: boolean;
+      playsInline: boolean;
+      preload: string;
+      videoWidth: number;
+      videoHeight: number;
+      duration: number;
+      currentTime: number;
+      onloadeddata: (() => void) | null;
+      onerror: (() => void) | null;
+      onseeked: (() => void) | null;
+    } = {
+      muted: false,
+      playsInline: false,
+      preload: "",
+      videoWidth: 1920,
+      videoHeight: 1080,
+      duration: 12,
+      currentTime: 0,
+      onloadeddata: null,
+      onerror: null,
+      onseeked: null,
+    };
+
+    vi.stubGlobal("document", {
+      createElement(tag: string) {
+        if (tag === "video") {
+          return new Proxy(video, {
+            set(alvo, prop, valor) {
+              Reflect.set(alvo, prop, valor);
+              if (prop === "src") queueMicrotask(() => alvo.onloadeddata?.());
+              if (prop === "currentTime") queueMicrotask(() => alvo.onseeked?.());
+              return true;
+            },
+          });
+        }
+        if (tag === "canvas") {
+          return {
+            width: 0,
+            height: 0,
+            getContext: () => ({ drawImage: () => {} }),
+            toBlob: (cb: (b: Blob | null) => void) => cb(new Blob(["poster"], { type: "image/jpeg" })),
+          };
+        }
+        throw new Error(tag);
+      },
+    });
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:teste");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+
+    try {
+      const prep = await prepareVideo(new Blob(["x"], { type: "video/mp4" }));
+      expect(video.currentTime).toBe(6); // duration / 2, nunca perto de zero
+      expect(prep?.poster).toBeInstanceOf(Blob);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    }
+  });
 });

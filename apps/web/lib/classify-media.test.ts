@@ -214,4 +214,59 @@ describe("classifyPendingForEvent", () => {
     expect(instanciaA + instanciaB).toBe(1);
     expect(chamadasDeClassify).toHaveLength(1);
   });
+
+  describe("vídeo (task 7)", () => {
+    it("classifica o poster (thumb) de um vídeo com mime image/jpeg, nunca com o mime do full — bytes são sempre o quadro JPEG, não o vídeo", async () => {
+      const mimesRecebidos: string[] = [];
+
+      await classifyPendingForEvent(
+        EVENTO,
+        deps({
+          getUploads: async () => new Map([[UPLOAD, upload({ mime: "video/mp4" })]]),
+          classify: async ({ mime }) => {
+            mimesRecebidos.push(mime);
+            return "limpo";
+          },
+        }),
+      );
+
+      expect(mimesRecebidos).toEqual(["image/jpeg"]);
+    });
+
+    it("vídeo sem quadro extraível (thumb nunca chegou ao storage) esgota tentativas e grava sem-resposta — nunca limpo", async () => {
+      const gravados: string[] = [];
+
+      await classifyPendingForEvent(
+        EVENTO,
+        deps({
+          getUploads: async () => new Map([[UPLOAD, upload({ mime: "video/mp4" })]]),
+          readThumb: async () => null,
+          fail: async () => "failed",
+          saveVerdict: async (_e, _id, v) => {
+            gravados.push(v);
+          },
+        }),
+      );
+
+      expect(gravados).toEqual(["sem-resposta"]);
+    });
+
+    it("classificação do quadro do vídeo que estoura o tempo vira sem-resposta, nunca limpo — `classify` (classificarImagem de produção) já absorve o timeout, o caminho real é coberto em classificador-imagem.test.ts", async () => {
+      const gravados: string[] = [];
+
+      const n = await classifyPendingForEvent(
+        EVENTO,
+        deps({
+          getUploads: async () => new Map([[UPLOAD, upload({ mime: "video/mp4" })]]),
+          classify: async () => "sem-resposta",
+          saveVerdict: async (_e, _id, v) => {
+            gravados.push(v);
+          },
+        }),
+      );
+
+      expect(n).toBe(1);
+      expect(gravados).toEqual(["sem-resposta"]);
+    });
+  });
 });

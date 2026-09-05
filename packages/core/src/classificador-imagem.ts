@@ -4,6 +4,14 @@ import type { VeredictoDoClassificador } from "./moderacao";
 
 /** Fora do caminho crítico — provedor silencioso vira `sem-resposta`; galeria publica, telão segura. */
 
+/**
+ * Vídeo não tem classificador próprio: reusa este mesmo provedor sobre o
+ * quadro-poster (JPEG) que o cliente extrai antes do upload — ver
+ * `posterFromVideo` em `apps/web/lib/domain/image/image.ts` e o invariante em
+ * `apps/web/lib/domain/media/classify.ts`. Cobertura de UM quadro, não do
+ * vídeo inteiro (task 7).
+ */
+
 export type EntradaDeImagem = {
   bytes: Uint8Array;
   mime: string;
