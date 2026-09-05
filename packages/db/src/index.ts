@@ -477,3 +477,22 @@ export { aceitesDeEntradaPorVersao, aceitesExternosPorVersao } from "./consent-d
 export { aceitesDeEntradaPorVersao as entryConsentAcceptancesByVersion } from "./consent-db";
 /** English alias — preferred for new code. @see aceitesExternosPorVersao */
 export { aceitesExternosPorVersao as externalConsentAcceptancesByVersion } from "./consent-db";
+
+export type { ResolvedStaffSession, StaffUserRow, StaffUserStatus } from "./staff";
+export {
+  assignStaffRole,
+  consumeStaffMagicLink,
+  createStaffMagicLink,
+  createStaffSession,
+  createStaffUser,
+  findSessionEvenIfRevoked,
+  findStaffByEmail,
+  findStaffById,
+  listStaffRoles,
+  markReauthenticated,
+  removeStaffRole,
+  resolveStaffSession,
+  revokeSessionChain,
+  revokeStaffSession,
+  touchStaffSession,
+} from "./staff";
