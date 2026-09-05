@@ -2,7 +2,9 @@ import type { Pool, PoolClient } from "pg";
 import { logger } from "@albora/core";
 
 export type AuditActorKind = "staff" | "system" | "host";
-export type AuditTargetKind = "account" | "event" | "ticket" | "subscription" | "staff_user" | "platform";
+export type AuditTargetKind =
+  | "account" | "event" | "ticket" | "subscription" | "staff_user" | "platform"
+  | "dsar_request" | "impersonation_request" | "payment";
 
 export type AuditEntry = {
   actorKind: AuditActorKind;
