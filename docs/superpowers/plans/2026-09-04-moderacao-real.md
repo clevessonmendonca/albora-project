@@ -256,31 +256,44 @@ Registrar: o provedor escolhido e por quê, o placar da matriz, e — obrigatori
 
 ---
 
-### Task 5: Calibragem e orçamento de fila
+### Task 5: Calibragem — o que dá para automatizar, e o que não dá
 
-**Files:** Create `packages/core/src/testes/moderacao-avaliacao/` (imagens benignas + `README.md`), `packages/core/src/classificador-calibragem.test.ts`; Create `docs/runbooks/moderacao-calibragem.md`
+**Files:** Create `packages/core/src/classificador-calibragem.test.ts`, `docs/runbooks/moderacao-calibragem.md`
 
 **Interfaces:**
-- Consumes: o provedor escolhido, da Task 4.
-- Produces: limiar escolhido, travado por teste; procedimento documentado de validação da classe adversa.
+- Consumes: `provedorOpenAI` e `LIMIAR_SUSPEITO` da Task 4.
 
-- [ ] **Passo 1: Montar o conjunto benigno**
+**Revisão do desenho original.** A versão anterior desta task mandava versionar um conjunto de fotos benignas no repo e medir a taxa de falso positivo com ele. Isso não se sustenta: imagem sintética gerada em código mede o encanamento, não o comportamento do classificador diante de uma foto de festa mal iluminada com gente se abraçando — que é exatamente o caso limítrofe que importa. Medir FP real exige foto real, e foto real de convidado **não pode** virar insumo de desenvolvimento (mesma regra que a proíbe como material de marketing).
 
-Fotos de festa de **domínio público ou sintéticas**, versionadas no repo. **Nunca** mídia real de convidado de evento real — mídia de convidado não é insumo de desenvolvimento, pela mesma regra que a proíbe como material de marketing. O `README.md` do diretório registra a procedência de cada imagem.
+Então a task separa o que é honestamente automatizável do que é procedimento humano, e não finge que o segundo é o primeiro.
 
-- [ ] **Passo 2: Escrever o teste de orçamento de fila**
+- [ ] **Passo 1: Travar a lógica de limiar com teste determinístico**
 
-Roda o classificador (com respostas gravadas do provedor, não rede viva) sobre o conjunto benigno e afirma: **a taxa de falso positivo fica abaixo do orçamento declarado**. Escolher e registrar o orçamento no teste — o critério é que o anfitrião consiga revisar a fila durante a própria festa, não numa mesa de operação.
+Fixtures escritas à mão, no formato de resposta que a Task 3 documentou. Sem rede, sem chave. Casos: escore logo abaixo do limiar → `limpo`; logo acima → `suspeito`; exatamente no limiar → o que o código decidir, mas **fixado por teste** para que mudá-lo seja deliberado; múltiplas categorias onde só uma passa do limiar → `suspeito`; `flagged: true` com todos os escores baixos → `suspeito` (o provedor sabe algo que o escore isolado não diz).
 
-- [ ] **Passo 3: Documentar a validação da classe adversa**
+Isto mede a **decisão**, não a acurácia. Diga isso no nome do arquivo e no topo do teste, para ninguém confundir depois.
 
-`docs/runbooks/moderacao-calibragem.md` descreve o procedimento manual, único e não versionado: quem executa, contra que conjunto (mantido **fora** do repo), qual métrica (taxa de falso negativo), e onde o número resultante é registrado. Deixe explícito o motivo de não versionar: não se commita esse material no histórico do git.
+- [ ] **Passo 2: Rodar e ver passar**
 
-- [ ] **Passo 4: Rodar e commitar**
+`pnpm test` — os testes de `packages/core` rodam ali.
+
+- [ ] **Passo 3: Escrever o runbook de medição — `docs/runbooks/moderacao-calibragem.md`**
+
+Duas medições, ambas humanas, ambas com o número resultante registrado no próprio runbook:
+
+**(a) Falso positivo e orçamento de fila.** Contra um conjunto de fotos benignas **reais** que o dono fornece — festa, luz baixa, abraço, dança, brinde. O runbook diz: quantas fotos, como rodar, e o alvo declarado de quantos itens por 100 fotos é aceitável mandar para revisão. O critério do alvo não é estatístico, é operacional: **o anfitrião está na própria festa**, e uma fila que ele não consegue revisar durante o evento é pior que limiar frouxo, porque aí nada é revisado e todo mundo acha que está.
+
+**(b) Falso negativo na classe adversa.** Procedimento manual, único, contra conjunto mantido **fora do repositório**. O runbook diz quem executa, como, e onde o número é registrado. Deixe explícito o motivo de não versionar: esse material não entra no histórico do git.
+
+- [ ] **Passo 4: Registrar o que fica em aberto até as medições existirem**
+
+O limiar da Task 4 é um **ponto de partida não medido**. O runbook abre dizendo isso. Enquanto (a) e (b) não rodarem, o produto tem um classificador que funciona e um limiar que ninguém verificou — o que já é melhor que o estado anterior (todo JPEG passava), mas não é o mesmo que calibrado.
+
+- [ ] **Passo 5: Commit**
 
 ```bash
-git add packages/core/src/testes/moderacao-avaliacao/ packages/core/src/classificador-calibragem.test.ts docs/runbooks/moderacao-calibragem.md
-git commit -m "test(core): orcamento de fila e procedimento de calibragem"
+git add packages/core/src/classificador-calibragem.test.ts docs/runbooks/moderacao-calibragem.md
+git commit -m "test(core): trava a logica de limiar e documenta a medicao humana"
 ```
 
 ---
