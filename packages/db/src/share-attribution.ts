@@ -5,6 +5,9 @@ import { comAgregacao } from "./event";
 
 const ALFABETO_REF = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const TAMANHO_REF = 24;
+
+export { REF_TOKEN_RE, isRefToken } from "@albora/core";
+
 const MAX_TENTATIVAS_REF = 6;
 
 export type RefDeCompartilhamento = { refToken: string };
@@ -65,4 +68,40 @@ export async function eventoDoRef(
     );
     return rows[0]?.event_id ?? null;
   });
+}
+
+export type ResumoAtribuicaoViral = {
+  eventosOriginados: number;
+  porOrigem: { eventoOrigemId: string; criados: number }[];
+};
+
+/**
+ * Quantos eventos foram criados a partir de um ref de convidado, e de qual
+ * evento cada ref veio. `product_events` é anônimo (sem RLS); a resolução
+ * ref → evento de origem cruza eventos e por isso passa por `comAgregacao`
+ * (auditado) — o pool deve ser o do papel agregador (BYPASSRLS); com o pool
+ * da aplicação a resolução devolve vazio em silêncio.
+ */
+export async function resumoAtribuicaoViral(
+  pool: Pool,
+  auditar: (registro: { motivo: string; em: Date }) => void,
+): Promise<ResumoAtribuicaoViral> {
+  const { rows } = await pool.query<{ origin_ref: string; criados: string }>(
+    `SELECT origin_ref, count(*)::text AS criados
+       FROM product_events
+      WHERE name = 'event_created' AND origin_ref IS NOT NULL
+      GROUP BY origin_ref`,
+  );
+
+  const porOrigem: ResumoAtribuicaoViral["porOrigem"] = [];
+  let eventosOriginados = 0;
+  for (const linha of rows) {
+    const eventoOrigemId = await eventoDoRef(pool, linha.origin_ref, auditar);
+    if (!eventoOrigemId) continue;
+    const criados = Number(linha.criados);
+    eventosOriginados += criados;
+    porOrigem.push({ eventoOrigemId, criados });
+  }
+  porOrigem.sort((a, b) => b.criados - a.criados);
+  return { eventosOriginados, porOrigem };
 }

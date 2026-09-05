@@ -38,8 +38,15 @@ export type { FotoRecente, MetricasAoVivo } from "./event-metrics";
 export { lerMetricasAoVivo } from "./event-metrics";
 export type { EntradasPorVia, FunilAgregado } from "./funnel-aggregate";
 export { contarEntradasPorVia, contarSharesDoEvento, lerFunilAgregado } from "./funnel-aggregate";
-export type { RefDeCompartilhamento } from "./share-attribution";
-export { eventoDoRef, mintarRefDeCompartilhamento, refDoEvento } from "./share-attribution";
+export type { RefDeCompartilhamento, ResumoAtribuicaoViral } from "./share-attribution";
+export {
+  eventoDoRef,
+  isRefToken,
+  mintarRefDeCompartilhamento,
+  refDoEvento,
+  resumoAtribuicaoViral,
+  REF_TOKEN_RE,
+} from "./share-attribution";
 export { ErroEventoDoFunilInvalido, registrarEntradaDoFunil, registrarEventoDoFunil } from "./funnel-events";
 export type {
   CodigoPareamentoApp,
