@@ -78,7 +78,10 @@ const semNotificar = { notify: async (_n: NotificacaoRetencao) => {} };
 
 describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000 }, () => {
   it("cria os quatro kinds com due_at derivados de ends_at", async () => {
-    const ends = new Date("2026-09-01T20:00:00Z");
+    // Futuro relativo a agora: planRetention descarta job cujo due já passou
+    // (filtro `> now - 1 dia`), então uma data fixa faz plus_48h sumir assim
+    // que o relógio passa de ends+48h — o teste virava time-bomb.
+    const ends = new Date(Date.now() + 2 * 24 * 3600 * 1000);
     const eventoId = await criarEvento(ends);
     await scheduleRetentionJobs(admin, eventoId, ends);
 
