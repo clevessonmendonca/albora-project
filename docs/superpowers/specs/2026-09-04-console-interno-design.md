@@ -296,7 +296,7 @@ impersonation_requests(
 ## 12. Estrutura e UI do console
 
 - Superfície nova em **`/console`**, absorvendo `/ops` (rotas antigas redirecionam).
-- **Sidebar persistente** (referência: Linear): Visão geral · Contas · Eventos · Assinaturas · Suporte · LGPD · Auditoria · Equipe. Itens filtrados por capacidade.
+- **Sidebar persistente** (referência: Linear): Visão geral · Contas · Eventos · Assinaturas · Suporte · LGPD · Auditoria · Segurança · Equipe. Itens filtrados por capacidade.
 - Construído sobre o design system já entregue (`.tipo-*`, `.elev-*`, `Button`/`Card`/`Badge`/`Switch`/`TextField`/`Select`, admin em modo claro).
 - **Primitivos de console.** Entregues quando a onda que os usa chega, não os vinte de uma vez:
 

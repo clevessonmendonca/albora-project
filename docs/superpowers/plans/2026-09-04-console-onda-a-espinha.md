@@ -2718,15 +2718,22 @@ export { requestStaffLogin } from "./staff/request-login";
 // apps/web/app/console/login/actions.ts
 "use server";
 
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
 import { headers } from "next/headers";
 import { completeStaffLogin, requestStaffLogin } from "@albora/application";
 import { getPool } from "@/lib/db";
 import { sendHostEmail } from "@/lib/email";
 import { issueStaffSession } from "@/lib/console/staff-session";
 
+// HMAC, nunca sha256 puro: o espaço IPv4 tem 2^32 entradas, então hash sem
+// segredo é reversível por força bruta em segundos — ofuscação, não
+// pseudonimização. Esse valor vai para audit_log e security_events sob LGPD.
 function ipHashFromHeaders(raw: string | null): string {
-  return createHash("sha256").update(raw ?? "unknown").digest("hex");
+  const segredo = process.env.SESSION_SECRET;
+  if (!segredo || segredo.length < 32) {
+    throw new Error("SESSION_SECRET ausente ou curto demais para derivar ip_hash");
+  }
+  return createHmac("sha256", segredo).update(raw ?? "unknown").digest("hex");
 }
 
 export async function requestLoginAction(email: string): Promise<{ sent: boolean }> {
