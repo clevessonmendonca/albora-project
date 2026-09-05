@@ -129,6 +129,15 @@ describe("useEventQueue — pílula global de fila offline", () => {
 
     expect(result.current.online).toBe(true);
     expect(drainAndReport).toHaveBeenCalledTimes(1);
+
+    // `drenarAgora` passa `{ online: () => navigator.onLine }` como opção do
+    // dreno; `drainAndReport` está mockado e nunca chama essa closure, então
+    // sem invocá-la aqui ela fica com 0% de cobertura de função (piso de 90%
+    // de `functions` no glob que cobre este arquivo).
+    const opcoes = vi.mocked(drainAndReport).mock.calls[0]?.[2] as { online: () => boolean };
+    expect(opcoes.online()).toBe(true);
+    setOnline(false);
+    expect(opcoes.online()).toBe(false);
   });
 
   it("visibilitychange com documento visível: drena se online, só atualiza se offline", async () => {
@@ -196,20 +205,35 @@ describe("useEventQueue — pílula global de fila offline", () => {
     expect(vi.mocked(webQueue.list).mock.calls.length).toBe(chamadasNoUnmount);
   });
 
-  it("no unmount, remove os listeners de online/offline/visibilitychange/pageshow e o setInterval", async () => {
+  it("no unmount, remove EXATAMENTE os listeners registrados no mount (mesma referência, não `expect.any(Function)`)", async () => {
+    const addWindow = vi.spyOn(window, "addEventListener");
     const removeWindow = vi.spyOn(window, "removeEventListener");
+    const addDoc = vi.spyOn(document, "addEventListener");
     const removeDoc = vi.spyOn(document, "removeEventListener");
+    const setIntervalSpy = vi.spyOn(globalThis, "setInterval");
     const clearIntervalSpy = vi.spyOn(globalThis, "clearInterval");
 
     const { unmount } = renderHook(() => useEventQueue("e1"));
     await waitFor(() => expect(webQueue.list).toHaveBeenCalled());
 
+    // Referência real passada ao addEventListener/setInterval no mount —
+    // `expect.any(Function)` aceitaria uma closure NOVA no cleanup e deixaria
+    // o handler antigo pendurado sem o teste perceber (achado A3 do review
+    // de gates).
+    const registrado = (spy: typeof addWindow, tipo: string) =>
+      spy.mock.calls.find(([evento]) => evento === tipo)?.[1];
+    const online = registrado(addWindow, "online");
+    const offline = registrado(addWindow, "offline");
+    const pageshow = registrado(addWindow, "pageshow");
+    const visibilitychange = registrado(addDoc, "visibilitychange");
+    const relogio = setIntervalSpy.mock.results[0]?.value;
+
     unmount();
 
-    expect(removeWindow).toHaveBeenCalledWith("online", expect.any(Function));
-    expect(removeWindow).toHaveBeenCalledWith("offline", expect.any(Function));
-    expect(removeWindow).toHaveBeenCalledWith("pageshow", expect.any(Function));
-    expect(removeDoc).toHaveBeenCalledWith("visibilitychange", expect.any(Function));
-    expect(clearIntervalSpy).toHaveBeenCalled();
+    expect(removeWindow).toHaveBeenCalledWith("online", online);
+    expect(removeWindow).toHaveBeenCalledWith("offline", offline);
+    expect(removeWindow).toHaveBeenCalledWith("pageshow", pageshow);
+    expect(removeDoc).toHaveBeenCalledWith("visibilitychange", visibilitychange);
+    expect(clearIntervalSpy).toHaveBeenCalledWith(relogio);
   });
 });
