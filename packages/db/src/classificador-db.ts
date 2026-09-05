@@ -42,6 +42,32 @@ export async function listarUploadsPendentesDeClassificacao(
   }));
 }
 
+export type UploadParaClassificar = {
+  chaveFull: string;
+  mime: string;
+};
+
+/**
+ * Task 6: junta os `uploadId` que a fila (`photo_moderation`) acabou de
+ * `claim`ar com os dados de storage que só existem em `uploads` — a fila
+ * guarda estado de processamento, não metadado de mídia. `event_id` no
+ * WHERE é redundante sob RLS, mesma razão de `listarUploadsPendentesDeClassificacao`.
+ */
+export async function buscarUploadsParaClassificar(
+  cliente: PoolClient,
+  eventoId: string,
+  uploadIds: string[],
+): Promise<Map<string, UploadParaClassificar>> {
+  if (uploadIds.length === 0) return new Map();
+
+  const { rows } = await cliente.query<{ id: string; storage_key: string; mime: string }>(
+    `SELECT id, storage_key, mime FROM uploads WHERE event_id = $1 AND id = ANY($2::uuid[])`,
+    [eventoId, uploadIds],
+  );
+
+  return new Map(rows.map((l) => [l.id, { chaveFull: l.storage_key, mime: l.mime }]));
+}
+
 /** Primeiro escritor ganha — `WHERE classifier_verdict IS NULL` impede que retry de dois polls simultâneos sobrescreva. */
 export async function gravarVeredictoUpload(
   cliente: PoolClient,

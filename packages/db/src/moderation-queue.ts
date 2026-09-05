@@ -1,4 +1,4 @@
-import type { PoolClient } from "pg";
+import type { Pool, PoolClient } from "pg";
 
 /**
  * Fila de moderação sobre `photo_moderation` (migration 0062). Substitui o
@@ -100,4 +100,24 @@ export async function failModeration(
   );
 
   return rows[0]?.status === "failed" ? "failed" : "retry";
+}
+
+/**
+ * Rede de segurança da Task 6: quais eventos têm mídia `pending` na fila,
+ * independente do telão ter sido aberto — é a pergunta que o job periódico
+ * faz antes de drenar evento por evento. Cruza eventos de propósito, então
+ * roda no pool do papel `BYPASSRLS` (mesma família de `listDueRetentionJobs`
+ * em `retention-jobs.ts`), nunca no pool com RLS de aplicação. `failed` fica
+ * de fora: `claimNextForModeration` só pega `pending`, reincluir `failed`
+ * aqui não geraria nenhum reprocessamento, só ruído na varredura.
+ */
+export async function listEventsWithPendingModeration(
+  pool: Pool,
+  limit = 100,
+): Promise<string[]> {
+  const { rows } = await pool.query<{ event_id: string }>(
+    `SELECT DISTINCT event_id FROM photo_moderation WHERE status = 'pending' LIMIT $1`,
+    [limit],
+  );
+  return rows.map((r) => r.event_id);
 }

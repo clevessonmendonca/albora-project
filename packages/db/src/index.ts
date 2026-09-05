@@ -146,11 +146,12 @@ export {
   listarMidiaParaRevisao,
 } from "./moderation-review-db";
 
-export type { UploadPendenteDeClassificacao } from "./classificador-db";
+export type { UploadPendenteDeClassificacao, UploadParaClassificar } from "./classificador-db";
 export {
   TETO_DO_CLASSIFICADOR,
   gravarVeredictoUpload,
   listarUploadsPendentesDeClassificacao,
+  buscarUploadsParaClassificar,
 } from "./classificador-db";
 
 export type { ContextoCompartilharDb } from "./share-db";
@@ -467,4 +468,5 @@ export {
   completeModeration,
   enqueueModeration,
   failModeration,
+  listEventsWithPendingModeration,
 } from "./moderation-queue";

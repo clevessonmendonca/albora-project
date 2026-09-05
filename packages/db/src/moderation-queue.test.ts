@@ -6,6 +6,7 @@ import {
   completeModeration,
   enqueueModeration,
   failModeration,
+  listEventsWithPendingModeration,
 } from "./moderation-queue";
 import { prepararBanco, semear } from "./testes/banco";
 
@@ -211,6 +212,36 @@ describe("failModeration", () => {
       claimNextForModeration(c, dados.a.eventoId, 10),
     );
     expect(restantes.map((i) => i.uploadId)).not.toContain(uploadId);
+  });
+});
+
+describe("listEventsWithPendingModeration — rede de segurança da Task 6", () => {
+  it("lista o evento com item pending, mesmo sem nenhum claim ter acontecido (telão nunca abriu)", async () => {
+    const uploadId = await criarUpload(dados.a.eventoId, dados.a.sessaoId);
+    await comEvento(app, dados.a.eventoId, (c) =>
+      enqueueModeration(c, { uploadId, eventId: dados.a.eventoId }),
+    );
+
+    const eventos = await listEventsWithPendingModeration(admin, 100);
+
+    expect(eventos).toContain(dados.a.eventoId);
+  });
+
+  it("não lista evento cuja fila só tem itens done/failed", async () => {
+    const uploadId = await criarUpload(dados.b.eventoId, dados.b.sessaoId);
+    await comEvento(app, dados.b.eventoId, (c) =>
+      enqueueModeration(c, { uploadId, eventId: dados.b.eventoId }),
+    );
+    await comEvento(app, dados.b.eventoId, (c) =>
+      claimNextForModeration(c, dados.b.eventoId, 1),
+    );
+    await comEvento(app, dados.b.eventoId, (c) =>
+      completeModeration(c, uploadId, { provider: "teste", result: {} }),
+    );
+
+    const eventos = await listEventsWithPendingModeration(admin, 100);
+
+    expect(eventos).not.toContain(dados.b.eventoId);
   });
 });
 

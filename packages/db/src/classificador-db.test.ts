@@ -1,6 +1,7 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
+  buscarUploadsParaClassificar,
   gravarVeredictoUpload,
   listarUploadsPendentesDeClassificacao,
 } from "./classificador-db";
@@ -57,5 +58,38 @@ describe("pendentes de classificação", () => {
       [dados.a.uploadId],
     );
     expect(rows[0]?.classifier_verdict).toBe("limpo");
+  });
+});
+
+describe("buscarUploadsParaClassificar (Task 6 — join com a fila de moderação)", () => {
+  it("junta os ids claimados com storage_key/mime, escopado ao evento do crachá", async () => {
+    const { rows } = await admin.query<{ id: string }>(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'video/mp4', 900000) RETURNING id`,
+      [
+        dados.a.eventoId,
+        dados.a.sessaoId,
+        `events/${dados.a.eventoId}/2026/08/moderacao-join/full`,
+      ],
+    );
+    const outroUploadId = rows[0]!.id;
+
+    const encontrados = await comEvento(app, dados.a.eventoId, (c) =>
+      buscarUploadsParaClassificar(c, dados.a.eventoId, [outroUploadId, dados.b.uploadId]),
+    );
+
+    expect(encontrados.get(outroUploadId)).toEqual({
+      chaveFull: `events/${dados.a.eventoId}/2026/08/moderacao-join/full`,
+      mime: "video/mp4",
+    });
+    // uploadId de outro evento não aparece, mesmo pedido explicitamente — RLS + WHERE event_id.
+    expect(encontrados.has(dados.b.uploadId)).toBe(false);
+  });
+
+  it("lista vazia não bate no banco e devolve mapa vazio", async () => {
+    const encontrados = await comEvento(app, dados.a.eventoId, (c) =>
+      buscarUploadsParaClassificar(c, dados.a.eventoId, []),
+    );
+    expect(encontrados.size).toBe(0);
   });
 });
