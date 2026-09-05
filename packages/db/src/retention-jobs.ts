@@ -106,10 +106,26 @@ export async function listRetentionJobsAdmin(
       status: r.status,
       dueAt: r.due_at,
       attempts: r.attempts,
-      lastError: r.last_error,
+      lastError: sanitizarErroDeJob(r.last_error),
     })),
     nextCursor: null,
   };
+}
+
+/**
+ * `last_error` guarda `String(e)` da exceção crua (ver `d365_delete`), e erro
+ * de Postgres embute o valor que causou o conflito — `Key (email)=(x@y.com)
+ * already exists`. Como esta lista vai para a tela do console, mascarar aqui
+ * é o que impede PII de titular aparecer numa superfície de equipe.
+ *
+ * O valor cru continua no banco: quem depura com acesso direto tem outro nível
+ * de confiança que uma tela. Sanitizar na escrita é conserto separado, no
+ * worker de retenção.
+ */
+export function sanitizarErroDeJob(erro: string | null): string | null {
+  if (!erro) return erro;
+  const semEmail = erro.replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, "«contato»");
+  return semEmail.length > 300 ? `${semEmail.slice(0, 300)}…` : semEmail;
 }
 
 /** Pool deve ter BYPASSRLS/superuser — sem isso o JOIN em events devolve zero e o sintoma é silencioso. */

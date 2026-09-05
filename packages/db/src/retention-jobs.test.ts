@@ -8,6 +8,7 @@ import {
   scheduleRetentionJobs,
   type DueRetentionJob,
   type NotificacaoRetencao,
+  sanitizarErroDeJob,
 } from "./retention-jobs";
 import { comEvento } from "./event";
 import { VaultDeTokenDrive } from "./drive-token-vault";
@@ -508,5 +509,25 @@ describe("listRetentionJobsAdmin", () => {
     const { rows } = await listRetentionJobsAdmin(admin, { limit: 100 });
     const doEvento = rows.filter((r) => r.eventId === eventoId);
     expect(doEvento[0]?.status).toBe("failed");
+  });
+});
+
+describe("sanitizarErroDeJob", () => {
+  it("mascara e-mail em mensagem de erro do Postgres", () => {
+    const cru =
+      'duplicate key value violates unique constraint "accounts_email_key" DETAIL: Key (email)=(joao@gmail.com) already exists.';
+    const limpo = sanitizarErroDeJob(cru);
+    expect(limpo).not.toContain("joao@gmail.com");
+    expect(limpo).toContain("«contato»");
+  });
+
+  it("trunca mensagem muito longa", () => {
+    const limpo = sanitizarErroDeJob("x".repeat(500));
+    expect(limpo!.length).toBeLessThanOrEqual(301);
+    expect(limpo!.endsWith("…")).toBe(true);
+  });
+
+  it("null continua null", () => {
+    expect(sanitizarErroDeJob(null)).toBeNull();
   });
 });
