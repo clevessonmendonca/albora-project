@@ -1236,6 +1236,21 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 
 ---
 
+## Follow-ups P1 (da review final; não bloqueiam merge)
+
+Registrados aqui porque o workspace SDD é descartado após o fechamento. Ordem = valor.
+
+1. **Fallback do cookie no route handler** (`apps/web/app/api/analytics/product/route.ts`): quando o body não traz `originRef`, ler `albora_ref` via `cookies()` — atribui a sessão inteira da landing (navegação pra `/15-anos`, cliques que perdem a query), não só o pageview de entrada. Hoje só o `landing_view` de entrada carrega o ref.
+2. **Ampliar escopo dos guards de domínio**: `packs.mjs` cobre `packages/*` + `apps/*/app`; `dominio.mjs` cobre `packages/ui-*` + `apps/web/features`. `apps/web/lib` fica fora de ambos — o 3º fixture `"casamento"` só apareceu na review final. Um dos dois deve varrer `apps/web/lib`.
+3. **Testes do validador no pacote certo**: `REF_TOKEN_RE`/`isRefToken` moram em `packages/core` mas seus testes diretos estão em `packages/db/src/analytics.test.ts` (só rodam com Postgres). Mover pra `packages/core/src/ref-token.test.ts`.
+4. **`AlbumFooterCta`**: `setTimeout` de 2s sem cleanup no unmount (guardar id em ref + `useEffect` cleanup); caso "sem ref" do teste não clica nem assere `fireProductEvent(..., {})`; unificar convenção de transition (`duration-instantaneo ease-mola` vs `var(--tempo-rapido)`).
+5. **`getPublicEventPage`**: `refDoEvento` abre um 2º `withEvent`; dobrar no bloco existente (3ª chamada paralela) poupa 1 round-trip por render (`revalidate: 60` ameniza).
+6. **`middleware.test.ts`**: asserir `secure` nas duas direções (`vi.stubEnv("NODE_ENV","production")`).
+7. **Edge bundle**: barrel `@albora/core` entra inteiro no middleware via `transpilePackages` — seguro hoje; considerar subpath `@albora/core/edge` se o pacote crescer.
+8. **`resumoAtribuicaoViral`**: N+1 `comAgregacao` (1 por `origin_ref` distinto) — batch com `ref_token = ANY($1)` numa única chamada auditada quando ligar em endpoint admin/ops. E documentar na definição da métrica que `guest_share_album` mede **intenção** de compartilhar (dispara antes do share sheet resolver).
+9. **`anonId()`** gera UUID por beacon — `anon_id` não deduplica double-tap nem liga clique à sessão; não ler contagens `guest_*` como usuários únicos.
+10. **Handoff do admin** (`docs/superpowers/handoffs/2026-09-05-admin-events-origin-ref.md`) precisa ser aplicado pelo dono do `/admin` — sem ele, `event_created` nunca carrega `origin_ref` e a métrica final não fecha.
+
 ## Verificação final de P1 (critério de aceite da spec §8)
 
 - [ ] `pnpm exec vitest run` (raiz) verde; `pnpm test:isolamento` verde (inclui `analytics.test.ts` e a migration 0059 aplicada por `prepararBanco`).

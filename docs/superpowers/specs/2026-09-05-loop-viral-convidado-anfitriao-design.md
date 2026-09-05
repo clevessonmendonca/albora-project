@@ -1,7 +1,7 @@
 # Loop viral convidado → anfitrião — design
 
 **Data:** 2026-09-05
-**Status:** Spec aprovada em design, aguardando revisão do mantenedor antes do plano
+**Status:** P1 executado (branch `feat/loop-viral-p1`, 2026-09-05, review final PASS após fix wave) — P2 (memória in-app) e P3 (push) pendentes, cada um com plano próprio
 **Escopo:** Superfícies do convidado, landing, `@albora/db`, jobs, service worker, `apps/mobile`, ADRs. **Fora:** `/admin` (pertence a outra frente — RBAC), exceto uma linha de integração entregue ao dono do admin.
 
 ## 1. Contexto e decisão
