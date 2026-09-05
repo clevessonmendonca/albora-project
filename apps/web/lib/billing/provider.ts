@@ -13,11 +13,24 @@ import type {
   PaymentSummary,
 } from "./types";
 
+/**
+ * As mutações de assinatura (Onda C, T6) chamam o Asaas de DENTRO da transação
+ * aberta por `executeCommand` — é o que mantém a auditoria na mesma transação
+ * da mutação. O preço é que a transação, e a conexão do pool que ela segura,
+ * ficam presas enquanto a rede responde. Sem teto, um Asaas travado drena o
+ * pool inteiro e derruba o console para todo mundo.
+ *
+ * Dez segundos: gateway de pagamento que passa disso já falhou de qualquer
+ * forma, e segurar transação por dez segundos já é muito.
+ */
+const ASAAS_TIMEOUT_MS = 10_000;
+
 async function asaasFetch(
   path: string,
   init: RequestInit & { apiKey: string; baseUrl: string },
 ): Promise<Response> {
   return fetch(`${init.baseUrl}${path}`, {
+    signal: AbortSignal.timeout(ASAAS_TIMEOUT_MS),
     ...init,
     headers: {
       "content-type": "application/json",
