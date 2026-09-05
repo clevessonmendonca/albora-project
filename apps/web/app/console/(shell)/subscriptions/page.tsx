@@ -82,7 +82,7 @@ export default async function SubscriptionsPage() {
         r.overdueDays === null ? (
           "—"
         ) : (
-          <span style={{ color: "var(--critico)" }}>≈ {r.overdueDays.value}d</span>
+          <span className="text-critico">≈ {r.overdueDays.value}d</span>
         ),
     },
     {

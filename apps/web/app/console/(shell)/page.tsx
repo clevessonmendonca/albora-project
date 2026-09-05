@@ -188,8 +188,7 @@ export default async function ConsolePage() {
                 <li key={falha.id}>
                   <button
                     type="button"
-                    className="flex w-full items-center justify-between gap-3 rounded-2xl border bg-superficie p-3 text-left"
-                    style={{ borderColor: "var(--critico)" }}
+                    className="flex w-full items-center justify-between gap-3 rounded-2xl border border-critico bg-superficie p-3 text-left"
                   >
                     <span className="tipo-den-corpo text-ink">{falha.descricao}</span>
                     <StatusBadge tone="critico">precisa de ação</StatusBadge>
