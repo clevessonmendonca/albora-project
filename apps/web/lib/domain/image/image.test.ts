@@ -182,4 +182,155 @@ describe("prepareVideo", () => {
       vi.restoreAllMocks();
     }
   });
+
+  it("vídeo que falha ao carregar devolve null — a foto ainda sobe, o vídeo não trava nisso", async () => {
+    const video: {
+      muted: boolean;
+      playsInline: boolean;
+      preload: string;
+      onloadeddata: (() => void) | null;
+      onerror: (() => void) | null;
+    } = { muted: false, playsInline: false, preload: "", onloadeddata: null, onerror: null };
+
+    vi.stubGlobal("document", {
+      createElement(tag: string) {
+        if (tag === "video") {
+          return new Proxy(video, {
+            set(alvo, prop, valor) {
+              Reflect.set(alvo, prop, valor);
+              if (prop === "src") queueMicrotask(() => alvo.onerror?.());
+              return true;
+            },
+          });
+        }
+        throw new Error(tag);
+      },
+    });
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:teste");
+    const revoke = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+
+    try {
+      expect(await prepareVideo(new Blob(["x"], { type: "video/mp4" }))).toBeNull();
+      expect(revoke).toHaveBeenCalledWith("blob:teste");
+    } finally {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("gera o poster do primeiro quadro quando o canvas decodifica (duração zero inclusive)", async () => {
+    const video: {
+      muted: boolean;
+      playsInline: boolean;
+      preload: string;
+      videoWidth: number;
+      videoHeight: number;
+      duration: number;
+      currentTime: number;
+      onloadeddata: (() => void) | null;
+      onerror: (() => void) | null;
+      onseeked: (() => void) | null;
+    } = {
+      muted: false,
+      playsInline: false,
+      preload: "",
+      videoWidth: 1080,
+      videoHeight: 1920,
+      duration: 0,
+      currentTime: 0,
+      onloadeddata: null,
+      onerror: null,
+      onseeked: null,
+    };
+    const posterBlob = new Blob(["poster"], { type: "image/jpeg" });
+    const drawImage = vi.fn();
+
+    vi.stubGlobal("document", {
+      createElement(tag: string) {
+        if (tag === "video") {
+          return new Proxy(video, {
+            set(alvo, prop, valor) {
+              Reflect.set(alvo, prop, valor);
+              if (prop === "src") queueMicrotask(() => alvo.onloadeddata?.());
+              if (prop === "currentTime") queueMicrotask(() => alvo.onseeked?.());
+              return true;
+            },
+          });
+        }
+        if (tag === "canvas") {
+          return {
+            width: 0,
+            height: 0,
+            getContext: () => ({ drawImage }),
+            toBlob: (cb: (b: Blob | null) => void) => cb(posterBlob),
+          };
+        }
+        throw new Error(tag);
+      },
+    });
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:teste");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+
+    try {
+      const prep = await prepareVideo(new Blob(["x"], { type: "video/mp4" }));
+      expect(prep).toEqual({ largura: 1080, altura: 1920, poster: posterBlob });
+      expect(drawImage).toHaveBeenCalledWith(video, 0, 0);
+    } finally {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("dimensão sobe mesmo quando só o seek do poster falha", async () => {
+    const video: {
+      muted: boolean;
+      playsInline: boolean;
+      preload: string;
+      videoWidth: number;
+      videoHeight: number;
+      duration: number;
+      currentTime: number;
+      onloadeddata: (() => void) | null;
+      onerror: (() => void) | null;
+      onseeked: (() => void) | null;
+    } = {
+      muted: false,
+      playsInline: false,
+      preload: "",
+      videoWidth: 1920,
+      videoHeight: 1080,
+      duration: 4,
+      currentTime: 0,
+      onloadeddata: null,
+      onerror: null,
+      onseeked: null,
+    };
+
+    vi.stubGlobal("document", {
+      createElement(tag: string) {
+        if (tag === "video") {
+          return new Proxy(video, {
+            set(alvo, prop, valor) {
+              Reflect.set(alvo, prop, valor);
+              if (prop === "src") queueMicrotask(() => alvo.onloadeddata?.());
+              // o seek do poster falha — diferente do onerror de carregamento acima
+              if (prop === "currentTime") queueMicrotask(() => alvo.onerror?.());
+              return true;
+            },
+          });
+        }
+        throw new Error(tag);
+      },
+    });
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:teste");
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {});
+
+    try {
+      const prep = await prepareVideo(new Blob(["x"], { type: "video/mp4" }));
+      expect(prep).toEqual({ largura: 1920, altura: 1080, poster: null });
+    } finally {
+      vi.unstubAllGlobals();
+      vi.restoreAllMocks();
+    }
+  });
 });
