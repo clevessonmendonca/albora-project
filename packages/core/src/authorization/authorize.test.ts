@@ -114,10 +114,26 @@ describe("política de refund", () => {
   });
 });
 
-describe("impersonação sempre exige aprovação", () => {
-  it("support pede, owner aprova", () => {
+describe("impersonação: pedir é permitido, ativar é que depende de aprovação", () => {
+  // Criar o pedido é a ação do suporte — é o ponto de "suporte pede, dono
+  // aprova". A exigência de aprovação vive como invariante no comando que
+  // ATIVA a sessão (o pedido precisa estar `approved` e não expirado), não
+  // como política que bloqueia a criação. Política incondicional aqui fazia
+  // executeCommand lançar antes de rodar run(), tornando o pedido impossível
+  // de criar pelo envelope.
+  it("support pode criar o pedido", () => {
     const decisao = authorize({ actor: actor(["support"]), capability: "impersonate.request" });
-    expect(decisao).toEqual({ kind: "needsApproval", approverCapability: "impersonate.approve" });
+    expect(decisao).toEqual({ kind: "allowed" });
+  });
+
+  it("support NÃO tem a capacidade de aprovar", () => {
+    const decisao = authorize({ actor: actor(["support"]), capability: "impersonate.approve" });
+    expect(decisao.kind).toBe("denied");
+  });
+
+  it("owner tem as duas — pode auto-aprovar, e o registro continua existindo", () => {
+    expect(authorize({ actor: actor(["owner"]), capability: "impersonate.request" }).kind).toBe("allowed");
+    expect(authorize({ actor: actor(["owner"]), capability: "impersonate.approve" }).kind).toBe("allowed");
   });
 });
 

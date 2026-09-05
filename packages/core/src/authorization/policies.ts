@@ -15,9 +15,7 @@ function reauthPolicy(): Policy {
   };
 }
 
-function impersonateRequestPolicy(): Policy {
-  return (): Decision => ({ kind: "needsApproval", approverCapability: "impersonate.approve" });
-}
+
 
 function refundPolicy(): Policy {
   return (req: AuthorizationRequest): Decision => {
@@ -35,9 +33,21 @@ function refundPolicy(): Policy {
   };
 }
 
+/**
+ * `impersonate.request` NÃO tem política, e isso é deliberado.
+ *
+ * Criar o pedido é a ação permitida ao suporte — é o ponto inteiro de "suporte
+ * pede, dono aprova". Quem exige aprovação é **ativar a sessão**, e isso é
+ * invariante de negócio dentro do comando (o pedido precisa estar `approved` e
+ * não expirado), não política que bloqueia tudo.
+ *
+ * Uma política incondicional de `needsApproval` aqui fazia `executeCommand`
+ * lançar antes de rodar `run()`, tornando impossível criar o pedido pelo
+ * envelope — e a saída fácil seria abrir exceção ao envelope, que é justamente
+ * o que o ADR 0016 existe para impedir.
+ */
 export const POLICIES: Partial<Record<Capability, Policy>> = {
   "lgpd.delete_account": reauthPolicy(),
   "staff.manage": reauthPolicy(),
-  "impersonate.request": impersonateRequestPolicy(),
   "subscription.refund": refundPolicy(),
 };

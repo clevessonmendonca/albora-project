@@ -109,7 +109,7 @@ Políticas conhecidas nesta fase (limiares definidos na Onda C, com o dono):
 |---|---|
 | `subscription.refund` | Acima de limiar → `needsApproval` por `subscription.refund.approve` (só `owner`) |
 | `lgpd.delete_account` | Sempre `needsReauth` — irreversível |
-| `impersonate.request` | Sempre `needsApproval` por `owner` (que pode auto-aprovar) |
+| `impersonate.request` | **Sem política** — criar o pedido é permitido ao suporte. Ativar a sessão é que exige `impersonate.approve`, como invariante do comando, não como política |
 | `staff.manage` (atribuir papel) | Sempre `needsReauth` |
 | `accounts.pii.reveal` | Permitida, sempre auditada |
 
