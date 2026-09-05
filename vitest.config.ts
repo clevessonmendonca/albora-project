@@ -62,8 +62,42 @@ export default defineConfig({
         "packages/db/**",
         "spike/**",
       ],
-      // Gates MVP (CLAUDE.md): ≥60% global, ≥90% upload pipeline. Thresholds comentados até a suíte alcançar — o job de CI só reporta.
-      // thresholds: { lines: 60, functions: 60, branches: 60, statements: 60 },
+      // Gates MVP (CLAUDE.md): ≥60% global, ≥90% no pipeline de upload.
+      //
+      // O pipeline de upload JÁ está na meta (99,5% de linhas medido em
+      // 2026-09-05) e entra abaixo com o número real do CLAUDE.md — arquivo
+      // que caia abaixo de 90% reprova a MR.
+      //
+      // O global ainda não chegou aos 60%: o medido é 36,7% de linhas. O piso
+      // aqui é o VALOR MEDIDO, arredondado para baixo, e não a meta — ligar em
+      // 60 hoje reprovaria toda MR e o gate seria desligado de novo na semana
+      // seguinte. O que este número impede a partir de agora é a cobertura
+      // CAIR, que é o comportamento perigoso. Subir é degrau com data, não
+      // decreto: cada MR que cobrir código novo pode subir o piso junto.
+      //
+      // Nunca use `coverage.exclude` para fazer um número fechar — o CLAUDE.md
+      // só admite exclusão por linha, com motivo, revisada na MR.
+      thresholds: {
+        lines: 36,
+        statements: 36,
+        functions: 70,
+        branches: 83,
+
+        // Pipeline de upload — o caminho crítico do convidado. Arquivos
+        // casados por estes globs saem da conta global e são avaliados aqui.
+        "apps/web/app/api/uploads/**": {
+          lines: 90, statements: 90, functions: 90, branches: 85,
+        },
+        "apps/web/features/photo/hooks/use-{upload,event-queue}.ts": {
+          lines: 90, statements: 90, functions: 90, branches: 85,
+        },
+        "apps/web/lib/application/use-cases/guest/confirm-upload.ts": {
+          lines: 90, statements: 90, functions: 90, branches: 85,
+        },
+        "packages/core/src/{upload,fila,chaves,exif,processar}.ts": {
+          lines: 90, statements: 90, functions: 90, branches: 85,
+        },
+      },
     },
   },
 });
