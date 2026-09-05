@@ -39,7 +39,13 @@
 
 - [ ] **Passo 1: Confirmar o número livre**
 
-`ls packages/db/migrations/ | tail -3`. Esperado: `0061` é o maior nesta branch. Se `0062` já existir, **pare e reporte** — a faixa foi violada por outro stream.
+`ls packages/db/migrations/ | tail -3`. Esperado nesta branch: o maior é **0055**, porque ela é baseada em `stable`.
+
+**Use `0062` mesmo assim, e não "corrija" para 0056.** Os números 0056–0058 já existem na branch do redesign e 0059–0061 estão reservados ao console interno; essas branches ainda não mergearam em `stable`. Escolher 0056 aqui produziria dois arquivos diferentes com o mesmo número no dia do merge, e um deles se perderia em silêncio.
+
+O gap é inofensivo: `migrar(pool, dir)` em `packages/db/src/migrar.ts` rastreia migrations aplicadas **por nome**, na tabela `_migrations`, não por sequência contínua. Confirme isso lendo o runner antes de seguir.
+
+Só pare e reporte se `0062_*.sql` já existir — aí a faixa foi violada por outro stream.
 
 - [ ] **Passo 2: Escrever a migration**
 
