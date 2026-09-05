@@ -2,10 +2,11 @@
 
 import { createHmac } from "node:crypto";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { completeStaffLogin, requestStaffLogin } from "@albora/application";
 import { getPool } from "@/lib/db";
 import { sendHostEmail } from "@/lib/email";
-import { issueStaffSession } from "@/lib/console/staff-session";
+import { clearStaffSession, issueStaffSession } from "@/lib/console/staff-session";
 import { config } from "@/lib/config";
 
 /**
@@ -57,4 +58,9 @@ export async function completeLoginAction(token: string): Promise<{ ok: boolean 
 
   await issueStaffSession(result.staffUserId);
   return { ok: true };
+}
+
+export async function signOutAction(): Promise<void> {
+  await clearStaffSession();
+  redirect("/console/login");
 }
