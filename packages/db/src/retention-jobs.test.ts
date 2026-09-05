@@ -76,9 +76,12 @@ async function statusDoJob(id: string): Promise<{ status: string; attempts: numb
 
 const semNotificar = { notify: async (_n: NotificacaoRetencao) => {} };
 
+// `ends_at` relativo ao presente, nunca literal: os quatro kinds só são
+// agendados se as datas derivadas estiverem no futuro, então uma data fixa
+// vira bomba-relógio no dia em que o calendário passa por ela.
 describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000 }, () => {
   it("cria os quatro kinds com due_at derivados de ends_at", async () => {
-    const ends = new Date("2026-09-01T20:00:00Z");
+    const ends = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const eventoId = await criarEvento(ends);
     await scheduleRetentionJobs(admin, eventoId, ends);
 
@@ -90,7 +93,7 @@ describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000
   });
 
   it("é idempotente — chamar duas vezes não duplica", async () => {
-    const ends = new Date("2026-09-05T20:00:00Z");
+    const ends = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const eventoId = await criarEvento(ends);
     await scheduleRetentionJobs(admin, eventoId, ends);
     await scheduleRetentionJobs(admin, eventoId, ends);
@@ -103,7 +106,7 @@ describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000
   });
 
   it("agendarRetencaoNaTransacao roda dentro de uma transação já aberta (comEvento)", async () => {
-    const ends = new Date("2026-09-10T20:00:00Z");
+    const ends = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const eventoId = await criarEvento(ends);
     await comEvento(admin, eventoId, (c) => agendarRetencaoNaTransacao(c, eventoId, ends));
 
