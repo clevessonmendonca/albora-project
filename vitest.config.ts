@@ -5,7 +5,7 @@ import { defineConfig } from "vitest/config";
 // (`pnpm test:isolamento`). Fora dali ela não é pulada por conveniência:
 // é que uma falha de isolamento perdida no meio de "testes falharam"
 // deixa de parecer o que é.
-const EXCLUDE = ["**/node_modules/**", "**/dist/**", "spike/**", "packages/db/**"];
+const EXCLUDE = ["**/node_modules/**", "**/dist/**", "spike/**", "packages/db/**", "packages/application/**"];
 
 export default defineConfig({
   resolve: {
@@ -24,7 +24,7 @@ export default defineConfig({
     // Forçar inline dos pacotes monorepo para evitar "Unexpected token 'export'"
     server: {
       deps: {
-        inline: ["@albora/core", "@albora/db", "@albora/packs", "zod"],
+        inline: ["@albora/core", "@albora/db", "@albora/application", "@albora/packs", "zod"],
       },
     },
     // Dois projetos, dois environments: lógica pura roda em node (rápido,
@@ -71,6 +71,7 @@ export default defineConfig({
         "**/node_modules/**",
         "**/dist/**",
         "packages/db/**",
+        "packages/application/**",
         "spike/**",
       ],
       // Gates MVP (CLAUDE.md): ≥60% global, ≥90% upload pipeline.

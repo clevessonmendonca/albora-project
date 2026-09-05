@@ -5,6 +5,7 @@
     { "path": "packages/core" },
     { "path": "packages/packs" },
     { "path": "packages/db" },
+    { "path": "packages/application" },
     { "path": "packages/ui-web" },
     { "path": "packages/ui-native" }
   ]
