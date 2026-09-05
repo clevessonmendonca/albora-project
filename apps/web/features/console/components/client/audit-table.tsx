@@ -12,6 +12,9 @@ export const ROTULO_ALVO: Record<AuditTargetKind, string> = {
   subscription: "Assinatura",
   staff_user: "Equipe",
   platform: "Plataforma",
+  dsar_request: "Pedido LGPD",
+  impersonation_request: "Impersonação",
+  payment: "Pagamento",
 };
 
 const ROTULO_PERIODO: Record<string, string> = {
