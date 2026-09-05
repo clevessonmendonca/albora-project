@@ -1,8 +1,8 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FotoProcessada, QueueItem, RespostaPresign } from "@albora/core";
+import type * as AlboraCoreNS from "@albora/core";
 import { processarFoto } from "@albora/core";
-import { reportFunnel } from "@/features/guest/lib/report-funnel";
 import { deviceDecodes, prepareVideo } from "@/lib/image";
 import { QueueQuotaExceededError, queueSummary, webQueue } from "@/lib/queue";
 import { webTransport } from "@/lib/transport";
@@ -58,7 +58,7 @@ vi.mock("@/features/guest/lib/report-funnel", () => ({
 // nos testes do próprio `@albora/core`. O resto do módulo (isHeic/isVideoBytes/drain/...) fica real:
 // é o que faz presign→PUT→confirm e a distinção HEIC/vídeo serem exercitados de verdade aqui.
 vi.mock("@albora/core", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@albora/core")>();
+  const original = await importOriginal<typeof AlboraCoreNS>();
   return { ...original, processarFoto: vi.fn() };
 });
 
