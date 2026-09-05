@@ -26,5 +26,86 @@
   },
   "observability": {
     "enabled": true
+  },
+  // Ambientes nomeados (`wrangler deploy --env homol|prod`, `wrangler secret put --env homol|prod`).
+  // A config default acima (sem `--env`) continua servindo `stable`, sem mudança de comportamento.
+  // Cada bloco repete tudo explicitamente — Wrangler não herda `vars`/`services`/`queues` entre
+  // ambientes por padrão — e usa fila e worker próprios por ambiente, para não vazar mensagem
+  // ou self-fetch de um ambiente para outro.
+  "env": {
+    "homol": {
+      "name": "albora-web-homol",
+      "assets": {
+        "directory": ".open-next/assets",
+        "binding": "ASSETS"
+      },
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "albora-web-homol"
+        }
+      ],
+      "queues": {
+        "producers": [
+          { "binding": "DRIVE_EXPORT_QUEUE", "queue": "albora-drive-export-homol" }
+        ],
+        "consumers": [
+          {
+            "queue": "albora-drive-export-homol",
+            "max_batch_size": 1,
+            "max_retries": 5
+          }
+        ]
+      },
+      "observability": {
+        "enabled": true
+      },
+      // Não-secretas — o resto (DATABASE_URL, R2_*, SESSION_SECRET, RESEND_API_KEY, ASAAS_*, ...)
+      // é `wrangler secret put --env homol`, nunca aqui. Ver .env.homol.example.
+      "vars": {
+        "APP_ENV": "homol",
+        "APP_ROOT_DOMAIN": "homol.albora.com.br",
+        "MEDIA_DOMAIN": "media-homol.albora.com.br",
+        "R2_BUCKET": "albora-media-homol"
+      }
+    },
+    "prod": {
+      "name": "albora-web-prod",
+      "assets": {
+        "directory": ".open-next/assets",
+        "binding": "ASSETS"
+      },
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "albora-web-prod"
+        }
+      ],
+      "queues": {
+        "producers": [
+          { "binding": "DRIVE_EXPORT_QUEUE", "queue": "albora-drive-export-prod" }
+        ],
+        "consumers": [
+          {
+            "queue": "albora-drive-export-prod",
+            "max_batch_size": 1,
+            "max_retries": 5
+          }
+        ]
+      },
+      "observability": {
+        "enabled": true
+      },
+      // Não-secretas — o resto (DATABASE_URL, R2_*, SESSION_SECRET, RESEND_API_KEY, ASAAS_*, ...)
+      // é `wrangler secret put --env prod`, nunca aqui. Ver .env.prod.example.
+      // APP_ROOT_DOMAIN assume albora.com.br — domínio de produção ainda não fechado
+      // (docs/architecture.md Anexo A item 2); ajustar aqui quando o Fundador decidir.
+      "vars": {
+        "APP_ENV": "prod",
+        "APP_ROOT_DOMAIN": "albora.com.br",
+        "MEDIA_DOMAIN": "media.albora.com.br",
+        "R2_BUCKET": "albora-media-prod"
+      }
+    }
   }
 }
