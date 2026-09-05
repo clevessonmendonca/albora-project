@@ -54,6 +54,24 @@ describe("classificarImagem falha fechado", () => {
       classificarImagem({ bytes: jpegMinimo(), mime: "image/jpeg" }, mudo, 20),
     ).resolves.toBe("sem-resposta");
   });
+
+  it("timeout aborta o provedor de verdade — não paga por uma chamada cujo veredito já foi descartado", async () => {
+    let sinalAbortado = false;
+    const provedorQueRespeitaOSinal: ProvedorDeClassificadorDeImagem = {
+      classificar: (_entrada, opcoes) =>
+        new Promise((_resolve, reject) => {
+          opcoes?.signal?.addEventListener("abort", () => {
+            sinalAbortado = true;
+            reject(new Error("abortado"));
+          });
+        }),
+    };
+
+    await expect(
+      classificarImagem({ bytes: jpegMinimo(), mime: "image/jpeg" }, provedorQueRespeitaOSinal, 20),
+    ).resolves.toBe("sem-resposta");
+    expect(sinalAbortado).toBe(true);
+  });
 });
 
 describe("provedorDeImagemDoAmbiente", () => {

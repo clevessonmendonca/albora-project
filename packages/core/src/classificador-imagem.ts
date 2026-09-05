@@ -17,8 +17,16 @@ export type EntradaDeImagem = {
   mime: string;
 };
 
+export type OpcoesDeClassificacao = {
+  /** Abortado quando o teto de tempo estoura — o provedor deve repassar ao `fetch` para não seguir pagando por um veredito já descartado. */
+  signal?: AbortSignal;
+};
+
 export type ProvedorDeClassificadorDeImagem = {
-  classificar(entrada: EntradaDeImagem): Promise<VeredictoDoClassificador>;
+  classificar(
+    entrada: EntradaDeImagem,
+    opcoes?: OpcoesDeClassificacao,
+  ): Promise<VeredictoDoClassificador>;
 };
 
 export const TEMPO_MAXIMO_MS = 2_500;
@@ -28,8 +36,13 @@ export async function classificarImagem(
   provedor: ProvedorDeClassificadorDeImagem,
   tempoMaximoMs: number = TEMPO_MAXIMO_MS,
 ): Promise<VeredictoDoClassificador> {
+  const controlador = new AbortController();
   try {
-    return await comTempo(provedor.classificar(entrada), tempoMaximoMs);
+    return await comTempo(
+      provedor.classificar(entrada, { signal: controlador.signal }),
+      tempoMaximoMs,
+      controlador,
+    );
   } catch {
     return "sem-resposta";
   }
@@ -75,9 +88,13 @@ function provedorStub(veredictoBruto: string | undefined): ProvedorDeClassificad
   return { async classificar() { return "sem-resposta"; } };
 }
 
-function comTempo<T>(promessa: Promise<T>, ms: number): Promise<T> {
+/** No timeout, aborta o `controlador` além de rejeitar — sem isso o `fetch` do provedor segue até o fim e é cobrado mesmo com o veredito já descartado. */
+function comTempo<T>(promessa: Promise<T>, ms: number, controlador: AbortController): Promise<T> {
   return new Promise((resolver, recusar) => {
-    const id = setTimeout(() => recusar(new Error("classificador.tempo_esgotado")), ms);
+    const id = setTimeout(() => {
+      controlador.abort();
+      recusar(new Error("classificador.tempo_esgotado"));
+    }, ms);
     promessa.then(
       (valor) => {
         clearTimeout(id);

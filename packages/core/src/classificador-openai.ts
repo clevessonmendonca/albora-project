@@ -79,7 +79,10 @@ export function provedorOpenAi(config: ConfigDoProvedorOpenAi): ProvedorDeClassi
   const requisitar = config.fetch ?? fetch;
 
   return {
-    async classificar(entrada: EntradaDeImagem): Promise<VeredictoDoClassificador> {
+    async classificar(
+      entrada: EntradaDeImagem,
+      opcoes?: { signal?: AbortSignal },
+    ): Promise<VeredictoDoClassificador> {
       if (!chave) return "sem-resposta";
 
       let resposta: Response;
@@ -99,6 +102,7 @@ export function provedorOpenAi(config: ConfigDoProvedorOpenAi): ProvedorDeClassi
               },
             ],
           }),
+          signal: opcoes?.signal ?? null,
         });
       } catch {
         return "sem-resposta";

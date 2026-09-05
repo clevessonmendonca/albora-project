@@ -148,6 +148,20 @@ describe("provedorOpenAi — falhas viram sem-resposta, nunca limpo", () => {
     const provedor = provedorOpenAi({ apiKey: "sk-fixture", fetch: fetchQueNuncaResponde });
     await expect(classificarImagem(thumbMinimo(), provedor, 20)).resolves.toBe("sem-resposta");
   });
+
+  it("timeout aborta o fetch de verdade — o sinal de classificarImagem chega até a chamada de rede", async () => {
+    let sinalRecebido: AbortSignal | undefined;
+    const fetchQueNuncaResponde = vi.fn((_url: unknown, init?: RequestInit) => {
+      sinalRecebido = init?.signal ?? undefined;
+      return new Promise(() => {});
+    }) as unknown as typeof fetch;
+    const provedor = provedorOpenAi({ apiKey: "sk-fixture", fetch: fetchQueNuncaResponde });
+
+    await expect(classificarImagem(thumbMinimo(), provedor, 20)).resolves.toBe("sem-resposta");
+
+    expect(sinalRecebido).toBeInstanceOf(AbortSignal);
+    expect(sinalRecebido?.aborted).toBe(true);
+  });
 });
 
 describe("provedorOpenAi — chave ausente", () => {
