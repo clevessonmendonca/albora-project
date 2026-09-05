@@ -496,3 +496,9 @@ export {
   revokeStaffSession,
   touchStaffSession,
 } from "./staff";
+
+export type {
+  AuditActorKind, AuditEntry, AuditLogFilter, AuditRow, AuditTargetKind,
+  SecurityEvent, SecurityEventFilter, SecurityEventKind, SecurityEventRow,
+} from "./audit";
+export { insertAuditLog, insertSecurityEvent, listAuditLog, listSecurityEvents } from "./audit";
