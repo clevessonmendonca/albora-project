@@ -107,7 +107,11 @@ jobs:
 
       - name: Confirmar que a tag está em main
         run: |
-          git fetch origin main
+          # Checkout de tag configura o refspec de fetch em torno da tag — "git fetch
+          # origin main" grava FETCH_HEAD, mas só atualiza refs/remotes/origin/main se o
+          # refspec opportunistic já existir, o que não é garantido. Refspec explícito
+          # deixa isso determinístico em vez de depender de configuração implícita.
+          git fetch origin +refs/heads/main:refs/remotes/origin/main
           if ! git merge-base --is-ancestor "${{ github.sha }}" origin/main; then
             echo "::error::Tag ${{ github.ref_name }} (${{ github.sha }}) não está em main — prod só sai de tag em main (CLAUDE.md)."
             exit 1

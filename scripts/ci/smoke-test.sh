@@ -30,8 +30,14 @@ checar() {
   local url="${alvo}${caminho}"
   local corpo status
 
-  if ! corpo="$(curl -sS --max-time 10 -w '\n%{http_code}' "$url")"; then
-    echo "✗ ${rotulo}  ${url}  → curl falhou (rede ou timeout)" >&2
+  # -L: apex→www ou o redirect que o Cloudflare põe ao ligar um custom domain não pode
+  #     contar como falha (tools/deploy/smoke.mjs já segue redirect; aqui tinha que bater).
+  # --retry/--retry-delay: Neon serverless escala a zero — o primeiro /ready depois de
+  #     ociosidade paga cold start do compute, que pode passar de 10s. --retry trata
+  #     timeout e 5xx como erro transiente (definição do próprio curl), então tenta de
+  #     novo em vez de vermelhar um deploy que está perfeito.
+  if ! corpo="$(curl -sS -L --max-time 15 --retry 3 --retry-delay 3 --retry-connrefused -w '\n%{http_code}' "$url")"; then
+    echo "✗ ${rotulo}  ${url}  → curl falhou (rede ou timeout, mesmo após retry)" >&2
     falhas=$((falhas + 1))
     return
   fi
