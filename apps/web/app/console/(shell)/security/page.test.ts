@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type * as ApplicationModule from "@albora/application";
 
 const { resolveActorMock, listSecurityMock } = vi.hoisted(() => ({
   resolveActorMock: vi.fn(),
@@ -8,7 +9,7 @@ const { resolveActorMock, listSecurityMock } = vi.hoisted(() => ({
 vi.mock("@/lib/console/actor", () => ({ resolveActor: resolveActorMock }));
 vi.mock("@/lib/db", () => ({ getPool: vi.fn() }));
 vi.mock("@albora/application", async () => {
-  const real = await vi.importActual<typeof import("@albora/application")>("@albora/application");
+  const real = await vi.importActual<typeof ApplicationModule>("@albora/application");
   return { ...real, listSecurity: listSecurityMock };
 });
 
