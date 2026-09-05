@@ -90,18 +90,28 @@ export default defineConfig({
       //
       // Cobertura sob gate de 90% hoje: as quatro rotas de
       // `apps/web/app/api/uploads/**`, os hooks `use-upload`/`use-event-queue`,
-      // `confirm-upload.ts` e os módulos puros de `packages/core/src/`. Isso é
-      // PARTE do caminho crítico do convidado, não o caminho inteiro: a
-      // camada de infraestrutura que esses módulos chamam —
-      // `apps/web/lib/infrastructure/queue/client.ts` (83,8%),
-      // `apps/web/lib/utils/transport.ts` (81,4%),
-      // `apps/web/lib/infrastructure/storage/r2-client.ts` (23,5%) e
-      // `apps/web/lib/domain/image/image.ts` (88,0%) — ainda não está sob
-      // gate de 90% e continua caindo no piso global. Trazê-la para 90% é
-      // ~135 linhas de teste novo, tarefa própria (não incluída nesta
-      // correção); os arquivos de import direto (`apps/web/lib/{queue,
-      // transport,r2,image}.ts`) são barris `@deprecated` de uma linha cada —
-      // colocá-los no glob não mediria nada.
+      // `confirm-upload.ts`, os módulos puros de `packages/core/src/` e (desde
+      // a correção do achado do review de gates, medida em 2026-09-05) a
+      // camada de infraestrutura que esses módulos chamam:
+      // `apps/web/lib/infrastructure/queue/client.ts` (era 83,8%, agora
+      // 100/100/100/93,75 — fila persistente: item sobrevive à releitura,
+      // política de retry, cota esgotada, motor indisponível, ordem de
+      // dreno, cada um testado contra o comportamento, não contra dublê),
+      // `apps/web/lib/utils/transport.ts` (era 81,4%, agora 100/100/100/100 —
+      // PUT/POST reais, erro de rede propagado sem embrulho, HTTP não-2xx,
+      // `ApiError` com o que o chamador precisa),
+      // `apps/web/lib/domain/image/image.ts` (era 88,0%, agora
+      // 100/100/100/94,87) e
+      // `apps/web/lib/infrastructure/storage/r2-client.ts` (era 23,5%, agora
+      // 100/97,05/100/100 — `signPut`/`signGet` batem contra a URL assinada
+      // de verdade; `inspectObject`/`streamObject`/`readThumb`/`deleteObject`/
+      // `bufferObject` mockam só a fronteira do browser — `fetch` global —
+      // não o próprio módulo; o retry 5xx real do `aws4fetch` (até 10× com
+      // backoff) é exercitado de ponta a ponta, com o jitter do backoff
+      // zerado via `Math.random` para não pagar segundos reais de espera).
+      // Os arquivos de import direto (`apps/web/lib/{queue,transport,r2,
+      // image}.ts`) continuam de fora do glob: são barris `@deprecated` de
+      // uma linha cada, e medir um barril de reexport não mede nada.
       //
       // Nunca use `coverage.exclude` para fazer um número fechar — o CLAUDE.md
       // só admite exclusão por linha, com motivo, revisada na MR.
@@ -122,6 +132,11 @@ export default defineConfig({
           lines: 90, statements: 90, functions: 90, branches: 85,
         },
         "packages/core/src/{upload,fila,chaves,exif,processar}.ts": {
+          lines: 90, statements: 90, functions: 90, branches: 85,
+        },
+        // Camada de infraestrutura que o pipeline acima chama — ver a nota
+        // longa acima com a cobertura medida de cada um destes quatro.
+        "apps/web/lib/{infrastructure/queue/client,utils/transport,domain/image/image,infrastructure/storage/r2-client}.ts": {
           lines: 90, statements: 90, functions: 90, branches: 85,
         },
       },

@@ -92,3 +92,42 @@ Armadilha registrada: `apps/web/lib/{queue,transport,r2,image}.ts` são barris `
 Três arquivos do pipeline estavam a ~0% **com arquivo de teste existindo**. `use-event-queue.test.ts` reimplementava a regra dentro do próprio teste e testava a cópia — seis testes verdes provando nada. A causa: `.test.ts` cai no projeto **node** do Vitest, que não tem DOM, então o hook nunca era montado. Teste de hook precisa ser `.test.tsx`.
 
 E `resolverAcaoFoco` existia em **três** cópias (hook de upload, hook da fila, e o teste). Agora é uma, em `apps/web/features/photo/lib/acao-foco.ts`.
+
+---
+
+## Onda seguinte (2026-09-05): a camada de infraestrutura entra no gate
+
+O achado do review acima — "a camada de infraestrutura que o pipeline chama ainda não está sob gate de 90%" — foi corrigido. Os quatro arquivos:
+
+| arquivo | antes | depois (L/S/F/B) | limiar do grupo |
+|---|---|---|---|
+| `apps/web/lib/infrastructure/queue/client.ts` | 83,8% | **100 / 100 / 100 / 93,75** | 90/90/90/85 |
+| `apps/web/lib/utils/transport.ts` | 81,4% | **100 / 100 / 100 / 100** | 90/90/90/85 |
+| `apps/web/lib/domain/image/image.ts` | 88,0% | **100 / 100 / 100 / 94,87** | 90/90/90/85 |
+| `apps/web/lib/infrastructure/storage/r2-client.ts` | 23,5% | **100 / 100 / 97,05 / 100** | 90/90/90/85 |
+
+Todos os quatro entraram no mesmo mecanismo de threshold `perFile` já usado pelo pipeline de upload (`vitest.config.ts`, novo grupo de glob logo após o de `packages/core/src`). Não foi preciso abrir um grupo de "degrau" com piso medido abaixo de 90 — todos os quatro passaram do patamar.
+
+### O que cada teste novo exercita (comportamento, não linha)
+
+- **`queue/client.ts`** — a suíte já testava o caminho feliz (`fake-indexeddb`, spec real em memória). O que faltava era a fronteira quebrando: `open()` lançando síncrono, `onerror`/`onblocked` do open, transação abortando por cota (`QueueQuotaExceededError`) vs. por outro motivo (propaga o erro original), e `onerror` direto da transação. Essas fitas trocam `globalThis.indexedDB` por um motor de mentira só para os handlers de erro — não mockam o módulo (`./client`) em si, que continua sendo executado de verdade.
+- **`utils/transport.ts`** — faltavam `sendBytes`/`sendPoster` inteiros (nenhum teste chamava), o corpo de erro malformado (`corpoDeErro` engolindo `res.json()` que lança) e a propagação de erro de rede (fetch rejeitando) sem embrulhar em `ApiError` — quem decide retry é a fila, não o transporte.
+- **`domain/image/image.ts`** — faltava o `onerror` do carregamento do vídeo (linha 73), a duração zero no cálculo do instante do poster (linha 84) e o caminho de sucesso do poster (`ctx` presente, `canvas.toBlob` resolvendo com um Blob de verdade) — o teste existente só cobria o poster falhando.
+- **`infrastructure/storage/r2-client.ts`** — o maior buraco (91 linhas). `signPut`/`signGet` agora batem contra a URL assinada de verdade (host, bucket, chave, `X-Amz-Expires`, `response-content-disposition=inline`). `inspectObject`/`streamObject`/`readThumb`/`deleteObject`/`bufferObject` mockam **só o `fetch` global** — a fronteira do navegador/runtime, não `./r2-client` — e cobrem 404 (ausência, não erro), sucesso (200/206), status inesperado (falha alto) e, no caso de `deleteObject`, 404 como sucesso idempotente. `bufferObject` tem teste dedicado para a concatenação de chunks do stream na ordem certa.
+
+### Uma pegadinha real do `aws4fetch`, registrada para não se repetir
+
+`client().fetch()` (usado por `inspectObject`/`streamObject`/`readThumb`) **tenta de novo qualquer 5xx até 10 vezes**, com backoff exponencial (`Math.random() * initRetryMs * 2^i`, `initRetryMs = 50`). É comportamento real e desejável contra falha transitória do R2 — mas os primeiros testes para "500 falha alto" rodaram o backoff de verdade e levaram **18-23 segundos cada**. `vi.useFakeTimers()` não resolve: o `setTimeout` do retry roda dentro de uma promise que o próprio `fetch` mockado já resolveu, e o timer falso perde a re-entrada (o teste trava até o timeout de 30s). A correção foi zerar o jitter com `vi.spyOn(Math, "random").mockReturnValue(0)` — o retry ainda roda 10 vezes de verdade (o comportamento real é exercitado), só sem esperar de verdade entre elas.
+
+### O que ficou de fora, e por quê
+
+- **`AbortSignal.timeout(5000)` de `inspectObject` não tem teste dedicado ao próprio timeout disparando.** Forçar isso exigiria um fetch mockado que nunca resolve mais fake timers controlando o `AbortSignal` interno do V8/undici — cuja pilotagem por `vi.useFakeTimers()` não é garantida (mesma pegadinha do retry acima, com risco mais alto de um teste instável em vez de determinístico). O valor de mercado desse caminho — servidor R2 não responde em 5s — é melhor coberto por teste de carga/observabilidade do que por unitário.
+- **`client()` e `objectUrl()` não têm teste isolado.** São funções privadas de composição (`config()` + `new AwsClient(...)`, `new URL(...)`); toda função pública exercitada (`signPut`, `signGet`, `inspectObject` etc.) já passa por elas, e a cobertura de linha confirma 100%. Testar a função privada em isolamento seria testar detalhe de implementação sem comportamento novo.
+- **Os quatro barris `@deprecated`** (`apps/web/lib/{queue,transport,r2,image}.ts`, uma linha executável cada, só reexportando) continuam fora do glob de cobertura — o motivo já registrado na onda anterior segue valendo: medir um barril de reexport não mede nada.
+
+### Números finais (`pnpm test:coverage`)
+
+- 308 arquivos de teste, 2665 testes, todos passando.
+- Piso global (agregado): linhas 37,07% (piso 36%), statements 37,07% (piso 36%), functions 72,22% (piso 68%), branches 84,08% (piso 81%) — todos OK, com folga.
+- Gate por arquivo (`perFile: true`): os quatro novos arquivos, mais os grupos já existentes do pipeline de upload, todos ≥90% (branches ≥85%).
+- `pnpm lint` e `pnpm typecheck`: sem erros.
