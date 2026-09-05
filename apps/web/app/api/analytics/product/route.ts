@@ -1,11 +1,11 @@
-import { isProductEventName, recordProductEvent } from "@albora/db";
+import { isProductEventName, isRefToken, recordProductEvent } from "@albora/db";
 import { errorResponse, jsonOk, parseJsonBody } from "@/lib/api";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
 
-type Body = { name?: unknown; anonId?: unknown; packHint?: unknown };
+type Body = { name?: unknown; anonId?: unknown; packHint?: unknown; originRef?: unknown };
 
 /** Landing funnel — best effort, sem auth. */
 export async function POST(req: Request) {
@@ -25,7 +25,8 @@ export async function POST(req: Request) {
   const anonId = typeof parsed.data.anonId === "string" ? parsed.data.anonId.slice(0, 64) : null;
   const packHint =
     typeof parsed.data.packHint === "string" ? parsed.data.packHint.slice(0, 40) : null;
+  const originRef = isRefToken(parsed.data.originRef) ? parsed.data.originRef : null;
 
-  await recordProductEvent(getPool(), parsed.data.name, { anonId, packHint });
+  await recordProductEvent(getPool(), parsed.data.name, { anonId, packHint, originRef });
   return jsonOk({ ok: true });
 }
