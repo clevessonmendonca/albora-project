@@ -502,3 +502,11 @@ export type {
   SecurityEvent, SecurityEventFilter, SecurityEventKind, SecurityEventRow,
 } from "./audit";
 export { insertAuditLog, insertSecurityEvent, listAuditLog, listSecurityEvents } from "./audit";
+
+export type { PlatformParticipationDay, PlatformParticipationWindow, PlatformVolumeWindow } from "./platform-analytics";
+export {
+  platformFunnelInWindow,
+  platformParticipationDailySeries,
+  platformParticipationInWindow,
+  platformVolumeInWindow,
+} from "./platform-analytics";

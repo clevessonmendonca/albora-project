@@ -10,3 +10,9 @@ export { completeStaffLogin } from "./staff/complete-login";
 export { resetRateLimit } from "./staff/rate-limit";
 export type { RequestStaffLoginInput, RequestStaffLoginResult } from "./staff/request-login";
 export { requestStaffLogin } from "./staff/request-login";
+
+export type { ApproximateMetric, MetricWithBaseline } from "./analytics/types";
+export type { PlatformOverview, PlatformOverviewInput } from "./analytics/platform-overview";
+export { getPlatformOverview } from "./analytics/platform-overview";
+export type { PlatformRevenue, PlatformRevenueInput } from "./analytics/revenue";
+export { getPlatformRevenue, VENDOR_PLAN_PRICE_CENTS } from "./analytics/revenue";
