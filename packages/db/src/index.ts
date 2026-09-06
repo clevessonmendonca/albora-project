@@ -431,6 +431,24 @@ export {
   scheduleRetentionJobs,
 } from "./retention-jobs";
 
+export type {
+  EntradaDeScore,
+  JobDeCuration,
+  LinhaDeScore,
+  UploadAguardandoScore,
+} from "./curation";
+export {
+  claimCurationJobs,
+  completeCurationJob,
+  enqueueCuration,
+  failCurationJob,
+  listCurationScores,
+  listEventsWithPendingCuration,
+  listUploadsAwaitingCurationScore,
+  reclaimStaleCurationJob,
+  saveCurationScores,
+} from "./curation";
+
 export type { ChaveVersionada } from "./drive-token-vault";
 export {
   ErroChaveDeVersaoDesconhecida,
