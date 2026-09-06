@@ -487,6 +487,9 @@ export {
   scheduleRetentionJobs,
 } from "./retention-jobs";
 
+export type { AccountPurgeJobRow, AccountPurgeMarkResult } from "./account-purge";
+export { enqueueAccountPurge, listPendingAccountPurgeJobs, markAccountPurgeKey } from "./account-purge";
+
 export type {
   EntradaDeScore,
   JobDeCuration,

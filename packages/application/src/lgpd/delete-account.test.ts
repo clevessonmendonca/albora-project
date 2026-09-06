@@ -120,6 +120,25 @@ describe("deleteAccountOnRequest", () => {
     expect(auditoria[0].reason).toBe("pedido do titular via e-mail");
   });
 
+  it("enfileira as keys do R2 em account_purge_jobs como pending — a fila durável do purge de bytes pós-commit", async () => {
+    await prepararBanco();
+    const { a } = await semear(admin);
+
+    const resultado = await deleteAccountOnRequest(
+      { pool: app },
+      { actor: actor(["compliance"]), reason: "pedido do titular", accountId: a.contaId },
+    );
+
+    expect(resultado.keysToDelete).toEqual([`events/${a.eventoId}/2026/08/foto/full`]);
+    expect(resultado.purgeJobIds).toHaveLength(1);
+
+    const { rows } = await admin.query(
+      "SELECT storage_key, status FROM account_purge_jobs WHERE account_id = $1",
+      [a.contaId],
+    );
+    expect(rows).toEqual([{ storage_key: `events/${a.eventoId}/2026/08/foto/full`, status: "pending" }]);
+  });
+
   it("a linha de auditoria continua existindo depois da conta apagada — audit_log não tem FK para accounts", async () => {
     await prepararBanco();
     const { a } = await semear(admin);

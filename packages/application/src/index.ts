@@ -84,8 +84,9 @@ export { listDsarRequests } from "./lgpd/list-dsar-requests";
 export type { UpdateDsarRequestInput } from "./lgpd/update-dsar-request";
 export { updateDsarRequest } from "./lgpd/update-dsar-request";
 
-export type { DeleteAccountInput } from "./lgpd/delete-account";
-export { deleteAccountOnRequest } from "./lgpd/delete-account";
+export type { DeleteAccountInput, DeleteAccountResult } from "./lgpd/delete-account";
+export type { AccountPurgeMarkResult } from "@albora/db";
+export { deleteAccountOnRequest, markAccountPurgeResult } from "./lgpd/delete-account";
 
 export type { RequestImpersonationInput } from "./impersonation/request-impersonation";
 export { requestImpersonation } from "./impersonation/request-impersonation";

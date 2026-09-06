@@ -18,6 +18,7 @@ import {
   deleteAccountOnRequest,
   denyImpersonation,
   endImpersonation,
+  markAccountPurgeResult,
   ReauthRequiredError,
   refundPayment,
   requestImpersonation,
@@ -395,12 +396,18 @@ function vaultSeConfigurado() {
 /**
  * Exclusão de conta a pedido do titular (T8): `deleteAccountOnRequest` já
  * fez o fail-closed inteiro dentro de uma única transação — se chegou até
- * aqui sem lançar, a conta e os eventos já não existem mais no banco.
+ * aqui sem lançar, a conta e os eventos já não existem mais no banco, e
+ * cada key de `keysToDelete` já está gravada em `account_purge_jobs` como
+ * `pending` (migration 0066) — durável mesmo que o purge abaixo nunca rode.
  *
  * Bytes no R2 e revogação do refresh token do Drive são enriquecimento
  * pós-commit, no MESMO desenho do runner de retenção
  * (`processRetentionJobs`): uma falha aqui não desfaz nem esconde que a
- * conta foi excluída — só fica um log de aviso para ops seguir depois.
+ * conta foi excluída. Diferente do que era antes, a falha não fica só num
+ * console.warn — a linha da fila vira `failed` com `last_error`, visível em
+ * `listPendingAccountPurgeJobs` para ops encontrar o byte órfão depois.
+ * `purgeJobIds` está na mesma ordem de `keysToDelete` (garantia de
+ * `enqueueAccountPurge`), por isso o zip por índice abaixo é seguro.
  */
 export async function deleteAccountAction(accountId: string, reason: string): Promise<DeleteAccountActionResult> {
   const actor = await resolveActor();
@@ -413,11 +420,15 @@ export async function deleteAccountAction(accountId: string, reason: string): Pr
       { actor, reason, accountId },
     );
 
-    for (const key of resultado.keysToDelete) {
+    for (let i = 0; i < resultado.keysToDelete.length; i++) {
+      const key = resultado.keysToDelete[i]!;
+      const jobId = resultado.purgeJobIds[i];
       try {
         await deleteObject(key);
+        if (jobId) await markAccountPurgeResult(getPool(), jobId, { ok: true });
       } catch (e) {
         console.warn("lgpd.delete_account.purge_r2_falhou", { accountId, erro: String(e) });
+        if (jobId) await markAccountPurgeResult(getPool(), jobId, { ok: false, error: String(e) });
       }
     }
     for (const token of resultado.driveRefreshTokensToRevoke) {
