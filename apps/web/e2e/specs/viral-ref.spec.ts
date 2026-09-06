@@ -2,42 +2,53 @@ import { expect, test } from "@playwright/test";
 
 const REF = "e".repeat(24);
 
+/**
+ * Afere o `Set-Cookie` da resposta de navegação, não o cookie guardado pelo
+ * browser. O middleware emite `albora_ref` com `Secure` quando NODE_ENV é
+ * produção (o que `next start` força no CI), mas o servidor de teste roda em
+ * http://localhost: o Chromium guarda cookie Secure sobre http no localhost,
+ * o WebKit (projeto "mobile" = iPhone 13) não — e recusaria calado. Aferir o
+ * header prova o que o produto faz — o middleware manda o cookie certo — sem
+ * depender do quirk de armazenamento http-no-localhost, e passa nos dois
+ * engines. Em produção (HTTPS) o iOS Safari guarda normalmente.
+ */
+type HeaderPair = { name: string; value: string };
+
+function setCookieHeaders(res: { headersArray(): HeaderPair[] } | null): string[] {
+  return (res?.headersArray() ?? [])
+    .filter((h) => h.name.toLowerCase() === "set-cookie")
+    .map((h) => h.value);
+}
+
 test.describe("Loop viral — ref inbound", () => {
   test.describe.configure({ mode: "serial" });
 
-  test("ref válido vira cookie albora_ref e o beacon envia originRef", async ({ page, context }) => {
+  test("ref válido vira cookie albora_ref e o beacon envia originRef", async ({ page }) => {
     const beacon = page.waitForRequest(
       (r) => r.url().endsWith("/api/analytics/product") && r.method() === "POST",
       { timeout: 30_000 },
     );
-    await page.goto(`/?ref=${REF}`);
+    const res = await page.goto(`/?ref=${REF}`);
     const req = await beacon;
     const body = req.postDataJSON() as { name: string; originRef: string | null };
     expect(body.name).toBe("landing_view");
     expect(body.originRef).toBe(REF);
 
-    /*
-     * `cookies()` com a URL explícita, não sem argumento: no WebKit a forma
-     * sem URL devolveu vazio enquanto o Chromium via o cookie, e sem essa
-     * distinção o teste não separa "o WebKit rejeitou o cookie" — que seria
-     * grave, porque o convidado é majoritariamente mobile e boa parte iOS —
-     * de um detalhe da API do Playwright. Com a URL, uma falha aqui passa a
-     * significar rejeição de verdade.
-     */
-    const cookie = (await context.cookies(page.url())).find((c) => c.name === "albora_ref");
-    expect(cookie?.value).toBe(REF);
-    expect(cookie?.httpOnly).toBe(true);
+    const refCookie = setCookieHeaders(res).find((v) => v.startsWith("albora_ref="));
+    expect(refCookie).toContain(`albora_ref=${REF}`);
+    expect(refCookie?.toLowerCase()).toContain("httponly");
+    expect(refCookie?.toLowerCase()).toContain("samesite=lax");
   });
 
-  test("ref inválido não seta cookie e o beacon envia null", async ({ page, context }) => {
+  test("ref inválido não seta cookie e o beacon envia null", async ({ page }) => {
     const beacon = page.waitForRequest(
       (r) => r.url().endsWith("/api/analytics/product") && r.method() === "POST",
       { timeout: 30_000 },
     );
-    await page.goto("/?ref=abc");
+    const res = await page.goto("/?ref=abc");
     const body = (await beacon).postDataJSON() as { name: string; originRef: string | null };
     expect(body.name).toBe("landing_view");
     expect(body.originRef).toBeNull();
-    expect((await context.cookies()).find((c) => c.name === "albora_ref")).toBeUndefined();
+    expect(setCookieHeaders(res).some((v) => v.startsWith("albora_ref="))).toBe(false);
   });
 });
