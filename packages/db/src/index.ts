@@ -146,11 +146,13 @@ export {
   listarMidiaParaRevisao,
 } from "./moderation-review-db";
 
-export type { UploadPendenteDeClassificacao } from "./classificador-db";
+export type { UploadPendenteDeClassificacao, UploadParaClassificar } from "./classificador-db";
 export {
   TETO_DO_CLASSIFICADOR,
   gravarVeredictoUpload,
   listarUploadsPendentesDeClassificacao,
+  listEventsWithOrphanedUploads,
+  buscarUploadsParaClassificar,
 } from "./classificador-db";
 
 export type { ContextoCompartilharDb } from "./share-db";
@@ -460,3 +462,13 @@ export { signableKeys } from "./media-signable";
 
 export type { MissaoInsight, HoraInsight } from "./insights";
 export { fotosPorMissao, fotosPorHora } from "./insights";
+
+export type { ClaimedItem } from "./moderation-queue";
+export {
+  claimNextForModeration,
+  completeModeration,
+  enqueueModeration,
+  failModeration,
+  listEventsWithPendingModeration,
+  reclaimStaleModeration,
+} from "./moderation-queue";

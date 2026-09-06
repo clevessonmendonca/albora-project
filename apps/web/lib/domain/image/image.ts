@@ -29,7 +29,7 @@ export function forgetSupportedFormats(): void {
   supported.clear();
 }
 
-/** Primeiro frame como JPEG (→ `/thumb`) + tamanho real de exibição que o confirm persiste; degrada graciosamente — vídeo ainda sobe. */
+/** Quadro do meio como JPEG (→ `/thumb`) + tamanho real de exibição que o confirm persiste; degrada graciosamente — vídeo ainda sobe. */
 
 export type VideoPrep = {
   largura: number;
@@ -76,12 +76,11 @@ export async function prepareVideo(blob: Blob): Promise<VideoPrep | null> {
   }
 }
 
+/** Quadro do meio, não o primeiro: o início de um vídeo de festa é foco/tremido/preto com frequência maior que o meio (task 7). */
 async function posterFromVideo(video: HTMLVideoElement): Promise<Blob | null> {
   try {
     const instante =
-      Number.isFinite(video.duration) && video.duration > 0
-        ? Math.min(0.25, video.duration * 0.05)
-        : 0;
+      Number.isFinite(video.duration) && video.duration > 0 ? video.duration / 2 : 0;
     video.currentTime = instante;
 
     await new Promise<void>((resolve, reject) => {
