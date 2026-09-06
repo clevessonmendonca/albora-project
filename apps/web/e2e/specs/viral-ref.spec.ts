@@ -16,7 +16,15 @@ test.describe("Loop viral — ref inbound", () => {
     expect(body.name).toBe("landing_view");
     expect(body.originRef).toBe(REF);
 
-    const cookie = (await context.cookies()).find((c) => c.name === "albora_ref");
+    /*
+     * `cookies()` com a URL explícita, não sem argumento: no WebKit a forma
+     * sem URL devolveu vazio enquanto o Chromium via o cookie, e sem essa
+     * distinção o teste não separa "o WebKit rejeitou o cookie" — que seria
+     * grave, porque o convidado é majoritariamente mobile e boa parte iOS —
+     * de um detalhe da API do Playwright. Com a URL, uma falha aqui passa a
+     * significar rejeição de verdade.
+     */
+    const cookie = (await context.cookies(page.url())).find((c) => c.name === "albora_ref");
     expect(cookie?.value).toBe(REF);
     expect(cookie?.httpOnly).toBe(true);
   });
