@@ -39,6 +39,12 @@ export async function enqueueCuration(client: PoolClient, eventId: string): Prom
  * dois workers reivindicando essa mesma linha ao mesmo tempo — por isso o
  * `FOR UPDATE SKIP LOCKED` na subquery, não `UNIQUE` sozinho. Devolve um
  * array (0 ou 1 item) para manter a mesma forma de `claimNextForModeration`.
+ *
+ * `attempts` NÃO é incrementado aqui (achado 7 do review): um evento grande
+ * precisa de vários claims para varrer o acervo inteiro (`RODADAS_MAX_POR_EVENTO`
+ * × `LIMIT` por claim), e cada claim sozinho é progresso saudável, não uma
+ * tentativa fracassada. Só `failCurationJob` incrementa — é lá que "tentativa"
+ * passa a significar "falha sistêmica", não "reivindiquei a fila mais uma vez".
  */
 export async function claimCurationJobs(
   client: PoolClient,
@@ -46,7 +52,7 @@ export async function claimCurationJobs(
 ): Promise<JobDeCuration[]> {
   const { rows } = await client.query<{ id: string; event_id: string; attempts: number }>(
     `UPDATE curation_jobs
-        SET status = 'processing', claimed_at = now(), attempts = attempts + 1
+        SET status = 'processing', claimed_at = now()
       WHERE id = (
         SELECT id FROM curation_jobs
          WHERE event_id = $1 AND status = 'pending'
@@ -72,10 +78,15 @@ export async function completeCurationJob(client: PoolClient, jobId: string): Pr
 }
 
 /**
- * Abaixo do teto volta a `pending` (próximo claim tenta de novo); no teto
- * marca `failed`. `attempts` já foi incrementado no claim — não incrementar
- * aqui de novo, ou o ciclo real claim→fail valeria 2 por tentativa.
- * `AND status = 'processing'` pela mesma razão de `completeCurationJob`.
+ * Único lugar que incrementa `attempts` (achado 7 do review) — aqui "tentativa"
+ * é falha sistêmica de verdade (erro que escapou de `curatePendingForEventNow`,
+ * que já degrada falha de mídia individual para score ausente e nunca lança).
+ * Abaixo do teto volta a `pending` (próximo claim tenta de novo); no teto marca
+ * `failed`. A comparação `attempts + 1 >= $2` usa o valor ANTES do incremento
+ * desta linha (Postgres resolve todo o `SET` contra a linha antiga, não contra
+ * as outras atribuições do mesmo `UPDATE`) — é o mesmo `attempts` que o
+ * `RETURNING` devolve. `AND status = 'processing'` pela mesma razão de
+ * `completeCurationJob`.
  */
 export async function failCurationJob(
   client: PoolClient,
@@ -85,7 +96,8 @@ export async function failCurationJob(
 ): Promise<"retry" | "failed"> {
   const { rows } = await client.query<{ status: string }>(
     `UPDATE curation_jobs
-        SET status = CASE WHEN attempts >= $2 THEN 'failed' ELSE 'pending' END,
+        SET attempts = attempts + 1,
+            status = CASE WHEN attempts + 1 >= $2 THEN 'failed' ELSE 'pending' END,
             last_error = $3
       WHERE id = $1 AND status = 'processing'
       RETURNING status`,
@@ -118,6 +130,35 @@ export async function reclaimStaleCurationJob(
 }
 
 /**
+ * `failed` não pode ser buraco silencioso (achado 7 do review): sem isto, o
+ * primeiro erro sistêmico transitório (um blip do Postgres, um deploy no meio
+ * da varredura) enterra o evento para sempre — `listEventsWithPendingCuration`
+ * não listava `failed`, e `enqueueCuration` é `ON CONFLICT DO NOTHING`, então
+ * reenfileirar não revive. Mesma forma de `reclaimStaleCurationJob` (recuperação
+ * por tempo, reaproveitando `claimed_at` — que o claim mais recente já deixou
+ * fresco, sem precisar de coluna nova), mas com uma janela bem mais longa: o
+ * objetivo aqui não é destravar um worker morto em segundos, é dar tempo para
+ * um humano notar o `console.error` antes do retry automático, e não martelar
+ * um item de verdade envenenado a cada varredura. Zera `attempts` — senão o
+ * job renasce `pending` já no teto e falha nesse mesmo claim.
+ */
+export async function reclaimFailedCurationJob(
+  client: PoolClient,
+  eventId: string,
+  failedRecoveryAfterSeconds: number,
+): Promise<number> {
+  const { rowCount } = await client.query(
+    `UPDATE curation_jobs
+        SET status = 'pending', attempts = 0
+      WHERE event_id = $1
+        AND status = 'failed'
+        AND claimed_at < now() - make_interval(secs => $2)`,
+    [eventId, failedRecoveryAfterSeconds],
+  );
+  return rowCount ?? 0;
+}
+
+/**
  * Gatilho de enfileiramento (spec §4, opção b): nenhum chamador decidia quando enfileirar um
  * evento, então `curation_jobs` nunca recebia uma linha em produção (achado 1 do review). O sinal
  * de "evento encerrado" é `events.ends_at <= now()` — já existe na tabela, não precisa de coluna
@@ -139,18 +180,26 @@ export async function listEventsNeedingCurationEnqueue(pool: Pool, limit = 50): 
   return rows.map((r) => r.id);
 }
 
-/** Cross-event por desenho (varredura do job periódico) — roda no pool `BYPASSRLS`, só leitura. Inclui eventos com claim preso além do prazo, senão o job periódico nunca os visitaria de novo para reivindicar. */
+/**
+ * Cross-event por desenho (varredura do job periódico) — roda no pool `BYPASSRLS`, só leitura.
+ * Inclui eventos com claim preso além do prazo, senão o job periódico nunca os visitaria de novo
+ * para reivindicar. Também inclui `failed` além de `staleFailedAfterSeconds` (achado 7 do
+ * review) — sem isso `reclaimFailedCurationJob` nunca seria chamado, porque o evento nunca
+ * apareceria aqui para `processarEvento` visitar de novo.
+ */
 export async function listEventsWithPendingCuration(
   pool: Pool,
   limit = 100,
   staleAfterSeconds = 600,
+  staleFailedAfterSeconds = 86_400,
 ): Promise<string[]> {
   const { rows } = await pool.query<{ event_id: string }>(
     `SELECT DISTINCT event_id FROM curation_jobs
       WHERE status = 'pending'
          OR (status = 'processing' AND claimed_at < now() - make_interval(secs => $2))
+         OR (status = 'failed' AND claimed_at < now() - make_interval(secs => $3))
       LIMIT $1`,
-    [limit, staleAfterSeconds],
+    [limit, staleAfterSeconds, staleFailedAfterSeconds],
   );
   return rows.map((r) => r.event_id);
 }

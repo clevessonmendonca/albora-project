@@ -446,6 +446,7 @@ export {
   listEventsNeedingCurationEnqueue,
   listEventsWithPendingCuration,
   listUploadsAwaitingCurationScore,
+  reclaimFailedCurationJob,
   reclaimStaleCurationJob,
   saveCurationScores,
 } from "./curation";

@@ -4,6 +4,7 @@ const mockListEventsNeedingCurationEnqueue = vi.fn();
 const mockEnqueueCuration = vi.fn();
 const mockListEventsWithPendingCuration = vi.fn();
 const mockReclaimStaleCurationJob = vi.fn();
+const mockReclaimFailedCurationJob = vi.fn();
 const mockClaimCurationJobs = vi.fn();
 const mockListUploadsAwaitingCurationScore = vi.fn();
 const mockCompleteCurationJob = vi.fn();
@@ -15,6 +16,7 @@ vi.mock("@albora/db", () => ({
   enqueueCuration: mockEnqueueCuration,
   listEventsWithPendingCuration: mockListEventsWithPendingCuration,
   reclaimStaleCurationJob: mockReclaimStaleCurationJob,
+  reclaimFailedCurationJob: mockReclaimFailedCurationJob,
   claimCurationJobs: mockClaimCurationJobs,
   listUploadsAwaitingCurationScore: mockListUploadsAwaitingCurationScore,
   completeCurationJob: mockCompleteCurationJob,
@@ -55,6 +57,7 @@ describe("POST /api/ops/curadoria", () => {
     mockEnqueueCuration.mockResolvedValue(undefined);
     mockListEventsWithPendingCuration.mockResolvedValue([]);
     mockReclaimStaleCurationJob.mockResolvedValue(0);
+    mockReclaimFailedCurationJob.mockResolvedValue(0);
     mockClaimCurationJobs.mockResolvedValue([]);
     mockListUploadsAwaitingCurationScore.mockResolvedValue([]);
     mockCompleteCurationJob.mockResolvedValue(undefined);
@@ -144,6 +147,16 @@ describe("POST /api/ops/curadoria", () => {
     await postOpsCuradoria(req());
 
     expect(mockReclaimStaleCurationJob).toHaveBeenCalledWith(expect.anything(), "evento-a", 600);
+  });
+
+  it("reclama failed além da janela de recuperação antes do reclaim de processing (achado 7)", async () => {
+    mockListEventsWithPendingCuration.mockResolvedValue(["evento-a"]);
+    mockClaimCurationJobs.mockResolvedValue([{ id: "job-1", eventId: "evento-a", attempts: 0 }]);
+
+    await postOpsCuradoria(req());
+
+    expect(mockReclaimFailedCurationJob).toHaveBeenCalledWith(expect.anything(), "evento-a", 86_400);
+    expect(mockListEventsWithPendingCuration).toHaveBeenCalledWith(expect.anything(), 100, 600, 86_400);
   });
 
   it("erro sistêmico ao processar o evento marca o job failed e não interrompe os demais eventos", async () => {

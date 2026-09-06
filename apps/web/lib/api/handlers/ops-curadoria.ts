@@ -6,6 +6,7 @@ import {
   listEventsNeedingCurationEnqueue,
   listEventsWithPendingCuration,
   listUploadsAwaitingCurationScore,
+  reclaimFailedCurationJob,
   reclaimStaleCurationJob,
   withEvent,
 } from "@albora/db";
@@ -18,6 +19,11 @@ export const dynamic = "force-dynamic";
 /** Teto de segurança contra loop infinito — um evento com backlog gigante drena aos poucos, em varreduras seguintes (o job fica `processing`; a próxima varredura o reivindica de novo via reclaim), não trava este request. */
 const RODADAS_MAX_POR_EVENTO = 5;
 const RECLAIM_APOS_SEGUNDOS = 600;
+/** Janela de recuperação de `failed` (achado 7) — bem maior que `RECLAIM_APOS_SEGUNDOS`: dá tempo
+ * para um humano notar o `console.error` de `curadoria.evento_falhou` antes do retry automático, e
+ * evita martelar um item de verdade envenenado a cada varredura (o cron roda a cada poucos
+ * minutos; 24 h é uma folga generosa sem deixar o evento morto para sempre). */
+const RECLAIM_FALHA_APOS_SEGUNDOS = 86_400;
 const MAX_ATTEMPTS = 3;
 
 function autorizado(req: Request): boolean {
@@ -48,9 +54,11 @@ async function enfileirarEventosEncerrados(): Promise<void> {
 
 /**
  * Claim de curation_jobs é por evento (uma linha por evento, `UNIQUE (event_id)`) — nunca cruza
- * eventos, diferente da listagem acima (`listEventsWithPendingCuration`, `BYPASSRLS`). Reclaim
- * roda antes do claim: se o job estava preso em `processing` além do prazo (processo morto),
- * ele volta a `pending` a tempo de ser reivindicado nesta mesma passada.
+ * eventos, diferente da listagem acima (`listEventsWithPendingCuration`, `BYPASSRLS`). Dois
+ * reclaims rodam antes do claim: o de `failed` primeiro (achado 7 — sem ele um `failed` antigo
+ * fica preso para sempre, `attempts` já no teto), depois o de `processing` órfão (processo morto).
+ * Se qualquer um dos dois destravar a linha, ela volta a `pending` a tempo de ser reivindicada
+ * nesta mesma passada.
  *
  * Falha de UM item de mídia nunca chega aqui — `curatePendingForEventNow` já degrada para score
  * ausente e nunca lança. `failCurationJob` só é acionado por um erro sistêmico (banco fora do ar,
@@ -59,6 +67,9 @@ async function enfileirarEventosEncerrados(): Promise<void> {
 async function processarEvento(eventoId: string): Promise<ResultadoEvento> {
   const pool = getPool();
 
+  await withEvent(pool, eventoId, (c) =>
+    reclaimFailedCurationJob(c, eventoId, RECLAIM_FALHA_APOS_SEGUNDOS),
+  );
   await withEvent(pool, eventoId, (c) => reclaimStaleCurationJob(c, eventoId, RECLAIM_APOS_SEGUNDOS));
 
   const [job] = await withEvent(pool, eventoId, (c) => claimCurationJobs(c, eventoId));
@@ -105,7 +116,12 @@ export async function postOpsCuradoria(req: Request) {
   try {
     await enfileirarEventosEncerrados();
 
-    const eventos = await listEventsWithPendingCuration(getAggregatorPool());
+    const eventos = await listEventsWithPendingCuration(
+      getAggregatorPool(),
+      100,
+      RECLAIM_APOS_SEGUNDOS,
+      RECLAIM_FALHA_APOS_SEGUNDOS,
+    );
 
     let processados = 0;
     let semJob = 0;

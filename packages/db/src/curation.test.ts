@@ -10,6 +10,7 @@ import {
   listEventsNeedingCurationEnqueue,
   listEventsWithPendingCuration,
   listUploadsAwaitingCurationScore,
+  reclaimFailedCurationJob,
   reclaimStaleCurationJob,
   saveCurationScores,
 } from "./curation";
@@ -104,7 +105,38 @@ describe("claimCurationJobs — dois claims concorrentes não pegam o mesmo item
     expect(resultadoB).toHaveLength(1);
     expect(resultadoA[0]!.eventId).toBe(dados.a.eventoId);
     expect(resultadoB[0]!.eventId).toBe(dados.b.eventoId);
-    expect(resultadoA[0]!.attempts).toBe(1);
+    // Claim sozinho é progresso, não tentativa fracassada (achado 7) — não incrementa.
+    expect(resultadoA[0]!.attempts).toBe(0);
+  });
+
+  it("attempts NÃO cresce em claims de trabalho saudável — só failCurationJob incrementa (achado 7)", async () => {
+    // Cenário do review: backlog maior que o teto de rodadas por passada — o job
+    // nunca completa na mesma varredura, fica `processing`, é destravado por
+    // `reclaimStaleCurationJob` e reivindicado de novo, várias vezes seguidas.
+    // Nenhuma dessas voltas é uma falha; `attempts` tem que continuar em 0.
+    await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
+
+    for (let i = 0; i < 5; i++) {
+      const [job] = await comEvento(app, dados.a.eventoId, (c) => claimCurationJobs(c, dados.a.eventoId));
+      expect(job).toBeDefined();
+      expect(job!.attempts).toBe(0);
+      // Simula a varredura seguinte: job ficou "processing" (backlog não esgotado),
+      // claimed_at envelhece além do prazo, o próximo reclaim destrava.
+      await admin.query(
+        "UPDATE curation_jobs SET claimed_at = now() - interval '1 hour' WHERE event_id = $1",
+        [dados.a.eventoId],
+      );
+      const devolvidos = await comEvento(app, dados.a.eventoId, (c) =>
+        reclaimStaleCurationJob(c, dados.a.eventoId, 600),
+      );
+      expect(devolvidos).toBe(1);
+    }
+
+    const { rows } = await admin.query<{ attempts: number }>(
+      "SELECT attempts FROM curation_jobs WHERE event_id = $1",
+      [dados.a.eventoId],
+    );
+    expect(rows[0]!.attempts).toBe(0);
   });
 
   it("duas conexões disputando o mesmo job (transações sobrepostas): só uma reivindica", async () => {
@@ -199,6 +231,13 @@ describe("completeCurationJob e failCurationJob ignoram linha que não está pro
 describe("reclaimStaleCurationJob", () => {
   it("devolve a pending o claim órfão de processo morto, sem zerar attempts", async () => {
     await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
+
+    // attempts só sobe por falha real (failCurationJob), não por claim — gera um
+    // attempts=1 de verdade antes de testar que reclaimStaleCurationJob não o zera.
+    const [primeiroJob] = await comEvento(app, dados.a.eventoId, (c) => claimCurationJobs(c, dados.a.eventoId));
+    await comEvento(app, dados.a.eventoId, (c) => failCurationJob(c, primeiroJob!.id, 5, "erro de teste"));
+    expect(await statusDoJob(dados.a.eventoId)).toBe("pending");
+
     await comEvento(app, dados.a.eventoId, (c) => claimCurationJobs(c, dados.a.eventoId));
     expect(await statusDoJob(dados.a.eventoId)).toBe("processing");
 
@@ -235,6 +274,68 @@ describe("reclaimStaleCurationJob", () => {
   });
 });
 
+describe("reclaimFailedCurationJob — failed não pode ser buraco silencioso (achado 7)", () => {
+  it("devolve a pending e zera attempts um failed além da janela de recuperação", async () => {
+    await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
+    const [job] = await comEvento(app, dados.a.eventoId, (c) => claimCurationJobs(c, dados.a.eventoId));
+    const resultado = await comEvento(app, dados.a.eventoId, (c) =>
+      failCurationJob(c, job!.id, 1, "erro sistêmico de teste"),
+    );
+    expect(resultado).toBe("failed");
+    expect(await statusDoJob(dados.a.eventoId)).toBe("failed");
+
+    await admin.query(
+      "UPDATE curation_jobs SET claimed_at = now() - interval '25 hours' WHERE event_id = $1",
+      [dados.a.eventoId],
+    );
+
+    const devolvidos = await comEvento(app, dados.a.eventoId, (c) =>
+      reclaimFailedCurationJob(c, dados.a.eventoId, 86_400),
+    );
+    expect(devolvidos).toBe(1);
+    expect(await statusDoJob(dados.a.eventoId)).toBe("pending");
+
+    const { rows } = await admin.query<{ attempts: number }>(
+      "SELECT attempts FROM curation_jobs WHERE event_id = $1",
+      [dados.a.eventoId],
+    );
+    expect(rows[0]!.attempts).toBe(0);
+
+    // Evento não fica morto para sempre: o próximo claim reivindica normalmente.
+    const [reivindicado] = await comEvento(app, dados.a.eventoId, (c) => claimCurationJobs(c, dados.a.eventoId));
+    expect(reivindicado).toBeDefined();
+  });
+
+  it("NÃO mexe em failed ainda dentro da janela", async () => {
+    await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
+    const [job] = await comEvento(app, dados.a.eventoId, (c) => claimCurationJobs(c, dados.a.eventoId));
+    await comEvento(app, dados.a.eventoId, (c) => failCurationJob(c, job!.id, 1, "erro sistêmico de teste"));
+    expect(await statusDoJob(dados.a.eventoId)).toBe("failed");
+
+    const devolvidos = await comEvento(app, dados.a.eventoId, (c) =>
+      reclaimFailedCurationJob(c, dados.a.eventoId, 86_400),
+    );
+    expect(devolvidos).toBe(0);
+    expect(await statusDoJob(dados.a.eventoId)).toBe("failed");
+  });
+
+  it("NÃO mexe em pending nem em processing", async () => {
+    await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
+
+    const devolvidosPending = await comEvento(app, dados.a.eventoId, (c) =>
+      reclaimFailedCurationJob(c, dados.a.eventoId, 0),
+    );
+    expect(devolvidosPending).toBe(0);
+
+    await comEvento(app, dados.a.eventoId, (c) => claimCurationJobs(c, dados.a.eventoId));
+    const devolvidosProcessing = await comEvento(app, dados.a.eventoId, (c) =>
+      reclaimFailedCurationJob(c, dados.a.eventoId, 0),
+    );
+    expect(devolvidosProcessing).toBe(0);
+    expect(await statusDoJob(dados.a.eventoId)).toBe("processing");
+  });
+});
+
 describe("listEventsWithPendingCuration — rede de segurança do job periódico", () => {
   it("lista o evento com job pending", async () => {
     await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
@@ -261,6 +362,29 @@ describe("listEventsWithPendingCuration — rede de segurança do job periódico
     );
 
     const eventos = await listEventsWithPendingCuration(admin, 100, 600);
+    expect(eventos).toContain(dados.a.eventoId);
+  });
+
+  it("NÃO lista failed recente — achado 7 seria buraco silencioso sem a janela de recuperação", async () => {
+    await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
+    const [job] = await comEvento(app, dados.a.eventoId, (c) => claimCurationJobs(c, dados.a.eventoId));
+    await comEvento(app, dados.a.eventoId, (c) => failCurationJob(c, job!.id, 1, "erro de teste"));
+    expect(await statusDoJob(dados.a.eventoId)).toBe("failed");
+
+    const eventos = await listEventsWithPendingCuration(admin, 100, 600, 86_400);
+    expect(eventos).not.toContain(dados.a.eventoId);
+  });
+
+  it("lista failed além da janela de recuperação — é isso que dá a failed um caminho de volta (achado 7)", async () => {
+    await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
+    const [job] = await comEvento(app, dados.a.eventoId, (c) => claimCurationJobs(c, dados.a.eventoId));
+    await comEvento(app, dados.a.eventoId, (c) => failCurationJob(c, job!.id, 1, "erro de teste"));
+    await admin.query(
+      "UPDATE curation_jobs SET claimed_at = now() - interval '25 hours' WHERE event_id = $1",
+      [dados.a.eventoId],
+    );
+
+    const eventos = await listEventsWithPendingCuration(admin, 100, 600, 86_400);
     expect(eventos).toContain(dados.a.eventoId);
   });
 });
