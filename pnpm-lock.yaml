@@ -301,6 +301,8 @@ importers:
 
   packages/core: {}
 
+  packages/curation: {}
+
   packages/db:
     dependencies:
       '@albora/core':
