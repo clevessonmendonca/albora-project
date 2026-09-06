@@ -1,5 +1,6 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
+import { OPS_TO_CONSOLE_REDIRECTS } from "./lib/redirects/ops-to-console";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
@@ -112,6 +113,7 @@ const nextConfig: NextConfig = {
     return [
       { source: "/album", destination: "/scan", permanent: true },
       { source: "/privacy", destination: "/privacidade", permanent: true },
+      ...OPS_TO_CONSOLE_REDIRECTS,
       ...rootPtToEn.map(([pt, en]) => ({
         source: `/${pt}`,
         destination: `/${en}`,
