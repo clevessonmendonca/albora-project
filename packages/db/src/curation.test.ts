@@ -157,6 +157,40 @@ describe("claimCurationJobs — dois claims concorrentes não pegam o mesmo item
     expect(await statusDoJob(dados.a.eventoId)).toBe("processing");
   });
 
+  /**
+   * Achado 9 do review: o teste acima prova o que interessa mais (só uma transação reivindica),
+   * mas isso é garantido pelo predicado `status = 'pending'`, não pelo `SKIP LOCKED` — sem ele a
+   * segunda transação bloquearia no `FOR UPDATE` até a primeira liberar o lock, e ao destravar
+   * reavaliaria `status='processing'` sob READ COMMITTED e devolveria zero linhas de qualquer
+   * jeito. Removendo `SKIP LOCKED` de `curation.ts`, o teste acima continua verde. Este aqui segura
+   * o lock numa transação aberta e mede que a segunda NÃO bloqueia — é a única forma de provar a
+   * cláusula em si, não só o resultado que ela e o predicado dariam de qualquer forma.
+   */
+  it("SKIP LOCKED de verdade: segunda transação não bloqueia enquanto a primeira segura o lock (achado 9)", async () => {
+    await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
+
+    const clienteQueSegura = await app.connect();
+    try {
+      await clienteQueSegura.query("BEGIN");
+      await clienteQueSegura.query("SELECT set_config('app.event_id', $1, true)", [dados.a.eventoId]);
+      const primeiro = await claimCurationJobs(clienteQueSegura, dados.a.eventoId);
+      expect(primeiro).toHaveLength(1);
+      // Transação NÃO commitada — a linha reivindicada continua travada por FOR UPDATE.
+
+      const inicio = Date.now();
+      const segundo = await comEvento(app, dados.a.eventoId, (c) => claimCurationJobs(c, dados.a.eventoId));
+      const duracaoMs = Date.now() - inicio;
+
+      // Sem SKIP LOCKED, este claim ficaria parado no FOR UPDATE até o ROLLBACK do finally,
+      // bem mais que 500ms adiante. Com SKIP LOCKED ele pula a linha travada na hora.
+      expect(segundo).toHaveLength(0);
+      expect(duracaoMs).toBeLessThan(500);
+    } finally {
+      await clienteQueSegura.query("ROLLBACK");
+      clienteQueSegura.release();
+    }
+  });
+
   it("um job já processing não volta em claim seguinte", async () => {
     await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
     const primeiro = await comEvento(app, dados.a.eventoId, (c) => claimCurationJobs(c, dados.a.eventoId));
@@ -217,13 +251,13 @@ describe("completeCurationJob e failCurationJob ignoram linha que não está pro
     expect(rows[0]!.attempts).toBe(3);
   });
 
-  it("failCurationJob não devolve a pending (nem marca failed) uma linha já done", async () => {
+  it("failCurationJob não devolve a pending (nem marca failed) uma linha já done — devolve 'sem_efeito', não 'retry' (achado 10)", async () => {
     await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
     const [job] = await comEvento(app, dados.a.eventoId, (c) => claimCurationJobs(c, dados.a.eventoId));
     await comEvento(app, dados.a.eventoId, (c) => completeCurationJob(c, job!.id));
 
     const resultado = await comEvento(app, dados.a.eventoId, (c) => failCurationJob(c, job!.id, 3));
-    expect(resultado).toBe("retry");
+    expect(resultado).toBe("sem_efeito");
     expect(await statusDoJob(dados.a.eventoId)).toBe("done");
   });
 });

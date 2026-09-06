@@ -87,13 +87,20 @@ export async function completeCurationJob(client: PoolClient, jobId: string): Pr
  * as outras atribuições do mesmo `UPDATE`) — é o mesmo `attempts` que o
  * `RETURNING` devolve. `AND status = 'processing'` pela mesma razão de
  * `completeCurationJob`.
+ *
+ * `"sem_efeito"` (achado 10 do review) é o terceiro estado, distinto de `"retry"`:
+ * o `UPDATE` não casou nenhuma linha (job já `done`, já `failed`, ou id inexistente)
+ * — nada mudou, e dizer `"retry"` nesse caso mentia pro chamador que uma nova
+ * tentativa vai acontecer quando na verdade não aconteceu nada. Hoje nenhum
+ * chamador usa o retorno para decidir algo (`ops-curadoria.ts` descarta), mas o
+ * contrato da função não pode mentir sozinho.
  */
 export async function failCurationJob(
   client: PoolClient,
   jobId: string,
   maxAttempts: number,
   error?: string,
-): Promise<"retry" | "failed"> {
+): Promise<"retry" | "failed" | "sem_efeito"> {
   const { rows } = await client.query<{ status: string }>(
     `UPDATE curation_jobs
         SET attempts = attempts + 1,
@@ -104,7 +111,8 @@ export async function failCurationJob(
     [jobId, maxAttempts, error ?? null],
   );
 
-  return rows[0]?.status === "failed" ? "failed" : "retry";
+  if (rows.length === 0) return "sem_efeito";
+  return rows[0]!.status === "failed" ? "failed" : "retry";
 }
 
 /**
