@@ -43,7 +43,7 @@ const { resolveBilling, providerCreateSubscription, providerEnsureCustomer } = v
   providerEnsureCustomer: vi.fn(),
 }));
 
-vi.mock("@/lib/billing", () => ({
+vi.mock("@albora/integrations", () => ({
   resolveBilling,
   VENDOR_PLAN_PRICE_CENTS: { starter: 9900, studio: 19900, agency: 39900 },
 }));

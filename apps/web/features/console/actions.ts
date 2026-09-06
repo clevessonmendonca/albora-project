@@ -39,7 +39,7 @@ import { sendHostEmail } from "@/lib/email";
 import { resolveActor } from "@/lib/console/actor";
 import { clearStaffSession, issueStaffSession, markStaffReauthenticated } from "@/lib/console/staff-session";
 import { config } from "@/lib/config";
-import { getBillingProvider } from "@/lib/billing";
+import { getBillingProvider } from "@albora/integrations";
 import { driveConfig } from "@/lib/drive-config";
 import { getDriveClient, getDriveVault } from "@/lib/drive";
 import { deleteObject } from "@/lib/r2";

@@ -4,12 +4,18 @@ import { arquivos, cli, linhasDeCodigo, violacao } from "./util.mjs";
 /**
  * Guard de camadas — ADR 0016.
  *
- * `core` é domínio puro: nunca importa `@albora/db`, `@albora/application`
- * nem `next`, e nenhum import relativo escapa de `packages/core/src`. A rota
- * do console fala só com `@albora/application`, nunca direto com `@albora/db`.
- * E comparação de papel de staff (`role === "owner"` etc.) fica confinada a
- * `packages/core/src/authorization` — em qualquer outro lugar, permissão
- * passa por capacidade, não por literal espalhado pelo código.
+ * `core` é domínio puro: nunca importa `@albora/db`, `@albora/application`,
+ * `@albora/integrations` nem `next`, e nenhum import relativo escapa de
+ * `packages/core/src`. A rota do console fala só com `@albora/application`,
+ * nunca direto com `@albora/db`. E comparação de papel de staff (`role ===
+ * "owner"` etc.) fica confinada a `packages/core/src/authorization` — em
+ * qualquer outro lugar, permissão passa por capacidade, não por literal
+ * espalhado pelo código.
+ *
+ * `packages/integrations` é a fronteira externa (billing, e depois e-mail e
+ * storage): nunca importa `@albora/application`, `apps/web` nem `next` — ela
+ * não conhece a aplicação nem o app. `application → integrations` é a única
+ * direção permitida.
  *
  * A regra 3 varre só as superfícies que este projeto cria — não o repo
  * inteiro. `role === "owner"` já existe legitimamente fora daqui (ex.:
@@ -21,6 +27,7 @@ import { arquivos, cli, linhasDeCodigo, violacao } from "./util.mjs";
 
 const CORE = "packages/core/src";
 const CORE_AUTHORIZATION = `${CORE}/authorization`;
+const INTEGRATIONS = "packages/integrations/src";
 // A borda do console é MAIOR que `app/console`: server actions vivem em
 // `features/console` e a sessão em `lib/console`. Cobrir só a rota deixou
 // passar um `findStaffById` importado direto do repositório numa server
@@ -55,6 +62,8 @@ export function verificar(raiz) {
         violacoes.push(violacao(raiz, caminho, i, linha, "packages/core importando @albora/db — core é domínio puro, nunca toca persistência"));
       } else if (/^@albora\/application(\/|$)/.test(especificador)) {
         violacoes.push(violacao(raiz, caminho, i, linha, "packages/core importando @albora/application — a dependência é application → core, nunca o contrário"));
+      } else if (/^@albora\/integrations(\/|$)/.test(especificador)) {
+        violacoes.push(violacao(raiz, caminho, i, linha, "packages/core importando @albora/integrations — core é a base, não conhece a fronteira externa"));
       } else if (especificador === "next" || especificador.startsWith("next/")) {
         violacoes.push(violacao(raiz, caminho, i, linha, "packages/core importando next — core não conhece o framework de rota"));
       } else if (especificador.startsWith(".")) {
@@ -63,6 +72,22 @@ export function verificar(raiz) {
         if (relative(raizCore, alvo).startsWith("..")) {
           violacoes.push(violacao(raiz, caminho, i, linha, "import relativo saindo de packages/core/src"));
         }
+      }
+    });
+  }
+
+  for (const caminho of arquivos(`${raiz}/${INTEGRATIONS}`, [".ts", ".tsx"])) {
+    linhasDeCodigo(caminho).forEach((linha, i) => {
+      const m = IMPORT_RE.exec(linha);
+      if (!m) return;
+      const especificador = m[1];
+
+      if (/^@albora\/application(\/|$)/.test(especificador)) {
+        violacoes.push(violacao(raiz, caminho, i, linha, "packages/integrations importando @albora/application — a fronteira externa não conhece a aplicação; a dependência é application → integrations"));
+      } else if (especificador.includes("apps/web") || especificador.startsWith("@/")) {
+        violacoes.push(violacao(raiz, caminho, i, linha, "packages/integrations importando apps/web — a fronteira externa não conhece o app"));
+      } else if (especificador === "next" || especificador.startsWith("next/")) {
+        violacoes.push(violacao(raiz, caminho, i, linha, "packages/integrations importando next — a fronteira externa não conhece o framework de rota"));
       }
     });
   }

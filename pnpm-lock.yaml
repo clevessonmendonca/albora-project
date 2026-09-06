@@ -204,6 +204,9 @@ importers:
       '@albora/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@albora/integrations':
+        specifier: workspace:*
+        version: link:../../packages/integrations
       '@albora/packs':
         specifier: workspace:*
         version: link:../../packages/packs
@@ -337,6 +340,15 @@ importers:
       '@types/pg':
         specifier: ^8.11.10
         version: 8.21.0
+
+  packages/integrations:
+    dependencies:
+      '@albora/core':
+        specifier: workspace:*
+        version: link:../core
+      '@albora/db':
+        specifier: workspace:*
+        version: link:../db
 
   packages/packs:
     dependencies:

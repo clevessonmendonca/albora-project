@@ -21,7 +21,7 @@ export default defineConfig({
     maxWorkers: "50%",
     server: {
       deps: {
-        inline: ["@albora/core", "@albora/db", "@albora/application", "@albora/packs", "zod"],
+        inline: ["@albora/core", "@albora/db", "@albora/application", "@albora/integrations", "@albora/packs", "zod"],
       },
     },
     // Dois projetos, dois environments: lógica pura roda em node (rápido, sem DOM); render de componente (.test.tsx) precisa de jsdom. O `environmentMatchGlobs` equivalente está deprecado no Vitest 3 — `projects` é a forma suportada de escopar environment + setupFiles por glob sem afetar a suíte node existente.
