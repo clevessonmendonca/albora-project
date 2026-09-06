@@ -20,8 +20,7 @@ const midia = (denuncias: number) => ({
 
 describe("o interruptor sobe o piso sem marcar ninguém", () => {
   it("com menores, uma denúncia já segura", () => {
-    // A assimetria de custo inverte: segurar por engano custa um toque para
-    // liberar, publicar por engano não tem desfazer.
+    // A assimetria de custo inverte: segurar por engano custa um toque para liberar, publicar por engano não tem desfazer.
     expect(denunciasParaSegurar(COM)).toBe(1);
     expect(denunciasParaSegurar(SEM)).toBe(DENUNCIAS_PARA_SEGURAR);
   });
@@ -37,8 +36,7 @@ describe("o interruptor sobe o piso sem marcar ninguém", () => {
   });
 
   it("os três padrões saem juntos", () => {
-    // O admin escreve a configuração inicial de uma vez: consultar três
-    // funções é como esquecer a terceira.
+    // O admin escreve a configuração inicial de uma vez: consultar três funções é como esquecer a terceira.
     expect(eventDefaults(COM)).toEqual({
       denunciasParaSegurar: 1,
       compartilhamentoExterno: false,
@@ -61,15 +59,13 @@ describe("o limiar chega na decisão de exibição", () => {
   });
 
   it("sem o quarto argumento, o comportamento é o de antes", () => {
-    // Quem já chamava com três argumentos não pode mudar de comportamento por
-    // causa deste ADR — senão a mudança vaza para evento sem menor.
+    // Quem já chamava com três argumentos não pode mudar de comportamento por causa deste ADR — senão a mudança vaza para evento sem menor.
     expect(decidirExibicao(midia(1), CALMA, "telao").visivel).toBe(true);
     expect(decidirExibicao(midia(2), CALMA, "telao").visivel).toBe(false);
   });
 
   it("o limiar não afeta a galeria, só a parede", () => {
-    // A denúncia tira do telão, não da galeria: derrubar a galeria puniria
-    // quem enviou por decisão de estranhos, sem revisão.
+    // A denúncia tira do telão, não da galeria: derrubar a galeria puniria quem enviou por decisão de estranhos, sem revisão.
     expect(
       decidirExibicao(midia(9), CALMA, "galeria", denunciasParaSegurar(COM)).visivel,
     ).toBe(true);

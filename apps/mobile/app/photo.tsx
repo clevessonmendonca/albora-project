@@ -54,8 +54,7 @@ export default function PhotoScreen() {
   // Preview ao vivo: data URI do thumb filtrado, ou null para mostrar o original.
   const [previewUri, setPreviewUri] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
-  // Contador de geração: incrementa a cada nova solicitação e cancela
-  // in-flight quando o chip muda antes de o processamento terminar.
+  // Contador de geração: incrementa a cada nova solicitação e cancela in-flight quando o chip muda antes de o processamento terminar.
   const previewGenRef = useRef(0);
 
   // Legenda e lugar — opcional, nunca bloqueia o envio.
@@ -95,8 +94,7 @@ export default function PhotoScreen() {
     setFiltroEscolhido(p);
   }
 
-  // Gera o preview filtrado com debounce de 150 ms.
-  // Chip ou intensidade mudou antes de terminar → previewGenRef detecta e descarta.
+  // Gera o preview filtrado com debounce de 150 ms; chip ou intensidade mudou antes de terminar → previewGenRef detecta e descarta.
   useEffect(() => {
     if (!pendingShot || !filtroEscolhido) {
       previewGenRef.current += 1;
@@ -297,8 +295,7 @@ export default function PhotoScreen() {
 
       const asset = result.assets[0];
 
-      // Sempre normaliza para JPEG: ph:// e content:// URIs não são legíveis
-      // com readHead, e HEIC é comum em iPhones com Formatos → Alta Eficiência.
+      // Sempre normaliza para JPEG: ph:// e content:// URIs não são legíveis com readHead, e HEIC é comum em iPhones com Formatos → Alta Eficiência.
       const normalized = await normalizeSource({
         head: new Uint8Array(0),
         uri: asset.uri,

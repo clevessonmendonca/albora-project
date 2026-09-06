@@ -144,8 +144,7 @@ describe("isolamento entre eventos", () => {
 
   it("evento semeado direto (sem passar por criarEvento) não tem ref_token", async () => {
     const semRef = await comEvento(app, dados.b.eventoId, (c) => refDoEvento(c, dados.b.eventoId));
-    // dados.b nasceu via `semear` (INSERT direto), nunca passou por
-    // `criarEvento` — não tem ref_token, e a leitura não inventa um.
+    // dados.b nasceu via `semear` (INSERT direto), nunca passou por `criarEvento` — não tem ref_token, e a leitura não inventa um.
     expect(semRef).toBeNull();
   });
 });

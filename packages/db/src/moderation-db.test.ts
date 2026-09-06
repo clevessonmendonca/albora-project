@@ -17,8 +17,7 @@ beforeAll(async () => {
   app = pools.app;
   dados = await semear(admin);
 
-  // Uma segunda sessão no evento A: duas sessões distintas denunciando a mesma
-  // foto é o que soma para segurar do telão.
+  // Uma segunda sessão no evento A: duas sessões distintas denunciando a mesma foto é o que soma para segurar do telão.
   const { rows } = await admin.query<{ id: string }>(
     `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
      VALUES ($1, 'outro-convidado', 'v1', now()) RETURNING id`,

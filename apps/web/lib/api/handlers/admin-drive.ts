@@ -213,8 +213,7 @@ export async function getDriveCallback(
     console.log("drive_connect_ok", { eventId });
     return Response.redirect(`${origin}/admin/e/${eventId}/album?driveConectado=1`, 302);
   } catch (e) {
-    // Nunca loga o corpo da resposta do token endpoint, nem o code, nem o
-    // refresh token — só o código de erro do Google (spec §2/§8).
+    // Nunca loga o corpo da resposta do token endpoint, nem o code, nem o refresh token — só o código de erro do Google.
     const codigo = e instanceof ErroDriveApi ? e.code : "erro_desconhecido";
     console.warn("drive_connect_fail", { eventId, motivo: codigo });
     return errorResponse(502, "drive.conexao_falhou", "Não foi possível conectar ao Drive agora");

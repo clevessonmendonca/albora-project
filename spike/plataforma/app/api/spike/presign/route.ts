@@ -110,8 +110,7 @@ export async function POST(req: Request) {
       assinar(cfg, `${chave}/thumb`, tipo),
     ]);
 
-    // Prova 6: o servidor emite duas URLs e nada mais. O único corpo que
-    // chegou aqui foi o JSON de metadados acima.
+    // Prova 6: o servidor emite duas URLs e nada mais. O único corpo que chegou aqui foi o JSON de metadados acima.
     console.log("presign.emitido", { chave, tipo, validadeSegundos: VALIDADE_SEGUNDOS });
 
     return Response.json(

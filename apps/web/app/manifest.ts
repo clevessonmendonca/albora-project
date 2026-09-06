@@ -19,8 +19,7 @@ export default function manifest(): MetadataRoute.Manifest {
     icons: [
       { src: "/icone-app-512.svg", sizes: "512x512", type: "image/svg+xml", purpose: "any" },
       {
-        // A margem de 96px em 512 põe o desenho dentro da zona segura da
-        // máscara. Sem ela, o arco da marca sai cortado no Android.
+        // A margem de 96px em 512 põe o desenho dentro da zona segura da máscara — sem ela, o arco sai cortado no Android.
         src: "/icone-app-invertido-512.svg",
         sizes: "512x512",
         type: "image/svg+xml",

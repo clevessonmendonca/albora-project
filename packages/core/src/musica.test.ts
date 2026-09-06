@@ -93,8 +93,7 @@ describe("o catálogo é fechado, e é fechado num lugar só", () => {
   });
 
   it("encurtador é recusado, porque resolvê-lo exigiria seguir redirecionamento", () => {
-    // Seguir redirecionamento transformaria o link colado no admin em
-    // requisição de saída para host que quem colou escolhe.
+    // Seguir redirecionamento transformaria o link colado no admin em requisição de saída para host que quem colou escolhe.
     expect(erro("https://spotify.link/abc123")).toBe("musica.provedor_fora_da_lista");
     expect(erro("https://deezer.page.link/abc123")).toBe("musica.provedor_fora_da_lista");
   });
@@ -188,8 +187,7 @@ describe("a URL é entrada não confiável", () => {
 
 describe("a URL devolvida é recomposta, nunca a colada", () => {
   it("descarta rastreamento, query estranha e fragmento", () => {
-    // O que volta é o que 150 convidados vão abrir. Devolver a string colada
-    // seria propagar `?si=` — e qualquer outra coisa pendurada nela.
+    // O que volta é o que 150 convidados vão abrir. Devolver a string colada seria propagar `?si=` — e qualquer outra coisa pendurada nela.
     expect(link(`${FAIXA_SPOTIFY}?si=abc123&utm_source=x#pedaco`).url).toBe(FAIXA_SPOTIFY);
     expect(link("https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=42&list=PLabc").url).toBe(
       "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -203,8 +201,7 @@ describe("a URL devolvida é recomposta, nunca a colada", () => {
   });
 
   it("faixa dentro de lista resolve para a faixa", () => {
-    // Quem compartilhou estava ouvindo uma faixa dentro de uma lista, e o que
-    // ele escolheu foi a faixa.
+    // Quem compartilhou estava ouvindo uma faixa dentro de uma lista, e o que ele escolheu foi a faixa.
     const resolvido = link("https://music.youtube.com/watch?v=dQw4w9WgXcQ&list=PLabc");
     expect(resolvido.tipo).toBe("faixa");
     expect(resolvido.identificador).toBe("dQw4w9WgXcQ");
@@ -235,8 +232,7 @@ describe("a URL devolvida é recomposta, nunca a colada", () => {
 
 describe("o metadado é enriquecimento, e a exibição degrada", () => {
   it("sem metadado exibe o link cru, e não some da tela", () => {
-    // Provedor fora do ar não pode segurar salvamento no admin nem
-    // carregamento do telão (verificação 4 da spec).
+    // Provedor fora do ar não pode segurar salvamento no admin nem carregamento do telão (verificação 4 da spec).
     expect(exibirMusica(link(FAIXA_SPOTIFY), null)).toEqual({
       rotulo: FAIXA_SPOTIFY,
       url: FAIXA_SPOTIFY,
@@ -288,8 +284,7 @@ describe("a fronteira do ADR 0011", () => {
   });
 
   it("recusa saída com faixa de áudio ou vídeo", () => {
-    // Camada 3: vídeo com a foto do convidado e a música embutida é obra
-    // derivada com sincronização, e sincronização exige direito que não temos.
+    // Camada 3: vídeo com a foto do convidado e a música embutida é obra derivada com sincronização, e sincronização exige direito que não temos.
     for (const mime of ["audio/mpeg", "audio/mp4", "video/mp4", "video/quicktime"]) {
       expect(validarSaida({ mime, musica: null })).toEqual({
         code: "musica.midia_com_audio",
@@ -299,8 +294,7 @@ describe("a fronteira do ADR 0011", () => {
   });
 
   it("o portão é o conjunto fechado de mídia, não a lista de áudios conhecidos", () => {
-    // Sem isto, um contêiner novo com trilha de áudio passaria só por não
-    // estar na lista de proibidos.
+    // Sem isto, um contêiner novo com trilha de áudio passaria só por não estar na lista de proibidos.
     expect(validarSaida({ mime: "application/octet-stream", musica: null })).toEqual({
       code: "musica.saida_nao_e_imagem",
       details: { mime: "application/octet-stream" },
@@ -317,8 +311,7 @@ describe("a fronteira do ADR 0011", () => {
   });
 
   it("campo fora do contrato da sugestão é recusado", () => {
-    // É por onde a camada 3 entraria sem ninguém notar: um `audioUrl` no
-    // objeto que o compartilhamento serializa.
+    // É por onde a camada 3 entraria sem ninguém notar: um `audioUrl` no objeto que o compartilhamento serializa.
     const contrabando = {
       provedor: "spotify",
       rotulo: "A música — Alguém",
@@ -369,8 +362,7 @@ describe("sugestão do convidado", () => {
   }
 
   it("gate fechado recusa, e gate nunca configurado também", () => {
-    // ADR 0009: quem decide quando a interação abre são os anfitriões, e
-    // `interacaoAbreEm === null` é fechado — falha fechada, não padrão aberto.
+    // ADR 0009: quem decide quando a interação abre são os anfitriões, e `interacaoAbreEm === null` é fechado — falha fechada, não padrão aberto.
     const pedido = { sessaoId: "ses_1", link: link(FAIXA_SPOTIFY) };
 
     expect(registrarSugestao([], pedido, ABERTO, ANTES)).toEqual({
@@ -394,8 +386,7 @@ describe("sugestão do convidado", () => {
   });
 
   it("a mesma sessão sugerindo duas vezes continua valendo um voto", () => {
-    // Idempotente por `(chave, sessaoId)`, pelo mesmo motivo da reação: toque
-    // duplo e retry de rede não podem inflar contagem.
+    // Idempotente por `(chave, sessaoId)`, pelo mesmo motivo da reação: toque duplo e retry de rede não podem inflar contagem.
     const fila = enfileirar(enfileirar([], "ses_1", FAIXA_SPOTIFY), "ses_1", FAIXA_SPOTIFY);
 
     expect(fila).toHaveLength(1);
@@ -403,8 +394,7 @@ describe("sugestão do convidado", () => {
   });
 
   it("o mesmo link em formatos diferentes é a mesma faixa", () => {
-    // Um convidado cola o link com `?si=`, outro cola com prefixo de idioma.
-    // Se a chave saísse da URL colada, seriam duas linhas da mesma música.
+    // Um convidado cola o link com `?si=`, outro cola com prefixo de idioma. Se a chave saísse da URL colada, seriam duas linhas da mesma música.
     const fila = enfileirar(
       enfileirar([], "ses_1", `${FAIXA_SPOTIFY}?si=abc123`),
       "ses_2",
@@ -430,8 +420,7 @@ describe("sugestão do convidado", () => {
   });
 
   it("ordena por votos, e empate desempata pela que chegou antes", () => {
-    // Sem desempate estável a lista se reordena sozinha entre dois desenhos
-    // com os mesmos dados — no telão isso é linha pulando sem ninguém votar.
+    // Sem desempate estável a lista se reordena sozinha entre dois desenhos com os mesmos dados — no telão isso é linha pulando sem ninguém votar.
     let fila = enfileirar([], "ses_1", FAIXA_SPOTIFY, new Date("2026-08-11T23:00:00Z"));
     fila = enfileirar(
       fila,
@@ -476,8 +465,7 @@ describe("o teto de sugestões por convidado", () => {
   }
 
   it("aceita até o teto e recusa a seguinte", () => {
-    // Sem teto, um entusiasta sozinho é dono da lista e os outros param de
-    // sugerir porque não adianta.
+    // Sem teto, um entusiasta sozinho é dono da lista e os outros param de sugerir porque não adianta.
     let fila: FaixaSugerida[] = [];
     for (let i = 0; i < TETO_DE_SUGESTOES_POR_SESSAO; i += 1) {
       const r = sugerir(fila, "s1", `4cOdK2wGLETKBW3PvgPWq${i}`);
@@ -491,8 +479,7 @@ describe("o teto de sugestões por convidado", () => {
   });
 
   it("votar em faixa que já existe não conta contra o teto", () => {
-    // Contar voto puniria quem concorda — e é a concordância que faz a lista
-    // convergir em vez de virar cem faixas de uma vez cada.
+    // Contar voto puniria quem concorda — e é a concordância que faz a lista convergir em vez de virar cem faixas de uma vez cada.
     let fila: FaixaSugerida[] = [];
     for (let i = 0; i < TETO_DE_SUGESTOES_POR_SESSAO; i += 1) {
       const r = sugerir(fila, "s1", `4cOdK2wGLETKBW3PvgPWq${i}`);

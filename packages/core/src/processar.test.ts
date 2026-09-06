@@ -88,16 +88,14 @@ describe("a ordem das operações", () => {
       "decodificar:image/jpeg:8b",
       "desenhar:original→2500x1875:girar0",
       "codificar:2500x1875:image/jpeg:q0.82",
-      // A miniatura sai do resultado, não do original: reprocessar o original
-      // dobraria o pico de memória no aparelho mais fraco.
+      // A miniatura sai do resultado, não do original: reprocessar o original dobraria o pico de memória no aparelho mais fraco.
       "desenhar:2500x1875→320x240:girar0",
       "codificar:320x240:image/jpeg:q0.7",
     ]);
   });
 
   it("sem filtro escolhido, o desenhista de cor nem é chamado", () => {
-    // O preset é escolha do convidado. Aplicar sozinho tiraria a escolha de
-    // quem tirou a foto (N5.9).
+    // O preset é escolha do convidado. Aplicar sozinho tiraria a escolha de quem tirou a foto (N5.9).
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     return processarFoto(semExif, "image/jpeg", desenhista, {
@@ -109,8 +107,7 @@ describe("a ordem das operações", () => {
   });
 
   it("o filtro entra depois de endireitar, e a miniatura sai dele", async () => {
-    // Se a miniatura saísse da imagem sem filtro, a tira do telão teria uma
-    // cor e o álbum outra — e coerência entre as fotos é o produto.
+    // Se a miniatura saísse da imagem sem filtro, a tira do telão teria uma cor e o álbum outra — e coerência entre as fotos é o produto.
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     await processarFoto(semExif, "image/jpeg", desenhista, {
@@ -155,8 +152,7 @@ describe("a ordem das operações", () => {
   });
 
   it("ajuste sem preset ainda passa pelo desenhista de cor", async () => {
-    // O convidado pode corrigir a luz do salão sem escolher preset nenhum. Se
-    // a intensidade zerada bloqueasse a passagem, o ajuste sumiria no envio.
+    // O convidado pode corrigir a luz do salão sem escolher preset nenhum. Se a intensidade zerada bloqueasse a passagem, o ajuste sumiria no envio.
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     await processarFoto(semExif, "image/jpeg", desenhista, {
@@ -245,8 +241,7 @@ describe("a ordem das operações", () => {
 
 describe("orientação, antes de o reencode apagar o EXIF", () => {
   it("a foto do iPhone em paisagem é girada e os eixos trocam", async () => {
-    // Pixels gravados de lado: 4032 de largura por 3024, com a tag dizendo
-    // para girar. Sem isso a foto entra deitada no álbum.
+    // Pixels gravados de lado: 4032 de largura por 3024, com a tag dizendo para girar. Sem isso a foto entra deitada no álbum.
     const { desenhista, chamadas } = desenhistaFalso({ largura: 4032, altura: 3024 });
 
     const r = await processarFoto(jpegOrientacao6(), "image/jpeg", desenhista, {
@@ -325,8 +320,7 @@ describe("saída", () => {
       device: aparelhoComum,
     });
 
-    // O EXIF sai de toda foto, sempre. Este campo serve para o cliente poder
-    // afirmar que a remoção aconteceu, não para condicioná-la.
+    // O EXIF sai de toda foto, sempre. Este campo serve para o cliente poder afirmar que a remoção aconteceu, não para condicioná-la.
     expect(r.tinhaGeolocalizacao).toBe(false);
     expect(r.capturadaEm).toBeNull();
   });

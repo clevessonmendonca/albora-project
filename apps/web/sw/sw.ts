@@ -76,9 +76,7 @@ self.addEventListener("fetch", (evento) => {
     return;
   }
 
-  // Achado do spike: sem este ramo, arquivo precacheado nunca era lido — `<script src>` não é `navigate` nem mora em `/_next/static/`, caía na rede e offline a página renderizava com o script faltando (falha silenciosa, parece funcionando).
-  //
-  // Só o que foi precacheado de propósito entra em cache primeiro — a versão anterior aplicava a regra a tudo que não era estático/navegação, e a carga RSC (acoplada ao build) servida contra chunk novo derrubava a página com "Application error" pra quem já visitou.
+  // Achado do spike: sem este ramo, `<script src>` caía na rede e offline a página renderizava com o script faltando — só o que foi precacheado de propósito entra em cache primeiro.
   if (PRECACHE.includes(url.pathname)) {
     evento.respondWith(cachePrimeiro(requisicao, CASCA));
     return;

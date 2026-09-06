@@ -158,8 +158,7 @@ export function Viewer({
 
     if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > DESLIZE_MIN_PX) {
       suprimirAte.current = Date.now() + SUPRESSAO_MS;
-      // Para baixo fecha. É o gesto que a pessoa já traz de outros aplicativos,
-      // e ele não substitui o botão de sair — só chega antes dele.
+      // Para baixo fecha — é o gesto que a pessoa já traz de outros aplicativos, chega antes do botão de sair.
       if (dy > 0) onSair();
       return;
     }
