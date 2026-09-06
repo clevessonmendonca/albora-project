@@ -55,21 +55,6 @@ export const LANDING_VOCABULARY_KEYS = [
   "landing.titulo.destaque",
   "landing.lede",
   "landing.cta",
-  "landing.exemplo.nome",
-  "landing.momentos.titulo",
-  "landing.momentos.destaque",
-  "landing.momentos.lede",
-  "landing.telao.titulo",
-  "landing.telao.lede",
-  "landing.missoes.titulo",
-  "landing.missoes.destaque",
-  "landing.missoes.lede",
-  "landing.planos.titulo",
-  "landing.plano.completo",
-  "landing.fechamento",
-  "landing.fechamento.destaque",
-  "landing.veteran.titulo",
-  "landing.veteran.lede",
 ] as const;
 
 export const CHAVES_DA_LANDING = LANDING_VOCABULARY_KEYS;
