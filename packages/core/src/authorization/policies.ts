@@ -1,3 +1,4 @@
+import { hasCapability } from "./capabilities";
 import type { AuthorizationRequest, Capability, Decision, Policy } from "./types";
 
 export const REAUTH_MAX_AGE_SECONDS = 900;
@@ -26,7 +27,14 @@ function refundPolicy(): Policy {
     // Aprovador precisa ser capacidade que o solicitante NÃO tem: `finance` tem
     // `subscription.refund`, então exigir aprovação por ela deixaria o financeiro
     // aprovar a si mesmo — a escalação não escalaria. `.approve` é só do owner.
+    //
+    // Quem JÁ tem `.approve` é o aprovador: para ele, acima do limiar é
+    // `allowed`, senão o dono também travaria e a única saída seria o comando
+    // trocar de capacidade — o que faz o solicitante receber uma negação seca
+    // ("você não pode") em vez da decisão informativa ("esse valor exige o
+    // dono"). A política é quem sabe disso, não o comando.
     if (amountCents > REFUND_APPROVAL_THRESHOLD_CENTS) {
+      if (hasCapability(req.actor.roles, "subscription.refund.approve")) return { kind: "allowed" };
       return { kind: "needsApproval", approverCapability: "subscription.refund.approve" };
     }
     return { kind: "allowed" };

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type pg from "pg";
 import { afterAll, beforeAll } from "vitest";
 import { prepararBanco } from "@albora/db/testes/banco";
-import { CommandDeniedError } from "../envelope/errors";
+import { ApprovalRequiredError, CommandDeniedError } from "../envelope/errors";
 import { refundPayment } from "./refund-payment";
 
 let app: pg.Pool;
@@ -50,7 +50,11 @@ describe("refundPayment", () => {
     expect(billing.refundPayment).toHaveBeenCalledWith({ paymentId: "pay-stub-1", amountCents: 10_000 });
   });
 
-  it("financeiro tentando valor acima do limiar é negado — mensagem diz que exige o dono", async () => {
+  // `ApprovalRequiredError`, não `CommandDeniedError`: a decisão carrega QUEM
+  // pode aprovar (`subscription.refund.approve`), então a tela diz "esse valor
+  // exige o dono" em vez de "você não pode". Negação seca perde a informação
+  // que resolve o problema do operador.
+  it("financeiro acima do limiar recebe exigência de aprovação, não negação seca", async () => {
     const billing = billingMock();
     await expect(
       refundPayment(
@@ -63,7 +67,7 @@ describe("refundPayment", () => {
           amountCents: 60_000,
         },
       ),
-    ).rejects.toThrow(CommandDeniedError);
+    ).rejects.toThrow(ApprovalRequiredError);
     expect(billing.refundPayment).not.toHaveBeenCalled();
   });
 

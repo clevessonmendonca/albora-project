@@ -108,6 +108,18 @@ describe("política de refund", () => {
     expect(hasCapability(["owner"], "subscription.refund.approve")).toBe(true);
   });
 
+  // O dono É a aprovação: se ele também recebesse needsApproval, a única
+  // saída seria o comando trocar de capacidade, e aí o financeiro receberia
+  // negação seca em vez da decisão que diz QUEM pode aprovar.
+  it("quem tem .approve executa acima do limiar", () => {
+    const decisao = authorize({
+      actor: actor(["owner"]),
+      capability: "subscription.refund",
+      context: { amountCents: REFUND_APPROVAL_THRESHOLD_CENTS + 1 },
+    });
+    expect(decisao).toEqual({ kind: "allowed" });
+  });
+
   it("sem amountCents é negado", () => {
     const decisao = authorize({ actor: actor(["finance"]), capability: "subscription.refund" });
     expect(decisao.kind).toBe("denied");

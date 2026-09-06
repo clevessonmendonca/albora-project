@@ -26,12 +26,9 @@ export async function refundPayment(
   deps: { pool: Pool; billing: Pick<SubscriptionBillingPort, "refundPayment"> },
   input: RefundPaymentInput,
 ): Promise<{ status: string }> {
-  const capability: Capability =
-    input.amountCents > REFUND_APPROVAL_THRESHOLD_CENTS ? "subscription.refund.approve" : "subscription.refund";
-
   return executeCommand(deps, {
     actor: input.actor,
-    capability,
+    capability: "subscription.refund",
     reason: input.reason,
     target: { kind: "payment", id: input.paymentId },
     action: "subscription.refund",
