@@ -21,7 +21,21 @@ import { arquivos, cli, linhasDeCodigo, violacao } from "./util.mjs";
 
 const CORE = "packages/core/src";
 const CORE_AUTHORIZATION = `${CORE}/authorization`;
-const CONSOLE_ROTA = "apps/web/app/console";
+// A borda do console é MAIOR que `app/console`: server actions vivem em
+// `features/console` e a sessão em `lib/console`. Cobrir só a rota deixou
+// passar um `findStaffById` importado direto do repositório numa server
+// action (achado na verificação da Onda C).
+//
+// `apps/web/lib/console` fica DE FORA: é o adaptador de infraestrutura que o
+// próprio ADR 0016 define como "sessão, cookie, adaptação request → Actor", e
+// resolver cookie contra `staff_sessions` é exatamente o trabalho dele.
+// Forçá-lo pela aplicação faria a camada de aplicação possuir resolução de
+// cookie — mistura de responsabilidade, não separação.
+const CONSOLE_BORDA = ["apps/web/app/console", "apps/web/features/console"];
+
+// `import type` é apagado na compilação e não cria dependência de runtime —
+// a borda pode conhecer a FORMA de uma linha sem poder falar com o banco.
+const IMPORT_DE_TIPO_RE = /^\s*import\s+type\s|^\s*export\s+type\s/;
 
 const SUPERFICIES_DE_PAPEL = ["apps/web/app/console", "apps/web/features/console", "apps/web/lib/console", "packages/application", CORE];
 
@@ -53,13 +67,16 @@ export function verificar(raiz) {
     });
   }
 
-  for (const caminho of arquivos(`${raiz}/${CONSOLE_ROTA}`, [".ts", ".tsx"])) {
-    linhasDeCodigo(caminho).forEach((linha, i) => {
-      const m = IMPORT_RE.exec(linha);
-      if (m && /^@albora\/db(\/|$)/.test(m[1])) {
-        violacoes.push(violacao(raiz, caminho, i, linha, "apps/web/app/console importando @albora/db direto — a rota fala só com @albora/application"));
-      }
-    });
+  for (const borda of CONSOLE_BORDA) {
+    for (const caminho of arquivos(`${raiz}/${borda}`, [".ts", ".tsx"])) {
+      linhasDeCodigo(caminho).forEach((linha, i) => {
+        if (IMPORT_DE_TIPO_RE.test(linha)) return;
+        const m = IMPORT_RE.exec(linha);
+        if (m && /^@albora\/db(\/|$)/.test(m[1])) {
+          violacoes.push(violacao(raiz, caminho, i, linha, `${borda} importando VALOR de @albora/db — a borda fala só com @albora/application (import type é permitido)`));
+        }
+      });
+    }
   }
 
   const raizAuthorization = resolve(raiz, CORE_AUTHORIZATION);

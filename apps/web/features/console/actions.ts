@@ -29,7 +29,7 @@ import {
   updateTicketPriority,
   updateTicketStatus,
 } from "@albora/application";
-import { findStaffById, type DsarKind, type DsarStatus, type SupportPriority, type SupportStatus } from "@albora/db";
+import type { DsarKind, DsarStatus, SupportPriority, SupportStatus } from "@albora/db";
 import { getPool } from "@/lib/db";
 import { sendHostEmail } from "@/lib/email";
 import { resolveActor } from "@/lib/console/actor";
@@ -106,16 +106,12 @@ export async function requestReauthAction(): Promise<{ sent: boolean }> {
   const actor = await resolveActor();
   if (!actor) redirect("/console/login");
 
-  const staff = await findStaffById(getPool(), actor.staffUserId);
-  if (!staff) redirect("/console/login");
-
   const jar = await headers();
   const origin = jar.get("origin") ?? "";
   const ipHash = await currentIpHash();
 
   await requestStaffReauth(getPool(), {
-    staffUserId: staff.id,
-    email: staff.email,
+    staffUserId: actor.staffUserId,
     ipHash,
     sendEmail: async ({ to, token }: { to: string; token: string }) => {
       void sendHostEmail({

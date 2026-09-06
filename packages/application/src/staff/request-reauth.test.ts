@@ -32,7 +32,6 @@ describe("requestStaffReauth", () => {
     let enviadoPara = "";
     await requestStaffReauth(app, {
       staffUserId: staff.id,
-      email: staff.email,
       ipHash: "ip-1",
       sendEmail: async ({ to }) => {
         enviadoPara = to;
@@ -47,11 +46,10 @@ describe("requestStaffReauth", () => {
     const sendEmail = async () => {};
 
     for (let i = 0; i < 5; i++) {
-      await requestStaffReauth(app, { staffUserId: staff.id, email: staff.email, ipHash: "ip-flood-reauth", sendEmail });
+      await requestStaffReauth(app, { staffUserId: staff.id, ipHash: "ip-flood-reauth", sendEmail });
     }
     const resposta = await requestStaffReauth(app, {
       staffUserId: staff.id,
-      email: staff.email,
       ipHash: "ip-flood-reauth",
       sendEmail,
     });
@@ -59,5 +57,21 @@ describe("requestStaffReauth", () => {
 
     const { rows } = await listSecurityEvents(app, { kind: "rate_limit.exceeded", actorId: staff.id, limit: 5 });
     expect(rows.length).toBeGreaterThan(0);
+  });
+  // O caso de uso resolve o staff internamente desde que a server action
+  // deixou de importar `findStaffById` de `@albora/db` (violação de camada
+  // achada na verificação da Onda C). Um id sem staff correspondente não
+  // pode virar envio silencioso para lugar nenhum.
+  it("staff inexistente não envia e diz por quê", async () => {
+    let enviou = false;
+    const resposta = await requestStaffReauth(app, {
+      staffUserId: "11111111-1111-1111-1111-111111111111",
+      ipHash: "ip-sem-staff",
+      sendEmail: async () => {
+        enviou = true;
+      },
+    });
+    expect(resposta).toEqual({ sent: false, reason: "staff_desconhecido" });
+    expect(enviou).toBe(false);
   });
 });

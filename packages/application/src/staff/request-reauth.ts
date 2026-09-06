@@ -1,5 +1,5 @@
 import type { Pool } from "pg";
-import { createStaffMagicLink, insertSecurityEvent } from "@albora/db";
+import { createStaffMagicLink, findStaffById, insertSecurityEvent } from "@albora/db";
 import { consumeRateLimit } from "./rate-limit";
 import { generateStaffMagicLinkToken } from "./token";
 
@@ -15,12 +15,11 @@ const MAX_REQUESTS_PER_IP_PER_HOUR = 5;
 
 export type RequestStaffReauthInput = {
   staffUserId: string;
-  email: string;
   ipHash: string;
   sendEmail: (input: { to: string; token: string }) => Promise<void> | void;
 };
 
-export type RequestStaffReauthResult = { sent: true };
+export type RequestStaffReauthResult = { sent: true } | { sent: false; reason: "staff_desconhecido" };
 
 /**
  * Diferente de `requestStaffLogin`: aqui o staff já está autenticado (o
@@ -30,6 +29,14 @@ export type RequestStaffReauthResult = { sent: true };
  * ainda assim devolve a mesma resposta.
  */
 export async function requestStaffReauth(pool: Pool, input: RequestStaffReauthInput): Promise<RequestStaffReauthResult> {
+  // Resolvido AQUI, não na server action: buscar o staff em `apps/web` faria
+  // a borda falar com o repositório direto, pulando a camada de aplicação —
+  // exatamente o que o guard de camadas existe para impedir (ADR 0016).
+  // E antes de qualquer escrita: criar magic link para staff inexistente
+  // estoura a FK em vez de devolver resposta útil.
+  const staff = await findStaffById(pool, input.staffUserId);
+  if (!staff) return { sent: false, reason: "staff_desconhecido" };
+
   const withinLimit =
     consumeRateLimit(`reauth-staff:${input.staffUserId}`, MAX_REQUESTS_PER_STAFF_PER_HOUR, 3600) &&
     consumeRateLimit(`reauth-ip:${input.ipHash}`, MAX_REQUESTS_PER_IP_PER_HOUR, 3600);
@@ -49,7 +56,7 @@ export async function requestStaffReauth(pool: Pool, input: RequestStaffReauthIn
   const expiresAt = new Date(Date.now() + REAUTH_LINK_TTL_MINUTES * 60 * 1000);
 
   await createStaffMagicLink(pool, { staffUserId: input.staffUserId, tokenHash, expiresAt });
-  await input.sendEmail({ to: input.email, token });
+  await input.sendEmail({ to: staff.email, token });
 
   return { sent: true };
 }

@@ -22,11 +22,10 @@ afterAll(async () => {
   await app?.end();
 });
 
-async function pedirEcapturar(staffUserId: string, email: string, ipHash: string): Promise<string> {
+async function pedirEcapturar(staffUserId: string, ipHash: string): Promise<string> {
   let capturado = "";
   await requestStaffReauth(app, {
     staffUserId,
-    email,
     ipHash,
     sendEmail: ({ token }) => {
       capturado = token;
@@ -38,7 +37,7 @@ async function pedirEcapturar(staffUserId: string, email: string, ipHash: string
 describe("completeStaffReauth", () => {
   it("token de step-up usado duas vezes: o segundo falha", async () => {
     const staff = await createStaffUser(admin, { email: "reauth-duplo@equipe.test", name: "Duplo" });
-    const token = await pedirEcapturar(staff.id, staff.email, "ip-x");
+    const token = await pedirEcapturar(staff.id, "ip-x");
 
     const primeira = await completeStaffReauth(app, { token, ipHash: "ip-x", staffUserId: staff.id });
     expect(primeira.ok).toBe(true);
@@ -80,7 +79,7 @@ describe("completeStaffReauth", () => {
   it("link de outro staff não reautentica a sessão atual, e grava reauth.failed", async () => {
     const dono = await createStaffUser(admin, { email: "reauth-dono@equipe.test", name: "Dono" });
     const outro = await createStaffUser(admin, { email: "reauth-outro@equipe.test", name: "Outro" });
-    const token = await pedirEcapturar(dono.id, dono.email, "ip-cruzado");
+    const token = await pedirEcapturar(dono.id, "ip-cruzado");
 
     const resultado = await completeStaffReauth(app, { token, ipHash: "ip-cruzado", staffUserId: outro.id });
     expect(resultado.ok).toBe(false);
@@ -91,7 +90,7 @@ describe("completeStaffReauth", () => {
 
   it("sucesso grava audit_log com action='staff.reauth'", async () => {
     const staff = await createStaffUser(admin, { email: "reauth-audita@equipe.test", name: "Audita" });
-    const token = await pedirEcapturar(staff.id, staff.email, "ip-audita");
+    const token = await pedirEcapturar(staff.id, "ip-audita");
 
     const resultado = await completeStaffReauth(app, { token, ipHash: "ip-audita", staffUserId: staff.id });
     expect(resultado.ok).toBe(true);
