@@ -512,7 +512,12 @@ describe("listRetentionJobsAdmin", () => {
   });
 });
 
-describe("purgeAccountDataOnClient", () => {
+// `prepararBanco()` é chamado DENTRO dos `it()` deste bloco (não num hook),
+// então vale `testTimeout` (30s), não `hookTimeout` (60s). Derrubar o schema,
+// recriar e rodar 64 migrations passa de 30s sob carga — e o estouro acontece
+// DEPOIS do `DROP SCHEMA`, deixando o banco sem schema e cascateando falha
+// para todos os arquivos seguintes da suíte serial.
+describe("purgeAccountDataOnClient", { timeout: 90_000 }, () => {
   it("purga uploads/drive de todos os eventos da conta e apaga events + accounts na mesma transação", async () => {
     const pools = await prepararBanco();
     admin = pools.admin;
