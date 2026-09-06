@@ -12,16 +12,18 @@ import {
   CommandDeniedError,
   completeStaffLogin,
   completeStaffReauth,
+  createDsarRequest,
   ReauthRequiredError,
   refundPayment,
   requestStaffLogin,
   requestStaffReauth,
   respondTicket,
   revealAccountPii,
+  updateDsarRequest,
   updateTicketPriority,
   updateTicketStatus,
 } from "@albora/application";
-import { findStaffById, type SupportPriority, type SupportStatus } from "@albora/db";
+import { findStaffById, type DsarKind, type DsarStatus, type SupportPriority, type SupportStatus } from "@albora/db";
 import { getPool } from "@/lib/db";
 import { sendHostEmail } from "@/lib/email";
 import { resolveActor } from "@/lib/console/actor";
@@ -316,6 +318,45 @@ export async function refundPaymentAction(
       { actor, reason, paymentId, asaasPaymentId, amountCents },
     );
     revalidatePath("/console/subscriptions");
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+/**
+ * DSAR (T7): diferente da mesa de suporte, o motivo aqui é sempre digitado
+ * pelo operador — `executeCommand` (`createDsarRequest`/`updateDsarRequest`)
+ * não deriva um `reason` automático, porque um pedido de titular sob LGPD
+ * pede a justificativa por extenso na trilha, não "criou/atualizou pedido".
+ */
+export async function createDsarRequestAction(
+  kind: DsarKind,
+  subjectAccountId: string,
+  legalDueAt: string,
+  reason: string,
+): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await createDsarRequest({ pool: getPool() }, { actor, reason, kind, subjectAccountId, legalDueAt: new Date(legalDueAt) });
+    revalidatePath("/console/lgpd");
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+export async function updateDsarRequestAction(
+  id: string,
+  reason: string,
+  patch: { status?: DsarStatus; evidenceUrl?: string | null; notes?: string | null },
+): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await updateDsarRequest({ pool: getPool() }, { actor, reason, id, ...patch });
+    revalidatePath("/console/lgpd");
     return { ok: true };
   } catch (erro) {
     return traduzErroDeComando(erro);

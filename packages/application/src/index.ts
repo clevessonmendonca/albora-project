@@ -75,3 +75,11 @@ export type { CancelSubscriptionInput } from "./subscriptions/cancel-subscriptio
 export { cancelSubscription } from "./subscriptions/cancel-subscription";
 export type { RefundPaymentInput } from "./subscriptions/refund-payment";
 export { refundPayment } from "./subscriptions/refund-payment";
+
+export type { DsarKind, DsarRequestRow, DsarStatus } from "./lgpd/list-dsar-requests";
+export type { CreateDsarRequestInput } from "./lgpd/create-dsar-request";
+export { createDsarRequest } from "./lgpd/create-dsar-request";
+export type { ListDsarRequestsInput } from "./lgpd/list-dsar-requests";
+export { listDsarRequests } from "./lgpd/list-dsar-requests";
+export type { UpdateDsarRequestInput } from "./lgpd/update-dsar-request";
+export { updateDsarRequest } from "./lgpd/update-dsar-request";
