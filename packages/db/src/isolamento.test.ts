@@ -27,6 +27,7 @@ const TABELAS_DE_EVENTO = [
   "recado_lido",
   "export_jobs",
   "drive_connections",
+  "photo_moderation",
 ];
 
 beforeAll(async () => {

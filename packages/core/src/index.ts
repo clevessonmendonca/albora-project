@@ -288,6 +288,14 @@ export {
   provedorHeuristico,
 } from "./classificador-imagem";
 
+export type { ConfigDoProvedorOpenAi, ResultadoBrutoOpenAi } from "./classificador-openai";
+export {
+  LIMIAR_SUSPEITO as LIMIAR_SUSPEITO_OPENAI,
+  provedorOpenAi,
+  resultadoBrutoOpenAi,
+  veredictoDoResultadoBruto,
+} from "./classificador-openai";
+
 export type {
   Autorizacao,
   Caixa,
