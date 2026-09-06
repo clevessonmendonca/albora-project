@@ -78,7 +78,13 @@ const semNotificar = { notify: async (_n: NotificacaoRetencao) => {} };
 
 describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000 }, () => {
   it("cria os quatro kinds com due_at derivados de ends_at", async () => {
-    const ends = new Date("2026-09-01T20:00:00Z");
+    // Relativo ao agora, NUNCA data absoluta: `planRetention`
+    // (packages/core/src/retention.ts) descarta item vencido há mais de um
+    // dia, e `scheduleRetentionJobs` não recebe `now` — usa o relógio real.
+    // Com data fixa, `plus_48h` sai da lista assim que o calendário passa, e
+    // o teste quebra sozinho sem ninguém tocar em código. Foi o que houve:
+    // verde em 2026-09-01, vermelho a partir de 2026-09-04.
+    const ends = new Date(Date.now() - 60 * 60 * 1000);
     const eventoId = await criarEvento(ends);
     await scheduleRetentionJobs(admin, eventoId, ends);
 
