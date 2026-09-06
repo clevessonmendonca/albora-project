@@ -1251,6 +1251,30 @@ Registrados aqui porque o workspace SDD é descartado após o fechamento. Ordem 
 9. **`anonId()`** gera UUID por beacon — `anon_id` não deduplica double-tap nem liga clique à sessão; não ler contagens `guest_*` como usuários únicos.
 10. **Handoff do admin** (`docs/superpowers/handoffs/2026-09-05-admin-events-origin-ref.md`) precisa ser aplicado pelo dono do `/admin` — sem ele, `event_created` nunca carrega `origin_ref` e a métrica final não fecha.
 
+## E2E do smoke: migrar de `next dev` para `next start` (tentado, revertido)
+
+O job `E2E smoke (convidado)` roda contra `pnpm dev`. Sob dev a rota é compilada
+sob demanda, e a primeira navegação até a de câmera — a mais pesada do app —
+consome sozinha o orçamento do teste: `e2e/guest-flow.spec.ts:96` passava só no
+retry e voltou a falhar mesmo com `test.slow()` (90s).
+
+A migração foi tentada em 2026-09-06 (`webServer` → `pnpm --filter @albora/web
+start` no CI + `pnpm build` no job) e **revertida**. O que ela provou:
+
+- **Funciona para o que mirava:** `guest-flow.spec.ts:96` parou de falhar e a
+  suíte ficou mais rápida.
+- **Mas destrava outra falha:** `e2e/feed.spec.ts:122` passa a estourar em
+  `imagem.scrollIntoViewIfNeeded()`. Causa provável: em build de produção o
+  `next/image` usa `apps/web/lib/image-loader.ts`, que aponta para a
+  transformação de CDN (`cdn-cgi/image/...`); no CI não há CDN e o R2 é fake,
+  então a imagem não carrega, o elemento não ganha layout e o scroll nunca
+  resolve. Em dev esse caminho é contornado.
+
+**Pré-requisito da próxima tentativa:** fazer a imagem funcionar no CI sob build
+— `unoptimized` quando um env de CI estiver setado, ou fallback no loader quando
+não houver CDN configurado. Sem isso a migração troca uma falha por outra, e foi
+por isso que voltou atrás em vez de deixar o pipeline vermelho.
+
 ## Verificação final de P1 (critério de aceite da spec §8)
 
 - [ ] `pnpm exec vitest run` (raiz) verde; `pnpm test:isolamento` verde (inclui `analytics.test.ts` e a migration 0059 aplicada por `prepararBanco`).
