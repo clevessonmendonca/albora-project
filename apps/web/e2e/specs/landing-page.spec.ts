@@ -50,15 +50,26 @@ test.describe("Landing Page do Evento", () => {
     }
   });
 
-  test("deve retornar 404 para evento inexistente", async ({ page }) => {
+  test("evento inexistente manda reescanear, não é beco genérico", async ({ page }) => {
     // 1. Navega direto para /e/ com slug inexistente (sem redirect do [slug])
     const response = await page.goto("/e/evento-que-nao-existe-12345");
 
-    // 2. Valida que retorna 404
-    expect(response?.status()).toBe(404);
+    /*
+     * 2. O que se cobra aqui é a mensagem, não o código HTTP. `page.tsx` chama
+     * `notFound()`, mas a rota tem `loading.tsx`: sob streaming o Next já
+     * enviou os headers quando o componente lança, então o 404 chega como UI e
+     * não como status. Manter `loading.tsx` na rota mais crítica do convidado é
+     * escolha deliberada, e o status não pesa nesta superfície — `robots.txt`
+     * faz `Disallow: /e/`, ela está fora do sitemap e cada página declara
+     * `robots: { index: false, follow: false }`. Chega-se por QR, nunca por
+     * crawler. Não reintroduza `expect(status).toBe(404)`: cobra do framework
+     * o que ele não entrega sob streaming e esconde a asserção que importa.
+     */
+    expect(response?.ok()).toBe(true);
 
-    // 3. Valida que mostra mensagem amigável
+    // 3. A tela do convidado, não a global: QR com letra trocada tem saída.
     await expect(page.getByText(/esse endereço não abre nenhuma festa/i)).toBeVisible();
+    await expect(page.getByRole("link", { name: /escanear o qr/i })).toBeVisible();
   });
 
   test("deve persistir evento no banco de dados", async () => {

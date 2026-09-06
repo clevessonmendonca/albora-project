@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { cookies } from "next/headers";
-import { notFound } from "next/navigation";
 import { resolveOpenEvent } from "@/features/guest/data/resolve-open-event";
 import { eventVars, marcaVars } from "@/features/guest/lib/event-vars";
 import { estiloAntiFlash, sanearVars } from "@/features/guest/lib/theme-style";
@@ -22,8 +21,16 @@ export default async function Layout({
   const { slug } = await params;
   const r = await resolveOpenEvent(slug);
 
-  if (r.estado === "desconhecido") notFound();
-
+  /*
+   * Slug desconhecido cai em `children`, não em `notFound()` daqui: um
+   * `notFound()` lançado no layout borbulha para o boundary do segmento PAI,
+   * porque o `not-found.tsx` deste segmento é renderizado dentro deste layout
+   * — o convidado terminava no not-found global ("Página não encontrada") em
+   * vez da tela que diz "Esse endereço não abre nenhuma festa" e oferece
+   * reescanear o QR. A checagem aqui era redundante: a página raiz e as nove
+   * rotas aninhadas todas resolvem o evento e chamam `notFound()` por conta
+   * própria, e lançado da página o boundary certo é este segmento.
+   */
   if (r.estado !== "aberto") return children;
 
   // `eventVars` traz dado do anfitrião não validado por formato — antes de interpolar no `<style>` bruto, cada var passa por `sanearVars`, que evita injeção CSS (seletor/@import/url()) caindo no fallback da marca.
