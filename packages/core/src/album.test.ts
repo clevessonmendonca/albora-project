@@ -88,8 +88,7 @@ describe("a unidade é a hora, e a hora é a do evento", () => {
   });
 
   it("cai no recebidaEm quando o taken_at não veio", () => {
-    // O EXIF é apagado no cliente; o taken_at é o único campo que sobrevive, e
-    // às vezes nem ele. Sem a queda, a foto ficaria sem faixa.
+    // O EXIF é apagado no cliente; o taken_at é o único campo que sobrevive, e às vezes nem ele. Sem a queda, a foto ficaria sem faixa.
     const sem = foto({
       id: "a",
       capturadaEm: null,
@@ -103,8 +102,7 @@ describe("a unidade é a hora, e a hora é a do evento", () => {
   });
 
   it("relógio de aparelho errado não arrasta a foto para outra faixa", () => {
-    // O risco que a spec nomeia. Um taken_at de três dias antes é fuso ou
-    // relógio errado, não memória de outra festa — vale o relógio do servidor.
+    // O risco que a spec nomeia. Um taken_at de três dias antes é fuso ou relógio errado, não memória de outra festa — vale o relógio do servidor.
     const torta = foto({
       id: "a",
       capturadaEm: new Date("2026-08-05T14:00:00Z"),
@@ -175,8 +173,7 @@ describe("a unidade é a hora, e a hora é a do evento", () => {
   });
 
   it("ancora no fuso do evento, não no do aparelho", () => {
-    // 03:30Z é 00:30 em Brasília. Ler a mesma foto em UTC jogaria a faixa da
-    // meia-noite para as 3h e embaralharia a noite inteira.
+    // 03:30Z é 00:30 em Brasília. Ler a mesma foto em UTC jogaria a faixa da meia-noite para as 3h e embaralharia a noite inteira.
     const em = new Date("2026-08-09T03:30:00Z");
 
     expect(horaNoEvento(em, OFFSET)).toBe(0);
@@ -324,8 +321,7 @@ describe("o plano da noite sai da janela, não de um horário inventado", () => 
 
 describe("nunca cortar foto em pé", () => {
   it("slot deitado recusa foto em pé", () => {
-    // A mesma regra vermelha do telão: 9:16 num slot 16:9 descarta o topo, que
-    // é onde estão as cabeças.
+    // A mesma regra vermelha do telão: 9:16 num slot 16:9 descarta o topo, que é onde estão as cabeças.
     const slot = { id: "a", proporcao: "paisagem" as const, fracao: 1 };
 
     expect(proporcaoDe(EM_PE)).toBe("retrato");
@@ -342,8 +338,7 @@ describe("nunca cortar foto em pé", () => {
   });
 
   it("nenhum slot de um álbum inteiro corta a foto que recebeu", () => {
-    // Três de cada quatro fotos de festa são verticais; o teste roda a mistura
-    // real e cobra a invariante em toda página, não em um caso escolhido.
+    // Três de cada quatro fotos de festa são verticais; o teste roda a mistura real e cobra a invariante em toda página, não em um caso escolhido.
     const formas = [EM_PE, EM_PE, EM_PE, DEITADA, QUADRADA];
     const midias = Array.from({ length: 240 }, (_, i) =>
       foto({
@@ -385,8 +380,7 @@ describe("diagramação por slots", () => {
   });
 
   it("o layout se adapta à sequência, nunca a sequência ao layout", () => {
-    // Duas verticais separadas por uma deitada não viram um par: reordenar para
-    // encher o layout quebraria a ordem cronológica dentro da página.
+    // Duas verticais separadas por uma deitada não viram um par: reordenar para encher o layout quebraria a ordem cronológica dentro da página.
     expect(escolherLayout([EM_PE, DEITADA, EM_PE])?.id).toBe("cheia-retrato");
   });
 
@@ -465,8 +459,7 @@ describe("duas montagens do mesmo acervo dão o mesmo álbum", () => {
   });
 
   it("a ordem em que o banco devolveu as linhas não muda o álbum", () => {
-    // Álbum que muda a cada abertura é bug. Sem desempate por id, a ordem da
-    // consulta vazaria para a diagramação e para quem é descartado.
+    // Álbum que muda a cada abertura é bug. Sem desempate por id, a ordem da consulta vazaria para a diagramação e para quem é descartado.
     const referencia = montarAlbum(acervo, plano({ tetoDePaginas: 20 }));
 
     for (const semente of [3, 17, 991]) {
@@ -516,8 +509,7 @@ describe("quando há mais foto que slot", () => {
   });
 
   it("a rajada sai antes da foto isolada", () => {
-    // A oitava foto seguida do mesmo brinde é a que menos falta faz; a foto
-    // que ninguém repetiu é insubstituível.
+    // A oitava foto seguida do mesmo brinde é a que menos falta faz; a foto que ninguém repetiu é insubstituível.
     const base = new Date("2026-08-09T01:00:00Z").getTime();
     const rajada = Array.from({ length: 5 }, (_, i) =>
       foto({ id: `r${i}`, sessaoId: "sA", capturadaEm: new Date(base + i * 30_000) }),
@@ -576,8 +568,7 @@ describe("quando há mais foto que slot", () => {
   });
 
   it("o amanhecer não é a faixa que o teto come", () => {
-    // É a faixa com menos fotos e a que a spec destaca. Sem a proteção por
-    // capítulo, o corte por volume acabaria justamente com ela.
+    // É a faixa com menos fotos e a que a spec destaca. Sem a proteção por capítulo, o corte por volume acabaria justamente com ela.
     const base = new Date("2026-08-09T01:00:00Z").getTime();
     const festa = Array.from({ length: 9 }, (_, i) =>
       foto({ id: `f${i}`, sessaoId: `s${i % 3}`, capturadaEm: new Date(base + i * 60_000) }),

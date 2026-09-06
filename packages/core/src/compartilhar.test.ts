@@ -126,8 +126,7 @@ describe("a mídia não sai do perímetro sem prova de autoria", () => {
   });
 
   it("não revela o estado de moderação da foto de outra pessoa", () => {
-    // O defeito que este teste impede: responder "removida" a quem não é o
-    // autor entrega, para qualquer convidado, quais fotos alguém apagou.
+    // O defeito que este teste impede: responder "removida" a quem não é o autor entrega, para qualquer convidado, quais fotos alguém apagou.
     const alheiaERemovida = midia({ sessaoDeOrigem: "sessao-2", estado: estado({ removida: true }) });
 
     const negada = autorizarCompartilhamento(alheiaERemovida, sessao(), EVENTO_LIBERADO, AGORA);
@@ -298,8 +297,7 @@ describe("🔴 a moldura nunca corta o topo nem a base", () => {
   });
 
   it("a moldura cheia é recusada exatamente onde o telão libera a dele", () => {
-    // O defeito que este teste impede: uma segunda regra de enquadramento,
-    // paralela à do telão, que aceite na moldura o que a parede recusa.
+    // O defeito que este teste impede: uma segunda regra de enquadramento, paralela à do telão, que aceite na moldura o que a parede recusa.
     for (const foto of PROPORCOES) {
       const telaoSangra = modelosPermitidos(foto).includes("cheio");
       if (telaoSangra) expect(molduraCorta("cheia", foto)).toBe(true);
@@ -316,8 +314,7 @@ describe("🔴 a moldura nunca corta o topo nem a base", () => {
   });
 
   it("foto deitada não preenche borda a borda, mesmo sem perder topo nem base", () => {
-    // Escalar 4:3 pela altura da área preserva topo e base e ainda assim joga
-    // fora metade da largura. Meia foto na horizontal também é gente cortada.
+    // Escalar 4:3 pela altura da área preserva topo e base e ainda assim joga fora metade da largura. Meia foto na horizontal também é gente cortada.
     const deitada = { largura: 4032, altura: 3024 };
 
     expect(cobreSemPerderTopo(deitada, areaDaFoto("cheia"))).toBe(false);
@@ -457,8 +454,7 @@ describe("o que atravessa o perímetro junto da imagem", () => {
   });
 
   it("nunca credita quem não capturou a foto", () => {
-    // O defeito que este teste impede: assinar com o nome de quem apertou
-    // compartilhar uma imagem que outra pessoa fez.
+    // O defeito que este teste impede: assinar com o nome de quem apertou compartilhar uma imagem que outra pessoa fez.
     const deOutro = midia({ sessaoDeOrigem: "sessao-2" });
 
     expect(conteudoDaMoldura(IDENTIDADE, deOutro, sessao(), AGORA).credito).toBeNull();
@@ -533,8 +529,7 @@ describe("compor é a única porta para a composição", () => {
 
 describe("a colagem monta só com as fotos do próprio convidado", () => {
   it("uma foto de terceiro derruba a colagem inteira", () => {
-    // O defeito que este teste impede: filtrar em silêncio e entregar um
-    // arquivo diferente do que o convidado escolheu na tela.
+    // O defeito que este teste impede: filtrar em silêncio e entregar um arquivo diferente do que o convidado escolheu na tela.
     const minhas = [midia({ id: "a" }), midia({ id: "b" })];
     const comAlheia = [...minhas, midia({ id: "c", sessaoDeOrigem: "sessao-2" })];
 

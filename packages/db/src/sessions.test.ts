@@ -169,8 +169,7 @@ describe("revogação e expiração", () => {
     const desconhecido = emitirToken(SEGREDO).token;
     const erro = await resolverSessao(app, SEGREDO, desconhecido).catch((e) => e);
 
-    // O motivo existe para log e métrica; a mensagem não conta ao atacante se
-    // ele acertou um token que já existiu.
+    // O motivo existe para log e métrica; a mensagem não conta ao atacante se ele acertou um token que já existiu.
     expect(erro.message).toBe("sessão inválida");
     expect(erro.motivo).toBe("desconhecido");
   });
@@ -187,8 +186,7 @@ describe("rotação de slug não derruba sessão ativa", () => {
       ]);
     });
 
-    // O que expira a sessão é o expires_at do token, não o slug — é o que
-    // impede a rotação de derrubar quem está subindo foto (N1.5).
+    // O que expira a sessão é o expires_at do token, não o slug — é o que impede a rotação de derrubar quem está subindo foto (N1.5).
     await expect(resolverSessao(app, SEGREDO, token)).resolves.toMatchObject({
       eventoId: dados.a.eventoId,
     });

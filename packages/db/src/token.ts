@@ -42,8 +42,7 @@ export function assinaturaValida(segredo: string, token: string): boolean {
   if (material.length !== BYTES_ALEATORIOS) return false;
   if (apresentada.length !== TAMANHO_ASSINATURA) return false;
 
-  // Comparação em tempo constante: comparar com === vaza, pelo tempo, quantos
-  // bytes iniciais o atacante acertou.
+  // Comparação em tempo constante: comparar com === vaza, pelo tempo, quantos bytes iniciais o atacante acertou.
   return timingSafeEqual(apresentada, assinar(segredo, material));
 }
 
@@ -60,8 +59,7 @@ function b64(b: Buffer): string {
 }
 
 function exigirSegredo(segredo: string): void {
-  // Falha alto em vez de assinar com string vazia. Segredo ausente produziria
-  // tokens que qualquer um consegue forjar, e nada no comportamento denunciaria.
+  // Falha alto em vez de assinar com string vazia. Segredo ausente produziria tokens que qualquer um consegue forjar, e nada no comportamento denunciaria.
   if (!segredo || segredo.length < 32) {
     throw new ErroSegredoDeSessao();
   }

@@ -28,8 +28,7 @@ describe("catálogo", () => {
   });
 
   it("o 35 mm carrega uma degradação em CSS", () => {
-    // A nuance de risco da 006: acima do teto de tempo, o preset cai para o
-    // CSS. Sem `ajustes` preenchido, degradar significaria ficar sem filtro.
+    // A nuance de risco da 006: acima do teto de tempo, o preset cai para o CSS. Sem `ajustes` preenchido, degradar significaria ficar sem filtro.
     expect(preset("35mm")?.ajustes.sepia).toBeGreaterThan(0);
   });
 });
@@ -48,8 +47,7 @@ describe("recomendado", () => {
   });
 
   it("recomendado que não existe não esvazia a tira", () => {
-    // O id vem do banco, escrito pelo admin. Um preset removido do catálogo
-    // não pode deixar o convidado sem filtro nenhum.
+    // O id vem do banco, escrito pelo admin. Um preset removido do catálogo não pode deixar o convidado sem filtro nenhum.
     expect(ordenarComRecomendado("filtro-que-nao-existe")).toHaveLength(8);
   });
 });
@@ -75,8 +73,7 @@ describe("35 mm", () => {
     const dados = imagem([255, 255, 255]);
     aplicarPorPixel(dados, 8, 8, 1);
 
-    // Continua sendo branco, não vira cinza: o ombro comprime a subida, mas
-    // 1,0 continua mapeando em 1,0.
+    // Continua sendo branco, não vira cinza: o ombro comprime a subida, mas 1,0 continua mapeando em 1,0.
     expect(px(dados, 0)).toBeGreaterThan(250);
   });
 
@@ -125,8 +122,7 @@ describe("35 mm", () => {
   });
 
   it("a halação vaza luz para o vizinho escuro", () => {
-    // Metade branca, metade preta. O pixel preto encostado na luz precisa
-    // clarear — é isso que halação é.
+    // Metade branca, metade preta. O pixel preto encostado na luz precisa clarear — é isso que halação é.
     const largura = 32;
     const altura = 8;
     const dados = new Uint8ClampedArray(largura * altura * 4);

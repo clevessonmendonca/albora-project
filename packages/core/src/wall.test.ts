@@ -18,8 +18,7 @@ const LER = { eventoId: "evt_1", concessao: "ler.midia.publicada" };
 
 describe("o crachá não escreve nada", () => {
   it("nenhuma concessão de escrita existe na lista", () => {
-    // É isto que faz o crachá ser seguro de deixar numa TV pendurada: mesmo
-    // copiado, ele não sobe, não reage, não comenta e não remove.
+    // É isto que faz o crachá ser seguro de deixar numa TV pendurada: mesmo copiado, ele não sobe, não reage, não comenta e não remove.
     for (const concessao of CONCESSOES_DA_PAREDE) {
       expect(concessao.startsWith("ler.")).toBe(true);
     }
@@ -51,8 +50,7 @@ describe("preso a um evento", () => {
   });
 
   it("evento divergente vem antes de expiração e revogação", () => {
-    // É a tentativa que mais interessa registrar, então não pode ser mascarada
-    // por um código menos grave.
+    // É a tentativa que mais interessa registrar, então não pode ser mascarada por um código menos grave.
     const podre = cracha({ revogado: true, expiraEm: hora(-1) });
 
     expect(autorizarParede(podre, { ...LER, eventoId: "evt_2" }, AGORA).codigo).toBe(

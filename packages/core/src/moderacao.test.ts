@@ -26,8 +26,7 @@ function midia(parcial: Partial<EstadoDaMidia> = {}): EstadoDaMidia {
 
 describe("publicação automática é o padrão", () => {
   it("foto limpa aparece nas duas superfícies sem ninguém tocar", () => {
-    // Verificação 1: fila de aprovação como padrão está fora de escopo, e um
-    // controle que fica desligado não é controle.
+    // Verificação 1: fila de aprovação como padrão está fora de escopo, e um controle que fica desligado não é controle.
     for (const superficie of ["galeria", "telao"] as const) {
       expect(decidirExibicao(midia(), CALMA, superficie)).toEqual({
         visivel: true,
@@ -39,8 +38,7 @@ describe("publicação automática é o padrão", () => {
 
 describe("a assimetria que decide", () => {
   it("classificador sem resposta: galeria publica, telão segura", () => {
-    // Galeria é ativa, alguém escolheu abrir. Telão é passivo: 150 pessoas
-    // estão olhando sem ter escolhido.
+    // Galeria é ativa, alguém escolheu abrir. Telão é passivo: 150 pessoas estão olhando sem ter escolhido.
     const sem = midia({ classificador: "sem-resposta" });
 
     expect(decidirExibicao(sem, CALMA, "galeria").visivel).toBe(true);
@@ -76,8 +74,7 @@ describe("as 150 pessoas na sala", () => {
   });
 
   it("a denúncia não derruba a galeria", () => {
-    // A spec diz "tiram do telão". Derrubar a galeria junto puniria quem
-    // enviou por decisão de dois estranhos, sem revisão.
+    // A spec diz "tiram do telão". Derrubar a galeria junto puniria quem enviou por decisão de dois estranhos, sem revisão.
     expect(decidirExibicao(midia({ denuncias: 9 }), CALMA, "galeria").visivel).toBe(true);
   });
 });
@@ -107,8 +104,7 @@ describe("o que um humano acabou de mandar fazer", () => {
   });
 
   it("liberação vence classificador, denúncia e modo endurecido", () => {
-    // É o caminho do falso positivo, que a spec registra como o risco mais
-    // provável: o anfitrião libera em um toque.
+    // É o caminho do falso positivo, que a spec registra como o risco mais provável: o anfitrião libera em um toque.
     const liberada = midia({
       liberadaPeloAnfitriao: true,
       classificador: "suspeito",
@@ -123,8 +119,7 @@ describe("o que um humano acabou de mandar fazer", () => {
 
 describe("modo endurecido", () => {
   it("ligado no meio da festa passa a exigir aprovação", () => {
-    // Verificação 6. Vale para o que já estava limpo: o anfitrião ligou porque
-    // algo aconteceu, e o que estava na fila é justamente o que preocupa.
+    // Verificação 6. Vale para o que já estava limpo: o anfitrião ligou porque algo aconteceu, e o que estava na fila é justamente o que preocupa.
     for (const superficie of ["galeria", "telao"] as const) {
       expect(decidirExibicao(midia(), { ...CALMA, modoEndurecido: true }, superficie)).toEqual({
         visivel: false,
@@ -203,8 +198,7 @@ describe("a auditoria registra a decisão, não só a negativa", () => {
   });
 
   it("a linha não tem campo para nome, telefone nem e-mail", () => {
-    // Log com PII crua é violação, e auditoria é onde ela mais escapa porque
-    // "é interno". O tipo não aceita a sessão inteira de propósito.
+    // Log com PII crua é violação, e auditoria é onde ela mais escapa porque "é interno". O tipo não aceita a sessão inteira de propósito.
     const linha = registrarDecisao(
       { eventoId: "e", midiaId: "m", superficie: "galeria", ator: "ses_opaca" },
       decidirExibicao(midia(), CALMA, "galeria"),

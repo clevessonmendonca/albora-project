@@ -19,8 +19,7 @@ describe("planRetention", () => {
   });
 
   it("soma milissegundos a um instante absoluto — nunca aritmética de calendário local", () => {
-    // Instante que cruza troca de horário de verão em fusos que a têm — a
-    // soma em ms nunca desliza um dia por causa disso.
+    // Instante que cruza troca de horário de verão em fusos que a têm — a soma em ms nunca desliza um dia por causa disso.
     const ends = new Date("2026-10-17T23:30:00Z");
     const items = planRetention(ends, new Date(ends.getTime() - 1));
     const d365 = items.find((i) => i.kind === "d365_delete")!;

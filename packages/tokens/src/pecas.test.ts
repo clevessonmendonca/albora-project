@@ -27,8 +27,7 @@ describe("a peça recusa antes da gráfica", () => {
   });
 
   it("recusa QR abaixo do mínimo", () => {
-    // O defeito que este teste impede é o mais caro do produto: QR que
-    // escaneia na tela do designer e falha no papel, na festa, sem volta.
+    // O defeito que este teste impede é o mais caro do produto: QR que escaneia na tela do designer e falha no papel, na festa, sem volta.
     const problemas = pieceProblems({ ...bom, qr: QR_MIN_MM - 1 }, ALBORA_BRAND.cores);
 
     expect(problemas).toHaveLength(1);
@@ -117,8 +116,7 @@ describe("a identidade colore a peça, nunca o código", () => {
 
 describe("as medidas", () => {
   it.each(FORMATOS)("%s nasce com QR acima do mínimo", (formato) => {
-    // O padrão do produto nunca pode ser um layout que o próprio gerador
-    // reprovaria.
+    // O padrão do produto nunca pode ser um layout que o próprio gerador reprovaria.
     const medidas = pieceMeasures(formato);
 
     expect(medidas.qr).toBeGreaterThanOrEqual(QR_MIN_MM);

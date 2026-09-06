@@ -183,8 +183,7 @@ export function useUpload(
           return recusar(AVISO_HEIC);
         }
 
-        // O mesmo MIME da sonda: provar a decodificação com um tipo e decodificar
-        // com outro invalidaria a prova, e no iOS o `type` do arquivo vem vazio.
+        // O mesmo MIME da sonda: decodificar com outro invalidaria a prova, e no iOS o `type` do arquivo vem vazio.
         const foto = await processarFoto(bytes, heic ? "image/heic" : arquivo.type, webDrawer, {
           plan: planoRedimensionamento,
           device: {
@@ -220,8 +219,7 @@ export function useUpload(
 
         return { ok: true as const, id, tinhaGeolocalizacao: foto.tinhaGeolocalizacao };
       } catch (e) {
-        // Cota estourada não é erro genérico: a nuance N6.6 manda avisar e
-        // subir na hora em vez de enfileirar.
+        // Cota estourada não é erro genérico: a nuance N6.6 manda avisar e subir na hora em vez de enfileirar.
         const mensagem =
           e instanceof QueueQuotaExceededError
             ? "Sem espaço no aparelho para guardar a foto. Conecte-se ao WiFi para as pendentes subirem."
@@ -248,8 +246,7 @@ export function useUpload(
         body: JSON.stringify({ uploadId: id, ...detalhes }),
       });
     } catch {
-      // Silêncio de propósito: o convidado escreveu uma legenda opcional numa
-      // foto que já está salva. Um erro aqui só o assustaria à toa.
+      // Silêncio de propósito: o convidado escreveu uma legenda opcional numa foto que já está salva.
     }
   }, []);
 
@@ -257,8 +254,7 @@ export function useUpload(
     setEstado((e) => ({ ...e, online: navigator.onLine }));
     void atualizarResumo();
 
-    // Religou a rede: drena sem o convidado tocar em nada. É a promessa que
-    // a fila existe para cumprir.
+    // Religou a rede: drena sem o convidado tocar em nada — é a promessa que a fila existe para cumprir.
     const voltou = () => {
       setEstado((e) => ({ ...e, online: true }));
       void drenarAgora();
@@ -271,16 +267,14 @@ export function useUpload(
     // Tentativa periódica pro caso de `online` não disparar — acontece quando o WiFi conecta mas não tem saída, padrão de salão com portal cativo.
     const relogio = setInterval(() => void drenarAgora(), 30_000);
 
-    // Convidado volta à aba/PWA após sair (bfcache, troca de app, notificação).
-    // Espelho do AppState drain no mobile — drena se online, atualiza contagens se não.
+    // Convidado volta à aba/PWA após sair (bfcache, troca de app, notificação) — drena se online, atualiza contagens se não.
     const aoVoltar = () => {
       const acao = resolverAcaoFoco(document.visibilityState === "visible", navigator.onLine);
       if (acao === "drenar") void drenarAgora();
       else if (acao === "atualizar") void atualizarResumo();
     };
     const aoVisibilityChange = () => aoVoltar();
-    // `pageshow` com `persisted` sinaliza restauração de bfcache; carga normal
-    // já está coberta pelo mount acima.
+    // `pageshow` com `persisted` sinaliza restauração de bfcache; carga normal já está coberta pelo mount acima.
     const aoPageShow = (e: PageTransitionEvent) => {
       if (e.persisted) aoVoltar();
     };

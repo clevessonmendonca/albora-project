@@ -37,8 +37,7 @@ describe("o crachá da parede resolve o evento", () => {
   });
 
   it("guarda o hash, nunca o token", async () => {
-    // Um dump do banco não pode entregar a parede de ninguém: o token só
-    // existe na URL que o anfitrião abriu na TV.
+    // Um dump do banco não pode entregar a parede de ninguém — o token só existe na URL que o anfitrião abriu na TV.
     const token = await emitirCrachaDaParede(app, SEGREDO, dados.a.eventoId, hora(6));
     const { rows } = await admin.query<{ achou: string }>(
       "SELECT count(*)::text AS achou FROM wall_tokens WHERE encode(token_hash, 'hex') = $1",
@@ -73,16 +72,14 @@ describe("o crachá da parede resolve o evento", () => {
 
 describe("a parede não é uma sessão de convidado", () => {
   it("o crachá da parede não resolve como sessão", async () => {
-    // O defeito que isto impede: reusar a credencial da TV para subir foto.
-    // A TV fica ligada sozinha num salão, ao alcance de qualquer pessoa.
+    // O defeito que isto impede: reusar a credencial da TV para subir foto — a TV fica ligada sozinha num salão, ao alcance de qualquer pessoa.
     const token = await emitirCrachaDaParede(app, SEGREDO, dados.a.eventoId, hora(6));
 
     await expect(resolverSessao(app, SEGREDO, token)).rejects.toThrow();
   });
 
   it("a tabela não tem coluna de sessão", async () => {
-    // A ausência é a decisão: a parede não é uma pessoa, e inventar uma sessão
-    // faria a auditoria atribuir a alguém o que uma TV fez sozinha.
+    // A ausência é a decisão: a parede não é uma pessoa — inventar uma sessão faria a auditoria atribuir a alguém o que uma TV fez sozinha.
     const { rows } = await admin.query<{ column_name: string }>(
       "SELECT column_name FROM information_schema.columns WHERE table_name = 'wall_tokens'",
     );

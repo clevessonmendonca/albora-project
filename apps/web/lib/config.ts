@@ -40,8 +40,7 @@ export function config(): Config {
     sessionSecret,
     r2,
     databaseUrl: readEnv("DATABASE_URL"),
-    // A janela do ADR 0004: o convidado tem 48h depois do evento para o que
-    // ficou na fila subir. Depois disso o token morre.
+    // A janela do ADR 0004: o convidado tem 48h depois do evento para o que ficou na fila subir, depois o token morre.
     sessionDurationHours,
     mediaOrigin,
     duracaoSessaoHoras: sessionDurationHours,
