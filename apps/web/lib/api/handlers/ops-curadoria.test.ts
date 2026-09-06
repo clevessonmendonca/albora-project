@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const mockListEventsNeedingCurationEnqueue = vi.fn();
+const mockEnqueueCuration = vi.fn();
 const mockListEventsWithPendingCuration = vi.fn();
 const mockReclaimStaleCurationJob = vi.fn();
 const mockClaimCurationJobs = vi.fn();
@@ -9,6 +11,8 @@ const mockFailCurationJob = vi.fn();
 const mockCuratePendingForEventNow = vi.fn();
 
 vi.mock("@albora/db", () => ({
+  listEventsNeedingCurationEnqueue: mockListEventsNeedingCurationEnqueue,
+  enqueueCuration: mockEnqueueCuration,
   listEventsWithPendingCuration: mockListEventsWithPendingCuration,
   reclaimStaleCurationJob: mockReclaimStaleCurationJob,
   claimCurationJobs: mockClaimCurationJobs,
@@ -47,6 +51,8 @@ describe("POST /api/ops/curadoria", () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
 
+    mockListEventsNeedingCurationEnqueue.mockResolvedValue([]);
+    mockEnqueueCuration.mockResolvedValue(undefined);
     mockListEventsWithPendingCuration.mockResolvedValue([]);
     mockReclaimStaleCurationJob.mockResolvedValue(0);
     mockClaimCurationJobs.mockResolvedValue([]);
@@ -54,6 +60,25 @@ describe("POST /api/ops/curadoria", () => {
     mockCompleteCurationJob.mockResolvedValue(undefined);
     mockFailCurationJob.mockResolvedValue("retry");
     mockCuratePendingForEventNow.mockResolvedValue(0);
+  });
+
+  it("enfileira evento encerrado antes de listar pendentes, e não interrompe o sweep se o enfileiramento falhar", async () => {
+    mockListEventsNeedingCurationEnqueue.mockResolvedValue(["evento-recem-encerrado"]);
+
+    const res = await postOpsCuradoria(req());
+
+    expect(mockEnqueueCuration).toHaveBeenCalledWith(expect.anything(), "evento-recem-encerrado");
+    expect(res.status).toBe(200);
+  });
+
+  it("erro ao enfileirar um evento não derruba o sweep", async () => {
+    mockListEventsNeedingCurationEnqueue.mockResolvedValue(["evento-com-erro-no-enqueue"]);
+    mockEnqueueCuration.mockRejectedValue(new Error("banco caiu"));
+
+    const res = await postOpsCuradoria(req());
+
+    expect(res.status).toBe(200);
+    expect(mockListEventsWithPendingCuration).toHaveBeenCalled();
   });
 
   it("recusa sem Authorization quando CRON_SECRET está definido", async () => {
