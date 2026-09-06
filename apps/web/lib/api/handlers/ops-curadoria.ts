@@ -1,7 +1,9 @@
 import {
   claimCurationJobs,
   completeCurationJob,
+  enqueueCuration,
   failCurationJob,
+  listEventsNeedingCurationEnqueue,
   listEventsWithPendingCuration,
   listUploadsAwaitingCurationScore,
   reclaimStaleCurationJob,
@@ -25,6 +27,24 @@ function autorizado(req: Request): boolean {
 }
 
 type ResultadoEvento = "processado" | "sem_job" | "falhou";
+
+/**
+ * Gatilho da fila (achado 1 do review — `enqueueCuration` não tinha nenhum chamador de produção,
+ * `curation_jobs` ficava sempre vazia). "Evento encerrado" é `ends_at <= now()`
+ * (`listEventsNeedingCurationEnqueue`, spec §4 opção b): o mesmo mecanismo que já processa
+ * `curation_jobs` agora também a alimenta, sem depender do editor do livro (fora de escopo desta
+ * onda) nem de coluna nova. `enqueueCuration` é `ON CONFLICT DO NOTHING`, então uma falha aqui
+ * (banco fora do ar) só adia o enfileiramento para a próxima varredura — nunca quebra o sweep.
+ */
+async function enfileirarEventosEncerrados(): Promise<void> {
+  const pendentesDeEnfileirar = await listEventsNeedingCurationEnqueue(getAggregatorPool());
+
+  for (const eventoId of pendentesDeEnfileirar) {
+    await withEvent(getPool(), eventoId, (c) => enqueueCuration(c, eventoId)).catch((e) => {
+      console.error("curadoria.enfileirar_falhou", { eventoId, erro: String(e) });
+    });
+  }
+}
 
 /**
  * Claim de curation_jobs é por evento (uma linha por evento, `UNIQUE (event_id)`) — nunca cruza
@@ -70,9 +90,10 @@ async function processarEvento(eventoId: string): Promise<ResultadoEvento> {
 }
 
 /**
- * Rede de segurança pós-evento (spec §4b): calcula os três sinais de curadoria — hash
- * perceptual, nitidez, exposição — sobre o thumb de cada mídia publicada, propondo ordem para o
- * editor do livro. Nunca decide sozinho, nunca remove mídia (`@albora/curation`). Listagem via
+ * Rede de segurança pós-evento (spec §4b): enfileira eventos encerrados
+ * (`enfileirarEventosEncerrados`) e calcula os três sinais de curadoria — hash perceptual,
+ * nitidez, exposição — sobre o thumb de cada mídia publicada, propondo ordem para o editor do
+ * livro. Nunca decide sozinho, nunca remove mídia (`@albora/curation`). Listagem via
  * `getAggregatorPool()` (BYPASSRLS, cruza eventos, só leitura); processamento por evento via
  * `getPool()` com `SET LOCAL`, mesmo molde de `ops-retencao.ts` e `ops-moderacao.ts`.
  */
@@ -82,6 +103,8 @@ export async function postOpsCuradoria(req: Request) {
   }
 
   try {
+    await enfileirarEventosEncerrados();
+
     const eventos = await listEventsWithPendingCuration(getAggregatorPool());
 
     let processados = 0;

@@ -443,6 +443,7 @@ export {
   enqueueCuration,
   failCurationJob,
   listCurationScores,
+  listEventsNeedingCurationEnqueue,
   listEventsWithPendingCuration,
   listUploadsAwaitingCurationScore,
   reclaimStaleCurationJob,

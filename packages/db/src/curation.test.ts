@@ -7,6 +7,7 @@ import {
   enqueueCuration,
   failCurationJob,
   listCurationScores,
+  listEventsNeedingCurationEnqueue,
   listEventsWithPendingCuration,
   listUploadsAwaitingCurationScore,
   reclaimStaleCurationJob,
@@ -30,6 +31,19 @@ async function statusDoJob(eventId: string): Promise<string | null> {
     [eventId],
   );
   return rows[0]?.status ?? null;
+}
+
+/** Evento próprio (fora dos fixtures `dados.a`/`dados.b`) para não afetar o `ends_at` compartilhado por outros testes. */
+async function criarEventoComEndsAt(accountId: string, endsAt: Date): Promise<string> {
+  const slug = `evento-curadoria-${Math.random().toString(36).slice(2)}`;
+  const { rows } = await admin.query<{ id: string }>(
+    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
+     VALUES ($1, 'pack-um', $2, now() - interval '7 hours', $3) RETURNING id`,
+    [accountId, slug, endsAt],
+  );
+  const eventoId = rows[0]!.id;
+  await admin.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [slug, eventoId]);
+  return eventoId;
 }
 
 async function criarUpload(eventoId: string, sessaoId: string): Promise<string> {
@@ -353,5 +367,48 @@ describe("listUploadsAwaitingCurationScore", () => {
       listUploadsAwaitingCurationScore(c, dados.a.eventoId, 10),
     );
     expect(depois.map((u) => u.uploadId)).not.toContain(uploadId);
+  });
+});
+
+describe("listEventsNeedingCurationEnqueue — gatilho que alimenta a fila (achado 1)", () => {
+  it("lista evento encerrado (ends_at no passado) que ainda não tem curation_jobs", async () => {
+    const eventoId = await criarEventoComEndsAt(dados.a.contaId, new Date(Date.now() - 3_600_000));
+
+    const pendentes = await listEventsNeedingCurationEnqueue(admin, 100);
+
+    expect(pendentes).toContain(eventoId);
+  });
+
+  it("NÃO lista evento em andamento (ends_at no futuro)", async () => {
+    const eventoId = await criarEventoComEndsAt(dados.a.contaId, new Date(Date.now() + 3_600_000));
+
+    const pendentes = await listEventsNeedingCurationEnqueue(admin, 100);
+
+    expect(pendentes).not.toContain(eventoId);
+  });
+
+  it("NÃO lista evento encerrado que já tem curation_jobs — enfileirar de novo não duplica", async () => {
+    const eventoId = await criarEventoComEndsAt(dados.a.contaId, new Date(Date.now() - 3_600_000));
+    await comEvento(app, eventoId, (c) => enqueueCuration(c, eventoId));
+
+    const pendentes = await listEventsNeedingCurationEnqueue(admin, 100);
+
+    expect(pendentes).not.toContain(eventoId);
+  });
+
+  it("round-trip: listar + enfileirar alimenta curation_jobs de verdade, e a segunda varredura não reenfileira", async () => {
+    const eventoId = await criarEventoComEndsAt(dados.a.contaId, new Date(Date.now() - 3_600_000));
+
+    const pendentes = await listEventsNeedingCurationEnqueue(admin, 100);
+    expect(pendentes).toContain(eventoId);
+
+    for (const id of pendentes) {
+      await comEvento(app, id, (c) => enqueueCuration(c, id));
+    }
+
+    expect(await statusDoJob(eventoId)).toBe("pending");
+
+    const segundaVarredura = await listEventsNeedingCurationEnqueue(admin, 100);
+    expect(segundaVarredura).not.toContain(eventoId);
   });
 });

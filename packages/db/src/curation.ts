@@ -117,6 +117,28 @@ export async function reclaimStaleCurationJob(
   return rowCount ?? 0;
 }
 
+/**
+ * Gatilho de enfileiramento (spec §4, opção b): nenhum chamador decidia quando enfileirar um
+ * evento, então `curation_jobs` nunca recebia uma linha em produção (achado 1 do review). O sinal
+ * de "evento encerrado" é `events.ends_at <= now()` — já existe na tabela, não precisa de coluna
+ * nova. Cross-event por desenho, mesmo molde de `listEventsWithPendingCuration`: roda no pool
+ * `BYPASSRLS`, só leitura (o enfileiramento em si é escopado por evento, via `enqueueCuration` sob
+ * `comEvento`/`withEvent`, chamado pelo handler). `LEFT JOIN ... IS NULL` exclui evento que já tem
+ * qualquer linha em `curation_jobs` (pending, processing, done ou failed) — `enqueueCuration` é
+ * `ON CONFLICT DO NOTHING`, então chamar esta função a cada varredura do cron nunca duplica.
+ */
+export async function listEventsNeedingCurationEnqueue(pool: Pool, limit = 50): Promise<string[]> {
+  const { rows } = await pool.query<{ id: string }>(
+    `SELECT e.id
+       FROM events e
+       LEFT JOIN curation_jobs cj ON cj.event_id = e.id
+      WHERE e.ends_at <= now() AND cj.event_id IS NULL
+      LIMIT $1`,
+    [limit],
+  );
+  return rows.map((r) => r.id);
+}
+
 /** Cross-event por desenho (varredura do job periódico) — roda no pool `BYPASSRLS`, só leitura. Inclui eventos com claim preso além do prazo, senão o job periódico nunca os visitaria de novo para reivindicar. */
 export async function listEventsWithPendingCuration(
   pool: Pool,
