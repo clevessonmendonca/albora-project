@@ -6,7 +6,13 @@ import { defineConfig, devices } from "@playwright/test";
  * Sempre (rápido): landing, admin sign-in, telão (`/telao`).
  * Com E2E_FULL=1 (+ `pnpm db:semear`): convidado, upload mock, código do telão.
  *
- * Requer servidor local (`pnpm dev`).
+ * Local: `pnpm dev`. No CI: `next start` sobre um build (o job roda
+ * `pnpm build` antes). A diferença não é preferência — sob `next dev` a rota
+ * é compilada sob demanda, e a primeira navegação até a de câmera, a mais
+ * pesada do app, consumia sozinha o orçamento do teste: o fluxo completo do
+ * convidado passava só no retry e voltava a falhar mesmo com `test.slow()`.
+ * Com as rotas pré-compiladas essa classe de falha deixa de existir, e o
+ * teste passa a medir o produto em vez do compilador.
  */
 export default defineConfig({
   testDir: "./e2e",
@@ -23,7 +29,7 @@ export default defineConfig({
   webServer: process.env.PLAYWRIGHT_SKIP_SERVER
     ? undefined
     : {
-        command: "pnpm dev",
+        command: process.env.CI ? "pnpm --filter @albora/web start" : "pnpm dev",
         url: "http://localhost:3000",
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
