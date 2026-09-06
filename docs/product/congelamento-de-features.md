@@ -92,3 +92,7 @@ Só o fundador, por escrito, com o motivo registrado aqui. A lista existe para q
 | Data | Mudança |
 |---|---|
 | 2026-08-30 | Documento criado a partir do discovery de agosto/2026 |
+
+## Exceção: loop viral convidado → anfitrião (2026-09-05)
+
+Decisão do mantenedor em 2026-09-05: construir o loop viral (atribuição inbound, CTAs "crie o seu", compartilhamento do álbum, memórias automáticas) **antes** do casamento #1 ser medido, ciente de que o produto não rodou evento real nem está em produção. Motivo: crescimento/aquisição definido como alavanca primária; cada convidado é um futuro anfitrião. Spec: `docs/superpowers/specs/2026-09-05-loop-viral-convidado-anfitriao-design.md`. O restante do congelamento permanece.

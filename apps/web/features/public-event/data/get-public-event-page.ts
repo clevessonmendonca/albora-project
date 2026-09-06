@@ -2,6 +2,7 @@ import {
   withEvent,
   lerMetricasAoVivo,
   listarMidiaDaParede,
+  refDoEvento,
   resolverSlug,
   type EventoPublico,
 } from "@albora/db";
@@ -36,8 +37,12 @@ export type PublicEventPageData = {
 const TAMANHO_DA_VITRINE = 9;
 const TTL_DA_THUMB_SEGUNDOS = 300;
 
-/** Onde o CTA "monte o seu" aponta — o mesmo destino do botão grátis da landing. */
-export const CTA_MONTAR_O_SEU = "/admin/new?plano=free";
+/** Todo CTA viral cai na landing (não direto no admin): quem chegou por um convidado vê o produto antes do sign-in, e o middleware grava o ref. */
+export const CTA_LANDING = "/";
+
+function ctaComRef(refToken: string | null): string {
+  return refToken ? `${CTA_LANDING}?ref=${encodeURIComponent(refToken)}` : CTA_LANDING;
+}
 
 /** Página pública: agregado moderado (`listarMidiaDaParede`), sem PII (`paraVitrinePublica` descarta `autor`); `desconhecido`/`slug_rotacionado` → null. */
 export async function getPublicEventPage(slug: string): Promise<PublicEventPageData | null> {
@@ -57,10 +62,12 @@ export async function getPublicEventPage(slug: string): Promise<PublicEventPageD
   const estado: EstadoPaginaPublica = resolucao.estado;
   const identidade = resolvePublicEventIdentity(slug, evento);
 
-  const { metricas, midia } = await withEvent(getPool(), evento.eventoId, async (c) => {
+  const { metricas, midia, refToken } = await withEvent(getPool(), evento.eventoId, async (c) => {
     const metricas = await lerMetricasAoVivo(c, evento.eventoId);
     const midia = await listarMidiaDaParede(c, evento.eventoId, TAMANHO_DA_VITRINE);
-    return { metricas, midia };
+    // Falha ao ler o ref não pode derrubar a página: ctaHref cai pro CTA_LANDING sem ref.
+    const refToken = await refDoEvento(c, evento.eventoId).catch(() => null);
+    return { metricas, midia, refToken };
   });
 
   const semAutor = paraVitrinePublica(midia);
@@ -82,6 +89,6 @@ export async function getPublicEventPage(slug: string): Promise<PublicEventPageD
     totalFotos: metricas.totalFotos,
     totalPessoas: metricas.sessoesComUpload,
     vitrine,
-    ctaHref: CTA_MONTAR_O_SEU,
+    ctaHref: ctaComRef(refToken),
   };
 }

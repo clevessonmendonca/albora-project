@@ -8,6 +8,8 @@ export type {
   SessaoId,
 } from "./tipos";
 
+export * from "./ref-token";
+
 export type { QueueBody, QueueDetails, Queue, QueueItem } from "./fila";
 export { shouldGiveUp, retryWaitSeconds, MAX_ATTEMPTS } from "./fila";
 
