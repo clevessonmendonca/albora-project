@@ -19,8 +19,7 @@ export async function prepararBanco() {
   await admin.query("CREATE SCHEMA public");
   await migrar(admin, DIR_MIGRATIONS);
 
-  // Em produção o login vem de credencial gerenciada; aqui é o mínimo para o
-  // papel comum conseguir conectar.
+  // Em produção o login vem de credencial gerenciada; aqui é o mínimo para o papel comum conseguir conectar.
   await admin.query(`ALTER ROLE albora_app LOGIN PASSWORD '${SENHA_APP}'`);
   await admin.query(`ALTER ROLE albora_agregador LOGIN PASSWORD '${SENHA_APP}'`);
   await admin.query("GRANT USAGE ON SCHEMA public TO albora_app, albora_agregador");
@@ -63,8 +62,7 @@ export async function semear(admin: pg.Pool) {
     );
     const eventoId = rows[0].id as string;
 
-    // O slug vive na porta fora da RLS (migration 0004); a migration faz
-    // backfill de quem já existia, e quem nasce depois precisa da linha.
+    // O slug vive na porta fora da RLS (migration 0004); a migration faz backfill de quem já existia, e quem nasce depois precisa da linha.
     await admin.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [
       slug,
       eventoId,
@@ -82,8 +80,17 @@ export async function semear(admin: pg.Pool) {
        VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 800000) RETURNING id`,
       [eventoId, sessaoId, `events/${eventoId}/2026/08/foto/full`],
     );
+    const uploadId = upload[0].id as string;
 
-    return { eventoId, sessaoId, uploadId: upload[0].id as string };
+    // Sem isto o teste de isolamento (isolamento.test.ts) exercitaria
+    // photo_moderation com zero linhas — provaria isolamento por vacuidade,
+    // não por filtro de fato.
+    await admin.query(
+      `INSERT INTO photo_moderation (upload_id, event_id) VALUES ($1, $2)`,
+      [uploadId, eventoId],
+    );
+
+    return { eventoId, sessaoId, uploadId };
   };
 
   return {

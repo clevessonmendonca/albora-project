@@ -41,8 +41,8 @@ async function criarEvento(endsAt: Date, contaId?: string) {
   const conta = contaId ?? dados.a.contaId;
   const slug = `evt-${Math.random().toString(36).slice(2, 10)}`;
   const { rows } = await admin.query<{ id: string }>(
-    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status)
-     VALUES ($1, 'pack-um', $2, $3, $4, 'active') RETURNING id`,
+    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
+     VALUES ($1, 'pack-um', $2, $3, $4) RETURNING id`,
     [conta, slug, new Date(endsAt.getTime() - 6 * 3600 * 1000), endsAt],
   );
   const eventoId = rows[0]!.id;
@@ -83,7 +83,13 @@ const semNotificar = { notify: async (_n: NotificacaoRetencao) => {} };
 // vira bomba-relógio no dia em que o calendário passa por ela.
 describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000 }, () => {
   it("cria os quatro kinds com due_at derivados de ends_at", async () => {
-    const ends = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    // Relativo ao agora, NUNCA data absoluta: `planRetention`
+    // (packages/core/src/retention.ts) descarta item vencido há mais de um
+    // dia, e `scheduleRetentionJobs` não recebe `now` — usa o relógio real.
+    // Com data fixa, `plus_48h` sai da lista assim que o calendário passa, e
+    // o teste quebra sozinho sem ninguém tocar em código. Foi o que houve:
+    // verde em 2026-09-01, vermelho a partir de 2026-09-04.
+    const ends = new Date(Date.now() - 60 * 60 * 1000);
     const eventoId = await criarEvento(ends);
     await scheduleRetentionJobs(admin, eventoId, ends);
 
@@ -204,8 +210,7 @@ describe("processRetentionJob — avisos (d330_drive/d358_warn): reenvio no máx
     expect(status.status).toBe("done");
     expect(status.attempts).toBe(2);
 
-    // Terceira chamada nunca reenvia de novo — já é terminal (status 'done'
-    // sob o lock, curto-circuita antes de qualquer notify).
+    // Terceira chamada nunca reenvia de novo — já é terminal (status 'done' sob o lock, curto-circuita antes de qualquer notify).
     job = await jobDoEvento(eventoId, "d330_drive");
     const bemDepois = new Date(oitoDiasDepois.getTime() + 30 * 24 * 3600 * 1000);
     expect(
@@ -406,8 +411,7 @@ describe("processRetentionJob — d365_delete: o gate fail-closed", () => {
     );
     const job = await jobDoEvento(eventoId, "d365_delete");
     const r = await processRetentionJob(admin, job, semNotificar);
-    // 'vazio' entra no mesmo balde de "não é pronto" do core — fail-closed
-    // por desenho: mesmo um acervo vazio exige um export 'pronto' explícito.
+    // 'vazio' entra no mesmo balde de "não é pronto" do core — fail-closed por desenho: mesmo um acervo vazio exige um export 'pronto' explícito.
     expect(r).toEqual({ status: "skipped", reason: "export_parcial", diasDeAtraso: expect.any(Number) });
   });
 
@@ -447,8 +451,7 @@ describe("processRetentionJob — lock por evento (pg_advisory_xact_lock)", () =
     expect([a.status, b.status].sort()).toEqual(["done", "done"]);
     const status = await statusDoJob(job.id);
     expect(status.status).toBe("done");
-    // attempts incrementa uma vez por execução real — sob o lock, a segunda
-    // invocação encontra o status já 'done' e sai sem tocar attempts de novo.
+    // attempts incrementa uma vez por execução real — sob o lock, a segunda invocação encontra o status já 'done' e sai sem tocar attempts de novo.
     expect(status.attempts).toBe(1);
   });
 });

@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/tokens" },
     { "path": "packages/core" },
+    { "path": "packages/curation" },
     { "path": "packages/packs" },
     { "path": "packages/db" },
     { "path": "packages/application" },

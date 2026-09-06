@@ -8,6 +8,8 @@ export type {
   SessaoId,
 } from "./tipos";
 
+export * from "./ref-token";
+
 export type { QueueBody, QueueDetails, Queue, QueueItem } from "./fila";
 export { shouldGiveUp, retryWaitSeconds, MAX_ATTEMPTS } from "./fila";
 
@@ -285,6 +287,14 @@ export {
   provedorDeImagemDoAmbiente,
   provedorHeuristico,
 } from "./classificador-imagem";
+
+export type { ConfigDoProvedorOpenAi, ResultadoBrutoOpenAi } from "./classificador-openai";
+export {
+  LIMIAR_SUSPEITO as LIMIAR_SUSPEITO_OPENAI,
+  provedorOpenAi,
+  resultadoBrutoOpenAi,
+  veredictoDoResultadoBruto,
+} from "./classificador-openai";
 
 export type {
   Autorizacao,

@@ -16,6 +16,7 @@ const {
   mockWithEvent,
   mockConfirmUploadDB,
   mockCreateStory,
+  mockEnqueueModeration,
   mockChallengeBelongsToEvent,
   mockEventTimeZone,
   mockEventPack,
@@ -33,6 +34,7 @@ const {
   mockWithEvent: vi.fn(),
   mockConfirmUploadDB: vi.fn(),
   mockCreateStory: vi.fn(),
+  mockEnqueueModeration: vi.fn(),
   mockChallengeBelongsToEvent: vi.fn(),
   mockEventTimeZone: vi.fn(),
   mockEventPack: vi.fn(),
@@ -56,6 +58,7 @@ vi.mock("@albora/db", () => ({
   withEvent: mockWithEvent,
   confirmUpload: mockConfirmUploadDB,
   createStory: mockCreateStory,
+  enqueueModeration: mockEnqueueModeration,
   challengeBelongsToEvent: mockChallengeBelongsToEvent,
   UploadConflictError: class UploadConflictError extends Error {
     constructor(message: string) {
@@ -341,6 +344,52 @@ describe("confirmUpload", () => {
       });
     });
 
+  });
+
+  describe("Moderação (degradável — Task 6, disparo sai do poll do telão)", () => {
+    beforeEach(() => {
+      mockValidarObjetoRecebido.mockReturnValue(null);
+      mockEventPack.mockResolvedValue("wedding");
+      mockEventTimeZone.mockResolvedValue("America/Sao_Paulo");
+      mockConfirmUploadDB.mockResolvedValue({ estado: "criado" });
+      mockWithEvent.mockImplementation(async (_client, _eventId, fn) => fn(mockClient));
+    });
+
+    it("confirmar um upload enfileira moderação para aquele uploadId", async () => {
+      const input = createValidInput({ eventoId: "evt-123", uploadId: "upl-789" });
+      const result = await confirmUpload(input, mockPool);
+
+      expect(result.ok).toBe(true);
+      expect(mockEnqueueModeration).toHaveBeenCalledWith(mockClient, {
+        uploadId: "upl-789",
+        eventId: "evt-123",
+      });
+    });
+
+    it("falha ao enfileirar não derruba o confirm — o caminho crítico segue", async () => {
+      mockEnqueueModeration.mockRejectedValueOnce(new Error("fila fora do ar"));
+
+      const input = createValidInput();
+      const result = await confirmUpload(input, mockPool);
+
+      expect(result).toEqual({
+        ok: true,
+        uploadId: "upl-789",
+        estado: "criado",
+      });
+      expect(mockClient.query).toHaveBeenCalledWith("SAVEPOINT enfileirar_moderacao");
+      expect(mockClient.query).toHaveBeenCalledWith("ROLLBACK TO SAVEPOINT enfileirar_moderacao");
+      expect(mockClient.query).not.toHaveBeenCalledWith("RELEASE SAVEPOINT enfileirar_moderacao");
+    });
+
+    it("sucesso ao enfileirar libera o savepoint em vez de reverter", async () => {
+      const input = createValidInput();
+      const result = await confirmUpload(input, mockPool);
+
+      expect(result.ok).toBe(true);
+      expect(mockClient.query).toHaveBeenCalledWith("RELEASE SAVEPOINT enfileirar_moderacao");
+      expect(mockClient.query).not.toHaveBeenCalledWith("ROLLBACK TO SAVEPOINT enfileirar_moderacao");
+    });
   });
 
   describe("Story (degradável)", () => {

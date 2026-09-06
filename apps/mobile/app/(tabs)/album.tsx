@@ -161,8 +161,7 @@ export default function AlbumScreen() {
         clearTimeout(renovacaoRef.current);
       }
     };
-    // só na montagem
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- só na montagem
   }, []);
 
   const abrirFoto = useCallback(

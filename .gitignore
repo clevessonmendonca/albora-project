@@ -48,8 +48,10 @@ apps/mobile/store/google-service-account.json
 playwright-report/
 test-results/
 
-# Vitest coverage (artefato de CI, não fonte)
-coverage/
+# Vitest coverage (artefato de CI, não fonte). Ancorado na raiz: sem a barra
+# inicial, o padrão também escondia `tools/coverage/` (código-fonte do piso
+# global de cobertura, não artefato).
+/coverage/
 
 # Expo (CNG — ios/android nascem no prebuild, não no git)
 .expo/

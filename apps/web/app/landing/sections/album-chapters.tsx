@@ -1,3 +1,4 @@
+import { Reveal } from "../interactives";
 import { Timeline, NightSlot } from "../showcases";
 import { Accent, Heading, Label, Section } from "../pieces";
 
@@ -20,20 +21,19 @@ export function AlbumChaptersSection({
 
       <div className="grid grid-cols-[repeat(auto-fit,minmax(16.5rem,1fr))] gap-[clamp(0.875rem,2vw,1.5rem)]">
         {eventMoments.map((m, i) => (
-          <figure
-            key={m.id}
-            className="cartao m-0 overflow-hidden rounded-superficie"
-          >
-            <NightSlot variant={i} ratio="4 / 5" />
-            <figcaption className="bg-superficie-alta px-[1.125rem] pb-5 pt-[1.0625rem]">
-              <span className="block font-titulo text-[1.0625rem] leading-[1.2] tracking-titulo">
-                {m.title}
-              </span>
-              <span className="mt-[0.4375rem] block text-[0.8125rem] leading-[1.45] text-ink-2">
-                {m.desc}
-              </span>
-            </figcaption>
-          </figure>
+          <Reveal key={m.id} delay={Math.min(i, 4) * 70}>
+            <figure className="cartao m-0 overflow-hidden rounded-superficie">
+              <NightSlot variant={i} ratio="4 / 5" />
+              <figcaption className="bg-superficie-alta px-[1.125rem] pb-5 pt-[1.0625rem]">
+                <span className="block font-titulo text-[1.0625rem] leading-[1.2] tracking-titulo">
+                  {m.title}
+                </span>
+                <span className="mt-[0.4375rem] block text-[0.8125rem] leading-[1.45] text-ink-2">
+                  {m.desc}
+                </span>
+              </figcaption>
+            </figure>
+          </Reveal>
         ))}
       </div>
 

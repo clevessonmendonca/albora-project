@@ -41,7 +41,7 @@ export default async function VendorSettingsPage({
       back={{ label: "Painel", href: "/admin" }}
     >
       <AdminSection>
-        <h2 className="mb-3 mt-0 font-titulo text-lg">Dados do fornecedor</h2>
+        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Dados do fornecedor</h2>
         {vendor.role === "admin" ? (
           <VendorForm
             mode="edit"
@@ -50,7 +50,7 @@ export default async function VendorSettingsPage({
             initialSlug={vendor.slug ?? ""}
           />
         ) : (
-          <p className="m-0 leading-relaxed text-ink-2">
+          <p className="tipo-body m-0 text-ink-2">
             Só o administrador do fornecedor pode alterar nome e identificador.
           </p>
         )}

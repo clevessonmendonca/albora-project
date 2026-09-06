@@ -75,8 +75,7 @@ function eventSegment(url: URL): string | null {
   const first = parts[0];
   if (first === undefined) return null;
 
-  // `/e/{slug}` é a rota do produto; `/{slug}` é a URL curta que vai impressa
-  // abaixo do QR. As duas existem no material, então as duas entram.
+  // `/e/{slug}` é a rota do produto; `/{slug}` é a URL curta que vai impressa abaixo do QR. As duas existem no material, então as duas entram.
   const raw = first === "e" ? parts[1] : first;
   return raw === undefined ? null : decode(raw);
 }

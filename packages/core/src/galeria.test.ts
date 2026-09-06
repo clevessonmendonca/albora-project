@@ -32,8 +32,7 @@ function naFila(id: string, minutos: number, tentativas = 0, eventoId = EVENTO):
 
 describe("a galeria mostra o que ainda não subiu", () => {
   it("junta o confirmado e o pendente numa lista só", () => {
-    // Separar em duas listas obrigaria o convidado a somar de cabeça para
-    // responder "mandei tudo?".
+    // Separar em duas listas obrigaria o convidado a somar de cabeça para responder "mandei tudo?".
     const galeria = montarGaleria([enviada("a", 10)], [naFila("b", 5)], EVENTO);
 
     expect(galeria.map((i) => i.id)).toEqual(["b", "a"]);
@@ -100,8 +99,7 @@ describe("reagir nunca espera o gate (ADR 0009, atualizado)", () => {
   const semData = { interacaoAbreEm: null };
 
   it("o botão e a contagem aparecem antes do gate", () => {
-    // Só o comentário espera o horário que o casal escolheu — reagir é
-    // liberado assim que a mídia publica, gate aberto ou não.
+    // Só o comentário espera o horário que o casal escolheu — reagir é liberado assim que a mídia publica, gate aberto ou não.
     for (const evento of [fechado, semData]) {
       expect(podeReagir(evento, AGORA)).toBe(true);
     }

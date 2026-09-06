@@ -1,8 +1,9 @@
-/* global __ENV, open -- globais do runtime do k6, não do Node: este arquivo roda no k6, não em node. */
 import http from "k6/http";
 import { check, sleep } from "k6";
 import { Rate, Trend } from "k6/metrics";
 import { uuidv4 } from "https://jslib.k6.io/k6-utils/1.4.0/index.js";
+
+/* global __ENV, open */ // runtime globals do k6, não do Node
 
 const uploadLatency = new Trend("upload_latency", true);
 const presignLatency = new Trend("presign_latency", true);

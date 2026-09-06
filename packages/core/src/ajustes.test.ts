@@ -161,8 +161,7 @@ describe("o que a passagem não pode quebrar", () => {
 
 describe("a ordem dos quatro", () => {
   it("a luz corrige a exposição antes de o contraste amplificá-la", () => {
-    // Contraste antes da luz devolveria 30 no lugar de 72: o erro de exposição
-    // sairia amplificado em vez de corrigido.
+    // Contraste antes da luz devolveria 30 no lugar de 72: o erro de exposição sairia amplificado em vez de corrigido.
     const dados = uniforme(2, 2, 60);
 
     aplicarAjustes(dados, 2, 2, ajuste({ luz: 1, contraste: 1 }));

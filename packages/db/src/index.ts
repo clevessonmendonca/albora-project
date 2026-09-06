@@ -38,8 +38,15 @@ export type { FotoRecente, MetricasAoVivo } from "./event-metrics";
 export { lerMetricasAoVivo } from "./event-metrics";
 export type { EntradasPorVia, FunilAgregado } from "./funnel-aggregate";
 export { contarEntradasPorVia, contarSharesDoEvento, lerFunilAgregado } from "./funnel-aggregate";
-export type { RefDeCompartilhamento } from "./share-attribution";
-export { eventoDoRef, mintarRefDeCompartilhamento, refDoEvento } from "./share-attribution";
+export type { RefDeCompartilhamento, ResumoAtribuicaoViral } from "./share-attribution";
+export {
+  eventoDoRef,
+  isRefToken,
+  mintarRefDeCompartilhamento,
+  refDoEvento,
+  resumoAtribuicaoViral,
+  REF_TOKEN_RE,
+} from "./share-attribution";
 export { ErroEventoDoFunilInvalido, registrarEntradaDoFunil, registrarEventoDoFunil } from "./funnel-events";
 export type {
   CodigoPareamentoApp,
@@ -147,11 +154,13 @@ export {
   listarMidiaParaRevisao,
 } from "./moderation-review-db";
 
-export type { UploadPendenteDeClassificacao } from "./classificador-db";
+export type { UploadPendenteDeClassificacao, UploadParaClassificar } from "./classificador-db";
 export {
   TETO_DO_CLASSIFICADOR,
   gravarVeredictoUpload,
   listarUploadsPendentesDeClassificacao,
+  listEventsWithOrphanedUploads,
+  buscarUploadsParaClassificar,
 } from "./classificador-db";
 
 export type { ContextoCompartilharDb } from "./share-db";
@@ -478,6 +487,26 @@ export {
   scheduleRetentionJobs,
 } from "./retention-jobs";
 
+export type {
+  EntradaDeScore,
+  JobDeCuration,
+  LinhaDeScore,
+  UploadAguardandoScore,
+} from "./curation";
+export {
+  claimCurationJobs,
+  completeCurationJob,
+  enqueueCuration,
+  failCurationJob,
+  listCurationScores,
+  listEventsNeedingCurationEnqueue,
+  listEventsWithPendingCuration,
+  listUploadsAwaitingCurationScore,
+  reclaimFailedCurationJob,
+  reclaimStaleCurationJob,
+  saveCurationScores,
+} from "./curation";
+
 export type { ChaveVersionada } from "./drive-token-vault";
 export {
   ErroChaveDeVersaoDesconhecida,
@@ -563,3 +592,13 @@ export { getEventDetailAdmin, isH1Calculavel, listEventsAdmin } from "./events-a
 
 export type { ListVendorSubscriptionsAdminFilter, VendorSubscriptionAdminRow } from "./subscriptions-admin";
 export { listVendorSubscriptionsAdmin } from "./subscriptions-admin";
+
+export type { ClaimedItem } from "./moderation-queue";
+export {
+  claimNextForModeration,
+  completeModeration,
+  enqueueModeration,
+  failModeration,
+  listEventsWithPendingModeration,
+  reclaimStaleModeration,
+} from "./moderation-queue";

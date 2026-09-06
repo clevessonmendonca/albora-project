@@ -326,8 +326,7 @@ export function useFeed(missaoId: string | null, periodo: PeriodoTemporal = "tud
 
       const r = await buscarPagina(missaoId, cursor);
 
-      // Resposta de um filtro que o convidado já trocou não entra na tela — e
-      // sai sem liberar a trava, que já pertence à busca que a substituiu.
+      // Resposta de um filtro que o convidado já trocou não entra na tela — sai sem liberar a trava da busca que a substituiu.
       if (minha !== geracao.current) return;
 
       buscandoPagina.current = false;
@@ -359,8 +358,7 @@ export function useFeed(missaoId: string | null, periodo: PeriodoTemporal = "tud
       const faltando = chavesSemUrl(estado, Date.now(), janelaViva.current);
       if (faltando.length === 0) return;
 
-      // O mesmo lote só volta ao servidor no tique seguinte. Sem este teto, uma
-      // chave que o servidor nunca assina viraria requisição em laço.
+      // O mesmo lote só volta ao servidor no tique seguinte — sem este teto, uma chave nunca assinada viraria laço.
       const assinatura = faltando.join(",");
       if (!porRelogio && assinatura === ultimoLote.current) return;
       ultimoLote.current = assinatura;
@@ -370,8 +368,7 @@ export function useFeed(missaoId: string | null, periodo: PeriodoTemporal = "tud
         const novas = await mediaUrls(faltando);
         if (vivo) setEstado((e) => comUrls(e, novas));
       } catch {
-        // Sem URL a grade mostra a moldura vazia e segue. A mídia é enriquecimento
-        // da tela; derrubar o feed inteiro por causa dela seria pior que degradar.
+        // Sem URL a grade mostra a moldura vazia e segue — derrubar o feed inteiro por causa da mídia seria pior que degradar.
         if (vivo) setEstado(comFalhaDeMidia);
       } finally {
         buscandoUrls.current = false;

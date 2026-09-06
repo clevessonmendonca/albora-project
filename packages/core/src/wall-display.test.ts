@@ -32,8 +32,7 @@ function item(parcial: Partial<ItemDoTelao> & { id: string }): ItemDoTelao {
 
 describe("nunca cortar na vertical", () => {
   it("cheio recusa foto em pé", () => {
-    // A regra vermelha: 9:16 em 16:9 descarta o topo, que é onde estão as
-    // cabeças. O produto decapitaria os convidados na parede.
+    // A regra vermelha: 9:16 em 16:9 descarta o topo, que é onde estão as cabeças. O produto decapitaria os convidados na parede.
     const emPe = item({ id: "a", largura: 1080, altura: 1920 });
 
     expect(ehVertical(emPe)).toBe(true);
@@ -57,8 +56,7 @@ describe("nunca cortar na vertical", () => {
   });
 
   it("quadrada também não vai para cheio", () => {
-    // Sangrar uma quadrada em 16:9 corta as laterais. Menos grave que decapitar
-    // e ainda assim corte — a spec diz "só foto horizontal".
+    // Sangrar uma quadrada em 16:9 corta as laterais. Menos grave que decapitar e ainda assim corte — a spec diz "só foto horizontal".
     expect(modelosPermitidos(item({ id: "a", largura: 1000, altura: 1000 }))).not.toContain(
       "cheio",
     );
@@ -160,8 +158,7 @@ describe("a popularidade se gasta", () => {
 
 describe("toda foto aparece pelo menos uma vez", () => {
   it("a parede drena as nunca exibidas", () => {
-    // Verificação 6 da spec. Simula a noite: a cada rodada, a escolhida conta
-    // mais uma exibição, e no fim ninguém pode ter ficado com zero.
+    // Verificação 6 da spec. Simula a noite: a cada rodada, a escolhida conta mais uma exibição, e no fim ninguém pode ter ficado com zero.
     let itens = Array.from({ length: 25 }, (_, i) =>
       item({ id: `f${i}`, criadaEm: min(200 - i), reacoes: i % 7 }),
     );
@@ -258,8 +255,7 @@ describe("TBT é seleção, não layout", () => {
   ];
 
   it("puxa da faixa antiga, qualquer que seja o sorteio", () => {
-    // Um modelo chamado retrospectiva que mostra a foto de cinco minutos atrás
-    // não é retrospectiva de nada.
+    // Um modelo chamado retrospectiva que mostra a foto de cinco minutos atrás não é retrospectiva de nada.
     for (const dado of [0, 0.3, 0.6, 0.99]) {
       expect(
         proximaDoTelao(acervo, { agora: AGORA, sorteio: () => dado, modelo: "tbt" })?.id,

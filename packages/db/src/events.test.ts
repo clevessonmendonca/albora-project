@@ -55,8 +55,7 @@ describe("o QR resolve o evento", () => {
 
 describe("estados de tempo", () => {
   it("antes de começar, o evento existe e a tela diz quando é", async () => {
-    // Não é "não existe": é "ainda não". A diferença é o convidado que
-    // escaneou cedo demais saber que está no lugar certo.
+    // Não é "não existe": é "ainda não". A diferença é o convidado que escaneou cedo demais saber que está no lugar certo.
     const r = await resolverSlug(app, "evento-a", daquiA(-1));
 
     expect(r.estado).toBe("nao_comecou");
@@ -70,8 +69,7 @@ describe("estados de tempo", () => {
   });
 
   it("passadas as 48h, encerra", async () => {
-    // É o convidado que fotografou às 2h, guardou o celular sem sinal e só
-    // abriu no domingo. Fechar no fim da festa jogaria fora as fotos do fim.
+    // É o convidado que fotografou às 2h, guardou o celular sem sinal e só abriu no domingo. Fechar no fim da festa jogaria fora as fotos do fim.
     const depois = daquiA(6 + HORAS_APOS_EVENTO + 1);
 
     expect((await resolverSlug(app, "evento-a", depois)).estado).toBe("encerrado");
@@ -86,8 +84,7 @@ describe("rotação de slug", () => {
     const antigo = await resolverSlug(app, "evento-b", new Date());
 
     expect(novo.estado).toBe("aberto");
-    // A placa já saiu da gráfica: quem escanear a antiga precisa cair numa
-    // página de orientação, nunca num 404 seco (N1.5).
+    // A placa já saiu da gráfica: quem escanear a antiga precisa cair numa página de orientação, nunca num 404 seco (N1.5).
     expect(antigo.estado).toBe("slug_rotacionado");
     expect(antigo.estado !== "desconhecido" && antigo.evento.eventoId).toBe(dados.b.eventoId);
   });
@@ -102,8 +99,7 @@ describe("rotação de slug", () => {
 
     await rotacionarSlug(admin, dados.a.eventoId, "evento-a-novo");
 
-    // Rotacionar não pode derrubar quem está subindo foto: o que expira a
-    // sessão é o token, não o slug.
+    // Rotacionar não pode derrubar quem está subindo foto: o que expira a sessão é o token, não o slug.
     await expect(resolverSessao(app, SEGREDO, token)).resolves.toMatchObject({
       eventoId: dados.a.eventoId,
     });

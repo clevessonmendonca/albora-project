@@ -3,6 +3,7 @@
 import { type DrainSummary } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { drainAndReport } from "@/features/guest/lib/funnel-from-drain";
+import { resolverAcaoFoco } from "@/features/photo/lib/acao-foco";
 import { webQueue } from "@/lib/queue";
 import { webTransport } from "@/lib/transport";
 
@@ -57,10 +58,9 @@ export function useEventQueue(eventoId: string) {
 
     // Convidado volta à aba/PWA após sair (bfcache, troca de app, notificação).
     const aoVoltar = () => {
-      if (document.visibilityState === "visible") {
-        if (navigator.onLine) void drenarAgora();
-        else void atualizar();
-      }
+      const acao = resolverAcaoFoco(document.visibilityState === "visible", navigator.onLine);
+      if (acao === "drenar") void drenarAgora();
+      else if (acao === "atualizar") void atualizar();
     };
     const aoVisibilityChange = () => aoVoltar();
     const aoPageShow = (e: PageTransitionEvent) => {
