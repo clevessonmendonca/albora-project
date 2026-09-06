@@ -1,6 +1,7 @@
 import React, { type ReactNode } from "react";
 import type { Actor } from "@albora/core";
 import { adminVars } from "@/features/admin/components/server/admin-shell";
+import { ConsoleSearch } from "@/features/console/components/client/console-search";
 import { ImpersonationBanner, type ActiveImpersonation } from "@/features/console/components/client/impersonation-banner";
 import {
   PendingImpersonationApprovals,
@@ -46,17 +47,7 @@ export function ConsoleShell({
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="flex h-14 shrink-0 items-center gap-4 border-b border-linha bg-superficie px-4">
             <span className="tipo-den-titulo shrink-0">Console</span>
-            <label className="relative ml-2 hidden flex-1 min-[900px]:block">
-              <span className="sr-only">Buscar</span>
-              <input
-                type="search"
-                placeholder="Buscar…"
-                className="tipo-den-corpo w-full max-w-md rounded-superficie border border-linha bg-superficie-alta py-2 pl-3 pr-12 text-ink placeholder:text-ink-3 focus:border-acento-texto focus:outline-none"
-              />
-              <kbd className="tipo-den-rotulo pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-3">
-                ⌘K
-              </kbd>
-            </label>
+            <ConsoleSearch />
             <select
               aria-label="Período"
               defaultValue="30d"

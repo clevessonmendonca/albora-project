@@ -102,3 +102,6 @@ export { getActiveImpersonationForStaff } from "./impersonation/get-active-imper
 export { getLatestImpersonationRequestForRequesterAndAccount } from "./impersonation/get-latest-impersonation-request";
 export type { ListPendingImpersonationRequestsInput } from "./impersonation/list-pending-impersonation-requests";
 export { listPendingImpersonationRequests } from "./impersonation/list-pending-impersonation-requests";
+
+export type { ConsoleSearchResult, ConsoleSearchResultKind, SearchConsoleInput } from "./search/search-console";
+export { searchConsole } from "./search/search-console";

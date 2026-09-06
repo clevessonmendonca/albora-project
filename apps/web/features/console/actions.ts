@@ -24,13 +24,15 @@ import {
   requestStaffReauth,
   respondTicket,
   revealAccountPii,
+  searchConsole,
   startImpersonation,
   updateDsarRequest,
   updateTicketPriority,
   updateTicketStatus,
+  type ConsoleSearchResult,
 } from "@albora/application";
 import type { DsarKind, DsarStatus, SupportPriority, SupportStatus } from "@albora/db";
-import { getPool } from "@/lib/db";
+import { getAggregatorPool, getPool } from "@/lib/db";
 import { sendHostEmail } from "@/lib/email";
 import { resolveActor } from "@/lib/console/actor";
 import { clearStaffSession, issueStaffSession, markStaffReauthenticated } from "@/lib/console/staff-session";
@@ -496,5 +498,19 @@ export async function endImpersonationAction(requestId: string): Promise<SimpleA
     return { ok: true };
   } catch (erro) {
     return traduzErroDeComando(erro);
+  }
+}
+
+/** ⌘K (T4/Onda D). Falha vira lista vazia, nunca trava a paleta aberta em "Buscando…". */
+export async function searchConsoleAction(query: string): Promise<ConsoleSearchResult[]> {
+  const actor = await resolveActor();
+  if (!actor) return [];
+  try {
+    return await searchConsole(
+      { pool: getPool(), aggregatorPool: getAggregatorPool() },
+      { actor, reason: "console.search", query },
+    );
+  } catch {
+    return [];
   }
 }

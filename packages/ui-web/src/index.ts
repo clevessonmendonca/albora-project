@@ -96,3 +96,4 @@ export { ConsoleEmptyState } from "./empty-state";
 export { EntityHeader, type EntityHeaderStatus } from "./entity-header";
 export { FilterBar } from "./filter-bar";
 export { DetailPanel, type DetailPanelSection } from "./detail-panel";
+export { CommandPalette, type CommandPaletteProps, type CommandPaletteResult } from "./command-palette";
