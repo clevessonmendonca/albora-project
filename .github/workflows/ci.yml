@@ -90,8 +90,10 @@ jobs:
       - run: pnpm lint
       # Inclui o auto-teste de cada guard: guard sem auto-teste pode parar de
       # verificar e continuar verde.
-      # Cobertura report-only (sem threshold bloqueante): packages/**/src,
-      # apps/web/lib, apps/web/features e apps/web/app/api — ver vitest.config.ts.
+      # Cobertura bloqueante, em duas partes: 90% POR ARQUIVO no pipeline de
+      # upload (thresholds `perFile: true` em vitest.config.ts) + piso global
+      # agregado (tools/coverage/piso-global.mjs, chamado por este script).
+      # Falha em qualquer uma reprova o job.
       - run: pnpm test:coverage
       # Orçamento de First Load JS nas rotas do convidado (gate pós-H1, CLAUDE.md).
       # Report-only até calibrarmos os limites com builds estáveis no CI.
