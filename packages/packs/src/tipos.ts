@@ -55,6 +55,7 @@ export const LANDING_VOCABULARY_KEYS = [
   "landing.titulo.destaque",
   "landing.lede",
   "landing.cta",
+  "landing.exemplo.nome",
 ] as const;
 
 export const CHAVES_DA_LANDING = LANDING_VOCABULARY_KEYS;

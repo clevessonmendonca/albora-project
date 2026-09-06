@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type CSSProperties } from "react";
 import { ALBORA_BRAND, resolveTokens, toVariables } from "@albora/tokens";
-import { WEDDING } from "@albora/packs";
+import { resolvePackText, type Pack } from "@albora/packs";
 
 /**
  * Porte 1:1 da coreografia validada em protótipo isolado (scroll nativo,
@@ -84,14 +84,15 @@ type Tile = {
   hero: boolean;
 };
 
-/** Escopo escuro só para o telão — mesmo truque do TelaoSection: um recorte de tokens com `background:"dark"`, não var() solto sem definição. */
-const TELAO_TOKENS = resolveTokens({
-  marca: ALBORA_BRAND,
-  pack: { ...(WEDDING.tokens ?? {}), background: "dark" },
-});
-const telaoVars = toVariables(TELAO_TOKENS) as CSSProperties;
+export function PerspectivasSection({ pack }: { pack: Pack }) {
+  /** Escopo escuro só para o telão — mesmo truque do TelaoSection: um recorte de tokens com `background:"dark"`, não var() solto sem definição. */
+  const TELAO_TOKENS = resolveTokens({
+    marca: ALBORA_BRAND,
+    pack: { ...pack.tokens, background: "dark" },
+  });
+  const telaoVars = toVariables(TELAO_TOKENS) as CSSProperties;
+  const nomeExemplo = resolvePackText(pack, "landing.exemplo.nome");
 
-export function PerspectivasSection() {
   const trackRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const telaoRef = useRef<HTMLDivElement>(null);
@@ -275,14 +276,39 @@ export function PerspectivasSection() {
       apply(progress());
     }
 
-    window.addEventListener("scroll", kick, { passive: true });
+    let scrollBound = false;
+    function bindScroll() {
+      if (scrollBound) return;
+      scrollBound = true;
+      window.addEventListener("scroll", kick, { passive: true });
+    }
+    function unbindScroll() {
+      if (!scrollBound) return;
+      scrollBound = false;
+      window.removeEventListener("scroll", kick);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          bindScroll();
+          kick();
+        } else {
+          unbindScroll();
+        }
+      },
+      { threshold: 0 },
+    );
+    observer.observe(track);
+
     window.addEventListener("resize", onResize);
 
     build();
     apply(progress());
 
     return () => {
-      window.removeEventListener("scroll", kick);
+      observer.disconnect();
+      unbindScroll();
       window.removeEventListener("resize", onResize);
       if (raf) cancelAnimationFrame(raf);
     };
@@ -432,7 +458,7 @@ export function PerspectivasSection() {
 
         <div className="px-telao" ref={telaoRef} aria-hidden="true" style={telaoVars}>
           <div className="px-frameLbl">
-            <span className="px-dot" /> Telão · ao vivo <b>· Ana &amp; Léo</b>
+            <span className="px-dot" /> Telão · ao vivo <b>· {nomeExemplo}</b>
           </div>
           <div className="px-slot">
             <div

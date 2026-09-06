@@ -40,6 +40,7 @@ export const QUINZE_ANOS: Pack = {
     "landing.lede":
       "Um QR na mesa. Sem app, sem login, sem baixar nada. No dia seguinte, você acorda com centenas de fotos que ninguém contratou pra tirar.",
     "landing.cta": "Criar meu evento",
+    "landing.exemplo.nome": "Maria Clara",
 
     "reacao.estrela": "Estrela",
     "reacao.riso": "Riso",

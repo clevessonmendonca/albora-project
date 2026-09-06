@@ -72,9 +72,9 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
       </header>
 
       <HeroSection pack={pack} t={t} {...(live !== undefined ? { live } : {})} />
-      <ProvaSection />
+      <ProvaSection pack={pack} />
       <ComoFuncionaSection />
-      <PerspectivasSection />
+      <PerspectivasSection pack={pack} />
       <TelaoSection pack={pack} />
       <DuranteAFestaSection />
       <DepoisSection />
@@ -82,6 +82,20 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
       <PrecoSection pack={pack} />
       <FaqSection />
       <FechoSection pack={pack} />
+
+      <footer className="border-t border-linha bg-bg">
+        <div
+          className={cn(
+            "mx-auto flex max-w-[78rem] flex-wrap items-center justify-between gap-4 py-8 text-sm text-ink-3",
+            SIDE_PADDING,
+          )}
+        >
+          <span>Albora · Feito no Brasil</span>
+          <a href="/privacidade" className="underline hover:text-ink-2">
+            Privacidade
+          </a>
+        </div>
+      </footer>
 
       <LandingStickyCta
         href={HREF_CRIAR_GRATIS}

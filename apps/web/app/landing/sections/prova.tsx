@@ -1,6 +1,7 @@
+import { resolvePackText, type Pack } from "@albora/packs";
 import { Accent, Section } from "../pieces";
 
-export function ProvaSection() {
+export function ProvaSection({ pack }: { pack: Pack }) {
   return (
     <Section
       reveal
@@ -15,7 +16,7 @@ export function ProvaSection() {
           <Accent>centenas de fotos</Accent> que nenhum fotógrafo tinha como
           pegar — as da festa inteira, pelos olhos de quem estava lá.”
           <cite className="mt-5 block text-sm not-italic text-ink-3">
-            Ana &amp; Léo · São Paulo — depoimento ilustrativo
+            {resolvePackText(pack, "landing.exemplo.nome")} · São Paulo — depoimento ilustrativo
           </cite>
         </blockquote>
         <div className="flex flex-col gap-3">

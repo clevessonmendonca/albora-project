@@ -39,7 +39,7 @@ export function PrecoSection({ pack }: { pack: Pack }) {
           </LandingCtaLink>
         </div>
 
-        <div className="flex flex-col gap-2 rounded-token border border-ink-borda-forte border-ink bg-bg p-6 shadow-[inset_0_0_0_1px_var(--ink)]">
+        <div className="flex flex-col gap-2 rounded-token border border-ink-borda-forte border-ink bg-bg p-6">
           <span className="tipo-display text-[1.375rem]">Celebração</span>
           <span className="tipo-display text-[1.875rem]">
             pague uma vez

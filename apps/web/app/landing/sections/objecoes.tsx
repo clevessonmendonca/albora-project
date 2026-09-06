@@ -1,4 +1,4 @@
-import { Section, Accent, Label } from "../pieces";
+import { Section, Accent, Heading, Label } from "../pieces";
 
 const OBJ: ReadonlyArray<{ q: string; a: string }> = [
   {
@@ -27,15 +27,15 @@ export function ObjecoesSection() {
   return (
     <Section reveal>
       <Label>A objeção de todo mundo</Label>
-      <p
-        className="tipo-display m-0 mt-3.5 max-w-[16ch] font-light"
-        style={{ fontSize: "clamp(1.875rem,4.4vw,3.25rem)", lineHeight: 1.06 }}
+      <Heading
+        size="clamp(1.875rem,4.4vw,3.25rem)"
+        className="mt-3.5 max-w-[16ch]"
       >
         Seus convidados <Accent>não baixam nada.</Accent>
-      </p>
+      </Heading>
       <div className="mt-8 border-t border-linha">
         {OBJ.map((item, i) => (
-          <details key={i} className="border-b border-linha" open={i === 0}>
+          <details key={item.q} className="border-b border-linha" open={i === 0}>
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-[1.125rem] font-medium [&::-webkit-details-marker]:hidden">
               {item.q}
               <span className="text-xl leading-none text-acento-texto">+</span>
