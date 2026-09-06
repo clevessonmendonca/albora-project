@@ -114,3 +114,14 @@ export type {
   IssueOidcStateInput, IssuedOidcState, OidcStatePayload, OidcSurface,
 } from "./auth/oidc-state";
 export { consumeOidcState, InvalidOidcStateError, issueOidcState, sanitizeReturnTo } from "./auth/oidc-state";
+
+export type { StartGoogleLoginInput, StartGoogleLoginResult } from "./auth/start-google-login";
+export { startGoogleLogin } from "./auth/start-google-login";
+
+// T5/T6/T8 — stubs tipados (roteador do callback já despacha por surface; corpo real fica para as próximas tasks).
+export type { CompleteGoogleLoginHostInput, CompleteGoogleLoginHostResult } from "./auth/complete-google-login-host";
+export { completeGoogleLoginHost } from "./auth/complete-google-login-host";
+export type { CompleteGoogleLoginStaffInput, CompleteGoogleLoginStaffResult } from "./auth/complete-google-login-staff";
+export { completeGoogleLoginStaff } from "./auth/complete-google-login-staff";
+export type { ClaimGuestPhotosByEmailInput } from "./auth/claim-guest-photos-by-email";
+export { claimGuestPhotosByEmail } from "./auth/claim-guest-photos-by-email";
