@@ -39,8 +39,8 @@ async function criarEvento(endsAt: Date, contaId?: string) {
   const conta = contaId ?? dados.a.contaId;
   const slug = `evt-${Math.random().toString(36).slice(2, 10)}`;
   const { rows } = await admin.query<{ id: string }>(
-    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status)
-     VALUES ($1, 'pack-um', $2, $3, $4, 'active') RETURNING id`,
+    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
+     VALUES ($1, 'pack-um', $2, $3, $4) RETURNING id`,
     [conta, slug, new Date(endsAt.getTime() - 6 * 3600 * 1000), endsAt],
   );
   const eventoId = rows[0]!.id;
@@ -78,10 +78,13 @@ const semNotificar = { notify: async (_n: NotificacaoRetencao) => {} };
 
 describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000 }, () => {
   it("cria os quatro kinds com due_at derivados de ends_at", async () => {
-    // Futuro relativo a agora: planRetention descarta job cujo due já passou
-    // (filtro `> now - 1 dia`), então uma data fixa faz plus_48h sumir assim
-    // que o relógio passa de ends+48h — o teste virava time-bomb.
-    const ends = new Date(Date.now() + 2 * 24 * 3600 * 1000);
+    // Relativo ao agora, NUNCA data absoluta: `planRetention`
+    // (packages/core/src/retention.ts) descarta item vencido há mais de um
+    // dia, e `scheduleRetentionJobs` não recebe `now` — usa o relógio real.
+    // Com data fixa, `plus_48h` sai da lista assim que o calendário passa, e
+    // o teste quebra sozinho sem ninguém tocar em código. Foi o que houve:
+    // verde em 2026-09-01, vermelho a partir de 2026-09-04.
+    const ends = new Date(Date.now() - 60 * 60 * 1000);
     const eventoId = await criarEvento(ends);
     await scheduleRetentionJobs(admin, eventoId, ends);
 
