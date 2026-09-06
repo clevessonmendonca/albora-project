@@ -42,19 +42,19 @@ Seção interna (classe `corridor`) na home do Cut.Pro. Tese no topo: **"17 cort
 
 **Tese:** uma festa, centenas de perspectivas. O fotógrafo cobre alguns ângulos; os convidados cobrem a festa inteira; **o Albora reúne tudo.** A animação faz *sentir* o volume — não decora.
 
-**Trilho:** sticky-pin ~4–5 vh no desktop, ~3 vh no mobile. Scrubbed.
+**Trilho:** altura total ~**400–500vh** (≈4–5 × 100vh) no desktop e ~**300vh** no mobile — a distância de scroll que a coreografia dura (o pin é 100vh; o trilho é o resto). Números sujeitos a ajuste pelo protótipo. Scrubbed.
 
 | Progresso | Cena | Mídia (desktop / mobile) | Texto |
 |---|---|---|---|
 | 0% | **1 · Uma festa** | 2–3 verticais pequenas, muito espaço negativo (papel), calmo | "Uma festa." (Fraunces grande) |
 | ~20% | **2 · Muitas pessoas** | entram momentos variados (pista, mesa, abraço, detalhe, selfie, bastidor) — 6–8 / 3–4, escalas e profundidades diferentes, algumas entrando das bordas | "Centenas de perspectivas." |
 | ~50% | **3 · Explosão** | pico de densidade 10–15 / 5–7, rico mas **hierárquico** (1–2 em foco, resto em profundidade/menor opacidade) — nunca caos | (sem texto novo; o volume fala) |
-| ~70% | **4 · A mensagem** | densidade recua/desfoca | "A história da sua festa, contada por todos que estiveram lá." (espaço + força editorial) |
-| ~90–100% | **5 · Albora reúne** | mídias **convergem/reorganizam**: espalhadas → composição de álbum, e/ou uma ganha protagonismo e **aparece no telão Albora**. Produto real: convidados → Albora → telão/álbum | "Todos os momentos. Um só lugar." · assinatura "Tiradas por quem viveu." → funde no CTA/próxima seção |
+| ~70% | **4 · A mensagem** | densidade **recua por posição + escala + opacidade** (afasta do centro, abre espaço) — **sem blur animado** | "A história da sua festa, contada por todos que estiveram lá." (espaço + força editorial) |
+| ~90–100% | **5 · Albora reúne → o telão** | volume máximo → algumas somem → **uma foto permanece** → atravessa/transiciona → **aterrissa no TELÃO Albora** (sem corte vertical). Direção definida: o clímax termina **no telão** (não álbum), e essa transformação **é a transição natural pra próxima seção "O telão"** — nem parece que uma acabou e outra começou. Produto real: convidados → Albora → telão | "Todos os momentos. Um só lugar." · assinatura "Tiradas por quem viveu." |
 
 **Produto real (obrigatório):** o final mostra o **mecanismo Albora** (mídias dos convidados → Albora → telão/álbum), deixando claro que não é galeria bonita, é o sistema que conecta as perspectivas.
 
-**Movimento:** scroll→progresso, suave e previsível; só `transform`/`translate`/`scale`/`opacity`. Sem bounce/elástico/parallax agressivo/efeito de "startup de IA". Editorial + cinematográfico + premium.
+**Movimento:** scroll→progresso, suave e previsível; só `transform`/`translate`/`scale`/`opacity`. **Sem blur animado como recurso principal** (custo de perf + visual artificial); o "respiro" da Cena 4 vem de posição/escala/opacidade. Sem bounce/elástico/parallax agressivo/efeito de "startup de IA". Editorial + cinematográfico + premium.
 
 **Desktop:** sticky quase full-viewport; mídias atravessando regiões; elementos parcialmente fora da tela entrando; escalas variadas; sobreposição controlada; texto com respiro. **Pode romper o container central** da landing.
 
@@ -63,6 +63,8 @@ Seção interna (classe `corridor`) na home do Cut.Pro. Tese no topo: **"17 cort
 **Vídeos:** maioria **fotos** (duotone/placeholder até haver autorização — ver trava LGPD do spec da landing); **poucos** vídeos curtos reais (muted/loop/playsInline/poster), só perto da viewport; nunca dezenas decodificando. LCP e fluidez são requisito.
 
 **Reduced-motion:** vira **composição editorial estática/sequencial** (o equivalente semântico) preservando "Uma festa → muitas perspectivas → Albora reúne". A compreensão não depende da animação.
+
+**Sem números artificiais:** 2–3 → 6–8 → 10–15 é regra de **composição**, não texto na tela. Nada de "17 fotos / 32 perspectivas / 147 momentos" inventados — a força vem da sensação visual de quantidade, não de métrica falsa. Números reais só quando existirem.
 
 **Copy (mínima, a composição decide quais):** "Uma festa." · "Centenas de perspectivas." · "A história da sua festa, contada por todos que estiveram lá." · "Todos os momentos. Um só lugar." · "Tiradas por quem viveu."
 
