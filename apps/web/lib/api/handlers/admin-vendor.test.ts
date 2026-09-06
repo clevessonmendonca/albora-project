@@ -53,9 +53,10 @@ vi.mock("@/lib/db", () => ({
   getAggregatorPool: () => ({}),
 }));
 
-vi.mock("@/features/vendor-portal/lib/audit", () => ({
-  auditarAgregacaoDoPortal: vi.fn(),
+const { auditarAgregacaoDoPortal } = vi.hoisted(() => ({
+  auditarAgregacaoDoPortal: vi.fn(() => vi.fn().mockResolvedValue(undefined)),
 }));
+vi.mock("@/features/vendor-portal/lib/audit", () => ({ auditarAgregacaoDoPortal }));
 
 const { consume } = vi.hoisted(() => ({ consume: vi.fn() }));
 vi.mock("@/lib/rate-limit-store", () => ({ consume }));
@@ -109,6 +110,34 @@ describe("POST /api/admin/vendor", () => {
       { name: "Buffet da Serra", slug: "buffet-da-serra" },
       expect.any(Function),
     );
+  });
+
+  it("chama auditarAgregacaoDoPortal com o pool, a conta e o e-mail do host, ANTES de criar o fornecedor", async () => {
+    const chamadas: string[] = [];
+    auditarAgregacaoDoPortal.mockImplementationOnce(() => {
+      chamadas.push("auditou");
+      return vi.fn().mockResolvedValue(undefined);
+    });
+    criarFornecedor.mockImplementationOnce(async () => {
+      chamadas.push("criou");
+      return { vendorId: VENDOR_ID, slug: "buffet-da-serra" };
+    });
+
+    await POST(postReq({ name: "Buffet da Serra", slug: "buffet-da-serra" }));
+
+    expect(auditarAgregacaoDoPortal).toHaveBeenCalledWith({}, ACCOUNT_ID, "admin@exemplo.test");
+    expect(chamadas).toEqual(["auditou", "criou"]);
+  });
+
+  it("insertAuditLog falha ⇒ criarFornecedor NUNCA roda (ausência do efeito é a prova, não só a exceção)", async () => {
+    auditarAgregacaoDoPortal.mockImplementationOnce(() =>
+      vi.fn().mockRejectedValue(new Error("conexão caiu")),
+    );
+
+    const res = await POST(postReq({ name: "Buffet da Serra", slug: "buffet-da-serra" }));
+
+    expect(res.status).toBe(500);
+    expect(criarFornecedor).not.toHaveBeenCalled();
   });
 
   it("sem sessão: 401, sem chamar o banco", async () => {
