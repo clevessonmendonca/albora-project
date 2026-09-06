@@ -325,3 +325,56 @@ export async function paymentByAsaasId(
     invoiceUrl: r.invoice_url,
   };
 }
+
+export type RefundablePaymentRow = {
+  id: string;
+  asaasPaymentId: string;
+  amountCents: number;
+  status: Extract<BillingPaymentStatus, "confirmed" | "received">;
+  paidAt: Date | null;
+};
+
+/**
+ * Vínculo vendor → pagamento: `billing_payments.account_id` é a conta que
+ * pagou (o host do evento, não o fornecedor) — `vendor_members` não entra
+ * aqui, e checar por ele daria zero linhas sempre (é o pertencimento do
+ * PRÓPRIO fornecedor, não uma lista de contas dele). O vínculo real é
+ * `billing_payments.event_id → events.vendor_id` (schema confirmado:
+ * `events.vendor_id` nasce na migration 0001; a migration 0037 indexa
+ * `events (vendor_id, starts_at)` exatamente para leituras como esta).
+ *
+ * Cross-evento por desenho — chamada sob `withPlatformAggregation`, mesma
+ * disciplina de `listBillingPaymentsForAccountAdmin`/`getAccountDetailAdmin`:
+ * `events` tem RLS FORÇADA por `app.event_id` (migration 0001), então
+ * listar pagamentos de TODOS os eventos de um fornecedor de uma vez exige
+ * o papel agregador — sob o pool comum isso devolveria sempre zero linhas,
+ * não um erro.
+ *
+ * "Reembolsável" é `confirmed` ou `received` — nunca `refunded`/`deleted`
+ * (já não há dinheiro a devolver) nem `pending`/`overdue` (ainda não houve
+ * cobrança confirmada).
+ */
+export async function listRefundablePaymentsForVendor(pool: Pool, vendorId: string): Promise<RefundablePaymentRow[]> {
+  const { rows } = await pool.query<{
+    id: string;
+    asaas_payment_id: string;
+    amount_cents: number;
+    status: "confirmed" | "received";
+    paid_at: Date | null;
+  }>(
+    `SELECT bp.id, bp.asaas_payment_id, bp.amount_cents, bp.status, bp.paid_at
+       FROM billing_payments bp
+       JOIN events e ON e.id = bp.event_id
+      WHERE e.vendor_id = $1
+        AND bp.status IN ('confirmed', 'received')
+      ORDER BY bp.paid_at DESC NULLS LAST, bp.created_at DESC`,
+    [vendorId],
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    asaasPaymentId: r.asaas_payment_id,
+    amountCents: r.amount_cents,
+    status: r.status,
+    paidAt: r.paid_at,
+  }));
+}

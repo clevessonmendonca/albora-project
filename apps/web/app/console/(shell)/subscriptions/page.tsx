@@ -2,8 +2,10 @@ import React from "react";
 import { redirect } from "next/navigation";
 import {
   getPlatformRevenue,
+  listRefundablePayments,
   listSubscriptions,
   VENDOR_PLAN_PRICE_CENTS,
+  type RefundablePaymentRow,
   type VendorSubscriptionAdminRow,
 } from "@albora/application";
 import { hasCapability } from "@albora/core";
@@ -59,6 +61,20 @@ export default async function SubscriptionsPage() {
     getPlatformRevenue(deps, { actor, reason }),
   ]);
 
+  // Alimenta o seletor de pagamento de `SubscriptionActions` (T6, dívida da
+  // Onda D) — só busca quando existe alguém que pode reembolsar; sem isso
+  // seria uma leitura cross-evento (`withPlatformAggregation`) por linha
+  // que nenhum ator veria de qualquer forma.
+  const refundablePaymentsByVendor: Record<string, RefundablePaymentRow[]> = {};
+  if (podeReembolsar) {
+    await Promise.all(
+      rows.map(async (r) => {
+        const { rows: pagamentos } = await listRefundablePayments(deps, { actor, reason, vendorId: r.vendorId });
+        refundablePaymentsByVendor[r.vendorId] = pagamentos;
+      }),
+    );
+  }
+
   const algumAtraso = rows.some((r) => r.overdueDays !== null);
   const basisAtraso = rows.find((r) => r.overdueDays !== null)?.overdueDays?.approximationBasis;
 
@@ -112,6 +128,7 @@ export default async function SubscriptionsPage() {
                 podeMutar={podeMutar}
                 podeReembolsar={podeReembolsar}
                 priceTable={VENDOR_PLAN_PRICE_CENTS}
+                refundablePayments={refundablePaymentsByVendor[r.vendorId] ?? []}
               />
             ),
           },

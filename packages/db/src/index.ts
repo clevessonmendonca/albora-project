@@ -396,7 +396,7 @@ export type { EventMember, EventMemberRole, HostEventRole } from "./memberships"
 export { addEventMember, ensureCoupleMember, listEventMembers, roleForAccountOnEvent } from "./memberships";
 
 export type {
-  BillingPayment, BillingPaymentStatus, BillingPaymentSummaryAdmin,
+  BillingPayment, BillingPaymentStatus, BillingPaymentSummaryAdmin, RefundablePaymentRow,
   VendorSubscription, VendorSubscriptionByIdAdmin, VendorSubscriptionStatus,
 } from "./billing";
 export {
@@ -409,6 +409,7 @@ export {
   ehAssinaturaDuplicada,
   getVendorSubscriptionByIdAdmin,
   listBillingPaymentsForAccountAdmin,
+  listRefundablePaymentsForVendor,
   markPaymentPaidByAsaasId,
   markVendorSubscriptionByAsaasId,
   paymentByAsaasId,

@@ -43,6 +43,9 @@ export { getEvent } from "./events/get-event";
 export type { ListSubscriptionsInput, VendorSubscriptionAdminRow } from "./subscriptions/list-subscriptions";
 export { listSubscriptions, OVERDUE_DAYS_BASIS } from "./subscriptions/list-subscriptions";
 
+export type { ListRefundablePaymentsInput, RefundablePaymentRow } from "./subscriptions/list-refundable-payments";
+export { listRefundablePayments } from "./subscriptions/list-refundable-payments";
+
 export type { ListRetentionJobsInput, RetentionJobAdminRow } from "./retention/list-retention-jobs";
 export { listRetentionJobs, sanitizeRetentionError } from "./retention/list-retention-jobs";
 

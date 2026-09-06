@@ -13,8 +13,35 @@ type Plano = "starter" | "studio" | "agency";
 
 const ROTULO_PLANO: Record<Plano, string> = { starter: "Starter", studio: "Studio", agency: "Agency" };
 
+type StatusPagamento = "confirmed" | "received";
+
+const ROTULO_STATUS_PAGAMENTO: Record<StatusPagamento, string> = { confirmed: "Confirmado", received: "Recebido" };
+
+/**
+ * Prop vinda de `listRefundablePayments` (`@albora/application`) via
+ * `subscriptions/page.tsx` — sempre já filtrada a `confirmed`/`received`
+ * do fornecedor da linha (nunca `refunded`/`deleted`). `paidAt` cruza a
+ * borda servidor→cliente como `Date` (RSC serializa nativamente, mesmo
+ * padrão de `events-table.tsx`/`audit-table.tsx`).
+ */
+export type PagamentoReembolsavel = {
+  id: string;
+  asaasPaymentId: string;
+  amountCents: number;
+  status: StatusPagamento;
+  paidAt: Date | null;
+};
+
 function formatarReais(centavos: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(centavos / 100);
+}
+
+function formatarData(data: Date | null): string {
+  return data ? new Date(data).toLocaleDateString("pt-BR") : "sem data";
+}
+
+function rotuloDoPagamento(p: PagamentoReembolsavel): string {
+  return `${formatarReais(p.amountCents)} — ${formatarData(p.paidAt)} — ${ROTULO_STATUS_PAGAMENTO[p.status]}`;
 }
 
 /**
@@ -58,6 +85,7 @@ export function SubscriptionActions({
   podeMutar,
   podeReembolsar,
   priceTable,
+  refundablePayments,
 }: {
   subscriptionId: string;
   vendorId: string;
@@ -65,12 +93,14 @@ export function SubscriptionActions({
   podeMutar: boolean;
   podeReembolsar: boolean;
   priceTable: Record<Plano, number>;
+  /** `[]` por padrão — nenhum fornecedor sem pagamento reembolsável é tratado como bug de prop faltando. */
+  refundablePayments?: PagamentoReembolsavel[];
 }) {
+  const pagamentos = refundablePayments ?? [];
   const [dialogo, setDialogo] = useState<"cortesia" | "cancelar" | "trocar_plano" | "reembolsar" | null>(null);
   const [motivo, setMotivo] = useState("");
   const [novoPlano, setNovoPlano] = useState<Plano>(plan);
-  const [paymentId, setPaymentId] = useState("");
-  const [asaasPaymentId, setAsaasPaymentId] = useState("");
+  const [pagamentoSelecionadoId, setPagamentoSelecionadoId] = useState("");
   const [valorReembolso, setValorReembolso] = useState("");
   const [erro, setErro] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -82,15 +112,27 @@ export function SubscriptionActions({
     setErro(null);
     setMotivo("");
     setNovoPlano(plan);
-    setPaymentId("");
-    setAsaasPaymentId("");
+    setPagamentoSelecionadoId("");
     setValorReembolso("");
+  }
+
+  const pagamentoSelecionado = pagamentos.find((p) => p.id === pagamentoSelecionadoId) ?? null;
+
+  function selecionarPagamento(id: string) {
+    setPagamentoSelecionadoId(id);
+    const pagamento = pagamentos.find((p) => p.id === id);
+    // Valor default é o valor cheio do pagamento — o operador reduz pra
+    // reembolso parcial, nunca digita do zero (`parseReaisParaCentavos`
+    // aceita vírgula ou ponto igual à digitação manual).
+    setValorReembolso(pagamento ? (pagamento.amountCents / 100).toFixed(2).replace(".", ",") : "");
   }
 
   const motivoVazio = motivo.trim().length === 0;
   const valorReembolsoCentavos = parseReaisParaCentavos(valorReembolso);
+  const valorExcedeOPagamento =
+    pagamentoSelecionado !== null && valorReembolsoCentavos !== null && valorReembolsoCentavos > pagamentoSelecionado.amountCents;
   const reembolsoInvalido =
-    motivoVazio || paymentId.trim().length === 0 || asaasPaymentId.trim().length === 0 || valorReembolsoCentavos === null;
+    motivoVazio || pagamentoSelecionado === null || valorReembolsoCentavos === null || valorExcedeOPagamento;
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -200,14 +242,20 @@ export function SubscriptionActions({
         onClose={fechar}
         onConfirm={() =>
           startTransition(async () => {
-            // `reembolsoInvalido` já bloqueia o botão — `valorReembolsoCentavos`
-            // só pode ser `null` aqui se o clique escapar do gate do dialog,
-            // e mesmo assim não inventa valor nenhum pro comando.
-            if (valorReembolsoCentavos === null) {
-              setErro("Valor inválido — use um número maior que zero, ex.: 150,00");
+            // `reembolsoInvalido` já bloqueia o botão pros três casos abaixo —
+            // esta dupla checagem só cobre o clique escapando do gate do
+            // dialog, e mesmo assim não inventa pagamento nem valor nenhum
+            // pro comando.
+            if (pagamentoSelecionado === null || valorReembolsoCentavos === null) {
+              setErro("Selecione um pagamento e um valor válido antes de confirmar.");
               return;
             }
-            const resultado = await refundPaymentAction(paymentId, asaasPaymentId, valorReembolsoCentavos, motivo);
+            const resultado = await refundPaymentAction(
+              pagamentoSelecionado.id,
+              pagamentoSelecionado.asaasPaymentId,
+              valorReembolsoCentavos,
+              motivo,
+            );
             if (resultado.ok) fechar();
             else setErro(traduzErroDeReembolso(resultado.error));
           })
@@ -215,18 +263,37 @@ export function SubscriptionActions({
         title="Reembolsar pagamento?"
         description={
           <div className="flex flex-col gap-3">
-            <TextField label="ID do pagamento" value={paymentId} onChange={(e) => setPaymentId(e.target.value)} />
-            <TextField
-              label="ID do pagamento no Asaas"
-              value={asaasPaymentId}
-              onChange={(e) => setAsaasPaymentId(e.target.value)}
-            />
-            <TextField
-              label="Valor (R$)"
-              value={valorReembolso}
-              onChange={(e) => setValorReembolso(e.target.value)}
-              placeholder="150,00"
-            />
+            {pagamentos.length === 0 ? (
+              <p className="tipo-den-corpo m-0 text-ink-3">Nenhum pagamento reembolsável para este fornecedor.</p>
+            ) : (
+              <>
+                <Select
+                  label="Pagamento"
+                  value={pagamentoSelecionadoId}
+                  onChange={(e) => selecionarPagamento(e.target.value)}
+                >
+                  <option value="">Selecione um pagamento</option>
+                  {pagamentos.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {rotuloDoPagamento(p)}
+                    </option>
+                  ))}
+                </Select>
+                <TextField
+                  label="Valor (R$)"
+                  value={valorReembolso}
+                  onChange={(e) => setValorReembolso(e.target.value)}
+                  placeholder="150,00"
+                  disabled={pagamentoSelecionado === null}
+                  {...(pagamentoSelecionado
+                    ? { hint: `Máximo: ${formatarReais(pagamentoSelecionado.amountCents)} (valor do pagamento)` }
+                    : {})}
+                  {...(valorExcedeOPagamento
+                    ? { error: "Não é possível reembolsar mais do que o valor do pagamento." }
+                    : {})}
+                />
+              </>
+            )}
             <TextField label="Motivo" value={motivo} onChange={(e) => setMotivo(e.target.value)} />
             {erro && (
               <p role="alert" className="tipo-caption m-0 text-critico">

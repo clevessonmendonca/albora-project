@@ -6,6 +6,22 @@ import { SubscriptionActions } from "./subscription-actions";
 
 const PRICE_TABLE = { starter: 9900, studio: 24900, agency: 59900 };
 
+const PAGAMENTO_CONFIRMADO = {
+  id: "pagamento-1",
+  asaasPaymentId: "pay_asaas_1",
+  amountCents: 80000,
+  status: "confirmed" as const,
+  paidAt: new Date("2026-08-01T00:00:00Z"),
+};
+
+const PAGAMENTO_RECEBIDO = {
+  id: "pagamento-2",
+  asaasPaymentId: "pay_asaas_2",
+  amountCents: 19900,
+  status: "received" as const,
+  paidAt: null,
+};
+
 vi.mock("@/features/console/actions", () => ({
   applySubscriptionCourtesyAction: vi.fn().mockResolvedValue({ ok: true }),
   cancelSubscriptionAction: vi.fn().mockResolvedValue({ ok: false, error: "motivo é obrigatório" }),
@@ -69,26 +85,127 @@ describe("SubscriptionActions", () => {
     expect(changeSubscriptionPlanAction).toHaveBeenCalledWith("s1", "agency", 59900, "upgrade pedido pelo fornecedor");
   });
 
-  it("reembolso exige motivo, referência do pagamento e valor antes de habilitar", async () => {
+  it("sem pagamento reembolsável, o diálogo mostra estado honesto — não um seletor vazio", async () => {
     render(
-      <SubscriptionActions subscriptionId="s1" vendorId="v1" plan="studio" podeMutar={false} podeReembolsar priceTable={PRICE_TABLE} />,
+      <SubscriptionActions
+        subscriptionId="s1"
+        vendorId="v1"
+        plan="studio"
+        podeMutar={false}
+        podeReembolsar
+        priceTable={PRICE_TABLE}
+        refundablePayments={[]}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Reembolsar" }));
+    const dialogo = dialogoAberto();
+
+    expect(dialogo.getByText("Nenhum pagamento reembolsável para este fornecedor.")).toBeInTheDocument();
+    expect(dialogo.queryByLabelText("Pagamento")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirmar reembolso" })).toBeDisabled();
+  });
+
+  it("reembolso: escolher um pagamento no seletor preenche id/asaasId/valor — o operador não digita nada disso", async () => {
+    const { refundPaymentAction } = await import("@/features/console/actions");
+    vi.mocked(refundPaymentAction).mockClear();
+    vi.mocked(refundPaymentAction).mockResolvedValueOnce({ ok: true });
+
+    render(
+      <SubscriptionActions
+        subscriptionId="s1"
+        vendorId="v1"
+        plan="studio"
+        podeMutar={false}
+        podeReembolsar
+        priceTable={PRICE_TABLE}
+        refundablePayments={[PAGAMENTO_CONFIRMADO, PAGAMENTO_RECEBIDO]}
+      />,
     );
     await userEvent.click(screen.getByRole("button", { name: "Reembolsar" }));
     const dialogo = dialogoAberto();
     const confirmar = screen.getByRole("button", { name: "Confirmar reembolso" });
     expect(confirmar).toBeDisabled();
 
-    await userEvent.type(dialogo.getByLabelText("ID do pagamento"), "pagamento-1");
-    expect(confirmar).toBeDisabled();
-
-    await userEvent.type(dialogo.getByLabelText("ID do pagamento no Asaas"), "pay_asaas_1");
-    expect(confirmar).toBeDisabled();
-
-    await userEvent.type(dialogo.getByLabelText("Valor (R$)"), "800,00");
+    await userEvent.selectOptions(dialogo.getByLabelText("Pagamento"), PAGAMENTO_CONFIRMADO.id);
+    // Valor default é o valor cheio do pagamento selecionado.
+    expect(dialogo.getByLabelText("Valor (R$)")).toHaveValue("800,00");
     expect(confirmar).toBeDisabled();
 
     await userEvent.type(dialogo.getByLabelText("Motivo"), "cliente cancelou o evento");
     expect(confirmar).not.toBeDisabled();
+
+    await userEvent.click(confirmar);
+    expect(refundPaymentAction).toHaveBeenCalledWith(
+      PAGAMENTO_CONFIRMADO.id,
+      PAGAMENTO_CONFIRMADO.asaasPaymentId,
+      80000,
+      "cliente cancelou o evento",
+    );
+  });
+
+  it("reembolso parcial: reduzir o valor abaixo do total do pagamento continua válido", async () => {
+    const { refundPaymentAction } = await import("@/features/console/actions");
+    vi.mocked(refundPaymentAction).mockClear();
+    vi.mocked(refundPaymentAction).mockResolvedValueOnce({ ok: true });
+
+    render(
+      <SubscriptionActions
+        subscriptionId="s1"
+        vendorId="v1"
+        plan="studio"
+        podeMutar={false}
+        podeReembolsar
+        priceTable={PRICE_TABLE}
+        refundablePayments={[PAGAMENTO_CONFIRMADO]}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Reembolsar" }));
+    const dialogo = dialogoAberto();
+    await userEvent.selectOptions(dialogo.getByLabelText("Pagamento"), PAGAMENTO_CONFIRMADO.id);
+
+    const campoValor = dialogo.getByLabelText("Valor (R$)");
+    await userEvent.clear(campoValor);
+    await userEvent.type(campoValor, "100,00");
+    await userEvent.type(dialogo.getByLabelText("Motivo"), "reembolso parcial pedido pelo cliente");
+
+    expect(screen.getByRole("button", { name: "Confirmar reembolso" })).not.toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Confirmar reembolso" }));
+
+    expect(refundPaymentAction).toHaveBeenCalledWith(
+      PAGAMENTO_CONFIRMADO.id,
+      PAGAMENTO_CONFIRMADO.asaasPaymentId,
+      10000,
+      "reembolso parcial pedido pelo cliente",
+    );
+  });
+
+  it("não deixa confirmar reembolso maior que o valor do pagamento", async () => {
+    const { refundPaymentAction } = await import("@/features/console/actions");
+    vi.mocked(refundPaymentAction).mockClear();
+
+    render(
+      <SubscriptionActions
+        subscriptionId="s1"
+        vendorId="v1"
+        plan="studio"
+        podeMutar={false}
+        podeReembolsar
+        priceTable={PRICE_TABLE}
+        refundablePayments={[PAGAMENTO_CONFIRMADO]}
+      />,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Reembolsar" }));
+    const dialogo = dialogoAberto();
+    await userEvent.selectOptions(dialogo.getByLabelText("Pagamento"), PAGAMENTO_CONFIRMADO.id);
+
+    const campoValor = dialogo.getByLabelText("Valor (R$)");
+    await userEvent.clear(campoValor);
+    await userEvent.type(campoValor, "900,00");
+    await userEvent.type(dialogo.getByLabelText("Motivo"), "tentativa de reembolso maior que o pagamento");
+
+    expect(screen.getByRole("button", { name: "Confirmar reembolso" })).toBeDisabled();
+    expect(dialogo.getByText("Não é possível reembolsar mais do que o valor do pagamento.")).toBeInTheDocument();
+    expect(refundPaymentAction).not.toHaveBeenCalled();
   });
 
   it("reembolso acima do limiar mostra que exige o dono, sem inventar fila de aprovação", async () => {
@@ -97,61 +214,55 @@ describe("SubscriptionActions", () => {
     // chega à UI desde o commit 26a29ed — `traduzErroDeComando` (actions.ts)
     // devolve a mensagem default da classe, sem reescrevê-la.
     const { refundPaymentAction } = await import("@/features/console/actions");
+    vi.mocked(refundPaymentAction).mockClear();
     vi.mocked(refundPaymentAction).mockResolvedValueOnce({
       ok: false,
       error: "subscription.refund exige aprovação de subscription.refund.approve",
     });
 
     render(
-      <SubscriptionActions subscriptionId="s1" vendorId="v1" plan="studio" podeMutar={false} podeReembolsar priceTable={PRICE_TABLE} />,
+      <SubscriptionActions
+        subscriptionId="s1"
+        vendorId="v1"
+        plan="studio"
+        podeMutar={false}
+        podeReembolsar
+        priceTable={PRICE_TABLE}
+        refundablePayments={[PAGAMENTO_CONFIRMADO]}
+      />,
     );
     await userEvent.click(screen.getByRole("button", { name: "Reembolsar" }));
     const dialogo = dialogoAberto();
-    await userEvent.type(dialogo.getByLabelText("ID do pagamento"), "pagamento-1");
-    await userEvent.type(dialogo.getByLabelText("ID do pagamento no Asaas"), "pay_asaas_1");
-    await userEvent.type(dialogo.getByLabelText("Valor (R$)"), "800,00");
+    await userEvent.selectOptions(dialogo.getByLabelText("Pagamento"), PAGAMENTO_CONFIRMADO.id);
     await userEvent.type(dialogo.getByLabelText("Motivo"), "cliente cancelou o evento");
     await userEvent.click(screen.getByRole("button", { name: "Confirmar reembolso" }));
 
-    expect(refundPaymentAction).toHaveBeenCalledWith("pagamento-1", "pay_asaas_1", 80000, "cliente cancelou o evento");
+    expect(refundPaymentAction).toHaveBeenCalledWith(PAGAMENTO_CONFIRMADO.id, PAGAMENTO_CONFIRMADO.asaasPaymentId, 80000, "cliente cancelou o evento");
     expect(await screen.findByRole("alert")).toHaveTextContent("Esse valor exige aprovação do dono.");
   });
 
-  it("valor em reais chega ao comando em centavos, inteiro — sem erro de ponto flutuante", async () => {
-    const { refundPaymentAction } = await import("@/features/console/actions");
-    vi.mocked(refundPaymentAction).mockClear();
-    vi.mocked(refundPaymentAction).mockResolvedValueOnce({ ok: true });
-
-    render(
-      <SubscriptionActions subscriptionId="s1" vendorId="v1" plan="studio" podeMutar={false} podeReembolsar priceTable={PRICE_TABLE} />,
-    );
-    await userEvent.click(screen.getByRole("button", { name: "Reembolsar" }));
-    const dialogo = dialogoAberto();
-    await userEvent.type(dialogo.getByLabelText("ID do pagamento"), "pagamento-1");
-    await userEvent.type(dialogo.getByLabelText("ID do pagamento no Asaas"), "pay_asaas_1");
-    // 19,90 é o caso clássico de ponto flutuante: `19.9 * 100` puro dá
-    // 1989.9999999999998, não 1990.
-    await userEvent.type(dialogo.getByLabelText("Valor (R$)"), "19,90");
-    await userEvent.type(dialogo.getByLabelText("Motivo"), "cliente cancelou o evento");
-    await userEvent.click(screen.getByRole("button", { name: "Confirmar reembolso" }));
-
-    expect(refundPaymentAction).toHaveBeenCalledWith("pagamento-1", "pay_asaas_1", 1990, "cliente cancelou o evento");
-    const chamada = vi.mocked(refundPaymentAction).mock.calls.at(0);
-    expect(Number.isInteger(chamada?.[2])).toBe(true);
-  });
-
-  it("valor de reembolso inválido nunca chama a action", async () => {
+  it("valor de reembolso não numérico nunca chama a action", async () => {
     const { refundPaymentAction } = await import("@/features/console/actions");
     vi.mocked(refundPaymentAction).mockClear();
 
     render(
-      <SubscriptionActions subscriptionId="s1" vendorId="v1" plan="studio" podeMutar={false} podeReembolsar priceTable={PRICE_TABLE} />,
+      <SubscriptionActions
+        subscriptionId="s1"
+        vendorId="v1"
+        plan="studio"
+        podeMutar={false}
+        podeReembolsar
+        priceTable={PRICE_TABLE}
+        refundablePayments={[PAGAMENTO_CONFIRMADO]}
+      />,
     );
     await userEvent.click(screen.getByRole("button", { name: "Reembolsar" }));
     const dialogo = dialogoAberto();
-    await userEvent.type(dialogo.getByLabelText("ID do pagamento"), "pagamento-1");
-    await userEvent.type(dialogo.getByLabelText("ID do pagamento no Asaas"), "pay_asaas_1");
-    await userEvent.type(dialogo.getByLabelText("Valor (R$)"), "não é número");
+    await userEvent.selectOptions(dialogo.getByLabelText("Pagamento"), PAGAMENTO_CONFIRMADO.id);
+
+    const campoValor = dialogo.getByLabelText("Valor (R$)");
+    await userEvent.clear(campoValor);
+    await userEvent.type(campoValor, "não é número");
     await userEvent.type(dialogo.getByLabelText("Motivo"), "cliente cancelou o evento");
 
     // entrada não numérica nunca faz `parseReaisParaCentavos` devolver um
@@ -166,7 +277,7 @@ describe("SubscriptionActions", () => {
     // primeiro diálogo clicando em "Cancelar" colidiria com o botão-gatilho
     // "Cancelar" de fora — ambiguidade de teste, não do componente.
     const { unmount } = render(
-      <SubscriptionActions subscriptionId="s1" vendorId="v1" plan="starter" podeMutar podeReembolsar priceTable={PRICE_TABLE} />,
+      <SubscriptionActions subscriptionId="s1" vendorId="v1" plan="starter" podeMutar podeReembolsar priceTable={PRICE_TABLE} refundablePayments={[PAGAMENTO_CONFIRMADO]} />,
     );
     await userEvent.click(screen.getByRole("button", { name: "Trocar plano" }));
     expect(screen.queryByText(/Digite "/)).not.toBeInTheDocument();
@@ -174,7 +285,7 @@ describe("SubscriptionActions", () => {
     unmount();
 
     render(
-      <SubscriptionActions subscriptionId="s1" vendorId="v1" plan="starter" podeMutar podeReembolsar priceTable={PRICE_TABLE} />,
+      <SubscriptionActions subscriptionId="s1" vendorId="v1" plan="starter" podeMutar podeReembolsar priceTable={PRICE_TABLE} refundablePayments={[PAGAMENTO_CONFIRMADO]} />,
     );
     await userEvent.click(screen.getByRole("button", { name: "Reembolsar" }));
     expect(screen.queryByText(/Digite "/)).not.toBeInTheDocument();

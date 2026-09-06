@@ -5,12 +5,14 @@ const {
   resolveActorMock,
   listSubscriptionsMock,
   getPlatformRevenueMock,
+  listRefundablePaymentsMock,
   redirectMock,
   SubscriptionActionsMock,
 } = vi.hoisted(() => ({
   resolveActorMock: vi.fn(),
   listSubscriptionsMock: vi.fn(),
   getPlatformRevenueMock: vi.fn(),
+  listRefundablePaymentsMock: vi.fn().mockResolvedValue({ rows: [] }),
   redirectMock: vi.fn(() => {
     throw new Error("redirect");
   }),
@@ -24,6 +26,7 @@ vi.mock("@/lib/db", () => ({ getPool: vi.fn(), getAggregatorPool: vi.fn() }));
 vi.mock("@albora/application", () => ({
   listSubscriptions: listSubscriptionsMock,
   getPlatformRevenue: getPlatformRevenueMock,
+  listRefundablePayments: listRefundablePaymentsMock,
   VENDOR_PLAN_PRICE_CENTS: { starter: 9900, studio: 24900, agency: 59900 },
 }));
 vi.mock("@/features/console/components/client/subscription-actions", () => ({
@@ -141,9 +144,13 @@ describe("SubscriptionsPage", () => {
 
     expect(serializado).not.toContain("Ações");
     expect(SubscriptionActionsMock).not.toHaveBeenCalled();
+    expect(listRefundablePaymentsMock).not.toHaveBeenCalled();
   });
 
   it("dono vê a coluna de ações e o componente recebe subscriptionId/plan/capacidades corretos", async () => {
+    const pagamento = { id: "pay-1", asaasPaymentId: "asaas-1", amountCents: 50000, status: "confirmed" as const, paidAt: null };
+    listRefundablePaymentsMock.mockResolvedValueOnce({ rows: [pagamento] });
+
     const serializado = await pagina(
       [montarAssinatura({ subscriptionId: "sub-abc", vendorId: "vendor-abc", plan: "agency" })],
       revenuePadrao(),
@@ -157,7 +164,12 @@ describe("SubscriptionsPage", () => {
       plan: "agency",
       podeMutar: true,
       podeReembolsar: true,
+      refundablePayments: [pagamento],
     });
+    expect(listRefundablePaymentsMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ vendorId: "vendor-abc" }),
+    );
   });
 
   it("financeiro (subscription.mutate + subscription.refund, sem refund.approve) também vê a coluna", async () => {
