@@ -27,6 +27,24 @@ describe("Dialog", () => {
     expect(dialogEl).toHaveAttribute("data-state", "open");
   });
 
+  /*
+   * Fechado, o `<dialog>` continua montado (o elemento precisa existir para
+   * `showModal`). O estilo de autor `display:grid` da classe base vence o
+   * `display:none` do user-agent, então sem uma regra explícita o elemento
+   * fechado vira um retângulo `fixed inset-0` com scrim, cobrindo a tela e
+   * comendo todo clique. Foi o que travou o E2E do feed do convidado.
+   */
+  it("fechado, não se anuncia aberto nem fica visível por cima da tela", () => {
+    render(
+      <Dialog open={false} onClose={() => {}}>
+        conteúdo
+      </Dialog>,
+    );
+    const dialogEl = screen.getByText("conteúdo").closest("dialog");
+    expect(dialogEl).toHaveAttribute("data-state", "closed");
+    expect(dialogEl?.className).toMatch(/\[&:not\(\[open\]\)\]:hidden/);
+  });
+
   it("clicar no backdrop (fora do conteúdo) chama onClose", () => {
     const onClose = vi.fn();
     render(<Dialog open onClose={onClose}>conteúdo</Dialog>);

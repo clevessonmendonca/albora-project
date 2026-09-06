@@ -69,8 +69,18 @@ export function Dialog({
       onClick={(ev) => {
         if (ev.target === ev.currentTarget) onClose();
       }}
-      data-state={fechando ? "closing" : "open"}
+      data-state={fechando ? "closing" : open ? "open" : "closed"}
       className={cn(
+        /*
+         * O `<dialog>` fica montado mesmo fechado (o elemento precisa existir
+         * para `showModal`), e `display:grid` abaixo é estilo de autor — vence
+         * o `display:none` que o user-agent aplica a `dialog:not([open])`. Sem
+         * esta linha o diálogo fechado vira um `fixed inset-0` com scrim por
+         * cima da tela inteira, comendo todo clique. Durante a saída o
+         * atributo `open` ainda está lá (o `close()` é adiado), então a
+         * animação de fechamento continua visível.
+         */
+        "[&:not([open])]:hidden",
         /*
          * `group` habilita conteúdo filho (o painel do BottomSheet) reagir ao
          * `data-state` daqui via `group-data-[state=closing]:...`, sem cada
