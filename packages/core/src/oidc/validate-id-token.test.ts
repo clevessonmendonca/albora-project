@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { exportJWK, generateKeyPair, SignJWT } from "jose";
-import { InvalidIdTokenError, validateIdToken } from "./validate-id-token";
+import { validateIdToken } from "./validate-id-token";
 import type { GoogleJwks } from "./validate-id-token";
 
 const EXPECTED_AUD = "client-id-de-teste";
