@@ -109,3 +109,8 @@ export { listPendingImpersonationRequests } from "./impersonation/list-pending-i
 
 export type { ConsoleSearchResult, ConsoleSearchResultKind, SearchConsoleInput } from "./search/search-console";
 export { searchConsole } from "./search/search-console";
+
+export type {
+  IssueOidcStateInput, IssuedOidcState, OidcStatePayload, OidcSurface,
+} from "./auth/oidc-state";
+export { consumeOidcState, InvalidOidcStateError, issueOidcState, sanitizeReturnTo } from "./auth/oidc-state";
