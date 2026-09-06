@@ -48,6 +48,26 @@ describe("scoresDoThumb", () => {
     expect(scores).toEqual({ perceptualHash: null, sharpness: null, exposure: null });
   });
 
+  it("imagem acima do teto de resolução vira sinal ausente — thumb legítimo tem 320px no lado maior", () => {
+    // THUMB_SIDE = 320 (packages/core/src/redimensionar.ts) => ~0,1 MP.
+    // 700x700 = 0,49 MP: quase 5x a area legitima, e o pipeline puro-JS que
+    // roda apos o decodificador aloca ~20 bytes por pixel alem do que o
+    // maxMemoryUsageInMB contabiliza. Um isolate de Workers morto por memoria
+    // NAO e excecao JS — o try/catch nao o capturaria.
+    const grande = jpegValido(700, 700);
+    expect(grande.byteLength).toBeLessThan(512 * 1024); // passa pelo teto de bytes
+
+    const scores = scoresDoThumb(grande);
+
+    expect(scores).toEqual({ perceptualHash: null, sharpness: null, exposure: null });
+  });
+
+  it("thumb no tamanho legítimo (320x320) continua sendo decodificado normalmente", () => {
+    const scores = scoresDoThumb(jpegValido(320, 320));
+    expect(scores.perceptualHash).toMatch(/^[0-9a-f]{16}$/);
+    expect(scores.sharpness).not.toBeNull();
+  });
+
   it("entrada acima do teto de bytes vira sinal ausente sem chamar o decodificador", () => {
     // Os bytes do thumb NAO sao confiaveis: o convidado faz PUT direto na URL
     // presigned, entao a chave aceita qualquer conteudo. Sem teto, um JPEG de

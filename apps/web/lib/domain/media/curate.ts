@@ -38,12 +38,26 @@ const SCORE_AUSENTE: ScoresCalculados = {
  * abaixo — o tamanho de entrada, e os dois tetos que o próprio `jpeg-js` expõe.
  */
 
-/** Thumb real fica na casa das dezenas de KB; 2 MB é folga larga e ainda barra bomba. */
-const MAX_BYTES_THUMB = 2 * 1024 * 1024;
+// Os tetos abaixo são DERIVADOS do tamanho real de um thumb, não escolhidos
+// por intuição. `THUMB_SIDE = 320` em `packages/core/src/redimensionar.ts`:
+// um thumb legítimo tem no máximo 320 px no lado maior, ou seja ~0,1 MP.
+//
+// Uma versão anterior usava 40 MP "porque thumb não chega perto". Deixava
+// passar 2,89 MP — cerca de 30x a área legítima — e o pipeline puro-JS que
+// roda DEPOIS do decodificador aloca ~20 bytes por pixel além do que o
+// `maxMemoryUsageInMB` do jpeg-js contabiliza (cópia RGBA, grade de
+// luminância em Float64, respostas do laplaciano). Medido: um JPEG uniforme
+// de 1700x1700 e 78 KiB passava pelos três limites e alocava +216 MB. O teto
+// de um isolate de Cloudflare Workers é 128 MB, e o isolate morto pelo
+// runtime NÃO é exceção JS — o try/catch abaixo não o captura, e a promessa
+// de "degrada para sinal ausente" não valeria nesse caminho.
+
+/** `readThumb` já corta em 512 KiB (`TETO_DA_THUMB`); acima disso não é thumb. */
+const MAX_BYTES_THUMB = 512 * 1024;
 /** Teto de memória do decodificador, em MB. */
-const MAX_MEMORIA_DECODE_MB = 64;
-/** Teto de resolução, em megapixels. Thumb legítimo não chega perto. */
-const MAX_RESOLUCAO_MP = 40;
+const MAX_MEMORIA_DECODE_MB = 16;
+/** ~0,25 MP: folga de 2,5x sobre os 0,1 MP de um thumb 320x320, e 11x abaixo do que amplificava. */
+const MAX_RESOLUCAO_MP = 0.25;
 
 export function scoresDoThumb(bytes: Uint8Array): ScoresCalculados {
   if (bytes.byteLength > MAX_BYTES_THUMB) return SCORE_AUSENTE;
@@ -53,7 +67,9 @@ export function scoresDoThumb(bytes: Uint8Array): ScoresCalculados {
       maxMemoryUsageInMB: MAX_MEMORIA_DECODE_MB,
       maxResolutionInMP: MAX_RESOLUCAO_MP,
     });
-    const pixels = new Uint8ClampedArray(data);
+    // Compartilha a memória em vez de copiar o RGBA inteiro — a cópia era
+    // 4 bytes por pixel de amplificação sem necessidade.
+    const pixels = new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength);
     return {
       perceptualHash: perceptualHash(pixels, width, height),
       sharpness: sharpnessScore(pixels, width, height),
