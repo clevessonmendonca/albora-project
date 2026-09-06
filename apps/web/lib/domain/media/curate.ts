@@ -25,16 +25,34 @@ const SCORE_AUSENTE: ScoresCalculados = {
 };
 
 /**
- * Bytes de thumb (sempre JPEG — gerado no cliente via `canvas.toBlob("image/jpeg")`,
- * `apps/web/lib/domain/image/image.ts` e `editor-lut.ts`) decodificados em pixels RGBA e
- * passados aos três sinais puros de `@albora/curation`. Nunca lança: qualquer falha de
- * decodificação vira sinal ausente, nunca sinal ruim — a mídia continua no editor do livro
- * como qualquer outra (CLAUDE.md §identidade visual, mesma assimetria do classificador de
- * moderação).
+ * Bytes de thumb decodificados em pixels RGBA e passados aos três sinais puros de
+ * `@albora/curation`. Nunca lança: qualquer falha vira sinal ausente, nunca sinal ruim —
+ * a mídia continua no editor do livro como qualquer outra, mesma assimetria do
+ * classificador de moderação (erro vira `sem-resposta`, nunca `limpo`).
+ *
+ * 🔴 Os bytes NÃO são confiáveis, apesar de o thumb ser gerado no cliente via
+ * `canvas.toBlob("image/jpeg")`. O convidado faz PUT direto na URL presigned, então a
+ * chave do thumb aceita qualquer conteúdo. Decodificar entrada hostil no servidor é
+ * bomba de descompressão: um JPEG de poucos KB pode declarar dimensões enormes e
+ * estourar memória e CPU do Worker, que tem teto por request. Por isso os três limites
+ * abaixo — o tamanho de entrada, e os dois tetos que o próprio `jpeg-js` expõe.
  */
+
+/** Thumb real fica na casa das dezenas de KB; 2 MB é folga larga e ainda barra bomba. */
+const MAX_BYTES_THUMB = 2 * 1024 * 1024;
+/** Teto de memória do decodificador, em MB. */
+const MAX_MEMORIA_DECODE_MB = 64;
+/** Teto de resolução, em megapixels. Thumb legítimo não chega perto. */
+const MAX_RESOLUCAO_MP = 40;
+
 export function scoresDoThumb(bytes: Uint8Array): ScoresCalculados {
+  if (bytes.byteLength > MAX_BYTES_THUMB) return SCORE_AUSENTE;
   try {
-    const { width, height, data } = decodeJpeg(bytes, { useTArray: true });
+    const { width, height, data } = decodeJpeg(bytes, {
+      useTArray: true,
+      maxMemoryUsageInMB: MAX_MEMORIA_DECODE_MB,
+      maxResolutionInMP: MAX_RESOLUCAO_MP,
+    });
     const pixels = new Uint8ClampedArray(data);
     return {
       perceptualHash: perceptualHash(pixels, width, height),

@@ -47,6 +47,21 @@ describe("scoresDoThumb", () => {
     const scores = scoresDoThumb(new Uint8Array([1, 2, 3, 4]));
     expect(scores).toEqual({ perceptualHash: null, sharpness: null, exposure: null });
   });
+
+  it("entrada acima do teto de bytes vira sinal ausente sem chamar o decodificador", () => {
+    // Os bytes do thumb NAO sao confiaveis: o convidado faz PUT direto na URL
+    // presigned, entao a chave aceita qualquer conteudo. Sem teto, um JPEG de
+    // poucos KB declarando dimensoes enormes esgota memoria e CPU do Worker.
+    // 2 MB + 1 byte: thumb legitimo fica nas dezenas de KB.
+    const grandeDemais = new Uint8Array(2 * 1024 * 1024 + 1);
+    grandeDemais.set(jpegValido().slice(0, 64));
+
+    const scores = scoresDoThumb(grandeDemais);
+
+    expect(scores.perceptualHash).toBeNull();
+    expect(scores.sharpness).toBeNull();
+    expect(scores.exposure).toBeNull();
+  });
 });
 
 describe("curatePendingForEvent", () => {
