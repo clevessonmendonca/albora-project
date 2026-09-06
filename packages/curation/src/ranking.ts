@@ -1,4 +1,4 @@
-import { hammingDistance } from "./hash-perceptual";
+import { hammingDistance, HASH_BITS } from "./hash-perceptual";
 
 /**
  * Curadoria propõe, casal decide (spec §5): esta função nunca remove mídia. Ela só calcula uma
@@ -138,12 +138,14 @@ function groupDuplicates(
   const withHash = scores.filter(
     (s): s is MediaScores & { hash: string } => s.hash !== null,
   );
-  for (let i = 0; i < withHash.length; i += 1) {
-    for (let j = i + 1; j < withHash.length; j += 1) {
-      const a = withHash[i];
-      const b = withHash[j];
-      if (a === undefined || b === undefined) continue;
-      if (hammingDistance(a.hash, b.hash) < hammingThreshold) union(a.uploadId, b.uploadId);
+  if (withHash.length > 1 && hammingThreshold > 0) {
+    if (hammingThreshold > HASH_BITS) {
+      // Distância máxima possível entre dois hashes de 64 bits é 64 — com o teto acima disso,
+      // `hammingDistance(...) < hammingThreshold` é sempre verdade. Sem comparar par a par.
+      const primeiro = withHash[0]!.uploadId;
+      for (let i = 1; i < withHash.length; i += 1) union(primeiro, withHash[i]!.uploadId);
+    } else {
+      unirQuaseDuplicatasPorFaixa(withHash, hammingThreshold, union);
     }
   }
 
@@ -160,6 +162,64 @@ function groupDuplicates(
     for (const id of group) groupsByUploadId.set(id, group);
   }
   return groupsByUploadId;
+}
+
+type MediaComHash = MediaScores & { hash: string };
+type ItemComValor = { uploadId: string; hash: string; value: bigint };
+
+/**
+ * Agrupamento por bucket em vez de todos-contra-todos (achado 6 do review): comparar cada par
+ * é O(n²) — 3,5 s para as 1.500 fotos do enunciado do produto ("escolher 60 entre 1.500"), CPU
+ * bloqueante acima do limite de um request de Cloudflare Worker.
+ *
+ * Particiona os 64 bits do hash em `bands = min(hammingThreshold, HASH_BITS)` faixas contíguas
+ * (`bandWidth` bits cada) e só compara pares que caem na mesma faixa — o candidato ainda passa
+ * por `hammingDistance` de verdade antes de virar união, então isto é EXATO, não aproximado, e
+ * dá exatamente o mesmo resultado que comparar todo mundo contra todo mundo:
+ *
+ * Se duas mídias têm distância real menor que `hammingThreshold` (no máximo `hammingThreshold - 1`
+ * bits diferentes), cada bit diferente "suja" no máximo uma faixa — e há `bands >= hammingThreshold`
+ * faixas para no máximo `hammingThreshold - 1` bits sujarem. Pelo princípio da casa dos pombos,
+ * sobra pelo menos uma faixa limpa (valor idêntico nas duas), que é o que bota as duas no mesmo
+ * balde. Nenhum par verdadeiro escapa de aparecer em algum balde — e todo par que aparece só vira
+ * duplicata se `hammingDistance` de verdade confirmar, então coincidência de balde sozinha nunca
+ * gera falso positivo.
+ */
+function unirQuaseDuplicatasPorFaixa(
+  withHash: readonly MediaComHash[],
+  hammingThreshold: number,
+  union: (a: string, b: string) => void,
+): void {
+  const bands = Math.min(hammingThreshold, HASH_BITS);
+  const bandWidth = Math.ceil(HASH_BITS / bands);
+  const mask = (1n << BigInt(bandWidth)) - 1n;
+
+  const itens: ItemComValor[] = withHash.map((s) => ({
+    uploadId: s.uploadId,
+    hash: s.hash,
+    value: BigInt(`0x${s.hash}`),
+  }));
+
+  for (let band = 0; band < bands; band += 1) {
+    const shift = BigInt(band * bandWidth);
+    const buckets = new Map<bigint, ItemComValor[]>();
+    for (const item of itens) {
+      const chave = (item.value >> shift) & mask;
+      const balde = buckets.get(chave);
+      if (balde) balde.push(item);
+      else buckets.set(chave, [item]);
+    }
+
+    for (const balde of buckets.values()) {
+      for (let i = 0; i < balde.length; i += 1) {
+        for (let j = i + 1; j < balde.length; j += 1) {
+          const a = balde[i]!;
+          const b = balde[j]!;
+          if (hammingDistance(a.hash, b.hash) < hammingThreshold) union(a.uploadId, b.uploadId);
+        }
+      }
+    }
+  }
 }
 
 /**

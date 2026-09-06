@@ -2,7 +2,8 @@ import { luminanceAt } from "./luminance";
 
 /** aHash: reduz a imagem a uma grade 8x8 de luminância média e marca cada célula acima/abaixo da média geral. Robusto a recompressão e pequeno recorte — é o que faz rajada de fotos quase idênticas colapsar no mesmo hash. */
 const GRID_SIZE = 8;
-const HASH_BITS = GRID_SIZE * GRID_SIZE;
+/** Exportado para `ranking.ts` (agrupamento por bucket, achado 6 do review) — uma só fonte da verdade para "o hash tem 64 bits". */
+export const HASH_BITS = GRID_SIZE * GRID_SIZE;
 const HEX_DIGITS = HASH_BITS / 4;
 
 /**
@@ -24,15 +25,31 @@ export function perceptualHash(pixels: Uint8ClampedArray, width: number, height:
   return hash.toString(16).padStart(HEX_DIGITS, "0");
 }
 
-/** Número de bits que diferem entre dois hashes — quanto menor, mais parecidas as imagens de origem. */
+/**
+ * Número de bits que diferem entre dois hashes — quanto menor, mais parecidas as imagens de
+ * origem. Assume os 16 dígitos hex (64 bits) que `perceptualHash` sempre produz — não genérico
+ * para hash de outro tamanho.
+ *
+ * Reescrito no achado 6 do review: a versão anterior fazia `BigInt` + laço bit a bit (64 iterações
+ * de shift em BigInt, caro por chamada). Aqui cada metade de 32 bits vira `number` (`parseInt` com
+ * `>>> 0` pra tratar como inteiro sem sinal) e o popcount usa o truque SWAR clássico — só operações
+ * de inteiro de 32 bits, sem alocar `BigInt`. `groupDuplicates` (`ranking.ts`) chama isto por par
+ * candidato depois de reduzir todos-contra-todos a buckets, então o custo por chamada aqui conta
+ * tanto quanto o número de chamadas.
+ */
 export function hammingDistance(a: string, b: string): number {
-  let xored = BigInt(`0x${a}`) ^ BigInt(`0x${b}`);
-  let distance = 0;
-  while (xored > 0n) {
-    distance += Number(xored & 1n);
-    xored >>= 1n;
-  }
-  return distance;
+  const highXor = (parseInt(a.slice(0, 8), 16) ^ parseInt(b.slice(0, 8), 16)) >>> 0;
+  const lowXor = (parseInt(a.slice(8, 16), 16) ^ parseInt(b.slice(8, 16), 16)) >>> 0;
+  return popcount32(highXor) + popcount32(lowXor);
+}
+
+/** Popcount SWAR (contagem de bits 1) para inteiro de 32 bits sem sinal. */
+function popcount32(nUnsigned: number): number {
+  let x = nUnsigned >>> 0;
+  x = x - ((x >>> 1) & 0x55555555);
+  x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
+  x = (x + (x >>> 4)) & 0x0f0f0f0f;
+  return (x * 0x01010101) >>> 24;
 }
 
 /** Reduz a imagem a uma grade `size`x`size` de luminância média por célula, por varredura de bloco (sem redimensionamento bilinear — aHash não precisa da suavização extra). */
