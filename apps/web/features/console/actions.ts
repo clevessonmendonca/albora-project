@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import {
   applySubscriptionCourtesy,
   approveImpersonation,
+  ApprovalRequiredError,
   assignTicket,
   cancelSubscription as cancelSubscriptionUseCase,
   changeSubscriptionPlan,
@@ -180,10 +181,19 @@ export async function revealAccountPiiAction(
 
 export type SimpleActionResult = { ok: true } | { ok: false; error: string };
 
-/** Traduz os erros do envelope de comando pra uma forma que o client component mostra sem re-lançar — mesma disciplina de `revealAccountPiiAction`. */
+/**
+ * Traduz os erros do envelope de comando pra uma forma que o client component
+ * mostra sem re-lançar — mesma disciplina de `revealAccountPiiAction`.
+ *
+ * `ApprovalRequiredError` (hoje só `subscription.refund`, ver `refundPolicy`
+ * em `packages/core/src/authorization/policies.ts`) devolve a mensagem
+ * default da classe, que carrega `approverCapability` — é o componente que
+ * decide como mostrar isso ao operador, não esta camada.
+ */
 function traduzErroDeComando(erro: unknown): SimpleActionResult {
   if (erro instanceof CommandDeniedError) return { ok: false, error: erro.message };
   if (erro instanceof ReauthRequiredError) return { ok: false, error: "reautenticação exigida" };
+  if (erro instanceof ApprovalRequiredError) return { ok: false, error: erro.message };
   throw erro;
 }
 

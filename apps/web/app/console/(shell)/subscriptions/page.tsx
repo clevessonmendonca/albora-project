@@ -111,6 +111,7 @@ export default async function SubscriptionsPage() {
                 plan={r.plan}
                 podeMutar={podeMutar}
                 podeReembolsar={podeReembolsar}
+                priceTable={VENDOR_PLAN_PRICE_CENTS}
               />
             ),
           },
