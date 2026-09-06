@@ -42,7 +42,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
 
       <header
         className={cn(
-          "sticky top-0 z-40 flex items-center justify-between gap-6 border-b border-linha bg-bg/85 py-3.5 backdrop-blur-md",
+          "sticky top-0 z-40 flex items-center justify-between gap-6 border-b border-linha bg-bg py-3.5",
           SIDE_PADDING,
         )}
       >

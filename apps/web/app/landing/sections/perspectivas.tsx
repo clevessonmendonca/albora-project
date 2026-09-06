@@ -363,7 +363,7 @@ export function PerspectivasSection() {
         .px-tile .px-vid::after {
           content: ""; position: absolute; inset: -3px; border-radius: 50%;
           border: 1px solid color-mix(in srgb, var(--acento) 70%, transparent);
-          animation: px-vp 2.2s ease-out infinite;
+          animation: px-vp 2.2s var(--curva) infinite;
         }
         @keyframes px-vp { 0% { transform: scale(.8); opacity: .9; } 100% { transform: scale(1.5); opacity: 0; } }
 

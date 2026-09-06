@@ -89,7 +89,7 @@ export function HeroSection({
         <div className="relative mx-auto aspect-[4/5] w-full max-w-[22.5rem] overflow-hidden border border-ink-borda-forte lg:ml-auto lg:mr-0">
           <Image
             src="/landing/gen/10-dia-jardim.png"
-            alt="Convidados brindando com os noivos num casamento de dia, ao lado da placa do Albora"
+            alt="Convidados brindando com o casal numa festa de dia, ao lado da placa do Albora"
             fill
             priority
             sizes="(max-width:820px) 88vw, 360px"
