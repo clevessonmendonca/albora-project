@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type * as ApiModule from "@/lib/api";
+import { recordFunnelEvent } from "@/features/guest/lib/record-funnel";
 
 /** Valida magic bytes da thumb (§10/9) — mesmo portão que `full`; 16 bytes (PREFIXO_MAGIC_BYTES) cobrem todos os formatos. */
 
@@ -23,18 +24,13 @@ vi.mock("@/lib/r2", () => ({ inspecionarObjeto }));
 const { requireGuestSession, enforceRateLimit, requireConfig, parseJsonBody } = vi.hoisted(() => ({
   requireGuestSession: vi.fn(),
   enforceRateLimit: vi.fn(),
-  requireConfig: vi.fn(() => null),
+  requireConfig: vi.fn((): Response | null => null),
   parseJsonBody: vi.fn(),
 }));
 
 vi.mock("@/lib/api", async (importOriginal) => {
   const actual = await importOriginal<typeof ApiModule>();
   return { ...actual, requireGuestSession, enforceRateLimit, requireConfig, parseJsonBody };
-});
-
-vi.mock("@albora/core", async (importOriginal) => {
-  const actual = await importOriginal<Record<string, unknown>>();
-  return { ...actual, prefixoDoEvento: (_id: string) => `events/${_id}/` };
 });
 
 const { withEvent, confirmUpload, challengeBelongsToEvent, eventTimeZone, eventPack, planoDoEvento } =
@@ -201,5 +197,156 @@ describe("POST /api/uploads/confirm — validação da thumb (§10 item 9)", () 
     expect(res.status).toBe(422);
     const body = (await res.json()) as { code: string };
     expect(body.code).toBe("midia.conteudo_nao_confere");
+  });
+});
+
+describe("POST /api/uploads/confirm — demais ramos (guardas de entrada e erros)", () => {
+  it("config ausente → 503, não chega a inspecionar nada", async () => {
+    requireConfig.mockReturnValue(
+      Response.json({ code: "config.missing", message: "Serviço indisponível" }, { status: 503 }),
+    );
+
+    const res = await POST(req());
+
+    expect(res.status).toBe(503);
+    expect(inspecionarObjeto).not.toHaveBeenCalled();
+  });
+
+  it("sessão de convidado ausente ou inválida → 401, devolvido tal e qual", async () => {
+    requireGuestSession.mockResolvedValue(
+      Response.json({ code: "sessao.invalida", message: "Sessão inválida" }, { status: 401 }),
+    );
+
+    const res = await POST(req());
+
+    expect(res.status).toBe(401);
+    expect(inspecionarObjeto).not.toHaveBeenCalled();
+  });
+
+  it("rate limit excedido → resposta de limite, sem inspecionar", async () => {
+    enforceRateLimit.mockReturnValue(
+      Response.json({ code: "limite.excedido", message: "Espere um instante" }, { status: 429 }),
+    );
+
+    const res = await POST(req());
+
+    expect(res.status).toBe(429);
+    expect(inspecionarObjeto).not.toHaveBeenCalled();
+  });
+
+  it("corpo não é JSON válido → 422, sem inspecionar", async () => {
+    parseJsonBody.mockResolvedValue(
+      Response.json({ code: "validation_error", message: "Corpo inválido" }, { status: 422 }),
+    );
+
+    const res = await POST(req());
+
+    expect(res.status).toBe(422);
+    expect(inspecionarObjeto).not.toHaveBeenCalled();
+  });
+
+  it("payload não passa no schema (mime ausente) → 422 validation.failed", async () => {
+    parseJsonBody.mockResolvedValue({ data: { uploadId: UPLOAD_ID, chave: CHAVE } });
+
+    const res = await POST(req({ uploadId: UPLOAD_ID, chave: CHAVE }));
+
+    expect(res.status).toBe(422);
+    const body = (await res.json()) as { code: string };
+    expect(body.code).toBe("validation.failed");
+    expect(inspecionarObjeto).not.toHaveBeenCalled();
+  });
+
+  it("full ainda não chegou ao storage → 409 upload.objeto_ausente", async () => {
+    inspecionarObjeto.mockResolvedValue(null);
+
+    const res = await POST(req());
+
+    expect(res.status).toBe(409);
+    const body = (await res.json()) as { code: string; details: { chave: string } };
+    expect(body.code).toBe("upload.objeto_ausente");
+    expect(body.details.chave).toBe(`${CHAVE}/full`);
+  });
+
+  it("storage indisponível (timeout) ao inspecionar o full → 503, não tenta a thumb", async () => {
+    inspecionarObjeto.mockImplementation(async (key: string) => {
+      if (key.endsWith("/full")) throw new DOMException("timeout", "TimeoutError");
+      throw new Error("não deveria inspecionar a thumb quando o full já falhou");
+    });
+
+    const res = await POST(req());
+
+    expect(res.status).toBe(503);
+    const body = (await res.json()) as { code: string };
+    expect(body.code).toBe("upload.storage_indisponivel");
+  });
+
+  it("storage indisponível (timeout) ao inspecionar a thumb → 503", async () => {
+    inspecionarObjeto.mockImplementation(async (key: string) => {
+      if (key.endsWith("/full")) return { bytes: 800_000, inicio: JPEG_INICIO };
+      throw new DOMException("timeout", "TimeoutError");
+    });
+
+    const res = await POST(req());
+
+    expect(res.status).toBe(503);
+    const body = (await res.json()) as { code: string };
+    expect(body.code).toBe("upload.storage_indisponivel");
+  });
+
+  it("erro inesperado (não timeout) ao inspecionar o full → 500 erro.interno", async () => {
+    inspecionarObjeto.mockImplementation(async (key: string) => {
+      if (key.endsWith("/full")) throw new Error("storage fora do ar");
+      return { bytes: 30_000, inicio: JPEG_INICIO };
+    });
+
+    const res = await POST(req());
+
+    expect(res.status).toBe(500);
+    const body = (await res.json()) as { code: string };
+    expect(body.code).toBe("erro.interno");
+  });
+
+  it("erro inesperado (não timeout) ao inspecionar a thumb → 500 erro.interno", async () => {
+    inspecionarObjeto.mockImplementation(async (key: string) => {
+      if (key.endsWith("/full")) return { bytes: 800_000, inicio: JPEG_INICIO };
+      throw new Error("storage fora do ar");
+    });
+
+    const res = await POST(req());
+
+    expect(res.status).toBe(500);
+    const body = (await res.json()) as { code: string };
+    expect(body.code).toBe("erro.interno");
+  });
+
+  it("chave não pertence ao evento da sessão autenticada → 403 upload.chave_invalida", async () => {
+    // Sessão de um evento diferente do embutido em `CHAVE` — trava o isolamento entre eventos
+    // mesmo quando full/thumb já chegaram ao storage.
+    requireGuestSession.mockResolvedValue({
+      session: { eventoId: "ffffffff-ffff-ffff-ffff-ffffffffffff", sessaoId: SESSION_ID },
+    });
+    inspecionarObjeto.mockImplementation(async () => ({ bytes: 800_000, inicio: JPEG_INICIO }));
+
+    const res = await POST(req());
+
+    expect(res.status).toBe(403);
+    const body = (await res.json()) as { code: string };
+    expect(body.code).toBe("upload.chave_invalida");
+    expect(withEvent).not.toHaveBeenCalled();
+  });
+
+  it("upload já existia (idempotência) → 200 estado duplicado, sem novo evento de funil", async () => {
+    inspecionarObjeto.mockImplementation(async () => ({ bytes: 800_000, inicio: JPEG_INICIO }));
+    withEvent.mockImplementation(async (_pool: unknown, _eventId: unknown, fn: (c: unknown) => Promise<unknown>) =>
+      fn({ query: vi.fn().mockResolvedValue({ rows: [] }) }),
+    );
+    confirmUpload.mockResolvedValue({ estado: "ja_existia" });
+
+    const res = await POST(req());
+
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { uploadId: string; estado: string };
+    expect(body.estado).toBe("duplicado");
+    expect(recordFunnelEvent).not.toHaveBeenCalled();
   });
 });

@@ -15,6 +15,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { drainAndReport } from "@/features/guest/lib/funnel-from-drain";
 import { reportFunnel } from "@/features/guest/lib/report-funnel";
+import { resolverAcaoFoco, type AcaoFoco } from "@/features/photo/lib/acao-foco";
 import { webDrawer } from "@/lib/drawer";
 import { deviceDecodes, prepareVideo } from "@/lib/image";
 import { QueueQuotaExceededError, webQueue, queueSummary } from "@/lib/queue";
@@ -49,13 +50,8 @@ export function mensagemCotaVideo(cota: CotaVideo): string | null {
   return `Plano grátis: até ${cota.limite} vídeos por convidado.`;
 }
 
-/** Ação ao voltar ao foco (visibilitychange/pageshow) — exportado para testes unitários. */
-export type AcaoFoco = "drenar" | "atualizar" | "ignorar";
-
-export function resolverAcaoFoco(visivel: boolean, online: boolean): AcaoFoco {
-  if (!visivel) return "ignorar";
-  return online ? "drenar" : "atualizar";
-}
+/** Reexportado para não quebrar quem já importava a regra a partir daqui (ex.: `use-upload.test.ts`). */
+export { resolverAcaoFoco, type AcaoFoco };
 
 const AVISO_HEIC =
   "Este aparelho não abre fotos HEIC. No iPhone: Ajustes → Câmera → Formatos → “Mais compatível”.";
