@@ -14,8 +14,11 @@ const REF = "e".repeat(24);
  */
 type HeaderPair = { name: string; value: string };
 
-function setCookieHeaders(res: { headersArray(): HeaderPair[] } | null): string[] {
-  return (res?.headersArray() ?? [])
+async function setCookieHeaders(
+  res: { headersArray(): Promise<HeaderPair[]> } | null,
+): Promise<string[]> {
+  const headers = res ? await res.headersArray() : [];
+  return headers
     .filter((h) => h.name.toLowerCase() === "set-cookie")
     .map((h) => h.value);
 }
@@ -34,7 +37,7 @@ test.describe("Loop viral — ref inbound", () => {
     expect(body.name).toBe("landing_view");
     expect(body.originRef).toBe(REF);
 
-    const refCookie = setCookieHeaders(res).find((v) => v.startsWith("albora_ref="));
+    const refCookie = (await setCookieHeaders(res)).find((v) => v.startsWith("albora_ref="));
     expect(refCookie).toContain(`albora_ref=${REF}`);
     expect(refCookie?.toLowerCase()).toContain("httponly");
     expect(refCookie?.toLowerCase()).toContain("samesite=lax");
@@ -49,6 +52,6 @@ test.describe("Loop viral — ref inbound", () => {
     const body = (await beacon).postDataJSON() as { name: string; originRef: string | null };
     expect(body.name).toBe("landing_view");
     expect(body.originRef).toBeNull();
-    expect(setCookieHeaders(res).some((v) => v.startsWith("albora_ref="))).toBe(false);
+    expect((await setCookieHeaders(res)).some((v) => v.startsWith("albora_ref="))).toBe(false);
   });
 });
