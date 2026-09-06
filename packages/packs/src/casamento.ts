@@ -44,7 +44,7 @@ export const CASAMENTO: Pack = {
     "landing.lede":
       "Um QR na mesa. Sem app, sem login, sem baixar nada. No dia seguinte, você acorda com centenas de fotos que ninguém contratou pra tirar.",
     "landing.cta": "Criar meu evento",
-    "landing.exemplo.nome": "Ana & Léo",
+    "landing.exemplo.nome": "ANA & JOÃO",
 
     "reacao.estrela": "Estrela",
     "reacao.riso": "Riso",
