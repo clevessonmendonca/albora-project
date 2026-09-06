@@ -5,13 +5,15 @@ type LightboxTopBarProps = {
   onClose: () => void;
 };
 
+const CLASSE_SOMBRA_TEXTO = "[text-shadow:0_1px_4px_var(--bg)]";
+
 export function LightboxTopBar({ onRequestPhoto, onClose }: LightboxTopBarProps) {
   return (
-    <>
+    <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 bg-veu-feed-topo px-4 pb-8 pt-[max(1rem,env(safe-area-inset-top))]">
       <button
         type="button"
         aria-label="Pedir para tirar esta foto"
-        className="absolute left-4 top-[max(1rem,env(safe-area-inset-top))] z-20 min-h-11 rounded-pilula border border-linha bg-superficie px-4 py-2 font-titulo text-[0.6875rem] uppercase tracking-rotulo text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento hover:text-acento"
+        className={`${CLASSE_SOMBRA_TEXTO} pointer-events-auto min-h-11 cursor-pointer rounded-pilula border border-linha bg-transparent px-4 font-titulo text-[0.6875rem] uppercase tracking-rotulo text-ink-2 transition-[color,border-color,transform] duration-instantaneo ease-mola hover:border-acento hover:text-acento active:scale-[0.96]`}
         onClick={(ev) => {
           ev.stopPropagation();
           onRequestPhoto();
@@ -22,7 +24,7 @@ export function LightboxTopBar({ onRequestPhoto, onClose }: LightboxTopBarProps)
       <button
         type="button"
         aria-label="Fechar"
-        className="absolute right-4 top-[max(1rem,env(safe-area-inset-top))] z-20 min-h-11 rounded-pilula border border-linha bg-superficie px-4 py-2 font-titulo text-[0.6875rem] uppercase tracking-rotulo text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento hover:text-acento"
+        className={`${CLASSE_SOMBRA_TEXTO} pointer-events-auto min-h-11 min-w-11 cursor-pointer rounded-pilula border border-linha bg-transparent px-4 font-titulo text-[0.6875rem] uppercase tracking-rotulo text-ink-2 transition-[color,border-color,transform] duration-instantaneo ease-mola hover:border-acento hover:text-acento active:scale-[0.96]`}
         onClick={(ev) => {
           ev.stopPropagation();
           onClose();
@@ -30,6 +32,6 @@ export function LightboxTopBar({ onRequestPhoto, onClose }: LightboxTopBarProps)
       >
         Fechar
       </button>
-    </>
+    </header>
   );
 }

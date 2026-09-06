@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge, Button } from "@albora/ui-web";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
 import {
@@ -20,6 +21,15 @@ type ExportSectionProps = {
   descricao: string;
   textoBotao: string;
 };
+
+/** Estado do export em uma palavra — legível de relance, sem abrir a descrição. */
+function estadoBadge(estado: EstadoExport): { tone: "neutral" | "accent" | "outline" | "critico"; label: string } | null {
+  if (estado.fase === "pronto") return { tone: "accent", label: "Pronto" };
+  if (estado.fase === "reauth" || estado.fase === "confirmando") return { tone: "outline", label: "Aguardando confirmação" };
+  if (estado.fase === "vazio") return { tone: "outline", label: "Sem fotos ainda" };
+  if (estado.fase === "erro") return { tone: "critico", label: "Erro" };
+  return null;
+}
 
 function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: ExportSectionProps) {
   const [estado, setEstado] = useState<EstadoExport>(estadoInicial);
@@ -82,28 +92,34 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
             <div className="h-5 w-36 rounded-token bg-superficie-alta" />
             <div className="h-3.5 w-64 rounded-full bg-superficie-alta" />
           </div>
-          <div className="h-9 w-28 shrink-0 rounded-token bg-superficie-alta" />
+          <div className="h-11 w-28 shrink-0 rounded-pilula bg-superficie-alta" />
         </div>
       </AdminCard>
     );
   }
 
+  const badge = estadoBadge(estado);
+
   return (
     <AdminCard variant={estado.fase === "pronto" ? "highlight" : "default"}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="mb-2 mt-0 font-titulo text-lg">{titulo}</h2>
-          <p className="mb-0 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">{descricao}</p>
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <h2 className="tipo-subtitle m-0 text-ink">{titulo}</h2>
+            {badge && <Badge tone={badge.tone}>{badge.label}</Badge>}
+          </div>
+          <p className="tipo-body m-0 text-ink-2">{descricao}</p>
         </div>
         {estado.fase !== "pronto" && (
-          <button
+          <Button
             type="button"
+            variant="secondary"
             disabled={busy}
             onClick={() => void pedir()}
-            className={`${adminClasses.secondaryButton} shrink-0 ${busy ? "cursor-wait opacity-60" : ""}`}
+            className={`shrink-0 ${busy ? "cursor-wait" : ""}`}
           >
             {busy ? "Aguarde…" : textoBotao}
-          </button>
+          </Button>
         )}
         {estado.fase === "pronto" && estado.job.baixar && (
           <a href={estado.job.baixar} className={`${adminClasses.primaryButton} shrink-0`}>
@@ -113,7 +129,7 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
       </div>
 
       {estado.fase === "reauth" && (
-        <p className="mb-0 mt-4 text-[0.9rem] text-ink-2">
+        <p className="tipo-caption m-0 mt-4 text-ink-2">
           Enviamos um link de confirmação. Sem ele o download não começa.
           {estado.link && (
             <>
@@ -132,13 +148,15 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
       )}
 
       {estado.fase === "vazio" && (
-        <p className="mb-0 mt-4 text-[0.9rem] text-ink-3">
+        <p className="tipo-caption m-0 mt-4 text-ink-3">
           Ainda não há fotos no álbum. Quando entrar a primeira, o download abre aqui.
         </p>
       )}
 
       {estado.fase === "erro" && (
-        <p className="mb-0 mt-4 text-[0.9rem] text-critico">Não foi possível baixar agora. Tente de novo.</p>
+        <p role="alert" className="tipo-caption m-0 mt-4 text-critico">
+          Não foi possível baixar agora. Tente de novo.
+        </p>
       )}
     </AdminCard>
   );

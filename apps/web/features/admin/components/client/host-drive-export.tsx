@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge, Button } from "@albora/ui-web";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import {
@@ -14,6 +15,34 @@ import {
   urlDeConectar,
   type EstadoDrive,
 } from "@/features/admin/hooks/use-host-drive-export";
+
+/** Estado da conexão/export em uma palavra — legível de relance, sem abrir a descrição. */
+function estadoBadge(
+  estado: EstadoDrive,
+): { tone: "neutral" | "accent" | "outline" | "critico"; label: string } | null {
+  switch (estado.fase) {
+    case "carregando":
+      return null;
+    case "indisponivel":
+      return { tone: "outline", label: "Indisponível" };
+    case "desconectado":
+      return { tone: "outline", label: "Não conectado" };
+    case "reauth":
+      return { tone: "outline", label: "Aguardando confirmação" };
+    case "conectado_sem_export":
+      return { tone: "neutral", label: "Conectado" };
+    case "enviando":
+      return { tone: "accent", label: "Enviando…" };
+    case "pronto":
+      return { tone: "accent", label: "Pronto" };
+    case "parcial":
+      return { tone: "critico", label: "Parcial" };
+    case "quota_insuficiente":
+      return { tone: "critico", label: "Sem espaço" };
+    case "erro":
+      return { tone: "critico", label: "Erro" };
+  }
+}
 
 export function HostDriveExport({ eventoId }: { eventoId: string }) {
   const [estado, setEstado] = useState<EstadoDrive>(estadoInicialDrive());
@@ -125,54 +154,62 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
             <div className="h-5 w-52 rounded-token bg-superficie-alta" />
             <div className="h-3.5 w-80 rounded-full bg-superficie-alta" />
           </div>
-          <div className="h-9 w-36 shrink-0 rounded-token bg-superficie-alta" />
+          <div className="h-11 w-36 shrink-0 rounded-pilula bg-superficie-alta" />
         </div>
       </AdminSection>
     );
   }
 
+  const badge = estadoBadge(estado);
+
   return (
     <AdminSection>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="mb-2 mt-0 font-titulo text-lg">Exportar para o Google Drive</h2>
-          <p className="mb-0 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <h2 className="tipo-subtitle m-0 text-ink">Exportar para o Google Drive</h2>
+            {badge && <Badge tone={badge.tone}>{badge.label}</Badge>}
+          </div>
+          <p className="tipo-body m-0 text-ink-2">
             A cópia completa do acervo, direto no Drive do casal — sem prazo pra começar, quando vocês
             quiserem depois da festa.
           </p>
         </div>
 
         {estado.fase === "desconectado" && (
-          <button
+          <Button
             type="button"
+            variant="secondary"
             disabled={busy}
             onClick={() => void pedirConexao()}
-            className={`${adminClasses.secondaryButton} shrink-0 ${busy ? "cursor-wait opacity-60" : ""}`}
+            className={`shrink-0 ${busy ? "cursor-wait" : ""}`}
           >
             {busy ? "Aguarde…" : "Conectar Google Drive"}
-          </button>
+          </Button>
         )}
 
         {(estado.fase === "conectado_sem_export" || estado.fase === "quota_insuficiente") && (
-          <button
+          <Button
             type="button"
+            variant="primary"
             disabled={busy}
             onClick={() => void exportar()}
-            className={`${adminClasses.primaryButton} shrink-0 ${busy ? "cursor-wait opacity-60" : ""}`}
+            className={`shrink-0 ${busy ? "cursor-wait" : ""}`}
           >
             {busy ? "Enviando…" : "Exportar para o Drive"}
-          </button>
+          </Button>
         )}
 
         {estado.fase === "parcial" && (
-          <button
+          <Button
             type="button"
+            variant="secondary"
             disabled={busy}
             onClick={() => void exportar()}
-            className={`${adminClasses.secondaryButton} shrink-0 ${busy ? "cursor-wait opacity-60" : ""}`}
+            className={`shrink-0 ${busy ? "cursor-wait" : ""}`}
           >
             {busy ? "Enviando…" : "Tentar de novo"}
-          </button>
+          </Button>
         )}
 
         {estado.fase === "pronto" && estado.job.abrirNoDrive && (
@@ -188,11 +225,11 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
       </div>
 
       {estado.fase === "indisponivel" && (
-        <p className="mb-0 mt-4 text-[0.9rem] text-ink-3">Disponível depois que a festa terminar.</p>
+        <p className="tipo-caption m-0 mt-4 text-ink-3">Disponível depois que a festa terminar.</p>
       )}
 
       {estado.fase === "reauth" && (
-        <p className="mb-0 mt-4 text-[0.9rem] text-ink-2">
+        <p className="tipo-caption m-0 mt-4 text-ink-2">
           Enviamos um link de confirmação. Sem ele a conexão não começa.
           {estado.link && (
             <>
@@ -213,16 +250,16 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
       {estado.fase === "enviando" && (
         <div className="mt-4">
           <div className="mb-2 flex items-baseline justify-between gap-3">
-            <p className="m-0 text-[0.9rem] text-ink-2">
+            <p className="tipo-caption m-0 text-ink-2">
               Enviando para o Drive… Pode fechar esta tela.
             </p>
-            <span className="shrink-0 tabular-nums text-[0.85rem] text-ink-3">
+            <span className="tipo-label shrink-0 tabular-nums text-ink-3">
               {estado.job.enviadas}/{estado.job.fotos}
             </span>
           </div>
           <div className="h-1.5 overflow-hidden rounded-full bg-superficie-alta">
             <div
-              className="h-full rounded-full bg-acento transition-all duration-700"
+              className="h-full rounded-full bg-acento transition-all duration-700 motion-reduce:transition-none"
               style={{
                 width: estado.job.fotos > 0
                   ? `${Math.round((estado.job.enviadas / estado.job.fotos) * 100)}%`
@@ -237,7 +274,7 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
         estado.fase === "enviando" ||
         estado.fase === "pronto" ||
         estado.fase === "parcial") && (
-        <p className="mb-0 mt-4 text-[0.9rem] text-ink-3">
+        <p className="tipo-caption m-0 mt-4 text-ink-3">
           Conectado como {estado.conexao.email ?? "sua conta Google"}.{" "}
           <button
             type="button"
@@ -251,21 +288,23 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
       )}
 
       {estado.fase === "parcial" && (
-        <p className="mb-0 mt-2 text-[0.9rem] text-critico">
+        <p role="alert" className="tipo-caption m-0 mt-2 text-critico">
           {estado.job.enviadas} de {estado.job.fotos} enviadas — algumas não subiram. O ZIP acima sempre
           funciona como saída garantida.
         </p>
       )}
 
       {estado.fase === "quota_insuficiente" && (
-        <p className="mb-0 mt-4 text-[0.9rem] text-critico">
+        <p role="alert" className="tipo-caption m-0 mt-4 text-critico">
           Seu Drive tem {gigabytes(estado.disponivel)} GB livres; o álbum tem {gigabytes(estado.necessario)}{" "}
           GB. Libere espaço no Drive ou baixe o ZIP acima.
         </p>
       )}
 
       {estado.fase === "erro" && (
-        <p className="mb-0 mt-4 text-[0.9rem] text-critico">Não foi possível concluir agora. Tente de novo.</p>
+        <p role="alert" className="tipo-caption m-0 mt-4 text-critico">
+          Não foi possível concluir agora. Tente de novo.
+        </p>
       )}
     </AdminSection>
   );

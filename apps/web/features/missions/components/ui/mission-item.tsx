@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Star } from "@albora/ui-web";
+import { Star, cn } from "@albora/ui-web";
 import type { VisibleMission } from "../client/missions-page";
 import { photoPathForMission, toRoman } from "../../lib/missions-utils";
 
@@ -13,16 +13,22 @@ type MissionItemProps = {
 };
 
 export function MissionItem({ slug, mission, index, highlighted }: MissionItemProps) {
-  const icon = (
+  const icon = mission.done ? (
     <span
-      className={[
-        "grid size-10 flex-none place-items-center rounded-token border",
-        mission.done
-          ? "border-acento bg-superficie-alta"
-          : "border-linha bg-superficie",
-      ].join(" ")}
+      aria-hidden
+      className="grid size-11 flex-none place-items-center rounded-token bg-acento text-[1.0625rem] leading-none text-sobre-acento"
     >
-      <Star size={18} filled={mission.done} />
+      ✓
+    </span>
+  ) : (
+    <span
+      aria-hidden
+      className={cn(
+        "grid size-11 flex-none place-items-center rounded-token border",
+        highlighted ? "border-acento-borda bg-acento-superficie" : "border-linha bg-superficie",
+      )}
+    >
+      <Star size={18} />
     </span>
   );
 
@@ -41,16 +47,14 @@ export function MissionItem({ slug, mission, index, highlighted }: MissionItemPr
     </>
   );
 
-  const shellClass = [
-    "flex w-full items-center gap-3.5 rounded-token border px-4 py-3.5 text-left",
-    highlighted && !mission.done
-      ? "border-linha bg-superficie-alta"
-      : "border-transparent bg-superficie",
-  ].join(" ");
+  const shellClass = cn(
+    "flex min-h-11 w-full items-center gap-3.5 rounded-token px-4 py-3.5 text-left transition-[transform,opacity] duration-instantaneo ease-mola active:scale-[0.98] motion-reduce:active:scale-100",
+    highlighted && !mission.done ? "elev-2" : "elev-1",
+  );
 
   if (mission.done) {
     return (
-      <div className={`${shellClass} text-ink-2`} aria-disabled>
+      <div className={cn(shellClass, "text-ink-2 opacity-80")} aria-disabled>
         {body}
       </div>
     );
@@ -59,7 +63,7 @@ export function MissionItem({ slug, mission, index, highlighted }: MissionItemPr
   return (
     <Link
       href={photoPathForMission(slug, mission.id)}
-      className={`${shellClass} text-inherit no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta`}
+      className={cn(shellClass, "text-inherit no-underline hover:opacity-90")}
     >
       {body}
     </Link>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 
@@ -31,11 +32,7 @@ function Avatar({ email }: { email: string }) {
 }
 
 function RoleChip({ role }: { role: "couple" | "planner" }) {
-  return (
-    <span className="rounded-pilula border border-linha px-2 py-0.5 font-titulo text-[0.72rem] text-ink-3">
-      {role === "couple" ? "Casal" : "Cerimonialista"}
-    </span>
-  );
+  return <Badge tone="outline">{role === "couple" ? "Casal" : "Cerimonialista"}</Badge>;
 }
 
 export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
@@ -103,8 +100,8 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
 
   return (
     <AdminSection>
-      <h2 className="mb-1 mt-0 font-titulo text-lg">Equipe</h2>
-      <p className="mb-5 mt-1.5 text-[0.875rem] leading-relaxed text-ink-2">
+      <h2 className="tipo-subtitle m-0 mb-1 text-ink">Equipe</h2>
+      <p className="tipo-caption mb-5 mt-1.5 text-ink-2">
         Convide pessoas para gerenciar este evento junto com você.
       </p>
 
@@ -122,12 +119,14 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
 
       {error && (
         <div className="mb-4 flex items-center justify-between gap-3 rounded-token border border-critico bg-bg px-3.5 py-3">
-          <p className="m-0 text-sm text-critico">{error}</p>
+          <p role="alert" className="tipo-caption m-0 text-critico">
+            {error}
+          </p>
           <button
             type="button"
             disabled={loading}
             onClick={() => void loadMembers()}
-            className="shrink-0 cursor-pointer rounded-pilula border border-linha bg-transparent px-2.5 py-1 font-titulo text-xs text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+            className="tipo-label inline-flex min-h-11 shrink-0 cursor-pointer items-center rounded-pilula border border-linha bg-transparent px-3 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
           >
             Tentar de novo
           </button>
@@ -142,8 +141,8 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
               <path d="M3 15c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </span>
-          <p className="m-0 font-titulo text-[0.9375rem] text-ink">Só você por enquanto</p>
-          <p className="m-0 max-w-[18rem] text-[0.8125rem] leading-relaxed text-ink-3">
+          <p className="tipo-subtitle m-0 text-ink">Só você por enquanto</p>
+          <p className="tipo-caption m-0 max-w-[18rem] text-ink-3">
             Convide o casal ou o cerimonialista para gerenciar o evento junto.
           </p>
         </div>
@@ -157,7 +156,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
               className="flex items-center gap-3 rounded-token border border-linha bg-bg px-3 py-2.5"
             >
               <Avatar email={m.email} />
-              <span className="flex-1 text-[0.875rem] text-ink">{m.email}</span>
+              <span className="tipo-caption flex-1 text-ink">{m.email}</span>
               <RoleChip role={m.role} />
             </div>
           ))}
@@ -166,7 +165,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
 
       <form onSubmit={handleInvite} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="text-[0.7rem] uppercase tracking-rotulo text-ink-3" htmlFor="invite-email">
+          <label className="tipo-label text-ink-3" htmlFor="invite-email">
             E-mail
           </label>
           <input
@@ -181,7 +180,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-[0.7rem] uppercase tracking-rotulo text-ink-3" htmlFor="invite-role">
+          <label className="tipo-label text-ink-3" htmlFor="invite-role">
             Papel
           </label>
           <select
@@ -207,7 +206,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
             {saving ? "Convidando…" : "Convidar"}
           </button>
           {convidado && (
-            <span className="flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
+            <Badge tone="accent">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
                 <path
                   d="M2 6l2.5 2.5L10 3.5"
@@ -218,7 +217,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
                 />
               </svg>
               Convite enviado
-            </span>
+            </Badge>
           )}
         </div>
       </form>

@@ -17,25 +17,23 @@ export function ProfileHeader({
   totalCurtidas: number | null;
 }) {
   return (
-    <header className="flex items-start gap-3 pb-4 pt-1.5">
+    <header className="flex items-start gap-3 pb-5 pt-1.5">
       <Link
         href={backHref}
         aria-label="Voltar"
-        className="mt-1 text-ink no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+        className="-ml-2.5 grid min-h-11 min-w-11 shrink-0 place-items-center text-ink no-underline transition-[opacity,transform] duration-instantaneo ease-mola hover:opacity-70 active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
       >
         <BackIcon />
       </Link>
       {nome ? (
-        <Avatar name={nome} className="size-16 text-[1.125rem]" />
+        <Avatar name={nome} className="size-16 shrink-0 text-[1.125rem]" />
       ) : (
-        <span aria-hidden className="size-16 rounded-full bg-ink-skeleton" />
+        <span aria-hidden className="size-16 shrink-0 rounded-full bg-ink-skeleton" />
       )}
-      <div className="min-w-0 flex-1 pt-0.5">
-        <h1 className="m-0 truncate font-titulo text-[1.125rem] tracking-titulo text-ink">
-          {nome ?? "Perfil"}
-        </h1>
+      <div className="min-w-0 flex-1 pt-1.5">
+        <h1 className="tipo-subtitle m-0 truncate text-ink">{nome ?? "Perfil"}</h1>
         {totalFotos !== null && totalCurtidas !== null && (
-          <div className="mt-2">
+          <div className="mt-2.5">
             <ProfileStats totalFotos={totalFotos} totalCurtidas={totalCurtidas} />
           </div>
         )}

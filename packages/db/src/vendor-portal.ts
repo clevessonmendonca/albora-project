@@ -1,6 +1,10 @@
 import type { Pool } from "pg";
 import { comAgregacao, comConta } from "./event";
 
+function ehColisaoDeChaveUnica(e: unknown): boolean {
+  return typeof e === "object" && e !== null && (e as { code?: string }).code === "23505";
+}
+
 /** Já existe como CHECK em `vendor_members` (migration 0030). */
 export type VendorRole = "admin" | "staff";
 
@@ -65,6 +69,168 @@ export async function vendorsDaConta(pool: Pool, accountId: string): Promise<Ven
       role: r.role as VendorRole,
     }));
   });
+}
+
+export class ErroDadosDeFornecedorInvalidos extends Error {
+  readonly code = "vendor.dados_invalidos";
+  constructor(readonly campos: string[]) {
+    super("dados de fornecedor inválidos: " + campos.join(", "));
+  }
+}
+
+export class ErroSlugDeFornecedorEmUso extends Error {
+  readonly code = "vendor.slug_em_uso";
+  constructor(readonly slug: string) {
+    super("slug já está em uso por outro fornecedor");
+  }
+}
+
+function nomeDeFornecedorValido(nome: string): boolean {
+  return nome.length >= 2 && nome.length <= 120;
+}
+
+export type CriarFornecedorEntrada = { name: string; slug: string };
+export type FornecedorCriado = { vendorId: string; slug: string };
+
+/**
+ * 🔴 `vendor_membro` (migration 0037) é `FOR ALL` sem `WITH CHECK` próprio —
+ * a `USING` vale também como `WITH CHECK`, e ela exige `EXISTS` em
+ * `vendor_members` para o `id` da própria linha. No INSERT esse `id` ainda
+ * não existe em lugar nenhum: não há ordem de escrita que satisfaça essa
+ * política E a FK `vendor_members.vendor_id → vendors.id` ao mesmo tempo
+ * sob `comConta` (RLS ativa). Por isso usa `comAgregacao` (BYPASSRLS,
+ * motivo obrigatório, auditado) para inserir `vendors` + `vendor_members`
+ * (papel `admin`) na mesma transação. `accountId` só chega aqui vindo da
+ * sessão de host já resolvida — nunca do corpo da requisição.
+ */
+export async function criarFornecedor(
+  poolAgregacao: Pool,
+  accountId: string,
+  entrada: CriarFornecedorEntrada,
+  auditar: (registro: { motivo: string; em: Date }) => void,
+): Promise<FornecedorCriado> {
+  if (!UUID.test(accountId)) throw new ErroDadosDeFornecedorInvalidos(["accountId"]);
+
+  const nome = entrada.name.trim();
+  const slug = entrada.slug.trim().toLowerCase();
+  const campos: string[] = [];
+  if (!nomeDeFornecedorValido(nome)) campos.push("name");
+  if (!SLUG.test(slug)) campos.push("slug");
+  if (campos.length > 0) throw new ErroDadosDeFornecedorInvalidos(campos);
+
+  try {
+    return await comAgregacao(
+      poolAgregacao,
+      `vendor_onboarding:criar:${accountId}`,
+      auditar,
+      async (c) => {
+        const { rows } = await c.query<{ id: string }>(
+          `INSERT INTO vendors (name, slug) VALUES ($1, $2) RETURNING id`,
+          [nome, slug],
+        );
+        const vendorId = rows[0]!.id;
+        await c.query(
+          `INSERT INTO vendor_members (vendor_id, account_id, role) VALUES ($1, $2, 'admin')`,
+          [vendorId, accountId],
+        );
+        return { vendorId, slug };
+      },
+    );
+  } catch (e) {
+    if (ehColisaoDeChaveUnica(e)) throw new ErroSlugDeFornecedorEmUso(slug);
+    throw e;
+  }
+}
+
+export type FornecedorDaConta = {
+  id: string;
+  name: string;
+  slug: string | null;
+  plan: VendorPlan;
+  status: VendorStatus;
+  brandTokens: Record<string, unknown>;
+  role: VendorRole;
+};
+
+/** Leitura de um fornecedor para a tela de configurações do admin. O JOIN com `vendor_members` é defesa em profundidade — `vendor_membro` (RLS) já barra quem não é membro; mesmo padrão de `load-vendor-portal.ts`. */
+export async function fornecedorParaConta(
+  pool: Pool,
+  accountId: string,
+  vendorId: string,
+): Promise<FornecedorDaConta | null> {
+  if (!UUID.test(vendorId)) return null;
+
+  return comConta(pool, accountId, async (c) => {
+    const { rows } = await c.query<{
+      id: string;
+      name: string;
+      slug: string | null;
+      plan: string;
+      status: string;
+      brand_tokens: Record<string, unknown>;
+      role: string;
+    }>(
+      `SELECT v.id, v.name, v.slug, v.plan, v.status, v.brand_tokens, vm.role
+         FROM vendors v
+         JOIN vendor_members vm ON vm.vendor_id = v.id AND vm.account_id = $2
+        WHERE v.id = $1`,
+      [vendorId, accountId],
+    );
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      id: row.id,
+      name: row.name,
+      slug: row.slug,
+      plan: row.plan as VendorPlan,
+      status: row.status as VendorStatus,
+      brandTokens: row.brand_tokens ?? {},
+      role: row.role as VendorRole,
+    };
+  });
+}
+
+export type AtualizarFornecedorEntrada = { name?: string; slug?: string };
+
+/** Só quem já é `admin` do fornecedor altera nome/slug — a checagem de papel vive na própria query (`role = 'admin'`), igual `atualizarBrandTokensDoFornecedor`. */
+export async function atualizarFornecedor(
+  pool: Pool,
+  accountId: string,
+  vendorId: string,
+  entrada: AtualizarFornecedorEntrada,
+): Promise<boolean> {
+  const campos: string[] = [];
+  let nome: string | null = null;
+  let slug: string | null = null;
+  if (entrada.name !== undefined) {
+    nome = entrada.name.trim();
+    if (!nomeDeFornecedorValido(nome)) campos.push("name");
+  }
+  if (entrada.slug !== undefined) {
+    slug = entrada.slug.trim().toLowerCase();
+    if (!SLUG.test(slug)) campos.push("slug");
+  }
+  if (campos.length > 0) throw new ErroDadosDeFornecedorInvalidos(campos);
+  if (nome === null && slug === null) return false;
+
+  try {
+    return await comConta(pool, accountId, async (c) => {
+      const { rowCount } = await c.query(
+        `UPDATE vendors
+            SET name = COALESCE($3, name), slug = COALESCE($4, slug)
+          WHERE id = $1
+            AND id IN (
+              SELECT vendor_id FROM vendor_members
+               WHERE account_id = $2 AND role = 'admin'
+            )`,
+        [vendorId, accountId, nome, slug],
+      );
+      return (rowCount ?? 0) > 0;
+    });
+  } catch (e) {
+    if (ehColisaoDeChaveUnica(e)) throw new ErroSlugDeFornecedorEmUso(slug ?? "");
+    throw e;
+  }
 }
 
 /** Marca resolvida a partir do slug público, sem sessão de conta. */
@@ -183,9 +349,14 @@ export async function eventosDoFornecedor(
 }
 
 const HEX_COR = /^#[0-9a-fA-F]{6}$/;
+const URL_LOGO = /^https:\/\/\S{1,2000}$/;
 
 function corHexValida(v: unknown): v is string {
   return typeof v === "string" && HEX_COR.test(v);
+}
+
+function urlDeLogoValida(v: unknown): v is string {
+  return typeof v === "string" && URL_LOGO.test(v);
 }
 
 export type BrandTokensDoFornecedor = {
@@ -196,6 +367,8 @@ export type BrandTokensDoFornecedor = {
     tinta?: string;
   };
   background?: "light" | "dark";
+  /** URL de imagem já hospedada — sem pipeline de upload próprio nesta onda (task 15). */
+  logoUrl?: string;
 };
 
 export class ErroBrandTokensInvalidos extends Error {
@@ -223,6 +396,9 @@ export async function atualizarBrandTokensDoFornecedor(
   const bg = tokens.background;
   if (bg !== undefined && bg !== "light" && bg !== "dark") {
     campos.push("background");
+  }
+  if (tokens.logoUrl !== undefined && !urlDeLogoValida(tokens.logoUrl)) {
+    campos.push("logoUrl");
   }
   if (campos.length > 0) throw new ErroBrandTokensInvalidos(campos);
 

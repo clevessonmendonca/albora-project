@@ -17,7 +17,7 @@ export function EditorialTabs({ items, active, base, linkComponent }: EditorialT
   const L = linkComponent ?? "a";
 
   return (
-    <nav className="flex items-center gap-[1.375rem]">
+    <nav aria-label="Seções" className="flex items-center gap-[1.375rem]">
       {items.map((item) => {
         const isActive = active === item.suffix;
 

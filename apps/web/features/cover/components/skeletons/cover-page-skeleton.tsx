@@ -13,7 +13,7 @@ export function CoverPageSkeleton() {
     <GuestShell hideStatusBar>
       <Block className="h-[20.5rem] w-full" />
       <div className="-mt-13 px-6 text-center">
-        <Block className="mx-auto h-8 w-[72%] rounded-token" />
+        <Block className="mx-auto h-10 w-[72%] rounded-token" />
         <div className="mt-2">
           <Block className="mx-auto h-3.5 w-[48%] rounded-pilula" />
         </div>

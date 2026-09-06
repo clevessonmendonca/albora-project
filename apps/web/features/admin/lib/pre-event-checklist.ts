@@ -66,7 +66,7 @@ export function buildPreEventSections(
         {
           id: "prova-qr",
           label: "Prova QR — 3 celulares, luz baixa, 15–45 cm",
-          hint: "Bloqueante antes do casamento — registrar na folha abaixo",
+          hint: "Bloqueante antes do evento — registrar na folha abaixo",
           href: `${base}/pre-event#prova-qr-fisica`,
         },
         {

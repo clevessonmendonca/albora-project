@@ -17,6 +17,8 @@ export const PRODUCT_EVENT_NAMES = [
   "qr_downloaded",
   "checkout_started",
   "checkout_paid",
+  "guest_cta_criar_click",
+  "guest_share_album",
 ] as const;
 
 export type ProductEventName = (typeof PRODUCT_EVENT_NAMES)[number];
@@ -43,12 +45,12 @@ export function isProductEventName(v: unknown): v is ProductEventName {
 export async function recordProductEvent(
   pool: Pool,
   name: ProductEventName,
-  opts?: { anonId?: string | null; packHint?: string | null },
+  opts?: { anonId?: string | null; packHint?: string | null; originRef?: string | null },
 ): Promise<void> {
   try {
     await pool.query(
-      `INSERT INTO product_events (name, anon_id, pack_hint) VALUES ($1, $2, $3)`,
-      [name, opts?.anonId ?? null, opts?.packHint ?? null],
+      `INSERT INTO product_events (name, anon_id, pack_hint, origin_ref) VALUES ($1, $2, $3, $4)`,
+      [name, opts?.anonId ?? null, opts?.packHint ?? null, opts?.originRef ?? null],
     );
   } catch (e) {
     console.warn("product_event.falhou", { name, err: String(e) });

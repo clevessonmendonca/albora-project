@@ -12,6 +12,8 @@ export type Desafio = {
   tituloCustom: string | null;
   /** Emoji opcional nas missões personalizadas. */
   emoji: string | null;
+  /** Prazo opcional (ISO 8601). Missão sem prazo não expira. */
+  deadline: string | null;
   ordem: number;
   /** Se **esta** sessão já mandou foto para ele. */
   feito: boolean;
@@ -27,10 +29,11 @@ export async function listarDesafios(
     title_key: string | null;
     custom_title: string | null;
     emoji: string | null;
+    deadline: Date | null;
     position: number;
     feito: boolean;
   }>(
-    `SELECT c.id, c.title_key, c.custom_title, c.emoji, c.position,
+    `SELECT c.id, c.title_key, c.custom_title, c.emoji, c.deadline, c.position,
             EXISTS (
               SELECT 1 FROM uploads u
               WHERE u.challenge_id = c.id AND u.session_id = $2
@@ -46,6 +49,7 @@ export async function listarDesafios(
     chaveTitulo: l.title_key,
     tituloCustom: l.custom_title,
     emoji: l.emoji,
+    deadline: l.deadline ? l.deadline.toISOString() : null,
     ordem: l.position,
     feito: l.feito,
   }));
@@ -126,12 +130,21 @@ export async function substituirDesafios(
 export async function substituirMissoesCustom(
   cliente: PoolClient,
   eventoId: string,
-  itens: readonly { id?: string; titulo: string; posicao: number; emoji?: string | null }[],
+  itens: readonly {
+    id?: string;
+    titulo: string;
+    posicao: number;
+    emoji?: string | null;
+    deadline?: string | null;
+  }[],
 ): Promise<Desafio[]> {
   for (const item of itens) {
     const titulo = item.titulo.trim();
     if (!titulo || titulo.length > CUSTOM_TITLE_MAX) {
       throw new Error(`título inválido: "${item.titulo.slice(0, 30)}"`);
+    }
+    if (item.deadline != null && Number.isNaN(Date.parse(item.deadline))) {
+      throw new Error(`prazo inválido: "${item.deadline}"`);
     }
   }
 
@@ -145,16 +158,17 @@ export async function substituirMissoesCustom(
   for (const item of itens) {
     const titulo = item.titulo.trim();
     const emoji = item.emoji?.trim() || null;
+    const deadline = item.deadline ?? null;
     if (item.id && UUID.test(item.id) && idsExistentes.has(item.id)) {
       await cliente.query(
-        "UPDATE challenges SET custom_title = $1, position = $2, emoji = $3 WHERE id = $4 AND event_id = $5",
-        [titulo, item.posicao, emoji, item.id, eventoId],
+        "UPDATE challenges SET custom_title = $1, position = $2, emoji = $3, deadline = $4 WHERE id = $5 AND event_id = $6",
+        [titulo, item.posicao, emoji, deadline, item.id, eventoId],
       );
       manter.add(item.id);
     } else {
       const { rows } = await cliente.query<{ id: string }>(
-        "INSERT INTO challenges (event_id, custom_title, position, emoji) VALUES ($1, $2, $3, $4) RETURNING id",
-        [eventoId, titulo, item.posicao, emoji],
+        "INSERT INTO challenges (event_id, custom_title, position, emoji, deadline) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+        [eventoId, titulo, item.posicao, emoji, deadline],
       );
       manter.add(rows[0]!.id);
     }

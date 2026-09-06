@@ -5,10 +5,10 @@ import { MoreIcon, SecondaryButton, BottomSheet, announce } from "@albora/ui-web
 import type { ComentarioVisivel, CommentsController } from "@/features/feed/hooks/use-comments";
 
 const CLASSE_ACAO_SECUNDARIA =
-  "cursor-pointer border-none bg-transparent p-0 font-inherit text-[0.75rem] uppercase tracking-[0.06em] text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink";
+  "tipo-label flex min-h-11 items-center cursor-pointer border-none bg-transparent p-0 uppercase text-ink-3 transition-colors duration-instantaneo ease-mola hover:text-ink";
 
 const CLASSE_ITEM_MENU =
-  "block w-full cursor-pointer border-none bg-transparent px-3.5 py-2.5 text-left font-inherit text-[0.85rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta";
+  "block min-h-11 w-full cursor-pointer border-none bg-transparent px-3.5 py-2.5 text-left font-inherit text-[0.85rem] text-ink transition-colors duration-instantaneo ease-mola hover:bg-superficie-alta";
 
 export function CommentSheet({
   comentarios,
@@ -47,11 +47,11 @@ export function CommentSheet({
       }
     >
       {comentarios.carregando && (
-        <p className="m-0 text-[0.85rem] text-ink-3">Carregando…</p>
+        <p className="tipo-caption m-0 text-ink-3">Carregando…</p>
       )}
 
       {comentarios.threads.length === 0 && !comentarios.carregando && (
-        <p className="m-0 text-[0.9rem] text-ink-2">
+        <p className="tipo-caption m-0 text-ink-2">
           Seja o primeiro a comentar.
         </p>
       )}
@@ -88,12 +88,12 @@ function Composer({
   return (
     <form onSubmit={aoSubmeter} className="grid gap-2">
       {comentarios.respostaA && (
-        <p className="m-0 text-[0.8rem] text-ink-3">
+        <p className="tipo-caption m-0 text-ink-3">
           Respondendo…{" "}
           <button
             type="button"
             onClick={comentarios.cancelarResposta}
-            className="cursor-pointer border-none bg-transparent p-0 font-inherit text-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+            className="cursor-pointer border-none bg-transparent p-0 font-inherit text-acento transition-opacity duration-instantaneo ease-mola hover:opacity-70"
           >
             Cancelar
           </button>
@@ -111,13 +111,13 @@ function Composer({
           maxLength={comentarios.maxCaracteres}
           placeholder={comentarios.respostaA ? "Sua resposta…" : "Escreva um comentário…"}
           onChange={(e) => comentarios.setTexto(e.target.value)}
-          className="min-h-11 flex-1 rounded-pilula border border-linha bg-bg px-3.5 text-[0.9rem] text-ink outline-none focus:border-acento"
+          className="min-h-12 flex-1 rounded-pilula border border-linha bg-bg px-4 text-[0.9rem] text-ink outline-none transition-[border-color,box-shadow] duration-instantaneo ease-mola placeholder:text-ink-3 focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
         />
         <button
           type="submit"
           disabled={comentarios.publicando || comentarios.texto.trim() === ""}
           aria-label={comentarios.publicando ? "Enviando comentário" : "Enviar comentário"}
-          className={`min-h-11 cursor-pointer rounded-pilula border-none bg-acento px-4 text-[0.85rem] text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 disabled:cursor-default ${
+          className={`min-h-12 cursor-pointer rounded-pilula border-none bg-acento px-4 text-[0.85rem] text-sobre-acento transition-transform duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.96] disabled:cursor-default disabled:active:scale-100 ${
             comentarios.publicando || comentarios.texto.trim() === "" ? "opacity-50" : ""
           }`}
         >
@@ -131,7 +131,7 @@ function Composer({
       )}
 
       {comentarios.erro && (
-        <p className="m-0 text-[0.85rem] text-critico">
+        <p className="tipo-caption m-0 text-critico" role="alert">
           Não deu agora. Tente de novo.
         </p>
       )}
@@ -159,7 +159,7 @@ function LinhaComentario({
       <button
         type="button"
         onClick={() => onVerAutor(comentario.sessaoAutor)}
-        className="cursor-pointer border-none bg-transparent p-0 font-inherit text-ink underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+        className="cursor-pointer border-none bg-transparent p-0 font-inherit text-ink underline transition-opacity duration-instantaneo ease-mola hover:opacity-70"
       >
         {comentario.autor}
       </button>
@@ -169,7 +169,7 @@ function LinhaComentario({
 
   return (
     <div className={indent ? "ml-4" : undefined}>
-      <p className={`m-0 leading-[1.45] ${indent ? "text-[0.8125rem]" : "text-[0.84375rem]"}`}>
+      <p className={`tipo-caption m-0 ${indent ? "text-[0.8125rem]" : ""}`}>
         {nomeAutor} {comentario.texto}
         {hora && (
           <span className="ml-[0.35rem] text-[0.75rem] text-ink-3">
@@ -273,7 +273,7 @@ function MenuOpcoes({
         <div
           role="menu"
           aria-label="Opções do comentário"
-          className="absolute left-0 top-full z-10 mt-[0.15rem] min-w-34 rounded-token border border-linha bg-bg py-[0.35rem]"
+          className="elev-2 absolute left-0 top-full z-10 mt-[0.15rem] min-w-34 origin-top-left scale-100 rounded-token py-[0.35rem] opacity-100 transition-[opacity,transform] duration-instantaneo ease-mola starting:scale-95 starting:opacity-0"
         >
           <button
             ref={firstButtonRef}

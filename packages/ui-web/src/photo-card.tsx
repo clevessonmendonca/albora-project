@@ -43,7 +43,7 @@ export function PhotoCard({
   const L = linkComponent ?? "a";
 
   return (
-    <article className="flex flex-col gap-3">
+    <article className="elev-1 flex flex-col gap-3 rounded-token p-3.5">
       <header className="flex items-center gap-2.5">
         {autorHref ? (
           <L

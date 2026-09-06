@@ -16,6 +16,7 @@ function eventoFixture(overrides?: Partial<EventoPublico>): EventoPublico {
     vendorBrandTokens: null,
     coverImageKey: null,
     title: null,
+    status: "active",
     ...overrides,
   };
 }

@@ -108,20 +108,20 @@ export function ReportSheet({
       }
     >
       {confirmado ? (
-        <p className="m-0 text-[0.9rem] leading-normal text-ink-2">
+        <p className="tipo-body m-0 leading-normal text-ink-2">
           Recebido. O anfitrião vai revisar.
         </p>
       ) : (
         <>
-          <p className="mb-3 mt-0 text-[0.9rem] leading-normal text-ink-2">
+          <p className="tipo-caption mb-3 mt-0 leading-normal text-ink-2">
             O anfitrião decide o que fazer. Nada some sozinho.
           </p>
           <fieldset className="m-0 grid gap-2 border-0 p-0">
-            <legend className="mb-1 text-[0.85rem] text-ink-3">O que aconteceu?</legend>
+            <legend className="tipo-label mb-1 text-ink-3">O que aconteceu?</legend>
             {opcoes.map((o) => (
               <label
                 key={o.kind}
-                className="grid cursor-pointer grid-cols-[auto_1fr] items-start gap-2.5 rounded-token border border-linha px-3 py-2.5 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta"
+                className="grid cursor-pointer grid-cols-[auto_1fr] items-start gap-2.5 rounded-token border border-linha px-3 py-2.5 transition-colors duration-instantaneo ease-mola hover:bg-superficie-alta has-[:checked]:border-acento-texto has-[:checked]:bg-acento-fundo"
               >
                 <input
                   type="radio"
@@ -129,10 +129,10 @@ export function ReportSheet({
                   value={o.kind}
                   checked={kind === o.kind}
                   onChange={() => setKind(o.kind)}
-                  className="mt-1"
+                  className="mt-1 accent-acento"
                 />
                 <span>
-                  <span className="block text-[0.9rem] text-ink">{o.rotulo}</span>
+                  <span className="tipo-caption block text-ink">{o.rotulo}</span>
                   <span className="mt-0.5 block text-[0.8rem] leading-snug text-ink-3">
                     {o.ajuda}
                   </span>
@@ -141,14 +141,14 @@ export function ReportSheet({
             ))}
           </fieldset>
           {kind === "ofensivo" && (
-            <label className="mt-3 grid gap-[0.35rem] text-[0.85rem] text-ink-3">
+            <label className="tipo-label mt-3 grid gap-[0.35rem] text-ink-3">
               Motivo (opcional)
               <textarea
                 value={motivo}
                 maxLength={280}
                 rows={3}
                 onChange={(e) => setMotivo(e.target.value)}
-                className="w-full resize-y rounded-token border border-linha bg-bg px-3 py-2.5 font-inherit text-[0.9rem] text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+                className="tipo-caption w-full resize-y rounded-token border border-linha bg-bg px-3 py-2.5 text-ink outline-none transition-[border-color,box-shadow] duration-instantaneo ease-mola focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
               />
               {motivo.length > 0 && (
                 <span className="text-right text-[0.6875rem] tabular-nums text-ink-3">
@@ -162,7 +162,7 @@ export function ReportSheet({
               type="button"
               disabled={enviando}
               onClick={() => void bloquear()}
-              className="mt-3 cursor-pointer border-none bg-transparent p-0 text-left font-inherit text-[0.85rem] text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink disabled:cursor-default"
+              className="tipo-caption mt-3 min-h-11 cursor-pointer border-none bg-transparent p-0 text-left text-ink-3 transition-colors duration-instantaneo ease-mola hover:text-ink disabled:cursor-default"
             >
               Bloquear {autor ?? "autor"}
             </button>

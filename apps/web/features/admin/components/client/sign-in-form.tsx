@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
+import { PrimaryButton, SecondaryButton, TextField } from "@albora/ui-web";
+import { AlboraLogo } from "@/features/guest/components/client/albora-logo";
 
 /** Token consumed on click, not load — email prefetch cannot spend the magic link. */
 
@@ -50,10 +52,13 @@ function RequestLink({ next }: { next: string | null }) {
 
   if (status === "sent") {
     return (
-      <Card title="Verifique seu e-mail">
+      <SignInPanel>
         <div className="flex items-start gap-3.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-acento text-sobre-acento">
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
+          <span
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-pilula bg-acento text-sobre-acento"
+            aria-hidden
+          >
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
               <path
                 d="M2.5 8l3.5 3.5L12.5 4"
                 stroke="currentColor"
@@ -63,31 +68,33 @@ function RequestLink({ next }: { next: string | null }) {
               />
             </svg>
           </span>
-          <p className="m-0 leading-relaxed text-ink-2">
-            Se houver uma conta associada, o link de acesso já está a caminho.
-          </p>
+          <div className="flex flex-col gap-1.5">
+            <h1 className="tipo-title m-0">Verifique seu e-mail</h1>
+            <p className="tipo-body m-0 text-ink-2">
+              Se houver uma conta associada, o link de acesso já está a caminho.
+            </p>
+          </div>
         </div>
         {devLink && (
-          <a href={devLink} className="break-all text-[0.85rem] text-acento">
+          <a href={devLink} className="tipo-caption break-all text-acento-texto">
             Abrir link (dev)
           </a>
         )}
-        <button
-          type="button"
-          onClick={() => setStatus("editing")}
-          className="cursor-pointer rounded-pilula border border-linha bg-transparent px-4 py-3 font-inherit text-[0.9rem] text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
-        >
+        <SecondaryButton onClick={() => setStatus("editing")}>
           Reenviar ou trocar e-mail
-        </button>
-      </Card>
+        </SecondaryButton>
+      </SignInPanel>
     );
   }
 
   return (
-    <Card title="Entrar no painel">
-      <p className="m-0 leading-relaxed text-ink-2">
-        Enviaremos um link de acesso para o seu e-mail. Nenhuma senha necessária.
-      </p>
+    <SignInPanel>
+      <div className="flex flex-col gap-1.5">
+        <h1 className="tipo-title m-0">Entrar no painel</h1>
+        <p className="tipo-body m-0 text-ink-2">
+          Enviaremos um link de acesso para o seu e-mail. Nenhuma senha necessária.
+        </p>
+      </div>
       <form
         className="flex flex-col gap-6"
         onSubmit={(e) => {
@@ -95,38 +102,28 @@ function RequestLink({ next }: { next: string | null }) {
           void request();
         }}
       >
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[0.8rem] uppercase tracking-rotulo text-ink-3" htmlFor="email-input">
-            Seu e-mail
-          </label>
-          <input
-            id="email-input"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="voce@exemplo.com"
-            autoCapitalize="off"
-            autoCorrect="off"
-            spellCheck={false}
-            className="rounded-token border border-linha bg-bg px-4 py-3.5 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
-          />
-        </div>
+        <TextField
+          id="email-input"
+          label="Seu e-mail"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="voce@exemplo.com"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
+          disabled={status === "sending"}
+        />
         {status === "error" && (
-          <p className="m-0 text-[0.875rem] text-critico">
+          <p role="alert" className="tipo-caption m-0 text-critico">
             Não conseguimos enviar agora. Por favor, tente novamente.
           </p>
         )}
-        <button
-          type="submit"
-          disabled={!valid || status === "sending"}
-          className={`cursor-pointer rounded-pilula border-none bg-acento px-4 py-3.5 font-titulo text-[1.05rem] text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 disabled:cursor-default ${
-            valid && status !== "sending" ? "opacity-100" : "opacity-50"
-          }`}
-        >
+        <PrimaryButton type="submit" disabled={!valid || status === "sending"}>
           {status === "sending" ? "Enviando…" : "Enviar link"}
-        </button>
+        </PrimaryButton>
       </form>
-    </Card>
+    </SignInPanel>
   );
 }
 
@@ -152,39 +149,35 @@ function Confirm({ token, next }: { token: string; next: string | null }) {
   };
 
   return (
-    <Card title="Confirmar acesso">
-      <p className="m-0 leading-relaxed text-ink-2">
-        Toque abaixo para confirmar e entrar no seu painel.
-      </p>
+    <SignInPanel>
+      <div className="flex flex-col gap-1.5">
+        <h1 className="tipo-title m-0">Confirmar acesso</h1>
+        <p className="tipo-body m-0 text-ink-2">
+          Toque abaixo para confirmar e entrar no seu painel.
+        </p>
+      </div>
       {status === "error" && (
-        <p className="m-0 text-[0.875rem] text-critico">
+        <p role="alert" className="tipo-caption m-0 text-critico">
           Este link está inválido ou expirou.{" "}
-          <a href="/admin/sign-in" className="underline">
+          <a href="/admin/sign-in" className="text-acento-texto underline">
             Solicite um novo link.
           </a>
         </p>
       )}
-      <button
-        type="button"
-        onClick={() => void signIn()}
-        disabled={status === "signingIn"}
-        className={`cursor-pointer rounded-pilula border-none bg-acento px-4 py-3.5 font-titulo text-[1.05rem] text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 disabled:cursor-default ${
-          status === "signingIn" ? "opacity-50" : "opacity-100"
-        }`}
-      >
+      <PrimaryButton onClick={() => void signIn()} disabled={status === "signingIn"}>
         {status === "signingIn" ? "Entrando…" : "Entrar no painel"}
-      </button>
-    </Card>
+      </PrimaryButton>
+    </SignInPanel>
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+/** Sem AdminShell — é a porta antes do login, então a marca aparece aqui em vez do header do painel. */
+function SignInPanel({ children }: { children: ReactNode }) {
   return (
     <main className="fixed inset-0 grid place-items-center bg-bg p-6 font-corpo text-ink">
-      <div className="flex w-full max-w-[26rem] flex-col overflow-hidden rounded-superficie bg-superficie shadow-alta">
-        <div className="h-[3px] bg-acento" />
-        <div className="flex flex-col gap-6 px-9 py-9">
-          <h1 className="m-0 font-titulo text-2xl font-light tracking-titulo">{title}</h1>
+      <div className="flex w-full max-w-[26rem] flex-col items-center gap-8">
+        <AlboraLogo width="7.5rem" />
+        <div className="elev-2 flex w-full flex-col gap-6 rounded-superficie border border-linha px-8 py-9">
           {children}
         </div>
       </div>

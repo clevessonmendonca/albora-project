@@ -1,9 +1,9 @@
 "use client";
 
 import type { AjustesManuais } from "@albora/core";
+import { Slider } from "@albora/ui-web";
 import type { Dispatch, SetStateAction } from "react";
 import { PASSOS_BIPOLAR, PASSOS_UNIPOLAR } from "../client/editor-lut";
-import { Deslizante } from "./deslizante";
 
 type AjustesTabProps = {
   ajustes: AjustesManuais;
@@ -12,38 +12,42 @@ type AjustesTabProps = {
 
 /**
  * Aba de ajustes manuais (luz, calor, contraste, vinheta).
- * 4 sliders com ranges diferentes.
+ * 4 sliders premium com ranges diferentes; luz/calor/contraste nascem no
+ * neutro central (bipolar), vinheta parte de zero.
  */
 export function AjustesTab({ ajustes, onAjustes }: AjustesTabProps) {
   return (
-    <div>
-      <Deslizante
-        rotulo="Luz"
+    <div className="grid gap-2.5">
+      <Slider
+        label="Luz"
         min={-PASSOS_BIPOLAR}
         max={PASSOS_BIPOLAR}
-        valor={ajustes.luz}
-        onMudar={(v) => onAjustes((a) => ({ ...a, luz: v }))}
+        value={ajustes.luz}
+        onChange={(v) => onAjustes((a) => ({ ...a, luz: v }))}
+        bipolar
       />
-      <Deslizante
-        rotulo="Calor"
+      <Slider
+        label="Calor"
         min={-PASSOS_BIPOLAR}
         max={PASSOS_BIPOLAR}
-        valor={ajustes.calor}
-        onMudar={(v) => onAjustes((a) => ({ ...a, calor: v }))}
+        value={ajustes.calor}
+        onChange={(v) => onAjustes((a) => ({ ...a, calor: v }))}
+        bipolar
       />
-      <Deslizante
-        rotulo="Contraste"
+      <Slider
+        label="Contraste"
         min={-PASSOS_BIPOLAR}
         max={PASSOS_BIPOLAR}
-        valor={ajustes.contraste}
-        onMudar={(v) => onAjustes((a) => ({ ...a, contraste: v }))}
+        value={ajustes.contraste}
+        onChange={(v) => onAjustes((a) => ({ ...a, contraste: v }))}
+        bipolar
       />
-      <Deslizante
-        rotulo="Vinheta"
+      <Slider
+        label="Vinheta"
         min={0}
         max={PASSOS_UNIPOLAR}
-        valor={ajustes.vinheta}
-        onMudar={(v) => onAjustes((a) => ({ ...a, vinheta: v }))}
+        value={ajustes.vinheta}
+        onChange={(v) => onAjustes((a) => ({ ...a, vinheta: v }))}
       />
     </div>
   );

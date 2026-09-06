@@ -16,7 +16,10 @@ export function PhotoGrid({
   onAbrir: (indice: number) => void;
 }) {
   return (
-    <ul className="mt-1 grid list-none grid-cols-3 gap-1 p-0" aria-label={`Fotos de ${autor}`}>
+    <ul
+      className="mt-1 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-4"
+      aria-label={`Fotos de ${autor}`}
+    >
       {itens.map((item, indice) => {
         const url = urls.get(item.chaveThumb)?.url ?? null;
         const video = isVideoMime(item.mime);
@@ -31,13 +34,13 @@ export function PhotoGrid({
                   ? `Vídeo de ${autor}, ${indice + 1} de ${itens.length}`
                   : `Foto de ${autor}, ${indice + 1} de ${itens.length}`
               }
-              className="relative block aspect-square w-full cursor-pointer overflow-hidden bg-superficie-alta p-0 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
+              className="relative block aspect-square w-full cursor-pointer overflow-hidden rounded-media border-0 bg-superficie-alta p-0 transition-transform duration-instantaneo ease-mola active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               {url ? (
                 <img
                   src={url}
                   alt=""
-                  className="size-full object-cover"
+                  className="size-full object-cover object-top"
                   loading="lazy"
                   decoding="async"
                 />

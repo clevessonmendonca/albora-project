@@ -90,6 +90,7 @@
   --color-ink-suave: color-mix(in srgb, var(--ink) 8%, transparent);
   --color-noite-overlay: color-mix(in srgb, var(--noite) 35%, transparent);
   --color-noite-vidro: color-mix(in srgb, var(--noite) 45%, transparent);
+  --color-scrim-modal: color-mix(in srgb, var(--noite) 55%, transparent);
   --color-amostra-clara: color-mix(in srgb, var(--acento) 58%, var(--bg));
   --color-amostra-escura: color-mix(in srgb, var(--acento) 65%, var(--ink));
 
@@ -152,6 +153,17 @@
   --tracking-titulo: var(--tracking-titulo);
   --tracking-rotulo: var(--tracking-rotulo);
 
+  --ease-mola: var(--mola);
+  --ease-saida: var(--saida);
+  --transition-duration-instantaneo: var(--instantaneo);
+
+  --z-index-base: 1;
+  --z-index-dropdown: 10;
+  --z-index-sticky: 20;
+  --z-index-overlay: 30;
+  --z-index-modal: 40;
+  --z-index-toast: 50;
+
   /*
    * Profundidade em duas alturas, puxada do `--ink` do evento — sombra cinza
    * sobre papel quente suja. Espelha as consts `SOMBRA`/`SOMBRA_ALTA` da
@@ -169,6 +181,24 @@
   --shadow-scan-mascara: 0 0 0 9999px color-mix(in srgb, var(--noite) 35%, transparent);
 }
 
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--acento-texto);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+.skeleton-pulse {
+  animation: skeleton-pulse 1.8s var(--curva) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-pulse { animation: none; }
+}
+
 @keyframes mus-pulsar {
   from {
     transform: scaleY(0.35);
@@ -184,4 +214,11 @@
 @keyframes wall-aparecer {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+@layer components {
+  .elev-0 { background: var(--bg); box-shadow: none; }
+  .elev-1 { background: var(--superficie); box-shadow: var(--shadow-suave); }
+  .elev-2 { background: var(--superficie-alta); box-shadow: var(--shadow-alta); }
+  .elev-3 { background: var(--superficie-alta); box-shadow: var(--shadow-alta); }
 }

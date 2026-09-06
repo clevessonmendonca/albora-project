@@ -1,0 +1,30 @@
+-- 0057 — onboarding self-serve do fornecedor (task 15): permite criar a
+-- primeira linha de `vendors` + `vendor_members` sem violar RLS.
+--
+-- Problema: `vendor_membro` (0037) é `FOR ALL` sem `WITH CHECK` próprio —
+-- a `USING` vale também como `WITH CHECK`, e ela exige `EXISTS` em
+-- `vendor_members` para o `id` da própria linha sendo inserida. No INSERT
+-- esse `id` ainda não existe em `vendor_members` em lugar nenhum: não há
+-- ordem de escrita que satisfaça essa política E a FK
+-- `vendor_members.vendor_id → vendors.id` ao mesmo tempo sob `comConta`
+-- (RLS ativa, papel `albora_app`). Mesmo raciocínio do comentário em 0037
+-- sobre `ativarPlanoDoFornecedor`: um caminho sem `app.account_id`
+-- resolvido precisa de `comAgregacao` (BYPASSRLS, motivo obrigatório,
+-- auditado) — só que aqui o caminho SEMPRE tem `app.account_id` (é a
+-- própria sessão de host criando o fornecedor); o bloqueio não é RLS
+-- não ver o account_id, é a política de INSERT ser logicamente
+-- impossível de satisfazer na primeira linha.
+--
+-- `albora_agregador` já é BYPASSRLS (0002) mas só tinha SELECT em todas as
+-- tabelas + UPDATE escopado em vendors.status/plan (0037). BYPASSRLS
+-- ignora as políticas de RLS, mas não o sistema de GRANT do Postgres —
+-- sem este GRANT, `criarFornecedor` (packages/db/src/vendor-portal.ts)
+-- falharia por falta de privilégio, não por RLS.
+--
+-- 🔴 Escopado a exatamente as duas tabelas e a operação necessária —
+-- não é GRANT em ALL TABLES, é INSERT em `vendors` e `vendor_members`.
+-- A contenção continua sendo "o código nunca escreve fora do que
+-- `criarFornecedor` decide": `accountId` vem sempre da sessão de host já
+-- resolvida, nunca do corpo da requisição, e o `role` gravado é sempre
+-- `'admin'` (literal no código, nunca parâmetro).
+GRANT INSERT ON vendors, vendor_members TO albora_agregador;

@@ -7,14 +7,15 @@ import {
 } from "@albora/core";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
 import { IDENTITY_MODELS } from "@albora/tokens";
-import { useMemo, useState } from "react";
+import { Button, PhoneFrame, TextField } from "@albora/ui-web";
+import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import {
   identityPreviewClassName,
   presetSwatchProps,
   resolveIdentityPreviewVars,
 } from "@/features/admin/lib/identity-preview";
 import { wallModelsFromTokens } from "@/features/admin/lib/wall-models";
-import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { TimezoneField } from "@/features/admin/components/client/timezone-field";
 
 type Props = {
@@ -73,11 +74,9 @@ function modelLabel(id: string): string {
     .join(" ");
 }
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
+function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="mb-2.5 block text-[0.7rem] uppercase tracking-rotulo text-ink-3">
-      {children}
-    </span>
+    <span className="tipo-label mb-2.5 block uppercase text-ink-3">{children}</span>
   );
 }
 
@@ -205,233 +204,225 @@ export function IdentityEditor({
   }
 
   const effectiveBackground = customBackground ?? preset.camada.background ?? "dark";
+  const previewTitle = title.trim() || resolvePackText(pack, "landing.exemplo.nome");
+  const missionLabel = pack.missoes[0]
+    ? resolvePackText(pack, pack.missoes[0].chaveTitulo)
+    : "Foto do dia";
 
   return (
     <div className="flex flex-col gap-5">
       <AdminSection>
-        <h2 className="mb-1 mt-0 font-titulo text-lg">Configuração do evento</h2>
-        <p className="mb-7 mt-1.5 text-[0.875rem] leading-relaxed text-ink-2">
-          A identidade propaga para convidado, telão e peças impressas — um resolvedor, três superfícies.
-        </p>
-
-        <div className="mb-5">
-          <FieldLabel>Nome do evento</FieldLabel>
-          <input
-            type="text"
-            maxLength={120}
-            placeholder="Ex.: João & Maria"
-            value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              setSaved(false);
-            }}
-            className="w-full max-w-sm rounded-token border border-linha bg-bg px-3.5 py-3 font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
-          />
-          <p className="mb-0 mt-1.5 text-xs text-ink-3">
-            Aparece como título na capa do app. Deixe em branco para usar o nome do pack.
+        <div className="mb-7">
+          <h2 className="tipo-subtitle m-0">Configuração do evento</h2>
+          <p className="tipo-caption m-0 mt-1.5 max-w-[38rem] text-ink-2">
+            A identidade propaga para convidado, telão e peças impressas — um resolvedor, três
+            superfícies.
           </p>
         </div>
 
-        <div className="mb-5">
-          <FieldLabel>Quantos convidados presentes?</FieldLabel>
-          <input
-            type="number"
-            min={1}
-            max={999}
-            required
-            value={expectedGuests}
-            onChange={(e) => {
-              setExpectedGuests(e.target.value);
-              setSaved(false);
-            }}
-            className="w-full max-w-xs rounded-token border border-linha bg-bg px-3.5 py-3 font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
-          />
-          <p className="mb-0 mt-1.5 text-xs text-ink-3">
-            Estimativa de quem vai estar na festa. Usamos para medir a participação.
-          </p>
-          {!guestsValid && expectedGuests !== "" && (
-            <p className="mb-0 mt-2 text-sm text-critico">
-              Informe um número válido de convidados esperados.
-            </p>
-          )}
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start">
+          <div className="flex flex-col gap-7">
+            <TextField
+              label="Nome do evento"
+              maxLength={120}
+              placeholder="Ex.: João & Maria"
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setSaved(false);
+              }}
+              hint="Aparece como título na capa do app. Deixe em branco para usar o nome do pack."
+              inputClassName="max-w-sm"
+            />
+
+            <TextField
+              label="Quantos convidados presentes?"
+              type="number"
+              min={1}
+              max={999}
+              required
+              value={expectedGuests}
+              onChange={(e) => {
+                setExpectedGuests(e.target.value);
+                setSaved(false);
+              }}
+              hint="Estimativa de quem vai estar na festa. Usamos para medir a participação."
+              {...(!guestsValid && expectedGuests !== ""
+                ? { error: "Informe um número válido de convidados esperados." }
+                : {})}
+              inputClassName="max-w-xs"
+            />
+
+            <TimezoneField
+              value={timezone}
+              onChange={(fuso) => {
+                setTimezone(fuso);
+                setSaved(false);
+              }}
+            />
+
+            <div className="h-px bg-linha" />
+
+            <div>
+              <FieldLabel>Paleta base</FieldLabel>
+              <div className="flex flex-col gap-2">
+                {IDENTITY_MODELS.map((m) => {
+                  const selected = preset.id === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => changePreset(m)}
+                      className={`flex min-h-[3.25rem] cursor-pointer items-center gap-3 rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                        selected
+                          ? "border-2 border-acento bg-superficie-alta"
+                          : "border border-linha bg-bg hover:border-acento-texto"
+                      }`}
+                    >
+                      <span {...presetSwatchProps(m.amostra)} />
+                      <span className="flex-1 font-titulo text-[0.9rem] text-ink">{m.nome}</span>
+                      <span
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                          selected ? "border-acento bg-acento" : "border-linha bg-bg"
+                        }`}
+                      >
+                        {selected && <span className="h-2 w-2 rounded-full bg-sobre-acento" />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <CorField
+              label="Cor de destaque"
+              hint="Botões, marcações e links"
+              value={customAccent ?? presetAccent ?? IDENTITY_MODELS[0]!.amostra}
+              custom={customAccent !== null}
+              onChange={(cor) => {
+                setCustomAccent(cor);
+                setSaved(false);
+              }}
+              onReset={() => {
+                setCustomAccent(null);
+                setSaved(false);
+              }}
+            />
+
+            <div>
+              <FieldLabel>Estilo de fonte</FieldLabel>
+              <div className="flex gap-2">
+                {FONT_OPTIONS.map((opt) => {
+                  const isActive = customFont
+                    ? customFont === opt.id
+                    : !presetFont || presetFont === opt.value || (opt.id === "serif" && !presetFont);
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={isActive}
+                      onClick={() => {
+                        const presetFontValue = toPartialFontes(preset.camada.fontes).titulo;
+                        setCustomFont(presetFontValue === opt.value ? null : opt.id);
+                        setSaved(false);
+                      }}
+                      className={`min-h-[3.25rem] flex-1 cursor-pointer rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                        isActive
+                          ? "border-2 border-acento bg-superficie-alta"
+                          : "border border-linha bg-bg hover:border-acento-texto"
+                      }`}
+                    >
+                      <span className="block text-lg text-ink" style={{ fontFamily: opt.value }}>
+                        Aa
+                      </span>
+                      <span className="mt-1 block font-corpo text-xs text-ink-2">{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <FieldLabel>Fundo padrão</FieldLabel>
+              <div className="flex gap-2">
+                {(["dark", "light"] as const).map((mode) => {
+                  const active = effectiveBackground === mode;
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => {
+                        const presetBg = preset.camada.background ?? "dark";
+                        setCustomBackground(presetBg === mode ? null : mode);
+                        setSaved(false);
+                      }}
+                      className={`flex min-h-[3.25rem] flex-1 cursor-pointer items-center gap-2.5 rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                        active
+                          ? "border-2 border-acento bg-superficie-alta"
+                          : "border border-linha bg-bg hover:border-acento-texto"
+                      }`}
+                    >
+                      {mode === "dark" ? (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 text-ink-2">
+                          <path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5z" fill="currentColor" />
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 text-ink-2">
+                          <circle cx="8" cy="8" r="2.75" fill="currentColor" />
+                          <path d="M8 1.5V3M8 13v1.5M1.5 8H3M13 8h1.5M3.6 3.6l1 1M11.4 11.4l1 1M11.4 3.6l1-1M3.6 11.4l1-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                      )}
+                      <span className="block font-titulo text-sm text-ink">
+                        {mode === "dark" ? "Escuro" : "Claro"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <aside className="lg:sticky lg:top-6">
+            <PhoneFrame
+              title="Preview ao vivo"
+              note="Como o convidado vê a marca de vocês assim que abre o app — atualiza a cada mudança."
+            >
+              <PreviewScreen previewVars={previewVars} title={previewTitle} missionLabel={missionLabel} />
+            </PhoneFrame>
+            <div className={`mt-4 ${identityPreviewClassName}`} style={previewVars}>
+              <p className="m-0 font-titulo text-lg text-acento-texto">{previewTitle}</p>
+              <p className="mb-0 mt-2 text-sm text-ink-2">Prévia da capa impressa e do telão</p>
+            </div>
+          </aside>
         </div>
 
-        <div className="mb-7">
-          <TimezoneField
-            value={timezone}
-            onChange={(fuso) => {
-              setTimezone(fuso);
-              setSaved(false);
-            }}
-          />
-        </div>
-
-        <div className="mb-7">
-          <FieldLabel>Paleta base</FieldLabel>
-          <div className="flex flex-col gap-2">
-            {IDENTITY_MODELS.map((m) => {
-              const selected = preset.id === m.id;
-              return (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => changePreset(m)}
-                  className={`flex cursor-pointer items-center gap-3 rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                    selected
-                      ? "border-2 border-acento bg-superficie-alta"
-                      : "border border-linha bg-bg hover:border-acento-texto"
-                  }`}
-                >
-                  <span {...presetSwatchProps(m.amostra)} />
-                  <span className="flex-1 font-titulo text-[0.9rem] text-ink">{m.nome}</span>
-                  <span
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                      selected ? "border-acento bg-acento" : "border-linha bg-bg"
-                    }`}
-                  >
-                    {selected && <span className="h-2 w-2 rounded-full bg-sobre-acento" />}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <div className={`mt-3 ${identityPreviewClassName}`} style={previewVars}>
-            <p className="m-0 font-titulo text-xl text-acento-texto">
-              {resolvePackText(pack, "landing.exemplo.nome")}
-            </p>
-            <p className="mb-0 mt-2 text-sm text-ink-2">Preview ao vivo</p>
-          </div>
-        </div>
-
-        <div className="mb-7">
-          <FieldLabel>Cor de destaque</FieldLabel>
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="flex cursor-pointer items-center gap-2.5 rounded-token border border-linha bg-bg px-3.5 py-2.5 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto">
-              <span
-                className="h-5 w-5 shrink-0 rounded-full border border-linha"
-                style={{ background: customAccent ?? presetAccent ?? "transparent" }}
-              />
-              <span className="font-titulo text-sm text-ink">
-                {customAccent ? "Personalizada" : "Da paleta"}
-              </span>
-              <input
-                type="color"
-                className="sr-only"
-                value={customAccent ?? presetAccent ?? IDENTITY_MODELS[0]!.amostra}
-                onChange={(e) => {
-                  setCustomAccent(e.target.value);
-                  setSaved(false);
-                }}
-              />
-            </label>
-            {customAccent && (
-              <button
-                type="button"
-                onClick={() => {
-                  setCustomAccent(null);
-                  setSaved(false);
-                }}
-                className="rounded-token border border-linha bg-bg px-3.5 py-2.5 font-titulo text-sm text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
-              >
-                Usar cor da paleta
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="mb-7">
-          <FieldLabel>Estilo de fonte</FieldLabel>
-          <div className="flex gap-2">
-            {FONT_OPTIONS.map((opt) => {
-              const isActive = customFont
-                ? customFont === opt.id
-                : !presetFont || presetFont === opt.value || (opt.id === "serif" && !presetFont);
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => {
-                    const presetFontValue = toPartialFontes(preset.camada.fontes).titulo;
-                    setCustomFont(presetFontValue === opt.value ? null : opt.id);
-                    setSaved(false);
-                  }}
-                  className={`flex-1 cursor-pointer rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                    isActive
-                      ? "border-2 border-acento bg-superficie-alta"
-                      : "border border-linha bg-bg hover:border-acento-texto"
-                  }`}
-                >
-                  <span
-                    className="block text-lg text-ink"
-                    style={{ fontFamily: opt.value }}
-                  >
-                    Aa
-                  </span>
-                  <span className="mt-1 block font-corpo text-xs text-ink-2">{opt.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="mb-7">
-          <FieldLabel>Fundo padrão</FieldLabel>
-          <div className="flex gap-2">
-            {(["dark", "light"] as const).map((mode) => {
-              const active = effectiveBackground === mode;
-              return (
-                <button
-                  key={mode}
-                  type="button"
-                  onClick={() => {
-                    const presetBg = preset.camada.background ?? "dark";
-                    setCustomBackground(presetBg === mode ? null : mode);
-                    setSaved(false);
-                  }}
-                  className={`flex flex-1 cursor-pointer items-center gap-2.5 rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                    active
-                      ? "border-2 border-acento bg-superficie-alta"
-                      : "border border-linha bg-bg hover:border-acento-texto"
-                  }`}
-                >
-                  {mode === "dark" ? (
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 text-ink-2">
-                      <path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5z" fill="currentColor" />
-                    </svg>
-                  ) : (
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 text-ink-2">
-                      <circle cx="8" cy="8" r="2.75" fill="currentColor" />
-                      <path d="M8 1.5V3M8 13v1.5M1.5 8H3M13 8h1.5M3.6 3.6l1 1M11.4 11.4l1 1M11.4 3.6l1-1M3.6 11.4l1-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                  )}
-                  <div>
-                    <span className="block font-titulo text-sm text-ink">
-                      {mode === "dark" ? "Escuro" : "Claro"}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <div className="my-8 h-px bg-linha" />
 
         <div>
-          <h2 className="mb-1 mt-0 font-titulo text-lg">Modelos do telão</h2>
-          <p className="mb-4 mt-1.5 text-[0.875rem] leading-relaxed text-ink-2">
-            Escolha os modelos que entram no rodízio da parede. A mudança vale para a próxima foto que subir.
+          <h2 className="tipo-subtitle m-0">Modelos do telão</h2>
+          <p className="tipo-caption m-0 mt-1.5 text-ink-2">
+            Escolha os modelos que entram no rodízio da parede. A mudança vale para a próxima foto
+            que subir.
           </p>
           {wallProblems.length > 0 && (
-            <div className="mb-4 rounded-token border border-critico bg-superficie px-4 py-3">
+            <div className="mt-4 rounded-token border border-critico bg-superficie px-4 py-3">
               <p className="m-0 text-sm text-critico">{wallProblems.join(" ")}</p>
             </div>
           )}
-          <div className="flex flex-col gap-2">
+          <div className="mt-4 flex flex-col gap-2">
             {WALL_DISPLAY_MODELS.map((model) => {
               const selected = wallModels.has(model);
               return (
                 <button
                   key={model}
                   type="button"
+                  role="checkbox"
+                  aria-checked={selected}
                   onClick={() => {
                     setWallModels((prev) => {
                       const next = new Set(prev);
@@ -441,7 +432,7 @@ export function IdentityEditor({
                     });
                     setSaved(false);
                   }}
-                  className={`flex cursor-pointer items-center gap-3 rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                  className={`flex min-h-[3.25rem] cursor-pointer items-center gap-3 rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                     selected
                       ? "border-2 border-acento bg-superficie-alta"
                       : "border border-linha bg-bg hover:border-acento-texto"
@@ -466,16 +457,14 @@ export function IdentityEditor({
         </div>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="lg"
             disabled={!canSave || saving}
             onClick={() => void save()}
-            className={`${adminClasses.primaryButton} ${
-              !canSave || saving ? "cursor-not-allowed opacity-50" : ""
-            }`}
           >
             {saving ? "Salvando…" : "Salvar identidade"}
-          </button>
+          </Button>
           {saved && (
             <span className="flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
@@ -485,12 +474,109 @@ export function IdentityEditor({
             </span>
           )}
           {error && (
-            <span className="text-sm text-critico">
+            <span role="alert" className="text-sm text-critico">
               Não foi possível salvar agora. Tente de novo.
             </span>
           )}
         </div>
       </AdminSection>
+    </div>
+  );
+}
+
+function CorField({
+  label,
+  hint,
+  value,
+  custom,
+  onChange,
+  onReset,
+}: {
+  label: string;
+  hint: string;
+  value: string;
+  custom: boolean;
+  onChange: (cor: string) => void;
+  onReset: () => void;
+}) {
+  return (
+    <div>
+      <FieldLabel>{label}</FieldLabel>
+      <div className="flex flex-wrap items-center gap-2.5">
+        <label className="relative flex min-h-[3.25rem] flex-1 cursor-pointer items-center justify-between gap-4 rounded-token border border-linha bg-bg px-4 py-2.5 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto">
+          <div className="flex flex-col gap-0.5">
+            <span className="font-titulo text-sm text-ink">{custom ? "Personalizada" : "Da paleta"}</span>
+            <span className="text-xs text-ink-3">{hint}</span>
+          </div>
+          <div className="flex shrink-0 items-center gap-2.5">
+            <span
+              className="size-7 shrink-0 rounded-full border border-linha"
+              style={{ backgroundColor: value }}
+            />
+            <span className="w-[4.5rem] text-right font-mono text-[0.75rem] uppercase tracking-wider text-ink-2">
+              {value}
+            </span>
+          </div>
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+          />
+        </label>
+        {custom && (
+          <button
+            type="button"
+            onClick={onReset}
+            className="min-h-[3.25rem] shrink-0 cursor-pointer rounded-token border border-linha bg-bg px-3.5 font-titulo text-sm text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
+          >
+            Usar cor da paleta
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PreviewScreen({
+  previewVars,
+  title,
+  missionLabel,
+}: {
+  previewVars: CSSProperties;
+  title: string;
+  missionLabel: string;
+}) {
+  return (
+    <div className="flex h-full flex-col bg-bg font-corpo text-ink" style={previewVars}>
+      <div className="flex items-center justify-between px-5 pb-1 pt-3 text-[0.65rem] tabular-nums text-ink-3">
+        <span>9:41</span>
+        <div className="flex items-center gap-1" aria-hidden>
+          <span className="h-1 w-3 rounded-full bg-ink-3" />
+          <span className="h-1.5 w-4 rounded-sm bg-ink-3" />
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col overflow-hidden px-5 pb-4 pt-2">
+        <div className="mb-4 h-24 w-full shrink-0 rounded-token border border-linha bg-acento-superficie" />
+        <p className="m-0 font-titulo text-[1.375rem] leading-tight text-acento-texto">{title}</p>
+        <p className="mb-5 mt-2 text-[0.8125rem] text-ink-2">Missão · {missionLabel}</p>
+
+        <div className="mt-auto flex flex-col gap-2.5">
+          <span className="flex h-12 items-center justify-center rounded-pilula bg-acento font-titulo text-[0.875rem] text-sobre-acento">
+            Tirar foto
+          </span>
+          <span className="flex h-11 items-center justify-center rounded-pilula border border-linha text-[0.8125rem] text-ink-2">
+            Ver álbum
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-around border-t border-linha py-3" aria-hidden>
+        {[0, 1, 2].map((i) => (
+          <span key={i} className={`size-2 rounded-full ${i === 1 ? "bg-acento" : "bg-linha"}`} />
+        ))}
+      </div>
     </div>
   );
 }

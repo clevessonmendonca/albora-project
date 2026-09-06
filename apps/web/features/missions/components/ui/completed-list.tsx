@@ -11,9 +11,7 @@ type CompletedListProps = {
 export function CompletedList({ slug, missions }: CompletedListProps) {
   return (
     <div className="mt-8 grid gap-2">
-      <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
-        Missões completadas
-      </p>
+      <p className="tipo-label m-0 uppercase text-ink-3">Missões completadas</p>
       <ul className="m-0 grid list-none gap-2 p-0">
         {missions.map((mission, i) => (
           <li key={mission.id}>

@@ -41,18 +41,18 @@ export function HostMessageCard({
   const corpo = expandido ? estado.texto : visivel;
 
   return (
-    <article className="mx-[1.125rem] mt-4 mb-4 rounded-token bg-superficie px-4 py-3.5">
+    <article className="elev-1 mx-[1.125rem] mt-4 mb-4 rounded-token px-4 py-3.5">
       <div className="flex items-start gap-3">
         <Avatar name={hostName} className="mt-0.5" />
         <div className="min-w-0 flex-1">
-          <p className="m-0 text-[0.625rem] uppercase tracking-rotulo text-acento-texto">{label}</p>
+          <p className="tipo-label m-0 uppercase text-acento-texto">{label}</p>
           {estado.audio ? <VoiceNotePlayer audio={estado.audio} /> : null}
-          <p className="mb-0 mt-1.5 text-[0.84375rem] leading-snug text-ink">{corpo}</p>
+          <p className="mb-0 mt-1.5 tipo-caption leading-snug text-ink">{corpo}</p>
           {cortado && !expandido ? (
             <button
               type="button"
               onClick={() => setExpandido(true)}
-              className="mt-1.5 cursor-pointer border-0 bg-transparent p-0 text-[0.75rem] text-acento-texto transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+              className="-ml-1 mt-1 flex min-h-11 cursor-pointer items-center border-0 bg-transparent px-1 tipo-caption text-acento-texto transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
             >
               ver inteiro
             </button>
@@ -62,7 +62,7 @@ export function HostMessageCard({
           type="button"
           onClick={fechar}
           aria-label="Seguir"
-          className="cursor-pointer border-0 bg-transparent p-0 text-[0.75rem] text-ink-3 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+          className="-mr-1 -mt-1 flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center border-0 bg-transparent px-1 tipo-caption text-ink-3 transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
         >
           Seguir
         </button>
@@ -111,11 +111,11 @@ function VoiceNotePlayer({ audio }: { audio: AudioRecado }) {
         type="button"
         onClick={toggle}
         aria-label={playing ? "Pausar recado" : "Ouvir recado"}
-        className="grid size-8 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-acento text-[0.65rem] text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80"
+        className="relative grid size-8 shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-acento text-[0.65rem] text-sobre-acento shadow-suave transition-[opacity,transform] duration-instantaneo ease-mola before:absolute before:-inset-1.5 before:content-[''] hover:opacity-90 active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
       >
         {playing ? "❚❚" : "▶"}
       </button>
-      <span className="text-[0.75rem] text-ink-3">{formatar(audio.duracaoSegundos)}</span>
+      <span className="tipo-caption text-ink-3">{formatar(audio.duracaoSegundos)}</span>
     </div>
   );
 }

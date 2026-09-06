@@ -119,7 +119,7 @@ export function EditorCanvas({
   return (
     <section className="relative grid place-items-center overflow-hidden px-5">
       {missao && (
-        <div className="absolute inset-x-4 top-4 z-[1]">
+        <div className="banner-missao absolute inset-x-4 top-4 z-[1]">
           <MissionBanner index={missao.indice} total={missao.total} title={missao.title} />
         </div>
       )}
@@ -130,15 +130,33 @@ export function EditorCanvas({
           </p>
         </div>
       ) : (
+        // A foto é o palco (brief): raio-media + bg-superficie-alta é a mesma
+        // moldura dos cartões de mídia da superfície do convidado (`PhotoCard`)
+        // — não uma genérica. Sem sombra: a section-pai tem overflow-hidden,
+        // que cortaria o blur da `elev-*` em vez de mostrá-lo.
         <canvas
           ref={telaPrevia}
-          className={`max-h-full max-w-full rounded-superficie${texto ? " touch-none" : ""}`}
+          className={`max-h-full max-w-full rounded-media bg-superficie-alta${texto ? " touch-none" : ""}`}
           onPointerDown={aoPressionar}
           onPointerMove={aoMover}
           onPointerUp={aoSoltar}
           onPointerCancel={aoSoltar}
         />
       )}
+      <style>{ESTILO_MISSAO}</style>
     </section>
   );
 }
+
+/** Mesmo tratamento de entrada da missão que a câmera (Task 4): fade + leve descida na curva-base, nunca mola (reservada a toque). Duplicado por tela — candidato a utilitário `.reveal` já registrado no ledger da onda. */
+const ESTILO_MISSAO = `
+@keyframes editor-missao-entrar {
+  from { opacity: 0; transform: translateY(-0.5rem); }
+  to   { opacity: 1; transform: none; }
+}
+.banner-missao { animation: editor-missao-entrar var(--tempo-lento) var(--curva) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-missao { animation: none; }
+}
+`;

@@ -15,15 +15,16 @@ import {
   FloatingNav,
   GuestHeader,
   GuestShell,
-  EmptyState,
   GuestMain,
   ErrorMessage,
   Badge,
+  CameraIcon,
 } from "@albora/ui-web";
 import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
 import { RecapSheet } from "@/features/my-photos/components/client/recap-sheet";
 import { RecapCard } from "@/features/my-photos/components/client/recap-card";
 import { ThemeSetting } from "@/features/guest/components/client/theme-setting";
+import { AlbumFooterCta } from "./album-footer-cta";
 import {
   GalleryItem,
   RecapSection,
@@ -233,15 +234,31 @@ export function MyPhotosPage({
           )}
 
           {!galeria.carregando && galeria.itens.length === 0 && (
-            <EmptyState
-              title="Suas fotos vão aparecer aqui"
-              lede="Quando você tirar a primeira, ela sobe sozinha e já aparece nesta grade."
-              cameraPath={cameraPath}
-            />
+            <div className="flex flex-col items-center py-[calc(var(--espaco)*8)] text-center">
+              <div
+                aria-hidden
+                className="mb-4 grid size-14 place-items-center rounded-full bg-superficie-alta text-ink-3"
+              >
+                <CameraIcon size={24} />
+              </div>
+              <p className="tipo-subtitle tipo-balance mb-2 text-ink">
+                Suas fotos vão aparecer aqui
+              </p>
+              <p className="tipo-body mb-6 max-w-[24rem] text-ink-2">
+                Quando você tirar a primeira, ela sobe sozinha e já aparece
+                nesta grade.
+              </p>
+              <a
+                href={cameraPath}
+                className="grid min-h-[3.375rem] w-full place-items-center rounded-pilula bg-acento px-[1.125rem] font-medium text-sobre-acento no-underline shadow-suave transition-transform duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
+              >
+                Tirar foto
+              </a>
+            </div>
           )}
 
-          {/* Gallery Grid */}
-          <ul className="m-0 grid list-none grid-cols-3 gap-1 p-0">
+          {/* Gallery Grid — mesma respiração da grade do álbum (Task 9) */}
+          <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-4">
             {galeria.itens.map((item) => {
               const url =
                 item.estado === "enviada"
@@ -296,6 +313,8 @@ export function MyPhotosPage({
             drenando={galeria.drenando}
             onRetry={() => void galeria.tentarDeNovo()}
           />
+
+          <AlbumFooterCta slug={slug} refToken={refToken ?? null} />
 
           <ThemeSetting />
         </GuestMain>

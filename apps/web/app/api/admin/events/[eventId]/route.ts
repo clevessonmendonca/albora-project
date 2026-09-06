@@ -2,6 +2,7 @@ import {
   abrirInteracaoDoEvento,
   agendarInteracaoDoEvento,
   atualizarModeracaoDoEvento,
+  publicarEvento,
   withEvent,
   lerMetricasAoVivo,
   listarComentariosParaRevisao,
@@ -35,6 +36,8 @@ type Corpo = {
   abrirInteracao?: unknown;
   /** ISO-8601 ou `null` para fechar o gate de novo. */
   interacaoAbreEm?: unknown;
+  /** Só aceita `"active"` — este endpoint publica, nunca encerra (task 6, gap I1). */
+  status?: unknown;
 };
 
 function comoBooleano(v: unknown): boolean | undefined {
@@ -137,6 +140,7 @@ export async function PATCH(
   const abrirInteracao = comoBooleano(corpo.abrirInteracao);
   const interacaoAbreEm =
     corpo.interacaoAbreEm !== undefined ? comoAbertura(corpo.interacaoAbreEm) : undefined;
+  const publicar = corpo.status !== undefined && corpo.status === "active";
 
   if (
     corpo.interacaoAbreEm !== undefined &&
@@ -148,15 +152,22 @@ export async function PATCH(
     });
   }
 
+  if (corpo.status !== undefined && !publicar) {
+    return errorResponse(422, "validation_error", "Só aceita status active", {
+      campos: ["status"],
+    });
+  }
+
   if (
     panico === undefined &&
     haMenores === undefined &&
     modoEndurecido === undefined &&
     abrirInteracao === undefined &&
-    interacaoAbreEm === undefined
+    interacaoAbreEm === undefined &&
+    !publicar
   ) {
     return errorResponse(422, "validation_error", "Nada para atualizar", {
-      campos: ["panico", "haMenores", "modoEndurecido", "abrirInteracao", "interacaoAbreEm"],
+      campos: ["panico", "haMenores", "modoEndurecido", "abrirInteracao", "interacaoAbreEm", "status"],
     });
   }
 
@@ -182,6 +193,10 @@ export async function PATCH(
       );
     }
 
+    if (publicar) {
+      evento = await publicarEvento(getPool(), auth.host.accountId, eventId);
+    }
+
     if (!evento) {
       return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
     }
@@ -193,11 +208,13 @@ export async function PATCH(
       haMenores: evento.moderacao.haMenores,
       modoEndurecido: evento.moderacao.modoEndurecido,
       interacaoAberta: abrirInteracao === true,
+      status: evento.status,
     });
 
     return jsonOk({
       moderacao: evento.moderacao,
       interacaoAbreEm: evento.interacaoAbreEm?.toISOString() ?? null,
+      status: evento.status,
     });
   } catch (e) {
     return unexpectedError("admin.moderacao", e);

@@ -1,5 +1,6 @@
 "use client";
 
+import { ProgressBar } from "@albora/ui-web";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
@@ -46,16 +47,21 @@ export function PreEventPromo({ eventId, storageKey, startsAt }: Props) {
     <AdminCard className="print:hidden">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <h2 className="m-0 font-titulo text-lg">Antes do sábado</h2>
-          <p className="mt-2 mb-0 max-w-[42ch] text-[0.9375rem] leading-relaxed text-ink-2">
+          <h2 className="tipo-subtitle m-0 text-ink">Antes do sábado</h2>
+          <p className="tipo-body mt-2 mb-0 max-w-[42ch] text-ink-2">
             {antesDoEvento
               ? `Faltam ${dias} ${dias === 1 ? "dia" : "dias"}. Confira peças, QR, telão e gate.`
               : "Checklist do dia D: telão, MC, gate e moderação."}
           </p>
-          {done !== null && (
-            <p className="mb-0 mt-2 text-[0.8125rem] text-ink-3">
-              {done}/{total} itens marcados neste navegador
-            </p>
+          {done !== null && total > 0 && (
+            <div className="mt-3 max-w-[24rem]">
+              <ProgressBar
+                current={done}
+                total={total}
+                label="Itens preparados neste navegador"
+                completedLabel="Tudo preparado neste navegador"
+              />
+            </div>
           )}
         </div>
         <Link href={`/admin/e/${eventId}/pre-event`} className={adminClasses.primaryButton}>

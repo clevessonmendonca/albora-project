@@ -45,13 +45,13 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
 
   return (
     <AdminSection>
-      <h2 className="mb-4 mt-0 font-titulo text-lg">Nomes no telão</h2>
-      <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+      <h2 className="tipo-subtitle m-0 mb-4 text-ink">Nomes no telão</h2>
+      <p className="tipo-caption mb-4 mt-0 text-ink-3">
         Nome ofensivo? Troque ou oculte — as fotos ficam. O telão lê o nome daqui.
       </p>
 
       {sessoes.length === 0 ? (
-        <p className="m-0 text-[0.9375rem] text-ink-2">
+        <p className="tipo-body m-0 text-ink-2">
           Quando alguém fotografar, o nome aparece aqui.
         </p>
       ) : (
@@ -63,9 +63,10 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
               <div key={s.id} className="rounded-token bg-bg px-3 py-[0.65rem]">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="m-0 truncate text-sm text-ink">{s.nome}</p>
-                    <p className="mb-0 mt-0.5 text-xs text-ink-3">
-                      {s.fotos} {s.fotos === 1 ? "foto" : "fotos"}
+                    <p className="tipo-body m-0 truncate text-ink">{s.nome}</p>
+                    <p className="tipo-caption mb-0 mt-0.5 text-ink-3">
+                      <span className="tabular-nums">{s.fotos}</span>{" "}
+                      {s.fotos === 1 ? "foto" : "fotos"}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -77,7 +78,7 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                         setRascunho(s.nome);
                         setErro(null);
                       }}
-                      className={`${adminClasses.primaryButtonSm} ${
+                      className={`${adminClasses.primaryButtonSm} min-h-11 py-3 ${
                         acao === `renomear:${s.id}` ? "opacity-60" : ""
                       }`}
                     >
@@ -87,7 +88,7 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                       type="button"
                       disabled={ocupado}
                       onClick={() => void patch(s.id, { acao: "ocultar" })}
-                      className={`${adminClasses.dangerButtonSm} ${
+                      className={`${adminClasses.dangerButtonSm} min-h-11 py-3 ${
                         acao === `ocultar:${s.id}` ? "opacity-60" : ""
                       }`}
                     >
@@ -112,12 +113,12 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                         maxLength={40}
                         autoFocus
                         aria-label="Novo nome no telão"
-                        className="min-h-10 min-w-40 flex-1 rounded-token border border-linha bg-superficie px-3 text-sm text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+                        className="tipo-body min-h-11 min-w-40 flex-1 rounded-token border border-linha bg-superficie px-3 text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
                       />
                       <button
                         type="submit"
                         disabled={ocupado || !rascunho.trim()}
-                        className={`${adminClasses.primaryButtonSm} ${
+                        className={`${adminClasses.primaryButtonSm} min-h-11 py-3 ${
                           ocupado || !rascunho.trim() ? "opacity-60" : ""
                         }`}
                       >
@@ -127,13 +128,13 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                         type="button"
                         disabled={ocupado}
                         onClick={() => setEditando(null)}
-                        className="cursor-pointer rounded-pilula border border-linha bg-superficie-alta px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
+                        className="min-h-11 cursor-pointer rounded-pilula border border-linha bg-superficie-alta px-3 py-3 font-titulo text-[0.8125rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
                       >
                         Cancelar
                       </button>
                     </div>
                     {rascunho.length > 0 && (
-                      <span className="text-right text-[0.6875rem] tabular-nums text-ink-3">
+                      <span className="tipo-label text-right tabular-nums text-ink-3">
                         {40 - rascunho.length}
                       </span>
                     )}
@@ -145,7 +146,11 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
         </div>
       )}
 
-      {erro && <p className="mb-0 mt-3 text-sm text-critico">{erro}</p>}
+      {erro && (
+        <p role="alert" className="tipo-body mb-0 mt-3 text-critico">
+          {erro}
+        </p>
+      )}
     </AdminSection>
   );
 }

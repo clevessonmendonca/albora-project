@@ -66,22 +66,20 @@ export function MissionsPage({
             <>
               <Link
                 href={photoPathForMission(slug, current.id)}
-                className="grid gap-3 rounded-token border border-acento-borda bg-acento-superficie-forte p-6 text-inherit no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
+                className="elev-2 grid gap-3 rounded-token bg-acento-superficie-forte p-6 text-inherit no-underline transition-[transform,opacity] duration-instantaneo ease-mola active:scale-[0.98] hover:opacity-90 motion-reduce:active:scale-100"
               >
-                <span className="text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
+                <span className="tipo-label uppercase text-acento-texto">
                   Missão {toRoman(turnIndex(missions))}
                 </span>
-                <span className="font-titulo text-[1.375rem] leading-[1.15] tracking-titulo">
+                <span className="tipo-subtitle tipo-balance text-ink">
                   {current.emoji ? `${current.emoji} ` : ""}
                   {current.title}
                 </span>
-                <span className="text-[0.8125rem] text-ink-2">Toque para fotografar</span>
+                <span className="tipo-caption text-ink-2">Toque para fotografar</span>
               </Link>
 
               <div className="mt-6 grid gap-2">
-                <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
-                  Outras missões
-                </p>
+                <p className="tipo-label m-0 uppercase text-ink-3">Outras missões</p>
                 <ul className="m-0 grid list-none gap-2 p-0">
                   {missions.map((mission, i) => (
                     <li key={mission.id}>
@@ -98,15 +96,18 @@ export function MissionsPage({
             </>
           ) : (
             <>
-              <div className="grid gap-4 py-8 text-center">
-                <div className="mx-auto grid size-16 place-items-center rounded-full bg-acento text-[1.75rem] text-sobre-acento">
+              <div className="grid justify-items-center gap-4 py-10 text-center">
+                <div
+                  aria-hidden
+                  className="grid size-16 place-items-center rounded-full bg-acento text-[1.75rem] text-sobre-acento"
+                >
                   ✓
                 </div>
                 <div>
-                  <p className="m-0 font-titulo text-[1.5rem] leading-[1.2] tracking-titulo text-ink">
+                  <p className="tipo-subtitle tipo-balance m-0 text-ink">
                     Todas as {missions.length} missões completas!
                   </p>
-                  <p className="m-0 mt-2 text-[0.9375rem] leading-relaxed text-ink-3">
+                  <p className="tipo-body m-0 mt-2 text-ink-2">
                     Agora você pode fotografar o que quiser, sem restrições.
                   </p>
                 </div>

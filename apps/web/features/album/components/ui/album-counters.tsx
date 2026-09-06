@@ -9,7 +9,7 @@ type AlbumCounters = {
 export function AlbumCounters({ contadores }: { contadores: AlbumCounters }) {
   return (
     <ul
-      className="mb-4 mt-0 flex list-none justify-center gap-0 p-0"
+      className="mb-5 mt-1 flex list-none justify-center gap-0 p-0"
       aria-label="A noite em números"
     >
       <Stat valor={contadores.fotos} rotulo={contadores.fotos === 1 ? "foto" : "fotos"} />
@@ -27,13 +27,9 @@ export function AlbumCounters({ contadores }: { contadores: AlbumCounters }) {
 
 function Stat({ valor, rotulo }: { valor: number; rotulo: string }) {
   return (
-    <li className="flex-1 border-l border-linha px-2 text-center first:border-l-0">
-      <span className="block font-titulo text-[1.375rem] font-light tabular-nums leading-none">
-        {valor}
-      </span>
-      <span className="mt-1 block text-[0.5625rem] uppercase tracking-rotulo text-ink-3">
-        {rotulo}
-      </span>
+    <li className="flex-1 border-l border-linha px-3 text-center first:border-l-0">
+      <span className="tipo-subtitle block tabular-nums leading-none text-ink">{valor}</span>
+      <span className="tipo-label mt-1 block text-ink-3">{rotulo}</span>
     </li>
   );
 }

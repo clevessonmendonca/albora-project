@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Card, PrimaryButton, SecondaryButton } from "@albora/ui-web";
 
 type SuccessStepProps = {
   uploadId: string;
@@ -9,6 +10,17 @@ type SuccessStepProps = {
   showPwaInstall?: boolean;
   onInstallPwa?: () => void;
 };
+
+const ESTILO = `
+@keyframes sucesso-amanhecer {
+  from { opacity: 0; transform: translateY(0.6rem); }
+  to   { opacity: 1; transform: none; }
+}
+.sucesso-entra { animation: sucesso-amanhecer var(--tempo-lento) var(--curva) both; }
+@media (prefers-reduced-motion: reduce) {
+  .sucesso-entra { animation: none; }
+}
+`;
 
 /**
  * Etapa de sucesso após upload.
@@ -24,63 +36,36 @@ export function SuccessStep({
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    // Anima entrada
     const timer = setTimeout(() => setShow(true), 50);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div
-      className={`grid gap-6 transition-all duration-300 ${
-        show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-      }`}
-    >
+    <div className={`grid gap-6 ${show ? "sucesso-entra" : "opacity-0"}`}>
+      <style>{ESTILO}</style>
+
       <div className="text-center">
-        <p className="mb-3 text-[3rem] leading-none" aria-hidden>
-          ✓
-        </p>
-        <h2 className="font-titulo text-[1.5rem] font-normal">
-          Foto enviada!
-        </h2>
-        <p className="mt-2 text-[0.9rem] text-ink-2">
+        <h2 className="tipo-display m-0">Foto enviada!</h2>
+        <p className="mt-2 tipo-body text-ink-2">
           Sua foto já está no álbum do evento
         </p>
       </div>
 
       {showPwaInstall && onInstallPwa && (
-        <div className="rounded-superficie border border-acento bg-acento/10 p-4">
-          <p className="mb-3 text-[0.9rem] font-medium text-ink">
-            📱 Instale o app para enviar fotos mais rápido
+        <Card elevation={1} className="grid gap-3">
+          <p className="m-0 tipo-caption font-medium text-ink">
+            Instale o app para enviar fotos mais rápido
           </p>
-          <button
-            type="button"
-            onClick={onInstallPwa}
-            className="min-h-10 w-full cursor-pointer rounded-pilula border-none bg-acento px-4 text-[0.85rem] font-medium text-sobre-acento transition-opacity hover:opacity-90"
-          >
-            Instalar agora
-          </button>
-        </div>
+          <PrimaryButton onClick={onInstallPwa}>Instalar agora</PrimaryButton>
+        </Card>
       )}
 
       <div className="grid gap-3">
-        <button
-          type="button"
-          onClick={onRestart}
-          className="min-h-12 cursor-pointer rounded-pilula border-none bg-acento px-6 text-[0.9rem] font-medium text-sobre-acento transition-opacity hover:opacity-90"
-        >
-          Tirar outra foto
-        </button>
-
-        <button
-          type="button"
-          onClick={onViewFeed}
-          className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent px-6 text-[0.9rem] text-ink transition-colors hover:border-acento-texto"
-        >
-          Ver todas as fotos
-        </button>
+        <PrimaryButton onClick={onRestart}>Tirar outra foto</PrimaryButton>
+        <SecondaryButton onClick={onViewFeed}>Ver todas as fotos</SecondaryButton>
       </div>
 
-      <p className="text-center text-[0.75rem] text-ink-3">
+      <p className="text-center tipo-caption text-ink-3">
         ID: {uploadId.slice(0, 12)}...
       </p>
     </div>

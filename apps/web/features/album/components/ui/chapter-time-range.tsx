@@ -10,5 +10,5 @@ export function ChapterTimeRange({ faixas }: { faixas: AlbumBand[] }) {
   const ultima = Math.max(...horas);
   const label = primeira === ultima ? `${primeira}h` : `${primeira}h – ${ultima}h`;
 
-  return <p className="m-0 mt-0.5 text-[0.8125rem] text-ink-3">{label}</p>;
+  return <p className="tipo-caption m-0 mt-1 text-ink-3">{label}</p>;
 }

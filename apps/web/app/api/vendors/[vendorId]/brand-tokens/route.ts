@@ -19,11 +19,13 @@ import { consume } from "@/lib/rate-limit-store";
 export const dynamic = "force-dynamic";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
+const URL_LOGO = /^https:\/\/\S{1,2000}$/;
 const COR_CHAVES = ["acento", "papel", "noite", "tinta"] as const;
 
 type RawBody = {
   cores?: unknown;
   background?: unknown;
+  logoUrl?: unknown;
 };
 
 function validarBody(raw: RawBody): BrandTokensDoFornecedor | string[] {
@@ -52,11 +54,19 @@ function validarBody(raw: RawBody): BrandTokensDoFornecedor | string[] {
     erros.push("background");
   }
 
+  const logoUrl = raw.logoUrl;
+  if (logoUrl !== undefined && logoUrl !== null) {
+    if (typeof logoUrl !== "string" || !URL_LOGO.test(logoUrl)) {
+      erros.push("logoUrl");
+    }
+  }
+
   if (erros.length > 0) return erros;
 
   const payload: BrandTokensDoFornecedor = {};
   if (Object.keys(cores).length > 0) payload.cores = cores;
   if (bg === "light" || bg === "dark") payload.background = bg;
+  if (typeof logoUrl === "string") payload.logoUrl = logoUrl;
   return payload;
 }
 
@@ -96,9 +106,9 @@ export async function PATCH(
     return errorResponse(422, "validation_error", "Campos inválidos", { campos: resultado });
   }
 
-  if (!resultado.cores && resultado.background === undefined) {
+  if (!resultado.cores && resultado.background === undefined && resultado.logoUrl === undefined) {
     return errorResponse(422, "validation_error", "Nenhum campo para atualizar", {
-      campos: ["cores", "background"],
+      campos: ["cores", "background", "logoUrl"],
     });
   }
 

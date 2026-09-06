@@ -40,28 +40,27 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
     width: "min(28rem, 100%)",
     display: "flex",
     flexDirection: "column",
-    gap: "1.5rem",
-    padding: "2.5rem",
-    backgroundColor: "var(--superficie)",
+    gap: "1.75rem",
+    padding: "clamp(2rem, 6vw, 2.75rem)",
     ...radiusStyle("var(--raio-superficie)"),
   };
 
   if (status === "connected") {
     return (
       <Shell>
-        <div style={card}>
-          <div className="mx-auto grid size-16 place-items-center rounded-full bg-acento text-[1.75rem] text-sobre-acento">
+        <div style={card} className="elev-2 parede-pair-entra">
+          <div className="mx-auto grid size-16 place-items-center rounded-full bg-acento text-[1.75rem] text-sobre-acento shadow-acento">
             ✓
           </div>
           <div className="text-center">
-            <h1 style={titleStyle}>Telão ligado</h1>
-            <p style={bodyStyle}>
+            <h1 className="tipo-title tipo-balance m-0 text-ink">Telão ligado</h1>
+            <p className="tipo-body m-0 mt-2 text-ink-2">
               As fotos publicadas já estão aparecendo na tela do salão.
             </p>
           </div>
           <Link
             href="/scan"
-            className="block text-center text-[0.9rem] text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
+            className="tipo-caption block text-center text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
           >
             Voltar ao evento
           </Link>
@@ -72,10 +71,12 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
 
   return (
     <Shell>
-      <div style={card}>
+      <div style={card} className="elev-2 parede-pair-entra">
         <div>
-          <h1 style={titleStyle}>Ligar o telão</h1>
-          <p style={bodyStyle}>Digite o código que aparece na tela do salão para autorizar.</p>
+          <h1 className="tipo-title tipo-balance m-0 text-ink">Ligar o telão</h1>
+          <p className="tipo-body m-0 mt-2 text-ink-2">
+            Digite o código que aparece na tela do salão para autorizar.
+          </p>
         </div>
 
         <input
@@ -88,12 +89,12 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
           maxLength={6}
           placeholder="A2C4E6"
           aria-label="Código do telão"
-          className="border border-linha bg-bg px-4 py-3.5 text-center font-titulo text-[1.75rem] uppercase tracking-[0.35em] text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+          className="min-h-12 border border-linha bg-bg px-4 py-3.5 text-center font-titulo text-[1.75rem] uppercase tracking-[0.35em] text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
           style={radiusStyle("var(--raio)")}
         />
 
         {status === "no-session" && (
-          <p style={alertStyle}>
+          <p className="tipo-caption m-0 text-critico">
             Você precisa estar na festa para autorizar o telão.{" "}
             <Link href="/scan" className="underline">
               Entre pelo QR da mesa.
@@ -101,12 +102,12 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
           </p>
         )}
         {status === "rejected" && (
-          <p style={alertStyle}>
+          <p className="tipo-caption m-0 text-critico">
             Código inválido ou expirado. Verifique se digitou corretamente ou peça um novo código.
           </p>
         )}
         {status === "error" && (
-          <p style={alertStyle}>
+          <p className="tipo-caption m-0 text-critico">
             Não conseguimos conectar agora. Verifique sua conexão e tente novamente.
           </p>
         )}
@@ -122,30 +123,19 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
   );
 }
 
-const titleStyle: CSSProperties = {
-  margin: 0,
-  fontFamily: "var(--fonte-titulo)",
-  fontSize: "1.5rem",
-  lineHeight: 1.2,
-  color: "var(--ink)",
-};
-const bodyStyle: CSSProperties = {
-  margin: 0,
-  marginTop: "0.5rem",
-  color: "var(--ink-2)",
-  fontSize: "0.9375rem",
-  lineHeight: 1.5,
-};
-const alertStyle: CSSProperties = {
-  margin: 0,
-  color: "var(--critico)",
-  fontSize: "0.875rem",
-  lineHeight: 1.4,
-};
-
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <main className="fixed inset-0 grid place-items-center bg-bg p-6 font-corpo text-ink">
+      <style>{`
+        @keyframes parede-pair-entra {
+          from { opacity: 0; transform: translateY(0.75rem); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .parede-pair-entra { animation: parede-pair-entra var(--tempo) var(--curva) both; }
+        @media (prefers-reduced-motion: reduce) {
+          .parede-pair-entra { animation: none !important; }
+        }
+      `}</style>
       {children}
     </main>
   );

@@ -8,6 +8,8 @@ export { AlbumChaptersSection } from "./album-chapters";
 export { IdentitySection } from "./identity";
 export { BookSection } from "./book";
 export { IncludedSection } from "./included";
+export { PhotoCorridorSection } from "./photo-corridor";
+export { ChoresEliminatedSection } from "./chores-eliminated";
 export { AntesDaFestaSection } from "./antes-da-festa";
 export { VeteranSection } from "./veteran";
 export { PricingSection } from "./pricing";

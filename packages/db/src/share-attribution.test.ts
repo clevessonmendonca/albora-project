@@ -1,10 +1,17 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { recordProductEvent } from "./analytics";
 import { comEvento } from "./event";
 import { criarEvento } from "./events";
 import { contarSharesDoEvento } from "./funnel-aggregate";
 import { registrarEventoDoFunil } from "./funnel-events";
-import { eventoDoRef, mintarRefDeCompartilhamento, refDoEvento } from "./share-attribution";
+import {
+  eventoDoRef,
+  isRefToken,
+  mintarRefDeCompartilhamento,
+  refDoEvento,
+  resumoAtribuicaoViral,
+} from "./share-attribution";
 import { prepararBanco, semear } from "./testes/banco";
 
 let admin: pg.Pool;
@@ -29,8 +36,8 @@ const daquiA = (horas: number) => new Date(Date.now() + horas * 3600_000);
 /** Evento sem `criarEvento` — isola o teste de retry-em-colisão de `mintarRefDeCompartilhamento` do mint automático que `criarEvento` já faz. */
 async function eventoNu(slug: string, packId: string, accountId: string): Promise<string> {
   const { rows } = await admin.query<{ id: string }>(
-    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
-     VALUES ($1, $2, $3, now(), now() + interval '6 hours') RETURNING id`,
+    `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status)
+     VALUES ($1, $2, $3, now(), now() + interval '6 hours', 'active') RETURNING id`,
     [accountId, packId, slug],
   );
   return rows[0]!.id;
@@ -151,7 +158,10 @@ describe("isolamento entre eventos", () => {
 
 describe("mintarRefDeCompartilhamento nunca rotaciona", () => {
   it("mintar de novo pro mesmo evento estoura por unicidade de event_id", async () => {
-    await comEvento(app, dados.a.eventoId, (c) => mintarRefDeCompartilhamento(c, dados.a.eventoId));
+    const { refToken } = await comEvento(app, dados.a.eventoId, (c) =>
+      mintarRefDeCompartilhamento(c, dados.a.eventoId),
+    );
+    expect(isRefToken(refToken)).toBe(true);
 
     await expect(
       comEvento(app, dados.a.eventoId, (c) => mintarRefDeCompartilhamento(c, dados.a.eventoId)),
@@ -208,5 +218,25 @@ describe("contarSharesDoEvento", () => {
       contarSharesDoEvento(c, dados.b.eventoId),
     );
     expect(totalDeB).toBe(0);
+  });
+});
+
+describe("resumoAtribuicaoViral", () => {
+  it("conta event_created por ref e resolve o evento de origem", async () => {
+    // dois eventos semeados: A (origem) e B (qualquer)
+    const refA = await comEvento(app, dados.a.eventoId, (c) => refDoEvento(c, dados.a.eventoId));
+    expect(refA).not.toBeNull();
+
+    // três criações atribuídas a A, uma sem atribuição, uma com ref desconhecido
+    for (let i = 0; i < 3; i++) await recordProductEvent(admin, "event_created", { originRef: refA });
+    await recordProductEvent(admin, "event_created");
+    await recordProductEvent(admin, "event_created", { originRef: "x".repeat(24) });
+
+    const auditoria: { motivo: string; em: Date }[] = [];
+    const resumo = await resumoAtribuicaoViral(agregador, (r) => auditoria.push(r));
+
+    expect(resumo.eventosOriginados).toBe(3);
+    expect(resumo.porOrigem).toEqual([{ eventoOrigemId: dados.a.eventoId, criados: 3 }]);
+    expect(auditoria.length).toBeGreaterThan(0);
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { memo, type ComponentType, type ReactNode } from "react";
+import Image from "next/image";
 import type { ModoInteracao } from "@albora/core";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { PostHeader } from "@albora/ui-web";
@@ -70,52 +71,55 @@ export const Post = memo(function Post({
         />
       </div>
 
-      <div className="relative mb-2.5 sm:mb-3 aspect-4/5" style={aspecto ? { aspectRatio: aspecto } : undefined}>
+      <div
+        className="relative mb-2.5 aspect-4/5 overflow-hidden rounded-media sm:mb-3"
+        style={aspecto ? { aspectRatio: aspecto } : undefined}
+      >
         {url ? (
           onAbrir ? (
             <button
               type="button"
               onClick={onAbrir}
               aria-label={rotuloAbrir}
-              className="block size-full cursor-pointer border-0 bg-transparent p-0"
+              className="block size-full cursor-pointer border-0 bg-superficie-alta p-0 transition-transform duration-instantaneo ease-mola active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               {isVideo ? (
                 <video
-                  className="feed-amanhece pointer-events-none block size-full bg-bg object-contain"
+                  className="feed-amanhece pointer-events-none block size-full object-contain object-top"
                   src={url}
                   playsInline
                   preload="metadata"
                   muted
                 />
               ) : (
-                <img
-                  className="feed-amanhece block size-full bg-bg object-contain"
+                <Image
+                  className="feed-amanhece object-contain object-top"
                   src={url}
                   alt=""
-                  loading="lazy"
-                  decoding="async"
+                  fill
+                  sizes="(max-width: 640px) 100vw, 50vw"
                 />
               )}
             </button>
           ) : isVideo ? (
             <video
-              className="feed-amanhece block size-full bg-bg object-contain"
+              className="feed-amanhece block size-full bg-superficie-alta object-contain object-top"
               src={url}
               controls
               playsInline
               preload="metadata"
             />
           ) : (
-            <img
-              className="feed-amanhece block size-full bg-bg object-contain"
+            <Image
+              className="feed-amanhece bg-superficie-alta object-contain object-top"
               src={url}
               alt={legenda || `Foto de ${autor}`}
-              loading="lazy"
-              decoding="async"
+              fill
+              sizes="(max-width: 640px) 100vw, 50vw"
             />
           )
         ) : (
-          <div className="feed-esperando absolute inset-[8%] rounded-token border border-linha" />
+          <div className="feed-esperando absolute inset-0 bg-superficie-alta" />
         )}
       </div>
 
@@ -137,9 +141,7 @@ export const Post = memo(function Post({
       </div>
 
       {legenda && (
-        <p className="mb-3 sm:mb-3.5 text-[0.875rem] leading-[1.68] text-ink">
-          {legenda}
-        </p>
+        <p className="tipo-caption mb-3 leading-[1.68] text-ink sm:mb-3.5">{legenda}</p>
       )}
     </article>
   );
@@ -152,7 +154,7 @@ export function PostLoading() {
         <span className="feed-esperando size-7.5 rounded-full bg-superficie-alta" />
         <span className="feed-esperando h-3.5 w-24 self-center rounded-pilula bg-superficie-alta" />
       </div>
-      <div className="feed-esperando aspect-4/5 rounded-token border border-linha" />
+      <div className="feed-esperando aspect-4/5 rounded-media bg-superficie-alta" />
     </article>
   );
 }

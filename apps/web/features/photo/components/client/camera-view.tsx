@@ -45,7 +45,7 @@ export function CameraView({
 
         <div className="relative min-h-0 flex-1 px-4 pb-2">
           {mission && (
-            <div className="absolute inset-x-0 top-2 z-[1]">
+            <div className="banner-missao absolute inset-x-0 top-2 z-[1]">
               <MissionBanner
                 index={mission.index}
                 total={mission.total}
@@ -82,9 +82,23 @@ export function CameraView({
           </div>
         ) : null}
       </div>
+      <style>{ESTILO_VISOR}</style>
     </GuestShell>
   );
 }
+
+/** Entrada sutil da missão: um corte instantâneo compete pela atenção que a foto merece — um fade+subida na curva-base (nunca a mola, reservada a toque) some no "não intrusivo" do brief. */
+const ESTILO_VISOR = `
+@keyframes visor-missao-entrar {
+  from { opacity: 0; transform: translateY(-0.5rem); }
+  to   { opacity: 1; transform: none; }
+}
+.banner-missao { animation: visor-missao-entrar var(--tempo-lento) var(--curva) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-missao { animation: none; }
+}
+`;
 
 function BackButton({ onClick }: { onClick: () => void }) {
   return (
@@ -92,7 +106,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
       type="button"
       aria-label="Voltar"
       onClick={onClick}
-      className="grid size-[3.375rem] shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-noite-vidro text-ink transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
+      className="grid size-[3.375rem] shrink-0 cursor-pointer place-items-center rounded-full border-0 bg-noite-vidro text-ink transition-transform duration-instantaneo ease-mola active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path
@@ -121,7 +135,7 @@ function PlaceToggle({
       type="button"
       aria-pressed={active}
       onClick={onClick}
-      className="cursor-pointer border-0 bg-transparent p-0 font-[inherit]"
+      className="cursor-pointer border-0 bg-transparent p-0 font-[inherit] transition-transform duration-instantaneo ease-mola active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100"
     >
       <Badge tone={active ? "accent" : "neutral"}>{children}</Badge>
     </button>
@@ -146,19 +160,20 @@ function ShutterControls({
         aria-label="Abrir rolo de fotos"
         onClick={onRoll}
         disabled={processing}
-        className="grid size-[3.375rem] shrink-0 place-items-center justify-self-start overflow-hidden rounded-[calc(var(--raio)*0.75)] border border-linha bg-superficie-alta transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] disabled:cursor-default disabled:opacity-40 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100"
+        className="grid size-[3.375rem] shrink-0 place-items-center justify-self-start overflow-hidden rounded-[calc(var(--raio)*0.75)] border border-linha bg-superficie-alta transition-transform duration-instantaneo ease-mola disabled:cursor-default disabled:opacity-40 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100"
       >
         <RecentPreview thumbs={recentThumbs} />
       </button>
 
+      {/* Disparo: alvo ≥64px (4.5rem = 72px), mola em duas camadas — anel recua, íris interna fecha um pouco mais — pra ler como clique físico, não só um botão que encolhe. */}
       <button
         type="button"
         aria-label="Fotografar"
         disabled={processing}
         onClick={onShutter}
-        className="grid size-[4.5rem] place-items-center justify-self-center rounded-full border-[3px] border-ink bg-transparent transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] disabled:cursor-default disabled:opacity-40 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100"
+        className="group grid size-[4.5rem] place-items-center justify-self-center rounded-full border-[3px] border-ink bg-transparent transition-transform duration-instantaneo ease-mola disabled:cursor-default disabled:opacity-40 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100"
       >
-        <span className="size-[3.625rem] rounded-full bg-acento transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] motion-reduce:transition-none" />
+        <span className="size-[3.625rem] rounded-full bg-acento transition-transform duration-instantaneo ease-mola group-active:scale-90 motion-reduce:transition-none motion-reduce:group-active:scale-100" />
       </button>
 
       <span aria-hidden="true" className="size-[3.375rem]" />

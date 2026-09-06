@@ -38,8 +38,15 @@ export type { FotoRecente, MetricasAoVivo } from "./event-metrics";
 export { lerMetricasAoVivo } from "./event-metrics";
 export type { EntradasPorVia, FunilAgregado } from "./funnel-aggregate";
 export { contarEntradasPorVia, contarSharesDoEvento, lerFunilAgregado } from "./funnel-aggregate";
-export type { RefDeCompartilhamento } from "./share-attribution";
-export { eventoDoRef, mintarRefDeCompartilhamento, refDoEvento } from "./share-attribution";
+export type { RefDeCompartilhamento, ResumoAtribuicaoViral } from "./share-attribution";
+export {
+  eventoDoRef,
+  isRefToken,
+  mintarRefDeCompartilhamento,
+  refDoEvento,
+  resumoAtribuicaoViral,
+  REF_TOKEN_RE,
+} from "./share-attribution";
 export { ErroEventoDoFunilInvalido, registrarEntradaDoFunil, registrarEventoDoFunil } from "./funnel-events";
 export type {
   CodigoPareamentoApp,
@@ -136,6 +143,7 @@ export {
   limiarDenuncias,
   listarEventosDoHost,
   paraEstadoDoEvento,
+  publicarEvento,
 } from "./moderation-event";
 
 export type { ComentarioParaRevisao, MidiaParaRevisao } from "./moderation-review-db";
@@ -379,7 +387,11 @@ export {
 } from "./billing";
 
 export type {
+  AtualizarFornecedorEntrada,
   BrandTokensDoFornecedor,
+  CriarFornecedorEntrada,
+  FornecedorCriado,
+  FornecedorDaConta,
   MarcaPublicaDoFornecedor,
   ResumoDoFornecedor,
   VendorEventSummary,
@@ -390,9 +402,14 @@ export type {
 } from "./vendor-portal";
 export {
   atualizarBrandTokensDoFornecedor,
+  atualizarFornecedor,
+  criarFornecedor,
   ErroBrandTokensInvalidos,
+  ErroDadosDeFornecedorInvalidos,
   ErroSemAcessoAoFornecedor,
+  ErroSlugDeFornecedorEmUso,
   eventosDoFornecedor,
+  fornecedorParaConta,
   marcaPublicaDoFornecedor,
   resumoDoFornecedor,
   roleForAccountOnVendor,
@@ -482,6 +499,13 @@ export { signableKeys } from "./media-signable";
 
 export type { MissaoInsight, HoraInsight } from "./insights";
 export { fotosPorMissao, fotosPorHora } from "./insights";
+
+export type { AceiteDeConsentimento, AceiteDeConsentimentoExterno } from "./consent-db";
+export { aceitesDeEntradaPorVersao, aceitesExternosPorVersao } from "./consent-db";
+/** English alias — preferred for new code. @see aceitesDeEntradaPorVersao */
+export { aceitesDeEntradaPorVersao as entryConsentAcceptancesByVersion } from "./consent-db";
+/** English alias — preferred for new code. @see aceitesExternosPorVersao */
+export { aceitesExternosPorVersao as externalConsentAcceptancesByVersion } from "./consent-db";
 
 export type { ClaimedItem } from "./moderation-queue";
 export {

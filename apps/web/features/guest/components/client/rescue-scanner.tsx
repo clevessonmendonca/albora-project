@@ -74,18 +74,20 @@ export function RescueScanner() {
 const ESTILO = `
 .resgate {
   margin-top: calc(var(--espaco) * 10);
-  padding-top: calc(var(--espaco) * 8);
-  border-top: 1px solid var(--linha);
+  padding: calc(var(--espaco) * 6) calc(var(--espaco) * 5);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: var(--shadow-suave);
   text-align: left;
   display: grid;
   gap: calc(var(--espaco) * 3);
 }
 .resgate-rotulo {
   margin: 0;
-  font-family: var(--fonte-titulo);
-  font-size: 0.7rem;
-  font-weight: 400;
-  letter-spacing: 0.28em;
+  font-family: var(--fonte-corpo);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ink-3);
 }
@@ -128,20 +130,21 @@ const ESTILO = `
   padding: 0 calc(var(--espaco) * 7);
   border: none;
   border-radius: var(--raio-pilula);
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--acento);
+  color: var(--sobre-acento);
+  box-shadow: var(--shadow-suave);
   cursor: pointer;
-  transition: transform var(--tempo-rapido) var(--curva), opacity var(--tempo-rapido) var(--curva);
+  transition: transform var(--instantaneo) var(--mola), opacity var(--tempo-rapido) var(--curva);
 }
 .resgate-primario:hover:not(:disabled) {
-  opacity: 0.88;
+  opacity: 0.9;
 }
 .resgate-primario:disabled {
   opacity: 0.4;
   cursor: default;
 }
 .resgate-primario:active:not(:disabled) {
-  transform: scale(0.972);
+  transform: scale(0.97);
 }
 .resgate-fino {
   font: inherit;
@@ -155,13 +158,14 @@ const ESTILO = `
   border: 1px solid var(--linha);
   border-radius: var(--raio-pilula);
   cursor: pointer;
-  transition: transform var(--tempo-rapido) var(--curva), opacity var(--tempo-rapido) var(--curva);
+  transition: transform var(--instantaneo) var(--mola), border-color var(--tempo-rapido) var(--curva), opacity var(--tempo-rapido) var(--curva);
 }
 .resgate-fino:hover {
-  opacity: 0.75;
+  border-color: var(--acento-texto);
+  opacity: 0.85;
 }
 .resgate-fino:active {
-  transform: scale(0.972);
+  transform: scale(0.97);
 }
 .resgate-primario:focus-visible,
 .resgate-fino:focus-visible {

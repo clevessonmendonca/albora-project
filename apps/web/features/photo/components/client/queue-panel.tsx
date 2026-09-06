@@ -46,7 +46,7 @@ export function QueueHeader({
         onClick={() => setAberto(true)}
         aria-haspopup="dialog"
         aria-expanded={aberto}
-        className="cursor-pointer border-0 bg-transparent p-0 font-[inherit] transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75"
+        className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center border-0 bg-transparent p-0 font-[inherit] transition-[opacity,transform] duration-instantaneo ease-mola hover:opacity-75 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100"
       >
         {pendentes > 0 ? (
           <QueueLabel pending={pendentes} />
@@ -191,7 +191,7 @@ function LinhaFila({
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-[0.9rem] font-medium text-ink">{video ? "Vídeo" : "Foto"}</span>
-        <span className={`mt-0.5 block text-[0.78rem] leading-[1.5] ${falhou ? "text-ink-2" : "text-ink-3"}`}>
+        <span className={`mt-0.5 block text-[0.78rem] leading-[1.5] ${falhou ? "text-critico" : "text-ink-3"}`}>
           {rotuloEstado(item, online)}
         </span>
         {item.tentativas > 0 && !falhou && (

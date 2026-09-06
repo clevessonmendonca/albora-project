@@ -57,9 +57,10 @@ export async function setupTestEvent(
         pack_id,
         starts_at,
         ends_at,
-        interaction_opens_at
+        interaction_opens_at,
+        status
       )
-      VALUES ($1, $2, $3, NOW(), NOW() + interval '6 hours', $4)
+      VALUES ($1, $2, $3, NOW(), NOW() + interval '6 hours', $4, 'active')
       RETURNING
         id,
         slug,

@@ -34,29 +34,41 @@ export function MissionCompletionToast({
     : "bottom-6";
 
   return (
-    <div
-      className={`fixed ${posicao} left-1/2 z-40 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-token border border-acento-borda bg-acento-superficie px-5 py-4 shadow-e2`}
-      role="status"
-      aria-live="polite"
-    >
-      <button
-        type="button"
-        onClick={onDismiss}
-        className="absolute right-2 top-2 cursor-pointer border-none bg-transparent p-1 text-ink-3 hover:text-ink"
-        aria-label="Fechar"
+    <>
+      <style>{`
+        @keyframes missaoToastEntra {
+          from { opacity:0; transform:translate(-50%, 0.75rem) scale(0.96); }
+          to   { opacity:1; transform:translate(-50%, 0) scale(1); }
+        }
+        .missao-toast-anima { animation: missaoToastEntra var(--tempo-lento) var(--mola) both; }
+        @media (prefers-reduced-motion: reduce) {
+          .missao-toast-anima { animation: none; }
+        }
+      `}</style>
+      <div
+        className={`missao-toast-anima fixed ${posicao} left-1/2 z-40 w-[calc(100%-2rem)] max-w-md elev-2 rounded-token border border-acento-borda bg-acento-superficie px-5 py-4`}
+        role="status"
+        aria-live="polite"
       >
-        ×
-      </button>
-      <p className="m-0 pr-6 font-titulo text-base leading-snug tracking-titulo text-ink">{title}</p>
-      {nextMissionTitle && nextMissionId && milestone !== "all" && (
-        <Link
-          href={photoPathForMission(slug, nextMissionId)}
+        <button
+          type="button"
           onClick={onDismiss}
-          className="mt-2 inline-block text-[0.8125rem] text-acento-texto no-underline hover:underline"
+          className="absolute right-2 top-2 grid size-8 cursor-pointer place-items-center rounded-token border-none bg-transparent text-ink-3 hover:text-ink"
+          aria-label="Fechar"
         >
-          Próxima: {nextMissionTitle}
-        </Link>
-      )}
-    </div>
+          ×
+        </button>
+        <p className="tipo-subtitle m-0 pr-6 text-ink">{title}</p>
+        {nextMissionTitle && nextMissionId && milestone !== "all" && (
+          <Link
+            href={photoPathForMission(slug, nextMissionId)}
+            onClick={onDismiss}
+            className="tipo-caption mt-2 inline-block text-acento-texto no-underline hover:underline"
+          >
+            Próxima: {nextMissionTitle}
+          </Link>
+        )}
+      </div>
+    </>
   );
 }

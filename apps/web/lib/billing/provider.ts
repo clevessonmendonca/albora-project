@@ -10,6 +10,7 @@ import type {
   CreateCheckoutResult,
   CreateVendorSubscriptionInput,
   CreateVendorSubscriptionResult,
+  PaymentSummary,
 } from "./types";
 
 async function asaasFetch(
@@ -124,6 +125,40 @@ function asaasProviderFromConfig(c: AsaasEnvConfig): BillingProvider {
       };
     },
 
+    async listPayments(customerId: string): Promise<PaymentSummary[]> {
+      const res = await asaasFetch(
+        `/payments?customer=${encodeURIComponent(customerId)}&limit=100`,
+        { method: "GET", apiKey: c.apiKey, baseUrl: c.baseUrl },
+      );
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`asaas.payments.list: ${res.status} ${text}`);
+      }
+      const body = (await res.json()) as {
+        data?: Array<{
+          id: string;
+          status: string;
+          value: number;
+          billingType?: string;
+          description?: string;
+          dateCreated?: string;
+          dueDate?: string;
+          invoiceUrl?: string;
+          bankSlipUrl?: string;
+        }>;
+      };
+      return (body.data ?? []).map((p) => ({
+        id: p.id,
+        status: p.status,
+        amountCents: Math.round((p.value ?? 0) * 100),
+        billingType: p.billingType ?? null,
+        description: p.description ?? null,
+        createdAt: p.dateCreated ?? new Date().toISOString(),
+        dueDate: p.dueDate ?? null,
+        invoiceUrl: p.invoiceUrl ?? p.bankSlipUrl ?? null,
+      }));
+    },
+
     parseWebhook,
     parseVendorWebhook,
   };
@@ -157,6 +192,9 @@ export function stubBillingProvider(): BillingProvider {
         invoiceUrl: null,
         status: "PENDING",
       };
+    },
+    async listPayments() {
+      return [];
     },
     parseWebhook,
     parseVendorWebhook,

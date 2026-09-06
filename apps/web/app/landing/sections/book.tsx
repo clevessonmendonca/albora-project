@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Heading, Label, Section, radiusStyle } from "../pieces";
 
 export function BookSection({ places }: { places: string[] }) {
@@ -5,12 +6,13 @@ export function BookSection({ places }: { places: string[] }) {
     <Section id="livro" reveal>
       <div className="grid grid-cols-[repeat(auto-fit,minmax(18.75rem,1fr))] items-center gap-[clamp(1.75rem,4vw,4.5rem)]">
         <div className="overflow-hidden rounded-superficie shadow-alta">
-          <img
+          <Image
             src="/landing/album.webp"
             alt="Álbum de fotos aberto sobre mesa de madeira"
-            loading="lazy"
-            decoding="async"
-            className="block w-full object-cover"
+            width={1920}
+            height={1072}
+            sizes="(min-width: 40rem) 50vw, 100vw"
+            className="block h-auto w-full object-cover"
             style={radiusStyle("var(--raio-superficie)")}
           />
         </div>

@@ -13,14 +13,17 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { persistedSize } from "@/lib/media-aspect";
 import { paraContadoresDaParede } from "./participation";
+import { useWallStream } from "./use-wall-stream";
 import {
   FOLGA_DE_RENOVACAO_MS,
   POLL_MIDIA_MS,
   ROTACAO_MS,
+  SSE_FALLBACK_MS,
   type Cena,
   type ContadoresDaParede,
   type FaseWall,
   type ItemApi,
+  type PaginaWallApi,
 } from "./types";
 
 export function useWallDisplay(
@@ -63,26 +66,7 @@ export function useWallDisplay(
     img.src = item.thumb;
   }, []);
 
-  const puxar = useCallback(async () => {
-    let resposta: Response;
-    try {
-      resposta = await fetch("/api/wall", { credentials: "same-origin", cache: "no-store" });
-    } catch {
-      return;
-    }
-    if (resposta.status === 401) {
-      onNaoAutorizado();
-      return;
-    }
-    if (!resposta.ok) return;
-
-    const corpo = (await resposta.json()) as {
-      itens: Omit<ItemApi, "expiraEm">[];
-      expiraEm: number;
-      panico?: boolean;
-      telaoModelos?: unknown;
-      contadores?: unknown;
-    };
+  const processarPagina = useCallback((corpo: PaginaWallApi) => {
     const agora = Date.now();
     setPanico(corpo.panico === true);
     setContadores(paraContadoresDaParede(corpo.contadores));
@@ -128,7 +112,24 @@ export function useWallDisplay(
     }
 
     setCarregou(true);
-  }, [medir, onNaoAutorizado]);
+  }, [medir]);
+
+  const puxar = useCallback(async () => {
+    let resposta: Response;
+    try {
+      resposta = await fetch("/api/wall", { credentials: "same-origin", cache: "no-store" });
+    } catch {
+      return;
+    }
+    if (resposta.status === 401) {
+      onNaoAutorizado();
+      return;
+    }
+    if (!resposta.ok) return;
+
+    const corpo = (await resposta.json()) as PaginaWallApi;
+    processarPagina(corpo);
+  }, [processarPagina, onNaoAutorizado]);
 
   const paraItemDoTelao = useCallback((): WallDisplayItem[] => {
     const itens: WallDisplayItem[] = [];
@@ -198,16 +199,45 @@ export function useWallDisplay(
     }
   }, [puxar]);
 
+  const streamHabilitado = fase === "exibindo";
+  const { payload: streamPayload, connected: streamConectado } = useWallStream(streamHabilitado);
+
+  // SSE é a fonte primária: cada payload novo do servidor alimenta o mesmo
+  // pipeline de processamento do polling, sem duplicar lógica de rotação/pesos.
+  useEffect(() => {
+    if (streamPayload) processarPagina(streamPayload);
+  }, [streamPayload, processarPagina]);
+
+  // Rotação independe da fonte de dados — nunca reinicia por causa de
+  // conectar/desconectar o SSE.
+  useEffect(() => {
+    if (fase !== "exibindo") return;
+    const pRot = window.setInterval(girar, ROTACAO_MS);
+    return () => window.clearInterval(pRot);
+  }, [fase, girar]);
+
+  // Primeira carga sempre via fetch — garante a primeira pintura mesmo se o
+  // SSE ainda não abriu (handshake, rede lenta, navegador sem EventSource).
   useEffect(() => {
     if (fase !== "exibindo") return;
     void puxar();
-    const pApoll = window.setInterval(() => void puxar(), POLL_MIDIA_MS);
-    const pRot = window.setInterval(girar, ROTACAO_MS);
+  }, [fase, puxar]);
+
+  // Rede de segurança: só liga o polling de 6s se o SSE ficar desconectado
+  // por mais de SSE_FALLBACK_MS. Reconectar o SSE cancela/limpa o polling.
+  useEffect(() => {
+    if (fase !== "exibindo" || streamConectado) return;
+
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    const timeoutId = setTimeout(() => {
+      intervalId = setInterval(() => void puxar(), POLL_MIDIA_MS);
+    }, SSE_FALLBACK_MS);
+
     return () => {
-      window.clearInterval(pApoll);
-      window.clearInterval(pRot);
+      clearTimeout(timeoutId);
+      if (intervalId !== null) clearInterval(intervalId);
     };
-  }, [fase, puxar, girar]);
+  }, [fase, puxar, streamConectado]);
 
   const itemDe = useCallback((id: string) => itensRef.current.get(id), []);
 

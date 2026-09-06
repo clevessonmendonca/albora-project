@@ -451,6 +451,8 @@ Telemetria **nunca** quebra o caminho do request. Envolvida em try/catch que eng
 
 Logs estruturados, campo fixo, **nunca PII crua** — ids, contagens, durações, códigos de erro.
 
+**Atribuição inbound do loop viral.** `?ref=<token>` na landing (`/`, `/15-anos`) é convertido pelo `apps/web/middleware.ts` em cookie `albora_ref` (httpOnly, 30 min). O beacon da landing envia `originRef` lido da URL; o handler de criação de evento lê o cookie e grava `product_events.origin_ref` em `account_created`/`event_created`. A reconciliação `origin_ref → evento de origem` usa `eventoDoRef` (BYPASSRLS, auditado) — único caminho que cruza eventos. `product_events` segue sem `event_id`. Todo CTA viral aponta para a landing, nunca direto ao admin.
+
 ---
 
 ## 13. Segurança e LGPD

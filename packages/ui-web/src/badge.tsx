@@ -8,6 +8,8 @@ const badgeVariants = cva({
       neutral: "bg-superficie-alta text-ink-2",
       accent: "bg-acento text-sobre-acento",
       outline: "border border-linha text-ink-2",
+      /** Estado crítico/bloqueado — semântica separada do acento (pausado, fechado, alerta). */
+      critico: "border border-critico bg-critico/10 text-critico",
     },
   },
   defaultVariants: { tone: "neutral" },
@@ -18,7 +20,7 @@ export function Badge({
   className,
   children,
 }: {
-  tone?: "neutral" | "accent" | "outline";
+  tone?: "neutral" | "accent" | "outline" | "critico";
   className?: string;
   children: ReactNode;
 }) {

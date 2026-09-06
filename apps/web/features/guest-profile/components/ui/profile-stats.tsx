@@ -10,14 +10,14 @@ export function ProfileStats({
   totalCurtidas: number;
 }) {
   return (
-    <dl className="m-0 flex gap-6">
+    <dl className="m-0 flex gap-7">
       <div>
-        <dt className="text-[0.6875rem] uppercase tracking-rotulo text-ink-3">Fotos</dt>
-        <dd className="m-0 font-titulo text-[1.125rem] tracking-titulo text-ink">{totalFotos}</dd>
+        <dt className="tipo-label m-0 text-ink-3">Fotos</dt>
+        <dd className="m-0 tipo-subtitle text-ink">{totalFotos}</dd>
       </div>
       <div>
-        <dt className="text-[0.6875rem] uppercase tracking-rotulo text-ink-3">Curtidas</dt>
-        <dd className="m-0 font-titulo text-[1.125rem] tracking-titulo text-ink">{totalCurtidas}</dd>
+        <dt className="tipo-label m-0 text-ink-3">Curtidas</dt>
+        <dd className="m-0 tipo-subtitle text-ink">{totalCurtidas}</dd>
       </div>
     </dl>
   );
