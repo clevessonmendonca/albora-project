@@ -1,21 +1,10 @@
 import type { Pool } from "pg";
-import { logger, type Actor } from "@albora/core";
+import { logger, VENDOR_PLAN_PRICE_CENTS, type Actor } from "@albora/core";
+// Re-export fino: quem já importava de "./revenue" continua, com a fonte única em core.
+export { VENDOR_PLAN_PRICE_CENTS };
 import { withPlatformAggregation } from "../platform/aggregation";
 import type { ApproximateMetric } from "./types";
 
-/**
- * Duplicado de `apps/web/lib/billing/types.ts` — `packages/application` não
- * pode importar de `apps/web` (direção é `app → application`, nunca o
- * contrário). Mesmo padrão do rate-limiter da Onda A (T10, nota 6). Se o
- * preço mudar lá, muda aqui também — os dois lados citam um ao outro em
- * comentário.
- * @see apps/web/lib/billing/types.ts VENDOR_PLAN_PRICE_CENTS
- */
-export const VENDOR_PLAN_PRICE_CENTS: Record<"starter" | "studio" | "agency", number> = {
-  starter: 9900,
-  studio: 24900,
-  agency: 59900,
-};
 
 
 export type LinhaPlanoStatus = { plan: string; status: string; n: number };

@@ -100,8 +100,4 @@ export type BillingProvider = {
 export const CELEBRATION_PRICE_CENTS = 19900;
 
 /** Preço mensal por tier (Modelo A, §4.1/§4.4) — provisório de MVP; ajustar aqui não exige migration. */
-export const VENDOR_PLAN_PRICE_CENTS: Record<VendorPlan, number> = {
-  starter: 9900,
-  studio: 24900,
-  agency: 59900,
-};
+export { VENDOR_PLAN_PRICE_CENTS } from "@albora/core";
