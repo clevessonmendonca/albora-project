@@ -97,3 +97,8 @@ export type { StartImpersonationInput, StartImpersonationResult } from "./impers
 export { startImpersonation } from "./impersonation/start-impersonation";
 export type { EndImpersonationInput } from "./impersonation/end-impersonation";
 export { endImpersonation } from "./impersonation/end-impersonation";
+export type { ImpersonationRequestRow } from "./impersonation/get-active-impersonation";
+export { getActiveImpersonationForStaff } from "./impersonation/get-active-impersonation";
+export { getLatestImpersonationRequestForRequesterAndAccount } from "./impersonation/get-latest-impersonation-request";
+export type { ListPendingImpersonationRequestsInput } from "./impersonation/list-pending-impersonation-requests";
+export { listPendingImpersonationRequests } from "./impersonation/list-pending-impersonation-requests";

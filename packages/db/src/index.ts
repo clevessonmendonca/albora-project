@@ -200,6 +200,7 @@ export {
   endImpersonationRequestOnClient,
   getActiveImpersonationForStaff,
   getImpersonationRequestById,
+  getLatestImpersonationRequestForRequesterAndAccount,
   IMPERSONATION_TTL_MINUTES,
   listPendingImpersonationRequestsAdmin,
   startImpersonationRequestOnClient,

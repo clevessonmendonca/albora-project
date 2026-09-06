@@ -8,6 +8,8 @@ import {
   endImpersonationRequestOnClient,
   getActiveImpersonationForStaff,
   getImpersonationRequestById,
+  getLatestImpersonationRequestForRequesterAndAccount,
+  listPendingImpersonationRequestsAdmin,
   startImpersonationRequestOnClient,
 } from "./impersonation";
 
@@ -279,5 +281,65 @@ describe("impersonation: ciclo de vida pending -> approved -> active -> ended", 
       [pedidoId],
     );
     expect(rows[0]?.revoked_at).not.toBeNull();
+  });
+});
+
+describe("listPendingImpersonationRequestsAdmin", () => {
+  it("lista só pending, mais antigo primeiro — aprovado/negado somem da lista", async () => {
+    await prepararBanco();
+    const { requesterId, approverId, accountId } = await fixture();
+    const client = await app.connect();
+    try {
+      await client.query("BEGIN");
+      const primeiro = await createImpersonationRequestOnClient(client, {
+        requesterStaffId: requesterId, targetAccountId: accountId, reason: "ticket 1",
+      });
+      const segundo = await createImpersonationRequestOnClient(client, {
+        requesterStaffId: requesterId, targetAccountId: accountId, reason: "ticket 2",
+      });
+      await approveImpersonationRequestOnClient(client, { id: segundo.id, approverStaffId: approverId, ttlMinutes: 30 });
+      await client.query("COMMIT");
+
+      const pendentes = await listPendingImpersonationRequestsAdmin(app);
+      expect(pendentes.map((p) => p.id)).toEqual([primeiro.id]);
+    } finally {
+      client.release();
+    }
+  });
+});
+
+describe("getLatestImpersonationRequestForRequesterAndAccount", () => {
+  it("sem pedido para este par staff/conta devolve null", async () => {
+    await prepararBanco();
+    const { requesterId, accountId } = await fixture();
+    const resultado = await getLatestImpersonationRequestForRequesterAndAccount(app, requesterId, accountId);
+    expect(resultado).toBeNull();
+  });
+
+  it("devolve o pedido mais recente deste staff para esta conta, não o de outro staff nem de outra conta", async () => {
+    await prepararBanco();
+    const { requesterId, accountId } = await fixture();
+    const { requesterId: outroRequesterId } = await fixture();
+    const { accountId: outraContaId } = await fixture();
+    const client = await app.connect();
+    try {
+      await client.query("BEGIN");
+      await createImpersonationRequestOnClient(client, {
+        requesterStaffId: requesterId, targetAccountId: outraContaId, reason: "conta errada",
+      });
+      await createImpersonationRequestOnClient(client, {
+        requesterStaffId: outroRequesterId, targetAccountId: accountId, reason: "staff errado",
+      });
+      const maisRecente = await createImpersonationRequestOnClient(client, {
+        requesterStaffId: requesterId, targetAccountId: accountId, reason: "o pedido certo",
+      });
+      await client.query("COMMIT");
+
+      const resultado = await getLatestImpersonationRequestForRequesterAndAccount(app, requesterId, accountId);
+      expect(resultado?.id).toBe(maisRecente.id);
+      expect(resultado?.reason).toBe("o pedido certo");
+    } finally {
+      client.release();
+    }
   });
 });

@@ -195,3 +195,24 @@ export async function listPendingImpersonationRequestsAdmin(pool: Pool): Promise
   const { rows } = await pool.query<ImpersonationDbRow>(`${SELECT} WHERE status = 'pending' ORDER BY created_at ASC`);
   return rows.map(toRow);
 }
+
+/**
+ * Pedido mais recente deste staff para esta conta — é o que o Drawer de
+ * "Ver como" (T10) usa pra saber o que mostrar: formulário (sem pedido, ou
+ * `ended`/`denied`), "aguardando aprovação" (`pending`), "iniciar sessão"
+ * (`approved` com `expires_at` no futuro) ou "expirado" (`approved` com
+ * `expires_at` no passado — sem botão de iniciar). Não filtra por status:
+ * quem decide o que fazer com cada status é a UI, não a query.
+ */
+export async function getLatestImpersonationRequestForRequesterAndAccount(
+  pool: Pool,
+  requesterStaffId: string,
+  targetAccountId: string,
+): Promise<ImpersonationRequestRow | null> {
+  const { rows } = await pool.query<ImpersonationDbRow>(
+    `${SELECT} WHERE requester_staff_id = $1 AND target_account_id = $2 ORDER BY created_at DESC LIMIT 1`,
+    [requesterStaffId, targetAccountId],
+  );
+  const row = rows[0];
+  return row ? toRow(row) : null;
+}

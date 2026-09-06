@@ -1,6 +1,15 @@
-import { describe, expect, it } from "vitest";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
 import type { Actor } from "@albora/core";
-import { groupedVisibleNavItems, navBadgeFor, visibleNavItems } from "./console-nav";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/console",
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+vi.mock("@/features/console/actions", () => ({ signOutAction: vi.fn() }));
+
+import { ConsoleNav, groupedVisibleNavItems, navBadgeFor, visibleNavItems } from "./console-nav";
 
 function actor(roles: Actor["roles"]): Actor {
   return { staffUserId: "s1", roles, sessionId: "sess", requestId: "req", reauthenticatedAt: null };
@@ -53,5 +62,24 @@ describe("navBadgeFor", () => {
       count: 3,
       critico: true,
     });
+  });
+});
+
+describe("ConsoleNav — banner de impersonação no rodapé", () => {
+  it("rodapé mostra o banner de impersonação quando ativo", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(ConsoleNav, {
+        actor: actor(["support"]),
+        activeImpersonation: { id: "imp-1", targetAccountId: "c1", expiresAt: new Date() },
+      }),
+    );
+    expect(html).toContain("Você está vendo como");
+  });
+
+  it("rodapé não mostra o banner sem impersonação ativa", () => {
+    const html = renderToStaticMarkup(
+      React.createElement(ConsoleNav, { actor: actor(["support"]), activeImpersonation: null }),
+    );
+    expect(html).not.toContain("Você está vendo como");
   });
 });

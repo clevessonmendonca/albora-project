@@ -1,23 +1,38 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { resolveActorMock, getAccountMock, RevealPiiButtonMock, DeleteAccountDangerMock } = vi.hoisted(() => ({
+const {
+  resolveActorMock,
+  getAccountMock,
+  getLatestImpersonationRequestForRequesterAndAccountMock,
+  RevealPiiButtonMock,
+  DeleteAccountDangerMock,
+  ImpersonationRequestDrawerMock,
+} = vi.hoisted(() => ({
   resolveActorMock: vi.fn(),
   getAccountMock: vi.fn(),
+  getLatestImpersonationRequestForRequesterAndAccountMock: vi.fn(),
   // Mock só pra identidade (comparado por referência abaixo) — evita puxar
   // a cadeia real de `reveal-pii-button.tsx` -> `@/features/console/actions`
   // -> `@albora/db`/`@/lib/email` só pra testar o gate de capacidade.
   RevealPiiButtonMock: vi.fn(() => null),
   DeleteAccountDangerMock: vi.fn(() => null),
+  ImpersonationRequestDrawerMock: vi.fn(() => null),
 }));
 
 vi.mock("@/lib/console/actor", () => ({ resolveActor: resolveActorMock }));
 vi.mock("@/lib/db", () => ({ getPool: vi.fn(), getAggregatorPool: vi.fn() }));
-vi.mock("@albora/application", () => ({ getAccount: getAccountMock }));
+vi.mock("@albora/application", () => ({
+  getAccount: getAccountMock,
+  getLatestImpersonationRequestForRequesterAndAccount: getLatestImpersonationRequestForRequesterAndAccountMock,
+}));
 vi.mock("@/features/console/components/client/reveal-pii-button", () => ({
   RevealPiiButton: RevealPiiButtonMock,
 }));
 vi.mock("@/features/console/components/client/delete-account-danger", () => ({
   DeleteAccountDanger: DeleteAccountDangerMock,
+}));
+vi.mock("@/features/console/components/client/impersonation-request-drawer", () => ({
+  ImpersonationRequestDrawer: ImpersonationRequestDrawerMock,
 }));
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(),
@@ -29,6 +44,7 @@ vi.mock("next/navigation", () => ({
 import AccountDetailPage from "./page";
 import { RevealPiiButton } from "@/features/console/components/client/reveal-pii-button";
 import { DeleteAccountDanger } from "@/features/console/components/client/delete-account-danger";
+import { ImpersonationRequestDrawer } from "@/features/console/components/client/impersonation-request-drawer";
 
 /** `<>{EntityHeader}{div}</>` — `actions` é prop do primeiro filho do Fragment. */
 function acoesDoCabecalho(pageElement: unknown): { type: unknown; props?: { children?: unknown } } | undefined {
@@ -62,6 +78,10 @@ function contaBase() {
     auditTrail: [],
   };
 }
+
+beforeEach(() => {
+  getLatestImpersonationRequestForRequesterAndAccountMock.mockReset().mockResolvedValue(null);
+});
 
 describe("AccountDetailPage", () => {
   it("conta inexistente chama notFound", async () => {
@@ -142,12 +162,14 @@ describe("AccountDetailPage", () => {
     expect(texto).not.toContain("convidado-");
   });
 
-  it("com accounts.pii.reveal mostra o botão de revelar contato", async () => {
+  it("com accounts.pii.reveal mostra o botão de revelar contato — support também tem impersonate.request", async () => {
     resolveActorMock.mockResolvedValueOnce({ ...actor(), roles: ["support"] });
     getAccountMock.mockResolvedValueOnce(contaBase());
 
     const element = await AccountDetailPage({ params: Promise.resolve({ id: "acc-1" }) });
-    expect(acoesDoCabecalho(element)?.type).toBe(RevealPiiButton);
+    // `support` tem `accounts.pii.reveal` E `impersonate.request` — dois
+    // botões, não um elemento isolado.
+    expect(tiposDosFilhos(acoesDoCabecalho(element))).toEqual([RevealPiiButton, ImpersonationRequestDrawer]);
   });
 
   it("sem accounts.pii.reveal não mostra o botão", async () => {
@@ -167,13 +189,54 @@ describe("AccountDetailPage", () => {
     expect(tiposDosFilhos(acoes)).toEqual([RevealPiiButton, DeleteAccountDanger]);
   });
 
-  it("sem lgpd.delete_account (support só tem accounts.pii.reveal) não mostra o botão de excluir", async () => {
+  it("sem lgpd.delete_account (support não tem essa capacidade) não mostra o botão de excluir", async () => {
     resolveActorMock.mockResolvedValueOnce({ ...actor(), roles: ["support"] });
     getAccountMock.mockResolvedValueOnce(contaBase());
 
     const element = await AccountDetailPage({ params: Promise.resolve({ id: "acc-1" }) });
-    // `support` não tem `lgpd.delete_account` — `actions` continua sendo só o
-    // botão de revelar (elemento isolado, não um Fragment com dois filhos).
-    expect(acoesDoCabecalho(element)?.type).toBe(RevealPiiButton);
+    const tipos = tiposDosFilhos(acoesDoCabecalho(element));
+    expect(tipos).not.toContain(DeleteAccountDanger);
+  });
+
+  it("com impersonate.request (support) mostra o Drawer de Ver como", async () => {
+    resolveActorMock.mockResolvedValueOnce({ ...actor(), roles: ["support"] });
+    getAccountMock.mockResolvedValueOnce(contaBase());
+
+    const element = await AccountDetailPage({ params: Promise.resolve({ id: "acc-1" }) });
+    const tipos = tiposDosFilhos(acoesDoCabecalho(element));
+    expect(tipos).toContain(ImpersonationRequestDrawer);
+  });
+
+  it("sem impersonate.request (compliance) não mostra o Drawer de Ver como", async () => {
+    resolveActorMock.mockResolvedValueOnce({ ...actor(), roles: ["compliance"] });
+    getAccountMock.mockResolvedValueOnce(contaBase());
+
+    const element = await AccountDetailPage({ params: Promise.resolve({ id: "acc-1" }) });
+    const tipos = tiposDosFilhos(acoesDoCabecalho(element));
+    expect(tipos).not.toContain(ImpersonationRequestDrawer);
+    expect(getLatestImpersonationRequestForRequesterAndAccountMock).not.toHaveBeenCalled();
+  });
+
+  it("owner (também tem impersonate.request) recebe o pedido de impersonação mais recente pra alimentar o Drawer", async () => {
+    resolveActorMock.mockResolvedValueOnce(actor());
+    getAccountMock.mockResolvedValueOnce(contaBase());
+    getLatestImpersonationRequestForRequesterAndAccountMock.mockResolvedValueOnce({
+      id: "imp-1",
+      requesterStaffId: "s1",
+      approverStaffId: null,
+      targetAccountId: "acc-1",
+      reason: "ticket p1",
+      status: "pending",
+      createdAt: new Date(),
+      approvedAt: null,
+      startedAt: null,
+      expiresAt: null,
+      endedAt: null,
+    });
+
+    const element = await AccountDetailPage({ params: Promise.resolve({ id: "acc-1" }) });
+    expect(getLatestImpersonationRequestForRequesterAndAccountMock).toHaveBeenCalledWith(undefined, "s1", "acc-1");
+    const texto = JSON.stringify(element);
+    expect(texto).toContain("imp-1");
   });
 });

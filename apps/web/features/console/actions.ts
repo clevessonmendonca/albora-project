@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
   applySubscriptionCourtesy,
+  approveImpersonation,
   assignTicket,
   cancelSubscription as cancelSubscriptionUseCase,
   changeSubscriptionPlan,
@@ -14,12 +15,16 @@ import {
   completeStaffReauth,
   createDsarRequest,
   deleteAccountOnRequest,
+  denyImpersonation,
+  endImpersonation,
   ReauthRequiredError,
   refundPayment,
+  requestImpersonation,
   requestStaffLogin,
   requestStaffReauth,
   respondTicket,
   revealAccountPii,
+  startImpersonation,
   updateDsarRequest,
   updateTicketPriority,
   updateTicketStatus,
@@ -420,5 +425,80 @@ export async function deleteAccountAction(accountId: string, reason: string): Pr
     if (erro instanceof ReauthRequiredError) return { ok: false, error: "reautenticação exigida", reauthRequired: true };
     if (erro instanceof CommandDeniedError) return { ok: false, error: erro.message };
     throw erro;
+  }
+}
+
+/**
+ * Impersonação (T9/T10): cada ação chama seu comando por `executeCommand`
+ * (única exceção documentada é a própria criação do pedido — ver comentário
+ * de `requestImpersonation`, que não passa por `executeCommand` porque
+ * `impersonate.request` tem política incondicional `needsApproval`; o
+ * pedido pendente replica a garantia do envelope manualmente). O motivo é
+ * sempre digitado pelo operador em `requestImpersonationAction` e
+ * `approveImpersonationAction`/`denyImpersonationAction` — decisão sobre a
+ * conta de outra pessoa pede justificativa por extenso, igual DSAR.
+ *
+ * `startImpersonationAction`/`endImpersonationAction` não pedem motivo
+ * novo ao operador: iniciar é continuação do pedido já aprovado (motivo já
+ * registrado na aprovação) e encerrar é sempre a mesma ação substantiva —
+ * mesma disciplina de `respondTicketAction` (T5), que também deriva o
+ * motivo em vez de pedir um livre.
+ */
+export async function requestImpersonationAction(accountId: string, reason: string): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await requestImpersonation({ pool: getPool() }, { actor, reason, targetAccountId: accountId });
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+export async function approveImpersonationAction(requestId: string, reason: string): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await approveImpersonation({ pool: getPool() }, { actor, reason, requestId });
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+export async function denyImpersonationAction(requestId: string, reason: string): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await denyImpersonation({ pool: getPool() }, { actor, reason, requestId });
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+/** Só quem pediu pode iniciar a própria janela aprovada — `startImpersonation` (T9) já garante isso dentro do comando. */
+export async function startImpersonationAction(requestId: string): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await startImpersonation(
+      { pool: getPool(), sessionSecret: config().sessionSecret },
+      { actor, reason: "início de sessão aprovada", requestId },
+    );
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
+  }
+}
+
+export async function endImpersonationAction(requestId: string): Promise<SimpleActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+  try {
+    await endImpersonation({ pool: getPool() }, { actor, reason: "encerrado pelo operador", requestId });
+    return { ok: true };
+  } catch (erro) {
+    return traduzErroDeComando(erro);
   }
 }

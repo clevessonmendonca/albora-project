@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { hasCapability, type Actor, type Capability, type StaffRole } from "@albora/core";
 import { StatusBadge } from "@albora/ui-web";
 import { signOutAction } from "@/features/console/actions";
+import { ImpersonationBanner, type ActiveImpersonation } from "@/features/console/components/client/impersonation-banner";
 
 const ROLE_LABELS: Readonly<Record<StaffRole, string>> = {
   owner: "Owner",
@@ -126,7 +127,15 @@ function NavLink({
  * o botão, o pano de fundo e a lista viram `position: fixed` e não dependem
  * mais da largura do ancestral.
  */
-export function ConsoleNav({ actor, counts }: { actor: Actor; counts?: ConsoleNavCounts | undefined }) {
+export function ConsoleNav({
+  actor,
+  counts,
+  activeImpersonation = null,
+}: {
+  actor: Actor;
+  counts?: ConsoleNavCounts | undefined;
+  activeImpersonation?: ActiveImpersonation | null;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const groups = groupedVisibleNavItems(actor);
@@ -180,6 +189,7 @@ export function ConsoleNav({ actor, counts }: { actor: Actor; counts?: ConsoleNa
         ))}
 
         <div className="mt-auto flex flex-col gap-2 border-t border-linha pt-4 min-[900px]:max-[1279px]:hidden">
+          {activeImpersonation && <ImpersonationBanner active={activeImpersonation} />}
           <span className="tipo-den-corpo truncate text-ink" title={actor.staffUserId}>
             {actor.staffUserId}
           </span>
