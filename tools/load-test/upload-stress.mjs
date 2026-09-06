@@ -1,3 +1,4 @@
+/* global __ENV, open -- globais do runtime do k6, não do Node: este arquivo roda no k6, não em node. */
 import http from "k6/http";
 import { check, sleep } from "k6";
 import { Rate, Trend } from "k6/metrics";
@@ -70,7 +71,7 @@ export default function () {
   let presignData;
   try {
     presignData = presignRes.json();
-  } catch (e) {
+  } catch {
     uploadFailRate.add(1);
     return;
   }

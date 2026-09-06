@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { SSE_RECONEXAO_MS, type PaginaWallApi } from "./types";
 
 /**

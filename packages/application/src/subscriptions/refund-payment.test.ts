@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type pg from "pg";
 import { afterAll, beforeAll } from "vitest";
 import { prepararBanco } from "@albora/db/testes/banco";
-import { ApprovalRequiredError, CommandDeniedError } from "../envelope/errors";
+import { ApprovalRequiredError } from "../envelope/errors";
 import { refundPayment } from "./refund-payment";
 
 let app: pg.Pool;

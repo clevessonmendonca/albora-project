@@ -42,7 +42,7 @@ describe("searchConsole", () => {
 
   it("engineering tem events.read e tickets.read mas não accounts.read — busca por e-mail não acha a conta", async () => {
     await prepararBanco();
-    const { a } = await semear(admin);
+    await semear(admin); // cria a conta que a busca NÃO deve encontrar
     const resultados = await searchConsole(
       { pool: app, aggregatorPool: agregador },
       { actor: actor(["engineering"]), reason: "⌘K", query: "anfitriao-a" },

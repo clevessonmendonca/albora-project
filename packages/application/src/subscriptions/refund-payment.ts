@@ -1,6 +1,5 @@
 import type { Pool } from "pg";
-import type { Actor, Capability } from "@albora/core";
-import { REFUND_APPROVAL_THRESHOLD_CENTS } from "@albora/core";
+import type { Actor } from "@albora/core";
 import { executeCommand } from "../envelope/command";
 import type { SubscriptionBillingPort } from "./billing-port";
 

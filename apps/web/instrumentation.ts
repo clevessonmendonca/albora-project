@@ -18,7 +18,7 @@ export async function onRequestError(
     const { captureRequestError, withScope, setTag } = await import("@sentry/nextjs");
 
     // Tag with critical route paths for alerting
-    const [error, request] = args;
+    const [_error, request] = args;
     const path = request.path || "";
 
     const criticalPaths = [

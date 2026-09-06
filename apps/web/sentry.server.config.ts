@@ -7,7 +7,7 @@ if (process.env.SENTRY_DSN) {
     tracesSampleRate: 0.1,
     serverName: process.env.VERCEL_ENV || process.env.APP_ENV || "dev",
     // Critical routes: capture 100% of errors from these paths
-    beforeSend(event, hint) {
+    beforeSend(event, _hint) {
       const request = event.request;
       const path = request?.url ? new URL(request.url).pathname : "";
 
