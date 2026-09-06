@@ -213,3 +213,18 @@ summary:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+/* Hero: linha de escaneio do QR do convidado — transform-only (GPU).
+   Desligada automaticamente pelo bloco de reduced-motion acima. */
+@keyframes escaneia {
+  0%,
+  100% {
+    transform: translateY(0.4rem);
+  }
+  50% {
+    transform: translateY(var(--escaneia-dist, 7rem));
+  }
+}
+.escaneia-linha {
+  animation: escaneia 2.8s var(--curva) infinite;
+}
