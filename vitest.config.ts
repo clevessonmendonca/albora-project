@@ -5,7 +5,7 @@ import { defineConfig } from "vitest/config";
 // (`pnpm test:isolamento`). Fora dali ela não é pulada por conveniência:
 // é que uma falha de isolamento perdida no meio de "testes falharam"
 // deixa de parecer o que é.
-const EXCLUDE = ["**/node_modules/**", "**/dist/**", "spike/**", "packages/db/**", "packages/application/**"];
+const EXCLUDE = ["**/node_modules/**", "**/dist/**", "spike/**", "packages/db/**", "packages/application/**", "apps/web/lib/console/staff-session.test.ts"];
 
 export default defineConfig({
   resolve: {
