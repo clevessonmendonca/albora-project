@@ -147,11 +147,13 @@ export {
   listarMidiaParaRevisao,
 } from "./moderation-review-db";
 
-export type { UploadPendenteDeClassificacao } from "./classificador-db";
+export type { UploadPendenteDeClassificacao, UploadParaClassificar } from "./classificador-db";
 export {
   TETO_DO_CLASSIFICADOR,
   gravarVeredictoUpload,
   listarUploadsPendentesDeClassificacao,
+  listEventsWithOrphanedUploads,
+  buscarUploadsParaClassificar,
 } from "./classificador-db";
 
 export type { ContextoCompartilharDb } from "./share-db";
@@ -477,3 +479,13 @@ export { aceitesDeEntradaPorVersao, aceitesExternosPorVersao } from "./consent-d
 export { aceitesDeEntradaPorVersao as entryConsentAcceptancesByVersion } from "./consent-db";
 /** English alias — preferred for new code. @see aceitesExternosPorVersao */
 export { aceitesExternosPorVersao as externalConsentAcceptancesByVersion } from "./consent-db";
+
+export type { ClaimedItem } from "./moderation-queue";
+export {
+  claimNextForModeration,
+  completeModeration,
+  enqueueModeration,
+  failModeration,
+  listEventsWithPendingModeration,
+  reclaimStaleModeration,
+} from "./moderation-queue";

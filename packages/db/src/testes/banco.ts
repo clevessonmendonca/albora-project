@@ -80,8 +80,17 @@ export async function semear(admin: pg.Pool) {
        VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 800000) RETURNING id`,
       [eventoId, sessaoId, `events/${eventoId}/2026/08/foto/full`],
     );
+    const uploadId = upload[0].id as string;
 
-    return { eventoId, sessaoId, uploadId: upload[0].id as string };
+    // Sem isto o teste de isolamento (isolamento.test.ts) exercitaria
+    // photo_moderation com zero linhas — provaria isolamento por vacuidade,
+    // não por filtro de fato.
+    await admin.query(
+      `INSERT INTO photo_moderation (upload_id, event_id) VALUES ($1, $2)`,
+      [uploadId, eventoId],
+    );
+
+    return { eventoId, sessaoId, uploadId };
   };
 
   return {
