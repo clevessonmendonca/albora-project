@@ -93,12 +93,23 @@ export async function streamObject(key: string): Promise<ReadableStream<Uint8Arr
 }
 
 const TETO_DA_THUMB = 512 * 1024;
+const READ_THUMB_TIMEOUT_MS = 5_000;
 
-/** Lê a thumb para o classificador (spec 011) — fora do crítico; teto 512 KiB: maior que isso não é thumb e o classificador cala. */
+/**
+ * Lê a thumb para o classificador (spec 011) — fora do crítico; teto 512
+ * KiB: maior que isso não é thumb e o classificador cala.
+ *
+ * `AbortSignal.timeout`, mesmo padrão de `inspectObject` acima: sem teto,
+ * uma conexão pendurada com o R2 trava `classifyPendingForEvent`
+ * indefinidamente com o lote inteiro em `claimed` — é o que torna alcançável
+ * o cenário de `reclaimStaleModeration` reivindicar itens que um worker
+ * ainda vivo está processando.
+ */
 export async function readThumb(key: string): Promise<Uint8Array | null> {
   const res = await client().fetch(objectUrl(key).toString(), {
     method: "GET",
     headers: { range: `bytes=0-${TETO_DA_THUMB - 1}` },
+    signal: AbortSignal.timeout(READ_THUMB_TIMEOUT_MS),
   });
 
   if (res.status === 404) return null;

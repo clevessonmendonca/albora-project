@@ -14,6 +14,7 @@ import {
   confirmUpload as confirmUploadDB,
   createStory,
   challengeBelongsToEvent,
+  enqueueModeration,
   UploadConflictError,
   eventTimeZone,
   eventPack,
@@ -196,6 +197,26 @@ export async function confirmUpload(
           height: tamanho?.height ?? null,
           promptKey: prompt,
         });
+
+        // Enfileirar moderação (degradável — o disparo passa a ser o confirm,
+        // não mais o poll do telão; a fila é estado, então entra na mesma
+        // transação. Savepoint porque isso não pode derrubar o confirm: o
+        // caminho crítico depende só de object storage e Postgres, moderação
+        // degrada.)
+        await c.query("SAVEPOINT enfileirar_moderacao");
+        try {
+          await enqueueModeration(c, {
+            uploadId: input.uploadId,
+            eventId: input.eventoId,
+          });
+          await c.query("RELEASE SAVEPOINT enfileirar_moderacao");
+        } catch {
+          await c.query("ROLLBACK TO SAVEPOINT enfileirar_moderacao");
+          console.warn("confirm.moderacao_falhou_ao_enfileirar", {
+            eventoId: input.eventoId,
+            uploadId: input.uploadId,
+          });
+        }
 
         // Criar story (degradável)
         if (input.story === true) {

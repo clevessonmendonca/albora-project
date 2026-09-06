@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   classifyPendingForEvent,
+  enqueueOrphanedUploads,
   type ClassifierDependencies,
+  type OrphanEnqueueDependencies,
 } from "./classify";
-import type { UploadPendenteDeClassificacao } from "@albora/db";
+import type { ClaimedItem, UploadParaClassificar } from "@albora/db";
 
 const EVENTO = "11111111-1111-1111-1111-111111111111";
+const UPLOAD = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 
 function jpegMinimo(): Uint8Array {
   const bytes = new Uint8Array(32);
@@ -15,91 +18,141 @@ function jpegMinimo(): Uint8Array {
   return bytes;
 }
 
-function pendente(parcial: Partial<UploadPendenteDeClassificacao> = {}): UploadPendenteDeClassificacao {
+function claimado(parcial: Partial<ClaimedItem> = {}): ClaimedItem {
+  return { uploadId: UPLOAD, eventId: EVENTO, attempts: 1, ...parcial };
+}
+
+function upload(parcial: Partial<UploadParaClassificar> = {}): UploadParaClassificar {
   return {
-    id: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
     chaveFull: `events/${EVENTO}/2026/08/foto/full`,
     mime: "image/jpeg",
-    criadaEm: new Date("2026-08-15T12:00:00Z"),
     ...parcial,
   };
 }
 
-function deps(
-  parcial: Partial<ClassifierDependencies> & Pick<ClassifierDependencies, "list">,
-): ClassifierDependencies {
+/**
+ * `claim` já devolve os itens (é o que o `FOR UPDATE SKIP LOCKED` do banco
+ * faz de verdade); os testes aqui simulam o resultado do claim, não a
+ * corrida em si — essa é coberta contra banco real em
+ * `moderation-queue.test.ts`.
+ */
+function deps(parcial: Partial<ClassifierDependencies> = {}): ClassifierDependencies {
   return {
+    reclaim: async () => 0,
+    claim: async () => [claimado()],
+    getUploads: async () => new Map([[UPLOAD, upload()]]),
     readThumb: async () => jpegMinimo(),
-    save: async () => undefined,
+    complete: async () => undefined,
+    fail: async () => "retry",
+    saveVerdict: async () => undefined,
     classify: async () => "limpo",
-    now: () => new Date("2026-08-15T12:00:10Z").getTime(),
     ...parcial,
   };
 }
 
 describe("classifyPendingForEvent", () => {
-  it("grava limpo quando a thumb chega e o provedor responde", async () => {
+  it("grava limpo e conclui na fila quando a thumb chega e o provedor responde", async () => {
     const gravados: { id: string; veredicto: string }[] = [];
+    const concluidos: { id: string; provider: string }[] = [];
+
     const n = await classifyPendingForEvent(
       EVENTO,
       deps({
-        list: async () => [pendente()],
-        save: async (_e, id, veredicto) => {
+        saveVerdict: async (_e, id, veredicto) => {
           gravados.push({ id, veredicto });
         },
+        complete: async (_e, id, outcome) => {
+          concluidos.push({ id, provider: outcome.provider });
+        },
+        provider: "openai",
       }),
     );
 
     expect(n).toBe(1);
-    expect(gravados).toEqual([{ id: pendente().id, veredicto: "limpo" }]);
+    expect(gravados).toEqual([{ id: UPLOAD, veredicto: "limpo" }]);
+    expect(concluidos).toEqual([{ id: UPLOAD, provider: "openai" }]);
   });
 
-  it("leitura da thumb que falha persiste sem-resposta — o telão segura", async () => {
+  it("nada pra fazer quando o claim não traz nada — não bate no banco de novo", async () => {
+    const getUploadsChamado = { vezes: 0 };
+    const n = await classifyPendingForEvent(
+      EVENTO,
+      deps({
+        claim: async () => [],
+        getUploads: async () => {
+          getUploadsChamado.vezes += 1;
+          return new Map();
+        },
+      }),
+    );
+    expect(n).toBe(0);
+    expect(getUploadsChamado.vezes).toBe(0);
+  });
+
+  it("leitura da thumb que falha vai pra fail — sem esgotar, não grava veredito ainda", async () => {
     const gravados: string[] = [];
     await classifyPendingForEvent(
       EVENTO,
       deps({
-        list: async () => [pendente()],
         readThumb: async () => {
           throw new Error("r2");
         },
-        save: async (_e, _id, veredicto) => {
-          gravados.push(veredicto);
+        fail: async () => "retry",
+        saveVerdict: async (_e, _id, v) => {
+          gravados.push(v);
+        },
+      }),
+    );
+    expect(gravados).toEqual([]);
+  });
+
+  it("leitura da thumb que falha e esgota as tentativas grava sem-resposta — o telão segura", async () => {
+    const gravados: string[] = [];
+    await classifyPendingForEvent(
+      EVENTO,
+      deps({
+        readThumb: async () => {
+          throw new Error("r2");
+        },
+        fail: async () => "failed",
+        saveVerdict: async (_e, _id, v) => {
+          gravados.push(v);
         },
       }),
     );
     expect(gravados).toEqual(["sem-resposta"]);
   });
 
-  it("thumb ausente espera; depois do prazo grava sem-resposta", async () => {
-    const gravados: string[] = [];
-    const cedo = await classifyPendingForEvent(
+  it("thumb ainda não propagou no storage (bytes null) segue o mesmo caminho de fail, não espera por tempo de relógio", async () => {
+    const chamadasDeFail: string[] = [];
+    const n = await classifyPendingForEvent(
       EVENTO,
       deps({
-        list: async () => [pendente()],
         readThumb: async () => null,
-        save: async (_e, _id, veredicto) => {
-          gravados.push(veredicto);
+        fail: async (_e, uploadId) => {
+          chamadasDeFail.push(uploadId);
+          return "retry";
         },
-        now: () => new Date("2026-08-15T12:00:10Z").getTime(),
       }),
     );
-    expect(cedo).toBe(0);
-    expect(gravados).toEqual([]);
+    expect(n).toBe(1);
+    expect(chamadasDeFail).toEqual([UPLOAD]);
+  });
 
-    const tarde = await classifyPendingForEvent(
+  it("upload claimado que sumiu de `uploads` força failed com o attempts corrente, não fica claimed pra sempre", async () => {
+    const argsDeFail: unknown[] = [];
+    await classifyPendingForEvent(
       EVENTO,
       deps({
-        list: async () => [pendente()],
-        readThumb: async () => null,
-        save: async (_e, _id, veredicto) => {
-          gravados.push(veredicto);
+        claim: async () => [claimado({ attempts: 2 })],
+        getUploads: async () => new Map(),
+        fail: async (eventId, uploadId, maxAttempts) => {
+          argsDeFail.push([eventId, uploadId, maxAttempts]);
+          return "failed";
         },
-        now: () => new Date("2026-08-15T12:00:31Z").getTime(),
       }),
     );
-    expect(tarde).toBe(1);
-    expect(gravados).toEqual(["sem-resposta"]);
+    expect(argsDeFail).toEqual([[EVENTO, UPLOAD, 2]]);
   });
 
   it("pede a chave da thumb, nunca a full", async () => {
@@ -107,7 +160,6 @@ describe("classifyPendingForEvent", () => {
     await classifyPendingForEvent(
       EVENTO,
       deps({
-        list: async () => [pendente()],
         readThumb: async (chave) => {
           chaves.push(chave);
           return jpegMinimo();
@@ -115,5 +167,168 @@ describe("classifyPendingForEvent", () => {
       }),
     );
     expect(chaves).toEqual([`events/${EVENTO}/2026/08/foto/thumb`]);
+  });
+
+  it("processa item que só foi enfileirado pelo confirm — nenhuma dependência de wall.ts, nenhum poll do telão envolvido", async () => {
+    // Simula exatamente o que `enqueueModeration` (chamado por confirm-upload.ts)
+    // deixa pronto pro claim: nada além da linha na fila e o upload já
+    // confirmado. Esta função nunca importa nada de `handlers/wall.ts` — o
+    // defeito original era o inverso disso.
+    const veredictos: string[] = [];
+    const n = await classifyPendingForEvent(
+      EVENTO,
+      deps({
+        classify: async () => "limpo",
+        saveVerdict: async (_e, _id, v) => {
+          veredictos.push(v);
+        },
+      }),
+    );
+    expect(n).toBe(1);
+    expect(veredictos).toEqual(["limpo"]);
+  });
+
+  it("chama reclaim antes de claim — inverter a ordem deixa o item preso órfão para sempre", async () => {
+    const ordem: string[] = [];
+    await classifyPendingForEvent(
+      EVENTO,
+      deps({
+        reclaim: async () => {
+          ordem.push("reclaim");
+          return 0;
+        },
+        claim: async () => {
+          ordem.push("claim");
+          return [];
+        },
+      }),
+    );
+    expect(ordem).toEqual(["reclaim", "claim"]);
+  });
+
+  it("provedor sem resposta é falha retentável, não veredito — não conclui a fila nem grava ainda", async () => {
+    const concluidos: unknown[] = [];
+    const gravados: string[] = [];
+    const argsDeFail: unknown[] = [];
+
+    const n = await classifyPendingForEvent(
+      EVENTO,
+      deps({
+        classify: async () => "sem-resposta",
+        complete: async (...args) => {
+          concluidos.push(args);
+        },
+        fail: async (eventId, uploadId, maxAttempts) => {
+          argsDeFail.push([eventId, uploadId, maxAttempts]);
+          return "retry";
+        },
+        saveVerdict: async (_e, _id, v) => {
+          gravados.push(v);
+        },
+      }),
+    );
+
+    expect(n).toBe(1);
+    // O ponto central: `complete` (que marca a fila `done`) nunca é chamado
+    // para "sem-resposta" — só para os dois vereditos reais.
+    expect(concluidos).toEqual([]);
+    expect(gravados).toEqual([]);
+    expect(argsDeFail).toEqual([[EVENTO, UPLOAD, 3]]);
+  });
+
+  it("provedor sem resposta que esgota as tentativas grava sem-resposta definitivo, sem nunca ter marcado a fila como concluída", async () => {
+    const concluidos: unknown[] = [];
+    const gravados: string[] = [];
+
+    await classifyPendingForEvent(
+      EVENTO,
+      deps({
+        classify: async () => "sem-resposta",
+        complete: async (...args) => {
+          concluidos.push(args);
+        },
+        fail: async () => "failed",
+        saveVerdict: async (_e, _id, v) => {
+          gravados.push(v);
+        },
+      }),
+    );
+
+    expect(concluidos).toEqual([]);
+    expect(gravados).toEqual(["sem-resposta"]);
+  });
+
+  it("duas instâncias não classificam a mesma mídia duas vezes — a exclusão é do que `claim` devolve, não de estado local", async () => {
+    // Fila fake compartilhada: uma vez claimado, some — é o comportamento
+    // real de `claimNextForModeration` (FOR UPDATE SKIP LOCKED), só que sem
+    // banco. Prova que `classifyPendingForEvent` não precisa (nem tem) de
+    // Set em memória: a garantia vem inteira do `claim` injetado.
+    let filaCompartilhada: ClaimedItem[] = [claimado()];
+    const chamadasDeClassify: string[] = [];
+
+    const depsCompartilhados = (): ClassifierDependencies =>
+      deps({
+        claim: async () => {
+          const peguei = filaCompartilhada;
+          filaCompartilhada = [];
+          return peguei;
+        },
+        classify: async ({ mime }) => {
+          chamadasDeClassify.push(mime);
+          return "limpo";
+        },
+      });
+
+    const [instanciaA, instanciaB] = await Promise.all([
+      classifyPendingForEvent(EVENTO, depsCompartilhados()),
+      classifyPendingForEvent(EVENTO, depsCompartilhados()),
+    ]);
+
+    expect(instanciaA + instanciaB).toBe(1);
+    expect(chamadasDeClassify).toHaveLength(1);
+  });
+});
+
+describe("enqueueOrphanedUploads", () => {
+  function orphanDeps(parcial: Partial<OrphanEnqueueDependencies> = {}): OrphanEnqueueDependencies {
+    return {
+      listPending: async () => [],
+      enqueue: async () => undefined,
+      ...parcial,
+    };
+  }
+
+  it("enfileira cada upload publicado sem veredito que a listagem devolver", async () => {
+    const enfileirados: { eventId: string; uploadId: string }[] = [];
+
+    const n = await enqueueOrphanedUploads(
+      EVENTO,
+      orphanDeps({
+        listPending: async () => [{ id: UPLOAD }, { id: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb" }],
+        enqueue: async (eventId, uploadId) => {
+          enfileirados.push({ eventId, uploadId });
+        },
+      }),
+    );
+
+    expect(n).toBe(2);
+    expect(enfileirados).toEqual([
+      { eventId: EVENTO, uploadId: UPLOAD },
+      { eventId: EVENTO, uploadId: "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb" },
+    ]);
+  });
+
+  it("sem órfãos, não enfileira nada", async () => {
+    const chamadas = { vezes: 0 };
+    const n = await enqueueOrphanedUploads(
+      EVENTO,
+      orphanDeps({
+        enqueue: async () => {
+          chamadas.vezes += 1;
+        },
+      }),
+    );
+    expect(n).toBe(0);
+    expect(chamadas.vezes).toBe(0);
   });
 });
