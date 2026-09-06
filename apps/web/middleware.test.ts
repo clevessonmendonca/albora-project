@@ -1,10 +1,23 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { middleware, config } from "./middleware";
 
 const REF = "m".repeat(24);
 
 describe("middleware albora_ref", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("em produção, cookie sai com secure", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const res = middleware(new NextRequest(`https://albora.test/?ref=${REF}`));
+    expect(res.cookies.get("albora_ref")?.secure).toBe(true);
+  });
+
+  it("fora de produção, cookie sai sem secure", () => {
+    const res = middleware(new NextRequest(`https://albora.test/?ref=${REF}`));
+    expect(res.cookies.get("albora_ref")?.secure).toBe(false);
+  });
+
   it("ref válido em / seta cookie httpOnly de 30 min", () => {
     const res = middleware(new NextRequest(`https://albora.test/?ref=${REF}`));
     const cookie = res.cookies.get("albora_ref");

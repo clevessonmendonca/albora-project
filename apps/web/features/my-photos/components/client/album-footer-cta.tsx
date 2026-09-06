@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { fireProductEvent } from "@/lib/analytics/fire-product-event";
 import { compartilharLink } from "../../lib/compartilhar-link";
 
@@ -15,6 +15,13 @@ export function AlbumFooterCta({ slug, refToken }: Props) {
   const [estado, setEstado] = useState<"idle" | "copied">("idle");
   const hrefCriar = refToken ? `/?ref=${encodeURIComponent(refToken)}` : "/";
   const opts = refToken ? { originRef: refToken } : {};
+  const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
+    };
+  }, []);
 
   async function compartilhar() {
     fireProductEvent("guest_share_album", opts);
@@ -22,7 +29,8 @@ export function AlbumFooterCta({ slug, refToken }: Props) {
     const resultado = await compartilharLink(url);
     if (resultado === "copied") {
       setEstado("copied");
-      setTimeout(() => setEstado("idle"), 2000);
+      if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
+      resetTimeoutRef.current = setTimeout(() => setEstado("idle"), 2000);
     }
   }
 

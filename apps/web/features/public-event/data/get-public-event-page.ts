@@ -62,15 +62,13 @@ export async function getPublicEventPage(slug: string): Promise<PublicEventPageD
   const estado: EstadoPaginaPublica = resolucao.estado;
   const identidade = resolvePublicEventIdentity(slug, evento);
 
-  const { metricas, midia } = await withEvent(getPool(), evento.eventoId, async (c) => {
+  const { metricas, midia, refToken } = await withEvent(getPool(), evento.eventoId, async (c) => {
     const metricas = await lerMetricasAoVivo(c, evento.eventoId);
     const midia = await listarMidiaDaParede(c, evento.eventoId, TAMANHO_DA_VITRINE);
-    return { metricas, midia };
+    // Falha ao ler o ref não pode derrubar a página: ctaHref cai pro CTA_LANDING sem ref.
+    const refToken = await refDoEvento(c, evento.eventoId).catch(() => null);
+    return { metricas, midia, refToken };
   });
-
-  const refToken = await withEvent(getPool(), evento.eventoId, (c) =>
-    refDoEvento(c, evento.eventoId),
-  ).catch(() => null);
 
   const semAutor = paraVitrinePublica(midia);
   const vitrine: FotoDaVitrine[] = await Promise.all(

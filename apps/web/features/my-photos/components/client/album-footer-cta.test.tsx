@@ -23,9 +23,12 @@ describe("AlbumFooterCta", () => {
     expect(analytics.fireProductEvent).toHaveBeenCalledWith("guest_cta_criar_click", { originRef: REF });
   });
 
-  it("sem ref, link vai para a landing pura", () => {
+  it("sem ref, link vai para a landing pura e registra o clique sem originRef", () => {
     render(<AlbumFooterCta slug="festa-demo" refToken={null} />);
-    expect(screen.getByRole("link", { name: /álbum da sua festa/i })).toHaveAttribute("href", "/");
+    const a = screen.getByRole("link", { name: /álbum da sua festa/i });
+    expect(a).toHaveAttribute("href", "/");
+    fireEvent.click(a);
+    expect(analytics.fireProductEvent).toHaveBeenCalledWith("guest_cta_criar_click", {});
   });
 
   it("botão compartilhar chama compartilharLink com /p/<slug> e registra", async () => {
