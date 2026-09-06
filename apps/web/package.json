@@ -14,6 +14,8 @@
     "cf:build": "opennextjs-cloudflare build",
     "cf:preview": "opennextjs-cloudflare build && wrangler dev",
     "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf:deploy:homol": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env homol",
+    "cf:deploy:prod": "opennextjs-cloudflare build && opennextjs-cloudflare deploy --env prod",
     "cf:typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
