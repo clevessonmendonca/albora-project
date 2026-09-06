@@ -5,6 +5,7 @@ import {
   listDueRetentionJobs,
   listRetentionJobsAdmin,
   processRetentionJob,
+  purgeAccountDataOnClient,
   scheduleRetentionJobs,
   type DueRetentionJob,
   type NotificacaoRetencao,
@@ -508,5 +509,81 @@ describe("listRetentionJobsAdmin", () => {
     const { rows } = await listRetentionJobsAdmin(admin, { limit: 100 });
     const doEvento = rows.filter((r) => r.eventId === eventoId);
     expect(doEvento[0]?.status).toBe("failed");
+  });
+});
+
+describe("purgeAccountDataOnClient", () => {
+  it("purga uploads/drive de todos os eventos da conta e apaga events + accounts na mesma transação", async () => {
+    const pools = await prepararBanco();
+    admin = pools.admin;
+    const app = pools.app;
+
+    const { rows: acc } = await admin.query("INSERT INTO accounts (email) VALUES ($1) RETURNING id", [
+      `excluir-${Math.random().toString(36).slice(2)}@exemplo.test`,
+    ]);
+    const contaId = acc[0].id as string;
+    await admin.query("INSERT INTO packs (id) VALUES ('pack-purge') ON CONFLICT (id) DO NOTHING");
+    const { rows: evento } = await admin.query(
+      `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status)
+       VALUES ($1, 'pack-purge', $2, now(), now() + interval '6 hours', 'active') RETURNING id`,
+      [contaId, `evento-purge-${Math.random().toString(36).slice(2)}`],
+    );
+    const eventoId = evento[0].id as string;
+    const { rows: sessao } = await admin.query(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'convidado-purge', 'v1', now()) RETURNING id`,
+      [eventoId],
+    );
+    const sessaoId = sessao[0].id as string;
+    await admin.query(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes, state)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 1000, 'published')`,
+      [eventoId, sessaoId, `events/${eventoId}/2026/09/foto/full`],
+    );
+
+    const client = await app.connect();
+    let resultado;
+    try {
+      await client.query("BEGIN");
+      resultado = await purgeAccountDataOnClient(client, contaId, {});
+      await client.query("COMMIT");
+    } finally {
+      client.release();
+    }
+
+    expect(resultado.eventIds).toEqual([eventoId]);
+    expect(resultado.keysToDelete).toEqual([`events/${eventoId}/2026/09/foto/full`]);
+
+    const { rows: contaDepois } = await admin.query("SELECT id FROM accounts WHERE id = $1", [contaId]);
+    expect(contaDepois).toHaveLength(0);
+    const { rows: eventoDepois } = await admin.query("SELECT id FROM events WHERE id = $1", [eventoId]);
+    expect(eventoDepois).toHaveLength(0);
+  });
+
+  it("cascade real de magic_links (migration 0012) prova que a conta some e o que referencia accounts.id ON DELETE CASCADE some junto", async () => {
+    const pools = await prepararBanco();
+    admin = pools.admin;
+    const app = pools.app;
+
+    const { rows: acc } = await admin.query("INSERT INTO accounts (email) VALUES ($1) RETURNING id", [
+      `falha-${Math.random().toString(36).slice(2)}@exemplo.test`,
+    ]);
+    const contaId = acc[0].id as string;
+    await admin.query(
+      "INSERT INTO magic_links (token_hash, account_id, expires_at) VALUES ($1, $2, now() + interval '1 hour')",
+      [Buffer.from("trava-de-teste"), contaId],
+    );
+
+    const client = await app.connect();
+    try {
+      await client.query("BEGIN");
+      await expect(purgeAccountDataOnClient(client, contaId, {})).resolves.toBeTruthy();
+      await client.query("COMMIT");
+    } finally {
+      client.release();
+    }
+
+    const { rows } = await admin.query("SELECT 1 FROM magic_links WHERE account_id = $1", [contaId]);
+    expect(rows).toHaveLength(0);
   });
 });

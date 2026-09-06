@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
-const { resolveActorMock, getAccountMock, RevealPiiButtonMock } = vi.hoisted(() => ({
+const { resolveActorMock, getAccountMock, RevealPiiButtonMock, DeleteAccountDangerMock } = vi.hoisted(() => ({
   resolveActorMock: vi.fn(),
   getAccountMock: vi.fn(),
   // Mock só pra identidade (comparado por referência abaixo) — evita puxar
   // a cadeia real de `reveal-pii-button.tsx` -> `@/features/console/actions`
   // -> `@albora/db`/`@/lib/email` só pra testar o gate de capacidade.
   RevealPiiButtonMock: vi.fn(() => null),
+  DeleteAccountDangerMock: vi.fn(() => null),
 }));
 
 vi.mock("@/lib/console/actor", () => ({ resolveActor: resolveActorMock }));
@@ -14,6 +15,9 @@ vi.mock("@/lib/db", () => ({ getPool: vi.fn(), getAggregatorPool: vi.fn() }));
 vi.mock("@albora/application", () => ({ getAccount: getAccountMock }));
 vi.mock("@/features/console/components/client/reveal-pii-button", () => ({
   RevealPiiButton: RevealPiiButtonMock,
+}));
+vi.mock("@/features/console/components/client/delete-account-danger", () => ({
+  DeleteAccountDanger: DeleteAccountDangerMock,
 }));
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(),
@@ -24,11 +28,19 @@ vi.mock("next/navigation", () => ({
 
 import AccountDetailPage from "./page";
 import { RevealPiiButton } from "@/features/console/components/client/reveal-pii-button";
+import { DeleteAccountDanger } from "@/features/console/components/client/delete-account-danger";
 
 /** `<>{EntityHeader}{div}</>` — `actions` é prop do primeiro filho do Fragment. */
-function acoesDoCabecalho(pageElement: unknown): { type: unknown } | undefined {
-  const el = pageElement as { props: { children: Array<{ props: { actions?: { type: unknown } } }> } };
+function acoesDoCabecalho(pageElement: unknown): { type: unknown; props?: { children?: unknown } } | undefined {
+  const el = pageElement as { props: { children: Array<{ props: { actions?: { type: unknown; props?: { children?: unknown } } } }> } };
   return el.props.children[0]?.props.actions;
+}
+
+/** Quando as duas capacidades se aplicam, `actions` é um Fragment com os dois botões como filhos. */
+function tiposDosFilhos(acoes: { type: unknown; props?: { children?: unknown } } | undefined): unknown[] {
+  const filhos = acoes?.props?.children;
+  const lista = Array.isArray(filhos) ? filhos : [filhos];
+  return lista.map((f) => (f as { type: unknown } | undefined)?.type);
 }
 
 function actor() {
@@ -144,5 +156,24 @@ describe("AccountDetailPage", () => {
 
     const element = await AccountDetailPage({ params: Promise.resolve({ id: "acc-1" }) });
     expect(acoesDoCabecalho(element)).toBeUndefined();
+  });
+
+  it("com lgpd.delete_account (e accounts.pii.reveal) mostra os dois botões — compliance tem as duas capacidades", async () => {
+    resolveActorMock.mockResolvedValueOnce({ ...actor(), roles: ["compliance"] });
+    getAccountMock.mockResolvedValueOnce(contaBase());
+
+    const element = await AccountDetailPage({ params: Promise.resolve({ id: "acc-1" }) });
+    const acoes = acoesDoCabecalho(element);
+    expect(tiposDosFilhos(acoes)).toEqual([RevealPiiButton, DeleteAccountDanger]);
+  });
+
+  it("sem lgpd.delete_account (support só tem accounts.pii.reveal) não mostra o botão de excluir", async () => {
+    resolveActorMock.mockResolvedValueOnce({ ...actor(), roles: ["support"] });
+    getAccountMock.mockResolvedValueOnce(contaBase());
+
+    const element = await AccountDetailPage({ params: Promise.resolve({ id: "acc-1" }) });
+    // `support` não tem `lgpd.delete_account` — `actions` continua sendo só o
+    // botão de revelar (elemento isolado, não um Fragment com dois filhos).
+    expect(acoesDoCabecalho(element)?.type).toBe(RevealPiiButton);
   });
 });

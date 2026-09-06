@@ -83,3 +83,6 @@ export type { ListDsarRequestsInput } from "./lgpd/list-dsar-requests";
 export { listDsarRequests } from "./lgpd/list-dsar-requests";
 export type { UpdateDsarRequestInput } from "./lgpd/update-dsar-request";
 export { updateDsarRequest } from "./lgpd/update-dsar-request";
+
+export type { DeleteAccountInput } from "./lgpd/delete-account";
+export { deleteAccountOnRequest } from "./lgpd/delete-account";

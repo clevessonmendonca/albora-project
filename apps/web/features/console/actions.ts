@@ -13,6 +13,7 @@ import {
   completeStaffLogin,
   completeStaffReauth,
   createDsarRequest,
+  deleteAccountOnRequest,
   ReauthRequiredError,
   refundPayment,
   requestStaffLogin,
@@ -30,6 +31,9 @@ import { resolveActor } from "@/lib/console/actor";
 import { clearStaffSession, issueStaffSession, markStaffReauthenticated } from "@/lib/console/staff-session";
 import { config } from "@/lib/config";
 import { getBillingProvider } from "@/lib/billing";
+import { driveConfig } from "@/lib/drive-config";
+import { getDriveClient, getDriveVault } from "@/lib/drive";
+import { deleteObject } from "@/lib/r2";
 
 /**
  * HMAC, nunca sha256 puro: o espaço IPv4 tem 2^32 entradas, então hash sem
@@ -360,5 +364,61 @@ export async function updateDsarRequestAction(
     return { ok: true };
   } catch (erro) {
     return traduzErroDeComando(erro);
+  }
+}
+
+export type DeleteAccountActionResult = { ok: true } | { ok: false; error: string; reauthRequired?: true };
+
+/** Vault do Drive opcional — mesma checagem de `processRetentionJobs`: sem segredos OAuth configurados, a revogação simplesmente não acontece; o purge de banco e de bytes no R2 continua normalmente. */
+function vaultSeConfigurado() {
+  try {
+    driveConfig();
+    return getDriveVault();
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Exclusão de conta a pedido do titular (T8): `deleteAccountOnRequest` já
+ * fez o fail-closed inteiro dentro de uma única transação — se chegou até
+ * aqui sem lançar, a conta e os eventos já não existem mais no banco.
+ *
+ * Bytes no R2 e revogação do refresh token do Drive são enriquecimento
+ * pós-commit, no MESMO desenho do runner de retenção
+ * (`processRetentionJobs`): uma falha aqui não desfaz nem esconde que a
+ * conta foi excluída — só fica um log de aviso para ops seguir depois.
+ */
+export async function deleteAccountAction(accountId: string, reason: string): Promise<DeleteAccountActionResult> {
+  const actor = await resolveActor();
+  if (!actor) redirect("/console/login");
+
+  try {
+    const vault = vaultSeConfigurado();
+    const resultado = await deleteAccountOnRequest(
+      { pool: getPool(), ...(vault ? { vault } : {}) },
+      { actor, reason, accountId },
+    );
+
+    for (const key of resultado.keysToDelete) {
+      try {
+        await deleteObject(key);
+      } catch (e) {
+        console.warn("lgpd.delete_account.purge_r2_falhou", { accountId, erro: String(e) });
+      }
+    }
+    for (const token of resultado.driveRefreshTokensToRevoke) {
+      try {
+        await getDriveClient().revoke(token);
+      } catch (e) {
+        console.warn("lgpd.delete_account.revoke_drive_falhou", { accountId, erro: String(e) });
+      }
+    }
+
+    return { ok: true };
+  } catch (erro) {
+    if (erro instanceof ReauthRequiredError) return { ok: false, error: "reautenticação exigida", reauthRequired: true };
+    if (erro instanceof CommandDeniedError) return { ok: false, error: erro.message };
+    throw erro;
   }
 }

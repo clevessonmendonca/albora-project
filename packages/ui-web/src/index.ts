@@ -33,6 +33,7 @@ export {
 } from "./guest-chrome";
 export { Dialog } from "./dialog";
 export { ConfirmDialog, type ConfirmDialogProps } from "./confirm-dialog";
+export { DangerDialog, type DangerDialogProps } from "./danger-dialog";
 export { BottomSheet } from "./sheet";
 export { ConsentNote, ErrorMessage, GateNotice, MissionBanner } from "./notice";
 export { authorInitials, PostAuthorAvatar, PostHeader } from "./post-header";

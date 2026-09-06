@@ -7,6 +7,7 @@ import { resolveActor } from "@/lib/console/actor";
 import { getAggregatorPool, getPool } from "@/lib/db";
 import { ROTULO_STATUS, ROTULO_TIPO, TOM_STATUS } from "@/features/console/components/client/accounts-table";
 import { RevealPiiButton } from "@/features/console/components/client/reveal-pii-button";
+import { DeleteAccountDanger } from "@/features/console/components/client/delete-account-danger";
 
 export const dynamic = "force-dynamic";
 
@@ -31,13 +32,33 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
   // fingindo que a conta existe e simplesmente não tem dado.
   if (!conta) notFound();
 
+  const podeRevelar = hasCapability(actor.roles, "accounts.pii.reveal");
+  const podeExcluir = hasCapability(actor.roles, "lgpd.delete_account");
+
+  // `undefined` quando nenhuma capacidade se aplica, o elemento isolado
+  // quando só uma se aplica — nunca um fragmento por padrão, que o
+  // `EntityHeader` trataria como truthy mesmo vazio (ADR 0016 §5.5: quem
+  // não tem a capacidade não recebe `actions`, o componente não decide
+  // permissão).
+  const acoes =
+    podeRevelar && podeExcluir ? (
+      <>
+        <RevealPiiButton accountId={id} />
+        <DeleteAccountDanger accountId={id} maskedEmail={conta.maskedEmail} />
+      </>
+    ) : podeRevelar ? (
+      <RevealPiiButton accountId={id} />
+    ) : podeExcluir ? (
+      <DeleteAccountDanger accountId={id} maskedEmail={conta.maskedEmail} />
+    ) : undefined;
+
   return (
     <>
       <EntityHeader
         title={conta.maskedEmail}
         subtitle={ROTULO_TIPO[conta.type]}
         status={{ tone: TOM_STATUS[conta.status], label: ROTULO_STATUS[conta.status] }}
-        actions={hasCapability(actor.roles, "accounts.pii.reveal") ? <RevealPiiButton accountId={id} /> : undefined}
+        actions={acoes}
       />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <DetailPanel

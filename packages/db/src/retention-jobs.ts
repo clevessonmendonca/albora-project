@@ -360,7 +360,7 @@ async function contarPublicadosAgora(cliente: PoolClient, eventId: string): Prom
   return rows[0]?.n ?? 0;
 }
 
-async function chavesDoAcervo(cliente: PoolClient, eventId: string): Promise<string[]> {
+export async function chavesDoAcervo(cliente: PoolClient, eventId: string): Promise<string[]> {
   const { rows } = await cliente.query<{ storage_key: string }>(
     "SELECT storage_key FROM uploads WHERE event_id = $1 AND state IN ('published', 'removed')",
     [eventId],
@@ -369,7 +369,7 @@ async function chavesDoAcervo(cliente: PoolClient, eventId: string): Promise<str
 }
 
 /** Só para o purge do D365 — ignora o gate de status que `refreshTokenDoEvento` aplica, porque aqui rodamos ANTES de marcar revogado. */
-async function abrirRefreshTokenParaRevogar(
+export async function abrirRefreshTokenParaRevogar(
   cliente: PoolClient,
   eventId: string,
   vault: DriveTokenVault,
@@ -400,7 +400,7 @@ async function abrirRefreshTokenParaRevogar(
 }
 
 /** Apaga ponteiros e revoga Drive; bytes no storage ficam para o chamador (chavesParaApagar). */
-async function purgarAcervo(cliente: PoolClient, eventId: string): Promise<void> {
+export async function purgarAcervo(cliente: PoolClient, eventId: string): Promise<void> {
   await cliente.query(
     "UPDATE uploads SET state = 'purged' WHERE event_id = $1 AND state IN ('published', 'removed')",
     [eventId],
@@ -409,4 +409,62 @@ async function purgarAcervo(cliente: PoolClient, eventId: string): Promise<void>
     "UPDATE drive_connections SET status = 'revogado', revoked_at = now() WHERE event_id = $1 AND status <> 'revogado'",
     [eventId],
   );
+}
+
+export type AccountPurgeResult = {
+  eventIds: string[];
+  keysToDelete: string[];
+  driveRefreshTokensToRevoke: string[];
+};
+
+/**
+ * Reusa a maquinaria do d365_delete (chavesDoAcervo/purgarAcervo/
+ * abrirRefreshTokenParaRevogar) para TODOS os eventos de uma conta, na
+ * MESMA transação que o chamador já abriu — nunca abre a própria (é isso
+ * que permite ao comando de LGPD gravar `audit_log` e o purge
+ * atomicamente: se o INSERT em audit_log falhar depois, o ROLLBACK desfaz
+ * o purge junto).
+ *
+ * `events.account_id` é `ON DELETE RESTRICT` (migration 0001) — por isso a
+ * ordem importa: primeiro purga uploads/drive por evento (via app.event_id,
+ * a mesma RLS que os jobs de retenção já usam), depois apaga os eventos (o
+ * que libera a restrição), só então a conta. `set_config('app.account_id', ...)`
+ * satisfaz a política `conta_evento` (migration 0013), que soma por OR com
+ * `isolamento_evento` — é o que deixa o `DELETE FROM events WHERE
+ * account_id = $1` apagar TODOS os eventos da conta numa única instrução,
+ * mesmo com `app.event_id` ainda apontando só para o último evento do loop.
+ *
+ * Qualquer FK que bloqueie um destes DELETE estoura — fail-closed
+ * automático: a exceção sobe, o chamador (executeCommand) faz ROLLBACK, a
+ * conta não fica marcada excluída pela metade.
+ */
+export async function purgeAccountDataOnClient(
+  client: PoolClient,
+  accountId: string,
+  opts: { vault?: DriveTokenVault },
+): Promise<AccountPurgeResult> {
+  await client.query("SELECT set_config('app.account_id', $1, true)", [accountId]);
+
+  const { rows: eventos } = await client.query<{ id: string }>(
+    "SELECT id FROM events WHERE account_id = $1",
+    [accountId],
+  );
+
+  const keysToDelete: string[] = [];
+  const driveRefreshTokensToRevoke: string[] = [];
+
+  for (const evento of eventos) {
+    await client.query("SELECT set_config('app.event_id', $1, true)", [evento.id]);
+    keysToDelete.push(...(await chavesDoAcervo(client, evento.id)));
+    if (opts.vault) {
+      const token = await abrirRefreshTokenParaRevogar(client, evento.id, opts.vault);
+      if (token) driveRefreshTokensToRevoke.push(token);
+    }
+    await purgarAcervo(client, evento.id);
+  }
+
+  await client.query("DELETE FROM events WHERE account_id = $1", [accountId]);
+  await client.query("DELETE FROM accounts WHERE id = $1", [accountId]);
+
+  return { eventIds: eventos.map((e) => e.id), keysToDelete, driveRefreshTokensToRevoke };
 }

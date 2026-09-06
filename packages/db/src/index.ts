@@ -443,6 +443,7 @@ export {
 } from "./analytics";
 
 export type {
+  AccountPurgeResult,
   DepsProcessarRetencao,
   DueRetentionJob,
   ListRetentionJobsAdminFilter,
@@ -451,10 +452,14 @@ export type {
   RetentionJobAdminRow,
 } from "./retention-jobs";
 export {
+  abrirRefreshTokenParaRevogar,
   agendarRetencaoNaTransacao,
+  chavesDoAcervo,
   listDueRetentionJobs,
   listRetentionJobsAdmin,
   markRetentionJob,
+  purgarAcervo,
+  purgeAccountDataOnClient,
   processRetentionJob,
   scheduleRetentionJobs,
 } from "./retention-jobs";
