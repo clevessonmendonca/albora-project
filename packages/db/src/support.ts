@@ -189,15 +189,6 @@ export async function listSupportTicketsForEvent(
   });
 }
 
-export async function isPlatformOperator(pool: Pool, accountId: string): Promise<boolean> {
-  return comConta(pool, accountId, async (c) => {
-    const { rows } = await c.query(`SELECT 1 FROM platform_operators WHERE account_id = $1`, [
-      accountId,
-    ]);
-    return rows.length > 0;
-  });
-}
-
 export type SupportMessageRow = {
   id: string;
   ticketId: string;

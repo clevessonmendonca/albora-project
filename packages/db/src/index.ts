@@ -372,7 +372,6 @@ export {
   assignSupportTicketOnClient,
   createSupportTicket,
   getSupportTicketAdmin,
-  isPlatformOperator,
   listOpenSupportTicketsAdmin,
   listSupportMessagesAdmin,
   listSupportTicketsForAccount,
