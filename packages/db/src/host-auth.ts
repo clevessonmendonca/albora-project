@@ -1,5 +1,7 @@
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import { assinaturaValida, emitirToken, hashDoToken } from "./token";
+
+type Queryable = Pool | PoolClient;
 
 /** Validade do magic link. Curta: é um link de e-mail, não uma sessão. */
 export const VALIDADE_MAGIC_LINK_MINUTOS = 15;
@@ -8,7 +10,8 @@ export const VALIDADE_HOST_SESSAO_HORAS = 12;
 
 export type MagicLinkEmitido = { token: string; accountId: string; isNewAccount: boolean };
 export type HostSessaoCriada = { token: string; accountId: string };
-export type HostResolvida = { accountId: string; email: string };
+/** `impersonationId` não-nulo marca que esta sessão nasceu de uma aprovação de impersonação, não de magic link — é o que deixa toda ação da janela rastreável a `actor = staff, acting_as = account`. */
+export type HostResolvida = { accountId: string; email: string; impersonationId: string | null };
 
 export type MotivoMagicLinkInvalido = "assinatura" | "desconhecido" | "expirado" | "ja_usado";
 
@@ -110,8 +113,9 @@ export async function resolverHostSessao(
     email: string;
     expirado: boolean;
     revogado: boolean;
+    impersonation_id: string | null;
   }>(
-    `SELECT h.account_id, a.email,
+    `SELECT h.account_id, a.email, h.impersonation_id,
             (h.expires_at <= now()) AS expirado,
             (h.revoked_at IS NOT NULL) AS revogado
        FROM host_sessions h JOIN accounts a ON a.id = h.account_id
@@ -124,7 +128,30 @@ export async function resolverHostSessao(
   if (linha.revogado) throw new ErroHostSessaoInvalida("revogada");
   if (linha.expirado) throw new ErroHostSessaoInvalida("expirada");
 
-  return { accountId: linha.account_id, email: linha.email };
+  return { accountId: linha.account_id, email: linha.email, impersonationId: linha.impersonation_id };
+}
+
+/**
+ * Sessão de host "marcada" (spec §11) — nasce da aprovação/início de uma
+ * impersonação, não de um magic link. Sem `magic_links` envolvido: o
+ * titular nunca recebe e-mail, a sessão é emitida direto pelo comando que
+ * ativa a sessão (`startImpersonation`). Aceita `Queryable` (não só `Pool`)
+ * porque é chamada de dentro da transação do próprio comando — precisa
+ * ser a mesma transação que marca o pedido `active`, não uma conexão nova.
+ */
+export async function issueMarkedHostSession(
+  db: Queryable,
+  segredo: string,
+  accountId: string,
+  impersonationId: string,
+  expiresAt: Date,
+): Promise<{ token: string }> {
+  const { token, hash } = emitirToken(segredo);
+  await db.query(
+    "INSERT INTO host_sessions (token_hash, account_id, expires_at, impersonation_id) VALUES ($1, $2, $3, $4)",
+    [hash, accountId, expiresAt, impersonationId],
+  );
+  return { token };
 }
 
 /** Revoga uma sessão de host — o botão "sair". */

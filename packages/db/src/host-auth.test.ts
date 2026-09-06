@@ -5,6 +5,7 @@ import {
   emitirMagicLink,
   ErroHostSessaoInvalida,
   ErroMagicLinkInvalido,
+  issueMarkedHostSession,
   resolverHostSessao,
   revogarHostSessao,
 } from "./host-auth";
@@ -33,8 +34,9 @@ describe("o anfitrião entra por magic link", () => {
     expect(sessao.accountId).toBe(accountId);
 
     const host = await resolverHostSessao(admin, SEGREDO, sessao.token);
-    // E-mail normalizado em minúsculas na criação da conta.
-    expect(host).toEqual({ accountId, email: "ana@exemplo.com" });
+    // E-mail normalizado em minúsculas na criação da conta. impersonationId
+    // null: sessão nasceu de magic link, não de aprovação de impersonação.
+    expect(host).toEqual({ accountId, email: "ana@exemplo.com", impersonationId: null });
   });
 
   it("a mesma conta reusa o account_id em vez de duplicar", async () => {
@@ -111,5 +113,26 @@ describe("a sessão de host é revogável", () => {
     await expect(
       consumirMagicLink(admin, SEGREDO, token, daqui(720), new Date()),
     ).rejects.toBeInstanceOf(ErroMagicLinkInvalido);
+  });
+});
+
+describe("issueMarkedHostSession — sessão que nasce de uma impersonação aprovada", () => {
+  it("resolverHostSessao devolve o impersonationId da sessão marcada", async () => {
+    const { rows: acc } = await admin.query(
+      "INSERT INTO accounts (email) VALUES ('impersonado@exemplo.test') RETURNING id",
+    );
+    const { rows: reqStaff } = await admin.query(
+      "INSERT INTO staff_users (email, name) VALUES ('marca-r@albora.com', 'R') RETURNING id",
+    );
+    const { rows: pedido } = await admin.query(
+      `INSERT INTO impersonation_requests (requester_staff_id, target_account_id, reason, status)
+       VALUES ($1, $2, 'ticket', 'active') RETURNING id`,
+      [reqStaff[0].id, acc[0].id],
+    );
+
+    const { token } = await issueMarkedHostSession(admin, SEGREDO, acc[0].id, pedido[0].id, daqui(30));
+    const resolvida = await resolverHostSessao(admin, SEGREDO, token);
+    expect(resolvida.impersonationId).toBe(pedido[0].id);
+    expect(resolvida.accountId).toBe(acc[0].id);
   });
 });

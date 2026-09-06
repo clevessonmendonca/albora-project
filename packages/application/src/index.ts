@@ -86,3 +86,14 @@ export { updateDsarRequest } from "./lgpd/update-dsar-request";
 
 export type { DeleteAccountInput } from "./lgpd/delete-account";
 export { deleteAccountOnRequest } from "./lgpd/delete-account";
+
+export type { RequestImpersonationInput } from "./impersonation/request-impersonation";
+export { requestImpersonation } from "./impersonation/request-impersonation";
+export type { ApproveImpersonationInput } from "./impersonation/approve-impersonation";
+export { approveImpersonation } from "./impersonation/approve-impersonation";
+export type { DenyImpersonationInput } from "./impersonation/deny-impersonation";
+export { denyImpersonation } from "./impersonation/deny-impersonation";
+export type { StartImpersonationInput, StartImpersonationResult } from "./impersonation/start-impersonation";
+export { startImpersonation } from "./impersonation/start-impersonation";
+export type { EndImpersonationInput } from "./impersonation/end-impersonation";
+export { endImpersonation } from "./impersonation/end-impersonation";

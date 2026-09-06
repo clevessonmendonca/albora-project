@@ -185,11 +185,25 @@ export {
   emitirMagicLink,
   ErroHostSessaoInvalida,
   ErroMagicLinkInvalido,
+  issueMarkedHostSession,
   resolverHostSessao,
   revogarHostSessao,
   VALIDADE_HOST_SESSAO_HORAS,
   VALIDADE_MAGIC_LINK_MINUTOS,
 } from "./host-auth";
+
+export type { ImpersonationRequestRow, ImpersonationStatus } from "./impersonation";
+export {
+  approveImpersonationRequestOnClient,
+  createImpersonationRequestOnClient,
+  denyImpersonationRequestOnClient,
+  endImpersonationRequestOnClient,
+  getActiveImpersonationForStaff,
+  getImpersonationRequestById,
+  IMPERSONATION_TTL_MINUTES,
+  listPendingImpersonationRequestsAdmin,
+  startImpersonationRequestOnClient,
+} from "./impersonation";
 
 export type { ItemDoExport, JobExport } from "./export-db";
 export {
