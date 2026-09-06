@@ -417,6 +417,65 @@ describe("isolamento por evento", () => {
     const sobA = await comEvento(app, dados.a.eventoId, (c) => listCurationScores(c, dados.a.eventoId));
     expect(sobA.map((s) => s.uploadId)).toContain(dados.a.uploadId);
   });
+
+  /**
+   * Achado 4 do review: os dois testes acima chamam funções cujo próprio SQL já filtra por
+   * `event_id` no `WHERE` — passariam com `USING (true)` (sem RLS nenhuma), porque zero linhas
+   * viria do `WHERE`, não da policy. Os testes abaixo consultam SEM `event_id` no `WHERE`: só a
+   * policy pode filtrar. `admin` conecta como superuser (ignora RLS mesmo com `FORCE`) — por isso
+   * usam `app`, o mesmo pool `albora_app` sem `BYPASSRLS` que `prepararBanco()` describe no
+   * comentário do topo do arquivo.
+   */
+  async function contarSemWhere(
+    client: Pick<pg.PoolClient, "query">,
+    tabela: "curation_jobs" | "media_curation_scores",
+  ): Promise<number> {
+    const { rows } = await client.query<{ n: number }>(`SELECT count(*)::int AS n FROM ${tabela}`);
+    return rows[0]!.n;
+  }
+
+  it("prova a RLS de verdade (não o WHERE): curation_jobs sem filtro na query some sob o evento errado", async () => {
+    await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
+
+    expect(await comEvento(app, dados.b.eventoId, (c) => contarSemWhere(c, "curation_jobs"))).toBe(0);
+    expect(await comEvento(app, dados.a.eventoId, (c) => contarSemWhere(c, "curation_jobs"))).toBe(1);
+  });
+
+  it("prova a RLS de verdade (não o WHERE): media_curation_scores sem filtro na query some sob o evento errado", async () => {
+    await comEvento(app, dados.a.eventoId, (c) =>
+      saveCurationScores(c, {
+        uploadId: dados.a.uploadId,
+        eventId: dados.a.eventoId,
+        perceptualHash: "prova-rls",
+        sharpness: 1,
+        exposure: 1,
+      }),
+    );
+
+    expect(
+      await comEvento(app, dados.b.eventoId, (c) => contarSemWhere(c, "media_curation_scores")),
+    ).toBe(0);
+    expect(
+      await comEvento(app, dados.a.eventoId, (c) => contarSemWhere(c, "media_curation_scores")),
+    ).toBe(1);
+  });
+
+  it("prova o NULLIF: sem SET LOCAL (GUC não setado nesta transação), a policy devolve 0 linhas em vez de estourar 'invalid input syntax for type uuid'", async () => {
+    await comEvento(app, dados.a.eventoId, (c) => enqueueCuration(c, dados.a.eventoId));
+
+    // Conexão própria, NUNCA passa por comEvento nesta transação — sem `set_config`,
+    // current_setting('app.event_id', true) é NULL (ou '', se a conexão do pool já rodou
+    // um SET LOCAL antes e o valor "voltou" — CLAUDE.md). Sem o NULLIF, `''::uuid`
+    // estouraria; com ele, a comparação vira `event_id = NULL`, que nunca casa.
+    const cliente = await app.connect();
+    try {
+      await cliente.query("BEGIN");
+      await expect(contarSemWhere(cliente, "curation_jobs")).resolves.toBe(0);
+      await cliente.query("COMMIT");
+    } finally {
+      cliente.release();
+    }
+  });
 });
 
 describe("saveCurationScores", () => {
