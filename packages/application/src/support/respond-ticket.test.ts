@@ -1,6 +1,6 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { createSupportTicket, getSupportTicketAdmin, listSupportMessagesAdmin } from "@albora/db";
+import { createSupportTicket, listSupportMessagesAdmin } from "@albora/db";
 import { prepararBanco, semear } from "@albora/db/testes/banco";
 import { CommandDeniedError } from "../envelope/errors";
 import { respondTicket } from "./respond-ticket";
