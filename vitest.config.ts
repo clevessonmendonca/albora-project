@@ -1,8 +1,11 @@
 import path from "node:path";
 import { defineConfig } from "vitest/config";
 
-// A suíte de isolamento exige Postgres de verdade e roda em job próprio (`pnpm test:isolamento`). Fora dali ela não é pulada por conveniência: é que uma falha de isolamento perdida no meio de "testes falharam" deixa de parecer o que é.
-const EXCLUDE = ["**/node_modules/**", "**/dist/**", "spike/**", "packages/db/**"];
+// A suíte de isolamento exige Postgres de verdade e roda em job próprio
+// (`pnpm test:isolamento`). Fora dali ela não é pulada por conveniência:
+// é que uma falha de isolamento perdida no meio de "testes falharam"
+// deixa de parecer o que é.
+const EXCLUDE = ["**/node_modules/**", "**/dist/**", "spike/**", "packages/db/**", "packages/application/**", "apps/web/lib/console/staff-session.test.ts"];
 
 export default defineConfig({
   resolve: {
@@ -18,7 +21,7 @@ export default defineConfig({
     maxWorkers: "50%",
     server: {
       deps: {
-        inline: ["@albora/core", "@albora/db", "@albora/packs", "zod"],
+        inline: ["@albora/core", "@albora/db", "@albora/application", "@albora/integrations", "@albora/packs", "zod"],
       },
     },
     // Dois projetos, dois environments: lógica pura roda em node (rápido, sem DOM); render de componente (.test.tsx) precisa de jsdom. O `environmentMatchGlobs` equivalente está deprecado no Vitest 3 — `projects` é a forma suportada de escopar environment + setupFiles por glob sem afetar a suíte node existente.
@@ -62,6 +65,7 @@ export default defineConfig({
         "**/node_modules/**",
         "**/dist/**",
         "packages/db/**",
+        "packages/application/**",
         "spike/**",
       ],
       // Gates MVP (CLAUDE.md): ≥60% global, ≥90% no pipeline de upload.

@@ -1,0 +1,20 @@
+-- 0064 — aposenta a policy `ops_ticket_lista` (Onda D, T2)
+--
+-- `ops_ticket_lista` (migration 0030) dava SELECT cross-conta na fila de
+-- tickets para quem estivesse em `platform_operators` — o sujeito era o
+-- `/ops` antigo. Staff vive em `staff_users` desde a Onda A (migrations
+-- 0059/0061); a Onda C já lê a fila por `withPlatformAggregation`
+-- (`listTicketQueue`, `packages/application`), que não depende desta
+-- policy nem de `platform_operators`. Sem o `/ops` antigo (removido nesta
+-- mesma task — ver "Estrutura de arquivos" do plano da Onda D), a policy
+-- fica sem sujeito: é uma porta que ninguém mais tranca.
+--
+-- NÃO derruba `platform_operators` nem `conta_operator` (a policy que
+-- protege a própria tabela). Reconhecimento desta onda (grep -rn
+-- "platform_operators" e "isPlatformOperator") confirmou os oito
+-- consumidores de código que existiam antes desta task — a função
+-- `isPlatformOperator` e os sete arquivos de app que a chamavam. Esta
+-- mesma task remove todos. Depois dela, nada em código lê a tabela — mas
+-- ela e sua policy de leitura própria continuam de pé, forward-only, até
+-- uma decisão explícita de derrubá-la.
+DROP POLICY ops_ticket_lista ON support_tickets;

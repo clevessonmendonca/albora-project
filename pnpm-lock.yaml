@@ -192,6 +192,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@albora/application':
+        specifier: workspace:*
+        version: link:../../packages/application
       '@albora/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -201,6 +204,9 @@ importers:
       '@albora/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@albora/integrations':
+        specifier: workspace:*
+        version: link:../../packages/integrations
       '@albora/packs':
         specifier: workspace:*
         version: link:../../packages/packs
@@ -302,6 +308,22 @@ importers:
         specifier: ^4.20.0
         version: 4.124.0(@cloudflare/workers-types@4.20260702.1)
 
+  packages/application:
+    dependencies:
+      '@albora/core':
+        specifier: workspace:*
+        version: link:../core
+      '@albora/db':
+        specifier: workspace:*
+        version: link:../db
+      pg:
+        specifier: ^8.13.1
+        version: 8.23.0
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.21.0
+
   packages/core: {}
 
   packages/curation: {}
@@ -318,6 +340,15 @@ importers:
       '@types/pg':
         specifier: ^8.11.10
         version: 8.21.0
+
+  packages/integrations:
+    dependencies:
+      '@albora/core':
+        specifier: workspace:*
+        version: link:../core
+      '@albora/db':
+        specifier: workspace:*
+        version: link:../db
 
   packages/packs:
     dependencies:

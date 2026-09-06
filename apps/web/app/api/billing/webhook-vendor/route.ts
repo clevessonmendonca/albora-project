@@ -9,7 +9,7 @@ import {
   isBillingStubMode,
   parseVendorWebhook,
   readAsaasWebhookToken,
-} from "@/lib/billing";
+} from "@albora/integrations";
 
 export const dynamic = "force-dynamic";
 

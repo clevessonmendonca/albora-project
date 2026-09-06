@@ -1,6 +1,6 @@
 import { asaasCustomerIdForAccount } from "@albora/db";
-import type { PaymentSummary } from "@/lib/billing";
-import { resolveBilling } from "@/lib/billing";
+import type { PaymentSummary } from "@albora/integrations";
+import { resolveBilling } from "@albora/integrations";
 import {
   ADMIN_SESSION_REQUIRED,
   jsonOk,
