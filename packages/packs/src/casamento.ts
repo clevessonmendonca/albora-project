@@ -38,12 +38,12 @@ export const CASAMENTO: Pack = {
     "lugar.bar": "Bar",
     "lugar.varanda": "Varanda",
 
-    "landing.rotulo": "O álbum que a festa inteira tira",
-    "landing.titulo": "As fotos do seu casamento,",
-    "landing.titulo.destaque": "antes de a festa acabar.",
+    "landing.rotulo": "Fotos de festa · sem app",
+    "landing.titulo": "Toda perspectiva da sua festa,",
+    "landing.titulo.destaque": "sem pedir pra ninguém baixar nada.",
     "landing.lede":
-      "Cada convidado carrega uma câmera no bolso, e no fim da noite cada rolo some sem chegar até você. Com um QR na mesa, toda foto cai no seu álbum no instante em que alguém tira.",
-    "landing.cta": "Criar meu álbum",
+      "Seus convidados escaneiam um QR, tiram fotos e mandam tudo pra você. Ao vivo no telão. Pra sempre no álbum.",
+    "landing.cta": "Criar meu evento",
     "landing.exemplo.nome": "ANA & JOÃO",
     "landing.momentos.titulo": "Todo mundo vendo as fotos",
     "landing.momentos.destaque": "enquanto a festa acontece.",
