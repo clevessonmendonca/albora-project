@@ -15,7 +15,15 @@ export type { EntradaFeed, ItemFeed, ModoFeed, PaginaFeed } from "./feed";
 export { codificarCursor, decodificarCursor, ErroCursorInvalido, gateDoEvento, listarFeed, TAMANHO_PAGINA } from "./feed";
 
 export type { MotivoSessaoInvalida, NovaSessao, SessaoResolvida } from "./sessions";
-export { comSessao, criarSessao, ErroNomeInvalido, ErroSessaoInvalida, resolverSessao, revogarSessoesDoEvento } from "./sessions";
+export {
+  comSessao,
+  criarSessao,
+  ErroNomeInvalido,
+  ErroSessaoInvalida,
+  isGuestSessionLive,
+  resolverSessao,
+  revogarSessoesDoEvento,
+} from "./sessions";
 export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from "./token";
 
 export type { EstadoDoEvento, EventoPublico, NovoEvento, Resolucao } from "./events";
