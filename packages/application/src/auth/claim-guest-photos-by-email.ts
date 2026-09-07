@@ -5,6 +5,7 @@ export type ClaimGuestPhotosByEmailInput = {
   eventId: string;
   guestSessionId: string;
   email: string;
+  verifiedVia?: "google" | "magic_link";
 };
 
 /**
@@ -23,6 +24,7 @@ export async function claimGuestPhotosByEmail(pool: Pool, input: ClaimGuestPhoto
   if (!vivo) return;
 
   const email = input.email.trim().toLowerCase();
+  const verifiedVia = input.verifiedVia ?? "google";
 
   // Upsert atômico: a UNIQUE (event_id, session_id, channel, value) da
   // migration 0069 serializa a corrida entre dois callbacks concorrentes —
@@ -30,10 +32,10 @@ export async function claimGuestPhotosByEmail(pool: Pool, input: ClaimGuestPhoto
   await withEvent(pool, input.eventId, async (cliente) => {
     await cliente.query(
       `INSERT INTO guest_contacts (event_id, session_id, channel, value, verified_at, verified_via)
-       VALUES ($1, $2, 'email', $3, now(), 'google')
+       VALUES ($1, $2, 'email', $3, now(), $4)
        ON CONFLICT (event_id, session_id, channel, value)
-       DO UPDATE SET verified_at = now(), verified_via = 'google'`,
-      [input.eventId, input.guestSessionId, email],
+       DO UPDATE SET verified_at = now(), verified_via = $4`,
+      [input.eventId, input.guestSessionId, email, verifiedVia],
     );
   });
 }

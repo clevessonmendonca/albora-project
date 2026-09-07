@@ -229,6 +229,14 @@ const FORA_DA_RLS = new Map([
     "porta de pareamento web → app: resolve código → (event_id, session_id) antes de haver contexto — só mapeamento, sem PII",
   ],
   [
+    "delivery_tokens",
+    "porta de entrada da galeria: resolve token_hash → (event_id, session_id) antes de haver contexto; o hash assinado é a capability, um hash pertence a um evento só",
+  ],
+  [
+    "guest_magic_links",
+    "porta do magic link do convidado: consome token_hash → (event_id, session_id) antes de haver contexto, single-use; mesma disciplina de session_tokens",
+  ],
+  [
     "retention_jobs",
     "runner pós-evento: lista due cross-event sem PII de convidado — só event_id, kind e status",
   ],

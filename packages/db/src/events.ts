@@ -91,6 +91,18 @@ export async function atualizarChaveImagemCapa(
   );
 }
 
+/** Abre (data) ou fecha (`null`) o gate de entrega das fotos. `resolveDeliveries` só entrega depois que `agora >= delivery_opens_at`. */
+export async function definirAberturaDeEntrega(
+  cliente: PoolClient,
+  eventoId: string,
+  quando: Date | null,
+): Promise<void> {
+  await cliente.query(
+    "UPDATE events SET delivery_opens_at = $1 WHERE id = $2",
+    [quando, eventoId],
+  );
+}
+
 export async function resolverSlug(
   pool: Pool,
   slug: string,
