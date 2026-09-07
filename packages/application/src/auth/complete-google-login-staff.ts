@@ -1,21 +1,47 @@
 import type { Pool } from "pg";
+import { findStaffByEmail, insertAuditLog, insertSecurityEvent } from "@albora/db";
 
 export type CompleteGoogleLoginStaffInput = { email: string; ipHash: string };
 export type CompleteGoogleLoginStaffResult = { ok: true; staffUserId: string } | { ok: false };
 
 /**
- * STUB — implementação real fica para T6. Interface fixada aqui para o
- * roteador do callback (T4) despachar por `surface` antes do caso de uso
- * existir. Mesmo formato de resultado de `completeStaffLogin`
- * (`packages/application/src/staff/complete-login.ts`): casa o e-mail
- * confirmado pelo Google com uma conta de staff ativa, grava
- * `security_events` em falha (`kind: "login.failed"`, mesma disciplina).
- * Nunca chame isto fora de teste com mock antes de T6 substituir o corpo:
- * falha alto de propósito.
+ * NUNCA cria staff — nasce só por convite (`staff.manage`). "Não existe" e
+ * "existe mas suspenso" devolvem o MESMO `{ ok: false }` e o mesmo
+ * `security_events`, pra não virar oráculo que revela quem é da equipe.
+ * Emissão de sessão (`issueStaffSession`, endurecimento herdado: idle,
+ * absoluto, rotação) fica a cargo do chamador em `apps/web` — este caso de
+ * uso só resolve identidade e audita, mesma fronteira de `completeStaffLogin`.
  */
 export async function completeGoogleLoginStaff(
-  _pool: Pool,
-  _input: CompleteGoogleLoginStaffInput,
+  pool: Pool,
+  input: CompleteGoogleLoginStaffInput,
 ): Promise<CompleteGoogleLoginStaffResult> {
-  throw new Error("completeGoogleLoginStaff: ainda não implementado (T6)");
+  const staff = await findStaffByEmail(pool, input.email.trim().toLowerCase());
+
+  if (!staff || staff.status !== "active") {
+    await insertSecurityEvent(pool, {
+      kind: "login.failed",
+      ipHash: input.ipHash,
+      metadata: { surface: "staff_google" },
+    });
+    return { ok: false };
+  }
+
+  const client = await pool.connect();
+  try {
+    await insertAuditLog(client, {
+      actorKind: "staff",
+      actorId: staff.id,
+      action: "staff.login",
+      targetKind: "staff_user",
+      targetId: staff.id,
+      reason: "login via Google OIDC",
+      metadata: { via: "google" },
+      ipHash: input.ipHash,
+    });
+  } finally {
+    client.release();
+  }
+
+  return { ok: true, staffUserId: staff.id };
 }
