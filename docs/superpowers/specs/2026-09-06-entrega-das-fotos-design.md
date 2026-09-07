@@ -41,7 +41,7 @@ CREATE TABLE delivery_tokens (
   revoked_at  timestamptz,
   created_at  timestamptz NOT NULL DEFAULT now()
 );
--- RLS FORCED, política isolamento_evento por event_id (NULLIF), como toda tabela de evento.
+-- SEM RLS (migration 0071): porta de entrada resolvida por token_hash antes de haver contexto, na allowlist FORA_DA_RLS — mesma disciplina de session_tokens.
 
 -- guest_magic_links: prova de posse por e-mail p/ o convidado. NUNCA toca accounts.
 CREATE TABLE guest_magic_links (
@@ -54,7 +54,7 @@ CREATE TABLE guest_magic_links (
   used_at     timestamptz,
   created_at  timestamptz NOT NULL DEFAULT now()
 );
--- RLS FORCED, isolamento_evento por event_id.
+-- SEM RLS (migration 0071): porta de entrada, hash-keyed, single-use; na allowlist FORA_DA_RLS.
 
 -- entrega feita, p/ idempotência: um contato entregue não re-dispara.
 ALTER TABLE guest_contacts ADD COLUMN delivered_at timestamptz;
