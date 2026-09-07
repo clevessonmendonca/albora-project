@@ -1,6 +1,6 @@
 # Álbora — Refatoração para o redesign v4 (guia de implementação)
 
-> **Para o agente/dev que vai implementar.** Este documento traduz o redesign (protótipos em `docs/redesign/prototipos/`) para o código atual. Cobre **dois fluxos fechados**: **Onboarding (criar evento)** e **Experiência do convidado**. O **Telão** também está fechado, em doc próprio: [`telao.md`](./telao.md). O painel do anfitrião está em `prototipos/painel-anfitriao.html` como referência, mas **ainda em iteração** — não implemente o painel a partir deste doc.
+> **Para o agente/dev que vai implementar.** Este documento traduz o redesign (protótipos em `docs/redesign/prototipos/`) para o código atual. Cobre **dois fluxos fechados**: **Onboarding (criar evento)** e **Experiência do convidado**. O **Telão** ([`telao.md`](./telao.md)) e o **QR + Kit de materiais** ([`kit.md`](./kit.md)) também estão fechados, em docs próprios. O painel do anfitrião está em `prototipos/painel-anfitriao.html` como referência, mas **ainda em iteração** — não implemente o painel a partir deste doc.
 
 ## 0. Como usar
 
