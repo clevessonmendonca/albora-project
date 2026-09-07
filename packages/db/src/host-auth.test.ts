@@ -6,6 +6,7 @@ import {
   ErroHostSessaoInvalida,
   ErroMagicLinkInvalido,
   issueMarkedHostSession,
+  resolveOrCreateAccountByEmail,
   resolverHostSessao,
   revogarHostSessao,
 } from "./host-auth";
@@ -134,5 +135,33 @@ describe("issueMarkedHostSession — sessão que nasce de uma impersonação apr
     const resolvida = await resolverHostSessao(admin, SEGREDO, token);
     expect(resolvida.impersonationId).toBe(pedido[0].id);
     expect(resolvida.accountId).toBe(acc[0].id);
+  });
+
+  it("aceita impersonationId null — caminho do login Google (T5), sem impersonação", async () => {
+    const { rows: acc } = await admin.query(
+      "INSERT INTO accounts (email) VALUES ('sem-impersonacao@exemplo.test') RETURNING id",
+    );
+
+    const { token } = await issueMarkedHostSession(admin, SEGREDO, acc[0].id, null, daqui(30));
+    const resolvida = await resolverHostSessao(admin, SEGREDO, token);
+    expect(resolvida.impersonationId).toBeNull();
+    expect(resolvida.accountId).toBe(acc[0].id);
+  });
+});
+
+describe("resolveOrCreateAccountByEmail", () => {
+  it("cria a conta quando o e-mail é novo", async () => {
+    const email = `nova-${Math.random().toString(36).slice(2)}@exemplo.test`;
+    const resultado = await resolveOrCreateAccountByEmail(admin, email);
+    expect(resultado.isNewAccount).toBe(true);
+    expect(resultado.accountId).toBeTruthy();
+  });
+
+  it("resolve a mesma conta quando o e-mail já existe (idempotente)", async () => {
+    const email = `existente-${Math.random().toString(36).slice(2)}@exemplo.test`;
+    const primeira = await resolveOrCreateAccountByEmail(admin, email);
+    const segunda = await resolveOrCreateAccountByEmail(admin, email);
+    expect(segunda.accountId).toBe(primeira.accountId);
+    expect(segunda.isNewAccount).toBe(false);
   });
 });

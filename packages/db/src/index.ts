@@ -15,7 +15,15 @@ export type { EntradaFeed, ItemFeed, ModoFeed, PaginaFeed } from "./feed";
 export { codificarCursor, decodificarCursor, ErroCursorInvalido, gateDoEvento, listarFeed, TAMANHO_PAGINA } from "./feed";
 
 export type { MotivoSessaoInvalida, NovaSessao, SessaoResolvida } from "./sessions";
-export { comSessao, criarSessao, ErroNomeInvalido, ErroSessaoInvalida, resolverSessao, revogarSessoesDoEvento } from "./sessions";
+export {
+  comSessao,
+  criarSessao,
+  ErroNomeInvalido,
+  ErroSessaoInvalida,
+  isGuestSessionLive,
+  resolverSessao,
+  revogarSessoesDoEvento,
+} from "./sessions";
 export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from "./token";
 
 export type { EstadoDoEvento, EventoPublico, NovoEvento, Resolucao } from "./events";
@@ -188,13 +196,14 @@ export { perfilDoConvidado } from "./guest-profile";
 
 export { contarVideosDaSessao, planoDoEvento } from "./plan-db";
 
-export type { HostResolvida, HostSessaoCriada, MagicLinkEmitido } from "./host-auth";
+export type { AccountResolvida, HostResolvida, HostSessaoCriada, MagicLinkEmitido } from "./host-auth";
 export {
   consumirMagicLink,
   emitirMagicLink,
   ErroHostSessaoInvalida,
   ErroMagicLinkInvalido,
   issueMarkedHostSession,
+  resolveOrCreateAccountByEmail,
   resolverHostSessao,
   revogarHostSessao,
   VALIDADE_HOST_SESSAO_HORAS,

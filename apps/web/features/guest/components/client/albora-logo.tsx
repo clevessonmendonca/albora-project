@@ -1,3 +1,4 @@
+import React from "react";
 import { ALBORA_BRAND } from "@albora/tokens";
 
 /** Usa ALBORA_BRAND, não --fonte-titulo: o evento sobrescreve o título, mas nunca a assinatura da marca. */
