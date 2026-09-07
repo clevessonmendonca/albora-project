@@ -409,6 +409,10 @@ export async function purgarAcervo(cliente: PoolClient, eventId: string): Promis
     "UPDATE drive_connections SET status = 'revogado', revoked_at = now() WHERE event_id = $1 AND status <> 'revogado'",
     [eventId],
   );
+  // ADR 0019: contato verificado e tokens de entrega/magic-link somem junto do acervo — retenção cumprida por job, não por promessa.
+  await cliente.query("DELETE FROM delivery_tokens   WHERE event_id = $1", [eventId]);
+  await cliente.query("DELETE FROM guest_magic_links WHERE event_id = $1", [eventId]);
+  await cliente.query("DELETE FROM guest_contacts    WHERE event_id = $1", [eventId]);
 }
 
 export type AccountPurgeResult = {
