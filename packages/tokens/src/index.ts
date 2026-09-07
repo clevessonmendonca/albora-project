@@ -24,6 +24,8 @@ export {
   eventOnContrast,
 } from "./event-color";
 export type { EventColors } from "./event-color";
+export { EVENT_COLOR_COMBOS, SUGGESTED_EVENT_COLORS } from "./event-combos";
+export type { EventColorCombo } from "./event-combos";
 export { toCss, toVariables } from "./outputs";
 export type { PieceFormat, PieceLayout, PieceMeasures, QrInk } from "./pieces";
 export {
