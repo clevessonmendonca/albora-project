@@ -35,6 +35,7 @@ export {
   ErroContaDoCasalInvalida,
   fusoDoEvento,
   HORAS_APOS_EVENTO,
+  listarEventosComEntregaDevida,
   packDoEvento,
   resolverSlug,
   rotacionarSlug,
