@@ -70,6 +70,25 @@ describe("claimGuestPhotosByEmail", () => {
     expect(rows[0]!.n).toBe(1);
   });
 
+  it("concorrente — dois claims em paralelo na mesma sessão gravam UMA linha (UNIQUE, não corrida)", async () => {
+    const sessionId = await sessaoDeConvidadoViva(dados.a.eventoId, "convidado-concorrente");
+    const email = "convidado-concorrente@exemplo.test";
+
+    // Sem a UNIQUE da migration 0069, os dois passavam o SELECT vazio e
+    // inseriam duas linhas. Com ela, um insere e o outro cai no ON CONFLICT.
+    await Promise.all([
+      claimGuestPhotosByEmail(app, { eventId: dados.a.eventoId, guestSessionId: sessionId, email }),
+      claimGuestPhotosByEmail(app, { eventId: dados.a.eventoId, guestSessionId: sessionId, email }),
+    ]);
+
+    const { rows } = await admin.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM guest_contacts
+        WHERE event_id = $1 AND session_id = $2 AND channel = 'email' AND value = $3`,
+      [dados.a.eventoId, sessionId, email],
+    );
+    expect(rows[0]!.n).toBe(1);
+  });
+
   it("sessão inexistente nunca grava contato", async () => {
     await claimGuestPhotosByEmail(app, {
       eventId: dados.a.eventoId,
