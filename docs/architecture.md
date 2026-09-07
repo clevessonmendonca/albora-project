@@ -368,6 +368,8 @@ Duas notas de desenho que não são cosméticas:
 
 `timezone` é o IANA do salão (`America/Sao_Paulo` por omissão). O `confirm` aplica esse fuso na parede do EXIF para gravar `taken_at`; o álbum fatia capítulos e a faixa 5h–7h no mesmo offset. Sem a coluna, Brasília era constante — uma festa em Manaus deslocava o amanhecer em uma hora.
 
+**Onboarding v4 e delayed auth.** O wizard de criar evento tem três passos (Evento → Aparência → Pronto); o tipo é um pack ([ADR 0019](./adr/0019-momentos-desacoplados-da-landing.md)), a data única vira início/fim com hora padrão, o fuso é auto-detectado e `expected_guests` fica em "mais detalhes" (default 150, sem denominador inventado). A ordem hoje é **login-antes**: `/admin/new` exige sessão. Uma hipótese A/B — **delayed auth**, criar antes do cadastro e capturar o e-mail como acesso só no fim — vive atrás da flag `delayedAuth` (`apps/web/lib/flags.ts`, off por padrão); enquanto desligada, o login-antes é o caminho, e o backend anônimo (conta pendente por e-mail, associação no magic-link, estado do wizard persistido no servidor) fica especificado em [ADR 0020](./adr/0020-delayed-auth-criar-evento-sem-cadastro.md), não construído. As duas cores do evento viajam em `identity_tokens.eventCores` e saem do mesmo resolvedor ([ADR 0003](./adr/0003-runtime-token-resolution.md)) como `--ev`/`--ev-2`, sem repintar o âmbar do produto.
+
 ---
 
 ## 9. Moderação

@@ -10,8 +10,10 @@ import { resolveIdentityPreviewVars } from "@/features/admin/lib/identity-previe
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
 import { CoverImageEditor } from "@/features/admin/components/client/cover-image-editor";
+import { delayedAuthEnabled } from "@/lib/flags";
 import { TypeStep, type TypeOption } from "./onboarding/type-step";
 import { AppearanceStep } from "./onboarding/appearance-step";
+import { AccessEmailStep } from "./onboarding/access-email-step";
 import { EVENT_STYLES, COLOR_COMBOS, type EventStyle } from "./onboarding/appearance-data";
 import { LivePreview, type PreviewSurface } from "./onboarding/live-preview";
 import { paletteFromImage } from "./onboarding/photo-palette";
@@ -528,6 +530,9 @@ function ReadyStep({
         </div>
 
         <CoverImageEditor eventId={created.eventoId} initialCoverImageUrl={null} initialCoverImageKey={null} autoUploadFile={coverFile} />
+
+        {/* E-mail-como-acesso: hipótese de delayed auth, atrás de flag (ADR 0020). Off = caminho atual. */}
+        {delayedAuthEnabled() && <AccessEmailStep eventId={created.eventoId} />}
 
         <a href={`/admin/e/${created.eventoId}`} className={`${adminClasses.primaryButton} w-full py-3.5 text-center text-[1.05rem]`}>
           Ir para meu evento
