@@ -55,6 +55,27 @@ describe("claimGuestPhotosByEmail", () => {
     expect(rows[0]!.verified_at).not.toBeNull();
   });
 
+  it("verifiedVia magic_link grava verified_via='magic_link'", async () => {
+    const sessionId = await sessaoDeConvidadoViva(dados.a.eventoId, "convidado-magic-link");
+    const email = "convidado-magic-link@exemplo.test";
+
+    await claimGuestPhotosByEmail(app, {
+      eventId: dados.a.eventoId,
+      guestSessionId: sessionId,
+      email,
+      verifiedVia: "magic_link",
+    });
+
+    const { rows } = await admin.query<{ verified_via: string | null }>(
+      `SELECT verified_via FROM guest_contacts
+        WHERE event_id = $1 AND session_id = $2 AND channel = 'email' AND value = $3`,
+      [dados.a.eventoId, sessionId, email],
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.verified_via).toBe("magic_link");
+  });
+
   it("idempotente — reivindicar duas vezes não duplica, só atualiza a verificação", async () => {
     const sessionId = await sessaoDeConvidadoViva(dados.a.eventoId, "convidado-repete");
     const email = "convidado-repete@exemplo.test";
