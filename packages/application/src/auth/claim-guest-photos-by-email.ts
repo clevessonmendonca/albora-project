@@ -24,25 +24,15 @@ export async function claimGuestPhotosByEmail(pool: Pool, input: ClaimGuestPhoto
 
   const email = input.email.trim().toLowerCase();
 
+  // Upsert atômico: a UNIQUE (event_id, session_id, channel, value) da
+  // migration 0069 serializa a corrida entre dois callbacks concorrentes —
+  // um insere, o outro cai no ON CONFLICT e só reconfirma a verificação.
   await withEvent(pool, input.eventId, async (cliente) => {
-    // guest_contacts não tem UNIQUE(event_id, session_id, channel, value) — idempotência por SELECT-then-INSERT dentro da mesma transação.
-    const { rows: existente } = await cliente.query<{ id: string }>(
-      `SELECT id FROM guest_contacts
-        WHERE event_id = $1 AND session_id = $2 AND channel = 'email' AND value = $3`,
-      [input.eventId, input.guestSessionId, email],
-    );
-
-    if (existente.length > 0) {
-      await cliente.query(
-        `UPDATE guest_contacts SET verified_at = now(), verified_via = 'google' WHERE id = $1`,
-        [existente[0]!.id],
-      );
-      return;
-    }
-
     await cliente.query(
       `INSERT INTO guest_contacts (event_id, session_id, channel, value, verified_at, verified_via)
-       VALUES ($1, $2, 'email', $3, now(), 'google')`,
+       VALUES ($1, $2, 'email', $3, now(), 'google')
+       ON CONFLICT (event_id, session_id, channel, value)
+       DO UPDATE SET verified_at = now(), verified_via = 'google'`,
       [input.eventId, input.guestSessionId, email],
     );
   });
