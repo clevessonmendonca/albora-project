@@ -36,7 +36,7 @@ export async function emitGuestMagicLink(
 
   const { token } = await emitGuestMagicLinkRow(deps.pool, deps.segredo, input.eventId, input.guestSessionId, email, expiraEm);
 
-  const link = `${deps.baseUrl}/auth/guest-magic/callback?token=${token}`;
+  const link = `${deps.baseUrl}/auth/guest-magic/callback?m=${token}`;
 
   return deps.sendEmail({
     to: email,

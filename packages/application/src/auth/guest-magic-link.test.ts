@@ -66,7 +66,7 @@ describe("emitGuestMagicLink", () => {
     expect(depois).toBe(antes + 1);
     expect(chamadas).toHaveLength(1);
     expect(chamadas[0]!.to).toBe("convidado@exemplo.test");
-    expect(chamadas[0]!.text).toContain(`${BASE_URL}/auth/guest-magic/callback?token=`);
+    expect(chamadas[0]!.text).toContain(`${BASE_URL}/auth/guest-magic/callback?m=`);
   });
 
   it("sessão fantasma: no-op — nada gravado, e-mail não enviado, {enviado:false}", async () => {
@@ -123,7 +123,7 @@ describe("verifyGuestMagicLink", () => {
       { pool: app, segredo: SEGREDO, baseUrl: BASE_URL, sendEmail },
       { eventId: dados.a.eventoId, guestSessionId: sessionId, email },
     );
-    const token = new URL(chamadas[0]!.text.match(/https?:\/\/\S+/)![0]).searchParams.get("token")!;
+    const token = new URL(chamadas[0]!.text.match(/https?:\/\/\S+/)![0]).searchParams.get("m")!;
 
     const resultado = await verifyGuestMagicLink(app, SEGREDO, token);
 
@@ -148,7 +148,7 @@ describe("verifyGuestMagicLink", () => {
       { pool: app, segredo: SEGREDO, baseUrl: BASE_URL, sendEmail },
       { eventId: dados.a.eventoId, guestSessionId: sessionId, email },
     );
-    const token = new URL(chamadas[0]!.text.match(/https?:\/\/\S+/)![0]).searchParams.get("token")!;
+    const token = new URL(chamadas[0]!.text.match(/https?:\/\/\S+/)![0]).searchParams.get("m")!;
 
     const primeiro = await verifyGuestMagicLink(app, SEGREDO, token);
     const segundo = await verifyGuestMagicLink(app, SEGREDO, token);
@@ -178,7 +178,7 @@ describe("verifyGuestMagicLink", () => {
       { pool: app, segredo: SEGREDO, baseUrl: BASE_URL, sendEmail },
       { eventId: dados.a.eventoId, guestSessionId: sessionId, email },
     );
-    const token = new URL(chamadas[0]!.text.match(/https?:\/\/\S+/)![0]).searchParams.get("token")!;
+    const token = new URL(chamadas[0]!.text.match(/https?:\/\/\S+/)![0]).searchParams.get("m")!;
 
     const antesContas = await contar(admin, "accounts");
     const antesSessoesHost = await contar(admin, "host_sessions");
@@ -201,7 +201,7 @@ describe("verifyGuestMagicLink", () => {
       { pool: app, segredo: SEGREDO, baseUrl: BASE_URL, sendEmail },
       { eventId: dados.a.eventoId, guestSessionId: sessionId, email },
     );
-    const token = new URL(chamadas[0]!.text.match(/https?:\/\/\S+/)![0]).searchParams.get("token")!;
+    const token = new URL(chamadas[0]!.text.match(/https?:\/\/\S+/)![0]).searchParams.get("m")!;
 
     const linhas: string[] = [];
     const originalLog = console.log;
