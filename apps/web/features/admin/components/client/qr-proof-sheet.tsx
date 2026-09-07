@@ -12,7 +12,7 @@ export function QrProofSheet({ eventId }: { eventId: string }) {
     <AdminCard className="print:break-inside-avoid">
       <h3 className="m-0 mb-2 font-titulo text-base">Prova física do QR</h3>
       <p className="mt-0 mb-4 max-w-[52ch] text-[0.875rem] leading-relaxed text-ink-3">
-        Imprima peças na gráfica e teste com 3 celulares antes do casamento. Critério: 3/3
+        Imprima peças na gráfica e teste com 3 celulares antes do evento. Critério: 3/3
         aparelhos scaneiam em ≤5 s a 30 cm, luz baixa. Detalhes em{" "}
         <span className="text-ink-2">docs/runbooks/prova-qr-fisica.md</span>.
       </p>
@@ -82,7 +82,7 @@ export function QrProofSheet({ eventId }: { eventId: string }) {
       </dl>
 
       <p className="mb-0 mt-4 text-[0.8125rem] text-ink-3">
-        Resultado: ☐ APROVADO &nbsp; ☐ REPROVADO — não ir ao casamento sem aprovar.
+        Resultado: ☐ APROVADO &nbsp; ☐ REPROVADO — não ir ao evento sem aprovar.
       </p>
     </AdminCard>
   );
