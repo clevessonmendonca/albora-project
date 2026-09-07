@@ -125,3 +125,5 @@ export type { CompleteGoogleLoginStaffInput, CompleteGoogleLoginStaffResult } fr
 export { completeGoogleLoginStaff } from "./auth/complete-google-login-staff";
 export type { ClaimGuestPhotosByEmailInput } from "./auth/claim-guest-photos-by-email";
 export { claimGuestPhotosByEmail } from "./auth/claim-guest-photos-by-email";
+
+export { resolveDeliveries } from "./entrega/resolve-deliveries";
