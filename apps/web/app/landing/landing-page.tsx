@@ -11,22 +11,16 @@ import { pillClasses } from "./pieces";
 import { SIDE_PADDING, HREF_CRIAR_GRATIS, type LiveStats } from "./landing-data";
 import {
   HeroSection,
-  NoAppSection,
-  ScrollDemoSection,
-  ExperienceSection,
-  MomentsSection,
-  MissionsSection,
-  AlbumChaptersSection,
-  IdentitySection,
-  BookSection,
-  IncludedSection,
-  PhotoCorridorSection,
-  ChoresEliminatedSection,
-  AntesDaFestaSection,
-  VeteranSection,
-  PricingSection,
+  ProvaSection,
+  ComoFuncionaSection,
+  PerspectivasSection,
+  TelaoSection,
+  DuranteAFestaSection,
+  DepoisSection,
+  ObjecoesSection,
+  PrecoSection,
   FaqSection,
-  ClosingSection,
+  FechoSection,
 } from "./sections";
 
 export type { LiveStats };
@@ -39,19 +33,6 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
 
   const t = (key: string) => resolvePackText(pack, key);
 
-  const missions = [...pack.missoes]
-    .sort((a, b) => a.ordem - b.ordem)
-    .map((m) => ({ id: m.id, title: t(m.chaveTitulo) }));
-
-  const example = t("landing.exemplo.nome");
-  const places = pack.lugares.map((l) => t(l.chaveTitulo));
-
-  const eventMoments = (pack.momentos ?? []).map((m) => ({
-    id: m.id,
-    title: t(m.chaveTitulo),
-    desc: t(m.chaveDesc),
-  }));
-
   return (
     <div
       className="min-h-screen overflow-x-clip bg-bg font-corpo leading-normal text-ink"
@@ -61,7 +42,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
 
       <header
         className={cn(
-          "flex items-center justify-between gap-6 border-b border-linha bg-bg py-3.5",
+          "sticky top-0 z-40 flex items-center justify-between gap-6 border-b border-linha bg-bg py-3.5",
           SIDE_PADDING,
         )}
       >
@@ -70,23 +51,14 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
         </span>
 
         <nav className="nav-topo gap-[1.625rem] text-ink-2">
-          <a href="#experiencia" className="elo text-inherit no-underline">
-            A experiência
+          <a href="#como" className="elo text-inherit no-underline">
+            Como funciona
           </a>
-          <a href="#momentos" className="elo text-inherit no-underline">
-            As fotos
+          <a href="#telao" className="elo text-inherit no-underline">
+            O telão
           </a>
-          <a href="#album" className="elo text-inherit no-underline">
-            O álbum
-          </a>
-          <a href="#identidade" className="elo text-inherit no-underline">
-            Identidade
-          </a>
-          <a href="#livro" className="elo text-inherit no-underline">
-            Livro
-          </a>
-          <a href="#planos" className="elo text-inherit no-underline">
-            Planos
+          <a href="#preco" className="elo text-inherit no-underline">
+            Preço
           </a>
         </nav>
 
@@ -100,30 +72,35 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
       </header>
 
       <HeroSection pack={pack} t={t} {...(live !== undefined ? { live } : {})} />
-      <NoAppSection pack={pack} t={t} />
-      <ScrollDemoSection
-        example={example}
-        missionTitle={missions[0]?.title ?? t("missao.livre")}
-      />
-      <ExperienceSection />
-      <MomentsSection t={t} />
-      <PhotoCorridorSection />
-      <MissionsSection missions={missions} t={t} />
-      <AlbumChaptersSection eventMoments={eventMoments} />
-      <IdentitySection example={example} t={t} />
-      <BookSection places={places} />
-      <ChoresEliminatedSection />
-      <AntesDaFestaSection packId={pack.id} />
-      <VeteranSection packId={pack.id} t={t} />
-      <IncludedSection />
-      <PricingSection packId={pack.id} t={t} />
+      <ProvaSection pack={pack} />
+      <ComoFuncionaSection />
+      <PerspectivasSection pack={pack} />
+      <TelaoSection pack={pack} />
+      <DuranteAFestaSection />
+      <DepoisSection />
+      <ObjecoesSection />
+      <PrecoSection pack={pack} />
       <FaqSection />
-      <ClosingSection packId={pack.id} t={t} />
+      <FechoSection pack={pack} />
+
+      <footer className="border-t border-linha bg-bg">
+        <div
+          className={cn(
+            "mx-auto flex max-w-[78rem] flex-wrap items-center justify-between gap-4 py-8 text-sm text-ink-3",
+            SIDE_PADDING,
+          )}
+        >
+          <span>Albora · Feito no Brasil</span>
+          <a href="/privacidade" className="underline hover:text-ink-2">
+            Privacidade
+          </a>
+        </div>
+      </footer>
 
       <LandingStickyCta
         href={HREF_CRIAR_GRATIS}
         packHint={pack.id}
-        label="Criar álbum"
+        label={t("landing.cta")}
       />
     </div>
   );
