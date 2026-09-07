@@ -9,6 +9,7 @@ export const VALIDADE_MAGIC_LINK_MINUTOS = 15;
 export const VALIDADE_HOST_SESSAO_HORAS = 12;
 
 export type MagicLinkEmitido = { token: string; accountId: string; isNewAccount: boolean };
+export type AccountResolvida = { accountId: string; isNewAccount: boolean };
 export type HostSessaoCriada = { token: string; accountId: string };
 /** `impersonationId` não-nulo marca que esta sessão nasceu de uma aprovação de impersonação, não de magic link — é o que deixa toda ação da janela rastreável a `actor = staff, acting_as = account`. */
 export type HostResolvida = { accountId: string; email: string; impersonationId: string | null };
@@ -29,6 +30,31 @@ export class ErroHostSessaoInvalida extends Error {
   }
 }
 
+/**
+ * Resolve uma conta por e-mail, criando se for novo. Extraído de dentro de
+ * `emitirMagicLink` (mesma semântica exata, INSERT...ON CONFLICT...RETURNING
+ * id) para ser reusado pelo login Google (T5, Onda SSO), que já chega com
+ * e-mail verificado e não precisa do efeito colateral de um magic link.
+ */
+export async function resolveOrCreateAccountByEmail(db: Queryable, email: string): Promise<AccountResolvida> {
+  const normalizado = email.trim().toLowerCase();
+
+  const antes = await db.query<{ id: string }>(
+    "SELECT id FROM accounts WHERE email = $1",
+    [normalizado],
+  );
+  const jaExistia = antes.rows.length > 0;
+
+  const { rows } = await db.query<{ id: string }>(
+    `INSERT INTO accounts (email) VALUES ($1)
+     ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
+     RETURNING id`,
+    [normalizado],
+  );
+
+  return { accountId: rows[0]!.id, isNewAccount: !jaExistia };
+}
+
 /** Token devolvido para entrega por e-mail — nunca na resposta de POST anônimo. */
 export async function emitirMagicLink(
   pool: Pool,
@@ -36,21 +62,7 @@ export async function emitirMagicLink(
   email: string,
   expiraEm: Date,
 ): Promise<MagicLinkEmitido> {
-  const normalizado = email.trim().toLowerCase();
-
-  const antes = await pool.query<{ id: string }>(
-    "SELECT id FROM accounts WHERE email = $1",
-    [normalizado],
-  );
-  const jaExistia = antes.rows.length > 0;
-
-  const { rows } = await pool.query<{ id: string }>(
-    `INSERT INTO accounts (email) VALUES ($1)
-     ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
-     RETURNING id`,
-    [normalizado],
-  );
-  const accountId = rows[0]!.id;
+  const { accountId, isNewAccount } = await resolveOrCreateAccountByEmail(pool, email);
 
   const { token, hash } = emitirToken(segredo);
   await pool.query(
@@ -58,7 +70,7 @@ export async function emitirMagicLink(
     [hash, accountId, expiraEm],
   );
 
-  return { token, accountId, isNewAccount: !jaExistia };
+  return { token, accountId, isNewAccount };
 }
 
 /** 🔴 Uso único, atômico: `UPDATE … WHERE used_at IS NULL RETURNING` — dois cliques produzem uma sessão só. */
@@ -138,12 +150,14 @@ export async function resolverHostSessao(
  * ativa a sessão (`startImpersonation`). Aceita `Queryable` (não só `Pool`)
  * porque é chamada de dentro da transação do próprio comando — precisa
  * ser a mesma transação que marca o pedido `active`, não uma conexão nova.
+ * `impersonationId` aceita `null` — é o caminho do login Google (T5): a
+ * sessão nasce direto da conta resolvida, sem impersonação nenhuma.
  */
 export async function issueMarkedHostSession(
   db: Queryable,
   segredo: string,
   accountId: string,
-  impersonationId: string,
+  impersonationId: string | null,
   expiresAt: Date,
 ): Promise<{ token: string }> {
   const { token, hash } = emitirToken(segredo);
