@@ -832,3 +832,49 @@ export { podeRemoverComentario as canRemoveComment } from "./comment";
 export { registrarDecisaoDoComentario as registerCommentDecision } from "./comment";
 /** English alias — prefer for new code. @see validarTexto */
 export { validarTexto as validateCommentText } from "./comment";
+
+export * from "./ref-token";
+
+export type { ConfigDoProvedorOpenAi, ResultadoBrutoOpenAi } from "./classificador-openai";
+export {
+  LIMIAR_SUSPEITO as LIMIAR_SUSPEITO_OPENAI,
+  provedorOpenAi,
+  resultadoBrutoOpenAi,
+  veredictoDoResultadoBruto,
+} from "./classificador-openai";
+
+export type { TipoDeConsentimento, VersaoDeConsentimento } from "./consent-versions";
+export {
+  CONSENTIMENTO_ENTRADA_VIGENTE,
+  CONSENTIMENTO_EXTERNO_VIGENTE,
+  rotuloDoConsentimento,
+  textoDoConsentimento,
+  versaoVigente as versaoVigenteDoConsentimento,
+  VERSOES_DE_CONSENTIMENTO,
+} from "./consent-versions";
+export type { TipoDeConsentimento as ConsentKind } from "./consent-versions";
+export type { VersaoDeConsentimento as ConsentVersion } from "./consent-versions";
+export { VERSOES_DE_CONSENTIMENTO as CONSENT_VERSIONS } from "./consent-versions";
+export { textoDoConsentimento as consentVersionText } from "./consent-versions";
+
+export type { Actor, AuthorizationRequest, Capability, Decision, Policy, StaffRole } from "./authorization";
+export {
+  ALL_CAPABILITIES,
+  authorize,
+  hasCapability,
+  POLICIES,
+  REAUTH_MAX_AGE_SECONDS,
+  REFUND_APPROVAL_THRESHOLD_CENTS,
+  ROLE_CAPABILITIES,
+} from "./authorization";
+
+export { VENDOR_PLAN_PRICE_CENTS, type VendorPlanTier } from "./vendor-billing";
+
+export type {
+  GoogleJwk,
+  GoogleJwks,
+  MotivoIdTokenInvalido,
+  ValidatedIdentity,
+  ValidateIdTokenInput,
+} from "./oidc/validate-id-token";
+export { InvalidIdTokenError, validateIdToken } from "./oidc/validate-id-token";

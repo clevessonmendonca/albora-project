@@ -129,9 +129,9 @@ export function useComments(uploadId: string, habilitado: boolean) {
     return () => window.removeEventListener("online", online);
   }, [drenar]);
 
-  const publicar = useCallback(async () => {
+  const publicar = useCallback(async (): Promise<boolean> => {
     const limpo = texto.trim();
-    if (!limpo || limpo.length > MAX_CARACTERES) return;
+    if (!limpo || limpo.length > MAX_CARACTERES) return false;
 
     const id = crypto.randomUUID();
     const alvoResposta = respostaA;
@@ -170,13 +170,15 @@ export function useComments(uploadId: string, habilitado: boolean) {
       if (!r.ok) {
         await enqueueComment(acao);
         setEstado((e) => ({ ...e, publicando: false }));
-        return;
+        return false;
       }
 
       await carregar();
+      return true;
     } catch {
       await enqueueComment(acao);
       setEstado((e) => ({ ...e, erro: true }));
+      return false;
     } finally {
       setEstado((e) => ({ ...e, publicando: false }));
     }

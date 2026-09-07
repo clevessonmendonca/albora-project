@@ -62,9 +62,9 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
+          <p className="tipo-label m-0 text-ink-3">
             {verPainelCompleto ? "Painel completo" : "Acompanhar"}
           </p>
           {!verPainelCompleto && ultimaAtualizacao && (
@@ -80,7 +80,7 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
             />
           )}
         </div>
-        <label className="flex items-center gap-2.5 text-sm text-ink-2">
+        <label className="tipo-caption flex items-center gap-2.5 text-ink-2">
           Ver painel completo
           <Switch
             checked={verPainelCompleto}
@@ -96,7 +96,7 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
         <>
           {erro && !resumo && (
             <AdminCard>
-              <p className="m-0 text-critico">
+              <p role="alert" className="tipo-body m-0 text-critico">
                 Não foi possível carregar agora. Tente recarregar a página.
               </p>
             </AdminCard>
@@ -130,16 +130,14 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
                   />
                   <BigStat n={String(resumo.totalFotos)} rotulo="fotos na festa" />
                 </div>
-                <p className={`mb-0 mt-5 text-sm ${vereditoTextClass(resumo.veredito)}`}>
+                <p className={`tipo-caption mb-0 mt-5 ${vereditoTextClass(resumo.veredito)}`}>
                   {ROTULO_VEREDITO[resumo.veredito]}
                 </p>
               </AdminCard>
 
               {resumo.ultimas.length > 0 && (
                 <AdminCard>
-                  <p className="mb-3 mt-0 text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
-                    Chegando agora
-                  </p>
+                  <p className="tipo-label mb-3 mt-0 text-acento-texto">Chegando agora</p>
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {resumo.ultimas.map((f) => (
                       <span
@@ -163,10 +161,8 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
 function BigStat({ n, rotulo }: { n: string; rotulo: string }) {
   return (
     <div>
-      <p className="m-0 font-titulo text-[2.75rem] font-light tabular-nums text-acento-texto">
-        {n}
-      </p>
-      <p className="mb-0 mt-1.5 text-sm text-ink-2">{rotulo}</p>
+      <p className="tipo-display m-0 tabular-nums text-acento-texto">{n}</p>
+      <p className="tipo-caption mb-0 mt-1.5 text-ink-2">{rotulo}</p>
     </div>
   );
 }

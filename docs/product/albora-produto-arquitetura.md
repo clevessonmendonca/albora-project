@@ -3,7 +3,7 @@
 
 > **Status:** rascunho de fundação — consolidação das decisões tomadas até aqui
 > **Nome do produto:** **Albora** (definido — pendente de busca no INPI, ver §13.11)
-> **Última revisão:** agosto/2026
+> **Última revisão:** agosto/2026 (§2.2 concorrência atualizada 2026-08-29)
 
 ---
 
@@ -46,10 +46,11 @@ POV, Kululu, Wedbox, Wedibox, Guestpix, GuestCam, Fotify, WedUploader, PixelPart
 
 | Player | O que faz | Fraqueza |
 |---|---|---|
-| **Olhares** | Slideshow ao vivo, cards de desafio, templates para imprimir, sem download | Concorrente mais próximo do escopo |
-| **Meu Casar** | Álbum colaborativo via QR/URL, sem app | Genérico |
+| **Olhares** | Browser sem app; telão Pro; desafios/cards; **R$ 47–67** promo (2026-08); +1500 casamentos claim | Genérico; templates ≠ identidade propagada; preço agressivo vs. Albora R$ 199 — ver [`inteligencia-competitiva.md`](./inteligencia-competitiva.md) |
+| **Meu Casar** | Álbum colaborativo via QR/URL, sem app | Genérico; grátis embutido no site |
+| **PicWedding** | Feed privado + moderação + ZIP (BR emergente) | Feed como produto; sem tokens |
 | **Lejour Capture** | Galeria de fotos dos convidados (Grupo Fast Shop) | Feature de plataforma maior |
-| **Dots. Memories** | App de memórias com forte tração via TikTok (PT/ES) | **Exige download, iOS-first, genérico** |
+| **Dots. Memories** | App + web; TikTok PT/ES; reviews: upload falha/lag | **App-first na experiência completa; instabilidade no dia D** |
 
 **Incumbentes por adjacência (o risco real):**
 

@@ -16,6 +16,10 @@ function eventoFixture(overrides?: Partial<EventoPublico>): EventoPublico {
     vendorBrandTokens: null,
     coverImageKey: null,
     title: null,
+    // Obrigatorio em EventoPublico desde a migration 0056. Sem valor
+    // explicito aqui, o spread de Partial nao satisfaz o campo requerido
+    // sob exactOptionalPropertyTypes.
+    status: "active",
     ...overrides,
   };
 }

@@ -1,9 +1,15 @@
+import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
+import { OPS_TO_CONSOLE_REDIRECTS } from "./lib/redirects/ops-to-console";
 
 const nextConfig: NextConfig = {
   outputFileTracingRoot: process.cwd(),
   serverExternalPackages: ["pdf-lib", "@pdf-lib/fontkit"],
-  transpilePackages: ["@albora/core", "@albora/packs", "@albora/tokens", "@albora/ui-web"],
+  transpilePackages: ["@albora/core", "@albora/packs", "@albora/tokens", "@albora/ui-web", "@albora/integrations"],
+  images: {
+    loader: "custom",
+    loaderFile: "./lib/image-loader.ts",
+  },
   typescript: {
     // Só para `pnpm bundle:budget*` — mede First Load JS sem bloquear o gate principal de build.
     ignoreBuildErrors: process.env.BUNDLE_BUDGET_BUILD === "1",
@@ -103,6 +109,7 @@ const nextConfig: NextConfig = {
     return [
       { source: "/album", destination: "/scan", permanent: true },
       { source: "/privacy", destination: "/privacidade", permanent: true },
+      ...OPS_TO_CONSOLE_REDIRECTS,
       ...rootPtToEn.map(([pt, en]) => ({
         source: `/${pt}`,
         destination: `/${en}`,
@@ -127,4 +134,13 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  silent: !process.env.CI,
+  ...(process.env.SENTRY_ORG && { org: process.env.SENTRY_ORG }),
+  ...(process.env.SENTRY_PROJECT && { project: process.env.SENTRY_PROJECT }),
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+    deleteSourcemapsAfterUpload: true,
+  },
+  tunnelRoute: "/monitoring",
+});

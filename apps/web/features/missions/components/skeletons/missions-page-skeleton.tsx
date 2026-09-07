@@ -15,11 +15,12 @@ export function MissionsPageSkeleton() {
     <GuestShell hideStatusBar>
       <GuestMain>
         <GuestHeader title="Missões" homeHref="#" />
-        <Block height="5rem" />
-        <div className="mt-4 flex flex-col gap-3">
-          <Block height="3.5rem" />
-          <Block height="3.5rem" />
-          <Block height="3.5rem" />
+        <Block height="2.5rem" />
+        <div className="mt-4 flex flex-col gap-2">
+          <Block height="4.75rem" />
+          <Block height="4.5rem" />
+          <Block height="4.5rem" />
+          <Block height="4.5rem" />
         </div>
       </GuestMain>
     </GuestShell>

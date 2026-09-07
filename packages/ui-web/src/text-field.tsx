@@ -36,9 +36,9 @@ export function TextField({
         aria-describedby={describedBy}
         aria-invalid={error ? true : undefined}
         className={cn(
-          "rounded-token border bg-superficie px-3.5 py-2.5 font-corpo text-[0.9375rem] text-ink outline-none transition-[border-color,box-shadow] duration-[var(--tempo-rapido)] ease-[var(--curva)]",
+          "min-h-[48px] rounded-token border bg-superficie px-3.5 py-2.5 font-corpo text-[0.9375rem] text-ink outline-none transition-[border-color,box-shadow] duration-[var(--tempo-rapido)] ease-[var(--curva)]",
           "placeholder:text-ink-3",
-          "focus:border-acento-texto focus:ring-1 focus:ring-acento-texto",
+          "focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto",
           error ? "border-critico" : "border-linha",
           disabled && "cursor-not-allowed opacity-50",
           inputClassName,

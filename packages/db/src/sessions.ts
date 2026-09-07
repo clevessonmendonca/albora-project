@@ -89,6 +89,25 @@ export async function revogarSessoesDoEvento(pool: Pool, eventoId: string): Prom
   return rowCount ?? 0;
 }
 
+/**
+ * Vivacidade por (eventId, sessionId) — sem precisar do token opaco cru.
+ * `resolverSessao` exige o token (é o caminho normal do próprio convidado);
+ * o callback do Google (T8, Onda SSO) só tem os IDs vindos do `state`
+ * assinado, nunca o token — por isso esta função consulta `session_tokens`
+ * direto, fora de RLS (mesma tabela e mesmo motivo de `resolverSessao`).
+ */
+export async function isGuestSessionLive(pool: Pool, eventId: string, sessionId: string): Promise<boolean> {
+  const { rows } = await pool.query<{ live: boolean }>(
+    `SELECT EXISTS (
+       SELECT 1 FROM session_tokens
+        WHERE event_id = $1 AND session_id = $2
+          AND revoked_at IS NULL AND expires_at > now()
+     ) AS live`,
+    [eventId, sessionId],
+  );
+  return rows[0]?.live ?? false;
+}
+
 /** Atalho para o caminho autenticado: resolve e já entra no escopo do evento. */
 export async function comSessao<T>(
   pool: Pool,

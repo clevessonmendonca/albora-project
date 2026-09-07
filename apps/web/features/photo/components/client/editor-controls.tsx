@@ -1,16 +1,27 @@
 "use client";
 
 import { AJUSTES_NEUTROS, saoNeutros, type AjustesManuais, type Preset, type TextoComposto } from "@albora/core";
+import { Button } from "@albora/ui-web";
 import type { Dispatch, SetStateAction } from "react";
 import type { FaixaVotada } from "./editor-musica";
-import { LIMITE_TEXTO } from "./editor-texto";
-import { PASSOS_BIPOLAR, PASSOS_UNIPOLAR, SEM_FILTRO } from "./editor-lut";
+import { ButtonAba } from "../editor/button-aba";
+import { FiltrosTab } from "../editor/filtros-tab";
+import { AjustesTab } from "../editor/ajustes-tab";
+import { TextoTab } from "../editor/texto-tab";
+import { PainelMusica } from "../editor/painel-musica";
 
 type Aba = "filtros" | "ajustes" | "texto" | "musica";
 
-export function EditorStyles() {
-  return <style>{ESTILO}</style>;
-}
+const ABAS: readonly { id: Aba; rotulo: string }[] = [
+  { id: "filtros", rotulo: "Filtros" },
+  { id: "ajustes", rotulo: "Ajustes" },
+  { id: "texto", rotulo: "Texto" },
+  { id: "musica", rotulo: "Música" },
+];
+
+/** Botão de texto discreto (header/reset) — mesma física de toque (mola) dos demais alvos da tela, nunca a curva de revelação. */
+const BOTAO_TEXTO =
+  "tipo-label min-h-11 rounded-token uppercase text-ink-3 transition-[color,transform] duration-instantaneo ease-mola hover:text-ink-2 active:scale-95 motion-reduce:active:scale-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-acento-texto focus-visible:outline-offset-2";
 
 export function EditorHeader({
   escolhido,
@@ -23,11 +34,11 @@ export function EditorHeader({
 }) {
   return (
     <header className="flex items-center justify-between px-6 pt-3">
-      <button className="ed-texto" onClick={onDescartar}>
+      <button type="button" className={BOTAO_TEXTO} onClick={onDescartar}>
         Tirar outra
       </button>
       {escolhido && (
-        <button className="ed-texto" onClick={onSemFiltro}>
+        <button type="button" className={BOTAO_TEXTO} onClick={onSemFiltro}>
           Sem filtro
         </button>
       )}
@@ -35,6 +46,34 @@ export function EditorHeader({
   );
 }
 
+type EditorControlsProps = {
+  aba: Aba;
+  onAba: (aba: Aba) => void;
+  ajustes: AjustesManuais;
+  onAjustes: Dispatch<SetStateAction<AjustesManuais>>;
+  escolhido: Preset | null;
+  onEscolhido: (preset: Preset | null) => void;
+  intensidade: number;
+  onIntensidade: (valor: number) => void;
+  presets: readonly Preset[];
+  recomendadoId: string | null;
+  tiras: Map<string, string>;
+  previaPronta: boolean;
+  texto: TextoComposto | null;
+  onTexto: (conteudo: string) => void;
+  onRemoverTexto: () => void;
+  musicas: readonly FaixaVotada[];
+  musicaId: string | null;
+  onMusica: (id: string | null) => void;
+  onEnviar: () => void;
+};
+
+/**
+ * Controles do editor de foto.
+ * Orquestra 4 abas: filtros, ajustes, texto, música. A foto é o palco — este
+ * bloco é chrome de ofício que recua num cartão discreto (`elev-1`) abaixo
+ * dela, nunca compete em peso visual.
+ */
 export function EditorControls({
   aba,
   onAba,
@@ -55,44 +94,34 @@ export function EditorControls({
   musicaId,
   onMusica,
   onEnviar,
-}: {
-  aba: Aba;
-  onAba: (aba: Aba) => void;
-  ajustes: AjustesManuais;
-  onAjustes: Dispatch<SetStateAction<AjustesManuais>>;
-  escolhido: Preset | null;
-  onEscolhido: (preset: Preset | null) => void;
-  intensidade: number;
-  onIntensidade: (valor: number) => void;
-  presets: readonly Preset[];
-  recomendadoId: string | null;
-  tiras: Map<string, string>;
-  previaPronta: boolean;
-  /** Texto do composer, se o convidado já escreveu algo (spec 020). */
-  texto: TextoComposto | null;
-  onTexto: (conteudo: string) => void;
-  onRemoverTexto: () => void;
-  /** As faixas votadas para o sticker de música (spec 020, sub-etapa b). */
-  musicas: readonly FaixaVotada[];
-  musicaId: string | null;
-  onMusica: (id: string | null) => void;
-  onEnviar: () => void;
-}) {
+}: EditorControlsProps) {
   const podeZerar = !saoNeutros(ajustes);
+  const indiceAba = ABAS.findIndex((a) => a.id === aba);
 
   return (
-    <footer className="grid gap-3 px-6 pb-6">
+    <footer className="elev-1 grid gap-3 rounded-t-media px-6 pb-6 pt-4">
+      {/* Barra de abas — indicador único desliza (mola) em vez de saltar de aba pra aba, no padrão editorial (T7 / EditorialTabs): uppercase, tracking-rotulo, traço embaixo da ativa. */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center">
         <span />
-        <div className="flex gap-7">
-          <ButtonAba rotulo="Filtros" ativa={aba === "filtros"} onClick={() => onAba("filtros")} />
-          <ButtonAba rotulo="Ajustes" ativa={aba === "ajustes"} onClick={() => onAba("ajustes")} />
-          <ButtonAba rotulo="Texto" ativa={aba === "texto"} onClick={() => onAba("texto")} />
-          <ButtonAba rotulo="Música" ativa={aba === "musica"} onClick={() => onAba("musica")} />
-        </div>
+        <nav aria-label="Abas do editor" className="relative grid w-full max-w-80 grid-cols-4">
+          {ABAS.map((item) => (
+            <ButtonAba
+              key={item.id}
+              rotulo={item.rotulo}
+              ativa={aba === item.id}
+              onClick={() => onAba(item.id)}
+            />
+          ))}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-0 left-0 h-px w-1/4 bg-acento transition-transform duration-instantaneo ease-mola motion-reduce:transition-none"
+            style={{ transform: `translateX(${indiceAba * 100}%)` }}
+          />
+        </nav>
         {podeZerar && aba === "ajustes" ? (
           <button
-            className="ed-reset"
+            type="button"
+            className={`${BOTAO_TEXTO} justify-self-end`}
             aria-label="Zerar os ajustes"
             onClick={() => onAjustes(AJUSTES_NEUTROS)}
           >
@@ -103,504 +132,48 @@ export function EditorControls({
         )}
       </div>
 
-      {aba === "filtros" && (
-        <>
-          <div className="flex gap-2.5 overflow-x-auto pb-1.5 [scrollbar-width:none]">
-            <Chip
-              rotulo="Original"
-              miniatura={tiras.get(SEM_FILTRO)}
-              ativo={escolhido === null}
-              onClick={() => onEscolhido(null)}
-            />
-            {presets.map((p) => (
-              <Chip
-                key={p.id}
-                rotulo={p.nome}
-                miniatura={tiras.get(p.id)}
-                ativo={escolhido?.id === p.id}
-                sugerido={p.id === recomendadoId}
-                onClick={() => {
-                  onEscolhido(p);
-                  onIntensidade(1);
-                }}
-              />
-            ))}
-          </div>
-
-          {escolhido && (
-            <Deslizante
-              rotulo="Intensidade"
-              min={0}
-              max={PASSOS_UNIPOLAR}
-              valor={intensidade}
-              onMudar={onIntensidade}
-            />
-          )}
-        </>
-      )}
-
-      {aba === "ajustes" && (
-        <div>
-          <Deslizante
-            rotulo="Luz"
-            min={-PASSOS_BIPOLAR}
-            max={PASSOS_BIPOLAR}
-            valor={ajustes.luz}
-            onMudar={(v) => onAjustes((a) => ({ ...a, luz: v }))}
+      {/* Conteúdo da aba — remonta por `key` a cada troca pra reentrar com um fade sutil (mola/rápido: é resposta direta ao toque na aba, não uma revelação de página). */}
+      <div key={aba} className="editor-painel min-h-[6.5rem]">
+        {aba === "filtros" && (
+          <FiltrosTab
+            escolhido={escolhido}
+            onEscolhido={onEscolhido}
+            intensidade={intensidade}
+            onIntensidade={onIntensidade}
+            presets={presets}
+            recomendadoId={recomendadoId}
+            tiras={tiras}
           />
-          <Deslizante
-            rotulo="Calor"
-            min={-PASSOS_BIPOLAR}
-            max={PASSOS_BIPOLAR}
-            valor={ajustes.calor}
-            onMudar={(v) => onAjustes((a) => ({ ...a, calor: v }))}
-          />
-          <Deslizante
-            rotulo="Contraste"
-            min={-PASSOS_BIPOLAR}
-            max={PASSOS_BIPOLAR}
-            valor={ajustes.contraste}
-            onMudar={(v) => onAjustes((a) => ({ ...a, contraste: v }))}
-          />
-          <Deslizante
-            rotulo="Vinheta"
-            min={0}
-            max={PASSOS_UNIPOLAR}
-            valor={ajustes.vinheta}
-            onMudar={(v) => onAjustes((a) => ({ ...a, vinheta: v }))}
-          />
-        </div>
-      )}
+        )}
 
-      {aba === "texto" && (
-        <div className="grid gap-2">
-          <input
-            className="ed-texto-input"
-            type="text"
-            inputMode="text"
-            placeholder="Escreva alguma coisa…"
-            aria-label="Texto sobre a foto"
-            maxLength={LIMITE_TEXTO}
-            value={texto?.conteudo ?? ""}
-            onChange={(e) => onTexto(e.target.value)}
-          />
-          <div className="flex items-center justify-between">
-            <p className="m-0 text-[0.78rem] leading-[1.5] text-ink-3">
-              Arraste na foto para posicionar
-            </p>
-            {texto && (
-              <button className="ed-reset" onClick={onRemoverTexto}>
-                Remover
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+        {aba === "ajustes" && <AjustesTab ajustes={ajustes} onAjustes={onAjustes} />}
 
-      {aba === "musica" && <PainelMusica musicas={musicas} musicaId={musicaId} onMusica={onMusica} />}
+        {aba === "texto" && (
+          <TextoTab texto={texto} onTexto={onTexto} onRemoverTexto={onRemoverTexto} />
+        )}
 
-      <button className="ed-primario" onClick={onEnviar} disabled={!previaPronta}>
+        {aba === "musica" && (
+          <PainelMusica musicas={musicas} musicaId={musicaId} onMusica={onMusica} />
+        )}
+      </div>
+
+      <Button variant="primary" size="lg" width="full" onClick={onEnviar} disabled={!previaPronta}>
         Enviar
-      </button>
+      </Button>
+
+      <style>{ESTILO_PAINEL}</style>
     </footer>
   );
 }
 
-/** Tocar na faixa já escolhida desmarca — o toggle de story é "escreveu algo ou escolheu música", não um botão separado. */
-function PainelMusica({
-  musicas,
-  musicaId,
-  onMusica,
-}: {
-  musicas: readonly FaixaVotada[];
-  musicaId: string | null;
-  onMusica: (id: string | null) => void;
-}) {
-  if (musicas.length === 0) {
-    return (
-      <p className="m-0 text-[0.82rem] leading-[1.5] text-ink-3">
-        Nenhuma música votada ainda. Peça para alguém sugerir uma na aba de música do evento.
-      </p>
-    );
-  }
-
-  return (
-    <ul className="ed-musica-lista m-0 grid list-none gap-2 overflow-y-auto p-0">
-      {musicas.map((m) => {
-        const ativa = musicaId === m.id;
-        return (
-          <li key={m.id}>
-            <button
-              type="button"
-              className={`ed-musica-item ${ativa ? "ativo" : ""}`}
-              aria-pressed={ativa}
-              onClick={() => onMusica(ativa ? null : m.id)}
-            >
-              {m.rotulo}
-            </button>
-          </li>
-        );
-      })}
-    </ul>
-  );
+const ESTILO_PAINEL = `
+@keyframes editor-painel-entrar {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
+.editor-painel { animation: editor-painel-entrar var(--tempo-rapido) var(--mola) both; }
 
-function ButtonAba({
-  rotulo,
-  ativa,
-  onClick,
-}: {
-  rotulo: string;
-  ativa: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      className={`ed-aba border-b ${ativa ? "border-acento text-acento-texto" : "border-transparent text-ink-3"}`}
-      aria-pressed={ativa}
-      onClick={onClick}
-    >
-      {rotulo}
-    </button>
-  );
+@media (prefers-reduced-motion: reduce) {
+  .editor-painel { animation: none; }
 }
-
-/** `valor` em unidade de contrato (−1…1 ou 0…1); `min`/`max` são a escala que o convidado lê. */
-function Deslizante({
-  rotulo,
-  min,
-  max,
-  valor,
-  onMudar,
-}: {
-  rotulo: string;
-  min: number;
-  max: number;
-  valor: number;
-  onMudar: (valor: number) => void;
-}) {
-  const bruto = Math.round(valor * max);
-  const posicao = ((bruto - min) / (max - min)) * 100;
-  // O preenchimento nasce no neutro, não na ponta esquerda — num controle de −50 a 50 é o desvio que interessa.
-  const neutro = min < 0 ? ((0 - min) / (max - min)) * 100 : 0;
-
-  const de = Math.min(neutro, posicao);
-  const ate = Math.max(neutro, posicao);
-
-  return (
-    <label className="ed-linha">
-      <span className="ed-rotulo">{rotulo}</span>
-      <input
-        className="ed-faixa"
-        type="range"
-        min={min}
-        max={max}
-        value={bruto}
-        onChange={(e) => onMudar(Number(e.target.value) / max)}
-        style={
-          {
-            "--trilho": `linear-gradient(to right, var(--linha) 0 ${de}%, var(--acento) ${de}% ${ate}%, var(--linha) ${ate}% 100%)`,
-          } as React.CSSProperties
-        }
-      />
-      <output className="ed-valor">{bruto}</output>
-    </label>
-  );
-}
-
-function Chip({
-  rotulo,
-  miniatura,
-  ativo,
-  sugerido,
-  onClick,
-}: {
-  rotulo: string;
-  miniatura?: string | undefined;
-  ativo: boolean;
-  sugerido?: boolean | undefined;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      className={`ed-chip ${ativo ? "ativo" : ""} ${ativo || sugerido ? "text-acento-texto" : "text-ink-3"}`}
-      onClick={onClick}
-      aria-pressed={ativo}
-    >
-      <span
-        className="ed-mini"
-        style={{
-          backgroundImage: miniatura ? `url(${miniatura})` : undefined,
-        }}
-      >
-        {/* O selo do filtro que os noivos sugerem. Disco pequeno, não etiqueta:
-            âmbar entra como metal, e o primeiro lugar na tira já é o destaque. */}
-        {sugerido && <span className="ed-selo" aria-hidden="true" />}
-      </span>
-      <span className="ed-nome">{rotulo}</span>
-    </button>
-  );
-}
-
-/** Trilho e botão só existem como pseudo-elemento; regras `-webkit-`/`-moz-` separadas — juntas, o pseudo desconhecido invalida a regra inteira no outro navegador. */
-const ESTILO = `
-  .ed-texto {
-    font: inherit;
-    font-family: var(--fonte-titulo);
-    font-size: 0.68rem;
-    font-weight: 400;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    background: none;
-    border: 0;
-    min-height: 48px;
-    padding: 0 0.125rem;
-    color: var(--ink-2);
-    cursor: pointer;
-    transition: color var(--tempo-rapido) var(--curva);
-  }
-  .ed-texto:hover { color: var(--ink); }
-
-  .ed-aba {
-    font: inherit;
-    font-family: var(--fonte-titulo);
-    font-size: 0.68rem;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    background: none;
-    border: 0;
-    border-bottom: 1px solid transparent;
-    min-height: 48px;
-    padding: 0 0.25rem;
-    cursor: pointer;
-    transition: color var(--tempo-rapido) var(--curva), border-color var(--tempo-rapido) var(--curva);
-  }
-
-  .ed-reset {
-    font: inherit;
-    font-family: var(--fonte-titulo);
-    font-size: 0.62rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    background: none;
-    border: 0;
-    color: var(--ink-3);
-    min-height: 48px;
-    padding: 0 0.25rem;
-    justify-self: end;
-    cursor: pointer;
-    transition: color var(--tempo-rapido) var(--curva);
-  }
-  .ed-reset:hover { color: var(--ink-2); }
-
-  .ed-chip {
-    font: inherit;
-    flex: 0 0 auto;
-    width: 64px;
-    display: grid;
-    gap: 0.45rem;
-    justify-items: center;
-    background: none;
-    border: 0;
-    padding: 0;
-    cursor: pointer;
-    transition: opacity var(--tempo-rapido) var(--curva);
-  }
-  .ed-chip:not(.ativo):hover { opacity: 0.75; }
-  .ed-chip:active { opacity: 0.85; }
-
-  .ed-mini {
-    position: relative;
-    display: block;
-    width: 64px;
-    height: 64px;
-    border-radius: var(--raio);
-    overflow: hidden;
-    background-color: var(--superficie-alta);
-    background-size: cover;
-    background-position: center;
-    box-shadow: inset 0 0 0 1px var(--linha);
-    transition: box-shadow var(--tempo-rapido) var(--curva);
-  }
-  .ed-chip.ativo .ed-mini { box-shadow: inset 0 0 0 2.5px var(--acento); }
-
-  .ed-selo {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 9px;
-    height: 9px;
-    border-radius: var(--raio-pilula);
-    background: var(--acento);
-  }
-
-  .ed-nome {
-    max-width: 100%;
-    font-family: var(--fonte-titulo);
-    font-size: 0.58rem;
-    font-weight: 400;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .ed-musica-lista {
-    max-height: 9.5rem;
-  }
-
-  .ed-musica-item {
-    font: inherit;
-    display: block;
-    width: 100%;
-    min-height: 48px;
-    padding: 0 0.75rem;
-    border: 1px solid var(--linha);
-    border-radius: var(--raio);
-    background: none;
-    text-align: left;
-    font-size: 0.85rem;
-    color: var(--ink-2);
-    cursor: pointer;
-    transition: border-color var(--tempo-rapido) var(--curva), color var(--tempo-rapido) var(--curva);
-  }
-  .ed-musica-item:not(.ativo):hover { border-color: var(--acento-borda); color: var(--ink); }
-  .ed-musica-item.ativo {
-    border-color: var(--acento);
-    color: var(--ink);
-  }
-
-  .ed-primario {
-    font: inherit;
-    font-size: 0.97rem;
-    font-weight: 500;
-    letter-spacing: var(--tracking-rotulo);
-    min-height: 58px;
-    padding: 0 1.5rem;
-    border: 0;
-    border-radius: var(--raio-pilula);
-    background: var(--ink);
-    color: var(--bg);
-    cursor: pointer;
-    transition: transform var(--tempo-rapido) var(--curva), opacity var(--tempo-rapido) var(--curva);
-  }
-  .ed-primario:disabled { opacity: 0.35; cursor: default; }
-  .ed-primario:hover:not(:disabled) { opacity: 0.88; }
-  .ed-primario:active:not(:disabled) { transform: scale(0.97); }
-
-  .ed-texto-input {
-    font: inherit;
-    font-family: var(--fonte-corpo);
-    font-size: 0.94rem;
-    min-height: 48px;
-    padding: 0 0.125rem;
-    border: 0;
-    border-bottom: 1px solid var(--linha);
-    background: none;
-    color: var(--ink);
-  }
-  .ed-texto-input::placeholder { color: var(--ink-3); }
-  .ed-texto-input:focus-visible {
-    outline: 1px solid var(--acento);
-    outline-offset: 3px;
-  }
-
-  .ed-texto:focus-visible,
-  .ed-aba:focus-visible,
-  .ed-reset:focus-visible,
-  .ed-chip:focus-visible,
-  .ed-musica-item:focus-visible,
-  .ed-primario:focus-visible {
-    outline: 1px solid var(--acento);
-    outline-offset: 5px;
-  }
-
-  .ed-linha {
-    display: grid;
-    grid-template-columns: 5.4rem 1fr 2.4rem;
-    gap: 0.75rem;
-    align-items: center;
-  }
-
-  .ed-rotulo {
-    font-family: var(--fonte-titulo);
-    font-size: 0.62rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--ink-2);
-  }
-
-  .ed-valor {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 0.68rem;
-    color: var(--ink-3);
-    text-align: right;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .ed-faixa {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 48px;
-    margin: 0;
-    background: transparent;
-    outline: none;
-  }
-
-  /*
-    Trilho de 1,5px: progresso é filete, não barra. O botão continua largo
-    porque quem arrasta está de pé, no escuro — a área de toque é o input
-    inteiro, de 48px de altura.
-  */
-  .ed-faixa::-webkit-slider-runnable-track {
-    height: 1.5px;
-    background: var(--trilho);
-  }
-
-  .ed-faixa::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 24px;
-    height: 24px;
-    margin-top: -11.25px;
-    border: 0;
-    border-radius: var(--raio-pilula);
-    background: var(--ink);
-    cursor: pointer;
-  }
-
-  .ed-faixa::-moz-range-track {
-    height: 1.5px;
-    background: var(--trilho);
-  }
-
-  .ed-faixa::-moz-range-thumb {
-    width: 24px;
-    height: 24px;
-    border: 0;
-    border-radius: var(--raio-pilula);
-    background: var(--ink);
-    cursor: pointer;
-  }
-
-  .ed-faixa:focus-visible::-webkit-slider-thumb {
-    outline: 2px solid var(--acento);
-    outline-offset: 2px;
-  }
-
-  .ed-faixa:focus-visible::-moz-range-thumb {
-    outline: 2px solid var(--acento);
-    outline-offset: 2px;
-  }
-
-  .ed-aba:not([aria-pressed="true"]):hover { color: var(--ink-2); }
-
-  @media (prefers-reduced-motion: reduce) {
-    .ed-texto, .ed-aba, .ed-reset, .ed-mini, .ed-primario, .ed-chip, .ed-musica-item { transition: none; }
-    .ed-primario:active:not(:disabled), .ed-chip:active { transform: none; opacity: 1; }
-    .ed-primario:hover:not(:disabled), .ed-chip:not(.ativo):hover { opacity: 1; }
-  }
 `;

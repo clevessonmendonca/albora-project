@@ -106,6 +106,25 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
     }
   });
 
+  it("texto secundário e terciário são legíveis sobre superfícies elevadas", () => {
+    for (const background of ["dark", "light"] as const) {
+      const e = resolveScale({ ...ALBORA_BRAND, background });
+
+      expect(razao(e.ink, e.superficie), `ink/superficie/${background}`).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+      expect(razao(e.ink2, e.superficie), `ink2/superficie/${background}`).toBeGreaterThan(3);
+      expect(razao(e.ink, e.superficieAlta), `ink/superficieAlta/${background}`).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+      expect(razao(e.acentoTexto, e.superficie), `acento/superficie/${background}`).toBeGreaterThan(CONTRASTE_DE_TEXTO);
+    }
+  });
+
+  it("ink3 é distinguível mas intencionalmente abaixo de AA", () => {
+    for (const background of ["dark", "light"] as const) {
+      const e = resolveScale({ ...ALBORA_BRAND, background });
+
+      expect(razao(e.ink3, e.bg), `ink3/${background}`).toBeGreaterThan(1.5);
+    }
+  });
+
   it("o rótulo do botão de acento é legível sobre o preenchimento", () => {
     // O outro lado do teste acima: lá o acento é texto sobre o chão, aqui o acento é o chão — as duas escolhas óbvias reprovam (papel dá 2,7:1, branco não chega a 3:1) e ambas parecem certas numa captura de tela.
     for (const background of ["dark", "light"] as const) {

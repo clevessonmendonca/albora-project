@@ -10,6 +10,7 @@ type Section = { label: string; suffix: string };
 const GROUPS: Section[][] = [
   [
     { label: "Ao vivo", suffix: "" },
+    { label: "Pré-evento", suffix: "/pre-event" },
     { label: "Moderação", suffix: "/moderation" },
   ],
   [
@@ -22,6 +23,7 @@ const GROUPS: Section[][] = [
     { label: "Identidade", suffix: "/identity" },
     { label: "Recado", suffix: "/guestbook" },
     { label: "QR Code", suffix: "/qrcode" },
+    { label: "Consentimento", suffix: "/consent" },
   ],
 ];
 

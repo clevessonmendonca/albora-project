@@ -1,0 +1,184 @@
+# Deploy — homol e produção.
+#
+# Ladder (CLAUDE.md): stable (teste, deploy-stable.yml) → homol → main (prod).
+# Promoção stable→homol e homol→main só a pedido explícito do mantenedor —
+# este workflow só publica; quem decide fazer a promoção do branch é humano.
+#
+# homol: manual (workflow_dispatch), sempre a partir do branch `homol`.
+# prod:  só tag `v*` em `main` — nunca workflow_dispatch, nunca branch de
+#        feature. O job confirma que o SHA da tag está em `main` antes de
+#        publicar, e declara `environment: production` no mesmo padrão que
+#        `.github/workflows/backup.yml` já usa.
+#        ⚠️ Declarar o Environment aqui NÃO cria approval por si só — o
+#        GitHub cria o Environment "production" automaticamente na primeira
+#        execução, sem nenhuma proteção, se ninguém tiver configurado
+#        "Required reviewers" em Settings → Environments → production antes
+#        disso. Isso é config de conta GitHub, não deste repositório — ver
+#        checklist em docs/runbooks/deploy-producao.md §2 antes do 1º deploy
+#        de prod.
+#
+# Secrets no repositório (Settings → Secrets → Actions):
+#   CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID — mesma conta CF de deploy-stable.yml;
+#     `--env homol|prod` troca só o Worker de destino, não a credencial de deploy.
+# Segredo de runtime do Worker (DATABASE_URL, R2_*, SESSION_SECRET, ASAAS_*, ...)
+# NÃO passa por este workflow — é `wrangler secret put --env homol|prod`
+# (ver .env.homol.example / .env.prod.example). Este workflow só builda e publica código.
+
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Digite "deploy-homol" para confirmar (só a partir do branch homol)'
+        required: true
+        type: string
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  deploy-homol:
+    name: Cloudflare Workers (homol)
+    if: github.event_name == 'workflow_dispatch' && inputs.confirm == 'deploy-homol'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    concurrency:
+      group: deploy-homol
+      cancel-in-progress: false
+    steps:
+      - name: Confirmar branch homol
+        if: github.ref != 'refs/heads/homol'
+        run: |
+          echo "::error::Deploy de homol só roda a partir do branch homol (ref atual: ${{ github.ref }})."
+          exit 1
+
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Deploy @albora/web (homol)
+        working-directory: apps/web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # NEXT_PUBLIC_* é inlinada pelo Next.js no build (`opennextjs-cloudflare build`,
+          # dentro de `cf:deploy:homol`) — nunca `wrangler secret put`/`vars`, que só
+          # existem em runtime do Worker e chegam depois do bundle do cliente pronto.
+          NEXT_PUBLIC_APP_ENV: homol
+          NEXT_PUBLIC_SENTRY_DSN: ${{ vars.HOMOL_SENTRY_DSN }}
+        run: pnpm cf:deploy:homol
+
+      - name: Smoke pós-deploy
+        env:
+          ALVO: ${{ vars.HOMOL_URL }}
+        run: |
+          if [ -z "$ALVO" ]; then
+            echo "::error::vars.HOMOL_URL não está configurada (Settings → Secrets and variables → Actions → Variables). Sem ela o smoke pós-deploy não pode rodar, e um deploy sem smoke não prova nada — configure a variável em vez de pular o passo."
+            exit 1
+          fi
+          node tools/deploy/smoke.mjs "$ALVO"
+          bash scripts/ci/smoke-test.sh "$ALVO"
+
+  deploy-prod:
+    name: Cloudflare Workers (prod)
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    # checks: read é explícito (não depende do default de permissão do repo) —
+    # necessário para "Confirmar que o CI (ci.yml) passou neste commit" ler check-runs.
+    permissions:
+      contents: read
+      checks: read
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Confirmar que a tag está em main
+        run: |
+          # Checkout de tag configura o refspec de fetch em torno da tag — "git fetch
+          # origin main" grava FETCH_HEAD, mas só atualiza refs/remotes/origin/main se o
+          # refspec opportunistic já existir, o que não é garantido. Refspec explícito
+          # deixa isso determinístico em vez de depender de configuração implícita.
+          git fetch origin +refs/heads/main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "${{ github.sha }}" origin/main; then
+            echo "::error::Tag ${{ github.ref_name }} (${{ github.sha }}) não está em main — prod só sai de tag em main (CLAUDE.md)."
+            exit 1
+          fi
+
+      # Uma tag pode ser criada em qualquer commit de main, inclusive um push direto
+      # sem PR — nesse caminho nada garante que o CI (.github/workflows/ci.yml) rodou
+      # para este SHA. Não repete os testes aqui (isso duplicaria ci.yml, que é de
+      # outra frente); em vez disso consulta os check runs que ci.yml já produziu
+      # para este commit e falha fechado se algum dos jobs esperados não passou.
+      - name: Confirmar que o CI (ci.yml) passou neste commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          sha="${{ github.sha }}"
+          esperados=("Guards" "Isolamento entre eventos" "Typecheck, lint e testes" "E2E smoke (convidado)" "Build")
+          runs_json="$(gh api "repos/${{ github.repository }}/commits/$sha/check-runs" --paginate --jq '[.check_runs[]]')"
+          faltando=0
+          for nome in "${esperados[@]}"; do
+            # Pega a run mais recente com esse nome (retry de workflow pode gerar mais de uma).
+            linha="$(echo "$runs_json" | jq -c --arg n "$nome" '[.[] | select(.name == $n)] | sort_by(.started_at) | last')"
+            if [ "$linha" = "null" ] || [ -z "$linha" ]; then
+              echo "::error::Check run \"$nome\" (ci.yml) não encontrado para o commit $sha — CI não rodou aqui."
+              faltando=1
+              continue
+            fi
+            estado="$(echo "$linha" | jq -r '.status')"
+            conclusao="$(echo "$linha" | jq -r '.conclusion')"
+            if [ "$estado" != "completed" ] || [ "$conclusao" != "success" ]; then
+              echo "::error::Check run \"$nome\" não terminou com sucesso (status=$estado conclusion=$conclusao)."
+              faltando=1
+            fi
+          done
+          if [ "$faltando" -ne 0 ]; then
+            echo "::error::CI (ci.yml) não confirma sucesso para $sha — deploy de produção bloqueado. Rode o CI neste commit (push em main, ou reexecute o workflow) antes de empurrar a tag."
+            exit 1
+          fi
+          echo "CI (ci.yml) confirmado com sucesso para $sha."
+
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Deploy @albora/web (prod)
+        working-directory: apps/web
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # NEXT_PUBLIC_* é inlinada pelo Next.js no build (`opennextjs-cloudflare build`,
+          # dentro de `cf:deploy:prod`) — nunca `wrangler secret put`/`vars`, que só
+          # existem em runtime do Worker e chegam depois do bundle do cliente pronto.
+          NEXT_PUBLIC_APP_ENV: prod
+          NEXT_PUBLIC_SENTRY_DSN: ${{ vars.PROD_SENTRY_DSN }}
+        run: pnpm cf:deploy:prod
+
+      - name: Smoke pós-deploy
+        env:
+          ALVO: ${{ vars.PROD_URL }}
+        run: |
+          if [ -z "$ALVO" ]; then
+            echo "::error::vars.PROD_URL não está configurada (Settings → Secrets and variables → Actions → Variables). Sem ela o smoke pós-deploy não pode rodar, e um deploy sem smoke não prova nada — configure a variável em vez de pular o passo."
+            exit 1
+          fi
+          node tools/deploy/smoke.mjs "$ALVO"
+          bash scripts/ci/smoke-test.sh "$ALVO"

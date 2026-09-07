@@ -75,7 +75,7 @@ Este documento descreve **o que acontece** em cada superfície — caminho feliz
 
 **Feliz:** `/wall` → parear QR → poll. Completo/vendor: authorize; free: 403 no host/TV (convidado não vê paywall).
 
-**Nuances:** pânico; modelos da parede pós-criação; “Ligar telão” na capa.
+**Nuances:** pânico; 11 modelos de parede (polaroide, mural, colagem, ambiente, cheio, carrossel, dump, tbt, grade, destaque, mosaico) pós-criação; “Ligar telão” na capa.
 
 ---
 

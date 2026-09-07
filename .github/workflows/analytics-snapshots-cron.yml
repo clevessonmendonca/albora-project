@@ -1,0 +1,22 @@
+name: Analytics snapshots jobs
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: analytics-snapshots-cron
+  cancel-in-progress: false
+
+jobs:
+  analytics-snapshots:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Trigger analytics-snapshots endpoint
+        run: |
+          curl -sf -X POST "${{ secrets.APP_URL }}/api/ops/analytics-snapshots" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json" \
+            --max-time 120

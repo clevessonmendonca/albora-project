@@ -5,8 +5,6 @@ export const SECTION_PADDING = `py-[clamp(2.5rem,6vw,5.5rem)] ${SIDE_PADDING}`;
 export const HREF_CRIAR_ALBUM = "/admin/new";
 export const HREF_CRIAR_GRATIS = "/admin/new?plano=free";
 export const HREF_CRIAR_COMPLETO = "/admin/new?plano=celebration";
-export const HREF_FORNECEDOR =
-  "mailto:ola@albora.app?subject=Albora%20Fornecedor&body=Quero%20saber%20do%20plano%20Fornecedor.";
 export const HREF_DEMO = "/e/festa-demo?via=link";
 
 export type LiveStats = { fotos: number; eventos: number };

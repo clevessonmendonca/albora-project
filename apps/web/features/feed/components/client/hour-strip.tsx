@@ -8,7 +8,7 @@ import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 /** Cada círculo é uma hora, não uma pessoa — 200 convidados dariam 200 alvos. Nenhuma contagem: antes do gate não chega do servidor, e depois seria placar de popularidade. */
 
 const CLASSE_TIRA =
-  "mx-[calc(var(--espaco)*-5)] mb-4 flex gap-3.5 overflow-x-auto px-[calc(var(--espaco)*5)] [scrollbar-width:none]";
+  "mx-[calc(var(--espaco)*-5)] mb-4 flex snap-x snap-proximity gap-5 overflow-x-auto scroll-smooth px-[calc(var(--espaco)*5)] [scrollbar-width:none]";
 
 export function HourStrip({
   grupos,
@@ -64,7 +64,7 @@ function Circulo({
   onAbrir: () => void;
 }) {
   return (
-    <button
+      <button
       type="button"
       onClick={onAbrir}
       disabled={bloqueado}
@@ -79,7 +79,7 @@ function Circulo({
       <span
         className={cn(
           "block size-14 rounded-full p-0.5",
-          visto ? "bg-linha" : "bg-acento",
+          visto ? "bg-linha" : "bg-acento shadow-suave",
         )}
       >
         <span className="relative block size-full overflow-hidden rounded-full bg-superficie">

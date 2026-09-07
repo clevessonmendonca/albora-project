@@ -9,17 +9,29 @@ import {
   type FiltroAplicado,
   type PlanoDoEvento,
   type DrainSummary,
+  type Rede,
   type TextoComposto,
 } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { drainAndReport } from "@/features/guest/lib/funnel-from-drain";
 import { reportFunnel } from "@/features/guest/lib/report-funnel";
+import { resolverAcaoFoco, type AcaoFoco } from "@/features/photo/lib/acao-foco";
 import { webDrawer } from "@/lib/drawer";
 import { deviceDecodes, prepareVideo } from "@/lib/image";
 import { QueueQuotaExceededError, webQueue, queueSummary } from "@/lib/queue";
 import { webTransport } from "@/lib/transport";
 
 /** Laço de upload num lugar só — toda foto passa pela fila, mesmo com sinal bom; sem caminho rápido que diverge quando o sinal cai. */
+
+/** Network Information API só existe em parte dos navegadores; ausente = objeto vazio, e o núcleo não reduz nada. */
+function redeAtual(): Rede {
+  const conexao = (
+    navigator as { connection?: { saveData?: boolean; effectiveType?: string } }
+  ).connection;
+  if (!conexao) return {};
+
+  return { economiaDeDados: conexao.saveData, tipoEfetivo: conexao.effectiveType };
+}
 
 /** Cota vem do servidor — convidado nunca vê paywall, só aviso antes de gravar (spec 006/N5.3). */
 export type CotaVideo = {
@@ -38,13 +50,8 @@ export function mensagemCotaVideo(cota: CotaVideo): string | null {
   return `Plano grátis: até ${cota.limite} vídeos por convidado.`;
 }
 
-/** Ação ao voltar ao foco (visibilitychange/pageshow) — exportado para testes unitários. */
-export type AcaoFoco = "drenar" | "atualizar" | "ignorar";
-
-export function resolverAcaoFoco(visivel: boolean, online: boolean): AcaoFoco {
-  if (!visivel) return "ignorar";
-  return online ? "drenar" : "atualizar";
-}
+/** Reexportado para não quebrar quem já importava a regra a partir daqui (ex.: `use-upload.test.ts`). */
+export { resolverAcaoFoco, type AcaoFoco };
 
 const AVISO_HEIC =
   "Este aparelho não abre fotos HEIC. No iPhone: Ajustes → Câmera → Formatos → “Mais compatível”.";
@@ -179,6 +186,7 @@ export function useUpload(
             memoryGb: (navigator as { deviceMemory?: number }).deviceMemory,
             cores: navigator.hardwareConcurrency,
           },
+          rede: redeAtual(),
           ...(filtro ? { filtro } : {}),
           ...(texto ? { texto } : {}),
         });

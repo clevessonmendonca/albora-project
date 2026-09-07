@@ -434,7 +434,22 @@ Posso te mostrar em 5 minutos?
 
 ---
 
+## 9. Objeções de mercado (discovery 2026-08)
+
+Detalhe competitivo: [`inteligencia-competitiva.md`](./inteligencia-competitiva.md). Pricing: [`estrategia-precificacao.md`](./estrategia-precificacao.md).
+
+| Objeção | Resposta |
+|---|---|
+| "Olhares é R$ 67" | "Olhares junta fotos. Albora junta com **a cara do casamento** — placa, filtro, telão e livro iguais. Compare com lembrancinha × 150, não com app genérico." |
+| "Meu Casar é grátis" | "Grátis é galeria no site. Albora é **dia da festa**: missões, telão moderado, fila quando cai o sinal." |
+| "Convidados não vão usar" | "QR na mesa, missão nos cards e **30 segundos no microfone** — medimos participação, não promessa." |
+| "Precisa baixar app?" | "Nenhum app **antes da primeira foto**. Instalar depois é opcional." |
+
+---
+
 ## Anexo — Checklist do kit do fornecedor
+
+Spec completa: [`kit-fornecedor.md`](./kit-fornecedor.md).
 
 - [ ] Apresentação de 5 slides (problema → produto → sua marca → preço → como começar)
 - [ ] Vídeo de 60s do produto em uso em casamento real

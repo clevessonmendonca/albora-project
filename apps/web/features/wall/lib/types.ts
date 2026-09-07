@@ -20,10 +20,23 @@ export type ContadoresDaParede = { fotos: number; convidados: number };
 
 export type FaseWall = "pareando" | "exibindo";
 
+/** Formato de página que tanto `GET /api/wall` (polling) quanto `GET /api/wall/stream` (SSE) devolvem — a mesma forma alimenta o processamento em `useWallDisplay`. */
+export type PaginaWallApi = {
+  itens: Omit<ItemApi, "expiraEm">[];
+  expiraEm: number;
+  panico?: boolean;
+  telaoModelos?: unknown;
+  contadores?: unknown;
+};
+
 export const POLL_PAREAMENTO_MS = 3_000;
 export const POLL_MIDIA_MS = 6_000;
 export const ROTACAO_MS = 8_000;
 export const FOLGA_DE_RENOVACAO_MS = 90_000;
+/** Tempo sem SSE conectado antes de religar o polling de 6s como rede de segurança. */
+export const SSE_FALLBACK_MS = 10_000;
+/** Atraso entre tentativas de reconexão do EventSource após erro. */
+export const SSE_RECONEXAO_MS = 5_000;
 
 export const SHELL =
   "fixed inset-0 overflow-hidden bg-bg font-corpo text-ink";

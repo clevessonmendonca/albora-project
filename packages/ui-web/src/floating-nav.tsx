@@ -50,9 +50,9 @@ function FloatingNavItem({
       href={`${base}${tab.path}`}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "flex min-h-[3.375rem] flex-col items-center justify-center gap-1 text-[0.5625rem] uppercase tracking-rotulo no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75",
+        "flex min-h-[3.375rem] flex-col items-center justify-center gap-1 text-[0.5625rem] uppercase tracking-rotulo no-underline transition-[color,opacity] duration-[var(--tempo)] ease-mola hover:opacity-75",
         tab.column,
-        isActive ? "text-acento" : "text-ink-3",
+        isActive ? "text-acento-texto" : "text-ink-3",
       )}
     >
       {tab.icon}

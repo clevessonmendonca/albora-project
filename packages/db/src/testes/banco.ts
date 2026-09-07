@@ -53,8 +53,11 @@ export async function semear(admin: pg.Pool) {
 
   const criar = async (slug: string, pack: string, accountId: string) => {
     const { rows } = await admin.query(
-      `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at)
-       VALUES ($1, $2, $3, now(), now() + interval '6 hours') RETURNING id`,
+      // status explícito: sem isso o DEFAULT 'draft' (migration 0056) faria
+      // todo evento semeado nascer em rascunho, e a suíte inteira assume
+      // evento já publicado — só o gap I1 (task 6) testa 'draft' de propósito.
+      `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status)
+       VALUES ($1, $2, $3, now(), now() + interval '6 hours', 'active') RETURNING id`,
       [accountId, pack, slug],
     );
     const eventoId = rows[0].id as string;
@@ -77,8 +80,17 @@ export async function semear(admin: pg.Pool) {
        VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 800000) RETURNING id`,
       [eventoId, sessaoId, `events/${eventoId}/2026/08/foto/full`],
     );
+    const uploadId = upload[0].id as string;
 
-    return { eventoId, sessaoId, uploadId: upload[0].id as string };
+    // Sem isto o teste de isolamento (isolamento.test.ts) exercitaria
+    // photo_moderation com zero linhas — provaria isolamento por vacuidade,
+    // não por filtro de fato.
+    await admin.query(
+      `INSERT INTO photo_moderation (upload_id, event_id) VALUES ($1, $2)`,
+      [uploadId, eventoId],
+    );
+
+    return { eventoId, sessaoId, uploadId };
   };
 
   return {

@@ -94,11 +94,11 @@ function horaDoItem(item: { criadaEm: string } | undefined): number {
 
 function PerfilIndisponivel() {
   return (
-    <div className="mt-10 text-center">
-      <p className="mb-3 font-titulo text-[1.6rem] font-medium leading-snug tracking-titulo [text-wrap:balance]">
+    <div className="mt-12 text-center">
+      <p className="tipo-subtitle tipo-balance m-0 mb-2 text-ink">
         Esse perfil não está disponível
       </p>
-      <p className="m-0 leading-relaxed text-ink-2">
+      <p className="m-0 tipo-body text-ink-2">
         Pode ser um link antigo, ou alguém fora do seu alcance.
       </p>
     </div>
@@ -120,9 +120,9 @@ function Rodape({ estado, onVerMais }: { estado: EstadoFeed; onVerMais: () => vo
 
   if (estado.falha === "sessao") {
     return (
-      <p className="mt-6 text-center text-[0.9rem] leading-relaxed text-ink-2">
+      <p className="mt-6 text-center tipo-caption text-ink-2">
         Sua entrada expirou.{" "}
-        <a href="/scan" className="text-acento underline">
+        <a href="/scan" className="text-acento-texto underline">
           Escaneie o QR da mesa
         </a>{" "}
         de novo para continuar.
@@ -133,7 +133,7 @@ function Rodape({ estado, onVerMais }: { estado: EstadoFeed; onVerMais: () => vo
   if (estado.falha !== null) {
     return (
       <div className="mt-6 text-center">
-        <p className="mb-3 text-[0.9rem] leading-relaxed text-ink-2">
+        <p className="mb-3 tipo-caption text-ink-2">
           Não consegui carregar mais fotos agora.
         </p>
         <SecondaryButton onClick={onVerMais}>Tentar de novo</SecondaryButton>
@@ -146,7 +146,7 @@ function Rodape({ estado, onVerMais }: { estado: EstadoFeed; onVerMais: () => vo
   return (
     <div ref={sentinela} className="mt-6">
       {estado.carregando && (
-        <p aria-live="polite" className="text-center text-[0.9rem] leading-relaxed text-ink-2">
+        <p aria-live="polite" className="text-center tipo-caption text-ink-2">
           Carregando mais fotos…
         </p>
       )}

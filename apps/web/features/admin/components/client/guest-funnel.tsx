@@ -1,9 +1,15 @@
 "use client";
 
-import type { CodigoDaTese, DegrauDoFunil, EtapaDaEspinha } from "@albora/core";
+import type {
+  CodigoDaTese,
+  DegrauDoFunil,
+  EtapaDaEspinha,
+  LeituraDeIntencao,
+} from "@albora/core";
 import type { EntradasPorVia } from "@albora/db";
+import { Badge } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { GuestDisplayNames, type SessaoNoTelao } from "./guest-display-names";
 import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
@@ -14,7 +20,10 @@ type Resumo = {
   totalFotos: number;
   sharesTotais: number;
   participacao: number;
+  denominador?: number;
+  origemDoDenominador?: "confirmado" | "estimado";
   veredito: CodigoDaTese;
+  intencao?: LeituraDeIntencao;
   degraus: DegrauDoFunil[];
   uploadsAntesDoFeed: number;
   uploadsDepoisDoFeed: number;
@@ -52,6 +61,8 @@ type Props = {
 
 export function GuestFunnel({ eventoId }: Props) {
   const [resumo, setResumo] = useState<Resumo | null>(null);
+  const [presenca, setPresenca] = useState("");
+  const [salvandoPresenca, setSalvandoPresenca] = useState(false);
   const [erro, setErro] = useState(false);
   const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const [atualizando, setAtualizando] = useState(false);
@@ -77,7 +88,7 @@ export function GuestFunnel({ eventoId }: Props) {
   if (erro && !resumo) {
     return (
       <AdminSection>
-        <p className="m-0 text-critico">
+        <p role="alert" className="tipo-body m-0 text-critico">
           Não foi possível carregar os números agora. Recarregue a página ou tente em instantes.
         </p>
       </AdminSection>
@@ -105,12 +116,35 @@ export function GuestFunnel({ eventoId }: Props) {
 
   const pct = Math.round(resumo.participacao * 100);
   const destaqueClass = vereditoTextClass(resumo.veredito);
+  const confirmada = resumo.origemDoDenominador === "confirmado";
+
+  async function confirmarPresenca() {
+    const n = Number(presenca);
+    if (!Number.isFinite(n) || n <= 0) return;
+
+    setSalvandoPresenca(true);
+    try {
+      const r = await fetch(`/api/admin/events/${eventoId}/config`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ actualGuests: Math.trunc(n) }),
+      });
+      if (r.ok) {
+        setPresenca("");
+        await carregar();
+      } else {
+        setErro(true);
+      }
+    } finally {
+      setSalvandoPresenca(false);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-5">
       <AdminSection>
         <div className="mb-3 flex items-center justify-between gap-4">
-          <h2 className="m-0 font-titulo text-lg">Participação ao vivo</h2>
+          <h2 className="tipo-subtitle m-0 text-ink">Participação ao vivo</h2>
           <div className="flex items-center gap-2">
             {ultimaAtualizacao && <AtualizadoHa desde={ultimaAtualizacao} />}
             <RefreshButton
@@ -122,25 +156,84 @@ export function GuestFunnel({ eventoId }: Props) {
             />
           </div>
         </div>
-        <p className="mb-4 mt-0 leading-relaxed text-ink-2">
-          Números agregados, atualizados a cada 30 segundos. O denominador vem dos convidados
-          esperados que você definiu na criação do evento.
+        <p className="tipo-body mb-4 mt-0 text-ink-2">
+          Números agregados, atualizados a cada 30 segundos.{" "}
+          {confirmada
+            ? "A participação usa a presença que você confirmou depois da festa."
+            : "A participação usa a estimativa que você deu na criação do evento."}
         </p>
 
         <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
-          <Stat n={String(resumo.expectedGuests)} rotulo="esperados" />
+          <Stat
+            n={String(resumo.denominador ?? resumo.expectedGuests)}
+            rotulo={confirmada ? "presentes" : "esperados"}
+          />
           <Stat n={String(resumo.sessoesComUpload)} rotulo="fotografaram" />
           <Stat n={`${pct}%`} rotulo="participação" destaqueClass={destaqueClass} />
           <Stat n={String(resumo.totalFotos)} rotulo="fotos no ar" />
           <Stat n={String(resumo.sharesTotais)} rotulo="compartilhamentos" />
         </div>
 
-        <p className={`m-0 text-sm ${destaqueClass}`}>{ROTULO_VEREDITO[resumo.veredito]}</p>
+        <p className={`tipo-body m-0 font-medium ${destaqueClass}`}>
+          {ROTULO_VEREDITO[resumo.veredito]}
+        </p>
+
+        {resumo.intencao?.codigo === "funil.intencao_frustrada" && (
+          <p className="tipo-caption mb-0 mt-2 text-ink-2">
+            {resumo.intencao.frustradas === 1
+              ? "1 convidado tirou foto e o envio não completou."
+              : `${resumo.intencao.frustradas} convidados tiraram foto e o envio não completou.`}{" "}
+            Com esses envios, a participação seria de{" "}
+            {Math.round(resumo.intencao.participacaoPotencial * 100)}%. Vale checar o sinal do
+            salão antes de concluir qualquer coisa sobre o produto.
+          </p>
+        )}
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-3 mt-0 font-titulo text-lg">Onde os convidados param</h2>
-        <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <h2 className="tipo-subtitle m-0 text-ink">
+            {confirmada ? "Presença confirmada" : "Confirmar quem apareceu"}
+          </h2>
+          <Badge tone={confirmada ? "accent" : "neutral"}>
+            {confirmada ? "Confirmada" : "Estimada"}
+          </Badge>
+        </div>
+        <p className="tipo-caption mb-3 mt-0 text-ink-3">
+          {confirmada
+            ? `A participação está sendo calculada sobre ${resumo.denominador} presentes. Se o número mudar, é só enviar de novo.`
+            : "Convidado e presente não são o mesmo número, e a diferença muda a leitura da participação. Depois da festa, informe quantos apareceram de fato."}
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="sr-only" htmlFor="presenca-real">
+            Quantas pessoas apareceram
+          </label>
+          <input
+            id="presenca-real"
+            type="number"
+            min={1}
+            inputMode="numeric"
+            placeholder={String(resumo.denominador ?? resumo.expectedGuests)}
+            value={presenca}
+            onChange={(e) => setPresenca(e.target.value)}
+            className="w-28 rounded-token border border-linha bg-bg px-3 py-2 font-titulo text-lg tabular-nums text-ink outline-none transition-[border-color] focus:border-acento"
+          />
+          <button
+            type="button"
+            disabled={salvandoPresenca || Number(presenca) <= 0}
+            onClick={() => void confirmarPresenca()}
+            className={`${adminClasses.primaryButton} ${
+              salvandoPresenca || Number(presenca) <= 0 ? "opacity-60" : ""
+            }`}
+          >
+            {salvandoPresenca ? "Salvando…" : "Confirmar presença"}
+          </button>
+        </div>
+      </AdminSection>
+
+      <AdminSection>
+        <h2 className="tipo-subtitle m-0 mb-3 text-ink">Onde os convidados param</h2>
+        <p className="tipo-caption mb-4 mt-0 text-ink-3">
           Cada degrau mostra quantas pessoas chegaram até ali. A espinha é cumulativa, então
           QR escaneado e Abriu o evento podem ter números parecidos. Se houver queda brusca
           em algum ponto, vale investigar fricção.
@@ -153,8 +246,8 @@ export function GuestFunnel({ eventoId }: Props) {
             return (
               <div key={d.etapa} className="rounded-token bg-bg px-3 py-2.5">
                 <div className="mb-1.5 flex items-baseline justify-between gap-3">
-                  <span className="text-sm text-ink">{ROTULO_ETAPA[d.etapa]}</span>
-                  <span className="shrink-0 text-xs text-ink-3">
+                  <span className="tipo-body text-ink">{ROTULO_ETAPA[d.etapa]}</span>
+                  <span className="tipo-caption shrink-0 text-ink-3">
                     <span className="font-titulo tabular-nums text-acento-texto">{d.sessoes}</span>
                     {pctRetencao !== null && (
                       <span className="ml-1.5 text-ink-3">· {pctRetencao}%</span>
@@ -177,8 +270,8 @@ export function GuestFunnel({ eventoId }: Props) {
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-3 mt-0 font-titulo text-lg">Canais de entrada</h2>
-        <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+        <h2 className="tipo-subtitle m-0 mb-3 text-ink">Canais de entrada</h2>
+        <p className="tipo-caption mb-4 mt-0 text-ink-3">
           QR é só a peça impressa. WhatsApp, link copiado e código digitado abrem o evento
           direto, sem passar pelo scan da câmera.
         </p>
@@ -191,8 +284,8 @@ export function GuestFunnel({ eventoId }: Props) {
       </AdminSection>
 
       <AdminSection>
-        <h2 className="mb-3 mt-0 font-titulo text-lg">Efeito do feed social</h2>
-        <p className="mb-4 mt-0 text-[0.8125rem] leading-relaxed text-ink-3">
+        <h2 className="tipo-subtitle m-0 mb-3 text-ink">Efeito do feed social</h2>
+        <p className="tipo-caption mb-4 mt-0 text-ink-3">
           Fotos subidas antes e depois da primeira abertura do feed. Se o número depois não
           cresce, o feed não está gerando o engajamento esperado.
         </p>
@@ -210,9 +303,10 @@ export function GuestFunnel({ eventoId }: Props) {
 
       {resumo.ultimas.length > 0 && (
         <AdminSection>
-          <p className="mb-3 mt-0 text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">
-            Chegando agora
-          </p>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="tipo-label text-acento-texto">Chegando agora</span>
+            <span className="h-px flex-1 bg-linha" />
+          </div>
           <div className="grid grid-cols-4 gap-1.5">
             {resumo.ultimas.map((f) => (
               <span
@@ -245,7 +339,7 @@ function Stat({
       >
         {n}
       </p>
-      <p className="mb-0 mt-1.5 text-xs text-ink-2">{rotulo}</p>
+      <p className="tipo-label mb-0 mt-1.5 text-ink-2">{rotulo}</p>
     </div>
   );
 }

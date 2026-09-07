@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import type { VendorPlan, VendorRole, VendorSubscriptionStatus } from "@albora/db";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
-import { VENDOR_PLAN_PRICE_CENTS } from "@/lib/billing";
+import { VENDOR_PLAN_PRICE_CENTS } from "@albora/integrations";
 
 const PLAN_LABEL: Record<VendorPlan, string> = {
   starter: "Starter",

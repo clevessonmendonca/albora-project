@@ -31,14 +31,8 @@ export {
   TAB_BAR_INSET,
 } from "./guest-chrome";
 export { Dialog } from "./dialog";
-export { BottomSheet, useFocusTrap } from "./sheet";
-export {
-  Skeleton,
-  SkeletonCard,
-  SkeletonFeed,
-  SkeletonGrid,
-  SkeletonText,
-} from "./skeleton";
+export { BottomSheet } from "./sheet";
+export { Skeleton } from "./skeleton";
 export { ConsentNote, ErrorMessage, GateNotice, MissionBanner } from "./notice";
 export { authorInitials, PostAuthorAvatar, PostHeader } from "./post-header";
 export { PrimaryButton, SecondaryButton } from "./guest-buttons";
@@ -63,6 +57,7 @@ export {
   HeartIcon,
   MoonIcon,
   MoreIcon,
+  MusicNoteIcon,
   PersonIcon,
   PlusIcon,
   ShareIcon,
@@ -84,3 +79,20 @@ export { ToastContainer, showToast } from "./toast";
 export { AnimatedCounter } from "./animated-counter";
 export { LiveAnnouncer, announce } from "./live-announcer";
 export { SkipLink } from "./skip-link";
+export { ConfirmDialog, type ConfirmDialogProps } from "./confirm-dialog";
+export { DangerDialog, type DangerDialogProps } from "./danger-dialog";
+export {
+  DataTable,
+  type DataTableActiveFilter,
+  type DataTableColumn,
+  type DataTableProps,
+} from "./data-table";
+export { BarChart, Donut, Sparkline, type ChartSeriesPoint } from "./chart";
+export { MetricCard, type MetricCardProps } from "./metric-card";
+export { PageHeader } from "./page-header";
+export { StatusBadge, type StatusBadgeTone } from "./status-badge";
+export { ConsoleEmptyState } from "./empty-state";
+export { EntityHeader, type EntityHeaderStatus } from "./entity-header";
+export { FilterBar } from "./filter-bar";
+export { DetailPanel, type DetailPanelSection } from "./detail-panel";
+export { CommandPalette, type CommandPaletteProps, type CommandPaletteResult } from "./command-palette";

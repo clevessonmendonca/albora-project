@@ -20,7 +20,7 @@ import {
   CELEBRATION_PRICE_CENTS,
   resolveBilling,
   type CheckoutPlan,
-} from "@/lib/billing";
+} from "@albora/integrations";
 import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";

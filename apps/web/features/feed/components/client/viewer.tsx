@@ -11,6 +11,8 @@ import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { Frame } from "./frame";
 
+export { viewerKeys } from "./viewer-keys";
+
 /** Avanço por toque (quem está de pé com um copo toca, não desliza). Ao acabar devolve ao feed — o social existe para disparar a próxima foto, não para prender (ADR 0009). */
 
 const DURACAO_MS = 5_000;
@@ -23,37 +25,11 @@ const SUPRESSAO_MS = 600;
 
 const CLASSE_SOMBRA_TEXTO = "[text-shadow:0_1px_4px_var(--bg)]";
 
-/** Chave vazia fica de fora — item sem arquivo cheio não vira pedido de assinatura para string vazia. */
-export function viewerKeys(itens: readonly ItemVisivel[], indice: number): string[] {
-  const chaves: string[] = [];
-  const atual = itens[indice];
-
-  if (atual) {
-    if (isVideoMime(atual.mime)) chaves.push(atual.chaveFull);
-    else chaves.push(atual.chaveThumb, atual.chaveFull);
-  }
-
-  for (const passo of [1, 2]) {
-    const proximo = itens[indice + passo];
-    if (!proximo) continue;
-    if (isVideoMime(proximo.mime)) chaves.push(proximo.chaveFull);
-    else chaves.push(proximo.chaveThumb, proximo.chaveFull);
-  }
-
-  for (const passo of [-1, 3, 4]) {
-    const vizinho = itens[indice + passo];
-    if (!vizinho) continue;
-    if (isVideoMime(vizinho.mime)) chaves.push(vizinho.chaveFull);
-    else chaves.push(vizinho.chaveThumb);
-  }
-
-  return [...new Set(chaves.filter(Boolean))];
-}
-
 export function Viewer({
   itens,
   indice,
   hora,
+  rotulo,
   urls,
   interacao,
   cameraPath,
@@ -71,6 +47,7 @@ export function Viewer({
   itens: ItemVisivel[];
   indice: number;
   hora: number;
+  rotulo?: string;
   urls: Map<string, MediaUrl>;
   interacao: ModoInteracao;
   cameraPath: string;
@@ -286,11 +263,11 @@ export function Viewer({
         <div className="flex items-center justify-between gap-4">
           <p
             className={cn(
-              "m-0 font-titulo text-[0.7rem] font-normal uppercase tracking-[0.24em] text-ink-2",
+              "tipo-label m-0 uppercase text-ink-2",
               CLASSE_SOMBRA_TEXTO,
             )}
           >
-            {hourLabel(hora)}
+            {rotulo ?? hourLabel(hora)}
           </p>
 
           <div className="flex items-center gap-2">
@@ -301,7 +278,7 @@ export function Viewer({
                 disabled={removendo}
                 onClick={onRemover}
                 className={cn(
-                  "grid size-12 place-items-center rounded-full border border-linha bg-transparent font-inherit text-[1.1rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento hover:text-acento",
+                  "grid size-12 place-items-center rounded-full border border-linha bg-transparent font-inherit text-[1.1rem] text-ink transition-[color,border-color,transform] duration-instantaneo ease-mola hover:border-acento hover:text-acento active:scale-[0.94]",
                   CLASSE_SOMBRA_TEXTO,
                   removendo ? "cursor-wait" : "cursor-pointer",
                 )}
@@ -313,7 +290,7 @@ export function Viewer({
               type="button"
               onClick={onSair}
               className={cn(
-                "min-h-12 min-w-12 cursor-pointer rounded-pilula border border-linha bg-transparent px-[1.1rem] font-inherit text-[0.9rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto",
+                "min-h-12 min-w-12 cursor-pointer rounded-pilula border border-linha bg-transparent px-[1.1rem] font-inherit text-[0.9rem] text-ink transition-[border-color,transform] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.96]",
                 CLASSE_SOMBRA_TEXTO,
               )}
             >
@@ -343,15 +320,22 @@ export function Viewer({
         <p className="sr-only" aria-live="polite" aria-atomic="true">
           {atual ? `${indice + 1} de ${itens.length}: foto de ${atual.autor}` : ""}
         </p>
+        
+        {/* Documentação de atalhos de teclado para screen readers */}
+        <p id="viewer-help" className="sr-only">
+          Use as setas esquerda e direita para navegar entre fotos. 
+          Tecla Home vai para a primeira foto, End para a última. 
+          Pressione Escape para fechar o visualizador.
+        </p>
 
         {atual && (
           <div className={cn("grid gap-[0.3rem]", CLASSE_SOMBRA_TEXTO)}>
-            <p className="m-0 font-titulo text-[0.66rem] font-normal uppercase tracking-[0.2em] text-ink">
+            <p className="tipo-label m-0 uppercase text-ink">
               {atual.sessaoAutor && onVerAutor ? (
                 <button
                   type="button"
                   onClick={() => onVerAutor(atual.sessaoAutor!)}
-                  className="cursor-pointer border-none bg-transparent p-0 font-inherit text-inherit underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+                  className="cursor-pointer border-none bg-transparent p-0 font-inherit text-inherit underline transition-opacity duration-instantaneo ease-mola hover:opacity-70"
                 >
                   {atual.autor}
                 </button>
@@ -361,7 +345,7 @@ export function Viewer({
               {atual.lugar ? ` · ${atual.lugar}` : ""}
             </p>
             {atual.legenda && (
-              <p className="m-0 text-[0.95rem] leading-normal text-ink-2">{atual.legenda}</p>
+              <p className="tipo-body m-0 leading-normal text-ink-2">{atual.legenda}</p>
             )}
             <PhotoInteraction
               uploadId={atual.id}
@@ -384,7 +368,7 @@ export function Viewer({
             tela não otimiza tempo de tela, ela devolve a pessoa para a câmera. */}
         <a
           href={cameraPath}
-          className="grid min-h-13.5 place-items-center rounded-pilula bg-acento px-[2.1rem] text-[1.02rem] font-medium tracking-rotulo text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80"
+          className="grid min-h-13.5 place-items-center rounded-pilula bg-acento px-[2.1rem] text-[1.02rem] font-medium tracking-rotulo text-sobre-acento shadow-suave no-underline transition-transform duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97]"
         >
           Tirar foto
         </a>

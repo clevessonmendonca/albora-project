@@ -38,9 +38,9 @@ export function Select({
         aria-describedby={describedBy}
         aria-invalid={error ? true : undefined}
         className={cn(
-          "appearance-none rounded-token border bg-superficie px-3.5 py-2.5 pr-8 font-corpo text-[0.9375rem] text-ink outline-none transition-[border-color,box-shadow] duration-[var(--tempo-rapido)] ease-[var(--curva)]",
+          "min-h-[48px] appearance-none rounded-token border bg-superficie px-3.5 py-2.5 pr-8 font-corpo text-[0.9375rem] text-ink outline-none transition-[border-color,box-shadow] duration-[var(--tempo-rapido)] ease-[var(--curva)]",
           "bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%228%22%20viewBox%3D%220%200%2012%208%22%3E%3Cpath%20fill%3D%22%23666%22%20d%3D%22M1.4%200L6%204.6%2010.6%200%2012%201.4l-6%206-6-6z%22%2F%3E%3C%2Fsvg%3E')] bg-[length:0.75rem] bg-[position:right_0.75rem_center] bg-no-repeat",
-          "focus:border-acento-texto focus:ring-1 focus:ring-acento-texto",
+          "focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto",
           error ? "border-critico" : "border-linha",
           disabled && "cursor-not-allowed opacity-50",
           selectClassName,

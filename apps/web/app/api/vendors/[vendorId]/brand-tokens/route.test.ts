@@ -155,4 +155,26 @@ describe("PATCH /api/vendors/[vendorId]/brand-tokens", () => {
     );
     expect(res.status).toBe(200);
   });
+
+  it("logoUrl https válida: 200 ok", async () => {
+    const res = await PATCH(
+      req({ logoUrl: "https://cdn.exemplo.test/logo.png" }),
+      params(),
+    );
+    expect(res.status).toBe(200);
+    expect(atualizarBrandTokensDoFornecedor).toHaveBeenCalledWith(
+      {},
+      ACCOUNT_ID,
+      VENDOR_ID,
+      expect.objectContaining({ logoUrl: "https://cdn.exemplo.test/logo.png" }),
+    );
+  });
+
+  it("logoUrl sem https: 422 com o campo listado", async () => {
+    const res = await PATCH(req({ logoUrl: "http://inseguro.test/logo.png" }), params());
+    expect(res.status).toBe(422);
+    const body = (await res.json()) as { details: { campos: string[] } };
+    expect(body.details.campos).toContain("logoUrl");
+    expect(atualizarBrandTokensDoFornecedor).not.toHaveBeenCalled();
+  });
 });

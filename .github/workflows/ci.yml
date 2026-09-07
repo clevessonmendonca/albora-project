@@ -18,9 +18,9 @@ jobs:
     name: Guards
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -39,6 +39,8 @@ jobs:
         run: node tools/guards/features.mjs
       - name: api-routes
         run: node tools/guards/api-routes.mjs
+      - name: camadas
+        run: node tools/guards/camadas.mjs
 
   # Job separado, com nome próprio, de propósito. Se o isolamento reprovasse
   # dentro de "testes", a falha apareceria como "testes falharam" — e a
@@ -62,9 +64,9 @@ jobs:
           --health-timeout 3s
           --health-retries 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -79,9 +81,9 @@ jobs:
     name: Typecheck, lint e testes
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -90,8 +92,10 @@ jobs:
       - run: pnpm lint
       # Inclui o auto-teste de cada guard: guard sem auto-teste pode parar de
       # verificar e continuar verde.
-      # Cobertura report-only (sem threshold bloqueante): packages/**/src,
-      # apps/web/lib, apps/web/features e apps/web/app/api — ver vitest.config.ts.
+      # Cobertura bloqueante, em duas partes: 90% POR ARQUIVO no pipeline de
+      # upload (thresholds `perFile: true` em vitest.config.ts) + piso global
+      # agregado (tools/coverage/piso-global.mjs, chamado por este script).
+      # Falha em qualquer uma reprova o job.
       - run: pnpm test:coverage
       # Orçamento de First Load JS nas rotas do convidado (gate pós-H1, CLAUDE.md).
       # Report-only até calibrarmos os limites com builds estáveis no CI.
@@ -99,7 +103,7 @@ jobs:
         run: pnpm bundle:budget:report
         continue-on-error: true
       - name: Publicar cobertura (artefato)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage
@@ -132,9 +136,9 @@ jobs:
       DATABASE_URL: postgres://albora:albora@localhost:55432/albora
       APP_ROOT_DOMAIN: localhost:3000
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -147,7 +151,7 @@ jobs:
         env:
           E2E_FULL: "1"
       - name: Publicar relatório Playwright
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
@@ -158,9 +162,9 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm

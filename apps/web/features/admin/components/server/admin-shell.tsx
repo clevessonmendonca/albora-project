@@ -53,7 +53,7 @@ const adminCardVariants = cva({
   base: "rounded-superficie border border-linha p-6",
   variants: {
     variant: {
-      default: "bg-superficie shadow-suave",
+      default: "elev-1",
       highlight: "bg-gradient-chao-quente shadow-alta",
     },
   },
@@ -80,14 +80,14 @@ export function AdminSection({ children, id }: { children: ReactNode; id?: strin
 
 export const adminClasses = {
   primaryButton:
-    "inline-block cursor-pointer border-none bg-acento px-[1.4rem] py-3 font-titulo text-base text-sobre-acento no-underline rounded-pilula transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80",
+    "inline-block cursor-pointer border-none bg-acento px-[1.4rem] py-3 font-titulo text-base text-sobre-acento no-underline rounded-pilula transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] active:opacity-80",
   dangerButton:
-    "w-full cursor-pointer border-none bg-critico px-5 py-4 font-titulo text-[1.0625rem] text-sobre-acento rounded-pilula transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80",
+    "w-full cursor-pointer border-none bg-critico px-5 py-4 font-titulo text-[1.0625rem] text-sobre-acento rounded-pilula transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] active:opacity-80",
   primaryButtonSm:
-    "inline-block cursor-pointer border-none bg-acento px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-sobre-acento no-underline rounded-pilula transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80",
+    "inline-block cursor-pointer border-none bg-acento px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-sobre-acento no-underline rounded-pilula transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] active:opacity-80",
   dangerButtonSm:
-    "inline-block w-auto cursor-pointer border-none bg-critico px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-sobre-acento rounded-pilula transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80",
+    "inline-block w-auto cursor-pointer border-none bg-critico px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-sobre-acento rounded-pilula transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] active:opacity-80",
   secondaryButton:
-    "inline-block cursor-pointer border border-linha bg-superficie-alta px-[1.4rem] py-3 font-titulo text-base text-ink no-underline rounded-pilula transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto",
+    "inline-block cursor-pointer border border-linha bg-superficie-alta px-[1.4rem] py-3 font-titulo text-base text-ink no-underline rounded-pilula transition-[transform,border-color] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97]",
   listLink: "block border-b border-linha py-4 text-ink no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-acento-texto",
 } as const;

@@ -34,12 +34,12 @@ export const QUINZE_ANOS: Pack = {
     "lugar.bar": "Bar",
     "lugar.varanda": "Varanda",
 
-    "landing.rotulo": "O álbum que a festa inteira tira",
-    "landing.titulo": "As fotos dos 15 anos,",
-    "landing.titulo.destaque": "antes de a festa acabar.",
+    "landing.rotulo": "Fotos de festa · sem app",
+    "landing.titulo": "As fotos dos seus 15 anos,",
+    "landing.titulo.destaque": "tiradas por quem viveu eles.",
     "landing.lede":
-      "A festa inteira fotografa e cada foto some no celular de quem tirou. Com um QR na mesa, cada uma cai no seu álbum no instante em que alguém tira.",
-    "landing.cta": "Criar meu álbum",
+      "Um QR na mesa. Sem app, sem login, sem baixar nada. No dia seguinte, você acorda com centenas de fotos que ninguém contratou pra tirar.",
+    "landing.cta": "Criar meu evento",
     "landing.exemplo.nome": "MARIA CLARA",
     "landing.momentos.titulo": "Todo mundo vendo as fotos",
     "landing.momentos.destaque": "enquanto a festa acontece.",

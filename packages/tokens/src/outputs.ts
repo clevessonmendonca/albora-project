@@ -27,6 +27,9 @@ export function toVariables(tokens: Tokens): Record<string, string> {
     "--espaco": tokens.escala.espaco,
 
     "--curva": tokens.movimento.curva,
+    "--mola": tokens.movimento.mola,
+    "--saida": tokens.movimento.saida,
+    "--instantaneo": tokens.movimento.instantaneo,
     "--tempo-rapido": tokens.movimento.rapido,
     "--tempo": tokens.movimento.medio,
     "--tempo-lento": tokens.movimento.lento,

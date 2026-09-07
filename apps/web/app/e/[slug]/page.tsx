@@ -4,6 +4,7 @@ import { parseEntryVia } from "@albora/core";
 import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import type { CSSProperties } from "react";
 import { getPool } from "@/lib/db";
@@ -42,13 +43,7 @@ export default async function Pagina({ params, searchParams }: Props) {
   const r = await resolverSlug(getPool(), slug, new Date());
 
   if (r.estado === "desconhecido") {
-    return (
-      <EventNotice
-        title="Esse endereço não abre nenhuma festa"
-        body="Pode ser uma letra trocada. Tente de novo pelo código da mesa."
-        showRescue
-      />
-    );
+    notFound();
   }
 
   if (r.estado === "slug_rotacionado") {
@@ -58,6 +53,17 @@ export default async function Pagina({ params, searchParams }: Props) {
         title="Esse código foi trocado"
         body="A festa existe, mas o endereço mudou. Use o QR mais novo da mesa, ou peça o link a quem te convidou."
         showRescue
+      />
+    );
+  }
+
+  if (r.estado === "rascunho") {
+    // Anfitrião ainda não publicou (task 6, gap I1) — o QR pode já estar na
+    // placa, mas o convidado não entra até a decisão explícita de publicar.
+    return (
+      <EventNotice
+        title="Evento ainda não disponível"
+        body="Os anfitriões estão preparando tudo. Volte em breve!"
       />
     );
   }
@@ -88,7 +94,7 @@ export default async function Pagina({ params, searchParams }: Props) {
   if (isSameEventSession(sessao, r.evento.eventoId)) {
     return (
       <Suspense fallback={<HomePageSkeleton />}>
-        <HomeContent slug={slug} evento={r.evento} />
+        <HomeContent slug={slug} evento={r.evento} sessaoId={sessao.sessaoId} />
       </Suspense>
     );
   }

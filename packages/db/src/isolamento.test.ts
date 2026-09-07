@@ -27,6 +27,7 @@ const TABELAS_DE_EVENTO = [
   "recado_lido",
   "export_jobs",
   "drive_connections",
+  "photo_moderation",
 ];
 
 beforeAll(async () => {
@@ -216,6 +217,7 @@ describe("6 — agregação cruza eventos, e fica auditada", () => {
 /** Tabelas fora da RLS com justificativa: circular (resolve token → event_id, mas event_id só existe após o token) — o teste reprova qualquer coluna nova aqui. */
 const FORA_DA_RLS = new Map([
   ["session_tokens", "porta de entrada: resolve token → event_id, antes de haver contexto"],
+  ["oidc_states", "porta do SSO Google: state de uso único, hash-keyed, vida de 10min, antes de haver sessão. O event_id/guest_session_id são o contexto do fluxo de login em voo, consumidos por nonce_hash — mesma disciplina de session_tokens"],
   ["event_slugs", "porta do QR: resolve slug → event_id. O slug não é segredo — está impresso na mesa"],
   ["wall_tokens", "porta da TV: resolve crachá → event_id, mesmo circular da sessão. Só leitura"],
   [
@@ -479,8 +481,8 @@ describe("10 — fornecedor: duas portas, nunca cruza vendor_id", () => {
 
     // Segundo evento sob vendorX, dono de conta diferente de dados.a — prova que resumoDoFornecedor soma por vendor_id, não por account_id: o dono deste evento nem é vendor_members de X, só o evento pertence a X.
     const { rows: extra } = await admin.query<{ id: string }>(
-      `INSERT INTO events (account_id, vendor_id, pack_id, slug, starts_at, ends_at, expected_guests)
-       VALUES ($1, $2, 'pack-um', 'evento-extra-x', now(), now() + interval '4 hours', 50)
+      `INSERT INTO events (account_id, vendor_id, pack_id, slug, starts_at, ends_at, expected_guests, status)
+       VALUES ($1, $2, 'pack-um', 'evento-extra-x', now(), now() + interval '4 hours', 50, 'active')
        RETURNING id`,
       [dados.b.contaId, vendorXId],
     );

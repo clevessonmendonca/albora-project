@@ -19,6 +19,19 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/e/ana-e-joao",
 }));
 
+// jsdom não implementa matchMedia (gap conhecido) — o Viewer consulta
+// prefers-reduced-motion, então precisa de um stub.
+window.matchMedia ??= (query: string) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addListener: () => {},
+  removeListener: () => {},
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  dispatchEvent: () => false,
+});
+
 /** Smoke da tela autor clicável — não testa curtida/comentário porque a tela não os oferece (só leitura). */
 
 const AUTOR_ID = "11111111-1111-1111-1111-111111111111";

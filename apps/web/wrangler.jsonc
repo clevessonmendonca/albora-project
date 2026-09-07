@@ -26,5 +26,115 @@
   },
   "observability": {
     "enabled": true
+  },
+  // Ambientes nomeados (`wrangler deploy --env homol|prod`, `wrangler secret put --env homol|prod`).
+  // A config default acima (sem `--env`) continua servindo `stable`, sem mudança de comportamento.
+  // Cada bloco repete tudo explicitamente — Wrangler não herda `vars`/`services`/`queues` entre
+  // ambientes por padrão — e usa fila e worker próprios por ambiente, para não vazar mensagem
+  // ou self-fetch de um ambiente para outro.
+  "env": {
+    "homol": {
+      "name": "albora-web-homol",
+      "assets": {
+        "directory": ".open-next/assets",
+        "binding": "ASSETS"
+      },
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "albora-web-homol"
+        }
+      ],
+      "queues": {
+        "producers": [
+          { "binding": "DRIVE_EXPORT_QUEUE", "queue": "albora-drive-export-homol" }
+        ],
+        "consumers": [
+          {
+            "queue": "albora-drive-export-homol",
+            "max_batch_size": 1,
+            "max_retries": 5
+          }
+        ]
+      },
+      "observability": {
+        "enabled": true
+      },
+      // Sweep de retenção LGPD (POST /api/ops/retencao, CRON_SECRET) — d330 export para a
+      // nuvem do casal, d365 delete definitivo (CLAUDE.md: "Retenção é cumprida por job, não
+      // por promessa"). Cadência diária conservadora; ajustar só com decisão explícita do
+      // dono — ver docs/runbooks/deploy-producao.md.
+      "triggers": {
+        "crons": ["0 4 * * *"]
+      },
+      // Não-secretas — o resto (DATABASE_URL, R2_*, SESSION_SECRET, RESEND_API_KEY, ASAAS_*, ...)
+      // é `wrangler secret put --env homol`, nunca aqui. Ver .env.homol.example.
+      "vars": {
+        "APP_ENV": "homol",
+        "APP_ROOT_DOMAIN": "homol.albora.com.br",
+        "MEDIA_DOMAIN": "media-homol.albora.com.br",
+        "R2_BUCKET": "albora-media-homol",
+        "APP_URL": "https://homol.albora.com.br",
+        "APP_LINK_HOST": "homol.albora.com.br"
+      }
+    },
+    "prod": {
+      "name": "albora-web-prod",
+      "assets": {
+        "directory": ".open-next/assets",
+        "binding": "ASSETS"
+      },
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "albora-web-prod"
+        }
+      ],
+      "queues": {
+        "producers": [
+          { "binding": "DRIVE_EXPORT_QUEUE", "queue": "albora-drive-export-prod" }
+        ],
+        "consumers": [
+          {
+            "queue": "albora-drive-export-prod",
+            "max_batch_size": 1,
+            "max_retries": 5
+          }
+        ]
+      },
+      "observability": {
+        "enabled": true
+      },
+      // Sweep de retenção LGPD (POST /api/ops/retencao, CRON_SECRET) — d330 export para a
+      // nuvem do casal, d365 delete definitivo (CLAUDE.md: "Retenção é cumprida por job, não
+      // por promessa"). Cadência diária conservadora; ajustar só com decisão explícita do
+      // dono — ver docs/runbooks/deploy-producao.md.
+      "triggers": {
+        "crons": ["0 4 * * *"]
+      },
+      // Não-secretas — o resto (DATABASE_URL, R2_*, SESSION_SECRET, RESEND_API_KEY, ASAAS_*, ...)
+      // é `wrangler secret put --env prod`, nunca aqui. Ver .env.prod.example.
+      // APP_ROOT_DOMAIN, APP_URL e APP_LINK_HOST assumem albora.com.br — domínio de
+      // produção ainda não fechado (docs/architecture.md Anexo A item 2); ajustar os
+      // três aqui quando o Fundador decidir (ver também §3.2 do runbook — routes/custom_domain).
+      "vars": {
+        "APP_ENV": "prod",
+        "APP_ROOT_DOMAIN": "albora.com.br",
+        "MEDIA_DOMAIN": "media.albora.com.br",
+        "R2_BUCKET": "albora-media-prod",
+        "APP_URL": "https://albora.com.br",
+        "APP_LINK_HOST": "albora.com.br"
+      }
+      // PENDENTE — decisão do dono, não escolhida aqui (Anexo A item 2 de
+      // docs/architecture.md: "albora.com.br" nos exemplos vs. "albora.app" nos
+      // defaults de código em APP_LINK_HOST/RESEND_FROM, domínio ainda não registrado).
+      // Sem isto, `wrangler deploy --env prod` só é alcançável em
+      // albora-web-prod.<subdomínio>.workers.dev. Quando o domínio for decidido e
+      // registrado, adicionar NA MESMA mudança (uma sem a outra é pior que nenhuma):
+      //   "routes": [{ "pattern": "SEU_DOMINIO/*", "custom_domain": true }],
+      //   "workers_dev": false
+      // Setar só "workers_dev": false sem "routes" deixaria o Worker de prod sem
+      // nenhuma origem acessível. Checklist: docs/runbooks/deploy-producao.md §2.
+    }
   }
 }

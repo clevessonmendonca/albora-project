@@ -2,111 +2,30 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
 import {
-  Badge,
-  CameraIcon,
   FloatingNav,
-  Frame,
-  GridIcon,
   GuestShell,
   PrimaryButton,
+  GridIcon,
   StackIcon,
   Star,
+  SkipLink,
 } from "@albora/ui-web";
 import type { AlbumServido } from "@/lib/album";
 import type { CoverMoment } from "../../types/cover";
-
-function BotaoConvidar({ slug, eventName }: { slug: string; eventName: string }) {
-  const [copiado, setCopiado] = useState(false);
-
-  async function convidar() {
-    const url = `${window.location.origin}/e/${encodeURIComponent(slug)}`;
-    if (typeof navigator.share === "function") {
-      try {
-        await navigator.share({ title: eventName, url });
-        return;
-      } catch {
-        // usuário cancelou o share nativo — tenta cópia silenciosa
-      }
-    }
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 2500);
-    } catch {
-      // sem permissão de clipboard — ignora
-    }
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={() => void convidar()}
-      className="flex min-h-12 w-full cursor-pointer items-center justify-center rounded-pilula border border-linha bg-transparent px-4 font-inherit text-[0.9375rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
-    >
-      {copiado ? "Link copiado!" : "Convidar amigos"}
-    </button>
-  );
-}
-
-function IconeMusica({ tamanho = 20 }: { tamanho?: number }) {
-  return (
-    <svg width={tamanho} height={tamanho} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M9 18V5l12-2v13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-      <circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="1.5" />
-      <circle cx="18" cy="16" r="3" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
-  );
-}
-
-function truncateLabel(label: string, max = 16): string {
-  return label.length <= max ? label : `${label.slice(0, max - 1)}…`;
-}
-
-function albumCoverUrl(album: AlbumServido): string | null {
-  for (const capitulo of album.capitulos) {
-    for (const pagina of capitulo.paginas) {
-      const foto = pagina.fotos[0];
-      if (foto?.url) return foto.url;
-    }
-  }
-  return null;
-}
-
-function formatDate(iso: string): string {
-  return new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long" }).format(new Date(iso));
-}
-
-function Shortcut({
-  href,
-  label,
-  value,
-  icon,
-  primary = false,
-  valueClass,
-}: {
-  href: string;
-  label: string;
-  value: string;
-  icon: ReactNode;
-  primary?: boolean;
-  valueClass?: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`flex flex-col items-center gap-[0.3125rem] rounded-token bg-superficie px-1 py-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta ${
-        primary ? "text-ink" : "text-ink-2 opacity-85"
-      }`}
-    >
-      {icon}
-      <span className="text-[0.625rem] uppercase tracking-rotulo">{label}</span>
-      <span className={`text-[0.6875rem] ${primary ? "text-ink" : "text-ink-2"} ${valueClass ?? ""}`}>{value}</span>
-    </Link>
-  );
-}
+import { useStatsPolling } from "../../hooks/use-stats-polling";
+import { useInteractionGate } from "../../hooks/use-interaction-gate";
+import { usePhotoFlash } from "../../hooks/use-photo-flash";
+import { albumCoverUrl, truncateLabel } from "../../lib/cover-utils";
+import {
+  InviteButton,
+  MusicIcon,
+  CoverShortcut,
+  CoverHero,
+  CoverEventInfo,
+  MomentsSection,
+} from "../ui";
 
 export function CoverPage({
   slug,
@@ -114,10 +33,14 @@ export function CoverPage({
   startsAt,
   album,
   moments,
-  interactionOpen,
+  interactionOpen: interactionOpenInitial,
+  interactionBannerLabel: interactionBannerInitial,
+  interactionOpensAt,
+  interactionLabels,
+  fuso,
   musicLabel,
   hostMessageLabel,
-  hasConfessional = false,
+  confessionalTitle = null,
   coverImageUrl = null,
 }: {
   slug: string;
@@ -126,49 +49,41 @@ export function CoverPage({
   album: AlbumServido;
   moments: CoverMoment[];
   interactionOpen: boolean;
+  interactionBannerLabel: string;
+  interactionOpensAt: string | null;
+  interactionLabels: {
+    aberta: string;
+    fechada: string;
+    fechadaAgendada: string;
+  };
+  fuso: string;
   musicLabel: string | null;
   hostMessageLabel: string;
-  hasConfessional?: boolean;
+  confessionalTitle?: string | null;
   coverImageUrl?: string | null;
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
   const hero = coverImageUrl ?? albumCoverUrl(album);
-  const [photos, setPhotos] = useState(album.contadores.fotos);
   const guests = album.contadores.convidados;
   const missions = album.contadores.missoes;
-  const photoInitialized = useRef(false);
-  const [photoFlash, setPhotoFlash] = useState(false);
 
-  useEffect(() => {
-    if (!photoInitialized.current) {
-      photoInitialized.current = true;
-      return;
-    }
-    setPhotoFlash(true);
-    const t = setTimeout(() => setPhotoFlash(false), 700);
-    return () => clearTimeout(t);
-  }, [photos]);
-
-  useEffect(() => {
-    const poll = async () => {
-      try {
-        const r = await fetch(`/api/e/${encodeURIComponent(slug)}/stats`);
-        if (r.ok) {
-          const d = (await r.json()) as { fotos: number };
-          setPhotos(d.fotos);
-        }
-      } catch {
-        // degradar silenciosamente: o contador estático fica visível
-      }
-    };
-    const id = setInterval(() => void poll(), 60_000);
-    return () => clearInterval(id);
-  }, [slug]);
-  const centerIndex = moments.length > 1 ? 1 : 0;
+  const photos = useStatsPolling(slug, album.contadores.fotos);
+  const photoFlash = usePhotoFlash(photos);
+  const { open: interactionOpen, label: interactionBannerLabel } = useInteractionGate(
+    slug,
+    {
+      open: interactionOpenInitial,
+      label: interactionBannerInitial,
+      opensAtIso: interactionOpensAt,
+      fuso,
+    },
+    interactionLabels,
+  );
 
   return (
     <>
+      <SkipLink />
       <GuestShell>
         <style>{`
           @keyframes cover-foto-flash {
@@ -176,36 +91,48 @@ export function CoverPage({
             40% { color: var(--acento-texto) }
           }
           .cover-foto-flash { animation: cover-foto-flash 700ms var(--curva) both }
+
+          /*
+           * Revelação suave do herói ao montar — a foto assenta (leve zoom-out),
+           * o nome do evento sobe/aparece junto, sem atraso entre os dois: um
+           * único gesto de "chegar". Sempre na curva-base do produto, nunca a
+           * mola (reservada a press/overlay). O kill-switch global de
+           * prefers-reduced-motion (base.css) já zera durações; a media query
+           * abaixo é redundância defensiva, mesmo padrão do entry-flow.
+           */
+          @keyframes capa-hero-revela {
+            from { opacity: 0; transform: scale(1.03) }
+            to   { opacity: 1; transform: scale(1) }
+          }
+          @keyframes capa-texto-revela {
+            from { opacity: 0; transform: translateY(0.625rem) }
+            to   { opacity: 1; transform: translateY(0) }
+          }
+          .capa-hero-anima { animation: capa-hero-revela var(--tempo-lento) var(--curva) both }
+          .capa-texto-anima { animation: capa-texto-revela var(--tempo-lento) var(--curva) both }
           @media (prefers-reduced-motion: reduce) {
-            .cover-foto-flash { animation: none !important }
+            .cover-foto-flash,
+            .capa-hero-anima,
+            .capa-texto-anima { animation: none !important }
           }
         `}</style>
-        <div className="relative h-[20.5rem] shrink-0">
-          {hero ? (
-            <img src={hero} alt="" className="absolute inset-0 size-full object-cover" />
-          ) : (
-            <Frame label="" atmosphere variant={1} />
-          )}
 
-          <div className="absolute inset-0 bg-gradient-cover-hero" />
-        </div>
+        <CoverHero hero={hero} />
 
-        <div className="relative -mt-13 px-6 text-center">
-          <p className="m-0 font-titulo text-[1.875rem] font-light leading-tight tracking-titulo">
-            {eventName}
-          </p>
-          <p className="mt-1.5 text-[0.8125rem] text-ink-2">
-            {formatDate(startsAt)}
-            {guests > 0
-              ? ` · ${guests} ${guests === 1 ? "pessoa" : "pessoas"} fotografando`
-              : ""}
-          </p>
-        </div>
+        <main id="main-content" className="flex min-h-0 flex-1 flex-col">
+        <CoverEventInfo eventName={eventName} startsAt={startsAt} guests={guests} />
+
+        <p
+          className="mx-[1.125rem] mt-3 mb-0 rounded-superficie bg-superficie px-3.5 py-2.5 text-center text-[0.8125rem] leading-[1.55] text-ink-2"
+          role="status"
+        >
+          {interactionBannerLabel}
+        </p>
 
         <HostMessageCard label={hostMessageLabel} hostName={eventName} />
 
         <div className="grid grid-cols-4 gap-2 px-[1.125rem] pt-5 pb-[1.125rem]">
-          <Shortcut
+          <CoverShortcut
             href={`${base}/album`}
             label="Álbum"
             value={photos > 0 ? String(photos) : "em breve"}
@@ -213,116 +140,56 @@ export function CoverPage({
             primary
             valueClass={photoFlash ? "cover-foto-flash" : ""}
           />
-          <Shortcut
+          <CoverShortcut
             href={`${base}/feed`}
             label="Feed"
             value={interactionOpen ? "ao vivo" : "em breve"}
             icon={<StackIcon size={20} />}
             primary
           />
-          <Shortcut
+          <CoverShortcut
             href={`${base}/missions`}
             label="Missões"
             value={missions > 0 ? String(missions) : "—"}
             icon={<Star size={20} />}
           />
-          <Shortcut
+          <CoverShortcut
             href={`${base}/music`}
             label="Música"
             value={musicLabel ? truncateLabel(musicLabel) : "trilha"}
-            icon={<IconeMusica />}
+            icon={<MusicIcon />}
           />
         </div>
 
         <p className="m-0 px-[1.125rem] pb-2 text-center text-[0.75rem] text-ink-3">
-          {hasConfessional && (
+          {confessionalTitle && (
             <>
-              <Link href={`${base}/confessional`} className="text-ink-2 underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70">
-                Confessionário
+              <Link
+                href={`${base}/confessional`}
+                className="text-ink-2 underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+              >
+                {confessionalTitle}
               </Link>
               {" · "}
             </>
           )}
-          <Link href="/wall-pair" className="text-ink-2 underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70">
+          <Link
+            href="/wall-pair"
+            className="text-ink-2 underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+          >
             Ligar telão
           </Link>
         </p>
 
-        {moments.length > 0 && (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="flex items-baseline justify-between px-[1.125rem] pb-3">
-              <span className="font-titulo text-base">Os momentos</span>
-              <Link href={`${base}/album`} className="text-[0.6875rem] text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink-2">
-                ver álbum
-              </Link>
-            </div>
-
-            <div className="flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-[1.125rem] [scrollbar-width:none]">
-              {moments.map((moment, i) => {
-                const central = i === centerIndex;
-                const hrefAlbum = moment.missionFilterId
-                  ? `${base}/album?missao=${encodeURIComponent(moment.missionFilterId)}`
-                  : `${base}/album`;
-
-                return (
-                  <Link
-                    key={moment.id}
-                    href={hrefAlbum}
-                    className={`relative aspect-[9/16] shrink-0 snap-center overflow-hidden rounded-token text-inherit no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 ${
-                      central ? "w-[9.25rem]" : "w-20 opacity-60"
-                    }`}
-                  >
-                    {moment.thumbUrl ? (
-                      <img
-                        src={moment.thumbUrl}
-                        alt=""
-                        className="absolute inset-0 size-full object-cover"
-                      />
-                    ) : (
-                      <Frame label="" atmosphere variant={i * 6 + 2} />
-                    )}
-
-                    <span className="absolute inset-0 bg-gradient-moment-scrim" />
-
-                    {central && interactionOpen ? (
-                      <span className="absolute left-2 top-2">
-                        <Badge tone="accent">
-                          <span className="pulso size-1 rounded-full bg-current" />
-                          agora
-                        </Badge>
-                      </span>
-                    ) : null}
-
-                    <span className="absolute inset-x-2.5 bottom-2.5 block">
-                      <span
-                        className={`block font-titulo leading-tight tracking-titulo ${
-                          central ? "text-[0.9375rem]" : "text-[0.6875rem]"
-                        }`}
-                      >
-                        {moment.title}
-                      </span>
-                      {central && moment.contributorsLabel ? (
-                        <span className="mt-0.5 block truncate text-[0.625rem] leading-tight text-ink-2 opacity-85">
-                          {moment.contributorsLabel}
-                        </span>
-                      ) : null}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        <MomentsSection moments={moments} base={base} interactionOpen={interactionOpen} />
 
         <div className="grid gap-2.5 px-6 pt-[1.125rem] pb-[calc(6.5rem+env(safe-area-inset-bottom))]">
           <PrimaryButton onClick={() => router.push(`${base}/photo`)}>
-            <span className="flex items-center justify-center gap-2">
-              <CameraIcon size={18} />
-              Enviar foto
-            </span>
+            Enviar foto
           </PrimaryButton>
-          <BotaoConvidar slug={slug} eventName={eventName} />
+          <InviteButton slug={slug} eventName={eventName} />
         </div>
+        </main>
       </GuestShell>
       <FloatingNav base={base} linkComponent={Link} />
     </>

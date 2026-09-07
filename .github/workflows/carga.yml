@@ -56,7 +56,7 @@ jobs:
           --health-retries 20
     env:
       # Valores dummy só para subir o dev server — nunca secrets reais no repo.
-      SESSION_SECRET: ci-carga-not-a-real-secret
+      SESSION_SECRET: ci-carga-not-a-real-secret-32chars
       DATABASE_URL: postgres://albora:albora@localhost:55432/albora
       APP_ROOT_DOMAIN: localhost:3000
       R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
@@ -68,7 +68,7 @@ jobs:
       CARGA_IP_POR_CONVIDADO: "1"
       CARGA_PERFIL: ${{ inputs.perfil || 'fumaca' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Verificar secrets R2
         run: |
@@ -85,7 +85,7 @@ jobs:
           fi
 
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -135,7 +135,7 @@ jobs:
           pnpm carga
 
       - name: Publicar relatório JSON
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: carga-${{ env.CARGA_PERFIL }}-${{ github.run_id }}

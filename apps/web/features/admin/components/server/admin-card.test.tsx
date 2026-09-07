@@ -4,11 +4,11 @@ import { describe, expect, it } from "vitest";
 import { AdminCard } from "./admin-shell";
 
 describe("AdminCard", () => {
-  it("sem variant: usa shadow-suave, não shadow-alta", () => {
+  it("sem variant: usa a elevação elev-1 (sombra suave), não shadow-alta", () => {
     render(<AdminCard>conteúdo</AdminCard>);
 
     const section = screen.getByText("conteúdo").closest("section");
-    expect(section).toHaveClass("shadow-suave");
+    expect(section).toHaveClass("elev-1");
     expect(section).not.toHaveClass("shadow-alta");
   });
 

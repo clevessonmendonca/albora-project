@@ -31,11 +31,17 @@ async function latestSubscriptionStatus(vendorId: string): Promise<VendorSubscri
 
 /** Portal do fornecedor: resolve marca (auditada) → exige sessão host → `roleForAccountOnVendor` como portão; quem não é admin/staff recebe 404. */
 export async function loadVendorPortal(vendorSlug: string): Promise<VendorPortalContext> {
-  const vendor = await marcaPublicaDoFornecedor(
-    getAggregatorPool(),
-    vendorSlug,
-    auditarAgregacaoDoPortal,
-  );
+  // Auditoria gravada e AGUARDADA antes de sequer chamar `marcaPublicaDoFornecedor`
+  // (que embrulha `comAgregacao`, BYPASSRLS) — se a escrita falhar, a exceção sobe
+  // e a agregação cross-evento nunca roda. Ver auditarAgregacaoDoPortal.
+  await auditarAgregacaoDoPortal(getPool(), null)({
+    motivo: `vendor_public_resolve:${vendorSlug}`,
+    em: new Date(),
+  });
+  const vendor = await marcaPublicaDoFornecedor(getAggregatorPool(), vendorSlug, () => {
+    // Auditoria já gravada acima, aguardada, antes desta chamada — este callback
+    // existe só porque `comAgregacao` o exige.
+  });
   if (!vendor) notFound();
 
   const token = (await cookies()).get(HOST_COOKIE)?.value;
@@ -45,12 +51,18 @@ export async function loadVendorPortal(vendorSlug: string): Promise<VendorPortal
   const role = await roleForAccountOnVendor(getPool(), host.accountId, vendor.id);
   if (!role) notFound();
 
+  await auditarAgregacaoDoPortal(getPool(), host.accountId, host.email)({
+    motivo: `vendor_dashboard:${vendor.id}`,
+    em: new Date(),
+  });
   const eventos = await eventosDoFornecedor(
     getPool(),
     getAggregatorPool(),
     host.accountId,
     vendor.id,
-    auditarAgregacaoDoPortal,
+    () => {
+      // Auditoria já gravada acima, aguardada, antes desta chamada.
+    },
   );
 
   const subscriptionStatus = await latestSubscriptionStatus(vendor.id);

@@ -71,6 +71,23 @@ cada recusa junto. Estar lá não é roadmap e não pode ser citado em copy.
 
 Fora de spec por decisão de roadmap: entrega por WhatsApp, agrupamento facial (bloqueado em parecer jurídico), export para Drive, livro de fotos, portal do fornecedor, multi-evento, checkout.
 
+## Pós-discovery — ajustes de produto (agosto/2026)
+
+Origem: [`../product/plano-implementacao-produto.md`](../product/plano-implementacao-produto.md). **Priorizar P1–P3 antes do 1º casamento.**
+
+| # | Tarefa | Entrega |
+|---|---|---|
+| [021](./task-021-gate-capa-copy.md) | Copy do gate na capa | Convidado sabe se interação está aberta |
+| [022](./task-022-fila-falha-visivel.md) | Fila: falha visível | Foto nunca some em silêncio |
+| [023](./task-023-copy-moderacao-landing.md) | Copy moderação landing | Galeria pública + telão protegido |
+| [024](./task-024-landing-convidado-veterano.md) | Landing convidado veterano | CTA maior intenção |
+| [025](./task-025-checklist-pre-evento.md) | Checklist pré-evento admin | Runbook espelhado no painel |
+| [026](./task-026-wizard-expected-guests.md) | Wizard convidados presentes | Denominador H1 explícito |
+
+Status implementação P1–P6: **entregue** na branch `cursor/product-discovery-plan-8a09` (PR #18).
+
+Ops (sem spec de código): [`../runbooks/dia-do-evento.md`](../runbooks/dia-do-evento.md) · experimentos [`../product/experimentos-validacao.md`](../product/experimentos-validacao.md).
+
 ## O critério que decide escopo social
 
 Do [ADR 0009](../adr/0009-app-social-do-convidado.md), e vale para toda spec daqui em diante:

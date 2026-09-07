@@ -90,4 +90,10 @@ describe("lerConfig", () => {
     expect(lerConfig({ CARGA_IP_POR_CONVIDADO: "true" }).ipPorConvidado).toBe(false);
     expect(lerConfig({ CARGA_IP_POR_CONVIDADO: "1" }).ipPorConvidado).toBe(true);
   });
+
+  it("só pula o PUT com CARGA_SEM_STORAGE exatamente \"1\"", () => {
+    expect(lerConfig({}).semStorage).toBe(false);
+    expect(lerConfig({ CARGA_SEM_STORAGE: "true" }).semStorage).toBe(false);
+    expect(lerConfig({ CARGA_SEM_STORAGE: "1" }).semStorage).toBe(true);
+  });
 });

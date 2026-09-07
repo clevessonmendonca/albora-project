@@ -8,6 +8,29 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Albora — o álbum coletivo da sua festa",
     description: "As fotos que os seus convidados tiraram, reunidas num álbum só.",
+    images: [
+      {
+        url: "/landing/hero.webp",
+        width: 1200,
+        height: 630,
+        alt: "Albora — o álbum coletivo da sua festa",
+      },
+    ],
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Albora",
+  applicationCategory: "PhotographyApplication",
+  operatingSystem: "Web, iOS, Android",
+  description: "As fotos que os seus convidados tiraram, reunidas num álbum só.",
+  url: "https://albora.com.br",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "BRL",
   },
 };
 
@@ -16,5 +39,13 @@ export default function Home() {
   const problemas = landingProblems(WEDDING);
   if (problemas.length > 0) throw new Error(problemas.join("; "));
 
-  return <LandingPage pack={WEDDING} />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <LandingPage pack={WEDDING} />
+    </>
+  );
 }

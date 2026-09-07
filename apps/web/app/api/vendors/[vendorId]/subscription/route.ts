@@ -16,7 +16,7 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
-import { resolveBilling, VENDOR_PLAN_PRICE_CENTS } from "@/lib/billing";
+import { resolveBilling, VENDOR_PLAN_PRICE_CENTS } from "@albora/integrations";
 import { consume } from "@/lib/rate-limit-store";
 import type { Pool } from "pg";
 

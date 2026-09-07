@@ -57,7 +57,7 @@ Não podem ser quebradas sem discussão prévia. Se uma tarefa pedir para quebra
 - **Nenhum hex hardcodado em componente.** Toda cor, fonte, raio e espaçamento sai de token. Um hex hardcodado é um lugar onde a identidade do casal **não** propaga — é bug de produto, não de estilo.
 - **Um resolvedor de tokens, N renderizadores.** Web, telão e PDF de impressão consomem o mesmo resolvedor. Se divergirem, a placa impressa não combina com o telão — e essa coerência é o produto.
 - **Anti-padrões visuais são bloqueantes:** glassmorphism, neon, gradiente roxo, dark mode "tech", fonte script, verde sage, rosa blush, ícone de aliança/pombinha/coração.
-- **O telão nunca corta na vertical.** Três de cada quatro fotos de festa são verticais; encaixar 9:16 em 16:9 com recorte descarta dois terços da imagem pelo topo e pela base — e o topo é onde estão as cabeças. Quatro modelos resolvem o enquadramento sem cortar rosto ([`docs/flows.md` §5.0](./docs/flows.md)). Vale igual para vídeo.
+- **O telão nunca corta na vertical.** Três de cada quatro fotos de festa são verticais; encaixar 9:16 em 16:9 com recorte descarta dois terços da imagem pelo topo e pela base — e o topo é onde estão as cabeças. Onze modelos resolvem o enquadramento sem cortar rosto ([`docs/flows.md` §5.0](./docs/flows.md)). Vale igual para vídeo.
 - **A interação abre por gate, e quem define é o casal.** Feed, reação e comentário existem; o padrão é liberarem **após a cerimônia**, configurável no admin. Antes do gate o app sobe foto e espelha o telão. Notificação fica **desligada** até ter decisão própria. Ver [ADR 0009](./docs/adr/0009-app-social-do-convidado.md).
 - **O convidado nunca digita senha, nunca recebe e-mail, nunca espera SMS.** A identidade dele é o QR (qual evento) + primeiro nome (quem) + token do aparelho. A única coisa que ele pode digitar na vida é o código de quatro dígitos que passa a sessão da web para o app instalado.
 
@@ -70,6 +70,8 @@ Não podem ser quebradas sem discussão prévia. Se uma tarefa pedir para quebra
 ### Dados e privacidade
 
 - **Migrations são forward-only em produção.** Nunca reescreva uma migration já aplicada — escreva outra.
+- **Mídia de convidado nunca vira material de marketing.** Nem do Albora, nem do fornecedor white-label, em nenhuma superfície — site, redes, apresentação comercial, case. A única exceção é autorização escrita e específica; se houver menor na foto, do responsável legal. O STJ (REsp 1.628.700/MG) firmou que dano à imagem de menor publicada sem autorização do representante legal é `in re ipsa` — e **sem exigir finalidade comercial**, diferente da Súmula 403. "Não vendemos a foto" não é defesa.
+
 - **Nunca logar PII crua.** Nome de convidado, telefone, e-mail: mascarados em log, sempre.
 - **Retenção é cumprida por job, não por promessa.** Export para a nuvem do casal no dia 330, delete no dia 365.
 - **Excluir conta exclui de verdade, e rápido.** Memórias automáticas são opt-in; desligar em um toque, sem fricção e sem tentativa de retenção.

@@ -32,6 +32,8 @@ export type EventoDoHost = ResumoEvento & {
   plan: PlanoDoEvento;
   title: string | null;
   coverImageKey: string | null;
+  /** `draft` = ainda não publicado; convidado não acessa (task 6, gap I1). */
+  status: "draft" | "active" | "ended";
 };
 
 export type AtualizacaoModeracao = Partial<EstadoModeracao>;
@@ -53,6 +55,7 @@ type LinhaCompleta = {
   plan: string;
   title: string | null;
   cover_image_key: string | null;
+  status: string;
 };
 
 const COLUNAS =
@@ -81,6 +84,7 @@ function mapEvento(l: LinhaCompleta): EventoDoHost {
     plan: parsePlanoDoEvento(l.plan),
     title: l.title,
     coverImageKey: l.cover_image_key ?? null,
+    status: l.status as "draft" | "active" | "ended",
     moderacao: mapModeracao(l),
   };
 }
@@ -154,6 +158,30 @@ export async function atualizarModeracaoDoEvento(
       valores,
     );
     if (!rowCount) return null;
+
+    const { rows } = await c.query<LinhaCompleta>(
+      `SELECT ${COLUNAS} FROM events WHERE id = $1`,
+      [eventoId],
+    );
+    return rows[0] ? mapEvento(rows[0]) : null;
+  });
+}
+
+/**
+ * Publica o evento — sai de `draft` e fica acessível ao convidado (task 6,
+ * gap I1). Idempotente: chamar de novo com o evento já `active` não faz nada.
+ * Nunca reabre um evento `ended`.
+ */
+export async function publicarEvento(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+): Promise<EventoDoHost | null> {
+  return comConta(pool, accountId, async (c) => {
+    await c.query(
+      `UPDATE events SET status = 'active' WHERE id = $1 AND status = 'draft'`,
+      [eventoId],
+    );
 
     const { rows } = await c.query<LinhaCompleta>(
       `SELECT ${COLUNAS} FROM events WHERE id = $1`,

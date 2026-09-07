@@ -6,6 +6,12 @@ Origem de tudo. Quando um documento técnico e um de produto discordarem, o reso
 |---|---|
 | [`albora-produto-arquitetura.md`](./albora-produto-arquitetura.md) | Mercado, posicionamento, produto moldado, modelo de negócio, roadmap, riscos |
 | [`albora-branding-marketing.md`](./albora-branding-marketing.md) | Voz, tom, copy, canais, anti-padrões de comunicação |
+| [`discovery-resumo-2026-08.md`](./discovery-resumo-2026-08.md) | Snapshot da auditoria de produto — conclusões e links |
+| [`plano-implementacao-produto.md`](./plano-implementacao-produto.md) | **O que fazer e em qual ordem** (NOW/NEXT/LATER) pós-discovery |
+| [`inteligencia-competitiva.md`](./inteligencia-competitiva.md) | Concorrentes, fluxos, battlecard (Olhares, Dots, incumbents) |
+| [`estrategia-precificacao.md`](./estrategia-precificacao.md) | Gap R$ 67 vs R$ 199, hipóteses, cenários — **não altera UI sem validação** |
+| [`kit-fornecedor.md`](./kit-fornecedor.md) | Kit B2B2C cerimonialista |
+| [`experimentos-validacao.md`](./experimentos-validacao.md) | E1–E7, retro 48h, métricas kill/pivot |
 | `albora-landing-planos.md` | Landing, planos, preço, SEO, instrumentação — **ainda não versionado aqui** |
 
 ---
@@ -46,6 +52,8 @@ Isso **contradiz** [`../flows.md` §4](../flows.md) e o código: o padrão é **
 
 > Por padrão tudo aparece na galeria — porque no dia da festa ninguém vai ficar aprovando fila. O que protege a parede é automático: o classificador segura o que for impróprio ou o silêncio dele, qualquer convidado pode denunciar, e você tira do telão em um toque. Se preferir, dá pra ligar a aprovação manual.
 
+**Ação:** spec [`../specs/task-023-copy-moderacao-landing.md`](../specs/task-023-copy-moderacao-landing.md) (discovery 2026-08).
+
 ### 2. 🔴 "Nenhum aplicativo" — a formulação que vazou do doc de produto
 
 A landing v4 dos designers (fora do repo) intitulava:
@@ -59,6 +67,14 @@ Como promessa sobre a **primeira foto** é verdade. Como promessa sobre o **prod
 ### 3. 🟡 Lacuna: o convidado que já viveu o produto
 
 A §1 do doc de landing identifica esse visitante como **a maior intenção** — e o §3 não tem seção para ele. Vale uma variante: *"Você esteve num casamento com Albora. Quer no seu?"* → direto para preço e criação. Não está na UI.
+
+**Ação:** spec [`../specs/task-024-landing-convidado-veterano.md`](../specs/task-024-landing-convidado-veterano.md).
+
+### 4. 🔴 Gap comercial vs. Olhares (discovery 2026-08)
+
+🟢 **Evidência:** Olhares Pro (telão) promociona a **R$ 67**; Albora Completo **R$ 199** na UI.
+
+Não é conflito de documento — é **posicionamento**. Detalhe em [`estrategia-precificacao.md`](./estrategia-precificacao.md) e [`inteligencia-competitiva.md`](./inteligencia-competitiva.md). **Não mudar preço na landing** até entrevistas P1/P2.
 
 ---
 

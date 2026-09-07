@@ -13,6 +13,7 @@ import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 import { drainAndReport } from "@/features/guest/lib/funnel-from-drain";
 import { isExpired, mediaUrls, type MediaUrl } from "@/lib/media";
 import { webQueue } from "@/lib/queue";
+import { reiniciarTodosFalhos } from "@/lib/queue-retry";
 import { webTransport } from "@/lib/transport";
 
 type EnviadaServidor = {
@@ -127,6 +128,7 @@ export function useGallery(eventoId: string) {
   const tentarDeNovo = useCallback(async () => {
     if (!navigator.onLine) return;
     setEstado((e) => ({ ...e, drenando: true }));
+    await reiniciarTodosFalhos(webQueue);
     await drainAndReport(webQueue, webTransport, { online: () => navigator.onLine });
     await carregar();
   }, [carregar]);

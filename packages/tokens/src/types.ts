@@ -29,6 +29,11 @@ export type Scale = {
 /** Uma curva, três durações — é o que faz o conjunto parecer uma coisa só em vez de nove animações independentes. */
 export type Motion = {
   curva: string;
+  /** Mola — overshoot suave para press e entrada de sheet. */
+  mola: string;
+  /** Saída — acelera para sumiço de overlay. */
+  saida: string;
+  instantaneo: string;
   rapido: string;
   medio: string;
   lento: string;

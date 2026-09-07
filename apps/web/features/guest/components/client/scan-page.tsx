@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { GuestShell } from "@albora/ui-web";
+import { GuestShell, SkipLink } from "@albora/ui-web";
 import { useScanQr } from "@/features/guest/hooks/scan-qr";
 
 export function ScanPage() {
@@ -32,13 +32,13 @@ export function ScanPage() {
         <div className="flex justify-end px-[1.125rem] pt-[max(0.75rem,env(safe-area-inset-top))]">
           <Link
             href="/"
-            className="text-[0.75rem] uppercase tracking-rotulo text-ink-3 no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+            className="tipo-label uppercase text-ink-3 no-underline transition-[opacity,transform] duration-instantaneo ease-mola hover:opacity-70 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100"
           >
             Início
           </Link>
         </div>
         {!showLinkForm && (
-          <div className="relative min-h-0 flex-1 bg-superficie">
+          <div id="scan-visor" className="relative min-h-0 flex-1 bg-superficie">
             {qr.escaneando && (
               <>
                 <video
@@ -67,9 +67,7 @@ export function ScanPage() {
         <div className="grid flex-none gap-3 px-[1.125rem] pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-4">
           {showLinkForm ? (
             <form onSubmit={qr.enviarCodigo} className="grid gap-3">
-              <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
-                Código da mesa
-              </p>
+              <p className="tipo-label m-0 uppercase text-ink-3">Código da mesa</p>
               <input
                 ref={qr.campo}
                 value={qr.codigo}
@@ -89,12 +87,12 @@ export function ScanPage() {
               <button
                 type="submit"
                 disabled={qr.codigo.trim().length === 0}
-                className="min-h-[52px] cursor-pointer rounded-pilula border-none bg-acento font-[inherit] font-semibold text-sobre-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 active:opacity-80 disabled:cursor-default disabled:opacity-45"
+                className="min-h-[52px] cursor-pointer rounded-pilula border-none bg-acento font-[inherit] font-semibold text-sobre-acento shadow-suave transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] disabled:cursor-default disabled:opacity-45 motion-reduce:transition-none motion-reduce:active:scale-100"
               >
                 Entrar
               </button>
               {qr.naoEntendi && (
-                <p role="alert" className="m-0 text-[0.85rem] text-critico">
+                <p role="alert" className="m-0 tipo-caption text-critico">
                   Esse código não abre nenhum evento. Confere de novo? Às vezes é só um zero no lugar do O.
                 </p>
               )}
@@ -103,7 +101,7 @@ export function ScanPage() {
             <button
               type="button"
               onClick={() => setShowLinkForm(true)}
-              className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
+              className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2 transition-[color,border-color,transform] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               Já tenho o link
             </button>
@@ -116,7 +114,7 @@ export function ScanPage() {
                 setShowLinkForm(false);
                 qr.setEscaneando(true);
               }}
-              className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
+              className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2 transition-[color,border-color,transform] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               Escanear o QR
             </button>
@@ -126,7 +124,7 @@ export function ScanPage() {
             <button
               type="button"
               onClick={() => qr.setEscaneando(false)}
-              className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
+              className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2 transition-[color,border-color,transform] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               Cancelar
             </button>

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 
 export function GateNotice({ children }: { children: ReactNode }) {
   return (
-    <div className="mb-4 flex items-start gap-3 rounded-token bg-superficie px-4 py-3.5">
+    <div className="elev-1 mb-4 flex items-start gap-3 rounded-token px-4 py-3.5">
       <span className="pulso mt-1.5 size-[0.4375rem] shrink-0 rounded-full bg-acento" />
       <span className="text-[0.8125rem] leading-snug text-ink-2">{children}</span>
     </div>

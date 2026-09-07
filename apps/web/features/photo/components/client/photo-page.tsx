@@ -10,13 +10,22 @@ import {
   deveMostrarCtaPwa,
   usePwaInstall,
 } from "@/features/photo/hooks/use-pwa-install";
-import { ErrorMessage, SecondaryButton } from "@albora/ui-web";
+import { Card, ErrorMessage, SecondaryButton, SkipLink } from "@albora/ui-web";
 import { AppOpenCta } from "@/features/pairing/components/client/app-open-cta";
+import { MissionCompletionToast } from "@/features/missions/components/ui/mission-completion-toast";
+import {
+  marcoMissao,
+  persistirProgressoMissoes,
+  proximaMissao,
+  rotuloCtaAposEnvio,
+} from "@/features/missions/lib/missions-utils";
+import { ClaimPhotosButton } from "@/features/guest/components/client/claim-photos-button";
 import { Details, type Place } from "./details";
 import { Editor } from "./editor";
 import { QueueHeader } from "./queue-panel";
 import { CameraView } from "./camera-view";
 import { PwaInstallCta } from "./pwa-install-cta";
+import { UploadArc } from "./upload-arc";
 
 /** `capture="environment"` usa a câmera nativa — preview próprio custaria HDR e modo noturno, que às 22h no escuro é onde a foto se ganha (N5.7). */
 
@@ -91,6 +100,7 @@ export function PhotoPage({
     if (initialMissions.length === 0) return null;
     return initialMissions.find((m) => !m.done)?.id ?? null;
   });
+  const [recemCompleta, setRecemCompleta] = useState<PhotoMission | null>(null);
   const [lugarPre, setLugarPre] = useState<string | null>(null);
   const [recentes, setRecentes] = useState<string[]>([]);
   const [enviadas, setEnviadas] = useState(0);
@@ -103,7 +113,18 @@ export function PhotoPage({
 
   function irParaCamera(missaoId: string | null) {
     setEscolhida(missaoId);
+    setRecemCompleta(null);
     setEtapa({ nome: "camera" });
+  }
+
+  function completarMissaoAtual() {
+    if (!escolhida) {
+      setRecemCompleta(null);
+      return;
+    }
+    const atual = missions.find((m) => m.id === escolhida) ?? null;
+    setMissions((m) => m.map((x) => (x.id === escolhida ? { ...x, done: true } : x)));
+    setRecemCompleta(atual ? { ...atual, done: true } : null);
   }
 
   function dispararCamera() {
@@ -145,9 +166,7 @@ export function PhotoPage({
         });
         if (r.ok) {
           setEnviadas((n) => n + 1);
-          if (escolhida) {
-            setMissions((m) => m.map((x) => (x.id === escolhida ? { ...x, done: true } : x)));
-          }
+          completarMissaoAtual();
           setEtapa({ nome: "pronto", arquivo: primeiro });
           registrarRecente(primeiro);
         }
@@ -158,10 +177,16 @@ export function PhotoPage({
       return;
     }
 
+    let algumOk = false;
     for (const arquivo of arquivos) {
       const r = await enfileirarFoto({ arquivo, desafioId: escolhida, promptKey });
-      if (r.ok) setEnviadas((n) => n + 1);
+      if (r.ok) {
+        algumOk = true;
+        setEnviadas((n) => n + 1);
+      }
     }
+    if (!algumOk) return;
+    completarMissaoAtual();
     setEtapa({ nome: "pronto", arquivo: primeiro });
     registrarRecente(primeiro);
   }
@@ -185,10 +210,7 @@ export function PhotoPage({
     if (!r.ok) return;
 
     setEnviadas((n) => n + 1);
-
-    if (escolhida) {
-      setMissions((m) => m.map((x) => (x.id === escolhida ? { ...x, done: true } : x)));
-    }
+    completarMissaoAtual();
 
     setEtapa({ nome: "detalhes", uploadId: r.id, arquivo });
   }
@@ -232,9 +254,11 @@ export function PhotoPage({
     return (
       <Confirmacao
         slug={slug}
+        eventoId={eventoId}
         arquivo={etapa.arquivo}
         numero={enviadas}
         pendentes={estado.pendentes}
+        bytesPendentes={estado.bytesPendentes}
         online={estado.online}
         interactionOpen={interactionOpen}
         podeInstalar={podeInstalar}
@@ -245,7 +269,13 @@ export function PhotoPage({
         instalar={instalar}
         dispensar={dispensar}
         avisarPromptIos={avisarPromptIos}
-        onOutra={() => setEtapa({ nome: "camera" })}
+        onOutra={() => irParaCamera(escolhida)}
+        onProxima={() => {
+          const next = proximaMissao(missions);
+          irParaCamera(next?.id ?? null);
+        }}
+        missions={missions}
+        recemCompleta={recemCompleta}
       />
     );
   }
@@ -361,9 +391,11 @@ export function PhotoPage({
 
 function Confirmacao({
   slug,
+  eventoId,
   arquivo,
   numero,
   pendentes,
+  bytesPendentes,
   online,
   interactionOpen,
   podeInstalar,
@@ -375,11 +407,16 @@ function Confirmacao({
   dispensar,
   avisarPromptIos,
   onOutra,
+  onProxima,
+  missions,
+  recemCompleta,
 }: {
   slug: string;
+  eventoId: string;
   arquivo: File;
   numero: number;
   pendentes: number;
+  bytesPendentes: number;
   online: boolean;
   interactionOpen: boolean;
   podeInstalar: boolean;
@@ -391,6 +428,9 @@ function Confirmacao({
   dispensar: () => void;
   avisarPromptIos: () => void;
   onOutra: () => void;
+  onProxima: () => void;
+  missions: PhotoMission[];
+  recemCompleta: PhotoMission | null;
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
@@ -398,6 +438,14 @@ function Confirmacao({
   const [musica, setMusica] = useState<{ rotulo: string; url: string; provedor: string } | null>(
     null,
   );
+  const [toastAberto, setToastAberto] = useState(recemCompleta !== null);
+  const proxima = proximaMissao(missions);
+  const ctaPrimario = rotuloCtaAposEnvio(proxima);
+  const feitas = missions.filter((m) => m.done).length;
+
+  useEffect(() => {
+    persistirProgressoMissoes(missions);
+  }, [missions]);
 
   useEffect(() => {
     const u = URL.createObjectURL(arquivo);
@@ -421,18 +469,22 @@ function Confirmacao({
   }, []);
 
   return (
-    <main className="flex min-h-dvh flex-col bg-bg px-8 pb-9 pt-10 font-corpo text-ink">
+    <>
+      <SkipLink />
+      <main id="main-content" className="flex min-h-dvh flex-col bg-bg px-8 pb-9 pt-10 font-corpo text-ink">
       <style>{ESTILO}</style>
 
       {url && (
-        <img
-          className="amanhece mb-7 aspect-[3/4] w-[min(62vw,16rem)] shrink-0 rounded-superficie object-cover"
-          src={url}
-          alt="Foto enviada"
-        />
+        <span className="amanhece-moldura mb-7 block aspect-[3/4] w-[min(62vw,16rem)] shrink-0 rounded-superficie">
+          <img
+            className="amanhece block size-full rounded-superficie object-cover"
+            src={url}
+            alt="Foto enviada"
+          />
+        </span>
       )}
 
-      <p className="foto-titulo m-0">
+      <p className="foto-titulo tipo-display tipo-balance m-0">
         {!online ? (
           <>
             Sem sinal.
@@ -454,6 +506,17 @@ function Confirmacao({
         )}
       </p>
 
+      {(pendentes > 0 || !online) && (
+        <div className="mt-2 mb-1">
+          <UploadArc
+            pendentes={pendentes}
+            bytesPendentes={bytesPendentes}
+            online={online}
+            lado={32}
+          />
+        </div>
+      )}
+
       {!online && (
         <p className="foto-lede">
           Pode fechar o app — suas fotos sobem sozinhas quando voltar o sinal.
@@ -468,7 +531,7 @@ function Confirmacao({
           <p className="m-0 text-[0.88rem] leading-[1.68] text-ink-2">
             {musica.rotulo}
             {" · "}
-            <a href={musica.url} className="text-acento underline decoration-1 underline-offset-2">
+            <a href={musica.url} className="text-acento-texto underline decoration-1 underline-offset-2">
               Abrir no {musica.provedor}
             </a>
           </p>
@@ -478,8 +541,8 @@ function Confirmacao({
       <span className="min-h-6 flex-[1_1_auto]" />
 
       {pendentes === 0 && numero === 1 && (
-        <div className="mb-5 max-w-[34ch]">
-          <p className="mb-3.5 flex items-baseline gap-3 text-[0.88rem] leading-[1.68] text-ink-2">
+        <Card elevation={1} className="mb-5 grid max-w-[34ch] gap-3.5">
+          <p className="m-0 flex items-baseline gap-3 text-[0.88rem] leading-[1.68] text-ink-2">
             <span className="shrink-0 font-titulo text-[0.68rem] font-normal uppercase tracking-[0.28em] text-acento-texto">
               App
             </span>
@@ -507,22 +570,27 @@ function Confirmacao({
           <SecondaryButton onClick={() => router.push(`${base}/pair`)}>
             Ver código de 4 dígitos
           </SecondaryButton>
-        </div>
+        </Card>
       )}
 
       <button
         className="foto-botao min-h-14 shrink-0 border-0 bg-ink text-[0.97rem] font-medium text-bg"
-        onClick={onOutra}
+        onClick={proxima ? onProxima : onOutra}
       >
-        Continuar tirando
+        {ctaPrimario}
       </button>
 
       <div className="mt-4 flex shrink-0 flex-col gap-2.5">
+        {proxima && (
+          <SecondaryButton onClick={onOutra}>Continuar tirando</SecondaryButton>
+        )}
         {numero === 1 && (
           <SecondaryButton onClick={() => router.push(`${base}/my-photos`)}>
             Ver minha foto
           </SecondaryButton>
         )}
+        {/* Nunca antes da primeira foto (H1, ADR 0018) — só aqui, na confirmação. */}
+        {numero === 1 && <ClaimPhotosButton eventId={eventoId} />}
         {interactionOpen && (
           <SecondaryButton onClick={() => router.push(`${base}/feed`)}>
             Ir pro feed
@@ -532,21 +600,27 @@ function Confirmacao({
           Voltar
         </SecondaryButton>
       </div>
+
+      {toastAberto && recemCompleta && (
+        <MissionCompletionToast
+          missionTitle={recemCompleta.title}
+          milestone={marcoMissao(feitas, missions.length)}
+          slug={slug}
+          onDismiss={() => setToastAberto(false)}
+          acimaDaNav={false}
+        />
+      )}
     </main>
+    </>
   );
 }
 
 const ESTILO = `
-.foto-titulo {
-  font-family: var(--fonte-titulo);
-  font-size: clamp(1.6rem, 7.6vw, 1.9375rem);
-  font-weight: 500;
-  line-height: 1.14;
-  letter-spacing: var(--tracking-titulo);
-  margin: 0 0 0.4rem;
-  text-wrap: balance;
-}
-.foto-titulo em { font-weight: 400; }
+/* Tamanho, entrelinha e tracking vêm de .tipo-display — o pico emocional usa
+   a mesma escala do nome do evento na capa. Aqui só a hierarquia de peso: o
+   fato ("Foto 1.") mais firme, o sentimento ("Já tá no telão.") mais leve. */
+.foto-titulo { font-weight: 500; margin: 0 0 0.4rem; }
+.foto-titulo em { font-weight: 400; font-style: normal; }
 
 .foto-lede {
   margin: 0 0 1.1rem;
@@ -569,11 +643,12 @@ const ESTILO = `
   border-radius: var(--raio-pilula);
   padding: 0 1.5rem;
   cursor: pointer;
-  transition: transform var(--tempo-rapido) var(--curva), opacity var(--tempo-rapido) var(--curva);
+  /* Toque físico (mola) na pressão; o hover é só um aceno (curva-base). */
+  transition: transform var(--instantaneo) var(--mola), opacity var(--tempo-rapido) var(--curva);
 }
 .foto-botao:disabled { cursor: default; }
 .foto-botao:hover:not(:disabled) { opacity: 0.9; }
-.foto-botao:active:not(:disabled) { transform: scale(0.972); }
+.foto-botao:active:not(:disabled) { transform: scale(0.97); }
 
 .foto-botao:focus-visible {
   outline: 1px solid var(--acento);
@@ -586,8 +661,25 @@ const ESTILO = `
 }
 .amanhece { animation: amanhecer calc(var(--tempo-lento) * 2) var(--curva) both; }
 
+/*
+ * A moldura acompanha a foto com o próprio "sol nascendo": a sombra parte de
+ * nada, passa pelo âmbar do evento (--shadow-acento, nunca hex) no auge do
+ * clareamento da imagem, e assenta na sombra alta de repouso — luz, não
+ * brilho decorativo. Único lugar do convidado onde o acento aparece livre
+ * (docs/product: "usado em exatamente dois lugares").
+ */
+@keyframes amanhecer-moldura {
+  0%   { box-shadow: 0 0 0 0 transparent; }
+  55%  { box-shadow: var(--shadow-acento); }
+  100% { box-shadow: var(--shadow-alta); }
+}
+.amanhece-moldura {
+  animation: amanhecer-moldura calc(var(--tempo-lento) * 2.4) var(--curva) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .amanhece { animation: none; }
+  .amanhece-moldura { animation: none; box-shadow: var(--shadow-alta); }
   .foto-botao { transition: none; }
   .foto-botao:hover:not(:disabled) { opacity: 1; }
   .foto-botao:active:not(:disabled) { transform: none; }

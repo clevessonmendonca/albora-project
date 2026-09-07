@@ -1,11 +1,18 @@
 "use client";
 
-import { PrintedCopyCard } from "@albora/ui-web";
+import { Badge } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { RefreshButton } from "./refresh-control";
 import { HostExport } from "@/features/admin/components/client/host-export";
 import { HostDriveExport } from "@/features/admin/components/client/host-drive-export";
+
+/**
+ * ≥44px de alvo de toque — override local do Sm compartilhado (`adminClasses.dangerButtonSm`),
+ * sem editar admin-shell.tsx (mesmo padrão de review-queue.tsx/comment-moderation.tsx).
+ * `min-h-11` garante a altura mínima independente de qual padding vertical vence a cascata.
+ */
+const ALVO_TOQUE = "min-h-11 px-5";
 
 type Item = {
   id: string;
@@ -85,11 +92,11 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
               <div className="h-3.5 w-52 rounded-full bg-superficie-alta" />
               <div className="h-8 w-20 rounded-pilula bg-superficie-alta" />
             </div>
-            <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4">
+            <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-4">
               {[0, 1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="aspect-[3/4] rounded-token bg-superficie-alta" />
+                <li key={i} aria-hidden className="aspect-square rounded-media bg-superficie-alta" />
               ))}
-            </div>
+            </ul>
           </div>
         </AdminSection>
       </div>
@@ -100,7 +107,9 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
     return (
       <AdminSection>
         <div className="flex items-center justify-between gap-4">
-          <p className="m-0 text-critico">Não foi possível carregar o álbum. Tente de novo.</p>
+          <p role="alert" className="tipo-body m-0 text-critico">
+            Não foi possível carregar o álbum. Tente de novo.
+          </p>
           <RefreshButton
             loading={atualizando}
             onClick={() => {
@@ -113,15 +122,17 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
     );
   }
 
+  const selecionadoItem = selecionado ? (itens.find((i) => i.id === selecionado) ?? null) : null;
+
   return (
     <div className="flex flex-col gap-5">
       {canExport ? (
         <AdminSection>
-          <h2 className="m-0 mb-2 font-titulo text-xl">O livro</h2>
-          <p className="m-0 mb-1 text-sm text-ink-2">
+          <h2 className="tipo-subtitle m-0 mb-2 text-ink">O livro</h2>
+          <p className="tipo-caption m-0 mb-1 text-ink-2">
             PDF A4 com sangria (216 × 303 mm) e diagramação por slots do álbum curado — perfil sRGB prepress.
           </p>
-          <p className="m-0 mb-4 text-sm text-ink-3">
+          <p className="tipo-caption m-0 mb-4 text-ink-3">
             A tela mostra RGB e a gráfica imprime CMYK: a cor do acento pode sair um pouco mais apagada no papel. Peça uma prova impressa antes da tiragem.
           </p>
           <a
@@ -137,13 +148,13 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
       {canExport ? <HostDriveExport eventoId={eventoId} /> : null}
       <AdminSection>
         <div className="mb-4 flex items-center justify-between gap-4">
-          <p className="m-0 leading-relaxed text-ink-2">
+          <p className="tipo-body m-0 text-ink-2">
             Curadoria leve: ocultar tira a foto do feed, do álbum e do telão.
           </p>
           <div className="flex shrink-0 items-center gap-2">
-            <span className="rounded-pilula bg-superficie-alta px-3 py-1.5 font-titulo text-[0.8125rem]">
+            <Badge tone="neutral">
               {itens.length} {itens.length === 1 ? "foto" : "fotos"}
-            </span>
+            </Badge>
             <RefreshButton
               loading={atualizando}
               onClick={() => {
@@ -156,50 +167,84 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
 
         {itens.length === 0 ? (
           <div className="flex flex-col gap-3">
-            <p className="m-0 text-ink-2">
+            <p className="tipo-body m-0 text-ink-2">
               Ainda não há fotos publicadas. Elas aparecem aqui assim que entram.
             </p>
-            <p className="m-0 text-sm text-ink-3">
+            <p className="tipo-caption m-0 text-ink-3">
               Baixe as peças com o QR e coloque nas mesas — ou compartilhe o link do convidado diretamente.
             </p>
           </div>
         ) : (
-          <div className="flex flex-wrap items-center justify-start gap-y-4 [&>*]:-mx-3">
+          <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-4">
             {itens.map((item, indice) => {
               const ativo = selecionado === item.id;
               return (
-                <PrintedCopyCard
-                  key={item.id}
-                  index={indice}
-                  imageUrl={item.thumb}
-                  caption={legendaDaFoto(item.criadaEm, item.reacoes)}
-                  alt=""
-                  selected={ativo}
-                  onClick={() => setSelecionado(ativo ? null : item.id)}
-                />
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelecionado(ativo ? null : item.id)}
+                    aria-pressed={ativo}
+                    aria-label={`Foto ${indice + 1} de ${itens.length}, ${legendaDaFoto(item.criadaEm, item.reacoes)}`}
+                    className={`relative block aspect-square w-full cursor-pointer overflow-hidden rounded-media border-0 bg-superficie-alta p-0 transition-transform duration-instantaneo ease-mola active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 ${
+                      ativo ? "ring-2 ring-acento ring-offset-2 ring-offset-superficie" : ""
+                    }`}
+                  >
+                    <img
+                      src={item.thumb}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="size-full object-cover object-top"
+                    />
+                  </button>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
       </AdminSection>
 
-      {selecionado && (
+      {selecionadoItem && (
         <AdminSection>
-          <p className="mb-4 mt-0 text-[0.9375rem] text-ink-2">
-            Ocultar esta foto? Ela some do evento para todos os convidados.
-          </p>
-          <button
-            type="button"
-            disabled={ocultando !== null}
-            onClick={() => void ocultar(selecionado)}
-            className={`${adminClasses.dangerButtonSm} w-auto px-5 py-3 ${
-              ocultando ? "cursor-wait opacity-60" : ""
-            }`}
-          >
-            {ocultando ? "Ocultando…" : "Ocultar foto"}
-          </button>
+          <div className="flex items-start gap-3">
+            <div className="aspect-square w-16 shrink-0 overflow-hidden rounded-media bg-superficie-alta">
+              <img
+                src={selecionadoItem.thumb}
+                alt=""
+                className="size-full object-cover object-top"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="tipo-body m-0 text-ink">Ocultar esta foto?</p>
+              <p className="tipo-caption m-0 mt-1 text-ink-3">
+                {legendaDaFoto(selecionadoItem.criadaEm, selecionadoItem.reacoes)} · some do evento para todos os convidados.
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              disabled={ocultando !== null}
+              onClick={() => void ocultar(selecionadoItem.id)}
+              className={`${adminClasses.dangerButtonSm} ${ALVO_TOQUE} ${
+                ocultando ? "cursor-wait opacity-60" : ""
+              }`}
+            >
+              {ocultando ? "Ocultando…" : "Ocultar foto"}
+            </button>
+            <button
+              type="button"
+              disabled={ocultando !== null}
+              onClick={() => setSelecionado(null)}
+              className={adminClasses.secondaryButton}
+            >
+              Cancelar
+            </button>
+          </div>
           {erroAcao && (
-            <p className="mb-0 mt-3 text-sm text-critico">{erroAcao}</p>
+            <p role="alert" className="tipo-caption m-0 mt-3 text-critico">
+              {erroAcao}
+            </p>
           )}
         </AdminSection>
       )}

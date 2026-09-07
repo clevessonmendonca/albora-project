@@ -3,8 +3,11 @@
   "references": [
     { "path": "packages/tokens" },
     { "path": "packages/core" },
+    { "path": "packages/curation" },
     { "path": "packages/packs" },
     { "path": "packages/db" },
+    { "path": "packages/integrations" },
+    { "path": "packages/application" },
     { "path": "packages/ui-web" },
     { "path": "packages/ui-native" }
   ]

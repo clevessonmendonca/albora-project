@@ -24,18 +24,34 @@ export async function GET(
       return errorResponse(404, "evento.ausente", "Evento não encontrado");
     }
 
-    const { fotos, convidados } = await withEvent(pool, eventoId, async (c) => {
-      const { rows: r } = await c.query<{ fotos: number; convidados: number }>(
+    const { fotos, convidados, interacaoAbreEm, fuso } = await withEvent(pool, eventoId, async (c) => {
+      const { rows: stats } = await c.query<{ fotos: number; convidados: number }>(
         `SELECT COUNT(*)::int AS fotos,
                 COUNT(DISTINCT session_id)::int AS convidados
            FROM uploads
           WHERE event_id = $1 AND state = 'published'`,
         [eventoId],
       );
-      return r[0] ?? { fotos: 0, convidados: 0 };
+
+      const { rows: gate } = await c.query<{
+        interaction_opens_at: Date | null;
+        timezone: string;
+      }>("SELECT interaction_opens_at, timezone FROM events WHERE id = $1", [eventoId]);
+
+      return {
+        fotos: stats[0]?.fotos ?? 0,
+        convidados: stats[0]?.convidados ?? 0,
+        interacaoAbreEm: gate[0]?.interaction_opens_at ?? null,
+        fuso: gate[0]?.timezone ?? "America/Sao_Paulo",
+      };
     });
 
-    return jsonOk({ fotos, convidados });
+    return jsonOk({
+      fotos,
+      convidados,
+      interacaoAbreEm: interacaoAbreEm?.toISOString() ?? null,
+      fuso,
+    });
   } catch (e) {
     return unexpectedError("e.stats", e);
   }

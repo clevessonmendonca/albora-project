@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Card } from "@albora/ui-web";
 import type { RecapPessoal } from "@/features/my-photos/lib/recap-card";
 
 /** Sem fotos = some. Nunca modal de saída — não é confiável em PWA mobile. */
@@ -14,11 +15,11 @@ export function RecapCard({ recap }: { recap: RecapPessoal | null }) {
       : "";
 
   return (
-    <div className="mb-6 rounded-token border border-linha bg-superficie px-4 py-3">
-      <p className="m-0 text-t-body leading-relaxed text-ink">
+    <Card elevation={1} className="mb-6">
+      <p className="m-0 tipo-body text-ink">
         Você mandou {fotos}
         {curtidas}
       </p>
-    </div>
+    </Card>
   );
 }
