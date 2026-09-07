@@ -5,6 +5,7 @@ import { Badge, Switch } from "@albora/ui-web";
 import Link from "next/link";
 import { useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { DeliveryControls } from "@/features/admin/components/client/delivery-controls";
 import { EventMusic } from "@/features/admin/components/client/event-music";
 import { EventPieces } from "@/features/admin/components/client/event-pieces";
 import { SupportHelpButton } from "@/features/admin/components/client/support-help-button";
@@ -30,6 +31,7 @@ type Props = {
   plan: "free" | "celebration" | "vendor";
   initial: WireModeration;
   initialInteractionOpensAt: string | null;
+  initialDeliveryOpensAt: string | null;
   initialStatus: "draft" | "active" | "ended";
   canManageCoupleOnly?: boolean;
 };
@@ -48,6 +50,7 @@ export function EventControls({
   plan,
   initial,
   initialInteractionOpensAt,
+  initialDeliveryOpensAt,
   initialStatus,
   canManageCoupleOnly = true,
 }: Props) {
@@ -304,6 +307,11 @@ export function EventControls({
             Fechar interação
           </button>
         ) : null}
+      </AdminSection>
+
+      <AdminSection id="controle-entrega">
+        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Entrega das fotos</h2>
+        <DeliveryControls eventId={eventId} initialDeliveryOpensAt={initialDeliveryOpensAt} />
       </AdminSection>
 
       <AdminSection>

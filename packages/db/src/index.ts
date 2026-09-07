@@ -31,9 +31,11 @@ export {
   atualizarChaveImagemCapa,
   carregarEventoPublico,
   criarEvento,
+  definirAberturaDeEntrega,
   ErroContaDoCasalInvalida,
   fusoDoEvento,
   HORAS_APOS_EVENTO,
+  listarEventosComEntregaDevida,
   packDoEvento,
   resolverSlug,
   rotacionarSlug,
@@ -615,3 +617,11 @@ export {
   listEventsWithPendingModeration,
   reclaimStaleModeration,
 } from "./moderation-queue";
+
+export { ErroTokenDeEntrega, issueDeliveryToken, resolveDeliveryToken } from "./delivery-tokens";
+
+export {
+  consumeGuestMagicLink,
+  emitGuestMagicLinkRow,
+  VALIDADE_GUEST_MAGIC_LINK_MINUTOS,
+} from "./guest-magic-link";
