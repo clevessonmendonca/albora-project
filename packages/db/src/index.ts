@@ -31,6 +31,7 @@ export {
   atualizarChaveImagemCapa,
   carregarEventoPublico,
   criarEvento,
+  definirAberturaDeEntrega,
   ErroContaDoCasalInvalida,
   fusoDoEvento,
   HORAS_APOS_EVENTO,

@@ -1,8 +1,10 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { comEvento } from "./event";
 import { criarSessao, resolverSessao } from "./sessions";
 import {
   criarEvento,
+  definirAberturaDeEntrega,
   ErroContaDoCasalInvalida,
   HORAS_APOS_EVENTO,
   resolverSlug,
@@ -376,5 +378,37 @@ describe("o anfitrião cria um evento sob um fornecedor (spec-canal-fornecedor �
       [eventoId, dados.a.contaId],
     );
     expect(membro[0]?.role).toBe("couple");
+  });
+});
+
+describe("definirAberturaDeEntrega", () => {
+  it("persiste a data escolhida — o gate abre a partir dali", async () => {
+    const quando = new Date("2026-10-10T20:00:00.000Z");
+
+    await comEvento(app, dados.a.eventoId, (c) =>
+      definirAberturaDeEntrega(c, dados.a.eventoId, quando),
+    );
+
+    const { rows } = await admin.query<{ delivery_opens_at: Date | null }>(
+      "SELECT delivery_opens_at FROM events WHERE id = $1",
+      [dados.a.eventoId],
+    );
+    expect(rows[0]?.delivery_opens_at?.toISOString()).toBe(quando.toISOString());
+  });
+
+  it("null fecha o gate de novo", async () => {
+    await comEvento(app, dados.a.eventoId, (c) =>
+      definirAberturaDeEntrega(c, dados.a.eventoId, new Date()),
+    );
+
+    await comEvento(app, dados.a.eventoId, (c) =>
+      definirAberturaDeEntrega(c, dados.a.eventoId, null),
+    );
+
+    const { rows } = await admin.query<{ delivery_opens_at: Date | null }>(
+      "SELECT delivery_opens_at FROM events WHERE id = $1",
+      [dados.a.eventoId],
+    );
+    expect(rows[0]?.delivery_opens_at).toBeNull();
   });
 });
