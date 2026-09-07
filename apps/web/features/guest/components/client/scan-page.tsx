@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { GuestShell, SkipLink } from "@albora/ui-web";
+import { GuestShell } from "@albora/ui-web";
 import { useScanQr } from "@/features/guest/hooks/scan-qr";
 
 export function ScanPage() {

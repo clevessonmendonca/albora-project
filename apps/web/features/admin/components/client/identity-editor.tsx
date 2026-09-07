@@ -220,28 +220,185 @@ export function IdentityEditor({
           </p>
         </div>
 
-        <div className="mb-5">
-          <FieldLabel>Quantos convidados presentes?</FieldLabel>
-          <input
-            type="number"
-            min={1}
-            max={999}
-            required
-            value={expectedGuests}
-            onChange={(e) => {
-              setExpectedGuests(e.target.value);
-              setSaved(false);
-            }}
-            className="w-full max-w-xs rounded-token border border-linha bg-bg px-3.5 py-3 font-corpo text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
-          />
-          <p className="mb-0 mt-1.5 text-xs text-ink-3">
-            Estimativa de quem vai estar na festa. Usamos para medir a participação.
-          </p>
-          {!guestsValid && expectedGuests !== "" && (
-            <p className="mb-0 mt-2 text-sm text-critico">
-              Informe um número válido de convidados esperados.
-            </p>
-          )}
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start">
+          <div className="flex flex-col gap-7">
+            <TextField
+              label="Nome do evento"
+              maxLength={120}
+              placeholder="Ex.: João & Maria"
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                setSaved(false);
+              }}
+              hint="Aparece como título na capa do app. Deixe em branco para usar o nome do pack."
+              inputClassName="max-w-sm"
+            />
+
+            <TextField
+              label="Quantos convidados presentes?"
+              type="number"
+              min={1}
+              max={999}
+              required
+              value={expectedGuests}
+              onChange={(e) => {
+                setExpectedGuests(e.target.value);
+                setSaved(false);
+              }}
+              hint="Estimativa de quem vai estar na festa. Usamos para medir a participação."
+              {...(!guestsValid && expectedGuests !== ""
+                ? { error: "Informe um número válido de convidados esperados." }
+                : {})}
+              inputClassName="max-w-xs"
+            />
+
+            <TimezoneField
+              value={timezone}
+              onChange={(fuso) => {
+                setTimezone(fuso);
+                setSaved(false);
+              }}
+            />
+
+            <div className="h-px bg-linha" />
+
+            <div>
+              <FieldLabel>Paleta base</FieldLabel>
+              <div className="flex flex-col gap-2">
+                {IDENTITY_MODELS.map((m) => {
+                  const selected = preset.id === m.id;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => changePreset(m)}
+                      className={`flex min-h-[3.25rem] cursor-pointer items-center gap-3 rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                        selected
+                          ? "border-2 border-acento bg-superficie-alta"
+                          : "border border-linha bg-bg hover:border-acento-texto"
+                      }`}
+                    >
+                      <span {...presetSwatchProps(m.amostra)} />
+                      <span className="flex-1 font-titulo text-[0.9rem] text-ink">{m.nome}</span>
+                      <span
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                          selected ? "border-acento bg-acento" : "border-linha bg-bg"
+                        }`}
+                      >
+                        {selected && <span className="h-2 w-2 rounded-full bg-sobre-acento" />}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <CorField
+              label="Cor de destaque"
+              hint="Botões, marcações e links"
+              value={customAccent ?? presetAccent ?? IDENTITY_MODELS[0]!.amostra}
+              custom={customAccent !== null}
+              onChange={(cor) => {
+                setCustomAccent(cor);
+                setSaved(false);
+              }}
+              onReset={() => {
+                setCustomAccent(null);
+                setSaved(false);
+              }}
+            />
+
+            <div>
+              <FieldLabel>Estilo de fonte</FieldLabel>
+              <div className="flex gap-2">
+                {FONT_OPTIONS.map((opt) => {
+                  const isActive = customFont
+                    ? customFont === opt.id
+                    : !presetFont || presetFont === opt.value || (opt.id === "serif" && !presetFont);
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={isActive}
+                      onClick={() => {
+                        const presetFontValue = toPartialFontes(preset.camada.fontes).titulo;
+                        setCustomFont(presetFontValue === opt.value ? null : opt.id);
+                        setSaved(false);
+                      }}
+                      className={`min-h-[3.25rem] flex-1 cursor-pointer rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                        isActive
+                          ? "border-2 border-acento bg-superficie-alta"
+                          : "border border-linha bg-bg hover:border-acento-texto"
+                      }`}
+                    >
+                      <span className="block text-lg text-ink" style={{ fontFamily: opt.value }}>
+                        Aa
+                      </span>
+                      <span className="mt-1 block font-corpo text-xs text-ink-2">{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <FieldLabel>Fundo padrão</FieldLabel>
+              <div className="flex gap-2">
+                {(["dark", "light"] as const).map((mode) => {
+                  const active = effectiveBackground === mode;
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => {
+                        const presetBg = preset.camada.background ?? "dark";
+                        setCustomBackground(presetBg === mode ? null : mode);
+                        setSaved(false);
+                      }}
+                      className={`flex min-h-[3.25rem] flex-1 cursor-pointer items-center gap-2.5 rounded-token p-3.5 text-left transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                        active
+                          ? "border-2 border-acento bg-superficie-alta"
+                          : "border border-linha bg-bg hover:border-acento-texto"
+                      }`}
+                    >
+                      {mode === "dark" ? (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 text-ink-2">
+                          <path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5z" fill="currentColor" />
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden className="shrink-0 text-ink-2">
+                          <circle cx="8" cy="8" r="2.75" fill="currentColor" />
+                          <path d="M8 1.5V3M8 13v1.5M1.5 8H3M13 8h1.5M3.6 3.6l1 1M11.4 11.4l1 1M11.4 3.6l1-1M3.6 11.4l1-1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                        </svg>
+                      )}
+                      <span className="block font-titulo text-sm text-ink">
+                        {mode === "dark" ? "Escuro" : "Claro"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <aside className="lg:sticky lg:top-6">
+            <PhoneFrame
+              title="Preview ao vivo"
+              note="Como o convidado vê a marca de vocês assim que abre o app — atualiza a cada mudança."
+            >
+              <PreviewScreen previewVars={previewVars} title={previewTitle} missionLabel={missionLabel} />
+            </PhoneFrame>
+            <div className={`mt-4 ${identityPreviewClassName}`} style={previewVars}>
+              <p className="m-0 font-titulo text-lg text-acento-texto">{previewTitle}</p>
+              <p className="mb-0 mt-2 text-sm text-ink-2">Prévia da capa impressa e do telão</p>
+            </div>
+          </aside>
         </div>
 
         <div className="my-8 h-px bg-linha" />
