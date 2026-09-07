@@ -103,6 +103,27 @@ export async function definirAberturaDeEntrega(
   );
 }
 
+/**
+ * Agregação SANCIONADA (CLAUDE.md): cruza eventos só para achar quem tem
+ * entrega devida — devolve exclusivamente `event_id`, nenhum PII de
+ * convidado atravessa a fronteira. Pool precisa ter BYPASSRLS
+ * (`getAggregatorPool`); o processamento em si (`runDeliveryForEvent`) roda
+ * depois, por evento, sob RLS normal.
+ */
+export async function listarEventosComEntregaDevida(pool: Pool, limit = 100): Promise<string[]> {
+  const { rows } = await pool.query<{ id: string }>(
+    `SELECT e.id FROM events e
+      WHERE e.delivery_opens_at IS NOT NULL AND e.delivery_opens_at <= now()
+        AND EXISTS (SELECT 1 FROM guest_contacts gc
+                     WHERE gc.event_id = e.id AND gc.channel = 'email'
+                       AND gc.verified_at IS NOT NULL AND gc.delivered_at IS NULL)
+      ORDER BY e.delivery_opens_at ASC
+      LIMIT $1`,
+    [limit],
+  );
+  return rows.map((r) => r.id);
+}
+
 export async function resolverSlug(
   pool: Pool,
   slug: string,
