@@ -11,19 +11,14 @@ import { pillClasses } from "./pieces";
 import { SIDE_PADDING, HREF_CRIAR_GRATIS, type LiveStats } from "./landing-data";
 import {
   HeroSection,
-  NoAppSection,
-  ScrollDemoSection,
-  ExperienceSection,
-  MomentsSection,
-  PhotoCorridorSection,
-  MissionsSection,
-  AlbumChaptersSection,
-  IdentitySection,
-  BookSection,
-  ChoresEliminatedSection,
-  AntesDaFestaSection,
-  VeteranSection,
-  PricingSection,
+  ProvaSection,
+  ComoFuncionaSection,
+  PerspectivasSection,
+  TelaoSection,
+  DuranteAFestaSection,
+  DepoisSection,
+  ObjecoesSection,
+  PrecoSection,
   FaqSection,
   FechoSection,
 } from "./sections";
@@ -77,22 +72,14 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
       </header>
 
       <HeroSection pack={pack} t={t} {...(live !== undefined ? { live } : {})} />
-      <NoAppSection pack={pack} t={t} />
-      <ScrollDemoSection
-        example={example}
-        missionTitle={missions[0]?.title ?? t("missao.livre")}
-      />
-      <ExperienceSection />
-      <MomentsSection t={t} />
-      <PhotoCorridorSection />
-      <MissionsSection missions={missions} t={t} />
-      <AlbumChaptersSection eventMoments={eventMoments} />
-      <IdentitySection example={example} t={t} />
-      <BookSection places={places} />
-      <ChoresEliminatedSection />
-      <AntesDaFestaSection packId={pack.id} />
-      <VeteranSection packId={pack.id} t={t} />
-      <PricingSection packId={pack.id} t={t} />
+      <ProvaSection pack={pack} />
+      <ComoFuncionaSection />
+      <PerspectivasSection pack={pack} />
+      <TelaoSection pack={pack} />
+      <DuranteAFestaSection />
+      <DepoisSection />
+      <ObjecoesSection />
+      <PrecoSection pack={pack} />
       <FaqSection />
       <FechoSection pack={pack} />
 

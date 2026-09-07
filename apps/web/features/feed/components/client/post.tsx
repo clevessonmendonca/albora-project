@@ -1,6 +1,7 @@
 "use client";
 
-import { memo, type ComponentType, type ReactNode } from "react";
+import React, { memo, type ComponentType, type ReactNode } from "react";
+import Image from "next/image";
 import type { ModoInteracao } from "@albora/core";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
 import { PostHeader } from "@albora/ui-web";
@@ -61,7 +62,7 @@ export const Post = memo(function Post({
 
   return (
     <article data-testid={`post-${uploadId}`} className="border-t border-linha">
-      <div className="py-4">
+      <div className="py-3 mb-0.5 sm:py-4 sm:mb-1">
         <PostHeader
           author={autor}
           meta={lugar ?? null}

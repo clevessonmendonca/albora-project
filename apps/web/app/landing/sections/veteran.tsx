@@ -1,7 +1,7 @@
 import { cn } from "@albora/ui-web";
 import { LandingVeteranCtaLink } from "../landing-veteran-cta";
 import { Heading, Section, pillClasses } from "../pieces";
-import { HREF_CRIAR_ALBUM } from "../landing-data";
+import { HREF_CRIAR_GRATIS } from "../landing-data";
 
 export function VeteranSection({
   packId,
@@ -26,7 +26,7 @@ export function VeteranSection({
           {t("landing.veteran.lede")}
         </p>
         <LandingVeteranCtaLink
-          href={HREF_CRIAR_ALBUM}
+          href={HREF_CRIAR_GRATIS}
           packHint={packId}
           className={cn(pillClasses, "mt-6")}
         >

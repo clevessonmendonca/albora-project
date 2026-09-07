@@ -49,14 +49,6 @@ export default async function AdminPage() {
   const packSugerido =
     sugerido && !eventos.some((e) => e.packId === sugerido) ? PACKS[sugerido] : undefined;
 
-  const sugerido = eventos
-    .filter((e) => !e.terminaEm || e.terminaEm >= agora)
-    .map((e) => PACKS[e.packId]?.sugereAntes)
-    .find((id): id is string => Boolean(id && PACKS[id]));
-
-  const packSugerido =
-    sugerido && !eventos.some((e) => e.packId === sugerido) ? PACKS[sugerido] : undefined;
-
   return (
     <AdminShell title="Seu painel" subtitle={host.email}>
       {eventos.length === 0 ? (
