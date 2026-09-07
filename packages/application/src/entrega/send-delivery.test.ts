@@ -155,6 +155,37 @@ describe("runDeliveryForEvent", () => {
     semNenhumLogComEmail(email);
   });
 
+  it("duas rodadas concorrentes (cron + disparo manual) entregam cada destinatário só uma vez", async () => {
+    const { rows } = await admin.query(
+      `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status, delivery_opens_at)
+       VALUES ($1, 'pack-um', 'evento-entrega-concorrente', now(), now() + interval '6 hours', 'active', now() - interval '1 hour')
+       RETURNING id`,
+      [dados.a.contaId],
+    );
+    const eventoId = rows[0].id as string;
+    const sessaoId = await novaSessao(eventoId, "convidado-concorrente");
+    const email = "concorrente@exemplo.test";
+    await contato(eventoId, sessaoId, email);
+
+    const sendEmail = vi.fn(async () => ({ enviado: true }));
+    const deps: EntregaDeps = { pool: app, segredo: SEGREDO, baseUrl: BASE_URL, sendEmail };
+
+    // Sem o advisory lock em runDeliveryForEvent, as duas rodadas leriam o
+    // mesmo `delivered_at IS NULL` e mandariam dois e-mails para o mesmo
+    // convidado — o lock serializa: a segunda só resolve destinatários
+    // depois que a primeira commitou o UPDATE que marca a entrega.
+    const [primeira, segunda] = await Promise.all([
+      runDeliveryForEvent(deps, eventoId),
+      runDeliveryForEvent(deps, eventoId),
+    ]);
+
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    expect(primeira.enviados + segunda.enviados).toBe(1);
+    expect(await entregueEm(eventoId, sessaoId, email)).not.toBeNull();
+
+    semNenhumLogComEmail(email);
+  });
+
   it("um destinatário que lança não aborta os outros", async () => {
     const { rows } = await admin.query(
       `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status, delivery_opens_at)

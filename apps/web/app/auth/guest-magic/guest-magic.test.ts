@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
+import { reset as resetRateLimit } from "@/lib/rate-limit-store";
 
 /** Cobre as duas portas do magic link do convidado (Task 10): `start` só
  * emite dentro de uma sessão de convidado viva — `guestSessionId`/`eventId`
@@ -54,6 +55,7 @@ function req(path: string, qs: string): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  resetRateLimit();
   isSameEventSession.mockImplementation(
     (session: { eventoId: string } | null, eventoId: string) => session !== null && session.eventoId === eventoId,
   );
@@ -114,6 +116,23 @@ describe("GET /auth/guest-magic/start", () => {
     expect(guestSession).not.toHaveBeenCalled();
     expect(emitGuestMagicLink).not.toHaveBeenCalled();
     expect(new URL(res.headers.get("location")!).pathname).toBe("/");
+  });
+
+  it("passar do limite (ip+sessão) nunca chama emitGuestMagicLink — vira relay aberto senão", async () => {
+    guestSession.mockResolvedValue({ eventoId: EVENT_ID, sessaoId: "sessao-repetida" });
+    emitGuestMagicLink.mockResolvedValue({ enviado: true });
+
+    for (let i = 0; i < 5; i++) {
+      await startGet(req("/auth/guest-magic/start", `?eventId=${EVENT_ID}&email=convidado@example.com`));
+    }
+    expect(emitGuestMagicLink).toHaveBeenCalledTimes(5);
+
+    emitGuestMagicLink.mockClear();
+    const res = await startGet(req("/auth/guest-magic/start", `?eventId=${EVENT_ID}&email=convidado@example.com`));
+
+    expect(emitGuestMagicLink).not.toHaveBeenCalled();
+    const location = new URL(res.headers.get("location")!);
+    expect(location.searchParams.get("guestMagic")).toBe("limite");
   });
 });
 

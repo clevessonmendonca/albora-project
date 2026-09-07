@@ -1,6 +1,6 @@
 import React from "react";
 import { openGuestGallery } from "@albora/application";
-import { ErroTokenDeEntrega } from "@albora/db";
+import { carregarEventoPublico, ErroTokenDeEntrega, withEvent } from "@albora/db";
 import { config } from "@/lib/config";
 import { getPool } from "@/lib/db";
 import { signGet } from "@/lib/r2";
@@ -17,11 +17,12 @@ export default async function PaginaGaleriaDoConvidado({ params }: Props) {
   const { token } = await params;
 
   try {
-    const { fotos } = await openGuestGallery(
+    const { eventId, fotos } = await openGuestGallery(
       { pool: getPool(), segredo: config().sessionSecret, signGet },
       token,
     );
-    return <GuestGalleryView estado="ok" fotos={fotos} />;
+    const evento = await withEvent(getPool(), eventId, (c) => carregarEventoPublico(c, eventId));
+    return <GuestGalleryView estado="ok" fotos={fotos} evento={evento} />;
   } catch (erro) {
     if (erro instanceof ErroTokenDeEntrega) {
       return <GuestGalleryView estado="expirado" />;

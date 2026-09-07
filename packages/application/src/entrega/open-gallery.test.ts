@@ -66,7 +66,11 @@ describe("openGuestGallery", () => {
     const eventoId = dados.a.eventoId;
     const sessaoId = dados.a.sessaoId;
     const chave = `events/${eventoId}/2026/09/bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb/full`;
-    await novoUpload(eventoId, sessaoId, chave, "removed");
+    // "pending" (não "removed"): precisa chegar em signableKeys — que só
+    // libera state='published' — para o teste provar que é ELE que exclui.
+    // "removed" já cai fora antes, em listarMinhasDoEvento (`state <>
+    // 'removed'`), e passaria mesmo sem o filtro de signableKeys.
+    await novoUpload(eventoId, sessaoId, chave, "pending");
 
     const token = await emitirToken(eventoId, sessaoId);
 

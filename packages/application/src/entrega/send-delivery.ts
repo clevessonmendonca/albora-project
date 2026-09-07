@@ -51,25 +51,44 @@ export async function sendGuestDelivery(
  * Roda a entrega para todo mundo pronto no evento. Um destinatário que
  * lança (Resend fora do ar, token corrompido) não pode abortar os outros —
  * cada envio é isolado no seu próprio try/catch.
+ *
+ * Cron e disparo manual do admin podem coincidir — sem serializar, os dois
+ * leem o mesmo `delivered_at IS NULL` e mandam e-mail em dobro. Um
+ * `pg_advisory_xact_lock` por evento, preso à transação desta chamada,
+ * garante que a segunda rodada espera a primeira commitar (e portanto
+ * enxerga os `delivered_at` que ela já gravou) antes de resolver
+ * destinatários.
  */
 export async function runDeliveryForEvent(
   deps: EntregaDeps,
   eventId: string,
 ): Promise<{ enviados: number; pendentes: number }> {
-  const destinatarios = await resolveDeliveries(deps.pool, eventId);
+  const c = await deps.pool.connect();
+  try {
+    await c.query("BEGIN");
+    await c.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`entrega:${eventId}`]);
 
-  let enviados = 0;
-  let pendentes = 0;
+    const destinatarios = await resolveDeliveries(deps.pool, eventId);
 
-  for (const { sessionId, email } of destinatarios) {
-    try {
-      const { enviado } = await sendGuestDelivery(deps, { eventId, sessionId, email });
-      if (enviado) enviados++;
-      else pendentes++;
-    } catch {
-      pendentes++;
+    let enviados = 0;
+    let pendentes = 0;
+
+    for (const { sessionId, email } of destinatarios) {
+      try {
+        const { enviado } = await sendGuestDelivery(deps, { eventId, sessionId, email });
+        if (enviado) enviados++;
+        else pendentes++;
+      } catch {
+        pendentes++;
+      }
     }
-  }
 
-  return { enviados, pendentes };
+    await c.query("COMMIT");
+    return { enviados, pendentes };
+  } catch (erro) {
+    await c.query("ROLLBACK").catch(() => {});
+    throw erro;
+  } finally {
+    c.release();
+  }
 }
