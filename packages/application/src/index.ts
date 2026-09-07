@@ -130,3 +130,6 @@ export { resolveDeliveries } from "./entrega/resolve-deliveries";
 
 export type { EntregaDeps } from "./entrega/send-delivery";
 export { runDeliveryForEvent, sendGuestDelivery } from "./entrega/send-delivery";
+
+export type { FotoEntrega, OpenGuestGalleryDeps } from "./entrega/open-gallery";
+export { openGuestGallery } from "./entrega/open-gallery";
