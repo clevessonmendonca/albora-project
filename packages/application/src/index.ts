@@ -127,3 +127,6 @@ export type { ClaimGuestPhotosByEmailInput } from "./auth/claim-guest-photos-by-
 export { claimGuestPhotosByEmail } from "./auth/claim-guest-photos-by-email";
 
 export { resolveDeliveries } from "./entrega/resolve-deliveries";
+
+export type { EntregaDeps } from "./entrega/send-delivery";
+export { runDeliveryForEvent, sendGuestDelivery } from "./entrega/send-delivery";
