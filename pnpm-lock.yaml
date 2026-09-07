@@ -108,8 +108,8 @@ importers:
         specifier: ~17.1.7
         version: 17.1.8(expo@53.0.27(@babel/core@7.29.7)(@expo/metro-runtime@5.0.5(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0)))(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0))(react@19.0.0))(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0))
       expo-crypto:
-        specifier: ~14.1.5
-        version: 14.1.5(expo@53.0.27(@babel/core@7.29.7)(@expo/metro-runtime@5.0.5(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0)))(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0))(react@19.0.0))
+        specifier: ~57.0.2
+        version: 57.0.2(expo@53.0.27(@babel/core@7.29.7)(@expo/metro-runtime@5.0.5(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0)))(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0))(react@19.0.0))
       expo-dev-client:
         specifier: ~5.0.20
         version: 5.0.20(expo@53.0.27(@babel/core@7.29.7)(@expo/metro-runtime@5.0.5(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0)))(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0))(react@19.0.0))
@@ -4449,8 +4449,8 @@ packages:
       expo: '*'
       react-native: '*'
 
-  expo-crypto@14.1.5:
-    resolution: {integrity: sha512-ZXJoUMoUeiMNEoSD4itItFFz3cKrit6YJ/BR0hjuwNC+NczbV9rorvhvmeJmrU9O2cFQHhJQQR1fjQnt45Vu4Q==}
+  expo-crypto@57.0.2:
+    resolution: {integrity: sha512-OGLvHK7Hb7qsONMWGB9pJw3n+iY4OnZQmM/KwQEHRMrrOmNg0Lxj9+tp9bj46aAMMzXx0FTVA2jUKoplpXPnkA==}
     peerDependencies:
       expo: '*'
 
@@ -12636,9 +12636,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  expo-crypto@14.1.5(expo@53.0.27(@babel/core@7.29.7)(@expo/metro-runtime@5.0.5(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0)))(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0))(react@19.0.0)):
+  expo-crypto@57.0.2(expo@53.0.27(@babel/core@7.29.7)(@expo/metro-runtime@5.0.5(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0)))(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0))(react@19.0.0)):
     dependencies:
-      base64-js: 1.5.1
       expo: 53.0.27(@babel/core@7.29.7)(@expo/metro-runtime@5.0.5(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0)))(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0))(react@19.0.0)
 
   expo-dev-client@5.0.20(expo@53.0.27(@babel/core@7.29.7)(@expo/metro-runtime@5.0.5(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0)))(react-native@0.79.5(@babel/core@7.29.7)(@types/react@19.2.18)(react@19.0.0))(react@19.0.0)):

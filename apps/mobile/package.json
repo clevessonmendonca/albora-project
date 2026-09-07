@@ -27,7 +27,7 @@
     "expo-background-fetch": "~13.1.6",
     "expo-camera": "~16.1.11",
     "expo-constants": "~17.1.7",
-    "expo-crypto": "~14.1.5",
+    "expo-crypto": "~57.0.2",
     "expo-dev-client": "~5.0.20",
     "expo-file-system": "~18.1.11",
     "expo-image-manipulator": "~13.1.7",
