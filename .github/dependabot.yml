@@ -2,13 +2,30 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /
+    # A ladder é stable -> homol -> main (CLAUDE.md). Sem isto o dependabot usa
+    # a branch default do repo (`main`), que é a de produção e está muito atrás
+    # da `stable` — o CI dos PRs rodava contra código velho e falhava em
+    # Isolamento/E2E mesmo num bump de patch, por herança da base.
+    target-branch: stable
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
     labels:
       - dependencies
+    ignore:
+      # Pacote do Expo é versionado PELO SDK: sobe junto, por `expo install --fix`,
+      # nunca por bump isolado. O dependabot resolvia expo-crypto/status-bar/
+      # image-picker para a linha 57.x, incompatível com o SDK de apps/mobile.
+      - dependency-name: "expo"
+      - dependency-name: "expo-*"
+      # @types/node acompanha o major do RUNTIME (Node 22), não o mais recente:
+      # types à frente do runtime liberam API que não existe em execução.
+      - dependency-name: "@types/node"
+        update-types:
+          - version-update:semver-major
   - package-ecosystem: github-actions
     directory: /
+    target-branch: stable
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
