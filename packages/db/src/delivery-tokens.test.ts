@@ -12,16 +12,18 @@ const SEGREDO = "um-segredo-de-teste-com-mais-de-32-caracteres";
 const daqui = (min: number) => new Date(Date.now() + min * 60 * 1000);
 
 let admin: pg.Pool;
+let app: pg.Pool;
 let dados: Awaited<ReturnType<typeof semear>>;
 
 beforeAll(async () => {
   const pools = await prepararBanco();
   admin = pools.admin;
+  app = pools.app;
   dados = await semear(admin);
 }, 60_000);
 
 afterAll(async () => {
-  await admin?.end();
+  await Promise.all([admin?.end(), app?.end()]);
 });
 
 describe("delivery-tokens — mint e resolve", () => {
@@ -113,5 +115,18 @@ describe("delivery-tokens — mint e resolve", () => {
     await expect(resolveDeliveryToken(admin, SEGREDO, token)).rejects.toBeInstanceOf(
       ErroTokenDeEntrega,
     );
+  });
+
+  it("resolve funciona no pool real (albora_app), não só no admin", async () => {
+    const { token } = await issueDeliveryToken(
+      admin,
+      SEGREDO,
+      dados.a.eventoId,
+      dados.a.sessaoId,
+      daqui(60 * 24 * 7),
+    );
+
+    const resolvido = await resolveDeliveryToken(app, SEGREDO, token);
+    expect(resolvido).toEqual({ eventId: dados.a.eventoId, sessionId: dados.a.sessaoId });
   });
 });

@@ -9,16 +9,18 @@ const EMAIL = "convidado@exemplo.test";
 const daqui = (min: number) => new Date(Date.now() + min * 60 * 1000);
 
 let admin: pg.Pool;
+let app: pg.Pool;
 let dados: Awaited<ReturnType<typeof semear>>;
 
 beforeAll(async () => {
   const pools = await prepararBanco();
   admin = pools.admin;
+  app = pools.app;
   dados = await semear(admin);
 }, 60_000);
 
 afterAll(async () => {
-  await admin?.end();
+  await Promise.all([admin?.end(), app?.end()]);
 });
 
 async function contarAccounts(): Promise<number> {
@@ -96,5 +98,23 @@ describe("guest-magic-link — emit e consume (DB)", () => {
 
     const depois = await contarAccounts();
     expect(depois).toBe(antes);
+  });
+
+  it("consume funciona no pool real (albora_app)", async () => {
+    const { token } = await emitGuestMagicLinkRow(
+      admin,
+      SEGREDO,
+      dados.a.eventoId,
+      dados.a.sessaoId,
+      EMAIL,
+      daqui(15),
+    );
+
+    const resolvido = await consumeGuestMagicLink(app, SEGREDO, token);
+    expect(resolvido).toEqual({
+      eventId: dados.a.eventoId,
+      sessionId: dados.a.sessaoId,
+      email: EMAIL,
+    });
   });
 });

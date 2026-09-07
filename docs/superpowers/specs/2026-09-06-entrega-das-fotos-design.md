@@ -87,7 +87,7 @@ Retenção (`retention-jobs.ts` `purgarAcervo`, D365): adicionar `DELETE`/anonim
 - **Galeria** só serve `state='published'` e morre sob `panic` (via `signableKeys`); GET presigned com `X-Amz-Expires` curto por foto.
 - **Magic link do convidado** single-use, TTL 15 min (igual host), blindado contra `accounts`/host session — teste de review por varredura de fonte (como o claim do 0018).
 - **PII:** e-mail nunca em log cru; `guest_contacts`/`delivery_tokens`/`guest_magic_links` apagados pela retenção.
-- **Isolamento:** as três tabelas têm `event_id` + RLS FORCED; entram no teste de isolamento (não na allowlist `FORA_DA_RLS` — não são hash-gates efêmeros como `session_tokens`/`oidc_states`; guardam vínculo do evento).
+- **Isolamento:** `guest_contacts` tem `event_id` + RLS FORCED normal. `delivery_tokens` e `guest_magic_links` são portas de entrada — resolvem por `token_hash` antes de haver contexto de evento — e por isso ficam FORA da RLS (migration 0071), na allowlist `FORA_DA_RLS`, mesma disciplina de `session_tokens`/`oidc_states`: o `token_hash` assinado e indevassável é a capability, um hash pertence a um evento só, e não há query de listagem.
 - **Degradação:** `sendEmail` falho → `delivered_at` não marca → re-tenta. Sem Resend configurado, entrega degrada e loga `aviso.omitido`, não quebra.
 
 ## 8. Não-negociáveis carregados
