@@ -305,7 +305,9 @@ A regra de fronteira: **o conjunto vem do servidor, o cliente manda uma escolha 
 
 Missão e lugar **não** entram no conjunto de chaves que o núcleo exige de todo pack. Um casamento tem altar e um aniversário de 15 anos não; exigir o mesmo conjunto forçaria packs a inventar lugares que a festa não tem. O que precisa ser igual é o que o núcleo desenha — o resto é o pack descrevendo a própria festa. Um pack incompleto é defeito verificável: falta uma chave, e a verificação diz qual.
 
-No catálogo há **dois** packs: casamento e 15 anos (`packages/packs`). Trocar o `pack_id` de um evento muda o vocabulário, as missões e os momentos do álbum sem tocar o núcleo — é o teste de sanidade.
+No catálogo os packs se dividem em dois papéis. **Tipos de evento** — casamento, aniversário, formatura, corporativo, celebração, outro — são os cards do onboarding: declaram `icone` (glifo Lucide) e `ordemCriacao`, e `packsDeCriacao()` os devolve na ordem. **Packs sem card** — `quinze-anos` (landing dedicada) e `pre-casamento` (escolhido dentro do wizard como festa anterior) — existem no catálogo mas não aparecem na escolha de tipo. Trocar o `pack_id` de um evento muda o vocabulário, as missões, os lugares e os momentos do álbum sem tocar o núcleo — é o teste de sanidade.
+
+**Momentos não sinalizam landing ([ADR 0019](./adr/0019-momentos-desacoplados-da-landing.md)).** Todo tipo de evento tem seu arco (cerimônia num casamento, colação numa formatura), e ele é o default da experiência do convidado — não um funil. `temLandingPropria()` olha só a presença de copy de `landing.*`; um pack de tipo carrega momentos sem ser forçado a inventar uma landing pública de marketing. Landing que exibe o arco continua exigindo momentos; quem não tem funil só não é cobrado pela copy.
 
 > A regra que protege a decisão: **a experiência de casamento nunca piora para acomodar outro vertical.** Se um pack novo exigir tirar especificidade do casamento, o problema está no desenho de packs — não no casamento.
 

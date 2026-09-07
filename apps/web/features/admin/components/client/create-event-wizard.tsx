@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import NextLink from "next/link";
 import { FUSO_PADRAO, type WallDisplayModel } from "@albora/core";
-import { PACKS, resolvePackText, type Pack } from "@albora/packs";
+import { PACKS, packsDeCriacao, resolvePackText, type Pack } from "@albora/packs";
 import { ALBORA_BRAND, IDENTITY_MODELS, type ModeloDeIdentidade } from "@albora/tokens";
 import { Card, Select, TextField } from "@albora/ui-web";
 import { useSearchParams } from "next/navigation";
@@ -12,7 +12,7 @@ import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
 import { TimezoneField } from "@/features/admin/components/client/timezone-field";
 
-const OPTIONS = Object.values(PACKS).map((p) => ({
+const OPTIONS = packsDeCriacao().map((p) => ({
   id: p.id,
   nome: resolvePackText(p, "evento.nome"),
   // Descrição do núcleo, nunca copy de landing: pack escolhido aqui pode não ter
