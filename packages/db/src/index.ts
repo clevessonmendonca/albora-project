@@ -615,3 +615,5 @@ export {
   listEventsWithPendingModeration,
   reclaimStaleModeration,
 } from "./moderation-queue";
+
+export { ErroTokenDeEntrega, issueDeliveryToken, resolveDeliveryToken } from "./delivery-tokens";
