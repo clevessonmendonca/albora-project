@@ -617,3 +617,9 @@ export {
 } from "./moderation-queue";
 
 export { ErroTokenDeEntrega, issueDeliveryToken, resolveDeliveryToken } from "./delivery-tokens";
+
+export {
+  consumeGuestMagicLink,
+  emitGuestMagicLinkRow,
+  VALIDADE_GUEST_MAGIC_LINK_MINUTOS,
+} from "./guest-magic-link";
