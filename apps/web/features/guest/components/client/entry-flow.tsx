@@ -44,7 +44,10 @@ const NOME_SALVO = "albora:nome";
 const TEXTO_CONSENTIMENTO_COMPLETO =
   textoDoConsentimento("entrada", CONSENTIMENTO_ENTRADA_VIGENTE) ?? "";
 
-type Etapa = "entrada" | "recusou";
+/** Chegada é emocional (redesign v4 §3.2): a capa e o convite primeiro; nome e
+ *  consentimento só depois de "Entrar na festa". O recado não vive aqui — virou
+ *  story dos anfitriões. */
+type Etapa = "chegada" | "identidade" | "recusou";
 
 export function EntryFlow({
   eventoId,
@@ -52,36 +55,48 @@ export function EntryFlow({
   nomeEvento,
   saudacao,
   via,
+  comecaEm,
+  coverImageUrl,
 }: {
   eventoId: string;
   slug: string;
   nomeEvento: string;
   saudacao: string;
   via: EntryVia;
+  comecaEm?: string;
+  coverImageUrl?: string | null;
 }) {
-  const [etapa, setEtapa] = useState<Etapa>("entrada");
+  const [etapa, setEtapa] = useState<Etapa>("chegada");
   const [nome, setNome] = useState("");
   const [consentiu, setConsentiu] = useState(true);
   const [mostrarTextoCompleto, setMostrarTextoCompleto] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  // Data discreta ao lado da versão do consentimento — calculada no cliente
-  // pra não arriscar descompasso de fuso/locale entre o render do servidor
-  // e a hidratação (o mesmo motivo do nome vindo de localStorage).
+  // Datas calculadas no cliente pra não arriscar descompasso de fuso/locale
+  // entre o render do servidor e a hidratação (mesmo motivo do nome salvo).
   const [dataConsentimento, setDataConsentimento] = useState<string | null>(null);
+  const [dataEvento, setDataEvento] = useState<string | null>(null);
 
   useEffect(() => {
     void registerServiceWorker();
     setDataConsentimento(
       new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long" }).format(new Date()),
     );
+    if (comecaEm) {
+      const d = new Date(comecaEm);
+      if (!Number.isNaN(d.getTime())) {
+        setDataEvento(
+          new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", year: "numeric" }).format(d),
+        );
+      }
+    }
     try {
       const salvo = localStorage.getItem(NOME_SALVO);
       if (salvo) setNome(salvo);
     } catch {
       // Navegação privada — segue sem nome pré-preenchido.
     }
-  }, []);
+  }, [comecaEm]);
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault();
@@ -125,79 +140,124 @@ export function EntryFlow({
   return (
     <>
       <SkipLink />
-      <GuestShell>
-      <style>{ENTRADA_MOTION_CSS}</style>
-      <link rel="manifest" href={`/e/${encodeURIComponent(slug)}/manifest.webmanifest`} />
+      <GuestShell hideStatusBar={etapa === "chegada"}>
+        <style>{ENTRADA_MOTION_CSS}</style>
+        <link rel="manifest" href={`/e/${encodeURIComponent(slug)}/manifest.webmanifest`} />
 
-      {etapa === "recusou" ? (
-        <div className="entrada-anima flex flex-1 flex-col">
-          <EntryColumn>
-            <div className="grid gap-4 text-center">
-              <p className="m-0 font-titulo text-[1.5rem] leading-[1.2] tracking-titulo text-ink">
-                Tudo bem.
-              </p>
-              <p className="m-0 text-[0.9375rem] leading-relaxed text-ink-3">
-                Se mudar de ideia, é só voltar pelo QR da mesa.
-              </p>
-            </div>
-            <SecondaryButton onClick={() => setEtapa("entrada")}>Voltar</SecondaryButton>
-          </EntryColumn>
-        </div>
-      ) : (
-        <form onSubmit={entrar} className="entrada-anima flex flex-1 flex-col">
-          <EntryColumn>
-            <div>
-              <EventLabel>{nomeEvento}</EventLabel>
-              <DisplayTitle>{saudacao}</DisplayTitle>
-              <SecondaryText>Como você quer aparecer nas fotos que enviar?</SecondaryText>
-            </div>
+        {etapa === "chegada" && (
+          <ArrivalScreen
+            nomeEvento={nomeEvento}
+            dataEvento={dataEvento}
+            coverImageUrl={coverImageUrl ?? null}
+            onEnter={() => setEtapa("identidade")}
+          />
+        )}
 
-            <NameField
-              value={nome}
-              onChange={setNome}
-              placeholder="Tio João"
-              ariaLabel="Seu nome"
-              autoFocus
-            />
+        {etapa === "recusou" && (
+          <div className="entrada-anima flex flex-1 flex-col">
+            <EntryColumn>
+              <div className="grid gap-4 text-center">
+                <p className="m-0 font-titulo text-[1.5rem] leading-[1.2] tracking-titulo text-ink">
+                  Tudo bem.
+                </p>
+                <p className="m-0 text-[0.9375rem] leading-relaxed text-ink-3">
+                  Se mudar de ideia, é só voltar pelo QR da mesa.
+                </p>
+              </div>
+              <SecondaryButton onClick={() => setEtapa("identidade")}>Voltar</SecondaryButton>
+            </EntryColumn>
+          </div>
+        )}
 
-            <Card elevation={1} className="grid gap-3">
-              <ConsentCheckbox checked={consentiu} onChange={setConsentiu}>
-                Concordo que as fotos que eu enviar apareçam para quem está nesta festa.{" "}
-                <TextLink onClick={() => setMostrarTextoCompleto((v) => !v)}>
-                  Ler o texto completo
-                </TextLink>
-              </ConsentCheckbox>
+        {etapa === "identidade" && (
+          <form onSubmit={entrar} className="entrada-anima flex flex-1 flex-col">
+            <EntryColumn>
+              <div>
+                <EventLabel>Antes da sua primeira foto</EventLabel>
+                <DisplayTitle>{saudacao}</DisplayTitle>
+                <SecondaryText>Como você quer aparecer? Só o primeiro nome.</SecondaryText>
+              </div>
 
-              <p className="m-0 pl-9 text-[0.6875rem] leading-snug text-ink-3">
-                Versão {CONSENTIMENTO}
-                {dataConsentimento ? ` · ${dataConsentimento}` : ""}
-              </p>
-            </Card>
+              <NameField
+                value={nome}
+                onChange={setNome}
+                placeholder="Tio João"
+                ariaLabel="Seu nome"
+                autoFocus
+              />
 
-            {mostrarTextoCompleto && (
-              <ConsentNote>{TEXTO_CONSENTIMENTO_COMPLETO}</ConsentNote>
-            )}
+              <Card elevation={1} className="grid gap-3">
+                <ConsentCheckbox checked={consentiu} onChange={setConsentiu}>
+                  Suas fotos poderão aparecer no álbum e no telão deste evento.{" "}
+                  <TextLink onClick={() => setMostrarTextoCompleto((v) => !v)}>
+                    Ver detalhes
+                  </TextLink>
+                </ConsentCheckbox>
 
-            <div className="grid gap-3">
-              <PrimaryButton
-                type="submit"
-                disabled={enviando || nome.trim().length === 0 || !consentiu}
-              >
-                {enviando ? "Entrando…" : "Fotografar"}
-              </PrimaryButton>
+                <p className="m-0 pl-9 text-[0.6875rem] leading-snug text-ink-3">
+                  Versão {CONSENTIMENTO}
+                  {dataConsentimento ? ` · ${dataConsentimento}` : ""}
+                </p>
+              </Card>
 
-              <Button type="button" variant="tertiary" size="sm" width="full" onClick={() => setEtapa("recusou")}>
-                Prefiro não
-              </Button>
-            </div>
+              {mostrarTextoCompleto && <ConsentNote>{TEXTO_CONSENTIMENTO_COMPLETO}</ConsentNote>}
 
-            {erro && <ErrorMessage>{erro}</ErrorMessage>}
+              <div className="grid gap-3">
+                <PrimaryButton
+                  type="submit"
+                  disabled={enviando || nome.trim().length === 0 || !consentiu}
+                >
+                  {enviando ? "Entrando…" : "Continuar"}
+                </PrimaryButton>
 
-            <FinePrint>Sem cadastro, sem senha e sem baixar nada</FinePrint>
-          </EntryColumn>
-        </form>
-      )}
-    </GuestShell>
+                <Button type="button" variant="tertiary" size="sm" width="full" onClick={() => setEtapa("recusou")}>
+                  Prefiro não
+                </Button>
+              </div>
+
+              {erro && <ErrorMessage>{erro}</ErrorMessage>}
+
+              <FinePrint>Sem cadastro, sem senha e sem baixar nada</FinePrint>
+            </EntryColumn>
+          </form>
+        )}
+      </GuestShell>
     </>
+  );
+}
+
+/** Capa full-bleed emocional (§3.2). Foto do anfitrião quando existe; senão, chão do evento
+ *  tingido — nunca gradiente fingindo foto. Scrim escuro só para o texto ser legível sobre a foto. */
+function ArrivalScreen({
+  nomeEvento,
+  dataEvento,
+  coverImageUrl,
+  onEnter,
+}: {
+  nomeEvento: string;
+  dataEvento: string | null;
+  coverImageUrl: string | null;
+  onEnter: () => void;
+}) {
+  return (
+    <div id="main-content" className="entrada-anima relative flex min-h-dvh flex-col">
+      {coverImageUrl ? (
+        <img src={coverImageUrl} alt="" aria-hidden className="absolute inset-0 size-full object-cover" />
+      ) : (
+        <div aria-hidden className="absolute inset-0 bg-superficie-alta" />
+      )}
+      {/* Scrim para legibilidade do texto sobre a foto — chão do evento (dark), não preto cru. */}
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-bg via-bg/70 to-bg/10" />
+
+      <div className="relative mt-auto flex flex-col gap-5 px-7 pb-[max(3rem,env(safe-area-inset-bottom))] pt-16">
+        <div className="flex flex-col gap-2">
+          <EventLabel>Você foi convidado para</EventLabel>
+          <DisplayTitle>{nomeEvento}</DisplayTitle>
+          {dataEvento && <p className="m-0 text-[0.9375rem] text-ink-2">{dataEvento}</p>}
+        </div>
+        <PrimaryButton onClick={onEnter}>Entrar na festa</PrimaryButton>
+        <FinePrint>Sem app · sem cadastro · sem baixar nada</FinePrint>
+      </div>
+    </div>
   );
 }
