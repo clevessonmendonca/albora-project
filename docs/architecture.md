@@ -305,7 +305,9 @@ A regra de fronteira: **o conjunto vem do servidor, o cliente manda uma escolha 
 
 Missão e lugar **não** entram no conjunto de chaves que o núcleo exige de todo pack. Um casamento tem altar e um aniversário de 15 anos não; exigir o mesmo conjunto forçaria packs a inventar lugares que a festa não tem. O que precisa ser igual é o que o núcleo desenha — o resto é o pack descrevendo a própria festa. Um pack incompleto é defeito verificável: falta uma chave, e a verificação diz qual.
 
-No catálogo há **dois** packs: casamento e 15 anos (`packages/packs`). Trocar o `pack_id` de um evento muda o vocabulário, as missões e os momentos do álbum sem tocar o núcleo — é o teste de sanidade.
+No catálogo os packs se dividem em dois papéis. **Tipos de evento** — casamento, aniversário, formatura, corporativo, celebração, outro — são os cards do onboarding: declaram `icone` (glifo Lucide) e `ordemCriacao`, e `packsDeCriacao()` os devolve na ordem. **Packs sem card** — `quinze-anos` (landing dedicada) e `pre-casamento` (escolhido dentro do wizard como festa anterior) — existem no catálogo mas não aparecem na escolha de tipo. Trocar o `pack_id` de um evento muda o vocabulário, as missões, os lugares e os momentos do álbum sem tocar o núcleo — é o teste de sanidade.
+
+**Momentos não sinalizam landing ([ADR 0019](./adr/0019-momentos-desacoplados-da-landing.md)).** Todo tipo de evento tem seu arco (cerimônia num casamento, colação numa formatura), e ele é o default da experiência do convidado — não um funil. `temLandingPropria()` olha só a presença de copy de `landing.*`; um pack de tipo carrega momentos sem ser forçado a inventar uma landing pública de marketing. Landing que exibe o arco continua exigindo momentos; quem não tem funil só não é cobrado pela copy.
 
 > A regra que protege a decisão: **a experiência de casamento nunca piora para acomodar outro vertical.** Se um pack novo exigir tirar especificidade do casamento, o problema está no desenho de packs — não no casamento.
 
@@ -365,6 +367,8 @@ Duas notas de desenho que não são cosméticas:
 `expected_guests` é o denominador da métrica que decide o negócio (`sessões_com_upload / expected_guests`). Mora em `events`, NOT NULL, default 150, conferido no wizard e no painel `/admin/e/[eventId]/guests`. Sem ele o casamento termina e não se sabe onde a participação foi perdida.
 
 `timezone` é o IANA do salão (`America/Sao_Paulo` por omissão). O `confirm` aplica esse fuso na parede do EXIF para gravar `taken_at`; o álbum fatia capítulos e a faixa 5h–7h no mesmo offset. Sem a coluna, Brasília era constante — uma festa em Manaus deslocava o amanhecer em uma hora.
+
+**Onboarding v4 e delayed auth.** O wizard de criar evento tem três passos (Evento → Aparência → Pronto); o tipo é um pack ([ADR 0019](./adr/0019-momentos-desacoplados-da-landing.md)), a data única vira início/fim com hora padrão, o fuso é auto-detectado e `expected_guests` fica em "mais detalhes" (default 150, sem denominador inventado). A ordem hoje é **login-antes**: `/admin/new` exige sessão. Uma hipótese A/B — **delayed auth**, criar antes do cadastro e capturar o e-mail como acesso só no fim — vive atrás da flag `delayedAuth` (`apps/web/lib/flags.ts`, off por padrão); enquanto desligada, o login-antes é o caminho, e o backend anônimo (conta pendente por e-mail, associação no magic-link, estado do wizard persistido no servidor) fica especificado em [ADR 0020](./adr/0020-delayed-auth-criar-evento-sem-cadastro.md), não construído. As duas cores do evento viajam em `identity_tokens.eventCores` e saem do mesmo resolvedor ([ADR 0003](./adr/0003-runtime-token-resolution.md)) como `--ev`/`--ev-2`, sem repintar o âmbar do produto.
 
 ---
 

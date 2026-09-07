@@ -17,6 +17,14 @@ export type Pack = {
   /** Id do pack cujas festas acontecem antes desta. Núcleo não sabe que casamento
    *  tem noivado — quem sabe é o pack, e a UI pergunta em vez de assumir. */
   sugereAntes?: string;
+  /** Nome do glifo Lucide do card de tipo no onboarding (ex.: "heart", "cake"). Não é
+   *  palavra de domínio — é iconografia; o componente resolve o glifo por este nome
+   *  em vez de mapear `pack.id → ícone` na mão. Ausente = tipo não aparece como card. */
+  icone?: string;
+  /** Ordem do pack entre os tipos de evento oferecidos no onboarding (menor primeiro).
+   *  Só packs com este campo viram card de criação — pack escolhido dentro do wizard
+   *  (festa anterior) ou landing dedicada fica de fora sem hardcode no componente. */
+  ordemCriacao?: number;
   tokens?: TokenLayer;
 };
 
@@ -64,13 +72,19 @@ export const CHAVES_DA_LANDING = LANDING_VOCABULARY_KEYS;
 /**
  * O pack se propõe a ter landing própria?
  *
- * Landing é opcional (ver `Pack.momentos`): pack escolhido dentro do wizard, ou
- * white-label, não tem funil e não deve carregar copy de marketing. Declarar
- * *qualquer* peça de landing é o que sinaliza a intenção — e aí o conjunto tem de
- * estar completo, porque meia copy vaza `landing.titulo` cru na porta do funil.
+ * Landing é opcional: pack escolhido dentro do wizard, ou white-label, não tem
+ * funil e não deve carregar copy de marketing. Declarar *qualquer* peça de
+ * landing é o que sinaliza a intenção — e aí o conjunto tem de estar completo,
+ * porque meia copy vaza `landing.titulo` cru na porta do funil.
+ *
+ * `momentos` **não** sinaliza landing (ADR 0019): eles são o arco default da
+ * experiência do convidado, e todo tipo de evento tem o seu (casamento tem
+ * cerimônia, formatura tem colação). Acoplar momentos à landing forçaria um
+ * pack de tipo — escolhido dentro do wizard — a inventar uma landing pública
+ * de marketing só para poder ter momentos. Landing que exibe o arco continua
+ * exigindo momentos via `landingProblems`; quem não tem funil só não é contada.
  */
 export function temLandingPropria(pack: Pack): boolean {
-  if (pack.momentos && pack.momentos.length > 0) return true;
   return LANDING_VOCABULARY_KEYS.some((chave) => Boolean(pack.vocabulario[chave]));
 }
 
