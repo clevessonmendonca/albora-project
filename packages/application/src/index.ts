@@ -125,6 +125,8 @@ export type { CompleteGoogleLoginStaffInput, CompleteGoogleLoginStaffResult } fr
 export { completeGoogleLoginStaff } from "./auth/complete-google-login-staff";
 export type { ClaimGuestPhotosByEmailInput } from "./auth/claim-guest-photos-by-email";
 export { claimGuestPhotosByEmail } from "./auth/claim-guest-photos-by-email";
+export type { EmitGuestMagicLinkDeps, EmitGuestMagicLinkInput } from "./auth/guest-magic-link";
+export { VALIDADE_GUEST_MAGIC_LINK_MINUTOS, emitGuestMagicLink, verifyGuestMagicLink } from "./auth/guest-magic-link";
 
 export { resolveDeliveries } from "./entrega/resolve-deliveries";
 
