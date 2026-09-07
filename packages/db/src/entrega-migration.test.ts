@@ -1,16 +1,14 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { prepararBanco, semear } from "./testes/banco";
+import { prepararBanco } from "./testes/banco";
 
 let admin: pg.Pool;
 let app: pg.Pool;
-let dados: Awaited<ReturnType<typeof semear>>;
 
 beforeAll(async () => {
   const pools = await prepararBanco();
   admin = pools.admin;
   app = pools.app;
-  dados = await semear(admin);
 }, 60_000);
 
 afterAll(async () => {

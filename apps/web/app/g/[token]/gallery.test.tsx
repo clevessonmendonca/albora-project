@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ErroTokenDeEntrega } from "@albora/db";
+import type * as AlboraDbModule from "@albora/db";
 
 /** Página pública `/g/[token]` (task 9): sem login, identidade é só o token
  * da URL. Mocka `openGuestGallery` (Task 7) inteiro — sem banco, sem R2.
@@ -17,7 +18,7 @@ const { carregarEventoPublico, withEvent } = vi.hoisted(() => ({
   withEvent: vi.fn((_pool: unknown, _eventId: string, executar: (c: unknown) => unknown) => executar({})),
 }));
 vi.mock("@albora/db", async (importOriginal) => {
-  const real = await importOriginal<typeof import("@albora/db")>();
+  const real = await importOriginal<typeof AlboraDbModule>();
   return { ...real, carregarEventoPublico, withEvent };
 });
 
