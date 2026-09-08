@@ -11,7 +11,6 @@ function responder(corpo: unknown, status = 200): Response {
   return new Response(JSON.stringify(corpo), { status });
 }
 
-/** Passo 0 (Evento): nome + data são o que valida; guests é opcional (fica em "mais detalhes"). */
 function preencherEvento() {
   fireEvent.change(screen.getByLabelText("Nome do evento"), {
     target: { value: "Festa Teste" },
@@ -20,14 +19,10 @@ function preencherEvento() {
     target: { value: "2026-09-01" },
   });
 
-  fireEvent.change(screen.getByLabelText("Quantos convidados presentes?"), {
+  fireEvent.click(screen.getByText("Mais detalhes"));
+  fireEvent.change(screen.getByLabelText("Quantos convidados você espera?"), {
     target: { value: "120" },
   });
-
-  // Passo 1 → 2 → 3 → 4 (Confirmar)
-  for (let i = 0; i < 3; i++) {
-    fireEvent.click(screen.getByText("Continuar"));
-  }
 }
 
 describe("CreateEventWizard — três passos (redesign v4)", () => {
