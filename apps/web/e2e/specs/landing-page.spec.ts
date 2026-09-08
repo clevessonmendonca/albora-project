@@ -55,15 +55,24 @@ test.describe("Landing Page do Evento", () => {
     const response = await page.goto("/e/evento-que-nao-existe-12345");
 
     /*
-     * 2. O que se cobra aqui é a mensagem, não o código HTTP. `page.tsx` chama
-     * `notFound()`, mas a rota tem `loading.tsx`: sob streaming o Next já
-     * enviou os headers quando o componente lança, então o 404 chega como UI e
-     * não como status. Manter `loading.tsx` na rota mais crítica do convidado é
-     * escolha deliberada, e o status não pesa nesta superfície — `robots.txt`
-     * faz `Disallow: /e/`, ela está fora do sitemap e cada página declara
+     * 2. O que se cobra aqui é a mensagem, não o código HTTP. O status é 200
+     * porque `app/loading.tsx` — o do segmento RAIZ — envolve a aplicação
+     * inteira em Suspense: sob streaming o Next já mandou os headers quando o
+     * componente lança, e nenhum `notFound()` do projeto vira 404. Remover
+     * `app/e/[slug]/loading.tsx` não muda nada enquanto o da raiz existir;
+     * medido contra build de produção, e contra uma app Next 15.5.23 mínima,
+     * que devolve 404 até o instante em que ganha um `loading` na raiz.
+     *
+     * Nesta superfície o status não pesa: `robots.txt` faz `Disallow: /e/`,
+     * ela está fora do sitemap e cada página declara
      * `robots: { index: false, follow: false }`. Chega-se por QR, nunca por
-     * crawler. Não reintroduza `expect(status).toBe(404)`: cobra do framework
-     * o que ele não entrega sob streaming e esconde a asserção que importa.
+     * crawler. Não reintroduza `expect(status).toBe(404)` aqui: cobra do
+     * framework o que ele não entrega sob streaming e esconde a asserção que
+     * importa.
+     *
+     * O mesmo NÃO vale para `/p/[slug]`, que é indexável (`Allow: /p/`) e hoje
+     * também responde 200 para slug morto. Esse caso é de crawler de verdade e
+     * segue em aberto — não é coberto por este teste.
      */
     expect(response?.ok()).toBe(true);
 
