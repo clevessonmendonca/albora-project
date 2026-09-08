@@ -31,6 +31,7 @@ export function ConsoleShell({
   actor,
   counts,
   periodo,
+  recolhidaInicial = false,
   activeImpersonation = null,
   pendingImpersonationRequests = [],
   children,
@@ -38,6 +39,7 @@ export function ConsoleShell({
   actor: Actor;
   counts?: ConsoleNavCounts | undefined;
   periodo?: ReactNode;
+  recolhidaInicial?: boolean;
   activeImpersonation?: ActiveImpersonation | null;
   pendingImpersonationRequests?: PendingImpersonationRow[];
   children: ReactNode;
@@ -45,7 +47,7 @@ export function ConsoleShell({
   return (
     <div className="font-[family-name:var(--fonte-corpo)] text-ink" style={adminVars()}>
       <ImpersonationBanner active={activeImpersonation} />
-      <ConsoleFrame actor={actor} counts={counts} periodo={periodo}>
+      <ConsoleFrame actor={actor} counts={counts} periodo={periodo} recolhidaInicial={recolhidaInicial}>
         <PendingImpersonationApprovals requests={pendingImpersonationRequests} />
         {children}
       </ConsoleFrame>

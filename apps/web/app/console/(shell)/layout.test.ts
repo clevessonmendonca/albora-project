@@ -18,6 +18,7 @@ const {
 }));
 
 vi.mock("next/navigation", () => ({ redirect: redirectMock }));
+vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
 vi.mock("@/lib/console/actor", () => ({ resolveActor: resolveActorMock }));
 vi.mock("@/lib/db", () => ({ getPool: vi.fn() }));
 vi.mock("@albora/application", () => ({
@@ -78,5 +79,22 @@ describe("ConsoleLayout", () => {
       expect.objectContaining({ actor: actor(["owner"]) }),
     );
     expect(JSON.stringify(element)).toContain("imp-2");
+  });
+});
+
+describe("ConsoleLayout — preferência de largura", () => {
+  it("cookie recolhido chega ao shell — é o que evita a piscada de largura", async () => {
+    vi.resetModules();
+    vi.doMock("next/headers", () => ({
+      cookies: async () => ({ get: (nome: string) => (nome === "albora_console_sidebar" ? { value: "recolhida" } : undefined) }),
+    }));
+    resolveActorMock.mockResolvedValueOnce(actor(["support"]));
+    getActiveImpersonationForStaffMock.mockResolvedValueOnce(null);
+
+    const { default: Layout } = await import("./layout");
+    const element = await Layout({ children: null });
+
+    expect((element as { props: { recolhidaInicial: boolean } }).props.recolhidaInicial).toBe(true);
+    vi.resetModules();
   });
 });

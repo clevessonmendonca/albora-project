@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { DsarRequestRow, RetentionJobAdminRow, SecurityEventRow, SupportTicketAdmin } from "@albora/db";
 import {
   atrasoLegivel,
+  pendenciaDeFonteIndisponivel,
   ordenarPendencias,
   pendenciaDeInadimplencia,
   pendenciaDeLgpd,
@@ -149,5 +150,73 @@ describe("ordenarPendencias", () => {
       pendenciaDeSeguranca([evento("session.reuse")])!,
     ]);
     expect(itens.map((i) => i.severidade)).toEqual(["critico", "atencao"]);
+  });
+});
+
+describe("getConsoleAttention — degrada por fonte", () => {
+  const actor = { staffUserId: "s1", roles: ["owner"], sessionId: "x", requestId: "r", reauthenticatedAt: null } as never;
+  const deps = { pool: {}, aggregatorPool: {} } as never;
+
+  it("fonte que falha vira linha, não silêncio — fila incompleta nunca se apresenta como 'tudo em dia'", async () => {
+    vi.resetModules();
+    vi.doMock("../support/list-ticket-queue", () => ({
+      listTicketQueue: () => Promise.reject(new Error("timeout")),
+    }));
+    vi.doMock("../lgpd/list-dsar-requests", () => ({ listDsarRequests: async () => ({ rows: [] }) }));
+    vi.doMock("../retention/list-retention-jobs", () => ({ listRetentionJobs: async () => ({ rows: [] }) }));
+    vi.doMock("../security/list-security-events", () => ({ listSecurity: async () => ({ rows: [] }) }));
+
+    const modulo = await import("./console-attention");
+    const itens = await modulo.getConsoleAttention(deps, { actor, reason: "teste", overdueSubscriptions: 0 });
+
+    expect(itens).toHaveLength(1);
+    expect(itens[0]?.id).toBe("fonte-indisponivel-suporte");
+    vi.doUnmock("../support/list-ticket-queue");
+  });
+
+  it("uma fonte caída não derruba as outras", async () => {
+    vi.resetModules();
+    vi.doMock("../support/list-ticket-queue", () => ({
+      listTicketQueue: () => Promise.reject(new Error("timeout")),
+    }));
+    vi.doMock("../lgpd/list-dsar-requests", () => ({ listDsarRequests: async () => ({ rows: [] }) }));
+    vi.doMock("../retention/list-retention-jobs", () => ({
+      listRetentionJobs: async () => ({ rows: [job({ kind: "d365_delete" })] }),
+    }));
+    vi.doMock("../security/list-security-events", () => ({ listSecurity: async () => ({ rows: [] }) }));
+
+    const modulo = await import("./console-attention");
+    const itens = await modulo.getConsoleAttention(deps, { actor, reason: "teste", overdueSubscriptions: 0 });
+
+    expect(itens.map((i) => i.id).sort()).toEqual(["fonte-indisponivel-suporte", "retencao-falhada"]);
+    vi.resetModules();
+  });
+
+  it("segurança é consultada já filtrada por session.reuse — teto de linhas não pode esconder o alerta", async () => {
+    vi.resetModules();
+    const chamadas: unknown[] = [];
+    vi.doMock("../support/list-ticket-queue", () => ({ listTicketQueue: async () => ({ rows: [] }) }));
+    vi.doMock("../lgpd/list-dsar-requests", () => ({ listDsarRequests: async () => ({ rows: [] }) }));
+    vi.doMock("../retention/list-retention-jobs", () => ({ listRetentionJobs: async () => ({ rows: [] }) }));
+    vi.doMock("../security/list-security-events", () => ({
+      listSecurity: async (_d: unknown, entrada: unknown) => {
+        chamadas.push(entrada);
+        return { rows: [] };
+      },
+    }));
+
+    const modulo = await import("./console-attention");
+    await modulo.getConsoleAttention(deps, { actor, reason: "teste", overdueSubscriptions: 0 });
+
+    expect(chamadas[0]).toMatchObject({ kind: "session.reuse" });
+    vi.resetModules();
+  });
+});
+
+describe("pendenciaDeFonteIndisponivel", () => {
+  it("aponta para a tela da fonte que caiu, com severidade de atenção", () => {
+    const item = pendenciaDeFonteIndisponivel("seguranca");
+    expect(item.href).toBe("/console/security");
+    expect(item.severidade).toBe("atencao");
   });
 });

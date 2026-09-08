@@ -8,14 +8,28 @@ import { MenuIcon, RecolherIcon } from "@/features/console/components/server/con
 import { ConsoleProfileMenu } from "@/features/console/components/client/console-profile-menu";
 import { ConsoleSearch } from "@/features/console/components/client/console-search";
 
-export const CHAVE_SIDEBAR = "albora-console-sidebar";
+export const CHAVE_SIDEBAR = "albora_console_sidebar";
+const UM_ANO_EM_SEGUNDOS = 60 * 60 * 24 * 365;
 
-/** `localStorage` some em janela privativa e lança em navegador que bloqueia site data. */
-export function lerPreferenciaRecolhida(storage: Pick<Storage, "getItem"> | undefined): boolean {
+/**
+ * Cookie, não `localStorage`: o servidor precisa saber a largura **antes** de
+ * pintar. Com `localStorage` a barra abria expandida, hidratava e só então
+ * recolhia — piscada de layout a cada carregamento, e `aria-pressed` virando
+ * depois do load para quem usa leitor de tela.
+ *
+ * Preferência de largura, não sessão: sem `HttpOnly` de propósito, porque
+ * quem escreve é o cliente. Não confundir com `albora_staff`.
+ */
+export function lerPreferenciaRecolhida(cookie: string | undefined): boolean {
+  return new RegExp(`(?:^|; )${CHAVE_SIDEBAR}=recolhida(?:;|$)`).test(cookie ?? "");
+}
+
+function gravarPreferencia(recolhida: boolean): void {
   try {
-    return storage?.getItem(CHAVE_SIDEBAR) === "recolhida";
+    const valor = recolhida ? "recolhida" : "expandida";
+    document.cookie = `${CHAVE_SIDEBAR}=${valor}; path=/; max-age=${UM_ANO_EM_SEGUNDOS}; SameSite=Lax`;
   } catch {
-    return false;
+    /* preferência de largura não vale derrubar a tela */
   }
 }
 
@@ -46,28 +60,23 @@ export function ConsoleFrame({
   actor,
   counts,
   periodo,
+  recolhidaInicial = false,
   children,
 }: {
   actor: Actor;
   counts?: ConsoleNavCounts | undefined;
   periodo?: ReactNode;
+  /** Vem do cookie, lido no servidor — é o que evita a piscada de largura. */
+  recolhidaInicial?: boolean;
   children: ReactNode;
 }) {
-  const [recolhida, setRecolhida] = useState(false);
+  const [recolhida, setRecolhida] = useState(recolhidaInicial);
   const [gaveta, setGaveta] = useState(false);
-
-  useEffect(() => {
-    setRecolhida(lerPreferenciaRecolhida(globalThis.localStorage));
-  }, []);
 
   const alternarRecolhida = useCallback(() => {
     setRecolhida((atual) => {
       const proxima = !atual;
-      try {
-        globalThis.localStorage?.setItem(CHAVE_SIDEBAR, proxima ? "recolhida" : "expandida");
-      } catch {
-        /* preferência de largura não vale derrubar a tela */
-      }
+      gravarPreferencia(proxima);
       return proxima;
     });
   }, []);

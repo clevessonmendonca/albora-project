@@ -13,27 +13,42 @@ function actor(roles: Actor["roles"]): Actor {
 }
 
 describe("lerPreferenciaRecolhida", () => {
-  it("lê a preferência guardada", () => {
-    expect(lerPreferenciaRecolhida({ getItem: () => "recolhida" })).toBe(true);
-    expect(lerPreferenciaRecolhida({ getItem: () => "expandida" })).toBe(false);
+  it("lê a preferência do cookie", () => {
+    expect(lerPreferenciaRecolhida("albora_console_sidebar=recolhida")).toBe(true);
+    expect(lerPreferenciaRecolhida("albora_console_sidebar=expandida")).toBe(false);
   });
 
-  it("sem storage começa expandida", () => {
+  it("acha a chave no meio de outros cookies, e não confunde com prefixo alheio", () => {
+    expect(lerPreferenciaRecolhida("a=1; albora_console_sidebar=recolhida; b=2")).toBe(true);
+    expect(lerPreferenciaRecolhida("x_albora_console_sidebar=recolhida")).toBe(false);
+    expect(lerPreferenciaRecolhida("albora_console_sidebar=recolhida_nao")).toBe(false);
+  });
+
+  it("sem cookie começa expandida", () => {
     expect(lerPreferenciaRecolhida(undefined)).toBe(false);
-  });
-
-  it("storage que lança (janela privativa, site data bloqueado) não derruba a tela", () => {
-    expect(
-      lerPreferenciaRecolhida({
-        getItem: () => {
-          throw new Error("SecurityError");
-        },
-      }),
-    ).toBe(false);
+    expect(lerPreferenciaRecolhida("")).toBe(false);
   });
 
   it("a chave é estável — mudar o nome perde a preferência de todo operador", () => {
-    expect(CHAVE_SIDEBAR).toBe("albora-console-sidebar");
+    expect(CHAVE_SIDEBAR).toBe("albora_console_sidebar");
+  });
+});
+
+describe("ConsoleFrame — sem piscada de largura", () => {
+  it("renderiza já recolhida quando o servidor diz que é a preferência", () => {
+    const html = renderToStaticMarkup(
+      <ConsoleFrame actor={actor(["owner"])} recolhidaInicial>
+        {null}
+      </ConsoleFrame>,
+    );
+    expect(html).toContain("Expandir menu");
+    expect(html).toContain('aria-pressed="true"');
+  });
+
+  it("renderiza expandida por padrão", () => {
+    const html = renderToStaticMarkup(<ConsoleFrame actor={actor(["owner"])}>{null}</ConsoleFrame>);
+    expect(html).toContain("Recolher menu");
+    expect(html).toContain('aria-pressed="false"');
   });
 });
 

@@ -5,6 +5,7 @@ export { executeQuery } from "./envelope/query";
 export type { WithPlatformAggregationInput } from "./platform/aggregation";
 export { withPlatformAggregation } from "./platform/aggregation";
 export type {
+  ConsoleAttentionFonte,
   ConsoleAttentionInput,
   ConsoleAttentionItem,
   ConsoleAttentionSeverity,
@@ -14,6 +15,7 @@ export {
   getConsoleAttention,
   LIMITE_POR_FONTE,
   ordenarPendencias,
+  pendenciaDeFonteIndisponivel,
   pendenciaDeInadimplencia,
   pendenciaDeLgpd,
   pendenciaDeRetencao,

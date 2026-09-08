@@ -8,6 +8,8 @@ import { listTicketQueue } from "../support/list-ticket-queue";
 
 export type ConsoleAttentionSeverity = "critico" | "atencao";
 
+export type ConsoleAttentionFonte = "suporte" | "lgpd" | "retencao" | "seguranca";
+
 export type ConsoleAttentionItem = {
   id: string;
   severidade: ConsoleAttentionSeverity;
@@ -119,6 +121,48 @@ export function ordenarPendencias(itens: readonly ConsoleAttentionItem[]): Conso
   return [...itens].sort((a, b) => ORDEM[a.severidade] - ORDEM[b.severidade]);
 }
 
+type Leitura<T> = { estado: "ausente" } | { estado: "ok"; valor: T } | { estado: "falhou" };
+
+/**
+ * A fila degrada por fonte, nunca cai inteira. `Promise.all` puro fazia um
+ * timeout em `security_events` — tabela de alto volume e escrita assíncrona —
+ * derrubar a Visão geral inteira, levando junto tickets e prazos de LGPD que
+ * tinham respondido bem. Caminho crítico não tolera terceiro, e aqui cada
+ * fonte é um terceiro em relação às outras.
+ */
+async function lerOuFalhar<T>(promessa: Promise<T> | null): Promise<Leitura<T>> {
+  if (promessa === null) return { estado: "ausente" };
+  try {
+    return { estado: "ok", valor: await promessa };
+  } catch {
+    return { estado: "falhou" };
+  }
+}
+
+const FONTE_INDISPONIVEL: Readonly<Record<ConsoleAttentionFonte, { modulo: string; href: string }>> = {
+  suporte: { modulo: "Suporte", href: "/console/support" },
+  lgpd: { modulo: "LGPD", href: "/console/lgpd" },
+  retencao: { modulo: "Retenção", href: "/console/retention" },
+  seguranca: { modulo: "Segurança", href: "/console/security" },
+};
+
+/**
+ * Fonte que não respondeu vira linha, não silêncio. Sumir com ela faria a
+ * fila afirmar "tudo em dia" sem ter olhado — o pior estado possível numa
+ * tela cujo trabalho é dizer o que falta.
+ */
+export function pendenciaDeFonteIndisponivel(fonte: ConsoleAttentionFonte): ConsoleAttentionItem {
+  const { modulo, href } = FONTE_INDISPONIVEL[fonte];
+  return {
+    id: `fonte-indisponivel-${fonte}`,
+    severidade: "atencao",
+    titulo: `Não foi possível ler ${modulo.toLowerCase()}`,
+    detalhe: "a fila está incompleta — abra a tela para conferir direto",
+    modulo,
+    href,
+  };
+}
+
 export type ConsoleAttentionInput = {
   actor: Actor;
   reason: string;
@@ -146,25 +190,39 @@ export async function getConsoleAttention(
   const desde24h = new Date(agora.getTime() - 24 * HORA_MS);
 
   const [tickets, dsars, jobs, seguranca] = await Promise.all([
-    hasCapability(actor.roles, "tickets.read")
-      ? listTicketQueue(deps, { actor, reason, statuses: ["open", "pending"], limit: LIMITE_POR_FONTE })
-      : null,
-    hasCapability(actor.roles, "lgpd.dsar.read")
-      ? listDsarRequests(deps, { actor, limit: LIMITE_POR_FONTE })
-      : null,
-    hasCapability(actor.roles, "retention.read")
-      ? listRetentionJobs(deps, { actor, reason, status: "failed", limit: LIMITE_POR_FONTE })
-      : null,
-    hasCapability(actor.roles, "security.read")
-      ? listSecurity(deps, { actor, since: desde24h, limit: LIMITE_POR_FONTE })
-      : null,
+    lerOuFalhar(
+      hasCapability(actor.roles, "tickets.read")
+        ? listTicketQueue(deps, { actor, reason, statuses: ["open", "pending"], limit: LIMITE_POR_FONTE })
+        : null,
+    ),
+    lerOuFalhar(
+      hasCapability(actor.roles, "lgpd.dsar.read") ? listDsarRequests(deps, { actor, limit: LIMITE_POR_FONTE }) : null,
+    ),
+    lerOuFalhar(
+      hasCapability(actor.roles, "retention.read")
+        ? listRetentionJobs(deps, { actor, reason, status: "failed", limit: LIMITE_POR_FONTE })
+        : null,
+    ),
+    // `kind` filtrado no banco, não no resultado: sem isso o teto de linhas
+    // devolvia as mais recentes de qualquer tipo, e um reuso de sessão cedo na
+    // janela ficava fora da página justamente quando há enxurrada de
+    // `login.failed` — que é o cenário em que ele acontece.
+    lerOuFalhar(
+      hasCapability(actor.roles, "security.read")
+        ? listSecurity(deps, { actor, kind: "session.reuse", since: desde24h, limit: LIMITE_POR_FONTE })
+        : null,
+    ),
   ]);
 
   const itens = [
-    tickets && pendenciaDeSuporte(tickets.rows, agora),
-    dsars && pendenciaDeLgpd(dsars.rows, agora),
-    jobs && pendenciaDeRetencao(jobs.rows),
-    seguranca && pendenciaDeSeguranca(seguranca.rows),
+    tickets.estado === "ok" ? pendenciaDeSuporte(tickets.valor.rows, agora) : null,
+    tickets.estado === "falhou" ? pendenciaDeFonteIndisponivel("suporte") : null,
+    dsars.estado === "ok" ? pendenciaDeLgpd(dsars.valor.rows, agora) : null,
+    dsars.estado === "falhou" ? pendenciaDeFonteIndisponivel("lgpd") : null,
+    jobs.estado === "ok" ? pendenciaDeRetencao(jobs.valor.rows) : null,
+    jobs.estado === "falhou" ? pendenciaDeFonteIndisponivel("retencao") : null,
+    seguranca.estado === "ok" ? pendenciaDeSeguranca(seguranca.valor.rows) : null,
+    seguranca.estado === "falhou" ? pendenciaDeFonteIndisponivel("seguranca") : null,
     hasCapability(actor.roles, "subscription.read")
       ? pendenciaDeInadimplencia(input.overdueSubscriptions)
       : null,
