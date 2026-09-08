@@ -176,7 +176,7 @@ export default function GuestCatalogPage() {
         </Showcase>
 
         <Showcase
-          title="Minhas fotos"
+          title="Você"
           note="As fotos que você enviou + CTA pra colagem e vídeo automático."
         >
           <MyPhotosScreen pack={pack} />
