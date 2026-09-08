@@ -18,4 +18,17 @@
   .tipo-caption  { font-family: var(--fonte-corpo); font-size: 0.875rem; font-weight: 400; line-height: 1.45; }
   .tipo-label    { font-family: var(--fonte-corpo); font-size: 0.75rem; font-weight: 500; line-height: 1.2; letter-spacing: 0.05em; }
   .tipo-balance  { text-wrap: balance; }
+
+  /**
+   * Escala densa — superfície de console (tabela, KPI, log), não de
+   * celebração. `.tipo-body` (line-height 1.55) é leitura de parágrafo, não
+   * varredura de coluna; a escala acima inteira não serve para linha de
+   * tabela. `font-family` continua vindo de `--fonte-titulo`/`--fonte-corpo`,
+   * pela mesma razão do bloco acima.
+   */
+  .tipo-den-metrica { font-family: var(--fonte-titulo); font-size: 2rem; font-weight: 400; line-height: 1.0; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .tipo-den-titulo  { font-family: var(--fonte-titulo); font-size: 1.125rem; font-weight: 400; line-height: 1.25; letter-spacing: -0.01em; }
+  .tipo-den-corpo   { font-family: var(--fonte-corpo); font-size: 0.875rem; font-weight: 400; line-height: 1.35; }
+  .tipo-den-dado    { font-family: var(--fonte-corpo); font-size: 0.875rem; font-weight: 400; line-height: 1.35; font-variant-numeric: tabular-nums; }
+  .tipo-den-rotulo  { font-family: var(--fonte-corpo); font-size: 0.75rem; font-weight: 500; line-height: 1.2; letter-spacing: 0.04em; text-transform: uppercase; }
 }

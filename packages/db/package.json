@@ -13,7 +13,8 @@
     "./wall": "./src/wall.ts",
     "./upload": "./src/uploads.ts",
     "./moderation-event": "./src/moderation-event.ts",
-    "./host-events": "./src/host-events.ts"
+    "./host-events": "./src/host-events.ts",
+    "./testes/banco": "./src/testes/banco.ts"
   },
   "scripts": {
     "build": "tsc --build",

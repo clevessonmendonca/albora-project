@@ -22,16 +22,26 @@ export default async function VendorInsightsPage() {
   ]);
 
   const resumos = await Promise.all(
-    vendors.map(async (vendor) => ({
-      vendor,
-      resumo: await resumoDoFornecedor(
-        getPool(),
-        getAggregatorPool(),
-        host.accountId,
-        vendor.vendorId,
-        auditarAgregacaoDoPortal,
-      ),
-    })),
+    vendors.map(async (vendor) => {
+      // Auditoria gravada e AGUARDADA antes de `resumoDoFornecedor` (embrulha
+      // `comAgregacao`, BYPASSRLS) — falha na escrita impede a agregação de rodar.
+      await auditarAgregacaoDoPortal(getPool(), host.accountId, host.email)({
+        motivo: `vendor_insights:${vendor.vendorId}`,
+        em: new Date(),
+      });
+      return {
+        vendor,
+        resumo: await resumoDoFornecedor(
+          getPool(),
+          getAggregatorPool(),
+          host.accountId,
+          vendor.vendorId,
+          () => {
+            // Auditoria já gravada acima, aguardada, antes desta chamada.
+          },
+        ),
+      };
+    }),
   );
 
   return (

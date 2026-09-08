@@ -2,7 +2,7 @@ import { ALBORA_BRAND, resolveTokens } from "@albora/tokens";
 import { describe, expect, it } from "vitest";
 import { WEDDING } from "./casamento";
 import { FIFTEEN_YEARS } from "./quinze-anos";
-import { isValidConfessionPrompt, isValidMissionKey, isValidPlace, PACKS, packProblems, resolvePackText } from "./index";
+import { isValidConfessionPrompt, isValidMissionKey, isValidPlace, PACKS, packProblems, resolvePackText, temLandingPropria } from "./index";
 
 /** Sanidade do CLAUDE.md — só tem valor com dois packs; com um, passaria mesmo que o vocabulário de casamento estivesse no núcleo. */
 describe("trocar o pack muda a UI, não o núcleo", () => {
@@ -96,6 +96,36 @@ describe("trocar o pack muda a UI, não o núcleo", () => {
 
   it("chave ausente devolve a própria chave, nunca vazio", () => {
     expect(resolvePackText(WEDDING, "nao.existe")).toBe("nao.existe");
+  });
+
+  it("momentos não fazem um pack virar landing (ADR 0019)", () => {
+    // Casamento tem momentos E copy de landing — é landing por ter a copy.
+    expect(WEDDING.momentos?.length).toBeGreaterThan(0);
+    expect(temLandingPropria(WEDDING)).toBe(true);
+
+    // Um pack só com momentos, sem copy de landing, é o arco do convidado — não
+    // um funil de marketing, e não deve ser cobrado pela copy da landing.
+    const soMomentos: (typeof WEDDING) = {
+      ...WEDDING,
+      vocabulario: Object.fromEntries(
+        Object.entries(WEDDING.vocabulario).filter(([chave]) => !chave.startsWith("landing.")),
+      ),
+    };
+    expect(soMomentos.momentos?.length).toBeGreaterThan(0);
+    expect(temLandingPropria(soMomentos)).toBe(false);
+  });
+
+  it("todo pack com card de criação traz ícone e ordem", () => {
+    for (const [id, pack] of Object.entries(PACKS)) {
+      if (pack.ordemCriacao === undefined) continue;
+      expect(pack.icone, `${id} é card de tipo e precisa de ícone`).toBeTruthy();
+      expect(Number.isInteger(pack.ordemCriacao), id).toBe(true);
+    }
+    // A ordem de criação é única — dois cards no mesmo lugar é bug de layout.
+    const ordens = Object.values(PACKS)
+      .map((p) => p.ordemCriacao)
+      .filter((o): o is number => o !== undefined);
+    expect(new Set(ordens).size).toBe(ordens.length);
   });
 
   it("o pack entra na cadeia de tokens sem substituir a marca", () => {

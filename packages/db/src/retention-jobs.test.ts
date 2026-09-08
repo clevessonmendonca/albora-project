@@ -3,13 +3,18 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   agendarRetencaoNaTransacao,
   listDueRetentionJobs,
+  listRetentionJobsAdmin,
   processRetentionJob,
+  purgarAcervo,
+  purgeAccountDataOnClient,
   scheduleRetentionJobs,
   type DueRetentionJob,
   type NotificacaoRetencao,
 } from "./retention-jobs";
 import { comEvento } from "./event";
 import { VaultDeTokenDrive } from "./drive-token-vault";
+import { issueDeliveryToken } from "./delivery-tokens";
+import { emitGuestMagicLinkRow } from "./guest-magic-link";
 import { prepararBanco, semear } from "./testes/banco";
 
 /** Contra banco real como `admin` (bypassa RLS) — runner de retenção é cross-event, mesma exigência dos analytics snapshots. */
@@ -76,6 +81,9 @@ async function statusDoJob(id: string): Promise<{ status: string; attempts: numb
 
 const semNotificar = { notify: async (_n: NotificacaoRetencao) => {} };
 
+// `ends_at` relativo ao presente, nunca literal: os quatro kinds só são
+// agendados se as datas derivadas estiverem no futuro, então uma data fixa
+// vira bomba-relógio no dia em que o calendário passa por ela.
 describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000 }, () => {
   it("cria os quatro kinds com due_at derivados de ends_at", async () => {
     // Relativo ao agora, NUNCA data absoluta: `planRetention`
@@ -96,7 +104,7 @@ describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000
   });
 
   it("é idempotente — chamar duas vezes não duplica", async () => {
-    const ends = new Date("2026-09-05T20:00:00Z");
+    const ends = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const eventoId = await criarEvento(ends);
     await scheduleRetentionJobs(admin, eventoId, ends);
     await scheduleRetentionJobs(admin, eventoId, ends);
@@ -109,7 +117,7 @@ describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000
   });
 
   it("agendarRetencaoNaTransacao roda dentro de uma transação já aberta (comEvento)", async () => {
-    const ends = new Date("2026-09-10T20:00:00Z");
+    const ends = new Date(Date.now() + 24 * 60 * 60 * 1000);
     const eventoId = await criarEvento(ends);
     await comEvento(admin, eventoId, (c) => agendarRetencaoNaTransacao(c, eventoId, ends));
 
@@ -448,5 +456,208 @@ describe("processRetentionJob — lock por evento (pg_advisory_xact_lock)", () =
     expect(status.status).toBe("done");
     // attempts incrementa uma vez por execução real — sob o lock, a segunda invocação encontra o status já 'done' e sai sem tocar attempts de novo.
     expect(status.attempts).toBe(1);
+  });
+});
+
+// `due_at` sempre relativo a `Date.now()` — nunca literal (ver nota do
+// commit 23df916): os quatro kinds só existem quando derivados de um
+// `ends_at` no futuro, então uma data fixa vira bomba-relógio.
+describe("listRetentionJobsAdmin", () => {
+  it("traz pendente mesmo sem due_at vencido, diferente de listDueRetentionJobs", async () => {
+    const eventoId = await criarEvento(new Date(Date.now() + HORA));
+    await admin.query(
+      `INSERT INTO retention_jobs (event_id, kind, status, due_at)
+       VALUES ($1, 'plus_48h', 'pending', now() + interval '10 days')`,
+      [eventoId],
+    );
+
+    const { rows } = await listRetentionJobsAdmin(admin, { status: "pending", limit: 100 });
+    expect(rows.some((r) => r.eventId === eventoId)).toBe(true);
+
+    // listDueRetentionJobs é o runner: só o que está due agora — não devolve este.
+    const vencidos = await listDueRetentionJobs(admin, 100);
+    expect(vencidos.some((j) => j.eventId === eventoId)).toBe(false);
+  });
+
+  it("filtra por status failed — nunca devolve o pending do mesmo evento", async () => {
+    const eventoId = await criarEvento(new Date(Date.now() + HORA));
+    const { rows: falhado } = await admin.query<{ id: string }>(
+      `INSERT INTO retention_jobs (event_id, kind, status, due_at, last_error)
+       VALUES ($1, 'd330_drive', 'failed', now() + interval '5 days', 'export_missing')
+       RETURNING id`,
+      [eventoId],
+    );
+    await admin.query(
+      `INSERT INTO retention_jobs (event_id, kind, status, due_at)
+       VALUES ($1, 'plus_48h', 'pending', now() + interval '1 day')`,
+      [eventoId],
+    );
+
+    const { rows } = await listRetentionJobsAdmin(admin, { status: "failed", limit: 100 });
+    expect(rows.every((r) => r.status === "failed")).toBe(true);
+    expect(rows.some((r) => r.id === falhado[0]!.id)).toBe(true);
+    expect(rows.some((r) => r.eventId === eventoId && r.status === "pending")).toBe(false);
+  });
+
+  it("sem filtro de status, falhado aparece antes de pendente do mesmo evento (falhado é trabalho, não item comum)", async () => {
+    const eventoId = await criarEvento(new Date(Date.now() + HORA));
+    await admin.query(
+      `INSERT INTO retention_jobs (event_id, kind, status, due_at)
+       VALUES ($1, 'plus_48h', 'pending', now() + interval '1 day')`,
+      [eventoId],
+    );
+    await admin.query(
+      `INSERT INTO retention_jobs (event_id, kind, status, due_at, last_error)
+       VALUES ($1, 'd358_warn', 'failed', now() + interval '2 days', 'algum erro')`,
+      [eventoId],
+    );
+
+    const { rows } = await listRetentionJobsAdmin(admin, { limit: 100 });
+    const doEvento = rows.filter((r) => r.eventId === eventoId);
+    expect(doEvento[0]?.status).toBe("failed");
+  });
+});
+
+// `prepararBanco()` é chamado DENTRO dos `it()` deste bloco (não num hook),
+// então vale `testTimeout` (30s), não `hookTimeout` (60s). Derrubar o schema,
+// recriar e rodar 64 migrations passa de 30s sob carga — e o estouro acontece
+// DEPOIS do `DROP SCHEMA`, deixando o banco sem schema e cascateando falha
+// para todos os arquivos seguintes da suíte serial.
+describe("purgeAccountDataOnClient", { timeout: 90_000 }, () => {
+  it("purga uploads/drive de todos os eventos da conta e apaga events + accounts na mesma transação", async () => {
+    const pools = await prepararBanco();
+    admin = pools.admin;
+    const app = pools.app;
+
+    const { rows: acc } = await admin.query("INSERT INTO accounts (email) VALUES ($1) RETURNING id", [
+      `excluir-${Math.random().toString(36).slice(2)}@exemplo.test`,
+    ]);
+    const contaId = acc[0].id as string;
+    await admin.query("INSERT INTO packs (id) VALUES ('pack-purge') ON CONFLICT (id) DO NOTHING");
+    const { rows: evento } = await admin.query(
+      `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status)
+       VALUES ($1, 'pack-purge', $2, now(), now() + interval '6 hours', 'active') RETURNING id`,
+      [contaId, `evento-purge-${Math.random().toString(36).slice(2)}`],
+    );
+    const eventoId = evento[0].id as string;
+    const { rows: sessao } = await admin.query(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'convidado-purge', 'v1', now()) RETURNING id`,
+      [eventoId],
+    );
+    const sessaoId = sessao[0].id as string;
+    await admin.query(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes, state)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 1000, 'published')`,
+      [eventoId, sessaoId, `events/${eventoId}/2026/09/foto/full`],
+    );
+
+    const client = await app.connect();
+    let resultado;
+    try {
+      await client.query("BEGIN");
+      resultado = await purgeAccountDataOnClient(client, contaId, {});
+      await client.query("COMMIT");
+    } finally {
+      client.release();
+    }
+
+    expect(resultado.eventIds).toEqual([eventoId]);
+    expect(resultado.keysToDelete).toEqual([`events/${eventoId}/2026/09/foto/full`]);
+
+    const { rows: contaDepois } = await admin.query("SELECT id FROM accounts WHERE id = $1", [contaId]);
+    expect(contaDepois).toHaveLength(0);
+    const { rows: eventoDepois } = await admin.query("SELECT id FROM events WHERE id = $1", [eventoId]);
+    expect(eventoDepois).toHaveLength(0);
+  });
+
+  it("cascade real de magic_links (migration 0012) prova que a conta some e o que referencia accounts.id ON DELETE CASCADE some junto", async () => {
+    const pools = await prepararBanco();
+    admin = pools.admin;
+    const app = pools.app;
+
+    const { rows: acc } = await admin.query("INSERT INTO accounts (email) VALUES ($1) RETURNING id", [
+      `falha-${Math.random().toString(36).slice(2)}@exemplo.test`,
+    ]);
+    const contaId = acc[0].id as string;
+    await admin.query(
+      "INSERT INTO magic_links (token_hash, account_id, expires_at) VALUES ($1, $2, now() + interval '1 hour')",
+      [Buffer.from("trava-de-teste"), contaId],
+    );
+
+    const client = await app.connect();
+    try {
+      await client.query("BEGIN");
+      await expect(purgeAccountDataOnClient(client, contaId, {})).resolves.toBeTruthy();
+      await client.query("COMMIT");
+    } finally {
+      client.release();
+    }
+
+    const { rows } = await admin.query("SELECT 1 FROM magic_links WHERE account_id = $1", [contaId]);
+    expect(rows).toHaveLength(0);
+  });
+});
+
+describe("purgarAcervo — ADR 0019: contato verificado e tokens de entrega/magic-link somem junto do acervo", () => {
+  const SEGREDO_TESTE = "um-segredo-de-teste-com-mais-de-32-caracteres";
+
+  async function semearContatoETokens(eventoId: string): Promise<void> {
+    const { rows: sessao } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'convidado-adr0019', 'v1', now()) RETURNING id`,
+      [eventoId],
+    );
+    const sessaoId = sessao[0]!.id;
+    await admin.query(
+      `INSERT INTO guest_contacts (event_id, session_id, channel, value, verified_at, verified_via)
+       VALUES ($1, $2, 'email', $3, now(), 'magic_link')`,
+      [eventoId, sessaoId, `convidado-${eventoId}@exemplo.test`],
+    );
+    await issueDeliveryToken(admin, SEGREDO_TESTE, eventoId, sessaoId, new Date(Date.now() + HORA));
+    await emitGuestMagicLinkRow(
+      admin,
+      SEGREDO_TESTE,
+      eventoId,
+      sessaoId,
+      `convidado-${eventoId}@exemplo.test`,
+      new Date(Date.now() + 15 * 60 * 1000),
+    );
+  }
+
+  async function contagens(eventoId: string): Promise<{ contatos: number; tokens: number; magicLinks: number }> {
+    const [contatos, tokens, magicLinks] = await Promise.all([
+      admin.query("SELECT 1 FROM guest_contacts WHERE event_id = $1", [eventoId]),
+      admin.query("SELECT 1 FROM delivery_tokens WHERE event_id = $1", [eventoId]),
+      admin.query("SELECT 1 FROM guest_magic_links WHERE event_id = $1", [eventoId]),
+    ]);
+    return {
+      contatos: contatos.rowCount ?? 0,
+      tokens: tokens.rowCount ?? 0,
+      magicLinks: magicLinks.rowCount ?? 0,
+    };
+  }
+
+  it("apaga guest_contacts, delivery_tokens e guest_magic_links do evento purgado, e preserva os de outro evento (isolamento)", async () => {
+    // Conta própria: este bloco roda depois de `purgeAccountDataOnClient`, que
+    // chama `prepararBanco()` de novo e recria o schema — `dados.a.contaId`
+    // (semeado no `beforeAll` original) não sobrevive a esse reset.
+    const { rows: acc } = await admin.query<{ id: string }>(
+      "INSERT INTO accounts (email) VALUES ($1) RETURNING id",
+      [`adr0019-${Math.random().toString(36).slice(2)}@exemplo.test`],
+    );
+    const contaId = acc[0]!.id;
+    await admin.query("INSERT INTO packs (id) VALUES ('pack-um') ON CONFLICT (id) DO NOTHING");
+
+    const ends = new Date(Date.now() + 6 * HORA);
+    const eventoA = await criarEvento(ends, contaId);
+    const eventoB = await criarEvento(ends, contaId);
+    await semearContatoETokens(eventoA);
+    await semearContatoETokens(eventoB);
+
+    await comEvento(admin, eventoA, (cliente) => purgarAcervo(cliente, eventoA));
+
+    expect(await contagens(eventoA)).toEqual({ contatos: 0, tokens: 0, magicLinks: 0 });
+    expect(await contagens(eventoB)).toEqual({ contatos: 1, tokens: 1, magicLinks: 1 });
   });
 });

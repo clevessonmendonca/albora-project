@@ -1,3 +1,4 @@
+import { eventColorVariablesFrom } from "./event-color";
 import { ALBORA_BRAND } from "./marca";
 import { toVariables } from "./outputs";
 import { resolveTokens } from "./resolver";
@@ -32,12 +33,17 @@ export function resolveGuestThemeVariables(input: GuestThemeInput): Record<strin
       ? (input.vendorBrandTokens as TokenLayer)
       : undefined;
 
-  return toVariables(
-    resolveTokens({
-      marca: ALBORA_BRAND,
-      ...(vendorLayer ? { vendor: vendorLayer } : {}),
-      ...(input.packTokens ? { pack: input.packTokens } : {}),
-      ...(eventoLayer ? { evento: eventoLayer } : {}),
-    }),
-  );
+  return {
+    ...toVariables(
+      resolveTokens({
+        marca: ALBORA_BRAND,
+        ...(vendorLayer ? { vendor: vendorLayer } : {}),
+        ...(input.packTokens ? { pack: input.packTokens } : {}),
+        ...(eventoLayer ? { evento: eventoLayer } : {}),
+      }),
+    ),
+    // Camada do casal (`--ev`/`--ev-2`), separada do âmbar do produto — aditiva, então
+    // renderizador que não usa fica igual (design-system-v3 §2).
+    ...eventColorVariablesFrom(input.identityTokens),
+  };
 }

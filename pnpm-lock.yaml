@@ -192,6 +192,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@albora/application':
+        specifier: workspace:*
+        version: link:../../packages/application
       '@albora/core':
         specifier: workspace:*
         version: link:../../packages/core
@@ -201,6 +204,9 @@ importers:
       '@albora/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@albora/integrations':
+        specifier: workspace:*
+        version: link:../../packages/integrations
       '@albora/packs':
         specifier: workspace:*
         version: link:../../packages/packs
@@ -302,7 +308,27 @@ importers:
         specifier: ^4.20.0
         version: 4.124.0(@cloudflare/workers-types@4.20260702.1)
 
-  packages/core: {}
+  packages/application:
+    dependencies:
+      '@albora/core':
+        specifier: workspace:*
+        version: link:../core
+      '@albora/db':
+        specifier: workspace:*
+        version: link:../db
+      pg:
+        specifier: ^8.13.1
+        version: 8.23.0
+    devDependencies:
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.21.0
+
+  packages/core:
+    dependencies:
+      jose:
+        specifier: ^6.2.12
+        version: 6.2.12
 
   packages/curation: {}
 
@@ -318,6 +344,15 @@ importers:
       '@types/pg':
         specifier: ^8.11.10
         version: 8.21.0
+
+  packages/integrations:
+    dependencies:
+      '@albora/core':
+        specifier: workspace:*
+        version: link:../core
+      '@albora/db':
+        specifier: workspace:*
+        version: link:../db
 
   packages/packs:
     dependencies:
@@ -5642,6 +5677,9 @@ packages:
   jiti@2.7.0:
     resolution: {integrity: sha512-AC/7JofJvZGrrneWNaEnJeOLUx+JlGt7tNa0wZiRPT4MY1wmfKjt2+6O2p2uz2+skll8OZZmJMNqeke7kKbNgQ==}
     hasBin: true
+
+  jose@6.2.12:
+    resolution: {integrity: sha512-9NiFmJEex0sy2Dk58j2UGBSHgUs2ypF9eZSu4L6vjOX3Dp96Sw1F3uL+H+D1sx02jZZdzUT0HgvCy59CuvXcWw==}
 
   jpeg-js@0.4.4:
     resolution: {integrity: sha512-WZzeDOEtTOBK4Mdsar0IqEU5sMr3vSV2RqkAIzUEV2BHnUfKGyswWFPFwK5EeDo93K3FohSHbLAjj0s1Wzd+dg==}
@@ -14477,6 +14515,8 @@ snapshots:
   jiti@2.6.1: {}
 
   jiti@2.7.0: {}
+
+  jose@6.2.12: {}
 
   jpeg-js@0.4.4: {}
 

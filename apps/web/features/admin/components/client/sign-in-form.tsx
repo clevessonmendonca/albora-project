@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import React, { useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { PrimaryButton, SecondaryButton, TextField } from "@albora/ui-web";
 import { AlboraLogo } from "@/features/guest/components/client/albora-logo";
@@ -123,6 +123,20 @@ function RequestLink({ next }: { next: string | null }) {
           {status === "sending" ? "Enviando…" : "Enviar link"}
         </PrimaryButton>
       </form>
+      <div className="flex items-center gap-3 text-ink-3" aria-hidden>
+        <span className="h-px flex-1 bg-linha" />
+        <span className="tipo-caption">ou</span>
+        <span className="h-px flex-1 bg-linha" />
+      </div>
+      <SecondaryButton
+        onClick={() =>
+          window.location.assign(
+            `/auth/google/start?surface=host${next ? `&returnTo=${encodeURIComponent(next)}` : ""}`,
+          )
+        }
+      >
+        Entrar com Google
+      </SecondaryButton>
     </SignInPanel>
   );
 }

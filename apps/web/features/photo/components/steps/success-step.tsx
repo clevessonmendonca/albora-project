@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, PrimaryButton, SecondaryButton } from "@albora/ui-web";
+import { ClaimPhotosButton } from "@/features/guest/components/client/claim-photos-button";
 
 type SuccessStepProps = {
   uploadId: string;
@@ -9,6 +10,8 @@ type SuccessStepProps = {
   onViewFeed: () => void;
   showPwaInstall?: boolean;
   onInstallPwa?: () => void;
+  /** Presente só dentro de uma sessão de convidado ativa (ADR 0018) — sem ele, o botão de reivindicar nunca renderiza. */
+  eventId?: string;
 };
 
 const ESTILO = `
@@ -32,6 +35,7 @@ export function SuccessStep({
   onViewFeed,
   showPwaInstall = false,
   onInstallPwa,
+  eventId,
 }: SuccessStepProps) {
   const [show, setShow] = useState(false);
 
@@ -64,6 +68,12 @@ export function SuccessStep({
         <PrimaryButton onClick={onRestart}>Tirar outra foto</PrimaryButton>
         <SecondaryButton onClick={onViewFeed}>Ver todas as fotos</SecondaryButton>
       </div>
+
+      {eventId && (
+        <div className="text-center">
+          <ClaimPhotosButton eventId={eventId} />
+        </div>
+      )}
 
       <p className="text-center tipo-caption text-ink-3">
         ID: {uploadId.slice(0, 12)}...

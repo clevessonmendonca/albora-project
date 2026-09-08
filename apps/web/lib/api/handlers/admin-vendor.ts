@@ -72,11 +72,20 @@ export async function POST(req: Request) {
   }
 
   try {
+    // Auditoria gravada e AGUARDADA antes de `criarFornecedor` (embrulha
+    // `comAgregacao`, BYPASSRLS) — se a escrita falhar, a exceção sobe e cai no
+    // catch abaixo: o fornecedor nunca chega a ser criado.
+    await auditarAgregacaoDoPortal(getPool(), auth.host.accountId, auth.host.email)({
+      motivo: `vendor_onboarding:criar:${auth.host.accountId}`,
+      em: new Date(),
+    });
     const criado = await criarFornecedor(
       getAggregatorPool(),
       auth.host.accountId,
       { name, slug },
-      auditarAgregacaoDoPortal,
+      () => {
+        // Auditoria já gravada acima, aguardada, antes desta chamada.
+      },
     );
     console.log("admin.vendor_criado", {
       accountId: auth.host.accountId,

@@ -843,3 +843,25 @@ export type { VersaoDeConsentimento as ConsentVersion } from "./consent-versions
 export { VERSOES_DE_CONSENTIMENTO as CONSENT_VERSIONS } from "./consent-versions";
 /** English alias — prefer for new code. @see textoDoConsentimento */
 export { textoDoConsentimento as consentVersionText } from "./consent-versions";
+
+export type { Actor, AuthorizationRequest, Capability, Decision, Policy, StaffRole } from "./authorization";
+export {
+  ALL_CAPABILITIES,
+  authorize,
+  hasCapability,
+  POLICIES,
+  REAUTH_MAX_AGE_SECONDS,
+  REFUND_APPROVAL_THRESHOLD_CENTS,
+  ROLE_CAPABILITIES,
+} from "./authorization";
+export { logger } from "./structured-logging";
+export { VENDOR_PLAN_PRICE_CENTS, type VendorPlanTier } from "./vendor-billing";
+
+export type {
+  GoogleJwk,
+  GoogleJwks,
+  MotivoIdTokenInvalido,
+  ValidatedIdentity,
+  ValidateIdTokenInput,
+} from "./oidc/validate-id-token";
+export { InvalidIdTokenError, validateIdToken } from "./oidc/validate-id-token";

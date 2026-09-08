@@ -15,7 +15,15 @@ export type { EntradaFeed, ItemFeed, ModoFeed, PaginaFeed } from "./feed";
 export { codificarCursor, decodificarCursor, ErroCursorInvalido, gateDoEvento, listarFeed, TAMANHO_PAGINA } from "./feed";
 
 export type { MotivoSessaoInvalida, NovaSessao, SessaoResolvida } from "./sessions";
-export { comSessao, criarSessao, ErroNomeInvalido, ErroSessaoInvalida, resolverSessao, revogarSessoesDoEvento } from "./sessions";
+export {
+  comSessao,
+  criarSessao,
+  ErroNomeInvalido,
+  ErroSessaoInvalida,
+  isGuestSessionLive,
+  resolverSessao,
+  revogarSessoesDoEvento,
+} from "./sessions";
 export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from "./token";
 
 export type { EstadoDoEvento, EventoPublico, NovoEvento, Resolucao } from "./events";
@@ -23,9 +31,11 @@ export {
   atualizarChaveImagemCapa,
   carregarEventoPublico,
   criarEvento,
+  definirAberturaDeEntrega,
   ErroContaDoCasalInvalida,
   fusoDoEvento,
   HORAS_APOS_EVENTO,
+  listarEventosComEntregaDevida,
   packDoEvento,
   resolverSlug,
   rotacionarSlug,
@@ -188,17 +198,33 @@ export { perfilDoConvidado } from "./guest-profile";
 
 export { contarVideosDaSessao, planoDoEvento } from "./plan-db";
 
-export type { HostResolvida, HostSessaoCriada, MagicLinkEmitido } from "./host-auth";
+export type { AccountResolvida, HostResolvida, HostSessaoCriada, MagicLinkEmitido } from "./host-auth";
 export {
   consumirMagicLink,
   emitirMagicLink,
   ErroHostSessaoInvalida,
   ErroMagicLinkInvalido,
+  issueMarkedHostSession,
+  resolveOrCreateAccountByEmail,
   resolverHostSessao,
   revogarHostSessao,
   VALIDADE_HOST_SESSAO_HORAS,
   VALIDADE_MAGIC_LINK_MINUTOS,
 } from "./host-auth";
+
+export type { ImpersonationRequestRow, ImpersonationStatus } from "./impersonation";
+export {
+  approveImpersonationRequestOnClient,
+  createImpersonationRequestOnClient,
+  denyImpersonationRequestOnClient,
+  endImpersonationRequestOnClient,
+  getActiveImpersonationForStaff,
+  getImpersonationRequestById,
+  getLatestImpersonationRequestForRequesterAndAccount,
+  IMPERSONATION_TTL_MINUTES,
+  listPendingImpersonationRequestsAdmin,
+  startImpersonationRequestOnClient,
+} from "./impersonation";
 
 export type { ItemDoExport, JobExport } from "./export-db";
 export {
@@ -358,20 +384,32 @@ export { emitirStepUp as issueStepUp } from "./export-db";
 /** English alias — preferred for new code. @see consumirStepUp */
 export { consumirStepUp as consumeStepUp } from "./export-db";
 
-export type { SupportPriority, SupportStatus, SupportTicket } from "./support";
+export type {
+  SupportMessageRow, SupportPriority, SupportStatus, SupportTicket, SupportTicketAdmin,
+  SupportTicketQueueFilter,
+} from "./support";
 export {
+  assignSupportTicketOnClient,
   createSupportTicket,
-  isPlatformOperator,
+  getSupportTicketAdmin,
   listOpenSupportTicketsAdmin,
+  listSupportMessagesAdmin,
   listSupportTicketsForAccount,
   listSupportTicketsForEvent,
+  listSupportTicketsQueueAdmin,
+  respondSupportTicketOnClient,
   slaDueAt,
+  updateSupportTicketPriorityOnClient,
+  updateSupportTicketStatusOnClient,
 } from "./support";
 
 export type { EventMember, EventMemberRole, HostEventRole } from "./memberships";
 export { addEventMember, ensureCoupleMember, listEventMembers, roleForAccountOnEvent } from "./memberships";
 
-export type { BillingPayment, BillingPaymentStatus, VendorSubscription, VendorSubscriptionStatus } from "./billing";
+export type {
+  BillingPayment, BillingPaymentStatus, BillingPaymentSummaryAdmin, RefundablePaymentRow,
+  VendorSubscription, VendorSubscriptionByIdAdmin, VendorSubscriptionStatus,
+} from "./billing";
 export {
   aplicarPlanoPago,
   asaasCustomerIdForAccount,
@@ -380,6 +418,9 @@ export {
   createBillingPayment,
   createVendorSubscription,
   ehAssinaturaDuplicada,
+  getVendorSubscriptionByIdAdmin,
+  listBillingPaymentsForAccountAdmin,
+  listRefundablePaymentsForVendor,
   markPaymentPaidByAsaasId,
   markVendorSubscriptionByAsaasId,
   paymentByAsaasId,
@@ -437,18 +478,29 @@ export {
 } from "./analytics";
 
 export type {
+  AccountPurgeResult,
   DepsProcessarRetencao,
   DueRetentionJob,
+  ListRetentionJobsAdminFilter,
   NotificacaoRetencao,
   ResultadoRetentionJob,
+  RetentionJobAdminRow,
 } from "./retention-jobs";
 export {
+  abrirRefreshTokenParaRevogar,
   agendarRetencaoNaTransacao,
+  chavesDoAcervo,
   listDueRetentionJobs,
+  listRetentionJobsAdmin,
   markRetentionJob,
+  purgarAcervo,
+  purgeAccountDataOnClient,
   processRetentionJob,
   scheduleRetentionJobs,
 } from "./retention-jobs";
+
+export type { AccountPurgeJobRow, AccountPurgeMarkResult } from "./account-purge";
+export { enqueueAccountPurge, listPendingAccountPurgeJobs, markAccountPurgeKey } from "./account-purge";
 
 export type {
   EntradaDeScore,
@@ -477,6 +529,9 @@ export {
   ErroTokenNaoAbre,
   VaultDeTokenDrive,
 } from "./drive-token-vault";
+
+export type { DsarKind, DsarRequestRow, DsarStatus, ListDsarRequestsFilter } from "./dsar";
+export { createDsarRequestOnClient, getDsarRequestAdmin, listDsarRequestsAdmin, updateDsarRequestOnClient } from "./dsar";
 
 export type { EstadoOAuthDrive } from "./drive-oauth-state";
 export {
@@ -507,6 +562,52 @@ export { aceitesDeEntradaPorVersao as entryConsentAcceptancesByVersion } from ".
 /** English alias — preferred for new code. @see aceitesExternosPorVersao */
 export { aceitesExternosPorVersao as externalConsentAcceptancesByVersion } from "./consent-db";
 
+export type { ActiveStaffOption, ResolvedStaffSession, StaffUserRow, StaffUserStatus } from "./staff";
+export {
+  assignStaffRole,
+  consumeStaffMagicLink,
+  createStaffMagicLink,
+  createStaffSession,
+  createStaffUser,
+  findSessionEvenIfRevoked,
+  findStaffByEmail,
+  findStaffById,
+  listActiveStaffUsers,
+  listStaffRoles,
+  markReauthenticated,
+  removeStaffRole,
+  resolveStaffSession,
+  revokeSessionChain,
+  revokeStaffSession,
+  touchStaffSession,
+} from "./staff";
+
+export type {
+  AuditActorKind, AuditEntry, AuditLogFilter, AuditRow, AuditTargetKind,
+  SecurityEvent, SecurityEventFilter, SecurityEventKind, SecurityEventRow,
+} from "./audit";
+export { insertAuditLog, insertSecurityEvent, listAuditLog, listSecurityEvents } from "./audit";
+
+export type { PlatformParticipationDay, PlatformParticipationWindow, PlatformVolumeWindow } from "./platform-analytics";
+export {
+  platformFunnelInWindow,
+  platformParticipationDailySeries,
+  platformParticipationInWindow,
+  platformVolumeInWindow,
+} from "./platform-analytics";
+
+export type {
+  AccountAdminRow, AccountAdminStatus, AccountAdminType, AccountDetailAdmin,
+  AccountEventSummary, ListAccountsAdminFilter, RawAccountContact,
+} from "./accounts-admin";
+export { getAccountDetailAdmin, getRawAccountContact, listAccountsAdmin, maskEmail } from "./accounts-admin";
+
+export type { EventAdminRow, EventAdminStatus, EventDetailAdmin, ListEventsAdminFilter } from "./events-admin";
+export { getEventDetailAdmin, isH1Calculavel, listEventsAdmin } from "./events-admin";
+
+export type { ListVendorSubscriptionsAdminFilter, VendorSubscriptionAdminRow } from "./subscriptions-admin";
+export { listVendorSubscriptionsAdmin } from "./subscriptions-admin";
+
 export type { ClaimedItem } from "./moderation-queue";
 export {
   claimNextForModeration,
@@ -516,3 +617,11 @@ export {
   listEventsWithPendingModeration,
   reclaimStaleModeration,
 } from "./moderation-queue";
+
+export { ErroTokenDeEntrega, issueDeliveryToken, resolveDeliveryToken } from "./delivery-tokens";
+
+export {
+  consumeGuestMagicLink,
+  emitGuestMagicLinkRow,
+  VALIDADE_GUEST_MAGIC_LINK_MINUTOS,
+} from "./guest-magic-link";

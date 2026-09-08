@@ -8,8 +8,10 @@ function ehColisaoDeChaveUnica(e: unknown): boolean {
 /** Já existe como CHECK em `vendor_members` (migration 0030). */
 export type VendorRole = "admin" | "staff";
 
-/** Já existe como CHECK em `vendors.plan` (migration 0037). */
-export type VendorPlan = "starter" | "studio" | "agency";
+import type { VendorPlanTier } from "@albora/core";
+/** Já existe como CHECK em `vendors.plan` (migration 0037). Deriva de core: os
+ *  tiers e o preço têm fonte única em @albora/core/vendor-billing. */
+export type VendorPlan = VendorPlanTier;
 
 /** Já existe como CHECK em `vendors.status` (migration 0037). */
 export type VendorStatus = "trial" | "active" | "suspended" | "churned";

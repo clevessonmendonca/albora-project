@@ -230,6 +230,70 @@ export async function ativarPlanoDoFornecedor(
   });
 }
 
+export type BillingPaymentSummaryAdmin = {
+  id: string;
+  status: BillingPaymentStatus;
+  plan: "celebration" | "vendor";
+  amountCents: number;
+  createdAt: Date;
+};
+
+/** Cross-conta por desenho — chamada sob `withPlatformAggregation` (mesa de suporte, T5; reembolso, T6). */
+export async function listBillingPaymentsForAccountAdmin(
+  pool: Pool,
+  accountId: string,
+  limit = 20,
+): Promise<BillingPaymentSummaryAdmin[]> {
+  const { rows } = await pool.query<{
+    id: string; status: BillingPaymentStatus; plan: "celebration" | "vendor";
+    amount_cents: number; created_at: Date;
+  }>(
+    `SELECT id, status, plan, amount_cents, created_at
+       FROM billing_payments WHERE account_id = $1
+      ORDER BY created_at DESC LIMIT $2`,
+    [accountId, limit],
+  );
+  return rows.map((r) => ({ id: r.id, status: r.status, plan: r.plan, amountCents: r.amount_cents, createdAt: r.created_at }));
+}
+
+export type VendorSubscriptionByIdAdmin = {
+  id: string;
+  vendorId: string;
+  accountId: string;
+  asaasSubscriptionId: string;
+  plan: VendorPlan;
+  status: VendorSubscriptionStatus;
+};
+
+/** Cross-conta por desenho — usada pelos comandos de mutação (T6), nunca pela leitura da tela (que já tem `subscriptionId` embutido). */
+export async function getVendorSubscriptionByIdAdmin(
+  pool: Pool,
+  subscriptionId: string,
+): Promise<VendorSubscriptionByIdAdmin | null> {
+  const { rows } = await pool.query<{
+    id: string;
+    vendor_id: string;
+    account_id: string;
+    asaas_subscription_id: string;
+    plan: VendorPlan;
+    status: VendorSubscriptionStatus;
+  }>(
+    "SELECT id, vendor_id, account_id, asaas_subscription_id, plan, status FROM vendor_subscriptions WHERE id = $1",
+    [subscriptionId],
+  );
+  const r = rows[0];
+  return r
+    ? {
+        id: r.id,
+        vendorId: r.vendor_id,
+        accountId: r.account_id,
+        asaasSubscriptionId: r.asaas_subscription_id,
+        plan: r.plan,
+        status: r.status,
+      }
+    : null;
+}
+
 export async function paymentByAsaasId(
   pool: Pool,
   asaasPaymentId: string,
@@ -260,4 +324,57 @@ export async function paymentByAsaasId(
     amountCents: r.amount_cents,
     invoiceUrl: r.invoice_url,
   };
+}
+
+export type RefundablePaymentRow = {
+  id: string;
+  asaasPaymentId: string;
+  amountCents: number;
+  status: Extract<BillingPaymentStatus, "confirmed" | "received">;
+  paidAt: Date | null;
+};
+
+/**
+ * Vínculo vendor → pagamento: `billing_payments.account_id` é a conta que
+ * pagou (o host do evento, não o fornecedor) — `vendor_members` não entra
+ * aqui, e checar por ele daria zero linhas sempre (é o pertencimento do
+ * PRÓPRIO fornecedor, não uma lista de contas dele). O vínculo real é
+ * `billing_payments.event_id → events.vendor_id` (schema confirmado:
+ * `events.vendor_id` nasce na migration 0001; a migration 0037 indexa
+ * `events (vendor_id, starts_at)` exatamente para leituras como esta).
+ *
+ * Cross-evento por desenho — chamada sob `withPlatformAggregation`, mesma
+ * disciplina de `listBillingPaymentsForAccountAdmin`/`getAccountDetailAdmin`:
+ * `events` tem RLS FORÇADA por `app.event_id` (migration 0001), então
+ * listar pagamentos de TODOS os eventos de um fornecedor de uma vez exige
+ * o papel agregador — sob o pool comum isso devolveria sempre zero linhas,
+ * não um erro.
+ *
+ * "Reembolsável" é `confirmed` ou `received` — nunca `refunded`/`deleted`
+ * (já não há dinheiro a devolver) nem `pending`/`overdue` (ainda não houve
+ * cobrança confirmada).
+ */
+export async function listRefundablePaymentsForVendor(pool: Pool, vendorId: string): Promise<RefundablePaymentRow[]> {
+  const { rows } = await pool.query<{
+    id: string;
+    asaas_payment_id: string;
+    amount_cents: number;
+    status: "confirmed" | "received";
+    paid_at: Date | null;
+  }>(
+    `SELECT bp.id, bp.asaas_payment_id, bp.amount_cents, bp.status, bp.paid_at
+       FROM billing_payments bp
+       JOIN events e ON e.id = bp.event_id
+      WHERE e.vendor_id = $1
+        AND bp.status IN ('confirmed', 'received')
+      ORDER BY bp.paid_at DESC NULLS LAST, bp.created_at DESC`,
+    [vendorId],
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    asaasPaymentId: r.asaas_payment_id,
+    amountCents: r.amount_cents,
+    status: r.status,
+    paidAt: r.paid_at,
+  }));
 }

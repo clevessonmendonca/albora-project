@@ -32,6 +32,8 @@ export {
   TAB_BAR_INSET,
 } from "./guest-chrome";
 export { Dialog } from "./dialog";
+export { ConfirmDialog, type ConfirmDialogProps } from "./confirm-dialog";
+export { DangerDialog, type DangerDialogProps } from "./danger-dialog";
 export { BottomSheet } from "./sheet";
 export { ConsentNote, ErrorMessage, GateNotice, MissionBanner } from "./notice";
 export { authorInitials, PostAuthorAvatar, PostHeader } from "./post-header";
@@ -80,3 +82,18 @@ export { AnimatedCounter } from "./animated-counter";
 export { LiveAnnouncer, announce } from "./live-announcer";
 export { Skeleton } from "./skeleton";
 export { SkipLink } from "./skip-link";
+export {
+  DataTable,
+  type DataTableActiveFilter,
+  type DataTableColumn,
+  type DataTableProps,
+} from "./data-table";
+export { BarChart, Donut, Sparkline, type ChartSeriesPoint } from "./chart";
+export { MetricCard, type MetricCardProps } from "./metric-card";
+export { PageHeader } from "./page-header";
+export { StatusBadge, type StatusBadgeTone } from "./status-badge";
+export { ConsoleEmptyState } from "./empty-state";
+export { EntityHeader, type EntityHeaderStatus } from "./entity-header";
+export { FilterBar } from "./filter-bar";
+export { DetailPanel, type DetailPanelSection } from "./detail-panel";
+export { CommandPalette, type CommandPaletteProps, type CommandPaletteResult } from "./command-palette";

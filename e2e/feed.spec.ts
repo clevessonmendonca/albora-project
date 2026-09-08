@@ -7,8 +7,10 @@ const SLUG = "festa-demo";
 
 async function entrarNoEvento(page: Page, nome = "E2E Feed") {
   await page.goto(`/e/${SLUG}`);
+  // Chegada emocional primeiro; nome/consentimento só depois de entrar.
+  await page.getByRole("button", { name: /entrar na festa/i }).click();
   await page.getByPlaceholder(/tio joão/i).fill(nome);
-  await page.getByRole("button", { name: /fotografar/i }).click();
+  await page.getByRole("button", { name: /continuar/i }).click();
   await page.waitForURL(new RegExp(`/e/${SLUG}/cover`), { waitUntil: "domcontentloaded" });
 }
 

@@ -48,6 +48,74 @@ export type DueRetentionJob = {
   endsAt: Date;
 };
 
+export type RetentionJobAdminRow = {
+  id: string;
+  eventId: string;
+  kind: RetentionKind;
+  status: "pending" | "running" | "done" | "skipped" | "failed";
+  dueAt: Date;
+  attempts: number;
+  lastError: string | null;
+};
+
+export type ListRetentionJobsAdminFilter = { status?: string; limit: number };
+
+/**
+ * Diferente de `listDueRetentionJobs`: não filtra por `due_at` nem por
+ * status pendente/falhado — a tela de console (§10.3) mostra a fila
+ * inteira (pendente, concluído, falhado), porque "cumprimos porque o cron
+ * existe" não é evidência; o runner (`listDueRetentionJobs`) continua só
+ * com o que está due agora, papel diferente. Falhados sempre no topo:
+ * falha de retenção é obrigação legal descumprida, não um item de lista
+ * como outro qualquer.
+ */
+export async function listRetentionJobsAdmin(
+  pool: Pool,
+  filter: ListRetentionJobsAdminFilter,
+): Promise<{ rows: RetentionJobAdminRow[]; nextCursor: null }> {
+  const clauses: string[] = [];
+  const params: unknown[] = [];
+  if (filter.status) {
+    params.push(filter.status);
+    clauses.push(`status = $${params.length}`);
+  }
+  params.push(filter.limit);
+  const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+
+  const { rows } = await pool.query<{
+    id: string;
+    event_id: string;
+    kind: RetentionKind;
+    status: "pending" | "running" | "done" | "skipped" | "failed";
+    due_at: Date;
+    attempts: number;
+    last_error: string | null;
+  }>(
+    `SELECT id, event_id, kind, status, due_at, attempts, last_error
+       FROM retention_jobs ${where}
+      ORDER BY (status = 'failed') DESC, due_at ASC
+      LIMIT $${params.length}`,
+    params,
+  );
+
+  return {
+    rows: rows.map((r) => ({
+      id: r.id,
+      eventId: r.event_id,
+      kind: r.kind,
+      status: r.status,
+      dueAt: r.due_at,
+      attempts: r.attempts,
+      // Cru de proposito: a sanitizacao de PII vive em
+      // packages/application/src/retention/list-retention-jobs.ts
+      // (`sanitizeRetentionError`), que e o unico caminho que chega a tela.
+      // Uma segunda mascara aqui daria mascaramento duplo, nao mais seguranca.
+      lastError: r.last_error,
+    })),
+    nextCursor: null,
+  };
+}
+
 /** Pool deve ter BYPASSRLS/superuser — sem isso o JOIN em events devolve zero e o sintoma é silencioso. */
 export async function listDueRetentionJobs(pool: Pool, limit = 50): Promise<DueRetentionJob[]> {
   const { rows } = await pool.query<{
@@ -292,7 +360,7 @@ async function contarPublicadosAgora(cliente: PoolClient, eventId: string): Prom
   return rows[0]?.n ?? 0;
 }
 
-async function chavesDoAcervo(cliente: PoolClient, eventId: string): Promise<string[]> {
+export async function chavesDoAcervo(cliente: PoolClient, eventId: string): Promise<string[]> {
   const { rows } = await cliente.query<{ storage_key: string }>(
     "SELECT storage_key FROM uploads WHERE event_id = $1 AND state IN ('published', 'removed')",
     [eventId],
@@ -301,7 +369,7 @@ async function chavesDoAcervo(cliente: PoolClient, eventId: string): Promise<str
 }
 
 /** Só para o purge do D365 — ignora o gate de status que `refreshTokenDoEvento` aplica, porque aqui rodamos ANTES de marcar revogado. */
-async function abrirRefreshTokenParaRevogar(
+export async function abrirRefreshTokenParaRevogar(
   cliente: PoolClient,
   eventId: string,
   vault: DriveTokenVault,
@@ -332,7 +400,7 @@ async function abrirRefreshTokenParaRevogar(
 }
 
 /** Apaga ponteiros e revoga Drive; bytes no storage ficam para o chamador (chavesParaApagar). */
-async function purgarAcervo(cliente: PoolClient, eventId: string): Promise<void> {
+export async function purgarAcervo(cliente: PoolClient, eventId: string): Promise<void> {
   await cliente.query(
     "UPDATE uploads SET state = 'purged' WHERE event_id = $1 AND state IN ('published', 'removed')",
     [eventId],
@@ -341,4 +409,66 @@ async function purgarAcervo(cliente: PoolClient, eventId: string): Promise<void>
     "UPDATE drive_connections SET status = 'revogado', revoked_at = now() WHERE event_id = $1 AND status <> 'revogado'",
     [eventId],
   );
+  // ADR 0019: contato verificado e tokens de entrega/magic-link somem junto do acervo — retenção cumprida por job, não por promessa.
+  await cliente.query("DELETE FROM delivery_tokens   WHERE event_id = $1", [eventId]);
+  await cliente.query("DELETE FROM guest_magic_links WHERE event_id = $1", [eventId]);
+  await cliente.query("DELETE FROM guest_contacts    WHERE event_id = $1", [eventId]);
+}
+
+export type AccountPurgeResult = {
+  eventIds: string[];
+  keysToDelete: string[];
+  driveRefreshTokensToRevoke: string[];
+};
+
+/**
+ * Reusa a maquinaria do d365_delete (chavesDoAcervo/purgarAcervo/
+ * abrirRefreshTokenParaRevogar) para TODOS os eventos de uma conta, na
+ * MESMA transação que o chamador já abriu — nunca abre a própria (é isso
+ * que permite ao comando de LGPD gravar `audit_log` e o purge
+ * atomicamente: se o INSERT em audit_log falhar depois, o ROLLBACK desfaz
+ * o purge junto).
+ *
+ * `events.account_id` é `ON DELETE RESTRICT` (migration 0001) — por isso a
+ * ordem importa: primeiro purga uploads/drive por evento (via app.event_id,
+ * a mesma RLS que os jobs de retenção já usam), depois apaga os eventos (o
+ * que libera a restrição), só então a conta. `set_config('app.account_id', ...)`
+ * satisfaz a política `conta_evento` (migration 0013), que soma por OR com
+ * `isolamento_evento` — é o que deixa o `DELETE FROM events WHERE
+ * account_id = $1` apagar TODOS os eventos da conta numa única instrução,
+ * mesmo com `app.event_id` ainda apontando só para o último evento do loop.
+ *
+ * Qualquer FK que bloqueie um destes DELETE estoura — fail-closed
+ * automático: a exceção sobe, o chamador (executeCommand) faz ROLLBACK, a
+ * conta não fica marcada excluída pela metade.
+ */
+export async function purgeAccountDataOnClient(
+  client: PoolClient,
+  accountId: string,
+  opts: { vault?: DriveTokenVault },
+): Promise<AccountPurgeResult> {
+  await client.query("SELECT set_config('app.account_id', $1, true)", [accountId]);
+
+  const { rows: eventos } = await client.query<{ id: string }>(
+    "SELECT id FROM events WHERE account_id = $1",
+    [accountId],
+  );
+
+  const keysToDelete: string[] = [];
+  const driveRefreshTokensToRevoke: string[] = [];
+
+  for (const evento of eventos) {
+    await client.query("SELECT set_config('app.event_id', $1, true)", [evento.id]);
+    keysToDelete.push(...(await chavesDoAcervo(client, evento.id)));
+    if (opts.vault) {
+      const token = await abrirRefreshTokenParaRevogar(client, evento.id, opts.vault);
+      if (token) driveRefreshTokensToRevoke.push(token);
+    }
+    await purgarAcervo(client, evento.id);
+  }
+
+  await client.query("DELETE FROM events WHERE account_id = $1", [accountId]);
+  await client.query("DELETE FROM accounts WHERE id = $1", [accountId]);
+
+  return { eventIds: eventos.map((e) => e.id), keysToDelete, driveRefreshTokensToRevoke };
 }

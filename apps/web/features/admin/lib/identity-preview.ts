@@ -1,4 +1,9 @@
-import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
+import {
+  ALBORA_BRAND,
+  eventColorVariablesFrom,
+  toVariables,
+  resolveTokens,
+} from "@albora/tokens";
 import type { TokenLayer } from "@albora/tokens";
 import type { Pack } from "@albora/packs";
 import type { CSSProperties } from "react";
@@ -20,11 +25,14 @@ export function resolveIdentityPreviewVars(
   pack: Pack,
   identityTokens: Record<string, unknown>,
 ): CSSProperties {
-  return toVariables(
-    resolveTokens({
-      marca: ALBORA_BRAND,
-      ...(pack.tokens ? { pack: pack.tokens } : {}),
-      evento: identityTokens as TokenLayer,
-    }),
-  ) as CSSProperties;
+  return {
+    ...toVariables(
+      resolveTokens({
+        marca: ALBORA_BRAND,
+        ...(pack.tokens ? { pack: pack.tokens } : {}),
+        evento: identityTokens as TokenLayer,
+      }),
+    ),
+    ...eventColorVariablesFrom(identityTokens),
+  } as CSSProperties;
 }
