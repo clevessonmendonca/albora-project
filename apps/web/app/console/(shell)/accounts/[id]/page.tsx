@@ -2,13 +2,13 @@ import React from "react";
 import { notFound, redirect } from "next/navigation";
 import { getAccount, getLatestImpersonationRequestForRequesterAndAccount } from "@albora/application";
 import { hasCapability } from "@albora/core";
-import { DetailPanel, EntityHeader } from "@albora/ui-web";
 import { resolveActor } from "@/lib/console/actor";
 import { getAggregatorPool, getPool } from "@/lib/db";
 import { ROTULO_STATUS, ROTULO_TIPO, TOM_STATUS } from "@/features/console/components/client/accounts-table";
 import { RevealPiiButton } from "@/features/console/components/client/reveal-pii-button";
 import { DeleteAccountDanger } from "@/features/console/components/client/delete-account-danger";
 import { ImpersonationRequestDrawer } from "@/features/console/components/client/impersonation-request-drawer";
+import { ContaCabecalho, PainelDeDetalheConta } from "@/features/console/components/server/contas-cabecalho";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +47,7 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
 
   // `undefined` quando nenhuma capacidade se aplica, o elemento isolado
   // quando só uma se aplica — nunca um fragmento por padrão, que o
-  // `EntityHeader` trataria como truthy mesmo vazio (ADR 0016 §5.5: quem
+  // `ContaCabecalho` trataria como truthy mesmo vazio (ADR 0016 §5.5: quem
   // não tem a capacidade não recebe `actions`, o componente não decide
   // permissão). Array + filter em vez de ternário aninhado: com três
   // capacidades independentes, o ternário de 2 vira 8 ramos — o array
@@ -72,16 +72,18 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
 
   return (
     <>
-      <EntityHeader
+      <ContaCabecalho
+        inicial={conta.type === "vendor" ? "F" : "A"}
         title={conta.maskedEmail}
         subtitle={ROTULO_TIPO[conta.type]}
+        id={conta.id}
         status={{ tone: TOM_STATUS[conta.status], label: ROTULO_STATUS[conta.status] }}
         actions={acoes}
       />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <DetailPanel
-          title="Identidade"
-          sections={[
+        <PainelDeDetalheConta
+          titulo="Identidade"
+          secoes={[
             { key: "contato", label: "Contato", content: <p className="m-0">{conta.maskedEmail}</p>, emptyLabel: "—" },
             {
               key: "criada",
@@ -120,9 +122,9 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
             },
           ]}
         />
-        <DetailPanel
-          title="Atividade"
-          sections={[
+        <PainelDeDetalheConta
+          titulo="Atividade"
+          secoes={[
             {
               key: "eventos",
               label: "Eventos",
@@ -141,9 +143,9 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
             { key: "plano", label: "Plano", content: conta.plan ? <p className="m-0">{conta.plan}</p> : null, emptyLabel: "—" },
           ]}
         />
-        <DetailPanel
-          title="Trilha"
-          sections={[
+        <PainelDeDetalheConta
+          titulo="Trilha"
+          secoes={[
             {
               key: "audit",
               label: "Últimas ações da equipe nesta conta",

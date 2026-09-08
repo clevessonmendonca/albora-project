@@ -56,6 +56,11 @@ function formatarAlvo(row: AuditRow): string {
   return row.targetId ? `${rotulo} · ${row.targetId}` : rotulo;
 }
 
+/** `ip_hash` já é pseudonimizado por HMAC (mesma disciplina de `formatarIp` em `security/page.tsx`) — exibir o prefixo é correlação, não é "desmascarar". */
+function formatarIp(ipHash: string | null): string {
+  return ipHash ? `${ipHash.slice(0, 10)}…` : "—";
+}
+
 function selectClassName(): string {
   return (
     "tipo-caption min-h-11 rounded-token border border-linha bg-superficie px-2 text-ink outline-none " +
@@ -116,8 +121,17 @@ export function AuditTable({ rows, nextCursor }: { rows: AuditRow[]; nextCursor:
   const columns: DataTableColumn<AuditRow>[] = [
     { key: "at", header: "Quando", render: (r) => formatarQuando(r.at) },
     { key: "actor", header: "Ator", render: (r) => formatarAtor(r) },
-    { key: "action", header: "Ação", render: (r) => r.action },
+    {
+      key: "action",
+      header: "Ação",
+      render: (r) => <span className="font-mono tipo-den-dado">{r.action}</span>,
+    },
     { key: "target", header: "Alvo", render: (r) => formatarAlvo(r) },
+    {
+      key: "ip",
+      header: "IP",
+      render: (r) => <span className="font-mono tipo-den-meta text-ink-3">{formatarIp(r.ipHash)}</span>,
+    },
     { key: "reason", header: "Motivo", render: (r) => r.reason },
     {
       key: "metadata",
@@ -189,17 +203,17 @@ export function AuditTable({ rows, nextCursor }: { rows: AuditRow[]; nextCursor:
           </>
         }
       />
-      <DataTable
-        columns={columns}
-        rows={rows}
-        rowKey={(r) => r.id}
-        pageSize={Math.max(rows.length, 1)}
-        pageSizeOptions={[Math.max(rows.length, 1)]}
-        itemLabel="entradas"
-        hasActiveFilters={activeFilters.length > 0 || Boolean(atorAtual)}
-        emptyMessage="Nenhuma entrada de auditoria ainda. Elas aparecem aqui quando a equipe age na plataforma."
-        emptyFilteredMessage="Nenhuma entrada com este filtro"
-      />
+        <DataTable
+          columns={columns}
+          rows={rows}
+          rowKey={(r) => r.id}
+          pageSize={Math.max(rows.length, 1)}
+          pageSizeOptions={[Math.max(rows.length, 1)]}
+          itemLabel="entradas"
+          hasActiveFilters={activeFilters.length > 0 || Boolean(atorAtual)}
+          emptyMessage="Nenhuma entrada de auditoria ainda. Elas aparecem aqui quando a equipe age na plataforma."
+          emptyFilteredMessage="Nenhuma entrada com este filtro"
+        />
       {nextCursor && (
         <a
           href={`/console/audit?${(() => {

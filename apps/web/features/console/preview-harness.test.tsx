@@ -22,6 +22,35 @@ import {
   PainelH1,
 } from "./components/server/overview-sections";
 import { funilComercial, maiorPerdaComercial } from "@albora/core";
+import { DataTable, StatusBadge, type DataTableColumn } from "@albora/ui-web";
+import { TituloDaTela } from "./components/server/console-primitivos";
+
+type ContaFake = { id: string; email: string; tipo: string; plano: string; eventos: number; status: string };
+
+const CONTAS: ContaFake[] = [
+  { id: "c1", email: "an•••@gmail.com", tipo: "Anfitrião", plano: "Completo", eventos: 1, status: "Ativa" },
+  { id: "c2", email: "co•••@belavista.com.br", tipo: "Fornecedor", plano: "Fornecedor", eventos: 14, status: "Ativa" },
+  { id: "c3", email: "ma•••@outlook.com", tipo: "Anfitrião", plano: "Grátis", eventos: 1, status: "Inadimplente" },
+  { id: "c4", email: "ju•••@icloud.com", tipo: "Anfitrião", plano: "Completo", eventos: 2, status: "Ativa" },
+];
+
+const COLUNAS_CONTAS: DataTableColumn<ContaFake>[] = [
+  { key: "email", header: "Contato", render: (r) => r.email },
+  {
+    key: "tipo",
+    header: "Tipo",
+    render: (r) => <StatusBadge tone={r.tipo === "Fornecedor" ? "informativo" : "neutral"}>{r.tipo}</StatusBadge>,
+  },
+  { key: "plano", header: "Plano", render: (r) => r.plano },
+  { key: "eventos", header: "Eventos", align: "end", render: (r) => r.eventos },
+  {
+    key: "status",
+    header: "Status",
+    render: (r) => (
+      <StatusBadge tone={r.status === "Inadimplente" ? "critico" : "positive"}>{r.status}</StatusBadge>
+    ),
+  },
+];
 
 const actor: Actor = {
   staffUserId: "clevesson",
@@ -87,7 +116,28 @@ it.skipIf(!process.env["PREVIEW"])("gera preview", async () => {
     </ConsoleShell>,
   );
 
+  const listas = renderToStaticMarkup(
+    <ConsoleShell actor={actor} counts={{ "/console/support": { count: 2, critico: true } }}>
+      <TituloDaTela
+        titulo="Contas"
+        descricao="Contato do titular vem mascarado. Revelar é ação registrada na auditoria."
+      />
+      <DataTable
+        columns={COLUNAS_CONTAS}
+        rows={CONTAS}
+        rowKey={(r) => r.id}
+        itemLabel="contas"
+        searchValue=""
+        searchPlaceholder="Buscar conta, e-mail, id do evento"
+        onSearchChange={() => {}}
+        emptyMessage="Nenhuma conta."
+        emptyFilteredMessage="Nenhuma conta com esse filtro."
+      />
+    </ConsoleShell>,
+  );
+
   fs.mkdirSync("/tmp/albora-preview", { recursive: true });
   fs.writeFileSync("/tmp/albora-preview/body.html", corpo);
+  fs.writeFileSync("/tmp/albora-preview/body-listas.html", listas);
   console.log("PREVIEW_BYTES", corpo.length);
 }, 120_000);

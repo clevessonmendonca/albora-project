@@ -37,9 +37,17 @@ const entrada = ["tailwind.css", "tipografia.css", "base.css"]
   .join("\n");
 const { css } = await postcss([tw({ base: raiz })]).process(entrada, { from: path.join(raiz, "tailwind.css") });
 
-const corpo = fs.readFileSync(path.join(SAIDA, "body.html"), "utf8");
-fs.writeFileSync(
-  path.join(SAIDA, "console.html"),
-  `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Console — preview</title><style>${css}</style></head><body style="margin:0">${corpo}</body></html>`,
-);
-console.log(`preview em ${path.join(SAIDA, "console.html")} · CSS ${css.length} bytes`);
+const paginas = fs
+  .readdirSync(SAIDA)
+  .filter((f) => f.startsWith("body") && f.endsWith(".html"))
+  .map((f) => [f, f === "body.html" ? "console.html" : `console-${f.slice("body-".length)}`]);
+
+for (const [origem, destino] of paginas) {
+  const corpo = fs.readFileSync(path.join(SAIDA, origem), "utf8");
+  fs.writeFileSync(
+    path.join(SAIDA, destino),
+    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Console — preview</title><style>${css}</style></head><body style="margin:0">${corpo}</body></html>`,
+  );
+  console.log(`preview: ${path.join(SAIDA, destino)}`);
+}
+console.log(`CSS ${css.length} bytes`);

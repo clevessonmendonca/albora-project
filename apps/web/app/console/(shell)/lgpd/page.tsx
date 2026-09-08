@@ -3,11 +3,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { listDsarRequests, type DsarKind, type DsarRequestRow } from "@albora/application";
 import { hasCapability } from "@albora/core";
-import { ConsoleEmptyState, DataTable, PageHeader, StatusBadge, type DataTableColumn, type StatusBadgeTone } from "@albora/ui-web";
+import { ConsoleEmptyState, DataTable, StatusBadge, type DataTableColumn, type StatusBadgeTone } from "@albora/ui-web";
 import { resolveActor } from "@/lib/console/actor";
 import { getPool } from "@/lib/db";
 import { DsarForm } from "@/features/console/components/client/dsar-form";
 import { DsarRequestActions } from "@/features/console/components/client/dsar-request-actions";
+import { FaixaDeMetricas, formatarNumero } from "@/features/console/components/server/overview-sections";
+import { Painel, TituloDaTela } from "@/features/console/components/server/console-primitivos";
 
 export const dynamic = "force-dynamic";
 
@@ -74,6 +76,7 @@ export default async function LgpdPage() {
   );
   const agora = new Date();
   const podeGerenciar = hasCapability(actor.roles, "lgpd.dsar.execute");
+  const vencidos = rows.filter((r) => diasRestantes(r.legalDueAt, agora) < 0).length;
 
   const columns: DataTableColumn<DsarRequestRow>[] = [
     { key: "kind", header: "Tipo", render: (r) => ROTULO_KIND[r.kind] },
@@ -106,34 +109,46 @@ export default async function LgpdPage() {
 
   return (
     <>
-      <PageHeader
-        title="LGPD"
-        description="Pedidos de titular com prazo legal — precisa provar que foi cumprido, não lembrar que foi."
-        actions={
+      <TituloDaTela
+        titulo="LGPD · pedidos do titular (DSAR)"
+        descricao="Pedidos de titular com prazo legal — precisa provar que foi cumprido, não lembrar que foi."
+        acoes={
           <Link href="/console/retention" className="tipo-den-corpo text-acento-texto no-underline">
             Ver retenção →
           </Link>
         }
       />
+
+      {rows.length > 0 && (
+        <FaixaDeMetricas
+          metricas={[
+            { rotulo: "Abertos", valor: formatarNumero(rows.length) },
+            { rotulo: "Vencidos", valor: formatarNumero(vencidos), ...(vencidos > 0 ? { nota: "prazo legal" } : {}) },
+            { rotulo: "No prazo", valor: formatarNumero(rows.length - vencidos) },
+          ]}
+        />
+      )}
+
       {podeGerenciar && <DsarForm />}
-      <div className="mt-6">
-        {rows.length === 0 ? (
+
+      {rows.length === 0 ? (
+        <Painel>
           <ConsoleEmptyState
             title="Nenhum pedido aberto"
             description="Pedidos de acesso, portabilidade, retificação ou exclusão aparecem aqui, com o prazo mais próximo do vencimento no topo."
           />
-        ) : (
-          <DataTable
-            columns={columns}
-            rows={rows}
-            rowKey={(r) => r.id}
-            pageSize={Math.max(rows.length, 1)}
-            pageSizeOptions={[Math.max(rows.length, 1)]}
-            itemLabel="pedidos"
-            emptyMessage="Nenhum pedido."
-          />
-        )}
-      </div>
+        </Painel>
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={rows}
+          rowKey={(r) => r.id}
+          pageSize={Math.max(rows.length, 1)}
+          pageSizeOptions={[Math.max(rows.length, 1)]}
+          itemLabel="pedidos"
+          emptyMessage="Nenhum pedido."
+        />
+      )}
     </>
   );
 }

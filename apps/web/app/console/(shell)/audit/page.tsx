@@ -1,7 +1,8 @@
 import React from "react";
 import { redirect } from "next/navigation";
 import { listAudit, type AuditTargetKind } from "@albora/application";
-import { PageHeader } from "@albora/ui-web";
+import { SegurancaIcon } from "@/features/console/components/server/console-icons";
+import { TituloDaTela } from "@/features/console/components/server/console-primitivos";
 import { resolveActor } from "@/lib/console/actor";
 import { getPool } from "@/lib/db";
 import { AuditTable } from "@/features/console/components/client/audit-table";
@@ -53,10 +54,18 @@ export default async function AuditPage({
 
   return (
     <>
-      <PageHeader
-        title="Auditoria"
-        description="Trilha que prova o que a equipe fez — leitura por construção, sem ação. audit_log é append-only."
+      <TituloDaTela
+        titulo="Auditoria"
+        descricao="Trilha que prova o que a equipe fez — leitura por construção, sem ação. audit_log é append-only."
       />
+      <p className="mb-4 flex w-fit items-center gap-2 rounded-superficie bg-superficie-alta px-3 py-1.5">
+        <span aria-hidden className="text-ink-3">
+          <SegurancaIcon size={14} />
+        </span>
+        <span className="tipo-den-meta text-ink-2">
+          Registro imutável (append-only). Não pode ser editado nem apagado.
+        </span>
+      </p>
       <AuditTable rows={rows} nextCursor={nextCursor} />
     </>
   );

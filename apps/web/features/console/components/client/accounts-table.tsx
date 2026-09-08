@@ -102,7 +102,12 @@ export function AccountsTable({ rows, nextCursor }: { rows: AccountAdminRow[]; n
 
   const columns: DataTableColumn<AccountAdminRow>[] = [
     { key: "email", header: "Conta", sortable: true, render: (r) => r.maskedEmail },
-    { key: "type", header: "Tipo", sortable: true, render: (r) => ROTULO_TIPO[r.type] },
+    {
+      key: "type",
+      header: "Tipo",
+      sortable: true,
+      render: (r) => <StatusBadge tone={r.type === "vendor" ? "informativo" : "neutral"}>{ROTULO_TIPO[r.type]}</StatusBadge>,
+    },
     { key: "plan", header: "Plano", sortable: true, render: (r) => r.plan ?? "—" },
     { key: "eventCount", header: "Eventos", sortable: true, align: "end", render: (r) => String(r.eventCount) },
     { key: "createdAt", header: "Criada", sortable: true, render: (r) => formatarData(r.createdAt) },
