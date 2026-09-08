@@ -146,10 +146,19 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - name: Semear banco para fluxo do convidado
         run: pnpm db:semear
+      # O E2E roda contra build de produção, nunca contra `pnpm dev`. Em dev o
+      # Next compila cada rota na primeira requisição, e num runner com `.next`
+      # sempre frio essa compilação cai dentro do orçamento de 30s do teste que
+      # tocar a rota primeiro — /e/[slug] medido em 31,7s ocioso, 62,6s sob carga.
+      # O gate passava a reprovar por disputa de runner, treinando o time a
+      # re-rodar sem ler o log. Ver docs/adr/0016 e tools/e2e/medir-compilacao.mjs.
+      - name: Build de produção (tira a compilação do orçamento do teste)
+        run: pnpm build
       # Landing sempre; fluxo completo do convidado com E2E_FULL=1.
       - run: pnpm test:e2e:full
         env:
           E2E_FULL: "1"
+          E2E_BUILT: "1"
       - name: Publicar relatório Playwright
         uses: actions/upload-artifact@v7
         if: failure()
