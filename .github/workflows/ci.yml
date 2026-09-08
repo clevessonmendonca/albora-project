@@ -151,7 +151,7 @@ jobs:
       # sempre frio essa compilação cai dentro do orçamento de 30s do teste que
       # tocar a rota primeiro — /e/[slug] medido em 31,7s ocioso, 62,6s sob carga.
       # O gate passava a reprovar por disputa de runner, treinando o time a
-      # re-rodar sem ler o log. Ver docs/adr/0016 e tools/e2e/medir-compilacao.mjs.
+      # re-rodar sem ler o log. Ver docs/adr/0021 e tools/e2e/medir-compilacao.mjs.
       - name: Build de produção (tira a compilação do orçamento do teste)
         run: pnpm build
       # Landing sempre; fluxo completo do convidado com E2E_FULL=1.

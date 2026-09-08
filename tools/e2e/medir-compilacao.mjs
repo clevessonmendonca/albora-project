@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Mede quanto a PRIMEIRA resposta de cada rota do convidado custa — o número
- * que decidiu o ADR 0016.
+ * que decidiu o ADR 0021.
  *
  * Serve para reproduzir sob demanda a intermitência que antes só aparecia por
  * acaso no CI: contra `pnpm dev` com `.next` frio, a compilação sob demanda da
