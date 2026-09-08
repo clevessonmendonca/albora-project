@@ -54,41 +54,47 @@ async function mockCaminhoUpload(page: Page): Promise<void> {
 test.describe("smoke — fluxo do convidado", () => {
   // Todos os testes abaixo dependem de pnpm db:semear porque a resolução do slug (/e/[slug]/page.tsx) é server-side e não interceptável via route(). A validação na CI roda com E2E_FULL=1 após o seed.
 
-  test("tela de entrada: campo de nome, consentimento pré-marcado e botão desabilitado", async ({
+  test("chegada emocional e, após entrar, campo de nome + consentimento pré-marcado", async ({
     page,
   }) => {
     test.skip(!E2E_FULL, "Requer pnpm db:semear e E2E_FULL=1");
 
     await page.goto(`/e/${SLUG}`);
 
-    // Campo de nome visível com placeholder correto
+    // Chegada: convite emocional, sem pedir identidade ainda
+    await expect(page.getByText(/você foi convidado para/i)).toBeVisible();
+    await expect(page.getByPlaceholder(/tio joão/i)).toBeHidden();
+
+    // "Entrar na festa" revela a identidade
+    await page.getByRole("button", { name: /entrar na festa/i }).click();
+
     const campoNome = page.getByPlaceholder(/tio joão/i);
     await expect(campoNome).toBeVisible();
 
     // Consentimento já pré-marcado (useState(true) no EntryFlow)
     await expect(page.getByRole("checkbox")).toBeChecked();
 
-    // Botão desabilitado enquanto nome está vazio
-    const botaoFotografar = page.getByRole("button", { name: /fotografar/i });
-    await expect(botaoFotografar).toBeDisabled();
+    // Ação primária desabilitada enquanto nome está vazio
+    const botaoContinuar = page.getByRole("button", { name: /continuar/i });
+    await expect(botaoContinuar).toBeDisabled();
 
-    // Preencher nome habilita o botão
     await campoNome.fill("E2E Convidado");
-    await expect(botaoFotografar).toBeEnabled();
+    await expect(botaoContinuar).toBeEnabled();
   });
 
-  test("recusar consentimento exibe saída e botão Voltar retorna ao formulário", async ({
+  test("recusar consentimento exibe saída e botão Voltar retorna à identidade", async ({
     page,
   }) => {
     test.skip(!E2E_FULL, "Requer pnpm db:semear e E2E_FULL=1");
 
     await page.goto(`/e/${SLUG}`);
+    await page.getByRole("button", { name: /entrar na festa/i }).click();
 
     // Toca "Prefiro não" — etapa muda para "recusou"
     await page.getByRole("button", { name: /prefiro não/i }).click();
     await expect(page.getByText(/tudo bem/i)).toBeVisible();
 
-    // "Voltar" retorna ao formulário de entrada
+    // "Voltar" retorna ao formulário de identidade
     await page.getByRole("button", { name: /voltar/i }).click();
     await expect(page.getByPlaceholder(/tio joão/i)).toBeVisible();
   });
@@ -111,14 +117,16 @@ test.describe("smoke — fluxo do convidado", () => {
     // 1. Navega pela URL gerada pelo QR
     await page.goto(`/e/${SLUG}`);
 
-    // 2. Tela de entrada carrega com campo de nome e consentimento
+    // 2. Chegada emocional → entrar na festa revela a identidade
+    await page.getByRole("button", { name: /entrar na festa/i }).click();
+
     const campoNome = page.getByPlaceholder(/tio joão/i);
     await expect(campoNome).toBeVisible();
     await expect(page.getByRole("checkbox")).toBeChecked();
 
-    // 3. Preenche o nome e submete
+    // 3. Preenche o nome e continua
     await campoNome.fill("E2E Smoke");
-    await page.getByRole("button", { name: /fotografar/i }).click();
+    await page.getByRole("button", { name: /continuar/i }).click();
 
     // 4. Redireciona para o cover do evento
     await page.waitForURL(`**/e/${SLUG}/cover`, { waitUntil: "domcontentloaded" });

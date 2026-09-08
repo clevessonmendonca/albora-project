@@ -4,8 +4,10 @@ const E2E_FULL = !!process.env.E2E_FULL;
 
 async function entrarNoEvento(page: Page, nome = "E2E") {
   await page.goto("/e/festa-demo");
+  // Chegada emocional primeiro; nome/consentimento só depois de entrar.
+  await page.getByRole("button", { name: /entrar na festa/i }).click();
   await page.getByPlaceholder(/tio joão/i).fill(nome);
-  await page.getByRole("button", { name: /fotografar/i }).click();
+  await page.getByRole("button", { name: /continuar/i }).click();
   await page.waitForURL(/\/e\/festa-demo\/cover/, { waitUntil: "domcontentloaded" });
 }
 
