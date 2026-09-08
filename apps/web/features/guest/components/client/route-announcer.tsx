@@ -9,7 +9,7 @@ const ROUTE_NAMES: Record<string, string> = {
   "/feed": "Feed",
   "/missions": "Missões",
   "/album": "Álbum",
-  "/my-photos": "Minhas fotos",
+  "/my-photos": "Você",
   "/photo": "Mandar foto",
   "/music": "Música",
 };

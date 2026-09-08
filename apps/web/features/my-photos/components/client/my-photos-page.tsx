@@ -210,7 +210,7 @@ export function MyPhotosPage({
       <GuestShell>
         <GuestMain>
           <GuestHeader
-            title="Minhas fotos"
+            title="Você"
             homeHref={`/e/${encodeURIComponent(slug)}/cover`}
             action={
               !galeria.carregando ? (
