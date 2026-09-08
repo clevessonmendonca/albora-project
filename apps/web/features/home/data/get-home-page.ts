@@ -12,6 +12,7 @@ export type HomePageData = {
   coverHref: string;
   cameraPath: string;
   anfitriaoPlural: string;
+  recadoRotulo: string;
 };
 
 /** `eventName` via `eventNameFromPack` — quando o campo de título for configurável, troca aqui, num lugar só. */
@@ -24,5 +25,6 @@ export function getHomePage({ slug, evento }: HomePageInput): HomePageData {
     coverHref: `${base}/cover`,
     cameraPath: `${base}/photo`,
     anfitriaoPlural: packText(evento.packId, "anfitriao.plural"),
+    recadoRotulo: packText(evento.packId, "recado.rotulo"),
   };
 }
