@@ -2,10 +2,11 @@ import React from "react";
 import { redirect } from "next/navigation";
 import { hasCapability, maiorPerdaComercial } from "@albora/core";
 import { getConsoleAttention, getPlatformOverview, getPlatformRevenue, listLiveEvents } from "@albora/application";
-import { MetricCard, PageHeader } from "@albora/ui-web";
 import { diasDoPeriodo, PERIODOS, periodoValido } from "@/features/console/components/client/console-periodo";
 import {
+  CabecalhoDaVisaoGeral,
   EventosAoVivo,
+  FaixaDeMetricas,
   FilaDeAtencao,
   formatarNumero,
   FunilComercial,
@@ -22,13 +23,15 @@ function formatarReais(centavos: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(centavos / 100);
 }
 
-/**
- * `exactOptionalPropertyTypes` proíbe `anterior={undefined}` explícito — a
- * prop tem que estar ausente, não presente com valor `undefined`. Sem
- * baseline honesto (`v === null`), o spread não inclui a chave nenhuma.
- */
-function propAnterior(v: number | null): { anterior: number } | Record<string, never> {
-  return v === null ? {} : { anterior: v };
+/** Sem baseline honesto não há comparação a mostrar — nem seta, nem 0%. */
+function variacao(atual: number, anterior: number | null): string | undefined {
+  if (anterior === null || anterior === 0) return undefined;
+  const delta = Math.round(((atual - anterior) / anterior) * 100);
+  return `${delta >= 0 ? "+" : ""}${delta}% vs. período anterior`;
+}
+
+function nota(valor: string | undefined): { nota: string } | Record<string, never> {
+  return valor === undefined ? {} : { nota: valor };
 }
 
 /**
@@ -65,53 +68,53 @@ export default async function ConsolePage({
       : Promise.resolve({ rows: [] }),
   ]);
 
+  const criticas = pendencias.filter((p) => p.severidade === "critico").length;
+
   return (
     <>
-      <PageHeader
-        title="O que pede atenção agora."
-        description={`Janela: ${rotuloJanela}. A fila reúne só o que cruzou prazo, risco ou impacto — o resto segue abaixo, para acompanhar.`}
+      <CabecalhoDaVisaoGeral
+        janela={valor === "hoje" ? "Hoje" : `Nos últimos ${rotuloJanela}`}
+        pendencias={pendencias.length}
+        criticas={criticas}
       />
 
       <FilaDeAtencao itens={pendencias} />
 
-      <h2 className="tipo-den-titulo mb-3">Saúde da plataforma</h2>
+      <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(18rem,22rem)_1fr]">
+        <PainelH1 atual={overview.h1.current} serie={overview.h1Series} />
 
-      <PainelH1 atual={overview.h1.current} serie={overview.h1Series} janela="30 dias" />
+        <div className="flex flex-col gap-4">
+          <FaixaDeMetricas
+            metricas={[
+              {
+                rotulo: "Receita recorrente",
+                valor: formatarReais(revenue.mrrCents),
+                nota: `${formatarNumero(revenue.activeSubscriptions)} assinatura(s) ativa(s)`,
+              },
+              {
+                rotulo: "Churn estimado",
+                valor: `≈ ${formatarNumero(revenue.churned30d.value)}`,
+                nota: revenue.churned30d.approximationBasis,
+              },
+              {
+                rotulo: "Eventos ativos",
+                valor: formatarNumero(overview.eventsActive.current),
+                ...nota(variacao(overview.eventsActive.current, overview.eventsActive.baseline)),
+              },
+              {
+                rotulo: "Convidados no período",
+                valor: formatarNumero(overview.guestsReached.current),
+                ...nota(variacao(overview.guestsReached.current, overview.guestsReached.baseline)),
+              },
+            ]}
+          />
 
-      <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          rotulo="Receita recorrente"
-          valor={formatarReais(revenue.mrrCents)}
-          valorNumerico={revenue.mrrCents}
-          bomQuando="sobe"
-          janela="Assinaturas ativas de fornecedor"
-        />
-        <MetricCard
-          rotulo="Churn de fornecedor ≈"
-          valor={`≈ ${formatarNumero(revenue.churned30d.value)}`}
-          valorNumerico={revenue.churned30d.value}
-          bomQuando="desce"
-          janela={revenue.churned30d.approximationBasis}
-        />
-        <MetricCard
-          rotulo="Eventos ativos"
-          valor={formatarNumero(overview.eventsActive.current)}
-          valorNumerico={overview.eventsActive.current}
-          {...propAnterior(overview.eventsActive.baseline)}
-          bomQuando="sobe"
-          janela={`Últimos ${rotuloJanela}`}
-        />
-        <MetricCard
-          rotulo="Convidados alcançados"
-          valor={formatarNumero(overview.guestsReached.current)}
-          valorNumerico={overview.guestsReached.current}
-          {...propAnterior(overview.guestsReached.baseline)}
-          bomQuando="sobe"
-          janela={`Últimos ${rotuloJanela}`}
-        />
-      </section>
-
-      <FunilComercial degraus={overview.commercialFunnel} perda={maiorPerdaComercial(overview.commercialFunnel)} />
+          <FunilComercial
+            degraus={overview.commercialFunnel}
+            perda={maiorPerdaComercial(overview.commercialFunnel)}
+          />
+        </div>
+      </div>
 
       <EventosAoVivo eventos={aoVivo.rows} />
     </>

@@ -24,7 +24,21 @@ describe("visibleNavItems", () => {
 
   it("nav de owner mostra tudo", () => {
     const labels = visibleNavItems(actor(["owner"])).map((i) => i.label);
-    expect(labels.length).toBe(9);
+    expect(labels.length).toBe(10);
+  });
+
+  it("Retenção está no nav — a página existia e não tinha como chegar nela", () => {
+    const itens = visibleNavItems(actor(["owner"]));
+    const retencao = itens.find((i) => i.href === "/console/retention");
+    expect(retencao?.label).toBe("Retenção");
+    expect(retencao?.group).toBe("operacao");
+    expect(retencao?.capability).toBe("retention.read");
+  });
+
+  it("todo item de nav aponta para uma capability e um ícone — rótulo sozinho não é o alvo de clique", () => {
+    for (const item of visibleNavItems(actor(["owner"]))) {
+      expect(typeof item.Icone).toBe("function");
+    }
   });
 
   it("nav de engineering não mostra Contas nem Assinaturas", () => {

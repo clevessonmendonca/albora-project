@@ -2,10 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "dev",
-      "runtimeExecutable": "bash",
-      "runtimeArgs": [".claude/dev-node22.sh"],
-      "port": 3000
+      "name": "preview-estatico",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4599", "--directory", "/tmp/albora-preview"],
+      "port": 4599
     }
   ]
 }

@@ -137,8 +137,8 @@ describe("ConsolePage — funil comercial", () => {
         ],
       },
     });
-    expect(html).toContain("Maior perda: Contas → Eventos");
-    expect(html).not.toContain("Maior perda: Checkout → Pago");
+    expect(html).toContain("<b>Contas → Eventos</b>");
+    expect(html).not.toContain("<b>Checkout → Pago</b>");
   });
 
   it("mostra o funil comercial e não a espinha do convidado — funil de uso é do detalhe do evento", async () => {

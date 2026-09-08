@@ -5,6 +5,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { hasCapability, type Actor, type Capability } from "@albora/core";
 import { StatusBadge } from "@albora/ui-web";
+import {
+  AssinaturasIcon,
+  AuditoriaIcon,
+  ContasIcon,
+  EquipeIcon,
+  EventosIcon,
+  LgpdIcon,
+  RetencaoIcon,
+  SegurancaIcon,
+  SuporteIcon,
+  VisaoGeralIcon,
+} from "./console-icons";
 
 export type ConsoleNavGroupId = "negocio" | "operacao" | "governanca";
 
@@ -13,6 +25,8 @@ export type ConsoleNavItem = {
   readonly label: string;
   readonly capability: Capability;
   readonly group: ConsoleNavGroupId;
+  /** Reforço do rótulo, nunca substituto: some do acessível, some do sentido. */
+  readonly Icone: (props: { size?: number }) => React.ReactElement;
 };
 
 export const CONSOLE_NAV_GROUP_LABELS: Readonly<Record<ConsoleNavGroupId, string>> = {
@@ -25,15 +39,16 @@ const CONSOLE_NAV_GROUP_ORDER: readonly ConsoleNavGroupId[] = ["negocio", "opera
 
 /** Mapa item→capacidade num único array tipado (§7 do adendo) — nunca espalhado em condicionais. */
 export const CONSOLE_NAV_ITEMS: readonly ConsoleNavItem[] = [
-  { href: "/console", label: "Visão geral", capability: "analytics.platform.read", group: "negocio" },
-  { href: "/console/accounts", label: "Contas", capability: "accounts.read", group: "negocio" },
-  { href: "/console/events", label: "Eventos", capability: "events.read", group: "negocio" },
-  { href: "/console/subscriptions", label: "Assinaturas", capability: "subscription.read", group: "negocio" },
-  { href: "/console/support", label: "Suporte", capability: "tickets.read", group: "operacao" },
-  { href: "/console/lgpd", label: "LGPD", capability: "lgpd.dsar.read", group: "operacao" },
-  { href: "/console/audit", label: "Auditoria", capability: "audit.read", group: "governanca" },
-  { href: "/console/security", label: "Segurança", capability: "security.read", group: "governanca" },
-  { href: "/console/staff", label: "Equipe", capability: "staff.manage", group: "governanca" },
+  { href: "/console", label: "Visão geral", capability: "analytics.platform.read", group: "negocio", Icone: VisaoGeralIcon },
+  { href: "/console/accounts", label: "Contas", capability: "accounts.read", group: "negocio", Icone: ContasIcon },
+  { href: "/console/events", label: "Eventos", capability: "events.read", group: "negocio", Icone: EventosIcon },
+  { href: "/console/subscriptions", label: "Assinaturas", capability: "subscription.read", group: "negocio", Icone: AssinaturasIcon },
+  { href: "/console/support", label: "Suporte", capability: "tickets.read", group: "operacao", Icone: SuporteIcon },
+  { href: "/console/lgpd", label: "LGPD", capability: "lgpd.dsar.read", group: "operacao", Icone: LgpdIcon },
+  { href: "/console/retention", label: "Retenção", capability: "retention.read", group: "operacao", Icone: RetencaoIcon },
+  { href: "/console/audit", label: "Auditoria", capability: "audit.read", group: "governanca", Icone: AuditoriaIcon },
+  { href: "/console/security", label: "Segurança", capability: "security.read", group: "governanca", Icone: SegurancaIcon },
+  { href: "/console/staff", label: "Equipe", capability: "staff.manage", group: "governanca", Icone: EquipeIcon },
 ];
 
 /** Item sem a capacidade não aparece — nem desabilitado. */
@@ -92,15 +107,7 @@ function NavLink({
         active ? "bg-ink text-superficie" : "text-ink-2 hover:bg-superficie-alta hover:text-ink",
       ].join(" ")}
     >
-      <span
-        aria-hidden
-        className={[
-          "flex h-5 w-5 shrink-0 items-center justify-center rounded-full tipo-den-rotulo",
-          active ? "bg-superficie/20 text-superficie" : "bg-superficie-alta text-ink-3",
-        ].join(" ")}
-      >
-        {item.label[0]}
-      </span>
+      <item.Icone size={17} />
       <span className={recolhida ? "sr-only" : ""}>{item.label}</span>
       {badge &&
         (recolhida ? (
@@ -143,7 +150,7 @@ export function ConsoleNav({
     <nav aria-label="Navegação do console" className="flex flex-col gap-5">
       {groups.map((grupo) => (
         <div key={grupo.group} className="flex flex-col gap-1">
-          <span className={["tipo-den-rotulo px-3 text-ink-3", recolhida ? "sr-only" : ""].join(" ")}>
+          <span className={["px-3 font-[family-name:var(--fonte-titulo)] text-[0.68rem] uppercase tracking-[0.16em] text-ink-3", recolhida ? "sr-only" : ""].join(" ")}>
             {grupo.label}
           </span>
           {grupo.items.map((item) => (

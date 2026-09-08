@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState, type ReactNode } from "react";
 import type { Actor } from "@albora/core";
 import { Star } from "@albora/ui-web";
 import { ConsoleNav, type ConsoleNavCounts } from "@/features/console/components/server/console-nav";
+import { MenuIcon, RecolherIcon } from "@/features/console/components/server/console-icons";
 import { ConsoleProfileMenu } from "@/features/console/components/client/console-profile-menu";
 import { ConsoleSearch } from "@/features/console/components/client/console-search";
 
@@ -25,7 +26,7 @@ function Marca({ recolhida }: { recolhida: boolean }) {
       {!recolhida && (
         <>
           <span className="font-[family-name:var(--fonte-titulo)] text-[1.05rem] leading-none text-ink">Álbora</span>
-          <span className="tipo-den-rotulo text-ink-3">Console</span>
+          <span className="font-[family-name:var(--fonte-titulo)] text-[0.68rem] uppercase tracking-[0.16em] text-ink-3">Console</span>
         </>
       )}
     </span>
@@ -121,7 +122,7 @@ export function ConsoleFrame({
               aria-label="Abrir menu"
               className="flex h-11 w-11 items-center justify-center rounded-superficie border border-linha bg-superficie text-ink min-[900px]:hidden"
             >
-              <span aria-hidden>☰</span>
+              <MenuIcon size={20} />
             </button>
 
             <button
@@ -132,7 +133,7 @@ export function ConsoleFrame({
               title={recolhida ? "Expandir menu" : "Recolher menu"}
               className="hidden h-11 w-11 items-center justify-center rounded-superficie border border-linha bg-superficie text-ink-2 transition-colors duration-[var(--tempo)] ease-[var(--curva)] hover:text-ink min-[900px]:flex"
             >
-              <span aria-hidden>{recolhida ? "»" : "«"}</span>
+              <RecolherIcon size={18} />
             </button>
 
             <ConsoleSearch />

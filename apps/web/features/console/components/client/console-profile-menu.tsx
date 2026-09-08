@@ -3,6 +3,7 @@
 import React, { useEffect, useId, useRef, useState } from "react";
 import type { Actor, StaffRole } from "@albora/core";
 import { signOutAction } from "@/features/console/actions";
+import { ChevronIcon, SairIcon } from "@/features/console/components/server/console-icons";
 
 const ROLE_LABELS: Readonly<Record<StaffRole, string>> = {
   owner: "Owner",
@@ -67,10 +68,15 @@ export function ConsoleProfileMenu({ actor, recolhida = false }: { actor: Actor;
           {iniciaisDoOperador(actor.staffUserId)}
         </span>
         {!recolhida && (
-          <span className="flex min-w-0 flex-col">
-            <span className="tipo-den-corpo truncate text-ink">{actor.staffUserId}</span>
-            <span className="tipo-den-rotulo truncate text-ink-3">{papeisLegiveis(actor.roles)}</span>
-          </span>
+          <>
+            <span className="flex min-w-0 flex-1 flex-col">
+              <span className="tipo-den-corpo truncate text-ink">{actor.staffUserId}</span>
+              <span className="tipo-den-meta truncate text-ink-3">{papeisLegiveis(actor.roles)}</span>
+            </span>
+            <span className={aberto ? "-rotate-90 text-ink-3" : "rotate-90 text-ink-3"}>
+              <ChevronIcon size={14} />
+            </span>
+          </>
         )}
       </button>
 
@@ -83,13 +89,14 @@ export function ConsoleProfileMenu({ actor, recolhida = false }: { actor: Actor;
           recolhida ? "left-[calc(100%+0.5rem)] bottom-0 mb-0" : "",
         ].join(" ")}
       >
-        <p className="tipo-den-rotulo m-0 px-3 py-2 text-ink-3">{papeisLegiveis(actor.roles)}</p>
+        <p className="tipo-den-meta m-0 px-3 py-2 text-ink-3">{papeisLegiveis(actor.roles)}</p>
         <form action={signOutAction}>
           <button
             type="submit"
             role="menuitem"
-            className="tipo-den-corpo min-h-11 w-full cursor-pointer rounded-superficie border-none bg-transparent px-3 py-2 text-left text-ink-2 transition-colors duration-[var(--tempo)] ease-[var(--curva)] hover:bg-superficie-alta hover:text-ink"
+            className="tipo-den-corpo flex min-h-11 w-full cursor-pointer items-center gap-2 rounded-superficie border-none bg-transparent px-3 py-2 text-left text-ink-2 transition-colors duration-[var(--tempo)] ease-[var(--curva)] hover:bg-superficie-alta hover:text-ink"
           >
+            <SairIcon size={16} />
             Sair do console
           </button>
         </form>
