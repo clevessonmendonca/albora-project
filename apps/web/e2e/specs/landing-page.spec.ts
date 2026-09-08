@@ -70,15 +70,31 @@ test.describe("Landing Page do Evento", () => {
      * framework o que ele não entrega sob streaming e esconde a asserção que
      * importa.
      *
-     * O mesmo NÃO vale para `/p/[slug]`, que é indexável (`Allow: /p/`) e hoje
-     * também responde 200 para slug morto. Esse caso é de crawler de verdade e
-     * segue em aberto — não é coberto por este teste.
+     * `/p/[slug]` é o caso oposto: indexável, e por isso cobrado em 404 no
+     * teste logo abaixo.
      */
     expect(response?.ok()).toBe(true);
 
     // 3. A tela do convidado, não a global: QR com letra trocada tem saída.
     await expect(page.getByText(/esse endereço não abre nenhuma festa/i)).toBeVisible();
     await expect(page.getByRole("link", { name: /escanear o qr/i })).toBeVisible();
+  });
+
+  test("/p/ de evento inexistente responde 404 de verdade", async ({ page }) => {
+    /*
+     * Diferente de `/e/`, esta superfície existe para crawler: `robots.txt` faz
+     * `Allow: /p/` e a página declara openGraph próprio. Slug morto devolvendo
+     * 200 faz o buscador indexar uma tela de erro como se fosse conteúdo.
+     *
+     * O que quebra isto é um `loading.tsx` no segmento raiz de `app/`: envolve
+     * a aplicação inteira em Suspense e, sob streaming, os headers já saíram
+     * quando `notFound()` lança — nenhum 404 do projeto sobrevive. Se este
+     * teste começar a falhar, procure um `loading.tsx` novo na raiz antes de
+     * procurar qualquer outra coisa.
+     */
+    const response = await page.goto("/p/evento-que-nao-existe-12345");
+
+    expect(response?.status()).toBe(404);
   });
 
   test("deve persistir evento no banco de dados", async () => {
