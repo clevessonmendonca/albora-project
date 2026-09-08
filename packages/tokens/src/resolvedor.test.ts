@@ -106,6 +106,21 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
     }
   });
 
+  it("as três cores de status são legíveis nos dois chões e sobre superfície", () => {
+    for (const background of ["dark", "light"] as const) {
+      const e = resolveScale({ ...ALBORA_BRAND, background });
+
+      for (const [nome, cor] of [
+        ["atencao", e.atencao],
+        ["positivo", e.positivo],
+        ["informativo", e.informativo],
+      ] as const) {
+        expect(razao(cor, e.bg), `${nome}/bg/${background}`).toBeGreaterThan(3);
+        expect(razao(cor, e.superficie), `${nome}/superficie/${background}`).toBeGreaterThan(3);
+      }
+    }
+  });
+
   it("texto secundário e terciário são legíveis sobre superfícies elevadas", () => {
     for (const background of ["dark", "light"] as const) {
       const e = resolveScale({ ...ALBORA_BRAND, background });

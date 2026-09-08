@@ -99,6 +99,17 @@ describe("ConsolePage — atenção primeiro", () => {
     expect(html).not.toContain("Tudo em dia");
   });
 
+  it("severidade da linha sai em texto, não só em cor — quem não distingue as cores lê o mesmo", async () => {
+    const html = await renderizar({
+      pendencias: [
+        { id: "a", severidade: "critico", titulo: "T1", detalhe: "d", modulo: "Suporte", href: "/console/support" },
+        { id: "b", severidade: "atencao", titulo: "T2", detalhe: "d", modulo: "Retenção", href: "/console/retention" },
+      ],
+    });
+    expect(html).toContain(">crítico<");
+    expect(html).toContain(">atenção<");
+  });
+
   it("evento ao vivo é monitoramento, nunca linha da fila de ação", async () => {
     const html = await renderizar({
       aoVivo: [{ id: "ev-1", title: "Festa da firma", h1: 0.44, totalFotos: 247 }],
@@ -121,6 +132,42 @@ describe("ConsolePage — H1", () => {
     expect(html).toContain("44%");
     expect(html).toContain("% de convidados esperados que enviaram ≥1 foto");
     expect(html).toContain("Meta ≥40%");
+  });
+});
+
+describe("ConsolePage — honestidade das métricas", () => {
+  it("métrica aproximada renderiza ≈ e diz em cima de que base aproximou", async () => {
+    const html = await renderizar({
+      revenue: {
+        churned30d: {
+          value: 3,
+          approximate: true,
+          approximationBasis: "base-de-teste-para-verificar-marcador",
+        },
+      },
+    });
+    expect(html).toContain("≈");
+    expect(html).toContain("base-de-teste-para-verificar-marcador");
+  });
+
+  it("sem período anterior não inventa comparação — nenhuma variação, nenhuma seta", async () => {
+    const html = await renderizar({
+      overview: { eventsActive: { current: 12, baseline: null }, guestsReached: { current: 300, baseline: null } },
+    });
+    expect(html).not.toContain("vs. período anterior");
+    expect(html).not.toContain("↑");
+    expect(html).not.toContain("↓");
+  });
+
+  it("com período anterior mostra a variação e o sinal", async () => {
+    const html = await renderizar({ overview: { eventsActive: { current: 120, baseline: 100 } } });
+    expect(html).toContain("+20% vs. período anterior");
+  });
+
+  it("baseline zerado não vira divisão por zero nem 'Infinity%'", async () => {
+    const html = await renderizar({ overview: { eventsActive: { current: 5, baseline: 0 } } });
+    expect(html).not.toContain("Infinity");
+    expect(html).not.toContain("vs. período anterior");
   });
 });
 
