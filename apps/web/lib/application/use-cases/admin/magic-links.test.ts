@@ -89,24 +89,30 @@ describe("Magic Links", () => {
         isNewAccount: true,
       });
 
-      const input = createIssueInput();
-      const result = await issueMagicLink(input, pool);
+      // Relógio congelado: a fonte calcula expiresAt com um Date.now()
+      // anterior ao `now` do teste; sem congelar, a folga real entre os dois
+      // pode estourar ±1s sob carga. Congelado, o offset é exato.
+      vi.useFakeTimers();
+      try {
+        const input = createIssueInput();
+        const result = await issueMagicLink(input, pool);
 
-      expect(result).toEqual({ enviado: true });
+        expect(result).toEqual({ enviado: true });
 
-      // Verificar que expiresAt foi calculado corretamente (15 min)
-      expect(mockEmitirMagicLink).toHaveBeenCalledWith(
-        pool,
-        "secret-123",
-        "host@example.com",
-        expect.any(Date),
-      );
+        // Verificar que expiresAt foi calculado corretamente (15 min)
+        expect(mockEmitirMagicLink).toHaveBeenCalledWith(
+          pool,
+          "secret-123",
+          "host@example.com",
+          expect.any(Date),
+        );
 
-      const expiresAt = mockEmitirMagicLink.mock.calls[0]![3];
-      const now = Date.now();
-      const expectedExpiry = now + 15 * 60 * 1000;
-      expect(expiresAt.getTime()).toBeGreaterThanOrEqual(expectedExpiry - 1000);
-      expect(expiresAt.getTime()).toBeLessThanOrEqual(expectedExpiry + 1000);
+        const expiresAt = mockEmitirMagicLink.mock.calls[0]![3];
+        const expectedExpiry = Date.now() + 15 * 60 * 1000;
+        expect(expiresAt.getTime()).toBe(expectedExpiry);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it("deve registrar evento de conta criada para novo usuário", async () => {
@@ -238,30 +244,36 @@ describe("Magic Links", () => {
         accountId: "acc-123",
       });
 
-      const input = createConsumeInput();
-      const result = await consumeMagicLink(input, pool);
+      // Relógio congelado: mesmo motivo do teste de issue acima — sem
+      // congelar, a folga entre o Date.now() da fonte e o `now` do teste
+      // pode estourar ±1s sob carga. Congelado, o offset é exato.
+      vi.useFakeTimers();
+      try {
+        const input = createConsumeInput();
+        const result = await consumeMagicLink(input, pool);
 
-      expect(result).toEqual({
-        ok: true,
-        token: "session-token-abc",
-        accountId: "acc-123",
-        validadeHoras: 48,
-      });
+        expect(result).toEqual({
+          ok: true,
+          token: "session-token-abc",
+          accountId: "acc-123",
+          validadeHoras: 48,
+        });
 
-      // Verificar que expiresAt foi calculado corretamente (48h)
-      expect(mockConsumirMagicLink).toHaveBeenCalledWith(
-        pool,
-        "secret-123",
-        "magic-token-456",
-        expect.any(Date),
-        expect.any(Date),
-      );
+        // Verificar que expiresAt foi calculado corretamente (48h)
+        expect(mockConsumirMagicLink).toHaveBeenCalledWith(
+          pool,
+          "secret-123",
+          "magic-token-456",
+          expect.any(Date),
+          expect.any(Date),
+        );
 
-      const expiresAt = mockConsumirMagicLink.mock.calls[0]![3];
-      const now = Date.now();
-      const expectedExpiry = now + 48 * 3600 * 1000;
-      expect(expiresAt.getTime()).toBeGreaterThanOrEqual(expectedExpiry - 1000);
-      expect(expiresAt.getTime()).toBeLessThanOrEqual(expectedExpiry + 1000);
+        const expiresAt = mockConsumirMagicLink.mock.calls[0]![3];
+        const expectedExpiry = Date.now() + 48 * 3600 * 1000;
+        expect(expiresAt.getTime()).toBe(expectedExpiry);
+      } finally {
+        vi.useRealTimers();
+      }
     });
 
     it("deve rejeitar magic link expirado", async () => {
