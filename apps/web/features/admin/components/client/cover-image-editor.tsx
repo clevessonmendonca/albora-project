@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -10,6 +10,9 @@ type Props = {
   eventId: string;
   initialCoverImageUrl: string | null;
   initialCoverImageKey: string | null;
+  /** Capa escolhida no onboarding, antes de o evento existir — enviada assim que ele nasce,
+   *  para a escolha não se perder entre a criação e o painel. Reusa o mesmo presign→PUT→confirm. */
+  autoUploadFile?: File | null;
 };
 
 type UploadState =
@@ -18,12 +21,22 @@ type UploadState =
   | { fase: "erro"; mensagem: string }
   | { fase: "pronto" };
 
-export function CoverImageEditor({ eventId, initialCoverImageUrl }: Props) {
+export function CoverImageEditor({ eventId, initialCoverImageUrl, autoUploadFile }: Props) {
   const [url, setUrl] = useState<string | null>(initialCoverImageUrl);
   const [estado, setEstado] = useState<UploadState>({ fase: "idle" });
   const [removing, setRemoving] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const autoUploaded = useRef(false);
+
+  useEffect(() => {
+    if (autoUploadFile && !autoUploaded.current) {
+      autoUploaded.current = true;
+      void handleFile(autoUploadFile);
+    }
+    // handleFile é estável (fecha só sobre eventId, que não muda em vida de componente).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoUploadFile]);
 
   async function handleFile(file: File) {
     const mime = file.type as (typeof ACCEPTED_MIMES)[number];

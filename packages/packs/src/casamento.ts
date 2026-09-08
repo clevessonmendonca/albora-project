@@ -4,9 +4,15 @@ import type { Pack } from "./tipos";
 export const CASAMENTO: Pack = {
   id: "casamento",
   sugereAntes: "pre-casamento",
+  icone: "heart",
+  ordemCriacao: 1,
   vocabulario: {
     "evento.nome": "casamento",
     "evento.descricao": "A festa inteira, do altar à última música.",
+    // Frases de domínio do onboarding — o template ("Preparamos tudo pra …") é
+    // produto e vive no componente; o artigo e a posse corretos vêm daqui.
+    "evento.preparo": "um casamento",
+    "evento.posse": "do seu casamento",
     "anfitriao.plural": "os noivos",
     "convidado.saudacao": "Que bom te ver aqui",
     "missao.titulo": "Missões da festa",
