@@ -1,5 +1,5 @@
 import type { Pool } from "pg";
-import type { Actor, DegrauDoFunil } from "@albora/core";
+import { funilComercial, taxaDeParticipacaoOuNula, type Actor, type DegrauComercial, type DegrauDoFunil } from "@albora/core";
 import {
   collectPlatformLiveMetrics,
   platformFunnelInWindow,
@@ -21,13 +21,15 @@ export type PlatformOverview = {
   guestsReached: MetricWithBaseline<number>;
   photos: MetricWithBaseline<number>;
   openTickets: number;
+  /**
+   * Funil de **uso** do convidado (QR→foto), agregado na plataforma. Contexto
+   * do evento, não do negócio: a Visão geral mostra `commercialFunnel`, este
+   * pertence ao detalhe do Evento (spec §4.2).
+   */
   funnel: DegrauDoFunil[];
+  /** Funil **comercial** (aquisição→conversão), derivado de `product_events`. */
+  commercialFunnel: DegrauComercial[];
 };
-
-/** `expectedGuests <= 0` não é "0% de participação", é ausência de denominador — null, nunca 0/0 fingindo dado. */
-function participationRateOrNull(janela: { expectedGuests: number; sessoesComUpload: number }): number | null {
-  return janela.expectedGuests > 0 ? janela.sessoesComUpload / janela.expectedGuests : null;
-}
 
 /** Único caso de uso da Visão geral: H1 (com sparkline), funil de ativação e volume, todos por janela ao vivo (nota de reconhecimento 1 — `analytics_snapshots` não guarda série histórica). */
 export async function getPlatformOverview(
@@ -60,13 +62,17 @@ export async function getPlatformOverview(
       void client;
 
       return {
-        h1: { current: participationRateOrNull(atual), baseline: participationRateOrNull(anterior) },
+        h1: {
+          current: taxaDeParticipacaoOuNula(atual),
+          baseline: taxaDeParticipacaoOuNula(anterior),
+        },
         h1Series: serie,
         eventsActive: { current: volumeAtual.eventsCreated, baseline: volumeAnterior.eventsCreated },
         guestsReached: { current: volumeAtual.guestsReached, baseline: volumeAnterior.guestsReached },
         photos: { current: volumeAtual.photos, baseline: volumeAnterior.photos },
         openTickets: live.openTickets,
         funnel: funil,
+        commercialFunnel: funilComercial(live.productEventsByName),
       };
     },
   });

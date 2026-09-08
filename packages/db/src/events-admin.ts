@@ -4,6 +4,7 @@ import { maskEmail } from "./accounts-admin";
 import { collectEventLiveMetrics } from "./analytics";
 import { aceitesDeEntradaPorVersao, type AceiteDeConsentimento } from "./consent-db";
 import { comEvento } from "./event";
+import { HORAS_APOS_EVENTO } from "./events";
 import { lerMetricasAoVivo } from "./event-metrics";
 import { lerFunilAgregado } from "./funnel-aggregate";
 
@@ -60,6 +61,13 @@ function decodeCursor(cursor: string): Cursor {
 }
 
 export type ListEventsAdminFilter = {
+  /**
+   * Janela real de festa, não ciclo de vida: `status = 'active'` é setado no
+   * publicar e fica ligado dias antes de alguém chegar. "Ao vivo" é
+   * `starts_at` já passado e `ends_at` ainda dentro da carência de
+   * `HORAS_APOS_EVENTO` — a mesma que o cron de snapshot usa.
+   */
+  aoVivoEm?: Date;
   status?: EventAdminStatus;
   vendorId?: string;
   search?: string;
@@ -106,6 +114,12 @@ export async function listEventsAdmin(
   if (filter.status) {
     params.push(filter.status);
     clauses.push(`e.status = $${params.length}`);
+  }
+  if (filter.aoVivoEm) {
+    params.push(filter.aoVivoEm, HORAS_APOS_EVENTO);
+    clauses.push(
+      `e.starts_at <= $${params.length - 1} AND e.ends_at + make_interval(hours => $${params.length}) > $${params.length - 1}`,
+    );
   }
   if (filter.vendorId) {
     params.push(filter.vendorId);

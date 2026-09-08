@@ -4,6 +4,22 @@ export { executeCommand } from "./envelope/command";
 export { executeQuery } from "./envelope/query";
 export type { WithPlatformAggregationInput } from "./platform/aggregation";
 export { withPlatformAggregation } from "./platform/aggregation";
+export type {
+  ConsoleAttentionInput,
+  ConsoleAttentionItem,
+  ConsoleAttentionSeverity,
+} from "./platform/console-attention";
+export {
+  atrasoLegivel,
+  getConsoleAttention,
+  LIMITE_POR_FONTE,
+  ordenarPendencias,
+  pendenciaDeInadimplencia,
+  pendenciaDeLgpd,
+  pendenciaDeRetencao,
+  pendenciaDeSeguranca,
+  pendenciaDeSuporte,
+} from "./platform/console-attention";
 
 export type { CompleteStaffLoginInput, CompleteStaffLoginResult } from "./staff/complete-login";
 export { completeStaffLogin } from "./staff/complete-login";
@@ -36,6 +52,8 @@ export { revealAccountPii } from "./accounts/reveal-account-pii";
 
 export type { EventAdminRow, EventAdminStatus, ListEventsInput } from "./events/list-events";
 export { listEvents } from "./events/list-events";
+export type { ListLiveEventsInput } from "./events/list-live-events";
+export { listLiveEvents } from "./events/list-live-events";
 
 export type { EventDetailAdmin, GetEventInput } from "./events/get-event";
 export { getEvent } from "./events/get-event";

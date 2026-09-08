@@ -4,6 +4,7 @@ import { hasCapability } from "@albora/core";
 import { getActiveImpersonationForStaff, listPendingImpersonationRequests } from "@albora/application";
 import { resolveActor } from "@/lib/console/actor";
 import { getPool } from "@/lib/db";
+import { ConsolePeriodo } from "@/features/console/components/client/console-periodo";
 import { ConsoleShell } from "@/features/console/components/server/console-shell";
 
 /**
@@ -27,6 +28,7 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
   return (
     <ConsoleShell
       actor={actor}
+      periodo={<ConsolePeriodo />}
       activeImpersonation={
         impersonacaoAtiva
           ? {

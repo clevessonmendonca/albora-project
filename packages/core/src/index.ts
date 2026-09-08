@@ -221,10 +221,13 @@ export type {
   EventoDoFunil,
   LeituraDePlataforma,
   Perda,
+  PerdaEntre,
   Sequencia,
   Veredito,
   ViaDeEntrada,
 } from "./funnel";
+export type { DegrauComercial, EtapaComercial, PerdaComercial } from "./funil-comercial";
+export { ESPINHA_COMERCIAL, funilComercial, maiorPerdaComercial } from "./funil-comercial";
 export {
   ESPINHA_DO_FUNIL,
   EVENTOS_DO_FUNIL,
@@ -249,6 +252,7 @@ export {
   ondeParou,
   PISO_DA_FRUSTRACAO,
   taxaDeParticipacao,
+  taxaDeParticipacaoOuNula,
   validarSequencia,
 } from "./funnel";
 
