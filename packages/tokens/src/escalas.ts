@@ -17,7 +17,16 @@ const RAMPA_CLARA = {
   bg: 0.07,
   /** Preenchimento rebaixado: trilho de barra, chip, célula de tabela. */
   superficieAlta: 0.045,
-  linha: 0.095,
+  /**
+   * Mais funda que o `#E6E2DC` do protótipo, de propósito. O v5 usa borda
+   * sobre o chão, e o produto usa borda sobre o próprio preenchimento —
+   * botão, pílula e switch são `border-linha` em cima de `superficieAlta`.
+   * Com a opacidade do protótipo, a razão entre os dois cai para 1,11 e a
+   * borda some; em 0,15 ela volta a 1,25, que é o peso que a rampa tinha
+   * antes do v5. O protótipo tem a mesma colisão e escapa dela por não pôr
+   * pílula com borda sobre `surface-2`.
+   */
+  linha: 0.15,
   ink3: 0.64,
   ink2: 0.76,
 } as const;
