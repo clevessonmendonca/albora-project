@@ -65,21 +65,17 @@ describe("navBadgeFor", () => {
   });
 });
 
-describe("ConsoleNav — banner de impersonação no rodapé", () => {
-  it("rodapé mostra o banner de impersonação quando ativo", () => {
+describe("ConsoleNav — lista", () => {
+  it("recolhida esconde o rótulo do grupo e o label do item sem tirá-los do acessível", () => {
     const html = renderToStaticMarkup(
-      React.createElement(ConsoleNav, {
-        actor: actor(["support"]),
-        activeImpersonation: { id: "imp-1", targetAccountId: "c1", expiresAt: new Date() },
-      }),
+      React.createElement(ConsoleNav, { actor: actor(["support"]), recolhida: true }),
     );
-    expect(html).toContain("Você está vendo como");
+    expect(html).toContain("Contas");
+    expect(html).toContain("sr-only");
   });
 
-  it("rodapé não mostra o banner sem impersonação ativa", () => {
-    const html = renderToStaticMarkup(
-      React.createElement(ConsoleNav, { actor: actor(["support"]), activeImpersonation: null }),
-    );
-    expect(html).not.toContain("Você está vendo como");
+  it("expandida mostra o rótulo do grupo sem sr-only", () => {
+    const html = renderToStaticMarkup(React.createElement(ConsoleNav, { actor: actor(["support"]) }));
+    expect(html).toContain("Negócio");
   });
 });

@@ -7,9 +7,15 @@ import { searchConsoleAction } from "@/features/console/actions";
 
 const DEBOUNCE_MS = 200;
 
+export function emCampoDeTexto(alvo: EventTarget | null): boolean {
+  if (!(alvo instanceof HTMLElement)) return false;
+  return alvo.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName);
+}
+
 /**
  * Substitui o `<input>` estático que só imprimia "⌘K" (Onda A, T14) — o
- * atalho agora abre de verdade. `Cmd+K` no mac, `Ctrl+K` no resto.
+ * atalho agora abre de verdade. `Cmd+K` no mac, `Ctrl+K` no resto, `/` em
+ * qualquer um desde que o foco não esteja num campo de texto.
  */
 export function ConsoleSearch() {
   const router = useRouter();
@@ -21,7 +27,10 @@ export function ConsoleSearch() {
 
   useEffect(() => {
     function aoTeclar(ev: KeyboardEvent) {
-      if ((ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === "k") {
+      const atalhoK = (ev.metaKey || ev.ctrlKey) && ev.key.toLowerCase() === "k";
+      // `/` só abre fora de campo de texto — dentro, barra é barra.
+      const atalhoBarra = ev.key === "/" && !ev.metaKey && !ev.ctrlKey && !ev.altKey && !emCampoDeTexto(ev.target);
+      if (atalhoK || atalhoBarra) {
         ev.preventDefault();
         setOpen(true);
       }
@@ -59,8 +68,8 @@ export function ConsoleSearch() {
         onClick={() => setOpen(true)}
         className="tipo-den-corpo relative ml-2 hidden min-h-11 max-w-md flex-1 items-center rounded-superficie border border-linha bg-superficie-alta py-2 pl-3 pr-12 text-left text-ink-3 min-[900px]:flex"
       >
-        Buscar…
-        <kbd className="tipo-den-rotulo pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-3">⌘K</kbd>
+        Buscar conta, evento, ticket…
+        <kbd className="tipo-den-rotulo pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-3">/</kbd>
       </button>
       <CommandPalette
         open={open}
