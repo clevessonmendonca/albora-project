@@ -15,6 +15,7 @@ import {
   SegurancaIcon,
   SuporteIcon,
 } from "./console-icons";
+import { CabecalhoDePainel, Painel, RotuloSerif } from "./console-primitivos";
 
 export function formatarNumero(n: number): string {
   return new Intl.NumberFormat("pt-BR").format(n);
@@ -56,20 +57,6 @@ const CORES_POR_SEVERIDADE: Readonly<Record<ConsoleAttentionSeverity, { marca: s
   critico: { marca: "text-critico", bolha: "bg-critico-superficie text-critico" },
   atencao: { marca: "text-atencao", bolha: "bg-atencao-superficie text-atencao" },
 };
-
-/** Faixa de painel: no v5 a hierarquia vem de borda e composição, não de sombra. */
-function Painel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <section className={`rounded-media border border-linha bg-superficie ${className}`}>{children}</section>;
-}
-
-function CabecalhoDePainel({ titulo, nota }: { titulo: string; nota?: string }) {
-  return (
-    <div className="flex flex-wrap items-baseline gap-3 border-b border-linha px-5 py-4">
-      <h2 className="tipo-den-titulo m-0">{titulo}</h2>
-      {nota && <span className="tipo-den-meta text-ink-3">{nota}</span>}
-    </div>
-  );
-}
 
 export function CabecalhoDaVisaoGeral({
   janela,
@@ -246,8 +233,8 @@ export function FaixaDeMetricas({ metricas }: { metricas: readonly Metrica[] }) 
             key={m.rotulo}
             className={["flex flex-col gap-1 px-4", i === 0 ? "lg:pl-0" : "lg:border-l lg:border-linha"].join(" ")}
           >
-            <dt className="m-0 font-[family-name:var(--fonte-titulo)] text-[0.7rem] uppercase tracking-[0.14em] text-ink-3">
-              {m.rotulo}
+            <dt className="m-0">
+              <RotuloSerif>{m.rotulo}</RotuloSerif>
             </dt>
             <dd className="tipo-den-metrica m-0 text-[1.6rem] font-medium text-ink">{m.valor}</dd>
             {m.nota && <span className="tipo-den-meta text-ink-3">{m.nota}</span>}
