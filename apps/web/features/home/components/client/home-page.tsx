@@ -22,6 +22,12 @@ import { useFeed, podeCarregarMais, type EstadoFeed } from "@/features/feed/hook
 import { useInfiniteScroll } from "@/features/feed/hooks/use-infinite-scroll";
 import { useReducedMotion } from "@/features/feed/hooks/use-reduced-motion";
 import { paraStoryItem, useStories } from "../../hooks/use-stories";
+import {
+  buscarRecado,
+  marcarRecadoLido,
+  type AudioRecado,
+} from "@/features/guest/hooks/use-guestbook";
+import { RecadoStory } from "./recado-story";
 import { HomeFeedCard } from "./home-feed-card";
 import { MissionsBadge } from "@/features/missions/components/ui/missions-badge";
 import { photoPathForMission, proximaMissao } from "@/features/missions/lib/missions-utils";
@@ -39,6 +45,7 @@ export function HomePage({
   coverHref,
   cameraPath,
   anfitriaoPlural,
+  recadoRotulo,
   missions = [],
 }: {
   slug: string;
@@ -46,6 +53,7 @@ export function HomePage({
   coverHref: string;
   cameraPath: string;
   anfitriaoPlural: string;
+  recadoRotulo: string;
   missions?: MissionWithStatus[];
 }) {
   const router = useRouter();
@@ -57,6 +65,9 @@ export function HomePage({
 
   const [visto, setVisto] = useState<ReadonlySet<string>>(() => new Set());
   const [storyIdx, setStoryIdx] = useState<number | null>(null);
+  // Recado dos anfitriões: conteúdo, não login — primeiro story do trilho (redesign §3.2).
+  const [recado, setRecado] = useState<{ texto: string; audio: AudioRecado | null } | null>(null);
+  const [recadoAberto, setRecadoAberto] = useState(false);
   const [viewerIndice, setViewerIndice] = useState<number | null>(null);
   const scrollSalvo = useRef<number | null>(null);
 
@@ -64,6 +75,22 @@ export function HomePage({
   const vazio = estado.jaCarregou && estado.itens.length === 0 && estado.falha === null;
   const espelho = estado.interacao === "espelho";
   const contagem = estado.itens.length > 0 ? `${estado.itens.length} fotos` : undefined;
+
+  useEffect(() => {
+    let vivo = true;
+    void buscarRecado().then((r) => {
+      if (vivo && r.ok && r.mostrar && r.texto) setRecado({ texto: r.texto, audio: r.audio });
+    });
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  const abrirRecado = useCallback(() => setRecadoAberto(true), []);
+  const fecharRecado = useCallback(() => {
+    setRecadoAberto(false);
+    void marcarRecadoLido();
+  }, []);
 
   const handleVerAutor = useCallback(
     (id: string) => {
@@ -94,22 +121,33 @@ export function HomePage({
     };
   }, [viewerIndice]);
 
-  const stories: StoryItem[] = useMemo(
-    () =>
-      historias.itens.map((s) => ({
-        ...paraStoryItem(s, historias.urls),
-        novo: !!s.sessaoId && !visto.has(s.id),
-        ...(s.sessaoId
-          ? {
-              onPress: () => {
-                const i = historias.itens.findIndex((h) => h.id === s.id);
-                setStoryIdx(i >= 0 ? i : null);
-              },
-            }
-          : {}),
-      })),
-    [historias.itens, historias.urls, visto],
-  );
+  const stories: StoryItem[] = useMemo(() => {
+    const daRede = historias.itens.map((s) => ({
+      ...paraStoryItem(s, historias.urls),
+      novo: !!s.sessaoId && !visto.has(s.id),
+      ...(s.sessaoId
+        ? {
+            onPress: () => {
+              const i = historias.itens.findIndex((h) => h.id === s.id);
+              setStoryIdx(i >= 0 ? i : null);
+            },
+          }
+        : {}),
+    }));
+    // O recado abre o trilho — anel especial + selo de áudio.
+    const recadoItem: StoryItem[] = recado
+      ? [
+          {
+            id: "recado",
+            nome: "Recado",
+            variant: "recado",
+            temAudio: !!recado.audio,
+            onPress: abrirRecado,
+          },
+        ]
+      : [];
+    return [...recadoItem, ...daRede];
+  }, [historias.itens, historias.urls, visto, recado, abrirRecado]);
 
   return (
     <>
@@ -196,6 +234,15 @@ export function HomePage({
           vistos={visto}
           onClose={() => setStoryIdx(null)}
           onVisto={(id) => setVisto((v) => (v.has(id) ? v : new Set([...v, id])))}
+        />
+      )}
+
+      {recadoAberto && recado && (
+        <RecadoStory
+          rotulo={recadoRotulo}
+          texto={recado.texto}
+          audio={recado.audio}
+          onClose={fecharRecado}
         />
       )}
 
