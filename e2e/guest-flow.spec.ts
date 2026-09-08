@@ -103,8 +103,6 @@ test.describe("smoke — fluxo do convidado", () => {
     page,
   }) => {
     test.skip(!E2E_FULL, "Requer pnpm db:semear e E2E_FULL=1");
-    // Dev-mode cold-compila rota de câmera sob demanda; 90s não basta em CI
-    // quando o projeto cresce (mais módulos = resolução webpack mais lenta).
     test.setTimeout(180_000);
 
     await mockCaminhoUpload(page);
@@ -123,9 +121,11 @@ test.describe("smoke — fluxo do convidado", () => {
     await campoNome.fill("E2E Smoke");
     await page.getByRole("button", { name: /continuar/i }).click();
 
-    // 4. Redireciona para o cover do evento
-    await page.waitForURL(`**/e/${SLUG}/cover`, { waitUntil: "domcontentloaded" });
-    // Garante que o evento está aberto — nenhuma tela de erro de estado
+    // 4. Redireciona para o cover do evento — "load" (não "domcontentloaded")
+    // garante que os bundles JS já foram baixados e o React pode hidratar;
+    // sem isso o click no botão cai num <button> ainda não hidratado e o
+    // router.push nunca dispara (race que apareceu quando o bundle cresceu).
+    await page.waitForURL(`**/e/${SLUG}/cover`, { waitUntil: "load" });
     await expect(page.locator("body")).not.toContainText(
       /não está aberta|encerrado|esse endereço/i,
       { timeout: 15_000 },
