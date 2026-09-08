@@ -112,7 +112,7 @@ it.skipIf(!process.env["PREVIEW"])("gera preview", async () => {
           <FunilComercial degraus={FUNIL} perda={maiorPerdaComercial(FUNIL)} />
         </div>
       </div>
-      <EventosAoVivo eventos={AO_VIVO} />
+      <EventosAoVivo eventos={AO_VIVO} teto={8} />
     </ConsoleShell>,
   );
 

@@ -298,13 +298,23 @@ export function FunilComercial({
   );
 }
 
-export function EventosAoVivo({ eventos }: { eventos: readonly EventAdminRow[] }) {
+/**
+ * `saturado` existe porque a lista vem com teto. Sem isso, um sábado com
+ * trinta festas ao vivo faria a tela afirmar "8 eventos ao vivo" — número
+ * falso na tela que promete não mostrar número falso.
+ */
+export function EventosAoVivo({ eventos, teto }: { eventos: readonly EventAdminRow[]; teto: number }) {
+  const saturado = eventos.length >= teto;
+  const nota =
+    eventos.length === 0
+      ? "nenhum evento ao vivo"
+      : saturado
+        ? `mostrando os ${eventos.length} mais recentes`
+        : `${eventos.length} evento(s) ao vivo`;
+
   return (
     <Painel className="overflow-hidden">
-      <CabecalhoDePainel
-        titulo="Acontecendo agora"
-        nota={eventos.length === 0 ? "nenhum evento ao vivo" : `${eventos.length} evento(s) ao vivo`}
-      />
+      <CabecalhoDePainel titulo="Acontecendo agora" nota={nota} />
 
       {eventos.length === 0 ? (
         <p className="tipo-den-corpo m-0 px-5 py-6 text-ink-3">

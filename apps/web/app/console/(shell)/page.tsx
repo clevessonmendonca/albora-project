@@ -17,7 +17,13 @@ import { getAggregatorPool, getPool } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-const LIMITE_AO_VIVO = 12;
+/**
+ * Teto baixo de propósito: `listEventsAdmin` busca as métricas de cada evento
+ * numa consulta por linha (N+1 sequencial), e esta é a página mais aberta do
+ * console. Oito linhas é o que a faixa mostra sem rolar; acima disso o custo
+ * cresce sem a tela ficar mais útil.
+ */
+const LIMITE_AO_VIVO = 8;
 
 function formatarReais(centavos: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(centavos / 100);
@@ -116,7 +122,7 @@ export default async function ConsolePage({
         </div>
       </div>
 
-      <EventosAoVivo eventos={aoVivo.rows} />
+      <EventosAoVivo eventos={aoVivo.rows} teto={LIMITE_AO_VIVO} />
     </>
   );
 }
