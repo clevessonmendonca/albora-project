@@ -89,14 +89,27 @@ Todos os arquivos animados já respeitam `prefers-reduced-motion`.
 
 | Token | Hex | Uso |
 |---|---|---|
-| Degradê alvorada | `#9E4A22 → #D9793C → #EFA463` | Símbolo em fundo escuro |
-| Degradê claro | `#8A3A12 → #C2410C → #D9793C` | Símbolo em fundo claro |
-| Âmbar | `#D9793C` | Ponto, acento |
-| Brasa | `#C2410C` | Acento em fundo claro |
+| Degradê alvorada | `#9A3E1C → #D46632 → #E98A52` | Símbolo em fundo escuro |
+| Degradê claro | `#853624 → #BB3D18 → #D46632` | Símbolo em fundo claro |
+| Âmbar | `#D46632` | Ponto, acento |
+| Brasa | `#BB3D18` | Acento em fundo claro |
 | Noite | `#0C0A09` | Fundo padrão |
-| Tinta | `#1A1613` | Texto em fundo claro |
-| Papel | `#F4F0E9` | Texto em fundo escuro |
+| Tinta | `#171513` | Texto em fundo claro |
+| Papel | `#FCFBF9` | Texto em fundo escuro |
 | Flash | `#FDEBCF` | Só na animação |
+| Ocre | `#A96F18` | Atenção — precisa de olho, não de pânico |
+| Verde-mata | `#28744E` | Confirmação, "tudo em dia" |
+| Azul-tinta | `#3265B5` | Informação neutra, anel de foco |
+
+As três últimas entraram com o redesign v5 (`docs/redesign/prototipos/console.html`).
+Antes delas a marca só tinha âmbar e brasa, e a consequência aparecia na operação:
+severidade caía em crítico ou em neutro, sem meio-termo — uma fila em que tudo é
+vermelho ensina a ignorar vermelho.
+
+Nenhuma destas é usada crua em componente. `packages/tokens` deriva a versão legível
+para cada chão (`acentoLegivelSobre`), e é essa que sai como `--atencao`, `--positivo`
+e `--informativo`. Em fundo claro, ocre vira `#915F15` para passar AA — a marca define
+a intenção, a escala garante o contraste.
 
 ## Antes de produção
 

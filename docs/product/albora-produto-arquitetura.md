@@ -930,10 +930,10 @@ Por isso a marca não tem cor forte dominante.
 ```js
 const brand = {
   papel:  '#FAF7F2',  // base clara — admin, site, papelaria
-  tinta:  '#1A1613',  // texto (preto quente, nunca #000)
+  tinta:  '#171513',  // texto (preto quente, nunca #000)
   noite:  '#14100E',  // base escura — convidado, galeria, telão
   ambar:  '#E8873A',  // acento único, com parcimônia
-  brasa:  '#C2410C',  // acento raro (erro, destaque crítico)
+  brasa:  '#BB3D18',  // acento raro (erro, destaque crítico)
 }
 ```
 

@@ -83,8 +83,8 @@ pontos passam a chamá-la. Sem mudar comportamento observável — só remove a 
 ## 5. Cor de severidade — decisão tomada, aberta a revisão
 
 O protótipo v5 traz `--warn:#A96F18`, `--ok:#28744E`, `--info:#3265B5`. **Não são cor de
-marca** — `brand/LEIA-ME.md` (canônico) só define papel, tinta, noite, âmbar `#D9793C`,
-brasa `#C2410C`. Inventar verde e âmbar-de-alerta na escala é decisão de identidade, não de
+marca** — `brand/LEIA-ME.md` (canônico) só define papel, tinta, noite, âmbar `#D46632`,
+brasa `#BB3D18`. Inventar verde e âmbar-de-alerta na escala é decisão de identidade, não de
 tela, e o CLAUDE.md proíbe hex em componente.
 
 Decisão para esta rodada, dentro dos tokens que existem: crítico = `--critico`,

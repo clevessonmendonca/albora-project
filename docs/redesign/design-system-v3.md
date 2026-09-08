@@ -22,12 +22,12 @@ Anti-slop proibido: gradiente azul/roxo genérico, glow neon, glassmorphism grat
 --bg:#FAF8F4        --surface:#FFFFFF     --surface-2:#F4F1EB   --surface-3:#EDE8DE
 --ink:#1F1B18       --ink-2:#6B645C       --ink-3:#9C948A
 --line:#E9E4DA      --line-2:#DBD3C6
---brand:#D9793C     --brand-ink:#9E4A22   (âmbar = identidade Álbora; botão primário, item ativo, links, eyebrow, foco)
+--brand:#D46632     --brand-ink:#9A3E1C   (âmbar = identidade Álbora; botão primário, item ativo, links, eyebrow, foco)
 ```
 Dark (segue o sistema + toggle vence):
 ```
 --bg:#141110 --surface:#1C1815 --surface-2:#242019 --surface-3:#2C271F
---ink:#F4F0E9 --ink-2:#B8AFA4 --ink-3:#877E74 --line:#2C2620 --line-2:#39322B --brand-ink:#E7A063
+--ink:#FCFBF9 --ink-2:#B8AFA4 --ink-3:#877E74 --line:#2C2620 --line-2:#39322B --brand-ink:#E7A063
 ```
 Três estados: `:root` = light canônico; `@media (prefers-color-scheme:dark){:root:not([data-theme=light]){…}}`; `:root[data-theme=dark]{…}`.
 

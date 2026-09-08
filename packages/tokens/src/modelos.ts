@@ -13,9 +13,9 @@ export const MODELOS_DE_IDENTIDADE: ModeloDeIdentidade[] = [
   {
     id: "amanhecer",
     nome: "Amanhecer",
-    amostra: "#EFA463",
+    amostra: "#E98A52",
     camada: {
-      cores: { noite: "#241C16", acento: "#EFA463" },
+      cores: { noite: "#241C16", acento: "#E98A52" },
       escala: { raio: "1.125rem", espaco: "1.375rem" },
       tracking: { rotulo: "0.04em" },
       background: "dark",

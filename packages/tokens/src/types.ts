@@ -1,4 +1,13 @@
-/** Cinco cores — neutros são opacidade sobre `papel`/`noite`, nunca rampa de cinza (que perde temperatura a cada passo); `tinta` é texto, `noite` é chão escuro. */
+/**
+ * Base da marca — neutros são opacidade sobre `papel`/`noite`, nunca rampa de
+ * cinza (que perde temperatura a cada passo); `tinta` é texto, `noite` é chão
+ * escuro.
+ *
+ * As três de status (`atencao`/`positivo`/`informativo`) entraram com o
+ * redesign v5. Antes não existiam, e a consequência era visível: severidade
+ * caía em `critico` ou em neutro, sem meio-termo — uma fila de operação em
+ * que tudo é vermelho ensina a ignorar vermelho.
+ */
 export type Colors = {
   papel: string;
   tinta: string;
@@ -7,6 +16,12 @@ export type Colors = {
   acento: string;
   /** Brasa. Acento raro — erro e destaque crítico. */
   critico: string;
+  /** Ocre. Precisa de olho, não de pânico. */
+  atencao: string;
+  /** Verde-mata. Confirmação e "tudo em dia". */
+  positivo: string;
+  /** Azul-tinta. Informação neutra e anel de foco. */
+  informativo: string;
 };
 
 export type Fonts = {
@@ -82,6 +97,9 @@ export type SemanticScale = {
   /** Rótulo sobre preenchimento de acento — não é `bg`: sobre âmbar, papel reprova contraste. */
   sobreAcento: string;
   critico: string;
+  atencao: string;
+  positivo: string;
+  informativo: string;
 };
 
 /** Camada da cadeia. Cada uma sobrepõe a anterior, campo a campo. */
