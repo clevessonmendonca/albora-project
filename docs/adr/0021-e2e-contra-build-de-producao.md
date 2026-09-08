@@ -1,4 +1,4 @@
-# 0016 — O E2E roda contra build de produção, nunca contra `next dev`
+# 0021 — O E2E roda contra build de produção, nunca contra `next dev`
 
 - **Status:** Accepted
 - **Data:** 2026-09-07

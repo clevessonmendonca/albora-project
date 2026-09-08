@@ -17,7 +17,7 @@ import { defineConfig, devices } from "@playwright/test";
  * ociosa e 62,6s sob carga, contra um limite de 30s por teste. Era a origem da
  * intermitência do gate: o teste não media o app, media o webpack. Servido por
  * `next start` a mesma rota responde em 0,13s, e o número não se move sob
- * carga. Ver docs/adr/0016 e tools/e2e/medir-compilacao.mjs.
+ * carga. Ver docs/adr/0021 e tools/e2e/medir-compilacao.mjs.
  */
 const SERVIDOR_COMPILADO = !!process.env.E2E_BUILT;
 
