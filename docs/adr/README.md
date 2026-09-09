@@ -26,6 +26,7 @@ Um ADR aceito **não é editado**. Se a decisão muda, escreve-se um novo que o 
 | [0016](./0016-camadas-do-console-interno.md) | Camadas do console interno: use case como unidade, garantia por envelope | Accepted |
 | [0017](./0017-provedor-de-moderacao.md) | Provedor de moderação de imagem: OpenAI Moderation, sozinha | Accepted |
 | [0021](./0021-e2e-contra-build-de-producao.md) | O E2E roda contra build de produção, nunca contra `next dev` | Accepted |
+| [0022](./0022-compartilhamento-externo-com-identidade.md) | Compartilhamento externo com identidade: templates, formatos e assinatura configurável | Proposed |
 
 0015 e 0016 não constam aqui: existem em branches ainda não mergeadas (`0016` em `feat/ceo-backoffice`).
 
