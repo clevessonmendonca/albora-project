@@ -33,7 +33,7 @@ Os nomes, limites e preços exibidos no protótipo são proposta de embalagem e 
 
 - Landing atual: `apps/web/app/landing/**` e a entrada pública do fornecedor.
 - Portal atual: `apps/web/features/vendor-portal/**`.
-- Criação/configuração do fornecedor: `apps/web/app/admin/vendor/**` e `apps/web/app/api/admin/vendor/**`.
+- Criação/configuração do fornecedor: `apps/web/app/admin/vendor/**` e `apps/web/app/api/admin/vendor/**`. A criação usa `VendorOnboarding`, com três etapas (operação, identidade inicial e destino) e reaproveita as rotas existentes de fornecedor e marca.
 - Identidade: `apps/web/app/api/vendors/[vendorId]/brand-tokens/route.ts` e componentes `vendor-brand-*`.
 - Assinatura do fornecedor: `POST /api/vendors/[vendorId]/subscription`, consumido pelo checkout dedicado em `/admin/vendor/checkout`; `VendorSubscribeButton` leva ao fluxo e impede nova oferta quando a assinatura está ativa ou pendente.
 - Equipe: `/admin/vendor/[vendorId]/team` usa `features/vendor-portal/hooks/use-vendor-team.ts` e o client service correspondente; as APIs em `/api/vendors/[vendorId]/members/**` delegam para o caso de uso auditado. Limites vêm de `VENDOR_PLAN_TEAM_LIMIT`, no domínio, e a escrita usa lock por fornecedor para impedir corrida.
@@ -66,7 +66,7 @@ Na implementação, trate essas imagens como direção de arte do protótipo. Pr
 ## Próxima implementação
 
 1. Criar as páginas reais do fornecedor reutilizando o shell e os dados de `features/vendor-portal`.
-2. Implementar o onboarding sobre os comandos existentes de fornecedor e evento.
+2. ✅ Onboarding em três etapas sobre os comandos existentes de fornecedor e marca; a última etapa leva diretamente à criação do primeiro evento ou às configurações.
 3. ✅ Checkout dedicado em `/admin/vendor/checkout`, com plano, forma de pagamento, resumo, retorno do provedor e estado pendente protegido contra duplicidade.
 4. ✅ Provider de billing reutilizado; o webhook permanece como fonte de verdade da ativação.
 5. ✅ Métricas e carteira ligadas aos dados agregados reais, com estado vazio honesto.

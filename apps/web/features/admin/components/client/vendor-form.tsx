@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Button, TextField } from "@albora/ui-web";
+import { VendorOnboarding } from "./vendor-onboarding";
 
 type Props =
   | {
@@ -25,6 +26,13 @@ function derivarSlug(nome: string): string {
 }
 
 export function VendorForm(props: Props) {
+  if (props.mode === "create") {
+    return <VendorOnboarding afterCreate={props.afterCreate ?? "settings"} {...(props.requestedPlan ? { requestedPlan: props.requestedPlan } : {})} />;
+  }
+  return <VendorEditForm {...props} />;
+}
+
+function VendorEditForm(props: Extract<Props, { mode: "edit" }>) {
   const [name, setName] = useState(props.mode === "edit" ? props.initialName : "");
   const [slug, setSlug] = useState(props.mode === "edit" ? props.initialSlug : "");
   const [slugTocado, setSlugTocado] = useState(props.mode === "edit");
