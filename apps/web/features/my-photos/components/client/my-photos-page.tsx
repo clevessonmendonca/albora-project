@@ -25,6 +25,7 @@ import { RecapSheet } from "@/features/my-photos/components/client/recap-sheet";
 import { RecapCard } from "@/features/my-photos/components/client/recap-card";
 import { ThemeSetting } from "@/features/guest/components/client/theme-setting";
 import { AlbumFooterCta } from "./album-footer-cta";
+import { RetentionCard } from "./retention-card";
 import {
   GalleryItem,
   RecapSection,
@@ -313,6 +314,8 @@ export function MyPhotosPage({
             drenando={galeria.drenando}
             onRetry={() => void galeria.tentarDeNovo()}
           />
+
+          <RetentionCard eventId={eventoId} />
 
           <AlbumFooterCta slug={slug} refToken={refToken ?? null} />
 
