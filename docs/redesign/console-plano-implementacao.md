@@ -98,15 +98,42 @@ Uma MR por linha, cada uma com teste, guards verdes.
 
 | # | Escopo | Estado |
 |---|---|---|
-| 1 | Shell: canvas flutuante, logo, sidebar recolhível, menu de perfil, período por-tela, atalho `/` | **esta rodada** |
-| 2 | Visão geral atenção-primeiro: 3 blocos, tooltip do H1, funil comercial, ao vivo | **esta rodada** |
-| 3 | `confirmDanger` compartilhado (motivo + reauth + palavra + linha de auditoria), religando PII / impersonação / plano / cortesia / cancelar / reembolso e Excluir→DSAR | a seguir |
-| 4 | Drawers ricos: Conta, Evento, Assinatura, Suporte, Auditoria | |
-| 5 | Segurança como investigação; Retenção com tentativas e log (só-leitura preservada) | |
+| 1 | Shell: canvas flutuante, marca, barra recolhível, menu de perfil, período por-tela, atalho `/` | **feito** |
+| 2 | Visão geral atenção-primeiro: 3 blocos, tooltip do H1, funil comercial, ao vivo | **feito** |
+| 3 | Anatomia v5 nas nove telas; `DataTable` vira a moldura (`.tblwrap`) das seis telas de lista | **feito** |
+| 4 | `confirmDanger` compartilhado (motivo + reauth + palavra + linha de auditoria), religando PII / impersonação / plano / cortesia / cancelar / reembolso e Excluir→DSAR | a seguir |
+| 5 | Drawers ricos: Conta, Evento, Assinatura, Suporte, Auditoria | |
 | 6 | Tela Equipe (`/console/staff` é link morto hoje — o item de nav existe, a página não) | |
 | 7 | Tela Sistema (net-new; o item de nav só entra junto com a página) | |
 | 8 | Ações net-new (revogar sessão, alterar papel, bloquear IP, abrir incidente) — só com comando + capability + auditoria; até lá, ausentes | |
-| 9 | Bordas, a11y AA, mobile real | |
+| 9 | a11y AA e mobile real | |
+
+### Achado que a rodada 3 herdou
+
+`Excluir conta` **não abre DSAR** — `deleteAccountOnRequest` apaga de verdade
+(purga linhas e enfileira remoção de objetos no R2). A spec §4.3 assume que
+`deleteAccountAction` inicia um pedido reversível; o backend não faz isso. A
+UI hoje descreve corretamente o que o comando faz ("irreversível"), então não
+há mentira na tela — mas a invariante do CLAUDE.md ("excluir conta abre um
+pedido DSAR, nunca apaga direto") **está quebrada no backend**, não na
+interface. Religar o botão da tela de Contas para `createDsarRequestAction`
+com `kind: "deletion"` e deixar a purga só como execução de um pedido aberto
+é trabalho da rodada 4, e é mudança de comportamento — não de UI.
+
+## 8. Ferramenta de conferência visual
+
+`tools/preview/montar.mjs` + `apps/web/features/console/preview-harness.test.tsx`
+(atrás de `PREVIEW=1`) renderizam os componentes reais com o CSS realmente
+compilado, sem Docker nem Postgres:
+
+```
+PREVIEW=1 pnpm vitest run apps/web/features/console/preview-harness.test.tsx
+node tools/preview/montar.mjs
+```
+
+Foi essa ferramenta que pegou os dois erros que nenhum teste pegaria:
+`tipo-den-rotulo` (CAIXA ALTA) usado em frase inteira, e um `fill` de SVG
+apontando para variável de tema inexistente, que renderizou preto sólido.
 
 Item de nav só nasce com a página atrás dele: "Sistema" entra na MR 7, não antes.
 
