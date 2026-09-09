@@ -30,7 +30,6 @@ const ESTILO = `
  * Mostra confirmação e oferece próximas ações.
  */
 export function SuccessStep({
-  uploadId,
   onRestart,
   onViewFeed,
   showPwaInstall = false,
@@ -49,10 +48,11 @@ export function SuccessStep({
       <style>{ESTILO}</style>
 
       <div className="text-center">
-        <h2 className="tipo-display m-0">Foto enviada!</h2>
-        <p className="mt-2 tipo-body text-ink-2">
-          Sua foto já está no álbum do evento
-        </p>
+        <h2 className="tipo-display m-0">Sua foto entrou na festa</h2>
+        <ul className="m-0 mt-4 inline-flex flex-col gap-1.5 p-0 text-left">
+          <RecompensaItem>No álbum</RecompensaItem>
+          <RecompensaItem>Pode aparecer no telão</RecompensaItem>
+        </ul>
       </div>
 
       {showPwaInstall && onInstallPwa && (
@@ -65,8 +65,8 @@ export function SuccessStep({
       )}
 
       <div className="grid gap-3">
-        <PrimaryButton onClick={onRestart}>Tirar outra foto</PrimaryButton>
-        <SecondaryButton onClick={onViewFeed}>Ver todas as fotos</SecondaryButton>
+        <PrimaryButton onClick={onRestart}>Tirar outra</PrimaryButton>
+        <SecondaryButton onClick={onViewFeed}>Ver no feed</SecondaryButton>
       </div>
 
       {eventId && (
@@ -74,10 +74,20 @@ export function SuccessStep({
           <ClaimPhotosButton eventId={eventId} />
         </div>
       )}
-
-      <p className="text-center tipo-caption text-ink-3">
-        ID: {uploadId.slice(0, 12)}...
-      </p>
     </div>
+  );
+}
+
+/** Confirmação da recompensa (redesign §3.2) — check âmbar + o que aconteceu com a foto. */
+function RecompensaItem({ children }: { children: React.ReactNode }) {
+  return (
+    <li className="flex items-center gap-2 tipo-body text-ink-2">
+      <span aria-hidden className="text-acento-texto">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      </span>
+      {children}
+    </li>
   );
 }
