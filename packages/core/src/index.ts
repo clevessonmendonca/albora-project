@@ -855,7 +855,11 @@ export {
   ROLE_CAPABILITIES,
 } from "./authorization";
 export { logger } from "./structured-logging";
-export { VENDOR_PLAN_PRICE_CENTS, type VendorPlanTier } from "./vendor-billing";
+export {
+  VENDOR_PLAN_PRICE_CENTS,
+  VENDOR_PLAN_TEAM_LIMIT,
+  type VendorPlanTier,
+} from "./vendor-billing";
 
 export type {
   GoogleJwk,

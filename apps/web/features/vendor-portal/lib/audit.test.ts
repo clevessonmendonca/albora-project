@@ -3,7 +3,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 const { insertAuditLog } = vi.hoisted(() => ({ insertAuditLog: vi.fn().mockResolvedValue("audit-id") }));
 vi.mock("@albora/db", () => ({ insertAuditLog }));
 
-const { auditarAgregacaoDoPortal } = await import("./audit");
+const { auditarAcaoDoFornecedor, auditarAgregacaoDoPortal } = await import("./audit");
 
 function poolFalso() {
   const client = { query: vi.fn(), release: vi.fn() };
@@ -107,5 +107,29 @@ describe("auditarAgregacaoDoPortal", () => {
     await expect(auditar({ motivo: "vendor_dashboard:vendor-6", em: new Date() })).rejects.toThrow();
 
     expect(client.release).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("auditarAcaoDoFornecedor", () => {
+  it("usa alvo vendor, mascara o ator e preserva somente metadados operacionais", async () => {
+    const pool = poolFalso();
+    await auditarAcaoDoFornecedor(pool as never, {
+      actorId: "conta-7",
+      actorEmail: "admin@aurora.test",
+      action: "vendor.team.member.remove",
+      vendorId: "vendor-7",
+      reason: "remover membro",
+      metadata: { targetAccountId: "conta-8" },
+    });
+    expect(insertAuditLog).toHaveBeenCalledWith(expect.anything(), {
+      actorKind: "host",
+      actorId: "conta-7",
+      actorLabel: "a***@a***",
+      action: "vendor.team.member.remove",
+      targetKind: "vendor",
+      targetId: "vendor-7",
+      reason: "remover membro",
+      metadata: { targetAccountId: "conta-8" },
+    });
   });
 });

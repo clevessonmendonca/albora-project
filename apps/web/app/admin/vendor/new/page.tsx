@@ -33,7 +33,7 @@ export default async function NewVendorPage({
   return (
     <AdminShell
       title="Novo fornecedor"
-      subtitle="Sua conta vira administradora — convite de equipe chega em breve"
+      subtitle="Sua conta vira administradora e pode convidar a equipe depois da criação"
       back={{ label: "Painel", href: "/admin" }}
     >
       <AdminSection>

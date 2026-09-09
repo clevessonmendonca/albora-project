@@ -18,6 +18,38 @@ function actorLabelMascarado(email: string | null): string | null {
   return `${maskedLocal}@${maskedDomain}`;
 }
 
+export type AcaoDoFornecedor = {
+  actorId: string;
+  actorEmail: string | null;
+  action: string;
+  vendorId: string;
+  reason: string;
+  metadata?: Record<string, unknown>;
+};
+
+/** Registra uma ação administrativa do fornecedor antes da operação privilegiada. */
+export async function auditarAcaoDoFornecedor(
+  pool: Pool,
+  input: AcaoDoFornecedor,
+): Promise<void> {
+  if (!input.reason.trim()) throw new Error("auditoria de fornecedor exige motivo");
+  const client = await pool.connect();
+  try {
+    await insertAuditLog(client, {
+      actorKind: "host",
+      actorId: input.actorId,
+      actorLabel: actorLabelMascarado(input.actorEmail),
+      action: input.action,
+      targetKind: "vendor",
+      targetId: input.vendorId,
+      reason: input.reason,
+      metadata: input.metadata ?? {},
+    });
+  } finally {
+    client.release();
+  }
+}
+
 /**
  * Audita agregação cross-evento do portal do fornecedor — grava em
  * `audit_log`, não mais só `console.log` (CLAUDE.md: "quem cruzou eventos,

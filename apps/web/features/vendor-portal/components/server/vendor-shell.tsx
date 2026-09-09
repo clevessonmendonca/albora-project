@@ -23,6 +23,7 @@ type VendorShellProps = {
   subtitle?: string;
   vendorSlug: string;
   settingsHref?: string;
+  teamHref?: string;
   children: ReactNode;
 };
 
@@ -34,6 +35,7 @@ export function VendorShell({
   subtitle,
   vendorSlug,
   settingsHref,
+  teamHref,
   children,
 }: VendorShellProps) {
   return (
@@ -58,6 +60,7 @@ export function VendorShell({
           <a href="#visao-geral" className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-acento px-3 text-sm font-medium text-ink no-underline">Hoje</a>
           <a href="#eventos" className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Eventos</a>
           {settingsHref && <Link href={settingsHref} className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Marca</Link>}
+          {teamHref && <Link href={teamHref} className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Equipe</Link>}
           <a href="#assinatura" className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Plano e cobrança</a>
         </nav>
       </header>

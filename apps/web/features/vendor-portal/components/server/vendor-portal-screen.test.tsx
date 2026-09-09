@@ -52,6 +52,16 @@ describe("VendorPortalScreen", () => {
     expect(screen.queryByText("Continuar para pagamento")).not.toBeInTheDocument();
   });
 
+  it("só o administrador encontra a gestão de equipe", () => {
+    const { rerender } = render(<VendorPortalScreen {...context({ role: "admin" })} />);
+    expect(screen.getByRole("link", { name: "Equipe" })).toHaveAttribute(
+      "href",
+      "/admin/vendor/22222222-2222-2222-2222-222222222222/team",
+    );
+    rerender(<VendorPortalScreen {...context({ role: "staff" })} />);
+    expect(screen.queryByRole("link", { name: "Equipe" })).not.toBeInTheDocument();
+  });
+
   it("admin com assinatura pending vê o estado, não o formulário de novo", () => {
     render(<VendorPortalScreen {...context({ subscriptionStatus: "pending" })} />);
     expect(screen.getByText("Aguardando confirmação")).toBeInTheDocument();

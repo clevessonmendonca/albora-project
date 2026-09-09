@@ -457,6 +457,17 @@ export {
   vendorsDaConta,
 } from "./vendor-portal";
 
+export type { VendorTeamMember } from "./vendor-team";
+export {
+  listVendorTeam,
+  removeVendorTeamMember,
+  upsertVendorTeamMember,
+  updateVendorTeamMemberRole,
+  VendorTeamAccessError,
+  VendorTeamLimitError,
+  VendorTeamSelfManagementError,
+} from "./vendor-team";
+
 /** English alias — preferred for new code. @see marcaPublicaDoFornecedor */
 export { marcaPublicaDoFornecedor as vendorPublicBranding } from "./vendor-portal";
 /** English alias — preferred for new code. @see MarcaPublicaDoFornecedor */
