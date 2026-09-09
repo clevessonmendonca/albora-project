@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { hammingDistance } from "./hash-perceptual";
 import { rankForBook, type MediaScores } from "./ranking";
 
 const HASH_A = "0000000000000000";
@@ -243,9 +244,22 @@ describe("rankForBook", () => {
     }
   });
 
-  it("1.500 fotos (número do enunciado do produto) sob um teto de tempo — pega regressão pro O(n²) antigo (achado 6)", () => {
-    const rand = mulberry32(150020260905);
-    const n = 1500;
+  /**
+   * Escala, não relógio.
+   *
+   * A versão anterior media 1.500 fotos e exigia `< 1000ms`. Isso reprovava
+   * quando a máquina estava ocupada (medi 2.028ms numa rodada com a suíte
+   * inteira em paralelo) e passava 10/10 isolado — um teto absoluto mede a
+   * carga do CI junto com o algoritmo.
+   *
+   * Dobrar a entrada separa os dois: quem é ~linear dobra o tempo, quem é
+   * O(n²) quadruplica. A razão sobrevive a máquina lenta, porque a lentidão
+   * afeta as duas medições igualmente. `min` de três repetições porque, em
+   * medição de tempo, o menor valor é o menos contaminado por ruído — média
+   * incorpora cada pausa de GC.
+   */
+  function gerarScores(n: number, semente: number): MediaScores[] {
+    const rand = mulberry32(semente);
     const scores: MediaScores[] = [];
     for (let i = 0; i < n; i += 1) {
       scores.push({
@@ -255,16 +269,73 @@ describe("rankForBook", () => {
         exposure: rand(),
       });
     }
+    return scores;
+  }
 
-    const inicio = performance.now();
+  /** `min` de várias rodadas: em medição de tempo o menor valor é o menos contaminado — média incorpora cada pausa de GC. */
+  function menorDuracaoDe(executar: () => unknown, repeticoes = 3): number {
+    let melhor = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < repeticoes; i += 1) {
+      const inicio = performance.now();
+      executar();
+      melhor = Math.min(melhor, performance.now() - inicio);
+    }
+    return melhor;
+  }
+
+  /**
+   * Linha de base, não relógio de parede.
+   *
+   * A versão anterior media 1.500 fotos e exigia `< 1000ms`. Reprovava com a
+   * máquina ocupada (2.028ms numa rodada com a suíte inteira em paralelo) e
+   * passava 10/10 isolado: um teto absoluto mede a carga do CI junto com o
+   * algoritmo.
+   *
+   * Aqui as duas pontas são medidas na mesma máquina, na mesma rodada — a
+   * lentidão afeta as duas e a razão sobrevive. A base é o piso do algoritmo
+   * antigo: `C(n,2)` chamadas de `hammingDistance`, sem a união nem as
+   * alocações que ele também fazia.
+   *
+   * O que este teste prova: a partição por faixa está no lugar. O que ele
+   * NÃO prova: complexidade sub-quadrática — porque não é. `bands` é
+   * `min(hammingThreshold, 64)` = 10 faixas de 7 bits, ou seja **128 baldes
+   * fixos**, independentes de `n`. O balde cresce linear com a entrada e os
+   * pares dentro dele crescem ao quadrado. Dobrar a entrada ainda
+   * quadruplica o tempo (medido: razão 4,05 entre 1.000 e 2.000). A
+   * otimização do achado 6 derrubou a constante, não a curva.
+   */
+  it(
+    "não compara todos contra todos — custo fica abaixo do piso do algoritmo antigo",
+    () => {
+      const scores = gerarScores(1200, 150020260905);
+      const hashes = scores.map((x) => x.hash!);
+
+      const pisoDeTodosContraTodos = () => {
+        let acc = 0;
+        for (let a = 0; a < hashes.length; a += 1) {
+          for (let b = a + 1; b < hashes.length; b += 1) acc += hammingDistance(hashes[a]!, hashes[b]!);
+        }
+        return acc;
+      };
+
+      const tBase = menorDuracaoDe(pisoDeTodosContraTodos);
+      const tReal = menorDuracaoDe(() => rankForBook(scores));
+      const ganho = tBase / Math.max(tReal, 1);
+
+      // Medido em 1,72 com a partição por faixa; sem ela, `rankForBook` faz o
+      // trabalho do piso MAIS percentis e ordenação, e a razão cai abaixo de 1.
+      expect(ganho, `ganho ${ganho.toFixed(2)} (piso ${tBase.toFixed(1)}ms, real ${tReal.toFixed(1)}ms)`).toBeGreaterThan(
+        1.3,
+      );
+    },
+    60_000,
+  );
+
+  it("em escala, continua sem cortar nenhuma foto", () => {
+    const scores = gerarScores(1500, 150020260905);
     const saida = rankForBook(scores);
-    const duracaoMs = performance.now() - inicio;
 
-    expect(saida).toHaveLength(n);
-    // Nunca corta, mesmo em escala.
+    expect(saida).toHaveLength(1500);
     expect(new Set(saida.map((s) => s.uploadId))).toEqual(new Set(scores.map((s) => s.uploadId)));
-    // O(n²) medido pelo review: ~3.493ms para 1.500 fotos. 1000ms dá folga generosa para
-    // variação de máquina/CI, mas ainda pega uma regressão de volta pro algoritmo antigo.
-    expect(duracaoMs).toBeLessThan(1000);
   });
 });
