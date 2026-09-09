@@ -1,11 +1,13 @@
 import {
   eventosDoFornecedor,
   marcaPublicaDoFornecedor,
+  resumoDoFornecedor,
   roleForAccountOnVendor,
   type MarcaPublicaDoFornecedor,
   type VendorEventSummary,
   type VendorRole,
   type VendorSubscriptionStatus,
+  type ResumoDoFornecedor,
 } from "@albora/db";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -17,6 +19,7 @@ export type VendorPortalContext = {
   vendor: MarcaPublicaDoFornecedor;
   role: VendorRole;
   eventos: VendorEventSummary[];
+  resumo: ResumoDoFornecedor;
   subscriptionStatus: VendorSubscriptionStatus | null;
 };
 
@@ -65,7 +68,19 @@ export async function loadVendorPortal(vendorSlug: string): Promise<VendorPortal
     },
   );
 
+  await auditarAgregacaoDoPortal(getPool(), host.accountId, host.email)({
+    motivo: `vendor_insights:${vendor.id}`,
+    em: new Date(),
+  });
+  const resumo = await resumoDoFornecedor(
+    getPool(),
+    getAggregatorPool(),
+    host.accountId,
+    vendor.id,
+    () => {},
+  );
+
   const subscriptionStatus = await latestSubscriptionStatus(vendor.id);
 
-  return { vendor, role, eventos, subscriptionStatus };
+  return { vendor, role, eventos, resumo, subscriptionStatus };
 }

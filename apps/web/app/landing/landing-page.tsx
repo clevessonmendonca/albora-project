@@ -60,6 +60,9 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
           <a href="#preco" className="elo text-inherit no-underline">
             Preço
           </a>
+          <a href="/fornecedores" className="elo text-inherit no-underline">
+            Para fornecedores
+          </a>
         </nav>
 
         <LandingCtaLink

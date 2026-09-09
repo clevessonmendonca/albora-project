@@ -22,13 +22,14 @@ describe("VendorSubscribeButton", () => {
         subscriptionStatus={null}
       />,
     );
-    expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
+    expect(screen.queryByText("Continuar para pagamento")).not.toBeInTheDocument();
   });
 
   it("admin escolhe um plano, assina, e vê o link de pagamento", async () => {
     const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
-      const body = JSON.parse(String(init?.body)) as { plan: string };
+      const body = JSON.parse(String(init?.body)) as { plan: string; billingType: string };
       expect(body.plan).toBe("studio");
+      expect(body.billingType).toBe("PIX");
       return responder({
         subscriptionId: "sub-1",
         asaasSubscriptionId: "asaas-1",
@@ -50,7 +51,7 @@ describe("VendorSubscribeButton", () => {
     );
 
     fireEvent.click(screen.getByText(/Studio/));
-    fireEvent.click(screen.getByText("Assinar plano"));
+    fireEvent.click(screen.getByText("Continuar para pagamento"));
 
     await waitFor(() => {
       expect(screen.getByText("Pagar assinatura")).toBeInTheDocument();
@@ -62,6 +63,23 @@ describe("VendorSubscribeButton", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       `/api/vendors/${VENDOR_ID}/subscription`,
       expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("abre com o plano pedido na landing", () => {
+    render(
+      <VendorSubscribeButton
+        vendorId={VENDOR_ID}
+        role="admin"
+        currentPlan="starter"
+        requestedPlan="agency"
+        subscriptionStatus={null}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /Agency/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
     );
   });
 
@@ -81,7 +99,7 @@ describe("VendorSubscribeButton", () => {
         subscriptionStatus={null}
       />,
     );
-    fireEvent.click(screen.getByText("Assinar plano"));
+    fireEvent.click(screen.getByText("Continuar para pagamento"));
 
     expect(await screen.findByText("Só admin do fornecedor pode assinar")).toBeInTheDocument();
     expect(screen.queryByText("Pagar assinatura")).not.toBeInTheDocument();
@@ -97,7 +115,7 @@ describe("VendorSubscribeButton", () => {
       />,
     );
     expect(screen.getByText("Aguardando confirmação")).toBeInTheDocument();
-    expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
+    expect(screen.queryByText("Continuar para pagamento")).not.toBeInTheDocument();
   });
 
   it("assinatura active mostra o estado, sem oferecer assinar de novo", () => {
@@ -110,7 +128,7 @@ describe("VendorSubscribeButton", () => {
       />,
     );
     expect(screen.getByText("Assinatura ativa")).toBeInTheDocument();
-    expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
+    expect(screen.queryByText("Continuar para pagamento")).not.toBeInTheDocument();
   });
 
   it("assinatura overdue cai para o fluxo normal (pode ser refeita)", () => {
@@ -122,6 +140,6 @@ describe("VendorSubscribeButton", () => {
         subscriptionStatus="overdue"
       />,
     );
-    expect(screen.getByText("Assinar plano")).toBeInTheDocument();
+    expect(screen.getByText("Continuar para pagamento")).toBeInTheDocument();
   });
 });

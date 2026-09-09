@@ -4,7 +4,11 @@ import React, { useState } from "react";
 import { Button, TextField } from "@albora/ui-web";
 
 type Props =
-  | { mode: "create" }
+  | {
+      mode: "create";
+      afterCreate?: "settings" | "event";
+      requestedPlan?: "starter" | "studio" | "agency";
+    }
   | { mode: "edit"; vendorId: string; initialName: string; initialSlug: string };
 
 const SLUG_RE = /^[a-z0-9-]{1,80}$/;
@@ -66,8 +70,14 @@ export function VendorForm(props: Props) {
           const e = (await r.json()) as { message?: string };
           throw new Error(e.message ?? "Não foi possível criar o fornecedor");
         }
-        const data = (await r.json()) as { vendorId: string };
-        window.location.href = `/admin/vendor/${data.vendorId}/settings`;
+        const data = (await r.json()) as { vendorId: string; slug: string };
+        if (props.afterCreate === "event") {
+          const params = new URLSearchParams({ vendor: data.vendorId, vendorSlug: data.slug });
+          if (props.requestedPlan) params.set("vendorPlan", props.requestedPlan);
+          window.location.href = `/admin/new?${params.toString()}`;
+        } else {
+          window.location.href = `/admin/vendor/${data.vendorId}/settings`;
+        }
         return;
       }
 

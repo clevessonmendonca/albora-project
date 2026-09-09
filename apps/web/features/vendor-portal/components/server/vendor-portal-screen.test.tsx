@@ -15,6 +15,7 @@ function context(overrides: Partial<VendorPortalContext> = {}): VendorPortalCont
     },
     role: "admin",
     eventos: [],
+    resumo: { totalEventos: 0, totalFotos: 0, h1Medio: 0 },
     subscriptionStatus: null,
     ...overrides,
   };
@@ -40,23 +41,23 @@ describe("VendorPortalScreen", () => {
 
   it("admin vê o botão de assinar plano", () => {
     render(<VendorPortalScreen {...context({ role: "admin" })} />);
-    expect(screen.getByText("Assinar plano")).toBeInTheDocument();
+    expect(screen.getByText("Continuar para pagamento")).toBeInTheDocument();
   });
 
   it("staff não vê o botão de assinar plano", () => {
     render(<VendorPortalScreen {...context({ role: "staff" })} />);
-    expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
+    expect(screen.queryByText("Continuar para pagamento")).not.toBeInTheDocument();
   });
 
   it("admin com assinatura pending vê o estado, não o formulário de novo", () => {
     render(<VendorPortalScreen {...context({ subscriptionStatus: "pending" })} />);
     expect(screen.getByText("Aguardando confirmação")).toBeInTheDocument();
-    expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
+    expect(screen.queryByText("Continuar para pagamento")).not.toBeInTheDocument();
   });
 
   it("admin com assinatura active vê o estado, não o formulário de novo", () => {
     render(<VendorPortalScreen {...context({ subscriptionStatus: "active" })} />);
     expect(screen.getByText("Assinatura ativa")).toBeInTheDocument();
-    expect(screen.queryByText("Assinar plano")).not.toBeInTheDocument();
+    expect(screen.queryByText("Continuar para pagamento")).not.toBeInTheDocument();
   });
 });
