@@ -1,19 +1,12 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
 import { VendorSubscribeButton } from "./vendor-subscribe-button";
 
 const VENDOR_ID = "22222222-2222-2222-2222-222222222222";
 
-function responder(corpo: unknown, status = 200): Response {
-  return new Response(JSON.stringify(corpo), { status });
-}
-
-/** Gate de papel é UI — segurança real é revalidada pela rota no servidor (V2b). */
 describe("VendorSubscribeButton", () => {
-  afterEach(() => vi.unstubAllGlobals());
-
-  it("staff não vê o botão de assinar", () => {
+  it("não oferece assinatura para staff", () => {
     render(
       <VendorSubscribeButton
         vendorId={VENDOR_ID}
@@ -22,51 +15,10 @@ describe("VendorSubscribeButton", () => {
         subscriptionStatus={null}
       />,
     );
-    expect(screen.queryByText("Continuar para pagamento")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Ver planos" })).not.toBeInTheDocument();
   });
 
-  it("admin escolhe um plano, assina, e vê o link de pagamento", async () => {
-    const fetchMock = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
-      const body = JSON.parse(String(init?.body)) as { plan: string; billingType: string };
-      expect(body.plan).toBe("studio");
-      expect(body.billingType).toBe("PIX");
-      return responder({
-        subscriptionId: "sub-1",
-        asaasSubscriptionId: "asaas-1",
-        invoiceUrl: "https://asaas.example/invoice/1",
-        amountCents: 24900,
-        plan: "studio",
-        stub: true,
-      });
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    render(
-      <VendorSubscribeButton
-        vendorId={VENDOR_ID}
-        role="admin"
-        currentPlan="starter"
-        subscriptionStatus={null}
-      />,
-    );
-
-    fireEvent.click(screen.getByText(/Studio/));
-    fireEvent.click(screen.getByText("Continuar para pagamento"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Pagar assinatura")).toBeInTheDocument();
-    });
-    expect(screen.getByText("Pagar assinatura")).toHaveAttribute(
-      "href",
-      "https://asaas.example/invoice/1",
-    );
-    expect(fetchMock).toHaveBeenCalledWith(
-      `/api/vendors/${VENDOR_ID}/subscription`,
-      expect.objectContaining({ method: "POST" }),
-    );
-  });
-
-  it("abre com o plano pedido na landing", () => {
+  it("leva o plano pedido para o checkout dedicado", () => {
     render(
       <VendorSubscribeButton
         vendorId={VENDOR_ID}
@@ -77,69 +29,37 @@ describe("VendorSubscribeButton", () => {
       />,
     );
 
-    expect(screen.getByRole("button", { name: /Agency/ })).toHaveAttribute(
-      "aria-pressed",
-      "true",
+    expect(screen.getByRole("link", { name: "Ver planos" })).toHaveAttribute(
+      "href",
+      `/admin/vendor/checkout?vendor=${VENDOR_ID}&plan=agency`,
     );
   });
 
-  it("erro do servidor mostra a mensagem, sem quebrar a tela", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () =>
-        responder({ code: "vendor.papel_negado", message: "Só admin do fornecedor pode assinar" }, 403),
-      ),
-    );
-
+  it("assinatura pendente mostra estado sem criar outra cobrança", () => {
     render(
       <VendorSubscribeButton
         vendorId={VENDOR_ID}
         role="admin"
-        currentPlan="starter"
-        subscriptionStatus={null}
-      />,
-    );
-    fireEvent.click(screen.getByText("Continuar para pagamento"));
-
-    expect(await screen.findByText("Só admin do fornecedor pode assinar")).toBeInTheDocument();
-    expect(screen.queryByText("Pagar assinatura")).not.toBeInTheDocument();
-  });
-
-  it("assinatura pending mostra o estado, sem oferecer assinar de novo", () => {
-    render(
-      <VendorSubscribeButton
-        vendorId={VENDOR_ID}
-        role="admin"
-        currentPlan="starter"
+        currentPlan="studio"
         subscriptionStatus="pending"
       />,
     );
     expect(screen.getByText("Aguardando confirmação")).toBeInTheDocument();
-    expect(screen.queryByText("Continuar para pagamento")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Ver planos" })).not.toBeInTheDocument();
   });
 
-  it("assinatura active mostra o estado, sem oferecer assinar de novo", () => {
+  it("assinatura vencida apresenta recuperação", () => {
     render(
       <VendorSubscribeButton
         vendorId={VENDOR_ID}
         role="admin"
-        currentPlan="starter"
-        subscriptionStatus="active"
-      />,
-    );
-    expect(screen.getByText("Assinatura ativa")).toBeInTheDocument();
-    expect(screen.queryByText("Continuar para pagamento")).not.toBeInTheDocument();
-  });
-
-  it("assinatura overdue cai para o fluxo normal (pode ser refeita)", () => {
-    render(
-      <VendorSubscribeButton
-        vendorId={VENDOR_ID}
-        role="admin"
-        currentPlan="starter"
+        currentPlan="studio"
         subscriptionStatus="overdue"
       />,
     );
-    expect(screen.getByText("Continuar para pagamento")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Regularizar" })).toHaveAttribute(
+      "href",
+      `/admin/vendor/checkout?vendor=${VENDOR_ID}&plan=studio`,
+    );
   });
 });

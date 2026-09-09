@@ -41,7 +41,10 @@ describe("VendorPortalScreen", () => {
 
   it("admin vê o botão de assinar plano", () => {
     render(<VendorPortalScreen {...context({ role: "admin" })} />);
-    expect(screen.getByText("Continuar para pagamento")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ver planos" })).toHaveAttribute(
+      "href",
+      "/admin/vendor/checkout?vendor=22222222-2222-2222-2222-222222222222&plan=starter",
+    );
   });
 
   it("staff não vê o botão de assinar plano", () => {

@@ -35,8 +35,8 @@ Os nomes, limites e preços exibidos no protótipo são proposta de embalagem e 
 - Portal atual: `apps/web/features/vendor-portal/**`.
 - Criação/configuração do fornecedor: `apps/web/app/admin/vendor/**` e `apps/web/app/api/admin/vendor/**`.
 - Identidade: `apps/web/app/api/vendors/[vendorId]/brand-tokens/route.ts` e componentes `vendor-brand-*`.
-- Assinatura do fornecedor: `POST /api/vendors/[vendorId]/subscription`, hoje consumido por `VendorSubscribeButton` e com retorno por `invoiceUrl`.
-- Checkout de evento: `POST /api/billing/checkout`. A API existe, mas ainda falta a tela que apresenta resumo, pagamento e estados de retorno.
+- Assinatura do fornecedor: `POST /api/vendors/[vendorId]/subscription`, consumido pelo checkout dedicado em `/admin/vendor/checkout`; `VendorSubscribeButton` leva ao fluxo e impede nova oferta quando a assinatura está ativa ou pendente.
+- Checkout de evento: `POST /api/billing/checkout`, consumido pelo passo final da criação de evento. O checkout de assinatura do fornecedor trata retorno com e sem `invoiceUrl`, erro recuperável e ativação posterior pelo webhook.
 - Billing: reutilizar `apps/web/lib/billing/**`; webhook continua sendo a fonte de verdade para ativação.
 
 Cada ação de mutação deve chamar o comando/use case existente. Quando não houver comando, implementar comando, autorização, auditoria e estados de erro antes de expor o controle.
@@ -65,8 +65,8 @@ Na implementação, trate essas imagens como direção de arte do protótipo. Pr
 
 1. Criar as páginas reais do fornecedor reutilizando o shell e os dados de `features/vendor-portal`.
 2. Implementar o onboarding sobre os comandos existentes de fornecedor e evento.
-3. Criar `/admin/vendor/checkout` ou rota equivalente com estado server-backed, retorno do provedor e polling curto apenas para pendência.
-4. Reusar o provider de billing e manter webhook como fonte de verdade.
-5. Ligar métricas e carteira a dados reais, com estado vazio honesto.
-6. Implementar marca, equipe, recibos e gerenciamento da assinatura com autorização e auditoria.
-7. Validar os breakpoints, teclado, leitor de tela, contraste, `reduced-motion` e o caminho completo em E2E.
+3. ✅ Checkout dedicado em `/admin/vendor/checkout`, com plano, forma de pagamento, resumo, retorno do provedor e estado pendente protegido contra duplicidade.
+4. ✅ Provider de billing reutilizado; o webhook permanece como fonte de verdade da ativação.
+5. ✅ Métricas e carteira ligadas aos dados agregados reais, com estado vazio honesto.
+6. Implementar equipe, recibos e gerenciamento da assinatura com autorização e auditoria. A marca já usa a API real de `brand-tokens`.
+7. Cobrir o caminho completo em E2E quando o ambiente de billing de teste estiver disponível; componentes críticos já têm testes de teclado, erro e ausência de URL externa.

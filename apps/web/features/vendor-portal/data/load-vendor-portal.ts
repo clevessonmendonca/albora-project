@@ -24,7 +24,7 @@ export type VendorPortalContext = {
 };
 
 /** Status da assinatura inline (sem RLS, protegida por papel): `vendor.id` vem de `roleForAccountOnVendor`, nunca do cliente — evita dupla cobrança. */
-async function latestSubscriptionStatus(vendorId: string): Promise<VendorSubscriptionStatus | null> {
+export async function latestVendorSubscriptionStatus(vendorId: string): Promise<VendorSubscriptionStatus | null> {
   const { rows } = await getPool().query<{ status: VendorSubscriptionStatus }>(
     `SELECT status FROM vendor_subscriptions WHERE vendor_id = $1 ORDER BY created_at DESC LIMIT 1`,
     [vendorId],
@@ -80,7 +80,7 @@ export async function loadVendorPortal(vendorSlug: string): Promise<VendorPortal
     () => {},
   );
 
-  const subscriptionStatus = await latestSubscriptionStatus(vendor.id);
+  const subscriptionStatus = await latestVendorSubscriptionStatus(vendor.id);
 
   return { vendor, role, eventos, resumo, subscriptionStatus };
 }
