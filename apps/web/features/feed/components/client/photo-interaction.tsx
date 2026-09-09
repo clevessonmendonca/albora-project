@@ -3,7 +3,7 @@
 import type { ModoInteracao } from "@albora/core";
 import dynamic from "next/dynamic";
 import { memo, useCallback, useState } from "react";
-import { Star, CommentIcon, ShareIcon, MoreIcon, AnimatedCounter, showToast, announce } from "@albora/ui-web";
+import { Star, CommentIcon, ShareIcon, MoreIcon, AnimatedCounter, BottomSheet, showToast, announce } from "@albora/ui-web";
 import { useComments } from "@/features/feed/hooks/use-comments";
 import { useReaction, type ResultadoReacao } from "@/features/feed/hooks/use-reaction";
 import { useReactionList } from "@/features/feed/hooks/use-reaction-list";
@@ -60,6 +60,7 @@ export const PhotoInteraction = memo(function PhotoInteraction({
   const listaReacoes = useReactionList(uploadId);
   const comentarios = useComments(uploadId, completo);
   const [denunciaAberta, setDenunciaAberta] = useState(false);
+  const [overflowAberto, setOverflowAberto] = useState(false);
   const [animandoStar, setAnimandoStar] = useState(false);
 
   const alternarReacao = useCallback(async () => {
@@ -153,28 +154,13 @@ export const PhotoInteraction = memo(function PhotoInteraction({
           </button>
         )}
 
-        {completo && minha && onCompartilhar && (
-          <button
-            type="button"
-            aria-label="Compartilhar no Instagram ou WhatsApp"
-            disabled={compartilhando}
-            onClick={() => void handleCompartilhar()}
-            className={CLASSE_BOTAO_ICONE}
-          >
-            <ShareIcon size={21} />
-            <span className="font-titulo text-[0.75rem] uppercase tracking-rotulo">
-              {compartilhando ? "Montando…" : "Stories"}
-            </span>
-          </button>
-        )}
-
         {completo && (
           <div className="ml-auto">
             <button
               type="button"
-              aria-expanded={denunciaAberta}
+              aria-expanded={overflowAberto}
               aria-label="Mais opções"
-              onClick={() => setDenunciaAberta(true)}
+              onClick={() => setOverflowAberto(true)}
               className={CLASSE_BOTAO_ICONE}
             >
               <MoreIcon size={20} />
@@ -182,6 +168,41 @@ export const PhotoInteraction = memo(function PhotoInteraction({
           </div>
         )}
       </div>
+
+      {completo && (
+        <BottomSheet title="Opções" open={overflowAberto} onClose={() => setOverflowAberto(false)}>
+          <div className="flex flex-col">
+            {minha && onCompartilhar && (
+              <button
+                type="button"
+                disabled={compartilhando}
+                onClick={() => {
+                  setOverflowAberto(false);
+                  void handleCompartilhar();
+                }}
+                className="flex min-h-14 items-center gap-3 border-b border-linha px-1 text-left text-[0.95rem] text-ink transition-opacity hover:opacity-70 disabled:opacity-50"
+              >
+                <ShareIcon size={20} />
+                {compartilhando ? "Montando…" : "Compartilhar nas redes"}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setOverflowAberto(false);
+                setDenunciaAberta(true);
+              }}
+              className="flex min-h-14 items-center gap-3 px-1 text-left text-[0.95rem] text-ink transition-opacity hover:opacity-70"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+                <path d="M4 22v-7" />
+              </svg>
+              Denunciar
+            </button>
+          </div>
+        </BottomSheet>
+      )}
 
       <ReactionListSheet lista={listaReacoes} {...(onVerAutor ? { onVerAutor } : {})} />
       {completo && <CommentSheet comentarios={comentarios} {...(onVerAutor ? { onVerAutor } : {})} />}

@@ -15,4 +15,15 @@ describe("SuccessStep", () => {
     render(<SuccessStep {...propsBase} eventId="evento-123" />);
     expect(screen.getByRole("button", { name: "Receber minhas fotos" })).toBeInTheDocument();
   });
+
+  it("recompensa v4: entrou na festa + checklist álbum/telão, sem ID de debug", () => {
+    render(<SuccessStep {...propsBase} />);
+    expect(screen.getByText("Sua foto entrou na festa")).toBeInTheDocument();
+    expect(screen.getByText("No álbum")).toBeInTheDocument();
+    expect(screen.getByText("Pode aparecer no telão")).toBeInTheDocument();
+    // O ID cru de upload não é conteúdo pro convidado.
+    expect(screen.queryByText(/^ID:/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Tirar outra" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ver no feed" })).toBeInTheDocument();
+  });
 });
