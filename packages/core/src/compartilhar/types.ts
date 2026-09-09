@@ -57,6 +57,17 @@ export type Caixa = { x: number; y: number; largura: number; altura: number };
 
 export type ModeloDeMoldura = "polaroide" | "ambiente" | "cheia";
 
+/** Formato da composição de compartilhamento (ADR 0022): retrato para stories, quadrado para feed. */
+export type FormatoDaMoldura = "story" | "feed";
+
+export type DimensoesDaComposicao = {
+  largura: number;
+  altura: number;
+  /** Altura da faixa da marca. */
+  faixa: number;
+  margem: number;
+};
+
 export type Recorte = { topo: number; base: number; esquerda: number; direita: number };
 
 export type IdentidadeDoEvento = {
@@ -78,6 +89,7 @@ export type ConteudoDaMoldura = {
 export type Composicao = {
   largura: number;
   altura: number;
+  formato: FormatoDaMoldura;
   modelo: ModeloDeMoldura;
   area: Caixa;
   foto: Caixa;
@@ -91,6 +103,8 @@ export type EntradaDaComposicao = {
   evento: EventoQueCompartilha;
   identidade: IdentidadeDoEvento;
   modelo: ModeloDeMoldura;
+  /** Ausente = `"story"` (retrato), o padrão histórico. */
+  formato?: FormatoDaMoldura;
   agora: Date;
 };
 
@@ -123,3 +137,20 @@ export const MODELOS_DE_MOLDURA: readonly ModeloDeMoldura[] = [
   "ambiente",
   "cheia",
 ];
+
+export const FORMATOS_DE_MOLDURA: readonly FormatoDaMoldura[] = ["story", "feed"];
+
+/**
+ * `story` reusa as constantes históricas (1080×1920). `feed` é 1080×1080, com a
+ * faixa na MESMA proporção da altura (320/1920 = 1/6 → 180) e a mesma margem —
+ * derivado, não arbitrado, para o quadrado combinar com o retrato.
+ */
+export const DIMENSOES_DO_FORMATO: Record<FormatoDaMoldura, DimensoesDaComposicao> = {
+  story: {
+    largura: LARGURA_DA_COMPOSICAO,
+    altura: ALTURA_DA_COMPOSICAO,
+    faixa: ALTURA_DA_FAIXA,
+    margem: MARGEM,
+  },
+  feed: { largura: 1080, altura: 1080, faixa: 180, margem: MARGEM },
+};

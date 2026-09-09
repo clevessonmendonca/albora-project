@@ -17,14 +17,15 @@ import type {
   ResultadoDaComposicao,
 } from "./types";
 import {
-  ALTURA_DA_COMPOSICAO,
+  DIMENSOES_DO_FORMATO,
   ESPACO_DA_COLAGEM,
-  LARGURA_DA_COMPOSICAO,
   MAX_DA_COLAGEM,
 } from "./types";
 
 export function compor(entrada: EntradaDaComposicao): ResultadoDaComposicao {
   const { midia, sessao, evento, identidade, modelo, agora } = entrada;
+  const formato = entrada.formato ?? "story";
+  const dim = DIMENSOES_DO_FORMATO[formato];
 
   const autorizacao = autorizarCompartilhamento(midia, sessao, evento, agora);
   if (!autorizacao.pode) {
@@ -36,7 +37,7 @@ export function compor(entrada: EntradaDaComposicao): ResultadoDaComposicao {
     };
   }
 
-  if (molduraCorta(modelo, midia)) {
+  if (molduraCorta(modelo, midia, formato)) {
     return {
       autorizada: false,
       codigo: "compartilhar.modelo_corta_a_foto",
@@ -49,12 +50,13 @@ export function compor(entrada: EntradaDaComposicao): ResultadoDaComposicao {
     autorizada: true,
     codigo: "compartilhar.autorizado",
     composicao: {
-      largura: LARGURA_DA_COMPOSICAO,
-      altura: ALTURA_DA_COMPOSICAO,
+      largura: dim.largura,
+      altura: dim.altura,
+      formato,
       modelo,
-      area: areaDaFoto(modelo),
-      foto: caixaDaFoto(modelo, midia),
-      faixa: faixaDaMarca(),
+      area: areaDaFoto(modelo, formato),
+      foto: caixaDaFoto(modelo, midia, formato),
+      faixa: faixaDaMarca(formato),
       conteudo: conteudoDaMoldura(identidade, midia, sessao, agora),
     },
   };
