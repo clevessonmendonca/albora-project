@@ -1,7 +1,9 @@
 import React from "react";
 import { redirect } from "next/navigation";
 import { listRetentionJobs, type RetentionJobAdminRow } from "@albora/application";
-import { DataTable, PageHeader, StatusBadge, type DataTableColumn, type StatusBadgeTone } from "@albora/ui-web";
+import { DataTable, StatusBadge, type DataTableColumn, type StatusBadgeTone } from "@albora/ui-web";
+import { SegurancaIcon } from "@/features/console/components/server/console-icons";
+import { TituloDaTela } from "@/features/console/components/server/console-primitivos";
 import { resolveActor } from "@/lib/console/actor";
 import { getAggregatorPool, getPool } from "@/lib/db";
 
@@ -98,19 +100,27 @@ export default async function RetentionPage() {
 
   return (
     <>
-      <PageHeader
-        title="Retenção"
-        description="Fila de retention_jobs cross-evento — export no dia 330, exclusão no dia 365. Falhados são trabalho pendente, não informação; reprocessar chega na Onda C."
+      <TituloDaTela
+        titulo="Retenção"
+        descricao="Fila de retention_jobs cross-evento — export no dia 330, exclusão no dia 365. Falhados são trabalho pendente, não informação; reprocessar chega na Onda C."
       />
-      <DataTable
-        columns={columns}
-        rows={rows}
-        rowKey={(r) => r.id}
-        pageSize={Math.max(rows.length, 1)}
-        pageSizeOptions={[Math.max(rows.length, 1)]}
-        itemLabel="jobs"
-        emptyMessage="Nenhum job pendente. A fila de retenção aparece aqui quando o primeiro evento termina."
-      />
+      <p className="mb-4 flex w-fit items-center gap-2 rounded-superficie bg-atencao-superficie px-3 py-1.5">
+        <span aria-hidden className="text-atencao">
+          <SegurancaIcon size={14} />
+        </span>
+        <span className="tipo-den-meta text-ink-2">
+          Somente leitura · jobs rodam por cron. Aqui você investiga falhas, não executa.
+        </span>
+      </p>
+        <DataTable
+          columns={columns}
+          rows={rows}
+          rowKey={(r) => r.id}
+          pageSize={Math.max(rows.length, 1)}
+          pageSizeOptions={[Math.max(rows.length, 1)]}
+          itemLabel="jobs"
+          emptyMessage="Nenhum job pendente. A fila de retenção aparece aqui quando o primeiro evento termina."
+        />
     </>
   );
 }

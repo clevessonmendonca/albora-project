@@ -1,10 +1,10 @@
 import React from "react";
 import { redirect } from "next/navigation";
 import { listAccounts } from "@albora/application";
-import { PageHeader } from "@albora/ui-web";
 import { resolveActor } from "@/lib/console/actor";
 import { getAggregatorPool, getPool } from "@/lib/db";
 import { AccountsTable } from "@/features/console/components/client/accounts-table";
+import { TituloDaTela } from "@/features/console/components/server/console-primitivos";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +35,10 @@ export default async function AccountsPage({
 
   return (
     <>
-      <PageHeader title="Contas" description="Anfitriões e fornecedores da plataforma." />
+      <TituloDaTela
+        titulo="Contas"
+        descricao="Anfitriões e fornecedores da plataforma — contato mascarado por padrão."
+      />
       <AccountsTable rows={rows} nextCursor={nextCursor} />
     </>
   );

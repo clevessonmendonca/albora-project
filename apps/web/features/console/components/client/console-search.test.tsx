@@ -2,7 +2,7 @@ import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { ConsoleSearch } from "./console-search";
+import { ConsoleSearch, emCampoDeTexto } from "./console-search";
 
 const { searchConsoleActionMock, pushMock } = vi.hoisted(() => ({
   searchConsoleActionMock: vi.fn(),
@@ -44,5 +44,29 @@ describe("ConsoleSearch", () => {
 
     expect(screen.queryByLabelText("Buscar conta, evento ou ticket")).not.toBeInTheDocument();
     expect(botao).toHaveFocus();
+  });
+});
+
+describe("emCampoDeTexto", () => {
+  it("input, textarea e select contam como campo de texto", () => {
+    for (const tag of ["INPUT", "TEXTAREA", "SELECT"]) {
+      const el = document.createElement(tag);
+      expect(emCampoDeTexto(el)).toBe(true);
+    }
+  });
+
+  it("um botão não conta — `/` ali abre a busca", () => {
+    expect(emCampoDeTexto(document.createElement("button"))).toBe(false);
+  });
+
+  it("contenteditable conta", () => {
+    const el = document.createElement("div");
+    el.contentEditable = "true";
+    Object.defineProperty(el, "isContentEditable", { value: true });
+    expect(emCampoDeTexto(el)).toBe(true);
+  });
+
+  it("sem alvo não conta", () => {
+    expect(emCampoDeTexto(null)).toBe(false);
   });
 });

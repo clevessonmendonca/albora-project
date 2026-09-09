@@ -38,8 +38,8 @@ export function SupportQueue({ rows, selectedId, now }: { rows: SupportTicketAdm
               href={`/console/support?${params.toString()}`}
               aria-current={ticket.id === selectedId ? "true" : undefined}
               className={[
-                "flex min-h-11 flex-col gap-0.5 rounded-token border px-3 py-2 no-underline",
-                ticket.id === selectedId ? "border-acento-texto bg-acento-superficie" : "border-linha",
+                "flex min-h-11 flex-col gap-0.5 rounded-token border px-3 py-2 no-underline transition-colors duration-[var(--tempo)] ease-[var(--curva)]",
+                ticket.id === selectedId ? "border-acento-texto bg-acento-superficie" : "border-linha hover:bg-superficie-alta",
                 sla.estourado ? "bg-critico-superficie" : "",
               ].join(" ")}
             >

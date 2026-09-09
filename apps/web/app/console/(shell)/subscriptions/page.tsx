@@ -9,10 +9,12 @@ import {
   type VendorSubscriptionAdminRow,
 } from "@albora/application";
 import { hasCapability } from "@albora/core";
-import { DataTable, MetricCard, PageHeader, StatusBadge, type DataTableColumn, type StatusBadgeTone } from "@albora/ui-web";
+import { DataTable, StatusBadge, type DataTableColumn, type StatusBadgeTone } from "@albora/ui-web";
 import { resolveActor } from "@/lib/console/actor";
 import { getAggregatorPool, getPool } from "@/lib/db";
 import { SubscriptionActions } from "@/features/console/components/client/subscription-actions";
+import { FaixaDeMetricas, formatarNumero } from "@/features/console/components/server/overview-sections";
+import { TituloDaTela } from "@/features/console/components/server/console-primitivos";
 
 export const dynamic = "force-dynamic";
 
@@ -29,10 +31,6 @@ const TOM_STATUS: Record<VendorSubscriptionAdminRow["status"], StatusBadgeTone> 
   overdue: "critico",
   canceled: "atencao",
 };
-
-function formatarNumero(n: number): string {
-  return new Intl.NumberFormat("pt-BR").format(n);
-}
 
 function formatarReais(centavos: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(centavos / 100);
@@ -138,41 +136,26 @@ export default async function SubscriptionsPage() {
 
   return (
     <>
-      <PageHeader
-        title="Assinaturas"
-        description="Assinatura de fornecedor na plataforma. Cortesia e cancelamento mutam pelo Asaas, nunca direto no banco — o webhook confirma o estado."
+      <TituloDaTela
+        titulo="Assinaturas"
+        descricao="Assinatura de fornecedor na plataforma. Cortesia e cancelamento mutam pelo Asaas, nunca direto no banco — o webhook confirma o estado."
       />
 
-      <section className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          rotulo="MRR"
-          valor={formatarReais(revenue.mrrCents)}
-          valorNumerico={revenue.mrrCents}
-          bomQuando="sobe"
-          janela="Assinaturas ativas de fornecedor"
-        />
-        <MetricCard
-          rotulo="Assinaturas ativas"
-          valor={formatarNumero(revenue.activeSubscriptions)}
-          valorNumerico={revenue.activeSubscriptions}
-          bomQuando="sobe"
-          janela="Agora"
-        />
-        {/* Contagem, nunca R$ — `vendor_subscriptions` não tem `amount_cents` (lacuna dura). */}
-        <MetricCard
-          rotulo="Inadimplência"
-          valor={`${formatarNumero(revenue.overdueCount)} assinatura(s)`}
-          valorNumerico={revenue.overdueCount}
-          bomQuando="desce"
-          janela="Agora"
-        />
-        {/* Aproximado — mesmo padrão de apps/web/app/console/(shell)/page.tsx:203-204 (T3): "≈" no valor, base na linha de apoio, nunca um comentário sozinho no código. */}
-        <div className="flex flex-col gap-2 rounded-2xl border border-linha bg-superficie p-5">
-          <span className="tipo-den-rotulo text-ink-3">Churn 30d</span>
-          <span className="tipo-den-metrica text-ink">≈ {formatarNumero(revenue.churned30d.value)}</span>
-          <span className="tipo-den-corpo text-ink-3">aproximado: {revenue.churned30d.approximationBasis}</span>
-        </div>
-      </section>
+      <FaixaDeMetricas
+        metricas={[
+          { rotulo: "MRR", valor: formatarReais(revenue.mrrCents), nota: "assinaturas ativas de fornecedor" },
+          { rotulo: "Assinaturas ativas", valor: formatarNumero(revenue.activeSubscriptions) },
+          // Contagem, nunca R$ — `vendor_subscriptions` não tem `amount_cents` (lacuna dura).
+          { rotulo: "Inadimplência", valor: `${formatarNumero(revenue.overdueCount)} assinatura(s)` },
+          // Aproximado — mesmo padrão de apps/web/app/console/(shell)/page.tsx (T3):
+          // "≈" no valor, base na nota, nunca um comentário sozinho no código.
+          {
+            rotulo: "Churn 30d",
+            valor: `≈ ${formatarNumero(revenue.churned30d.value)}`,
+            nota: revenue.churned30d.approximationBasis,
+          },
+        ]}
+      />
 
       <DataTable
         columns={columns}

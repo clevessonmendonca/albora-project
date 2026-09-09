@@ -1,9 +1,12 @@
 import React, { type ReactNode } from "react";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { hasCapability } from "@albora/core";
 import { getActiveImpersonationForStaff, listPendingImpersonationRequests } from "@albora/application";
 import { resolveActor } from "@/lib/console/actor";
 import { getPool } from "@/lib/db";
+import { CHAVE_SIDEBAR } from "@/features/console/components/client/console-frame";
+import { ConsolePeriodo } from "@/features/console/components/client/console-periodo";
 import { ConsoleShell } from "@/features/console/components/server/console-shell";
 
 /**
@@ -16,6 +19,9 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
   const actor = await resolveActor();
   if (!actor) redirect("/console/login");
 
+  const jarra = await cookies();
+  const recolhidaInicial = jarra.get(CHAVE_SIDEBAR)?.value === "recolhida";
+
   const pool = getPool();
   const podeAprovar = hasCapability(actor.roles, "impersonate.approve");
 
@@ -27,6 +33,8 @@ export default async function ConsoleLayout({ children }: { children: ReactNode 
   return (
     <ConsoleShell
       actor={actor}
+      periodo={<ConsolePeriodo />}
+      recolhidaInicial={recolhidaInicial}
       activeImpersonation={
         impersonacaoAtiva
           ? {

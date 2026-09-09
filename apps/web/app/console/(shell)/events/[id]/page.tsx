@@ -1,10 +1,10 @@
 import { getEvent } from "@albora/application";
-import { DetailPanel, EntityHeader } from "@albora/ui-web";
 import { notFound, redirect } from "next/navigation";
 import React from "react";
 import { resolveActor } from "@/lib/console/actor";
 import { getAggregatorPool, getPool } from "@/lib/db";
 import { ROTULO_STATUS_EVENTO, TOM_STATUS_EVENTO } from "@/features/console/components/client/events-table";
+import { EventoCabecalho, PainelDeDetalheEvento } from "@/features/console/components/server/eventos-cabecalho";
 
 export const dynamic = "force-dynamic";
 
@@ -30,15 +30,17 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
 
   return (
     <>
-      <EntityHeader
+      <EventoCabecalho
+        inicial={(evento.title ?? evento.id).charAt(0).toUpperCase()}
         title={evento.title ?? evento.id}
         subtitle={`H1: ${formatarH1(evento.h1)}`}
+        id={evento.id}
         status={{ tone: TOM_STATUS_EVENTO[evento.status], label: ROTULO_STATUS_EVENTO[evento.status] }}
       />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <DetailPanel
-          title="Identidade"
-          sections={[
+        <PainelDeDetalheEvento
+          titulo="Identidade"
+          secoes={[
             { key: "anfitriao", label: "Anfitrião", content: <p className="m-0">{evento.hostMaskedEmail}</p>, emptyLabel: "—" },
             {
               key: "fornecedor",
@@ -55,9 +57,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
             },
           ]}
         />
-        <DetailPanel
-          title="Funil"
-          sections={
+        <PainelDeDetalheEvento
+          titulo="Funil"
+          secoes={
             evento.degraus.length > 0
               ? evento.degraus.map((d) => ({
                   key: d.etapa,
@@ -75,9 +77,9 @@ export default async function EventDetailPage({ params }: { params: Promise<{ id
                 ]
           }
         />
-        <DetailPanel
-          title="Consentimento"
-          sections={[
+        <PainelDeDetalheEvento
+          titulo="Consentimento"
+          secoes={[
             {
               key: "consentimentos",
               label: "Aceites por versão",

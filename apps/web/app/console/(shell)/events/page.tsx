@@ -1,10 +1,10 @@
 import { listEvents } from "@albora/application";
-import { PageHeader } from "@albora/ui-web";
 import { redirect } from "next/navigation";
 import React from "react";
 import { resolveActor } from "@/lib/console/actor";
 import { getAggregatorPool, getPool } from "@/lib/db";
 import { EventsTable } from "@/features/console/components/client/events-table";
+import { TituloDaTela } from "@/features/console/components/server/console-primitivos";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +31,10 @@ export default async function EventsPage({
 
   return (
     <>
-      <PageHeader title="Eventos" description="H1 por evento — ordene para achar quais festas funcionaram." />
+      <TituloDaTela
+        titulo="Eventos"
+        descricao="H1 por evento — ordene para achar quais festas funcionaram. Sem nomes ou fotos de convidado."
+      />
       <EventsTable rows={rows} nextCursor={nextCursor} />
     </>
   );

@@ -24,7 +24,7 @@ Cole este bloco antes de cada prompt:
 ```
 Fotografia documental de festa noturna, câmera na mão, luz disponível apenas —
 lâmpadas quentes, velas, luzinhas do salão. Sem flash direto, sem luz de
-estúdio. Cor quente e terrosa: âmbar #D9793C, papel #F4F0E9, tinta #1A1613.
+estúdio. Cor quente e terrosa: âmbar #D46632, papel #FCFBF9, tinta #171513.
 Grão fino de filme 35 mm, leve halação nas altas luzes, sombras abertas e
 lavadas. Foco no gesto, não na pose. Pessoas de aparência brasileira, idades
 misturadas, corpos e tons de pele variados. Sem sobreposição de texto, sem

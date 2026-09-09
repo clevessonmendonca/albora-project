@@ -3,12 +3,15 @@ import type { Tokens } from "./types";
 /** Piso da cadeia (brand/LEIA-ME.md) — os 46 SVGs obedecem a este artefato; divergência aqui faz a placa não combinar com o telão. */
 export const ALBORA_BRAND: Tokens = {
   cores: {
-    papel: "#F4F0E9",
+    papel: "#FCFBF9",
     // Preto quente, nunca #000: preto puro sobre foto de festa vira buraco.
-    tinta: "#1A1613",
+    tinta: "#171513",
     noite: "#0C0A09",
-    acento: "#D9793C",
-    critico: "#C2410C",
+    acento: "#D46632",
+    critico: "#BB3D18",
+    atencao: "#A96F18",
+    positivo: "#28744E",
+    informativo: "#3265B5",
   },
   fontes: {
     titulo: "Fraunces, Georgia, serif",

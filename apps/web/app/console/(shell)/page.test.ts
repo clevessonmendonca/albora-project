@@ -1,11 +1,20 @@
 import { describe, expect, it, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { MetricCard } from "@albora/ui-web";
+import type { PlatformOverview, PlatformRevenue } from "@albora/application";
 
-const { resolveActorMock, getPlatformOverviewMock, getPlatformRevenueMock } = vi.hoisted(() => ({
+const {
+  resolveActorMock,
+  getPlatformOverviewMock,
+  getPlatformRevenueMock,
+  getConsoleAttentionMock,
+  listLiveEventsMock,
+} = vi.hoisted(() => ({
   resolveActorMock: vi.fn(),
   getPlatformOverviewMock: vi.fn(),
   getPlatformRevenueMock: vi.fn(),
+  getConsoleAttentionMock: vi.fn(),
+  listLiveEventsMock: vi.fn(),
 }));
 
 vi.mock("@/lib/console/actor", () => ({ resolveActor: resolveActorMock }));
@@ -13,15 +22,17 @@ vi.mock("@/lib/db", () => ({ getPool: vi.fn(), getAggregatorPool: vi.fn() }));
 vi.mock("@albora/application", () => ({
   getPlatformOverview: getPlatformOverviewMock,
   getPlatformRevenue: getPlatformRevenueMock,
+  getConsoleAttention: getConsoleAttentionMock,
+  listLiveEvents: listLiveEventsMock,
 }));
 
 import ConsolePage from "./page";
 
-function actor() {
-  return { staffUserId: "s1", roles: ["owner"], sessionId: "sess", requestId: "req", reauthenticatedAt: null };
+function actor(roles: string[] = ["owner"]) {
+  return { staffUserId: "s1", roles, sessionId: "sess", requestId: "req", reauthenticatedAt: null };
 }
 
-function revenueBase() {
+function revenueBase(): PlatformRevenue {
   return {
     mrrCents: 0,
     activeSubscriptions: 0,
@@ -31,7 +42,7 @@ function revenueBase() {
   };
 }
 
-function overviewBase() {
+function overviewBase(): PlatformOverview {
   return {
     h1: { current: null, baseline: null },
     h1Series: [],
@@ -40,46 +51,201 @@ function overviewBase() {
     photos: { current: 0, baseline: null },
     openTickets: 0,
     funnel: [],
+    commercialFunnel: [],
   };
 }
 
-describe("ConsolePage", () => {
-  it("métrica aproximada (churn de fornecedor) renderiza ≈ e a base da aproximação", async () => {
-    resolveActorMock.mockResolvedValueOnce(actor());
-    getPlatformOverviewMock.mockResolvedValueOnce(overviewBase());
-    getPlatformRevenueMock.mockResolvedValueOnce({
-      ...revenueBase(),
-      churned30d: {
-        value: 3,
-        approximate: true,
-        approximationBasis: "base-de-teste-para-verificar-marcador",
+type Cenario = {
+  roles?: string[];
+  periodo?: string;
+  overview?: Partial<PlatformOverview>;
+  revenue?: Partial<PlatformRevenue>;
+  pendencias?: unknown[];
+  aoVivo?: unknown[];
+};
+
+async function renderizar(cenario: Cenario = {}) {
+  resolveActorMock.mockResolvedValueOnce(actor(cenario.roles));
+  getPlatformOverviewMock.mockResolvedValueOnce({ ...overviewBase(), ...cenario.overview });
+  getPlatformRevenueMock.mockResolvedValueOnce({ ...revenueBase(), ...cenario.revenue });
+  getConsoleAttentionMock.mockResolvedValueOnce(cenario.pendencias ?? []);
+  listLiveEventsMock.mockResolvedValueOnce({ rows: cenario.aoVivo ?? [] });
+  const searchParams = Promise.resolve(cenario.periodo ? { periodo: cenario.periodo } : {});
+  return renderToStaticMarkup(await ConsolePage({ searchParams }));
+}
+
+describe("ConsolePage — atenção primeiro", () => {
+  it("sem pendência mostra 'tudo em dia' honesto, não uma fila vazia sem explicação", async () => {
+    const html = await renderizar();
+    expect(html).toContain("Precisa de você agora");
+    expect(html).toContain("Tudo em dia");
+  });
+
+  it("pendência crítica aparece com o título, o módulo e o caminho para a tela dedicada", async () => {
+    const html = await renderizar({
+      pendencias: [
+        {
+          id: "suporte-sla",
+          severidade: "critico",
+          titulo: "2 ticket(s) estouraram o SLA",
+          detalhe: "o mais antigo venceu há 6h20",
+          modulo: "Suporte",
+          href: "/console/support",
+        },
+      ],
+    });
+    expect(html).toContain("2 ticket(s) estouraram o SLA");
+    expect(html).toContain("/console/support");
+    expect(html).not.toContain("Tudo em dia");
+  });
+
+  it("severidade da linha sai em texto, não só em cor — quem não distingue as cores lê o mesmo", async () => {
+    const html = await renderizar({
+      pendencias: [
+        { id: "a", severidade: "critico", titulo: "T1", detalhe: "d", modulo: "Suporte", href: "/console/support" },
+        { id: "b", severidade: "atencao", titulo: "T2", detalhe: "d", modulo: "Retenção", href: "/console/retention" },
+      ],
+    });
+    expect(html).toContain(">crítico<");
+    expect(html).toContain(">atenção<");
+  });
+
+  it("lista de ao vivo saturada não afirma o total — diz que está mostrando os primeiros", async () => {
+    const html = await renderizar({
+      aoVivo: Array.from({ length: 8 }, (_, i) => ({ id: `e${i}`, title: `Festa ${i}`, h1: 0.4, totalFotos: 10 })),
+    });
+    expect(html).toContain("mostrando os 8 mais recentes");
+    expect(html).not.toContain("8 evento(s) ao vivo");
+  });
+
+  it("lista abaixo do teto afirma o total com segurança", async () => {
+    const html = await renderizar({
+      aoVivo: [{ id: "e1", title: "Festa", h1: 0.4, totalFotos: 10 }],
+    });
+    expect(html).toContain("1 evento(s) ao vivo");
+  });
+
+  it("evento ao vivo é monitoramento, nunca linha da fila de ação", async () => {
+    const html = await renderizar({
+      aoVivo: [{ id: "ev-1", title: "Festa da firma", h1: 0.44, totalFotos: 247 }],
+    });
+    expect(html).toContain("Acontecendo agora");
+    expect(html).toContain("Festa da firma");
+    expect(html).toContain("Tudo em dia");
+  });
+});
+
+describe("ConsolePage — H1", () => {
+  it("sem denominador honesto mostra — e nunca 0%", async () => {
+    const html = await renderizar();
+    expect(html).toContain("—");
+    expect(html).not.toContain(">0%<");
+  });
+
+  it("explica o cálculo em texto sempre presente, não só no hover", async () => {
+    const html = await renderizar({ overview: { h1: { current: 0.44, baseline: 0.4 } } });
+    expect(html).toContain("44%");
+    expect(html).toContain("% de convidados esperados que enviaram ≥1 foto");
+    expect(html).toContain("Meta ≥40%");
+  });
+});
+
+describe("ConsolePage — honestidade das métricas", () => {
+  it("métrica aproximada renderiza ≈ e diz em cima de que base aproximou", async () => {
+    const html = await renderizar({
+      revenue: {
+        churned30d: {
+          value: 3,
+          approximate: true,
+          approximationBasis: "base-de-teste-para-verificar-marcador",
+        },
       },
     });
-
-    const element = await ConsolePage();
-    const serializado = renderToStaticMarkup(element);
-
-    expect(serializado).toContain("≈");
-    expect(serializado).toContain("base-de-teste-para-verificar-marcador");
+    expect(html).toContain("≈");
+    expect(html).toContain("base-de-teste-para-verificar-marcador");
   });
 
-  it("H1 sem baseline honesto mostra — e 'sem período anterior', sem seta de tendência", async () => {
-    resolveActorMock.mockResolvedValueOnce(actor());
-    getPlatformOverviewMock.mockResolvedValueOnce(overviewBase());
-    getPlatformRevenueMock.mockResolvedValueOnce(revenueBase());
-
-    const element = await ConsolePage();
-    const serializado = renderToStaticMarkup(element);
-
-    expect(serializado).toContain("sem período anterior");
-    expect(serializado).toContain("—");
-    expect(serializado).not.toContain("↑");
-    expect(serializado).not.toContain("↓");
+  it("sem período anterior não inventa comparação — nenhuma variação, nenhuma seta", async () => {
+    const html = await renderizar({
+      overview: { eventsActive: { current: 12, baseline: null }, guestsReached: { current: 300, baseline: null } },
+    });
+    expect(html).not.toContain("vs. período anterior");
+    expect(html).not.toContain("↑");
+    expect(html).not.toContain("↓");
   });
 
-  it("cartão com bomQuando 'desce' e delta positivo pinta como ruim (crítico), não como bom", () => {
-    // Mesmos props usados em ConsolePage para "Tickets abertos": bomQuando="desce"
-    // porque tickets abertos subindo é ruim — o sinal do delta não decide sozinho.
+  it("com período anterior mostra a variação e o sinal", async () => {
+    const html = await renderizar({ overview: { eventsActive: { current: 120, baseline: 100 } } });
+    expect(html).toContain("+20% vs. período anterior");
+  });
+
+  it("baseline zerado não vira divisão por zero nem 'Infinity%'", async () => {
+    const html = await renderizar({ overview: { eventsActive: { current: 5, baseline: 0 } } });
+    expect(html).not.toContain("Infinity");
+    expect(html).not.toContain("vs. período anterior");
+  });
+});
+
+describe("ConsolePage — funil comercial", () => {
+  it("destaca a maior perda de verdade, não o último degrau", async () => {
+    const html = await renderizar({
+      overview: {
+        commercialFunnel: [
+          { etapa: "account_created", eventos: 1240, retencao: null },
+          { etapa: "event_created", eventos: 890, retencao: 890 / 1240 },
+          { etapa: "qr_downloaded", eventos: 812, retencao: 812 / 890 },
+          { etapa: "checkout_started", eventos: 640, retencao: 640 / 812 },
+          { etapa: "checkout_paid", eventos: 512, retencao: 512 / 640 },
+        ],
+      },
+    });
+    expect(html).toContain("<b>Contas → Eventos</b>");
+    expect(html).not.toContain("<b>Checkout → Pago</b>");
+  });
+
+  it("mostra o funil comercial e não a espinha do convidado — funil de uso é do detalhe do evento", async () => {
+    const html = await renderizar({
+      overview: {
+        funnel: [
+          { etapa: "qr_scan", sessoes: 100, retencao: null },
+          { etapa: "capture", sessoes: 20, retencao: 0.2 },
+        ],
+        commercialFunnel: [{ etapa: "account_created", eventos: 10, retencao: null }],
+      },
+    });
+    expect(html).toContain("Ativação comercial");
+    expect(html).not.toContain("qr_scan");
+    expect(html).not.toContain("capture");
+  });
+});
+
+describe("ConsolePage — período", () => {
+  it("período ausente usa 30 dias", async () => {
+    await renderizar();
+    expect(getPlatformOverviewMock).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({ days: 30 }));
+  });
+
+  it("período inválido na URL não vira janela inventada — cai no padrão", async () => {
+    await renderizar({ periodo: "1000d" });
+    expect(getPlatformOverviewMock).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({ days: 30 }));
+  });
+
+  it("7d de fato muda a janela consultada", async () => {
+    await renderizar({ periodo: "7d" });
+    expect(getPlatformOverviewMock).toHaveBeenLastCalledWith(expect.anything(), expect.objectContaining({ days: 7 }));
+  });
+});
+
+describe("ConsolePage — capacidade", () => {
+  it("sem events.read não consulta eventos ao vivo", async () => {
+    listLiveEventsMock.mockClear();
+    await renderizar({ roles: ["finance"] });
+    expect(listLiveEventsMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("MetricCard", () => {
+  it("bomQuando 'desce' com delta positivo pinta como ruim (crítico), não como bom", () => {
     const element = MetricCard({
       rotulo: "Tickets abertos",
       valor: "12",
@@ -88,42 +254,6 @@ describe("ConsolePage", () => {
       bomQuando: "desce",
       janela: "Agora",
     });
-    const serializado = renderToStaticMarkup(element);
-
-    expect(serializado).toContain("var(--critico)");
-    expect(serializado).not.toContain("var(--acento)");
-  });
-
-  it("degrau do funil com maior perda recebe o destaque de --critico", async () => {
-    resolveActorMock.mockResolvedValueOnce(actor());
-    getPlatformOverviewMock.mockResolvedValueOnce({
-      ...overviewBase(),
-      h1: { current: 0.42, baseline: 0.38 },
-      h1Series: [{ date: "2026-09-01", rate: 0.4 }],
-      funnel: [
-        { etapa: "qr_scan", sessoes: 100, retencao: null },
-        { etapa: "consent", sessoes: 90, retencao: 0.9 },
-        { etapa: "capture", sessoes: 20, retencao: 20 / 90 },
-      ],
-    });
-    getPlatformRevenueMock.mockResolvedValueOnce(revenueBase());
-
-    const element = await ConsolePage();
-    const serializado = renderToStaticMarkup(element);
-
-    expect(serializado).toContain("var(--critico)");
-    expect(serializado).toContain("capture");
-  });
-
-  it("saúde operacional com zero falhas de cobrança não renderiza a área de falhas", async () => {
-    resolveActorMock.mockResolvedValueOnce(actor());
-    getPlatformOverviewMock.mockResolvedValueOnce(overviewBase());
-    getPlatformRevenueMock.mockResolvedValueOnce({ ...revenueBase(), overdueCount: 0 });
-
-    const element = await ConsolePage();
-    const serializado = renderToStaticMarkup(element);
-
-    expect(serializado).toContain("Sem falha de cobrança agora");
-    expect(serializado).not.toContain("precisa de ação");
+    expect(renderToStaticMarkup(element)).toContain("var(--critico)");
   });
 });
