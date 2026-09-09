@@ -531,7 +531,13 @@ export {
 } from "./drive-token-vault";
 
 export type { DsarKind, DsarRequestRow, DsarStatus, ListDsarRequestsFilter } from "./dsar";
-export { createDsarRequestOnClient, getDsarRequestAdmin, listDsarRequestsAdmin, updateDsarRequestOnClient } from "./dsar";
+export {
+  createDsarRequestOnClient,
+  getDsarRequestAdmin,
+  getDsarRequestOnClient,
+  listDsarRequestsAdmin,
+  updateDsarRequestOnClient,
+} from "./dsar";
 
 export type { EstadoOAuthDrive } from "./drive-oauth-state";
 export {
