@@ -304,6 +304,16 @@ export function useFeed(missaoId: string | null, periodo: PeriodoTemporal = "tud
   /** Janela do visualizador em tela cheia: pedida pela tela (não parâmetro) — seria ciclo; assinatura no estado reabre efeito; lista em ref para o relógio não pedir janela antiga. */
   const [janela, setJanela] = useState("");
   const janelaViva = useRef<readonly string[]>([]);
+  /** O efeito de renovação lê o estado por aqui, não por closure — ver a nota do próprio efeito. */
+  const estadoVivo = useRef(estado);
+  estadoVivo.current = estado;
+  const montado = useRef(true);
+  useEffect(() => {
+    montado.current = true;
+    return () => {
+      montado.current = false;
+    };
+  }, []);
 
   const pedirChaves = useCallback((chaves: readonly string[]) => {
     janelaViva.current = chaves;
@@ -342,9 +352,22 @@ export function useFeed(missaoId: string | null, periodo: PeriodoTemporal = "tud
     void carregar(null);
   }, [carregar]);
 
-  useEffect(() => {
-    let vivo = true;
+  /**
+   * Só a lista de chaves sem URL reabre o efeito — não o objeto de estado
+   * inteiro. Com `[estado]`, qualquer mudança do feed (foto nova, flag de
+   * carregando) desmontava e remontava o efeito, e um `mediaUrls` em voo
+   * tinha o resultado descartado pelo `vivo` da instância antiga **depois**
+   * de `ultimoLote` já ter registrado o lote: a instância seguinte via a
+   * mesma assinatura, retornava cedo, e a foto ficava sem URL até o tique do
+   * relógio. Sob `next dev`, lento o bastante para a corrida acontecer
+   * sempre, o viewer nunca abria (`e2e/feed.spec.ts`).
+   */
+  const chavesFaltando = useMemo(
+    () => chavesSemUrl(estado, Date.now(), janelaViva.current).join(","),
+    [estado],
+  );
 
+  useEffect(() => {
     async function renovar(porRelogio: boolean) {
       // Não renova quando tab está em background — economiza battery e network
       if (porRelogio && document.visibilityState === 'hidden') return;
@@ -355,7 +378,7 @@ export function useFeed(missaoId: string | null, periodo: PeriodoTemporal = "tud
         return;
       }
 
-      const faltando = chavesSemUrl(estado, Date.now(), janelaViva.current);
+      const faltando = chavesSemUrl(estadoVivo.current, Date.now(), janelaViva.current);
       if (faltando.length === 0) return;
 
       // O mesmo lote só volta ao servidor no tique seguinte — sem este teto, uma chave nunca assinada viraria laço.
@@ -366,13 +389,18 @@ export function useFeed(missaoId: string | null, periodo: PeriodoTemporal = "tud
       buscandoUrls.current = true;
       try {
         const novas = await mediaUrls(faltando);
-        if (vivo) setEstado((e) => comUrls(e, novas));
+        // Aplica mesmo se o efeito tiver sido rearmado no meio do caminho: a
+        // URL assinada é válida, e descartá-la com o lote já marcado em
+        // `ultimoLote` é o que travava a foto sem imagem.
+        if (montado.current) setEstado((e) => comUrls(e, novas));
       } catch {
         // Sem URL a grade mostra a moldura vazia e segue — derrubar o feed inteiro por causa da mídia seria pior que degradar.
-        if (vivo) setEstado(comFalhaDeMidia);
+        if (montado.current) setEstado(comFalhaDeMidia);
+        // Lote falhado não fica marcado: senão a próxima passagem o pularia.
+        ultimoLote.current = "";
       } finally {
         buscandoUrls.current = false;
-        if (refazer.current && vivo) {
+        if (refazer.current && montado.current) {
           refazer.current = false;
           void renovar(false);
         }
@@ -391,11 +419,10 @@ export function useFeed(missaoId: string | null, periodo: PeriodoTemporal = "tud
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      vivo = false;
       clearInterval(relogio);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [estado, janela]);
+  }, [chavesFaltando, janela]);
 
   const carregarMais = useCallback(() => {
     if (estado.fim || estado.cursor === null || estado.carregando) return;
