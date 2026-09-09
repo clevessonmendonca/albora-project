@@ -18,12 +18,12 @@ import { getAggregatorPool, getPool } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 /**
- * Teto baixo de propósito: `listEventsAdmin` busca as métricas de cada evento
- * numa consulta por linha (N+1 sequencial), e esta é a página mais aberta do
- * console. Oito linhas é o que a faixa mostra sem rolar; acima disso o custo
- * cresce sem a tela ficar mais útil.
+ * O teto era 8 enquanto `listEventsAdmin` buscava as métricas numa consulta
+ * por linha; agora a página inteira sai numa agregação em lote e o custo não
+ * cresce com a linha. Doze é o que a faixa mostra sem rolar — e quando satura,
+ * o rótulo diz que está mostrando os primeiros em vez de afirmar o total.
  */
-const LIMITE_AO_VIVO = 8;
+const LIMITE_AO_VIVO = 12;
 
 function formatarReais(centavos: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(centavos / 100);

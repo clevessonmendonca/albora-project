@@ -1,11 +1,11 @@
-import type { DegrauDoFunil } from "@albora/core";
+import { taxaDeParticipacaoOuNula, type DegrauDoFunil } from "@albora/core";
 import type { Pool } from "pg";
 import { maskEmail } from "./accounts-admin";
 import { collectEventLiveMetrics } from "./analytics";
 import { aceitesDeEntradaPorVersao, type AceiteDeConsentimento } from "./consent-db";
 import { comEvento } from "./event";
 import { HORAS_APOS_EVENTO } from "./events";
-import { lerMetricasAoVivo } from "./event-metrics";
+import { lerMetricasAoVivo, lerMetricasDeEventos } from "./event-metrics";
 import { lerFunilAgregado } from "./funnel-aggregate";
 
 export type EventAdminStatus = "draft" | "active" | "ended";
@@ -48,6 +48,34 @@ async function metricsForEvent(
   }
   const metricas = await collectEventLiveMetrics(pool, eventId);
   return { totalFotos: metricas.totalFotos, h1: metricas.participacao };
+}
+
+/**
+ * Mesma conta de `metricsForEvent`, para a página inteira numa consulta só.
+ *
+ * O H1 continua vindo de `@albora/core` — `taxaDeParticipacaoOuNula` é a
+ * mesma divisão que `decidirTese` usa, com `null` onde `isH1Calculavel`
+ * diria que não há denominador honesto. Reimplementar a divisão aqui é
+ * exatamente o que já quebrou a coerência de H1 entre telas uma vez.
+ */
+function metricasDaPagina(
+  eventos: readonly EventoBaseRow[],
+  porEvento: Map<string, { sessoesComUpload: number; totalFotos: number }>,
+): Map<string, { totalFotos: number; h1: number | null }> {
+  const saida = new Map<string, { totalFotos: number; h1: number | null }>();
+  for (const evento of eventos) {
+    const m = porEvento.get(evento.id) ?? { sessoesComUpload: 0, totalFotos: 0 };
+    saida.set(evento.id, {
+      totalFotos: m.totalFotos,
+      h1: isH1Calculavel(evento.expected_guests)
+        ? taxaDeParticipacaoOuNula({
+            expectedGuests: evento.expected_guests,
+            sessoesComUpload: m.sessoesComUpload,
+          })
+        : null,
+    });
+  }
+  return saida;
 }
 
 type Cursor = { startsAt: string; id: string };
@@ -146,10 +174,14 @@ export async function listEventsAdmin(
     params,
   );
 
-  const comMetricas: EventAdminRow[] = [];
-  for (const evento of rows) {
-    const { totalFotos, h1 } = await metricsForEvent(pool, evento.id, evento.expected_guests);
-    comMetricas.push({
+  const metricas = metricasDaPagina(
+    rows,
+    await lerMetricasDeEventos(pool, rows.map((e) => e.id)),
+  );
+
+  const comMetricas: EventAdminRow[] = rows.map((evento) => {
+    const { totalFotos, h1 } = metricas.get(evento.id)!;
+    return {
       id: evento.id,
       title: evento.title,
       accountId: evento.account_id,
@@ -161,8 +193,8 @@ export async function listEventsAdmin(
       totalFotos,
       h1,
       status: evento.status,
-    });
-  }
+    };
+  });
 
   const last = rows[rows.length - 1];
   const nextCursor = rows.length === filter.limit && last ? encodeCursor(last.starts_at, last.id) : null;

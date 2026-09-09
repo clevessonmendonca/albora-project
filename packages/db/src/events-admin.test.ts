@@ -1,5 +1,6 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { collectEventLiveMetrics } from "./analytics";
 import { getEventDetailAdmin, isH1Calculavel, listEventsAdmin } from "./events-admin";
 import { prepararBanco, semear } from "./testes/banco";
 
@@ -97,4 +98,81 @@ describe("getEventDetailAdmin", () => {
     expect(JSON.stringify(detalhe)).not.toContain("convidado-evento-a");
     expect(detalhe?.hostMaskedEmail).not.toContain("anfitriao-a@exemplo.test");
   });
+
+});
+
+describe("listEventsAdmin — custo da página", () => {
+  /** Cria `quantos` eventos publicados, cada um com uploads suficientes para os números não serem todos iguais. */
+  async function semearVarios(quantos: number): Promise<string[]> {
+    const { rows: conta } = await admin.query<{ id: string }>(
+      "INSERT INTO accounts (email) VALUES ('lote@exemplo.test') RETURNING id",
+    );
+    const contaId = conta[0]!.id;
+    await admin.query("INSERT INTO packs (id) VALUES ('pack-lote') ON CONFLICT (id) DO NOTHING");
+
+    const ids: string[] = [];
+    for (let i = 0; i < quantos; i += 1) {
+      const { rows } = await admin.query<{ id: string }>(
+        `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, status, expected_guests)
+         VALUES ($1, 'pack-lote', $2, now() - interval '1 day', now() - interval '18 hours', 'active', $3)
+         RETURNING id`,
+        [contaId, `lote-${i}`, 10 + i],
+      );
+      const eventoId = rows[0]!.id;
+      ids.push(eventoId);
+      await admin.query("INSERT INTO event_slugs (slug, event_id) VALUES ($1, $2)", [`lote-${i}`, eventoId]);
+
+      // Número de sessões e de fotos varia por evento: se todos fossem iguais,
+      // uma agregação que trocasse as linhas de lugar passaria despercebida.
+      for (let sessao = 0; sessao <= i % 3; sessao += 1) {
+        const { rows: s } = await admin.query<{ id: string }>(
+          `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+           VALUES ($1, $2, 'v1', now()) RETURNING id`,
+          [eventoId, `c-${i}-${sessao}`],
+        );
+        for (let foto = 0; foto <= i % 2; foto += 1) {
+          await admin.query(
+            `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes, state)
+             VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 1000, 'published')`,
+            [eventoId, s[0]!.id, `events/${eventoId}/f-${sessao}-${foto}.jpg`],
+          );
+        }
+      }
+    }
+    return ids;
+  }
+
+  it("os números batem com o cálculo por evento — a agregação em lote não muda resultado", async () => {
+    await prepararBanco();
+    const ids = await semearVarios(12);
+
+    const { rows } = await listEventsAdmin(agregador, { limit: 50 });
+    expect(rows).toHaveLength(ids.length);
+
+    for (const linha of rows) {
+      const porEvento = await collectEventLiveMetrics(agregador, linha.id);
+      expect(linha.totalFotos, `fotos de ${linha.id}`).toBe(porEvento.totalFotos);
+      expect(linha.h1, `h1 de ${linha.id}`).toBe(porEvento.participacao);
+    }
+  }, 60_000);
+
+  it("uma página custa um punhado de consultas, não duas por linha", async () => {
+    await prepararBanco();
+    await semearVarios(20);
+
+    let consultas = 0;
+    const contando = {
+      query: (...args: unknown[]) => {
+        consultas += 1;
+        return (agregador.query as (...a: unknown[]) => unknown)(...args);
+      },
+      connect: () => agregador.connect(),
+    } as unknown as typeof agregador;
+
+    const { rows } = await listEventsAdmin(contando, { limit: 20 });
+
+    expect(rows).toHaveLength(20);
+    // Antes: 1 (página) + ~2 por linha = 40+, em série. Agora: página + lote.
+    expect(consultas, `consultas para 20 eventos: ${consultas}`).toBeLessThanOrEqual(3);
+  }, 60_000);
 });
