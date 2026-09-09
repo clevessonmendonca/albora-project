@@ -394,11 +394,16 @@ function vaultSeConfigurado() {
 }
 
 /**
- * Exclusão de conta a pedido do titular (T8): `deleteAccountOnRequest` já
- * fez o fail-closed inteiro dentro de uma única transação — se chegou até
- * aqui sem lançar, a conta e os eventos já não existem mais no banco, e
- * cada key de `keysToDelete` já está gravada em `account_purge_jobs` como
- * `pending` (migration 0066) — durável mesmo que o purge abaixo nunca rode.
+ * Exclusão de conta a pedido do titular (T8): só roda como execução de um
+ * pedido DSAR `kind = "deletion"` já aberto — `dsarRequestId` identifica
+ * qual. Quem abre esse pedido é `createDsarRequestAction`, a partir da tela
+ * de Conta; esta action nunca é chamada por lá, só pela tela LGPD.
+ *
+ * `deleteAccountOnRequest` já fez o fail-closed inteiro dentro de uma única
+ * transação — se chegou até aqui sem lançar, a conta e os eventos já não
+ * existem mais no banco, o pedido DSAR já está `completed`, e cada key de
+ * `keysToDelete` já está gravada em `account_purge_jobs` como `pending`
+ * (migration 0066) — durável mesmo que o purge abaixo nunca rode.
  *
  * Bytes no R2 e revogação do refresh token do Drive são enriquecimento
  * pós-commit, no MESMO desenho do runner de retenção
@@ -409,7 +414,11 @@ function vaultSeConfigurado() {
  * `purgeJobIds` está na mesma ordem de `keysToDelete` (garantia de
  * `enqueueAccountPurge`), por isso o zip por índice abaixo é seguro.
  */
-export async function deleteAccountAction(accountId: string, reason: string): Promise<DeleteAccountActionResult> {
+export async function deleteAccountAction(
+  accountId: string,
+  dsarRequestId: string,
+  reason: string,
+): Promise<DeleteAccountActionResult> {
   const actor = await resolveActor();
   if (!actor) redirect("/console/login");
 
@@ -417,7 +426,7 @@ export async function deleteAccountAction(accountId: string, reason: string): Pr
     const vault = vaultSeConfigurado();
     const resultado = await deleteAccountOnRequest(
       { pool: getPool(), ...(vault ? { vault } : {}) },
-      { actor, reason, accountId },
+      { actor, reason, accountId, dsarRequestId },
     );
 
     for (let i = 0; i < resultado.keysToDelete.length; i++) {
@@ -439,6 +448,7 @@ export async function deleteAccountAction(accountId: string, reason: string): Pr
       }
     }
 
+    revalidatePath("/console/lgpd");
     return { ok: true };
   } catch (erro) {
     if (erro instanceof ReauthRequiredError) return { ok: false, error: "reautenticação exigida", reauthRequired: true };

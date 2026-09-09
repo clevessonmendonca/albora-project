@@ -8,6 +8,7 @@ import { resolveActor } from "@/lib/console/actor";
 import { getPool } from "@/lib/db";
 import { DsarForm } from "@/features/console/components/client/dsar-form";
 import { DsarRequestActions } from "@/features/console/components/client/dsar-request-actions";
+import { ExecuteAccountDeletionDanger } from "@/features/console/components/client/execute-account-deletion-danger";
 import { FaixaDeMetricas, formatarNumero } from "@/features/console/components/server/overview-sections";
 import { Painel, TituloDaTela } from "@/features/console/components/server/console-primitivos";
 
@@ -76,6 +77,7 @@ export default async function LgpdPage() {
   );
   const agora = new Date();
   const podeGerenciar = hasCapability(actor.roles, "lgpd.dsar.execute");
+  const podeExcluir = hasCapability(actor.roles, "lgpd.delete_account");
   const vencidos = rows.filter((r) => diasRestantes(r.legalDueAt, agora) < 0).length;
 
   const columns: DataTableColumn<DsarRequestRow>[] = [
@@ -96,12 +98,19 @@ export default async function LgpdPage() {
       header: "Status",
       render: (r) => <StatusBadge tone={TOM_STATUS[r.status]}>{ROTULO_STATUS[r.status]}</StatusBadge>,
     },
-    ...(podeGerenciar
+    ...(podeGerenciar || podeExcluir
       ? [
           {
             key: "acoes",
             header: "Ações",
-            render: (r: DsarRequestRow) => <DsarRequestActions row={r} />,
+            // Linhas aqui já são `open`/`in_progress` (filtro do `listDsarRequests`
+            // acima) — "executar exclusão" só precisa checar o tipo do pedido.
+            render: (r: DsarRequestRow) => (
+              <div className="flex flex-wrap gap-2">
+                {podeGerenciar && <DsarRequestActions row={r} />}
+                {podeExcluir && r.kind === "deletion" && <ExecuteAccountDeletionDanger row={r} />}
+              </div>
+            ),
           } satisfies DataTableColumn<DsarRequestRow>,
         ]
       : []),

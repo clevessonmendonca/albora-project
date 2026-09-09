@@ -132,3 +132,15 @@ export async function getDsarRequestAdmin(pool: Pool, id: string): Promise<DsarR
   const row = rows[0];
   return row ? toRow(row) : null;
 }
+
+/**
+ * Roda dentro da tx de `executeCommand`, com `FOR UPDATE`: quem lê aqui é
+ * `deleteAccountOnRequest` decidindo se pode purgar — o lock impede que dois
+ * operadores executem o mesmo pedido de exclusão em paralelo e ambos vejam
+ * `status = 'open'`.
+ */
+export async function getDsarRequestOnClient(client: PoolClient, id: string): Promise<DsarRequestRow | null> {
+  const { rows } = await client.query<DsarDbRow>(`${SELECT} WHERE id = $1 FOR UPDATE`, [id]);
+  const row = rows[0];
+  return row ? toRow(row) : null;
+}
