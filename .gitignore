@@ -61,3 +61,6 @@ apps/mobile/android/
 
 # Saída do harness de conferência visual (tools/preview/montar.mjs)
 /tmp-preview/
+
+# Config de preview local (aponta para caminho da máquina)
+.claude/launch.json

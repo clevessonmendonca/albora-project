@@ -19,6 +19,7 @@ import {
   proximaMissao,
   rotuloCtaAposEnvio,
 } from "@/features/missions/lib/missions-utils";
+import { ClaimPhotosButton } from "@/features/guest/components/client/claim-photos-button";
 import { Details, type Place } from "./details";
 import { Editor } from "./editor";
 import { QueueHeader } from "./queue-panel";
@@ -253,6 +254,7 @@ export function PhotoPage({
     return (
       <Confirmacao
         slug={slug}
+        eventoId={eventoId}
         arquivo={etapa.arquivo}
         numero={enviadas}
         pendentes={estado.pendentes}
@@ -389,6 +391,7 @@ export function PhotoPage({
 
 function Confirmacao({
   slug,
+  eventoId,
   arquivo,
   numero,
   pendentes,
@@ -409,6 +412,7 @@ function Confirmacao({
   recemCompleta,
 }: {
   slug: string;
+  eventoId: string;
   arquivo: File;
   numero: number;
   pendentes: number;
@@ -585,6 +589,8 @@ function Confirmacao({
             Ver minha foto
           </SecondaryButton>
         )}
+        {/* Nunca antes da primeira foto (H1, ADR 0018) — só aqui, na confirmação. */}
+        {numero === 1 && <ClaimPhotosButton eventId={eventoId} />}
         {interactionOpen && (
           <SecondaryButton onClick={() => router.push(`${base}/feed`)}>
             Ir pro feed

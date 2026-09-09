@@ -15,7 +15,15 @@ export type { EntradaFeed, ItemFeed, ModoFeed, PaginaFeed } from "./feed";
 export { codificarCursor, decodificarCursor, ErroCursorInvalido, gateDoEvento, listarFeed, TAMANHO_PAGINA } from "./feed";
 
 export type { MotivoSessaoInvalida, NovaSessao, SessaoResolvida } from "./sessions";
-export { comSessao, criarSessao, ErroNomeInvalido, ErroSessaoInvalida, resolverSessao, revogarSessoesDoEvento } from "./sessions";
+export {
+  comSessao,
+  criarSessao,
+  ErroNomeInvalido,
+  ErroSessaoInvalida,
+  isGuestSessionLive,
+  resolverSessao,
+  revogarSessoesDoEvento,
+} from "./sessions";
 export { assinaturaValida, emitirToken, ErroSegredoDeSessao, hashDoToken } from "./token";
 
 export type { EstadoDoEvento, EventoPublico, NovoEvento, Resolucao } from "./events";
@@ -23,9 +31,11 @@ export {
   atualizarChaveImagemCapa,
   carregarEventoPublico,
   criarEvento,
+  definirAberturaDeEntrega,
   ErroContaDoCasalInvalida,
   fusoDoEvento,
   HORAS_APOS_EVENTO,
+  listarEventosComEntregaDevida,
   packDoEvento,
   resolverSlug,
   rotacionarSlug,
@@ -188,13 +198,14 @@ export { perfilDoConvidado } from "./guest-profile";
 
 export { contarVideosDaSessao, planoDoEvento } from "./plan-db";
 
-export type { HostResolvida, HostSessaoCriada, MagicLinkEmitido } from "./host-auth";
+export type { AccountResolvida, HostResolvida, HostSessaoCriada, MagicLinkEmitido } from "./host-auth";
 export {
   consumirMagicLink,
   emitirMagicLink,
   ErroHostSessaoInvalida,
   ErroMagicLinkInvalido,
   issueMarkedHostSession,
+  resolveOrCreateAccountByEmail,
   resolverHostSessao,
   revogarHostSessao,
   VALIDADE_HOST_SESSAO_HORAS,
@@ -606,3 +617,11 @@ export {
   listEventsWithPendingModeration,
   reclaimStaleModeration,
 } from "./moderation-queue";
+
+export { ErroTokenDeEntrega, issueDeliveryToken, resolveDeliveryToken } from "./delivery-tokens";
+
+export {
+  consumeGuestMagicLink,
+  emitGuestMagicLinkRow,
+  VALIDADE_GUEST_MAGIC_LINK_MINUTOS,
+} from "./guest-magic-link";

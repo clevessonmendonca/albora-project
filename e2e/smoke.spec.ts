@@ -4,8 +4,10 @@ const E2E_FULL = !!process.env.E2E_FULL;
 
 async function entrarNoEvento(page: Page, nome = "E2E") {
   await page.goto("/e/festa-demo");
+  // Chegada emocional primeiro; nome/consentimento só depois de entrar.
+  await page.getByRole("button", { name: /entrar na festa/i }).click();
   await page.getByPlaceholder(/tio joão/i).fill(nome);
-  await page.getByRole("button", { name: /fotografar/i }).click();
+  await page.getByRole("button", { name: /continuar/i }).click();
   await page.waitForURL(/\/e\/festa-demo\/cover/, { waitUntil: "domcontentloaded" });
 }
 
@@ -78,12 +80,13 @@ test.describe("smoke", () => {
     await expect(page.locator("body")).toContainText(/consent|entrar|festa/i);
   });
 
-  test("minhas carrega grade vazia após entrar", async ({ page }) => {
+  test("você (minhas fotos) carrega grade vazia após entrar", async ({ page }) => {
     test.skip(!E2E_FULL, "Requer pnpm db:semear e E2E_FULL=1");
 
     await entrarNoEvento(page);
     await page.goto("/e/festa-demo/my-photos");
-    await expect(page.getByRole("link", { name: /minhas fotos/i })).toBeVisible();
+    // "Você" agora nomeia tanto o header quanto a aba do nav; escopa no header (dentro do <main>).
+    await expect(page.locator("#main-content").getByRole("link", { name: /você/i })).toBeVisible();
     await expect(page.getByText(/carregando/i)).toBeHidden({ timeout: 15_000 });
     await expect(page.getByText(/suas fotos vão aparecer aqui/i)).toBeVisible();
     await expect(page.locator("body")).toContainText(/0 fotos/i);

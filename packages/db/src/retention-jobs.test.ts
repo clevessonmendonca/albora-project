@@ -5,6 +5,7 @@ import {
   listDueRetentionJobs,
   listRetentionJobsAdmin,
   processRetentionJob,
+  purgarAcervo,
   purgeAccountDataOnClient,
   scheduleRetentionJobs,
   type DueRetentionJob,
@@ -12,6 +13,8 @@ import {
 } from "./retention-jobs";
 import { comEvento } from "./event";
 import { VaultDeTokenDrive } from "./drive-token-vault";
+import { issueDeliveryToken } from "./delivery-tokens";
+import { emitGuestMagicLinkRow } from "./guest-magic-link";
 import { prepararBanco, semear } from "./testes/banco";
 
 /** Contra banco real como `admin` (bypassa RLS) — runner de retenção é cross-event, mesma exigência dos analytics snapshots. */
@@ -593,5 +596,68 @@ describe("purgeAccountDataOnClient", { timeout: 90_000 }, () => {
 
     const { rows } = await admin.query("SELECT 1 FROM magic_links WHERE account_id = $1", [contaId]);
     expect(rows).toHaveLength(0);
+  });
+});
+
+describe("purgarAcervo — ADR 0019: contato verificado e tokens de entrega/magic-link somem junto do acervo", () => {
+  const SEGREDO_TESTE = "um-segredo-de-teste-com-mais-de-32-caracteres";
+
+  async function semearContatoETokens(eventoId: string): Promise<void> {
+    const { rows: sessao } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'convidado-adr0019', 'v1', now()) RETURNING id`,
+      [eventoId],
+    );
+    const sessaoId = sessao[0]!.id;
+    await admin.query(
+      `INSERT INTO guest_contacts (event_id, session_id, channel, value, verified_at, verified_via)
+       VALUES ($1, $2, 'email', $3, now(), 'magic_link')`,
+      [eventoId, sessaoId, `convidado-${eventoId}@exemplo.test`],
+    );
+    await issueDeliveryToken(admin, SEGREDO_TESTE, eventoId, sessaoId, new Date(Date.now() + HORA));
+    await emitGuestMagicLinkRow(
+      admin,
+      SEGREDO_TESTE,
+      eventoId,
+      sessaoId,
+      `convidado-${eventoId}@exemplo.test`,
+      new Date(Date.now() + 15 * 60 * 1000),
+    );
+  }
+
+  async function contagens(eventoId: string): Promise<{ contatos: number; tokens: number; magicLinks: number }> {
+    const [contatos, tokens, magicLinks] = await Promise.all([
+      admin.query("SELECT 1 FROM guest_contacts WHERE event_id = $1", [eventoId]),
+      admin.query("SELECT 1 FROM delivery_tokens WHERE event_id = $1", [eventoId]),
+      admin.query("SELECT 1 FROM guest_magic_links WHERE event_id = $1", [eventoId]),
+    ]);
+    return {
+      contatos: contatos.rowCount ?? 0,
+      tokens: tokens.rowCount ?? 0,
+      magicLinks: magicLinks.rowCount ?? 0,
+    };
+  }
+
+  it("apaga guest_contacts, delivery_tokens e guest_magic_links do evento purgado, e preserva os de outro evento (isolamento)", async () => {
+    // Conta própria: este bloco roda depois de `purgeAccountDataOnClient`, que
+    // chama `prepararBanco()` de novo e recria o schema — `dados.a.contaId`
+    // (semeado no `beforeAll` original) não sobrevive a esse reset.
+    const { rows: acc } = await admin.query<{ id: string }>(
+      "INSERT INTO accounts (email) VALUES ($1) RETURNING id",
+      [`adr0019-${Math.random().toString(36).slice(2)}@exemplo.test`],
+    );
+    const contaId = acc[0]!.id;
+    await admin.query("INSERT INTO packs (id) VALUES ('pack-um') ON CONFLICT (id) DO NOTHING");
+
+    const ends = new Date(Date.now() + 6 * HORA);
+    const eventoA = await criarEvento(ends, contaId);
+    const eventoB = await criarEvento(ends, contaId);
+    await semearContatoETokens(eventoA);
+    await semearContatoETokens(eventoB);
+
+    await comEvento(admin, eventoA, (cliente) => purgarAcervo(cliente, eventoA));
+
+    expect(await contagens(eventoA)).toEqual({ contatos: 0, tokens: 0, magicLinks: 0 });
+    expect(await contagens(eventoB)).toEqual({ contatos: 1, tokens: 1, magicLinks: 1 });
   });
 });

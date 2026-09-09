@@ -860,3 +860,12 @@ export {
 } from "./authorization";
 export { logger } from "./structured-logging";
 export { VENDOR_PLAN_PRICE_CENTS, type VendorPlanTier } from "./vendor-billing";
+
+export type {
+  GoogleJwk,
+  GoogleJwks,
+  MotivoIdTokenInvalido,
+  ValidatedIdentity,
+  ValidateIdTokenInput,
+} from "./oidc/validate-id-token";
+export { InvalidIdTokenError, validateIdToken } from "./oidc/validate-id-token";

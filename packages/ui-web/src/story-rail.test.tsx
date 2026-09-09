@@ -28,6 +28,30 @@ describe("StoryRail", () => {
     expect(ana.className).not.toContain("ring-acento");
   });
 
+  it("o recado ganha anel especial (com folga) e selo de áudio, distinto do 'novo'", () => {
+    const comRecado: StoryItem[] = [
+      { id: "r", nome: "Recado", variant: "recado", temAudio: true, onPress: vi.fn() },
+      ...items,
+    ];
+    render(<StoryRail items={comRecado} />);
+
+    const recadoLabel = screen.getByText("Recado");
+    const wrapper = recadoLabel.previousSibling as HTMLElement;
+    const squircle = wrapper.firstChild as HTMLElement;
+    // Anel com folga marca o recado; "novo" (Bia) usa o anel rente, sem offset.
+    expect(squircle.className).toContain("ring-offset");
+    const bia = screen.getByText("Bia").previousSibling as HTMLElement;
+    expect(bia.className).not.toContain("ring-offset");
+    // Selo de áudio presente no recado.
+    expect(wrapper.querySelector("svg")).not.toBeNull();
+  });
+
+  it("recado sem áudio não mostra o selo", () => {
+    render(<StoryRail items={[{ id: "r", nome: "Recado", variant: "recado" }]} />);
+    const wrapper = screen.getByText("Recado").previousSibling as HTMLElement;
+    expect(wrapper.querySelector("svg")).toBeNull();
+  });
+
   it("chama onAdd ao clicar em Você", () => {
     const onAdd = vi.fn();
     render(<StoryRail items={items} onAdd={onAdd} />);

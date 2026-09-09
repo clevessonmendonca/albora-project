@@ -217,6 +217,7 @@ describe("6 — agregação cruza eventos, e fica auditada", () => {
 /** Tabelas fora da RLS com justificativa: circular (resolve token → event_id, mas event_id só existe após o token) — o teste reprova qualquer coluna nova aqui. */
 const FORA_DA_RLS = new Map([
   ["session_tokens", "porta de entrada: resolve token → event_id, antes de haver contexto"],
+  ["oidc_states", "porta do SSO Google: state de uso único, hash-keyed, vida de 10min, antes de haver sessão. O event_id/guest_session_id são o contexto do fluxo de login em voo, consumidos por nonce_hash — mesma disciplina de session_tokens"],
   ["event_slugs", "porta do QR: resolve slug → event_id. O slug não é segredo — está impresso na mesa"],
   ["wall_tokens", "porta da TV: resolve crachá → event_id, mesmo circular da sessão. Só leitura"],
   [
@@ -226,6 +227,14 @@ const FORA_DA_RLS = new Map([
   [
     "app_pairings",
     "porta de pareamento web → app: resolve código → (event_id, session_id) antes de haver contexto — só mapeamento, sem PII",
+  ],
+  [
+    "delivery_tokens",
+    "porta de entrada da galeria: resolve token_hash → (event_id, session_id) antes de haver contexto; o hash assinado é a capability, um hash pertence a um evento só",
+  ],
+  [
+    "guest_magic_links",
+    "porta do magic link do convidado: consome token_hash → (event_id, session_id) antes de haver contexto, single-use; mesma disciplina de session_tokens",
   ],
   [
     "retention_jobs",

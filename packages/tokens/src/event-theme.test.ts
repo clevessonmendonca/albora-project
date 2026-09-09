@@ -40,4 +40,17 @@ describe("resolveGuestThemeVariables", () => {
     expect(vars["--saida"]).toBe("cubic-bezier(0.4, 0, 1, 1)");
     expect(vars["--instantaneo"]).toBe("0.15s");
   });
+
+  it("emite --ev/--ev-2 quando o identity carrega eventCores, sem mexer no âmbar", () => {
+    const semEv = resolveGuestThemeVariables({ identityTokens: {} });
+    expect(semEv["--ev"]).toBeUndefined();
+
+    const comEv = resolveGuestThemeVariables({
+      identityTokens: { eventCores: { cor: "#7A2E3A", cor2: "#22415F" } },
+    });
+    expect(comEv["--ev"]).toBe("#7A2E3A");
+    expect(comEv["--ev-2"]).toBe("#22415F");
+    // A cor do casal não repinta o produto: o âmbar segue o da marca.
+    expect(comEv["--acento"]).toBe(semEv["--acento"]);
+  });
 });

@@ -22,7 +22,10 @@ Um ADR aceito **não é editado**. Se a decisão muda, escreve-se um novo que o 
 | [0012](./0012-menores-sem-perguntar-idade.md) | Menores: nivelar por cima em vez de perguntar idade | Accepted |
 | [0013](./0013-acesso-por-conta-sob-rls.md) | Acesso por conta sob RLS (`app.account_id` + `comConta`) | Accepted |
 | [0014](./0014-convencao-pt-en-na-base-de-codigo.md) | Convenção PT/EN: EN na borda e barrels, sem alias PT reverso | Accepted |
+| [0015](./0015-push-notifications.md) | Push notifications: tecnologia, gatilhos válidos e restrições | Accepted |
+| [0016](./0016-camadas-do-console-interno.md) | Camadas do console interno: use case como unidade, garantia por envelope | Accepted |
 | [0017](./0017-provedor-de-moderacao.md) | Provedor de moderação de imagem: OpenAI Moderation, sozinha | Accepted |
+| [0021](./0021-e2e-contra-build-de-producao.md) | O E2E roda contra build de produção, nunca contra `next dev` | Accepted |
 
 0015 e 0016 não constam aqui: existem em branches ainda não mergeadas (`0016` em `feat/ceo-backoffice`).
 

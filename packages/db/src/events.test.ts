@@ -1,10 +1,13 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { comEvento } from "./event";
 import { criarSessao, resolverSessao } from "./sessions";
 import {
   criarEvento,
+  definirAberturaDeEntrega,
   ErroContaDoCasalInvalida,
   HORAS_APOS_EVENTO,
+  listarEventosComEntregaDevida,
   resolverSlug,
   rotacionarSlug,
 } from "./events";
@@ -376,5 +379,133 @@ describe("o anfitrião cria um evento sob um fornecedor (spec-canal-fornecedor �
       [eventoId, dados.a.contaId],
     );
     expect(membro[0]?.role).toBe("couple");
+  });
+});
+
+describe("definirAberturaDeEntrega", () => {
+  it("persiste a data escolhida — o gate abre a partir dali", async () => {
+    const quando = new Date("2026-10-10T20:00:00.000Z");
+
+    await comEvento(app, dados.a.eventoId, (c) =>
+      definirAberturaDeEntrega(c, dados.a.eventoId, quando),
+    );
+
+    const { rows } = await admin.query<{ delivery_opens_at: Date | null }>(
+      "SELECT delivery_opens_at FROM events WHERE id = $1",
+      [dados.a.eventoId],
+    );
+    expect(rows[0]?.delivery_opens_at?.toISOString()).toBe(quando.toISOString());
+  });
+
+  it("null fecha o gate de novo", async () => {
+    await comEvento(app, dados.a.eventoId, (c) =>
+      definirAberturaDeEntrega(c, dados.a.eventoId, new Date()),
+    );
+
+    await comEvento(app, dados.a.eventoId, (c) =>
+      definirAberturaDeEntrega(c, dados.a.eventoId, null),
+    );
+
+    const { rows } = await admin.query<{ delivery_opens_at: Date | null }>(
+      "SELECT delivery_opens_at FROM events WHERE id = $1",
+      [dados.a.eventoId],
+    );
+    expect(rows[0]?.delivery_opens_at).toBeNull();
+  });
+});
+
+describe("listarEventosComEntregaDevida", () => {
+  async function semearContato(
+    eventoId: string,
+    opts: { verified?: boolean; delivered?: boolean } = {},
+  ): Promise<void> {
+    const { rows: sessao } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'convidado-entrega-devida', 'v1', now()) RETURNING id`,
+      [eventoId],
+    );
+    const sessaoId = sessao[0]!.id;
+    const verificado = opts.verified !== false;
+    await admin.query(
+      `INSERT INTO guest_contacts (event_id, session_id, channel, value, verified_at, verified_via, delivered_at)
+       VALUES ($1, $2, 'email', $3, $4, $5, $6)`,
+      [
+        eventoId,
+        sessaoId,
+        `convidado-${eventoId}@exemplo.test`,
+        verificado ? new Date() : null,
+        verificado ? "magic_link" : null,
+        opts.delivered ? new Date() : null,
+      ],
+    );
+  }
+
+  it(
+    "devolve só o event_id de quem tem gate aberto e contato verificado ainda não entregue — " +
+      "gate fechado (NULL) e contato já entregue ficam de fora",
+    async () => {
+      const { eventoId: eventoDevido } = await criarEvento(app, {
+        accountId: dados.a.contaId,
+        packId: "pack-um",
+        comecaEm: daquiA(-6),
+        terminaEm: daquiA(-1),
+      });
+      await comEvento(app, eventoDevido, (c) =>
+        definirAberturaDeEntrega(c, eventoDevido, daquiA(-1)),
+      );
+      await semearContato(eventoDevido);
+
+      // Sem `definirAberturaDeEntrega` — delivery_opens_at continua NULL, gate fechado.
+      const { eventoId: eventoGateFechado } = await criarEvento(app, {
+        accountId: dados.a.contaId,
+        packId: "pack-um",
+        comecaEm: daquiA(-6),
+        terminaEm: daquiA(-1),
+      });
+      await semearContato(eventoGateFechado);
+
+      const { eventoId: eventoJaEntregue } = await criarEvento(app, {
+        accountId: dados.a.contaId,
+        packId: "pack-um",
+        comecaEm: daquiA(-6),
+        terminaEm: daquiA(-1),
+      });
+      await comEvento(app, eventoJaEntregue, (c) =>
+        definirAberturaDeEntrega(c, eventoJaEntregue, daquiA(-1)),
+      );
+      await semearContato(eventoJaEntregue, { delivered: true });
+
+      const devidos = await listarEventosComEntregaDevida(admin);
+
+      expect(devidos).toContain(eventoDevido);
+      expect(devidos).not.toContain(eventoGateFechado);
+      expect(devidos).not.toContain(eventoJaEntregue);
+    },
+  );
+
+  it("gate no futuro (`delivery_opens_at > now()`) não aparece", async () => {
+    const { eventoId } = await criarEvento(app, {
+      accountId: dados.a.contaId,
+      packId: "pack-um",
+      comecaEm: daquiA(1),
+      terminaEm: daquiA(6),
+    });
+    await comEvento(app, eventoId, (c) => definirAberturaDeEntrega(c, eventoId, daquiA(1)));
+    await semearContato(eventoId);
+
+    expect(await listarEventosComEntregaDevida(admin)).not.toContain(eventoId);
+  });
+
+  it("contato não verificado (sem `verified_at`) não conta como devido", async () => {
+    const { eventoId } = await criarEvento(app, {
+      accountId: dados.a.contaId,
+      packId: "pack-um",
+      comecaEm: daquiA(-6),
+      terminaEm: daquiA(-1),
+    });
+    await comEvento(app, eventoId, (c) => definirAberturaDeEntrega(c, eventoId, daquiA(-1)));
+    await semearContato(eventoId, { verified: false });
+
+    expect(await listarEventosComEntregaDevida(admin)).not.toContain(eventoId);
   });
 });

@@ -129,3 +129,29 @@ export { listPendingImpersonationRequests } from "./impersonation/list-pending-i
 
 export type { ConsoleSearchResult, ConsoleSearchResultKind, SearchConsoleInput } from "./search/search-console";
 export { searchConsole } from "./search/search-console";
+
+export type {
+  IssueOidcStateInput, IssuedOidcState, OidcStatePayload, OidcSurface,
+} from "./auth/oidc-state";
+export { consumeOidcState, InvalidOidcStateError, issueOidcState, sanitizeReturnTo } from "./auth/oidc-state";
+
+export type { StartGoogleLoginInput, StartGoogleLoginResult } from "./auth/start-google-login";
+export { startGoogleLogin } from "./auth/start-google-login";
+
+// T5/T6 implementados; T8 segue stub (roteador do callback já despacha por surface; corpo real fica para a próxima task).
+export type { CompleteGoogleLoginHostInput, CompleteGoogleLoginHostResult } from "./auth/complete-google-login-host";
+export { completeGoogleLoginHost } from "./auth/complete-google-login-host";
+export type { CompleteGoogleLoginStaffInput, CompleteGoogleLoginStaffResult } from "./auth/complete-google-login-staff";
+export { completeGoogleLoginStaff } from "./auth/complete-google-login-staff";
+export type { ClaimGuestPhotosByEmailInput } from "./auth/claim-guest-photos-by-email";
+export { claimGuestPhotosByEmail } from "./auth/claim-guest-photos-by-email";
+export type { EmitGuestMagicLinkDeps, EmitGuestMagicLinkInput } from "./auth/guest-magic-link";
+export { VALIDADE_GUEST_MAGIC_LINK_MINUTOS, emitGuestMagicLink, verifyGuestMagicLink } from "./auth/guest-magic-link";
+
+export { resolveDeliveries } from "./entrega/resolve-deliveries";
+
+export type { EntregaDeps } from "./entrega/send-delivery";
+export { runDeliveryForEvent, sendGuestDelivery } from "./entrega/send-delivery";
+
+export type { FotoEntrega, OpenGuestGalleryDeps } from "./entrega/open-gallery";
+export { openGuestGallery } from "./entrega/open-gallery";

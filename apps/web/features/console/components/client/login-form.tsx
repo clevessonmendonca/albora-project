@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { PrimaryButton, TextField } from "@albora/ui-web";
+import React, { useState, useTransition } from "react";
+import { PrimaryButton, SecondaryButton, TextField } from "@albora/ui-web";
 import { completeLoginAction, requestLoginAction } from "@/features/console/actions";
 
 export function LoginForm({ magic }: { magic: string | null }) {
@@ -42,6 +42,17 @@ function RequestLink() {
             >
               {pending ? "Enviando…" : "Enviar link"}
             </PrimaryButton>
+            <div className="flex items-center gap-3 text-ink-3" aria-hidden>
+              <span className="h-px flex-1 bg-linha" />
+              <span className="tipo-caption">ou</span>
+              <span className="h-px flex-1 bg-linha" />
+            </div>
+            <SecondaryButton
+              disabled={pending}
+              onClick={() => window.location.assign("/auth/google/start?surface=staff")}
+            >
+              Entrar com Google
+            </SecondaryButton>
           </>
         )}
       </div>

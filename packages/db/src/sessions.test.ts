@@ -6,6 +6,7 @@ import {
   criarSessao,
   ErroNomeInvalido,
   ErroSessaoInvalida,
+  isGuestSessionLive,
   resolverSessao,
   revogarSessoesDoEvento,
 } from "./sessions";
@@ -190,5 +191,38 @@ describe("rotação de slug não derruba sessão ativa", () => {
     await expect(resolverSessao(app, SEGREDO, token)).resolves.toMatchObject({
       eventoId: dados.a.eventoId,
     });
+  });
+});
+
+describe("isGuestSessionLive", () => {
+  it("true para sessão com token não-expirado/não-revogado", async () => {
+    const { sessaoId } = await novaSessao(dados.a.eventoId, "convidado vivo");
+
+    await expect(isGuestSessionLive(app, dados.a.eventoId, sessaoId)).resolves.toBe(true);
+  });
+
+  it("false para sessão expirada, revogada ou inexistente", async () => {
+    const { rows: sessao } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'convidado morto', 'v1', now()) RETURNING id`,
+      [dados.a.eventoId],
+    );
+    const sessaoId = sessao[0]!.id;
+    await admin.query(
+      `INSERT INTO session_tokens (token_hash, event_id, session_id, expires_at, revoked_at)
+       VALUES ($1, $2, $3, now() + interval '1 hour', now())`,
+      [Buffer.from(`hash-morta-${sessaoId}`), dados.a.eventoId, sessaoId],
+    );
+
+    await expect(isGuestSessionLive(app, dados.a.eventoId, sessaoId)).resolves.toBe(false);
+    await expect(
+      isGuestSessionLive(app, dados.a.eventoId, "00000000-0000-0000-0000-000000000000"),
+    ).resolves.toBe(false);
+  });
+
+  it("sessão viva de A não conta como viva para B — não cruza evento", async () => {
+    const { sessaoId } = await novaSessao(dados.a.eventoId, "convidado de A");
+
+    await expect(isGuestSessionLive(app, dados.b.eventoId, sessaoId)).resolves.toBe(false);
   });
 });

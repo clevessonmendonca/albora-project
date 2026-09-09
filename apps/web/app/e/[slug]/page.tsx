@@ -1,6 +1,6 @@
 import { resolverSlug } from "@albora/db";
 import { PACKS, resolvePackText } from "@albora/packs";
-import { parseEntryVia } from "@albora/core";
+import { parseEntryVia, VALIDADE_PRESIGN_SEGUNDOS } from "@albora/core";
 import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
@@ -8,6 +8,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import type { CSSProperties } from "react";
 import { getPool } from "@/lib/db";
+import { signGet } from "@/lib/r2";
 import { GUEST_SESSION_COOKIE, guestSessionFromToken } from "@/lib/session";
 import { EntryFlow } from "@/features/guest/components/client/entry-flow";
 import { EventNotice } from "@/features/guest/components/client/event-notice";
@@ -99,6 +100,21 @@ export default async function Pagina({ params, searchParams }: Props) {
     );
   }
 
+  const packDoEvento = PACKS[r.evento.packId];
+  // O nome real do evento (o que o casal digitou), não o exemplo do pack — a
+  // chegada diz "Você foi convidado para {nome}", e o exemplo seria mentira.
+  const nomeEvento =
+    r.evento.title ??
+    (packDoEvento ? resolvePackText(packDoEvento, "landing.exemplo.nome") : "A festa");
+  const saudacao = packDoEvento
+    ? resolvePackText(packDoEvento, "convidado.saudacao")
+    : "Bem-vindo";
+  // Capa full-bleed da chegada: mesmo GET assinado que a rota /cover usa para
+  // quem já tem sessão. Imagem do anfitrião, não mídia de convidado.
+  const coverImageUrl = r.evento.coverImageKey
+    ? (await signGet(r.evento.coverImageKey, VALIDADE_PRESIGN_SEGUNDOS)).toString()
+    : null;
+
   return (
     <div
       style={
@@ -106,7 +122,7 @@ export default async function Pagina({ params, searchParams }: Props) {
           resolveTokens({
             marca: ALBORA_BRAND,
             pack: {
-              ...(PACKS[r.evento.packId]?.tokens ?? {}),
+              ...(packDoEvento?.tokens ?? {}),
               background: "dark",
             },
           }),
@@ -117,12 +133,10 @@ export default async function Pagina({ params, searchParams }: Props) {
         eventoId={r.evento.eventoId}
         slug={slug}
         via={via}
-        nomeEvento={
-          PACKS[r.evento.packId] ? resolvePackText(PACKS[r.evento.packId]!, "landing.exemplo.nome") : "A festa"
-        }
-        saudacao={
-          PACKS[r.evento.packId] ? resolvePackText(PACKS[r.evento.packId]!, "convidado.saudacao") : "Bem-vindo"
-        }
+        nomeEvento={nomeEvento}
+        saudacao={saudacao}
+        comecaEm={r.evento.comecaEm.toISOString()}
+        coverImageUrl={coverImageUrl}
       />
     </div>
   );

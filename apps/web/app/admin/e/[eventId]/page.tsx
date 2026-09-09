@@ -24,6 +24,7 @@ export default async function EventPage({
             plan={evento.plan}
             initial={evento.moderacao}
             initialInteractionOpensAt={evento.interacaoAbreEm?.toISOString() ?? null}
+            initialDeliveryOpensAt={evento.deliveryOpensAt?.toISOString() ?? null}
             initialStatus={evento.status}
             canManageCoupleOnly={canManageCoupleOnly}
           />

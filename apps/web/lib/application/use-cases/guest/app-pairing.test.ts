@@ -100,9 +100,11 @@ describe("createAppPairing", () => {
 
     const expiraEmMs = result.expiraEm.getTime();
     const expectedMs = agora + CODE_TTL_MINUTES * 60 * 1000;
-    
-    // Tolera diferença de até 1 segundo devido a execução do teste
-    expect(Math.abs(expiraEmMs - expectedMs)).toBeLessThan(1000);
+
+    // `result.expiraEm` é o valor do mock, derivado do mesmo `agora` de
+    // `expectedMs` — a diferença é exatamente 0. A tolerância de ±1s era
+    // defensiva e mascarava drift real; igualdade exata é determinística.
+    expect(expiraEmMs).toBe(expectedMs);
   });
 
   it("deve retornar validadeMinutos constante", async () => {

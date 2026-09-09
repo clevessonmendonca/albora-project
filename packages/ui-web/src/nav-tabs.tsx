@@ -30,7 +30,7 @@ export const SHARED_GUEST_TABS: readonly SharedGuestTabDef[] = [
   },
   {
     id: "minhas",
-    label: "Minhas",
+    label: "Você",
     path: "/my-photos",
     column: "col-start-5",
     icon: <PersonIcon size={22} />,
