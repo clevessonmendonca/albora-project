@@ -10,8 +10,10 @@ import {
   cobreSemPerderTopo,
   compor,
   conteudoDaMoldura,
+  DIMENSOES_DO_FORMATO,
   encaixar,
   faixaDaMarca,
+  FORMATOS_DE_MOLDURA,
   LARGURA_DA_COMPOSICAO,
   MAX_DA_COLAGEM,
   midiasCompartilhaveis,
@@ -404,6 +406,7 @@ describe("🔴 a marca fica fora da foto", () => {
     const invasora: Composicao = {
       largura: LARGURA_DA_COMPOSICAO,
       altura: ALTURA_DA_COMPOSICAO,
+      formato: "story",
       modelo: "ambiente",
       area: areaDaFoto("ambiente"),
       foto: { x: 0, y: 0, largura: LARGURA_DA_COMPOSICAO, altura: ALTURA_DA_COMPOSICAO },
@@ -524,6 +527,59 @@ describe("compor é a única porta para a composição", () => {
 
     expect(resultado.composicao?.largura).toBe(1080);
     expect(resultado.composicao?.altura).toBe(1920);
+  });
+
+  it("sem formato, a composição é `story` — o padrão histórico não muda (ADR 0022)", () => {
+    const resultado = compor({
+      midia: midia(),
+      sessao: sessao(),
+      evento: EVENTO_LIBERADO,
+      identidade: IDENTIDADE,
+      modelo: "ambiente",
+      agora: AGORA,
+    });
+
+    expect(resultado.composicao?.formato).toBe("story");
+    expect(resultado.composicao?.largura).toBe(1080);
+    expect(resultado.composicao?.altura).toBe(1920);
+  });
+});
+
+describe("formato feed (1:1) — ADR 0022, fatia A (core, ainda não ligado)", () => {
+  it("são dois formatos e o feed é 1080×1080 com a faixa na mesma proporção do story", () => {
+    expect(FORMATOS_DE_MOLDURA).toEqual(["story", "feed"]);
+
+    const feed = DIMENSOES_DO_FORMATO.feed;
+    const story = DIMENSOES_DO_FORMATO.story;
+    expect(feed.largura).toBe(1080);
+    expect(feed.altura).toBe(1080);
+    // a faixa mantém a proporção da altura do story (320/1920 = 1/6 → 180)
+    expect(feed.faixa).toBe(Math.round((story.faixa / story.altura) * feed.altura));
+  });
+
+  it("a faixa e a área da foto seguem o quadrado", () => {
+    expect(faixaDaMarca("feed")).toEqual({ x: 0, y: 900, largura: 1080, altura: 180 });
+    expect(areaDaFoto("cheia", "feed")).toEqual({ x: 0, y: 0, largura: 1080, altura: 900 });
+    expect(areaDaFoto("polaroide", "feed")).toEqual({ x: 64, y: 64, largura: 952, altura: 772 });
+  });
+
+  it("compor em feed sai 1080×1080, carrega o formato e não deixa a moldura sobre a foto", () => {
+    const resultado = compor({
+      midia: midia({ largura: 1600, altura: 900 }),
+      sessao: sessao(),
+      evento: EVENTO_LIBERADO,
+      identidade: IDENTIDADE,
+      modelo: "ambiente",
+      formato: "feed",
+      agora: AGORA,
+    });
+
+    expect(resultado.autorizada).toBe(true);
+    expect(resultado.composicao?.formato).toBe("feed");
+    expect(resultado.composicao?.largura).toBe(1080);
+    expect(resultado.composicao?.altura).toBe(1080);
+    // ambiente encaixa a foto (nunca corta) e a faixa fica abaixo dela
+    expect(problemasDaComposicao(resultado.composicao!)).toEqual([]);
   });
 });
 
