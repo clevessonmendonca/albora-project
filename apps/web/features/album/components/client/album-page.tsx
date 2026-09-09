@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CameraIcon, GuestHeader, GuestShell, GuestMain, SkipLink, cn } from "@albora/ui-web";
 import { photoPathForMission } from "@/features/missions/lib/missions-utils";
 import { albumPath } from "../../lib/album-path";
-import { useAlbum } from "../../hooks/use-album";
+import { bordaDoAlbum, useAlbum } from "../../hooks/use-album";
 import { useAlbumFilter } from "../../hooks/use-album-filter";
 import type { AlbumMission } from "../../hooks/use-album-filter";
 
@@ -19,6 +19,7 @@ import {
   ChapterTimeRange,
   AlbumFilters,
   AlbumFooter,
+  AlbumErro,
 } from "../ui";
 import { AlbumLightbox } from "../ui/album-lightbox";
 
@@ -51,8 +52,8 @@ export function AlbumPage({
 
   const { aberta, abrir, fechar, anterior, proxima } = useAlbumViewer(fotos);
 
-  const primeiraCarga = !estado.jaCarregou && estado.carregando;
-  const vazio = estado.jaCarregou && capitulos.length === 0 && estado.falha === null;
+  const temCapitulos = capitulos.length > 0;
+  const borda = bordaDoAlbum(estado, temCapitulos);
 
   return (
     <>
@@ -89,9 +90,13 @@ export function AlbumPage({
             <AlbumFilters missions={missions} selected={missionId} onSelect={selecionar} />
           )}
 
-          {primeiraCarga && <AlbumTimelineLoading />}
+          {borda === "carregando" && <AlbumTimelineLoading />}
 
-          {vazio && (
+          {borda === "erro" && estado.falha && (
+            <AlbumErro falha={estado.falha} onTentar={recarregar} />
+          )}
+
+          {borda === "vazio" && (
             <div className="flex flex-col items-center py-[calc(var(--espaco)*8)] text-center">
               <div
                 aria-hidden
@@ -116,7 +121,7 @@ export function AlbumPage({
             </div>
           )}
 
-          {capitulos.length > 0 &&
+          {temCapitulos &&
             capitulos.map((capitulo) => (
               <section
                 key={capitulo.id}
@@ -140,7 +145,7 @@ export function AlbumPage({
               </section>
             ))}
 
-          <AlbumFooter falha={estado.falha} onTentar={recarregar} />
+          {temCapitulos && <AlbumFooter falha={estado.falha} onTentar={recarregar} />}
         </GuestMain>
       </GuestShell>
 
