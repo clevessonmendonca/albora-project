@@ -112,10 +112,10 @@ describe("ConsolePage — atenção primeiro", () => {
 
   it("lista de ao vivo saturada não afirma o total — diz que está mostrando os primeiros", async () => {
     const html = await renderizar({
-      aoVivo: Array.from({ length: 8 }, (_, i) => ({ id: `e${i}`, title: `Festa ${i}`, h1: 0.4, totalFotos: 10 })),
+      aoVivo: Array.from({ length: 12 }, (_, i) => ({ id: `e${i}`, title: `Festa ${i}`, h1: 0.4, totalFotos: 10 })),
     });
-    expect(html).toContain("mostrando os 8 mais recentes");
-    expect(html).not.toContain("8 evento(s) ao vivo");
+    expect(html).toContain("mostrando os 12 mais recentes");
+    expect(html).not.toContain("12 evento(s) ao vivo");
   });
 
   it("lista abaixo do teto afirma o total com segurança", async () => {
