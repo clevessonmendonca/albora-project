@@ -45,12 +45,15 @@ export function VendorSubscribeButton({
         <p className="tipo-caption mb-0 mt-1 text-ink-3">
           Plano {PLAN_LABEL[currentPlan]}. A confirmação do provedor é a fonte de verdade.
         </p>
+        <Link href={`/admin/vendor/${vendorId}/billing`} className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-acento-texto underline underline-offset-4">Ver cobranças e recibos</Link>
       </section>
     );
   }
 
   const plan = requestedPlan ?? currentPlan;
-  const checkoutHref = `/admin/vendor/checkout?vendor=${encodeURIComponent(vendorId)}&plan=${plan}`;
+  const checkoutHref = subscriptionStatus === "overdue"
+    ? `/admin/vendor/${vendorId}/billing`
+    : `/admin/vendor/checkout?vendor=${encodeURIComponent(vendorId)}&plan=${plan}`;
 
   return (
     <section className="flex flex-col gap-5 rounded-superficie border border-linha bg-superficie p-6 sm:flex-row sm:items-center sm:justify-between">

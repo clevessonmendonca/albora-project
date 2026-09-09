@@ -408,7 +408,7 @@ export { addEventMember, ensureCoupleMember, listEventMembers, roleForAccountOnE
 
 export type {
   BillingPayment, BillingPaymentStatus, BillingPaymentSummaryAdmin, RefundablePaymentRow,
-  VendorSubscription, VendorSubscriptionByIdAdmin, VendorSubscriptionStatus,
+  VendorSubscription, VendorSubscriptionByIdAdmin, VendorSubscriptionForVendor, VendorSubscriptionStatus,
 } from "./billing";
 export {
   aplicarPlanoPago,
@@ -419,11 +419,14 @@ export {
   createVendorSubscription,
   ehAssinaturaDuplicada,
   getVendorSubscriptionByIdAdmin,
+  latestVendorSubscriptionForVendor,
   listBillingPaymentsForAccountAdmin,
   listRefundablePaymentsForVendor,
   markPaymentPaidByAsaasId,
   markVendorSubscriptionByAsaasId,
   paymentByAsaasId,
+  recordVendorSubscriptionCancellationRequest,
+  recordVendorSubscriptionPlanChange,
   upsertBillingCustomer,
 } from "./billing";
 

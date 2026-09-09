@@ -1,4 +1,4 @@
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import { insertAuditLog } from "@albora/db";
 
 export type AgregacaoDoPortalRegistro = { motivo: string; em: Date };
@@ -48,6 +48,24 @@ export async function auditarAcaoDoFornecedor(
   } finally {
     client.release();
   }
+}
+
+/** Variante transacional para manter auditoria e estado local no mesmo commit. */
+export async function auditarAssinaturaDoFornecedorNoCliente(
+  client: PoolClient,
+  input: AcaoDoFornecedor & { subscriptionId: string },
+): Promise<void> {
+  if (!input.reason.trim()) throw new Error("auditoria de fornecedor exige motivo");
+  await insertAuditLog(client, {
+    actorKind: "host",
+    actorId: input.actorId,
+    actorLabel: actorLabelMascarado(input.actorEmail),
+    action: input.action,
+    targetKind: "subscription",
+    targetId: input.subscriptionId,
+    reason: input.reason,
+    metadata: { vendorId: input.vendorId, ...(input.metadata ?? {}) },
+  });
 }
 
 /**

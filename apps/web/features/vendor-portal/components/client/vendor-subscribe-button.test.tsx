@@ -59,7 +59,7 @@ describe("VendorSubscribeButton", () => {
     );
     expect(screen.getByRole("link", { name: "Regularizar" })).toHaveAttribute(
       "href",
-      `/admin/vendor/checkout?vendor=${VENDOR_ID}&plan=studio`,
+      `/admin/vendor/${VENDOR_ID}/billing`,
     );
   });
 });

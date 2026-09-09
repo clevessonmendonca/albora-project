@@ -24,6 +24,7 @@ type VendorShellProps = {
   vendorSlug: string;
   settingsHref?: string;
   teamHref?: string;
+  billingHref?: string;
   children: ReactNode;
 };
 
@@ -36,6 +37,7 @@ export function VendorShell({
   vendorSlug,
   settingsHref,
   teamHref,
+  billingHref,
   children,
 }: VendorShellProps) {
   return (
@@ -61,7 +63,7 @@ export function VendorShell({
           <a href="#eventos" className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Eventos</a>
           {settingsHref && <Link href={settingsHref} className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Marca</Link>}
           {teamHref && <Link href={teamHref} className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Equipe</Link>}
-          <a href="#assinatura" className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Plano e cobrança</a>
+          {billingHref ? <Link href={billingHref} className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Plano e cobrança</Link> : <a href="#assinatura" className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Plano e cobrança</a>}
         </nav>
       </header>
       <div className="mx-auto w-full max-w-[80rem] px-5 py-8 sm:px-8 lg:py-12">

@@ -23,6 +23,7 @@ export function VendorPortalScreen({
 }: VendorPortalContext & { requestedPlan?: VendorPlan }) {
   const settingsHref = role === "admin" ? `/admin/vendor/${vendor.id}/settings` : undefined;
   const teamHref = role === "admin" ? `/admin/vendor/${vendor.id}/team` : undefined;
+  const billingHref = role === "admin" ? `/admin/vendor/${vendor.id}/billing` : undefined;
   return (
     <VendorShell
       vendorName={vendor.name}
@@ -33,6 +34,7 @@ export function VendorPortalScreen({
       vendorSlug={vendor.slug}
       {...(settingsHref ? { settingsHref } : {})}
       {...(teamHref ? { teamHref } : {})}
+      {...(billingHref ? { billingHref } : {})}
     >
       <div className="flex flex-col gap-8">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">

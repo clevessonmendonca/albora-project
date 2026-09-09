@@ -37,6 +37,7 @@ Os nomes, limites e preços exibidos no protótipo são proposta de embalagem e 
 - Identidade: `apps/web/app/api/vendors/[vendorId]/brand-tokens/route.ts` e componentes `vendor-brand-*`.
 - Assinatura do fornecedor: `POST /api/vendors/[vendorId]/subscription`, consumido pelo checkout dedicado em `/admin/vendor/checkout`; `VendorSubscribeButton` leva ao fluxo e impede nova oferta quando a assinatura está ativa ou pendente.
 - Equipe: `/admin/vendor/[vendorId]/team` usa `features/vendor-portal/hooks/use-vendor-team.ts` e o client service correspondente; as APIs em `/api/vendors/[vendorId]/members/**` delegam para o caso de uso auditado. Limites vêm de `VENDOR_PLAN_TEAM_LIMIT`, no domínio, e a escrita usa lock por fornecedor para impedir corrida.
+- Cobranças: `/admin/vendor/[vendorId]/billing` lista somente pagamentos vinculados à assinatura do fornecedor, oferece recibo/cobrança pelo URL seguro do provedor e gerencia troca ou cancelamento por casos de uso próprios. `pending_plan` e `cancel_requested_at` preservam o estado entre a confirmação da API do provedor e o webhook, que continua efetivando o plano.
 - Checkout de evento: `POST /api/billing/checkout`, consumido pelo passo final da criação de evento. O checkout de assinatura do fornecedor trata retorno com e sem `invoiceUrl`, erro recuperável e ativação posterior pelo webhook.
 - Billing: reutilizar `apps/web/lib/billing/**`; webhook continua sendo a fonte de verdade para ativação.
 
@@ -70,5 +71,5 @@ Na implementação, trate essas imagens como direção de arte do protótipo. Pr
 4. ✅ Provider de billing reutilizado; o webhook permanece como fonte de verdade da ativação.
 5. ✅ Métricas e carteira ligadas aos dados agregados reais, com estado vazio honesto.
 6. ✅ Equipe implementada com convite por magic link, papéis, remoção confirmada, limite por plano, autorização de administrador e auditoria anterior ao acesso agregador.
-7. Implementar recibos e gerenciamento da assinatura. A marca já usa a API real de `brand-tokens`.
+7. ✅ Recibos, troca de plano e cancelamento implementados com autorização, auditoria transacional, estado intermediário explícito e degradação isolada quando o histórico do provedor falha.
 8. Cobrir o caminho completo em E2E quando o ambiente de billing de teste estiver disponível; componentes críticos já têm testes de teclado, erro e ausência de URL externa.

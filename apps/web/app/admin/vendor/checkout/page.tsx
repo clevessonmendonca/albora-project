@@ -39,8 +39,8 @@ export default async function VendorCheckoutPage({
     ? `/f/${encodeURIComponent(vendor.slug)}`
     : `/admin/vendor/${vendor.id}/settings`;
 
-  if (subscriptionStatus === "active" || subscriptionStatus === "pending") {
-    redirect(`${returnHref}#assinatura`);
+  if (subscriptionStatus === "active" || subscriptionStatus === "pending" || subscriptionStatus === "overdue") {
+    redirect(`/admin/vendor/${vendor.id}/billing`);
   }
 
   return (
