@@ -3,6 +3,34 @@ import { LandingCtaLink } from "../landing-cta-link";
 import { Section, Heading, Accent, pillClasses, lightPillClasses } from "../pieces";
 import { HREF_CRIAR_GRATIS, HREF_CRIAR_COMPLETO } from "../landing-data";
 
+type Plan = {
+  name: string;
+  price: string;
+  description: string;
+  features: string[];
+  href: string;
+  featured?: boolean;
+  cta: string;
+};
+
+function PlanCard({ plan, packId }: { plan: Plan; packId: Pack["id"] }) {
+  const buttonClass = plan.featured ? pillClasses : lightPillClasses;
+  return (
+    <article className={`plano-card ${plan.featured ? "plano-card-destaque" : ""}`}>
+      {plan.featured ? <span className="plano-badge">Mais escolhido</span> : null}
+      <h3 className="tipo-display m-0 text-[1.5rem]">{plan.name}</h3>
+      <p className="m-0 mt-2 text-sm text-ink-2">{plan.description}</p>
+      <p className="tipo-display m-0 mt-6 text-[2.25rem]">{plan.price}</p>
+      <ul className="plano-lista">
+        {plan.features.map((feature) => <li key={feature}>{feature}</li>)}
+      </ul>
+      <LandingCtaLink href={plan.href} packHint={packId} className={`${buttonClass} mt-auto justify-center`}>
+        {plan.cta}
+      </LandingCtaLink>
+    </article>
+  );
+}
+
 export function PrecoSection({ pack }: { pack: Pack }) {
   return (
     <Section
@@ -15,78 +43,26 @@ export function PrecoSection({ pack }: { pack: Pack }) {
         Comece grátis. <Accent>Pague uma vez, só se quiser tudo.</Accent>
       </Heading>
 
-      <div className="mt-10 grid gap-3.5 md:grid-cols-3">
-        <div className="flex flex-col gap-2 rounded-token border border-ink-borda-forte bg-bg p-6">
-          <span className="tipo-display text-[1.375rem]">Grátis</span>
-          <span className="tipo-display text-[1.875rem]">R$ 0</span>
-          <ul className="m-0 mt-2.5 flex list-none flex-col gap-2 p-0 text-[0.9rem] text-ink-2">
-            <li className="before:mr-1 before:text-acento-texto before:content-['—']">
-              Convidados e fotos sem limite
-            </li>
-            <li className="before:mr-1 before:text-acento-texto before:content-['—']">
-              QR, feed e galeria
-            </li>
-            <li className="before:mr-1 before:text-acento-texto before:content-['—']">
-              Envio aberto por 48h
-            </li>
-          </ul>
-          <LandingCtaLink
-            href={HREF_CRIAR_GRATIS}
-            packHint={pack.id}
-            className={`${lightPillClasses} mt-auto justify-center`}
-          >
-            Criar meu evento
-          </LandingCtaLink>
-        </div>
-
-        <div className="flex flex-col gap-2 rounded-token border border-ink-borda-forte border-ink bg-bg p-6">
-          <span className="tipo-display text-[1.375rem]">Celebração</span>
-          <span className="tipo-display text-[1.875rem]">
-            pague uma vez
-            <small className="font-corpo text-sm text-ink-3"> / por evento</small>
-          </span>
-          <ul className="m-0 mt-2.5 flex list-none flex-col gap-2 p-0 text-[0.9rem] text-ink-2">
-            <li className="before:mr-1 before:text-acento-texto before:content-['—']">
-              Tudo do grátis
-            </li>
-            <li className="before:mr-1 before:text-acento-texto before:content-['—']">
-              Telão com a identidade do evento
-            </li>
-            <li className="before:mr-1 before:text-acento-texto before:content-['—']">
-              Missões e confessionário
-            </li>
-            <li className="before:mr-1 before:text-acento-texto before:content-['—']">
-              Exportação pra sua nuvem
-            </li>
-          </ul>
-          <LandingCtaLink
-            href={HREF_CRIAR_COMPLETO}
-            packHint={pack.id}
-            className={`${pillClasses} mt-auto justify-center`}
-          >
-            Criar meu evento
-          </LandingCtaLink>
-        </div>
-
-        <div className="flex flex-col gap-2 rounded-token border border-ink-borda-forte bg-bg p-6">
-          <span className="tipo-display text-[1.375rem]">Livro</span>
-          <span className="tipo-display text-[1.875rem]">opcional</span>
-          <ul className="m-0 mt-2.5 flex list-none flex-col gap-2 p-0 text-[0.9rem] text-ink-2">
-            <li className="before:mr-1 before:text-acento-texto before:content-['—']">
-              Álbum impresso
-            </li>
-            <li className="before:mr-1 before:text-acento-texto before:content-['—']">
-              Curadoria por momento
-            </li>
-            <li className="before:mr-1 before:text-acento-texto before:content-['—']">
-              Entrega em casa
-            </li>
-          </ul>
-          <a href={HREF_CRIAR_GRATIS} className={`${lightPillClasses} mt-auto justify-center`}>
-            Ver o livro
-          </a>
-        </div>
+      <div className="mt-10 grid gap-4 md:grid-cols-2">
+        <PlanCard packId={pack.id} plan={{
+          name: "Grátis",
+          price: "R$ 0",
+          description: "Para reunir as fotos da sua festa sem pagar nada.",
+          features: ["QR Code e álbum coletivo", "Fotos dos convidados", "Feed ao vivo", "Comece em 3 minutos"],
+          href: HREF_CRIAR_GRATIS,
+          cta: "Começar grátis",
+        }} />
+        <PlanCard packId={pack.id} plan={{
+          name: "Celebração",
+          price: "R$ 199",
+          description: "Tudo para transformar as fotos em parte da festa.",
+          features: ["Tudo do plano grátis", "Telão com fotos ao vivo", "Missões e confessionário", "Exportação para sua nuvem"],
+          href: HREF_CRIAR_COMPLETO,
+          featured: true,
+          cta: "Escolher Celebração",
+        }} />
       </div>
+      <p className="m-0 mt-6 text-sm text-ink-3">Pagamento único por evento. Sem mensalidade e sem cartão para começar.</p>
     </Section>
   );
 }

@@ -6,7 +6,6 @@ import type { CSSProperties } from "react";
 import { AnimatedBrand } from "./animated-brand";
 import { LandingBeacon } from "./landing-beacon";
 import { LandingCtaLink } from "./landing-cta-link";
-import { LandingStickyCta } from "./landing-sticky-cta";
 import { pillClasses } from "./pieces";
 import { SIDE_PADDING, HREF_CRIAR_GRATIS, type LiveStats } from "./landing-data";
 import {
@@ -86,25 +85,32 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
       <FaqSection />
       <FechoSection pack={pack} />
 
-      <footer className="border-t border-linha bg-bg">
-        <div
-          className={cn(
-            "mx-auto flex max-w-[78rem] flex-wrap items-center justify-between gap-4 py-8 text-sm text-ink-3",
-            SIDE_PADDING,
-          )}
-        >
-          <span>Albora · Feito no Brasil</span>
-          <a href="/privacidade" className="underline hover:text-ink-2">
-            Privacidade
-          </a>
+      <footer className="rodape border-t border-linha bg-bg">
+        <div className={cn("rodape-grid mx-auto max-w-[78rem] py-14", SIDE_PADDING)}>
+          <div className="rodape-marca">
+            <AnimatedBrand />
+            <p>As fotos da festa, reunidas por quem viveu ela.</p>
+          </div>
+          <div className="rodape-coluna">
+            <strong>Conheça</strong>
+            <a href="#como">Como funciona</a>
+            <a href="#telao">O telão</a>
+            <a href="#preco">Planos e preços</a>
+            <a href="/fornecedores">Para fornecedores</a>
+          </div>
+          <div className="rodape-coluna">
+            <strong>Ajuda</strong>
+            <a href="#faq">Perguntas frequentes</a>
+            <a href={HREF_CRIAR_GRATIS}>Criar meu evento</a>
+            <a href="/privacidade">Privacidade</a>
+            <a href="mailto:oi@albora.com.br">Fale com a gente</a>
+          </div>
+        </div>
+        <div className={cn("rodape-base mx-auto max-w-[78rem] py-5 text-sm", SIDE_PADDING)}>
+          <span>© {new Date().getFullYear()} Albora · Feito no Brasil</span>
+          <span>Momentos melhores quando todo mundo participa.</span>
         </div>
       </footer>
-
-      <LandingStickyCta
-        href={HREF_CRIAR_GRATIS}
-        packHint={pack.id}
-        label={t("landing.cta")}
-      />
     </div>
   );
 }

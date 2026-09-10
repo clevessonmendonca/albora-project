@@ -12,13 +12,6 @@
   display: none;
 }
 
-@media (max-width: 52rem) {
-  .cta-fixo {
-    display: flex;
-    align-items: center;
-  }
-}
-
 @media (min-width: 60rem) {
   .nav-topo {
     display: flex;
@@ -227,4 +220,29 @@ summary:focus-visible {
 }
 .escaneia-linha {
   animation: escaneia 2.8s var(--curva) infinite;
+}
+
+.rodape-grid {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1.5fr) repeat(2, minmax(9rem, 1fr));
+  gap: clamp(2rem, 8vw, 7rem);
+}
+
+.rodape-marca p { max-width: 18rem; margin: 1rem 0 0; color: var(--ink-3); font-size: .95rem; }
+.rodape-coluna { display: flex; flex-direction: column; align-items: flex-start; gap: .65rem; font-size: .9rem; }
+.rodape-coluna strong { margin-bottom: .35rem; color: var(--ink); font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; }
+.rodape-coluna a { color: var(--ink-2); text-decoration: none; }
+.rodape-coluna a:hover { color: var(--ink); }
+.rodape-base { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--linha); color: var(--ink-3); }
+
+.plano-card { display: flex; min-height: 23rem; flex-direction: column; gap: .35rem; position: relative; border: 1px solid var(--ink-borda-forte); border-radius: var(--raio); background: var(--bg); padding: clamp(1.25rem, 3vw, 2rem); }
+.plano-card-destaque { border-color: var(--ink); box-shadow: 0 .75rem 2.5rem rgb(31 27 24 / 8%); }
+.plano-badge { position: absolute; top: 1rem; right: 1rem; color: var(--acento-texto); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; }
+.plano-lista { display: flex; flex-direction: column; gap: .55rem; list-style: none; margin: 1.25rem 0 1.75rem; padding: 0; color: var(--ink-2); font-size: .92rem; }
+.plano-lista li::before { content: "✓"; margin-right: .5rem; color: var(--acento-texto); }
+
+@media (max-width: 52rem) {
+  .rodape-grid { grid-template-columns: 1fr 1fr; gap: 2rem 1.25rem; }
+  .rodape-marca { grid-column: 1 / -1; }
+  .rodape-base { flex-direction: column; }
 }
