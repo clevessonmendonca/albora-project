@@ -13,7 +13,7 @@ const FOTOS = [
 export function DepoisSection() {
   return (
     <Section reveal>
-      <div className="grid items-center gap-[clamp(2rem,5vw,3.5rem)] lg:grid-cols-2">
+      <div className="grid items-center gap-[clamp(2rem,5vw,3.5rem)] md:grid-cols-2">
         <div className="memoria-carrossel" aria-label="Fotos de exemplo do álbum">
           <div className="memoria-carrossel-faixa">
             {[...FOTOS, ...FOTOS].map((foto, index) => (

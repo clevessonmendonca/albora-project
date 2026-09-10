@@ -34,7 +34,7 @@ const FAQ: ReadonlyArray<{ q: string; a: string }> = [
 export function FaqSection() {
   return (
     <Section id="faq" reveal>
-      <div className="grid gap-[clamp(1.5rem,4vw,3rem)] lg:grid-cols-[0.8fr_1.2fr]">
+      <div className="grid gap-[clamp(1.5rem,4vw,3rem)] md:grid-cols-[0.8fr_1.2fr]">
         <div>
           <Heading size="clamp(1.5rem,3vw,2.25rem)">
             Antes de convidar <Accent>todo mundo.</Accent>

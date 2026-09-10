@@ -45,7 +45,7 @@ export function DemoInterativa({
     : hrefBase;
 
   return (
-    <div className="grid items-center gap-[clamp(2rem,6vw,5rem)] lg:grid-cols-[0.9fr_1.1fr]">
+    <div className="grid items-center gap-[clamp(2rem,6vw,5rem)] md:grid-cols-[0.9fr_1.1fr]">
       <div>
         <p className="tipo-label uppercase text-acento-texto">Veja antes da festa</p>
         <h2
@@ -88,12 +88,12 @@ export function DemoInterativa({
         </div>
       </div>
 
-      <div className="demo-album" role="group" aria-label="Prévia de um álbum coletivo">
+      <div className="demo-album min-w-0" role="group" aria-label="Prévia de um álbum coletivo">
         <div className="demo-album-top">
           <span>Álbum de exemplo</span>
           <span>{fotos.length} fotos</span>
         </div>
-        <h3 className="tipo-display m-0 mt-6 text-[clamp(1.5rem,3vw,2rem)] font-normal">
+        <h3 className="tipo-display m-0 mt-6 break-words [overflow-wrap:anywhere] text-[clamp(1.5rem,3vw,2rem)] font-normal">
           {titulo}
         </h3>
         <p className="m-0 mt-1 text-sm text-ink-3">{albumSub}</p>

@@ -9,7 +9,7 @@ export function HeroSection({ pack }: { pack: Pack }) {
 
   return (
     <Section className={`pb-[clamp(3rem,6vw,4.375rem)] pt-[clamp(1.875rem,4vw,3.25rem)] ${SIDE_PADDING}`}>
-      <div className="grid items-center gap-[clamp(2.375rem,5vw,3.5rem)] lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="grid items-center gap-[clamp(2.375rem,5vw,3.5rem)] md:grid-cols-[1.05fr_0.95fr]">
         {/* Copy */}
         <div className="max-w-[38rem]">
           <h1

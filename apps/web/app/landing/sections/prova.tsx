@@ -6,7 +6,7 @@ export function ProvaSection() {
     <section className="bg-superficie">
       <div className="mx-auto max-w-[78rem] px-[clamp(1.125rem,4vw,2.75rem)] py-[clamp(3.5rem,7vw,5.25rem)]">
         <Reveal>
-          <div className="grid items-start gap-[clamp(2rem,5vw,3.5rem)] lg:grid-cols-2">
+          <div className="grid items-start gap-[clamp(2rem,5vw,3.5rem)] md:grid-cols-2">
             <Heading size="clamp(2rem,4.5vw,3.5rem)">
               A festa acaba. <Accent>As fotos ficam espalhadas.</Accent>
             </Heading>
