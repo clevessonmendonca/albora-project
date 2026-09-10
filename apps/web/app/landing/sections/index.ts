@@ -1,12 +1,10 @@
 export { HeroSection } from "./hero";
-export { DemoSection } from "./demo";
 export { ProvaSection } from "./prova";
-export { ComoFuncionaSection } from "./como-funciona";
+export { DemoSection } from "./demo";
 export { PerspectivasSection } from "./perspectivas";
 export { TelaoSection } from "./telao";
-export { DuranteAFestaSection } from "./durante-a-festa";
 export { DepoisSection } from "./depois";
-export { ObjecoesSection } from "./objecoes";
 export { PrecoSection } from "./preco";
+export { VendorInviteSection } from "./vendor-invite";
 export { FaqSection } from "./faq";
 export { FechoSection } from "./fecho";

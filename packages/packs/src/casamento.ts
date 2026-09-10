@@ -45,12 +45,19 @@ export const CASAMENTO: Pack = {
     "lugar.varanda": "Varanda",
 
     "landing.rotulo": "Fotos de festa · sem app",
-    "landing.titulo": "As fotos da sua festa,",
-    "landing.titulo.destaque": "tiradas por quem viveu ela.",
+    "landing.titulo": "Viva a festa.",
+    "landing.titulo.destaque": "Reúna as fotos de todos.",
     "landing.lede":
-      "Um QR na mesa. Sem app, sem login, sem baixar nada. No dia seguinte, você acorda com fotos que ninguém contratado para fotografar conseguiria reunir sozinho.",
-    "landing.cta": "Criar meu evento",
+      "Um álbum coletivo para casamentos, aniversários e outras festas. Seus convidados enviam fotos por QR Code, direto do celular.",
+    "landing.cta": "Testar meu álbum",
     "landing.exemplo.nome": "ANA & JOÃO",
+    // Domínio-variável da landing além das 6 chaves canônicas: o placeholder
+    // nomeia um casamento e o subtítulo do álbum tem o tom da festa. Copy de
+    // marketing genérica (passos, preços, FAQ) é produto e vive em landing-copy.ts.
+    "landing.demo.placeholder": "Ex.: Casamento da Bia e do Pedro",
+    "landing.demo.album.sub": "Um dia. Muitos olhares.",
+    "landing.pacote.exemplos":
+      "Noivado, chá e casamento. Ou os próximos aniversários da família.",
 
     "reacao.estrela": "Estrela",
     "reacao.riso": "Riso",

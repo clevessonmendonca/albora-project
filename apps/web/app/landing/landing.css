@@ -271,10 +271,29 @@ summary:focus-visible {
 .plano-lista { display: flex; flex-direction: column; gap: .55rem; list-style: none; margin: 1.25rem 0 1.75rem; padding: 0; color: var(--ink-2); font-size: .92rem; }
 .plano-lista li::before { content: "✓"; margin-right: .5rem; color: var(--acento-texto); }
 
-.memoria-carrossel { overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
-.memoria-carrossel-faixa { display: flex; width: max-content; gap: .75rem; animation: memoria-desliza 34s linear infinite; }
-.memoria-carrossel:hover .memoria-carrossel-faixa { animation-play-state: paused; }
-.memoria-foto { position: relative; width: clamp(5.5rem, 10vw, 8rem); aspect-ratio: 9 / 16; flex: none; overflow: hidden; border: 1px solid var(--linha); }
+/* Marquee de memórias — deriva contínua; timing em longhand para não colidir
+   com o guard de curva (uma linha `Ns linear` é lida como curva literal). A cor
+   da máscara sai de token (`var(--ink)`), não de `#000`. */
+.memoria-carrossel { overflow: hidden; mask-image: linear-gradient(90deg, transparent, var(--ink) 5%, var(--ink) 95%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, var(--ink) 5%, var(--ink) 95%, transparent); }
+.memoria-carrossel-faixa {
+  display: flex;
+  width: max-content;
+  gap: .75rem;
+  animation-name: memoria-desliza;
+  animation-duration: 40s;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+.memoria-carrossel:hover .memoria-carrossel-faixa,
+.memoria-carrossel:focus-within .memoria-carrossel-faixa,
+.memoria-carrossel[data-pausado="true"] .memoria-carrossel-faixa { animation-play-state: paused; }
+.memoria-foto { position: relative; width: clamp(6.5rem, 12vw, 8.25rem); aspect-ratio: 3 / 4; flex: none; overflow: hidden; border-radius: var(--raio-media); border: 1px solid var(--linha); }
+.memoria-foto:nth-child(even) { transform: translateY(0.5rem); }
+.memoria-toggle {
+  display: block; margin: 1rem auto 0; padding: .625rem 1rem; min-height: 2.75rem;
+  background: none; border: 0; color: var(--ink-2); font: inherit; font-size: .8125rem;
+  text-decoration: underline; text-underline-offset: 4px; cursor: pointer;
+}
 @keyframes memoria-desliza { to { transform: translateX(calc(-50% - .375rem)); } }
 
 .telao-moldura { min-height: clamp(22rem, 48vw, 42rem); background: var(--noite); padding: clamp(1rem, 3vw, 2rem); }
@@ -299,4 +318,157 @@ summary:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   .memoria-carrossel-faixa { animation: none; }
+  .memoria-carrossel { -webkit-mask-image: none; mask-image: none; overflow-x: auto; }
+  .memoria-toggle { display: none; }
+}
+
+/* ── demo interativa ─────────────────────────────────────────────────── */
+
+.demo-album {
+  position: sticky;
+  top: 6.875rem;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--superficie-alta);
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  box-shadow: var(--shadow-suave);
+  transition:
+    background var(--tempo) var(--curva),
+    color var(--tempo) var(--curva);
+}
+.demo-album-top {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-3);
+  font-size: .75rem;
+}
+.demo-visao {
+  display: flex;
+  gap: .25rem;
+  margin: 1.5rem 0 1rem;
+  border-bottom: 1px solid var(--linha);
+}
+.demo-visao button {
+  font: inherit;
+  font-size: .875rem;
+  padding: .75rem 1.125rem;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  color: var(--ink-2);
+}
+.demo-visao button[aria-pressed="true"] {
+  border-color: var(--acento-texto);
+  color: var(--ink);
+  font-weight: 600;
+}
+.demo-galeria {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .625rem;
+  min-height: 16rem;
+}
+.demo-foto {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: var(--raio-media);
+}
+.demo-vazia {
+  display: grid;
+  place-items: center;
+  background: var(--superficie);
+  padding: 1.125rem;
+  font-size: .875rem;
+  text-align: center;
+  color: var(--ink-2);
+}
+.demo-status { min-height: 3em; font-size: .875rem; }
+
+/* Modo telão: mesma prévia, fundo escuro e grade vertical 9/16. Cores por token
+   escuro — a seção injeta o recorte `background:"dark"` no elemento. */
+.demo-album-tela { background: var(--bg); color: var(--ink); box-shadow: none; }
+.demo-album-tela .demo-album-top,
+.demo-album-tela .demo-album-sub { color: var(--ink-2); }
+.demo-album-tela .demo-visao button { color: var(--ink-2); }
+.demo-album-tela .demo-visao button[aria-pressed="true"] { color: var(--ink); border-color: var(--acento); }
+.demo-album-tela .demo-galeria { grid-template-columns: repeat(4, 1fr); gap: .5rem; padding-block: 1.5rem; align-items: center; }
+.demo-album-tela .demo-foto { aspect-ratio: 9 / 16; }
+.demo-album-tela .demo-vazia { font-size: .6875rem; padding: .25rem; }
+
+@media (max-width: 52rem) {
+  .demo-album { position: static; }
+  .demo-galeria { min-height: 0; }
+  .demo-album-tela .demo-galeria { min-height: 16.875rem; }
+}
+
+/* ── telão (faixa escura, uma foto 16:9) ─────────────────────────────── */
+
+.telao-shot { position: relative; margin-top: 2.875rem; aspect-ratio: 16 / 9; overflow: hidden; border: 1px solid var(--linha); }
+
+/* ── preço ───────────────────────────────────────────────────────────── */
+
+.plano-card {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: .5rem;
+  position: relative;
+  border: 1px solid var(--ink-borda-forte);
+  border-radius: var(--raio);
+  background: var(--superficie-alta);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+}
+/* Destaque escuro: estabelece contraste invertido; texto dos filhos forçado
+   claro por seletor descendente (specificity vence o utilitário Tailwind). */
+.plano-card-destaque { border-color: var(--ink); background: var(--ink); box-shadow: none; }
+.plano-card-destaque,
+.plano-card-destaque h3,
+.plano-card-destaque p,
+.plano-card-destaque .plano-lista,
+.plano-card-destaque .plano-lista li { color: var(--bg); }
+.plano-card-destaque .plano-lista { border-color: color-mix(in srgb, var(--bg) 24%, transparent); }
+.plano-card-destaque .plano-lista li::before { color: var(--acento); }
+.plano-badge {
+  position: absolute; top: -.75rem; right: 1.125rem;
+  background: var(--ink); color: var(--bg);
+  font-size: .6875rem; letter-spacing: .06em; text-transform: uppercase;
+  padding: .3125rem .5625rem; border-radius: var(--raio-pilula);
+}
+.plano-preco { font-size: clamp(2rem, 4vw, 3rem); line-height: 1.1; margin: .5rem 0; letter-spacing: -.025em; }
+.plano-preco small { font-size: .875rem; color: var(--ink-3); }
+.plano-card-destaque .plano-preco small { color: color-mix(in srgb, var(--bg) 78%, transparent); }
+.plano-lista {
+  display: flex; flex-direction: column; gap: .75rem; list-style: none;
+  margin: .5rem 0 1.25rem; padding: 1.25rem 0 0; border-top: 1px solid var(--linha);
+  color: var(--ink-2); font-size: .9375rem;
+}
+.plano-lista li::before { content: "·  "; color: var(--acento-texto); }
+
+.preco-pacote {
+  margin-top: 2rem;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  background: var(--superficie-alta);
+  border-radius: var(--raio);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2.5rem;
+  align-items: center;
+}
+.preco-pacote h3 { font-size: clamp(1.6875rem, 3vw, 1.875rem); line-height: 1.2; margin: 0 0 .75rem; }
+.preco-pacote p { max-width: 60ch; color: var(--ink-2); margin: .625rem 0; }
+.preco-pacote-cta { white-space: nowrap; }
+.livro-info { margin-top: 1.375rem; }
+.livro-info summary { font-size: .875rem; }
+@media (max-width: 52rem) {
+  .preco-pacote { grid-template-columns: 1fr; gap: 1.25rem; }
+  .preco-pacote-cta { white-space: normal; width: 100%; }
+}
+
+/* ── vendor invite (faixa fina) ──────────────────────────────────────── */
+
+.vendor-faixa h2 { margin: 0 0 .5rem; }
+@media (max-width: 52rem) {
+  .vendor-faixa .vendor-faixa-wrap { flex-direction: column; align-items: flex-start; gap: 1.125rem; }
 }

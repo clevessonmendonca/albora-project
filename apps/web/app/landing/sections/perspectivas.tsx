@@ -412,6 +412,28 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         }
         .px-slot .px-slotPh { position: absolute; inset: 0; background-size: cover; background-position: center; }
 
+        /* Convergência: tríptico de fotos "impressas" (moldura clara = var(--ink)
+           no escopo dark; sombra por var(--bg)). Fiel ao telão do protótipo. */
+        .px-triptico {
+          display: grid; grid-template-columns: 1fr 1.2fr 1fr;
+          gap: clamp(.75rem, 2vw, 1.75rem); width: 100%; height: 100%;
+          align-items: center; padding: 0 clamp(.5rem, 2vw, 1rem);
+        }
+        .px-triptico-foto {
+          position: relative; height: 84%; min-height: 0; overflow: hidden;
+          background-size: cover; background-position: center;
+          border: clamp(5px, .8vw, 10px) solid var(--ink);
+          border-bottom-width: clamp(20px, 3vw, 36px);
+          box-shadow: 0 10px 20px color-mix(in srgb, var(--bg) 55%, transparent);
+        }
+        .px-triptico-foto:first-child { transform: rotate(-4deg); }
+        .px-triptico-foto:nth-child(2) { height: 100%; transform: rotate(1deg); }
+        .px-triptico-foto:last-child { transform: rotate(4deg); }
+        @media (max-width: 760px) {
+          .px-triptico { gap: 8px; padding: 0 4px; }
+          .px-triptico-foto { border-width: 5px; border-bottom-width: 20px; }
+        }
+
         .px-rm { display: none; }
         @media (prefers-reduced-motion: reduce) {
           .px-track { display: none; }
@@ -460,10 +482,18 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
           <div className="px-frameLbl">
             <span className="px-dot" /> Telão · ao vivo <b>· {nomeExemplo}</b>
           </div>
-          <div className="px-slot">
+          <div className="px-triptico">
             <div
-              className="px-slotPh"
+              className="px-triptico-foto"
+              style={{ backgroundImage: `url(${PHOTOS[6]})` }}
+            />
+            <div
+              className="px-triptico-foto"
               style={{ backgroundImage: `url(${PHOTOS[HERO]})` }}
+            />
+            <div
+              className="px-triptico-foto"
+              style={{ backgroundImage: `url(${PHOTOS[8]})` }}
             />
           </div>
         </div>
@@ -473,7 +503,11 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         </div>
 
         <div className="px-cap" ref={cap2Ref}>
-          <h3 className="tipo-display">Centenas de perspectivas.</h3>
+          <h3 className="tipo-display">
+            Cada pessoa.
+            <br />
+            Um olhar diferente.
+          </h3>
           <small>momentos que uma pessoa sozinha não alcança</small>
         </div>
 
@@ -499,7 +533,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         </section>
         <section className="px-rm-chap">
           <p className="px-rm-eyebrow">Muitas pessoas</p>
-          <h3 className="tipo-display">Centenas de perspectivas.</h3>
+          <h3 className="tipo-display">Cada pessoa. Um olhar diferente.</h3>
           <div className="px-rm-grid">
             {Array.from({ length: 12 }, (_, i) => (
               <div className="px-rm-tile" key={i}>

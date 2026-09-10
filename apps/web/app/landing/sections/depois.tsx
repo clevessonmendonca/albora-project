@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Section, Heading, Accent, Label } from "../pieces";
+import { Section, Heading, Accent } from "../pieces";
 
 const FOTOS = [
   { src: "05-album-livro-produto", alt: "Álbum impresso do Albora" },
@@ -32,15 +32,19 @@ export function DepoisSection() {
         </div>
 
         <div>
-          <Label>Depois</Label>
           <Heading size="clamp(1.875rem,4vw,3rem)">
-            No dia seguinte, <Accent>já está tudo organizado.</Accent>
+            No outro dia, <Accent>reviva o que não viu.</Accent>
           </Heading>
           <p className="mt-5 max-w-[34ch] text-[1.0625rem] leading-relaxed text-ink-2">
-            As fotos entram por momento e ficam prontas para revisar, baixar e
-            guardar. Se quiser, você também pode transformar a seleção em um
-            livro impresso.
+            Os bastidores, os abraços e as fotos fora de pose. Reunidos no
+            álbum, para você rever e escolher o que quer guardar.
           </p>
+          <a
+            href="#preco"
+            className="mt-6 inline-flex items-center gap-1 font-medium text-acento-texto underline-offset-4 hover:underline"
+          >
+            Escolher meu plano →
+          </a>
         </div>
       </div>
     </Section>
