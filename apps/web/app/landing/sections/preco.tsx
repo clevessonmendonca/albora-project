@@ -23,7 +23,7 @@ function PlanCard({ plan, packId }: { plan: Plan; packId: Pack["id"] }) {
       {plan.featured ? <span className="plano-badge">Mais escolhido</span> : null}
       <h3 className="tipo-display m-0 text-[1.5rem]">{plan.name}</h3>
       <p className="m-0 mt-2 text-sm text-ink-2">{plan.description}</p>
-      <p className="tipo-display m-0 mt-6 text-[2.25rem]">{plan.price}</p>
+      <p className="plano-preco tipo-display m-0 mt-4">{plan.price}</p>
       <ul className="plano-lista">
         {plan.features.map((feature) => <li key={feature}>{feature}</li>)}
       </ul>

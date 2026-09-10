@@ -12,6 +12,19 @@
   display: none;
 }
 
+/* ── superfícies do navegador ─────────────────────────────────────────
+   O sinal mais barato de "desenhado, não montado": seleção, foco e os
+   numerais das tabelas de preço saem do token, não do default do browser. */
+.landing-page ::selection {
+  background: color-mix(in srgb, var(--acento) 26%, var(--bg));
+  color: var(--ink);
+}
+.landing-page :focus-visible { outline-color: var(--acento); }
+.plano-preco,
+.demo-album-top,
+.rodape-base,
+.price-anchor-num { font-variant-numeric: tabular-nums; }
+
 /* A landing usa a mesma dupla tipográfica do artefato aprovado,
    independentemente do pack que injeta os tokens do evento. */
 .landing-page,
