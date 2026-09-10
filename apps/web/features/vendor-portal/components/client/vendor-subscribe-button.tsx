@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import Link from "next/link";
+import React from "react";
 import type { VendorPlan, VendorRole, VendorSubscriptionStatus } from "@albora/db";
-import { adminClasses } from "@/features/admin/components/server/admin-shell";
-import { VENDOR_PLAN_PRICE_CENTS } from "@albora/integrations";
 
 const PLAN_LABEL: Record<VendorPlan, string> = {
   starter: "Starter",
@@ -11,22 +10,12 @@ const PLAN_LABEL: Record<VendorPlan, string> = {
   agency: "Agency",
 };
 
-const PLANOS: readonly VendorPlan[] = ["starter", "studio", "agency"];
-
-const moeda = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-
-type SubscriptionResult = {
-  invoiceUrl: string;
-  plan: VendorPlan;
-  amountCents: number;
-  stub: boolean;
-};
-
 type Props = {
   vendorId: string;
   role: VendorRole;
   currentPlan: VendorPlan;
   subscriptionStatus: VendorSubscriptionStatus | null;
+  requestedPlan?: VendorPlan;
 };
 
 const SUBSCRIPTION_STATUS_LABEL: Record<"active" | "pending", string> = {
@@ -34,106 +23,54 @@ const SUBSCRIPTION_STATUS_LABEL: Record<"active" | "pending", string> = {
   pending: "Aguardando confirmação",
 };
 
-/** Gate de papel é UI — a rota revalida `role === "admin"` no servidor (V2b). Mostra estado `active`/`pending` em vez do formulário para evitar dupla cobrança. */
-export function VendorSubscribeButton({ vendorId, role, currentPlan, subscriptionStatus }: Props) {
-  const [plan, setPlan] = useState<VendorPlan>(currentPlan);
-  const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<SubscriptionResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
+/** O papel é revalidado na página de checkout e novamente na API de assinatura. */
+export function VendorSubscribeButton({
+  vendorId,
+  role,
+  currentPlan,
+  subscriptionStatus,
+  requestedPlan,
+}: Props) {
   if (role !== "admin") return null;
 
   if (subscriptionStatus === "active" || subscriptionStatus === "pending") {
     return (
       <section className="rounded-superficie border border-linha bg-superficie p-6">
-        <p className="m-0 mb-3 text-[0.8125rem] uppercase tracking-rotulo text-ink-3">
-          Assinatura
+        <p className="m-0 text-[0.8125rem] uppercase tracking-rotulo text-ink-3">
+          Plano e cobrança
         </p>
-        <p className="m-0 text-[0.9375rem] text-ink">
+        <p className="m-0 mt-3 text-[0.9375rem] text-ink">
           {SUBSCRIPTION_STATUS_LABEL[subscriptionStatus]}
         </p>
+        <p className="tipo-caption mb-0 mt-1 text-ink-3">
+          Plano {PLAN_LABEL[currentPlan]}. A confirmação do provedor é a fonte de verdade.
+        </p>
+        <Link href={`/admin/vendor/${vendorId}/billing`} className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-acento-texto underline underline-offset-4">Ver cobranças e recibos</Link>
       </section>
     );
   }
 
-  const assinar = () => {
-    void (async () => {
-      setSubmitting(true);
-      setError(null);
-      try {
-        const r = await fetch(`/api/vendors/${vendorId}/subscription`, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ plan }),
-        });
-        const body = (await r.json()) as
-          | { invoiceUrl: string; plan: VendorPlan; amountCents: number; stub: boolean }
-          | { code: string; message: string };
-        if (!r.ok) {
-          setError("message" in body ? body.message : "Não deu para assinar agora.");
-          return;
-        }
-        if (!("invoiceUrl" in body)) {
-          setError("Não deu para assinar agora.");
-          return;
-        }
-        setResult(body);
-      } catch {
-        setError("Não deu para assinar agora. Tente de novo.");
-      } finally {
-        setSubmitting(false);
-      }
-    })();
-  };
+  const plan = requestedPlan ?? currentPlan;
+  const checkoutHref = subscriptionStatus === "overdue"
+    ? `/admin/vendor/${vendorId}/billing`
+    : `/admin/vendor/checkout?vendor=${encodeURIComponent(vendorId)}&plan=${plan}`;
 
   return (
-    <section className="rounded-superficie border border-linha bg-superficie p-6">
-      <p className="m-0 mb-3 text-[0.8125rem] uppercase tracking-rotulo text-ink-3">
-        Assinatura
-      </p>
-      <p className="m-0 mb-4 text-[0.9375rem] leading-relaxed text-ink-2">
-        Plano fixo mensal com a plataforma — você cobra o casal por fora, no seu canal.
-      </p>
-
-      <div className="mb-4 flex flex-wrap gap-2">
-        {PLANOS.map((candidato) => (
-          <button
-            key={candidato}
-            type="button"
-            disabled={submitting}
-            aria-pressed={plan === candidato}
-            onClick={() => setPlan(candidato)}
-            className={`cursor-pointer rounded-pilula border px-4 py-2 text-[0.875rem] transition-[border-color,opacity] duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-              plan === candidato
-                ? "border-acento bg-acento text-sobre-acento hover:opacity-90"
-                : "border-linha bg-superficie-alta text-ink hover:border-acento-texto"
-            } ${submitting ? "opacity-60" : ""}`}
-          >
-            {PLAN_LABEL[candidato]} · {moeda.format(VENDOR_PLAN_PRICE_CENTS[candidato] / 100)}/mês
-          </button>
-        ))}
-      </div>
-
-      <button
-        type="button"
-        disabled={submitting}
-        onClick={assinar}
-        className={`${adminClasses.primaryButton} ${submitting ? "opacity-60" : ""}`}
-      >
-        {submitting ? "Assinando…" : "Assinar plano"}
-      </button>
-
-      {result && (
-        <p className="m-0 mt-4 text-[0.9375rem] text-ink">
-          Assinatura {PLAN_LABEL[result.plan]} criada
-          {result.stub ? " (ambiente de teste)" : ""}.{" "}
-          <a href={result.invoiceUrl} target="_blank" rel="noopener noreferrer" className="text-acento transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
-            Pagar assinatura
-          </a>
+    <section className="flex flex-col gap-5 rounded-superficie border border-linha bg-superficie p-6 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0">
+        <h2 className="tipo-subtitle m-0">
+          {subscriptionStatus === "overdue" ? "Regularize sua assinatura" : "Escolha a escala da sua operação"}
+        </h2>
+        <p className="tipo-caption mb-0 mt-2 max-w-[58ch] text-ink-2">
+          Revise plano, forma de pagamento e valor antes de criar a cobrança.
         </p>
-      )}
-
-      {error && <p className="m-0 mt-4 text-[0.9rem] text-critico">{error}</p>}
+      </div>
+      <Link
+        href={checkoutHref}
+        className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-pilula bg-acento px-6 text-sm font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
+      >
+        {subscriptionStatus === "overdue" ? "Regularizar" : "Ver planos"}
+      </Link>
     </section>
   );
 }

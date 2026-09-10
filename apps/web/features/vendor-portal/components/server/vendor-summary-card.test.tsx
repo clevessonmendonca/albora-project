@@ -17,11 +17,11 @@ describe("VendorSummaryCard", () => {
   it("mostra o nome do fornecedor e as três métricas agregadas", () => {
     render(<VendorSummaryCard vendorName="Buffet X" resumo={resumo()} />);
 
-    expect(screen.getByText("Buffet X")).toBeInTheDocument();
+    expect(screen.getByText(/Buffet X/)).toBeInTheDocument();
     expect(screen.getByText("3")).toBeInTheDocument();
     expect(screen.getByText("240")).toBeInTheDocument();
     expect(screen.getByText("42%")).toBeInTheDocument();
-    expect(screen.getByText("H1 médio")).toBeInTheDocument();
+    expect(screen.getByText("participação média")).toBeInTheDocument();
   });
 
   it("arredonda h1Medio para porcentagem inteira", () => {

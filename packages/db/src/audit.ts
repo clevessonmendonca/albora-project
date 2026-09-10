@@ -4,7 +4,7 @@ import { logger } from "@albora/core";
 export type AuditActorKind = "staff" | "system" | "host";
 export type AuditTargetKind =
   | "account" | "event" | "ticket" | "subscription" | "staff_user" | "platform"
-  | "dsar_request" | "impersonation_request" | "payment";
+  | "dsar_request" | "impersonation_request" | "payment" | "vendor";
 
 export type AuditEntry = {
   actorKind: AuditActorKind;
