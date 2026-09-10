@@ -85,3 +85,15 @@ body {
   background: rgba(250, 248, 244, 0.94);
   color: #1f1b18;
 }
+
+/* Scrim mais forte para texto no rodapé de uma foto que pode ser clara: garante
+   legibilidade do nome/data em qualquer imagem. */
+.scrim-foto-forte {
+  background-image: linear-gradient(
+    to top,
+    rgba(20, 16, 14, 0.9),
+    rgba(20, 16, 14, 0.45) 42%,
+    rgba(20, 16, 14, 0.08) 72%,
+    transparent
+  );
+}

@@ -16,8 +16,8 @@ function preencherEvento() {
   fireEvent.change(screen.getByLabelText("Nome do evento"), {
     target: { value: "Festa Teste" },
   });
-  fireEvent.change(screen.getByLabelText("Data"), {
-    target: { value: "2026-09-01" },
+  fireEvent.change(screen.getByLabelText("Data e hora"), {
+    target: { value: "2026-09-01T18:00" },
   });
 }
 
@@ -55,9 +55,9 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
         const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
         expect(body).not.toHaveProperty("vendorId");
         expect(body.title).toBe("Festa Teste");
-        // A data única vira começo/fim com hora padrão.
-        expect(body.comecaEm).toBe("2026-09-01T16:00");
-        expect(body.terminaEm).toBe("2026-09-01T22:00");
+        // Data e hora informadas viram o começo; o fim é +6h por padrão.
+        expect(body.comecaEm).toBe("2026-09-01T18:00");
+        expect(body.terminaEm).toBe("2026-09-02T00:00");
         // As duas cores do evento viajam no identity (camada do casal).
         const identity = body.identityTokens as { eventCores?: unknown };
         expect(identity.eventCores).toMatchObject({ cor: expect.any(String), cor2: expect.any(String) });

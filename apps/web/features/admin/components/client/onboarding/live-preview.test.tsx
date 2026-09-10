@@ -19,23 +19,17 @@ function base(overrides: Partial<LivePreviewData> = {}): LivePreviewData {
 describe("LivePreview", () => {
   it("mostra a capa do convidado numa tela só, sem abas", () => {
     render(<LivePreview data={base()} />);
-    // Simplificada (design v5): uma superfície, sem tablist.
+    // Simplificada: uma superfície, sem tablist.
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
-    expect(screen.getByText("Assim seus convidados veem")).toBeInTheDocument();
+    expect(screen.getByText("Festa Teste")).toBeInTheDocument();
     expect(screen.getByText("Entrar na festa")).toBeInTheDocument();
   });
 
-  it("capa vazia oferece escolher; título editável emite no blur", () => {
-    const onEditTitle = vi.fn();
+  it("capa vazia oferece escolher", () => {
     const onPickCover = vi.fn();
-    render(<LivePreview data={base({ onEditTitle, onPickCover })} />);
+    render(<LivePreview data={base({ onPickCover })} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Escolher a capa" }));
     expect(onPickCover).toHaveBeenCalledOnce();
-
-    const titulo = screen.getByRole("textbox", { name: "Nome do evento (prévia)" });
-    titulo.textContent = "Ana & João";
-    fireEvent.blur(titulo);
-    expect(onEditTitle).toHaveBeenCalledWith("Ana & João");
   });
 });

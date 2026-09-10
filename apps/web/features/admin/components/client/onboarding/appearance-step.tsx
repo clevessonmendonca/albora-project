@@ -95,7 +95,6 @@ export function AppearanceStep({
         <div className="grid grid-cols-3 gap-3">
           {EVENT_STYLES.map((s) => {
             const ativo = s.chave === styleKey;
-            const combo = COLOR_COMBOS[s.comboIndex]!;
             const centralizado = s.chave === "classic" || s.chave === "fotografico";
             return (
               <button
@@ -121,8 +120,7 @@ export function AppearanceStep({
                     decoding="async"
                     className="absolute inset-0 h-full w-full object-cover"
                   />
-                  <span className="absolute inset-x-0 top-0 h-1" style={{ background: combo.cor2 }} />
-                  <span className="scrim-foto absolute inset-0" />
+                  <span className="scrim-foto-forte absolute inset-0" />
                   <span
                     className={`sobre-foto absolute inset-x-2 bottom-2 text-[0.8rem] leading-[1.05] ${
                       centralizado ? "text-center" : "text-left"

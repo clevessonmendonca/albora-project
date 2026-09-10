@@ -37,8 +37,20 @@ function detectarFuso(): string {
 
 function rotuloData(iso: string): string {
   if (!iso) return "";
-  const [y, m, d] = iso.split("-");
-  return d && m && y ? `${d} · ${m} · ${y}` : "";
+  const [datePart = "", timePart = ""] = iso.split("T");
+  const [y, m, d] = datePart.split("-");
+  if (!d || !m || !y) return "";
+  const base = `${d} · ${m} · ${y}`;
+  return timePart ? `${base} · ${timePart.slice(0, 5)}h` : base;
+}
+
+/** Fim padrão: começo + N horas, no mesmo formato `YYYY-MM-DDTHH:mm`. */
+function somarHoras(dtLocal: string, horas: number): string {
+  const base = new Date(dtLocal);
+  if (Number.isNaN(base.getTime())) return dtLocal;
+  base.setHours(base.getHours() + horas);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${base.getFullYear()}-${p(base.getMonth() + 1)}-${p(base.getDate())}T${p(base.getHours())}:${p(base.getMinutes())}`;
 }
 
 type Created = {
@@ -246,8 +258,8 @@ export function CreateEventWizard() {
         body: JSON.stringify({
           packId,
           title: title.trim() || undefined,
-          comecaEm: `${date}T16:00`,
-          terminaEm: `${date}T22:00`,
+          comecaEm: date,
+          terminaEm: somarHoras(date, 6),
           timezone,
           ...(guests.trim() ? { expectedGuests: Number(guests) } : {}),
           identityTokens,

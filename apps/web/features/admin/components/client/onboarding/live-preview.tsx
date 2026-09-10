@@ -22,8 +22,7 @@ export type LivePreviewData = {
  *  título e a composição do estilo — na hora. */
 export function LivePreview({ data }: { data: LivePreviewData }) {
   return (
-    <div className="flex flex-col items-center gap-2.5">
-      <p className="tipo-label self-start text-ink-3">Assim seus convidados veem</p>
+    <div className="flex justify-center">
       <GuestCover data={data} />
     </div>
   );
@@ -69,7 +68,6 @@ function styleLayout(layout: string): { align: string; titulo: string; data: str
 function GuestCover({ data }: { data: LivePreviewData }) {
   const src = data.coverImage ?? data.coverFallback ?? null;
   const propria = Boolean(data.coverImage);
-  const editable = Boolean(data.onEditTitle);
   const L = styleLayout(data.layout);
 
   return (
@@ -91,12 +89,7 @@ function GuestCover({ data }: { data: LivePreviewData }) {
           </div>
         )}
 
-        <span
-          aria-hidden
-          className="absolute inset-x-0 top-0 h-1"
-          style={{ background: "var(--ev-2, var(--ev))" }}
-        />
-        {src && <span aria-hidden className="scrim-foto absolute inset-0" />}
+        {src && <span aria-hidden className="scrim-foto-forte absolute inset-0" />}
 
         <button
           type="button"
@@ -110,14 +103,8 @@ function GuestCover({ data }: { data: LivePreviewData }) {
         <div className="absolute inset-x-4 bottom-5 z-[1] flex flex-col gap-3">
           <div className={`flex flex-col gap-1.5 ${L.align}`}>
             <p
-              className={`sobre-foto m-0 leading-[1.04] ${L.titulo}`}
+              className={`sobre-foto m-0 w-full [overflow-wrap:anywhere] leading-[1.04] ${L.titulo}`}
               style={{ fontFamily: "var(--fonte-titulo, inherit)" }}
-              contentEditable={editable}
-              suppressContentEditableWarning
-              spellCheck={false}
-              role={editable ? "textbox" : undefined}
-              aria-label={editable ? "Nome do evento (prévia)" : undefined}
-              onBlur={editable ? (e) => data.onEditTitle?.(e.currentTarget.textContent ?? "") : undefined}
             >
               {data.title}
             </p>
@@ -126,10 +113,9 @@ function GuestCover({ data }: { data: LivePreviewData }) {
             </p>
           </div>
 
-          {/* CTA translúcido sobre a foto — deixa a imagem respirar por baixo. */}
           <span
-            className="flex min-h-11 items-center justify-center rounded-pilula border border-white/30 text-[0.9rem] font-medium text-white"
-            style={{ background: "color-mix(in srgb, var(--ev, var(--acento)) 72%, transparent)" }}
+            className="flex min-h-11 items-center justify-center rounded-pilula text-[0.9rem] font-medium"
+            style={{ background: "var(--ev, var(--acento))", color: "var(--ev-on, var(--sobre-acento))" }}
           >
             {data.ctaLabel}
           </span>

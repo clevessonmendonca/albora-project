@@ -4,6 +4,8 @@ import React from "react";
 import { TextField } from "@albora/ui-web";
 import { Glyph } from "./glyph";
 
+const NOME_MAX = 60;
+
 export type TypeOption = {
   id: string;
   nome: string;
@@ -127,12 +129,17 @@ export function TypeStep({
             value={title}
             onChange={(e) => onTitle(e.target.value)}
             placeholder={titlePlaceholder}
+            maxLength={NOME_MAX}
             aria-invalid={titleError ? true : undefined}
             aria-describedby={titleError ? "titulo-erro" : undefined}
           />
-          {titleError && (
+          {titleError ? (
             <p id="titulo-erro" role="alert" className="tipo-caption m-0 mt-1.5 text-critico">
               Dê um nome ao evento pra continuar.
+            </p>
+          ) : (
+            <p className="tipo-caption m-0 mt-1.5 text-right text-ink-3">
+              {title.length}/{NOME_MAX}
             </p>
           )}
         </div>
@@ -140,8 +147,8 @@ export function TypeStep({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <TextField
-              label="Data"
-              type="date"
+              label="Data e hora"
+              type="datetime-local"
               value={date}
               onChange={(e) => onDate(e.target.value)}
               aria-invalid={dateError ? true : undefined}
@@ -149,7 +156,7 @@ export function TypeStep({
             />
             {dateError && (
               <p id="data-erro" role="alert" className="tipo-caption m-0 mt-1.5 text-critico">
-                Escolha a data do evento.
+                Escolha a data e a hora do evento.
               </p>
             )}
           </div>
