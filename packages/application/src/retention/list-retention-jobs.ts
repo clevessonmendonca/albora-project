@@ -1,5 +1,5 @@
 import type { Pool } from "pg";
-import type { Actor } from "@albora/core";
+import { sanitizarTextoDeErro, type Actor } from "@albora/core";
 import { listRetentionJobsAdmin, type RetentionJobAdminRow } from "@albora/db";
 import { withPlatformAggregation } from "../platform/aggregation";
 
@@ -8,9 +8,6 @@ export type { RetentionJobAdminRow } from "@albora/db";
 
 export type ListRetentionJobsInput = { actor: Actor; reason: string; status?: string; limit: number };
 
-const MAX_ERROR_CHARS = 160;
-const EMAIL_RE = /[^\s@]+@[^\s@]+\.[^\s@]+/g;
-const PHONE_RE = /\+?\d[\d\s().-]{7,}\d/g;
 
 /**
  * `last_error` chega de `String(e)` em `processRetentionJob` — texto bruto
@@ -21,10 +18,7 @@ const PHONE_RE = /\+?\d[\d\s().-]{7,}\d/g;
  * o tamanho antes de qualquer coisa chegar à tela do console.
  */
 export function sanitizeRetentionError(raw: string | null): string | null {
-  if (!raw) return null;
-  const semEmail = raw.replace(EMAIL_RE, "[e-mail]");
-  const semTelefone = semEmail.replace(PHONE_RE, "[telefone]");
-  return semTelefone.length > MAX_ERROR_CHARS ? `${semTelefone.slice(0, MAX_ERROR_CHARS)}…` : semTelefone;
+  return sanitizarTextoDeErro(raw);
 }
 
 /**

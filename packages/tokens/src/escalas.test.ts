@@ -9,6 +9,9 @@ const CORES: Colors = {
   noite: "#1A1410",
   acento: "#C28B30",
   critico: "#D94F00",
+  atencao: "#B8860B",
+  positivo: "#2E7D32",
+  informativo: "#1565C0",
 };
 
 function hexValido(hex: string): boolean {
@@ -41,12 +44,12 @@ describe("escalaDoFundo — claro", () => {
     expect(bgRgb.r).toBeLessThanOrEqual(papelRgb.r);
   });
 
-  it("superficieAlta é mais clara que superficie", () => {
+  it("superficieAlta é mais escura que superficie (passo na direção do contraste)", () => {
     const superficieRgb = lerHex(escala.superficie)!;
     const altaRgb = lerHex(escala.superficieAlta)!;
     const mediaSuperficie = (superficieRgb.r + superficieRgb.g + superficieRgb.b) / 3;
     const mediaAlta = (altaRgb.r + altaRgb.g + altaRgb.b) / 3;
-    expect(mediaAlta).toBeGreaterThanOrEqual(mediaSuperficie);
+    expect(mediaAlta).toBeLessThanOrEqual(mediaSuperficie);
   });
 
   it("ink2 é mais claro que ink", () => {
@@ -142,7 +145,7 @@ describe("escalaDoFundo — consistência entre temas", () => {
     const chaves: (keyof SemanticScale)[] = [
       "bg", "superficie", "superficieAlta", "linha",
       "ink", "ink2", "ink3", "acento", "acentoTexto",
-      "sobreAcento", "critico",
+      "sobreAcento", "critico", "atencao", "positivo", "informativo",
     ];
     for (const chave of chaves) {
       expect(claro).toHaveProperty(chave);

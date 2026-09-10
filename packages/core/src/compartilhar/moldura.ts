@@ -1,38 +1,37 @@
 import { ehVertical } from "../wall-display";
-import type { Caixa, Dimensoes, ModeloDeMoldura, Recorte } from "./types";
+import type { Caixa, Dimensoes, FormatoDaMoldura, ModeloDeMoldura, Recorte } from "./types";
 import {
-  ALTURA_DA_COMPOSICAO,
-  ALTURA_DA_FAIXA,
-  LARGURA_DA_COMPOSICAO,
-  MARGEM,
+  DIMENSOES_DO_FORMATO,
   MAX_PERDA_LATERAL,
   MODELOS_DE_MOLDURA,
 } from "./types";
 
 const TOLERANCIA_PX = 0.5;
 
-export function faixaDaMarca(): Caixa {
+export function faixaDaMarca(formato: FormatoDaMoldura = "story"): Caixa {
+  const dim = DIMENSOES_DO_FORMATO[formato];
   return {
     x: 0,
-    y: ALTURA_DA_COMPOSICAO - ALTURA_DA_FAIXA,
-    largura: LARGURA_DA_COMPOSICAO,
-    altura: ALTURA_DA_FAIXA,
+    y: dim.altura - dim.faixa,
+    largura: dim.largura,
+    altura: dim.faixa,
   };
 }
 
-export function areaDaFoto(modelo: ModeloDeMoldura): Caixa {
-  const teto = ALTURA_DA_COMPOSICAO - ALTURA_DA_FAIXA;
+export function areaDaFoto(modelo: ModeloDeMoldura, formato: FormatoDaMoldura = "story"): Caixa {
+  const dim = DIMENSOES_DO_FORMATO[formato];
+  const teto = dim.altura - dim.faixa;
 
   if (modelo === "polaroide") {
     return {
-      x: MARGEM,
-      y: MARGEM,
-      largura: LARGURA_DA_COMPOSICAO - 2 * MARGEM,
-      altura: teto - 2 * MARGEM,
+      x: dim.margem,
+      y: dim.margem,
+      largura: dim.largura - 2 * dim.margem,
+      altura: teto - 2 * dim.margem,
     };
   }
 
-  return { x: 0, y: 0, largura: LARGURA_DA_COMPOSICAO, altura: teto };
+  return { x: 0, y: 0, largura: dim.largura, altura: teto };
 }
 
 function dimensoesValidas(d: Dimensoes): boolean {
@@ -72,24 +71,38 @@ export function cobreSemPerderTopo(foto: Dimensoes, area: Dimensoes): boolean {
   return (larguraDesenhada - area.largura) / larguraDesenhada <= MAX_PERDA_LATERAL;
 }
 
-export function modelosDeMolduraPermitidos(foto: Dimensoes): ModeloDeMoldura[] {
+export function modelosDeMolduraPermitidos(
+  foto: Dimensoes,
+  formato: FormatoDaMoldura = "story",
+): ModeloDeMoldura[] {
   if (!dimensoesValidas(foto)) return [];
   return MODELOS_DE_MOLDURA.filter(
-    (m) => m !== "cheia" || cobreSemPerderTopo(foto, areaDaFoto("cheia")),
+    (m) => m !== "cheia" || cobreSemPerderTopo(foto, areaDaFoto("cheia", formato)),
   );
 }
 
-export function molduraCorta(modelo: ModeloDeMoldura, foto: Dimensoes): boolean {
-  return !modelosDeMolduraPermitidos(foto).includes(modelo);
+export function molduraCorta(
+  modelo: ModeloDeMoldura,
+  foto: Dimensoes,
+  formato: FormatoDaMoldura = "story",
+): boolean {
+  return !modelosDeMolduraPermitidos(foto, formato).includes(modelo);
 }
 
-export function modeloRecomendado(foto: Dimensoes): ModeloDeMoldura {
-  if (!molduraCorta("cheia", foto)) return "cheia";
+export function modeloRecomendado(
+  foto: Dimensoes,
+  formato: FormatoDaMoldura = "story",
+): ModeloDeMoldura {
+  if (!molduraCorta("cheia", foto, formato)) return "cheia";
   return ehVertical(foto) ? "ambiente" : "polaroide";
 }
 
-export function caixaDaFoto(modelo: ModeloDeMoldura, foto: Dimensoes): Caixa {
-  const area = areaDaFoto(modelo);
+export function caixaDaFoto(
+  modelo: ModeloDeMoldura,
+  foto: Dimensoes,
+  formato: FormatoDaMoldura = "story",
+): Caixa {
+  const area = areaDaFoto(modelo, formato);
   return modelo === "cheia" ? cobrir(foto, area) : encaixar(foto, area);
 }
 

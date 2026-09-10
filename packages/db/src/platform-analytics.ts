@@ -1,5 +1,11 @@
 import type { Pool } from "pg";
-import { degraus, ehEventoDoFunil, type DegrauDoFunil, type EventoDoFunil } from "@albora/core";
+import {
+  degraus,
+  ehEventoDoFunil,
+  taxaDeParticipacaoOuNula,
+  type DegrauDoFunil,
+  type EventoDoFunil,
+} from "@albora/core";
 
 export type PlatformParticipationWindow = { expectedGuests: number; sessoesComUpload: number };
 
@@ -55,7 +61,10 @@ export async function platformParticipationDailySeries(pool: Pool, dias: number)
     const chave = d.toISOString().slice(0, 10);
     const esperados = esperadosPorDia.get(chave) ?? 0;
     const uploads = uploadsPorDia.get(chave) ?? 0;
-    pontos.push({ date: chave, rate: esperados > 0 ? uploads / esperados : null });
+    pontos.push({
+      date: chave,
+      rate: taxaDeParticipacaoOuNula({ expectedGuests: esperados, sessoesComUpload: uploads }),
+    });
   }
   return pontos;
 }

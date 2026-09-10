@@ -208,10 +208,13 @@ export type {
   LeituraDePlataforma,
   OrigemDoDenominador,
   Perda,
+  PerdaEntre,
   Sequencia,
   Veredito,
   ViaDeEntrada,
 } from "./funnel";
+export type { DegrauComercial, EtapaComercial, PerdaComercial } from "./funil-comercial";
+export { ESPINHA_COMERCIAL, funilComercial, maiorPerdaComercial } from "./funil-comercial";
 export {
   ESPINHA_DO_FUNIL,
   EVENTOS_DO_FUNIL,
@@ -236,6 +239,7 @@ export {
   maiorPerda,
   ondeParou,
   taxaDeParticipacao,
+  taxaDeParticipacaoOuNula,
   validarSequencia,
 } from "./funnel";
 
@@ -283,8 +287,10 @@ export type {
   ConsentimentoExterno,
   ConteudoDaMoldura,
   Dimensoes,
+  DimensoesDaComposicao,
   EntradaDaComposicao,
   EventoQueCompartilha,
+  FormatoDaMoldura,
   IdentidadeDoEvento,
   MidiaParaCompartilhar,
   ModeloDeMoldura,
@@ -296,7 +302,9 @@ export type {
 export {
   ALTURA_DA_COMPOSICAO,
   ALTURA_DA_FAIXA,
+  DIMENSOES_DO_FORMATO,
   ESPACO_DA_COLAGEM,
+  FORMATOS_DE_MOLDURA,
   LARGURA_DA_COMPOSICAO,
   MARGEM,
   MAX_DA_COLAGEM,
@@ -867,8 +875,12 @@ export {
   REFUND_APPROVAL_THRESHOLD_CENTS,
   ROLE_CAPABILITIES,
 } from "./authorization";
-
-export { VENDOR_PLAN_PRICE_CENTS, type VendorPlanTier } from "./vendor-billing";
+export { erroParaRegistro, sanitizarTextoDeErro } from "./structured-logging";
+export {
+  VENDOR_PLAN_PRICE_CENTS,
+  VENDOR_PLAN_TEAM_LIMIT,
+  type VendorPlanTier,
+} from "./vendor-billing";
 
 export type {
   GoogleJwk,

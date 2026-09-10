@@ -28,15 +28,27 @@ export function Sparkline({
   label,
   width = 160,
   height = 40,
+  className,
 }: {
   points: ChartSeriesPoint[];
   /** Obrigatório — sem ele o gráfico não existe para quem usa leitor de tela. */
   label: string;
   width?: number;
   height?: number;
+  /** Com `w-full`, `width`/`height` viram só a razão do `viewBox`. */
+  className?: string;
 }) {
   if (points.length === 0) {
-    return <svg role="img" aria-label={label} width={width} height={height} viewBox={`0 0 ${width} ${height}`} />;
+    return (
+      <svg
+        role="img"
+        aria-label={label}
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        {...(className ? { className, preserveAspectRatio: "none" } : {})}
+      />
+    );
   }
 
   const valores = points.map((p) => p.value);
@@ -53,10 +65,22 @@ export function Sparkline({
     })
     .join(" ");
 
+  // Área sob a linha: num traço de 2px numa faixa de 56px, o preenchimento é
+  // o que faz a tendência ser lida de relance em vez de procurada.
+  const area = `${d} L${(points.length - 1) * passo},${height} L0,${height} Z`;
+
   return (
     <>
-      <svg role="img" aria-label={label} width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-        <path d={d} fill="none" stroke="var(--acento)" strokeWidth="2" />
+      <svg
+        role="img"
+        aria-label={label}
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        {...(className ? { className, preserveAspectRatio: "none" } : {})}
+      >
+        <path d={area} fill="color-mix(in srgb, var(--acento) 14%, transparent)" stroke="none" />
+        <path d={d} fill="none" stroke="var(--acento)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
       <VisuallyHiddenTable caption={label} points={points} />
     </>

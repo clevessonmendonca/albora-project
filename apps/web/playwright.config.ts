@@ -1,5 +1,7 @@
 import { defineConfig, devices, type ReporterDescription } from "@playwright/test";
 
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+const serverPort = new URL(baseURL).port || "3000";
 export default defineConfig({
   testDir: "./e2e/specs",
 
@@ -18,7 +20,7 @@ export default defineConfig({
   ],
 
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL,
 
     trace: "on-first-retry",
 
@@ -42,8 +44,8 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: process.env.CI ? "pnpm start" : "pnpm dev",
-    url: "http://localhost:3000",
+    command: process.env.CI ? `pnpm start --port ${serverPort}` : `pnpm dev --port ${serverPort}`,
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

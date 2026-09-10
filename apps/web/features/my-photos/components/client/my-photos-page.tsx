@@ -21,10 +21,12 @@ import {
   CameraIcon,
 } from "@albora/ui-web";
 import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
+import { MolduraPicker } from "@/features/my-photos/components/client/moldura-picker";
 import { RecapSheet } from "@/features/my-photos/components/client/recap-sheet";
 import { RecapCard } from "@/features/my-photos/components/client/recap-card";
 import { ThemeSetting } from "@/features/guest/components/client/theme-setting";
 import { AlbumFooterCta } from "./album-footer-cta";
+import { RetentionCard } from "./retention-card";
 import {
   GalleryItem,
   RecapSection,
@@ -210,7 +212,7 @@ export function MyPhotosPage({
       <GuestShell>
         <GuestMain>
           <GuestHeader
-            title="Minhas fotos"
+            title="Você"
             homeHref={`/e/${encodeURIComponent(slug)}/cover`}
             action={
               !galeria.carregando ? (
@@ -314,6 +316,8 @@ export function MyPhotosPage({
             onRetry={() => void galeria.tentarDeNovo()}
           />
 
+          <RetentionCard eventId={eventoId} />
+
           <AlbumFooterCta slug={slug} refToken={refToken ?? null} />
 
           <ThemeSetting />
@@ -361,6 +365,13 @@ export function MyPhotosPage({
           recap.cancelarConsentimento();
         }}
         onConfirm={confirmarConsentimento}
+      />
+
+      <MolduraPicker
+        escolha={compartilhar.escolhendoMoldura}
+        onPreview={compartilhar.previewMoldura}
+        onConfirmar={compartilhar.confirmarMoldura}
+        onClose={compartilhar.fecharMoldura}
       />
 
       <FloatingNav active="minhas" base={base} linkComponent={Link} />

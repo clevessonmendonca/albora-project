@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ServedAlbum } from "@/lib/album";
-import { buscarAlbum, comAlbum, comFalha, estadoInicial } from "./use-album";
+import { bordaDoAlbum, buscarAlbum, comAlbum, comFalha, estadoInicial } from "./use-album";
 
 const album = (parcial: Partial<ServedAlbum> = {}): ServedAlbum => ({
   capitulos: [],
@@ -71,5 +71,31 @@ describe("transições", () => {
     const falhou = comFalha(cheio, "rede");
     expect(falhou.album).toBe(cheio.album);
     expect(falhou.falha).toBe("rede");
+  });
+});
+
+describe("borda da área de conteúdo", () => {
+  it("a primeira carga é esqueleto, não vazio", () => {
+    expect(bordaDoAlbum(estadoInicial(), false)).toBe("carregando");
+  });
+
+  it("carregou e não veio nada é vazio", () => {
+    expect(bordaDoAlbum(comAlbum(estadoInicial(), album()), false)).toBe("vazio");
+  });
+
+  it("falhou sem capítulos é erro na área de conteúdo", () => {
+    const falhou = comFalha(estadoInicial(), "rede");
+    expect(bordaDoAlbum(falhou, false)).toBe("erro");
+  });
+
+  it("com capítulos é conteúdo — a falha de recarga vira rodapé, não apaga a tela", () => {
+    const cheio = comAlbum(estadoInicial(), album());
+    expect(bordaDoAlbum(cheio, true)).toBe("conteudo");
+    expect(bordaDoAlbum(comFalha(cheio, "rede"), true)).toBe("conteudo");
+  });
+
+  it("tentar de novo volta ao esqueleto — nem vazio nem erro piscam no meio da recarga", () => {
+    const recarregando = { ...comFalha(estadoInicial(), "rede"), carregando: true, falha: null };
+    expect(bordaDoAlbum(recarregando, false)).toBe("carregando");
   });
 });

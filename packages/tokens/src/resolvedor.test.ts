@@ -106,6 +106,33 @@ describe("o que o DESIGN.md afirma sobre contraste é verdade", () => {
     }
   });
 
+  it("a borda se separa dos DOIS preenchimentos — botão e pílula desenham borda sobre superfície alta", () => {
+    for (const background of ["dark", "light"] as const) {
+      const e = resolveScale({ ...ALBORA_BRAND, background });
+
+      // Não é AA (borda não é texto), é discriminação de forma: abaixo de
+      // ~1.2 a borda desaparece dentro do próprio preenchimento e o controle
+      // perde o recorte.
+      expect(razao(e.linha, e.superficie), `linha/superficie/${background}`).toBeGreaterThan(1.2);
+      expect(razao(e.linha, e.superficieAlta), `linha/superficieAlta/${background}`).toBeGreaterThan(1.2);
+    }
+  });
+
+  it("as três cores de status são legíveis nos dois chões e sobre superfície", () => {
+    for (const background of ["dark", "light"] as const) {
+      const e = resolveScale({ ...ALBORA_BRAND, background });
+
+      for (const [nome, cor] of [
+        ["atencao", e.atencao],
+        ["positivo", e.positivo],
+        ["informativo", e.informativo],
+      ] as const) {
+        expect(razao(cor, e.bg), `${nome}/bg/${background}`).toBeGreaterThan(3);
+        expect(razao(cor, e.superficie), `${nome}/superficie/${background}`).toBeGreaterThan(3);
+      }
+    }
+  });
+
   it("texto secundário e terciário são legíveis sobre superfícies elevadas", () => {
     for (const background of ["dark", "light"] as const) {
       const e = resolveScale({ ...ALBORA_BRAND, background });

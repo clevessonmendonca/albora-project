@@ -31,4 +31,11 @@
   .tipo-den-corpo   { font-family: var(--fonte-corpo); font-size: 0.875rem; font-weight: 400; line-height: 1.35; }
   .tipo-den-dado    { font-family: var(--fonte-corpo); font-size: 0.875rem; font-weight: 400; line-height: 1.35; font-variant-numeric: tabular-nums; }
   .tipo-den-rotulo  { font-family: var(--fonte-corpo); font-size: 0.75rem; font-weight: 500; line-height: 1.2; letter-spacing: 0.04em; text-transform: uppercase; }
+  /*
+   * Texto secundário de densidade: legenda de linha, base de aproximação,
+   * meta de cartão. Faltava um degrau entre `corpo` e `rotulo`, e a
+   * consequência era usar `rotulo` (que é CAIXA ALTA) para frase inteira —
+   * uma legenda gritada é ruído, não hierarquia.
+   */
+  .tipo-den-meta    { font-family: var(--fonte-corpo); font-size: 0.75rem; font-weight: 400; line-height: 1.4; }
 }

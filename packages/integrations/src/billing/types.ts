@@ -91,6 +91,7 @@ export type BillingProvider = {
     expectedAccessToken: string | null,
   ): WebhookVendorSubscriptionEvent | { error: string } | null;
   listPayments(customerId: string): Promise<PaymentSummary[]>;
+  listSubscriptionPayments(subscriptionId: string): Promise<PaymentSummary[]>;
   /** Troca de plano e cortesia/desconto passam pelo mesmo método — os dois mexem nos termos da mesma assinatura no Asaas (PUT /subscriptions/{id}). */
   updateSubscription(input: UpdateSubscriptionInput): Promise<BillingMutationResult>;
   cancelSubscription(input: CancelSubscriptionInput): Promise<BillingMutationResult>;

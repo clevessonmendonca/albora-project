@@ -112,6 +112,21 @@ describe("LgpdPage", () => {
     expect(serializado).not.toContain("Atualizar");
   });
 
+  it("pedido de exclusão aberto mostra 'Executar exclusão' pra quem tem lgpd.delete_account", async () => {
+    const serializado = await pagina([montarPedido({ kind: "deletion" })], ["compliance"]);
+    expect(serializado).toContain("Executar exclusão");
+  });
+
+  it("pedido que não é de exclusão nunca mostra 'Executar exclusão'", async () => {
+    const serializado = await pagina([montarPedido({ kind: "access" })], ["compliance"]);
+    expect(serializado).not.toContain("Executar exclusão");
+  });
+
+  it("sem lgpd.delete_account não mostra 'Executar exclusão' mesmo pra pedido de exclusão", async () => {
+    const serializado = await pagina([montarPedido({ kind: "deletion" })], ["engineering"]);
+    expect(serializado).not.toContain("Executar exclusão");
+  });
+
   it("sem ator resolvido, redireciona para /console/login sem chamar listDsarRequests", async () => {
     resolveActorMock.mockResolvedValueOnce(null);
     await expect(LgpdPage()).rejects.toThrow("redirect");

@@ -1,29 +1,47 @@
-import { Section, Heading } from "../pieces";
+import { Section, Heading, Accent } from "../pieces";
 
 const FAQ: ReadonlyArray<{ q: string; a: string }> = [
   {
-    q: "Quanto tempo leva pra montar?",
-    a: "Cerca de três minutos: nome do evento, data e a identidade visual. O QR e as placas saem prontos pra impressão.",
+    q: "O convidado precisa baixar um app?",
+    a: "Não. Ele abre o link do evento pelo QR Code e participa pelo navegador do celular.",
   },
   {
-    q: "Preciso de telão?",
-    a: "Não. Sem telão, a festa acontece nos celulares e no feed. Com telão, ele veste o seu evento e mostra as fotos ao vivo.",
+    q: "Preciso ter um telão?",
+    a: "Não. O álbum funciona nos celulares. O telão é uma opção do plano Completo para quem tem TV ou projetor no local.",
   },
   {
-    q: "Serve pra 15 anos, aniversário, corporativo?",
-    a: "Serve. O núcleo é o mesmo; o vocabulário e a identidade se ajustam ao tipo de festa.",
+    q: "E se a internet estiver ruim?",
+    a: "O envio precisa de conexão. Combine o acesso ao Wi-Fi do local e oriente os convidados a guardar as fotos no celular para enviar quando houver sinal.",
+  },
+  {
+    q: "Quem pode ver as fotos?",
+    a: "O acesso é feito pelo link ou QR do evento. Compartilhe com seus convidados e lembre que eles podem repassar esse acesso.",
+  },
+  {
+    q: "O que acontece quando o espaço acaba?",
+    a: "Na oferta proposta, novos envios param ao atingir a capacidade. As fotos já recebidas continuam disponíveis para ver e baixar até o fim do prazo. No Grátis, você pode escolher o Completo para ter mais espaço.",
+  },
+  {
+    q: "Isso substitui o fotógrafo?",
+    a: "Não. O Albora reúne os registros dos convidados e complementa as fotos profissionais com outros pontos de vista.",
+  },
+  {
+    q: "O álbum fica disponível para sempre?",
+    a: "Não. O Grátis inclui 30 dias de galeria e o Completo, 6 meses. Os dois permitem baixar tudo em ZIP para guardar uma cópia antes do prazo terminar.",
   },
 ];
 
 export function FaqSection() {
   return (
-    <Section reveal>
-      <div className="grid gap-[clamp(1.5rem,4vw,3rem)] lg:grid-cols-[0.8fr_1.2fr]">
+    <Section id="faq" reveal>
+      <div className="grid gap-[clamp(1.5rem,4vw,3rem)] md:grid-cols-[0.8fr_1.2fr]">
         <div>
-          <p className="tipo-label uppercase text-acento-texto">Perguntas</p>
           <Heading size="clamp(1.5rem,3vw,2.25rem)">
-            O que ainda trava a decisão.
+            Antes de convidar <Accent>todo mundo.</Accent>
           </Heading>
+          <p className="mt-4 text-ink-2">
+            O que vale saber para planejar sua festa.
+          </p>
         </div>
         <div className="border-t border-linha">
           {FAQ.map(({ q, a }) => (

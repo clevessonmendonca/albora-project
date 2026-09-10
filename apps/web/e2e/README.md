@@ -1,6 +1,6 @@
 # 🎯 Testes E2E do Albora
 
-Testes end-to-end usando Playwright para validar o fluxo completo do convidado.
+Testes end-to-end usando Playwright para validar os fluxos completos do convidado e do fornecedor.
 
 ## 📦 Setup
 
@@ -13,6 +13,10 @@ pnpm install
 ```bash
 npx playwright install
 ```
+
+O fluxo do fornecedor exige `TEST_DATABASE_URL` apontando para um banco exclusivo de testes,
+além de `DATABASE_URL`, `DATABASE_URL_AGGREGATOR` e `SESSION_SECRET`. O fixture remove somente
+as contas, os fornecedores e os eventos que cria.
 
 ## 🚀 Executar Testes
 
@@ -43,6 +47,7 @@ e2e/
 ├── specs/                          # Testes E2E
 │   ├── guest-upload-flow.spec.ts   # Fluxo completo de upload
 │   ├── guest-upload-flow-offline.spec.ts # Retry offline
+│   ├── vendor-full-flow.spec.ts     # Onboarding, evento, portal e cobrança
 │   └── ...                         # Mais testes
 ├── helpers/                        # Funções auxiliares
 │   ├── setup-test-event.ts         # Cria evento de teste
@@ -66,6 +71,7 @@ e2e/
 | guest-upload-isolation | Isolamento RLS | 🔜 |
 | guest-exif-removal | Remoção de EXIF/GPS | 🔜 |
 | guest-story-degradation | Story degradável | 🔜 |
+| vendor-full-flow | Fornecedor → identidade → evento → assinatura | ✅ |
 
 ## 🛡️ Caminho Crítico
 

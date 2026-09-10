@@ -17,6 +17,9 @@ export function toVariables(tokens: Tokens): Record<string, string> {
     "--acento-texto": scale.acentoTexto,
     "--sobre-acento": scale.sobreAcento,
     "--critico": scale.critico,
+    "--atencao": scale.atencao,
+    "--positivo": scale.positivo,
+    "--informativo": scale.informativo,
 
     "--fonte-titulo": tokens.fontes.titulo,
     "--fonte-corpo": tokens.fontes.corpo,

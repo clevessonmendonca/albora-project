@@ -11,3 +11,12 @@
 export function delayedAuthEnabled(): boolean {
   return process.env.NEXT_PUBLIC_DELAYED_AUTH === "1";
 }
+
+/** Identidade tardia (ADR 0021): "Entrar na festa" leva ao feed sem nome/consentimento; a
+ *  identidade (nome + consentimento, via `IdentitySheet`) é pedida só na 1ª ação que precisa dela
+ *  (publicar, curtir, comentar, missão), nunca mais no aparelho depois (`isSameEventSession`).
+ *  Enquanto desligada, vale o caminho atual (EntryFlow antes do feed). Ligar de ponta a ponta
+ *  depende de o feed servir uma leitura-espelho sem sessão — peça de feed, ainda não construída. */
+export function lateIdentityEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_LATE_IDENTITY === "1";
+}

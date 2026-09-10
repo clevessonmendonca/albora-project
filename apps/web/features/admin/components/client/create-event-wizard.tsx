@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import NextLink from "next/link";
-import { FUSO_PADRAO, type WallDisplayModel } from "@albora/core";
+import { FUSO_PADRAO, type VendorPlanTier, type WallDisplayModel } from "@albora/core";
 import { PACKS, packsDeCriacao, resolvePackText } from "@albora/packs";
 import { Select } from "@albora/ui-web";
 import { useSearchParams } from "next/navigation";
@@ -39,7 +39,13 @@ function rotuloData(iso: string): string {
   return d && m && y ? `${d} · ${m} · ${y}` : "";
 }
 
-type Created = { slug: string; eventoId: string; planIntent: "free" | "celebration" };
+type Created = {
+  slug: string;
+  eventoId: string;
+  planIntent: "free" | "celebration";
+  vendorSlug?: string;
+  vendorPlan?: VendorPlanTier;
+};
 type VendorOption = { vendorId: string; name: string; role: "admin" | "staff" };
 
 const STEPS = ["Evento", "Aparência", "Pronto"] as const;
@@ -63,7 +69,9 @@ export function CreateEventWizard() {
 
   const [step, setStep] = useState(0);
   const [packId, setPackId] = useState(typeOptions[0]!.id);
-  const [title, setTitle] = useState("");
+  // Nome vindo da landing (`?nome=`): a pessoa já digitou o nome da festa na
+  // demo, então a criação começa preenchida com ele.
+  const [title, setTitle] = useState(() => (search.get("nome") ?? "").slice(0, 60));
   const [date, setDate] = useState("");
   const [guests, setGuests] = useState("");
   const [showDetails, setShowDetails] = useState(false);
@@ -86,6 +94,14 @@ export function CreateEventWizard() {
   const [vendors, setVendors] = useState<VendorOption[]>([]);
   const [vendorId, setVendorId] = useState("");
   const [coupleEmail, setCoupleEmail] = useState("");
+  const requestedVendorId = search.get("vendor") ?? "";
+  const vendorSlug = search.get("vendorSlug") ?? "";
+  const vendorPlanParam = search.get("vendorPlan");
+  const vendorPlan =
+    vendorPlanParam === "starter" || vendorPlanParam === "studio" || vendorPlanParam === "agency"
+      ? vendorPlanParam
+      : undefined;
+  const vendorApplied = useRef(false);
 
   useEffect(() => {
     let vivo = true;
@@ -99,6 +115,14 @@ export function CreateEventWizard() {
       vivo = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (vendorApplied.current || requestedVendorId === "") return;
+    if (vendors.some((vendor) => vendor.vendorId === requestedVendorId)) {
+      setVendorId(requestedVendorId);
+      vendorApplied.current = true;
+    }
+  }, [requestedVendorId, vendors]);
 
   useEffect(() => {
     return () => {
@@ -200,7 +224,12 @@ export function CreateEventWizard() {
       });
       if (!r.ok) return setStatus("error");
       const data = (await r.json()) as { slug: string; eventoId: string };
-      setCreated({ ...data, planIntent });
+      setCreated({
+        ...data,
+        planIntent,
+        ...(vendorSlug ? { vendorSlug } : {}),
+        ...(vendorPlan ? { vendorPlan } : {}),
+      });
     } catch {
       setStatus("error");
     }
@@ -537,6 +566,15 @@ function ReadyStep({
         <a href={`/admin/e/${created.eventoId}`} className={`${adminClasses.primaryButton} w-full py-3.5 text-center text-[1.05rem]`}>
           Ir para meu evento
         </a>
+
+        {created.vendorSlug && (
+          <a
+            href={`/f/${encodeURIComponent(created.vendorSlug)}${created.vendorPlan ? `?plan=${created.vendorPlan}#assinatura` : ""}`}
+            className={`${adminClasses.secondaryButton} w-full py-3 text-center text-[0.95rem]`}
+          >
+            Abrir portal do fornecedor
+          </a>
+        )}
 
         <div className="grid grid-cols-2 gap-2">
           <a href={eventEntryUrl(origin, created.slug, "link")} className={`${adminClasses.secondaryButton} py-3 text-center text-[0.95rem]`}>

@@ -30,6 +30,9 @@
   --color-acento-texto: var(--acento-texto);
   --color-sobre-acento: var(--sobre-acento);
   --color-critico: var(--critico);
+  --color-atencao: var(--atencao);
+  --color-positivo: var(--positivo);
+  --color-informativo: var(--informativo);
   --color-bg-vidro: color-mix(in srgb, var(--bg) 72%, transparent);
   --color-bg-vidro-forte: color-mix(in srgb, var(--bg) 62%, transparent);
   --color-bg-vidro-suave: color-mix(in srgb, var(--bg) 88%, transparent);
@@ -85,6 +88,12 @@
   --color-acento-fundo: color-mix(in srgb, var(--acento) 9%, var(--superficie-alta));
   --color-acento-borda: color-mix(in srgb, var(--acento) 35%, var(--linha));
   --color-critico-superficie: color-mix(in srgb, var(--critico) 10%, var(--superficie));
+  --color-atencao-superficie: color-mix(in srgb, var(--atencao) 10%, var(--superficie));
+  --color-atencao-borda: color-mix(in srgb, var(--atencao) 35%, transparent);
+  --color-positivo-superficie: color-mix(in srgb, var(--positivo) 10%, var(--superficie));
+  --color-positivo-borda: color-mix(in srgb, var(--positivo) 35%, transparent);
+  --color-informativo-superficie: color-mix(in srgb, var(--informativo) 10%, var(--superficie));
+  --color-informativo-borda: color-mix(in srgb, var(--informativo) 35%, transparent);
   --color-critico-borda: color-mix(in srgb, var(--critico) 35%, transparent);
   --color-critico-overlay: color-mix(in srgb, var(--critico) 62%, transparent);
   --color-ink-suave: color-mix(in srgb, var(--ink) 8%, transparent);

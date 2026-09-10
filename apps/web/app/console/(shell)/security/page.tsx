@@ -6,7 +6,9 @@ import {
   type SecurityEventKind,
   type SecurityEventRow,
 } from "@albora/application";
-import { ConsoleEmptyState, PageHeader, StatusBadge } from "@albora/ui-web";
+import { ConsoleEmptyState, StatusBadge } from "@albora/ui-web";
+import { AlertaIcon, SegurancaIcon } from "@/features/console/components/server/console-icons";
+import { RotuloSerif, TituloDaTela } from "@/features/console/components/server/console-primitivos";
 import { resolveActor } from "@/lib/console/actor";
 import { getPool } from "@/lib/db";
 
@@ -72,7 +74,7 @@ function formatarAtor(row: SecurityEventRow): string {
 
 function selectClassName(): string {
   return (
-    "tipo-caption min-h-11 rounded-token border border-linha bg-superficie px-2 text-ink outline-none " +
+    "tipo-den-corpo min-h-11 rounded-media border border-linha bg-superficie px-2 text-ink outline-none " +
     "focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
   );
 }
@@ -122,16 +124,18 @@ export default async function SecurityPage({
     ocorrenciasPorTipo.set(row.kind, lista);
   }
 
+  const sessionReuse = grupos.find((g) => g.kind === "session.reuse");
+
   return (
     <>
-      <PageHeader
-        title="Segurança"
-        description="security_events agrupado por tipo — trilha que avisa, não que prova. Sem ação."
+      <TituloDaTela
+        titulo="Segurança"
+        descricao="security_events agrupado por tipo — trilha que avisa, não que prova. Investigação, sem ação: nenhum botão bloqueia IP nem abre incidente aqui."
       />
 
       <form method="get" className="mb-4 flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1">
-          <span className="tipo-caption text-ink-3">Tipo</span>
+        <label className="flex flex-col gap-1.5">
+          <RotuloSerif>Tipo</RotuloSerif>
           <select name="kind" defaultValue={kindValido ?? ""} className={selectClassName()}>
             <option value="">Todos os tipos</option>
             {KINDS.map((valor) => (
@@ -141,8 +145,8 @@ export default async function SecurityPage({
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1">
-          <span className="tipo-caption text-ink-3">Período</span>
+        <label className="flex flex-col gap-1.5">
+          <RotuloSerif>Período</RotuloSerif>
           <select name="period" defaultValue={period ?? ""} className={selectClassName()}>
             <option value="">Todo o período</option>
             <option value="24h">Últimas 24h</option>
@@ -152,7 +156,7 @@ export default async function SecurityPage({
         </label>
         <button
           type="submit"
-          className="tipo-den-corpo min-h-11 rounded-token border border-linha bg-superficie px-4 text-ink"
+          className="tipo-den-corpo min-h-11 rounded-media border border-linha bg-superficie px-4 text-ink"
         >
           Aplicar
         </button>
@@ -164,50 +168,76 @@ export default async function SecurityPage({
           description="Login falho, rate limit e reuso de sessão aparecem aqui, agrupados por tipo, quando acontecerem."
         />
       ) : (
-        <div className="flex flex-col gap-3">
-          {grupos.map(({ kind: tipoGrupo, count }) => {
-            const critico = tipoGrupo === "session.reuse";
-            return (
-              <details
-                key={tipoGrupo}
-                className={
-                  critico
-                    ? "rounded-token border border-critico bg-superficie p-4"
-                    : "rounded-token border border-linha bg-superficie p-4"
-                }
-              >
-                <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-3">
-                  <span className={critico ? "tipo-den-corpo text-critico" : "tipo-den-corpo text-ink"}>
-                    {ROTULO_KIND[tipoGrupo]}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    {critico && <StatusBadge tone="critico">crítico</StatusBadge>}
-                    <span
-                      className={critico ? "tipo-den-dado text-critico" : "tipo-den-dado text-ink"}
-                    >
-                      {count}
-                    </span>
-                  </span>
-                </summary>
-                <ul className="mt-3 flex flex-col gap-2">
-                  {(ocorrenciasPorTipo.get(tipoGrupo) ?? []).map((row) => (
-                    <li
-                      key={row.id}
-                      className="tipo-caption flex flex-col gap-0.5 border-t border-linha pt-2 text-ink-3"
-                    >
-                      <span>
-                        {formatarQuando(row.at)} · {formatarAtor(row)} · {formatarIp(row.ipHash)}
+        <>
+          {sessionReuse && (
+            <p className="mb-4 flex items-center gap-3 rounded-media border border-critico bg-critico-superficie px-4 py-3 text-critico">
+              <span aria-hidden className="shrink-0">
+                <AlertaIcon size={18} />
+              </span>
+              <span className="tipo-den-corpo">
+                <b className="font-medium">
+                  {sessionReuse.count} evento(s) de session.reuse
+                </b>{" "}
+                — sessão já rotacionada apresentada de novo é sinal de roubo. Investigue abaixo.
+              </span>
+            </p>
+          )}
+
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(14rem,1fr))] gap-3">
+            {grupos.map(({ kind: tipoGrupo, count }) => {
+              const critico = tipoGrupo === "session.reuse";
+              return (
+                <details
+                  key={tipoGrupo}
+                  className={
+                    critico
+                      ? "rounded-media border border-critico bg-superficie p-4"
+                      : "rounded-media border border-linha bg-superficie p-4"
+                  }
+                >
+                  <summary className="flex cursor-pointer list-none flex-col gap-1">
+                    <span className="tipo-den-meta font-mono text-ink-3">{tipoGrupo}</span>
+                    <span className="flex items-baseline justify-between gap-2">
+                      <span className={critico ? "tipo-den-metrica text-critico" : "tipo-den-metrica text-ink"}>
+                        {count}
                       </span>
-                      {Object.keys(row.metadata ?? {}).length > 0 && (
-                        <span className="break-words">{formatarMetadataSeguranca(row.metadata)}</span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            );
-          })}
-        </div>
+                      {critico && <StatusBadge tone="critico">crítico</StatusBadge>}
+                    </span>
+                    <span className="tipo-den-meta text-ink-3">{ROTULO_KIND[tipoGrupo]}</span>
+                  </summary>
+                  <ul className="mt-3 flex flex-col gap-2">
+                    {(ocorrenciasPorTipo.get(tipoGrupo) ?? []).map((row) => (
+                      <li
+                        key={row.id}
+                        className="flex flex-col gap-0.5 border-t border-linha pt-2"
+                      >
+                        <span className="tipo-den-meta flex flex-wrap justify-between gap-x-3 text-ink-3">
+                          <span>{formatarQuando(row.at)}</span>
+                          <span className="font-mono">{formatarAtor(row)}</span>
+                          <span className="font-mono">{formatarIp(row.ipHash)}</span>
+                        </span>
+                        {Object.keys(row.metadata ?? {}).length > 0 && (
+                          <span className="tipo-den-meta break-words text-ink-3">
+                            {formatarMetadataSeguranca(row.metadata)}
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              );
+            })}
+          </div>
+
+          <p className="mt-4 flex w-fit items-center gap-2 rounded-superficie bg-superficie-alta px-3 py-1.5">
+            <span aria-hidden className="text-ink-3">
+              <SegurancaIcon size={14} />
+            </span>
+            <span className="tipo-den-meta text-ink-2">
+              Somente leitura · nenhuma mutação chega nesta tela em nenhuma onda.
+            </span>
+          </p>
+        </>
       )}
     </>
   );

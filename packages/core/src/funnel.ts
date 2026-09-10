@@ -180,16 +180,26 @@ export function degraus(sessoes: readonly (readonly EventoDoFunil[])[]): DegrauD
   return resultado;
 }
 
-export type Perda = {
-  de: EtapaDaEspinha;
-  para: EtapaDaEspinha;
+export type PerdaEntre<E extends string> = {
+  de: E;
+  para: E;
   sessoesPerdidas: number;
   retencao: number;
 };
 
-/** Perda absoluta, não relativa — 60 de 120 é onde mexer mesmo que outro degrau perca 2 de 3. */
-export function maiorPerda(passos: readonly DegrauDoFunil[]): Perda | null {
-  let pior: Perda | null = null;
+export type Perda = PerdaEntre<EtapaDaEspinha>;
+
+/**
+ * Perda absoluta, não relativa — 60 de 120 é onde mexer mesmo que outro degrau perca 2 de 3.
+ *
+ * Genérica na etapa porque o funil comercial (`funil-comercial.ts`) tem os
+ * mesmos degraus com outros nomes: dois cálculos de "maior perda" divergem
+ * no dia em que alguém corrige um só.
+ */
+export function maiorPerda<E extends string>(
+  passos: readonly { readonly etapa: E; readonly sessoes: number }[],
+): PerdaEntre<E> | null {
+  let pior: PerdaEntre<E> | null = null;
 
   for (let i = 1; i < passos.length; i += 1) {
     const antes = passos[i - 1];
@@ -231,6 +241,21 @@ export type ContagemDoEvento = {
 };
 
 /** Lança sem denominador — `expected_guests` vazio como 0% vira "parar" por formulário em branco. */
+/**
+ * Mesma conta de `taxaDeParticipacao`, sem denominador honesto virando erro.
+ *
+ * Existe porque as leituras de plataforma (janela agregada e série diária)
+ * precisam de "não dá pra dizer" e não de exceção — e porque, sem isto,
+ * cada uma reimplementava a divisão por conta própria e o console mostrava
+ * H1 calculada de três jeitos. Um cálculo, uma tela só de verdade.
+ */
+export function taxaDeParticipacaoOuNula(contagem: ContagemDoEvento): number | null {
+  const { expectedGuests, sessoesComUpload } = contagem;
+  if (!Number.isFinite(expectedGuests) || expectedGuests <= 0) return null;
+  if (!Number.isFinite(sessoesComUpload) || sessoesComUpload < 0) return null;
+  return sessoesComUpload / expectedGuests;
+}
+
 export function taxaDeParticipacao(contagem: ContagemDoEvento): number {
   const { expectedGuests, sessoesComUpload } = contagem;
 

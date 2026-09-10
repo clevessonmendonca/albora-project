@@ -8,6 +8,7 @@ import {
   processRetentionJob,
   type NotificacaoRetencao,
 } from "@albora/db";
+import { erroParaRegistro } from "@albora/core";
 import type { Pool } from "pg";
 import { driveConfig } from "@/lib/drive-config";
 import { getDriveClient, getDriveVault } from "@/lib/drive";
@@ -122,7 +123,7 @@ export async function processRetentionJobs(
           // Enriquecimento pós-commit — não derruba o sweep.
           console.warn("retencao.purge_r2_falhou", {
             eventId: job.eventId,
-            erro: String(e),
+            erro: erroParaRegistro(e),
           });
         }
       }
@@ -140,7 +141,7 @@ export async function processRetentionJobs(
       } catch (e) {
         console.warn("retencao.revoke_drive_falhou", {
           eventId: job.eventId,
-          erro: String(e),
+          erro: erroParaRegistro(e),
         });
       }
     }

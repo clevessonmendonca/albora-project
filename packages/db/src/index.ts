@@ -45,7 +45,8 @@ export { atualizarConfigDoEvento, ocultarMidiaDoHost } from "./host-events";
 export type { AcaoNomeDaSessao, SessaoDoHost } from "./host-sessions";
 export { definirNomeDaSessaoDoHost, listarSessoesDoHost } from "./host-sessions";
 export type { FotoRecente, MetricasAoVivo } from "./event-metrics";
-export { lerMetricasAoVivo } from "./event-metrics";
+export { lerMetricasAoVivo, lerMetricasDeEventos } from "./event-metrics";
+export type { MetricasDeListagem } from "./event-metrics";
 export type { EntradasPorVia, FunilAgregado } from "./funnel-aggregate";
 export { contarEntradasPorVia, contarSharesDoEvento, lerFunilAgregado } from "./funnel-aggregate";
 export type { RefDeCompartilhamento, ResumoAtribuicaoViral } from "./share-attribution";
@@ -408,7 +409,7 @@ export { addEventMember, ensureCoupleMember, listEventMembers, roleForAccountOnE
 
 export type {
   BillingPayment, BillingPaymentStatus, BillingPaymentSummaryAdmin, RefundablePaymentRow,
-  VendorSubscription, VendorSubscriptionByIdAdmin, VendorSubscriptionStatus,
+  VendorSubscription, VendorSubscriptionByIdAdmin, VendorSubscriptionForVendor, VendorSubscriptionStatus,
 } from "./billing";
 export {
   aplicarPlanoPago,
@@ -419,11 +420,14 @@ export {
   createVendorSubscription,
   ehAssinaturaDuplicada,
   getVendorSubscriptionByIdAdmin,
+  latestVendorSubscriptionForVendor,
   listBillingPaymentsForAccountAdmin,
   listRefundablePaymentsForVendor,
   markPaymentPaidByAsaasId,
   markVendorSubscriptionByAsaasId,
   paymentByAsaasId,
+  recordVendorSubscriptionCancellationRequest,
+  recordVendorSubscriptionPlanChange,
   upsertBillingCustomer,
 } from "./billing";
 
@@ -456,6 +460,17 @@ export {
   roleForAccountOnVendor,
   vendorsDaConta,
 } from "./vendor-portal";
+
+export type { VendorTeamMember } from "./vendor-team";
+export {
+  listVendorTeam,
+  removeVendorTeamMember,
+  upsertVendorTeamMember,
+  updateVendorTeamMemberRole,
+  VendorTeamAccessError,
+  VendorTeamLimitError,
+  VendorTeamSelfManagementError,
+} from "./vendor-team";
 
 /** English alias — preferred for new code. @see marcaPublicaDoFornecedor */
 export { marcaPublicaDoFornecedor as vendorPublicBranding } from "./vendor-portal";
@@ -531,7 +546,13 @@ export {
 } from "./drive-token-vault";
 
 export type { DsarKind, DsarRequestRow, DsarStatus, ListDsarRequestsFilter } from "./dsar";
-export { createDsarRequestOnClient, getDsarRequestAdmin, listDsarRequestsAdmin, updateDsarRequestOnClient } from "./dsar";
+export {
+  createDsarRequestOnClient,
+  getDsarRequestAdmin,
+  getDsarRequestOnClient,
+  listDsarRequestsAdmin,
+  updateDsarRequestOnClient,
+} from "./dsar";
 
 export type { EstadoOAuthDrive } from "./drive-oauth-state";
 export {

@@ -93,7 +93,7 @@ O padrão: **as ideias estruturais da categoria costumam prestar; a superfície 
 
 **Quem está usando isto:** uma pessoa de pé, no escuro, às 22h, com um copo na outra mão, num salão com 4G ruim. Não está lendo. Está agindo. O design responde a isso com alvos grandes, uma decisão por tela e zero ornamento que peça atenção.
 
-**Temperatura:** quente em tudo. Cinza puro é proibido; todo neutro tem viés para o âmbar. Preto puro (`#000`) nunca — a tinta é `#1A1613`, um preto quente.
+**Temperatura:** quente em tudo. Cinza puro é proibido; todo neutro tem viés para o âmbar. Preto puro (`#000`) nunca — a tinta é `#171513`, um preto quente.
 
 **O que este produto não é:** app social, ferramenta de produtividade, marca de luxo, plataforma de tecnologia. Engajamento durante o evento é **anti-objetivo** — se os convidados passarem a festa rolando feed, a noiva odeia o produto.
 
@@ -159,11 +159,11 @@ Exporte PNG a partir do 512 para as lojas. **Não arredonde os cantos** — o si
 ### Cores da marca — FIXAS
 
 ```css
---papel: #F4F0E9;  /* base clara — admin, marketing, papelaria */
---tinta: #1A1613;  /* texto sobre claro. Preto quente, nunca #000 */
+--papel: #FCFBF9;  /* base clara — admin, marketing, papelaria */
+--tinta: #171513;  /* texto sobre claro. Preto quente, nunca #000 */
 --noite: #0C0A09;  /* base escura — convidado, galeria, telão */
---ambar: #D9793C;  /* acento único, com parcimônia */
---brasa: #C2410C;  /* acento raro — erro, destaque crítico */
+--ambar: #D46632;  /* acento único, com parcimônia */
+--brasa: #BB3D18;  /* acento raro — erro, destaque crítico */
 ```
 
 🔴 **O pacote de [`brand/`](./brand/) é o canônico, e a origem é [`brand/LEIA-ME.md`](./brand/LEIA-ME.md).** A implementação vive em [`packages/tokens/src/marca.ts`](./packages/tokens/src/marca.ts), onde as duas últimas se chamam `acento` e `critico` — a paleta é de cinco cores, os nomes de código são por função. Quando este arquivo e o pacote divergirem, quem manda é o pacote: são 46 SVGs coerentes entre si contra uma tabela escrita, e é a placa impressa que deixaria de combinar com o telão.
@@ -267,7 +267,7 @@ O que é fixo é a **proporção**, nunca a cor: a rampa de neutros são opacida
 
 ### 🔴 Regra de contraste que mais se erra
 
-**Âmbar `#D9793C` NÃO é seguro para texto sobre `papel`.** O contraste é de **2,74:1** — reprova. Sobre fundo claro, âmbar serve para preenchimento, barra de progresso, borda e ícone grande; nunca para texto corrido nem rótulo pequeno. Para texto, use `--acento-texto`, que o sistema escurece sozinho.
+**Âmbar `#D46632` NÃO é seguro para texto sobre `papel`.** O contraste é de **2,74:1** — reprova. Sobre fundo claro, âmbar serve para preenchimento, barra de progresso, borda e ícone grande; nunca para texto corrido nem rótulo pequeno. Para texto, use `--acento-texto`, que o sistema escurece sozinho.
 
 Sobre `noite`, âmbar é seguro para texto e é o acento pleno.
 

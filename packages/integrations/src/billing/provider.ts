@@ -25,6 +25,31 @@ import type {
  */
 const ASAAS_TIMEOUT_MS = 10_000;
 
+type AsaasPaymentRow = {
+  id: string;
+  status: string;
+  value: number;
+  billingType?: string;
+  description?: string;
+  dateCreated?: string;
+  dueDate?: string;
+  invoiceUrl?: string;
+  bankSlipUrl?: string;
+};
+
+function mapPayments(rows: AsaasPaymentRow[]): PaymentSummary[] {
+  return rows.map((payment) => ({
+    id: payment.id,
+    status: payment.status,
+    amountCents: Math.round((payment.value ?? 0) * 100),
+    billingType: payment.billingType ?? null,
+    description: payment.description ?? null,
+    createdAt: payment.dateCreated ?? new Date().toISOString(),
+    dueDate: payment.dueDate ?? null,
+    invoiceUrl: payment.invoiceUrl ?? payment.bankSlipUrl ?? null,
+  }));
+}
+
 async function asaasFetch(
   path: string,
   init: RequestInit & { apiKey: string; baseUrl: string },
@@ -147,29 +172,21 @@ function asaasProviderFromConfig(c: AsaasEnvConfig): BillingProvider {
         const text = await res.text();
         throw new Error(`asaas.payments.list: ${res.status} ${text}`);
       }
-      const body = (await res.json()) as {
-        data?: Array<{
-          id: string;
-          status: string;
-          value: number;
-          billingType?: string;
-          description?: string;
-          dateCreated?: string;
-          dueDate?: string;
-          invoiceUrl?: string;
-          bankSlipUrl?: string;
-        }>;
-      };
-      return (body.data ?? []).map((p) => ({
-        id: p.id,
-        status: p.status,
-        amountCents: Math.round((p.value ?? 0) * 100),
-        billingType: p.billingType ?? null,
-        description: p.description ?? null,
-        createdAt: p.dateCreated ?? new Date().toISOString(),
-        dueDate: p.dueDate ?? null,
-        invoiceUrl: p.invoiceUrl ?? p.bankSlipUrl ?? null,
-      }));
+      const body = (await res.json()) as { data?: AsaasPaymentRow[] };
+      return mapPayments(body.data ?? []);
+    },
+
+    async listSubscriptionPayments(subscriptionId: string): Promise<PaymentSummary[]> {
+      const res = await asaasFetch(
+        `/payments?subscription=${encodeURIComponent(subscriptionId)}&limit=100`,
+        { method: "GET", apiKey: c.apiKey, baseUrl: c.baseUrl },
+      );
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`asaas.subscription.payments.list: ${res.status} ${text}`);
+      }
+      const body = (await res.json()) as { data?: AsaasPaymentRow[] };
+      return mapPayments(body.data ?? []);
     },
 
     async updateSubscription(input) {
@@ -245,6 +262,9 @@ export function stubBillingProvider(): BillingProvider {
       };
     },
     async listPayments() {
+      return [];
+    },
+    async listSubscriptionPayments() {
       return [];
     },
     async updateSubscription() {

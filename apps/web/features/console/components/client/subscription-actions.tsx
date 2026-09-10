@@ -138,19 +138,19 @@ export function SubscriptionActions({
     <div className="flex flex-wrap gap-2">
       {podeMutar && (
         <>
-          <Button type="button" variant="tertiary" onClick={() => setDialogo("trocar_plano")}>
+          <Button type="button" variant="tertiary" size="sm" onClick={() => setDialogo("trocar_plano")}>
             Trocar plano
           </Button>
-          <Button type="button" variant="tertiary" onClick={() => setDialogo("cortesia")}>
+          <Button type="button" variant="tertiary" size="sm" onClick={() => setDialogo("cortesia")}>
             Cortesia
           </Button>
-          <Button type="button" variant="tertiary" onClick={() => setDialogo("cancelar")}>
+          <Button type="button" variant="tertiary" size="sm" onClick={() => setDialogo("cancelar")}>
             Cancelar
           </Button>
         </>
       )}
       {podeReembolsar && (
-        <Button type="button" variant="tertiary" onClick={() => setDialogo("reembolsar")}>
+        <Button type="button" variant="tertiary" size="sm" onClick={() => setDialogo("reembolsar")}>
           Reembolsar
         </Button>
       )}

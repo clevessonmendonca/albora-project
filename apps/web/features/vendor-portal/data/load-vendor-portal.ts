@@ -1,11 +1,13 @@
 import {
   eventosDoFornecedor,
   marcaPublicaDoFornecedor,
+  resumoDoFornecedor,
   roleForAccountOnVendor,
   type MarcaPublicaDoFornecedor,
   type VendorEventSummary,
   type VendorRole,
   type VendorSubscriptionStatus,
+  type ResumoDoFornecedor,
 } from "@albora/db";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
@@ -17,11 +19,12 @@ export type VendorPortalContext = {
   vendor: MarcaPublicaDoFornecedor;
   role: VendorRole;
   eventos: VendorEventSummary[];
+  resumo: ResumoDoFornecedor;
   subscriptionStatus: VendorSubscriptionStatus | null;
 };
 
 /** Status da assinatura inline (sem RLS, protegida por papel): `vendor.id` vem de `roleForAccountOnVendor`, nunca do cliente — evita dupla cobrança. */
-async function latestSubscriptionStatus(vendorId: string): Promise<VendorSubscriptionStatus | null> {
+export async function latestVendorSubscriptionStatus(vendorId: string): Promise<VendorSubscriptionStatus | null> {
   const { rows } = await getPool().query<{ status: VendorSubscriptionStatus }>(
     `SELECT status FROM vendor_subscriptions WHERE vendor_id = $1 ORDER BY created_at DESC LIMIT 1`,
     [vendorId],
@@ -65,7 +68,19 @@ export async function loadVendorPortal(vendorSlug: string): Promise<VendorPortal
     },
   );
 
-  const subscriptionStatus = await latestSubscriptionStatus(vendor.id);
+  await auditarAgregacaoDoPortal(getPool(), host.accountId, host.email)({
+    motivo: `vendor_insights:${vendor.id}`,
+    em: new Date(),
+  });
+  const resumo = await resumoDoFornecedor(
+    getPool(),
+    getAggregatorPool(),
+    host.accountId,
+    vendor.id,
+    () => {},
+  );
 
-  return { vendor, role, eventos, subscriptionStatus };
+  const subscriptionStatus = await latestVendorSubscriptionStatus(vendor.id);
+
+  return { vendor, role, eventos, resumo, subscriptionStatus };
 }

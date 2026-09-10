@@ -6,15 +6,34 @@ import { VendorForm } from "@/features/admin/components/client/vendor-form";
 
 export const dynamic = "force-dynamic";
 
-export default async function NewVendorPage() {
+const VENDOR_PLANS = ["starter", "studio", "agency"] as const;
+
+function isVendorPlan(value: string | undefined): value is (typeof VENDOR_PLANS)[number] {
+  return VENDOR_PLANS.some((plan) => plan === value);
+}
+
+export default async function NewVendorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string; plan?: string }>;
+}) {
+  const query = await searchParams;
+  const afterCreate = query.next === "event" ? "event" : "settings";
+  const requestedPlan = isVendorPlan(query.plan) ? query.plan : undefined;
   const token = (await cookies()).get(HOST_COOKIE)?.value;
   const host = await hostFromToken(token);
-  if (!host) redirect("/admin/sign-in?next=/admin/vendor/new");
+  if (!host) {
+    const params = new URLSearchParams();
+    if (afterCreate === "event") params.set("next", "event");
+    if (requestedPlan) params.set("plan", requestedPlan);
+    const suffix = params.size > 0 ? `?${params.toString()}` : "";
+    redirect(`/admin/sign-in?next=${encodeURIComponent(`/admin/vendor/new${suffix}`)}`);
+  }
 
   return (
     <AdminShell
       title="Novo fornecedor"
-      subtitle="Sua conta vira administradora — convite de equipe chega em breve"
+      subtitle="Sua conta vira administradora e pode convidar a equipe depois da criação"
       back={{ label: "Painel", href: "/admin" }}
     >
       <AdminSection>
@@ -22,7 +41,11 @@ export default async function NewVendorPage() {
           Depois de criar, configure cores e logo na tela de identidade — a mesma marca aparece
           em todas as festas que este fornecedor gerenciar.
         </p>
-        <VendorForm mode="create" />
+        <VendorForm
+          mode="create"
+          afterCreate={afterCreate}
+          {...(requestedPlan ? { requestedPlan } : {})}
+        />
       </AdminSection>
     </AdminShell>
   );

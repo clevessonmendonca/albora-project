@@ -34,6 +34,42 @@ export function maskObject(obj: Record<string, unknown>): Record<string, unknown
   return masked;
 }
 
+/** 160 é o limite que a tela de Retenção já praticava — mudar corta ou alonga mensagem em produção, e isso é decisão de produto, não efeito colateral de refactor. */
+const MAX_ERRO_CHARS = 160;
+
+/**
+ * Padrões de PII dentro de texto livre de exceção, na ordem em que precisam
+ * ser aplicados — os estruturados primeiro, senão a máscara de e-mail come
+ * parte do valor e o resto da linha escapa.
+ */
+const MASCARAS_DE_ERRO: ReadonlyArray<readonly [RegExp, string]> = [
+  [/\bKey \(([^)]*)\)=\(.*\)/g, "Key ($1)=([valor])"],
+  [/\bFailing row contains \([\s\S]*/g, "Failing row contains ([linha])"],
+  [/[\w.+-]+@[\w-]+\.[\w.-]+/g, "[e-mail]"],
+  [/(?<![\w-])(?:\+?\d{1,3}[\s.-]?)?\(?\d{2,3}\)?[\s.-]?\d{4,5}[\s.-]?\d{4}(?![\w-])/g, "[telefone]"],
+  [/\?[^\s"']+/g, "?[query]"],
+];
+
+export function sanitizarTextoDeErro(bruto: string | null): string | null {
+  if (!bruto) return null;
+  let texto = bruto;
+  for (const [padrao, troca] of MASCARAS_DE_ERRO) texto = texto.replace(padrao, troca);
+  return texto.length > MAX_ERRO_CHARS ? `${texto.slice(0, MAX_ERRO_CHARS)}…` : texto;
+}
+
+function codigoDoErro(e: unknown): string {
+  if (typeof e === "object" && e !== null) {
+    const { code, name } = e as { code?: unknown; name?: unknown };
+    if (typeof code === "string" && /^[A-Za-z0-9_]{1,32}$/.test(code)) return code;
+    if (typeof name === "string" && name.length > 0) return name;
+  }
+  return "desconhecido";
+}
+
+export function erroParaRegistro(e: unknown): string {
+  const bruto = e instanceof Error ? e.message : String(e);
+  return `${codigoDoErro(e)}: ${sanitizarTextoDeErro(bruto) ?? ""}`;
+}
 export const logger = {
   info(message: string, data?: Record<string, unknown>): void {
     console.log(message, data ? maskObject(data) : undefined);

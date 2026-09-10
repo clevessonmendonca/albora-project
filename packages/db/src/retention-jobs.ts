@@ -1,6 +1,7 @@
 import type { Pool, PoolClient } from "pg";
 import {
   diasRestantesAteD365,
+  erroParaRegistro,
   mayDeleteAtD365,
   planRetention,
   podeProcessarAgora,
@@ -327,7 +328,7 @@ async function notificarSemQuebrar(deps: DepsProcessarRetencao, n: NotificacaoRe
   try {
     await deps.notify(n);
   } catch (e) {
-    console.warn("retention.notify_falhou", { kind: n.kind, eventId: n.eventId, erro: String(e) });
+    console.warn("retention.notify_falhou", { kind: n.kind, eventId: n.eventId, erro: erroParaRegistro(e) });
   }
 }
 

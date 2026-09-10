@@ -15,7 +15,7 @@
 | **Princípio** | A marca é a moldura. O evento é o quadro |
 | **Herói** | Casamento. Outros verticais existem no produto, não na comunicação |
 
-**Paleta:** `papel #FAF7F2` · `tinta #1A1613` · `noite #14100E` · `âmbar #E8873A` · `brasa #C2410C`
+**Paleta:** `papel #FAF7F2` · `tinta #171513` · `noite #14100E` · `âmbar #E8873A` · `brasa #BB3D18`
 **Tipografia:** Fraunces (display) · Inter (texto)
 
 ---

@@ -6,39 +6,55 @@ import type { CSSProperties } from "react";
 import { AnimatedBrand } from "./animated-brand";
 import { LandingBeacon } from "./landing-beacon";
 import { LandingCtaLink } from "./landing-cta-link";
-import { LandingStickyCta } from "./landing-sticky-cta";
+import { LandingDemoLink } from "./landing-demo-link";
 import { pillClasses } from "./pieces";
-import { SIDE_PADDING, HREF_CRIAR_GRATIS, type LiveStats } from "./landing-data";
+import {
+  SIDE_PADDING,
+  HREF_CRIAR_GRATIS,
+  HREF_DEMO,
+  HREF_FORNECEDORES,
+  type LiveStats,
+} from "./landing-data";
 import {
   HeroSection,
   ProvaSection,
-  ComoFuncionaSection,
+  DemoSection,
   PerspectivasSection,
   TelaoSection,
-  DuranteAFestaSection,
   DepoisSection,
-  ObjecoesSection,
   PrecoSection,
+  VendorInviteSection,
   FaqSection,
   FechoSection,
 } from "./sections";
 
 export type { LiveStats };
 
-export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
+export function LandingPage({ pack }: { pack: Pack; live?: LiveStats }) {
   const tokens = resolveTokens({
     marca: ALBORA_BRAND,
     pack: { ...pack.tokens, background: "light" },
   });
+  const darkTokens = resolveTokens({
+    marca: ALBORA_BRAND,
+    pack: { ...pack.tokens, background: "dark" },
+  });
 
-  const t = (key: string) => resolvePackText(pack, key);
+  const t = (chave: string) => resolvePackText(pack, chave);
 
   return (
     <div
-      className="min-h-screen overflow-x-clip bg-bg font-corpo leading-normal text-ink"
+      className="landing-page min-h-screen bg-bg font-corpo leading-normal text-ink"
       style={toVariables(tokens) as CSSProperties}
     >
       <LandingBeacon packHint={pack.id} />
+
+      <a
+        href="#conteudo"
+        className="pilula sr-only rounded-pilula bg-ink px-4 py-3 text-bg focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50"
+      >
+        Pular para o conteúdo
+      </a>
 
       <header
         className={cn(
@@ -46,12 +62,12 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
           SIDE_PADDING,
         )}
       >
-        <span className="entra">
+        <a href="#conteudo" className="entra inline-flex items-center" aria-label="Albora">
           <AnimatedBrand />
-        </span>
+        </a>
 
         <nav className="nav-topo gap-[1.625rem] text-ink-2">
-          <a href="#como" className="elo text-inherit no-underline">
+          <a href="#demo" className="elo text-inherit no-underline">
             Como funciona
           </a>
           <a href="#telao" className="elo text-inherit no-underline">
@@ -71,37 +87,78 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
         </LandingCtaLink>
       </header>
 
-      <HeroSection pack={pack} t={t} {...(live !== undefined ? { live } : {})} />
-      <ProvaSection pack={pack} />
-      <ComoFuncionaSection />
-      <PerspectivasSection pack={pack} />
-      <TelaoSection pack={pack} />
-      <DuranteAFestaSection />
-      <DepoisSection />
-      <ObjecoesSection />
-      <PrecoSection pack={pack} />
-      <FaqSection />
-      <FechoSection pack={pack} />
+      <main id="conteudo" tabIndex={-1}>
+        <HeroSection pack={pack} />
+        <ProvaSection />
+        <DemoSection pack={pack} />
+        <PerspectivasSection pack={pack} />
+        <TelaoSection pack={pack} />
+        <DepoisSection />
+        <PrecoSection pack={pack} />
+        <VendorInviteSection />
+        <FaqSection />
+        <FechoSection pack={pack} />
+      </main>
 
-      <footer className="border-t border-linha bg-bg">
+      <footer
+        className="border-t border-linha bg-bg text-ink"
+        style={toVariables(darkTokens) as CSSProperties}
+      >
         <div
           className={cn(
-            "mx-auto flex max-w-[78rem] flex-wrap items-center justify-between gap-4 py-8 text-sm text-ink-3",
+            "mx-auto grid max-w-[78rem] gap-10 pb-10 pt-16 md:grid-cols-[1.5fr_1fr_1fr_1fr]",
             SIDE_PADDING,
           )}
         >
-          <span>Albora · Feito no Brasil</span>
-          <a href="/privacidade" className="underline hover:text-ink-2">
-            Privacidade
+          <div className="rodape-marca">
+            <AnimatedBrand />
+            <p className="max-w-[30ch] text-ink-2">
+              A festa por quem viveu.
+              <br />
+              As lembranças em um só lugar.
+            </p>
+            <LandingCtaLink
+              href={HREF_CRIAR_GRATIS}
+              packHint={pack.id}
+              className="mt-3 inline-block text-acento-texto no-underline"
+            >
+              Experimente seu álbum →
+            </LandingCtaLink>
+          </div>
+
+          <nav className="rodape-coluna" aria-label="Conheça o Albora">
+            <strong>Conheça</strong>
+            <a href="#demo">Como funciona</a>
+            <a href="#telao">O telão</a>
+            <a href="#preco">Planos e preços</a>
+            <a href={HREF_FORNECEDORES}>Para fornecedores</a>
+          </nav>
+
+          <nav className="rodape-coluna" aria-label="Ajuda e informações">
+            <strong>Antes da festa</strong>
+            <a href="#faq">Perguntas frequentes</a>
+            <LandingDemoLink href={HREF_DEMO} packHint={pack.id}>
+              Testar a demonstração
+            </LandingDemoLink>
+          </nav>
+
+          <div className="rodape-coluna">
+            <strong>Feito para reunir</strong>
+            <p className="max-w-[26ch] text-ink-2">
+              Casamentos, aniversários e encontros que merecem ser vistos por
+              mais de um olhar.
+            </p>
+          </div>
+        </div>
+
+        <div className={cn("mx-auto flex max-w-[78rem] flex-wrap justify-between gap-3 border-t border-linha py-5 text-sm text-ink-3", SIDE_PADDING)}>
+          <span>© {new Date().getFullYear()} Albora</span>
+          <span>Álbum coletivo de fotos</span>
+          <a href="#conteudo" className="text-ink-3 no-underline">
+            Voltar ao topo ↑
           </a>
         </div>
       </footer>
-
-      <LandingStickyCta
-        href={HREF_CRIAR_GRATIS}
-        packHint={pack.id}
-        label={t("landing.cta")}
-      />
     </div>
   );
 }

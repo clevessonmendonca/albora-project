@@ -9,12 +9,12 @@ describe("TabBar", () => {
     expect(screen.getByText("Feed")).toBeInTheDocument();
     expect(screen.getByText("Missões")).toBeInTheDocument();
     expect(screen.getByText("Álbum")).toBeInTheDocument();
-    expect(screen.getByText("Minhas")).toBeInTheDocument();
+    expect(screen.getByText("Você")).toBeInTheDocument();
 
     expect(screen.getByText("Feed").className).toContain("text-acento");
     expect(screen.getByText("Missões").className).toContain("text-ink-3");
     expect(screen.getByText("Álbum").className).toContain("text-ink-3");
-    expect(screen.getByText("Minhas").className).toContain("text-ink-3");
+    expect(screen.getByText("Você").className).toContain("text-ink-3");
   });
 
   it("troca o item marcado conforme `active`", () => {
@@ -40,7 +40,7 @@ describe("TabBar", () => {
     expect(ativo).toHaveAttribute("aria-current", "page");
     expect(ativo.className).toContain("text-acento-texto");
 
-    for (const label of ["Missões", "Álbum", "Minhas"]) {
+    for (const label of ["Missões", "Álbum", "Você"]) {
       const inativo = screen.getByText(label);
       expect(inativo).not.toHaveAttribute("aria-current");
     }

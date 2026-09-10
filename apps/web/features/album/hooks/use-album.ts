@@ -51,6 +51,22 @@ export function comFalha(estado: EstadoAlbum, falha: FalhaAlbum): EstadoAlbum {
   return { ...estado, carregando: false, jaCarregou: true, falha };
 }
 
+export type BordaAlbum = "carregando" | "erro" | "vazio" | "conteudo";
+
+/**
+ * Estado da área de conteúdo do álbum. Havendo capítulos, a falha de uma
+ * recarga não apaga a tela — ela vira o rodapé; sem capítulos, a falha é a
+ * própria borda. `carregando` cobre a primeira carga E a recarga (tentar de
+ * novo volta ao esqueleto), então o vazio e o erro nunca piscam no meio dela.
+ */
+export function bordaDoAlbum(estado: EstadoAlbum, temCapitulos: boolean): BordaAlbum {
+  if (temCapitulos) return "conteudo";
+  if (estado.carregando) return "carregando";
+  if (estado.falha !== null) return "erro";
+  if (estado.jaCarregou) return "vazio";
+  return "carregando";
+}
+
 export function useAlbum() {
   const [estado, setEstado] = useState<EstadoAlbum>(estadoInicial);
 

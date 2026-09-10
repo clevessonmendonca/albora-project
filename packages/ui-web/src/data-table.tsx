@@ -4,7 +4,6 @@ import { useState, type ReactNode } from "react";
 import { cn } from "./variants";
 import { Skeleton } from "./skeleton";
 import { Button } from "./button";
-import { Card } from "./card";
 import { announce } from "./live-announcer";
 
 export type DataTableColumn<T> = {
@@ -130,8 +129,8 @@ function DataTableToolbar({
   onPageSizeChange,
 }: ToolbarProps) {
   return (
-    <Card elevation={1} className="flex flex-wrap items-center gap-3 p-3">
-      <span className="tipo-caption whitespace-nowrap tabular-nums text-ink-3">
+    <div className="flex flex-wrap items-center gap-3 border-b border-linha px-4 py-3">
+      <span className="tipo-den-meta whitespace-nowrap tabular-nums text-ink-3">
         {count} {itemLabel}
       </span>
 
@@ -144,7 +143,7 @@ function DataTableToolbar({
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder={searchPlaceholder}
             className={cn(
-              "min-h-11 w-full rounded-token border border-linha bg-superficie px-3.5 text-ink outline-none",
+              "tipo-den-corpo min-h-11 w-full rounded-token border border-linha bg-superficie-alta px-3.5 text-ink outline-none",
               "placeholder:text-ink-3",
               "focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto",
             )}
@@ -170,7 +169,7 @@ function DataTableToolbar({
           value={pageSize}
           onChange={(e) => onPageSizeChange(Number(e.target.value))}
           className={cn(
-            "tipo-caption min-h-11 rounded-token border border-linha bg-superficie px-2 text-ink outline-none",
+            "tipo-den-meta min-h-11 rounded-token border border-linha bg-superficie-alta px-2 text-ink outline-none",
             "focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto",
           )}
         >
@@ -181,7 +180,7 @@ function DataTableToolbar({
           ))}
         </select>
       </label>
-    </Card>
+    </div>
   );
 }
 
@@ -196,7 +195,7 @@ function EstadoVazio({
 }) {
   return (
     <div className="flex flex-col items-center gap-3 py-12 text-center">
-      <p className="tipo-body m-0 text-ink-3">{mensagem}</p>
+      <p className="tipo-den-corpo m-0 text-ink-3">{mensagem}</p>
       {filtrado && onClearFilters && (
         <Button type="button" variant="tertiary" size="sm" onClick={onClearFilters}>
           Limpar filtros
@@ -218,11 +217,11 @@ function PaginacaoControles({
   onProxima: () => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex items-center justify-between gap-3 border-t border-linha px-4 py-3">
       <Button type="button" variant="secondary" size="sm" disabled={pagina === 0} onClick={onAnterior}>
         Anterior
       </Button>
-      <span className="tipo-caption tabular-nums text-ink-3">
+      <span className="tipo-den-meta tabular-nums text-ink-3">
         Página {pagina + 1} de {totalPaginas}
       </span>
       <Button
@@ -304,8 +303,11 @@ export function DataTable<T>({
   const paginaSegura = Math.min(page, totalPaginas - 1);
   const visiveis = rows.slice(paginaSegura * tamanhoPagina, paginaSegura * tamanhoPagina + tamanhoPagina);
 
+  // Moldura do v5 (`.tblwrap`): a tabela é um painel, não uma laje solta no
+  // canvas. Sem ela, barra de ferramentas, linhas e paginação flutuam sem
+  // nada dizendo que são a mesma coisa.
   return (
-    <div className="flex flex-col gap-3">
+    <div className="overflow-hidden rounded-media border border-linha bg-superficie">
       {!hideToolbar && (
         <DataTableToolbar
           count={rows.length}
@@ -323,7 +325,7 @@ export function DataTable<T>({
       )}
 
       {!hideToolbar && activeFilters && activeFilters.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 border-b border-linha px-4 py-3">
           {activeFilters.map((filtro) => (
             <ChipDeFiltro
               key={filtro.key}
@@ -351,7 +353,7 @@ export function DataTable<T>({
                       key={coluna.key}
                       scope="col"
                       className={cn(
-                        "tipo-label sticky top-0 z-10 h-9 border-b border-linha bg-superficie px-3 align-middle text-ink-3",
+                        "sticky top-0 z-10 h-10 border-b border-linha bg-superficie px-4 align-middle font-[family-name:var(--fonte-titulo)] text-[0.68rem] font-normal uppercase tracking-[0.14em] text-ink-3",
                         coluna.align === "end" && "text-right",
                       )}
                       style={coluna.width ? { width: coluna.width } : undefined}
@@ -368,12 +370,15 @@ export function DataTable<T>({
               </thead>
               <tbody>
                 {visiveis.map((row) => (
-                  <tr key={rowKey(row)} className="border-b border-linha">
+                  <tr
+                    key={rowKey(row)}
+                    className="border-b border-linha transition-colors duration-[var(--tempo)] ease-[var(--curva)] last:border-b-0 hover:bg-superficie-alta"
+                  >
                     {columns.map((coluna) => (
                       <td
                         key={coluna.key}
                         className={cn(
-                          "h-11 px-3 align-middle tabular-nums text-ink",
+                          "tipo-den-dado h-12 px-4 align-middle text-ink",
                           coluna.align === "end" && "text-right",
                         )}
                       >

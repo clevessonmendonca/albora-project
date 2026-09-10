@@ -1,4 +1,4 @@
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import { insertAuditLog } from "@albora/db";
 
 export type AgregacaoDoPortalRegistro = { motivo: string; em: Date };
@@ -16,6 +16,56 @@ function actorLabelMascarado(email: string | null): string | null {
   const maskedLocal = local.length > 0 ? `${local[0]}***` : "***";
   const maskedDomain = domain.length > 0 ? `${domain[0]}***` : "***";
   return `${maskedLocal}@${maskedDomain}`;
+}
+
+export type AcaoDoFornecedor = {
+  actorId: string;
+  actorEmail: string | null;
+  action: string;
+  vendorId: string;
+  reason: string;
+  metadata?: Record<string, unknown>;
+};
+
+/** Registra uma ação administrativa do fornecedor antes da operação privilegiada. */
+export async function auditarAcaoDoFornecedor(
+  pool: Pool,
+  input: AcaoDoFornecedor,
+): Promise<void> {
+  if (!input.reason.trim()) throw new Error("auditoria de fornecedor exige motivo");
+  const client = await pool.connect();
+  try {
+    await insertAuditLog(client, {
+      actorKind: "host",
+      actorId: input.actorId,
+      actorLabel: actorLabelMascarado(input.actorEmail),
+      action: input.action,
+      targetKind: "vendor",
+      targetId: input.vendorId,
+      reason: input.reason,
+      metadata: input.metadata ?? {},
+    });
+  } finally {
+    client.release();
+  }
+}
+
+/** Variante transacional para manter auditoria e estado local no mesmo commit. */
+export async function auditarAssinaturaDoFornecedorNoCliente(
+  client: PoolClient,
+  input: AcaoDoFornecedor & { subscriptionId: string },
+): Promise<void> {
+  if (!input.reason.trim()) throw new Error("auditoria de fornecedor exige motivo");
+  await insertAuditLog(client, {
+    actorKind: "host",
+    actorId: input.actorId,
+    actorLabel: actorLabelMascarado(input.actorEmail),
+    action: input.action,
+    targetKind: "subscription",
+    targetId: input.subscriptionId,
+    reason: input.reason,
+    metadata: { vendorId: input.vendorId, ...(input.metadata ?? {}) },
+  });
 }
 
 /**
