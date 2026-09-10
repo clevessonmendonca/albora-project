@@ -6,32 +6,41 @@ import type { CSSProperties } from "react";
 import { AnimatedBrand } from "./animated-brand";
 import { LandingBeacon } from "./landing-beacon";
 import { LandingCtaLink } from "./landing-cta-link";
+import { LandingDemoLink } from "./landing-demo-link";
 import { pillClasses } from "./pieces";
-import { SIDE_PADDING, HREF_CRIAR_GRATIS, type LiveStats } from "./landing-data";
+import {
+  SIDE_PADDING,
+  HREF_CRIAR_GRATIS,
+  HREF_DEMO,
+  HREF_FORNECEDORES,
+  type LiveStats,
+} from "./landing-data";
 import {
   HeroSection,
-  DemoSection,
   ProvaSection,
-  ComoFuncionaSection,
+  DemoSection,
   PerspectivasSection,
   TelaoSection,
-  DuranteAFestaSection,
   DepoisSection,
-  ObjecoesSection,
   PrecoSection,
+  VendorInviteSection,
   FaqSection,
   FechoSection,
 } from "./sections";
 
 export type { LiveStats };
 
-export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
+export function LandingPage({ pack }: { pack: Pack; live?: LiveStats }) {
   const tokens = resolveTokens({
     marca: ALBORA_BRAND,
     pack: { ...pack.tokens, background: "light" },
   });
+  const darkTokens = resolveTokens({
+    marca: ALBORA_BRAND,
+    pack: { ...pack.tokens, background: "dark" },
+  });
 
-  const t = (key: string) => resolvePackText(pack, key);
+  const t = (chave: string) => resolvePackText(pack, chave);
 
   return (
     <div
@@ -40,18 +49,25 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
     >
       <LandingBeacon packHint={pack.id} />
 
+      <a
+        href="#conteudo"
+        className="pilula sr-only rounded-pilula bg-ink px-4 py-3 text-bg focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-50"
+      >
+        Pular para o conteúdo
+      </a>
+
       <header
         className={cn(
           "sticky top-0 z-40 flex items-center justify-between gap-6 border-b border-linha bg-bg py-3.5",
           SIDE_PADDING,
         )}
       >
-        <span className="entra">
+        <a href="#conteudo" className="entra inline-flex items-center" aria-label="Albora">
           <AnimatedBrand />
-        </span>
+        </a>
 
         <nav className="nav-topo gap-[1.625rem] text-ink-2">
-          <a href="#como" className="elo text-inherit no-underline">
+          <a href="#demo" className="elo text-inherit no-underline">
             Como funciona
           </a>
           <a href="#telao" className="elo text-inherit no-underline">
@@ -59,9 +75,6 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
           </a>
           <a href="#preco" className="elo text-inherit no-underline">
             Preço
-          </a>
-          <a href="/fornecedores" className="elo text-inherit no-underline">
-            Para fornecedores
           </a>
         </nav>
 
@@ -74,44 +87,76 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
         </LandingCtaLink>
       </header>
 
-      <HeroSection pack={pack} {...(live !== undefined ? { live } : {})} />
-      <ProvaSection />
-      <ComoFuncionaSection />
-      <DemoSection packId={pack.id} />
-      <PerspectivasSection pack={pack} />
-      <TelaoSection pack={pack} />
-      <DuranteAFestaSection />
-      <DepoisSection />
-      <ObjecoesSection />
-      <PrecoSection pack={pack} />
-      <FaqSection />
-      <span id="perguntas" className="anchor-target" aria-hidden="true" />
-      <FechoSection pack={pack} />
+      <main id="conteudo" tabIndex={-1}>
+        <HeroSection pack={pack} />
+        <ProvaSection />
+        <DemoSection pack={pack} />
+        <PerspectivasSection pack={pack} />
+        <TelaoSection pack={pack} />
+        <DepoisSection />
+        <PrecoSection pack={pack} />
+        <VendorInviteSection />
+        <FaqSection />
+        <FechoSection pack={pack} />
+      </main>
 
-      <footer className="rodape border-t border-linha bg-bg">
-        <div className={cn("rodape-grid mx-auto max-w-[78rem] py-14", SIDE_PADDING)}>
+      <footer
+        className="border-t border-linha bg-bg text-ink"
+        style={toVariables(darkTokens) as CSSProperties}
+      >
+        <div
+          className={cn(
+            "mx-auto grid max-w-[78rem] gap-10 pb-10 pt-16 md:grid-cols-[1.5fr_1fr_1fr_1fr]",
+            SIDE_PADDING,
+          )}
+        >
           <div className="rodape-marca">
             <AnimatedBrand />
-            <p>As fotos da festa, reunidas por quem viveu ela.</p>
+            <p className="max-w-[30ch] text-ink-2">
+              A festa por quem viveu.
+              <br />
+              As lembranças em um só lugar.
+            </p>
+            <LandingCtaLink
+              href={HREF_CRIAR_GRATIS}
+              packHint={pack.id}
+              className="mt-3 inline-block text-acento-texto no-underline"
+            >
+              Experimente seu álbum →
+            </LandingCtaLink>
           </div>
-          <div className="rodape-coluna">
+
+          <nav className="rodape-coluna" aria-label="Conheça o Albora">
             <strong>Conheça</strong>
-            <a href="#como">Como funciona</a>
+            <a href="#demo">Como funciona</a>
             <a href="#telao">O telão</a>
             <a href="#preco">Planos e preços</a>
-            <a href="/fornecedores">Para fornecedores</a>
-          </div>
-          <div className="rodape-coluna">
-            <strong>Ajuda</strong>
+            <a href={HREF_FORNECEDORES}>Para fornecedores</a>
+          </nav>
+
+          <nav className="rodape-coluna" aria-label="Ajuda e informações">
+            <strong>Antes da festa</strong>
             <a href="#faq">Perguntas frequentes</a>
-            <a href={HREF_CRIAR_GRATIS}>Criar meu evento</a>
-            <a href="/privacidade">Privacidade</a>
-            <a href="mailto:oi@albora.com.br">Fale com a gente</a>
+            <LandingDemoLink href={HREF_DEMO} packHint={pack.id}>
+              Testar a demonstração
+            </LandingDemoLink>
+          </nav>
+
+          <div className="rodape-coluna">
+            <strong>Feito para reunir</strong>
+            <p className="max-w-[26ch] text-ink-2">
+              Casamentos, aniversários e encontros que merecem ser vistos por
+              mais de um olhar.
+            </p>
           </div>
         </div>
-        <div className={cn("rodape-base mx-auto max-w-[78rem] py-5 text-sm", SIDE_PADDING)}>
-          <span>© {new Date().getFullYear()} Albora · Feito no Brasil</span>
-          <span>Momentos melhores quando todo mundo participa.</span>
+
+        <div className={cn("mx-auto flex max-w-[78rem] flex-wrap justify-between gap-3 border-t border-linha py-5 text-sm text-ink-3", SIDE_PADDING)}>
+          <span>© {new Date().getFullYear()} Albora</span>
+          <span>Álbum coletivo de fotos</span>
+          <a href="#conteudo" className="text-ink-3 no-underline">
+            Voltar ao topo ↑
+          </a>
         </div>
       </footer>
     </div>

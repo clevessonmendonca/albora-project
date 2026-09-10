@@ -119,7 +119,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
     function build() {
       stage!.innerHTML = "";
       const isMobile = window.innerWidth <= 760;
-      const N = isMobile ? 6 : 14;
+      const N = isMobile ? 6 : 10;
       const rand = mulberry32(20260906);
       const next: Tile[] = [];
 
@@ -231,8 +231,8 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
           `scale(${s.toFixed(3)}) translateZ(0)`;
       }
 
-      telao!.style.opacity = seg(p, 0.84, 0.98).toFixed(3);
-      telao!.style.transform = `translate(-50%,-50%) scale(${lerp(0.96, 1, conv).toFixed(3)})`;
+      telao!.style.opacity = seg(p, 0.78, 0.9).toFixed(3);
+      telao!.style.transform = `translate(-50%,-53%) scale(${lerp(0.96, 1, conv).toFixed(3)})`;
 
       cap1!.style.opacity = (1 - seg(p, 0.06, 0.14)).toFixed(3);
 
@@ -243,7 +243,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
       cap4!.style.transform = `translate(-50%,${lerp(-46, -52, seg(p, 0.6, 0.88)).toFixed(1)}%)`;
 
       cap5!.style.opacity = seg(p, 0.9, 0.99).toFixed(3);
-      cap5!.style.transform = `translate(-50%,${lerp(34, 31, conv).toFixed(1)}vh)`;
+      cap5!.style.transform = `translate(-50%,${lerp(28, 30, conv).toFixed(1)}vh)`;
     }
 
     function progress() {
@@ -332,23 +332,28 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
           background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.035'/></svg>");
         }
 
+        /* Scrim de papel translúcido e esfumaçado atrás da legenda. O protótipo
+           usava backdrop-blur (vidro fosco), que é anti-padrão bloqueante aqui —
+           então a profundidade vem de um véu de papel semitransparente com as
+           bordas em feather (as fotos vazam por trás), sem filtro de blur. Papel
+           a ~76% mantém a Fraunces 300 legível sobre foto e sobre o fundo. */
         .px-cap {
           position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
           text-align: center; z-index: 80; pointer-events: none;
-          width: min(92vw, 900px); will-change: opacity, transform;
+          width: min(88vw, 760px); will-change: opacity, transform;
+          padding: clamp(1.75rem, 4vw, 3rem) clamp(1.75rem, 5vw, 3.5rem);
+          isolation: isolate;
         }
         .px-cap > * { position: relative; z-index: 1; }
         .px-cap::before {
-          content: ""; position: absolute; left: 50%; top: 50%;
-          transform: translate(-50%,-50%); width: 134%; height: 158%; z-index: 0;
-          pointer-events: none;
-          background: radial-gradient(58% 54% at 50% 50%,
-            var(--bg) 0%,
-            color-mix(in srgb, var(--bg) 92%, transparent) 40%,
-            transparent 72%);
+          content: ""; position: absolute; inset: -10% -8%; z-index: 0; pointer-events: none;
+          background: color-mix(in srgb, var(--bg) 94%, transparent);
+          border-radius: var(--raio-superficie);
+          -webkit-mask-image: radial-gradient(ellipse at center, black 68%, transparent 100%);
+          mask-image: radial-gradient(ellipse at center, black 68%, transparent 100%);
         }
         .px-cap h3, .px-cap .px-foot, .px-cap .px-sig, .px-cap small {
-          text-shadow: 0 1px 22px var(--bg), 0 0 2px var(--bg);
+          text-shadow: 0 1px 12px color-mix(in srgb, var(--bg) 88%, transparent);
         }
         .px-cap h3 { font-size: clamp(40px, 8vw, 104px); margin: 0; }
         .px-cap-msg h3 { font-size: clamp(30px, 5.2vw, 68px); line-height: 1.06; }
@@ -360,7 +365,10 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
           font-family: var(--fonte-titulo); font-style: italic; font-weight: 300;
           color: var(--acento-texto); font-size: clamp(18px, 2.4vw, 26px); margin-top: 22px;
         }
+        /* O fecho fica abaixo do telão, sobre o papel — texto escuro legível sem
+           véu; o scrim ali virava uma faixa clara feia colada no telão. */
         .px-cap-final { color: var(--ink); }
+        .px-cap-final::before { display: none; }
         .px-cap-final .px-sig { color: var(--acento-texto); }
         .px-foot { font-size: clamp(22px, 3.4vw, 40px); margin: 0; }
         .px-accent { color: var(--acento-texto); font-style: italic; }
@@ -368,7 +376,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         .px-stage { position: absolute; inset: 0; z-index: 20; }
         .px-tile {
           position: absolute; left: 50%; top: 50%; width: 13.5vmin; aspect-ratio: 9/16;
-          border: 1px solid var(--color-ink-borda-forte); overflow: hidden;
+          border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); overflow: hidden;
           background: var(--superficie-alta); will-change: transform, opacity;
           transform: translate(-50%,-50%); backface-visibility: hidden;
         }
@@ -395,9 +403,11 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
 
         .px-telao {
           position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 60;
-          width: min(88vw, 1000px); aspect-ratio: 16/9; background: var(--bg);
-          border: 1px solid var(--color-ink-borda-forte); opacity: 0;
-          will-change: opacity, transform; display: grid; place-items: center; overflow: hidden;
+          width: min(82vw, 900px); aspect-ratio: 16/9; background: var(--bg);
+          border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); border-radius: var(--raio-media);
+          opacity: 0; will-change: opacity, transform; display: grid; place-items: stretch;
+          overflow: hidden;
+          padding: clamp(2.5rem, 5vw, 3.25rem) clamp(.75rem, 2.5vw, 1.25rem) clamp(.75rem, 2.5vw, 1.25rem);
         }
         .px-frameLbl {
           position: absolute; left: 16px; top: 13px; z-index: 3; font-size: 11px;
@@ -407,10 +417,36 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         .px-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--acento); }
         .px-frameLbl b { color: var(--ink); font-weight: 600; font-family: var(--fonte-titulo); }
         .px-slot {
-          height: 82%; aspect-ratio: 9/16; border: 1px solid var(--color-ink-borda-forte);
+          height: 82%; aspect-ratio: 9/16; border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
           position: relative; overflow: hidden;
         }
         .px-slot .px-slotPh { position: absolute; inset: 0; background-size: cover; background-position: center; }
+
+        /* Convergência: a tela do telão exibindo três fotos ao vivo — grade
+           limpa, sem moldura de polaroide (que poluía). Moldura fina clara
+           (var(--ink) é claro no escopo dark do telão). */
+        .px-triptico {
+          display: grid; grid-template-columns: 1fr 1.12fr 1fr;
+          gap: clamp(.75rem, 2vw, 1.75rem); width: 100%; height: 100%;
+          align-items: center; justify-items: center;
+        }
+        /* Foto impressa (polaroid): moldura clara — var(--ink) é claro no escopo
+           dark do telão —, base mais grossa, leve rotação. Menor que a tela,
+           com respiro em volta. */
+        .px-triptico-foto {
+          position: relative; overflow: hidden; aspect-ratio: 3/4; height: 78%;
+          background-size: cover; background-position: center;
+          border: clamp(5px, .7vw, 9px) solid var(--ink);
+          border-bottom-width: clamp(16px, 2.2vw, 28px);
+          box-shadow: 0 .625rem 1.375rem color-mix(in srgb, var(--bg) 55%, transparent);
+        }
+        .px-triptico-foto:first-child { transform: rotate(-3deg); height: 70%; }
+        .px-triptico-foto:nth-child(2) { transform: rotate(1.5deg); height: 84%; z-index: 2; }
+        .px-triptico-foto:last-child { transform: rotate(3deg); height: 70%; }
+        @media (max-width: 760px) {
+          .px-triptico { gap: 8px; }
+          .px-triptico-foto { border-width: 4px; border-bottom-width: 12px; }
+        }
 
         .px-rm { display: none; }
         @media (prefers-reduced-motion: reduce) {
@@ -432,7 +468,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         }
         .px-rm-tile {
           position: relative; aspect-ratio: 9/16; overflow: hidden;
-          border: 1px solid var(--color-ink-borda-forte); background: var(--superficie-alta);
+          border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); background: var(--superficie-alta);
         }
         .px-rm-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
         .px-rm-tile span {
@@ -449,6 +485,8 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         @media (max-width: 760px) {
           .px-track { height: 320vh; }
           .px-tile { width: 30vmin; }
+          .px-tile .px-lbl, .px-tile .px-vid { display: none; }
+          .px-cap { width: 90vw; padding: 1.25rem 1.5rem; }
           .px-cap h3 { font-size: clamp(34px, 11vw, 60px); }
         }
       `}</style>
@@ -460,10 +498,18 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
           <div className="px-frameLbl">
             <span className="px-dot" /> Telão · ao vivo <b>· {nomeExemplo}</b>
           </div>
-          <div className="px-slot">
+          <div className="px-triptico">
             <div
-              className="px-slotPh"
+              className="px-triptico-foto"
+              style={{ backgroundImage: `url(${PHOTOS[6]})` }}
+            />
+            <div
+              className="px-triptico-foto"
               style={{ backgroundImage: `url(${PHOTOS[HERO]})` }}
+            />
+            <div
+              className="px-triptico-foto"
+              style={{ backgroundImage: `url(${PHOTOS[8]})` }}
             />
           </div>
         </div>
@@ -473,7 +519,11 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         </div>
 
         <div className="px-cap" ref={cap2Ref}>
-          <h3 className="tipo-display">Centenas de perspectivas.</h3>
+          <h3 className="tipo-display">
+            Cada pessoa.
+            <br />
+            Um olhar diferente.
+          </h3>
           <small>momentos que uma pessoa sozinha não alcança</small>
         </div>
 
@@ -499,7 +549,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         </section>
         <section className="px-rm-chap">
           <p className="px-rm-eyebrow">Muitas pessoas</p>
-          <h3 className="tipo-display">Centenas de perspectivas.</h3>
+          <h3 className="tipo-display">Cada pessoa. Um olhar diferente.</h3>
           <div className="px-rm-grid">
             {Array.from({ length: 12 }, (_, i) => (
               <div className="px-rm-tile" key={i}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { type AnchorHTMLAttributes, type MouseEvent, type ReactNode } from "react";
+import React, { type AnchorHTMLAttributes, type MouseEvent, type ReactNode } from "react";
 import { fireLandingProduct } from "./landing-product";
 
 /** Link de demo — dispara `landing_demo` sem bloquear a navegação. */

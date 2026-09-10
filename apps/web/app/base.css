@@ -18,7 +18,11 @@ html,
 body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  /* `clip`, não `hidden`: os dois barram o scroll horizontal, mas `hidden`
+     força `overflow-y: auto` e transforma o body em container de scroll — o que
+     quebra `position: sticky` relativo à viewport (a narrativa em scroll da
+     landing sumia, "tela branca"). `clip` clipa sem criar container. */
+  overflow-x: clip;
 }
 
 /* O chão vem do token: `<body>` transparente empresta o branco do navegador. */

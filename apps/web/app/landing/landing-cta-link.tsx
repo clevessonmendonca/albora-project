@@ -1,6 +1,6 @@
 "use client";
 
-import { type AnchorHTMLAttributes, type MouseEvent, type ReactNode } from "react";
+import React, { type AnchorHTMLAttributes, type MouseEvent, type ReactNode } from "react";
 import { fireLandingProduct } from "./landing-product";
 
 /** CTA Grátis / Completo — dispara `landing_cta` sem bloquear a navegação. */

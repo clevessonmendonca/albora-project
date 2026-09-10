@@ -69,7 +69,9 @@ export function CreateEventWizard() {
 
   const [step, setStep] = useState(0);
   const [packId, setPackId] = useState(typeOptions[0]!.id);
-  const [title, setTitle] = useState("");
+  // Nome vindo da landing (`?nome=`): a pessoa já digitou o nome da festa na
+  // demo, então a criação começa preenchida com ele.
+  const [title, setTitle] = useState(() => (search.get("nome") ?? "").slice(0, 60));
   const [date, setDate] = useState("");
   const [guests, setGuests] = useState("");
   const [showDetails, setShowDetails] = useState(false);
