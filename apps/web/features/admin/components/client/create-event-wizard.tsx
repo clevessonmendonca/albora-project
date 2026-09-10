@@ -153,7 +153,10 @@ export function CreateEventWizard() {
 
   const pack = PACKS[packId]!;
   const style = EVENT_STYLES.find((s) => s.chave === styleKey) ?? DEFAULT_STYLE;
-  const titlePlaceholder = resolvePackText(pack, "landing.exemplo.nome") || "Seu evento";
+  // Pack sem `landing.exemplo.nome` devolve a própria chave — nesse caso usa um
+  // placeholder neutro em vez de mostrar "landing.exemplo.nome" cru na tela.
+  const exemploNome = resolvePackText(pack, "landing.exemplo.nome");
+  const titlePlaceholder = exemploNome.includes(".") ? "Nome da festa" : exemploNome;
   const displayTitle = title.trim() || titlePlaceholder;
 
   const momentos = useMemo(

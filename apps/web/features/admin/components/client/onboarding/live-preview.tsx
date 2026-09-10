@@ -95,9 +95,9 @@ function GuestCover({ data }: { data: LivePreviewData }) {
           type="button"
           onClick={data.onPickCover}
           aria-label={propria ? "Trocar a capa" : "Escolher a capa"}
-          className="chip-sobre-foto absolute right-3 top-3 z-[2] flex size-8 items-center justify-center rounded-full shadow-suave transition-transform hover:scale-105"
+          className="chip-sobre-foto absolute right-3 top-3 z-[2] inline-flex items-center gap-1 rounded-pilula px-2.5 py-1.5 tipo-label shadow-suave transition-transform hover:scale-105"
         >
-          <Glyph name="image" size={15} />
+          <Glyph name="image" size={13} /> {propria ? "Trocar" : "Escolher capa"}
         </button>
 
         <div className="absolute inset-x-4 bottom-5 z-[1] flex flex-col gap-3">

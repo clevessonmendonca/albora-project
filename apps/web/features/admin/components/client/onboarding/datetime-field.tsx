@@ -126,7 +126,7 @@ export function DateTimeField({
         <div
           role="dialog"
           aria-label="Escolher data e hora"
-          className="absolute left-0 top-full z-30 mt-2 w-[19rem] max-w-[90vw] rounded-superficie border border-linha bg-superficie p-3 shadow-alta"
+          className="absolute left-0 top-full z-30 mt-2 w-[19rem] max-w-[90vw] rounded-superficie border border-linha bg-superficie p-4 shadow-alta"
         >
           <div className="mb-2 flex items-center justify-between">
             <button
@@ -137,7 +137,7 @@ export function DateTimeField({
             >
               ‹
             </button>
-            <span className="text-[0.9rem] font-medium capitalize text-ink">
+            <span className="text-[0.9rem] font-medium text-ink first-letter:uppercase">
               {MESES[visMes.getMonth()]} de {visMes.getFullYear()}
             </span>
             <button
@@ -183,7 +183,9 @@ export function DateTimeField({
           </div>
 
           <div className="mt-3 flex items-center justify-between gap-2 border-t border-linha pt-3">
-            <span className="text-[0.85rem] text-ink-2">Horário</span>
+            <span className="text-[0.85rem] text-ink-2">
+              Horário <span className="text-ink-3">· opcional</span>
+            </span>
             <div className="flex items-center gap-2">
               <input
                 type="time"
@@ -204,9 +206,8 @@ export function DateTimeField({
               )}
             </div>
           </div>
-          <p className="tipo-caption m-0 mt-1.5 text-ink-3">A hora é opcional — dá pra definir depois.</p>
 
-          <div className="mt-3 flex items-center justify-between border-t border-linha pt-3">
+          <div className="mt-4 flex items-center justify-between border-t border-linha pt-3">
             <button
               type="button"
               onClick={() => {

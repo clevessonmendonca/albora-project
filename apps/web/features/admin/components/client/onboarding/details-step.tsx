@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { TextField } from "@albora/ui-web";
 import { DateTimeField } from "./datetime-field";
+import { Glyph } from "./glyph";
 
 const NOME_MAX = 60;
 
@@ -158,6 +159,16 @@ export function DetailsStep({
                 : "preenche o local pelo CEP"}
           </span>
         </div>
+        {local.trim() && (
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(local)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex w-fit items-center gap-1 tipo-label text-acento-texto transition-opacity hover:opacity-80"
+          >
+            <Glyph name="map-pin" size={12} /> Ver no mapa
+          </a>
+        )}
       </div>
     </div>
   );
