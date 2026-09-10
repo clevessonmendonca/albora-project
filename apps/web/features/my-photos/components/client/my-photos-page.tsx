@@ -21,6 +21,7 @@ import {
   CameraIcon,
 } from "@albora/ui-web";
 import { ShareConsentSheet } from "@/features/my-photos/components/client/share-consent-sheet";
+import { MolduraPicker } from "@/features/my-photos/components/client/moldura-picker";
 import { RecapSheet } from "@/features/my-photos/components/client/recap-sheet";
 import { RecapCard } from "@/features/my-photos/components/client/recap-card";
 import { ThemeSetting } from "@/features/guest/components/client/theme-setting";
@@ -364,6 +365,13 @@ export function MyPhotosPage({
           recap.cancelarConsentimento();
         }}
         onConfirm={confirmarConsentimento}
+      />
+
+      <MolduraPicker
+        escolha={compartilhar.escolhendoMoldura}
+        onPreview={compartilhar.previewMoldura}
+        onConfirmar={compartilhar.confirmarMoldura}
+        onClose={compartilhar.fecharMoldura}
       />
 
       <FloatingNav active="minhas" base={base} linkComponent={Link} />
