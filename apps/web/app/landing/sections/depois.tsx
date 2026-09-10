@@ -14,22 +14,21 @@ export function DepoisSection() {
   return (
     <Section reveal>
       <div className="grid items-center gap-[clamp(2rem,5vw,3.5rem)] lg:grid-cols-2">
-        <div className="grid grid-cols-6 gap-2">
-          {FOTOS.map((foto) => (
-            <div
-              key={foto.src}
-              className="relative aspect-[9/16] overflow-hidden border border-linha"
-            >
-              <Image
-                src={`/landing/gen/${foto.src}.png`}
-                alt={foto.alt}
-                fill
-                loading="lazy"
-                sizes="90px"
-                className="object-cover"
-              />
-            </div>
-          ))}
+        <div className="memoria-carrossel" aria-label="Fotos de exemplo do álbum">
+          <div className="memoria-carrossel-faixa">
+            {[...FOTOS, ...FOTOS].map((foto, index) => (
+              <div className="memoria-foto" key={`${foto.src}-${index}`}>
+                <Image
+                  src={`/landing/gen/${foto.src}.png`}
+                  alt={index >= FOTOS.length ? "" : foto.alt}
+                  fill
+                  loading="lazy"
+                  sizes="(max-width: 760px) 24vw, 110px"
+                  className="object-cover"
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
         <div>
@@ -38,9 +37,9 @@ export function DepoisSection() {
             No dia seguinte, <Accent>já está tudo organizado.</Accent>
           </Heading>
           <p className="mt-5 max-w-[34ch] text-[1.0625rem] leading-relaxed text-ink-2">
-            As fotos entram por momento, em resolução original. Seu, pra
-            sempre — e vira um livro impresso, se você quiser guardar na
-            estante.
+            As fotos entram por momento e ficam prontas para revisar, baixar e
+            guardar. Se quiser, você também pode transformar a seleção em um
+            livro impresso.
           </p>
         </div>
       </div>

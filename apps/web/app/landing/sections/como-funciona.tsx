@@ -17,7 +17,7 @@ const STEPS = [
     numero: "03",
     titulo: "O álbum, no dia seguinte",
     descricao:
-      "Tudo organizado por momento. Seu, pra sempre — e vira livro impresso, se você quiser.",
+      "Tudo organizado por momento. Você baixa o álbum e escolhe o que quer guardar.",
   },
 ];
 

@@ -25,6 +25,10 @@ const FAQ: ReadonlyArray<{ q: string; a: string }> = [
     q: "E se eu já tiver um fotógrafo?",
     a: "O Albora complementa o fotógrafo com o que ele não consegue capturar: bastidores, abraços e o ponto de vista de cada convidado.",
   },
+  {
+    q: "Por quanto tempo o álbum fica disponível?",
+    a: "O prazo depende do plano. O Grátis inclui 30 dias para ver e baixar; o Celebração inclui 6 meses. Em ambos, você pode baixar tudo em ZIP.",
+  },
 ];
 
 export function FaqSection() {

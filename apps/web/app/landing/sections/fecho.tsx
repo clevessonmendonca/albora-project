@@ -13,6 +13,7 @@ export function FechoSection({ pack }: { pack: Pack }) {
 
   return (
     <section
+      id="experimentar"
       className="bg-bg text-ink"
       style={toVariables(dark) as CSSProperties}
     >
@@ -24,7 +25,7 @@ export function FechoSection({ pack }: { pack: Pack }) {
           className="tipo-display mx-auto mt-5 mb-8 italic text-acento-texto"
           style={{ fontSize: "clamp(1.125rem,2.6vw,1.625rem)" }}
         >
-          Tiradas por quem viveu. Guardadas pra sempre.
+          Tiradas por quem viveu. Guardadas do seu jeito.
         </p>
         <LandingCtaLink
           href={HREF_CRIAR_GRATIS}

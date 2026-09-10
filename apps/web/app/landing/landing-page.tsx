@@ -34,7 +34,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
 
   return (
     <div
-      className="min-h-screen overflow-x-clip bg-bg font-corpo leading-normal text-ink"
+      className="landing-page min-h-screen bg-bg font-corpo leading-normal text-ink"
       style={toVariables(tokens) as CSSProperties}
     >
       <LandingBeacon packHint={pack.id} />
@@ -73,8 +73,9 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
         </LandingCtaLink>
       </header>
 
-      <HeroSection pack={pack} t={t} {...(live !== undefined ? { live } : {})} />
-      <ProvaSection pack={pack} />
+      <HeroSection pack={pack} {...(live !== undefined ? { live } : {})} />
+      <ProvaSection />
+      <span id="demo" className="anchor-target" aria-hidden="true" />
       <ComoFuncionaSection />
       <PerspectivasSection pack={pack} />
       <TelaoSection pack={pack} />
@@ -83,6 +84,7 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
       <ObjecoesSection />
       <PrecoSection pack={pack} />
       <FaqSection />
+      <span id="perguntas" className="anchor-target" aria-hidden="true" />
       <FechoSection pack={pack} />
 
       <footer className="rodape border-t border-linha bg-bg">

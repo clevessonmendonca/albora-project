@@ -11,7 +11,7 @@ const OBJ: ReadonlyArray<{ q: string; a: string }> = [
   },
   {
     q: "E se a internet do salão for ruim?",
-    a: "As fotos entram numa fila dentro do celular e sobem sozinhas quando o sinal voltar — mesmo se a pessoa fechar a tela ou for embora no meio.",
+    a: "O envio precisa de conexão. Combine o acesso ao Wi-Fi do local e oriente os convidados a guardar as fotos no celular para enviar quando houver sinal.",
   },
   {
     q: "E uma foto inadequada no telão?",
@@ -19,7 +19,7 @@ const OBJ: ReadonlyArray<{ q: string; a: string }> = [
   },
   {
     q: "As fotos ficam com vocês?",
-    a: "São suas. No plano pago, a exportação pra sua nuvem roda sozinha, e depois apagamos o que estiver conosco.",
+    a: "São suas. Você pode baixar o álbum em ZIP antes do fim do prazo do plano e guardar uma cópia onde preferir.",
   },
 ];
 

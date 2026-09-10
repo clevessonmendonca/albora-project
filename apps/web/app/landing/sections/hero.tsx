@@ -12,11 +12,9 @@ import {
 
 export function HeroSection({
   pack,
-  t,
   live,
 }: {
   pack: Pack;
-  t: (key: string) => string;
   live?: LiveStats;
 }) {
   return (
@@ -24,19 +22,18 @@ export function HeroSection({
       <div className="grid items-center gap-[clamp(2.375rem,5vw,3.5rem)] lg:grid-cols-[1.05fr_0.95fr]">
         {/* Copy */}
         <div className="max-w-[38rem]">
-          <p className="tipo-label uppercase text-acento-texto">
-            {t("landing.rotulo")}
-          </p>
+          <p className="tipo-label uppercase text-acento-texto">Álbuns coletivos · sem app</p>
 
           <h1
             className="entra-2 tipo-display m-0 mt-5 font-light text-balance"
             style={{ fontSize: "clamp(2.625rem,6.4vw,5rem)" }}
           >
-            {t("landing.titulo")} <Accent>{t("landing.titulo.destaque")}</Accent>
+            Viva a festa. <Accent>Reúna as fotos de todos.</Accent>
           </h1>
 
           <p className="entra-3 m-0 mt-6 max-w-[34ch] text-[clamp(1.0625rem,2vw,1.25rem)] leading-normal text-ink-2">
-            {t("landing.lede")}
+            Um álbum coletivo para casamentos, aniversários e outras festas.
+            Seus convidados enviam fotos por QR Code, direto do celular. <b>Sem instalar app.</b>
           </p>
 
           <div className="mt-[2.125rem] flex flex-wrap items-center gap-4">
@@ -45,7 +42,7 @@ export function HeroSection({
               packHint={pack.id}
               className={pillClasses}
             >
-              {t("landing.cta")}
+              Criar meu evento
             </LandingCtaLink>
             <a href="#telao" className={lightPillClasses}>
               Ver o telão ↓
@@ -53,8 +50,8 @@ export function HeroSection({
           </div>
 
           <p className="m-0 mt-4 text-sm text-ink-3">
-            <b className="font-semibold text-acento-texto">Grátis pra começar.</b>{" "}
-            Pague uma vez, só se quiser tudo.
+            <b className="font-semibold text-acento-texto">Comece grátis.</b>{" "}
+            Você decide se quer o telão e mais espaço.
           </p>
 
           {live ? (
