@@ -18,7 +18,7 @@ function renderDemo() {
       placeholder="Ex.: nossa festa"
       fotos={FOTOS}
       hrefBase="/admin/new?plano=free"
-      packId="casamento"
+      packId="pack-teste"
     />,
   );
 }
