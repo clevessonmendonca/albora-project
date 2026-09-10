@@ -119,7 +119,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
     function build() {
       stage!.innerHTML = "";
       const isMobile = window.innerWidth <= 760;
-      const N = isMobile ? 6 : 14;
+      const N = isMobile ? 6 : 10;
       const rand = mulberry32(20260906);
       const next: Tile[] = [];
 
@@ -231,7 +231,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
           `scale(${s.toFixed(3)}) translateZ(0)`;
       }
 
-      telao!.style.opacity = seg(p, 0.84, 0.98).toFixed(3);
+      telao!.style.opacity = seg(p, 0.78, 0.9).toFixed(3);
       telao!.style.transform = `translate(-50%,-50%) scale(${lerp(0.96, 1, conv).toFixed(3)})`;
 
       cap1!.style.opacity = (1 - seg(p, 0.06, 0.14)).toFixed(3);
@@ -332,22 +332,28 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
           background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.035'/></svg>");
         }
 
-        /* Legenda = cartão de papel sólido (sem vidro fosco — anti-padrão do
-           projeto — e sem glow, que apagava a Fraunces 300 sobre o creme).
-           Fica legível tanto sobre foto quanto sobre o fundo, em qualquer ponto
-           da convergência. */
+        /* Scrim de papel translúcido e esfumaçado atrás da legenda. O protótipo
+           usava backdrop-blur (vidro fosco), que é anti-padrão bloqueante aqui —
+           então a profundidade vem de um véu de papel semitransparente com as
+           bordas em feather (as fotos vazam por trás), sem filtro de blur. Papel
+           a ~76% mantém a Fraunces 300 legível sobre foto e sobre o fundo. */
         .px-cap {
           position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
           text-align: center; z-index: 80; pointer-events: none;
           width: min(88vw, 760px); will-change: opacity, transform;
-          background: var(--bg); border: 1px solid var(--linha);
-          border-radius: var(--raio-superficie);
-          padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 5vw, 3rem);
-          box-shadow: 0 1.5rem 3rem color-mix(in srgb, var(--ink) 16%, transparent);
+          padding: clamp(1.75rem, 4vw, 3rem) clamp(1.75rem, 5vw, 3.5rem);
+          isolation: isolate;
         }
         .px-cap > * { position: relative; z-index: 1; }
+        .px-cap::before {
+          content: ""; position: absolute; inset: -10% -8%; z-index: 0; pointer-events: none;
+          background: color-mix(in srgb, var(--bg) 94%, transparent);
+          border-radius: var(--raio-superficie);
+          -webkit-mask-image: radial-gradient(ellipse at center, black 68%, transparent 100%);
+          mask-image: radial-gradient(ellipse at center, black 68%, transparent 100%);
+        }
         .px-cap h3, .px-cap .px-foot, .px-cap .px-sig, .px-cap small {
-          text-shadow: none;
+          text-shadow: 0 1px 12px color-mix(in srgb, var(--bg) 88%, transparent);
         }
         .px-cap h3 { font-size: clamp(40px, 8vw, 104px); margin: 0; }
         .px-cap-msg h3 { font-size: clamp(30px, 5.2vw, 68px); line-height: 1.06; }
@@ -395,8 +401,10 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         .px-telao {
           position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 60;
           width: min(88vw, 1000px); aspect-ratio: 16/9; background: var(--bg);
-          border: 1px solid var(--color-ink-borda-forte); opacity: 0;
-          will-change: opacity, transform; display: grid; place-items: center; overflow: hidden;
+          border: 1px solid var(--color-ink-borda-forte); border-radius: var(--raio-media);
+          opacity: 0; will-change: opacity, transform; display: grid; place-items: stretch;
+          overflow: hidden;
+          padding: clamp(2.5rem, 5vw, 3.25rem) clamp(.75rem, 2.5vw, 1.25rem) clamp(.75rem, 2.5vw, 1.25rem);
         }
         .px-frameLbl {
           position: absolute; left: 16px; top: 13px; z-index: 3; font-size: 11px;
@@ -411,26 +419,21 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         }
         .px-slot .px-slotPh { position: absolute; inset: 0; background-size: cover; background-position: center; }
 
-        /* Convergência: tríptico de fotos "impressas" (moldura clara = var(--ink)
-           no escopo dark; sombra por var(--bg)). Fiel ao telão do protótipo. */
+        /* Convergência: a tela do telão exibindo três fotos ao vivo — grade
+           limpa, sem moldura de polaroide (que poluía). Moldura fina clara
+           (var(--ink) é claro no escopo dark do telão). */
         .px-triptico {
-          display: grid; grid-template-columns: 1fr 1.2fr 1fr;
-          gap: clamp(.75rem, 2vw, 1.75rem); width: 100%; height: 100%;
-          align-items: center; padding: 0 clamp(.5rem, 2vw, 1rem);
+          display: grid; grid-template-columns: 1fr 1fr 1fr;
+          gap: clamp(.4rem, 1.2vw, .75rem); width: 100%; height: 100%;
         }
         .px-triptico-foto {
-          position: relative; height: 84%; min-height: 0; overflow: hidden;
+          position: relative; min-height: 0; overflow: hidden;
           background-size: cover; background-position: center;
-          border: clamp(5px, .8vw, 10px) solid var(--ink);
-          border-bottom-width: clamp(20px, 3vw, 36px);
-          box-shadow: 0 10px 20px color-mix(in srgb, var(--bg) 55%, transparent);
+          border-radius: var(--raio-media);
+          border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
         }
-        .px-triptico-foto:first-child { transform: rotate(-4deg); }
-        .px-triptico-foto:nth-child(2) { height: 100%; transform: rotate(1deg); }
-        .px-triptico-foto:last-child { transform: rotate(4deg); }
         @media (max-width: 760px) {
-          .px-triptico { gap: 8px; padding: 0 4px; }
-          .px-triptico-foto { border-width: 5px; border-bottom-width: 20px; }
+          .px-triptico { gap: 4px; }
         }
 
         .px-rm { display: none; }
