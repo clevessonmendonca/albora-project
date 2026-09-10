@@ -3,13 +3,16 @@ import { VendorPortalScreen } from "@/features/vendor-portal/components/server/v
 
 export const dynamic = "force-dynamic";
 
-/** Leitura só — billing, wizard e criação de evento são V2b. */
 export default async function VendorPortalPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ vendorSlug: string }>;
+  searchParams: Promise<{ plan?: string }>;
 }) {
   const { vendorSlug } = await params;
+  const { plan } = await searchParams;
   const context = await loadVendorPortal(vendorSlug);
-  return <VendorPortalScreen {...context} />;
+  const requestedPlan = plan === "starter" || plan === "studio" || plan === "agency" ? plan : undefined;
+  return <VendorPortalScreen {...context} {...(requestedPlan ? { requestedPlan } : {})} />;
 }

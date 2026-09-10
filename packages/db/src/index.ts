@@ -409,7 +409,7 @@ export { addEventMember, ensureCoupleMember, listEventMembers, roleForAccountOnE
 
 export type {
   BillingPayment, BillingPaymentStatus, BillingPaymentSummaryAdmin, RefundablePaymentRow,
-  VendorSubscription, VendorSubscriptionByIdAdmin, VendorSubscriptionStatus,
+  VendorSubscription, VendorSubscriptionByIdAdmin, VendorSubscriptionForVendor, VendorSubscriptionStatus,
 } from "./billing";
 export {
   aplicarPlanoPago,
@@ -420,11 +420,14 @@ export {
   createVendorSubscription,
   ehAssinaturaDuplicada,
   getVendorSubscriptionByIdAdmin,
+  latestVendorSubscriptionForVendor,
   listBillingPaymentsForAccountAdmin,
   listRefundablePaymentsForVendor,
   markPaymentPaidByAsaasId,
   markVendorSubscriptionByAsaasId,
   paymentByAsaasId,
+  recordVendorSubscriptionCancellationRequest,
+  recordVendorSubscriptionPlanChange,
   upsertBillingCustomer,
 } from "./billing";
 
@@ -457,6 +460,17 @@ export {
   roleForAccountOnVendor,
   vendorsDaConta,
 } from "./vendor-portal";
+
+export type { VendorTeamMember } from "./vendor-team";
+export {
+  listVendorTeam,
+  removeVendorTeamMember,
+  upsertVendorTeamMember,
+  updateVendorTeamMemberRole,
+  VendorTeamAccessError,
+  VendorTeamLimitError,
+  VendorTeamSelfManagementError,
+} from "./vendor-team";
 
 /** English alias — preferred for new code. @see marcaPublicaDoFornecedor */
 export { marcaPublicaDoFornecedor as vendorPublicBranding } from "./vendor-portal";

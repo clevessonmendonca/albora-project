@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { CreateEventWizard } from "@/features/admin/components/client/create-event-wizard";
 import { adminVars } from "@/features/admin/components/server/admin-shell";
+import { UUID_RE } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
 
@@ -11,16 +12,25 @@ export const dynamic = "force-dynamic";
 export default async function NewEventPage({
   searchParams,
 }: {
-  searchParams: Promise<{ plano?: string }>;
+  searchParams: Promise<{
+    plano?: string;
+    vendor?: string;
+    vendorSlug?: string;
+    vendorPlan?: string;
+  }>;
 }) {
-  const { plano } = await searchParams;
+  const { plano, vendor, vendorSlug, vendorPlan } = await searchParams;
   const token = (await cookies()).get(HOST_COOKIE)?.value;
   const host = await hostFromToken(token);
   if (!host) {
-    const dest =
-      plano === "celebration" || plano === "free"
-        ? `/admin/new?plano=${plano}`
-        : "/admin/new";
+    const params = new URLSearchParams();
+    if (plano === "celebration" || plano === "free") params.set("plano", plano);
+    if (vendor && UUID_RE.test(vendor)) params.set("vendor", vendor);
+    if (vendorSlug) params.set("vendorSlug", vendorSlug);
+    if (vendorPlan === "starter" || vendorPlan === "studio" || vendorPlan === "agency") {
+      params.set("vendorPlan", vendorPlan);
+    }
+    const dest = `/admin/new${params.size > 0 ? `?${params.toString()}` : ""}`;
     redirect(`/admin/sign-in?next=${encodeURIComponent(dest)}`);
   }
 

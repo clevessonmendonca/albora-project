@@ -1,6 +1,6 @@
 # Álbora — Refatoração para o redesign v4 (guia de implementação)
 
-> **Para o agente/dev que vai implementar.** Este documento traduz o redesign (protótipos em `docs/redesign/prototipos/`) para o código atual. Cobre **dois fluxos fechados**: **Onboarding (criar evento)** e **Experiência do convidado**. O **Telão** ([`telao.md`](./telao.md)), o **QR + Kit de materiais** ([`kit.md`](./kit.md)), a **Identidade / Aparência** ([`identidade.md`](./identidade.md)), o **Painel do anfitrião** ([`painel.md`](./painel.md)) e o **Console do operador** ([`console.md`](./console.md)) também estão fechados, em docs próprios.
+> **Para o agente/dev que vai implementar.** Este documento traduz o redesign (protótipos em `docs/redesign/prototipos/`) para o código atual. Cobre **dois fluxos fechados**: **Onboarding (criar evento)** e **Experiência do convidado**. O **Telão** ([`telao.md`](./telao.md)), o **QR + Kit de materiais** ([`kit.md`](./kit.md)), a **Identidade / Aparência** ([`identidade.md`](./identidade.md)), o **Painel do anfitrião** ([`painel.md`](./painel.md)), o **Fornecedor / portal white-label** ([`fornecedor.md`](./fornecedor.md)) e o **Console do operador** ([`console.md`](./console.md)) também estão fechados, em docs próprios.
 
 ## 0. Como usar
 
@@ -163,3 +163,4 @@ Para cada tela: [ ] tokens (zero hex) · [ ] copy do pack (zero domínio hardcod
 - `prototipos/onboarding-criar-evento.html` — fluxo A (login + criar).
 - `prototipos/convidado.html` — fluxo B (convidado).
 - `prototipos/painel-anfitriao.html` — painel (referência, em iteração; **não** implementar ainda).
+- `prototipos/fornecedor-completo.html` — landing, onboarding, portal, evento, marca, equipe, cobranças e checkout do fornecedor.

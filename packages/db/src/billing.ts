@@ -157,6 +157,8 @@ export type VendorSubscription = {
   asaasSubscriptionId: string;
   status: VendorSubscriptionStatus;
   plan: VendorPlan;
+  pendingPlan: VendorPlan | null;
+  cancelRequestedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -195,6 +197,8 @@ export async function createVendorSubscription(
     asaasSubscriptionId: r.asaas_subscription_id,
     status: r.status,
     plan: r.plan,
+    pendingPlan: null,
+    cancelRequestedAt: null,
     createdAt: r.created_at,
     updatedAt: r.updated_at,
   };
@@ -208,7 +212,10 @@ export async function markVendorSubscriptionByAsaasId(
 ): Promise<{ vendorId: string; accountId: string; plan: VendorPlan } | null> {
   const { rows } = await pool.query<{ vendor_id: string; account_id: string; plan: VendorPlan }>(
     `UPDATE vendor_subscriptions
-        SET status = $2, updated_at = now()
+        SET status = $2,
+            plan = CASE WHEN $2 = 'active' THEN COALESCE(pending_plan, plan) ELSE plan END,
+            pending_plan = CASE WHEN $2 IN ('active', 'canceled') THEN NULL ELSE pending_plan END,
+            updated_at = now()
       WHERE asaas_subscription_id = $1
       RETURNING vendor_id, account_id, plan`,
     [asaasSubscriptionId, status],
@@ -216,6 +223,83 @@ export async function markVendorSubscriptionByAsaasId(
   const row = rows[0];
   if (!row) return null;
   return { vendorId: row.vendor_id, accountId: row.account_id, plan: row.plan };
+}
+
+export type VendorSubscriptionForVendor = VendorSubscription;
+
+/** Tabela sem RLS: o chamador precisa confirmar previamente que a conta é admin do vendor. */
+export async function latestVendorSubscriptionForVendor(
+  pool: Pool,
+  vendorId: string,
+): Promise<VendorSubscriptionForVendor | null> {
+  const { rows } = await pool.query<{
+    id: string;
+    vendor_id: string;
+    account_id: string;
+    asaas_subscription_id: string;
+    status: VendorSubscriptionStatus;
+    plan: VendorPlan;
+    pending_plan: VendorPlan | null;
+    cancel_requested_at: Date | null;
+    created_at: Date;
+    updated_at: Date;
+  }>(
+    `SELECT id, vendor_id, account_id, asaas_subscription_id, status, plan,
+            pending_plan, cancel_requested_at, created_at, updated_at
+       FROM vendor_subscriptions
+      WHERE vendor_id = $1
+      ORDER BY created_at DESC
+      LIMIT 1`,
+    [vendorId],
+  );
+  const row = rows[0];
+  return row
+    ? {
+        id: row.id,
+        vendorId: row.vendor_id,
+        accountId: row.account_id,
+        asaasSubscriptionId: row.asaas_subscription_id,
+        status: row.status,
+        plan: row.plan,
+        pendingPlan: row.pending_plan,
+        cancelRequestedAt: row.cancel_requested_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }
+    : null;
+}
+
+export async function recordVendorSubscriptionPlanChange(
+  client: PoolClient,
+  subscriptionId: string,
+  vendorId: string,
+  plan: VendorPlan,
+): Promise<boolean> {
+  const result = await client.query(
+    `UPDATE vendor_subscriptions
+        SET pending_plan = $3, updated_at = now()
+      WHERE id = $1 AND vendor_id = $2
+        AND status IN ('active', 'overdue')
+        AND cancel_requested_at IS NULL`,
+    [subscriptionId, vendorId, plan],
+  );
+  return (result.rowCount ?? 0) === 1;
+}
+
+export async function recordVendorSubscriptionCancellationRequest(
+  client: PoolClient,
+  subscriptionId: string,
+  vendorId: string,
+): Promise<boolean> {
+  const result = await client.query(
+    `UPDATE vendor_subscriptions
+        SET cancel_requested_at = now(), pending_plan = NULL, updated_at = now()
+      WHERE id = $1 AND vendor_id = $2
+        AND status <> 'canceled'
+        AND cancel_requested_at IS NULL`,
+    [subscriptionId, vendorId],
+  );
+  return (result.rowCount ?? 0) === 1;
 }
 
 /** 🔴 vendors não tem escape por app.event_id — webhook sem sessão não tem vendor_membro. Usa comAgregacao (BYPASSRLS, auditado), nunca UPDATE sem filtro. */

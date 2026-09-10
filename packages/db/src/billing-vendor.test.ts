@@ -5,7 +5,10 @@ import {
   createVendorSubscription,
   listBillingPaymentsForAccountAdmin,
   listRefundablePaymentsForVendor,
+  latestVendorSubscriptionForVendor,
   markVendorSubscriptionByAsaasId,
+  recordVendorSubscriptionCancellationRequest,
+  recordVendorSubscriptionPlanChange,
 } from "./billing";
 import { prepararBanco, semear } from "./testes/banco";
 
@@ -75,6 +78,40 @@ describe("markVendorSubscriptionByAsaasId — idempotência do webhook", () => {
 
   it("id desconhecido devolve null — evento de webhook duplicado/alheio não quebra", async () => {
     expect(await markVendorSubscriptionByAsaasId(app, "sub_que_nao_existe", "active")).toBeNull();
+  });
+});
+
+describe("autosserviço da assinatura", () => {
+  it("mantém a troca pendente até o webhook efetivar o novo plano", async () => {
+    const current = await latestVendorSubscriptionForVendor(app, vendorId);
+    expect(current).not.toBeNull();
+    const client = await app.connect();
+    try {
+      expect(await recordVendorSubscriptionPlanChange(client, current!.id, vendorId, "agency")).toBe(true);
+    } finally {
+      client.release();
+    }
+    expect((await latestVendorSubscriptionForVendor(app, vendorId))?.pendingPlan).toBe("agency");
+    expect(await markVendorSubscriptionByAsaasId(app, "sub_fake_001", "active")).toEqual({
+      vendorId,
+      accountId,
+      plan: "agency",
+    });
+    const updated = await latestVendorSubscriptionForVendor(app, vendorId);
+    expect(updated?.plan).toBe("agency");
+    expect(updated?.pendingPlan).toBeNull();
+  });
+
+  it("registra cancelamento uma vez e rejeita repetição", async () => {
+    const current = await latestVendorSubscriptionForVendor(app, vendorId);
+    const client = await app.connect();
+    try {
+      expect(await recordVendorSubscriptionCancellationRequest(client, current!.id, vendorId)).toBe(true);
+      expect(await recordVendorSubscriptionCancellationRequest(client, current!.id, vendorId)).toBe(false);
+    } finally {
+      client.release();
+    }
+    expect((await latestVendorSubscriptionForVendor(app, vendorId))?.cancelRequestedAt).toBeInstanceOf(Date);
   });
 });
 

@@ -34,3 +34,9 @@ describe("mutações de assinatura", () => {
     ).resolves.toEqual({ status: "REFUNDED" });
   });
 });
+
+describe("recibos da assinatura", () => {
+  it("stub devolve histórico vazio sem inventar cobranças", async () => {
+    await expect(stubBillingProvider().listSubscriptionPayments("sub-stub-1")).resolves.toEqual([]);
+  });
+});

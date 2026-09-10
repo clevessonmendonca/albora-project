@@ -1,5 +1,6 @@
 import React, { type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ALBORA_BRAND, resolveTokens, toVariables, type TokenLayer } from "@albora/tokens";
 
 /** `brandTokens` chega como `Record<string, unknown>` (formato bruto de `events.identity_tokens`) — o cast para `TokenLayer` é decisão de app, nunca de `@albora/db`. */
@@ -20,6 +21,10 @@ type VendorShellProps = {
   brandTokens: Record<string, unknown>;
   title: string;
   subtitle?: string;
+  vendorSlug: string;
+  settingsHref?: string;
+  teamHref?: string;
+  billingHref?: string;
   children: ReactNode;
 };
 
@@ -29,28 +34,47 @@ export function VendorShell({
   brandTokens,
   title,
   subtitle,
+  vendorSlug,
+  settingsHref,
+  teamHref,
+  billingHref,
   children,
 }: VendorShellProps) {
   return (
     <main
-      className="min-h-dvh bg-bg p-[clamp(1.5rem,5vw,4rem)] font-[family-name:var(--fonte-corpo)] text-ink"
+      className="min-h-dvh bg-bg font-[family-name:var(--fonte-corpo)] text-ink"
       style={vendorVars(brandTokens)}
     >
-      <header className="mb-10">
-        <Link
-          href="/admin"
-          className="mb-3 block text-[0.75rem] uppercase tracking-rotulo text-ink-3 no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
-        >
-          ← Painel
-        </Link>
-        <p className="m-0 text-[0.8125rem] uppercase tracking-rotulo text-ink-3">{vendorName}</p>
-        <h1 className="m-0 font-titulo text-[1.875rem] font-light tracking-titulo">{title}</h1>
-        {subtitle && <p className="mt-2 text-[0.9rem] text-ink-3">{subtitle}</p>}
+      <header className="border-b border-linha bg-superficie">
+        <div className="mx-auto flex min-h-16 w-full max-w-[80rem] items-center justify-between gap-4 px-5 sm:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            {!whiteLabelFull && <Image src="/logo-animado-estrela.svg" alt="" width={28} height={28} />}
+            <div className="min-w-0">
+              <p className="m-0 truncate font-titulo text-lg text-ink">{vendorName}</p>
+              {!whiteLabelFull && <p className="m-0 text-xs text-ink-3">com Albora</p>}
+            </div>
+          </div>
+          <Link href="/admin" className="inline-flex min-h-11 items-center rounded-pilula border border-linha px-4 text-sm text-ink no-underline hover:border-acento-texto">
+            Minha conta
+          </Link>
+        </div>
+        <nav aria-label="Portal do fornecedor" className="mx-auto flex w-full max-w-[80rem] gap-1 overflow-x-auto px-5 sm:px-8">
+          <a href="#visao-geral" className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-acento px-3 text-sm font-medium text-ink no-underline">Hoje</a>
+          <a href="#eventos" className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Eventos</a>
+          {settingsHref && <Link href={settingsHref} className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Marca</Link>}
+          {teamHref && <Link href={teamHref} className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Equipe</Link>}
+          {billingHref ? <Link href={billingHref} className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Plano e cobrança</Link> : <a href="#assinatura" className="inline-flex min-h-11 shrink-0 items-center border-b-2 border-transparent px-3 text-sm text-ink-2 no-underline hover:text-ink">Plano e cobrança</a>}
+        </nav>
       </header>
-      {children}
-      {!whiteLabelFull && (
-        <p className="mt-10 text-[0.75rem] text-ink-3">Portal com Albora</p>
-      )}
+      <div className="mx-auto w-full max-w-[80rem] px-5 py-8 sm:px-8 lg:py-12">
+        <div className="mb-8 max-w-[50rem]" id="visao-geral">
+          <p className="m-0 text-sm text-acento-texto">{vendorSlug}</p>
+          <h1 className="tipo-title m-0 mt-2">{title}</h1>
+          {subtitle && <p className="tipo-body mb-0 mt-3 text-ink-2">{subtitle}</p>}
+        </div>
+        {children}
+        {!whiteLabelFull && <p className="mb-0 mt-12 text-xs text-ink-3">Portal com Albora</p>}
+      </div>
     </main>
   );
 }

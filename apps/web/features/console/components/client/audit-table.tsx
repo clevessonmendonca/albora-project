@@ -15,6 +15,7 @@ export const ROTULO_ALVO: Record<AuditTargetKind, string> = {
   dsar_request: "Pedido LGPD",
   impersonation_request: "Impersonação",
   payment: "Pagamento",
+  vendor: "Fornecedor",
 };
 
 const ROTULO_PERIODO: Record<string, string> = {

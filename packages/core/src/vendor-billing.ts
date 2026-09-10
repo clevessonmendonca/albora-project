@@ -19,3 +19,10 @@ export const VENDOR_PLAN_PRICE_CENTS: Record<VendorPlanTier, number> = {
   studio: 24900,
   agency: 59900,
 };
+
+/** Inclui a conta administradora. `null` representa capacidade sem limite contratual. */
+export const VENDOR_PLAN_TEAM_LIMIT: Record<VendorPlanTier, number | null> = {
+  starter: 1,
+  studio: 5,
+  agency: null,
+};
