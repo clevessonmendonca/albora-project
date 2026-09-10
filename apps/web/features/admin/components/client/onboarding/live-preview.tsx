@@ -95,34 +95,39 @@ function EditableTitle({ data, className }: { data: LivePreviewData; className?:
 function GuestSurface({ data }: { data: LivePreviewData }) {
   return (
     <div
-      className="w-[248px] overflow-hidden rounded-[28px] border border-linha bg-bg font-corpo shadow-alta"
+      className="w-[250px] rounded-[34px] border border-linha bg-bg p-2 font-corpo shadow-alta"
       style={data.vars}
     >
-      <Cover data={data} className="aspect-[3/4] w-full" />
-      <div className="flex flex-col gap-3 p-4">
-        <div>
-          <EditableTitle data={data} className="text-[1.35rem]" />
-          <p className="tipo-caption m-0 mt-1 text-ink-2">{data.dateLabel || "Data do evento"}</p>
+      <div className="overflow-hidden rounded-[26px] bg-bg">
+        <Cover data={data} className="aspect-[3/4] w-full" />
+        <div className="flex flex-col gap-3 px-3.5 py-4">
+          <div>
+            <EditableTitle data={data} className="text-[1.35rem]" />
+            <p className="tipo-caption m-0 mt-1 text-ink-2">{data.dateLabel || "Data do evento"}</p>
+          </div>
+          <button
+            type="button"
+            tabIndex={-1}
+            className="inline-flex min-h-11 items-center justify-center rounded-pilula px-4 text-[0.9rem] font-medium"
+            style={{ background: "var(--ev, var(--acento))", color: "var(--ev-on, var(--sobre-acento))" }}
+          >
+            {data.ctaLabel}
+          </button>
+          <div className="flex flex-wrap gap-1.5">
+            {data.momentos.slice(0, 3).map((m) => (
+              <span
+                key={m}
+                className="rounded-pilula px-2.5 py-1 text-[0.7rem]"
+                style={{ background: "var(--ev-soft, var(--superficie-alta))", color: "var(--ev, var(--ink-2))" }}
+              >
+                {m}
+              </span>
+            ))}
+          </div>
         </div>
-        <button
-          type="button"
-          tabIndex={-1}
-          className="inline-flex min-h-11 items-center justify-center rounded-pilula px-4 text-[0.9rem] font-medium"
-          style={{ background: "var(--ev, var(--acento))", color: "var(--ev-on, var(--sobre-acento))" }}
-        >
-          {data.ctaLabel}
-        </button>
-        <div className="flex flex-wrap gap-1.5">
-          {data.momentos.slice(0, 3).map((m) => (
-            <span
-              key={m}
-              className="rounded-pilula px-2.5 py-1 text-[0.7rem]"
-              style={{ background: "var(--ev-soft, var(--superficie-alta))", color: "var(--ev, var(--ink-2))" }}
-            >
-              {m}
-            </span>
-          ))}
-        </div>
+      </div>
+      <div className="flex justify-center py-1.5">
+        <span aria-hidden className="h-1 w-16 rounded-full bg-linha" />
       </div>
     </div>
   );

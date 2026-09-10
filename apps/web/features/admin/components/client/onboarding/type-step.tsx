@@ -104,26 +104,18 @@ export function TypeStep({
       </fieldset>
 
       {selected && (
-        <div className="flex items-start gap-2.5 rounded-token bg-superficie-alta px-3.5 py-3 text-ink-2">
-          <span aria-hidden className="mt-0.5 shrink-0 text-acento-texto">
-            <Glyph name="wand-2" size={18} />
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="inline-flex items-center gap-1.5 tipo-caption text-ink-2">
+            <Glyph name="wand-2" size={14} className="text-acento-texto" />
+            Momentos e missões já prontos pra <b className="text-ink">{selected.preparo}</b>.
           </span>
-          <div className="flex flex-col gap-1.5">
-            <p className="tipo-caption m-0">
-              Preparamos tudo pra <b className="text-ink">{selected.preparo}</b> — momentos, missões
-              e telão. Você muda depois.
-            </p>
-            <button
-              type="button"
-              onClick={onEditMissions}
-              className="inline-flex w-fit items-center gap-1 tipo-label text-acento-texto transition-opacity hover:opacity-80"
-            >
-              <Glyph name="target" size={13} /> Ajustar missões
-              <span className="text-ink-3">
-                · {missionsAtivas}/{missionsTotal}
-              </span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onEditMissions}
+            className="inline-flex items-center gap-1 tipo-label text-acento-texto transition-opacity hover:opacity-80"
+          >
+            <Glyph name="target" size={12} /> Ajustar missões · {missionsAtivas}/{missionsTotal}
+          </button>
         </div>
       )}
 

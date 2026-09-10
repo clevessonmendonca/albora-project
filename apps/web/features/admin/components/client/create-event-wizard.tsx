@@ -413,7 +413,6 @@ export function CreateEventWizard() {
                   cor2={cor2}
                   onColor={setColor}
                   photoColors={photoColors}
-                  hasCover={Boolean(coverUrl)}
                 />
                 {/* Prévia inline compacta no mobile, na Aparência (design v3). */}
                 <div className="lg:hidden">
