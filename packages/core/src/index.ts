@@ -862,7 +862,7 @@ export {
   REFUND_APPROVAL_THRESHOLD_CENTS,
   ROLE_CAPABILITIES,
 } from "./authorization";
-export { logger } from "./structured-logging";
+export { erroParaRegistro, logger, sanitizarTextoDeErro } from "./structured-logging";
 export {
   VENDOR_PLAN_PRICE_CENTS,
   VENDOR_PLAN_TEAM_LIMIT,
