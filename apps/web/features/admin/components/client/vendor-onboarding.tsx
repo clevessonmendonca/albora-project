@@ -52,6 +52,16 @@ export function VendorOnboarding({ afterCreate, requestedPlan }: Props) {
   const canContinue = step === 1 ? nameValid && slugValid : accentValid;
 
   const progressLabel = useMemo(() => `Etapa ${step} de 3`, [step]);
+  const completionActions =
+    afterCreate === "event"
+      ? ([
+          { destination: "event", label: "Criar meu primeiro evento" },
+          { destination: "settings", label: "Abrir configurações" },
+        ] as const)
+      : ([
+          { destination: "settings", label: "Abrir configurações" },
+          { destination: "event", label: "Criar meu primeiro evento" },
+        ] as const);
 
   function setNameAndDerive(value: string) {
     setName(value);
@@ -154,7 +164,9 @@ export function VendorOnboarding({ afterCreate, requestedPlan }: Props) {
             }}
             placeholder="studio-aurora"
             hint="Use letras minúsculas, números e hífen."
-            error={slug !== "" && !slugValid ? "Use só letras minúsculas, números e hífen." : undefined}
+            {...(slug !== "" && !slugValid
+              ? { error: "Use só letras minúsculas, números e hífen." }
+              : {})}
           />
           <Button type="button" disabled={!canContinue || status === "saving"} onClick={() => void createVendor()}>
             {status === "saving" ? "Criando…" : "Criar fornecedor"}
@@ -220,8 +232,15 @@ export function VendorOnboarding({ afterCreate, requestedPlan }: Props) {
           <h2 className="mb-2 mt-2 font-titulo text-2xl text-ink">{name} já tem uma base.</h2>
           <p className="mb-6 mt-0 text-ink-2">Agora você pode criar a primeira festa ou revisar cores, logo e endereço.</p>
           <div className="flex flex-wrap gap-3">
-            <Button type="button" onClick={() => finish("event")}>Criar meu primeiro evento</Button>
-            <Button type="button" onClick={() => finish("settings")}>Abrir configurações</Button>
+            {completionActions.map((action) => (
+              <Button
+                key={action.destination}
+                type="button"
+                onClick={() => finish(action.destination)}
+              >
+                {action.label}
+              </Button>
+            ))}
           </div>
         </div>
       )}

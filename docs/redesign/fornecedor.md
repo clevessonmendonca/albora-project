@@ -72,4 +72,4 @@ Na implementação, trate essas imagens como direção de arte do protótipo. Pr
 5. ✅ Métricas e carteira ligadas aos dados agregados reais, com estado vazio honesto.
 6. ✅ Equipe implementada com convite por magic link, papéis, remoção confirmada, limite por plano, autorização de administrador e auditoria anterior ao acesso agregador.
 7. ✅ Recibos, troca de plano e cancelamento implementados com autorização, auditoria transacional, estado intermediário explícito e degradação isolada quando o histórico do provedor falha.
-8. Cobrir o caminho completo em E2E quando o ambiente de billing de teste estiver disponível; componentes críticos já têm testes de teclado, erro e ausência de URL externa.
+8. ✅ Caminho completo coberto em Playwright, no Chromium desktop e WebKit mobile, desde a criação do fornecedor e da identidade até o primeiro evento, portal, checkout e confirmação pelo billing stub.

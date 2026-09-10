@@ -1,5 +1,8 @@
 import { defineConfig, devices, type ReporterDescription } from "@playwright/test";
 
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+const serverPort = new URL(baseURL).port || "3000";
+
 /**
  * Configuração do Playwright para testes E2E do Albora
  *
@@ -30,7 +33,7 @@ export default defineConfig({
   /* Shared settings for all projects */
   use: {
     /* Base URL to use in actions like `await page.goto('/')` */
-    baseURL: "http://localhost:3000",
+    baseURL,
 
     /* Collect trace when retrying the failed test */
     trace: "on-first-retry",
@@ -70,8 +73,8 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: process.env.CI ? "pnpm start" : "pnpm dev",
-    url: "http://localhost:3000",
+    command: process.env.CI ? `pnpm start --port ${serverPort}` : `pnpm dev --port ${serverPort}`,
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000, // 2 min para o dev server iniciar
   },
