@@ -90,7 +90,7 @@ export function AppearanceStep({
     <div className="flex flex-col gap-6">
       <fieldset className="m-0 border-0 p-0">
         <legend className="tipo-label mb-2.5 text-ink-3">Escolha um estilo</legend>
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+        <div className="grid grid-cols-3 gap-3">
           {EVENT_STYLES.map((s) => {
             const ativo = s.chave === styleKey;
             const combo = COLOR_COMBOS[s.comboIndex]!;
@@ -101,42 +101,38 @@ export function AppearanceStep({
                 role="radio"
                 aria-checked={ativo}
                 onClick={() => onStyle(s)}
-                className={`relative flex flex-col overflow-hidden rounded-token text-left transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                  ativo
-                    ? "ring-2 ring-acento ring-offset-2 ring-offset-bg"
-                    : "ring-1 ring-linha hover:ring-acento-texto"
-                }`}
+                className="group flex flex-col gap-2 rounded-token p-1 text-left"
               >
-                {ativo && (
-                  <span
-                    aria-hidden
-                    className="absolute right-2 top-2 z-[2] flex size-5 items-center justify-center rounded-full bg-acento text-sobre-acento shadow-suave"
-                  >
-                    <Glyph name="check" size={13} />
-                  </span>
-                )}
+                {/* Mini capa: representa o estilo como o objeto que ele vira — uma
+                    capa de álbum, com sombra (DESIGN.md: papel/objeto tem sombra). */}
                 <span
                   aria-hidden
-                  className="relative flex aspect-[4/3] items-end overflow-hidden"
+                  className={`relative block aspect-[3/4] overflow-hidden rounded-[10px] shadow-alta transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] group-hover:-translate-y-0.5 ${
+                    ativo ? "ring-2 ring-acento ring-offset-2 ring-offset-bg" : ""
+                  }`}
                   style={{ background: combo.cor }}
                 >
-                  <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: combo.cor2 }} />
+                  <span className="absolute inset-x-0 top-0 h-1" style={{ background: combo.cor2 }} />
+                  <span className="scrim-foto absolute inset-0 opacity-80" />
                   <span
-                    className={`sobre-foto relative z-[1] px-2.5 pb-2.5 leading-tight ${styleNameClass(
+                    className={`sobre-foto absolute inset-x-2 bottom-2.5 text-[0.9rem] leading-tight ${styleNameClass(
                       s.chave,
                     )}`}
                     style={{ fontFamily: s.camada.fontes?.titulo }}
                   >
                     {eventName}
                   </span>
+                  {ativo && (
+                    <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-acento text-sobre-acento shadow-suave">
+                      <Glyph name="check" size={12} />
+                    </span>
+                  )}
                 </span>
-                <span
-                  className={`flex flex-col gap-0.5 px-2.5 py-2 ${
-                    ativo ? "bg-superficie-alta" : "bg-superficie"
-                  }`}
-                >
-                  <span className="font-titulo text-[0.85rem] text-ink">{s.nome}</span>
-                  <span className="tipo-label text-ink-3">{s.descricao}</span>
+                <span className="px-0.5">
+                  <span className={`block text-[0.8rem] ${ativo ? "font-medium text-ink" : "text-ink-2"}`}>
+                    {s.nome}
+                  </span>
+                  <span className="block tipo-label text-ink-3">{s.descricao}</span>
                 </span>
               </button>
             );
