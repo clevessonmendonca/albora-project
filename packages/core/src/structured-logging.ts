@@ -57,6 +57,60 @@ export function maskObject(obj: Record<string, unknown>): Record<string, unknown
   return masked;
 }
 
+/** 160 é o limite que a tela de Retenção já praticava — mudar corta ou alonga mensagem em produção, e isso é decisão de produto, não efeito colateral de refactor. */
+const MAX_ERRO_CHARS = 160;
+
+/**
+ * Padrões de PII dentro de texto livre de exceção, na ordem em que precisam
+ * ser aplicados — os estruturados primeiro, senão a máscara de e-mail come
+ * parte do valor e o resto da linha escapa.
+ */
+const MASCARAS_DE_ERRO: ReadonlyArray<readonly [RegExp, string]> = [
+  // Guloso até o último `)`: valor com parêntese dentro (`Key (nome)=(Ana
+  // (Silva))`) deixava o resto da mensagem cru quando parava no primeiro.
+  [/\bKey \(([^)]*)\)=\(.*\)/g, "Key ($1)=([valor])"],
+  // Até o fim: o Postgres despeja a linha inteira aqui, com qualquer conteúdo.
+  [/\bFailing row contains \([\s\S]*/g, "Failing row contains ([linha])"],
+  [/[\w.+-]+@[\w-]+\.[\w.-]+/g, "[e-mail]"],
+  // As bordas `(?<![\w-])` / `(?![\w-])` são o que preserva UUID e timestamp.
+  // Sem elas, `...-a716-446655440000` vira `...-a[telefone]` e o operador
+  // perde o `event_id` — mascarar o identificador cega o diagnóstico sem
+  // proteger ninguém.
+  [/(?<![\w-])(?:\+?\d{1,3}[\s.-]?)?\(?\d{2,3}\)?[\s.-]?\d{4,5}[\s.-]?\d{4}(?![\w-])/g, "[telefone]"],
+  // URL assinada carrega credencial na query.
+  [/\?[^\s"']+/g, "?[query]"],
+];
+
+/**
+ * Mascara PII em texto livre de exceção.
+ *
+ * `maskObject` mascara por NOME de campo (`email`, `phone`); isto é para o
+ * caso oposto — o campo se chama `erro` e a PII está dentro da mensagem, que
+ * é como ela chega de driver de banco e de API externa.
+ */
+export function sanitizarTextoDeErro(bruto: string | null): string | null {
+  if (!bruto) return null;
+  let texto = bruto;
+  for (const [padrao, troca] of MASCARAS_DE_ERRO) texto = texto.replace(padrao, troca);
+  return texto.length > MAX_ERRO_CHARS ? `${texto.slice(0, MAX_ERRO_CHARS)}…` : texto;
+}
+
+/** SQLSTATE do pg (`23505`) ou `name` do Error: diagnóstico que sobrevive ao mascaramento do texto. */
+function codigoDoErro(e: unknown): string {
+  if (typeof e === "object" && e !== null) {
+    const { code, name } = e as { code?: unknown; name?: unknown };
+    if (typeof code === "string" && /^[A-Za-z0-9_]{1,32}$/.test(code)) return code;
+    if (typeof name === "string" && name.length > 0) return name;
+  }
+  return "desconhecido";
+}
+
+/** Forma única de uma exceção virar linha de log: `código: mensagem sanitizada`. */
+export function erroParaRegistro(e: unknown): string {
+  const bruto = e instanceof Error ? e.message : String(e);
+  return `${codigoDoErro(e)}: ${sanitizarTextoDeErro(bruto) ?? ""}`;
+}
+
 /**
  * Logger estruturado com PII masking automático
  */

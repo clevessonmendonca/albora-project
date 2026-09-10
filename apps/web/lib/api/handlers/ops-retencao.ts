@@ -3,6 +3,7 @@ import {
   processRetentionJob,
   type NotificacaoRetencao,
 } from "@albora/db";
+import { erroParaRegistro } from "@albora/core";
 import { errorResponse, jsonOk, unexpectedError } from "@/lib/api";
 import { getAggregatorPool, getPool } from "@/lib/db";
 import { driveConfig } from "@/lib/drive-config";
@@ -118,7 +119,7 @@ export async function postOpsRetencao(req: Request) {
             // Enriquecimento pós-commit — não derruba o sweep.
             console.warn("retencao.purge_r2_falhou", {
               eventId: job.eventId,
-              erro: String(e),
+              erro: erroParaRegistro(e),
             });
           }
         }
@@ -135,7 +136,7 @@ export async function postOpsRetencao(req: Request) {
         } catch (e) {
           console.warn("retencao.revoke_drive_falhou", {
             eventId: job.eventId,
-            erro: String(e),
+            erro: erroParaRegistro(e),
           });
         }
       }
