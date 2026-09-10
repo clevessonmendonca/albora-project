@@ -34,7 +34,7 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
     );
 
     render(<CreateEventWizard />);
-    await waitFor(() => expect(screen.getByText("Vamos criar seu evento")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("O que vocês estão celebrando?")).toBeInTheDocument());
 
     // Sem nome/data, clicar não avança: continua no passo 0 e mostra erro.
     fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
@@ -142,11 +142,46 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
       }),
     );
     render(<CreateEventWizard />);
-    await waitFor(() => expect(screen.getByText("Vamos criar seu evento")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("O que vocês estão celebrando?")).toBeInTheDocument());
 
     const grupo = screen.getByRole("group", { name: "Que evento é esse?" });
     const cards = within(grupo).getAllByRole("radio");
     // Seis tipos: casamento, aniversário, formatura, corporativo, celebração, outro.
     expect(cards).toHaveLength(6);
+  });
+
+  it("desligar uma missão no sheet manda uma missão a menos no POST", async () => {
+    let missoesEnviadas: string[] | undefined;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url === "/api/admin/vendors") return responder({ vendors: [] });
+      if (url === "/api/admin/events") {
+        const body = JSON.parse(String(init?.body)) as { missoes?: string[] };
+        missoesEnviadas = body.missoes;
+        return responder({ eventoId: "evento-3", slug: "slug-3" });
+      }
+      throw new Error(`fetch inesperado: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<CreateEventWizard />);
+    await waitFor(() =>
+      expect(screen.getByText("O que vocês estão celebrando?")).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Ajustar missões/ }));
+    const dialog = screen.getByRole("dialog", { name: "Missões" });
+    const switches = within(dialog).getAllByRole("switch");
+    const total = switches.length;
+    expect(total).toBeGreaterThan(1);
+    fireEvent.click(switches[0]!); // desliga a primeira
+    fireEvent.click(within(dialog).getByRole("button", { name: "Pronto" }));
+
+    preencherEvento();
+    fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Criar evento" }));
+
+    await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
+    expect(missoesEnviadas).toHaveLength(total - 1);
   });
 });

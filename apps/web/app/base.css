@@ -61,3 +61,27 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * Tratamento de mídia: scrim quente FIXO para texto legível sobre foto de festa.
+ * Fixo de propósito — não é token de tema: sobre uma foto o texto é sempre claro,
+ * em qualquer evento e em qualquer tema. Valor quente na linha do papel escuro da
+ * marca (nunca preto puro). Fica aqui, num só lugar, para nenhum componente
+ * carregar cor literal.
+ */
+.scrim-foto {
+  background-image: linear-gradient(
+    to top,
+    rgba(20, 16, 14, 0.62),
+    rgba(20, 16, 14, 0.06) 55%,
+    transparent
+  );
+}
+.sobre-foto {
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(20, 16, 14, 0.5);
+}
+.chip-sobre-foto {
+  background: rgba(250, 248, 244, 0.94);
+  color: #1f1b18;
+}

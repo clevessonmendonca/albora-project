@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useId, useState, type CSSProperties } from "react";
+import React, { useEffect, useId, useMemo, useState, type CSSProperties } from "react";
 import { Glyph } from "./glyph";
 
 export type PreviewSurface = "convidado" | "telao" | "album";
@@ -18,6 +18,10 @@ export type LivePreviewData = {
   ctaLabel: string;
   momentos: string[];
   coverImage?: string | null;
+  /** Foto de exemplo da capa quando o anfitrião ainda não escolheu a dele. */
+  coverFallback?: string | null;
+  /** Fotos de exemplo do telão e do álbum. */
+  gallery?: readonly string[];
   layout: string;
   onEditTitle?: (value: string) => void;
   onPickCover?: () => void;
@@ -83,23 +87,31 @@ export function LivePreview({
   );
 }
 
-/** Capa: mostra a foto do casal quando existe; senão, estado vazio honesto tingido com `--ev`. */
+/** Capa: foto do anfitrião quando existe; senão uma foto de exemplo do tipo do
+ *  evento; e só como último recurso o estado vazio honesto tingido com `--ev`. */
 function Cover({ data, className }: { data: LivePreviewData; className?: string }) {
-  const base = "relative overflow-hidden bg-superficie-alta";
-  if (data.coverImage) {
+  const base = "group relative overflow-hidden bg-superficie-alta";
+  const src = data.coverImage ?? data.coverFallback ?? null;
+  const propria = Boolean(data.coverImage);
+  if (src) {
     return (
       <button
         type="button"
         onClick={data.onPickCover}
         className={`${base} ${className ?? ""}`}
-        aria-label="Trocar a capa"
+        aria-label={propria ? "Trocar a capa" : "Escolher a capa"}
       >
-        <img src={data.coverImage} alt="" className="h-full w-full object-cover" />
+        <img src={src} alt="" className="h-full w-full object-cover" />
         <span
           aria-hidden
           className="absolute inset-x-0 top-0 h-1"
           style={{ background: "var(--ev-2, var(--ev))" }}
         />
+        <span className="scrim-foto absolute inset-0 flex items-end justify-center p-2 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="chip-sobre-foto inline-flex items-center gap-1 rounded-pilula px-2.5 py-1 tipo-label">
+            <Glyph name="image" size={13} /> {propria ? "Trocar foto" : "Escolher a capa"}
+          </span>
+        </span>
       </button>
     );
   }
@@ -177,7 +189,30 @@ function GuestSurface({ data }: { data: LivePreviewData }) {
   );
 }
 
+/** Telão ao vivo: as fotos de exemplo trocam sozinhas (respeitando reduce-motion),
+ *  como o mural do salão preenchendo durante a festa. */
 function WallSurface({ data }: { data: LivePreviewData }) {
+  const pool = useMemo(() => data.gallery ?? [], [data.gallery]);
+  const [cells, setCells] = useState<string[]>(() =>
+    Array.from({ length: 6 }, (_, i) => (pool.length ? pool[i % pool.length]! : "")),
+  );
+
+  useEffect(() => {
+    if (pool.length < 2) return;
+    const reduz =
+      typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduz) return;
+    const id = setInterval(() => {
+      setCells((prev) => {
+        const next = [...prev];
+        const i = Math.floor(Math.random() * next.length);
+        next[i] = pool[Math.floor(Math.random() * pool.length)] ?? next[i]!;
+        return next;
+      });
+    }, 1800);
+    return () => clearInterval(id);
+  }, [pool]);
+
   return (
     <div
       className="w-full max-w-[340px] overflow-hidden rounded-superficie border border-linha bg-bg font-corpo shadow-alta"
@@ -191,13 +226,21 @@ function WallSurface({ data }: { data: LivePreviewData }) {
         </span>
       </div>
       <div className="grid grid-cols-3 gap-1.5 p-3">
-        {Array.from({ length: 6 }).map((_, i) => (
+        {cells.map((src, i) => (
           <span
             key={i}
             aria-hidden
-            className="aspect-[3/4] rounded-token bg-superficie-alta"
-            style={i === 0 ? { background: "var(--ev-soft, var(--superficie-alta))" } : undefined}
-          />
+            className="aspect-[3/4] overflow-hidden rounded-token bg-superficie-alta"
+          >
+            {src ? (
+              <img
+                key={src}
+                src={src}
+                alt=""
+                className="h-full w-full animate-[wall-aparecer_550ms_var(--curva)] object-cover motion-reduce:animate-none"
+              />
+            ) : null}
+          </span>
         ))}
       </div>
     </div>
@@ -205,6 +248,7 @@ function WallSurface({ data }: { data: LivePreviewData }) {
 }
 
 function AlbumSurface({ data }: { data: LivePreviewData }) {
+  const pool = data.gallery ?? [];
   return (
     <div
       className="w-[248px] overflow-hidden rounded-[28px] border border-linha bg-bg font-corpo shadow-alta"
@@ -215,13 +259,20 @@ function AlbumSurface({ data }: { data: LivePreviewData }) {
         <span aria-hidden className="text-ink-3"><Glyph name="image" size={16} /></span>
       </div>
       <div className="grid grid-cols-2 gap-1.5 p-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <span
-            key={i}
-            aria-hidden
-            className={`rounded-token bg-superficie-alta ${i % 3 === 0 ? "row-span-2 aspect-[3/4]" : "aspect-square"}`}
-          />
-        ))}
+        {Array.from({ length: 6 }).map((_, i) => {
+          const src = pool.length ? pool[(i + 2) % pool.length]! : "";
+          return (
+            <span
+              key={i}
+              aria-hidden
+              className={`overflow-hidden rounded-token bg-superficie-alta ${
+                i % 3 === 0 ? "row-span-2 aspect-[3/4]" : "aspect-square"
+              }`}
+            >
+              {src ? <img src={src} alt="" className="h-full w-full object-cover" /> : null}
+            </span>
+          );
+        })}
       </div>
     </div>
   );

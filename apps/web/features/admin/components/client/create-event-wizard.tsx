@@ -17,6 +17,8 @@ import { AccessEmailStep } from "./onboarding/access-email-step";
 import { EVENT_STYLES, COLOR_COMBOS, type EventStyle } from "./onboarding/appearance-data";
 import { LivePreview, type PreviewSurface } from "./onboarding/live-preview";
 import { paletteFromImage } from "./onboarding/photo-palette";
+import { PHOTO_POOL, typePhoto } from "./onboarding/onboarding-photos";
+import { MissionSheet } from "./onboarding/mission-sheet";
 import { Glyph } from "./onboarding/glyph";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -61,6 +63,7 @@ export function CreateEventWizard() {
         id: p.id,
         nome: resolvePackText(p, "evento.nome"),
         icone: p.icone ?? "calendar",
+        foto: typePhoto(p.id),
         preparo: resolvePackText(p, "evento.preparo"),
         posse: resolvePackText(p, "evento.posse"),
       })),
@@ -74,7 +77,11 @@ export function CreateEventWizard() {
   const [title, setTitle] = useState(() => (search.get("nome") ?? "").slice(0, 60));
   const [date, setDate] = useState("");
   const [guests, setGuests] = useState("");
+  const [local, setLocal] = useState("");
   const [showDetails, setShowDetails] = useState(false);
+  // Missões: por padrão todas do pack ligadas; o anfitrião desliga no sheet.
+  const [missionsOff, setMissionsOff] = useState<Set<string>>(() => new Set());
+  const [missionSheetOpen, setMissionSheetOpen] = useState(false);
   const [timezone] = useState(detectarFuso);
 
   const [styleKey, setStyleKey] = useState<EventStyle["chave"]>(DEFAULT_STYLE.chave);
@@ -139,7 +146,32 @@ export function CreateEventWizard() {
     () => (pack.momentos ?? []).map((m) => resolvePackText(pack, m.chaveTitulo)),
     [pack],
   );
-  const activeMissions = useMemo(() => pack.missoes.map((m) => m.chaveTitulo), [pack]);
+  const activeMissions = useMemo(
+    () => pack.missoes.map((m) => m.chaveTitulo).filter((k) => !missionsOff.has(k)),
+    [pack, missionsOff],
+  );
+  const missionToggles = useMemo(
+    () =>
+      pack.missoes.map((m) => ({
+        key: m.chaveTitulo,
+        label: resolvePackText(pack, m.chaveTitulo),
+        on: !missionsOff.has(m.chaveTitulo),
+      })),
+    [pack, missionsOff],
+  );
+
+  function selectPack(id: string) {
+    setPackId(id);
+    setMissionsOff(new Set());
+  }
+  function toggleMission(key: string) {
+    setMissionsOff((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
 
   const identityTokens = useMemo((): Record<string, unknown> => {
     const { cores: styleCores, ...restCamada } = style.camada;
@@ -151,8 +183,9 @@ export function CreateEventWizard() {
       // cores (`--ev`/`--ev-2`) vem de `eventCores`, que o Fluxo B adota sem repintar o produto.
       cores: { ...(styleCores ?? {}), acento: cor },
       eventCores: { cor, cor2 },
+      ...(local.trim() ? { local: local.trim() } : {}),
     };
-  }, [style, styleKey, cor, cor2]);
+  }, [style, styleKey, cor, cor2, local]);
 
   const previewVars = useMemo(
     () => resolveIdentityPreviewVars(pack, identityTokens) as CSSProperties,
@@ -253,7 +286,7 @@ export function CreateEventWizard() {
     }
     if (!digitando && /^[1-9]$/.test(e.key)) {
       const i = Number(e.key) - 1;
-      if (step === 0 && typeOptions[i]) setPackId(typeOptions[i]!.id);
+      if (step === 0 && typeOptions[i]) selectPack(typeOptions[i]!.id);
       if (step === 1 && EVENT_STYLES[i]) pickStyle(EVENT_STYLES[i]!);
     }
   }
@@ -267,6 +300,8 @@ export function CreateEventWizard() {
     ctaLabel: "Entrar na festa",
     momentos,
     coverImage: coverUrl,
+    coverFallback: typePhoto(packId),
+    gallery: PHOTO_POOL,
     layout: styleKey,
     onEditTitle: (v: string) => setTitle(v),
     onPickCover,
@@ -289,11 +324,13 @@ export function CreateEventWizard() {
         <div className="mx-auto grid w-full max-w-[64rem] gap-8 px-[clamp(1.1rem,4vw,2rem)] py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-1">
-              <h1 className="tipo-title m-0">{step === 0 ? "Vamos criar seu evento" : "Como ele aparece"}</h1>
+              <h1 className="tipo-title m-0">
+                {step === 0 ? "O que vocês estão celebrando?" : "Qual combina com vocês?"}
+              </h1>
               <p className="tipo-body m-0 text-ink-2">
                 {step === 0
                   ? "O tipo define os momentos e as missões — você muda depois."
-                  : "Escolha um estilo. Personalize se quiser — a prévia acompanha."}
+                  : "Escolha um estilo. O Álbora cuida da fonte, das cores e da composição."}
               </p>
             </div>
 
@@ -302,7 +339,10 @@ export function CreateEventWizard() {
                 <TypeStep
                   options={typeOptions}
                   selectedId={packId}
-                  onSelectType={setPackId}
+                  onSelectType={selectPack}
+                  onEditMissions={() => setMissionSheetOpen(true)}
+                  missionsAtivas={activeMissions.length}
+                  missionsTotal={pack.missoes.length}
                   title={title}
                   onTitle={setTitle}
                   titlePlaceholder={titlePlaceholder}
@@ -312,6 +352,8 @@ export function CreateEventWizard() {
                   dateError={showErrors && !dateValid}
                   guests={guests}
                   onGuests={setGuests}
+                  local={local}
+                  onLocal={setLocal}
                   showDetails={showDetails}
                   onToggleDetails={() => setShowDetails((v) => !v)}
                 />
@@ -357,6 +399,7 @@ export function CreateEventWizard() {
                 <AppearanceStep
                   styleKey={styleKey}
                   onStyle={pickStyle}
+                  eventName={displayTitle}
                   cor={cor}
                   cor2={cor2}
                   onColor={setColor}
@@ -424,6 +467,13 @@ export function CreateEventWizard() {
           </>
         )}
       </main>
+
+      <MissionSheet
+        open={missionSheetOpen}
+        onClose={() => setMissionSheetOpen(false)}
+        missions={missionToggles}
+        onToggle={toggleMission}
+      />
     </div>
   );
 }
@@ -601,9 +651,32 @@ function ReadyStep({
           </p>
         )}
 
-        <p className="tipo-caption m-0 text-center text-ink-3">
-          Configure depois: Missões · Telão · QR · Equipe
-        </p>
+        <div className="flex flex-col items-center gap-2.5 border-t border-linha pt-5">
+          <p className="tipo-caption m-0 text-center text-ink-3">
+            Configure quando quiser — já deixamos tudo pronto.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {(
+              [
+                ["target", "Missões"],
+                ["monitor", "Telão"],
+                ["qr-code", "QR"],
+                ["user-plus", "Equipe"],
+              ] as const
+            ).map(([icon, label]) => (
+              <a
+                key={label}
+                href={`/admin/e/${created.eventoId}`}
+                className="inline-flex items-center gap-1.5 rounded-pilula border border-linha bg-superficie px-3.5 py-2 tipo-label text-ink no-underline transition-[border-color,transform] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97]"
+              >
+                <span className="text-ink-2">
+                  <Glyph name={icon} size={14} />
+                </span>{" "}
+                {label}
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
     </main>
   );

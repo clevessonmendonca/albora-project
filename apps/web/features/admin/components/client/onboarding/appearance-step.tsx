@@ -3,12 +3,29 @@
 import React, { useState, type CSSProperties } from "react";
 import { eventColorVariables, eventOnContrast } from "@albora/tokens";
 import { COLOR_COMBOS, EVENT_STYLES, SUGGESTED_COLORS, type EventStyle } from "./appearance-data";
+import { stylePhoto } from "./onboarding-photos";
 
 type Slot = "cor" | "cor2";
+
+/** Como o nome do evento é tipografado no card de cada estilo — o mesmo contrato
+ *  visual da capa: serif editorial, sans minimal/contempo (caixa alta), etc. */
+function styleNameClass(chave: EventStyle["chave"]): string {
+  switch (chave) {
+    case "minimal":
+      return "font-corpo font-semibold tracking-tight";
+    case "contempo":
+      return "font-corpo font-semibold uppercase tracking-wide text-[0.95rem]";
+    case "classic":
+      return "font-titulo italic";
+    default:
+      return "font-titulo";
+  }
+}
 
 export function AppearanceStep({
   styleKey,
   onStyle,
+  eventName,
   cor,
   cor2,
   onColor,
@@ -17,6 +34,7 @@ export function AppearanceStep({
 }: {
   styleKey: EventStyle["chave"];
   onStyle: (s: EventStyle) => void;
+  eventName: string;
   cor: string;
   cor2: string;
   onColor: (slot: Slot, hex: string) => void;
@@ -40,7 +58,6 @@ export function AppearanceStep({
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
           {EVENT_STYLES.map((s) => {
             const ativo = s.chave === styleKey;
-            const combo = COLOR_COMBOS[s.comboIndex]!;
             return (
               <button
                 key={s.chave}
@@ -52,12 +69,23 @@ export function AppearanceStep({
                   ativo ? "border-2 border-acento" : "border border-linha hover:border-acento-texto"
                 }`}
               >
-                <span
-                  aria-hidden
-                  className="flex aspect-[4/3] items-end p-2.5"
-                  style={{ background: combo.cor }}
-                >
-                  <span className="h-1 w-8 rounded-pilula" style={{ background: combo.cor2 }} />
+                <span aria-hidden className="relative flex aspect-[3/4] items-end overflow-hidden">
+                  <img
+                    src={stylePhoto(s.chave)}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                  <span className="scrim-foto absolute inset-0" />
+                  <span
+                    className={`sobre-foto relative z-[1] px-2.5 pb-2.5 leading-tight ${styleNameClass(
+                      s.chave,
+                    )}`}
+                    style={{ fontFamily: s.camada.fontes?.titulo }}
+                  >
+                    {eventName}
+                  </span>
                 </span>
                 <span className="flex flex-col gap-0.5 bg-superficie px-2.5 py-2">
                   <span className="font-titulo text-[0.85rem] text-ink">{s.nome}</span>
