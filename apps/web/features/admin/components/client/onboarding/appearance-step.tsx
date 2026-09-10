@@ -3,6 +3,7 @@
 import React, { type CSSProperties } from "react";
 import { eventColorVariables, eventOnContrast } from "@albora/tokens";
 import { COLOR_COMBOS, EVENT_STYLES, SUGGESTED_COLORS, type EventStyle } from "./appearance-data";
+import { ColorField } from "./color-field";
 import { Glyph } from "./glyph";
 
 type Slot = "cor" | "cor2";
@@ -20,46 +21,6 @@ function styleNameClass(chave: EventStyle["chave"]): string {
     default:
       return "font-titulo";
   }
-}
-
-/** Botão de cor óbvio: um disco com a cor atual + rótulo + hex; tocar abre o
- *  seletor nativo (qualquer cor). O disco colorido é o que sinaliza "isto é
- *  editável" — sem ele, ninguém descobre que dá pra trocar. */
-function ColorPicker({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <label className="flex cursor-pointer items-center gap-3 rounded-token border border-linha bg-superficie p-2.5 transition-colors hover:border-acento-texto">
-      <span
-        className="relative size-10 shrink-0 rounded-full border border-linha shadow-suave"
-        style={{ background: value }}
-      >
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="absolute inset-0 size-full cursor-pointer opacity-0"
-          aria-label={`Escolher a cor ${label.toLowerCase()}`}
-        />
-        <span
-          aria-hidden
-          className="chip-sobre-foto absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full shadow-suave"
-        >
-          <Glyph name="plus" size={10} />
-        </span>
-      </span>
-      <span className="flex min-w-0 flex-col">
-        <span className="text-[0.85rem] font-medium text-ink">{label}</span>
-        <span className="tipo-label uppercase tracking-wide text-ink-3">{value}</span>
-      </span>
-    </label>
-  );
 }
 
 export function AppearanceStep({
@@ -151,30 +112,18 @@ export function AppearanceStep({
         <span className="text-sm font-medium text-ink">Cores do evento</span>
 
         <div className="grid grid-cols-2 gap-3">
-          <ColorPicker label="Principal" value={cor} onChange={(v) => onColor("cor", v)} />
-          <ColorPicker label="Detalhe" value={cor2} onChange={(v) => onColor("cor2", v)} />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="tipo-label mr-1 text-ink-3">Sugestões</span>
-          {sugestoes.map((c) => {
-            const sel = c.toLowerCase() === cor.toLowerCase();
-            const daFoto = photoColors.some((p) => p.toLowerCase() === c.toLowerCase());
-            return (
-              <button
-                key={c}
-                type="button"
-                aria-pressed={sel}
-                aria-label={`Cor principal ${c}${daFoto ? " (da foto da capa)" : ""}`}
-                title={daFoto ? "Da foto da capa" : c}
-                onClick={() => onColor("cor", c)}
-                className={`size-8 rounded-full transition-transform hover:scale-110 ${
-                  sel ? "ring-2 ring-acento ring-offset-2 ring-offset-bg" : "border border-linha"
-                }`}
-                style={{ background: c }}
-              />
-            );
-          })}
+          <ColorField
+            label="Principal"
+            value={cor}
+            onChange={(v) => onColor("cor", v)}
+            swatches={sugestoes}
+          />
+          <ColorField
+            label="Detalhe"
+            value={cor2}
+            onChange={(v) => onColor("cor2", v)}
+            swatches={sugestoes}
+          />
         </div>
 
         {aaRuim && (

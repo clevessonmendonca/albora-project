@@ -12,6 +12,7 @@ import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
 import { CoverImageEditor } from "@/features/admin/components/client/cover-image-editor";
 import { delayedAuthEnabled } from "@/lib/flags";
 import { TypeStep, type TypeOption } from "./onboarding/type-step";
+import { DetailsStep } from "./onboarding/details-step";
 import { AppearanceStep } from "./onboarding/appearance-step";
 import { AccessEmailStep } from "./onboarding/access-email-step";
 import { EVENT_STYLES, COLOR_COMBOS, type EventStyle } from "./onboarding/appearance-data";
@@ -62,7 +63,7 @@ type Created = {
 };
 type VendorOption = { vendorId: string; name: string; role: "admin" | "staff" };
 
-const STEPS = ["Evento", "Aparência", "Pronto"] as const;
+const STEPS = ["Tipo", "Detalhes", "Aparência", "Pronto"] as const;
 
 export function CreateEventWizard() {
   const search = useSearchParams();
@@ -208,7 +209,7 @@ export function CreateEventWizard() {
   const titleValid = title.trim().length > 0;
   const dateValid = date.length > 0;
   const coupleEmailValid = vendorId === "" || EMAIL_RE.test(coupleEmail.trim());
-  const step0Valid = titleValid && dateValid && coupleEmailValid;
+  const detalhesValid = titleValid && dateValid && coupleEmailValid;
   const [showErrors, setShowErrors] = useState(false);
 
   function pickStyle(s: EventStyle) {
@@ -237,16 +238,20 @@ export function CreateEventWizard() {
   }
 
   function advance() {
-    if (step === 0 && !step0Valid) {
-      setShowErrors(true);
+    if (step === 0) {
+      setStep(1); // Tipo → Detalhes (um tipo está sempre selecionado)
       return;
     }
-    if (step === 0) {
-      setStep(1);
+    if (step === 1) {
+      if (!detalhesValid) {
+        setShowErrors(true);
+        return;
+      }
       setShowErrors(false);
-    } else if (step === 1) {
-      void create();
+      setStep(2);
+      return;
     }
+    void create(); // Aparência → cria
   }
 
   const create = async () => {
@@ -258,8 +263,9 @@ export function CreateEventWizard() {
         body: JSON.stringify({
           packId,
           title: title.trim() || undefined,
-          comecaEm: date,
-          terminaEm: somarHoras(date, 6),
+          // Hora é opcional na UI; sem ela o evento começa às 18h por padrão.
+          comecaEm: date.includes("T") ? date : `${date}T18:00`,
+          terminaEm: somarHoras(date.includes("T") ? date : `${date}T18:00`, 6),
           timezone,
           ...(guests.trim() ? { expectedGuests: Number(guests) } : {}),
           identityTokens,
@@ -311,7 +317,7 @@ export function CreateEventWizard() {
     if (!digitando && /^[1-9]$/.test(e.key)) {
       const i = Number(e.key) - 1;
       if (step === 0 && typeOptions[i]) selectPack(typeOptions[i]!.id);
-      if (step === 1 && EVENT_STYLES[i]) pickStyle(EVENT_STYLES[i]!);
+      if (step === 2 && EVENT_STYLES[i]) pickStyle(EVENT_STYLES[i]!);
     }
   }
 
@@ -349,30 +355,41 @@ export function CreateEventWizard() {
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-1">
               <h1 className="tipo-title m-0">
-                {step === 0 ? "O que vocês estão celebrando?" : "Qual combina com vocês?"}
+                {step === 0
+                  ? "O que vocês estão celebrando?"
+                  : step === 1
+                    ? "Detalhes do evento"
+                    : "Qual combina com vocês?"}
               </h1>
               <p className="tipo-body m-0 text-ink-2">
                 {step === 0
                   ? "O tipo define os momentos e as missões — você muda depois."
-                  : "Escolha um estilo. O Álbora cuida da fonte, das cores e da composição."}
+                  : step === 1
+                    ? "Nome, quando vai ser e onde."
+                    : "Escolha um estilo. O Álbora cuida da fonte, das cores e da composição."}
               </p>
             </div>
 
             {step === 0 && (
+              <TypeStep
+                options={typeOptions}
+                selectedId={packId}
+                onSelectType={selectPack}
+                onEditMissions={() => setMissionSheetOpen(true)}
+                missionsAtivas={activeMissions.length + customMissions.length}
+                missionsTotal={pack.missoes.length + customMissions.length}
+              />
+            )}
+
+            {step === 1 && (
               <>
-                <TypeStep
-                  options={typeOptions}
-                  selectedId={packId}
-                  onSelectType={selectPack}
-                  onEditMissions={() => setMissionSheetOpen(true)}
-                  missionsAtivas={activeMissions.length + customMissions.length}
-                  missionsTotal={pack.missoes.length + customMissions.length}
+                <DetailsStep
                   title={title}
                   onTitle={setTitle}
                   titlePlaceholder={titlePlaceholder}
+                  titleError={showErrors && !titleValid}
                   date={date}
                   onDate={setDate}
-                  titleError={showErrors && !titleValid}
                   dateError={showErrors && !dateValid}
                   guests={guests}
                   onGuests={setGuests}
@@ -416,7 +433,7 @@ export function CreateEventWizard() {
               </>
             )}
 
-            {step === 1 && (
+            {step === 2 && (
               <>
                 <AppearanceStep
                   styleKey={styleKey}
@@ -428,7 +445,7 @@ export function CreateEventWizard() {
                   onColor={setColor}
                   photoColors={photoColors}
                 />
-                {/* Prévia inline compacta no mobile, na Aparência (design v3). */}
+                {/* Prévia inline compacta no mobile, na Aparência. */}
                 <div className="lg:hidden">
                   <LivePreview data={previewData} />
                 </div>
@@ -464,7 +481,7 @@ export function CreateEventWizard() {
         </footer>
 
         {/* Mobile: "Ver prévia" fora da Aparência (sheet). */}
-        {step !== 1 && (
+        {step !== 2 && (
           <>
             <button
               type="button"
@@ -601,7 +618,7 @@ function NavBar({
         onClick={onAdvance}
         className={`${adminClasses.primaryButton} inline-flex min-h-12 min-w-[11rem] items-center justify-center gap-1.5 px-7 text-[1.05rem] ${creating ? "opacity-60" : ""}`}
       >
-        {step === 0 ? (
+        {step < STEPS.length - 2 ? (
           <>
             Continuar <span aria-hidden>→</span>
           </>
