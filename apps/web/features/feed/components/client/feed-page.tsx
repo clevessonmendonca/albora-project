@@ -47,6 +47,11 @@ const ShareConsentSheet = dynamic(
   { ssr: false }
 );
 
+const MolduraPicker = dynamic(
+  () => import("@/features/my-photos/components/client/moldura-picker").then(m => ({ default: m.MolduraPicker })),
+  { ssr: false }
+);
+
 export type FeedCopy = {
   missionTitle: string;
 };
@@ -323,6 +328,13 @@ export function FeedPage({
         open={compartilhar.pedindoConsentimento !== null}
         onClose={() => compartilhar.cancelarConsentimento()}
         onConfirm={handleConfirmarConsentimento}
+      />
+
+      <MolduraPicker
+        escolha={compartilhar.escolhendoMoldura}
+        onPreview={compartilhar.previewMoldura}
+        onConfirmar={compartilhar.confirmarMoldura}
+        onClose={compartilhar.fecharMoldura}
       />
     </>
   );
