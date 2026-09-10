@@ -18,57 +18,49 @@ export type LivePreviewData = {
   onPickCover?: () => void;
 };
 
-/** Prévia ao vivo, uma tela só (design-system-v3 §0.1 "show > explain"): a capa que
- *  o convidado vê, atualizando cor, foto, título e — o mais importante — a
- *  composição do estilo escolhido, na hora. */
+/** Prévia ao vivo, uma tela só: a capa que o convidado vê, atualizando cor, foto,
+ *  título e a composição do estilo — na hora. */
 export function LivePreview({ data }: { data: LivePreviewData }) {
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-2.5">
       <p className="tipo-label self-start text-ink-3">Assim seus convidados veem</p>
       <GuestCover data={data} />
-      <p className="tipo-caption inline-flex items-center gap-1.5 text-ink-3">
-        <Glyph name="eye" size={13} /> Muda enquanto você edita
-      </p>
     </div>
   );
 }
 
 /** Composição do título por estilo — é o que faz "trocar de estilo" virar uma
  *  mudança de verdade, não só de fonte. */
-function styleLayout(layout: string): {
-  align: string;
-  titulo: string;
-  data: string;
-} {
+function styleLayout(layout: string): { align: string; titulo: string; data: string } {
   switch (layout) {
     case "minimal":
       return {
         align: "items-start text-left",
-        titulo: "text-[1.3rem] font-corpo font-semibold tracking-tight",
+        titulo: "text-[1.35rem] font-corpo font-semibold tracking-tight",
         data: "tracking-[0.18em]",
       };
     case "contempo":
       return {
         align: "items-start text-left",
-        titulo: "text-[1.15rem] font-corpo font-bold uppercase tracking-[0.08em]",
+        titulo: "text-[1.2rem] font-corpo font-bold uppercase tracking-[0.08em]",
         data: "tracking-[0.22em]",
       };
     case "fotografico":
       return {
         align: "items-center text-center",
-        titulo: "text-[1.2rem] font-titulo",
+        titulo: "text-[1.3rem] font-titulo",
         data: "tracking-[0.2em]",
       };
     case "classic":
       return {
         align: "items-center text-center",
-        titulo: "text-[1.5rem] font-titulo italic",
+        titulo: "text-[1.6rem] font-titulo italic",
         data: "tracking-[0.2em]",
       };
     default: // editorial
       return {
         align: "items-start text-left",
-        titulo: "text-[1.6rem] font-titulo",
+        titulo: "text-[1.7rem] font-titulo",
         data: "tracking-[0.16em]",
       };
   }
@@ -82,40 +74,41 @@ function GuestCover({ data }: { data: LivePreviewData }) {
 
   return (
     <div
-      className="w-[252px] rounded-[34px] border border-linha bg-bg p-2 font-corpo shadow-alta"
+      className="w-[248px] rounded-[36px] border border-linha bg-bg p-2 font-corpo shadow-alta"
       style={data.vars}
     >
-      <div className="overflow-hidden rounded-[26px] bg-bg">
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-superficie-alta">
-          {src ? (
-            <img src={src} alt="" className="absolute inset-0 h-full w-full object-cover" />
-          ) : (
-            <div
-              className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-ink-3"
-              style={{ background: "var(--ev-tint, var(--superficie-alta))" }}
-            >
-              <Glyph name="image" size={22} />
-              <span className="tipo-label">Escolher a capa</span>
-            </div>
-          )}
-
-          <span
-            aria-hidden
-            className="absolute inset-x-0 top-0 h-1"
-            style={{ background: "var(--ev-2, var(--ev))" }}
-          />
-          {src && <span aria-hidden className="scrim-foto absolute inset-0" />}
-
-          <button
-            type="button"
-            onClick={data.onPickCover}
-            aria-label={propria ? "Trocar a capa" : "Escolher a capa"}
-            className="chip-sobre-foto absolute right-2.5 top-2.5 z-[2] flex size-8 items-center justify-center rounded-full shadow-suave transition-transform hover:scale-105"
+      {/* Tela inteira do celular — a foto ocupa 100%. */}
+      <div className="relative aspect-[9/19] w-full overflow-hidden rounded-[28px] bg-superficie-alta">
+        {src ? (
+          <img src={src} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <div
+            className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-ink-3"
+            style={{ background: "var(--ev-tint, var(--superficie-alta))" }}
           >
-            <Glyph name="image" size={15} />
-          </button>
+            <Glyph name="image" size={22} />
+            <span className="tipo-label">Escolher a capa</span>
+          </div>
+        )}
 
-          <div className={`absolute inset-x-4 bottom-4 z-[1] flex flex-col gap-1.5 ${L.align}`}>
+        <span
+          aria-hidden
+          className="absolute inset-x-0 top-0 h-1"
+          style={{ background: "var(--ev-2, var(--ev))" }}
+        />
+        {src && <span aria-hidden className="scrim-foto absolute inset-0" />}
+
+        <button
+          type="button"
+          onClick={data.onPickCover}
+          aria-label={propria ? "Trocar a capa" : "Escolher a capa"}
+          className="chip-sobre-foto absolute right-3 top-3 z-[2] flex size-8 items-center justify-center rounded-full shadow-suave transition-transform hover:scale-105"
+        >
+          <Glyph name="image" size={15} />
+        </button>
+
+        <div className="absolute inset-x-4 bottom-5 z-[1] flex flex-col gap-3">
+          <div className={`flex flex-col gap-1.5 ${L.align}`}>
             <p
               className={`sobre-foto m-0 leading-[1.04] ${L.titulo}`}
               style={{ fontFamily: "var(--fonte-titulo, inherit)" }}
@@ -132,20 +125,15 @@ function GuestCover({ data }: { data: LivePreviewData }) {
               {data.dateLabel || "Data do evento"}
             </p>
           </div>
-        </div>
 
-        <div className="px-4 py-3">
+          {/* CTA translúcido sobre a foto — deixa a imagem respirar por baixo. */}
           <span
-            className="flex min-h-10 items-center justify-center rounded-pilula text-[0.85rem] font-medium"
-            style={{ background: "var(--ev, var(--acento))", color: "var(--ev-on, var(--sobre-acento))" }}
+            className="flex min-h-11 items-center justify-center rounded-pilula border border-white/30 text-[0.9rem] font-medium text-white"
+            style={{ background: "color-mix(in srgb, var(--ev, var(--acento)) 72%, transparent)" }}
           >
             {data.ctaLabel}
           </span>
         </div>
-      </div>
-
-      <div className="flex justify-center py-1.5">
-        <span aria-hidden className="h-1 w-16 rounded-full bg-linha" />
       </div>
     </div>
   );

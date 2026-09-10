@@ -330,9 +330,10 @@ export function CreateEventWizard() {
           e.target.value = "";
         }}
       />
-      <main className="min-h-dvh bg-bg font-corpo text-ink">
+      <main className="flex h-dvh flex-col overflow-hidden bg-bg font-corpo text-ink">
         <ProgressHeader step={step} onExit />
-        <div className="mx-auto grid w-full max-w-[64rem] gap-8 px-[clamp(1.1rem,4vw,2rem)] py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto grid w-full max-w-[64rem] gap-8 px-[clamp(1.1rem,4vw,2rem)] py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-1">
               <h1 className="tipo-title m-0">
@@ -409,6 +410,7 @@ export function CreateEventWizard() {
                   styleKey={styleKey}
                   onStyle={pickStyle}
                   eventName={displayTitle}
+                  coverSrc={coverUrl ?? typePhoto(packId)}
                   cor={cor}
                   cor2={cor2}
                   onColor={setColor}
@@ -426,7 +428,19 @@ export function CreateEventWizard() {
                 Não deu para criar agora. Confira os dados e tente de novo.
               </p>
             )}
+          </div>
 
+          {/* Prévia persistente no desktop. */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-4">
+              <LivePreview data={previewData} />
+            </div>
+          </aside>
+          </div>
+        </div>
+
+        <footer className="flex-none border-t border-linha bg-bg px-[clamp(1.1rem,4vw,2rem)] py-3">
+          <div className="mx-auto max-w-[64rem]">
             <NavBar
               step={step}
               canAdvance={step === 0 ? true : true}
@@ -435,14 +449,7 @@ export function CreateEventWizard() {
               onAdvance={advance}
             />
           </div>
-
-          {/* Prévia persistente no desktop. */}
-          <aside className="hidden lg:block">
-            <div className="sticky top-8">
-              <LivePreview data={previewData} />
-            </div>
-          </aside>
-        </div>
+        </footer>
 
         {/* Mobile: "Ver prévia" fora da Aparência (sheet). */}
         {step !== 1 && (
@@ -564,7 +571,7 @@ function NavBar({
   onAdvance: () => void;
 }) {
   return (
-    <div className="mt-6 flex items-center justify-between gap-3 border-t border-linha pt-5">
+    <div className="flex items-center justify-between gap-3">
       {step > 0 ? (
         <button
           type="button"

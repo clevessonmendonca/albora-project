@@ -66,6 +66,7 @@ export function AppearanceStep({
   styleKey,
   onStyle,
   eventName,
+  coverSrc,
   cor,
   cor2,
   onColor,
@@ -74,6 +75,7 @@ export function AppearanceStep({
   styleKey: EventStyle["chave"];
   onStyle: (s: EventStyle) => void;
   eventName: string;
+  coverSrc: string;
   cor: string;
   cor2: string;
   onColor: (slot: Slot, hex: string) => void;
@@ -94,6 +96,7 @@ export function AppearanceStep({
           {EVENT_STYLES.map((s) => {
             const ativo = s.chave === styleKey;
             const combo = COLOR_COMBOS[s.comboIndex]!;
+            const centralizado = s.chave === "classic" || s.chave === "fotografico";
             return (
               <button
                 key={s.chave}
@@ -103,21 +106,27 @@ export function AppearanceStep({
                 onClick={() => onStyle(s)}
                 className="group flex flex-col gap-2 rounded-token p-1 text-left"
               >
-                {/* Mini capa: representa o estilo como o objeto que ele vira — uma
-                    capa de álbum, com sombra (DESIGN.md: papel/objeto tem sombra). */}
+                {/* Mini-prévia: a capa do evento na composição do estilo — WYSIWYG.
+                    Objeto com sombra (DESIGN.md: papel/objeto tem sombra). */}
                 <span
                   aria-hidden
                   className={`relative block aspect-[3/4] overflow-hidden rounded-[10px] shadow-alta transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] group-hover:-translate-y-0.5 ${
                     ativo ? "ring-2 ring-acento ring-offset-2 ring-offset-bg" : ""
                   }`}
-                  style={{ background: combo.cor }}
                 >
+                  <img
+                    src={coverSrc}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
                   <span className="absolute inset-x-0 top-0 h-1" style={{ background: combo.cor2 }} />
-                  <span className="scrim-foto absolute inset-0 opacity-80" />
+                  <span className="scrim-foto absolute inset-0" />
                   <span
-                    className={`sobre-foto absolute inset-x-2 bottom-2.5 text-[0.9rem] leading-tight ${styleNameClass(
-                      s.chave,
-                    )}`}
+                    className={`sobre-foto absolute inset-x-2 bottom-2 text-[0.8rem] leading-[1.05] ${
+                      centralizado ? "text-center" : "text-left"
+                    } ${styleNameClass(s.chave)}`}
                     style={{ fontFamily: s.camada.fontes?.titulo }}
                   >
                     {eventName}
@@ -141,12 +150,7 @@ export function AppearanceStep({
       </fieldset>
 
       <div className="flex flex-col gap-3 border-t border-linha pt-5">
-        <div>
-          <span className="text-sm font-medium text-ink">Cores do evento</span>
-          <p className="tipo-caption m-0 mt-0.5 text-ink-3">
-            O estilo já traz um par. Toque num disco pra escolher qualquer cor.
-          </p>
-        </div>
+        <span className="text-sm font-medium text-ink">Cores do evento</span>
 
         <div className="grid grid-cols-2 gap-3">
           <ColorPicker label="Principal" value={cor} onChange={(v) => onColor("cor", v)} />
