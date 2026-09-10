@@ -1,4 +1,6 @@
 import { resolvePackText, type Pack } from "@albora/packs";
+import { ALBORA_BRAND, resolveTokens, toVariables } from "@albora/tokens";
+import type { CSSProperties } from "react";
 import { Reveal } from "../interactives";
 import { QrAoVivo } from "../qr-ao-vivo";
 import { DemoInterativa, type FotoDemo } from "../demo-interativa";
@@ -23,6 +25,11 @@ const FOTO_EXEMPLO: FotoDemo = {
 export function DemoSection({ pack }: { pack: Pack }) {
   const t = (chave: string) => resolvePackText(pack, chave);
 
+  // Recorte escuro de tokens para o modo "No telão" do álbum.
+  const telaoVars = toVariables(
+    resolveTokens({ marca: ALBORA_BRAND, pack: { ...pack.tokens, background: "dark" } }),
+  ) as CSSProperties;
+
   return (
     <section id="demo" className="bg-superficie">
       <div className="mx-auto max-w-[78rem] px-[clamp(1.125rem,4vw,2.75rem)] py-[clamp(4rem,8vw,6.5rem)]">
@@ -33,6 +40,7 @@ export function DemoSection({ pack }: { pack: Pack }) {
             placeholder={t("landing.demo.placeholder")}
             fotos={FOTOS}
             fotoExemplo={FOTO_EXEMPLO}
+            telaoVars={telaoVars}
             qr={<QrAoVivo packHint={pack.id} />}
           />
         </Reveal>

@@ -18,6 +18,7 @@ function renderDemo() {
       placeholder="Ex.: a nossa festa"
       fotos={FOTOS}
       fotoExemplo={FOTO_EXEMPLO}
+      telaoVars={{}}
       qr={<div data-testid="qr-slot" />}
     />,
   );

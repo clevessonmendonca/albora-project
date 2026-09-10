@@ -5,6 +5,7 @@ import React, {
   useId,
   useRef,
   useState,
+  type CSSProperties,
   type FormEvent,
   type ReactNode,
 } from "react";
@@ -30,6 +31,7 @@ export function DemoInterativa({
   placeholder,
   fotos,
   fotoExemplo,
+  telaoVars,
   qr,
 }: {
   nomeExemplo: string;
@@ -37,6 +39,9 @@ export function DemoInterativa({
   placeholder: string;
   fotos: readonly FotoDemo[];
   fotoExemplo: FotoDemo;
+  /** Recorte de tokens escuro aplicado ao álbum no modo "No telão" — sem isso
+   *  var(--bg)/var(--ink) resolveriam claro (a seção vive em escopo light). */
+  telaoVars: CSSProperties;
   qr: ReactNode;
 }) {
   const [titulo, setTitulo] = useState(nomeExemplo);
@@ -153,6 +158,7 @@ export function DemoInterativa({
       <div
         ref={albumRef}
         className={`demo-album${view === "tela" ? " demo-album-tela" : ""}`}
+        style={view === "tela" ? telaoVars : undefined}
         role="group"
         aria-label="Prévia de um álbum coletivo"
       >
