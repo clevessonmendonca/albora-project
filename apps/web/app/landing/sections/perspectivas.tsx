@@ -332,23 +332,22 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
           background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='0.035'/></svg>");
         }
 
+        /* Legenda = cartão de papel sólido (sem vidro fosco — anti-padrão do
+           projeto — e sem glow, que apagava a Fraunces 300 sobre o creme).
+           Fica legível tanto sobre foto quanto sobre o fundo, em qualquer ponto
+           da convergência. */
         .px-cap {
           position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
           text-align: center; z-index: 80; pointer-events: none;
-          width: min(92vw, 900px); will-change: opacity, transform;
+          width: min(88vw, 760px); will-change: opacity, transform;
+          background: var(--bg); border: 1px solid var(--linha);
+          border-radius: var(--raio-superficie);
+          padding: clamp(1.5rem, 4vw, 2.5rem) clamp(1.5rem, 5vw, 3rem);
+          box-shadow: 0 1.5rem 3rem color-mix(in srgb, var(--ink) 16%, transparent);
         }
         .px-cap > * { position: relative; z-index: 1; }
-        .px-cap::before {
-          content: ""; position: absolute; left: 50%; top: 50%;
-          transform: translate(-50%,-50%); width: 134%; height: 158%; z-index: 0;
-          pointer-events: none;
-          background: radial-gradient(58% 54% at 50% 50%,
-            var(--bg) 0%,
-            color-mix(in srgb, var(--bg) 92%, transparent) 40%,
-            transparent 72%);
-        }
         .px-cap h3, .px-cap .px-foot, .px-cap .px-sig, .px-cap small {
-          text-shadow: 0 1px 22px var(--bg), 0 0 2px var(--bg);
+          text-shadow: none;
         }
         .px-cap h3 { font-size: clamp(40px, 8vw, 104px); margin: 0; }
         .px-cap-msg h3 { font-size: clamp(30px, 5.2vw, 68px); line-height: 1.06; }
@@ -471,6 +470,8 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         @media (max-width: 760px) {
           .px-track { height: 320vh; }
           .px-tile { width: 30vmin; }
+          .px-tile .px-lbl, .px-tile .px-vid { display: none; }
+          .px-cap { width: 90vw; padding: 1.25rem 1.5rem; }
           .px-cap h3 { font-size: clamp(34px, 11vw, 60px); }
         }
       `}</style>

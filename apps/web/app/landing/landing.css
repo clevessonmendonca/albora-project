@@ -459,8 +459,20 @@ summary:focus-visible {
 .preco-pacote h3 { font-size: clamp(1.6875rem, 3vw, 1.875rem); line-height: 1.2; margin: 0 0 .75rem; }
 .preco-pacote p { max-width: 60ch; color: var(--ink-2); margin: .625rem 0; }
 .preco-pacote-cta { white-space: nowrap; }
-.livro-info { margin-top: 1.375rem; }
-.livro-info summary { font-size: .875rem; }
+.livro-info { margin-top: 1.375rem; border-top: 1px solid var(--linha); }
+.livro-info summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.125rem 0;
+  font-size: .9375rem;
+  font-weight: 500;
+}
+.livro-info summary::-webkit-details-marker { display: none; }
+.livro-info summary::marker { content: ""; }
+.livro-info p { margin: 0 0 1.125rem; max-width: 64ch; color: var(--ink-2); }
 @media (max-width: 52rem) {
   .preco-pacote { grid-template-columns: 1fr; gap: 1.25rem; }
   .preco-pacote-cta { white-space: normal; width: 100%; }
