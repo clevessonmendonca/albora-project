@@ -30,7 +30,7 @@ function PlanCard({ plan, packId }: { plan: Plan; packId: Pack["id"] }) {
       <LandingCtaLink href={plan.href} packHint={packId} className={`${buttonClass} mt-auto justify-center`}>
         {plan.cta}
       </LandingCtaLink>
-      <p className="m-0 mt-3 text-xs text-ink-3">{plan.micro}</p>
+      <p className="plano-micro">{plan.micro}</p>
     </article>
   );
 }
@@ -133,7 +133,10 @@ export function PrecoSection({ pack }: { pack: Pack }) {
       </div>
 
       <details className="livro-info">
-        <summary>Posso guardar as fotos fora do Albora? +</summary>
+        <summary>
+          <span>Posso guardar as fotos fora do Albora?</span>
+          <span aria-hidden="true">+</span>
+        </summary>
         <p>
           Sim. A proposta dos dois planos inclui baixar todas as fotos em ZIP.
           Salve uma cópia no seu computador ou na sua nuvem antes do fim do

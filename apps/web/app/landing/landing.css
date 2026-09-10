@@ -265,7 +265,7 @@ summary:focus-visible {
 .rodape-coluna a:hover { color: var(--ink); }
 .rodape-base { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--linha); color: var(--ink-3); }
 
-.plano-card { display: flex; min-height: 23rem; flex-direction: column; gap: .35rem; position: relative; border: 1px solid var(--ink-borda-forte); border-radius: var(--raio); background: var(--bg); padding: clamp(1.25rem, 3vw, 2rem); }
+.plano-card { display: flex; min-height: 23rem; flex-direction: column; gap: .35rem; position: relative; border: 1px solid var(--linha); border-radius: var(--raio); background: var(--bg); padding: clamp(1.25rem, 3vw, 2rem); }
 .plano-card-destaque { border-color: var(--ink); box-shadow: 0 .75rem 2.5rem rgb(31 27 24 / 8%); }
 .plano-badge { position: absolute; top: 1rem; right: 1rem; color: var(--acento-texto); font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; }
 .plano-lista { display: flex; flex-direction: column; gap: .55rem; list-style: none; margin: 1.25rem 0 1.75rem; padding: 0; color: var(--ink-2); font-size: .92rem; }
@@ -303,7 +303,7 @@ summary:focus-visible {
 .telao-polaroide-1 { transform: rotate(-4deg) translateY(1rem); }
 .telao-polaroide-2 { z-index: 1; transform: rotate(1deg) translateY(-1rem); }
 .telao-polaroide-3 { transform: rotate(4deg) translateY(.75rem); }
-.demo-album { border: 1px solid var(--ink-borda-forte); background: var(--bg); padding: clamp(1.25rem, 3vw, 2rem); box-shadow: var(--shadow-suave); }
+.demo-album { border: 1px solid var(--linha); background: var(--bg); padding: clamp(1.25rem, 3vw, 2rem); box-shadow: var(--shadow-suave); }
 .demo-album-top { display: flex; justify-content: space-between; border-bottom: 1px solid var(--linha); padding-bottom: .8rem; color: var(--ink-3); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
 .demo-album-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin-top: 1.5rem; }
 
@@ -415,7 +415,7 @@ summary:focus-visible {
   flex-direction: column;
   gap: .5rem;
   position: relative;
-  border: 1px solid var(--ink-borda-forte);
+  border: 1px solid var(--linha);
   border-radius: var(--raio);
   background: var(--superficie-alta);
   padding: clamp(1.5rem, 3vw, 2.25rem);
@@ -445,6 +445,31 @@ summary:focus-visible {
   color: var(--ink-2); font-size: .9375rem;
 }
 .plano-lista li::before { content: "·  "; color: var(--acento-texto); }
+
+/* Botões dos planos: full-width, centrados. No card claro o CTA é contorno
+   (o preenchido some no papel); no destaque escuro o CTA é claro (o preto
+   sumia no card preto). Micro sempre centrada. */
+.plano-card .pilula {
+  width: 100%;
+  margin-top: auto;
+}
+.plano-card:not(.plano-card-destaque) .pilula {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--ink) 32%, transparent);
+  color: var(--ink);
+}
+.plano-card-destaque .pilula {
+  background: var(--bg);
+  color: var(--ink);
+  border: 0;
+}
+.plano-card .plano-micro {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--ink-3);
+}
+.plano-card-destaque .plano-micro { color: color-mix(in srgb, var(--bg) 72%, transparent); }
 
 .preco-pacote {
   margin-top: 2rem;

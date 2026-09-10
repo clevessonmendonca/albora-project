@@ -14,17 +14,20 @@ export default async function NewEventPage({
 }: {
   searchParams: Promise<{
     plano?: string;
+    nome?: string;
     vendor?: string;
     vendorSlug?: string;
     vendorPlan?: string;
   }>;
 }) {
-  const { plano, vendor, vendorSlug, vendorPlan } = await searchParams;
+  const { plano, nome, vendor, vendorSlug, vendorPlan } = await searchParams;
   const token = (await cookies()).get(HOST_COOKIE)?.value;
   const host = await hostFromToken(token);
   if (!host) {
     const params = new URLSearchParams();
     if (plano === "celebration" || plano === "free") params.set("plano", plano);
+    // Preserva o nome digitado na landing através do login, para o wizard já abrir preenchido.
+    if (nome && nome.trim()) params.set("nome", nome.trim().slice(0, 60));
     if (vendor && UUID_RE.test(vendor)) params.set("vendor", vendor);
     if (vendorSlug) params.set("vendorSlug", vendorSlug);
     if (vendorPlan === "starter" || vendorPlan === "studio" || vendorPlan === "agency") {

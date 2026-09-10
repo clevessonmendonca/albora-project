@@ -7,77 +7,57 @@ const FOTOS: FotoDemo[] = [
   { src: "/a.png", alt: "Foto A" },
   { src: "/b.png", alt: "Foto B" },
   { src: "/c.png", alt: "Foto C" },
+  { src: "/d.png", alt: "Foto D" },
 ];
-const FOTO_EXEMPLO: FotoDemo = { src: "/x.png", alt: "Foto de exemplo enviada" };
 
 function renderDemo() {
   render(
     <DemoInterativa
       nomeExemplo="ANA & JOÃO"
       albumSub="Um dia. Muitos olhares."
-      placeholder="Ex.: a nossa festa"
+      placeholder="Ex.: nossa festa"
       fotos={FOTOS}
-      fotoExemplo={FOTO_EXEMPLO}
-      telaoVars={{}}
-      qr={<div data-testid="qr-slot" />}
+      hrefBase="/admin/new?plano=free"
+      packId="casamento"
     />,
   );
 }
 
 const album = () => screen.getByRole("group", { name: "Prévia de um álbum coletivo" });
+const cta = () => screen.getByRole("link", { name: /Criar meu evento/ });
 
 describe("DemoInterativa", () => {
-  it("parte do estado inicial: nome de exemplo, 3 fotos, status e slot do QR", () => {
+  it("mostra o nome de exemplo e o CTA aponta para o funil base quando vazio", () => {
     renderDemo();
     expect(within(album()).getByRole("heading", { level: 3 })).toHaveTextContent("ANA & JOÃO");
-    expect(album()).toHaveTextContent("3 fotos");
-    expect(screen.getByRole("status")).toHaveTextContent("Experimente enviar a primeira foto.");
-    expect(screen.getByTestId("qr-slot")).toBeInTheDocument();
-    expect(screen.queryByAltText("Foto de exemplo enviada")).not.toBeInTheDocument();
-  });
-
-  it("personaliza o álbum com o nome digitado", () => {
-    renderDemo();
-    const input = screen.getByLabelText("Qual é o nome da sua festa?");
-    fireEvent.change(input, { target: { value: "Festa da Bia" } });
-    fireEvent.submit(input.closest("form")!);
-    expect(within(album()).getByRole("heading", { level: 3 })).toHaveTextContent("Festa da Bia");
-    expect(screen.getByRole("status")).toHaveTextContent("Sua prévia está pronta.");
-  });
-
-  it("não personaliza com nome vazio", () => {
-    renderDemo();
-    const input = screen.getByLabelText("Qual é o nome da sua festa?");
-    fireEvent.submit(input.closest("form")!);
-    expect(within(album()).getByRole("heading", { level: 3 })).toHaveTextContent("ANA & JOÃO");
-  });
-
-  it("alterna entre álbum e telão via aria-pressed e classe de tela", () => {
-    renderDemo();
-    const noAlbum = screen.getByRole("button", { name: "No álbum" });
-    const noTelao = screen.getByRole("button", { name: "No telão" });
-    expect(noAlbum).toHaveAttribute("aria-pressed", "true");
-    expect(album()).not.toHaveClass("demo-album-tela");
-
-    fireEvent.click(noTelao);
-    expect(noTelao).toHaveAttribute("aria-pressed", "true");
-    expect(noAlbum).toHaveAttribute("aria-pressed", "false");
-    expect(album()).toHaveClass("demo-album-tela");
-  });
-
-  it("envia e recomeça a foto de exemplo, atualizando contagem, status e rótulo", () => {
-    renderDemo();
-    const botao = screen.getByRole("button", { name: "Enviar uma foto de exemplo" });
-
-    fireEvent.click(botao);
+    expect(cta()).toHaveAttribute("href", "/admin/new?plano=free");
     expect(album()).toHaveTextContent("4 fotos");
-    expect(screen.getByAltText("Foto de exemplo enviada")).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent("Foto de exemplo adicionada.");
-    expect(screen.getByRole("button", { name: "Recomeçar demonstração" })).toBeInTheDocument();
+  });
 
-    fireEvent.click(screen.getByRole("button", { name: "Recomeçar demonstração" }));
-    expect(album()).toHaveTextContent("3 fotos");
-    expect(screen.queryByAltText("Foto de exemplo enviada")).not.toBeInTheDocument();
-    expect(screen.getByText("Sua próxima lembrança")).toBeInTheDocument();
+  it("atualiza o título do álbum ao vivo conforme digita", () => {
+    renderDemo();
+    fireEvent.change(screen.getByLabelText("Qual é o nome da sua festa?"), {
+      target: { value: "Festa da Bia" },
+    });
+    expect(within(album()).getByRole("heading", { level: 3 })).toHaveTextContent("Festa da Bia");
+  });
+
+  it("leva o nome digitado para a criação do evento (?nome=)", () => {
+    renderDemo();
+    fireEvent.change(screen.getByLabelText("Qual é o nome da sua festa?"), {
+      target: { value: "Bia & Pedro" },
+    });
+    expect(cta()).toHaveAttribute(
+      "href",
+      "/admin/new?plano=free&nome=" + encodeURIComponent("Bia & Pedro"),
+    );
+  });
+
+  it("ignora espaços em branco e volta ao exemplo", () => {
+    renderDemo();
+    const input = screen.getByLabelText("Qual é o nome da sua festa?");
+    fireEvent.change(input, { target: { value: "   " } });
+    expect(within(album()).getByRole("heading", { level: 3 })).toHaveTextContent("ANA & JOÃO");
+    expect(cta()).toHaveAttribute("href", "/admin/new?plano=free");
   });
 });

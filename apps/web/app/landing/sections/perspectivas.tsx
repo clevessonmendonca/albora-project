@@ -232,7 +232,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
       }
 
       telao!.style.opacity = seg(p, 0.78, 0.9).toFixed(3);
-      telao!.style.transform = `translate(-50%,-50%) scale(${lerp(0.96, 1, conv).toFixed(3)})`;
+      telao!.style.transform = `translate(-50%,-56%) scale(${lerp(0.96, 1, conv).toFixed(3)})`;
 
       cap1!.style.opacity = (1 - seg(p, 0.06, 0.14)).toFixed(3);
 
@@ -243,7 +243,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
       cap4!.style.transform = `translate(-50%,${lerp(-46, -52, seg(p, 0.6, 0.88)).toFixed(1)}%)`;
 
       cap5!.style.opacity = seg(p, 0.9, 0.99).toFixed(3);
-      cap5!.style.transform = `translate(-50%,${lerp(34, 31, conv).toFixed(1)}vh)`;
+      cap5!.style.transform = `translate(-50%,${lerp(36, 41, conv).toFixed(1)}vh)`;
     }
 
     function progress() {
@@ -365,7 +365,10 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
           font-family: var(--fonte-titulo); font-style: italic; font-weight: 300;
           color: var(--acento-texto); font-size: clamp(18px, 2.4vw, 26px); margin-top: 22px;
         }
+        /* O fecho fica abaixo do telão, sobre o papel — texto escuro legível sem
+           véu; o scrim ali virava uma faixa clara feia colada no telão. */
         .px-cap-final { color: var(--ink); }
+        .px-cap-final::before { display: none; }
         .px-cap-final .px-sig { color: var(--acento-texto); }
         .px-foot { font-size: clamp(22px, 3.4vw, 40px); margin: 0; }
         .px-accent { color: var(--acento-texto); font-style: italic; }
@@ -373,7 +376,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         .px-stage { position: absolute; inset: 0; z-index: 20; }
         .px-tile {
           position: absolute; left: 50%; top: 50%; width: 13.5vmin; aspect-ratio: 9/16;
-          border: 1px solid var(--color-ink-borda-forte); overflow: hidden;
+          border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); overflow: hidden;
           background: var(--superficie-alta); will-change: transform, opacity;
           transform: translate(-50%,-50%); backface-visibility: hidden;
         }
@@ -400,8 +403,8 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
 
         .px-telao {
           position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 60;
-          width: min(88vw, 1000px); aspect-ratio: 16/9; background: var(--bg);
-          border: 1px solid var(--color-ink-borda-forte); border-radius: var(--raio-media);
+          width: min(82vw, 900px); aspect-ratio: 16/9; background: var(--bg);
+          border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); border-radius: var(--raio-media);
           opacity: 0; will-change: opacity, transform; display: grid; place-items: stretch;
           overflow: hidden;
           padding: clamp(2.5rem, 5vw, 3.25rem) clamp(.75rem, 2.5vw, 1.25rem) clamp(.75rem, 2.5vw, 1.25rem);
@@ -414,7 +417,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         .px-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--acento); }
         .px-frameLbl b { color: var(--ink); font-weight: 600; font-family: var(--fonte-titulo); }
         .px-slot {
-          height: 82%; aspect-ratio: 9/16; border: 1px solid var(--color-ink-borda-forte);
+          height: 82%; aspect-ratio: 9/16; border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent);
           position: relative; overflow: hidden;
         }
         .px-slot .px-slotPh { position: absolute; inset: 0; background-size: cover; background-position: center; }
@@ -423,17 +426,26 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
            limpa, sem moldura de polaroide (que poluía). Moldura fina clara
            (var(--ink) é claro no escopo dark do telão). */
         .px-triptico {
-          display: grid; grid-template-columns: 1fr 1fr 1fr;
-          gap: clamp(.4rem, 1.2vw, .75rem); width: 100%; height: 100%;
+          display: grid; grid-template-columns: 1fr 1.12fr 1fr;
+          gap: clamp(.75rem, 2vw, 1.75rem); width: 100%; height: 100%;
+          align-items: center; justify-items: center;
         }
+        /* Foto impressa (polaroid): moldura clara — var(--ink) é claro no escopo
+           dark do telão —, base mais grossa, leve rotação. Menor que a tela,
+           com respiro em volta. */
         .px-triptico-foto {
-          position: relative; min-height: 0; overflow: hidden;
+          position: relative; overflow: hidden; aspect-ratio: 3/4; height: 78%;
           background-size: cover; background-position: center;
-          border-radius: var(--raio-media);
-          border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent);
+          border: clamp(5px, .7vw, 9px) solid var(--ink);
+          border-bottom-width: clamp(16px, 2.2vw, 28px);
+          box-shadow: 0 .625rem 1.375rem color-mix(in srgb, var(--bg) 55%, transparent);
         }
+        .px-triptico-foto:first-child { transform: rotate(-3deg); height: 70%; }
+        .px-triptico-foto:nth-child(2) { transform: rotate(1.5deg); height: 84%; z-index: 2; }
+        .px-triptico-foto:last-child { transform: rotate(3deg); height: 70%; }
         @media (max-width: 760px) {
-          .px-triptico { gap: 4px; }
+          .px-triptico { gap: 8px; }
+          .px-triptico-foto { border-width: 4px; border-bottom-width: 12px; }
         }
 
         .px-rm { display: none; }
@@ -456,7 +468,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
         }
         .px-rm-tile {
           position: relative; aspect-ratio: 9/16; overflow: hidden;
-          border: 1px solid var(--color-ink-borda-forte); background: var(--superficie-alta);
+          border: 1px solid color-mix(in srgb, var(--ink) 20%, transparent); background: var(--superficie-alta);
         }
         .px-rm-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
         .px-rm-tile span {
