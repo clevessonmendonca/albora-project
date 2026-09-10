@@ -492,35 +492,62 @@ export function CreateEventWizard() {
 
 function ProgressHeader({ step, onExit }: { step: number; onExit?: boolean }) {
   return (
-    <div className="sticky top-0 z-30 border-b border-linha bg-bg px-[clamp(1.1rem,4vw,2rem)] py-3.5">
+    <header className="sticky top-0 z-30 border-b border-linha bg-bg px-[clamp(1.1rem,4vw,2rem)] py-3">
       <div className="mx-auto flex max-w-[64rem] items-center gap-4">
         {onExit && (
-          <NextLink href="/admin" className="tipo-label shrink-0 text-ink-3 no-underline hover:text-ink">
-            ← Sair
+          <NextLink
+            href="/admin"
+            className="inline-flex shrink-0 items-center gap-1 tipo-label text-ink-3 no-underline transition-colors hover:text-ink"
+          >
+            <span aria-hidden>←</span> Sair
           </NextLink>
         )}
-        <nav aria-label="Progresso" className="flex flex-1 items-center gap-2">
-          {STEPS.map((label, i) => (
-            <span key={label} className="flex flex-1 items-center gap-2">
-              <span className="min-w-0 flex-1">
+        <ol aria-label="Progresso" className="flex flex-1 items-center justify-center gap-1.5 sm:gap-2">
+          {STEPS.map((label, i) => {
+            const done = i < step;
+            const current = i === step;
+            return (
+              <li
+                key={label}
+                aria-current={current ? "step" : undefined}
+                className="flex items-center gap-1.5 sm:gap-2"
+              >
                 <span
                   aria-hidden
-                  className={`block h-1 rounded-pilula transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                    i <= step ? "bg-acento" : "bg-superficie-alta"
+                  className={`flex size-7 shrink-0 items-center justify-center rounded-full text-[0.8rem] font-medium tabular-nums transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                    done
+                      ? "bg-acento text-sobre-acento"
+                      : current
+                        ? "border-2 border-acento text-acento-texto"
+                        : "border border-linha text-ink-3"
                   }`}
-                />
-                <span className={`tipo-label mt-1 hidden sm:block ${i === step ? "text-ink" : "text-ink-3"}`}>
-                  {`0${i + 1}`} {label}
+                >
+                  {done ? <Glyph name="check" size={14} /> : i + 1}
                 </span>
-              </span>
-            </span>
-          ))}
-        </nav>
-        <span className="tipo-label shrink-0 text-ink-3" aria-hidden>
+                <span
+                  className={`hidden text-[0.85rem] sm:block ${
+                    current ? "font-medium text-ink" : done ? "text-ink-2" : "text-ink-3"
+                  }`}
+                >
+                  {label}
+                </span>
+                {i < STEPS.length - 1 && (
+                  <span
+                    aria-hidden
+                    className={`mx-0.5 h-px w-5 rounded-pilula transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] sm:w-9 ${
+                      done ? "bg-acento" : "bg-linha"
+                    }`}
+                  />
+                )}
+              </li>
+            );
+          })}
+        </ol>
+        <span className="shrink-0 tipo-label text-ink-3 sm:hidden" aria-hidden>
           {step + 1}/{STEPS.length}
         </span>
       </div>
-    </div>
+    </header>
   );
 }
 
@@ -538,23 +565,33 @@ function NavBar({
   onAdvance: () => void;
 }) {
   return (
-    <div className="mt-2 flex items-center gap-3 border-t border-linha pt-5">
-      {step > 0 && (
+    <div className="mt-6 flex items-center justify-between gap-3 border-t border-linha pt-5">
+      {step > 0 ? (
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex min-h-11 shrink-0 items-center rounded-pilula px-3 text-[0.875rem] text-ink-3 transition-colors hover:text-ink"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-pilula px-4 text-[0.9rem] text-ink-2 transition-colors hover:text-ink"
         >
-          ← Voltar
+          <span aria-hidden>←</span> Voltar
         </button>
+      ) : (
+        <span aria-hidden />
       )}
       <button
         type="button"
         disabled={creating || !canAdvance}
         onClick={onAdvance}
-        className={`${adminClasses.primaryButton} flex-1 py-3.5 text-center text-[1.05rem] ${creating ? "opacity-60" : ""}`}
+        className={`${adminClasses.primaryButton} inline-flex min-h-12 min-w-[11rem] items-center justify-center gap-1.5 px-7 text-[1.05rem] ${creating ? "opacity-60" : ""}`}
       >
-        {step === 0 ? "Tudo pronto →" : creating ? "Criando…" : "Criar evento"}
+        {step === 0 ? (
+          <>
+            Continuar <span aria-hidden>→</span>
+          </>
+        ) : creating ? (
+          "Criando…"
+        ) : (
+          "Criar evento"
+        )}
       </button>
     </div>
   );

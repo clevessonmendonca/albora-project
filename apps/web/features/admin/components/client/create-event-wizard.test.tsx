@@ -37,12 +37,12 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
     await waitFor(() => expect(screen.getByText("O que vocês estão celebrando?")).toBeInTheDocument());
 
     // Sem nome/data, clicar não avança: continua no passo 0 e mostra erro.
-    fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Continuar/ }));
     expect(screen.getByText("Dê um nome ao evento pra continuar.")).toBeInTheDocument();
     expect(screen.queryByText("Escolha um estilo")).not.toBeInTheDocument();
 
     preencherEvento();
-    fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Continuar/ }));
     // Passo 1 (Aparência) apareceu.
     expect(screen.getByText("Escolha um estilo")).toBeInTheDocument();
   });
@@ -72,7 +72,7 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
     expect(screen.queryByText("Criar sob")).not.toBeInTheDocument();
 
     preencherEvento();
-    fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Continuar/ }));
     fireEvent.click(screen.getByRole("button", { name: "Criar evento" }));
 
     await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
@@ -104,7 +104,7 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
     });
     preencherEvento();
 
-    fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Continuar/ }));
     fireEvent.click(screen.getByRole("button", { name: "Criar evento" }));
 
     await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
@@ -127,7 +127,7 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
     fireEvent.change(seletor, { target: { value: vendorId } });
     preencherEvento();
 
-    fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Continuar/ }));
     // Segue no passo 0, com erro no e-mail e sem chegar à Aparência.
     expect(screen.getByText("Informe um e-mail válido pra quem recebe o painel.")).toBeInTheDocument();
     expect(screen.queryByText("Escolha um estilo")).not.toBeInTheDocument();
@@ -178,7 +178,7 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
     fireEvent.click(within(dialog).getByRole("button", { name: "Pronto" }));
 
     preencherEvento();
-    fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Continuar/ }));
     fireEvent.click(screen.getByRole("button", { name: "Criar evento" }));
 
     await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
