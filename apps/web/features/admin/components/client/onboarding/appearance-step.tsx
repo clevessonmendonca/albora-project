@@ -3,7 +3,6 @@
 import React, { useState, type CSSProperties } from "react";
 import { eventColorVariables, eventOnContrast } from "@albora/tokens";
 import { COLOR_COMBOS, EVENT_STYLES, SUGGESTED_COLORS, type EventStyle } from "./appearance-data";
-import { stylePhoto } from "./onboarding-photos";
 
 type Slot = "cor" | "cor2";
 
@@ -41,7 +40,9 @@ export function AppearanceStep({
   photoColors: string[];
   hasCover: boolean;
 }) {
-  const [personalizar, setPersonalizar] = useState(false);
+  // Cor aberta por padrão: escolher qualquer cor (input nativo) é caminho de
+  // primeira classe, não um "avançado" escondido atrás de um toggle.
+  const [personalizar, setPersonalizar] = useState(true);
   const [slot, setSlot] = useState<Slot>("cor");
   const ativa = slot === "cor" ? cor : cor2;
   const contraste = eventOnContrast(cor);
@@ -58,6 +59,7 @@ export function AppearanceStep({
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
           {EVENT_STYLES.map((s) => {
             const ativo = s.chave === styleKey;
+            const combo = COLOR_COMBOS[s.comboIndex]!;
             return (
               <button
                 key={s.chave}
@@ -69,15 +71,12 @@ export function AppearanceStep({
                   ativo ? "border-2 border-acento" : "border border-linha hover:border-acento-texto"
                 }`}
               >
-                <span aria-hidden className="relative flex aspect-[3/4] items-end overflow-hidden">
-                  <img
-                    src={stylePhoto(s.chave)}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
-                  <span className="scrim-foto absolute inset-0" />
+                <span
+                  aria-hidden
+                  className="relative flex aspect-[4/3] items-end overflow-hidden"
+                  style={{ background: combo.cor }}
+                >
+                  <span className="absolute inset-x-0 top-0 h-1.5" style={{ background: combo.cor2 }} />
                   <span
                     className={`sobre-foto relative z-[1] px-2.5 pb-2.5 leading-tight ${styleNameClass(
                       s.chave,

@@ -31,8 +31,6 @@ export function TypeStep({
   onGuests,
   local,
   onLocal,
-  showDetails,
-  onToggleDetails,
 }: {
   options: TypeOption[];
   selectedId: string;
@@ -51,8 +49,6 @@ export function TypeStep({
   onGuests: (v: string) => void;
   local: string;
   onLocal: (v: string) => void;
-  showDetails: boolean;
-  onToggleDetails: () => void;
 }) {
   const selected = options.find((o) => o.id === selectedId) ?? options[0];
 
@@ -61,7 +57,7 @@ export function TypeStep({
       <fieldset className="m-0 border-0 p-0">
         <legend className="tipo-label mb-2.5 text-ink-3">Que evento é esse?</legend>
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-          {options.map((opt, i) => {
+          {options.map((opt) => {
             const ativo = opt.id === selectedId;
             return (
               <button
@@ -86,9 +82,9 @@ export function TypeStep({
                 <span aria-hidden className="scrim-foto absolute inset-0" />
                 <span
                   aria-hidden
-                  className="sobre-foto absolute left-2 top-1.5 tipo-label opacity-0 transition-opacity group-hover:opacity-70 sm:opacity-60"
+                  className="chip-sobre-foto absolute left-2 top-2 flex size-7 items-center justify-center rounded-full shadow-suave"
                 >
-                  {i + 1}
+                  <Glyph name={opt.icone} size={15} />
                 </span>
                 <span className="sobre-foto relative z-[1] p-2.5 font-titulo text-[0.95rem] capitalize">
                   {opt.nome}
@@ -131,55 +127,45 @@ export function TypeStep({
         </div>
       )}
 
-      <TextField
-        label="Nome do evento"
-        autoFocus
-        value={title}
-        onChange={(e) => onTitle(e.target.value)}
-        placeholder={titlePlaceholder}
-        aria-invalid={titleError ? true : undefined}
-        aria-describedby={titleError ? "titulo-erro" : undefined}
-      />
-      {titleError && (
-        <p id="titulo-erro" role="alert" className="tipo-caption m-0 -mt-3 text-critico">
-          Dê um nome ao evento pra continuar.
-        </p>
-      )}
-
-      <TextField
-        label="Data"
-        type="date"
-        value={date}
-        onChange={(e) => onDate(e.target.value)}
-        aria-invalid={dateError ? true : undefined}
-        aria-describedby={dateError ? "data-erro" : undefined}
-      />
-      {dateError && (
-        <p id="data-erro" role="alert" className="tipo-caption m-0 -mt-3 text-critico">
-          Escolha a data do evento.
-        </p>
-      )}
-
-      <div className="border-t border-linha pt-1">
-        <button
-          type="button"
-          onClick={onToggleDetails}
-          aria-expanded={showDetails}
-          className="inline-flex min-h-11 items-center gap-1.5 text-[0.85rem] text-ink-3 transition-colors hover:text-ink"
-        >
-          {showDetails ? "Menos detalhes" : "Mais detalhes"}
-          <span aria-hidden className={showDetails ? "rotate-180 transition-transform" : "transition-transform"}>
-            ⌄
-          </span>
-        </button>
-        {showDetails && (
-          <div className="mt-2 flex flex-col gap-2">
-            <label htmlFor="convidados" className="text-[0.9rem] text-ink">
-              Quantos convidados você espera?
-            </label>
-            <p className="tipo-caption m-0 text-ink-3">
-              Usamos só pra medir a participação. Fuso e idioma detectamos sozinhos.
+      <div className="flex flex-col gap-4 border-t border-linha pt-5">
+        <div>
+          <TextField
+            label="Nome do evento"
+            autoFocus
+            value={title}
+            onChange={(e) => onTitle(e.target.value)}
+            placeholder={titlePlaceholder}
+            aria-invalid={titleError ? true : undefined}
+            aria-describedby={titleError ? "titulo-erro" : undefined}
+          />
+          {titleError && (
+            <p id="titulo-erro" role="alert" className="tipo-caption m-0 mt-1.5 text-critico">
+              Dê um nome ao evento pra continuar.
             </p>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div>
+            <TextField
+              label="Data"
+              type="date"
+              value={date}
+              onChange={(e) => onDate(e.target.value)}
+              aria-invalid={dateError ? true : undefined}
+              aria-describedby={dateError ? "data-erro" : undefined}
+            />
+            {dateError && (
+              <p id="data-erro" role="alert" className="tipo-caption m-0 mt-1.5 text-critico">
+                Escolha a data do evento.
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="convidados" className="text-sm font-medium text-ink">
+              Convidados esperados
+            </label>
             <input
               id="convidados"
               type="number"
@@ -189,23 +175,26 @@ export function TypeStep({
               placeholder="150"
               value={guests}
               onChange={(e) => onGuests(e.target.value)}
-              className="min-h-[46px] w-32 rounded-token border border-linha bg-superficie px-3 py-2 font-titulo text-lg text-ink outline-none transition-[border-color] focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
+              className="min-h-[48px] w-full rounded-token border border-linha bg-superficie px-3.5 py-2.5 text-ink outline-none transition-[border-color] focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
             />
-
-            <label htmlFor="local" className="mt-2 text-[0.9rem] text-ink">
-              Local <span className="text-ink-3">· opcional</span>
-            </label>
-            <input
-              id="local"
-              type="text"
-              maxLength={80}
-              placeholder="Espaço, cidade"
-              value={local}
-              onChange={(e) => onLocal(e.target.value)}
-              className="min-h-[46px] rounded-token border border-linha bg-superficie px-3 py-2 text-ink outline-none transition-[border-color] focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
-            />
+            <p className="tipo-caption m-0 text-ink-3">Só pra medir a participação.</p>
           </div>
-        )}
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="local" className="text-sm font-medium text-ink">
+            Local <span className="font-normal text-ink-3">· opcional</span>
+          </label>
+          <input
+            id="local"
+            type="text"
+            maxLength={80}
+            placeholder="Espaço, cidade"
+            value={local}
+            onChange={(e) => onLocal(e.target.value)}
+            className="min-h-[48px] w-full rounded-token border border-linha bg-superficie px-3.5 py-2.5 text-ink outline-none transition-[border-color] focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
+          />
+        </div>
       </div>
     </div>
   );

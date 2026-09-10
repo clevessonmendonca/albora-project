@@ -1,15 +1,7 @@
 "use client";
 
-import React, { useEffect, useId, useMemo, useState, type CSSProperties } from "react";
+import React, { type CSSProperties } from "react";
 import { Glyph } from "./glyph";
-
-export type PreviewSurface = "convidado" | "telao" | "album";
-
-const SURFACES: { chave: PreviewSurface; rotulo: string }[] = [
-  { chave: "convidado", rotulo: "Convidado" },
-  { chave: "telao", rotulo: "Telão" },
-  { chave: "album", rotulo: "Álbum" },
-];
 
 export type LivePreviewData = {
   vars: CSSProperties;
@@ -20,69 +12,22 @@ export type LivePreviewData = {
   coverImage?: string | null;
   /** Foto de exemplo da capa quando o anfitrião ainda não escolheu a dele. */
   coverFallback?: string | null;
-  /** Fotos de exemplo do telão e do álbum. */
-  gallery?: readonly string[];
   layout: string;
   onEditTitle?: (value: string) => void;
   onPickCover?: () => void;
 };
 
-/** Preview ao vivo persistente (design-system-v3 §0.1 "show > explain"). Três superfícies do mesmo
- *  evento; cor/foto/título atualizam na hora. Chrome do produto neutro; destaque em `--ev`/`--ev-2`
- *  (as duas camadas). Sem foto falsa: capa vazia é estado honesto, não gradiente fingindo foto. */
-export function LivePreview({
-  data,
-  surface: controlled,
-  onSurfaceChange,
-}: {
-  data: LivePreviewData;
-  surface?: PreviewSurface;
-  onSurfaceChange?: (s: PreviewSurface) => void;
-}) {
-  const [internal, setInternal] = useState<PreviewSurface>("convidado");
-  const surface = controlled ?? internal;
-  const setSurface = (s: PreviewSurface) => {
-    setInternal(s);
-    onSurfaceChange?.(s);
-  };
-  const tablistId = useId();
-
+/** Prévia ao vivo, uma tela só (design-system-v3 §0.1 "show > explain"): a capa que
+ *  o convidado vê, atualizando cor, foto e título na hora. Chrome do produto neutro;
+ *  destaque em `--ev`/`--ev-2`. */
+export function LivePreview({ data }: { data: LivePreviewData }) {
   return (
-    <div className="flex flex-col gap-3">
-      <div
-        role="tablist"
-        aria-label="Superfície da prévia"
-        className="flex gap-1 self-center rounded-pilula border border-linha bg-superficie p-0.5"
-      >
-        {SURFACES.map((s) => {
-          const ativo = surface === s.chave;
-          return (
-            <button
-              key={s.chave}
-              role="tab"
-              id={`${tablistId}-${s.chave}`}
-              aria-selected={ativo}
-              type="button"
-              onClick={() => setSurface(s.chave)}
-              className={`inline-flex min-h-9 items-center justify-center rounded-pilula px-3.5 text-[0.8rem] transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                ativo ? "bg-superficie-alta text-ink shadow-suave" : "text-ink-3 hover:text-ink-2"
-              }`}
-            >
-              {s.rotulo}
-            </button>
-          );
-        })}
-      </div>
-
-      <div
-        role="tabpanel"
-        aria-labelledby={`${tablistId}-${surface}`}
-        className="grid place-items-center"
-      >
-        {surface === "convidado" && <GuestSurface data={data} />}
-        {surface === "telao" && <WallSurface data={data} />}
-        {surface === "album" && <AlbumSurface data={data} />}
-      </div>
+    <div className="flex flex-col items-center gap-3">
+      <p className="tipo-label self-start text-ink-3">Assim seus convidados veem</p>
+      <GuestSurface data={data} />
+      <p className="tipo-caption inline-flex items-center gap-1.5 text-ink-3">
+        <Glyph name="eye" size={13} /> Prévia — muda enquanto você edita
+      </p>
     </div>
   );
 }
@@ -129,13 +74,7 @@ function Cover({ data, className }: { data: LivePreviewData; className?: string 
   );
 }
 
-function EditableTitle({
-  data,
-  className,
-}: {
-  data: LivePreviewData;
-  className?: string;
-}) {
+function EditableTitle({ data, className }: { data: LivePreviewData; className?: string }) {
   const editable = Boolean(data.onEditTitle);
   return (
     <p
@@ -184,95 +123,6 @@ function GuestSurface({ data }: { data: LivePreviewData }) {
             </span>
           ))}
         </div>
-      </div>
-    </div>
-  );
-}
-
-/** Telão ao vivo: as fotos de exemplo trocam sozinhas (respeitando reduce-motion),
- *  como o mural do salão preenchendo durante a festa. */
-function WallSurface({ data }: { data: LivePreviewData }) {
-  const pool = useMemo(() => data.gallery ?? [], [data.gallery]);
-  const [cells, setCells] = useState<string[]>(() =>
-    Array.from({ length: 6 }, (_, i) => (pool.length ? pool[i % pool.length]! : "")),
-  );
-
-  useEffect(() => {
-    if (pool.length < 2) return;
-    const reduz =
-      typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduz) return;
-    const id = setInterval(() => {
-      setCells((prev) => {
-        const next = [...prev];
-        const i = Math.floor(Math.random() * next.length);
-        next[i] = pool[Math.floor(Math.random() * pool.length)] ?? next[i]!;
-        return next;
-      });
-    }, 1800);
-    return () => clearInterval(id);
-  }, [pool]);
-
-  return (
-    <div
-      className="w-full max-w-[340px] overflow-hidden rounded-superficie border border-linha bg-bg font-corpo shadow-alta"
-      style={data.vars}
-    >
-      <div className="flex items-center justify-between border-b border-linha px-4 py-3">
-        <EditableTitle data={data} className="text-[1.05rem]" />
-        <span className="inline-flex items-center gap-1.5 tipo-label text-ink-2">
-          <span aria-hidden className="size-2 rounded-full" style={{ background: "var(--ev, var(--acento))" }} />
-          ao vivo
-        </span>
-      </div>
-      <div className="grid grid-cols-3 gap-1.5 p-3">
-        {cells.map((src, i) => (
-          <span
-            key={i}
-            aria-hidden
-            className="aspect-[3/4] overflow-hidden rounded-token bg-superficie-alta"
-          >
-            {src ? (
-              <img
-                key={src}
-                src={src}
-                alt=""
-                className="h-full w-full animate-[wall-aparecer_550ms_var(--curva)] object-cover motion-reduce:animate-none"
-              />
-            ) : null}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function AlbumSurface({ data }: { data: LivePreviewData }) {
-  const pool = data.gallery ?? [];
-  return (
-    <div
-      className="w-[248px] overflow-hidden rounded-[28px] border border-linha bg-bg font-corpo shadow-alta"
-      style={data.vars}
-    >
-      <div className="flex items-center justify-between px-4 pt-4">
-        <EditableTitle data={data} className="text-[1.05rem]" />
-        <span aria-hidden className="text-ink-3"><Glyph name="image" size={16} /></span>
-      </div>
-      <div className="grid grid-cols-2 gap-1.5 p-3">
-        {Array.from({ length: 6 }).map((_, i) => {
-          const src = pool.length ? pool[(i + 2) % pool.length]! : "";
-          return (
-            <span
-              key={i}
-              aria-hidden
-              className={`overflow-hidden rounded-token bg-superficie-alta ${
-                i % 3 === 0 ? "row-span-2 aspect-[3/4]" : "aspect-square"
-              }`}
-            >
-              {src ? <img src={src} alt="" className="h-full w-full object-cover" /> : null}
-            </span>
-          );
-        })}
       </div>
     </div>
   );

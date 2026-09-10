@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { Glyph } from "./glyph";
 
@@ -16,14 +16,28 @@ export function MissionSheet({
   onClose,
   missions,
   onToggle,
+  customMissions,
+  onAddCustom,
+  onRemoveCustom,
 }: {
   open: boolean;
   onClose: () => void;
   missions: MissionToggle[];
   onToggle: (key: string) => void;
+  customMissions: string[];
+  onAddCustom: (titulo: string) => void;
+  onRemoveCustom: (index: number) => void;
 }) {
+  const [nova, setNova] = useState("");
   if (!open) return null;
-  const ativas = missions.filter((m) => m.on).length;
+  const ativas = missions.filter((m) => m.on).length + customMissions.length;
+
+  function adicionar() {
+    const t = nova.trim();
+    if (!t) return;
+    onAddCustom(t);
+    setNova("");
+  }
 
   return (
     <div
@@ -85,6 +99,50 @@ export function MissionSheet({
               </span>
             </button>
           ))}
+        </div>
+
+        <div className="mt-4 flex flex-col gap-2">
+          <span className="tipo-label text-ink-3">Suas missões</span>
+          {customMissions.map((titulo, i) => (
+            <div
+              key={`${titulo}-${i}`}
+              className="flex items-center justify-between gap-3 rounded-token border border-acento bg-superficie-alta p-3"
+            >
+              <span className="text-[0.9375rem] text-ink">{titulo}</span>
+              <button
+                type="button"
+                onClick={() => onRemoveCustom(i)}
+                aria-label={`Remover ${titulo}`}
+                className="grid size-7 shrink-0 place-items-center rounded-full text-ink-3 transition-colors hover:text-critico"
+              >
+                <Glyph name="x" size={14} />
+              </button>
+            </div>
+          ))}
+          <div className="flex gap-2">
+            <input
+              value={nova}
+              onChange={(e) => setNova(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  adicionar();
+                }
+              }}
+              maxLength={120}
+              placeholder="Nova missão — ex.: Dançar com a vovó"
+              aria-label="Nova missão"
+              className="min-h-11 flex-1 rounded-token border border-linha bg-superficie px-3 py-2 text-ink outline-none transition-[border-color] focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
+            />
+            <button
+              type="button"
+              onClick={adicionar}
+              disabled={!nova.trim()}
+              className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-pilula border border-linha bg-superficie px-4 tipo-label text-ink transition-colors hover:border-acento-texto disabled:opacity-50"
+            >
+              <Glyph name="plus" size={14} /> Adicionar
+            </button>
+          </div>
         </div>
 
         <button

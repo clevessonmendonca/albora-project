@@ -15,9 +15,9 @@ import { TypeStep, type TypeOption } from "./onboarding/type-step";
 import { AppearanceStep } from "./onboarding/appearance-step";
 import { AccessEmailStep } from "./onboarding/access-email-step";
 import { EVENT_STYLES, COLOR_COMBOS, type EventStyle } from "./onboarding/appearance-data";
-import { LivePreview, type PreviewSurface } from "./onboarding/live-preview";
+import { LivePreview } from "./onboarding/live-preview";
 import { paletteFromImage } from "./onboarding/photo-palette";
-import { PHOTO_POOL, typePhoto } from "./onboarding/onboarding-photos";
+import { typePhoto } from "./onboarding/onboarding-photos";
 import { MissionSheet } from "./onboarding/mission-sheet";
 import { Glyph } from "./onboarding/glyph";
 
@@ -78,9 +78,11 @@ export function CreateEventWizard() {
   const [date, setDate] = useState("");
   const [guests, setGuests] = useState("");
   const [local, setLocal] = useState("");
-  const [showDetails, setShowDetails] = useState(false);
   // Missões: por padrão todas do pack ligadas; o anfitrião desliga no sheet.
   const [missionsOff, setMissionsOff] = useState<Set<string>>(() => new Set());
+  // Missões livres do anfitrião — criadas logo após o evento (o POST de criação
+  // só aceita chaves do pack), então viajam num PUT em /challenges.
+  const [customMissions, setCustomMissions] = useState<string[]>([]);
   const [missionSheetOpen, setMissionSheetOpen] = useState(false);
   const [timezone] = useState(detectarFuso);
 
@@ -93,7 +95,6 @@ export function CreateEventWizard() {
   const [photoColors, setPhotoColors] = useState<string[]>([]);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
-  const [surface, setSurface] = useState<PreviewSurface>("convidado");
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const [status, setStatus] = useState<"editing" | "creating" | "error">("editing");
@@ -257,6 +258,17 @@ export function CreateEventWizard() {
       });
       if (!r.ok) return setStatus("error");
       const data = (await r.json()) as { slug: string; eventoId: string };
+      // Missões livres viram desafios logo após o evento nascer — degrada, nunca
+      // bloqueia a criação (missão custom fora do caminho crítico).
+      if (customMissions.length > 0) {
+        await fetch(`/api/admin/events/${data.eventoId}/challenges`, {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            customMissions: customMissions.map((titulo, i) => ({ titulo, posicao: i + 1000 })),
+          }),
+        }).catch(() => {});
+      }
       setCreated({
         ...data,
         planIntent,
@@ -301,7 +313,6 @@ export function CreateEventWizard() {
     momentos,
     coverImage: coverUrl,
     coverFallback: typePhoto(packId),
-    gallery: PHOTO_POOL,
     layout: styleKey,
     onEditTitle: (v: string) => setTitle(v),
     onPickCover,
@@ -341,8 +352,8 @@ export function CreateEventWizard() {
                   selectedId={packId}
                   onSelectType={selectPack}
                   onEditMissions={() => setMissionSheetOpen(true)}
-                  missionsAtivas={activeMissions.length}
-                  missionsTotal={pack.missoes.length}
+                  missionsAtivas={activeMissions.length + customMissions.length}
+                  missionsTotal={pack.missoes.length + customMissions.length}
                   title={title}
                   onTitle={setTitle}
                   titlePlaceholder={titlePlaceholder}
@@ -354,8 +365,6 @@ export function CreateEventWizard() {
                   onGuests={setGuests}
                   local={local}
                   onLocal={setLocal}
-                  showDetails={showDetails}
-                  onToggleDetails={() => setShowDetails((v) => !v)}
                 />
                 {vendors.length > 0 && (
                   <div className="flex flex-col gap-3 border-t border-linha pt-4">
@@ -408,7 +417,7 @@ export function CreateEventWizard() {
                 />
                 {/* Prévia inline compacta no mobile, na Aparência (design v3). */}
                 <div className="lg:hidden">
-                  <LivePreview data={previewData} surface={surface} onSurfaceChange={setSurface} />
+                  <LivePreview data={previewData} />
                 </div>
               </>
             )}
@@ -431,7 +440,7 @@ export function CreateEventWizard() {
           {/* Prévia persistente no desktop. */}
           <aside className="hidden lg:block">
             <div className="sticky top-8">
-              <LivePreview data={previewData} surface={surface} onSurfaceChange={setSurface} />
+              <LivePreview data={previewData} />
             </div>
           </aside>
         </div>
@@ -453,7 +462,7 @@ export function CreateEventWizard() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="mx-auto mb-4 h-1 w-10 rounded-pilula bg-linha" />
-                  <LivePreview data={previewData} surface={surface} onSurfaceChange={setSurface} />
+                  <LivePreview data={previewData} />
                   <button
                     type="button"
                     onClick={() => setPreviewOpen(false)}
@@ -473,6 +482,9 @@ export function CreateEventWizard() {
         onClose={() => setMissionSheetOpen(false)}
         missions={missionToggles}
         onToggle={toggleMission}
+        customMissions={customMissions}
+        onAddCustom={(titulo) => setCustomMissions((prev) => [...prev, titulo])}
+        onRemoveCustom={(i) => setCustomMissions((prev) => prev.filter((_, idx) => idx !== i))}
       />
     </div>
   );

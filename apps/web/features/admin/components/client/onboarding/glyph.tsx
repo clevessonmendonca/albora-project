@@ -108,6 +108,7 @@ const PATHS: Record<string, React.ReactNode> = {
     </>
   ),
   x: <path d="M18 6 6 18M6 6l12 12" />,
+  plus: <path d="M5 12h14M12 5v14" />,
 };
 
 export type GlyphName = keyof typeof PATHS | (string & {});

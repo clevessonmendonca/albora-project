@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { LivePreview, type LivePreviewData } from "./live-preview";
 
@@ -17,17 +17,12 @@ function base(overrides: Partial<LivePreviewData> = {}): LivePreviewData {
 }
 
 describe("LivePreview", () => {
-  it("mostra as três superfícies e troca ao clicar na aba", () => {
+  it("mostra a capa do convidado numa tela só, sem abas", () => {
     render(<LivePreview data={base()} />);
-    const tablist = screen.getByRole("tablist", { name: "Superfície da prévia" });
-    expect(within(tablist).getAllByRole("tab")).toHaveLength(3);
-
-    // Convidado é o default: CTA do convidado aparece.
+    // Simplificada (design v5): uma superfície, sem tablist.
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+    expect(screen.getByText("Assim seus convidados veem")).toBeInTheDocument();
     expect(screen.getByText("Entrar na festa")).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("tab", { name: "Telão" }));
-    expect(screen.getByText("ao vivo")).toBeInTheDocument();
-    expect(screen.queryByText("Entrar na festa")).not.toBeInTheDocument();
   });
 
   it("capa vazia oferece escolher; título editável emite no blur", () => {
