@@ -232,7 +232,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
       }
 
       telao!.style.opacity = seg(p, 0.78, 0.9).toFixed(3);
-      telao!.style.transform = `translate(-50%,-56%) scale(${lerp(0.96, 1, conv).toFixed(3)})`;
+      telao!.style.transform = `translate(-50%,-53%) scale(${lerp(0.96, 1, conv).toFixed(3)})`;
 
       cap1!.style.opacity = (1 - seg(p, 0.06, 0.14)).toFixed(3);
 
@@ -243,7 +243,7 @@ export function PerspectivasSection({ pack }: { pack: Pack }) {
       cap4!.style.transform = `translate(-50%,${lerp(-46, -52, seg(p, 0.6, 0.88)).toFixed(1)}%)`;
 
       cap5!.style.opacity = seg(p, 0.9, 0.99).toFixed(3);
-      cap5!.style.transform = `translate(-50%,${lerp(36, 41, conv).toFixed(1)}vh)`;
+      cap5!.style.transform = `translate(-50%,${lerp(28, 30, conv).toFixed(1)}vh)`;
     }
 
     function progress() {
