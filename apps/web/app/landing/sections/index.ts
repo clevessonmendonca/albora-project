@@ -1,4 +1,5 @@
 export { HeroSection } from "./hero";
+export { DemoSection } from "./demo";
 export { ProvaSection } from "./prova";
 export { ComoFuncionaSection } from "./como-funciona";
 export { PerspectivasSection } from "./perspectivas";

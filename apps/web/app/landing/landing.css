@@ -284,6 +284,9 @@ summary:focus-visible {
 .telao-polaroide-1 { transform: rotate(-4deg) translateY(1rem); }
 .telao-polaroide-2 { z-index: 1; transform: rotate(1deg) translateY(-1rem); }
 .telao-polaroide-3 { transform: rotate(4deg) translateY(.75rem); }
+.demo-album { border: 1px solid var(--ink-borda-forte); background: var(--bg); padding: clamp(1.25rem, 3vw, 2rem); box-shadow: var(--shadow-suave); }
+.demo-album-top { display: flex; justify-content: space-between; border-bottom: 1px solid var(--linha); padding-bottom: .8rem; color: var(--ink-3); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
+.demo-album-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin-top: 1.5rem; }
 
 @media (max-width: 52rem) {
   .rodape-grid { grid-template-columns: 1fr 1fr; gap: 2rem 1.25rem; }

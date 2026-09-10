@@ -10,6 +10,7 @@ import { pillClasses } from "./pieces";
 import { SIDE_PADDING, HREF_CRIAR_GRATIS, type LiveStats } from "./landing-data";
 import {
   HeroSection,
+  DemoSection,
   ProvaSection,
   ComoFuncionaSection,
   PerspectivasSection,
@@ -75,8 +76,8 @@ export function LandingPage({ pack, live }: { pack: Pack; live?: LiveStats }) {
 
       <HeroSection pack={pack} {...(live !== undefined ? { live } : {})} />
       <ProvaSection />
-      <span id="demo" className="anchor-target" aria-hidden="true" />
       <ComoFuncionaSection />
+      <DemoSection packId={pack.id} />
       <PerspectivasSection pack={pack} />
       <TelaoSection pack={pack} />
       <DuranteAFestaSection />
