@@ -110,12 +110,15 @@ body {
   );
 }
 .sobre-foto {
-  color: #fff;
+  /* Fixo, não token de tema: sobre uma foto o texto é sempre claro, em qualquer
+     evento. Em rgb() como as irmãs scrim — o valor de mídia mora aqui, num só lugar. */
+  color: rgb(255, 255, 255);
   text-shadow: 0 1px 3px rgba(20, 16, 14, 0.5);
 }
 .chip-sobre-foto {
   background: rgba(250, 248, 244, 0.94);
-  color: #1f1b18;
+  /* Warm-black fixo do papel da marca (nunca #000 puro) — casa com o rgba do fundo. */
+  color: rgb(31, 27, 24);
 }
 
 /* Scrim mais forte para texto no rodapé de uma foto que pode ser clara: garante

@@ -14,20 +14,20 @@ export const PHOTO_POOL: readonly string[] = Array.from(
 /** Foto padrão quando um tipo/estilo não tem uma dedicada. */
 export const FALLBACK_PHOTO = PHOTO_POOL[0]!;
 
-/** Tipo de evento → foto do card (por `packId`). Só os packs de criação. */
-export const TYPE_PHOTO: Record<string, string> = {
-  casamento: "/onboarding/photo-08.webp",
-  aniversario: "/onboarding/photo-09.webp",
-  formatura: "/onboarding/photo-02.webp",
-  corporativo: "/onboarding/photo-03.webp",
-  celebracao: "/onboarding/photo-07.webp",
-  outro: "/onboarding/photo-01.webp",
-  "quinze-anos": "/onboarding/photo-04.webp",
-  "pre-casamento": "/onboarding/photo-06.webp",
+/** Tipo de evento → foto do card, indexada pela ordem de criação do pack
+ *  (`ordemCriacao`, ADR 0019). Nunca por nome de domínio — palavra de domínio não
+ *  mora em componente; só os packs de criação (ordem 1..6) chegam aqui. */
+const TYPE_PHOTO_POR_ORDEM: Record<number, string> = {
+  1: "/onboarding/photo-08.webp",
+  2: "/onboarding/photo-09.webp",
+  3: "/onboarding/photo-02.webp",
+  4: "/onboarding/photo-03.webp",
+  5: "/onboarding/photo-07.webp",
+  6: "/onboarding/photo-01.webp",
 };
 
-export function typePhoto(packId: string): string {
-  return TYPE_PHOTO[packId] ?? FALLBACK_PHOTO;
+export function typePhoto(ordemCriacao: number | undefined): string {
+  return (ordemCriacao != null ? TYPE_PHOTO_POR_ORDEM[ordemCriacao] : undefined) ?? FALLBACK_PHOTO;
 }
 
 /** Estilo → foto do card (por chave de estilo). */

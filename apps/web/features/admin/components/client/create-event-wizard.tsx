@@ -77,7 +77,7 @@ export function CreateEventWizard() {
         id: p.id,
         nome: resolvePackText(p, "evento.nome"),
         icone: p.icone ?? "calendar",
-        foto: typePhoto(p.id),
+        foto: typePhoto(p.ordemCriacao),
         preparo: resolvePackText(p, "evento.preparo"),
         posse: resolvePackText(p, "evento.posse"),
       })),
@@ -350,7 +350,7 @@ export function CreateEventWizard() {
     ctaLabel: "Entrar na festa",
     momentos,
     coverImage: coverUrl,
-    coverFallback: typePhoto(packId),
+    coverFallback: typePhoto(pack.ordemCriacao),
     layout: styleKey,
     onEditTitle: (v: string) => setTitle(v),
     onPickCover,
@@ -459,7 +459,7 @@ export function CreateEventWizard() {
                   styleKey={styleKey}
                   onStyle={pickStyle}
                   eventName={displayTitle}
-                  coverSrc={coverUrl ?? typePhoto(packId)}
+                  coverSrc={coverUrl ?? typePhoto(pack.ordemCriacao)}
                   cor={cor}
                   cor2={cor2}
                   onColor={setColor}
