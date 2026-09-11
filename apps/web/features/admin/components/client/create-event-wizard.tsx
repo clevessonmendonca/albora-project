@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState, type CSSProperties } from 
 import NextLink from "next/link";
 import { FUSO_PADRAO, type VendorPlanTier, type WallDisplayModel } from "@albora/core";
 import { PACKS, packsDeCriacao, resolvePackText } from "@albora/packs";
+import { eventColorVariablesFrom } from "@albora/tokens";
 import { Select } from "@albora/ui-web";
 import { useSearchParams } from "next/navigation";
 import { resolveIdentityPreviewVars } from "@/features/admin/lib/identity-preview";
@@ -209,6 +210,13 @@ export function CreateEventWizard() {
     [pack, identityTokens],
   );
 
+  // Só o acento do evento (--ev*), sem tocar em superfície: a tela "Pronto" é admin e fica
+  // clara/editorial (DESIGN.md), com a cor do casal ecoando no herói — não pinta tudo de escuro.
+  const eventAccentVars = useMemo(
+    () => eventColorVariablesFrom(identityTokens) as CSSProperties,
+    [identityTokens],
+  );
+
   const titleValid = title.trim().length > 0;
   const dateValid = date.length > 0;
   const coupleEmailValid = vendorId === "" || EMAIL_RE.test(coupleEmail.trim());
@@ -324,7 +332,16 @@ export function CreateEventWizard() {
     }
   }
 
-  if (created) return <ReadyStep created={created} title={displayTitle} coverFile={coverFile} previewVars={previewVars} />;
+  if (created)
+    return (
+      <ReadyStep
+        created={created}
+        title={displayTitle}
+        dateLabel={rotuloData(date)}
+        coverFile={coverFile}
+        accentVars={eventAccentVars}
+      />
+    );
 
   const previewData = {
     vars: previewVars,
@@ -638,13 +655,15 @@ function NavBar({
 function ReadyStep({
   created,
   title,
+  dateLabel,
   coverFile,
-  previewVars,
+  accentVars,
 }: {
   created: Created;
   title: string;
+  dateLabel: string;
   coverFile: File | null;
-  previewVars: CSSProperties;
+  accentVars: CSSProperties;
 }) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const [paying, setPaying] = useState(false);
@@ -682,27 +701,76 @@ function ReadyStep({
     }
   };
 
+  const accentButton =
+    "flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-pilula px-6 font-titulo text-[1.05rem] no-underline shadow-suave transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.98]";
+  const accentStyle = { background: "var(--ev, var(--acento))", color: "var(--ev-on, var(--sobre-acento))" };
+  // Classe própria (flex, sem o `inline-block` de adminClasses.secondaryButton — que venceria o flex
+  // e jogaria ícone e texto pra esquerda em duas linhas).
+  const entryButton =
+    "flex min-h-[3rem] items-center justify-center gap-2 rounded-pilula border border-linha bg-superficie-alta px-4 py-3 text-center font-titulo text-[0.95rem] leading-tight text-ink no-underline transition-[transform,border-color] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97]";
+
   return (
-    <main className="min-h-dvh bg-bg font-corpo text-ink" style={previewVars}>
-      <div className="mx-auto flex w-full max-w-[34rem] flex-col gap-6 px-[clamp(1.1rem,4vw,2rem)] py-12">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <span className="inline-flex size-12 items-center justify-center rounded-full bg-acento text-sobre-acento">
-            <Glyph name="check" size={22} />
+    <main className="relative min-h-dvh overflow-hidden bg-bg font-corpo text-ink" style={accentVars}>
+      {/* Blush quente da cor do casal no topo — a marca é a moldura, o evento é o quadro. Sutil,
+          não decoração: dá foco ao herói sobre a superfície clara do admin. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-72"
+        style={{ background: "radial-gradient(70% 100% at 50% 0%, var(--ev-soft, transparent), transparent)" }}
+      />
+      <div className="relative mx-auto flex w-full max-w-[36rem] flex-col gap-[clamp(1.5rem,4vh,2.25rem)] px-[clamp(1.1rem,5vw,2rem)] py-[clamp(2rem,6vh,3.5rem)]">
+        {/* Herói: comemora e ecoa a cor do casal, sobre a superfície clara do admin. */}
+        <div className="anima-surge flex flex-col items-center gap-3 text-center">
+          <span className="rounded-full p-2" style={{ background: "var(--ev-tint, transparent)" }}>
+            <span
+              className="anima-pop inline-flex size-14 items-center justify-center rounded-full shadow-suave"
+              style={accentStyle}
+            >
+              <Glyph name="check" size={26} />
+            </span>
           </span>
-          <h1 className="tipo-title m-0 mt-2">
+          <h1 className="tipo-title m-0 mt-1 text-balance">
             <span style={{ color: "var(--ev, var(--acento-texto))" }}>{title}</span> está pronto.
           </h1>
-          <p className="tipo-body m-0 text-ink-2">Você montou tudo isso sem sair do caminho.</p>
+          {dateLabel && (
+            <p className="tipo-label m-0 uppercase tracking-[0.18em] text-ink-3">{dateLabel}</p>
+          )}
+          <p className="tipo-body m-0 max-w-[26rem] text-ink-2">
+            Já dá pra entrar. O resto você ajusta quando quiser.
+          </p>
         </div>
 
-        <CoverImageEditor eventId={created.eventoId} initialCoverImageUrl={null} initialCoverImageKey={null} autoUploadFile={coverFile} />
+        {/* Caminho principal primeiro — antes de qualquer ajuste opcional. */}
+        <div className="anima-surge flex flex-col gap-2.5" style={{ animationDelay: "90ms" }}>
+          <a href={`/admin/e/${created.eventoId}`} className={accentButton} style={accentStyle}>
+            Ir para meu evento
+            <Glyph name="arrow-right" size={18} />
+          </a>
+          <div className="grid grid-cols-2 gap-2.5">
+            <a href={eventEntryUrl(origin, created.slug, "link")} className={entryButton}>
+              <Glyph name="eye" size={16} />
+              <span>Ver como convidado</span>
+            </a>
+            <a href={whatsappInviteUrl(origin, created.slug)} className={entryButton}>
+              <Glyph name="share-2" size={16} />
+              <span>Compartilhar</span>
+            </a>
+          </div>
+          {/* A capa é escolhida no onboarding; aqui só confirmamos o envio silencioso, sem repetir
+              o seletor. Sem capa escolhida, nada aparece — dá pra adicionar depois no painel. */}
+          {coverFile && (
+            <CoverImageEditor
+              eventId={created.eventoId}
+              initialCoverImageUrl={null}
+              initialCoverImageKey={null}
+              autoUploadFile={coverFile}
+              compact
+            />
+          )}
+        </div>
 
         {/* E-mail-como-acesso: hipótese de delayed auth, atrás de flag (ADR 0020). Off = caminho atual. */}
         {delayedAuthEnabled() && <AccessEmailStep eventId={created.eventoId} />}
-
-        <a href={`/admin/e/${created.eventoId}`} className={`${adminClasses.primaryButton} w-full py-3.5 text-center text-[1.05rem]`}>
-          Ir para meu evento
-        </a>
 
         {created.vendorSlug && (
           <a
@@ -713,32 +781,28 @@ function ReadyStep({
           </a>
         )}
 
-        <div className="grid grid-cols-2 gap-2">
-          <a href={eventEntryUrl(origin, created.slug, "link")} className={`${adminClasses.secondaryButton} py-3 text-center text-[0.95rem]`}>
-            Ver como convidado
-          </a>
-          <a href={whatsappInviteUrl(origin, created.slug)} className={`${adminClasses.secondaryButton} py-3 text-center text-[0.95rem]`}>
-            Compartilhar
-          </a>
-        </div>
-
         {created.planIntent === "celebration" && (
-          <button
-            type="button"
-            disabled={paying}
-            onClick={() => void startCheckout()}
-            className={`${adminClasses.primaryButton} w-full py-3.5 text-center text-[1.05rem] ${paying ? "opacity-60" : ""}`}
-          >
-            {paying ? "Abrindo pagamento…" : "Pagar Completo (R$ 199)"}
-          </button>
-        )}
-        {payError && (
-          <p role="alert" className="m-0 text-sm text-critico">
-            Não abriu o checkout. Tente de novo no painel.
-          </p>
+          <div className="flex flex-col gap-1.5">
+            <button
+              type="button"
+              disabled={paying}
+              onClick={() => void startCheckout()}
+              className={`${adminClasses.secondaryButton} w-full py-3.5 text-center text-[1rem] ${paying ? "opacity-60" : ""}`}
+            >
+              {paying ? "Abrindo pagamento…" : "Ativar o Completo — R$ 199"}
+            </button>
+            {payError && (
+              <p role="alert" className="m-0 text-sm text-critico">
+                Não abriu o checkout. Tente de novo no painel.
+              </p>
+            )}
+          </div>
         )}
 
-        <div className="flex flex-col items-center gap-2.5 border-t border-linha pt-5">
+        <div
+          className="anima-surge flex flex-col items-center gap-2.5 border-t border-linha pt-5"
+          style={{ animationDelay: "170ms" }}
+        >
           <p className="tipo-caption m-0 text-center text-ink-3">
             Configure quando quiser — já deixamos tudo pronto.
           </p>

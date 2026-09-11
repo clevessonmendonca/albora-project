@@ -91,14 +91,16 @@ function GuestCover({ data }: { data: LivePreviewData }) {
 
         {src && <span aria-hidden className="scrim-foto-forte absolute inset-0" />}
 
-        <button
-          type="button"
-          onClick={data.onPickCover}
-          aria-label={propria ? "Trocar a capa" : "Escolher a capa"}
-          className="chip-sobre-foto absolute right-3 top-3 z-[2] inline-flex items-center gap-1 rounded-pilula px-2.5 py-1.5 tipo-label shadow-suave transition-transform hover:scale-105"
-        >
-          <Glyph name="image" size={13} /> {propria ? "Trocar" : "Escolher capa"}
-        </button>
+        {data.onPickCover && (
+          <button
+            type="button"
+            onClick={data.onPickCover}
+            aria-label={propria ? "Trocar a capa" : "Escolher a capa"}
+            className="chip-sobre-foto absolute right-3 top-3 z-[2] inline-flex items-center gap-1 rounded-pilula px-2.5 py-1.5 tipo-label shadow-suave transition-transform hover:scale-105"
+          >
+            <Glyph name="image" size={13} /> {propria ? "Trocar" : "Escolher capa"}
+          </button>
+        )}
 
         <div className="absolute inset-x-4 bottom-5 z-[1] flex flex-col gap-3">
           <div className={`flex flex-col gap-1.5 ${L.align}`}>
