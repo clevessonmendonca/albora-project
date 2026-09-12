@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { Glyph } from "./glyph";
 
@@ -29,6 +29,24 @@ export function MissionSheet({
   onRemoveCustom: (index: number) => void;
 }) {
   const [nova, setNova] = useState("");
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Esc fecha e o foco entra no painel ao abrir / volta ao gatilho ao fechar —
+  // mesmo padrão dos popovers de cor e data; teclado-only não fica preso.
+  useEffect(() => {
+    if (!open) return;
+    const anterior = document.activeElement as HTMLElement | null;
+    panelRef.current?.focus();
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      anterior?.focus?.();
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
   const ativas = missions.filter((m) => m.on).length + customMissions.length;
 
@@ -48,7 +66,9 @@ export function MissionSheet({
       aria-label="Missões"
     >
       <div
-        className="max-h-[85dvh] w-full max-w-[30rem] overflow-y-auto rounded-t-superficie bg-bg p-5 shadow-alta sm:rounded-superficie"
+        ref={panelRef}
+        tabIndex={-1}
+        className="max-h-[85dvh] w-full max-w-[30rem] overflow-y-auto rounded-t-superficie bg-bg p-5 shadow-alta outline-none sm:rounded-superficie"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mx-auto mb-4 h-1 w-10 rounded-pilula bg-linha sm:hidden" />

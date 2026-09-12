@@ -14,7 +14,6 @@ export type LivePreviewData = {
   coverFallback?: string | null;
   /** Chave do estilo escolhido — muda a composição da capa (posição, caixa, corpo). */
   layout: string;
-  onEditTitle?: (value: string) => void;
   onPickCover?: () => void;
 };
 

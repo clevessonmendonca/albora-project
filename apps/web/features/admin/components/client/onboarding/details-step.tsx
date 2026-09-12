@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { TextField } from "@albora/ui-web";
 import { DateTimeField } from "./datetime-field";
 import { Glyph } from "./glyph";
@@ -44,18 +44,24 @@ export function DetailsStep({
 }) {
   const [cep, setCep] = useState("");
   const [cepStatus, setCepStatus] = useState<"idle" | "loading" | "erro">("idle");
+  // Sequência de requisições: só a última consulta vale. Sem isso, uma resposta
+  // lenta de um CEP corrigido sobrescreve o local com o valor antigo (ViaCEP degrada).
+  const cepReqRef = useRef(0);
 
   async function buscarCep(bruto: string) {
     const digs = bruto.replace(/\D/g, "").slice(0, 8);
     setCep(digs.length > 5 ? `${digs.slice(0, 5)}-${digs.slice(5)}` : digs);
     if (digs.length !== 8) {
+      cepReqRef.current++;
       setCepStatus("idle");
       return;
     }
+    const reqId = ++cepReqRef.current;
     setCepStatus("loading");
     try {
       const r = await fetch(`https://viacep.com.br/ws/${digs}/json/`);
       const data = (await r.json()) as ViaCep;
+      if (reqId !== cepReqRef.current) return; // resposta velha — ignora
       if (data.erro) {
         setCepStatus("erro");
         return;
@@ -65,6 +71,7 @@ export function DetailsStep({
       if (texto) onLocal(texto.slice(0, 80));
       setCepStatus("idle");
     } catch {
+      if (reqId !== cepReqRef.current) return;
       setCepStatus("erro");
     }
   }

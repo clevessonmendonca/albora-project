@@ -352,7 +352,6 @@ export function CreateEventWizard() {
     coverImage: coverUrl,
     coverFallback: typePhoto(pack.ordemCriacao),
     layout: styleKey,
-    onEditTitle: (v: string) => setTitle(v),
     onPickCover,
   };
 
