@@ -6,7 +6,7 @@ import { PACKS } from "@albora/packs";
 import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
 import { LiveSummary } from "@/features/admin/components/client/live-summary";
 import { EventControls } from "@/features/admin/components/client/event-controls";
-import { PreEventPromo } from "@/features/admin/components/client/pre-event-promo";
+import { PreEventChecklist } from "@/features/admin/components/client/pre-event-checklist";
 import { typePhoto } from "@/features/admin/components/client/onboarding/onboarding-photos";
 import type { AdminEventPageContext } from "@/features/admin/data/load-event-page";
 
@@ -196,11 +196,11 @@ export function EventHome({
           img={heroImg}
         />
         <VerComoConvidado slug={evento.slug} />
+        <Ferramentas base={`/admin/e/${eventId}`} />
         <section>
           <h2 className="tipo-label m-0 mb-3 text-ink-3">Termine de deixar tudo pronto</h2>
-          <PreEventPromo eventId={evento.eventoId} storageKey={checklistStorageKey} startsAt={evento.comecaEm} />
+          <PreEventChecklist eventId={evento.eventoId} storageKey={checklistStorageKey} />
         </section>
-        <Ferramentas base={`/admin/e/${eventId}`} />
         <ComoFunciona />
       </div>
     );
