@@ -51,6 +51,38 @@ body {
   animation: star-bounce 500ms var(--curva);
 }
 
+/* Entrada da tela "Pronto": um surgir quieto (sobe e aparece) com o pop do selo de sucesso como
+   único momento autoral — o resto só acompanha. Neutralizado pelo guard de reduced-motion abaixo. */
+@keyframes surge {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes pop-selo {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.anima-surge {
+  animation: surge 520ms var(--curva) both;
+}
+.anima-pop {
+  animation: pop-selo 620ms var(--curva) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -60,4 +92,43 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/*
+ * Tratamento de mídia: scrim quente FIXO para texto legível sobre foto de festa.
+ * Fixo de propósito — não é token de tema: sobre uma foto o texto é sempre claro,
+ * em qualquer evento e em qualquer tema. Valor quente na linha do papel escuro da
+ * marca (nunca preto puro). Fica aqui, num só lugar, para nenhum componente
+ * carregar cor literal.
+ */
+.scrim-foto {
+  background-image: linear-gradient(
+    to top,
+    rgba(20, 16, 14, 0.62),
+    rgba(20, 16, 14, 0.06) 55%,
+    transparent
+  );
+}
+.sobre-foto {
+  /* Fixo, não token de tema: sobre uma foto o texto é sempre claro, em qualquer
+     evento. Em rgb() como as irmãs scrim — o valor de mídia mora aqui, num só lugar. */
+  color: rgb(255, 255, 255);
+  text-shadow: 0 1px 3px rgba(20, 16, 14, 0.5);
+}
+.chip-sobre-foto {
+  background: rgba(250, 248, 244, 0.94);
+  /* Warm-black fixo do papel da marca (nunca #000 puro) — casa com o rgba do fundo. */
+  color: rgb(31, 27, 24);
+}
+
+/* Scrim mais forte para texto no rodapé de uma foto que pode ser clara: garante
+   legibilidade do nome/data em qualquer imagem. */
+.scrim-foto-forte {
+  background-image: linear-gradient(
+    to top,
+    rgba(20, 16, 14, 0.9),
+    rgba(20, 16, 14, 0.45) 42%,
+    rgba(20, 16, 14, 0.08) 72%,
+    transparent
+  );
 }

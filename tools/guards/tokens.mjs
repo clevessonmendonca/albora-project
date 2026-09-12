@@ -79,6 +79,10 @@ const EXCECOES = new Map([
     "marca-animada.tsx",
     "SVG estático do pacote de marca; cores são a origem da identidade, não consumidor do evento",
   ],
+  [
+    "color-field.tsx",
+    "seletor de cor: o arco-íris de matiz e os overlays de saturação/brilho são o próprio espaço de cor (a UI para o casal escolher a identidade), não consumidores dela; a cor selecionada vem do estado, nunca literal",
+  ],
 ]);
 
 export function verificar(raiz) {
