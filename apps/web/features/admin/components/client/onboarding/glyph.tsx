@@ -79,6 +79,48 @@ const PATHS: Record<string, React.ReactNode> = {
       <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
     </>
   ),
+  target: (
+    <>
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="6" />
+      <circle cx="12" cy="12" r="2" />
+    </>
+  ),
+  monitor: (
+    <>
+      <rect width="20" height="14" x="2" y="3" rx="2" />
+      <path d="M8 21h8M12 17v4" />
+    </>
+  ),
+  "qr-code": (
+    <>
+      <rect width="5" height="5" x="3" y="3" rx="1" />
+      <rect width="5" height="5" x="16" y="3" rx="1" />
+      <rect width="5" height="5" x="3" y="16" rx="1" />
+      <path d="M21 16h-3a2 2 0 0 0-2 2v3M21 21v.01M12 7v3a2 2 0 0 1-2 2H7M3 12h.01M12 3h.01M12 16v.01M16 12h1M21 12v.01M12 21v-1" />
+    </>
+  ),
+  "user-plus": (
+    <>
+      <path d="M2 21a8 8 0 0 1 13.292-6" />
+      <circle cx="10" cy="8" r="5" />
+      <path d="M19 16v6M22 19h-6" />
+    </>
+  ),
+  x: <path d="M18 6 6 18M6 6l12 12" />,
+  plus: <path d="M5 12h14M12 5v14" />,
+  "arrow-right": (
+    <>
+      <path d="M5 12h14" />
+      <path d="m12 5 7 7-7 7" />
+    </>
+  ),
+  "map-pin": (
+    <>
+      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+      <circle cx="12" cy="10" r="3" />
+    </>
+  ),
 };
 
 export type GlyphName = keyof typeof PATHS | (string & {});

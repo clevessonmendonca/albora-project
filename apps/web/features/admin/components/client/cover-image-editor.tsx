@@ -13,6 +13,9 @@ type Props = {
   /** Capa escolhida no onboarding, antes de o evento existir — enviada assim que ele nasce,
    *  para a escolha não se perder entre a criação e o painel. Reusa o mesmo presign→PUT→confirm. */
   autoUploadFile?: File | null;
+  /** Modo enxuto (tela "Pronto" do onboarding): sem seletor nem preview — só confirma o envio
+   *  silencioso da capa que já foi escolhida na prévia. O seletor cheio vive no painel. */
+  compact?: boolean;
 };
 
 type UploadState =
@@ -21,7 +24,7 @@ type UploadState =
   | { fase: "erro"; mensagem: string }
   | { fase: "pronto" };
 
-export function CoverImageEditor({ eventId, initialCoverImageUrl, autoUploadFile }: Props) {
+export function CoverImageEditor({ eventId, initialCoverImageUrl, autoUploadFile, compact }: Props) {
   const [url, setUrl] = useState<string | null>(initialCoverImageUrl);
   const [estado, setEstado] = useState<UploadState>({ fase: "idle" });
   const [removing, setRemoving] = useState(false);
@@ -117,6 +120,33 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl, autoUploadFile
 
   const busy = estado.fase === "uploading" || removing;
 
+  if (compact) {
+    const pronto = estado.fase === "pronto" || (url !== null && estado.fase !== "erro");
+    return (
+      <div
+        role="status"
+        className="flex items-center justify-center gap-2 py-1 text-[0.9rem] text-ink-2"
+      >
+        {estado.fase === "erro" ? (
+          <span className="text-critico">A capa não subiu — dá pra adicionar no painel.</span>
+        ) : pronto ? (
+          <>
+            <span className="text-acento-texto">
+              <svg width="14" height="14" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path d="M2 6l2.5 2.5L10 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <span>Capa adicionada.</span>
+          </>
+        ) : (
+          <span>
+            Enviando a capa…{estado.fase === "uploading" ? ` ${estado.progresso}%` : ""}
+          </span>
+        )}
+      </div>
+    );
+  }
+
   return (
     <AdminSection>
       <h2 className="tipo-subtitle m-0">Imagem de capa</h2>
@@ -125,7 +155,7 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl, autoUploadFile
         PNG ou WebP — máximo 5 MB.
       </p>
 
-      <div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,1fr)_14rem]">
+      <div className={`mt-5 grid gap-5 ${url ? "md:grid-cols-[minmax(0,1fr)_13rem]" : ""}`}>
         <button
           type="button"
           disabled={busy}
@@ -162,15 +192,11 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl, autoUploadFile
           <p className="tipo-label m-0 text-ink-3">ou clique para escolher · JPEG, PNG, WebP · até 5 MB</p>
         </button>
 
-        <div className="relative aspect-video w-full overflow-hidden rounded-token border border-linha bg-superficie-alta sm:aspect-auto sm:h-full">
-          {url ? (
+        {url && (
+          <div className="relative aspect-video w-full overflow-hidden rounded-token border border-linha bg-superficie-alta md:aspect-auto md:h-full">
             <img src={url} alt="Imagem de capa atual" className="absolute inset-0 size-full object-cover" />
-          ) : (
-            <div className="flex size-full flex-col items-center justify-center gap-1.5 p-3 text-center">
-              <span className="tipo-label text-ink-3">Sem imagem</span>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <input
           ref={inputRef}

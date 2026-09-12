@@ -27,10 +27,17 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(self), microphone=(self), geolocation=(), interest-cohort=()",
           },
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=63072000; includeSubDomains; preload",
-          },
+          // HSTS só em produção: em http://localhost o header (includeSubDomains;
+          // preload) força HTTPS no host inteiro e o browser cacheia por 2 anos,
+          // quebrando o carregamento de CSS/JS de qualquer app em localhost (dev).
+          ...(process.env.NODE_ENV === "production"
+            ? [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=63072000; includeSubDomains; preload",
+                },
+              ]
+            : []),
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
         ],
       },

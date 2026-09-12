@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState, type CSSProperties } from 
 import NextLink from "next/link";
 import { FUSO_PADRAO, type VendorPlanTier, type WallDisplayModel } from "@albora/core";
 import { PACKS, packsDeCriacao, resolvePackText } from "@albora/packs";
+import { eventColorVariablesFrom } from "@albora/tokens";
 import { Select } from "@albora/ui-web";
 import { useSearchParams } from "next/navigation";
 import { resolveIdentityPreviewVars } from "@/features/admin/lib/identity-preview";
@@ -12,11 +13,14 @@ import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
 import { CoverImageEditor } from "@/features/admin/components/client/cover-image-editor";
 import { delayedAuthEnabled } from "@/lib/flags";
 import { TypeStep, type TypeOption } from "./onboarding/type-step";
+import { DetailsStep } from "./onboarding/details-step";
 import { AppearanceStep } from "./onboarding/appearance-step";
 import { AccessEmailStep } from "./onboarding/access-email-step";
 import { EVENT_STYLES, COLOR_COMBOS, type EventStyle } from "./onboarding/appearance-data";
-import { LivePreview, type PreviewSurface } from "./onboarding/live-preview";
+import { LivePreview } from "./onboarding/live-preview";
 import { paletteFromImage } from "./onboarding/photo-palette";
+import { typePhoto } from "./onboarding/onboarding-photos";
+import { MissionSheet } from "./onboarding/mission-sheet";
 import { Glyph } from "./onboarding/glyph";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,8 +39,20 @@ function detectarFuso(): string {
 
 function rotuloData(iso: string): string {
   if (!iso) return "";
-  const [y, m, d] = iso.split("-");
-  return d && m && y ? `${d} · ${m} · ${y}` : "";
+  const [datePart = "", timePart = ""] = iso.split("T");
+  const [y, m, d] = datePart.split("-");
+  if (!d || !m || !y) return "";
+  const base = `${d} · ${m} · ${y}`;
+  return timePart ? `${base} · ${timePart.slice(0, 5)}h` : base;
+}
+
+/** Fim padrão: começo + N horas, no mesmo formato `YYYY-MM-DDTHH:mm`. */
+function somarHoras(dtLocal: string, horas: number): string {
+  const base = new Date(dtLocal);
+  if (Number.isNaN(base.getTime())) return dtLocal;
+  base.setHours(base.getHours() + horas);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${base.getFullYear()}-${p(base.getMonth() + 1)}-${p(base.getDate())}T${p(base.getHours())}:${p(base.getMinutes())}`;
 }
 
 type Created = {
@@ -48,7 +64,7 @@ type Created = {
 };
 type VendorOption = { vendorId: string; name: string; role: "admin" | "staff" };
 
-const STEPS = ["Evento", "Aparência", "Pronto"] as const;
+const STEPS = ["Tipo", "Detalhes", "Aparência", "Pronto"] as const;
 
 export function CreateEventWizard() {
   const search = useSearchParams();
@@ -61,6 +77,7 @@ export function CreateEventWizard() {
         id: p.id,
         nome: resolvePackText(p, "evento.nome"),
         icone: p.icone ?? "calendar",
+        foto: typePhoto(p.ordemCriacao),
         preparo: resolvePackText(p, "evento.preparo"),
         posse: resolvePackText(p, "evento.posse"),
       })),
@@ -74,7 +91,13 @@ export function CreateEventWizard() {
   const [title, setTitle] = useState(() => (search.get("nome") ?? "").slice(0, 60));
   const [date, setDate] = useState("");
   const [guests, setGuests] = useState("");
-  const [showDetails, setShowDetails] = useState(false);
+  const [local, setLocal] = useState("");
+  // Missões: por padrão todas do pack ligadas; o anfitrião desliga no sheet.
+  const [missionsOff, setMissionsOff] = useState<Set<string>>(() => new Set());
+  // Missões livres do anfitrião — criadas logo após o evento (o POST de criação
+  // só aceita chaves do pack), então viajam num PUT em /challenges.
+  const [customMissions, setCustomMissions] = useState<string[]>([]);
+  const [missionSheetOpen, setMissionSheetOpen] = useState(false);
   const [timezone] = useState(detectarFuso);
 
   const [styleKey, setStyleKey] = useState<EventStyle["chave"]>(DEFAULT_STYLE.chave);
@@ -86,7 +109,6 @@ export function CreateEventWizard() {
   const [photoColors, setPhotoColors] = useState<string[]>([]);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
-  const [surface, setSurface] = useState<PreviewSurface>("convidado");
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const [status, setStatus] = useState<"editing" | "creating" | "error">("editing");
@@ -132,14 +154,42 @@ export function CreateEventWizard() {
 
   const pack = PACKS[packId]!;
   const style = EVENT_STYLES.find((s) => s.chave === styleKey) ?? DEFAULT_STYLE;
-  const titlePlaceholder = resolvePackText(pack, "landing.exemplo.nome") || "Seu evento";
+  // Pack sem `landing.exemplo.nome` devolve a própria chave — nesse caso usa um
+  // placeholder neutro em vez de mostrar "landing.exemplo.nome" cru na tela.
+  const exemploNome = resolvePackText(pack, "landing.exemplo.nome");
+  const titlePlaceholder = exemploNome.includes(".") ? "Nome da festa" : exemploNome;
   const displayTitle = title.trim() || titlePlaceholder;
 
   const momentos = useMemo(
     () => (pack.momentos ?? []).map((m) => resolvePackText(pack, m.chaveTitulo)),
     [pack],
   );
-  const activeMissions = useMemo(() => pack.missoes.map((m) => m.chaveTitulo), [pack]);
+  const activeMissions = useMemo(
+    () => pack.missoes.map((m) => m.chaveTitulo).filter((k) => !missionsOff.has(k)),
+    [pack, missionsOff],
+  );
+  const missionToggles = useMemo(
+    () =>
+      pack.missoes.map((m) => ({
+        key: m.chaveTitulo,
+        label: resolvePackText(pack, m.chaveTitulo),
+        on: !missionsOff.has(m.chaveTitulo),
+      })),
+    [pack, missionsOff],
+  );
+
+  function selectPack(id: string) {
+    setPackId(id);
+    setMissionsOff(new Set());
+  }
+  function toggleMission(key: string) {
+    setMissionsOff((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }
 
   const identityTokens = useMemo((): Record<string, unknown> => {
     const { cores: styleCores, ...restCamada } = style.camada;
@@ -151,18 +201,26 @@ export function CreateEventWizard() {
       // cores (`--ev`/`--ev-2`) vem de `eventCores`, que o Fluxo B adota sem repintar o produto.
       cores: { ...(styleCores ?? {}), acento: cor },
       eventCores: { cor, cor2 },
+      ...(local.trim() ? { local: local.trim() } : {}),
     };
-  }, [style, styleKey, cor, cor2]);
+  }, [style, styleKey, cor, cor2, local]);
 
   const previewVars = useMemo(
     () => resolveIdentityPreviewVars(pack, identityTokens) as CSSProperties,
     [pack, identityTokens],
   );
 
+  // Só o acento do evento (--ev*), sem tocar em superfície: a tela "Pronto" é admin e fica
+  // clara/editorial (DESIGN.md), com a cor do casal ecoando no herói — não pinta tudo de escuro.
+  const eventAccentVars = useMemo(
+    () => eventColorVariablesFrom(identityTokens) as CSSProperties,
+    [identityTokens],
+  );
+
   const titleValid = title.trim().length > 0;
   const dateValid = date.length > 0;
   const coupleEmailValid = vendorId === "" || EMAIL_RE.test(coupleEmail.trim());
-  const step0Valid = titleValid && dateValid && coupleEmailValid;
+  const detalhesValid = titleValid && dateValid && coupleEmailValid;
   const [showErrors, setShowErrors] = useState(false);
 
   function pickStyle(s: EventStyle) {
@@ -191,16 +249,20 @@ export function CreateEventWizard() {
   }
 
   function advance() {
-    if (step === 0 && !step0Valid) {
-      setShowErrors(true);
+    if (step === 0) {
+      setStep(1); // Tipo → Detalhes (um tipo está sempre selecionado)
       return;
     }
-    if (step === 0) {
-      setStep(1);
+    if (step === 1) {
+      if (!detalhesValid) {
+        setShowErrors(true);
+        return;
+      }
       setShowErrors(false);
-    } else if (step === 1) {
-      void create();
+      setStep(2);
+      return;
     }
+    void create(); // Aparência → cria
   }
 
   const create = async () => {
@@ -212,8 +274,9 @@ export function CreateEventWizard() {
         body: JSON.stringify({
           packId,
           title: title.trim() || undefined,
-          comecaEm: `${date}T16:00`,
-          terminaEm: `${date}T22:00`,
+          // Hora é opcional na UI; sem ela o evento começa às 18h por padrão.
+          comecaEm: date.includes("T") ? date : `${date}T18:00`,
+          terminaEm: somarHoras(date.includes("T") ? date : `${date}T18:00`, 6),
           timezone,
           ...(guests.trim() ? { expectedGuests: Number(guests) } : {}),
           identityTokens,
@@ -224,6 +287,17 @@ export function CreateEventWizard() {
       });
       if (!r.ok) return setStatus("error");
       const data = (await r.json()) as { slug: string; eventoId: string };
+      // Missões livres viram desafios logo após o evento nascer — degrada, nunca
+      // bloqueia a criação (missão custom fora do caminho crítico).
+      if (customMissions.length > 0) {
+        await fetch(`/api/admin/events/${data.eventoId}/challenges`, {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            customMissions: customMissions.map((titulo, i) => ({ titulo, posicao: i + 1000 })),
+          }),
+        }).catch(() => {});
+      }
       setCreated({
         ...data,
         planIntent,
@@ -253,12 +327,21 @@ export function CreateEventWizard() {
     }
     if (!digitando && /^[1-9]$/.test(e.key)) {
       const i = Number(e.key) - 1;
-      if (step === 0 && typeOptions[i]) setPackId(typeOptions[i]!.id);
-      if (step === 1 && EVENT_STYLES[i]) pickStyle(EVENT_STYLES[i]!);
+      if (step === 0 && typeOptions[i]) selectPack(typeOptions[i]!.id);
+      if (step === 2 && EVENT_STYLES[i]) pickStyle(EVENT_STYLES[i]!);
     }
   }
 
-  if (created) return <ReadyStep created={created} title={displayTitle} coverFile={coverFile} previewVars={previewVars} />;
+  if (created)
+    return (
+      <ReadyStep
+        created={created}
+        title={displayTitle}
+        dateLabel={rotuloData(date)}
+        coverFile={coverFile}
+        accentVars={eventAccentVars}
+      />
+    );
 
   const previewData = {
     vars: previewVars,
@@ -267,8 +350,8 @@ export function CreateEventWizard() {
     ctaLabel: "Entrar na festa",
     momentos,
     coverImage: coverUrl,
+    coverFallback: typePhoto(pack.ordemCriacao),
     layout: styleKey,
-    onEditTitle: (v: string) => setTitle(v),
     onPickCover,
   };
 
@@ -284,36 +367,53 @@ export function CreateEventWizard() {
           e.target.value = "";
         }}
       />
-      <main className="min-h-dvh bg-bg font-corpo text-ink">
+      <main className="flex h-dvh flex-col overflow-hidden bg-bg font-corpo text-ink">
         <ProgressHeader step={step} onExit />
-        <div className="mx-auto grid w-full max-w-[64rem] gap-8 px-[clamp(1.1rem,4vw,2rem)] py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="flex-1 overflow-y-auto">
+          <div className="mx-auto grid w-full max-w-[64rem] gap-8 px-[clamp(1.1rem,4vw,2rem)] py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-1">
-              <h1 className="tipo-title m-0">{step === 0 ? "Vamos criar seu evento" : "Como ele aparece"}</h1>
+              <h1 className="tipo-title m-0">
+                {step === 0
+                  ? "O que vocês estão celebrando?"
+                  : step === 1
+                    ? "Detalhes do evento"
+                    : "Qual combina com vocês?"}
+              </h1>
               <p className="tipo-body m-0 text-ink-2">
                 {step === 0
                   ? "O tipo define os momentos e as missões — você muda depois."
-                  : "Escolha um estilo. Personalize se quiser — a prévia acompanha."}
+                  : step === 1
+                    ? "Nome, quando vai ser e onde."
+                    : "Escolha um estilo. O Álbora cuida da fonte, das cores e da composição."}
               </p>
             </div>
 
             {step === 0 && (
+              <TypeStep
+                options={typeOptions}
+                selectedId={packId}
+                onSelectType={selectPack}
+                onEditMissions={() => setMissionSheetOpen(true)}
+                missionsAtivas={activeMissions.length + customMissions.length}
+                missionsTotal={pack.missoes.length + customMissions.length}
+              />
+            )}
+
+            {step === 1 && (
               <>
-                <TypeStep
-                  options={typeOptions}
-                  selectedId={packId}
-                  onSelectType={setPackId}
+                <DetailsStep
                   title={title}
                   onTitle={setTitle}
                   titlePlaceholder={titlePlaceholder}
+                  titleError={showErrors && !titleValid}
                   date={date}
                   onDate={setDate}
-                  titleError={showErrors && !titleValid}
                   dateError={showErrors && !dateValid}
                   guests={guests}
                   onGuests={setGuests}
-                  showDetails={showDetails}
-                  onToggleDetails={() => setShowDetails((v) => !v)}
+                  local={local}
+                  onLocal={setLocal}
                 />
                 {vendors.length > 0 && (
                   <div className="flex flex-col gap-3 border-t border-linha pt-4">
@@ -352,20 +452,21 @@ export function CreateEventWizard() {
               </>
             )}
 
-            {step === 1 && (
+            {step === 2 && (
               <>
                 <AppearanceStep
                   styleKey={styleKey}
                   onStyle={pickStyle}
+                  eventName={displayTitle}
+                  coverSrc={coverUrl ?? typePhoto(pack.ordemCriacao)}
                   cor={cor}
                   cor2={cor2}
                   onColor={setColor}
                   photoColors={photoColors}
-                  hasCover={Boolean(coverUrl)}
                 />
-                {/* Prévia inline compacta no mobile, na Aparência (design v3). */}
+                {/* Prévia inline compacta no mobile, na Aparência. */}
                 <div className="lg:hidden">
-                  <LivePreview data={previewData} surface={surface} onSurfaceChange={setSurface} />
+                  <LivePreview data={previewData} />
                 </div>
               </>
             )}
@@ -375,7 +476,19 @@ export function CreateEventWizard() {
                 Não deu para criar agora. Confira os dados e tente de novo.
               </p>
             )}
+          </div>
 
+          {/* Prévia persistente no desktop. */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-4">
+              <LivePreview data={previewData} />
+            </div>
+          </aside>
+          </div>
+        </div>
+
+        <footer className="flex-none border-t border-linha bg-bg px-[clamp(1.1rem,4vw,2rem)] py-3">
+          <div className="mx-auto max-w-[64rem]">
             <NavBar
               step={step}
               canAdvance={step === 0 ? true : true}
@@ -384,17 +497,10 @@ export function CreateEventWizard() {
               onAdvance={advance}
             />
           </div>
-
-          {/* Prévia persistente no desktop. */}
-          <aside className="hidden lg:block">
-            <div className="sticky top-8">
-              <LivePreview data={previewData} surface={surface} onSurfaceChange={setSurface} />
-            </div>
-          </aside>
-        </div>
+        </footer>
 
         {/* Mobile: "Ver prévia" fora da Aparência (sheet). */}
-        {step !== 1 && (
+        {step !== 2 && (
           <>
             <button
               type="button"
@@ -410,7 +516,7 @@ export function CreateEventWizard() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="mx-auto mb-4 h-1 w-10 rounded-pilula bg-linha" />
-                  <LivePreview data={previewData} surface={surface} onSurfaceChange={setSurface} />
+                  <LivePreview data={previewData} />
                   <button
                     type="button"
                     onClick={() => setPreviewOpen(false)}
@@ -424,41 +530,78 @@ export function CreateEventWizard() {
           </>
         )}
       </main>
+
+      <MissionSheet
+        open={missionSheetOpen}
+        onClose={() => setMissionSheetOpen(false)}
+        missions={missionToggles}
+        onToggle={toggleMission}
+        customMissions={customMissions}
+        onAddCustom={(titulo) => setCustomMissions((prev) => [...prev, titulo])}
+        onRemoveCustom={(i) => setCustomMissions((prev) => prev.filter((_, idx) => idx !== i))}
+      />
     </div>
   );
 }
 
 function ProgressHeader({ step, onExit }: { step: number; onExit?: boolean }) {
   return (
-    <div className="sticky top-0 z-30 border-b border-linha bg-bg px-[clamp(1.1rem,4vw,2rem)] py-3.5">
+    <header className="sticky top-0 z-30 border-b border-linha bg-bg px-[clamp(1.1rem,4vw,2rem)] py-3">
       <div className="mx-auto flex max-w-[64rem] items-center gap-4">
         {onExit && (
-          <NextLink href="/admin" className="tipo-label shrink-0 text-ink-3 no-underline hover:text-ink">
-            ← Sair
+          <NextLink
+            href="/admin"
+            className="inline-flex shrink-0 items-center gap-1 tipo-label text-ink-3 no-underline transition-colors hover:text-ink"
+          >
+            <span aria-hidden>←</span> Sair
           </NextLink>
         )}
-        <nav aria-label="Progresso" className="flex flex-1 items-center gap-2">
-          {STEPS.map((label, i) => (
-            <span key={label} className="flex flex-1 items-center gap-2">
-              <span className="min-w-0 flex-1">
+        <ol aria-label="Progresso" className="flex flex-1 items-center justify-center gap-1.5 sm:gap-2">
+          {STEPS.map((label, i) => {
+            const done = i < step;
+            const current = i === step;
+            return (
+              <li
+                key={label}
+                aria-current={current ? "step" : undefined}
+                className="flex items-center gap-1.5 sm:gap-2"
+              >
                 <span
                   aria-hidden
-                  className={`block h-1 rounded-pilula transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                    i <= step ? "bg-acento" : "bg-superficie-alta"
+                  className={`flex size-7 shrink-0 items-center justify-center rounded-full text-[0.8rem] font-medium tabular-nums transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+                    done
+                      ? "bg-acento text-sobre-acento"
+                      : current
+                        ? "border-2 border-acento text-acento-texto"
+                        : "border border-linha text-ink-3"
                   }`}
-                />
-                <span className={`tipo-label mt-1 hidden sm:block ${i === step ? "text-ink" : "text-ink-3"}`}>
-                  {`0${i + 1}`} {label}
+                >
+                  {done ? <Glyph name="check" size={14} /> : i + 1}
                 </span>
-              </span>
-            </span>
-          ))}
-        </nav>
-        <span className="tipo-label shrink-0 text-ink-3" aria-hidden>
+                <span
+                  className={`hidden text-[0.85rem] sm:block ${
+                    current ? "font-medium text-ink" : done ? "text-ink-2" : "text-ink-3"
+                  }`}
+                >
+                  {label}
+                </span>
+                {i < STEPS.length - 1 && (
+                  <span
+                    aria-hidden
+                    className={`mx-0.5 h-px w-5 rounded-pilula transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] sm:w-9 ${
+                      done ? "bg-acento" : "bg-linha"
+                    }`}
+                  />
+                )}
+              </li>
+            );
+          })}
+        </ol>
+        <span className="shrink-0 tipo-label text-ink-3 sm:hidden" aria-hidden>
           {step + 1}/{STEPS.length}
         </span>
       </div>
-    </div>
+    </header>
   );
 }
 
@@ -476,23 +619,33 @@ function NavBar({
   onAdvance: () => void;
 }) {
   return (
-    <div className="mt-2 flex items-center gap-3 border-t border-linha pt-5">
-      {step > 0 && (
+    <div className="flex items-center justify-between gap-3">
+      {step > 0 ? (
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex min-h-11 shrink-0 items-center rounded-pilula px-3 text-[0.875rem] text-ink-3 transition-colors hover:text-ink"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-pilula px-4 text-[0.9rem] text-ink-2 transition-colors hover:text-ink"
         >
-          ← Voltar
+          <span aria-hidden>←</span> Voltar
         </button>
+      ) : (
+        <span aria-hidden />
       )}
       <button
         type="button"
         disabled={creating || !canAdvance}
         onClick={onAdvance}
-        className={`${adminClasses.primaryButton} flex-1 py-3.5 text-center text-[1.05rem] ${creating ? "opacity-60" : ""}`}
+        className={`${adminClasses.primaryButton} inline-flex min-h-12 min-w-[11rem] items-center justify-center gap-1.5 px-7 text-[1.05rem] ${creating ? "opacity-60" : ""}`}
       >
-        {step === 0 ? "Tudo pronto →" : creating ? "Criando…" : "Criar evento"}
+        {step < STEPS.length - 2 ? (
+          <>
+            Continuar <span aria-hidden>→</span>
+          </>
+        ) : creating ? (
+          "Criando…"
+        ) : (
+          "Criar evento"
+        )}
       </button>
     </div>
   );
@@ -501,13 +654,15 @@ function NavBar({
 function ReadyStep({
   created,
   title,
+  dateLabel,
   coverFile,
-  previewVars,
+  accentVars,
 }: {
   created: Created;
   title: string;
+  dateLabel: string;
   coverFile: File | null;
-  previewVars: CSSProperties;
+  accentVars: CSSProperties;
 }) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const [paying, setPaying] = useState(false);
@@ -545,27 +700,76 @@ function ReadyStep({
     }
   };
 
+  const accentButton =
+    "flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-pilula px-6 font-titulo text-[1.05rem] no-underline shadow-suave transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.98]";
+  const accentStyle = { background: "var(--ev, var(--acento))", color: "var(--ev-on, var(--sobre-acento))" };
+  // Classe própria (flex, sem o `inline-block` de adminClasses.secondaryButton — que venceria o flex
+  // e jogaria ícone e texto pra esquerda em duas linhas).
+  const entryButton =
+    "flex min-h-[3rem] items-center justify-center gap-2 rounded-pilula border border-linha bg-superficie-alta px-4 py-3 text-center font-titulo text-[0.95rem] leading-tight text-ink no-underline transition-[transform,border-color] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97]";
+
   return (
-    <main className="min-h-dvh bg-bg font-corpo text-ink" style={previewVars}>
-      <div className="mx-auto flex w-full max-w-[34rem] flex-col gap-6 px-[clamp(1.1rem,4vw,2rem)] py-12">
-        <div className="flex flex-col items-center gap-2 text-center">
-          <span className="inline-flex size-12 items-center justify-center rounded-full bg-acento text-sobre-acento">
-            <Glyph name="check" size={22} />
+    <main className="relative min-h-dvh overflow-hidden bg-bg font-corpo text-ink" style={accentVars}>
+      {/* Blush quente da cor do casal no topo — a marca é a moldura, o evento é o quadro. Sutil,
+          não decoração: dá foco ao herói sobre a superfície clara do admin. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-72"
+        style={{ background: "radial-gradient(70% 100% at 50% 0%, var(--ev-soft, transparent), transparent)" }}
+      />
+      <div className="relative mx-auto flex w-full max-w-[36rem] flex-col gap-[clamp(1.5rem,4vh,2.25rem)] px-[clamp(1.1rem,5vw,2rem)] py-[clamp(2rem,6vh,3.5rem)]">
+        {/* Herói: comemora e ecoa a cor do casal, sobre a superfície clara do admin. */}
+        <div className="anima-surge flex flex-col items-center gap-3 text-center">
+          <span className="rounded-full p-2" style={{ background: "var(--ev-tint, transparent)" }}>
+            <span
+              className="anima-pop inline-flex size-14 items-center justify-center rounded-full shadow-suave"
+              style={accentStyle}
+            >
+              <Glyph name="check" size={26} />
+            </span>
           </span>
-          <h1 className="tipo-title m-0 mt-2">
+          <h1 className="tipo-title m-0 mt-1 text-balance">
             <span style={{ color: "var(--ev, var(--acento-texto))" }}>{title}</span> está pronto.
           </h1>
-          <p className="tipo-body m-0 text-ink-2">Você montou tudo isso sem sair do caminho.</p>
+          {dateLabel && (
+            <p className="tipo-label m-0 uppercase tracking-[0.18em] text-ink-3">{dateLabel}</p>
+          )}
+          <p className="tipo-body m-0 max-w-[26rem] text-ink-2">
+            Já dá pra entrar. O resto você ajusta quando quiser.
+          </p>
         </div>
 
-        <CoverImageEditor eventId={created.eventoId} initialCoverImageUrl={null} initialCoverImageKey={null} autoUploadFile={coverFile} />
+        {/* Caminho principal primeiro — antes de qualquer ajuste opcional. */}
+        <div className="anima-surge flex flex-col gap-2.5" style={{ animationDelay: "90ms" }}>
+          <a href={`/admin/e/${created.eventoId}`} className={accentButton} style={accentStyle}>
+            Ir para meu evento
+            <Glyph name="arrow-right" size={18} />
+          </a>
+          <div className="grid grid-cols-2 gap-2.5">
+            <a href={eventEntryUrl(origin, created.slug, "link")} className={entryButton}>
+              <Glyph name="eye" size={16} />
+              <span>Ver como convidado</span>
+            </a>
+            <a href={whatsappInviteUrl(origin, created.slug)} className={entryButton}>
+              <Glyph name="share-2" size={16} />
+              <span>Compartilhar</span>
+            </a>
+          </div>
+          {/* A capa é escolhida no onboarding; aqui só confirmamos o envio silencioso, sem repetir
+              o seletor. Sem capa escolhida, nada aparece — dá pra adicionar depois no painel. */}
+          {coverFile && (
+            <CoverImageEditor
+              eventId={created.eventoId}
+              initialCoverImageUrl={null}
+              initialCoverImageKey={null}
+              autoUploadFile={coverFile}
+              compact
+            />
+          )}
+        </div>
 
         {/* E-mail-como-acesso: hipótese de delayed auth, atrás de flag (ADR 0020). Off = caminho atual. */}
         {delayedAuthEnabled() && <AccessEmailStep eventId={created.eventoId} />}
-
-        <a href={`/admin/e/${created.eventoId}`} className={`${adminClasses.primaryButton} w-full py-3.5 text-center text-[1.05rem]`}>
-          Ir para meu evento
-        </a>
 
         {created.vendorSlug && (
           <a
@@ -576,34 +780,53 @@ function ReadyStep({
           </a>
         )}
 
-        <div className="grid grid-cols-2 gap-2">
-          <a href={eventEntryUrl(origin, created.slug, "link")} className={`${adminClasses.secondaryButton} py-3 text-center text-[0.95rem]`}>
-            Ver como convidado
-          </a>
-          <a href={whatsappInviteUrl(origin, created.slug)} className={`${adminClasses.secondaryButton} py-3 text-center text-[0.95rem]`}>
-            Compartilhar
-          </a>
-        </div>
-
         {created.planIntent === "celebration" && (
-          <button
-            type="button"
-            disabled={paying}
-            onClick={() => void startCheckout()}
-            className={`${adminClasses.primaryButton} w-full py-3.5 text-center text-[1.05rem] ${paying ? "opacity-60" : ""}`}
-          >
-            {paying ? "Abrindo pagamento…" : "Pagar Completo (R$ 199)"}
-          </button>
-        )}
-        {payError && (
-          <p role="alert" className="m-0 text-sm text-critico">
-            Não abriu o checkout. Tente de novo no painel.
-          </p>
+          <div className="flex flex-col gap-1.5">
+            <button
+              type="button"
+              disabled={paying}
+              onClick={() => void startCheckout()}
+              className={`${adminClasses.secondaryButton} w-full py-3.5 text-center text-[1rem] ${paying ? "opacity-60" : ""}`}
+            >
+              {paying ? "Abrindo pagamento…" : "Ativar o Completo — R$ 199"}
+            </button>
+            {payError && (
+              <p role="alert" className="m-0 text-sm text-critico">
+                Não abriu o checkout. Tente de novo no painel.
+              </p>
+            )}
+          </div>
         )}
 
-        <p className="tipo-caption m-0 text-center text-ink-3">
-          Configure depois: Missões · Telão · QR · Equipe
-        </p>
+        <div
+          className="anima-surge flex flex-col items-center gap-2.5 border-t border-linha pt-5"
+          style={{ animationDelay: "170ms" }}
+        >
+          <p className="tipo-caption m-0 text-center text-ink-3">
+            Configure quando quiser — já deixamos tudo pronto.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {(
+              [
+                ["target", "Missões"],
+                ["monitor", "Telão"],
+                ["qr-code", "QR"],
+                ["user-plus", "Equipe"],
+              ] as const
+            ).map(([icon, label]) => (
+              <a
+                key={label}
+                href={`/admin/e/${created.eventoId}`}
+                className="inline-flex items-center gap-1.5 rounded-pilula border border-linha bg-superficie px-3.5 py-2 tipo-label text-ink no-underline transition-[border-color,transform] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97]"
+              >
+                <span className="text-ink-2">
+                  <Glyph name={icon} size={14} />
+                </span>{" "}
+                {label}
+              </a>
+            ))}
+          </div>
+        </div>
       </div>
     </main>
   );

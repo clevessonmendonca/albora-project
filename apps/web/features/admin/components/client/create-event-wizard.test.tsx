@@ -11,24 +11,26 @@ function responder(corpo: unknown, status = 200): Response {
   return new Response(JSON.stringify(corpo), { status });
 }
 
-function preencherEvento() {
+function continuar() {
+  fireEvent.click(screen.getByRole("button", { name: /Continuar/ }));
+}
+
+function irParaDetalhes() {
+  continuar();
+}
+
+function preencherDetalhes() {
   fireEvent.change(screen.getByLabelText("Nome do evento"), {
     target: { value: "Festa Teste" },
   });
-  fireEvent.change(screen.getByLabelText("Data"), {
-    target: { value: "2026-09-01" },
-  });
-
-  fireEvent.click(screen.getByText("Mais detalhes"));
-  fireEvent.change(screen.getByLabelText("Quantos convidados você espera?"), {
-    target: { value: "120" },
-  });
+  fireEvent.click(screen.getByRole("button", { name: /Escolher data/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Hoje" }));
 }
 
-describe("CreateEventWizard — três passos (redesign v4)", () => {
+describe("CreateEventWizard — quatro passos (Tipo · Detalhes · Aparência · Pronto)", () => {
   afterEach(() => vi.unstubAllGlobals());
 
-  it("passo 0 valida nome e data antes de avançar", async () => {
+  it("Detalhes valida nome e data antes de avançar", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
@@ -38,16 +40,18 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
     );
 
     render(<CreateEventWizard />);
-    await waitFor(() => expect(screen.getByText("Vamos criar seu evento")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("O que vocês estão celebrando?")).toBeInTheDocument(),
+    );
 
-    // Sem nome/data, clicar não avança: continua no passo 0 e mostra erro.
-    fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
+    irParaDetalhes();
+    // Sem nome/data, continuar não avança: erro e sem chegar à Aparência.
+    continuar();
     expect(screen.getByText("Dê um nome ao evento pra continuar.")).toBeInTheDocument();
     expect(screen.queryByText("Escolha um estilo")).not.toBeInTheDocument();
 
-    preencherEvento();
-    fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
-    // Passo 1 (Aparência) apareceu.
+    preencherDetalhes();
+    continuar();
     expect(screen.getByText("Escolha um estilo")).toBeInTheDocument();
   });
 
@@ -59,10 +63,11 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
         const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
         expect(body).not.toHaveProperty("vendorId");
         expect(body.title).toBe("Festa Teste");
-        // A data única vira começo/fim com hora padrão.
-        expect(body.comecaEm).toBe("2026-09-01T16:00");
-        expect(body.terminaEm).toBe("2026-09-01T22:00");
-        // As duas cores do evento viajam no identity (camada do casal).
+        // Começo com hora padrão (18h); fim é +6h.
+        expect(body.comecaEm).toMatch(/^\d{4}-\d{2}-\d{2}T18:00$/);
+        expect(new Date(String(body.terminaEm)).getTime()).toBeGreaterThan(
+          new Date(String(body.comecaEm)).getTime(),
+        );
         const identity = body.identityTokens as { eventCores?: unknown };
         expect(identity.eventCores).toMatchObject({ cor: expect.any(String), cor2: expect.any(String) });
         return responder({ eventoId: "evento-1", slug: "slug-1" });
@@ -73,10 +78,12 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
 
     render(<CreateEventWizard />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/admin/vendors"));
+    // O seletor de fornecedor só existe no passo Detalhes.
     expect(screen.queryByText("Criar sob")).not.toBeInTheDocument();
 
-    preencherEvento();
-    fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
+    irParaDetalhes();
+    preencherDetalhes();
+    continuar();
     fireEvent.click(screen.getByRole("button", { name: "Criar evento" }));
 
     await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
@@ -100,21 +107,22 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     render(<CreateEventWizard />);
+    irParaDetalhes();
 
     const seletor = await screen.findByLabelText("Criar sob");
     fireEvent.change(seletor, { target: { value: vendorId } });
     fireEvent.change(screen.getByLabelText("E-mail de quem recebe o painel"), {
       target: { value: "casal@exemplo.com" },
     });
-    preencherEvento();
+    preencherDetalhes();
 
-    fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
+    continuar();
     fireEvent.click(screen.getByRole("button", { name: "Criar evento" }));
 
     await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
   });
 
-  it("com vínculo mas sem e-mail do casal: não avança do passo 0", async () => {
+  it("com vínculo mas sem e-mail do casal: não avança de Detalhes", async () => {
     const vendorId = "11111111-1111-1111-1111-111111111111";
     vi.stubGlobal(
       "fetch",
@@ -127,12 +135,12 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
     );
 
     render(<CreateEventWizard />);
+    irParaDetalhes();
     const seletor = await screen.findByLabelText("Criar sob");
     fireEvent.change(seletor, { target: { value: vendorId } });
-    preencherEvento();
+    preencherDetalhes();
 
-    fireEvent.click(screen.getByRole("button", { name: /Tudo pronto/ }));
-    // Segue no passo 0, com erro no e-mail e sem chegar à Aparência.
+    continuar();
     expect(screen.getByText("Informe um e-mail válido pra quem recebe o painel.")).toBeInTheDocument();
     expect(screen.queryByText("Escolha um estilo")).not.toBeInTheDocument();
   });
@@ -146,11 +154,49 @@ describe("CreateEventWizard — três passos (redesign v4)", () => {
       }),
     );
     render(<CreateEventWizard />);
-    await waitFor(() => expect(screen.getByText("Vamos criar seu evento")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText("O que vocês estão celebrando?")).toBeInTheDocument(),
+    );
 
     const grupo = screen.getByRole("group", { name: "Que evento é esse?" });
     const cards = within(grupo).getAllByRole("radio");
-    // Seis tipos: casamento, aniversário, formatura, corporativo, celebração, outro.
     expect(cards).toHaveLength(6);
+  });
+
+  it("desligar uma missão no sheet manda uma missão a menos no POST", async () => {
+    let missoesEnviadas: string[] | undefined;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url === "/api/admin/vendors") return responder({ vendors: [] });
+      if (url === "/api/admin/events") {
+        const body = JSON.parse(String(init?.body)) as { missoes?: string[] };
+        missoesEnviadas = body.missoes;
+        return responder({ eventoId: "evento-3", slug: "slug-3" });
+      }
+      throw new Error(`fetch inesperado: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<CreateEventWizard />);
+    await waitFor(() =>
+      expect(screen.getByText("O que vocês estão celebrando?")).toBeInTheDocument(),
+    );
+
+    // O sheet de missões abre no passo Tipo.
+    fireEvent.click(screen.getByRole("button", { name: /Ajustar missões/ }));
+    const dialog = screen.getByRole("dialog", { name: "Missões" });
+    const switches = within(dialog).getAllByRole("switch");
+    const total = switches.length;
+    expect(total).toBeGreaterThan(1);
+    fireEvent.click(switches[0]!);
+    fireEvent.click(within(dialog).getByRole("button", { name: "Pronto" }));
+
+    irParaDetalhes();
+    preencherDetalhes();
+    continuar();
+    fireEvent.click(screen.getByRole("button", { name: "Criar evento" }));
+
+    await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
+    expect(missoesEnviadas).toHaveLength(total - 1);
   });
 });
