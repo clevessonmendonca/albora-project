@@ -1,5 +1,6 @@
-import type { CSSProperties } from "react";
+import type { ComponentType, CSSProperties } from "react";
 import Link from "next/link";
+import { CommentIcon, GridIcon, ShareIcon, StackIcon, SunIcon, UsersIcon } from "@albora/ui-web";
 import { eventColorVariablesFrom } from "@albora/tokens";
 import { PACKS } from "@albora/packs";
 import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
@@ -73,6 +74,41 @@ function ComoFunciona() {
             </div>
             <p className="tipo-caption m-0 mt-2 text-ink-2">{s.label}</p>
           </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+type Ferramenta = { label: string; hint: string; icon: ComponentType<{ size?: number }>; suffix: string };
+
+/** Principais ferramentas do evento, à mão na home — atalhos pros ajustes que o anfitrião mais usa. */
+const FERRAMENTAS: Ferramenta[] = [
+  { label: "Capa & aparência", hint: "Cor, fonte e capa", icon: SunIcon, suffix: "/identity" },
+  { label: "Missões", hint: "Desafios de foto", icon: StackIcon, suffix: "/missions" },
+  { label: "QR e peças", hint: "Placa, cards e link", icon: ShareIcon, suffix: "/qrcode" },
+  { label: "Telão", hint: "A tela do salão", icon: GridIcon, suffix: "/identity" },
+  { label: "Convidados", hint: "Quem foi e participou", icon: UsersIcon, suffix: "/guests" },
+  { label: "Recado", hint: "Boas-vindas do casal", icon: CommentIcon, suffix: "/guestbook" },
+];
+
+function Ferramentas({ base }: { base: string }) {
+  return (
+    <section>
+      <h2 className="tipo-label m-0 mb-3 text-ink-3">Ferramentas do seu evento</h2>
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+        {FERRAMENTAS.map(({ label, hint, icon: Icon, suffix }) => (
+          <Link
+            key={label}
+            href={`${base}${suffix}`}
+            className="flex flex-col gap-2 rounded-superficie border border-linha bg-superficie p-4 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta"
+          >
+            <span className="flex h-9 w-9 items-center justify-center rounded-token bg-superficie-alta text-ink-2">
+              <Icon size={18} />
+            </span>
+            <span className="tipo-label text-ink">{label}</span>
+            <span className="tipo-caption text-ink-3">{hint}</span>
+          </Link>
         ))}
       </div>
     </section>
@@ -160,11 +196,12 @@ export function EventHome({
           img={heroImg}
         />
         <VerComoConvidado slug={evento.slug} />
-        <ComoFunciona />
         <section>
-          <h2 className="tipo-label m-0 mb-3 text-ink-3">Seu evento já está pronto</h2>
+          <h2 className="tipo-label m-0 mb-3 text-ink-3">Termine de deixar tudo pronto</h2>
           <PreEventPromo eventId={evento.eventoId} storageKey={checklistStorageKey} startsAt={evento.comecaEm} />
         </section>
+        <Ferramentas base={`/admin/e/${eventId}`} />
+        <ComoFunciona />
       </div>
     );
   }
@@ -175,6 +212,7 @@ export function EventHome({
         <HeroCard name={ctx.name} meta={meta} destaque="Ao vivo" legenda="a festa está acontecendo" img={heroImg} />
         <VerComoConvidado slug={evento.slug} />
         <LiveSummary eventoId={eventId} />
+        <Ferramentas base={`/admin/e/${eventId}`} />
         {controles}
       </div>
     );
