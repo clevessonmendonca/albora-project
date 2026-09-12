@@ -6,7 +6,7 @@ import { PACKS } from "@albora/packs";
 import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
 import { LiveSummary } from "@/features/admin/components/client/live-summary";
 import { EventControls } from "@/features/admin/components/client/event-controls";
-import { PreEventChecklist } from "@/features/admin/components/client/pre-event-checklist";
+import { PreEventPromo } from "@/features/admin/components/client/pre-event-promo";
 import { typePhoto } from "@/features/admin/components/client/onboarding/onboarding-photos";
 import type { AdminEventPageContext } from "@/features/admin/data/load-event-page";
 
@@ -199,7 +199,7 @@ export function EventHome({
         <Ferramentas base={`/admin/e/${eventId}`} />
         <section>
           <h2 className="tipo-label m-0 mb-3 text-ink-3">Termine de deixar tudo pronto</h2>
-          <PreEventChecklist eventId={evento.eventoId} storageKey={checklistStorageKey} />
+          <PreEventPromo eventId={evento.eventoId} storageKey={checklistStorageKey} startsAt={evento.comecaEm} />
         </section>
         <ComoFunciona />
       </div>
