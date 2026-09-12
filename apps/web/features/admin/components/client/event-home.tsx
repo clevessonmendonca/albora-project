@@ -1,4 +1,6 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
+import { eventColorVariablesFrom } from "@albora/tokens";
 import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
 import { LiveSummary } from "@/features/admin/components/client/live-summary";
 import { EventControls } from "@/features/admin/components/client/event-controls";
@@ -29,14 +31,24 @@ function diasPara(d: Date): number {
   return Math.ceil((d.getTime() - Date.now()) / 86_400_000);
 }
 
-/** Botão de acento (mesma linguagem do painel), como <Link>. */
+/** Botão na cor do próprio evento (identidade propaga): a marca é a moldura, o evento é o quadro. */
 const acaoPrimaria =
-  "inline-flex min-h-12 items-center justify-center gap-2 rounded-pilula bg-acento px-6 font-titulo text-[1rem] text-sobre-acento no-underline shadow-suave transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.98]";
+  "inline-flex min-h-12 items-center justify-center gap-2 rounded-pilula px-6 font-titulo text-[1rem] no-underline shadow-suave transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.98]";
+const acentoStyle: CSSProperties = {
+  background: "var(--ev, var(--acento))",
+  color: "var(--ev-on, var(--sobre-acento))",
+};
 
 function VerComoConvidado({ slug }: { slug: string }) {
   return (
     <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-      <Link href={`/e/${slug}?via=link`} target="_blank" rel="noopener noreferrer" className={acaoPrimaria}>
+      <Link
+        href={`/e/${slug}?via=link`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={acaoPrimaria}
+        style={acentoStyle}
+      >
         Ver como meus convidados vão ver
       </Link>
       <CopiarLinkEvento slug={slug} />
@@ -77,13 +89,23 @@ function HeroCard({
   legenda: string;
 }) {
   return (
-    <section className="rounded-superficie border border-linha bg-superficie-alta p-[clamp(1.5rem,4vw,2.5rem)] shadow-suave">
-      <h1 className="tipo-title m-0 text-[clamp(1.8rem,5vw,2.6rem)] leading-[1.05]">{name}</h1>
-      {meta && <p className="tipo-body m-0 mt-2 text-ink-2">{meta}</p>}
-      <p className="m-0 mt-6 flex items-baseline gap-2">
-        <span className="font-titulo text-[clamp(2.8rem,9vw,4.5rem)] leading-none text-acento-texto">{destaque}</span>
-        <span className="tipo-body text-ink-2">{legenda}</span>
-      </p>
+    <section className="relative overflow-hidden rounded-superficie border border-[var(--ev-border,var(--linha))] bg-[var(--ev-tint,var(--superficie-alta))] p-[clamp(1.5rem,4vw,2.5rem)] shadow-suave">
+      {/* Blush quente da cor do casal, sutil — dá foco ao herói sem virar decoração. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full"
+        style={{ background: "radial-gradient(circle, var(--ev-soft, transparent), transparent 70%)" }}
+      />
+      <div className="relative">
+        <h1 className="tipo-title m-0 text-[clamp(1.8rem,5vw,2.6rem)] leading-[1.05]">{name}</h1>
+        {meta && <p className="tipo-body m-0 mt-2 text-ink-2">{meta}</p>}
+        <p className="m-0 mt-6 flex items-baseline gap-2">
+          <span className="font-titulo text-[clamp(2.8rem,9vw,4.5rem)] leading-none text-[var(--ev,var(--acento-texto))]">
+            {destaque}
+          </span>
+          <span className="tipo-body text-ink-2">{legenda}</span>
+        </p>
+      </div>
     </section>
   );
 }
@@ -103,6 +125,8 @@ export function EventHome({
   const localRaw = evento.identityTokens["local"];
   const local = typeof localRaw === "string" ? localRaw : "";
   const meta = [fmtData(evento.comecaEm, evento.fuso), local].filter(Boolean).join(" · ");
+  // Só as cores do evento (--ev*): personaliza herói e botão sem tocar na superfície clara do admin.
+  const eventVars = eventColorVariablesFrom(evento.identityTokens) as CSSProperties;
 
   const controles = (
     <EventControls
@@ -119,7 +143,7 @@ export function EventHome({
 
   if (fase === "antes") {
     return (
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-8" style={eventVars}>
         <HeroCard
           name={ctx.name}
           meta={meta}
@@ -138,7 +162,7 @@ export function EventHome({
 
   if (fase === "durante") {
     return (
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-8" style={eventVars}>
         <HeroCard name={ctx.name} meta={meta} destaque="Ao vivo" legenda="a festa está acontecendo" />
         <VerComoConvidado slug={evento.slug} />
         <LiveSummary eventoId={eventId} />
@@ -149,10 +173,10 @@ export function EventHome({
 
   // depois
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8" style={eventVars}>
       <HeroCard name={ctx.name} meta={meta} destaque="Que noite." legenda="as fotos são de vocês agora" />
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-        <Link href={`/admin/e/${eventId}/album`} className={acaoPrimaria}>
+        <Link href={`/admin/e/${eventId}/album`} className={acaoPrimaria} style={acentoStyle}>
           Ver o álbum
         </Link>
         <CopiarLinkEvento slug={evento.slug} />
