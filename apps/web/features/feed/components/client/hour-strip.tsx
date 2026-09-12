@@ -70,12 +70,10 @@ function Circulo({
       disabled={bloqueado}
       aria-label={`Ver ${hourLabel(hora)}`}
       className={cn(
-        "flex w-15 flex-none snap-start flex-col items-center gap-1.5 rounded-md border-none bg-transparent p-0 font-inherit text-ink",
-        "transition-[opacity,transform] duration-instantaneo ease-mola motion-reduce:transition-none",
+        "flex w-15 flex-none flex-col items-center gap-1.5 border-none bg-transparent p-0 font-inherit text-ink rounded-md",
+        "[transition:opacity_var(--tempo-rapido)_var(--curva)]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-acento focus-visible:ring-offset-2 focus-visible:ring-offset-bg",
-        bloqueado
-          ? "cursor-default opacity-45"
-          : "cursor-pointer opacity-100 active:scale-95 motion-reduce:active:scale-100",
+        bloqueado ? "cursor-default opacity-45" : "cursor-pointer opacity-100",
       )}
     >
       <span

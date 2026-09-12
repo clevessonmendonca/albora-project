@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Hook para detectar quando o gate de interação abre.
- * 
+ *
  * @param currentMode - Modo atual de interação
  * @returns Estado do gate e handler para fechar
  */

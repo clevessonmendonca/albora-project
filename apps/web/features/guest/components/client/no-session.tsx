@@ -1,23 +1,31 @@
-import { SkipLink } from "@albora/ui-web";
+import React from "react";
+import { GuestShell, EntryColumn, FinePrint } from "@albora/ui-web";
 
 export function NoSession({ slug }: { slug: string }) {
   return (
-    <>
-      <SkipLink />
-      <main id="main-content" className="grid min-h-dvh place-items-center bg-bg px-6 py-8 font-corpo text-ink">
-        <div className="w-full max-w-sm text-center">
-          <h1 className="tipo-title tipo-balance m-0 mb-3 text-ink">Falta você entrar</h1>
-          <p className="m-0 mb-7 tipo-body text-ink-2">
+    <GuestShell hideStatusBar>
+      <EntryColumn>
+        <div className="text-center">
+          <span className="mx-auto mb-5 grid size-16 place-items-center rounded-full bg-superficie-alta text-[1.75rem]">
+            📸
+          </span>
+          <h1 className="mb-3 font-titulo text-[clamp(1.5rem,7vw,1.75rem)] font-medium leading-[1.14] tracking-titulo [text-wrap:balance]">
+            Falta você entrar
+          </h1>
+          <p className="m-0 leading-relaxed text-ink-2">
             É rápido: diz seu primeiro nome e as fotos da festa aparecem.
           </p>
-          <a
-            href={`/e/${encodeURIComponent(slug)}`}
-            className="flex min-h-14 items-center justify-center rounded-pilula bg-acento px-7 text-[1.0625rem] font-medium text-sobre-acento no-underline shadow-suave transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
-          >
-            Entrar
-          </a>
         </div>
-      </main>
-    </>
+
+        <a
+          href={`/e/${encodeURIComponent(slug)}`}
+          className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
+        >
+          Entrar
+        </a>
+
+        <FinePrint>Só leva alguns segundos.</FinePrint>
+      </EntryColumn>
+    </GuestShell>
   );
 }

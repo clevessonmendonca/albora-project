@@ -11,13 +11,13 @@ type TextoTabProps = {
 
 /**
  * Aba de texto sobre foto (composer).
- * Input com a tipografia do sistema + instrução de arrasto + remover.
+ * Input + botão remover + instrução de arrasto.
  */
 export function TextoTab({ texto, onTexto, onRemoverTexto }: TextoTabProps) {
   return (
-    <div className="grid gap-2.5">
+    <div className="grid gap-2">
       <input
-        className="tipo-body min-h-11 border-0 border-b border-linha bg-transparent px-0.5 text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] placeholder:text-ink-3 focus-visible:border-acento focus-visible:outline-none"
+        className="ed-texto-input"
         type="text"
         inputMode="text"
         placeholder="Escreva alguma coisa…"
@@ -26,14 +26,12 @@ export function TextoTab({ texto, onTexto, onRemoverTexto }: TextoTabProps) {
         value={texto?.conteudo ?? ""}
         onChange={(e) => onTexto(e.target.value)}
       />
-      <div className="flex items-center justify-between gap-3">
-        <p className="tipo-caption m-0 text-ink-3">Arraste na foto para posicionar</p>
+      <div className="flex items-center justify-between">
+        <p className="m-0 text-[0.78rem] leading-[1.5] text-ink-3">
+          Arraste na foto para posicionar
+        </p>
         {texto && (
-          <button
-            type="button"
-            className="tipo-label min-h-11 shrink-0 uppercase text-ink-3 transition-[color,transform] duration-instantaneo ease-mola hover:text-ink-2 active:scale-95 motion-reduce:active:scale-100"
-            onClick={onRemoverTexto}
-          >
+          <button className="ed-reset" onClick={onRemoverTexto}>
             Remover
           </button>
         )}

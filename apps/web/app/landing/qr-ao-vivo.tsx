@@ -6,18 +6,6 @@ import { lightPillClasses } from "./pieces";
 
 const SLUG_DEMO = "festa-demo";
 
-/**
- * O QR real da demo, escaneável da tela do computador.
- *
- * A categoria inteira promete "sem app, sem cadastro" e quebra a promessa na
- * prática — reviews registram participações de 2 em 120 e 7 em 110, sempre pela
- * mesma cadeia: QR que leva a uma loja, parede de cadastro, anfitrião que testou
- * só no próprio celular. Prometer de novo não convence ninguém; deixar a pessoa
- * conferir com o próprio aparelho, sim.
- *
- * Sem `APP_ROOT_DOMAIN` o QR não é renderizado: um código apontando para o lugar
- * errado desmentiria exatamente o que ele existe para provar.
- */
 export function QrAoVivo({ packHint }: { packHint: string }) {
   const origem = origemPublica();
   const alvo = origem ? eventEntryUrl(origem, SLUG_DEMO, "qr") : null;

@@ -1,12 +1,3 @@
-/**
- * Core Web Vitals tracking
- * 
- * Coleta métricas de performance (LCP, INP, CLS) sem adicionar
- * overhead significativo. Todos os tracking são async e não bloqueiam.
- * 
- * Baseado na biblioteca web-vitals oficial do Google.
- */
-
 export type WebVitalName = "LCP" | "INP" | "CLS" | "FCP" | "TTFB";
 
 export type WebVitalRating = "good" | "needs-improvement" | "poor";
@@ -22,10 +13,6 @@ export type WebVitalMetric = {
 
 export type WebVitalHandler = (metric: WebVitalMetric) => void;
 
-/**
- * Thresholds oficiais do Web Vitals (75th percentile)
- * https://web.dev/articles/defining-core-web-vitals-thresholds
- */
 export const WEB_VITAL_THRESHOLDS = {
   LCP: { good: 2500, poor: 4000 },
   INP: { good: 200, poor: 500 },
@@ -34,9 +21,6 @@ export const WEB_VITAL_THRESHOLDS = {
   TTFB: { good: 800, poor: 1800 },
 } as const;
 
-/**
- * Calcula o rating de uma métrica baseado nos thresholds oficiais
- */
 export function getWebVitalRating(name: WebVitalName, value: number): WebVitalRating {
   const threshold = WEB_VITAL_THRESHOLDS[name];
   if (!threshold) return "good";
@@ -46,9 +30,6 @@ export function getWebVitalRating(name: WebVitalName, value: number): WebVitalRa
   return "poor";
 }
 
-/**
- * Agrupa métricas por sessão
- */
 export type WebVitalsSession = {
   sessionId: string;
   eventId?: string;
@@ -56,18 +37,12 @@ export type WebVitalsSession = {
   timestamp: number;
 };
 
-/**
- * Estatísticas agregadas de web vitals
- */
 export type WebVitalsStats = {
   lcp: { p50: number; p75: number; p95: number; samples: number };
   inp: { p50: number; p75: number; p95: number; samples: number };
   cls: { p50: number; p75: number; p95: number; samples: number };
 };
 
-/**
- * Calcula percentis de um array de valores
- */
 function percentile(values: number[], p: number): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
@@ -75,9 +50,6 @@ function percentile(values: number[], p: number): number {
   return sorted[Math.max(0, index)] ?? 0;
 }
 
-/**
- * Agrega métricas em estatísticas
- */
 export function aggregateWebVitals(sessions: WebVitalsSession[]): WebVitalsStats {
   const lcpValues: number[] = [];
   const inpValues: number[] = [];
@@ -113,12 +85,6 @@ export function aggregateWebVitals(sessions: WebVitalsSession[]): WebVitalsStats
   };
 }
 
-/**
- * Sampling rate: não enviar 100% das métricas em produção
- * para reduzir overhead de armazenamento e processamento.
- * 
- * @param rate - Taxa de sampling (0-1). Default: 0.1 (10%)
- */
 export function shouldSample(rate: number = 0.1): boolean {
   return Math.random() < rate;
 }

@@ -33,7 +33,7 @@ export function FiltrosTab({
       <div className="flex gap-2.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <FilterChip
           label="Original"
-          thumbnail={tiras.get(SEM_FILTRO)}
+          {...(tiras.has(SEM_FILTRO) ? { thumbnail: tiras.get(SEM_FILTRO)! } : {})}
           active={escolhido === null}
           onClick={() => onEscolhido(null)}
         />
@@ -41,7 +41,7 @@ export function FiltrosTab({
           <FilterChip
             key={p.id}
             label={p.nome}
-            thumbnail={tiras.get(p.id)}
+            {...(tiras.has(p.id) ? { thumbnail: tiras.get(p.id)! } : {})}
             active={escolhido?.id === p.id}
             suggested={p.id === recomendadoId}
             onClick={() => {

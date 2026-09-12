@@ -7,10 +7,6 @@ type ProgressBarProps = {
   accentWhenComplete?: boolean;
 };
 
-/**
- * Barra de progresso genérica.
- * Mostra progresso atual/total com opções de customização.
- */
 export function ProgressBar({
   current,
   total,
@@ -21,9 +17,9 @@ export function ProgressBar({
 }: ProgressBarProps) {
   const pct = total > 0 ? Math.round((current / total) * 100) : 0;
   const isComplete = current === total && total > 0;
-  
-  const displayLabel = isComplete && completedLabel 
-    ? completedLabel 
+
+  const displayLabel = isComplete && completedLabel
+    ? completedLabel
     : label || `${current} de ${total}`;
 
   return (

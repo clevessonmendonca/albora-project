@@ -13,7 +13,6 @@ import { useProfileViewer } from "../../hooks/use-profile-viewer";
 import { PhotoGrid } from "../ui/photo-grid";
 import { ProfileHeader } from "../ui/profile-header";
 
-/** Sem decisão de visibilidade própria — RLS, gate e bloqueio ficam em `/api/guests/[autorId]`; esta tela só monta o que a API devolve (ADR 0009). */
 export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: string }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
@@ -76,7 +75,6 @@ export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: st
           itens={estado.feed.itens}
           indice={viewer.indice}
           hora={horaDoItem(estado.feed.itens[viewer.indice])}
-          rotulo={estado.nome ?? "Perfil"}
           urls={estado.feed.urls}
           interacao={estado.feed.interacao}
           cameraPath={cameraPath}
@@ -109,12 +107,9 @@ function PerfilIndisponivel() {
 
 function GradeLoading() {
   return (
-    <div aria-hidden className="mt-1 grid grid-cols-3 gap-2 sm:grid-cols-4">
+    <div aria-hidden className="mt-1 grid grid-cols-3 gap-1">
       {[0, 1, 2, 3, 4, 5].map((i) => (
-        <span
-          key={i}
-          className="aspect-square rounded-media bg-ink-skeleton animate-pulse"
-        />
+        <span key={i} className="aspect-square bg-ink-skeleton animate-pulse" />
       ))}
     </div>
   );

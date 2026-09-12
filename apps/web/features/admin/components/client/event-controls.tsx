@@ -173,7 +173,9 @@ export function EventControls({
       </AdminSection>
 
       <AdminSection id="controle-menores">
-        <h2 className="tipo-label m-0 mb-4 text-ink-3">Proteções</h2>
+        <h2 className="mb-4 mt-0 text-[0.6875rem] uppercase tracking-rotulo text-ink-3">
+          Proteções
+        </h2>
 
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -234,13 +236,8 @@ export function EventControls({
       </AdminSection>
 
       <AdminSection id="controle-interacao">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <h2 className="tipo-subtitle m-0 text-ink">Interação social</h2>
-          <Badge tone={gateOpen ? "accent" : interactionOpensAt ? "outline" : "neutral"}>
-            {gateOpen ? "Aberta" : interactionOpensAt ? "Agendada" : "Fechada"}
-          </Badge>
-        </div>
-        <p className="tipo-body mb-4 mt-0 text-ink-2">
+        <h2 className="mb-3 mt-0 font-titulo text-lg">Interação social</h2>
+        <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
           Reações e comentários no feed só aparecem depois que vocês liberarem.
           Sem horário, os convidados veem as fotos mas não interagem.
         </p>

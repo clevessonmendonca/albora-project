@@ -1,15 +1,3 @@
-/**
- * Helper para criar eventos de teste no banco de dados
- *
- * Uso:
- * ```typescript
- * const event = await setupTestEvent({
- *   slug: 'test-event-123',
- *   packId: 'casamento',
- * });
- * ```
- */
-
 import { comEvento } from "@albora/db";
 import { getPool, getAggregatorPool } from "@/lib/db";
 
@@ -28,11 +16,6 @@ export interface TestEvent {
   createdAt: Date;
 }
 
-/**
- * Cria um evento de teste no banco de dados.
- *
- * Cria a conta dona do evento junto — o FK é NOT NULL.
- */
 export async function setupTestEvent(
   options: SetupTestEventOptions = {}
 ): Promise<TestEvent> {
@@ -57,10 +40,9 @@ export async function setupTestEvent(
         pack_id,
         starts_at,
         ends_at,
-        interaction_opens_at,
-        status
+        interaction_opens_at
       )
-      VALUES ($1, $2, $3, NOW(), NOW() + interval '6 hours', $4, 'active')
+      VALUES ($1, $2, $3, NOW(), NOW() + interval '6 hours', $4)
       RETURNING
         id,
         slug,
@@ -88,9 +70,6 @@ export async function setupTestEvent(
   };
 }
 
-/**
- * Busca uploads de um evento de teste
- */
 export async function getEventUploads(eventId: string) {
   return await comEvento(getPool(), eventId, async (client) => {
     const result = await client.query(
@@ -114,9 +93,6 @@ export async function getEventUploads(eventId: string) {
   });
 }
 
-/**
- * Busca um evento de teste pelo slug
- */
 export async function getEventBySlug(slug: string): Promise<TestEvent | null> {
   const result = await getAggregatorPool().query(
     `

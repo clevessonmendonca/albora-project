@@ -7,7 +7,7 @@ import type { ItemVisivel } from "../hooks/use-feed";
 
 /**
  * Calcula a janela de URLs para pre-fetch baseada no índice atual do viewer.
- * 
+ *
  * @param itens - Lista de itens visíveis
  * @param indice - Índice atual sendo visualizado
  * @param window - Tamanho da janela (padrão: 3 antes e 3 depois)
@@ -22,13 +22,13 @@ export function calcularJanelaPrefetch(
 
   const inicio = Math.max(0, indice - window);
   const fim = Math.min(itens.length, indice + window + 1);
-  
+
   const chaves: string[] = [];
-  
+
   for (let i = inicio; i < fim; i++) {
     const item = itens[i];
     if (!item) continue;
-    
+
     const isVideo = item.mime.startsWith("video/");
 
     // chaveThumb serve de poster/fundo desfocado tanto pra foto quanto pra vídeo (Frame)
@@ -39,7 +39,7 @@ export function calcularJanelaPrefetch(
       chaves.push(item.chaveFull);
     }
   }
-  
+
   return chaves;
 }
 
@@ -84,7 +84,7 @@ export function deveNotificarNovosItens(
 ): boolean {
   if (primeiroIdAnterior === null || primeiroIdAtual === null) return false;
   if (primeiroIdAnterior === primeiroIdAtual) return false;
-  
+
   // Só notifica se o usuário não está no topo
   return scrollY > 120;
 }
@@ -96,16 +96,16 @@ export function calcularTempoRelativo(dataISO: string): string {
   const agora = Date.now();
   const data = new Date(dataISO).getTime();
   const diffMs = agora - data;
-  
+
   const minutos = Math.floor(diffMs / 60000);
   const horas = Math.floor(minutos / 60);
   const dias = Math.floor(horas / 24);
-  
+
   if (minutos < 1) return "agora";
   if (minutos < 60) return `${minutos}m`;
   if (horas < 24) return `${horas}h`;
   if (dias < 7) return `${dias}d`;
-  
+
   return new Date(data).toLocaleDateString("pt-BR", {
     day: "numeric",
     month: "short",

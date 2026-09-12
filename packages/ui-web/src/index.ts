@@ -12,7 +12,6 @@ export { NavCameraButton, type NavCameraButtonProps } from "./nav-camera-button"
 export { SHARED_GUEST_TABS, type SharedGuestTabDef, type SharedGuestTabId } from "./nav-tabs";
 export { StatusBar } from "./status-bar";
 
-// Generic UI Components (Phase 3 - Shared Components)
 export { ProgressBar } from "./progress-bar";
 export { Slider } from "./slider";
 export { FilterChip } from "./filter-chip";
@@ -32,9 +31,8 @@ export {
   TAB_BAR_INSET,
 } from "./guest-chrome";
 export { Dialog } from "./dialog";
-export { ConfirmDialog, type ConfirmDialogProps } from "./confirm-dialog";
-export { DangerDialog, type DangerDialogProps } from "./danger-dialog";
 export { BottomSheet } from "./sheet";
+export { Skeleton } from "./skeleton";
 export { ConsentNote, ErrorMessage, GateNotice, MissionBanner } from "./notice";
 export { authorInitials, PostAuthorAvatar, PostHeader } from "./post-header";
 export { PrimaryButton, SecondaryButton } from "./guest-buttons";
@@ -80,8 +78,9 @@ export {
 export { ToastContainer, showToast } from "./toast";
 export { AnimatedCounter } from "./animated-counter";
 export { LiveAnnouncer, announce } from "./live-announcer";
-export { Skeleton } from "./skeleton";
 export { SkipLink } from "./skip-link";
+export { ConfirmDialog, type ConfirmDialogProps } from "./confirm-dialog";
+export { DangerDialog, type DangerDialogProps } from "./danger-dialog";
 export {
   DataTable,
   type DataTableActiveFilter,

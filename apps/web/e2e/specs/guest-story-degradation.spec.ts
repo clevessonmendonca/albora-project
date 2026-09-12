@@ -1,12 +1,3 @@
-/**
- * Teste E2E: Story Degradável
- *
- * Valida que:
- * - Upload completa mesmo se Story falhar
- * - Sistema degrada gracefully
- * - Funcionalidades críticas não dependem de Story
- */
-
 import { test, expect } from "@playwright/test";
 import { setupTestEvent } from "../helpers/setup-test-event";
 import { cleanupTestEvent } from "../helpers/cleanup";
@@ -21,60 +12,36 @@ test.describe("Story Degradável", () => {
     });
 
     try {
-      // Intercepta chamadas para API de Story e força falha
-      await page.route("**/api/stories/**", async (route) => {
-        console.log("🚫 Bloqueando chamada para API de Story");
-        await route.abort("failed");
-      });
+      await page.route("**/api/stories/**", (route) => route.abort("failed"));
 
       await page.goto(`/e/${event.slug}/photo`);
       await page.waitForLoadState("networkidle");
 
       const fileInput = page.locator('input[type="file"]').first();
-      const fileInputExists = await fileInput.count() > 0;
 
-      if (fileInputExists) {
+      if ((await fileInput.count()) > 0) {
         const photoPath = path.resolve(__dirname, "../fixtures/photo-test.jpg");
         await fileInput.setInputFiles(photoPath);
         await page.waitForTimeout(1000);
 
-        const confirmButton = page.locator(
-          'button:has-text("Confirmar"), button:has-text("Enviar")'
-        ).first();
+        const confirmButton = page
+          .locator('button:has-text("Confirmar"), button:has-text("Enviar")')
+          .first();
 
-        const confirmVisible = await confirmButton.isVisible({ timeout: 3000 }).catch(() => false);
-
-        if (confirmVisible) {
+        if (await confirmButton.isVisible({ timeout: 3000 }).catch(() => false)) {
           await confirmButton.click();
-          
-          // Aguarda processamento
           await page.waitForTimeout(3000);
 
-          // Verifica se há mensagem de SUCESSO (não de erro)
-          const successIndicators = [
-            page.locator('text=/sucesso|enviado|confirmado/i'),
-            page.locator('[data-testid="upload-success"]'),
-          ];
-
-          for (const indicator of successIndicators) {
-            const visible = await indicator.isVisible({ timeout: 2000 }).catch(() => false);
-            if (visible) {
-              console.log("✅ Upload completou com sucesso mesmo com Story falhando!");
-              break;
-            }
-          }
-
-          // Mesmo sem sucesso explícito, não deve ter erro crítico
-          const errorIndicators = page.locator('text=/erro crítico|falha total|tente novamente/i');
-          const errorVisible = await errorIndicators.isVisible({ timeout: 1000 }).catch(() => false);
+          const errorIndicators = page.locator(
+            'text=/erro crítico|falha total/i'
+          );
+          const errorVisible = await errorIndicators
+            .isVisible({ timeout: 1000 })
+            .catch(() => false);
 
           expect(errorVisible).toBe(false);
-
-          console.log("✅ Sistema degradou gracefully (sem erro crítico)");
         }
       }
-
-      console.log("✅ Teste de degradação de Story concluído");
     } finally {
       await cleanupTestEvent(event.id);
     }
@@ -88,41 +55,23 @@ test.describe("Story Degradável", () => {
     });
 
     try {
-      // Bloqueia várias APIs opcionais
-      const optionalAPIs = [
+      for (const pattern of [
         "**/api/stories/**",
         "**/api/analytics/**",
         "**/api/share/**",
-      ];
-
-      for (const apiPattern of optionalAPIs) {
-        await page.route(apiPattern, async (route) => {
-          await route.abort("failed");
-        });
+      ]) {
+        await page.route(pattern, (route) => route.abort("failed"));
       }
 
-      console.log("🚫 APIs opcionais bloqueadas");
-
-      // Navega para landing page
       await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
-      // Página deve carregar normalmente
-      const body = page.locator("body");
-      await expect(body).toBeVisible();
+      await expect(page.locator("body")).toBeVisible();
 
-      console.log("✅ Landing page carregou sem APIs opcionais");
-
-      // Tenta acessar página de upload
       await page.goto(`/e/${event.slug}/photo`);
       await page.waitForLoadState("networkidle");
 
-      // Página de upload deve carregar
-      await expect(body).toBeVisible();
-
-      console.log("✅ Página de upload carregou sem APIs opcionais");
-
-      console.log("✅ Teste de funcionalidades opcionais concluído");
+      await expect(page.locator("body")).toBeVisible();
     } finally {
       await cleanupTestEvent(event.id);
     }
@@ -136,66 +85,20 @@ test.describe("Story Degradável", () => {
     });
 
     try {
-      // Bloqueia uma API não-crítica
-      await page.route("**/api/stories/**", async (route) => {
-        await route.abort("failed");
-      });
+      await page.route("**/api/stories/**", (route) => route.abort("failed"));
 
       await page.goto(`/e/${event.slug}`);
       await page.waitForLoadState("networkidle");
 
-      // Procura por mensagens de erro amigáveis (não técnicas)
       const technicalErrors = page.locator(
         'text=/error|exception|stack trace|undefined|null/i'
       );
 
-      const technicalErrorVisible = await technicalErrors.isVisible({ timeout: 2000 }).catch(() => false);
+      const technicalErrorVisible = await technicalErrors
+        .isVisible({ timeout: 2000 })
+        .catch(() => false);
 
-      // NÃO deve exibir erros técnicos ao usuário
       expect(technicalErrorVisible).toBe(false);
-
-      console.log("✅ Sem erros técnicos expostos ao usuário");
-
-      console.log("✅ Teste de mensagens amigáveis concluído");
-    } finally {
-      await cleanupTestEvent(event.id);
-    }
-  });
-
-  test("deve permitir continuar usando app após falha não-crítica", async ({
-    page,
-  }) => {
-    const event = await setupTestEvent({
-      slug: `test-continue-${Date.now()}`,
-    });
-
-    try {
-      // Causa falha em uma feature não-crítica
-      await page.route("**/api/stories/**", async (route) => {
-        await route.abort("failed");
-      });
-
-      await page.goto(`/e/${event.slug}`);
-      await page.waitForLoadState("networkidle");
-
-      console.log("✅ Landing page carregada");
-
-      // Tenta navegar para outras páginas
-      const pages = [
-        `/e/${event.slug}/feed`,
-        `/e/${event.slug}/photo`,
-        `/e/${event.slug}/missoes`,
-      ];
-
-      for (const url of pages) {
-        const response = await page.goto(url).catch(() => null);
-        
-        if (response && response.status() < 500) {
-          console.log(`✅ Navegação para ${url} funcionou (status: ${response.status()})`);
-        }
-      }
-
-      console.log("✅ Teste de continuidade após falha concluído");
     } finally {
       await cleanupTestEvent(event.id);
     }

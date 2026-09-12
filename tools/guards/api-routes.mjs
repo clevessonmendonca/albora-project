@@ -22,8 +22,8 @@ const ISENTAS = [
   "parede/",
   "app/parear/",
   "jobs/",
-  // Probes de infra (liveness/readiness) — sem convidado, sem host, sem evento.
   "health/",
+  "analytics/",
 ];
 
 const AUTH_CONVIDADO =

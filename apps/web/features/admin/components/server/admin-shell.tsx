@@ -24,29 +24,26 @@ export function AdminShell({ title, subtitle, back, children }: AdminShellProps)
     <SkipLink />
     <main
       id="main-content"
-      className="min-h-dvh bg-bg font-[family-name:var(--fonte-corpo)] text-ink"
+      className="min-h-dvh bg-bg p-[clamp(1.5rem,5vw,4rem)] font-[family-name:var(--fonte-corpo)] text-ink"
       style={adminVars()}
     >
-      {/* Coluna única de leitura confortável — o chão continua de ponta a ponta, o conteúdo não. */}
-      <div className="mx-auto w-full max-w-[72rem] p-[clamp(1.5rem,5vw,4rem)]">
-        <header className="mb-12 flex items-start justify-between gap-6" data-admin-shell-header>
-          <div>
-            {back && (
-              <Link
-                href={back.href}
-                data-admin-shell-back
-                className="tipo-label mb-4 inline-block text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
-              >
-                ← {back.label}
-              </Link>
-            )}
-            <h1 className="tipo-title m-0">{title}</h1>
-            {subtitle && <p className="tipo-caption m-0 mt-2 text-ink-3">{subtitle}</p>}
-          </div>
-          <SignOutButton />
-        </header>
-        {children}
-      </div>
+      <header className="mb-10 flex items-start justify-between gap-6" data-admin-shell-header>
+        <div>
+          {back && (
+            <Link
+              href={back.href}
+              className="mb-3.5 inline-block text-sm tracking-[0.01em] text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
+              data-admin-shell-back
+            >
+              ← {back.label}
+            </Link>
+          )}
+          <h1 className="m-0 font-titulo text-[1.875rem] font-light tracking-titulo">{title}</h1>
+          {subtitle && <p className="mt-2 text-[0.9rem] text-ink-3">{subtitle}</p>}
+        </div>
+        <SignOutButton />
+      </header>
+      {children}
     </main>
     </>
   );
@@ -74,11 +71,7 @@ export function AdminCard({
   className?: string;
   id?: string | undefined;
 }) {
-  return (
-    <section id={id} className={adminCardVariants({ variant, className })}>
-      {children}
-    </section>
-  );
+  return <section id={id} className={adminCardVariants({ variant, className })}>{children}</section>;
 }
 
 export function AdminSection({ children, id }: { children: ReactNode; id?: string }) {

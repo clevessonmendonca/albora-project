@@ -62,12 +62,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ autorId:
         autorId,
       });
 
-      return {
-        nome: perfil.nome,
-        totalFotos: perfil.totalFotos,
-        totalCurtidas: perfil.totalCurtidas,
-        ...pagina,
-      };
+      return { nome: perfil.nome, totalFotos: perfil.totalFotos, totalCurtidas: perfil.totalCurtidas, ...pagina };
     });
 
     if (!resultado) {

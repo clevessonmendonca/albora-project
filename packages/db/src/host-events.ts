@@ -51,8 +51,6 @@ export async function atualizarConfigDoEvento(
     partes.push(`expected_guests = $${valores.length}`);
   }
 
-  // `null` é escrita válida aqui: desfaz uma confirmação errada e devolve o
-  // denominador para a estimativa, em vez de deixar um número errado fixado.
   if (atualizacao.actualGuests !== undefined) {
     if (atualizacao.actualGuests === null) {
       valores.push(null);

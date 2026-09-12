@@ -24,26 +24,11 @@ export function fullTarget(width: number, height: number, plan: Plan): Target {
   return targetForLongerSide(width, height, LADO_MAIOR[plan]);
 }
 
-/** O que o aparelho declara sobre a rede — tudo opcional: navegador que não implementa a API não muda nada. */
 export type Rede = {
-  /** `navigator.connection.saveData`: o dono do aparelho pediu para economizar. */
   economiaDeDados?: boolean | undefined;
-  /** `navigator.connection.effectiveType`. */
   tipoEfetivo?: string | undefined;
 };
 
-/**
- * Teto de lado maior considerando a rede do convidado.
- *
- * 39% dos donos de celular no Brasil ficaram sem pacote de dados nos últimos três
- * meses — 68% entre pré-pagos (CETIC, TIC Domicílios 2025). Foto que come o pacote
- * do convidado é foto que ele não manda, e convidado que não manda é o único jeito
- * de a participação ir a zero.
- *
- * Só reduz em dois casos: `saveData` ligado (pedido explícito do dono do aparelho)
- * e 2g (onde um envio de 3500px não termina antes de o convidado desistir). 3g fica
- * de fora de propósito — ali o upload conclui, e resolução é o que o casal comprou.
- */
 export function ladoMaiorParaRede(plan: Plan, rede: Rede): number {
   const base = LADO_MAIOR[plan];
   const econômico =
@@ -107,7 +92,6 @@ export function planProcessing(input: {
 
   return {
     full,
-    // A miniatura sai do alvo já reduzido, não do original: reprocessar o original dobraria o pico de memória no aparelho mais fraco.
     thumb: thumbTarget(full.width, full.height),
     quality: QUALITY,
   };

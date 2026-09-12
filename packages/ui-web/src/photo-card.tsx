@@ -18,7 +18,6 @@ export type PhotoCardProps = {
   onComentar?: () => void;
   onCompartilhar?: () => void;
   onSalvar?: () => void;
-  /** Toque na foto abre o visualizador em tela cheia; ausente = foto não interativa. */
   onAbrir?: () => void;
 };
 

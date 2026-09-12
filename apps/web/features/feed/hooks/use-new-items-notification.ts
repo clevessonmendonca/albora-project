@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Hook para detectar novos itens no topo da lista.
- * 
+ *
  * @returns Estado e handlers para gerenciar notificação de novos itens
  */
 export function useNewItemsNotification(firstItemId: string | null) {
@@ -14,7 +14,7 @@ export function useNewItemsNotification(firstItemId: string | null) {
   useEffect(() => {
     const prev = prevFirstId.current;
     prevFirstId.current = firstItemId;
-    
+
     if (prev !== null && firstItemId !== null && firstItemId !== prev) {
       setHasNew(true);
     }
@@ -22,11 +22,11 @@ export function useNewItemsNotification(firstItemId: string | null) {
 
   useEffect(() => {
     if (!hasNew) return;
-    
+
     const handleScroll = () => {
       if (window.scrollY < 120) setHasNew(false);
     };
-    
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [hasNew]);

@@ -28,7 +28,6 @@ export type EventoDoHost = ResumoEvento & {
   /** Gate de entrega das fotos ao convidado (ADR 0019). Null = fechado. */
   deliveryOpensAt: Date | null;
   expectedGuests: number;
-  /** Presença confirmada depois da festa. `null` = ainda vale a estimativa. */
   actualGuests: number | null;
   identityTokens: Record<string, unknown>;
   fuso: string;

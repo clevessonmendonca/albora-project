@@ -41,8 +41,6 @@ export function PostHeader({
     <span className="font-medium text-[0.875rem] text-ink truncate">{author}</span>
   );
 
-  // Se timestamp existe, mostra em linha própria com meta (lugar)
-  // Se não, meta vai ao lado do nome (legado)
   const hasTimestamp = Boolean(timestamp);
 
   return (

@@ -41,20 +41,20 @@ export function calcularLimiteSuperior(periodo: PeriodoTemporal, agora: Date): D
 
 function carregarDoStorage(): PeriodoTemporal {
   if (typeof window === "undefined") return "tudo";
-  
+
   try {
     const valor = sessionStorage.getItem(CHAVE_STORAGE);
     if (valor === "hoje" || valor === "ontem" || valor === "semana") return valor;
   } catch {
     return "tudo";
   }
-  
+
   return "tudo";
 }
 
 function salvarNoStorage(periodo: PeriodoTemporal): void {
   if (typeof window === "undefined") return;
-  
+
   try {
     sessionStorage.setItem(CHAVE_STORAGE, periodo);
   } catch {
