@@ -11,7 +11,7 @@ export default async function GuestbookPage({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId} section="Recado">
+    <EventPageLayout eventId={eventId} section="Recado" nav="detail">
       {({ evento }) => <GuestbookEditor eventId={eventId} packId={evento.packId} />}
     </EventPageLayout>
   );

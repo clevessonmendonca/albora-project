@@ -11,7 +11,7 @@ export default async function PaginaAlbum({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId} section="O álbum">
+    <EventPageLayout eventId={eventId} section="O álbum" nav="primary">
       {({ canManageCoupleOnly }) => (
         <HostAlbum eventoId={eventId} canExport={canManageCoupleOnly} />
       )}

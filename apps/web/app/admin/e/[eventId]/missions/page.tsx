@@ -11,7 +11,7 @@ export default async function MissionsAdminPage({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId} section="Missões">
+    <EventPageLayout eventId={eventId} section="Missões" nav="detail">
       {({ evento }) => (
         <MissionsEditorLoader
           eventId={eventId}
