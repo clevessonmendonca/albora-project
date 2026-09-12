@@ -1,9 +1,9 @@
 import { EventPageLayout } from "@/features/admin/components/server/event-page-layout";
-import { EventInsights } from "@/features/admin/components/client/event-insights";
+import { EventHub } from "@/features/admin/components/client/event-hub";
 
 export const dynamic = "force-dynamic";
 
-export default async function PaginaInsights({
+export default async function EventoPage({
   params,
 }: {
   params: Promise<{ eventId: string }>;
@@ -11,8 +11,8 @@ export default async function PaginaInsights({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId} section="Insights" nav="detail">
-      <EventInsights eventoId={eventId} />
+    <EventPageLayout eventId={eventId} section="Evento" nav="primary">
+      <EventHub eventId={eventId} />
     </EventPageLayout>
   );
 }

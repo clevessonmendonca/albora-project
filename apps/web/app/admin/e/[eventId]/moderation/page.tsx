@@ -11,7 +11,7 @@ export default async function PaginaModeracao({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId} section="Moderação">
+    <EventPageLayout eventId={eventId} section="Moderação" nav="detail">
       <ModerationPage eventoId={eventId} />
     </EventPageLayout>
   );

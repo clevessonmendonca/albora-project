@@ -11,7 +11,7 @@ export default async function PaginaConvidados({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId} section="Convidados">
+    <EventPageLayout eventId={eventId} section="Convidados" nav="primary">
       <GuestFunnel eventoId={eventId} />
     </EventPageLayout>
   );
