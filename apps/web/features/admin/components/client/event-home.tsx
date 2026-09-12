@@ -1,10 +1,12 @@
 import type { CSSProperties } from "react";
 import Link from "next/link";
 import { eventColorVariablesFrom } from "@albora/tokens";
+import { PACKS } from "@albora/packs";
 import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
 import { LiveSummary } from "@/features/admin/components/client/live-summary";
 import { EventControls } from "@/features/admin/components/client/event-controls";
 import { PreEventPromo } from "@/features/admin/components/client/pre-event-promo";
+import { typePhoto } from "@/features/admin/components/client/onboarding/onboarding-photos";
 import type { AdminEventPageContext } from "@/features/admin/data/load-event-page";
 
 /** Passos de como o Álbora funciona na festa — conteúdo fixo do produto (sem domínio de pack).
@@ -82,29 +84,32 @@ function HeroCard({
   meta,
   destaque,
   legenda,
+  img,
 }: {
   name: string;
   meta: string;
   destaque: string;
   legenda: string;
+  img: string;
 }) {
   return (
-    <section className="relative overflow-hidden rounded-superficie border border-[var(--ev-border,var(--linha))] bg-[var(--ev-tint,var(--superficie-alta))] p-[clamp(1.5rem,4vw,2.5rem)] shadow-suave">
-      {/* Blush quente da cor do casal, sutil — dá foco ao herói sem virar decoração. */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full"
-        style={{ background: "radial-gradient(circle, var(--ev-soft, transparent), transparent 70%)" }}
-      />
-      <div className="relative">
-        <h1 className="tipo-title m-0 text-[clamp(1.8rem,5vw,2.6rem)] leading-[1.05]">{name}</h1>
-        {meta && <p className="tipo-body m-0 mt-2 text-ink-2">{meta}</p>}
-        <p className="m-0 mt-6 flex items-baseline gap-2">
-          <span className="font-titulo text-[clamp(2.8rem,9vw,4.5rem)] leading-none text-[var(--ev,var(--acento-texto))]">
-            {destaque}
-          </span>
-          <span className="tipo-body text-ink-2">{legenda}</span>
-        </p>
+    <section className="relative overflow-hidden rounded-superficie border border-linha shadow-suave">
+      <div className="relative aspect-[16/11] w-full sm:aspect-[21/8]">
+        <img src={img} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <span aria-hidden className="scrim-foto-forte absolute inset-0" />
+        <div className="absolute inset-x-0 bottom-0 flex flex-col p-[clamp(1.5rem,4vw,2.5rem)]">
+          <h1
+            className="sobre-foto tipo-title m-0 text-[clamp(1.8rem,5vw,2.6rem)] leading-[1.05]"
+            style={{ fontFamily: "var(--fonte-titulo, inherit)" }}
+          >
+            {name}
+          </h1>
+          {meta && <p className="sobre-foto m-0 mt-2 text-[0.95rem]">{meta}</p>}
+          <p className="m-0 mt-5 flex items-baseline gap-2">
+            <span className="sobre-foto font-titulo text-[clamp(2.8rem,9vw,4.5rem)] leading-none">{destaque}</span>
+            <span className="sobre-foto text-[0.95rem]">{legenda}</span>
+          </p>
+        </div>
       </div>
     </section>
   );
@@ -125,8 +130,11 @@ export function EventHome({
   const localRaw = evento.identityTokens["local"];
   const local = typeof localRaw === "string" ? localRaw : "";
   const meta = [fmtData(evento.comecaEm, evento.fuso), local].filter(Boolean).join(" · ");
-  // Só as cores do evento (--ev*): personaliza herói e botão sem tocar na superfície clara do admin.
+  // Só as cores do evento (--ev*): personaliza o botão sem tocar na superfície clara do admin.
   const eventVars = eventColorVariablesFrom(evento.identityTokens) as CSSProperties;
+  // Capa do herói: foto do pack (por ordem de criação, sem string de domínio) enquanto a capa
+  // real do evento não está resolvida aqui.
+  const heroImg = typePhoto(PACKS[evento.packId]?.ordemCriacao);
 
   const controles = (
     <EventControls
@@ -149,6 +157,7 @@ export function EventHome({
           meta={meta}
           destaque={dias === 1 ? "1" : String(dias)}
           legenda={dias === 1 ? "dia para a festa" : "dias para a festa"}
+          img={heroImg}
         />
         <VerComoConvidado slug={evento.slug} />
         <ComoFunciona />
@@ -163,7 +172,7 @@ export function EventHome({
   if (fase === "durante") {
     return (
       <div className="flex flex-col gap-8" style={eventVars}>
-        <HeroCard name={ctx.name} meta={meta} destaque="Ao vivo" legenda="a festa está acontecendo" />
+        <HeroCard name={ctx.name} meta={meta} destaque="Ao vivo" legenda="a festa está acontecendo" img={heroImg} />
         <VerComoConvidado slug={evento.slug} />
         <LiveSummary eventoId={eventId} />
         {controles}
@@ -174,7 +183,7 @@ export function EventHome({
   // depois
   return (
     <div className="flex flex-col gap-8" style={eventVars}>
-      <HeroCard name={ctx.name} meta={meta} destaque="Que noite." legenda="as fotos são de vocês agora" />
+      <HeroCard name={ctx.name} meta={meta} destaque="Que noite." legenda="as fotos são de vocês agora" img={heroImg} />
       <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
         <Link href={`/admin/e/${eventId}/album`} className={acaoPrimaria} style={acentoStyle}>
           Ver o álbum
