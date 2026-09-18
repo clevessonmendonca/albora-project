@@ -37,7 +37,23 @@ export type EventoDoHost = ResumoEvento & {
   coverImageKey: string | null;
   /** `draft` = ainda não publicado; convidado não acessa (task 6, gap I1). */
   status: "draft" | "active" | "ended";
+  /** Marcos de preparo sem sinal derivável (0074). Estado do evento, não do navegador. */
+  marcosDePreparo: MarcosDePreparo;
 };
+
+/**
+ * Preparos que não deixam rastro próprio no banco: identidade sempre nasce
+ * preenchida pelo wizard, QR e peças são gerados on-demand, e "ver como
+ * convidado" é uma visita. Sem isto o painel não consegue dizer o que já está
+ * pronto sem mentir.
+ */
+export const MARCOS_DE_PREPARO = ["identidade", "qr", "previaConvidado"] as const;
+export type MarcoDePreparo = (typeof MARCOS_DE_PREPARO)[number];
+export type MarcosDePreparo = Partial<Record<MarcoDePreparo, boolean>>;
+
+export function ehMarcoDePreparo(valor: string): valor is MarcoDePreparo {
+  return (MARCOS_DE_PREPARO as readonly string[]).includes(valor);
+}
 
 export type AtualizacaoModeracao = Partial<EstadoModeracao>;
 
@@ -60,10 +76,11 @@ type LinhaCompleta = {
   title: string | null;
   cover_image_key: string | null;
   status: string;
+  setup_marks: MarcosDePreparo | null;
 };
 
 const COLUNAS =
-  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at, delivery_opens_at, expected_guests, actual_guests, identity_tokens, timezone, plan, title, cover_image_key, status";
+  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at, delivery_opens_at, expected_guests, actual_guests, identity_tokens, timezone, plan, title, cover_image_key, status, setup_marks";
 
 function mapModeracao(l: Pick<LinhaCompleta, "panic" | "hardened" | "has_minors">): EstadoModeracao {
   return {
@@ -90,6 +107,7 @@ function mapEvento(l: LinhaCompleta): EventoDoHost {
     title: l.title,
     coverImageKey: l.cover_image_key ?? null,
     status: l.status as "draft" | "active" | "ended",
+    marcosDePreparo: l.setup_marks ?? {},
     moderacao: mapModeracao(l),
   };
 }
@@ -126,6 +144,34 @@ export async function buscarEventoDoHost(
     );
     const linha = rows[0];
     return linha ? mapEvento(linha) : null;
+  });
+}
+
+/**
+ * Registra um marco de preparo (0074). Idempotente e aditivo: `||` sobre o jsonb
+ * preserva os marcos já gravados, então duas abas marcando coisas diferentes não
+ * se sobrescrevem.
+ */
+export async function marcarPreparoDoEvento(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+  marco: MarcoDePreparo,
+): Promise<EventoDoHost | null> {
+  return comConta(pool, accountId, async (c) => {
+    const { rowCount } = await c.query(
+      `UPDATE events
+          SET setup_marks = setup_marks || jsonb_build_object($1::text, true)
+        WHERE id = $2`,
+      [marco, eventoId],
+    );
+    if (!rowCount) return null;
+
+    const { rows } = await c.query<LinhaCompleta>(
+      `SELECT ${COLUNAS} FROM events WHERE id = $1`,
+      [eventoId],
+    );
+    return rows[0] ? mapEvento(rows[0]) : null;
   });
 }
 

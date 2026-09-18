@@ -1,234 +1,236 @@
-import type { ComponentType, CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import Link from "next/link";
-import { CommentIcon, GridIcon, ShareIcon, StackIcon, SunIcon, UsersIcon } from "@albora/ui-web";
 import { eventColorVariablesFrom } from "@albora/tokens";
 import { PACKS } from "@albora/packs";
+import { assinarGet } from "@/lib/r2";
+import { loadHomeState, type EstadoDaHome } from "@/features/admin/data/load-home-state";
 import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
 import { LiveSummary } from "@/features/admin/components/client/live-summary";
 import { EventControls } from "@/features/admin/components/client/event-controls";
-import { PreEventPromo } from "@/features/admin/components/client/pre-event-promo";
 import { typePhoto } from "@/features/admin/components/client/onboarding/onboarding-photos";
 import type { AdminEventPageContext } from "@/features/admin/data/load-event-page";
+import { HeroDoEvento } from "./home/hero-do-evento";
+import { ProximaAcao } from "./home/proxima-acao";
+import { Preparo } from "./home/preparo";
+import { PreviaDoConvidado } from "./home/previa-convidado";
+import { VerComoConvidado } from "./home/acoes";
+import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./home/estilos";
 
-/** Passos de como o Álbora funciona na festa — conteúdo fixo do produto (sem domínio de pack).
- *  Fotos de exemplo servidas de /onboarding (as mesmas do fluxo de criação). */
-const STEPS: { n: string; label: string; img: string }[] = [
-  { n: "01", label: "Aponte a câmera no QR", img: "/onboarding/photo-02.webp" },
-  { n: "02", label: "Entra sem baixar app", img: "/onboarding/photo-09.webp" },
-  { n: "03", label: "Envia uma foto", img: "/onboarding/photo-07.webp" },
-  { n: "04", label: "Aparece no álbum", img: "/onboarding/photo-08.webp" },
-  { n: "05", label: "E no telão, na hora", img: "/onboarding/photo-03.webp" },
-];
+const VALIDADE_CAPA_SEGUNDOS = 900;
 
 function fmtData(d: Date, fuso: string): string {
   try {
-    const dia = new Intl.DateTimeFormat("pt-BR", { day: "numeric", month: "long", timeZone: fuso }).format(d);
-    const hora = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: fuso }).format(d);
+    const dia = new Intl.DateTimeFormat("pt-BR", {
+      day: "numeric",
+      month: "long",
+      timeZone: fuso,
+    }).format(d);
+    const hora = new Intl.DateTimeFormat("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: fuso,
+    }).format(d);
     return `${dia} · ${hora.replace(":", "h")}`;
   } catch {
     return "";
   }
 }
 
-function diasPara(d: Date): number {
-  return Math.ceil((d.getTime() - Date.now()) / 86_400_000);
+/** Capa real do casal quando existe; foto do pack enquanto não escolheram. */
+async function capaOuExemplo(chave: string | null, packId: string): Promise<string> {
+  if (chave) {
+    try {
+      return await assinarGet(chave, VALIDADE_CAPA_SEGUNDOS);
+    } catch {
+      // Storage indisponível não pode derrubar o painel — cai no exemplo.
+    }
+  }
+  return typePhoto(PACKS[packId]?.ordemCriacao);
 }
 
-/** Botão na cor do próprio evento (identidade propaga): a marca é a moldura, o evento é o quadro. */
-const acaoPrimaria =
-  "inline-flex min-h-12 items-center justify-center gap-2 rounded-pilula px-6 font-titulo text-[1rem] no-underline shadow-suave transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.98]";
-const acentoStyle: CSSProperties = {
-  background: "var(--ev, var(--acento))",
-  color: "var(--ev-on, var(--sobre-acento))",
-};
+type Tom = { kicker: string; destaque: string; legenda: string };
 
-function VerComoConvidado({ slug }: { slug: string }) {
-  return (
-    <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-      <Link
-        href={`/e/${slug}?via=link`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={acaoPrimaria}
-        style={acentoStyle}
-      >
-        Ver como meus convidados vão ver
-      </Link>
-      <CopiarLinkEvento slug={slug} />
-    </div>
-  );
+function tomDaFase(estado: EstadoDaHome): Tom {
+  const d = estado.dias;
+  const plural = d === 1 ? "dia para a festa" : "dias para a festa";
+  switch (estado.fase) {
+    case "recem":
+      return { kicker: "Seu álbum começa aqui", destaque: String(d), legenda: plural };
+    case "distante":
+      return { kicker: "Sem pressa", destaque: String(d), legenda: plural };
+    case "aproximando":
+      return { kicker: "Falta pouco", destaque: String(d), legenda: plural };
+    case "semana":
+      return { kicker: "Semana da festa", destaque: String(d), legenda: plural };
+    case "vespera":
+      return { kicker: "Quase lá", destaque: "É amanhã", legenda: "está quase tudo pronto" };
+    case "hoje":
+      return { kicker: "É hoje", destaque: "Hoje", legenda: "é o grande dia" };
+    case "aovivo":
+      return { kicker: "Acontecendo agora", destaque: "Ao vivo", legenda: "a festa começou" };
+    default:
+      return { kicker: "A festa acabou", destaque: "As memórias ficaram", legenda: "" };
+  }
 }
 
-/** Faixa "Veja o Álbora acontecer" — a trilha de 5 passos do produto. */
-function ComoFunciona() {
-  return (
-    <section>
-      <h2 className="tipo-label m-0 mb-3 text-ink-3">Veja o Álbora acontecer</h2>
-      <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {STEPS.map((s) => (
-          <div key={s.n} className="w-[9.5rem] shrink-0">
-            <div className="relative aspect-[3/4] overflow-hidden rounded-superficie border border-linha bg-superficie-alta shadow-suave">
-              <img src={s.img} alt="" className="absolute inset-0 h-full w-full object-cover" />
-              <span aria-hidden className="scrim-foto-forte absolute inset-0" />
-              <span className="sobre-foto absolute left-3 top-2.5 font-titulo text-[0.8rem] opacity-80">{s.n}</span>
-            </div>
-            <p className="tipo-caption m-0 mt-2 text-ink-2">{s.label}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-type Ferramenta = { label: string; hint: string; icon: ComponentType<{ size?: number }>; suffix: string };
-
-/** Principais ferramentas do evento, à mão na home — atalhos pros ajustes que o anfitrião mais usa. */
-const FERRAMENTAS: Ferramenta[] = [
-  { label: "Capa & aparência", hint: "Cor, fonte e capa", icon: SunIcon, suffix: "/identity" },
-  { label: "Missões", hint: "Desafios de foto", icon: StackIcon, suffix: "/missions" },
-  { label: "QR e peças", hint: "Placa, cards e link", icon: ShareIcon, suffix: "/qrcode" },
-  { label: "Telão", hint: "A tela do salão", icon: GridIcon, suffix: "/identity" },
-  { label: "Convidados", hint: "Quem foi e participou", icon: UsersIcon, suffix: "/guests" },
-  { label: "Recado", hint: "Boas-vindas do casal", icon: CommentIcon, suffix: "/guestbook" },
-];
-
-function Ferramentas({ base }: { base: string }) {
-  return (
-    <section>
-      <h2 className="tipo-label m-0 mb-3 text-ink-3">Ferramentas do seu evento</h2>
-      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-        {FERRAMENTAS.map(({ label, hint, icon: Icon, suffix }) => (
-          <Link
-            key={label}
-            href={`${base}${suffix}`}
-            className="flex flex-col gap-2 rounded-superficie border border-linha bg-superficie p-4 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-token bg-superficie-alta text-ink-2">
-              <Icon size={18} />
-            </span>
-            <span className="tipo-label text-ink">{label}</span>
-            <span className="tipo-caption text-ink-3">{hint}</span>
-          </Link>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function HeroCard({
-  name,
-  meta,
-  destaque,
-  legenda,
-  img,
-}: {
-  name: string;
-  meta: string;
-  destaque: string;
-  legenda: string;
-  img: string;
-}) {
-  return (
-    <section className="relative overflow-hidden rounded-superficie border border-linha shadow-suave">
-      <div className="relative aspect-[16/11] w-full sm:aspect-[21/8]">
-        <img src={img} alt="" className="absolute inset-0 h-full w-full object-cover" />
-        <span aria-hidden className="scrim-foto-forte absolute inset-0" />
-        <div className="absolute inset-x-0 bottom-0 flex flex-col p-[clamp(1.5rem,4vw,2.5rem)]">
-          <h1
-            className="sobre-foto tipo-title m-0 text-[clamp(1.8rem,5vw,2.6rem)] leading-[1.05]"
-            style={{ fontFamily: "var(--fonte-titulo, inherit)" }}
-          >
-            {name}
-          </h1>
-          {meta && <p className="sobre-foto m-0 mt-2 text-[0.95rem]">{meta}</p>}
-          <p className="m-0 mt-5 flex items-baseline gap-2">
-            <span className="sobre-foto font-titulo text-[clamp(2.8rem,9vw,4.5rem)] leading-none">{destaque}</span>
-            <span className="sobre-foto text-[0.95rem]">{legenda}</span>
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/** Home do painel, adaptada à fase do evento (antes/durante/depois). Só dados que já existem;
- *  reviver/stories/timeline ficam como pendência. */
-export function EventHome({
+/**
+ * Home do painel — um assistente do evento, não um dashboard. O que aparece muda
+ * com o momento do casamento: antes prioriza dar cara ao álbum, na semana vira
+ * conferência, no dia vira central ao vivo e depois vira memória.
+ */
+export async function EventHome({
   ctx,
   eventId,
 }: {
   ctx: AdminEventPageContext;
   eventId: string;
 }) {
-  const { evento, canManageCoupleOnly, checklistStorageKey } = ctx;
-  const dias = diasPara(evento.comecaEm);
-  const fase = evento.status === "ended" ? "depois" : dias > 0 ? "antes" : "durante";
+  const { evento, canManageCoupleOnly } = ctx;
+  const base = `/admin/e/${eventId}`;
+  const estado = await loadHomeState(evento);
+  const vars = eventColorVariablesFrom(evento.identityTokens) as CSSProperties;
+  const img = await capaOuExemplo(evento.coverImageKey, evento.packId);
+
   const localRaw = evento.identityTokens["local"];
   const local = typeof localRaw === "string" ? localRaw : "";
   const meta = [fmtData(evento.comecaEm, evento.fuso), local].filter(Boolean).join(" · ");
-  // Só as cores do evento (--ev*): personaliza o botão sem tocar na superfície clara do admin.
-  const eventVars = eventColorVariablesFrom(evento.identityTokens) as CSSProperties;
-  // Capa do herói: foto do pack (por ordem de criação, sem string de domínio) enquanto a capa
-  // real do evento não está resolvida aqui.
-  const heroImg = typePhoto(PACKS[evento.packId]?.ordemCriacao);
+  const tom = tomDaFase(estado);
 
-  const controles = (
-    <EventControls
-      eventId={evento.eventoId}
-      slug={evento.slug}
-      plan={evento.plan}
-      initial={evento.moderacao}
-      initialInteractionOpensAt={evento.interacaoAbreEm?.toISOString() ?? null}
-      initialDeliveryOpensAt={evento.deliveryOpensAt?.toISOString() ?? null}
-      initialStatus={evento.status}
-      canManageCoupleOnly={canManageCoupleOnly}
-    />
+  const aoVivo = estado.fase === "hoje" || estado.fase === "aovivo";
+  const depois = estado.fase === "depois";
+  const pendentes = estado.itens.filter((i) => !i.feito && i.chave !== estado.proxima?.chave);
+
+  const acoesDoHero = depois ? (
+    <>
+      <Link href={`${base}/album`} className={acaoPrimaria} style={estiloAcento}>
+        Ver o álbum
+      </Link>
+      <CopiarLinkEvento slug={evento.slug} />
+    </>
+  ) : aoVivo ? (
+    <>
+      <Link
+        href="/wall-display"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={acaoPrimaria}
+        style={estiloAcento}
+      >
+        Abrir o telão
+      </Link>
+      <VerComoConvidado eventId={eventId} slug={evento.slug} />
+      <CopiarLinkEvento slug={evento.slug} />
+    </>
+  ) : (
+    <>
+      {estado.proxima && (
+        <Link href={estado.proxima.href} className={acaoPrimaria} style={estiloAcento}>
+          {estado.proxima.cta}
+        </Link>
+      )}
+      <VerComoConvidado eventId={eventId} slug={evento.slug} />
+    </>
   );
 
-  if (fase === "antes") {
-    return (
-      <div className="flex flex-col gap-8" style={eventVars}>
-        <HeroCard
-          name={ctx.name}
-          meta={meta}
-          destaque={dias === 1 ? "1" : String(dias)}
-          legenda={dias === 1 ? "dia para a festa" : "dias para a festa"}
-          img={heroImg}
-        />
-        <VerComoConvidado slug={evento.slug} />
-        <Ferramentas base={`/admin/e/${eventId}`} />
-        <section>
-          <h2 className="tipo-label m-0 mb-3 text-ink-3">Termine de deixar tudo pronto</h2>
-          <PreEventPromo eventId={evento.eventoId} storageKey={checklistStorageKey} startsAt={evento.comecaEm} />
-        </section>
-        <ComoFunciona />
-      </div>
-    );
-  }
-
-  if (fase === "durante") {
-    return (
-      <div className="flex flex-col gap-8" style={eventVars}>
-        <HeroCard name={ctx.name} meta={meta} destaque="Ao vivo" legenda="a festa está acontecendo" img={heroImg} />
-        <VerComoConvidado slug={evento.slug} />
-        <LiveSummary eventoId={eventId} />
-        <Ferramentas base={`/admin/e/${eventId}`} />
-        {controles}
-      </div>
-    );
-  }
-
-  // depois
   return (
-    <div className="flex flex-col gap-8" style={eventVars}>
-      <HeroCard name={ctx.name} meta={meta} destaque="Que noite." legenda="as fotos são de vocês agora" img={heroImg} />
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-        <Link href={`/admin/e/${eventId}/album`} className={acaoPrimaria} style={acentoStyle}>
-          Ver o álbum
+    <div className="flex flex-col gap-[clamp(2rem,5vh,3rem)]" style={vars}>
+      <HeroDoEvento
+        nome={ctx.name}
+        meta={meta}
+        img={img}
+        vars={vars}
+        kicker={tom.kicker}
+        destaque={tom.destaque}
+        legenda={tom.legenda}
+        acoes={acoesDoHero}
+      />
+
+      {/* Ao vivo: números passam a importar e as ações críticas vêm primeiro. */}
+      {aoVivo && (
+        <>
+          <LiveSummary eventoId={eventId} />
+          <section>
+            <h2 className="tipo-label m-0 mb-3 text-ink-3">Durante a festa</h2>
+            <div className="flex flex-wrap gap-2.5">
+              <Link href={`${base}/moderation`} className={acaoSecundaria}>
+                Revisar fotos
+              </Link>
+              <Link href={`${base}/qrcode`} className={acaoSecundaria}>
+                QR das mesas
+              </Link>
+              <Link href={`${base}/album`} className={acaoSecundaria}>
+                Álbum ao vivo
+              </Link>
+            </div>
+          </section>
+          <EventControls
+            eventId={evento.eventoId}
+            slug={evento.slug}
+            plan={evento.plan}
+            initial={evento.moderacao}
+            initialInteractionOpensAt={evento.interacaoAbreEm?.toISOString() ?? null}
+            initialDeliveryOpensAt={evento.deliveryOpensAt?.toISOString() ?? null}
+            initialStatus={evento.status}
+            canManageCoupleOnly={canManageCoupleOnly}
+          />
+        </>
+      )}
+
+      {/* Depois: a página vira memória — nada de configuração pré-evento. */}
+      {depois && (
+        <>
+          <LiveSummary eventoId={eventId} />
+          <section>
+            <h2 className="tipo-label m-0 mb-3 text-ink-3">As memórias</h2>
+            <div className="flex flex-wrap gap-2.5">
+              <Link href={`${base}/album`} className={acaoSecundaria}>
+                Baixar as fotos
+              </Link>
+              <Link href={`${base}/insights`} className={acaoSecundaria}>
+                Como foi a participação
+              </Link>
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* Antes da festa: uma ação por vez, progresso real e a prévia do convidado. */}
+      {!aoVivo && !depois && (
+        <>
+          {estado.proxima && (
+            <ProximaAcao principal={estado.proxima} secundarias={pendentes.slice(0, 2)} />
+          )}
+
+          {estado.fase !== "recem" && (
+            <Preparo
+              estado={estado}
+              titulo={
+                estado.fase === "semana" || estado.fase === "vespera"
+                  ? "Conferência final"
+                  : "Seu Álbora está tomando forma"
+              }
+            />
+          )}
+
+          <PreviaDoConvidado
+            eventId={eventId}
+            slug={evento.slug}
+            nome={ctx.name}
+            data={fmtData(evento.comecaEm, evento.fuso)}
+            img={img}
+            vars={vars}
+          />
+        </>
+      )}
+
+      <p className="m-0 text-center">
+        <Link
+          href={`${base}/evento`}
+          className="tipo-caption text-ink-3 no-underline transition-colors hover:text-ink"
+        >
+          Todos os ajustes do evento →
         </Link>
-        <CopiarLinkEvento slug={evento.slug} />
-      </div>
-      <LiveSummary eventoId={eventId} />
+      </p>
     </div>
   );
 }

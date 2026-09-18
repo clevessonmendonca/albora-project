@@ -15,6 +15,7 @@ import {
   resolveIdentityPreviewVars,
 } from "@/features/admin/lib/identity-preview";
 import { wallModelsFromTokens } from "@/features/admin/lib/wall-models";
+import { marcarPreparo } from "@/features/admin/lib/marcar-preparo";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { TimezoneField } from "@/features/admin/components/client/timezone-field";
 
@@ -180,6 +181,9 @@ export function IdentityEditor({
       });
       if (!r.ok) throw new Error("falhou");
       setSaved(true);
+      // Só aqui a identidade vira "revisada" no painel: salvar é a ação real,
+      // visitar a página não é (o wizard já nasce com um preset preenchido).
+      marcarPreparo(eventId, "identidade");
     } catch {
       setError(true);
     } finally {

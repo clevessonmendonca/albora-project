@@ -142,6 +142,8 @@ export type {
   AtualizacaoModeracao,
   EstadoModeracao,
   EventoDoHost,
+  MarcoDePreparo,
+  MarcosDePreparo,
   ResumoEvento,
 } from "./moderation-event";
 export {
@@ -150,9 +152,12 @@ export {
   alternarPanicoDoEvento,
   atualizarModeracaoDoEvento,
   buscarEventoDoHost,
+  ehMarcoDePreparo,
   lerModeracaoDoEvento,
   limiarDenuncias,
   listarEventosDoHost,
+  marcarPreparoDoEvento,
+  MARCOS_DE_PREPARO,
   paraEstadoDoEvento,
   publicarEvento,
 } from "./moderation-event";
