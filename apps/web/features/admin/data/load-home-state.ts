@@ -1,5 +1,6 @@
 import { eventGuestbook, listChallenges, withEvent, type EventoDoHost } from "@albora/db";
 import { getPool } from "@/lib/db";
+import { diasAte } from "@/features/admin/lib/contagem";
 
 /**
  * Momento do evento. Dirige o que a Home mostra — a mesma tela a 180 dias e na
@@ -36,16 +37,6 @@ export type EstadoDaHome = {
   /** A única ação que a Home destaca. `null` = tudo pronto. */
   proxima: ItemDePreparo | null;
 };
-
-const DIA = 86_400_000;
-
-/** Meia-noite local do evento vs. agora — "faltam N dias" conta noites, não 24h. */
-function diasAte(comecaEm: Date): number {
-  const hoje = new Date();
-  const zeraHoje = Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate());
-  const zeraEvento = Date.UTC(comecaEm.getFullYear(), comecaEm.getMonth(), comecaEm.getDate());
-  return Math.round((zeraEvento - zeraHoje) / DIA);
-}
 
 function faseDe(evento: EventoDoHost, dias: number, feitos: number): FaseDoEvento {
   const agora = Date.now();

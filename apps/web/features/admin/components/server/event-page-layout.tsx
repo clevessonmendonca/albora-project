@@ -8,6 +8,7 @@ import { CoupleFollowMode } from "@/features/admin/components/client/couple-foll
 import { ModerationCountProvider } from "@/features/admin/components/client/moderation-count-context";
 import { showsFollowMode } from "@/features/admin/lib/follow-mode";
 import { loadEventPage, type AdminEventPageContext } from "@/features/admin/data/load-event-page";
+import { rotuloContagem } from "@/features/admin/lib/contagem";
 
 type Props = {
   eventId: string;
@@ -22,15 +23,6 @@ type Props = {
   nav?: "primary" | "detail";
   children: ReactNode | ((ctx: AdminEventPageContext) => ReactNode);
 };
-
-/** Rótulo de contagem regressiva a partir do início do evento. */
-function countdownLabel(comecaEm: Date): string {
-  const dias = Math.ceil((comecaEm.getTime() - Date.now()) / 86_400_000);
-  if (dias > 1) return `Faltam ${dias} dias`;
-  if (dias === 1) return "Falta 1 dia";
-  if (dias === 0) return "É hoje";
-  return "Evento encerrado";
-}
 
 export async function EventPageLayout({
   eventId,
@@ -66,7 +58,7 @@ export async function EventPageLayout({
   }
 
   // Abas primárias: app-shell com sidebar no desktop e bottom-bar no mobile.
-  const countdown = countdownLabel(ctx.evento.comecaEm);
+  const countdown = rotuloContagem(ctx.evento);
   return (
     <>
       <SkipLink />
