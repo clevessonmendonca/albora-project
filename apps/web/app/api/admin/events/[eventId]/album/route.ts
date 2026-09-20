@@ -1,4 +1,11 @@
-import { withEvent, listarMidiaDoAlbum, ocultarMidiaDoHost } from "@albora/db";
+import {
+  withEvent,
+  destacarMidiaDoHost,
+  listarMidiaDoAlbum,
+  ocultarMidiaDoHost,
+  reexibirMidiaDoHost,
+  removerMidiaDoHost,
+} from "@albora/db";
 import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
@@ -17,7 +24,24 @@ export const dynamic = "force-dynamic";
 
 const VALIDADE_GET_SEGUNDOS = 900;
 
-type Corpo = { midiaId?: unknown };
+type Corpo = { midiaId?: unknown; acao?: unknown };
+
+/**
+ * Ocultar é reversível; remover não. São verbos diferentes de propósito — a
+ * tela precisa conseguir oferecer "Desfazer" para um e confirmação para o
+ * outro. Sem `acao` é ocultar, que é o que os chamadores antigos mandavam.
+ */
+const ACOES = {
+  ocultar: ocultarMidiaDoHost,
+  reexibir: reexibirMidiaDoHost,
+  remover: removerMidiaDoHost,
+} as const;
+
+type Acao = keyof typeof ACOES | "destacar" | "desdestacar";
+
+function ehAcao(v: unknown): v is Acao {
+  return v === "ocultar" || v === "reexibir" || v === "remover" || v === "destacar" || v === "desdestacar";
+}
 
 export async function GET(
   req: Request,
@@ -42,7 +66,10 @@ export async function GET(
     const owned = await requireHostEvent(auth.host.accountId, eventId);
     if (owned instanceof Response) return owned;
 
-    const midias = await withEvent(getPool(), eventId, (c) => listarMidiaDoAlbum(c, eventId, 120));
+    const somenteDestaques = new URL(req.url).searchParams.get("aba") === "destaques";
+    const midias = await withEvent(getPool(), eventId, (c) =>
+      listarMidiaDoAlbum(c, eventId, 120, { somenteDestaques }),
+    );
 
     const itens = await Promise.all(
       midias.map(async (m) => ({
@@ -50,6 +77,7 @@ export async function GET(
         missaoId: m.missaoId,
         lugarId: m.lugarId,
         reacoes: m.reacoes,
+        destacada: m.destacadaEm !== null,
         criadaEm: m.recebidaEm.toISOString(),
         thumb: await assinarGet(m.chaveThumb, VALIDADE_GET_SEGUNDOS),
       })),
@@ -82,10 +110,24 @@ export async function PATCH(
     return errorResponse(422, "validation_error", "midiaId obrigatório", { campos: ["midiaId"] });
   }
 
+  const acao: Acao = ehAcao(corpo.acao) ? corpo.acao : "ocultar";
+
   try {
-    const ocultou = await ocultarMidiaDoHost(getPool(), auth.host.accountId, eventId, midiaId);
-    if (!ocultou) return errorResponse(404, "midia.nao_encontrada", "Foto não encontrada");
-    return jsonOk({ oculta: true });
+    if (acao === "destacar" || acao === "desdestacar") {
+      const mudou = await destacarMidiaDoHost(
+        getPool(),
+        auth.host.accountId,
+        eventId,
+        midiaId,
+        acao === "destacar",
+      );
+      if (!mudou) return errorResponse(404, "midia.nao_encontrada", "Foto não encontrada");
+      return jsonOk({ destacada: acao === "destacar" });
+    }
+
+    const mudou = await ACOES[acao](getPool(), auth.host.accountId, eventId, midiaId);
+    if (!mudou) return errorResponse(404, "midia.nao_encontrada", "Foto não encontrada");
+    return jsonOk({ acao, oculta: acao === "ocultar" });
   } catch (e) {
     return unexpectedError("admin.album", e);
   }

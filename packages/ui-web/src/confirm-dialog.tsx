@@ -13,6 +13,8 @@ export type ConfirmDialogProps = {
   confirmLabel?: string;
   cancelLabel?: string;
   pending?: boolean;
+  /** `danger` pinta o botão de confirmar de crítico — a cor precisa dizer que não tem volta. */
+  tone?: "default" | "danger";
   /** Gate de validação do chamador (ex.: motivo vazio) — mesma disciplina de `podeConfirmar` em `DangerDialog`, só que aqui o campo controlado vive fora, na `description`. */
   confirmDisabled?: boolean;
 };
@@ -32,6 +34,7 @@ export function ConfirmDialog({
   cancelLabel = "Cancelar",
   pending,
   confirmDisabled,
+  tone = "default",
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onClose={onClose} aria-labelledby="confirm-dialog-title">
@@ -44,7 +47,12 @@ export function ConfirmDialog({
           <Button type="button" variant="secondary" onClick={onClose} disabled={pending}>
             {cancelLabel}
           </Button>
-          <Button type="button" onClick={onConfirm} disabled={pending || confirmDisabled}>
+          <Button
+            type="button"
+            variant={tone === "danger" ? "danger" : "primary"}
+            onClick={onConfirm}
+            disabled={pending || confirmDisabled}
+          >
             {pending ? "Aguarde…" : confirmLabel}
           </Button>
         </div>

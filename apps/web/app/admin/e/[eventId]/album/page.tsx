@@ -1,19 +1,22 @@
 import { EventPageLayout } from "@/features/admin/components/server/event-page-layout";
-import { HostAlbum } from "@/features/admin/components/client/host-album";
+import { FotosPage } from "@/features/admin/components/client/fotos-page";
 
 export const dynamic = "force-dynamic";
 
-export default async function PaginaAlbum({
+export default async function PaginaFotos({
   params,
+  searchParams,
 }: {
   params: Promise<{ eventId: string }>;
+  searchParams: Promise<{ aba?: string }>;
 }) {
   const { eventId } = await params;
+  const { aba } = await searchParams;
 
   return (
-    <EventPageLayout eventId={eventId} section="O álbum" nav="primary">
+    <EventPageLayout eventId={eventId} section="Fotos" nav="primary">
       {({ canManageCoupleOnly }) => (
-        <HostAlbum eventoId={eventId} canExport={canManageCoupleOnly} />
+        <FotosPage eventoId={eventId} canExport={canManageCoupleOnly} abaInicial={aba ?? null} />
       )}
     </EventPageLayout>
   );

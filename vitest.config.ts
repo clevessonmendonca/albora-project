@@ -13,6 +13,12 @@ export default defineConfig({
       "@": path.resolve(process.cwd(), "apps/web"),
     },
   },
+  // `apps/web/tsconfig.json` usa `jsx: "preserve"` porque quem compila é o Next,
+  // e o esbuild do Vitest caía no runtime clássico: todo componente com JSX
+  // precisava de um `import React` só para o teste, e sem ele o render estourava
+  // "React is not defined" dentro de um filho qualquer. O Next compila com o
+  // runtime automático — o teste passa a compilar igual ao que roda em produção.
+  esbuild: { jsx: "automatic" },
   test: {
     // Pre-push paralelo (jsdom + PDF + db) estoura o default 5s em testes triviais de render. 15s não esconde hang real.
     testTimeout: 30_000,
