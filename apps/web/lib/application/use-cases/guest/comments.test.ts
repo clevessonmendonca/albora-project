@@ -4,7 +4,7 @@
  * Sistema de comentários nas fotos do feed.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   listComments,
   type ListCommentsInput,
@@ -91,7 +91,17 @@ describe("Comments", () => {
   let mockClient: PoolClient;
   let mockPool: Pool;
 
+  // Vários casos montam dois objetos com `new Date()` e comparam por igualdade
+  // profunda. Sob a carga do CI os dois `new Date()` caem em milissegundos
+  // diferentes e a asserção quebra por 1 ms — falha de relógio, não de código.
+  // Congelar o tempo tira a corrida sem afrouxar nada do que é verificado.
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-20T22:00:00.000Z"));
     vi.clearAllMocks();
     mockClient = createMockClient();
     mockPool = {} as unknown as Pool;
