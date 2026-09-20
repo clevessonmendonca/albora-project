@@ -41,7 +41,13 @@ export {
   rotacionarSlug,
 } from "./events";
 export type { AtualizacaoConfigEvento } from "./host-events";
-export { atualizarConfigDoEvento, ocultarMidiaDoHost } from "./host-events";
+export {
+  atualizarConfigDoEvento,
+  destacarMidiaDoHost,
+  ocultarMidiaDoHost,
+  reexibirMidiaDoHost,
+  removerMidiaDoHost,
+} from "./host-events";
 export type { AcaoNomeDaSessao, SessaoDoHost } from "./host-sessions";
 export { definirNomeDaSessaoDoHost, listarSessoesDoHost } from "./host-sessions";
 export type { FotoRecente, MetricasAoVivo } from "./event-metrics";

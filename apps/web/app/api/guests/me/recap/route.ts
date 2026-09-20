@@ -32,7 +32,7 @@ export async function GET(req: Request) {
            LEFT JOIN reactions r ON r.upload_id = u.id
           WHERE u.event_id = $1
             AND u.session_id = $2
-            AND u.state <> 'removed'`,
+            AND u.state = 'published'`,
         [auth.session.eventoId, auth.session.sessaoId],
       );
       return rows[0] ?? { fotos: 0, curtidas: 0 };

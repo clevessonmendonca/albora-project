@@ -12,23 +12,105 @@ export type AtualizacaoConfigEvento = {
   title?: string | null;
 };
 
-/** Oculta uma foto do feed, álbum e telão (state = removed). Só o anfitrião. */
+/** `true` se a conta é dona do evento — a RLS de `conta_evento` faz o filtro. */
+async function contaEDonaDoEvento(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+): Promise<boolean> {
+  return comConta(pool, accountId, async (c) => {
+    const { rowCount } = await c.query("SELECT 1 FROM events WHERE id = $1", [eventoId]);
+    return (rowCount ?? 0) > 0;
+  });
+}
+
+async function mudarEstadoDaMidia(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+  midiaId: string,
+  de: string,
+  para: string,
+): Promise<boolean> {
+  if (!(await contaEDonaDoEvento(pool, accountId, eventoId))) return false;
+
+  return comEvento(pool, eventoId, async (c) => {
+    const { rowCount } = await c.query(
+      `UPDATE uploads SET state = $4 WHERE id = $1 AND event_id = $2 AND state = $3`,
+      [midiaId, eventoId, de, para],
+    );
+    return (rowCount ?? 0) > 0;
+  });
+}
+
+/**
+ * Tira a foto do feed, do álbum e do telão — e dá para desfazer.
+ *
+ * `hidden` some sozinho de toda leitura de mídia, que filtra por `published`.
+ * Até a 0075 isto gravava `removed`, o mesmo que remover de vez: o anfitrião
+ * que ocultasse a foto errada não tinha volta.
+ */
 export async function ocultarMidiaDoHost(
   pool: Pool,
   accountId: string,
   eventoId: string,
   midiaId: string,
 ): Promise<boolean> {
-  const pertence = await comConta(pool, accountId, async (c) => {
-    const { rowCount } = await c.query("SELECT 1 FROM events WHERE id = $1", [eventoId]);
-    return (rowCount ?? 0) > 0;
-  });
-  if (!pertence) return false;
+  return mudarEstadoDaMidia(pool, accountId, eventoId, midiaId, "published", "hidden");
+}
+
+/** Desfaz o ocultar. Só volta o que o anfitrião ocultou — nunca o que foi removido. */
+export async function reexibirMidiaDoHost(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+  midiaId: string,
+): Promise<boolean> {
+  return mudarEstadoDaMidia(pool, accountId, eventoId, midiaId, "hidden", "published");
+}
+
+/**
+ * Remove de vez. Sem volta pelo painel — o `removed` só sai da tabela no
+ * apagamento da retenção. Aceita foto já oculta para o anfitrião poder
+ * escalar de "tirei do álbum" para "não quero isso em lugar nenhum".
+ */
+export async function removerMidiaDoHost(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+  midiaId: string,
+): Promise<boolean> {
+  if (!(await contaEDonaDoEvento(pool, accountId, eventoId))) return false;
 
   return comEvento(pool, eventoId, async (c) => {
     const { rowCount } = await c.query(
-      `UPDATE uploads SET state = 'removed' WHERE id = $1 AND event_id = $2 AND state = 'published'`,
+      `UPDATE uploads SET state = 'removed'
+        WHERE id = $1 AND event_id = $2 AND state IN ('published', 'hidden')`,
       [midiaId, eventoId],
+    );
+    return (rowCount ?? 0) > 0;
+  });
+}
+
+/**
+ * Destaca ou tira o destaque. É a escolha do casal sobre a própria festa, e o
+ * telão, o Reviver e o álbum impresso leem daqui — não dos escores de
+ * `curation`, que são palpite de classificador.
+ */
+export async function destacarMidiaDoHost(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+  midiaId: string,
+  destacada: boolean,
+): Promise<boolean> {
+  if (!(await contaEDonaDoEvento(pool, accountId, eventoId))) return false;
+
+  return comEvento(pool, eventoId, async (c) => {
+    const { rowCount } = await c.query(
+      `UPDATE uploads SET starred_at = CASE WHEN $3 THEN now() ELSE NULL END
+        WHERE id = $1 AND event_id = $2 AND state = 'published'`,
+      [midiaId, eventoId, destacada],
     );
     return (rowCount ?? 0) > 0;
   });

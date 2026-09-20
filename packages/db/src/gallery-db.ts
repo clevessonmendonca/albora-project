@@ -47,7 +47,7 @@ export async function listarMinhasDoEvento(
             s.display_name${contagem}${minha}
        FROM uploads u
        JOIN guest_sessions s ON s.id = u.session_id AND s.event_id = u.event_id
-      WHERE u.session_id = $1 AND u.state <> 'removed'
+      WHERE u.session_id = $1 AND u.state = 'published'
       ORDER BY u.created_at DESC`,
     [sessaoId],
   );

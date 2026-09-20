@@ -363,7 +363,10 @@ async function contarPublicadosAgora(cliente: PoolClient, eventId: string): Prom
 
 export async function chavesDoAcervo(cliente: PoolClient, eventId: string): Promise<string[]> {
   const { rows } = await cliente.query<{ storage_key: string }>(
-    "SELECT storage_key FROM uploads WHERE event_id = $1 AND state IN ('published', 'removed')",
+    // Lista-de-negação de propósito: `IN ('published','removed')` deixava
+    // qualquer estado novo fora do apagamento do dia 365 — bytes que a gente
+    // promete apagar e não apagaria.
+    "SELECT storage_key FROM uploads WHERE event_id = $1 AND state <> 'purged'",
     [eventId],
   );
   return rows.map((r) => r.storage_key);
@@ -403,7 +406,7 @@ export async function abrirRefreshTokenParaRevogar(
 /** Apaga ponteiros e revoga Drive; bytes no storage ficam para o chamador (chavesParaApagar). */
 export async function purgarAcervo(cliente: PoolClient, eventId: string): Promise<void> {
   await cliente.query(
-    "UPDATE uploads SET state = 'purged' WHERE event_id = $1 AND state IN ('published', 'removed')",
+    "UPDATE uploads SET state = 'purged' WHERE event_id = $1 AND state <> 'purged'",
     [eventId],
   );
   await cliente.query(
