@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, ProgressBar } from "@albora/ui-web";
+import { SavedBadge } from "@/features/admin/components/client/saved-badge";
 import React, { useEffect, useRef, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 
@@ -240,18 +241,7 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl, autoUploadFile
       )}
 
       {estado.fase === "pronto" && (
-        <span className="mt-4 inline-flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-            <path
-              d="M2 6l2.5 2.5L10 3.5"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Imagem salva
-        </span>
+        <SavedBadge>Imagem salva</SavedBadge>
       )}
 
       {estado.fase === "erro" && (

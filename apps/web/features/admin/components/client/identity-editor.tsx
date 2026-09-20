@@ -5,6 +5,7 @@ import {
   wallDisplayChoiceProblems,
   type WallDisplayModel,
 } from "@albora/core";
+import { SavedBadge } from "@/features/admin/components/client/saved-badge";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
 import { IDENTITY_MODELS } from "@albora/tokens";
 import { Button, PhoneFrame, TextField } from "@albora/ui-web";
@@ -470,12 +471,7 @@ export function IdentityEditor({
             {saving ? "Salvando…" : "Salvar identidade"}
           </Button>
           {saved && (
-            <span className="flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                <path d="M2 6l2.5 2.5L10 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Salvo
-            </span>
+            <SavedBadge />
           )}
           {error && (
             <span role="alert" className="text-sm text-critico">
