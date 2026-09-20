@@ -32,6 +32,7 @@ function EstrelaIcon({ cheia = false }: { cheia?: boolean }) {
 
 type Item = {
   id: string;
+  sessaoId: string;
   missaoId: string | null;
   lugarId: string | null;
   reacoes: number;
@@ -372,6 +373,14 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
             >
               Remover
             </button>
+            {/* "Ver pessoa" do protótipo: leva à aba Pessoas já no perfil de quem
+                fotografou, para a decisão sobre a foto ter contexto de quem é. */}
+            <a
+              href={`/admin/e/${eventoId}/guests?pessoa=${selecionadoItem.sessaoId}`}
+              className={`${adminClasses.secondaryButton} ${ALVO_TOQUE} inline-flex no-underline`}
+            >
+              Ver pessoa
+            </a>
             <button
               type="button"
               disabled={ocultando !== null}

@@ -7,6 +7,7 @@ type Chamada = { midiaId: string; acao: string };
 function foto(id: string, destacada = false) {
   return {
     id,
+    sessaoId: `s-${id}`,
     missaoId: null,
     lugarId: null,
     reacoes: 0,

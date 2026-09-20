@@ -66,14 +66,20 @@ export async function GET(
     const owned = await requireHostEvent(auth.host.accountId, eventId);
     if (owned instanceof Response) return owned;
 
-    const somenteDestaques = new URL(req.url).searchParams.get("aba") === "destaques";
+    const busca = new URL(req.url).searchParams;
+    const somenteDestaques = busca.get("aba") === "destaques";
+    const sessaoId = busca.get("sessaoId") ?? undefined;
     const midias = await withEvent(getPool(), eventId, (c) =>
-      listarMidiaDoAlbum(c, eventId, 120, { somenteDestaques }),
+      listarMidiaDoAlbum(c, eventId, 120, {
+        somenteDestaques,
+        ...(sessaoId ? { sessaoId } : {}),
+      }),
     );
 
     const itens = await Promise.all(
       midias.map(async (m) => ({
         id: m.id,
+        sessaoId: m.sessaoId,
         missaoId: m.missaoId,
         lugarId: m.lugarId,
         reacoes: m.reacoes,

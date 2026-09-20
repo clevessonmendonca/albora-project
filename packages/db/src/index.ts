@@ -49,7 +49,7 @@ export {
   removerMidiaDoHost,
 } from "./host-events";
 export type { AcaoNomeDaSessao, SessaoDoHost } from "./host-sessions";
-export { definirNomeDaSessaoDoHost, listarSessoesDoHost } from "./host-sessions";
+export { definirNomeDaSessaoDoHost, listarPessoasDoEvento, listarSessoesDoHost } from "./host-sessions";
 export type { FotoRecente, MetricasAoVivo } from "./event-metrics";
 export { lerMetricasAoVivo, lerMetricasDeEventos } from "./event-metrics";
 export type { MetricasDeListagem } from "./event-metrics";

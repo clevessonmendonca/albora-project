@@ -25,6 +25,8 @@ export type MidiaDoAlbumComChave = MidiaDoAlbum & {
 export type OpcoesDoAlbum = {
   /** Só o que o anfitrião destacou — a aba Destaques da tela de Fotos. */
   somenteDestaques?: boolean;
+  /** Só as fotos de uma pessoa — o perfil na tela de Convidados. */
+  sessaoId?: string;
 };
 
 export type JanelaDoAlbum = {
@@ -59,16 +61,19 @@ export async function listarMidiaDoAlbum(
 ): Promise<MidiaDoAlbumComChave[]> {
   const teto = Math.min(Math.max(Math.trunc(limite), 1), TETO_DO_ALBUM);
   const filtroDestaque = opcoes.somenteDestaques ? "AND u.starred_at IS NOT NULL" : "";
+  const filtroSessao = opcoes.sessaoId ? "AND u.session_id = $4" : "";
+  const valores: unknown[] = [eventoId, PUBLICADO, teto];
+  if (opcoes.sessaoId) valores.push(opcoes.sessaoId);
 
   const { rows } = await cliente.query<Linha>(
     `SELECT u.id, u.storage_key, u.mime, u.session_id, u.challenge_id, u.place, u.created_at,
             u.taken_at, u.width, u.height, u.prompt_key, u.starred_at,
             (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes
        FROM uploads u
-      WHERE u.event_id = $1 AND u.state = $2 ${filtroDestaque}
+      WHERE u.event_id = $1 AND u.state = $2 ${filtroDestaque} ${filtroSessao}
       ORDER BY u.created_at ASC, u.id ASC
       LIMIT $3`,
-    [eventoId, PUBLICADO, teto],
+    valores,
   );
 
   return rows.map((l) => {

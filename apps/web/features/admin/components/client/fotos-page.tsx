@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@albora/ui-web";
+import { Abas } from "./abas";
 import { HostAlbum } from "./host-album";
 import { ModerationPage } from "./moderation-page";
 
@@ -58,33 +59,25 @@ export function FotosPage({
 
   return (
     <div className="flex flex-col gap-5">
-      <div role="tablist" aria-label="Fotos" className="flex flex-wrap gap-2">
-        {ABAS.map(({ chave, rotulo }) => {
-          const ativa = aba === chave;
-          return (
-            <button
-              key={chave}
-              type="button"
-              role="tab"
-              aria-selected={ativa}
-              onClick={() => setAba(chave)}
-              className={`tipo-body inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-pilula border px-4 transition-colors duration-instantaneo ${
-                ativa
-                  ? "border-acento bg-acento text-sobre-acento"
-                  : "border-linha bg-superficie text-ink-2 hover:text-ink"
-              }`}
-            >
-              {rotulo}
-              {/* Vermelho é para denúncia. Fila cheia numa festa grande é normal. */}
-              {chave === "revisar" && fila > 0 && (
-                <Badge tone={ativa ? "neutral" : denunciadas > 0 ? "critico" : "neutral"}>
-                  {fila}
-                </Badge>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <Abas
+        rotulo="Fotos"
+        ativa={aba}
+        onMudar={setAba}
+        abas={ABAS.map(({ chave, rotulo }) => ({
+          chave,
+          rotulo,
+          // Vermelho é para denúncia. Fila cheia numa festa grande é normal.
+          ...(chave === "revisar" && fila > 0
+            ? {
+                adorno: (
+                  <Badge tone={aba === "revisar" || denunciadas === 0 ? "neutral" : "critico"}>
+                    {fila}
+                  </Badge>
+                ),
+              }
+            : {}),
+        }))}
+      />
 
       {aba === "revisar" ? (
         <ModerationPage eventoId={eventoId} />
