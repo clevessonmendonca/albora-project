@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { Frame } from "@albora/ui-web";
 
 type CoverHeroProps = {
@@ -7,12 +6,9 @@ type CoverHeroProps = {
 
 export function CoverHero({ hero }: CoverHeroProps) {
   return (
-    <div className="capa-hero-anima relative h-[20.5rem] shrink-0 overflow-hidden">
+    <div className="relative h-[20.5rem] shrink-0">
       {hero ? (
-        // object-top: a capa raramente é 9:16 exata, então o corte tende a
-        // sobrar em cima ou embaixo — puxar pro topo protege o rosto (regra
-        // não-negociável de identidade visual), nunca o centro.
-        <Image src={hero} alt="" fill sizes="100vw" className="object-cover object-top" />
+        <img src={hero} alt="" className="absolute inset-0 size-full object-cover" />
       ) : (
         <Frame label="" atmosphere variant={1} />
       )}

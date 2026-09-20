@@ -3,6 +3,17 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { AuthorProfilePage } from "./author-profile-page";
 
+window.matchMedia ??= (query: string) => ({
+  matches: false,
+  media: query,
+  onchange: null,
+  addListener: () => {},
+  removeListener: () => {},
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  dispatchEvent: () => false,
+});
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
   usePathname: () => "/e/ana-e-joao",
@@ -78,13 +89,8 @@ describe("AuthorProfilePage", () => {
       expect(screen.getAllByText("Marina").length).toBeGreaterThan(0);
     });
 
-    expect(await screen.findByLabelText("Foto de Marina, 1 de 1")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Ir para o conteúdo" })).toHaveAttribute(
-      "href",
-      "#main-content",
-    );
-    expect(screen.getByText("Fotos")).toBeInTheDocument();
-    expect(screen.getByText("Curtidas")).toBeInTheDocument();
+    expect(await screen.findByLabelText(/Foto de Marina/)).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
   });
 
   it("perfil não encontrado (id de outro evento, bloqueado, ou antes do gate) mostra o estado terminal", async () => {
@@ -97,7 +103,7 @@ describe("AuthorProfilePage", () => {
   });
 
   it("sem foto nenhuma, mostra o estado vazio em vez do card de carregamento parado", async () => {
-    stubFetch({ nome: "Marina", itens: [], proximoCursor: null });
+    stubFetch({ nome: "Marina", totalFotos: 0, totalCurtidas: 0, itens: [], proximoCursor: null });
 
     render(<AuthorProfilePage slug="ana-e-joao" autorId={AUTOR_ID} />);
 

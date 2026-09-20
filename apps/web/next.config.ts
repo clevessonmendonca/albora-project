@@ -15,10 +15,6 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: process.env.BUNDLE_BUDGET_BUILD === "1",
   },
   async headers() {
-    // `next dev` roda o bundle client via eval (Fast Refresh) mesmo fora do
-    // admin — sem 'unsafe-eval' em dev, o CSP quebra a hidratação inteira
-    // das rotas do convidado (nenhum handler liga, todo botão fica preso
-    // "disabled"). Produção nunca precisa de eval, então fica de fora ali.
     const scriptSrcEval = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
     return [
       {

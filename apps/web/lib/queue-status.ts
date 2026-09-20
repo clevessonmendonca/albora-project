@@ -3,7 +3,6 @@ import { MAX_ATTEMPTS } from "@albora/core";
 
 export type LinhaFilaStatus = Pick<QueueItem, "tentativas">;
 
-/** Rótulos da fila — espelha o catálogo mobile (`queue-status`). */
 export function rotuloEstadoFila(
   item: LinhaFilaStatus,
   opts: { enviandoAgora?: boolean; online?: boolean },

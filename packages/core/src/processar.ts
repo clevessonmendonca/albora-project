@@ -77,7 +77,6 @@ export type FotoProcessada<TSaida> = {
 export type OpcoesProcessamento = {
   plan: Plan;
   device: Device;
-  /** Ausente = não reduz por rede. Navegador sem Network Information API cai aqui. */
   rede?: Rede | undefined;
   mimeSaida?: string;
   /** Ausente = sem filtro. O preset é escolha do convidado, nunca padrão. */

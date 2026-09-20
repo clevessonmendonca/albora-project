@@ -16,10 +16,10 @@ describe("ProgressBar", () => {
 
   it("mostra completedLabel quando concluído", () => {
     render(
-      <ProgressBar 
-        current={10} 
-        total={10} 
-        completedLabel="Todas completas!" 
+      <ProgressBar
+        current={10}
+        total={10}
+        completedLabel="Todas completas!"
       />
     );
     expect(screen.getByText("Todas completas!")).toBeInTheDocument();
@@ -33,9 +33,9 @@ describe("ProgressBar", () => {
 
   it("não aplica accent quando accentWhenComplete é false", () => {
     render(
-      <ProgressBar 
-        current={10} 
-        total={10} 
+      <ProgressBar
+        current={10}
+        total={10}
         accentWhenComplete={false}
       />
     );
@@ -45,10 +45,10 @@ describe("ProgressBar", () => {
   it("calcula porcentagem corretamente", () => {
     const { rerender } = render(<ProgressBar current={0} total={10} />);
     expect(screen.getByText("0%")).toBeInTheDocument();
-    
+
     rerender(<ProgressBar current={5} total={10} />);
     expect(screen.getByText("50%")).toBeInTheDocument();
-    
+
     rerender(<ProgressBar current={10} total={10} />);
     expect(screen.getByText("100%")).toBeInTheDocument();
   });

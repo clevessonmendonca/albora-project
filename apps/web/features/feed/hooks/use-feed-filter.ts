@@ -2,13 +2,6 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-/**
- * Hook para gerenciar filtro de missões no feed.
- * 
- * @example
- * const { missionId, filtroAtivo, setFiltro, limpar } = useFeedFilter(missions);
- */
-
 export type FilterMission = { id: string; title: string };
 
 export function useFeedFilter(missions: FilterMission[]) {

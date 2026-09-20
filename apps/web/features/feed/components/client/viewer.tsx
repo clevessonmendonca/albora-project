@@ -206,9 +206,9 @@ export function Viewer({
     <div
       role="dialog"
       aria-modal="true"
-      data-testid="viewer"
-      aria-label={rotulo ?? `Fotos das ${hourLabel(hora)}`}
+      aria-label={`Fotos das ${hourLabel(hora)}`}
       aria-describedby="viewer-help"
+      data-testid="viewer"
       onPointerDown={pressionou}
       onPointerUp={largou}
       onPointerCancel={soltar}
@@ -373,6 +373,11 @@ export function Viewer({
           Tirar foto
         </a>
       </footer>
+
+      <p id="viewer-help" className="sr-only">
+        Setas navegam entre fotos. Tecla Home vai para a primeira foto, End para a última.
+        Pressione Escape para fechar o visualizador.
+      </p>
     </div>
   );
 }

@@ -4,17 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { HourGroup } from "@/features/feed/lib/group-by-hour";
 import type { ItemVisivel } from "@/features/feed/hooks/use-feed";
 
-/**
- * Hook para gerenciar o estado do visualizador de fotos.
- * 
- * Responsabilidades:
- * - Controla qual grupo/foto está aberta
- * - Gerencia navegação entre fotos
- * - Marca grupos como vistos
- * - Controla overflow do body quando viewer está aberto
- * - Salva e restaura posição do scroll com smooth scroll (respeitando prefers-reduced-motion)
- */
-
 type Aberto = { inicio: number; itemId: string };
 
 export function useFeedViewer(grupos: HourGroup<ItemVisivel>[]) {
@@ -73,7 +62,6 @@ export function useFeedViewer(grupos: HourGroup<ItemVisivel>[]) {
     [],
   );
 
-  // Fecha hora incompleta antes de abrir
   useEffect(() => {
     if (preparando === null) return;
 
@@ -90,12 +78,10 @@ export function useFeedViewer(grupos: HourGroup<ItemVisivel>[]) {
     if (primeiro) setAberto({ inicio: preparando, itemId: primeiro.id });
   }, [preparando, grupos]);
 
-  // Fecha viewer se grupo desaparecer (ex: pânico)
   useEffect(() => {
     if (aberto && !grupoAberto) setAberto(null);
   }, [aberto, grupoAberto]);
 
-  // Controla overflow do body quando viewer está aberto
   useEffect(() => {
     if (!grupoAberto) return;
 

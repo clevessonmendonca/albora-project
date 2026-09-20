@@ -1,21 +1,5 @@
 import type { Pack } from "./tipos";
 
-/**
- * As festas que vêm antes do casamento: noivado, chá de panela, chá bar,
- * despedida, ensaio.
- *
- * Existe para resolver um problema de jornada, não de vertical. O álbum só tinha
- * motivo de existir no dia da festa, e o casal decide isso no fim do planejamento
- * — quando o orçamento já foi alocado e a atenção acabou. Quem chega por último
- * compete só por preço, que é exatamente onde a categoria comoditizou.
- *
- * Estas comemorações acontecem ao longo dos 12–18 meses de preparação, com os
- * mesmos convidados, e são o mesmo produto. Uma conta já suporta N eventos, então
- * isto não é superfície nova: é o mesmo álbum, disponível a partir do mês 1.
- *
- * Sem `landing.*` de propósito — o pack é escolhido dentro do wizard, não tem
- * funil próprio, e exigir copy de marketing acoplaria o núcleo ao funil.
- */
 export const PRE_CASAMENTO: Pack = {
   id: "pre-casamento",
   vocabulario: {

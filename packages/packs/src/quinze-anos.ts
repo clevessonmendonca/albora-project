@@ -41,7 +41,6 @@ export const QUINZE_ANOS: Pack = {
       "Um álbum coletivo para os 15 anos e outras festas. Seus convidados enviam fotos por QR Code, direto do celular.",
     "landing.cta": "Testar meu álbum",
     "landing.exemplo.nome": "MARIA CLARA",
-    // Domínio-variável da landing além das 6 chaves canônicas — ver casamento.ts.
     "landing.demo.placeholder": "Ex.: 15 anos da Maria Clara",
     "landing.demo.album.sub": "Uma noite. Muitos flashes.",
     "landing.pacote.exemplos":

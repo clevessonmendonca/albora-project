@@ -51,9 +51,6 @@ export const CASAMENTO: Pack = {
       "Um álbum coletivo para casamentos, aniversários e outras festas. Seus convidados enviam fotos por QR Code, direto do celular.",
     "landing.cta": "Testar meu álbum",
     "landing.exemplo.nome": "ANA & JOÃO",
-    // Domínio-variável da landing além das 6 chaves canônicas: o placeholder
-    // nomeia um casamento e o subtítulo do álbum tem o tom da festa. Copy de
-    // marketing genérica (passos, preços, FAQ) é produto e vive em landing-copy.ts.
     "landing.demo.placeholder": "Ex.: Casamento da Bia e do Pedro",
     "landing.demo.album.sub": "Um dia. Muitos olhares.",
     "landing.pacote.exemplos":

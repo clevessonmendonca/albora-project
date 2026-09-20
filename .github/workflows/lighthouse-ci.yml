@@ -33,13 +33,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'pnpm'
@@ -70,7 +70,7 @@ jobs:
             SELECT id, 'casamento-joao-maria', 'casamento', NOW(), NOW() + interval '6 hours', NOW()
             FROM acct
             ON CONFLICT (slug) DO NOTHING;
-          " || echo "⚠️ Seed falhou, mas continuando..."
+          " || echo "Seed falhou, mas continuando..."
 
       - name: Build application
         run: pnpm build
@@ -98,7 +98,7 @@ jobs:
       - name: Wait for server to be ready
         run: |
           npx wait-on http://localhost:3000 --timeout 60000 || (
-            echo "❌ Server failed to start"
+            echo "Server failed to start"
             if [ -f apps/web/server.pid ]; then
               kill $(cat apps/web/server.pid) || true
             fi
@@ -108,7 +108,7 @@ jobs:
       - name: Run Lighthouse CI
         run: |
           cd apps/web
-          npx @lhci/cli@0.15.x autorun || echo "⚠️ Lighthouse CI completed with warnings"
+          npx @lhci/cli@0.15.x autorun || echo "Lighthouse CI completed with warnings"
 
       - name: Stop server
         if: always()
@@ -118,7 +118,7 @@ jobs:
           fi
 
       - name: Upload Lighthouse reports
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: lighthouse-reports
@@ -132,12 +132,12 @@ jobs:
           script: |
             const fs = require('fs');
             const path = 'apps/web/.lighthouseci';
-            
+
             if (fs.existsSync(path)) {
               github.rest.issues.createComment({
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: '## 🔍 Lighthouse CI Report\n\n✅ Lighthouse audit completed! Check the artifacts for detailed reports.'
+                body: '## Lighthouse CI Report\n\nLighthouse audit completed! Check the artifacts for detailed reports.'
               });
             }

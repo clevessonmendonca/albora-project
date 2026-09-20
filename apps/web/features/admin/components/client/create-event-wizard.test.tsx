@@ -15,12 +15,10 @@ function continuar() {
   fireEvent.click(screen.getByRole("button", { name: /Continuar/ }));
 }
 
-/** Vai do passo Tipo para o passo Detalhes. */
 function irParaDetalhes() {
   continuar();
 }
 
-/** No passo Detalhes: nome + data (via o nosso seletor, botão "Hoje"). */
 function preencherDetalhes() {
   fireEvent.change(screen.getByLabelText("Nome do evento"), {
     target: { value: "Festa Teste" },

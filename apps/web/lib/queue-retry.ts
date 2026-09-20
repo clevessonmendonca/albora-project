@@ -1,7 +1,6 @@
 import type { Queue } from "@albora/core";
 import { shouldGiveUp } from "@albora/core";
 
-/** Zera tentativas de um item que esgotou o backoff — re-enfileira intacto. */
 export async function reiniciarItemFalho(queue: Queue, id: string): Promise<boolean> {
   const itens = await queue.list();
   const item = itens.find((row) => row.id === id);

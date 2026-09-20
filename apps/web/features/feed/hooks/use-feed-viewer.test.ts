@@ -7,8 +7,6 @@ import { useFeedViewer } from "./use-feed-viewer";
 import type { HourGroup } from "../lib/group-by-hour";
 import type { ItemVisivel } from "./use-feed";
 
-// jsdom não implementa matchMedia (gap conhecido) — o hook consulta
-// prefers-reduced-motion ao restaurar o scroll, então precisa de um stub.
 window.matchMedia ??= (query: string) => ({
   matches: false,
   media: query,

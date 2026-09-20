@@ -9,9 +9,6 @@ import {
 
 /** Pack sem copy renderiza `landing.titulo` em corpo 74px na porta do funil — `resolvePackText()` devolve a chave de propósito, que é barato aqui e catastrófico lá. */
 describe("vocabulário de landing", () => {
-  /** Só os packs que se propõem a ter funil próprio. Pack escolhido dentro do
-   *  wizard não tem landing, e exigir copy de marketing dele acoplaria o núcleo
-   *  ao funil — a proteção que importa está no teste de copy pela metade. */
   const packs = Object.entries(PACKS).filter(([, p]) => temLandingPropria(p));
 
   it.each(packs)("%s tem todas as chaves da landing", (_id, pack) => {

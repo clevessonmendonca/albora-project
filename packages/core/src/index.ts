@@ -8,8 +8,6 @@ export type {
   SessaoId,
 } from "./tipos";
 
-export * from "./ref-token";
-
 export type { QueueBody, QueueDetails, Queue, QueueItem } from "./fila";
 export { shouldGiveUp, retryWaitSeconds, MAX_ATTEMPTS } from "./fila";
 
@@ -21,16 +19,6 @@ export { AJUSTES_NEUTROS, aplicarAjustes, saoNeutros } from "./ajustes";
 
 export type { Ajustes, Filtro } from "./luts";
 export { aplicarFiltroCss, aplicarIntensidade, NEUTRO, paraFiltroCss } from "./luts";
-
-export type {
-  WebVitalName,
-  WebVitalRating,
-  WebVitalMetric,
-  WebVitalHandler,
-  WebVitalsSession,
-  WebVitalsStats,
-} from "./web-vitals";
-export { WEB_VITAL_THRESHOLDS, getWebVitalRating, aggregateWebVitals, shouldSample } from "./web-vitals";
 
 export type { Preset } from "./presets";
 export { aplicarPorPixel, ordenarComRecomendado, preset, PRESETS, TETO_POR_PIXEL_MS } from "./presets";
@@ -97,7 +85,8 @@ export { presignExpirou, VALIDADE_PRESIGN_SEGUNDOS } from "./upload";
 export type { Orientacao, Transformacao } from "./exif";
 export { dimensoesCorrigidas, lerCapturadaEm, lerOrientacao, temExif, temGeolocalizacao, transformacaoParaOrientacao } from "./exif";
 
-export type { Target, Device, Plan } from "./redimensionar";
+export type { Target, Device, Plan, Rede } from "./redimensionar";
+export { ladoMaiorParaRede } from "./redimensionar";
 export {
   fullTarget,
   targetForLongerSide,
@@ -108,9 +97,7 @@ export {
   QUALITY,
   PIXEL_CAP,
   pixelCapForDevice,
-  ladoMaiorParaRede,
 } from "./redimensionar";
-export type { Rede } from "./redimensionar";
 
 export type { SendResult, DrainSummary, Transport } from "./envio";
 export { drain, sendItem } from "./envio";
@@ -205,21 +192,21 @@ export {
 
 export type {
   CodigoDaTese,
+  CodigoDeIntencao,
   CodigoDeMetrica,
   CodigoDePlataforma,
   CodigoDeSequencia,
   ComparacaoDePlataforma,
-  ContagemDePlataforma,
-  CodigoDeIntencao,
   ContagemDeIntencao,
-  Denominador,
+  ContagemDePlataforma,
   ContagemDoEvento,
-  LeituraDeIntencao,
-  OrigemDoDenominador,
   DegrauDoFunil,
+  Denominador,
   EtapaDaEspinha,
   EventoDoFunil,
+  LeituraDeIntencao,
   LeituraDePlataforma,
+  OrigemDoDenominador,
   Perda,
   PerdaEntre,
   Sequencia,
@@ -238,19 +225,19 @@ export {
   MARGEM_DE_RUIDO,
   MetricaInvalida,
   PISO_DA_FRICCAO,
+  PISO_DA_FRUSTRACAO,
   PISO_DA_TESE,
   PRE_REQUISITOS,
   compararPlataforma,
   decidirTese,
-  denominadorDaParticipacao,
   degraus,
+  denominadorDaParticipacao,
   ehEventoDoFunil,
   ehEventoUnicoDoFunil,
   lerIntencao,
   lerPlataforma,
   maiorPerda,
   ondeParou,
-  PISO_DA_FRUSTRACAO,
   taxaDeParticipacao,
   taxaDeParticipacaoOuNula,
   validarSequencia,
@@ -291,14 +278,6 @@ export {
   provedorDeImagemDoAmbiente,
   provedorHeuristico,
 } from "./classificador-imagem";
-
-export type { ConfigDoProvedorOpenAi, ResultadoBrutoOpenAi } from "./classificador-openai";
-export {
-  LIMIAR_SUSPEITO as LIMIAR_SUSPEITO_OPENAI,
-  provedorOpenAi,
-  resultadoBrutoOpenAi,
-  veredictoDoResultadoBruto,
-} from "./classificador-openai";
 
 export type {
   Autorizacao,
@@ -641,6 +620,34 @@ export { chaveRecadoValida as isGuestbookAudioKey } from "./chaves";
 export { derivarChaveExport as deriveExportKey } from "./chaves";
 /** English alias — prefer for new code. @see chaveExportValida */
 export { chaveExportValida as isExportKey } from "./chaves";
+
+export { maskPii, maskObject, addPiiField, logger, createLogContext } from "./structured-logging";
+
+export type {
+  WebVitalName,
+  WebVitalRating,
+  WebVitalMetric,
+  WebVitalHandler,
+  WebVitalsSession,
+  WebVitalsStats,
+} from "./web-vitals";
+export { WEB_VITAL_THRESHOLDS, getWebVitalRating, aggregateWebVitals, shouldSample } from "./web-vitals";
+
+export type {
+  ErrorSeverity,
+  ErrorContext,
+  CapturedError,
+  ErrorTrackingProvider,
+} from "./error-tracking";
+export {
+  configureErrorTracking,
+  captureException,
+  captureMessage,
+  setUserContext,
+  setErrorContext,
+  withErrorTracking,
+} from "./error-tracking";
+
 /** English alias — prefer for new code. @see derivarChaveImagemCapa */
 export { derivarChaveImagemCapa as deriveCoverImageKey } from "./chaves";
 /** English alias — prefer for new code. @see chaveImagemCapaValida */
@@ -834,6 +841,16 @@ export { registrarDecisaoDoComentario as registerCommentDecision } from "./comme
 /** English alias — prefer for new code. @see validarTexto */
 export { validarTexto as validateCommentText } from "./comment";
 
+export * from "./ref-token";
+
+export type { ConfigDoProvedorOpenAi, ResultadoBrutoOpenAi } from "./classificador-openai";
+export {
+  LIMIAR_SUSPEITO as LIMIAR_SUSPEITO_OPENAI,
+  provedorOpenAi,
+  resultadoBrutoOpenAi,
+  veredictoDoResultadoBruto,
+} from "./classificador-openai";
+
 export type { TipoDeConsentimento, VersaoDeConsentimento } from "./consent-versions";
 export {
   CONSENTIMENTO_ENTRADA_VIGENTE,
@@ -843,13 +860,9 @@ export {
   versaoVigente as versaoVigenteDoConsentimento,
   VERSOES_DE_CONSENTIMENTO,
 } from "./consent-versions";
-/** English alias — prefer for new code. @see TipoDeConsentimento */
 export type { TipoDeConsentimento as ConsentKind } from "./consent-versions";
-/** English alias — prefer for new code. @see VersaoDeConsentimento */
 export type { VersaoDeConsentimento as ConsentVersion } from "./consent-versions";
-/** English alias — prefer for new code. @see VERSOES_DE_CONSENTIMENTO */
 export { VERSOES_DE_CONSENTIMENTO as CONSENT_VERSIONS } from "./consent-versions";
-/** English alias — prefer for new code. @see textoDoConsentimento */
 export { textoDoConsentimento as consentVersionText } from "./consent-versions";
 
 export type { Actor, AuthorizationRequest, Capability, Decision, Policy, StaffRole } from "./authorization";
@@ -862,7 +875,7 @@ export {
   REFUND_APPROVAL_THRESHOLD_CENTS,
   ROLE_CAPABILITIES,
 } from "./authorization";
-export { erroParaRegistro, logger, sanitizarTextoDeErro } from "./structured-logging";
+export { erroParaRegistro, sanitizarTextoDeErro } from "./structured-logging";
 export {
   VENDOR_PLAN_PRICE_CENTS,
   VENDOR_PLAN_TEAM_LIMIT,

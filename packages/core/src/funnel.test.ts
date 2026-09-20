@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   compararPlataforma,
   decidirTese,
-  denominadorDaParticipacao,
   degraus,
+  denominadorDaParticipacao,
   ehEventoDoFunil,
   ehEventoUnicoDoFunil,
   ESPINHA_DO_FUNIL,
@@ -389,10 +389,8 @@ describe("intenção — separar quem não quis de quem não conseguiu", () => {
   it("salão sem sinal: tese reprova, mas a intenção estava lá", () => {
     const contagem = { expectedGuests: 100, sessoesComUpload: 12, sessoesComCaptura: 46 };
 
-    // O veredito sozinho mandaria parar…
     expect(decidirTese(contagem).codigo).toBe("funil.parar");
 
-    // …e a leitura de intenção mostra que o produto sequer foi testado.
     const l = lerIntencao(contagem);
     expect(l.codigo).toBe("funil.intencao_frustrada");
     expect(l.frustradas).toBe(34);
@@ -439,8 +437,6 @@ describe("denominador — estimativa antes, presença confirmada depois", () => 
   });
 
   it("a diferença entre convidado e presente move o veredito de faixa", () => {
-    // 60 envios: 30% sobre a estimativa de 200 (mexer em fricção),
-    // 50% sobre os 120 que apareceram de verdade (tese validada).
     const envios = 60;
 
     const estimado = denominadorDaParticipacao({ expectedGuests: 200 });

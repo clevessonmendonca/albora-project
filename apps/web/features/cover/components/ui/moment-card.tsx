@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Badge, Frame } from "@albora/ui-web";
 import type { CoverMoment } from "../../types/cover";
 
@@ -18,8 +17,6 @@ export function MomentCard({
   central,
   interactionOpen,
 }: MomentCardProps) {
-  // Rota direto pra câmera da missão: o fluxo de captura é o que gera participação
-  // (N5.6), não a galeria — mesma lógica de `photoPathForMission` em missions-utils.
   const hrefPhoto = moment.missionFilterId
     ? `${base}/photo?missao=${encodeURIComponent(moment.missionFilterId)}`
     : `${base}/photo`;
@@ -28,18 +25,12 @@ export function MomentCard({
     <Link
       href={hrefPhoto}
       aria-label={`Fotografar ${moment.title}`}
-      className={`relative aspect-[9/16] shrink-0 snap-center overflow-hidden rounded-token text-inherit no-underline transition-[opacity,transform] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] ${
-        central ? "w-[9.25rem] shadow-alta" : "w-20 opacity-60 shadow-suave"
+      className={`relative aspect-[9/16] shrink-0 snap-center overflow-hidden rounded-token text-inherit no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90 ${
+        central ? "w-[9.25rem]" : "w-20 opacity-60"
       }`}
     >
       {moment.thumbUrl ? (
-        <Image
-          src={moment.thumbUrl}
-          alt=""
-          fill
-          sizes="(max-width: 640px) 50vw, 33vw"
-          className="object-cover object-top"
-        />
+        <img src={moment.thumbUrl} alt="" className="absolute inset-0 size-full object-cover" />
       ) : (
         <Frame label="" atmosphere variant={index * 6 + 2} />
       )}

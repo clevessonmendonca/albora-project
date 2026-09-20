@@ -17,8 +17,7 @@ export function MiniaturaMinhas({
   urlVideo,
   pendente,
 }: MiniaturaMinhasProps) {
-  // Nunca corta no rosto — a moldura enquadra pelo topo, não pelo centro.
-  const cobertura = "block size-full object-cover object-top";
+  const cobertura = "block size-full object-cover";
 
   if (isVideo && pendente && url) {
     return (
@@ -71,7 +70,7 @@ export function MiniaturaMinhas({
     );
   }
 
-  return <div className="size-full bg-superficie-alta" />;
+  return <div className="size-full bg-linha" />;
 }
 
 /**

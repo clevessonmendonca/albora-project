@@ -14,8 +14,6 @@ export type Pack = {
   momentos?: { id: string; chaveTitulo: string; chaveDesc: string }[];
   /** Conjunto fechado (spec 008) — emoji livre projetado para 150 pessoas é a mesma superfície de abuso de `lugares`; id fora da lista não vira linha no banco. */
   reacoes?: { id: string; chaveTitulo: string }[];
-  /** Id do pack cujas festas acontecem antes desta. Núcleo não sabe que casamento
-   *  tem noivado — quem sabe é o pack, e a UI pergunta em vez de assumir. */
   sugereAntes?: string;
   /** Nome do glifo Lucide do card de tipo no onboarding (ex.: "heart", "cake"). Não é
    *  palavra de domínio — é iconografia; o componente resolve o glifo por este nome
@@ -68,7 +66,6 @@ export const LANDING_VOCABULARY_KEYS = [
 
 export const CHAVES_DA_LANDING = LANDING_VOCABULARY_KEYS;
 
-/** Chave faltando na landing vira a própria chave em corpo 74px na frente de quem ia pagar. */
 /**
  * O pack se propõe a ter landing própria?
  *
@@ -90,6 +87,7 @@ export function temLandingPropria(pack: Pack): boolean {
 
 export const hasOwnLanding = temLandingPropria;
 
+/** Chave faltando na landing vira a própria chave em corpo 74px na frente de quem ia pagar. */
 export function landingProblems(pack: Pack): string[] {
   const problemas = LANDING_VOCABULARY_KEYS.filter((chave) => !pack.vocabulario[chave]).map(
     (chave) => `falta a chave de landing ${chave}`,

@@ -4,10 +4,6 @@ type SectionHeaderProps = {
   action?: React.ReactNode;
 };
 
-/**
- * Header de seção reutilizável.
- * Título + subtítulo opcional + ação opcional.
- */
 export function SectionHeader({ title, subtitle, action }: SectionHeaderProps) {
   return (
     <div className="mb-4 flex items-baseline justify-between">

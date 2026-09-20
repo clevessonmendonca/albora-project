@@ -13,7 +13,6 @@ export type AdminEventPageContext = {
   role: HostEventRole;
   /** ZIP, Assinar Completo, haMenores — só couple/owner. */
   canManageCoupleOnly: boolean;
-  /** Chave localStorage do checklist pré-evento (conta + evento). */
   checklistStorageKey: string;
 };
 

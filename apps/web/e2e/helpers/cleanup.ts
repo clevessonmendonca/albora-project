@@ -1,22 +1,6 @@
-/**
- * Helper para limpar dados de teste do banco de dados
- *
- * Uso:
- * ```typescript
- * await cleanupTestEvent(event.id);
- * ```
- */
-
 import { comEvento } from "@albora/db";
 import { getPool, getAggregatorPool } from "@/lib/db";
 
-/**
- * Remove um evento de teste e todos os dados relacionados.
- *
- * Ordem de deleção respeita FK — filhos antes de pais.
- * Tabelas com ON DELETE CASCADE dispensariam isso, mas
- * a deleção explícita garante que comEvento/RLS cobre tudo.
- */
 export async function cleanupTestEvent(eventId: string): Promise<void> {
   await comEvento(getPool(), eventId, async (client) => {
     await client.query("DELETE FROM reactions WHERE event_id = $1", [eventId]);
@@ -36,9 +20,6 @@ export async function cleanupTestEvent(eventId: string): Promise<void> {
   });
 }
 
-/**
- * Remove múltiplos eventos de teste
- */
 export async function cleanupMultipleTestEvents(
   eventIds: string[]
 ): Promise<void> {
@@ -47,11 +28,6 @@ export async function cleanupMultipleTestEvents(
   }
 }
 
-/**
- * Remove TODOS os eventos de teste (começando com 'test-event-')
- *
- * ⚠️ USE COM CUIDADO! Só em ambiente de teste!
- */
 export async function cleanupAllTestEvents(): Promise<void> {
   const result = await getAggregatorPool().query(
     "SELECT id FROM events WHERE slug LIKE 'test-event-%'"

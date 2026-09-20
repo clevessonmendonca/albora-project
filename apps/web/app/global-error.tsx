@@ -1,8 +1,7 @@
 "use client";
 
-// global-error substitui <html> inteiro — tokens/Tailwind não estão disponíveis; cores em rgb() para não disparar o guard de hex.
-import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
+import { captureException } from "@albora/core";
 
 export default function GlobalError({
   error,
@@ -12,8 +11,9 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    Sentry.captureException(error);
+    captureException(error);
   }, [error]);
+
   return (
     <html lang="pt-BR">
       <body
