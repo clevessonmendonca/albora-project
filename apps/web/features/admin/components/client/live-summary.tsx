@@ -19,10 +19,16 @@ type Resumo = {
 
 const INTERVALO_MS = 30_000;
 
+/**
+ * A Home é a tela do casal, não do analista. O mesmo veredito aparece em
+ * Insights e no funil com a linguagem de produto ("mexe em fricção",
+ * "investigar antes de escalar") — ali faz sentido, aqui não: ninguém organiza
+ * o próprio casamento pensando em escalar hipótese.
+ */
 const ROTULO_VEREDITO: Record<CodigoDaTese, string> = {
-  "funil.tese_validada": "Participação na meta (≥40%)",
-  "funil.mexe_em_friccao": "Abaixo da meta — vale olhar fricção",
-  "funil.parar": "Participação crítica — investigar antes de escalar",
+  "funil.tese_validada": "Todo mundo está fotografando.",
+  "funil.mexe_em_friccao": "Dá pra puxar mais — lembre as mesas do QR.",
+  "funil.parar": "Poucas pessoas fotografaram até agora.",
 };
 
 function vereditoTextClass(veredito: CodigoDaTese): string {
@@ -124,6 +130,9 @@ export function LiveSummary({ eventoId }: Props) {
 
   const pct = Math.round(resumo.participacao * 100);
   const destaqueClass = vereditoTextClass(resumo.veredito);
+  // Antes da primeira foto, "0%" e "participação crítica" não são informação —
+  // são susto. O casal precisa saber que está tudo pronto e esperando.
+  const aindaSemFoto = resumo.totalFotos === 0;
 
   return (
     <AdminSection>
@@ -160,6 +169,16 @@ export function LiveSummary({ eventoId }: Props) {
         </div>
       </div>
 
+      {aindaSemFoto ? (
+        <div className="rounded-token bg-superficie-alta px-4 py-5">
+          <p className="tipo-body m-0 text-ink">Nenhuma foto ainda.</p>
+          <p className="tipo-caption m-0 mt-1.5 max-w-[46ch] text-ink-2">
+            Assim que alguém apontar a câmera para o QR da mesa, as fotos aparecem aqui — e no
+            telão, na hora.
+          </p>
+        </div>
+      ) : (
+        <>
       <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
         <Stat n={`${pct}%`} rotulo="participação" destaqueClass={destaqueClass} />
         <Stat
@@ -203,6 +222,8 @@ export function LiveSummary({ eventoId }: Props) {
       </div>
 
       <p className={`tipo-caption mb-4 mt-0 ${destaqueClass}`}>{ROTULO_VEREDITO[resumo.veredito]}</p>
+        </>
+      )}
 
       {resumo.ultimas.length > 0 && (
         <>

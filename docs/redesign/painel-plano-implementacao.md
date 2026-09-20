@@ -55,7 +55,7 @@ Ordem alinhada à spec §7, com as etapas já concluídas marcadas.
 - [x] **3. Shell 4-nav + hub por intenção.** **Pendente**: incluir **Música** (Experiência) e **gate da interação** (Na festa); seletor multi-evento no topo.
 - [x] **4. Adoção do Design System** — `adminClasses` virou alias de `buttonVariants` (55 usos em 23 arquivos servidos pelo DS sem serem tocados); classes de botão à mão caíram de 19 para 4; `SavedBadge` substituiu o mesmo selo copiado em 4 editores; upload usa `ProgressBar`. Ganhos no DS: variante `danger` (faltava, com botões destrutivos já em uso), `no-underline` na base e `buttonVariants` exportado para `<a>`/`<Link>`.
   - **Lacunas do DS registradas**: não há variante *flutuante opaca* (botão "Ver prévia" do wizard) nem *texto discreto* (o "Voltar" do wizard). Ficaram com classe local de propósito — inventar variante para dois casos é pior. Decidir se viram variante quando aparecer o terceiro caso.
-- [ ] **5. Controles perigosos protegidos** — "pausar tudo", "há menores" e modo endurecido passam por `ConfirmDialog`/`DangerDialog`; quebrar o monólito `EventControls` por contexto. Critério: nenhum switch destrutivo sem confirmação; papéis couple-only gateados.
+- [x] **5. Controles perigosos protegidos** — pânico, "há menores" e modo endurecido passam por `ConfirmDialog`, com confirmação **assimétrica**: só o lado que tira proteção ou interrompe a festa pergunta. O switch não vira antes de confirmar. **Pendente**: quebrar o monólito `EventControls` por contexto (ele ainda acumula telão, proteções, gates, música, peças, billing e suporte).
 - [ ] **6. Estados de borda** (spec §6) — rascunho, sem convidados, participação abaixo da meta, fila com denúncia, gate aberto/fechado, plano free, planner sem permissão, offline. Critério: toda tela do evento com vazio/carregando/erro.
 - [ ] **7. Fotos/Moderação** — uma tela, abas Todas · Revisar · Destaques; **Destacar** é net-new. Spec fechada em `prototipos/fotos.html`.
 - [ ] **8. Convidados/Pessoas** — participação + pessoas com dado real; perfil da pessoa. Spec em `prototipos/convidados.html`.
@@ -63,6 +63,13 @@ Ordem alinhada à spec §7, com as etapas já concluídas marcadas.
 - [ ] **10. Reviver** (net-new) — narrativa em capítulos para tela cheia/telão.
 - [ ] **11. Tour de primeiro acesso** — os **6 passos do protótipo** (não inventar), descartável e retomável, progresso em `setup_marks`. Acessível por teclado e leitor de tela.
 - [ ] **12. Performance** — code-splitting das telas secundárias, virtualização onde houver lista longa, skeletons sem salto de layout.
+
+## 3b. Achados fora do plano (corrigidos no caminho)
+
+- **Contagem regressiva divergente**: barra lateral contava frações de 24h e a Home contava viradas de meia-noite — "Falta 1 dia" e "Hoje" na mesma tela. Unificado em `lib/contagem.ts`.
+- **Hidratação quebrada**: três componentes client liam `window.location.origin` no render (padrão de `25a6dd94`), então servidor e cliente divergiam e o painel ao vivo abria com erro. Passou a `useEffect`.
+- **Slug ilegível**: `/e/xygyd83w` contra `docs/security.md` §4.7, que exige slug legível porque "alguém vai digitá-lo". Agora `/e/marina-e-lucas`, com reservados e sufixo em colisão.
+- **Teste instável de terceiros**: `packages/curation/src/ranking.test.ts` (custo do ranking) passa isolado em ~1s e falha sob carga da suíte paralela, bloqueando push. Não é deste trabalho e **não foi afrouxado** — precisa de item próprio.
 
 ## 4. Riscos e decisões pendentes
 
