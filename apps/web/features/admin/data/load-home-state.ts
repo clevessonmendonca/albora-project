@@ -6,7 +6,10 @@ import {
   withEvent,
   type EventoDoHost,
 } from "@albora/db";
+import { PACKS } from "@albora/packs";
+import { assinarGet } from "@/lib/r2";
 import type { MarcoCru } from "@/features/admin/lib/linha-de-retencao";
+import { capitulosDoReviver, type CapituloDoReviver } from "@/features/admin/lib/reviver";
 import { getPool } from "@/lib/db";
 import { diasAte } from "@/features/admin/lib/contagem";
 
@@ -48,6 +51,8 @@ export type EstadoDaHome = {
   marcosDeRetencao: MarcoCru[];
   /** Fase "depois": o payoff. `null` quando a leitura falha. */
   payoff: Payoff | null;
+  /** Capítulos do Reviver. Vazio quando não há noite suficiente para contar. */
+  capitulos: CapituloDoReviver[];
 };
 
 export type Payoff = {
@@ -143,6 +148,37 @@ function ordemDaFase(fase: FaseDoEvento): string[] {
   return ["capa", "recado", "identidade", "missoes", "previaConvidado", "qr"];
 }
 
+const VALIDADE_CAPA_SEGUNDOS = 900;
+
+/** Assina só a capa de cada capítulo — não a noite inteira. */
+async function montarCapitulos(
+  midias: { id: string; chaveThumb: string; capturadaEm: Date | null; recebidaEm: Date; destacadaEm: Date | null }[],
+  momentos: { id: string; chaveTitulo: string; chaveDesc: string }[],
+  vocabulario: Record<string, string>,
+): Promise<CapituloDoReviver[]> {
+  const brutos = capitulosDoReviver(
+    midias.map((m) => ({
+      id: m.id,
+      // A chave, não a URL: só as capas viram URL assinada, logo abaixo.
+      thumb: m.chaveThumb,
+      em: (m.capturadaEm ?? m.recebidaEm).toISOString(),
+      destacada: m.destacadaEm !== null,
+    })),
+    momentos,
+    vocabulario,
+  );
+
+  return Promise.all(
+    brutos.map(async (c) => ({
+      ...c,
+      capa: {
+        ...c.capa,
+        thumb: await assinarGet(c.capa.thumb, VALIDADE_CAPA_SEGUNDOS).catch(() => ""),
+      },
+    })),
+  );
+}
+
 export async function loadHomeState(evento: EventoDoHost): Promise<EstadoDaHome> {
   const base = `/admin/e/${evento.eventoId}`;
   const pool = getPool();
@@ -177,6 +213,12 @@ export async function loadHomeState(evento: EventoDoHost): Promise<EstadoDaHome>
       }
     : null;
 
+  const momentos = PACKS[evento.packId]?.momentos ?? [];
+  const vocabulario = PACKS[evento.packId]?.vocabulario ?? {};
+  const capitulos = midias
+    ? await montarCapitulos(midias, momentos, vocabulario)
+    : [];
+
   const itens = montarItens(base, evento, recado !== null, desafios.length);
   const feitos = itens.filter((i) => i.feito).length;
   const dias = diasAte(evento.comecaEm);
@@ -197,6 +239,7 @@ export async function loadHomeState(evento: EventoDoHost): Promise<EstadoDaHome>
     pct: Math.round((feitos / itens.length) * 100),
     proxima,
     payoff,
+    capitulos,
     marcosDeRetencao: marcos.map((m) => ({
       kind: m.kind,
       status: m.status,

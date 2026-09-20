@@ -16,6 +16,7 @@ import { PreviaDoConvidado } from "./home/previa-convidado";
 import { AvisoDeRetencao } from "./home/retencao";
 import { Payoffdepois } from "./home/depois";
 import { CapsulaDeMemoria } from "./home/capsula";
+import { CartaoReviver } from "./home/cartao-reviver";
 import { VerComoConvidado } from "./home/acoes";
 import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./home/estilos";
 
@@ -190,6 +191,16 @@ export async function EventHome({
       {depois && (
         <>
           {estado.payoff && <Payoffdepois base={base} payoff={estado.payoff} />}
+          {estado.payoff && estado.capitulos.length > 0 && (
+            <CartaoReviver
+              capitulos={estado.capitulos}
+              fuso={evento.fuso}
+              nome={ctx.name}
+              fotos={estado.payoff.fotos}
+              pessoas={estado.payoff.pessoas}
+              hrefAlbum={`${base}/album`}
+            />
+          )}
           <AvisoDeRetencao
             base={base}
             terminaEm={evento.terminaEm}

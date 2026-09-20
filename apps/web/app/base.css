@@ -126,3 +126,19 @@ body {
     transparent
   );
 }
+
+/* Barra de progresso do Reviver. Em `base.css` porque keyframes não cabem em
+   estilo inline, e o player é a única tela que anima por duração fixa. */
+@keyframes reviver-barra {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Quem pediu menos movimento não perde o capítulo: a barra vai direto ao
+     fim e o avanço continua pelo tempo, sem animação. */
+  @keyframes reviver-barra {
+    from { width: 100%; }
+    to { width: 100%; }
+  }
+}
