@@ -51,7 +51,15 @@ export type EventoDoHost = ResumoEvento & {
  */
 export const MARCOS_DE_PREPARO = ["identidade", "qr", "previaConvidado"] as const;
 export type MarcoDePreparo = (typeof MARCOS_DE_PREPARO)[number];
-export type MarcosDePreparo = Partial<Record<MarcoDePreparo, boolean>>;
+/**
+ * `tour` guarda o progresso do tour de primeiro acesso: o número do próximo
+ * passo, ou `true` quando o casal terminou ou descartou. Fica aqui, e não no
+ * navegador, porque tour que recomeça do zero ao trocar de aparelho é o
+ * mesmo erro que o checklist em `localStorage` cometia.
+ */
+export type MarcosDePreparo = Partial<Record<MarcoDePreparo, boolean>> & {
+  tour?: number | true;
+};
 
 export function ehMarcoDePreparo(valor: string): valor is MarcoDePreparo {
   return (MARCOS_DE_PREPARO as readonly string[]).includes(valor);
@@ -158,6 +166,30 @@ export async function buscarEventoDoHost(
  * preserva os marcos já gravados, então duas abas marcando coisas diferentes não
  * se sobrescrevem.
  */
+/** Progresso do tour. `true` = terminou ou descartou; número = próximo passo. */
+export async function marcarPassoDoTour(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+  valor: number | true,
+): Promise<EventoDoHost | null> {
+  return comConta(pool, accountId, async (c) => {
+    const { rowCount } = await c.query(
+      `UPDATE events
+          SET setup_marks = setup_marks || jsonb_build_object('tour', $1::jsonb)
+        WHERE id = $2`,
+      [JSON.stringify(valor), eventoId],
+    );
+    if (!rowCount) return null;
+
+    const { rows } = await c.query<LinhaCompleta>(
+      `SELECT ${COLUNAS} FROM events WHERE id = $1`,
+      [eventoId],
+    );
+    return rows[0] ? mapEvento(rows[0]) : null;
+  });
+}
+
 export async function marcarPreparoDoEvento(
   pool: Pool,
   accountId: string,

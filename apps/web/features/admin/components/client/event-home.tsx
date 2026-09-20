@@ -17,6 +17,8 @@ import { AvisoDeRetencao } from "./home/retencao";
 import { Payoffdepois } from "./home/depois";
 import { CapsulaDeMemoria } from "./home/capsula";
 import { CartaoReviver } from "./home/cartao-reviver";
+import { TourDePrimeiroAcesso } from "./tour-primeiro-acesso";
+import { passoDoTour } from "@/features/admin/lib/tour";
 import { VerComoConvidado } from "./home/acoes";
 import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./home/estilos";
 
@@ -105,6 +107,8 @@ export async function EventHome({
   // divulgar uma porta fechada.
   const publicado = evento.status !== "draft";
   const depois = estado.fase === "depois";
+
+  const passoInicialDoTour = passoDoTour(evento.marcosDePreparo, depois);
   const pendentes = estado.itens.filter((i) => !i.feito && i.chave !== estado.proxima?.chave);
 
   const acoesDoHero = depois ? (
@@ -141,6 +145,10 @@ export async function EventHome({
 
   return (
     <div className="flex flex-col gap-[clamp(2rem,5vh,3rem)]" style={vars}>
+      {passoInicialDoTour !== null && (
+        <TourDePrimeiroAcesso eventoId={eventId} passoInicial={passoInicialDoTour} imagem={img} />
+      )}
+
       <HeroDoEvento
         nome={ctx.name}
         meta={meta}
