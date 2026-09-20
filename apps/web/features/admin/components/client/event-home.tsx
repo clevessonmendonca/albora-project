@@ -97,6 +97,9 @@ export async function EventHome({
   const tom = tomDaFase(estado);
 
   const aoVivo = estado.fase === "hoje" || estado.fase === "aovivo";
+  // Em rascunho o link existe mas não abre — oferecer copiar é mandar o casal
+  // divulgar uma porta fechada.
+  const publicado = evento.status !== "draft";
   const depois = estado.fase === "depois";
   const pendentes = estado.itens.filter((i) => !i.feito && i.chave !== estado.proxima?.chave);
 
@@ -105,7 +108,7 @@ export async function EventHome({
       <Link href={`${base}/album`} className={acaoPrimaria} style={estiloAcento}>
         Ver o álbum
       </Link>
-      <CopiarLinkEvento slug={evento.slug} />
+      {publicado && <CopiarLinkEvento slug={evento.slug} />}
     </>
   ) : aoVivo ? (
     <>
@@ -119,7 +122,7 @@ export async function EventHome({
         Abrir o telão
       </Link>
       <VerComoConvidado eventId={eventId} slug={evento.slug} />
-      <CopiarLinkEvento slug={evento.slug} />
+      {publicado && <CopiarLinkEvento slug={evento.slug} />}
     </>
   ) : (
     <>
@@ -145,6 +148,20 @@ export async function EventHome({
         acoes={acoesDoHero}
       />
 
+      {/* Rascunho é a borda mais cara: o herói convida a compartilhar o link e o
+          convidado bate numa porta fechada. Avisa antes de qualquer outra coisa. */}
+      {evento.status === "draft" && (
+        <section className="rounded-superficie border border-linha bg-superficie p-[clamp(1.25rem,3vw,1.75rem)]">
+          <h2 className="tipo-subtitle m-0 text-ink">Seus convidados ainda não entram</h2>
+          <p className="tipo-body m-0 mt-2 max-w-[46ch] text-ink-2">
+            O evento está em rascunho. O link e o QR só funcionam depois de publicar.
+          </p>
+          <Link href="#controle-publicar" className={`${acaoPrimaria} mt-4`} style={estiloAcento}>
+            Publicar evento
+          </Link>
+        </section>
+      )}
+
       {/* Ao vivo: números passam a importar e as ações críticas vêm primeiro. */}
       {aoVivo && (
         <>
@@ -163,16 +180,6 @@ export async function EventHome({
               </Link>
             </div>
           </section>
-          <EventControls
-            eventId={evento.eventoId}
-            slug={evento.slug}
-            plan={evento.plan}
-            initial={evento.moderacao}
-            initialInteractionOpensAt={evento.interacaoAbreEm?.toISOString() ?? null}
-            initialDeliveryOpensAt={evento.deliveryOpensAt?.toISOString() ?? null}
-            initialStatus={evento.status}
-            canManageCoupleOnly={canManageCoupleOnly}
-          />
         </>
       )}
 
@@ -222,6 +229,22 @@ export async function EventHome({
           />
         </>
       )}
+
+      {/* Estes controles viviam na Home em todas as fases antes do redesign; prendê-los
+          à festa tirava publicar, gates, música e peças de quem ainda está preparando. */}
+      <section>
+        <h2 className="tipo-label m-0 mb-3 text-ink-3">Ajustes do evento</h2>
+        <EventControls
+          eventId={evento.eventoId}
+          slug={evento.slug}
+          plan={evento.plan}
+          initial={evento.moderacao}
+          initialInteractionOpensAt={evento.interacaoAbreEm?.toISOString() ?? null}
+          initialDeliveryOpensAt={evento.deliveryOpensAt?.toISOString() ?? null}
+          initialStatus={evento.status}
+          canManageCoupleOnly={canManageCoupleOnly}
+        />
+      </section>
 
       <p className="m-0 text-center">
         <Link

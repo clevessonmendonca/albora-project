@@ -143,7 +143,7 @@ export function EventControls({
   return (
     <div className="flex flex-col gap-5">
       {status === "draft" && (
-        <AdminSection>
+        <AdminSection id="controle-publicar">
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div>
               <span className="tipo-subtitle block text-ink">Evento em rascunho</span>
