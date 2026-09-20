@@ -15,6 +15,7 @@ import { Preparo } from "./home/preparo";
 import { PreviaDoConvidado } from "./home/previa-convidado";
 import { AvisoDeRetencao } from "./home/retencao";
 import { Payoffdepois } from "./home/depois";
+import { CapsulaDeMemoria } from "./home/capsula";
 import { VerComoConvidado } from "./home/acoes";
 import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./home/estilos";
 
@@ -195,6 +196,7 @@ export async function EventHome({
             fuso={evento.fuso}
             marcos={estado.marcosDeRetencao}
           />
+          <CapsulaDeMemoria eventoId={eventId} inicial={evento.capsulaDeMemoria} />
         </>
       )}
 

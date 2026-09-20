@@ -6,7 +6,7 @@ import {
   reexibirMidiaDoHost,
   removerMidiaDoHost,
 } from "./host-events";
-import { chavesDoAcervo, purgarAcervo } from "./retention-jobs";
+import { chavesDoAcervo, idsDaCapsula, purgarAcervo } from "./retention-jobs";
 import { comEvento } from "./event";
 import { prepararBanco, semear } from "./testes/banco";
 
@@ -115,6 +115,89 @@ describe("destacar", () => {
       true,
     );
     expect(ok).toBe(false);
+  });
+});
+
+describe("cápsula de memória", () => {
+  async function emailDaConta(): Promise<string> {
+    const { rows } = await admin.query<{ email: string }>(
+      "SELECT a.email FROM events e JOIN accounts a ON a.id = e.account_id WHERE e.id = $1",
+      [dados.a.eventoId],
+    );
+    return rows[0]?.email ?? "";
+  }
+
+  async function ligarCapsula(ligada: boolean): Promise<void> {
+    await admin.query("UPDATE events SET memory_capsule = $2 WHERE id = $1", [
+      dados.a.eventoId,
+      ligada,
+    ]);
+  }
+
+  async function vincularSessaoAoCasal(): Promise<void> {
+    await admin.query(
+      `INSERT INTO guest_contacts (event_id, session_id, channel, value, verified_at, verified_via)
+       VALUES ($1, $2, 'email', $3, now(), 'google')
+       ON CONFLICT (event_id, session_id, channel, value)
+       DO UPDATE SET verified_at = now()`,
+      [dados.a.eventoId, dados.a.sessaoId, await emailDaConta()],
+    );
+  }
+
+  async function desvincular(): Promise<void> {
+    await admin.query("DELETE FROM guest_contacts WHERE event_id = $1", [dados.a.eventoId]);
+  }
+
+  it("desligada, não guarda nada — é o padrão", async () => {
+    await publicar(dados.a.uploadId);
+    await vincularSessaoAoCasal();
+    await destacarMidiaDoHost(app, dados.a.contaId, dados.a.eventoId, dados.a.uploadId, true);
+    await ligarCapsula(false);
+
+    const ids = await comEvento(app, dados.a.eventoId, (c) => idsDaCapsula(c, dados.a.eventoId));
+    expect(ids).toEqual([]);
+  });
+
+  it("ligada, guarda destaque do casal: sobrevive ao purge e sai das chaves a apagar", async () => {
+    await publicar(dados.a.uploadId);
+    await vincularSessaoAoCasal();
+    await destacarMidiaDoHost(app, dados.a.contaId, dados.a.eventoId, dados.a.uploadId, true);
+    await ligarCapsula(true);
+
+    const chaves = await comEvento(app, dados.a.eventoId, (c) =>
+      chavesDoAcervo(c, dados.a.eventoId),
+    );
+    expect(chaves).toEqual([]);
+
+    await comEvento(app, dados.a.eventoId, (c) => purgarAcervo(c, dados.a.eventoId));
+    expect(await estado(dados.a.uploadId)).toBe("capsule");
+  });
+
+  // A linha que a decisão de produto desenhou: o casal consente pelo que é
+  // dele. Foto de convidado segue o prazo anunciado a ele.
+  it("ligada, NÃO guarda destaque de convidado — consentimento de terceiro não é do casal para dar", async () => {
+    await publicar(dados.a.uploadId);
+    await desvincular();
+    await destacarMidiaDoHost(app, dados.a.contaId, dados.a.eventoId, dados.a.uploadId, true);
+    await ligarCapsula(true);
+
+    const ids = await comEvento(app, dados.a.eventoId, (c) => idsDaCapsula(c, dados.a.eventoId));
+    expect(ids).toEqual([]);
+
+    await comEvento(app, dados.a.eventoId, (c) => purgarAcervo(c, dados.a.eventoId));
+    expect(await estado(dados.a.uploadId)).toBe("purged");
+  });
+
+  it("ligada, não guarda o que não foi destacado", async () => {
+    await publicar(dados.a.uploadId);
+    await vincularSessaoAoCasal();
+    await ligarCapsula(true);
+
+    const ids = await comEvento(app, dados.a.eventoId, (c) => idsDaCapsula(c, dados.a.eventoId));
+    expect(ids).toEqual([]);
+
+    await comEvento(app, dados.a.eventoId, (c) => purgarAcervo(c, dados.a.eventoId));
+    expect(await estado(dados.a.uploadId)).toBe("purged");
   });
 });
 

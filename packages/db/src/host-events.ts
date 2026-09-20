@@ -12,6 +12,24 @@ export type AtualizacaoConfigEvento = {
   title?: string | null;
 };
 
+/** Liga ou desliga a cápsula de memória. Desligar é um toque, sem fricção. */
+export async function definirCapsulaDeMemoria(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+  ligada: boolean,
+): Promise<boolean> {
+  if (!(await contaEDonaDoEvento(pool, accountId, eventoId))) return false;
+
+  return comEvento(pool, eventoId, async (c) => {
+    const { rowCount } = await c.query(
+      "UPDATE events SET memory_capsule = $2 WHERE id = $1",
+      [eventoId, ligada],
+    );
+    return (rowCount ?? 0) > 0;
+  });
+}
+
 /** Carimba a visita do anfitrião ao álbum. Base do "novas para você". */
 export async function marcarAlbumVisto(
   pool: Pool,

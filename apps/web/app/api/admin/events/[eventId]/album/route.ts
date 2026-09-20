@@ -1,6 +1,7 @@
 import {
   withEvent,
   destacarMidiaDoHost,
+  definirCapsulaDeMemoria,
   listarMidiaDoAlbum,
   marcarAlbumVisto,
   ocultarMidiaDoHost,
@@ -25,7 +26,7 @@ export const dynamic = "force-dynamic";
 
 const VALIDADE_GET_SEGUNDOS = 900;
 
-type Corpo = { midiaId?: unknown; acao?: unknown };
+type Corpo = { midiaId?: unknown; acao?: unknown; ligada?: unknown };
 
 /**
  * Ocultar é reversível; remover não. São verbos diferentes de propósito — a
@@ -38,7 +39,7 @@ const ACOES = {
   remover: removerMidiaDoHost,
 } as const;
 
-type Acao = keyof typeof ACOES | "destacar" | "desdestacar" | "visto";
+type Acao = keyof typeof ACOES | "destacar" | "desdestacar" | "visto" | "capsula";
 
 function ehAcao(v: unknown): v is Acao {
   return (
@@ -47,7 +48,8 @@ function ehAcao(v: unknown): v is Acao {
     v === "remover" ||
     v === "destacar" ||
     v === "desdestacar" ||
-    v === "visto"
+    v === "visto" ||
+    v === "capsula"
   );
 }
 
@@ -120,6 +122,22 @@ export async function PATCH(
   const corpo = parsed.data;
 
   const acaoPedida: Acao = ehAcao(corpo.acao) ? corpo.acao : "ocultar";
+
+  // "capsula" e "visto" são sobre o evento, não sobre uma foto.
+  if (acaoPedida === "capsula") {
+    try {
+      const mudou = await definirCapsulaDeMemoria(
+        getPool(),
+        auth.host.accountId,
+        eventId,
+        corpo.ligada === true,
+      );
+      if (!mudou) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
+      return jsonOk({ capsula: corpo.ligada === true });
+    } catch (e) {
+      return unexpectedError("admin.album", e);
+    }
+  }
 
   // "visto" é sobre o evento, não sobre uma foto — não exige `midiaId`.
   if (acaoPedida === "visto") {
