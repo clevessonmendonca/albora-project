@@ -13,6 +13,7 @@ import { HeroDoEvento } from "./home/hero-do-evento";
 import { ProximaAcao } from "./home/proxima-acao";
 import { Preparo } from "./home/preparo";
 import { PreviaDoConvidado } from "./home/previa-convidado";
+import { AvisoDeRetencao } from "./home/retencao";
 import { VerComoConvidado } from "./home/acoes";
 import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./home/estilos";
 
@@ -198,6 +199,7 @@ export async function EventHome({
               </Link>
             </div>
           </section>
+          <AvisoDeRetencao base={base} terminaEm={evento.terminaEm} fuso={evento.fuso} />
         </>
       )}
 
