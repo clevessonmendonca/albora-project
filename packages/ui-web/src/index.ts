@@ -1,5 +1,5 @@
 export { cn, cva, radiusStyle } from "./variants";
-export { Button } from "./button";
+export { Button, buttonVariants } from "./button";
 export { Badge } from "./badge";
 export { Card } from "./card";
 export { Star } from "./star";

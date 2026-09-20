@@ -1,6 +1,6 @@
 import React, { type CSSProperties, type ReactNode } from "react";
 import { ALBORA_BRAND, toVariables, resolveTokens, type Background } from "@albora/tokens";
-import { cva, SkipLink } from "@albora/ui-web";
+import { buttonVariants, cva, SkipLink } from "@albora/ui-web";
 import Link from "next/link";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
@@ -85,16 +85,18 @@ export function AdminSection({ children, id }: { children: ReactNode; id?: strin
   return <AdminCard id={id}>{children}</AdminCard>;
 }
 
+/**
+ * Ponte para o Design System. Eram strings próprias que divergiam do
+ * `@albora/ui-web` — agora cada rótulo é só um preset de `buttonVariants`, então
+ * botão de admin e botão de produto têm o mesmo traço por construção.
+ * Preferir `Button` em `<button>`; estes rótulos servem `<a>`/`<Link>`.
+ */
 export const adminClasses = {
-  primaryButton:
-    "inline-block cursor-pointer border-none bg-acento px-[1.4rem] py-3 font-titulo text-base text-sobre-acento no-underline rounded-pilula transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] active:opacity-80",
-  dangerButton:
-    "w-full cursor-pointer border-none bg-critico px-5 py-4 font-titulo text-[1.0625rem] text-sobre-acento rounded-pilula transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] active:opacity-80",
-  primaryButtonSm:
-    "inline-block cursor-pointer border-none bg-acento px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-sobre-acento no-underline rounded-pilula transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] active:opacity-80",
-  dangerButtonSm:
-    "inline-block w-auto cursor-pointer border-none bg-critico px-3 py-[0.45rem] font-titulo text-[0.8125rem] text-sobre-acento rounded-pilula transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] active:opacity-80",
-  secondaryButton:
-    "inline-block cursor-pointer border border-linha bg-superficie-alta px-[1.4rem] py-3 font-titulo text-base text-ink no-underline rounded-pilula transition-[transform,border-color] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97]",
-  listLink: "block border-b border-linha py-4 text-ink no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-acento-texto",
+  primaryButton: buttonVariants({ variant: "primary", size: "md" }),
+  primaryButtonSm: buttonVariants({ variant: "primary", size: "sm" }),
+  secondaryButton: buttonVariants({ variant: "secondary", size: "md" }),
+  dangerButton: buttonVariants({ variant: "danger", size: "lg", width: "full" }),
+  dangerButtonSm: buttonVariants({ variant: "danger", size: "sm" }),
+  listLink:
+    "block border-b border-linha py-4 text-ink no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-acento-texto",
 } as const;
