@@ -20,7 +20,10 @@ export function PreEventChecklist({
   eventId: string;
   storageKey: string;
 }) {
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  // Origem só depois de montar: lida no render, o servidor produz "" e o cliente
+  // a origem real — o HTML não bate e o React avisa que "não vai consertar".
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
   const sections = useMemo(() => buildPreEventSections(eventId, origin), [eventId, origin]);
   const [checked, setChecked] = useState<PreEventChecklistState>({});
 

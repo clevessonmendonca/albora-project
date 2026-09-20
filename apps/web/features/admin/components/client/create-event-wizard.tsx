@@ -664,7 +664,10 @@ function ReadyStep({
   coverFile: File | null;
   accentVars: CSSProperties;
 }) {
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  // Origem só depois de montar: lida no render, o servidor produz "" e o cliente
+  // a origem real — o HTML não bate e o React avisa que "não vai consertar".
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState(false);
 

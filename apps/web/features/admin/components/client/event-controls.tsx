@@ -3,7 +3,7 @@
 import { interacaoAberta, eventDefaults } from "@albora/core";
 import { buttonVariants, Badge, ConfirmDialog, Switch } from "@albora/ui-web";
 import Link from "next/link";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { DeliveryControls } from "@/features/admin/components/client/delivery-controls";
 import { EventMusic } from "@/features/admin/components/client/event-music";
@@ -135,7 +135,10 @@ export function EventControls({
     }
   };
 
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  // Origem só depois de montar: lida no render, o servidor produz "" e o cliente
+  // a origem real — o HTML não bate e o React avisa que "não vai consertar".
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
 
   return (
     <div className="flex flex-col gap-5">
