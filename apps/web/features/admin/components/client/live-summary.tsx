@@ -2,6 +2,7 @@
 
 import type { CodigoDaTese } from "@albora/core";
 import { Badge } from "@albora/ui-web";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { useModerationCount } from "./moderation-count-context";
@@ -9,9 +10,11 @@ import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
 type Resumo = {
   expectedGuests: number;
+  sessoesTotais: number;
   sessoesComUpload: number;
   totalFotos: number;
   filaRevisao: number;
+  denunciadas: number;
   participacao: number;
   veredito: CodigoDaTese;
   ultimas: { id: string; thumb: string; criadaEm: string }[];
@@ -133,6 +136,7 @@ export function LiveSummary({ eventoId }: Props) {
   // Antes da primeira foto, "0%" e "participação crítica" não são informação —
   // são susto. O casal precisa saber que está tudo pronto e esperando.
   const aindaSemFoto = resumo.totalFotos === 0;
+  const ninguemEntrou = resumo.sessoesTotais === 0;
 
   return (
     <AdminSection>
@@ -169,13 +173,51 @@ export function LiveSummary({ eventoId }: Props) {
         </div>
       </div>
 
+      {resumo.denunciadas > 0 && (
+        <div
+          role="alert"
+          className="mb-4 rounded-token border border-critico bg-critico/10 px-4 py-3.5"
+        >
+          <p className="tipo-body m-0 text-critico">
+            {resumo.denunciadas === 1
+              ? "Um convidado denunciou uma publicação."
+              : `${resumo.denunciadas} publicações foram denunciadas.`}
+          </p>
+          <p className="tipo-caption m-0 mt-1.5 max-w-[46ch] text-ink-2">
+            Já está fora do telão e do álbum. Precisa da sua decisão para voltar ou sair de vez.
+          </p>
+          <Link
+            href={`/admin/e/${eventoId}/moderation`}
+            className="tipo-caption mt-2.5 inline-block font-semibold text-critico"
+          >
+            Ver agora →
+          </Link>
+        </div>
+      )}
+
       {aindaSemFoto ? (
         <div className="rounded-token bg-superficie-alta px-4 py-5">
-          <p className="tipo-body m-0 text-ink">Nenhuma foto ainda.</p>
-          <p className="tipo-caption m-0 mt-1.5 max-w-[46ch] text-ink-2">
-            Assim que alguém apontar a câmera para o QR da mesa, as fotos aparecem aqui — e no
-            telão, na hora.
-          </p>
+          {ninguemEntrou ? (
+            <>
+              <p className="tipo-body m-0 text-ink">Ninguém entrou ainda.</p>
+              <p className="tipo-caption m-0 mt-1.5 max-w-[46ch] text-ink-2">
+                Os convidados entram pelo QR das mesas. Se as placas já estão postas, é só questão
+                de alguém apontar a câmera.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="tipo-body m-0 text-ink">
+                {resumo.sessoesTotais === 1
+                  ? "Uma pessoa entrou, nenhuma foto ainda."
+                  : `${resumo.sessoesTotais} pessoas entraram, nenhuma foto ainda.`}
+              </p>
+              <p className="tipo-caption m-0 mt-1.5 max-w-[46ch] text-ink-2">
+                Elas já estão dentro do álbum. A primeira foto costuma vir quando alguém lembra as
+                mesas das missões.
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <>
@@ -189,7 +231,7 @@ export function LiveSummary({ eventoId }: Props) {
         <Stat
           n={String(resumo.filaRevisao)}
           rotulo="na fila de revisão"
-          {...(resumo.filaRevisao > 0 ? { destaqueClass: "text-critico" } : {})}
+          {...(resumo.denunciadas > 0 ? { destaqueClass: "text-critico" } : {})}
         />
       </div>
 
