@@ -1,9 +1,9 @@
 "use client";
 
 import { interacaoAberta, eventDefaults } from "@albora/core";
-import { buttonVariants, Badge, Switch } from "@albora/ui-web";
+import { buttonVariants, Badge, ConfirmDialog, Switch } from "@albora/ui-web";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { DeliveryControls } from "@/features/admin/components/client/delivery-controls";
 import { EventMusic } from "@/features/admin/components/client/event-music";
@@ -60,6 +60,20 @@ export function EventControls({
   const [saving, setSaving] = useState<SavingField>(null);
   const [error, setError] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
+
+  /**
+   * Confirmação pendente de um controle perigoso. A direção importa e é
+   * assimétrica: confirmar é para o lado que **tira proteção ou interrompe a
+   * festa**. Pedir confirmação para religar o telão ou para ligar proteção de
+   * menores seria atrito contra a segurança — o casal desistiria no meio.
+   */
+  const [confirmacao, setConfirmacao] = useState<{
+    titulo: string;
+    descricao: ReactNode;
+    rotulo: string;
+    body: Record<string, boolean>;
+    campo: NonNullable<SavingField>;
+  } | null>(null);
 
   const defaults = eventDefaults({ haMenores: moderation.hasMinors });
   const gateOpen = interacaoAberta(
@@ -167,7 +181,21 @@ export function EventControls({
             checked={!moderation.panic}
             label={moderation.panic ? "Retomar telão" : "Pausar telão"}
             disabled={saving === "panic"}
-            onChange={(v) => void patch({ panico: !v }, "panic")}
+            onChange={(v) => {
+              // v=false significa pausar: é o que apaga a parede na frente de todo mundo.
+              if (!v) {
+                setConfirmacao({
+                  titulo: "Pausar o telão?",
+                  descricao:
+                    "Nenhuma foto nova aparece na parede enquanto estiver pausado — inclusive as que seus convidados mandarem agora.",
+                  rotulo: "Pausar telão",
+                  body: { panico: true },
+                  campo: "panic",
+                });
+                return;
+              }
+              void patch({ panico: false }, "panic");
+            }}
           />
         </div>
       </AdminSection>
@@ -187,7 +215,20 @@ export function EventControls({
               checked={moderation.hasMinors}
               label="Há menores nesta festa"
               disabled={saving === "hasMinors"}
-              onChange={(v) => void patch({ haMenores: v }, "hasMinors")}
+              onChange={(v) => {
+                if (!v) {
+                  setConfirmacao({
+                    titulo: "Desligar as proteções para menores?",
+                    descricao:
+                      "Volta a exigir mais denúncias para segurar uma foto do telão, e compartilhar fora nasce ligado.",
+                    rotulo: "Desligar proteções",
+                    body: { haMenores: false },
+                    campo: "hasMinors",
+                  });
+                  return;
+                }
+                void patch({ haMenores: true }, "hasMinors");
+              }}
             />
           ) : (
             <span className="tipo-caption shrink-0 text-ink-3">
@@ -228,7 +269,20 @@ export function EventControls({
             checked={moderation.hardened}
             label="Modo endurecido"
             disabled={saving === "hardened"}
-            onChange={(v) => void patch({ modoEndurecido: v }, "hardened")}
+            onChange={(v) => {
+              if (!v) {
+                setConfirmacao({
+                  titulo: "Desligar o modo endurecido?",
+                  descricao:
+                    "Fotos e comentários novos voltam a aparecer sem passar pela fila de revisão.",
+                  rotulo: "Desligar",
+                  body: { modoEndurecido: false },
+                  campo: "hardened",
+                });
+                return;
+              }
+              void patch({ modoEndurecido: true }, "hardened");
+            }}
           />
         </div>
       </AdminSection>
@@ -420,6 +474,21 @@ export function EventControls({
           Não salvou agora. Tente de novo.
         </p>
       )}
+
+      <ConfirmDialog
+        open={confirmacao !== null}
+        onClose={() => setConfirmacao(null)}
+        onConfirm={() => {
+          if (!confirmacao) return;
+          const { body, campo } = confirmacao;
+          setConfirmacao(null);
+          void patch(body, campo);
+        }}
+        title={confirmacao?.titulo ?? ""}
+        description={confirmacao?.descricao}
+        confirmLabel={confirmacao?.rotulo ?? "Confirmar"}
+        cancelLabel="Deixar como está"
+      />
     </div>
   );
 }
