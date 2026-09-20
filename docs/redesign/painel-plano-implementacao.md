@@ -62,7 +62,7 @@ Ordem alinhada à spec §7, com as etapas já concluídas marcadas.
 - [x] **9. Depois + retenção visível** — payoff com fotos/pessoas/favoritas, **"novas para você"** (`events.host_seen_album_at`, carimbado ao abrir o álbum), Guardar e **timeline de retenção** com os marcos reais dos jobs (`marcosDeRetencaoDoEvento`), caindo para a data calculada quando o job ainda não foi agendado. **Cápsula de memória**: decidida e implementada **só para mídia do próprio casal** (sessão com contato de e-mail verificado igual ao da conta dona do evento). Foto de convidado segue o prazo anunciado a ele com o toggle ligado ou não — consentimento de terceiro não é do casal para dar, e o STJ trata dano à imagem de menor como `in re ipsa`. Teto de 20, opt-in, desligável num toque. **Não feito**: Momentos continua sendo o link para Insights, não a grade por capítulo do protótipo; falta o job anual que de fato manda a lembrança.
 - [x] **10. Reviver** — player de capítulos em tela cheia na fase Depois: barras de progresso, avanço automático, toque nas laterais, teclado, pausa e tela final com os números reais. O arco narrativo vem de `pack.momentos` + `pack.vocabulario`, nunca do componente — trocar o pack troca os títulos sem tocar no núcleo. Capítulos derivados da hora em que a foto **aconteceu** (`taken_at`), não da hora do upload. Sem migration. **Não feito**: "Assistir na TV", compartilhar e salvar vídeo 9:16 — nenhum tem infraestrutura hoje, e vídeo exigiria renderização.
 - [x] **11. Tour de primeiro acesso** — os 6 passos do protótipo, texto e ordem iguais. Descartável a qualquer momento e retomável de onde parou, com o progresso em `setup_marks.tour` (número = próximo passo, `true` = terminou ou pulou) e não no navegador. Teclado (setas), foco no título a cada passo e `aria-live` no contador. Não abre na fase Depois. Sem migration: `setup_marks` já é jsonb.
-- [ ] **12. Performance** — code-splitting das telas secundárias, virtualização onde houver lista longa, skeletons sem salto de layout.
+- [x] **12. Performance** — medido antes de mexer, com `next build` e o medidor de `tools/bundle`. **Resultado honesto**: o painel não é o problema. A Home é a rota mais pesada do admin com 281 kB de First Load, mas 228 kB disso é piso compartilhado por TODAS as rotas, e 129 kB (gz) vêm de um único chunk que é Sentry em 90% do arquivo. Tentei code-splitting de Reviver, tour, cápsula e controles: o chunk do Reviver saiu com **1,6 kB** e o First Load não mudou (281 → 281 kB). **Revertido** — indireção que não paga não fica. Virtualização também não entrou: a lista de Pessoas tem teto de 500 no SQL e 500 linhas simples não são gargalo; virtualizar aqui seria complexidade sem número que a justifique. Ficou o que era real: skeleton de Pessoas reescrito com a estrutura da linha, medido em **70/70 px** por linha e **44/44 px** na barra de busca (antes: 44 px de skeleton para linha de 70).
 
 ## 3b. Achados fora do plano (corrigidos no caminho)
 
@@ -77,6 +77,19 @@ Ordem alinhada à spec §7, com as etapas já concluídas marcadas.
 - **Lista de pessoas escondia quem não fotografou**: `listarSessoesDoHost` usa JOIN com `uploads`, então quem entrou e não tirou foto sumia — justamente a pessoa sobre quem o anfitrião pode agir. A tela nova usa `listarPessoasDoEvento`, com LEFT JOIN. A consulta antiga ficou como está, porque ela alimenta "Nomes no telão", onde quem não fotografou não tem nome a moderar.
 - **`retention_jobs` sem RLS**: tabela com `event_id NOT NULL` e `relrowsecurity = f` no banco, enquanto `uploads` e `events` têm RLS forçada — viola o não-negociável do CLAUDE.md, e o guard `isolamento` não pega porque é estático sobre texto. **Não corrigido aqui de propósito**: `processRetentionJob` lê `retention_jobs` antes do `set_config('app.event_id')`, então ligar a política faria o job de exclusão ser pulado em silêncio. Precisa de mudança própria com teste próprio; a leitura nova do painel usa `event_id` explícito no WHERE como única camada.
 - **Teste instável de terceiros**: `packages/curation/src/ranking.test.ts` (custo do ranking) passa isolado em ~1s e falha sob carga da suíte paralela, bloqueando push. Não é deste trabalho e **não foi afrouxado** — precisa de item próprio.
+
+## 3c. Achado de performance fora do painel
+
+O caminho crítico do convidado está **acima do orçamento** que o próprio repo define em `tools/bundle/orcamentos.json`, em modo report-only:
+
+| Rota | Medido | Orçamento |
+|---|---|---|
+| `/e/[slug]/cover` | 269,2 kB | 150 kB |
+| `/e/[slug]/photo` | 278,9 kB | 220 kB |
+
+O `cover` é o gate que carrega **antes do consentimento** — a tela que decide a H1, que o CLAUDE.md diz decidir se o negócio existe. A causa dominante é o mesmo chunk compartilhado de 129 kB (gz) com Sentry em 90% dele, que desce em toda rota, inclusive nessa.
+
+Tirar ou adiar o Sentry no bundle do convidado é decisão de observabilidade, não de implementação — está aqui para ser decidida, não corrigida de passagem.
 
 ## 4. Riscos e decisões pendentes
 
