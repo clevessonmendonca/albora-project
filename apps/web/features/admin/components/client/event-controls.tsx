@@ -1,7 +1,7 @@
 "use client";
 
 import { interacaoAberta, eventDefaults } from "@albora/core";
-import { Badge, Switch } from "@albora/ui-web";
+import { buttonVariants, Badge, Switch } from "@albora/ui-web";
 import Link from "next/link";
 import { useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
@@ -409,7 +409,7 @@ export function EventControls({
           href={eventEntryUrl(origin, slug, "link")}
           target="_blank"
           rel="noopener noreferrer"
-          className="tipo-caption mt-4 flex min-h-11 items-center justify-center rounded-pilula border border-linha bg-transparent px-4 text-center text-ink-2 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink"
+          className={`${buttonVariants({ variant: "secondary", size: "sm", width: "full" })} mt-4`}
         >
           Testar como convidado ↗
         </a>
@@ -453,7 +453,7 @@ function EventLink({ title, url }: { title: string; url: string }) {
         <button
           type="button"
           onClick={copiar}
-          className="tipo-label inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded-pilula border border-linha bg-superficie-alta px-3 text-ink transition-[transform,border-color,color] duration-instantaneo ease-mola hover:border-acento-texto hover:text-ink-2 active:scale-[0.97]"
+          className={`${buttonVariants({ variant: "secondary", size: "sm" })} shrink-0`}
         >
           {copiado ? (
             <>

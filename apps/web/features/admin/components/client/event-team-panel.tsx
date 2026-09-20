@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@albora/ui-web";
+import { buttonVariants, Badge } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 
@@ -126,7 +126,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
             type="button"
             disabled={loading}
             onClick={() => void loadMembers()}
-            className="tipo-label inline-flex min-h-11 shrink-0 cursor-pointer items-center rounded-pilula border border-linha bg-transparent px-3 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+            className={`${buttonVariants({ variant: "secondary", size: "sm" })} shrink-0`}
           >
             Tentar de novo
           </button>

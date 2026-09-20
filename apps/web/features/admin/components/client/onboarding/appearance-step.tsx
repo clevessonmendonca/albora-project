@@ -1,6 +1,7 @@
 "use client";
 
 import React, { type CSSProperties } from "react";
+import { Badge } from "@albora/ui-web";
 import { eventColorVariables, eventOnContrast } from "@albora/tokens";
 import { COLOR_COMBOS, EVENT_STYLES, SUGGESTED_COLORS, type EventStyle } from "./appearance-data";
 import { ColorField } from "./color-field";
@@ -127,13 +128,10 @@ export function AppearanceStep({
         </div>
 
         {aaRuim && (
-          <span
-            className="inline-flex w-fit items-center gap-1.5 rounded-pilula bg-critico/10 px-2.5 py-1 tipo-label text-critico"
-            role="status"
-          >
+          <Badge tone="critico">
             <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--critico)" }} />
             Contraste baixo — o texto sobre a cor principal pode ficar difícil de ler.
-          </span>
+          </Badge>
         )}
 
         <details className="group mt-1">
