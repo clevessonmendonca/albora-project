@@ -14,6 +14,7 @@ import { ProximaAcao } from "./home/proxima-acao";
 import { Preparo } from "./home/preparo";
 import { PreviaDoConvidado } from "./home/previa-convidado";
 import { AvisoDeRetencao } from "./home/retencao";
+import { Payoffdepois } from "./home/depois";
 import { VerComoConvidado } from "./home/acoes";
 import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./home/estilos";
 
@@ -187,19 +188,13 @@ export async function EventHome({
       {/* Depois: a página vira memória — nada de configuração pré-evento. */}
       {depois && (
         <>
-          <LiveSummary eventoId={eventId} />
-          <section>
-            <h2 className="tipo-label m-0 mb-3 text-ink-3">As memórias</h2>
-            <div className="flex flex-wrap gap-2.5">
-              <Link href={`${base}/album`} className={acaoSecundaria}>
-                Baixar as fotos
-              </Link>
-              <Link href={`${base}/insights`} className={acaoSecundaria}>
-                Como foi a participação
-              </Link>
-            </div>
-          </section>
-          <AvisoDeRetencao base={base} terminaEm={evento.terminaEm} fuso={evento.fuso} />
+          {estado.payoff && <Payoffdepois base={base} payoff={estado.payoff} />}
+          <AvisoDeRetencao
+            base={base}
+            terminaEm={evento.terminaEm}
+            fuso={evento.fuso}
+            marcos={estado.marcosDeRetencao}
+          />
         </>
       )}
 

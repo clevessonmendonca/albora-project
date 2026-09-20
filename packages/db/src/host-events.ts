@@ -12,6 +12,23 @@ export type AtualizacaoConfigEvento = {
   title?: string | null;
 };
 
+/** Carimba a visita do anfitrião ao álbum. Base do "novas para você". */
+export async function marcarAlbumVisto(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+): Promise<boolean> {
+  if (!(await contaEDonaDoEvento(pool, accountId, eventoId))) return false;
+
+  return comEvento(pool, eventoId, async (c) => {
+    const { rowCount } = await c.query(
+      "UPDATE events SET host_seen_album_at = now() WHERE id = $1",
+      [eventoId],
+    );
+    return (rowCount ?? 0) > 0;
+  });
+}
+
 /** `true` se a conta é dona do evento — a RLS de `conta_evento` faz o filtro. */
 async function contaEDonaDoEvento(
   pool: Pool,

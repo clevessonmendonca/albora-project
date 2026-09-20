@@ -44,6 +44,7 @@ export type { AtualizacaoConfigEvento } from "./host-events";
 export {
   atualizarConfigDoEvento,
   destacarMidiaDoHost,
+  marcarAlbumVisto,
   ocultarMidiaDoHost,
   reexibirMidiaDoHost,
   removerMidiaDoHost,
@@ -517,6 +518,8 @@ export {
   agendarRetencaoNaTransacao,
   chavesDoAcervo,
   listDueRetentionJobs,
+  marcosDeRetencaoDoEvento,
+  type MarcoDeRetencao,
   listRetentionJobsAdmin,
   markRetentionJob,
   purgarAcervo,

@@ -38,6 +38,8 @@ export type EventoDoHost = ResumoEvento & {
   status: "draft" | "active" | "ended";
   /** Marcos de preparo sem sinal derivável (0074). Estado do evento, não do navegador. */
   marcosDePreparo: MarcosDePreparo;
+  /** `null` = o anfitrião nunca abriu o álbum. */
+  albumVistoEm: Date | null;
 };
 
 /**
@@ -76,10 +78,11 @@ type LinhaCompleta = {
   cover_image_key: string | null;
   status: string;
   setup_marks: MarcosDePreparo | null;
+  host_seen_album_at: Date | null;
 };
 
 const COLUNAS =
-  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at, delivery_opens_at, expected_guests, actual_guests, identity_tokens, timezone, plan, title, cover_image_key, status, setup_marks";
+  "id, slug, pack_id, starts_at, ends_at, panic, hardened, has_minors, interaction_opens_at, delivery_opens_at, expected_guests, actual_guests, identity_tokens, timezone, plan, title, cover_image_key, status, setup_marks, host_seen_album_at";
 
 function mapModeracao(l: Pick<LinhaCompleta, "panic" | "hardened" | "has_minors">): EstadoModeracao {
   return {
@@ -107,6 +110,7 @@ function mapEvento(l: LinhaCompleta): EventoDoHost {
     coverImageKey: l.cover_image_key ?? null,
     status: l.status as "draft" | "active" | "ended",
     marcosDePreparo: l.setup_marks ?? {},
+    albumVistoEm: l.host_seen_album_at ?? null,
     moderacao: mapModeracao(l),
   };
 }

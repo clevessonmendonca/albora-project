@@ -59,6 +59,45 @@ export type RetentionJobAdminRow = {
   lastError: string | null;
 };
 
+export type MarcoDeRetencao = {
+  kind: RetentionKind;
+  status: "pending" | "running" | "done" | "skipped" | "failed";
+  dueAt: Date;
+  completedAt: Date | null;
+};
+
+/**
+ * Os marcos de retenção DESTE evento, para o painel do casal mostrar o que já
+ * aconteceu em vez de só a data prevista.
+ *
+ * `event_id` explícito no WHERE não é redundância aqui: ao contrário de
+ * `uploads` e `events`, `retention_jobs` não tem RLS (ver o item aberto de
+ * isolamento), então esta cláusula é a única camada. Não use `pool` cru.
+ */
+export async function marcosDeRetencaoDoEvento(
+  cliente: PoolClient,
+  eventId: string,
+): Promise<MarcoDeRetencao[]> {
+  const { rows } = await cliente.query<{
+    kind: RetentionKind;
+    status: MarcoDeRetencao["status"];
+    due_at: Date;
+    completed_at: Date | null;
+  }>(
+    `SELECT kind, status, due_at, completed_at
+       FROM retention_jobs
+      WHERE event_id = $1
+      ORDER BY due_at ASC`,
+    [eventId],
+  );
+  return rows.map((r) => ({
+    kind: r.kind,
+    status: r.status,
+    dueAt: r.due_at,
+    completedAt: r.completed_at,
+  }));
+}
+
 export type ListRetentionJobsAdminFilter = { status?: string; limit: number };
 
 /**

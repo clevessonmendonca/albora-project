@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { HostAlbum } from "./host-album";
 
-type Chamada = { midiaId: string; acao: string };
+type Chamada = { midiaId?: string; acao: string };
 
 function foto(id: string, destacada = false) {
   return {
@@ -17,7 +17,11 @@ function foto(id: string, destacada = false) {
   };
 }
 
-/** Devolve as três fotos no GET e registra o que o PATCH recebeu. */
+/**
+ * Devolve as três fotos no GET e registra o que o PATCH recebeu. A marca de
+ * leitura ("visto") entra aqui junto — os testes de ação filtram por
+ * `midiaId` para não misturar contabilidade com decisão sobre foto.
+ */
 function montarFetch(chamadas: Chamada[]) {
   return vi.fn(async (url: string, init?: RequestInit) => {
     if (init?.method === "PATCH") {
@@ -28,6 +32,11 @@ function montarFetch(chamadas: Chamada[]) {
     const itens = destaques ? [] : [foto("a"), foto("b"), foto("c")];
     return new Response(JSON.stringify({ itens }), { status: 200 });
   });
+}
+
+/** Só o que age sobre uma foto. */
+function acoesEmFoto(chamadas: Chamada[]): Chamada[] {
+  return chamadas.filter((c) => c.midiaId !== undefined);
 }
 
 afterEach(() => {
@@ -51,7 +60,7 @@ describe("HostAlbum — ocultar é reversível, remover não", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Desfazer" })).toBeTruthy();
     });
-    expect(chamadas).toEqual([{ midiaId: "b", acao: "ocultar" }]);
+    expect(acoesEmFoto(chamadas)).toEqual([{ midiaId: "b", acao: "ocultar" }]);
     expect(screen.queryByRole("button", { name: /Foto 3 de 3/ })).toBeNull();
   });
 
@@ -66,7 +75,7 @@ describe("HostAlbum — ocultar é reversível, remover não", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /Foto 3 de 3/ })).toBeTruthy();
     });
-    expect(chamadas.map((c) => c.acao)).toEqual(["ocultar", "reexibir"]);
+    expect(acoesEmFoto(chamadas).map((c) => c.acao)).toEqual(["ocultar", "reexibir"]);
 
     // A foto "b" voltou para o meio: se tivesse ido para o fim, a segunda
     // miniatura seria a "c".
@@ -82,11 +91,11 @@ describe("HostAlbum — ocultar é reversível, remover não", () => {
     fireEvent.click(screen.getByRole("button", { name: "Remover" }));
 
     // Enquanto não confirma, nada foi enviado.
-    expect(chamadas).toEqual([]);
+    expect(acoesEmFoto(chamadas)).toEqual([]);
     fireEvent.click(screen.getByRole("button", { name: "Remover de vez" }));
 
     await waitFor(() => {
-      expect(chamadas).toEqual([{ midiaId: "b", acao: "remover" }]);
+      expect(acoesEmFoto(chamadas)).toEqual([{ midiaId: "b", acao: "remover" }]);
     });
     expect(screen.queryByRole("button", { name: "Desfazer" })).toBeNull();
   });
@@ -101,8 +110,31 @@ describe("HostAlbum — ocultar é reversível, remover não", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Tirar destaque" })).toBeTruthy();
     });
-    expect(chamadas).toEqual([{ midiaId: "b", acao: "destacar" }]);
+    expect(acoesEmFoto(chamadas)).toEqual([{ midiaId: "b", acao: "destacar" }]);
     expect(screen.getByRole("button", { name: /Foto 2 de 3.*destacada/ })).toBeTruthy();
+  });
+});
+
+describe("HostAlbum — marca de leitura", () => {
+  it("abrir Todas carimba o álbum como visto, para a Home saber o que é novo", async () => {
+    const chamadas: Chamada[] = [];
+    vi.stubGlobal("fetch", montarFetch(chamadas));
+
+    render(<HostAlbum eventoId="evt" canExport={false} />);
+    await waitFor(() => {
+      expect(chamadas.some((c) => c.acao === "visto")).toBe(true);
+    });
+  });
+
+  it("aba Destaques não carimba: ver as favoritas não é ver o que chegou", async () => {
+    const chamadas: Chamada[] = [];
+    vi.stubGlobal("fetch", montarFetch(chamadas));
+
+    render(<HostAlbum eventoId="evt" canExport={false} aba="destaques" />);
+    await waitFor(() => {
+      expect(screen.getByText("Nenhuma foto destacada ainda.")).toBeTruthy();
+    });
+    expect(chamadas.some((c) => c.acao === "visto")).toBe(false);
   });
 });
 

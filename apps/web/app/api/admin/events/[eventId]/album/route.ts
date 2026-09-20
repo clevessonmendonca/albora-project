@@ -2,6 +2,7 @@ import {
   withEvent,
   destacarMidiaDoHost,
   listarMidiaDoAlbum,
+  marcarAlbumVisto,
   ocultarMidiaDoHost,
   reexibirMidiaDoHost,
   removerMidiaDoHost,
@@ -37,10 +38,17 @@ const ACOES = {
   remover: removerMidiaDoHost,
 } as const;
 
-type Acao = keyof typeof ACOES | "destacar" | "desdestacar";
+type Acao = keyof typeof ACOES | "destacar" | "desdestacar" | "visto";
 
 function ehAcao(v: unknown): v is Acao {
-  return v === "ocultar" || v === "reexibir" || v === "remover" || v === "destacar" || v === "desdestacar";
+  return (
+    v === "ocultar" ||
+    v === "reexibir" ||
+    v === "remover" ||
+    v === "destacar" ||
+    v === "desdestacar" ||
+    v === "visto"
+  );
 }
 
 export async function GET(
@@ -111,12 +119,25 @@ export async function PATCH(
   if (parsed instanceof Response) return parsed;
   const corpo = parsed.data;
 
+  const acaoPedida: Acao = ehAcao(corpo.acao) ? corpo.acao : "ocultar";
+
+  // "visto" é sobre o evento, não sobre uma foto — não exige `midiaId`.
+  if (acaoPedida === "visto") {
+    try {
+      const marcou = await marcarAlbumVisto(getPool(), auth.host.accountId, eventId);
+      if (!marcou) return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
+      return jsonOk({ visto: true });
+    } catch (e) {
+      return unexpectedError("admin.album", e);
+    }
+  }
+
   const midiaId = typeof corpo.midiaId === "string" ? corpo.midiaId : "";
   if (!midiaId) {
     return errorResponse(422, "validation_error", "midiaId obrigatório", { campos: ["midiaId"] });
   }
 
-  const acao: Acao = ehAcao(corpo.acao) ? corpo.acao : "ocultar";
+  const acao = acaoPedida;
 
   try {
     if (acao === "destacar" || acao === "desdestacar") {
@@ -131,7 +152,12 @@ export async function PATCH(
       return jsonOk({ destacada: acao === "destacar" });
     }
 
-    const mudou = await ACOES[acao](getPool(), auth.host.accountId, eventId, midiaId);
+    const mudou = await ACOES[acao as keyof typeof ACOES](
+      getPool(),
+      auth.host.accountId,
+      eventId,
+      midiaId,
+    );
     if (!mudou) return errorResponse(404, "midia.nao_encontrada", "Foto não encontrada");
     return jsonOk({ acao, oculta: acao === "ocultar" });
   } catch (e) {

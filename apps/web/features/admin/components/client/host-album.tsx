@@ -89,6 +89,17 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
     void carregar();
   }, [carregar]);
 
+  // Carimba a visita para a Home saber o que é "novo" na próxima vez. Falha
+  // aqui não interessa ao casal: é marca de leitura, não conteúdo.
+  useEffect(() => {
+    if (aba !== "todas") return;
+    void fetch(`/api/admin/events/${eventoId}/album`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ acao: "visto" }),
+    }).catch(() => undefined);
+  }, [eventoId, aba]);
+
   const acaoNaFoto = useCallback(
     async (midiaId: string, acao: string) => {
       const r = await fetch(`/api/admin/events/${eventoId}/album`, {

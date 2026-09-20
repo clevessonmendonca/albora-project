@@ -1,4 +1,12 @@
-import { eventGuestbook, listChallenges, withEvent, type EventoDoHost } from "@albora/db";
+import {
+  eventGuestbook,
+  listChallenges,
+  listarMidiaDoAlbum,
+  marcosDeRetencaoDoEvento,
+  withEvent,
+  type EventoDoHost,
+} from "@albora/db";
+import type { MarcoCru } from "@/features/admin/lib/linha-de-retencao";
 import { getPool } from "@/lib/db";
 import { diasAte } from "@/features/admin/lib/contagem";
 
@@ -36,6 +44,18 @@ export type EstadoDaHome = {
   pct: number;
   /** A única ação que a Home destaca. `null` = tudo pronto. */
   proxima: ItemDePreparo | null;
+  /** Jobs de retenção deste evento — vazio se a leitura falhar. */
+  marcosDeRetencao: MarcoCru[];
+  /** Fase "depois": o payoff. `null` quando a leitura falha. */
+  payoff: Payoff | null;
+};
+
+export type Payoff = {
+  fotos: number;
+  pessoas: number;
+  destacadas: number;
+  /** Fotos que chegaram depois da última visita ao álbum. */
+  novas: number;
 };
 
 function faseDe(evento: EventoDoHost, dias: number, feitos: number): FaseDoEvento {
@@ -129,10 +149,33 @@ export async function loadHomeState(evento: EventoDoHost): Promise<EstadoDaHome>
 
   // Terceiro no caminho: se qualquer leitura falhar, a Home degrada para "não
   // feito" em vez de quebrar — o painel nunca é o que impede o casal de entrar.
-  const [recado, desafios] = await Promise.all([
+  const [recado, desafios, marcos] = await Promise.all([
     withEvent(pool, evento.eventoId, (c) => eventGuestbook(c, evento.eventoId)).catch(() => null),
     withEvent(pool, evento.eventoId, (c) => listChallenges(c, evento.eventoId, null)).catch(() => []),
+    withEvent(pool, evento.eventoId, (c) =>
+      marcosDeRetencaoDoEvento(c, evento.eventoId),
+    ).catch(() => []),
   ]);
+
+  // Só a fase Depois usa o payoff — antes da festa é consulta jogada fora.
+  const depois =
+    evento.status === "ended" || Date.now() > evento.terminaEm.getTime();
+  const midias = depois
+    ? await withEvent(pool, evento.eventoId, (c) =>
+        listarMidiaDoAlbum(c, evento.eventoId),
+      ).catch(() => null)
+    : null;
+
+  const payoff: Payoff | null = midias
+    ? {
+        fotos: midias.length,
+        pessoas: new Set(midias.map((m) => m.sessaoId)).size,
+        destacadas: midias.filter((m) => m.destacadaEm !== null).length,
+        novas: evento.albumVistoEm
+          ? midias.filter((m) => m.recebidaEm > (evento.albumVistoEm as Date)).length
+          : midias.length,
+      }
+    : null;
 
   const itens = montarItens(base, evento, recado !== null, desafios.length);
   const feitos = itens.filter((i) => i.feito).length;
@@ -153,5 +196,12 @@ export async function loadHomeState(evento: EventoDoHost): Promise<EstadoDaHome>
     total: itens.length,
     pct: Math.round((feitos / itens.length) * 100),
     proxima,
+    payoff,
+    marcosDeRetencao: marcos.map((m) => ({
+      kind: m.kind,
+      status: m.status,
+      dueAt: m.dueAt.toISOString(),
+      completedAt: m.completedAt?.toISOString() ?? null,
+    })),
   };
 }
