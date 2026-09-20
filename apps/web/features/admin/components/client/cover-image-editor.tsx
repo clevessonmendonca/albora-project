@@ -1,5 +1,6 @@
 "use client";
 
+import { Button, ProgressBar } from "@albora/ui-web";
 import React, { useEffect, useRef, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 
@@ -213,36 +214,28 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl, autoUploadFile
 
       {url && (
         <div className="mt-4">
-          <button
+          {/* Destrutivo, mas não alarmante: secundário do DS com tom crítico. */}
+          <Button
             type="button"
+            variant="secondary"
+            size="sm"
             disabled={busy}
             onClick={() => void remover()}
-            className="min-h-11 cursor-pointer rounded-pilula border border-linha bg-bg px-4 font-titulo text-sm text-critico transition-colors duration-instantaneo ease-mola hover:border-critico disabled:cursor-not-allowed disabled:opacity-50"
+            className="text-critico hover:border-critico"
           >
             {removing ? "Removendo…" : "Remover imagem"}
-          </button>
+          </Button>
         </div>
       )}
 
       {estado.fase === "uploading" && (
         <div className="mt-4">
-          <div className="mb-1 flex justify-between text-xs text-ink-2">
-            <span>Enviando…</span>
-            <span className="tabular-nums">{estado.progresso}%</span>
-          </div>
-          <div
-            role="progressbar"
-            aria-valuenow={estado.progresso}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label="Progresso do envio da imagem de capa"
-            className="h-1.5 w-full overflow-hidden rounded-full bg-superficie-alta"
-          >
-            <div
-              className="h-full bg-acento transition-[width] duration-200"
-              style={{ width: `${estado.progresso}%` }}
-            />
-          </div>
+          <ProgressBar
+            current={estado.progresso}
+            total={100}
+            label="Enviando a imagem"
+            completedLabel="Imagem enviada"
+          />
         </div>
       )}
 
