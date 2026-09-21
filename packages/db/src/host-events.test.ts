@@ -188,6 +188,33 @@ describe("cápsula de memória", () => {
     expect(await estado(dados.a.uploadId)).toBe("purged");
   });
 
+  // A cápsula não pode desfazer o "remover de vez": o casal usou o controle
+  // mais forte que existe, e um opt-in de lembrança não pode passar por cima.
+  it("ligada, NÃO ressuscita destaque que o casal removeu de vez", async () => {
+    await publicar(dados.a.uploadId);
+    await vincularSessaoAoCasal();
+    await destacarMidiaDoHost(app, dados.a.contaId, dados.a.eventoId, dados.a.uploadId, true);
+    await removerMidiaDoHost(app, dados.a.contaId, dados.a.eventoId, dados.a.uploadId);
+    await ligarCapsula(true);
+
+    const ids = await comEvento(app, dados.a.eventoId, (c) => idsDaCapsula(c, dados.a.eventoId));
+    expect(ids).toEqual([]);
+
+    await comEvento(app, dados.a.eventoId, (c) => purgarAcervo(c, dados.a.eventoId));
+    expect(await estado(dados.a.uploadId)).toBe("purged");
+  });
+
+  it("ligada, NÃO guarda destaque que está oculto do álbum", async () => {
+    await publicar(dados.a.uploadId);
+    await vincularSessaoAoCasal();
+    await destacarMidiaDoHost(app, dados.a.contaId, dados.a.eventoId, dados.a.uploadId, true);
+    await ocultarMidiaDoHost(app, dados.a.contaId, dados.a.eventoId, dados.a.uploadId);
+    await ligarCapsula(true);
+
+    const ids = await comEvento(app, dados.a.eventoId, (c) => idsDaCapsula(c, dados.a.eventoId));
+    expect(ids).toEqual([]);
+  });
+
   it("ligada, não guarda o que não foi destacado", async () => {
     await publicar(dados.a.uploadId);
     await vincularSessaoAoCasal();

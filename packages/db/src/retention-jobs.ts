@@ -413,6 +413,13 @@ export const TETO_DA_CAPSULA = 20;
  *
  * Devolve vazio quando o toggle está desligado, que é o padrão. Sem toggle,
  * nada escapa do purge.
+ *
+ * O filtro é `state = 'published'`, e não `<> 'purged'`: destacar exige foto
+ * publicada, mas ocultar e remover não limpam `starred_at`. Com a
+ * lista-de-negação, o casal que removesse de vez uma foto destacada a via
+ * virar `capsule` no dia 365 em vez de sumir — a cápsula desfazendo, em
+ * silêncio, o controle mais forte que o painel oferece. Só entra na lembrança
+ * o que está no ar.
  */
 export async function idsDaCapsula(cliente: PoolClient, eventId: string): Promise<string[]> {
   const { rows } = await cliente.query<{ id: string }>(
@@ -428,7 +435,7 @@ export async function idsDaCapsula(cliente: PoolClient, eventId: string): Promis
         AND lower(gc.value) = lower(a.email)
       WHERE u.event_id = $1
         AND u.starred_at IS NOT NULL
-        AND u.state <> 'purged'
+        AND u.state = 'published'
       ORDER BY u.starred_at DESC
       LIMIT $2`,
     [eventId, TETO_DA_CAPSULA],

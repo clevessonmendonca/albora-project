@@ -48,6 +48,21 @@ describe("capitulosDoReviver", () => {
     expect(capitulos.every((c) => c.fotos >= 3)).toBe(true);
   });
 
+  // `ceil` engordava os primeiros capítulos e jogava o resto no último: com 10
+  // fotos e 3 momentos saía [4, 4, 2], e o último violava o próprio mínimo.
+  it("nenhum capítulo fica abaixo do mínimo, em nenhuma contagem", () => {
+    for (let n = 3; n <= 40; n += 1) {
+      const capitulos = capitulosDoReviver(muitas(n), MOMENTOS, VOCAB);
+      const tamanhos = capitulos.map((c) => c.fotos);
+      expect(tamanhos.every((t) => t >= 3), `${n} fotos → ${tamanhos.join(",")}`).toBe(true);
+      expect(tamanhos.reduce((a, b) => a + b, 0), `${n} fotos`).toBe(n);
+    }
+  });
+
+  it("distribui a sobra em vez de despejar tudo no último capítulo", () => {
+    expect(capitulosDoReviver(muitas(10), MOMENTOS, VOCAB).map((c) => c.fotos)).toEqual([4, 3, 3]);
+  });
+
   it("tira título e descrição do vocabulário do pack", () => {
     const [primeiro] = capitulosDoReviver(muitas(9), MOMENTOS, VOCAB);
     expect(primeiro?.titulo).toBe("Primeiro");

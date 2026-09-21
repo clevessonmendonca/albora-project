@@ -48,8 +48,14 @@ type Props = {
   aba?: "todas" | "destaques";
 };
 
-/** O que o anfitrião acabou de ocultar, para o "Desfazer" ter o que desfazer. */
-type Desfazer = { item: Item; indice: number };
+/**
+ * O que o anfitrião acabou de ocultar, para o "Desfazer" ter o que desfazer.
+ *
+ * Guarda o id do vizinho de cima, e não um índice: entre ocultar e desfazer a
+ * lista pode ter sido recarregada (o botão de atualizar continua vivo), e um
+ * índice numérico devolveria a foto em lugar errado. `null` = era a primeira.
+ */
+type Desfazer = { item: Item; depoisDe: string | null };
 
 function legendaDaFoto(criadaEm: string, reacoes: number): string {
   const quando = new Intl.DateTimeFormat("pt-BR", {
@@ -118,11 +124,12 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
     setOcultando(item.id);
     setErroAcao(null);
     const indice = itens.findIndex((i) => i.id === item.id);
+    const depoisDe = indice > 0 ? (itens[indice - 1]?.id ?? null) : null;
     try {
       await acaoNaFoto(item.id, "ocultar");
       setItens((antes) => antes.filter((i) => i.id !== item.id));
       setSelecionado(null);
-      setDesfazer({ item, indice: Math.max(0, indice) });
+      setDesfazer({ item, depoisDe });
     } catch {
       setErroAcao("Não foi possível ocultar a foto. Tente de novo.");
     } finally {
@@ -136,8 +143,15 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
     try {
       await acaoNaFoto(guardado.item.id, "reexibir");
       setItens((antes) => {
+        if (antes.some((i) => i.id === guardado.item.id)) return antes;
         const copia = [...antes];
-        copia.splice(guardado.indice, 0, guardado.item);
+        const vizinho = guardado.depoisDe
+          ? copia.findIndex((i) => i.id === guardado.depoisDe)
+          : -1;
+        // Vizinho sumiu da lista recarregada: devolve ao fim em vez de chutar
+        // uma posição que não existe mais.
+        const onde = guardado.depoisDe === null ? 0 : vizinho >= 0 ? vizinho + 1 : copia.length;
+        copia.splice(onde, 0, guardado.item);
         return copia;
       });
       setDesfazer(null);

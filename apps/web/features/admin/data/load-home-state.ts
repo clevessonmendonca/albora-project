@@ -27,6 +27,9 @@ export type FaseDoEvento =
   | "aovivo"
   | "depois";
 
+/** Leitura que falhou. Não é "não feito" — é "não dá para saber". */
+export const FALHOU = Symbol("leitura falhou");
+
 export type ItemDePreparo = {
   chave: string;
   titulo: string;
@@ -84,11 +87,11 @@ function faseDe(evento: EventoDoHost, dias: number, feitos: number): FaseDoEvent
 function montarItens(
   base: string,
   evento: EventoDoHost,
-  temRecado: boolean,
-  missoes: number,
+  temRecado: boolean | typeof FALHOU,
+  missoes: number | typeof FALHOU,
 ): ItemDePreparo[] {
   const m = evento.marcosDePreparo;
-  return [
+  const itens: (ItemDePreparo | null)[] = [
     {
       chave: "capa",
       titulo: "Capa do álbum",
@@ -105,22 +108,22 @@ function montarItens(
       href: `${base}/identity`,
       cta: "Ajustar identidade",
     },
-    {
+    temRecado === FALHOU ? null : ({
       chave: "recado",
       titulo: "Recado para os convidados",
       porque: "Aparece antes da primeira foto e deixa o álbum pessoal.",
-      feito: temRecado,
+      feito: temRecado === true,
       href: `${base}/guestbook`,
       cta: "Gravar recado",
-    },
-    {
+    } as ItemDePreparo),
+    missoes === FALHOU ? null : ({
       chave: "missoes",
       titulo: "Missões do álbum",
       porque: "São os desafios que fazem todo mundo fotografar.",
       feito: missoes > 0,
       href: `${base}/missions`,
       cta: "Ver missões",
-    },
+    } as ItemDePreparo),
     {
       chave: "previaConvidado",
       titulo: "Ver como convidado",
@@ -138,6 +141,8 @@ function montarItens(
       cta: "Preparar QR",
     },
   ];
+
+  return itens.filter((i): i is ItemDePreparo => i !== null);
 }
 
 /** Perto da festa o que importa é entrar e fotografar; antes, é dar cara ao álbum. */
@@ -183,11 +188,17 @@ export async function loadHomeState(evento: EventoDoHost): Promise<EstadoDaHome>
   const base = `/admin/e/${evento.eventoId}`;
   const pool = getPool();
 
-  // Terceiro no caminho: se qualquer leitura falhar, a Home degrada para "não
-  // feito" em vez de quebrar — o painel nunca é o que impede o casal de entrar.
+  // Terceiro no caminho: leitura que falha não pode derrubar o painel. Mas
+  // "falhou" não é "não feito": antes, um erro no recado fazia a Home mandar o
+  // casal gravar um recado que já existe, e ainda derrubava o percentual.
+  // Quando não dá para saber, o item sai da lista em vez de mentir.
   const [recado, desafios, marcos] = await Promise.all([
-    withEvent(pool, evento.eventoId, (c) => eventGuestbook(c, evento.eventoId)).catch(() => null),
-    withEvent(pool, evento.eventoId, (c) => listChallenges(c, evento.eventoId, null)).catch(() => []),
+    withEvent(pool, evento.eventoId, (c) => eventGuestbook(c, evento.eventoId)).catch(
+      () => FALHOU,
+    ),
+    withEvent(pool, evento.eventoId, (c) => listChallenges(c, evento.eventoId, null)).catch(
+      () => FALHOU,
+    ),
     withEvent(pool, evento.eventoId, (c) =>
       marcosDeRetencaoDoEvento(c, evento.eventoId),
     ).catch(() => []),
@@ -219,7 +230,12 @@ export async function loadHomeState(evento: EventoDoHost): Promise<EstadoDaHome>
     ? await montarCapitulos(midias, momentos, vocabulario)
     : [];
 
-  const itens = montarItens(base, evento, recado !== null, desafios.length);
+  const itens = montarItens(
+    base,
+    evento,
+    recado === FALHOU ? FALHOU : recado !== null,
+    desafios === FALHOU ? FALHOU : (desafios as { length: number }).length,
+  );
   const feitos = itens.filter((i) => i.feito).length;
   const dias = diasAte(evento.comecaEm);
   const fase = faseDe(evento, dias, feitos);

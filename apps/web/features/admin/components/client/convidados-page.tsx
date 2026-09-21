@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { GuestFunnel } from "./guest-funnel";
 import { Pessoas } from "./pessoas";
 import { Abas } from "./abas";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import type { Pessoa } from "@/features/admin/lib/descobertas";
 
 type Aba = "participacao" | "pessoas";
@@ -18,11 +18,15 @@ export function ConvidadosPage({
 }) {
   const [aba, setAba] = useState<Aba>(pessoaInicial ? "pessoas" : "participacao");
   const [pessoas, setPessoas] = useState<Pessoa[] | null>(null);
+  // Falha de rede não pode virar "ninguém entrou": antes o catch gravava uma
+  // lista vazia, o guard do efeito via `!== null` e nunca mais tentava — um
+  // blip de rede virava "a festa não teve ninguém" pelo resto da sessão.
+  const [erro, setErro] = useState(false);
 
   // Só busca quando a aba abre: a lista pode ter centenas de linhas e a aba
   // Participação já é o que o anfitrião olha primeiro.
   useEffect(() => {
-    if (aba !== "pessoas" || pessoas !== null) return;
+    if (aba !== "pessoas" || pessoas !== null || erro) return;
     let vivo = true;
     void (async () => {
       try {
@@ -31,13 +35,13 @@ export function ConvidadosPage({
         const corpo = (await r.json()) as { pessoas?: Pessoa[] };
         if (vivo) setPessoas(corpo.pessoas ?? []);
       } catch {
-        if (vivo) setPessoas([]);
+        if (vivo) setErro(true);
       }
     })();
     return () => {
       vivo = false;
     };
-  }, [aba, pessoas, eventoId]);
+  }, [aba, pessoas, erro, eventoId]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -53,6 +57,21 @@ export function ConvidadosPage({
 
       {aba === "participacao" ? (
         <GuestFunnel eventoId={eventoId} />
+      ) : erro ? (
+        <AdminSection>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <p role="alert" className="tipo-body m-0 text-critico">
+              Não foi possível carregar as pessoas.
+            </p>
+            <button
+              type="button"
+              onClick={() => setErro(false)}
+              className={adminClasses.secondaryButton}
+            >
+              Tentar de novo
+            </button>
+          </div>
+        </AdminSection>
       ) : pessoas === null ? (
         <AdminSection>
           {/* A barra de busca sempre aparece: reservar o espaço dela evita o

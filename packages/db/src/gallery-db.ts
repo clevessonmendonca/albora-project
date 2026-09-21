@@ -17,7 +17,17 @@ export type MidiaMinha = {
   minhaReacao?: string | null;
 };
 
-/** Galeria pessoal: inclui moderado, exclui só o que a própria sessão removeu — responde "chegou?", não "está público?". */
+/**
+ * Galeria pessoal: inclui moderado, exclui o que a própria sessão removeu —
+ * responde "chegou?", não "está público?". Foto que o anfitrião ocultou
+ * continua aqui de propósito: o convidado vê que a dele chegou, sem ser
+ * avisado de que foi tirada do álbum.
+ *
+ * `purged` fica de fora porque os bytes já foram apagados pela retenção —
+ * antes o filtro era `<> 'removed'` e a galeria tentava mostrar miniatura de
+ * foto que não existe mais. Lista-de-permissão: estado novo entra aqui por
+ * decisão, não por descuido.
+ */
 export async function listarMinhasDoEvento(
   cliente: PoolClient,
   sessaoId: string,
@@ -47,7 +57,7 @@ export async function listarMinhasDoEvento(
             s.display_name${contagem}${minha}
        FROM uploads u
        JOIN guest_sessions s ON s.id = u.session_id AND s.event_id = u.event_id
-      WHERE u.session_id = $1 AND u.state = 'published'
+      WHERE u.session_id = $1 AND u.state IN ('published', 'hidden')
       ORDER BY u.created_at DESC`,
     [sessaoId],
   );

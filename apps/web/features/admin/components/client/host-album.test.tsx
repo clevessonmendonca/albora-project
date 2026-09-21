@@ -83,6 +83,36 @@ describe("HostAlbum — ocultar é reversível, remover não", () => {
     expect(segunda.querySelector("img")?.getAttribute("src")).toBe("https://exemplo/b");
   });
 
+  it("desfazer devolve pelo vizinho, mesmo se a lista recarregou no meio", async () => {
+    const chamadas: Chamada[] = [];
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      if (init?.method === "PATCH") {
+        chamadas.push(JSON.parse(String(init.body)) as Chamada);
+        return new Response(JSON.stringify({}), { status: 200 });
+      }
+      // A lista volta do servidor com uma foto nova no começo — o índice
+      // guardado no ocultar apontaria para o lugar errado.
+      const recarregou = chamadas.some((c) => c.acao === "ocultar");
+      const itens = recarregou
+        ? [foto("nova"), foto("a"), foto("c")]
+        : [foto("a"), foto("b"), foto("c")];
+      return new Response(JSON.stringify({ itens }), { status: 200 });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await abrirSegundaFoto();
+    fireEvent.click(screen.getByRole("button", { name: "Ocultar" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Atualizar/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Desfazer" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Foto 3 de 4/ })).toBeTruthy();
+    });
+    // "b" volta logo depois de "a", que era o vizinho de cima quando sumiu.
+    const terceira = screen.getByRole("button", { name: /Foto 3 de 4/ });
+    expect(terceira.querySelector("img")?.getAttribute("src")).toBe("https://exemplo/b");
+  });
+
   it("remover exige confirmação e não oferece desfazer", async () => {
     const chamadas: Chamada[] = [];
     vi.stubGlobal("fetch", montarFetch(chamadas));

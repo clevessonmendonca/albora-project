@@ -45,11 +45,19 @@ export function capitulosDoReviver(
 
   const cabem = Math.floor(ordenadas.length / MINIMO_POR_CAPITULO);
   const quantos = Math.max(1, Math.min(cabem, momentos.length, MAXIMO_DE_CAPITULOS));
-  const porCapitulo = Math.ceil(ordenadas.length / quantos);
+
+  // A sobra se espalha pelos primeiros capítulos. Com `ceil` em fatia fixa, os
+  // primeiros engordavam e o resto caía todo no último: 10 fotos em 3 momentos
+  // davam [4, 4, 2], e o último furava o mínimo que este arquivo promete.
+  const base = Math.floor(ordenadas.length / quantos);
+  const sobra = ordenadas.length % quantos;
 
   const capitulos: CapituloDoReviver[] = [];
+  let inicio = 0;
   for (let i = 0; i < quantos; i += 1) {
-    const fatia = ordenadas.slice(i * porCapitulo, (i + 1) * porCapitulo);
+    const tamanho = base + (i < sobra ? 1 : 0);
+    const fatia = ordenadas.slice(inicio, inicio + tamanho);
+    inicio += tamanho;
     const momento = momentos[i];
     const primeira = fatia[0];
     if (fatia.length === 0 || !momento || !primeira) continue;

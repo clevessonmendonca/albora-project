@@ -77,8 +77,14 @@ export function Reviver({
   useEffect(() => {
     if (!aberto) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight") avancar();
+      // Navegar despausa, igual ao toque nas laterais. Sem isto dava para
+      // chegar ao fim pelo teclado com `pausado` preso e reiniciar congelado.
+      if (e.key === "ArrowRight") {
+        setPausado(false);
+        avancar();
+      }
       if (e.key === "ArrowLeft") {
+        setPausado(false);
         setFim(false);
         setI((a) => Math.max(0, a - 1));
       }
@@ -145,6 +151,7 @@ export function Reviver({
                 type="button"
                 onClick={() => {
                   setFim(false);
+                  setPausado(false);
                   setI(0);
                 }}
                 className={adminClasses.secondaryButton}
