@@ -1,4 +1,5 @@
 import type { Pool, PoolClient } from "pg";
+import { slugLegivelDeTitulo } from "@albora/core";
 import { FUSO_PADRAO, fusoIanaValido, fusoOuPadrao } from "@albora/core";
 import { comConta, comEvento } from "./event";
 import { agendarRetencaoNaTransacao } from "./retention-jobs";
@@ -188,6 +189,24 @@ function gerarSlug(rand: () => number): string {
   return s;
 }
 
+/**
+ * Candidato da tentativa: o nome puro na primeira, com sufixo curto depois.
+ * Dois casamentos "Ana & João" são normais — o segundo vira `ana-e-joao-k4p`.
+ */
+function candidatoDeSlug(
+  titulo: string | null | undefined,
+  tentativa: number,
+  rand: () => number,
+): string {
+  const base = slugLegivelDeTitulo(titulo);
+  if (!base) return gerarSlug(rand);
+  if (tentativa === 0) return base;
+
+  let sufixo = "";
+  for (let i = 0; i < 3; i++) sufixo += ALFABETO_SLUG[Math.floor(rand() * ALFABETO_SLUG.length)];
+  return `${base}-${sufixo}`;
+}
+
 function ehColisaoDeSlug(e: unknown): boolean {
   return typeof e === "object" && e !== null && (e as { code?: string }).code === "23505";
 }
@@ -276,7 +295,7 @@ export async function criarEvento(
     const plano = entrada.vendorId !== undefined ? "vendor" : "free";
 
     for (let tentativa = 0; tentativa < 6; tentativa++) {
-      const slug = gerarSlug(rand);
+      const slug = candidatoDeSlug(entrada.title, tentativa, rand);
       try {
         const { rows } = await c.query<{ id: string }>(
           `INSERT INTO events (account_id, pack_id, slug, starts_at, ends_at, identity_tokens, expected_guests, timezone, title, vendor_id, plan)

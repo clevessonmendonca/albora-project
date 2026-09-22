@@ -9,6 +9,8 @@ export type FotoRecente = {
 };
 
 export type MetricasAoVivo = {
+  /** Sessões abertas no evento. Maior que `sessoesComUpload` = entraram e não fotografaram. */
+  sessoesTotais: number;
   sessoesComUpload: number;
   totalFotos: number;
   ultimas: FotoRecente[];
@@ -31,7 +33,11 @@ export async function lerMetricasAoVivo(
 
   const linha = agregado[0] ?? { sessoes: 0, fotos: 0 };
 
-  const [{ rows: recentes }, sharesTotais] = await Promise.all([
+  const [{ rows: sessoes }, { rows: recentes }, sharesTotais] = await Promise.all([
+    cliente.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM guest_sessions WHERE event_id = $1`,
+      [eventoId],
+    ),
     cliente.query<{
       id: string;
       storage_key: string;
@@ -48,6 +54,7 @@ export async function lerMetricasAoVivo(
   ]);
 
   return {
+    sessoesTotais: sessoes[0]?.n ?? 0,
     sessoesComUpload: linha.sessoes,
     totalFotos: linha.fotos,
     ultimas: recentes.map((r) => ({

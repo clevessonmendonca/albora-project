@@ -59,6 +59,45 @@ export type RetentionJobAdminRow = {
   lastError: string | null;
 };
 
+export type MarcoDeRetencao = {
+  kind: RetentionKind;
+  status: "pending" | "running" | "done" | "skipped" | "failed";
+  dueAt: Date;
+  completedAt: Date | null;
+};
+
+/**
+ * Os marcos de retenção DESTE evento, para o painel do casal mostrar o que já
+ * aconteceu em vez de só a data prevista.
+ *
+ * `event_id` explícito no WHERE não é redundância aqui: ao contrário de
+ * `uploads` e `events`, `retention_jobs` não tem RLS (ver o item aberto de
+ * isolamento), então esta cláusula é a única camada. Não use `pool` cru.
+ */
+export async function marcosDeRetencaoDoEvento(
+  cliente: PoolClient,
+  eventId: string,
+): Promise<MarcoDeRetencao[]> {
+  const { rows } = await cliente.query<{
+    kind: RetentionKind;
+    status: MarcoDeRetencao["status"];
+    due_at: Date;
+    completed_at: Date | null;
+  }>(
+    `SELECT kind, status, due_at, completed_at
+       FROM retention_jobs
+      WHERE event_id = $1
+      ORDER BY due_at ASC`,
+    [eventId],
+  );
+  return rows.map((r) => ({
+    kind: r.kind,
+    status: r.status,
+    dueAt: r.due_at,
+    completedAt: r.completed_at,
+  }));
+}
+
 export type ListRetentionJobsAdminFilter = { status?: string; limit: number };
 
 /**
@@ -361,10 +400,58 @@ async function contarPublicadosAgora(cliente: PoolClient, eventId: string): Prom
   return rows[0]?.n ?? 0;
 }
 
+/** Teto da cápsula. Um punhado de lembranças, não um segundo acervo. */
+export const TETO_DA_CAPSULA = 20;
+
+/**
+ * Os ids que a cápsula de memória salva do apagamento do dia 365.
+ *
+ * Só mídia do próprio casal: uma sessão cujo contato de e-mail VERIFICADO
+ * (Google/magic link) é o e-mail da conta dona do evento. A foto é de quem a
+ * tirou, e o convidado consentiu com um prazo anunciado — o casal ligar um
+ * toggle não estende consentimento de terceiro.
+ *
+ * Devolve vazio quando o toggle está desligado, que é o padrão. Sem toggle,
+ * nada escapa do purge.
+ *
+ * O filtro é `state = 'published'`, e não `<> 'purged'`: destacar exige foto
+ * publicada, mas ocultar e remover não limpam `starred_at`. Com a
+ * lista-de-negação, o casal que removesse de vez uma foto destacada a via
+ * virar `capsule` no dia 365 em vez de sumir — a cápsula desfazendo, em
+ * silêncio, o controle mais forte que o painel oferece. Só entra na lembrança
+ * o que está no ar.
+ */
+export async function idsDaCapsula(cliente: PoolClient, eventId: string): Promise<string[]> {
+  const { rows } = await cliente.query<{ id: string }>(
+    `SELECT u.id
+       FROM uploads u
+       JOIN events e ON e.id = u.event_id AND e.memory_capsule
+       JOIN accounts a ON a.id = e.account_id
+       JOIN guest_contacts gc
+         ON gc.session_id = u.session_id
+        AND gc.event_id = u.event_id
+        AND gc.channel = 'email'
+        AND gc.verified_at IS NOT NULL
+        AND lower(gc.value) = lower(a.email)
+      WHERE u.event_id = $1
+        AND u.starred_at IS NOT NULL
+        AND u.state = 'published'
+      ORDER BY u.starred_at DESC
+      LIMIT $2`,
+    [eventId, TETO_DA_CAPSULA],
+  );
+  return rows.map((r) => r.id);
+}
+
 export async function chavesDoAcervo(cliente: PoolClient, eventId: string): Promise<string[]> {
+  const guardadas = await idsDaCapsula(cliente, eventId);
   const { rows } = await cliente.query<{ storage_key: string }>(
-    "SELECT storage_key FROM uploads WHERE event_id = $1 AND state IN ('published', 'removed')",
-    [eventId],
+    // Lista-de-negação de propósito: `IN ('published','removed')` deixava
+    // qualquer estado novo fora do apagamento do dia 365 — bytes que a gente
+    // promete apagar e não apagaria.
+    `SELECT storage_key FROM uploads
+      WHERE event_id = $1 AND state <> 'purged' AND NOT (id = ANY($2::uuid[]))`,
+    [eventId, guardadas],
   );
   return rows.map((r) => r.storage_key);
 }
@@ -402,9 +489,20 @@ export async function abrirRefreshTokenParaRevogar(
 
 /** Apaga ponteiros e revoga Drive; bytes no storage ficam para o chamador (chavesParaApagar). */
 export async function purgarAcervo(cliente: PoolClient, eventId: string): Promise<void> {
+  const guardadas = await idsDaCapsula(cliente, eventId);
+
+  // `capsule` some de toda superfície igual a qualquer estado que não seja
+  // `published` — o álbum acabou; o que sobra é a lembrança anual.
+  if (guardadas.length > 0) {
+    await cliente.query("UPDATE uploads SET state = 'capsule' WHERE id = ANY($1::uuid[])", [
+      guardadas,
+    ]);
+  }
+
   await cliente.query(
-    "UPDATE uploads SET state = 'purged' WHERE event_id = $1 AND state IN ('published', 'removed')",
-    [eventId],
+    `UPDATE uploads SET state = 'purged'
+      WHERE event_id = $1 AND state <> 'purged' AND NOT (id = ANY($2::uuid[]))`,
+    [eventId, guardadas],
   );
   await cliente.query(
     "UPDATE drive_connections SET status = 'revogado', revoked_at = now() WHERE event_id = $1 AND status <> 'revogado'",

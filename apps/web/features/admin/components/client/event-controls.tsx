@@ -1,9 +1,9 @@
 "use client";
 
 import { interacaoAberta, eventDefaults } from "@albora/core";
-import { Badge, Switch } from "@albora/ui-web";
+import { buttonVariants, Badge, ConfirmDialog, Switch } from "@albora/ui-web";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { DeliveryControls } from "@/features/admin/components/client/delivery-controls";
 import { EventMusic } from "@/features/admin/components/client/event-music";
@@ -60,6 +60,20 @@ export function EventControls({
   const [saving, setSaving] = useState<SavingField>(null);
   const [error, setError] = useState(false);
   const [upgrading, setUpgrading] = useState(false);
+
+  /**
+   * Confirmação pendente de um controle perigoso. A direção importa e é
+   * assimétrica: confirmar é para o lado que **tira proteção ou interrompe a
+   * festa**. Pedir confirmação para religar o telão ou para ligar proteção de
+   * menores seria atrito contra a segurança — o casal desistiria no meio.
+   */
+  const [confirmacao, setConfirmacao] = useState<{
+    titulo: string;
+    descricao: ReactNode;
+    rotulo: string;
+    body: Record<string, boolean>;
+    campo: NonNullable<SavingField>;
+  } | null>(null);
 
   const defaults = eventDefaults({ haMenores: moderation.hasMinors });
   const gateOpen = interacaoAberta(
@@ -121,12 +135,15 @@ export function EventControls({
     }
   };
 
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  // Origem só depois de montar: lida no render, o servidor produz "" e o cliente
+  // a origem real — o HTML não bate e o React avisa que "não vai consertar".
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
 
   return (
     <div className="flex flex-col gap-5">
       {status === "draft" && (
-        <AdminSection>
+        <AdminSection id="controle-publicar">
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div>
               <span className="tipo-subtitle block text-ink">Evento em rascunho</span>
@@ -167,7 +184,21 @@ export function EventControls({
             checked={!moderation.panic}
             label={moderation.panic ? "Retomar telão" : "Pausar telão"}
             disabled={saving === "panic"}
-            onChange={(v) => void patch({ panico: !v }, "panic")}
+            onChange={(v) => {
+              // v=false significa pausar: é o que apaga a parede na frente de todo mundo.
+              if (!v) {
+                setConfirmacao({
+                  titulo: "Pausar o telão?",
+                  descricao:
+                    "Nenhuma foto nova aparece na parede enquanto estiver pausado — inclusive as que seus convidados mandarem agora.",
+                  rotulo: "Pausar telão",
+                  body: { panico: true },
+                  campo: "panic",
+                });
+                return;
+              }
+              void patch({ panico: false }, "panic");
+            }}
           />
         </div>
       </AdminSection>
@@ -189,7 +220,20 @@ export function EventControls({
               checked={moderation.hasMinors}
               label="Há menores nesta festa"
               disabled={saving === "hasMinors"}
-              onChange={(v) => void patch({ haMenores: v }, "hasMinors")}
+              onChange={(v) => {
+                if (!v) {
+                  setConfirmacao({
+                    titulo: "Desligar as proteções para menores?",
+                    descricao:
+                      "Volta a exigir mais denúncias para segurar uma foto do telão, e compartilhar fora nasce ligado.",
+                    rotulo: "Desligar proteções",
+                    body: { haMenores: false },
+                    campo: "hasMinors",
+                  });
+                  return;
+                }
+                void patch({ haMenores: true }, "hasMinors");
+              }}
             />
           ) : (
             <span className="tipo-caption shrink-0 text-ink-3">
@@ -230,7 +274,20 @@ export function EventControls({
             checked={moderation.hardened}
             label="Modo endurecido"
             disabled={saving === "hardened"}
-            onChange={(v) => void patch({ modoEndurecido: v }, "hardened")}
+            onChange={(v) => {
+              if (!v) {
+                setConfirmacao({
+                  titulo: "Desligar o modo endurecido?",
+                  descricao:
+                    "Fotos e comentários novos voltam a aparecer sem passar pela fila de revisão.",
+                  rotulo: "Desligar",
+                  body: { modoEndurecido: false },
+                  campo: "hardened",
+                });
+                return;
+              }
+              void patch({ modoEndurecido: true }, "hardened");
+            }}
           />
         </div>
       </AdminSection>
@@ -406,7 +463,7 @@ export function EventControls({
           href={eventEntryUrl(origin, slug, "link")}
           target="_blank"
           rel="noopener noreferrer"
-          className="tipo-caption mt-4 flex min-h-11 items-center justify-center rounded-pilula border border-linha bg-transparent px-4 text-center text-ink-2 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink"
+          className={`${buttonVariants({ variant: "secondary", size: "sm", width: "full" })} mt-4`}
         >
           Testar como convidado ↗
         </a>
@@ -417,6 +474,21 @@ export function EventControls({
           Não salvou agora. Tente de novo.
         </p>
       )}
+
+      <ConfirmDialog
+        open={confirmacao !== null}
+        onClose={() => setConfirmacao(null)}
+        onConfirm={() => {
+          if (!confirmacao) return;
+          const { body, campo } = confirmacao;
+          setConfirmacao(null);
+          void patch(body, campo);
+        }}
+        title={confirmacao?.titulo ?? ""}
+        description={confirmacao?.descricao}
+        confirmLabel={confirmacao?.rotulo ?? "Confirmar"}
+        cancelLabel="Deixar como está"
+      />
     </div>
   );
 }
@@ -450,7 +522,7 @@ function EventLink({ title, url }: { title: string; url: string }) {
         <button
           type="button"
           onClick={copiar}
-          className="tipo-label inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded-pilula border border-linha bg-superficie-alta px-3 text-ink transition-[transform,border-color,color] duration-instantaneo ease-mola hover:border-acento-texto hover:text-ink-2 active:scale-[0.97]"
+          className={`${buttonVariants({ variant: "secondary", size: "sm" })} shrink-0`}
         >
           {copiado ? (
             <>

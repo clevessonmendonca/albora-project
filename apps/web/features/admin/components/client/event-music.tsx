@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { SavedBadge } from "@/features/admin/components/client/saved-badge";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { suggestionLabel } from "@/features/music/lib/suggestion-copy";
 
@@ -142,18 +143,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
           {saving ? "Salvando…" : "Salvar música"}
         </button>
         {salvo && (
-          <span className="tipo-caption flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-medium text-acento-texto">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-              <path
-                d="M2 6l2.5 2.5L10 3.5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Salvo
-          </span>
+          <SavedBadge />
         )}
       </div>
 

@@ -81,7 +81,12 @@ export async function GET(
       const metricas = await lerMetricasAoVivo(c, eventId);
       const midias = await listarMidiaParaRevisao(c, eventId);
       const comentarios = await listarComentariosParaRevisao(c, eventId);
-      return { metricas, filaRevisao: midias.length + comentarios.length };
+      // Denúncia não é fila: é um convidado pedindo socorro. Contada à parte
+      // para o painel poder alertar em vez de somar num número só.
+      const denunciadas =
+        midias.filter((m) => m.denuncias > 0).length +
+        comentarios.filter((c) => c.denuncias > 0).length;
+      return { metricas, filaRevisao: midias.length + comentarios.length, denunciadas };
     });
 
     const veredito = decidirTese({
@@ -99,9 +104,11 @@ export async function GET(
 
     return jsonOk({
       expectedGuests: evento.expectedGuests,
+      sessoesTotais: dados.metricas.sessoesTotais,
       sessoesComUpload: dados.metricas.sessoesComUpload,
       totalFotos: dados.metricas.totalFotos,
       filaRevisao: dados.filaRevisao,
+      denunciadas: dados.denunciadas,
       participacao: veredito.taxa,
       veredito: veredito.codigo as CodigoDaTese,
       ultimas,

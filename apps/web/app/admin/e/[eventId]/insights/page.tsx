@@ -11,7 +11,7 @@ export default async function PaginaInsights({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId} section="Insights">
+    <EventPageLayout eventId={eventId} section="Insights" nav="detail">
       <EventInsights eventoId={eventId} />
     </EventPageLayout>
   );

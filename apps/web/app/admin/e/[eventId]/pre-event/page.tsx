@@ -11,7 +11,7 @@ export default async function PreEventPage({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId} section="Pré-evento">
+    <EventPageLayout eventId={eventId} section="Pré-evento" nav="detail">
       {({ checklistStorageKey }) => (
         <PreEventChecklist eventId={eventId} storageKey={checklistStorageKey} />
       )}

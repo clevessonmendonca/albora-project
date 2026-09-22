@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { buttonVariants } from "@albora/ui-web";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { Glyph } from "./glyph";
 
@@ -158,7 +159,7 @@ export function MissionSheet({
               type="button"
               onClick={adicionar}
               disabled={!nova.trim()}
-              className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-pilula border border-linha bg-superficie px-4 tipo-label text-ink transition-colors hover:border-acento-texto disabled:opacity-50"
+              className={`${buttonVariants({ variant: "secondary", size: "sm" })} shrink-0`}
             >
               <Glyph name="plus" size={14} /> Adicionar
             </button>

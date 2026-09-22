@@ -13,7 +13,7 @@ export default async function QrCodePage({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId} section="QR Code">
+    <EventPageLayout eventId={eventId} section="QR Code" nav="detail">
       {async ({ evento }) => {
         const hdrs = await headers();
         const host = hdrs.get("host") ?? "localhost";
