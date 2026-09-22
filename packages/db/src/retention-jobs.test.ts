@@ -20,6 +20,7 @@ import { prepararBanco, semear } from "./testes/banco";
 /** Contra banco real como `admin` (bypassa RLS) — runner de retenção é cross-event, mesma exigência dos analytics snapshots. */
 
 let admin: pg.Pool;
+let app: pg.Pool;
 let dados: Awaited<ReturnType<typeof semear>>;
 
 const HORA = 3600 * 1000;
@@ -33,10 +34,12 @@ function endsParaDueHaPouco(offsetDoKindMs: number, dueHaMs: number): Date {
 beforeAll(async () => {
   const pools = await prepararBanco();
   admin = pools.admin;
+  app = pools.app;
   dados = await semear(admin);
 }, 60_000);
 
 afterAll(async () => {
+  await app?.end();
   await admin?.end();
 });
 
@@ -157,6 +160,45 @@ describe("processRetentionJob — plus_48h", () => {
     const r = await processRetentionJob(admin, job, semNotificar);
     expect(r).toEqual({ status: "done" });
     expect((await statusDoJob(job.id)).status).toBe("done");
+  });
+});
+
+/**
+ * O resto do arquivo processa como `admin`, que bypassa RLS. Em produção quem
+ * processa é o pool da aplicação (`processRetentionJobs(pool, aggregatorPool)`:
+ * a listagem usa o agregador, o processamento usa o pool normal). Com a RLS
+ * de `retention_jobs` ligada, é este papel que precisa funcionar — e é o que
+ * nenhum teste cobria.
+ */
+describe("processRetentionJob pelo papel da aplicação (RLS ligada)", () => {
+  it("plus_48h é processado e marcado done, não pulado em silêncio", async () => {
+    const ends = new Date(Date.now() - 49 * 3600 * 1000);
+    const eventoId = await criarEvento(ends);
+    await scheduleRetentionJobs(admin, eventoId, ends);
+    const job = await jobDoEvento(eventoId, "plus_48h");
+
+    const r = await processRetentionJob(app, job, semNotificar);
+
+    expect(r).toEqual({ status: "done" });
+    expect((await statusDoJob(job.id)).status).toBe("done");
+  });
+
+  // Sem export pronto o apagamento não corre — é o gate de propósito. O que a
+  // RLS ameaçava era o job nem chegar ao gate: a leitura voltava vazia, a
+  // função devolvia `done` e a linha ficava `pending` para sempre, sem nunca
+  // avaliar nada nem avisar ninguém.
+  it("d365_delete chega ao gate em vez de ser pulado em silêncio", async () => {
+    const ends = endsParaDueHaPouco(365 * DIA, 2 * HORA);
+    const eventoId = await criarEvento(ends);
+    await scheduleRetentionJobs(admin, eventoId, ends);
+    const job = await jobDoEvento(eventoId, "d365_delete");
+
+    const r = await processRetentionJob(app, job, semNotificar);
+
+    expect(r).toMatchObject({ status: "skipped", reason: "export_missing" });
+    const status = await statusDoJob(job.id);
+    expect(status.status).toBe("failed");
+    expect(status.lastError).toBe("export_missing");
   });
 });
 
