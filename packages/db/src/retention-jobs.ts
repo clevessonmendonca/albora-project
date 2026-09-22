@@ -187,10 +187,10 @@ export async function listDueRetentionJobs(pool: Pool, limit = 50): Promise<DueR
 /**
  * Marca um job avulso. Sem chamador hoje, mas exportada.
  *
- * Exige `eventId` porque `retention_jobs` tem RLS desde a 0075: um UPDATE só
+ * Exige `eventId` porque `retention_jobs` tem RLS desde a 0078: um UPDATE só
  * por `id`, com o papel da aplicação e sem `app.event_id`, não erra — afeta
  * zero linhas e devolve sucesso. Falha silenciosa em cima de obrigação legal
- * é exatamente o que a 0075 veio evitar, então a assinatura passa a tornar o
+ * é exatamente o que a 0078 veio evitar, então a assinatura passa a tornar o
  * escopo impossível de esquecer.
  */
 export async function markRetentionJob(
@@ -252,7 +252,7 @@ export async function processRetentionJob(
     await cliente.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`retention:${job.eventId}`]);
 
     // Antes de QUALQUER leitura de `retention_jobs`. A tabela tem RLS desde a
-    // 0075, e o papel da aplicação só enxerga as linhas do evento no GUC — com
+    // 0078, e o papel da aplicação só enxerga as linhas do evento no GUC — com
     // o `set_config` depois, o SELECT abaixo voltava vazio, a função caía no
     // ramo "já tratado" e devolvia `done` sem fazer nada. O job de exclusão
     // ficava `pending` para sempre: obrigação legal falhando em silêncio.
