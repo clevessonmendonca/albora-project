@@ -2,6 +2,7 @@
 
 import type { CodigoDaTese } from "@albora/core";
 import { Badge } from "@albora/ui-web";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { useModerationCount } from "./moderation-count-context";
@@ -9,9 +10,11 @@ import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
 type Resumo = {
   expectedGuests: number;
+  sessoesTotais: number;
   sessoesComUpload: number;
   totalFotos: number;
   filaRevisao: number;
+  denunciadas: number;
   participacao: number;
   veredito: CodigoDaTese;
   ultimas: { id: string; thumb: string; criadaEm: string }[];
@@ -19,10 +22,16 @@ type Resumo = {
 
 const INTERVALO_MS = 30_000;
 
+/**
+ * A Home é a tela do casal, não do analista. O mesmo veredito aparece em
+ * Insights e no funil com a linguagem de produto ("mexe em fricção",
+ * "investigar antes de escalar") — ali faz sentido, aqui não: ninguém organiza
+ * o próprio casamento pensando em escalar hipótese.
+ */
 const ROTULO_VEREDITO: Record<CodigoDaTese, string> = {
-  "funil.tese_validada": "Participação na meta (≥40%)",
-  "funil.mexe_em_friccao": "Abaixo da meta — vale olhar fricção",
-  "funil.parar": "Participação crítica — investigar antes de escalar",
+  "funil.tese_validada": "Todo mundo está fotografando.",
+  "funil.mexe_em_friccao": "Dá pra puxar mais — lembre as mesas do QR.",
+  "funil.parar": "Poucas pessoas fotografaram até agora.",
 };
 
 function vereditoTextClass(veredito: CodigoDaTese): string {
@@ -124,6 +133,10 @@ export function LiveSummary({ eventoId }: Props) {
 
   const pct = Math.round(resumo.participacao * 100);
   const destaqueClass = vereditoTextClass(resumo.veredito);
+  // Antes da primeira foto, "0%" e "participação crítica" não são informação —
+  // são susto. O casal precisa saber que está tudo pronto e esperando.
+  const aindaSemFoto = resumo.totalFotos === 0;
+  const ninguemEntrou = resumo.sessoesTotais === 0;
 
   return (
     <AdminSection>
@@ -160,6 +173,54 @@ export function LiveSummary({ eventoId }: Props) {
         </div>
       </div>
 
+      {resumo.denunciadas > 0 && (
+        <div
+          role="alert"
+          className="mb-4 rounded-token border border-critico bg-critico/10 px-4 py-3.5"
+        >
+          <p className="tipo-body m-0 text-critico">
+            {resumo.denunciadas === 1
+              ? "Um convidado denunciou uma publicação."
+              : `${resumo.denunciadas} publicações foram denunciadas.`}
+          </p>
+          <p className="tipo-caption m-0 mt-1.5 max-w-[46ch] text-ink-2">
+            Já está fora do telão e do álbum. Precisa da sua decisão para voltar ou sair de vez.
+          </p>
+          <Link
+            href={`/admin/e/${eventoId}/moderation`}
+            className="tipo-caption mt-2.5 inline-block font-semibold text-critico"
+          >
+            Ver agora →
+          </Link>
+        </div>
+      )}
+
+      {aindaSemFoto ? (
+        <div className="rounded-token bg-superficie-alta px-4 py-5">
+          {ninguemEntrou ? (
+            <>
+              <p className="tipo-body m-0 text-ink">Ninguém entrou ainda.</p>
+              <p className="tipo-caption m-0 mt-1.5 max-w-[46ch] text-ink-2">
+                Os convidados entram pelo QR das mesas. Se as placas já estão postas, é só questão
+                de alguém apontar a câmera.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="tipo-body m-0 text-ink">
+                {resumo.sessoesTotais === 1
+                  ? "Uma pessoa entrou, nenhuma foto ainda."
+                  : `${resumo.sessoesTotais} pessoas entraram, nenhuma foto ainda.`}
+              </p>
+              <p className="tipo-caption m-0 mt-1.5 max-w-[46ch] text-ink-2">
+                Elas já estão dentro do álbum. A primeira foto costuma vir quando alguém lembra as
+                mesas das missões.
+              </p>
+            </>
+          )}
+        </div>
+      ) : (
+        <>
       <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
         <Stat n={`${pct}%`} rotulo="participação" destaqueClass={destaqueClass} />
         <Stat
@@ -170,7 +231,7 @@ export function LiveSummary({ eventoId }: Props) {
         <Stat
           n={String(resumo.filaRevisao)}
           rotulo="na fila de revisão"
-          {...(resumo.filaRevisao > 0 ? { destaqueClass: "text-critico" } : {})}
+          {...(resumo.denunciadas > 0 ? { destaqueClass: "text-critico" } : {})}
         />
       </div>
 
@@ -203,6 +264,8 @@ export function LiveSummary({ eventoId }: Props) {
       </div>
 
       <p className={`tipo-caption mb-4 mt-0 ${destaqueClass}`}>{ROTULO_VEREDITO[resumo.veredito]}</p>
+        </>
+      )}
 
       {resumo.ultimas.length > 0 && (
         <>

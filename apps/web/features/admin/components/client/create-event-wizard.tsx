@@ -5,7 +5,7 @@ import NextLink from "next/link";
 import { FUSO_PADRAO, type VendorPlanTier, type WallDisplayModel } from "@albora/core";
 import { PACKS, packsDeCriacao, resolvePackText } from "@albora/packs";
 import { eventColorVariablesFrom } from "@albora/tokens";
-import { Select } from "@albora/ui-web";
+import { buttonVariants, Select } from "@albora/ui-web";
 import { useSearchParams } from "next/navigation";
 import { resolveIdentityPreviewVars } from "@/features/admin/lib/identity-preview";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
@@ -664,7 +664,10 @@ function ReadyStep({
   coverFile: File | null;
   accentVars: CSSProperties;
 }) {
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  // Origem só depois de montar: lida no render, o servidor produz "" e o cliente
+  // a origem real — o HTML não bate e o React avisa que "não vai consertar".
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState(false);
 
@@ -700,13 +703,11 @@ function ReadyStep({
     }
   };
 
-  const accentButton =
-    "flex min-h-[3.25rem] w-full items-center justify-center gap-2 rounded-pilula px-6 font-titulo text-[1.05rem] no-underline shadow-suave transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.98]";
+  // Preenchimento inline com a cor do evento: ganha do `bg-acento` da variante
+  // sem depender da ordem do CSS gerado.
+  const accentButton = buttonVariants({ variant: "primary", size: "lg", width: "full" });
   const accentStyle = { background: "var(--ev, var(--acento))", color: "var(--ev-on, var(--sobre-acento))" };
-  // Classe própria (flex, sem o `inline-block` de adminClasses.secondaryButton — que venceria o flex
-  // e jogaria ícone e texto pra esquerda em duas linhas).
-  const entryButton =
-    "flex min-h-[3rem] items-center justify-center gap-2 rounded-pilula border border-linha bg-superficie-alta px-4 py-3 text-center font-titulo text-[0.95rem] leading-tight text-ink no-underline transition-[transform,border-color] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97]";
+  const entryButton = buttonVariants({ variant: "secondary", size: "md", width: "full" });
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-bg font-corpo text-ink" style={accentVars}>
@@ -745,7 +746,7 @@ function ReadyStep({
             Ir para meu evento
             <Glyph name="arrow-right" size={18} />
           </a>
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
             <a href={eventEntryUrl(origin, created.slug, "link")} className={entryButton}>
               <Glyph name="eye" size={16} />
               <span>Ver como convidado</span>
@@ -817,7 +818,7 @@ function ReadyStep({
               <a
                 key={label}
                 href={`/admin/e/${created.eventoId}`}
-                className="inline-flex items-center gap-1.5 rounded-pilula border border-linha bg-superficie px-3.5 py-2 tipo-label text-ink no-underline transition-[border-color,transform] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97]"
+                className={buttonVariants({ variant: "secondary", size: "sm" })}
               >
                 <span className="text-ink-2">
                   <Glyph name={icon} size={14} />

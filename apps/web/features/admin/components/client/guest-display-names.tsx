@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { buttonVariants } from "@albora/ui-web";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 
 export type SessaoNoTelao = {
@@ -128,7 +129,7 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                         type="button"
                         disabled={ocupado}
                         onClick={() => setEditando(null)}
-                        className="min-h-11 cursor-pointer rounded-pilula border border-linha bg-superficie-alta px-3 py-3 font-titulo text-[0.8125rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
+                        className={buttonVariants({ variant: "secondary", size: "sm" })}
                       >
                         Cancelar
                       </button>

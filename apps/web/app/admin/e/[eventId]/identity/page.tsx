@@ -14,7 +14,7 @@ export default async function IdentityPage({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId} section="Identidade">
+    <EventPageLayout eventId={eventId} section="Identidade" nav="detail">
       {async ({ evento }) => {
         const coverImageUrl = evento.coverImageKey
           ? (await signGet(evento.coverImageKey, VALIDADE_PRESIGN_SEGUNDOS)).toString()

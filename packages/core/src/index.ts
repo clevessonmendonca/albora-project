@@ -890,3 +890,5 @@ export type {
   ValidateIdTokenInput,
 } from "./oidc/validate-id-token";
 export { InvalidIdTokenError, validateIdToken } from "./oidc/validate-id-token";
+
+export { slugLegivelDeTitulo } from "./slug";

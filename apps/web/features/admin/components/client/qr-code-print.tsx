@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { downloadFromApi, triggerBlobDownload } from "@/features/admin/lib/download-file";
 import { svgToPngBlob } from "@/features/admin/lib/qr-png";
+import { marcarPreparo } from "@/features/admin/lib/marcar-preparo";
 
 type Props = {
   eventId: string;
@@ -25,6 +26,8 @@ export function QrCodePrint({ eventId, slug, eventName, guestUrl, svgString }: P
     try {
       const blob = await svgToPngBlob(svgString);
       triggerBlobDownload(blob, `albora-${slug}-qrcode.png`);
+      // Baixar é o que torna o QR realmente preparado — abrir a página não é.
+      marcarPreparo(eventId, "qr");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não baixou agora.");
     } finally {
@@ -40,6 +43,7 @@ export function QrCodePrint({ eventId, slug, eventName, guestUrl, svgString }: P
         `/api/admin/events/${eventId}/pieces?formato=placa-a4&tipo=pdf`,
       );
       triggerBlobDownload(blob, `albora-${slug}-placa-a4.pdf`);
+      marcarPreparo(eventId, "qr");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não baixou agora.");
     } finally {

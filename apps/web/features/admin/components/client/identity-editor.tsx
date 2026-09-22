@@ -5,6 +5,7 @@ import {
   wallDisplayChoiceProblems,
   type WallDisplayModel,
 } from "@albora/core";
+import { SavedBadge } from "@/features/admin/components/client/saved-badge";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
 import { IDENTITY_MODELS } from "@albora/tokens";
 import { Button, PhoneFrame, TextField } from "@albora/ui-web";
@@ -15,6 +16,7 @@ import {
   resolveIdentityPreviewVars,
 } from "@/features/admin/lib/identity-preview";
 import { wallModelsFromTokens } from "@/features/admin/lib/wall-models";
+import { marcarPreparo } from "@/features/admin/lib/marcar-preparo";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { TimezoneField } from "@/features/admin/components/client/timezone-field";
 
@@ -180,6 +182,9 @@ export function IdentityEditor({
       });
       if (!r.ok) throw new Error("falhou");
       setSaved(true);
+      // Só aqui a identidade vira "revisada" no painel: salvar é a ação real,
+      // visitar a página não é (o wizard já nasce com um preset preenchido).
+      marcarPreparo(eventId, "identidade");
     } catch {
       setError(true);
     } finally {
@@ -466,12 +471,7 @@ export function IdentityEditor({
             {saving ? "Salvando…" : "Salvar identidade"}
           </Button>
           {saved && (
-            <span className="flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                <path d="M2 6l2.5 2.5L10 3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Salvo
-            </span>
+            <SavedBadge />
           )}
           {error && (
             <span role="alert" className="text-sm text-critico">

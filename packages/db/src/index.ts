@@ -41,9 +41,17 @@ export {
   rotacionarSlug,
 } from "./events";
 export type { AtualizacaoConfigEvento } from "./host-events";
-export { atualizarConfigDoEvento, ocultarMidiaDoHost } from "./host-events";
+export {
+  atualizarConfigDoEvento,
+  definirCapsulaDeMemoria,
+  destacarMidiaDoHost,
+  marcarAlbumVisto,
+  ocultarMidiaDoHost,
+  reexibirMidiaDoHost,
+  removerMidiaDoHost,
+} from "./host-events";
 export type { AcaoNomeDaSessao, SessaoDoHost } from "./host-sessions";
-export { definirNomeDaSessaoDoHost, listarSessoesDoHost } from "./host-sessions";
+export { definirNomeDaSessaoDoHost, listarPessoasDoEvento, listarSessoesDoHost } from "./host-sessions";
 export type { FotoRecente, MetricasAoVivo } from "./event-metrics";
 export { lerMetricasAoVivo, lerMetricasDeEventos } from "./event-metrics";
 export type { MetricasDeListagem } from "./event-metrics";
@@ -142,6 +150,8 @@ export type {
   AtualizacaoModeracao,
   EstadoModeracao,
   EventoDoHost,
+  MarcoDePreparo,
+  MarcosDePreparo,
   ResumoEvento,
 } from "./moderation-event";
 export {
@@ -150,9 +160,13 @@ export {
   alternarPanicoDoEvento,
   atualizarModeracaoDoEvento,
   buscarEventoDoHost,
+  ehMarcoDePreparo,
   lerModeracaoDoEvento,
   limiarDenuncias,
   listarEventosDoHost,
+  marcarPassoDoTour,
+  marcarPreparoDoEvento,
+  MARCOS_DE_PREPARO,
   paraEstadoDoEvento,
   publicarEvento,
 } from "./moderation-event";
@@ -506,6 +520,9 @@ export {
   agendarRetencaoNaTransacao,
   chavesDoAcervo,
   listDueRetentionJobs,
+  idsDaCapsula,
+  marcosDeRetencaoDoEvento,
+  type MarcoDeRetencao,
   listRetentionJobsAdmin,
   markRetentionJob,
   purgarAcervo,

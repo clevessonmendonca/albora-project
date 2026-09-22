@@ -4,6 +4,7 @@ import {
   ErroNomeInvalido,
   lerFunilAgregado,
   lerMetricasAoVivo,
+  listarPessoasDoEvento,
   listarSessoesDoHost,
 } from "@albora/db";
 import { decideThesis, type CodigoDaTese } from "@albora/core";
@@ -56,12 +57,13 @@ export async function GET(
     const { evento } = owned;
 
     const data = await withEvent(getPool(), eventId, async (c) => {
-      const [metricas, funil, sessoes] = await Promise.all([
+      const [metricas, funil, sessoes, pessoas] = await Promise.all([
         lerMetricasAoVivo(c, eventId),
         lerFunilAgregado(c, eventId),
         listarSessoesDoHost(c, eventId),
+        listarPessoasDoEvento(c, eventId),
       ]);
-      return { metricas, funil, sessoes };
+      return { metricas, funil, sessoes, pessoas };
     });
 
     const veredito = decideThesis({
@@ -94,6 +96,16 @@ export async function GET(
         id: s.id,
         nome: s.nome,
         fotos: s.fotos,
+      })),
+      // Sem telefone e sem e-mail: a identidade do convidado no painel é a
+      // foto e o primeiro nome. `guest_contacts` não passa por aqui.
+      pessoas: data.pessoas.map((p) => ({
+        id: p.id,
+        nome: p.nome,
+        fotos: p.fotos,
+        entrouEm: p.entrouEm.toISOString(),
+        primeiraFotoEm: p.primeiraFotoEm?.toISOString() ?? null,
+        ultimaFotoEm: p.ultimaFotoEm?.toISOString() ?? null,
       })),
     });
   } catch (e) {

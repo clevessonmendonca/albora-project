@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@albora/ui-web";
 import { useState } from "react";
 
 export function SignOutButton() {
@@ -13,13 +14,8 @@ export function SignOutButton() {
     }
   };
   return (
-    <button
-      type="button"
-      onClick={signOut}
-      disabled={signingOut}
-      className="cursor-pointer rounded-pilula border border-linha bg-transparent px-[1.1rem] py-2.5 text-[0.95rem] text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto disabled:cursor-default"
-    >
+    <Button type="button" variant="secondary" size="sm" onClick={signOut} disabled={signingOut}>
       {signingOut ? "Saindo…" : "Sair"}
-    </button>
+    </Button>
   );
 }

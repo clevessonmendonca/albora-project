@@ -1,5 +1,5 @@
 export { cn, cva, radiusStyle } from "./variants";
-export { Button } from "./button";
+export { Button, buttonVariants } from "./button";
 export { Badge } from "./badge";
 export { Card } from "./card";
 export { Star } from "./star";
@@ -55,14 +55,17 @@ export {
   CommentIcon,
   GridIcon,
   HeartIcon,
+  HomeIcon,
   MoonIcon,
   MoreIcon,
   MusicNoteIcon,
   PersonIcon,
   PlusIcon,
+  SettingsIcon,
   ShareIcon,
   StackIcon,
   SunIcon,
+  UsersIcon,
 } from "./icons";
 export { FloatingNav, type FloatingNavTab, type FloatingNavProps } from "./floating-nav";
 export { StoryRail, type StoryItem } from "./story-rail";

@@ -11,7 +11,7 @@ export default async function PaginaConsentimento({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId} section="Consentimento">
+    <EventPageLayout eventId={eventId} section="Consentimento" nav="detail">
       <ConsentVersions eventoId={eventId} />
     </EventPageLayout>
   );
