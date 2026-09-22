@@ -184,21 +184,36 @@ export async function listDueRetentionJobs(pool: Pool, limit = 50): Promise<DueR
   }));
 }
 
+/**
+ * Marca um job avulso. Sem chamador hoje, mas exportada.
+ *
+ * Exige `eventId` porque `retention_jobs` tem RLS desde a 0078: um UPDATE só
+ * por `id`, com o papel da aplicação e sem `app.event_id`, não erra — afeta
+ * zero linhas e devolve sucesso. Falha silenciosa em cima de obrigação legal
+ * é exatamente o que a 0078 veio evitar, então a assinatura passa a tornar o
+ * escopo impossível de esquecer.
+ */
 export async function markRetentionJob(
   pool: Pool,
+  eventId: string,
   id: string,
   status: "done" | "skipped" | "failed" | "running",
   lastError?: string | null,
 ): Promise<void> {
-  await pool.query(
-    `UPDATE retention_jobs
-        SET status = $2,
-            attempts = attempts + CASE WHEN $2 = 'running' THEN 0 ELSE 1 END,
-            last_error = $3,
-            completed_at = CASE WHEN $2 IN ('done', 'skipped') THEN now() ELSE completed_at END
-      WHERE id = $1`,
-    [id, status, lastError ?? null],
-  );
+  await comEvento(pool, eventId, async (cliente) => {
+    const { rowCount } = await cliente.query(
+      `UPDATE retention_jobs
+          SET status = $2,
+              attempts = attempts + CASE WHEN $2 = 'running' THEN 0 ELSE 1 END,
+              last_error = $3,
+              completed_at = CASE WHEN $2 IN ('done', 'skipped') THEN now() ELSE completed_at END
+        WHERE id = $1 AND event_id = $4`,
+      [id, status, lastError ?? null, eventId],
+    );
+    if ((rowCount ?? 0) === 0) {
+      throw new Error(`retention job ${id} não encontrado no evento ${eventId}`);
+    }
+  });
 }
 
 export type NotificacaoRetencao =
@@ -236,6 +251,13 @@ export async function processRetentionJob(
     await cliente.query("BEGIN");
     await cliente.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`retention:${job.eventId}`]);
 
+    // Antes de QUALQUER leitura de `retention_jobs`. A tabela tem RLS desde a
+    // 0078, e o papel da aplicação só enxerga as linhas do evento no GUC — com
+    // o `set_config` depois, o SELECT abaixo voltava vazio, a função caía no
+    // ramo "já tratado" e devolvia `done` sem fazer nada. O job de exclusão
+    // ficava `pending` para sempre: obrigação legal falhando em silêncio.
+    await cliente.query("SELECT set_config('app.event_id', $1, true)", [job.eventId]);
+
     const { rows: atualRows } = await cliente.query<{ status: string; attempts: number }>(
       "SELECT status, attempts FROM retention_jobs WHERE id = $1",
       [job.id],
@@ -246,8 +268,6 @@ export async function processRetentionJob(
       await cliente.query("COMMIT");
       return { status: "done" };
     }
-
-    await cliente.query("SELECT set_config('app.event_id', $1, true)", [job.eventId]);
 
     const { rows: contaRows } = await cliente.query<{ email: string }>(
       "SELECT a.email AS email FROM events e JOIN accounts a ON a.id = e.account_id WHERE e.id = $1",
