@@ -230,6 +230,16 @@ git commit -m "refactor(admin): um sistema de botão só, do design system"
 - Botões pequenos passam a ter 44px de alvo de toque, que os `*Sm` do mapa antigo não davam.
 - A suíte inteira continua verde.
 
+## Resultado da execução
+
+`grep -rn "adminClasses" apps/web packages --include="*.tsx" --include="*.ts"` não retorna nada. 28 arquivos passam a usar `Button` ou `buttonClasses`. Suíte: 2737 testes verdes, lint limpo, typecheck limpo, 8 guards.
+
+Um achado que não estava no plano e entrou junto: cinco arquivos carregavam um `ALVO_TOQUE = "min-h-11 px-5"` local, com comentário explicando que era override do `*Sm` compartilhado. Esse remendo **existia por causa** do mapa: os `*Sm` não davam 44px. Pior, depois da migração ele ficava conflitando com o `px-4` do `size="sm"` — duas classes de padding disputando na cascata. Saiu de `comment-moderation`, `event-pieces`, `host-album`, `review-queue` e `guestbook-audio-field`. Ficaram os de `event-music` e `missions-editor`, que se aplicam a botões que não são do design system (link de texto e botão de ícone) e continuam legítimos.
+
+Server components: os agentes acertaram o tratamento. `Button` não tem `"use client"` e não usa hook, então renderiza em página server desde que não receba `onClick` — foi o caso do submit de `app/ops/events/page.tsx`, que virou `<Button type="submit">` sem tornar a página client. Todo `<Link>` usou `buttonClasses`, mantendo a tag.
+
+Dívida residual conhecida: dois arquivos (`event-pieces`, `guestbook-audio-field`) têm botões que **já eram** Tailwind cru sem passar pelo mapa — "Baixar SVG" e "Cancelar". Não foram tocados porque estavam fora do alvo desta varredura, mas são o mesmo tipo de dívida e devem cair nas ondas de tela.
+
 ## O que esta onda não faz
 
 Não mexe em `Dialog`, `BottomSheet` nem `Toast` — a spec §8 pede a adoção deles, mas isso é troca de padrão de interação (confirmação, feedback), não de aparência de botão, e cada caso precisa de decisão de conteúdo: o que a confirmação diz antes de uma ação destrutiva. Vai junto das ondas de tela, onde a copy é escrita.
