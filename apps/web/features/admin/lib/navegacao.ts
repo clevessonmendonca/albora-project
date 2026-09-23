@@ -26,7 +26,7 @@ export const DESTINOS: readonly Destino[] = [
     absorve: ["/identity", "/missions", "/guestbook"],
   },
   { id: "compartilhar", rotulo: "Compartilhar", suffix: "/qrcode", absorve: [] },
-  { id: "ajustes", rotulo: "Ajustes", suffix: "/consent", absorve: [] },
+  { id: "ajustes", rotulo: "Ajustes", suffix: "/ajustes", absorve: ["/consent"] },
 ];
 
 function casa(pathname: string, rota: string): boolean {

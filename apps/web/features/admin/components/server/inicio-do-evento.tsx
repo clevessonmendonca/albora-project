@@ -5,7 +5,6 @@ import { buttonClasses } from "@albora/ui-web";
 import { AdminCard, AdminSection } from "@/features/admin/components/server/admin-shell";
 import { ContagemRegressiva } from "@/features/admin/components/client/contagem-regressiva";
 import { EventControls } from "@/features/admin/components/client/event-controls";
-import { EventTeamPanel } from "@/features/admin/components/client/event-team-panel";
 import { LiveSummary } from "@/features/admin/components/client/live-summary";
 import { PreEventPromo } from "@/features/admin/components/client/pre-event-promo";
 import { PrimeiraVisita } from "@/features/admin/components/client/primeira-visita";
@@ -158,7 +157,6 @@ export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
       <div className="flex flex-col gap-5">
         <LiveSummary eventoId={eventoId} />
         {controles}
-        <EventTeamPanel eventId={evento.eventoId} canManageTeam={canManageCoupleOnly} />
       </div>
     );
   }

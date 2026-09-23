@@ -1,8 +1,7 @@
 "use client";
 
 import { interacaoAberta, eventDefaults } from "@albora/core";
-import { Badge, Button, buttonClasses, Switch } from "@albora/ui-web";
-import Link from "next/link";
+import { Badge, Button, Switch } from "@albora/ui-web";
 import { useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { SupportHelpButton } from "@/features/admin/components/client/support-help-button";
@@ -28,6 +27,8 @@ type Props = {
   initialInteractionOpensAt: string | null;
   initialStatus: "draft" | "active" | "ended";
   canManageCoupleOnly?: boolean;
+  /** `aoVivo` = o que se mexe durante a festa. `regras` = o que se decide antes dela. */
+  modo?: "aoVivo" | "regras";
 };
 
 function fromWire(m: WireModeration): Moderation {
@@ -45,6 +46,7 @@ export function EventControls({
   initialInteractionOpensAt,
   initialStatus,
   canManageCoupleOnly = true,
+  modo = "aoVivo",
 }: Props) {
   const [moderation, setModeration] = useState(() => fromWire(initial));
   const [interactionOpensAt, setInteractionOpensAt] = useState(initialInteractionOpensAt);
@@ -114,9 +116,12 @@ export function EventControls({
   };
 
 
+  const aoVivo = modo === "aoVivo";
+  const regras = modo === "regras";
+
   return (
     <div className="flex flex-col gap-5">
-      {status === "draft" && (
+      {aoVivo && status === "draft" && (
         <AdminSection>
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div>
@@ -138,6 +143,7 @@ export function EventControls({
         </AdminSection>
       )}
 
+      {aoVivo && (
       <AdminSection>
         <div className="flex flex-wrap items-center justify-between gap-5">
           <div>
@@ -161,7 +167,9 @@ export function EventControls({
           />
         </div>
       </AdminSection>
+      )}
 
+      {regras && (
       <AdminSection id="controle-menores">
         <h2 className="tipo-label m-0 mb-4 text-ink-3">Proteções</h2>
 
@@ -222,7 +230,9 @@ export function EventControls({
           />
         </div>
       </AdminSection>
+      )}
 
+      {aoVivo && (
       <AdminSection id="controle-interacao">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <h2 className="tipo-subtitle m-0 text-ink">Interação social</h2>
@@ -299,25 +309,9 @@ export function EventControls({
           </Button>
         ) : null}
       </AdminSection>
+      )}
 
-      <AdminSection>
-        <h2 className="tipo-subtitle m-0 mb-3 text-ink">Moderação e convidados</h2>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href={`/admin/e/${eventId}/moderation`}
-            className={buttonClasses({ variant: "primary" })}
-          >
-            Abrir moderação
-          </Link>
-          <Link
-            href={`/admin/e/${eventId}/guests`}
-            className={buttonClasses({ variant: "secondary" })}
-          >
-            Ver convidados
-          </Link>
-        </div>
-      </AdminSection>
-
+      {regras && (
       <AdminSection>
         <h2 className="tipo-subtitle m-0 mb-3 text-ink">Preciso de ajuda</h2>
         <p className="tipo-body mb-4 mt-0 text-ink-2">
@@ -325,8 +319,9 @@ export function EventControls({
         </p>
         <SupportHelpButton eventId={eventId} />
       </AdminSection>
+      )}
 
-      {canManageCoupleOnly && plan === "free" && (
+      {regras && canManageCoupleOnly && plan === "free" && (
         <AdminSection>
           <h2 className="tipo-subtitle m-0 mb-3 text-ink">Assinar Completo</h2>
           <p className="tipo-body mb-4 mt-0 text-ink-2">

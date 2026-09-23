@@ -35,6 +35,7 @@ describe("destino ativo", () => {
     expect(destinoAtivo(`${base}/identity`, base)).toBe("experiencia");
     expect(destinoAtivo(`${base}/missions`, base)).toBe("experiencia");
     expect(destinoAtivo(`${base}/guestbook`, base)).toBe("experiencia");
+    expect(destinoAtivo(`${base}/consent`, base)).toBe("ajustes");
   });
 
   it("rota própria marca o próprio destino", () => {
@@ -42,7 +43,7 @@ describe("destino ativo", () => {
     expect(destinoAtivo(`${base}/guests`, base)).toBe("convidados");
     expect(destinoAtivo(`${base}/experiencia`, base)).toBe("experiencia");
     expect(destinoAtivo(`${base}/qrcode`, base)).toBe("compartilhar");
-    expect(destinoAtivo(`${base}/consent`, base)).toBe("ajustes");
+    expect(destinoAtivo(`${base}/ajustes`, base)).toBe("ajustes");
   });
 
   it("sub-rota mais funda continua marcando o destino", () => {
