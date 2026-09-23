@@ -13,7 +13,7 @@ export function QrProofSheet({ eventId }: { eventId: string }) {
       <h3 className="tipo-subtitle m-0 mb-2 text-ink">Prova física do QR</h3>
       <p className="tipo-caption mt-0 mb-4 max-w-[52ch] text-ink-3">
         Imprima peças na gráfica e teste com 3 celulares antes do evento. Critério: 3/3
-        aparelhos scaneiam em ≤5 s a 30 cm, luz baixa. Detalhes em{" "}
+        aparelhos escaneiam em ≤5 s a 30 cm, luz baixa. Detalhes em{" "}
         <span className="text-ink-2">docs/runbooks/prova-qr-fisica.md</span>.
       </p>
 

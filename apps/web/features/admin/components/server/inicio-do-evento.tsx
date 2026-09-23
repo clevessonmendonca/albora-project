@@ -52,6 +52,7 @@ function ProximosPassos({ passos }: { passos: Passo[] }) {
             </div>
             <Link
               href={passo.href}
+              aria-label={passo.rotulo}
               className={buttonClasses({ variant: "secondary", size: "sm" })}
             >
               Abrir

@@ -173,7 +173,7 @@ export function PreEventChecklist({
                               href={item.href}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="tipo-caption text-acento no-underline hover:opacity-80"
+                              className="tipo-caption inline-flex min-h-11 items-center text-acento no-underline hover:opacity-80"
                               onClick={(e) => e.stopPropagation()}
                             >
                               Abrir ↗
@@ -181,7 +181,7 @@ export function PreEventChecklist({
                           ) : (
                             <Link
                               href={item.href}
-                              className="tipo-caption text-acento no-underline hover:opacity-80"
+                              className="tipo-caption inline-flex min-h-11 items-center text-acento no-underline hover:opacity-80"
                               onClick={(e) => e.stopPropagation()}
                             >
                               Ir para etapa →

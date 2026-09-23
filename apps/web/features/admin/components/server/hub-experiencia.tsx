@@ -50,7 +50,7 @@ function pecas(base: string, ctx: AdminEventPageContext): Peca[] {
       titulo: "Recado",
       oQueFaz: "Uma mensagem de vocês, em texto ou áudio, para quem chega.",
       estado: "Escreva ou grave quando quiser.",
-      acao: "Abrir",
+      acao: "Escrever",
       href: `${base}/guestbook`,
     },
   ];
@@ -85,7 +85,11 @@ export function HubExperiencia({ ctx, origin }: { ctx: AdminEventPageContext; or
               <p className="tipo-body m-0 mt-2 max-w-[48ch] text-ink-2">{peca.oQueFaz}</p>
               <p className="tipo-caption m-0 mt-2 text-ink-3">{peca.estado}</p>
             </div>
-            <Link href={peca.href} className={buttonClasses({ variant: "secondary", size: "sm" })}>
+            <Link
+              href={peca.href}
+              aria-label={`${peca.acao} — ${peca.titulo}`}
+              className={buttonClasses({ variant: "secondary", size: "sm" })}
+            >
               {peca.acao}
             </Link>
           </div>

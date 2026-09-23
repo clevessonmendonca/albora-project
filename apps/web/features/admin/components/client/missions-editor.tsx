@@ -358,7 +358,7 @@ export function MissionsEditor({
                     <button
                       type="button"
                       onClick={() => setEditDeadline("")}
-                      className="cursor-pointer bg-transparent p-0 font-corpo text-[0.8125rem] text-ink-3 underline hover:text-ink"
+                      className="inline-flex min-h-11 cursor-pointer items-center bg-transparent p-0 font-corpo text-[0.8125rem] text-ink-3 underline hover:text-ink"
                     >
                       Remover prazo
                     </button>

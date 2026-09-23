@@ -15,7 +15,17 @@ export function EncerrarEvento({
   const [encerrando, setEncerrando] = useState(false);
   const [encerrado, setEncerrado] = useState(status === "ended");
 
-  if (status === "draft") return null;
+  if (status === "draft") {
+    return (
+      <AdminSection>
+        <h2 className="tipo-subtitle m-0 mb-2 text-ink">Encerrar o evento</h2>
+        <p className="tipo-body m-0 max-w-[52ch] text-ink-2">
+          Só dá para encerrar um evento que já está no ar. Publique primeiro; depois da festa,
+          é aqui que vocês fecham.
+        </p>
+      </AdminSection>
+    );
+  }
 
   const encerrar = async () => {
     setEncerrando(true);

@@ -162,6 +162,7 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl }: Props) {
         <input
           ref={inputRef}
           type="file"
+          aria-label="Escolher imagem de capa"
           accept={ACCEPTED_MIMES.join(",")}
           className="sr-only"
           onChange={(e) => {

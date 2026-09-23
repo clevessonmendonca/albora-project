@@ -191,6 +191,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
                   <button
                     type="button"
                     onClick={() => setUrl(s.url)}
+                    aria-label={`Usar a sugestão com ${s.votos === 1 ? "1 voto" : `${s.votos} votos`}`}
                     className={`tipo-caption inline-flex ${ALVO_TOQUE} cursor-pointer items-center rounded-pilula border border-linha bg-superficie px-2.5 text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta`}
                   >
                     Usar
