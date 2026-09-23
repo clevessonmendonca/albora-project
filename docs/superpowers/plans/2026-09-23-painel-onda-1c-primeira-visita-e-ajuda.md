@@ -164,6 +164,14 @@ git commit -m "feat(admin): introdução dispensável na primeira visita"
 pnpm typecheck && pnpm lint && pnpm test && pnpm guards
 ```
 
+## Resultado da execução
+
+Quatro commits. Suíte em 2768 testes, lint e typecheck limpos, 8 guards.
+
+**Um teste meu que eu apaguei em vez de consertar.** Escrevi um caso verificando que a folha de ajuda volta ao estado fechado depois do `Esc`. Ele falhou — e a causa era boa: o `Dialog` do design system tem 300 ms de animação de saída, então o estado não vira na hora. Consertar teria sido esperar o timer. Mas o teste estava errado de origem: fechar é contrato do `Dialog`, e `packages/ui-web/src/dialog.test.tsx` já cobre isso. Meu componente responde por uma coisa só — o botão abre a folha com os sete termos. Teste que duplica cobertura de outro componente e acopla à animação dele é dívida, não rede de segurança.
+
+Também alinhei o teste de "começa fechada" à convenção do design system: em vez de afirmar que o texto não está no DOM — e ele está, porque `<dialog>` fechado mantém os filhos —, o teste confere `data-state="closed"`, que é como `dialog.test.tsx` faz.
+
 ## Pronto quando
 
 - Existe uma frase, e só uma, para cada termo que o produto inventou.
