@@ -4,8 +4,11 @@ import { arquivos, cli, linhasDeCodigo, violacao } from "./util.mjs";
  * Guard de isolamento — a regra que, se quebrar em produção, quebra
  * irreversivelmente.
  *
- * O teste contra banco real entra na task 003. O que já é verificável hoje,
- * estaticamente, são as duas formas que vazam evento entre clientes:
+ * O teste contra banco real existe em `packages/db/src/rls-isolamento.test.ts`
+ * e roda em `pnpm test:isolamento`: ele verifica, contra o schema aplicado, que
+ * toda tabela com `event_id` tem RLS forçada e com política, salvo as portas
+ * declaradas com motivo. O que este guard cobre, estaticamente, são as duas
+ * formas que vazam evento entre clientes:
  *
  * `SET` em vez de `SET LOCAL` — o pooling em modo transação devolve a conexão
  * a cada COMMIT, e o setting de sessão sobra para o próximo cliente, que é
