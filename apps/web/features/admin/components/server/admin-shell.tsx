@@ -2,6 +2,7 @@ import React, { type CSSProperties, type ReactNode } from "react";
 import { ALBORA_BRAND, toVariables, resolveTokens, type Background } from "@albora/tokens";
 import { cva, SkipLink } from "@albora/ui-web";
 import Link from "next/link";
+import { AjudaDoPainel } from "@/features/admin/components/client/ajuda-do-painel";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
 /** Admin é superfície clara — a marca resolve `dark` (chão do convidado), então o default aqui sobrescreve. */
@@ -57,7 +58,10 @@ export function AdminShell({
                 </h1>
                 {subtitle && <p className="tipo-caption m-0 mt-2 text-ink-3">{subtitle}</p>}
               </div>
-              <SignOutButton />
+              <div className="flex shrink-0 items-center gap-1">
+                <AjudaDoPainel />
+                <SignOutButton />
+              </div>
             </header>
             {children}
           </div>
