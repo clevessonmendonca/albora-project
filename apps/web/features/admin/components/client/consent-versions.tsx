@@ -114,13 +114,17 @@ export function ConsentVersions({ eventoId }: { eventoId: string }) {
 
       {(["entrada", "externo"] as const).map((tipo) => {
         const lista = porTipo(tipo);
-        if (lista.length === 0) return null;
         return (
           <AdminSection key={tipo}>
             <h3 className="tipo-body m-0 font-medium text-ink">{ROTULO_TIPO[tipo]}</h3>
             <p className="tipo-caption mb-4 mt-1.5 text-ink-3">
               {DESCRICAO_TIPO[tipo]}
             </p>
+            {lista.length === 0 && (
+              <p className="tipo-body m-0 text-ink-2">
+                Nenhum registro ainda. Eles aparecem aqui conforme os convidados entram.
+              </p>
+            )}
             <div className="flex flex-col gap-3">
               {lista.map((v) => (
                 <VersionCard key={`${v.tipo}:${v.versao}`} versao={v} />

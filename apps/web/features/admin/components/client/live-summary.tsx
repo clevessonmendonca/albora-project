@@ -128,7 +128,7 @@ export function LiveSummary({ eventoId }: Props) {
           aria-live="polite"
           className="tipo-caption mb-4 rounded-token border border-acento bg-acento/10 px-3.5 py-3 text-acento-texto"
         >
-          🎉 A primeira foto chegou! O evento está ativo.
+          A primeira foto chegou. A festa começou de verdade.
         </div>
       )}
 

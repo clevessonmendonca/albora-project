@@ -96,7 +96,17 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
     }
   }, [canManageTeam, loadMembers]);
 
-  if (!canManageTeam) return null;
+  if (!canManageTeam) {
+    return (
+      <AdminSection>
+        <h2 className="tipo-subtitle m-0 mb-1 text-ink">Equipe</h2>
+        <p className="tipo-body m-0 mt-1.5 max-w-[48ch] text-ink-2">
+          Quem organiza este evento junto com vocês aparece aqui. Só o casal e quem criou o
+          evento podem convidar ou remover pessoas.
+        </p>
+      </AdminSection>
+    );
+  }
 
   return (
     <AdminSection>
