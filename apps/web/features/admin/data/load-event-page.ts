@@ -1,4 +1,11 @@
-import { buscarEventoDoHost, roleForAccountOnEvent, type EventoDoHost, type HostEventRole } from "@albora/db";
+import {
+  buscarEventoDoHost,
+  listarDesafios,
+  roleForAccountOnEvent,
+  withEvent,
+  type EventoDoHost,
+  type HostEventRole,
+} from "@albora/db";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { adminEventDisplayName } from "@/features/admin/lib/event-display-name";
@@ -15,6 +22,8 @@ export type AdminEventPageContext = {
   canManageCoupleOnly: boolean;
   /** Chave localStorage do checklist pré-evento (conta + evento). */
   checklistStorageKey: string;
+  /** Quantas missões o evento tem hoje — alimenta os próximos passos. */
+  missoes: number;
 };
 
 export async function loadEventPage(eventoId: string): Promise<AdminEventPageContext> {
@@ -29,6 +38,8 @@ export async function loadEventPage(eventoId: string): Promise<AdminEventPageCon
   const evento = await buscarEventoDoHost(pool, host.accountId, eventoId);
   if (!evento) notFound();
 
+  const desafios = await withEvent(pool, eventoId, (c) => listarDesafios(c, eventoId, null));
+
   return {
     evento,
     eventoId,
@@ -36,5 +47,6 @@ export async function loadEventPage(eventoId: string): Promise<AdminEventPageCon
     role,
     canManageCoupleOnly: role === "owner" || role === "couple",
     checklistStorageKey: preEventStorageKey(host.accountId, eventoId),
+    missoes: desafios.length,
   };
 }
