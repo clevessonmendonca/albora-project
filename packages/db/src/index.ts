@@ -8,6 +8,12 @@ export { migrar } from "./migrar";
 export type { LinhaUpload, ResultadoConfirm } from "./uploads";
 export { anotarUpload, confirmarUpload, ErroUploadDeOutroEvento, removerUploadProprio } from "./uploads";
 
+export {
+  desmarcarItemChecklist,
+  lerChecklist,
+  marcarItemChecklist,
+} from "./checklist";
+
 export type { Desafio, ItemMissao } from "./challenges";
 export { desafioDoEvento, listarDesafios, substituirDesafios, substituirMissoesCustom } from "./challenges";
 
@@ -288,6 +294,12 @@ export { bloquearConvidado as blockGuest } from "./block-db";
 /** English alias — preferred for new code. @see ErroSessaoDeOutroEvento */
 export { ErroSessaoDeOutroEvento as SessionConflictError } from "./block-db";
 
+/** English alias — preferred for new code. @see lerChecklist */
+export { lerChecklist as readChecklist } from "./checklist";
+/** English alias — preferred for new code. @see marcarItemChecklist */
+export { marcarItemChecklist as checkChecklistItem } from "./checklist";
+/** English alias — preferred for new code. @see desmarcarItemChecklist */
+export { desmarcarItemChecklist as uncheckChecklistItem } from "./checklist";
 /** English alias — preferred for new code. @see listarEventosDoHost */
 export { listarEventosDoHost as listHostEvents } from "./moderation-event";
 /** English alias — preferred for new code. @see encerrarEvento */
