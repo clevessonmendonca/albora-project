@@ -1,9 +1,10 @@
 "use client";
 
 import type { CodigoDaTese } from "@albora/core";
-import { Badge } from "@albora/ui-web";
+import { Badge, Skeleton } from "@albora/ui-web";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { useModerationCount } from "./moderation-count-context";
 import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
@@ -36,23 +37,13 @@ type Props = {
 };
 
 export function LiveSummary({ eventoId }: Props) {
-  const [resumo, setResumo] = useState<Resumo | null>(null);
-  const [erro, setErro] = useState(false);
   const [primeiraFotoToast, setPrimeiraFotoToast] = useState(false);
-  const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const primeiraFotoVista = useRef(false);
   const { setCount } = useModerationCount();
-
   const [atualizando, setAtualizando] = useState(false);
 
-  const carregar = useCallback(async () => {
-    try {
-      const r = await fetch(`/api/admin/events/${eventoId}`);
-      if (!r.ok) throw new Error("falhou");
-      const dados = (await r.json()) as Resumo;
-      setResumo(dados);
-      setErro(false);
-      setUltimaAtualizacao(new Date());
+  const aoCarregar = useCallback(
+    (dados: Resumo) => {
       setCount(dados.filaRevisao);
 
       if (!primeiraFotoVista.current && dados.totalFotos > 0) {
@@ -63,20 +54,23 @@ export function LiveSummary({ eventoId }: Props) {
             setPrimeiraFotoToast(true);
           }
         } catch {
-          // sessionStorage blocked (private mode or permission denied)
+          /* Modo privado: o aviso não aparece, o painel continua. */
         }
         primeiraFotoVista.current = true;
       }
-    } catch {
-      setErro(true);
-    }
-  }, [eventoId, setCount]);
+    },
+    [eventoId, setCount],
+  );
 
-  useEffect(() => {
-    void carregar();
-    const id = window.setInterval(() => void carregar(), INTERVALO_MS);
-    return () => window.clearInterval(id);
-  }, [carregar]);
+  const {
+    dado: resumo,
+    erro,
+    atualizadoEm: ultimaAtualizacao,
+    recarregar: carregar,
+  } = useAdminResource<Resumo>(`/api/admin/events/${eventoId}`, {
+    intervaloMs: INTERVALO_MS,
+    aoCarregar,
+  });
 
   useEffect(() => {
     if (!primeiraFotoToast) return;
@@ -109,15 +103,15 @@ export function LiveSummary({ eventoId }: Props) {
     return (
       <AdminSection>
         <div className="mb-4 flex items-center justify-between gap-4">
-          <div className="h-6 w-16 animate-pulse rounded-token bg-superficie-alta" />
-          <div className="h-6 w-20 animate-pulse rounded-pilula bg-superficie-alta" />
+          <Skeleton className="h-6 w-16" />
+          <Skeleton variant="text" className="h-6 w-20" />
         </div>
         <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="h-[4.5rem] animate-pulse rounded-token bg-superficie-alta" />
+            <Skeleton key={i} className="h-[4.5rem]" />
           ))}
         </div>
-        <div className="h-1.5 animate-pulse rounded-full bg-superficie-alta" />
+        <Skeleton variant="text" className="h-1.5" />
       </AdminSection>
     );
   }
