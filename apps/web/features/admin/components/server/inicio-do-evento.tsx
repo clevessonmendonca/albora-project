@@ -75,7 +75,7 @@ function Chegada({ base }: { base: string }) {
 }
 
 export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
-  const { evento, eventoId, name, canManageCoupleOnly, missoes, checklistStorageKey } = ctx;
+  const { evento, eventoId, name, canManageCoupleOnly, missoes } = ctx;
   const base = `/admin/e/${eventoId}`;
   const fase = faseDoEvento(evento, new Date());
 
@@ -94,7 +94,13 @@ export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
   const preparo = (
     <PreEventPromo
       eventId={evento.eventoId}
-      storageKey={checklistStorageKey}
+      sinais={{
+        missoes,
+        temIdentidade: Object.keys(evento.identityTokens).length > 0,
+        convidadosEsperados: evento.expectedGuests,
+        planoPago: evento.plan !== "free",
+        gateDefinido: evento.interacaoAbreEm !== null,
+      }}
       startsAt={evento.comecaEm}
     />
   );

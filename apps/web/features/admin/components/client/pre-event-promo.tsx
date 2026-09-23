@@ -1,41 +1,39 @@
 "use client";
 
+import React, { useMemo } from "react";
 import { ProgressBar, buttonClasses } from "@albora/ui-web";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 import { AdminCard } from "@/features/admin/components/server/admin-shell";
 import {
   buildPreEventSections,
-  readPreEventChecklist,
+  estadoDoChecklist,
+  type SinaisDePreparo,
 } from "@/features/admin/lib/pre-event-checklist";
+import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 
 type Props = {
   eventId: string;
-  storageKey: string;
+  sinais: SinaisDePreparo;
   startsAt: Date;
 };
 
-export function PreEventPromo({ eventId, storageKey, startsAt }: Props) {
-  const [done, setDone] = useState<number | null>(null);
-  const total = useMemo(() => {
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    return buildPreEventSections(eventId, origin).reduce((n, s) => n + s.items.length, 0);
-  }, [eventId]);
+export function PreEventPromo({ eventId, sinais, startsAt }: Props) {
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
 
-  useEffect(() => {
-    const atualizar = () => {
-      const state = readPreEventChecklist(storageKey);
-      const marcados = Object.values(state).filter(Boolean).length;
-      setDone(marcados);
-    };
-    atualizar();
-    window.addEventListener("storage", atualizar);
-    window.addEventListener("focus", atualizar);
-    return () => {
-      window.removeEventListener("storage", atualizar);
-      window.removeEventListener("focus", atualizar);
-    };
-  }, [storageKey]);
+  const { dado, carregando } = useAdminResource<{ marcados: string[] }>(
+    `/api/admin/events/${eventId}/checklist`,
+  );
+
+  const total = useMemo(
+    () => buildPreEventSections(eventId, origin).reduce((n, s) => n + s.items.length, 0),
+    [eventId, origin],
+  );
+
+  const done = useMemo(() => {
+    if (carregando) return null;
+    const estado = estadoDoChecklist(dado?.marcados ?? [], sinais, eventId, origin);
+    return Object.values(estado).filter((i) => i.feito).length;
+  }, [carregando, dado, sinais, eventId, origin]);
 
   const dias = Math.ceil((startsAt.getTime() - Date.now()) / 86_400_000);
   const antesDoEvento = dias > 0;
@@ -58,13 +56,16 @@ export function PreEventPromo({ eventId, storageKey, startsAt }: Props) {
               <ProgressBar
                 current={done}
                 total={total}
-                label="Itens preparados neste navegador"
-                completedLabel="Tudo preparado neste navegador"
+                label="Itens preparados"
+                completedLabel="Tudo preparado"
               />
             </div>
           )}
         </div>
-        <Link href={`/admin/e/${eventId}/pre-event`} className={buttonClasses({ variant: "primary" })}>
+        <Link
+          href={`/admin/e/${eventId}/pre-event`}
+          className={buttonClasses({ variant: "primary" })}
+        >
           Abrir checklist
         </Link>
       </div>

@@ -12,40 +12,6 @@ export type PreEventChecklistSection = {
   items: PreEventChecklistItem[];
 };
 
-export type PreEventChecklistState = Record<string, boolean>;
-
-const STORAGE_PREFIX = "albora-pre-event";
-
-export function preEventStorageKey(accountId: string, eventId: string): string {
-  return `${STORAGE_PREFIX}:${accountId}:${eventId}`;
-}
-
-export function readPreEventChecklist(storageKey: string): PreEventChecklistState {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw) as unknown;
-    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return {};
-    const out: PreEventChecklistState = {};
-    for (const [key, value] of Object.entries(parsed)) {
-      if (typeof value === "boolean") out[key] = value;
-    }
-    return out;
-  } catch {
-    return {};
-  }
-}
-
-export function writePreEventChecklist(storageKey: string, state: PreEventChecklistState): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(storageKey, JSON.stringify(state));
-  } catch {
-    // quota ou modo privado — checklist degrada sem bloquear o admin
-  }
-}
-
 export function buildPreEventSections(
   eventId: string,
   origin: string,

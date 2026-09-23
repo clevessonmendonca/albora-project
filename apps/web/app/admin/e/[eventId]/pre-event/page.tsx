@@ -12,8 +12,17 @@ export default async function PreEventPage({
 
   return (
     <EventPageLayout eventId={eventId} section="Pré-evento">
-      {({ checklistStorageKey }) => (
-        <PreEventChecklist eventId={eventId} storageKey={checklistStorageKey} />
+      {({ evento, missoes }) => (
+        <PreEventChecklist
+          eventId={eventId}
+          sinais={{
+            missoes,
+            temIdentidade: Object.keys(evento.identityTokens).length > 0,
+            convidadosEsperados: evento.expectedGuests,
+            planoPago: evento.plan !== "free",
+            gateDefinido: evento.interacaoAbreEm !== null,
+          }}
+        />
       )}
     </EventPageLayout>
   );
