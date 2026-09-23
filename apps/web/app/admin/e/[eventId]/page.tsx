@@ -12,7 +12,7 @@ export default async function EventPage({
 
   return (
     <EventPageLayout eventId={eventId} allowFollowMode>
-      {(ctx) => <InicioDoEvento ctx={ctx} />}
+      {async (ctx) => <InicioDoEvento ctx={ctx} />}
     </EventPageLayout>
   );
 }

@@ -95,6 +95,39 @@ export function erroDeJobParaRegistro(e: unknown): string {
 }
 
 /** Pool deve ter BYPASSRLS/superuser — sem isso o JOIN em events devolve zero e o sintoma é silencioso. */
+export type JobDeRetencaoDoEvento = {
+  kind: RetentionKind;
+  status: string;
+  dueAt: Date;
+  completedAt: Date | null;
+};
+
+/** 🔴 `retention_jobs` não tem RLS (migration 0033) — o filtro por event_id aqui é a única barreira, não a segunda. Nunca chame sem ele. */
+export async function lerRetencaoDoEvento(
+  cliente: PoolClient,
+  eventoId: string,
+): Promise<JobDeRetencaoDoEvento[]> {
+  const { rows } = await cliente.query<{
+    kind: string;
+    status: string;
+    due_at: Date;
+    completed_at: Date | null;
+  }>(
+    `SELECT kind, status, due_at, completed_at
+       FROM retention_jobs
+      WHERE event_id = $1
+      ORDER BY due_at`,
+    [eventoId],
+  );
+
+  return rows.map((l) => ({
+    kind: l.kind as RetentionKind,
+    status: l.status,
+    dueAt: l.due_at,
+    completedAt: l.completed_at,
+  }));
+}
+
 export async function listDueRetentionJobs(pool: Pool, limit = 50): Promise<DueRetentionJob[]> {
   const { rows } = await pool.query<{
     id: string;

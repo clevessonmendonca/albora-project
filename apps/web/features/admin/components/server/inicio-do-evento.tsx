@@ -1,6 +1,9 @@
 import React from "react";
 import Link from "next/link";
 import { faseDoEvento } from "@albora/core";
+import { lerRetencaoDoEvento, withEvent } from "@albora/db";
+import { getPool } from "@/lib/db";
+import { prazosDeRetencao } from "@/features/admin/lib/prazos-de-retencao";
 import { buttonClasses } from "@albora/ui-web";
 import { AdminCard, AdminSection } from "@/features/admin/components/server/admin-shell";
 import { ContagemRegressiva } from "@/features/admin/components/client/contagem-regressiva";
@@ -74,7 +77,7 @@ function Chegada({ base }: { base: string }) {
   );
 }
 
-export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
+export async function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
   const { evento, eventoId, name, canManageCoupleOnly, missoes } = ctx;
   const base = `/admin/e/${eventoId}`;
   const fase = faseDoEvento(evento, new Date());
@@ -161,6 +164,9 @@ export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
     );
   }
 
+  const jobs = await withEvent(getPool(), eventoId, (c) => lerRetencaoDoEvento(c, eventoId));
+  const prazos = prazosDeRetencao(jobs);
+
   return (
     <div className="flex flex-col gap-5">
       <AdminCard variant="highlight">
@@ -182,6 +188,39 @@ export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
           </Link>
         </div>
       </AdminSection>
+
+      {(prazos.exportaEm || prazos.apagaEm || prazos.jaExportou) && (
+        <AdminSection>
+          <h2 className="tipo-subtitle m-0 mb-2 text-ink">Até quando ficam aqui</h2>
+          <p className="tipo-body m-0 mb-4 max-w-[52ch] text-ink-2">
+            O Álbora guarda as fotos por um ano. Antes do prazo acabar, elas vão sozinhas para a
+            nuvem de vocês — não é preciso lembrar de nada.
+          </p>
+          <dl className="m-0 flex flex-col gap-3">
+            {prazos.jaExportou && prazos.exportouEm && (
+              <div className="rounded-token border border-linha px-4 py-3">
+                <dt className="tipo-label m-0 text-ink-3">Já foram para a nuvem de vocês</dt>
+                <dd className="tipo-body m-0 mt-1 text-ink">{dataPorExtenso(prazos.exportouEm)}</dd>
+              </div>
+            )}
+            {prazos.exportaEm && (
+              <div className="rounded-token border border-linha px-4 py-3">
+                <dt className="tipo-label m-0 text-ink-3">Vão para a nuvem de vocês</dt>
+                <dd className="tipo-body m-0 mt-1 text-ink">{dataPorExtenso(prazos.exportaEm)}</dd>
+              </div>
+            )}
+            {prazos.apagaEm && (
+              <div className="rounded-token border border-linha px-4 py-3">
+                <dt className="tipo-label m-0 text-ink-3">Saem do Álbora</dt>
+                <dd className="tipo-body m-0 mt-1 text-ink">{dataPorExtenso(prazos.apagaEm)}</dd>
+                <dd className="tipo-caption m-0 mt-1 text-ink-3">
+                  Baixe ou exporte antes desta data se quiser outra cópia.
+                </dd>
+              </div>
+            )}
+          </dl>
+        </AdminSection>
+      )}
     </div>
   );
 }

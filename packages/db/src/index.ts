@@ -460,6 +460,7 @@ export {
   markRetentionJob,
   processRetentionJob,
   sanitizarErroDeJob,
+  lerRetencaoDoEvento,
   scheduleRetentionJobs,
 } from "./retention-jobs";
 
@@ -499,3 +500,4 @@ export { aceitesDeEntradaPorVersao, aceitesExternosPorVersao } from "./consent-d
 export { aceitesDeEntradaPorVersao as entryConsentAcceptancesByVersion } from "./consent-db";
 /** English alias — preferred for new code. @see aceitesExternosPorVersao */
 export { aceitesExternosPorVersao as externalConsentAcceptancesByVersion } from "./consent-db";
+export type { JobDeRetencaoDoEvento } from "./retention-jobs";
