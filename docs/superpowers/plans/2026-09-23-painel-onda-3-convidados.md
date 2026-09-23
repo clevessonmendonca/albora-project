@@ -83,6 +83,14 @@ git commit -m "refactor(admin): insights vira seção de Convidados"
 
 ---
 
+## Resultado da execução
+
+Quatro commits, contando a reconciliação que era pré-requisito. Suíte em 2785 testes, typecheck e lint limpos, 8 guards.
+
+`GuestFunnel` ganhou uma prop e um retorno antecipado: na faceta Pessoas devolve só os cartões, que antes ficavam no fim de uma tela de números. Nenhum componente novo — o que faltava era hierarquia, não código.
+
+A reconciliação do denominador (`c02aba21`) mostrou por que aquele marcador da spec valia: a função certa existia no núcleo, documentada, e nenhuma rota a chamava. É o tipo de defeito que teste de unidade não pega porque cada peça está certa sozinha — só a ligação estava errada. Por isso o `resumoDeParticipacao` virou função pura própria, com teste: agora a ligação também tem cobertura.
+
 ## Pronto quando
 
 - Quem procura gente encontra gente, sem rolar até o fim de uma tela de números.
