@@ -11,6 +11,8 @@ export type {
 export type { QueueBody, QueueDetails, Queue, QueueItem } from "./fila";
 export { shouldGiveUp, retryWaitSeconds, MAX_ATTEMPTS } from "./fila";
 
+export type { EventoComFase, FaseDoEvento, StatusDoEvento } from "./fase";
+export { faseDoEvento } from "./fase";
 export type { GateDeInteracao, ModoInteracao } from "./interacao";
 export { interacaoAberta, modoInteracao } from "./interacao";
 
@@ -494,6 +496,8 @@ export {
 } from "./wall";
 
 /** English alias — prefer for new code. */
+/** English alias — preferred for new code. @see faseDoEvento */
+export { faseDoEvento as eventPhase } from "./fase";
 export { modoInteracao as interactionMode } from "./interacao";
 /** English alias — prefer for new code. */
 export { interacaoAberta as interactionOpen } from "./interacao";
