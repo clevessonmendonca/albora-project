@@ -1,6 +1,6 @@
 import React, { type CSSProperties, type ReactNode } from "react";
 import { ALBORA_BRAND, toVariables, resolveTokens, type Background } from "@albora/tokens";
-import { cva, SkipLink } from "@albora/ui-web";
+import { cva, SkipLink, ToastContainer } from "@albora/ui-web";
 import Link from "next/link";
 import { AjudaDoPainel } from "@/features/admin/components/client/ajuda-do-painel";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
@@ -68,6 +68,7 @@ export function AdminShell({
         </main>
       </div>
       {bottomNav}
+      <ToastContainer />
     </>
   );
 }
