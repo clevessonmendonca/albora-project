@@ -23,18 +23,19 @@ export function cssDasVars(vars: Record<string, string>): string {
     .join(" ");
 }
 
-/** 4 blocos theme-aware: claro, escuro sob media, overrides `[data-tema]` nas duas direções. Espera vars já saneadas — só serializa a cascata. */
+/** 4 blocos theme-aware: claro, escuro sob media, overrides `[data-tema]` nas duas direções. Espera vars já saneadas — só serializa a cascata. O escopo é parâmetro porque a cascata não é do convidado: o painel do anfitrião usa a mesma, com outra raiz. */
 export function estiloAntiFlash(
   claro: Record<string, string>,
   escuro: Record<string, string>,
+  escopo = ".guest-tema",
 ): string {
   const claroCss = cssDasVars(claro);
   const escuroCss = cssDasVars(escuro);
 
   return [
-    `.guest-tema:not([data-tema="dark"]) { ${claroCss} }`,
-    `@media (prefers-color-scheme: dark) { .guest-tema:not([data-tema="light"]) { ${escuroCss} } }`,
-    `.guest-tema[data-tema="light"] { ${claroCss} }`,
-    `.guest-tema[data-tema="dark"] { ${escuroCss} }`,
+    `${escopo}:not([data-tema="dark"]) { ${claroCss} }`,
+    `@media (prefers-color-scheme: dark) { ${escopo}:not([data-tema="light"]) { ${escuroCss} } }`,
+    `${escopo}[data-tema="light"] { ${claroCss} }`,
+    `${escopo}[data-tema="dark"] { ${escuroCss} }`,
   ].join("\n");
 }

@@ -2,10 +2,18 @@ import React, { type CSSProperties, type ReactNode } from "react";
 import { ALBORA_BRAND, toVariables, resolveTokens, type Background } from "@albora/tokens";
 import { cva, SkipLink, ToastContainer } from "@albora/ui-web";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { estiloAntiFlash } from "@/features/guest/lib/theme-style";
+import { readThemePreference, THEME_COOKIE } from "@/features/guest/lib/theme-preference";
+import {
+  ADMIN_ROOT_ID,
+  ADMIN_TEMA_CLASSE,
+} from "@/features/admin/lib/tema-do-painel";
 import { AjudaDoPainel } from "@/features/admin/components/client/ajuda-do-painel";
+import { TemaDoPainelToggle } from "@/features/admin/components/client/tema-do-painel-toggle";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
-/** Admin é superfície clara — a marca resolve `dark` (chão do convidado), então o default aqui sobrescreve. */
+/** Admin nasce claro — a marca resolve `dark` (chão do convidado), então o default aqui sobrescreve. O escuro existe e é escolha de quem trabalha, não da marca. */
 export function adminVars(background: Background = "light"): CSSProperties {
   return toVariables(
     resolveTokens({ marca: ALBORA_BRAND, pack: { background } }),
@@ -21,7 +29,7 @@ type AdminShellProps = {
   children: ReactNode;
 };
 
-export function AdminShell({
+export async function AdminShell({
   title,
   subtitle,
   back,
@@ -29,12 +37,20 @@ export function AdminShell({
   bottomNav,
   children,
 }: AdminShellProps) {
+  const preferencia = readThemePreference((await cookies()).get(THEME_COOKIE)?.value);
+
+  // Vars da marca, não do casal: nada aqui vem de dado de terceiro, então não passa pelo saneador.
+  const claro = adminVars("light") as Record<string, string>;
+  const escuro = adminVars("dark") as Record<string, string>;
+
   return (
     <>
       <SkipLink />
+      <style>{estiloAntiFlash(claro, escuro, `.${ADMIN_TEMA_CLASSE}`)}</style>
       <div
-        className="flex min-h-dvh bg-bg font-[family-name:var(--fonte-corpo)] text-ink"
-        style={adminVars()}
+        id={ADMIN_ROOT_ID}
+        className={`${ADMIN_TEMA_CLASSE} flex min-h-dvh bg-bg font-[family-name:var(--fonte-corpo)] text-ink`}
+        {...(preferencia ? { "data-tema": preferencia } : {})}
       >
         {sidebar}
         <main id="main-content" className="min-w-0 flex-1">
@@ -58,7 +74,8 @@ export function AdminShell({
                 </h1>
                 {subtitle && <p className="tipo-caption m-0 mt-2 text-ink-3">{subtitle}</p>}
               </div>
-              <div className="flex shrink-0 items-center gap-1">
+              <div className="flex shrink-0 flex-wrap items-center gap-1">
+                <TemaDoPainelToggle />
                 <AjudaDoPainel />
                 <SignOutButton />
               </div>
