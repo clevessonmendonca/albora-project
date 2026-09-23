@@ -5,7 +5,6 @@ import { Badge, Button, buttonClasses, Switch } from "@albora/ui-web";
 import Link from "next/link";
 import { useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
-import { EventMusic } from "@/features/admin/components/client/event-music";
 import { EventPieces } from "@/features/admin/components/client/event-pieces";
 import { SupportHelpButton } from "@/features/admin/components/client/support-help-button";
 import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
@@ -385,11 +384,6 @@ export function EventControls({
       )}
 
       <AdminSection>
-        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Música do casal</h2>
-        <EventMusic eventId={eventId} />
-      </AdminSection>
-
-      <AdminSection>
         <h2 className="tipo-subtitle m-0 mb-4 text-ink">Peças para imprimir</h2>
         <EventPieces eventId={eventId} slug={slug} />
       </AdminSection>
@@ -399,7 +393,6 @@ export function EventControls({
         <div className="flex flex-col gap-3">
           <EventLink title="Convidado" url={eventEntryUrl(origin, slug, "link")} />
           <EventLink title="WhatsApp" url={whatsappInviteUrl(origin, slug)} />
-          <EventLink title="Telão" url={`${origin}/wall-display`} />
         </div>
         <a
           href={eventEntryUrl(origin, slug, "link")}
