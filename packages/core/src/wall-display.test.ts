@@ -11,6 +11,7 @@ import {
   modelosDoRodizio,
   modelosPermitidos,
   podarCache,
+  PESO_DO_DESTAQUE,
   pontuacaoPopular,
   proximaDoTelao,
   type ItemDoTelao,
@@ -273,5 +274,61 @@ describe("TBT é seleção, não layout", () => {
     const so = [item({ id: "unica", criadaEm: min(1), exibicoes: 0 })];
 
     expect(proximaDoTelao(so, { agora: AGORA, sorteio: () => 0, modelo: "tbt" })?.id).toBe("unica");
+  });
+});
+
+describe("o destaque do casal na parede", () => {
+  it("vale como cinco reações de convidado", () => {
+    const comum = pontuacaoPopular(item({ id: "a", criadaEm: min(5), reacoes: 5 }), AGORA);
+    const destacada = pontuacaoPopular(
+      item({ id: "b", criadaEm: min(5), reacoes: 0, destacada: true }),
+      AGORA,
+    );
+
+    expect(PESO_DO_DESTAQUE).toBe(5);
+    expect(destacada).toBeCloseTo(comum, 5);
+  });
+
+  it("soma às reações, não substitui: foto destacada E curtida pontua mais", () => {
+    const so_destacada = pontuacaoPopular(
+      item({ id: "a", criadaEm: min(5), reacoes: 0, destacada: true }),
+      AGORA,
+    );
+    const ambas = pontuacaoPopular(
+      item({ id: "b", criadaEm: min(5), reacoes: 4, destacada: true }),
+      AGORA,
+    );
+
+    expect(ambas).toBeGreaterThan(so_destacada);
+  });
+
+  it("continua decaindo por exibição: destaque não vira monopólio da parede", () => {
+    const base = { id: "a", criadaEm: min(5), reacoes: 0, destacada: true };
+    const virgem = pontuacaoPopular(item({ ...base, exibicoes: 0 }), AGORA);
+    const gasta = pontuacaoPopular(item({ ...base, exibicoes: 9 }), AGORA);
+
+    expect(gasta).toBeCloseTo(virgem / 10, 5);
+  });
+
+  it("uma foto que virou febre entre os convidados ainda supera o destaque", () => {
+    const febre = pontuacaoPopular(item({ id: "a", criadaEm: min(5), reacoes: 30 }), AGORA);
+    const destacada = pontuacaoPopular(
+      item({ id: "b", criadaEm: min(5), reacoes: 0, destacada: true }),
+      AGORA,
+    );
+
+    expect(febre).toBeGreaterThan(destacada);
+  });
+
+  it("não fura a fila da primeira exibição: justiça entre convidados não se compra com destaque", () => {
+    const escolhida = proximaDoTelao(
+      [
+        item({ id: "destacada-ja-exibida", criadaEm: min(60), exibicoes: 3, destacada: true, reacoes: 50 }),
+        item({ id: "virgem-de-convidado", criadaEm: min(1), exibicoes: 0 }),
+      ],
+      { agora: AGORA, sorteio: () => 0 },
+    );
+
+    expect(escolhida?.id).toBe("virgem-de-convidado");
   });
 });

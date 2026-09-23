@@ -57,6 +57,7 @@ export async function GET(req: Request) {
         mime: m.mime,
         criadaEm: m.criadaEm.toISOString(),
         reacoes: m.reacoes,
+        destacada: m.destacada,
         thumb: await assinarGet(m.chaveThumb, GET_TTL_SECONDS),
         full: await assinarGet(m.chaveFull, GET_TTL_SECONDS),
         ...(m.largura !== undefined && m.altura !== undefined

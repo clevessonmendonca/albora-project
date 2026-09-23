@@ -4,6 +4,8 @@ export type ItemDoTelao = {
   /** Decaimento por exibição, não só por tempo: sem isto a foto mais reagida monopoliza a parede. */
   exibicoes: number;
   reacoes: number;
+  /** Curadoria do casal. Pesa na faixa popular, nunca na fila da primeira exibição. */
+  destacada?: boolean;
   largura: number;
   altura: number;
 };
@@ -124,12 +126,16 @@ export function faixaDe(item: ItemDoTelao, agora: Date): Faixa {
   return "popular";
 }
 
-/** Multiplicativo de propósito: queda só por tempo deixa a mais reagida na parede toda noite; só por exibição ressuscita fotos antigas. */
+/** O casal destacar vale como cinco convidados reagirem. Soma em vez de multiplicar porque a pontuação é produto: destaque em foto sem reação nenhuma multiplicaria zero e não apareceria nunca. */
+export const PESO_DO_DESTAQUE = 5;
+
+/** Multiplicativo de propósito: queda só por tempo deixa a mais reagida na parede toda noite; só por exibição ressuscita fotos antigas. O destaque entra no numerador e decai junto — curadoria não é passe livre. */
 export function pontuacaoPopular(item: ItemDoTelao, agora: Date): number {
   const idade = Math.max(0, agora.getTime() - item.criadaEm.getTime());
   const porTempo = Math.pow(0.5, idade / MEIA_VIDA_MS);
   const porExibicao = 1 / (1 + item.exibicoes);
-  return item.reacoes * porTempo * porExibicao;
+  const peso = item.reacoes + (item.destacada ? PESO_DO_DESTAQUE : 0);
+  return peso * porTempo * porExibicao;
 }
 
 function ordenar(faixa: Faixa, itens: ItemDoTelao[], agora: Date): ItemDoTelao[] {

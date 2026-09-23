@@ -25,6 +25,8 @@ export type MidiaNaParede = {
   criadaEm: Date;
   /** Concessão `ler.contagem`. */
   reacoes: number;
+  /** Curadoria do casal — pesa na rotação da parede, não libera nem oculta nada. */
+  destacada: boolean;
   /** Ausente na fila antiga — não inventa 1080×1920, que escolheria retrato para vídeo deitado. */
   largura?: number;
   altura?: number;
@@ -40,6 +42,7 @@ type Linha = {
   denuncias: number;
   classifier_verdict: string | null;
   released_by_host: boolean;
+  destacada: boolean;
   width: number | null;
   height: number | null;
 };
@@ -59,6 +62,7 @@ export async function listarMidiaDaParede(
   const { rows } = await cliente.query<Linha>(
     `SELECT u.id, u.storage_key, u.mime, u.created_at, s.display_name,
             u.classifier_verdict, u.released_by_host, u.width, u.height,
+            (u.highlighted_at IS NOT NULL) AS destacada,
             (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes,
             (SELECT count(*) FROM reports rp WHERE rp.upload_id = u.id AND rp.kind = 'ofensivo')::int AS denuncias
        FROM uploads u
@@ -95,6 +99,7 @@ export async function listarMidiaDaParede(
         autor: l.display_name,
         criadaEm: l.created_at,
         reacoes: l.reacoes,
+        destacada: l.destacada,
         ...(tamanho ? { largura: tamanho.largura, altura: tamanho.altura } : {}),
       };
     });

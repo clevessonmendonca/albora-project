@@ -6,6 +6,7 @@ export type ItemApi = {
   mime: string;
   criadaEm: string;
   reacoes: number;
+  destacada?: boolean;
   thumb: string;
   full: string;
   expiraEm: number;

@@ -77,6 +77,7 @@ export function useWallDisplay(
       const persistido = persistedSize(bruto.largura, bruto.altura);
       if (existente && existente.expiraEm - agora > FOLGA_DE_RENOVACAO_MS) {
         existente.reacoes = bruto.reacoes;
+        existente.destacada = bruto.destacada === true;
         if (persistido && !dimsRef.current.has(bruto.id)) {
           dimsRef.current.set(bruto.id, persistido);
         }
@@ -141,6 +142,7 @@ export function useWallDisplay(
         criadaEm: new Date(api.criadaEm),
         exibicoes: exibicoesRef.current.get(id) ?? 0,
         reacoes: api.reacoes,
+        destacada: api.destacada === true,
         largura: dim.largura,
         altura: dim.altura,
       });

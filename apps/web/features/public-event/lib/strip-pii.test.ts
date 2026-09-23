@@ -11,6 +11,7 @@ function midia(overrides: Partial<MidiaNaParede> = {}): MidiaNaParede {
     autor: "Fulana",
     criadaEm: new Date("2026-08-15T22:00:00.000Z"),
     reacoes: 4,
+    destacada: false,
     ...overrides,
   };
 }
