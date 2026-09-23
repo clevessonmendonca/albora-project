@@ -8,6 +8,7 @@ import { EventControls } from "@/features/admin/components/client/event-controls
 import { EventTeamPanel } from "@/features/admin/components/client/event-team-panel";
 import { LiveSummary } from "@/features/admin/components/client/live-summary";
 import { PreEventPromo } from "@/features/admin/components/client/pre-event-promo";
+import { PrimeiraVisita } from "@/features/admin/components/client/primeira-visita";
 import { proximosPassos, type Passo } from "@/features/admin/lib/proximos-passos";
 import type { AdminEventPageContext } from "@/features/admin/data/load-event-page";
 
@@ -120,6 +121,7 @@ export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
   if (fase === "rascunho") {
     return (
       <div className="flex flex-col gap-5">
+        <PrimeiraVisita />
         <AdminCard variant="highlight">
           <h2 className="tipo-title m-0 mb-3 text-ink">{name} ainda não está no ar</h2>
           <p className="tipo-body m-0 max-w-[56ch] text-ink-2">
@@ -138,6 +140,7 @@ export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
   if (fase === "antes") {
     return (
       <div className="flex flex-col gap-5">
+        <PrimeiraVisita />
         <AdminCard variant="highlight">
           <p className="tipo-caption m-0 mb-2 text-ink-2">{dataPorExtenso(evento.comecaEm)}</p>
           <h2 className="tipo-title m-0 mb-5 text-ink">{name}</h2>
