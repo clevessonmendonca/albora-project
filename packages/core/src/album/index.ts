@@ -64,3 +64,5 @@ export {
 export { agruparEmBlocos, diagramarBloco } from "./blocos";
 export { ordemDeDescarte, ordemNaRajada, selecionarParaAlbum } from "./selecao";
 export { contarAcervo, montarAlbum } from "./montagem";
+export { montarRetrospectiva, POR_MOMENTO } from "./retrospectiva";
+export type { MomentoDaRetrospectiva, Retrospectiva } from "./retrospectiva";

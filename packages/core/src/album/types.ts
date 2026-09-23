@@ -10,6 +10,8 @@ export type MidiaDoAlbum = {
   /** Chave fechada do pack (`confessionario.*`); null/omitida = capítulo por hora. */
   promptKey?: string | null;
   reacoes: number;
+  /** Curadoria do casal. Pesa na retrospectiva e na parede; nunca na moderação. */
+  destacada?: boolean;
 };
 
 export type JanelaDoEvento = {

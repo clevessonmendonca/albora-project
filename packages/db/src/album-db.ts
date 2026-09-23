@@ -40,6 +40,7 @@ type Linha = {
   height: number | null;
   prompt_key: string | null;
   reacoes: number;
+  destacada: boolean;
 };
 
 /** event_id no WHERE redundante sob RLS — duas camadas para a mesma invariante. */
@@ -53,6 +54,7 @@ export async function listarMidiaDoAlbum(
   const { rows } = await cliente.query<Linha>(
     `SELECT u.id, u.storage_key, u.mime, u.session_id, u.challenge_id, u.place, u.created_at,
             u.taken_at, u.width, u.height, u.prompt_key,
+            (u.highlighted_at IS NOT NULL) AS destacada,
             (SELECT count(*) FROM reactions r WHERE r.upload_id = u.id)::int AS reacoes
        FROM uploads u
       WHERE u.event_id = $1 AND u.state = $2
@@ -74,6 +76,7 @@ export async function listarMidiaDoAlbum(
       missaoId: l.challenge_id,
       promptKey: l.prompt_key,
       reacoes: l.reacoes,
+      destacada: l.destacada,
       chaveFull: l.storage_key,
       chaveThumb: thumbKeyFromFull(l.storage_key),
       mime: l.mime,

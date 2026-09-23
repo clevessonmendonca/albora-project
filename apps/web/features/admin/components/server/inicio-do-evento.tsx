@@ -1,9 +1,11 @@
 import React from "react";
 import Link from "next/link";
+import { Star } from "lucide-react";
 import { faseDoEvento } from "@albora/core";
 import { lerRetencaoDoEvento, withEvent } from "@albora/db";
 import { getPool } from "@/lib/db";
 import { prazosDeRetencao } from "@/features/admin/lib/prazos-de-retencao";
+import { montarRetrospectivaServida } from "@/lib/domain/album/retrospectiva";
 import { buttonClasses } from "@albora/ui-web";
 import { AdminCard, AdminSection } from "@/features/admin/components/server/admin-shell";
 import { ContagemRegressiva } from "@/features/admin/components/client/contagem-regressiva";
@@ -167,6 +169,7 @@ export async function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
 
   const jobs = await withEvent(getPool(), eventoId, (c) => lerRetencaoDoEvento(c, eventoId));
   const prazos = prazosDeRetencao(jobs);
+  const retrospectiva = await montarRetrospectivaServida(eventoId);
 
   return (
     <div className="flex flex-col gap-5">
@@ -178,6 +181,47 @@ export async function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
         </p>
       </AdminCard>
       <LiveSummary eventoId={eventoId} />
+
+      {retrospectiva.total > 0 && (
+        <AdminSection>
+          <h2 className="tipo-subtitle m-0 mb-2 text-ink">A noite em poucas fotos</h2>
+          <p className="tipo-body m-0 mb-5 max-w-[52ch] text-ink-2">
+            {retrospectiva.sequenciaUnica
+              ? "As fotos chegaram todas por volta da mesma hora, então isto é uma sequência, não uma linha do tempo."
+              : "Um recorte de cada momento da festa, na ordem em que aconteceu. O que vocês destacaram entra primeiro."}
+          </p>
+
+          <ol className="m-0 flex list-none flex-col gap-6 p-0">
+            {retrospectiva.momentos.map((momento) => (
+              <li key={momento.id}>
+                <h3 className="tipo-label m-0 mb-3 text-ink-3">{momento.titulo}</h3>
+                <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0">
+                  {momento.fotos.map((foto) => (
+                    <li key={foto.id} className="relative">
+                      <img
+                        src={foto.urlThumb}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        className="aspect-square w-full rounded-media bg-superficie-alta object-cover object-top"
+                      />
+                      {foto.destacada && (
+                        <span
+                          aria-hidden
+                          className="absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-acento text-sobre-acento"
+                        >
+                          <Star size={13} />
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ol>
+        </AdminSection>
+      )}
+
       <AdminSection>
         <h2 className="tipo-subtitle m-0 mb-4 text-ink">As memórias</h2>
         <div className="flex flex-wrap gap-3">

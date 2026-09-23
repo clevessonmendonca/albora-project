@@ -383,9 +383,11 @@ export {
   layoutsQueCabem,
   montarAlbum,
   offsetMinutosDoFuso,
+  montarRetrospectiva,
   ordemDeDescarte,
   ordemNaRajada,
   planejarCapitulos,
+  POR_MOMENTO,
   primeiroAmanhecerNaJanela,
   proporcaoDe,
   resolver,
@@ -837,3 +839,4 @@ export type { VersaoDeConsentimento as ConsentVersion } from "./consent-versions
 export { VERSOES_DE_CONSENTIMENTO as CONSENT_VERSIONS } from "./consent-versions";
 /** English alias — prefer for new code. @see textoDoConsentimento */
 export { textoDoConsentimento as consentVersionText } from "./consent-versions";
+export type { MomentoDaRetrospectiva, Retrospectiva } from "./album";
