@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- `import React from "react"` em todo `.tsx` de `apps/web` que tenha JSX — componente **e** teste. `apps/web/tsconfig.json:9` usa `"jsx": "preserve"`, que o esbuild do vitest compila no runtime clássico.
+- `import React from "react"` em todo `.tsx` de `apps/web` **que tenha JSX** — componente e teste. `apps/web/tsconfig.json:9` usa `"jsx": "preserve"`, que o esbuild do vitest compila no runtime clássico. Um teste de hook feito só com `renderHook` **não** tem JSX: ali o import sobra e o lint reprova por `no-unused-vars`. Ainda assim o arquivo precisa terminar em `.tsx`, porque o project `jsdom` do vitest (`vitest.config.ts:39`) só inclui `*.test.tsx` — um `.test.ts` cairia no project `node`, sem DOM, e `renderHook` quebraria.
 - Nenhum hex hardcodado; cor sai de classe semântica de token.
 - Nenhuma string de domínio (`noiva`, `casamento`, `noivos`) em componente.
 - Nenhum componente retorna `null` por falta de dado ou de permissão. Todo vazio tem texto próprio.
