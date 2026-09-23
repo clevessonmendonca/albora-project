@@ -1,10 +1,10 @@
 "use client";
 
 import { interacaoAberta, eventDefaults } from "@albora/core";
-import { Badge, Switch } from "@albora/ui-web";
+import { Badge, Button, buttonClasses, Switch } from "@albora/ui-web";
 import Link from "next/link";
 import { useState } from "react";
-import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { EventMusic } from "@/features/admin/components/client/event-music";
 import { EventPieces } from "@/features/admin/components/client/event-pieces";
 import { SupportHelpButton } from "@/features/admin/components/client/support-help-button";
@@ -131,16 +131,15 @@ export function EventControls({
                 Convidado não acessa até você publicar.
               </span>
             </div>
-            <button
+            <Button
               type="button"
+              variant="primary"
               disabled={saving === "status"}
               onClick={() => void patch({ status: "active" }, "status")}
-              className={`${adminClasses.primaryButton} shrink-0 ${
-                saving === "status" ? "opacity-60" : ""
-              }`}
+              className={`shrink-0 ${saving === "status" ? "opacity-60" : ""}`}
             >
               {saving === "status" ? "Publicando…" : "Publicar evento"}
-            </button>
+            </Button>
           </div>
         </AdminSection>
       )}
@@ -255,16 +254,15 @@ export function EventControls({
           </p>
         ) : (
           <div className="flex flex-col gap-3">
-            <button
+            <Button
               type="button"
+              variant="primary"
               disabled={saving === "interaction"}
               onClick={() => void patch({ abrirInteracao: true }, "interaction")}
-              className={`${adminClasses.primaryButton} ${
-                saving === "interaction" ? "opacity-60" : ""
-              }`}
+              className={saving === "interaction" ? "opacity-60" : ""}
             >
               {saving === "interaction" ? "Abrindo…" : "Abrir interação agora"}
-            </button>
+            </Button>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="interacao-agendar" className="tipo-label text-ink-3">
                 Ou agendar
@@ -296,26 +294,31 @@ export function EventControls({
           </div>
         )}
         {gateOpen || interactionOpensAt ? (
-          <button
+          <Button
             type="button"
+            variant="secondary"
             disabled={saving === "interaction"}
             onClick={() => void patch({ interacaoAbreEm: null }, "interaction")}
-            className={`${adminClasses.secondaryButton} mt-3 ${
-              saving === "interaction" ? "opacity-60" : ""
-            }`}
+            className={`mt-3 ${saving === "interaction" ? "opacity-60" : ""}`}
           >
             Fechar interação
-          </button>
+          </Button>
         ) : null}
       </AdminSection>
 
       <AdminSection>
         <h2 className="tipo-subtitle m-0 mb-3 text-ink">Moderação e convidados</h2>
         <div className="flex flex-wrap gap-3">
-          <Link href={`/admin/e/${eventId}/moderation`} className={adminClasses.primaryButton}>
+          <Link
+            href={`/admin/e/${eventId}/moderation`}
+            className={buttonClasses({ variant: "primary" })}
+          >
             Abrir moderação
           </Link>
-          <Link href={`/admin/e/${eventId}/guests`} className={adminClasses.secondaryButton}>
+          <Link
+            href={`/admin/e/${eventId}/guests`}
+            className={buttonClasses({ variant: "secondary" })}
+          >
             Ver convidados
           </Link>
         </div>
@@ -336,10 +339,11 @@ export function EventControls({
             Telão, ZIP e vídeos ilimitados. O convidado não vê cobrança — o plano sobe no
             próximo poll.
           </p>
-          <button
+          <Button
             type="button"
+            variant="primary"
             disabled={upgrading}
-            className={`${adminClasses.primaryButton} ${upgrading ? "opacity-60" : ""}`}
+            className={upgrading ? "opacity-60" : ""}
             onClick={() => {
               void (async () => {
                 setUpgrading(true);
@@ -376,7 +380,7 @@ export function EventControls({
             }}
           >
             {upgrading ? "Abrindo…" : "Pagar R$ 199"}
-          </button>
+          </Button>
         </AdminSection>
       )}
 

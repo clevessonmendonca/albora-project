@@ -7,9 +7,9 @@ import type {
   LeituraDeIntencao,
 } from "@albora/core";
 import type { EntradasPorVia } from "@albora/db";
-import { Badge, Skeleton } from "@albora/ui-web";
+import { Badge, Button, Skeleton } from "@albora/ui-web";
 import { useState } from "react";
-import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { GuestDisplayNames, type SessaoNoTelao } from "./guest-display-names";
 import { AtualizadoHa, RefreshButton } from "./refresh-control";
@@ -203,16 +203,15 @@ export function GuestFunnel({ eventoId }: Props) {
             onChange={(e) => setPresenca(e.target.value)}
             className="w-28 rounded-token border border-linha bg-bg px-3 py-2 font-titulo text-lg tabular-nums text-ink outline-none transition-[border-color] focus:border-acento"
           />
-          <button
+          <Button
+            variant="primary"
             type="button"
             disabled={salvandoPresenca || Number(presenca) <= 0}
             onClick={() => void confirmarPresenca()}
-            className={`${adminClasses.primaryButton} ${
-              salvandoPresenca || Number(presenca) <= 0 ? "opacity-60" : ""
-            }`}
+            className={salvandoPresenca || Number(presenca) <= 0 ? "opacity-60" : ""}
           >
             {salvandoPresenca ? "Salvando…" : "Confirmar presença"}
-          </button>
+          </Button>
         </div>
       </AdminSection>
 

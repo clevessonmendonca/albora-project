@@ -1,16 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Skeleton } from "@albora/ui-web";
-import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { Badge, Button, Skeleton } from "@albora/ui-web";
 import { RefreshButton } from "./refresh-control";
-
-/**
- * ≥44px de alvo de toque — override local do Sm compartilhado (`adminClasses.dangerButtonSm`),
- * sem editar admin-shell.tsx (mesmo padrão de host-album.tsx/T8 e review-queue.tsx).
- * `min-h-11` garante a altura mínima independente de qual padding vertical vence a cascata.
- */
-const ALVO_TOQUE = "min-h-11 px-5";
 
 type Props = {
   eventoId: string;
@@ -141,16 +133,18 @@ export function CommentModeration({ eventoId }: Props) {
               </div>
             </div>
             <p className="m-0 text-[0.9rem] leading-relaxed text-ink-2">{c.texto}</p>
-            <button
+            <Button
+              variant="danger"
+              size="sm"
               type="button"
               disabled={removendo === c.id}
               onClick={() => void remover(c.id)}
-              className={`${adminClasses.dangerButtonSm} ${ALVO_TOQUE} justify-self-start ${
+              className={`justify-self-start ${
                 removendo === c.id ? "cursor-wait opacity-50" : ""
               }`}
             >
               {removendo === c.id ? "Removendo…" : "Remover comentário"}
-            </button>
+            </Button>
           </div>
         ))
       )}

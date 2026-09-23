@@ -1,13 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { adminClasses } from "@/features/admin/components/server/admin-shell";
-
-/**
- * ≥44px de alvo de toque — override local do Sm compartilhado (`adminClasses.primaryButtonSm`),
- * mesmo padrão de host-album.tsx/review-queue.tsx.
- */
-const ALVO_TOQUE = "min-h-11 px-5";
+import { Button } from "@albora/ui-web";
 
 const FORMATS = [
   { id: "placa-a4", label: "Placa A4", size: "210×297 mm + sangria 3 mm" },
@@ -90,16 +84,17 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
           />
           Incluir arquivos SVG editáveis
         </label>
-        <button
+        <Button
+          variant="primary"
           type="button"
           disabled={downloading !== null}
           onClick={() => void downloadZip()}
-          className={`${adminClasses.primaryButton} ${
+          className={`${
             downloading !== null ? "cursor-wait opacity-50" : ""
           } ${downloading === "zip" ? "opacity-60" : ""}`}
         >
           {downloading === "zip" ? "Preparando arquivo…" : "Baixar pacote completo (ZIP)"}
-        </button>
+        </Button>
       </div>
 
       <p className="tipo-label mb-3 mt-0 text-ink-3">
@@ -113,21 +108,23 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
             </p>
             <p className="tipo-caption mb-3 mt-0 text-ink-3">{f.size}</p>
             <div className="flex flex-wrap gap-2">
-              <button
+              <Button
+                variant="primary"
+                size="sm"
                 type="button"
                 disabled={downloading !== null}
                 onClick={() => void download(f.id, "pdf")}
-                className={`${adminClasses.primaryButtonSm} ${ALVO_TOQUE} ${
+                className={`${
                   downloading !== null ? "cursor-wait opacity-50" : ""
                 } ${downloading === `${f.id}-pdf` ? "opacity-60" : ""}`}
               >
                 {downloading === `${f.id}-pdf` ? "Gerando…" : "Baixar PDF"}
-              </button>
+              </Button>
               <button
                 type="button"
                 disabled={downloading !== null}
                 onClick={() => void download(f.id, "svg")}
-                className={`${ALVO_TOQUE} inline-flex cursor-pointer items-center justify-center rounded-pilula border border-linha bg-superficie font-titulo text-[0.8125rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta ${
+                className={`inline-flex cursor-pointer items-center justify-center rounded-pilula border border-linha bg-superficie font-titulo text-[0.8125rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta ${
                   downloading !== null ? "cursor-wait opacity-50" : ""
                 } ${downloading === `${f.id}-svg` ? "opacity-60" : ""}`}
               >

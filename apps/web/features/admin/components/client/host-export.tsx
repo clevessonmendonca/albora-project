@@ -1,8 +1,8 @@
 "use client";
 
-import { Badge, Button, Skeleton } from "@albora/ui-web";
+import { Badge, Button, buttonClasses, Skeleton } from "@albora/ui-web";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminCard } from "@/features/admin/components/server/admin-shell";
 import {
   abrirJob,
   comJob,
@@ -122,7 +122,7 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
           </Button>
         )}
         {estado.fase === "pronto" && estado.job.baixar && (
-          <a href={estado.job.baixar} className={`${adminClasses.primaryButton} shrink-0`}>
+          <a href={estado.job.baixar} className={buttonClasses({ variant: "primary", className: "shrink-0" })}>
             Baixar ZIP · {estado.job.fotos} {estado.job.fotos === 1 ? "arquivo" : "arquivos"}
           </a>
         )}

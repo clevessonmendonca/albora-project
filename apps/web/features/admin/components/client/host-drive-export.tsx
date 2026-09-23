@@ -1,8 +1,8 @@
 "use client";
 
-import { Badge, Button, Skeleton } from "@albora/ui-web";
+import { Badge, Button, buttonClasses, Skeleton } from "@albora/ui-web";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import {
   desconectarDrive,
   estadoInicialDrive,
@@ -217,7 +217,7 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
             href={estado.job.abrirNoDrive}
             target="_blank"
             rel="noopener noreferrer"
-            className={`${adminClasses.primaryButton} shrink-0`}
+            className={buttonClasses({ variant: "primary", className: "shrink-0" })}
           >
             Abrir no Google Drive
           </a>

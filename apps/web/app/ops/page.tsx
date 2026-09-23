@@ -5,10 +5,9 @@ import { redirect } from "next/navigation";
 import { isPlatformOperator } from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
-import { SkipLink } from "@albora/ui-web";
+import { SkipLink, buttonClasses } from "@albora/ui-web";
 import {
   AdminSection,
-  adminClasses,
   adminVars,
 } from "@/features/admin/components/server/admin-shell";
 
@@ -62,7 +61,7 @@ export default async function OpsHomePage() {
           <p className="mb-5 text-sm text-ink-2">
             Fila de tickets abertos, prioridades e SLAs da equipe.
           </p>
-          <Link href="/ops/support" className={adminClasses.primaryButton}>
+          <Link href="/ops/support" className={buttonClasses({ variant: "primary" })}>
             Abrir inbox
           </Link>
         </AdminSection>
@@ -72,7 +71,7 @@ export default async function OpsHomePage() {
           <p className="mb-5 text-sm text-ink-2">
             KPIs agregados da plataforma, funil de landing e volume de eventos.
           </p>
-          <Link href="/ops/insights" className={adminClasses.primaryButton}>
+          <Link href="/ops/insights" className={buttonClasses({ variant: "primary" })}>
             Ver métricas
           </Link>
         </AdminSection>
@@ -82,7 +81,7 @@ export default async function OpsHomePage() {
           <p className="mb-5 text-sm text-ink-2">
             Busca por slug, métricas ao vivo e painel read-only de cada evento.
           </p>
-          <Link href="/ops/events" className={adminClasses.primaryButton}>
+          <Link href="/ops/events" className={buttonClasses({ variant: "primary" })}>
             Buscar evento
           </Link>
         </AdminSection>

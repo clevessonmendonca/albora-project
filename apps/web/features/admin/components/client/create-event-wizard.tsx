@@ -5,10 +5,9 @@ import NextLink from "next/link";
 import { FUSO_PADRAO, type WallDisplayModel } from "@albora/core";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
 import { ALBORA_BRAND, IDENTITY_MODELS, type ModeloDeIdentidade } from "@albora/tokens";
-import { Card, Select, TextField } from "@albora/ui-web";
+import { Button, buttonClasses, Card, Select, TextField } from "@albora/ui-web";
 import { useSearchParams } from "next/navigation";
 import { resolveIdentityPreviewVars } from "@/features/admin/lib/identity-preview";
-import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
 import { TimezoneField } from "@/features/admin/components/client/timezone-field";
 
@@ -559,27 +558,29 @@ export function CreateEventWizard() {
           </button>
         )}
         {step < STEPS.length - 1 ? (
-          <button
+          <Button
             type="button"
+            variant="primary"
             disabled={!canAdvance}
             onClick={() => setStep((p) => p + 1)}
-            className={`${adminClasses.primaryButton} flex-1 py-3.5 text-center text-[1.05rem] ${
+            className={`flex-1 py-3.5 text-center text-[1.05rem] ${
               canAdvance ? "opacity-100" : "opacity-50"
             }`}
           >
             Continuar
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
             type="button"
+            variant="primary"
             disabled={status === "creating"}
             onClick={() => void create()}
-            className={`${adminClasses.primaryButton} flex-1 py-3.5 text-center text-[1.05rem] ${
+            className={`flex-1 py-3.5 text-center text-[1.05rem] ${
               status === "creating" ? "opacity-60" : "opacity-100"
             }`}
           >
             {status === "creating" ? "Criando…" : "Criar evento"}
-          </button>
+          </Button>
         )}
       </div>
     </Shell>
@@ -836,16 +837,15 @@ function Result({ created }: { created: Created }) {
       </div>
 
       {created.planIntent === "celebration" && (
-        <button
+        <Button
           type="button"
+          variant="primary"
           disabled={paying}
           onClick={() => void startCheckout()}
-          className={`${adminClasses.primaryButton} w-full py-3.5 text-center text-[1.05rem] ${
-            paying ? "opacity-60" : ""
-          }`}
+          className={`w-full py-3.5 text-center text-[1.05rem] ${paying ? "opacity-60" : ""}`}
         >
           {paying ? "Abrindo pagamento…" : "Pagar Completo (R$ 199)"}
-        </button>
+        </Button>
       )}
       {payError && (
         <p role="alert" className="m-0 text-sm text-critico">
@@ -854,7 +854,7 @@ function Result({ created }: { created: Created }) {
       )}
       <a
         href={`/admin/e/${created.eventoId}`}
-        className={`${adminClasses.secondaryButton} block py-3.5 text-center text-[1.05rem]`}
+        className={buttonClasses({ variant: "secondary", className: "block py-3.5 text-center text-[1.05rem]" })}
       >
         Abrir controles do evento
       </a>

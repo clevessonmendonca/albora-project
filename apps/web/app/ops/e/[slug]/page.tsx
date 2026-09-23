@@ -5,10 +5,9 @@ import { redirect } from "next/navigation";
 import { collectEventLiveMetrics, isPlatformOperator } from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
-import { SkipLink } from "@albora/ui-web";
+import { SkipLink, buttonClasses } from "@albora/ui-web";
 import {
   AdminSection,
-  adminClasses,
   adminVars,
 } from "@/features/admin/components/server/admin-shell";
 import { OpsEventAggregates } from "../../event-aggregates";
@@ -110,7 +109,7 @@ export default async function OpsEventBySlugPage({
 
       <AdminSection>
         <p className="mb-3 text-sm text-ink-2">Ações disponíveis</p>
-        <Link href={`/ops/e/${slug}/painel`} className={adminClasses.primaryButton}>
+        <Link href={`/ops/e/${slug}/painel`} className={buttonClasses({ variant: "primary" })}>
           Ver painel completo do evento
         </Link>
       </AdminSection>

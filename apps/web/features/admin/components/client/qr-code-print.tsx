@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { Button } from "@albora/ui-web";
+import { AdminCard } from "@/features/admin/components/server/admin-shell";
 import { downloadFromApi, triggerBlobDownload } from "@/features/admin/lib/download-file";
 import { svgToPngBlob } from "@/features/admin/lib/qr-png";
 
@@ -81,29 +82,27 @@ export function QrCodePrint({ eventId, slug, eventName, guestUrl, svgString }: P
       </AdminCard>
 
       <div className="print:hidden mt-2 flex flex-wrap justify-center gap-2">
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className={adminClasses.primaryButton}
-        >
+        <Button type="button" variant="primary" onClick={() => window.print()}>
           Imprimir
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="secondary"
           disabled={busy}
           onClick={() => void handleDownloadPng()}
-          className={`${adminClasses.secondaryButton} ${busy ? "cursor-wait opacity-60" : ""}`}
+          className={busy ? "cursor-wait opacity-60" : ""}
         >
           {downloading === "png" ? "Gerando…" : "Baixar PNG"}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="secondary"
           disabled={busy}
           onClick={() => void handleDownloadPdf()}
-          className={`${adminClasses.secondaryButton} ${busy ? "cursor-wait opacity-60" : ""}`}
+          className={busy ? "cursor-wait opacity-60" : ""}
         >
           {downloading === "pdf" ? "Gerando…" : "Baixar PDF"}
-        </button>
+        </Button>
       </div>
 
       {error && (

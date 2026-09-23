@@ -1,9 +1,9 @@
 "use client";
 
-import { Badge, ProgressBar } from "@albora/ui-web";
+import { Badge, Button, ProgressBar } from "@albora/ui-web";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminCard } from "@/features/admin/components/server/admin-shell";
 import {
   MC_SCRIPTS,
   buildPreEventSections,
@@ -78,13 +78,14 @@ export function PreEventChecklist({
                 {done}/{total}
               </span>
             </Badge>
-            <button
+            <Button
+              variant="secondary"
               type="button"
-              className={`${adminClasses.secondaryButton} print:hidden`}
+              className="print:hidden"
               onClick={() => window.print()}
             >
               Imprimir
-            </button>
+            </Button>
           </div>
         </div>
       </AdminCard>

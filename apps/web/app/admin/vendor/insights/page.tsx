@@ -4,7 +4,7 @@ import Link from "next/link";
 import { listarEventosDoHost, resumoDoFornecedor, vendorsDaConta } from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getAggregatorPool, getPool } from "@/lib/db";
-import { AdminShell, AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminShell, AdminSection, listLinkClasses } from "@/features/admin/components/server/admin-shell";
 import { VendorSummaryCard } from "@/features/vendor-portal/components/server/vendor-summary-card";
 import { auditarAgregacaoDoPortal } from "@/features/vendor-portal/lib/audit";
 
@@ -84,7 +84,7 @@ export default async function VendorInsightsPage() {
             <ul className="m-0 flex list-none flex-col gap-2 p-0">
               {eventos.map((e) => (
                 <li key={e.eventoId}>
-                  <Link href={`/admin/e/${e.eventoId}/insights`} className={adminClasses.listLink}>
+                  <Link href={`/admin/e/${e.eventoId}/insights`} className={listLinkClasses}>
                     <span className="font-titulo">/{e.slug}</span>
                     <span className="tipo-caption block text-ink-3">
                       {e.comecaEm.toLocaleDateString("pt-BR", {

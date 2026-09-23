@@ -1,9 +1,9 @@
 "use client";
 
-import { ProgressBar } from "@albora/ui-web";
+import { ProgressBar, buttonClasses } from "@albora/ui-web";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminCard } from "@/features/admin/components/server/admin-shell";
 import {
   buildPreEventSections,
   readPreEventChecklist,
@@ -64,7 +64,7 @@ export function PreEventPromo({ eventId, storageKey, startsAt }: Props) {
             </div>
           )}
         </div>
-        <Link href={`/admin/e/${eventId}/pre-event`} className={adminClasses.primaryButton}>
+        <Link href={`/admin/e/${eventId}/pre-event`} className={buttonClasses({ variant: "primary" })}>
           Abrir checklist
         </Link>
       </div>

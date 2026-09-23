@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { Button } from "@albora/ui-web";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
 
 export type SessaoNoTelao = {
   id: string;
@@ -70,7 +71,9 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <button
+                    <Button
+                      variant="primary"
+                      size="sm"
                       type="button"
                       disabled={ocupado}
                       onClick={() => {
@@ -78,22 +81,24 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                         setRascunho(s.nome);
                         setErro(null);
                       }}
-                      className={`${adminClasses.primaryButtonSm} min-h-11 py-3 ${
+                      className={`min-h-11 py-3 ${
                         acao === `renomear:${s.id}` ? "opacity-60" : ""
                       }`}
                     >
                       Trocar
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
                       type="button"
                       disabled={ocupado}
                       onClick={() => void patch(s.id, { acao: "ocultar" })}
-                      className={`${adminClasses.dangerButtonSm} min-h-11 py-3 ${
+                      className={`min-h-11 py-3 ${
                         acao === `ocultar:${s.id}` ? "opacity-60" : ""
                       }`}
                     >
                       {acao === `ocultar:${s.id}` ? "Ocultando…" : "Ocultar nome"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
                 {estaEditando && (
@@ -115,15 +120,17 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                         aria-label="Novo nome no telão"
                         className="tipo-body min-h-11 min-w-40 flex-1 rounded-token border border-linha bg-superficie px-3 text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
                       />
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
                         type="submit"
                         disabled={ocupado || !rascunho.trim()}
-                        className={`${adminClasses.primaryButtonSm} min-h-11 py-3 ${
+                        className={`min-h-11 py-3 ${
                           ocupado || !rascunho.trim() ? "opacity-60" : ""
                         }`}
                       >
                         {acao === `renomear:${s.id}` ? "Salvando…" : "Salvar"}
-                      </button>
+                      </Button>
                       <button
                         type="button"
                         disabled={ocupado}

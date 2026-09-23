@@ -1,8 +1,8 @@
 "use client";
 
-import { Badge, Skeleton } from "@albora/ui-web";
+import { Badge, Button, Skeleton } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
-import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
 
 type EventMember = {
   accountId: string;
@@ -196,15 +196,14 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
         </div>
 
         <div className="flex items-center gap-2">
-          <button
+          <Button
+            variant="primary"
             type="submit"
             disabled={saving || !email.trim()}
-            className={`${adminClasses.primaryButton} ${
-              saving || !email.trim() ? "opacity-60" : ""
-            }`}
+            className={saving || !email.trim() ? "opacity-60" : ""}
           >
             {saving ? "Convidando…" : "Convidar"}
-          </button>
+          </Button>
           {convidado && (
             <Badge tone="accent">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>

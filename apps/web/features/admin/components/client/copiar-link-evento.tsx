@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { Button } from "@albora/ui-web";
 
 export function CopiarLinkEvento({ slug }: { slug: string }) {
   const [copiado, setCopiado] = useState(false);
@@ -26,10 +26,11 @@ export function CopiarLinkEvento({ slug }: { slug: string }) {
   }
 
   return (
-    <button
+    <Button
+      variant="secondary"
       type="button"
       onClick={() => void copiar()}
-      className={`inline-flex items-center gap-1.5 ${adminClasses.secondaryButton}`}
+      className="inline-flex items-center gap-1.5"
     >
       {copiado ? (
         <>
@@ -47,6 +48,6 @@ export function CopiarLinkEvento({ slug }: { slug: string }) {
       ) : (
         `Copiar link · /e/${slug}`
       )}
-    </button>
+    </Button>
   );
 }

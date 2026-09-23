@@ -2,13 +2,13 @@
 
 import { MAX_TEXT_CHARACTERS } from "@albora/core";
 import { PACKS, resolvePackText } from "@albora/packs";
-import { PhoneFrame, Skeleton, TextField } from "@albora/ui-web";
+import { Button, PhoneFrame, Skeleton, TextField } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
 import {
   formatarDuracaoAudio,
   GuestbookAudioField,
 } from "@/features/admin/components/client/guestbook-audio-field";
-import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { useGuestbookRecorder } from "@/features/admin/hooks/use-guestbook-recorder";
 import type { SavedGuestbookAudio } from "@/features/admin/lib/guestbook-audio";
@@ -251,26 +251,28 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
             </div>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <button
+              <Button
                 type="button"
+                variant="primary"
                 disabled={vazio || longoDemais || saving || recorder.recording}
                 onClick={() => void save(false)}
-                className={`${adminClasses.primaryButton} ${
+                className={
                   vazio || longoDemais || saving || recorder.recording ? "opacity-60" : ""
-                }`}
+                }
               >
                 {saving ? "Salvando…" : exists ? "Salvar recado" : "Criar recado"}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="secondary"
                 disabled={vazio || longoDemais || saving || recorder.recording}
                 onClick={() => void save(true)}
-                className={`${adminClasses.secondaryButton} ${
+                className={
                   vazio || longoDemais || saving || recorder.recording ? "opacity-60" : ""
-                }`}
+                }
               >
                 Salvar e publicar agora
-              </button>
+              </Button>
               {saved && (
                 <span className="flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-titulo text-[0.8125rem] text-acento-texto">
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>

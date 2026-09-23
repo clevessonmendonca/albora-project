@@ -1,7 +1,7 @@
 "use client";
 
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
-import { Badge, MissionBanner, Switch } from "@albora/ui-web";
+import { Badge, Button, MissionBanner, Switch } from "@albora/ui-web";
 import { useMemo, useRef, useState } from "react";
 import {
   identityPreviewClassName,
@@ -11,7 +11,7 @@ import {
   moveMissionKey,
   reorderMissionKeys,
 } from "@/features/admin/lib/mission-keys";
-import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
 
 const CUSTOM_MAX = 120;
 
@@ -419,14 +419,15 @@ export function MissionsEditor({
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <button
+              <Button
                 type="button"
+                variant="secondary"
                 onClick={addCustom}
                 disabled={!draft.trim() || draft.trim().length > CUSTOM_MAX}
-                className={`${adminClasses.secondaryButton} shrink-0 disabled:cursor-not-allowed disabled:opacity-40`}
+                className="shrink-0 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Adicionar
-              </button>
+              </Button>
               {draft.trim().length > CUSTOM_MAX && (
                 <p role="alert" className="tipo-caption m-0 text-critico">
                   Máximo {CUSTOM_MAX} caracteres.
@@ -437,14 +438,15 @@ export function MissionsEditor({
         </div>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <button
+          <Button
             type="button"
+            variant="primary"
             disabled={saving}
             onClick={() => void save()}
-            className={`${adminClasses.primaryButton} ${saving ? "opacity-60" : ""}`}
+            className={saving ? "opacity-60" : ""}
           >
             {saving ? "Salvando…" : "Salvar missões"}
-          </button>
+          </Button>
           {saved && (
             <span role="status">
               <Badge tone="accent" className="gap-1.5">

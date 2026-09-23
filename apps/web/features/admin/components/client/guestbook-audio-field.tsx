@@ -1,13 +1,9 @@
 "use client";
 
 import { MAX_AUDIO_SECONDS } from "@albora/core";
-import { Badge } from "@albora/ui-web";
-import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { Badge, Button, buttonClasses } from "@albora/ui-web";
 import type { useGuestbookRecorder } from "@/features/admin/hooks/use-guestbook-recorder";
 import type { SavedGuestbookAudio } from "@/features/admin/lib/guestbook-audio";
-
-/** Alvo de toque ≥44px nas ações de gravação — mesmo override local de review-queue.tsx/host-album.tsx. */
-const ALVO_TOQUE = "min-h-11 px-5";
 
 export function formatarDuracaoAudio(segundos: number): string {
   const s = Math.max(0, Math.round(segundos));
@@ -66,21 +62,27 @@ export function GuestbookAudioField({
 
       <div className="flex flex-wrap items-center gap-3">
         {recorder.recording ? (
-          <button type="button" onClick={recorder.parar} className={`${adminClasses.secondaryButton} ${ALVO_TOQUE}`}>
+          <Button variant="secondary" type="button" onClick={recorder.parar}>
             Parar · {formatarDuracaoAudio(recorder.elapsed)}
-          </button>
+          </Button>
         ) : (
-          <button
+          <Button
+            variant="secondary"
             type="button"
             disabled={!aceite}
             onClick={() => void recorder.gravar()}
-            className={`${adminClasses.secondaryButton} ${ALVO_TOQUE} ${!aceite ? "opacity-60" : ""}`}
+            className={`${!aceite ? "opacity-60" : ""}`}
           >
             Gravar
-          </button>
+          </Button>
         )}
 
-        <label className={`relative ${adminClasses.secondaryButton} ${ALVO_TOQUE} ${!aceite ? "opacity-60" : ""}`}>
+        <label
+          className={buttonClasses({
+            variant: "secondary",
+            className: `relative ${!aceite ? "opacity-60" : ""}`,
+          })}
+        >
           Anexar arquivo
           <input
             type="file"

@@ -1,7 +1,7 @@
 import { faseDoEvento } from "@albora/core";
 import { listarEventosDoHost } from "@albora/db";
 import { PACKS, resolvePackText } from "@albora/packs";
-import { Badge } from "@albora/ui-web";
+import { Badge, buttonClasses } from "@albora/ui-web";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -10,7 +10,6 @@ import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import {
   AdminShell,
   AdminSection,
-  adminClasses,
 } from "@/features/admin/components/server/admin-shell";
 
 export const dynamic = "force-dynamic";
@@ -53,7 +52,7 @@ export default async function AdminPage() {
             Crie seu primeiro evento em três minutos: escolha o nome, a data e
             a identidade visual. O QR e as placas saem prontos para impressão.
           </p>
-          <Link href="/admin/new" className={adminClasses.primaryButton}>
+          <Link href="/admin/new" className={buttonClasses({ variant: "primary" })}>
             Criar meu primeiro evento
           </Link>
         </AdminSection>
@@ -63,7 +62,7 @@ export default async function AdminPage() {
             <span className="tipo-caption text-ink-3">
               {eventos.length} {eventos.length === 1 ? "evento" : "eventos"}
             </span>
-            <Link href="/admin/new" className={adminClasses.primaryButtonSm}>
+            <Link href="/admin/new" className={buttonClasses({ variant: "primary", size: "sm" })}>
               + Novo evento
             </Link>
           </div>
@@ -135,7 +134,7 @@ export default async function AdminPage() {
               </p>
               <Link
                 href="/admin/new"
-                className={`${adminClasses.primaryButtonSm} mt-3.5 inline-flex`}
+                className={buttonClasses({ variant: "primary", size: "sm", className: "mt-3.5 inline-flex" })}
               >
                 {resolvePackText(packSugerido, "sugestao.cta")}
               </Link>

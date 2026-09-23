@@ -1,8 +1,7 @@
 "use client";
 
-import { Skeleton } from "@albora/ui-web";
+import { Button, Skeleton } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
-import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { suggestionLabel } from "@/features/music/lib/suggestion-copy";
 
@@ -127,16 +126,15 @@ export function EventMusic({ eventId }: { eventId: string }) {
       </label>
 
       <div className="flex items-center gap-2">
-        <button
+        <Button
+          variant="primary"
           type="button"
           disabled={saving || !url.trim()}
           onClick={() => void save()}
-          className={`${adminClasses.primaryButton} ${
-            saving || !url.trim() ? "opacity-60" : ""
-          }`}
+          className={saving || !url.trim() ? "opacity-60" : ""}
         >
           {saving ? "Salvando…" : "Salvar música"}
-        </button>
+        </Button>
         {salvo && (
           <span className="tipo-caption flex items-center gap-1.5 rounded-pilula border border-acento-texto px-3 py-1.5 font-medium text-acento-texto">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>

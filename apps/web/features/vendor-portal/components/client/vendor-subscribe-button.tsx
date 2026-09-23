@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import type { VendorPlan, VendorRole, VendorSubscriptionStatus } from "@albora/db";
-import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { Button } from "@albora/ui-web";
 import { VENDOR_PLAN_PRICE_CENTS } from "@/lib/billing";
 
 const PLAN_LABEL: Record<VendorPlan, string> = {
@@ -114,14 +114,15 @@ export function VendorSubscribeButton({ vendorId, role, currentPlan, subscriptio
         ))}
       </div>
 
-      <button
+      <Button
+        variant="primary"
         type="button"
         disabled={submitting}
         onClick={assinar}
-        className={`${adminClasses.primaryButton} ${submitting ? "opacity-60" : ""}`}
+        className={submitting ? "opacity-60" : ""}
       >
         {submitting ? "Assinando…" : "Assinar plano"}
-      </button>
+      </Button>
 
       {result && (
         <p className="m-0 mt-4 text-[0.9375rem] text-ink">

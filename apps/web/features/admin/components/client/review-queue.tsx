@@ -1,17 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Badge, Skeleton } from "@albora/ui-web";
-import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { Badge, Button, Skeleton } from "@albora/ui-web";
 import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { useModerationCount } from "./moderation-count-context";
-
-/**
- * ≥44px de alvo de toque — override local do Sm compartilhado (`adminClasses.*ButtonSm`),
- * sem editar admin-shell.tsx (mesmo padrão de host-album.tsx/T8). `min-h-11` garante a
- * altura mínima independente de qual padding vertical vence a cascata.
- */
-const ALVO_TOQUE = "min-h-11 px-5";
 
 type Midia = {
   id: string;
@@ -195,22 +187,26 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
             {midias.length} fotos aguardando
           </span>
           <div className="flex gap-2">
-            <button
+            <Button
               type="button"
+              variant="primary"
+              size="sm"
               disabled={acao !== null || acaoBulk !== null}
               onClick={() => void bulkMidia("liberar")}
-              className={`${adminClasses.primaryButtonSm} ${ALVO_TOQUE} ${acaoBulk === "liberar" ? "opacity-60" : ""}`}
+              className={`${acaoBulk === "liberar" ? "opacity-60" : ""}`}
             >
               {acaoBulk === "liberar" ? "Aprovando…" : `Aprovar todas (${midias.length})`}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="danger"
+              size="sm"
               disabled={acao !== null || acaoBulk !== null}
               onClick={() => void bulkMidia("ocultar")}
-              className={`${adminClasses.dangerButtonSm} ${ALVO_TOQUE} ${acaoBulk === "ocultar" ? "opacity-60" : ""}`}
+              className={`${acaoBulk === "ocultar" ? "opacity-60" : ""}`}
             >
               {acaoBulk === "ocultar" ? "Ocultando…" : `Ocultar todas (${midias.length})`}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -269,26 +265,30 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button
+              <Button
                 type="button"
+                variant="primary"
+                size="sm"
                 disabled={acao !== null}
                 onClick={() => void patch("midia", m.id, "liberar")}
-                className={`${adminClasses.primaryButtonSm} ${ALVO_TOQUE} ${
+                className={`${
                   acao === `liberar:midia:${m.id}` ? "opacity-60" : ""
                 }`}
               >
                 {acao === `liberar:midia:${m.id}` ? "Aprovando…" : "Aprovar"}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="danger"
+                size="sm"
                 disabled={acao !== null}
                 onClick={() => void patch("midia", m.id, "ocultar")}
-                className={`${adminClasses.dangerButtonSm} ${ALVO_TOQUE} ${
+                className={`${
                   acao === `ocultar:midia:${m.id}` ? "opacity-60" : ""
                 }`}
               >
                 {acao === `ocultar:midia:${m.id}` ? "Ocultando…" : "Ocultar"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -310,26 +310,30 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
             {c.texto}
           </p>
           <div className="flex flex-wrap gap-2">
-            <button
+            <Button
               type="button"
+              variant="primary"
+              size="sm"
               disabled={acao !== null}
               onClick={() => void patch("comentario", c.id, "liberar")}
-              className={`${adminClasses.primaryButtonSm} ${ALVO_TOQUE} ${
+              className={`${
                 acao === `liberar:comentario:${c.id}` ? "opacity-60" : ""
               }`}
             >
               {acao === `liberar:comentario:${c.id}` ? "Mantendo…" : "Manter"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="danger"
+              size="sm"
               disabled={acao !== null}
               onClick={() => void patch("comentario", c.id, "remover")}
-              className={`${adminClasses.dangerButtonSm} ${ALVO_TOQUE} ${
+              className={`${
                 acao === `remover:comentario:${c.id}` ? "opacity-60" : ""
               }`}
             >
               {acao === `remover:comentario:${c.id}` ? "Removendo…" : "Remover"}
-            </button>
+            </Button>
           </div>
         </div>
       ))}

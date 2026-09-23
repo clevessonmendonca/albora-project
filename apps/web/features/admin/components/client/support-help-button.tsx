@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { Button } from "@albora/ui-web";
 
 export function SupportHelpButton({ eventId }: { eventId: string }) {
   const [open, setOpen] = useState(false);
@@ -40,9 +40,9 @@ export function SupportHelpButton({ eventId }: { eventId: string }) {
 
   if (!open) {
     return (
-      <button type="button" className={adminClasses.secondaryButton} onClick={() => setOpen(true)}>
+      <Button variant="secondary" type="button" onClick={() => setOpen(true)}>
         Abrir chamado
-      </button>
+      </Button>
     );
   }
 
@@ -80,17 +80,18 @@ export function SupportHelpButton({ eventId }: { eventId: string }) {
         </select>
       </label>
       <div className="flex flex-wrap gap-2">
-        <button
+        <Button
+          variant="primary"
           type="button"
           disabled={saving || !subject.trim() || !body.trim()}
           onClick={() => void send()}
-          className={`${adminClasses.primaryButton} ${saving || !subject.trim() || !body.trim() ? "opacity-60" : ""}`}
+          className={saving || !subject.trim() || !body.trim() ? "opacity-60" : ""}
         >
           {saving ? "Enviando…" : "Enviar"}
-        </button>
-        <button type="button" className={adminClasses.secondaryButton} onClick={() => setOpen(false)}>
+        </Button>
+        <Button variant="secondary" type="button" onClick={() => setOpen(false)}>
           Cancelar
-        </button>
+        </Button>
       </div>
       {error && <p className="m-0 text-sm text-critico">Não enviou. Tente de novo.</p>}
     </div>

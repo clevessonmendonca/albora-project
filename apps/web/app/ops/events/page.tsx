@@ -5,10 +5,9 @@ import { redirect } from "next/navigation";
 import { collectEventLiveMetrics, isPlatformOperator } from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
-import { SkipLink } from "@albora/ui-web";
+import { Button, SkipLink } from "@albora/ui-web";
 import {
   AdminSection,
-  adminClasses,
   adminVars,
 } from "@/features/admin/components/server/admin-shell";
 import { OpsEventAggregates } from "../event-aggregates";
@@ -87,9 +86,9 @@ export default async function OpsEventsLookupPage({
             />
           </div>
           <div className="flex items-end">
-            <button type="submit" className={adminClasses.primaryButton}>
+            <Button variant="primary" type="submit">
               Buscar
-            </button>
+            </Button>
           </div>
         </form>
       </AdminSection>

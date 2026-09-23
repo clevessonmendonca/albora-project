@@ -1,19 +1,12 @@
 "use client";
 
-import { Badge, Skeleton } from "@albora/ui-web";
+import { Badge, Button, buttonClasses, Skeleton } from "@albora/ui-web";
 import { useCallback, useState } from "react";
-import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { RefreshButton } from "./refresh-control";
 import { HostExport } from "@/features/admin/components/client/host-export";
 import { HostDriveExport } from "@/features/admin/components/client/host-drive-export";
 import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
-
-/**
- * ≥44px de alvo de toque — override local do Sm compartilhado (`adminClasses.dangerButtonSm`),
- * sem editar admin-shell.tsx (mesmo padrão de review-queue.tsx/comment-moderation.tsx).
- * `min-h-11` garante a altura mínima independente de qual padding vertical vence a cascata.
- */
-const ALVO_TOQUE = "min-h-11 px-5";
 
 type Item = {
   id: string;
@@ -128,7 +121,7 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
           </p>
           <a
             href={`/api/admin/events/${eventoId}/book/pdf`}
-            className={`${adminClasses.secondaryButton} inline-flex no-underline`}
+            className={buttonClasses({ variant: "secondary", className: "inline-flex no-underline" })}
           >
             Baixar PDF do livro
           </a>
@@ -213,24 +206,24 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
             </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
-            <button
+            <Button
               type="button"
+              variant="danger"
+              size="sm"
               disabled={ocultando !== null}
               onClick={() => void ocultar(selecionadoItem.id)}
-              className={`${adminClasses.dangerButtonSm} ${ALVO_TOQUE} ${
-                ocultando ? "cursor-wait opacity-60" : ""
-              }`}
+              className={`${ocultando ? "cursor-wait opacity-60" : ""}`}
             >
               {ocultando ? "Ocultando…" : "Ocultar foto"}
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="secondary"
               disabled={ocultando !== null}
               onClick={() => setSelecionado(null)}
-              className={adminClasses.secondaryButton}
             >
               Cancelar
-            </button>
+            </Button>
           </div>
           {erroAcao && (
             <p role="alert" className="tipo-caption m-0 mt-3 text-critico">
