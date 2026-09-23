@@ -30,6 +30,8 @@ export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
 
 Testes `.tsx` rodam no project `jsdom` do vitest, com `vitest.setup.ts` já configurado (`@testing-library/jest-dom/vitest` mais `cleanup()` no `afterEach`). `pnpm vitest run <arquivo>` basta — estes testes não precisam de banco.
 
+**`import React from "react"` é obrigatório** em todo `.tsx` de `apps/web` que tenha JSX — tanto o componente quanto o teste. O `apps/web/tsconfig.json:9` usa `"jsx": "preserve"`, que o SWC do Next resolve com o runtime automático mas o esbuild do vitest compila no runtime clássico: sem o import, o teste morre com `ReferenceError: React is not defined`, primeiro apontando para o teste e depois para o componente. `packages/ui-web` não tem esse problema porque seu tsconfig usa `"jsx": "react-jsx"`. Os testes que já existem no admin (`qr-code-print.test.tsx`, `create-event-wizard.test.tsx`) seguem essa convenção.
+
 ## Fora de escopo, de propósito
 
 - **Tema escuro no admin.** O painel hoje não tem nenhum (`grep` por `data-tema`/`prefers-color-scheme` em `apps/web/features/admin` e `apps/web/app/admin` dá zero). O mecanismo existe no lado convidado (`apps/web/features/guest/lib/theme-style.ts:27-40`, `estiloAntiFlash`) e dá para reusar, mas traz consigo uma superfície inteira de verificação de contraste. Vai em plano próprio, como a spec §14.3 já previa.
@@ -826,11 +828,15 @@ Esperado: tudo limpo.
 
 - [ ] **Step 5: Ver com os próprios olhos**
 
-O harness de tela renderiza os componentes reais com o CSS compilado e pega o que teste nenhum pega. Suba o preview e confira, nesta ordem:
+O harness `apps/web/app/telas-admin` **não serve** para isto: ele renderiza telas-maquete de `app/telas/admin-screens.tsx`, não os componentes reais. Para ver os de verdade, crie uma página temporária que monte `AdminShell` + `EventSidebar` + `EventTabBar` dentro de `ModerationCountProvider` — o provider é estado puro, sem fetch, e `useModerationCount` tem default, então a página sobe sem auth e sem banco. Confira, nesta ordem:
 
-1. Desktop: os seis itens na lateral, o ativo marcado, recolher e expandir.
+1. Desktop (≥1024px): os seis itens na lateral, o ativo marcado, recolher e expandir.
 2. Celular (375px): quatro itens mais "Mais", a folha abrindo, o conteúdo não coberto pela barra.
 3. Nome de evento longo: trunca na lateral e no título, sem empurrar nada.
+
+**Ao terminar, apague a página temporária E `apps/web/.next/types`.** O Next gera tipos de rota para ela, e os tipos sobrevivem ao arquivo: o `pnpm typecheck` passa a falhar com `TS2307: Cannot find module` apontando para `.next/types/app/<rota>/page.ts`, um erro que parece do seu código e não é.
+
+Registro desta execução: o painel de browser deste ambiente renderizou em branco **também** `/telas-admin`, página que já existia e não foi tocada — 677KB de DOM e texto zero, com erro de chunk do webpack no console. Limpar o `.next` não resolveu. Conclusão: falha do painel, não do código. O que ficou verificado no lugar foi o HTML servido (`curl`), que traz as duas navegações com `aria-label` corretos e as classes `lg:flex`, `lg:hidden`, `pb-28` e `truncate` nos lugares certos.
 
 - [ ] **Step 6: Commit**
 
