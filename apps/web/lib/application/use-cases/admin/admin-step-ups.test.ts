@@ -100,19 +100,26 @@ describe("requestDriveStepUp", () => {
   });
 
   it("deve calcular expiresAt corretamente", async () => {
-    const beforeCall = Date.now();
-    mockEmitirStepUp.mockResolvedValue({ token: "token" });
+    // Relógio congelado: sem fake timers, `diff` inclui o tempo de parede
+    // gasto entre `beforeCall` e o `Date.now()` interno (há `await` no meio).
+    // Sob carga de CPU no pre-push esse tempo estoura a tolerância de ±100ms
+    // e o teste flaka. Congelado, o offset é exato.
+    vi.useFakeTimers();
+    try {
+      const beforeCall = Date.now();
+      mockEmitirStepUp.mockResolvedValue({ token: "token" });
 
-    const input = createInput();
-    await requestDriveStepUp(input, mockPool);
+      const input = createInput();
+      await requestDriveStepUp(input, mockPool);
 
-    const callArgs = mockEmitirStepUp.mock.calls[0]!;
-    const expiresAt = callArgs[3] as Date;
-    const expectedMs = VALIDADE_STEP_UP_DRIVE_MINUTOS * 60 * 1000;
-    const diff = expiresAt.getTime() - beforeCall;
+      const callArgs = mockEmitirStepUp.mock.calls[0]!;
+      const expiresAt = callArgs[3] as Date;
+      const expectedMs = VALIDADE_STEP_UP_DRIVE_MINUTOS * 60 * 1000;
 
-    expect(diff).toBeGreaterThanOrEqual(expectedMs - 100);
-    expect(diff).toBeLessThanOrEqual(expectedMs + 100);
+      expect(expiresAt.getTime() - beforeCall).toBe(expectedMs);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("deve incluir link no corpo do e-mail", async () => {
@@ -202,22 +209,28 @@ describe("requestExportStepUp", () => {
   });
 
   it("deve calcular expiresAt corretamente", async () => {
-    const beforeCall = Date.now();
-    mockWithEvent.mockImplementation(async (_pool, _eventId, fn) => fn(null));
-    mockPlanoDoEvento.mockResolvedValue("completo");
-    mockPodeBaixarZip.mockReturnValue(true);
-    mockEmitirStepUp.mockResolvedValue({ token: "token" });
+    // Relógio congelado: mesmo motivo do teste de Drive acima — sem fake
+    // timers o `diff` carrega o tempo de parede dos `await` internos e estoura
+    // ±100ms sob carga. Congelado, o offset é exato.
+    vi.useFakeTimers();
+    try {
+      const beforeCall = Date.now();
+      mockWithEvent.mockImplementation(async (_pool, _eventId, fn) => fn(null));
+      mockPlanoDoEvento.mockResolvedValue("completo");
+      mockPodeBaixarZip.mockReturnValue(true);
+      mockEmitirStepUp.mockResolvedValue({ token: "token" });
 
-    const input = createInput();
-    await requestExportStepUp(input, mockPool);
+      const input = createInput();
+      await requestExportStepUp(input, mockPool);
 
-    const callArgs = mockEmitirStepUp.mock.calls[0]!;
-    const expiresAt = callArgs[3] as Date;
-    const expectedMs = VALIDADE_STEP_UP_MINUTOS * 60 * 1000;
-    const diff = expiresAt.getTime() - beforeCall;
+      const callArgs = mockEmitirStepUp.mock.calls[0]!;
+      const expiresAt = callArgs[3] as Date;
+      const expectedMs = VALIDADE_STEP_UP_MINUTOS * 60 * 1000;
 
-    expect(diff).toBeGreaterThanOrEqual(expectedMs - 100);
-    expect(diff).toBeLessThanOrEqual(expectedMs + 100);
+      expect(expiresAt.getTime() - beforeCall).toBe(expectedMs);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("deve incluir link no corpo do e-mail", async () => {

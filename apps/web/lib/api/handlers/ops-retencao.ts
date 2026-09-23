@@ -1,4 +1,5 @@
 import {
+  erroDeJobParaRegistro,
   listDueRetentionJobs,
   processRetentionJob,
   type NotificacaoRetencao,
@@ -118,7 +119,7 @@ export async function postOpsRetencao(req: Request) {
             // Enriquecimento pós-commit — não derruba o sweep.
             console.warn("retencao.purge_r2_falhou", {
               eventId: job.eventId,
-              erro: String(e),
+              erro: erroDeJobParaRegistro(e),
             });
           }
         }
@@ -135,7 +136,7 @@ export async function postOpsRetencao(req: Request) {
         } catch (e) {
           console.warn("retencao.revoke_drive_falhou", {
             eventId: job.eventId,
-            erro: String(e),
+            erro: erroDeJobParaRegistro(e),
           });
         }
       }

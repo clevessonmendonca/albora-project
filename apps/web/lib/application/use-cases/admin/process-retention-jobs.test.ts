@@ -31,6 +31,10 @@ const {
 vi.mock("@albora/db", () => ({
   listDueRetentionJobs: mockListDueRetentionJobs,
   processRetentionJob: mockProcessRetentionJob,
+  // O código de produção passou a mascarar PII em last_error via
+  // erroDeJobParaRegistro; o mock precisa expô-la, senão vira undefined() e
+  // os testes de degradação (purge/revoke falhando) quebram na chamada.
+  erroDeJobParaRegistro: (e: unknown) => String(e),
 }));
 
 vi.mock("@/lib/drive-config", () => ({

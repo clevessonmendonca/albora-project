@@ -48,6 +48,52 @@ export type DueRetentionJob = {
   endsAt: Date;
 };
 
+const MASCARAS_DE_ERRO: ReadonlyArray<readonly [RegExp, string]> = [
+  // Guloso até o último `)`, não até o primeiro: valor com parêntese dentro
+  // (`Key (nome)=(Joao (Silva))`) deixava o resto da mensagem cru.
+  [/\bKey \(([^)]*)\)=\(.*\)/g, "Key ($1)=(«valor»)"],
+  // Até o fim da mensagem, pelo mesmo motivo — o Postgres põe a linha inteira
+  // aqui e ela pode conter qualquer coisa, inclusive `)`.
+  [/\bFailing row contains \([\s\S]*/g, "Failing row contains («linha»)"],
+  [/[\w.+-]+@[\w-]+\.[\w.-]+/g, "«contato»"],
+  // Telefone é PII tanto quanto e-mail. As bordas `(?<![\w-])`/`(?![\w-])`
+  // preservam UUID de evento — sem elas o último grupo de um UUID vira
+  // «telefone» e o log perde justamente o que serve para diagnosticar.
+  [/(?<![\w-])(?:\+?\d{1,3}[\s.-]?)?\(?\d{2,3}\)?[\s.-]?\d{4,5}[\s.-]?\d{4}(?![\w-])/g, "«telefone»"],
+  [/\?[^\s"']+/g, "?«query»"],
+];
+
+/**
+ * `last_error` nasce de exceção crua e sobrevive ao incidente numa coluna que a
+ * tela do console lê. Mensagem de Postgres embute o valor em conflito (`Key
+ * (email)=(x@y.com)`, `Failing row contains (...)`) e erro de API externa
+ * costuma carregar contato ou URL assinada com credencial na query. Mascarar na
+ * ESCRITA é o que impede o dado cru de existir no banco — sanitizar só na
+ * leitura deixa o vazamento persistido.
+ */
+export function sanitizarErroDeJob(erro: string | null): string | null {
+  if (!erro) return erro;
+  let texto = erro;
+  for (const [padrao, troca] of MASCARAS_DE_ERRO) texto = texto.replace(padrao, troca);
+  return texto.length > 300 ? `${texto.slice(0, 300)}…` : texto;
+}
+
+/** SQLSTATE do pg (`23505`) ou `name` do Error: diagnóstico que não depende do texto livre que acabou de ser mascarado. */
+function codigoDoErro(e: unknown): string {
+  if (typeof e === "object" && e !== null) {
+    const { code, name } = e as { code?: unknown; name?: unknown };
+    if (typeof code === "string" && /^[A-Za-z0-9_]{1,32}$/.test(code)) return code;
+    if (typeof name === "string" && name.length > 0) return name;
+  }
+  return "desconhecido";
+}
+
+/** Única forma pela qual uma exceção pode virar `last_error` ou linha de log: `código: mensagem sanitizada`. */
+export function erroDeJobParaRegistro(e: unknown): string {
+  const bruto = e instanceof Error ? e.message : String(e);
+  return `${codigoDoErro(e)}: ${sanitizarErroDeJob(bruto) ?? ""}`;
+}
+
 /** Pool deve ter BYPASSRLS/superuser — sem isso o JOIN em events devolve zero e o sintoma é silencioso. */
 export async function listDueRetentionJobs(pool: Pool, limit = 50): Promise<DueRetentionJob[]> {
   const { rows } = await pool.query<{
@@ -89,7 +135,7 @@ export async function markRetentionJob(
             last_error = $3,
             completed_at = CASE WHEN $2 IN ('done', 'skipped') THEN now() ELSE completed_at END
       WHERE id = $1`,
-    [id, status, lastError ?? null],
+    [id, status, sanitizarErroDeJob(lastError ?? null)],
   );
 }
 
@@ -171,7 +217,7 @@ export async function processRetentionJob(
       const diasDeAtraso = Math.max(0, Math.floor((agora.getTime() - job.dueAt.getTime()) / 86_400_000));
       await cliente.query(
         "UPDATE retention_jobs SET status = 'failed', last_error = $2, attempts = attempts + 1 WHERE id = $1",
-        [job.id, gate.reason],
+        [job.id, sanitizarErroDeJob(gate.reason)],
       );
       if (email) {
         await notificarSemQuebrar(deps, {
@@ -203,14 +249,15 @@ export async function processRetentionJob(
       ...(driveRefreshTokenParaRevogar ? { driveRefreshTokenParaRevogar } : {}),
     };
   } catch (e) {
+    const registro = erroDeJobParaRegistro(e);
     await cliente.query("ROLLBACK").catch(() => {});
     await pool
       .query(
         "UPDATE retention_jobs SET status = 'failed', last_error = $2, attempts = attempts + 1 WHERE id = $1",
-        [job.id, String(e)],
+        [job.id, registro],
       )
       .catch(() => {});
-    return { status: "failed", error: String(e) };
+    return { status: "failed", error: registro };
   } finally {
     cliente.release();
   }
@@ -259,7 +306,7 @@ async function notificarSemQuebrar(deps: DepsProcessarRetencao, n: NotificacaoRe
   try {
     await deps.notify(n);
   } catch (e) {
-    console.warn("retention.notify_falhou", { kind: n.kind, eventId: n.eventId, erro: String(e) });
+    console.warn("retention.notify_falhou", { kind: n.kind, eventId: n.eventId, erro: erroDeJobParaRegistro(e) });
   }
 }
 

@@ -2,8 +2,10 @@ import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   agendarRetencaoNaTransacao,
+  erroDeJobParaRegistro,
   listDueRetentionJobs,
   processRetentionJob,
+  sanitizarErroDeJob,
   scheduleRetentionJobs,
   type DueRetentionJob,
   type NotificacaoRetencao,
@@ -93,7 +95,11 @@ describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000
   });
 
   it("é idempotente — chamar duas vezes não duplica", async () => {
-    const ends = new Date("2026-09-05T20:00:00Z");
+    // Relativo ao presente, nunca absoluto: `planRetention` descarta job com
+    // `due_at` mais de um dia no passado, então uma data fixa passa a agendar
+    // três em vez de quatro assim que o calendário anda — este teste reprovou
+    // sozinho, sem ninguém tocar em código.
+    const ends = new Date(Date.now() + 2 * 24 * 3600 * 1000);
     const eventoId = await criarEvento(ends);
     await scheduleRetentionJobs(admin, eventoId, ends);
     await scheduleRetentionJobs(admin, eventoId, ends);
@@ -106,7 +112,7 @@ describe("agendarRetencaoNaTransacao / scheduleRetentionJobs", { timeout: 30_000
   });
 
   it("agendarRetencaoNaTransacao roda dentro de uma transação já aberta (comEvento)", async () => {
-    const ends = new Date("2026-09-10T20:00:00Z");
+    const ends = new Date(Date.now() + 2 * 24 * 3600 * 1000);
     const eventoId = await criarEvento(ends);
     await comEvento(admin, eventoId, (c) => agendarRetencaoNaTransacao(c, eventoId, ends));
 
@@ -445,5 +451,155 @@ describe("processRetentionJob — lock por evento (pg_advisory_xact_lock)", () =
     expect(status.status).toBe("done");
     // attempts incrementa uma vez por execução real — sob o lock, a segunda invocação encontra o status já 'done' e sai sem tocar attempts de novo.
     expect(status.attempts).toBe(1);
+  });
+});
+
+describe("sanitizarErroDeJob / erroDeJobParaRegistro", () => {
+  it("mascara o valor em conflito do Postgres, não só o e-mail", () => {
+    const cru =
+      'duplicate key value violates unique constraint "accounts_email_key" DETAIL: Key (email)=(joao@gmail.com) already exists.';
+    const limpo = sanitizarErroDeJob(cru)!;
+    expect(limpo).not.toContain("joao@gmail.com");
+    expect(limpo).toContain("Key (email)=(«valor»)");
+    expect(limpo).toContain("accounts_email_key");
+  });
+
+  it("mascara a linha inteira de um Failing row contains", () => {
+    const limpo = sanitizarErroDeJob("new row violates check DETAIL: Failing row contains (1, joao, 61999998888).")!;
+    expect(limpo).not.toContain("61999998888");
+    expect(limpo).toContain("Failing row contains («linha»)");
+  });
+
+  it("mascara e-mail solto em erro de API externa", () => {
+    expect(sanitizarErroDeJob("Drive: invalid_grant for maria.silva+tag@empresa.com.br")).toBe(
+      "Drive: invalid_grant for «contato»",
+    );
+  });
+
+  it("mascara query string — é onde a URL assinada carrega credencial", () => {
+    const limpo = sanitizarErroDeJob("PUT https://r2.example.com/a/b?X-Amz-Signature=deadbeef failed")!;
+    expect(limpo).not.toContain("deadbeef");
+    expect(limpo).toContain("?«query»");
+  });
+
+  it("mascara telefone — é PII tanto quanto e-mail, em qualquer formato", () => {
+    expect(sanitizarErroDeJob("WhatsApp falhou para 5561999998888")).toBe(
+      "WhatsApp falhou para «telefone»",
+    );
+    expect(sanitizarErroDeJob("SMS para (61) 99999-8888 recusado")).toBe("SMS para «telefone» recusado");
+    expect(sanitizarErroDeJob("contato 61 99999-8888 indisponivel")).toBe(
+      "contato «telefone» indisponivel",
+    );
+  });
+
+  it("preserva o UUID do evento — mascarar o identificador cegaria o diagnóstico", () => {
+    const comUuid = "event 550e8400-e29b-41d4-a716-446655440000 nao encontrado";
+    expect(sanitizarErroDeJob(comUuid)).toBe(comUuid);
+  });
+
+  it("valor com parêntese não vaza o resto da mensagem", () => {
+    // Regex parando no primeiro `)` deixava telefone e nome crus depois dele.
+    const linha = sanitizarErroDeJob("Failing row contains (1, Joao (Silva), 61999998888, ativo).");
+    expect(linha).toBe("Failing row contains («linha»)");
+
+    const chave = sanitizarErroDeJob("Key (nome)=(Joao (Silva)) already exists");
+    expect(chave).toBe("Key (nome)=(«valor») already exists");
+  });
+
+  it("trunca em 300 chars e preserva null", () => {
+    expect(sanitizarErroDeJob(null)).toBeNull();
+    const longo = sanitizarErroDeJob("x".repeat(500))!;
+    expect(longo).toHaveLength(301);
+    expect(longo.endsWith("…")).toBe(true);
+  });
+
+  it("não mexe em motivo de recusa — união fechada continua legível", () => {
+    expect(sanitizarErroDeJob("export_missing")).toBe("export_missing");
+  });
+
+  it("prefixa código estruturado: SQLSTATE do pg quando existe, name do Error caso contrário", () => {
+    const pgErr = Object.assign(new Error("duplicate key"), { code: "23505" });
+    expect(erroDeJobParaRegistro(pgErr)).toBe("23505: duplicate key");
+    expect(erroDeJobParaRegistro(new TypeError("x is not a function"))).toBe("TypeError: x is not a function");
+    expect(erroDeJobParaRegistro("string solta")).toBe("desconhecido: string solta");
+  });
+});
+
+describe("processRetentionJob — last_error nunca guarda PII crua", () => {
+  /** Falha o purge do d365 com uma exceção controlada, sem mexer no worker: o resto da transação usa o pool real. */
+  function poolQuePurgaFalhando(mensagem: string): pg.Pool {
+    return {
+      connect: async () => {
+        const cliente = await admin.connect();
+        const original = cliente.query.bind(cliente);
+        // Repassa TODOS os args: pg.Pool.query chama client.query(texto, params, callback) e some se o callback for engolido.
+        const patch = (...args: unknown[]) => {
+          const texto = args[0];
+          if (typeof texto === "string" && texto.startsWith("UPDATE uploads SET state = 'purged'")) {
+            throw new Error(mensagem);
+          }
+          return (original as (...a: unknown[]) => unknown)(...args);
+        };
+        (cliente as unknown as { query: unknown }).query = patch;
+        const releaseOriginal = cliente.release.bind(cliente);
+        cliente.release = (err?: Error | boolean) => {
+          // Devolve o client limpo: o pool reaproveita esta conexão nos testes seguintes.
+          (cliente as unknown as { query: unknown }).query = original;
+          return releaseOriginal(err as never);
+        };
+        return cliente;
+      },
+      query: admin.query.bind(admin),
+    } as unknown as pg.Pool;
+  }
+
+  it("exceção com e-mail no meio grava código + mensagem mascarada, e a falha/retry não muda", async () => {
+    const ends = endsParaDueHaPouco(365 * DIA, 90 * 60 * 1000);
+    const eventoId = await criarEvento(ends);
+    const { rows: sessao } = await admin.query<{ id: string }>(
+      `INSERT INTO guest_sessions (event_id, display_name, consent_version, consented_at)
+       VALUES ($1, 'convidado-retencao', 'v1', now()) RETURNING id`,
+      [eventoId],
+    );
+    await admin.query(
+      `INSERT INTO uploads (id, event_id, session_id, storage_key, mime, bytes, state)
+       VALUES (gen_random_uuid(), $1, $2, $3, 'image/jpeg', 800000, 'published')`,
+      [eventoId, sessao[0]!.id, `events/${eventoId}/2026/08/foto/0`],
+    );
+    await admin.query(
+      `INSERT INTO export_jobs (event_id, account_id, state, mode, photo_count, items, published_snapshot)
+       VALUES ($1, $2, 'pronto', 'full', 1, '[]'::jsonb, 1)`,
+      [eventoId, dados.a.contaId],
+    );
+    await scheduleRetentionJobs(admin, eventoId, ends);
+    const job = await jobDoEvento(eventoId, "d365_delete");
+
+    const pool = poolQuePurgaFalhando(
+      'duplicate key value violates unique constraint "accounts_email_key" DETAIL: Key (email)=(joao@gmail.com) already exists.',
+    );
+    const r = await processRetentionJob(pool, job, semNotificar);
+
+    expect(r.status).toBe("failed");
+    if (r.status === "failed") {
+      expect(r.error).not.toContain("joao@gmail.com");
+      expect(r.error.startsWith("Error: ")).toBe(true);
+    }
+
+    const status = await statusDoJob(job.id);
+    expect(status.status).toBe("failed");
+    expect(status.attempts).toBe(1);
+    expect(status.lastError).not.toContain("joao@gmail.com");
+    expect(status.lastError).toContain("«valor»");
+
+    // Reprocessável: a falha continua voltando na fila de vencidos.
+    const vencidos = await listDueRetentionJobs(admin, 200);
+    expect(vencidos.some((j) => j.id === job.id)).toBe(true);
+
+    // Rollback preservado: nada foi purgado.
+    const { rows: uploads } = await admin.query<{ state: string }>(
+      "SELECT state FROM uploads WHERE event_id = $1",
+      [eventoId],
+    );
+    expect(uploads.every((u) => u.state === "published")).toBe(true);
   });
 });
