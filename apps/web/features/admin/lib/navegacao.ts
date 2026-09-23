@@ -22,8 +22,8 @@ export const DESTINOS: readonly Destino[] = [
   {
     id: "experiencia",
     rotulo: "Experiência",
-    suffix: "/identity",
-    absorve: ["/missions", "/guestbook"],
+    suffix: "/experiencia",
+    absorve: ["/identity", "/missions", "/guestbook"],
   },
   { id: "compartilhar", rotulo: "Compartilhar", suffix: "/qrcode", absorve: [] },
   { id: "ajustes", rotulo: "Ajustes", suffix: "/consent", absorve: [] },

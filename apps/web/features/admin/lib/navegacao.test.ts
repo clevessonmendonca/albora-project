@@ -32,6 +32,7 @@ describe("destino ativo", () => {
     expect(destinoAtivo(`${base}/pre-event`, base)).toBe("inicio");
     expect(destinoAtivo(`${base}/moderation`, base)).toBe("fotos");
     expect(destinoAtivo(`${base}/insights`, base)).toBe("convidados");
+    expect(destinoAtivo(`${base}/identity`, base)).toBe("experiencia");
     expect(destinoAtivo(`${base}/missions`, base)).toBe("experiencia");
     expect(destinoAtivo(`${base}/guestbook`, base)).toBe("experiencia");
   });
@@ -39,7 +40,7 @@ describe("destino ativo", () => {
   it("rota própria marca o próprio destino", () => {
     expect(destinoAtivo(`${base}/album`, base)).toBe("fotos");
     expect(destinoAtivo(`${base}/guests`, base)).toBe("convidados");
-    expect(destinoAtivo(`${base}/identity`, base)).toBe("experiencia");
+    expect(destinoAtivo(`${base}/experiencia`, base)).toBe("experiencia");
     expect(destinoAtivo(`${base}/qrcode`, base)).toBe("compartilhar");
     expect(destinoAtivo(`${base}/consent`, base)).toBe("ajustes");
   });
