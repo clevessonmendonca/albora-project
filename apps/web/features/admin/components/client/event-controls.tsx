@@ -5,9 +5,7 @@ import { Badge, Button, buttonClasses, Switch } from "@albora/ui-web";
 import Link from "next/link";
 import { useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
-import { EventPieces } from "@/features/admin/components/client/event-pieces";
 import { SupportHelpButton } from "@/features/admin/components/client/support-help-button";
-import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
 
 type WireModeration = {
   panico: boolean;
@@ -25,7 +23,6 @@ type SavingField = "panic" | "hasMinors" | "hardened" | "interaction" | "status"
 
 type Props = {
   eventId: string;
-  slug: string;
   plan: "free" | "celebration" | "vendor";
   initial: WireModeration;
   initialInteractionOpensAt: string | null;
@@ -43,7 +40,6 @@ function fromWire(m: WireModeration): Moderation {
 
 export function EventControls({
   eventId,
-  slug,
   plan,
   initial,
   initialInteractionOpensAt,
@@ -117,7 +113,6 @@ export function EventControls({
     }
   };
 
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
 
   return (
     <div className="flex flex-col gap-5">
@@ -383,27 +378,6 @@ export function EventControls({
         </AdminSection>
       )}
 
-      <AdminSection>
-        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Peças para imprimir</h2>
-        <EventPieces eventId={eventId} slug={slug} />
-      </AdminSection>
-
-      <AdminSection>
-        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Links do evento</h2>
-        <div className="flex flex-col gap-3">
-          <EventLink title="Convidado" url={eventEntryUrl(origin, slug, "link")} />
-          <EventLink title="WhatsApp" url={whatsappInviteUrl(origin, slug)} />
-        </div>
-        <a
-          href={eventEntryUrl(origin, slug, "link")}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="tipo-caption mt-4 flex min-h-11 items-center justify-center rounded-pilula border border-linha bg-transparent px-4 text-center text-ink-2 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink"
-        >
-          Testar como convidado ↗
-        </a>
-      </AdminSection>
-
       {error && (
         <p role="alert" className="tipo-body m-0 text-critico">
           Não salvou agora. Tente de novo.
@@ -418,50 +392,6 @@ function Effect({ label, value }: { label: string; value: string }) {
     <div className="rounded-token bg-bg px-3 py-2.5">
       <span className="tipo-label block text-ink-3">{label}</span>
       <span className="tipo-caption mt-0.5 block text-ink">{value}</span>
-    </div>
-  );
-}
-
-function EventLink({ title, url }: { title: string; url: string }) {
-  const [copiado, setCopiado] = useState(false);
-
-  const copiar = () => {
-    void navigator.clipboard.writeText(url).then(() => {
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 2000);
-    });
-  };
-
-  return (
-    <div>
-      <span className="tipo-label block text-ink-3">{title}</span>
-      <div className="mt-1 flex items-center gap-2">
-        <a href={url} target="_blank" rel="noopener noreferrer" className="tipo-caption min-w-0 flex-1 truncate text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
-          {url}
-        </a>
-        <button
-          type="button"
-          onClick={copiar}
-          className="tipo-label inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1 rounded-pilula border border-linha bg-superficie-alta px-3 text-ink transition-[transform,border-color,color] duration-instantaneo ease-mola hover:border-acento-texto hover:text-ink-2 active:scale-[0.97]"
-        >
-          {copiado ? (
-            <>
-              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden>
-                <path
-                  d="M2 6l2.5 2.5L10 3.5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              Copiado!
-            </>
-          ) : (
-            "Copiar"
-          )}
-        </button>
-      </div>
     </div>
   );
 }

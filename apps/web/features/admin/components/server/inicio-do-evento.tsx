@@ -109,7 +109,6 @@ export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
   const controles = (
     <EventControls
       eventId={evento.eventoId}
-      slug={evento.slug}
       plan={evento.plan}
       initial={evento.moderacao}
       initialInteractionOpensAt={evento.interacaoAbreEm?.toISOString() ?? null}
