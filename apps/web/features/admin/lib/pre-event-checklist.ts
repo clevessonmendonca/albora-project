@@ -194,3 +194,43 @@ export const MC_SCRIPTS = [
     text: "Quem ainda não mandou foto — QR na mesa, trinta segundos, sem app. A gente quer ver a pista agora.",
   },
 ] as const;
+
+export type SinaisDePreparo = {
+  missoes: number;
+  temIdentidade: boolean;
+  convidadosEsperados: number;
+  planoPago: boolean;
+  gateDefinido: boolean;
+};
+
+export type ItemDoChecklist = { feito: boolean; derivado: boolean };
+
+/** O que o sistema consegue ver sozinho. Pedir para o anfitrião marcar à mão o que o banco já sabe é fazer o usuário trabalhar de graça — e cria duas verdades sobre o mesmo fato. */
+export const ITENS_DERIVADOS: Record<string, (s: SinaisDePreparo) => boolean> = {
+  missoes: (s) => s.missoes > 0,
+  identidade: (s) => s.temIdentidade,
+  "expected-guests": (s) => s.convidadosEsperados > 0,
+  plano: (s) => s.planoPago,
+  gate: (s) => s.gateDefinido,
+};
+
+export function estadoDoChecklist(
+  marcados: string[],
+  sinais: SinaisDePreparo,
+  eventId = "x",
+  origin = "",
+): Record<string, ItemDoChecklist> {
+  const feitosNoServidor = new Set(marcados);
+  const estado: Record<string, ItemDoChecklist> = {};
+
+  for (const secao of buildPreEventSections(eventId, origin)) {
+    for (const item of secao.items) {
+      const derivar = ITENS_DERIVADOS[item.id];
+      estado[item.id] = derivar
+        ? { feito: derivar(sinais), derivado: true }
+        : { feito: feitosNoServidor.has(item.id), derivado: false };
+    }
+  }
+
+  return estado;
+}
