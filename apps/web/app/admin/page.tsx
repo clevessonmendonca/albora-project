@@ -1,4 +1,5 @@
-import { listarEventosDoHost, type ResumoEvento } from "@albora/db";
+import { faseDoEvento } from "@albora/core";
+import { listarEventosDoHost } from "@albora/db";
 import { PACKS, resolvePackText } from "@albora/packs";
 import { Badge } from "@albora/ui-web";
 import { cookies } from "next/headers";
@@ -18,17 +19,6 @@ function slugParaNome(slug: string): string {
   return slug
     .replace(/-/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-type StatusEvento = "vivo" | "agendado" | "encerrado";
-
-function statusDoEvento(
-  e: Pick<ResumoEvento, "comecaEm" | "terminaEm">,
-  agora: Date,
-): StatusEvento {
-  if (e.terminaEm && e.terminaEm < agora) return "encerrado";
-  if (e.comecaEm <= agora) return "vivo";
-  return "agendado";
 }
 
 export default async function AdminPage() {
@@ -83,7 +73,7 @@ export default async function AdminPage() {
               const pack = PACKS[e.packId];
               const tipo = pack ? resolvePackText(pack, "evento.nome") : e.packId;
               const nome = slugParaNome(e.slug);
-              const status = statusDoEvento(e, agora);
+              const fase = faseDoEvento(e, agora);
               const quando = e.comecaEm.toLocaleDateString("pt-BR", {
                 day: "numeric",
                 month: "short",
@@ -101,7 +91,7 @@ export default async function AdminPage() {
                   <div className="min-w-0">
                     <p
                       className={`m-0 font-titulo text-[1.0625rem] ${
-                        status === "encerrado" ? "text-ink-2" : "text-ink"
+                        fase === "depois" ? "text-ink-2" : "text-ink"
                       }`}
                     >
                       {nome}
@@ -111,7 +101,7 @@ export default async function AdminPage() {
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
-                    {status === "vivo" && (
+                    {fase === "durante" && (
                       <Badge tone="accent">
                         <span
                           aria-hidden
@@ -120,8 +110,9 @@ export default async function AdminPage() {
                         ao vivo
                       </Badge>
                     )}
-                    {status === "agendado" && <Badge tone="outline">agendado</Badge>}
-                    {status === "encerrado" && <Badge tone="neutral">encerrado</Badge>}
+                    {fase === "antes" && <Badge tone="outline">agendado</Badge>}
+                    {fase === "rascunho" && <Badge tone="outline">rascunho</Badge>}
+                    {fase === "depois" && <Badge tone="neutral">encerrado</Badge>}
                     <span
                       aria-hidden
                       className="text-ink-3 transition-transform duration-[var(--tempo-rapido)] ease-[var(--curva)] group-hover:translate-x-0.5"
