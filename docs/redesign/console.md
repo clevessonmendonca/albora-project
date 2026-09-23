@@ -120,4 +120,4 @@ Guards de isolamento (cross-evento só via `albora_agregador`/`BYPASSRLS` em lei
 ### Anexos
 - `prototipos/console.html` — console completo (10 telas + Sistema, `confirmDanger`, command palette, drawers ricos). **Referência visual; não porte o JS.** Onde ele mostra ação net-new (revogar sessão, bloquear IP, incidente), é intenção de UI — depende do comando correspondente existir.
 - Backend: branch `feat/ceo-backoffice`. Autorização em `packages/core/src/authorization/`, comandos em `packages/application/src/**`, auditoria/segurança migration `0060`, staff `0059`, impersonação `0062`.
-- `painel.md` / `telao.md` / `kit.md` / `identidade.md` / `REFATORACAO.md` — as outras superfícies do redesign.
+- `telao.md` / `kit.md` / `identidade.md` / `REFATORACAO.md` — as outras superfícies do redesign. (`painel.md` está superado por `docs/superpowers/specs/2026-09-22-painel-anfitriao-redesign-design.md`.)

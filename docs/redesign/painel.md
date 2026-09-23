@@ -1,5 +1,9 @@
 # Álbora — Refatoração do Painel do Anfitrião (guia de implementação)
 
+> **Superado.** A arquitetura de informação e as telas descritas aqui foram substituídas por
+> `docs/superpowers/specs/2026-09-22-painel-anfitriao-redesign-design.md`. Este documento fica
+> como registro das decisões que levaram até lá; não implemente a partir dele.
+
 > **Para o agente/dev que vai implementar.** Traduz o redesign do **painel do anfitrião (admin)** — shell + Home por ciclo de vida + telas admin — do protótipo `prototipos/painel-anfitriao.html` para o código atual. Companion de [`REFATORACAO.md`](./REFATORACAO.md), [`telao.md`](./telao.md), [`kit.md`](./kit.md), [`identidade.md`](./identidade.md).
 
 ## 0. Como usar
