@@ -9,7 +9,7 @@ import {
   listarComentariosParaRevisao,
   listarMidiaParaRevisao,
 } from "@albora/db";
-import { decidirTese, type CodigoDaTese } from "@albora/core";
+import { type CodigoDaTese } from "@albora/core";
 import {
   ADMIN_SESSION_REQUIRED,
   ANY_HOST_ROLES,
@@ -23,6 +23,7 @@ import {
   unexpectedError,
 } from "@/lib/api";
 import { statusPedido } from "@/lib/api/event-status";
+import { resumoDeParticipacao } from "@/lib/api/participacao";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 import { assinarGet } from "@/lib/r2";
@@ -86,8 +87,9 @@ export async function GET(
       return { metricas, filaRevisao: midias.length + comentarios.length };
     });
 
-    const veredito = decidirTese({
+    const veredito = resumoDeParticipacao({
       expectedGuests: evento.expectedGuests,
+      actualGuests: evento.actualGuests,
       sessoesComUpload: dados.metricas.sessoesComUpload,
     });
 
@@ -100,7 +102,8 @@ export async function GET(
     );
 
     return jsonOk({
-      expectedGuests: evento.expectedGuests,
+      expectedGuests: veredito.denominador,
+      origemDoDenominador: veredito.origem,
       sessoesComUpload: dados.metricas.sessoesComUpload,
       totalFotos: dados.metricas.totalFotos,
       filaRevisao: dados.filaRevisao,

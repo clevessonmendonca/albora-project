@@ -10,6 +10,7 @@ import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
 type Resumo = {
   expectedGuests: number;
+  origemDoDenominador?: "confirmado" | "estimado";
   sessoesComUpload: number;
   totalFotos: number;
   filaRevisao: number;
@@ -158,7 +159,11 @@ export function LiveSummary({ eventoId }: Props) {
         <Stat n={`${pct}%`} rotulo="participação" destaqueClass={destaqueClass} />
         <Stat
           n={`${resumo.sessoesComUpload}/${resumo.expectedGuests}`}
-          rotulo="convidados com foto"
+          rotulo={
+            resumo.origemDoDenominador === "confirmado"
+              ? "de quem esteve na festa"
+              : "dos convidados esperados"
+          }
         />
         <Stat n={String(resumo.totalFotos)} rotulo="fotos enviadas" />
         <Stat
