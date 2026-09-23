@@ -2,6 +2,7 @@ import {
   abrirInteracaoDoEvento,
   agendarInteracaoDoEvento,
   atualizarModeracaoDoEvento,
+  encerrarEvento,
   publicarEvento,
   withEvent,
   lerMetricasAoVivo,
@@ -21,6 +22,7 @@ import {
   requireHostSession,
   unexpectedError,
 } from "@/lib/api";
+import { statusPedido } from "@/lib/api/event-status";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 import { assinarGet } from "@/lib/r2";
@@ -36,7 +38,7 @@ type Corpo = {
   abrirInteracao?: unknown;
   /** ISO-8601 ou `null` para fechar o gate de novo. */
   interacaoAbreEm?: unknown;
-  /** Só aceita `"active"` — este endpoint publica, nunca encerra (task 6, gap I1). */
+  /** `"active"` publica, `"ended"` encerra. Voltar para `"draft"` nunca é aceito. */
   status?: unknown;
 };
 
@@ -140,7 +142,9 @@ export async function PATCH(
   const abrirInteracao = comoBooleano(corpo.abrirInteracao);
   const interacaoAbreEm =
     corpo.interacaoAbreEm !== undefined ? comoAbertura(corpo.interacaoAbreEm) : undefined;
-  const publicar = corpo.status !== undefined && corpo.status === "active";
+  const pedido = corpo.status !== undefined ? statusPedido(corpo.status) : undefined;
+  const publicar = pedido === "active";
+  const encerrar = pedido === "ended";
 
   if (
     corpo.interacaoAbreEm !== undefined &&
@@ -152,8 +156,8 @@ export async function PATCH(
     });
   }
 
-  if (corpo.status !== undefined && !publicar) {
-    return errorResponse(422, "validation_error", "Só aceita status active", {
+  if (corpo.status !== undefined && pedido === null) {
+    return errorResponse(422, "validation_error", "Só aceita status active ou ended", {
       campos: ["status"],
     });
   }
@@ -164,14 +168,16 @@ export async function PATCH(
     modoEndurecido === undefined &&
     abrirInteracao === undefined &&
     interacaoAbreEm === undefined &&
-    !publicar
+    !publicar &&
+    !encerrar
   ) {
     return errorResponse(422, "validation_error", "Nada para atualizar", {
       campos: ["panico", "haMenores", "modoEndurecido", "abrirInteracao", "interacaoAbreEm", "status"],
     });
   }
 
-  const allowedRoles = haMenores !== undefined ? COUPLE_HOST_ROLES : ANY_HOST_ROLES;
+  const allowedRoles =
+    haMenores !== undefined || encerrar ? COUPLE_HOST_ROLES : ANY_HOST_ROLES;
   const access = await requireHostEventRole(auth.host.accountId, eventId, allowedRoles);
   if (access instanceof Response) return access;
 
@@ -195,6 +201,10 @@ export async function PATCH(
 
     if (publicar) {
       evento = await publicarEvento(getPool(), auth.host.accountId, eventId);
+    }
+
+    if (encerrar) {
+      evento = await encerrarEvento(getPool(), auth.host.accountId, eventId);
     }
 
     if (!evento) {
