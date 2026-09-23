@@ -1,4 +1,10 @@
-import { withEvent, listarMidiaDoAlbum, ocultarMidiaDoHost } from "@albora/db";
+import {
+  destacarMidiaDoHost,
+  listarDestaques,
+  listarMidiaDoAlbum,
+  ocultarMidiaDoHost,
+  withEvent,
+} from "@albora/db";
 import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
@@ -17,7 +23,15 @@ export const dynamic = "force-dynamic";
 
 const VALIDADE_GET_SEGUNDOS = 900;
 
-type Corpo = { midiaId?: unknown };
+type Acao = "ocultar" | "destacar" | "remover-destaque";
+
+type Corpo = { midiaId?: unknown; acao?: unknown };
+
+/** `acao` ausente significa ocultar: era o unico comportamento da rota, e cliente em voo nao pode quebrar. */
+function comoAcao(v: unknown): Acao | null {
+  if (v === undefined) return "ocultar";
+  return v === "ocultar" || v === "destacar" || v === "remover-destaque" ? v : null;
+}
 
 export async function GET(
   req: Request,
@@ -42,7 +56,10 @@ export async function GET(
     const owned = await requireHostEvent(auth.host.accountId, eventId);
     if (owned instanceof Response) return owned;
 
-    const midias = await withEvent(getPool(), eventId, (c) => listarMidiaDoAlbum(c, eventId, 120));
+    const { midias, destaques } = await withEvent(getPool(), eventId, async (c) => ({
+      midias: await listarMidiaDoAlbum(c, eventId, 120),
+      destaques: await listarDestaques(c, eventId),
+    }));
 
     const itens = await Promise.all(
       midias.map(async (m) => ({
@@ -55,7 +72,7 @@ export async function GET(
       })),
     );
 
-    return jsonOk({ itens, total: itens.length });
+    return jsonOk({ itens, total: itens.length, destaques });
   } catch (e) {
     return unexpectedError("admin.album", e);
   }
@@ -82,10 +99,27 @@ export async function PATCH(
     return errorResponse(422, "validation_error", "midiaId obrigatório", { campos: ["midiaId"] });
   }
 
+  const acao = comoAcao(corpo.acao);
+  if (!acao) {
+    return errorResponse(422, "validation_error", "Ação desconhecida", { campos: ["acao"] });
+  }
+
   try {
-    const ocultou = await ocultarMidiaDoHost(getPool(), auth.host.accountId, eventId, midiaId);
-    if (!ocultou) return errorResponse(404, "midia.nao_encontrada", "Foto não encontrada");
-    return jsonOk({ oculta: true });
+    if (acao === "ocultar") {
+      const ocultou = await ocultarMidiaDoHost(getPool(), auth.host.accountId, eventId, midiaId);
+      if (!ocultou) return errorResponse(404, "midia.nao_encontrada", "Foto não encontrada");
+      return jsonOk({ oculta: true });
+    }
+
+    const mudou = await destacarMidiaDoHost(
+      getPool(),
+      auth.host.accountId,
+      eventId,
+      midiaId,
+      acao === "destacar",
+    );
+    if (!mudou) return errorResponse(404, "midia.nao_encontrada", "Foto não encontrada");
+    return jsonOk({ destacada: acao === "destacar" });
   } catch (e) {
     return unexpectedError("admin.album", e);
   }
