@@ -120,16 +120,16 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
               >
                 {downloading === `${f.id}-pdf` ? "Gerando…" : "Baixar PDF"}
               </Button>
-              <button
+              <Button
                 type="button"
+                variant="secondary"
+                size="sm"
                 disabled={downloading !== null}
                 onClick={() => void download(f.id, "svg")}
-                className={`inline-flex cursor-pointer items-center justify-center rounded-pilula border border-linha bg-superficie font-titulo text-[0.8125rem] text-ink transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta ${
-                  downloading !== null ? "cursor-wait opacity-50" : ""
-                } ${downloading === `${f.id}-svg` ? "opacity-60" : ""}`}
+                className={downloading !== null ? "cursor-wait opacity-50" : ""}
               >
                 {downloading === `${f.id}-svg` ? "Gerando…" : "Baixar SVG"}
-              </button>
+              </Button>
             </div>
           </div>
         ))}
