@@ -80,6 +80,18 @@ git commit -m "refactor(admin): moderação passa a ser faceta de Fotos"
 
 ---
 
+## Resultado da execução
+
+Três commits. Suíte em 2775 testes, typecheck e lint limpos, 8 guards.
+
+`EditorialTabs` do design system serviu sem alteração: ele monta `href` concatenando `base` e `suffix`, então `?aba=revisar` funciona como sufixo sem precisar de componente novo. `HostAlbum` ganhou só uma prop, `filtro`, e a aba Destaques reusa a grade inteira.
+
+`abaAtiva` cai em Todas diante de valor desconhecido em vez de quebrar — inclusive com `../../etc/passwd`, que tem teste. Query string é entrada de usuário, e tela de admin não pode explodir porque alguém editou a URL.
+
+### Uma decisão que deixei para o mantenedor
+
+O selo de pendência na navegação continua levando para a aba Todas, não para Revisar. Fazer o destino mudar conforme há ou não pendência daria um clique a menos quando importa, mas torna a navegação não determinística: o mesmo item leva a lugares diferentes dependendo do estado. Preferi manter previsível e registrar a alternativa aqui.
+
 ## Pronto quando
 
 - Uma tela só resolve ver, revisar e destacar.
