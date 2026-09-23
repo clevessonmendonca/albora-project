@@ -1,5 +1,4 @@
-import { EventPageLayout } from "@/features/admin/components/server/event-page-layout";
-import { ModerationPage } from "@/features/admin/components/client/moderation-page";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +9,5 @@ export default async function PaginaModeracao({
 }) {
   const { eventId } = await params;
 
-  return (
-    <EventPageLayout eventId={eventId} section="Moderação">
-      <ModerationPage eventoId={eventId} />
-    </EventPageLayout>
-  );
+  redirect(`/admin/e/${eventId}/album?aba=revisar`);
 }
