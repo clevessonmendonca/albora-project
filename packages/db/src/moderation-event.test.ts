@@ -30,6 +30,13 @@ describe("moderacao do evento pelo host", () => {
     expect(deA.map((e) => e.eventoId)).not.toContain(dados.b.eventoId);
   });
 
+  it("a listagem traz o status do evento", async () => {
+    const deA = await listarEventosDoHost(app, dados.a.contaId);
+    const evento = deA.find((e) => e.eventoId === dados.a.eventoId);
+
+    expect(evento?.status).toBe("active");
+  });
+
   it("nao enxerga evento de outra conta", async () => {
     const cruzado = await buscarEventoDoHost(app, dados.a.contaId, dados.b.eventoId);
     expect(cruzado).toBeNull();

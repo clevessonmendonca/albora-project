@@ -4,6 +4,7 @@ import {
   parsePlanoDoEvento,
   type EstadoDoEvento,
   type PlanoDoEvento,
+  type StatusDoEvento,
 } from "@albora/core";
 import type { Pool, PoolClient } from "pg";
 import { comConta, comEvento } from "./event";
@@ -20,6 +21,8 @@ export type ResumoEvento = {
   packId: string;
   comecaEm: Date;
   terminaEm: Date;
+  /** `draft` = ainda não publicado; convidado não acessa (task 6, gap I1). */
+  status: StatusDoEvento;
 };
 
 export type EventoDoHost = ResumoEvento & {
@@ -33,8 +36,6 @@ export type EventoDoHost = ResumoEvento & {
   plan: PlanoDoEvento;
   title: string | null;
   coverImageKey: string | null;
-  /** `draft` = ainda não publicado; convidado não acessa (task 6, gap I1). */
-  status: "draft" | "active" | "ended";
 };
 
 export type AtualizacaoModeracao = Partial<EstadoModeracao>;
@@ -96,7 +97,7 @@ export async function listarEventosDoHost(
 ): Promise<ResumoEvento[]> {
   return comConta(pool, accountId, async (c) => {
     const { rows } = await c.query<Omit<LinhaCompleta, "panic" | "hardened" | "has_minors">>(
-      `SELECT id, slug, pack_id, starts_at, ends_at
+      `SELECT id, slug, pack_id, starts_at, ends_at, status
          FROM events
         ORDER BY starts_at DESC`,
     );
@@ -106,6 +107,7 @@ export async function listarEventosDoHost(
       packId: l.pack_id,
       comecaEm: l.starts_at,
       terminaEm: l.ends_at,
+      status: l.status as StatusDoEvento,
     }));
   });
 }
