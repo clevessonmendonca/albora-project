@@ -234,3 +234,11 @@ export function estadoDoChecklist(
 
   return estado;
 }
+
+/** Chave que não existe mais no checklist não pode entrar na tabela, senão ela vira depósito de item fantasma. Derivado também não: ele é calculado, nunca gravado. */
+export function ehChaveManualDoChecklist(chave: string): boolean {
+  if (ITENS_DERIVADOS[chave]) return false;
+  return buildPreEventSections("x", "").some((secao) =>
+    secao.items.some((item) => item.id === chave),
+  );
+}
