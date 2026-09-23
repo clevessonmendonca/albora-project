@@ -64,9 +64,9 @@ O terceiro argumento `true` em `current_setting` evita o erro quando o setting n
 
 **O `NULLIF` não é defensivo, é obrigatório**, e a razão não é óbvia. Depois de um `SET LOCAL`, ao commitar, um GUC customizado não volta a NULL — volta a **string vazia**. E `''::uuid` não "deixa de casar": ele **estoura** com `invalid input syntax`. Sem o `NULLIF`, a mesma consulta se comporta de dois jeitos na mesma pool — zero linhas em conexão nova, erro 500 em conexão reciclada por outro evento. A diferença entre "falha fechado" e "falha às vezes" cabe nessas seis letras.
 
-### As cinco portas fora da RLS
+### As sete portas fora da RLS
 
-Cinco consultas precisam acontecer **antes** de existir contexto de evento, e nenhuma delas pode passar pela política sem circularidade:
+Sete tabelas com `event_id` ficam fora da política. Cinco são consultas que precisam acontecer **antes** de existir contexto de evento, e nenhuma delas pode passar pela política sem circularidade. As duas últimas são de outra natureza — estão aqui porque também carregam `event_id` e também ficam fora:
 
 | Porta | Circularidade | Por que é aceitável |
 |---|---|---|
@@ -75,8 +75,14 @@ Cinco consultas precisam acontecer **antes** de existir contexto de evento, e ne
 | **Crachá da parede** (`wall_tokens`) | Resolver o crachá dá o `event_id`; a tabela exigiria o `event_id` | Só leitura — a TV não é uma pessoa e não tem `session_id`. Sem PII, sem conteúdo de evento |
 | **Pareamento da TV** (`wall_pairings`) | Nasce sem evento; resolve por código e token de poll antes de haver contexto | Só mapeamento código/token → evento, mais consentimento de quem autorizou. Sem nome de convidado, sem foto |
 | **Pareamento web → app** (`app_pairings`) | Resgatar o código dá o `event_id`; a tabela exigiria o `event_id` | Só mapeamento código → (`event_id`, `session_id`). Sem PII — a única coisa que o convidado digita além do nome |
+| **Jobs de retenção** (`retention_jobs`) | Não é circularidade: o runner lê **cross-event** por desenho, para achar o que venceu hoje | O isolamento vem de outro lugar — papel dedicado no listing e filtro explícito por `event_id` em toda leitura escopada. Contém só tipo de job, prazo e estado. A leitura por evento carrega comentário dizendo que ali o filtro é a única barreira, não a segunda |
+| **Pagamentos** (`billing_payments`) | Não é circularidade: cobrança é dado de **conta**, e o acesso é por `account_id` ou pelo id do provedor | O `event_id` é referência, não escopo. Ler por `app.event_id` seria a pergunta errada — o webhook do provedor chega sabendo o pagamento, não o evento |
 
-A disciplina é manter as cinco portas **mínimas**. Toda coluna que alguém quiser acrescentar ali está pedindo para sair de trás da RLS, e a revisão trata isso como mudança de fronteira, não como campo novo. Um teste da suíte de isolamento existe só para isso: fixa a lista de tabelas sem RLS e reprova quando aparece uma sexta.
+A disciplina é manter as portas **mínimas**. Toda coluna que alguém quiser acrescentar ali está pedindo para sair de trás da RLS, e a revisão trata isso como mudança de fronteira, não como campo novo.
+
+`packages/db/src/rls-isolamento.test.ts` fixa isso contra o schema aplicado: reprova se aparecer uma oitava tabela sem política, se uma porta declarada ganhar RLS sem a lista ser revista, se alguma tabela tiver `ENABLE` sem `FORCE`, ou se alguma política de evento esquecer o `NULLIF`. Cada porta na lista cita a migration que a decidiu — exceção sem motivo escrito é esquecimento com aparência de decisão.
+
+Este parágrafo já prometeu esse teste antes de ele existir, e a lista ficou em cinco enquanto a realidade era sete. Foi o que motivou escrevê-lo: documento não segura invariante, teste segura.
 
 ### O segundo escopo
 
