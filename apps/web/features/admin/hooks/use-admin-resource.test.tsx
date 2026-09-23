@@ -118,6 +118,22 @@ describe("useAdminResource", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("intervalo undefined desliga o polling, para quem alterna entre modos", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    fetchMock.mockResolvedValue(respostaOk({ n: 1 }));
+
+    const { result } = renderHook(() =>
+      useAdminResource<Dado>("/api/x", { intervaloMs: undefined }),
+    );
+    await waitFor(() => expect(result.current.carregando).toBe(false));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(120_000);
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("desmontado, não tenta mais escrever estado", async () => {
     let libera: (r: Response) => void = () => undefined;
     const pendente = new Promise<Response>((resolve) => {

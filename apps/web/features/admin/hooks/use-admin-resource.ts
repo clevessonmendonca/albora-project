@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Opcoes<T> = {
-  /** Relê sozinho neste intervalo. Omita para ler uma vez só. */
-  intervaloMs?: number;
-  aoCarregar?: (dado: T) => void;
+  /** Relê sozinho neste intervalo. Omita, ou passe `undefined`, para ler uma vez só. */
+  intervaloMs?: number | undefined;
+  aoCarregar?: ((dado: T) => void) | undefined;
 };
 
 export type RecursoAdmin<T> = {
