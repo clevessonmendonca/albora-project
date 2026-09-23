@@ -147,6 +147,16 @@ git commit -m "feat(admin): anfitrião destaca foto no álbum"
 
 ---
 
+## Resultado da execução
+
+Quatro commits. Suíte em 2768 testes, isolamento em 438, typecheck e lint limpos, 8 guards.
+
+O semeador de teste já criava uma foto por evento (`dados.a.uploadId`), então os testes de destaque nasceram sem precisar montar cenário. Só a foto oculta foi inserida pelo próprio teste, porque nenhuma existia.
+
+Dois testes que valem mais que os outros: o que prova que **destacar duas vezes não mexe no horário original** — sem ele, um toque duplo reordenaria a curadoria —, e o que prova que **destacar não muda `state`**, que é a fronteira entre curadoria e moderação. Se um dia alguém fizer destacar implicar publicar, esse teste cai.
+
+A rota manteve `acao` opcional com `"ocultar"` como padrão. Custou três linhas e garante que nenhum cliente em voo quebre no deploy.
+
 ## Pronto quando
 
 - Destacar e tirar destaque funcionam e sobrevivem ao recarregar.
