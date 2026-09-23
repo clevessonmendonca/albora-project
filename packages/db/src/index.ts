@@ -134,6 +134,7 @@ export {
   buscarEventoDoHost,
   lerModeracaoDoEvento,
   limiarDenuncias,
+  encerrarEvento,
   listarEventosDoHost,
   paraEstadoDoEvento,
   publicarEvento,
@@ -289,6 +290,8 @@ export { ErroSessaoDeOutroEvento as SessionConflictError } from "./block-db";
 
 /** English alias — preferred for new code. @see listarEventosDoHost */
 export { listarEventosDoHost as listHostEvents } from "./moderation-event";
+/** English alias — preferred for new code. @see encerrarEvento */
+export { encerrarEvento as endEvent } from "./moderation-event";
 /** English alias — preferred for new code. @see buscarEventoDoHost */
 export { buscarEventoDoHost as getHostEvent } from "./moderation-event";
 /** English alias — preferred for new code. @see atualizarModeracaoDoEvento */
@@ -435,9 +438,11 @@ export type {
 } from "./retention-jobs";
 export {
   agendarRetencaoNaTransacao,
+  erroDeJobParaRegistro,
   listDueRetentionJobs,
   markRetentionJob,
   processRetentionJob,
+  sanitizarErroDeJob,
   scheduleRetentionJobs,
 } from "./retention-jobs";
 

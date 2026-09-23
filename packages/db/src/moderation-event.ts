@@ -194,6 +194,25 @@ export async function publicarEvento(
   });
 }
 
+export async function encerrarEvento(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+): Promise<EventoDoHost | null> {
+  return comConta(pool, accountId, async (c) => {
+    await c.query(
+      `UPDATE events SET status = 'ended' WHERE id = $1 AND status = 'active'`,
+      [eventoId],
+    );
+
+    const { rows } = await c.query<LinhaCompleta>(
+      `SELECT ${COLUNAS} FROM events WHERE id = $1`,
+      [eventoId],
+    );
+    return rows[0] ? mapEvento(rows[0]) : null;
+  });
+}
+
 /** Abre o gate de interação na hora (spec 009, ADR 0009). */
 export async function abrirInteracaoDoEvento(
   pool: Pool,

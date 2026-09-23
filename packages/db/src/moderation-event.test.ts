@@ -4,6 +4,7 @@ import {
   alternarPanicoDoEvento,
   atualizarModeracaoDoEvento,
   buscarEventoDoHost,
+  encerrarEvento,
   listarEventosDoHost,
 } from "./moderation-event";
 import { prepararBanco, semear } from "./testes/banco";
@@ -77,5 +78,19 @@ describe("panico pela parede", () => {
 
     const desligado = await alternarPanicoDoEvento(app, dados.a.eventoId);
     expect(desligado).toBe(panicoInicial);
+  });
+});
+
+describe("encerramento do evento", () => {
+  it("nao encerra evento de outra conta", async () => {
+    const cruzado = await encerrarEvento(app, dados.a.contaId, dados.b.eventoId);
+
+    expect(cruzado).toBeNull();
+  });
+
+  it("encerra um evento publicado", async () => {
+    const depois = await encerrarEvento(app, dados.a.contaId, dados.a.eventoId);
+
+    expect(depois?.status).toBe("ended");
   });
 });
