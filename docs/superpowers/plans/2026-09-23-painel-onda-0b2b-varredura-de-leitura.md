@@ -77,6 +77,19 @@ grep -rn "setInterval" apps/web/features/admin/components/client/
 
 Esperado ao fim: nenhum `fetch` dentro de `useEffect` de leitura; `animate-pulse` só em `live-summary.tsx` e `guestbook-audio-field.tsx`, que são os dois pontos pulsantes de estado; `setInterval` só dentro do hook.
 
+## Resultado da execução
+
+Nove dos treze migraram ao hook: `billing-history`, `consent-versions`, `couple-follow-mode`, `event-insights`, `event-music`, `guest-funnel`, `guestbook-editor`, `host-album`, `review-queue`. Os treze trocaram o skeleton.
+
+Quatro ficaram fora do hook, e o motivo é o mesmo em pares:
+
+- **`comment-moderation.tsx` e `event-team-panel.tsx`** guardam o erro como **string compartilhada entre leitura e escrita** — a mesma variável recebe a mensagem de "não carregou" e a de "não salvou", e é zerada no começo das duas ações. O hook expõe `erro: boolean` e só o reseta ao resolver. Sincronizar os dois exigiria estado espelhado e mudaria a janela em que o aviso antigo some, o que é mudança visível. O `comment-moderation` ainda faz mutação local otimista depois do DELETE, que o hook não comporta porque só escreve `dado` em leitura bem-sucedida. Isso é caminho de escrita: resolve junto com o otimismo com rollback, na onda dos controles ao vivo.
+- **`host-export.tsx` e `host-drive-export.tsx`** leem por hooks próprios que têm teste (`use-host-export.test.ts`, `use-host-drive-export.test.ts`), como a regra 5 previa. O `host-drive-export` ainda faz duas leituras em paralelo que alimentam uma máquina de estados por fase, com polling de 4s ligado só em certas fases — o `useAdminResource` é de uma URL e um intervalo, e forçá-lo ali mudaria comportamento.
+
+Uma lacuna de API apareceu e **não** foi preenchida: o hook não tem opção de "só leia quando tal condição valer", que é o que o `event-team-panel` precisaria para não pedir `/members` a quem não pode gerenciar equipe. Não inventei a opção porque, mesmo com ela, o erro-string continuaria bloqueando a migração daquele arquivo — seria opção sem consumidor. Quando a onda de escrita destravar os dois, a opção entra junto, com consumidor de verdade.
+
+Ajuste feito no hook durante a execução: `intervaloMs` e `aoCarregar` aceitam `undefined` explícito. O repo usa `exactOptionalPropertyTypes: true`, e `couple-follow-mode` alterna entre um modo com polling e outro sem.
+
 ## Pronto quando
 
 - Os treze arquivos leem pelo hook, salvo os dois cujo fetch vive em hook próprio testado.
