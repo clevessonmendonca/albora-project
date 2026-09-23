@@ -1,20 +1,11 @@
 "use client";
 
-import { CameraIcon, HomeIcon, SettingsIcon, UsersIcon } from "@albora/ui-web";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ComponentType } from "react";
+import { DESTINOS, destinoAtivo } from "@/features/admin/lib/navegacao";
+import { ICONES_DE_DESTINO } from "@/features/admin/components/client/icones-de-destino";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
-type IconProps = { size?: number };
-type NavItem = { label: string; suffix: string; icon: ComponentType<IconProps>; exact?: boolean };
-
-const ITEMS: NavItem[] = [
-  { label: "Início", suffix: "", icon: HomeIcon, exact: true },
-  { label: "Fotos", suffix: "/album", icon: CameraIcon },
-  { label: "Convidados", suffix: "/guests", icon: UsersIcon },
-  { label: "Evento", suffix: "/evento", icon: SettingsIcon, exact: true },
-];
 
 /** Rail lateral do painel no desktop (o mobile usa a bottom-bar de `AppNav`). Superfície clara,
  *  editorial: logo, identidade do evento, as 4 abas e a saída — o app inteiro parte daqui. */
@@ -40,11 +31,10 @@ export function EventSidebar({
       </div>
 
       <nav aria-label="Navegação do evento" className="mt-7 flex flex-col gap-1">
-        {ITEMS.map(({ label, suffix, icon: Icon, exact }) => {
-          const href = `${base}${suffix}`;
-          const active = exact
-            ? pathname === href || pathname === `${href}/`
-            : pathname === href || pathname.startsWith(`${href}/`);
+        {DESTINOS.map((destino) => {
+          const Icon = ICONES_DE_DESTINO[destino.id];
+          const href = `${base}${destino.suffix}`;
+          const active = destinoAtivo(pathname, base) === destino.id;
           return (
             <Link
               key={href}
@@ -58,7 +48,7 @@ export function EventSidebar({
               ].join(" ")}
             >
               <Icon size={20} />
-              <span className="tipo-label leading-none">{label}</span>
+              <span className="tipo-label leading-none">{destino.rotulo}</span>
             </Link>
           );
         })}
