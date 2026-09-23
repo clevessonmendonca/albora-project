@@ -364,6 +364,16 @@ git commit -m "refactor(admin): checklist de preparo sai do localStorage"
 
 ---
 
+## Resultado da execução
+
+Seis commits. Suíte em 2755 testes, isolamento em 430, lint e typecheck limpos, 8 guards.
+
+O `GRANT` que o plano mandava conferir era mesmo redundante: a migration 0002 já faz `ALTER DEFAULT PRIVILEGES` concedendo a `albora_app` em toda tabela criada depois. Saiu da migration, com o motivo escrito nela.
+
+O teste de isolamento ficou mais forte do que o plano pedia. Verificar que ler o evento B não traz item do evento A passaria mesmo **sem RLS nenhum**, porque a própria query filtra por `event_id`. O teste que ficou faz `SELECT item_key FROM event_checklist` **sem filtro**, dentro do escopo do evento B, e exige lista vazia — isso só passa se a política estiver de pé. Para uma regra não negociável, o teste tem que falhar quando a regra cair.
+
+`PreEventPromo` também migrou. Ele lia o progresso do `localStorage` e escutava `storage` e `focus` para se atualizar; agora lê do servidor pelo mesmo hook. Os dois ouvintes de evento sumiram junto.
+
 ## Pronto quando
 
 - Marcar um item num aparelho e abrir noutro mostra o item marcado.
