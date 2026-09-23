@@ -7,6 +7,7 @@ import { ContagemRegressiva } from "@/features/admin/components/client/contagem-
 import { EventControls } from "@/features/admin/components/client/event-controls";
 import { EventTeamPanel } from "@/features/admin/components/client/event-team-panel";
 import { LiveSummary } from "@/features/admin/components/client/live-summary";
+import { PreEventPromo } from "@/features/admin/components/client/pre-event-promo";
 import { proximosPassos, type Passo } from "@/features/admin/lib/proximos-passos";
 import type { AdminEventPageContext } from "@/features/admin/data/load-event-page";
 
@@ -74,7 +75,7 @@ function Chegada({ base }: { base: string }) {
 }
 
 export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
-  const { evento, eventoId, name, canManageCoupleOnly, missoes } = ctx;
+  const { evento, eventoId, name, canManageCoupleOnly, missoes, checklistStorageKey } = ctx;
   const base = `/admin/e/${eventoId}`;
   const fase = faseDoEvento(evento, new Date());
 
@@ -88,6 +89,14 @@ export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
       gateDefinido: evento.interacaoAbreEm !== null,
     },
     base,
+  );
+
+  const preparo = (
+    <PreEventPromo
+      eventId={evento.eventoId}
+      storageKey={checklistStorageKey}
+      startsAt={evento.comecaEm}
+    />
   );
 
   const controles = (
@@ -114,6 +123,7 @@ export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
           </p>
         </AdminCard>
         <ProximosPassos passos={passos} />
+        {preparo}
         {controles}
       </div>
     );
@@ -129,6 +139,7 @@ export function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
         </AdminCard>
         <ProximosPassos passos={passos} />
         <Chegada base={base} />
+        {preparo}
         {controles}
       </div>
     );
