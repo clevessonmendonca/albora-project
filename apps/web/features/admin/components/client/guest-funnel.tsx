@@ -58,9 +58,10 @@ function vereditoTextClass(veredito: CodigoDaTese): string {
 
 type Props = {
   eventoId: string;
+  faceta?: "participacao" | "pessoas";
 };
 
-export function GuestFunnel({ eventoId }: Props) {
+export function GuestFunnel({ eventoId, faceta = "participacao" }: Props) {
   const [presenca, setPresenca] = useState("");
   const [salvandoPresenca, setSalvandoPresenca] = useState(false);
   const [atualizando, setAtualizando] = useState(false);
@@ -123,6 +124,16 @@ export function GuestFunnel({ eventoId }: Props) {
     } finally {
       setSalvandoPresenca(false);
     }
+  }
+
+  if (faceta === "pessoas") {
+    return (
+      <GuestDisplayNames
+        eventoId={eventoId}
+        sessoes={resumo.sessoes ?? []}
+        onChanged={() => void carregar()}
+      />
+    );
   }
 
   return (
@@ -278,12 +289,6 @@ export function GuestFunnel({ eventoId }: Props) {
           <Stat n={String(resumo.uploadsDepoisDoFeed)} rotulo="depois do feed" />
         </div>
       </AdminSection>
-
-      <GuestDisplayNames
-        eventoId={eventoId}
-        sessoes={resumo.sessoes ?? []}
-        onChanged={() => void carregar()}
-      />
 
       {resumo.ultimas.length > 0 && (
         <AdminSection>
