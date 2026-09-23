@@ -24,7 +24,29 @@
 
 ## Pré-requisito de ambiente
 
-Os testes de `packages/db` rodam contra **Postgres de verdade** via `prepararBanco()`/`semear()` de `packages/db/src/testes/banco.ts`. O `pnpm db:up` usa Docker; nesta máquina o Docker não sobe. Use o Postgres local (Homebrew) com um banco dedicado a esta worktree e exporte a variável de conexão que `testes/banco.ts` lê antes de rodar a suíte de `db`. Os testes de `packages/core` e de `apps/web/lib` são puros e não precisam de banco.
+Os testes de `packages/db` rodam contra **Postgres de verdade** via `prepararBanco()`/`semear()` de `packages/db/src/testes/banco.ts`, e `prepararBanco()` faz `DROP SCHEMA public CASCADE` — aponte sempre para um banco descartável, nunca para um compartilhado.
+
+Duas armadilhas confirmadas nesta máquina:
+
+1. **`packages/db/**` está excluído do `pnpm test`** (`vitest.config.ts:5`). Rodar `pnpm vitest run packages/db/...` casa zero arquivo e sai com código 1 parecendo falha. A suíte de banco usa a config própria: `--config vitest.isolamento.config.ts`.
+2. **O `pnpm db:up` usa Docker, que não sobe aqui.** Use o Postgres local do Homebrew, cujos papéis `albora`, `albora_app` e `albora_agregador` já existem no cluster.
+
+Antes de qualquer task que toque no banco, exporte:
+
+```bash
+export PATH="/opt/homebrew/opt/node@22/bin:$PATH"
+export TEST_DATABASE_URL="postgres://albora:albora@localhost:5432/albora_test_onda0a"
+```
+
+O banco `albora_test_onda0a` é dedicado a esta onda. Se não existir:
+
+```bash
+/opt/homebrew/opt/postgresql@18/bin/createdb -O albora albora_test_onda0a
+```
+
+Baseline confirmado antes de escrever código: `moderation-event.test.ts` passa com 5 testes contra esse banco.
+
+Os testes de `packages/core` e de `apps/web/lib` são puros, rodam no `pnpm test` normal e não precisam de banco.
 
 Node 22 em shell não-interativo: exporte o PATH do Node 22 antes de qualquer `pnpm`, senão o pnpm recusa.
 
@@ -217,7 +239,7 @@ O semeador cria evento com `status` explícito `'active'`, então este é o valo
 - [ ] **Step 2: Rodar e ver falhar**
 
 ```bash
-pnpm vitest run packages/db/src/moderation-event.test.ts -t "traz o status"
+pnpm vitest run --config vitest.isolamento.config.ts packages/db/src/moderation-event.test.ts -t "traz o status"
 ```
 
 Esperado: FAIL — `status` é `undefined`, e o TypeScript acusa propriedade inexistente em `ResumoEvento`.
@@ -263,7 +285,7 @@ Na query de `listarEventosDoHost`, inclua a coluna e o mapeamento:
 - [ ] **Step 4: Rodar e ver passar**
 
 ```bash
-pnpm vitest run packages/db/src/moderation-event.test.ts
+pnpm vitest run --config vitest.isolamento.config.ts packages/db/src/moderation-event.test.ts
 pnpm typecheck
 ```
 
@@ -312,7 +334,7 @@ Coloque estes dois testes **no fim do describe**: o primeiro muda o estado do ev
 - [ ] **Step 2: Rodar e ver falhar**
 
 ```bash
-pnpm vitest run packages/db/src/moderation-event.test.ts -t "encerra"
+pnpm vitest run --config vitest.isolamento.config.ts packages/db/src/moderation-event.test.ts -t "encerra"
 ```
 
 Esperado: FAIL — `encerrarEvento` não existe.
@@ -354,7 +376,7 @@ export { encerrarEvento as endEvent } from "./moderation-event";
 - [ ] **Step 4: Rodar e ver passar**
 
 ```bash
-pnpm vitest run packages/db/src/moderation-event.test.ts
+pnpm vitest run --config vitest.isolamento.config.ts packages/db/src/moderation-event.test.ts
 pnpm typecheck
 ```
 
@@ -633,7 +655,7 @@ git commit -m "docs(redesign): marca a spec antiga do painel como superada"
 - [ ] **Suíte completa**
 
 ```bash
-pnpm typecheck && pnpm lint && pnpm test && pnpm guards
+pnpm typecheck && pnpm lint && pnpm test && pnpm test:isolamento && pnpm guards
 ```
 
 Esperado: tudo verde, incluindo os guards de isolamento e de tokens, que são bloqueantes.
