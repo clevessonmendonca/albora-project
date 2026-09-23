@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Button } from "./button";
+import { Button, buttonClasses } from "./button";
 
 describe("Button", () => {
   it("renderiza os children recebidos", () => {
@@ -56,8 +56,48 @@ describe("Button", () => {
     expect(screen.getByRole("button").className).toBe(tertiaryClass);
   });
 
+  it("destrutivo se anuncia como destrutivo, não como acento", () => {
+    render(<Button variant="danger">Encerrar evento</Button>);
+    const btn = screen.getByRole("button", { name: "Encerrar evento" });
+
+    expect(btn.className).toMatch(/bg-critico\b/);
+    expect(btn.className).toMatch(/text-sobre-acento\b/);
+    expect(btn.className).not.toMatch(/bg-acento\b/);
+  });
+
   it("não remove o outline global de :focus-visible", () => {
     render(<Button>Ok</Button>);
     expect(screen.getByRole("button").className).not.toMatch(/outline-none/);
+  });
+});
+
+describe("buttonClasses", () => {
+  it("dá ao link exatamente as classes que o botão renderiza", () => {
+    render(
+      <Button variant="primary" size="sm">
+        x
+      </Button>,
+    );
+
+    expect(screen.getByRole("button").className).toBe(
+      buttonClasses({ variant: "primary", size: "sm" }),
+    );
+  });
+
+  it("vale para toda variante e todo tamanho", () => {
+    const variantes = ["primary", "secondary", "tertiary", "danger"] as const;
+    const tamanhos = ["sm", "md", "lg"] as const;
+
+    for (const variant of variantes) {
+      for (const size of tamanhos) {
+        const { unmount } = render(
+          <Button variant={variant} size={size}>
+            x
+          </Button>,
+        );
+        expect(screen.getByRole("button").className).toBe(buttonClasses({ variant, size }));
+        unmount();
+      }
+    }
   });
 });
