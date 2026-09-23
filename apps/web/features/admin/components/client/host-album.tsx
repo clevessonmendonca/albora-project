@@ -1,6 +1,7 @@
 "use client";
 
 import { Badge, Button, buttonClasses, Skeleton } from "@albora/ui-web";
+import { Star } from "lucide-react";
 import { useCallback, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { RefreshButton } from "./refresh-control";
@@ -36,17 +37,50 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
   const [atualizando, setAtualizando] = useState(false);
   const [erroAcao, setErroAcao] = useState<string | null>(null);
   const [ocultando, setOcultando] = useState<string | null>(null);
+  const [destaques, setDestaques] = useState<string[]>([]);
+  const [destacando, setDestacando] = useState<string | null>(null);
   const [selecionado, setSelecionado] = useState<string | null>(null);
 
-  const aoCarregar = useCallback((corpo: { itens: Item[] }) => {
+  const aoCarregar = useCallback((corpo: { itens: Item[]; destaques?: string[] }) => {
     setItens(corpo.itens);
+    setDestaques(corpo.destaques ?? []);
   }, []);
 
   const {
     carregando,
     erro,
     recarregar: carregar,
-  } = useAdminResource<{ itens: Item[] }>(`/api/admin/events/${eventoId}/album`, { aoCarregar });
+  } = useAdminResource<{ itens: Item[]; destaques?: string[] }>(
+    `/api/admin/events/${eventoId}/album`,
+    { aoCarregar },
+  );
+
+  const estaDestacada = (midiaId: string) => destaques.includes(midiaId);
+
+  const alternarDestaque = async (midiaId: string) => {
+    const destacar = !estaDestacada(midiaId);
+    setDestacando(midiaId);
+    setErroAcao(null);
+    setDestaques((antes) =>
+      destacar ? [midiaId, ...antes] : antes.filter((id) => id !== midiaId),
+    );
+
+    try {
+      const r = await fetch(`/api/admin/events/${eventoId}/album`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ midiaId, acao: destacar ? "destacar" : "remover-destaque" }),
+      });
+      if (!r.ok) throw new Error("falhou");
+    } catch {
+      setDestaques((antes) =>
+        destacar ? antes.filter((id) => id !== midiaId) : [midiaId, ...antes],
+      );
+      setErroAcao("Não foi possível mudar o destaque agora. Tente de novo.");
+    } finally {
+      setDestacando(null);
+    }
+  };
 
   const ocultar = async (midiaId: string) => {
     setOcultando(midiaId);
@@ -55,10 +89,11 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
       const r = await fetch(`/api/admin/events/${eventoId}/album`, {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ midiaId }),
+        body: JSON.stringify({ midiaId, acao: "ocultar" }),
       });
       if (!r.ok) throw new Error("falhou");
       setItens((antes) => antes.filter((i) => i.id !== midiaId));
+      setDestaques((antes) => antes.filter((id) => id !== midiaId));
       setSelecionado(null);
     } catch {
       setErroAcao("Não foi possível ocultar a foto. Tente de novo.");
@@ -168,7 +203,9 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
                     type="button"
                     onClick={() => setSelecionado(ativo ? null : item.id)}
                     aria-pressed={ativo}
-                    aria-label={`Foto ${indice + 1} de ${itens.length}, ${legendaDaFoto(item.criadaEm, item.reacoes)}`}
+                    aria-label={`Foto ${indice + 1} de ${itens.length}, ${legendaDaFoto(item.criadaEm, item.reacoes)}${
+                      estaDestacada(item.id) ? ", destacada" : ""
+                    }`}
                     className={`relative block aspect-square w-full cursor-pointer overflow-hidden rounded-media border-0 bg-superficie-alta p-0 transition-transform duration-instantaneo ease-mola active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 ${
                       ativo ? "ring-2 ring-acento ring-offset-2 ring-offset-superficie" : ""
                     }`}
@@ -180,6 +217,14 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
                       decoding="async"
                       className="size-full object-cover object-top"
                     />
+                    {estaDestacada(item.id) && (
+                      <span
+                        aria-hidden
+                        className="absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-acento text-sobre-acento"
+                      >
+                        <Star size={13} />
+                      </span>
+                    )}
                   </button>
                 </li>
               );
@@ -199,13 +244,25 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
               />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="tipo-body m-0 text-ink">Ocultar esta foto?</p>
+              <p className="tipo-body m-0 text-ink">
+                {estaDestacada(selecionadoItem.id) ? "Foto destacada" : "O que fazer com esta foto?"}
+              </p>
               <p className="tipo-caption m-0 mt-1 text-ink-3">
-                {legendaDaFoto(selecionadoItem.criadaEm, selecionadoItem.reacoes)} · some do evento para todos os convidados.
+                {legendaDaFoto(selecionadoItem.criadaEm, selecionadoItem.reacoes)} · destacar marca as
+                melhores; ocultar some do evento para todos os convidados.
               </p>
             </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
+              variant={estaDestacada(selecionadoItem.id) ? "secondary" : "primary"}
+              size="sm"
+              disabled={destacando !== null || ocultando !== null}
+              onClick={() => void alternarDestaque(selecionadoItem.id)}
+            >
+              {estaDestacada(selecionadoItem.id) ? "Tirar destaque" : "Destacar"}
+            </Button>
             <Button
               type="button"
               variant="danger"
