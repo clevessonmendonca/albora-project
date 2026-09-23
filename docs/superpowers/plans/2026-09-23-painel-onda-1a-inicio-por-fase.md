@@ -434,6 +434,14 @@ git commit -m "feat(admin): Início muda de forma conforme a fase do evento"
 
 ---
 
+## Resultado da execução
+
+Cinco commits, suíte em 2751 testes verdes, typecheck e lint limpos, 8 guards.
+
+**Uma regressão minha, encontrada e corrigida antes de fechar.** A rota `/pre-event` ficou inalcançável no meio do caminho: a pílula "Pré-evento" morreu na Onda 0B-3, e o `PreEventPromo` — último caminho até lá — ficou órfão quando o Início passou a mandar na composição. O checklist de 21 itens existia e ninguém chegava nele. Voltou nas fases de rascunho e antes. Vale como lição de varredura: quando um componente para de ser importado, pergunte o que ele era a única porta para.
+
+**Dívida declarada, não escondida.** A spec §4.1 diz que o rascunho tem "ação primária única: Publicar evento". Aqui o rascunho mostra as boas-vindas, os passos, o checklist e **os controles inteiros** — porque o botão de publicar vive dentro de `EventControls`, que tem 470 linhas e também carrega pânico, gate, menores e plano. Separar o publicar do resto é trabalho do próprio `EventControls`, e fazê-lo de passagem aqui seria redesenhar um componente grande sem plano. Fica para a onda que cuidar dos controles.
+
 ## Pronto quando
 
 - Um evento em rascunho mostra preparação e um só botão, não um painel ao vivo zerado.
