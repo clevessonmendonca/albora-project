@@ -78,6 +78,14 @@ git commit -m "refactor(admin): música e telão saem dos controles ao vivo"
 
 ---
 
+## Resultado da execução
+
+Quatro commits. Suíte em 2785 testes, typecheck e lint limpos, 8 guards.
+
+A escolha de **não** usar abas aqui é o que essa onda tem de mais importante. Fotos e Convidados viraram facetas porque são modos de olhar o mesmo conjunto. Experiência é um conjunto de coisas diferentes, duas delas com editor longo — empilhar editor dentro de aba teria enterrado a edição um nível mais fundo, que é exatamente o problema que este redesign existe para resolver.
+
+Música mudou de casa e isso é consertar um erro de classificação, não mover caixa: ela estava ao lado de pânico e gate, entre controles de operação, quando é parte do que o convidado ouve.
+
 ## Pronto quando
 
 - Existe uma tela que responde "o que o convidado vê e ouve".
