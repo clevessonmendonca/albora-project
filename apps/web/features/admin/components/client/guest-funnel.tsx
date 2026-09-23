@@ -7,9 +7,10 @@ import type {
   LeituraDeIntencao,
 } from "@albora/core";
 import type { EntradasPorVia } from "@albora/db";
-import { Badge } from "@albora/ui-web";
-import { useCallback, useEffect, useState } from "react";
+import { Badge, Skeleton } from "@albora/ui-web";
+import { useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { GuestDisplayNames, type SessaoNoTelao } from "./guest-display-names";
 import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
@@ -60,30 +61,18 @@ type Props = {
 };
 
 export function GuestFunnel({ eventoId }: Props) {
-  const [resumo, setResumo] = useState<Resumo | null>(null);
   const [presenca, setPresenca] = useState("");
   const [salvandoPresenca, setSalvandoPresenca] = useState(false);
-  const [erro, setErro] = useState(false);
-  const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const [atualizando, setAtualizando] = useState(false);
 
-  const carregar = useCallback(async () => {
-    try {
-      const r = await fetch(`/api/admin/events/${eventoId}/guests`);
-      if (!r.ok) throw new Error("falhou");
-      setResumo((await r.json()) as Resumo);
-      setErro(false);
-      setUltimaAtualizacao(new Date());
-    } catch {
-      setErro(true);
-    }
-  }, [eventoId]);
-
-  useEffect(() => {
-    void carregar();
-    const id = window.setInterval(() => void carregar(), INTERVALO_MS);
-    return () => window.clearInterval(id);
-  }, [carregar]);
+  const {
+    dado: resumo,
+    erro,
+    atualizadoEm: ultimaAtualizacao,
+    recarregar: carregar,
+  } = useAdminResource<Resumo>(`/api/admin/events/${eventoId}/guests`, {
+    intervaloMs: INTERVALO_MS,
+  });
 
   if (erro && !resumo) {
     return (
@@ -98,18 +87,16 @@ export function GuestFunnel({ eventoId }: Props) {
   if (!resumo) {
     return (
       <AdminSection>
-        <div className="animate-pulse">
-          <div className="mb-4 flex items-center justify-between gap-4">
-            <div className="h-6 w-48 rounded-token bg-superficie-alta" />
-            <div className="h-6 w-20 rounded-pilula bg-superficie-alta" />
-          </div>
-          <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-[4.5rem] rounded-token bg-superficie-alta" />
-            ))}
-          </div>
-          <div className="h-3.5 w-56 rounded-full bg-superficie-alta" />
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton variant="text" className="h-6 w-20" />
         </div>
+        <div className="mb-4 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-[4.5rem]" />
+          ))}
+        </div>
+        <Skeleton variant="text" className="h-3.5 w-56" />
       </AdminSection>
     );
   }
@@ -132,8 +119,6 @@ export function GuestFunnel({ eventoId }: Props) {
       if (r.ok) {
         setPresenca("");
         await carregar();
-      } else {
-        setErro(true);
       }
     } finally {
       setSalvandoPresenca(false);

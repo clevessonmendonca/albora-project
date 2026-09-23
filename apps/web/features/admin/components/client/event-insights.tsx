@@ -2,9 +2,10 @@
 
 import type { CodigoDaTese, DegrauDoFunil, EtapaDaEspinha } from "@albora/core";
 import type { EntradasPorVia } from "@albora/db";
-import { Button } from "@albora/ui-web";
-import { useCallback, useEffect, useState } from "react";
+import { Button, Skeleton } from "@albora/ui-web";
+import { useCallback, useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { downloadFromApi, triggerBlobDownload } from "@/features/admin/lib/download-file";
 import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
@@ -51,39 +52,26 @@ function vereditoTextClass(veredito: CodigoDaTese): string {
 
 /** Só agrega métricas — sem nomes, sem thumbs, sem receita. Moderação de nomes fica em Convidados. */
 export function EventInsights({ eventoId }: { eventoId: string }) {
-  const [resumo, setResumo] = useState<Resumo | null>(null);
-  const [insights, setInsights] = useState<Insights | null>(null);
-  const [erro, setErro] = useState(false);
-  const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const [atualizando, setAtualizando] = useState(false);
   const [baixandoCsv, setBaixandoCsv] = useState(false);
   const [erroCsv, setErroCsv] = useState<string | null>(null);
 
-  const carregar = useCallback(async () => {
-    try {
-      const [rGuests, rInsights] = await Promise.all([
-        fetch(`/api/admin/events/${eventoId}/guests`),
-        fetch(`/api/admin/events/${eventoId}/insights`),
-      ]);
-      if (!rGuests.ok) throw new Error("falhou");
-      const data = (await rGuests.json()) as Resumo;
-      setResumo(data);
-      if (rInsights.ok) {
-        const ins = (await rInsights.json()) as Insights;
-        setInsights(ins);
-      }
-      setErro(false);
-      setUltimaAtualizacao(new Date());
-    } catch {
-      setErro(true);
-    }
-  }, [eventoId]);
+  const {
+    dado: resumo,
+    erro,
+    atualizadoEm: ultimaAtualizacao,
+    recarregar: recarregarResumo,
+  } = useAdminResource<Resumo>(`/api/admin/events/${eventoId}/guests`, {
+    intervaloMs: INTERVALO_MS,
+  });
+  const { dado: insights, recarregar: recarregarInsights } = useAdminResource<Insights>(
+    `/api/admin/events/${eventoId}/insights`,
+    { intervaloMs: INTERVALO_MS },
+  );
 
-  useEffect(() => {
-    void carregar();
-    const id = window.setInterval(() => void carregar(), INTERVALO_MS);
-    return () => window.clearInterval(id);
-  }, [carregar]);
+  const carregar = useCallback(async () => {
+    await Promise.all([recarregarResumo(), recarregarInsights()]);
+  }, [recarregarResumo, recarregarInsights]);
 
   const baixarCsv = useCallback(async () => {
     setErroCsv(null);
@@ -111,18 +99,16 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
   if (!resumo) {
     return (
       <AdminSection>
-        <div className="animate-pulse">
-          <div className="mb-4 flex items-center justify-between gap-4">
-            <div className="h-6 w-44 rounded-token bg-superficie-alta" />
-            <div className="h-6 w-20 rounded-pilula bg-superficie-alta" />
-          </div>
-          <div className="mb-5 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
-            {[0, 1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-[4.5rem] rounded-token bg-superficie-alta" />
-            ))}
-          </div>
-          <div className="h-3.5 w-64 rounded-full bg-superficie-alta" />
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <Skeleton className="h-6 w-44" />
+          <Skeleton variant="text" className="h-6 w-20" />
         </div>
+        <div className="mb-5 grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-[4.5rem]" />
+          ))}
+        </div>
+        <Skeleton variant="text" className="h-3.5 w-64" />
       </AdminSection>
     );
   }

@@ -1,8 +1,8 @@
 "use client";
 
-import { Badge } from "@albora/ui-web";
-import { useEffect, useState } from "react";
+import { Badge, Skeleton } from "@albora/ui-web";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 
 type Pagamento = {
   id: string;
@@ -60,28 +60,12 @@ function formatarData(iso: string): string {
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
+type RespostaBilling = { pagamentos: Pagamento[] };
+
 /** Histórico de cobranças da conta — lê o Asaas ao vivo via `/api/admin/billing`; sem checkout ainda feito, a lista vem vazia (caso comum, não é erro). */
 export function BillingHistory() {
-  const [pagamentos, setPagamentos] = useState<Pagamento[] | null>(null);
-  const [erro, setErro] = useState(false);
-
-  useEffect(() => {
-    let cancelado = false;
-    fetch("/api/admin/billing")
-      .then((r) => {
-        if (!r.ok) throw new Error("falhou");
-        return r.json() as Promise<{ pagamentos: Pagamento[] }>;
-      })
-      .then((data) => {
-        if (!cancelado) setPagamentos(data.pagamentos);
-      })
-      .catch(() => {
-        if (!cancelado) setErro(true);
-      });
-    return () => {
-      cancelado = true;
-    };
-  }, []);
+  const { dado, erro } = useAdminResource<RespostaBilling>("/api/admin/billing");
+  const pagamentos = dado?.pagamentos ?? null;
 
   if (erro) {
     return (
@@ -96,12 +80,10 @@ export function BillingHistory() {
   if (pagamentos === null) {
     return (
       <AdminSection>
-        <div className="animate-pulse">
-          <div className="flex flex-col gap-2">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="h-14 rounded-token bg-superficie-alta" />
-            ))}
-          </div>
+        <div className="flex flex-col gap-2">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-14" />
+          ))}
         </div>
       </AdminSection>
     );

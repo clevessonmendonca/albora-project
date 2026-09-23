@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge } from "@albora/ui-web";
+import { Badge, Skeleton } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 
@@ -108,10 +108,10 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
       {loading && (
         <div className="mb-5 flex flex-col gap-2">
           {Array.from({ length: 3 }, (_, i) => (
-            <div key={i} className="animate-pulse flex items-center gap-3 rounded-token bg-bg px-3 py-3">
-              <div className="h-8 w-8 rounded-full bg-superficie-alta" />
-              <div className="h-3 flex-1 rounded-full bg-superficie-alta" />
-              <div className="h-5 w-20 rounded-pilula bg-superficie-alta" />
+            <div key={i} className="flex items-center gap-3 rounded-token bg-bg px-3 py-3">
+              <Skeleton variant="circle" className="h-8 w-8" />
+              <Skeleton variant="text" className="h-3 flex-1" />
+              <Skeleton variant="text" className="h-5 w-20" />
             </div>
           ))}
         </div>

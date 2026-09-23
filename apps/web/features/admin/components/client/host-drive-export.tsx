@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Button } from "@albora/ui-web";
+import { Badge, Button, Skeleton } from "@albora/ui-web";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import {
@@ -149,12 +149,12 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
   if (estado.fase === "carregando") {
     return (
       <AdminSection>
-        <div className="animate-pulse flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-2">
-            <div className="h-5 w-52 rounded-token bg-superficie-alta" />
-            <div className="h-3.5 w-80 rounded-full bg-superficie-alta" />
+            <Skeleton className="h-5 w-52" />
+            <Skeleton variant="text" className="h-3.5 w-80" />
           </div>
-          <div className="h-11 w-36 shrink-0 rounded-pilula bg-superficie-alta" />
+          <Skeleton variant="text" className="h-11 w-36 shrink-0" />
         </div>
       </AdminSection>
     );

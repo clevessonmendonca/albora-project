@@ -1,11 +1,12 @@
 "use client";
 
-import { Badge } from "@albora/ui-web";
-import { useCallback, useEffect, useState } from "react";
+import { Badge, Skeleton } from "@albora/ui-web";
+import { useCallback, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { RefreshButton } from "./refresh-control";
 import { HostExport } from "@/features/admin/components/client/host-export";
 import { HostDriveExport } from "@/features/admin/components/client/host-drive-export";
+import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 
 /**
  * ≥44px de alvo de toque — override local do Sm compartilhado (`adminClasses.dangerButtonSm`),
@@ -39,30 +40,20 @@ function legendaDaFoto(criadaEm: string, reacoes: number): string {
 
 export function HostAlbum({ eventoId, canExport = true }: Props) {
   const [itens, setItens] = useState<Item[]>([]);
-  const [carregando, setCarregando] = useState(true);
   const [atualizando, setAtualizando] = useState(false);
-  const [erro, setErro] = useState(false);
   const [erroAcao, setErroAcao] = useState<string | null>(null);
   const [ocultando, setOcultando] = useState<string | null>(null);
   const [selecionado, setSelecionado] = useState<string | null>(null);
 
-  const carregar = useCallback(async () => {
-    setErro(false);
-    try {
-      const r = await fetch(`/api/admin/events/${eventoId}/album`);
-      if (!r.ok) throw new Error("falhou");
-      const corpo = (await r.json()) as { itens: Item[] };
-      setItens(corpo.itens);
-    } catch {
-      setErro(true);
-    } finally {
-      setCarregando(false);
-    }
-  }, [eventoId]);
+  const aoCarregar = useCallback((corpo: { itens: Item[] }) => {
+    setItens(corpo.itens);
+  }, []);
 
-  useEffect(() => {
-    void carregar();
-  }, [carregar]);
+  const {
+    carregando,
+    erro,
+    recarregar: carregar,
+  } = useAdminResource<{ itens: Item[] }>(`/api/admin/events/${eventoId}/album`, { aoCarregar });
 
   const ocultar = async (midiaId: string) => {
     setOcultando(midiaId);
@@ -87,17 +78,17 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
     return (
       <div className="flex flex-col gap-5">
         <AdminSection>
-          <div className="animate-pulse">
-            <div className="mb-4 flex items-center justify-between gap-4">
-              <div className="h-3.5 w-52 rounded-full bg-superficie-alta" />
-              <div className="h-8 w-20 rounded-pilula bg-superficie-alta" />
-            </div>
-            <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-4">
-              {[0, 1, 2, 3, 4, 5].map((i) => (
-                <li key={i} aria-hidden className="aspect-square rounded-media bg-superficie-alta" />
-              ))}
-            </ul>
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <Skeleton variant="text" className="h-3.5 w-52" />
+            <Skeleton variant="text" className="h-8 w-20" />
           </div>
+          <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-4">
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <li key={i}>
+                <Skeleton className="aspect-square" />
+              </li>
+            ))}
+          </ul>
         </AdminSection>
       </div>
     );

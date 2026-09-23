@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Badge } from "@albora/ui-web";
+import { Badge, Skeleton } from "@albora/ui-web";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { useModerationCount } from "./moderation-count-context";
 
 /**
@@ -58,38 +59,40 @@ function SectionHeader({ label, count }: { label: string; count: number }) {
 }
 
 export function ReviewQueue({ eventoId, onTotalChange }: Props) {
-  const [midias, setMidias] = useState<Midia[]>([]);
-  const [comentarios, setComentarios] = useState<Comentario[]>([]);
-  const [carregando, setCarregando] = useState(true);
   const [acao, setAcao] = useState<string | null>(null);
   const [acaoBulk, setAcaoBulk] = useState<"liberar" | "ocultar" | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const { setCount } = useModerationCount();
 
-  const carregar = useCallback(async () => {
-    setErro(null);
-    try {
-      const r = await fetch(`/api/admin/events/${eventoId}/review`);
-      if (!r.ok) throw new Error("falhou");
-      const corpo = (await r.json()) as { midias: Midia[]; comentarios: Comentario[] };
-      setMidias(corpo.midias);
-      setComentarios(corpo.comentarios);
+  const aoCarregar = useCallback(
+    (corpo: { midias: Midia[]; comentarios: Comentario[] }) => {
+      setErro(null);
       const total = corpo.midias.length + corpo.comentarios.length;
       onTotalChange?.(total);
       setCount(total);
-    } catch {
-      setErro("Não foi possível carregar a lista de revisão agora.");
-      onTotalChange?.(0);
-    } finally {
-      setCarregando(false);
-    }
-  }, [eventoId, onTotalChange, setCount]);
+    },
+    [onTotalChange, setCount],
+  );
+
+  const {
+    dado,
+    carregando,
+    erro: erroLeitura,
+    recarregar: carregar,
+  } = useAdminResource<{ midias: Midia[]; comentarios: Comentario[] }>(
+    `/api/admin/events/${eventoId}/review`,
+    { intervaloMs: 30_000, aoCarregar },
+  );
 
   useEffect(() => {
-    void carregar();
-    const id = window.setInterval(() => void carregar(), 30_000);
-    return () => window.clearInterval(id);
-  }, [carregar]);
+    if (erroLeitura) {
+      setErro("Não foi possível carregar a lista de revisão agora.");
+      onTotalChange?.(0);
+    }
+  }, [erroLeitura, onTotalChange]);
+
+  const midias = dado?.midias ?? [];
+  const comentarios = dado?.comentarios ?? [];
 
   const patch = async (
     tipo: "midia" | "comentario",
@@ -138,19 +141,19 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
     return (
       <div className="flex flex-col gap-3">
         {Array.from({ length: 3 }, (_, i) => (
-          <div key={i} className="animate-pulse flex gap-3 rounded-token border border-linha bg-bg p-3.5">
-            <div className="aspect-[3/4] w-24 shrink-0 rounded-media bg-superficie-alta sm:w-28" />
+          <div key={i} className="flex gap-3 rounded-token border border-linha bg-bg p-3.5">
+            <Skeleton className="aspect-[3/4] w-24 shrink-0 sm:w-28" />
             <div className="flex flex-1 flex-col gap-2.5">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex flex-col gap-1.5">
-                  <div className="h-3 w-28 rounded-full bg-superficie-alta" />
-                  <div className="h-2.5 w-16 rounded-full bg-superficie-alta" />
+                  <Skeleton variant="text" className="h-3 w-28" />
+                  <Skeleton variant="text" className="h-2.5 w-16" />
                 </div>
-                <div className="h-5 w-16 rounded-pilula bg-superficie-alta" />
+                <Skeleton variant="text" className="h-5 w-16" />
               </div>
               <div className="flex gap-2">
-                <div className="h-7 w-20 rounded-pilula bg-superficie-alta" />
-                <div className="h-7 w-16 rounded-pilula bg-superficie-alta" />
+                <Skeleton variant="text" className="h-7 w-20" />
+                <Skeleton variant="text" className="h-7 w-16" />
               </div>
             </div>
           </div>

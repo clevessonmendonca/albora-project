@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Badge } from "@albora/ui-web";
+import { Badge, Skeleton } from "@albora/ui-web";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { RefreshButton } from "./refresh-control";
 
@@ -81,16 +81,16 @@ export function CommentModeration({ eventoId }: Props) {
     return (
       <div className="flex flex-col gap-3">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="animate-pulse grid gap-2 rounded-token border border-linha bg-bg p-3.5">
+          <div key={i} className="grid gap-2 rounded-token border border-linha bg-bg p-3.5">
             <div className="flex items-start justify-between gap-3">
-              <div className="h-3 w-1/4 rounded-full bg-superficie-alta" />
-              <div className="h-3 w-16 rounded-full bg-superficie-alta" />
+              <Skeleton variant="text" className="h-3 w-1/4" />
+              <Skeleton variant="text" className="h-3 w-16" />
             </div>
             <div className="space-y-1.5">
-              <div className="h-3 w-full rounded-full bg-superficie-alta" />
-              <div className="h-3 w-3/4 rounded-full bg-superficie-alta" />
+              <Skeleton variant="text" className="h-3 w-full" />
+              <Skeleton variant="text" className="h-3 w-3/4" />
             </div>
-            <div className="h-6 w-28 rounded-pilula bg-superficie-alta" />
+            <Skeleton variant="text" className="h-6 w-28" />
           </div>
         ))}
       </div>

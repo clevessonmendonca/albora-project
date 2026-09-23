@@ -2,13 +2,14 @@
 
 import { MAX_TEXT_CHARACTERS } from "@albora/core";
 import { PACKS, resolvePackText } from "@albora/packs";
-import { PhoneFrame, TextField } from "@albora/ui-web";
-import { useEffect, useState } from "react";
+import { PhoneFrame, Skeleton, TextField } from "@albora/ui-web";
+import { useCallback, useEffect, useState } from "react";
 import {
   formatarDuracaoAudio,
   GuestbookAudioField,
 } from "@/features/admin/components/client/guestbook-audio-field";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { useGuestbookRecorder } from "@/features/admin/hooks/use-guestbook-recorder";
 import type { SavedGuestbookAudio } from "@/features/admin/lib/guestbook-audio";
 import { deleteGuestbookAudio, uploadGuestbookAudio } from "@/features/admin/lib/guestbook-audio-upload";
@@ -82,7 +83,6 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
 
   const [texto, setTexto] = useState("");
   const [publicaEm, setPublicaEm] = useState("");
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -92,25 +92,22 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
   const [aceite, setAceite] = useState(false);
   const recorder = useGuestbookRecorder();
 
+  const aoCarregar = useCallback((body: { recado: RecadoSalvo | null }) => {
+    if (body.recado) {
+      setTexto(body.recado.texto);
+      setPublicaEm(toLocalInput(body.recado.publicaEm));
+      setAudioSalvo(body.recado.audio);
+      setExists(true);
+    }
+  }, []);
+
+  const { carregando: loading, erro: erroLeitura } = useAdminResource<{
+    recado: RecadoSalvo | null;
+  }>(`/api/admin/events/${eventId}/guestbook`, { aoCarregar });
+
   useEffect(() => {
-    void (async () => {
-      try {
-        const r = await fetch(`/api/admin/events/${eventId}/guestbook`);
-        if (!r.ok) throw new Error("falhou");
-        const body = (await r.json()) as { recado: RecadoSalvo | null };
-        if (body.recado) {
-          setTexto(body.recado.texto);
-          setPublicaEm(toLocalInput(body.recado.publicaEm));
-          setAudioSalvo(body.recado.audio);
-          setExists(true);
-        }
-      } catch {
-        setError("Não carregou o recado salvo.");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [eventId]);
+    if (erroLeitura) setError("Não carregou o recado salvo.");
+  }, [erroLeitura]);
 
   const caracteres = texto.trim().length;
   const longoDemais = caracteres > MAX_TEXT_CHARACTERS;
@@ -179,14 +176,14 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
   if (loading) {
     return (
       <AdminSection>
-        <div className="flex animate-pulse flex-col gap-4">
-          <div className="h-3 w-32 rounded-full bg-superficie-alta" />
-          <div className="h-36 rounded-token bg-superficie-alta" />
-          <div className="h-3 w-48 rounded-full bg-superficie-alta" />
-          <div className="h-10 rounded-token bg-superficie-alta" />
+        <div className="flex flex-col gap-4">
+          <Skeleton variant="text" className="h-3 w-32" />
+          <Skeleton className="h-36" />
+          <Skeleton variant="text" className="h-3 w-48" />
+          <Skeleton className="h-10" />
           <div className="mt-2 flex gap-3">
-            <div className="h-10 w-32 rounded-pilula bg-superficie-alta" />
-            <div className="h-10 w-40 rounded-pilula bg-superficie-alta" />
+            <Skeleton variant="text" className="h-10 w-32" />
+            <Skeleton variant="text" className="h-10 w-40" />
           </div>
         </div>
       </AdminSection>

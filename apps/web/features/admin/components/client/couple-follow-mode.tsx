@@ -1,9 +1,10 @@
 "use client";
 
 import type { CodigoDaTese } from "@albora/core";
-import { Switch } from "@albora/ui-web";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import { Skeleton, Switch } from "@albora/ui-web";
+import { type ReactNode, useState } from "react";
 import { AdminCard } from "@/features/admin/components/server/admin-shell";
+import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
 type Resumo = {
@@ -36,29 +37,16 @@ type Props = {
 
 export function CoupleFollowMode({ eventoId, dense }: Props) {
   const [verPainelCompleto, setVerPainelCompleto] = useState(false);
-  const [resumo, setResumo] = useState<Resumo | null>(null);
-  const [erro, setErro] = useState(false);
-  const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const [atualizando, setAtualizando] = useState(false);
 
-  const carregar = useCallback(async () => {
-    try {
-      const r = await fetch(`/api/admin/events/${eventoId}`);
-      if (!r.ok) throw new Error("falhou");
-      setResumo((await r.json()) as Resumo);
-      setErro(false);
-      setUltimaAtualizacao(new Date());
-    } catch {
-      setErro(true);
-    }
-  }, [eventoId]);
-
-  useEffect(() => {
-    if (verPainelCompleto) return;
-    void carregar();
-    const id = window.setInterval(() => void carregar(), INTERVALO_MS);
-    return () => window.clearInterval(id);
-  }, [carregar, verPainelCompleto]);
+  const {
+    dado: resumo,
+    erro,
+    atualizadoEm: ultimaAtualizacao,
+    recarregar: carregar,
+  } = useAdminResource<Resumo>(`/api/admin/events/${eventoId}`, {
+    intervaloMs: verPainelCompleto ? undefined : INTERVALO_MS,
+  });
 
   return (
     <div className="flex flex-col gap-5">
@@ -104,18 +92,18 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
 
           {!resumo && !erro && (
             <AdminCard>
-              <div className="animate-pulse flex flex-col gap-4">
+              <div className="flex flex-col gap-4">
                 <div className="flex gap-8">
                   <div className="flex flex-col gap-2">
-                    <div className="h-10 w-20 rounded-token bg-superficie-alta" />
-                    <div className="h-3 w-36 rounded-full bg-superficie-alta" />
+                    <Skeleton className="h-10 w-20" />
+                    <Skeleton variant="text" className="h-3 w-36" />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <div className="h-10 w-16 rounded-token bg-superficie-alta" />
-                    <div className="h-3 w-28 rounded-full bg-superficie-alta" />
+                    <Skeleton className="h-10 w-16" />
+                    <Skeleton variant="text" className="h-3 w-28" />
                   </div>
                 </div>
-                <div className="h-3.5 w-56 rounded-full bg-superficie-alta" />
+                <Skeleton variant="text" className="h-3.5 w-56" />
               </div>
             </AdminCard>
           )}

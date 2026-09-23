@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Button } from "@albora/ui-web";
+import { Badge, Button, Skeleton } from "@albora/ui-web";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
 import {
@@ -87,12 +87,12 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
   if (loading) {
     return (
       <AdminCard>
-        <div className="animate-pulse flex flex-wrap items-start justify-between gap-4">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex flex-col gap-2">
-            <div className="h-5 w-36 rounded-token bg-superficie-alta" />
-            <div className="h-3.5 w-64 rounded-full bg-superficie-alta" />
+            <Skeleton className="h-5 w-36" />
+            <Skeleton variant="text" className="h-3.5 w-64" />
           </div>
-          <div className="h-11 w-28 shrink-0 rounded-pilula bg-superficie-alta" />
+          <Skeleton variant="text" className="h-11 w-28 shrink-0" />
         </div>
       </AdminCard>
     );

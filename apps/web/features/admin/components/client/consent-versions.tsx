@@ -1,8 +1,9 @@
 "use client";
 
-import { Badge } from "@albora/ui-web";
-import { useCallback, useEffect, useState } from "react";
+import { Badge, Skeleton } from "@albora/ui-web";
+import { useState } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
 type TipoDeConsentimento = "entrada" | "externo";
@@ -48,28 +49,16 @@ function formatarData(iso: string | null): string {
 
 /** Auditoria LGPD (task 21): versões de consentimento do evento, contagem de aceites e texto completo — nenhum nome de convidado aparece aqui. */
 export function ConsentVersions({ eventoId }: { eventoId: string }) {
-  const [dados, setDados] = useState<Resposta | null>(null);
-  const [erro, setErro] = useState(false);
-  const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null);
   const [atualizando, setAtualizando] = useState(false);
 
-  const carregar = useCallback(async () => {
-    try {
-      const r = await fetch(`/api/admin/events/${eventoId}/consent`);
-      if (!r.ok) throw new Error("falhou");
-      setDados((await r.json()) as Resposta);
-      setErro(false);
-      setUltimaAtualizacao(new Date());
-    } catch {
-      setErro(true);
-    }
-  }, [eventoId]);
-
-  useEffect(() => {
-    void carregar();
-    const id = window.setInterval(() => void carregar(), INTERVALO_MS);
-    return () => window.clearInterval(id);
-  }, [carregar]);
+  const {
+    dado: dados,
+    erro,
+    atualizadoEm: ultimaAtualizacao,
+    recarregar: carregar,
+  } = useAdminResource<Resposta>(`/api/admin/events/${eventoId}/consent`, {
+    intervaloMs: INTERVALO_MS,
+  });
 
   if (erro && !dados) {
     return (
@@ -85,16 +74,14 @@ export function ConsentVersions({ eventoId }: { eventoId: string }) {
   if (!dados) {
     return (
       <AdminSection>
-        <div className="animate-pulse">
-          <div className="mb-4 flex items-center justify-between gap-4">
-            <div className="h-6 w-56 rounded-token bg-superficie-alta" />
-            <div className="h-6 w-20 rounded-pilula bg-superficie-alta" />
-          </div>
-          <div className="grid gap-3">
-            {[0, 1].map((i) => (
-              <div key={i} className="h-24 rounded-token bg-superficie-alta" />
-            ))}
-          </div>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <Skeleton className="h-6 w-56" />
+          <Skeleton variant="text" className="h-6 w-20" />
+        </div>
+        <div className="grid gap-3">
+          {[0, 1].map((i) => (
+            <Skeleton key={i} className="h-24" />
+          ))}
         </div>
       </AdminSection>
     );

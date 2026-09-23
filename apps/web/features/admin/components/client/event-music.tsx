@@ -1,7 +1,9 @@
 "use client";
 
+import { Skeleton } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { suggestionLabel } from "@/features/music/lib/suggestion-copy";
 
 /**
@@ -24,7 +26,6 @@ export function EventMusic({ eventId }: { eventId: string }) {
   const [url, setUrl] = useState("");
   const [current, setCurrent] = useState<HostTrack | null>(null);
   const [suggestions, setSuggestions] = useState<HostSuggestion[]>([]);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [salvo, setSalvo] = useState(false);
   const [colando, setColando] = useState(false);
@@ -41,25 +42,20 @@ export function EventMusic({ eventId }: { eventId: string }) {
     }
   }, []);
 
+  const aoCarregar = useCallback((body: { musica: HostTrack | null; sugestoes?: HostSuggestion[] }) => {
+    setCurrent(body.musica);
+    setSuggestions(body.sugestoes ?? []);
+    if (body.musica) setUrl(body.musica.url);
+  }, []);
+
+  const { carregando: loading, erro: erroLeitura } = useAdminResource<{
+    musica: HostTrack | null;
+    sugestoes?: HostSuggestion[];
+  }>(`/api/admin/events/${eventId}/music`, { aoCarregar });
+
   useEffect(() => {
-    void (async () => {
-      try {
-        const r = await fetch(`/api/admin/events/${eventId}/music`);
-        if (!r.ok) throw new Error("falhou");
-        const body = (await r.json()) as {
-          musica: HostTrack | null;
-          sugestoes?: HostSuggestion[];
-        };
-        setCurrent(body.musica);
-        setSuggestions(body.sugestoes ?? []);
-        if (body.musica) setUrl(body.musica.url);
-      } catch {
-        setError("Não carregou a música salva.");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [eventId]);
+    if (erroLeitura) setError("Não carregou a música salva.");
+  }, [erroLeitura]);
 
   const save = async () => {
     const trimmed = url.trim();
@@ -99,8 +95,8 @@ export function EventMusic({ eventId }: { eventId: string }) {
       </p>
 
       {loading ? (
-        <div className="animate-pulse rounded-token bg-superficie-alta px-3.5 py-3">
-          <div className="h-3 w-2/3 rounded-full bg-bg" />
+        <div className="rounded-token bg-superficie-alta px-3.5 py-3">
+          <Skeleton variant="text" className="h-3 w-2/3" />
         </div>
       ) : (
         current && <p className="tipo-body m-0 text-ink">Agora: {current.rotulo}</p>
@@ -172,10 +168,10 @@ export function EventMusic({ eventId }: { eventId: string }) {
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="animate-pulse flex items-center justify-between rounded-token bg-bg px-3 py-2.5"
+                className="flex items-center justify-between rounded-token bg-bg px-3 py-2.5"
               >
-                <div className="h-3 w-1/2 rounded-full bg-superficie-alta" />
-                <div className="h-6 w-12 rounded-pilula bg-superficie-alta" />
+                <Skeleton variant="text" className="h-3 w-1/2" />
+                <Skeleton variant="text" className="h-6 w-12" />
               </div>
             ))}
           </div>
