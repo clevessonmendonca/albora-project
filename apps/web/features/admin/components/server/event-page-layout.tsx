@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AdminShell } from "@/features/admin/components/server/admin-shell";
-import { EventNav } from "@/features/admin/components/client/event-nav";
+import { EventSidebar } from "@/features/admin/components/client/event-sidebar";
+import { EventTabBar } from "@/features/admin/components/client/event-tab-bar";
 import { CoupleFollowMode } from "@/features/admin/components/client/couple-follow-mode";
 import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
 import { ModerationCountProvider } from "@/features/admin/components/client/moderation-count-context";
@@ -27,13 +28,14 @@ export async function EventPageLayout({
   const content = typeof children === "function" ? children(ctx) : children;
 
   return (
-    <AdminShell
-      title={ctx.name}
-      subtitle={subtitle}
-      back={{ label: "Seus eventos", href: "/admin" }}
-    >
-      <ModerationCountProvider>
-        <EventNav eventId={eventId} />
+    <ModerationCountProvider>
+      <AdminShell
+        title={ctx.name}
+        subtitle={subtitle}
+        back={{ label: "Seus eventos", href: "/admin" }}
+        sidebar={<EventSidebar eventId={eventId} nomeDoEvento={ctx.name} />}
+        bottomNav={<EventTabBar eventId={eventId} />}
+      >
         <div className="mb-6 flex justify-end">
           <CopiarLinkEvento slug={ctx.evento.slug} />
         </div>
@@ -42,7 +44,7 @@ export async function EventPageLayout({
         ) : (
           content
         )}
-      </ModerationCountProvider>
-    </AdminShell>
+      </AdminShell>
+    </ModerationCountProvider>
   );
 }

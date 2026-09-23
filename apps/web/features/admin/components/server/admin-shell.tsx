@@ -15,39 +15,55 @@ type AdminShellProps = {
   title: string;
   subtitle?: string;
   back?: { label: string; href: string };
+  sidebar?: ReactNode;
+  bottomNav?: ReactNode;
   children: ReactNode;
 };
 
-export function AdminShell({ title, subtitle, back, children }: AdminShellProps) {
+export function AdminShell({
+  title,
+  subtitle,
+  back,
+  sidebar,
+  bottomNav,
+  children,
+}: AdminShellProps) {
   return (
     <>
-    <SkipLink />
-    <main
-      id="main-content"
-      className="min-h-dvh bg-bg font-[family-name:var(--fonte-corpo)] text-ink"
-      style={adminVars()}
-    >
-      {/* Coluna única de leitura confortável — o chão continua de ponta a ponta, o conteúdo não. */}
-      <div className="mx-auto w-full max-w-[72rem] p-[clamp(1.5rem,5vw,4rem)]">
-        <header className="mb-12 flex items-start justify-between gap-6" data-admin-shell-header>
-          <div>
-            {back && (
-              <Link
-                href={back.href}
-                data-admin-shell-back
-                className="tipo-label mb-4 inline-block text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
-              >
-                ← {back.label}
-              </Link>
-            )}
-            <h1 className="tipo-title m-0">{title}</h1>
-            {subtitle && <p className="tipo-caption m-0 mt-2 text-ink-3">{subtitle}</p>}
+      <SkipLink />
+      <div
+        className="flex min-h-dvh bg-bg font-[family-name:var(--fonte-corpo)] text-ink"
+        style={adminVars()}
+      >
+        {sidebar}
+        <main id="main-content" className="min-w-0 flex-1">
+          <div className="mx-auto w-full max-w-[72rem] p-[clamp(1.5rem,5vw,4rem)] pb-28 lg:pb-[clamp(1.5rem,5vw,4rem)]">
+            <header
+              className="mb-12 flex items-start justify-between gap-6"
+              data-admin-shell-header
+            >
+              <div className="min-w-0">
+                {back && (
+                  <Link
+                    href={back.href}
+                    data-admin-shell-back
+                    className="tipo-label mb-4 inline-block text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
+                  >
+                    ← {back.label}
+                  </Link>
+                )}
+                <h1 className="tipo-title m-0 truncate" title={title}>
+                  {title}
+                </h1>
+                {subtitle && <p className="tipo-caption m-0 mt-2 text-ink-3">{subtitle}</p>}
+              </div>
+              <SignOutButton />
+            </header>
+            {children}
           </div>
-          <SignOutButton />
-        </header>
-        {children}
+        </main>
       </div>
-    </main>
+      {bottomNav}
     </>
   );
 }
