@@ -8,7 +8,7 @@ import {
   listarComentariosParaRevisao,
   listarMidiaParaRevisao,
 } from "@albora/db";
-import { decidirTese, type CodigoDaTese } from "@albora/core";
+import { type CodigoDaTese } from "@albora/core";
 import {
   ADMIN_SESSION_REQUIRED,
   ANY_HOST_ROLES,
@@ -21,6 +21,7 @@ import {
   requireHostSession,
   unexpectedError,
 } from "@/lib/api";
+import { resumoDeParticipacao } from "@/lib/api/participacao";
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 import { assinarGet } from "@/lib/r2";
@@ -89,8 +90,11 @@ export async function GET(
       return { metricas, filaRevisao: midias.length + comentarios.length, denunciadas };
     });
 
-    const veredito = decidirTese({
+    // Presença confirmada ganha da estimativa, como em get-guest-metrics.ts: a
+    // diferença entre convidado e presente move o veredito de faixa inteira.
+    const veredito = resumoDeParticipacao({
       expectedGuests: evento.expectedGuests,
+      actualGuests: evento.actualGuests,
       sessoesComUpload: dados.metricas.sessoesComUpload,
     });
 
@@ -103,7 +107,8 @@ export async function GET(
     );
 
     return jsonOk({
-      expectedGuests: evento.expectedGuests,
+      expectedGuests: veredito.denominador,
+      origemDoDenominador: veredito.origem,
       sessoesTotais: dados.metricas.sessoesTotais,
       sessoesComUpload: dados.metricas.sessoesComUpload,
       totalFotos: dados.metricas.totalFotos,
