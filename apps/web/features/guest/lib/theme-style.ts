@@ -27,14 +27,15 @@ export function cssDasVars(vars: Record<string, string>): string {
 export function estiloAntiFlash(
   claro: Record<string, string>,
   escuro: Record<string, string>,
+  escopo = ".guest-tema",
 ): string {
   const claroCss = cssDasVars(claro);
   const escuroCss = cssDasVars(escuro);
 
   return [
-    `.guest-tema:not([data-tema="dark"]) { ${claroCss} }`,
-    `@media (prefers-color-scheme: dark) { .guest-tema:not([data-tema="light"]) { ${escuroCss} } }`,
-    `.guest-tema[data-tema="light"] { ${claroCss} }`,
-    `.guest-tema[data-tema="dark"] { ${escuroCss} }`,
+    `${escopo}:not([data-tema="dark"]) { ${claroCss} }`,
+    `@media (prefers-color-scheme: dark) { ${escopo}:not([data-tema="light"]) { ${escuroCss} } }`,
+    `${escopo}[data-tema="light"] { ${claroCss} }`,
+    `${escopo}[data-tema="dark"] { ${escuroCss} }`,
   ].join("\n");
 }
