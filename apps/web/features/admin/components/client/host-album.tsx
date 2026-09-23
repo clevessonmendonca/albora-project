@@ -21,6 +21,7 @@ type Item = {
 type Props = {
   eventoId: string;
   canExport?: boolean;
+  filtro?: "todas" | "destaques";
 };
 
 function legendaDaFoto(criadaEm: string, reacoes: number): string {
@@ -32,7 +33,7 @@ function legendaDaFoto(criadaEm: string, reacoes: number): string {
   return `${quando} · ${reacoes} ${reacoes === 1 ? "curtida" : "curtidas"}`;
 }
 
-export function HostAlbum({ eventoId, canExport = true }: Props) {
+export function HostAlbum({ eventoId, canExport = true, filtro = "todas" }: Props) {
   const [itens, setItens] = useState<Item[]>([]);
   const [atualizando, setAtualizando] = useState(false);
   const [erroAcao, setErroAcao] = useState<string | null>(null);
@@ -56,6 +57,8 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
   );
 
   const estaDestacada = (midiaId: string) => destaques.includes(midiaId);
+
+  const visiveis = filtro === "destaques" ? itens.filter((i) => estaDestacada(i.id)) : itens;
 
   const alternarDestaque = async (midiaId: string) => {
     const destacar = !estaDestacada(midiaId);
@@ -184,18 +187,31 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
           </div>
         </div>
 
-        {itens.length === 0 ? (
+        {visiveis.length === 0 ? (
           <div className="flex flex-col gap-3">
-            <p className="tipo-body m-0 text-ink-2">
-              Ainda não há fotos publicadas. Elas aparecem aqui assim que entram.
-            </p>
-            <p className="tipo-caption m-0 text-ink-3">
-              Baixe as peças com o QR e coloque nas mesas — ou compartilhe o link do convidado diretamente.
-            </p>
+            {filtro === "destaques" ? (
+              <>
+                <p className="tipo-body m-0 text-ink-2">Nada destacado ainda.</p>
+                <p className="tipo-caption m-0 text-ink-3">
+                  Destacar marca as fotos que vocês mais gostaram. Abra a aba Todas, toque numa
+                  foto e escolha Destacar.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="tipo-body m-0 text-ink-2">
+                  Ainda não há fotos publicadas. Elas aparecem aqui assim que entram.
+                </p>
+                <p className="tipo-caption m-0 text-ink-3">
+                  Baixe as peças com o QR e coloque nas mesas — ou compartilhe o link do convidado
+                  diretamente.
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-4">
-            {itens.map((item, indice) => {
+            {visiveis.map((item, indice) => {
               const ativo = selecionado === item.id;
               return (
                 <li key={item.id}>
@@ -203,7 +219,7 @@ export function HostAlbum({ eventoId, canExport = true }: Props) {
                     type="button"
                     onClick={() => setSelecionado(ativo ? null : item.id)}
                     aria-pressed={ativo}
-                    aria-label={`Foto ${indice + 1} de ${itens.length}, ${legendaDaFoto(item.criadaEm, item.reacoes)}${
+                    aria-label={`Foto ${indice + 1} de ${visiveis.length}, ${legendaDaFoto(item.criadaEm, item.reacoes)}${
                       estaDestacada(item.id) ? ", destacada" : ""
                     }`}
                     className={`relative block aspect-square w-full cursor-pointer overflow-hidden rounded-media border-0 bg-superficie-alta p-0 transition-transform duration-instantaneo ease-mola active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 ${
