@@ -7,6 +7,7 @@ import { estiloAntiFlash } from "@/features/guest/lib/theme-style";
 import { readThemePreference, THEME_COOKIE } from "@/features/guest/lib/theme-preference";
 import { ADMIN_TEMA_CLASSE } from "@/features/admin/lib/tema-do-painel";
 import { TemaDoPainelToggle } from "@/features/admin/components/client/tema-do-painel-toggle";
+import { AjudaDoPainel } from "@/features/admin/components/client/ajuda-do-painel";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
 /** Admin nasce claro — a marca resolve `dark` (chão do convidado), então o default aqui sobrescreve. O escuro existe e é escolha de quem trabalha, não da marca. */
@@ -55,6 +56,7 @@ export async function AdminShell({ title, subtitle, back, children }: AdminShell
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
           <TemaDoPainelToggle />
+          <AjudaDoPainel />
           <SignOutButton />
         </div>
       </header>
