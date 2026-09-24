@@ -10,6 +10,7 @@ import { AtualizadoHa, RefreshButton } from "./refresh-control";
 
 type Resumo = {
   expectedGuests: number;
+  origemDoDenominador?: "confirmado" | "estimado";
   sessoesTotais: number;
   sessoesComUpload: number;
   totalFotos: number;
@@ -225,7 +226,11 @@ export function LiveSummary({ eventoId }: Props) {
         <Stat n={`${pct}%`} rotulo="participação" destaqueClass={destaqueClass} />
         <Stat
           n={`${resumo.sessoesComUpload}/${resumo.expectedGuests}`}
-          rotulo="convidados com foto"
+          rotulo={
+            resumo.origemDoDenominador === "confirmado"
+              ? "de quem esteve na festa"
+              : "dos convidados esperados"
+          }
         />
         <Stat n={String(resumo.totalFotos)} rotulo="fotos enviadas" />
         <Stat
@@ -238,7 +243,10 @@ export function LiveSummary({ eventoId }: Props) {
       <div className="mb-3">
         <div className="tipo-label mb-1.5 flex justify-between text-ink-3">
           <span>
-            {resumo.sessoesComUpload} de {resumo.expectedGuests} convidados fotografaram
+            {resumo.sessoesComUpload} de {resumo.expectedGuests}{" "}
+            {resumo.origemDoDenominador === "confirmado"
+              ? "presentes fotografaram"
+              : "convidados esperados fotografaram"}
           </span>
           <span className={pct >= 40 ? destaqueClass : "text-ink-3"}>meta: 40%</span>
         </div>
