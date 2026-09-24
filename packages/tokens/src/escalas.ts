@@ -1,10 +1,23 @@
-import { acentoLegivelSobre, misturarHex, textoSobre } from "./cor";
+import {
+  acentoLegivelSobre,
+  contraste,
+  lerHex,
+  luminancia,
+  misturarHex,
+  rotuloSobre,
+} from "./cor";
 import type { Background, Colors, SemanticScale } from "./types";
 
 /**
  * Escala derivada das cores base — lista fixa fica calibrada para o chão do
  * dia em que foi escrita; derivar é o que faz "todo neutro é opacidade" ser
  * verdade mecânica.
+ *
+ * A proporção é o ponto de partida, não a palavra final: ela sobrevive à troca
+ * de chão, que era a promessa do §2, mas não à troca de TINTA. Com a tinta da
+ * marca 76% lê; com um verde médio escolhido pelo casal, o mesmo 76% entrega
+ * 4,24:1. `ink2`/`ink3` e o rótulo do botão passam pelo mesmo piso de leitura
+ * que o acento já tinha — a opacidade decide a cor, o piso decide se ela fica.
  *
  * As duas rampas são diferentes de propósito. A mesma opacidade não lê igual
  * nos dois chões: 12% de tinta sobre papel é uma linha nítida, 12% de papel
@@ -56,24 +69,54 @@ const RAMPA_ESCURA = {
  * branco isso dava uma superfície invisível, que é como um trilho de barra
  * de progresso sumia contra o card.
  */
+/**
+ * Devolve `cor` com pelo menos `fator` a mais de contraste que `referencia`
+ * contra `fundo`.
+ *
+ * O piso de leitura empurra secundário e terciário para o mesmo mínimo, e a
+ * rampa de três degraus vira dois. Aqui o secundário recupera a distância —
+ * "todo neutro é opacidade" continua decidindo a cor de partida; isto só
+ * garante que a hierarquia sobreviva à correção.
+ */
+function comDegrauSobre(cor: string, referencia: string, fundo: string, fator = 1.12): string {
+  const chao = lerHex(fundo);
+  const base = lerHex(referencia);
+  const atual = lerHex(cor);
+  if (!chao || !base || !atual) return cor;
+
+  const alvo = contraste(base, chao) * fator;
+  if (contraste(atual, chao) >= alvo) return cor;
+
+  const extremo = luminancia(chao) > 0.5 ? "#000000" : "#FFFFFF";
+  for (let passo = 1; passo <= 100; passo += 1) {
+    const candidato = misturarHex(cor, extremo, passo / 100);
+    const rgb = lerHex(candidato);
+    if (rgb && contraste(rgb, chao) >= alvo) return candidato;
+  }
+  return cor;
+}
+
 function escuro(c: Colors): SemanticScale {
   const sobre = (t: number) => misturarHex(c.noite, c.papel, t);
 
   const bg = sobre(CHAO_ESCURO);
   const superficieAlta = sobre(RAMPA_ESCURA.superficieAlta);
+  const superficie = sobre(RAMPA_ESCURA.superficie);
   const legivel = (cor: string) => acentoLegivelSobre(cor, bg, superficieAlta);
+  const tintaLegivel = (cor: string) => acentoLegivelSobre(cor, bg, superficie);
+  const ink3Escuro = tintaLegivel(sobre(RAMPA_ESCURA.ink3));
 
   return {
     bg,
-    superficie: sobre(RAMPA_ESCURA.superficie),
+    superficie,
     superficieAlta,
     linha: sobre(RAMPA_ESCURA.linha),
-    ink3: sobre(RAMPA_ESCURA.ink3),
-    ink2: sobre(RAMPA_ESCURA.ink2),
+    ink3: ink3Escuro,
+    ink2: comDegrauSobre(tintaLegivel(sobre(RAMPA_ESCURA.ink2)), ink3Escuro, bg),
     ink: c.papel,
     acento: c.acento,
     acentoTexto: legivel(c.acento),
-    sobreAcento: textoSobre(c.acento, bg, c.papel),
+    sobreAcento: rotuloSobre(c.acento, bg, c.papel),
     critico: legivel(c.critico),
     atencao: legivel(c.atencao),
     positivo: legivel(c.positivo),
@@ -86,18 +129,20 @@ function claro(c: Colors): SemanticScale {
 
   const bg = sobre(RAMPA_CLARA.bg);
   const legivel = (cor: string) => acentoLegivelSobre(cor, bg, c.papel);
+  const tintaLegivel = (cor: string) => acentoLegivelSobre(cor, bg, c.papel);
+  const ink3Claro = tintaLegivel(sobre(RAMPA_CLARA.ink3));
 
   return {
     bg,
     superficie: c.papel,
     superficieAlta: sobre(RAMPA_CLARA.superficieAlta),
     linha: sobre(RAMPA_CLARA.linha),
-    ink3: sobre(RAMPA_CLARA.ink3),
-    ink2: sobre(RAMPA_CLARA.ink2),
+    ink3: ink3Claro,
+    ink2: comDegrauSobre(tintaLegivel(sobre(RAMPA_CLARA.ink2)), ink3Claro, bg),
     ink: c.tinta,
     acento: c.acento,
     acentoTexto: legivel(c.acento),
-    sobreAcento: textoSobre(c.acento, c.tinta, c.papel),
+    sobreAcento: rotuloSobre(c.acento, c.tinta, c.papel),
     critico: legivel(c.critico),
     atencao: legivel(c.atencao),
     positivo: legivel(c.positivo),
