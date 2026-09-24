@@ -1,14 +1,21 @@
 import type { ReactNode } from "react";
 import { SkipLink } from "@albora/ui-web";
-import { AdminShell, adminVars } from "@/features/admin/components/server/admin-shell";
+import { adminVars } from "@/features/admin/components/server/admin-shell";
+import { AdminShell } from "@/features/admin/components/server/admin-shell-root";
 import { AppNav } from "@/features/admin/components/client/app-nav";
 import { EventSidebar } from "@/features/admin/components/client/event-sidebar";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
+import { TemaDoPainelToggle } from "@/features/admin/components/client/tema-do-painel-toggle";
+import { AjudaDoPainel } from "@/features/admin/components/client/ajuda-do-painel";
 import { CoupleFollowMode } from "@/features/admin/components/client/couple-follow-mode";
 import { ModerationCountProvider } from "@/features/admin/components/client/moderation-count-context";
 import { showsFollowMode } from "@/features/admin/lib/follow-mode";
 import { loadEventPage, type AdminEventPageContext } from "@/features/admin/data/load-event-page";
 import { rotuloContagem } from "@/features/admin/lib/contagem";
+import { cookies } from "next/headers";
+import { estiloAntiFlash } from "@/features/guest/lib/theme-style";
+import { readThemePreference, THEME_COOKIE } from "@/features/guest/lib/theme-preference";
+import { ADMIN_TEMA_CLASSE } from "@/features/admin/lib/tema-do-painel";
 
 type Props = {
   eventId: string;
@@ -59,13 +66,18 @@ export async function EventPageLayout({
 
   // Abas primárias: app-shell com sidebar no desktop e bottom-bar no mobile.
   const countdown = rotuloContagem(ctx.evento);
+  const preferencia = readThemePreference((await cookies()).get(THEME_COOKIE)?.value);
+  const claro = adminVars("light") as Record<string, string>;
+  const escuro = adminVars("dark") as Record<string, string>;
+
   return (
     <>
       <SkipLink />
+      <style>{estiloAntiFlash(claro, escuro, `.${ADMIN_TEMA_CLASSE}`)}</style>
       <main
         id="main-content"
-        className="min-h-dvh bg-bg font-[family-name:var(--fonte-corpo)] text-ink"
-        style={adminVars()}
+        className={`${ADMIN_TEMA_CLASSE} min-h-dvh bg-bg font-[family-name:var(--fonte-corpo)] text-ink`}
+        {...(preferencia ? { "data-tema": preferencia } : {})}
       >
         <div className="mx-auto flex w-full max-w-[80rem]">
           <EventSidebar eventId={eventId} name={ctx.name} countdown={countdown} />
@@ -77,8 +89,12 @@ export async function EventPageLayout({
                   {ctx.name} · {countdown}
                 </span>
               </div>
-              <div className="shrink-0 sm:hidden">
-                <SignOutButton />
+              <div className="flex shrink-0 items-center gap-2">
+                <TemaDoPainelToggle />
+                <AjudaDoPainel />
+                <div className="sm:hidden">
+                  <SignOutButton />
+                </div>
               </div>
             </header>
             {inner}
