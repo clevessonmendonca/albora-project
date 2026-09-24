@@ -66,6 +66,8 @@ export {
   StackIcon,
   SunIcon,
   UsersIcon,
+  ChevronIcon,
+  CheckIcon,
 } from "./icons";
 export { FloatingNav, type FloatingNavTab, type FloatingNavProps } from "./floating-nav";
 export { StoryRail, type StoryItem } from "./story-rail";

@@ -1,5 +1,6 @@
 import {
   BookmarkIcon,
+  ChevronIcon,
   CommentIcon,
   GridIcon,
   SettingsIcon,
@@ -51,20 +52,6 @@ function groupsFor(base: string): HubGroup[] {
       ],
     },
   ];
-}
-
-function ChevronIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none">
-      <path
-        d="m9.5 5 7 7-7 7"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 }
 
 function HubCard({ label, hint, icon: Icon, href }: HubItem) {

@@ -1,3 +1,4 @@
+import { CheckIcon } from "@albora/ui-web";
 import Link from "next/link";
 import type { EstadoDaHome } from "@/features/admin/data/load-home-state";
 
@@ -11,15 +12,9 @@ function Marca({ feito }: { feito: boolean }) {
       style={feito ? { background: "var(--ev, var(--acento))" } : undefined}
     >
       {feito && (
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path
-            d="M20 6 9 17l-5-5"
-            stroke="var(--ev-on, var(--sobre-acento))"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <span style={{ color: "var(--ev-on, var(--sobre-acento))" }}>
+          <CheckIcon />
+        </span>
       )}
     </span>
   );

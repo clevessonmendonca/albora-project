@@ -15,7 +15,8 @@
   "dependencies": {
     "@albora/core": "workspace:*",
     "@albora/packs": "workspace:*",
-    "@albora/tokens": "workspace:*"
+    "@albora/tokens": "workspace:*",
+    "lucide-react": "^1.48.0"
   },
   "peerDependencies": {
     "react": "^19.0.0"
