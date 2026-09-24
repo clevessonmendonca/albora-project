@@ -670,8 +670,8 @@ const ESTILO = `
  */
 @keyframes amanhecer-moldura {
   0%   { box-shadow: 0 0 0 0 transparent; }
-  55%  { box-shadow: var(--shadow-acento); }
-  100% { box-shadow: var(--shadow-alta); }
+  55%  { box-shadow: var(--sombra-acento); }
+  100% { box-shadow: var(--sombra-alta); }
 }
 .amanhece-moldura {
   animation: amanhecer-moldura calc(var(--tempo-lento) * 2.4) var(--curva) both;
@@ -679,7 +679,7 @@ const ESTILO = `
 
 @media (prefers-reduced-motion: reduce) {
   .amanhece { animation: none; }
-  .amanhece-moldura { animation: none; box-shadow: var(--shadow-alta); }
+  .amanhece-moldura { animation: none; box-shadow: var(--sombra-alta); }
   .foto-botao { transition: none; }
   .foto-botao:hover:not(:disabled) { opacity: 1; }
   .foto-botao:active:not(:disabled) { transform: none; }
