@@ -8,29 +8,47 @@
  *
  * `font-family` puxa de `--fonte-titulo`/`--fonte-corpo`, nunca um nome de
  * fonte literal: são injetadas por evento em `outputs.ts`.
+ *
+ * `--peso-display` existe porque o §3 atribui o peso à SUPERFÍCIE, não ao
+ * componente: landing e admin ficam em 300 (contenção editorial, é onde chique
+ * converte), convidado e telão sobem para 500 — às 22h, no escuro, com o
+ * celular na mão errada, legibilidade ganha de delicadeza.
  */
+@layer base {
+  :root {
+    --peso-display: 300;
+  }
+}
+
 @layer components {
-  .tipo-display  { font-family: var(--fonte-titulo); font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 400; line-height: 1.05; letter-spacing: -0.02em; }
-  .tipo-title    { font-family: var(--fonte-titulo); font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 400; line-height: 1.1; letter-spacing: -0.015em; }
-  .tipo-subtitle { font-family: var(--fonte-titulo); font-size: 1.25rem; font-weight: 500; line-height: 1.25; letter-spacing: -0.01em; }
-  .tipo-body-lg  { font-family: var(--fonte-corpo); font-size: 1.125rem; font-weight: 400; line-height: 1.55; }
-  .tipo-body     { font-family: var(--fonte-corpo); font-size: 1rem; font-weight: 400; line-height: 1.55; }
-  .tipo-caption  { font-family: var(--fonte-corpo); font-size: 0.875rem; font-weight: 400; line-height: 1.45; }
-  .tipo-label    { font-family: var(--fonte-corpo); font-size: 0.75rem; font-weight: 500; line-height: 1.2; letter-spacing: 0.05em; }
+  .tipo-display  { font-family: var(--fonte-titulo); font-size: clamp(2.25rem, 6vw, 4.375rem); font-weight: var(--peso-display); line-height: 1.10; letter-spacing: -0.014em; }
+  .tipo-title    { font-family: var(--fonte-titulo); font-size: clamp(1.8125rem, 4vw, 2.875rem); font-weight: var(--peso-display); line-height: 1.16; letter-spacing: -0.012em; }
+  .tipo-subtitle { font-family: var(--fonte-titulo); font-size: 1.8125rem; font-weight: var(--peso-display); line-height: 1.17; letter-spacing: -0.012em; }
+  .tipo-body-lg  { font-family: var(--fonte-corpo); font-size: 1.125rem; font-weight: 400; line-height: 1.72; }
+  .tipo-body     { font-family: var(--fonte-corpo); font-size: 1.03125rem; font-weight: 400; line-height: 1.68; }
+  .tipo-caption  { font-family: var(--fonte-corpo); font-size: 0.875rem; font-weight: 400; line-height: 1.68; }
+
+  /*
+   * O rótulo da casa: versalete serifado, nunca mono — mono é sinal de
+   * tecnologia, e num produto de festa o versalete com tracking largo é o
+   * mesmo gesto do convite impresso. É o que amarra a tela à papelaria.
+   */
+  .tipo-label    { font-family: var(--fonte-titulo); font-size: 0.6875rem; font-weight: 400; line-height: 1.30; letter-spacing: 0.28em; text-transform: uppercase; }
+
   .tipo-balance  { text-wrap: balance; }
 
   /**
    * Escala densa — superfície de console (tabela, KPI, log), não de
-   * celebração. `.tipo-body` (line-height 1.55) é leitura de parágrafo, não
+   * celebração. `.tipo-body` (entrelinha 1,68) é leitura de parágrafo, não
    * varredura de coluna; a escala acima inteira não serve para linha de
    * tabela. `font-family` continua vindo de `--fonte-titulo`/`--fonte-corpo`,
    * pela mesma razão do bloco acima.
    */
-  .tipo-den-metrica { font-family: var(--fonte-titulo); font-size: 2rem; font-weight: 400; line-height: 1.0; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-  .tipo-den-titulo  { font-family: var(--fonte-titulo); font-size: 1.125rem; font-weight: 400; line-height: 1.25; letter-spacing: -0.01em; }
+  .tipo-den-metrica { font-family: var(--fonte-titulo); font-size: 2rem; font-weight: var(--peso-display); line-height: 1.0; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .tipo-den-titulo  { font-family: var(--fonte-titulo); font-size: 1.125rem; font-weight: var(--peso-display); line-height: 1.25; letter-spacing: -0.01em; }
   .tipo-den-corpo   { font-family: var(--fonte-corpo); font-size: 0.875rem; font-weight: 400; line-height: 1.35; }
   .tipo-den-dado    { font-family: var(--fonte-corpo); font-size: 0.875rem; font-weight: 400; line-height: 1.35; font-variant-numeric: tabular-nums; }
-  .tipo-den-rotulo  { font-family: var(--fonte-corpo); font-size: 0.75rem; font-weight: 500; line-height: 1.2; letter-spacing: 0.04em; text-transform: uppercase; }
+  .tipo-den-rotulo  { font-family: var(--fonte-titulo); font-size: 0.6875rem; font-weight: 400; line-height: 1.30; letter-spacing: 0.28em; text-transform: uppercase; }
   /*
    * Texto secundário de densidade: legenda de linha, base de aproximação,
    * meta de cartão. Faltava um degrau entre `corpo` e `rotulo`, e a
@@ -38,4 +56,11 @@
    * uma legenda gritada é ruído, não hierarquia.
    */
   .tipo-den-meta    { font-family: var(--fonte-corpo); font-size: 0.75rem; font-weight: 400; line-height: 1.4; }
+
+  /*
+   * §3, "a superfície decide o peso": convidado e telão sobem o display para
+   * 500. A tia de 58 anos, às 22h, não pode achar a tela elegante demais para
+   * mexer.
+   */
+  .superficie-de-acao { --peso-display: 500; }
 }
