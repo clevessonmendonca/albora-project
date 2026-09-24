@@ -6,41 +6,60 @@ import { AdminCard, adminClasses } from "@/features/admin/components/server/admi
 import {
   MC_SCRIPTS,
   buildPreEventSections,
-  readPreEventChecklist,
-  writePreEventChecklist,
-  type PreEventChecklistState,
+  estadoDoChecklist,
+  type SinaisDePreparo,
 } from "@/features/admin/lib/pre-event-checklist";
 import { QrProofSheet } from "@/features/admin/components/client/qr-proof-sheet";
 
 export function PreEventChecklist({
   eventId,
-  storageKey,
+  marcados,
+  sinais,
 }: {
   eventId: string;
-  storageKey: string;
+  /** Vem do evento (`setup_marks.checklist`), não do navegador. */
+  marcados: Readonly<Record<string, boolean>>;
+  sinais: SinaisDePreparo;
 }) {
   // Origem só depois de montar: lida no render, o servidor produz "" e o cliente
   // a origem real — o HTML não bate e o React avisa que "não vai consertar".
   const [origin, setOrigin] = useState("");
   useEffect(() => setOrigin(window.location.origin), []);
   const sections = useMemo(() => buildPreEventSections(eventId, origin), [eventId, origin]);
-  const [checked, setChecked] = useState<PreEventChecklistState>({});
+  const [otimista, setOtimista] = useState<Record<string, boolean>>({});
+  const [falhou, setFalhou] = useState(false);
 
-  useEffect(() => {
-    setChecked(readPreEventChecklist(storageKey));
-  }, [storageKey]);
+  const estado = useMemo(
+    () => estadoDoChecklist(marcados, sinais, eventId, origin),
+    [marcados, sinais, eventId, origin],
+  );
 
-  const toggle = (id: string) => {
-    setChecked((prev) => {
-      const next = { ...prev, [id]: !prev[id] };
-      writePreEventChecklist(storageKey, next);
-      return next;
-    });
+  const estaFeito = (id: string) => otimista[id] ?? estado[id]?.feito ?? false;
+
+  const toggle = async (id: string) => {
+    const feito = !estaFeito(id);
+    setOtimista((antes) => ({ ...antes, [id]: feito }));
+    setFalhou(false);
+
+    try {
+      const r = await fetch(`/api/admin/events/${eventId}/setup-marks`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ checklist: { item: id, feito } }),
+      });
+      if (!r.ok) throw new Error("falhou");
+    } catch {
+      setOtimista((antes) => {
+        const { [id]: _, ...resto } = antes;
+        return resto;
+      });
+      setFalhou(true);
+    }
   };
 
   const total = sections.reduce((n, s) => n + s.items.length, 0);
   const done = sections.reduce(
-    (n, s) => n + s.items.filter((item) => checked[item.id]).length,
+    (n, s) => n + s.items.filter((item) => estaFeito(item.id)).length,
     0,
   );
 
@@ -57,6 +76,14 @@ export function PreEventChecklist({
         }
       `}</style>
       <div className="pre-event-print flex flex-col gap-5 print:block">
+      {falhou && (
+        <p
+          role="alert"
+          className="m-0 rounded-token border border-critico px-3.5 py-3 text-[0.875rem] text-critico print:hidden"
+        >
+          Não deu para salvar agora. Toque de novo no item.
+        </p>
+      )}
       <AdminCard>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -86,7 +113,8 @@ export function PreEventChecklist({
           <h3 className="m-0 mb-4 font-titulo text-base">{section.title}</h3>
           <ul className="m-0 grid list-none gap-3 p-0">
             {section.items.map((item) => {
-              const isChecked = Boolean(checked[item.id]);
+              const isChecked = estaFeito(item.id);
+              const derivado = estado[item.id]?.derivado ?? false;
               return (
                 <li
                   key={item.id}
@@ -96,10 +124,14 @@ export function PreEventChecklist({
                     id={`pre-event-${item.id}`}
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() => toggle(item.id)}
-                    className="mt-1 size-4 shrink-0 accent-[var(--acento)]"
+                    disabled={derivado}
+                    onChange={() => void toggle(item.id)}
+                    className="mt-1 size-4 shrink-0 accent-[var(--acento)] disabled:opacity-60"
                   />
-                  <label htmlFor={`pre-event-${item.id}`} className="min-w-0 flex-1 cursor-pointer">
+                  <label
+                    htmlFor={`pre-event-${item.id}`}
+                    className={`min-w-0 flex-1 ${derivado ? "cursor-default" : "cursor-pointer"}`}
+                  >
                     <span
                       className={`block text-[0.9375rem] leading-snug ${
                         isChecked ? "text-ink-3 line-through" : "text-ink"
@@ -107,7 +139,14 @@ export function PreEventChecklist({
                     >
                       {item.label}
                     </span>
-                    {item.hint && (
+                    {derivado && (
+                      <span className="mt-1 block text-[0.8125rem] leading-snug text-ink-3">
+                        {isChecked
+                          ? "O Álbora vê que isto já está feito."
+                          : "O Álbora marca sozinho quando estiver feito."}
+                      </span>
+                    )}
+                    {item.hint && !derivado && (
                       <span className="mt-1 block text-[0.8125rem] leading-snug text-ink-3">
                         {item.hint}
                       </span>

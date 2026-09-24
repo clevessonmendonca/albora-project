@@ -194,3 +194,57 @@ export const MC_SCRIPTS = [
     text: "Quem ainda não mandou foto — QR na mesa, trinta segundos, sem app. A gente quer ver a pista agora.",
   },
 ] as const;
+
+export type SinaisDePreparo = {
+  missoes: number;
+  convidadosEsperados: number;
+  planoPago: boolean;
+  gateDefinido: boolean;
+};
+
+export type ItemDoChecklist = { feito: boolean; derivado: boolean };
+
+/**
+ * O que o sistema consegue ver sozinho. Mesma regra que a migration 0074
+ * aplicou aos marcos essenciais, estendida ao checklist operacional: pedir
+ * ao anfitrião que marque à mão o que o banco já sabe é trabalho de graça,
+ * e cria duas verdades sobre o mesmo fato.
+ *
+ * `identidade` fica de fora aqui porque já é marco de preparo (0074) — repetir
+ * a derivação criaria a terceira verdade. `menores` também: o item é "ligado
+ * se aplicável", e só o casal sabe se aplica.
+ */
+export const ITENS_DERIVADOS: Record<string, (s: SinaisDePreparo) => boolean> = {
+  missoes: (s) => s.missoes > 0,
+  "expected-guests": (s) => s.convidadosEsperados > 0,
+  plano: (s) => s.planoPago,
+  gate: (s) => s.gateDefinido,
+};
+
+export function estadoDoChecklist(
+  marcados: Readonly<Record<string, boolean>>,
+  sinais: SinaisDePreparo,
+  eventId = "x",
+  origin = "",
+): Record<string, ItemDoChecklist> {
+  const estado: Record<string, ItemDoChecklist> = {};
+
+  for (const secao of buildPreEventSections(eventId, origin)) {
+    for (const item of secao.items) {
+      const derivar = ITENS_DERIVADOS[item.id];
+      estado[item.id] = derivar
+        ? { feito: derivar(sinais), derivado: true }
+        : { feito: marcados[item.id] === true, derivado: false };
+    }
+  }
+
+  return estado;
+}
+
+/** Chave que não existe mais no checklist não entra na coluna, senão ela vira depósito de item fantasma. Derivado também não: é calculado, nunca gravado. */
+export function ehItemManualDoChecklist(chave: string): boolean {
+  if (ITENS_DERIVADOS[chave]) return false;
+  return buildPreEventSections("x", "").some((secao) =>
+    secao.items.some((item) => item.id === chave),
+  );
+}

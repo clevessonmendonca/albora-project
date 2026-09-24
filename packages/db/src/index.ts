@@ -164,6 +164,7 @@ export {
   lerModeracaoDoEvento,
   limiarDenuncias,
   listarEventosDoHost,
+  marcarItemDoChecklist,
   marcarPassoDoTour,
   marcarPreparoDoEvento,
   MARCOS_DE_PREPARO,

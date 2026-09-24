@@ -58,6 +58,8 @@ export type MarcoDePreparo = (typeof MARCOS_DE_PREPARO)[number];
  * mesmo erro que o checklist em `localStorage` cometia.
  */
 export type MarcosDePreparo = Partial<Record<MarcoDePreparo, boolean>> & {
+  /** Itens do checklist operacional (as duas seções de pré-evento). Espaço de chave separado dos marcos essenciais, para o contador "X de Y prontos" não passar a contar tarefa de logística. */
+  checklist?: Record<string, boolean>;
   tour?: number | true;
 };
 
@@ -179,6 +181,36 @@ export async function marcarPassoDoTour(
           SET setup_marks = setup_marks || jsonb_build_object('tour', $1::jsonb)
         WHERE id = $2`,
       [JSON.stringify(valor), eventoId],
+    );
+    if (!rowCount) return null;
+
+    const { rows } = await c.query<LinhaCompleta>(
+      `SELECT ${COLUNAS} FROM events WHERE id = $1`,
+      [eventoId],
+    );
+    return rows[0] ? mapEvento(rows[0]) : null;
+  });
+}
+
+/** Item do checklist operacional. Mesma coluna dos marcos, chave própria: o checklist vivia em localStorage e morria ao trocar de aparelho — o mesmo erro que a 0074 corrigiu para os essenciais. */
+export async function marcarItemDoChecklist(
+  pool: Pool,
+  accountId: string,
+  eventoId: string,
+  item: string,
+  feito: boolean,
+): Promise<EventoDoHost | null> {
+  return comConta(pool, accountId, async (c) => {
+    const { rowCount } = await c.query(
+      `UPDATE events
+          SET setup_marks = jsonb_set(
+                setup_marks,
+                '{checklist}',
+                COALESCE(setup_marks -> 'checklist', '{}'::jsonb) || jsonb_build_object($1::text, $2::boolean),
+                true
+              )
+        WHERE id = $3`,
+      [item, feito, eventoId],
     );
     if (!rowCount) return null;
 
