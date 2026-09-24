@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
-import { AdminShell, AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminShell } from "@/features/admin/components/server/admin-shell-root";
 import { BillingHistory } from "@/features/admin/components/client/billing-history";
 
 export const dynamic = "force-dynamic";
