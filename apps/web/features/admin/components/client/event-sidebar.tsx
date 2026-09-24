@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LogoAlbora } from "@albora/ui-web";
 import { DESTINOS, destinoAtivo } from "@/features/admin/lib/navegacao";
 import { ICONES_DE_DESTINO } from "@/features/admin/components/client/icones-de-destino";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
 
 /** Rail lateral do painel no desktop (o mobile usa a bottom-bar de `AppNav`). Superfície clara,
- *  editorial: logo, identidade do evento, as 4 abas e a saída — o app inteiro parte daqui. */
+ *  editorial: logo, identidade do evento, os seis destinos e a saída — o app inteiro parte daqui. */
 export function EventSidebar({
   eventId,
   name,
@@ -23,7 +24,7 @@ export function EventSidebar({
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-linha px-5 py-6 sm:flex">
-      <span className="tipo-title m-0 text-[1.35rem] leading-none">Álbora</span>
+      <LogoAlbora altura={26} className="shrink-0 text-ink" />
 
       <div className="mt-7 flex flex-col gap-0.5">
         <span className="font-titulo text-[0.95rem] leading-tight text-ink">{name}</span>

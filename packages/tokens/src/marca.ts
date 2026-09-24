@@ -46,3 +46,16 @@ export const ALBORA_BRAND: Tokens = {
 
 /** PT alias — prefer `ALBORA_BRAND`. */
 export const MARCA_ALBORA = ALBORA_BRAND;
+
+/**
+ * O degradê do arco do logotipo, do pack em `brand/`. Fica aqui, e não no
+ * componente, porque é cor de MARCA: não cede à identidade do casal (§2 trata
+ * as cores da marca como fixas), então não pode sair de `var(--acento)` — e
+ * hex solto em componente é exatamente o que o guard de tokens existe para
+ * impedir.
+ */
+export const DEGRADE_DA_MARCA = {
+  base: "#853624",
+  meio: ALBORA_BRAND.cores.critico,
+  topo: ALBORA_BRAND.cores.acento,
+} as const;

@@ -11,7 +11,7 @@ export type {
   Tokens,
   Tracking,
 } from "./types";
-export { ALBORA_BRAND, MARCA_ALBORA } from "./marca";
+export { ALBORA_BRAND, DEGRADE_DA_MARCA, MARCA_ALBORA } from "./marca";
 export type { ModeloDeIdentidade } from "./modelos";
 export { MODELOS_DE_IDENTIDADE, MODELOS_DE_IDENTIDADE as IDENTITY_MODELS } from "./modelos";
 export { escalaDoFundo } from "./escalas";
