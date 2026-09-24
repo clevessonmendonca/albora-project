@@ -29,7 +29,7 @@ type HubGroup = {
 function groupsFor(base: string): HubGroup[] {
   return [
     {
-      title: "Experiência",
+      title: "Como o convidado vê",
       items: [
         { label: "Aparência", hint: "Cor, fonte e capa", icon: SunIcon, href: `${base}/identity` },
         { label: "Recado", hint: "Mensagem de boas-vindas", icon: CommentIcon, href: `${base}/guestbook` },
@@ -40,7 +40,7 @@ function groupsFor(base: string): HubGroup[] {
       title: "Na festa",
       items: [
         { label: "QR e compartilhamento", hint: "Placa, cards e link", icon: ShareIcon, href: `${base}/qrcode` },
-        { label: "Telão", hint: "Como as fotos aparecem no salão", icon: GridIcon, href: `${base}/identity` },
+        { label: "Abrir o telão", hint: "A parede de fotos do salão", icon: GridIcon, href: "/wall-display" },
         { label: "Equipe", hint: "Quem ajuda a organizar", icon: UsersIcon, href: `${base}/team` },
       ],
     },
@@ -48,7 +48,7 @@ function groupsFor(base: string): HubGroup[] {
       title: "Segurança e controle",
       items: [
         { label: "Privacidade", hint: "Consentimento e retenção", icon: BookmarkIcon, href: `${base}/consent` },
-        { label: "Configurações", hint: "Ajustes do evento", icon: SettingsIcon, href: `${base}/pre-event` },
+        { label: "Conferir o preparo", hint: "O que falta antes da festa", icon: SettingsIcon, href: `${base}/pre-event` },
       ],
     },
   ];
