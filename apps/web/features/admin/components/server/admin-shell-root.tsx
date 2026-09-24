@@ -14,6 +14,8 @@ type AdminShellProps = {
   title: string;
   subtitle?: string;
   back?: { label: string; href: string };
+  /** Cor, fonte e raio do casal. Ausente nas telas sem evento (entrar, erro, 404). */
+  identidade?: Record<string, unknown>;
   children: ReactNode;
 };
 
@@ -21,11 +23,11 @@ type AdminShellProps = {
  * Mora separado de `admin-shell.tsx` porque só ele lê `next/headers`, e aquele
  * arquivo é importado por 36 componentes `"use client"` — o import derruba o build.
  */
-export async function AdminShell({ title, subtitle, back, children }: AdminShellProps) {
+export async function AdminShell({ title, subtitle, back, identidade, children }: AdminShellProps) {
   const preferencia = readThemePreference((await cookies()).get(THEME_COOKIE)?.value);
 
-  const claro = adminVars("light") as Record<string, string>;
-  const escuro = adminVars("dark") as Record<string, string>;
+  const claro = adminVars("light", identidade) as Record<string, string>;
+  const escuro = adminVars("dark", identidade) as Record<string, string>;
 
   return (
     <>

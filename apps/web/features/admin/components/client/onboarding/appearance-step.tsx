@@ -135,7 +135,7 @@ export function AppearanceStep({
         )}
 
         <details className="group mt-1">
-          <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 tipo-label text-ink-3 transition-colors hover:text-ink">
+          <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 tipo-caption text-ink-3 transition-colors hover:text-ink">
             Ou use uma combinação pronta
             <span aria-hidden className="transition-transform group-open:rotate-180">
               ⌄

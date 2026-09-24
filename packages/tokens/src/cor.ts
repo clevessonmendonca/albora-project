@@ -81,6 +81,29 @@ export function textoSobre(preenchimento: string, ...candidatos: string[]): stri
   return acentoLegivelSobre(paraHex(melhor), preenchimento);
 }
 
+/**
+ * Rótulo do botão primário: o preenchimento fica na cor do casal e só o texto
+ * ganha luminância de leitura (§2). Tenta os candidatos da paleta; se nenhum
+ * alcançar o mínimo — o que acontece com acento de luminância média, onde nem
+ * a tinta nem o papel do casal servem — cai no extremo de maior contraste.
+ *
+ * `acentoLegivelSobre` não resolve este caso: ela caminha em direção a UM
+ * extremo, escolhido pela luminância da superfície, e sobre um verde médio esse
+ * extremo é o branco — de onde o rótulo já partiu.
+ */
+export function rotuloSobre(preenchimento: string, ...candidatos: string[]): string {
+  const fundo = lerHex(preenchimento);
+  if (!fundo) return candidatos[0] ?? preenchimento;
+
+  const escolhido = textoSobre(preenchimento, ...candidatos);
+  const cor = lerHex(escolhido);
+  if (cor && contraste(cor, fundo) >= CONTRASTE_DE_TEXTO) return escolhido;
+
+  const preto: Rgb = { r: 0, g: 0, b: 0 };
+  const branco: Rgb = { r: 255, g: 255, b: 255 };
+  return paraHex(contraste(preto, fundo) >= contraste(branco, fundo) ? preto : branco);
+}
+
 export function acentoLegivelSobre(acento: string, ...superficies: string[]): string {
   const cor = lerHex(acento);
   const chaos = superficies.map(lerHex).filter((c): c is Rgb => c !== null);
