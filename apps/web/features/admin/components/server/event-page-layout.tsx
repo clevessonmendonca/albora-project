@@ -14,6 +14,7 @@ import { cookies } from "next/headers";
 import { estiloAntiFlash } from "@/features/guest/lib/theme-style";
 import { readThemePreference, THEME_COOKIE } from "@/features/guest/lib/theme-preference";
 import { ADMIN_TEMA_CLASSE } from "@/features/admin/lib/tema-do-painel";
+import { RAIL_COOKIE, railRecolhido } from "@/features/admin/lib/sidebar-recolhida";
 
 type Props = {
   eventId: string;
@@ -80,12 +81,17 @@ export async function EventPageLayout({
         {...(preferencia ? { "data-tema": preferencia } : {})}
       >
         <div className="mx-auto flex w-full max-w-[80rem]">
-          <EventSidebar eventId={eventId} name={ctx.name} countdown={countdown} />
-          <div className="min-w-0 flex-1 px-[clamp(1.25rem,4vw,3rem)] pb-24 pt-[clamp(1.5rem,4vw,2.5rem)] sm:pb-[clamp(2rem,4vw,3rem)]">
+          <EventSidebar
+              eventId={eventId}
+              name={ctx.name}
+              countdown={countdown}
+              inicialRecolhida={railRecolhido((await cookies()).get(RAIL_COOKIE)?.value)}
+            />
+          <div className="min-w-0 flex-1 px-[clamp(1.25rem,4vw,3rem)] pb-24 pt-[clamp(1.5rem,4vw,2.5rem)] lg:pb-[clamp(2rem,4vw,3rem)]">
             <header className="mb-6 flex items-start justify-between gap-4">
               <div className="min-w-0">
                 {section && <h1 className="tipo-title m-0 leading-tight">{section}</h1>}
-                <span className="tipo-caption text-ink-3 sm:hidden">
+                <span className="tipo-caption text-ink-3 lg:hidden">
                   {ctx.name} · {countdown}
                 </span>
               </div>
