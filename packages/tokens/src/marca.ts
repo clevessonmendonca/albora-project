@@ -22,7 +22,15 @@ export const ALBORA_BRAND: Tokens = {
     raio: "1rem",
     raioPilula: "999px",
     // Cresce com a tela: 48px num celular comeria a foto; 28px num telão some.
-    raioSuperficie: "clamp(1.75rem, 4vw, 3rem)",
+    /**
+     * §4: 18px em superfície. Era `clamp(1.75rem, 4vw, 3rem)` — 28px num
+     * celular, 48px num desktop largo, mudando com a viewport. O mesmo cartão
+     * tinha forma diferente conforme a janela, e 48px é raio de widget de
+     * celular, não de papel editorial: o oposto do "hot stamp sobre papel" que
+     * a marca persegue. Mídia continua em `raioMedia`, que é onde a curva
+     * maior tem função.
+     */
+    raioSuperficie: "18px",
     raioMedia: "20px",
     espaco: "0.25rem",
   },
