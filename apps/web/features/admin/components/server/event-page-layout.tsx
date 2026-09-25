@@ -4,9 +4,7 @@ import { adminVars } from "@/features/admin/components/server/admin-shell";
 import { AdminShell } from "@/features/admin/components/server/admin-shell-root";
 import { AppNav } from "@/features/admin/components/client/app-nav";
 import { EventSidebar } from "@/features/admin/components/client/event-sidebar";
-import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
-import { TemaDoPainelToggle } from "@/features/admin/components/client/tema-do-painel-toggle";
-import { AjudaDoPainel } from "@/features/admin/components/client/ajuda-do-painel";
+import { MenuDaConta } from "@/features/admin/components/client/menu-da-conta";
 import { CoupleFollowMode } from "@/features/admin/components/client/couple-follow-mode";
 import { ModerationCountProvider } from "@/features/admin/components/client/moderation-count-context";
 import { showsFollowMode } from "@/features/admin/lib/follow-mode";
@@ -16,6 +14,7 @@ import { cookies } from "next/headers";
 import { estiloAntiFlash } from "@/features/guest/lib/theme-style";
 import { readThemePreference, THEME_COOKIE } from "@/features/guest/lib/theme-preference";
 import { ADMIN_TEMA_CLASSE } from "@/features/admin/lib/tema-do-painel";
+import { RAIL_COOKIE, railRecolhido } from "@/features/admin/lib/sidebar-recolhida";
 
 type Props = {
   eventId: string;
@@ -56,6 +55,7 @@ export async function EventPageLayout({
     return (
       <AdminShell
         identidade={ctx.evento.identityTokens}
+        email={ctx.emailDaConta}
         title={ctx.name}
         subtitle={section ? `/${ctx.evento.slug} · ${section}` : `/${ctx.evento.slug}`}
         back={{ label: "Evento", href: `/admin/e/${eventId}/evento` }}
@@ -81,21 +81,22 @@ export async function EventPageLayout({
         {...(preferencia ? { "data-tema": preferencia } : {})}
       >
         <div className="mx-auto flex w-full max-w-[80rem]">
-          <EventSidebar eventId={eventId} name={ctx.name} countdown={countdown} />
-          <div className="min-w-0 flex-1 px-[clamp(1.25rem,4vw,3rem)] pb-24 pt-[clamp(1.5rem,4vw,2.5rem)] sm:pb-[clamp(2rem,4vw,3rem)]">
+          <EventSidebar
+              eventId={eventId}
+              name={ctx.name}
+              countdown={countdown}
+              inicialRecolhida={railRecolhido((await cookies()).get(RAIL_COOKIE)?.value)}
+            />
+          <div className="min-w-0 flex-1 px-[clamp(1.25rem,4vw,3rem)] pb-24 pt-[clamp(1.5rem,4vw,2.5rem)] lg:pb-[clamp(2rem,4vw,3rem)]">
             <header className="mb-6 flex items-start justify-between gap-4">
               <div className="min-w-0">
                 {section && <h1 className="tipo-title m-0 leading-tight">{section}</h1>}
-                <span className="tipo-caption text-ink-3 sm:hidden">
+                <span className="tipo-caption text-ink-3 lg:hidden">
                   {ctx.name} · {countdown}
                 </span>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <TemaDoPainelToggle />
-                <AjudaDoPainel />
-                <div className="sm:hidden">
-                  <SignOutButton />
-                </div>
+                <MenuDaConta email={ctx.emailDaConta} />
               </div>
             </header>
             {inner}

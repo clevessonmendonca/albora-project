@@ -6,7 +6,7 @@ import { assinarGet } from "@/lib/r2";
 import { loadHomeState, type EstadoDaHome } from "@/features/admin/data/load-home-state";
 import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
 import { LiveSummary } from "@/features/admin/components/client/live-summary";
-import { EventControls } from "@/features/admin/components/client/event-controls";
+import { EventControls, type SecaoDeControle } from "@/features/admin/components/client/event-controls";
 import { typePhoto } from "@/features/admin/components/client/onboarding/onboarding-photos";
 import type { AdminEventPageContext } from "@/features/admin/data/load-event-page";
 import { HeroDoEvento } from "./home/hero-do-evento";
@@ -110,6 +110,15 @@ export async function EventHome({
 
   const passoInicialDoTour = passoDoTour(evento.marcosDePreparo, depois);
   const pendentes = estado.itens.filter((i) => !i.feito && i.chave !== estado.proxima?.chave);
+
+  /** Uma decisão por fase, não o painel de controle inteiro em toda fase. */
+  const decisoesDoMomento: SecaoDeControle[] = evento.status === "draft"
+    ? ["publicar"]
+    : aoVivo
+      ? ["interacao", "telao", "moderacao"]
+      : depois
+        ? ["entrega"]
+        : [];
 
   const acoesDoHero = depois ? (
     <>
@@ -248,26 +257,34 @@ export async function EventHome({
         </>
       )}
 
-      {/* Estes controles viviam na Home em todas as fases antes do redesign; prendê-los
-          à festa tirava publicar, gates, música e peças de quem ainda está preparando. */}
-      <section>
-        <h2 className="tipo-label m-0 mb-3 text-ink-3">Ajustes do evento</h2>
-        <EventControls
-          eventId={evento.eventoId}
-          slug={evento.slug}
-          plan={evento.plan}
-          initial={evento.moderacao}
-          initialInteractionOpensAt={evento.interacaoAbreEm?.toISOString() ?? null}
-          initialDeliveryOpensAt={evento.deliveryOpensAt?.toISOString() ?? null}
-          initialStatus={evento.status}
-          canManageCoupleOnly={canManageCoupleOnly}
-        />
-      </section>
+      {/*
+        Só o que é decisão DO MOMENTO fica aqui: publicar enquanto o evento é
+        rascunho, o gate quando a festa começou, a entrega quando ela acabou.
+        O resto — proteções, plano, música, peças, links — mora em Ajustes, que
+        antes era só um menu de atalhos enquanto a Home carregava os onze
+        blocos em todas as fases.
+      */}
+      {decisoesDoMomento.length > 0 && (
+        <section>
+          <h2 className="tipo-label m-0 mb-3 text-ink-3">Decidir agora</h2>
+          <EventControls
+            eventId={evento.eventoId}
+            slug={evento.slug}
+            plan={evento.plan}
+            initial={evento.moderacao}
+            initialInteractionOpensAt={evento.interacaoAbreEm?.toISOString() ?? null}
+            initialDeliveryOpensAt={evento.deliveryOpensAt?.toISOString() ?? null}
+            initialStatus={evento.status}
+            canManageCoupleOnly={canManageCoupleOnly}
+            secoes={decisoesDoMomento}
+          />
+        </section>
+      )}
 
       <p className="m-0 text-center">
         <Link
           href={`${base}/evento`}
-          className="tipo-caption text-ink-3 no-underline transition-colors hover:text-ink"
+          className="inline-flex min-h-12 items-center justify-center px-4 tipo-caption text-ink-3 no-underline transition-colors hover:text-ink"
         >
           Todos os ajustes do evento →
         </Link>

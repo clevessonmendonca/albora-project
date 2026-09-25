@@ -1,3 +1,4 @@
+import { CheckIcon } from "@albora/ui-web";
 import Link from "next/link";
 import type { EstadoDaHome } from "@/features/admin/data/load-home-state";
 
@@ -11,15 +12,9 @@ function Marca({ feito }: { feito: boolean }) {
       style={feito ? { background: "var(--ev, var(--acento))" } : undefined}
     >
       {feito && (
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path
-            d="M20 6 9 17l-5-5"
-            stroke="var(--ev-on, var(--sobre-acento))"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <span style={{ color: "var(--ev-on, var(--sobre-acento))" }}>
+          <CheckIcon />
+        </span>
       )}
     </span>
   );
@@ -64,13 +59,15 @@ export function Preparo({ estado, titulo }: { estado: EstadoDaHome; titulo: stri
             <li key={item.chave} className="flex items-start gap-2.5">
               <Marca feito={item.feito} />
               {item.feito ? (
-                <span className="text-[0.95rem] text-ink-3 line-through decoration-linha">
+                <span className="-my-3 inline-flex min-h-12 items-center py-3 text-[0.95rem] text-ink-3 line-through decoration-linha">
                   {item.titulo}
                 </span>
               ) : (
                 <Link
                   href={item.href}
-                  className="text-[0.95rem] text-ink no-underline transition-colors hover:text-acento-texto"
+                  /* `py` dá os 48px de alvo do §8; a margem negativa devolve o
+                     ritmo da lista, então o alvo cresce e o desenho não muda. */
+                  className="-my-3 inline-flex min-h-12 items-center py-3 text-[0.95rem] text-ink no-underline transition-colors hover:text-acento-texto"
                 >
                   {item.titulo}
                 </Link>
