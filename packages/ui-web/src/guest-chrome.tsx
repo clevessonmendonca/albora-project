@@ -15,7 +15,7 @@ export function GuestShell({
   hideStatusBar?: boolean;
 }) {
   return (
-    <div className="flex min-h-dvh flex-col bg-bg font-corpo text-ink leading-normal">
+    <div className="superficie-de-acao flex min-h-dvh flex-col bg-bg font-corpo text-ink leading-normal">
       {!hideStatusBar && <StatusBar />}
       {children}
     </div>
