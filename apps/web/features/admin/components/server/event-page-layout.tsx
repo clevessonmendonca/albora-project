@@ -4,9 +4,7 @@ import { adminVars } from "@/features/admin/components/server/admin-shell";
 import { AdminShell } from "@/features/admin/components/server/admin-shell-root";
 import { AppNav } from "@/features/admin/components/client/app-nav";
 import { EventSidebar } from "@/features/admin/components/client/event-sidebar";
-import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
-import { TemaDoPainelToggle } from "@/features/admin/components/client/tema-do-painel-toggle";
-import { AjudaDoPainel } from "@/features/admin/components/client/ajuda-do-painel";
+import { MenuDaConta } from "@/features/admin/components/client/menu-da-conta";
 import { CoupleFollowMode } from "@/features/admin/components/client/couple-follow-mode";
 import { ModerationCountProvider } from "@/features/admin/components/client/moderation-count-context";
 import { showsFollowMode } from "@/features/admin/lib/follow-mode";
@@ -56,6 +54,7 @@ export async function EventPageLayout({
     return (
       <AdminShell
         identidade={ctx.evento.identityTokens}
+        email={ctx.emailDaConta}
         title={ctx.name}
         subtitle={section ? `/${ctx.evento.slug} · ${section}` : `/${ctx.evento.slug}`}
         back={{ label: "Evento", href: `/admin/e/${eventId}/evento` }}
@@ -91,11 +90,7 @@ export async function EventPageLayout({
                 </span>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <TemaDoPainelToggle />
-                <AjudaDoPainel />
-                <div className="sm:hidden">
-                  <SignOutButton />
-                </div>
+                <MenuDaConta email={ctx.emailDaConta} />
               </div>
             </header>
             {inner}

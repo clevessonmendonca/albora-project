@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import { LogoAlbora } from "@albora/ui-web";
 import { DESTINOS, destinoAtivo } from "@/features/admin/lib/navegacao";
 import { ICONES_DE_DESTINO } from "@/features/admin/components/client/icones-de-destino";
-import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
 
 /** Rail lateral do painel no desktop (o mobile usa a bottom-bar de `AppNav`). Superfície clara,
- *  editorial: logo, identidade do evento, os seis destinos e a saída — o app inteiro parte daqui. */
+ *  editorial: logo, identidade do evento e os seis destinos. A conta e a saída moram
+ *  no menu do cabeçalho, não aqui — sair não é destino de navegação. */
 export function EventSidebar({
   eventId,
   name,
@@ -55,9 +55,6 @@ export function EventSidebar({
         })}
       </nav>
 
-      <div className="mt-auto pt-6">
-        <SignOutButton />
-      </div>
     </aside>
   );
 }
