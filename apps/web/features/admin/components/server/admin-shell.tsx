@@ -15,10 +15,16 @@ export function adminVars(
   background: Background = "light",
   identidade?: Record<string, unknown>,
 ): CSSProperties {
+  // `trabalho`: no escuro o painel precisa que o cartão se separe da página, e
+  // o §6 diz que ali a elevação vem da cor. A rampa padrão é a do convidado,
+  // onde o cromo cede à foto — ali 1,08:1 é o que se quer, aqui não.
+  const elevacao = { elevacao: "trabalho" } as const;
+
   const camada = identidade && Object.keys(identidade).length > 0 ? identidade : undefined;
   if (!camada) {
     return toVariables(
       resolveTokens({ marca: ALBORA_BRAND, pack: { background } }),
+      elevacao,
     ) as CSSProperties;
   }
 
@@ -30,6 +36,7 @@ export function adminVars(
       pack: { background },
       evento: semFundo as never,
     }),
+    elevacao,
   ) as CSSProperties;
 }
 
