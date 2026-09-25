@@ -284,7 +284,7 @@ export async function EventHome({
       <p className="m-0 text-center">
         <Link
           href={`${base}/evento`}
-          className="tipo-caption text-ink-3 no-underline transition-colors hover:text-ink"
+          className="inline-flex min-h-12 items-center justify-center px-4 tipo-caption text-ink-3 no-underline transition-colors hover:text-ink"
         >
           Todos os ajustes do evento →
         </Link>
