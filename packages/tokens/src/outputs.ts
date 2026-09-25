@@ -1,4 +1,5 @@
 import { resolveScale } from "./resolver";
+import type { OpcoesDeEscala } from "./escalas";
 import type { Tokens } from "./types";
 
 /** §6: a sombra é a tinta da marca em baixa opacidade, nunca preta — preto puro some sobre `noite` e suja sobre `papel`. */
@@ -12,8 +13,8 @@ const SOMBRA_POLAROIDE = `0 24px 80px -32px ${tinta(60)}`;
 const SOMBRA_SCAN_MASCARA = `0 0 0 9999px color-mix(in srgb, var(--noite) 35%, transparent)`;
 
 /** Um formato, dois consumidores (web + NativeWind) — formatos separados seriam dois temas com um nome, quebrando o ADR 0003. */
-export function toVariables(tokens: Tokens): Record<string, string> {
-  const scale = resolveScale(tokens);
+export function toVariables(tokens: Tokens, opcoes: OpcoesDeEscala = {}): Record<string, string> {
+  const scale = resolveScale(tokens, opcoes);
 
   return {
     "--bg": scale.bg,

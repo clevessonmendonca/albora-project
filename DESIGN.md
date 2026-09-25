@@ -228,11 +228,17 @@ Verde e ameixa são banidos **na marca** (§7) e perfeitamente válidos **como t
 ### Modo duplo — contexto de uso, NÃO preferência do usuário
 
 ```
-CLARO (papel)  → admin, marketing, papelaria impressa. Editorial, espaçoso, tátil
+CLARO (papel)  → admin (padrão), marketing, papelaria impressa. Editorial, espaçoso, tátil
 ESCURO (noite) → convidado, galeria, telão. A festa é à noite; foto brilha no escuro
 ```
 
-**Não existe toggle de tema em nenhuma superfície.** O convidado usa o produto às 22h no escuro — tela clara nesse momento é agressiva. O admin trabalha de dia e a papelaria vai para gráfica.
+**O convidado, o telão e a papelaria não têm toggle, e não terão.** O convidado usa o produto às 22h no escuro — tela clara nesse momento é agressiva, contrai a pupila e lava a foto. O telão em fundo branco cega a plateia. A papelaria vai para gráfica. Nessas três superfícies o modo é consequência física do uso, não gosto.
+
+**🔴 O admin é a exceção, e é deliberada.** O painel nasce claro — papel continua sendo o chão dele —, mas quem trabalha pode escolher escuro. A regra anterior dizia que o admin "trabalha de dia"; na prática o anfitrião e a cerimonialista operam o painel **durante a festa**, às 22h, no mesmo salão escuro em que o convidado está. Negar o escuro a eles aplicava ao operador um argumento que só valia para quem nunca está no escuro.
+
+A escolha vive num cookie, é lida no servidor antes de pintar, e o padrão continua sendo `system`. O que **não** muda com ela: a cor do evento, a fonte e o raio seguem vindo da identidade do casal — o tema decide o chão, nunca a identidade.
+
+> Esta exceção foi aberta a pedido do produto, contra o texto anterior desta seção. Ela está escrita aqui em vez de viver só no código porque uma regra que o código desobedece em silêncio é pior que regra nenhuma.
 
 ### 🔴 A escala semântica é DERIVADA, não uma lista de hexes
 
@@ -720,7 +726,7 @@ Também evite os defaults genéricos de IA: creme quente `#F4F1EA` com serifada 
 - **Pílula preenchida como chip ou filtro** — sublinhado, que é vocabulário de menu impresso
 - **Fraunces acima de 400** — display fica em 300
 - **Card com fundo na superfície escura** — filete, não caixa
-- Toggle de tema em qualquer superfície
+- Toggle de tema no convidado, no telão ou na papelaria (o admin é exceção deliberada — §2)
 - Sombra preta pura
 - Scroll infinito ou notificação no fluxo do convidado
 - Contagem visível de curtida (ranking de popularidade num casamento é drama familiar garantido)
