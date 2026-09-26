@@ -15,6 +15,7 @@ export { ALBORA_BRAND, DEGRADE_DA_MARCA, MARCA_ALBORA } from "./marca";
 export type { ModeloDeIdentidade } from "./modelos";
 export { MODELOS_DE_IDENTIDADE, MODELOS_DE_IDENTIDADE as IDENTITY_MODELS } from "./modelos";
 export { escalaDoFundo, type OpcoesDeEscala } from "./escalas";
+export { camadaDoEvento } from "./camada-do-evento";
 export { normalizeBackground, resolveScale, resolveTokens } from "./resolver";
 export { resolveGuestThemeVariables } from "./event-theme";
 export type { GuestThemeInput } from "./event-theme";
