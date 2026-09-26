@@ -287,7 +287,7 @@ export function GuestFunnel({ eventoId }: Props) {
         <h2 className="tipo-subtitle m-0 mb-3 text-ink">Efeito do feed social</h2>
         <p className="tipo-caption mb-4 mt-0 text-ink-3">
           Fotos subidas antes e depois da primeira abertura do feed. Se o número depois não
-          cresce, o feed não está gerando o engajamento esperado.
+          cresce, abrir o feed não trouxe mais foto.
         </p>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
           <Stat n={String(resumo.uploadsAntesDoFeed)} rotulo="antes do feed" />

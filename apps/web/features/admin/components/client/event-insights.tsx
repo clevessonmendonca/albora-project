@@ -256,7 +256,7 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
         <h2 className="tipo-subtitle m-0 mb-3 text-ink">Efeito do feed social</h2>
         <p className="tipo-caption mb-4 mt-0 text-ink-3">
           Fotos subidas antes e depois da primeira abertura do feed. Se o número depois
-          não cresce, o feed pode não estar gerando o engajamento esperado.
+          não cresce, abrir o feed não trouxe mais foto.
         </p>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(7rem,1fr))] gap-3">
           <Stat n={String(resumo.uploadsAntesDoFeed)} rotulo="antes do feed" />
@@ -268,7 +268,7 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
         <AdminSection>
           <h2 className="tipo-subtitle m-0 mb-3 text-ink">Missões mais fotografadas</h2>
           <p className="tipo-caption mb-4 mt-0 text-ink-3">
-            Ranking de engajamento por missão — sem identificar quem fotografou.
+            As missões que mais renderam foto — sem identificar quem fotografou.
           </p>
           <MissoesRanking missoes={insights.missoes} />
         </AdminSection>
@@ -278,8 +278,8 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
         <AdminSection>
           <h2 className="tipo-subtitle m-0 mb-3 text-ink">Hora de ouro</h2>
           <p className="tipo-caption mb-4 mt-0 text-ink-3">
-            Distribuição de fotos por hora da festa. O pico indica o momento de maior
-            engajamento.
+            Distribuição de fotos por hora da festa. O pico mostra quando a festa mais
+            fotografou.
           </p>
           <HoraDeOuro horas={insights.horas} />
         </AdminSection>
