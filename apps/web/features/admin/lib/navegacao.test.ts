@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DESTINOS, destinoAtivo } from "./navegacao";
+import { DESTINOS, destinoAtivo, GRUPOS_DE_DESTINO, destinoDe } from "./navegacao";
 
 const base = "/admin/e/abc";
 
@@ -63,5 +63,38 @@ describe("destino ativo", () => {
 
   it("fora do evento não marca nada", () => {
     expect(destinoAtivo("/admin", base)).toBeNull();
+  });
+});
+
+/**
+ * O rail passa a agrupar os destinos, como o protótipo do painel do casal:
+ * "Seu evento" reúne o que se olha durante a festa, "Personalização" o que se
+ * decide antes. Seis itens soltos numa coluna não dizem qual é qual.
+ *
+ * A bottom-bar continua plana — no celular não há altura para rótulo de grupo,
+ * e ali a lista curta já é legível.
+ */
+describe("os destinos vêm agrupados para o rail", () => {
+  it("todo destino pertence a exatamente um grupo", () => {
+    const noGrupo = GRUPOS_DE_DESTINO.flatMap((g) => g.destinos);
+    expect(noGrupo.length).toBe(DESTINOS.length);
+    expect(new Set(noGrupo).size).toBe(DESTINOS.length);
+    for (const d of DESTINOS) expect(noGrupo).toContain(d.id);
+  });
+
+  it("cada grupo tem rótulo e ao menos um destino", () => {
+    for (const g of GRUPOS_DE_DESTINO) {
+      expect(g.rotulo.trim().length).toBeGreaterThan(0);
+      expect(g.destinos.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("o primeiro grupo abre com Início — é onde o anfitrião cai", () => {
+    expect(GRUPOS_DE_DESTINO[0]!.destinos[0]).toBe("inicio");
+  });
+
+  it("destinoDe encontra o destino pelo id", () => {
+    expect(destinoDe("fotos")?.rotulo).toBe("Fotos");
+    expect(destinoDe("inicio")?.suffix).toBe("");
   });
 });

@@ -10,6 +10,12 @@ import { ModerationCountProvider } from "@/features/admin/components/client/mode
 import { showsFollowMode } from "@/features/admin/lib/follow-mode";
 import { loadEventPage, type AdminEventPageContext } from "@/features/admin/data/load-event-page";
 import { rotuloContagem } from "@/features/admin/lib/contagem";
+
+/** O plano como o casal o conhece na compra, não como a coluna o guarda. */
+function rotuloDoPlano(plan: string): string {
+  if (plan === "vendor") return "Pelo fornecedor";
+  return plan === "free" ? "Plano Essencial" : "Plano Completo";
+}
 import { cookies } from "next/headers";
 import { estiloAntiFlash } from "@/features/guest/lib/theme-style";
 import { readThemePreference, THEME_COOKIE } from "@/features/guest/lib/theme-preference";
@@ -85,6 +91,8 @@ export async function EventPageLayout({
               eventId={eventId}
               name={ctx.name}
               countdown={countdown}
+              email={ctx.emailDaConta}
+              plano={rotuloDoPlano(ctx.evento.plan)}
               inicialRecolhida={railRecolhido((await cookies()).get(RAIL_COOKIE)?.value)}
             />
           <div className="min-w-0 flex-1 px-[clamp(1.25rem,4vw,3rem)] pb-24 pt-[clamp(1.5rem,4vw,2.5rem)] lg:pb-[clamp(2rem,4vw,3rem)]">

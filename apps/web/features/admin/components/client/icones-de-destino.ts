@@ -1,9 +1,11 @@
 import {
   CameraIcon,
+  CommentIcon,
   HomeIcon,
   SettingsIcon,
   ShareIcon,
   StackIcon,
+  BookmarkIcon,
   UsersIcon,
 } from "@albora/ui-web";
 import type { ComponentType } from "react";
@@ -19,4 +21,6 @@ export const ICONES_DE_DESTINO: Record<DestinoId, ComponentType<IconProps>> = {
   experiencia: StackIcon,
   compartilhar: ShareIcon,
   ajustes: SettingsIcon,
+  comunidade: CommentIcon,
+  inspiracao: BookmarkIcon,
 };

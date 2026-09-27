@@ -12,7 +12,9 @@ O núcleo é genérico (`event`, `host`, `guest`, `challenge`, `upload`); casame
 
 ## O que este projeto NÃO é
 
-- Não é uma rede social **entre eventos**. O feed, as reações e os comentários existem e são de primeira classe, mas vivem dentro de um evento e morrem com ele. Não há conta Albora, e a interação abre num horário que os noivos escolhem. Ver [ADR 0009](./docs/adr/0009-app-social-do-convidado.md).
+- **O convidado** não vive numa rede social. O feed, as reações e os comentários existem e são de primeira classe, mas vivem dentro de um evento e morrem com ele; a interação abre num horário que os noivos escolhem. Ver [ADR 0009](./docs/adr/0009-app-social-do-convidado.md).
+- **O anfitrião, sim, tem onde conversar.** O painel ganhou o grupo "Descobrir" — Comunidade (troca entre quem organiza) e Inspiração (ideias por tema) —, decidido em 27/09/2026 a partir do protótipo do painel do casal. Até aqui este documento dizia que o produto não era rede social **entre eventos**, sem distinguir as duas superfícies; a frase valia para o convidado e foi aplicada ao anfitrião por extensão. A distinção que passa a valer: o convidado não tem conta e não atravessa eventos; quem organiza tem conta, volta entre festas e pode trocar ideia com outros anfitriões.
+- As duas telas existem com a moldura pronta e **sem conteúdo inventado** — não há tabela de post, curtida ou ideia salva. Quando houver, o que muda é a lista; a composição fica.
 - Não é um editor de canvas. Diagramação é por slots, nunca posicionamento livre.
 - Não é um site de casamento. Site, convite, RSVP e lista de presentes estão fora até a Fase 4, com condições de entrada explícitas.
 - Não é armazenamento. Não competimos em "ilimitado grátis".
