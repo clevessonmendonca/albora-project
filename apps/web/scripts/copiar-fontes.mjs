@@ -28,6 +28,10 @@ const destino = join(raiz, "public", "fontes");
  * Os itálicos entram declarados mas não pesam na primeira pintura — o
  * navegador só busca o arquivo quando de fato precisa desenhar um glifo
  * itálico, e nas telas de entrada não há nenhum.
+ *
+ * Playfair Display e DM Sans são a dupla do **painel do anfitrião** e só dele
+ * (`features/admin/lib/chrome-do-painel.ts`). Não entram na rota do convidado,
+ * que é onde o peso decide a primeira foto.
  */
 const PACOTES = {
   fraunces: ["fraunces-latin-wght-normal.woff2", "fraunces-latin-wght-italic.woff2"],
@@ -35,6 +39,11 @@ const PACOTES = {
     "instrument-sans-latin-wght-normal.woff2",
     "instrument-sans-latin-wght-italic.woff2",
   ],
+  "playfair-display": [
+    "playfair-display-latin-wght-normal.woff2",
+    "playfair-display-latin-wght-italic.woff2",
+  ],
+  "dm-sans": ["dm-sans-latin-wght-normal.woff2", "dm-sans-latin-wght-italic.woff2"],
 };
 
 mkdirSync(destino, { recursive: true });
