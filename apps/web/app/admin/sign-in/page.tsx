@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { SignInForm } from "@/features/admin/components/client/sign-in-form";
-import { adminVars } from "@/features/admin/components/server/admin-shell";
+import { adminVars } from "@/features/admin/lib/chrome-do-painel";
 
 export const dynamic = "force-dynamic";
 

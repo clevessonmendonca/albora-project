@@ -6,10 +6,9 @@ import { collectEventLiveMetrics, isPlatformOperator } from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
 import { SkipLink, buttonClasses } from "@albora/ui-web";
-import {
-  AdminSection,
-  adminVars,
-} from "@/features/admin/components/server/admin-shell";
+import { 
+  AdminSection } from "@/features/admin/components/server/admin-shell";
+import { adminVars } from "@/features/admin/lib/chrome-do-painel";
 import { OpsEventAggregates } from "../../event-aggregates";
 
 export const dynamic = "force-dynamic";

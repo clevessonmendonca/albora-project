@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { adminVars } from "@/features/admin/components/server/admin-shell";
+import { adminVars } from "@/features/admin/lib/chrome-do-painel";
 
 export default function AdminNotFound() {
   return (

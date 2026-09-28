@@ -1,6 +1,6 @@
 import { ALBORA_BRAND, resolveTokens, toVariables } from "@albora/tokens";
 import { describe, expect, it } from "vitest";
-import { adminVars } from "./admin-shell";
+import { adminVars } from "@/features/admin/lib/chrome-do-painel";
 
 describe("adminVars resolve o admin no chão claro por padrão", () => {
   it("sem argumento, --bg é igual ao claro (não herda o escuro da marca)", () => {

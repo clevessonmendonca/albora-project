@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { CreateEventWizard } from "@/features/admin/components/client/create-event-wizard";
-import { adminVars } from "@/features/admin/components/server/admin-shell";
+import { adminVars } from "@/features/admin/lib/chrome-do-painel";
 
 export const dynamic = "force-dynamic";
 
