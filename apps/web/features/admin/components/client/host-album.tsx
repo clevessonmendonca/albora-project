@@ -154,7 +154,7 @@ export function HostAlbum({ eventoId, canExport = true, filtro = "todas" }: Prop
           <p className="tipo-caption m-0 mb-1 text-ink-2">
             PDF A4 com sangria (216 × 303 mm) e diagramação por slots do álbum curado — perfil sRGB prepress.
           </p>
-          <p className="tipo-caption m-0 mb-4 text-ink-3">
+          <p className="tipo-caption m-0 mb-4 text-ink-2">
             A tela mostra RGB e a gráfica imprime CMYK: a cor do acento pode sair um pouco mais apagada no papel. Peça uma prova impressa antes da tiragem.
           </p>
           <a
@@ -192,7 +192,7 @@ export function HostAlbum({ eventoId, canExport = true, filtro = "todas" }: Prop
             {filtro === "destaques" ? (
               <>
                 <p className="tipo-body m-0 text-ink-2">Nada destacado ainda.</p>
-                <p className="tipo-caption m-0 text-ink-3">
+                <p className="tipo-caption m-0 text-ink-2">
                   Destacar marca as fotos que vocês mais gostaram. Abra a aba Todas, toque numa
                   foto e escolha Destacar.
                 </p>
@@ -202,7 +202,7 @@ export function HostAlbum({ eventoId, canExport = true, filtro = "todas" }: Prop
                 <p className="tipo-body m-0 text-ink-2">
                   Ainda não há fotos publicadas. Elas aparecem aqui assim que entram.
                 </p>
-                <p className="tipo-caption m-0 text-ink-3">
+                <p className="tipo-caption m-0 text-ink-2">
                   Baixe as peças com o QR e coloque nas mesas — ou compartilhe o link do convidado
                   diretamente.
                 </p>
@@ -242,7 +242,7 @@ export function HostAlbum({ eventoId, canExport = true, filtro = "todas" }: Prop
                       </span>
                     )}
                   </button>
-                  <span className="truncate text-[11px] text-ink-3">
+                  <span className="truncate text-[11px] text-ink-2">
                     {legendaDaFoto(item.criadaEm, item.reacoes)}
                   </span>
                 </li>
@@ -266,7 +266,7 @@ export function HostAlbum({ eventoId, canExport = true, filtro = "todas" }: Prop
               <p className="tipo-body m-0 text-ink">
                 {estaDestacada(selecionadoItem.id) ? "Foto destacada" : "O que fazer com esta foto?"}
               </p>
-              <p className="tipo-caption m-0 mt-1 text-ink-3">
+              <p className="tipo-caption m-0 mt-1 text-ink-2">
                 {legendaDaFoto(selecionadoItem.criadaEm, selecionadoItem.reacoes)} · destacar marca as
                 melhores; ocultar some do evento para todos os convidados.
               </p>

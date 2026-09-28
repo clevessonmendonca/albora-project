@@ -28,7 +28,7 @@ export async function AdminShell({ title, subtitle, back, children }: AdminShell
                 <Link
                   href={back.href}
                   data-admin-shell-back
-                  className="tipo-label mb-4 inline-block text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
+                  className="tipo-label mb-4 inline-block text-ink-2 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
                 >
                   ← {back.label}
                 </Link>
@@ -38,7 +38,7 @@ export async function AdminShell({ title, subtitle, back, children }: AdminShell
                   {title}
                 </h1>
               )}
-              {subtitle && <p className="tipo-caption m-0 mt-2 text-ink-3">{subtitle}</p>}
+              {subtitle && <p className="tipo-caption m-0 mt-2 text-ink-2">{subtitle}</p>}
             </div>
             <div className="flex shrink-0 flex-wrap items-center gap-1">
               <TemaDoPainelToggle />

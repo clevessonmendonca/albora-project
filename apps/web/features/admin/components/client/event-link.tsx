@@ -13,7 +13,7 @@ export function EventLink({ title, url }: { title: string; url: string }) {
 
   return (
     <div>
-      <span className="tipo-label block text-ink-3">{title}</span>
+      <span className="tipo-label block text-ink-2">{title}</span>
       <div className="mt-1 flex items-center gap-2">
         <a
           href={url}

@@ -94,7 +94,7 @@ export function GuestFunnel({ eventoId }: { eventoId: string }) {
         <CabecalhoDeCartao
           titulo={confirmada ? "Presença confirmada" : "Confirmar quem apareceu"}
         />
-        <p className="m-0 mb-3 text-[13px] text-ink-3">
+        <p className="m-0 mb-3 text-[13px] text-ink-2">
           {confirmada
             ? `A participação é calculada sobre ${resumo?.denominador} presentes. Se o número mudar, é só enviar de novo.`
             : "Convidado e presente não são o mesmo número. Depois da festa, informe quantos apareceram de fato."}

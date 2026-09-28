@@ -249,7 +249,7 @@ export function MissionsEditor({
 
             {inactive.length > 0 && (
               <div>
-                <p className="tipo-label mb-2 mt-1 text-ink-3">Disponíveis no pack</p>
+                <p className="tipo-label mb-2 mt-1 text-ink-2">Disponíveis no pack</p>
                 <ul className="m-0 list-none p-0 flex flex-col gap-2">
                   {inactive.map((m) => (
                     <InactiveMissionRow
@@ -264,7 +264,7 @@ export function MissionsEditor({
           </div>
 
           <div className={identityPreviewClassName} style={previewVars}>
-            <p className="tipo-label mb-3 mt-0 text-ink-3">Na câmera</p>
+            <p className="tipo-label mb-3 mt-0 text-ink-2">Na câmera</p>
             <div className="relative min-h-[11rem] overflow-hidden rounded-superficie bg-superficie">
               <div className="absolute inset-x-3 top-3">
                 {previewTitle ? (
@@ -344,7 +344,7 @@ export function MissionsEditor({
 
               {editingId === String(i) ? (
                 <div className="flex items-center gap-2">
-                  <label htmlFor={`prazo-edit-${i}`} className="tipo-label shrink-0 text-ink-3">
+                  <label htmlFor={`prazo-edit-${i}`} className="tipo-label shrink-0 text-ink-2">
                     Prazo opcional
                   </label>
                   <input
@@ -358,7 +358,7 @@ export function MissionsEditor({
                     <button
                       type="button"
                       onClick={() => setEditDeadline("")}
-                      className="inline-flex min-h-11 cursor-pointer items-center bg-transparent p-0 font-corpo text-[0.8125rem] text-ink-3 underline hover:text-ink"
+                      className="inline-flex min-h-11 cursor-pointer items-center bg-transparent p-0 font-corpo text-[0.8125rem] text-ink-2 underline hover:text-ink"
                     >
                       Remover prazo
                     </button>
@@ -366,7 +366,7 @@ export function MissionsEditor({
                 </div>
               ) : (
                 m.deadline && (
-                  <span className="tipo-caption text-ink-3">
+                  <span className="tipo-caption text-ink-2">
                     Até {formatDeadline(m.deadline)}
                   </span>
                 )
@@ -378,10 +378,10 @@ export function MissionsEditor({
             id="nova-missao-personalizada"
             className="mt-2 flex flex-col gap-3 rounded-token border border-dashed border-linha bg-superficie p-4"
           >
-            <p className="tipo-label m-0 text-ink-3">Nova missão personalizada</p>
+            <p className="tipo-label m-0 text-ink-2">Nova missão personalizada</p>
             <div className="flex flex-wrap items-end gap-2">
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="emoji-nova-missao" className="tipo-label text-ink-3">
+                <label htmlFor="emoji-nova-missao" className="tipo-label text-ink-2">
                   Emoji
                 </label>
                 <input
@@ -394,7 +394,7 @@ export function MissionsEditor({
                 />
               </div>
               <div className="flex min-w-[12rem] flex-1 flex-col gap-1.5">
-                <label htmlFor="titulo-nova-missao" className="tipo-label text-ink-3">
+                <label htmlFor="titulo-nova-missao" className="tipo-label text-ink-2">
                   Título
                 </label>
                 <input
@@ -405,11 +405,11 @@ export function MissionsEditor({
                   onKeyDown={(e) => { if (e.key === "Enter") addCustom(); }}
                   placeholder="Nova missão personalizada…"
                   maxLength={CUSTOM_MAX}
-                  className="min-w-0 flex-1 rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-sm text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] placeholder:text-ink-3 focus:border-acento"
+                  className="min-w-0 flex-1 rounded-token border border-linha bg-bg px-3 py-[0.65rem] font-corpo text-sm text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] placeholder:text-ink-2 focus:border-acento"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="prazo-nova-missao" className="tipo-label text-ink-3">
+                <label htmlFor="prazo-nova-missao" className="tipo-label text-ink-2">
                   Prazo opcional
                 </label>
                 <input
@@ -502,7 +502,7 @@ function ActiveMissionRow({
       }}
     >
       <span
-        className={`grid ${ALVO_TOQUE_ICONE} shrink-0 place-items-center rounded-token border border-linha bg-superficie text-[0.8125rem] font-titulo text-ink-3 cursor-grab`}
+        className={`grid ${ALVO_TOQUE_ICONE} shrink-0 place-items-center rounded-token border border-linha bg-superficie text-[0.8125rem] font-titulo text-ink-2 cursor-grab`}
         aria-hidden
         title="Arraste para reordenar"
       >

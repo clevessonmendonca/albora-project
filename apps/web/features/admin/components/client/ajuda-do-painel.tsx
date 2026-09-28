@@ -14,7 +14,7 @@ export function AjudaDoPainel() {
         type="button"
         onClick={() => setAberta(true)}
         aria-haspopup="dialog"
-        className="flex min-h-11 cursor-pointer items-center gap-2 rounded-pilula border-none bg-transparent px-3 text-sm text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
+        className="flex min-h-11 cursor-pointer items-center gap-2 rounded-pilula border-none bg-transparent px-3 text-sm text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
       >
         <CircleHelp size={18} aria-hidden />
         Ajuda

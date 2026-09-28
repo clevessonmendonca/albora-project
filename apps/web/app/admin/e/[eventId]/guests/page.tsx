@@ -59,7 +59,7 @@ export default async function PaginaConvidados({
                 <ConvidadosCartaoConvite eventId={eventId} url={urlDeConvite} />
                 <Cartao>
                   <CabecalhoDeCartao titulo="Permissões" />
-                  <p className="m-0 mb-4 text-[13px] text-ink-3">
+                  <p className="m-0 mb-4 text-[13px] text-ink-2">
                     Consentimento, moderação e quem pode ver o quê ficam nas configurações do
                     evento.
                   </p>

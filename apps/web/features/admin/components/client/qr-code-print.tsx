@@ -77,7 +77,7 @@ export function QrCodePrint({ eventId, slug, eventName, guestUrl, svgString }: P
             dangerouslySetInnerHTML={{ __html: svgString }}
           />
 
-          <p className="m-0 max-w-xs text-[13px] text-ink-3">
+          <p className="m-0 max-w-xs text-[13px] text-ink-2">
             Aponte a câmera do celular para o QR e comece a enviar fotos.
           </p>
 

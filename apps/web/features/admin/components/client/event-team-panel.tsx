@@ -136,7 +136,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
             type="button"
             disabled={loading}
             onClick={() => void loadMembers()}
-            className="tipo-label inline-flex min-h-11 shrink-0 cursor-pointer items-center rounded-pilula border border-linha bg-transparent px-3 text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
+            className="tipo-label inline-flex min-h-11 shrink-0 cursor-pointer items-center rounded-pilula border border-linha bg-transparent px-3 text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink disabled:cursor-default disabled:opacity-50"
           >
             Tentar de novo
           </button>
@@ -152,7 +152,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
             </svg>
           </span>
           <p className="tipo-subtitle m-0 text-ink">Só você por enquanto</p>
-          <p className="tipo-caption m-0 max-w-[18rem] text-ink-3">
+          <p className="tipo-caption m-0 max-w-[18rem] text-ink-2">
             Convide o casal ou o cerimonialista para gerenciar o evento junto.
           </p>
         </div>
@@ -175,7 +175,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
 
       <form onSubmit={handleInvite} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
-          <label className="tipo-label text-ink-3" htmlFor="invite-email">
+          <label className="tipo-label text-ink-2" htmlFor="invite-email">
             E-mail
           </label>
           <input
@@ -190,7 +190,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="tipo-label text-ink-3" htmlFor="invite-role">
+          <label className="tipo-label text-ink-2" htmlFor="invite-role">
             Papel
           </label>
           <select

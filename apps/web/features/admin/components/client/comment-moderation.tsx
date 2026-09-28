@@ -92,7 +92,7 @@ export function CommentModeration({ eventoId }: Props) {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-[0.8125rem] text-ink-3">
+        <span className="text-[0.8125rem] text-ink-2">
           {lista.length === 0
             ? "Nenhum comentário"
             : lista.length === 1
@@ -113,7 +113,7 @@ export function CommentModeration({ eventoId }: Props) {
           <p className="mb-2 mt-0 text-[0.9375rem] text-ink">
             Nenhum comentário publicado ainda
           </p>
-          <p className="m-0 text-[0.8125rem] leading-relaxed text-ink-3">
+          <p className="m-0 text-[0.8125rem] leading-relaxed text-ink-2">
             Quando os convidados começarem a comentar nas fotos, você verá a lista aqui e poderá
             moderar o conteúdo.
           </p>

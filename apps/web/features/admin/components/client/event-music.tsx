@@ -103,7 +103,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
 
       <label className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
-          <span className="tipo-label text-ink-3">Link da faixa</span>
+          <span className="tipo-label text-ink-2">Link da faixa</span>
           <button
             type="button"
             disabled={colando}
@@ -158,7 +158,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
       )}
 
       <div className="mt-2 grid gap-2">
-        <p className="tipo-label m-0 text-ink-3">
+        <p className="tipo-label m-0 text-ink-2">
           Sugestões dos convidados
         </p>
         {loading ? (
@@ -185,7 +185,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
                   {suggestionLabel(s)}
                 </a>
                 <div className="flex shrink-0 items-center gap-2">
-                  <span className="tipo-caption text-ink-3">
+                  <span className="tipo-caption text-ink-2">
                     {s.votos === 1 ? "1 voto" : `${s.votos} votos`}
                   </span>
                   <button

@@ -224,7 +224,7 @@ export function CreateEventWizard() {
                   <span className="font-titulo text-[1.0625rem] capitalize text-ink">
                     {opt.nome}
                   </span>
-                  <span className="tipo-caption text-ink-3">{opt.rotulo}</span>
+                  <span className="tipo-caption text-ink-2">{opt.rotulo}</span>
                 </div>
                 <span
                   className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
@@ -256,7 +256,7 @@ export function CreateEventWizard() {
               <label htmlFor="expected-guests" className="text-sm font-medium text-ink">
                 Quantos convidados presentes?
               </label>
-              <p className="tipo-caption m-0 text-ink-3">
+              <p className="tipo-caption m-0 text-ink-2">
                 Estimativa de quem vai estar na festa. Usamos para medir a participação — a
                 métrica principal do álbum.
               </p>
@@ -274,7 +274,7 @@ export function CreateEventWizard() {
                   aria-invalid={!guestsValid ? true : undefined}
                   className="min-h-[48px] w-[5.5rem] rounded-token border border-linha bg-superficie px-3 py-2 font-titulo text-xl text-ink outline-none transition-[border-color,box-shadow] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
                 />
-                <span className="tipo-caption text-ink-3">pessoas na festa</span>
+                <span className="tipo-caption text-ink-2">pessoas na festa</span>
               </div>
               <input
                 type="range"
@@ -287,7 +287,7 @@ export function CreateEventWizard() {
                 style={{ accentColor: "var(--acento)" }}
                 className="h-11 w-full cursor-pointer"
               />
-              <div className="flex justify-between text-[0.75rem] text-ink-3">
+              <div className="flex justify-between text-[0.75rem] text-ink-2">
                 <span>10</span>
                 <span>500+</span>
               </div>
@@ -313,7 +313,7 @@ export function CreateEventWizard() {
               />
             </div>
             {datesValid && (
-              <p className="tipo-caption m-0 text-ink-3">
+              <p className="tipo-caption m-0 text-ink-2">
                 Duração:{" "}
                 {Math.round(
                   (new Date(ends).getTime() - new Date(starts).getTime()) / 3_600_000,
@@ -352,7 +352,7 @@ export function CreateEventWizard() {
                   onChange={(e) => setCoupleEmail(e.target.value)}
                   placeholder="nome@exemplo.com"
                 />
-                <p className="tipo-caption m-0 text-ink-3">
+                <p className="tipo-caption m-0 text-ink-2">
                   O casal recebe um link por e-mail pra abrir o painel — quem cria aqui entra
                   como cerimonialista, não como dono do evento.
                 </p>
@@ -399,7 +399,7 @@ export function CreateEventWizard() {
                     </div>
                     <div>
                       <p className="m-0 font-titulo text-[0.9rem] text-ink">{m.nome}</p>
-                      <p className="tipo-label m-0 text-ink-3">
+                      <p className="tipo-label m-0 text-ink-2">
                         {m.camada.background === "light" ? "Claro" : "Escuro"}
                       </p>
                     </div>
@@ -410,7 +410,7 @@ export function CreateEventWizard() {
 
             <div className="flex items-center gap-3">
               <span className="h-px flex-1 bg-linha" />
-              <span className="tipo-label shrink-0 text-ink-3">ou crie a sua paleta</span>
+              <span className="tipo-label shrink-0 text-ink-2">ou crie a sua paleta</span>
               <span className="h-px flex-1 bg-linha" />
             </div>
 
@@ -418,7 +418,7 @@ export function CreateEventWizard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="m-0 text-[0.9rem] text-ink">Fundo</p>
-                  <p className="tipo-caption m-0 text-ink-3">Tom geral da tela do convidado</p>
+                  <p className="tipo-caption m-0 text-ink-2">Tom geral da tela do convidado</p>
                 </div>
                 <div className="flex gap-1 rounded-pilula border border-linha bg-superficie p-0.5">
                   {(["light", "dark"] as const).map((modo) => (
@@ -430,7 +430,7 @@ export function CreateEventWizard() {
                       className={`inline-flex min-h-11 items-center justify-center rounded-pilula px-4 text-[0.8rem] transition-all duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
                         bgModo === modo
                           ? "bg-superficie-alta text-ink shadow-suave"
-                          : "text-ink-3 hover:text-ink-2"
+                          : "text-ink-2 hover:text-ink-2"
                       }`}
                     >
                       {modo === "light" ? "Claro" : "Escuro"}
@@ -475,7 +475,7 @@ export function CreateEventWizard() {
               style={previewVars}
             >
               <div className="flex items-center justify-between border-b border-linha px-5 py-3">
-                <span className="tipo-label text-ink-3">Prévia</span>
+                <span className="tipo-label text-ink-2">Prévia</span>
                 <div className="flex items-center gap-1.5">
                   <span className="size-2 rounded-full bg-acento" />
                   <span className="size-2 rounded-full bg-acento opacity-50" />
@@ -544,7 +544,7 @@ export function CreateEventWizard() {
         {step === 0 ? (
           <NextLink
             href="/admin"
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-pilula px-3 text-[0.875rem] text-ink-3 no-underline transition-[color,transform] duration-instantaneo ease-mola hover:text-ink active:scale-[0.97]"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-pilula px-3 text-[0.875rem] text-ink-2 no-underline transition-[color,transform] duration-instantaneo ease-mola hover:text-ink active:scale-[0.97]"
           >
             Cancelar
           </NextLink>
@@ -552,7 +552,7 @@ export function CreateEventWizard() {
           <button
             type="button"
             onClick={() => setStep((p) => p - 1)}
-            className="inline-flex min-h-11 shrink-0 cursor-pointer items-center justify-center rounded-pilula border-none bg-transparent px-3 text-[0.875rem] text-ink-3 transition-[color,transform] duration-instantaneo ease-mola hover:text-ink active:scale-[0.97]"
+            className="inline-flex min-h-11 shrink-0 cursor-pointer items-center justify-center rounded-pilula border-none bg-transparent px-3 text-[0.875rem] text-ink-2 transition-[color,transform] duration-instantaneo ease-mola hover:text-ink active:scale-[0.97]"
           >
             ← Voltar
           </button>
@@ -602,7 +602,7 @@ function CorInput({
     <label className="relative flex min-h-11 cursor-pointer items-center justify-between gap-4 rounded-token border border-linha bg-superficie px-4 py-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto">
       <div className="flex flex-col gap-0.5">
         <span className="text-[0.9rem] text-ink">{label}</span>
-        <span className="tipo-caption text-ink-3">{dica}</span>
+        <span className="tipo-caption text-ink-2">{dica}</span>
       </div>
       <div className="flex shrink-0 items-center gap-2.5">
         <span
@@ -641,10 +641,10 @@ function MissionList({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-baseline justify-between">
-        <span className="tipo-label text-ink-3">
+        <span className="tipo-label text-ink-2">
           {activeCount} de {total} ativas
         </span>
-        <span className="tipo-caption text-ink-3">toque para ativar</span>
+        <span className="tipo-caption text-ink-2">toque para ativar</span>
       </div>
       <div className="flex flex-col gap-2">
       {pack.missoes.map((m) => {
@@ -744,7 +744,7 @@ function ConfirmSummary({
         <SummaryRow label="Fim" value={fmt(ends)} />
         <SummaryRow label="Convidados presentes" value={`~${guests} pessoas`} />
         <div className="flex items-center justify-between gap-4">
-          <span className="tipo-label shrink-0 text-ink-3">Identidade</span>
+          <span className="tipo-label shrink-0 text-ink-2">Identidade</span>
           <div className="flex items-center gap-3">
             <div className="flex gap-1">
               {paleta.map((cor, i) => (
@@ -767,7 +767,7 @@ function ConfirmSummary({
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline justify-between gap-4">
-      <span className="tipo-label shrink-0 text-ink-3">{label}</span>
+      <span className="tipo-label shrink-0 text-ink-2">{label}</span>
       <span className="text-right text-[0.9375rem] text-ink">{value}</span>
     </div>
   );
@@ -874,7 +874,7 @@ function Link({ title, url }: { title: string; url: string }) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="tipo-label text-ink-3">{title}</span>
+      <span className="tipo-label text-ink-2">{title}</span>
       <div className="flex items-center gap-2">
         <a
           href={url}
@@ -913,8 +913,8 @@ function Shell({
         <div className="mx-auto max-w-[34rem]">
           <nav aria-label="Progresso do cadastro">
             <div className="mb-3 flex items-center justify-between">
-              <span className="tipo-label text-ink-3">Novo evento</span>
-              <span className="tipo-label text-ink-3">
+              <span className="tipo-label text-ink-2">Novo evento</span>
+              <span className="tipo-label text-ink-2">
                 {step + 1} de {total}
               </span>
             </div>

@@ -45,7 +45,7 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="m-0 text-[13px] text-ink-3">
+      <p className="m-0 text-[13px] text-ink-2">
         Nome ofensivo? Troque ou oculte — as fotos ficam. O telão lê o nome daqui.
       </p>
 
@@ -58,7 +58,7 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="m-0 truncate text-[0.9375rem] text-ink">{s.nome}</p>
-                  <p className="m-0 mt-0.5 text-[13px] text-ink-3">
+                  <p className="m-0 mt-0.5 text-[13px] text-ink-2">
                     <span className="tabular-nums">{s.fotos}</span>{" "}
                     {s.fotos === 1 ? "foto" : "fotos"}
                   </p>
@@ -130,7 +130,7 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                     </button>
                   </div>
                   {rascunho.length > 0 && (
-                    <span className="block text-right text-[11px] tabular-nums text-ink-3">
+                    <span className="block text-right text-[11px] tabular-nums text-ink-2">
                       {40 - rascunho.length}
                     </span>
                   )}

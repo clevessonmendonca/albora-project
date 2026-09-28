@@ -29,7 +29,7 @@ export function GuestbookAudioField({
 
   return (
     <fieldset className="m-0 mt-6 border-0 p-0">
-      <legend className="tipo-label p-0 text-ink-3">Áudio (opcional)</legend>
+      <legend className="tipo-label p-0 text-ink-2">Áudio (opcional)</legend>
       {(recorder.recording || temAudio) && (
         <div className="mb-1.5 mt-1.5 flex flex-wrap items-center gap-2">
           {recorder.recording ? (
@@ -45,7 +45,7 @@ export function GuestbookAudioField({
           )}
         </div>
       )}
-      <p className="m-0 mb-3 mt-1.5 max-w-[34rem] tipo-caption text-ink-3">
+      <p className="m-0 mb-3 mt-1.5 max-w-[34rem] tipo-caption text-ink-2">
         Até {MAX_AUDIO_SECONDS} s. No salão a música é alta — o texto continua sendo o corpo. O áudio
         emociona quem tem fone, ou quem abre no dia seguinte.
       </p>
@@ -104,7 +104,7 @@ export function GuestbookAudioField({
               recorder.descartar();
               if (!recorder.pending && saved) onRemoveSaved();
             }}
-            className="inline-flex min-h-11 cursor-pointer items-center border-0 bg-transparent px-2 font-corpo text-sm text-ink-3 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-critico"
+            className="inline-flex min-h-11 cursor-pointer items-center border-0 bg-transparent px-2 font-corpo text-sm text-ink-2 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-critico"
           >
             Remover áudio
           </button>

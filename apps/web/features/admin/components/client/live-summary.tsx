@@ -91,7 +91,7 @@ export function LiveSummary({ eventoId }: Props) {
           </span>
           <div>
             <p className="tipo-body m-0 text-ink">Painel indisponível agora.</p>
-            <p className="tipo-caption m-0 mt-1 text-ink-3">
+            <p className="tipo-caption m-0 mt-1 text-ink-2">
               Recarregue a página para tentar de novo.
             </p>
           </div>
@@ -174,11 +174,11 @@ export function LiveSummary({ eventoId }: Props) {
       </div>
 
       <div className="mb-3">
-        <div className="tipo-label mb-1.5 flex justify-between text-ink-3">
+        <div className="tipo-label mb-1.5 flex justify-between text-ink-2">
           <span>
             {resumo.sessoesComUpload} de {resumo.expectedGuests} convidados fotografaram
           </span>
-          <span className={pct >= 40 ? destaqueClass : "text-ink-3"}>meta: 40%</span>
+          <span className={pct >= 40 ? destaqueClass : "text-ink-2"}>meta: 40%</span>
         </div>
         <div className="relative h-1.5 overflow-hidden rounded-full bg-superficie-alta">
           <div

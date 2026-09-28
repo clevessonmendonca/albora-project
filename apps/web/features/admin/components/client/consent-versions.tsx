@@ -117,7 +117,7 @@ export function ConsentVersions({ eventoId }: { eventoId: string }) {
         return (
           <AdminSection key={tipo}>
             <h3 className="tipo-body m-0 font-medium text-ink">{ROTULO_TIPO[tipo]}</h3>
-            <p className="tipo-caption mb-4 mt-1.5 text-ink-3">
+            <p className="tipo-caption mb-4 mt-1.5 text-ink-2">
               {DESCRICAO_TIPO[tipo]}
             </p>
             {lista.length === 0 && (
@@ -158,13 +158,13 @@ function VersionCard({ versao }: { versao: VersaoDeConsentimento }) {
           <span className="tipo-subtitle tabular-nums text-acento-texto">
             {versao.aceites}
           </span>
-          <span className="tipo-caption text-ink-3">
+          <span className="tipo-caption text-ink-2">
             {versao.aceites === 1 ? "aceite" : "aceites"}
           </span>
         </div>
       </div>
 
-      <div className="mb-3 grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-x-4 gap-y-1 tipo-caption text-ink-3">
+      <div className="mb-3 grid grid-cols-[repeat(auto-fit,minmax(9rem,1fr))] gap-x-4 gap-y-1 tipo-caption text-ink-2">
         <span>Primeiro aceite: {formatarData(versao.primeiroAceiteEm)}</span>
         <span>Último aceite: {formatarData(versao.ultimoAceiteEm)}</span>
         {versao.revogados !== null && (
@@ -190,7 +190,7 @@ function VersionCard({ versao }: { versao: VersaoDeConsentimento }) {
           )}
         </>
       ) : (
-        <p className="tipo-caption m-0 italic text-ink-3">
+        <p className="tipo-caption m-0 italic text-ink-2">
           Texto desta versão não está mais no registro do produto.
         </p>
       )}

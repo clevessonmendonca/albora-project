@@ -57,7 +57,7 @@ export default async function VendorInsightsPage() {
                 {vendor.role === "admin" && (
                   <Link
                     href={`/admin/vendor/${vendor.vendorId}/settings`}
-                    className="tipo-caption inline-flex min-h-11 items-center self-end px-2 text-ink-3 underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
+                    className="tipo-caption inline-flex min-h-11 items-center self-end px-2 text-ink-2 underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
                   >
                     Configurações do fornecedor
                   </Link>
@@ -71,7 +71,7 @@ export default async function VendorInsightsPage() {
           <AdminSection>
             <div className="py-8 text-center">
               <p className="tipo-subtitle m-0 mb-2 text-ink">Nenhum evento criado ainda</p>
-              <p className="tipo-caption m-0 text-ink-3">
+              <p className="tipo-caption m-0 text-ink-2">
                 Crie seu primeiro evento para começar a acompanhar insights e participação dos
                 convidados em tempo real.
               </p>
@@ -79,7 +79,7 @@ export default async function VendorInsightsPage() {
           </AdminSection>
         ) : (
           <AdminSection>
-            <p className="tipo-label m-0 mb-3 uppercase text-ink-3">
+            <p className="tipo-label m-0 mb-3 uppercase text-ink-2">
               Seus eventos ({eventos.length})
             </p>
             <ul className="m-0 flex list-none flex-col gap-2 p-0">
@@ -87,7 +87,7 @@ export default async function VendorInsightsPage() {
                 <li key={e.eventoId}>
                   <Link href={`/admin/e/${e.eventoId}/insights`} className={listLinkClasses}>
                     <span className="font-titulo">/{e.slug}</span>
-                    <span className="tipo-caption block text-ink-3">
+                    <span className="tipo-caption block text-ink-2">
                       {e.comecaEm.toLocaleDateString("pt-BR", {
                         day: "2-digit",
                         month: "long",

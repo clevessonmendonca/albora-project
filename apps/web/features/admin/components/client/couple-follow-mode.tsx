@@ -52,7 +52,7 @@ export function CoupleFollowMode({ eventoId, dense }: Props) {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
-          <p className="tipo-label m-0 text-ink-3">
+          <p className="tipo-label m-0 text-ink-2">
             {verPainelCompleto ? "Painel completo" : "Acompanhar"}
           </p>
           {!verPainelCompleto && ultimaAtualizacao && (

@@ -135,7 +135,7 @@ export function EventControls({
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div>
               <span className="tipo-subtitle block text-ink">Evento em rascunho</span>
-              <span className="tipo-caption mt-1 block text-ink-3">
+              <span className="tipo-caption mt-1 block text-ink-2">
                 Convidado não acessa até você publicar.
               </span>
             </div>
@@ -157,7 +157,7 @@ export function EventControls({
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div>
               <span className="block text-[13px] font-semibold text-ink">Telão ao vivo</span>
-              <span className="mt-0.5 block text-[12px] text-ink-3">
+              <span className="mt-0.5 block text-[12px] text-ink-2">
                 {moderation.panic
                   ? "Pausado — nenhuma foto nova aparece na parede."
                   : "Fotos aparecem no telão em tempo real."}
@@ -180,7 +180,7 @@ export function EventControls({
                 {moderation.panic ? "Pausado" : "Ativo"}
               </Badge>
             </div>
-            <span className="tipo-caption block text-ink-3">
+            <span className="tipo-caption block text-ink-2">
               {moderation.panic
                 ? "Nenhuma foto nova aparece na parede."
                 : "Fotos aparecem no telão em tempo real."}
@@ -199,12 +199,12 @@ export function EventControls({
 
       {regras && mostra("protecoes") && (
       <AdminSection id="controle-menores">
-        <h2 className="tipo-label m-0 mb-4 text-ink-3">Proteções</h2>
+        <h2 className="tipo-label m-0 mb-4 text-ink-2">Proteções</h2>
 
         <div className="flex items-start justify-between gap-4">
           <div>
             <span className="tipo-subtitle block text-ink">Há menores</span>
-            <span className="tipo-caption mt-1 block text-ink-3">
+            <span className="tipo-caption mt-1 block text-ink-2">
               Uma denúncia segura do telão. Compartilhar nasce desligado.
             </span>
           </div>
@@ -216,7 +216,7 @@ export function EventControls({
               onChange={(v) => void patch({ haMenores: v }, "hasMinors")}
             />
           ) : (
-            <span className="tipo-caption shrink-0 text-ink-3">
+            <span className="tipo-caption shrink-0 text-ink-2">
               {moderation.hasMinors ? "Sim" : "Não"}
             </span>
           )}
@@ -246,7 +246,7 @@ export function EventControls({
         <div className="flex items-start justify-between gap-4">
           <div>
             <span className="tipo-subtitle block text-ink">Modo endurecido</span>
-            <span className="tipo-caption mt-1 block text-ink-3">
+            <span className="tipo-caption mt-1 block text-ink-2">
               Novas fotos e comentários ficam na fila até você liberar.
             </span>
           </div>
@@ -296,7 +296,7 @@ export function EventControls({
               {saving === "interaction" ? "Abrindo…" : "Abrir interação agora"}
             </Button>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="interacao-agendar" className="tipo-label text-ink-3">
+              <label htmlFor="interacao-agendar" className="tipo-label text-ink-2">
                 Ou agendar
               </label>
               <input
@@ -413,7 +413,7 @@ export function EventControls({
 function Effect({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-token bg-bg px-3 py-2.5">
-      <span className="tipo-label block text-ink-3">{label}</span>
+      <span className="tipo-label block text-ink-2">{label}</span>
       <span className="tipo-caption mt-0.5 block text-ink">{value}</span>
     </div>
   );

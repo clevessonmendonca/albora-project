@@ -94,7 +94,7 @@ export function BillingHistory() {
       <AdminSection>
         <div className="py-8 text-center">
           <p className="tipo-body mb-2 mt-0 text-ink">Nenhuma cobrança ainda</p>
-          <p className="tipo-caption m-0 text-ink-3">
+          <p className="tipo-caption m-0 text-ink-2">
             Assim que o evento fizer o primeiro checkout, ele aparece aqui.
           </p>
         </div>
@@ -112,7 +112,7 @@ export function BillingHistory() {
           >
             <div className="min-w-0">
               <p className="tipo-body m-0 text-ink">{formatarData(p.createdAt)}</p>
-              <p className="tipo-caption m-0 mt-0.5 text-ink-3">
+              <p className="tipo-caption m-0 mt-0.5 text-ink-2">
                 {p.billingType ? (ROTULO_FORMA[p.billingType] ?? p.billingType) : "—"}
                 {p.description ? ` · ${p.description}` : ""}
               </p>
@@ -127,7 +127,7 @@ export function BillingHistory() {
                   href={p.invoiceUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="tipo-caption inline-flex min-h-11 items-center text-ink-3 underline-offset-2 hover:text-ink hover:underline"
+                  className="tipo-caption inline-flex min-h-11 items-center text-ink-2 underline-offset-2 hover:text-ink hover:underline"
                 >
                   Ver fatura
                 </a>

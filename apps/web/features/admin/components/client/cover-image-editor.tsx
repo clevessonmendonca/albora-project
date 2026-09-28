@@ -146,7 +146,7 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl }: Props) {
           <p className="m-0 font-titulo text-sm text-ink">
             {dragOver ? "Solte para enviar" : url ? "Trocar imagem de capa" : "Arraste uma imagem aqui"}
           </p>
-          <p className="tipo-label m-0 text-ink-3">ou clique para escolher · JPEG, PNG, WebP · até 5 MB</p>
+          <p className="tipo-label m-0 text-ink-2">ou clique para escolher · JPEG, PNG, WebP · até 5 MB</p>
         </button>
 
         <div className="relative aspect-video w-full overflow-hidden rounded-token border border-linha bg-superficie-alta sm:aspect-auto sm:h-full">
@@ -154,7 +154,7 @@ export function CoverImageEditor({ eventId, initialCoverImageUrl }: Props) {
             <img src={url} alt="Imagem de capa atual" className="absolute inset-0 size-full object-cover" />
           ) : (
             <div className="flex size-full flex-col items-center justify-center gap-1.5 p-3 text-center">
-              <span className="tipo-label text-ink-3">Sem imagem</span>
+              <span className="tipo-label text-ink-2">Sem imagem</span>
             </div>
           )}
         </div>

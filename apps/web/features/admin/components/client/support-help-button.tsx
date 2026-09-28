@@ -35,7 +35,7 @@ export function SupportHelpButton({ eventId }: { eventId: string }) {
   };
 
   if (done) {
-    return <p className="m-0 text-sm text-ink-3">Pedido enviado. A gente responde no e-mail da conta.</p>;
+    return <p className="m-0 text-sm text-ink-2">Pedido enviado. A gente responde no e-mail da conta.</p>;
   }
 
   if (!open) {

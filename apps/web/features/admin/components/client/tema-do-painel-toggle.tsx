@@ -50,7 +50,7 @@ export function TemaDoPainelToggle() {
             title={rotulo}
             onClick={() => escolher(valor)}
             className={`grid size-11 cursor-pointer place-items-center rounded-pilula border-none transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-              ativa ? "bg-superficie-alta font-titulo text-acento-texto" : "bg-transparent text-ink-3 hover:text-ink"
+              ativa ? "bg-superficie-alta font-titulo text-acento-texto" : "bg-transparent text-ink-2 hover:text-ink"
             }`}
           >
             <Icone size={16} aria-hidden />

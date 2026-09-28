@@ -56,7 +56,7 @@ function PreviaConvidado({
 
   return (
     <div className="flex h-full flex-col gap-4 bg-bg p-5">
-      <span className="tipo-label text-ink-3">{rotulo}</span>
+      <span className="tipo-label text-ink-2">{rotulo}</span>
       <p className="tipo-body m-0 flex-1 whitespace-pre-wrap text-ink">
         {corpo || "Seu recado aparece aqui…"}
       </p>
@@ -69,7 +69,7 @@ function PreviaConvidado({
           <span className="tipo-label text-ink-2">Áudio · {formatarDuracaoAudio(audioDuracao)}</span>
         </div>
       )}
-      <p className="tipo-label m-0 text-ink-3">
+      <p className="tipo-label m-0 text-ink-2">
         {publicaFormatada ? `Aparece em ${publicaFormatada}` : "Ainda sem horário — some até vocês publicarem"}
       </p>
     </div>
@@ -201,7 +201,7 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_14rem]">
           <div className="flex flex-col">
             <div className="flex flex-col gap-2">
-              <label htmlFor="guestbook-texto" className="tipo-label text-ink-3">
+              <label htmlFor="guestbook-texto" className="tipo-label text-ink-2">
                 Texto
               </label>
               <textarea
@@ -215,11 +215,11 @@ export function GuestbookEditor({ eventId, packId }: { eventId: string; packId: 
                 maxLength={MAX_TEXT_CHARACTERS + 40}
                 placeholder={exemplo}
                 aria-describedby="guestbook-texto-contagem"
-                className="min-h-32 resize-y rounded-token border border-linha bg-superficie px-3.5 py-2.5 font-corpo text-[0.9375rem] text-ink outline-none transition-[border-color,box-shadow] duration-[var(--tempo-rapido)] ease-[var(--curva)] placeholder:text-ink-3 focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
+                className="min-h-32 resize-y rounded-token border border-linha bg-superficie px-3.5 py-2.5 font-corpo text-[0.9375rem] text-ink outline-none transition-[border-color,box-shadow] duration-[var(--tempo-rapido)] ease-[var(--curva)] placeholder:text-ink-2 focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
               />
               <span
                 id="guestbook-texto-contagem"
-                className={`text-xs ${longoDemais ? "text-critico" : "text-ink-3"}`}
+                className={`text-xs ${longoDemais ? "text-critico" : "text-ink-2"}`}
               >
                 {caracteres} / {MAX_TEXT_CHARACTERS}
               </span>

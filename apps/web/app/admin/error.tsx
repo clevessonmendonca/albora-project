@@ -20,7 +20,7 @@ export default function AdminError({ reset }: { error: Error & { digest?: string
       </button>
       <Link
         href="/admin"
-        className="mt-3 text-sm text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
+        className="mt-3 text-sm text-ink-2 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
       >
         Ir ao painel
       </Link>

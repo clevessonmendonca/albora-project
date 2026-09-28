@@ -46,7 +46,7 @@ export function PrimeiraVisita() {
         <Button variant="secondary" size="sm" type="button" onClick={dispensar}>
           Entendi
         </Button>
-        <p className="tipo-caption m-0 text-ink-3">
+        <p className="tipo-caption m-0 text-ink-2">
           Se alguma palavra aqui não fizer sentido, toque em Ajuda lá em cima.
         </p>
       </div>

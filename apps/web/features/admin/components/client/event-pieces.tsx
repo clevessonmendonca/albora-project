@@ -96,7 +96,7 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
         </button>
       </div>
 
-      <p className="tipo-label mb-3 mt-0 text-ink-3">
+      <p className="tipo-label mb-3 mt-0 text-ink-2">
         Arquivos individuais
       </p>
       <div className="flex flex-col gap-4">
@@ -105,7 +105,7 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
             <p className="tipo-body mb-3 mt-0 font-medium text-ink">
               {f.label}
             </p>
-            <p className="tipo-caption mb-3 mt-0 text-ink-3">{f.size}</p>
+            <p className="tipo-caption mb-3 mt-0 text-ink-2">{f.size}</p>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"

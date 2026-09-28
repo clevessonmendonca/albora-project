@@ -11,7 +11,7 @@ export function QrProofSheet({ eventId }: { eventId: string }) {
   return (
     <Cartao className="print:break-inside-avoid">
       <h3 className="tipo-subtitle m-0 mb-2 text-ink">Prova física do QR</h3>
-      <p className="tipo-caption mt-0 mb-4 max-w-[52ch] text-ink-3">
+      <p className="tipo-caption mt-0 mb-4 max-w-[52ch] text-ink-2">
         Imprima peças na gráfica e teste com 3 celulares antes do evento. Critério: 3/3
         aparelhos escaneiam em ≤5 s a 30 cm, luz baixa. Detalhes em{" "}
         <span className="text-ink-2">docs/runbooks/prova-qr-fisica.md</span>.
@@ -20,7 +20,7 @@ export function QrProofSheet({ eventId }: { eventId: string }) {
       <div className="overflow-x-auto">
         <table className="tipo-caption w-full min-w-[36rem] border-collapse">
           <thead>
-            <tr className="border-b border-linha text-left text-ink-3">
+            <tr className="border-b border-linha text-left text-ink-2">
               <th className="py-2 pr-3 font-normal">Aparelho</th>
               {QR_PROOF_DISTANCES_CM.map((d) => (
                 <th key={d} className="px-2 py-2 font-normal">
@@ -64,24 +64,24 @@ export function QrProofSheet({ eventId }: { eventId: string }) {
 
       <dl className="tipo-caption mt-4 grid gap-2 text-ink-2 sm:grid-cols-2">
         <div>
-          <dt className="text-ink-3">Data da prova</dt>
+          <dt className="text-ink-2">Data da prova</dt>
           <dd className="m-0 mt-1 min-h-[1.25rem] border-b border-linha" />
         </div>
         <div>
-          <dt className="text-ink-3">Responsável</dt>
+          <dt className="text-ink-2">Responsável</dt>
           <dd className="m-0 mt-1 min-h-[1.25rem] border-b border-linha" />
         </div>
         <div>
-          <dt className="text-ink-3">Gráfica / papel</dt>
+          <dt className="text-ink-2">Gráfica / papel</dt>
           <dd className="m-0 mt-1 min-h-[1.25rem] border-b border-linha" />
         </div>
         <div>
-          <dt className="text-ink-3">Evento</dt>
+          <dt className="text-ink-2">Evento</dt>
           <dd className="m-0 mt-1 font-mono text-[0.75rem]">{eventId}</dd>
         </div>
       </dl>
 
-      <p className="tipo-caption mb-0 mt-4 text-ink-3">
+      <p className="tipo-caption mb-0 mt-4 text-ink-2">
         Resultado: ☐ APROVADO &nbsp; ☐ REPROVADO — não ir à festa sem aprovar.
       </p>
     </Cartao>

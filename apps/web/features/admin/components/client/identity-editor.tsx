@@ -76,7 +76,7 @@ function modelLabel(id: string): string {
 
 function FieldLabel({ children }: { children: ReactNode }) {
   return (
-    <span className="tipo-label mb-2.5 block uppercase text-ink-3">{children}</span>
+    <span className="tipo-label mb-2.5 block uppercase text-ink-2">{children}</span>
   );
 }
 
@@ -517,7 +517,7 @@ function CorField({
         <label className="relative flex min-h-[3.25rem] flex-1 cursor-pointer items-center justify-between gap-4 rounded-token border border-linha bg-bg px-4 py-2.5 transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto">
           <div className="flex flex-col gap-0.5">
             <span className="font-titulo text-sm text-ink">{custom ? "Personalizada" : "Da paleta"}</span>
-            <span className="text-xs text-ink-3">{hint}</span>
+            <span className="text-xs text-ink-2">{hint}</span>
           </div>
           <div className="flex shrink-0 items-center gap-2.5">
             <span

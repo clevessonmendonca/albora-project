@@ -56,7 +56,7 @@ function UnidadeDoTempo({ valor, rotulo }: { valor: number; rotulo: string }) {
   return (
     <div>
       <b className="tipo-display block leading-none text-ink">{valor}</b>
-      <span className="tipo-label mt-1 block text-ink-3">{rotulo}</span>
+      <span className="tipo-label mt-1 block text-ink-2">{rotulo}</span>
     </div>
   );
 }

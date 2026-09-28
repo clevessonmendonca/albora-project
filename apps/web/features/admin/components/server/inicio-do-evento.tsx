@@ -68,7 +68,7 @@ async function paginaPublicaDoEvento(slug: string): Promise<string> {
 /** Linha de contexto (protótipo §5.1.2): tipo do evento pelo pack, nunca string fixa, mais o link para a lista. */
 function ContextoDoEvento({ tipoEvento, totalEventos }: { tipoEvento: string; totalEventos: number }) {
   return (
-    <div className="-mt-4 mb-6 flex flex-wrap items-center gap-2 text-[13px] text-ink-3">
+    <div className="-mt-4 mb-6 flex flex-wrap items-center gap-2 text-[13px] text-ink-2">
       <span className="capitalize">{tipoEvento}</span>
       <span aria-hidden>·</span>
       <span>Evento independente</span>
@@ -123,7 +123,7 @@ function CartaoDePreparo({
                   <span className="block truncate text-sm font-semibold text-ink">
                     {passo.rotulo}
                   </span>
-                  <span className="mt-0.5 block truncate text-[13px] text-ink-3">
+                  <span className="mt-0.5 block truncate text-[13px] text-ink-2">
                     {passo.porque}
                   </span>
                 </span>
@@ -205,7 +205,7 @@ function CartaoDeAcessoRapido({ base }: { base: string }) {
           >
             <Icone size={18} className="text-acento-texto" />
             <span className="text-[13px] font-semibold text-ink">{rotulo}</span>
-            <span className="text-[11px] text-ink-3">{legenda}</span>
+            <span className="text-[11px] text-ink-2">{legenda}</span>
           </Link>
         ))}
       </div>
@@ -481,7 +481,7 @@ export async function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
           <ol className="m-0 flex list-none flex-col gap-6 p-0">
             {retrospectiva.momentos.map((momento) => (
               <li key={momento.id}>
-                <h3 className="tipo-label m-0 mb-3 text-ink-3">{momento.titulo}</h3>
+                <h3 className="tipo-label m-0 mb-3 text-ink-2">{momento.titulo}</h3>
                 <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0">
                   {momento.fotos.map((foto) => (
                     <li key={foto.id} className="relative">
@@ -531,21 +531,21 @@ export async function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
           <dl className="m-0 flex flex-col gap-3">
             {prazos.jaExportou && prazos.exportouEm && (
               <div className="rounded-token border border-linha px-4 py-3">
-                <dt className="tipo-label m-0 text-ink-3">Já foram para a nuvem de vocês</dt>
+                <dt className="tipo-label m-0 text-ink-2">Já foram para a nuvem de vocês</dt>
                 <dd className="tipo-body m-0 mt-1 text-ink">{dataPorExtenso(prazos.exportouEm)}</dd>
               </div>
             )}
             {prazos.exportaEm && (
               <div className="rounded-token border border-linha px-4 py-3">
-                <dt className="tipo-label m-0 text-ink-3">Vão para a nuvem de vocês</dt>
+                <dt className="tipo-label m-0 text-ink-2">Vão para a nuvem de vocês</dt>
                 <dd className="tipo-body m-0 mt-1 text-ink">{dataPorExtenso(prazos.exportaEm)}</dd>
               </div>
             )}
             {prazos.apagaEm && (
               <div className="rounded-token border border-linha px-4 py-3">
-                <dt className="tipo-label m-0 text-ink-3">Saem do Álbora</dt>
+                <dt className="tipo-label m-0 text-ink-2">Saem do Álbora</dt>
                 <dd className="tipo-body m-0 mt-1 text-ink">{dataPorExtenso(prazos.apagaEm)}</dd>
-                <dd className="tipo-caption m-0 mt-1 text-ink-3">
+                <dd className="tipo-caption m-0 mt-1 text-ink-2">
                   Baixe ou exporte antes desta data se quiser outra cópia.
                 </dd>
               </div>

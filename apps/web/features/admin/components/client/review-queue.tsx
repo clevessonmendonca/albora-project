@@ -41,7 +41,7 @@ function formatarHora(iso: string): string {
 function SectionHeader({ label, count }: { label: string; count: number }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-[0.7rem] uppercase tracking-rotulo text-ink-3">{label}</span>
+      <span className="text-[0.7rem] uppercase tracking-rotulo text-ink-2">{label}</span>
       <div className="h-px flex-1 bg-linha" />
       <Badge tone="neutral" className="px-2 py-0.5 text-[0.7rem]">
         {count}
@@ -169,7 +169,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
           </svg>
         </span>
         <p className="m-0 font-titulo text-[0.9375rem] text-ink">Fila limpa</p>
-        <p className="m-0 max-w-[20rem] text-[0.8125rem] leading-relaxed text-ink-3">
+        <p className="m-0 max-w-[20rem] text-[0.8125rem] leading-relaxed text-ink-2">
           Denúncias e pedidos de remoção aparecem aqui quando alguém sinalizar.
           O telão segue no ar com tudo aprovado.
         </p>
@@ -183,7 +183,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
     <div className="flex flex-col gap-3">
       {midias.length > 1 && (
         <div className="flex items-center justify-between rounded-token border border-linha bg-bg px-3.5 py-2.5">
-          <span className="text-[0.8125rem] text-ink-3">
+          <span className="text-[0.8125rem] text-ink-2">
             {midias.length} fotos aguardando
           </span>
           <div className="flex gap-2">
@@ -248,7 +248,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
               <div>
                 <span className="block font-titulo text-[0.875rem] text-ink">{m.autor}</span>
                 {m.criadaEm && (
-                  <span className="mt-0.5 block text-[0.76rem] text-ink-3">
+                  <span className="mt-0.5 block text-[0.76rem] text-ink-2">
                     {formatarHora(m.criadaEm)}
                   </span>
                 )}

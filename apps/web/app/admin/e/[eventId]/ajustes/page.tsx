@@ -67,7 +67,7 @@ export default async function PaginaAjustes({
                     <span className="block text-[13px] font-semibold text-ink">
                       Aprovar fotos antes do telão
                     </span>
-                    <span className="mt-0.5 block text-[12px] text-ink-3">
+                    <span className="mt-0.5 block text-[12px] text-ink-2">
                       Toda foto passa por revisão antes de entrar na parede.
                     </span>
                   </div>
@@ -78,7 +78,7 @@ export default async function PaginaAjustes({
                     <span className="block text-[13px] font-semibold text-ink">
                       Permitir envio pelos convidados
                     </span>
-                    <span className="mt-0.5 block text-[12px] text-ink-3">
+                    <span className="mt-0.5 block text-[12px] text-ink-2">
                       Sem login, sem app — direto da câmera de quem está na festa.
                     </span>
                   </div>
@@ -170,7 +170,7 @@ export default async function PaginaAjustes({
 function LinhaDeEvento({ rotulo, valor }: { rotulo: string; valor: string }) {
   return (
     <div className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0">
-      <span className="text-[13px] text-ink-3">{rotulo}</span>
+      <span className="text-[13px] text-ink-2">{rotulo}</span>
       <span className="text-[13px] font-medium text-ink">{valor}</span>
     </div>
   );

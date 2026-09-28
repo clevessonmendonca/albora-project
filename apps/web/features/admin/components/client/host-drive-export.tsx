@@ -225,7 +225,7 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
       </div>
 
       {estado.fase === "indisponivel" && (
-        <p className="tipo-caption m-0 mt-4 text-ink-3">Disponível depois que a festa terminar.</p>
+        <p className="tipo-caption m-0 mt-4 text-ink-2">Disponível depois que a festa terminar.</p>
       )}
 
       {estado.fase === "reauth" && (
@@ -253,7 +253,7 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
             <p className="tipo-caption m-0 text-ink-2">
               Enviando para o Drive… Pode fechar esta tela.
             </p>
-            <span className="tipo-label shrink-0 tabular-nums text-ink-3">
+            <span className="tipo-label shrink-0 tabular-nums text-ink-2">
               {estado.job.enviadas}/{estado.job.fotos}
             </span>
           </div>
@@ -274,13 +274,13 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
         estado.fase === "enviando" ||
         estado.fase === "pronto" ||
         estado.fase === "parcial") && (
-        <p className="tipo-caption m-0 mt-4 text-ink-3">
+        <p className="tipo-caption m-0 mt-4 text-ink-2">
           Conectado como {estado.conexao.email ?? "sua conta Google"}.{" "}
           <button
             type="button"
             disabled={busy}
             onClick={() => void desconectar()}
-            className="cursor-pointer border-none bg-transparent p-0 text-ink-3 underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
+            className="cursor-pointer border-none bg-transparent p-0 text-ink-2 underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
           >
             Desconectar
           </button>

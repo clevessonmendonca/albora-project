@@ -151,20 +151,20 @@ export function PreEventChecklist({
                     <span className="min-w-0 flex-1">
                       <span
                         className={`tipo-body block ${
-                          isChecked ? "text-ink-3 line-through" : "text-ink"
+                          isChecked ? "text-ink-2 line-through" : "text-ink"
                         }`}
                       >
                         {item.label}
                       </span>
                       {derivado && (
-                        <span className="tipo-caption mt-1 block text-ink-3">
+                        <span className="tipo-caption mt-1 block text-ink-2">
                           {isChecked
                             ? "O Álbora vê que isto já está feito."
                             : "O Álbora marca sozinho quando estiver feito."}
                         </span>
                       )}
                       {item.hint && !derivado && (
-                        <span className="tipo-caption mt-1 block text-ink-3">{item.hint}</span>
+                        <span className="tipo-caption mt-1 block text-ink-2">{item.hint}</span>
                       )}
                       {item.href && (
                         <span className="mt-2 block print:hidden">
@@ -205,7 +205,7 @@ export function PreEventChecklist({
       <div id="roteiro-mc">
         <AdminCard className="print:break-inside-avoid">
         <h3 className="tipo-subtitle m-0 mb-2 text-ink">Roteiro para o microfone</h3>
-        <p className="tipo-caption mt-0 mb-4 text-ink-3">
+        <p className="tipo-caption mt-0 mb-4 text-ink-2">
           Copie ou envie por WhatsApp para o MC. Adapte se o plano for grátis (sem telão) ou se o
           gate ainda estiver fechado.
         </p>
@@ -215,7 +215,7 @@ export function PreEventChecklist({
               key={script.id}
               className="m-0 rounded-token border border-linha bg-bg px-4 py-3.5"
             >
-              <cite className="tipo-label not-italic text-ink-3">{script.title}</cite>
+              <cite className="tipo-label not-italic text-ink-2">{script.title}</cite>
               <p className="tipo-body mb-0 mt-2 leading-[1.65] text-ink-2">“{script.text}”</p>
             </blockquote>
           ))}
