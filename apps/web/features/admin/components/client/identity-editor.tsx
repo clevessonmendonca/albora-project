@@ -413,7 +413,7 @@ export function IdentityEditor({
 
         <div className="my-8 h-px bg-linha" />
 
-        <div>
+        <div id="modelos-do-telao">
           <h2 className="tipo-subtitle m-0">Modelos do telão</h2>
           <p className="tipo-caption m-0 mt-1.5 text-ink-2">
             Escolha os modelos que entram no rodízio da parede. A mudança vale para a próxima foto

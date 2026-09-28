@@ -97,6 +97,23 @@ export default async function PaginaTelao({
                   Revisar fotos
                 </Link>
               </Cartao>
+
+              <Cartao>
+                <CabecalhoDeCartao
+                  titulo="Modelos da parede"
+                  subtitulo="Como as fotos se arrumam na tela."
+                />
+                <p className="m-0 text-[13px] text-ink-2">
+                  Os modelos do rodízio são escolhidos junto com a identidade do evento, porque
+                  saem do mesmo conjunto de tokens e são salvos juntos.
+                </p>
+                <Link
+                  href={`/admin/e/${eventId}/identity#modelos-do-telao`}
+                  className={`${botaoDoPainel({ variant: "light", width: "full" })} mt-4`}
+                >
+                  Escolher modelos →
+                </Link>
+              </Cartao>
             </ColunaDeApoio>
           </GradeDePaineis>
 
