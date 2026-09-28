@@ -77,7 +77,7 @@ const ESTILO = `
   padding: calc(var(--espaco) * 6) calc(var(--espaco) * 5);
   border-radius: var(--raio);
   background: var(--superficie);
-  box-shadow: var(--shadow-suave);
+  box-shadow: var(--sombra-suave);
   text-align: left;
   display: grid;
   gap: calc(var(--espaco) * 3);
@@ -132,7 +132,7 @@ const ESTILO = `
   border-radius: var(--raio-pilula);
   background: var(--acento);
   color: var(--sobre-acento);
-  box-shadow: var(--shadow-suave);
+  box-shadow: var(--sombra-suave);
   cursor: pointer;
   transition: transform var(--instantaneo) var(--mola), opacity var(--tempo-rapido) var(--curva);
 }

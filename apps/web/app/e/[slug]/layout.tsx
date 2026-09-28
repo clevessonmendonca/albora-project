@@ -48,7 +48,7 @@ export default async function Layout({
   const withSession = isSameEventSession(session, r.evento.eventoId);
 
   return (
-    <div className="guest-tema" data-tema={prefServidor ?? undefined} id="guest-root">
+    <div className="guest-tema superficie-de-acao" data-tema={prefServidor ?? undefined} id="guest-root">
       <style>{estiloAntiFlash(claro, escuro)}</style>
       <link rel="manifest" href={`/e/${encodeURIComponent(slug)}/manifest.webmanifest`} />
       {withSession && <GlobalQueue eventoId={session.eventoId} />}

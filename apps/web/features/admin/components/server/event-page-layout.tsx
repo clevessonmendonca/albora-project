@@ -55,6 +55,7 @@ export async function EventPageLayout({
   if (nav === "detail") {
     return (
       <AdminShell
+        identidade={ctx.evento.identityTokens}
         title={ctx.name}
         subtitle={section ? `/${ctx.evento.slug} · ${section}` : `/${ctx.evento.slug}`}
         back={{ label: "Evento", href: `/admin/e/${eventId}/evento` }}
@@ -67,8 +68,8 @@ export async function EventPageLayout({
   // Abas primárias: app-shell com sidebar no desktop e bottom-bar no mobile.
   const countdown = rotuloContagem(ctx.evento);
   const preferencia = readThemePreference((await cookies()).get(THEME_COOKIE)?.value);
-  const claro = adminVars("light") as Record<string, string>;
-  const escuro = adminVars("dark") as Record<string, string>;
+  const claro = adminVars("light", ctx.evento.identityTokens) as Record<string, string>;
+  const escuro = adminVars("dark", ctx.evento.identityTokens) as Record<string, string>;
 
   return (
     <>

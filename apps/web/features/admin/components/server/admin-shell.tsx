@@ -2,10 +2,34 @@ import React, { type CSSProperties, type ReactNode } from "react";
 import { ALBORA_BRAND, toVariables, resolveTokens, type Background } from "@albora/tokens";
 import { buttonVariants, cva } from "@albora/ui-web";
 
-/** Admin nasce claro — a marca resolve `dark` (chão do convidado), então o default aqui sobrescreve. O escuro existe e é escolha de quem trabalha, não da marca. */
-export function adminVars(background: Background = "light"): CSSProperties {
+/**
+ * Admin nasce claro — a marca resolve `dark` (chão do convidado), então o
+ * default aqui sobrescreve.
+ *
+ * `identidade` é a camada do evento: cor, fonte e raio do casal, que é o que o
+ * produto promete propagar. Ela entra SEM o `background` dela, porque no admin
+ * o chão é decisão de contexto de uso, não da festa (DESIGN.md §2). Telas sem
+ * evento — entrar, erro, 404, console — chamam sem ela e seguem na marca pura.
+ */
+export function adminVars(
+  background: Background = "light",
+  identidade?: Record<string, unknown>,
+): CSSProperties {
+  const camada = identidade && Object.keys(identidade).length > 0 ? identidade : undefined;
+  if (!camada) {
+    return toVariables(
+      resolveTokens({ marca: ALBORA_BRAND, pack: { background } }),
+    ) as CSSProperties;
+  }
+
+  const { fundo: _fundo, background: _background, ...semFundo } = camada as Record<string, unknown>;
+
   return toVariables(
-    resolveTokens({ marca: ALBORA_BRAND, pack: { background } }),
+    resolveTokens({
+      marca: ALBORA_BRAND,
+      pack: { background },
+      evento: semFundo as never,
+    }),
   ) as CSSProperties;
 }
 

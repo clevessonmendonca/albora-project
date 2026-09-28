@@ -173,29 +173,16 @@
   --z-index-modal: 40;
   --z-index-toast: 50;
 
-  /*
-   * Profundidade em duas alturas, puxada do `--ink` do evento — sombra cinza
-   * sobre papel quente suja. Espelha as consts `SOMBRA`/`SOMBRA_ALTA` da
-   * landing, agora como utilitário: `shadow-suave`, `shadow-alta`.
-   */
-  --shadow-suave: 0 1px 2px color-mix(in srgb, var(--ink) 7%, transparent),
-    0 10px 26px -14px color-mix(in srgb, var(--ink) 26%, transparent);
-  --shadow-alta: 0 2px 4px color-mix(in srgb, var(--ink) 6%, transparent),
-    0 14px 32px -10px color-mix(in srgb, var(--ink) 20%, transparent),
-    0 44px 88px -36px color-mix(in srgb, var(--ink) 34%, transparent);
-  --shadow-acento: 0 8px 20px -6px color-mix(in srgb, var(--acento) 70%, transparent);
-  --shadow-device: 0 2px 4px color-mix(in srgb, var(--ink) 8%, transparent),
-    0 24px 48px -16px color-mix(in srgb, var(--ink) 34%, transparent);
-  --shadow-polaroide: 0 24px 80px -32px color-mix(in srgb, var(--ink) 60%, transparent);
-  --shadow-scan-mascara: 0 0 0 9999px color-mix(in srgb, var(--noite) 35%, transparent);
+  /* Utilitários `shadow-*` do Tailwind, apontando para a fonte única acima. */
+  --shadow-suave: var(--sombra-suave);
+  --shadow-alta: var(--sombra-alta);
+  --shadow-acento: var(--sombra-acento);
+  --shadow-device: var(--sombra-device);
+  --shadow-polaroide: var(--sombra-polaroide);
+  --shadow-scan-mascara: var(--sombra-scan-mascara);
 }
 
-@layer base {
-  :focus-visible {
-    outline: 2px solid var(--acento-texto);
-    outline-offset: 2px;
-  }
-}
+
 
 @keyframes skeleton-pulse {
   0%, 100% { opacity: 1; }
@@ -227,7 +214,7 @@
 
 @layer components {
   .elev-0 { background: var(--bg); box-shadow: none; }
-  .elev-1 { background: var(--superficie); box-shadow: var(--shadow-suave); }
-  .elev-2 { background: var(--superficie-alta); box-shadow: var(--shadow-alta); }
-  .elev-3 { background: var(--superficie-alta); box-shadow: var(--shadow-alta); }
+  .elev-1 { background: var(--superficie); box-shadow: var(--sombra-suave); }
+  .elev-2 { background: var(--superficie-alta); box-shadow: var(--sombra-alta); }
+  .elev-3 { background: var(--superficie-alta); box-shadow: var(--sombra-alta); }
 }

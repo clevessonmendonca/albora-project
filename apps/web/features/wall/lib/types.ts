@@ -38,5 +38,6 @@ export const SSE_FALLBACK_MS = 10_000;
 /** Atraso entre tentativas de reconexão do EventSource após erro. */
 export const SSE_RECONEXAO_MS = 5_000;
 
+/** `superficie-de-acao`: o telão lê de longe, num salão escuro — §3 põe o display em 500 aqui, não em 300. */
 export const SHELL =
-  "fixed inset-0 overflow-hidden bg-bg font-corpo text-ink";
+  "superficie-de-acao fixed inset-0 overflow-hidden bg-bg font-corpo text-ink";

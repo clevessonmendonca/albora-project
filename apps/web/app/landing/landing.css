@@ -106,7 +106,7 @@
 }
 
 .cartao {
-  box-shadow: var(--shadow-suave);
+  box-shadow: var(--sombra-suave);
   transition:
     transform var(--tempo) var(--mola),
     box-shadow var(--tempo) var(--curva);
@@ -114,7 +114,7 @@
 
 .cartao:hover {
   transform: translateY(-0.3125rem);
-  box-shadow: var(--shadow-alta);
+  box-shadow: var(--sombra-alta);
 }
 
 .faixa-fotos {
@@ -316,7 +316,7 @@ summary:focus-visible {
 .telao-polaroide-1 { transform: rotate(-4deg) translateY(1rem); }
 .telao-polaroide-2 { z-index: 1; transform: rotate(1deg) translateY(-1rem); }
 .telao-polaroide-3 { transform: rotate(4deg) translateY(.75rem); }
-.demo-album { border: 1px solid var(--linha); background: var(--bg); padding: clamp(1.25rem, 3vw, 2rem); box-shadow: var(--shadow-suave); }
+.demo-album { border: 1px solid var(--linha); background: var(--bg); padding: clamp(1.25rem, 3vw, 2rem); box-shadow: var(--sombra-suave); }
 .demo-album-top { display: flex; justify-content: space-between; border-bottom: 1px solid var(--linha); padding-bottom: .8rem; color: var(--ink-3); font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; }
 .demo-album-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin-top: 1.5rem; }
 
@@ -344,7 +344,7 @@ summary:focus-visible {
   border-radius: var(--raio);
   background: var(--superficie-alta);
   padding: clamp(1.25rem, 3vw, 1.75rem);
-  box-shadow: var(--shadow-suave);
+  box-shadow: var(--sombra-suave);
   transition:
     background var(--tempo) var(--curva),
     color var(--tempo) var(--curva);
