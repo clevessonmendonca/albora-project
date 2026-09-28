@@ -2,8 +2,9 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { Bell, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { DESTINOS, destinoAtivo } from "@/features/admin/lib/navegacao";
+import { AjudaDoPainel } from "./ajuda-do-painel";
 import { TemaDoPainelToggle } from "./tema-do-painel-toggle";
 import { SignOutButton } from "./sign-out-button";
 
@@ -36,7 +37,7 @@ export function TopbarDoPainel({
         >
           <Menu size={18} aria-hidden />
         </button>
-        <nav aria-label="Trilha" className="flex items-center gap-[9px] text-[13px] text-ink-3">
+        <nav aria-label="Trilha" className="flex items-center gap-[9px] text-[13px] text-ink-2">
           {raiz}
           <span aria-hidden>›</span>
           <b className="font-semibold text-ink">{secao}</b>
@@ -44,16 +45,10 @@ export function TopbarDoPainel({
       </div>
 
       <div className="flex items-center gap-[15px]">
-        <span className="hidden text-[12px] text-ink-3 md:inline">{hoje}</span>
+        <span className="hidden text-[12px] text-ink-2 md:inline">{hoje}</span>
         <TemaDoPainelToggle />
-        <button
-          type="button"
-          title="Notificações"
-          aria-label="Notificações"
-          className="grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-linha bg-superficie text-ink-2"
-        >
-          <Bell size={17} aria-hidden />
-        </button>
+        {/* O sino do protótipo fica fora até existir notificação de verdade: o painel não tem fila, e botão que não faz nada ensina a não clicar. */}
+        <AjudaDoPainel />
         <SignOutButton />
       </div>
     </header>

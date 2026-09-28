@@ -58,7 +58,7 @@ export default async function PaginaTelao({
                   <p className="m-0 font-[family-name:var(--fonte-titulo)] text-[clamp(1.5rem,4vw,2.5rem)] text-ink">
                     {ctx.name}
                   </p>
-                  <p className="m-0 mt-2 text-[13px] text-ink-3">
+                  <p className="m-0 mt-2 text-[13px] text-ink-2">
                     As fotos entram aqui assim que os convidados enviam.
                   </p>
                 </div>

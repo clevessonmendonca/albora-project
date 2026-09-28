@@ -53,7 +53,7 @@ export default async function PaginaInspiracao({
   const base = `/admin/e/${eventId}/inspiracao`;
   const chip = (marcado: boolean) =>
     [
-      "inline-flex min-h-10 items-center rounded-pilula border px-4 text-[13px] no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
+      "inline-flex min-h-11 items-center rounded-pilula border px-4 text-[13px] no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
       marcado
         ? "border-transparent bg-ink text-bg"
         : "border-linha bg-superficie text-ink-2 hover:text-ink",
@@ -78,11 +78,16 @@ export default async function PaginaInspiracao({
       />
 
       <div className="mb-5 flex flex-wrap gap-2">
-        <Link href={base} className={chip(!tema)}>
+        <Link href={base} aria-current={!tema ? "true" : undefined} className={chip(!tema)}>
           Todos
         </Link>
         {TEMAS_DE_INSPIRACAO.map((t) => (
-          <Link key={t} href={`${base}?tema=${t}`} className={chip(tema === t)}>
+          <Link
+            key={t}
+            href={`${base}?tema=${t}`}
+            aria-current={tema === t ? "true" : undefined}
+            className={chip(tema === t)}
+          >
             {ROTULO[t]}
           </Link>
         ))}

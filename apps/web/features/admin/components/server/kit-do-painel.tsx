@@ -8,7 +8,7 @@ import { cva } from "@albora/ui-web";
  * de token; nada aqui fixa hex.
  */
 export const botaoDoPainel = cva({
-  base: "inline-flex min-h-10 cursor-pointer items-center justify-center gap-[9px] whitespace-nowrap rounded-[9px] border-0 px-4 py-[11px] text-[13px] font-bold no-underline transition-[transform,background,box-shadow] duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:-translate-y-0.5 disabled:pointer-events-none disabled:opacity-55",
+  base: "inline-flex min-h-11 cursor-pointer items-center justify-center gap-[9px] whitespace-nowrap rounded-[9px] border-0 px-4 py-[11px] text-[13px] font-bold no-underline transition-[transform,background,box-shadow] duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:-translate-y-0.5 disabled:pointer-events-none disabled:opacity-55",
   variants: {
     variant: {
       /** O sólido escuro do protótipo. */
@@ -118,7 +118,7 @@ export function CabecalhoDeCartao({
         <h3 className="m-0 font-[family-name:var(--fonte-titulo)] text-[1.125rem] text-ink">
           {titulo}
         </h3>
-        {subtitulo && <p className="m-0 mt-1 text-[13px] text-ink-3">{subtitulo}</p>}
+        {subtitulo && <p className="m-0 mt-1 text-[13px] text-ink-2">{subtitulo}</p>}
       </div>
       {acao}
     </div>
@@ -148,7 +148,7 @@ export function Estatistica({
       <b className="block font-[family-name:var(--fonte-titulo)] text-[1.75rem] leading-none text-ink">
         {valor}
       </b>
-      <span className="mt-1 block text-[13px] text-ink-3">{legenda}</span>
+      <span className="mt-1 block text-[13px] text-ink-2">{legenda}</span>
       {selo && (
         <small className="absolute right-4 top-4 rounded-pilula bg-acento-fundo px-2 py-1 text-[10px] text-acento-texto">
           {selo}
@@ -205,11 +205,11 @@ export function VazioIlustrado({
 }) {
   return (
     <div className="grid place-items-center gap-2 rounded-[17px] border border-dashed border-linha px-6 py-12 text-center">
-      <span className="text-ink-3">{icone}</span>
+      <span className="text-ink-2">{icone}</span>
       <h3 className="m-0 font-[family-name:var(--fonte-titulo)] text-[1.125rem] text-ink">
         {titulo}
       </h3>
-      <p className="m-0 max-w-[40ch] text-[13px] text-ink-3">{descricao}</p>
+      <p className="m-0 max-w-[40ch] text-[13px] text-ink-2">{descricao}</p>
     </div>
   );
 }
@@ -228,7 +228,7 @@ export function Aviso({
     <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl bg-acento-fundo p-5">
       <span className="min-w-0">
         <strong className="block text-sm text-ink">{titulo}</strong>
-        <small className="block text-[13px] text-ink-3">{descricao}</small>
+        <small className="block text-[13px] text-ink-2">{descricao}</small>
       </span>
       {acao}
     </div>
@@ -250,7 +250,7 @@ export function Progresso({ feitos, total }: { feitos: number; total: number }) 
 
   return (
     <div className="mb-4">
-      <div className="mb-2 flex items-center justify-between text-[13px] text-ink-3">
+      <div className="mb-2 flex items-center justify-between text-[13px] text-ink-2">
         <span>
           {feitos} de {total} prontos
         </span>

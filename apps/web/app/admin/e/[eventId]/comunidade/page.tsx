@@ -69,7 +69,7 @@ export default async function PaginaComunidade({
 
   const chip = (marcado: boolean) =>
     [
-      "inline-flex min-h-10 items-center rounded-pilula border px-4 text-[13px] no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
+      "inline-flex min-h-11 items-center rounded-pilula border px-4 text-[13px] no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
       marcado
         ? "border-transparent bg-ink text-bg"
         : "border-linha bg-superficie text-ink-2 hover:text-ink",
@@ -99,7 +99,7 @@ export default async function PaginaComunidade({
                 <Search
                   size={16}
                   aria-hidden
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3"
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-2"
                 />
                 <input
                   name="busca"
@@ -114,11 +114,20 @@ export default async function PaginaComunidade({
             </form>
 
             <div className="mb-5 flex flex-wrap gap-2">
-              <Link href={filtro(undefined)} className={chip(!topico)}>
+              <Link
+                href={filtro(undefined)}
+                aria-current={!topico ? "true" : undefined}
+                className={chip(!topico)}
+              >
                 Todos
               </Link>
               {TOPICOS_DA_COMUNIDADE.map((t) => (
-                <Link key={t} href={filtro(t)} className={chip(topico === t)}>
+                <Link
+                  key={t}
+                  href={filtro(t)}
+                  aria-current={topico === t ? "true" : undefined}
+                  className={chip(topico === t)}
+                >
                   {ROTULO[t]}
                 </Link>
               ))}
@@ -146,8 +155,8 @@ export default async function PaginaComunidade({
                         <Etiqueta tom={post.meu ? "positivo" : "neutro"}>
                           {ROTULO[post.topico]}
                         </Etiqueta>
-                        <small className="text-[12px] text-ink-3">{quando(post.criadoEm)}</small>
-                        {post.meu && <small className="text-[12px] text-ink-3">· sua</small>}
+                        <small className="text-[12px] text-ink-2">{quando(post.criadoEm)}</small>
+                        {post.meu && <small className="text-[12px] text-ink-2">· sua</small>}
                       </div>
                       <strong className="block font-[family-name:var(--fonte-titulo)] text-[1.0625rem] text-ink">
                         {post.titulo}

@@ -56,7 +56,7 @@ export default async function PaginaDaConversa({
     <EventPageLayout eventId={eventId}>
       <Link
         href={`/admin/e/${eventId}/comunidade`}
-        className="mb-4 inline-block text-[13px] text-ink-3 no-underline hover:text-ink"
+        className="mb-4 inline-block text-[13px] text-ink-2 no-underline hover:text-ink"
       >
         ← Voltar para a comunidade
       </Link>
@@ -69,7 +69,7 @@ export default async function PaginaDaConversa({
             <Etiqueta tom={post.meu ? "positivo" : "neutro"}>
               {post.meu ? "Sua conversa" : ROTULO[post.topico]}
             </Etiqueta>
-            <small className="text-[12px] text-ink-3">{quando(post.criadoEm)}</small>
+            <small className="text-[12px] text-ink-2">{quando(post.criadoEm)}</small>
           </div>
           <p className="m-0 whitespace-pre-wrap text-sm leading-relaxed text-ink-2">{post.corpo}</p>
         </Cartao>
@@ -91,7 +91,7 @@ export default async function PaginaDaConversa({
                 <li key={resposta.id} className="border-b border-linha pb-4 last:border-0 last:pb-0">
                   <div className="mb-2 flex flex-wrap items-center gap-2">
                     {resposta.meu && <Etiqueta tom="positivo">Sua resposta</Etiqueta>}
-                    <small className="text-[12px] text-ink-3">{quando(resposta.criadoEm)}</small>
+                    <small className="text-[12px] text-ink-2">{quando(resposta.criadoEm)}</small>
                   </div>
                   <p className="m-0 whitespace-pre-wrap text-sm leading-relaxed text-ink-2">
                     {resposta.corpo}

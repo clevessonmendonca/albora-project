@@ -92,7 +92,7 @@ export default async function AdminPage() {
                 <strong className="font-[family-name:var(--fonte-titulo)] text-[1.125rem] text-ink">
                   {nome}
                 </strong>
-                <small className="text-[13px] text-ink-3">{quando}</small>
+                <small className="text-[13px] text-ink-2">{quando}</small>
                 <div className="mt-3 flex items-center justify-between gap-2">
                   {fase === "durante" && (
                     <Badge tone="accent">
@@ -129,7 +129,7 @@ export default async function AdminPage() {
             <strong className="block font-[family-name:var(--fonte-titulo)] text-[1.0625rem] text-ink">
               Um novo motivo para celebrar
             </strong>
-            <small className="mt-1 block text-[13px] text-ink-3">Criar novo evento</small>
+            <small className="mt-1 block text-[13px] text-ink-2">Criar novo evento</small>
           </span>
         </Link>
       </div>
@@ -159,7 +159,7 @@ export default async function AdminPage() {
         </div>
       )}
 
-      <p className="mt-6 text-[0.8125rem] text-ink-3">
+      <p className="mt-6 text-[0.8125rem] text-ink-2">
         Cerimonialista ou espaço de festas?{" "}
         <Link href="/admin/vendor/new" className="text-ink-2 underline">
           Crie o portal do fornecedor

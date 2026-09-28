@@ -109,7 +109,7 @@ export function GuestDisplayNames({ eventoId, sessoes, onChanged }: Props) {
                       maxLength={40}
                       autoFocus
                       aria-label="Novo nome no telão"
-                      className="min-h-10 min-w-40 flex-1 rounded-[9px] border border-linha bg-superficie px-3 text-[0.9375rem] text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+                      className="min-h-11 min-w-40 flex-1 rounded-[9px] border border-linha bg-superficie px-3 text-[0.9375rem] text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
                     />
                     <button
                       type="submit"

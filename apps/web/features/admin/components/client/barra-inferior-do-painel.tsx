@@ -25,7 +25,7 @@ export function BarraInferiorDoPainel({
     [
       "flex min-w-[58px] flex-col items-center justify-center gap-[3px] border-0 bg-transparent text-[10px] no-underline",
       "transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
-      marcado ? "text-acento-texto" : "text-ink-3",
+      marcado ? "text-acento-texto" : "text-ink-2",
     ].join(" ");
 
   return (

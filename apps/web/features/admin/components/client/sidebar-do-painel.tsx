@@ -92,18 +92,15 @@ export function SidebarDoPainel({
         "md:sticky md:top-0 md:w-[218px] md:translate-x-0 md:shadow-none xl:w-[248px]",
       ].join(" ")}
     >
-      <Link
-        href="/admin"
-        onClick={aoNavegar}
-        className="flex items-center gap-[11px] px-[18px] pb-[29px] pt-0.5 font-[family-name:var(--fonte-titulo)] text-[27px] tracking-[-0.04em] text-ink no-underline"
-      >
-        <span
-          aria-hidden
-          className="grid h-7 w-7 place-items-center rounded-[50%_50%_45%_45%] border-[1.5px] border-acento text-[20px] italic leading-none text-acento"
-        >
-          A
-        </span>
-        álbora<span className="text-acento">.</span>
+      <Link href="/admin" onClick={aoNavegar} className="block px-[18px] pb-[29px] pt-0.5">
+        {/* O logotipo é artefato de marca (brand/LEIA-ME.md): sobre fundo escuro, a versão degradê escura. Não redesenhar em texto. */}
+        <img
+          src="/logo-degrade-escuro.svg"
+          alt="Álbora"
+          width={150}
+          height={32}
+          className="h-8 w-auto"
+        />
       </Link>
 
       <button
@@ -121,7 +118,7 @@ export function SidebarDoPainel({
           <strong className="block max-w-[145px] truncate text-[13px] text-ink">
             {evento.nome}
           </strong>
-          <small className="text-[11px] text-ink-3">{evento.data}</small>
+          <small className="text-[11px] text-ink-2">{evento.data}</small>
         </span>
       </button>
 
@@ -135,7 +132,7 @@ export function SidebarDoPainel({
 
       {GRUPOS.map((grupo) => (
         <React.Fragment key={grupo.id}>
-          <div className="mx-[17px] mb-[9px] mt-[15px] text-[10px] font-bold uppercase tracking-[0.15em] text-ink-3">
+          <div className="mx-[17px] mb-[9px] mt-[15px] text-[10px] font-bold uppercase tracking-[0.15em] text-ink-2">
             {grupo.rotulo}
           </div>
           <nav
@@ -166,7 +163,7 @@ export function SidebarDoPainel({
           </span>
           <span className="min-w-0">
             <strong className="block truncate text-[12px]">{perfil.nome}</strong>
-            <small className="block text-[11px] text-ink-3">{perfil.plano}</small>
+            <small className="block text-[11px] text-ink-2">{perfil.plano}</small>
           </span>
         </div>
       </div>
