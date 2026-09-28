@@ -6,8 +6,7 @@ import { estiloAntiFlash } from "@/features/guest/lib/theme-style";
 import { readThemePreference, THEME_COOKIE } from "@/features/guest/lib/theme-preference";
 import { ADMIN_TEMA_CLASSE } from "@/features/admin/lib/tema-do-painel";
 import { adminVars } from "@/features/admin/components/server/admin-shell";
-import { TemaDoPainelToggle } from "@/features/admin/components/client/tema-do-painel-toggle";
-import { AjudaDoPainel } from "@/features/admin/components/client/ajuda-do-painel";
+import { MenuDaConta } from "@/features/admin/components/client/menu-da-conta";
 import { SignOutButton } from "@/features/admin/components/client/sign-out-button";
 
 type AdminShellProps = {
@@ -16,6 +15,8 @@ type AdminShellProps = {
   back?: { label: string; href: string };
   /** Cor, fonte e raio do casal. Ausente nas telas sem evento (entrar, erro, 404). */
   identidade?: Record<string, unknown>;
+  /** Conta logada. Ausente fora do contexto de um evento — ali sobra só a saída. */
+  email?: string;
   children: ReactNode;
 };
 
@@ -23,7 +24,7 @@ type AdminShellProps = {
  * Mora separado de `admin-shell.tsx` porque só ele lê `next/headers`, e aquele
  * arquivo é importado por 36 componentes `"use client"` — o import derruba o build.
  */
-export async function AdminShell({ title, subtitle, back, identidade, children }: AdminShellProps) {
+export async function AdminShell({ title, subtitle, back, identidade, email, children }: AdminShellProps) {
   const preferencia = readThemePreference((await cookies()).get(THEME_COOKIE)?.value);
 
   const claro = adminVars("light", identidade) as Record<string, string>;
@@ -53,9 +54,7 @@ export async function AdminShell({ title, subtitle, back, identidade, children }
           {subtitle && <p className="mt-2 text-[0.9rem] text-ink-3">{subtitle}</p>}
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <TemaDoPainelToggle />
-          <AjudaDoPainel />
-          <SignOutButton />
+          {email ? <MenuDaConta email={email} /> : <SignOutButton />}
         </div>
       </header>
       {children}

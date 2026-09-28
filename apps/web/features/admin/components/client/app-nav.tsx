@@ -6,7 +6,8 @@ import { DESTINOS, destinoAtivo } from "@/features/admin/lib/navegacao";
 import { ICONES_DE_DESTINO } from "@/features/admin/components/client/icones-de-destino";
 
 
-/** Bottom-bar do painel no mobile (o desktop usa `EventSidebar`). Fixa, alvos táteis grandes. */
+/** Bottom-bar do painel até 1024px — mobile e tablet (acima disso o `EventSidebar` assume).
+ *  Fixa, alvos táteis grandes. No tablet ela ganha do rail: 240px fixos comiam 31% de uma tela de 768px. */
 export function AppNav({ eventId }: { eventId: string }) {
   const pathname = usePathname();
   const base = `/admin/e/${eventId}`;
@@ -14,7 +15,7 @@ export function AppNav({ eventId }: { eventId: string }) {
   return (
     <nav
       aria-label="Navegação do evento"
-      className="fixed inset-x-0 bottom-0 z-10 border-t border-linha bg-superficie sm:hidden"
+      className="fixed inset-x-0 bottom-0 z-10 border-t border-linha bg-superficie lg:hidden"
     >
       <div className="flex items-stretch justify-around">
         {DESTINOS.map((destino) => {

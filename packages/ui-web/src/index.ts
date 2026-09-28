@@ -66,7 +66,10 @@ export {
   StackIcon,
   SunIcon,
   UsersIcon,
+  ChevronIcon,
+  CheckIcon,
 } from "./icons";
+export { LogoAlbora } from "./logo";
 export { FloatingNav, type FloatingNavTab, type FloatingNavProps } from "./floating-nav";
 export { StoryRail, type StoryItem } from "./story-rail";
 export { EventHero, type EventHeroProps } from "./event-hero";

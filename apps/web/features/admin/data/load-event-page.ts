@@ -13,6 +13,8 @@ export type AdminEventPageContext = {
   role: HostEventRole;
   /** ZIP, Assinar Completo, haMenores — só couple/owner. */
   canManageCoupleOnly: boolean;
+  /** Para o menu da conta saber quem está logado. Mascarado em log, nunca cru. */
+  emailDaConta: string;
   checklistStorageKey: string;
 };
 
@@ -34,6 +36,7 @@ export async function loadEventPage(eventoId: string): Promise<AdminEventPageCon
     name: adminEventDisplayName(evento),
     role,
     canManageCoupleOnly: role === "owner" || role === "couple",
+    emailDaConta: host.email,
     checklistStorageKey: preEventStorageKey(host.accountId, eventoId),
   };
 }
