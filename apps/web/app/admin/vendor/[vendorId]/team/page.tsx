@@ -4,7 +4,8 @@ import { VendorTeamAccessError } from "@albora/db";
 import { UUID_RE } from "@/lib/api";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { loadVendorTeam, vendorTeamDependencies } from "@/lib/application/use-cases/vendor-team";
-import { AdminSection, AdminShell } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminShell } from "@/features/admin/components/server/admin-shell-root";
 import { VendorTeamManager } from "@/features/vendor-portal/components/client/vendor-team-manager";
 
 export const dynamic = "force-dynamic";

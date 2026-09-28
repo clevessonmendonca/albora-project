@@ -8,6 +8,7 @@ import { verificar as features } from "./features.mjs";
 import { verificar as apiRoutes } from "./api-routes.mjs";
 import { verificar as nomenclatura } from "./nomenclatura.mjs";
 import { verificar as camadas } from "./camadas.mjs";
+import { verificar as servidorNoCliente } from "./servidor-no-cliente.mjs";
 
 export const GUARDS = {
   isolamento,
@@ -19,6 +20,7 @@ export const GUARDS = {
   "api-routes": apiRoutes,
   nomenclatura,
   camadas,
+  "servidor-no-cliente": servidorNoCliente,
 };
 
 const raiz = process.argv[2] ?? process.cwd();

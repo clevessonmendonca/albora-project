@@ -6,11 +6,8 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getPool } from "@/lib/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
-import {
-  AdminShell,
-  AdminSection,
-  adminClasses,
-} from "@/features/admin/components/server/admin-shell";
+import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminShell } from "@/features/admin/components/server/admin-shell-root";
 
 export const dynamic = "force-dynamic";
 

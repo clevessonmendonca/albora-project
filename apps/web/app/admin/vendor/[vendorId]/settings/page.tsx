@@ -4,7 +4,8 @@ import { fornecedorParaConta } from "@albora/db";
 import { UUID_RE } from "@/lib/api";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
-import { AdminShell, AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminShell } from "@/features/admin/components/server/admin-shell-root";
 import { VendorBranding } from "@/features/admin/components/client/vendor-branding";
 import { VendorForm } from "@/features/admin/components/client/vendor-form";
 

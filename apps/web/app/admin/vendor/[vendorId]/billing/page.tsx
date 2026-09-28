@@ -1,7 +1,8 @@
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { VendorTeamAccessError } from "@albora/db";
-import { AdminSection, AdminShell } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminShell } from "@/features/admin/components/server/admin-shell-root";
 import { VendorBillingManager } from "@/features/vendor-portal/components/client/vendor-billing-manager";
 import { UUID_RE } from "@/lib/api";
 import { loadVendorBilling, vendorBillingDependencies } from "@/lib/application/use-cases/vendor-billing";

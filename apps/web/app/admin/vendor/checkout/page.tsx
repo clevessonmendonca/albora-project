@@ -1,7 +1,7 @@
 import { fornecedorParaConta, type VendorPlan } from "@albora/db";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
-import { AdminShell } from "@/features/admin/components/server/admin-shell";
+import { AdminShell } from "@/features/admin/components/server/admin-shell-root";
 import { VendorCheckoutForm } from "@/features/vendor-portal/components/client/vendor-checkout-form";
 import { latestVendorSubscriptionStatus } from "@/features/vendor-portal/data/load-vendor-portal";
 import { UUID_RE } from "@/lib/api";
