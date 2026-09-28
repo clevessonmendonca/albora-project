@@ -14,6 +14,7 @@ import { PACKS, resolvePackText } from "@albora/packs";
 import { getPool } from "@/lib/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { signGet } from "@/lib/r2";
+import { adminVars } from "@/features/admin/lib/chrome-do-painel";
 import { prazosDeRetencao } from "@/features/admin/lib/prazos-de-retencao";
 import { montarRetrospectivaServida } from "@/lib/domain/album/retrospectiva";
 import { AdminCard, AdminSection } from "@/features/admin/components/server/admin-card";
@@ -242,22 +243,45 @@ function CartaoDeDescoberta({ base }: { base: string }) {
   );
 }
 
-/** Hero de celebração (protótipo §5.1.3) — fundo quente, pill do tipo, contagem regressiva ao vivo. */
+/** Hero de celebração (protótipo §5.1.3) — a capa do evento quando existe, chão quente quando não. */
 function HeroDeCelebracao({
   tipoEvento,
   nome,
   comecaEm,
   base,
   paginaPublica,
+  capa,
 }: {
   tipoEvento: string;
   nome: string;
   comecaEm: Date;
   base: string;
   paginaPublica: string;
+  /** URL assinada da capa do evento, quando o casal já escolheu uma. */
+  capa: string | null;
 }) {
   return (
-    <div className="mb-6 grid gap-8 rounded-[17px] bg-gradient-chao-quente p-[clamp(1.5rem,4vw,3rem)] text-ink shadow-alta lg:grid-cols-2 lg:items-center">
+    <section
+      // Sobre a capa, o hero roda no chão escuro: é ele que faz o scrim
+      // escurecer e o texto sair claro, com as mesmas classes semânticas.
+      {...(capa ? { style: adminVars("dark") } : {})}
+      className={[
+        "relative mb-6 overflow-hidden rounded-[17px] shadow-alta",
+        capa ? "bg-bg text-ink" : "bg-gradient-chao-quente text-ink",
+      ].join(" ")}
+    >
+      {capa && (
+        <>
+          <img
+            src={capa}
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div aria-hidden className="absolute inset-0 bg-gradient-hero-capa" />
+        </>
+      )}
+      <div className="relative grid gap-8 p-[clamp(1.5rem,4vw,3rem)] lg:grid-cols-2 lg:items-center">
       <div className="min-w-0">
         <span className="inline-flex rounded-pilula bg-superficie-alta px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-acento-texto">
           ✦ {tipoEvento}
@@ -281,17 +305,18 @@ function HeroDeCelebracao({
           </a>
         </div>
       </div>
-      <div className="rounded-[17px] bg-superficie-alta p-6">
-        <div className="mb-4 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.15em] text-ink-3">
+      <div className="rounded-[17px] border border-linha bg-superficie-alta p-6">
+        <div className="mb-4 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.15em] text-ink-2">
           <span>Contagem regressiva</span>
           <span aria-hidden>✧</span>
         </div>
         <ContagemRegressiva paraISO={comecaEm.toISOString()} />
-        <p className="m-0 mt-6 text-center text-[11px] uppercase tracking-[0.15em] text-ink-3">
+        <p className="m-0 mt-6 text-center text-[11px] uppercase tracking-[0.15em] text-ink-2">
           Cada momento vai contar a partir de agora
         </p>
       </div>
-    </div>
+      </div>
+    </section>
   );
 }
 
@@ -379,9 +404,10 @@ export async function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
       withEvent(getPool(), eventoId, (c) => listarDestaques(c, eventoId)),
       paginaPublicaDoEvento(evento.slug),
     ]);
-    const thumbs = await Promise.all(
-      metricas.ultimas.map((f) => signGet(f.chaveThumb, GET_TTL_SEGUNDOS)),
-    );
+    const [thumbs, capa] = await Promise.all([
+      Promise.all(metricas.ultimas.map((f) => signGet(f.chaveThumb, GET_TTL_SEGUNDOS))),
+      evento.coverImageKey ? signGet(evento.coverImageKey, GET_TTL_SEGUNDOS) : null,
+    ]);
 
     return (
       <div className="flex flex-col gap-5">
@@ -392,6 +418,7 @@ export async function InicioDoEvento({ ctx }: { ctx: AdminEventPageContext }) {
           comecaEm={evento.comecaEm}
           base={base}
           paginaPublica={paginaPublica}
+          capa={capa}
         />
         <Estatisticas>
           <Estatistica icone={<Camera size={16} />} valor={String(metricas.totalFotos)} legenda="fotos no álbum" />

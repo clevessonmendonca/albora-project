@@ -265,6 +265,54 @@ describe("harness do painel", () => {
       ),
     );
 
+    // ── Hero sobre capa, no pior caso: foto branca ───────────────
+    rota = "/admin/e/evento-demo";
+    const { adminVars: vars } = await import("./lib/chrome-do-painel");
+    const branco =
+      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='white'/%3E%3C/svg%3E";
+    escrever(
+      "06-hero-capa",
+      casca(
+        <>
+          <IntroDaPagina eyebrow="Seu evento" titulo="Hero sobre a capa" subtitulo="Fundo branco de propósito: é o pior caso para o scrim." />
+          <section
+            style={vars("dark")}
+            className="relative mb-6 overflow-hidden rounded-[17px] bg-bg text-ink shadow-alta"
+          >
+            <img src={branco} alt="" aria-hidden className="absolute inset-0 h-full w-full object-cover" />
+            <div aria-hidden className="absolute inset-0 bg-gradient-hero-capa" />
+            <div className="relative grid gap-8 p-[clamp(1.5rem,4vw,3rem)] lg:grid-cols-2 lg:items-center">
+              <div className="min-w-0">
+                <span className="inline-flex rounded-pilula bg-superficie-alta px-3 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-acento-texto">
+                  ✦ Celebração
+                </span>
+                <div className="my-4 h-px w-16 bg-linha" aria-hidden />
+                <h2 id="hero-nome" className="m-0 font-[family-name:var(--fonte-titulo)] text-[clamp(1.75rem,4vw,2.75rem)] leading-[1.1] tracking-[var(--tracking-titulo)] text-ink">
+                  Clevesson &amp; Miriã
+                </h2>
+                <p id="hero-data" className="m-0 mt-3 text-sm text-ink-2">12 de dezembro de 2027</p>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  <a className={botaoDoPainel({ variant: "gold" })}>Personalizar evento →</a>
+                  <a className={botaoDoPainel({ variant: "outline" })}>Ver página do evento</a>
+                </div>
+              </div>
+              <div className="rounded-[17px] border border-linha bg-superficie-alta p-6">
+                <div className="mb-4 text-[10px] font-bold uppercase tracking-[0.15em] text-ink-2">Contagem regressiva</div>
+                <div className="grid grid-cols-4 gap-3 text-center">
+                  {[["439", "dias"], ["14", "horas"], ["10", "min"], ["13", "seg"]].map(([v, l]) => (
+                    <div key={l}>
+                      <b className="block font-[family-name:var(--fonte-titulo)] text-[1.75rem] leading-none text-ink">{v}</b>
+                      <small className="text-[11px] uppercase tracking-[0.15em] text-ink-2">{l}</small>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        </>,
+      ),
+    );
+
     // ── Vazios ───────────────────────────────────────────────────
     rota = "/admin/e/evento-demo/telao";
     escrever(

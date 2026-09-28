@@ -46,6 +46,16 @@
     transparent 58%,
     var(--bg) 100%
   );
+  /* Hero da Visão geral sobre a capa do evento. A coluna do texto fica sobre
+     88%+ do chão porque abaixo disso a capa decide o contraste: 72% sobre foto
+     branca dá 2,7:1 e reprova. A foto respira na metade direita, onde o único
+     texto vive dentro de painel opaco. */
+  --background-image-gradient-hero-capa: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--bg) 93%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 88%, transparent) 50%,
+    color-mix(in srgb, var(--bg) 32%, transparent) 100%
+  );
   --background-image-gradient-moment-scrim: linear-gradient(
     to top,
     color-mix(in srgb, var(--bg) 88%, transparent),
