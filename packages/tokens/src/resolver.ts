@@ -1,4 +1,4 @@
-import { escalaDoFundo } from "./escalas";
+import { escalaDoFundo, type OpcoesDeEscala } from "./escalas";
 import type {
   Background,
   ResolutionInput,
@@ -61,6 +61,6 @@ export function resolveTokens(input: ResolutionInput): Tokens {
 }
 
 /** Escala resolvida para o chão — trocar o chão re-deriva o acento (âmbar seguro sobre noite reprova sobre papel); validação é do sistema, nunca escolha do casal. */
-export function resolveScale(tokens: Tokens): SemanticScale {
-  return escalaDoFundo(tokens.cores, canonicalize(tokens).background);
+export function resolveScale(tokens: Tokens, opcoes: OpcoesDeEscala = {}): SemanticScale {
+  return escalaDoFundo(tokens.cores, canonicalize(tokens).background, opcoes);
 }

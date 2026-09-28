@@ -1,5 +1,11 @@
 import React, { type CSSProperties, type ReactNode } from "react";
-import { ALBORA_BRAND, toVariables, resolveTokens, type Background } from "@albora/tokens";
+import {
+  ALBORA_BRAND,
+  camadaDoEvento,
+  resolveTokens,
+  toVariables,
+  type Background,
+} from "@albora/tokens";
 import { buttonVariants, cva } from "@albora/ui-web";
 
 /**
@@ -15,21 +21,26 @@ export function adminVars(
   background: Background = "light",
   identidade?: Record<string, unknown>,
 ): CSSProperties {
-  const camada = identidade && Object.keys(identidade).length > 0 ? identidade : undefined;
-  if (!camada) {
+  // `trabalho`: no escuro o painel precisa que o cartão se separe da página, e
+  // o §6 diz que ali a elevação vem da cor. A rampa padrão é a do convidado,
+  // onde o cromo cede à foto — ali 1,08:1 é o que se quer, aqui não.
+  const elevacao = { elevacao: "trabalho" } as const;
+
+  // §2 autoriza quatro campos — acento, crítico, fonte e fundo. `papel` e
+  // `tinta` ficam de fora: são a base da rampa de neutros, e deixá-los passar
+  // tingia o painel inteiro com a cor do preset (um jardim virava verde sage,
+  // que o §7 trata como bloqueante).
+  const camada = camadaDoEvento(identidade);
+  if (!camada || Object.keys(camada).length === 0) {
     return toVariables(
       resolveTokens({ marca: ALBORA_BRAND, pack: { background } }),
+      elevacao,
     ) as CSSProperties;
   }
 
-  const { fundo: _fundo, background: _background, ...semFundo } = camada as Record<string, unknown>;
-
   return toVariables(
-    resolveTokens({
-      marca: ALBORA_BRAND,
-      pack: { background },
-      evento: semFundo as never,
-    }),
+    resolveTokens({ marca: ALBORA_BRAND, pack: { background }, evento: camada }),
+    elevacao,
   ) as CSSProperties;
 }
 

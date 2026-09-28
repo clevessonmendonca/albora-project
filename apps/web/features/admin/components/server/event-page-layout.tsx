@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { SkipLink } from "@albora/ui-web";
 import { adminVars } from "@/features/admin/components/server/admin-shell";
 import { AdminShell } from "@/features/admin/components/server/admin-shell-root";
@@ -10,6 +11,12 @@ import { ModerationCountProvider } from "@/features/admin/components/client/mode
 import { showsFollowMode } from "@/features/admin/lib/follow-mode";
 import { loadEventPage, type AdminEventPageContext } from "@/features/admin/data/load-event-page";
 import { rotuloContagem } from "@/features/admin/lib/contagem";
+
+/** O plano como o casal o conhece na compra, não como a coluna o guarda. */
+function rotuloDoPlano(plan: string): string {
+  if (plan === "vendor") return "Pelo fornecedor";
+  return plan === "free" ? "Plano Essencial" : "Plano Completo";
+}
 import { cookies } from "next/headers";
 import { estiloAntiFlash } from "@/features/guest/lib/theme-style";
 import { readThemePreference, THEME_COOKIE } from "@/features/guest/lib/theme-preference";
@@ -85,11 +92,36 @@ export async function EventPageLayout({
               eventId={eventId}
               name={ctx.name}
               countdown={countdown}
+              email={ctx.emailDaConta}
+              plano={rotuloDoPlano(ctx.evento.plan)}
               inicialRecolhida={railRecolhido((await cookies()).get(RAIL_COOKIE)?.value)}
             />
           <div className="min-w-0 flex-1 px-[clamp(1.25rem,4vw,3rem)] pb-24 pt-[clamp(1.5rem,4vw,2.5rem)] lg:pb-[clamp(2rem,4vw,3rem)]">
             <header className="mb-6 flex items-start justify-between gap-4">
               <div className="min-w-0">
+                {/*
+                  Migalha, como no protótipo: o nome do evento situa a seção.
+                  Só no desktop — no celular o mesmo par já aparece abaixo do
+                  título, e repetir custaria duas linhas de uma tela estreita.
+                */}
+                {section && (
+                  <nav aria-label="Onde você está" className="mb-1 hidden lg:block">
+                    <ol className="m-0 flex list-none items-center gap-2 p-0">
+                      <li>
+                        <Link
+                          href={`/admin/e/${eventId}`}
+                          className="tipo-label text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
+                        >
+                          {ctx.name}
+                        </Link>
+                      </li>
+                      <li aria-hidden="true" className="tipo-label text-ink-3">
+                        /
+                      </li>
+                      <li className="tipo-label text-ink-2">{section}</li>
+                    </ol>
+                  </nav>
+                )}
                 {section && <h1 className="tipo-title m-0 leading-tight">{section}</h1>}
                 <span className="tipo-caption text-ink-3 lg:hidden">
                   {ctx.name} · {countdown}

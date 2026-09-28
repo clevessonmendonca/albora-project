@@ -7,6 +7,12 @@ import { loadHomeState, type EstadoDaHome } from "@/features/admin/data/load-hom
 import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
 import { LiveSummary } from "@/features/admin/components/client/live-summary";
 import { EventControls, type SecaoDeControle } from "@/features/admin/components/client/event-controls";
+import { ContagemRegressiva } from "@/features/admin/components/client/home/contagem-regressiva";
+import {
+  AcessoRapido,
+  NoDiaDaFesta,
+  NumerosDoEvento,
+} from "@/features/admin/components/client/home/blocos-da-visao-geral";
 import { typePhoto } from "@/features/admin/components/client/onboarding/onboarding-photos";
 import type { AdminEventPageContext } from "@/features/admin/data/load-event-page";
 import { HeroDoEvento } from "./home/hero-do-evento";
@@ -169,6 +175,17 @@ export async function EventHome({
         acoes={acoesDoHero}
       />
 
+      {!depois && !aoVivo && <ContagemRegressiva comecaEm={evento.comecaEm.toISOString()} />}
+
+      {/* Só há números depois que as fotos começam a chegar; antes da festa o
+          bloco não aparece, em vez de mostrar três zeros. */}
+      <NumerosDoEvento
+        fotos={estado.payoff?.fotos ?? 0}
+        pessoas={estado.payoff?.pessoas ?? 0}
+        destacadas={estado.payoff?.destacadas ?? 0}
+        base={base}
+      />
+
       {/* Rascunho é a borda mais cara: o herói convida a compartilhar o link e o
           convidado bate numa porta fechada. Avisa antes de qualquer outra coisa. */}
       {evento.status === "draft" && (
@@ -228,33 +245,43 @@ export async function EventHome({
         </>
       )}
 
-      {/* Antes da festa: uma ação por vez, progresso real e a prévia do convidado. */}
+      {/*
+        Antes da festa: uma ação por vez à esquerda, atalhos e o que esperar da
+        noite à direita. Duas colunas a partir de 64rem — o §8 pede isso no
+        admin desde sempre e a Home vinha em coluna única.
+      */}
       {!aoVivo && !depois && (
-        <>
-          {estado.proxima && (
-            <ProximaAcao principal={estado.proxima} secundarias={pendentes.slice(0, 2)} />
-          )}
+        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
+          <div className="flex flex-col gap-5">
+            {estado.proxima && (
+              <ProximaAcao principal={estado.proxima} secundarias={pendentes.slice(0, 2)} />
+            )}
 
-          {estado.fase !== "recem" && (
-            <Preparo
-              estado={estado}
-              titulo={
-                estado.fase === "semana" || estado.fase === "vespera"
-                  ? "Conferência final"
-                  : "Seu Álbora está tomando forma"
-              }
+            {estado.fase !== "recem" && (
+              <Preparo
+                estado={estado}
+                titulo={
+                  estado.fase === "semana" || estado.fase === "vespera"
+                    ? "Conferência final"
+                    : "Seu Albora está tomando forma"
+                }
+              />
+            )}
+          </div>
+
+          <div className="flex flex-col gap-5">
+            <AcessoRapido base={base} />
+            <NoDiaDaFesta base={base} />
+            <PreviaDoConvidado
+              eventId={eventId}
+              slug={evento.slug}
+              nome={ctx.name}
+              data={fmtData(evento.comecaEm, evento.fuso)}
+              img={img}
+              vars={vars}
             />
-          )}
-
-          <PreviaDoConvidado
-            eventId={eventId}
-            slug={evento.slug}
-            nome={ctx.name}
-            data={fmtData(evento.comecaEm, evento.fuso)}
-            img={img}
-            vars={vars}
-          />
-        </>
+          </div>
+        </div>
       )}
 
       {/*

@@ -54,13 +54,40 @@ const RAMPA_CLARA = {
  */
 const CHAO_ESCURO = 0.025;
 
-const RAMPA_ESCURA = {
+type RampaEscura = {
+  superficie: number;
+  superficieAlta: number;
+  linha: number;
+  ink3: number;
+  ink2: number;
+};
+
+const RAMPA_ESCURA: RampaEscura = {
   superficie: 0.0625,
   superficieAlta: 0.1,
   linha: 0.1667,
   ink3: 0.6458,
   ink2: 0.7833,
-} as const;
+};
+
+/**
+ * A mesma rampa, com os degraus afastados para superfície de trabalho.
+ *
+ * A de cima é calibrada para o convidado e o telão, onde a foto é a interface:
+ * 1,08:1 entre cartão e página é pouco para enxergar, e é isso que se quer lá —
+ * o cromo cede. O painel no escuro não tem foto competindo; tem cartão, tabela
+ * e fila de moderação, e o §6 diz que no escuro a elevação vem da superfície
+ * clarear, não da sombra. Sem isto, a tela do anfitrião vira um plano só.
+ *
+ * Só as superfícies mudam. Os níveis de tinta continuam sendo os mesmos, então
+ * a hierarquia de texto não se move com a elevação.
+ */
+const RAMPA_ESCURA_DE_TRABALHO: RampaEscura = {
+  ...RAMPA_ESCURA,
+  superficie: 0.125,
+  superficieAlta: 0.185,
+  linha: 0.26,
+};
 
 /**
  * `superficieAlta` é um passo **a partir da superfície na direção do
@@ -96,23 +123,23 @@ function comDegrauSobre(cor: string, referencia: string, fundo: string, fator = 
   return cor;
 }
 
-function escuro(c: Colors): SemanticScale {
+function escuro(c: Colors, rampa: RampaEscura = RAMPA_ESCURA): SemanticScale {
   const sobre = (t: number) => misturarHex(c.noite, c.papel, t);
 
   const bg = sobre(CHAO_ESCURO);
-  const superficieAlta = sobre(RAMPA_ESCURA.superficieAlta);
-  const superficie = sobre(RAMPA_ESCURA.superficie);
+  const superficieAlta = sobre(rampa.superficieAlta);
+  const superficie = sobre(rampa.superficie);
   const legivel = (cor: string) => acentoLegivelSobre(cor, bg, superficieAlta);
   const tintaLegivel = (cor: string) => acentoLegivelSobre(cor, bg, superficie);
-  const ink3Escuro = tintaLegivel(sobre(RAMPA_ESCURA.ink3));
+  const ink3Escuro = tintaLegivel(sobre(rampa.ink3));
 
   return {
     bg,
     superficie,
     superficieAlta,
-    linha: sobre(RAMPA_ESCURA.linha),
+    linha: sobre(rampa.linha),
     ink3: ink3Escuro,
-    ink2: comDegrauSobre(tintaLegivel(sobre(RAMPA_ESCURA.ink2)), ink3Escuro, bg),
+    ink2: comDegrauSobre(tintaLegivel(sobre(rampa.ink2)), ink3Escuro, bg),
     ink: c.papel,
     acento: c.acento,
     acentoTexto: legivel(c.acento),
@@ -150,6 +177,21 @@ function claro(c: Colors): SemanticScale {
   };
 }
 
-export function escalaDoFundo(cores: Colors, background: Background): SemanticScale {
-  return background === "light" ? claro(cores) : escuro(cores);
+export type OpcoesDeEscala = {
+  /**
+   * `foto` (padrão) é a do convidado e do telão: o cromo cede à imagem.
+   * `trabalho` afasta os degraus para uma superfície onde a imagem não compete
+   * e quem opera precisa ver onde um bloco termina. Só tem efeito no escuro —
+   * no claro a sombra já faz a separação.
+   */
+  elevacao?: "foto" | "trabalho";
+};
+
+export function escalaDoFundo(
+  cores: Colors,
+  background: Background,
+  opcoes: OpcoesDeEscala = {},
+): SemanticScale {
+  if (background === "light") return claro(cores);
+  return escuro(cores, opcoes.elevacao === "trabalho" ? RAMPA_ESCURA_DE_TRABALHO : RAMPA_ESCURA);
 }
