@@ -14,6 +14,7 @@ import {
 import { CascaDaConta } from "@/features/admin/components/server/casca-da-conta";
 import { ComunidadeNovaConversa } from "@/features/admin/components/client/comunidade-nova-conversa";
 import {
+  acaoTextual,
   botaoDoPainel,
   CabecalhoDeCartao,
   Cartao,
@@ -43,19 +44,38 @@ function quando(data: Date): string {
 export default async function PaginaComunidade({
   searchParams,
 }: {
-  searchParams: Promise<{ topico?: string; busca?: string }>;
+  searchParams: Promise<{ topico?: string; busca?: string; antes?: string }>;
 }) {
-  const { topico: topicoBruto, busca } = await searchParams;
+  const { topico: topicoBruto, busca, antes } = await searchParams;
   const topico = ehTopicoDaComunidade(topicoBruto) ? topicoBruto : undefined;
 
   const host = await hostFromToken((await cookies()).get(HOST_COOKIE)?.value);
   if (!host) redirect("/admin/sign-in");
 
-  const posts: PostDaComunidade[] = await comConta(getPool(), host.accountId, (c) =>
-    listarPostsDaComunidade(c, host.accountId, { topico, termo: busca }),
+  const POR_PAGINA = 20;
+  const cursor = lerCursor(antes);
+  // Pede um a mais para saber se há página seguinte sem uma segunda consulta.
+  const pagina: PostDaComunidade[] = await comConta(getPool(), host.accountId, (c) =>
+    listarPostsDaComunidade(c, host.accountId, {
+      topico,
+      termo: busca,
+      limite: POR_PAGINA + 1,
+      antesDe: cursor,
+    }),
   );
+  const temMais = pagina.length > POR_PAGINA;
+  const posts = temMais ? pagina.slice(0, POR_PAGINA) : pagina;
+  const ultimo = posts[posts.length - 1];
 
   const base = "/admin/comunidade";
+  const maisAntigas = (() => {
+    if (!temMais || !ultimo) return null;
+    const p = new URLSearchParams();
+    if (topico) p.set("topico", topico);
+    if (busca) p.set("busca", busca);
+    p.set("antes", `${ultimo.criadoEm.toISOString()}~${ultimo.id}`);
+    return `${base}?${p.toString()}`;
+  })();
   const filtro = (alvo: TopicoDaComunidade | undefined) => {
     const p = new URLSearchParams();
     if (alvo) p.set("topico", alvo);
@@ -169,6 +189,21 @@ export default async function PaginaComunidade({
                 ))}
               </ul>
             )}
+
+            {maisAntigas && (
+              <Link
+                href={maisAntigas}
+                className={`${botaoDoPainel({ variant: "light", width: "full" })} mt-4`}
+              >
+                Conversas mais antigas →
+              </Link>
+            )}
+
+            {cursor && (
+              <Link href={base} className={`${acaoTextual} mt-4 inline-block`}>
+                ← Voltar para as recentes
+              </Link>
+            )}
           </Cartao>
         </div>
 
@@ -194,4 +229,14 @@ export default async function PaginaComunidade({
       </GradeDePaineis>
     </CascaDaConta>
   );
+}
+
+/** `antes` chega como `<iso>~<uuid>`. Valor malformado volta como página inicial, nunca como erro. */
+function lerCursor(bruto: string | undefined): { criadoEm: Date; id: string } | undefined {
+  if (!bruto) return undefined;
+  const [iso, id] = bruto.split("~");
+  if (!iso || !id) return undefined;
+  const criadoEm = new Date(iso);
+  if (Number.isNaN(criadoEm.getTime())) return undefined;
+  return { criadoEm, id };
 }

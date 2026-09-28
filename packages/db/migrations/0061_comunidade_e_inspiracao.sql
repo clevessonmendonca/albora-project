@@ -52,8 +52,11 @@ CREATE TABLE inspiration_saves (
   PRIMARY KEY (account_id, idea_id)
 );
 
-CREATE INDEX community_posts_recentes ON community_posts (created_at DESC);
-CREATE INDEX community_posts_por_topico ON community_posts (topic, created_at DESC);
+-- O feed pagina por chave (created_at, id), nao por OFFSET: linha nova entra no
+-- topo o tempo todo, e OFFSET nessa condicao pula ou repete conversa entre uma
+-- pagina e a seguinte. Os indices carregam o `id` pelo mesmo motivo.
+CREATE INDEX community_posts_recentes ON community_posts (created_at DESC, id DESC);
+CREATE INDEX community_posts_por_topico ON community_posts (topic, created_at DESC, id DESC);
 CREATE INDEX community_replies_do_post ON community_replies (post_id, created_at);
 CREATE INDEX inspiration_ideas_ordem ON inspiration_ideas (theme, position);
 

@@ -62,6 +62,12 @@ export type FiltroDaComunidade = {
   /** Busca por texto no título e no corpo. */
   termo?: string | undefined;
   limite?: number | undefined;
+  /**
+   * Paginação por chave, não por OFFSET: o feed é ordenado por data e recebe
+   * linha nova no topo o tempo todo, e `OFFSET` nessa condição pula ou repete
+   * conversa entre uma página e a seguinte.
+   */
+  antesDe?: { criadoEm: Date; id: string } | undefined;
 };
 
 export async function listarPostsDaComunidade(
@@ -79,9 +85,17 @@ export async function listarPostsDaComunidade(
        FROM community_posts p
       WHERE ($2::text IS NULL OR p.topic = $2)
         AND ($3::text IS NULL OR p.title ILIKE '%' || $3 || '%' OR p.body ILIKE '%' || $3 || '%')
-      ORDER BY p.created_at DESC
+        AND ($5::timestamptz IS NULL OR (p.created_at, p.id) < ($5, $6::uuid))
+      ORDER BY p.created_at DESC, p.id DESC
       LIMIT $4`,
-    [contaId, filtro.topico ?? null, termo && termo.length > 0 ? termo : null, limite],
+    [
+      contaId,
+      filtro.topico ?? null,
+      termo && termo.length > 0 ? termo : null,
+      limite,
+      filtro.antesDe?.criadoEm ?? null,
+      filtro.antesDe?.id ?? null,
+    ],
   );
 
   return rows.map(montarPost);

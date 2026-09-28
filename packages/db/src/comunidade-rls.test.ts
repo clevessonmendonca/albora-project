@@ -1,5 +1,6 @@
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { listarPostsDaComunidade } from "./comunidade-db";
 import { prepararBanco } from "./testes/banco";
 
 /**
@@ -262,5 +263,51 @@ describe("salvos são privados", () => {
     );
 
     expect(rows[0].n).toBe(0);
+  });
+});
+
+describe("o feed pagina por chave, não por OFFSET", () => {
+  /** Conversa nova entra no topo entre uma página e a seguinte — é o caso que `OFFSET` erra. */
+  it("não pula nem repete quando chega post novo entre as páginas", async () => {
+    // Limpa pelo pool admin: sob `comoConta` a RLS protege (com razão) a linha
+    // da outra conta, e ela sobraria no feed compartilhado.
+    await admin.query("DELETE FROM community_posts");
+
+    const conta = await comoConta(contaA, async (c) => {
+      for (let i = 0; i < 6; i += 1) {
+        await c.query(
+          `INSERT INTO community_posts (account_id, topic, title, body, created_at)
+           VALUES ($1, 'ideia', $2, 'corpo', now() - ($3 || ' minutes')::interval)`,
+          [contaA, `post ${i}`, String(i)],
+        );
+      }
+      return contaA;
+    });
+
+    const primeira = await comoConta(conta, (c) =>
+      listarPostsDaComunidade(c, conta, { limite: 3 }),
+    );
+    expect(primeira.map((p) => p.titulo)).toEqual(["post 0", "post 1", "post 2"]);
+
+    // Alguém publica enquanto a pessoa lê a primeira página.
+    await comoConta(conta, (c) =>
+      c.query(
+        `INSERT INTO community_posts (account_id, topic, title, body)
+         VALUES ($1, 'ideia', 'recém-chegado', 'corpo')`,
+        [conta],
+      ),
+    );
+
+    const ultimo = primeira[primeira.length - 1]!;
+    const segunda = await comoConta(conta, (c) =>
+      listarPostsDaComunidade(c, conta, {
+        limite: 3,
+        antesDe: { criadoEm: ultimo.criadoEm, id: ultimo.id },
+      }),
+    );
+
+    expect(segunda.map((p) => p.titulo)).toEqual(["post 3", "post 4", "post 5"]);
+    expect(segunda.map((p) => p.titulo)).not.toContain("post 2");
+    expect(segunda.map((p) => p.titulo)).not.toContain("recém-chegado");
   });
 });
