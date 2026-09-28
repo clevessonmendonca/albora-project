@@ -17,7 +17,7 @@ O admin de hoje é uma **pilha fixa de cards** (`LiveSummary` + `EventControls` 
 
 1. **Ciclo de vida Antes / Durante / Depois.** A Home muda com a fase e mostra **uma coisa agora**, não um dashboard de KPIs.
 2. **O anfitrião também é usuário do feed.** A rede social do casal (feed, stories, lightbox social, perfil, Reviver) é de primeira classe — o anfitrião vive a festa, não só a administra. Ver [ADR 0009](../adr/0009-app-social-do-convidado.md).
-3. **Nav enxuta + hub por intenção.** 4 abas (Início · Fotos · Convidados · Evento); o resto agrupa no **hub Evento** por intenção (Experiência / Na festa / Segurança), não uma lista plana de 11 abas.
+3. ~~**Nav enxuta + hub por intenção.** 4 abas (Início · Fotos · Convidados · Evento); o resto agrupa no **hub Evento** por intenção (Experiência / Na festa / Segurança), não uma lista plana de 11 abas.~~ **Superado** pelo [ADR 0016](../adr/0016-navegacao-do-painel-em-onze-destinos.md): a navegação passou a ter onze destinos em três grupos rotulados, na forma do protótipo. O resto deste documento continua valendo.
 4. **Controles perigosos são protegidos.** Pânico/pausar tudo, "há menores", modo endurecido pedem confirmação; nada de switch solto.
 
 ## 2. Não-negociáveis (CLAUDE.md)
