@@ -501,3 +501,31 @@ export { aceitesDeEntradaPorVersao as entryConsentAcceptancesByVersion } from ".
 /** English alias — preferred for new code. @see aceitesExternosPorVersao */
 export { aceitesExternosPorVersao as externalConsentAcceptancesByVersion } from "./consent-db";
 export type { JobDeRetencaoDoEvento } from "./retention-jobs";
+
+export type {
+  PostDaComunidade,
+  RespostaDaComunidade,
+  FiltroDaComunidade,
+  TopicoDaComunidade,
+} from "./comunidade-db";
+export {
+  TOPICOS_DA_COMUNIDADE,
+  ehTopicoDaComunidade,
+  listarPostsDaComunidade,
+  lerPostDaComunidade,
+  listarRespostas,
+  criarPostDaComunidade,
+  responderPost,
+  apagarPostDaComunidade,
+  apagarResposta,
+} from "./comunidade-db";
+
+export type { IdeiaDeInspiracao, TemaDeInspiracao } from "./inspiracao-db";
+export {
+  TEMAS_DE_INSPIRACAO,
+  ehTemaDeInspiracao,
+  listarIdeias,
+  listarIdeiasSalvas,
+  salvarIdeia,
+  removerIdeiaSalva,
+} from "./inspiracao-db";
