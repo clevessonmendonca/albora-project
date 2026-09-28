@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState, type ReactNode } from "react";
+import React, { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { adminVars } from "@/features/admin/lib/chrome-do-painel";
 import {
@@ -26,6 +26,12 @@ export function CascaDoPainel({
 }) {
   const router = useRouter();
   const [aberta, setAberta] = useState(false);
+  const quemAbriu = useRef<HTMLElement | null>(null);
+
+  const abrir = useCallback(() => {
+    quemAbriu.current = document.activeElement as HTMLElement | null;
+    setAberta(true);
+  }, []);
   const fechar = useCallback(() => setAberta(false), []);
 
   useEffect(() => {
@@ -36,6 +42,21 @@ export function CascaDoPainel({
     document.addEventListener("keydown", aoTeclar);
     return () => document.removeEventListener("keydown", aoTeclar);
   }, [aberta, fechar]);
+
+  /**
+   * Gaveta sem gestão de foco deixa quem navega por teclado preso atrás dela:
+   * o Tab continua correndo no conteúdo escondido. Ao abrir o foco entra; ao
+   * fechar volta para quem abriu, senão ele cai no começo da página.
+   */
+  useEffect(() => {
+    const gaveta = document.getElementById("sidebar-do-painel");
+    if (aberta) {
+      gaveta?.querySelector<HTMLElement>("a, button")?.focus();
+      return;
+    }
+    quemAbriu.current?.focus();
+    quemAbriu.current = null;
+  }, [aberta]);
 
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[218px_minmax(0,1fr)] xl:grid-cols-[248px_minmax(0,1fr)]">
@@ -65,7 +86,8 @@ export function CascaDoPainel({
           eventoId={evento?.id ?? null}
           raiz={raiz}
           hoje={hoje}
-          aoAbrirMenu={() => setAberta(true)}
+          gavetaAberta={aberta}
+          aoAbrirMenu={abrir}
         />
         <main
           id="main-content"
@@ -75,7 +97,11 @@ export function CascaDoPainel({
         </main>
       </div>
 
-      <BarraInferiorDoPainel eventoId={evento?.id ?? null} aoAbrirMenu={() => setAberta(true)} />
+      <BarraInferiorDoPainel
+        eventoId={evento?.id ?? null}
+        gavetaAberta={aberta}
+        aoAbrirMenu={abrir}
+      />
     </div>
   );
 }

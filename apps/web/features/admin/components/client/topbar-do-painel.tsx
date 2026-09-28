@@ -12,6 +12,7 @@ export function TopbarDoPainel({
   eventoId,
   raiz,
   hoje,
+  gavetaAberta,
   aoAbrirMenu,
 }: {
   eventoId: string | null;
@@ -19,6 +20,7 @@ export function TopbarDoPainel({
   raiz: string;
   /** Data já formatada no servidor: formatar no cliente diverge entre render e hidratação. */
   hoje: string;
+  gavetaAberta: boolean;
   aoAbrirMenu: () => void;
 }) {
   const pathname = usePathname();
@@ -31,7 +33,8 @@ export function TopbarDoPainel({
         <button
           type="button"
           onClick={aoAbrirMenu}
-          aria-label="Abrir menu"
+          aria-label={gavetaAberta ? "Fechar menu" : "Abrir menu"}
+          aria-expanded={gavetaAberta}
           aria-controls="sidebar-do-painel"
           className="grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-linha bg-superficie text-ink-2 md:hidden"
         >

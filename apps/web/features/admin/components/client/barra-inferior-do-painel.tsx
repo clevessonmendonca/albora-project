@@ -16,9 +16,11 @@ import { useModerationCount } from "./moderation-count-context";
 /** Quatro destinos + "Mais". "Mais" abre a gaveta com o menu inteiro — não é um destino. */
 export function BarraInferiorDoPainel({
   eventoId,
+  gavetaAberta,
   aoAbrirMenu,
 }: {
   eventoId: string | null;
+  gavetaAberta: boolean;
   aoAbrirMenu: () => void;
 }) {
   const pathname = usePathname();
@@ -70,6 +72,7 @@ export function BarraInferiorDoPainel({
         type="button"
         onClick={aoAbrirMenu}
         aria-haspopup="menu"
+        aria-expanded={gavetaAberta}
         aria-controls="sidebar-do-painel"
         className={`${classes(false)} cursor-pointer`}
       >

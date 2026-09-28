@@ -83,6 +83,7 @@ export function SidebarDoPainel({
   return (
     <aside
       id="sidebar-do-painel"
+      aria-label="Menu do painel"
       style={adminVars("dark")}
       data-aberta={aberta ? "" : undefined}
       className={[
