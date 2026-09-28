@@ -56,3 +56,6 @@ coverage/
 apps/mobile/ios/
 apps/mobile/android/
 .pgdata
+
+# Saída do harness de conferência visual (tools/preview/montar-painel.mjs).
+.preview-painel/

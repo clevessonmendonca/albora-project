@@ -127,15 +127,17 @@ export function SidebarDoPainel({
             </span>
           </button>
 
-          <Link
-            href="/admin"
-            onClick={aoNavegar}
-            className="flex justify-between border-0 px-[18px] pb-[17px] pt-2 text-[12px] text-ink-2 no-underline hover:text-acento-texto"
-          >
-            Meus eventos <span aria-hidden>+</span>
-          </Link>
         </>
       )}
+
+      {/* Fora de um evento a volta não pode depender de adivinhar que a logo é clicável. */}
+      <Link
+        href="/admin"
+        onClick={aoNavegar}
+        className="flex justify-between border-0 px-[18px] pb-[17px] pt-2 text-[12px] text-ink-2 no-underline hover:text-acento-texto"
+      >
+        Meus eventos <span aria-hidden>{evento ? "+" : "→"}</span>
+      </Link>
 
       {gruposVisiveis(Boolean(evento)).map((grupo) => (
         <React.Fragment key={grupo.id}>
