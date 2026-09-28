@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { TOPICOS_DA_COMUNIDADE, type TopicoDaComunidade } from "@albora/db";
+import { TOPICOS_DA_COMUNIDADE, type TopicoDaComunidade } from "@albora/core";
 import { botaoDoPainel } from "@/features/admin/components/server/kit-do-painel";
 
 const ROTULO: Record<TopicoDaComunidade, string> = {

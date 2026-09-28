@@ -15,7 +15,7 @@ import {
   resolveIdentityPreviewVars,
 } from "@/features/admin/lib/identity-preview";
 import { wallModelsFromTokens } from "@/features/admin/lib/wall-models";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 import { TimezoneField } from "@/features/admin/components/client/timezone-field";
 
 type Props = {

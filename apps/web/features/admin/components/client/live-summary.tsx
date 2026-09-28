@@ -3,7 +3,7 @@
 import type { CodigoDaTese } from "@albora/core";
 import { Badge, Skeleton } from "@albora/ui-web";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { useModerationCount } from "./moderation-count-context";
 import { AtualizadoHa, RefreshButton } from "./refresh-control";

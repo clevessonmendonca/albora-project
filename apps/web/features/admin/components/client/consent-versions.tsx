@@ -2,7 +2,7 @@
 
 import { Badge, Skeleton } from "@albora/ui-web";
 import { useState } from "react";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { AtualizadoHa, RefreshButton } from "./refresh-control";
 

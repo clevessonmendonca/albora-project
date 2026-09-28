@@ -2,7 +2,7 @@
 
 import { Badge, Button, Skeleton } from "@albora/ui-web";
 import { useCallback, useEffect, useState } from "react";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 
 type EventMember = {
   accountId: string;

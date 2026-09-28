@@ -6,8 +6,7 @@ import { isPlatformOperator } from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
 import { SkipLink, buttonClasses } from "@albora/ui-web";
-import { 
-  AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 import { adminVars } from "@/features/admin/lib/chrome-do-painel";
 
 export const dynamic = "force-dynamic";

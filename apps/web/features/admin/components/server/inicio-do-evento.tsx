@@ -16,7 +16,7 @@ import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { signGet } from "@/lib/r2";
 import { prazosDeRetencao } from "@/features/admin/lib/prazos-de-retencao";
 import { montarRetrospectivaServida } from "@/lib/domain/album/retrospectiva";
-import { AdminCard, AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminCard, AdminSection } from "@/features/admin/components/server/admin-card";
 import {
   acaoTextual,
   botaoDoPainel,

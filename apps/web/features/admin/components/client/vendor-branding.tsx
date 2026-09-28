@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 import { VendorBrandTokensEditor } from "@/features/vendor-portal/components/client/vendor-brand-tokens-editor";
 
 type Props = {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_MIMES = ["image/jpeg", "image/png", "image/webp"] as const;

@@ -11,7 +11,7 @@ import {
   moveMissionKey,
   reorderMissionKeys,
 } from "@/features/admin/lib/mission-keys";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 
 const CUSTOM_MAX = 120;
 

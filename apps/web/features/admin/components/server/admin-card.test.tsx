@@ -1,7 +1,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { AdminCard } from "./admin-shell";
+import { AdminCard } from "./admin-card";
 
 describe("AdminCard", () => {
   it("sem variant: usa a elevação elev-1 (sombra suave), não shadow-alta", () => {

@@ -3,7 +3,7 @@
 import { Badge, Button, ProgressBar } from "@albora/ui-web";
 import Link from "next/link";
 import React, { useCallback, useMemo, useState } from "react";
-import { AdminCard } from "@/features/admin/components/server/admin-shell";
+import { AdminCard } from "@/features/admin/components/server/admin-card";
 import {
   MC_SCRIPTS,
   buildPreEventSections,

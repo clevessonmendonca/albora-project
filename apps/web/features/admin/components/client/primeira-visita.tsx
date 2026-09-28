@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@albora/ui-web";
-import { AdminCard } from "@/features/admin/components/server/admin-shell";
+import { AdminCard } from "@/features/admin/components/server/admin-card";
 
 const CHAVE = "albora.admin.primeira-visita.dispensada";
 

@@ -3,7 +3,7 @@
 import { interacaoAberta, eventDefaults } from "@albora/core";
 import { Badge, Button, Switch } from "@albora/ui-web";
 import { useState } from "react";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 import { SupportHelpButton } from "@/features/admin/components/client/support-help-button";
 
 type WireModeration = {

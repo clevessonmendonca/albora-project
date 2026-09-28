@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Badge } from "@albora/ui-web";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 import { ReviewQueue } from "./review-queue";
 import { CommentModeration } from "./comment-moderation";
 

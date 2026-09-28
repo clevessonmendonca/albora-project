@@ -2,7 +2,7 @@
 
 import { Badge, Button, buttonClasses, Skeleton } from "@albora/ui-web";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 import {
   desconectarDrive,
   estadoInicialDrive,

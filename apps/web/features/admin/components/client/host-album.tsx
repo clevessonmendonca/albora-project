@@ -3,7 +3,7 @@
 import { Badge, Button, buttonClasses, Skeleton } from "@albora/ui-web";
 import { Star } from "lucide-react";
 import { useCallback, useState } from "react";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 import { RefreshButton } from "./refresh-control";
 import { HostExport } from "@/features/admin/components/client/host-export";
 import { HostDriveExport } from "@/features/admin/components/client/host-drive-export";

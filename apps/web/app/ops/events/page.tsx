@@ -6,8 +6,7 @@ import { collectEventLiveMetrics, isPlatformOperator } from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getPool } from "@/lib/db";
 import { Button, SkipLink } from "@albora/ui-web";
-import { 
-  AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 import { adminVars } from "@/features/admin/lib/chrome-do-painel";
 import { OpsEventAggregates } from "../event-aggregates";
 

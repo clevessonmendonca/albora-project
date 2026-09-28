@@ -8,7 +8,7 @@ import {
   formatarDuracaoAudio,
   GuestbookAudioField,
 } from "@/features/admin/components/client/guestbook-audio-field";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { AdminSection } from "@/features/admin/components/server/admin-card";
 import { useAdminResource } from "@/features/admin/hooks/use-admin-resource";
 import { useGuestbookRecorder } from "@/features/admin/hooks/use-guestbook-recorder";
 import type { SavedGuestbookAudio } from "@/features/admin/lib/guestbook-audio";

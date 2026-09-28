@@ -4,7 +4,8 @@ import Link from "next/link";
 import { listarEventosDoHost, resumoDoFornecedor, vendorsDaConta } from "@albora/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { getAggregatorPool, getPool } from "@/lib/db";
-import { AdminShell, AdminSection, listLinkClasses } from "@/features/admin/components/server/admin-shell";
+import { AdminShell } from "@/features/admin/components/server/admin-shell";
+import { AdminSection, listLinkClasses } from "@/features/admin/components/server/admin-card";
 import { VendorSummaryCard } from "@/features/vendor-portal/components/server/vendor-summary-card";
 import { auditarAgregacaoDoPortal } from "@/features/vendor-portal/lib/audit";
 
