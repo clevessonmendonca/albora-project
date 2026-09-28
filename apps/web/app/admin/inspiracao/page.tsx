@@ -34,18 +34,20 @@ const ROTULO: Record<TemaDeInspiracao, string> = {
 export default async function PaginaInspiracao({
   searchParams,
 }: {
-  searchParams: Promise<{ tema?: string }>;
+  searchParams: Promise<{ tema?: string; salvas?: string }>;
 }) {
-  const { tema: temaBruto } = await searchParams;
+  const { tema: temaBruto, salvas: soSalvas } = await searchParams;
   const tema = ehTemaDeInspiracao(temaBruto) ? temaBruto : undefined;
 
   const host = await hostFromToken((await cookies()).get(HOST_COOKIE)?.value);
   if (!host) redirect("/admin/sign-in");
 
-  const ideias = await comConta(getPool(), host.accountId, (c) =>
+  const todas = await comConta(getPool(), host.accountId, (c) =>
     listarIdeias(c, host.accountId, tema),
   );
-  const salvas = ideias.filter((i) => i.salva).length;
+  const salvas = todas.filter((i) => i.salva).length;
+  const filtrandoSalvas = soSalvas === "1";
+  const ideias = filtrandoSalvas ? todas.filter((i) => i.salva) : todas;
 
   const base = "/admin/inspiracao";
   const chip = (marcado: boolean) =>
@@ -64,7 +66,13 @@ export default async function PaginaInspiracao({
         subtitulo="O melhor da festa é viver. As lembranças ficam."
         acao={
           salvas > 0 ? (
-            <span className={botaoDoPainel({ variant: "light" })}>Salvas · {salvas}</span>
+            <Link
+              href={filtrandoSalvas ? base : `${base}?salvas=1`}
+              aria-current={filtrandoSalvas ? "true" : undefined}
+              className={botaoDoPainel({ variant: filtrandoSalvas ? "primary" : "light" })}
+            >
+              {filtrandoSalvas ? "Ver todas" : `Salvas · ${salvas}`}
+            </Link>
           ) : undefined
         }
       />
@@ -81,7 +89,7 @@ export default async function PaginaInspiracao({
         {TEMAS_DE_INSPIRACAO.map((t) => (
           <Link
             key={t}
-            href={`${base}?tema=${t}`}
+            href={`${base}?tema=${t}${filtrandoSalvas ? "&salvas=1" : ""}`}
             aria-current={tema === t ? "true" : undefined}
             className={chip(tema === t)}
           >
@@ -94,8 +102,12 @@ export default async function PaginaInspiracao({
         <Cartao>
           <VazioIlustrado
             icone={<Lightbulb size={28} aria-hidden />}
-            titulo="Nenhuma ideia neste tema"
-            descricao="Volte para todos os temas para ver o acervo inteiro."
+            titulo={filtrandoSalvas ? "Nenhuma ideia salva aqui" : "Nenhuma ideia neste tema"}
+            descricao={
+              filtrandoSalvas
+                ? "Salve uma ideia para encontrá-la depois sem procurar."
+                : "Volte para todos os temas para ver o acervo inteiro."
+            }
           />
         </Cartao>
       ) : (
