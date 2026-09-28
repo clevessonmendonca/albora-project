@@ -8,7 +8,7 @@ import {
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
 import { IDENTITY_MODELS } from "@albora/tokens";
 import { Button, PhoneFrame, TextField } from "@albora/ui-web";
-import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import {
   identityPreviewClassName,
   presetSwatchProps,
@@ -187,6 +187,16 @@ export function IdentityEditor({
     }
   };
 
+  /**
+   * O botão de salvar do cabeçalho de página vive fora deste componente (`IntroDaPagina` é
+   * server-rendered) e o alcança pelo atributo HTML `form`, não por handler — daí o formulário
+   * precisar de `onSubmit` em vez de só um `onClick` no botão interno.
+   */
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    void save();
+  };
+
   const changePreset = (m: (typeof IDENTITY_MODELS)[number]) => {
     setPreset(m);
     setCustomAccent(null);
@@ -210,7 +220,7 @@ export function IdentityEditor({
     : "Foto do dia";
 
   return (
-    <div className="flex flex-col gap-5">
+    <form id="identidade-form" className="flex flex-col gap-5" onSubmit={onSubmit}>
       <AdminSection>
         <div className="mb-7">
           <h2 className="tipo-subtitle m-0">Configuração do evento</h2>
@@ -458,6 +468,7 @@ export function IdentityEditor({
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Button
+            type="button"
             variant="primary"
             size="lg"
             disabled={!canSave || saving}
@@ -480,7 +491,7 @@ export function IdentityEditor({
           )}
         </div>
       </AdminSection>
-    </div>
+    </form>
   );
 }
 

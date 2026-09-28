@@ -20,6 +20,8 @@ type Moderation = {
 
 type SavingField = "panic" | "hasMinors" | "hardened" | "interaction" | "status" | null;
 
+type SecaoControles = "rascunho" | "telao" | "interacao" | "protecoes" | "ajuda" | "upgrade";
+
 type Props = {
   eventId: string;
   plan: "free" | "celebration" | "vendor";
@@ -29,6 +31,10 @@ type Props = {
   canManageCoupleOnly?: boolean;
   /** `aoVivo` = o que se mexe durante a festa. `regras` = o que se decide antes dela. */
   modo?: "aoVivo" | "regras";
+  /** Restringe quais seções aparecem — omitido mostra tudo que o `modo` mostraria (comportamento de sempre). Serve pra reaproveitar só uma seção noutra tela (ex.: Configurações mostrando só o toggle do telão). */
+  apenas?: readonly SecaoControles[];
+  /** `linha` tira a caixa própria da seção do telão, pra encaixar dentro de um cartão que já é o container (ex.: Configurações). Ignorado se a seção do telão não aparecer. */
+  estiloTelao?: "cartao" | "linha";
 };
 
 function fromWire(m: WireModeration): Moderation {
@@ -47,6 +53,8 @@ export function EventControls({
   initialStatus,
   canManageCoupleOnly = true,
   modo = "aoVivo",
+  apenas,
+  estiloTelao = "cartao",
 }: Props) {
   const [moderation, setModeration] = useState(() => fromWire(initial));
   const [interactionOpensAt, setInteractionOpensAt] = useState(initialInteractionOpensAt);
@@ -118,10 +126,11 @@ export function EventControls({
 
   const aoVivo = modo === "aoVivo";
   const regras = modo === "regras";
+  const mostra = (secao: SecaoControles) => !apenas || apenas.includes(secao);
 
   return (
     <div className="flex flex-col gap-5">
-      {aoVivo && status === "draft" && (
+      {aoVivo && mostra("rascunho") && status === "draft" && (
         <AdminSection>
           <div className="flex flex-wrap items-center justify-between gap-5">
             <div>
@@ -143,7 +152,25 @@ export function EventControls({
         </AdminSection>
       )}
 
-      {aoVivo && (
+      {aoVivo && mostra("telao") && (
+        estiloTelao === "linha" ? (
+          <div className="flex flex-wrap items-center justify-between gap-5">
+            <div>
+              <span className="block text-[13px] font-semibold text-ink">Telão ao vivo</span>
+              <span className="mt-0.5 block text-[12px] text-ink-3">
+                {moderation.panic
+                  ? "Pausado — nenhuma foto nova aparece na parede."
+                  : "Fotos aparecem no telão em tempo real."}
+              </span>
+            </div>
+            <Switch
+              checked={!moderation.panic}
+              label={moderation.panic ? "Retomar telão" : "Pausar telão"}
+              disabled={saving === "panic"}
+              onChange={(v) => void patch({ panico: !v }, "panic")}
+            />
+          </div>
+        ) : (
       <AdminSection>
         <div className="flex flex-wrap items-center justify-between gap-5">
           <div>
@@ -167,9 +194,10 @@ export function EventControls({
           />
         </div>
       </AdminSection>
+        )
       )}
 
-      {regras && (
+      {regras && mostra("protecoes") && (
       <AdminSection id="controle-menores">
         <h2 className="tipo-label m-0 mb-4 text-ink-3">Proteções</h2>
 
@@ -232,7 +260,7 @@ export function EventControls({
       </AdminSection>
       )}
 
-      {aoVivo && (
+      {aoVivo && mostra("interacao") && (
       <AdminSection id="controle-interacao">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <h2 className="tipo-subtitle m-0 text-ink">Interação social</h2>
@@ -311,7 +339,7 @@ export function EventControls({
       </AdminSection>
       )}
 
-      {regras && (
+      {regras && mostra("ajuda") && (
       <AdminSection>
         <h2 className="tipo-subtitle m-0 mb-3 text-ink">Preciso de ajuda</h2>
         <p className="tipo-body mb-4 mt-0 text-ink-2">
@@ -321,7 +349,7 @@ export function EventControls({
       </AdminSection>
       )}
 
-      {regras && canManageCoupleOnly && plan === "free" && (
+      {regras && mostra("upgrade") && canManageCoupleOnly && plan === "free" && (
         <AdminSection>
           <h2 className="tipo-subtitle m-0 mb-3 text-ink">Assinar Completo</h2>
           <p className="tipo-body mb-4 mt-0 text-ink-2">

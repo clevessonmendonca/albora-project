@@ -14,8 +14,8 @@ export default async function PaginaCompartilhar({
   const { eventId } = await params;
 
   return (
-    <EventPageLayout eventId={eventId} section="Compartilhar">
-      {async ({ evento }) => {
+    <EventPageLayout eventId={eventId}>
+      {async ({ evento, name }) => {
         const hdrs = await headers();
         const host = hdrs.get("host") ?? "localhost";
         const proto = host.startsWith("localhost") || host.startsWith("127.") ? "http" : "https";
@@ -33,10 +33,12 @@ export default async function PaginaCompartilhar({
           <CompartilharEvento
             eventId={eventId}
             slug={evento.slug}
-            eventName={evento.title ?? evento.slug}
+            eventName={name}
             guestUrl={eventEntryUrl(origin, evento.slug, "link")}
             whatsappUrl={whatsappInviteUrl(origin, evento.slug)}
             svgString={svgString}
+            comecaEm={evento.comecaEm}
+            fuso={evento.fuso}
           />
         );
       }}

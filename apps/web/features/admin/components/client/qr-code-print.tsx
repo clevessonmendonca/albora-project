@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button } from "@albora/ui-web";
-import { AdminCard } from "@/features/admin/components/server/admin-shell";
+import { botaoDoPainel, Cartao } from "@/features/admin/components/server/kit-do-painel";
+import { EventLink } from "@/features/admin/components/client/event-link";
 import { downloadFromApi, triggerBlobDownload } from "@/features/admin/lib/download-file";
 import { svgToPngBlob } from "@/features/admin/lib/qr-png";
 
@@ -55,59 +55,67 @@ export function QrCodePrint({ eventId, slug, eventName, guestUrl, svgString }: P
       <style>{`
         @media print {
           header, nav, aside, footer,
-          [data-admin-nav], [data-admin-shell-header],
-          [data-admin-shell-back] { display: none !important; }
+          [data-admin-nav], #sidebar-do-painel,
+          [data-admin-shell-header], [data-admin-shell-back] { display: none !important; }
           body { background: white !important; }
           .print\\:hidden { display: none !important; }
           .qr-print-area { box-shadow: none !important; border: none !important; }
         }
       `}</style>
 
-      <AdminCard className="qr-print-area">
-        <div className="flex flex-col items-center gap-6 py-4">
+      <Cartao className="qr-print-area">
+        <div className="flex flex-col items-center gap-5 py-2 text-center">
+          <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-acento-texto">
+            Seu QR
+          </div>
+          <p className="m-0 font-[family-name:var(--fonte-titulo)] text-[1.375rem] text-ink">
+            {eventName}
+          </p>
+
           <div
-            className="w-56 rounded-token bg-white p-3 shadow-suave"
+            className="w-56 rounded-[17px] bg-superficie-alta p-3 shadow-suave"
             dangerouslySetInnerHTML={{ __html: svgString }}
           />
 
-          <div className="text-center">
-            <p className="tipo-subtitle mb-1 mt-0 text-ink">{eventName}</p>
-            <p className="tipo-caption mb-0 mt-0 break-all font-mono text-ink-2">{guestUrl}</p>
-          </div>
-
-          <p className="tipo-caption mb-0 mt-0 max-w-xs text-center text-ink-3">
-            Aponte a câmera do celular para o QR Code e comece a enviar fotos.
+          <p className="m-0 max-w-xs text-[13px] text-ink-3">
+            Aponte a câmera do celular para o QR e comece a enviar fotos.
           </p>
-        </div>
-      </AdminCard>
 
-      <div className="print:hidden mt-2 flex flex-wrap justify-center gap-2">
-        <Button type="button" variant="primary" onClick={() => window.print()}>
-          Imprimir
-        </Button>
-        <Button
+          <div className="w-full max-w-xs">
+            <EventLink title="Link do convite" url={guestUrl} />
+          </div>
+        </div>
+      </Cartao>
+
+      <div className="print:hidden mt-3 flex flex-wrap justify-center gap-2">
+        <button
           type="button"
-          variant="secondary"
+          onClick={() => window.print()}
+          className={botaoDoPainel({ variant: "primary" })}
+        >
+          Imprimir
+        </button>
+        <button
+          type="button"
           disabled={busy}
           onClick={() => void handleDownloadPng()}
-          className={busy ? "cursor-wait opacity-60" : ""}
+          className={`${botaoDoPainel({ variant: "light" })} ${busy ? "cursor-wait opacity-60" : ""}`}
         >
           {downloading === "png" ? "Gerando…" : "Baixar PNG"}
-        </Button>
-        <Button
+        </button>
+        <button
           type="button"
-          variant="secondary"
           disabled={busy}
           onClick={() => void handleDownloadPdf()}
-          className={busy ? "cursor-wait opacity-60" : ""}
+          className={`${botaoDoPainel({ variant: "light" })} ${busy ? "cursor-wait opacity-60" : ""}`}
         >
           {downloading === "pdf" ? "Gerando…" : "Baixar PDF"}
-        </Button>
+        </button>
       </div>
 
       {error && (
         <div role="alert" className="print:hidden mt-4 flex justify-center">
-          <p className="tipo-caption m-0 max-w-xs rounded-token border border-critico bg-superficie px-4 py-3 text-center text-critico">
+          <p className="max-w-xs rounded-[9px] border border-critico bg-superficie px-4 py-3 text-center text-[13px] text-critico">
             {error}
           </p>
         </div>

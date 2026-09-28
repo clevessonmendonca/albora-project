@@ -374,7 +374,10 @@ export function MissionsEditor({
             </div>
           ))}
 
-          <div className="mt-2 flex flex-col gap-3 rounded-token border border-dashed border-linha bg-superficie p-4">
+          <div
+            id="nova-missao-personalizada"
+            className="mt-2 flex flex-col gap-3 rounded-token border border-dashed border-linha bg-superficie p-4"
+          >
             <p className="tipo-label m-0 text-ink-3">Nova missão personalizada</p>
             <div className="flex flex-wrap items-end gap-2">
               <div className="flex flex-col gap-1.5">

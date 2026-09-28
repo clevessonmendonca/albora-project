@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@albora/ui-web";
+import { Check } from "lucide-react";
+import { botaoDoPainel } from "@/features/admin/components/server/kit-do-painel";
 
 export function CopiarLinkEvento({ slug }: { slug: string }) {
   const [copiado, setCopiado] = useState(false);
@@ -26,28 +27,15 @@ export function CopiarLinkEvento({ slug }: { slug: string }) {
   }
 
   return (
-    <Button
-      variant="secondary"
-      type="button"
-      onClick={() => void copiar()}
-      className="inline-flex items-center gap-1.5"
-    >
+    <button type="button" onClick={() => void copiar()} className={botaoDoPainel({ variant: "primary" })}>
       {copiado ? (
         <>
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-            <path
-              d="M2 6l2.5 2.5L10 3.5"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Link copiado!
+          <Check size={16} aria-hidden />
+          Link copiado
         </>
       ) : (
-        `Copiar link · /e/${slug}`
+        "Copiar link"
       )}
-    </Button>
+    </button>
   );
 }

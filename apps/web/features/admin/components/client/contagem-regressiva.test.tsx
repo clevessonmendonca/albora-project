@@ -16,25 +16,28 @@ function em(iso: string) {
 }
 
 describe("ContagemRegressiva", () => {
-  it("faltando mais de um dia, conta em dias", () => {
+  it("mostra dias, horas, minutos e segundos ao mesmo tempo", () => {
     em("2026-06-11T12:00:00Z");
 
     expect(screen.getByText("10")).toBeInTheDocument();
     expect(screen.getByText(/dias/i)).toBeInTheDocument();
+    expect(screen.getByText(/horas/i)).toBeInTheDocument();
+    expect(screen.getByText(/min/i)).toBeInTheDocument();
+    expect(screen.getByText(/seg/i)).toBeInTheDocument();
   });
 
-  it("no último dia, conta em horas", () => {
+  it("no último dia, horas já aparecem preenchidas", () => {
     em("2026-06-01T20:00:00Z");
 
     expect(screen.getByText("8")).toBeInTheDocument();
     expect(screen.getByText(/horas/i)).toBeInTheDocument();
   });
 
-  it("já começou: diz isso, não mostra número negativo", () => {
+  it("já começou: diz isso, não mostra números", () => {
     em("2026-06-01T11:00:00Z");
 
     expect(screen.queryByText(/-\d/)).not.toBeInTheDocument();
-    expect(screen.getByText(/começou/i)).toBeInTheDocument();
+    expect(screen.queryByRole("timer")).toHaveTextContent(/começou/i);
   });
 
   it("não tagarela em leitor de tela", () => {

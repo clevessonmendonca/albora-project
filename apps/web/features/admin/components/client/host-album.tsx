@@ -214,7 +214,7 @@ export function HostAlbum({ eventoId, canExport = true, filtro = "todas" }: Prop
             {visiveis.map((item, indice) => {
               const ativo = selecionado === item.id;
               return (
-                <li key={item.id}>
+                <li key={item.id} className="flex flex-col gap-1">
                   <button
                     type="button"
                     onClick={() => setSelecionado(ativo ? null : item.id)}
@@ -242,6 +242,9 @@ export function HostAlbum({ eventoId, canExport = true, filtro = "todas" }: Prop
                       </span>
                     )}
                   </button>
+                  <span className="truncate text-[11px] text-ink-3">
+                    {legendaDaFoto(item.criadaEm, item.reacoes)}
+                  </span>
                 </li>
               );
             })}

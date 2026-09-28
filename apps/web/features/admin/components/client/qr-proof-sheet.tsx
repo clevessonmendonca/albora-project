@@ -1,6 +1,6 @@
 "use client";
 
-import { AdminCard } from "@/features/admin/components/server/admin-shell";
+import { Cartao } from "@/features/admin/components/server/kit-do-painel";
 import {
   QR_PROOF_DEVICES,
   QR_PROOF_DISTANCES_CM,
@@ -9,7 +9,7 @@ import {
 
 export function QrProofSheet({ eventId }: { eventId: string }) {
   return (
-    <AdminCard className="print:break-inside-avoid">
+    <Cartao className="print:break-inside-avoid">
       <h3 className="tipo-subtitle m-0 mb-2 text-ink">Prova física do QR</h3>
       <p className="tipo-caption mt-0 mb-4 max-w-[52ch] text-ink-3">
         Imprima peças na gráfica e teste com 3 celulares antes do evento. Critério: 3/3
@@ -84,6 +84,6 @@ export function QrProofSheet({ eventId }: { eventId: string }) {
       <p className="tipo-caption mb-0 mt-4 text-ink-3">
         Resultado: ☐ APROVADO &nbsp; ☐ REPROVADO — não ir à festa sem aprovar.
       </p>
-    </AdminCard>
+    </Cartao>
   );
 }

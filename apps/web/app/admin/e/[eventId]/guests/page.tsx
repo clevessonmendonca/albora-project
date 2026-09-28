@@ -1,39 +1,80 @@
 import React from "react";
 import Link from "next/link";
-import { EditorialTabs } from "@albora/ui-web";
+import { headers } from "next/headers";
+import { eventEntryUrl } from "@/lib/qr";
 import { EventPageLayout } from "@/features/admin/components/server/event-page-layout";
 import { GuestFunnel } from "@/features/admin/components/client/guest-funnel";
-import { EventInsights } from "@/features/admin/components/client/event-insights";
-import { ABAS_CONVIDADOS, abaConvidadosAtiva } from "@/features/admin/lib/abas-convidados";
+import { ConvidadosCartaoConvite } from "@/features/admin/components/server/convidados-cartao-convite";
+import {
+  botaoDoPainel,
+  CabecalhoDeCartao,
+  Cartao,
+  ColunaDeApoio,
+  FaixaDeDestaque,
+  GradeDePaineis,
+  IntroDaPagina,
+} from "@/features/admin/components/server/kit-do-painel";
 
 export const dynamic = "force-dynamic";
 
 export default async function PaginaConvidados({
   params,
-  searchParams,
 }: {
   params: Promise<{ eventId: string }>;
-  searchParams: Promise<{ aba?: string }>;
 }) {
   const { eventId } = await params;
-  const { aba } = await searchParams;
-  const ativa = abaConvidadosAtiva(aba);
-  const abaAtual = ABAS_CONVIDADOS.find((a) => a.id === ativa);
 
   return (
-    <EventPageLayout eventId={eventId} section="Convidados">
-      <div className="flex flex-col gap-5">
-        <EditorialTabs
-          items={ABAS_CONVIDADOS.map((a) => ({ label: a.rotulo, suffix: a.suffix }))}
-          active={abaAtual?.suffix ?? ""}
-          base={`/admin/e/${eventId}/guests`}
-          linkComponent={Link}
-        />
+    <EventPageLayout eventId={eventId}>
+      {async ({ evento }) => {
+        const hdrs = await headers();
+        const host = hdrs.get("host") ?? "localhost";
+        const proto = host.startsWith("localhost") || host.startsWith("127.") ? "http" : "https";
+        const origin = `${proto}://${host}`;
+        const urlDeConvite = eventEntryUrl(origin, evento.slug, "link");
 
-        <GuestFunnel eventoId={eventId} faceta={ativa} />
-
-        {ativa === "participacao" && <EventInsights eventoId={eventId} />}
-      </div>
+        return (
+          <>
+            <IntroDaPagina
+              eyebrow="Pessoas"
+              titulo="Convidados"
+              subtitulo="Quem já está no evento, e como convidar quem ainda falta."
+            />
+            <FaixaDeDestaque
+              eyebrow="CADA PESSOA, UM OLHAR"
+              titulo="Cada convidado enxerga a festa de um jeito."
+              descricao="Sem conta, sem senha: quem aponta a câmera para o QR já está participando."
+              acao={
+                <Link
+                  href={`/admin/e/${eventId}/qrcode`}
+                  className={botaoDoPainel({ variant: "gold" })}
+                >
+                  Abrir convite →
+                </Link>
+              }
+            />
+            <GradeDePaineis>
+              <GuestFunnel eventoId={eventId} />
+              <ColunaDeApoio>
+                <ConvidadosCartaoConvite eventId={eventId} url={urlDeConvite} />
+                <Cartao>
+                  <CabecalhoDeCartao titulo="Permissões" />
+                  <p className="m-0 mb-4 text-[13px] text-ink-3">
+                    Consentimento, moderação e quem pode ver o quê ficam nas configurações do
+                    evento.
+                  </p>
+                  <Link
+                    href={`/admin/e/${eventId}/ajustes`}
+                    className={botaoDoPainel({ variant: "light", width: "full" })}
+                  >
+                    Ajustar privacidade
+                  </Link>
+                </Cartao>
+              </ColunaDeApoio>
+            </GradeDePaineis>
+          </>
+        );
+      }}
     </EventPageLayout>
   );
 }

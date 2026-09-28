@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button, Dialog, showToast } from "@albora/ui-web";
-import { AdminSection } from "@/features/admin/components/server/admin-shell";
+import { Cartao } from "@/features/admin/components/server/kit-do-painel";
 
 export function EncerrarEvento({
   eventId,
@@ -17,13 +17,13 @@ export function EncerrarEvento({
 
   if (status === "draft") {
     return (
-      <AdminSection>
+      <Cartao>
         <h2 className="tipo-subtitle m-0 mb-2 text-ink">Encerrar o evento</h2>
         <p className="tipo-body m-0 max-w-[52ch] text-ink-2">
           Só dá para encerrar um evento que já está no ar. Publique primeiro; depois da festa,
           é aqui que vocês fecham.
         </p>
-      </AdminSection>
+      </Cartao>
     );
   }
 
@@ -47,7 +47,7 @@ export function EncerrarEvento({
   };
 
   return (
-    <AdminSection>
+    <Cartao>
       <h2 className="tipo-subtitle m-0 mb-2 text-ink">Encerrar o evento</h2>
       <p className="tipo-body m-0 mb-4 max-w-[52ch] text-ink-2">
         {encerrado
@@ -93,6 +93,6 @@ export function EncerrarEvento({
           </div>
         </div>
       </Dialog>
-    </AdminSection>
+    </Cartao>
   );
 }

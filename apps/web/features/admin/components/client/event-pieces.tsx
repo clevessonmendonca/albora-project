@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@albora/ui-web";
+import { botaoDoPainel } from "@/features/admin/components/server/kit-do-painel";
 
 const FORMATS = [
   { id: "placa-a4", label: "Placa A4", size: "210×297 mm + sangria 3 mm" },
@@ -84,17 +84,16 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
           />
           Incluir arquivos SVG editáveis
         </label>
-        <Button
-          variant="primary"
+        <button
           type="button"
           disabled={downloading !== null}
           onClick={() => void downloadZip()}
-          className={`${
+          className={`${botaoDoPainel({ variant: "primary" })} ${
             downloading !== null ? "cursor-wait opacity-50" : ""
           } ${downloading === "zip" ? "opacity-60" : ""}`}
         >
           {downloading === "zip" ? "Preparando arquivo…" : "Baixar pacote completo (ZIP)"}
-        </Button>
+        </button>
       </div>
 
       <p className="tipo-label mb-3 mt-0 text-ink-3">
@@ -108,28 +107,26 @@ export function EventPieces({ eventId, slug }: { eventId: string; slug: string }
             </p>
             <p className="tipo-caption mb-3 mt-0 text-ink-3">{f.size}</p>
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant="primary"
-                size="sm"
+              <button
                 type="button"
                 disabled={downloading !== null}
                 onClick={() => void download(f.id, "pdf")}
-                className={`${
+                className={`${botaoDoPainel({ variant: "primary" })} ${
                   downloading !== null ? "cursor-wait opacity-50" : ""
                 } ${downloading === `${f.id}-pdf` ? "opacity-60" : ""}`}
               >
                 {downloading === `${f.id}-pdf` ? "Gerando…" : "Baixar PDF"}
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
-                variant="secondary"
-                size="sm"
                 disabled={downloading !== null}
                 onClick={() => void download(f.id, "svg")}
-                className={downloading !== null ? "cursor-wait opacity-50" : ""}
+                className={`${botaoDoPainel({ variant: "light" })} ${
+                  downloading !== null ? "cursor-wait opacity-50" : ""
+                }`}
               >
                 {downloading === `${f.id}-svg` ? "Gerando…" : "Baixar SVG"}
-              </Button>
+              </button>
             </div>
           </div>
         ))}
