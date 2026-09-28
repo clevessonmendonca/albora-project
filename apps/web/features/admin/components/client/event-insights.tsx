@@ -180,7 +180,7 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
           {ROTULO_VEREDITO[resumo.veredito]}
         </p>
         {ondeMorreu && (
-          <p className="tipo-caption mb-0 mt-3 text-ink-3">
+          <p className="tipo-caption mb-0 mt-3 text-ink-2">
             Maior queda no funil: «{ROTULO_ETAPA[ondeMorreu.etapa]}». Vale reforçar esse
             ponto no salão ou nas instruções.
           </p>
@@ -189,7 +189,7 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
 
       <AdminSection>
         <h2 className="tipo-subtitle m-0 mb-3 text-ink">Jornada do convidado</h2>
-        <p className="tipo-caption mb-4 mt-0 text-ink-3">
+        <p className="tipo-caption mb-4 mt-0 text-ink-2">
           Cada etapa mostra quantas pessoas chegaram até ali. A coluna de retenção compara com
           a etapa anterior.
         </p>
@@ -202,10 +202,10 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
               <div key={d.etapa} className="rounded-token bg-bg px-3 py-2.5">
                 <div className="mb-1.5 flex items-baseline justify-between gap-3">
                   <span className="tipo-body text-ink">{ROTULO_ETAPA[d.etapa]}</span>
-                  <span className="tipo-caption shrink-0 text-ink-3">
+                  <span className="tipo-caption shrink-0 text-ink-2">
                     <span className="font-titulo tabular-nums text-acento-texto">{d.sessoes}</span>
                     {pctRetencao !== null && (
-                      <span className="ml-1.5 text-ink-3">· {pctRetencao}%</span>
+                      <span className="ml-1.5 text-ink-2">· {pctRetencao}%</span>
                     )}
                   </span>
                 </div>
@@ -226,7 +226,7 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
 
       <AdminSection>
         <h2 className="tipo-subtitle m-0 mb-3 text-ink">Canais de entrada</h2>
-        <p className="tipo-caption mb-4 mt-0 text-ink-3">
+        <p className="tipo-caption mb-4 mt-0 text-ink-2">
           Como os convidados chegaram até o evento: QR impresso, mensagem no WhatsApp, link
           copiado ou código digitado.
         </p>
@@ -240,7 +240,7 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
 
       <AdminSection>
         <h2 className="tipo-subtitle m-0 mb-3 text-ink">Efeito do feed social</h2>
-        <p className="tipo-caption mb-4 mt-0 text-ink-3">
+        <p className="tipo-caption mb-4 mt-0 text-ink-2">
           Fotos subidas antes e depois da primeira abertura do feed. Se o número depois
           não cresce, o feed pode não estar gerando o engajamento esperado.
         </p>
@@ -253,7 +253,7 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
       {insights && insights.missoes.length > 0 && (
         <AdminSection>
           <h2 className="tipo-subtitle m-0 mb-3 text-ink">Missões mais fotografadas</h2>
-          <p className="tipo-caption mb-4 mt-0 text-ink-3">
+          <p className="tipo-caption mb-4 mt-0 text-ink-2">
             Ranking de engajamento por missão — sem identificar quem fotografou.
           </p>
           <MissoesRanking missoes={insights.missoes} />
@@ -263,7 +263,7 @@ export function EventInsights({ eventoId }: { eventoId: string }) {
       {insights && insights.horas.length > 0 && (
         <AdminSection>
           <h2 className="tipo-subtitle m-0 mb-3 text-ink">Hora de ouro</h2>
-          <p className="tipo-caption mb-4 mt-0 text-ink-3">
+          <p className="tipo-caption mb-4 mt-0 text-ink-2">
             Distribuição de fotos por hora da festa. O pico indica o momento de maior
             engajamento.
           </p>
@@ -305,7 +305,7 @@ function MissoesRanking({ missoes }: { missoes: MissaoInsightUI[] }) {
           <div key={m.challengeId} className="rounded-token bg-bg px-3 py-2.5">
             <div className="mb-1.5 flex items-baseline justify-between gap-3">
               <span className="tipo-body flex items-baseline gap-1.5 text-ink">
-                <span className="tipo-label w-4 shrink-0 tabular-nums text-ink-3">{i + 1}.</span>
+                <span className="tipo-label w-4 shrink-0 tabular-nums text-ink-2">{i + 1}.</span>
                 {m.emoji ? <span aria-hidden>{m.emoji}</span> : null}
                 <span className="min-w-0 truncate">{m.titulo}</span>
               </span>
@@ -339,7 +339,7 @@ function HoraDeOuro({ horas }: { horas: HoraInsightUI[] }) {
           const isPico = h.hora === pico.hora;
           return (
             <div key={h.hora} className="flex flex-1 flex-col items-center gap-1" style={{ minWidth: "1.5rem" }}>
-              <span className="tipo-label tabular-nums text-ink-3">{h.fotos}</span>
+              <span className="tipo-label tabular-nums text-ink-2">{h.fotos}</span>
               <div className="relative w-full" style={{ height: "4rem" }}>
                 <div
                   aria-hidden
@@ -350,11 +350,11 @@ function HoraDeOuro({ horas }: { horas: HoraInsightUI[] }) {
                   style={{
                     height: `${Math.max(altPct, 4)}%`,
                     minHeight: "3px",
-                    background: isPico ? "var(--acento)" : "var(--ink-3)",
+                    background: isPico ? "var(--acento)" : "var(--ink-2)",
                   }}
                 />
               </div>
-              <span className="tipo-label tabular-nums text-ink-3">{h.hora}h</span>
+              <span className="tipo-label tabular-nums text-ink-2">{h.hora}h</span>
             </div>
           );
         })}
