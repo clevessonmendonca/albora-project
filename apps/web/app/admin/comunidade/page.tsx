@@ -11,7 +11,7 @@ import {
   type PostDaComunidade,
   type TopicoDaComunidade,
 } from "@albora/db";
-import { EventPageLayout } from "@/features/admin/components/server/event-page-layout";
+import { CascaDaConta } from "@/features/admin/components/server/casca-da-conta";
 import { ComunidadeNovaConversa } from "@/features/admin/components/client/comunidade-nova-conversa";
 import {
   botaoDoPainel,
@@ -41,13 +41,10 @@ function quando(data: Date): string {
 }
 
 export default async function PaginaComunidade({
-  params,
   searchParams,
 }: {
-  params: Promise<{ eventId: string }>;
   searchParams: Promise<{ topico?: string; busca?: string }>;
 }) {
-  const { eventId } = await params;
   const { topico: topicoBruto, busca } = await searchParams;
   const topico = ehTopicoDaComunidade(topicoBruto) ? topicoBruto : undefined;
 
@@ -58,7 +55,7 @@ export default async function PaginaComunidade({
     listarPostsDaComunidade(c, host.accountId, { topico, termo: busca }),
   );
 
-  const base = `/admin/e/${eventId}/comunidade`;
+  const base = "/admin/comunidade";
   const filtro = (alvo: TopicoDaComunidade | undefined) => {
     const p = new URLSearchParams();
     if (alvo) p.set("topico", alvo);
@@ -76,7 +73,7 @@ export default async function PaginaComunidade({
     ].join(" ");
 
   return (
-    <EventPageLayout eventId={eventId}>
+    <CascaDaConta>
       <IntroDaPagina
         eyebrow="Entre anfitriões"
         titulo="Comunidade"
@@ -179,7 +176,7 @@ export default async function PaginaComunidade({
           <Cartao>
             <CabecalhoDeCartao titulo="Inspire-se" subtitulo="Ideias prontas para adaptar." />
             <Link
-              href={`/admin/e/${eventId}/inspiracao`}
+              href="/admin/inspiracao"
               className={botaoDoPainel({ variant: "gold", width: "full" })}
             >
               Explorar ideias →
@@ -195,6 +192,6 @@ export default async function PaginaComunidade({
           </Cartao>
         </ColunaDeApoio>
       </GradeDePaineis>
-    </EventPageLayout>
+    </CascaDaConta>
   );
 }

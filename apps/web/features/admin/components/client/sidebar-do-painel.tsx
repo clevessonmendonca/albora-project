@@ -7,8 +7,10 @@ import { Sparkles } from "lucide-react";
 import { adminVars } from "@/features/admin/lib/chrome-do-painel";
 import {
   destinoAtivo,
-  destinosDoGrupo,
-  GRUPOS,
+  destinosVisiveis,
+  gruposVisiveis,
+  hrefDoDestino,
+  RAIZ_DA_CONTA,
   type Destino,
 } from "@/features/admin/lib/navegacao";
 import { ICONES_DA_NAVEGACAO } from "@/features/admin/lib/icones-da-navegacao";
@@ -28,7 +30,8 @@ export type EventoDaSidebar = {
 };
 
 type Props = {
-  evento: EventoDaSidebar;
+  /** `null` fora de um evento: a sidebar mostra só o que é da conta. */
+  evento: EventoDaSidebar | null;
   perfil: PerfilDoPainel;
   aberta: boolean;
   aoNavegar: () => void;
@@ -44,7 +47,7 @@ export function SidebarDoPainel({
 }: Props) {
   const pathname = usePathname();
   const { count } = useModerationCount();
-  const base = `/admin/e/${evento.id}`;
+  const base = evento ? `/admin/e/${evento.id}` : RAIZ_DA_CONTA;
   const ativo = destinoAtivo(pathname, base);
 
   const item = (destino: Destino) => {
@@ -55,7 +58,7 @@ export function SidebarDoPainel({
     return (
       <Link
         key={destino.id}
-        href={`${base}${destino.suffix}`}
+        href={hrefDoDestino(destino, base)}
         onClick={aoNavegar}
         aria-current={marcado ? "page" : undefined}
         className={[
@@ -103,34 +106,38 @@ export function SidebarDoPainel({
         />
       </Link>
 
-      <button
-        type="button"
-        onClick={aoTrocarEvento}
-        className="mx-[5px] mb-[7px] flex min-h-[66px] w-[calc(100%-10px)] cursor-pointer items-center gap-2.5 rounded-xl border border-linha bg-superficie p-[12px_13px] text-left text-ink"
-      >
-        <span
-          aria-hidden
-          className="grid h-[34px] w-[34px] flex-none place-items-center rounded-[9px] bg-acento font-[family-name:var(--fonte-titulo)] text-sobre-acento"
-        >
-          {evento.monograma}
-        </span>
-        <span className="min-w-0 flex-1">
-          <strong className="block max-w-[145px] truncate text-[13px] text-ink">
-            {evento.nome}
-          </strong>
-          <small className="text-[11px] text-ink-2">{evento.data}</small>
-        </span>
-      </button>
+      {evento && (
+        <>
+          <button
+            type="button"
+            onClick={aoTrocarEvento}
+            className="mx-[5px] mb-[7px] flex min-h-[66px] w-[calc(100%-10px)] cursor-pointer items-center gap-2.5 rounded-xl border border-linha bg-superficie p-[12px_13px] text-left text-ink"
+          >
+            <span
+              aria-hidden
+              className="grid h-[34px] w-[34px] flex-none place-items-center rounded-[9px] bg-acento font-[family-name:var(--fonte-titulo)] text-sobre-acento"
+            >
+              {evento.monograma}
+            </span>
+            <span className="min-w-0 flex-1">
+              <strong className="block max-w-[145px] truncate text-[13px] text-ink">
+                {evento.nome}
+              </strong>
+              <small className="text-[11px] text-ink-2">{evento.data}</small>
+            </span>
+          </button>
 
-      <Link
-        href="/admin"
-        onClick={aoNavegar}
-        className="flex justify-between border-0 px-[18px] pb-[17px] pt-2 text-[12px] text-ink-2 no-underline hover:text-acento-texto"
-      >
-        Meus eventos <span aria-hidden>+</span>
-      </Link>
+          <Link
+            href="/admin"
+            onClick={aoNavegar}
+            className="flex justify-between border-0 px-[18px] pb-[17px] pt-2 text-[12px] text-ink-2 no-underline hover:text-acento-texto"
+          >
+            Meus eventos <span aria-hidden>+</span>
+          </Link>
+        </>
+      )}
 
-      {GRUPOS.map((grupo) => (
+      {gruposVisiveis(Boolean(evento)).map((grupo) => (
         <React.Fragment key={grupo.id}>
           <div className="mx-[17px] mb-[9px] mt-[15px] text-[10px] font-bold uppercase tracking-[0.15em] text-ink-2">
             {grupo.rotulo}
@@ -140,14 +147,14 @@ export function SidebarDoPainel({
             data-admin-nav
             className="flex shrink-0 flex-col gap-[3px]"
           >
-            {destinosDoGrupo(grupo.id).map(item)}
+            {destinosVisiveis(grupo.id, Boolean(evento)).map(item)}
           </nav>
         </React.Fragment>
       ))}
 
       <div className="mt-auto border-t border-linha pt-[18px]">
         <Link
-          href={`${base}/ajustes#como-funciona`}
+          href={evento ? `${base}/ajustes#como-funciona` : "/admin"}
           onClick={aoNavegar}
           className="flex items-center gap-[11px] px-[15px] py-[11px] text-[13px] text-ink-2 no-underline hover:text-ink"
         >

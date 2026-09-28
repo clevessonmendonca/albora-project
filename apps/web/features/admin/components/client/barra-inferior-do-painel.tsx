@@ -4,7 +4,12 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
-import { DESTINOS, DESTINOS_MOBILE, destinoAtivo } from "@/features/admin/lib/navegacao";
+import {
+  DESTINOS,
+  DESTINOS_MOBILE,
+  destinoAtivo,
+  hrefDoDestino,
+} from "@/features/admin/lib/navegacao";
 import { ICONES_DA_NAVEGACAO } from "@/features/admin/lib/icones-da-navegacao";
 import { useModerationCount } from "./moderation-count-context";
 
@@ -13,12 +18,12 @@ export function BarraInferiorDoPainel({
   eventoId,
   aoAbrirMenu,
 }: {
-  eventoId: string;
+  eventoId: string | null;
   aoAbrirMenu: () => void;
 }) {
   const pathname = usePathname();
   const { count } = useModerationCount();
-  const base = `/admin/e/${eventoId}`;
+  const base = eventoId ? `/admin/e/${eventoId}` : "/admin";
   const ativo = destinoAtivo(pathname, base);
 
   const classes = (marcado: boolean) =>
@@ -44,7 +49,7 @@ export function BarraInferiorDoPainel({
         return (
           <Link
             key={destino.id}
-            href={`${base}${destino.suffix}`}
+            href={hrefDoDestino(destino, base)}
             aria-current={marcado ? "page" : undefined}
             className={classes(marcado)}
           >

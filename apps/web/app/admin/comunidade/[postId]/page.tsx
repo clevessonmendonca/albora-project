@@ -8,7 +8,7 @@ import {
   listarRespostas,
   type TopicoDaComunidade,
 } from "@albora/db";
-import { EventPageLayout } from "@/features/admin/components/server/event-page-layout";
+import { CascaDaConta } from "@/features/admin/components/server/casca-da-conta";
 import { ComunidadeResposta } from "@/features/admin/components/client/comunidade-resposta";
 import {
   Cartao,
@@ -36,9 +36,9 @@ function quando(data: Date): string {
 export default async function PaginaDaConversa({
   params,
 }: {
-  params: Promise<{ eventId: string; postId: string }>;
+  params: Promise<{ postId: string }>;
 }) {
-  const { eventId, postId } = await params;
+  const { postId } = await params;
 
   const host = await hostFromToken((await cookies()).get(HOST_COOKIE)?.value);
   if (!host) redirect("/admin/sign-in");
@@ -53,9 +53,9 @@ export default async function PaginaDaConversa({
   const { post, respostas } = dados;
 
   return (
-    <EventPageLayout eventId={eventId}>
+    <CascaDaConta>
       <Link
-        href={`/admin/e/${eventId}/comunidade`}
+        href="/admin/comunidade"
         className="mb-4 inline-block text-[13px] text-ink-2 no-underline hover:text-ink"
       >
         ← Voltar para a comunidade
@@ -106,13 +106,13 @@ export default async function PaginaDaConversa({
 
         <div>
           <Link
-            href={`/admin/e/${eventId}/inspiracao`}
+            href="/admin/inspiracao"
             className={botaoDoPainel({ variant: "light" })}
           >
             Ver ideias de outros eventos →
           </Link>
         </div>
       </div>
-    </EventPageLayout>
+    </CascaDaConta>
   );
 }

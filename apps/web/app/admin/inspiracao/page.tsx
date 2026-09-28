@@ -10,7 +10,7 @@ import {
   TEMAS_DE_INSPIRACAO,
   type TemaDeInspiracao,
 } from "@albora/db";
-import { EventPageLayout } from "@/features/admin/components/server/event-page-layout";
+import { CascaDaConta } from "@/features/admin/components/server/casca-da-conta";
 import { InspiracaoSalvar } from "@/features/admin/components/client/inspiracao-salvar";
 import {
   Aviso,
@@ -32,13 +32,10 @@ const ROTULO: Record<TemaDeInspiracao, string> = {
 };
 
 export default async function PaginaInspiracao({
-  params,
   searchParams,
 }: {
-  params: Promise<{ eventId: string }>;
   searchParams: Promise<{ tema?: string }>;
 }) {
-  const { eventId } = await params;
   const { tema: temaBruto } = await searchParams;
   const tema = ehTemaDeInspiracao(temaBruto) ? temaBruto : undefined;
 
@@ -50,7 +47,7 @@ export default async function PaginaInspiracao({
   );
   const salvas = ideias.filter((i) => i.salva).length;
 
-  const base = `/admin/e/${eventId}/inspiracao`;
+  const base = "/admin/inspiracao";
   const chip = (marcado: boolean) =>
     [
       "inline-flex min-h-11 items-center rounded-pilula border px-4 text-[13px] no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
@@ -60,7 +57,7 @@ export default async function PaginaInspiracao({
     ].join(" ");
 
   return (
-    <EventPageLayout eventId={eventId}>
+    <CascaDaConta>
       <IntroDaPagina
         eyebrow="Descubra possibilidades"
         titulo="Inspiração"
@@ -126,13 +123,13 @@ export default async function PaginaInspiracao({
 
       <Aviso
         titulo="Comece pelo convite"
-        descricao="Mostrar onde enviar a foto é o que mais aumenta a participação."
+        descricao="Mostrar onde enviar a foto é o que mais aumenta a participação. Abra o evento para preparar o QR."
         acao={
-          <Link href={`/admin/e/${eventId}/qrcode`} className={botaoDoPainel({ variant: "light" })}>
-            Preparar convite →
+          <Link href="/admin" className={botaoDoPainel({ variant: "light" })}>
+            Meus eventos →
           </Link>
         }
       />
-    </EventPageLayout>
+    </CascaDaConta>
   );
 }

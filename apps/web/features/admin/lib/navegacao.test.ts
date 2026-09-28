@@ -4,7 +4,10 @@ import {
   DESTINOS_MOBILE,
   destinoAtivo,
   destinosDoGrupo,
+  destinosVisiveis,
   GRUPOS,
+  gruposVisiveis,
+  hrefDoDestino,
 } from "./navegacao";
 
 const base = "/admin/e/abc";
@@ -61,14 +64,18 @@ describe("destino ativo", () => {
     expect(destinoAtivo(`${base}/consent`, base)).toBe("configuracoes");
   });
 
+  it("destino de conta marca de dentro de um evento — o feed é o mesmo em qualquer um", () => {
+    expect(destinoAtivo("/admin/comunidade", base)).toBe("comunidade");
+    expect(destinoAtivo("/admin/inspiracao", base)).toBe("inspiracao");
+    expect(destinoAtivo("/admin/comunidade/abc-123", base)).toBe("comunidade");
+  });
+
   it("rota própria marca o próprio destino", () => {
     expect(destinoAtivo(`${base}/guests`, base)).toBe("convidados");
     expect(destinoAtivo(`${base}/album`, base)).toBe("album");
     expect(destinoAtivo(`${base}/telao`, base)).toBe("telao");
     expect(destinoAtivo(`${base}/missions`, base)).toBe("missoes");
     expect(destinoAtivo(`${base}/insights`, base)).toBe("insights");
-    expect(destinoAtivo(`${base}/comunidade`, base)).toBe("comunidade");
-    expect(destinoAtivo(`${base}/inspiracao`, base)).toBe("inspiracao");
     expect(destinoAtivo(`${base}/identity`, base)).toBe("identidade");
     expect(destinoAtivo(`${base}/qrcode`, base)).toBe("convite");
     expect(destinoAtivo(`${base}/ajustes`, base)).toBe("configuracoes");
@@ -88,5 +95,36 @@ describe("destino ativo", () => {
 
   it("fora do evento não marca nada", () => {
     expect(destinoAtivo("/admin", base)).toBeNull();
+    expect(destinoAtivo("/admin/billing", base)).toBeNull();
+  });
+});
+
+describe("escopo do destino", () => {
+  it("Comunidade e Inspiração são da conta; o resto é do evento", () => {
+    const daConta = DESTINOS.filter((d) => d.escopo === "conta").map((d) => d.id);
+
+    expect(daConta).toEqual(["comunidade", "inspiracao"]);
+  });
+
+  it("destino de conta ignora a raiz do evento no href", () => {
+    const comunidade = DESTINOS.find((d) => d.id === "comunidade")!;
+    const album = DESTINOS.find((d) => d.id === "album")!;
+
+    expect(hrefDoDestino(comunidade, base)).toBe("/admin/comunidade");
+    expect(hrefDoDestino(album, base)).toBe(`${base}/album`);
+  });
+
+  it("sem evento escolhido, a sidebar mostra só o que é da conta", () => {
+    expect(gruposVisiveis(false).map((g) => g.id)).toEqual(["descobrir"]);
+    expect(destinosVisiveis("evento", false)).toHaveLength(0);
+    expect(destinosVisiveis("descobrir", false).map((d) => d.id)).toEqual([
+      "comunidade",
+      "inspiracao",
+    ]);
+  });
+
+  it("com evento escolhido, mostra os três grupos inteiros", () => {
+    expect(gruposVisiveis(true)).toHaveLength(3);
+    expect(destinosVisiveis("evento", true)).toHaveLength(6);
   });
 });

@@ -112,4 +112,27 @@ describe("SidebarDoPainel", () => {
     );
     expect(container.querySelector("aside")?.className).toMatch(/translate-x-0\b/);
   });
+
+  it("sem evento, a sidebar mostra só o que é da conta", () => {
+    mockPathname.mockReturnValue("/admin/comunidade");
+    montar({ evento: null });
+
+    expect(screen.getByRole("navigation", { name: "Descobrir" })).toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Seu evento" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("navigation", { name: "Personalização" })).not.toBeInTheDocument();
+    expect(screen.queryByText(evento.nome)).not.toBeInTheDocument();
+  });
+
+  it("Comunidade aponta para a conta, não para o evento — o feed é o mesmo em qualquer um", () => {
+    montar();
+
+    expect(screen.getByRole("link", { name: /Comunidade/ })).toHaveAttribute(
+      "href",
+      "/admin/comunidade",
+    );
+    expect(screen.getByRole("link", { name: /Álbum/ })).toHaveAttribute(
+      "href",
+      "/admin/e/abc/album",
+    );
+  });
 });

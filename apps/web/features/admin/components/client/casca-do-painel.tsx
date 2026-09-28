@@ -18,7 +18,7 @@ export function CascaDoPainel({
   raiz,
   children,
 }: {
-  evento: EventoDaSidebar;
+  evento: EventoDaSidebar | null;
   perfil: PerfilDoPainel;
   hoje: string;
   raiz: string;
@@ -62,7 +62,7 @@ export function CascaDoPainel({
 
       <div className="flex min-w-0 flex-col">
         <TopbarDoPainel
-          eventoId={evento.id}
+          eventoId={evento?.id ?? null}
           raiz={raiz}
           hoje={hoje}
           aoAbrirMenu={() => setAberta(true)}
@@ -75,7 +75,7 @@ export function CascaDoPainel({
         </main>
       </div>
 
-      <BarraInferiorDoPainel eventoId={evento.id} aoAbrirMenu={() => setAberta(true)} />
+      <BarraInferiorDoPainel eventoId={evento?.id ?? null} aoAbrirMenu={() => setAberta(true)} />
     </div>
   );
 }

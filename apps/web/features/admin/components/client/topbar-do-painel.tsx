@@ -14,7 +14,7 @@ export function TopbarDoPainel({
   hoje,
   aoAbrirMenu,
 }: {
-  eventoId: string;
+  eventoId: string | null;
   /** O primeiro nível da trilha — o nome curto do espaço do anfitrião. */
   raiz: string;
   /** Data já formatada no servidor: formatar no cliente diverge entre render e hidratação. */
@@ -22,7 +22,7 @@ export function TopbarDoPainel({
   aoAbrirMenu: () => void;
 }) {
   const pathname = usePathname();
-  const ativo = destinoAtivo(pathname, `/admin/e/${eventoId}`);
+  const ativo = destinoAtivo(pathname, eventoId ? `/admin/e/${eventoId}` : "/admin");
   const secao = DESTINOS.find((d) => d.id === ativo)?.rotulo ?? "Visão geral";
 
   return (
