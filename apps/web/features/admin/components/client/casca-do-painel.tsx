@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
 import { adminVars } from "@/features/admin/lib/chrome-do-painel";
 import {
   SidebarDoPainel,
@@ -10,22 +9,26 @@ import {
 } from "./sidebar-do-painel";
 import { TopbarDoPainel } from "./topbar-do-painel";
 import { BarraInferiorDoPainel } from "./barra-inferior-do-painel";
+import { SeletorDeEvento } from "./seletor-de-evento";
 
 export function CascaDoPainel({
   evento,
+  eventos = [],
   perfil,
   hoje,
   raiz,
   children,
 }: {
   evento: EventoDaSidebar | null;
+  /** Os eventos da conta, para o seletor. Vazio fora do escopo de evento. */
+  eventos?: readonly EventoDaSidebar[];
   perfil: PerfilDoPainel;
   hoje: string;
   raiz: string;
   children: ReactNode;
 }) {
-  const router = useRouter();
   const [aberta, setAberta] = useState(false);
+  const [seletorAberto, setSeletorAberto] = useState(false);
   const quemAbriu = useRef<HTMLElement | null>(null);
 
   const abrir = useCallback(() => {
@@ -67,7 +70,7 @@ export function CascaDoPainel({
         aoNavegar={fechar}
         aoTrocarEvento={() => {
           fechar();
-          router.push("/admin");
+          setSeletorAberto(true);
         }}
       />
 
@@ -96,6 +99,13 @@ export function CascaDoPainel({
           {children}
         </main>
       </div>
+
+      <SeletorDeEvento
+        eventos={eventos}
+        ativoId={evento?.id ?? null}
+        aberto={seletorAberto}
+        aoFechar={() => setSeletorAberto(false)}
+      />
 
       <BarraInferiorDoPainel
         eventoId={evento?.id ?? null}

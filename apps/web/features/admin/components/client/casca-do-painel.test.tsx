@@ -15,11 +15,13 @@ vi.mock("./ajuda-do-painel", () => ({ AjudaDoPainel: () => <span /> }));
 vi.mock("./sign-out-button", () => ({ SignOutButton: () => <span>Sair</span> }));
 
 const EVENTO = { id: "abc", nome: "Festa", data: "12 de dezembro", monograma: "F" };
+const OUTRO = { id: "xyz", nome: "Bodas de prata", data: "3 de maio", monograma: "B" };
 
 function montar() {
   return render(
     <CascaDoPainel
       evento={EVENTO}
+      eventos={[EVENTO, OUTRO]}
       perfil={{ nome: "anfitriao@exemplo.com", plano: "Plano Completo" }}
       hoje="segunda-feira, 12 de dezembro"
       raiz="Meu evento"
@@ -80,5 +82,32 @@ describe("a gaveta do painel", () => {
       "aria-expanded",
       "false",
     );
+  });
+
+  it("o seletor lista os eventos da conta e marca o aberto", async () => {
+    const usuario = userEvent.setup();
+    montar();
+
+    await usuario.click(screen.getByRole("button", { name: /Festa/ }));
+
+    const dialogo = screen.getByRole("dialog");
+    expect(dialogo).toHaveTextContent("Bodas de prata");
+    expect(screen.getByRole("link", { name: /Festa/ })).toHaveAttribute("aria-current", "true");
+    expect(screen.getByRole("link", { name: /Bodas de prata/ })).not.toHaveAttribute(
+      "aria-current",
+    );
+  });
+
+  it("o seletor leva para criar evento e para a lista inteira", async () => {
+    const usuario = userEvent.setup();
+    montar();
+
+    await usuario.click(screen.getByRole("button", { name: /Festa/ }));
+
+    expect(screen.getByRole("link", { name: /Criar evento/ })).toHaveAttribute(
+      "href",
+      "/admin/new",
+    );
+    expect(screen.getByRole("link", { name: /Ver todos/ })).toHaveAttribute("href", "/admin");
   });
 });

@@ -7,6 +7,9 @@ import { ModerationCountProvider } from "@/features/admin/components/client/mode
 import { showsFollowMode } from "@/features/admin/lib/follow-mode";
 import { monograma } from "@/features/admin/lib/monograma";
 import { loadEventPage, type AdminEventPageContext } from "@/features/admin/data/load-event-page";
+import { adminEventDisplayName } from "@/features/admin/lib/event-display-name";
+import { listarEventosDoHost } from "@albora/db";
+import { getPool } from "@/lib/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 
 type Props = {
@@ -28,6 +31,19 @@ function dataCurta(quando: Date, fuso: string): string {
 export async function EventPageLayout({ eventId, allowFollowMode = false, children }: Props) {
   const ctx = await loadEventPage(eventId);
   const host = await hostFromToken((await cookies()).get(HOST_COOKIE)?.value);
+  const daConta = host ? await listarEventosDoHost(getPool(), host.accountId) : [];
+
+  // O nome do evento aberto vem do contexto, que conhece o título; os demais
+  // resolvem pelo pack. Sem isso o mesmo evento apareceria com dois nomes.
+  const eventos = daConta.map((e) => ({
+    id: e.eventoId,
+    nome:
+      e.eventoId === eventId
+        ? ctx.name
+        : adminEventDisplayName({ packId: e.packId, slug: e.slug }),
+    data: dataCurta(e.comecaEm, ctx.evento.fuso),
+    monograma: monograma(adminEventDisplayName({ packId: e.packId, slug: e.slug })),
+  }));
   const content = typeof children === "function" ? children(ctx) : children;
 
   return (
@@ -40,6 +56,7 @@ export async function EventPageLayout({ eventId, allowFollowMode = false, childr
             data: dataCurta(ctx.evento.comecaEm, ctx.evento.fuso),
             monograma: monograma(ctx.name),
           }}
+          eventos={eventos}
           perfil={{
             nome: host?.email ?? "Anfitrião",
             plano: `Plano ${ctx.evento.plan}`,
