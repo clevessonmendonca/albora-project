@@ -1,4 +1,5 @@
 import type { PoolClient } from "pg";
+import type { TemaDeInspiracao } from "@albora/core";
 
 /**
  * Inspiração (ADR 0017). O acervo é **editorial**: entra por migration e sai
@@ -6,14 +7,8 @@ import type { PoolClient } from "pg";
  * anfitrião são os salvos, e esses ninguém mais vê.
  */
 
-export const TEMAS_DE_INSPIRACAO = ["fotos", "decoracao", "experiencia"] as const;
-export type TemaDeInspiracao = (typeof TEMAS_DE_INSPIRACAO)[number];
-
-export function ehTemaDeInspiracao(valor: unknown): valor is TemaDeInspiracao {
-  return (
-    typeof valor === "string" && (TEMAS_DE_INSPIRACAO as readonly string[]).includes(valor)
-  );
-}
+export type { TemaDeInspiracao } from "@albora/core";
+export { TEMAS_DE_INSPIRACAO, ehTemaDeInspiracao } from "@albora/core";
 
 export type IdeiaDeInspiracao = {
   id: string;

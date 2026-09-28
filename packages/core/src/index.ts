@@ -840,3 +840,11 @@ export { VERSOES_DE_CONSENTIMENTO as CONSENT_VERSIONS } from "./consent-versions
 /** English alias — prefer for new code. @see textoDoConsentimento */
 export { textoDoConsentimento as consentVersionText } from "./consent-versions";
 export type { MomentoDaRetrospectiva, Retrospectiva } from "./album";
+
+export type { TopicoDaComunidade, TemaDeInspiracao } from "./comunidade";
+export {
+  TOPICOS_DA_COMUNIDADE,
+  TEMAS_DE_INSPIRACAO,
+  ehTopicoDaComunidade,
+  ehTemaDeInspiracao,
+} from "./comunidade";

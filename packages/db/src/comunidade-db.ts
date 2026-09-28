@@ -1,19 +1,13 @@
 import type { PoolClient } from "pg";
+import type { TopicoDaComunidade } from "@albora/core";
 
 /**
  * Comunidade entre anfitriões (ADR 0017). Dado de **conta**, não de evento:
  * todo caminho aqui roda sob `comConta`, nunca sob `comEvento`.
  */
 
-export const TOPICOS_DA_COMUNIDADE = ["duvida", "ideia", "experiencia", "indicacao"] as const;
-export type TopicoDaComunidade = (typeof TOPICOS_DA_COMUNIDADE)[number];
-
-export function ehTopicoDaComunidade(valor: unknown): valor is TopicoDaComunidade {
-  return (
-    typeof valor === "string" &&
-    (TOPICOS_DA_COMUNIDADE as readonly string[]).includes(valor)
-  );
-}
+export type { TopicoDaComunidade } from "@albora/core";
+export { TOPICOS_DA_COMUNIDADE, ehTopicoDaComunidade } from "@albora/core";
 
 export type PostDaComunidade = {
   id: string;
