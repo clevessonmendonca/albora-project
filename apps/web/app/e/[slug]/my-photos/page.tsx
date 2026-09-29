@@ -33,7 +33,6 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
         slug={slug}
         eventoId={session.eventoId}
         sessaoId={session.sessaoId}
-        evento={r.evento}
         revisaoAntesDoTelao={r.evento.revisaoAntesDoTelao}
       />
     </Suspense>
