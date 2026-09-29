@@ -73,7 +73,9 @@ export function NovaConversa() {
         <label htmlFor="comunidade-topico" className="tipo-label text-ink-3">
           Assunto
         </label>
+        {/* O botão que abriu o formulário desmonta, e o foco cairia no body. */}
         <select
+          autoFocus
           id="comunidade-topico"
           value={topico}
           onChange={(e) => setTopico(e.target.value as TopicoDaComunidade)}
@@ -210,11 +212,18 @@ export function Apagar({
 }) {
   const router = useRouter();
   const [erro, setErro] = useState<string | null>(null);
-  const [pendente, comecar] = useTransition();
+  const [navegando, comecar] = useTransition();
   const [confirmando, setConfirmando] = useState(false);
+  // `useTransition` só acende depois do fetch, e até lá o botão continuava
+  // clicável: dois toques mandavam dois DELETE, e o segundo voltava 404 — a
+  // pessoa via "não foi possível apagar" logo depois de ter apagado.
+  const [enviando, setEnviando] = useState(false);
+  const pendente = enviando || navegando;
 
   async function apagar() {
+    if (pendente) return;
     setErro(null);
+    setEnviando(true);
     try {
       await mandar(url, { method: "DELETE" });
       comecar(() => {
@@ -224,6 +233,8 @@ export function Apagar({
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Não foi possível apagar agora.");
       setConfirmando(false);
+    } finally {
+      setEnviando(false);
     }
   }
 
@@ -265,13 +276,23 @@ export function Apagar({
   );
 }
 
-export function SalvarIdeia({ ideiaId, salva }: { ideiaId: string; salva: boolean }) {
+export function SalvarIdeia({
+  ideiaId,
+  titulo,
+  salva,
+}: {
+  ideiaId: string;
+  /** Sem ele a lista vira uma fila de botões "Salvar" indistinguíveis no leitor de tela. */
+  titulo: string;
+  salva: boolean;
+}) {
   const router = useRouter();
   const [agora, setAgora] = useState(salva);
   const [erro, setErro] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
   async function alternar() {
+    if (enviando) return;
     const proxima = !agora;
     setEnviando(true);
     setErro(null);
@@ -293,18 +314,23 @@ export function SalvarIdeia({ ideiaId, salva }: { ideiaId: string; salva: boolea
 
   return (
     <div className="flex items-center gap-3">
+      {/* Rótulo fixo: trocar "Salvar" por "Salva" junto do `aria-pressed` faz o
+          leitor de tela anunciar "Salva, alternar, não pressionado". O estado
+          mora no `aria-pressed`; só a cor muda. */}
       <button
         type="button"
         aria-pressed={agora}
-        disabled={enviando}
+        aria-label={`Salvar: ${titulo}`}
         onClick={() => void alternar()}
         className={`inline-flex min-h-11 items-center rounded-pilula border px-4 tipo-label transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
+          enviando ? "opacity-60" : ""
+        } ${
           agora
             ? "border-acento bg-acento-superficie text-acento-texto"
             : "border-linha text-ink-2 hover:border-acento-borda hover:text-ink"
         }`}
       >
-        {agora ? "Salva" : "Salvar"}
+        Salvar
       </button>
       <Erro mensagem={erro} />
     </div>

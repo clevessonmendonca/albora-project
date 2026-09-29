@@ -17,6 +17,7 @@ import {
   UUID_RE,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
+import { violacaoDeChaveEstrangeira } from "@/lib/api/erros-do-banco";
 import { consume } from "@/lib/rate-limit-store";
 
 const LIMITE_TITULO = 160;
@@ -163,6 +164,11 @@ export async function RESPONDER(req: Request, ctx: { params: Promise<{ postId: s
 
     return jsonOk({ id }, { status: 201 });
   } catch (erro) {
+    // A conversa pode ser apagada entre a leitura e o INSERT — a FK recusa, e
+    // quem responde merece saber que ela sumiu, não um 500.
+    if (violacaoDeChaveEstrangeira(erro)) {
+      return errorResponse(404, "comunidade.post_ausente", "Conversa não encontrada");
+    }
     return unexpectedError("admin.comunidade.responder", erro);
   }
 }

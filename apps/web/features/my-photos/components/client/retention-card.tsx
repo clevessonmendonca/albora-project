@@ -5,7 +5,7 @@ import { Card } from "@albora/ui-web";
 import { ClaimPhotosButton } from "@/features/guest/components/client/claim-photos-button";
 
 /**
- * Card de retenção da tela "Você" (REFATORACAO §111/§126): o convidado já viu
+ * Card de retenção da tela "Perfil" (REFATORACAO §111/§126): o convidado já viu
  * o valor, aqui ele guarda as próprias fotos e recebe o álbum depois. O login
  * é tardio e opcional (ADR 0018) — reusa o `ClaimPhotosButton` (Google SSO),
  * que só renderiza dentro de uma sessão de convidado ativa.

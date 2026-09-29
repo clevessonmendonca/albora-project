@@ -8,6 +8,7 @@ import {
   UUID_RE,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
+import { violacaoDeChaveEstrangeira } from "@/lib/api/erros-do-banco";
 
 /** Salvar uma ideia é dado de conta (ADR 0023) — ninguém vê o que o outro salvou. */
 export async function PUT(req: Request, ctx: { params: Promise<{ ideiaId: string }> }) {
@@ -46,6 +47,12 @@ async function alternar(
 
     return jsonOk({ salva: acao === "salvar" });
   } catch (erro) {
+    // Ideia que não existe é 404, não falha nossa: o id é UUID válido vindo da
+    // URL, e a FK de `inspiration_saves` é quem recusa. Sem isto, qualquer
+    // anfitrião derruba um 500 e um evento de erro com um id inventado.
+    if (violacaoDeChaveEstrangeira(erro)) {
+      return errorResponse(404, "inspiracao.ideia_ausente", "Ideia não encontrada");
+    }
     return unexpectedError(`admin.inspiracao.${acao}`, erro);
   }
 }

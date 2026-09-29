@@ -20,8 +20,10 @@ export type PostNaTela = {
   topico: TopicoDaComunidade;
   titulo: string;
   corpo: string;
-  /** ISO — o componente client formata, o servidor não decide fuso por ninguém. */
+  /** ISO. `quando()` o formata no servidor, com fuso fixo — ver lá. */
   criadoEm: string;
+  /** `created_at` com microssegundo, só para o cursor. O `criadoEm` acima tem milissegundo e pularia linha. */
+  chave: string;
   respostas: number;
   meu: boolean;
 };
@@ -68,6 +70,16 @@ export function autoria(meu: boolean): string {
   return meu ? "Você" : "Quem organiza";
 }
 
+/**
+ * Roda no servidor, dentro do componente que desenha a assinatura.
+ *
+ * As formas relativas não dependem de fuso — só da diferença. A data absoluta
+ * depende, e o servidor costuma estar em UTC: sem fixar o fuso, uma conversa
+ * das 22h em Brasília aparece com a data do dia seguinte. O ano entra depois de
+ * doze meses, senão um post do ano passado fica igual a um do mês passado.
+ */
+const FUSO = "America/Sao_Paulo";
+
 export function quando(iso: string, agora: Date = new Date()): string {
   const data = new Date(iso);
   const minutos = Math.floor((agora.getTime() - data.getTime()) / 60_000);
@@ -77,28 +89,37 @@ export function quando(iso: string, agora: Date = new Date()): string {
   if (horas < 24) return `há ${horas} h`;
   const dias = Math.floor(horas / 24);
   if (dias < 7) return `há ${dias} d`;
-  return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+  return data.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    timeZone: FUSO,
+    ...(dias >= 365 ? { year: "numeric" } : {}),
+  });
 }
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Os seis dígitos são obrigatórios: é a precisão que o `Date` do JS não tem. */
+const CHAVE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/;
 
 /**
- * Cursor da paginação por chave, `<iso>_<uuid>`, ida e volta pela URL.
+ * Cursor da paginação por chave, `<chave>_<uuid>`, ida e volta pela URL.
  *
- * Valida os dois lados antes de devolver: o `id` vai parar num `::uuid` da
- * consulta, e qualquer coisa que não seja UUID vira erro de Postgres — uma URL
- * editada à mão derrubaria a página com 500 em vez de mostrar o feed do topo.
+ * Os dois lados são validados antes de devolver, e nenhum é reconstruído como
+ * `Date`: a chave segue como texto até o `::timestamptz` da consulta, com os
+ * microssegundos intactos. Valor torto vira "sem cursor" — sem isso o `::uuid`
+ * e o `::timestamptz` estouram e a página responde 500 em vez do topo do feed.
  */
-export function lerCursor(valor: string | undefined): { criadoEm: Date; id: string } | undefined {
+export function lerCursor(valor: string | undefined): { chave: string; id: string } | undefined {
   if (!valor) return undefined;
   const corte = valor.lastIndexOf("_");
   if (corte <= 0) return undefined;
-  const criadoEm = new Date(valor.slice(0, corte));
+  const chave = valor.slice(0, corte);
   const id = valor.slice(corte + 1);
-  if (Number.isNaN(criadoEm.getTime()) || !UUID.test(id)) return undefined;
-  return { criadoEm, id };
+  if (!CHAVE.test(chave) || !UUID.test(id)) return undefined;
+  return { chave, id };
 }
 
-export function escreverCursor(post: { criadoEm: string; id: string }): string {
-  return `${post.criadoEm}_${post.id}`;
+export function escreverCursor(post: { chave: string; id: string }): string {
+  return `${post.chave}_${post.id}`;
 }

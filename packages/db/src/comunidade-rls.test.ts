@@ -302,12 +302,52 @@ describe("o feed pagina por chave, não por OFFSET", () => {
     const segunda = await comoConta(conta, (c) =>
       listarPostsDaComunidade(c, conta, {
         limite: 3,
-        antesDe: { criadoEm: ultimo.criadoEm, id: ultimo.id },
+        antesDe: { chave: ultimo.chave, id: ultimo.id },
       }),
     );
 
     expect(segunda.map((p) => p.titulo)).toEqual(["post 3", "post 4", "post 5"]);
     expect(segunda.map((p) => p.titulo)).not.toContain("post 2");
     expect(segunda.map((p) => p.titulo)).not.toContain("recém-chegado");
+  });
+
+  /**
+   * 🔴 O caso que o `Date` do JS não enxerga.
+   *
+   * `timestamptz` guarda microssegundo; o driver entrega `Date`, que só tem
+   * milissegundo. Um cursor montado a partir de `criadoEm` trunca para baixo, e
+   * a linha que cai entre o truncado e o real fica fora das duas páginas: não
+   * estava na primeira, e a segunda pede estritamente menor que o truncado.
+   * Some sem erro, sem log, sem nada.
+   */
+  it("não perde a linha que divide o milissegundo com a última da página", async () => {
+    await admin.query("DELETE FROM community_posts");
+
+    const base = "2026-09-27T12:00:00";
+    const micros = ["123456", "123200", "122900"];
+    await comoConta(contaA, async (c) => {
+      for (const [i, us] of micros.entries()) {
+        await c.query(
+          `INSERT INTO community_posts (account_id, topic, title, body, created_at)
+           VALUES ($1, 'ideia', $2, 'corpo', $3::timestamptz)`,
+          [contaA, `micro ${i}`, `${base}.${us}Z`],
+        );
+      }
+    });
+
+    const primeira = await comoConta(contaA, (c) =>
+      listarPostsDaComunidade(c, contaA, { limite: 1 }),
+    );
+    expect(primeira.map((p) => p.titulo)).toEqual(["micro 0"]);
+
+    const ultimo = primeira[0]!;
+    const segunda = await comoConta(contaA, (c) =>
+      listarPostsDaComunidade(c, contaA, {
+        limite: 5,
+        antesDe: { chave: ultimo.chave, id: ultimo.id },
+      }),
+    );
+
+    expect(segunda.map((p) => p.titulo)).toEqual(["micro 1", "micro 2"]);
   });
 });

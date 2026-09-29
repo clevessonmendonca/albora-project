@@ -35,7 +35,7 @@ function Chips({
   const itens = [{ valor: "", rotulo: "Tudo", descricao: "Sem filtro" }, ...opcoes];
 
   return (
-    <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+    <ul aria-label="Filtrar por assunto" className="m-0 flex list-none flex-wrap gap-2 p-0">
       {itens.map((o) => {
         const ativo = (atual ?? "") === o.valor;
         return (
@@ -164,7 +164,7 @@ export async function Conversa({ eventId, postId }: { eventId: string; postId: s
     <div className="flex flex-col gap-6">
       <Link
         href={base}
-        className="tipo-label self-start text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
+        className="tipo-label inline-flex min-h-11 items-center self-start text-ink-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:text-ink"
       >
         ← Comunidade
       </Link>
@@ -226,7 +226,7 @@ function CartaoDeIdeia({ ideia }: { ideia: IdeiaNaTela }) {
       <h3 className="tipo-subtitle mt-1 mb-2 text-ink">{ideia.titulo}</h3>
       <p className="tipo-body m-0 max-w-[60ch] whitespace-pre-line text-ink-2">{ideia.corpo}</p>
       <div className="mt-5">
-        <SalvarIdeia ideiaId={ideia.id} salva={ideia.salva} />
+        <SalvarIdeia ideiaId={ideia.id} titulo={ideia.titulo} salva={ideia.salva} />
       </div>
     </AdminCard>
   );

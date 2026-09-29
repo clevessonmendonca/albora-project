@@ -11,7 +11,7 @@ import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { getPool } from "@/lib/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
-import type { IdeiaNaTela, PostNaTela, RespostaNaTela } from "@/features/admin/lib/descobrir-tela";
+import { UUID, type IdeiaNaTela, type PostNaTela, type RespostaNaTela } from "@/features/admin/lib/descobrir-tela";
 
 /**
  * Descobrir lê sob `comConta` (ADR 0023) — nunca sob `comEvento`. A URL da
@@ -47,6 +47,7 @@ export async function carregarFeed(filtro: FiltroDaComunidade): Promise<{
       titulo: p.titulo,
       corpo: p.corpo,
       criadoEm: p.criadoEm.toISOString(),
+      chave: p.chave,
       respostas: p.respostas,
       meu: p.meu,
     }),
@@ -59,6 +60,10 @@ export async function carregarConversa(postId: string): Promise<{
   post: PostNaTela;
   respostas: RespostaNaTela[];
 }> {
+  // O `postId` vem da URL e iria direto para um `::uuid`: sem esta guarda,
+  // `/comunidade/abc` responde 500 em vez da página de "não encontrada".
+  if (!UUID.test(postId)) notFound();
+
   const contaId = await contaDaSessao();
 
   const dados = await comConta(getPool(), contaId, async (c) => {
@@ -76,6 +81,7 @@ export async function carregarConversa(postId: string): Promise<{
       titulo: dados.post.titulo,
       corpo: dados.post.corpo,
       criadoEm: dados.post.criadoEm.toISOString(),
+      chave: dados.post.chave,
       respostas: dados.post.respostas,
       meu: dados.post.meu,
     },

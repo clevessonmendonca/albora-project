@@ -9,6 +9,9 @@ import type { TopicoDaComunidade } from "@albora/core";
 export type { TopicoDaComunidade } from "@albora/core";
 export { TOPICOS_DA_COMUNIDADE, ehTopicoDaComunidade } from "@albora/core";
 
+/** ISO-8601 em UTC com os seis dígitos que o `timestamptz` guarda — o que o `Date` do JS perderia. */
+const CHAVE = `to_char(p.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"')`;
+
 export type PostDaComunidade = {
   id: string;
   accountId: string;
@@ -16,6 +19,15 @@ export type PostDaComunidade = {
   titulo: string;
   corpo: string;
   criadoEm: Date;
+  /**
+   * `created_at` com precisão de microssegundo, como o Postgres o guarda.
+   *
+   * 🔴 Não dá para paginar por `criadoEm`: o driver entrega `timestamptz` como
+   * `Date` do JS, que só tem milissegundo. Um cursor montado a partir dele
+   * trunca, e a linha entre o truncado e o real não aparece em página nenhuma —
+   * some calada, sem erro.
+   */
+  chave: string;
   atualizadoEm: Date;
   respostas: number;
   /** Verdadeiro quando o post é de quem está lendo — decide se a ação de apagar aparece. */
@@ -38,6 +50,7 @@ type LinhaDePost = {
   title: string;
   body: string;
   created_at: Date;
+  created_at_chave: string;
   updated_at: Date;
   respostas: string;
   meu: boolean;
@@ -51,6 +64,7 @@ function montarPost(l: LinhaDePost): PostDaComunidade {
     titulo: l.title,
     corpo: l.body,
     criadoEm: l.created_at,
+    chave: l.created_at_chave,
     atualizadoEm: l.updated_at,
     respostas: Number(l.respostas),
     meu: l.meu,
@@ -67,7 +81,7 @@ export type FiltroDaComunidade = {
    * linha nova no topo o tempo todo, e `OFFSET` nessa condição pula ou repete
    * conversa entre uma página e a seguinte.
    */
-  antesDe?: { criadoEm: Date; id: string } | undefined;
+  antesDe?: { chave: string; id: string } | undefined;
 };
 
 export async function listarPostsDaComunidade(
@@ -80,12 +94,13 @@ export async function listarPostsDaComunidade(
 
   const { rows } = await cliente.query<LinhaDePost>(
     `SELECT p.id, p.account_id, p.topic, p.title, p.body, p.created_at, p.updated_at,
+            ${CHAVE} AS created_at_chave,
             (SELECT count(*) FROM community_replies r WHERE r.post_id = p.id) AS respostas,
             (p.account_id = $1) AS meu
        FROM community_posts p
       WHERE ($2::text IS NULL OR p.topic = $2)
         AND ($3::text IS NULL OR p.title ILIKE '%' || $3 || '%' OR p.body ILIKE '%' || $3 || '%')
-        AND ($5::timestamptz IS NULL OR (p.created_at, p.id) < ($5, $6::uuid))
+        AND ($5::timestamptz IS NULL OR (p.created_at, p.id) < ($5::timestamptz, $6::uuid))
       ORDER BY p.created_at DESC, p.id DESC
       LIMIT $4`,
     [
@@ -93,7 +108,7 @@ export async function listarPostsDaComunidade(
       filtro.topico ?? null,
       termo && termo.length > 0 ? termo : null,
       limite,
-      filtro.antesDe?.criadoEm ?? null,
+      filtro.antesDe?.chave ?? null,
       filtro.antesDe?.id ?? null,
     ],
   );
@@ -108,6 +123,7 @@ export async function lerPostDaComunidade(
 ): Promise<PostDaComunidade | null> {
   const { rows } = await cliente.query<LinhaDePost>(
     `SELECT p.id, p.account_id, p.topic, p.title, p.body, p.created_at, p.updated_at,
+            ${CHAVE} AS created_at_chave,
             (SELECT count(*) FROM community_replies r WHERE r.post_id = p.id) AS respostas,
             (p.account_id = $1) AS meu
        FROM community_posts p

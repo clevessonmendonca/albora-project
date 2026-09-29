@@ -57,8 +57,8 @@ export function AlbumLightbox({
           <video
             src={src}
             controls
-            autoPlay
             playsInline
+            poster={foto.urlThumb ?? undefined}
             className="absolute inset-0 size-full object-contain"
             onClick={(ev) => ev.stopPropagation()}
           />

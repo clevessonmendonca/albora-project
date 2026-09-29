@@ -28,6 +28,7 @@ function post(over: Partial<PostNaTela> = {}): PostNaTela {
     titulo: "Quantas missões vocês deixaram?",
     corpo: "Estamos entre três e seis.",
     criadoEm: new Date().toISOString(),
+    chave: "2026-09-20T12:00:00.123456Z",
     respostas: 0,
     meu: false,
     ...over,
@@ -96,7 +97,7 @@ describe("feed da comunidade", () => {
   });
 
   it("a próxima página é um link com o cursor da última conversa", async () => {
-    const ultimo = post({ criadoEm: "2026-09-20T12:00:00.000Z" });
+    const ultimo = post({ chave: "2026-09-20T12:00:00.123456Z" });
     carregarFeed.mockResolvedValue({ posts: [ultimo], temMais: true });
 
     render(await Comunidade({ eventId: EVENTO, filtro: "duvida" }));
@@ -104,7 +105,7 @@ describe("feed da comunidade", () => {
     const link = screen.getByRole("link", { name: "Conversas mais antigas" });
     expect(link.getAttribute("href")).toBe(
       `/admin/e/${EVENTO}/comunidade?filtro=duvida&antes=${encodeURIComponent(
-        `${ultimo.criadoEm}_${ultimo.id}`,
+        `${ultimo.chave}_${ultimo.id}`,
       )}`,
     );
   });
@@ -153,7 +154,10 @@ describe("inspiração", () => {
 
     render(await Inspiracao({ eventId: EVENTO }));
 
-    expect(screen.getByRole("button", { name: "Salva" })).toHaveAttribute("aria-pressed", "true");
+    // Rótulo fixo: o estado mora no `aria-pressed`, não no texto.
+    const botao = screen.getByRole("button", { name: "Salvar: Deixe o QR onde a fila já para" });
+    expect(botao).toHaveAttribute("aria-pressed", "true");
+    expect(botao).toHaveTextContent("Salvar");
   });
 
   it("tema inventado na URL não filtra nada", async () => {
