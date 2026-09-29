@@ -17,8 +17,8 @@ describe("FloatingNav", () => {
       "href",
       `${base}/photo`,
     );
-    expect(screen.getByRole("link", { name: /álbum/i })).toHaveAttribute("href", `${base}/album`);
-    expect(screen.getByRole("link", { name: /você/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /explorar/i })).toHaveAttribute("href", `${base}/album`);
+    expect(screen.getByRole("link", { name: /perfil/i })).toHaveAttribute(
       "href",
       `${base}/my-photos`,
     );
@@ -41,7 +41,7 @@ describe("FloatingNav", () => {
   it("sem `active` (tela sem slot correspondente, ex. /feed), nenhum item fica marcado", () => {
     render(<FloatingNav base={base} />);
 
-    for (const name of [/início/i, /missões/i, /álbum/i, /você/i]) {
+    for (const name of [/início/i, /missões/i, /explorar/i, /perfil/i]) {
       const link = screen.getByRole("link", { name });
       expect(link).not.toHaveAttribute("aria-current");
       expect(link.className).toContain("text-ink-3");
