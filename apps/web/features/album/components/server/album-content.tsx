@@ -1,5 +1,4 @@
 import type { EventoPublico } from "@albora/db";
-import { darkEventVars } from "@/features/guest/lib/dark-event-vars";
 import { getAlbumPage } from "../../data/get-album-page";
 import { AlbumWithTabs } from "../client/album-with-tabs";
 
@@ -19,7 +18,7 @@ export async function AlbumContent({
   const data = await getAlbumPage({ slug, eventoId, sessaoId, evento, missionParam });
 
   return (
-    <div style={darkEventVars(evento)}>
+    <div>
       <AlbumWithTabs {...data} />
     </div>
   );

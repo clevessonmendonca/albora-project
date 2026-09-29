@@ -1,5 +1,4 @@
 import type { EventoPublico } from "@albora/db";
-import { eventVars } from "@/features/guest/lib/event-vars";
 import { getMyPhotosPage } from "../../data/get-my-photos-page";
 import { MyPhotosPage } from "../client/my-photos-page";
 
@@ -17,8 +16,6 @@ export async function MyPhotosContent({
   const data = await getMyPhotosPage({ slug, eventoId, sessaoId });
 
   return (
-    <div style={eventVars(evento)}>
-      <MyPhotosPage {...data} />
-    </div>
+    <MyPhotosPage {...data} />
   );
 }
