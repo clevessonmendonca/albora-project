@@ -892,3 +892,11 @@ export type {
 export { InvalidIdTokenError, validateIdToken } from "./oidc/validate-id-token";
 
 export { slugLegivelDeTitulo } from "./slug";
+
+export type { TopicoDaComunidade, TemaDeInspiracao } from "./comunidade";
+export {
+  TOPICOS_DA_COMUNIDADE,
+  TEMAS_DE_INSPIRACAO,
+  ehTopicoDaComunidade,
+  ehTemaDeInspiracao,
+} from "./comunidade";
