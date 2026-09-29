@@ -1,5 +1,6 @@
 "use client";
 
+import { isVideoMime } from "@albora/core";
 import { useState } from "react";
 import type { ModoInteracao } from "@albora/core";
 import type { ServedPhoto } from "@/lib/album";
@@ -34,12 +35,16 @@ export function AlbumLightbox({
   });
 
   const src = foto.url || foto.urlThumb;
+  // O álbum não filtra por tipo (`album-db`: só `state = 'published'`), então
+  // vídeo publicado chega aqui. Um `<img src="…mp4">` não toca nada — a pessoa
+  // abre e encara o vazio. Mesma ramificação que o feed já faz.
+  const ehVideo = isVideoMime(foto.mime);
 
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Foto do álbum"
+      aria-label={ehVideo ? "Vídeo do álbum" : "Foto do álbum"}
       className="fixed inset-0 z-40 bg-bg"
       onClick={() => {
         if (!pedidoAberto) onSair();
@@ -48,12 +53,23 @@ export function AlbumLightbox({
       <LightboxTopBar onRequestPhoto={() => setPedidoAberto(true)} onClose={onSair} />
 
       {src ? (
-        <img
-          src={src}
-          alt=""
-          className="absolute inset-0 size-full object-contain"
-          onClick={(ev) => ev.stopPropagation()}
-        />
+        ehVideo ? (
+          <video
+            src={src}
+            controls
+            autoPlay
+            playsInline
+            className="absolute inset-0 size-full object-contain"
+            onClick={(ev) => ev.stopPropagation()}
+          />
+        ) : (
+          <img
+            src={src}
+            alt=""
+            className="absolute inset-0 size-full object-contain"
+            onClick={(ev) => ev.stopPropagation()}
+          />
+        )
       ) : null}
 
       <LightboxNavButtons onPrevious={onAnterior} onNext={onProxima} />

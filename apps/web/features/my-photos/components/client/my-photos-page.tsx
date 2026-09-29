@@ -316,7 +316,10 @@ export function MyPhotosPage({
             onRetry={() => void galeria.tentarDeNovo()}
           />
 
-          <RetentionCard eventId={eventoId} />
+          {/* Oferta de conta só depois da primeira foto (ADR 0018) — a regra está
+              escrita no próprio `ClaimPhotosButton`, e a aba Perfil fica sempre
+              na barra: sem esta condição ela aparecia antes de existir foto. */}
+          {idsFotosEnviadas.length > 0 && <RetentionCard eventId={eventoId} />}
 
           <AlbumFooterCta slug={slug} refToken={refToken ?? null} />
 

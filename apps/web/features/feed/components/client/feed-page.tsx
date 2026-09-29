@@ -215,10 +215,13 @@ export function FeedPage({
             />
           )}
 
+          {/* `midiaIndisponivel` vem do catch de `mediaUrls()` — falha ao assinar a
+              URL, não o gate do anfitrião. Dizer que os anfitriões precisam
+              liberar manda a pessoa esperar algo que não vai acontecer. */}
           {estado.midiaIndisponivel && (
             <p className="mb-4 text-[0.9rem] leading-relaxed text-ink-2">
-              As fotos ainda não abriram. Elas aparecem sozinhas quando {anfitriaoPlural}{" "}
-              liberarem.
+              As fotos não carregaram agora. A gente tenta de novo sozinho — se demorar,
+              confira sua conexão.
             </p>
           )}
 
