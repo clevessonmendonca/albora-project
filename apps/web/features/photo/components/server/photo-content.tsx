@@ -46,6 +46,7 @@ export async function PhotoContent({
         promptKey={data.promptKey}
         promptLabel={data.promptLabel}
         forceVideo={data.forceVideo}
+        revisaoAntesDoTelao={evento.revisaoAntesDoTelao}
       />
     </div>
   );
