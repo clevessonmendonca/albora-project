@@ -1,7 +1,6 @@
 import type { EventoPublico } from "@albora/db";
 import { withEvent, listChallenges } from "@albora/db";
 import { getPool } from "@/lib/db";
-import { darkEventVars } from "@/features/guest/lib/dark-event-vars";
 import { resolveMissionsWithStatus } from "@/features/guest/lib/resolved-missions";
 import { getHomePage } from "../../data/get-home-page";
 import { HomePage } from "../client/home-page";
@@ -21,7 +20,7 @@ export async function HomeContent({
   );
 
   return (
-    <div style={darkEventVars(evento)}>
+    <div>
       <HomePage {...data} missions={resolveMissionsWithStatus(evento.packId, challenges)} />
     </div>
   );

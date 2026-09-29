@@ -49,7 +49,7 @@ export default async function Layout({
 
   return (
     <div className="guest-tema superficie-de-acao" data-tema={prefServidor ?? undefined} id="guest-root">
-      <style>{estiloAntiFlash(claro, escuro)}</style>
+      <style>{estiloAntiFlash(claro, escuro, ".guest-tema", "dark")}</style>
       <link rel="manifest" href={`/e/${encodeURIComponent(slug)}/manifest.webmanifest`} />
       {withSession && <GlobalQueue eventoId={session.eventoId} />}
       {withSession && (

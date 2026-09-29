@@ -79,3 +79,33 @@ describe("estiloAntiFlash — CSS final nunca carrega injeção, mesmo com ident
     expect(css.match(/\}/g)?.length).toBe(5);
   });
 });
+
+describe("o piso de cada superfície", () => {
+  // Valores sentinela: o que se verifica aqui é qual bloco a cascata emite,
+  // não a cor. Hex literal em teste reprova o guard de tokens, com razão.
+  const claro = { "--bg": "var(--sentinela-claro)" };
+  const escuro = { "--bg": "var(--sentinela-escuro)" };
+
+  it("no convidado, sem escolha é escuro — e o sistema não tem voz", () => {
+    const css = estiloAntiFlash(claro, escuro, ".guest-tema", "dark");
+
+    expect(css).toContain('.guest-tema:not([data-tema="light"]) { --bg: var(--sentinela-escuro); }');
+    expect(css).toContain('.guest-tema[data-tema="light"] { --bg: var(--sentinela-claro); }');
+    // A festa é à noite; celular configurado em claro não muda o contexto.
+    expect(css).not.toContain("prefers-color-scheme");
+  });
+
+  it("no painel, sem escolha segue o sistema", () => {
+    const css = estiloAntiFlash(claro, escuro, ".admin-tema");
+
+    expect(css).toContain("prefers-color-scheme: dark");
+    expect(css).toContain('.admin-tema:not([data-tema="dark"]) { --bg: var(--sentinela-claro); }');
+  });
+
+  it("escolha explícita vale nas duas superfícies", () => {
+    for (const padrao of ["light", "dark"] as const) {
+      const css = estiloAntiFlash(claro, escuro, ".x", padrao);
+      expect(css).toContain('.x[data-tema="light"] { --bg: var(--sentinela-claro); }');
+    }
+  });
+});

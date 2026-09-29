@@ -15,22 +15,22 @@ export type SharedGuestTabDef = {
 
 export const SHARED_GUEST_TABS: readonly SharedGuestTabDef[] = [
   {
-    id: "missoes",
-    label: "Missões",
-    path: "/missions",
-    column: "col-start-2",
-    icon: <Star size={22} />,
-  },
-  {
     id: "album",
-    label: "Álbum",
+    label: "Explorar",
     path: "/album",
-    column: "col-start-4",
+    column: "col-start-2",
     icon: <GridIcon size={22} />,
   },
   {
+    id: "missoes",
+    label: "Missões",
+    path: "/missions",
+    column: "col-start-4",
+    icon: <Star size={22} />,
+  },
+  {
     id: "minhas",
-    label: "Você",
+    label: "Perfil",
     path: "/my-photos",
     column: "col-start-5",
     icon: <PersonIcon size={22} />,

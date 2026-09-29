@@ -23,14 +23,34 @@ export function cssDasVars(vars: Record<string, string>): string {
     .join(" ");
 }
 
-/** 4 blocos theme-aware: claro, escuro sob media, overrides `[data-tema]` nas duas direções. Espera vars já saneadas — só serializa a cascata. */
+/**
+ * Cascata theme-aware, com o **piso** de cada superfície.
+ *
+ * `padrao: "light"` (painel) — sem escolha, segue o sistema: claro por base,
+ * escuro sob `prefers-color-scheme`.
+ *
+ * `padrao: "dark"` (convidado) — sem escolha, **escuro sempre**, e não segue o
+ * sistema. O escuro ali não é preferência, é contexto de uso: a festa é à
+ * noite, e um celular configurado em claro não muda isso. Só escolha explícita
+ * da pessoa troca o chão.
+ *
+ * Espera vars já saneadas — só serializa a cascata.
+ */
 export function estiloAntiFlash(
   claro: Record<string, string>,
   escuro: Record<string, string>,
   escopo = ".guest-tema",
+  padrao: "light" | "dark" = "light",
 ): string {
   const claroCss = cssDasVars(claro);
   const escuroCss = cssDasVars(escuro);
+
+  if (padrao === "dark") {
+    return [
+      `${escopo}:not([data-tema="light"]) { ${escuroCss} }`,
+      `${escopo}[data-tema="light"] { ${claroCss} }`,
+    ].join("\n");
+  }
 
   return [
     `${escopo}:not([data-tema="dark"]) { ${claroCss} }`,

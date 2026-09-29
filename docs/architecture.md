@@ -84,6 +84,20 @@ Duas leituras cruzam eventos por natureza: o dashboard do fornecedor ("meus 40 e
 
 A auditoria não é opcional na assinatura: o caminho de agregação **exige um motivo** e recusa a chamada sem ele. Não é burocracia — é que a agregação é a única porta declarada que cruza eventos, e o que a auditoria não vê não aconteceu.
 
+### Dado de conta, sem `event_id`
+
+> Decisão vinculante: [ADR 0023](./adr/0023-comunidade-entre-anfitrioes-fora-do-isolamento-por-evento.md).
+
+As portas acima são tabelas que **têm** `event_id` e ficam fora da política. Existe uma categoria diferente: tabelas que não têm `event_id` **porque o dado não é de evento**. Comunidade e Inspiração são isso — um post nasce de quem organiza um evento, é lido por quem organiza outros, e continua valendo depois que o evento de quem escreveu acabou. Forçar `event_id` nele produziria um fórum onde ninguém vê post de ninguém.
+
+Elas usam a segunda porta de RLS (`app.account_id`, ADR 0013), com duas políticas que somam por OR: o autor lê e escreve a própria linha; qualquer anfitrião lê o acervo compartilhado.
+
+**A política de leitura não é `USING (true)`**, e essa é a linha que decide se o desenho fecha. A sessão do convidado roda com `app.event_id` setado e **sem** `app.account_id`; com `true`, o convidado leria o fórum inteiro dos anfitriões. A política exige que o GUC de conta esteja **presente** — `NULLIF(current_setting('app.account_id', true), '') IS NOT NULL` — e a porta fecha sozinha para quem não é anfitrião, pelo mesmo mecanismo do `NULLIF` do isolamento por evento.
+
+`rls-isolamento.test.ts` varre tabelas **com** `event_id` e portanto não olha para estas. Quem as cobre é `packages/db/src/comunidade-rls.test.ts`: a conta A não edita nem apaga linha da conta B, o acervo editorial não aceita escrita da aplicação, os salvos de um não aparecem para outro, o feed pagina por chave sem pular nem repetir, e — o teste que não pode faltar — **uma sessão de convidado lê zero linha de comunidade**.
+
+Acrescentar tabela a esta categoria é mudança de fronteira, como acrescentar porta à lista: tabela sem `event_id` que carregue dado de evento é vazamento com aparência de conveniência.
+
 ### Um só lugar abre o escopo
 
 Existe exatamente uma função que entra em contexto de evento, e ela garante três coisas que não sobrevivem a serem reimplementadas num segundo lugar: **transação sempre** (fora dela o `SET LOCAL` não é aplicado, a política não casa com nada, e o sintoma é "sumiu tudo" — enganoso, porque parece bug de dado e não de escopo), **`SET LOCAL` e nunca `SET`**, e **devolução da conexão em toda saída**, inclusive exceção. Um `event_id` que não é UUID é recusado antes de tocar no banco: falha alto em vez de virar um SELECT que devolve vazio.
@@ -318,7 +332,9 @@ No catálogo os packs se dividem em dois papéis. **Tipos de evento** — casame
 Nomes genéricos desde o commit 1. Nunca `couple_names`, `wedding_date`, `bride`, `groom`.
 
 ```
-accounts ──┐
+accounts ──┬──< community_posts >──< community_replies   ← dado de CONTA (§3)
+           ├──< inspiration_saves >──> inspiration_ideas ← dado de CONTA (§3)
+           │
            ├──< events >──┬──< challenges
 vendors ───┘              ├──< guest_sessions >──┬──< uploads >──< reactions
                           │                      ├──< comments
@@ -340,6 +356,9 @@ vendors ───┘              ├──< guest_sessions >──┬──< up
 | `accounts` | 1 conta → N eventos (casamento, chá de bebê, bodas) | Fora do escopo de evento |
 | `vendors` | Parceiro B2B2C, tokens de marca própria | Fora do escopo de evento |
 | `packs` | Vocabulário, missões padrão, templates, identidade padrão, **lista de lugares** | Global, versionado |
+| `community_posts` / `community_replies` | Conversa entre anfitriões. **Sem `event_id`** — o mesmo feed vale em qualquer evento da conta ([ADR 0023](./adr/0023-comunidade-entre-anfitrioes-fora-do-isolamento-por-evento.md)) | `account_id`, RLS forçada. Autor escreve a própria linha; leitura aberta a quem tem `app.account_id` — nunca `USING (true)` |
+| `inspiration_ideas` | Acervo **editorial**, sem dono. Entra e sai por migration; a aplicação não tem política de escrita | Sem escopo de evento. Leitura exige `app.account_id` |
+| `inspiration_saves` | O que cada conta salvou | `account_id`, RLS forçada. Ninguém vê o salvo de ninguém |
 | `events` | Raiz do escopo. `identity_tokens`, `pack_id`, filtro recomendado, janela do evento, gate de interação, **`expected_guests`** (denominador da H1; migration `0020_convidados_esperados.sql`), **`timezone`** IANA do salão (migration `0026_fuso_do_evento.sql`; default `America/Sao_Paulo`) | **É a fronteira.** Sob política, casando por `id`. Segunda política de conta: [ADR 0013](./adr/0013-acesso-por-conta-sob-rls.md) |
 | `challenges` | Missões do evento. UNIQUE (`event_id`, `title_key`) — a mesma missão não nasce duas vezes (migration `0028_missao_unica_no_evento.sql`) | `event_id`, RLS |
 | `guest_sessions` | Sessão anônima + consentimento versionado e datado. `via` é `qr` \| `wa` \| `link` — o canal de entrada (migration `0024_via_da_sessao.sql`). Consentimento externo (Stories) é coluna à parte | `event_id`, RLS |

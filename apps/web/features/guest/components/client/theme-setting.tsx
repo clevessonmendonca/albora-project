@@ -8,28 +8,34 @@ import {
   type GuestThemeChoice,
 } from "@/features/guest/lib/guest-theme";
 
-const OPCOES: { valor: GuestThemeChoice; rotulo: string }[] = [
-  { valor: "light", rotulo: "Claro" },
+type EscolhaVisivel = Exclude<GuestThemeChoice, "system">;
+
+/**
+ * Duas opções, não três.
+ *
+ * O painel oferece "Sistema" porque lá o piso é o do sistema. Aqui o piso é
+ * escuro por contexto de uso — a festa é à noite —, e a cascata do convidado
+ * não consulta `prefers-color-scheme`. Uma opção "Sistema" entregaria escuro
+ * em qualquer aparelho: seria um controle que diz uma coisa e faz outra.
+ */
+const OPCOES: { valor: EscolhaVisivel; rotulo: string }[] = [
   { valor: "dark", rotulo: "Escuro" },
-  { valor: "system", rotulo: "Sistema" },
+  { valor: "light", rotulo: "Claro" },
 ];
 
-/** O estado inicial assume "system" e corrigi um frame depois — o anti-flash fica no layout, não aqui. */
+/** Começa no escuro — o piso — e corrige um frame depois; o anti-flash fica no layout, não aqui. */
 export function ThemeSetting() {
-  const [escolha, setEscolha] = useState<GuestThemeChoice>("system");
+  const [escolha, setEscolha] = useState<EscolhaVisivel>("dark");
 
   useEffect(() => {
     const root = document.getElementById(GUEST_ROOT_ID);
-    setEscolha(escolhaDoDataset(root?.dataset.tema));
+    const doDataset = escolhaDoDataset(root?.dataset.tema);
+    setEscolha(doDataset === "system" ? "dark" : doDataset);
   }, []);
 
-  function escolher(proxima: GuestThemeChoice) {
+  function escolher(proxima: EscolhaVisivel) {
     const root = document.getElementById(GUEST_ROOT_ID);
-    if (proxima === "system") {
-      root?.removeAttribute("data-tema");
-    } else if (root) {
-      root.dataset.tema = proxima;
-    }
+    if (root) root.dataset.tema = proxima;
     document.cookie = cookieParaEscolha(proxima);
     setEscolha(proxima);
   }

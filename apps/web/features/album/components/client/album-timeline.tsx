@@ -1,5 +1,6 @@
 "use client";
 
+import { isVideoMime } from "@albora/core";
 import { cn } from "@albora/ui-web";
 import { hourLabel } from "@/features/feed/lib/group-by-hour";
 import type { ServedPhoto } from "@/lib/album";
@@ -77,8 +78,10 @@ function Tile({
   onAbrir: () => void;
 }) {
   const src = foto.urlThumb || foto.url;
+  const ehVideo = isVideoMime(foto.mime);
+  const tipo = ehVideo ? "vídeo" : "foto";
   const rotulo =
-    hora === null ? "Abrir foto" : `Abrir foto das ${hourLabel(hora)}`;
+    hora === null ? `Abrir ${tipo}` : `Abrir ${tipo} das ${hourLabel(hora)}`;
 
   return (
     <button
@@ -91,13 +94,25 @@ function Tile({
       )}
     >
       {src ? (
-        <img
-          src={src}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          className="block size-full object-cover object-top"
-        />
+        <>
+          <img
+            src={src}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="block size-full object-cover object-top"
+          />
+          {ehVideo && (
+            <span
+              aria-hidden
+              className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-bg-vidro-forte text-ink"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </span>
+          )}
+        </>
       ) : (
         <span className="album-esperando block size-full bg-superficie-alta" />
       )}

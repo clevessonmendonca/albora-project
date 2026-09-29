@@ -1,5 +1,4 @@
 import type { EventoPublico } from "@albora/db";
-import { darkEventVars } from "@/features/guest/lib/dark-event-vars";
 import { getFeedPage } from "../../data/get-feed-page";
 import { FeedPage } from "../client/feed-page";
 
@@ -17,7 +16,7 @@ export async function FeedContent({
   const data = await getFeedPage({ slug, eventoId, sessaoId, evento });
 
   return (
-    <div style={darkEventVars(evento)}>
+    <div>
       <FeedPage {...data} eventoId={eventoId} sessaoId={sessaoId} />
     </div>
   );

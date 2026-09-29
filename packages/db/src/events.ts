@@ -33,6 +33,15 @@ export type EventoPublico = {
   title: string | null;
   /** `draft` = anfitrião ainda não publicou; convidado não entra (task 6, gap I1). */
   status: "draft" | "active" | "ended";
+  /**
+   * Modo endurecido: toda mídia espera aprovação antes do telão
+   * (`packages/core/src/moderacao.ts`). O convidado precisa saber — sem isso a
+   * confirmação diz "já tá no telão" para uma foto que está na fila.
+   *
+   * Não é dado de terceiro nem PII: é a regra que governa o que a pessoa
+   * acabou de enviar.
+   */
+  revisaoAntesDoTelao: boolean;
 };
 
 export type Resolucao =
@@ -48,7 +57,8 @@ export async function carregarEventoPublico(
 ): Promise<EventoPublico | null> {
   const { rows: e } = await cliente.query(
     `SELECT id, pack_id, starts_at, ends_at, interaction_opens_at, identity_tokens,
-            recommended_filter, timezone, vendor_id, cover_image_key, title, status
+            recommended_filter, timezone, vendor_id, cover_image_key, title, status,
+            hardened
      FROM events WHERE id = $1`,
     [eventoId],
   );
@@ -77,6 +87,7 @@ export async function carregarEventoPublico(
     coverImageKey: (linha.cover_image_key ?? null) as string | null,
     title: (linha.title ?? null) as string | null,
     status: linha.status as "draft" | "active" | "ended",
+    revisaoAntesDoTelao: Boolean(linha.hardened),
   };
 }
 

@@ -20,6 +20,7 @@ function eventoFixture(overrides?: Partial<EventoPublico>): EventoPublico {
     // explicito aqui, o spread de Partial nao satisfaz o campo requerido
     // sob exactOptionalPropertyTypes.
     status: "active",
+    revisaoAntesDoTelao: false,
     ...overrides,
   };
 }

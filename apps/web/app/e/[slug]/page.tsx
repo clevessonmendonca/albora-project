@@ -1,12 +1,10 @@
 import { resolverSlug } from "@albora/db";
 import { PACKS, resolvePackText } from "@albora/packs";
 import { parseEntryVia, VALIDADE_PRESIGN_SEGUNDOS } from "@albora/core";
-import { ALBORA_BRAND, toVariables, resolveTokens } from "@albora/tokens";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import type { CSSProperties } from "react";
 import { getPool } from "@/lib/db";
 import { signGet } from "@/lib/r2";
 import { GUEST_SESSION_COOKIE, guestSessionFromToken } from "@/lib/session";
@@ -115,20 +113,13 @@ export default async function Pagina({ params, searchParams }: Props) {
     ? (await signGet(r.evento.coverImageKey, VALIDADE_PRESIGN_SEGUNDOS)).toString()
     : null;
 
+  // Sem wrapper de tema aqui. O layout do segmento já emite as vars do evento
+  // saneadas, com escuro de piso e a escolha "Claro" respeitada; o wrapper que
+  // existia antes trancava esta rota no escuro com os tokens do pack, então a
+  // identidade do casal não chegava à primeira tela e quem tinha escolhido
+  // claro via escuro só aqui.
   return (
-    <div
-      style={
-        toVariables(
-          resolveTokens({
-            marca: ALBORA_BRAND,
-            pack: {
-              ...(packDoEvento?.tokens ?? {}),
-              background: "dark",
-            },
-          }),
-        ) as CSSProperties
-      }
-    >
+    <>
       <EntryFlow
         eventoId={r.evento.eventoId}
         slug={slug}
@@ -138,6 +129,6 @@ export default async function Pagina({ params, searchParams }: Props) {
         comecaEm={r.evento.comecaEm.toISOString()}
         coverImageUrl={coverImageUrl}
       />
-    </div>
+    </>
   );
 }

@@ -1,5 +1,4 @@
 import type { EventoPublico } from "@albora/db";
-import { darkEventVars } from "@/features/guest/lib/dark-event-vars";
 import { getPhotoPage } from "../../data/get-photo-page";
 import { PhotoPage } from "../client/photo-page";
 
@@ -31,7 +30,7 @@ export async function PhotoContent({
   });
 
   return (
-    <div style={darkEventVars(evento)}>
+    <div>
       <PhotoPage
         slug={data.slug}
         eventoId={data.eventoId}
@@ -47,6 +46,7 @@ export async function PhotoContent({
         promptKey={data.promptKey}
         promptLabel={data.promptLabel}
         forceVideo={data.forceVideo}
+        revisaoAntesDoTelao={evento.revisaoAntesDoTelao}
       />
     </div>
   );

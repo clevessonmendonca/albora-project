@@ -59,6 +59,7 @@ export function PhotoPage({
   promptKey = null,
   promptLabel = null,
   forceVideo = false,
+  revisaoAntesDoTelao = false,
 }: {
   slug: string;
   eventoId: string;
@@ -74,6 +75,8 @@ export function PhotoPage({
   promptKey?: string | null;
   promptLabel?: string | null;
   forceVideo?: boolean;
+  /** Modo endurecido: a foto espera aprovação antes do telão. */
+  revisaoAntesDoTelao?: boolean;
 }) {
   const router = useRouter();
   const { estado, enfileirarFoto, anotar, drenarAgora } = useUpload(eventoId, { plano: plan, cotaVideo: videoQuota });
@@ -261,6 +264,7 @@ export function PhotoPage({
         bytesPendentes={estado.bytesPendentes}
         online={estado.online}
         interactionOpen={interactionOpen}
+        revisaoAntesDoTelao={revisaoAntesDoTelao}
         podeInstalar={podeInstalar}
         jaInstalado={jaInstalado}
         precisaInstrucaoIos={precisaInstrucaoIos}
@@ -394,6 +398,7 @@ function Confirmacao({
   eventoId,
   arquivo,
   numero,
+  revisaoAntesDoTelao,
   pendentes,
   bytesPendentes,
   online,
@@ -414,6 +419,7 @@ function Confirmacao({
   slug: string;
   eventoId: string;
   arquivo: File;
+  revisaoAntesDoTelao: boolean;
   numero: number;
   pendentes: number;
   bytesPendentes: number;
@@ -497,6 +503,12 @@ function Confirmacao({
             <br />
             <em>Já está subindo.</em>
           </>
+        ) : revisaoAntesDoTelao ? (
+          <>
+            Foto {numero}.
+            <br />
+            <em>Já entrou no álbum.</em>
+          </>
         ) : (
           <>
             Foto {numero}.
@@ -515,6 +527,12 @@ function Confirmacao({
             lado={32}
           />
         </div>
+      )}
+
+      {online && pendentes === 0 && revisaoAntesDoTelao && (
+        <p className="foto-lede">
+          Os anfitriões revisam antes de ir para o telão.
+        </p>
       )}
 
       {!online && (

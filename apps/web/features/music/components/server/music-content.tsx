@@ -1,5 +1,4 @@
 import type { EventoPublico } from "@albora/db";
-import { darkEventVars } from "@/features/guest/lib/dark-event-vars";
 import { MusicPage } from "@/features/music/components/client/music-page";
 import { getMusicPage } from "@/features/music/data/get-music-page";
 
@@ -13,7 +12,7 @@ export async function MusicContent({
   const data = await getMusicPage({ slug, packId: evento.packId });
 
   return (
-    <div style={darkEventVars(evento)}>
+    <div>
       <MusicPage {...data} />
     </div>
   );

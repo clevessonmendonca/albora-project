@@ -10,7 +10,7 @@ import { NoSession } from "@/features/guest/components/client/no-session";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Você",
+  title: "Perfil",
   robots: { index: false, follow: false },
 };
 
@@ -33,7 +33,7 @@ export default async function Pagina({ params }: { params: Promise<{ slug: strin
         slug={slug}
         eventoId={session.eventoId}
         sessaoId={session.sessaoId}
-        evento={r.evento}
+        revisaoAntesDoTelao={r.evento.revisaoAntesDoTelao}
       />
     </Suspense>
   );

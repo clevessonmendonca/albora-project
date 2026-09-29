@@ -664,3 +664,31 @@ export {
   emitGuestMagicLinkRow,
   VALIDADE_GUEST_MAGIC_LINK_MINUTOS,
 } from "./guest-magic-link";
+
+export type {
+  PostDaComunidade,
+  RespostaDaComunidade,
+  FiltroDaComunidade,
+  TopicoDaComunidade,
+} from "./comunidade-db";
+export {
+  TOPICOS_DA_COMUNIDADE,
+  ehTopicoDaComunidade,
+  listarPostsDaComunidade,
+  lerPostDaComunidade,
+  listarRespostas,
+  criarPostDaComunidade,
+  responderPost,
+  apagarPostDaComunidade,
+  apagarResposta,
+} from "./comunidade-db";
+
+export type { IdeiaDeInspiracao, TemaDeInspiracao } from "./inspiracao-db";
+export {
+  TEMAS_DE_INSPIRACAO,
+  ehTemaDeInspiracao,
+  listarIdeias,
+  listarIdeiasSalvas,
+  salvarIdeia,
+  removerIdeiaSalva,
+} from "./inspiracao-db";

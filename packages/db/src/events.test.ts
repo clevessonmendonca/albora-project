@@ -509,3 +509,27 @@ describe("listarEventosComEntregaDevida", () => {
     expect(await listarEventosComEntregaDevida(admin)).not.toContain(eventoId);
   });
 });
+
+describe("o convidado sabe se a foto espera aprovação", () => {
+  /**
+   * Sem isto a confirmação do convidado diz "já tá no telão" para uma foto que
+   * está na fila. A regra que decide é `modoEndurecido` em
+   * `packages/core/src/moderacao.ts`; a coluna é `events.hardened`.
+   */
+  it("com o modo endurecido desligado, não há revisão antes do telão", async () => {
+    const r = await resolverSlug(app, "evento-a", new Date());
+
+    expect(r.estado !== "desconhecido" && r.evento.revisaoAntesDoTelao).toBe(false);
+  });
+
+  it("ligar o modo endurecido aparece para o convidado", async () => {
+    await admin.query("UPDATE events SET hardened = true WHERE id = $1", [dados.a.eventoId]);
+    try {
+      const r = await resolverSlug(app, "evento-a", new Date());
+
+      expect(r.estado !== "desconhecido" && r.evento.revisaoAntesDoTelao).toBe(true);
+    } finally {
+      await admin.query("UPDATE events SET hardened = false WHERE id = $1", [dados.a.eventoId]);
+    }
+  });
+});
