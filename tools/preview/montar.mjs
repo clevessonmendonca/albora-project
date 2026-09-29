@@ -40,13 +40,15 @@ const { css } = await postcss([tw({ base: raiz })]).process(entrada, { from: pat
 const paginas = fs
   .readdirSync(SAIDA)
   .filter((f) => f.startsWith("body") && f.endsWith(".html"))
-  .map((f) => [f, f === "body.html" ? "console.html" : `console-${f.slice("body-".length)}`]);
+  // `body-convidado-entrada.html` vira `convidado-entrada.html`; `body.html`
+  // continua sendo o console, que foi quem estreou o harness.
+  .map((f) => [f, f === "body.html" ? "console.html" : f.slice("body-".length)]);
 
 for (const [origem, destino] of paginas) {
   const corpo = fs.readFileSync(path.join(SAIDA, origem), "utf8");
   fs.writeFileSync(
     path.join(SAIDA, destino),
-    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Console — preview</title><style>${css}</style></head><body style="margin:0">${corpo}</body></html>`,
+    `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Álbora — preview</title><style>${css}</style></head><body style="margin:0">${corpo}</body></html>`,
   );
   console.log(`preview: ${path.join(SAIDA, destino)}`);
 }

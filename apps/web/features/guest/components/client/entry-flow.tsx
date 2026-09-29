@@ -194,7 +194,11 @@ export function EntryFlow({
                   </TextLink>
                 </ConsentCheckbox>
 
-                <p className="m-0 pl-9 text-[0.6875rem] leading-snug text-ink-3">
+                <p className="m-0 pl-9 text-[0.8125rem] leading-snug text-ink-2">
+                  Você pode remover suas fotos depois, no seu perfil.
+                </p>
+
+                <p className="m-0 pl-9 text-[0.6875rem] leading-snug text-ink-2">
                   Versão {CONSENTIMENTO}
                   {dataConsentimento ? ` · ${dataConsentimento}` : ""}
                 </p>
