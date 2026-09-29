@@ -41,6 +41,8 @@ type MyPhotosPageProps = {
   sessaoId: string;
   cameraPath: string;
   refToken?: string | null;
+  /** Regra do evento, não da foto: em modo endurecido tudo passa por revisão. */
+  revisaoAntesDoTelao?: boolean;
 };
 
 export function MyPhotosPage({
@@ -49,6 +51,7 @@ export function MyPhotosPage({
   sessaoId,
   cameraPath,
   refToken,
+  revisaoAntesDoTelao = false,
 }: MyPhotosPageProps) {
   const base = `/e/${encodeURIComponent(slug)}`;
   const router = useRouter();
@@ -319,6 +322,20 @@ export function MyPhotosPage({
           {/* Oferta de conta só depois da primeira foto (ADR 0018) — a regra está
               escrita no próprio `ClaimPhotosButton`, e a aba Perfil fica sempre
               na barra: sem esta condição ela aparecia antes de existir foto. */}
+          {/*
+            Regra do EVENTO, nunca estado da foto. `listarMinhasDoEvento` existe
+            para responder "chegou?", não "está público?" — e esconde de
+            propósito que o anfitrião ocultou uma foto. Um selo por item
+            revelaria exatamente isso. A frase aqui não julga foto nenhuma:
+            diz como este evento funciona, que é o que a pessoa não sabia.
+          */}
+          {revisaoAntesDoTelao && idsFotosEnviadas.length > 0 && (
+            <p className="px-[1.125rem] pb-3.5 text-[0.8125rem] leading-relaxed text-ink-2">
+              Neste evento, os anfitriões revisam as fotos antes de elas
+              aparecerem no álbum e no telão. As suas chegaram — é só aguardar.
+            </p>
+          )}
+
           {idsFotosEnviadas.length > 0 && <RetentionCard eventId={eventoId} />}
 
           <AlbumFooterCta slug={slug} refToken={refToken ?? null} />

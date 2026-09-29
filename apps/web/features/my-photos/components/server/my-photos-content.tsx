@@ -7,15 +7,17 @@ export async function MyPhotosContent({
   eventoId,
   sessaoId,
   evento,
+  revisaoAntesDoTelao,
 }: {
   slug: string;
   eventoId: string;
   sessaoId: string;
   evento: EventoPublico;
+  revisaoAntesDoTelao: boolean;
 }) {
   const data = await getMyPhotosPage({ slug, eventoId, sessaoId });
 
   return (
-    <MyPhotosPage {...data} />
+    <MyPhotosPage {...data} revisaoAntesDoTelao={revisaoAntesDoTelao} />
   );
 }
