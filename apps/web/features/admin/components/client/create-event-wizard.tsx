@@ -809,15 +809,15 @@ function ReadyStep({
           <div className="flex flex-wrap justify-center gap-2">
             {(
               [
-                ["target", "Missões"],
-                ["monitor", "Telão"],
-                ["qr-code", "QR"],
-                ["user-plus", "Equipe"],
+                ["target", "Missões", "missions"],
+                ["monitor", "Telão", "identity"],
+                ["qr-code", "QR", "qrcode"],
+                ["user-plus", "Equipe", "team"],
               ] as const
-            ).map(([icon, label]) => (
+            ).map(([icon, label, destination]) => (
               <a
                 key={label}
-                href={`/admin/e/${created.eventoId}`}
+                href={`/admin/e/${created.eventoId}/${destination}`}
                 className={buttonVariants({ variant: "secondary", size: "sm" })}
               >
                 <span className="text-ink-2">

@@ -82,12 +82,12 @@ export function ScanPage() {
                 autoCapitalize="none"
                 spellCheck={false}
                 aria-label="Código ou link da festa"
-                className="min-h-[52px] w-full rounded-pilula border border-linha bg-bg px-3.5 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento"
+                className="min-h-[52px] w-full rounded-pilula border border-linha bg-bg px-3.5 text-base text-ink outline-none transition-[border-color] duration-[var(--tempo-rapido)] ease-[var(--curva)] focus:border-acento focus-visible:ring-2 focus-visible:ring-acento-texto"
               />
               <button
                 type="submit"
                 disabled={qr.codigo.trim().length === 0}
-                className="min-h-[52px] cursor-pointer rounded-pilula border-none bg-acento font-[inherit] font-semibold text-sobre-acento shadow-suave transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 active:scale-[0.97] disabled:cursor-default disabled:opacity-45 motion-reduce:transition-none motion-reduce:active:scale-100"
+                className="min-h-[52px] cursor-pointer rounded-pilula border-none bg-acento font-[inherit] font-semibold text-sobre-acento shadow-suave transition-[transform,opacity] duration-instantaneo ease-mola hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento-texto active:scale-[0.97] disabled:cursor-default disabled:opacity-45 motion-reduce:transition-none motion-reduce:active:scale-100"
               >
                 Entrar
               </button>
