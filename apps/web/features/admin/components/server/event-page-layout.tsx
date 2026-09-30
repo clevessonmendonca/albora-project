@@ -87,7 +87,7 @@ export async function EventPageLayout({
         className={`${ADMIN_TEMA_CLASSE} min-h-dvh bg-bg font-[family-name:var(--fonte-corpo)] text-ink`}
         {...(preferencia ? { "data-tema": preferencia } : {})}
       >
-        <div className="mx-auto flex w-full max-w-[80rem]">
+        <div className="mx-auto flex w-full max-w-[100rem]">
           <EventSidebar
               eventId={eventId}
               name={ctx.name}

@@ -173,9 +173,9 @@ export async function EventHome({
         destaque={tom.destaque}
         legenda={tom.legenda}
         acoes={acoesDoHero}
+        contagem={!depois && !aoVivo ? <ContagemRegressiva comecaEm={evento.comecaEm.toISOString()} /> : undefined}
       />
 
-      {!depois && !aoVivo && <ContagemRegressiva comecaEm={evento.comecaEm.toISOString()} />}
 
       {/* Só há números depois que as fotos começam a chegar; antes da festa o
           bloco não aparece, em vez de mostrar três zeros. */}
@@ -251,7 +251,7 @@ export async function EventHome({
         admin desde sempre e a Home vinha em coluna única.
       */}
       {!aoVivo && !depois && (
-        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
           <div className="flex flex-col gap-5">
             {estado.proxima && (
               <ProximaAcao principal={estado.proxima} secundarias={pendentes.slice(0, 2)} />

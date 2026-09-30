@@ -16,6 +16,7 @@ type IconProps = { size?: number };
 /** Mapa num lugar só: a barra lateral e a bottom bar mostram os mesmos destinos, e dois mapas divergiriam na primeira mudança. */
 export const ICONES_DE_DESTINO: Record<DestinoId, ComponentType<IconProps>> = {
   inicio: HomeIcon,
+  "ao-vivo": StackIcon,
   fotos: CameraIcon,
   convidados: UsersIcon,
   experiencia: StackIcon,

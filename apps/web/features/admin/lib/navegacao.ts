@@ -1,5 +1,6 @@
 export type DestinoId =
   | "inicio"
+  | "ao-vivo"
   | "fotos"
   | "convidados"
   | "experiencia"
@@ -18,6 +19,7 @@ export type Destino = {
 };
 
 export const DESTINOS: readonly Destino[] = [
+  { id: "ao-vivo", rotulo: "Ao vivo", suffix: "/ao-vivo", absorve: [] },
   { id: "inicio", rotulo: "Início", suffix: "", absorve: ["/pre-event"] },
   { id: "fotos", rotulo: "Fotos", suffix: "/album", absorve: ["/moderation"] },
   { id: "convidados", rotulo: "Convidados", suffix: "/guests", absorve: ["/insights"] },
@@ -47,7 +49,7 @@ export type GrupoDeDestino = {
  * custa altura que a bottom-bar não tem, e ali a lista curta já é legível.
  */
 export const GRUPOS_DE_DESTINO: readonly GrupoDeDestino[] = [
-  { rotulo: "Seu evento", destinos: ["inicio", "fotos", "convidados"] },
+  { rotulo: "Seu evento", destinos: ["inicio", "ao-vivo", "fotos", "convidados"] },
   { rotulo: "Descobrir", destinos: ["comunidade", "inspiracao"] },
   { rotulo: "Personalização", destinos: ["experiencia", "compartilhar", "ajustes"] },
 ];

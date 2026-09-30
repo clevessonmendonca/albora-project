@@ -1,5 +1,6 @@
 "use client";
 
+import { adminVars } from "@/features/admin/components/server/admin-shell";
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -57,8 +58,9 @@ export function EventSidebar({
 
   return (
     <aside
+      style={adminVars("dark")}
       className={[
-        "sticky top-0 hidden h-dvh shrink-0 flex-col border-r border-linha py-6 lg:flex",
+        "sticky top-0 hidden h-dvh shrink-0 flex-col overflow-y-auto border-r border-linha bg-bg py-6 text-ink lg:flex",
         "transition-[width] duration-[var(--tempo-rapido)] ease-[var(--curva)]",
         recolhida ? "w-[4.5rem] px-3" : "w-60 px-5",
       ].join(" ")}
@@ -99,7 +101,7 @@ export function EventSidebar({
                   aria-label={recolhida ? destino.rotulo : undefined}
                   title={recolhida ? destino.rotulo : undefined}
                   className={[
-                    "flex min-h-11 items-center rounded-token no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
+                    "flex min-h-12 items-center rounded-token no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)]",
                     recolhida ? "justify-center px-0" : "gap-3 px-3",
                     active
                       ? "bg-superficie-alta text-acento-texto"
@@ -133,7 +135,7 @@ export function EventSidebar({
         aria-expanded={!recolhida}
         aria-label={recolhida ? "Expandir a navegação" : "Recolher a navegação"}
         className={[
-          "flex min-h-11 cursor-pointer items-center rounded-token border-none bg-transparent text-ink-3",
+          "flex min-h-12 cursor-pointer items-center rounded-token border-none bg-transparent text-ink-3",
           "transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:bg-superficie-alta hover:text-ink",
           recolhida ? "justify-center px-0" : "gap-3 px-3",
         ].join(" ")}

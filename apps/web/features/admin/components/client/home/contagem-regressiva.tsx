@@ -21,7 +21,7 @@ type Restante = { dias: number; horas: number; minutos: number; segundos: number
 
 function restanteAte(alvo: number, agora: number): Restante | null {
   const ms = alvo - agora;
-  if (ms <= 0) return null;
+  if (!Number.isFinite(ms) || ms <= 0) return null;
   const s = Math.floor(ms / 1000);
   return {
     dias: Math.floor(s / 86400),
@@ -55,12 +55,13 @@ export function ContagemRegressiva({ comecaEm }: { comecaEm: string }) {
     return () => clearInterval(id);
   }, [alvo]);
 
-  if (!montado || !restante) return null;
+  if (!montado) return <div className="min-h-28" aria-label="Carregando contagem regressiva" />;
+  if (!restante) return <p className="tipo-subtitle m-0 text-ink">Chegou o dia de celebrar.</p>;
 
   return (
     <section aria-label="Contagem até a festa" className="flex flex-col gap-3">
       <span className="tipo-label text-ink-3">Contagem regressiva</span>
-      <div className="flex items-start gap-[clamp(1rem,4vw,2rem)]">
+      <div className="grid grid-cols-4 gap-2">
         <Casa valor={restante.dias} rotulo="dias" />
         <Casa valor={restante.horas} rotulo="horas" />
         <Casa valor={restante.minutos} rotulo="min" />
