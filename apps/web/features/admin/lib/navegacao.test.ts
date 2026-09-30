@@ -6,6 +6,7 @@ const base = "/admin/e/abc";
 /** As 12 rotas que existem hoje em app/admin/e/[eventId]/. Toda uma delas tem de marcar algum destino — hoje 8 não marcam nada. */
 const ROTAS_DO_EVENTO = [
   "",
+  "/ao-vivo",
   "/album",
   "/consent",
   "/evento",
