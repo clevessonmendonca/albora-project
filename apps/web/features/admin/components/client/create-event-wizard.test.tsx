@@ -27,7 +27,15 @@ function preencherDetalhes() {
   fireEvent.click(screen.getByRole("button", { name: "Hoje" }));
 }
 
-describe("CreateEventWizard — quatro passos (Tipo · Detalhes · Aparência · Pronto)", () => {
+function revisarECriarEvento() {
+  continuar();
+  expect(screen.getByRole("heading", { name: "Todo mundo faz parte." })).toBeInTheDocument();
+  continuar();
+  expect(screen.getByRole("region", { name: "Resumo do evento" })).toHaveTextContent("Festa Teste");
+  fireEvent.click(screen.getByRole("button", { name: "Criar evento" }));
+}
+
+describe("CreateEventWizard — Tipo · Detalhes · Identidade · Participação · Revisão", () => {
   afterEach(() => vi.unstubAllGlobals());
 
   it("Detalhes valida nome e data antes de avançar", async () => {
@@ -45,14 +53,14 @@ describe("CreateEventWizard — quatro passos (Tipo · Detalhes · Aparência ·
     );
 
     irParaDetalhes();
-    // Sem nome/data, continuar não avança: erro e sem chegar à Aparência.
+    // Sem nome/data, continuar não avança para Identidade.
     continuar();
     expect(screen.getByText("Dê um nome ao evento pra continuar.")).toBeInTheDocument();
-    expect(screen.queryByText("Escolha um estilo")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Um evento com a sua cara." })).not.toBeInTheDocument();
 
     preencherDetalhes();
     continuar();
-    expect(screen.getByText("Escolha um estilo")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Um evento com a sua cara." })).toBeInTheDocument();
   });
 
   it("sem vínculo em vendor_members: sem seletor, e o POST não manda vendorId", async () => {
@@ -84,7 +92,7 @@ describe("CreateEventWizard — quatro passos (Tipo · Detalhes · Aparência ·
     irParaDetalhes();
     preencherDetalhes();
     continuar();
-    fireEvent.click(screen.getByRole("button", { name: "Criar evento" }));
+    revisarECriarEvento();
 
     await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
   });
@@ -117,7 +125,7 @@ describe("CreateEventWizard — quatro passos (Tipo · Detalhes · Aparência ·
     preencherDetalhes();
 
     continuar();
-    fireEvent.click(screen.getByRole("button", { name: "Criar evento" }));
+    revisarECriarEvento();
 
     await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
   });
@@ -142,7 +150,7 @@ describe("CreateEventWizard — quatro passos (Tipo · Detalhes · Aparência ·
 
     continuar();
     expect(screen.getByText("Informe um e-mail válido pra quem recebe o painel.")).toBeInTheDocument();
-    expect(screen.queryByText("Escolha um estilo")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Um evento com a sua cara." })).not.toBeInTheDocument();
   });
 
   it("os cards de tipo vêm dos packs de criação, não hardcoded", async () => {
@@ -194,7 +202,7 @@ describe("CreateEventWizard — quatro passos (Tipo · Detalhes · Aparência ·
     irParaDetalhes();
     preencherDetalhes();
     continuar();
-    fireEvent.click(screen.getByRole("button", { name: "Criar evento" }));
+    revisarECriarEvento();
 
     await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
     expect(missoesEnviadas).toHaveLength(total - 1);

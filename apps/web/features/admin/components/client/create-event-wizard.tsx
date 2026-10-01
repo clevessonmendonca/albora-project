@@ -64,7 +64,7 @@ type Created = {
 };
 type VendorOption = { vendorId: string; name: string; role: "admin" | "staff" };
 
-const STEPS = ["Tipo", "Detalhes", "Aparência", "Pronto"] as const;
+const STEPS = ["Tipo de evento", "Detalhes", "Identidade", "Participação", "Revisão"] as const;
 
 export function CreateEventWizard() {
   const search = useSearchParams();
@@ -262,7 +262,11 @@ export function CreateEventWizard() {
       setStep(2);
       return;
     }
-    void create(); // Aparência → cria
+    if (step < STEPS.length - 1) {
+      setStep((current) => current + 1);
+      return;
+    }
+    void create();
   }
 
   const create = async () => {
@@ -367,25 +371,26 @@ export function CreateEventWizard() {
           e.target.value = "";
         }}
       />
-      <main className="flex h-dvh flex-col overflow-hidden bg-bg font-corpo text-ink">
+      <main className="flex min-h-dvh flex-col bg-bg font-corpo text-ink">
         <ProgressHeader step={step} onExit />
-        <div className="flex-1 overflow-y-auto">
-          <div className="mx-auto grid w-full max-w-[64rem] gap-8 px-[clamp(1.1rem,4vw,2rem)] py-8 lg:grid-cols-[minmax(0,1fr)_22rem]">
-          <div className="flex flex-col gap-6">
-            <div className="flex flex-col gap-1">
-              <h1 className="tipo-title m-0">
+        <div className="flex-1">
+          <div className="mx-auto grid w-full max-w-[82rem] gap-8 px-[clamp(1.1rem,4vw,2rem)] py-8 lg:grid-cols-[10rem_minmax(0,1fr)_18rem] lg:gap-10 lg:py-12">
+          <StepRail step={step} onSelect={setStep} />
+          <div className="min-w-0 flex flex-col gap-7">
+            <div className="flex flex-col gap-4">
+              <h1 className="m-0 font-titulo text-[clamp(2rem,3.5vw,3.25rem)] font-normal leading-tight tracking-tight text-balance">
                 {step === 0
                   ? "O que vocês estão celebrando?"
                   : step === 1
                     ? "Detalhes do evento"
-                    : "Qual combina com vocês?"}
+                    : step === 2 ? "Um evento com a sua cara." : step === 3 ? "Todo mundo faz parte." : "Tudo pronto para começar?"}
               </h1>
               <p className="tipo-body m-0 text-ink-2">
                 {step === 0
                   ? "O tipo define os momentos e as missões — você muda depois."
                   : step === 1
                     ? "Nome, quando vai ser e onde."
-                    : "Escolha um estilo. O Álbora cuida da fonte, das cores e da composição."}
+                    : step === 2 ? "Escolha a identidade que seus convidados vão encontrar." : step === 3 ? "Convide seus convidados a registrar os momentos que importam." : "Confira os detalhes antes de criar seu evento."}
               </p>
             </div>
 
@@ -471,6 +476,38 @@ export function CreateEventWizard() {
               </>
             )}
 
+            {step === 3 && (
+              <section className="rounded-superficie border border-linha bg-superficie p-6 sm:p-8" aria-label="Participação dos convidados">
+                <Glyph name="target" size={28} className="text-acento-texto" />
+                <h2 className="mt-5 font-titulo text-2xl">Pequenos convites, grandes lembranças.</h2>
+                <p className="mt-3 text-ink-2">As missões sugerem fotos para seus convidados. Escolha as que combinam com a festa ou crie as suas.</p>
+                <ul className="my-6 divide-y divide-linha">
+                  {missionToggles.filter((mission) => mission.on).map((mission) => (
+                    <li key={mission.key} className="flex items-center gap-3 py-3"><Glyph name="check" size={16} className="text-acento-texto" />{mission.label}</li>
+                  ))}
+                  {customMissions.map((mission, index) => <li key={index} className="py-3">{mission}</li>)}
+                </ul>
+                <button type="button" className={adminClasses.secondaryButton} onClick={() => setMissionSheetOpen(true)}>Escolher missões</button>
+              </section>
+            )}
+            {step === 4 && (
+              <section aria-label="Resumo do evento" className="overflow-hidden rounded-superficie border border-linha bg-superficie">
+                {[
+                  { label: "Tipo de evento", value: resolvePackText(pack, "evento.nome"), target: 0 },
+                  { label: "Nome do evento", value: displayTitle, target: 1 },
+                  { label: "Data e hora", value: rotuloData(date), target: 1 },
+                  { label: "Identidade", value: EVENT_STYLES.find((style) => style.chave === styleKey)?.nome, target: 2 },
+                  { label: "Participação", value: `${activeMissions.length + customMissions.length} missões selecionadas`, target: 3 },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center justify-between gap-4 border-b border-linha p-5 last:border-b-0 sm:px-7">
+                    <div className="min-w-0"><p className="text-sm text-ink-3">{item.label}</p><p className="mt-1 break-words font-medium">{item.value}</p></div>
+                    <button type="button" onClick={() => setStep(item.target)} className="min-h-11 shrink-0 rounded-token px-3 text-sm text-acento-texto focus-visible:outline focus-visible:outline-2" aria-label={`Editar ${item.label.toLowerCase()}`}>Editar</button>
+                  </div>
+                ))}
+                <p className="p-5 text-sm text-ink-2 sm:px-7">Depois de criar, você pode compartilhar o link e continuar ajustando seu evento no painel.</p>
+              </section>
+            )}
+
             {status === "error" && (
               <p role="alert" className="tipo-caption m-0 text-critico">
                 Não deu para criar agora. Confira os dados e tente de novo.
@@ -480,18 +517,19 @@ export function CreateEventWizard() {
 
           {/* Prévia persistente no desktop. */}
           <aside className="hidden lg:block">
-            <div className="sticky top-4">
+            <div className="sticky top-8">
+              <p className="mb-4 text-center text-sm text-ink-3">Assim seus convidados vão ver</p>
               <LivePreview data={previewData} />
             </div>
           </aside>
           </div>
         </div>
 
-        <footer className="flex-none border-t border-linha bg-bg px-[clamp(1.1rem,4vw,2rem)] py-3">
+        <footer className="sticky bottom-0 z-20 flex-none border-t border-linha bg-bg px-[clamp(1.1rem,4vw,2rem)] py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <div className="mx-auto max-w-[64rem]">
             <NavBar
               step={step}
-              canAdvance={step === 0 ? true : true}
+              canAdvance={true}
               creating={status === "creating"}
               onBack={() => setStep((p) => p - 1)}
               onAdvance={advance}
@@ -546,62 +584,34 @@ export function CreateEventWizard() {
 
 function ProgressHeader({ step, onExit }: { step: number; onExit?: boolean }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-linha bg-bg px-[clamp(1.1rem,4vw,2rem)] py-3">
-      <div className="mx-auto flex max-w-[64rem] items-center gap-4">
-        {onExit && (
-          <NextLink
-            href="/admin"
-            className="inline-flex shrink-0 items-center gap-1 tipo-label text-ink-3 no-underline transition-colors hover:text-ink"
-          >
-            <span aria-hidden>←</span> Sair
-          </NextLink>
-        )}
-        <ol aria-label="Progresso" className="flex flex-1 items-center justify-center gap-1.5 sm:gap-2">
-          {STEPS.map((label, i) => {
-            const done = i < step;
-            const current = i === step;
-            return (
-              <li
-                key={label}
-                aria-current={current ? "step" : undefined}
-                className="flex items-center gap-1.5 sm:gap-2"
-              >
-                <span
-                  aria-hidden
-                  className={`flex size-7 shrink-0 items-center justify-center rounded-full text-[0.8rem] font-medium tabular-nums transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] ${
-                    done
-                      ? "bg-acento text-sobre-acento"
-                      : current
-                        ? "border-2 border-acento text-acento-texto"
-                        : "border border-linha text-ink-3"
-                  }`}
-                >
-                  {done ? <Glyph name="check" size={14} /> : i + 1}
-                </span>
-                <span
-                  className={`hidden text-[0.85rem] sm:block ${
-                    current ? "font-medium text-ink" : done ? "text-ink-2" : "text-ink-3"
-                  }`}
-                >
-                  {label}
-                </span>
-                {i < STEPS.length - 1 && (
-                  <span
-                    aria-hidden
-                    className={`mx-0.5 h-px w-5 rounded-pilula transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] sm:w-9 ${
-                      done ? "bg-acento" : "bg-linha"
-                    }`}
-                  />
-                )}
-              </li>
-            );
-          })}
-        </ol>
-        <span className="shrink-0 tipo-label text-ink-3 sm:hidden" aria-hidden>
-          {step + 1}/{STEPS.length}
-        </span>
+    <header className="border-b border-linha bg-superficie px-[clamp(1.1rem,4vw,2rem)] py-4">
+      <div className="mx-auto flex max-w-[78rem] items-center justify-between gap-4">
+        <NextLink href="/admin" aria-label="Álbora — início" className="font-titulo text-3xl tracking-tight no-underline">Álbora<span className="text-acento-texto">.</span></NextLink>
+        <p className="hidden text-sm text-ink-3 sm:block">Seu evento começa aqui.</p>
+        {onExit && <NextLink href="/admin" className="inline-flex min-h-11 items-center gap-2 rounded-token px-3 text-sm text-ink-2"><Glyph name="arrow-left" size={16} /> Sair</NextLink>}
+      </div>
+      <div className="mx-auto mt-4 max-w-[78rem] lg:hidden">
+        <p className="text-sm text-ink-2">Etapa {step + 1} de {STEPS.length} · {STEPS[step]}</p>
+        <div className="mt-3 flex gap-2" aria-hidden>{STEPS.map((label, index) => <span key={label} className={`h-1 flex-1 rounded-pilula ${index <= step ? "bg-acento" : "bg-linha"}`} />)}</div>
       </div>
     </header>
+  );
+}
+
+function StepRail({ step, onSelect }: { step: number; onSelect: (step: number) => void }) {
+  return (
+    <nav aria-label="Etapas de criação" className="hidden self-start lg:sticky lg:top-8 lg:block">
+      <ol className="space-y-6">
+        {STEPS.map((label, index) => (
+          <li key={label} aria-current={index === step ? "step" : undefined}>
+            <button type="button" disabled={index >= step} onClick={() => onSelect(index)} className={`flex min-h-11 items-center gap-3 rounded-token text-left text-sm ${index === step ? "font-semibold text-ink" : "text-ink-3"}`}>
+              <span className={`flex size-9 shrink-0 items-center justify-center rounded-full border ${index === step ? "border-acento bg-acento text-sobre-acento" : "border-linha"}`}>{index < step ? <Glyph name="check" size={16} /> : index + 1}</span>{label}
+            </button>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-10 text-sm leading-relaxed text-ink-3">Você pode voltar às etapas anteriores para ajustar os detalhes antes de criar.</p>
+    </nav>
   );
 }
 
@@ -637,7 +647,7 @@ function NavBar({
         onClick={onAdvance}
         className={`${adminClasses.primaryButton} inline-flex min-h-12 min-w-[11rem] items-center justify-center gap-1.5 px-7 text-[1.05rem] ${creating ? "opacity-60" : ""}`}
       >
-        {step < STEPS.length - 2 ? (
+        {step < STEPS.length - 1 ? (
           <>
             Continuar <span aria-hidden>→</span>
           </>

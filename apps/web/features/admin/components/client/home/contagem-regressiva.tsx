@@ -55,8 +55,7 @@ export function ContagemRegressiva({ comecaEm }: { comecaEm: string }) {
     return () => clearInterval(id);
   }, [alvo]);
 
-  if (!montado) return <div className="min-h-28" aria-label="Carregando contagem regressiva" />;
-  if (!restante) return <p className="tipo-subtitle m-0 text-ink">Chegou o dia de celebrar.</p>;
+  if (!montado || !restante) return null;
 
   return (
     <section aria-label="Contagem até a festa" className="flex flex-col gap-3">
