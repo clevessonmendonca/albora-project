@@ -17,7 +17,6 @@ import {
   ConsentNote,
   ErrorMessage,
   FinePrint,
-  EventLabel,
   SecondaryText,
   DisplayTitle,
   SkipLink,
@@ -100,7 +99,7 @@ export function EntryFlow({
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault();
-    if (!consentiu) return;
+    if (enviando || !consentiu || nome.trim().length === 0) return;
 
     setEnviando(true);
     setErro(null);
@@ -170,10 +169,10 @@ export function EntryFlow({
         )}
 
         {etapa === "identidade" && (
-          <form onSubmit={entrar} className="entrada-anima flex flex-1 flex-col">
+          <form onSubmit={entrar} aria-busy={enviando} className="entrada-anima flex flex-1 flex-col py-8 sm:py-12">
             <EntryColumn>
               <div>
-                <EventLabel>Antes da sua primeira foto</EventLabel>
+                <p className="m-0 text-sm text-ink-2">{nomeEvento}</p>
                 <DisplayTitle>{saudacao}</DisplayTitle>
                 <SecondaryText>Como você quer aparecer? Só o primeiro nome.</SecondaryText>
               </div>
@@ -244,24 +243,29 @@ function ArrivalScreen({
   onEnter: () => void;
 }) {
   return (
-    <div id="main-content" className="entrada-anima relative flex min-h-dvh flex-col">
+    <main id="main-content" className="entrada-anima relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-[max(3rem,env(safe-area-inset-top))] text-center sm:px-10">
       {coverImageUrl ? (
         <img src={coverImageUrl} alt="" aria-hidden className="absolute inset-0 size-full object-cover" />
       ) : (
         <div aria-hidden className="absolute inset-0 bg-superficie-alta" />
       )}
       {/* Scrim para legibilidade do texto sobre a foto — chão do evento (dark), não preto cru. */}
-      <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-bg via-bg/70 to-bg/10" />
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-bg via-bg/80 to-bg/60" />
 
-      <div className="relative mt-auto flex flex-col gap-5 px-7 pb-[max(3rem,env(safe-area-inset-bottom))] pt-16">
-        <div className="flex flex-col gap-2">
-          <EventLabel>Você foi convidado para</EventLabel>
-          <DisplayTitle>{nomeEvento}</DisplayTitle>
-          {dataEvento && <p className="m-0 text-[0.9375rem] text-ink-2">{dataEvento}</p>}
+      <div className="relative mx-auto flex w-full max-w-[46rem] flex-col items-center gap-6 py-8 sm:py-16">
+        <h1 className="m-0 max-w-full break-words font-titulo text-[clamp(2.5rem,8vw,6rem)] font-light leading-[1.1] tracking-titulo [text-wrap:balance]">
+          {nomeEvento}
+        </h1>
+        <span aria-hidden className="h-px w-12 bg-acento-texto" />
+        {dataEvento && <p className="m-0 text-base text-ink-2">{dataEvento}</p>}
+        <p className="m-0 max-w-[30rem] text-base leading-relaxed text-ink sm:text-lg">
+          As melhores memórias são feitas juntos.<br />Estamos felizes por ter você aqui.
+        </p>
+        <div className="mt-2 grid w-full max-w-[22rem] gap-4">
+          <PrimaryButton onClick={onEnter}>Entrar na festa</PrimaryButton>
+          <FinePrint>Sem app · sem cadastro · sem baixar nada</FinePrint>
         </div>
-        <PrimaryButton onClick={onEnter}>Entrar na festa</PrimaryButton>
-        <FinePrint>Sem app · sem cadastro · sem baixar nada</FinePrint>
       </div>
-    </div>
+    </main>
   );
 }

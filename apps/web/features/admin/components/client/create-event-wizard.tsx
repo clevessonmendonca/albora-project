@@ -5,7 +5,7 @@ import NextLink from "next/link";
 import { FUSO_PADRAO, type VendorPlanTier, type WallDisplayModel } from "@albora/core";
 import { PACKS, packsDeCriacao, resolvePackText } from "@albora/packs";
 import { eventColorVariablesFrom } from "@albora/tokens";
-import { buttonVariants, Select } from "@albora/ui-web";
+import { BackIcon, BottomSheet, buttonVariants, LogoAlbora, Select } from "@albora/ui-web";
 import { useSearchParams } from "next/navigation";
 import { resolveIdentityPreviewVars } from "@/features/admin/lib/identity-preview";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
@@ -319,6 +319,8 @@ export function CreateEventWizard() {
     const digitando =
       alvo.tagName === "INPUT" || alvo.tagName === "TEXTAREA" || alvo.isContentEditable;
     if (created) return;
+    // Controles preservam Enter, Espaço e Escape nativos (inclusive nos sheets).
+    if (alvo.closest("button, a, select, summary, [role='dialog']")) return;
     if (e.key === "Enter" && !digitando) {
       e.preventDefault();
       advance();
@@ -376,7 +378,7 @@ export function CreateEventWizard() {
         <div className="flex-1">
           <div className="mx-auto grid w-full max-w-[82rem] gap-8 px-[clamp(1.1rem,4vw,2rem)] py-8 lg:grid-cols-[10rem_minmax(0,1fr)_18rem] lg:gap-10 lg:py-12">
           <StepRail step={step} onSelect={setStep} />
-          <div className="min-w-0 flex flex-col gap-7">
+          <div className={`min-w-0 flex flex-col gap-7 ${step === 0 || step === 3 ? "lg:col-span-2" : ""}`}>
             <div className="flex flex-col gap-4">
               <h1 className="m-0 font-titulo text-[clamp(2rem,3.5vw,3.25rem)] font-normal leading-tight tracking-tight text-balance">
                 {step === 0
@@ -459,6 +461,19 @@ export function CreateEventWizard() {
 
             {step === 2 && (
               <>
+                <button
+                  type="button"
+                  onClick={onPickCover}
+                  className="relative flex min-h-48 items-end overflow-hidden rounded-superficie bg-superficie-alta p-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento-texto"
+                  aria-label={coverFile ? "Trocar foto de capa" : "Escolher minha foto de capa"}
+                >
+                  <img src={coverUrl ?? typePhoto(pack.ordemCriacao)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  <span aria-hidden className="scrim-foto-forte absolute inset-0" />
+                  <span className="sobre-foto relative flex items-center gap-3">
+                    <Glyph name="image" size={24} />
+                    <span><strong className="block font-medium">{coverFile ? "Trocar minha foto" : "Escolher minha foto"}</strong><span className="mt-1 block text-sm">JPG, PNG ou WebP</span></span>
+                  </span>
+                </button>
                 <AppearanceStep
                   styleKey={styleKey}
                   onStyle={pickStyle}
@@ -508,6 +523,16 @@ export function CreateEventWizard() {
               </section>
             )}
 
+            {step !== 2 && (
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                className={`${adminClasses.secondaryButton} inline-flex min-h-12 items-center justify-center gap-2 self-start lg:hidden`}
+              >
+                <Glyph name="eye" size={16} /> Ver prévia
+              </button>
+            )}
+
             {status === "error" && (
               <p role="alert" className="tipo-caption m-0 text-critico">
                 Não deu para criar agora. Confira os dados e tente de novo.
@@ -516,12 +541,12 @@ export function CreateEventWizard() {
           </div>
 
           {/* Prévia persistente no desktop. */}
-          <aside className="hidden lg:block">
+          {step !== 0 && step !== 3 && <aside className="hidden lg:block">
             <div className="sticky top-8">
               <p className="mb-4 text-center text-sm text-ink-3">Assim seus convidados vão ver</p>
               <LivePreview data={previewData} />
             </div>
-          </aside>
+          </aside>}
           </div>
         </div>
 
@@ -540,31 +565,9 @@ export function CreateEventWizard() {
         {/* Mobile: "Ver prévia" fora da Aparência (sheet). */}
         {step !== 2 && (
           <>
-            <button
-              type="button"
-              onClick={() => setPreviewOpen(true)}
-              className="fixed bottom-24 right-4 z-40 inline-flex items-center gap-1.5 rounded-pilula border border-linha bg-superficie-alta px-4 py-3 tipo-label text-ink shadow-alta lg:hidden"
-            >
-              <Glyph name="eye" size={16} /> Ver prévia
-            </button>
-            {previewOpen && (
-              <div className="fixed inset-0 z-50 flex items-end bg-ink/40 lg:hidden" onClick={() => setPreviewOpen(false)}>
-                <div
-                  className="max-h-[85dvh] w-full overflow-y-auto rounded-t-superficie bg-bg p-5"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="mx-auto mb-4 h-1 w-10 rounded-pilula bg-linha" />
-                  <LivePreview data={previewData} />
-                  <button
-                    type="button"
-                    onClick={() => setPreviewOpen(false)}
-                    className={`${adminClasses.secondaryButton} mt-5 w-full py-3 text-center`}
-                  >
-                    Fechar
-                  </button>
-                </div>
-              </div>
-            )}
+            <BottomSheet title="Prévia do convite" open={previewOpen} onClose={() => setPreviewOpen(false)}>
+              <LivePreview data={previewData} />
+            </BottomSheet>
           </>
         )}
       </main>
@@ -586,9 +589,9 @@ function ProgressHeader({ step, onExit }: { step: number; onExit?: boolean }) {
   return (
     <header className="border-b border-linha bg-superficie px-[clamp(1.1rem,4vw,2rem)] py-4">
       <div className="mx-auto flex max-w-[78rem] items-center justify-between gap-4">
-        <NextLink href="/admin" aria-label="Álbora — início" className="font-titulo text-3xl tracking-tight no-underline">Álbora<span className="text-acento-texto">.</span></NextLink>
+        <NextLink href="/admin" aria-label="Álbora — início" className="inline-flex min-h-12 items-center rounded-token focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"><LogoAlbora altura={30} /></NextLink>
         <p className="hidden text-sm text-ink-3 sm:block">Seu evento começa aqui.</p>
-        {onExit && <NextLink href="/admin" className="inline-flex min-h-11 items-center gap-2 rounded-token px-3 text-sm text-ink-2"><Glyph name="arrow-left" size={16} /> Sair</NextLink>}
+        {onExit && <NextLink href="/admin" className="inline-flex min-h-12 items-center gap-2 rounded-token px-3 text-sm text-ink-2"><BackIcon size={16} /> Sair</NextLink>}
       </div>
       <div className="mx-auto mt-4 max-w-[78rem] lg:hidden">
         <p className="text-sm text-ink-2">Etapa {step + 1} de {STEPS.length} · {STEPS[step]}</p>

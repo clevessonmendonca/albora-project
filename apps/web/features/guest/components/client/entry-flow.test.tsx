@@ -35,7 +35,8 @@ describe("EntryFlow", () => {
   it("chega emocional: convite + nome do evento + entrar, sem pedir nada ainda", () => {
     renderEntryFlow();
 
-    expect(screen.getByText("Você foi convidado para")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Ana & João" })).toBeInTheDocument();
+    expect(screen.getByRole("main")).toHaveAttribute("id", "main-content");
     expect(screen.getByText("Ana & João")).toBeInTheDocument();
     expect(screen.getByText("Sem app · sem cadastro · sem baixar nada")).toBeInTheDocument();
     // Identidade não é pedida na chegada.

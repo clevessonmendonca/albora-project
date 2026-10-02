@@ -58,7 +58,7 @@ export function IdentitySheet({
 
   async function entrar(e: React.FormEvent) {
     e.preventDefault();
-    if (!consentiu || nome.trim().length === 0) return;
+    if (enviando || !consentiu || nome.trim().length === 0) return;
     setEnviando(true);
     setErro(null);
     try {
@@ -92,14 +92,14 @@ export function IdentitySheet({
 
   return (
     <BottomSheet title="Antes da sua primeira foto" open={open} onClose={onClose} titleId="identidade-sheet">
-      <form onSubmit={entrar} className="flex flex-col gap-5">
+      <form onSubmit={entrar} aria-busy={enviando} className="mx-auto flex w-full min-w-0 max-w-[30rem] flex-col gap-6">
         <p className="m-0 text-[0.9375rem] leading-relaxed text-ink-2">
           Como você quer aparecer? Só o primeiro nome.
         </p>
 
         <NameField value={nome} onChange={setNome} placeholder="Tio João" ariaLabel="Seu nome" autoFocus />
 
-        <Card elevation={1} className="grid gap-3">
+        <Card elevation={1} className="grid gap-3 text-left">
           <ConsentCheckbox checked={consentiu} onChange={setConsentiu}>
             Suas fotos poderão aparecer no álbum e no telão deste evento.{" "}
             <TextLink onClick={() => setMostrarTexto((v) => !v)}>Ver detalhes</TextLink>
@@ -117,6 +117,7 @@ export function IdentitySheet({
         </PrimaryButton>
 
         {erro && <ErrorMessage>{erro}</ErrorMessage>}
+        <p className="m-0 text-center text-sm text-ink-2">Sem cadastro e sem senha. Seu nome identifica seus registros neste evento.</p>
       </form>
     </BottomSheet>
   );

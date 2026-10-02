@@ -32,7 +32,7 @@ const twMod = await import(
 const tw = twMod.default?.default ?? twMod.default ?? twMod;
 
 const raiz = path.join(REPO, "apps/web/app");
-const entrada = ["tailwind.css", "tipografia.css", "base.css"]
+const entrada = ["tailwind.css", "fontes.css", "tipografia.css", "base.css"]
   .map((f) => fs.readFileSync(path.join(raiz, f), "utf8"))
   .join("\n");
 const { css } = await postcss([tw({ base: raiz })]).process(entrada, { from: path.join(raiz, "tailwind.css") });

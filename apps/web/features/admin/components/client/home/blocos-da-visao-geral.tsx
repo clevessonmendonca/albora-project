@@ -61,7 +61,7 @@ export function NumerosDoEvento({
 const ATALHOS = [
   { id: "qr", rotulo: "Meu QR", dica: "Compartilhar", suffix: "/qrcode", Icone: ShareIcon },
   { id: "album", rotulo: "Álbum", dica: "Ver fotos", suffix: "/album", Icone: CameraIcon },
-  { id: "telao", rotulo: "Telão", dica: "Configurar", suffix: "/identity", Icone: GridIcon },
+  { id: "telao", rotulo: "Telão", dica: "Acompanhar", suffix: "/ao-vivo", Icone: GridIcon },
 ] as const;
 
 export function AcessoRapido({ base }: { base: string }) {
@@ -74,14 +74,14 @@ export function AcessoRapido({ base }: { base: string }) {
           <li key={id}>
             <Link
               href={`${base}${suffix}`}
-              className="flex min-h-12 items-center gap-3 rounded-token border border-linha px-4 py-3 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto"
+              className="flex h-full min-h-12 items-center gap-3 rounded-token border border-linha px-3 py-4 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento-texto sm:flex-col sm:items-start"
             >
               <span className="shrink-0 text-ink-2">
                 <Icone size={20} />
               </span>
               <span className="flex min-w-0 flex-col">
                 <span className="tipo-label leading-none text-ink">{rotulo}</span>
-                <span className="tipo-caption truncate text-ink-3">{dica}</span>
+                <span className="tipo-caption break-words text-ink-3">{dica}</span>
               </span>
             </Link>
           </li>
@@ -101,10 +101,10 @@ export function NoDiaDaFesta({ base }: { base: string }) {
         momento.
       </p>
       <Link
-        href={`${base}/identity`}
+        href={`${base}/ao-vivo`}
         className="mt-5 inline-flex min-h-12 items-center rounded-pilula border border-linha px-5 tipo-label text-ink-2 no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-acento-texto hover:text-ink"
       >
-        Preparar o telão
+        Abrir central do evento
       </Link>
     </AdminCard>
   );

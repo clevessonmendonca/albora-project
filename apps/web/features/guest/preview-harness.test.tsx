@@ -58,7 +58,7 @@ describe("harness do convidado", () => {
         saudacao="Que bom ter você aqui"
         via="qr"
         comecaEm={new Date("2027-12-12T20:00:00Z").toISOString()}
-        coverImageUrl={null}
+        coverImageUrl="/onboarding/photo-08.webp"
       />,
     );
 
