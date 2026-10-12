@@ -4,10 +4,10 @@ import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./estilos";
 
 function Numero({ n, rotulo }: { n: number; rotulo: string }) {
   return (
-    <span className="flex flex-col">
-      <span className="tipo-title text-ink">{n}</span>
-      <span className="tipo-caption text-ink-3">{rotulo}</span>
-    </span>
+    <div className="flex min-w-0 flex-col">
+      <dt className="tipo-caption order-2 text-ink-2">{rotulo}</dt>
+      <dd className="tipo-title m-0 tabular-nums text-ink">{n.toLocaleString("pt-BR")}</dd>
+    </div>
   );
 }
 
@@ -23,11 +23,11 @@ export function Payoffdepois({ base, payoff }: { base: string; payoff: Payoff })
   return (
     <>
       <section className="rounded-superficie border border-linha bg-superficie p-[clamp(1.25rem,3vw,1.75rem)]">
-        <div className="flex flex-wrap gap-[clamp(1.5rem,5vw,3rem)]">
+        <dl aria-label="Resumo do álbum" className="m-0 grid grid-cols-2 gap-5 sm:grid-cols-3">
           <Numero n={fotos} rotulo={fotos === 1 ? "foto" : "fotos"} />
           <Numero n={pessoas} rotulo={pessoas === 1 ? "pessoa" : "pessoas"} />
           {destacadas > 0 && <Numero n={destacadas} rotulo="favoritas" />}
-        </div>
+        </dl>
 
         {novas > 0 && (
           <div className="mt-6 border-t border-linha pt-5">
@@ -48,20 +48,20 @@ export function Payoffdepois({ base, payoff }: { base: string; payoff: Payoff })
       </section>
 
       <section>
-        <h2 className="tipo-label m-0 mb-3 text-ink-3">Guardar suas fotos</h2>
-        <div className="flex flex-wrap gap-2.5">
-          <Link href={`${base}/album`} className={acaoSecundaria}>
+        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Guardar suas fotos</h2>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Link href={`${base}/album`} className={`${acaoSecundaria} min-h-12 whitespace-normal text-center`}>
             Baixar tudo
           </Link>
           {destacadas > 0 && (
-            <Link href={`${base}/album?aba=destaques`} className={acaoSecundaria}>
+            <Link href={`${base}/album?aba=destaques`} className={`${acaoSecundaria} min-h-12 whitespace-normal text-center`}>
               Só as favoritas
             </Link>
           )}
-          <Link href={`${base}/insights`} className={acaoSecundaria}>
+          <Link href={`${base}/insights`} className={`${acaoSecundaria} min-h-12 whitespace-normal text-center`}>
             Momentos da noite
           </Link>
-          <Link href={`${base}/guests`} className={acaoSecundaria}>
+          <Link href={`${base}/guests`} className={`${acaoSecundaria} min-h-12 whitespace-normal text-center`}>
             Quem esteve lá
           </Link>
         </div>

@@ -57,16 +57,16 @@ export function AvisoDeRetencao({
             : `Guardamos tudo até ${fmt(linha.d365, fuso)}. Depois disso, some.`}
       </p>
 
-      <ol className="m-0 mt-5 flex list-none flex-col gap-4 p-0">
+      <ol className="m-0 mt-6 flex list-none flex-col divide-y divide-linha p-0">
         {linha.nos.map((no) => (
-          <li key={no.chave} className="flex gap-3">
+          <li key={no.chave} aria-current={no.estado === "agora" ? "step" : undefined} className="flex gap-3 py-4 first:pt-0">
             <Marcador no={no} />
             <div className="min-w-0">
               <p
                 className={`tipo-body m-0 ${no.critico ? "text-critico" : no.estado === "futuro" ? "text-ink-2" : "text-ink"}`}
               >
                 {no.titulo}
-                {no.em && <span className="text-ink-3"> · {fmt(no.em, fuso)}</span>}
+                {no.em && <span className="mt-1 block text-sm text-ink-2">{fmt(no.em, fuso)}</span>}
               </p>
               <p className="tipo-caption m-0 mt-0.5 max-w-[46ch] text-ink-3">{no.detalhe}</p>
             </div>
@@ -76,7 +76,7 @@ export function AvisoDeRetencao({
 
       <Link
         href={`${base}/album`}
-        className={`${acaoPrimaria} mt-5`}
+        className={`${acaoPrimaria} mt-5 min-h-12 w-full whitespace-normal text-center sm:w-auto`}
         style={linha.urgente ? estiloAcento : undefined}
       >
         Baixar tudo agora

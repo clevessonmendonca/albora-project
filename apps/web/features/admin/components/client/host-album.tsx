@@ -12,7 +12,7 @@ import { HostDriveExport } from "@/features/admin/components/client/host-drive-e
  * sem editar admin-shell.tsx (mesmo padrão de review-queue.tsx/comment-moderation.tsx).
  * `min-h-11` garante a altura mínima independente de qual padding vertical vence a cascata.
  */
-const ALVO_TOQUE = "min-h-11 px-5";
+const ALVO_TOQUE = "min-h-12 px-5";
 
 function EstrelaIcon({ cheia = false }: { cheia?: boolean }) {
   return (
@@ -203,13 +203,13 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
       <div className="flex flex-col gap-5">
         <AdminSection>
           <div className="animate-pulse">
-            <div className="mb-4 flex items-center justify-between gap-4">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
               <div className="h-3.5 w-52 rounded-full bg-superficie-alta" />
               <div className="h-8 w-20 rounded-pilula bg-superficie-alta" />
             </div>
-            <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-4">
+            <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 lg:grid-cols-3 xl:grid-cols-4">
               {[0, 1, 2, 3, 4, 5].map((i) => (
-                <li key={i} aria-hidden className="aspect-square rounded-media bg-superficie-alta" />
+                <li key={i} aria-hidden className="aspect-[4/5] rounded-media bg-superficie-alta" />
               ))}
             </ul>
           </div>
@@ -241,26 +241,6 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
 
   return (
     <div className="flex flex-col gap-5">
-      {canExport && aba === "todas" ? (
-        <AdminSection>
-          <h2 className="tipo-subtitle m-0 mb-2 text-ink">O livro</h2>
-          <p className="tipo-caption m-0 mb-1 text-ink-2">
-            PDF A4 com sangria (216 × 303 mm) e diagramação por slots do álbum curado — perfil sRGB prepress.
-          </p>
-          <p className="tipo-caption m-0 mb-4 text-ink-3">
-            A tela mostra RGB e a gráfica imprime CMYK: a cor do acento pode sair um pouco mais apagada no papel. Peça uma prova impressa antes da tiragem.
-          </p>
-          <a
-            href={`/api/admin/events/${eventoId}/book/pdf`}
-            className={`${adminClasses.secondaryButton} inline-flex no-underline`}
-          >
-            Baixar PDF do livro
-          </a>
-        </AdminSection>
-      ) : null}
-
-      {canExport && aba === "todas" ? <HostExport eventoId={eventoId} /> : null}
-      {canExport && aba === "todas" ? <HostDriveExport eventoId={eventoId} /> : null}
       {desfazer && (
         <div
           role="status"
@@ -278,8 +258,9 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
         </div>
       )}
 
+      {erro && <p role="alert" className="tipo-body m-0 text-critico">Não foi possível atualizar. As fotos abaixo são da última consulta.</p>}
       <AdminSection>
-        <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
           <p className="tipo-body m-0 text-ink-2">
             {aba === "destaques"
               ? "As fotos que vocês escolheram. O telão e o álbum impresso dão preferência a elas."
@@ -313,17 +294,17 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
             </p>
           </div>
         ) : (
-          <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-4">
+          <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 lg:grid-cols-3 xl:grid-cols-4">
             {itens.map((item, indice) => {
               const ativo = selecionado === item.id;
               return (
-                <li key={item.id}>
+                <li key={item.id} className="min-w-0">
                   <button
                     type="button"
                     onClick={() => setSelecionado(ativo ? null : item.id)}
                     aria-pressed={ativo}
                     aria-label={`Foto ${indice + 1} de ${itens.length}, ${legendaDaFoto(item.criadaEm, item.reacoes)}${item.destacada ? ", destacada" : ""}`}
-                    className={`relative block aspect-square w-full cursor-pointer overflow-hidden rounded-media border-0 bg-superficie-alta p-0 transition-transform duration-instantaneo ease-mola active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 ${
+                    className={`relative block aspect-[4/5] w-full cursor-pointer overflow-hidden rounded-media border-0 bg-superficie-alta p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento transition-transform duration-instantaneo ease-mola active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 ${
                       ativo ? "ring-2 ring-acento ring-offset-2 ring-offset-superficie" : ""
                     }`}
                   >
@@ -337,12 +318,17 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
                     {item.destacada && (
                       <span
                         aria-hidden
-                        className="absolute right-1.5 top-1.5 rounded-pilula bg-superficie/90 px-1.5 py-0.5 text-acento-texto"
+                        className="absolute right-1.5 top-1.5 rounded-pilula bg-superficie px-1.5 py-0.5 text-acento-texto"
                       >
                         <EstrelaIcon cheia />
                       </span>
                     )}
                   </button>
+                  <div className="flex flex-wrap items-start justify-between gap-1 pt-3">
+                    <span className="text-sm font-medium text-ink">Foto {indice + 1}</span>
+                    {item.destacada && <span className="text-xs text-acento-texto">Destacada</span>}
+                    <span className="w-full text-xs text-ink-2">{legendaDaFoto(item.criadaEm, item.reacoes)}</span>
+                  </div>
                 </li>
               );
             })}
@@ -421,6 +407,33 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
             </p>
           )}
         </AdminSection>
+      )}
+
+      {canExport && aba === "todas" && (
+        <details className="rounded-superficie border border-linha">
+          <summary className="min-h-12 cursor-pointer px-5 py-4 font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-acento">
+            Baixar e guardar as fotos
+          </summary>
+          <div className="flex flex-col gap-5 p-3 sm:p-5">
+            <AdminSection>
+              <h2 className="tipo-subtitle m-0 mb-2 text-ink">O livro</h2>
+              <p className="tipo-caption m-0 mb-1 text-ink-2">
+                PDF A4 com sangria (216 × 303 mm) e diagramação por slots do álbum curado — perfil sRGB prepress.
+              </p>
+              <p className="tipo-caption m-0 mb-4 text-ink-3">
+                A tela mostra RGB e a gráfica imprime CMYK: a cor do acento pode sair um pouco mais apagada no papel. Peça uma prova impressa antes da tiragem.
+              </p>
+              <a
+                href={`/api/admin/events/${eventoId}/book/pdf`}
+                className={`${adminClasses.secondaryButton} inline-flex no-underline`}
+              >
+                Baixar PDF do livro
+              </a>
+            </AdminSection>
+            <HostExport eventoId={eventoId} />
+            <HostDriveExport eventoId={eventoId} />
+          </div>
+        </details>
       )}
 
       <ConfirmDialog

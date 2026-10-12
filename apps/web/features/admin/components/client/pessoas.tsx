@@ -71,10 +71,10 @@ function PerfilDaPessoa({
       </button>
 
       <AdminSection>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Inicial nome={pessoa.nome} />
           <div className="min-w-0">
-            <h2 className="tipo-subtitle m-0 text-ink">{pessoa.nome}</h2>
+            <h2 className="tipo-subtitle m-0 break-words text-ink">{pessoa.nome}</h2>
             <p className="tipo-caption m-0 mt-1 text-ink-3">
               {contagem(pessoa.fotos)} · entrou às {hora(pessoa.entrouEm)}
             </p>
@@ -182,8 +182,12 @@ export function Pessoas({
       )}
 
       <AdminSection>
+        <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="tipo-subtitle m-0">Sua lista</h2>
+          <p className="m-0 text-sm text-ink-2">{pessoas.length} {pessoas.length === 1 ? "pessoa neste evento" : "pessoas neste evento"}</p>
+        </div>
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <label className="min-w-0 flex-1">
+          <label className="min-w-0 basis-full sm:basis-auto sm:flex-1">
             <span className="sr-only">Buscar pessoa</span>
             <input
               type="search"
@@ -214,7 +218,7 @@ export function Pessoas({
                   <button
                     type="button"
                     onClick={() => setAberta(p.id)}
-                    className="flex w-full min-h-11 cursor-pointer items-center gap-3 border-0 border-b border-linha bg-transparent px-0 py-3 text-left"
+                    className="flex w-full min-h-11 cursor-pointer flex-wrap items-center gap-3 border-0 border-b border-linha bg-transparent px-2 py-4 text-left transition-colors hover:bg-superficie-alta"
                   >
                     <Inicial nome={p.nome} />
                     <span className="min-w-0 flex-1">
