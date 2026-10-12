@@ -218,17 +218,17 @@ export function IdentityEditor({
     <div className="flex flex-col gap-5">
       <AdminSection>
         <div className="mb-7">
-          <h2 className="tipo-subtitle m-0">Configuração do evento</h2>
+          <h2 className="tipo-subtitle m-0">A cara de {previewTitle}</h2>
           <p className="tipo-caption m-0 mt-1.5 max-w-[38rem] text-ink-2">
-            A identidade propaga para convidado, telão e peças impressas — um resolvedor, três
-            superfícies.
+            Escolha um estilo para a festa. A gente mantém a mesma direção no convite, no telão e
+            no álbum.
           </p>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-start">
           <div className="flex flex-col gap-7">
             <TextField
-              label="Nome do evento"
+              label="Como vocês querem aparecer?"
               maxLength={120}
               placeholder="Ex.: João & Maria"
               value={title}
@@ -236,12 +236,12 @@ export function IdentityEditor({
                 setTitle(e.target.value);
                 setSaved(false);
               }}
-              hint="Aparece como título na capa do app. Deixe em branco para usar o nome do pack."
+              hint="Esse nome aparece na capa, no álbum e nas peças da festa."
               inputClassName="max-w-sm"
             />
 
             <TextField
-              label="Quantos convidados presentes?"
+              label="Quantas pessoas vocês esperam?"
               type="number"
               min={1}
               max={999}
@@ -251,7 +251,7 @@ export function IdentityEditor({
                 setExpectedGuests(e.target.value);
                 setSaved(false);
               }}
-              hint="Estimativa de quem vai estar na festa. Usamos para medir a participação."
+              hint="Uma estimativa já basta. Depois você acompanha a participação da festa."
               {...(!guestsValid && expectedGuests !== ""
                 ? { error: "Informe um número válido de convidados esperados." }
                 : {})}
@@ -269,7 +269,7 @@ export function IdentityEditor({
             <div className="h-px bg-linha" />
 
             <div>
-              <FieldLabel>Paleta base</FieldLabel>
+              <FieldLabel>Qual combina mais com vocês?</FieldLabel>
               <div className="flex flex-col gap-2">
                 {IDENTITY_MODELS.map((m) => {
                   const selected = preset.id === m.id;
@@ -302,8 +302,8 @@ export function IdentityEditor({
             </div>
 
             <CorField
-              label="Cor de destaque"
-              hint="Botões, marcações e links"
+              label="Cor da festa"
+              hint="Aparece nos detalhes que unem cada canto da festa"
               value={customAccent ?? presetAccent ?? IDENTITY_MODELS[0]!.amostra}
               custom={customAccent !== null}
               onChange={(cor) => {
@@ -317,7 +317,7 @@ export function IdentityEditor({
             />
 
             <div>
-              <FieldLabel>Estilo de fonte</FieldLabel>
+              <FieldLabel>Jeito de escrever</FieldLabel>
               <div className="flex gap-2">
                 {FONT_OPTIONS.map((opt) => {
                   const isActive = customFont
@@ -351,7 +351,7 @@ export function IdentityEditor({
             </div>
 
             <div>
-              <FieldLabel>Fundo padrão</FieldLabel>
+              <FieldLabel>Clima da noite</FieldLabel>
               <div className="flex gap-2">
                 {(["dark", "light"] as const).map((mode) => {
                   const active = effectiveBackground === mode;
@@ -394,14 +394,14 @@ export function IdentityEditor({
 
           <aside className="lg:sticky lg:top-6">
             <PhoneFrame
-              title="Preview ao vivo"
-              note="Como o convidado vê a marca de vocês assim que abre o app — atualiza a cada mudança."
+              title="Ficou assim"
+              note="Uma prévia de como os convidados encontram a festa. Atualiza a cada escolha."
             >
               <PreviewScreen previewVars={previewVars} title={previewTitle} missionLabel={missionLabel} />
             </PhoneFrame>
             <div className={`mt-4 ${identityPreviewClassName}`} style={previewVars}>
               <p className="m-0 font-titulo text-lg text-acento-texto">{previewTitle}</p>
-              <p className="mb-0 mt-2 text-sm text-ink-2">Prévia da capa impressa e do telão</p>
+              <p className="mb-0 mt-2 text-sm text-ink-2">Capa, álbum e telão seguem essa mesma direção.</p>
             </div>
           </aside>
         </div>
@@ -409,10 +409,9 @@ export function IdentityEditor({
         <div className="my-8 h-px bg-linha" />
 
         <div>
-          <h2 className="tipo-subtitle m-0">Modelos do telão</h2>
+          <h2 className="tipo-subtitle m-0">Como as fotos aparecem no telão</h2>
           <p className="tipo-caption m-0 mt-1.5 text-ink-2">
-            Escolha os modelos que entram no rodízio da parede. A mudança vale para a próxima foto
-            que subir.
+            Escolha os jeitos que entram no rodízio. A mudança vale para a próxima foto que subir.
           </p>
           {wallProblems.length > 0 && (
             <div className="mt-4 rounded-token border border-critico bg-superficie px-4 py-3">
