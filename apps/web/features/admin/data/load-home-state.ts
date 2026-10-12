@@ -9,7 +9,11 @@ import {
 import { PACKS } from "@albora/packs";
 import { assinarGet } from "@/lib/r2";
 import type { MarcoCru } from "@/features/admin/lib/linha-de-retencao";
-import { capitulosDoReviver, type CapituloDoReviver } from "@/features/admin/lib/reviver";
+import {
+  capitulosDoReviver,
+  tempoJuntoEmHoras,
+  type CapituloDoReviver,
+} from "@/features/admin/lib/reviver";
 import { getPool } from "@/lib/db";
 import { diasAte } from "@/features/admin/lib/contagem";
 
@@ -64,6 +68,8 @@ export type Payoff = {
   destacadas: number;
   /** Fotos que chegaram depois da última visita ao álbum. */
   novas: number;
+  /** Da primeira à última foto. Zero quando não dá para medir um intervalo. */
+  horas: number;
 };
 
 function faseDe(evento: EventoDoHost, dias: number, feitos: number): FaseDoEvento {
@@ -221,6 +227,9 @@ export async function loadHomeState(evento: EventoDoHost): Promise<EstadoDaHome>
         novas: evento.albumVistoEm
           ? midias.filter((m) => m.recebidaEm > (evento.albumVistoEm as Date)).length
           : midias.length,
+        horas: tempoJuntoEmHoras(
+          midias.map((m) => ({ em: (m.capturadaEm ?? m.recebidaEm).toISOString() })),
+        ),
       }
     : null;
 

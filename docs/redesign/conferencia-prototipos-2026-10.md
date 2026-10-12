@@ -49,8 +49,22 @@ node tools/preview/capturar.mjs album.html convidados.html convite.html
 Saída padrão: `/tmp/albora-preview`. `PREVIEW_DIR` permite outro diretório.
 Os harnesses não escrevem arquivos no CI sem `PREVIEW=1`.
 
+## Pós-evento — Reviver
+
+Comparado o player do Reviver com `prototipos/posevento.html`. Parte do que o protótipo mostra é
+toast sem função real por trás ("Assistir na TV", "Salvar vídeo") — não há telão pós-evento nem
+exportação de vídeo no produto, e replicar o toast seria conteúdo inventado. O que tinha dado real
+por trás entrou: a tela final agora mostra quantas horas se passaram da primeira à última foto, e
+"Compartilhar" reaproveita `CopiarLinkEvento` (o mesmo link que já aparece no painel) em vez de uma
+ação nova.
+
+Ainda não comparado: Favoritas como bloco com narrativa própria (hoje é link dentro de "Guardar" e
+número no resumo do evento); "momentos da noite" como trecho por horário (hoje aponta para o funil
+de participação em `/insights`, que é outra coisa); redação por persona de quem administra — o
+protótipo mostra um modo "Assessoria", mas fornecedor/B2B2C só entra na Fase 3, então não é para
+implementar agora.
+
 ## Próxima conferência
 
-Comparar os estados pós-evento com as respectivas telas do protótipo. Validar permissões,
-estados vazios, erros e navegação em sessão real, incluindo os fluxos já redesenhados.
-O redesign completo não está marcado como concluído.
+Validar permissões, estados vazios, erros e navegação em sessão real, incluindo os fluxos já
+redesenhados. O redesign completo não está marcado como concluído.

@@ -15,6 +15,8 @@ export function CartaoReviver({
   nome,
   fotos,
   pessoas,
+  horas,
+  slug,
   hrefAlbum,
 }: {
   capitulos: CapituloDoReviver[];
@@ -22,6 +24,8 @@ export function CartaoReviver({
   nome: string;
   fotos: number;
   pessoas: number;
+  horas: number;
+  slug: string;
   hrefAlbum: string;
 }) {
   const [aberto, setAberto] = useState(false);
@@ -63,6 +67,8 @@ export function CartaoReviver({
         nome={nome}
         fotos={fotos}
         pessoas={pessoas}
+        horas={horas}
+        slug={slug}
         hrefAlbum={hrefAlbum}
         aberto={aberto}
         onFechar={() => setAberto(false)}

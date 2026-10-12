@@ -79,3 +79,10 @@ export function capitulosDoReviver(
 
   return capitulos;
 }
+
+/** Da primeira à última foto — não da abertura ao fim do evento, que ninguém fotografa. */
+export function tempoJuntoEmHoras(midias: { em: string }[]): number {
+  if (midias.length === 0) return 0;
+  const tempos = midias.map((m) => new Date(m.em).getTime());
+  return Math.round((Math.max(...tempos) - Math.min(...tempos)) / 3_600_000);
+}

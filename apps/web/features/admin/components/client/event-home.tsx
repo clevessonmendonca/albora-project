@@ -232,6 +232,8 @@ export async function EventHome({
               nome={ctx.name}
               fotos={estado.payoff.fotos}
               pessoas={estado.payoff.pessoas}
+              horas={estado.payoff.horas}
+              slug={evento.slug}
               hrefAlbum={`${base}/album`}
             />
           )}

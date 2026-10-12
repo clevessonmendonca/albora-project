@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capitulosDoReviver, type MidiaDoReviver, type MomentoDoPack } from "./reviver";
+import { capitulosDoReviver, tempoJuntoEmHoras, type MidiaDoReviver, type MomentoDoPack } from "./reviver";
 
 const MOMENTOS: MomentoDoPack[] = [
   { id: "a", chaveTitulo: "m.a", chaveDesc: "m.a.desc" },
@@ -89,5 +89,28 @@ describe("capitulosDoReviver", () => {
   it("todas as fotos entram em algum capítulo — nenhuma some da noite", () => {
     const capitulos = capitulosDoReviver(muitas(11), MOMENTOS, VOCAB);
     expect(capitulos.reduce((n, c) => n + c.fotos, 0)).toBe(11);
+  });
+});
+
+describe("tempoJuntoEmHoras", () => {
+  it("sem fotos, não inventa duração", () => {
+    expect(tempoJuntoEmHoras([])).toBe(0);
+  });
+
+  it("uma só foto não separa um intervalo", () => {
+    expect(tempoJuntoEmHoras([midia("a", 20)])).toBe(0);
+  });
+
+  it("mede da primeira à última, não da ordem de chegada", () => {
+    const fotos = [midia("tarde", 23), midia("cedo", 18), midia("meio", 20)];
+    expect(tempoJuntoEmHoras(fotos)).toBe(5);
+  });
+
+  it("arredonda para a hora mais próxima", () => {
+    const fotos = [
+      { em: "2026-09-20T18:00:00.000Z" },
+      { em: "2026-09-20T20:40:00.000Z" },
+    ];
+    expect(tempoJuntoEmHoras(fotos)).toBe(3);
   });
 });

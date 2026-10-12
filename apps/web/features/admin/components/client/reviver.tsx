@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Dialog } from "@albora/ui-web";
 import type { CapituloDoReviver } from "@/features/admin/lib/reviver";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
+import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
 
 const DURACAO_MS = 4000;
 
@@ -35,6 +36,8 @@ export function Reviver({
   nome,
   fotos,
   pessoas,
+  horas,
+  slug,
   hrefAlbum,
   aberto,
   onFechar,
@@ -44,6 +47,8 @@ export function Reviver({
   nome: string;
   fotos: number;
   pessoas: number;
+  horas: number;
+  slug: string;
   hrefAlbum: string;
   aberto: boolean;
   onFechar: () => void;
@@ -142,6 +147,12 @@ export function Reviver({
                 <span className="tipo-title text-bg">{pessoas}</span>
                 <span className="tipo-caption text-bg/70">pessoas</span>
               </span>
+              {horas > 0 && (
+                <span className="flex flex-col">
+                  <span className="tipo-title text-bg">{horas}h</span>
+                  <span className="tipo-caption text-bg/70">juntos</span>
+                </span>
+              )}
             </div>
             <div className="flex flex-wrap justify-center gap-2.5">
               <Link href={hrefAlbum} className={adminClasses.primaryButton}>
@@ -158,6 +169,7 @@ export function Reviver({
               >
                 Ver de novo
               </button>
+              <CopiarLinkEvento slug={slug} />
             </div>
           </div>
         ) : (
