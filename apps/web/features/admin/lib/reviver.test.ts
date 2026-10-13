@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capitulosDoReviver, tempoJuntoEmHoras, type MidiaDoReviver, type MomentoDoPack } from "./reviver";
+import { capitulosDoReviver, hora, tempoJuntoEmHoras, type MidiaDoReviver, type MomentoDoPack } from "./reviver";
 
 const MOMENTOS: MomentoDoPack[] = [
   { id: "a", chaveTitulo: "m.a", chaveDesc: "m.a.desc" },
@@ -112,5 +112,15 @@ describe("tempoJuntoEmHoras", () => {
       { em: "2026-09-20T20:40:00.000Z" },
     ];
     expect(tempoJuntoEmHoras(fotos)).toBe(3);
+  });
+});
+
+describe("hora", () => {
+  it("formata no fuso do evento, com 'h' em vez de ':'", () => {
+    expect(hora("2026-09-20T23:15:00.000Z", "America/Sao_Paulo")).toBe("20h15");
+  });
+
+  it("fuso inválido não derruba a tela — devolve vazio", () => {
+    expect(hora("2026-09-20T23:15:00.000Z", "Lugar/Que/Nao/Existe")).toBe("");
   });
 });

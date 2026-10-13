@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { ChevronIcon } from "@albora/ui-web";
 import type { Payoff } from "@/features/admin/data/load-home-state";
-import type { CapituloDoReviver } from "@/features/admin/lib/reviver";
-import { hora } from "../reviver";
+import { hora, type CapituloDoReviver } from "@/features/admin/lib/reviver";
 import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./estilos";
 
 function Numero({ n, rotulo }: { n: number; rotulo: string }) {

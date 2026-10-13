@@ -3,7 +3,14 @@
 import { useState } from "react";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 
-export function CopiarLinkEvento({ slug }: { slug: string }) {
+export function CopiarLinkEvento({
+  slug,
+  className = adminClasses.secondaryButton,
+}: {
+  slug: string;
+  /** `adminClasses.secondaryButton` presume fundo claro — quem chama sobre fundo escuro passa o próprio. */
+  className?: string;
+}) {
   const [copiado, setCopiado] = useState(false);
 
   async function copiar() {
@@ -29,7 +36,7 @@ export function CopiarLinkEvento({ slug }: { slug: string }) {
     <button
       type="button"
       onClick={() => void copiar()}
-      className={`inline-flex items-center gap-1.5 ${adminClasses.secondaryButton}`}
+      className={`inline-flex items-center gap-1.5 ${className}`}
     >
       {copiado ? (
         <>

@@ -86,3 +86,22 @@ export function tempoJuntoEmHoras(midias: { em: string }[]): number {
   const tempos = midias.map((m) => new Date(m.em).getTime());
   return Math.round((Math.max(...tempos) - Math.min(...tempos)) / 3_600_000);
 }
+
+/**
+ * Função pura, sem estado de cliente — mora aqui, não num componente
+ * `"use client"`, porque `depois.tsx` é Server Component e não pode chamar
+ * uma função que vive do outro lado da fronteira.
+ */
+export function hora(iso: string, fuso: string): string {
+  try {
+    return new Intl.DateTimeFormat("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: fuso,
+    })
+      .format(new Date(iso))
+      .replace(":", "h");
+  } catch {
+    return "";
+  }
+}

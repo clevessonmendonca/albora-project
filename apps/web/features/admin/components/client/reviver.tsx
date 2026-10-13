@@ -3,25 +3,15 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Dialog } from "@albora/ui-web";
-import type { CapituloDoReviver } from "@/features/admin/lib/reviver";
+import { hora, type CapituloDoReviver } from "@/features/admin/lib/reviver";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link-evento";
 
 const DURACAO_MS = 4000;
 
-export function hora(iso: string, fuso: string): string {
-  try {
-    return new Intl.DateTimeFormat("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: fuso,
-    })
-      .format(new Date(iso))
-      .replace(":", "h");
-  } catch {
-    return "";
-  }
-}
+/** `adminClasses.secondaryButton` é texto e borda de fundo claro — aqui a tela é escura de ponta a ponta. */
+const ACAO_SECUNDARIA_NO_ESCURO =
+  "inline-flex min-h-12 items-center justify-center gap-1.5 whitespace-nowrap rounded-pilula border border-bg/30 bg-transparent px-6 font-medium text-bg no-underline transition-colors duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:border-bg/60";
 
 /**
  * O Reviver: a festa em capítulos, em tela cheia.
@@ -165,11 +155,11 @@ export function Reviver({
                   setPausado(false);
                   setI(0);
                 }}
-                className={adminClasses.secondaryButton}
+                className={ACAO_SECUNDARIA_NO_ESCURO}
               >
                 Ver de novo
               </button>
-              <CopiarLinkEvento slug={slug} />
+              <CopiarLinkEvento slug={slug} className={ACAO_SECUNDARIA_NO_ESCURO} />
             </div>
           </div>
         ) : (
