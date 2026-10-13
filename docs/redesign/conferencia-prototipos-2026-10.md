@@ -58,11 +58,14 @@ por trás entrou: a tela final agora mostra quantas horas se passaram da primeir
 "Compartilhar" reaproveita `CopiarLinkEvento` (o mesmo link que já aparece no painel) em vez de uma
 ação nova.
 
-Ainda não comparado: Favoritas como bloco com narrativa própria (hoje é link dentro de "Guardar" e
-número no resumo do evento); "momentos da noite" como trecho por horário (hoje aponta para o funil
-de participação em `/insights`, que é outra coisa); redação por persona de quem administra — o
-protótipo mostra um modo "Assessoria", mas fornecedor/B2B2C só entra na Fase 3, então não é para
-implementar agora.
+Favoritas ganhou bloco próprio, com ícone e narrativa (estrela, não coração — anti-padrão
+bloqueante de identidade visual). "Momentos da noite" trocou o link para `/insights` (funil de
+participação, sem foto nenhuma) por uma prévia real dos capítulos do Reviver — mesma ordem, mesmo
+`em`/`fotos` que o player usa, sem emoji por momento como o protótipo: o mapeamento emoji→tipo de
+momento é específico do pack de casamento, e o núcleo não pode carregar essa amarração.
+
+Ainda não comparado: redação por persona de quem administra — o protótipo mostra um modo
+"Assessoria", mas fornecedor/B2B2C só entra na Fase 3, então não é para implementar agora.
 
 ## Próxima conferência
 

@@ -9,7 +9,7 @@ import { CopiarLinkEvento } from "@/features/admin/components/client/copiar-link
 
 const DURACAO_MS = 4000;
 
-function hora(iso: string, fuso: string): string {
+export function hora(iso: string, fuso: string): string {
   try {
     return new Intl.DateTimeFormat("pt-BR", {
       hour: "2-digit",

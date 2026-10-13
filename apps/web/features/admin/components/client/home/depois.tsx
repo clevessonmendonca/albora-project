@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ChevronIcon } from "@albora/ui-web";
 import type { Payoff } from "@/features/admin/data/load-home-state";
+import type { CapituloDoReviver } from "@/features/admin/lib/reviver";
+import { hora } from "../reviver";
 import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./estilos";
 
 function Numero({ n, rotulo }: { n: number; rotulo: string }) {
@@ -18,6 +20,44 @@ function EstrelaIcon() {
     <svg aria-hidden viewBox="0 0 24 24" className="size-5" fill="currentColor" stroke="none">
       <path d="M12 3.5l2.6 5.3 5.9.85-4.25 4.15 1 5.85L12 16.9l-5.25 2.75 1-5.85L3.5 9.65l5.9-.85z" />
     </svg>
+  );
+}
+
+/**
+ * Prévia dos capítulos do Reviver, não o funil de participação — "Momentos da
+ * noite" apontava para `/insights`, que é outra coisa (conversão, sem fotos).
+ */
+function MomentosDaNoite({ capitulos, fuso }: { capitulos: CapituloDoReviver[]; fuso: string }) {
+  if (capitulos.length === 0) return null;
+
+  return (
+    <section>
+      <h2 className="tipo-subtitle m-0 mb-4 text-ink">Momentos da noite</h2>
+      <ul className="m-0 flex list-none gap-3 overflow-x-auto p-0 pb-1">
+        {capitulos.map((c) => (
+          <li
+            key={c.id}
+            className="w-[9.5rem] shrink-0 overflow-hidden rounded-token border border-linha bg-superficie"
+          >
+            {c.capa.thumb && (
+              <img
+                src={c.capa.thumb}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="aspect-[4/3] w-full object-cover"
+              />
+            )}
+            <div className="p-2.5">
+              <p className="tipo-label m-0 truncate text-ink">{c.titulo}</p>
+              <p className="tipo-caption m-0 text-ink-3">
+                {hora(c.em, fuso)} · {c.fotos} {c.fotos === 1 ? "foto" : "fotos"}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -51,7 +91,17 @@ function Favoritas({ base, destacadas }: { base: string; destacadas: number }) {
  * dia seguinte, e quem ficou até o fim sobe de madrugada. "1.284 fotos" não
  * muda de cara e não convida a voltar; "38 que você ainda não viu", sim.
  */
-export function Payoffdepois({ base, payoff }: { base: string; payoff: Payoff }) {
+export function Payoffdepois({
+  base,
+  payoff,
+  capitulos,
+  fuso,
+}: {
+  base: string;
+  payoff: Payoff;
+  capitulos: CapituloDoReviver[];
+  fuso: string;
+}) {
   const { fotos, pessoas, destacadas, novas } = payoff;
 
   return (
@@ -81,6 +131,8 @@ export function Payoffdepois({ base, payoff }: { base: string; payoff: Payoff })
         )}
       </section>
 
+      <MomentosDaNoite capitulos={capitulos} fuso={fuso} />
+
       <Favoritas base={base} destacadas={destacadas} />
 
       <section>
@@ -88,9 +140,6 @@ export function Payoffdepois({ base, payoff }: { base: string; payoff: Payoff })
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Link href={`${base}/album`} className={`${acaoSecundaria} min-h-12 whitespace-normal text-center`}>
             Baixar tudo
-          </Link>
-          <Link href={`${base}/insights`} className={`${acaoSecundaria} min-h-12 whitespace-normal text-center`}>
-            Momentos da noite
           </Link>
           <Link href={`${base}/guests`} className={`${acaoSecundaria} min-h-12 whitespace-normal text-center`}>
             Quem esteve lá

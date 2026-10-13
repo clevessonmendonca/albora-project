@@ -224,7 +224,14 @@ export async function EventHome({
       {/* Depois: a página vira memória — nada de configuração pré-evento. */}
       {depois && (
         <>
-          {estado.payoff && <Payoffdepois base={base} payoff={estado.payoff} />}
+          {estado.payoff && (
+            <Payoffdepois
+              base={base}
+              payoff={estado.payoff}
+              capitulos={estado.capitulos}
+              fuso={evento.fuso}
+            />
+          )}
           {estado.payoff && estado.capitulos.length > 0 && (
             <CartaoReviver
               capitulos={estado.capitulos}
