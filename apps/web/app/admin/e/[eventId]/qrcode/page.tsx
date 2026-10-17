@@ -1,3 +1,4 @@
+import { capaFocoDoEvento } from "@albora/core";
 import QRCode from "qrcode";
 import { headers } from "next/headers";
 import { EventPageLayout } from "@/features/admin/components/server/event-page-layout";
@@ -45,6 +46,7 @@ export default async function QrCodePage({
             guestUrl={guestUrl}
             svgString={svgString}
             coverImageUrl={coverImageUrl}
+            coverFoco={capaFocoDoEvento(evento.identityTokens)}
             dateLabel={dateLabel}
             isDraft={evento.status === "draft"}
           />
