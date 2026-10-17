@@ -1,12 +1,14 @@
 /** Entrega de e-mail via Resend; sem RESEND_API_KEY degrada (job e download continuam) — terceiro fora do crítico. E-mail é PII: nunca logar o endereço. */
 
+import { manterVivo } from "../runtime/manter-vivo";
+
 export type HostEmail = {
   to: string;
   subject: string;
   text: string;
 };
 
-export async function sendHostEmail(mail: HostEmail): Promise<{ enviado: boolean }> {
+async function enviarEmail(mail: HostEmail): Promise<{ enviado: boolean }> {
   const key = process.env.RESEND_API_KEY?.trim() ?? "";
   if (!key) {
     console.log("aviso.omitido", { motivo: "sem_resend" });
@@ -41,4 +43,8 @@ export async function sendHostEmail(mail: HostEmail): Promise<{ enviado: boolean
     console.warn("aviso.falhou", { erro: String(e) });
     return { enviado: false };
   }
+}
+
+export function sendHostEmail(mail: HostEmail): Promise<{ enviado: boolean }> {
+  return manterVivo(enviarEmail(mail));
 }
