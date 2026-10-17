@@ -3,7 +3,16 @@ import type { NextConfig } from "next";
 import { resolve } from "node:path";
 import { OPS_TO_CONSOLE_REDIRECTS } from "./lib/redirects/ops-to-console";
 
+const buildLeve = process.env.CF_LEVE === "1";
+const semSentry = buildLeve || process.env.CF_SEM_SENTRY === "1";
+
 const nextConfig: NextConfig = {
+  webpack(config) {
+    if (semSentry) {
+      config.resolve.alias["@sentry/nextjs"] = resolve(process.cwd(), "build/stubs/sentry-nextjs.ts");
+    }
+    return config;
+  },
   outputFileTracingRoot: resolve(process.cwd(), "../.."),
   serverExternalPackages: ["pdf-lib", "@pdf-lib/fontkit"],
   transpilePackages: ["@albora/core", "@albora/packs", "@albora/tokens", "@albora/ui-web", "@albora/integrations"],
@@ -142,13 +151,15 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  silent: !process.env.CI,
-  ...(process.env.SENTRY_ORG && { org: process.env.SENTRY_ORG }),
-  ...(process.env.SENTRY_PROJECT && { project: process.env.SENTRY_PROJECT }),
-  sourcemaps: {
-    disable: !process.env.SENTRY_AUTH_TOKEN,
-    deleteSourcemapsAfterUpload: true,
-  },
-  tunnelRoute: "/monitoring",
-});
+export default semSentry
+  ? nextConfig
+  : withSentryConfig(nextConfig, {
+      silent: !process.env.CI,
+      ...(process.env.SENTRY_ORG && { org: process.env.SENTRY_ORG }),
+      ...(process.env.SENTRY_PROJECT && { project: process.env.SENTRY_PROJECT }),
+      sourcemaps: {
+        disable: !process.env.SENTRY_AUTH_TOKEN,
+        deleteSourcemapsAfterUpload: true,
+      },
+      tunnelRoute: "/monitoring",
+    });
