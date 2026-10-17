@@ -5,16 +5,21 @@ import { OPS_TO_CONSOLE_REDIRECTS } from "./lib/redirects/ops-to-console";
 
 const buildLeve = process.env.CF_LEVE === "1";
 const semSentry = buildLeve || process.env.CF_SEM_SENTRY === "1";
+const semPdf = buildLeve || process.env.CF_SEM_PDF === "1";
 
 const nextConfig: NextConfig = {
   webpack(config) {
     if (semSentry) {
       config.resolve.alias["@sentry/nextjs"] = resolve(process.cwd(), "build/stubs/sentry-nextjs.ts");
     }
+    if (semPdf) {
+      config.resolve.alias["pdf-lib"] = resolve(process.cwd(), "build/stubs/pdf-lib.ts");
+      config.resolve.alias["@pdf-lib/fontkit"] = resolve(process.cwd(), "build/stubs/pdf-lib-fontkit.ts");
+    }
     return config;
   },
   outputFileTracingRoot: resolve(process.cwd(), "../.."),
-  serverExternalPackages: ["pdf-lib", "@pdf-lib/fontkit"],
+  serverExternalPackages: semPdf ? [] : ["pdf-lib", "@pdf-lib/fontkit"],
   transpilePackages: ["@albora/core", "@albora/packs", "@albora/tokens", "@albora/ui-web", "@albora/integrations"],
   images: {
     loader: "custom",
