@@ -29,6 +29,7 @@ export function DetailsStep({
   onGuests,
   local,
   onLocal,
+  momentos = [],
 }: {
   title: string;
   onTitle: (v: string) => void;
@@ -41,6 +42,7 @@ export function DetailsStep({
   onGuests: (v: string) => void;
   local: string;
   onLocal: (v: string) => void;
+  momentos?: string[];
 }) {
   const [cep, setCep] = useState("");
   const [cepStatus, setCepStatus] = useState<"idle" | "loading" | "erro">("idle");
@@ -177,6 +179,19 @@ export function DetailsStep({
           </a>
         )}
       </div>
+      {momentos.length > 0 && (
+        <div className="flex flex-col gap-2 border-t border-linha pt-4">
+          <p className="tipo-label m-0 uppercase tracking-[0.18em] text-ink-3">Momentos do álbum</p>
+          <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+            {momentos.map((momento) => (
+              <li key={momento} className="tipo-label rounded-pilula border border-linha bg-superficie px-3 py-1.5 text-ink-2">
+                {momento}
+              </li>
+            ))}
+          </ul>
+          <p className="tipo-caption m-0 text-ink-3">Vêm do tipo de evento e organizam o álbum e o telão.</p>
+        </div>
+      )}
     </div>
   );
 }

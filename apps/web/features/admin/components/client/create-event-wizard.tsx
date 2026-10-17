@@ -421,6 +421,7 @@ export function CreateEventWizard() {
                   onGuests={setGuests}
                   local={local}
                   onLocal={setLocal}
+                  momentos={momentos}
                 />
                 {vendors.length > 0 && (
                   <div className="flex flex-col gap-3 border-t border-linha pt-4">
