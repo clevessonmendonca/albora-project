@@ -7,7 +7,7 @@ import {
   roleForAccountOnVendor,
   VALIDADE_MAGIC_LINK_MINUTOS,
 } from "@albora/db";
-import { FUSO_PADRAO, fusoIanaValido, instanteLocalNoFuso } from "@albora/core";
+import { capaFocoValido, FUSO_PADRAO, fusoIanaValido, instanteLocalNoFuso } from "@albora/core";
 import { PACKS } from "@albora/packs";
 import { parseMissionKeys } from "@/features/admin/lib/mission-keys";
 import {
@@ -117,6 +117,11 @@ export async function POST(req: Request) {
       });
     }
     identityTokens = body.identityTokens as Record<string, unknown>;
+    if (identityTokens.capaFoco !== undefined && !capaFocoValido(identityTokens.capaFoco)) {
+      return errorResponse(422, "validation_error", "Enquadramento da capa inválido", {
+        campos: ["identityTokens"],
+      });
+    }
   }
 
   if (Array.isArray(body.telaoModelos) && body.telaoModelos.every((m) => typeof m === "string")) {

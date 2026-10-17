@@ -1,5 +1,5 @@
 import { atualizarConfigDoEvento } from "@albora/db";
-import { fusoIanaValido } from "@albora/core";
+import { capaFocoValido, fusoIanaValido } from "@albora/core";
 import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
@@ -140,6 +140,11 @@ export async function PATCH(
           campos: ["identityTokens"],
         });
       }
+    }
+    if (tokens.capaFoco !== undefined && !capaFocoValido(tokens.capaFoco)) {
+      return errorResponse(422, "validation_error", "Enquadramento da capa inválido", {
+        campos: ["identityTokens"],
+      });
     }
     atualizacao.identityTokens = tokens;
   }

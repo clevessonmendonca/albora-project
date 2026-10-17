@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import NextLink from "next/link";
-import { FUSO_PADRAO, type VendorPlanTier, type WallDisplayModel } from "@albora/core";
+import { CAPA_FOCO_PADRAO, capaObjectPosition, FUSO_PADRAO, type CapaFoco, type VendorPlanTier, type WallDisplayModel } from "@albora/core";
 import { PACKS, packsDeCriacao, resolvePackText } from "@albora/packs";
 import { eventColorVariablesFrom } from "@albora/tokens";
 import { BackIcon, BottomSheet, buttonVariants, LogoAlbora, Select } from "@albora/ui-web";
@@ -22,6 +22,7 @@ import { paletteFromImage } from "./onboarding/photo-palette";
 import { typePhoto } from "./onboarding/onboarding-photos";
 import { MissionSheet } from "./onboarding/mission-sheet";
 import { Glyph } from "./onboarding/glyph";
+import { CapaFocoField } from "./capa-foco-field";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DEFAULT_MODELS: readonly WallDisplayModel[] = ["polaroide", "mural", "colagem", "dump"];
@@ -106,6 +107,7 @@ export function CreateEventWizard() {
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [coverFoco, setCoverFoco] = useState<CapaFoco>(CAPA_FOCO_PADRAO);
   const [photoColors, setPhotoColors] = useState<string[]>([]);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -201,9 +203,10 @@ export function CreateEventWizard() {
       // cores (`--ev`/`--ev-2`) vem de `eventCores`, que o Fluxo B adota sem repintar o produto.
       cores: { ...(styleCores ?? {}), acento: cor },
       eventCores: { cor, cor2 },
+      ...(coverFoco !== CAPA_FOCO_PADRAO ? { capaFoco: coverFoco } : {}),
       ...(local.trim() ? { local: local.trim() } : {}),
     };
-  }, [style, styleKey, cor, cor2, local]);
+  }, [style, styleKey, cor, cor2, local, coverFoco]);
 
   const previewVars = useMemo(
     () => resolveIdentityPreviewVars(pack, identityTokens) as CSSProperties,
@@ -358,6 +361,7 @@ export function CreateEventWizard() {
     coverImage: coverUrl,
     coverFallback: typePhoto(pack.ordemCriacao),
     layout: styleKey,
+    coverFoco,
     onPickCover,
   };
 
@@ -467,13 +471,14 @@ export function CreateEventWizard() {
                   className="relative flex min-h-48 items-end overflow-hidden rounded-superficie bg-superficie-alta p-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento-texto"
                   aria-label={coverFile ? "Trocar foto de capa" : "Escolher minha foto de capa"}
                 >
-                  <img src={coverUrl ?? typePhoto(pack.ordemCriacao)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  <img src={coverUrl ?? typePhoto(pack.ordemCriacao)} alt="" style={{ objectPosition: capaObjectPosition(coverFoco) }} className="absolute inset-0 h-full w-full object-cover" />
                   <span aria-hidden className="scrim-foto-forte absolute inset-0" />
                   <span className="sobre-foto relative flex items-center gap-3">
                     <Glyph name="image" size={24} />
                     <span><strong className="block font-medium">{coverFile ? "Trocar minha foto" : "Escolher minha foto"}</strong><span className="mt-1 block text-sm">JPG, PNG ou WebP</span></span>
                   </span>
                 </button>
+                <CapaFocoField value={coverFoco} onChange={setCoverFoco} />
                 <AppearanceStep
                   styleKey={styleKey}
                   onStyle={pickStyle}

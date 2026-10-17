@@ -1,5 +1,6 @@
 "use client";
 
+import { CAPA_FOCO_PADRAO, type CapaFoco } from "@albora/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { HostMessageCard } from "@/features/guest/components/client/host-message-card";
@@ -42,6 +43,7 @@ export function CoverPage({
   hostMessageLabel,
   confessionalTitle = null,
   coverImageUrl = null,
+  coverFocus = CAPA_FOCO_PADRAO,
 }: {
   slug: string;
   eventName: string;
@@ -61,6 +63,7 @@ export function CoverPage({
   hostMessageLabel: string;
   confessionalTitle?: string | null;
   coverImageUrl?: string | null;
+  coverFocus?: CapaFoco;
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
@@ -117,7 +120,7 @@ export function CoverPage({
           }
         `}</style>
 
-        <CoverHero hero={hero} />
+        <CoverHero hero={hero} focus={coverImageUrl ? coverFocus : CAPA_FOCO_PADRAO} />
 
         <main id="main-content" className="flex min-h-0 flex-1 flex-col">
         <CoverEventInfo eventName={eventName} startsAt={startsAt} guests={guests} />

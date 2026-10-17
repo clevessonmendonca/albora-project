@@ -7,7 +7,9 @@ import {
 } from "@albora/core";
 import { SavedBadge } from "@/features/admin/components/client/saved-badge";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
+import { CAPA_FOCO_PADRAO, capaFocoDoEvento, type CapaFoco } from "@albora/core";
 import { IDENTITY_MODELS } from "@albora/tokens";
+import { CapaFocoField } from "@/features/admin/components/client/capa-foco-field";
 import { Button, PhoneFrame, TextField } from "@albora/ui-web";
 import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import {
@@ -120,6 +122,8 @@ export function IdentityEditor({
     resolveCustomBackground(initialIdentityTokens, presetBackground),
   );
 
+  const [coverFoco, setCoverFoco] = useState<CapaFoco>(() => capaFocoDoEvento(initialIdentityTokens));
+
   const [title, setTitle] = useState(initialTitle ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
@@ -145,8 +149,10 @@ export function IdentityEditor({
     const effectiveBackground =
       customBackground ?? preset.camada.background;
 
+    const { capaFoco: _anterior, ...restoInicial } = initialIdentityTokens;
     return {
-      ...initialIdentityTokens,
+      ...restoInicial,
+      ...(coverFoco !== CAPA_FOCO_PADRAO ? { capaFoco: coverFoco } : {}),
       presetId: preset.id,
       ...preset.camada,
       ...(Object.keys(effectiveCores).length > 0 ? { cores: effectiveCores } : {}),
@@ -154,7 +160,7 @@ export function IdentityEditor({
       ...(effectiveBackground ? { background: effectiveBackground } : {}),
       telaoModelos: [...wallModels],
     };
-  }, [initialIdentityTokens, preset, wallModels, customAccent, customFont, customBackground]);
+  }, [initialIdentityTokens, preset, wallModels, customAccent, customFont, customBackground, coverFoco]);
 
   const previewVars = useMemo(() => {
     if (!pack) return {};
@@ -312,6 +318,14 @@ export function IdentityEditor({
               }}
               onReset={() => {
                 setCustomAccent(null);
+                setSaved(false);
+              }}
+            />
+
+            <CapaFocoField
+              value={coverFoco}
+              onChange={(foco) => {
+                setCoverFoco(foco);
                 setSaved(false);
               }}
             />

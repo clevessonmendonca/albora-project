@@ -2,6 +2,7 @@
 
 import React, { type CSSProperties } from "react";
 import { Glyph } from "./glyph";
+import { CAPA_FOCO_PADRAO, capaObjectPosition, type CapaFoco } from "@albora/core";
 
 export type LivePreviewData = {
   vars: CSSProperties;
@@ -14,6 +15,7 @@ export type LivePreviewData = {
   coverFallback?: string | null;
   /** Chave do estilo escolhido — muda a composição da capa (posição, caixa, corpo). */
   layout: string;
+  coverFoco?: CapaFoco;
   onPickCover?: () => void;
 };
 
@@ -77,7 +79,12 @@ function GuestCover({ data }: { data: LivePreviewData }) {
       {/* Tela inteira do celular — a foto ocupa 100%. */}
       <div className="relative aspect-[9/19] w-full overflow-hidden rounded-[28px] bg-superficie-alta">
         {src ? (
-          <img src={src} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <img
+            src={src}
+            alt=""
+            style={{ objectPosition: capaObjectPosition(data.coverFoco ?? CAPA_FOCO_PADRAO) }}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
         ) : (
           <div
             className="absolute inset-0 flex flex-col items-center justify-center gap-1.5 text-ink-3"
