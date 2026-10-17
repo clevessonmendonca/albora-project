@@ -785,7 +785,7 @@ function ReadyStep({
               <Glyph name="eye" size={16} />
               <span>Ver como convidado</span>
             </a>
-            <a href={whatsappInviteUrl(origin, created.slug)} className={entryButton}>
+            <a href={whatsappInviteUrl(origin, created.slug, title)} className={entryButton}>
               <Glyph name="share-2" size={16} />
               <span>Compartilhar</span>
             </a>
