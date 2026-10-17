@@ -56,13 +56,28 @@ test.describe("Fornecedor — onboarding até cobrança", () => {
     await page.getByRole("button", { name: "Criar meu primeiro evento" }).click({ noWaitAfter: true });
     await page.waitForURL(/\/admin\/new\?.*vendor=/, { timeout: 90_000 });
 
+    const continuar = page.getByRole("button", { name: "Continuar" });
+    await expect(page.getByRole("heading", { name: "O que vocês estão celebrando?" })).toBeVisible({
+      timeout: 20_000,
+    });
+    await continuar.click();
+
+    await expect(page.getByRole("heading", { name: "Detalhes do evento" })).toBeVisible();
     await page.getByLabel("Nome do evento", { exact: true }).fill(eventName);
-    await page.getByLabel("Data").fill("2027-10-10");
+    await page.getByRole("button", { name: "Escolher data e hora" }).click();
+    const calendario = page.getByRole("dialog", { name: "Escolher data e hora" });
+    await calendario.getByRole("button", { name: "Hoje" }).click();
+    await calendario.getByRole("button", { name: "Pronto" }).click();
     await expect(page.getByLabel("Criar sob")).toHaveValue(/.+/, { timeout: 60_000 });
     await page.getByLabel("E-mail de quem recebe o painel").fill(`casal-${suffix}@albora.test`);
-    await page.getByRole("button", { name: "Tudo pronto →" }).click();
+    await continuar.click();
 
-    await expect(page.getByRole("heading", { name: "Como ele aparece" })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole("heading", { name: "Um evento com a sua cara." })).toBeVisible();
+    await continuar.click();
+    await expect(page.getByRole("heading", { name: "Todo mundo faz parte." })).toBeVisible();
+    await continuar.click();
+
+    await expect(page.getByRole("heading", { name: "Tudo pronto para começar?" })).toBeVisible();
     const eventCreated = page.waitForResponse(
       (response) => response.url().endsWith("/api/admin/events") && response.request().method() === "POST",
       { timeout: MUTATION_TIMEOUT },
