@@ -8,6 +8,10 @@ export type HostEmail = {
   text: string;
 };
 
+function mascararEmails(texto: string): string {
+  return texto.replace(/[^\s@<>()"']+@[^\s@<>()"']+/g, "[e-mail]");
+}
+
 async function enviarEmail(mail: HostEmail): Promise<{ enviado: boolean }> {
   const key = process.env.RESEND_API_KEY?.trim() ?? "";
   if (!key) {
@@ -33,7 +37,12 @@ async function enviarEmail(mail: HostEmail): Promise<{ enviado: boolean }> {
     });
 
     if (!res.ok) {
-      console.warn("aviso.falhou", { status: res.status });
+      const corpo = (await res.json().catch(() => null)) as { name?: unknown; message?: unknown } | null;
+      console.warn("aviso.falhou", {
+        status: res.status,
+        motivo: typeof corpo?.name === "string" ? corpo.name : undefined,
+        detalhe: typeof corpo?.message === "string" ? mascararEmails(corpo.message).slice(0, 200) : undefined,
+      });
       return { enviado: false };
     }
 
