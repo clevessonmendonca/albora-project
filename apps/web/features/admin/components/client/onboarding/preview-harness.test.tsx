@@ -61,3 +61,27 @@ it.runIf(process.env.PREVIEW === "1")("renderiza os blocos do painel para confer
   fs.mkdirSync(output, { recursive: true });
   fs.writeFileSync(`${output}/body-painel-blocos.html`, container.innerHTML);
 });
+
+it.runIf(process.env.PREVIEW === "1")("renderiza a tela Pronto para conferência visual", async () => {
+  vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) =>
+    String(input).includes("/api/admin/events")
+      ? new Response(JSON.stringify({ slug: "clevesson-e-miria", eventoId: "evento-1" }), { status: 201 })
+      : new Response(JSON.stringify({ vendors: [] })),
+  ));
+  const { container } = render(<CreateEventWizard />);
+  const next = () => fireEvent.click(screen.getByRole("button", { name: /Continuar/ }));
+  next();
+  fireEvent.change(screen.getByLabelText("Nome do evento"), { target: { value: "Clevesson & Miriã" } });
+  fireEvent.click(screen.getByRole("button", { name: /Escolher data/ }));
+  fireEvent.click(screen.getByRole("button", { name: "Hoje" }));
+  next();
+  next();
+  next();
+  fireEvent.click(screen.getByRole("button", { name: /Criar/ }));
+  await screen.findByText(/está pronto/);
+  await screen.findByAltText(/QR Code que abre o evento/);
+  const output = process.env.PREVIEW_DIR ?? "/tmp/albora-preview";
+  fs.mkdirSync(output, { recursive: true });
+  const vars = Object.entries(adminVars()).map(([key, value]) => `${key}:${value}`).join(";");
+  fs.writeFileSync(`${output}/body-criacao-pronto.html`, `<style>:root{${vars}}</style>${container.innerHTML}`);
+});
