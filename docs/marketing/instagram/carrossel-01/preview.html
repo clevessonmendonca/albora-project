@@ -38,20 +38,8 @@
         position: absolute;
         top: 66px;
         left: 72px;
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        font-size: 19px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-      .identity__mark {
-        width: 28px;
-        height: 15px;
-        border: 3px solid currentColor;
-        border-bottom: 0;
-        border-radius: 100px 100px 0 0;
+        width: 150px;
+        height: 32px;
       }
       .index {
         position: absolute;
@@ -129,7 +117,7 @@
     <main class="deck">
       <article class="slide slide--one" id="slide-01">
         <img class="photo photo--warm" src="../../../../apps/web/public/fornecedores/pista-multigeracional.webp" alt="Convidados dançando em uma festa" />
-        <div class="identity"><i class="identity__mark"></i> Albora</div><div class="index">01 / 06</div>
+        <img class="identity" src="../../../../brand/estaticas/logo-mono-papel.svg" alt="Albora" /><div class="index">01 / 06</div>
         <div class="content"><p class="eyebrow">Depois da festa</p><h1>As melhores fotos estão em outros celulares.</h1></div>
         <div class="footer"><span>Deslize para entender</span><i class="footer__line"></i></div>
       </article>
@@ -137,11 +125,11 @@
       <article class="slide slide--two paper" id="slide-02">
         <section class="copy-panel"><div><p class="eyebrow">A parte que falta</p><h2>O fotógrafo registra o oficial.</h2></div><p class="note">Quem estava lá registra o resto: os abraços, a mesa, a pista e as cenas que vocês não viram.</p></section>
         <section class="photo-panel"><img class="photo photo--warm" src="../../../../apps/web/public/fornecedores/convidados-fotografando.webp" alt="Convidados registrando uma festa" /></section>
-        <div class="identity"><i class="identity__mark"></i> Albora</div><div class="index">02 / 06</div>
+        <img class="identity" src="../../../../brand/estaticas/logo-mono-tinta.svg" alt="Albora" /><div class="index">02 / 06</div>
       </article>
 
       <article class="slide slide--three" id="slide-03">
-        <div class="identity"><i class="identity__mark"></i> Albora</div><div class="index">03 / 06</div>
+        <img class="identity" src="../../../../brand/estaticas/logo-mono-papel.svg" alt="Albora" /><div class="index">03 / 06</div>
         <div class="content"><p class="eyebrow">Sem aplicativo</p><h2>Uma placa na mesa.<br />A primeira foto começa no navegador.</h2><p class="body-copy">O convite é simples: apontar a câmera, abrir o álbum e enviar.</p></div>
         <div class="art"></div><div class="placard"><small>Para o nosso casamento</small><strong>Envie sua foto</strong></div>
         <div class="footer"><span>QR code que abre no navegador</span><i class="footer__line"></i></div>
@@ -149,23 +137,32 @@
 
       <article class="slide slide--four" id="slide-04">
         <img class="photo photo--warm" src="../../../../apps/web/public/fornecedores/celular-na-festa.webp" alt="Convidado fotografando a pista de dança" />
-        <div class="identity"><i class="identity__mark"></i> Albora</div><div class="index">04 / 06</div>
+        <img class="identity" src="../../../../brand/estaticas/logo-mono-papel.svg" alt="Albora" /><div class="index">04 / 06</div>
         <div class="content"><p class="eyebrow">No mesmo álbum</p><h2>Fotos, vídeos e recados chegam juntos.</h2><p class="body-copy">Em vez de pedir arquivo por arquivo depois da festa, vocês encontram tudo no mesmo lugar.</p></div>
         <div class="stat">O álbum cresce enquanto a festa acontece.</div>
       </article>
 
       <article class="slide slide--five" id="slide-05">
         <div class="photo-frame"><img class="photo photo--warm" src="../../../../apps/web/public/landing/gen/06-casal-revendo-album.png" alt="Casal revendo as fotos do casamento" /></div>
-        <div class="identity"><i class="identity__mark"></i> Albora</div><div class="index">05 / 06</div>
+        <img class="identity" src="../../../../brand/estaticas/logo-mono-tinta.svg" alt="Albora" /><div class="index">05 / 06</div>
         <div class="content"><p class="eyebrow">No dia seguinte</p><h2>A festa continua inteira.</h2><p class="body-copy">Voltem para os detalhes que passaram depressa — inclusive os que vocês nem perceberam no dia.</p></div>
       </article>
 
       <article class="slide slide--six" id="slide-06">
         <div class="strip"><img class="photo photo--warm" src="../../../../apps/web/public/fornecedores/convidados-fotografando.webp" alt="Convidados celebrando juntos" /></div>
-        <div class="identity"><i class="identity__mark"></i> Albora</div><div class="index">06 / 06</div>
+        <img class="identity" src="../../../../brand/estaticas/logo-mono-papel.svg" alt="Albora" /><div class="index">06 / 06</div>
         <div class="content"><p class="eyebrow">O álbum da sua festa</p><h1>Seu fotógrafo não pode estar em todo lugar.<br /><em>Seus convidados podem.</em></h1><div class="cta">Monte o álbum da sua festa <span>→</span></div></div>
         <div class="footer"><span>albora.app</span><i class="footer__line"></i></div>
       </article>
     </main>
+    <script>
+      const card = new URLSearchParams(window.location.search).get("card");
+      if (card) {
+        document.querySelectorAll(".slide").forEach((slide) => {
+          slide.hidden = slide.id !== `slide-${card}`;
+        });
+        document.querySelector(".deck").style.padding = "0";
+      }
+    </script>
   </body>
 </html>
