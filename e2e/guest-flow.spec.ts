@@ -62,7 +62,7 @@ test.describe("smoke — fluxo do convidado", () => {
     await page.goto(`/e/${SLUG}`);
 
     // Chegada: convite emocional, sem pedir identidade ainda
-    await expect(page.getByText(/você foi convidado para/i)).toBeVisible();
+    await expect(page.getByText(/estamos felizes por ter você aqui/i)).toBeVisible();
     await expect(page.getByPlaceholder(/tio joão/i)).toBeHidden();
 
     // "Entrar na festa" revela a identidade
