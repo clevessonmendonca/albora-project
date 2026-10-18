@@ -11,6 +11,10 @@ export function ScanPage() {
   const [showLinkForm, setShowLinkForm] = useState(!podeEscanear);
 
   useEffect(() => {
+    if (qr.cameraNegada) setShowLinkForm(true);
+  }, [qr.cameraNegada]);
+
+  useEffect(() => {
     if (podeEscanear && !showLinkForm) {
       setEscaneando(true);
     }
@@ -91,6 +95,11 @@ export function ScanPage() {
               >
                 Entrar
               </button>
+              {qr.cameraNegada && (
+                <p role="status" className="m-0 tipo-caption text-ink-2">
+                  Não deu para abrir a câmera. Libere o acesso nas configurações do navegador ou digite o código da mesa.
+                </p>
+              )}
               {qr.naoEntendi && (
                 <p role="alert" className="m-0 tipo-caption text-critico">
                   Esse código não abre nenhum evento. Confere de novo? Às vezes é só um zero no lugar do O.
@@ -123,7 +132,10 @@ export function ScanPage() {
           {!showLinkForm && qr.escaneando && (
             <button
               type="button"
-              onClick={() => qr.setEscaneando(false)}
+              onClick={() => {
+                qr.setEscaneando(false);
+                setShowLinkForm(true);
+              }}
               className="min-h-12 cursor-pointer rounded-pilula border border-linha bg-transparent font-[inherit] text-ink-2 transition-[color,border-color,transform] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               Cancelar
