@@ -22,6 +22,7 @@ import { PreviaDoConvidado } from "./home/previa-convidado";
 import { AvisoDeRetencao } from "./home/retencao";
 import { Payoffdepois } from "./home/depois";
 import { IdeiasParaSuaFesta } from "./home/ideias";
+import { VejaOAlboraAcontecer } from "./home/veja-o-albora-acontecer";
 import { CapsulaDeMemoria } from "./home/capsula";
 import { CartaoReviver } from "./home/cartao-reviver";
 import { TourDePrimeiroAcesso } from "./tour-primeiro-acesso";
@@ -264,6 +265,8 @@ export async function EventHome({
         noite à direita. Duas colunas a partir de 64rem — o §8 pede isso no
         admin desde sempre e a Home vinha em coluna única.
       */}
+      {!aoVivo && !depois && <VejaOAlboraAcontecer />}
+
       {!aoVivo && !depois && (
         <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
           <div className="flex flex-col gap-5">
