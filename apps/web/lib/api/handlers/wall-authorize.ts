@@ -5,6 +5,11 @@ import {
   jsonOk,
   parseJsonBody,
   requireGuestSession,
+  requireHostEventRole,
+  requireHostSession,
+  ADMIN_SESSION_REQUIRED,
+  ANY_HOST_ROLES,
+  UUID_RE,
   unexpectedError,
 } from "@/lib/api";
 import { getPool } from "@/lib/db";
@@ -14,22 +19,48 @@ const WALL_CONSENT_VERSION = "1";
 
 const PAIRING_CODE = /^[A-HJ-NP-Z2-9]{6}$/;
 
-type Body = { codigo?: unknown };
+type Body = { codigo?: unknown; eventoId?: unknown };
 
-/** Autoriza telão (spec 010): evento da sessão de quem autoriza, nunca do corpo; crachá só lê público; sem sessão → 401; plano grátis recusado aqui, nunca paywall na pista. */
-export async function POST(req: Request) {
-  const auth = await requireGuestSession(req, "Entre no evento antes de ligar o telão");
+type Autor = { eventoId: string; sessaoId: string | null; limiteKey: string };
+
+async function autorDoHost(req: Request, eventoId: string): Promise<Autor | Response> {
+  if (!UUID_RE.test(eventoId)) {
+    return errorResponse(404, "evento.nao_encontrado", "Evento não encontrado");
+  }
+  const auth = await requireHostSession(req, ADMIN_SESSION_REQUIRED);
   if (auth instanceof Response) return auth;
+  const owned = await requireHostEventRole(auth.host.accountId, eventoId, ANY_HOST_ROLES);
+  if (owned instanceof Response) return owned;
+  return { eventoId, sessaoId: null, limiteKey: `host:${auth.host.accountId}` };
+}
 
-  const limit = consume(`autorizar:${auth.rateLimitKey}`, 20, 60, Date.now());
+/** Autoriza telão (spec 010): o evento sai de quem autoriza, nunca do código — sessão de convidado ou, com `eventoId`, sessão de anfitrião com papel no evento; crachá só lê público; sem sessão → 401; plano grátis recusado aqui, nunca paywall na pista. */
+export async function POST(req: Request) {
+  const parsed = await parseJsonBody<Body>(req);
+  if (parsed instanceof Response) return parsed;
+
+  let autor: Autor | Response;
+  if (typeof parsed.data.eventoId === "string" && parsed.data.eventoId) {
+    autor = await autorDoHost(req, parsed.data.eventoId);
+  } else {
+    const auth = await requireGuestSession(req, "Entre no evento antes de ligar o telão");
+    autor =
+      auth instanceof Response
+        ? auth
+        : {
+            eventoId: auth.session.eventoId,
+            sessaoId: auth.session.sessaoId,
+            limiteKey: auth.rateLimitKey,
+          };
+  }
+  if (autor instanceof Response) return autor;
+
+  const limit = consume(`autorizar:${autor.limiteKey}`, 20, 60, Date.now());
   if (!limit.allowed) {
     return errorResponse(429, "limite.excedido", "Espere um instante", {
       retry_after_seconds: limit.resetInSeconds,
     });
   }
-
-  const parsed = await parseJsonBody<Body>(req);
-  if (parsed instanceof Response) return parsed;
 
   const codigo =
     typeof parsed.data.codigo === "string" ? parsed.data.codigo.trim().toUpperCase() : "";
@@ -38,8 +69,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const plan = await withEvent(getPool(), auth.session.eventoId, (c) =>
-      planoDoEvento(c, auth.session.eventoId),
+    const plan = await withEvent(getPool(), autor.eventoId, (c) =>
+      planoDoEvento(c, autor.eventoId),
     );
     if (!podeUsarTelao(plan)) {
       return errorResponse(
@@ -52,21 +83,21 @@ export async function POST(req: Request) {
     await autorizarPareamento(
       getPool(),
       codigo,
-      auth.session.eventoId,
+      autor.eventoId,
       WALL_CONSENT_VERSION,
       new Date(),
     );
 
     console.log("parede.pareamento_autorizado", {
-      eventoId: auth.session.eventoId,
-      sessaoId: auth.session.sessaoId,
+      eventoId: autor.eventoId,
+      sessaoId: autor.sessaoId,
     });
 
     return jsonOk({ autorizado: true });
   } catch (e) {
     if (e instanceof ErroAutorizacaoDePareamento) {
       console.warn("parede.autorizacao_recusada", {
-        eventoId: auth.session.eventoId,
+        eventoId: autor.eventoId,
         motivo: e.motivo,
       });
       return errorResponse(409, "parede.pareamento_invalido", "Código inválido ou expirado");

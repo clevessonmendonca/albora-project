@@ -65,7 +65,8 @@ export default async function LiveEventPage({ params }: { params: Promise<{ even
                   </p>
                   <ol className="m-0 list-decimal space-y-3 border-y border-linha py-5 pl-5 text-sm leading-relaxed text-ink-2">
                     <li>Conecte um computador à TV ou ao projetor.</li>
-                    <li>Abra o telão nesse computador e siga as instruções de conexão.</li>
+                    <li>Abra o telão nesse computador: ele mostra um código de 6 caracteres.</li>
+                    <li>Digite esse código <Link href={`/wall-pair?evento=${eventId}`} className="underline">aqui no painel</Link>, sem precisar entrar como convidado.</li>
                     <li>Use os controles desta página para pausar ou retomar a exibição.</li>
                   </ol>
                   <Link href="/wall-display" target="_blank" rel="noopener noreferrer" className={`${adminClasses.primaryButton} mt-5 min-h-12 w-full`}>
