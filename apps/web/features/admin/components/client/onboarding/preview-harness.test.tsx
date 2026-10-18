@@ -29,6 +29,7 @@ it.runIf(process.env.PREVIEW === "1")("renderiza as cinco etapas para conferênc
   fireEvent.change(screen.getByLabelText("Nome do evento"), { target: { value: "Clevesson & Miriã" } });
   fireEvent.click(screen.getByRole("button", { name: /Escolher data/ }));
   fireEvent.click(screen.getByRole("button", { name: "Hoje" }));
+  fireEvent.click(screen.getByRole("button", { name: "Pronto" }));
   save("detalhes");
   next();
   save("identidade");
