@@ -22,6 +22,7 @@ import { PreviaDoConvidado } from "./home/previa-convidado";
 import { AvisoDeRetencao } from "./home/retencao";
 import { Payoffdepois } from "./home/depois";
 import { IdeiasParaSuaFesta } from "./home/ideias";
+import { EntregaEmCartoes } from "./home/entrega-em-cartoes";
 import { CapsulaDeMemoria } from "./home/capsula";
 import { CartaoReviver } from "./home/cartao-reviver";
 import { TourDePrimeiroAcesso } from "./tour-primeiro-acesso";
@@ -249,6 +250,7 @@ export async function EventHome({
               }
             />
           )}
+          {canManageCoupleOnly && <EntregaEmCartoes eventoId={eventId} />}
           <AvisoDeRetencao
             base={base}
             terminaEm={evento.terminaEm}

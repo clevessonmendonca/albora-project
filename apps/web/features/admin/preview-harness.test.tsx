@@ -48,3 +48,12 @@ it.runIf(process.env.PREVIEW === "1")("captura convite com QR real", async () =>
   const { container } = render(<QrCodePrint eventId="exemplo" slug="celebracao" eventName="Clevesson & Miriã" guestUrl={guestUrl} svgString={svgString} coverImageUrl="/onboarding/photo-08.webp" dateLabel="12 de dezembro de 2027 · 18h" />);
   save("convite", container);
 });
+
+it.runIf(process.env.PREVIEW === "1")("captura entrega em cartões", async () => {
+  const { EntregaEmCartoes } = await import("./components/client/home/entrega-em-cartoes");
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ job: null, podeExportar: true, conexao: null, status: { podeExportar: true, conexao: null } }))));
+  const { container } = render(<EntregaEmCartoes eventoId="exemplo" />);
+  await screen.findByText("Google Drive");
+  await new Promise((r) => setTimeout(r, 300));
+  save("entrega-cartoes", container);
+});

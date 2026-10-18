@@ -20,6 +20,7 @@ type ExportSectionProps = {
   titulo: string;
   descricao: string;
   textoBotao: string;
+  cartao?: boolean;
 };
 
 /** Estado do export em uma palavra — legível de relance, sem abrir a descrição. */
@@ -31,7 +32,7 @@ function estadoBadge(estado: EstadoExport): { tone: "neutral" | "accent" | "outl
   return null;
 }
 
-function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: ExportSectionProps) {
+function ExportSection({ eventoId, modo, titulo, descricao, textoBotao, cartao = false }: ExportSectionProps) {
   const [estado, setEstado] = useState<EstadoExport>(estadoInicial);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -102,7 +103,7 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
 
   return (
     <AdminCard variant={estado.fase === "pronto" ? "highlight" : "default"}>
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className={cartao ? "flex flex-col gap-4" : "flex flex-wrap items-start justify-between gap-4"}>
         <div>
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <h2 className="tipo-subtitle m-0 text-ink">{titulo}</h2>
@@ -159,6 +160,19 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
         </p>
       )}
     </AdminCard>
+  );
+}
+
+export function HostExportCartao({ eventoId }: { eventoId: string }) {
+  return (
+    <ExportSection
+      cartao
+      eventoId={eventoId}
+      modo="full"
+      titulo="Baixar tudo"
+      descricao="Todas as fotos publicadas, num ZIP. Confirma no e-mail antes."
+      textoBotao="Baixar tudo"
+    />
   );
 }
 
