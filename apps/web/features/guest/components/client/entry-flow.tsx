@@ -1,7 +1,7 @@
 "use client";
 
-import type { EntryVia } from "@albora/core";
-import { CONSENTIMENTO_ENTRADA_VIGENTE, textoDoConsentimento } from "@albora/core";
+import type { CapaFoco, EntryVia } from "@albora/core";
+import { CAPA_FOCO_PADRAO, capaObjectPosition, CONSENTIMENTO_ENTRADA_VIGENTE, textoDoConsentimento } from "@albora/core";
 import React, { useEffect, useState } from "react";
 import { registerServiceWorker } from "@/lib/register-sw";
 import {
@@ -56,6 +56,7 @@ export function EntryFlow({
   via,
   comecaEm,
   coverImageUrl,
+  coverFoco,
 }: {
   eventoId: string;
   slug: string;
@@ -64,6 +65,7 @@ export function EntryFlow({
   via: EntryVia;
   comecaEm?: string;
   coverImageUrl?: string | null;
+  coverFoco?: CapaFoco;
 }) {
   const [etapa, setEtapa] = useState<Etapa>("chegada");
   const [nome, setNome] = useState("");
@@ -148,6 +150,7 @@ export function EntryFlow({
             nomeEvento={nomeEvento}
             dataEvento={dataEvento}
             coverImageUrl={coverImageUrl ?? null}
+            coverFoco={coverFoco ?? CAPA_FOCO_PADRAO}
             onEnter={() => setEtapa("identidade")}
           />
         )}
@@ -235,17 +238,25 @@ function ArrivalScreen({
   nomeEvento,
   dataEvento,
   coverImageUrl,
+  coverFoco = CAPA_FOCO_PADRAO,
   onEnter,
 }: {
   nomeEvento: string;
   dataEvento: string | null;
   coverImageUrl: string | null;
+  coverFoco?: CapaFoco;
   onEnter: () => void;
 }) {
   return (
     <main id="main-content" className="entrada-anima relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-[max(3rem,env(safe-area-inset-top))] text-center sm:px-10">
       {coverImageUrl ? (
-        <img src={coverImageUrl} alt="" aria-hidden className="absolute inset-0 size-full object-cover" />
+        <img
+          src={coverImageUrl}
+          alt=""
+          aria-hidden
+          style={{ objectPosition: capaObjectPosition(coverFoco) }}
+          className="absolute inset-0 size-full object-cover"
+        />
       ) : (
         <div aria-hidden className="absolute inset-0 bg-superficie-alta" />
       )}
