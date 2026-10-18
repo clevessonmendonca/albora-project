@@ -141,3 +141,11 @@ Decisões de produto em aberto (o protótipo não resolve):
 2. (Resolvida) Foco horizontal da capa entregue em #116.
 3. Atalho A/R na moderação: vale criar uma tela de revisão individual?
 4. Rascunho salvo do wizard: aguarda o desenho do ADR 0020.
+
+## Conferência visual protótipo × produto (rodada 2)
+
+Capturas lado a lado em Chrome headless, por superfície. Corrigido: Home depois sem números duplicados e com o Reviver antes de guardar (#117); entrada do convidado com "Você foi convidado para" e o local (#118); "Ideias para sua festa" na Home antes (#119).
+
+Mantido de propósito (decisão anterior, ver `conferencia-prototipos-2026-10.md`): entrada centralizada com CTA sólido (translúcido seria glassmorphism), Convidados abrindo na lista, grade do álbum, navegação do convidado Explorar/Missões/Perfil.
+
+Ainda divergente e sem decisão: reordenar o /ao-vivo (fila de revisão antes do resumo; precisa de captura da página real, que depende de banco), faixa "Veja o Álbora acontecer", chips de momento sobre a foto do post, card "Próxima missão" no feed, chips Momentos/Pessoas e seleção em lote no álbum, entrega em cartões (ZIP, destaques, Drive, PDF).
