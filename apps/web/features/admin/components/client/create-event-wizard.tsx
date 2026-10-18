@@ -485,11 +485,22 @@ export function CreateEventWizard() {
                     <span><strong className="block font-medium">{coverFile ? "Trocar minha foto" : "Escolher minha foto"}</strong><span className="mt-1 block text-sm">JPG, PNG ou WebP</span></span>
                   </span>
                 </button>
-                <CapaFocoField value={coverFoco} onChange={setCoverFoco} valueX={coverFocoX} onChangeX={setCoverFocoX} />
+                {coverFile && (
+                  <details className="group rounded-token border border-linha bg-superficie">
+                    <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento-texto">
+                      Enquadrar a capa
+                      <span aria-hidden className="transition-transform group-open:rotate-180">
+                        <Glyph name="chevron-down" size={16} />
+                      </span>
+                    </summary>
+                    <div className="border-t border-linha px-4 py-4">
+                      <CapaFocoField value={coverFoco} onChange={setCoverFoco} valueX={coverFocoX} onChangeX={setCoverFocoX} />
+                    </div>
+                  </details>
+                )}
                 <AppearanceStep
                   styleKey={styleKey}
                   onStyle={pickStyle}
-                  eventName={displayTitle}
                   coverSrc={coverUrl ?? typePhoto(pack.ordemCriacao)}
                   cor={cor}
                   cor2={cor2}

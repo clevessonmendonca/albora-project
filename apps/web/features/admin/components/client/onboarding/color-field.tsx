@@ -89,7 +89,8 @@ export function ColorField({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="dialog"
         aria-expanded={open}
-        className="flex w-full items-center gap-3 rounded-token border border-linha bg-superficie p-2.5 text-left transition-colors hover:border-acento-texto"
+        aria-label={`${label}, ${value}`}
+        className="flex w-full items-center gap-3 rounded-token border border-linha bg-bg p-2.5 text-left transition-colors hover:border-acento-texto"
       >
         <span
           className="relative size-10 shrink-0 rounded-full border border-linha shadow-suave"
@@ -104,7 +105,6 @@ export function ColorField({
         </span>
         <span className="flex min-w-0 flex-col">
           <span className="text-[0.85rem] font-medium text-ink">{label}</span>
-          <span className="tipo-label uppercase tracking-wide text-ink-3">{value}</span>
         </span>
       </button>
 

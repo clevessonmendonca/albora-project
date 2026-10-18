@@ -27,7 +27,6 @@ function styleNameClass(chave: EventStyle["chave"]): string {
 export function AppearanceStep({
   styleKey,
   onStyle,
-  eventName,
   coverSrc,
   cor,
   cor2,
@@ -36,7 +35,6 @@ export function AppearanceStep({
 }: {
   styleKey: EventStyle["chave"];
   onStyle: (s: EventStyle) => void;
-  eventName: string;
   coverSrc: string;
   cor: string;
   cor2: string;
@@ -89,7 +87,7 @@ export function AppearanceStep({
                     } ${styleNameClass(s.chave)}`}
                     style={{ fontFamily: s.camada.fontes?.titulo }}
                   >
-                    {eventName}
+                    Aa
                   </span>
                   {ativo && (
                     <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full bg-acento text-sobre-acento shadow-suave">
@@ -110,81 +108,79 @@ export function AppearanceStep({
       </fieldset>
 
       <div className="flex flex-col gap-3 border-t border-linha pt-5">
-        <span className="text-sm font-medium text-ink">Cores do evento</span>
-
-        <div className="grid grid-cols-2 gap-3">
-          <ColorField
-            label="Principal"
-            value={cor}
-            onChange={(v) => onColor("cor", v)}
-            swatches={sugestoes}
-          />
-          <ColorField
-            label="Detalhe"
-            value={cor2}
-            onChange={(v) => onColor("cor2", v)}
-            swatches={sugestoes}
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {aaRuim ? (
-            <Badge tone="critico">
-              <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--critico)" }} />
-              Contraste baixo — o texto sobre a cor principal pode ficar difícil de ler.
-            </Badge>
-          ) : (
-            contraste !== null && (
-              <Badge tone="outline">Boa leitura — o texto sobre a cor principal se ajusta sozinho.</Badge>
-            )
-          )}
-          <button
-            type="button"
-            onClick={() => {
-              onColor("cor", cor2);
-              onColor("cor2", cor);
-            }}
-            className="tipo-caption text-ink-3 underline-offset-2 transition-colors hover:text-ink hover:underline"
-          >
-            Trocar ordem
-          </button>
-        </div>
-
-        <details className="group mt-1">
-          <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 tipo-caption text-ink-3 transition-colors hover:text-ink">
-            Ou use uma combinação pronta
+        {aaRuim && (
+          <Badge tone="critico">
+            <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--critico)" }} />
+            Contraste baixo — o texto sobre a cor principal pode ficar difícil de ler.
+          </Badge>
+        )}
+        <details open={aaRuim || undefined} className="group rounded-token border border-linha bg-superficie">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento-texto">
+            <span className="flex items-center gap-3">
+              <span aria-hidden className="flex shrink-0">
+                <span className="size-5 rounded-full border border-linha" style={{ background: cor }} />
+                <span className="-ml-2 size-5 rounded-full border border-linha" style={{ background: cor2 }} />
+              </span>
+              Cores do evento
+            </span>
             <span aria-hidden className="transition-transform group-open:rotate-180">
-              ⌄
+              <Glyph name="chevron-down" size={16} />
             </span>
           </summary>
-          <div className="mt-2.5 grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {COLOR_COMBOS.map((c, i) => {
-              const sel =
-                c.cor.toLowerCase() === cor.toLowerCase() &&
-                c.cor2.toLowerCase() === cor2.toLowerCase();
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  aria-pressed={sel}
-                  onClick={() => {
-                    onColor("cor", c.cor);
-                    onColor("cor2", c.cor2);
-                  }}
-                  className={`flex items-center gap-2 rounded-token border p-2 text-left transition-colors ${
-                    sel
-                      ? "border-acento bg-superficie-alta"
-                      : "border-linha bg-superficie hover:border-acento-texto"
-                  }`}
-                >
-                  <span className="flex shrink-0">
-                    <span className="size-5 rounded-full border border-linha" style={{ background: c.cor }} />
-                    <span className="-ml-2 size-5 rounded-full border border-linha" style={{ background: c.cor2 }} />
-                  </span>
-                  <span className="tipo-label truncate text-ink-2">{c.nome}</span>
-                </button>
-              );
-            })}
+          <div className="flex flex-col gap-4 border-t border-linha px-4 py-4">
+            <div className="grid grid-cols-2 gap-3">
+              <ColorField
+                label="Principal"
+                value={cor}
+                onChange={(v) => onColor("cor", v)}
+                swatches={sugestoes}
+              />
+              <ColorField
+                label="Detalhe"
+                value={cor2}
+                onChange={(v) => onColor("cor2", v)}
+                swatches={sugestoes}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onColor("cor", cor2);
+                onColor("cor2", cor);
+              }}
+              className="tipo-caption w-fit text-ink-3 underline-offset-2 transition-colors hover:text-ink hover:underline"
+            >
+              Trocar ordem
+            </button>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {COLOR_COMBOS.map((c, i) => {
+                const sel =
+                  c.cor.toLowerCase() === cor.toLowerCase() &&
+                  c.cor2.toLowerCase() === cor2.toLowerCase();
+                return (
+                  <button
+                    key={i}
+                    type="button"
+                    aria-pressed={sel}
+                    onClick={() => {
+                      onColor("cor", c.cor);
+                      onColor("cor2", c.cor2);
+                    }}
+                    className={`flex items-center gap-2 rounded-token border p-2 text-left transition-colors ${
+                      sel
+                        ? "border-acento bg-superficie-alta"
+                        : "border-linha bg-bg hover:border-acento-texto"
+                    }`}
+                  >
+                    <span className="flex shrink-0">
+                      <span className="size-5 rounded-full border border-linha" style={{ background: c.cor }} />
+                      <span className="-ml-2 size-5 rounded-full border border-linha" style={{ background: c.cor2 }} />
+                    </span>
+                    <span className="tipo-label truncate text-ink-2">{c.nome}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </details>
       </div>
