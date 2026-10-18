@@ -699,6 +699,27 @@ function ReadyStep({
   useEffect(() => setOrigin(window.location.origin), []);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState(false);
+  const [publicado, setPublicado] = useState(false);
+  const [publicando, setPublicando] = useState(false);
+  const [publicarErro, setPublicarErro] = useState(false);
+
+  const publicar = async () => {
+    setPublicando(true);
+    setPublicarErro(false);
+    try {
+      const r = await fetch(`/api/admin/events/${created.eventoId}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ status: "active" }),
+      });
+      if (!r.ok) throw new Error("falhou");
+      setPublicado(true);
+    } catch {
+      setPublicarErro(true);
+    } finally {
+      setPublicando(false);
+    }
+  };
 
   const startCheckout = async () => {
     setPaying(true);
@@ -779,26 +800,52 @@ function ReadyStep({
             <p className="tipo-label m-0 uppercase tracking-[0.18em] text-ink-3">{dateLabel}</p>
           )}
           <p className="tipo-body m-0 max-w-[26rem] text-ink-2">
-            Já dá pra entrar. O resto você ajusta quando quiser.
+            {publicado
+              ? "Já dá pra entrar. O resto você ajusta quando quiser."
+              : "Os convidados ainda não entram: o álbum só abre depois que você publicar. O resto você ajusta quando quiser."}
           </p>
         </div>
 
         {/* Caminho principal primeiro — antes de qualquer ajuste opcional. */}
         <div className="anima-surge flex flex-col gap-2.5" style={{ animationDelay: "90ms" }}>
-          <a href={`/admin/e/${created.eventoId}`} className={accentButton} style={accentStyle}>
-            Ir para meu evento
-            <Glyph name="arrow-right" size={18} />
-          </a>
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            <a href={eventEntryUrl(origin, created.slug, "link")} className={entryButton}>
-              <Glyph name="eye" size={16} />
-              <span>Ver como convidado</span>
+          {publicado ? (
+            <a href={`/admin/e/${created.eventoId}`} className={accentButton} style={accentStyle}>
+              Ir para meu evento
+              <Glyph name="arrow-right" size={18} />
             </a>
-            <a href={whatsappInviteUrl(origin, created.slug, title)} className={entryButton}>
-              <Glyph name="share-2" size={16} />
-              <span>Compartilhar</span>
-            </a>
-          </div>
+          ) : (
+            <>
+              <button
+                type="button"
+                disabled={publicando}
+                onClick={() => void publicar()}
+                className={`${accentButton} ${publicando ? "opacity-60" : ""}`}
+                style={accentStyle}
+              >
+                {publicando ? "Publicando…" : "Publicar para os convidados entrarem"}
+              </button>
+              {publicarErro && (
+                <p role="alert" className="m-0 text-sm text-critico">
+                  Não deu para publicar agora. Tente de novo ou publique pelo painel.
+                </p>
+              )}
+              <a href={`/admin/e/${created.eventoId}`} className={entryButton}>
+                Ir para meu evento (publicar depois)
+              </a>
+            </>
+          )}
+          {publicado && (
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              <a href={eventEntryUrl(origin, created.slug, "link")} className={entryButton}>
+                <Glyph name="eye" size={16} />
+                <span>Ver como convidado</span>
+              </a>
+              <a href={whatsappInviteUrl(origin, created.slug, title)} className={entryButton}>
+                <Glyph name="share-2" size={16} />
+                <span>Compartilhar</span>
+              </a>
+            </div>
+          )}
           {/* A capa é escolhida no onboarding; aqui só confirmamos o envio silencioso, sem repetir
               o seletor. Sem capa escolhida, nada aparece — dá pra adicionar depois no painel. */}
           {coverFile && (
@@ -812,7 +859,7 @@ function ReadyStep({
           )}
         </div>
 
-        <ConviteCard slug={created.slug} eventId={created.eventoId} origin={origin} />
+        {publicado && <ConviteCard slug={created.slug} eventId={created.eventoId} origin={origin} />}
 
         {/* E-mail-como-acesso: hipótese de delayed auth, atrás de flag (ADR 0020). Off = caminho atual. */}
         {delayedAuthEnabled() && <AccessEmailStep eventId={created.eventoId} />}
