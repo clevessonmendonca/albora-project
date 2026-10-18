@@ -11,15 +11,19 @@ type Props = {
 };
 
 export function ModerationPage({ eventoId }: Props) {
-  const [fila, setFila] = useState(0);
+  const [fila, setFila] = useState<number | null>(0);
 
   return (
     <div className="flex flex-col gap-5">
       <AdminSection>
         <div className="mb-5 flex items-center justify-between gap-4">
           <h2 className="m-0 font-titulo text-lg">Revisão de conteúdo</h2>
-          <Badge tone={fila > 0 ? "critico" : "neutral"}>
-            {fila === 0 ? "Tudo revisado" : `${fila} ${fila === 1 ? "item" : "itens"} aguardando`}
+          <Badge tone={fila === null || fila > 0 ? "critico" : "neutral"}>
+            {fila === null
+              ? "Não foi possível carregar"
+              : fila === 0
+                ? "Tudo revisado"
+                : `${fila} ${fila === 1 ? "item" : "itens"} aguardando`}
           </Badge>
         </div>
         <p className="mb-4 mt-0 text-[0.9375rem] leading-relaxed text-ink-2">
