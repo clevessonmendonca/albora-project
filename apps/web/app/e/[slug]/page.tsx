@@ -1,6 +1,6 @@
 import { resolverSlug } from "@albora/db";
 import { PACKS, resolvePackText } from "@albora/packs";
-import { parseEntryVia, VALIDADE_PRESIGN_SEGUNDOS } from "@albora/core";
+import { capaFocoDoEvento, capaFocoXDoEvento, parseEntryVia, VALIDADE_PRESIGN_SEGUNDOS } from "@albora/core";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
@@ -128,6 +128,8 @@ export default async function Pagina({ params, searchParams }: Props) {
         saudacao={saudacao}
         comecaEm={r.evento.comecaEm.toISOString()}
         coverImageUrl={coverImageUrl}
+        coverFoco={capaFocoDoEvento(r.evento.identityTokens)}
+        coverFocoX={capaFocoXDoEvento(r.evento.identityTokens)}
       />
     </>
   );

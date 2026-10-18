@@ -41,4 +41,45 @@ describe("e-mail do anfitrião degrada sem Resend", () => {
     expect(JSON.stringify(log.mock.calls)).not.toContain("ana@exemplo.com");
     log.mockRestore();
   });
+
+  it("quando o Resend recusa, loga o motivo sem o e-mail de ninguém", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_teste");
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              name: "validation_error",
+              message: "You can only send testing emails to dona@exemplo.com. Verify a domain.",
+            }),
+            { status: 403 },
+          ),
+      ),
+    );
+
+    expect(await sendHostEmail({ to: "ana@exemplo.com", subject: "s", text: "t" })).toEqual({
+      enviado: false,
+    });
+
+    const registrado = JSON.stringify(aviso.mock.calls);
+    expect(registrado).toContain("validation_error");
+    expect(registrado).toContain("[e-mail]");
+    expect(registrado).not.toContain("dona@exemplo.com");
+    expect(registrado).not.toContain("ana@exemplo.com");
+    aviso.mockRestore();
+  });
+
+  it("recusa sem corpo legível ainda registra o status", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_teste");
+    const aviso = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("não é json", { status: 500 })));
+
+    expect(await sendHostEmail({ to: "ana@exemplo.com", subject: "s", text: "t" })).toEqual({
+      enviado: false,
+    });
+    expect(JSON.stringify(aviso.mock.calls)).toContain("500");
+    aviso.mockRestore();
+  });
 });

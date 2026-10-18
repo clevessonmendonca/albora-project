@@ -1,3 +1,4 @@
+import type { CapaFoco } from "@albora/core";
 import type { AlbumServido } from "@/lib/album";
 
 export type CoverMoment = {
@@ -31,4 +32,6 @@ export type CoverData = {
   confessionalTitle: string | null;
   /** URL assinada da imagem de capa enviada pelo casal; null = usa primeira foto do álbum. */
   coverImageUrl: string | null;
+  coverFocus: CapaFoco;
+  coverFocusX: CapaFoco;
 };
