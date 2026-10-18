@@ -57,7 +57,8 @@ vi.mock("@albora/db", () => ({
   ErroMagicLinkInvalido,
 }));
 
-vi.mock("@albora/core", () => ({
+vi.mock("@albora/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@albora/core")>()),
   resolver: mockResolver,
   selecionarParaAlbum: mockSelecionarParaAlbum,
   planejarCapitulos: mockPlanejarCapitulos,
