@@ -19,6 +19,7 @@ import {
 import { PACKS } from "@albora/packs";
 import type { Pool } from "pg";
 import { sendHostEmail } from "@/lib/email";
+import { momentosDoPackEvento } from "@/lib/momentos-do-evento";
 
 export type CreateExportJobInput = {
   eventId: string;
@@ -93,7 +94,7 @@ export async function createExportJob(
             terminaEm: data.janela.terminaEm,
             offsetMinutos: data.janela.offsetMinutos,
           },
-          pack?.momentos?.map((m) => m.id) ?? [],
+          momentosDoPackEvento(pack, data.identityTokens).map((m) => m.id),
         ),
         tetoDePaginas: TETO_DE_PAGINAS_PADRAO,
       };

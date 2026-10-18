@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import NextLink from "next/link";
-import { CAPA_FOCO_PADRAO, capaObjectPosition, FUSO_PADRAO, type CapaFoco, type VendorPlanTier, type WallDisplayModel } from "@albora/core";
+import { CAPA_FOCO_PADRAO, capaObjectPosition, FUSO_PADRAO, momentosIguais, type CapaFoco, type MomentoDoEvento, type VendorPlanTier, type WallDisplayModel } from "@albora/core";
 import { PACKS, packsDeCriacao, resolvePackText } from "@albora/packs";
 import { eventColorVariablesFrom } from "@albora/tokens";
 import { BackIcon, BottomSheet, buttonVariants, LogoAlbora, Select } from "@albora/ui-web";
@@ -24,6 +24,7 @@ import { MissionSheet } from "./onboarding/mission-sheet";
 import { ConviteCard } from "./onboarding/convite-card";
 import { Glyph } from "./onboarding/glyph";
 import { CapaFocoField } from "./capa-foco-field";
+import { momentosEditorValido } from "./momentos-editor";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DEFAULT_MODELS: readonly WallDisplayModel[] = ["polaroide", "mural", "colagem", "dump"];
@@ -164,10 +165,15 @@ export function CreateEventWizard() {
   const titlePlaceholder = exemploNome.includes(".") ? "Nome da festa" : exemploNome;
   const displayTitle = title.trim() || titlePlaceholder;
 
-  const momentos = useMemo(
-    () => (pack.momentos ?? []).map((m) => resolvePackText(pack, m.chaveTitulo)),
+  const momentosPadrao = useMemo(
+    (): MomentoDoEvento[] =>
+      (pack.momentos ?? []).map((m) => ({ id: m.id, titulo: resolvePackText(pack, m.chaveTitulo) })),
     [pack],
   );
+  const [momentosEditados, setMomentosEditados] = useState<{ packId: string; lista: MomentoDoEvento[] } | null>(null);
+  const momentosLista = momentosEditados?.packId === packId ? momentosEditados.lista : momentosPadrao;
+  const momentos = useMemo(() => momentosLista.map((m) => m.titulo), [momentosLista]);
+  const momentosCustom = !momentosIguais(momentosLista, momentosPadrao);
   const activeMissions = useMemo(
     () => pack.missoes.map((m) => m.chaveTitulo).filter((k) => !missionsOff.has(k)),
     [pack, missionsOff],
@@ -208,8 +214,9 @@ export function CreateEventWizard() {
       ...(coverFoco !== CAPA_FOCO_PADRAO ? { capaFoco: coverFoco } : {}),
       ...(coverFocoX !== CAPA_FOCO_PADRAO ? { capaFocoX: coverFocoX } : {}),
       ...(local.trim() ? { local: local.trim() } : {}),
+      ...(momentosCustom ? { momentos: momentosLista } : {}),
     };
-  }, [style, styleKey, cor, cor2, local, coverFoco, coverFocoX]);
+  }, [style, styleKey, cor, cor2, local, coverFoco, coverFocoX, momentosCustom, momentosLista]);
 
   const previewVars = useMemo(
     () => resolveIdentityPreviewVars(pack, identityTokens) as CSSProperties,
@@ -226,7 +233,7 @@ export function CreateEventWizard() {
   const titleValid = title.trim().length > 0;
   const dateValid = date.length > 0;
   const coupleEmailValid = vendorId === "" || EMAIL_RE.test(coupleEmail.trim());
-  const detalhesValid = titleValid && dateValid && coupleEmailValid;
+  const detalhesValid = titleValid && dateValid && coupleEmailValid && momentosEditorValido(momentosLista);
   const [showErrors, setShowErrors] = useState(false);
 
   function pickStyle(s: EventStyle) {
@@ -431,7 +438,9 @@ export function CreateEventWizard() {
                   onGuests={setGuests}
                   local={local}
                   onLocal={setLocal}
-                  momentos={momentos}
+                  momentos={momentosLista}
+                  momentosPadrao={momentosPadrao}
+                  onMomentos={(lista) => setMomentosEditados({ packId, lista })}
                 />
                 {vendors.length > 0 && (
                   <div className="flex flex-col gap-3 border-t border-linha pt-4">

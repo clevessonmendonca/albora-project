@@ -1,5 +1,10 @@
 import { atualizarConfigDoEvento } from "@albora/db";
-import { capaFocoValido, fusoIanaValido } from "@albora/core";
+import {
+  capaFocoValido,
+  fusoIanaValido,
+  normalizarIdentityTokensMomentos,
+  validarIdentityTokensMonograma,
+} from "@albora/core";
 import {
   ADMIN_SESSION_REQUIRED,
   errorResponse,
@@ -149,7 +154,19 @@ export async function PATCH(
         campos: ["identityTokens"],
       });
     }
-    atualizacao.identityTokens = tokens;
+    const comMomentos = normalizarIdentityTokensMomentos(tokens);
+    if (!comMomentos.ok) {
+      return errorResponse(422, "validation_error", comMomentos.motivo, {
+        campos: ["identityTokens.momentos"],
+      });
+    }
+    const comMonograma = validarIdentityTokensMonograma(comMomentos.tokens);
+    if (!comMonograma.ok) {
+      return errorResponse(422, "validation_error", "Monograma inválido", {
+        campos: ["identityTokens.monograma"],
+      });
+    }
+    atualizacao.identityTokens = comMonograma.tokens;
   }
 
   if (corpo.title !== undefined) {

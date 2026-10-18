@@ -6,6 +6,7 @@ import {
   withEvent,
   type EventoDoHost,
 } from "@albora/db";
+import { momentosEditadosDoEvento } from "@albora/core";
 import { PACKS } from "@albora/packs";
 import { assinarGet } from "@/lib/r2";
 import type { MarcoCru } from "@/features/admin/lib/linha-de-retencao";
@@ -13,6 +14,7 @@ import {
   capitulosDoReviver,
   tempoJuntoEmHoras,
   type CapituloDoReviver,
+  type MomentoDoReviver,
 } from "@/features/admin/lib/reviver";
 import { getPool } from "@/lib/db";
 import { diasAte } from "@/features/admin/lib/contagem";
@@ -164,8 +166,7 @@ const VALIDADE_CAPA_SEGUNDOS = 900;
 /** Assina só a capa de cada capítulo — não a noite inteira. */
 async function montarCapitulos(
   midias: { id: string; chaveThumb: string; capturadaEm: Date | null; recebidaEm: Date; destacadaEm: Date | null }[],
-  momentos: { id: string; chaveTitulo: string; chaveDesc: string }[],
-  vocabulario: Record<string, string>,
+  momentos: MomentoDoReviver[],
 ): Promise<CapituloDoReviver[]> {
   const brutos = capitulosDoReviver(
     midias.map((m) => ({
@@ -176,7 +177,6 @@ async function montarCapitulos(
       destacada: m.destacadaEm !== null,
     })),
     momentos,
-    vocabulario,
   );
 
   return Promise.all(
@@ -233,10 +233,17 @@ export async function loadHomeState(evento: EventoDoHost): Promise<EstadoDaHome>
       }
     : null;
 
-  const momentos = PACKS[evento.packId]?.momentos ?? [];
-  const vocabulario = PACKS[evento.packId]?.vocabulario ?? {};
+  const pack = PACKS[evento.packId];
+  const editados = momentosEditadosDoEvento(evento.identityTokens);
+  const momentos: MomentoDoReviver[] = editados
+    ? editados
+    : (pack?.momentos ?? []).map((m) => ({
+        id: m.id,
+        titulo: pack?.vocabulario[m.chaveTitulo] ?? "",
+        descricao: pack?.vocabulario[m.chaveDesc] ?? "",
+      }));
   const capitulos = midias
-    ? await montarCapitulos(midias, momentos, vocabulario)
+    ? await montarCapitulos(midias, momentos)
     : [];
 
   const itens = montarItens(

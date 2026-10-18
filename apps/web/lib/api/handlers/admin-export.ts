@@ -29,6 +29,7 @@ import { config } from "@/lib/config";
 import { getPool } from "@/lib/db";
 import { sendHostEmail } from "@/lib/email";
 import { acervoZipStream } from "@/lib/export-stream";
+import { momentosDoPackEvento } from "@/lib/momentos-do-evento";
 import { consume } from "@/lib/rate-limit-store";
 import { streamObject } from "@/lib/r2";
 
@@ -168,7 +169,7 @@ export async function postExport(
               terminaEm: data.janela.terminaEm,
               offsetMinutos: data.janela.offsetMinutos,
             },
-            pack?.momentos?.map((m) => m.id) ?? [],
+            momentosDoPackEvento(pack, data.identityTokens).map((m) => m.id),
           ),
           tetoDePaginas: TETO_DE_PAGINAS_PADRAO,
         };

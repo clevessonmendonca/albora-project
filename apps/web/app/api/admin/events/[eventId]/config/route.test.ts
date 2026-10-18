@@ -61,3 +61,29 @@ describe("PATCH config, enquadramento da capa", () => {
     expect(atualizarConfigDoEvento).toHaveBeenCalledOnce();
   });
 });
+
+describe("PATCH config, momentos e monograma", () => {
+  it("recusa lista vazia, nome longo e nome repetido", async () => {
+    expect((await patch({ momentos: [] })).status).toBe(422);
+    expect((await patch({ momentos: [{ id: "a", titulo: "x".repeat(41) }] })).status).toBe(422);
+    const repetido = [
+      { id: "a", titulo: "Brinde" },
+      { id: "b", titulo: "brinde" },
+    ];
+    expect((await patch({ momentos: repetido })).status).toBe(422);
+    expect(atualizarConfigDoEvento).not.toHaveBeenCalled();
+  });
+
+  it("grava os momentos saneados", async () => {
+    const r = await patch({ momentos: [{ id: "a", titulo: "  Brinde  " }] });
+    expect(r.status).toBe(200);
+    expect(atualizarConfigDoEvento.mock.calls[0]![3].identityTokens.momentos).toEqual([
+      { id: "a", titulo: "Brinde" },
+    ]);
+  });
+
+  it("recusa monograma acima de 8 e aceita vazio", async () => {
+    expect((await patch({ monograma: "123456789" })).status).toBe(422);
+    expect((await patch({ monograma: "" })).status).toBe(200);
+  });
+});

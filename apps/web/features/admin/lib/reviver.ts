@@ -6,7 +6,7 @@ export type MidiaDoReviver = {
   destacada: boolean;
 };
 
-export type MomentoDoPack = { id: string; chaveTitulo: string; chaveDesc: string };
+export type MomentoDoReviver = { id: string; titulo: string; descricao?: string };
 
 export type CapituloDoReviver = {
   id: string;
@@ -36,8 +36,7 @@ const MAXIMO_DE_CAPITULOS = 6;
  */
 export function capitulosDoReviver(
   midias: MidiaDoReviver[],
-  momentos: MomentoDoPack[],
-  vocabulario: Record<string, string>,
+  momentos: MomentoDoReviver[],
 ): CapituloDoReviver[] {
   if (midias.length < MINIMO_POR_CAPITULO || momentos.length === 0) return [];
 
@@ -69,8 +68,8 @@ export function capitulosDoReviver(
 
     capitulos.push({
       id: momento.id,
-      titulo: vocabulario[momento.chaveTitulo] ?? "",
-      descricao: vocabulario[momento.chaveDesc] ?? "",
+      titulo: momento.titulo,
+      descricao: momento.descricao ?? "",
       em: primeira.em,
       capa,
       fotos: fatia.length,
