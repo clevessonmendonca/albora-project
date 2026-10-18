@@ -83,7 +83,7 @@ export function PairPage({ slug }: { slug: string }) {
             <Card elevation={1} className="grid gap-2 text-center">
               <p
                 aria-live="polite"
-                className="m-0 font-titulo text-[clamp(3rem,14vw,4.5rem)] tracking-[0.35em] text-acento [font-variant-numeric:tabular-nums]"
+                className="m-0 font-titulo text-[clamp(3rem,14vw,4.5rem)] tracking-[0.35em] text-acento-texto [font-variant-numeric:tabular-nums]"
               >
                 {codigo}
               </p>

@@ -177,7 +177,7 @@ export function EventMusic({ eventId }: { eventId: string }) {
           <ul className="m-0 grid list-none gap-2 p-0">
             {suggestions.map((s) => (
               <li key={`${s.provedor}:${s.tipo}:${s.url}`} className="tipo-body flex items-center justify-between gap-3 rounded-token bg-bg px-3 py-2.5 text-ink">
-                <a href={s.url} target="_blank" rel="noopener noreferrer" className="min-w-0 truncate text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75">
+                <a href={s.url} target="_blank" rel="noopener noreferrer" className="min-w-0 truncate text-acento-texto no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-75">
                   {suggestionLabel(s)}
                 </a>
                 <div className="flex shrink-0 items-center gap-2">

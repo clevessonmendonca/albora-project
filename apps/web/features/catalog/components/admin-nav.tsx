@@ -18,7 +18,7 @@ export function AdminNav({ active }: { active: AdminSection }) {
         <span
           key={tab.id}
           className={`flex flex-col items-center gap-1 text-[0.5625rem] uppercase tracking-rotulo ${
-            tab.id === active ? "text-acento" : "text-ink-3"
+            tab.id === active ? "text-acento-texto" : "text-ink-3"
           }`}
         >
           {tab.icon}

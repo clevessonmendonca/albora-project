@@ -278,7 +278,7 @@ export function Viewer({
                 disabled={removendo}
                 onClick={onRemover}
                 className={cn(
-                  "grid size-12 place-items-center rounded-full border border-linha bg-transparent font-inherit text-[1.1rem] text-ink transition-[color,border-color,transform] duration-instantaneo ease-mola hover:border-acento hover:text-acento active:scale-[0.94]",
+                  "grid size-12 place-items-center rounded-full border border-linha bg-transparent font-inherit text-[1.1rem] text-ink transition-[color,border-color,transform] duration-instantaneo ease-mola hover:border-acento hover:text-acento-texto active:scale-[0.94]",
                   CLASSE_SOMBRA_TEXTO,
                   removendo ? "cursor-wait" : "cursor-pointer",
                 )}

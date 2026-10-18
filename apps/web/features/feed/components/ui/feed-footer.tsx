@@ -19,7 +19,7 @@ export function FeedFooter({ estado, hasItems, onLoadMore, onRetry }: FeedFooter
     return (
       <p className="mt-[calc(var(--espaco)*6)] text-center text-[0.9rem] leading-relaxed text-ink-2">
         Sua entrada expirou.{" "}
-        <a href="/scan" className="text-acento underline">
+        <a href="/scan" className="text-acento-texto underline">
           Escaneie o QR da mesa
         </a>{" "}
         de novo para continuar.

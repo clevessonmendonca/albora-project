@@ -68,7 +68,7 @@ function StoryYou({ onAdd }: { onAdd?: (() => void) | undefined }) {
       onClick={onAdd}
       className="flex w-[3.75rem] shrink-0 flex-col items-center gap-1.5 transition-[opacity,transform] duration-instantaneo ease-mola active:scale-95 hover:opacity-75"
     >
-      <StorySquircle className="border border-linha text-acento">
+      <StorySquircle className="border border-linha text-acento-texto">
         <PlusIcon size={24} />
       </StorySquircle>
       <span className="w-full truncate text-center text-[0.6875rem] text-ink-2">Você</span>

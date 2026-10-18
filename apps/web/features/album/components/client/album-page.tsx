@@ -133,7 +133,7 @@ export function AlbumPage({
                     <h2
                       className={cn(
                         "tipo-subtitle tipo-balance m-0 text-ink",
-                        capitulo.faixas.some((f) => f.amanhecer) && "text-acento",
+                        capitulo.faixas.some((f) => f.amanhecer) && "text-acento-texto",
                       )}
                     >
                       {capitulo.titulo}

@@ -553,7 +553,7 @@ function EventLink({ title, url }: { title: string; url: string }) {
     <div>
       <span className="tipo-label block text-ink-3">{title}</span>
       <div className="mt-1 flex items-center gap-2">
-        <a href={url} target="_blank" rel="noopener noreferrer" className="tipo-caption min-w-0 flex-1 truncate text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
+        <a href={url} target="_blank" rel="noopener noreferrer" className="tipo-caption min-w-0 flex-1 truncate text-acento-texto no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80">
           {url}
         </a>
         <button

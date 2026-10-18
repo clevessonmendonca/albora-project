@@ -52,7 +52,7 @@ export function MusicScreen({ pack }: { pack: Pack }) {
               <span className="block truncate text-[0.85rem]">Spotify · faixa</span>
               <span className="text-[0.75rem] text-ink-3">3 votos</span>
             </span>
-            <span className="shrink-0 text-[0.75rem] uppercase tracking-rotulo text-acento">
+            <span className="shrink-0 text-[0.75rem] uppercase tracking-rotulo text-acento-texto">
               Também quero
             </span>
           </div>

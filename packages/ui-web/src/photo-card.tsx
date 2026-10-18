@@ -100,7 +100,7 @@ export function PhotoCard({
           aria-pressed={curtido}
           aria-label="Curtir"
           onClick={onCurtir}
-          className={cn(ACAO_CLASSE, curtido && "text-acento")}
+          className={cn(ACAO_CLASSE, curtido && "text-acento-texto")}
         >
           <HeartIcon filled={curtido} />
           <span className="font-titulo text-[0.8125rem] tracking-rotulo">{curtidas}</span>

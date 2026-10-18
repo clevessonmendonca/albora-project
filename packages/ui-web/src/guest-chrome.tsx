@@ -72,7 +72,7 @@ export function GuestHeader({
 
 export function EventLabel({ children }: { children: ReactNode }) {
   return (
-    <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-acento">{children}</p>
+    <p className="m-0 text-[0.6875rem] uppercase tracking-rotulo text-acento-texto">{children}</p>
   );
 }
 

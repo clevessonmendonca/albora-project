@@ -115,7 +115,7 @@ export const PhotoInteraction = memo(function PhotoInteraction({
               size={24} 
               filled={reacao.minha !== null}
               animating={animandoStar}
-              className={reacao.minha !== null ? "text-acento" : "text-ink-2"}
+              className={reacao.minha !== null ? "text-acento-texto" : "text-ink-2"}
             />
           </button>
           {reacao.reacoes > 0 ? (

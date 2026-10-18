@@ -158,7 +158,7 @@ export function PreEventChecklist({
                             href={item.href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[0.8125rem] text-acento no-underline hover:opacity-80"
+                            className="text-[0.8125rem] text-acento-texto no-underline hover:opacity-80"
                             onClick={(e) => e.stopPropagation()}
                           >
                             Abrir ↗
@@ -166,7 +166,7 @@ export function PreEventChecklist({
                         ) : (
                           <Link
                             href={item.href}
-                            className="text-[0.8125rem] text-acento no-underline hover:opacity-80"
+                            className="text-[0.8125rem] text-acento-texto no-underline hover:opacity-80"
                             onClick={(e) => e.stopPropagation()}
                           >
                             Ir para etapa →

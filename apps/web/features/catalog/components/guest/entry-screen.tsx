@@ -25,7 +25,7 @@ export function EntryScreen({ pack }: { pack: Pack }) {
 
         <div className="rounded-token border-b-2 border-acento bg-superficie px-[1.125rem] py-[1.0625rem] font-titulo text-[1.375rem]">
           Bia
-          <span className="text-acento">|</span>
+          <span className="text-acento-texto">|</span>
         </div>
 
         <ConsentCheckbox checked>

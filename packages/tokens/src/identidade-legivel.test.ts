@@ -55,6 +55,12 @@ describe("toda identidade do catálogo permanece legível", () => {
           );
         });
 
+        it.runIf(background === "light")("terciário alcança AA também sobre o preenchimento mais fundo", () => {
+          const s = v();
+          expect(razao(s["--ink-3"]!, s["--linha"]!)).toBeGreaterThanOrEqual(CONTRASTE_DE_TEXTO);
+          expect(razao(s["--ink-2"]!, s["--linha"]!)).toBeGreaterThanOrEqual(CONTRASTE_DE_TEXTO);
+        });
+
         it("secundário e terciário continuam sendo dois degraus", () => {
           const s = v();
           // O piso de leitura empurra os dois para cima; sem cuidado eles

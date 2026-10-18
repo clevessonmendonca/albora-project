@@ -156,7 +156,8 @@ function claro(c: Colors): SemanticScale {
 
   const bg = sobre(RAMPA_CLARA.bg);
   const legivel = (cor: string) => acentoLegivelSobre(cor, bg, c.papel);
-  const tintaLegivel = (cor: string) => acentoLegivelSobre(cor, bg, c.papel);
+  const fundoMaisFundo = sobre(RAMPA_CLARA.linha);
+  const tintaLegivel = (cor: string) => acentoLegivelSobre(cor, fundoMaisFundo, c.papel);
   const ink3Claro = tintaLegivel(sobre(RAMPA_CLARA.ink3));
 
   return {

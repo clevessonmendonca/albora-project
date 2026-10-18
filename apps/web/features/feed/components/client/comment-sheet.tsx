@@ -93,7 +93,7 @@ function Composer({
           <button
             type="button"
             onClick={comentarios.cancelarResposta}
-            className="cursor-pointer border-none bg-transparent p-0 font-inherit text-acento transition-opacity duration-instantaneo ease-mola hover:opacity-70"
+            className="cursor-pointer border-none bg-transparent p-0 font-inherit text-acento-texto transition-opacity duration-instantaneo ease-mola hover:opacity-70"
           >
             Cancelar
           </button>
