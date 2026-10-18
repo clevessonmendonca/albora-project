@@ -9,7 +9,7 @@ import { PrimaryButton, radiusStyle } from "@albora/ui-web";
 
 const CODE_PATTERN = /^[A-HJ-NP-Z2-9]{6}$/;
 
-type Status = "editing" | "submitting" | "connected" | "no-session" | "rejected" | "error";
+type Status = "editing" | "submitting" | "connected" | "no-session" | "rejected" | "plan" | "error";
 
 export function WallPairClient({
   initialCode,
@@ -38,6 +38,7 @@ export function WallPairClient({
       });
       if (r.ok) setStatus("connected");
       else if (r.status === 401) setStatus("no-session");
+      else if (r.status === 403) setStatus("plan");
       else if (r.status === 409 || r.status === 422) setStatus("rejected");
       else setStatus("error");
     } catch {
@@ -121,6 +122,19 @@ export function WallPairClient({
         {status === "rejected" && (
           <p className="tipo-caption m-0 text-critico">
             Código inválido ou expirado. Verifique se digitou corretamente ou peça um novo código.
+          </p>
+        )}
+        {status === "plan" && (
+          <p role="alert" className="tipo-caption m-0 text-critico">
+            O telão entra no plano Completo.{" "}
+            {eventoId ? (
+              <Link href={`/admin/e/${eventoId}/evento#controle-plano`} className="underline">
+                Suba de plano no painel
+              </Link>
+            ) : (
+              "Peça a quem organiza a festa para subir de plano no painel"
+            )}
+            {" "}e tente de novo.
           </p>
         )}
         {status === "error" && (
