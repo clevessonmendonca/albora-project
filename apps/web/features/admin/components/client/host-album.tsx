@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge, ConfirmDialog } from "@albora/ui-web";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { RefreshButton } from "./refresh-control";
 import { HostExport } from "@/features/admin/components/client/host-export";
@@ -76,6 +76,15 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [desfazer, setDesfazer] = useState<Desfazer | null>(null);
   const [confirmarRemocao, setConfirmarRemocao] = useState<Item | null>(null);
+  const [exportAberto, setExportAberto] = useState(false);
+  const exportRef = useRef<HTMLDetailsElement>(null);
+
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (!q.has("baixar") && !q.has("exportar")) return;
+    setExportAberto(true);
+    exportRef.current?.scrollIntoView?.({ block: "start" });
+  }, []);
 
   const carregar = useCallback(async () => {
     setErro(false);
@@ -410,7 +419,12 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
       )}
 
       {canExport && aba === "todas" && (
-        <details className="rounded-superficie border border-linha">
+        <details
+          ref={exportRef}
+          open={exportAberto}
+          onToggle={(e) => setExportAberto(e.currentTarget.open)}
+          className="rounded-superficie border border-linha"
+        >
           <summary className="min-h-12 cursor-pointer px-5 py-4 font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-acento">
             Baixar e guardar as fotos
           </summary>
