@@ -21,6 +21,7 @@ import { Preparo } from "./home/preparo";
 import { PreviaDoConvidado } from "./home/previa-convidado";
 import { AvisoDeRetencao } from "./home/retencao";
 import { Payoffdepois } from "./home/depois";
+import { IdeiasParaSuaFesta } from "./home/ideias";
 import { CapsulaDeMemoria } from "./home/capsula";
 import { CartaoReviver } from "./home/cartao-reviver";
 import { TourDePrimeiroAcesso } from "./tour-primeiro-acesso";
@@ -280,6 +281,8 @@ export async function EventHome({
                 }
               />
             )}
+
+            <IdeiasParaSuaFesta base={base} />
           </div>
 
           <div className="flex flex-col gap-5">
