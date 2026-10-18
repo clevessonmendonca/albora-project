@@ -149,3 +149,23 @@ Capturas lado a lado em Chrome headless, por superfície. Corrigido: Home depois
 Mantido de propósito (decisão anterior, ver `conferencia-prototipos-2026-10.md`): entrada centralizada com CTA sólido (translúcido seria glassmorphism), Convidados abrindo na lista, grade do álbum, navegação do convidado Explorar/Missões/Perfil.
 
 Ainda divergente e sem decisão: reordenar o /ao-vivo (fila de revisão antes do resumo; precisa de captura da página real, que depende de banco), faixa "Veja o Álbora acontecer", chips de momento sobre a foto do post, card "Próxima missão" no feed, chips Momentos/Pessoas e seleção em lote no álbum, entrega em cartões (ZIP, destaques, Drive, PDF).
+
+## Rodada 3: itens liberados, auditoria e refinamento
+
+Itens da matriz entregues: upload em lote com momento (#120); chip de momento, card Próxima missão e faixa Veja o Álbora acontecer (#121); entrega em cartões (#122); conectar o telão por link, com revisão de segurança (#123); fila de revisão antes do resumo no /ao-vivo (#125); revisão foto a foto com A/R (#126); momentos editáveis por evento, filtros e lote no álbum e seletor de monograma (#128).
+
+Auditoria (contraste medido em Chrome, fluxos e densidade): contraste de texto de 142 reprovações para 0 (#137); fluxos altos (#127, #129, #130, #131, #132, #133, #134, #135); fluxos médios e baixos do convidado e do telão (#141 a #148) e do painel (#149 a #156); densidade (#139, #140, #157 a #161); testes instáveis tornados determinísticos (#136, #138).
+
+### Congelado ou fora, e por quê
+| Item | Motivo |
+|---|---|
+| Prévia em abas Convidado/Telão/Álbum no wizard | removida de propósito por feedback do anfitrião (16f3b810) |
+| Rascunho salvo do wizard | aguarda o ADR 0020 (criar sem cadastro) |
+| Editor de arte livre do kit e editor de story com camadas | contra "diagramação por slots, não canvas" e congelamento de features |
+| Câmera de vídeo e cinema, Reviver com vídeo | congelamento de features e ADR 0007 |
+| Onze modelos de telão, novos painéis do Dia do evento | congelamento de features |
+| Cartão Destaques (ZIP das destacadas) na entrega | nenhuma rota exporta só as destacadas |
+| Consentimento pré-marcado e download de fotos no plano free | decisão de produto pendente |
+| Foco visível global (94 de 521 testes abaixo de 3:1) | o halo na cor do chão muda o foco do produto todo; decisão de design |
+| Remover e reenviar convite da equipe | precisa de backend |
+| Home antes e depois, Ao vivo, Moderação e Pronto: densidade | PRs abertos mexem nessas telas; fazer depois que entrarem |
