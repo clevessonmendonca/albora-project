@@ -128,6 +128,14 @@ describe("telão conectado por link do anfitrião", () => {
     });
   });
 
+  it("gerar um link novo invalida o anterior do mesmo evento", async () => {
+    const antigo = await criarPareamentoPorLink(app, SEGREDO, dados.a.eventoId, "1", daqui(20));
+    expect((await pareamentoPorLinkValido(app, SEGREDO, antigo.linkToken, new Date())).valido).toBe(true);
+    const novo = await criarPareamentoPorLink(app, SEGREDO, dados.a.eventoId, "1", daqui(20));
+    expect((await pareamentoPorLinkValido(app, SEGREDO, antigo.linkToken, new Date())).valido).toBe(false);
+    expect((await pareamentoPorLinkValido(app, SEGREDO, novo.linkToken, new Date())).valido).toBe(true);
+  });
+
   it("link expirado ou forjado não abre", async () => {
     const { linkToken } = await criarPareamentoPorLink(app, SEGREDO, dados.a.eventoId, "1", daqui(-1));
     expect((await pareamentoPorLinkValido(app, SEGREDO, linkToken, new Date())).valido).toBe(false);

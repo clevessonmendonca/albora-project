@@ -63,7 +63,7 @@ export async function criarPareamento(
   throw new Error("não foi possível gerar um código de pareamento livre");
 }
 
-/** 🔴 Quem chama já provou ser anfitrião do evento: gerar o link É a autorização. O segredo do link só existe na URL (fragmento) e vira o token de poll da TV; consumo e crachá seguem o fluxo de `finalizarPareamento`. */
+/** 🔴 Gerar um link novo expira os pareamentos autorizados ainda vivos do evento: o link anterior deixa de valer. Quem chama já provou ser anfitrião do evento: gerar o link É a autorização. O segredo do link só existe na URL (fragmento) e vira o token de poll da TV; consumo e crachá seguem o fluxo de `finalizarPareamento`. */
 export async function criarPareamentoPorLink(
   pool: Pool,
   segredo: string,
@@ -76,6 +76,11 @@ export async function criarPareamentoPorLink(
     const code = gerarCodigo(rand);
     const { token, hash } = emitirToken(segredo);
     try {
+      await pool.query(
+        `UPDATE wall_pairings SET expires_at = now()
+          WHERE event_id = $1 AND status = 'autorizado' AND expires_at > now()`,
+        [eventoId],
+      );
       await pool.query(
         `INSERT INTO wall_pairings (code, poll_token_hash, event_id, status, consent_version, expires_at)
          VALUES ($1, $2, $3, 'autorizado', $4, $5)`,

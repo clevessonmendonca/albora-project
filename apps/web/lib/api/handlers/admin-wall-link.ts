@@ -15,7 +15,7 @@ import { consume } from "@/lib/rate-limit-store";
 
 export const dynamic = "force-dynamic";
 
-export const WALL_LINK_TTL_SECONDS = 2 * 60 * 60;
+export const WALL_LINK_TTL_SECONDS = 20 * 60;
 const WALL_LINK_CONSENT_VERSION = "1";
 
 /** O anfitrião gera um link de uso único para o telão: a autorização é dele, o evento sai da sessão e o segredo vai só no fragmento da URL. */
