@@ -271,7 +271,7 @@ function ArrivalScreen({
         <div aria-hidden className="absolute inset-0 bg-superficie-alta" />
       )}
       {/* Scrim para legibilidade do texto sobre a foto — chão do evento (dark), não preto cru. */}
-      <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-bg via-bg/80 to-bg/60" />
+      <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-bg via-bg/90 to-bg/75" />
 
       <div className="relative mx-auto flex w-full max-w-[46rem] flex-col items-center gap-6 py-8 sm:py-16">
         <p className="tipo-label m-0 uppercase tracking-[0.18em] text-ink-2">Você foi convidado para</p>

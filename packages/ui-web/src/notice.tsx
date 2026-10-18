@@ -22,7 +22,7 @@ export function MissionBanner({
 }) {
   return (
     <div className="rounded-token bg-acento px-4 py-3.5 text-sobre-acento">
-      <p className="m-0 text-[0.5625rem] uppercase tracking-rotulo opacity-75">
+      <p className="m-0 text-[0.5625rem] uppercase tracking-rotulo">
         Missão {String(index).padStart(2, "0")} de {String(total).padStart(2, "0")}
       </p>
       <p className="mt-1 font-titulo text-[1.0625rem] leading-tight">{title}</p>

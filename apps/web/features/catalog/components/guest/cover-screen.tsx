@@ -119,7 +119,7 @@ export function CoverScreen({
                 key={titulo}
                 className={cn(
                   "relative aspect-[9/16] shrink-0 snap-center overflow-hidden rounded-token",
-                  central ? "w-[9.25rem]" : "w-20 opacity-60",
+                  central ? "w-[9.25rem]" : "w-20 opacity-70",
                 )}
               >
                 <Frame atmosphere variant={i * 6 + 2} />
