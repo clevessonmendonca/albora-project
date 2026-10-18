@@ -8,7 +8,7 @@ import {
 import { SavedBadge } from "@/features/admin/components/client/saved-badge";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
 import { CAPA_FOCO_PADRAO, capaFocoDoEvento, capaFocoXDoEvento, type CapaFoco } from "@albora/core";
-import { IDENTITY_MODELS } from "@albora/tokens";
+import { eventOnContrast, IDENTITY_MODELS } from "@albora/tokens";
 import { CapaFocoField } from "@/features/admin/components/client/capa-foco-field";
 import { Button, PhoneFrame, TextField } from "@albora/ui-web";
 import { useMemo, useState, type CSSProperties, type ReactNode } from "react";
@@ -132,6 +132,7 @@ export function IdentityEditor({
 
   const wallProblems = wallDisplayChoiceProblems([...wallModels]);
 
+  const contrasteDoAcento = eventOnContrast(customAccent ?? presetAccent ?? IDENTITY_MODELS[0]!.amostra);
   const identityTokens = useMemo(() => {
     const presetCores = toPartialCores(preset.camada.cores);
     const presetFontes = toPartialFontes(preset.camada.fontes);
@@ -323,6 +324,16 @@ export function IdentityEditor({
                 setSaved(false);
               }}
             />
+            {contrasteDoAcento !== null && (
+              <p
+                role="status"
+                className={`tipo-caption m-0 -mt-3 ${contrasteDoAcento < 4.5 ? "text-critico" : "text-ink-3"}`}
+              >
+                {contrasteDoAcento < 4.5
+                  ? "Contraste baixo: o texto sobre a cor da festa pode ficar difícil de ler."
+                  : "Boa leitura: o texto sobre a cor da festa se ajusta sozinho."}
+              </p>
+            )}
 
             <CapaFocoField
               value={coverFoco}

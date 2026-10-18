@@ -1,12 +1,18 @@
 /** Entrega de e-mail via Resend; sem RESEND_API_KEY degrada (job e download continuam) — terceiro fora do crítico. E-mail é PII: nunca logar o endereço. */
 
+import { manterVivo } from "../runtime/manter-vivo";
+
 export type HostEmail = {
   to: string;
   subject: string;
   text: string;
 };
 
-export async function sendHostEmail(mail: HostEmail): Promise<{ enviado: boolean }> {
+function mascararEmails(texto: string): string {
+  return texto.replace(/[^\s@<>()"']+@[^\s@<>()"']+/g, "[e-mail]");
+}
+
+async function enviarEmail(mail: HostEmail): Promise<{ enviado: boolean }> {
   const key = process.env.RESEND_API_KEY?.trim() ?? "";
   if (!key) {
     console.log("aviso.omitido", { motivo: "sem_resend" });
@@ -31,7 +37,12 @@ export async function sendHostEmail(mail: HostEmail): Promise<{ enviado: boolean
     });
 
     if (!res.ok) {
-      console.warn("aviso.falhou", { status: res.status });
+      const corpo = (await res.json().catch(() => null)) as { name?: unknown; message?: unknown } | null;
+      console.warn("aviso.falhou", {
+        status: res.status,
+        motivo: typeof corpo?.name === "string" ? corpo.name : undefined,
+        detalhe: typeof corpo?.message === "string" ? mascararEmails(corpo.message).slice(0, 200) : undefined,
+      });
       return { enviado: false };
     }
 
@@ -41,4 +52,8 @@ export async function sendHostEmail(mail: HostEmail): Promise<{ enviado: boolean
     console.warn("aviso.falhou", { erro: String(e) });
     return { enviado: false };
   }
+}
+
+export function sendHostEmail(mail: HostEmail): Promise<{ enviado: boolean }> {
+  return manterVivo(enviarEmail(mail));
 }
