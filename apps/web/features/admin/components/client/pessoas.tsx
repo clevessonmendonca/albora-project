@@ -158,6 +158,32 @@ export function Pessoas({
 
   return (
     <div className="flex flex-col gap-5">
+      {descobertas.length > 0 && (
+        <details className="group rounded-superficie border border-linha bg-superficie">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 tipo-label text-ink-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento-texto">
+            Descobertas da festa
+            <span aria-hidden className="transition-transform group-open:rotate-180">⌄</span>
+          </summary>
+          <ul className="m-0 flex list-none flex-wrap gap-2 border-t border-linha p-5">
+            {descobertas.map((d) => (
+              <li key={d.chave}>
+                <button
+                  type="button"
+                  onClick={() => setAberta(d.pessoa.id)}
+                  className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-token border border-linha bg-bg px-3.5 text-left transition-colors hover:border-acento"
+                >
+                  <Inicial nome={d.pessoa.nome} />
+                  <span className="min-w-0">
+                    <span className="tipo-caption block text-ink-3">{d.rotulo}</span>
+                    <span className="tipo-body block text-ink">{d.pessoa.nome}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+
       <AdminSection>
         <p className="tipo-caption m-0 mb-3 text-ink-3">{pessoas.length} {pessoas.length === 1 ? "pessoa neste evento" : "pessoas neste evento"}</p>
         <div className="mb-4 flex flex-wrap items-center gap-3">
