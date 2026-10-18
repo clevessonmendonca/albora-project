@@ -2,6 +2,7 @@
 
 import { isVideoMime } from "@albora/core";
 import { useState } from "react";
+import { useFocoDoModal } from "@/lib/use-foco-do-modal";
 import type { ModoInteracao } from "@albora/core";
 import type { ServedPhoto } from "@/lib/album";
 import { PhotoInteraction } from "@/features/feed/components/client/photo-interaction";
@@ -26,6 +27,7 @@ export function AlbumLightbox({
   onProxima,
 }: AlbumLightboxProps) {
   const [pedidoAberto, setPedidoAberto] = useState(false);
+  const raiz = useFocoDoModal<HTMLDivElement>();
 
   useLightboxKeyboard({
     onEscape: onSair,
@@ -42,10 +44,12 @@ export function AlbumLightbox({
 
   return (
     <div
+      ref={raiz}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label={ehVideo ? "Vídeo do álbum" : "Foto do álbum"}
-      className="fixed inset-0 z-40 bg-bg"
+      className="fixed inset-0 z-40 bg-bg outline-none"
       onClick={() => {
         if (!pedidoAberto) onSair();
       }}

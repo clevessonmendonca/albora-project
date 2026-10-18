@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useFocoDoModal } from "@/lib/use-foco-do-modal";
 
 type GateOpenedOverlayProps = {
   onClose: () => void;
@@ -8,6 +9,7 @@ type GateOpenedOverlayProps = {
 };
 
 export function GateOpenedOverlay({ onClose, cameraPath }: GateOpenedOverlayProps) {
+  const raiz = useFocoDoModal<HTMLDivElement>();
   useEffect(() => {
     function handleKeyDown(ev: KeyboardEvent) {
       if (ev.key === "Escape") onClose();
@@ -18,10 +20,12 @@ export function GateOpenedOverlay({ onClose, cameraPath }: GateOpenedOverlayProp
 
   return (
     <div
+      ref={raiz}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Feed liberado"
-      className="fixed inset-0 z-40 grid place-items-center bg-bg-overlay p-6"
+      className="fixed inset-0 z-40 grid place-items-center bg-bg-overlay p-6 outline-none"
       style={{ animation: "feed-amanhecer 0.35s var(--curva) both" }}
       onClick={onClose}
     >

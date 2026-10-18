@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useFocoDoModal } from "@/lib/use-foco-do-modal";
 import type { StoryDaRede } from "../../hooks/use-stories";
 import type { MediaUrl } from "@/lib/media";
 
@@ -18,6 +19,7 @@ type Props = {
 export function StoryViewer({ stories, urls, initialIndex, onClose, onVisto }: Props) {
   const [idx, setIdx] = useState(initialIndex);
   const [progresso, setProgresso] = useState(0);
+  const raiz = useFocoDoModal<HTMLDivElement>();
   const pausadoRef = useRef(false);
   const inicioRef = useRef<number>(Date.now());
   const frameRef = useRef<number | null>(null);
@@ -92,10 +94,12 @@ export function StoryViewer({ stories, urls, initialIndex, onClose, onVisto }: P
 
   return (
     <div
+      ref={raiz}
+      tabIndex={-1}
       role="dialog"
       aria-modal
       aria-label={`Story de ${story.autor}`}
-      className="fixed inset-0 z-50 flex flex-col bg-black"
+      className="fixed inset-0 z-50 flex flex-col bg-black outline-none"
       onTouchStart={(e) => {
         touchStartX.current = e.touches[0]?.clientX ?? null;
       }}
