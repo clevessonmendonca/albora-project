@@ -33,4 +33,5 @@ export type CoverData = {
   /** URL assinada da imagem de capa enviada pelo casal; null = usa primeira foto do álbum. */
   coverImageUrl: string | null;
   coverFocus: CapaFoco;
+  coverFocusX: CapaFoco;
 };

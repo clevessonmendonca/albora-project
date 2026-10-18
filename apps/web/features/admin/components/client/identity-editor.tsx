@@ -7,7 +7,7 @@ import {
 } from "@albora/core";
 import { SavedBadge } from "@/features/admin/components/client/saved-badge";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
-import { CAPA_FOCO_PADRAO, capaFocoDoEvento, type CapaFoco } from "@albora/core";
+import { CAPA_FOCO_PADRAO, capaFocoDoEvento, capaFocoXDoEvento, type CapaFoco } from "@albora/core";
 import { eventOnContrast, IDENTITY_MODELS } from "@albora/tokens";
 import { CapaFocoField } from "@/features/admin/components/client/capa-foco-field";
 import { Button, PhoneFrame, TextField } from "@albora/ui-web";
@@ -123,6 +123,7 @@ export function IdentityEditor({
   );
 
   const [coverFoco, setCoverFoco] = useState<CapaFoco>(() => capaFocoDoEvento(initialIdentityTokens));
+  const [coverFocoX, setCoverFocoX] = useState<CapaFoco>(() => capaFocoXDoEvento(initialIdentityTokens));
 
   const [title, setTitle] = useState(initialTitle ?? "");
   const [saving, setSaving] = useState(false);
@@ -150,10 +151,11 @@ export function IdentityEditor({
     const effectiveBackground =
       customBackground ?? preset.camada.background;
 
-    const { capaFoco: _anterior, ...restoInicial } = initialIdentityTokens;
+    const { capaFoco: _anterior, capaFocoX: _anteriorX, ...restoInicial } = initialIdentityTokens;
     return {
       ...restoInicial,
       ...(coverFoco !== CAPA_FOCO_PADRAO ? { capaFoco: coverFoco } : {}),
+      ...(coverFocoX !== CAPA_FOCO_PADRAO ? { capaFocoX: coverFocoX } : {}),
       presetId: preset.id,
       ...preset.camada,
       ...(Object.keys(effectiveCores).length > 0 ? { cores: effectiveCores } : {}),
@@ -161,7 +163,7 @@ export function IdentityEditor({
       ...(effectiveBackground ? { background: effectiveBackground } : {}),
       telaoModelos: [...wallModels],
     };
-  }, [initialIdentityTokens, preset, wallModels, customAccent, customFont, customBackground, coverFoco]);
+  }, [initialIdentityTokens, preset, wallModels, customAccent, customFont, customBackground, coverFoco, coverFocoX]);
 
   const previewVars = useMemo(() => {
     if (!pack) return {};
@@ -337,6 +339,11 @@ export function IdentityEditor({
               value={coverFoco}
               onChange={(foco) => {
                 setCoverFoco(foco);
+                setSaved(false);
+              }}
+              valueX={coverFocoX}
+              onChangeX={(foco) => {
+                setCoverFocoX(foco);
                 setSaved(false);
               }}
             />

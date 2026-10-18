@@ -117,7 +117,10 @@ export async function POST(req: Request) {
       });
     }
     identityTokens = body.identityTokens as Record<string, unknown>;
-    if (identityTokens.capaFoco !== undefined && !capaFocoValido(identityTokens.capaFoco)) {
+    if (
+      (identityTokens.capaFoco !== undefined && !capaFocoValido(identityTokens.capaFoco)) ||
+      (identityTokens.capaFocoX !== undefined && !capaFocoValido(identityTokens.capaFocoX))
+    ) {
       return errorResponse(422, "validation_error", "Enquadramento da capa inválido", {
         campos: ["identityTokens"],
       });

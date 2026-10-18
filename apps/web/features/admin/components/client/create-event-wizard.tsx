@@ -109,6 +109,7 @@ export function CreateEventWizard() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [coverFoco, setCoverFoco] = useState<CapaFoco>(CAPA_FOCO_PADRAO);
+  const [coverFocoX, setCoverFocoX] = useState<CapaFoco>(CAPA_FOCO_PADRAO);
   const [photoColors, setPhotoColors] = useState<string[]>([]);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -205,9 +206,10 @@ export function CreateEventWizard() {
       cores: { ...(styleCores ?? {}), acento: cor },
       eventCores: { cor, cor2 },
       ...(coverFoco !== CAPA_FOCO_PADRAO ? { capaFoco: coverFoco } : {}),
+      ...(coverFocoX !== CAPA_FOCO_PADRAO ? { capaFocoX: coverFocoX } : {}),
       ...(local.trim() ? { local: local.trim() } : {}),
     };
-  }, [style, styleKey, cor, cor2, local, coverFoco]);
+  }, [style, styleKey, cor, cor2, local, coverFoco, coverFocoX]);
 
   const previewVars = useMemo(
     () => resolveIdentityPreviewVars(pack, identityTokens) as CSSProperties,
@@ -365,6 +367,7 @@ export function CreateEventWizard() {
     coverFallback: typePhoto(pack.ordemCriacao),
     layout: styleKey,
     coverFoco,
+    coverFocoX,
     onPickCover,
   };
 
@@ -475,14 +478,14 @@ export function CreateEventWizard() {
                   className="relative flex min-h-48 items-end overflow-hidden rounded-superficie bg-superficie-alta p-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento-texto"
                   aria-label={coverFile ? "Trocar foto de capa" : "Escolher minha foto de capa"}
                 >
-                  <img src={coverUrl ?? typePhoto(pack.ordemCriacao)} alt="" style={{ objectPosition: capaObjectPosition(coverFoco) }} className="absolute inset-0 h-full w-full object-cover" />
+                  <img src={coverUrl ?? typePhoto(pack.ordemCriacao)} alt="" style={{ objectPosition: capaObjectPosition(coverFoco, coverFocoX) }} className="absolute inset-0 h-full w-full object-cover" />
                   <span aria-hidden className="scrim-foto-forte absolute inset-0" />
                   <span className="sobre-foto relative flex items-center gap-3">
                     <Glyph name="image" size={24} />
                     <span><strong className="block font-medium">{coverFile ? "Trocar minha foto" : "Escolher minha foto"}</strong><span className="mt-1 block text-sm">JPG, PNG ou WebP</span></span>
                   </span>
                 </button>
-                <CapaFocoField value={coverFoco} onChange={setCoverFoco} />
+                <CapaFocoField value={coverFoco} onChange={setCoverFoco} valueX={coverFocoX} onChangeX={setCoverFocoX} />
                 <AppearanceStep
                   styleKey={styleKey}
                   onStyle={pickStyle}

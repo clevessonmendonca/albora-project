@@ -4,16 +4,17 @@ import { Frame } from "@albora/ui-web";
 type CoverHeroProps = {
   hero: string | null;
   focus?: CapaFoco;
+  focusX?: CapaFoco;
 };
 
-export function CoverHero({ hero, focus = CAPA_FOCO_PADRAO }: CoverHeroProps) {
+export function CoverHero({ hero, focus = CAPA_FOCO_PADRAO, focusX = CAPA_FOCO_PADRAO }: CoverHeroProps) {
   return (
     <div className="relative h-[20.5rem] shrink-0">
       {hero ? (
         <img
           src={hero}
           alt=""
-          style={{ objectPosition: capaObjectPosition(focus) }}
+          style={{ objectPosition: capaObjectPosition(focus, focusX) }}
           className="absolute inset-0 size-full object-cover"
         />
       ) : (

@@ -901,4 +901,4 @@ export {
   ehTemaDeInspiracao,
 } from "./comunidade";
 export type { CapaFoco } from "./capa-foco";
-export { CAPAS_FOCO, CAPA_FOCO_PADRAO, capaFocoValido, capaFocoDoEvento, capaObjectPosition } from "./capa-foco";
+export { CAPAS_FOCO, CAPA_FOCO_PADRAO, capaFocoValido, capaFocoDoEvento, capaFocoXDoEvento, capaObjectPosition } from "./capa-foco";

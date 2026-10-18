@@ -49,6 +49,12 @@ describe("PATCH config, enquadramento da capa", () => {
     expect(atualizarConfigDoEvento).not.toHaveBeenCalled();
   });
 
+  it("recusa foco horizontal fora de 25, 50 e 75", async () => {
+    const r = await patch({ capaFocoX: 10 });
+    expect(r.status).toBe(422);
+    expect(atualizarConfigDoEvento).not.toHaveBeenCalled();
+  });
+
   it("aceita um foco válido", async () => {
     const r = await patch({ capaFoco: 75 });
     expect(r.status).toBe(200);
