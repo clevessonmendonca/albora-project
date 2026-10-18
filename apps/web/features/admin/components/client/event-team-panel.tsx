@@ -35,6 +35,21 @@ function RoleChip({ role }: { role: "couple" | "planner" }) {
   return <Badge tone="outline">{role === "couple" ? "Casal" : "Cerimonialista"}</Badge>;
 }
 
+class ConviteErro extends Error {}
+
+async function mensagemDoConvite(res: Response): Promise<string> {
+  if (res.status === 401 || res.status === 403) {
+    return "Sua sessão expirou ou você não pode convidar para este evento. Entre de novo e tente outra vez.";
+  }
+  if (res.status === 429) return "Muitos convites seguidos. Espere um instante e tente de novo.";
+  if (res.status === 422) {
+    const corpo = (await res.json().catch(() => null)) as { message?: unknown } | null;
+    if (typeof corpo?.message === "string" && corpo.message) return `${corpo.message}.`;
+    return "Confira o e-mail e o papel escolhido.";
+  }
+  return "Não foi possível convidar agora. Tente de novo em instantes.";
+}
+
 export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
   const [members, setMembers] = useState<EventMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,8 +88,7 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
       });
 
       if (!res.ok) {
-        const err = (await res.json()) as { message?: string };
-        throw new Error(err.message || "Falha ao convidar");
+        throw new ConviteErro(await mensagemDoConvite(res));
       }
 
       const data = (await res.json()) as { members?: EventMember[] };
@@ -84,7 +98,9 @@ export function EventTeamPanel({ eventId, canManageTeam = false }: Props) {
       setConvidado(true);
       setTimeout(() => setConvidado(false), 4000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Não foi possível convidar agora. Tente de novo.");
+      setError(
+        err instanceof ConviteErro ? err.message : "Não foi possível convidar agora. Confira a conexão e tente de novo.",
+      );
     } finally {
       setSaving(false);
     }
