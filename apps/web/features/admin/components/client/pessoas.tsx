@@ -158,34 +158,8 @@ export function Pessoas({
 
   return (
     <div className="flex flex-col gap-5">
-      {descobertas.length > 0 && (
-        <AdminSection>
-          <h2 className="tipo-label m-0 mb-3 text-ink-3">Descobertas da festa</h2>
-          <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
-            {descobertas.map((d) => (
-              <li key={d.chave}>
-                <button
-                  type="button"
-                  onClick={() => setAberta(d.pessoa.id)}
-                  className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-token border border-linha bg-superficie px-3.5 text-left transition-colors hover:border-acento"
-                >
-                  <Inicial nome={d.pessoa.nome} />
-                  <span className="min-w-0">
-                    <span className="tipo-caption block text-ink-3">{d.rotulo}</span>
-                    <span className="tipo-body block text-ink">{d.pessoa.nome}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </AdminSection>
-      )}
-
       <AdminSection>
-        <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="tipo-subtitle m-0">Sua lista</h2>
-          <p className="m-0 text-sm text-ink-2">{pessoas.length} {pessoas.length === 1 ? "pessoa neste evento" : "pessoas neste evento"}</p>
-        </div>
+        <p className="tipo-caption m-0 mb-3 text-ink-3">{pessoas.length} {pessoas.length === 1 ? "pessoa neste evento" : "pessoas neste evento"}</p>
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <label className="min-w-0 basis-full sm:basis-auto sm:flex-1">
             <span className="sr-only">Buscar pessoa</span>

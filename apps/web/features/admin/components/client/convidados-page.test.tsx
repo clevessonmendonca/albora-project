@@ -13,5 +13,6 @@ it("abre a lista real e oferece os caminhos de convite e consentimento", async (
   expect(fetchMock).toHaveBeenCalledWith("/api/admin/events/evento/guests");
   expect(screen.getByRole("tab", { name: "Sua lista" }).getAttribute("aria-selected")).toBe("true");
   expect(screen.getByRole("link", { name: "Compartilhar convite" }).getAttribute("href")).toBe("/admin/e/evento/qrcode");
+  expect(screen.getAllByRole("link").filter((l) => l.getAttribute("href") === "/admin/e/evento/qrcode")).toHaveLength(1);
   expect(screen.getByRole("link", { name: "Ver consentimentos" }).getAttribute("href")).toBe("/admin/e/evento/consent");
 });

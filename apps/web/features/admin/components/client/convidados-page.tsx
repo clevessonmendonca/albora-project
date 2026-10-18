@@ -45,14 +45,10 @@ export function ConvidadosPage({
 
   return (
     <div className="flex min-w-0 flex-col gap-6">
-      <section className="grid gap-6 rounded-superficie bg-superficie-alta p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
-        <div className="max-w-[44rem]">
-          <h2 className="m-0 font-titulo text-[clamp(1.75rem,3vw,2.75rem)] font-light leading-tight tracking-titulo text-ink">As memórias são feitas juntos.</h2>
-          <p className="mb-0 mt-3 text-base leading-relaxed text-ink-2">Compartilhe o convite e acompanhe quem já chegou. Cada pessoa pode contribuir com seu próprio olhar.</p>
-        </div>
+      <section className="flex flex-wrap items-center justify-between gap-4 rounded-superficie bg-superficie-alta p-5 sm:p-6">
+        <h2 className="m-0 font-titulo text-[clamp(1.5rem,2.4vw,2.125rem)] font-light leading-tight tracking-titulo text-ink">As memórias são feitas juntos.</h2>
         <Link href={`/admin/e/${eventoId}/qrcode`} className={`${adminClasses.primaryButton} justify-center`}>Compartilhar convite</Link>
       </section>
-      <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
       <div className="flex min-w-0 flex-col gap-5">
 
       <Abas
@@ -110,19 +106,7 @@ export function ConvidadosPage({
       ) : (
         <Pessoas eventoId={eventoId} pessoas={pessoas} pessoaInicial={pessoaInicial} />
       )}
-      </div>
-      <aside aria-label="Convite e privacidade" className="flex min-w-0 flex-col gap-5">
-        <AdminSection>
-          <h2 className="tipo-subtitle m-0">Convide para participar</h2>
-          <p className="mt-3 text-sm leading-relaxed text-ink-2">Envie o link do evento ou deixe o QR Code nas mesas. Seus convidados entram sem criar uma conta.</p>
-          <Link href={`/admin/e/${eventoId}/qrcode`} className={adminClasses.secondaryButton}>Ver convite e QR Code</Link>
-        </AdminSection>
-        <AdminSection>
-          <h2 className="tipo-subtitle m-0">Permissões</h2>
-          <p className="mt-3 text-sm leading-relaxed text-ink-2">Defina como os registros aparecem no evento e confira os consentimentos dos convidados.</p>
-          <Link href={`/admin/e/${eventoId}/consent`} className={adminClasses.secondaryButton}>Ver consentimentos</Link>
-        </AdminSection>
-      </aside>
+      <Link href={`/admin/e/${eventoId}/consent`} className="tipo-caption inline-flex min-h-11 w-fit items-center text-ink-3 underline-offset-2 hover:text-ink hover:underline">Ver consentimentos</Link>
       </div>
     </div>
   );
