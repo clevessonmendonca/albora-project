@@ -79,8 +79,8 @@ Deploy via GitHub:
 Smoke pós-deploy (rodado automaticamente pelo workflow; exige `vars.HOMOL_URL`/`vars.PROD_URL` configuradas, senão o job falha — comando abaixo é o mesmo, para rodar manual):
 
 ```bash
-node tools/deploy/smoke.mjs https://homol.albora.com.br
-bash scripts/ci/smoke-test.sh https://homol.albora.com.br   # /api/health/{live,ready}
+node tools/deploy/smoke.mjs https://homol.albora.app.br
+bash scripts/ci/smoke-test.sh https://homol.albora.app.br   # /api/health/{live,ready}
 ```
 
 ### 2.1.1 Build enxuto (plano gratuito do Workers)
