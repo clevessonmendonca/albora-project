@@ -8,6 +8,7 @@ import { eventColorVariablesFrom } from "@albora/tokens";
 import { BackIcon, BottomSheet, buttonVariants, LogoAlbora, Select } from "@albora/ui-web";
 import { useSearchParams } from "next/navigation";
 import { resolveIdentityPreviewVars } from "@/features/admin/lib/identity-preview";
+import { erroDeCriacao, type ErroDeCriacao } from "@/features/admin/lib/erro-de-criacao";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { eventEntryUrl, whatsappInviteUrl } from "@/lib/qr";
 import { CoverImageEditor } from "@/features/admin/components/client/cover-image-editor";
@@ -116,6 +117,7 @@ export function CreateEventWizard() {
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const [status, setStatus] = useState<"editing" | "creating" | "error">("editing");
+  const [erro, setErro] = useState<ErroDeCriacao | null>(null);
   const [created, setCreated] = useState<Created | null>(null);
   const [vendors, setVendors] = useState<VendorOption[]>([]);
   const [vendorId, setVendorId] = useState("");
@@ -277,6 +279,7 @@ export function CreateEventWizard() {
 
   const create = async () => {
     setStatus("creating");
+    setErro(null);
     try {
       const r = await fetch("/api/admin/events", {
         method: "POST",
@@ -295,7 +298,11 @@ export function CreateEventWizard() {
           ...(vendorId ? { vendorId, coupleEmail: coupleEmail.trim() } : {}),
         }),
       });
-      if (!r.ok) return setStatus("error");
+      if (!r.ok) {
+        const corpo = (await r.json().catch(() => null)) as { message?: unknown } | null;
+        setErro(erroDeCriacao(r.status, typeof corpo?.message === "string" ? corpo.message : null));
+        return setStatus("error");
+      }
       const data = (await r.json()) as { slug: string; eventoId: string };
       // Missões livres viram desafios logo após o evento nascer — degrada, nunca
       // bloqueia a criação (missão custom fora do caminho crítico).
@@ -315,6 +322,7 @@ export function CreateEventWizard() {
         ...(vendorPlan ? { vendorPlan } : {}),
       });
     } catch {
+      setErro(erroDeCriacao(null));
       setStatus("error");
     }
   };
@@ -546,9 +554,21 @@ export function CreateEventWizard() {
             )}
 
             {status === "error" && (
-              <p role="alert" className="tipo-caption m-0 text-critico">
-                Não deu para criar agora. Confira os dados e tente de novo.
-              </p>
+              <div role="alert" className="tipo-caption m-0 flex flex-col items-start gap-2 text-critico">
+                <p className="m-0">{(erro ?? erroDeCriacao(500)).texto}</p>
+                {erro?.precisaEntrar && (
+                  <a
+                    href={`/admin/sign-in?next=${encodeURIComponent(
+                      typeof window === "undefined" ? "/admin/new" : `${window.location.pathname}${window.location.search}`,
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={adminClasses.secondaryButton}
+                  >
+                    Entrar de novo
+                  </a>
+                )}
+              </div>
             )}
           </div>
 

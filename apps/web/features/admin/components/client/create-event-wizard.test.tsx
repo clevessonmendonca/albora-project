@@ -207,4 +207,34 @@ describe("CreateEventWizard — Tipo · Detalhes · Identidade · Participação
     await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
     expect(missoesEnviadas).toHaveLength(total - 1);
   });
+
+  it.each([
+    [401, /sessão expirou/, true],
+    [500, /do nosso lado/, false],
+  ])("criação que falha com %s mostra a causa, não o aviso genérico", async (status, texto, comLink) => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input);
+        if (url === "/api/admin/vendors") return responder({ vendors: [] });
+        if (url === "/api/admin/events") return new Response("{}", { status });
+        throw new Error(`fetch inesperado: ${url}`);
+      }),
+    );
+    render(<CreateEventWizard />);
+    await waitFor(() =>
+      expect(screen.getByText("O que vocês estão celebrando?")).toBeInTheDocument(),
+    );
+    irParaDetalhes();
+    preencherDetalhes();
+    continuar();
+    revisarECriarEvento();
+
+    const alerta = await screen.findByRole("alert");
+    expect(alerta).toHaveTextContent(texto);
+    expect(alerta).not.toHaveTextContent("Confira os dados");
+    const entrar = screen.queryByRole("link", { name: "Entrar de novo" });
+    expect(Boolean(entrar)).toBe(comLink);
+    if (entrar) expect(entrar.getAttribute("href")).toMatch(/^\/admin\/sign-in\?next=%2F/);
+  });
 });
