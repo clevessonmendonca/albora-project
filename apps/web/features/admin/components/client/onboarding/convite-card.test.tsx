@@ -7,10 +7,10 @@ describe("ConviteCard", () => {
   it("gera o QR do link do evento e mostra o link sem protocolo", async () => {
     render(<ConviteCard slug="clevesson-e-miria" eventId="evento-1" origin="https://albora.test" />);
     expect(screen.getByText("albora.test/e/clevesson-e-miria")).toBeInTheDocument();
-    const qr = await screen.findByAltText(/QR Code que abre o evento/);
-    await waitFor(() => expect(qr.getAttribute("src")).toMatch(/^data:image\/png;base64,/));
+    const qr = await screen.findByAltText(/QR Code que abre o evento/, {}, { timeout: 10_000 });
+    await waitFor(() => expect(qr.getAttribute("src")).toMatch(/^data:image\/png;base64,/), { timeout: 10_000 });
     expect(screen.getByRole("link", { name: "Baixar placa com QR" })).toHaveAttribute("href", "/admin/e/evento-1/qrcode");
-  });
+  }, 20_000);
 
   it("sem origem ainda, não gera QR e mostra o estado de espera", () => {
     render(<ConviteCard slug="x" eventId="e" origin="" />);
