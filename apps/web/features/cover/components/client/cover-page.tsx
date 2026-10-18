@@ -44,6 +44,7 @@ export function CoverPage({
   confessionalTitle = null,
   coverImageUrl = null,
   coverFocus = CAPA_FOCO_PADRAO,
+  coverFocusX = CAPA_FOCO_PADRAO,
 }: {
   slug: string;
   eventName: string;
@@ -64,6 +65,7 @@ export function CoverPage({
   confessionalTitle?: string | null;
   coverImageUrl?: string | null;
   coverFocus?: CapaFoco;
+  coverFocusX?: CapaFoco;
 }) {
   const router = useRouter();
   const base = `/e/${encodeURIComponent(slug)}`;
@@ -120,7 +122,7 @@ export function CoverPage({
           }
         `}</style>
 
-        <CoverHero hero={hero} focus={coverImageUrl ? coverFocus : CAPA_FOCO_PADRAO} />
+        <CoverHero hero={hero} focus={coverImageUrl ? coverFocus : CAPA_FOCO_PADRAO} focusX={coverImageUrl ? coverFocusX : CAPA_FOCO_PADRAO} />
 
         <main id="main-content" className="flex min-h-0 flex-1 flex-col">
         <CoverEventInfo eventName={eventName} startsAt={startsAt} guests={guests} />

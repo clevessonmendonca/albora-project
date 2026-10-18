@@ -16,6 +16,7 @@ export type LivePreviewData = {
   /** Chave do estilo escolhido — muda a composição da capa (posição, caixa, corpo). */
   layout: string;
   coverFoco?: CapaFoco;
+  coverFocoX?: CapaFoco;
   onPickCover?: () => void;
 };
 
@@ -82,7 +83,7 @@ function GuestCover({ data }: { data: LivePreviewData }) {
           <img
             src={src}
             alt=""
-            style={{ objectPosition: capaObjectPosition(data.coverFoco ?? CAPA_FOCO_PADRAO) }}
+            style={{ objectPosition: capaObjectPosition(data.coverFoco ?? CAPA_FOCO_PADRAO, data.coverFocoX ?? CAPA_FOCO_PADRAO) }}
             className="absolute inset-0 h-full w-full object-cover"
           />
         ) : (

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { capaFocoDoEvento, capaFocoValido, capaObjectPosition } from "./capa-foco";
+import { capaFocoDoEvento, capaFocoValido, capaFocoXDoEvento, capaObjectPosition } from "./capa-foco";
 
 describe("enquadramento da capa", () => {
   it("só aceita os três focos fechados", () => {
@@ -16,5 +16,12 @@ describe("enquadramento da capa", () => {
 
   it("vira object-position vertical", () => {
     expect(capaObjectPosition(25)).toBe("50% 25%");
+  });
+
+  it("o foco horizontal tem a mesma regra e vira o primeiro valor", () => {
+    expect(capaFocoXDoEvento({})).toBe(50);
+    expect(capaFocoXDoEvento({ capaFocoX: 10 })).toBe(50);
+    expect(capaFocoXDoEvento({ capaFocoX: 25 })).toBe(25);
+    expect(capaObjectPosition(75, 25)).toBe("25% 75%");
   });
 });

@@ -57,6 +57,7 @@ export function EntryFlow({
   comecaEm,
   coverImageUrl,
   coverFoco,
+  coverFocoX,
 }: {
   eventoId: string;
   slug: string;
@@ -66,6 +67,7 @@ export function EntryFlow({
   comecaEm?: string;
   coverImageUrl?: string | null;
   coverFoco?: CapaFoco;
+  coverFocoX?: CapaFoco;
 }) {
   const [etapa, setEtapa] = useState<Etapa>("chegada");
   const [nome, setNome] = useState("");
@@ -151,6 +153,7 @@ export function EntryFlow({
             dataEvento={dataEvento}
             coverImageUrl={coverImageUrl ?? null}
             coverFoco={coverFoco ?? CAPA_FOCO_PADRAO}
+            coverFocoX={coverFocoX ?? CAPA_FOCO_PADRAO}
             onEnter={() => setEtapa("identidade")}
           />
         )}
@@ -239,12 +242,14 @@ function ArrivalScreen({
   dataEvento,
   coverImageUrl,
   coverFoco = CAPA_FOCO_PADRAO,
+  coverFocoX = CAPA_FOCO_PADRAO,
   onEnter,
 }: {
   nomeEvento: string;
   dataEvento: string | null;
   coverImageUrl: string | null;
   coverFoco?: CapaFoco;
+  coverFocoX?: CapaFoco;
   onEnter: () => void;
 }) {
   return (
@@ -254,7 +259,7 @@ function ArrivalScreen({
           src={coverImageUrl}
           alt=""
           aria-hidden
-          style={{ objectPosition: capaObjectPosition(coverFoco) }}
+          style={{ objectPosition: capaObjectPosition(coverFoco, coverFocoX) }}
           className="absolute inset-0 size-full object-cover"
         />
       ) : (

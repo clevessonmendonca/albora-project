@@ -17,6 +17,7 @@ type Props = {
   svgString: string;
   coverImageUrl?: string;
   coverFoco?: CapaFoco;
+  coverFocoX?: CapaFoco;
   dateLabel?: string;
   isDraft?: boolean;
 };
@@ -31,6 +32,7 @@ export function QrCodePrint({
   svgString,
   coverImageUrl,
   coverFoco = CAPA_FOCO_PADRAO,
+  coverFocoX = CAPA_FOCO_PADRAO,
   dateLabel,
   isDraft = false,
 }: Props) {
@@ -177,7 +179,7 @@ export function QrCodePrint({
             <img
               src={coverImageUrl}
               alt="Capa do evento"
-              style={{ objectPosition: capaObjectPosition(coverFoco) }}
+              style={{ objectPosition: capaObjectPosition(coverFoco, coverFocoX) }}
               className="aspect-[4/3] w-full object-cover"
             />
             <figcaption className="p-6 text-center">

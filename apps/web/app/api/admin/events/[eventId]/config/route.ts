@@ -141,7 +141,10 @@ export async function PATCH(
         });
       }
     }
-    if (tokens.capaFoco !== undefined && !capaFocoValido(tokens.capaFoco)) {
+    if (
+      (tokens.capaFoco !== undefined && !capaFocoValido(tokens.capaFoco)) ||
+      (tokens.capaFocoX !== undefined && !capaFocoValido(tokens.capaFocoX))
+    ) {
       return errorResponse(422, "validation_error", "Enquadramento da capa inválido", {
         campos: ["identityTokens"],
       });

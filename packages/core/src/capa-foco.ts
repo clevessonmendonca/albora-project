@@ -12,6 +12,11 @@ export function capaFocoDoEvento(tokens: Record<string, unknown> | null | undefi
   return capaFocoValido(valor) ? valor : CAPA_FOCO_PADRAO;
 }
 
-export function capaObjectPosition(foco: CapaFoco): string {
-  return `50% ${foco}%`;
+export function capaFocoXDoEvento(tokens: Record<string, unknown> | null | undefined): CapaFoco {
+  const valor = tokens?.capaFocoX;
+  return capaFocoValido(valor) ? valor : CAPA_FOCO_PADRAO;
+}
+
+export function capaObjectPosition(foco: CapaFoco, focoX: CapaFoco = CAPA_FOCO_PADRAO): string {
+  return `${focoX}% ${foco}%`;
 }
