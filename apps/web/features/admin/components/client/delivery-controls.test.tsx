@@ -101,10 +101,13 @@ describe("DeliveryControls", () => {
       />,
     );
     fireEvent.click(screen.getByText("Enviar agora"));
+    expect(fetchMock).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
 
     await waitFor(() => {
-      expect(screen.getByText("12 enviadas, 3 pendentes")).toBeInTheDocument();
+      expect(screen.getByRole("status")).toHaveTextContent("12 enviadas, 3 pendentes");
     });
+    expect(screen.getByRole("status")).toHaveTextContent("tentar de novo");
 
     expect(fetchMock).toHaveBeenCalledWith(
       `/api/admin/events/${EVENT_ID}/entrega/disparar`,
@@ -123,9 +126,26 @@ describe("DeliveryControls", () => {
       />,
     );
     fireEvent.click(screen.getByText("Enviar agora"));
+    fireEvent.click(screen.getByRole("button", { name: "Enviar" }));
 
     await waitFor(() => {
       expect(screen.getByText("Não salvou agora. Tente de novo.")).toBeInTheDocument();
     });
+  });
+
+  it("Cancelar na confirmação não envia nada", () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <DeliveryControls eventId={EVENT_ID} initialDeliveryOpensAt="2026-01-01T10:00:00.000Z" />,
+    );
+    fireEvent.click(screen.getByText("Enviar agora"));
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("gate fechado explica por que Enviar agora está desabilitado", () => {
+    render(<DeliveryControls eventId={EVENT_ID} initialDeliveryOpensAt={null} />);
+    expect(screen.getByText("Libere a entrega acima para poder enviar.")).toBeInTheDocument();
   });
 });
