@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { ItemDePreparo } from "@/features/admin/data/load-home-state";
+import { AcaoDoItem } from "./acoes";
 import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./estilos";
 
 /**
@@ -7,9 +7,11 @@ import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./estilos";
  * o porquê — as demais pendências viram no máximo dois atalhos discretos.
  */
 export function ProximaAcao({
+  eventId,
   principal,
   secundarias,
 }: {
+  eventId: string;
   principal: ItemDePreparo;
   secundarias: ItemDePreparo[];
 }) {
@@ -20,17 +22,18 @@ export function ProximaAcao({
       <div className="rounded-superficie border border-linha bg-superficie p-[clamp(1.25rem,3vw,1.75rem)]">
         <h3 className="tipo-subtitle m-0 text-ink">{principal.titulo}</h3>
         <p className="tipo-body m-0 mt-2 max-w-[46ch] text-ink-2">{principal.porque}</p>
-        <Link href={principal.href} className={`${acaoPrimaria} mt-5`} style={estiloAcento}>
-          {principal.cta}
-        </Link>
+        <AcaoDoItem
+          item={principal}
+          eventId={eventId}
+          className={`${acaoPrimaria} mt-5`}
+          style={estiloAcento}
+        />
       </div>
 
       {secundarias.length > 0 && (
         <div className="mt-2.5 flex flex-wrap gap-2.5">
           {secundarias.map((item) => (
-            <Link key={item.chave} href={item.href} className={acaoSecundaria}>
-              {item.cta}
-            </Link>
+            <AcaoDoItem key={item.chave} item={item} eventId={eventId} className={acaoSecundaria} />
           ))}
         </div>
       )}

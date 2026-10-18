@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ItemDePreparo } from "@/features/admin/data/load-home-state";
 import { marcarPreparo } from "@/features/admin/lib/marcar-preparo";
 import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./estilos";
 
@@ -30,6 +31,39 @@ export function VerComoConvidado({
       {...(variante === "primaria" ? { style: estiloAcento } : {})}
     >
       {rotulo}
+    </Link>
+  );
+}
+
+/** Link de um item de preparo; a prévia abre em aba nova e registra o marco. */
+export function AcaoDoItem({
+  item,
+  eventId,
+  className,
+  style,
+}: {
+  item: ItemDePreparo;
+  eventId: string;
+  className: string;
+  style?: React.CSSProperties;
+}) {
+  if (item.chave === "previaConvidado") {
+    return (
+      <Link
+        href={item.href}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => marcarPreparo(eventId, "previaConvidado")}
+        className={className}
+        style={style}
+      >
+        {item.cta}
+      </Link>
+    );
+  }
+  return (
+    <Link href={item.href} className={className} style={style}>
+      {item.cta}
     </Link>
   );
 }
