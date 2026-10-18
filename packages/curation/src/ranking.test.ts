@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
+import * as hashPerceptual from "./hash-perceptual";
 import { hammingDistance } from "./hash-perceptual";
 import { rankForBook, type MediaScores } from "./ranking";
 
 vi.mock("./hash-perceptual", async (importOriginal) => {
-  const original = await importOriginal<typeof import("./hash-perceptual")>();
+  const original = await importOriginal<typeof hashPerceptual>();
   return { ...original, hammingDistance: vi.fn(original.hammingDistance) };
 });
 
