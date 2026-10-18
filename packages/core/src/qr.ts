@@ -50,8 +50,12 @@ export function eventEntryUrl(origin: string, slug: string, via: ViaDeEntrada): 
   return `${origin}${eventEntryPath(slug, via)}`;
 }
 
-export function whatsappInviteUrl(origin: string, slug: string): string {
-  return `https://wa.me/?text=${encodeURIComponent(eventEntryUrl(origin, slug, "wa"))}`;
+export function whatsappInviteUrl(origin: string, slug: string, nome?: string): string {
+  const link = eventEntryUrl(origin, slug, "wa");
+  const texto = nome?.trim()
+    ? `Você faz parte de ${nome.trim()}! Entre no Álbora e compartilhe seu olhar: ${link}`
+    : link;
+  return `https://wa.me/?text=${encodeURIComponent(texto)}`;
 }
 
 function asUrl(raw: string): URL | null {

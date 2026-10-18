@@ -110,6 +110,12 @@ describe("via marca o canal sem mudar o slug", () => {
     expect(whatsappInviteUrl("https://albora.app", "festa-demo")).toContain("via%3Dwa");
     expect(whatsappInviteUrl("https://albora.app", "festa-demo")).toContain("wa.me");
   });
+
+  it("com o nome do evento, o texto do convite acompanha o link", () => {
+    const url = whatsappInviteUrl("https://albora.app", "festa-demo", " Festa Demo ");
+    const texto = decodeURIComponent(url.split("text=")[1]!);
+    expect(texto).toBe("Você faz parte de Festa Demo! Entre no Álbora e compartilhe seu olhar: https://albora.app/e/festa-demo?via=wa");
+  });
 });
 
 describe("slugValido é o conjunto fechado", () => {
