@@ -46,7 +46,7 @@ describe("middleware albora_ref", () => {
   it("repassa o caminho do painel para a página de servidor", () => {
     const res = middleware(new NextRequest("https://albora.test/admin/e/abc/ao-vivo?x=1"));
     expect(res.headers.get(`x-middleware-request-${HEADER_CAMINHO_ADMIN}`)).toBe(
-      "/admin/e/abc/ao-vivo?x=1",
+      "/admin/e/abc/ao-vivo",
     );
   });
 

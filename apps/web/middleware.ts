@@ -16,7 +16,7 @@ export function middleware(req: NextRequest): NextResponse {
   let res = NextResponse.next();
   if (req.nextUrl.pathname.startsWith("/admin")) {
     const headers = new Headers(req.headers);
-    headers.set(HEADER_CAMINHO_ADMIN, `${req.nextUrl.pathname}${req.nextUrl.search}`);
+    headers.set(HEADER_CAMINHO_ADMIN, req.nextUrl.pathname);
     res = NextResponse.next({ request: { headers } });
   }
   const ref = req.nextUrl.searchParams.get("ref");
