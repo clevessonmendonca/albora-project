@@ -1,7 +1,7 @@
 import React from "react";
 import fs from "node:fs";
 import QRCode from "qrcode";
-import { render, screen, cleanup } from "@testing-library/react";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { afterEach, it, vi } from "vitest";
 import { adminVars } from "./components/server/admin-shell";
 import { HostAlbum } from "./components/client/host-album";
@@ -47,4 +47,34 @@ it.runIf(process.env.PREVIEW === "1")("captura convite com QR real", async () =>
   const svgString = await QRCode.toString(guestUrl, { type: "svg", margin: 2 });
   const { container } = render(<QrCodePrint eventId="exemplo" slug="celebracao" eventName="Clevesson & Miriã" guestUrl={guestUrl} svgString={svgString} coverImageUrl="/onboarding/photo-08.webp" dateLabel="12 de dezembro de 2027 · 18h" />);
   save("convite", container);
+});
+
+function fetchDoAlbumComFiltros() {
+  const itens = [1, 2, 3, 4].map((id) => ({
+    ...photos[(id - 1) % 3]!, id: String(id), sessaoId: id % 2 ? "p1" : "p2", momentoId: id <= 2 ? "cerimonia" : "pista", destacada: id === 1,
+  }));
+  return vi.fn(async () => new Response(JSON.stringify({
+    itens,
+    momentos: [{ id: "cerimonia", titulo: "Cerimônia" }, { id: "pista", titulo: "A pista" }],
+    pessoas: [{ id: "p1", nome: "Ana", fotos: 2 }, { id: "p2", nome: "João", fotos: 2 }],
+  })));
+}
+
+it.runIf(process.env.PREVIEW === "1")("captura álbum com filtro de momentos", async () => {
+  vi.stubGlobal("fetch", fetchDoAlbumComFiltros());
+  const { container } = render(<HostAlbum eventoId="exemplo" canExport={false} />);
+  await screen.findByRole("button", { name: /Foto 1 de 4/ });
+  fireEvent.click(screen.getByRole("button", { name: "Momentos" }));
+  fireEvent.click(screen.getByRole("button", { name: /Cerimônia/ }));
+  save("album-filtros", container);
+});
+
+it.runIf(process.env.PREVIEW === "1")("captura álbum no modo selecionar", async () => {
+  vi.stubGlobal("fetch", fetchDoAlbumComFiltros());
+  const { container } = render(<HostAlbum eventoId="exemplo" canExport={false} />);
+  await screen.findByRole("button", { name: /Foto 1 de 4/ });
+  fireEvent.click(screen.getByRole("button", { name: "Selecionar" }));
+  fireEvent.click(screen.getByRole("button", { name: /Foto 2 de 4/ }));
+  fireEvent.click(screen.getByRole("button", { name: /Foto 3 de 4/ }));
+  save("album-lote", container);
 });

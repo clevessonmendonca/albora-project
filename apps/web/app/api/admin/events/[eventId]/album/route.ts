@@ -1,5 +1,10 @@
+import { capituloDe } from "@albora/core";
+import { PACKS } from "@albora/packs";
 import {
   withEvent,
+  eventPack,
+  eventTokens,
+  janelaDoAlbum,
   destacarMidiaDoHost,
   definirCapsulaDeMemoria,
   listarMidiaDoAlbum,
@@ -21,6 +26,8 @@ import {
 import { getPool } from "@/lib/db";
 import { consume } from "@/lib/rate-limit-store";
 import { assinarGet } from "@/lib/r2";
+import { chapterIdsFromPack, planAlbumChapters } from "@/lib/album-chapters";
+import { momentosDoPackEvento } from "@/lib/momentos-do-evento";
 
 export const dynamic = "force-dynamic";
 
@@ -79,27 +86,64 @@ export async function GET(
     const busca = new URL(req.url).searchParams;
     const somenteDestaques = busca.get("aba") === "destaques";
     const sessaoId = busca.get("sessaoId") ?? undefined;
-    const midias = await withEvent(getPool(), eventId, (c) =>
-      listarMidiaDoAlbum(c, eventId, 120, {
+    const dados = await withEvent(getPool(), eventId, async (c) => {
+      const midias = await listarMidiaDoAlbum(c, eventId, 120, {
         somenteDestaques,
         ...(sessaoId ? { sessaoId } : {}),
+      });
+      const janela = await janelaDoAlbum(c, eventId);
+      const packId = await eventPack(c, eventId);
+      const tokens = await eventTokens(c, eventId);
+      const ids = [...new Set(midias.map((m) => m.sessaoId))];
+      const { rows } = ids.length
+        ? await c.query<{ id: string; display_name: string }>(
+            "SELECT id, display_name FROM guest_sessions WHERE event_id = $1 AND id = ANY($2::uuid[])",
+            [eventId, ids],
+          )
+        : { rows: [] as { id: string; display_name: string }[] };
+      return { midias, janela, packId, tokens, nomes: new Map(rows.map((r) => [r.id, r.display_name])) };
+    });
+    const { midias } = dados;
+
+    const pack = dados.packId ? PACKS[dados.packId] : undefined;
+    const momentos = momentosDoPackEvento(pack, dados.tokens);
+    const capitulos = dados.janela
+      ? planAlbumChapters(
+          {
+            comecaEm: dados.janela.comecaEm,
+            terminaEm: dados.janela.terminaEm,
+            offsetMinutos: dados.janela.offsetMinutos,
+          },
+          pack,
+          dados.tokens,
+        )
+      : [];
+    const idsDosMomentos = new Set(chapterIdsFromPack(pack, dados.tokens));
+
+    const itens = await Promise.all(
+      midias.map(async (m) => {
+        const capitulo = capitulos.length > 0 ? capituloDe(m.capturadaEm ?? m.recebidaEm, capitulos) : null;
+        return {
+          id: m.id,
+          sessaoId: m.sessaoId,
+          missaoId: m.missaoId,
+          lugarId: m.lugarId,
+          momentoId: capitulo !== null && idsDosMomentos.has(capitulo) ? capitulo : null,
+          reacoes: m.reacoes,
+          destacada: m.destacadaEm !== null,
+          criadaEm: m.recebidaEm.toISOString(),
+          thumb: await assinarGet(m.chaveThumb, VALIDADE_GET_SEGUNDOS),
+        };
       }),
     );
 
-    const itens = await Promise.all(
-      midias.map(async (m) => ({
-        id: m.id,
-        sessaoId: m.sessaoId,
-        missaoId: m.missaoId,
-        lugarId: m.lugarId,
-        reacoes: m.reacoes,
-        destacada: m.destacadaEm !== null,
-        criadaEm: m.recebidaEm.toISOString(),
-        thumb: await assinarGet(m.chaveThumb, VALIDADE_GET_SEGUNDOS),
-      })),
-    );
+    const contagemPorPessoa = new Map<string, number>();
+    for (const m of midias) contagemPorPessoa.set(m.sessaoId, (contagemPorPessoa.get(m.sessaoId) ?? 0) + 1);
+    const pessoas = [...contagemPorPessoa.entries()]
+      .map(([id, fotos]) => ({ id, nome: dados.nomes.get(id) ?? "Convidado", fotos }))
+      .sort((a, b) => b.fotos - a.fotos || a.nome.localeCompare(b.nome, "pt-BR"));
 
-    return jsonOk({ itens, total: itens.length });
+    return jsonOk({ itens, total: itens.length, momentos, pessoas });
   } catch (e) {
     return unexpectedError("admin.album", e);
   }

@@ -35,11 +35,33 @@ type Item = {
   sessaoId: string;
   missaoId: string | null;
   lugarId: string | null;
+  momentoId?: string | null;
   reacoes: number;
   destacada: boolean;
   criadaEm: string;
   thumb: string;
 };
+
+type Filtro = "recentes" | "momentos" | "pessoas";
+type MomentoChip = { id: string; titulo: string };
+type PessoaChip = { id: string; nome: string; fotos: number };
+type AcaoEmLote = "destacar" | "ocultar" | "remover";
+
+const CONCORRENCIA_EM_LOTE = 4;
+
+function CheckIcon() {
+  return (
+    <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12.5l4.5 4.5L19 7.5" />
+    </svg>
+  );
+}
+
+function chipClasses(ativo: boolean): string {
+  return `tipo-label inline-flex min-h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-pilula border px-3 transition-colors duration-instantaneo ${
+    ativo ? "border-ink bg-superficie-alta text-ink" : "border-linha bg-superficie text-ink-2 hover:border-acento-texto"
+  }`;
+}
 
 type Props = {
   eventoId: string;
@@ -76,14 +98,29 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
   const [selecionado, setSelecionado] = useState<string | null>(null);
   const [desfazer, setDesfazer] = useState<Desfazer | null>(null);
   const [confirmarRemocao, setConfirmarRemocao] = useState<Item | null>(null);
+  const [momentos, setMomentos] = useState<MomentoChip[]>([]);
+  const [pessoas, setPessoas] = useState<PessoaChip[]>([]);
+  const [filtro, setFiltro] = useState<Filtro>("recentes");
+  const [recorte, setRecorte] = useState<string | null>(null);
+  const [selecionando, setSelecionando] = useState(false);
+  const [marcadas, setMarcadas] = useState<Set<string>>(new Set());
+  const [emLote, setEmLote] = useState(false);
+  const [confirmarLote, setConfirmarLote] = useState(false);
+  const [desfazerLote, setDesfazerLote] = useState<string[] | null>(null);
 
   const carregar = useCallback(async () => {
     setErro(false);
     try {
       const r = await fetch(`/api/admin/events/${eventoId}/album?aba=${aba}`);
       if (!r.ok) throw new Error("falhou");
-      const corpo = (await r.json()) as { itens: Item[] };
+      const corpo = (await r.json()) as {
+        itens: Item[];
+        momentos?: MomentoChip[];
+        pessoas?: PessoaChip[];
+      };
       setItens(corpo.itens);
+      setMomentos(corpo.momentos ?? []);
+      setPessoas(corpo.pessoas ?? []);
     } catch {
       setErro(true);
     } finally {
@@ -198,6 +235,85 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
     }
   };
 
+  const escolherFiltro = (f: Filtro) => {
+    setFiltro(f);
+    setRecorte(null);
+  };
+
+  const alternarSelecao = () => {
+    setSelecionando((antes) => !antes);
+    setMarcadas(new Set());
+    setSelecionado(null);
+    setErroAcao(null);
+  };
+
+  const alternarMarca = (id: string) => {
+    setMarcadas((antes) => {
+      const proximo = new Set(antes);
+      if (proximo.has(id)) proximo.delete(id);
+      else proximo.add(id);
+      return proximo;
+    });
+  };
+
+  const executarEmLote = async (acao: AcaoEmLote) => {
+    const ids = [...marcadas];
+    if (ids.length === 0) return;
+    setEmLote(true);
+    setErroAcao(null);
+    setDesfazer(null);
+    setDesfazerLote(null);
+    const feitas: string[] = [];
+    const falhas: string[] = [];
+    const fila = [...ids];
+    const trabalhadores = Array.from({ length: Math.min(CONCORRENCIA_EM_LOTE, fila.length) }, async () => {
+      for (let id = fila.shift(); id !== undefined; id = fila.shift()) {
+        try {
+          await acaoNaFoto(id, acao);
+          feitas.push(id);
+        } catch {
+          falhas.push(id);
+        }
+      }
+    });
+    await Promise.all(trabalhadores);
+
+    const concluidas = new Set(feitas);
+    setItens((antes) =>
+      acao === "destacar"
+        ? antes.map((i) => (concluidas.has(i.id) ? { ...i, destacada: true } : i))
+        : antes.filter((i) => !concluidas.has(i.id)),
+    );
+    setMarcadas(new Set(falhas));
+    if (acao === "ocultar" && feitas.length > 0) setDesfazerLote(feitas);
+    if (falhas.length > 0) {
+      setErroAcao(
+        `Não foi possível concluir ${falhas.length} de ${ids.length} ${ids.length === 1 ? "foto" : "fotos"}. Elas continuam marcadas para tentar de novo.`,
+      );
+    } else {
+      setSelecionando(false);
+    }
+    setConfirmarLote(false);
+    setEmLote(false);
+  };
+
+  const reexibirLote = async (ids: string[]) => {
+    setEmLote(true);
+    setErroAcao(null);
+    const falhas: string[] = [];
+    for (const id of ids) {
+      try {
+        await acaoNaFoto(id, "reexibir");
+      } catch {
+        falhas.push(id);
+      }
+    }
+    setDesfazerLote(falhas.length > 0 ? falhas : null);
+    if (falhas.length > 0) setErroAcao("Não foi possível trazer todas as fotos de volta. Tente de novo.");
+    await carregar();
+    setEmLote(false);
+  };
+
   if (carregando) {
     return (
       <div className="flex flex-col gap-5">
@@ -239,6 +355,22 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
 
   const selecionadoItem = selecionado ? (itens.find((i) => i.id === selecionado) ?? null) : null;
 
+  const recortes: { id: string; rotulo: string; fotos: number }[] =
+    filtro === "momentos"
+      ? momentos.map((m) => ({
+          id: m.id,
+          rotulo: m.titulo,
+          fotos: itens.filter((i) => i.momentoId === m.id).length,
+        }))
+      : filtro === "pessoas"
+        ? pessoas.map((p) => ({ id: p.id, rotulo: p.nome, fotos: itens.filter((i) => i.sessaoId === p.id).length }))
+        : [];
+  const visiveis =
+    filtro === "recentes" || recorte === null
+      ? itens
+      : itens.filter((i) => (filtro === "momentos" ? i.momentoId === recorte : i.sessaoId === recorte));
+  const temFiltros = itens.length > 0 && (momentos.length > 0 || pessoas.length > 0);
+
   return (
     <div className="flex flex-col gap-5">
       {desfazer && (
@@ -258,6 +390,25 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
         </div>
       )}
 
+      {desfazerLote && (
+        <div
+          role="status"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-token border border-linha bg-superficie-alta px-4 py-3"
+        >
+          <p className="tipo-body m-0 text-ink">
+            {desfazerLote.length === 1 ? "1 foto oculta." : `${desfazerLote.length} fotos ocultas.`} Ninguém mais vê.
+          </p>
+          <button
+            type="button"
+            disabled={emLote}
+            onClick={() => void reexibirLote(desfazerLote)}
+            className={`${adminClasses.secondaryButton} ${ALVO_TOQUE}`}
+          >
+            Desfazer
+          </button>
+        </div>
+      )}
+
       {erro && <p role="alert" className="tipo-body m-0 text-critico">Não foi possível atualizar. As fotos abaixo são da última consulta.</p>}
       <AdminSection>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
@@ -270,6 +421,16 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
             <Badge tone="neutral">
               {itens.length} {itens.length === 1 ? "foto" : "fotos"}
             </Badge>
+            {itens.length > 0 && (
+              <button
+                type="button"
+                onClick={alternarSelecao}
+                aria-pressed={selecionando}
+                className={`${adminClasses.secondaryButton} min-h-11`}
+              >
+                {selecionando ? "Cancelar" : "Selecionar"}
+              </button>
+            )}
             <RefreshButton
               loading={atualizando}
               onClick={() => {
@@ -280,7 +441,51 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
           </div>
         </div>
 
-        {itens.length === 0 ? (
+        {temFiltros && (
+          <div className="mb-4 flex flex-col gap-2">
+            <div role="group" aria-label="Agrupar fotos" className="flex gap-2 overflow-x-auto">
+              <button type="button" aria-pressed={filtro === "recentes"} onClick={() => escolherFiltro("recentes")} className={chipClasses(filtro === "recentes")}>
+                Mais recentes
+              </button>
+              {momentos.length > 0 && (
+                <button type="button" aria-pressed={filtro === "momentos"} onClick={() => escolherFiltro("momentos")} className={chipClasses(filtro === "momentos")}>
+                  Momentos
+                </button>
+              )}
+              {pessoas.length > 0 && (
+                <button type="button" aria-pressed={filtro === "pessoas"} onClick={() => escolherFiltro("pessoas")} className={chipClasses(filtro === "pessoas")}>
+                  Pessoas
+                </button>
+              )}
+            </div>
+            {recortes.length > 0 && (
+              <div
+                role="group"
+                aria-label={filtro === "momentos" ? "Momentos da festa" : "Pessoas"}
+                className="flex gap-2 overflow-x-auto"
+              >
+                <button type="button" aria-pressed={recorte === null} onClick={() => setRecorte(null)} className={chipClasses(recorte === null)}>
+                  Todos
+                </button>
+                {recortes.map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    aria-pressed={recorte === r.id}
+                    onClick={() => setRecorte(recorte === r.id ? null : r.id)}
+                    className={chipClasses(recorte === r.id)}
+                  >
+                    {r.rotulo} <span className="text-ink-3">{r.fotos}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {itens.length > 0 && visiveis.length === 0 ? (
+          <p className="tipo-body m-0 text-ink-2">Nenhuma foto neste recorte.</p>
+        ) : itens.length === 0 ? (
           <div className="flex flex-col gap-3">
             <p className="tipo-body m-0 text-ink-2">
               {aba === "destaques"
@@ -295,15 +500,16 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
           </div>
         ) : (
           <ul className="m-0 grid list-none grid-cols-2 gap-4 p-0 lg:grid-cols-3 xl:grid-cols-4">
-            {itens.map((item, indice) => {
-              const ativo = selecionado === item.id;
+            {visiveis.map((item, indice) => {
+              const marcada = marcadas.has(item.id);
+              const ativo = selecionando ? marcada : selecionado === item.id;
               return (
                 <li key={item.id} className="min-w-0">
                   <button
                     type="button"
-                    onClick={() => setSelecionado(ativo ? null : item.id)}
+                    onClick={() => (selecionando ? alternarMarca(item.id) : setSelecionado(ativo ? null : item.id))}
                     aria-pressed={ativo}
-                    aria-label={`Foto ${indice + 1} de ${itens.length}, ${legendaDaFoto(item.criadaEm, item.reacoes)}${item.destacada ? ", destacada" : ""}`}
+                    aria-label={`Foto ${indice + 1} de ${visiveis.length}, ${legendaDaFoto(item.criadaEm, item.reacoes)}${item.destacada ? ", destacada" : ""}`}
                     className={`relative block aspect-[4/5] w-full cursor-pointer overflow-hidden rounded-media border-0 bg-superficie-alta p-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento transition-transform duration-instantaneo ease-mola active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100 ${
                       ativo ? "ring-2 ring-acento ring-offset-2 ring-offset-superficie" : ""
                     }`}
@@ -315,6 +521,16 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
                       decoding="async"
                       className="size-full object-cover object-top"
                     />
+                    {selecionando && (
+                      <span
+                        aria-hidden
+                        className={`absolute left-1.5 top-1.5 flex size-6 items-center justify-center rounded-full border-2 ${
+                          marcada ? "border-acento bg-acento text-sobre-acento" : "border-superficie bg-superficie-alta text-transparent"
+                        }`}
+                      >
+                        <CheckIcon />
+                      </span>
+                    )}
                     {item.destacada && (
                       <span
                         aria-hidden
@@ -336,7 +552,7 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
         )}
       </AdminSection>
 
-      {selecionadoItem && (
+      {selecionadoItem && !selecionando && (
         <AdminSection>
           <div className="flex items-start gap-3">
             <div className="aspect-square w-16 shrink-0 overflow-hidden rounded-media bg-superficie-alta">
@@ -435,6 +651,58 @@ export function HostAlbum({ eventoId, canExport = true, aba = "todas" }: Props) 
           </div>
         </details>
       )}
+
+      {selecionando && (
+        <div
+          role="toolbar"
+          aria-label="Ações nas fotos marcadas"
+          className="sticky bottom-3 z-20 flex flex-wrap items-center gap-2 rounded-token border border-linha bg-ink px-4 py-3 text-bg"
+        >
+          <span className="tipo-label flex-1" aria-live="polite">
+            {marcadas.size} {marcadas.size === 1 ? "selecionada" : "selecionadas"}
+          </span>
+          <button
+            type="button"
+            disabled={marcadas.size === 0 || emLote}
+            onClick={() => void executarEmLote("destacar")}
+            className="tipo-label inline-flex min-h-11 items-center gap-1.5 rounded-pilula bg-superficie px-4 text-ink disabled:opacity-50"
+          >
+            <EstrelaIcon /> Destacar
+          </button>
+          <button
+            type="button"
+            disabled={marcadas.size === 0 || emLote}
+            onClick={() => void executarEmLote("ocultar")}
+            className="tipo-label inline-flex min-h-11 items-center rounded-pilula bg-superficie px-4 text-ink disabled:opacity-50"
+          >
+            Ocultar
+          </button>
+          <button
+            type="button"
+            disabled={marcadas.size === 0 || emLote}
+            onClick={() => setConfirmarLote(true)}
+            className="tipo-label inline-flex min-h-11 items-center rounded-pilula bg-superficie px-4 text-critico disabled:opacity-50"
+          >
+            Remover
+          </button>
+        </div>
+      )}
+      {selecionando && erroAcao && (
+        <p role="alert" className="tipo-caption m-0 text-critico">
+          {erroAcao}
+        </p>
+      )}
+
+      <ConfirmDialog
+        open={confirmarLote}
+        onClose={() => setConfirmarLote(false)}
+        onConfirm={() => void executarEmLote("remover")}
+        title={marcadas.size === 1 ? "Remover esta foto de vez?" : `Remover ${marcadas.size} fotos de vez?`}
+        description="Ocultar tira do álbum e dá para desfazer. Remover não: as fotos saem do evento e não voltam pelo painel. Quem enviou não recebe aviso."
+        confirmLabel="Remover de vez"
+        tone="danger"
+        pending={emLote}
+      />
 
       <ConfirmDialog
         open={confirmarRemocao !== null}
