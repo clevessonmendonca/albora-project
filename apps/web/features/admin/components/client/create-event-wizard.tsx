@@ -5,7 +5,7 @@ import NextLink from "next/link";
 import { CAPA_FOCO_PADRAO, capaObjectPosition, FUSO_PADRAO, type CapaFoco, type VendorPlanTier, type WallDisplayModel } from "@albora/core";
 import { PACKS, packsDeCriacao, resolvePackText } from "@albora/packs";
 import { eventColorVariablesFrom } from "@albora/tokens";
-import { BackIcon, BottomSheet, buttonVariants, LogoAlbora, Select } from "@albora/ui-web";
+import { BackIcon, BottomSheet, buttonVariants, ConfirmDialog, LogoAlbora, Select } from "@albora/ui-web";
 import { useSearchParams } from "next/navigation";
 import { resolveIdentityPreviewVars } from "@/features/admin/lib/identity-preview";
 import { erroDeCriacao, type ErroDeCriacao } from "@/features/admin/lib/erro-de-criacao";
@@ -116,6 +116,7 @@ export function CreateEventWizard() {
 
   const [previewOpen, setPreviewOpen] = useState(false);
 
+  const [confirmandoSaida, setConfirmandoSaida] = useState(false);
   const [status, setStatus] = useState<"editing" | "creating" | "error">("editing");
   const [erro, setErro] = useState<ErroDeCriacao | null>(null);
   const [created, setCreated] = useState<Created | null>(null);
@@ -277,6 +278,15 @@ export function CreateEventWizard() {
     void create();
   }
 
+  const comDadosNaoSalvos = !created && (step > 0 || title.trim() !== "" || coverFile !== null);
+
+  useEffect(() => {
+    if (!comDadosNaoSalvos) return;
+    const avisar = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", avisar);
+    return () => window.removeEventListener("beforeunload", avisar);
+  }, [comDadosNaoSalvos]);
+
   const create = async () => {
     setStatus("creating");
     setErro(null);
@@ -379,6 +389,12 @@ export function CreateEventWizard() {
     onPickCover,
   };
 
+  function pedirSaida(e: React.MouseEvent) {
+    if (!comDadosNaoSalvos) return;
+    e.preventDefault();
+    setConfirmandoSaida(true);
+  }
+
   return (
     <div onKeyDown={onKeyDown}>
       <input
@@ -392,7 +408,7 @@ export function CreateEventWizard() {
         }}
       />
       <main className="flex min-h-dvh flex-col bg-bg font-corpo text-ink">
-        <ProgressHeader step={step} onExit />
+        <ProgressHeader step={step} onExit onLeave={pedirSaida} />
         <div className="flex-1">
           <div className="mx-auto grid w-full max-w-[82rem] gap-8 px-[clamp(1.1rem,4vw,2rem)] py-8 lg:grid-cols-[10rem_minmax(0,1fr)_18rem] lg:gap-10 lg:py-12">
           <StepRail step={step} onSelect={setStep} />
@@ -612,6 +628,16 @@ export function CreateEventWizard() {
         )}
       </main>
 
+      <ConfirmDialog
+        open={confirmandoSaida}
+        onClose={() => setConfirmandoSaida(false)}
+        onConfirm={() => window.location.assign("/admin")}
+        title="Sair sem criar o evento?"
+        description="O que você preencheu até aqui não fica guardado. Para criar o evento, volte e conclua as etapas."
+        confirmLabel="Sair"
+        cancelLabel="Continuar criando"
+      />
+
       <MissionSheet
         open={missionSheetOpen}
         onClose={() => setMissionSheetOpen(false)}
@@ -625,13 +651,13 @@ export function CreateEventWizard() {
   );
 }
 
-function ProgressHeader({ step, onExit }: { step: number; onExit?: boolean }) {
+function ProgressHeader({ step, onExit, onLeave }: { step: number; onExit?: boolean; onLeave: (e: React.MouseEvent) => void }) {
   return (
     <header className="border-b border-linha bg-superficie px-[clamp(1.1rem,4vw,2rem)] py-4">
       <div className="mx-auto flex max-w-[78rem] items-center justify-between gap-4">
-        <NextLink href="/admin" aria-label="Álbora — início" className="inline-flex min-h-12 items-center rounded-token focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"><LogoAlbora altura={30} /></NextLink>
+        <NextLink href="/admin" onClick={onLeave} aria-label="Álbora — início" className="inline-flex min-h-12 items-center rounded-token focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4"><LogoAlbora altura={30} /></NextLink>
         <p className="hidden text-sm text-ink-3 sm:block">Seu evento começa aqui.</p>
-        {onExit && <NextLink href="/admin" className="inline-flex min-h-12 items-center gap-2 rounded-token px-3 text-sm text-ink-2"><BackIcon size={16} /> Sair</NextLink>}
+        {onExit && <NextLink href="/admin" onClick={onLeave} className="inline-flex min-h-12 items-center gap-2 rounded-token px-3 text-sm text-ink-2"><BackIcon size={16} /> Sair</NextLink>}
       </div>
       <div className="mx-auto mt-4 max-w-[78rem] lg:hidden">
         <p className="text-sm text-ink-2">Etapa {step + 1} de {STEPS.length} · {STEPS[step]}</p>

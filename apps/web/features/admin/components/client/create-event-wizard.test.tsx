@@ -237,4 +237,33 @@ describe("CreateEventWizard — Tipo · Detalhes · Identidade · Participação
     expect(Boolean(entrar)).toBe(comLink);
     if (entrar) expect(entrar.getAttribute("href")).toMatch(/^\/admin\/sign-in\?next=%2F/);
   });
+
+  it("Sair sem nada preenchido segue direto, com dados pede confirmação", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => responder({ vendors: [] })),
+    );
+    render(<CreateEventWizard />);
+    await waitFor(() =>
+      expect(screen.getByText("O que vocês estão celebrando?")).toBeInTheDocument(),
+    );
+    const impedidoPeloWizard: boolean[] = [];
+    const ouvinte = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest("a")) return;
+      impedidoPeloWizard.push(e.defaultPrevented);
+      e.preventDefault();
+    };
+    document.addEventListener("click", ouvinte);
+    fireEvent.click(screen.getByRole("link", { name: /Sair/ }));
+    expect(impedidoPeloWizard).toEqual([false]);
+    expect(screen.queryByRole("dialog", { name: /Sair sem criar/ })).toBeNull();
+
+    irParaDetalhes();
+    fireEvent.click(screen.getByRole("link", { name: /Sair/ }));
+    document.removeEventListener("click", ouvinte);
+    expect(impedidoPeloWizard).toEqual([false, true]);
+    const dialogo = await screen.findByRole("dialog", { name: /Sair sem criar o evento/ });
+    fireEvent.click(within(dialogo).getByRole("button", { name: "Continuar criando" }));
+    expect(screen.getByLabelText("Nome do evento")).toBeInTheDocument();
+  });
 });
