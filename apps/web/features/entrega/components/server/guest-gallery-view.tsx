@@ -42,7 +42,12 @@ export function GuestGalleryView(props: GuestGalleryViewProps) {
 
 function Grade({ fotos }: { fotos: FotoEntrega[] }) {
   return (
-    <ul className="m-0 grid grid-cols-3 gap-2 p-0" aria-label="Fotos da sua sessão">
+    <>
+      <p className="tipo-body m-0 mb-4 text-ink-2">
+        {fotos.length === 1 ? "1 foto sua" : `${fotos.length} fotos suas`}. Toque numa foto para abrir e salvar no celular.
+        Salve as que você mais gosta: este link não dura para sempre.
+      </p>
+      <ul className="m-0 grid grid-cols-3 gap-2 p-0" aria-label="Fotos da sua sessão">
       {fotos.map((foto) => (
         <li
           key={foto.id}
@@ -59,6 +64,7 @@ function Grade({ fotos }: { fotos: FotoEntrega[] }) {
           </a>
         </li>
       ))}
-    </ul>
+      </ul>
+    </>
   );
 }
