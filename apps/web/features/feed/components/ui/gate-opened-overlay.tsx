@@ -26,7 +26,7 @@ export function GateOpenedOverlay({ onClose, cameraPath }: GateOpenedOverlayProp
       onClick={onClose}
     >
       <div
-        className="grid w-full max-w-xs gap-5 rounded-superficie border border-linha bg-superficie p-6 text-center"
+        className="grid w-full max-w-xs gap-5 rounded-superficie border border-linha bg-superficie p-6 text-center text-ink"
         onClick={(e) => e.stopPropagation()}
       >
         <p className="m-0 text-[2rem] leading-none" aria-hidden>
