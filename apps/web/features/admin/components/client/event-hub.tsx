@@ -94,7 +94,6 @@ export function EventHub({ eventId }: { eventId: string }) {
 
   return (
     <div className="flex flex-col gap-8">
-      <p className="tipo-body m-0 -mt-2 text-ink-2">Tudo do seu evento num lugar.</p>
       {groups.map((group) => (
         <section key={group.title}>
           <h2 className="tipo-label m-0 mb-3 text-ink-3">{group.title}</h2>
