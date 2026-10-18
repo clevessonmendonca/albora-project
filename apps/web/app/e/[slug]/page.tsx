@@ -130,6 +130,7 @@ export default async function Pagina({ params, searchParams }: Props) {
         coverImageUrl={coverImageUrl}
         coverFoco={capaFocoDoEvento(r.evento.identityTokens)}
         coverFocoX={capaFocoXDoEvento(r.evento.identityTokens)}
+        localEvento={typeof r.evento.identityTokens.local === "string" ? r.evento.identityTokens.local : null}
       />
     </>
   );
