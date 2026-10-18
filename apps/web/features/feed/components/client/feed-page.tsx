@@ -36,6 +36,8 @@ import { FeedFooter } from "../ui/feed-footer";
 import { GateOpenedOverlay } from "../ui/gate-opened-overlay";
 import { NewPhotosButton } from "../ui/new-photos-button";
 import { FeedEmptyState } from "../ui/feed-empty-state";
+import { CartaoProximaMissao, type ProximaMissao } from "../ui/cartao-proxima-missao";
+import { momentoDoInstante, type MomentoDoFeed } from "@/features/feed/lib/momento-do-instante";
 
 // Code splitting: lazy load heavy components
 const Viewer = dynamic(() => import("./viewer").then(m => ({ default: m.Viewer })), {
@@ -54,6 +56,7 @@ const MolduraPicker = dynamic(
 
 export type FeedCopy = {
   missionTitle: string;
+  proximaMissao: string;
 };
 
 type FeedPageProps = {
@@ -66,6 +69,8 @@ type FeedPageProps = {
   anfitriaoPlural: string;
   eventoId: string;
   sessaoId: string;
+  momentos: MomentoDoFeed[];
+  proximaMissao: ProximaMissao | null;
 };
 
 export function FeedPage({
@@ -78,6 +83,8 @@ export function FeedPage({
   anfitriaoPlural,
   eventoId,
   sessaoId,
+  momentos,
+  proximaMissao,
 }: FeedPageProps) {
   const base = `/e/${encodeURIComponent(slug)}`;
   const router = useRouter();
@@ -206,6 +213,10 @@ export function FeedPage({
             />
           )}
 
+          {proximaMissao && missions.length > 0 && !primeiraCarga && (
+            <CartaoProximaMissao missao={proximaMissao} rotulo={copy.proximaMissao} />
+          )}
+
           {completo && missions.length > 0 && (
             <FeedFilterPanel
               label={copy.missionTitle}
@@ -284,6 +295,7 @@ export function FeedPage({
                     autor={item.autor}
                     legenda={item.legenda}
                     lugar={item.lugar}
+                    momento={momentoDoInstante(momentos, item.criadaEm)}
                     criadaEm={item.criadaEm}
                     isVideo={isVideo}
                     {...(item.largura !== undefined ? { largura: item.largura } : {})}
