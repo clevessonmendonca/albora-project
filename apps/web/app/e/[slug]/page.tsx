@@ -128,6 +128,7 @@ export default async function Pagina({ params, searchParams }: Props) {
         saudacao={saudacao}
         comecaEm={r.evento.comecaEm.toISOString()}
         coverImageUrl={coverImageUrl}
+        localEvento={typeof r.evento.identityTokens.local === "string" ? r.evento.identityTokens.local : null}
       />
     </>
   );

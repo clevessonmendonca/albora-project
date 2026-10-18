@@ -59,8 +59,11 @@ describe("harness do convidado", () => {
         via="qr"
         comecaEm={new Date("2027-12-12T20:00:00Z").toISOString()}
         coverImageUrl="/onboarding/photo-08.webp"
+        localEvento="Espaço Aurora, Brasília"
       />,
     );
+    expect(chegada).toContain("Você foi convidado para");
+    expect(chegada).toContain("Espaço Aurora, Brasília");
 
     fs.mkdirSync(SAIDA, { recursive: true });
     // Bloco `<style>`, não atributo `style="…"`: `--fonte-corpo` carrega aspas
