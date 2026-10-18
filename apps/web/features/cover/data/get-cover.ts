@@ -6,7 +6,7 @@ import {
   eventPack,
   type EventoPublico,
 } from "@albora/db";
-import { exibirMusica, VALIDADE_PRESIGN_SEGUNDOS } from "@albora/core";
+import { capaFocoDoEvento, capaFocoXDoEvento, exibirMusica, VALIDADE_PRESIGN_SEGUNDOS } from "@albora/core";
 import { PACKS, resolvePackText } from "@albora/packs";
 import { getPool } from "@/lib/db";
 import { montarAlbumServido } from "@/lib/album";
@@ -79,6 +79,8 @@ export async function getCover(input: CoverInput): Promise<CoverData> {
     confessionalTitle:
       pack?.confessionario?.length ? resolvePackText(pack, "confessionario.titulo") : null,
     coverImageUrl,
+    coverFocus: capaFocoDoEvento(evento.identityTokens),
+    coverFocusX: capaFocoXDoEvento(evento.identityTokens),
   };
 }
 

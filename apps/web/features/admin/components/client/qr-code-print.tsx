@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { CAPA_FOCO_PADRAO, capaObjectPosition, type CapaFoco } from "@albora/core";
 import Link from "next/link";
 import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { downloadFromApi, triggerBlobDownload } from "@/features/admin/lib/download-file";
@@ -15,6 +16,8 @@ type Props = {
   guestUrl: string;
   svgString: string;
   coverImageUrl?: string;
+  coverFoco?: CapaFoco;
+  coverFocoX?: CapaFoco;
   dateLabel?: string;
   isDraft?: boolean;
 };
@@ -28,6 +31,8 @@ export function QrCodePrint({
   guestUrl,
   svgString,
   coverImageUrl,
+  coverFoco = CAPA_FOCO_PADRAO,
+  coverFocoX = CAPA_FOCO_PADRAO,
   dateLabel,
   isDraft = false,
 }: Props) {
@@ -171,7 +176,12 @@ export function QrCodePrint({
       <aside className="print:hidden grid min-w-0 gap-6" aria-label="Convite e impressão">
         {coverImageUrl && (
           <figure className="m-0 overflow-hidden rounded-superficie border border-linha bg-superficie">
-            <img src={coverImageUrl} alt="Capa do evento" className="aspect-[4/3] w-full object-cover" />
+            <img
+              src={coverImageUrl}
+              alt="Capa do evento"
+              style={{ objectPosition: capaObjectPosition(coverFoco, coverFocoX) }}
+              className="aspect-[4/3] w-full object-cover"
+            />
             <figcaption className="p-6 text-center">
               <p className="m-0 break-words font-titulo text-2xl font-light">{eventName}</p>
               {dateLabel && <p className="mt-3 text-sm text-ink-2">{dateLabel}</p>}

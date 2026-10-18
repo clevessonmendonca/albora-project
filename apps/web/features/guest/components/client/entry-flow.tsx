@@ -1,7 +1,7 @@
 "use client";
 
-import type { EntryVia } from "@albora/core";
-import { CONSENTIMENTO_ENTRADA_VIGENTE, textoDoConsentimento } from "@albora/core";
+import type { CapaFoco, EntryVia } from "@albora/core";
+import { CAPA_FOCO_PADRAO, capaObjectPosition, CONSENTIMENTO_ENTRADA_VIGENTE, textoDoConsentimento } from "@albora/core";
 import React, { useEffect, useState } from "react";
 import { registerServiceWorker } from "@/lib/register-sw";
 import {
@@ -56,6 +56,9 @@ export function EntryFlow({
   via,
   comecaEm,
   coverImageUrl,
+  coverFoco,
+  coverFocoX,
+  localEvento,
 }: {
   eventoId: string;
   slug: string;
@@ -64,6 +67,9 @@ export function EntryFlow({
   via: EntryVia;
   comecaEm?: string;
   coverImageUrl?: string | null;
+  coverFoco?: CapaFoco;
+  coverFocoX?: CapaFoco;
+  localEvento?: string | null;
 }) {
   const [etapa, setEtapa] = useState<Etapa>("chegada");
   const [nome, setNome] = useState("");
@@ -147,7 +153,10 @@ export function EntryFlow({
           <ArrivalScreen
             nomeEvento={nomeEvento}
             dataEvento={dataEvento}
+            localEvento={localEvento ?? null}
             coverImageUrl={coverImageUrl ?? null}
+            coverFoco={coverFoco ?? CAPA_FOCO_PADRAO}
+            coverFocoX={coverFocoX ?? CAPA_FOCO_PADRAO}
             onEnter={() => setEtapa("identidade")}
           />
         )}
@@ -234,18 +243,30 @@ export function EntryFlow({
 function ArrivalScreen({
   nomeEvento,
   dataEvento,
+  localEvento,
   coverImageUrl,
+  coverFoco = CAPA_FOCO_PADRAO,
+  coverFocoX = CAPA_FOCO_PADRAO,
   onEnter,
 }: {
   nomeEvento: string;
   dataEvento: string | null;
+  localEvento: string | null;
   coverImageUrl: string | null;
+  coverFoco?: CapaFoco;
+  coverFocoX?: CapaFoco;
   onEnter: () => void;
 }) {
   return (
     <main id="main-content" className="entrada-anima relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 py-[max(3rem,env(safe-area-inset-top))] text-center sm:px-10">
       {coverImageUrl ? (
-        <img src={coverImageUrl} alt="" aria-hidden className="absolute inset-0 size-full object-cover" />
+        <img
+          src={coverImageUrl}
+          alt=""
+          aria-hidden
+          style={{ objectPosition: capaObjectPosition(coverFoco, coverFocoX) }}
+          className="absolute inset-0 size-full object-cover"
+        />
       ) : (
         <div aria-hidden className="absolute inset-0 bg-superficie-alta" />
       )}
@@ -253,11 +274,14 @@ function ArrivalScreen({
       <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-bg via-bg/80 to-bg/60" />
 
       <div className="relative mx-auto flex w-full max-w-[46rem] flex-col items-center gap-6 py-8 sm:py-16">
-        <h1 className="m-0 max-w-full break-words font-titulo text-[clamp(2.5rem,8vw,6rem)] font-light leading-[1.1] tracking-titulo [text-wrap:balance]">
+        <p className="tipo-label m-0 uppercase tracking-[0.18em] text-ink-2">Você foi convidado para</p>
+        <h1 className="m-0 -mt-3 max-w-full break-words font-titulo text-[clamp(2.5rem,8vw,6rem)] font-light leading-[1.1] tracking-titulo [text-wrap:balance]">
           {nomeEvento}
         </h1>
         <span aria-hidden className="h-px w-12 bg-acento-texto" />
-        {dataEvento && <p className="m-0 text-base text-ink-2">{dataEvento}</p>}
+        {(dataEvento || localEvento) && (
+          <p className="m-0 text-base text-ink-2">{[dataEvento, localEvento].filter(Boolean).join(" · ")}</p>
+        )}
         <p className="m-0 max-w-[30rem] text-base leading-relaxed text-ink sm:text-lg">
           As melhores memórias são feitas juntos.<br />Estamos felizes por ter você aqui.
         </p>

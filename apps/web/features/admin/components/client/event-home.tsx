@@ -180,12 +180,14 @@ export async function EventHome({
 
       {/* Só há números depois que as fotos começam a chegar; antes da festa o
           bloco não aparece, em vez de mostrar três zeros. */}
-      <NumerosDoEvento
-        fotos={estado.payoff?.fotos ?? 0}
-        pessoas={estado.payoff?.pessoas ?? 0}
-        destacadas={estado.payoff?.destacadas ?? 0}
-        base={base}
-      />
+      {!depois && (
+        <NumerosDoEvento
+          fotos={estado.payoff?.fotos ?? 0}
+          pessoas={estado.payoff?.pessoas ?? 0}
+          destacadas={estado.payoff?.destacadas ?? 0}
+          base={base}
+        />
+      )}
 
       {/* Rascunho é a borda mais cara: o herói convida a compartilhar o link e o
           convidado bate numa porta fechada. Avisa antes de qualquer outra coisa. */}
@@ -231,18 +233,20 @@ export async function EventHome({
               payoff={estado.payoff}
               capitulos={estado.capitulos}
               fuso={evento.fuso}
-            />
-          )}
-          {estado.payoff && estado.capitulos.length > 0 && (
-            <CartaoReviver
-              capitulos={estado.capitulos}
-              fuso={evento.fuso}
-              nome={ctx.name}
-              fotos={estado.payoff.fotos}
-              pessoas={estado.payoff.pessoas}
-              horas={estado.payoff.horas}
-              slug={evento.slug}
-              hrefAlbum={`${base}/album`}
+              reviver={
+                estado.capitulos.length > 0 ? (
+                  <CartaoReviver
+                    capitulos={estado.capitulos}
+                    fuso={evento.fuso}
+                    nome={ctx.name}
+                    fotos={estado.payoff.fotos}
+                    pessoas={estado.payoff.pessoas}
+                    horas={estado.payoff.horas}
+                    slug={evento.slug}
+                    hrefAlbum={`${base}/album`}
+                  />
+                ) : undefined
+              }
             />
           )}
           <AvisoDeRetencao
