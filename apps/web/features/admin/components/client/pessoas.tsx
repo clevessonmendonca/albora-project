@@ -46,9 +46,13 @@ function PerfilDaPessoa({
   onVoltar: () => void;
 }) {
   const [fotos, setFotos] = useState<Foto[] | null>(null);
+  const [falhou, setFalhou] = useState(false);
+  const [tentativa, setTentativa] = useState(0);
 
   useEffect(() => {
     let vivo = true;
+    setFotos(null);
+    setFalhou(false);
     void (async () => {
       try {
         const r = await fetch(`/api/admin/events/${eventoId}/album?sessaoId=${pessoa.id}`);
@@ -56,13 +60,13 @@ function PerfilDaPessoa({
         const corpo = (await r.json()) as { itens: Foto[] };
         if (vivo) setFotos(corpo.itens);
       } catch {
-        if (vivo) setFotos([]);
+        if (vivo) setFalhou(true);
       }
     })();
     return () => {
       vivo = false;
     };
-  }, [eventoId, pessoa.id]);
+  }, [eventoId, pessoa.id, tentativa]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -82,7 +86,18 @@ function PerfilDaPessoa({
           {medalha && <Badge tone="accent">{medalha}</Badge>}
         </div>
 
-        {fotos === null ? (
+        {falhou ? (
+          <div role="alert" className="mt-5 flex flex-col items-start gap-3">
+            <p className="tipo-body m-0 text-ink-2">Não deu para carregar as fotos desta pessoa agora.</p>
+            <button
+              type="button"
+              onClick={() => setTentativa((n) => n + 1)}
+              className={adminClasses.secondaryButton}
+            >
+              Tentar de novo
+            </button>
+          </div>
+        ) : fotos === null ? (
           <ul aria-hidden className="m-0 mt-5 grid list-none grid-cols-3 gap-2 p-0 sm:grid-cols-4">
             {[0, 1, 2].map((i) => (
               <li key={i} className="aspect-square animate-pulse rounded-media bg-superficie-alta" />
