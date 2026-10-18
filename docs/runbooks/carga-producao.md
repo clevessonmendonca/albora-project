@@ -19,7 +19,7 @@ O arnês mede só: `POST /api/sessions` → `presign` → `PUT` R2 → `confirm`
 
 | Item | Detalhe |
 |---|---|
-| Host HTTPS | `env.homol` já deployado via `.github/workflows/deploy.yml` (job `deploy-homol`) — ex. `https://homol.albora.com.br` (domínio de `.env.homol.example`); rodar em `stable` só se homol ainda não existir |
+| Host HTTPS | `env.homol` já deployado via `.github/workflows/deploy.yml` (job `deploy-homol`) — ex. `https://homol.albora.app.br` (domínio de `.env.homol.example`); rodar em `stable` só se homol ainda não existir |
 | Evento de teste | Slug dedicado (não evento real de cliente) — ex. `carga-gate-2026` |
 | R2 configurado | Presign e PUT reais no bucket `albora-media-homol` (ou `-prod`, se o portão rodar contra prod) |
 | Neon | `DATABASE_URL` do ambiente alvo (branch homol ou projeto prod), driver transação (WebSocket) |
@@ -33,8 +33,8 @@ O arnês mede só: `POST /api/sessions` → `presign` → `PUT` R2 → `confirm`
 Substitua host e slug. A confirmação **deve ser o hostname exato** (sem `https://`):
 
 ```bash
-ALVO=https://homol.albora.com.br \
-CARGA_CONFIRMO_ALVO=homol.albora.com.br \
+ALVO=https://homol.albora.app.br \
+CARGA_CONFIRMO_ALVO=homol.albora.app.br \
 CARGA_EVENTO=carga-gate-2026 \
 CARGA_TOTAL=150 \
 CARGA_DURACAO_MIN=20 \
@@ -43,7 +43,7 @@ CARGA_SAIDA=docs/runbooks/carga-registros/gate-$(date +%Y%m%d).json \
 pnpm carga
 ```
 
-(Trocar `homol.albora.com.br` por `stable.albora.app` ou pelo domínio de prod
+(Trocar `homol.albora.app.br` por `stable.albora.app` ou pelo domínio de prod
 decidido conforme o alvo real do portão — o essencial é `ALVO` e
 `CARGA_CONFIRMO_ALVO` apontarem para o mesmo host, sempre HTTPS real, nunca
 localhost.)

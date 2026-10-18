@@ -127,12 +127,28 @@ export function AppearanceStep({
           />
         </div>
 
-        {aaRuim && (
-          <Badge tone="critico">
-            <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--critico)" }} />
-            Contraste baixo — o texto sobre a cor principal pode ficar difícil de ler.
-          </Badge>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {aaRuim ? (
+            <Badge tone="critico">
+              <span aria-hidden className="size-1.5 rounded-full" style={{ background: "var(--critico)" }} />
+              Contraste baixo — o texto sobre a cor principal pode ficar difícil de ler.
+            </Badge>
+          ) : (
+            contraste !== null && (
+              <Badge tone="outline">Boa leitura — o texto sobre a cor principal se ajusta sozinho.</Badge>
+            )
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              onColor("cor", cor2);
+              onColor("cor2", cor);
+            }}
+            className="tipo-caption text-ink-3 underline-offset-2 transition-colors hover:text-ink hover:underline"
+          >
+            Trocar ordem
+          </button>
+        </div>
 
         <details className="group mt-1">
           <summary className="inline-flex cursor-pointer list-none items-center gap-1.5 tipo-caption text-ink-3 transition-colors hover:text-ink">

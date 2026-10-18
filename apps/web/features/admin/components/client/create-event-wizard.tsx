@@ -21,6 +21,7 @@ import { LivePreview } from "./onboarding/live-preview";
 import { paletteFromImage } from "./onboarding/photo-palette";
 import { typePhoto } from "./onboarding/onboarding-photos";
 import { MissionSheet } from "./onboarding/mission-sheet";
+import { ConviteCard } from "./onboarding/convite-card";
 import { Glyph } from "./onboarding/glyph";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -346,6 +347,8 @@ export function CreateEventWizard() {
         dateLabel={rotuloData(date)}
         coverFile={coverFile}
         accentVars={eventAccentVars}
+        missoesAtivas={activeMissions.length + customMissions.length}
+        estiloNome={style.nome}
       />
     );
 
@@ -421,6 +424,7 @@ export function CreateEventWizard() {
                   onGuests={setGuests}
                   local={local}
                   onLocal={setLocal}
+                  momentos={momentos}
                 />
                 {vendors.length > 0 && (
                   <div className="flex flex-col gap-3 border-t border-linha pt-4">
@@ -670,12 +674,16 @@ function ReadyStep({
   dateLabel,
   coverFile,
   accentVars,
+  missoesAtivas,
+  estiloNome,
 }: {
   created: Created;
   title: string;
   dateLabel: string;
   coverFile: File | null;
   accentVars: CSSProperties;
+  missoesAtivas: number;
+  estiloNome: string;
 }) {
   // Origem só depois de montar: lida no render, o servidor produz "" e o cliente
   // a origem real — o HTML não bate e o React avisa que "não vai consertar".
@@ -721,6 +729,20 @@ function ReadyStep({
   const accentButton = buttonVariants({ variant: "primary", size: "lg", width: "full" });
   const accentStyle = { background: "var(--ev, var(--acento))", color: "var(--ev-on, var(--sobre-acento))" };
   const entryButton = buttonVariants({ variant: "secondary", size: "md", width: "full" });
+  const itensProntidao = [
+    {
+      icone: "target",
+      rotulo: "Missões",
+      detalhe: missoesAtivas > 0 ? `${missoesAtivas} desafios ativos` : "Nenhum desafio ativo",
+      destino: "missions",
+      pronto: missoesAtivas > 0,
+      acao: "Ajustar",
+    },
+    { icone: "monitor", rotulo: "Telão", detalhe: `Estilo ${estiloNome} escolhido`, destino: "identity", pronto: true, acao: "Ajustar" },
+    { icone: "qr-code", rotulo: "QR e materiais", detalhe: "Placa pronta para imprimir", destino: "qrcode", pronto: true, acao: "Abrir" },
+    { icone: "user-plus", rotulo: "Equipe", detalhe: "Convide quem ajuda", destino: "team", pronto: false, acao: "Convidar" },
+  ] as const;
+  const itensProntos = itensProntidao.filter((item) => item.pronto).length;
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-bg font-corpo text-ink" style={accentVars}>
@@ -764,7 +786,7 @@ function ReadyStep({
               <Glyph name="eye" size={16} />
               <span>Ver como convidado</span>
             </a>
-            <a href={whatsappInviteUrl(origin, created.slug)} className={entryButton}>
+            <a href={whatsappInviteUrl(origin, created.slug, title)} className={entryButton}>
               <Glyph name="share-2" size={16} />
               <span>Compartilhar</span>
             </a>
@@ -781,6 +803,8 @@ function ReadyStep({
             />
           )}
         </div>
+
+        <ConviteCard slug={created.slug} eventId={created.eventoId} origin={origin} />
 
         {/* E-mail-como-acesso: hipótese de delayed auth, atrás de flag (ADR 0020). Off = caminho atual. */}
         {delayedAuthEnabled() && <AccessEmailStep eventId={created.eventoId} />}
@@ -817,29 +841,27 @@ function ReadyStep({
           style={{ animationDelay: "170ms" }}
         >
           <p className="tipo-caption m-0 text-center text-ink-3">
-            Configure quando quiser — já deixamos tudo pronto.
+            Já pronto: {itensProntos} de {itensProntidao.length}. O resto você ajusta quando quiser.
           </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {(
-              [
-                ["target", "Missões", "missions"],
-                ["monitor", "Telão", "identity"],
-                ["qr-code", "QR", "qrcode"],
-                ["user-plus", "Equipe", "team"],
-              ] as const
-            ).map(([icon, label, destination]) => (
-              <a
-                key={label}
-                href={`/admin/e/${created.eventoId}/${destination}`}
-                className={buttonVariants({ variant: "secondary", size: "sm" })}
-              >
-                <span className="text-ink-2">
-                  <Glyph name={icon} size={14} />
-                </span>{" "}
-                {label}
-              </a>
+          <ul className="m-0 grid w-full list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2">
+            {itensProntidao.map((item) => (
+              <li key={item.rotulo}>
+                <a
+                  href={`/admin/e/${created.eventoId}/${item.destino}`}
+                  className="flex items-center gap-3 rounded-xl border border-linha bg-surface px-3.5 py-3 no-underline"
+                >
+                  <span className="text-ink-2">
+                    <Glyph name={item.icone} size={18} />
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col text-left">
+                    <span className="tipo-label text-ink">{item.rotulo}</span>
+                    <span className="tipo-caption text-ink-3">{item.detalhe}</span>
+                  </span>
+                  <span className="tipo-caption text-ink-2">{item.pronto ? "Pronto" : item.acao}</span>
+                </a>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </div>
     </main>
