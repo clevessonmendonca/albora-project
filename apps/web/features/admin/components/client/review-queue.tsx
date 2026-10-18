@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Badge } from "@albora/ui-web";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { useModerationCount } from "./moderation-count-context";
+import { ReviewFocus } from "./review-focus";
 
 /**
  * ≥44px de alvo de toque — override local do Sm compartilhado (`adminClasses.*ButtonSm`),
@@ -64,6 +65,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
   const [acao, setAcao] = useState<string | null>(null);
   const [acaoBulk, setAcaoBulk] = useState<"liberar" | "ocultar" | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [focando, setFocando] = useState(false);
   const { setCount } = useModerationCount();
 
   const carregar = useCallback(async () => {
@@ -86,6 +88,10 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
   }, [eventoId, onTotalChange, setCount]);
 
   useEffect(() => {
+    if (midias.length === 0) setFocando(false);
+  }, [midias.length]);
+
+  useEffect(() => {
     void carregar();
     const id = window.setInterval(() => void carregar(), 30_000);
     return () => window.clearInterval(id);
@@ -95,7 +101,7 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
     tipo: "midia" | "comentario",
     id: string,
     acaoPedida: "liberar" | "ocultar" | "remover",
-  ) => {
+  ): Promise<boolean> => {
     setAcao(`${acaoPedida}:${tipo}:${id}`);
     setErro(null);
     try {
@@ -106,8 +112,10 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
       });
       if (!r.ok) throw new Error("falhou");
       await carregar();
+      return true;
     } catch {
       setErro("Não foi possível concluir a ação. Tente novamente em instantes.");
+      return false;
     } finally {
       setAcao(null);
     }
@@ -184,8 +192,28 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
 
   const hasBoth = midias.length > 0 && comentarios.length > 0;
 
+  if (focando) {
+    return (
+      <ReviewFocus
+        midias={midias}
+        onDecidir={(id, decisao) => patch("midia", id, decisao)}
+        onSair={() => setFocando(false)}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col gap-3">
+      {midias.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setFocando(true)}
+          className={`${adminClasses.secondaryButton} min-h-11 self-start px-5`}
+        >
+          Revisar uma a uma ({midias.length})
+        </button>
+      )}
+
       {midias.length > 1 && (
         <div className="flex items-center justify-between rounded-token border border-linha bg-bg px-3.5 py-2.5">
           <span className="text-[0.8125rem] text-ink-3">
