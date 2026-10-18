@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect } from "react";
+import { useFocoDoModal } from "@/lib/use-foco-do-modal";
 import { ErrorMessage, PrimaryButton, ShareIcon } from "@albora/ui-web";
 import type { QuadroDoRecap } from "@/features/my-photos/hooks/use-recap";
 
@@ -27,6 +28,8 @@ export function RecapSheet({
   onFechar: () => void;
   onCompartilhar: () => void;
 }) {
+  const raiz = useFocoDoModal<HTMLDivElement>(aberto);
+
   useEffect(() => {
     if (!aberto) return;
 
@@ -48,10 +51,12 @@ export function RecapSheet({
 
   return (
     <div
+      ref={raiz}
+      tabIndex={-1}
       role="dialog"
       aria-modal="true"
       aria-label="Recap da sua noite"
-      className="fixed inset-0 z-20 grid grid-rows-[auto_1fr_auto] bg-bg font-corpo text-ink"
+      className="fixed inset-0 z-20 grid grid-rows-[auto_1fr_auto] bg-bg font-corpo text-ink outline-none"
     >
       <header className="flex items-center justify-between gap-4 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <p className="m-0 font-titulo text-[0.7rem] uppercase tracking-[0.24em] text-ink-2">
