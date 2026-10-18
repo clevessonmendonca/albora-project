@@ -83,6 +83,22 @@ node tools/deploy/smoke.mjs https://homol.albora.com.br
 bash scripts/ci/smoke-test.sh https://homol.albora.com.br   # /api/health/{live,ready}
 ```
 
+### 2.1.1 Build enxuto (plano gratuito do Workers)
+
+O pacote completo tem ~5,3 MiB comprimidos e passa do limite de 3 MiB do plano gratuito do Workers. `CF_LEVE=1` liga três cortes, medidos com `wrangler deploy --dry-run --env homol` (resultado: ~2,6 MiB):
+
+| Flag | O que faz | Custo |
+|---|---|---|
+| `CF_SEM_SENTRY=1` | `@sentry/nextjs` vira stub e `withSentryConfig` não envolve o `next.config` | Sem captura de erro no ambiente |
+| `CF_PODAR_MANIFESTS=1` | apaga os `route_client-reference-manifest.js` das rotas de API antes do OpenNext | nenhum (o Next carrega com `try`) |
+| `CF_SEM_PDF=1` | `pdf-lib` e `@pdf-lib/fontkit` viram stub | livro e peças de impressão ficam indisponíveis |
+
+```bash
+CF_LEVE=1 pnpm cf:deploy:homol
+```
+
+Não usar em produção: ela exige o plano pago (10 MiB, 30 s de CPU), com Sentry e PDF. O limite de 10 ms de CPU por request do plano gratuito continua valendo e pode derrubar páginas pesadas.
+
 ### 2.2 Cron Trigger — retenção LGPD (d330 export, d365 delete)
 
 `apps/web/wrangler.jsonc` (`env.homol`/`env.prod`) declara `triggers.crons` disparando o
