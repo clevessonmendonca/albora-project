@@ -1,6 +1,11 @@
 import pg from "pg";
 import { config, ConfigError } from "../../config";
 
+const emWorker = typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
+
+/** Worker não reaproveita socket aberto por outra requisição (a segunda trava): maxUses 1 descarta a conexão ao devolvê-la. */
+const opcoesDeConexao = emWorker ? { maxUses: 1 } : {};
+
 /** Pool única por instância — `SET LOCAL` só existe em transação; sem ela RLS não aplica ("sumiu tudo", não "vazou tudo" — ADR 0006). */
 let pool: pg.Pool | null = null;
 
@@ -13,6 +18,7 @@ export function getPool(): pg.Pool {
       // devolver erro que o cliente reenfileira do que segurar o convidado.
       connectionTimeoutMillis: 5_000,
       idleTimeoutMillis: 30_000,
+      ...opcoesDeConexao,
     });
   }
   return pool;
@@ -31,6 +37,7 @@ export function getAggregatorPool(): pg.Pool {
       max: 3,
       connectionTimeoutMillis: 5_000,
       idleTimeoutMillis: 30_000,
+      ...opcoesDeConexao,
     });
   }
   return aggregatorPool;

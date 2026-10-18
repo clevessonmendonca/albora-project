@@ -67,15 +67,17 @@
       "triggers": {
         "crons": ["0 4 * * *"]
       },
+      "routes": [{ "pattern": "homol.albora.app.br", "custom_domain": true }],
       // Não-secretas — o resto (DATABASE_URL, R2_*, SESSION_SECRET, RESEND_API_KEY, ASAAS_*, ...)
       // é `wrangler secret put --env homol`, nunca aqui. Ver .env.homol.example.
       "vars": {
         "APP_ENV": "homol",
-        "APP_ROOT_DOMAIN": "homol.albora.com.br",
-        "MEDIA_DOMAIN": "media-homol.albora.com.br",
+        "APP_ROOT_DOMAIN": "homol.albora.app.br",
+        "MEDIA_DOMAIN": "media-homol.albora.app.br",
         "R2_BUCKET": "albora-media-homol",
-        "APP_URL": "https://homol.albora.com.br",
-        "APP_LINK_HOST": "homol.albora.com.br"
+        "APP_URL": "https://homol.albora.app.br",
+        "APP_LINK_HOST": "homol.albora.app.br",
+        "RESEND_FROM": "Albora <noreply@albora.app.br>"
       }
     },
     "prod": {

@@ -75,5 +75,42 @@ describe("harness do convidado", () => {
       `<style>#guest-root { ${vars} min-height: 100dvh; }</style>` +
         `<div class="guest-tema superficie-de-acao" id="guest-root">${chegada}</div>`,
     );
+
+    for (const foco of [25, 75] as const) {
+      const lateral = renderToStaticMarkup(
+        <EntryFlow
+          eventoId="11111111-1111-1111-1111-111111111111"
+          slug="festa-demo"
+          nomeEvento="Clevesson & Miriã"
+          saudacao="Que bom ter você aqui"
+          via="qr"
+          comecaEm={new Date("2027-12-12T20:00:00Z").toISOString()}
+          coverImageUrl="/onboarding/photo-08.webp"
+          coverFocoX={foco}
+        />,
+      );
+      fs.writeFileSync(
+        `${SAIDA}/body-convidado-entrada-foco-x-${foco}.html`,
+        `<style>#guest-root { ${vars} min-height: 100dvh; }</style>` +
+          `<div class="guest-tema superficie-de-acao" id="guest-root">${lateral}</div>`,
+      );
+      const comFoco = renderToStaticMarkup(
+        <EntryFlow
+          eventoId="11111111-1111-1111-1111-111111111111"
+          slug="festa-demo"
+          nomeEvento="Clevesson & Miriã"
+          saudacao="Que bom ter você aqui"
+          via="qr"
+          comecaEm={new Date("2027-12-12T20:00:00Z").toISOString()}
+          coverImageUrl="/onboarding/photo-08.webp"
+          coverFoco={foco}
+        />,
+      );
+      fs.writeFileSync(
+        `${SAIDA}/body-convidado-entrada-foco-${foco}.html`,
+        `<style>#guest-root { ${vars} min-height: 100dvh; }</style>` +
+          `<div class="guest-tema superficie-de-acao" id="guest-root">${comFoco}</div>`,
+      );
+    }
   }, 120_000);
 });

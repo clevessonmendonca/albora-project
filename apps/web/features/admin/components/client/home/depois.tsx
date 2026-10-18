@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ChevronIcon } from "@albora/ui-web";
 import type { Payoff } from "@/features/admin/data/load-home-state";
@@ -95,11 +96,13 @@ export function Payoffdepois({
   payoff,
   capitulos,
   fuso,
+  reviver,
 }: {
   base: string;
   payoff: Payoff;
   capitulos: CapituloDoReviver[];
   fuso: string;
+  reviver?: ReactNode;
 }) {
   const { fotos, pessoas, destacadas, novas } = payoff;
 
@@ -129,6 +132,8 @@ export function Payoffdepois({
           </div>
         )}
       </section>
+
+      {reviver}
 
       <MomentosDaNoite capitulos={capitulos} fuso={fuso} />
 

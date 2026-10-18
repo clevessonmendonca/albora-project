@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import NextLink from "next/link";
-import { FUSO_PADRAO, type VendorPlanTier, type WallDisplayModel } from "@albora/core";
+import { CAPA_FOCO_PADRAO, capaObjectPosition, FUSO_PADRAO, type CapaFoco, type VendorPlanTier, type WallDisplayModel } from "@albora/core";
 import { PACKS, packsDeCriacao, resolvePackText } from "@albora/packs";
 import { eventColorVariablesFrom } from "@albora/tokens";
 import { BackIcon, BottomSheet, buttonVariants, LogoAlbora, Select } from "@albora/ui-web";
@@ -21,7 +21,9 @@ import { LivePreview } from "./onboarding/live-preview";
 import { paletteFromImage } from "./onboarding/photo-palette";
 import { typePhoto } from "./onboarding/onboarding-photos";
 import { MissionSheet } from "./onboarding/mission-sheet";
+import { ConviteCard } from "./onboarding/convite-card";
 import { Glyph } from "./onboarding/glyph";
+import { CapaFocoField } from "./capa-foco-field";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DEFAULT_MODELS: readonly WallDisplayModel[] = ["polaroide", "mural", "colagem", "dump"];
@@ -106,6 +108,8 @@ export function CreateEventWizard() {
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [coverFoco, setCoverFoco] = useState<CapaFoco>(CAPA_FOCO_PADRAO);
+  const [coverFocoX, setCoverFocoX] = useState<CapaFoco>(CAPA_FOCO_PADRAO);
   const [photoColors, setPhotoColors] = useState<string[]>([]);
   const coverInputRef = useRef<HTMLInputElement>(null);
 
@@ -201,9 +205,11 @@ export function CreateEventWizard() {
       // cores (`--ev`/`--ev-2`) vem de `eventCores`, que o Fluxo B adota sem repintar o produto.
       cores: { ...(styleCores ?? {}), acento: cor },
       eventCores: { cor, cor2 },
+      ...(coverFoco !== CAPA_FOCO_PADRAO ? { capaFoco: coverFoco } : {}),
+      ...(coverFocoX !== CAPA_FOCO_PADRAO ? { capaFocoX: coverFocoX } : {}),
       ...(local.trim() ? { local: local.trim() } : {}),
     };
-  }, [style, styleKey, cor, cor2, local]);
+  }, [style, styleKey, cor, cor2, local, coverFoco, coverFocoX]);
 
   const previewVars = useMemo(
     () => resolveIdentityPreviewVars(pack, identityTokens) as CSSProperties,
@@ -346,6 +352,8 @@ export function CreateEventWizard() {
         dateLabel={rotuloData(date)}
         coverFile={coverFile}
         accentVars={eventAccentVars}
+        missoesAtivas={activeMissions.length + customMissions.length}
+        estiloNome={style.nome}
       />
     );
 
@@ -358,6 +366,8 @@ export function CreateEventWizard() {
     coverImage: coverUrl,
     coverFallback: typePhoto(pack.ordemCriacao),
     layout: styleKey,
+    coverFoco,
+    coverFocoX,
     onPickCover,
   };
 
@@ -421,6 +431,7 @@ export function CreateEventWizard() {
                   onGuests={setGuests}
                   local={local}
                   onLocal={setLocal}
+                  momentos={momentos}
                 />
                 {vendors.length > 0 && (
                   <div className="flex flex-col gap-3 border-t border-linha pt-4">
@@ -467,13 +478,14 @@ export function CreateEventWizard() {
                   className="relative flex min-h-48 items-end overflow-hidden rounded-superficie bg-superficie-alta p-5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-acento-texto"
                   aria-label={coverFile ? "Trocar foto de capa" : "Escolher minha foto de capa"}
                 >
-                  <img src={coverUrl ?? typePhoto(pack.ordemCriacao)} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  <img src={coverUrl ?? typePhoto(pack.ordemCriacao)} alt="" style={{ objectPosition: capaObjectPosition(coverFoco, coverFocoX) }} className="absolute inset-0 h-full w-full object-cover" />
                   <span aria-hidden className="scrim-foto-forte absolute inset-0" />
                   <span className="sobre-foto relative flex items-center gap-3">
                     <Glyph name="image" size={24} />
                     <span><strong className="block font-medium">{coverFile ? "Trocar minha foto" : "Escolher minha foto"}</strong><span className="mt-1 block text-sm">JPG, PNG ou WebP</span></span>
                   </span>
                 </button>
+                <CapaFocoField value={coverFoco} onChange={setCoverFoco} valueX={coverFocoX} onChangeX={setCoverFocoX} />
                 <AppearanceStep
                   styleKey={styleKey}
                   onStyle={pickStyle}
@@ -670,12 +682,16 @@ function ReadyStep({
   dateLabel,
   coverFile,
   accentVars,
+  missoesAtivas,
+  estiloNome,
 }: {
   created: Created;
   title: string;
   dateLabel: string;
   coverFile: File | null;
   accentVars: CSSProperties;
+  missoesAtivas: number;
+  estiloNome: string;
 }) {
   // Origem só depois de montar: lida no render, o servidor produz "" e o cliente
   // a origem real — o HTML não bate e o React avisa que "não vai consertar".
@@ -721,6 +737,20 @@ function ReadyStep({
   const accentButton = buttonVariants({ variant: "primary", size: "lg", width: "full" });
   const accentStyle = { background: "var(--ev, var(--acento))", color: "var(--ev-on, var(--sobre-acento))" };
   const entryButton = buttonVariants({ variant: "secondary", size: "md", width: "full" });
+  const itensProntidao = [
+    {
+      icone: "target",
+      rotulo: "Missões",
+      detalhe: missoesAtivas > 0 ? `${missoesAtivas} desafios ativos` : "Nenhum desafio ativo",
+      destino: "missions",
+      pronto: missoesAtivas > 0,
+      acao: "Ajustar",
+    },
+    { icone: "monitor", rotulo: "Telão", detalhe: `Estilo ${estiloNome} escolhido`, destino: "identity", pronto: true, acao: "Ajustar" },
+    { icone: "qr-code", rotulo: "QR e materiais", detalhe: "Placa pronta para imprimir", destino: "qrcode", pronto: true, acao: "Abrir" },
+    { icone: "user-plus", rotulo: "Equipe", detalhe: "Convide quem ajuda", destino: "team", pronto: false, acao: "Convidar" },
+  ] as const;
+  const itensProntos = itensProntidao.filter((item) => item.pronto).length;
 
   return (
     <main className="relative min-h-dvh overflow-hidden bg-bg font-corpo text-ink" style={accentVars}>
@@ -764,7 +794,7 @@ function ReadyStep({
               <Glyph name="eye" size={16} />
               <span>Ver como convidado</span>
             </a>
-            <a href={whatsappInviteUrl(origin, created.slug)} className={entryButton}>
+            <a href={whatsappInviteUrl(origin, created.slug, title)} className={entryButton}>
               <Glyph name="share-2" size={16} />
               <span>Compartilhar</span>
             </a>
@@ -781,6 +811,8 @@ function ReadyStep({
             />
           )}
         </div>
+
+        <ConviteCard slug={created.slug} eventId={created.eventoId} origin={origin} />
 
         {/* E-mail-como-acesso: hipótese de delayed auth, atrás de flag (ADR 0020). Off = caminho atual. */}
         {delayedAuthEnabled() && <AccessEmailStep eventId={created.eventoId} />}
@@ -817,29 +849,27 @@ function ReadyStep({
           style={{ animationDelay: "170ms" }}
         >
           <p className="tipo-caption m-0 text-center text-ink-3">
-            Configure quando quiser — já deixamos tudo pronto.
+            Já pronto: {itensProntos} de {itensProntidao.length}. O resto você ajusta quando quiser.
           </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            {(
-              [
-                ["target", "Missões", "missions"],
-                ["monitor", "Telão", "identity"],
-                ["qr-code", "QR", "qrcode"],
-                ["user-plus", "Equipe", "team"],
-              ] as const
-            ).map(([icon, label, destination]) => (
-              <a
-                key={label}
-                href={`/admin/e/${created.eventoId}/${destination}`}
-                className={buttonVariants({ variant: "secondary", size: "sm" })}
-              >
-                <span className="text-ink-2">
-                  <Glyph name={icon} size={14} />
-                </span>{" "}
-                {label}
-              </a>
+          <ul className="m-0 grid w-full list-none grid-cols-1 gap-2 p-0 sm:grid-cols-2">
+            {itensProntidao.map((item) => (
+              <li key={item.rotulo}>
+                <a
+                  href={`/admin/e/${created.eventoId}/${item.destino}`}
+                  className="flex items-center gap-3 rounded-xl border border-linha bg-surface px-3.5 py-3 no-underline"
+                >
+                  <span className="text-ink-2">
+                    <Glyph name={item.icone} size={18} />
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-col text-left">
+                    <span className="tipo-label text-ink">{item.rotulo}</span>
+                    <span className="tipo-caption text-ink-3">{item.detalhe}</span>
+                  </span>
+                  <span className="tipo-caption text-ink-2">{item.pronto ? "Pronto" : item.acao}</span>
+                </a>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </div>
     </main>
