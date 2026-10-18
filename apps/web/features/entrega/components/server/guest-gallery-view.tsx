@@ -43,7 +43,7 @@ export function GuestGalleryView(props: GuestGalleryViewProps) {
 function Grade({ fotos }: { fotos: FotoEntrega[] }) {
   return (
     <>
-      <p className="tipo-body m-0 mb-4 text-ink-2">
+      <p className="tipo-body m-0 mb-4 pt-6 text-ink-2">
         {fotos.length === 1 ? "1 foto sua" : `${fotos.length} fotos suas`}. Toque numa foto para abrir e salvar no celular.
         Salve as que você mais gosta: este link não dura para sempre.
       </p>
