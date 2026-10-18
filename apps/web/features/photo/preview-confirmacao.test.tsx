@@ -25,6 +25,6 @@ it.runIf(process.env.PREVIEW === "1")("escreve a confirmação da 1ª foto", asy
   fs.mkdirSync(SAIDA, { recursive: true });
   fs.writeFileSync(
     `${SAIDA}/body-confirmacao.html`,
-    `<style>#guest-root { ${vars} min-height: 100dvh; }</style><div class="guest-tema superficie-de-acao" id="guest-root">${corpo}</div>`,
+    `<style>.opacity-0{opacity:1 !important}#guest-root { ${vars} min-height: 100dvh; }</style><div class="guest-tema superficie-de-acao" id="guest-root">${corpo}</div>`,
   );
 });
