@@ -64,7 +64,7 @@ export function AuthorProfilePage({ slug, autorId }: { slug: string; autorId: st
             />
           )}
 
-          {!estado.naoEncontrado && <Rodape estado={estado.feed} onVerMais={carregarMais} />}
+          {!estado.naoEncontrado && <Rodape estado={estado.feed} onVerMais={carregarMais} base={base} />}
         </GuestMain>
       </GuestShell>
 
@@ -115,17 +115,17 @@ function GradeLoading() {
   );
 }
 
-function Rodape({ estado, onVerMais }: { estado: EstadoFeed; onVerMais: () => void }) {
+function Rodape({ estado, onVerMais, base }: { estado: EstadoFeed; onVerMais: () => void; base: string }) {
   const sentinela = useInfiniteScroll(onVerMais, podeCarregarMais(estado), estado.itens.length);
 
   if (estado.falha === "sessao") {
     return (
       <p className="mt-6 text-center tipo-caption text-ink-2">
         Sua entrada expirou.{" "}
-        <a href="/scan" className="text-acento-texto underline">
-          Escaneie o QR da mesa
+        <a href={base} className="text-acento-texto underline">
+          Entre de novo na festa
         </a>{" "}
-        de novo para continuar.
+        para continuar.
       </p>
     );
   }

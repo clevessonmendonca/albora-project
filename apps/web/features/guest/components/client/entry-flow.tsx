@@ -54,6 +54,7 @@ export function EntryFlow({
   nomeEvento,
   saudacao,
   via,
+  proximo = null,
   comecaEm,
   coverImageUrl,
   coverFoco,
@@ -65,6 +66,7 @@ export function EntryFlow({
   nomeEvento: string;
   saudacao: string;
   via: EntryVia;
+  proximo?: string | null;
   comecaEm?: string;
   coverImageUrl?: string | null;
   coverFoco?: CapaFoco;
@@ -134,7 +136,7 @@ export function EntryFlow({
         // Navegação privada bloqueia. Não impede a entrada.
       }
 
-      window.location.href = `/e/${encodeURIComponent(slug)}/cover`;
+      window.location.href = proximo ?? `/e/${encodeURIComponent(slug)}/cover`;
     } catch {
       setErro("Sem conexão. Chegue mais perto do roteador e tente de novo.");
     } finally {
