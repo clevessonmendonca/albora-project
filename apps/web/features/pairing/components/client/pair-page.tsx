@@ -6,6 +6,7 @@ import {
 } from "@albora/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAbrirNoApp } from "../../hooks/use-abrir-no-app";
 import {
   Card,
   GuestHeader,
@@ -63,6 +64,7 @@ export function PairPage({ slug }: { slug: string }) {
   const base = `/e/${encodeURIComponent(slug)}`;
   const webOrigin = typeof window !== "undefined" ? window.location.origin : "https://albora.app";
   const appLink = passagem ? appPairSchemeLinkPassagem(passagem) : null;
+  const { abrir: abrirNoApp, semApp } = useAbrirNoApp(appLink);
   const universalLink = passagem ? appPairUniversalLinkPassagem(webOrigin, slug, passagem) : null;
 
   return (
@@ -94,13 +96,12 @@ export function PairPage({ slug }: { slug: string }) {
               )}
             </Card>
             {appLink ? (
-              <PrimaryButton
-                onClick={() => {
-                  window.location.href = appLink;
-                }}
-              >
-                Abrir no app
-              </PrimaryButton>
+              <PrimaryButton onClick={abrirNoApp}>Abrir no app</PrimaryButton>
+            ) : null}
+            {semApp ? (
+              <p role="status" className="m-0 tipo-body text-ink-2">
+                O app não abriu. Se ainda não instalou, instale e digite os quatro números acima na primeira abertura.
+              </p>
             ) : null}
             {universalLink ? (
               <a
