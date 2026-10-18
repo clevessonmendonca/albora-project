@@ -20,7 +20,7 @@ Estados: **Existe** (visto no código), **Parcial**, **Falta**, **A conferir** (
 | Cinco estilos de capa | B | `appearance-data.ts` | Existe | — |
 | Par de cores, seis combos, extração da capa | B identidade-v3 | `color-field.tsx`, `paletteFromImage`, `event-combos.ts` | Existe | — |
 | Selo de contraste ("AA ✓ / ajustado") | B, A | `cor.ts` existe; selo no wizard a conferir | Existe | #112 |
-| Enquadramento da capa 25/50/75 | A | `CoverImageEditor` | Existe (vertical; só altera quadros mais largos que a foto, não a entrada em celular) | #115 |
+| Enquadramento da capa 25/50/75 | A | `CoverImageEditor` | Existe (vertical e horizontal) | #115, #116 |
 | Prévia ao vivo do convidado | B, A | `LivePreview` | Existe | — |
 | Prévia com abas Convidado/Telão/Álbum | B criar-v3(1) | só convidado | Descartado (removido de propósito em 16f3b810 por feedback do anfitrião) | — |
 | Atalhos de teclado | B | Enter/Backspace/Esc/1..N | Existe | — |
@@ -133,11 +133,11 @@ Landing (6 versões, só referência), site do casal C&M (Fase 4: RSVP, convite,
 
 ## Resultado desta rodada
 
-Entregues: enquadramento da capa de ponta a ponta (#115); Pronto com link, QR e checklist (#109); momentos do tipo nos Detalhes (#110); texto de WhatsApp, selo de leitura e troca de ordem das cores (#112); leitura da cor no editor de identidade (#113).
+Entregues: enquadramento da capa de ponta a ponta, vertical (#115) e horizontal (#116); Pronto com link, QR e checklist (#109); momentos do tipo nos Detalhes (#110); texto de WhatsApp, selo de leitura e troca de ordem das cores (#112); leitura da cor no editor de identidade (#113).
 Já existiam e foram confirmados no código: estados do `resolverSlug`, gate de interação, recompensa da primeira foto, modo pânico, retenção visível, equipe e consentimento.
 
 Decisões de produto em aberto (o protótipo não resolve):
 1. A prévia em abas volta, apesar de ter sido removida por feedback do anfitrião?
-2. Foco horizontal da capa, para a entrada em celular (hoje o foco vertical não altera esse quadro)?
+2. (Resolvida) Foco horizontal da capa entregue em #116.
 3. Atalho A/R na moderação: vale criar uma tela de revisão individual?
 4. Rascunho salvo do wizard: aguarda o desenho do ADR 0020.
