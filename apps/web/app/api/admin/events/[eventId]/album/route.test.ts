@@ -62,7 +62,7 @@ beforeEach(() => {
     terminaEm: new Date("2026-09-21T00:00:00Z"),
     offsetMinutos: -180,
   });
-  db.eventPack.mockResolvedValue("casamento");
+  db.eventPack.mockResolvedValue("celebracao");
   db.eventTokens.mockResolvedValue({
     momentos: [
       { id: "m-a", titulo: "Brinde" },
