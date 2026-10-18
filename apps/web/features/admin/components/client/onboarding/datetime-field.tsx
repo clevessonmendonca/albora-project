@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { usePopoverFocus } from "./use-popover-focus";
 import { Glyph } from "./glyph";
 
 const DIAS = ["D", "S", "T", "Q", "Q", "S", "S"];
@@ -55,6 +56,7 @@ export function DateTimeField({
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  usePopoverFocus(open, wrapRef);
   const { date, time } = parseValue(value);
 
   const [visMes, setVisMes] = useState(() => {

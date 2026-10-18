@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { usePopoverFocus } from "./use-popover-focus";
 import { Glyph } from "./glyph";
 
 /* ---------- conversões cor ---------- */
@@ -65,6 +66,7 @@ export function ColorField({
 }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  usePopoverFocus(open, wrapRef);
 
   useEffect(() => {
     if (!open) return;
