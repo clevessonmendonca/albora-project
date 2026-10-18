@@ -7,6 +7,8 @@ import { adminVars } from "./components/server/admin-shell";
 import { HostAlbum } from "./components/client/host-album";
 import { ConvidadosPage } from "./components/client/convidados-page";
 import { QrCodePrint } from "./components/client/qr-code-print";
+import { EventHub } from "./components/client/event-hub";
+import { EventControls } from "./components/client/event-controls";
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
@@ -47,4 +49,26 @@ it.runIf(process.env.PREVIEW === "1")("captura convite com QR real", async () =>
   const svgString = await QRCode.toString(guestUrl, { type: "svg", margin: 2 });
   const { container } = render(<QrCodePrint eventId="exemplo" slug="celebracao" eventName="Clevesson & Miriã" guestUrl={guestUrl} svgString={svgString} coverImageUrl="/onboarding/photo-08.webp" dateLabel="12 de dezembro de 2027 · 18h" />);
   save("convite", container);
+});
+
+it.runIf(process.env.PREVIEW === "1")("captura ajustes do evento", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({}))));
+  const { container } = render(
+    <div className="flex flex-col gap-8">
+      <EventHub eventId="exemplo" />
+      <section>
+        <h2 className="tipo-label m-0 mb-3 text-ink-3">Controles do evento</h2>
+        <EventControls
+          eventId="exemplo"
+          slug="celebracao"
+          plan="free"
+          initial={{ panico: false, modoEndurecido: false, haMenores: false }}
+          initialInteractionOpensAt={null}
+          initialDeliveryOpensAt={null}
+          initialStatus="active"
+        />
+      </section>
+    </div>,
+  );
+  save("ajustes", container);
 });

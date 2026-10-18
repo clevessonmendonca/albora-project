@@ -3,7 +3,7 @@
 import { interacaoAberta, eventDefaults } from "@albora/core";
 import { buttonVariants, Badge, ConfirmDialog, Switch } from "@albora/ui-web";
 import Link from "next/link";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { DeliveryControls } from "@/features/admin/components/client/delivery-controls";
 import { EventMusic } from "@/features/admin/components/client/event-music";
@@ -184,6 +184,42 @@ export function EventControls({
         </AdminSection>
       )}
 
+      <Grupo titulo="Publicação e convite" resumo="Links, música e peças para imprimir" agrupar={!secoes} abertoInicial={status === "draft"}>
+      {ver("links") && (
+      <AdminSection>
+        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Links do evento</h2>
+        <div className="flex flex-col gap-3">
+          <EventLink title="Convidado" url={eventEntryUrl(origin, slug, "link")} />
+          <EventLink title="WhatsApp" url={whatsappInviteUrl(origin, slug)} />
+        </div>
+        <a
+          href={eventEntryUrl(origin, slug, "link")}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${buttonVariants({ variant: "secondary", size: "sm", width: "full" })} mt-4`}
+        >
+          Testar como convidado ↗
+        </a>
+      </AdminSection>
+      )}
+
+      {ver("musica") && (
+      <AdminSection>
+        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Música do casal</h2>
+        <EventMusic eventId={eventId} />
+      </AdminSection>
+      )}
+
+      {ver("pecas") && (
+      <AdminSection>
+        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Peças para imprimir</h2>
+        <EventPieces eventId={eventId} slug={slug} />
+      </AdminSection>
+      )}
+
+      </Grupo>
+
+      <Grupo titulo="Durante a festa" resumo="Telão, proteções, interação e moderação" agrupar={!secoes} abertoInicial={status === "active"}>
       {ver("telao") && (
       <AdminSection>
         <div className="flex flex-wrap items-center justify-between gap-5">
@@ -391,13 +427,6 @@ export function EventControls({
       </AdminSection>
       )}
 
-      {ver("entrega") && (
-      <AdminSection id="controle-entrega">
-        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Entrega das fotos</h2>
-        <DeliveryControls eventId={eventId} initialDeliveryOpensAt={initialDeliveryOpensAt} />
-      </AdminSection>
-      )}
-
       {ver("moderacao") && (
       <AdminSection>
         <h2 className="tipo-subtitle m-0 mb-3 text-ink">Moderação e convidados</h2>
@@ -412,16 +441,19 @@ export function EventControls({
       </AdminSection>
       )}
 
-      {ver("ajuda") && (
-      <AdminSection>
-        <h2 className="tipo-subtitle m-0 mb-3 text-ink">Preciso de ajuda</h2>
-        <p className="tipo-body mb-4 mt-0 text-ink-2">
-          Fala com a equipe Albora. Em festa ao vivo, marque prioridade alta.
-        </p>
-        <SupportHelpButton eventId={eventId} />
+      </Grupo>
+
+      <Grupo titulo="Depois da festa" resumo="Entrega das fotos" agrupar={!secoes} abertoInicial={status === "ended"}>
+      {ver("entrega") && (
+      <AdminSection id="controle-entrega">
+        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Entrega das fotos</h2>
+        <DeliveryControls eventId={eventId} initialDeliveryOpensAt={initialDeliveryOpensAt} />
       </AdminSection>
       )}
 
+      </Grupo>
+
+      <Grupo titulo="Conta e plano" resumo="Plano e ajuda" agrupar={!secoes} abertoInicial={false}>
       {ver("plano") && canManageCoupleOnly && plan === "free" && (
         <AdminSection>
           <h2 className="tipo-subtitle m-0 mb-3 text-ink">Assinar Completo</h2>
@@ -473,38 +505,17 @@ export function EventControls({
         </AdminSection>
       )}
 
-      {ver("musica") && (
+      {ver("ajuda") && (
       <AdminSection>
-        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Música do casal</h2>
-        <EventMusic eventId={eventId} />
+        <h2 className="tipo-subtitle m-0 mb-3 text-ink">Preciso de ajuda</h2>
+        <p className="tipo-body mb-4 mt-0 text-ink-2">
+          Fala com a equipe Albora. Em festa ao vivo, marque prioridade alta.
+        </p>
+        <SupportHelpButton eventId={eventId} />
       </AdminSection>
       )}
 
-      {ver("pecas") && (
-      <AdminSection>
-        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Peças para imprimir</h2>
-        <EventPieces eventId={eventId} slug={slug} />
-      </AdminSection>
-      )}
-
-      {ver("links") && (
-      <AdminSection>
-        <h2 className="tipo-subtitle m-0 mb-4 text-ink">Links do evento</h2>
-        <div className="flex flex-col gap-3">
-          <EventLink title="Convidado" url={eventEntryUrl(origin, slug, "link")} />
-          <EventLink title="WhatsApp" url={whatsappInviteUrl(origin, slug)} />
-          <EventLink title="Telão" url={`${origin}/wall-display`} />
-        </div>
-        <a
-          href={eventEntryUrl(origin, slug, "link")}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`${buttonVariants({ variant: "secondary", size: "sm", width: "full" })} mt-4`}
-        >
-          Testar como convidado ↗
-        </a>
-      </AdminSection>
-      )}
+      </Grupo>
 
       {error && (
         <p role="alert" className="tipo-body m-0 text-critico">
@@ -580,5 +591,44 @@ function EventLink({ title, url }: { title: string; url: string }) {
         </button>
       </div>
     </div>
+  );
+}
+
+function Grupo({
+  titulo,
+  resumo,
+  agrupar,
+  abertoInicial,
+  children,
+}: {
+  titulo: string;
+  resumo: string;
+  agrupar: boolean;
+  abertoInicial: boolean;
+  children: ReactNode;
+}) {
+  const [aberto, setAberto] = useState(abertoInicial);
+  const ref = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (id && ref.current?.querySelector(`#${CSS.escape(id)}`)) setAberto(true);
+  }, []);
+  if (!agrupar) return <>{children}</>;
+  return (
+    <details
+      ref={ref}
+      open={aberto}
+      onToggle={(e) => setAberto(e.currentTarget.open)}
+      className="group rounded-superficie border border-linha bg-superficie"
+    >
+      <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento-texto">
+        <span className="min-w-0">
+          <span className="tipo-subtitle block text-ink">{titulo}</span>
+          <span className="tipo-caption block text-ink-3">{resumo}</span>
+        </span>
+        <span aria-hidden className="shrink-0 text-ink-3 transition-transform group-open:rotate-180">⌄</span>
+      </summary>
+      <div className="flex flex-col gap-5 border-t border-linha p-5">{children}</div>
+    </details>
   );
 }
