@@ -12,7 +12,7 @@ export type ActiveImpersonation = { id: string; targetAccountId: string; expires
  * só `onEnd`. Renderizada duas vezes (topo do console em `ConsoleShell` e
  * rodapé da sidebar em `ConsoleNav`) — quem rola uma tela longa perde o
  * topo de vista, e a única coisa pior que impersonar é impersonar sem
- * lembrar que está impersonando. `bg-critico text-sobre-acento` é o mesmo
+ * lembrar que está impersonando. `bg-critico text-sobre-critico` é o mesmo
  * par usado nos avisos críticos do app do anfitrião — cor reforça, o texto
  * é quem carrega o significado, nunca só a cor. Estático: nenhuma classe
  * de animação em loop — um banner piscando numa sessão de 30 minutos é
@@ -25,7 +25,7 @@ export function ImpersonationBanner({ active }: { active: ActiveImpersonation | 
   if (!active) return null;
 
   return (
-    <div className="flex min-h-11 flex-wrap items-center justify-between gap-3 bg-critico px-4 py-2 text-sobre-acento">
+    <div className="flex min-h-11 flex-wrap items-center justify-between gap-3 bg-critico px-4 py-2 text-sobre-critico">
       <span className="tipo-den-corpo">
         {`Você está vendo como ${active.targetAccountId} — sessão da equipe.`}
       </span>

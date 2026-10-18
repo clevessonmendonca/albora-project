@@ -131,7 +131,13 @@ function escuro(c: Colors, rampa: RampaEscura = RAMPA_ESCURA): SemanticScale {
   const superficie = sobre(rampa.superficie);
   const legivel = (cor: string) => acentoLegivelSobre(cor, bg, superficieAlta);
   const tintaLegivel = (cor: string) => acentoLegivelSobre(cor, bg, superficie);
+  const suaveDe = (cor: string) => [bg, superficie, superficieAlta].map((base) => misturarHex(base, cor, 0.1));
+  const sobreSuave = (cor: string) => {
+    const um = acentoLegivelSobre(cor, bg, superficieAlta, ...suaveDe(cor));
+    return acentoLegivelSobre(um, bg, superficieAlta, ...suaveDe(um));
+  };
   const ink3Escuro = tintaLegivel(sobre(rampa.ink3));
+  const criticoEscuro = sobreSuave(c.critico);
 
   return {
     bg,
@@ -142,9 +148,10 @@ function escuro(c: Colors, rampa: RampaEscura = RAMPA_ESCURA): SemanticScale {
     ink2: comDegrauSobre(tintaLegivel(sobre(rampa.ink2)), ink3Escuro, bg),
     ink: c.papel,
     acento: c.acento,
-    acentoTexto: legivel(c.acento),
+    acentoTexto: sobreSuave(c.acento),
     sobreAcento: rotuloSobre(c.acento, bg, c.papel),
-    critico: legivel(c.critico),
+    sobreCritico: rotuloSobre(criticoEscuro, bg, c.papel),
+    critico: criticoEscuro,
     atencao: legivel(c.atencao),
     positivo: legivel(c.positivo),
     informativo: legivel(c.informativo),
@@ -157,8 +164,14 @@ function claro(c: Colors): SemanticScale {
   const bg = sobre(RAMPA_CLARA.bg);
   const legivel = (cor: string) => acentoLegivelSobre(cor, bg, c.papel);
   const fundoMaisFundo = sobre(RAMPA_CLARA.linha);
+  const suaveDe = (cor: string) => [bg, c.papel].map((base) => misturarHex(base, cor, 0.1));
+  const sobreSuave = (cor: string) => {
+    const um = acentoLegivelSobre(cor, bg, c.papel, ...suaveDe(cor));
+    return acentoLegivelSobre(um, bg, c.papel, ...suaveDe(um));
+  };
   const tintaLegivel = (cor: string) => acentoLegivelSobre(cor, fundoMaisFundo, c.papel);
   const ink3Claro = tintaLegivel(sobre(RAMPA_CLARA.ink3));
+  const criticoClaro = sobreSuave(c.critico);
 
   return {
     bg,
@@ -169,9 +182,10 @@ function claro(c: Colors): SemanticScale {
     ink2: comDegrauSobre(tintaLegivel(sobre(RAMPA_CLARA.ink2)), ink3Claro, bg),
     ink: c.tinta,
     acento: c.acento,
-    acentoTexto: legivel(c.acento),
+    acentoTexto: sobreSuave(c.acento),
     sobreAcento: rotuloSobre(c.acento, c.tinta, c.papel),
-    critico: legivel(c.critico),
+    sobreCritico: rotuloSobre(criticoClaro, c.tinta, c.papel),
+    critico: criticoClaro,
     atencao: legivel(c.atencao),
     positivo: legivel(c.positivo),
     informativo: legivel(c.informativo),

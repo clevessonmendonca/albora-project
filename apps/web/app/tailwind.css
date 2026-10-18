@@ -29,6 +29,7 @@
   --color-acento: var(--acento);
   --color-acento-texto: var(--acento-texto);
   --color-sobre-acento: var(--sobre-acento);
+  --color-sobre-critico: var(--sobre-critico);
   --color-critico: var(--critico);
   --color-atencao: var(--atencao);
   --color-positivo: var(--positivo);

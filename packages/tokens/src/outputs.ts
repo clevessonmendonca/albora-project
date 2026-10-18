@@ -27,6 +27,7 @@ export function toVariables(tokens: Tokens, opcoes: OpcoesDeEscala = {}): Record
     "--acento": scale.acento,
     "--acento-texto": scale.acentoTexto,
     "--sobre-acento": scale.sobreAcento,
+    "--sobre-critico": scale.sobreCritico,
     "--critico": scale.critico,
     "--atencao": scale.atencao,
     "--positivo": scale.positivo,

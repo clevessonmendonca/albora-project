@@ -96,6 +96,8 @@ export type SemanticScale = {
   acentoTexto: string;
   /** Rótulo sobre preenchimento de acento — não é `bg`: sobre âmbar, papel reprova contraste. */
   sobreAcento: string;
+  /** Rótulo sobre preenchimento `critico` (botão destrutivo) — `sobreAcento` reprova sobre o vermelho do claro. */
+  sobreCritico: string;
   critico: string;
   atencao: string;
   positivo: string;
