@@ -84,3 +84,20 @@ describe("Payoffdepois — Momentos da noite", () => {
     expect(titulos).toEqual(["Chegadas", "Cerimônia", "Jantar"]);
   });
 });
+
+describe("Payoffdepois — ordem", () => {
+  it("novas para você, depois o Reviver, depois guardar as fotos", () => {
+    render(
+      <Payoffdepois
+        base="/admin/e/1"
+        payoff={payoff({ novas: 38 })}
+        capitulos={[capitulo("c1", "A cerimônia", "2026-10-12T20:00:00Z", 12)]}
+        fuso={FUSO}
+        reviver={<section>Reviva a festa</section>}
+      />,
+    );
+    const texto = document.body.textContent ?? "";
+    expect(texto.indexOf("38 fotos que você ainda não viu")).toBeLessThan(texto.indexOf("Reviva a festa"));
+    expect(texto.indexOf("Reviva a festa")).toBeLessThan(texto.indexOf("Guardar suas fotos"));
+  });
+});
