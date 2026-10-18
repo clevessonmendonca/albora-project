@@ -9,10 +9,16 @@ import { SHELL } from "../../lib/types";
 export function WallPairingScreen({
   variaveis,
   codigo,
+  semConexao = false,
 }: {
   variaveis: Record<string, string>;
   codigo: string | null;
+  semConexao?: boolean;
 }) {
+  const [endereco, setEndereco] = useState("");
+  useEffect(() => {
+    setEndereco(`${window.location.host}/wall-pair`);
+  }, []);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -66,6 +72,16 @@ export function WallPairingScreen({
           <p className="tipo-body m-0 mt-6 text-[clamp(0.95rem,1.6vw,1.2rem)] text-ink-3">
             2. Autorize este código · 3. Pronto
           </p>
+          {endereco ? (
+            <p className="tipo-body m-0 mt-3 text-[clamp(0.9rem,1.5vw,1.1rem)] text-ink-3">
+              Sem o QR? Abra {endereco} no celular e digite o código.
+            </p>
+          ) : null}
+          {semConexao ? (
+            <p role="status" className="tipo-body m-0 mt-3 text-[clamp(0.9rem,1.5vw,1.1rem)] text-ink-2">
+              Sem conexão com a festa. Tentando de novo.
+            </p>
+          ) : null}
         </div>
 
         <div className="grid justify-items-center gap-4 md:justify-items-start">

@@ -38,6 +38,7 @@ export function useWallDisplay(
 
   const [cena, setCena] = useState<Cena | null>(null);
   const [carregou, setCarregou] = useState(false);
+  const [falhaCarga, setFalhaCarga] = useState(false);
   const [panico, setPanico] = useState(false);
   const [alternandoPanico, setAlternandoPanico] = useState(false);
   const [contadores, setContadores] = useState<ContadoresDaParede | null>(null);
@@ -112,6 +113,7 @@ export function useWallDisplay(
     }
 
     setCarregou(true);
+    setFalhaCarga(false);
   }, [medir]);
 
   const puxar = useCallback(async () => {
@@ -119,13 +121,17 @@ export function useWallDisplay(
     try {
       resposta = await fetch("/api/wall", { credentials: "same-origin", cache: "no-store" });
     } catch {
+      setFalhaCarga(true);
       return;
     }
     if (resposta.status === 401) {
       onNaoAutorizado();
       return;
     }
-    if (!resposta.ok) return;
+    if (!resposta.ok) {
+      setFalhaCarga(true);
+      return;
+    }
 
     const corpo = (await resposta.json()) as PaginaWallApi;
     processarPagina(corpo);
@@ -239,11 +245,18 @@ export function useWallDisplay(
     };
   }, [fase, puxar, streamConectado]);
 
+  useEffect(() => {
+    if (fase !== "exibindo" || carregou) return;
+    const p = window.setInterval(() => void puxar(), POLL_MIDIA_MS);
+    return () => window.clearInterval(p);
+  }, [fase, carregou, puxar]);
+
   const itemDe = useCallback((id: string) => itensRef.current.get(id), []);
 
   return {
     cena,
     carregou,
+    falhaCarga,
     panico,
     alternandoPanico,
     alternarPanico,
