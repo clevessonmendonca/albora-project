@@ -80,7 +80,7 @@ describe("GET álbum do anfitrião", () => {
     const r = await GET(new Request(`https://x.test/api/admin/events/${EVENT_ID}/album`), {
       params: Promise.resolve({ eventId: EVENT_ID }),
     });
-    const corpo = await r.json();
+    const corpo = (await r.json()) as { momentos: unknown; itens: { momentoId: string }[]; pessoas: unknown };
     expect(corpo.momentos).toEqual([
       { id: "m-a", titulo: "Brinde" },
       { id: "m-b", titulo: "Pista" },
