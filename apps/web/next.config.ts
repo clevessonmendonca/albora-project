@@ -1,9 +1,10 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
+import { resolve } from "node:path";
 import { OPS_TO_CONSOLE_REDIRECTS } from "./lib/redirects/ops-to-console";
 
 const nextConfig: NextConfig = {
-  outputFileTracingRoot: process.cwd(),
+  outputFileTracingRoot: resolve(process.cwd(), "../.."),
   serverExternalPackages: ["pdf-lib", "@pdf-lib/fontkit"],
   transpilePackages: ["@albora/core", "@albora/packs", "@albora/tokens", "@albora/ui-web", "@albora/integrations"],
   images: {
