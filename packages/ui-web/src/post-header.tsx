@@ -22,13 +22,7 @@ export function PostHeader({
   autorHref?: string | undefined;
   linkComponent?: ComponentType<{ href: string; className?: string; children?: ReactNode }> | "a";
 }) {
-  const avatarNode = autorHref ? (
-    <LinkComponent href={autorHref} className="no-underline" aria-label={`Ver fotos de ${author}`}>
-      <PostAuthorAvatar name={author} />
-    </LinkComponent>
-  ) : (
-    <PostAuthorAvatar name={author} />
-  );
+  const avatarNode = <PostAuthorAvatar name={author} />;
 
   const autorNode = autorHref ? (
     <LinkComponent

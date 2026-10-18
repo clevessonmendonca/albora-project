@@ -7,6 +7,7 @@ import { Star, CommentIcon, ShareIcon, MoreIcon, AnimatedCounter, BottomSheet, s
 import { useComments } from "@/features/feed/hooks/use-comments";
 import { useReaction, type ResultadoReacao } from "@/features/feed/hooks/use-reaction";
 import { useReactionList } from "@/features/feed/hooks/use-reaction-list";
+import { useMontarAoAbrir } from "@/features/feed/hooks/use-montar-ao-abrir";
 
 // Code splitting: lazy load sheet components (used only on user interaction)
 const CommentSheet = dynamic(() => import("./comment-sheet").then(m => ({ default: m.CommentSheet })), {
@@ -62,6 +63,10 @@ export const PhotoInteraction = memo(function PhotoInteraction({
   const [denunciaAberta, setDenunciaAberta] = useState(false);
   const [overflowAberto, setOverflowAberto] = useState(false);
   const [animandoStar, setAnimandoStar] = useState(false);
+  const montaOpcoes = useMontarAoAbrir(overflowAberto);
+  const montaReacoes = useMontarAoAbrir(listaReacoes.aberto);
+  const montaComentarios = useMontarAoAbrir(comentarios.aberto);
+  const montaDenuncia = useMontarAoAbrir(denunciaAberta);
 
   const alternarReacao = useCallback(async () => {
     const curtindo = reacao.minha === null;
@@ -169,7 +174,7 @@ export const PhotoInteraction = memo(function PhotoInteraction({
         )}
       </div>
 
-      {completo && (
+      {completo && montaOpcoes && (
         <BottomSheet title="Opções" open={overflowAberto} onClose={() => setOverflowAberto(false)}>
           <div className="flex flex-col">
             {minha && onCompartilhar && (
@@ -204,9 +209,13 @@ export const PhotoInteraction = memo(function PhotoInteraction({
         </BottomSheet>
       )}
 
-      <ReactionListSheet lista={listaReacoes} {...(onVerAutor ? { onVerAutor } : {})} />
-      {completo && <CommentSheet comentarios={comentarios} {...(onVerAutor ? { onVerAutor } : {})} />}
-      {completo && (
+      {montaReacoes && (
+        <ReactionListSheet lista={listaReacoes} {...(onVerAutor ? { onVerAutor } : {})} />
+      )}
+      {completo && montaComentarios && (
+        <CommentSheet comentarios={comentarios} {...(onVerAutor ? { onVerAutor } : {})} />
+      )}
+      {completo && montaDenuncia && (
         <ReportSheet
           open={denunciaAberta}
           onClose={() => setDenunciaAberta(false)}
