@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import * as hashPerceptual from "./hash-perceptual";
+import type * as hashPerceptual from "./hash-perceptual";
 import { hammingDistance } from "./hash-perceptual";
 import { rankForBook, type MediaScores } from "./ranking";
 
