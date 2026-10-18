@@ -423,7 +423,7 @@ export function EventControls({
       )}
 
       {ver("plano") && canManageCoupleOnly && plan === "free" && (
-        <AdminSection>
+        <AdminSection id="controle-plano">
           <h2 className="tipo-subtitle m-0 mb-3 text-ink">Assinar Completo</h2>
           <p className="tipo-body mb-4 mt-0 text-ink-2">
             Telão, ZIP e vídeos ilimitados. O convidado não vê cobrança — o plano sobe no
