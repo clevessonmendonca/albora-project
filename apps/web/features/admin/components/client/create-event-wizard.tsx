@@ -516,6 +516,11 @@ export function CreateEventWizard() {
                 <Glyph name="target" size={28} className="text-acento-texto" />
                 <h2 className="mt-5 font-titulo text-2xl">Pequenos convites, grandes lembranças.</h2>
                 <p className="mt-3 text-ink-2">As missões sugerem fotos para seus convidados. Escolha as que combinam com a festa ou crie as suas.</p>
+                {activeMissions.length + customMissions.length === 0 && (
+                  <p role="status" className="my-6 rounded-token border border-linha bg-superficie-alta p-4 text-ink-2">
+                    Nenhuma missão escolhida. Seus convidados ainda podem mandar fotos livremente, e você adiciona missões quando quiser, depois de criar o evento.
+                  </p>
+                )}
                 <ul className="my-6 divide-y divide-linha">
                   {missionToggles.filter((mission) => mission.on).map((mission) => (
                     <li key={mission.key} className="flex items-center gap-3 py-3"><Glyph name="check" size={16} className="text-acento-texto" />{mission.label}</li>
@@ -532,7 +537,10 @@ export function CreateEventWizard() {
                   { label: "Nome do evento", value: displayTitle, target: 1 },
                   { label: "Data e hora", value: rotuloData(date), target: 1 },
                   { label: "Identidade", value: EVENT_STYLES.find((style) => style.chave === styleKey)?.nome, target: 2 },
-                  { label: "Participação", value: `${activeMissions.length + customMissions.length} missões selecionadas`, target: 3 },
+                  { label: "Participação", value:
+                      activeMissions.length + customMissions.length === 0
+                        ? "Sem missões, só fotos livres"
+                        : `${activeMissions.length + customMissions.length} ${activeMissions.length + customMissions.length === 1 ? "missão selecionada" : "missões selecionadas"}`, target: 3 },
                 ].map((item) => (
                   <div key={item.label} className="flex items-center justify-between gap-4 border-b border-linha p-5 last:border-b-0 sm:px-7">
                     <div className="min-w-0"><p className="text-sm text-ink-3">{item.label}</p><p className="mt-1 break-words font-medium">{item.value}</p></div>
