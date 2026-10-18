@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { POLL_PAREAMENTO_MS, type FaseWall } from "./types";
 
 export function useWallPairing(
@@ -6,6 +6,8 @@ export function useWallPairing(
   onPronto: (variaveis: Record<string, string>) => void,
 ) {
   const [codigo, setCodigo] = useState<string | null>(null);
+  const [semConexao, setSemConexao] = useState(false);
+  const temCodigo = useRef(false);
 
   useEffect(() => {
     if (fase !== "pareando") return;
@@ -14,18 +16,33 @@ export function useWallPairing(
     const abrir = async () => {
       try {
         const r = await fetch("/api/wall/pair", { method: "POST", credentials: "same-origin" });
-        if (!r.ok) return;
+        if (!r.ok) {
+          if (vivo) setSemConexao(true);
+          return;
+        }
         const { code } = (await r.json()) as { code: string };
-        if (vivo) setCodigo(code);
+        if (vivo) {
+          temCodigo.current = true;
+          setCodigo(code);
+          setSemConexao(false);
+        }
       } catch {
-        /* rede caiu: o próximo tick tenta de novo */
+        if (vivo) setSemConexao(true);
       }
     };
 
     const conferir = async () => {
+      if (!temCodigo.current) {
+        void abrir();
+        return;
+      }
       try {
         const r = await fetch("/api/wall/pair/status", { credentials: "same-origin" });
-        if (!r.ok) return;
+        if (!r.ok) {
+          if (vivo) setSemConexao(true);
+          return;
+        }
+        if (vivo) setSemConexao(false);
         const corpo = (await r.json()) as
           | { status: "pendente" }
           | { status: "expirado" }
@@ -34,11 +51,12 @@ export function useWallPairing(
         if (corpo.status === "pronto") {
           onPronto(corpo.variaveis);
         } else if (corpo.status === "expirado") {
+          temCodigo.current = false;
           setCodigo(null);
           void abrir();
         }
       } catch {
-        /* ignora e tenta no próximo tick */
+        if (vivo) setSemConexao(true);
       }
     };
 
@@ -50,5 +68,5 @@ export function useWallPairing(
     };
   }, [fase, onPronto]);
 
-  return { codigo };
+  return { codigo, semConexao };
 }

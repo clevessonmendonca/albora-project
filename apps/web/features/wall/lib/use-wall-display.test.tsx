@@ -53,4 +53,13 @@ describe("useWallDisplay — contadores do A4", () => {
     await waitFor(() => expect(onNaoAutorizado).toHaveBeenCalled());
     expect(result.current.contadores).toBeNull();
   });
+
+  it("5xx na primeira carga marca falhaCarga em vez de ficar mudo", async () => {
+    stubFetch({ message: "x" }, 503);
+
+    const { result } = renderHook(() => useWallDisplay("exibindo", vi.fn()));
+
+    await waitFor(() => expect(result.current.falhaCarga).toBe(true));
+    expect(result.current.carregou).toBe(false);
+  });
 });

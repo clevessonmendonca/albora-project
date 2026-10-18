@@ -56,10 +56,11 @@ export function WallClient({ initialVars }: { initialVars: Record<string, string
     setFase("pareando");
   }, []);
 
-  const { codigo } = useWallPairing(fase, onPronto);
+  const { codigo, semConexao } = useWallPairing(fase, onPronto);
   const {
     cena,
     carregou,
+    falhaCarga,
     panico,
     alternandoPanico,
     alternarPanico,
@@ -80,7 +81,7 @@ export function WallClient({ initialVars }: { initialVars: Record<string, string
   }, [fase, alternandoPanico, alternarPanico]);
 
   if (fase === "pareando") {
-    return <WallPairingScreen variaveis={variaveis} codigo={codigo} />;
+    return <WallPairingScreen variaveis={variaveis} codigo={codigo} semConexao={semConexao} />;
   }
 
   const cenaKey = cena ? `${cena.modelo}-${cena.ids.join(",")}` : "vazio";
@@ -133,14 +134,18 @@ export function WallClient({ initialVars }: { initialVars: Record<string, string
                 ? "Telão pausado"
                 : carregou
                   ? "Aguardando fotos"
-                  : "Conectando…"}
+                  : falhaCarga
+                    ? "Sem conexão"
+                    : "Conectando…"}
             </p>
             <p className="tipo-body m-0 mt-4 text-[clamp(0.95rem,1.6vw,1.15rem)] leading-relaxed text-ink-3">
               {panico
                 ? "Nenhuma foto nova aparece enquanto o telão estiver pausado."
                 : carregou
                   ? "As fotos da festa aparecem aqui assim que os convidados começarem a enviar."
-                  : "Conectando ao evento. Aguarde alguns instantes."}
+                  : falhaCarga
+                    ? "Não deu para carregar as fotos. Tentando de novo a cada poucos segundos."
+                    : "Conectando ao evento. Aguarde alguns instantes."}
             </p>
           </div>
         </div>
