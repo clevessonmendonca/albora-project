@@ -7,6 +7,9 @@ import { adminVars } from "./components/server/admin-shell";
 import { HostAlbum } from "./components/client/host-album";
 import { ConvidadosPage } from "./components/client/convidados-page";
 import { QrCodePrint } from "./components/client/qr-code-print";
+import { IdentityEditor } from "./components/client/identity-editor";
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }), useSearchParams: () => new URLSearchParams() }));
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
@@ -77,4 +80,13 @@ it.runIf(process.env.PREVIEW === "1")("captura álbum no modo selecionar", async
   fireEvent.click(screen.getByRole("button", { name: /Foto 2 de 4/ }));
   fireEvent.click(screen.getByRole("button", { name: /Foto 3 de 4/ }));
   save("album-lote", container);
+});
+
+it.runIf(process.env.PREVIEW === "1")("captura editor de identidade com monograma e momentos", () => {
+  const { container } = render(
+    <IdentityEditor eventId="exemplo" packId="casamento" initialExpectedGuests={150} initialTimezone="America/Sao_Paulo"
+      initialIdentityTokens={{ monograma: "A&J", momentos: [{ id: "cerimonia", titulo: "O sim" }, { id: "recepcao", titulo: "A recepção" }, { id: "m-brinde", titulo: "O brinde" }] }}
+      initialTitle="Ana & João" />,
+  );
+  save("identidade-editor", container);
 });
