@@ -6,6 +6,7 @@ Disallow: /admin/
 Disallow: /e/
 Disallow: /wall-display
 Disallow: /wall-pair
+Disallow: /wall-link
 Disallow: /scan
 Disallow: /ops/
 

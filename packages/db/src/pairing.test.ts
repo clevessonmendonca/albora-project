@@ -3,6 +3,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   autorizarPareamento,
   criarPareamento,
+  criarPareamentoPorLink,
+  pareamentoPorLinkValido,
   ErroAutorizacaoDePareamento,
   finalizarPareamento,
 } from "./pairing";
@@ -104,5 +106,34 @@ describe("a autorização recusa o que não pode passar", () => {
     await expect(
       autorizarPareamento(app, code, dados.a.eventoId, "1", new Date()),
     ).rejects.toMatchObject({ motivo: "expirado" });
+  });
+});
+
+describe("telão conectado por link do anfitrião", () => {
+  it("o link valida sem consumir e o poll com o mesmo token emite um crachá do evento, uma vez só", async () => {
+    const { linkToken } = await criarPareamentoPorLink(app, SEGREDO, dados.a.eventoId, "1", daqui(120));
+
+    expect((await pareamentoPorLinkValido(app, SEGREDO, linkToken, new Date())).valido).toBe(true);
+    expect((await pareamentoPorLinkValido(app, SEGREDO, linkToken, new Date())).valido).toBe(true);
+
+    const pronto = await finalizarPareamento(app, SEGREDO, linkToken, daqui(720), new Date());
+    expect(pronto.status).toBe("pronto");
+    if (pronto.status !== "pronto") throw new Error("inalcançável");
+    expect(pronto.eventoId).toBe(dados.a.eventoId);
+    expect(await resolverParede(app, SEGREDO, pronto.cracha)).toEqual({ eventoId: dados.a.eventoId });
+
+    expect((await pareamentoPorLinkValido(app, SEGREDO, linkToken, new Date())).valido).toBe(false);
+    expect(await finalizarPareamento(app, SEGREDO, linkToken, daqui(720), new Date())).toEqual({
+      status: "expirado",
+    });
+  });
+
+  it("link expirado ou forjado não abre", async () => {
+    const { linkToken } = await criarPareamentoPorLink(app, SEGREDO, dados.a.eventoId, "1", daqui(-1));
+    expect((await pareamentoPorLinkValido(app, SEGREDO, linkToken, new Date())).valido).toBe(false);
+    expect((await pareamentoPorLinkValido(app, SEGREDO, "forjado.x", new Date())).valido).toBe(false);
+    expect(await finalizarPareamento(app, SEGREDO, linkToken, daqui(720), new Date())).toEqual({
+      status: "expirado",
+    });
   });
 });
