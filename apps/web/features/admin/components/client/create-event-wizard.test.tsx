@@ -207,4 +207,40 @@ describe("CreateEventWizard — Tipo · Detalhes · Identidade · Participação
     await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
     expect(missoesEnviadas).toHaveLength(total - 1);
   });
+
+  it("Pronto com o evento em rascunho: não diz que dá pra entrar e oferece Publicar", async () => {
+    const patches: unknown[] = [];
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url === "/api/admin/vendors") return responder({ vendors: [] });
+      if (url === "/api/admin/events") return responder({ eventoId: "evento-4", slug: "slug-4" });
+      if (url === "/api/admin/events/evento-4" && init?.method === "PATCH") {
+        patches.push(JSON.parse(String(init.body)));
+        return responder({ status: "active" });
+      }
+      throw new Error(`fetch inesperado: ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<CreateEventWizard />);
+    await waitFor(() =>
+      expect(screen.getByText("O que vocês estão celebrando?")).toBeInTheDocument(),
+    );
+    irParaDetalhes();
+    preencherDetalhes();
+    continuar();
+    revisarECriarEvento();
+
+    await waitFor(() => expect(screen.getByText(/está pronto/)).toBeInTheDocument());
+    expect(screen.getByText(/Os convidados ainda não entram/)).toBeInTheDocument();
+    expect(screen.queryByText(/Já dá pra entrar/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Ver como convidado")).not.toBeInTheDocument();
+    expect(screen.queryByText("Compartilhar")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Publicar para os convidados entrarem/ }));
+    await waitFor(() => expect(screen.getByText(/Já dá pra entrar/)).toBeInTheDocument());
+    expect(patches).toEqual([{ status: "active" }]);
+    expect(screen.getByText("Ver como convidado")).toBeInTheDocument();
+    expect(screen.getByText("Compartilhar")).toBeInTheDocument();
+  });
 });
