@@ -63,6 +63,56 @@ export async function criarPareamento(
   throw new Error("não foi possível gerar um código de pareamento livre");
 }
 
+/** 🔴 Gerar um link novo expira os pareamentos autorizados ainda vivos do evento: o link anterior deixa de valer. Quem chama já provou ser anfitrião do evento: gerar o link É a autorização. O segredo do link só existe na URL (fragmento) e vira o token de poll da TV; consumo e crachá seguem o fluxo de `finalizarPareamento`. */
+export async function criarPareamentoPorLink(
+  pool: Pool,
+  segredo: string,
+  eventoId: string,
+  consentimentoVersao: string,
+  expiraEm: Date,
+  rand: () => number = Math.random,
+): Promise<{ linkToken: string }> {
+  for (let tentativa = 0; tentativa < MAX_TENTATIVAS_DE_CODIGO; tentativa++) {
+    const code = gerarCodigo(rand);
+    const { token, hash } = emitirToken(segredo);
+    try {
+      await pool.query(
+        `UPDATE wall_pairings SET status = 'consumido'
+          WHERE event_id = $1 AND status = 'autorizado'`,
+        [eventoId],
+      );
+      await pool.query(
+        `INSERT INTO wall_pairings (code, poll_token_hash, event_id, status, consent_version, expires_at)
+         VALUES ($1, $2, $3, 'autorizado', $4, $5)`,
+        [code, hash, eventoId, consentimentoVersao, expiraEm],
+      );
+      return { linkToken: token };
+    } catch (e) {
+      if (ehColisaoDeChave(e)) continue;
+      throw e;
+    }
+  }
+  throw new Error("não foi possível gerar um código de pareamento livre");
+}
+
+/** Não consome: pré-visualizadores de link e segundas aberturas não gastam o link; só o poll da TV consome. */
+export async function pareamentoPorLinkValido(
+  pool: Pool,
+  segredo: string,
+  linkToken: string,
+  agora: Date,
+): Promise<{ valido: true; expiraEm: Date } | { valido: false }> {
+  if (!assinaturaValida(segredo, linkToken)) return { valido: false };
+
+  const { rows } = await pool.query<{ expires_at: Date }>(
+    `SELECT expires_at FROM wall_pairings
+      WHERE poll_token_hash = $1 AND status = 'autorizado' AND expires_at > $2`,
+    [hashDoToken(linkToken), agora],
+  );
+  const linha = rows[0];
+  return linha ? { valido: true, expiraEm: linha.expires_at } : { valido: false };
+}
+
 /** 🔴 eventoId vem da sessão do autorizador — a TV não escolhe o evento que vai mostrar. */
 export async function autorizarPareamento(
   pool: Pool,

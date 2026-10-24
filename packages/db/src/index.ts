@@ -97,8 +97,10 @@ export type {
 export {
   autorizarPareamento,
   criarPareamento,
+  criarPareamentoPorLink,
   ErroAutorizacaoDePareamento,
   finalizarPareamento,
+  pareamentoPorLinkValido,
 } from "./pairing";
 
 export type { ComentarioComAutor, ComentarioGravado } from "./comment-db";

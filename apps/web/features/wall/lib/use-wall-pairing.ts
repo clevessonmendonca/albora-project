@@ -13,6 +13,14 @@ export function useWallPairing(
 
     const abrir = async () => {
       try {
+        const rs = await fetch("/api/wall/pair/status", { credentials: "same-origin" });
+        if (rs.ok) {
+          const atual = (await rs.json()) as { status: string; variaveis?: Record<string, string> };
+          if (atual.status === "pronto" && atual.variaveis) {
+            if (vivo) onPronto(atual.variaveis);
+            return;
+          }
+        }
         const r = await fetch("/api/wall/pair", { method: "POST", credentials: "same-origin" });
         if (!r.ok) return;
         const { code } = (await r.json()) as { code: string };

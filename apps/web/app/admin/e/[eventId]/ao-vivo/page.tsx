@@ -1,8 +1,10 @@
+import { podeUsarTelao } from "@albora/core";
 import Link from "next/link";
 import { EventPageLayout } from "@/features/admin/components/server/event-page-layout";
 import { AdminCard, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { LiveSummary } from "@/features/admin/components/client/live-summary";
 import { ReviewQueue } from "@/features/admin/components/client/review-queue";
+import { WallLinkSender } from "@/features/admin/components/client/wall-link-sender";
 import { EventControls } from "@/features/admin/components/client/event-controls";
 
 export const dynamic = "force-dynamic";
@@ -74,6 +76,7 @@ export default async function LiveEventPage({ params }: { params: Promise<{ even
                   <p className="tipo-caption mb-0 mt-3 text-ink-2">
                     O convite continua disponível pelo QR enquanto o telão está pausado.
                   </p>
+                  <WallLinkSender eventId={eventId} podeUsarTelao={podeUsarTelao(evento.plan)} />
                 </AdminCard>
 
                 <section className="border-y border-linha py-6" aria-labelledby="live-invite-heading">
