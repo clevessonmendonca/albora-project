@@ -25,6 +25,7 @@ export function useScanQr() {
   const [naoEntendi, setNaoEntendi] = useState(false);
   const [podeEscanear, setPodeEscanear] = useState(false);
   const [escaneando, setEscaneando] = useState(false);
+  const [cameraNegada, setCameraNegada] = useState(false);
 
   const campo = useRef<HTMLInputElement>(null);
   const visor = useRef<HTMLVideoElement>(null);
@@ -68,6 +69,7 @@ export function useScanQr() {
         if (vivo) {
           setEscaneando(false);
           setPodeEscanear(false);
+          setCameraNegada(true);
           campo.current?.focus();
         }
         return;
@@ -121,6 +123,7 @@ export function useScanQr() {
     podeEscanear,
     escaneando,
     setEscaneando,
+    cameraNegada,
     campo,
     visor,
     enviarCodigo,
