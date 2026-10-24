@@ -21,13 +21,18 @@ export function MenuDaConta({ email }: { email: string }) {
   const [aberto, setAberto] = useState(false);
   const [confirmandoSaida, setConfirmandoSaida] = useState(false);
   const [saindo, setSaindo] = useState(false);
+  const [erroSaida, setErroSaida] = useState(false);
 
   async function sair() {
     setSaindo(true);
+    setErroSaida(false);
     try {
-      await fetch("/api/admin/sair", { method: "POST" });
-    } finally {
+      const r = await fetch("/api/admin/sair", { method: "POST" });
+      if (!r.ok) throw new Error("falhou");
       window.location.assign("/admin/sign-in");
+    } catch {
+      setErroSaida(true);
+      setSaindo(false);
     }
   }
 
@@ -83,10 +88,22 @@ export function MenuDaConta({ email }: { email: string }) {
 
       <ConfirmDialog
         open={confirmandoSaida}
-        onClose={() => setConfirmandoSaida(false)}
+        onClose={() => {
+          setConfirmandoSaida(false);
+          setErroSaida(false);
+        }}
         onConfirm={sair}
         title="Sair desta conta?"
-        description="Para voltar você precisa de um novo link de acesso, enviado por e-mail."
+        description={
+          <>
+            <p className="m-0">Para voltar você precisa de um novo link de acesso, enviado por e-mail.</p>
+            {erroSaida && (
+              <p role="alert" className="m-0 mt-3 text-critico">
+                Não deu para sair agora, a sessão continua aberta. Confira a conexão e tente de novo.
+              </p>
+            )}
+          </>
+        }
         confirmLabel="Sair"
         pending={saindo}
       />

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Card, PrimaryButton, SecondaryButton } from "@albora/ui-web";
+import { PrimaryButton, SecondaryButton } from "@albora/ui-web";
 import { ClaimPhotosButton } from "@/features/guest/components/client/claim-photos-button";
 
 type SuccessStepProps = {
@@ -55,18 +55,18 @@ export function SuccessStep({
         </ul>
       </div>
 
-      {showPwaInstall && onInstallPwa && (
-        <Card elevation={1} className="grid gap-3">
-          <p className="m-0 tipo-caption font-medium text-ink">
-            Instale o app para enviar fotos mais rápido
-          </p>
-          <PrimaryButton onClick={onInstallPwa}>Instalar agora</PrimaryButton>
-        </Card>
-      )}
-
       <div className="grid gap-3">
         <PrimaryButton onClick={onRestart}>Tirar outra</PrimaryButton>
         <SecondaryButton onClick={onViewFeed}>Ver no feed</SecondaryButton>
+        {showPwaInstall && onInstallPwa && (
+          <button
+            type="button"
+            onClick={onInstallPwa}
+            className="min-h-11 cursor-pointer border-0 bg-transparent text-center tipo-caption text-ink-2 underline underline-offset-4"
+          >
+            Instalar o app para enviar mais rápido
+          </button>
+        )}
       </div>
 
       {eventId && (

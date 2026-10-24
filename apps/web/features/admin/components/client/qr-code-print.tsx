@@ -97,13 +97,10 @@ export function QrCodePrint({
         }
       `}</style>
 
-      <div className="print:hidden mb-7 max-w-2xl">
+      <div className="print:hidden mb-6 max-w-2xl">
         <h2 className="m-0 font-titulo text-[clamp(2rem,4vw,3rem)] font-light leading-tight text-balance">
           Um convite. Todos os olhares.
         </h2>
-        <p className="tipo-body mt-3 mb-0 text-ink-2">
-          Envie o link antes da festa ou deixe o QR à vista para receber as fotos de quem está com vocês.
-        </p>
       </div>
 
       {isDraft && (
@@ -134,7 +131,7 @@ export function QrCodePrint({
             dangerouslySetInnerHTML={{ __html: svgString }}
           />
 
-          <div className="text-center">
+          <div className="hidden text-center print:block">
             <p className="tipo-caption mb-0 mt-0 break-all font-mono text-ink-2">{guestUrl}</p>
           </div>
 
@@ -163,11 +160,7 @@ export function QrCodePrint({
           </button>
         </div>
         <p role="status" className="mt-2 min-h-5 text-sm text-ink-2">
-          {copied
-            ? "Link copiado."
-            : isDraft
-              ? "Publique o evento para liberar a entrada pelo link."
-              : "O mesmo link funciona antes e durante o evento."}
+          {copied ? "Link copiado." : ""}
         </p>
         <VerComoConvidado eventId={eventId} slug={slug} rotulo="Testar como convidado" />
       </div>
@@ -183,9 +176,8 @@ export function QrCodePrint({
               className="aspect-[4/3] w-full object-cover"
             />
             <figcaption className="p-6 text-center">
-              <p className="m-0 break-words font-titulo text-2xl font-light">{eventName}</p>
-              {dateLabel && <p className="mt-3 text-sm text-ink-2">{dateLabel}</p>}
-              <p className="mt-4 mb-0 text-sm leading-relaxed text-ink-2">
+              {dateLabel && <p className="m-0 text-sm text-ink-2">{dateLabel}</p>}
+              <p className="mt-3 mb-0 text-sm leading-relaxed text-ink-2">
                 As melhores memórias são feitas juntos.<br />Registre a sua com a gente.
               </p>
             </figcaption>
@@ -198,25 +190,7 @@ export function QrCodePrint({
           <h2 id="print-invite-heading" className="m-0 font-titulo text-2xl font-light">
             Leve o convite para a festa
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-ink-2">
-            Use o PNG em uma arte ou baixe a placa em PDF para imprimir. Coloque o QR nas mesas ou na entrada.
-          </p>
       <div className="mt-5 flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className={adminClasses.secondaryButton}
-        >
-          Imprimir
-        </button>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => void handleDownloadPng()}
-          className={`${adminClasses.secondaryButton} ${busy ? "cursor-wait opacity-60" : ""}`}
-        >
-          {downloading === "png" ? "Gerando…" : "Baixar PNG"}
-        </button>
         <button
           type="button"
           disabled={busy}
@@ -226,6 +200,29 @@ export function QrCodePrint({
           {downloading === "pdf" ? "Gerando…" : "Baixar PDF"}
         </button>
       </div>
+      <details className="group mt-4">
+        <summary className="inline-flex min-h-11 cursor-pointer list-none items-center gap-1.5 tipo-caption text-ink-3 transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento-texto">
+          Outros formatos
+          <span aria-hidden className="transition-transform group-open:rotate-180">⌄</span>
+        </summary>
+        <div className="mt-2 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className={adminClasses.secondaryButton}
+          >
+            Imprimir
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void handleDownloadPng()}
+            className={`${adminClasses.secondaryButton} ${busy ? "cursor-wait opacity-60" : ""}`}
+          >
+            {downloading === "png" ? "Gerando…" : "Baixar PNG"}
+          </button>
+        </div>
+      </details>
         </section>
       </aside>
       </div>

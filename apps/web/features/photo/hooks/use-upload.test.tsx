@@ -219,6 +219,26 @@ describe("useUpload — orquestrador do caminho crítico presign→PUT→confirm
     });
   });
 
+  describe("lote — cada arquivo passa pelo mesmo caminho de uma foto", () => {
+    it("processarFoto (remoção de EXIF/GPS) roda para cada arquivo antes de cada enqueue, e cada um vira um item", async () => {
+      const { result } = renderHook(() => useUpload("evt1", opcoes()));
+
+      await act(async () => {
+        for (const nome of ["a", "b", "c"]) {
+          await result.current.enfileirarFoto({ arquivo: arquivoFoto({ lastModified: 1_700_000_000_000 }), desafioId: nome });
+        }
+      });
+
+      expect(processarFoto).toHaveBeenCalledTimes(3);
+      expect(webQueue.enqueue).toHaveBeenCalledTimes(3);
+      const processar = vi.mocked(processarFoto).mock.invocationCallOrder;
+      const enfileirar = vi.mocked(webQueue.enqueue).mock.invocationCallOrder;
+      processar.forEach((ordem, i) => expect(ordem).toBeLessThan(enfileirar[i]!));
+      const ids = vi.mocked(webQueue.enqueue).mock.calls.map((c) => c[0].id);
+      expect(new Set(ids).size).toBe(3);
+    });
+  });
+
   describe("HEIC — decisão fica no aparelho, nunca no `File.type`", () => {
     it("recusa quando o aparelho não decodifica HEIC, sem enfileirar nada", async () => {
       vi.mocked(deviceDecodes).mockResolvedValue(false);
