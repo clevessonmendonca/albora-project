@@ -3,7 +3,7 @@
 import type { CodigoDaTese } from "@albora/core";
 import { Badge } from "@albora/ui-web";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { AdminSection } from "@/features/admin/components/server/admin-shell";
 import { useModerationCount } from "./moderation-count-context";
 import { AtualizadoHa, RefreshButton } from "./refresh-control";
@@ -45,7 +45,16 @@ type Props = {
   eventoId: string;
 };
 
-export function LiveSummary({ eventoId }: Props) {
+type EstadoDoResumo = {
+  resumo: Resumo | null;
+  erro: boolean;
+  primeiraFotoToast: boolean;
+  ultimaAtualizacao: Date | null;
+  atualizando: boolean;
+  recarregar: () => void;
+};
+
+function useResumoAoVivo(eventoId: string, ativo: boolean): EstadoDoResumo {
   const [resumo, setResumo] = useState<Resumo | null>(null);
   const [erro, setErro] = useState(false);
   const [primeiraFotoToast, setPrimeiraFotoToast] = useState(false);
@@ -83,16 +92,116 @@ export function LiveSummary({ eventoId }: Props) {
   }, [eventoId, setCount]);
 
   useEffect(() => {
+    if (!ativo) return;
     void carregar();
     const id = window.setInterval(() => void carregar(), INTERVALO_MS);
     return () => window.clearInterval(id);
-  }, [carregar]);
+  }, [ativo, carregar]);
 
   useEffect(() => {
     if (!primeiraFotoToast) return;
     const id = setTimeout(() => setPrimeiraFotoToast(false), 7000);
     return () => clearTimeout(id);
   }, [primeiraFotoToast]);
+
+  const recarregar = useCallback(() => {
+    setAtualizando(true);
+    void carregar().finally(() => setAtualizando(false));
+  }, [carregar]);
+
+  return { resumo, erro, primeiraFotoToast, ultimaAtualizacao, atualizando, recarregar };
+}
+
+const ResumoCompartilhado = createContext<EstadoDoResumo | null>(null);
+
+/** Uma só busca para a faixa do topo e o painel completo da mesma tela. */
+export function LiveSummaryProvider({ eventoId, children }: { eventoId: string; children: ReactNode }) {
+  const estado = useResumoAoVivo(eventoId, true);
+  return <ResumoCompartilhado.Provider value={estado}>{children}</ResumoCompartilhado.Provider>;
+}
+
+function useResumoDaTela(eventoId: string): EstadoDoResumo {
+  const compartilhado = useContext(ResumoCompartilhado);
+  const proprio = useResumoAoVivo(eventoId, compartilhado === null);
+  return compartilhado ?? proprio;
+}
+
+/** Faixa curta do topo do Ao vivo: a festa em uma linha, sem tirar a fila de revisão do primeiro plano. */
+export function LiveSummaryBar({ eventoId }: Props) {
+  const { resumo, erro } = useResumoDaTela(eventoId);
+
+  if (!resumo) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className="tipo-caption m-0 text-ink-3"
+      >
+        {erro ? "Resumo da festa indisponível agora." : "Carregando a festa…"}
+      </div>
+    );
+  }
+
+  const pessoas = resumo.sessoesTotais;
+  return (
+    <div className="flex min-w-0 flex-col gap-1">
+      <p className="tipo-label m-0 flex items-center gap-2 text-acento-texto">
+        <span
+          aria-hidden
+          className="size-1.5 shrink-0 animate-pulse rounded-full bg-current motion-reduce:animate-none"
+        />
+        A festa está acontecendo
+      </p>
+      <p
+        aria-live="polite"
+        className="m-0 font-titulo text-[clamp(1.25rem,2.6vw,1.75rem)] font-light leading-tight tabular-nums text-ink"
+      >
+        {resumo.totalFotos} {resumo.totalFotos === 1 ? "foto" : "fotos"} · {pessoas}{" "}
+        {pessoas === 1 ? "pessoa" : "pessoas"}
+      </p>
+    </div>
+  );
+}
+
+function AlertaDeDenuncias({ eventoId, denunciadas }: { eventoId: string; denunciadas: number }) {
+  if (denunciadas <= 0) return null;
+  return (
+    <div role="alert" className="mb-4 rounded-token border border-critico bg-critico/10 px-4 py-3.5">
+      <p className="tipo-body m-0 text-critico">
+        {denunciadas === 1
+          ? "Um convidado denunciou uma publicação."
+          : `${denunciadas} publicações foram denunciadas.`}
+      </p>
+      <p className="tipo-caption m-0 mt-1.5 max-w-[46ch] text-ink-2">
+        Já está fora do telão e do álbum. Precisa da sua decisão para voltar ou sair de vez.
+      </p>
+      <Link
+        href={`/admin/e/${eventoId}/moderation`}
+        className="tipo-caption mt-2.5 inline-block font-semibold text-critico"
+      >
+        Ver agora →
+      </Link>
+    </div>
+  );
+}
+
+/** Alerta acionável da tela Ao vivo: vem antes da fila e do resumo. */
+export function LiveSummaryAlert({ eventoId }: Props) {
+  const { resumo } = useResumoDaTela(eventoId);
+  if (!resumo) return null;
+  return <AlertaDeDenuncias eventoId={eventoId} denunciadas={resumo.denunciadas} />;
+}
+
+export function LiveSummary({ eventoId }: Props) {
+  const {
+    resumo,
+    erro,
+    primeiraFotoToast,
+    ultimaAtualizacao,
+    atualizando,
+    recarregar,
+  } = useResumoDaTela(eventoId);
+  const compartilhado = useContext(ResumoCompartilhado) !== null;
 
   if (erro && !resumo) {
     return (
@@ -166,35 +275,12 @@ export function LiveSummary({ eventoId }: Props) {
           {ultimaAtualizacao && <AtualizadoHa desde={ultimaAtualizacao} />}
           <RefreshButton
             loading={atualizando}
-            onClick={() => {
-              setAtualizando(true);
-              void carregar().finally(() => setAtualizando(false));
-            }}
+            onClick={recarregar}
           />
         </div>
       </div>
 
-      {resumo.denunciadas > 0 && (
-        <div
-          role="alert"
-          className="mb-4 rounded-token border border-critico bg-critico/10 px-4 py-3.5"
-        >
-          <p className="tipo-body m-0 text-critico">
-            {resumo.denunciadas === 1
-              ? "Um convidado denunciou uma publicação."
-              : `${resumo.denunciadas} publicações foram denunciadas.`}
-          </p>
-          <p className="tipo-caption m-0 mt-1.5 max-w-[46ch] text-ink-2">
-            Já está fora do telão e do álbum. Precisa da sua decisão para voltar ou sair de vez.
-          </p>
-          <Link
-            href={`/admin/e/${eventoId}/moderation`}
-            className="tipo-caption mt-2.5 inline-block font-semibold text-critico"
-          >
-            Ver agora →
-          </Link>
-        </div>
-      )}
+      {!compartilhado && <AlertaDeDenuncias eventoId={eventoId} denunciadas={resumo.denunciadas} />}
 
       {aindaSemFoto ? (
         <div className="rounded-token bg-superficie-alta px-4 py-5">
