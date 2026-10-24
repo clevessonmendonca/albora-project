@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { Badge } from "@albora/ui-web";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Badge, ConfirmDialog } from "@albora/ui-web";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 import { useModerationCount } from "./moderation-count-context";
 
@@ -31,7 +31,7 @@ type Comentario = {
 
 type Props = {
   eventoId: string;
-  onTotalChange?: (total: number) => void;
+  onTotalChange?: (total: number | null) => void;
 };
 
 function formatarHora(iso: string): string {
@@ -43,6 +43,10 @@ function formatarHora(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function foiDenunciada(m: Midia): boolean {
+  return m.denuncias > 0 || (m.pedidosDeRemocao ?? 0) > 0;
 }
 
 function SectionHeader({ label, count }: { label: string; count: number }) {
@@ -64,22 +68,28 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
   const [acao, setAcao] = useState<string | null>(null);
   const [acaoBulk, setAcaoBulk] = useState<"liberar" | "ocultar" | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [erroDeCarga, setErroDeCarga] = useState(false);
+  const [confirmando, setConfirmando] = useState<"liberar" | "ocultar" | null>(null);
+  const jaCarregou = useRef(false);
   const { setCount } = useModerationCount();
 
   const carregar = useCallback(async () => {
     setErro(null);
+    setErroDeCarga(false);
     try {
       const r = await fetch(`/api/admin/events/${eventoId}/review`);
       if (!r.ok) throw new Error("falhou");
       const corpo = (await r.json()) as { midias: Midia[]; comentarios: Comentario[] };
       setMidias(corpo.midias);
       setComentarios(corpo.comentarios);
+      jaCarregou.current = true;
       const total = corpo.midias.length + corpo.comentarios.length;
       onTotalChange?.(total);
       setCount(total);
     } catch {
       setErro("Não foi possível carregar a lista de revisão agora.");
-      onTotalChange?.(0);
+      setErroDeCarga(true);
+      if (!jaCarregou.current) onTotalChange?.(null);
     } finally {
       setCarregando(false);
     }
@@ -114,11 +124,13 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
   };
 
   const bulkMidia = async (acaoPedida: "liberar" | "ocultar") => {
+    setConfirmando(null);
     setAcaoBulk(acaoPedida);
     setErro(null);
     try {
-      await Promise.allSettled(
-        midias.map((m) =>
+      const alvo = acaoPedida === "liberar" ? midias.filter((m) => !foiDenunciada(m)) : midias;
+      const resultados = await Promise.allSettled(
+        alvo.map((m) =>
           fetch(`/api/admin/events/${eventoId}/review`, {
             method: "PATCH",
             headers: { "content-type": "application/json" },
@@ -126,7 +138,13 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
           }),
         ),
       );
+      const falhas = resultados.filter((r) => r.status === "rejected" || !r.value.ok).length;
       await carregar();
+      if (falhas > 0) {
+        setErro(
+          `${falhas} ${falhas === 1 ? "foto não foi concluída" : "fotos não foram concluídas"}. Elas continuam na lista.`,
+        );
+      }
     } catch {
       setErro("Não foi possível concluir a ação em lote. Verifique a lista.");
     } finally {
@@ -159,6 +177,27 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
     );
   }
 
+  if (erroDeCarga && !jaCarregou.current) {
+    return (
+      <div
+        role="alert"
+        className="flex flex-col items-center gap-3 rounded-token border border-linha bg-bg px-6 py-10 text-center"
+      >
+        <p className="m-0 font-titulo text-[0.9375rem] text-ink">Não deu para carregar a revisão</p>
+        <p className="m-0 max-w-[20rem] text-[0.8125rem] leading-relaxed text-ink-3">
+          Não sabemos se há fotos aguardando. Tente de novo antes de achar que está tudo revisado.
+        </p>
+        <button
+          type="button"
+          onClick={() => void carregar()}
+          className={`${adminClasses.primaryButtonSm} ${ALVO_TOQUE}`}
+        >
+          Tentar de novo
+        </button>
+      </div>
+    );
+  }
+
   if (midias.length === 0 && comentarios.length === 0) {
     return (
       <div className="flex flex-col items-center gap-3 rounded-token border border-linha bg-bg px-6 py-10 text-center">
@@ -183,6 +222,8 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
   }
 
   const hasBoth = midias.length > 0 && comentarios.length > 0;
+  const denunciadas = midias.filter(foiDenunciada).length;
+  const aprovaveis = midias.length - denunciadas;
 
   return (
     <div className="flex flex-col gap-3">
@@ -190,20 +231,27 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
         <div className="flex items-center justify-between rounded-token border border-linha bg-bg px-3.5 py-2.5">
           <span className="text-[0.8125rem] text-ink-3">
             {midias.length} fotos aguardando
+            {denunciadas > 0 && ` · ${denunciadas} com denúncia`}
           </span>
           <div className="flex gap-2">
+            {aprovaveis > 0 && (
+              <button
+                type="button"
+                disabled={acao !== null || acaoBulk !== null}
+                onClick={() => setConfirmando("liberar")}
+                className={`${adminClasses.primaryButtonSm} ${ALVO_TOQUE} ${acaoBulk === "liberar" ? "opacity-60" : ""}`}
+              >
+                {acaoBulk === "liberar"
+                  ? "Aprovando…"
+                  : denunciadas > 0
+                    ? `Aprovar sem denúncia (${aprovaveis})`
+                    : `Aprovar todas (${aprovaveis})`}
+              </button>
+            )}
             <button
               type="button"
               disabled={acao !== null || acaoBulk !== null}
-              onClick={() => void bulkMidia("liberar")}
-              className={`${adminClasses.primaryButtonSm} ${ALVO_TOQUE} ${acaoBulk === "liberar" ? "opacity-60" : ""}`}
-            >
-              {acaoBulk === "liberar" ? "Aprovando…" : `Aprovar todas (${midias.length})`}
-            </button>
-            <button
-              type="button"
-              disabled={acao !== null || acaoBulk !== null}
-              onClick={() => void bulkMidia("ocultar")}
+              onClick={() => setConfirmando("ocultar")}
               className={`${adminClasses.dangerButtonSm} ${ALVO_TOQUE} ${acaoBulk === "ocultar" ? "opacity-60" : ""}`}
             >
               {acaoBulk === "ocultar" ? "Ocultando…" : `Ocultar todas (${midias.length})`}
@@ -332,10 +380,39 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
       ))}
 
       {erro && (
-        <p role="alert" className="m-0 text-sm text-critico">
-          {erro}
-        </p>
+        <div role="alert" className="flex flex-wrap items-center gap-3">
+          <p className="m-0 text-sm text-critico">{erro}</p>
+          {erroDeCarga && (
+            <button
+              type="button"
+              onClick={() => void carregar()}
+              className={`${adminClasses.secondaryButton} ${ALVO_TOQUE}`}
+            >
+              Tentar de novo
+            </button>
+          )}
+        </div>
       )}
+
+      <ConfirmDialog
+        open={confirmando !== null}
+        onClose={() => setConfirmando(null)}
+        onConfirm={() => confirmando && void bulkMidia(confirmando)}
+        tone={confirmando === "ocultar" ? "danger" : "default"}
+        title={
+          confirmando === "ocultar"
+            ? `Ocultar as ${midias.length} fotos?`
+            : `Aprovar ${aprovaveis} ${aprovaveis === 1 ? "foto" : "fotos"}?`
+        }
+        description={
+          confirmando === "ocultar"
+            ? "Elas saem da fila e não aparecem para os convidados."
+            : denunciadas > 0
+              ? `${denunciadas} ${denunciadas === 1 ? "foto denunciada fica" : "fotos denunciadas ficam"} de fora e continua${denunciadas === 1 ? "" : "m"} na fila para você decidir uma a uma.`
+              : "Elas entram no álbum e no telão."
+        }
+        confirmLabel={confirmando === "ocultar" ? "Ocultar todas" : "Aprovar"}
+      />
     </div>
   );
 }
