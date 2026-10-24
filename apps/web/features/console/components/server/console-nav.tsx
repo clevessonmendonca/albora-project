@@ -9,7 +9,6 @@ import {
   AssinaturasIcon,
   AuditoriaIcon,
   ContasIcon,
-  EquipeIcon,
   EventosIcon,
   LgpdIcon,
   RetencaoIcon,
@@ -48,7 +47,6 @@ export const CONSOLE_NAV_ITEMS: readonly ConsoleNavItem[] = [
   { href: "/console/retention", label: "Retenção", capability: "retention.read", group: "operacao", Icone: RetencaoIcon },
   { href: "/console/audit", label: "Auditoria", capability: "audit.read", group: "governanca", Icone: AuditoriaIcon },
   { href: "/console/security", label: "Segurança", capability: "security.read", group: "governanca", Icone: SegurancaIcon },
-  { href: "/console/staff", label: "Equipe", capability: "staff.manage", group: "governanca", Icone: EquipeIcon },
 ];
 
 /** Item sem a capacidade não aparece — nem desabilitado. */
