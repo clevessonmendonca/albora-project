@@ -44,7 +44,7 @@ function estadoBadge(
   }
 }
 
-export function HostDriveExport({ eventoId }: { eventoId: string }) {
+export function HostDriveExport({ eventoId, cartao = false }: { eventoId: string; cartao?: boolean }) {
   const [estado, setEstado] = useState<EstadoDrive>(estadoInicialDrive());
   const [busy, setBusy] = useState(false);
   const confirmouConexao = useRef(false);
@@ -164,15 +164,16 @@ export function HostDriveExport({ eventoId }: { eventoId: string }) {
 
   return (
     <AdminSection>
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className={cartao ? "flex flex-col gap-4" : "flex flex-wrap items-start justify-between gap-4"}>
         <div>
           <div className="mb-2 flex flex-wrap items-center gap-2">
-            <h2 className="tipo-subtitle m-0 text-ink">Exportar para o Google Drive</h2>
+            <h2 className="tipo-subtitle m-0 text-ink">{cartao ? "Google Drive" : "Exportar para o Google Drive"}</h2>
             {badge && <Badge tone={badge.tone}>{badge.label}</Badge>}
           </div>
           <p className="tipo-body m-0 text-ink-2">
-            A cópia completa do acervo, direto no Drive do casal — sem prazo pra começar, quando vocês
-            quiserem depois da festa.
+            {cartao
+              ? "A cópia completa, direto no Drive de vocês."
+              : "A cópia completa do acervo, direto no Drive do casal — sem prazo pra começar, quando vocês quiserem depois da festa."}
           </p>
         </div>
 
