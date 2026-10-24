@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { middleware, config } from "./middleware";
+import { HEADER_CAMINHO_ADMIN } from "@/lib/admin-sign-in-redirect";
 
 const REF = "m".repeat(24);
 
@@ -38,7 +39,19 @@ describe("middleware albora_ref", () => {
     expect(res.cookies.get("albora_ref")).toBeUndefined();
   });
 
-  it("matcher cobre só as landings", () => {
-    expect(config.matcher).toEqual(["/", "/15-anos"]);
+  it("matcher cobre as landings e o painel", () => {
+    expect(config.matcher).toEqual(["/", "/15-anos", "/admin/:path*"]);
+  });
+
+  it("repassa o caminho do painel para a página de servidor", () => {
+    const res = middleware(new NextRequest("https://albora.test/admin/e/abc/ao-vivo?x=1"));
+    expect(res.headers.get(`x-middleware-request-${HEADER_CAMINHO_ADMIN}`)).toBe(
+      "/admin/e/abc/ao-vivo",
+    );
+  });
+
+  it("fora do painel não escreve o header", () => {
+    const res = middleware(new NextRequest("https://albora.test/"));
+    expect(res.headers.get(`x-middleware-request-${HEADER_CAMINHO_ADMIN}`)).toBeNull();
   });
 });
