@@ -173,7 +173,10 @@ function Confirm({ token, next }: { token: string; next: string | null }) {
       {status === "error" && (
         <p role="alert" className="tipo-caption m-0 text-critico">
           Este link está inválido ou expirou.{" "}
-          <a href="/admin/sign-in" className="text-acento-texto underline">
+          <a
+            href={next ? `/admin/sign-in?next=${encodeURIComponent(next)}` : "/admin/sign-in"}
+            className="text-acento-texto underline"
+          >
             Solicite um novo link.
           </a>
         </p>

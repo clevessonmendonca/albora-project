@@ -113,4 +113,49 @@ describe("harness do convidado", () => {
       );
     }
   }, 120_000);
+  it.runIf(process.env.PREVIEW === "1")("escreve o envio em lote", async () => {
+    const { Lote } = await import("../photo/components/client/lote");
+    const { marcaVars } = await import("./lib/event-vars");
+
+    const vars = Object.entries(marcaVars("dark") as Record<string, string>)
+      .map(([k, v]) => `${k}: ${v};`)
+      .join(" ");
+
+    const tons = ["slategray", "darkseagreen", "rosybrown", "lightsteelblue", "tan", "darkkhaki", "cadetblue", "burlywood"];
+    let n = 0;
+    URL.createObjectURL = () =>
+      `data:image/svg+xml;utf8,${encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="120" height="120" fill="${tons[(n++) % tons.length]}"/></svg>`,
+      )}`;
+
+    const arquivos = Array.from(
+      { length: 8 },
+      (_, i) => new File([`f${i}`], `f${i}.jpg`, { type: "image/jpeg" }),
+    );
+
+    const lote = renderToStaticMarkup(
+      <Lote
+        arquivos={arquivos}
+        excedeu={false}
+        momentos={[
+          { id: "cerimonia", title: "Cerimônia" },
+          { id: "recepcao", title: "Recepção" },
+          { id: "festa", title: "Festa" },
+          { id: "detalhes", title: "Detalhes" },
+        ]}
+        perguntaDoMomento="Qual momento você registrou?"
+        momentoInicial="recepcao"
+        onEnviar={() => {}}
+        onCancelar={() => {}}
+      />,
+    );
+    expect(lote).toContain("Enviar 8 fotos");
+
+    fs.mkdirSync(SAIDA, { recursive: true });
+    fs.writeFileSync(
+      `${SAIDA}/body-convidado-lote.html`,
+      `<style>#guest-root { ${vars} min-height: 100dvh; }</style>` +
+        `<div class="guest-tema superficie-de-acao" id="guest-root">${lote}</div>`,
+    );
+  }, 120_000);
 });

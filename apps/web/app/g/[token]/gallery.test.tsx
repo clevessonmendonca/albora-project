@@ -67,6 +67,8 @@ describe("GET /g/[token]", () => {
     expect(imagens[0]!).toHaveAttribute("src", "https://r2.example/foto-1-thumb.jpg");
     expect(imagens[0]!.closest("a")).toHaveAttribute("href", "https://r2.example/foto-1-full.jpg");
     expect(imagens[1]!).toHaveAttribute("src", "https://r2.example/foto-2-thumb.jpg");
+    expect(screen.getByText(/2 fotos suas/)).toBeInTheDocument();
+    expect(screen.getByText(/Toque numa foto para abrir e salvar/)).toBeInTheDocument();
   });
 
   it("token inválido/expirado renderiza o estado calmo, sem stack nem detalhe", async () => {

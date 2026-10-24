@@ -3,11 +3,11 @@ import { PACKS, resolvePackText } from "@albora/packs";
 import { Badge } from "@albora/ui-web";
 import { cookies } from "next/headers";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { getPool } from "@/lib/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { AdminSection, adminClasses } from "@/features/admin/components/server/admin-shell";
 import { AdminShell } from "@/features/admin/components/server/admin-shell-root";
+import { redirecionarParaEntrar } from "@/lib/admin-sign-in-redirect";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +31,7 @@ function statusDoEvento(
 export default async function AdminPage() {
   const token = (await cookies()).get(HOST_COOKIE)?.value;
   const host = await hostFromToken(token);
-  if (!host) redirect("/admin/sign-in");
+  if (!host) return redirecionarParaEntrar();
 
   const eventos = await listarEventosDoHost(getPool(), host.accountId);
 

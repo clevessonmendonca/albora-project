@@ -9,22 +9,23 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/features/console/actions", () => ({ signOutAction: vi.fn() }));
 
-import { ConsoleNav, groupedVisibleNavItems, navBadgeFor, visibleNavItems } from "./console-nav";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { CONSOLE_NAV_ITEMS, ConsoleNav, groupedVisibleNavItems, navBadgeFor, visibleNavItems } from "./console-nav";
 
 function actor(roles: Actor["roles"]): Actor {
   return { staffUserId: "s1", roles, sessionId: "sess", requestId: "req", reauthenticatedAt: null };
 }
 
 describe("visibleNavItems", () => {
-  it("nav de support não mostra Auditoria nem Equipe", () => {
+  it("nav de support não mostra Auditoria", () => {
     const labels = visibleNavItems(actor(["support"])).map((i) => i.label);
     expect(labels).not.toContain("Auditoria");
-    expect(labels).not.toContain("Equipe");
   });
 
   it("nav de owner mostra tudo", () => {
     const labels = visibleNavItems(actor(["owner"])).map((i) => i.label);
-    expect(labels.length).toBe(10);
+    expect(labels.length).toBe(9);
   });
 
   it("Retenção está no nav — a página existia e não tinha como chegar nela", () => {
@@ -45,6 +46,16 @@ describe("visibleNavItems", () => {
     const labels = visibleNavItems(actor(["engineering"])).map((i) => i.label);
     expect(labels).not.toContain("Contas");
     expect(labels).not.toContain("Assinaturas");
+  });
+});
+
+describe("CONSOLE_NAV_ITEMS", () => {
+  it("todo link do nav tem página no console — nenhum leva a 404", () => {
+    const shell = join(process.cwd(), "apps/web/app/console/(shell)");
+    for (const item of CONSOLE_NAV_ITEMS) {
+      const sub = item.href.replace(/^\/console\/?/, "");
+      expect(existsSync(join(shell, sub, "page.tsx")), item.href).toBe(true);
+    }
   });
 });
 
