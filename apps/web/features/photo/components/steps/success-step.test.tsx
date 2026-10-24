@@ -26,4 +26,13 @@ describe("SuccessStep", () => {
     expect(screen.getByRole("button", { name: "Tirar outra" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Ver no feed" })).toBeInTheDocument();
   });
+
+  it("o convite ao app é ação discreta: a única primária é Tirar outra", () => {
+    const onInstallPwa = vi.fn();
+    render(<SuccessStep {...propsBase} showPwaInstall onInstallPwa={onInstallPwa} />);
+    const instalar = screen.getByRole("button", { name: /Instalar o app/ });
+    instalar.click();
+    expect(onInstallPwa).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("button", { name: "Instalar agora" })).not.toBeInTheDocument();
+  });
 });
