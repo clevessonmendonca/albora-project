@@ -8,10 +8,11 @@ import {
   type TemaDeInspiracao,
 } from "@albora/db";
 import { cookies } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getPool } from "@/lib/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
 import { UUID, type IdeiaNaTela, type PostNaTela, type RespostaNaTela } from "@/features/admin/lib/descobrir-tela";
+import { redirecionarParaEntrar } from "@/lib/admin-sign-in-redirect";
 
 /**
  * Descobrir lê sob `comConta` (ADR 0023) — nunca sob `comEvento`. A URL da
@@ -23,7 +24,7 @@ export const PAGINA = 20;
 
 async function contaDaSessao(): Promise<string> {
   const host = await hostFromToken((await cookies()).get(HOST_COOKIE)?.value);
-  if (!host) redirect("/admin/sign-in");
+  if (!host) return redirecionarParaEntrar();
   return host.accountId;
 }
 
