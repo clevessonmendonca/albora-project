@@ -75,7 +75,7 @@ export function AvisoDeRetencao({
       </ol>
 
       <Link
-        href={`${base}/album`}
+        href={`${base}/album?baixar=1`}
         className={`${acaoPrimaria} mt-5 min-h-12 w-full whitespace-normal text-center sm:w-auto`}
         style={linha.urgente ? estiloAcento : undefined}
       >

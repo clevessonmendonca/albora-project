@@ -142,7 +142,7 @@ export function Payoffdepois({
       <section>
         <h2 className="tipo-subtitle m-0 mb-4 text-ink">Guardar suas fotos</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Link href={`${base}/album`} className={`${acaoSecundaria} min-h-12 whitespace-normal text-center`}>
+          <Link href={`${base}/album?baixar=1`} className={`${acaoSecundaria} min-h-12 whitespace-normal text-center`}>
             Baixar tudo
           </Link>
           <Link href={`${base}/guests`} className={`${acaoSecundaria} min-h-12 whitespace-normal text-center`}>

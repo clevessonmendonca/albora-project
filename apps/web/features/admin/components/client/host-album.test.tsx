@@ -184,3 +184,23 @@ describe("HostAlbum — aba Destaques", () => {
     expect(screen.queryByText("O livro")).toBeNull();
   });
 });
+
+describe("HostAlbum — Baixar tudo da Home", () => {
+  afterEach(() => window.history.replaceState(null, "", "/"));
+
+  it("com ?baixar=1 a exportação chega aberta", async () => {
+    window.history.replaceState(null, "", "/admin/e/evt/album?baixar=1");
+    vi.stubGlobal("fetch", montarFetch([]));
+    const { container } = render(<HostAlbum eventoId="evt" canExport />);
+    await waitFor(() => {
+      expect(container.querySelector("details")?.hasAttribute("open")).toBe(true);
+    });
+  });
+
+  it("sem o parâmetro a exportação continua recolhida", async () => {
+    vi.stubGlobal("fetch", montarFetch([]));
+    const { container } = render(<HostAlbum eventoId="evt" canExport />);
+    await screen.findByRole("button", { name: /Foto 2 de 3/ });
+    expect(container.querySelector("details")?.hasAttribute("open")).toBe(false);
+  });
+});
