@@ -21,6 +21,8 @@ import {
 } from "@/features/missions/lib/missions-utils";
 import { ClaimPhotosButton } from "@/features/guest/components/client/claim-photos-button";
 import { Details, type Place } from "./details";
+import { Lote } from "./lote";
+import { enviarLote, limitarLote } from "../../lib/lote";
 import { Editor } from "./editor";
 import { QueueHeader } from "./queue-panel";
 import { CameraView } from "./camera-view";
@@ -41,6 +43,7 @@ const ESCONDIDO = "absolute size-px opacity-0 pointer-events-none";
 type Etapa =
   | { nome: "camera" }
   | { nome: "editor"; arquivo: File }
+  | { nome: "lote"; arquivos: File[]; excedeu: boolean }
   | { nome: "detalhes"; uploadId: string; arquivo: File }
   | { nome: "pronto"; arquivo: File };
 
@@ -107,6 +110,7 @@ export function PhotoPage({
   const [lugarPre, setLugarPre] = useState<string | null>(null);
   const [recentes, setRecentes] = useState<string[]>([]);
   const [enviadas, setEnviadas] = useState(0);
+  const [enviandoLote, setEnviandoLote] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -180,18 +184,36 @@ export function PhotoPage({
       return;
     }
 
-    let algumOk = false;
-    for (const arquivo of arquivos) {
-      const r = await enfileirarFoto({ arquivo, desafioId: escolhida, promptKey });
-      if (r.ok) {
-        algumOk = true;
-        setEnviadas((n) => n + 1);
+    const { arquivos: doLote, excedeu } = limitarLote(arquivos);
+    setEtapa({ nome: "lote", arquivos: doLote, excedeu });
+  }
+
+  async function enviarEmLote(
+    arquivos: File[],
+    detalhes: { legenda: string | null; lugar: string | null },
+  ) {
+    setEnviandoLote(true);
+    try {
+      const r = await enviarLote({
+        arquivos,
+        detalhes,
+        desafioId: escolhida,
+        promptKey,
+        enfileirar: enfileirarFoto,
+        anotar,
+        aoEnfileirar: () => setEnviadas((n) => n + 1),
+      });
+      const primeiro = r.enfileiradas[0];
+      if (!primeiro) {
+        setEtapa({ nome: "camera" });
+        return;
       }
+      completarMissaoAtual();
+      setEtapa({ nome: "pronto", arquivo: primeiro });
+      registrarRecente(primeiro);
+    } finally {
+      setEnviandoLote(false);
     }
-    if (!algumOk) return;
-    completarMissaoAtual();
-    setEtapa({ nome: "pronto", arquivo: primeiro });
-    registrarRecente(primeiro);
   }
 
   async function enviar(
@@ -235,6 +257,21 @@ export function PhotoPage({
             ? { indice: missionIndex, total: missions.length, title: chosenMission.title }
             : null
         }
+      />
+    );
+  }
+
+  if (etapa.nome === "lote") {
+    return (
+      <Lote
+        arquivos={etapa.arquivos}
+        excedeu={etapa.excedeu}
+        momentos={places}
+        perguntaDoMomento={copy.placeQuestion}
+        momentoInicial={lugarPre}
+        enviando={enviandoLote}
+        onEnviar={(arquivos, detalhes) => void enviarEmLote(arquivos, detalhes)}
+        onCancelar={() => setEtapa({ nome: "camera" })}
       />
     );
   }
