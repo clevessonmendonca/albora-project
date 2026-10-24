@@ -59,7 +59,7 @@ export function WallPairingScreen({
           </p>
           <p
             aria-live="polite"
-            className="tipo-display m-0 font-titulo text-[clamp(4rem,13vw,8.5rem)] font-normal leading-none tracking-[0.14em] text-acento tabular-nums"
+            className="tipo-display m-0 font-titulo text-[clamp(4rem,13vw,8.5rem)] font-normal leading-none tracking-[0.14em] text-acento-texto tabular-nums"
           >
             {codigo ?? "······"}
           </p>

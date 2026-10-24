@@ -62,7 +62,7 @@ export function AdminRetentionScreen({ pack }: { pack: Pack }) {
             Exclui de verdade e rápido — as fotos, o feed, tudo. Sem “tem certeza que quer
             perder…”.
           </p>
-          <span className="mt-3 inline-flex items-center rounded-pilula bg-critico px-5 py-2.5 text-sm font-medium text-sobre-acento">
+          <span className="mt-3 inline-flex items-center rounded-pilula bg-critico px-5 py-2.5 text-sm font-medium text-sobre-critico">
             Excluir evento
           </span>
         </div>

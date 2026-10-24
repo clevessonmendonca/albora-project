@@ -85,7 +85,7 @@ export function TextLink({
   onClick?: () => void;
 }) {
   const className =
-    "border-0 bg-transparent p-0 font-[inherit] text-[inherit] leading-[inherit] text-acento underline underline-offset-[0.15em]";
+    "border-0 bg-transparent p-0 font-[inherit] text-[inherit] leading-[inherit] text-acento-texto underline underline-offset-[0.15em]";
 
   if (!onClick) {
     return <span className={className}>{children}</span>;

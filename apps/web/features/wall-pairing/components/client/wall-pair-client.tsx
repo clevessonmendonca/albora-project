@@ -60,7 +60,7 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
           </div>
           <Link
             href="/scan"
-            className="tipo-caption block text-center text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
+            className="tipo-caption block text-center text-acento-texto no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
           >
             Voltar ao evento
           </Link>

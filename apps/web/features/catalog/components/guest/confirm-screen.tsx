@@ -28,7 +28,7 @@ export function ConfirmScreen({ pack, ios = false }: { pack: Pack; ios?: boolean
           {ios ? (
             <ol className="mb-3 ml-0 flex list-none flex-col gap-2.5 p-0">
               <li className="flex items-center gap-3 text-[0.88rem] leading-snug text-ink-2">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-superficie border border-linha text-acento">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-superficie border border-linha text-acento-texto">
                   <ShareIcon size={18} />
                 </span>
                 <span>
@@ -39,7 +39,7 @@ export function ConfirmScreen({ pack, ios = false }: { pack: Pack; ios?: boolean
                 </span>
               </li>
               <li className="flex items-center gap-3 text-[0.88rem] leading-snug text-ink-2">
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-superficie border border-linha font-titulo text-acento">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-superficie border border-linha font-titulo text-acento-texto">
                   +
                 </span>
                 <span>

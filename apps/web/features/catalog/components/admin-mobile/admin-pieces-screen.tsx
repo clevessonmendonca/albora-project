@@ -51,7 +51,7 @@ export function AdminPiecesScreen({ pack }: { pack: Pack }) {
             <div key={label} className="flex items-center justify-between gap-2">
               <span className="text-[0.8125rem] text-ink">{label}</span>
               <span className="flex gap-3">
-                <span className="text-[0.75rem] font-medium text-acento">PDF</span>
+                <span className="text-[0.75rem] font-medium text-acento-texto">PDF</span>
                 <span className="text-[0.75rem] text-ink-2">SVG</span>
               </span>
             </div>

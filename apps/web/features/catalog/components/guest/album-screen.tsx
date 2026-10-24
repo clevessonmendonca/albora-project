@@ -67,7 +67,7 @@ export function AlbumScreen({ pack, moments }: { pack: Pack; moments: string[] }
             <h2
               className={cn(
                 "mb-3 font-titulo text-[1.125rem] font-light tracking-titulo",
-                capitulo.faixas.some((f) => f.amanhecer) && "text-acento",
+                capitulo.faixas.some((f) => f.amanhecer) && "text-acento-texto",
               )}
             >
               {capitulo.titulo}
@@ -81,7 +81,7 @@ export function AlbumScreen({ pack, moments }: { pack: Pack; moments: string[] }
                   <p
                     className={cn(
                       "m-0 pt-2 font-titulo text-[0.625rem] uppercase tracking-rotulo",
-                      faixa.amanhecer ? "text-acento" : "text-ink-3",
+                      faixa.amanhecer ? "text-acento-texto" : "text-ink-3",
                     )}
                   >
                     {faixa.hora}

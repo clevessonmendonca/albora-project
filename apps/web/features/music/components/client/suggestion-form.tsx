@@ -152,7 +152,7 @@ function SuggestionList({
               type="button"
               disabled={submitting}
               onClick={() => void onVote(s.url)}
-              className="min-h-11 shrink-0 cursor-pointer rounded-pilula border border-linha bg-transparent px-3 text-[0.75rem] uppercase tracking-rotulo text-acento transition-[border-color,transform] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97] disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100"
+              className="min-h-11 shrink-0 cursor-pointer rounded-pilula border border-linha bg-transparent px-3 text-[0.75rem] uppercase tracking-rotulo text-acento-texto transition-[border-color,transform] duration-instantaneo ease-mola hover:border-acento-texto active:scale-[0.97] disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               Também quero
             </button>

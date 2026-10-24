@@ -23,7 +23,7 @@ export function AlbumTimeline({
           <p
             className={cn(
               "tipo-label m-0 mb-3 uppercase",
-              faixa.amanhecer ? "text-acento" : "text-ink-3",
+              faixa.amanhecer ? "text-acento-texto" : "text-ink-3",
             )}
           >
             {faixa.hora === null ? "Durante a festa" : hourLabel(faixa.hora)}

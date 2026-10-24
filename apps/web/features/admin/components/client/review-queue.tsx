@@ -187,11 +187,11 @@ export function ReviewQueue({ eventoId, onTotalChange }: Props) {
   return (
     <div className="flex flex-col gap-3">
       {midias.length > 1 && (
-        <div className="flex items-center justify-between rounded-token border border-linha bg-bg px-3.5 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-token border border-linha bg-bg px-3.5 py-2.5">
           <span className="text-[0.8125rem] text-ink-3">
             {midias.length} fotos aguardando
           </span>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               disabled={acao !== null || acaoBulk !== null}

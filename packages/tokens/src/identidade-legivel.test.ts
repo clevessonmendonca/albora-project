@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CONTRASTE_DE_TEXTO, contraste, lerHex } from "./cor";
+import { CONTRASTE_DE_TEXTO, contraste, lerHex, misturarHex } from "./cor";
 import { ALBORA_BRAND } from "./marca";
 import { MODELOS_DE_IDENTIDADE } from "./modelos";
 import { resolveTokens } from "./resolver";
@@ -55,6 +55,12 @@ describe("toda identidade do catálogo permanece legível", () => {
           );
         });
 
+        it.runIf(background === "light")("terciário alcança AA também sobre o preenchimento mais fundo", () => {
+          const s = v();
+          expect(razao(s["--ink-3"]!, s["--linha"]!)).toBeGreaterThanOrEqual(CONTRASTE_DE_TEXTO);
+          expect(razao(s["--ink-2"]!, s["--linha"]!)).toBeGreaterThanOrEqual(CONTRASTE_DE_TEXTO);
+        });
+
         it("secundário e terciário continuam sendo dois degraus", () => {
           const s = v();
           // O piso de leitura empurra os dois para cima; sem cuidado eles
@@ -62,6 +68,21 @@ describe("toda identidade do catálogo permanece legível", () => {
           const doSecundario = razao(s["--ink-2"]!, s["--bg"]!);
           const doTerciario = razao(s["--ink-3"]!, s["--bg"]!);
           expect(doSecundario).toBeGreaterThan(doTerciario * 1.05);
+        });
+
+        it("o rótulo do botão destrutivo e o texto crítico alcançam AA", () => {
+          const s = v();
+          expect(razao(s["--sobre-critico"]!, s["--critico"]!)).toBeGreaterThanOrEqual(
+            CONTRASTE_DE_TEXTO,
+          );
+          for (const base of ["--bg", "--superficie"]) {
+            expect(
+              razao(s["--critico"]!, misturarHex(s[base]!, s["--critico"]!, 0.1)),
+            ).toBeGreaterThanOrEqual(CONTRASTE_DE_TEXTO);
+            expect(
+              razao(s["--acento-texto"]!, misturarHex(s[base]!, s["--acento"]!, 0.1)),
+            ).toBeGreaterThanOrEqual(CONTRASTE_DE_TEXTO);
+          }
         });
 
         it("o rótulo do botão primário alcança AA sobre o preenchimento", () => {

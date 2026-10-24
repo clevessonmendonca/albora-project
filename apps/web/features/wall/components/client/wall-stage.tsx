@@ -152,7 +152,7 @@ export function WallStage({
       <div className={PALCO}>
         <figure className="m-0 flex max-h-[88vh] max-w-[min(70vw,60vh)] flex-col items-center rounded-superficie bg-superficie p-[clamp(0.75rem,1.5vw,1.5rem)] shadow-polaroide">
           {cena.modelo === "tbt" && (
-            <figcaption className="tipo-label mb-2 self-start font-titulo text-[clamp(0.9rem,1.6vw,1.3rem)] uppercase tracking-rotulo text-acento">
+            <figcaption className="tipo-label mb-2 self-start font-titulo text-[clamp(0.9rem,1.6vw,1.3rem)] uppercase tracking-rotulo text-acento-texto">
               Mais cedo, na festa
             </figcaption>
           )}
@@ -166,7 +166,7 @@ export function WallStage({
           />
           <figcaption className="tipo-body mt-3 flex w-full justify-between gap-4 text-[clamp(0.8rem,1.4vw,1.1rem)] text-ink-2">
             <span>{only.autor}</span>
-            {only.reacoes > 0 && <span className="text-acento">★ {only.reacoes}</span>}
+            {only.reacoes > 0 && <span className="text-acento-texto">★ {only.reacoes}</span>}
           </figcaption>
         </figure>
       </div>
@@ -349,7 +349,7 @@ function Credito({ autor, reacoes }: { autor: string; reacoes: number }) {
   return (
     <div className={creditoClasses()}>
       <span>{autor}</span>
-      {reacoes > 0 && <span className="text-acento">★ {reacoes}</span>}
+      {reacoes > 0 && <span className="text-acento-texto">★ {reacoes}</span>}
     </div>
   );
 }

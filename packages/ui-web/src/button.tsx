@@ -16,7 +16,7 @@ export const buttonVariants = cva({
       secondary: "bg-transparent text-ink border border-linha hover:border-acento-texto",
       tertiary: TERCIARIO,
       ghost: TERCIARIO,
-      danger: "bg-critico text-sobre-acento shadow-suave hover:opacity-90",
+      danger: "bg-critico text-sobre-critico shadow-suave hover:opacity-90",
     },
     size: {
       sm: "min-h-11 px-4 text-sm",

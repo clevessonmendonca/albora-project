@@ -142,3 +142,9 @@ body {
     to { width: 100%; }
   }
 }
+
+/* Foco visível em todo lugar, na cor legível do acento: o anel padrão do navegador some sobre foto e sobre o preenchimento do acento. Quem desenha o próprio foco sobrescreve com `outline`. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--acento-texto);
+  outline-offset: 2px;
+}

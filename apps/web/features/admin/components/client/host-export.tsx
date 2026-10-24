@@ -137,7 +137,7 @@ function ExportSection({ eventoId, modo, titulo, descricao, textoBotao }: Export
               Em desenvolvimento o link aparece aqui:{" "}
               <button
                 type="button"
-                className="cursor-pointer border-none bg-transparent p-0 text-acento underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
+                className="cursor-pointer border-none bg-transparent p-0 text-acento-texto underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-70"
                 onClick={() => void confirmarDev(estado.link!)}
               >
                 confirmar agora

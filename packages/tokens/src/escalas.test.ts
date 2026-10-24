@@ -145,7 +145,7 @@ describe("escalaDoFundo — consistência entre temas", () => {
     const chaves: (keyof SemanticScale)[] = [
       "bg", "superficie", "superficieAlta", "linha",
       "ink", "ink2", "ink3", "acento", "acentoTexto",
-      "sobreAcento", "critico", "atencao", "positivo", "informativo",
+      "sobreAcento", "sobreCritico", "critico", "atencao", "positivo", "informativo",
     ];
     for (const chave of chaves) {
       expect(claro).toHaveProperty(chave);
