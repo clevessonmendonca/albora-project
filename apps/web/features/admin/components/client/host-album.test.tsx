@@ -184,3 +184,122 @@ describe("HostAlbum — aba Destaques", () => {
     expect(screen.queryByText("O livro")).toBeNull();
   });
 });
+
+function fotoDoMomento(id: string, momentoId: string, sessaoId: string) {
+  return { ...foto(id), momentoId, sessaoId };
+}
+
+function montarFetchComFiltros(chamadas: Chamada[], falharEm: string[] = []) {
+  return vi.fn(async (_url: string, init?: RequestInit) => {
+    if (init?.method === "PATCH") {
+      const corpo = JSON.parse(String(init.body)) as Chamada;
+      chamadas.push(corpo);
+      if (corpo.midiaId && falharEm.includes(corpo.midiaId)) return new Response("{}", { status: 500 });
+      return new Response(JSON.stringify({}), { status: 200 });
+    }
+    return new Response(
+      JSON.stringify({
+        itens: [
+          fotoDoMomento("a", "cerimonia", "p1"),
+          fotoDoMomento("b", "cerimonia", "p2"),
+          fotoDoMomento("c", "pista", "p2"),
+        ],
+        momentos: [
+          { id: "cerimonia", titulo: "Cerimônia" },
+          { id: "pista", titulo: "Pista" },
+        ],
+        pessoas: [
+          { id: "p2", nome: "Bia", fotos: 2 },
+          { id: "p1", nome: "Caio", fotos: 1 },
+        ],
+      }),
+      { status: 200 },
+    );
+  });
+}
+
+describe("HostAlbum, filtros por momento e pessoa", () => {
+  it("Momentos mostra os recortes com contagem e filtra a grade", async () => {
+    vi.stubGlobal("fetch", montarFetchComFiltros([]));
+    render(<HostAlbum eventoId="evt" canExport={false} />);
+    await screen.findByRole("button", { name: /Foto 3 de 3/ });
+
+    fireEvent.click(screen.getByRole("button", { name: "Momentos" }));
+    fireEvent.click(screen.getByRole("button", { name: /Cerimônia/ }));
+    expect(screen.getAllByRole("button", { name: /^Foto \d de 2/ })).toHaveLength(2);
+
+    fireEvent.click(screen.getByRole("button", { name: "Pessoas" }));
+    fireEvent.click(screen.getByRole("button", { name: /Bia/ }));
+    expect(screen.getAllByRole("button", { name: /^Foto \d de 2/ })).toHaveLength(2);
+
+    fireEvent.click(screen.getByRole("button", { name: "Mais recentes" }));
+    expect(screen.getAllByRole("button", { name: /^Foto \d de 3/ })).toHaveLength(3);
+  });
+});
+
+describe("HostAlbum, modo Selecionar com ações em lote", () => {
+  it("marca fotos, destaca em lote e usa a rota existente por foto", async () => {
+    const chamadas: Chamada[] = [];
+    vi.stubGlobal("fetch", montarFetchComFiltros(chamadas));
+    render(<HostAlbum eventoId="evt" canExport={false} />);
+    await screen.findByRole("button", { name: /Foto 1 de 3/ });
+
+    fireEvent.click(screen.getByRole("button", { name: "Selecionar" }));
+    fireEvent.click(screen.getByRole("button", { name: /Foto 1 de 3/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Foto 2 de 3/ }));
+    expect(screen.getByText("2 selecionadas")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Destacar/ }));
+    await waitFor(() => expect(acoesEmFoto(chamadas)).toHaveLength(2));
+    expect(acoesEmFoto(chamadas).map((c) => c.acao)).toEqual(["destacar", "destacar"]);
+    expect(acoesEmFoto(chamadas).map((c) => c.midiaId).sort()).toEqual(["a", "b"]);
+  });
+
+  it("ocultar em lote tira da grade e oferece desfazer", async () => {
+    const chamadas: Chamada[] = [];
+    vi.stubGlobal("fetch", montarFetchComFiltros(chamadas));
+    render(<HostAlbum eventoId="evt" canExport={false} />);
+    await screen.findByRole("button", { name: /Foto 1 de 3/ });
+
+    fireEvent.click(screen.getByRole("button", { name: "Selecionar" }));
+    fireEvent.click(screen.getByRole("button", { name: /Foto 1 de 3/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Ocultar" }));
+
+    expect(await screen.findByText(/1 foto oculta/)).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /^Foto \d de 2/ })).toHaveLength(2);
+    expect(screen.getByRole("button", { name: "Desfazer" })).toBeInTheDocument();
+  });
+
+  it("remover em lote só acontece depois da confirmação", async () => {
+    const chamadas: Chamada[] = [];
+    vi.stubGlobal("fetch", montarFetchComFiltros(chamadas));
+    render(<HostAlbum eventoId="evt" canExport={false} />);
+    await screen.findByRole("button", { name: /Foto 1 de 3/ });
+
+    fireEvent.click(screen.getByRole("button", { name: "Selecionar" }));
+    fireEvent.click(screen.getByRole("button", { name: /Foto 1 de 3/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Foto 2 de 3/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Remover" }));
+
+    expect(acoesEmFoto(chamadas)).toHaveLength(0);
+    expect(await screen.findByText("Remover 2 fotos de vez?")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Remover de vez" }));
+    await waitFor(() => expect(acoesEmFoto(chamadas)).toHaveLength(2));
+    expect(acoesEmFoto(chamadas).every((c) => c.acao === "remover")).toBe(true);
+  });
+
+  it("falha em parte do lote mantém só as que falharam marcadas", async () => {
+    const chamadas: Chamada[] = [];
+    vi.stubGlobal("fetch", montarFetchComFiltros(chamadas, ["b"]));
+    render(<HostAlbum eventoId="evt" canExport={false} />);
+    await screen.findByRole("button", { name: /Foto 1 de 3/ });
+
+    fireEvent.click(screen.getByRole("button", { name: "Selecionar" }));
+    fireEvent.click(screen.getByRole("button", { name: /Foto 1 de 3/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Foto 2 de 3/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Ocultar" }));
+
+    expect(await screen.findByText(/1 de 2 fotos/)).toBeInTheDocument();
+    expect(screen.getByText("1 selecionada")).toBeInTheDocument();
+  });
+});

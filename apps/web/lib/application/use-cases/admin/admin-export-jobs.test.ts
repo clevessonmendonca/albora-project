@@ -6,6 +6,7 @@
  * - getLatestExportJob: busca último job de export
  */
 
+import type * as Core from "@albora/core";
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { createExportJob } from "./create-export-job";
 import { getLatestExportJob } from "./get-latest-export-job";
@@ -57,7 +58,8 @@ vi.mock("@albora/db", () => ({
   ErroMagicLinkInvalido,
 }));
 
-vi.mock("@albora/core", () => ({
+vi.mock("@albora/core", async (importOriginal) => ({
+  ...(await importOriginal<typeof Core>()),
   resolver: mockResolver,
   selecionarParaAlbum: mockSelecionarParaAlbum,
   planejarCapitulos: mockPlanejarCapitulos,

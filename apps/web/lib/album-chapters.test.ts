@@ -86,3 +86,24 @@ describe("o título que o convidado lê", () => {
     expect(chapterHeadingVisible(CAPITULO_CONFESSIONARIO)).toBe(true);
   });
 });
+
+describe("momentos editados no evento", () => {
+  const tokens = {
+    momentos: [
+      { id: "cerimonia", titulo: "O sim" },
+      { id: "m-abc123", titulo: "Brinde" },
+    ],
+  };
+
+  it("evento sem token segue o pack", () => {
+    expect(chapterIdsFromPack(CASAMENTO, {})).toEqual(chapterIdsFromPack(CASAMENTO));
+    expect(chapterTitle(CASAMENTO, "cerimonia", {})).toBe("A cerimônia");
+  });
+
+  it("ids e títulos vêm do evento, na ordem editada", () => {
+    expect(chapterIdsFromPack(CASAMENTO, tokens)).toEqual(["cerimonia", "m-abc123"]);
+    expect(chapterTitle(CASAMENTO, "cerimonia", tokens)).toBe("O sim");
+    expect(chapterTitle(CASAMENTO, "m-abc123", tokens)).toBe("Brinde");
+    expect(planAlbumChapters(JANELA, CASAMENTO, tokens).map((c) => c.id)).toEqual(["cerimonia", "m-abc123"]);
+  });
+});

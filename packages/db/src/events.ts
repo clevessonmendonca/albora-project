@@ -180,6 +180,18 @@ export async function packDoEvento(cliente: PoolClient, eventoId: string): Promi
   return rows[0]?.pack_id ?? null;
 }
 
+export async function tokensDoEvento(
+  cliente: PoolClient,
+  eventoId: string,
+): Promise<Record<string, unknown>> {
+  const { rows } = await cliente.query<{ identity_tokens: Record<string, unknown> | null }>(
+    "SELECT identity_tokens FROM events WHERE id = $1",
+    [eventoId],
+  );
+
+  return rows[0]?.identity_tokens ?? {};
+}
+
 /** Ausente ou inválido cai no default — o álbum e o confirm nunca ficam sem âncora de fuso. */
 export async function fusoDoEvento(cliente: PoolClient, eventoId: string): Promise<string> {
   const { rows } = await cliente.query<{ timezone: string }>(

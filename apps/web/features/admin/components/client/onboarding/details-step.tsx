@@ -4,6 +4,8 @@ import React, { useRef, useState } from "react";
 import { TextField } from "@albora/ui-web";
 import { DateTimeField } from "./datetime-field";
 import { Glyph } from "./glyph";
+import type { MomentoDoEvento } from "@albora/core";
+import { MomentosEditor } from "../momentos-editor";
 
 const NOME_MAX = 60;
 
@@ -30,6 +32,8 @@ export function DetailsStep({
   local,
   onLocal,
   momentos = [],
+  onMomentos,
+  momentosPadrao,
 }: {
   title: string;
   onTitle: (v: string) => void;
@@ -42,7 +46,9 @@ export function DetailsStep({
   onGuests: (v: string) => void;
   local: string;
   onLocal: (v: string) => void;
-  momentos?: string[];
+  momentos?: MomentoDoEvento[];
+  onMomentos?: (v: MomentoDoEvento[]) => void;
+  momentosPadrao?: MomentoDoEvento[];
 }) {
   const [cep, setCep] = useState("");
   const [cepStatus, setCepStatus] = useState<"idle" | "loading" | "erro">("idle");
@@ -182,14 +188,22 @@ export function DetailsStep({
       {momentos.length > 0 && (
         <div className="flex flex-col gap-2 border-t border-linha pt-4">
           <p className="tipo-label m-0 uppercase tracking-[0.18em] text-ink-3">Momentos do álbum</p>
-          <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
-            {momentos.map((momento) => (
-              <li key={momento} className="tipo-label rounded-pilula border border-linha bg-superficie px-3 py-1.5 text-ink-2">
-                {momento}
-              </li>
-            ))}
-          </ul>
-          <p className="tipo-caption m-0 text-ink-3">Vêm do tipo de evento e organizam o álbum e o telão.</p>
+          {onMomentos ? (
+            <MomentosEditor
+              idBase="wizard-momento"
+              value={momentos}
+              onChange={onMomentos}
+              padrao={momentosPadrao ?? momentos}
+            />
+          ) : (
+            <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+              {momentos.map((momento) => (
+                <li key={momento.id} className="tipo-label rounded-pilula border border-linha bg-superficie px-3 py-1.5 text-ink-2">
+                  {momento.titulo}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
     </div>

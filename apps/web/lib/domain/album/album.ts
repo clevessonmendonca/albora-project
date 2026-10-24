@@ -5,7 +5,7 @@ import {
   type ModoInteracao,
   type PlanoDoAlbum,
 } from "@albora/core";
-import { withEvent, eventGate, janelaDoAlbum, listarMidiaDoAlbum, eventPack } from "@albora/db";
+import { withEvent, eventGate, janelaDoAlbum, listarMidiaDoAlbum, eventPack, eventTokens } from "@albora/db";
 import { PACKS } from "@albora/packs";
 import { chapterTitle, planAlbumChapters } from "./album-chapters";
 import { getPool } from "@/lib/db";
@@ -67,7 +67,8 @@ export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
     const janela = await janelaDoAlbum(c, eventId);
     const packId = await eventPack(c, eventId);
     const gate = await eventGate(c, eventId);
-    return { midias, janela, packId, gate };
+    const tokens = await eventTokens(c, eventId);
+    return { midias, janela, packId, gate, tokens };
   });
 
   const interacao = data.gate ? modoInteracao(data.gate, new Date()) : "espelho";
@@ -82,7 +83,7 @@ export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
   };
   const plan: PlanoDoAlbum = {
     janela,
-    capitulos: planAlbumChapters(janela, pack),
+    capitulos: planAlbumChapters(janela, pack, data.tokens),
     tetoDePaginas: TETO_DE_PAGINAS_PADRAO,
   };
 
@@ -97,7 +98,7 @@ export async function buildServedAlbum(eventId: string): Promise<ServedAlbum> {
   const capitulos = await Promise.all(
     album.capitulos.map(async (capitulo) => ({
       id: capitulo.id,
-      titulo: chapterTitle(pack, capitulo.id),
+      titulo: chapterTitle(pack, capitulo.id, data.tokens),
       comecaEm: capitulo.comecaEm?.toISOString() ?? null,
       paginas: await Promise.all(
         capitulo.paginas.map(async (pagina) => ({

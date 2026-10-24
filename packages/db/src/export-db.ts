@@ -4,7 +4,7 @@ import { comConta, comEvento } from "./event";
 import { emitirToken, hashDoToken, assinaturaValida } from "./token";
 import { ErroMagicLinkInvalido } from "./host-auth";
 import { listarMidiaDoAlbum, janelaDoAlbum } from "./album-db";
-import { packDoEvento } from "./events";
+import { packDoEvento, tokensDoEvento } from "./events";
 
 export type ItemDoExport = {
   id: string;
@@ -313,7 +313,8 @@ export async function midiaParaCuradoria(pool: Pool, eventoId: string) {
     const midias = await listarMidiaDoAlbum(c, eventoId);
     const janela = await janelaDoAlbum(c, eventoId);
     const packId = await packDoEvento(c, eventoId);
-    return { midias, janela, packId };
+    const identityTokens = await tokensDoEvento(c, eventoId);
+    return { midias, janela, packId, identityTokens };
   });
 }
 

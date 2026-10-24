@@ -160,7 +160,7 @@ export async function getAdminBookPdf(
     };
     const album = montarAlbum(data.midias, {
       janela,
-      capitulos: planAlbumChapters(janela, pack),
+      capitulos: planAlbumChapters(janela, pack, data.identityTokens),
       tetoDePaginas: TETO_DE_PAGINAS_PADRAO,
     });
 
@@ -178,7 +178,7 @@ export async function getAdminBookPdf(
 
     const result = await generateBookPdf({
       album,
-      tituloDoCapitulo: (id) => chapterTitle(pack, id),
+      tituloDoCapitulo: (id) => chapterTitle(pack, id, data.identityTokens),
       imagens,
       ...(vendorTokens ? { vendorTokens } : {}),
       ...(pack?.tokens ? { packTokens: pack.tokens } : {}),

@@ -300,7 +300,7 @@ export { criarEvento as createEvent } from "./events";
 /** English alias — preferred for new code. @see resolverSlug */
 export { resolverSlug as resolveSlug } from "./events";
 /** English alias — preferred for new code. @see packDoEvento */
-export { packDoEvento as eventPack } from "./events";
+export { packDoEvento as eventPack, tokensDoEvento as eventTokens } from "./events";
 /** English alias — preferred for new code. @see fusoDoEvento */
 export { fusoDoEvento as eventTimeZone } from "./events";
 

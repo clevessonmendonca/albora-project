@@ -7,30 +7,33 @@ import {
   type JanelaDoEvento,
 } from "@albora/core";
 import { resolvePackText, type Pack } from "@albora/packs";
+import { momentosDoPackEvento } from "../../momentos-do-evento";
+
+type Tokens = Record<string, unknown> | null | undefined;
 
 /** Capítulos = momentos do pack em ordem; sem momentos → `a-noite`; confessionário é capítulo virtual (mídia com `promptKey`), não entra na fatia por hora. */
-export function chapterIdsFromPack(pack: Pack | undefined): string[] {
-  return pack?.momentos?.map((m) => m.id) ?? [];
+export function chapterIdsFromPack(pack: Pack | undefined, tokens?: Tokens): string[] {
+  return momentosDoPackEvento(pack, tokens).map((m) => m.id);
 }
 
 export function planAlbumChapters(
   janela: JanelaDoEvento,
   pack: Pack | undefined,
+  tokens?: Tokens,
 ): CapituloPlanejado[] {
-  return planejarCapitulos(janela, chapterIdsFromPack(pack));
+  return planejarCapitulos(janela, chapterIdsFromPack(pack, tokens));
 }
 
 /** Título que o convidado lê: momento do pack resolve pelo vocabulário; `a-noite`/`sem-hora` são do álbum; `confessionario` usa a chave do pack. */
-export function chapterTitle(pack: Pack | undefined, id: string): string {
+export function chapterTitle(pack: Pack | undefined, id: string, tokens?: Tokens): string {
   if (id === CAPITULO_SEM_HORA) return "Durante a festa";
   if (id === CAPITULO_UNICO) return "A noite";
   if (id === CAPITULO_CONFESSIONARIO) {
     if (!pack) return id;
     return resolvePackText(pack, "confessionario.titulo");
   }
-  const momento = pack?.momentos?.find((m) => m.id === id);
-  if (!momento || !pack) return id;
-  return resolvePackText(pack, momento.chaveTitulo);
+  const momento = momentosDoPackEvento(pack, tokens).find((m) => m.id === id);
+  return momento?.titulo ?? id;
 }
 
 export function chapterHeadingVisible(id: string): boolean {

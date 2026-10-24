@@ -902,3 +902,23 @@ export {
 } from "./comunidade";
 export type { CapaFoco } from "./capa-foco";
 export { CAPAS_FOCO, CAPA_FOCO_PADRAO, capaFocoValido, capaFocoDoEvento, capaFocoXDoEvento, capaObjectPosition } from "./capa-foco";
+export type { MomentoDoEvento, ResultadoMomentos } from "./momentos";
+export {
+  MOMENTOS_MAXIMO,
+  MOMENTO_TITULO_MAXIMO,
+  momentosDoEvento,
+  momentosEditadosDoEvento,
+  momentosIguais,
+  normalizarIdentityTokensMomentos,
+  novoIdDeMomento,
+  sanearTituloDeMomento,
+  validarMomentos,
+} from "./momentos";
+export type { OpcaoDeMonograma } from "./monograma";
+export {
+  MONOGRAMA_MAXIMO,
+  iniciaisDoNome,
+  opcoesDeMonograma,
+  sanearMonograma,
+  validarIdentityTokensMonograma,
+} from "./monograma";

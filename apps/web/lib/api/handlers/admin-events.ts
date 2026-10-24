@@ -7,7 +7,14 @@ import {
   roleForAccountOnVendor,
   VALIDADE_MAGIC_LINK_MINUTOS,
 } from "@albora/db";
-import { capaFocoValido, FUSO_PADRAO, fusoIanaValido, instanteLocalNoFuso } from "@albora/core";
+import {
+  capaFocoValido,
+  FUSO_PADRAO,
+  fusoIanaValido,
+  instanteLocalNoFuso,
+  normalizarIdentityTokensMomentos,
+  validarIdentityTokensMonograma,
+} from "@albora/core";
 import { PACKS } from "@albora/packs";
 import { parseMissionKeys } from "@/features/admin/lib/mission-keys";
 import {
@@ -125,6 +132,19 @@ export async function POST(req: Request) {
         campos: ["identityTokens"],
       });
     }
+    const comMomentos = normalizarIdentityTokensMomentos(identityTokens);
+    if (!comMomentos.ok) {
+      return errorResponse(422, "validation_error", comMomentos.motivo, {
+        campos: ["identityTokens.momentos"],
+      });
+    }
+    const comMonograma = validarIdentityTokensMonograma(comMomentos.tokens);
+    if (!comMonograma.ok) {
+      return errorResponse(422, "validation_error", "Monograma inválido", {
+        campos: ["identityTokens.monograma"],
+      });
+    }
+    identityTokens = comMonograma.tokens;
   }
 
   if (Array.isArray(body.telaoModelos) && body.telaoModelos.every((m) => typeof m === "string")) {

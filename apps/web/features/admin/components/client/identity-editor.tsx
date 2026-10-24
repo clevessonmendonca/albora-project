@@ -7,7 +7,17 @@ import {
 } from "@albora/core";
 import { SavedBadge } from "@/features/admin/components/client/saved-badge";
 import { PACKS, resolvePackText, type Pack } from "@albora/packs";
-import { CAPA_FOCO_PADRAO, capaFocoDoEvento, capaFocoXDoEvento, type CapaFoco } from "@albora/core";
+import {
+  CAPA_FOCO_PADRAO,
+  capaFocoDoEvento,
+  capaFocoXDoEvento,
+  momentosIguais,
+  type CapaFoco,
+  type MomentoDoEvento,
+} from "@albora/core";
+import { MomentosEditor, momentosEditorValido } from "@/features/admin/components/client/momentos-editor";
+import { MonogramaField } from "@/features/admin/components/client/monograma-field";
+import { momentosDoPackEvento } from "@/lib/momentos-do-evento";
 import { eventOnContrast, IDENTITY_MODELS } from "@albora/tokens";
 import { CapaFocoField } from "@/features/admin/components/client/capa-foco-field";
 import { Button, PhoneFrame, TextField } from "@albora/ui-web";
@@ -125,6 +135,16 @@ export function IdentityEditor({
   const [coverFoco, setCoverFoco] = useState<CapaFoco>(() => capaFocoDoEvento(initialIdentityTokens));
   const [coverFocoX, setCoverFocoX] = useState<CapaFoco>(() => capaFocoXDoEvento(initialIdentityTokens));
 
+  const momentosPadrao = useMemo(() => momentosDoPackEvento(pack, {}), [pack]);
+  const [momentos, setMomentos] = useState<MomentoDoEvento[]>(() =>
+    momentosDoPackEvento(pack, initialIdentityTokens),
+  );
+  const [monograma, setMonograma] = useState<string | null>(() => {
+    const texto = initialIdentityTokens.texto as { monograma?: unknown } | undefined;
+    const bruto = texto?.monograma ?? initialIdentityTokens.monograma;
+    return typeof bruto === "string" ? bruto : null;
+  });
+
   const [title, setTitle] = useState(initialTitle ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
@@ -151,9 +171,22 @@ export function IdentityEditor({
     const effectiveBackground =
       customBackground ?? preset.camada.background;
 
-    const { capaFoco: _anterior, capaFocoX: _anteriorX, ...restoInicial } = initialIdentityTokens;
+    const {
+      capaFoco: _anterior,
+      capaFocoX: _anteriorX,
+      momentos: _momentos,
+      monograma: _monograma,
+      ...restoInicial
+    } = initialIdentityTokens;
+    const texto = restoInicial.texto as Record<string, unknown> | undefined;
+    if (texto && "monograma" in texto) {
+      const { monograma: _textoMonograma, ...restoTexto } = texto;
+      restoInicial.texto = restoTexto;
+    }
     return {
       ...restoInicial,
+      ...(momentosIguais(momentos, momentosPadrao) ? {} : { momentos }),
+      ...(monograma !== null ? { monograma } : {}),
       ...(coverFoco !== CAPA_FOCO_PADRAO ? { capaFoco: coverFoco } : {}),
       ...(coverFocoX !== CAPA_FOCO_PADRAO ? { capaFocoX: coverFocoX } : {}),
       presetId: preset.id,
@@ -163,7 +196,7 @@ export function IdentityEditor({
       ...(effectiveBackground ? { background: effectiveBackground } : {}),
       telaoModelos: [...wallModels],
     };
-  }, [initialIdentityTokens, preset, wallModels, customAccent, customFont, customBackground, coverFoco, coverFocoX]);
+  }, [initialIdentityTokens, preset, wallModels, customAccent, customFont, customBackground, coverFoco, coverFocoX, momentos, momentosPadrao, monograma]);
 
   const previewVars = useMemo(() => {
     if (!pack) return {};
@@ -171,7 +204,7 @@ export function IdentityEditor({
   }, [pack, identityTokens]);
 
   const guestsValid = Number(expectedGuests) > 0 && Number.isFinite(Number(expectedGuests));
-  const canSave = guestsValid && wallProblems.length === 0;
+  const canSave = guestsValid && wallProblems.length === 0 && momentosEditorValido(momentos);
 
   const save = async () => {
     if (!canSave) return;
@@ -348,6 +381,28 @@ export function IdentityEditor({
               }}
             />
 
+            <MonogramaField
+              value={monograma}
+              nome={title.trim() || resolvePackText(pack, "landing.exemplo.nome")}
+              onChange={(m) => {
+                setMonograma(m);
+                setSaved(false);
+              }}
+            />
+
+            <div>
+              <FieldLabel>Momentos do álbum</FieldLabel>
+              <MomentosEditor
+                idBase="identidade-momento"
+                value={momentos}
+                padrao={momentosPadrao}
+                onChange={(lista) => {
+                  setMomentos(lista);
+                  setSaved(false);
+                }}
+              />
+            </div>
+
             <div>
               <FieldLabel>Jeito de escrever</FieldLabel>
               <div className="flex gap-2">
@@ -432,6 +487,11 @@ export function IdentityEditor({
               <PreviewScreen previewVars={previewVars} title={previewTitle} missionLabel={missionLabel} />
             </PhoneFrame>
             <div className={`mt-4 ${identityPreviewClassName}`} style={previewVars}>
+              {monograma ? (
+                <p className="m-0 font-titulo text-2xl text-acento-texto" aria-label="Monograma">
+                  {monograma}
+                </p>
+              ) : null}
               <p className="m-0 font-titulo text-lg text-acento-texto">{previewTitle}</p>
               <p className="mb-0 mt-2 text-sm text-ink-2">Capa, álbum e telão seguem essa mesma direção.</p>
             </div>

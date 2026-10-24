@@ -15,6 +15,7 @@ import {
   interactionBannerLabels,
   resolveInteractionBanner,
 } from "../lib/interaction-banner";
+import { momentosDoPackEvento } from "@/lib/momentos-do-evento";
 import { missionForMoment } from "../lib/mission-for-moment";
 import { contributorsLabel } from "../lib/moment-contributors";
 import type { CoverData } from "../types/cover";
@@ -42,9 +43,9 @@ export async function getCover(input: CoverInput): Promise<CoverData> {
   const pack = packId ? PACKS[packId] : undefined;
   const musicLabel = chosen ? exibirMusica(chosen.link, chosen.metadado).rotulo : null;
   const thumbs = albumThumbs(album, 5);
-  const semLabel = (pack?.momentos ?? []).slice(0, 5).map((m, i) => ({
+  const semLabel = momentosDoPackEvento(pack, evento.identityTokens).slice(0, 5).map((m, i) => ({
     id: m.id,
-    title: pack ? resolvePackText(pack, m.chaveTitulo) : m.id,
+    title: m.titulo,
     missionFilterId: missionForMoment(pack, m.id, challenges),
     thumbUrl: thumbs[i] ?? null,
   }));
