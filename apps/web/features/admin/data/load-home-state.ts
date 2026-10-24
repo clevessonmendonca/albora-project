@@ -135,7 +135,7 @@ function montarItens(
       titulo: "Ver como convidado",
       porque: "Entrar como eles entram é o jeito mais rápido de conferir tudo.",
       feito: m.previaConvidado === true,
-      href: `${base}`,
+      href: `/e/${evento.slug}?via=link`,
       cta: "Abrir prévia",
     },
     {

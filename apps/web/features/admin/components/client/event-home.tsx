@@ -26,7 +26,7 @@ import { CapsulaDeMemoria } from "./home/capsula";
 import { CartaoReviver } from "./home/cartao-reviver";
 import { TourDePrimeiroAcesso } from "./tour-primeiro-acesso";
 import { passoDoTour } from "@/features/admin/lib/tour";
-import { VerComoConvidado } from "./home/acoes";
+import { AcaoDoItem, VerComoConvidado } from "./home/acoes";
 import { acaoPrimaria, acaoSecundaria, estiloAcento } from "./home/estilos";
 
 const VALIDADE_CAPA_SEGUNDOS = 900;
@@ -151,11 +151,16 @@ export async function EventHome({
   ) : (
     <>
       {estado.proxima && (
-        <Link href={estado.proxima.href} className={acaoPrimaria} style={estiloAcento}>
-          {estado.proxima.cta}
-        </Link>
+        <AcaoDoItem
+          item={estado.proxima}
+          eventId={eventId}
+          className={acaoPrimaria}
+          style={estiloAcento}
+        />
       )}
-      <VerComoConvidado eventId={eventId} slug={evento.slug} />
+      {estado.proxima?.chave !== "previaConvidado" && (
+        <VerComoConvidado eventId={eventId} slug={evento.slug} />
+      )}
     </>
   );
 
@@ -268,7 +273,7 @@ export async function EventHome({
         <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
           <div className="flex flex-col gap-5">
             {estado.proxima && (
-              <ProximaAcao principal={estado.proxima} secundarias={pendentes.slice(0, 2)} />
+              <ProximaAcao eventId={eventId} principal={estado.proxima} secundarias={pendentes.slice(0, 2)} />
             )}
 
             {estado.fase !== "recem" && (
