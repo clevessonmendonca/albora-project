@@ -1,7 +1,16 @@
+"use client";
+
 import React from "react";
+import { usePathname } from "next/navigation";
 import { GuestShell, EntryColumn, FinePrint } from "@albora/ui-web";
 
 export function NoSession({ slug }: { slug: string }) {
+  const caminho = usePathname();
+  const base = `/e/${encodeURIComponent(slug)}`;
+  const voltaPara =
+    caminho && caminho.startsWith(`${base}/`) && caminho !== `${base}/cover`
+      ? `${base}?next=${encodeURIComponent(caminho)}`
+      : base;
   return (
     <GuestShell hideStatusBar>
       <EntryColumn>
@@ -18,7 +27,7 @@ export function NoSession({ slug }: { slug: string }) {
         </div>
 
         <a
-          href={`/e/${encodeURIComponent(slug)}`}
+          href={voltaPara}
           className="grid w-full place-items-center rounded-pilula bg-acento px-[1.125rem] py-[1.125rem] font-semibold text-sobre-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-90"
         >
           Entrar

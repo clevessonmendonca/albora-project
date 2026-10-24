@@ -1,3 +1,4 @@
+import { destinoSeguroDoConvidado } from "@/features/guest/lib/proximo-destino";
 import { resolverSlug } from "@albora/db";
 import { PACKS, resolvePackText } from "@albora/packs";
 import { capaFocoDoEvento, capaFocoXDoEvento, parseEntryVia, VALIDADE_PRESIGN_SEGUNDOS } from "@albora/core";
@@ -17,7 +18,7 @@ import { HomePageSkeleton } from "@/features/home/components/skeletons/home-page
 /** Exceção do ADR 0005 — casco SSR existe para meta tags no WhatsApp; SPA puro mostraria caixa vazia. */
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ via?: string }> };
+type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ via?: string; next?: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -37,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Pagina({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { via: viaParam } = await searchParams;
+  const { via: viaParam, next: nextParam } = await searchParams;
   const via = parseEntryVia(viaParam);
   const r = await resolverSlug(getPool(), slug, new Date());
 
@@ -124,6 +125,7 @@ export default async function Pagina({ params, searchParams }: Props) {
         eventoId={r.evento.eventoId}
         slug={slug}
         via={via}
+        proximo={destinoSeguroDoConvidado(slug, nextParam)}
         nomeEvento={nomeEvento}
         saudacao={saudacao}
         comecaEm={r.evento.comecaEm.toISOString()}

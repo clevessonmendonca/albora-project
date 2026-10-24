@@ -46,8 +46,8 @@ export function MusicPage({ slug, escolhaLabel }: { slug: string; escolhaLabel: 
           {state.failure === "session" && (
             <ErrorMessage>
               Sua sessão desta festa expirou.{" "}
-              <a href="/scan" className="underline">
-                Volte pelo QR da mesa.
+              <a href={base} className="underline">
+                Entre de novo na festa.
               </a>
             </ErrorMessage>
           )}
