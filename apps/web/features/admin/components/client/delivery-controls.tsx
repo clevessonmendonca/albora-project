@@ -1,6 +1,6 @@
 "use client";
 
-import { Switch } from "@albora/ui-web";
+import { ConfirmDialog, Switch } from "@albora/ui-web";
 import React, { useState } from "react";
 import { adminClasses } from "@/features/admin/components/server/admin-shell";
 
@@ -15,6 +15,7 @@ export function DeliveryControls({ eventId, initialDeliveryOpensAt }: Props) {
   const [deliveryOpensAt, setDeliveryOpensAt] = useState(initialDeliveryOpensAt);
   const [savingGate, setSavingGate] = useState(false);
   const [disparando, setDisparando] = useState(false);
+  const [confirmando, setConfirmando] = useState(false);
   const [error, setError] = useState(false);
   const [resultado, setResultado] = useState<DisparoResultado | null>(null);
 
@@ -47,6 +48,7 @@ export function DeliveryControls({ eventId, initialDeliveryOpensAt }: Props) {
   const disparar = async () => {
     setDisparando(true);
     setError(false);
+    setResultado(null);
     try {
       const r = await fetch(`/api/admin/events/${eventId}/entrega/disparar`, {
         method: "POST",
@@ -58,6 +60,7 @@ export function DeliveryControls({ eventId, initialDeliveryOpensAt }: Props) {
       setError(true);
     } finally {
       setDisparando(false);
+      setConfirmando(false);
     }
   };
 
@@ -84,19 +87,33 @@ export function DeliveryControls({ eventId, initialDeliveryOpensAt }: Props) {
         <button
           type="button"
           disabled={!gateAberto || disparando}
-          onClick={() => void disparar()}
+          onClick={() => setConfirmando(true)}
           className={`${adminClasses.primaryButton} ${
             !gateAberto || disparando ? "opacity-60" : ""
           }`}
         >
           {disparando ? "Enviando…" : "Enviar agora"}
         </button>
+        {!gateAberto && (
+          <span className="tipo-caption text-ink-3">Libere a entrega acima para poder enviar.</span>
+        )}
         {resultado && (
-          <span className="tipo-caption text-ink-3">
+          <span role="status" className="tipo-caption text-ink-3">
             {resultado.enviados} enviadas, {resultado.pendentes} pendentes
+            {resultado.pendentes > 0 ? ". As pendentes não saíram: toque em Enviar agora para tentar de novo." : ""}
           </span>
         )}
       </div>
+
+      <ConfirmDialog
+        open={confirmando}
+        onClose={() => setConfirmando(false)}
+        onConfirm={() => void disparar()}
+        title="Enviar o link da galeria agora?"
+        description="Cada convidado com e-mail cadastrado recebe o link das fotos. O envio não pode ser desfeito."
+        confirmLabel="Enviar"
+        pending={disparando}
+      />
 
       {error && (
         <p role="alert" className="tipo-body m-0 text-critico">

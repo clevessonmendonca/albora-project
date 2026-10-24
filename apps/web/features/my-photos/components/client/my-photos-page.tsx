@@ -1,6 +1,6 @@
 "use client";
 
-import { isVideoMime } from "@albora/core";
+import { isVideoMime, type ItemDaGaleria } from "@albora/core";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -26,6 +26,7 @@ import { RecapSheet } from "@/features/my-photos/components/client/recap-sheet";
 import { RecapCard } from "@/features/my-photos/components/client/recap-card";
 import { ThemeSetting } from "@/features/guest/components/client/theme-setting";
 import { AlbumFooterCta } from "./album-footer-cta";
+import { RemoverFotoDialog } from "./remover-foto-dialog";
 import { RetentionCard } from "./retention-card";
 import {
   GalleryItem,
@@ -74,6 +75,7 @@ export function MyPhotosPage({
     new Map()
   );
   const [indiceAberto, setIndiceAberto] = useState<number | null>(null);
+  const [removendoPedido, setRemovendoPedido] = useState<ItemDaGaleria | null>(null);
 
   const consentimentoAberto =
     compartilhar.pedindoConsentimento !== null ||
@@ -147,15 +149,28 @@ export function MyPhotosPage({
     [galeria.itensVisiveis.length]
   );
 
-  const removerAberta = useCallback(async () => {
+  const pedirRemocaoAberta = useCallback(() => {
     if (indiceAberto === null) return;
     const visivel = galeria.itensVisiveis[indiceAberto];
     if (!visivel) return;
     const item = galeria.itens.find((i) => i.id === visivel.id);
-    if (!item) return;
-    const ok = await galeria.remover(item);
-    if (ok) setIndiceAberto(null);
+    if (item) setRemovendoPedido(item);
   }, [indiceAberto, galeria]);
+
+  const pedirRemocao = useCallback(async (item: ItemDaGaleria) => {
+    setRemovendoPedido(item);
+    return true;
+  }, []);
+
+  const confirmarRemocao = useCallback(async () => {
+    if (!removendoPedido) return true;
+    const ok = await galeria.remover(removendoPedido);
+    if (ok) {
+      setRemovendoPedido(null);
+      setIndiceAberto(null);
+    }
+    return ok;
+  }, [removendoPedido, galeria]);
 
   const compartilharAberta = useCallback(() => {
     if (indiceAberto === null) return;
@@ -229,7 +244,16 @@ export function MyPhotosPage({
           <RecapCard recap={recapPessoal} />
 
           {galeria.falha && (
-            <ErrorMessage>Não deu para carregar agora.</ErrorMessage>
+            <div className="flex flex-col items-start gap-2">
+              <ErrorMessage>Não deu para carregar agora.</ErrorMessage>
+              <button
+                type="button"
+                onClick={() => void galeria.tentarDeNovo()}
+                className="min-h-11 cursor-pointer rounded-pilula border border-linha bg-transparent px-4 font-inherit text-ink"
+              >
+                Tentar de novo
+              </button>
+            </div>
           )}
 
           {compartilhar.erro && <ErrorMessage>{compartilhar.erro}</ErrorMessage>}
@@ -288,7 +312,7 @@ export function MyPhotosPage({
                   isVideo={isVideo}
                   rotulo={rotulo}
                   removendoId={galeria.removendoId}
-                  onRemover={galeria.remover}
+                  onRemover={pedirRemocao}
                   onAbrir={abrirEnviada}
                 />
               );
@@ -357,13 +381,20 @@ export function MyPhotosPage({
           onIr={irPara}
           onSair={sairViewer}
           onReacoes={galeria.atualizarReacoes}
-          onRemover={() => void removerAberta()}
+          onRemover={pedirRemocaoAberta}
           removendo={galeria.removendoId === uploadAberto}
           onCompartilhar={compartilharAberta}
           compartilhando={compartilhar.compartilhandoId === uploadAberto}
           onVerAutor={(id) => router.push(`${base}/g/${encodeURIComponent(id)}`)}
         />
       )}
+
+      <RemoverFotoDialog
+        aberto={removendoPedido !== null}
+        enviada={removendoPedido?.estado === "enviada"}
+        onFechar={() => setRemovendoPedido(null)}
+        onConfirmar={confirmarRemocao}
+      />
 
       {/* Sheets */}
       <RecapSheet

@@ -1,10 +1,11 @@
 import { buscarEventoDoHost, roleForAccountOnEvent, type EventoDoHost, type HostEventRole } from "@albora/db";
 import { cookies } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { adminEventDisplayName } from "@/features/admin/lib/event-display-name";
 import { preEventStorageKey } from "@/features/admin/lib/pre-event-checklist";
 import { getPool } from "@/lib/db";
 import { HOST_COOKIE, hostFromToken } from "@/lib/host-session";
+import { redirecionarParaEntrar } from "@/lib/admin-sign-in-redirect";
 
 export type AdminEventPageContext = {
   evento: EventoDoHost;
@@ -21,7 +22,7 @@ export type AdminEventPageContext = {
 export async function loadEventPage(eventoId: string): Promise<AdminEventPageContext> {
   const token = (await cookies()).get(HOST_COOKIE)?.value;
   const host = await hostFromToken(token);
-  if (!host) redirect("/admin/sign-in");
+  if (!host) return redirecionarParaEntrar();
 
   const pool = getPool();
   const role = await roleForAccountOnEvent(pool, host.accountId, eventoId);
