@@ -11,7 +11,13 @@ const CODE_PATTERN = /^[A-HJ-NP-Z2-9]{6}$/;
 
 type Status = "editing" | "submitting" | "connected" | "no-session" | "rejected" | "error";
 
-export function WallPairClient({ initialCode }: { initialCode: string }) {
+export function WallPairClient({
+  initialCode,
+  eventoId = null,
+}: {
+  initialCode: string;
+  eventoId?: string | null;
+}) {
   const [code, setCode] = useState(initialCode);
   const [status, setStatus] = useState<Status>("editing");
 
@@ -25,7 +31,10 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
         method: "POST",
         credentials: "same-origin",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ codigo: code.trim().toUpperCase() }),
+        body: JSON.stringify({
+          codigo: code.trim().toUpperCase(),
+          ...(eventoId ? { eventoId } : {}),
+        }),
       });
       if (r.ok) setStatus("connected");
       else if (r.status === 401) setStatus("no-session");
@@ -59,10 +68,10 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
             </p>
           </div>
           <Link
-            href="/scan"
+            href={eventoId ? `/admin/e/${eventoId}/ao-vivo` : "/scan"}
             className="tipo-caption block text-center text-acento no-underline transition-opacity duration-[var(--tempo-rapido)] ease-[var(--curva)] hover:opacity-80"
           >
-            Voltar ao evento
+            {eventoId ? "Voltar ao painel" : "Voltar ao evento"}
           </Link>
         </div>
       </Shell>
@@ -93,7 +102,15 @@ export function WallPairClient({ initialCode }: { initialCode: string }) {
           style={radiusStyle("var(--raio)")}
         />
 
-        {status === "no-session" && (
+        {status === "no-session" && eventoId && (
+          <p className="tipo-caption m-0 text-critico">
+            Sua sessão do painel expirou.{" "}
+            <Link href={`/admin/sign-in?next=/admin/e/${eventoId}/ao-vivo`} className="underline">
+              Entre no painel de novo.
+            </Link>
+          </p>
+        )}
+        {status === "no-session" && !eventoId && (
           <p className="tipo-caption m-0 text-critico">
             Você precisa estar na festa para autorizar o telão.{" "}
             <Link href="/scan" className="underline">
