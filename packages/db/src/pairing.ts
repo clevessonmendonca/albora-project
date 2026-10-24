@@ -77,8 +77,8 @@ export async function criarPareamentoPorLink(
     const { token, hash } = emitirToken(segredo);
     try {
       await pool.query(
-        `UPDATE wall_pairings SET expires_at = now()
-          WHERE event_id = $1 AND status = 'autorizado' AND expires_at > now()`,
+        `UPDATE wall_pairings SET status = 'consumido'
+          WHERE event_id = $1 AND status = 'autorizado'`,
         [eventoId],
       );
       await pool.query(
