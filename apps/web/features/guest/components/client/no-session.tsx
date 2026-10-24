@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { usePathname } from "next/navigation";
 import { GuestShell, EntryColumn, FinePrint } from "@albora/ui-web";
