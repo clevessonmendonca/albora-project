@@ -27,6 +27,7 @@ export const Post = memo(function Post({
   onVerAutor,
   legenda,
   lugar,
+  momento,
   criadaEm,
   isVideo,
   largura,
@@ -50,6 +51,7 @@ export const Post = memo(function Post({
   onVerAutor?: ((sessaoId: string) => void) | undefined;
   legenda: string | null;
   lugar?: string | null;
+  momento?: string | null;
   criadaEm?: string;
   isVideo?: boolean;
   largura?: number;
@@ -120,6 +122,14 @@ export const Post = memo(function Post({
           )
         ) : (
           <div className="feed-esperando absolute inset-0 bg-superficie-alta" />
+        )}
+        {momento && (
+          <span
+            data-testid={`momento-${uploadId}`}
+            className="pointer-events-none absolute bottom-2.5 left-2.5 rounded-pilula bg-superficie px-2.5 py-1 text-[0.6875rem] leading-none text-ink"
+          >
+            {momento}
+          </span>
         )}
       </div>
 
