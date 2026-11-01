@@ -63,6 +63,10 @@ export default async function Pagina({ params, searchParams }: Props) {
       <EventNotice
         title="Evento ainda não disponível"
         body="Os anfitriões estão preparando tudo. Volte em breve!"
+        acao={{
+          href: `/admin/e/${r.evento.eventoId}#controle-publicar`,
+          rotulo: "Foi você quem criou? Publique no painel",
+        }}
       />
     );
   }

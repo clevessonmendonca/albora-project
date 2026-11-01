@@ -18,11 +18,13 @@ export function EventNotice({
   body,
   at,
   showRescue,
+  acao,
 }: {
   title: string;
   body: string;
   at?: Date | undefined;
   showRescue?: boolean | undefined;
+  acao?: { href: string; rotulo: string } | undefined;
 }) {
   return (
     <main className="flex min-h-dvh justify-center bg-bg px-8 pb-9 pt-10 font-corpo text-ink">
@@ -39,6 +41,12 @@ export function EventNotice({
           <p className="m-0 max-w-[34ch] tipo-body text-ink-2">{body}</p>
 
           {at && <EventCountdown at={at.toISOString()} />}
+
+          {acao && (
+            <a href={acao.href} className="tipo-body mt-5 inline-block text-acento-texto underline">
+              {acao.rotulo}
+            </a>
+          )}
         </div>
 
         <span className="min-h-6 flex-1" />
