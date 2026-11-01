@@ -49,6 +49,7 @@ export function DetailsStep({
   // Sequência de requisições: só a última consulta vale. Sem isso, uma resposta
   // lenta de um CEP corrigido sobrescreve o local com o valor antigo (ViaCEP degrada).
   const cepReqRef = useRef(0);
+  const [maisAberto, setMaisAberto] = useState(() => Boolean(local.trim() || guests.trim()));
 
   async function buscarCep(bruto: string) {
     const digs = bruto.replace(/\D/g, "").slice(0, 8);
@@ -102,96 +103,100 @@ export function DetailsStep({
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div>
-          <DateTimeField
-            label="Data e hora"
-            value={date}
-            onChange={onDate}
-            invalid={dateError}
-            describedBy={dateError ? "data-erro" : undefined}
-          />
-          {dateError && (
-            <p id="data-erro" role="alert" className="tipo-caption m-0 mt-1.5 text-critico">
-              Escolha a data do evento.
-            </p>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="convidados" className="text-sm font-medium text-ink">
-            Convidados esperados
-          </label>
-          <input
-            id="convidados"
-            type="number"
-            min={1}
-            max={999}
-            inputMode="numeric"
-            placeholder="150"
-            value={guests}
-            onChange={(e) => onGuests(e.target.value)}
-            className="min-h-[48px] w-full rounded-token border border-linha bg-superficie px-3.5 py-2.5 text-ink outline-none transition-[border-color] focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
-          />
-          <p className="tipo-caption m-0 text-ink-3">Só pra medir a participação.</p>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="local" className="text-sm font-medium text-ink">
-          Local <span className="font-normal text-ink-3">· opcional</span>
-        </label>
-        <input
-          id="local"
-          type="text"
-          maxLength={80}
-          placeholder="Espaço, cidade"
-          value={local}
-          onChange={(e) => onLocal(e.target.value)}
-          className="min-h-[48px] w-full rounded-token border border-linha bg-superficie px-3.5 py-2.5 text-ink outline-none transition-[border-color] focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
+      <div>
+        <DateTimeField
+          label="Data e hora"
+          value={date}
+          onChange={onDate}
+          invalid={dateError}
+          describedBy={dateError ? "data-erro" : undefined}
         />
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            inputMode="numeric"
-            placeholder="CEP"
-            value={cep}
-            onChange={(e) => void buscarCep(e.target.value)}
-            aria-label="CEP (preenche o local automaticamente)"
-            className="min-h-9 w-28 rounded-token border border-linha bg-superficie px-2.5 text-[0.85rem] text-ink outline-none focus-visible:border-acento-texto"
-          />
-          <span className="tipo-caption text-ink-3" role="status">
-            {cepStatus === "loading"
-              ? "buscando…"
-              : cepStatus === "erro"
-                ? "CEP não encontrado — digite o local"
-                : "preenche o local pelo CEP"}
-          </span>
-        </div>
-        {local.trim() && (
-          <a
-            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(local)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex w-fit items-center gap-1 tipo-label text-acento-texto transition-opacity hover:opacity-80"
-          >
-            <Glyph name="map-pin" size={12} /> Ver no mapa
-          </a>
+        {dateError && (
+          <p id="data-erro" role="alert" className="tipo-caption m-0 mt-1.5 text-critico">
+            Escolha a data do evento.
+          </p>
         )}
       </div>
-      {momentos.length > 0 && (
-        <div className="flex flex-col gap-2 border-t border-linha pt-4">
-          <p className="tipo-label m-0 uppercase tracking-[0.18em] text-ink-3">Momentos do álbum</p>
-          <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
-            {momentos.map((momento) => (
-              <li key={momento} className="tipo-label rounded-pilula border border-linha bg-superficie px-3 py-1.5 text-ink-2">
-                {momento}
-              </li>
-            ))}
-          </ul>
-          <p className="tipo-caption m-0 text-ink-3">Vêm do tipo de evento e organizam o álbum e o telão.</p>
+
+      <details open={maisAberto} onToggle={(e) => setMaisAberto(e.currentTarget.open)} className="group rounded-token border border-linha bg-superficie">
+        <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-3 px-4 py-3 text-sm font-medium text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-acento-texto">
+          <span>Mais detalhes <span className="font-normal text-ink-3">· local, convidados esperados{momentos.length > 0 ? ", momentos" : ""}</span></span>
+          <span aria-hidden className="transition-transform group-open:rotate-180"><Glyph name="chevron-down" size={16} /></span>
+        </summary>
+        <div className="flex flex-col gap-4 border-t border-linha px-4 py-4">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="convidados" className="text-sm font-medium text-ink">
+              Convidados esperados
+            </label>
+            <input
+              id="convidados"
+              type="number"
+              min={1}
+              max={999}
+              inputMode="numeric"
+              placeholder="150"
+              value={guests}
+              onChange={(e) => onGuests(e.target.value)}
+              className="min-h-[48px] w-full rounded-token border border-linha bg-bg px-3.5 py-2.5 text-ink outline-none transition-[border-color] focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto sm:w-48"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="local" className="text-sm font-medium text-ink">
+              Local
+            </label>
+            <input
+              id="local"
+              type="text"
+              maxLength={80}
+              placeholder="Espaço, cidade"
+              value={local}
+              onChange={(e) => onLocal(e.target.value)}
+              className="min-h-[48px] w-full rounded-token border border-linha bg-bg px-3.5 py-2.5 text-ink outline-none transition-[border-color] focus-visible:border-acento-texto focus-visible:ring-2 focus-visible:ring-acento-texto"
+            />
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                inputMode="numeric"
+                placeholder="CEP"
+                value={cep}
+                onChange={(e) => void buscarCep(e.target.value)}
+                aria-label="CEP (preenche o local automaticamente)"
+                className="min-h-9 w-28 rounded-token border border-linha bg-bg px-2.5 text-[0.85rem] text-ink outline-none focus-visible:border-acento-texto"
+              />
+              <span className="tipo-caption text-ink-3" role="status">
+                {cepStatus === "loading"
+                  ? "buscando…"
+                  : cepStatus === "erro"
+                    ? "CEP não encontrado — digite o local"
+                    : ""}
+              </span>
+            </div>
+            {local.trim() && (
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(local)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-fit items-center gap-1 tipo-label text-acento-texto transition-opacity hover:opacity-80"
+              >
+                <Glyph name="map-pin" size={12} /> Ver no mapa
+              </a>
+            )}
+          </div>
+          {momentos.length > 0 && (
+            <div className="flex flex-col gap-2 border-t border-linha pt-4">
+              <p className="tipo-label m-0 uppercase tracking-[0.18em] text-ink-3">Momentos do álbum</p>
+              <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
+                {momentos.map((momento) => (
+                  <li key={momento} className="tipo-label rounded-pilula border border-linha bg-bg px-3 py-1.5 text-ink-2">
+                    {momento}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
-      )}
+      </details>
     </div>
   );
 }
