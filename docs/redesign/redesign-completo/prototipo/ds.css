@@ -398,3 +398,12 @@ details.ds-fold>summary>.grow{min-width:0;overflow:hidden;text-overflow:ellipsis
 @media(max-width:600px){.ds-fl{gap:var(--space-4)}}
 @media(hover:none){.ds-fl button:not([aria-pressed="true"]):hover{color:var(--fg-3)}}
 .switch::before{content:"";position:absolute;inset:-8px -2px}
+/* v101 — hero sem foto com presença; última foto sem letterbox */
+.hv-poster.no-foto{background:radial-gradient(120% 80% at 50% 0%,color-mix(in srgb,var(--accent,#D46632) 22%,var(--surface-2,#eee)) 0%,var(--surface-2,#eee) 70%)}
+.hv-poster.no-foto .hv-poster-top{gap:var(--space-5)}
+.hv-poster.no-foto .hv-cd-u b{font-size:calc(var(--fs-hero,40px)*.9);color:var(--fg)}
+.hv-poster.no-foto .hv-capa-btn.btn-primary{background:transparent;color:var(--fg);border:1.5px solid var(--fg)}
+.hv-last .hv-last-in{display:block;background:transparent}
+.hv-last .hv-last-in button{display:block}
+.hv-last .hv-last-in img{width:100%;height:auto;max-height:min(54vh,500px);aspect-ratio:4/5;object-fit:cover;display:block}
+@media(max-width:860px){.hv-last .hv-last-in img{max-height:min(46vh,380px);aspect-ratio:1/1}}
