@@ -399,6 +399,7 @@
   .gx-vprog{display:flex;gap:var(--space-1);margin-bottom:var(--space-3)}
   .gx-vprog i{flex:1;height:3px;border-radius:2px;background:var(--line)}
   .gx-vprog i.on{background:var(--fg)}
+  .gx-vprog i{position:relative;overflow:hidden}.gx-vprog i b{position:absolute;inset:0 auto 0 0;width:0;background:var(--fg)}.gx-vprog i.on b{width:100%}.gx-vpause{margin:calc(var(--space-2)*-1) 0 var(--space-2) auto;display:block}
   .gx-note{font-size:var(--fs-sm);color:var(--fg-2);margin:0}
   .gx-badge{display:inline-flex;align-items:center;gap:var(--space-2);font-size:var(--fs-xs);font-weight:500;color:var(--fg-2)}
   .gx-badge{align-items:flex-start}
@@ -843,12 +844,12 @@
     to.addEventListener('transitionend', () => { to.style.transition = ''; to.style.transform = ''; to.style.transformOrigin = ''; }, { once: true });
   };
   const viewerMedia = (s, p) => `<span class="gx-ph" style="--box:${boxOf(p)};aspect-ratio:var(--box);width:min(100%,calc(56dvh * var(--box)));margin:0 auto">${fx(p.src, p.filtro, p.inten, altOf(s, p), 'ctl')}</span>`;
-  function openViewer(s, list, idx, label, from, onSee) {
+  function openViewer(s, list, idx, label, from, onSee, story) {
     if (!list.length) return; let i = idx; let firstDraw = true;
     const m = sheet({ title: '', body: '<div class="gx-viewer"></div>', wide: false, label: label || 'Foto' });
     if (from && !reduceMotion()) m.el.style.animation = 'none';
     const draw = () => {
-      const p = list[i]; onSee && onSee(p); const prog = list.length <= 12 ? `<div class="gx-vprog" aria-hidden="true">${list.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('')}</div>` : '';
+      const p = list[i]; onSee && onSee(p); const auto = story && !reduceMotion(); const prog = (story || list.length <= 12) ? `<div class="gx-vprog" aria-hidden="true">${list.map((_, k) => `<i class="${k < i ? 'on' : k === i ? (auto ? 'cur' : 'on') : ''}"><b></b></i>`).join('')}</div>${auto ? `<button class="btn btn-quiet btn-sm gx-vpause" data-vpause aria-pressed="${ST.pausa}">${ST.pausa ? 'Continuar' : 'Pausar'}</button>` : ''}` : '';
       A.$('h2', m.el).textContent = `${i + 1} de ${list.length}`;
       A.$('.gx-viewer', m.el).innerHTML = `${prog}${postHeader(s, p, true)}${viewerMedia(s, p)}<div data-actions="${p.id}">${actionsBlock(s, p)}</div>${capHtml(s, p)}<div class="gx-body" data-cmlink="${p.id}">${commentLink(s, p)}</div><div class="flex between" style="margin-top:var(--space-3)"><button class="btn btn-line" data-vn="-1" ${i === 0 ? 'disabled' : ''}>${A.icon('chevleft', 18)} Anterior</button><button class="btn btn-line" data-vn="1" ${i === list.length - 1 ? 'disabled' : ''}>Próxima ${A.icon('chevron', 18)}</button></div>`;
       fitCaps(m.el);
@@ -856,6 +857,21 @@
     };
     m.el.addEventListener('click', (e) => { const b = e.target.closest('[data-vn]'); if (b) { i = Math.min(list.length - 1, Math.max(0, i + +b.dataset.vn)); draw(); (A.$('[data-vn]:not([disabled])', m.el) || A.$('[data-mclose]', m.el)).focus(); } });
     m.el.addEventListener('keydown', (e) => { if (e.target.closest('input,textarea')) return; if (e.key === 'ArrowRight' && i < list.length - 1) { i++; draw(); } if (e.key === 'ArrowLeft' && i > 0) { i--; draw(); } });
+    /* histórias: avança sozinho (5 s foto, 12 s vídeo), pausa ao segurar, ao interagir, ao ocultar a página e no botão; sem avanço com movimento reduzido */
+    const ST = { pausa: false, seg: false, el: 0 };
+    if (story && !reduceMotion()) {
+      const bar = () => A.$('.gx-vprog i.cur b', m.el);
+      const tick = setInterval(() => {
+        if (!m.el.isConnected) return clearInterval(tick);
+        if (ST.pausa || ST.seg || document.hidden || m.el.contains(document.activeElement) && /input|textarea/i.test(document.activeElement.tagName)) return;
+        const dur = list[i].tipo === 'video' ? 12000 : 5000; ST.el += 100; const b = bar(); if (b) b.style.width = Math.min(100, (ST.el / dur) * 100) + '%';
+        if (ST.el >= dur) { ST.el = 0; if (i < list.length - 1) { i++; draw(); } else { clearInterval(tick); A.$('[data-mclose]', m.el)?.click(); } }
+      }, 100);
+      const hold = (on) => (e) => { if (e.target.closest('button,a,input,textarea,[role=menuitem]')) return; ST.seg = on; };
+      m.el.addEventListener('pointerdown', hold(true)); ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => m.el.addEventListener(t, hold(false)));
+      m.el.addEventListener('click', (e) => { if (e.target.closest('[data-vpause]')) { ST.pausa = !ST.pausa; draw(); A.$('[data-vpause]', m.el)?.focus(); } if (e.target.closest('[data-vn]')) ST.el = 0; });
+      m.el.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') ST.el = 0; });
+    }
     draw(); return m;
   }
   const DT = { t: 0, id: '', timer: 0 };
@@ -1206,7 +1222,7 @@
   };
   const railHtml = (s) => recadoCard(s) + railSection(s);
   A.acts['g-rail'] = (el) => {
-    const s = curSlug(); const l = railList(s); const m = openViewer(s, l, +el.dataset.i, 'Fotos recentes', el, (p) => { if (!p.own) upd(s, 'vistosF', (v) => (v.includes(p.id) ? v : [...v, p.id]), []); });
+    const s = curSlug(); const l = railList(s); const m = openViewer(s, l, +el.dataset.i, 'Fotos recentes', el, (p) => { if (!p.own) upd(s, 'vistosF', (v) => (v.includes(p.id) ? v : [...v, p.id]), []); }, true);
     m.onClose = () => A.$$('[data-rail]').forEach((r) => { const x = r.querySelector('.gx-rail-l'); const left = x ? x.scrollLeft : 0; const t = document.createElement('div'); t.innerHTML = railSection(s); r.replaceWith(t.firstElementChild); const y = A.$('.gx-rail-l'); if (y) y.scrollLeft = left; });
   };
   const postHtml = (s, p) => { const a = authorOf(s, p.autor); return `<article class="gx-post" aria-label="Foto de ${A.esc(p.own ? 'você' : a.primeiro)}">${postHeader(s, p)}${postMedia(s, p)}<div data-actions="${p.id}">${actionsBlock(s, p)}</div>${capHtml(s, p)}<div class="gx-body" data-cmlink="${p.id}">${commentLink(s, p)}</div></article>`; };
