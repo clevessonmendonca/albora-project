@@ -1447,8 +1447,47 @@
   });
   A.acts['g-share-set'] = (el) => { const s = curSlug(); upd(s, 'share', (o) => ({ ...o, [el.dataset.k]: el.dataset.v }), {}); rerender(); };
   A.inputs['g-share-nome'] = (el) => { const s = curSlug(); upd(s, 'share', (o) => ({ ...o, nome: el.checked }), {}); rerender(); };
-  A.acts['g-share-go'] = () => toast('Abriria o menu de compartilhar do celular com a imagem pronta (simulado).');
-  A.acts['g-share-dl'] = () => toast('Baixaria a imagem com a moldura escolhida, sem localização (simulado).');
+  /* exportação real: composição em canvas (moldura, filtro e nome), sem metadados de localização por construção (PNG novo) */
+  const shareBlob = async (s) => {
+    const p = (photoById(s, new URLSearchParams((location.hash.split('?')[1] || '')).get('foto')) || allPhotos(s)[0]);
+    if (!p || VIDSRC.has(p.src)) throw new Error('video');
+    const sh = { fmt: '916', mold: 'polaroide', nome: true, ...get(s, 'share', {}) }; const nome = sess(s).nome;
+    const [W, H] = sh.fmt === '916' ? [1080, 1920] : sh.fmt === '45' ? [1080, 1350] : [1080, 1080];
+    const img = await new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = no; im.src = p.src; });
+    const css = (v, d) => (getComputedStyle(document.documentElement).getPropertyValue(v).trim() || d);
+    const papel = css('--papel', 'white'), noite = css('--noite', 'black');
+    try { await document.fonts.load('400 44px Fraunces'); } catch { /* usa a fonte reserva */ }
+    const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+    const pre = PRE.find((q) => q.id === p.filtro);
+    const desenha = (dx, dy, dw, dh, cover) => {
+      const k = cover ? Math.max(dw / img.width, dh / img.height) : Math.min(dw / img.width, dh / img.height); const w = img.width * k, h = img.height * k; const ox = dx + (dw - w) / 2, oy = dy + (dh - h) / 2;
+      x.save(); x.beginPath(); x.rect(dx, dy, dw, dh); x.clip(); x.drawImage(img, ox, oy, w, h);
+      if (pre && pre.f && 'filter' in x) { x.filter = pre.f; x.globalAlpha = (p.inten ?? 100) / 100; x.drawImage(img, ox, oy, w, h); }
+      x.restore();
+    };
+    x.fillStyle = sh.mold === 'polaroide' ? papel : noite; x.fillRect(0, 0, W, H);
+    if (sh.mold === 'polaroide') desenha(60, 60, W - 120, H - 240, false);
+    else if (sh.mold === 'ambiente') desenha(0, 0, W, H, false);
+    else desenha(0, 0, W, H, true);
+    if (sh.nome) {
+      x.font = '400 44px Fraunces, serif'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      if (sh.mold === 'polaroide') { x.fillStyle = noite; x.fillText(nome, W / 2, H - 100); }
+      else { const w = x.measureText(nome).width + 72; x.globalAlpha = 0.55; x.fillStyle = noite; x.beginPath(); x.roundRect(W / 2 - w / 2, H - 150, w, 76, 38); x.fill(); x.globalAlpha = 1; x.fillStyle = papel; x.fillText(nome, W / 2, H - 112); }
+    }
+    return { blob: await new Promise((ok, no) => c.toBlob((b) => (b ? ok(b) : no(new Error('png'))), 'image/png')), ext: 'png' };
+  };
+  const shareErr = (e) => toast(e.message === 'video' ? 'Vídeo não vira imagem. Escolha uma foto para compartilhar.' : 'Não consegui montar a imagem. Tente outra foto.', { kind: 'bad' });
+  A.acts['g-share-dl'] = async () => {
+    try { const { blob } = await shareBlob(curSlug()); const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = 'albora-foto.png'; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); toast('Imagem salva, sem localização.'); }
+    catch (e) { shareErr(e); }
+  };
+  A.acts['g-share-go'] = async () => {
+    try {
+      const { blob } = await shareBlob(curSlug()); const file = new File([blob], 'albora-foto.png', { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Albora' }).catch((e) => { if (e.name !== 'AbortError') throw e; }); return; }
+      toast('Este navegador não abre o compartilhar com imagem. Use Baixar imagem.');
+    } catch (e) { shareErr(e); }
+  };
 
   /* ---------------------------------------------------------------- 10. fila de envio (web e app nativo) */
   A.route('/g/:slug/fila', (ctx) => {
