@@ -410,3 +410,5 @@ details.ds-fold>summary>.grow{min-width:0;overflow:hidden;text-overflow:ellipsis
 /* v104 — alça do protótipo discreta no celular; filtros do fornecedor em uma linha rolável */
 @media(max-width:600px){.proto-bar>button{width:8px;opacity:.22}.proto-bar>button:hover,.proto-bar>button:focus-visible,.proto-bar>button[aria-expanded="true"]{width:28px}}
 body .vd-fases{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.vd-fases::-webkit-scrollbar{display:none}body .vd-fases>button{flex:none;white-space:nowrap}
+/* v107 — foco programático no título da rota não desenha anel (o foco de teclado segue visível nos controles) */
+h1[tabindex="-1"]:focus,#main[tabindex="-1"]:focus{outline:none}
