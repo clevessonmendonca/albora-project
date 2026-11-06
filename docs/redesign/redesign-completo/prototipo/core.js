@@ -272,7 +272,13 @@
     let soltaAncora = null;
     const close = (devolve) => { soltaAncora && soltaAncora(); soltaAncora = null; m.remove(); document.removeEventListener('mousedown', out, true); document.removeEventListener('keydown', key, true); if (devolve && anchor.focus) anchor.focus(); };
     const out = (e) => { if (!m.contains(e.target)) close(false); };
-    const key = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(true); } };
+    const key = (e) => {
+      if (e.key === 'Escape') { e.stopPropagation(); close(true); return; }
+      if (e.key === 'Tab') { close(true); return; }
+      const its = A.$$('[role=menuitem]', m); if (!its.length || !['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(e.key)) return;
+      e.preventDefault(); const at = its.indexOf(document.activeElement);
+      its[e.key === 'Home' ? 0 : e.key === 'End' ? its.length - 1 : (at + (e.key === 'ArrowDown' ? 1 : -1) + its.length) % its.length].focus();
+    };
     setTimeout(() => document.addEventListener('mousedown', out, true)); document.addEventListener('keydown', key, true);
     soltaAncora = A.ancorar(m, anchor, () => close(false));
     m.addEventListener('click', (e) => { const b = e.target.closest('[data-i]'); if (!b) return; const it = items[+b.dataset.i]; close(false); it.onClick && it.onClick(); });
