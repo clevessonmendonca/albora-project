@@ -396,6 +396,8 @@
   .gx-viewer .gx-phd,.gx-viewer .gx-body{padding-left:0;padding-right:0}
   .gx-viewer .gx-act{padding-left:0;padding-right:0}
   .gx-viewer .gx-ph{background:var(--surface)}
+  .gx-imm .gx-viewer{touch-action:pan-y}
+  .gx-imm .gx-viewer .gx-ph{border-radius:var(--radius-sm)}
   .gx-vprog{display:flex;gap:var(--space-1);margin-bottom:var(--space-3)}
   .gx-vprog i{flex:1;height:3px;border-radius:2px;background:var(--line)}
   .gx-vprog i.on{background:var(--fg)}
@@ -843,20 +845,22 @@
     to.style.transition = 'transform var(--dur-3) var(--ease)'; to.style.transform = 'none';
     to.addEventListener('transitionend', () => { to.style.transition = ''; to.style.transform = ''; to.style.transformOrigin = ''; }, { once: true });
   };
-  const viewerMedia = (s, p) => `<span class="gx-ph" style="--box:${boxOf(p)};aspect-ratio:var(--box);width:min(100%,calc(56dvh * var(--box)));margin:0 auto">${fx(p.src, p.filtro, p.inten, altOf(s, p), 'ctl')}</span>`;
-  function openViewer(s, list, idx, label, from, onSee, story) {
+  const viewerMedia = (s, p, imm) => `<span class="gx-ph" style="--box:${boxOf(p)};aspect-ratio:var(--box);width:min(100%,calc(${imm ? 72 : 56}dvh * var(--box)));margin:0 auto">${fx(p.src, p.filtro, p.inten, altOf(s, p), 'ctl')}</span>`;
+  function openViewer(s, list, idx, label, from, onSee, story, imm) {
     if (!list.length) return; let i = idx; let firstDraw = true;
     const m = sheet({ title: '', body: '<div class="gx-viewer"></div>', wide: false, label: label || 'Foto' });
+    if (imm) m.el.classList.add('gx-imm');
     if (from && !reduceMotion()) m.el.style.animation = 'none';
     const draw = () => {
       const p = list[i]; onSee && onSee(p); const auto = story && !reduceMotion(); const prog = (story || list.length <= 12) ? `<div class="gx-vprog" aria-hidden="true">${list.map((_, k) => `<i class="${k < i ? 'on' : k === i ? (auto ? 'cur' : 'on') : ''}"><b></b></i>`).join('')}</div>${auto ? `<button class="btn btn-quiet btn-sm gx-vpause" data-vpause aria-pressed="${ST.pausa}">${ST.pausa ? 'Continuar' : 'Pausar'}</button>` : ''}` : '';
       A.$('h2', m.el).textContent = `${i + 1} de ${list.length}`;
-      A.$('.gx-viewer', m.el).innerHTML = `${prog}${postHeader(s, p, true)}${viewerMedia(s, p)}<div data-actions="${p.id}">${actionsBlock(s, p)}</div>${capHtml(s, p)}<div class="gx-body" data-cmlink="${p.id}">${commentLink(s, p)}</div><div class="flex between" style="margin-top:var(--space-3)"><button class="btn btn-line" data-vn="-1" ${i === 0 ? 'disabled' : ''}>${A.icon('chevleft', 18)} Anterior</button><button class="btn btn-line" data-vn="1" ${i === list.length - 1 ? 'disabled' : ''}>Próxima ${A.icon('chevron', 18)}</button></div>`;
+      A.$('.gx-viewer', m.el).innerHTML = `${prog}${postHeader(s, p, true)}${viewerMedia(s, p, imm)}<div data-actions="${p.id}">${actionsBlock(s, p)}</div>${capHtml(s, p)}<div class="gx-body" data-cmlink="${p.id}">${commentLink(s, p)}</div><div class="flex between" style="margin-top:var(--space-3)"><button class="btn btn-line" data-vn="-1" ${i === 0 ? 'disabled' : ''}>${A.icon('chevleft', 18)} Anterior</button><button class="btn btn-line" data-vn="1" ${i === list.length - 1 ? 'disabled' : ''}>Próxima ${A.icon('chevron', 18)}</button></div>`;
       fitCaps(m.el);
       if (firstDraw) { firstDraw = false; flip(from, A.$('.gx-viewer .gx-ph', m.el)); }
     };
     m.el.addEventListener('click', (e) => { const b = e.target.closest('[data-vn]'); if (b) { i = Math.min(list.length - 1, Math.max(0, i + +b.dataset.vn)); draw(); (A.$('[data-vn]:not([disabled])', m.el) || A.$('[data-mclose]', m.el)).focus(); } });
     m.el.addEventListener('keydown', (e) => { if (e.target.closest('input,textarea')) return; if (e.key === 'ArrowRight' && i < list.length - 1) { i++; draw(); } if (e.key === 'ArrowLeft' && i > 0) { i--; draw(); } });
+    if (imm) { let x0 = null; m.el.addEventListener('pointerdown', (e) => { x0 = e.target.closest('button,a,input,textarea') ? null : e.clientX; }); m.el.addEventListener('pointerup', (e) => { if (x0 === null) return; const d = e.clientX - x0; x0 = null; if (Math.abs(d) > 60) { const n = Math.min(list.length - 1, Math.max(0, i + (d < 0 ? 1 : -1))); if (n !== i) { i = n; draw(); } } }); }
     /* histórias: avança sozinho (5 s foto, 12 s vídeo), pausa ao segurar, ao interagir, ao ocultar a página e no botão; sem avanço com movimento reduzido */
     const ST = { pausa: false, seg: false, el: 0 };
     if (story && !reduceMotion()) {
@@ -877,7 +881,7 @@
   const DT = { t: 0, id: '', timer: 0 };
   A.acts['g-open'] = (el, ev) => {
     const s = curSlug(); const id = el.dataset.id; const l = listFor(s, el.dataset.ctx, el.dataset.extra);
-    const open = () => openViewer(s, l, Math.max(0, l.findIndex((p) => p.id === id)), 'Foto em tela grande', el);
+    const open = () => openViewer(s, l, Math.max(0, l.findIndex((p) => p.id === id)), el.dataset.ctx === 'album' ? 'Álbum em tela grande' : 'Foto em tela grande', el, null, false, el.dataset.ctx === 'album');
     if (el.dataset.dbl === '1' && ev && ev.detail > 0) {
       const now = Date.now(); clearTimeout(DT.timer);
       if (DT.id === id && now - DT.t < 320) { DT.t = 0; DT.id = ''; const pop = A.$('.gx-pop', el); if (pop) { pop.classList.remove('on'); void pop.offsetWidth; pop.classList.add('on'); } if (!reacaoMinha(s, id)) setReaction(s, id, A.data.reacoes[0]); return; }
