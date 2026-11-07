@@ -28,7 +28,7 @@
     const text = (role, content, x, y, width, size, more = {}) => element('text', { role, text: content, x, y, w: width, h: size * 2.8, size, color: fg, font: 'Fraunces', align: 'left', ...more });
     const names = info.name.replace(/^Casamento\s+/i, '');
     const els = [];
-    const photo = element('photo', { role: 'photo', x: 70, y: 70, w: w - 140, h: h * .43, src: ev.capaSrc || ev.foto || '', color: info.color });
+    const photo = element('photo', { role: 'photo', x: 70, y: 70, w: w - 140, h: h * .43, src: ev.capaSrc || ev.foto || ev.capa || (ev.capaDemo && A.capa ? A.capa(ev.id, ev.cor, ev.cor2) : ''), color: info.color });
     if (tpl.layout !== 'type') els.push(photo);
     const y = tpl.layout === 'type' ? h * .25 : h * .55;
     let label = tpl.purpose === 'Save the date' ? 'Reserve essa data' : tpl.id === 'obrigado' ? 'Obrigado por fazer parte' : tpl.id === 'memorias' ? 'Memórias da nossa festa' : 'Vamos celebrar';
