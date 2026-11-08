@@ -1,7 +1,7 @@
 # Albora — auditoria de design do protótipo
 
 Escopo: `docs/redesign/redesign-completo/prototipo/` (HTML/JS estático, hash routing). Não é o `apps/web`.
-Última atualização: 2026-11-07. Cache atual: `?v=111`. Branch: `docs/redesign-prototipo`, sem push.
+Última atualização: 2026-11-07. Cache atual: `?v=115`. Branch: `docs/redesign-prototipo`, sem push.
 
 ## Decisões vigentes (não reverter sem justificativa)
 
@@ -46,7 +46,7 @@ Telão a 1920×1080: estado vazio legível; mural com 6 fotos (verticais e horiz
 | Pri | Item | Observação |
 |---|---|---|
 | P1 | Marca "Albora" vs "ALBORA" | Decisão de produto |
-| P2 | Stories sem cabeçalho de evento | Faltou onde a foto principal entra |
+| ~~P2~~ | Stories sem cabeçalho de evento | Feito: linha com miniatura e nome do evento (verificado a 390px) |
 | P2 | Telão: legibilidade à distância não medida | Testar a 3 m com viewport 1920×1080 |
 | P3 | Pós-casamento: retrospectiva | Experimento; validar valor antes |
 | P3 | Landing page | Fora do protótipo |

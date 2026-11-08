@@ -396,7 +396,7 @@
   .gx-viewer .gx-phd,.gx-viewer .gx-body{padding-left:0;padding-right:0}
   .gx-viewer .gx-act{padding-left:0;padding-right:0}
   .gx-viewer .gx-ph{background:var(--surface)}
-  .gx-imm .gx-viewer{touch-action:pan-y}
+  .gx-imm .gx-viewer{touch-action:pan-y}.gx-sev{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);font-size:var(--fs-sm);color:var(--fg-2)}.gx-sev img{width:24px;height:24px;border-radius:var(--r-pill);object-fit:cover}
   .gx-imm .gx-viewer .gx-ph{border-radius:var(--radius-sm)}
   .gx-vprog{display:flex;gap:var(--space-1);margin-bottom:var(--space-3)}
   .gx-vprog i{flex:1;height:3px;border-radius:2px;background:var(--line)}
@@ -846,6 +846,7 @@
     to.addEventListener('transitionend', () => { to.style.transition = ''; to.style.transform = ''; to.style.transformOrigin = ''; }, { once: true });
   };
   const viewerMedia = (s, p, imm) => `<span class="gx-ph" style="--box:${boxOf(p)};aspect-ratio:var(--box);width:min(100%,calc(${imm ? 72 : 56}dvh * var(--box)));margin:0 auto">${fx(p.src, p.filtro, p.inten, altOf(s, p), 'ctl')}</span>`;
+  const storyEv = (s) => { const ev = evOf(s); const src = capaDe(ev); return `<div class="gx-sev">${src ? `<img src="${src}" alt="" aria-hidden="true">` : ''}<span>${A.esc(ev.nome)}</span></div>`; };
   function openViewer(s, list, idx, label, from, onSee, story, imm) {
     if (!list.length) return; let i = idx; let firstDraw = true;
     const m = sheet({ title: '', body: '<div class="gx-viewer"></div>', wide: false, label: label || 'Foto' });
@@ -854,7 +855,7 @@
     const draw = () => {
       const p = list[i]; onSee && onSee(p); const auto = story && !reduceMotion(); const prog = (story || list.length <= 12) ? `<div class="gx-vprog" aria-hidden="true">${list.map((_, k) => `<i class="${k < i ? 'on' : k === i ? (auto ? 'cur' : 'on') : ''}"><b></b></i>`).join('')}</div>${auto ? `<button class="btn btn-quiet btn-sm gx-vpause" data-vpause aria-pressed="${ST.pausa}">${ST.pausa ? 'Continuar' : 'Pausar'}</button>` : ''}` : '';
       A.$('h2', m.el).textContent = `${i + 1} de ${list.length}`;
-      A.$('.gx-viewer', m.el).innerHTML = `${prog}${postHeader(s, p, true)}${viewerMedia(s, p, imm)}<div data-actions="${p.id}">${actionsBlock(s, p)}</div>${capHtml(s, p)}<div class="gx-body" data-cmlink="${p.id}">${commentLink(s, p)}</div><div class="flex between" style="margin-top:var(--space-3)"><button class="btn btn-line" data-vn="-1" ${i === 0 ? 'disabled' : ''}>${A.icon('chevleft', 18)} Anterior</button><button class="btn btn-line" data-vn="1" ${i === list.length - 1 ? 'disabled' : ''}>Próxima ${A.icon('chevron', 18)}</button></div>`;
+      A.$('.gx-viewer', m.el).innerHTML = `${prog}${story ? storyEv(s) : ''}${postHeader(s, p, true)}${viewerMedia(s, p, imm)}<div data-actions="${p.id}">${actionsBlock(s, p)}</div>${capHtml(s, p)}<div class="gx-body" data-cmlink="${p.id}">${commentLink(s, p)}</div><div class="flex between" style="margin-top:var(--space-3)"><button class="btn btn-line" data-vn="-1" ${i === 0 ? 'disabled' : ''}>${A.icon('chevleft', 18)} Anterior</button><button class="btn btn-line" data-vn="1" ${i === list.length - 1 ? 'disabled' : ''}>Próxima ${A.icon('chevron', 18)}</button></div>`;
       fitCaps(m.el);
       if (firstDraw) { firstDraw = false; flip(from, A.$('.gx-viewer .gx-ph', m.el)); }
     };
