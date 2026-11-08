@@ -33,7 +33,7 @@ Landing page: **não existe no protótipo** (vive em `apps/web`). Fora do escopo
 
 ## Não verificável aqui
 
-Câmera real, `navigator.share` nativo, leitor de tela, teclado virtual, toque real, filtro no PNG em Safari (`ctx.filter`), vídeo real em stories, A.modal por navegador (só por leitura do código).
+Câmera real, `navigator.share` nativo, leitor de tela, teclado virtual, toque real, filtro no PNG em Safari (`ctx.filter`), vídeo real em stories, (A.modal já verificado no navegador: foco preso, Esc fecha, foco volta ao gatilho).
 
 ## Ciclo 1 (2026-11-05 a 07) — implementado
 
@@ -47,7 +47,6 @@ Telão a 1920×1080: estado vazio legível; mural com 6 fotos (verticais e horiz
 |---|---|---|
 | P1 | Marca "Albora" vs "ALBORA" | Decisão de produto |
 | P2 | Stories sem cabeçalho de evento | Faltou onde a foto principal entra |
-| P2 | Auditoria de foco em `A.modal` no navegador | Só lido, não executado |
 | P2 | Telão: legibilidade à distância não medida | Testar a 3 m com viewport 1920×1080 |
 | P3 | Pós-casamento: retrospectiva | Experimento; validar valor antes |
 | P3 | Landing page | Fora do protótipo |
@@ -56,5 +55,4 @@ Telão a 1920×1080: estado vazio legível; mural com 6 fotos (verticais e horiz
 
 1. Estúdio: inspecionar o PNG exportado e a edição com foto clara/vertical.
 2. Telão: modelos polaroide, colagem e dump com fotos claras.
-3. A.modal por navegador.
-4. Teste em aparelho real.
+3. Teste em aparelho real.
