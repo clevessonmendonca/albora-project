@@ -13,6 +13,8 @@
     { id: 'divertido', name: 'Vai ter festa', category: 'Divertido', purpose: 'Contagem regressiva', format: 'post', layout: 'type' },
     { id: 'story', name: 'Um dia para guardar', category: 'Stories', purpose: 'Story para Instagram', format: 'story', layout: 'editorial' },
     { id: 'obrigado', name: 'Foi bonito com vocês', category: 'Convite digital', purpose: 'Agradecimento', format: 'post', layout: 'split' },
+    { id: 'imersivo', name: 'A foto é a festa', category: 'Elegante', purpose: 'Convite com foto inteira', format: 'convite', layout: 'full' },
+    { id: 'polaroide', name: 'Um instante de nós', category: 'Divertido', purpose: 'Publicação polaroide', format: 'post', layout: 'polaroide' },
     { id: 'memorias', name: 'A festa continua aqui', category: 'Elegante', purpose: 'Memórias', format: 'story', layout: 'frame' }
   ];
   let dbPromise, active = null;
@@ -47,6 +49,20 @@
     }
     if(tpl.id==='minimal') { const name=els.find(e=>e.role==='name');name.text=names.replace(/ & /,'\n& ');name.size=114;name.y=h*.30;name.h=h*.38;els.push(element('frame',{x:76,y:h*.18,w:w-152,h:2,color:info.color})); }
     if(tpl.id==='divertido'){els.filter(e=>e.type==='text').forEach(e=>{e.font='Instrument Sans';e.color=palette.white;});const name=els.find(e=>e.role==='name');name.text=names.replace(/ & /,'\n& ');name.size=120;name.y=h*.31;name.h=h*.4;}
+    if (tpl.layout === 'full') {
+      photo.x = 0; photo.y = 0; photo.w = w; photo.h = h;
+      const T = els.filter(e => e.type === 'text'); T.forEach(e => { e.color = palette.white; e.align = 'center'; e.x = 70; e.w = w - 140; });
+      const hd = els.find(e => e.role === 'heading'), nm = els.find(e => e.role === 'name'), dt = els.find(e => e.role === 'date'), pl = els.find(e => e.role === 'place');
+      hd.y = h * .66; nm.text = names.replace(/ & /, '\n& '); nm.size = 96; nm.y = h * .70; nm.h = h * .2; dt.y = h - 150; pl.y = h - 100;
+      els.splice(els.indexOf(photo) + 1, 0, element('frame', { role: 'veil', veil: true, x: 0, y: h * .42, w, h: h * .58, color: palette.night }));
+    }
+    if (tpl.layout === 'polaroide') {
+      const T = els.filter(e => e.type === 'text'); T.forEach(e => { e.align = 'center'; e.x = 90; e.w = w - 180; });
+      const hd = els.find(e => e.role === 'heading'), nm = els.find(e => e.role === 'name'), dt = els.find(e => e.role === 'date'), pl = els.find(e => e.role === 'place');
+      photo.x = 110; photo.y = 96; photo.w = w - 220; photo.h = h * .6;
+      els.splice(els.indexOf(photo), 0, element('frame', { role: 'cartao', fill: palette.white, x: 70, y: 56, w: w - 140, h: h * .91, color: palette.white }));
+      hd.text = ''; hd.y = h * .7; nm.size = 58; nm.y = h * .72; nm.h = h * .1; dt.size = 26; dt.y = h * .84; pl.y = h * .89; pl.size = 22;
+    }
     if(tpl.id==='story'){photo.x=0;photo.y=0;photo.w=w;photo.h=h*.57;els.find(e=>e.role==='heading').y=h*.63;els.find(e=>e.role==='name').y=h*.69;}
     return { version: 1, id: uid(), eventId: ev.id, name: tpl.name, template: tpl.id, w, h, bg:tpl.id==='divertido'?info.color:bg, bg2: bg, gradient: false, elements: els, eventSnapshot: info, updated: Date.now() };
   }
@@ -59,6 +75,8 @@
   async function nodeFor(e,background) {
     const base = { id: e.id, x: e.x, y: e.y, width: e.w, height: e.h };
     if (e.type === 'text') return new Konva.Text({ ...base, text: e.text, fontFamily: e.font, fontSize: e.size, fill: e.color, align: e.align, lineHeight: 1.12, wrap: 'word' });
+    if (e.type === 'frame' && e.veil) return new Konva.Rect({ ...base, fillLinearGradientStartPoint: { x: 0, y: 0 }, fillLinearGradientEndPoint: { x: 0, y: e.h }, fillLinearGradientColorStops: [0, 'rgba(20,16,14,0)', .55, 'rgba(20,16,14,.62)', 1, 'rgba(20,16,14,.88)'] });
+    if (e.type === 'frame' && e.fill) return new Konva.Rect({ ...base, fill: e.fill, shadowColor: 'rgba(20,16,14,.28)', shadowBlur: 36, shadowOffsetY: 14 });
     if (e.type === 'frame') return new Konva.Rect({ ...base, stroke: e.color, strokeWidth: 2 });
     if (e.type === 'floral') { const g = new Konva.Group(base); g.add(new Konva.Line({ points: [0,e.h,e.w/2,e.h/2,e.w,0], stroke: e.color, strokeWidth: 3, tension:.4 })); [0,1,2,3,4].forEach(i => g.add(new Konva.Ellipse({ x:e.w*(i+1)/6, y:e.h*(5-i)/6, radiusX:e.w*.16, radiusY:e.h*.055, rotation:i%2?35:-35, stroke:e.color, strokeWidth:2 }))); return g; }
     if (e.type === 'qr' || e.src) { const bitmap = await img(e.type === 'qr' ? qrSrc(e.link) : e.src); const ratio = Math.max(e.w / bitmap.width, e.h / bitmap.height); return new Konva.Image({ ...base, image: bitmap, crop: { x:(bitmap.width-e.w/ratio)/2,y:(bitmap.height-e.h/ratio)/2,width:e.w/ratio,height:e.h/ratio } }); }

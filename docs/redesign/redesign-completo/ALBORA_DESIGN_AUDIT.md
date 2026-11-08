@@ -38,13 +38,13 @@ Câmera real, `navigator.share` nativo, leitor de tela, teclado virtual, toque r
 ## Ciclo 1 (2026-11-05 a 07) — implementado
 
 Correções: hero sem foto; letterbox da última foto; cabeçalho compacto no mobile; contagem duplicada no álbum; missões repetidas; handle sobreposto; filtro de fornecedor quebrava linha; stories avançavam sozinhos sem pausa; anel de foco no h1; 404 de favicon; handoff desatualizado.
-Refinamentos: compartilhar vira PNG real; visualizador imersivo do álbum (72dvh + swipe); menu acessível; cabeçalho com a foto do evento em Missões; **miniaturas do estúdio de convites passam a usar a capa do evento** (antes mostravam "Escolha uma fotografia").
+Refinamentos: compartilhar vira PNG real; visualizador imersivo do álbum (72dvh + swipe); menu acessível; cabeçalho com a foto do evento em Missões; **miniaturas do estúdio de convites passam a usar a capa do evento** (antes mostravam "Escolha uma fotografia"); **dois modelos novos com composição própria no estúdio: "A foto é a festa" (foto inteira com véu gradiente) e "Um instante de nós" (polaroide)**. Ambos abrem no editor sem erro; exportação não testada.
+Telão a 1920×1080: estado vazio legível (títulos grandes; só rótulos de controle em 16px). Não testei com fotos.
 
 ## Diagnóstico priorizado (pendente)
 
 | Pri | Item | Observação |
 |---|---|---|
-| P1 | Estúdio: só "Todos…Convite digital" em chips; templates compartilham a mesma estrutura de colunas | Criar 2–3 composições realmente diferentes (full-bleed, tipográfico, polaroide) — precisa aprovação de direção de arte |
 | P1 | Marca "Albora" vs "ALBORA" | Decisão de produto |
 | P2 | Stories sem cabeçalho de evento | Faltou onde a foto principal entra |
 | P2 | Auditoria de foco em `A.modal` no navegador | Só lido, não executado |
@@ -54,7 +54,7 @@ Refinamentos: compartilhar vira PNG real; visualizador imersivo do álbum (72dvh
 
 ## Próximo ciclo proposto
 
-1. Estúdio: templates com composições distintas (depende de aprovação).
-2. Telão a 1920×1080 com fotos verticais, escuras e claras.
+1. Estúdio: testar exportação dos modelos novos e da edição com foto clara/vertical.
+2. Telão com fotos verticais, escuras e claras.
 3. A.modal por navegador.
 4. Teste em aparelho real.
