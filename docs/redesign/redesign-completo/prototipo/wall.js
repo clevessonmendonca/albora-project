@@ -330,7 +330,7 @@ body.wall-mode .proto-bar{opacity:0;transition:opacity var(--dur-2)} body.wall-m
       const ms = eqModel(); const changedModel = ms !== modelSig; modelSig = ms;
       if (k !== S.kind) setKind(k); else if (k === 'cena' && changedModel) { S.mi = 0; renderScene(); }
       const n = A.data.photos.filter((p) => p.status === 'aprovada').length + A.store.get('telaoFotosNovas', []).length + S.sim.length;
-      const pessoas = A.data.guests.filter((g) => g.fotos > 0).length + S.sim.length;
+      const pessoas = Math.max(A.data.guests.filter((g) => g.fotos > 0).length + S.sim.length, new Set(pool().map((it) => it.autor)).size);
       $('#wl-count', root).textContent = k === 'cena' ? `${A.pt(n)} fotos · ${A.pt(pessoas)} pessoas` : '';
       const ens = A.when(ev.id).phase === 'antes';
       $('#wl-chips', root).innerHTML = ens ? '<span class="wl-chip">Ensaio: fotos de exemplo</span>' : '';
