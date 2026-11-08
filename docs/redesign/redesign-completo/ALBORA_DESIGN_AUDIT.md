@@ -39,7 +39,7 @@ Câmera real, `navigator.share` nativo, leitor de tela, teclado virtual, toque r
 
 Correções: hero sem foto; letterbox da última foto; cabeçalho compacto no mobile; contagem duplicada no álbum; missões repetidas; handle sobreposto; filtro de fornecedor quebrava linha; stories avançavam sozinhos sem pausa; anel de foco no h1; 404 de favicon; handoff desatualizado.
 Refinamentos: compartilhar vira PNG real; visualizador imersivo do álbum (72dvh + swipe); menu acessível; cabeçalho com a foto do evento em Missões; **miniaturas do estúdio de convites passam a usar a capa do evento** (antes mostravam "Escolha uma fotografia"); **dois modelos novos com composição própria no estúdio: "A foto é a festa" (foto inteira com véu gradiente) e "Um instante de nós" (polaroide)**. Ambos abrem no editor sem erro; exportação não testada.
-Telão a 1920×1080: estado vazio legível (títulos grandes; só rótulos de controle em 16px). Não testei com fotos.
+Telão a 1920×1080: estado vazio legível; mural com 6 fotos (verticais e horizontais) preenche a grade 3×2 e as verticais ficam inteiras sobre fundo desfocado, sem corte. Estúdio: exportação dos dois modelos novos baixa `albora-convite.png` sem erro (PNG não inspecionado). Não testei os outros modelos do telão (polaroide, colagem, dump) com fotos claras/escuras.
 
 ## Diagnóstico priorizado (pendente)
 
@@ -54,7 +54,7 @@ Telão a 1920×1080: estado vazio legível (títulos grandes; só rótulos de co
 
 ## Próximo ciclo proposto
 
-1. Estúdio: testar exportação dos modelos novos e da edição com foto clara/vertical.
-2. Telão com fotos verticais, escuras e claras.
+1. Estúdio: inspecionar o PNG exportado e a edição com foto clara/vertical.
+2. Telão: modelos polaroide, colagem e dump com fotos claras.
 3. A.modal por navegador.
 4. Teste em aparelho real.
