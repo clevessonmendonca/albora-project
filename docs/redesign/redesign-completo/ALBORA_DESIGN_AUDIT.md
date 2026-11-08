@@ -39,7 +39,7 @@ Câmera real, `navigator.share` nativo, leitor de tela, teclado virtual, toque r
 
 Correções: hero sem foto; letterbox da última foto; cabeçalho compacto no mobile; contagem duplicada no álbum; missões repetidas; handle sobreposto; filtro de fornecedor quebrava linha; stories avançavam sozinhos sem pausa; anel de foco no h1; 404 de favicon; handoff desatualizado.
 Refinamentos: compartilhar vira PNG real; visualizador imersivo do álbum (72dvh + swipe); menu acessível; cabeçalho com a foto do evento em Missões; **miniaturas do estúdio de convites passam a usar a capa do evento** (antes mostravam "Escolha uma fotografia"); **dois modelos novos com composição própria no estúdio: "A foto é a festa" (foto inteira com véu gradiente) e "Um instante de nós" (polaroide)**. Ambos abrem no editor sem erro; exportação não testada.
-Telão a 1920×1080: estado vazio legível; mural com 6 fotos (verticais e horizontais) preenche a grade 3×2 e as verticais ficam inteiras sobre fundo desfocado, sem corte. Estúdio: exportação dos dois modelos novos baixa `albora-convite.png` sem erro (PNG não inspecionado). Não testei os outros modelos do telão (polaroide, colagem, dump) com fotos claras/escuras.
+Telão a 1920×1080: estado vazio legível; mural com 6 fotos (verticais e horizontais) preenche a grade 3×2 e as verticais ficam inteiras sobre fundo desfocado, sem corte. Estúdio: exportação dos dois modelos novos baixa `albora-convite.png` sem erro (PNG não inspecionado). Polaroide, colagem e dump a 1920×1080 também mostram as fotos inteiras, sem rolagem horizontal nem erro; na colagem a foto central cobre cantos das vizinhas (efeito esperado de colagem, mas pode esconder rostos nos cantos). Fotos claras não testadas: o gerador de exemplo só produz imagens escuras.
 
 ## Diagnóstico priorizado (pendente)
 
@@ -54,5 +54,5 @@ Telão a 1920×1080: estado vazio legível; mural com 6 fotos (verticais e horiz
 ## Próximo ciclo proposto
 
 1. Estúdio: inspecionar o PNG exportado e a edição com foto clara/vertical.
-2. Telão: modelos polaroide, colagem e dump com fotos claras.
+2. Telão: fotos claras reais (o gerador de exemplo só faz escuras) e sobreposição da colagem.
 3. Teste em aparelho real.
