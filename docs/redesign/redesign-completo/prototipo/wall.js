@@ -20,6 +20,7 @@
   const now = () => Date.now();
   const hm = (t) => new Date(t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   const evOf = (id) => A.data.events.find((e) => e.id === id) || A.data.events[0];
+  const capaArt = (e) => (e.capa ? `<img class="wl-capa" src="${esc(e.capa)}" alt="" style="${A.hero ? A.hero.fotoStyle(e.id) : ''}">` : A.star(112));
   const novoCodigo = () => Array.from({ length: 6 }, () => ALFA[Math.floor(Math.random() * ALFA.length)]).join('');
 
   /* ---------- estado compartilhado ---------- */
@@ -99,7 +100,7 @@
 .wl-actions{display:flex;gap:var(--space-3);flex-wrap:wrap;justify-content:center}
 .wl-proto{font-size:var(--fs-xs);color:var(--fg-2);display:flex;gap:0 var(--space-3);align-items:center;flex-wrap:wrap;justify-content:center;max-width:60ch}
 .wl-msg{display:flex;flex-direction:column;align-items:center;gap:var(--wl-gap);text-align:center;max-width:100%} .wl-msg>svg{width:clamp(36px,6vmin,64px);height:clamp(36px,6vmin,64px);color:var(--fg-2)}
-.wl-star{display:block} .wl-spin{width:44px;height:44px} .wl-gap{margin-top:var(--space-4)}
+.wl-star{display:block} .wl-capa{display:block;width:clamp(96px,22vmin,220px);aspect-ratio:1;object-fit:cover;border-radius:var(--radius-md)} .wl-spin{width:44px;height:44px} .wl-gap{margin-top:var(--space-4)}
 .wl-skel{width:min(40rem,90vw)}
 
 .wl-wall{outline:0}
@@ -205,7 +206,7 @@ body.wall-mode .proto-bar{opacity:0;transition:opacity var(--dur-2)} body.wall-m
   };
   function ligado(ev) {
     const root = A.$('#root'); parearIni = false;
-    root.innerHTML = wallShell(msg({ art: `<div class="wl-star">${A.star(112)}</div>`, title: 'Telão ligado', body: `As fotos de ${esc(evOf(ev).nome)} já aparecem aqui.`, extra: '<a class="btn btn-accent btn-lg" href="#/t/display">Abrir o telão agora</a>', focus: true }));
+    root.innerHTML = wallShell(msg({ art: `<div class="wl-star">${capaArt(evOf(ev))}</div>`, title: 'Telão ligado', body: `As fotos de ${esc(evOf(ev).nome)} já aparecem aqui.`, extra: '<a class="btn btn-accent btn-lg" href="#/t/display">Abrir o telão agora</a>', focus: true }));
     A.$('h1', root).focus({ preventScroll: true }); wallAfter(); A.later(1600, () => { if (location.hash.startsWith('#/t/parear')) A.go('#/t/display'); });
   }
   function tickParear() {
@@ -314,7 +315,7 @@ body.wall-mode .proto-bar{opacity:0;transition:opacity var(--dur-2)} body.wall-m
       if (k === 'error') return wrap(msgErro({ h: 2, title: 'Sem conexão com o evento', body: 'Tentando de novo. O telão volta sozinho quando a internet voltar.' }));
       if (k === 'panico') return wrap(msg({ h: 2, art: A.arc(0.1, 320, 'Já voltamos'), title: esc(ev.nome), body: 'Já voltamos.' }));
       if (k === 'pausado') return wrap(msg({ h: 2, art: A.arc(0.5, 320, 'Telão em pausa'), title: 'Telão em pausa', body: 'As fotos continuam chegando e voltam a aparecer quando o telão for retomado.' }));
-      return wrap(msg({ h: 2, art: A.star(112), title: 'Aguardando as primeiras fotos', body: 'Aponte a câmera do celular para o QR e mande a primeira.', extra: `<div class="wl-qr">${A.qrSvg('albora.app/e/' + ev.slug, 150)}</div><span class="wl-meta">QR de exemplo: não escaneia neste protótipo</span>` }));
+      return wrap(msg({ h: 2, art: capaArt(ev), title: 'Aguardando as primeiras fotos', body: 'Aponte a câmera do celular para o QR e mande a primeira.', extra: `<div class="wl-qr">${A.qrSvg('albora.app/e/' + ev.slug, 150)}</div><span class="wl-meta">QR de exemplo: não escaneia neste protótipo</span>` }));
     };
     const renderScene = () => {
       const m = modelo(); S.model = m; const items = pick(NEED[m]); if (!items.length) return setKind('vazio', true);

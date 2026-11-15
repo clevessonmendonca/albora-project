@@ -173,6 +173,7 @@ a.li:hover::before,button.li:hover::before,.li.is-link:hover::before{content:"";
 .banner.warn{background:color-mix(in srgb,var(--atencao) 12%,var(--bg))} .banner.bad{background:color-mix(in srgb,var(--brasa) 10%,var(--bg))} .banner.ok{background:color-mix(in srgb,var(--positivo) 11%,var(--bg))}
 .progress{height:2px;border-radius:2px;background:var(--line-2);overflow:hidden} .progress>i{display:block;height:100%;background:var(--ac);transition:width .4s var(--ease)}
 .avatar{width:36px;height:36px;border-radius:50%;background-color:var(--surface-2);display:grid;place-items:center;font:500 var(--fs-sm) var(--font-body);color:var(--fg-2);flex:none;overflow:hidden}
+.avatar{position:relative}.avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .avatar.lg{width:56px;height:56px;font-size:18px} .avatar.sm{width:28px;height:28px;font-size:var(--fs-xs)}
 .stat{display:flex;flex-direction:column;gap:var(--space-2)} .stat .t-num{font-size:34px}
 .empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--space-3);padding:var(--space-12) var(--space-6);color:var(--fg-3)} .empty .t-title{color:var(--fg)} .empty svg{width:40px;height:40px;opacity:.5}
