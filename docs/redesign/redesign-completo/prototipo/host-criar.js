@@ -8,8 +8,43 @@
   /* ---------- estilos próprios (prefixo hcr-) ---------- */
   const st = document.createElement('style'); st.id = 'hcr-style';
   st.textContent = `
-.hcr-auth{min-height:100dvh;display:grid;place-items:center;padding:var(--space-6) var(--space-4)}
-.hcr-auth-in{width:min(420px,100%);display:flex;flex-direction:column;gap:var(--space-6)}
+.hcr-auth{min-height:100dvh;display:grid;grid-template-columns:minmax(0,1fr);align-content:start;padding:0}
+.hcr-hero{display:flex;flex-direction:column;gap:var(--space-4);padding:var(--space-6) var(--space-4) var(--space-5);background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 45%,var(--tinta)),var(--tinta));color:var(--papel)}
+.hcr-hero-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2)}
+.hcr-hero-g span{display:block;aspect-ratio:4/5;border-radius:var(--r-3);overflow:hidden}
+.hcr-hero-g span:nth-child(n+4){display:none}
+.hcr-hero-g img{display:block;width:100%;height:100%;object-fit:cover}
+.hcr-hero-t{margin:0;font:350 var(--fs-xl)/1.15 var(--font-display);color:var(--papel)}
+.hcr-auth-in{width:min(420px,100%);margin:0 auto;padding:var(--space-6) var(--space-4) var(--space-8);display:flex;flex-direction:column;gap:var(--space-6)}
+.hcr-auth .input{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-3);padding:var(--space-3) var(--space-4)}
+.hcr-auth .input:focus{border-color:var(--ac)}
+.hcr-auth .btn{border-radius:var(--r-pill)}
+.hcr-prog{flex-direction:column;align-items:stretch;gap:var(--space-2)}
+.hcr-seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2);width:100%}
+.hcr-seg i{display:block;height:4px;border-radius:var(--r-pill);background:var(--line)}
+.hcr-seg i.on{background:var(--ac)}
+.hcr-wiz .hcr-opts{border-top:0;gap:var(--space-2)}
+.hcr-wiz .hcr-opt{border:1px solid var(--line-2);border-radius:var(--r-3);background:var(--surface)}
+.hcr-wiz .hcr-opt[aria-checked="true"],.hcr-wiz .hcr-combo[aria-checked="true"]{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 10%,var(--bg))}
+.hcr-wiz .hcr-combos{border-top:0;gap:var(--space-2)}
+.hcr-wiz .hcr-combo{border:1px solid var(--line-2);border-radius:var(--r-pill);background:var(--surface)}
+.hcr-wiz .input,.hcr-wiz .select,.hcr-wiz .textarea{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-3);padding:var(--space-3) var(--space-4)}
+.hcr-wiz .input:focus,.hcr-wiz .select:focus,.hcr-wiz .textarea:focus{border-color:var(--ac)}
+.hcr-wiz .hcr-foot{border-top:0}
+.hcr-wiz .hcr-foot .btn{border-radius:var(--r-pill)}
+.hcr-ok .btn{border-radius:var(--r-pill)}
+.hcr-placa{border-radius:var(--r-4);box-shadow:0 12px 32px color-mix(in srgb,var(--tinta) 14%,transparent)}
+.hcr-msg{border:1px solid var(--line-2);border-radius:var(--r-3)}
+.hcr-link{border-radius:var(--r-3)}
+.hcr-hero-ok h1{letter-spacing:-.02em}
+@media(min-width:900px){
+  .hcr-auth{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-content:stretch}
+  .hcr-hero{justify-content:center;padding:var(--space-16) var(--space-12)}
+  .hcr-hero-g span:nth-child(n+4){display:block}
+  .hcr-hero-g span:nth-child(even){transform:translateY(var(--space-8))}
+  .hcr-hero-t{margin-top:var(--space-12);font-size:var(--fs-title)}
+  .hcr-auth-in{align-self:center;padding:var(--space-8)}
+}
 .hcr-brand{text-decoration:none;color:inherit;display:inline-flex;align-items:center;min-height:44px}
 .hcr-nudge{margin-top:var(--space-2)}
 .hcr-lkrow{display:flex;flex-wrap:wrap;align-items:center;column-gap:var(--space-3)} .hcr-lk{display:inline-flex;align-items:center;min-height:44px}
@@ -350,7 +385,7 @@
     A.applyEvent(null); clearTimer();
     const next = safeNext(ctx.q.next);
     const body = ctx.q.m ? authConfirm(ctx.q.m, next) : authStep === 'sent' ? authSent(next) : authForm(ctx.q.error, next);
-    return { title: 'Entrar', html: `<main id="main" tabindex="-1" class="hcr-auth"><div class="hcr-auth-in">${brandHtml()}${body}</div></main>`, after: () => { if (authStep === 'sent' && !ctx.q.m) startTick(); else if (!ctx.q.m && authStep === 'form') { const i = $('input[name=email]'); if (i && matchMedia('(pointer:fine)').matches) A.later(40, () => i.focus()); } } };
+    return { title: 'Entrar', html: `<main id="main" tabindex="-1" class="hcr-auth"><aside class="hcr-hero" aria-hidden="true"><div class="hcr-hero-g">${[0, 1, 2, 3, 4, 5].map((i) => `<span>${A.img('entrar-' + i, 'p', '')}</span>`).join('')}</div><p class="hcr-hero-t">Todas as fotos da festa, no mesmo clima.</p></aside><div class="hcr-auth-in">${brandHtml()}${body}</div></main>`, after: () => { if (authStep === 'sent' && !ctx.q.m) startTick(); else if (!ctx.q.m && authStep === 'form') { const i = $('input[name=email]'); if (i && matchMedia('(pointer:fine)').matches) A.later(40, () => i.focus()); } } };
   });
   function startTick() {
     const paint = () => { const b = $('#hcr-resend'); if (!b) return clearTimer(); const s = Math.ceil((resendAt - Date.now()) / 1000); if (s > 0) { b.disabled = true; b.setAttribute('aria-disabled', 'true'); b.textContent = `Reenviar em ${s} s`; } else { b.disabled = false; b.removeAttribute('aria-disabled'); b.textContent = 'Reenviar link'; clearTimer(); } };
@@ -399,7 +434,7 @@
     const frm = (x) => `<form id="hcr-form" class="stack stack-6" data-submit="${step === NSTEP ? 'hcr-criar-form' : 'hcr-next'}" novalidate>${x}</form>`;
     const body = frm([(d, er) => sNome(d, er), (d, er) => sVisual(d, er), (d, er) => sQuando(d, er) + sRevisar(d, er)][step - 1](d, er));
     const foot = `<div class="hcr-foot"><div class="flex">${step === 1 ? `<button class="btn btn-quiet" data-act="hcr-sair-wiz">Sair</button>` : `<a class="btn btn-quiet" href="#/h/novo/${step - 1}">${A.icon('back', 18)} Voltar</a>`}<span class="t-small hcr-hide-m" aria-hidden="true"><span class="kbd">Enter</span> continua · <span class="kbd">Esc</span> volta</span></div>${step < NSTEP ? `<button class="btn btn-primary btn-lg" data-act="hcr-next">Continuar ${A.icon('arrow', 18)}</button>` : `<button class="btn btn-primary btn-lg" data-act="hcr-criar">Criar evento</button>`}</div>`;
-    const html = `<div class="hcr-wiz"><header class="hcr-wtop"><a href="#/h" class="hcr-brand" aria-label="Albora, voltar para seus eventos">${A.logo(26)}</a><span class="grow"></span><span class="t-small" id="hcr-saved" role="status">${d.atualizado ? 'Rascunho salvo neste navegador.' : 'Salvamos o rascunho a cada passo.'}</span></header><main id="main" tabindex="-1" class="page wide hcr-compact">${resume}<div class="hcr-stage"><div class="hcr-col${enter}"><div class="hcr-prog">${A.arc(step / NSTEP, 84, `Passo ${step} de ${NSTEP}`)}<span class="t-small">Passo ${step} de ${NSTEP} · ${STEP_NAMES[step - 1]}</span></div><div class="stack stack-2"><h1 class="t-display">${STEP_H[step - 1]}</h1><p class="t-lead" style="max-width:46ch">${STEP_L[step - 1]}</p></div>${body}${foot}</div><aside class="hcr-pvside" aria-label="Prévia ao vivo"><div id="hcr-prev">${previewHtml(d)}</div></aside></div></main></div>`;
+    const html = `<div class="hcr-wiz"><header class="hcr-wtop"><a href="#/h" class="hcr-brand" aria-label="Albora, voltar para seus eventos">${A.logo(26)}</a><span class="grow"></span><span class="t-small" id="hcr-saved" role="status">${d.atualizado ? 'Rascunho salvo neste navegador.' : 'Salvamos o rascunho a cada passo.'}</span></header><main id="main" tabindex="-1" class="page wide hcr-compact">${resume}<div class="hcr-stage"><div class="hcr-col${enter}"><div class="hcr-prog"><div class="hcr-seg" role="progressbar" aria-valuemin="1" aria-valuemax="${NSTEP}" aria-valuenow="${step}" aria-label="Passo ${step} de ${NSTEP}">${[1, 2, 3].map((n) => `<i class="${n <= step ? 'on' : ''}"></i>`).join('')}</div><span class="t-small">Passo ${step} de ${NSTEP} · ${STEP_NAMES[step - 1]}</span></div><div class="stack stack-2"><h1 class="t-display">${STEP_H[step - 1]}</h1><p class="t-lead" style="max-width:46ch">${STEP_L[step - 1]}</p></div>${body}${foot}</div><aside class="hcr-pvside" aria-label="Prévia ao vivo"><div id="hcr-prev">${previewHtml(d)}</div></aside></div></main></div>`;
     return { title: 'Novo evento · ' + STEP_NAMES[step - 1], html, after: () => { showErr = false; if ([1, 3].includes(step) && matchMedia('(pointer:fine)').matches) A.later(40, () => { const bad = $('.field.has-error input,.field.has-error select'); (bad || $('#hcr-form input:not([disabled])'))?.focus(); }); } };
   }
 
@@ -591,13 +626,13 @@
     const checks = it.map((x) => `<div class="li hcr-pli"><span class="${x.ok ? 'pos' : 'muted'}">${A.icon(x.ok ? 'check' : 'clock', 20)}</span><span class="grow"><b class="t-h">${x.t}</b><span class="t-small" style="display:block">${x.d}</span></span>${x.ok ? '<span class="badge ok">Pronto</span>' : x.fix}</div>`).join('');
     const pl = ev.plano === 'completo' ? `<p class="t-small">${A.icon('check', 16)} Plano Completo ativo neste evento.</p>` : `<div class="flex between flex-wrap"><div class="grow hcr-plt"><b class="t-h">Plano ${esc(plano(ev.plano).nome)}</b><div class="t-small">${esc(plano(ev.plano).itens.join(' · '))}</div></div><div class="flex flex-wrap"><a class="btn btn-quiet btn-sm" href="#/h/plano?e=${ev.id}">Ver planos</a><button class="btn btn-line btn-sm" data-act="hcr-ativar" data-id="${ev.id}">Ativar Completo · ${A.brl(comp.preco)}</button></div></div>`;
     const nuQ = S.get('crNudge', {}), nu = (!nuQ[ev.id] || nuShown === ev.id) && ev.plano !== 'completo' && A.plan && A.plan.nudge ? A.plan.nudge('apos-criar') || '' : ''; if (nu) nuShown = ev.id; if (nu) S.update('crNudge', (m) => Object.assign({}, m, { [ev.id]: 1 }), {});
-    const html = `<main id="main" tabindex="-1" class="page stack stack-6"><header class="hcr-hero-ok"><div class="hcr-seal"><span id="hcr-mascote">${A.mascot(150, 'mascote', 'Mascote do Albora espiando sobre o arco')}</span><span class="hcr-star" id="hcr-star">${A.star(44)}</span></div><div class="stack stack-2"><span class="t-small">${esc(w.date)}</span><h1 class="t-display">${esc(ev.nome)} está pronto.</h1></div></header>
+    const html = `<main id="main" tabindex="-1" class="page stack stack-6"><header class="hcr-hero-ok"><div class="hcr-seal"><span id="hcr-mascote">${A.mascot(150, 'mascote', 'Mascote do Albora espiando sobre o arco')}</span></div><div class="stack stack-2"><span class="t-small">${esc(w.date)}</span><h1 class="t-display">${esc(ev.nome)} está pronto.</h1></div></header>
 <div class="hcr-ok"><section aria-labelledby="hcr-lk"><h2 class="sr-only" id="hcr-lk">Placa com o QR</h2><div class="hcr-placa"><span class="nm">${esc(ev.nome)}</span><div>${A.qrSvg(url, 200)}</div><span class="u">${esc(url)}</span><span class="t-small hcr-placa-s">Aponte a câmera e tire fotos da festa</span></div><p class="t-small" style="margin-top:8px">O QR é ilustrativo e não escaneia neste protótipo.</p><div class="flex flex-wrap" style="margin-top:var(--space-2)"><button class="btn btn-line btn-sm" data-act="hcr-placa" data-nome="${esc(ev.nome)}">${A.icon('download', 16)} Baixar placa com QR</button></div></section>
 <section class="stack stack-4" aria-labelledby="hcr-wa"><h2 class="t-title" id="hcr-wa">Chame a turma</h2><p class="hcr-msg">${esc(msg)}</p><div class="flex flex-wrap"><button class="btn btn-primary btn-lg" data-act="wa">${A.icon('send', 18)} Mandar por WhatsApp</button></div><div class="flex flex-wrap"><span class="hcr-link grow" style="flex:1 1 200px" id="hcr-url">${esc(url)}</span><button class="btn btn-line btn-sm" data-act="copy" data-text="https://${esc(url)}">${A.icon('copy', 16)} Copiar link</button><button class="btn btn-quiet btn-sm" data-act="hcr-copymsg" data-text="${esc(msg)}">${A.icon('copy', 16)} Copiar mensagem</button></div><p class="t-small">O mesmo link serve para todos. Convidado não cria conta.</p>${nu ? `<div class="hcr-nudge">${nu}</div>` : ''}</section></div>
 <section class="stack stack-3" aria-labelledby="hcr-pr"><div class="flex between"><h2 class="t-title" id="hcr-pr">O que falta</h2><span class="t-small" role="status">${feitos} de ${it.length} prontos</span></div><div class="list">${checks}</div><input id="hcr-capa-p" class="sr-only hcr-capa-in" type="file" accept="image/jpeg,image/png,image/webp" data-change="hcr-capa-p" data-id="${ev.id}"><p class="t-small crit" id="hcr-capa-perr" role="alert"></p></section>
 <section class="stack stack-3" aria-labelledby="hcr-pl"><h2 class="t-h" id="hcr-pl">Plano</h2>${pl}</section>
 <div class="flex flex-wrap"><a class="btn btn-line" href="${b}/hoje">Abrir o painel ${A.icon('arrow', 18)}</a><a class="btn btn-quiet" href="#/g/${esc(ev.slug)}">${A.icon('eye', 16)} Ver como convidado</a>${ev.vendorId ? '<button class="btn btn-quiet" data-act="hcr-vendor">Abrir portal do fornecedor</button>' : ''}<a class="btn btn-quiet" href="#/h">Todos os eventos</a></div></main>`;
-    return { title: ev.nome + ' está pronto', html, after: () => { A.celebrate($('#hcr-mascote')); A.celebrate($('#hcr-star')); } };
+    return { title: ev.nome + ' está pronto', html, after: () => { A.celebrate($('#hcr-mascote')); } };
   }
   A.acts['hcr-placa'] = (el, e, ds) => A.busy(el, 900, () => A.toast(`A placa de “${ds.nome}” (PDF A4 com o QR) seria baixada aqui. Simulado no protótipo.`));
   A.acts['hcr-copymsg'] = (el) => { (navigator.clipboard ? navigator.clipboard.writeText(el.dataset.text || '') : Promise.reject()).catch(() => {}).finally(() => A.toast('Mensagem copiada.')); };
