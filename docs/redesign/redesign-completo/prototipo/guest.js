@@ -131,7 +131,7 @@
   .gx-ib.sm{min-width:44px;min-height:44px;padding:0}
   .gx-demo{margin:var(--space-6) var(--space-6) var(--space-8);padding-top:var(--space-3);border-top:1px solid var(--line-2);font-size:var(--fs-xs);color:var(--fg-3)}
   .gx-demo-top{margin:0;padding:var(--space-1) var(--space-4) var(--space-2);font-size:var(--fs-xs);color:var(--fg-2)}
-  .gx-gate{display:flex;gap:var(--space-3);align-items:center;padding:var(--space-1) var(--space-2) var(--space-1) var(--space-4);min-height:48px;background:var(--elev-1);border-bottom:1px solid var(--line-2);font-size:var(--fs-sm);color:var(--fg-2)}
+  .gx-gate{display:flex;gap:var(--space-2);align-items:center;margin:var(--space-3) var(--space-4) 0;padding:0 var(--space-1) 0 var(--space-3);min-height:44px;background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-pill);font-size:var(--fs-xs);color:var(--fg-2)}
   .gx-gate svg{flex:none;color:var(--ac)}
   .gx-gate p{flex:1;margin:0}
   .gx-gate .gx-ib{flex:none;color:var(--fg-2)}
@@ -168,7 +168,19 @@
   .gx-chips .chip[aria-pressed="true"]{background:transparent;color:var(--fg);box-shadow:inset 0 -2px 0 var(--ac)}
 
   /* post: PostHeader, PostMedia, PostActions, ReactionButton, ReactionSummary. Fundo da publicação = --elev-1; o espaço entre elas é o fundo --bg */
-  .gx-post{display:flex;flex-direction:column;background:var(--elev-1);border-block:1px solid var(--line-2);padding-bottom:var(--space-3);margin-bottom:var(--space-3)}
+  .gx-post{display:flex;flex-direction:column;background:transparent;border:0;padding-bottom:var(--space-2);margin-bottom:var(--space-5)}
+  .gx-post .gx-phd{min-height:56px;padding:0 var(--space-1) 0 var(--space-3)}
+  .gx-post .gx-who{gap:var(--space-3);min-height:56px}
+  .gx-post .gx-who .nm{font-size:var(--fs-sm);font-weight:600;letter-spacing:.005em}
+  .gx-post .gx-who .mt{font-size:var(--fs-xs);color:var(--fg-2)}
+  .gx-post .gx-av{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px var(--ac)}
+  .gx-post .gx-pm{max-height:min(82dvh,calc(var(--w-feed) * 1.25))}
+  .gx-post .gx-act{padding:var(--space-1) var(--space-1) 0 var(--space-1)}
+  .gx-post .gx-ab.gx-rb{padding-left:var(--space-3)}
+  .gx-post .gx-rs{color:var(--fg-2)}.gx-post .gx-rs b{color:var(--fg);font-weight:600}.gx-post .gx-rs span{color:var(--fg-2)}.gx-post .gx-rs span.on{color:var(--fg)}
+  .gx-post .gx-cap{font-size:var(--fs-sm);line-height:1.45}
+  .gx-post .gx-cl{font-size:var(--fs-sm)}
+  .gx-post .gx-ts{display:block;margin-top:var(--space-1);font-size:var(--fs-xs);letter-spacing:.06em;text-transform:uppercase;color:var(--fg-3)}
   .gx-post:last-of-type{margin-bottom:0}
   .gx-phd{display:flex;align-items:center;gap:var(--space-1);min-height:56px;padding:0 var(--space-2) 0 var(--space-4)}
   .gx-who{display:flex;align-items:center;gap:var(--space-3);flex:1;min-width:0;min-height:56px;color:var(--fg);text-decoration:none}
@@ -217,6 +229,15 @@
 
   /* comentários: CommentSheet */
   .gx-cs{display:flex;flex-direction:column;overflow:hidden;padding:0;height:min(72dvh,640px)}
+  .gx-grab{display:none}
+  @media(max-width:640px){
+    .gx-cs.full{height:100dvh;max-height:100dvh}
+    .gx-grab{display:flex;justify-content:center;align-items:center;flex:none;width:100%;height:var(--space-8);background:none;border:0;padding:0;cursor:grab;touch-action:none}
+    .gx-grab:active{cursor:grabbing}
+    .gx-grab i{display:block;width:var(--space-10);height:var(--space-1);border-radius:var(--r-pill);background:color-mix(in srgb,var(--fg) 30%,transparent)}
+    .gx-grab:focus-visible{outline:2px solid var(--accent-text);outline-offset:-2px}
+    .gx-cs .modal-head{padding:0 var(--space-5);touch-action:none}
+  }
   .gx-cs .modal-head{padding:var(--space-5) var(--space-5) 0;margin-bottom:var(--space-2)}
   .gx-cs .modal-body{flex:1;min-height:0;display:flex;flex-direction:column;padding:0}
   .gx-cctx{flex:none;display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2) var(--space-5) var(--space-3);border-bottom:1px solid var(--line-2)}
@@ -399,6 +420,36 @@
   .gx-imm .gx-viewer{touch-action:pan-y}.gx-sev{display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);font-size:var(--fs-sm);color:var(--fg-2)}.gx-sev img{width:24px;height:24px;border-radius:var(--r-pill);object-fit:cover}
   .gx-imm .gx-viewer .gx-ph{border-radius:var(--radius-sm)}
   .gx-vprog{display:flex;gap:var(--space-1);margin-bottom:var(--space-3)}
+  .gx-story{padding:0!important;overflow:hidden!important;background:var(--noite);color:var(--fg);border-radius:var(--r-3)}
+  .gx-story .modal-head{position:absolute;top:calc(var(--space-3) * 2 + var(--space-1));right:var(--space-1);z-index:5;margin:0;padding:0;pointer-events:none}
+  .gx-story .modal-head h2{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .gx-story .modal-head .btn{pointer-events:auto;border-radius:50%;color:var(--fg);background:none}
+  .gx-story .modal-body{position:absolute;inset:0;padding:0}
+  .gx-story .gx-viewer{position:absolute;inset:0;touch-action:manipulation}
+  .gx-sv{position:absolute;inset:0;overflow:hidden;isolation:isolate}
+  .gx-sv-blur{position:absolute;inset:0;z-index:-2;background:var(--noite)}.gx-sv-blur img{width:100%;height:100%;object-fit:cover;filter:blur(32px) brightness(.55) saturate(1.2);transform:scale(1.25)}
+  .gx-sv-media{position:absolute;inset:0;z-index:-1;display:grid;place-items:center}
+  .gx-sv-media .gx-ph{border-radius:0;background:none}.gx-sv-media .gx-fx img:first-child{object-fit:cover}
+  .gx-sv-tap{position:absolute;top:calc(var(--space-12) * 2);bottom:30%;width:32%;z-index:2;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .gx-sv-tap.l{left:0}.gx-sv-tap.r{right:0;width:68%}
+  .gx-sv-tap:focus-visible{outline:2px solid var(--fg);outline-offset:-4px}
+  .gx-sv-top{position:absolute;left:0;right:0;top:0;z-index:3;padding:var(--space-3) var(--space-3) var(--space-8);background:linear-gradient(180deg,color-mix(in srgb,var(--noite) 70%,transparent),transparent);pointer-events:none}
+  .gx-sv-top>*{pointer-events:auto}
+  .gx-sv-top .gx-vprog{margin:0 0 var(--space-3);gap:var(--space-1)}
+  .gx-sv-top .gx-vprog i{height:2px;background:color-mix(in srgb,var(--fg) 32%,transparent)}.gx-sv-top .gx-vprog i b,.gx-sv-top .gx-vprog i.on{background:var(--fg)}
+  .gx-sv-top .gx-sev{margin:0 0 var(--space-1);font-size:var(--fs-xs);color:var(--fg-2);opacity:.85}
+  .gx-sv-hd{display:flex;align-items:center;min-height:48px;padding-right:var(--space-12)}
+  .gx-sv-top .gx-phd{flex:1;min-width:0;padding:0;min-height:48px}
+  .gx-sv-top .gx-ab{color:var(--fg)}
+  .gx-sv-pause{flex:none;width:44px;height:44px;border:0;border-radius:50%;background:none;color:var(--fg);display:grid;place-items:center;cursor:pointer}
+  .gx-sv-top .gx-sev{margin:var(--space-1) 0 0}
+  .gx-sv-top .gx-who{min-height:48px;color:var(--fg)}.gx-sv-top .gx-who .nm{font-size:var(--fs-md)}.gx-sv-top .gx-who .mt{color:var(--fg-2);font-size:var(--fs-xs)}
+  .gx-sv-bot{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:var(--space-12) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom));background:linear-gradient(0deg,color-mix(in srgb,var(--noite) 88%,transparent) 0%,color-mix(in srgb,var(--noite) 55%,transparent) 55%,transparent 100%);display:flex;flex-direction:column;gap:var(--space-2);pointer-events:none}
+  .gx-sv-bot>*{pointer-events:auto}.gx-sv-bot .gx-body,.gx-sv-bot .gx-capw,.gx-sv-bot .gx-act{padding-left:0;padding-right:0}
+  .gx-sv-bot .gx-cap{color:var(--fg);font-size:var(--fs-md);line-height:1.4;text-shadow:0 1px 8px color-mix(in srgb,var(--noite) 60%,transparent)}
+  .gx-sv-bot .gx-cap b{margin-right:var(--space-2)}
+  @media(min-width:641px){.gx-story{width:auto!important;height:min(calc(100dvh - var(--space-8)),50rem);aspect-ratio:9/16;max-width:calc(100vw - var(--space-8))}}
+  @media(max-width:640px){.gx-story{left:0!important;right:0!important;top:0!important;bottom:0!important;transform:none!important;width:100%!important;height:100dvh;max-height:none!important;border-radius:0}}
   .gx-vprog i{flex:1;height:3px;border-radius:2px;background:var(--line)}
   .gx-vprog i.on{background:var(--fg)}
   .gx-vprog i{position:relative;overflow:hidden}.gx-vprog i b{position:absolute;inset:0 auto 0 0;width:0;background:var(--fg)}.gx-vprog i.on b{width:100%}.gx-vpause{margin:calc(var(--space-2)*-1) 0 var(--space-2) auto;display:block}
@@ -514,6 +565,11 @@
   .gx-fh[data-fam=imersivo] .gx-fh-ph{position:absolute;inset:0;z-index:-2}
   .gx-fh[data-fam=imersivo]::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgb(14 12 12 / .82),rgb(14 12 12 / .35) 60%,rgb(14 12 12 / .1))}
   .gx-fh[data-fam=imersivo] .gx-fh-div{display:none}
+  .gx-fh.gx-fh-c{min-height:0;padding:var(--space-3) var(--space-4);gap:var(--space-1)}
+  .gx-fh.gx-fh-c .gx-fh-k,.gx-fh.gx-fh-c .gx-fh-d,.gx-fh.gx-fh-c .gx-fh-div{display:none}
+  .gx-fh.gx-fh-c h2{font-size:var(--fs-lg)}
+  .gx-fh[data-fam=imersivo].gx-fh-c{min-height:88px;justify-content:center}
+  .gx-rt.rec.new svg{color:var(--ac)}
   .gx-sp{margin:var(--space-4) var(--space-3);padding:var(--space-4);border-radius:var(--space-3);display:flex;flex-direction:column;align-items:center;gap:var(--space-2)}
   .gx-sp p{margin:0}
   .gx-sp-k{font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;color:var(--fg-2)}
@@ -616,7 +672,6 @@
   const isDemo = () => !A.data.photos.some((p) => p.status === 'aprovada');
   const pool = () => (isDemo() ? DEMO : A.data.photos.filter((p) => p.status === 'aprovada'));
   const asPhoto = (p) => ({ ...p, own: false, src: A.photo(p.id, p.ratio), momento: momentoN(p.n), legenda: legendaN(p.n), filtro: 'original', inten: 100 });
-  const demoTop = () => (isDemo() ? `<p class="gx-demo-top">Exemplo do protótipo: fotos, reações e comentários são ilustrações.</p>` : '');
   const demoNote = () => (isDemo() ? `<p class="gx-demo">Exemplo do protótipo: estas fotos são ilustrações só para a demonstração. Na festa de verdade aparecem as fotos dos convidados.</p>` : '');
   const allPhotos = (s) => {
     const bl = get(s, 'bloqueados', []);
@@ -644,9 +699,9 @@
   /* ---- componentes locais do post: UserAvatar, ActionMenu, PostHeader, PostMedia, PostActions, ReactionButton, ReactionSummary, CommentSheet ---- */
   const userAvatar = (a, size = 36, me = false) => `<span class="avatar${size === 28 ? ' sm' : size === 56 ? ' lg' : ''} gx-av${me ? ' me' : ''}" aria-hidden="true">${A.esc(a.ini)}</span>`;
   const actionMenu = (p) => `<button class="gx-ab" data-act="g-more" data-id="${p.id}" aria-haspopup="menu" aria-label="Mais opções desta foto">${A.icon('more', 24)}</button>`;
-  const postHeader = (s, p, inModal = false) => {
+  const postHeader = (s, p, inModal = false, feed = false) => {
     const a = authorOf(s, p.autor); const href = p.own ? B(s) + '/minhas' : B(s) + '/p/' + a.id; const ts = Date.now() - p.min * 60000;
-    return `<div class="gx-phd"><a class="gx-who" href="${href}" ${inModal ? 'data-mclose' : ''}>${userAvatar(a, 36, p.own)}<span class="tx"><span class="nm">${A.esc(p.own ? 'Você' : a.nome)}</span><span class="mt"><time datetime="${new Date(ts).toISOString()}" title="${hhmm(ts)}">${ago(p)}</time> · ${A.esc(p.momento)}${p.pendente ? '<span class="gx-pend">Aguardando aprovação · só você vê</span>' : ''}</span></span></a>${actionMenu(p)}</div>`;
+    return `<div class="gx-phd"><a class="gx-who" href="${href}" ${inModal ? 'data-mclose' : ''}>${userAvatar(a, 36, p.own)}<span class="tx"><span class="nm">${A.esc(p.own ? 'Você' : a.nome)}</span><span class="mt">${feed ? '' : `<time datetime="${new Date(ts).toISOString()}" title="${hhmm(ts)}">${ago(p)}</time> · `}${A.esc(p.momento)}${p.pendente ? '<span class="gx-pend">Aguardando aprovação · só você vê</span>' : ''}</span></span></a>${actionMenu(p)}</div>`;
   };
   const ratioOf = (p) => {
     if (p.ratio === 'l') return 1.5; if (p.ratio === 's') return 1;
@@ -666,8 +721,10 @@
   const reactionSummary = (s, p) => {
     const mine = reacaoMinha(s, p.id); const cnt = reactCounts(p, mine); const tot = rtotal(cnt);
     if (!tot) return '<p class="gx-rs">Seja o primeiro a reagir.</p>';
-    const parts = A.data.reacoes.filter((r) => cnt[r]).sort((x, y) => cnt[y] - cnt[x]).slice(0, 3).map((r) => `<span class="${r === mine ? 'on' : ''}">${A.esc(r)} ${cnt[r]}</span>`).join(' · ');
-    return `<p class="gx-rs"><b>${tot}</b> ${tot === 1 ? 'reação' : 'reações'} · ${parts}</p>`;
+    const tops = A.data.reacoes.filter((r) => cnt[r]).sort((x, y) => cnt[y] - cnt[x]).slice(0, 3);
+    const quem = mine ? (tot === 1 ? 'Você reagiu' : `Você e mais ${plural(tot - 1, 'pessoa', 'pessoas')} reagiram`) : (tot === 1 ? '1 pessoa reagiu' : `${A.pt(tot)} pessoas reagiram`);
+    const parts = tops.map((r) => `<span class="${r === mine ? 'on' : ''}">${A.esc(r)}${tops.length > 1 ? ` ${cnt[r]}` : ''}</span>`).join(' · ');
+    return `<p class="gx-rs"><b>${quem}</b> · ${parts}</p>`;
   };
   const actionsBlock = (s, p, o) => (gateOpen(s) ? `${postActions(s, p, o)}<div class="gx-body">${reactionSummary(s, p)}</div>` : '');
   const commentLink = (s, p) => { if (!gateOpen(s)) return ''; const n = commentsOf(s, p).length; return n ? `<button class="gx-cl" data-act="g-comments" data-id="${p.id}" data-ver="1">${n === 1 ? 'Ver o comentário' : `Ver os ${A.pt(n)} comentários`}</button>` : ''; };
@@ -748,14 +805,47 @@
     if (bottom) box.scrollTop = box.scrollHeight;
   };
   const refreshCm = (id) => { const m = A.$('.modal.gx-cs'); if (m && m.dataset.pid === id) drawCm(m, true); updActions(id); };
+  /* bottom sheet arrastável (só em tela estreita): alça no topo; arrastar para cima expande a 100%, para baixo reduz ou fecha; toque na alça e ↑/↓ alternam */
+  function sheetDrag(el, api, fit) {
+    const grab = document.createElement('button'); grab.type = 'button'; grab.className = 'gx-grab'; grab.innerHTML = '<i aria-hidden="true"></i>'; el.prepend(grab);
+    let full = false; let d = null; let justDragged = false;
+    const vh = () => (window.visualViewport ? window.visualViewport.height : innerHeight);
+    const ms = () => (reduceMotion() ? 0 : 240);
+    const setFull = (on) => { full = on; el.classList.toggle('full', on); grab.setAttribute('aria-label', on ? 'Reduzir os comentários' : 'Expandir os comentários'); grab.setAttribute('aria-expanded', String(on)); fit && fit(); };
+    grab.setAttribute('aria-label', 'Expandir os comentários'); grab.setAttribute('aria-expanded', 'false');
+    grab.addEventListener('click', () => { if (justDragged) { justDragged = false; return; } setFull(!full); });
+    grab.addEventListener('keydown', (e) => { if (e.key === 'ArrowUp' && !full) { e.preventDefault(); setFull(true); } else if (e.key === 'ArrowDown' && full) { e.preventDefault(); setFull(false); } });
+    const move = (e) => {
+      if (!d) return; const dy = e.clientY - d.y; if (Math.abs(dy) > 6) d.moved = true; if (!d.moved) return;
+      d.cur = Math.min(vh(), Math.max(96, d.h - dy)); el.style.height = d.cur + 'px'; el.style.maxHeight = vh() + 'px';
+    };
+    const up = (e) => {
+      removeEventListener('pointermove', move); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
+      if (!d) return; const x = d; d = null; el.style.transition = '';
+      if (!x.moved) return; justDragged = true; setTimeout(() => { justDragged = false; }, 0);
+      const dy = e.clientY - x.y; const v = dy / Math.max(1, Date.now() - x.t);
+      const mid = Math.min(innerHeight * 0.72, 640); let t;
+      if (dy > 0) t = x.full ? (dy > 80 || v > 0.5 ? 'mid' : 'full') : (dy > 110 || v > 0.6 ? 'close' : 'mid');
+      else t = (-dy > 50 || v < -0.5 || x.full) ? 'full' : 'mid';
+      el.style.transition = `height ${ms()}ms var(--ease), transform ${ms()}ms var(--ease)`;
+      if (t === 'close') { el.style.transform = 'translateY(100%)'; setTimeout(() => api.close(), ms()); return; }
+      el.style.height = (t === 'full' ? vh() : mid) + 'px';
+      setTimeout(() => { if (!el.isConnected) return; el.style.transition = ''; el.style.height = ''; setFull(t === 'full'); }, ms());
+    };
+    el.addEventListener('pointerdown', (e) => {
+      if (innerWidth > 640 || e.button || !e.target.closest('.gx-grab,.modal-head') || e.target.closest('[data-mclose]')) return;
+      d = { y: e.clientY, t: Date.now(), h: el.getBoundingClientRect().height, full, moved: false }; el.style.transition = 'none';
+      addEventListener('pointermove', move); addEventListener('pointerup', up); addEventListener('pointercancel', up);
+    });
+  }
   function commentSheet(s, p, listFirst) {
     const vv = window.visualViewport;
     const m = sheet({
       title: 'Comentários',
       body: `<div class="gx-cctx"><span class="th" aria-hidden="true">${fx(p.src, p.filtro, p.inten, '', 'cover')}</span><div class="tx"><b>Foto de ${A.esc(p.own ? 'você' : authorOf(s, p.autor).primeiro)}</b><span>${A.esc(p.legenda || p.momento)}</span></div></div><div class="gx-cm" id="gx-cm" role="log" aria-label="Lista de comentários" tabindex="-1"></div><form class="gx-cf" data-submit="g-comentar" data-id="${p.id}" novalidate><div class="row"><label class="sr-only" for="gx-ct">Seu comentário</label><input class="input" id="gx-ct" name="texto" maxlength="280" autocomplete="off" enterkeyhint="send" placeholder="Escreva algo gentil" data-input="g-count" aria-describedby="gx-cc gx-ce"><button class="gx-send" type="submit" aria-label="Enviar comentário">${A.icon('send', 20)}</button></div><span class="err" id="gx-ce" role="alert"></span><span class="hint" id="gx-cc">280 caracteres restantes</span></form>`,
-      onOpen: (el) => { el.classList.add('gx-cs'); el.dataset.pid = p.id; },
+      onOpen: (el, api) => { el.classList.add('gx-cs'); el.dataset.pid = p.id; sheetDrag(el, api, () => fit()); },
     });
-    const fit = () => { if (!m.el.isConnected || !vv) return; const kb = Math.max(0, innerHeight - vv.height - vv.offsetTop); m.el.style.bottom = innerWidth <= 640 ? kb + 'px' : ''; m.el.style.maxHeight = `${Math.round(vv.height - 16)}px`; };
+    const fit = () => { if (!m.el.isConnected || !vv) return; const kb = Math.max(0, innerHeight - vv.height - vv.offsetTop); m.el.style.bottom = innerWidth <= 640 ? kb + 'px' : ''; m.el.style.maxHeight = `${Math.round(vv.height - (m.el.classList.contains('full') ? 0 : 16))}px`; };
     if (vv) { vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); }
     m.onClose = () => {
       if (vv) { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit); }
@@ -851,15 +941,22 @@
     if (!list.length) return; let i = idx; let firstDraw = true;
     const m = sheet({ title: '', body: '<div class="gx-viewer"></div>', wide: false, label: label || 'Foto' });
     if (imm) m.el.classList.add('gx-imm');
+    if (story) { m.el.classList.add('gx-story'); m.el.setAttribute('data-theme', 'noite'); }
     if (from && !reduceMotion()) m.el.style.animation = 'none';
     const draw = () => {
-      const p = list[i]; onSee && onSee(p); const auto = story && !reduceMotion(); const prog = (story || list.length <= 12) ? `<div class="gx-vprog" aria-hidden="true">${list.map((_, k) => `<i class="${k < i ? 'on' : k === i ? (auto ? 'cur' : 'on') : ''}"><b></b></i>`).join('')}</div>${auto ? `<button class="btn btn-quiet btn-sm gx-vpause" data-vpause aria-pressed="${ST.pausa}">${ST.pausa ? 'Continuar' : 'Pausar'}</button>` : ''}` : '';
+      const p = list[i]; onSee && onSee(p); const auto = story && !reduceMotion(); const bars = (story || list.length <= 12) ? `<div class="gx-vprog" aria-hidden="true">${list.map((_, k) => `<i class="${k < i ? 'on' : k === i ? (auto ? 'cur' : 'on') : ''}"><b></b></i>`).join('')}</div>` : '';
+      const pauseBtn = auto ? (story ? `<button class="gx-sv-pause" data-vpause aria-pressed="${ST.pausa}" aria-label="${ST.pausa ? 'Continuar' : 'Pausar'}">${ST.pausa ? A.icon('play', 20) : '<svg class="ic" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'}</button>` : `<button class="btn btn-quiet btn-sm gx-vpause" data-vpause aria-pressed="${ST.pausa}">${ST.pausa ? 'Continuar' : 'Pausar'}</button>`) : '';
       A.$('h2', m.el).textContent = `${i + 1} de ${list.length}`;
-      A.$('.gx-viewer', m.el).innerHTML = `${prog}${story ? storyEv(s) : ''}${postHeader(s, p, true)}${viewerMedia(s, p, imm)}<div data-actions="${p.id}">${actionsBlock(s, p)}</div>${capHtml(s, p)}<div class="gx-body" data-cmlink="${p.id}">${commentLink(s, p)}</div><div class="flex between" style="margin-top:var(--space-3)"><button class="btn btn-line" data-vn="-1" ${i === 0 ? 'disabled' : ''}>${A.icon('chevleft', 18)} Anterior</button><button class="btn btn-line" data-vn="1" ${i === list.length - 1 ? 'disabled' : ''}>Próxima ${A.icon('chevron', 18)}</button></div>`;
+      if (story) {
+        const last = i === list.length - 1; const bot = `${gateOpen(s) ? `<div data-actions="${p.id}">${actionsBlock(s, p)}</div>` : ''}${capHtml(s, p)}<div class="gx-body" data-cmlink="${p.id}">${commentLink(s, p)}</div>`;
+        A.$('.gx-viewer', m.el).innerHTML = `<div class="gx-sv"><div class="gx-sv-blur" aria-hidden="true">${VIDSRC.has(p.src) ? '' : `<img src="${p.src}" alt="">`}</div><div class="gx-sv-media"><span class="gx-ph" style="--box:${boxOf(p)};aspect-ratio:var(--box);width:100%;max-height:100%">${fx(p.src, p.filtro, p.inten, altOf(s, p), 'ctl')}</span></div><button class="gx-sv-tap l" data-vn="-1" aria-label="Foto anterior" ${i === 0 ? 'disabled' : ''}></button><button class="gx-sv-tap r" data-vn="1" aria-label="${last ? 'Fechar histórias' : 'Próxima foto'}"></button><div class="gx-sv-top">${bars}<div class="gx-sv-hd">${postHeader(s, p, true)}${pauseBtn}</div>${storyEv(s)}</div><div class="gx-sv-bot">${bot}</div></div>`;
+      } else {
+        A.$('.gx-viewer', m.el).innerHTML = `${bars}${pauseBtn}${postHeader(s, p, true)}${viewerMedia(s, p, imm)}<div data-actions="${p.id}">${actionsBlock(s, p)}</div>${capHtml(s, p)}<div class="gx-body" data-cmlink="${p.id}">${commentLink(s, p)}</div><div class="flex between" style="margin-top:var(--space-3)"><button class="btn btn-line" data-vn="-1" ${i === 0 ? 'disabled' : ''}>${A.icon('chevleft', 18)} Anterior</button><button class="btn btn-line" data-vn="1" ${i === list.length - 1 ? 'disabled' : ''}>Próxima ${A.icon('chevron', 18)}</button></div>`;
+      }
       fitCaps(m.el);
       if (firstDraw) { firstDraw = false; flip(from, A.$('.gx-viewer .gx-ph', m.el)); }
     };
-    m.el.addEventListener('click', (e) => { const b = e.target.closest('[data-vn]'); if (b) { i = Math.min(list.length - 1, Math.max(0, i + +b.dataset.vn)); draw(); (A.$('[data-vn]:not([disabled])', m.el) || A.$('[data-mclose]', m.el)).focus(); } });
+    m.el.addEventListener('click', (e) => { const b = e.target.closest('[data-vn]'); if (b) { if (story && +b.dataset.vn > 0 && i === list.length - 1) { A.$('[data-mclose]', m.el)?.click(); return; } i = Math.min(list.length - 1, Math.max(0, i + +b.dataset.vn)); draw(); if (!story) (A.$('[data-vn]:not([disabled])', m.el) || A.$('[data-mclose]', m.el)).focus(); } });
     m.el.addEventListener('keydown', (e) => { if (e.target.closest('input,textarea')) return; if (e.key === 'ArrowRight' && i < list.length - 1) { i++; draw(); } if (e.key === 'ArrowLeft' && i > 0) { i--; draw(); } });
     if (imm) { let x0 = null; m.el.addEventListener('pointerdown', (e) => { x0 = e.target.closest('button,a,input,textarea') ? null : e.clientX; }); m.el.addEventListener('pointerup', (e) => { if (x0 === null) return; const d = e.clientX - x0; x0 = null; if (Math.abs(d) > 60) { const n = Math.min(list.length - 1, Math.max(0, i + (d < 0 ? 1 : -1))); if (n !== i) { i = n; draw(); } } }); }
     /* histórias: avança sozinho (5 s foto, 12 s vídeo), pausa ao segurar, ao interagir, ao ocultar a página e no botão; sem avanço com movimento reduzido */
@@ -872,7 +969,8 @@
         const dur = list[i].tipo === 'video' ? 12000 : 5000; ST.el += 100; const b = bar(); if (b) b.style.width = Math.min(100, (ST.el / dur) * 100) + '%';
         if (ST.el >= dur) { ST.el = 0; if (i < list.length - 1) { i++; draw(); } else { clearInterval(tick); A.$('[data-mclose]', m.el)?.click(); } }
       }, 100);
-      const hold = (on) => (e) => { if (e.target.closest('button,a,input,textarea,[role=menuitem]')) return; ST.seg = on; };
+      const hold = (on) => (e) => { if (e.target.closest('button,a,input,textarea,[role=menuitem]') && !e.target.closest('.gx-sv-tap')) return; if (on) ST.t0 = Date.now(); ST.seg = on; };
+      m.el.addEventListener('click', (e) => { const lg = ST.t0 && Date.now() - ST.t0 > 320; ST.t0 = 0; if (lg && e.target.closest('.gx-sv-tap')) { e.stopImmediatePropagation(); e.preventDefault(); } }, true);
       m.el.addEventListener('pointerdown', hold(true)); ['pointerup', 'pointercancel', 'pointerleave'].forEach((t) => m.el.addEventListener(t, hold(false)));
       m.el.addEventListener('click', (e) => { if (e.target.closest('[data-vpause]')) { ST.pausa = !ST.pausa; draw(); A.$('[data-vpause]', m.el)?.focus(); } if (e.target.closest('[data-vn]')) ST.el = 0; });
       m.el.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') ST.el = 0; });
@@ -1218,19 +1316,19 @@
   const railSection = (s) => {
     const list = railList(s); const seen = get(s, 'vistosF', []); const fresh = (p) => !p.own && !seen.includes(p.id); const nNew = list.filter(fresh).length;
     const tiles = list.map((p, i) => { const a = authorOf(s, p.autor); const nv = fresh(p); const who = p.own ? 'Você' : a.primeiro; return `<li><button class="gx-rt${nv ? '' : ' seen'}" data-act="g-rail" data-i="${i}" aria-label="Foto de ${A.esc(p.own ? 'você' : a.primeiro)}, ${A.esc(ago(p))}, ${nv ? 'nova' : 'já vista'}">${fx(p.src, p.filtro, p.inten, '', 'cover')}${nv ? '<span class="nw" aria-hidden="true">Nova</span>' : ''}<span class="tg" aria-hidden="true">${A.esc(who)}</span></button></li>`; }).join('');
-    return `<section class="gx-rail" data-rail aria-labelledby="gx-rail-t"><div class="gx-rail-h"><h2 id="gx-rail-t">Fotos recentes</h2><span>${list.length ? (nNew ? plural(nNew, 'nova', 'novas') : 'Você viu todas') : ''}</span></div><ul class="gx-rail-l" role="list"><li><a class="gx-rt add" href="${B(s)}/camera">${A.icon('camera', 24)}<span>Sua foto</span></a></li>${tiles}</ul></section>`;
+    return `<section class="gx-rail" data-rail aria-labelledby="gx-rail-t"><h2 class="sr-only" id="gx-rail-t">Fotos recentes${nNew ? `, ${plural(nNew, 'nova', 'novas')}` : ''}</h2><ul class="gx-rail-l" role="list"><li><a class="gx-rt add" href="${B(s)}/camera">${A.icon('camera', 24)}<span>Sua foto</span></a></li>${recadoTile(s)}${tiles}</ul></section>`;
   };
-  const recadoCard = (s) => {
+  const recadoTile = (s) => {
     const rec = GX.recado[s]; if (!rec) return ''; const lido = get(s, 'lido', false);
-    const kind = rec.duracao ? `Áudio de ${Math.floor(rec.duracao / 60)}:${String(rec.duracao % 60).padStart(2, '0')}` : 'Mensagem em texto';
-    return `<a class="gx-rec${lido ? '' : ' new'}" href="${B(s)}/recado"><span class="gx-rec-ic" aria-hidden="true">${A.icon('mic', 22)}</span><span class="tx"><b>Recado de ${A.esc(anf(s))}</b><span>${kind} · ${lido ? 'Lido' : 'Novo'}</span></span>${A.icon('chevron', 16)}</a>`;
+    const kind = rec.duracao ? `áudio de ${Math.floor(rec.duracao / 60)}:${String(rec.duracao % 60).padStart(2, '0')}` : 'mensagem em texto';
+    return `<li><a class="gx-rt add rec${lido ? '' : ' new'}" href="${B(s)}/recado" aria-label="Recado de ${A.esc(anf(s))}, ${kind}, ${lido ? 'lido' : 'novo'}">${A.icon('mic', 24)}<span>Recado</span>${lido ? '' : '<span class="nw" aria-hidden="true">Novo</span>'}</a></li>`;
   };
-  const railHtml = (s) => recadoCard(s) + railSection(s);
+  const railHtml = (s) => railSection(s);
   A.acts['g-rail'] = (el) => {
     const s = curSlug(); const l = railList(s); const m = openViewer(s, l, +el.dataset.i, 'Fotos recentes', el, (p) => { if (!p.own) upd(s, 'vistosF', (v) => (v.includes(p.id) ? v : [...v, p.id]), []); }, true);
     m.onClose = () => A.$$('[data-rail]').forEach((r) => { const x = r.querySelector('.gx-rail-l'); const left = x ? x.scrollLeft : 0; const t = document.createElement('div'); t.innerHTML = railSection(s); r.replaceWith(t.firstElementChild); const y = A.$('.gx-rail-l'); if (y) y.scrollLeft = left; });
   };
-  const postHtml = (s, p) => { const a = authorOf(s, p.autor); return `<article class="gx-post" aria-label="Foto de ${A.esc(p.own ? 'você' : a.primeiro)}">${postHeader(s, p)}${postMedia(s, p)}<div data-actions="${p.id}">${actionsBlock(s, p)}</div>${capHtml(s, p)}<div class="gx-body" data-cmlink="${p.id}">${commentLink(s, p)}</div></article>`; };
+  const postHtml = (s, p) => { const a = authorOf(s, p.autor); return `<article class="gx-post" aria-label="Foto de ${A.esc(p.own ? 'você' : a.primeiro)}">${postHeader(s, p, false, true)}${postMedia(s, p)}<div data-actions="${p.id}">${actionsBlock(s, p)}</div>${capHtml(s, p)}<div class="gx-body" data-cmlink="${p.id}">${commentLink(s, p)}</div><div class="gx-body"><time class="gx-ts" datetime="${new Date(Date.now() - p.min * 60000).toISOString()}">${ago(p)}</time></div></article>`; };
   /* coluna lateral do desktop: momentos como filtro vertical, missões e convite para o telão */
   const asideHtml = (s) => {
     const all = allPhotos(s); const f = get(s, 'fm', 'tudo'); const ms = missionsOn(); const done = mDone(s); const nD = ms.filter((m) => done[m.id]).length; const cur = ms.find((m) => !done[m.id]);
@@ -1238,12 +1336,12 @@
     return `<aside class="gx-aside" aria-label="Sobre a festa"><section aria-labelledby="gx-a1"><h2 id="gx-a1">Momentos</h2><div class="gx-mom" role="group" aria-label="Filtrar por momento">${mk('tudo', 'Tudo', all.length)}${A.data.momentos.map((m) => mk(m, A.esc(m), all.filter((p) => p.momento === m).length)).join('')}${mk('minhas', 'Minhas', all.filter((p) => p.own).length)}</div></section>${ms.length ? `<section aria-labelledby="gx-a2"><h2 id="gx-a2">Suas missões</h2><div class="gx-as-num"><b>${nD}</b><span class="muted">de ${ms.length} feitas</span></div><div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${ms.length}" aria-valuenow="${nD}" aria-label="Missões feitas"><i style="width:${(nD / ms.length) * 100}%"></i></div>${cur ? `<a class="link" href="${B(s)}/camera?missao=${cur.id}">Fotografar: ${A.esc(cur.titulo)}</a>` : '<p class="muted">Você fez todas. As próximas fotos são livres.</p>'}</section>` : ''}<section aria-labelledby="gx-a3"><h2 id="gx-a3">No telão</h2><p class="muted">As fotos aprovadas passam no telão do salão. Olhe para lá: a sua pode estar na vez.</p><a class="link" href="#/t/display">Ver como o telão aparece</a><p class="gx-note" style="margin-top:var(--space-2)">Só no protótipo: abre o telão em tela cheia.</p></section></aside>`;
   };
   const famDe = (ev) => (A.hero && ev.capa ? A.hero.getCfg(ev.id).familia : 'imersivo');
-  const feedHead = (s, kick = 'Álbum ao vivo') => {
+  const feedHead = (s, kick = 'Álbum ao vivo', compact = false) => {
     const ev = evOf(s); const w = A.when(ev.id); const fam = famDe(ev); const src = capaDe(ev); const all = allPhotos(s); const people = new Set(all.map((p) => p.autor)).size;
     const ph = src ? `<div class="gx-fh-ph"><img src="${src}" alt="" aria-hidden="true" style="${ev.capa && A.hero ? A.hero.fotoStyle(ev.id) : ''}"></div>` : '';
     const mono = !src ? `<span class="gx-fh-mono" aria-hidden="true">${A.esc(ev.iniciais || '')}</span>` : '';
     const data = [w.semData ? '' : w.date, ev.local].filter(Boolean).join(' · ');
-    return `<header class="gx-fh" data-fam="${src ? fam : 'minimal'}">${ph}${mono}<span class="gx-fh-k">${kick}</span><h2>${A.esc(ev.nome)}</h2><div class="gx-fh-div" aria-hidden="true"><i></i><b></b><i></i></div>${data ? `<p class="gx-fh-d">${A.esc(data)}</p>` : ''}<p class="gx-fh-n">${all.length ? `${plural(all.length, 'foto', 'fotos')} de ${plural(people, 'pessoa', 'pessoas')}` : 'Nenhuma foto ainda'}</p></header>`;
+    return `<header class="gx-fh${compact ? ' gx-fh-c' : ''}" data-fam="${src ? fam : 'minimal'}">${ph}${mono}<span class="gx-fh-k">${kick}</span><h2>${A.esc(ev.nome)}</h2><div class="gx-fh-div" aria-hidden="true"><i></i><b></b><i></i></div>${data ? `<p class="gx-fh-d">${A.esc(data)}</p>` : ''}<p class="gx-fh-n">${all.length ? `${plural(all.length, 'foto', 'fotos')} de ${plural(people, 'pessoa', 'pessoas')}` : 'Nenhuma foto ainda'}</p></header>`;
   };
   const specialCard = (s, kind) => {
     const ev = evOf(s); const fam = famDe(ev);
@@ -1271,7 +1369,7 @@
       error: `<div class="gx-pad">${A.errorState({ body: 'Não consegui carregar as fotos agora. Se estiver sem sinal, as suas continuam guardadas.' })}</div>`,
       ok: () => `<div>${feedPosts(s, list, shown)}<div class="gx-in">${list.length > shown ? `<button class="btn btn-line btn-block" data-act="g-mais">Ver mais fotos (${list.length - shown})</button>` : '<p class="gx-note" style="text-align:center;padding:var(--space-3)">Você viu tudo até agora.</p>'}</div></div>`,
     });
-    const out = page(ctx, { title: 'Explorar', active: 'explorar', desk: true, body: `<div class="gx-layout"><div class="gx-colmain">${feedHead(s)}${railHtml(s)}${demoTop()}${ban}${momentChips(s)}${content}</div>${asideHtml(s)}</div>` });
+    const out = page(ctx, { title: 'Explorar', active: 'explorar', desk: true, body: `<div class="gx-layout"><div class="gx-colmain">${feedHead(s, 'Álbum ao vivo', true)}${railHtml(s)}${ban}${momentChips(s)}${content}${demoNote()}</div>${asideHtml(s)}</div>` });
     out.after = (root) => fitCaps(root);
     return out;
   });

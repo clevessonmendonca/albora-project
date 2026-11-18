@@ -172,7 +172,18 @@
 .hv-lnk{display:inline-flex;align-items:center;min-height:44px}
 .hv-khint{display:block}
 @media(hover:none),(max-width:900px){.hv-khint{display:none}}
-.hv-pv{display:flex;flex-direction:column;gap:var(--space-3)} .hv-pv .hcr-cover{aspect-ratio:16/10} .hv-pv .hcr-pv-t{font-size:var(--fs-xl)}
+.hv-pv{display:flex;flex-direction:column;gap:var(--space-3)} .hv-pv .hcr-pv{position:relative;isolation:isolate;border:1px solid color-mix(in srgb,var(--fg) 10%,transparent);border-radius:var(--r-4,28px);box-shadow:0 1px 0 color-mix(in srgb,var(--papel) 10%,transparent) inset,0 22px 44px -24px color-mix(in srgb,var(--noite) 55%,transparent)}
+.hv-pv .hcr-cover{aspect-ratio:16/10} .hv-pv .hcr-pv-t{font-size:var(--fs-xl)}
+.hv-pv .hcr-pv .btn-accent{border-radius:999px;min-height:48px;font-weight:600}
+.hv-pv .hcr-pv-meta{display:flex;flex-wrap:wrap;gap:var(--space-1) var(--space-4);margin:0} .hv-pv .hcr-pv-meta span{display:inline-flex;align-items:center;gap:var(--space-2);min-width:0}
+.hv-pv .hcr-pv[data-theme="noite"]{display:flex;flex-direction:column;justify-content:flex-end;aspect-ratio:4/5;max-height:34rem;background:var(--noite)}
+.hv-pv .hcr-pv[data-theme="noite"] .hcr-cover{position:absolute;inset:0;aspect-ratio:auto;z-index:-2}
+.hv-pv .hcr-pv[data-theme="noite"]::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,transparent 30%,color-mix(in srgb,var(--noite) 58%,transparent) 55%,color-mix(in srgb,var(--noite) 94%,transparent) 100%)}
+.hv-pv .hcr-pv[data-theme="noite"] .hcr-pv-body{padding:var(--space-8) var(--space-5) var(--space-5);gap:var(--space-2);background:none}
+.hv-pv .hcr-pv[data-theme="noite"] .hcr-pv-body>.t-small:first-child{font-size:var(--fs-xs);letter-spacing:.16em;text-transform:uppercase;color:var(--fg-2)}
+.hv-pv .hcr-pv[data-theme="noite"] .hcr-pv-t{font-size:clamp(var(--fs-xl),3.4vw,var(--fs-title));line-height:1.08;text-wrap:balance}
+.hv-pv .hcr-pv[data-theme="noite"] .hcr-pv-meta{color:var(--fg-2)}
+.hv-pv .hcr-pv[data-theme="noite"] .btn-accent{margin-top:var(--space-3)!important}
 @media(min-width:901px){.hv-pv{position:sticky;top:var(--space-6)}}
 .hv-sd{display:flex;flex-direction:column;align-items:center;text-align:center;gap:var(--space-2);padding:var(--space-3) 0 var(--space-8)}
 .hv-sd .hv-arcwrap{width:min(280px,100%)}

@@ -192,7 +192,7 @@
       const fam = (A.hero && ev.capa) ? A.hero.getCfg(ev.id).familia : 'imersivo';
       const cover = ev.capa ? `<img src="${esc(ev.capa)}" alt="Capa escolhida" style="${A.hero ? A.hero.fotoStyle(ev.id) : 'object-position:50% ' + (+ev.foco || 50) + '%'}">` : ev.capaDemo ? A.img('cv-' + ev.id, 'p', 'Capa de exemplo (ilustração)') : `<div class="hcr-mono" role="img" aria-label="Monograma da festa: ${esc(ev.iniciais)}"><span class="monogram">${esc(ev.iniciais)}</span></div>`;
       const vars = prevVars(ev.cor, ev.cor2, est.id);
-      return `<div style="${vars}"><div class="hcr-pv" ${fam === 'imersivo' ? 'data-theme="noite"' : ''} data-fam="${fam}"><div class="hcr-cover">${cover}</div><div class="hcr-pv-body"><span class="t-small">Você foi convidado para</span><div class="hcr-pv-t">${esc(ev.nome)}</div><p class="t-small">${esc(w.date)} · ${esc(ev.local || 'Local a definir')}</p><div class="btn btn-accent btn-block" style="margin-top:8px" aria-hidden="true">Entrar na festa</div></div></div></div>`;
+      return `<div style="${vars}"><div class="hcr-pv" ${fam === 'imersivo' ? 'data-theme="noite"' : ''} data-fam="${fam}"><div class="hcr-cover">${cover}</div><div class="hcr-pv-body"><span class="t-small">Você foi convidado para</span><div class="hcr-pv-t">${esc(ev.nome)}</div><p class="t-small hcr-pv-meta"><span>${A.icon('calendar', 14)}${esc(w.date)}</span><span>${A.icon('pin', 14)}${esc(ev.local || 'Local a definir')}</span></p><div class="btn btn-accent btn-block" style="margin-top:8px" aria-hidden="true">Entrar na festa</div></div></div></div>`;
     },
   };
 
