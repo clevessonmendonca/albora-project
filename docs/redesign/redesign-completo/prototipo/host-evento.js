@@ -148,6 +148,13 @@
 .hv-lb-act{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center}
 .hv-lbm .btn-line{border-color:var(--line)} .hv-lbm .btn-quiet{color:var(--fg-2)}
 .hv-lbm .btn-primary{background:var(--ac);color:var(--noite)}
+.hv-grid{gap:var(--space-2)}
+.hv-tile{border-radius:var(--r-3)}
+.hv-lbm .modal-head h2{--p:0}
+.hv-lbm .modal-head h2::after{content:"";display:block;width:120px;height:3px;margin-top:var(--space-2);border-radius:var(--r-pill);background:linear-gradient(90deg,var(--ac) calc(var(--p) * 1%),var(--line) 0)}
+.hv-lb-bar{border-top:0;background:linear-gradient(0deg,var(--noite) 60%,transparent)}
+.hv-lbm .hv-lb-act .btn{border-radius:var(--r-pill);min-height:52px;padding:0 var(--space-5)}
+.hv-lbm .hv-lb-act .btn-primary{padding:0 var(--space-8);font-weight:600}
 .hv-lb-cm{width:100%}
 .hv-lb-cm.ds-fold>summary{font-size:var(--fs-sm);color:var(--fg-2)}
 @media(max-width:700px){.hv-lb-stage{padding:var(--space-12) var(--space-2) var(--space-1)}.hv-lb-nav{width:44px;height:44px;background:color-mix(in srgb,var(--noite) 55%,transparent)}.hv-lb-nav.pv{left:4px}.hv-lb-nav.nx{right:4px}.hv-lb-bar{padding:var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom))}}
@@ -468,7 +475,7 @@
   function lbDraw() {
     if (!LB) return; const p = lbPhoto(); if (!p) { LB.api.close(); return; }
     const id = LB.id, nome = gname(id, p.autor), g = model(id).gmap[p.autor], cm = commentsOf(id, p).filter((c) => c.state !== 'removido'), role = ROLE();
-    const h = A.$('.modal-head h2', LB.api.el); if (h) h.textContent = `${LB.i + 1} de ${LB.ids.length}`;
+    const h = A.$('.modal-head h2', LB.api.el); if (h) { h.textContent = `${LB.i + 1} de ${LB.ids.length}`; h.style.setProperty('--p', Math.round(((LB.i + 1) / LB.ids.length) * 100)); }
     const wasOpen = !!A.$('.hv-lb-cm[open]', LB.api.el);
     const pri = p.status === 'revisar' ? `<button class="btn btn-primary" data-act="hv-lbact" data-a="ap" data-fk="l-ap">${A.icon('check', 16)} Aprovar <span class="kbd">A</span></button>` : p.status === 'oculta' ? `<button class="btn btn-primary" data-act="hv-lbact" data-a="rs" data-fk="l-rs">${A.icon('undo', 16)} Restaurar</button>` : '';
     const meta = [hhmm(p.ck) + (agoOf(p) ? ' · ' + agoOf(p) : ''), p.missao ? mtitle(p.missao) : 'Foto livre', `${p.curtidas} ${plural(p.curtidas, 'reação', 'reações')}`, p.status === 'aprovada' && p.telao ? 'No telão' : ''].filter(Boolean).map(E).join(' · ');

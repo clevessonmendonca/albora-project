@@ -434,3 +434,10 @@ h1[tabindex="-1"]:focus,#main[tabindex="-1"]:focus{outline:none}
   .tabbar a[aria-current="page"]{background:color-mix(in srgb,var(--ac) 16%,transparent)}
   .page{padding-bottom:calc(var(--tabbar-h) + var(--space-12) + env(safe-area-inset-bottom))}
 }
+
+/* v167 — filtros em pílula no anfitrião */
+.app .ds-fl{border-bottom:0;gap:var(--space-2)}
+.app .ds-fl button{padding:0 var(--space-4);border:1px solid var(--line);border-radius:var(--r-pill);color:var(--fg-2)}
+.app .ds-fl button[aria-pressed="true"]{background:var(--ac);border-color:var(--ac);color:var(--on-ac)}
+.app .ds-fl button[aria-pressed="true"]::after{display:none}
+.app .ds-fl button[aria-pressed="true"] .n{color:inherit;opacity:.85}
