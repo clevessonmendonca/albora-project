@@ -441,3 +441,12 @@ h1[tabindex="-1"]:focus,#main[tabindex="-1"]:focus{outline:none}
 .app .ds-fl button[aria-pressed="true"]{background:var(--ac);border-color:var(--ac);color:var(--on-ac)}
 .app .ds-fl button[aria-pressed="true"]::after{display:none}
 .app .ds-fl button[aria-pressed="true"] .n{color:inherit;opacity:.85}
+
+/* v174 — tabelas do anfitrião e do fornecedor em linhas-cartão (só no desktop; no celular elas já empilham) */
+@media(min-width:901px){
+.app .table{border-collapse:separate;border-spacing:0 var(--space-2)}
+.app .table td{background:var(--surface);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+.app .table td:first-child{border-left:1px solid var(--line-2);border-radius:var(--r-3) 0 0 var(--r-3)}
+.app .table td:last-child{border-right:1px solid var(--line-2);border-radius:0 var(--r-3) var(--r-3) 0}
+.app .table tr:hover td{background:var(--surface-2)}
+}

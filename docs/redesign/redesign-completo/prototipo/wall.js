@@ -115,11 +115,12 @@
 .wl-cap{display:flex;justify-content:space-between;gap:var(--space-4);align-items:baseline;padding:clamp(var(--space-3),2vmin,var(--space-5)) var(--space-1);font:400 clamp(var(--fs-md),2.6vmin,var(--fs-xl)) var(--font-display)}
 .wl-cap span{font:500 clamp(var(--fs-xs),1.8vmin,var(--fs-md)) var(--font-body);color:var(--fg-2)}
 .wl-grid{width:100%;height:100%;display:grid;gap:var(--wl-gap);grid-template-columns:repeat(var(--cols),minmax(0,1fr));grid-template-rows:repeat(var(--rows),minmax(0,1fr))}
-.wl-cell{position:relative;overflow:hidden;border-radius:var(--r-1);background:var(--surface);margin:0;animation:wl-pop var(--dur-3) var(--ease) both;animation-delay:calc(var(--i) * var(--gap,var(--dur-1)))}
+.wl-cell{position:relative;overflow:hidden;border-radius:var(--r-4);background:var(--surface);margin:0;animation:wl-pop var(--dur-3) var(--ease) both;animation-delay:calc(var(--i) * var(--gap,var(--dur-1)))}
 .wl-cell .wl-bd{position:absolute;left:-10%;top:-10%;width:120%;height:120%;object-fit:cover;filter:blur(26px) saturate(1.1);opacity:.45}
 .wl-cell .wl-fg{position:relative;width:100%;height:100%;object-fit:contain}
 .wl-new{position:absolute;left:var(--space-2);top:var(--space-2);font:600 clamp(var(--fs-sm),1.6vmin,var(--fs-md)) var(--font-body);background:var(--ac);color:var(--on-ac);border-radius:var(--r-pill);padding:var(--space-1) var(--space-3)}
 .wl-leg{--veu-c:color-mix(in srgb,var(--noite) calc(var(--veu-a,.78) * 100%),transparent);position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-2);padding:var(--space-8) var(--space-3) var(--space-2);background:linear-gradient(to top,var(--veu-c) 0,var(--veu-c) 60%,transparent);color:var(--papel);font:600 var(--wl-hud-fs)/1.3 var(--font-body)}
+.wl-leg{padding-inline:var(--space-4)}
 .wl-leg b{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .wl-leg span{font-weight:500;flex:none} .wl-dump .wl-leg span{display:none}
 .wl-col{position:relative;margin:auto;width:min(100cqw,177.78cqh);height:min(100cqh,56.25cqw);container-type:size}
 .wl-col .wl-item{position:absolute;left:var(--x);top:var(--y);height:calc(var(--h) * 1cqh);aspect-ratio:var(--ar);max-width:62cqw;transform:translate(-50%,-50%) rotate(var(--rot));background:var(--papel);padding:clamp(var(--space-1),.9vmin,var(--space-3));box-shadow:0 1.6vmin 4vmin -1vmin var(--noite);animation:wl-pop var(--dur-3) var(--ease) both;animation-delay:calc(var(--i) * var(--dur-2))}
