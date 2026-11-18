@@ -197,6 +197,13 @@
 @media(min-width:700px){.vd-pk .row{grid-template-columns:minmax(0,.9fr) minmax(0,1.4fr) auto;gap:var(--space-2) var(--space-8)} .vd-pk .row p{grid-column:auto;grid-row:auto}}
 .vd-sec{display:flex;flex-direction:column;gap:var(--space-6)} .vd-sec>h2{font:380 var(--fs-title)/1.15 var(--font-display)} .vd-sec>h2::after{content:"";display:block;width:var(--space-8);height:2px;background:var(--ac);margin-top:var(--space-3)}
 .vd-pass{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:var(--space-6);list-style:none;margin:0;padding:0;counter-reset:p} .vd-pass li{border-top:1px solid var(--line);padding-top:var(--space-3);display:flex;flex-direction:column;gap:var(--space-2);counter-increment:p;color:var(--fg-2);font-size:var(--fs-sm)} .vd-pass li b{color:var(--fg);font-size:var(--fs-md)} .vd-pass li::before{content:counter(p);font:380 var(--fs-xl) var(--font-display);color:var(--fg)}
+@media(min-width:760px){.vd-cmpt{display:none} .vd-cmpl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4);align-items:stretch}}
+.vd-pl{position:relative;padding:var(--space-6);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.vd-pl.dest{background:var(--bg);border-color:var(--ac);box-shadow:0 0 0 1px var(--ac),0 16px 36px color-mix(in srgb,var(--tinta) 10%,transparent)}
+.vd-pl .mk{align-self:flex-start;padding:var(--space-1) var(--space-3);border-radius:var(--r-pill);background:var(--ac);color:var(--on-ac)}
+.vd-pl h3{font:380 var(--fs-xl)/1.15 var(--font-display)}
+.vd-pl .pr{font:350 var(--fs-title)/1 var(--font-display);font-variant-numeric:tabular-nums}
+.vd-pl .btn{margin-top:auto;border-radius:var(--r-pill)}
 .vd-eyebrow{font:600 var(--fs-xs)/1 var(--font-body);letter-spacing:.14em;text-transform:uppercase;color:var(--fg-2)}
 .vd-hero2{max-width:none;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-8);align-items:center}
 .vd-hero2 .vd-hero-t{display:flex;flex-direction:column;gap:var(--space-5);max-width:var(--measure)}
