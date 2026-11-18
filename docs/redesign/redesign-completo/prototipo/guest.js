@@ -588,6 +588,33 @@
   .gx-fh[data-fam=imersivo] .gx-fh-ph{position:absolute;inset:0;z-index:-2}
   .gx-fh[data-fam=imersivo]::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(to top,rgb(14 12 12 / .82),rgb(14 12 12 / .35) 60%,rgb(14 12 12 / .1))}
   .gx-fh[data-fam=imersivo] .gx-fh-div{display:none}
+  .gx-mhead{display:flex;align-items:center;gap:var(--space-4);padding:var(--space-4);margin-top:var(--space-3);background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-3)}
+  .gx-ring{--p:0;flex:none;position:relative;display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:conic-gradient(var(--ac) calc(var(--p) * 1%),var(--line) 0)}
+  .gx-ring::before{content:"";position:absolute;inset:6px;border-radius:50%;background:var(--elev-1)}
+  .gx-ring b{position:relative;font:500 var(--fs-sm) var(--font-body);font-variant-numeric:tabular-nums}
+  .gx-mhead .tx{display:flex;flex-direction:column;gap:var(--space-1);min-width:0}
+  .gx-mhead .tx>b{font:380 var(--fs-xl)/1.15 var(--font-display)}
+  .gx-cur{position:relative;margin-top:var(--space-4);padding:var(--space-5) var(--space-5) var(--space-5) var(--space-6);background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-3);overflow:hidden}
+  .gx-cur::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--ac)}
+  .gx-cur .btn{border-radius:var(--r-pill)}
+  .gx-ck{font-size:var(--fs-xs);letter-spacing:.14em;text-transform:uppercase;color:var(--fg-2)}
+  .gx-ml{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--space-2)}
+  .gx-mi{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;column-gap:var(--space-3);padding:var(--space-3);min-height:68px;background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-3)}
+  .gx-mnum{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);font:380 var(--fs-md) var(--font-display);color:var(--fg-2)}
+  .gx-mi.done .gx-mnum{background:var(--ac);border-color:var(--ac);color:var(--on-ac)}
+  .gx-mt{display:flex;flex-direction:column;min-width:0;line-height:1.3}
+  .gx-mt b{font-weight:500;overflow-wrap:anywhere}
+  .gx-mi.done .gx-mt{color:var(--fg-2)}
+  .gx-mac{display:flex;align-items:center;gap:var(--space-1)}
+  .gx-mcam{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--ac);color:var(--on-ac)}
+  .gx-mcam:focus-visible,.gx-mbtn:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
+  .gx-mbtn{min-height:44px;padding:0 var(--space-2);background:none;border:0;color:var(--fg-2);font-size:var(--fs-sm);cursor:pointer;text-decoration:underline;text-underline-offset:4px}
+  .alb .gx-sec{margin-top:var(--space-6)}
+  .alb .gx-sec>h2{font:600 var(--fs-sm)/1.3 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--fg-2)}
+  .alb .gx-sec>h2 .t-small{font-weight:400;letter-spacing:0;text-transform:none}
+  .gx-mos[data-fam=imersivo]{gap:calc(var(--space-1) / 2)}
+  .gx-mos[data-fam=imersivo] .gx-tile{border-radius:0}
+  @media(max-width:860px){.alb .gx-mos{margin-inline:calc(-1 * var(--space-6))}}
   .gx-fh.gx-fh-c{min-height:0;padding:var(--space-3) var(--space-4);gap:var(--space-1)}
   .gx-fh.gx-fh-c .gx-fh-k,.gx-fh.gx-fh-c .gx-fh-d,.gx-fh.gx-fh-c .gx-fh-div{display:none}
   .gx-fh.gx-fh-c h2{font-size:var(--fs-lg)}
@@ -1434,7 +1461,7 @@
       loading: `<div class="gx-pad">${A.skel(3, 120)}</div>`, error: `<div class="gx-pad">${A.errorState({ body: 'Não consegui carregar o álbum agora. Confira a conexão e tente de novo.' })}</div>`,
       ok: () => `<div class="gx-pad">${grouped.map(([m, l]) => `<section class="gx-sec" aria-label="${A.esc(m)}"><h2>${A.esc(m)} <span class="t-small">· ${plural(l.length, 'foto', 'fotos')}</span></h2><div class="gx-grid gx-mos" data-fam="${famDe(evOf(s))}">${l.map((p) => `<button class="gx-tile" data-act="g-open" data-ctx="album" data-id="${p.id}" aria-label="Abrir foto de ${A.esc(authorOf(s, p.autor).primeiro)}, ${A.esc(m.toLowerCase())}">${fx(p.src, p.filtro, p.inten, '', 'cover')}</button>`).join('')}</div></section>`).join('')}</div>`,
     });
-    return page(ctx, { title: 'Álbum', active: 'album', desk: true, body: `<div class="gx-layout alb"><div class="gx-colmain">${feedHead(s, 'Álbum')}${nm ? `<p class="gx-in muted" style="margin:0 var(--space-4)">${plural(nm, 'missão feita', 'missões feitas')}</p>` : ''}${momentChips(s)}${content}${demoNote()}</div>${asideHtml(s)}</div>` });
+    return page(ctx, { title: 'Álbum', active: 'album', desk: true, body: `<div class="gx-layout alb"><div class="gx-colmain">${feedHead(s, 'Álbum', true)}${nm ? `<p class="gx-in muted" style="margin:0 var(--space-4)">${plural(nm, 'missão feita', 'missões feitas')}</p>` : ''}${momentChips(s)}${content}${demoNote()}</div>${asideHtml(s)}</div>` });
   });
 
   /* ---------------------------------------------------------------- 4. missões */
@@ -1443,9 +1470,9 @@
     const content = A.stateful({
       isEmpty: () => !ms.length, empty: A.emptyState({ icon: 'target', title: 'Sem missões nesta festa', body: 'Os anfitriões não escolheram missões. Fotografe o que quiser.', cta: `<a class="btn btn-accent" href="${B(s)}/camera">Tirar foto</a>` }),
       loading: `<div class="gx-pad">${A.skel(5, 60)}</div>`, error: `<div class="gx-pad">${A.errorState({ body: 'Não carreguei as missões agora. Tente de novo.' })}</div>`,
-      ok: () => `<div class="gx-pad"><div class="gx-mp"><span class="gx-num">${nD}</span><span class="muted">${nD === ms.length ? 'missões feitas. Todas.' : `de ${ms.length} missões feitas`}</span></div><div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="${ms.length}" aria-valuenow="${nD}" aria-label="Missões feitas"><i style="width:${(nD / ms.length) * 100}%"></i></div>${cur ? `<section class="gx-cur" aria-label="Missão atual"><span class="gx-roman big">${cur.romano}</span><h2 class="t-title">${A.esc(cur.titulo)}</h2><span class="t-small">${plural(cur.fotos, 'foto', 'fotos')} já feitas</span><a class="btn btn-accent btn-block" href="${B(s)}/camera?missao=${cur.id}">${A.icon('camera', 18)} Fotografar</a></section>` : `<p class="gx-done" role="status">Você fez todas as missões. As próximas fotos podem ser livres.</p>`}<section class="gx-sec" aria-label="Todas as missões"><h2>${cur ? 'Outras missões' : 'Todas as missões'}</h2><div>${ms.filter((m) => !cur || m.id !== cur.id).map((m) => `<div class="gx-mrow ${done[m.id] ? 'done' : ''}"><span class="gx-roman">${m.romano}</span><div class="gx-t">${A.esc(m.titulo)}<div class="t-small">${plural(m.fotos + (done[m.id] ? 1 : 0), 'foto', 'fotos')}</div></div>${done[m.id] ? '<span class="gx-badge ok">Feita</span>' : ''}<div class="gx-macts">${done[m.id] ? `<button class="link" data-act="g-desfazer-m" data-id="${m.id}" aria-label="Desmarcar ${A.esc(m.titulo)}">Desmarcar</button>` : `<a class="link" href="${B(s)}/camera?missao=${m.id}" aria-label="Fotografar: ${A.esc(m.titulo)}">Fotografar</a><button class="link" data-act="g-concluir-m" data-id="${m.id}" aria-label="Já fiz a missão ${A.esc(m.titulo)} fora do app">Já fiz</button>`}</div></div>`).join('')}</div><p class="gx-note" style="margin-top:var(--space-3)">Já fiz marca como feita uma missão cuja foto você tirou por conta própria. As contagens de fotos por missão são de exemplo do protótipo.</p></section></div>`,
+      ok: () => `<div class="gx-pad"><div class="gx-mhead"><span class="gx-ring" style="--p:${Math.round((nD / ms.length) * 100)}" role="progressbar" aria-valuemin="0" aria-valuemax="${ms.length}" aria-valuenow="${nD}" aria-label="Missões feitas"><b>${nD}/${ms.length}</b></span><div class="tx"><b>${nD === ms.length ? 'Todas as missões feitas' : `${nD} de ${ms.length} missões feitas`}</b><span class="t-small muted">${nD === ms.length ? 'As próximas fotos podem ser livres.' : 'Escolha uma e fotografe.'}</span></div></div>${cur ? `<section class="gx-cur" aria-label="Missão atual"><span class="gx-ck">Sua missão agora</span><span class="gx-roman big">${cur.romano}</span><h2 class="t-title">${A.esc(cur.titulo)}</h2><span class="t-small">${plural(cur.fotos, 'foto', 'fotos')} já feitas</span><a class="btn btn-accent btn-block" href="${B(s)}/camera?missao=${cur.id}">${A.icon('camera', 18)} Fotografar</a></section>` : `<p class="gx-done" role="status">Você fez todas as missões. As próximas fotos podem ser livres.</p>`}<section class="gx-sec" aria-label="Todas as missões"><h2>${cur ? 'Outras missões' : 'Todas as missões'}</h2><ul class="gx-ml" role="list">${ms.filter((m) => !cur || m.id !== cur.id).map((m) => `<li class="gx-mi ${done[m.id] ? 'done' : ''}"><span class="gx-mnum" aria-hidden="true">${done[m.id] ? A.icon('check', 20) : m.romano}</span><div class="gx-mt"><b>${A.esc(m.titulo)}</b><span class="t-small">${plural(m.fotos + (done[m.id] ? 1 : 0), 'foto', 'fotos')}${done[m.id] ? ' · Feita' : ''}</span></div><div class="gx-mac">${done[m.id] ? `<button class="gx-mbtn" data-act="g-desfazer-m" data-id="${m.id}" aria-label="Desmarcar ${A.esc(m.titulo)}">Desmarcar</button>` : `<a class="gx-mcam" href="${B(s)}/camera?missao=${m.id}" aria-label="Fotografar: ${A.esc(m.titulo)}">${A.icon('camera', 20)}</a><button class="gx-mbtn" data-act="g-concluir-m" data-id="${m.id}" aria-label="Já fiz a missão ${A.esc(m.titulo)} fora do app">Já fiz</button>`}</div></li>`).join('')}</ul><p class="gx-note" style="margin-top:var(--space-3)">Já fiz marca como feita uma missão cuja foto você tirou por conta própria. As contagens de fotos por missão são de exemplo do protótipo.</p></section></div>`,
     });
-    return page(ctx, { title: 'Missões', active: 'missoes', body: `${feedHead(s, 'Missões')}${content}` });
+    return page(ctx, { title: 'Missões', active: 'missoes', body: `${feedHead(s, 'Missões', true)}${content}` });
   });
   A.acts['g-concluir-m'] = (el) => { const s = curSlug(); markMissao(s, el.dataset.id); rerender(); toast('Missão marcada como feita.', { undo: () => { upd(s, 'missoes', (o) => { const n = { ...o }; delete n[el.dataset.id]; return n; }, {}); rerender(); } }); };
   A.acts['g-desfazer-m'] = (el) => { const s = curSlug(); upd(s, 'missoes', (o) => { const n = { ...o }; delete n[el.dataset.id]; return n; }, {}); rerender(); toast('Missão desmarcada.'); };
