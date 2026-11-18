@@ -163,6 +163,17 @@
 #hv-queue .btn-sm{border-radius:var(--r-pill);min-width:44px}
 #hv-queue .li .btn-line{background:var(--ac);border-color:var(--ac);color:var(--on-ac);font-weight:600}
 #hv-queue .li .btn-quiet{border:1px solid var(--line)}
+.hv-poster{border-radius:var(--r-4)}
+.hv-before .hv-next{padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hv-pv{padding:var(--space-4);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hv-lower>.hv-rest{padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hv-lower>.hv-rest.ds-fold,.hv-lower>details.hv-rest{padding:var(--space-2) var(--space-5)}
+.hv-lower>p.hv-rest{padding:0;background:none;border:0}
+.hv-chkp{height:8px;margin-top:var(--space-3);border-radius:var(--r-pill);overflow:hidden}
+.hv-chkp i{border-radius:inherit}
+.hv-ck{padding:var(--space-3);margin-top:var(--space-2);background:var(--bg);border:1px solid var(--line-2);border-radius:var(--r-3)}
+.hv-ck:last-child{border-bottom:1px solid var(--line-2)}
+.hv-ck .pos{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--ac) 16%,transparent);color:var(--accent-text)}
 .hv-lb-cm{width:100%}
 .hv-lb-cm.ds-fold>summary{font-size:var(--fs-sm);color:var(--fg-2)}
 @media(max-width:700px){.hv-lb-stage{padding:var(--space-12) var(--space-2) var(--space-1)}.hv-lb-nav{width:44px;height:44px;background:color-mix(in srgb,var(--noite) 55%,transparent)}.hv-lb-nav.pv{left:4px}.hv-lb-nav.nx{right:4px}.hv-lb-bar{padding:var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom))}}
@@ -665,7 +676,7 @@
     const rest = (couple ? pending : pending.slice(1)).filter((i) => !(i.k === 'quando' && heroBtn)), ready = items.filter((i) => i.done);
     const rows = rest.map((it) => couple ? `<div class="hv-ck"><span class="muted">${A.icon('clock', 20)}</span><div class="grow">${E(it.t)}<span class="sr-only"> (falta)</span></div></div>` : `<div class="hv-ck"><span class="muted">${A.icon('clock', 20)}</span><span class="grow">${E(it.t)}</span><span class="flex" style="gap:var(--space-1)">${ctaOf(it, 'btn btn-quiet btn-sm', id)}${it.manual ? `<button class="btn btn-quiet btn-sm" data-act="hv-done" data-k="${it.k}" data-fk="done-${it.k}">Já fiz</button>` : ''}</span></div>`).join('');
     const readyRows = ready.map((it) => `<div class="hv-ck"><span class="pos">${A.icon('check', 20)}</span><div class="grow"><span class="hv-done">${E(it.t)}</span><span class="sr-only"> (feito)</span>${it.note ? `<div class="hv-hint">${E(it.note)}</div>` : ''}</div>${couple ? '' : `<a class="btn btn-quiet btn-sm" href="${it.href || '#'}" aria-label="Rever ${E(it.t)}" ${it.act ? `data-act="${it.act}" ${it.to ? `data-to="${it.to}"` : ''}` : ''}>Rever</a>`}</div>`).join('');
-    const checklist = `<section class="hv-rest" aria-labelledby="hv-chk"><div class="flex between"><h2 class="t-h" id="hv-chk">${couple ? 'O que falta' : 'No caminho até a festa'}</h2><span class="t-small">${done} de ${items.length} prontos</span></div>${couple ? '<p class="t-small" style="margin-top:var(--space-2)">Quem organiza cuida dessas etapas. Você acompanha por aqui e aprova fotos na festa.</p>' : ''}${rows ? `<div style="margin-top:8px">${rows}</div>` : ''}${ready.length ? `<details class="hv-disclosure ds-fold b-baixo" style="margin-top:var(--space-3)"><summary>${A.icon('check', 16)}<span class="grow">Já está pronto (${ready.length})</span></summary><div class="ds-fold-b">${readyRows}</div></details>` : ''}</section>`;
+    const checklist = `<section class="hv-rest" aria-labelledby="hv-chk"><div class="flex between"><h2 class="t-h" id="hv-chk">${couple ? 'O que falta' : 'No caminho até a festa'}</h2><span class="t-small">${done} de ${items.length} prontos</span></div><div class="progress hv-chkp" role="progressbar" aria-valuemin="0" aria-valuemax="${items.length}" aria-valuenow="${done}" aria-label="Etapas prontas"><i style="width:${Math.round((done / Math.max(items.length, 1)) * 100)}%"></i></div>${couple ? '<p class="t-small" style="margin-top:var(--space-2)">Quem organiza cuida dessas etapas. Você acompanha por aqui e aprova fotos na festa.</p>' : ''}${rows ? `<div style="margin-top:8px">${rows}</div>` : ''}${ready.length ? `<details class="hv-disclosure ds-fold b-baixo" style="margin-top:var(--space-3)"><summary>${A.icon('check', 16)}<span class="grow">Já está pronto (${ready.length})</span></summary><div class="ds-fold-b">${readyRows}</div></details>` : ''}</section>`;
     const open = gateOpen(id);
     const rules = `<details class="hv-det hv-sec hv-rest ds-fold sem-borda" ${RULES_OPEN ? 'open' : ''}><summary><span class="grow">Regras da festa <span class="t-small">· ${pub ? 'publicado' : 'rascunho'} · interação ${open ? 'aberta' : 'fechada'}</span></span></summary><div class="ds-fold-b">${rulesHtml(id, couple)}</div></details>`;
     const nd = couple ? '' : nudge('antes-da-festa', ev);
