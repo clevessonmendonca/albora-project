@@ -315,6 +315,29 @@
   .gx-flip[hidden],.gx-rectime[hidden]{display:none}
   .gx-rectime{position:absolute;top:40px;left:50%;transform:translateX(-50%);z-index:2;padding:4px 12px;border-radius:var(--r-pill,999px);background:var(--surface);color:var(--fg);font-size:var(--fs-sm);font-variant-numeric:tabular-nums}
   .gx-shut.rec .shutter::after{border-radius:12px;transform:scale(.6)}
+  .gx-cm2{position:relative;height:100dvh;overflow:hidden;background:var(--noite);color:var(--fg);isolation:isolate}
+  .gx-cm2 .gx-vf{position:absolute;inset:0;margin:0;min-height:0;padding:0;background:var(--noite);color:var(--fg-2)}
+  .gx-cm2 .gx-vf video{object-fit:cover;background:var(--noite)}
+  .gx-vf-m{position:relative;display:flex;flex-direction:column;align-items:center;gap:var(--space-2);padding:0 var(--space-8);max-width:30ch;text-align:center}
+  .gx-vf-m small{font-size:var(--fs-xs);color:var(--fg-3)}
+  .gx-vf.on .gx-vf-m small{display:none}
+  .gx-cm2 .gx-rectime{top:calc(var(--space-12) + var(--space-8))}
+  .gx-ctop{position:absolute;top:0;left:0;right:0;z-index:3;display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-3) var(--space-8);background:linear-gradient(180deg,color-mix(in srgb,var(--noite) 70%,transparent),transparent)}
+  .gx-cbtn{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:color-mix(in srgb,var(--noite) 45%,transparent);color:var(--fg);cursor:pointer;text-decoration:none}
+  .gx-cbtn:focus-visible,.gx-mchip:focus-visible,.gx-mode:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+  .gx-cm2 .gx-flip{position:static;min-width:44px;min-height:44px;border:0}
+  .gx-cmis{display:flex;justify-content:center;gap:var(--space-2);flex-wrap:wrap}
+  .gx-mchip{display:inline-flex;align-items:center;gap:var(--space-2);min-height:44px;padding:0 var(--space-4);border-radius:var(--r-pill);background:color-mix(in srgb,var(--noite) 55%,transparent);color:var(--fg);font-size:var(--fs-sm);font-weight:500;text-decoration:none;white-space:nowrap}
+  .gx-mchip.acc{background:var(--ac);color:var(--on-ac)}
+  .gx-cbot{position:absolute;left:0;right:0;bottom:0;z-index:3;display:flex;flex-direction:column;align-items:center;gap:var(--space-2);padding:var(--space-8) var(--space-4) calc(var(--space-5) + env(safe-area-inset-bottom));background:linear-gradient(0deg,color-mix(in srgb,var(--noite) 78%,transparent),transparent)}
+  .gx-modes{display:flex;gap:var(--space-6)}
+  .gx-mode{position:relative;min-height:44px;min-width:44px;padding:0 var(--space-2);background:none;border:0;color:var(--fg-2);font:600 var(--fs-sm) var(--font-body);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+  .gx-mode[aria-pressed=true]{color:var(--fg)}
+  .gx-mode[aria-pressed=true]::after{content:"";position:absolute;left:50%;bottom:var(--space-1);width:6px;height:6px;border-radius:50%;background:var(--ac);translate:-50% 0}
+  .gx-cm2 .gx-ctl{width:100%;max-width:26rem}
+  .gx-cm2 .gx-side{width:48px;height:48px;min-width:48px;min-height:48px;color:var(--fg);background:color-mix(in srgb,var(--noite) 55%,transparent);border:1px solid color-mix(in srgb,var(--fg) 25%,transparent);border-radius:var(--r-2)}
+  .gx-cm2 .shutter{width:84px;height:84px;border-width:4px;border-color:var(--fg)}.gx-cm2 .shutter::after{width:64px;height:64px}
+  @media(min-width:861px){.gx-cm2{height:min(calc(100dvh - var(--space-8)),52rem);max-width:30rem;margin:var(--space-4) auto;border-radius:var(--r-3)}}
   .gx-side[aria-pressed=true]{color:var(--accent-text)}
   .gx-vid{position:relative;display:block}
   .gx-vid video{display:block;width:100%;height:100%;object-fit:cover}
@@ -1055,7 +1078,7 @@
   A.acts['g-retry'] = (el) => { const s = curSlug(); if (get(s, 'offline', false)) { toast('Ainda sem sinal. Tentamos de novo assim que voltar.'); return; } upd(s, 'uploads', (l) => l.map((u) => (u.id === el.dataset.id || el.dataset.id === 'all' ? (u.status === 'falhou' ? { ...u, status: 'fila' } : u) : u)), []); refresh(); toast('Tentando enviar de novo.'); };
   A.acts['g-retry-all'] = (el) => { A.acts['g-retry']({ dataset: { id: 'all' } }); };
   A.acts['g-descartar-fila'] = (el) => confirm({ title: 'Tirar da fila?', body: '<p>A foto guardada no celular é apagada e não será enviada. Isso não dá para desfazer.</p>', confirm: 'Apagar foto', danger: true }).then((ok) => { if (!ok) return; const s = curSlug(); dropMedia([el.dataset.id]); upd(s, 'uploads', (l) => l.filter((u) => u.id !== el.dataset.id), []); rerender(); toast('Foto apagada da fila.'); });
-  A.acts['g-offline'] = (el) => { const s = curSlug(); const on = el.getAttribute('aria-checked') !== 'true'; set(s, 'offline', on); rerender(); toast(on ? 'Simulando sem sinal.' : 'Sinal de volta. A fila volta a enviar.'); };
+  A.acts['g-offline'] = (el) => { A.$('.modal [data-mclose]')?.click(); const s = curSlug(); const on = el.getAttribute('aria-checked') !== 'true'; set(s, 'offline', on); rerender(); toast(on ? 'Simulando sem sinal.' : 'Sinal de volta. A fila volta a enviar.'); };
   A.acts['g-falhar-cm'] = (el) => { const s = curSlug(); set(s, 'falharCm', el.getAttribute('aria-checked') !== 'true'); rerender(); };
   A.acts['g-falhar-rx'] = (el) => { const s = curSlug(); set(s, 'falharRx', el.getAttribute('aria-checked') !== 'true'); rerender(); };
   A.acts['g-falhar'] = (el) => { const s = curSlug(); const on = el.getAttribute('aria-checked') !== 'true'; set(s, 'falhar', on); rerender(); };
@@ -1239,10 +1262,15 @@
     const g = guard(ctx); if (g) return g; const s = ctx.params.slug; const off = get(s, 'offline', false);
     const m = ctx.q.missao ? A.data.missions.find((x) => x.id === ctx.q.missao) : null;
     const done = mDone(s); const pending = missionsOn().find((x) => !done[x.id]);
-    const banner = m ? `<div class="gx-mis"><span class="gx-roman">${m.romano}</span><div class="grow"><div class="t-small">Missão</div><b>${A.esc(m.titulo)}</b></div><a class="link" href="${B(s)}/missoes">Trocar</a></div>` : `<div class="gx-mis"><div class="grow"><div class="t-small">Foto livre</div><b>Sem missão</b></div>${pending ? `<a class="link" href="${B(s)}/camera?missao=${pending.id}">Fazer a próxima missão</a>` : ''}</div>`;
-    const sample = Array.from({ length: 6 }, (_, i) => `<button class="gx-tile" data-act="g-amostra" data-seed="amostra-${s}-${i}" data-q="${m ? m.id : ''}" aria-label="Usar foto de amostra ${i + 1}">${A.img('amostra-' + s + '-' + i, 'p', '')}</button>`).join('');
-    return page(ctx, { title: 'Câmera', active: 'camera', nav: false, back: `${B(s)}/explorar`, body: `<div class="gx-pad gx-cam">${banner}<div class="gx-vf" id="gx-vf"><video id="gx-video" playsinline muted autoplay hidden></video><span class="c1"></span><span class="c2"></span><span class="c3"></span><span class="c4"></span><p id="gx-camMsg" role="status" aria-live="polite">Toque no obturador para ligar a câmera. Se ela não abrir, use a Galeria.</p><span class="gx-rectime" id="gx-rectime" aria-hidden="true" hidden></span><button type="button" class="gx-flip" id="gx-flip" data-act="g-flip" aria-label="Virar a câmera" hidden>${A.icon('refresh', 20)}</button></div><div class="gx-ctl"><label class="gx-side">${A.icon('image', 24)}Galeria<input type="file" accept="image/*,video/*" multiple data-change="g-file" data-q="${m ? m.id : ''}" aria-label="Escolher fotos ou vídeos da galeria (até 10)"></label><button type="button" class="gx-shut" id="gx-shut" data-act="g-shutter" data-q="${m ? m.id : ''}" aria-label="Ligar a câmera e tirar a foto"><span class="shutter big" aria-hidden="true"></span></button><input type="file" accept="image/*" capture="environment" id="gx-cap" data-change="g-file" data-q="${m ? m.id : ''}" hidden aria-hidden="true" tabindex="-1"><button class="gx-side" data-act="g-video" aria-pressed="false">${A.icon('video', 24)}Vídeo</button></div><p class="gx-note" style="text-align:center">A localização da foto é removida antes do envio.</p><details class="gx-det ds-fold b-baixo"><summary>Sem câmera aqui? Use uma foto de amostra</summary><div class="ds-fold-b"><p class="gx-note" style="padding-bottom:var(--space-3)">Ilustrações só do protótipo.</p><div class="gx-amostras">${sample}</div></div></details><div class="flex between"><span class="gx-note">Só no protótipo</span><button class="chip" role="switch" aria-checked="${off}" data-act="g-offline" style="min-height:44px;border:1px solid var(--line);padding:0 var(--space-4)">${A.icon('wifioff', 16)} Simular sem sinal${off ? ': ligado' : ''}</button></div></div>` });
+    const chips = m ? `<a class="gx-mchip" href="${B(s)}/missoes"><span class="gx-roman">${m.romano}</span>${A.esc(m.titulo)}</a>` : `<span class="gx-mchip">Foto livre</span>${pending ? `<a class="gx-mchip acc" href="${B(s)}/camera?missao=${pending.id}">Tentar missão</a>` : ''}`;
+    const q = m ? m.id : '';
+    return page(ctx, { title: 'Câmera', active: 'camera', nav: false, bare: true, body: `<div class="gx-cm2" data-theme="noite"><div class="gx-vf" id="gx-vf"><video id="gx-video" playsinline muted autoplay hidden></video><div class="gx-vf-m"><p id="gx-camMsg" role="status" aria-live="polite">Toque no obturador para ligar a câmera. Se ela não abrir, use a Galeria.</p><small>A localização da foto é removida antes do envio.</small></div><span class="gx-rectime" id="gx-rectime" aria-hidden="true" hidden></span></div><div class="gx-ctop"><a class="gx-cbtn" href="${B(s)}/explorar" aria-label="Fechar a câmera">${A.icon('x', 24)}</a><div class="gx-cmis">${chips}</div><button type="button" class="gx-cbtn gx-flip" id="gx-flip" data-act="g-flip" aria-label="Virar a câmera" hidden>${A.icon('refresh', 22)}</button></div><div class="gx-cbot"><div class="gx-modes" role="group" aria-label="Tipo de captura"><button type="button" class="gx-mode" data-act="g-video" data-mode="foto" aria-pressed="true">Foto</button><button type="button" class="gx-mode" data-act="g-video" data-mode="video" aria-pressed="false">Vídeo</button></div><div class="gx-ctl"><label class="gx-side" title="Galeria">${A.icon('image', 24)}<span class="sr-only">Galeria</span><input type="file" accept="image/*,video/*" multiple data-change="g-file" data-q="${q}" aria-label="Escolher fotos ou vídeos da galeria (até 10)"></label><button type="button" class="gx-shut" id="gx-shut" data-act="g-shutter" data-q="${q}" aria-label="Ligar a câmera e tirar a foto"><span class="shutter big" aria-hidden="true"></span></button><input type="file" accept="image/*" capture="environment" id="gx-cap" data-change="g-file" data-q="${q}" hidden aria-hidden="true" tabindex="-1"><button type="button" class="gx-side" data-act="g-amostras" data-q="${q}" aria-label="Fotos de amostra do protótipo" title="Fotos de amostra">${A.icon('grid', 24)}</button></div></div></div>` });
   });
+  A.acts['g-amostras'] = (el) => {
+    const s = curSlug(); const q = el.dataset.q || ''; const off = get(s, 'offline', false);
+    const grid = Array.from({ length: 6 }, (_, i) => `<button class="gx-tile" data-act="g-amostra" data-seed="amostra-${s}-${i}" data-q="${q}" aria-label="Usar foto de amostra ${i + 1}">${A.img('amostra-' + s + '-' + i, 'p', '')}</button>`).join('');
+    sheet({ title: 'Fotos de amostra', body: `<div class="stack"><p class="gx-note">Sem câmera aqui? Escolha uma ilustração. Só do protótipo.</p><div class="gx-amostras">${grid}</div><div class="flex between"><span class="gx-note">Só no protótipo</span><button class="chip" role="switch" aria-checked="${off}" data-act="g-offline" style="min-height:44px;border:1px solid var(--line);padding:0 var(--space-4)">${A.icon('wifioff', 16)} Simular sem sinal${off ? ': ligado' : ''}</button></div></div>` });
+  };
   A.inputs['g-file'] = async (el) => {
     const s = curSlug(); const files = [...el.files].slice(0, 10); el.value = ''; if (!files.length) return; const q = { missao: el.dataset.q || null };
     try {
@@ -1257,10 +1285,10 @@
       G.draft = newDraft(s, q, { ...items[0], fonte: 'arquivo' }); A.go(`${B(s)}/camera/editar`);
     } catch (e) { toast(e.message === 'grande' ? 'Esse vídeo passa de 60 MB. Escolha um mais curto.' : e.message === 'salvar' ? 'Não consegui guardar no aparelho. Libere espaço e tente de novo.' : 'Não consegui abrir esse arquivo. Escolha uma imagem JPG ou PNG, ou um vídeo MP4 ou WebM.', { kind: 'bad' }); }
   };
-  A.acts['g-amostra'] = (el) => { const s = curSlug(); G.draft = newDraft(s, { missao: el.dataset.q || null }, { src: A.photo(el.dataset.seed, 'p'), ar: '4/5', fonte: 'amostra' }); A.go(`${B(s)}/camera/editar`); };
+  A.acts['g-amostra'] = (el) => { A.$('.modal [data-mclose]')?.click(); const s = curSlug(); G.draft = newDraft(s, { missao: el.dataset.q || null }, { src: A.photo(el.dataset.seed, 'p'), ar: '4/5', fonte: 'amostra' }); A.go(`${B(s)}/camera/editar`); };
   A.acts['g-video'] = async (el) => {
-    if (CAM.rec) return; CAM.mode = CAM.mode === 'video' ? 'foto' : 'video'; const on = CAM.mode === 'video';
-    el.setAttribute('aria-pressed', on); const sh = A.$('#gx-shut'); if (sh) sh.setAttribute('aria-label', on ? 'Gravar vídeo' : 'Ligar a câmera e tirar a foto');
+    if (CAM.rec) return; const want = el.dataset.mode || (CAM.mode === 'video' ? 'foto' : 'video'); if (want === CAM.mode) return; CAM.mode = want; const on = CAM.mode === 'video';
+    A.$$('[data-act="g-video"]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode ? b.dataset.mode === want : on))); const sh = A.$('#gx-shut'); if (sh) sh.setAttribute('aria-label', on ? 'Gravar vídeo' : 'Ligar a câmera e tirar a foto');
     camMsg(on ? `Modo vídeo: toque no obturador para gravar, até ${VMAX} segundos.` : 'Modo foto.'); if (CAM.stream || on) await camStart();
   };
 
