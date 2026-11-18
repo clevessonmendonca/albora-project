@@ -106,6 +106,35 @@
   .gx-pre .th{border-radius:var(--r-3);overflow:hidden}
   .gx-pre[aria-pressed=true] .th{outline:2px solid var(--ac);outline-offset:2px}
   .gx-conf .stack-2 .btn{width:100%}
+  button.gx-mchip{border:1px solid color-mix(in srgb,var(--fg) 28%,transparent);background:color-mix(in srgb,var(--fg) 12%,transparent);cursor:pointer;font-family:inherit}
+  button.gx-mchip.acc{border-color:var(--ac);background:var(--ac)}
+  .gx-mchip-t{max-width:20ch;overflow:hidden;text-overflow:ellipsis}
+  .gx-mchip .gx-roman{min-width:0;font-size:var(--fs-md)}
+  .gx-opts{display:flex;flex-direction:column;gap:var(--space-2)}
+  .gx-opt{display:flex;align-items:center;gap:var(--space-3);min-height:52px;padding:0 var(--space-4);border:1px solid var(--line-2);border-radius:var(--r-3);background:var(--elev-1);color:var(--fg);font:inherit;text-align:left;cursor:pointer}
+  .gx-opt[aria-pressed=true]{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 14%,transparent)}
+  .gx-opt .gx-roman{min-width:28px;font-size:var(--fs-lg)}
+  .gx-opt:focus-visible,.gx-row:focus-visible{outline:2px solid var(--accent-text);outline-offset:-2px}
+  .gx-ed{display:flex;flex-direction:column;gap:var(--space-4);padding:0 0 var(--space-6)}
+  .gx-ed>:not(.gx-ed-stage){margin-inline:var(--space-6)}
+  .gx-ed-stage{position:relative;display:grid;place-items:center;padding:var(--space-4) var(--space-6);background:var(--noite)}
+  .gx-ed-stage #gx-prev{max-width:100%}
+  .gx-ed-tag{position:absolute;left:var(--space-8);bottom:var(--space-8);display:inline-flex;align-items:center;gap:var(--space-2);min-height:32px;padding:0 var(--space-3);border-radius:var(--r-pill);background:color-mix(in srgb,var(--noite) 60%,transparent);color:var(--fg);font-size:var(--fs-xs);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+  .gx-ed .gx-pre{width:76px}
+  .gx-ed .gx-pre .th{width:64px;height:64px;border-radius:50%}
+  .gx-int{margin-top:var(--space-2)}
+  .gx-int label{display:flex;justify-content:space-between;font-size:var(--fs-sm);color:var(--fg-2)}
+  .gx-capr{display:flex;gap:var(--space-3);align-items:flex-start;padding:var(--space-3);background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-3)}
+  .gx-capr:focus-within{border-color:var(--ac)}
+  .gx-capr-th{position:relative;flex:none;width:56px;height:70px;border-radius:var(--r-2);overflow:hidden;background:var(--surface-2)}
+  .gx-capr textarea{flex:1;min-width:0;min-height:70px;resize:none;background:none;border:0;outline:0;padding:0;color:var(--fg);font:inherit;font-size:16px;line-height:1.4}
+  .gx-rows{list-style:none;margin-top:0;margin-bottom:0;padding:0;display:flex;flex-direction:column;background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-3);overflow:hidden}
+  .gx-rows li+li{border-top:1px solid var(--line-2)}
+  .gx-row{display:flex;align-items:center;gap:var(--space-3);width:100%;min-height:56px;padding:0 var(--space-4);background:none;border:0;color:var(--fg);font:inherit;text-align:left;cursor:pointer}
+  .gx-row>svg:first-child{flex:none;color:var(--accent-text)}
+  .gx-rowv{max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg-2);font-size:var(--fs-sm)}
+  .gx-ed~.gx-bar{background:var(--bg);border-top:0}
+  .gx-ed~.gx-bar .btn-accent{flex:2}
   .phone .empty{padding:var(--space-8) var(--space-6);gap:var(--space-3)}
   .phone .empty>svg{box-sizing:content-box;width:32px;height:32px;padding:var(--space-5);border-radius:50%;background:var(--elev-1);border:1px solid var(--line-2);opacity:1;color:var(--accent-text)}
   .phone .empty .t-title{font-size:var(--fs-xl)}
@@ -1410,10 +1439,15 @@
     const g = guard(ctx); if (g) return g; const s = ctx.params.slug; const off = get(s, 'offline', false);
     const m = ctx.q.missao ? A.data.missions.find((x) => x.id === ctx.q.missao) : null;
     const done = mDone(s); const pending = missionsOn().find((x) => !done[x.id]);
-    const chips = m ? `<a class="gx-mchip" href="${B(s)}/missoes"><span class="gx-roman">${m.romano}</span>${A.esc(m.titulo)}</a>` : `<span class="gx-mchip">Foto livre</span>${pending ? `<a class="gx-mchip acc" href="${B(s)}/camera?missao=${pending.id}">Tentar missão</a>` : ''}`;
+    const chips = `<button type="button" class="gx-mchip ${m ? 'acc' : ''}" data-act="g-pick-m" aria-haspopup="dialog" aria-label="${m ? 'Missão: ' + A.esc(m.titulo) + '. Trocar' : 'Escolher uma missão'}">${A.icon('target', 18)}<span class="gx-mchip-t">${m ? `${m.romano}. ${A.esc(m.titulo)}` : 'Missão'}</span>${A.icon('chevron', 14)}</button>`;
     const q = m ? m.id : '';
     return page(ctx, { title: 'Câmera', active: 'camera', nav: false, bare: true, body: `<div class="gx-cm2" data-theme="noite"><div class="gx-vf" id="gx-vf"><video id="gx-video" playsinline muted autoplay hidden></video><div class="gx-vf-m"><p id="gx-camMsg" role="status" aria-live="polite">Toque no obturador para ligar a câmera. Se ela não abrir, use a Galeria.</p><small>A localização da foto é removida antes do envio.</small></div><span class="gx-rectime" id="gx-rectime" aria-hidden="true" hidden></span></div><div class="gx-ctop"><a class="gx-cbtn" href="${B(s)}/explorar" aria-label="Fechar a câmera">${A.icon('x', 24)}</a><div class="gx-cmis">${chips}</div><button type="button" class="gx-cbtn gx-flip" id="gx-flip" data-act="g-flip" aria-label="Virar a câmera" hidden>${A.icon('refresh', 22)}</button></div><div class="gx-cbot"><div class="gx-modes" role="group" aria-label="Tipo de captura"><button type="button" class="gx-mode" data-act="g-video" data-mode="foto" aria-pressed="true">Foto</button><button type="button" class="gx-mode" data-act="g-video" data-mode="video" aria-pressed="false">Vídeo</button></div><div class="gx-ctl"><label class="gx-side" title="Galeria">${A.icon('image', 24)}<span class="sr-only">Galeria</span><input type="file" accept="image/*,video/*" multiple data-change="g-file" data-q="${q}" aria-label="Escolher fotos ou vídeos da galeria (até 10)"></label><button type="button" class="gx-shut" id="gx-shut" data-act="g-shutter" data-q="${q}" aria-label="Ligar a câmera e tirar a foto"><span class="shutter big" aria-hidden="true"></span></button><input type="file" accept="image/*" capture="environment" id="gx-cap" data-change="g-file" data-q="${q}" hidden aria-hidden="true" tabindex="-1"><button type="button" class="gx-side" data-act="g-amostras" data-q="${q}" aria-label="Fotos de amostra do protótipo" title="Fotos de amostra">${A.icon('grid', 24)}</button></div></div></div>` });
   });
+  A.acts['g-pick-m'] = () => {
+    const s = curSlug(); const cur = new URLSearchParams((location.hash.split('?')[1] || '')).get('missao') || ''; const done = mDone(s);
+    sheet({ title: 'Missão desta foto', body: `<div class="gx-opts"><button class="gx-opt" data-act="g-go-m" data-id="" aria-pressed="${!cur}">${A.icon('camera', 20)}<span class="grow">Foto livre</span></button>${missionsOn().map((m) => `<button class="gx-opt" data-act="g-go-m" data-id="${m.id}" aria-pressed="${cur === m.id}"><span class="gx-roman">${m.romano}</span><span class="grow">${A.esc(m.titulo)}</span>${done[m.id] ? '<span class="gx-badge acc">Feita</span>' : ''}</button>`).join('')}</div>` });
+  };
+  A.acts['g-go-m'] = (el) => { const s = curSlug(); A.$('.modal [data-mclose]')?.click(); A.go(`${B(s)}/camera${el.dataset.id ? '?missao=' + el.dataset.id : ''}`); };
   A.acts['g-amostras'] = (el) => {
     const s = curSlug(); const q = el.dataset.q || ''; const off = get(s, 'offline', false);
     const grid = Array.from({ length: 6 }, (_, i) => `<button class="gx-tile" data-act="g-amostra" data-seed="amostra-${s}-${i}" data-q="${q}" aria-label="Usar foto de amostra ${i + 1}">${A.img('amostra-' + s + '-' + i, 'p', '')}</button>`).join('');
@@ -1446,13 +1480,24 @@
     const rec = GX.recomendado[s];
     const strip = d.tipo === 'video' ? '' : PRE.map((p) => `<button type="button" class="gx-pre" data-act="g-preset" data-id="${p.id}" aria-pressed="${d.filtro === p.id}"><span class="th">${fx(d.src, p.id, 100, '', 'cover')}</span>${p.nome}${p.id === rec ? '<span class="gx-badge acc">Recomendado</span>' : ''}</button>`).join('');
     const ms = missionsOn(); const done = mDone(s);
-    return page(ctx, { title: d.tipo === 'video' ? 'Seu vídeo' : 'Sua foto', active: 'camera', nav: false, back: `${B(s)}/camera`, body: `<div class="gx-pad stack" style="padding-bottom:var(--space-4)"><div class="gx-ph r-a" style="aspect-ratio:${d.ar};max-height:46dvh;width:auto;margin:0 auto" id="gx-prev">${fx(d.src, d.filtro, d.inten, d.tipo === 'video' ? 'Prévia do seu vídeo' : 'Prévia da sua foto com o filtro escolhido', 'ctl')}</div>${d.tipo === 'video' ? '<p class="gx-note">Vídeo enviado como gravado, sem filtro. A localização do arquivo não é lida pelo protótipo.</p>' : ''}<section aria-label="Filtros" ${d.tipo === 'video' ? 'hidden' : ''}><div class="gx-strip" role="group" aria-label="Filtros de cor">${strip}</div>${d.filtro !== 'original' ? `<div class="field"><label for="gx-in">Intensidade do filtro: <span id="gx-inv">${d.inten}%</span></label><input class="gx-range" id="gx-in" type="range" min="0" max="100" value="${d.inten}" data-input="g-inten"></div>` : ''}<p class="gx-note">${d.filtro === rec ? `Recomendado por ${anf(s)}: deixa todas as fotos da festa com o mesmo clima. ` : ''}O filtro é aplicado no seu celular. Nada é gerado por inteligência artificial.</p></section><div class="field"><label for="gx-lg">Legenda</label><input class="input input-sign gx-lg" id="gx-lg" name="legenda" value="${A.esc(d.legenda)}" maxlength="140" placeholder="Uma frase sobre o momento" data-input="g-leg"></div><details class="gx-det ds-fold b-baixo" ${d.missao || d.momento ? 'open' : ''}><summary>Missão e momento (opcional)</summary><div class="stack ds-fold-b"><div class="chips" data-single="1" role="group" aria-label="Missão"><button class="chip" data-act="g-missao" data-id="" aria-pressed="${!d.missao}">Sem missão</button>${ms.map((m) => `<button class="chip" data-act="g-missao" data-id="${m.id}" aria-pressed="${d.missao === m.id}">${m.romano}. ${A.esc(m.titulo)}${done[m.id] ? ' · feita' : ''}</button>`).join('')}</div><div class="chips" role="group" aria-label="Momento">${A.data.momentos.map((m) => `<button class="chip" data-act="g-momento" data-id="${m}" aria-pressed="${d.momento === m}">${m}</button>`).join('')}</div></div></details></div><div class="gx-bar"><button class="btn btn-quiet" data-act="g-descartar">Descartar</button><button class="btn btn-accent" data-act="g-publicar">Publicar</button></div>` });
+    const mo = ms.find((x) => x.id === d.missao); const fnome = (PRE.find((x) => x.id === d.filtro) || PRE[0]).nome; const video = d.tipo === 'video';
+    return page(ctx, { title: video ? 'Novo vídeo' : 'Nova publicação', active: 'camera', nav: false, back: `${B(s)}/camera`, body: `<div class="gx-pad gx-ed"><div class="gx-ed-stage"><div class="gx-ph r-a" style="aspect-ratio:${d.ar};max-height:52dvh;width:auto;margin:0 auto" id="gx-prev">${fx(d.src, d.filtro, d.inten, video ? 'Prévia do seu vídeo' : 'Prévia da sua foto com o filtro escolhido', 'ctl')}</div>${video ? '' : `<span class="gx-ed-tag">${A.icon('sparkle', 14)} ${A.esc(fnome)}</span>`}</div>${video ? '<p class="gx-note">Vídeo enviado como gravado, sem filtro. A localização do arquivo não é lida pelo protótipo.</p>' : ''}<section aria-label="Filtros" ${video ? 'hidden' : ''}><div class="gx-strip" role="group" aria-label="Filtros de cor">${strip}</div>${d.filtro !== 'original' ? `<div class="field gx-int"><label for="gx-in">Intensidade <span id="gx-inv">${d.inten}%</span></label><input class="gx-range" id="gx-in" type="range" min="0" max="100" value="${d.inten}" data-input="g-inten"></div>` : ''}<p class="gx-note">${d.filtro === rec ? `Recomendado por ${anf(s)}: deixa todas as fotos da festa com o mesmo clima. ` : ''}O filtro é aplicado no seu celular. Nada é gerado por inteligência artificial.</p></section><div class="gx-capr"><span class="gx-capr-th" aria-hidden="true">${fx(d.src, d.filtro, d.inten, '', 'cover')}</span><label class="sr-only" for="gx-lg">Legenda</label><textarea class="gx-lg" id="gx-lg" name="legenda" rows="3" maxlength="140" placeholder="Escreva uma legenda…" data-input="g-leg">${A.esc(d.legenda || '')}</textarea></div><ul class="gx-rows" role="list"><li><button type="button" class="gx-row" data-act="g-ed-pickm" aria-haspopup="dialog">${A.icon('target', 20)}<span class="grow">Missão</span><span class="gx-rowv">${mo ? `${mo.romano}. ${A.esc(mo.titulo)}` : 'Nenhuma'}</span>${A.icon('chevron', 16)}</button></li><li><button type="button" class="gx-row" data-act="g-ed-pickmo" aria-haspopup="dialog">${A.icon('clock', 20)}<span class="grow">Momento</span><span class="gx-rowv">${d.momento ? A.esc(d.momento) : 'Automático'}</span>${A.icon('chevron', 16)}</button></li></ul></div><div class="gx-bar"><button class="btn btn-quiet" data-act="g-descartar">Descartar</button><button class="btn btn-accent" data-act="g-publicar">Publicar</button></div>` });
   });
   A.acts['g-preset'] = (el) => { G.draft.filtro = el.dataset.id; G.draft.inten = 100; rerender(); };
   A.inputs['g-inten'] = (el) => { G.draft.inten = +el.value; const o = A.$('#gx-prev .gx-fxo'); if (o) o.style.opacity = el.value / 100; A.$('#gx-inv').textContent = el.value + '%'; };
   A.inputs['g-leg'] = (el) => { G.draft.legenda = el.value; };
   A.acts['g-missao'] = (el) => { G.draft.missao = el.dataset.id || null; rerender(); };
   A.acts['g-momento'] = (el) => { G.draft.momento = G.draft.momento === el.dataset.id ? null : el.dataset.id; rerender(); };
+  A.acts['g-ed-pickm'] = () => {
+    const s = curSlug(); const d = G.draft; const done = mDone(s);
+    sheet({ title: 'Missão desta foto', body: `<div class="gx-opts"><button class="gx-opt" data-act="g-ed-m" data-id="" aria-pressed="${!d.missao}"><span class="grow">Sem missão</span></button>${missionsOn().map((m) => `<button class="gx-opt" data-act="g-ed-m" data-id="${m.id}" aria-pressed="${d.missao === m.id}"><span class="gx-roman">${m.romano}</span><span class="grow">${A.esc(m.titulo)}</span>${done[m.id] ? '<span class="gx-badge acc">Feita</span>' : ''}</button>`).join('')}</div>` });
+  };
+  A.acts['g-ed-m'] = (el) => { A.$('.modal [data-mclose]')?.click(); G.draft.missao = el.dataset.id || null; rerender(); };
+  A.acts['g-ed-pickmo'] = () => {
+    const d = G.draft;
+    sheet({ title: 'Momento da festa', body: `<div class="gx-opts"><button class="gx-opt" data-act="g-ed-mo" data-id="" aria-pressed="${!d.momento}"><span class="grow">Automático, pelo horário</span></button>${A.data.momentos.map((m) => `<button class="gx-opt" data-act="g-ed-mo" data-id="${m}" aria-pressed="${d.momento === m}"><span class="grow">${m}</span></button>`).join('')}</div>` });
+  };
+  A.acts['g-ed-mo'] = (el) => { A.$('.modal [data-mclose]')?.click(); G.draft.momento = el.dataset.id || null; rerender(); };
   A.acts['g-descartar'] = () => { const s = curSlug(); confirm({ title: 'Descartar esta foto?', body: '<p>Ela ainda não foi enviada. Se descartar, precisa tirar outra.</p>', confirm: 'Descartar', danger: true }).then((ok) => { if (ok) { G.draft = null; A.go(`${B(s)}/camera`); } }); };
   async function enqueue(s, d) {
     const id = 'u' + A.uid(); const video = d.tipo === 'video';
