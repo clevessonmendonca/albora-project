@@ -399,7 +399,8 @@
 
   .gx-cover{min-height:100%;display:flex;flex-direction:column;justify-content:space-between;gap:var(--space-6);padding:var(--space-12) var(--space-6) var(--space-8)}
   .gx-cv{position:relative;isolation:isolate;overflow:hidden;--veu-cor:var(--noite);background:var(--noite);color:var(--fg);justify-content:flex-end}
-  .gx-cv-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
+  .gx-cv-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;filter:blur(22px) saturate(1.15);transform:scale(1.25)}
+  .gx-cv-card{display:block;flex:none;width:min(74%,290px);aspect-ratio:4/5;object-fit:cover;margin:auto auto var(--space-2);border-radius:var(--r-4);box-shadow:0 16px 40px color-mix(in srgb,var(--noite) 55%,transparent);border:1px solid color-mix(in srgb,var(--fg) 18%,transparent)}
   .gx-cv-veu{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,color-mix(in srgb,var(--veu-cor) calc(var(--veu-a) * 22%),transparent) 0%,color-mix(in srgb,var(--veu-cor) calc(var(--veu-a) * 100%),transparent) 38%,color-mix(in srgb,var(--veu-cor) calc(var(--veu-a) * 100%),transparent) 100%)}
   .gx-cv .gx-cv-cred{color:var(--fg-3)}
   .gx-mono{position:relative;isolation:isolate;flex:1;min-width:0;max-width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-6);min-height:180px;padding-bottom:var(--space-4)}
@@ -1294,7 +1295,7 @@
     if (src && fam !== 'imersivo') return `<div class="gx-cover gx-fam" data-fam="${fam}"><div class="gx-fam-ph"><img src="${src}" alt="" aria-hidden="true" style="${A.hero.fotoStyle(ev.id)}"></div><div class="gx-ci">${inner}</div></div>`;
     if (!src) return `<div class="gx-cover"><div class="gx-mono" aria-hidden="true"><span class="monogram">${A.esc(ev.iniciais)}</span><i></i></div><div class="gx-ci">${inner}</div></div>`;
     A.after((root) => A.aplicarVeu(A.$('.gx-cv', root), src, { de: 0.38 }));
-    return `<div class="gx-cover gx-cv" data-theme="noite" style="--veu-a:${A.veu.seguro}"><img class="gx-cv-img" src="${src}" alt="" aria-hidden="true"><span class="gx-cv-veu" aria-hidden="true"></span><div class="gx-ci">${inner}${ev.capa ? '' : '<p class="gx-note gx-cv-cred">Capa de demonstração: ilustração gerada pelo protótipo, não é uma fotografia.</p>'}</div></div>`;
+    return `<div class="gx-cover gx-cv" data-theme="noite" style="--veu-a:${A.veu.seguro}"><img class="gx-cv-img" src="${src}" alt="" aria-hidden="true"><span class="gx-cv-veu" aria-hidden="true"></span><img class="gx-cv-card" src="${src}" alt="" aria-hidden="true" style="${A.hero && ev.capa ? A.hero.fotoStyle(ev.id) : ''}"><div class="gx-ci">${inner}${ev.capa ? '' : '<p class="gx-note gx-cv-cred">Capa de demonstração: ilustração gerada pelo protótipo, não é uma fotografia.</p>'}</div></div>`;
   };
   const quandoLinhas = (ev, w) => {
     const data = w.semData ? 'Data a definir' : w.date;
