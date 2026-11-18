@@ -106,6 +106,20 @@
   .gx-pre .th{border-radius:var(--r-3);overflow:hidden}
   .gx-pre[aria-pressed=true] .th{outline:2px solid var(--ac);outline-offset:2px}
   .gx-conf .stack-2 .btn{width:100%}
+  [data-rpanel][hidden]{display:none}
+  .gx-rec-l{display:flex;align-items:center;justify-content:center;min-height:44px;color:var(--fg-2);font-size:var(--fs-sm);text-decoration:underline;text-underline-offset:4px}
+  .gx-rec-l:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
+  .gx-rec-h{display:flex;flex-direction:column;gap:var(--space-3);margin-top:var(--space-2);padding:var(--space-6) var(--space-5);border-radius:var(--r-4);background:linear-gradient(135deg,var(--ac),var(--noite));color:var(--fg)}
+  .gx-rec-h .gx-name{font:350 var(--fs-title)/1.1 var(--font-display);color:var(--fg)}
+  .gx-rec-h .gx-eyebrow{color:var(--fg-2)}
+  .gx-rec-h p{margin:0;color:var(--fg-2)}
+  .gx-rec .gx-ptabs{margin:0}
+  .gx-rtab{min-height:44px;padding:0 var(--space-2);background:none;border:0;border-radius:var(--r-pill);color:var(--fg-3);font:600 var(--fs-sm) var(--font-body);cursor:pointer}
+  .gx-rtab[aria-selected=true]{background:var(--ac);color:var(--on-ac)}
+  .gx-rtab:focus-visible{outline:2px solid var(--accent-text);outline-offset:-2px}
+  .gx-steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--space-2)}
+  .gx-steps li{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3);background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-3);font-size:var(--fs-sm)}
+  .gx-steps li span{flex:none;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--ac);color:var(--on-ac);font-weight:600}
   .gx-conf{position:relative;align-items:stretch;padding-top:var(--space-12)}
   .gx-sent-x{position:absolute;left:var(--space-4);top:var(--space-3);display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--elev-1);color:var(--fg)}
   .gx-sent-x:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
@@ -1368,9 +1382,9 @@
     if (ctx.q.passo === 'recusa') return page(ctx, { title: 'Tudo bem', nav: false, back: `${B(s)}?passo=nome`, body: `<div class="gx-pad stack"><h2 class="t-display">Tudo bem.</h2><p class="t-lead">Sem aceitar o uso das fotos, não dá para mandar fotos nem aparecer no álbum. Esta etapa não cria uma participação na festa.</p><a class="btn btn-accent" href="${B(s)}?passo=nome">Mudei de ideia, quero entrar</a><a class="btn btn-line" href="#/g/p/${s}">Ver só a página pública da festa</a></div>` });
     if (ctx.q.passo === 'nome') {
       const t = GX.termo;
-      return page(ctx, { title: 'Quase lá', nav: false, back: B(s), body: `<form data-submit="g-entrar" data-slug="${s}" class="gx-pad stack gx-sign" novalidate><div class="stack-2"><span class="gx-wel"><span class="gx-wel-av" aria-hidden="true">${ev.capa ? `<img src="${A.esc(ev.capa)}" alt="" style="${A.hero ? A.hero.fotoStyle(ev.id) : ''}">` : A.esc(ev.iniciais)}</span><span class="gx-eyebrow">${A.esc(ev.nome)}</span></span><h2 class="t-display">Como você assina?</h2><p class="muted">Só o primeiro nome. Sem senha, sem e-mail.</p></div><div class="field"><label for="gx-nm">Seu primeiro nome</label><input class="input input-sign" id="gx-nm" name="nome" required aria-required="true" aria-describedby="gx-nm-e" placeholder="Tio João" maxlength="24" autocomplete="given-name" autofocus><span class="err" id="gx-nm-e" role="alert"></span></div><div class="field"><label class="gx-check"><input type="checkbox" name="consent" aria-describedby="gx-cs-e"><span>Aceito que minhas fotos apareçam no álbum e no telão desta festa. Posso gerenciar minhas fotos e revogar esta autorização em Perfil.</span></label><span class="err" id="gx-cs-e" role="alert"></span></div><p class="gx-note">Demonstração: use um nome fictício. O aceite fica somente neste navegador. Termo de exemplo, versão ${t.versao}, de ${t.data}. <button type="button" class="link" data-act="g-termo" style="font-size:var(--fs-xs);min-height:44px">Ler o termo</button></p><div class="stack-2 gx-submit"><button class="btn btn-accent btn-lg" type="submit">Entrar e tirar a primeira foto</button><a class="btn btn-quiet" href="${B(s)}?passo=recusa">Prefiro não</a></div></form>` });
+      return page(ctx, { title: 'Quase lá', nav: false, back: B(s), body: `<form data-submit="g-entrar" data-slug="${s}" class="gx-pad stack gx-sign" novalidate><div class="stack-2"><span class="gx-wel"><span class="gx-wel-av" aria-hidden="true">${ev.capa ? `<img src="${A.esc(ev.capa)}" alt="" style="${A.hero ? A.hero.fotoStyle(ev.id) : ''}">` : A.esc(ev.iniciais)}</span><span class="gx-eyebrow">${A.esc(ev.nome)}</span></span><h2 class="t-display">Como você assina?</h2><p class="muted">Só o primeiro nome. Sem senha, sem e-mail.</p></div><div class="field"><label for="gx-nm">Seu primeiro nome</label><input class="input input-sign" id="gx-nm" name="nome" required aria-required="true" aria-describedby="gx-nm-e" placeholder="Tio João" maxlength="24" autocomplete="given-name" autofocus><span class="err" id="gx-nm-e" role="alert"></span></div><div class="field"><label class="gx-check"><input type="checkbox" name="consent" aria-describedby="gx-cs-e"><span>Aceito que minhas fotos apareçam no álbum e no telão desta festa. Posso gerenciar minhas fotos e revogar esta autorização em Perfil.</span></label><span class="err" id="gx-cs-e" role="alert"></span></div><p class="gx-note">Demonstração: use um nome fictício. O aceite fica somente neste navegador. Termo de exemplo, versão ${t.versao}, de ${t.data}. <button type="button" class="link" data-act="g-termo" style="font-size:var(--fs-xs);min-height:44px">Ler o termo</button></p><div class="stack-2 gx-submit"><button class="btn btn-accent btn-lg" type="submit">Entrar e tirar a primeira foto</button><a class="btn btn-quiet" href="${B(s)}?passo=recusa">Prefiro não</a><a class="gx-rec-l" href="${B(s)}/recuperar">Já entrou antes? Recuperar minhas fotos</a></div></form>` });
     }
-    return page(ctx, { title: ev.nome, nav: false, bare: true, body: cover(ev, `<p class="gx-lead">Você foi convidado para</p><h1 class="gx-ev">${A.esc(ev.nome)}</h1>${quandoLinhas(ev, w)}<div class="gx-cta"><a class="btn btn-accent btn-lg btn-block" href="${B(s)}?passo=nome">Entrar na festa</a><p class="gx-note">Sem app, sem cadastro, sem senha. É só chegar.</p></div>`) });
+    return page(ctx, { title: ev.nome, nav: false, bare: true, body: cover(ev, `<p class="gx-lead">Você foi convidado para</p><h1 class="gx-ev">${A.esc(ev.nome)}</h1>${quandoLinhas(ev, w)}<div class="gx-cta"><a class="btn btn-accent btn-lg btn-block" href="${B(s)}?passo=nome">Entrar na festa</a><p class="gx-note">Sem app, sem cadastro, sem senha. É só chegar.</p><a class="gx-rec-l" href="${B(s)}/recuperar">Já entrou antes? Recuperar minhas fotos</a></div>`) });
   });
   A.acts['g-termo'] = () => { const s = curSlug(); const t = GX.termo; sheet({ title: 'Uso das suas fotos', body: `<div class="stack"><ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:var(--space-3)">${t.itens.map((i) => `<li>${A.esc(i)}</li>`).join('')}</ul><p class="gx-note">Termo versão ${t.versao}, de ${t.data}. Neste protótipo, versão, data e hora ficam neste navegador. Este texto demonstra o fluxo; o termo definitivo depende de validação jurídica e operacional.</p></div>`, actions: [{ label: 'Entendi', variant: 'btn-primary' }] }); };
   A.acts['g-entrar'] = (form) => {
@@ -1804,6 +1818,28 @@
   A.acts['g-compartilhar-album'] = () => { const s = curSlug(); const url = `albora.app/g/p/${s}`; (navigator.clipboard ? navigator.clipboard.writeText('https://' + url) : Promise.reject()).catch(() => {}); toast('Link da página da festa copiado. Ela não mostra fotos de convidados.'); };
   A.acts['g-ajuda'] = () => { const s = curSlug(); sheet({ title: 'Ajuda', body: `<div>${GX.faq.map(([q, a]) => `<details class="gx-det ds-fold b-baixo"><summary>${A.esc(q)}</summary><div class="ds-fold-b"><p>${A.esc(a.replace('${marco}', marco(s)))}</p></div></details>`).join('')}</div><p class="gx-note" style="margin-top:12px">Ainda com dúvida? Fale com ${A.esc(anf(s))}, na festa.</p>`, actions: [{ label: 'Fechar', variant: 'btn-primary' }] }); };
 
+  A.route('/g/:slug/recuperar', (ctx) => {
+    const s = ctx.params.slug || 'marina-rafael'; const ev = evOf(s); const ja = !!sess(s);
+    const field = (tipo, id, label, ph, extra = '') => `<form data-submit="g-rec-ok" data-slug="${s}" data-tipo="${tipo}" class="stack" novalidate><div class="field"><label for="${id}">${label}</label><input class="input input-sign" id="${id}" name="${tipo === 'link' ? 'link' : 'cod'}" required aria-required="true" placeholder="${ph}" autocomplete="off" autocapitalize="off" ${extra} aria-describedby="${id}-e"><span class="err" id="${id}-e" role="alert"></span></div><button class="btn btn-accent btn-lg" type="submit">${A.icon('refresh', 18)} Recuperar minhas fotos</button></form>`;
+    const body = `<div class="gx-pad stack gx-sign gx-rec"><section class="gx-rec-h" data-theme="noite"><span class="gx-eyebrow">Sem senha, sem e-mail</span><h2 class="gx-name">Trocou de celular?</h2><p>Traga suas fotos para este aparelho com o seu link pessoal ou com um código do aparelho antigo.</p></section>${ja ? `<div class="banner ok" role="status">${A.icon('check', 20)}<div>Você já está dentro da festa neste aparelho. <a class="link" href="${B(s)}/explorar">Ver o feed</a></div></div>` : ''}<div class="gx-ptabs" role="tablist" aria-label="Como recuperar"><button class="gx-rtab" role="tab" id="gx-rt-l" aria-selected="true" aria-controls="gx-rp-l" data-act="g-rec-tab" data-tab="link" data-rtab="link">Link pessoal</button><button class="gx-rtab" role="tab" id="gx-rt-c" aria-selected="false" tabindex="-1" aria-controls="gx-rp-c" data-act="g-rec-tab" data-tab="cod" data-rtab="cod">Código de 4 dígitos</button></div><div role="tabpanel" id="gx-rp-l" aria-labelledby="gx-rt-l" data-rpanel="link" class="stack"><p class="muted">É o link que aparece em Perfil, Minhas fotos, Guardar minhas fotos. Cole aqui.</p>${field('link', 'gx-rl', 'Seu link pessoal', 'albora.app/g/meu-…')}<p class="gx-note">No protótipo, qualquer link que comece com meu- funciona. Gere o seu em Minhas fotos.</p></div><div role="tabpanel" id="gx-rp-c" aria-labelledby="gx-rt-c" data-rpanel="cod" class="stack" hidden><ol class="gx-steps"><li><span>1</span>No aparelho antigo, abra Perfil e toque em Levar a festa no app.</li><li><span>2</span>Toque em Gerar código.</li><li><span>3</span>Digite aqui os 4 números. Ele vale por 15 minutos.</li></ol>${field('cod', 'gx-rc', 'Código de 4 dígitos', '0000', 'inputmode="numeric" maxlength="4"')}</div><p class="gx-note">Seu primeiro nome e o aceite do uso das fotos voltam junto. Nada de senha, e-mail ou SMS.</p></div>`;
+    return page(ctx, { title: 'Recuperar minhas fotos', nav: false, back: ja ? `${B(s)}/perfil` : B(s), body });
+  });
+  A.acts['g-rec-tab'] = (el) => {
+    const t = el.dataset.tab;
+    A.$$('[data-rtab]').forEach((b) => { const on = b.dataset.rtab === t; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+    A.$$('[data-rpanel]').forEach((x) => { x.hidden = x.dataset.rpanel !== t; });
+  };
+  A.acts['g-rec-ok'] = (form) => {
+    const s = form.dataset.slug; const tipo = form.dataset.tipo; const pr = get(s, 'pareamento', null);
+    const rules = tipo === 'link'
+      ? { link: (v) => (!/(^|\/)meu-[a-z0-9]+\/?$/i.test(v.trim()) ? 'Não reconheci esse link. Ele termina com meu- e letras ou números.' : '') }
+      : { cod: (v) => (!/^\d{4}$/.test(v) ? 'Digite os 4 números.' : !pr ? 'Gere um código no aparelho antigo, em Perfil e Levar a festa no app.' : pr.ate < Date.now() ? 'Esse código venceu. Gere outro no aparelho antigo.' : v !== pr.codigo ? 'Código não confere. Confira os números e tente de novo.' : '') };
+    const out = A.validate(form, rules); if (!out) return;
+    const base = get(s, 'sessao', null) || { id: 'me', nome: 'Convidado', consent: { versao: GX.termo.versao, em: new Date().toISOString() }, entrou: Date.now() };
+    set(s, 'sessao', base); if (tipo === 'cod') set(s, 'pareamento', null);
+    toast('Pronto. Suas fotos voltaram para este aparelho (simulado).'); A.go(`${B(s)}/perfil`);
+  };
+
   A.route('/g/:slug/app', (ctx) => {
     const g = guard(ctx); if (g) return g; const s = ctx.params.slug; const ev = evOf(s); const app = get(s, 'app', null); const p = get(s, 'pareamento', null); const valido = p && p.ate > Date.now();
     const rest = valido ? Math.max(0, (p.ate - Date.now()) / (15 * 60000)) : 0;
@@ -1898,6 +1934,7 @@
   M('Confessionário', '#/g/marina-rafael/confissionario', 'Texto e áudio simulado');
   M('Perfil', '#/g/marina-rafael/perfil', 'Nome, app, consentimento, ajuda');
   M('Levar a festa no app', '#/g/marina-rafael/app', 'Código de 4 dígitos e simulador do app');
+  M('Recuperar minhas fotos', '#/g/marina-rafael/recuperar', 'Trocou de celular: link pessoal ou código de 4 dígitos, sem senha');
   M('Fila de envio (app nativo)', '#/g/marina-rafael/fila', 'Sem sinal e retry');
   M('Meu consentimento / revogar', '#/g/marina-rafael/consentimento', 'Apaga tudo');
   M('Compartilhar fora da festa', '#/g/marina-rafael/compartilhar', 'Molduras e formatos simulados');
