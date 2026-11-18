@@ -65,7 +65,7 @@
     reset: () => { write({}); },
   };
   /* estado simulado do protótipo */
-  A.sim = () => ({ phase: A.store.get('phase', 'antes'), role: A.store.get('role', 'owner'), state: A.store.get('state', 'ok'), theme: A.store.get('theme', 'light') });
+  A.sim = () => ({ phase: A.store.get('phase', 'antes'), conversa: A.store.get('conversa', 'aberta'), role: A.store.get('role', 'owner'), state: A.store.get('state', 'ok'), theme: A.store.get('theme', 'light') });
   A.setSim = (k, v) => { A.store.set(k, v); A.applyTheme(); A.render(); };
   A.applyTheme = () => { document.documentElement.setAttribute('data-host-theme', A.sim().theme); };
 
@@ -527,7 +527,7 @@
   A.acts.proto = () => {
     const ex = A.$('.proto-panel'); if (ex) { A.$('.proto-bar>button').setAttribute('aria-expanded','false'); return ex.remove(); } const s = A.sim(); const p = document.createElement('div'); p.className = 'proto-panel'; p.setAttribute('role', 'group'); p.setAttribute('aria-label', 'Controles do protótipo');
     const seg = (k, opts) => `<div class="seg">${opts.map(([v, l]) => `<button data-act="setsim" data-k="${k}" data-v="${v}" aria-pressed="${s[k] === v}">${l}</button>`).join('')}</div>`;
-    p.innerHTML = `<div><div class="lbl">Fase da festa</div>${seg('phase', [['antes', 'Antes'], ['durante', 'Durante'], ['depois', 'Depois']])}</div><div><div class="lbl">Papel</div>${seg('role', [['owner', 'Dono'], ['couple', 'Casal'], ['planner', 'Cerimonialista']])}</div><div><div class="lbl">Estado das listas</div>${seg('state', [['ok', 'Normal'], ['loading', 'Carregando'], ['empty', 'Vazio'], ['error', 'Erro']])}</div><div><div class="lbl">Tema do painel</div>${seg('theme', [['light', 'Claro'], ['dark', 'Escuro'], ['system', 'Sistema']])}</div><div class="flex between"><a href="#/">Mapa do protótipo</a><button class="seg" style="all:unset;cursor:pointer;text-decoration:underline" data-act="reset">Reiniciar dados</button></div>`;
+    p.innerHTML = `<div><div class="lbl">Fase da festa</div>${seg('phase', [['antes', 'Antes'], ['durante', 'Durante'], ['depois', 'Depois']])}</div><div><div class="lbl">Conversa do convidado</div>${seg('conversa', [['aberta', 'Aberta'], ['fases', 'Pela fase'], ['fechada', 'Fechada']])}</div><div><div class="lbl">Papel</div>${seg('role', [['owner', 'Dono'], ['couple', 'Casal'], ['planner', 'Cerimonialista']])}</div><div><div class="lbl">Estado das listas</div>${seg('state', [['ok', 'Normal'], ['loading', 'Carregando'], ['empty', 'Vazio'], ['error', 'Erro']])}</div><div><div class="lbl">Tema do painel</div>${seg('theme', [['light', 'Claro'], ['dark', 'Escuro'], ['system', 'Sistema']])}</div><div class="flex between"><a href="#/">Mapa do protótipo</a><button class="seg" style="all:unset;cursor:pointer;text-decoration:underline" data-act="reset">Reiniciar dados</button></div>`;
     A.$('.proto-bar').append(p); A.$('.proto-bar>button').setAttribute('aria-expanded','true');
   };
   A.acts.setsim = (el) => { A.store.set(el.dataset.k, el.dataset.v); A.applyTheme(); const open = !!A.$('.proto-panel'); A.render(); if (open) A.acts.proto(); };

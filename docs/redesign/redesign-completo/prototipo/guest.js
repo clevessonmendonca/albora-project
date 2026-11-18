@@ -604,7 +604,7 @@
   const sess = (s) => get(s, 'sessao', null);
   const anf = (s) => GX.anfitrioes[s] || 'os anfitriões';
   const marco = (s) => GX.marco[s] || 'o início';
-  const gateOpen = (s) => { const v = A.store.get('gateAberto:' + s); if (v === undefined || v === null) return A.sim().phase !== 'antes'; return !!v; };
+  const gateOpen = (s) => { const v = A.store.get('gateAberto:' + s); if (v === undefined || v === null) { const c = A.sim().conversa; return c === 'aberta' ? true : c === 'fechada' ? false : A.sim().phase !== 'antes'; } return !!v; };
   const gateHora = (s) => GX.gateHora[s] || '20:30';
   const B = (s) => '#/g/' + s;
   const fmtDT = (iso) => new Date(iso).toLocaleString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -1352,10 +1352,32 @@
     const all = allPhotos(s); const people = new Set(all.map((p) => p.autor)).size;
     return `<aside class="gx-sp" data-fam="${fam}" aria-label="Resumo da festa"><span class="gx-sp-k">Até agora</span><p class="gx-sp-n">${A.pt(all.length)}</p><p class="gx-sp-t">fotos de ${plural(people, 'pessoa', 'pessoas')}</p></aside>`;
   };
-  const feedPosts = (s, list, shown) => list.slice(0, shown).map((p, i) => postHtml(s, p) + (i === 1 ? specialCard(s, 'missao') : i === 4 ? specialCard(s, 'marco') : '')).join('');
+  const feedPosts = (s, list, to, from = 0) => list.slice(from, to).map((p, k) => { const i = from + k; return postHtml(s, p) + (i === 1 ? specialCard(s, 'missao') : i === 4 ? specialCard(s, 'marco') : ''); }).join('');
   const SHOWN = 8;
   A.acts['g-gate-x'] = () => { const s = curSlug(); set(s, 'avisoGate', gateOpen(s) ? 'aberto' : 'fechado'); rerender(); };
-  A.acts['g-mais'] = (el) => { const s = curSlug(); set(s, 'shown', (get(s, 'shown', SHOWN)) + 8); rerender(); };
+  const endNote = () => { const t = document.createElement('template'); t.innerHTML = '<p class="gx-note gx-end" style="text-align:center;padding:var(--space-3)">Você viu tudo até agora.</p>'; return t.content.firstElementChild; };
+  const loadMore = (root) => {
+    const s = curSlug(); const list = filtered(s); const from = Math.max(SHOWN, get(s, 'shown', SHOWN)); const to = Math.min(list.length, from + 8); const host = A.$('#gx-feed', root);
+    if (!host || from >= list.length) return false;
+    host.insertAdjacentHTML('beforeend', feedPosts(s, list, to, from)); set(s, 'shown', to); fitCaps(host);
+    if (to >= list.length) { const m = A.$('[data-more]', root); if (m) m.replaceWith(endNote()); }
+    return to < list.length;
+  };
+  const armMore = (root) => {
+    if (G.moreOn) { removeEventListener('scroll', G.moreOn, true); G.moreOn = null; }
+    const sent = A.$('[data-more]', root); if (!sent) return;
+    let busy = false;
+    const stop = () => { removeEventListener('scroll', on, true); if (G.moreOn === on) G.moreOn = null; };
+    const check = () => {
+      busy = false; if (!sent.isConnected) return stop();
+      if (sent.getBoundingClientRect().top > innerHeight + 800) return;
+      if (!loadMore(root)) return stop();
+      busy = true; setTimeout(check, 60);
+    };
+    const on = () => { if (busy) return; busy = true; setTimeout(check, 80); };
+    G.moreOn = on; addEventListener('scroll', on, true); on();
+  };
+  A.acts['g-mais'] = () => { loadMore(document); };
   A.route('/g/:slug/explorar', (ctx) => {
     const g = guard(ctx); if (g) return g; const s = ctx.params.slug; const ev = evOf(s); const open = gateOpen(s); const list = filtered(s);
     const was = get(s, 'gateVisto', null); set(s, 'gateVisto', open); const justOpened = open && was === false;
@@ -1367,10 +1389,10 @@
       empty: A.emptyState({ icon: 'image', title: get(s, 'fm', 'tudo') === 'tudo' ? 'Ainda não tem foto aqui' : 'Nenhuma foto neste filtro', body: get(s, 'fm', 'tudo') === 'tudo' ? 'Seja o primeiro a fotografar.' : 'Tire outro filtro ou fotografe esse momento.', cta: `<a class="btn btn-accent" href="${B(s)}/camera">Tirar foto</a>` }),
       loading: `<div class="gx-pad">${A.skel(2, 280)}</div>`,
       error: `<div class="gx-pad">${A.errorState({ body: 'Não consegui carregar as fotos agora. Se estiver sem sinal, as suas continuam guardadas.' })}</div>`,
-      ok: () => `<div>${feedPosts(s, list, shown)}<div class="gx-in">${list.length > shown ? `<button class="btn btn-line btn-block" data-act="g-mais">Ver mais fotos (${list.length - shown})</button>` : '<p class="gx-note" style="text-align:center;padding:var(--space-3)">Você viu tudo até agora.</p>'}</div></div>`,
+      ok: () => `<div><div id="gx-feed">${feedPosts(s, list, shown)}</div><div class="gx-in">${list.length > shown ? `<div class="gx-more" data-more role="status" aria-label="Carregando mais fotos">${A.skel(1, 200)}</div>` : '<p class="gx-note gx-end" style="text-align:center;padding:var(--space-3)">Você viu tudo até agora.</p>'}</div></div>`,
     });
     const out = page(ctx, { title: 'Explorar', active: 'explorar', desk: true, body: `<div class="gx-layout"><div class="gx-colmain">${feedHead(s, 'Álbum ao vivo', true)}${railHtml(s)}${ban}${momentChips(s)}${content}${demoNote()}</div>${asideHtml(s)}</div>` });
-    out.after = (root) => fitCaps(root);
+    out.after = (root) => { fitCaps(root); armMore(root); };
     return out;
   });
 
