@@ -89,6 +89,25 @@
   .gx-pill.off i{background:var(--crit-text)}
   .gx-off{display:flex;gap:var(--space-3);align-items:center;padding:var(--space-3) var(--space-4);background:var(--elev-1);border-bottom:1px solid var(--line-2);color:var(--fg-2);font-size:var(--fs-sm);flex:none}
   .gx-pad{padding:0 var(--space-6) var(--space-8)}
+  .guest-stage .gnav{margin:0 var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));padding:var(--space-1) var(--space-2);border:1px solid var(--line);border-radius:var(--r-pill);background:var(--elev-2);box-shadow:0 8px 24px color-mix(in srgb,var(--noite) 35%,transparent)}
+  .gnav-d{border-radius:var(--r-pill);min-height:52px}
+  .gnav-d[aria-current="page"]{background:color-mix(in srgb,var(--ac) 18%,transparent)}
+  .gnav-d[aria-current="page"] span{color:var(--fg)}
+  .gnav-d:focus-visible,.gnav-cam:focus-visible{outline:2px solid var(--accent-text);outline-offset:-2px}
+  .gnav .gnav-cam{min-height:52px;overflow:visible}
+  .gnav .shutter{width:60px;height:60px;border:4px solid var(--elev-2);background:var(--ac);box-shadow:0 0 0 1px var(--line);translate:0 -14px;transition:translate var(--dur-1) var(--ease)}
+  .gnav .shutter::after{width:22px;height:22px;background:none;border:2.5px solid var(--on-ac);border-radius:50%}
+  .gnav .gnav-cam:active .shutter{translate:0 -12px}
+  .gx-top{background:var(--bg);border-bottom:0;min-height:64px;padding:var(--space-3) var(--space-4) var(--space-2)}
+  .gx-top h1{font:350 var(--fs-title)/1.1 var(--font-display);letter-spacing:-.02em;padding-left:var(--space-2)}
+  .gx-top.nob h1{padding-left:var(--space-2)}
+  .gx-top h1::after{content:"";display:block;width:28px;height:3px;margin-top:var(--space-2);border-radius:var(--r-pill);background:var(--ac)}
+  .gx-back{width:44px;height:44px;border:1px solid var(--line);background:var(--elev-1)}
+  .gx-sec>h2,.gx-cfgh{font:600 var(--fs-xs)/1.3 var(--font-body);letter-spacing:.14em;text-transform:uppercase;color:var(--fg-2)}
+  .gx-pad .list{gap:var(--space-2)}
+  .gx-pad .li{background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-3);padding:var(--space-3) var(--space-4);min-height:56px}
+  .gx-pad .li:last-child{border:1px solid var(--line-2)}
+  .gx-pad .li svg:first-child{flex:none;color:var(--accent-text)}
   .gx-in{padding:0 var(--space-6)}
   .phone-body>.gx-pad:first-child{padding-top:var(--space-4)}
   .gx-sec{margin-top:var(--space-8)}
@@ -515,6 +534,8 @@
     .gx-stage .gnav{display:none}
     .gx-stage .gx-top{position:sticky;top:0;z-index:20;background:var(--elev-2);border-bottom:1px solid var(--line-2);padding:var(--space-2) max(var(--gutter),calc((100% - var(--w-page)) / 2));gap:var(--space-8)}
     .gx-stage .gx-top h1{flex:0 1 auto;padding-left:0;font-size:var(--fs-xl)}
+    .gx-stage .gx-top{background:var(--elev-2);border-bottom:1px solid var(--line-2);min-height:0}
+    .gx-stage .gx-top h1::after{display:none}
     .gx-stage .gx-top.nob h1{padding-left:0}
     .gx-stage .gx-dnav{display:flex;align-items:center;gap:var(--space-6);flex:1}
     .gx-dnav a{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:48px;color:var(--fg-3);text-decoration:none;font-weight:500;position:relative}
