@@ -118,6 +118,14 @@
 .hv-sel[aria-pressed="true"]>span{background:var(--ac);border-color:var(--ac)}
 .hv-sel svg{opacity:0} .hv-sel[aria-pressed="true"] svg{opacity:1}
 .hv-sel:focus-visible>span{outline:2px solid var(--papel);outline-offset:2px}
+.hv-qk{position:absolute;right:var(--space-2);bottom:var(--space-2);display:flex;gap:var(--space-1);opacity:0;transition:opacity var(--dur-1) var(--ease)}
+.hv-tile:hover .hv-qk,.hv-tile:focus-within .hv-qk{opacity:1}
+@media(hover:none){.hv-qk{opacity:1}}
+.hv-selmode .hv-qk{display:none}
+.hv-qkb{display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:var(--bg);color:var(--fg);box-shadow:0 2px 10px color-mix(in srgb,var(--noite) 35%,transparent);cursor:pointer}
+.hv-qkb.ok{background:var(--ac);color:var(--on-ac)}
+.hv-qkb:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
+.hv-tile:has(.hv-qk) .hv-tag{bottom:auto;top:var(--space-2)}
 .hv-tag{position:absolute;left:var(--space-2);bottom:var(--space-2);background:var(--bg);color:var(--fg);padding:var(--space-1) var(--space-2);border-radius:var(--r-pill);font-size:var(--fs-xs);font-weight:500;pointer-events:none}
 .hv-tile.selected{outline:3px solid var(--ac);outline-offset:-3px}
 .hv-thumb{width:44px;height:56px;border-radius:var(--r-1);overflow:hidden;background:var(--surface-2);flex:none}
@@ -400,7 +408,7 @@
   }
   const tile = (id, p, sel, ids) => {
     const nome = gname(id, p.autor); const lab = `${nome}, ${hhmm(p.ck)}, ${LBL[p.status].toLowerCase()}`;
-    return `<div class="hv-tile ${p.ratio === 'l' ? 'w2' : ''} ${p.status === 'oculta' ? 'oc' : ''} ${sel ? 'selected' : ''}" data-pid="${p.id}"><button class="hv-open" data-act="hv-open" data-id="${p.id}" data-fk="o-${p.id}" aria-label="Abrir foto de ${E(lab)}">${A.img(p.n, p.ratio, '')}</button><button class="hv-sel" data-act="hv-sel" data-id="${p.id}" data-fk="s-${p.id}" aria-pressed="${sel}" aria-label="Selecionar foto de ${E(nome)}"><span>${A.icon('check', 14)}</span></button>${p.status !== 'aprovada' ? `<span class="hv-tag">${LBL[p.status]}</span>` : ''}</div>`;
+    return `<div class="hv-tile ${p.ratio === 'l' ? 'w2' : ''} ${p.status === 'oculta' ? 'oc' : ''} ${sel ? 'selected' : ''}" data-pid="${p.id}"><button class="hv-open" data-act="hv-open" data-id="${p.id}" data-fk="o-${p.id}" aria-label="Abrir foto de ${E(lab)}">${A.img(p.n, p.ratio, '')}</button><button class="hv-sel" data-act="hv-sel" data-id="${p.id}" data-fk="s-${p.id}" aria-pressed="${sel}" aria-label="Selecionar foto de ${E(nome)}"><span>${A.icon('check', 14)}</span></button>${p.status !== 'aprovada' ? `<span class="hv-tag">${LBL[p.status]}</span>` : ''}${p.status === 'revisar' ? `<div class="hv-qk"><button class="hv-qkb ok" data-act="hv-ap" data-id="${p.id}" data-fk="qa-${p.id}" aria-label="Aprovar foto de ${E(nome)}">${A.icon('check', 20)}</button><button class="hv-qkb" data-act="hv-oc" data-id="${p.id}" data-fk="qo2-${p.id}" aria-label="Ocultar foto de ${E(nome)}">${A.icon('eyeoff', 20)}</button></div>` : p.status === 'oculta' ? `<div class="hv-qk"><button class="hv-qkb ok" data-act="hv-rs1" data-id="${p.id}" data-fk="qr-${p.id}" aria-label="Restaurar foto de ${E(nome)}">${A.icon('undo', 20)}</button></div>` : ''}</div>`;
   };
   const EXTRAS = ['telao', 'missao', 'convidado'];
   function exHtml(id) {
