@@ -301,6 +301,17 @@
   .gx-rt .tg{position:absolute;left:var(--space-1);bottom:var(--space-1);right:var(--space-1);width:fit-content;max-width:calc(100% - var(--space-2));padding:2px var(--space-2);border-radius:var(--r-pill);background:color-mix(in srgb,var(--noite) 78%,transparent);color:var(--papel);font-size:var(--fs-xs);font-weight:500;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .gx-rt.add{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--space-2);background:var(--elev-1);border:1px solid var(--line);font-size:var(--fs-sm);font-weight:500;text-align:center;line-height:1.25}
   .gx-rt.add svg{color:var(--accent-text)}
+  .gx-rail-l{gap:var(--space-3);padding-bottom:var(--space-2)}
+  .gx-rail-l>li{width:72px;padding-bottom:var(--space-6)}
+  .gx-rt{width:68px;height:68px;border-radius:50%;overflow:visible;margin:var(--space-1) auto 0;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ac)}
+  .gx-rt.seen{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--line)}
+  .gx-rt .gx-fx{border-radius:50%;overflow:hidden}
+  .gx-rt.seen .gx-fx{opacity:.6}
+  .gx-rt .tg{left:50%;right:auto;bottom:auto;top:calc(100% + var(--space-3));translate:-50% 0;max-width:72px;padding:0;background:none;color:var(--fg-2);font-size:var(--fs-xs);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .gx-rt .nw{left:auto;top:0;right:0;width:14px;height:14px;padding:0;font-size:var(--fs-xs);color:var(--on-ac);overflow:hidden;white-space:nowrap;text-indent:-9999px;border:2px solid var(--bg)}
+  .gx-rt.add{border-radius:50%;background:var(--elev-1);border:1.5px dashed var(--accent-text);box-shadow:none;gap:0}
+  .gx-rt.add>span:not(.nw){position:absolute;left:50%;top:calc(100% + var(--space-3));translate:-50% 0;font-size:var(--fs-xs);color:var(--fg-2);white-space:nowrap}
+  .gx-rt.add.rec.new{border-style:solid;border-color:var(--ac)}
   .gx-rt.add:hover{background:var(--st-hover)}
   .gx-rec{display:flex;align-items:center;gap:var(--space-3);margin:var(--space-3) var(--space-4) 0;padding:var(--space-3) var(--space-3) var(--space-3) var(--space-4);min-height:64px;background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-2);color:var(--fg);text-decoration:none}
   .gx-rec:hover{background:var(--elev-2)}
@@ -761,7 +772,7 @@
   .gx-pact .btn{border-radius:var(--r-pill);font-weight:600}
   .gx-hls{list-style:none;margin:0 calc(-1 * var(--space-6));padding:0 var(--space-6);display:flex;gap:var(--space-4);overflow-x:auto;scrollbar-width:none}
   .gx-hls::-webkit-scrollbar{display:none}
-  .gx-hl{display:flex;flex-direction:column;align-items:center;gap:var(--space-2);width:72px;color:var(--fg);text-decoration:none;font-size:var(--fs-xs)}
+  .gx-hl{display:flex;flex-direction:column;align-items:center;gap:var(--space-2);width:88px;color:var(--fg);text-decoration:none;font-size:var(--fs-xs)}
   .gx-hl:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px;border-radius:var(--r-2)}
   .gx-hl-c{position:relative;display:grid;place-items:center;width:64px;height:64px;border-radius:50%;border:2px solid var(--ac);box-shadow:0 0 0 3px var(--bg) inset;background:var(--elev-1)}
   .gx-hl-b{position:absolute;top:2px;right:2px;width:12px;height:12px;border-radius:50%;background:var(--ac);border:2px solid var(--bg)}
