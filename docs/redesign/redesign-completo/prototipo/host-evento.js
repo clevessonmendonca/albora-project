@@ -155,6 +155,14 @@
 .hv-lb-bar{border-top:0;background:linear-gradient(0deg,var(--noite) 60%,transparent)}
 .hv-lbm .hv-lb-act .btn{border-radius:var(--r-pill);min-height:52px;padding:0 var(--space-5)}
 .hv-lbm .hv-lb-act .btn-primary{padding:0 var(--space-8);font-weight:600}
+.hv-live{padding:var(--space-6);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hv-last-in{border-radius:var(--r-3);background:var(--noite)}
+.hv-bn{padding:var(--space-4);margin-bottom:var(--space-2);background:var(--bg);border:1px solid var(--line-2);border-radius:var(--r-3)}
+.hv-bn:last-child{border-bottom:1px solid var(--line-2);margin-bottom:0}
+.hv-ctrl{padding:var(--space-4);margin-top:var(--space-4);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-3)}
+#hv-queue .btn-sm{border-radius:var(--r-pill);min-width:44px}
+#hv-queue .li .btn-line{background:var(--ac);border-color:var(--ac);color:var(--on-ac);font-weight:600}
+#hv-queue .li .btn-quiet{border:1px solid var(--line)}
 .hv-lb-cm{width:100%}
 .hv-lb-cm.ds-fold>summary{font-size:var(--fs-sm);color:var(--fg-2)}
 @media(max-width:700px){.hv-lb-stage{padding:var(--space-12) var(--space-2) var(--space-1)}.hv-lb-nav{width:44px;height:44px;background:color-mix(in srgb,var(--noite) 55%,transparent)}.hv-lb-nav.pv{left:4px}.hv-lb-nav.nx{right:4px}.hv-lb-bar{padding:var(--space-3) var(--space-4) calc(var(--space-3) + env(safe-area-inset-bottom))}}
