@@ -106,6 +106,19 @@
   .gx-pre .th{border-radius:var(--r-3);overflow:hidden}
   .gx-pre[aria-pressed=true] .th{outline:2px solid var(--ac);outline-offset:2px}
   .gx-conf .stack-2 .btn{width:100%}
+  .gx-conf{position:relative;align-items:stretch;padding-top:var(--space-12)}
+  .gx-sent-x{position:absolute;left:var(--space-4);top:var(--space-3);display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--elev-1);color:var(--fg)}
+  .gx-sent-x:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
+  .gx-sent{position:relative;display:grid;place-items:center;width:fit-content;margin:0 auto;padding:var(--space-2)}
+  .gx-sent-ph{position:relative;display:block;width:128px;aspect-ratio:1;border-radius:50%;overflow:hidden;box-shadow:0 0 0 3px var(--bg),0 0 0 6px var(--ac)}
+  .gx-sent-ph .gx-fx{display:block;width:100%;height:100%}
+  .gx-sent-ph img,.gx-sent-ph video{width:100%;height:100%;object-fit:cover}
+  .gx-sent-ck{position:absolute;right:0;bottom:var(--space-2);display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--ac);color:var(--on-ac);border:3px solid var(--bg)}
+  .gx-conf .gx-stat{padding:0;background:none;border:0;text-align:center}
+  .gx-conf .gx-stat-r{display:flex;flex-direction:column;align-items:center;gap:var(--space-2)}
+  .gx-conf .gx-stat-th{display:none}
+  .gx-conf .gx-stat h1{font:350 var(--fs-title)/1.1 var(--font-display)}
+  .gx-conf .gx-stat p{margin:0}
   button.gx-mchip{border:1px solid color-mix(in srgb,var(--fg) 28%,transparent);background:color-mix(in srgb,var(--fg) 12%,transparent);cursor:pointer;font-family:inherit}
   button.gx-mchip.acc{border-color:var(--ac);background:var(--ac)}
   .gx-mchip-t{max-width:20ch;overflow:hidden;text-overflow:ellipsis}
@@ -115,24 +128,29 @@
   .gx-opt[aria-pressed=true]{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 14%,transparent)}
   .gx-opt .gx-roman{min-width:28px;font-size:var(--fs-lg)}
   .gx-opt:focus-visible,.gx-row:focus-visible{outline:2px solid var(--accent-text);outline-offset:-2px}
-  .gx-ed{display:flex;flex-direction:column;gap:var(--space-4);padding:0 0 var(--space-6)}
-  .gx-ed>:not(.gx-ed-stage){margin-inline:var(--space-6)}
-  .gx-ed-stage{position:relative;display:grid;place-items:center;padding:var(--space-4) var(--space-6);background:var(--noite)}
-  .gx-ed-stage #gx-prev{max-width:100%}
-  .gx-ed-tag{position:absolute;left:var(--space-8);bottom:var(--space-8);display:inline-flex;align-items:center;gap:var(--space-2);min-height:32px;padding:0 var(--space-3);border-radius:var(--r-pill);background:color-mix(in srgb,var(--noite) 60%,transparent);color:var(--fg);font-size:var(--fs-xs);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
-  .gx-ed .gx-pre{width:76px}
-  .gx-ed .gx-pre .th{width:64px;height:64px;border-radius:50%}
-  .gx-int{margin-top:var(--space-2)}
-  .gx-int label{display:flex;justify-content:space-between;font-size:var(--fs-sm);color:var(--fg-2)}
-  .gx-capr{display:flex;gap:var(--space-3);align-items:flex-start;padding:var(--space-3);background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-3)}
+  .gx-ed{display:flex;flex-direction:column;gap:var(--space-3);padding:0 0 var(--space-3);height:calc(100dvh - 140px);min-height:480px}
+  .gx-ed>:not(.gx-ed-stage){margin-inline:var(--space-4);flex:none}
+  .gx-ed-stage{position:relative;flex:1 1 0;min-height:0;display:grid;place-items:center;padding:var(--space-3) var(--space-4);background:var(--noite)}
+  .gx-ed-stage #gx-prev{max-width:100%;max-height:100%;width:auto;height:auto;min-height:0}
+  .gx-ed-tag{position:absolute;left:var(--space-6);top:var(--space-5);display:inline-flex;align-items:center;gap:var(--space-2);min-height:32px;padding:0 var(--space-3);border-radius:var(--r-pill);background:color-mix(in srgb,var(--noite) 60%,transparent);color:var(--fg);font-size:var(--fs-xs);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+  .gx-int{position:absolute;left:var(--space-8);right:var(--space-8);bottom:var(--space-5);display:flex;align-items:center;gap:var(--space-3);padding:0 var(--space-3);border-radius:var(--r-pill);background:color-mix(in srgb,var(--noite) 60%,transparent);color:var(--fg);font-size:var(--fs-xs);font-variant-numeric:tabular-nums}
+  .gx-int .gx-range{flex:1;min-height:44px}
+  .gx-flt{margin-inline:0!important}
+  .gx-ed .gx-strip{padding:var(--space-1) var(--space-4)}
+  .gx-ed .gx-pre{width:68px;min-height:44px;gap:var(--space-1)}
+  .gx-ed .gx-pre .th{width:52px;height:52px;border-radius:50%}
+  .gx-ed .gx-pre .gx-badge{display:none}
+  .gx-capr{display:flex;gap:var(--space-3);align-items:center;padding:var(--space-2) var(--space-3);background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-3)}
   .gx-capr:focus-within{border-color:var(--ac)}
-  .gx-capr-th{position:relative;flex:none;width:56px;height:70px;border-radius:var(--r-2);overflow:hidden;background:var(--surface-2)}
-  .gx-capr textarea{flex:1;min-width:0;min-height:70px;resize:none;background:none;border:0;outline:0;padding:0;color:var(--fg);font:inherit;font-size:16px;line-height:1.4}
-  .gx-rows{list-style:none;margin-top:0;margin-bottom:0;padding:0;display:flex;flex-direction:column;background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-3);overflow:hidden}
-  .gx-rows li+li{border-top:1px solid var(--line-2)}
-  .gx-row{display:flex;align-items:center;gap:var(--space-3);width:100%;min-height:56px;padding:0 var(--space-4);background:none;border:0;color:var(--fg);font:inherit;text-align:left;cursor:pointer}
-  .gx-row>svg:first-child{flex:none;color:var(--accent-text)}
-  .gx-rowv{max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--fg-2);font-size:var(--fs-sm)}
+  .gx-capr-th{position:relative;flex:none;width:36px;height:44px;border-radius:var(--r-1);overflow:hidden;background:var(--surface-2)}
+  .gx-capr textarea{flex:1;min-width:0;min-height:44px;resize:none;background:none;border:0;outline:0;padding:var(--space-1) 0;color:var(--fg);font:inherit;font-size:16px;line-height:1.35}
+  .gx-ed-opts{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-2)}
+  .gx-opill{display:flex;align-items:center;gap:var(--space-2);min-height:48px;padding:0 var(--space-4);border:1px solid var(--line);border-radius:var(--r-pill);background:var(--elev-1);color:var(--fg);font:inherit;font-size:var(--fs-sm);cursor:pointer;min-width:0}
+  .gx-opill>svg:first-child{flex:none;color:var(--accent-text)}
+  .gx-opill>svg:last-child{flex:none;margin-left:auto;color:var(--fg-3)}
+  .gx-opill-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .gx-opill:focus-visible{outline:2px solid var(--accent-text);outline-offset:2px}
+  .gx-ed-n{margin-top:0;margin-bottom:0;font-size:var(--fs-xs);text-align:center;line-height:1.2}
   .gx-ed~.gx-bar{background:var(--bg);border-top:0}
   .gx-ed~.gx-bar .btn-accent{flex:2}
   .phone .empty{padding:var(--space-8) var(--space-6);gap:var(--space-3)}
@@ -1481,7 +1499,7 @@
     const strip = d.tipo === 'video' ? '' : PRE.map((p) => `<button type="button" class="gx-pre" data-act="g-preset" data-id="${p.id}" aria-pressed="${d.filtro === p.id}"><span class="th">${fx(d.src, p.id, 100, '', 'cover')}</span>${p.nome}${p.id === rec ? '<span class="gx-badge acc">Recomendado</span>' : ''}</button>`).join('');
     const ms = missionsOn(); const done = mDone(s);
     const mo = ms.find((x) => x.id === d.missao); const fnome = (PRE.find((x) => x.id === d.filtro) || PRE[0]).nome; const video = d.tipo === 'video';
-    return page(ctx, { title: video ? 'Novo vídeo' : 'Nova publicação', active: 'camera', nav: false, back: `${B(s)}/camera`, body: `<div class="gx-pad gx-ed"><div class="gx-ed-stage"><div class="gx-ph r-a" style="aspect-ratio:${d.ar};max-height:52dvh;width:auto;margin:0 auto" id="gx-prev">${fx(d.src, d.filtro, d.inten, video ? 'Prévia do seu vídeo' : 'Prévia da sua foto com o filtro escolhido', 'ctl')}</div>${video ? '' : `<span class="gx-ed-tag">${A.icon('sparkle', 14)} ${A.esc(fnome)}</span>`}</div>${video ? '<p class="gx-note">Vídeo enviado como gravado, sem filtro. A localização do arquivo não é lida pelo protótipo.</p>' : ''}<section aria-label="Filtros" ${video ? 'hidden' : ''}><div class="gx-strip" role="group" aria-label="Filtros de cor">${strip}</div>${d.filtro !== 'original' ? `<div class="field gx-int"><label for="gx-in">Intensidade <span id="gx-inv">${d.inten}%</span></label><input class="gx-range" id="gx-in" type="range" min="0" max="100" value="${d.inten}" data-input="g-inten"></div>` : ''}<p class="gx-note">${d.filtro === rec ? `Recomendado por ${anf(s)}: deixa todas as fotos da festa com o mesmo clima. ` : ''}O filtro é aplicado no seu celular. Nada é gerado por inteligência artificial.</p></section><div class="gx-capr"><span class="gx-capr-th" aria-hidden="true">${fx(d.src, d.filtro, d.inten, '', 'cover')}</span><label class="sr-only" for="gx-lg">Legenda</label><textarea class="gx-lg" id="gx-lg" name="legenda" rows="3" maxlength="140" placeholder="Escreva uma legenda…" data-input="g-leg">${A.esc(d.legenda || '')}</textarea></div><ul class="gx-rows" role="list"><li><button type="button" class="gx-row" data-act="g-ed-pickm" aria-haspopup="dialog">${A.icon('target', 20)}<span class="grow">Missão</span><span class="gx-rowv">${mo ? `${mo.romano}. ${A.esc(mo.titulo)}` : 'Nenhuma'}</span>${A.icon('chevron', 16)}</button></li><li><button type="button" class="gx-row" data-act="g-ed-pickmo" aria-haspopup="dialog">${A.icon('clock', 20)}<span class="grow">Momento</span><span class="gx-rowv">${d.momento ? A.esc(d.momento) : 'Automático'}</span>${A.icon('chevron', 16)}</button></li></ul></div><div class="gx-bar"><button class="btn btn-quiet" data-act="g-descartar">Descartar</button><button class="btn btn-accent" data-act="g-publicar">Publicar</button></div>` });
+    return page(ctx, { title: video ? 'Novo vídeo' : 'Nova publicação', active: 'camera', nav: false, back: `${B(s)}/camera`, body: `<div class="gx-pad gx-ed"><div class="gx-ed-stage"><div class="gx-ph r-a" style="aspect-ratio:${d.ar}" id="gx-prev">${fx(d.src, d.filtro, d.inten, video ? 'Prévia do seu vídeo' : 'Prévia da sua foto com o filtro escolhido', 'ctl')}</div>${video ? '' : `<span class="gx-ed-tag">${A.icon('sparkle', 14)} ${A.esc(fnome)}${d.filtro === rec ? ' · recomendado' : ''}</span>`}${!video && d.filtro !== 'original' ? `<div class="gx-int"><label class="sr-only" for="gx-in">Intensidade do filtro</label><input class="gx-range" id="gx-in" type="range" min="0" max="100" value="${d.inten}" data-input="g-inten" aria-valuetext="${d.inten}%"><span id="gx-inv" aria-hidden="true">${d.inten}%</span></div>` : ''}</div>${video ? '<p class="gx-note">Vídeo enviado como gravado, sem filtro. A localização do arquivo não é lida pelo protótipo.</p>' : `<section aria-label="Filtros" class="gx-flt"><div class="gx-strip" role="group" aria-label="Filtros de cor">${strip}</div></section>`}<div class="gx-capr"><span class="gx-capr-th" aria-hidden="true">${fx(d.src, d.filtro, d.inten, '', 'cover')}</span><label class="sr-only" for="gx-lg">Legenda</label><textarea class="gx-lg" id="gx-lg" name="legenda" rows="2" maxlength="140" placeholder="Escreva uma legenda…" data-input="g-leg">${A.esc(d.legenda || '')}</textarea></div><div class="gx-ed-opts"><button type="button" class="gx-opill" data-act="g-ed-pickm" aria-haspopup="dialog">${A.icon('target', 18)}<span class="gx-opill-t">${mo ? `${mo.romano}. ${A.esc(mo.titulo)}` : 'Missão'}</span>${A.icon('chevron', 14)}</button><button type="button" class="gx-opill" data-act="g-ed-pickmo" aria-haspopup="dialog">${A.icon('clock', 18)}<span class="gx-opill-t">${d.momento ? A.esc(d.momento) : 'Momento'}</span>${A.icon('chevron', 14)}</button></div>${video ? '' : '<p class="gx-note gx-ed-n">Filtro no seu celular, sem IA.</p>'}</div><div class="gx-bar"><button class="btn btn-quiet" data-act="g-descartar">Descartar</button><button class="btn btn-accent" data-act="g-publicar">Publicar</button></div>` });
   });
   A.acts['g-preset'] = (el) => { G.draft.filtro = el.dataset.id; G.draft.inten = 100; rerender(); };
   A.inputs['g-inten'] = (el) => { G.draft.inten = +el.value; const o = A.$('#gx-prev .gx-fxo'); if (o) o.style.opacity = el.value / 100; A.$('#gx-inv').textContent = el.value + '%'; };
@@ -1520,9 +1538,9 @@
     const next = missionsOn().find((x) => !done[x.id] && x.id !== u.missao);
     const first = !!ctx.q.primeira;
     const invite = first && !get(s, 'app', null) && get(s, 'conviteApp', '') !== 'dispensado' ? `<section class="gx-rule stack-2" aria-labelledby="gx-app-t"><h2 class="t-h" id="gx-app-t">Levar a festa no app</h2><p class="muted">Opcional. O app envia suas fotos mesmo com o celular bloqueado e guarda o álbum no aparelho.</p><div class="flex"><a class="btn btn-line" href="${B(s)}/app" style="flex:1">Ver como</a><button class="btn btn-quiet" data-act="g-dispensar-app" style="flex:1">Agora não</button></div></section>` : '';
-    const hero = first ? `<div class="gx-cel gx-cel-s" id="gx-cel"><span class="gx-star">${A.star(44)}</span>${A.mascot(72, 'mascote', 'Mascote da Albora espiando')}</div>` : '';
+    const hero = `<div class="gx-cel gx-sent" id="gx-cel"><span class="gx-sent-ph">${fx(u.src, u.filtro, u.inten, '', 'cover')}</span><span class="gx-sent-ck" aria-hidden="true">${A.icon('check', 22)}</span></div>`;
     const thumb = n > 1 ? `<p class="muted">${n} itens da galeria entraram na fila de uma vez.</p>` : '';
-    const out = page(ctx, { title: n > 1 ? `${n} itens na fila` : u.tipo === 'video' ? 'Vídeo enviado' : 'Foto enviada', active: 'camera', nav: false, hideHead: true, body: `<div class="gx-pad gx-conf">${hero}<div id="gx-status" role="status" aria-live="polite">${statusBlock(s, u)}</div>${thumb}<div id="gx-reward">${rewardHtml(s, u)}</div><div class="stack-2"><a class="btn btn-accent" href="${B(s)}/explorar">Ver o feed</a><a class="btn btn-line" href="${next ? `${B(s)}/camera?missao=${next.id}` : `${B(s)}/camera`}">${next ? `Próxima: ${next.romano}. ${A.esc(next.titulo)}` : 'Tirar outra'}</a><a class="btn btn-quiet" href="${B(s)}/minhas">Ver minhas fotos</a>${next ? `<a class="btn btn-quiet" href="${B(s)}/camera">Tirar outra, sem missão</a>` : ''}</div>${invite}</div>` });
+    const out = page(ctx, { title: n > 1 ? `${n} itens na fila` : u.tipo === 'video' ? 'Vídeo enviado' : 'Foto enviada', active: 'camera', nav: false, hideHead: true, body: `<div class="gx-pad gx-conf"><a class="gx-sent-x" href="${B(s)}/explorar" aria-label="Fechar e ver o feed">${A.icon('x', 22)}</a>${hero}<div id="gx-status" role="status" aria-live="polite">${statusBlock(s, u)}</div>${thumb}<div id="gx-reward">${rewardHtml(s, u)}</div><div class="stack-2"><a class="btn btn-accent" href="${B(s)}/explorar">Ver o feed</a><a class="btn btn-line" href="${next ? `${B(s)}/camera?missao=${next.id}` : `${B(s)}/camera`}">${next ? `Próxima: ${next.romano}. ${A.esc(next.titulo)}` : 'Tirar outra'}</a><a class="btn btn-quiet" href="${B(s)}/minhas">Ver minhas fotos</a>${next ? `<a class="btn btn-quiet" href="${B(s)}/camera">Tirar outra, sem missão</a>` : ''}</div>${invite}</div>` });
     out.after = (root) => A.celebrate(A.$('#gx-cel', root));
     return out;
   });
