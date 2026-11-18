@@ -32,6 +32,11 @@
 .hcr-wiz .input:focus,.hcr-wiz .select:focus,.hcr-wiz .textarea:focus{border-color:var(--ac)}
 .hcr-wiz .hcr-foot{border-top:0}
 .hcr-wiz .hcr-foot .btn{border-radius:var(--r-pill)}
+.hcr-card{display:flex;flex-direction:column;gap:var(--space-5);padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hcr-card-h{display:flex;align-items:center;gap:var(--space-3)}
+.hcr-n{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:var(--ac);color:var(--on-ac);font-weight:600;font-size:var(--fs-sm)}
+.hcr-card .input,.hcr-card .select,.hcr-card .textarea,.hcr-card .hcr-opt,.hcr-card .hcr-combo{background:var(--bg)}
+.hcr-wiz .hcr-more{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-3);padding:var(--space-2) var(--space-4)}
 .hcr-ok .btn{border-radius:var(--r-pill)}
 .hcr-placa{border-radius:var(--r-4);box-shadow:0 12px 32px color-mix(in srgb,var(--tinta) 14%,transparent)}
 .hcr-msg{border:1px solid var(--line-2);border-radius:var(--r-3)}
@@ -421,21 +426,20 @@
   A.route('/h/novo/:step', (ctx) => {
     const g = guard(ctx); if (g) return g; sync(); clearTimer();
     if (ctx.params.step === 'pronto') { lastStep = 0; return pronto(ctx); }
-    const step = ['1', '2', '3'].includes(ctx.params.step) ? +ctx.params.step : 1;
-    return wizard(step);
+    if (['2', '3'].includes(ctx.params.step)) return redirect('#/h/novo/1');
+    return wizard(1);
   });
 
   let lastStep = 0;
   function wizard(step) {
-    A.applyEvent(null);
-    const enter = lastStep && step !== lastStep ? (step > lastStep ? ' hcr-fwd' : ' hcr-bck') : ''; lastStep = step;
+    A.applyEvent(null); lastStep = 1;
     const d = getD(), er = showErr ? validar(d) : {};
-    const resume = step === 1 && (d.passo || 1) > 1 && temRasc() ? `<div class="hcr-resume"><div class="grow"><b>Você já começou este evento.</b> <span class="t-small">Parou no passo ${Math.min(d.passo, NSTEP)} de ${NSTEP}.</span></div><a class="btn btn-line btn-sm" href="#/h/novo/${Math.min(d.passo, NSTEP)}">Continuar de onde parei</a><button class="btn btn-quiet btn-sm" data-act="hcr-zero">Começar do zero</button></div>` : '';
-    const frm = (x) => `<form id="hcr-form" class="stack stack-6" data-submit="${step === NSTEP ? 'hcr-criar-form' : 'hcr-next'}" novalidate>${x}</form>`;
-    const body = frm([(d, er) => sNome(d, er), (d, er) => sVisual(d, er), (d, er) => sQuando(d, er) + sRevisar(d, er)][step - 1](d, er));
-    const foot = `<div class="hcr-foot"><div class="flex">${step === 1 ? `<button class="btn btn-quiet" data-act="hcr-sair-wiz">Sair</button>` : `<a class="btn btn-quiet" href="#/h/novo/${step - 1}">${A.icon('back', 18)} Voltar</a>`}<span class="t-small hcr-hide-m" aria-hidden="true"><span class="kbd">Enter</span> continua · <span class="kbd">Esc</span> volta</span></div>${step < NSTEP ? `<button class="btn btn-primary btn-lg" data-act="hcr-next">Continuar ${A.icon('arrow', 18)}</button>` : `<button class="btn btn-primary btn-lg" data-act="hcr-criar">Criar evento</button>`}</div>`;
-    const html = `<div class="hcr-wiz"><header class="hcr-wtop"><a href="#/h" class="hcr-brand" aria-label="Albora, voltar para seus eventos">${A.logo(26)}</a><span class="grow"></span><span class="t-small" id="hcr-saved" role="status">${d.atualizado ? 'Rascunho salvo neste navegador.' : 'Salvamos o rascunho a cada passo.'}</span></header><main id="main" tabindex="-1" class="page wide hcr-compact">${resume}<div class="hcr-stage"><div class="hcr-col${enter}"><div class="hcr-prog"><div class="hcr-seg" role="progressbar" aria-valuemin="1" aria-valuemax="${NSTEP}" aria-valuenow="${step}" aria-label="Passo ${step} de ${NSTEP}">${[1, 2, 3].map((n) => `<i class="${n <= step ? 'on' : ''}"></i>`).join('')}</div><span class="t-small">Passo ${step} de ${NSTEP} · ${STEP_NAMES[step - 1]}</span></div><div class="stack stack-2"><h1 class="t-display">${STEP_H[step - 1]}</h1><p class="t-lead" style="max-width:46ch">${STEP_L[step - 1]}</p></div>${body}${foot}</div><aside class="hcr-pvside" aria-label="Prévia ao vivo"><div id="hcr-prev">${previewHtml(d)}</div></aside></div></main></div>`;
-    return { title: 'Novo evento · ' + STEP_NAMES[step - 1], html, after: () => { showErr = false; if ([1, 3].includes(step) && matchMedia('(pointer:fine)').matches) A.later(40, () => { const bad = $('.field.has-error input,.field.has-error select'); (bad || $('#hcr-form input:not([disabled])'))?.focus(); }); } };
+    const resume = temRasc() ? `<div class="hcr-resume"><div class="grow"><b>Rascunho restaurado.</b> <span class="t-small">Continue de onde parou.</span></div><button class="btn btn-quiet btn-sm" data-act="hcr-zero">Começar do zero</button></div>` : '';
+    const sec = (n, t, inner) => `<section class="hcr-card" id="hcr-s${n}" aria-labelledby="hcr-sh${n}"><header class="hcr-card-h"><span class="hcr-n" aria-hidden="true">${n}</span><h2 class="t-title" id="hcr-sh${n}">${t}</h2></header>${inner}</section>`;
+    const body = `<form id="hcr-form" class="stack stack-6" data-submit="hcr-criar-form" novalidate>${sec(1, 'Nome e tipo', sNome(d, er))}${sec(2, 'Visual', sVisual(d, er))}${sec(3, 'Quando e onde', sQuando(d, er))}${sRevisar(d, er)}</form>`;
+    const foot = `<div class="hcr-foot"><button class="btn btn-quiet" data-act="hcr-sair-wiz">Sair</button><button class="btn btn-primary btn-lg" data-act="hcr-criar">Criar evento ${A.icon('arrow', 18)}</button></div>`;
+    const html = `<div class="hcr-wiz"><header class="hcr-wtop"><a href="#/h" class="hcr-brand" aria-label="Albora, voltar para seus eventos">${A.logo(26)}</a><span class="grow"></span><span class="t-small" id="hcr-saved" role="status">${d.atualizado ? 'Rascunho salvo neste navegador.' : 'Salvamos o rascunho enquanto você escreve.'}</span></header><main id="main" tabindex="-1" class="page wide hcr-compact">${resume}<div class="hcr-stage"><div class="hcr-col"><div class="stack stack-2"><h1 class="t-display">Nova festa</h1><p class="t-lead" style="max-width:46ch">Tudo numa página só. A prévia do convite se monta enquanto você escreve, e dá para trocar depois.</p></div>${body}${foot}</div><aside class="hcr-pvside" aria-label="Prévia ao vivo"><div id="hcr-prev">${previewHtml(d)}</div></aside></div></main></div>`;
+    return { title: 'Nova festa', html, after: () => { const wasErr = showErr; showErr = false; if (matchMedia('(pointer:fine)').matches) A.later(40, () => { const bad = $('.field.has-error input,.field.has-error select'); (bad || $('#hcr-form input:not([disabled])'))?.focus(); }); else if (wasErr) { const bad = $('.field.has-error'); bad && bad.scrollIntoView({ block: 'center' }); } } };
   }
 
   const E = (er, k) => er[k] || '';
@@ -465,11 +469,8 @@
   }
   function sRevisar(d, er) {
     const V = vendors(), sob = d.sob !== 'conta';
-    const estiloN = estiloObj(d.estilo).nome, comboN = d.combo === 'custom' ? 'cores personalizadas' : d.combo === 'foto' ? 'cor da sua foto' : (A.data.combos[+d.combo] || ['cores'])[0];
-    const linhas = [['Tipo', tipoObj(d.tipo).nome, 1], ['Nome', d.nome, 1, 'Dê um nome à festa'], ['Visual', `${estiloN} · ${comboN}${d.capa ? ' · com capa' : ''}`, 2], ['Data e hora', d.data ? fmtISO(d.data) + ' às ' + (d.hora || '18:00') : 'Data a definir', 3], ['Local', d.local || 'Local a definir', 3], ['Convidados', d.esperados ? d.esperados + ' esperados' : 'Sem estimativa', 3], ['Participação', `${missoesAtivas(d).length} missões · ${momD(d).length} momentos`, 1]];
-    const sum = linhas.map(([k, v, p, falta]) => `<div><dt>${k}</dt><dd>${v ? esc(v) : `<span class="crit">${A.icon('warn', 14)} Falta: ${falta}</span>`} · <a class="link" href="#/h/novo/${p}">editar</a></dd></div>`).join('');
     const aberto = sob || er.emailPainel ? 'open' : '';
-    return `<details class="hcr-more ds-fold" ${aberto}><summary>Revisar antes de criar</summary><div class="stack stack-5 hcr-more-in ds-fold-b"><dl class="hcr-sum">${sum}</dl><div class="stack stack-3">${A.field({ name: 'sob', label: 'Criar sob', value: d.sob, options: [['conta', 'Minha conta']].concat(V.map((v) => [v.id, v.nome])), hint: 'Escolha um fornecedor se a festa é de um cliente dele.', extra: 'data-input="hcr-in"' })}${sob ? A.field({ name: 'emailPainel', label: 'E-mail de quem recebe o painel', type: 'email', value: d.emailPainel, required: true, err: E(er, 'emailPainel'), hint: 'Quem cria aqui entra como cerimonialista. O cliente recebe o acesso por esse e-mail.', extra: 'autocomplete="off" data-input="hcr-in"' }) : ''}</div></div></details><div id="hcr-criar-err" role="alert"></div>`;
+    return `<details class="hcr-more ds-fold" ${aberto}><summary>Criar para outra pessoa (cerimonialista)</summary><div class="stack stack-5 hcr-more-in ds-fold-b"><div class="stack stack-3">${A.field({ name: 'sob', label: 'Criar sob', value: d.sob, options: [['conta', 'Minha conta']].concat(V.map((v) => [v.id, v.nome])), hint: 'Escolha um fornecedor se a festa é de um cliente dele.', extra: 'data-input="hcr-in"' })}${sob ? A.field({ name: 'emailPainel', label: 'E-mail de quem recebe o painel', type: 'email', value: d.emailPainel, required: true, err: E(er, 'emailPainel'), hint: 'Quem cria aqui entra como cerimonialista. O cliente recebe o acesso por esse e-mail.', extra: 'autocomplete="off" data-input="hcr-in"' }) : ''}</div></div></details><div id="hcr-criar-err" role="alert"></div>`;
   }
 
   function previewHtml(d) {
@@ -574,7 +575,7 @@
   A.acts['hcr-criar-form'] = () => { const b = $('[data-act=hcr-criar]'); if (b) A.acts['hcr-criar'](b); };
   A.acts['hcr-criar'] = (btn) => {
     const d = getD(), er = validar(d), ks = Object.keys(er);
-    if (ks.length) { showErr = true; d.passo = NSTEP; putD(d); const msg = er[ks[0]]; A.toast(`Falta ajustar: ${msg}`, { kind: 'bad' }); goto('#/h/novo/' + (er.nome ? 1 : 3)); return; }
+    if (ks.length) { showErr = true; d.passo = NSTEP; putD(d); const msg = er[ks[0]]; A.toast(`Falta ajustar: ${msg}`, { kind: 'bad' }); A.render(); return; }
     const box = $('#hcr-criar-err'); box.innerHTML = '';
     A.busy(btn, 1100, () => {
       if (A.sim().state === 'error') { box.innerHTML = `<div class="banner bad">${A.icon('warn', 20)}<div class="grow"><b>Não deu para criar o evento agora.</b> O servidor não respondeu. Seus dados continuam salvos neste rascunho: tente de novo em instantes. <span class="t-small">(Protótipo: erro simulado pelo estado “Erro” da barra Protótipo.)</span></div></div>`; box.scrollIntoView({ block: 'center' }); return; }
@@ -598,10 +599,9 @@
     if ($('.modal,.palette,.menu') || e.metaKey || e.ctrlKey || e.altKey) return;
     const inField = t.matches && t.matches('input,textarea,select,[contenteditable]');
     if (inField) { if (e.key === 'Escape') t.blur(); return; }
-    const step = +curStep();
-    if (/^[1-9]$/.test(e.key)) { const n = +e.key - 1; if (step === 1 && A.data.tipos[n]) A.acts['hcr-tipo'](null, null, { id: A.data.tipos[n].id }); else if (step === 2 && A.data.estilos[n]) A.acts['hcr-estilo'](null, null, { id: A.data.estilos[n].id }); return; }
-    if (e.key === 'Enter') { if (t.closest && t.closest('a,button,label,summary')) return; e.preventDefault(); if (step < NSTEP) A.acts['hcr-next'](); else { const b = $('[data-act=hcr-criar]'); b && A.acts['hcr-criar'](b); } return; }
-    if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); if (step > 1) A.go('#/h/novo/' + (step - 1)); else A.acts['hcr-sair-wiz'](); }
+    if (/^[1-9]$/.test(e.key)) { const n = +e.key - 1; if (A.data.tipos[n]) A.acts['hcr-tipo'](null, null, { id: A.data.tipos[n].id }); return; }
+    if (e.key === 'Enter') { if (t.closest && t.closest('a,button,label,summary')) return; e.preventDefault(); const b = $('[data-act=hcr-criar]'); b && A.acts['hcr-criar'](b); return; }
+    if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); A.acts['hcr-sair-wiz'](); }
   });
 
   /* =========================================================
