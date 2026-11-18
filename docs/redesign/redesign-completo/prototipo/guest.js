@@ -89,6 +89,12 @@
   .gx-pill.off i{background:var(--crit-text)}
   .gx-off{display:flex;gap:var(--space-3);align-items:center;padding:var(--space-3) var(--space-4);background:var(--elev-1);border-bottom:1px solid var(--line-2);color:var(--fg-2);font-size:var(--fs-sm);flex:none}
   .gx-pad{padding:0 var(--space-6) var(--space-8)}
+  .gx-slim{display:flex;align-items:center;gap:var(--space-3);margin:var(--space-2) var(--space-4) var(--space-4)}
+  .gx-slim-av{position:relative;flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;overflow:hidden;background:var(--ac);color:var(--on-ac);font:500 var(--fs-sm) var(--font-display);box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--ac)}
+  .gx-slim-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .gx-slim-tx{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+  .gx-slim-tx b{font:380 var(--fs-lg) var(--font-display);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .gx-slim-tx span{font-size:var(--fs-sm);color:var(--fg-2)}
   .gx-apph{display:flex;flex-direction:column;gap:var(--space-3);margin-top:var(--space-2);padding:var(--space-6) var(--space-5);border-radius:var(--r-4);background:linear-gradient(135deg,var(--ac),var(--noite));color:var(--fg)}
   .gx-apph .gx-name{font:350 var(--fs-title)/1.1 var(--font-display);color:var(--fg)}
   .gx-apph .gx-eyebrow{color:var(--fg-2)}
@@ -815,7 +821,9 @@
   .gx-sp[data-fam=minimal]{align-items:flex-start;text-align:left;border-left:3px solid var(--fg);border-radius:var(--space-1)}
   .gx-sp[data-fam=minimal] .gx-sp-t{font-weight:300}
   .gx-sp[data-fam=imersivo]{--bg:rgb(14 12 12);--fg:rgb(255 255 255);--fg-2:rgb(255 255 255 / .8);--line:rgb(255 255 255 / .3)}
-  .gx-mos .gx-tile:first-child{grid-column:span 2;grid-row:span 2}
+  .gx-mos .gx-tile:first-child:nth-last-child(n+5){grid-column:span 2;grid-row:span 2}
+  @media(max-width:860px){.gx-mos:has(.gx-tile:nth-child(4):last-child),.gx-mos:has(.gx-tile:nth-child(2):last-child){grid-template-columns:repeat(2,minmax(0,1fr))}.gx-mos:has(.gx-tile:only-child){grid-template-columns:minmax(0,1fr)}}
+  .gx-pad .gx-sec>h2{font:600 var(--fs-xs)/1.3 var(--font-body);letter-spacing:.14em;text-transform:uppercase;color:var(--fg-2)}
   .gx-mos[data-fam=romantico] .gx-tile:first-child{border-radius:50% 50% var(--space-2) var(--space-2) / 42% 42% var(--space-2) var(--space-2)}
   .gx-mos[data-fam=romantico] .gx-tile:nth-child(4n+3){border-radius:var(--space-3)}
   .gx-mos[data-fam=minimal]{grid-template-columns:repeat(2,1fr);gap:var(--space-2)}
@@ -823,7 +831,7 @@
   .gx-mos[data-fam=classico]{gap:var(--space-2)}
   .gx-mos[data-fam=classico] .gx-tile{outline:1px solid rgb(255 255 255 / .25);outline-offset:2px}
   .gx-mos[data-fam=classico] .gx-tile:first-child{grid-column:span 3;grid-row:auto;aspect-ratio:4/3}
-  .gx-mos[data-fam=imersivo] .gx-tile:nth-child(7n+4){grid-column:span 2;grid-row:span 2}
+  .gx-mos[data-fam=imersivo] .gx-tile:nth-child(7n+4):not(:last-child){grid-column:span 2;grid-row:span 2}
   `; document.head.append(stl2);
 
   /* ---------------------------------------------------------------- store helpers */
@@ -1595,6 +1603,7 @@
     const ph = src ? `<div class="gx-fh-ph"><img src="${src}" alt="" aria-hidden="true" style="${ev.capa && A.hero ? A.hero.fotoStyle(ev.id) : ''}"></div>` : '';
     const mono = !src ? `<span class="gx-fh-mono" aria-hidden="true">${A.esc(ev.iniciais || '')}</span>` : '';
     const data = [w.semData ? '' : w.date, ev.local].filter(Boolean).join(' · ');
+    if (compact) return `<header class="gx-slim"><span class="gx-slim-av" aria-hidden="true">${src ? `<img src="${src}" alt="" style="${ev.capa && A.hero ? A.hero.fotoStyle(ev.id) : ''}">` : A.esc(ev.iniciais || '')}</span><div class="gx-slim-tx"><b>${A.esc(ev.nome)}</b><span>${all.length ? `${plural(all.length, 'foto', 'fotos')} de ${plural(people, 'pessoa', 'pessoas')}` : 'Nenhuma foto ainda'}</span></div></header>`;
     return `<header class="gx-fh${compact ? ' gx-fh-c' : ''}" data-fam="${src ? fam : 'minimal'}">${ph}${mono}<span class="gx-fh-k">${kick}</span><h2>${A.esc(ev.nome)}</h2><div class="gx-fh-div" aria-hidden="true"><i></i><b></b><i></i></div>${data ? `<p class="gx-fh-d">${A.esc(data)}</p>` : ''}<p class="gx-fh-n">${all.length ? `${plural(all.length, 'foto', 'fotos')} de ${plural(people, 'pessoa', 'pessoas')}` : 'Nenhuma foto ainda'}</p></header>`;
   };
   const specialCard = (s, kind) => {

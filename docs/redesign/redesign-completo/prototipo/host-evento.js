@@ -164,6 +164,7 @@
 #hv-queue .li .btn-line{background:var(--ac);border-color:var(--ac);color:var(--on-ac);font-weight:600}
 #hv-queue .li .btn-quiet{border:1px solid var(--line)}
 .hv-poster{border-radius:var(--r-4)}
+.hv-poster::before{content:"";position:absolute;left:0;right:0;bottom:0;height:58%;z-index:-1;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);-webkit-mask-image:linear-gradient(180deg,transparent,black 55%);mask-image:linear-gradient(180deg,transparent,black 55%);pointer-events:none}
 .hv-before .hv-next{padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
 .hv-pv{padding:var(--space-4);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
 .hv-lower>.hv-rest{padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
