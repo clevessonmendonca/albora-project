@@ -413,3 +413,24 @@ details.ds-fold>summary>.grow{min-width:0;overflow:hidden;text-overflow:ellipsis
 body .vd-fases{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.vd-fases::-webkit-scrollbar{display:none}body .vd-fases>button{flex:none;white-space:nowrap}
 /* v107 — foco programático no título da rota não desenha anel (o foco de teclado segue visível nos controles) */
 h1[tabindex="-1"]:focus,#main[tabindex="-1"]:focus{outline:none}
+
+/* v160 — shell do anfitrião mais moderno: menu e abas em pílula, listas em cartões, título com traço da marca, barra inferior flutuante */
+.app .nav a,.app .nav button{border-radius:var(--r-pill)}
+.app .nav a[aria-current="page"]{background:color-mix(in srgb,var(--ac) 14%,transparent);color:var(--fg)}
+.app .ctx{border-radius:var(--r-3);border:1px solid var(--line-2);background:var(--elev-1)}
+.app .page-head h1::after{content:"";display:block;width:32px;height:3px;margin-top:var(--space-3);border-radius:var(--r-pill);background:var(--ac)}
+.app .tabs{border-bottom:0;gap:var(--space-2)}
+.app .tab{padding:0 var(--space-4);border:1px solid var(--line);border-radius:var(--r-pill);color:var(--fg-2)}
+.app .tab[aria-selected="true"]{background:var(--ac);border-color:var(--ac);color:var(--on-ac)}
+.app .tab[aria-selected="true"]::after{display:none}
+.app .page .list{gap:var(--space-2)}
+.app .page .li{padding:var(--space-3) var(--space-4);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-3)}
+.app .page .li:last-child{border-bottom:1px solid var(--line-2)}
+.app .page a.li:hover::before,.app .page button.li:hover::before,.app .page .li.is-link:hover::before{display:none}
+.app .page a.li:hover,.app .page button.li:hover,.app .page .li.is-link:hover{background:var(--surface-2)}
+@media(max-width:900px){
+  .tabbar{left:var(--space-3);right:var(--space-3);bottom:calc(var(--space-3) + env(safe-area-inset-bottom));padding:var(--space-1) var(--space-2);border:1px solid var(--line);border-radius:var(--r-pill);background:var(--elev-2);box-shadow:0 8px 24px color-mix(in srgb,var(--tinta) 18%,transparent)}
+  .tabbar a,.tabbar button{border-radius:var(--r-pill)}
+  .tabbar a[aria-current="page"]{background:color-mix(in srgb,var(--ac) 16%,transparent)}
+  .page{padding-bottom:calc(var(--tabbar-h) + var(--space-12) + env(safe-area-inset-bottom))}
+}
