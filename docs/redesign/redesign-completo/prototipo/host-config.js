@@ -197,6 +197,18 @@ details.hc-fold.ds-fold:not(.in){margin-top:var(--space-2);padding:var(--space-1
 .hc-doc .input,.hc-doc .select,.hc-doc .textarea{background:var(--bg);border:1px solid var(--line);border-radius:var(--r-3);padding:var(--space-3) var(--space-4)}
 .hc-doc .input:focus,.hc-doc .select:focus,.hc-doc .textarea:focus{border-color:var(--ac)}
 .hc-doc-act .btn{border-radius:var(--r-pill)}
+.hc-seg{gap:var(--space-2)}
+.hc-seg button{padding:0 var(--space-4);border:1px solid var(--line);border-radius:var(--r-pill);color:var(--fg-2)}
+.hc-seg button[aria-pressed="true"]{background:var(--ac);border-color:var(--ac);color:var(--on-ac)}
+.hc-seg button:not([aria-pressed="true"]):hover{color:var(--fg)}
+.hc-post{margin-bottom:var(--space-3);padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hc-tp{display:inline-flex;align-items:center;padding:var(--space-1) var(--space-3);border-radius:var(--r-pill);background:color-mix(in srgb,var(--ac) 14%,transparent);color:var(--fg)}
+.hc-ideas{column-gap:var(--space-4)}
+.hc-idea{margin-bottom:var(--space-4);padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hc-idea .btn{border-radius:var(--r-pill)}
+.hc-reply{padding:var(--space-4);background:var(--surface);border:1px solid var(--line-2);border-left:var(--space-1) solid var(--ac);border-radius:var(--r-3)}
+.hc-resp{border-top:0}
+.hc-reply-f .btn{border-radius:var(--r-pill)}
 @media(min-width:760px){.hc-aj{grid-template-columns:12.5rem minmax(0,1fr);gap:var(--space-8)}.hc-aj-side{position:sticky;top:var(--space-16)}.hc-aj.has-sec .hc-aj-side,.hc-aj:not(.has-sec) .hc-aj-panel{display:block}.hc-aj-back{display:none}.hc-aj-nav .chev{display:none}.hc-aj-nav a::before{display:block}}
 .hc-doc .field{padding:var(--space-2) 0}
 @media(min-width:760px){.hc-doc .field{display:grid;grid-template-columns:11.25rem minmax(0,1fr);column-gap:var(--space-5);align-items:center}.hc-doc .field>label{grid-column:1;grid-row:1}.hc-doc .field>.input,.hc-doc .field>.select,.hc-doc .field>.textarea{grid-column:2;grid-row:1}.hc-doc .field>.hint,.hc-doc .field>.err{grid-column:2;margin-top:var(--space-1)}.hc-doc .field>span:empty{display:none}.hc-doc .field>.textarea{align-self:start}}
