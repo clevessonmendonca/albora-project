@@ -601,6 +601,13 @@
   .gx-state h1,.gx-state h2{font-size:var(--fs-title)}
   .gx-state p{max-width:32ch}
   .gx-state .btn{margin-top:var(--space-3)}
+  .gx-state{gap:var(--space-4)}
+  .gx-state-art{position:relative;display:grid;place-items:center;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--ac) 30%,transparent),transparent 68%)}
+  .gx-state h1,.gx-state h2{font:350 var(--fs-title)/1.15 var(--font-display);letter-spacing:-.01em}
+  .gx-state p{color:var(--fg-2);line-height:1.5}
+  .gx-state .btn{border-radius:var(--r-pill);min-width:14rem}
+  .gx-priv{display:flex;align-items:flex-start;gap:var(--space-3);margin:0;padding:var(--space-4);background:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-3);font-size:var(--fs-sm);color:var(--fg-2)}
+  .gx-priv svg{flex:none;color:var(--accent-text)}
   .gx-rule{border-top:1px solid var(--line-2);padding-top:var(--space-5)}
   .gx-offcard{display:flex;gap:var(--space-4);align-items:center}
   .gx-offcard .mascot{flex:none}
@@ -1329,7 +1336,7 @@
     const html = A.guestShell({ ...ctx, params: { ...ctx.params, slug: s } }, { active, body, nav, top });
     return { title, html: desk ? html.replace('class="guest-stage"', 'class="guest-stage gx-stage"') : html };
   };
-  const stateScreen = ({ title, body, cta = '', link = '', tag = 'h1', pad = true }) => `<div class="gx-state ${pad ? 'gx-pad' : ''}">${A.mascot(132, 'mascote')}<${tag} class="t-title" tabindex="-1">${A.esc(title)}</${tag}><p class="muted">${body}</p>${cta}${link}</div>`;
+  const stateScreen = ({ title, body, cta = '', link = '', tag = 'h1', pad = true }) => `<div class="gx-state ${pad ? 'gx-pad' : ''}"><span class="gx-state-art">${A.mascot(132, 'mascote')}</span><${tag} class="t-title" tabindex="-1">${A.esc(title)}</${tag}><p class="muted">${body}</p>${cta}${link}</div>`;
   const capaDe = (ev) => ev.capa || (ev.capaDemo ? A.capa(ev.id, ev.cor, ev.cor2) : '');
   const cover = (ev, inner) => {
     const src = capaDe(ev); const fam = (A.hero && ev.capa) ? A.hero.getCfg(ev.id).familia : 'imersivo';
@@ -1384,7 +1391,7 @@
       const own = kind === 'meu' ? uploads('marina-rafael').filter((u) => ['aguardando', 'aprovada', 'enviada'].includes(u.status)).map((u) => ownToPhoto('marina-rafael', u)) : [];
       const base = kind === 'ok' ? pool().slice(0, 9).map(asPhoto) : [];
       const l = kind === 'vazio' ? [] : [...own, ...base];
-      body = l.length ? `<div class="stack"><p class="t-lead">Suas fotos de ${A.esc(ev.nome)}. Este link é só seu: quem tiver o endereço abre as fotos, então não compartilhe.</p><div class="gx-grid">${l.map((p) => `<button class="gx-tile" data-act="g-entrega-foto" data-id="${p.id}" aria-label="Abrir ${A.esc('foto ' + p.momento.toLowerCase())}">${fx(p.src, p.filtro, p.inten, '', 'cover')}</button>`).join('')}</div><button class="btn btn-accent" data-act="g-baixar" data-n="${l.length}" data-v="${l.filter((p) => p.tipo === 'video').length}">${A.icon('download', 18)} Baixar tudo (${l.length})</button><p class="gx-note">Simulado: na versão real vem um arquivo .zip com as fotos em alta qualidade, sem localização, e os vídeos como foram gravados.</p></div>`
+      body = l.length ? `<div class="stack"><div class="gx-slim" style="margin-inline:0"><span class="gx-slim-av" aria-hidden="true">${capaDe(ev) ? `<img src="${capaDe(ev)}" alt="">` : A.esc(ev.iniciais || '')}</span><div class="gx-slim-tx"><b>${A.esc(ev.nome)}</b><span>${plural(l.length, 'foto', 'fotos')} suas</span></div></div><p class="gx-priv">${A.icon('lock', 18)}<span>Este link é só seu: quem tiver o endereço abre as fotos, então não compartilhe.</span></p><div class="gx-pgrid">${l.map((p) => `<button class="gx-tile" data-act="g-entrega-foto" data-id="${p.id}" aria-label="Abrir ${A.esc('foto ' + p.momento.toLowerCase())}">${fx(p.src, p.filtro, p.inten, '', 'cover')}</button>`).join('')}</div><button class="btn btn-accent btn-block" data-act="g-baixar" data-n="${l.length}" data-v="${l.filter((p) => p.tipo === 'video').length}">${A.icon('download', 18)} Baixar tudo (${l.length})</button><p class="gx-note">Simulado: na versão real vem um arquivo .zip com as fotos em alta qualidade, sem localização, e os vídeos como foram gravados.</p></div>`
         : A.emptyState({ title: 'Nenhuma foto por aqui', body: 'As fotos da sua sessão aparecem aqui quando os anfitriões publicarem o álbum.' });
     }
     return page(ctx, { title: kind === 'meu' || kind === 'ok' ? 'Suas fotos' : 'Entrega de fotos', nav: false, back: kind === 'meu' ? B('marina-rafael') + '/perfil' : '#/', body: `<div class="gx-pad">${body}</div>` });
