@@ -715,6 +715,16 @@ details.hpl-sim.ds-fold{border-top-style:dashed;border-top-color:var(--line);pad
 .hpl-sim pre{margin:0;max-height:16rem;overflow:auto;font:var(--fs-xs)/1.5 var(--font-mono,monospace);color:var(--fg-2);white-space:pre-wrap;overflow-wrap:anywhere}
 /* sem cursor o :hover gruda depois do toque: devolve o valor base */
 @media(hover:none){.hpl-link:not([disabled]):hover{color:var(--fg)}}
+/* v205 — Plano e cobrança em cartões */
+.hpl-aside>*{min-width:0}
+.hpl-st,.hpl-preco{padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hpl-preco{border-top:1px solid var(--line-2);background:var(--surface-2);box-shadow:var(--elev-1)}
+.hpl-preco .btn,.hpl-oferta .btn,.hpl-nudge .btn{border-radius:var(--r-pill)}
+.hpl-ben li{padding:var(--space-4) var(--space-5);margin-bottom:var(--space-3);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-3)}
+.hpl-ben li:last-child{border-bottom:1px solid var(--line-2);margin-bottom:0}
+.hpl-n{display:grid;place-items:center;width:var(--space-8);height:var(--space-8);border-radius:50%;background:var(--surface-2);font-size:var(--fs-md)}
+.hpl-evs li,.hpl-met li{padding:var(--space-4) var(--space-5);margin-bottom:var(--space-2);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-3)}
+.hpl-oferta,.hpl-nudge{padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);max-width:none}
 `;
   document.head.appendChild(pst);
 

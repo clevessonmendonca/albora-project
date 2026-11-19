@@ -237,6 +237,14 @@
 .vd-aj-nav button:not([aria-current="true"]):hover,.vd-portal .nav a.vd-feito:hover{color:var(--fg-3)}
 .vd-portal .btn-primary:hover,.vd-portal .btn-accent:hover,.vd-pubwrap .btn-primary:hover,.vd-pubwrap .btn-accent:hover{text-decoration:none}
 }
+/* v205 — cadastro do fornecedor: formulário em cartão, etapas em pílula */
+.vd-steps{padding:var(--space-3) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);margin-bottom:var(--space-6)}
+.vd-steps ol li{padding:var(--space-1) var(--space-3);border-radius:var(--r-pill)}
+.vd-steps li[aria-current=step]{background:var(--ac);color:var(--on-ac)}
+main.page form[data-draft]{padding:var(--space-6);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);box-shadow:var(--elev-1)}
+main.page form[data-draft] .input,main.page form[data-draft] .select{background:var(--bg)}
+main.page form[data-draft] .btn{border-radius:var(--r-pill)}
+@media(max-width:600px){main.page form[data-draft]{padding:var(--space-4)}}
 `;
   document.head.appendChild(st);
 
