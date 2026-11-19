@@ -202,7 +202,8 @@ details.hc-fold.ds-fold:not(.in){margin-top:var(--space-2);padding:var(--space-1
 .hc-seg button[aria-pressed="true"]{background:var(--ac);border-color:var(--ac);color:var(--on-ac)}
 .hc-seg button:not([aria-pressed="true"]):hover{color:var(--fg)}
 .hc-post{margin-bottom:var(--space-3);padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
-.hc-tp{display:inline-flex;align-items:center;padding:var(--space-1) var(--space-3);border-radius:var(--r-pill);background:color-mix(in srgb,var(--ac) 14%,transparent);color:var(--fg)}
+.hc-tp{display:inline-flex;align-items:center;padding:var(--space-1) var(--space-3);border-radius:var(--r-pill);background:color-mix(in srgb,var(--ac) 10%,var(--bg))}
+.hc-post .hc-tp,.hc-idea .hc-tp,.hc-post .hc-tp *,.hc-idea .hc-tp *{color:var(--fg)}
 .hc-ideas{column-gap:var(--space-4)}
 .hc-idea{margin-bottom:var(--space-4);padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
 .hc-idea .btn{border-radius:var(--r-pill)}

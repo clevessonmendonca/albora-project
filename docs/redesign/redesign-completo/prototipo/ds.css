@@ -8,7 +8,7 @@
   --positivo:#28744E; --atencao:#8A5A12; --info:#3265B5;
   --font-display:"Fraunces","Iowan Old Style",Georgia,serif;
   --font-body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --r-1:8px; --r-2:12px; --r-3:18px; --r-pill:999px;
+  --r-1:8px; --r-2:12px; --r-3:18px; --r-4:24px; --r-pill:999px;
   /* Escala de espaçamento (múltiplos de 4). Proximidade = relação: 1–3 dentro do componente, 4–6 entre irmãos, 8–16 entre blocos/seções. */
   --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px; --space-8:32px; --space-10:40px; --space-12:48px; --space-16:64px;
   --gutter:clamp(16px,4vw,32px);        /* margem lateral da página */
@@ -466,3 +466,8 @@ h1[tabindex="-1"]:focus,#main[tabindex="-1"]:focus{outline:none}
 .app .st-categories button[aria-pressed=true]{background:var(--ac);border-color:var(--ac);color:var(--on-ac);font-weight:600}
 .app .st-gallery-head .btn{border-radius:var(--r-pill)}
 @media(prefers-reduced-motion:reduce){.app .st-models .st-thumb{transition:none}.app .st-models .st-template:hover .st-thumb{transform:none}}
+
+/* v198 — Hoje (antes): capa e cartão do telão alinhados, sem arco solto nem folhas */
+.hv-before{display:flex;flex-direction:column;gap:var(--space-4)}
+.hv-before .hv-next{max-width:none;margin:0;align-items:center;text-align:center}
+.hv-poster .hv-arcwrap,.hv-poster .hh-orn,.hv-poster svg.hh-orn{display:none!important}
