@@ -450,3 +450,8 @@ h1[tabindex="-1"]:focus,#main[tabindex="-1"]:focus{outline:none}
 .app .table td:last-child{border-right:1px solid var(--line-2);border-radius:0 var(--r-3) var(--r-3) 0}
 .app .table tr:hover td{background:var(--surface-2)}
 }
+
+/* v195 — acento de preenchimento nos temas claros: laranja mais fundo com texto branco (5,2:1, passa em AA). O âmbar da marca segue nos temas escuros e em detalhes. */
+:root{--ambar-fundo:#B24A1B}
+.app,.vd-pubwrap,.hcr-auth,.hcr-wiz,.modal:not([data-theme="noite"]){--ac:var(--ambar-fundo);--on-ac:var(--papel)}
+.app .tab[aria-selected="true"],.app .ds-fl button[aria-pressed="true"],.hc-seg button[aria-pressed="true"]{font-weight:600}
