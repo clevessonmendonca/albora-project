@@ -455,3 +455,14 @@ h1[tabindex="-1"]:focus,#main[tabindex="-1"]:focus{outline:none}
 :root{--ambar-fundo:#B24A1B}
 .app,.vd-pubwrap,.hcr-auth,.hcr-wiz,.modal:not([data-theme="noite"]){--ac:var(--ambar-fundo);--on-ac:var(--papel)}
 .app .tab[aria-selected="true"],.app .ds-fl button[aria-pressed="true"],.hc-seg button[aria-pressed="true"]{font-weight:600}
+
+/* v197 — estúdio de convites: miniaturas em cartões com elevação, filtros em pílula */
+.app .st-models .st-thumb{border-radius:var(--r-4);border:1px solid var(--line-2);background:var(--surface);transition:transform var(--dur-2) var(--ease),box-shadow var(--dur-2) var(--ease)}
+.app .st-models .st-template:hover .st-thumb,.app .st-models .st-template:focus-visible .st-thumb{transform:translateY(calc(-1 * var(--space-1)));box-shadow:0 16px 32px color-mix(in srgb,var(--tinta) 14%,transparent)}
+.app .st-models .st-template:focus-visible{outline:0}
+.app .st-models .st-template:focus-visible .st-thumb{outline:2px solid var(--accent-text);outline-offset:3px}
+.app .st-models .st-template-title{font-size:var(--fs-lg);margin:var(--space-3) 0 var(--space-1);text-decoration:none}
+.app .st-categories button{min-height:44px;border-radius:var(--r-pill)}
+.app .st-categories button[aria-pressed=true]{background:var(--ac);border-color:var(--ac);color:var(--on-ac);font-weight:600}
+.app .st-gallery-head .btn{border-radius:var(--r-pill)}
+@media(prefers-reduced-motion:reduce){.app .st-models .st-thumb{transition:none}.app .st-models .st-template:hover .st-thumb{transform:none}}
