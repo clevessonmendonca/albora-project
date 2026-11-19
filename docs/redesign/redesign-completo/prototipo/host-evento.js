@@ -268,6 +268,24 @@
 .hv-lb-nav:hover{background:transparent}
 .app:has(.hv-pg) .btn.top-cta:hover{background:transparent}
 }
+/* v212 — Hoje (depois): passos em cartões numerados, linha do tempo em cartão */
+.hv-steps{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-4);margin-top:var(--space-6)}
+@media(min-width:900px){.hv-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.app .hv-step{position:relative;display:flex;gap:var(--space-4);align-items:flex-start;margin:0;padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hv-stn{display:grid;place-items:center;flex:none;width:var(--space-8);height:var(--space-8);border-radius:50%;background:var(--ac);color:var(--on-ac);font-weight:600;font-size:var(--fs-sm)}
+.hv-step .stack-3{flex:1;min-width:0}
+.hv-step .btn{border-radius:var(--r-pill)}
+.hv-disclosure .hv-stn{display:none}
+.hv-disclosure .hv-step{border:0;padding:0;background:none}
+.app .hv-sec:has(.hv-tline){padding:var(--space-6);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);margin-top:var(--space-6)}
+.app .hv-risk{padding:var(--space-5);border:1px solid color-mix(in srgb,var(--crit-text) 30%,var(--line-2));border-radius:var(--r-4);background:var(--surface)}
+.hv-rev{padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hv-rev .btn{border-radius:var(--r-pill)}
+.hv-cover img{border-radius:var(--r-3)}
+.app .hv-rev{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-6);align-items:center;margin:0}
+.app .hv-rev .hv-cover{width:100%;max-width:15rem;margin:0}
+.app .hv-rev .hv-cover img{aspect-ratio:4/5;object-fit:cover;width:100%}
+@media(min-width:760px){.app .hv-rev{grid-template-columns:15rem minmax(0,1fr)}}
 `;
   const st = document.createElement('style'); st.id = 'hv-style'; st.textContent = css; document.head.append(st);
 
@@ -771,18 +789,18 @@
     const cover = best ? `<div class="hv-cover"><button data-act="hv-reviver" data-fk="rev-cover" aria-label="Assistir o Reviver, a noite em capítulos">${A.img(best.n, best.ratio === 'l' ? 'p' : best.ratio, 'Capa do álbum: a foto mais curtida da festa (ilustração do protótipo)')}<span class="hv-play" aria-hidden="true">${A.icon('play', 24)}</span></button></div>` : '';
     const hero = `<section class="hv-rev" aria-label="Reviver">${cover}<div class="stack"><h1 class="hv-big">As fotos são de vocês.</h1><p class="t-lead" style="max-width:46ch">${s.noAr} ${plural(s.noAr, 'foto', 'fotos')} de ${s.foto} ${plural(s.foto, 'pessoa', 'pessoas')} · ${E(A.when(id).label.toLowerCase())}. Assista a noite em capítulos e depois decida o que entregar.</p><div class="hv-row"><button class="btn btn-primary btn-lg" data-act="hv-reviver" data-fk="rev">${A.icon('play', 18)} Assistir o Reviver</button><a class="btn btn-quiet" href="${base(id)}/fotos?f=aprovadas">Ver o álbum final</a></div></div></section>`;
     if (couple) return pend + hero + `<section class="hv-sec"><div class="flex between" style="align-items:flex-start;gap:16px"><div><h3 class="t-h">Cápsula de memória</h3><p class="t-small">Guardar meus destaques para a lembrança anual.</p></div>${sw(d.cap, 'hv-cap', 'Guardar meus destaques para a lembrança anual', 'sw-cap')}</div></section><p class="t-small">Entrega aos convidados, livro e exportação ficam com quem organiza. Para ver tudo, ligue “Ver painel completo”.</p>`;
-    const step = (n, title, body) => `<section class="hv-sec"><div class="stack-3"><h3 class="t-h">${title}</h3>${body}</div></section>`;
+    const step = (n, title, body) => `<section class="hv-sec hv-step"><span class="hv-stn" aria-hidden="true">${n}</span><div class="stack-3"><h3 class="t-h">${title}</h3>${body}</div></section>`;
     const entrega = step('1', 'Entregar as fotos aos convidados', `<div class="flex between" style="gap:16px"><p class="t-small">Cada convidado recebe um link com as fotos dele e as da festa.</p>${canExp ? sw(d.entrega, 'hv-entrega', 'Liberar entrega das fotos', 'sw-ent') : ''}</div>${d.entrega ? `<div class="hv-row"><button class="btn btn-line btn-sm" data-act="hv-enviar" data-fk="enviar" ${canExp ? '' : 'disabled'}>${A.icon('send', 16)} Enviar agora</button><span class="t-small" aria-live="polite">${d.enviado ? `${d.enviado} enviadas · simulado: WhatsApp e e-mail dependem de integração` : 'Ainda não enviou.'}</span></div>` : ''}${lock}`);
     const album = step('2', 'Álbum final', `<p class="t-small">${s.noAr} ${plural(s.noAr, 'foto aprovada', 'fotos aprovadas')}, ${s.destaques} ${plural(s.destaques, 'destacada', 'destacadas')} pelos convidados.</p><div class="hv-row"><a class="btn btn-line btn-sm" href="${base(id)}/fotos?f=aprovadas">Abrir em Fotos</a><button class="btn btn-line btn-sm" data-act="hv-zip" data-fk="zip" ${canExp ? '' : 'disabled'}>${A.icon('download', 16)} Baixar tudo (ZIP)</button></div>`);
     const livro = step('3', 'Livro em PDF', d.livro ? `<p class="t-small">Livro pronto, formato A4. Simulado: o PDF real é gerado pelo servidor.</p><div class="hv-row"><button class="btn btn-line btn-sm" data-act="hv-bookdl" data-fk="bookdl">${A.icon('download', 16)} Baixar PDF</button><button class="btn btn-quiet btn-sm" data-act="hv-book" data-fk="book" ${canExp ? '' : 'disabled'}>Gerar de novo</button></div>` : `<p class="t-small">Monta as melhores fotos em páginas, para imprimir.</p><div class="hv-row"><button class="btn btn-line btn-sm" data-act="hv-book" data-fk="book" ${canExp ? '' : 'disabled'}>Gerar livro (simulado)</button></div>`);
-    const cap = step('4', 'Cápsula de memória', `<div class="flex between" style="gap:16px"><p class="t-small">Guardar meus destaques para a lembrança anual. Dá para desligar quando quiser, sem perguntas.</p>${sw(d.cap, 'hv-cap', 'Guardar meus destaques para a lembrança anual', 'sw-cap')}</div>`);
+    const cap = step('5', 'Cápsula de memória', `<div class="flex between" style="gap:16px"><p class="t-small">Guardar meus destaques para a lembrança anual. Dá para desligar quando quiser, sem perguntas.</p>${sw(d.cap, 'hv-cap', 'Guardar meus destaques para a lembrança anual', 'sw-cap')}</div>`);
     const th = d.thanks ? `<p class="t-small">Agradecimento enviado ${E(d.thanks.quando)}: “${E(d.thanks.txt)}”</p><button class="btn btn-quiet btn-sm" data-act="hv-thanks" data-fk="thx">Escrever outro</button>` : `<p class="t-small">Uma mensagem sua para todos que entraram na festa.</p><button class="btn btn-line btn-sm" data-act="hv-thanks" data-fk="thx">Escrever agradecimento</button>`;
-    const thanks = step('5', 'Agradecer aos convidados', th);
+    const thanks = step('4', 'Agradecer aos convidados', th);
     const exportDay = 330, delDay = 365, pct = Math.min(100, Math.round((day / delDay) * 100));
     const tl = `<section class="hv-sec"><h3 class="t-h" style="margin-bottom:var(--space-3)">As fotos ficam com você por um ano</h3><div class="hv-tline" role="img" aria-label="Linha do tempo: hoje é o dia ${day} de 365"><i style="width:${pct}%"></i><b style="left:${(exportDay / delDay) * 100}%"></b><b style="left:99.4%"></b></div><div class="list"><div class="li"><b style="min-width:92px">Hoje · dia ${day}</b><span class="grow">Tudo guardado e acessível.</span></div><div class="li"><b style="min-width:92px">Dia ${exportDay}</b><span class="grow">${E(fmtD(exportDay, id))}: mandamos tudo para a sua nuvem.</span></div><div class="li"><b style="min-width:92px">Dia ${delDay}</b><span class="grow">${E(fmtD(delDay, id))}: apagamos tudo do Albora.</span></div></div><div class="hv-row" style="margin-top:12px"><button class="btn btn-line btn-sm" data-act="hv-cloud" data-fk="cloud" ${canExp ? '' : 'disabled'}>${A.icon('upload', 16)} Exportar para minha nuvem (simulado)</button></div>${d.cloud ? `<p class="t-small" aria-live="polite" style="margin-top:8px">Exportação simulada concluída ${E(d.cloud)}. Na versão real depende da nuvem que você conectar.</p>` : ''}${lock}</section>`;
     const mais = `<details class="hv-disclosure hv-sec ds-fold sem-borda"><summary>Cápsula de memória e agradecimento</summary><div class="ds-fold-b">${cap}${thanks}</div></details>`;
     const risk = `<section class="hv-risk" aria-labelledby="hv-rk"><h2 class="t-h" id="hv-rk">Apagar as fotos</h2><p class="t-small">Apaga o álbum, o telão e o Reviver deste evento, e os convidados perdem o acesso. Baixe ou exporte antes: depois não dá para recuperar.</p><button class="btn btn-danger" data-act="hv-wipe" data-fk="wipe" ${canExp ? '' : 'disabled'}>${A.icon('trash', 16)} Apagar tudo agora</button></section>`;
-    return pend + hero + entrega + album + livro + mais + tl + risk;
+    return pend + hero + `<div class="hv-steps">${entrega}${album}${livro}${thanks}</div>` + `<details class="hv-disclosure hv-sec ds-fold sem-borda"><summary>Cápsula de memória</summary><div class="ds-fold-b">${cap}</div></details>` + tl + risk;
   }
   A.acts['hv-cap'] = () => { const id = curId(), d = dep(id), on = !d.cap; setDep(id, { cap: on }); A.toast(on ? 'Destaques guardados para a lembrança anual.' : 'Cápsula desligada. Nada será guardado.'); redraw(); };
   A.acts['hv-entrega'] = () => { const id = curId(), d = dep(id), on = !d.entrega; setDep(id, { entrega: on }); withUndo(on ? 'Entrega liberada. Falta enviar.' : 'Entrega desligada.', () => { setDep(id, { entrega: !on }); redraw(); }); redraw(); };

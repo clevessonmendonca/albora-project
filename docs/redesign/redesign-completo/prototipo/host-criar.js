@@ -742,10 +742,13 @@ details.hpl-sim.ds-fold{border-top-style:dashed;border-top-color:var(--line);pad
 .hpl .hpl-ben li{margin:0;grid-template-columns:var(--space-8) minmax(0,1fr);align-content:start}
 .hpl .hpl-n{background:var(--ac);color:var(--on-ac)}
 .hpl-ben .eq{display:inline-block;padding:var(--space-1) var(--space-3);background:var(--surface-2);border-radius:var(--r-pill);font-size:var(--fs-xs)}
-.hpl .hpl-met li{position:relative;align-items:center;padding:var(--space-5);background:var(--tinta);color:var(--papel);border-color:var(--tinta);border-radius:var(--r-3)}
-.hpl-met li .muted,.hpl-met li .t-small{color:color-mix(in srgb,var(--papel) 70%,transparent)}
-.hpl-met li .hpl-link,.hpl-met li .t-h,.hpl-met li .btn{color:var(--papel)}
-.hpl .hpl-met .badge{background:color-mix(in srgb,var(--papel) 18%,transparent);color:var(--papel)}
+.hpl .hpl-met li{align-items:center;gap:var(--space-4);padding:var(--space-4) var(--space-5);background:var(--surface);color:var(--fg);border:1px solid var(--line-2);border-radius:var(--r-3)}
+.hpl-met li>.muted{display:grid;place-items:center;flex:none;width:var(--space-12);height:var(--space-10);border-radius:var(--r-2);background:var(--surface-2);color:var(--fg)}
+.hpl-met li .badge{margin-left:var(--space-2);border-radius:var(--r-pill);padding:var(--space-1) var(--space-3);background:var(--surface-2);color:var(--fg);font-size:var(--fs-xs);vertical-align:middle}
+.hpl-met li .hpl-link.sm{min-height:44px;padding:0 var(--space-4);border:1px solid var(--line);border-radius:var(--r-pill);text-decoration:none;font-weight:500;background:var(--bg)}
+.hpl-met li .hpl-link.sm:hover{background:var(--surface-2)}
+.hpl-met+div .hpl-link{width:100%;justify-content:center;min-height:52px;border:1px dashed var(--line);border-radius:var(--r-3);text-decoration:none;color:var(--fg-2)}
+.hpl-met+div .hpl-link:hover{background:var(--surface);color:var(--fg)}
 .hpl-fats li{padding:var(--space-4) var(--space-5);margin-bottom:var(--space-2);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-3)}
 .hpl-tabs{padding:var(--space-1);background:var(--surface-2);border-radius:var(--r-pill);align-self:flex-start;gap:var(--space-1)}
 .hpl-tabs .hpl-link{padding:0 var(--space-4);border-radius:var(--r-pill);text-decoration:none}
