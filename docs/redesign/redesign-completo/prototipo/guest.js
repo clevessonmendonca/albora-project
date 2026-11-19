@@ -497,6 +497,14 @@
   .gx-mode[aria-pressed=true]{color:var(--fg)}
   .gx-mode[aria-pressed=true]::after{content:"";position:absolute;left:50%;bottom:var(--space-1);width:6px;height:6px;border-radius:50%;background:var(--ac);translate:-50% 0}
   .gx-cm2 .gx-ctl{width:100%;max-width:26rem}
+  .gx-cm2 #gx-flip{display:none}
+  .gx-tools{position:absolute;right:var(--space-3);top:50%;translate:0 -50%;z-index:3;display:flex;flex-direction:column;gap:var(--space-4)}
+  .gx-tool{display:flex;flex-direction:column;align-items:center;gap:var(--space-1);min-width:44px;min-height:44px;padding:0;background:none;border:0;color:var(--fg);font-size:var(--fs-xs);font-weight:600;cursor:pointer}
+  .gx-tool-i{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:color-mix(in srgb,var(--noite) 50%,transparent);border:1px solid color-mix(in srgb,var(--fg) 22%,transparent)}
+  .gx-tool[aria-pressed=true] .gx-tool-i{background:var(--ac);border-color:var(--ac);color:var(--on-ac)}
+  .gx-tool:focus-visible{outline:2px solid var(--fg);outline-offset:2px;border-radius:var(--r-3)}
+  .gx-gridov{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,transparent calc(33.33% - 1px),color-mix(in srgb,var(--fg) 40%,transparent) calc(33.33% - 1px),color-mix(in srgb,var(--fg) 40%,transparent) 33.33%,transparent 33.33%,transparent calc(66.66% - 1px),color-mix(in srgb,var(--fg) 40%,transparent) calc(66.66% - 1px),color-mix(in srgb,var(--fg) 40%,transparent) 66.66%,transparent 66.66%),linear-gradient(0deg,transparent calc(33.33% - 1px),color-mix(in srgb,var(--fg) 40%,transparent) calc(33.33% - 1px),color-mix(in srgb,var(--fg) 40%,transparent) 33.33%,transparent 33.33%,transparent calc(66.66% - 1px),color-mix(in srgb,var(--fg) 40%,transparent) calc(66.66% - 1px),color-mix(in srgb,var(--fg) 40%,transparent) 66.66%,transparent 66.66%)}
+  .gx-count{position:absolute;inset:0;z-index:4;display:grid;place-items:center;font:300 calc(var(--fs-hero) * 3)/1 var(--font-display);color:var(--fg);background:color-mix(in srgb,var(--noite) 35%,transparent)}
   .gx-cm2 .gx-side{width:48px;height:48px;min-width:48px;min-height:48px;color:var(--fg);background:color-mix(in srgb,var(--noite) 55%,transparent);border:1px solid color-mix(in srgb,var(--fg) 25%,transparent);border-radius:var(--r-2)}
   .gx-cm2 .shutter{width:84px;height:84px;border-width:4px;border-color:var(--fg)}.gx-cm2 .shutter::after{width:64px;height:64px}
   @media(min-width:861px){.gx-cm2{height:min(calc(100dvh - var(--space-8)),52rem);max-width:30rem;margin:var(--space-4) auto;border-radius:var(--r-3)}}
@@ -1431,7 +1439,7 @@
     v.onerror = () => { URL.revokeObjectURL(url); no(new Error('tipo')); }; v.src = url;
   });
 
-  const CAM = { stream: null, facing: 'environment', failed: false, mode: 'foto', rec: null, tick: null, ar: '9/16', q: '' };
+  const CAM = { stream: null, facing: 'environment', failed: false, mode: 'foto', rec: null, tick: null, ar: '9/16', q: '', grid: false, timer: 0, counting: false, cdt: null };
   const camMsg = (t) => { const p = A.$('#gx-camMsg'); if (p) p.textContent = t; };
   const camStop = () => {
     if (CAM.rec) { CAM.rec.onstop = null; if (CAM.rec.state !== 'inactive') CAM.rec.stop(); CAM.rec = null; }
@@ -1475,15 +1483,24 @@
     upd2(); CAM.tick = setInterval(upd2, 500); camMsg('Gravando. Toque no obturador para parar.');
   };
   A.acts['g-shutter'] = async (el) => {
+    if (CAM.counting) { clearInterval(CAM.cdt); CAM.counting = false; cdHide(); return; }
     if (CAM.rec) return recStop();
+    if (CAM.timer && CAM.stream) return countdown(el.dataset.q);
     if (CAM.stream && CAM.mode === 'video') return recStart(curSlug(), el.dataset.q);
     if (CAM.stream) return camShot(curSlug(), el.dataset.q);
     if (CAM.failed) return A.$('#gx-cap')?.click();
     const unsupported = !navigator.mediaDevices?.getUserMedia || !window.isSecureContext;
     await camStart(); if (unsupported) A.$('#gx-cap')?.click();
   };
-  A.acts['g-flip'] = async () => { if (CAM.rec) return; CAM.facing = CAM.facing === 'user' ? 'environment' : 'user'; await camStart(); };
-  window.addEventListener('hashchange', () => { if (!/\/camera(\?|$)/.test(location.hash)) camStop(); });
+  A.acts['g-t-grade'] = (el) => { CAM.grid = !CAM.grid; el.setAttribute('aria-pressed', String(CAM.grid)); const g = A.$('#gx-gridov'); if (g) g.hidden = !CAM.grid; };
+  A.acts['g-t-timer'] = (el) => { CAM.timer = CAM.timer === 0 ? 3 : CAM.timer === 3 ? 10 : 0; el.setAttribute('aria-pressed', String(CAM.timer > 0)); const t = A.$('#gx-tt'); if (t) t.textContent = CAM.timer ? CAM.timer + ' s' : 'Timer'; };
+  const cdHide = () => { const c = A.$('#gx-count'); if (c) { c.hidden = true; c.textContent = ''; } };
+  const countdown = (q) => {
+    let n = CAM.timer; CAM.counting = true; const c = A.$('#gx-count'); const show = () => { if (c) { c.hidden = false; c.textContent = String(n); } }; show();
+    CAM.cdt = setInterval(() => { n--; if (n > 0) return show(); clearInterval(CAM.cdt); CAM.counting = false; cdHide(); if (CAM.mode === 'video') recStart(curSlug(), q); else camShot(curSlug(), q); }, 1000);
+  };
+  A.acts['g-flip'] = async () => { if (CAM.rec) return; CAM.facing = CAM.facing === 'user' ? 'environment' : 'user'; if (CAM.stream) await camStart(); else camMsg(CAM.facing === 'user' ? 'Câmera frontal escolhida. Toque no obturador para ligar.' : 'Câmera traseira escolhida. Toque no obturador para ligar.'); };
+  window.addEventListener('hashchange', () => { if (!/\/camera(\?|$)/.test(location.hash)) { clearInterval(CAM.cdt); CAM.counting = false; camStop(); } });
   document.addEventListener('visibilitychange', () => { if (document.hidden && CAM.stream) { camStop(); camMsg('Câmera pausada. Toque no obturador para ligar de novo.'); } });
 
   A.route('/g/:slug/camera', (ctx) => {
@@ -1493,7 +1510,7 @@
     const done = mDone(s); const pending = missionsOn().find((x) => !done[x.id]);
     const chips = `<button type="button" class="gx-mchip ${m ? 'acc' : ''}" data-act="g-pick-m" aria-haspopup="dialog" aria-label="${m ? 'Missão: ' + A.esc(m.titulo) + '. Trocar' : 'Escolher uma missão'}">${A.icon('target', 18)}<span class="gx-mchip-t">${m ? `${m.romano}. ${A.esc(m.titulo)}` : 'Missão'}</span>${A.icon('chevron', 14)}</button>`;
     const q = m ? m.id : '';
-    return page(ctx, { title: 'Câmera', active: 'camera', nav: false, bare: true, body: `<div class="gx-cm2" data-theme="noite"><div class="gx-vf" id="gx-vf"><video id="gx-video" playsinline muted autoplay hidden></video><div class="gx-vf-m"><p id="gx-camMsg" role="status" aria-live="polite">Toque no obturador para ligar a câmera. Se ela não abrir, use a Galeria.</p><small>A localização da foto é removida antes do envio.</small></div><span class="gx-rectime" id="gx-rectime" aria-hidden="true" hidden></span></div><div class="gx-ctop"><a class="gx-cbtn" href="${B(s)}/explorar" aria-label="Fechar a câmera">${A.icon('x', 24)}</a><div class="gx-cmis">${chips}</div><button type="button" class="gx-cbtn gx-flip" id="gx-flip" data-act="g-flip" aria-label="Virar a câmera" hidden>${A.icon('refresh', 22)}</button></div><div class="gx-cbot"><div class="gx-modes" role="group" aria-label="Tipo de captura"><button type="button" class="gx-mode" data-act="g-video" data-mode="foto" aria-pressed="true">Foto</button><button type="button" class="gx-mode" data-act="g-video" data-mode="video" aria-pressed="false">Vídeo</button></div><div class="gx-ctl"><label class="gx-side" title="Galeria">${A.icon('image', 24)}<span class="sr-only">Galeria</span><input type="file" accept="image/*,video/*" multiple data-change="g-file" data-q="${q}" aria-label="Escolher fotos ou vídeos da galeria (até 10)"></label><button type="button" class="gx-shut" id="gx-shut" data-act="g-shutter" data-q="${q}" aria-label="Ligar a câmera e tirar a foto"><span class="shutter big" aria-hidden="true"></span></button><input type="file" accept="image/*" capture="environment" id="gx-cap" data-change="g-file" data-q="${q}" hidden aria-hidden="true" tabindex="-1"><button type="button" class="gx-side" data-act="g-amostras" data-q="${q}" aria-label="Fotos de amostra do protótipo" title="Fotos de amostra">${A.icon('grid', 24)}</button></div></div></div>` });
+    return page(ctx, { title: 'Câmera', active: 'camera', nav: false, bare: true, body: `<div class="gx-cm2" data-theme="noite"><div class="gx-vf" id="gx-vf"><video id="gx-video" playsinline muted autoplay hidden></video><div class="gx-vf-m"><p id="gx-camMsg" role="status" aria-live="polite">Toque no obturador para ligar a câmera. Se ela não abrir, use a Galeria.</p><small>A localização da foto é removida antes do envio.</small></div><span class="gx-rectime" id="gx-rectime" aria-hidden="true" hidden></span></div><div class="gx-ctop"><a class="gx-cbtn" href="${B(s)}/explorar" aria-label="Fechar a câmera">${A.icon('x', 24)}</a><div class="gx-cmis">${chips}</div><button type="button" class="gx-cbtn gx-flip" id="gx-flip" data-act="g-flip" aria-label="Virar a câmera" hidden>${A.icon('refresh', 22)}</button></div><div class="gx-tools" role="group" aria-label="Ferramentas da câmera"><button type="button" class="gx-tool" data-act="g-flip"><span class="gx-tool-i">${A.icon('refresh', 22)}</span><span>Virar</span></button><button type="button" class="gx-tool" data-act="g-t-grade" aria-pressed="${CAM.grid}"><span class="gx-tool-i">${A.icon('grid', 22)}</span><span>Grade</span></button><button type="button" class="gx-tool" data-act="g-t-timer" aria-pressed="${CAM.timer > 0}"><span class="gx-tool-i">${A.icon('clock', 22)}</span><span id="gx-tt">${CAM.timer ? CAM.timer + ' s' : 'Timer'}</span></button></div><div class="gx-gridov" id="gx-gridov" aria-hidden="true" ${CAM.grid ? '' : 'hidden'}></div><div class="gx-count" id="gx-count" role="status" aria-live="assertive" hidden></div><div class="gx-cbot"><div class="gx-modes" role="group" aria-label="Tipo de captura"><button type="button" class="gx-mode" data-act="g-video" data-mode="foto" aria-pressed="true">Foto</button><button type="button" class="gx-mode" data-act="g-video" data-mode="video" aria-pressed="false">Vídeo</button></div><div class="gx-ctl"><label class="gx-side" title="Galeria">${A.icon('image', 24)}<span class="sr-only">Galeria</span><input type="file" accept="image/*,video/*" multiple data-change="g-file" data-q="${q}" aria-label="Escolher fotos ou vídeos da galeria (até 10)"></label><button type="button" class="gx-shut" id="gx-shut" data-act="g-shutter" data-q="${q}" aria-label="Ligar a câmera e tirar a foto"><span class="shutter big" aria-hidden="true"></span></button><input type="file" accept="image/*" capture="environment" id="gx-cap" data-change="g-file" data-q="${q}" hidden aria-hidden="true" tabindex="-1"><button type="button" class="gx-side" data-act="g-amostras" data-q="${q}" aria-label="Fotos de amostra do protótipo" title="Fotos de amostra">${A.icon('grid', 24)}</button></div></div></div>` });
   });
   A.acts['g-pick-m'] = () => {
     const s = curSlug(); const cur = new URLSearchParams((location.hash.split('?')[1] || '')).get('missao') || ''; const done = mDone(s);
