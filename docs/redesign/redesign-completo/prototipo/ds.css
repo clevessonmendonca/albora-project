@@ -471,3 +471,9 @@ h1[tabindex="-1"]:focus,#main[tabindex="-1"]:focus{outline:none}
 .hv-before{display:flex;flex-direction:column;gap:var(--space-4)}
 .hv-before .hv-next{max-width:none;margin:0;align-items:center;text-align:center}
 .hv-poster .hv-arcwrap,.hv-poster .hh-orn,.hv-poster svg.hh-orn{display:none!important}
+
+/* v214 — toasts: pílula escura de tinta com ícone (antes ficava branco sobre fundo claro) */
+.toasts .toast{background:var(--tinta);color:var(--papel);border:1px solid color-mix(in srgb,var(--papel) 16%,transparent);border-radius:var(--r-pill);padding:var(--space-2) var(--space-5) var(--space-2) var(--space-3);gap:var(--space-3);font-size:var(--fs-sm);font-weight:500;min-height:48px;box-shadow:0 16px 40px color-mix(in srgb,var(--tinta) 35%,transparent)}
+.toast .toast-i{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--papel) 16%,transparent);color:var(--papel)}
+.toasts .toast.bad{background:var(--brasa);border-color:transparent}
+.toast button{border-radius:var(--r-pill);text-decoration:none;padding:0 var(--space-4);background:color-mix(in srgb,var(--papel) 16%,transparent)}

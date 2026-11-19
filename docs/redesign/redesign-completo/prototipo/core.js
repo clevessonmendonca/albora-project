@@ -286,7 +286,7 @@
   };
   A.toast = (msg, o = {}) => {
     let box = A.$('.toasts'); if (!box) { box = document.createElement('div'); box.className = 'toasts'; box.setAttribute('role', 'status'); box.setAttribute('aria-live', 'polite'); document.body.append(box); }
-    const t = document.createElement('div'); t.className = 'toast ' + (o.kind || ''); t.innerHTML = `<span class="grow">${A.esc(msg)}</span>${o.undo ? '<button>Desfazer</button>' : ''}`;
+    const t = document.createElement('div'); t.className = 'toast ' + (o.kind || ''); t.innerHTML = `<span class="toast-i" aria-hidden="true">${A.icon(o.kind === 'bad' ? 'warn' : 'check', 16)}</span><span class="grow">${A.esc(msg)}</span>${o.undo ? '<button>Desfazer</button>' : ''}`;
     box.append(t); const kill = () => t.remove(); const to = setTimeout(kill, o.ms || (o.undo ? 6500 : 3200));
     if (o.undo) A.$('button', t).onclick = () => { clearTimeout(to); kill(); o.undo(); }; return t;
   };
