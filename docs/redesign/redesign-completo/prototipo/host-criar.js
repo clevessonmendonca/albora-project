@@ -715,6 +715,35 @@ details.hpl-sim.ds-fold{border-top-style:dashed;border-top-color:var(--line);pad
 .hpl-sim pre{margin:0;max-height:16rem;overflow:auto;font:var(--fs-xs)/1.5 var(--font-mono,monospace);color:var(--fg-2);white-space:pre-wrap;overflow-wrap:anywhere}
 /* sem cursor o :hover gruda depois do toque: devolve o valor base */
 @media(hover:none){.hpl-link:not([disabled]):hover{color:var(--fg)}}
+/* v206 — Plano estilo Stripe/Linear: hero escuro, medidores em cartão, benefícios em grade, cartão de pagamento */
+.hpl-story{position:relative;overflow:hidden;padding:var(--space-8);border-radius:var(--r-4);background:var(--tinta);color:var(--papel);background-image:radial-gradient(circle at 100% 0,color-mix(in srgb,var(--ambar) 38%,transparent),transparent 55%)}
+.hpl-story .hpl-kick,.hpl-story .hpl-p{color:color-mix(in srgb,var(--papel) 78%,transparent)}
+.hpl-story .hpl-kick::before{background:var(--ambar)}
+.hpl-story .hpl-lead{color:var(--papel);max-width:20ch}
+.hpl-story .hpl-st{background:color-mix(in srgb,var(--papel) 10%,transparent);border-color:color-mix(in srgb,var(--papel) 22%,transparent);border-radius:var(--r-3);color:var(--papel)}
+.hpl-main{grid-template-areas:"story" "aside" "ben"}
+@media(min-width:960px){.hpl-main{grid-template-columns:minmax(0,1fr) minmax(0,22rem);grid-template-areas:"story story" "ben aside";column-gap:var(--space-8);row-gap:var(--space-6)}.hpl-aside{position:sticky;top:var(--space-6);align-self:start}}
+.hpl-dl{gap:var(--space-3)}
+.hpl-row{padding:var(--space-4);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-3)}
+.hpl-fil{height:8px;border-radius:var(--r-pill);overflow:hidden} .hpl-fil i{border-radius:var(--r-pill)}
+.hpl-ben ol{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-3)}
+@media(min-width:1100px){.hpl-ben ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.hpl .hpl-ben li{margin:0;grid-template-columns:var(--space-8) minmax(0,1fr);align-content:start}
+.hpl .hpl-n{background:var(--ac);color:var(--on-ac)}
+.hpl .hpl-met .badge{background:color-mix(in srgb,var(--papel) 18%,transparent);color:var(--papel)}
+.hpl-ben .eq{display:inline-block;padding:var(--space-1) var(--space-3);background:var(--surface-2);border-radius:var(--r-pill);font-size:var(--fs-xs)}
+.hpl .hpl-preco{background:var(--surface);border:1px solid var(--ac);box-shadow:var(--elev-2)}
+.hpl-preco-n{font-size:var(--fs-display)}
+.hpl .hpl-met li{position:relative;align-items:center;padding:var(--space-5);background:var(--tinta);color:var(--papel);border-color:var(--tinta);border-radius:var(--r-3)}
+.hpl-met li .muted,.hpl-met li .t-small{color:color-mix(in srgb,var(--papel) 70%,transparent)}
+.hpl-met li .hpl-link,.hpl-met li .t-h{color:var(--papel)}
+.hpl-met li .btn{color:var(--papel)}
+.hpl-fats li{padding:var(--space-4) var(--space-5);margin-bottom:var(--space-2);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-3)}
+.hpl-tabs{padding:var(--space-1);background:var(--surface-2);border-radius:var(--r-pill);align-self:flex-start;gap:var(--space-1)}
+.hpl-tabs .hpl-link{padding:0 var(--space-4);border-radius:var(--r-pill);text-decoration:none}
+.hpl-tabs .hpl-link[aria-pressed="true"]{background:var(--bg);box-shadow:var(--elev-1)}
+.hpl-sec>h2{font:400 var(--fs-xl)/1.2 var(--font-display)}
+@media(max-width:600px){.hpl-story{padding:var(--space-5)}}
 /* v205 — Plano e cobrança em cartões */
 .hpl-aside>*{min-width:0}
 .hpl-st,.hpl-preco{padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
