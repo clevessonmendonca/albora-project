@@ -145,6 +145,20 @@
 .hcr-x:hover,.hcr-ev:hover{background:none}
 .hcr-tp:not([aria-checked="true"]):hover{background:none}
 }
+/* v203 — Seus eventos: cartões com capa e selo, em grade (fim do bloco para vencer as regras originais) */
+.hcr-evs{display:grid;grid-template-columns:repeat(auto-fill,minmax(17rem,1fr));gap:var(--space-4)}
+.hcr-ev{display:flex;flex-direction:column;gap:0;padding:0;border:1px solid var(--line-2);border-radius:var(--r-4);background:var(--surface);overflow:hidden;transition:transform var(--dur-2) var(--ease),box-shadow var(--dur-2) var(--ease)}
+.hcr-ev .hcr-thumb{position:relative;width:100%;aspect-ratio:16/10;border-radius:0}
+.hcr-ev .hcr-thumb .monogram{font-size:var(--fs-display)}
+.hcr-ev-pill{position:absolute;right:var(--space-3);top:var(--space-3);padding:var(--space-1) var(--space-3);border-radius:var(--r-pill);background:var(--bg);color:var(--fg);font-size:var(--fs-sm);font-weight:600;box-shadow:0 2px 10px color-mix(in srgb,var(--tinta) 22%,transparent)}
+.hcr-ev-pill.live{background:var(--ac);color:var(--on-ac)}
+.hcr-ev-b{display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-4) var(--space-5) var(--space-5);min-width:0}
+.hcr-ev-n{margin-bottom:0}
+.hcr-ev-l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hcr-ev-p{align-self:flex-start;margin-top:var(--space-2);padding:var(--space-1) var(--space-3);border-radius:var(--r-pill);background:var(--surface-2);font-size:var(--fs-xs);color:var(--fg-2)}
+@media(hover:hover){.hcr-ev:hover{background:var(--surface);transform:translateY(calc(-1 * var(--space-1)));box-shadow:0 16px 32px color-mix(in srgb,var(--tinta) 12%,transparent)}}
+@media(prefers-reduced-motion:reduce){.hcr-ev{transition:none}.hcr-ev:hover{transform:none}}
+@media(max-width:600px){.hcr-evs{grid-template-columns:minmax(0,1fr)}.hcr-ev .hcr-thumb{width:100%}.hcr-ev .hcr-thumb .monogram{font-size:var(--fs-display)}}
 `;
   document.head.appendChild(st);
 
@@ -323,15 +337,15 @@
   }
   const linhaEvento = ({ e, w }) => {
     const thumb = e.capa ? `<img src="${esc(e.capa)}" alt="">` : `<span class="monogram">${esc(e.iniciais)}</span>`;
-    const right = w.semData ? `<span class="t-small">Data a definir</span>` : w.phase === 'antes' ? `<b>${w.days}</b><span class="t-small">${w.days === 1 ? 'dia' : 'dias'}</span>` : w.phase === 'durante' ? `<span class="badge live">Ao vivo agora</span>` : `<span class="t-small">${esc(w.label)}</span>`;
-    return `<a class="hcr-ev" href="${A.hostBase(e.id)}/hoje" style="${A.theme.scope(e.cor, 'papel')}"><span class="hcr-thumb" aria-hidden="true">${thumb}</span><span style="min-width:0"><b class="hcr-ev-n">${esc(e.nome)}</b><span class="t-small" style="display:block">${esc(tipoObj(e.tipo).nome)} · ${esc(w.date)}${e.local ? ' · ' + esc(e.local) : ''}</span><span class="t-small" style="display:block;margin-top:4px">Plano ${esc(plano(e.plano).nome)}${w.phase === 'durante' ? ' · abrir ao vivo' : ''}</span></span><span class="hcr-ev-w">${right}</span></a>`;
+    const pill = w.semData ? '<span class="hcr-ev-pill">Data a definir</span>' : w.phase === 'antes' ? `<span class="hcr-ev-pill">em ${w.days} ${w.days === 1 ? 'dia' : 'dias'}</span>` : w.phase === 'durante' ? '<span class="hcr-ev-pill live">Ao vivo agora</span>' : `<span class="hcr-ev-pill">${esc(w.label)}</span>`;
+    return `<a class="hcr-ev" href="${A.hostBase(e.id)}/hoje" style="${A.theme.scope(e.cor, 'papel')}"><span class="hcr-thumb" aria-hidden="true">${thumb}${pill}</span><span class="hcr-ev-b"><b class="hcr-ev-n">${esc(e.nome)}</b><span class="t-small">${esc(tipoObj(e.tipo).nome)} · ${esc(w.date)}</span>${e.local ? `<span class="t-small hcr-ev-l">${esc(e.local)}</span>` : ''}<span class="hcr-ev-p">Plano ${esc(plano(e.plano).nome)}${w.phase === 'durante' ? ' · abrir ao vivo' : ''}</span></span></a>`;
   };
   function listaHtml() {
     const { arr, counts, f } = listaDados();
     const chips = [['todos', 'Todos'], ['antes', 'Preparando'], ['durante', 'Ao vivo'], ['depois', 'Encerrados']].map(([v, l]) => `<button data-act="hcr-f" data-v="${v}" aria-pressed="${f.f === v}">${l}<span class="n">${counts[v]}</span></button>`).join('');
     const FN = { antes: 'em preparação', durante: 'ao vivo agora', depois: 'encerrado' };
     const vazioT = f.q.trim() ? `Nenhum evento para “${f.q.trim().slice(0, 40)}”` : `Nenhum evento ${FN[f.f] || ''}`.trim();
-    const lista = arr.length ? `<div>${arr.map(linhaEvento).join('')}</div>` : A.emptyState({ icon: 'search', title: vazioT, body: f.q.trim() ? 'Confira a escrita do nome, do tipo ou do local. Seus eventos continuam todos aqui.' : 'Seus outros eventos estão em outra fase. Limpe o filtro para vê-los.', cta: '<button class="btn btn-line" data-act="hcr-limpar">Limpar busca e filtros</button>' });
+    const lista = arr.length ? `<div class="hcr-evs">${arr.map(linhaEvento).join('')}</div>` : A.emptyState({ icon: 'search', title: vazioT, body: f.q.trim() ? 'Confira a escrita do nome, do tipo ou do local. Seus eventos continuam todos aqui.' : 'Seus outros eventos estão em outra fase. Limpe o filtro para vê-los.', cta: '<button class="btn btn-line" data-act="hcr-limpar">Limpar busca e filtros</button>' });
     return { chips, lista, n: `${arr.length} ${arr.length === 1 ? 'evento' : 'eventos'}` };
   }
   function refreshLista() { const h = listaHtml(); const c = $('#hcr-chips'), l = $('#hcr-list'), n = $('#hcr-n'); if (c) c.innerHTML = h.chips; if (l) l.innerHTML = h.lista; if (n) n.textContent = h.n; }
