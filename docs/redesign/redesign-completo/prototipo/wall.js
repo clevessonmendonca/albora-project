@@ -312,10 +312,10 @@ body.wall-mode .proto-bar{opacity:0;transition:opacity var(--dur-2)} body.wall-m
       const n = items.length;
       if (m === 'polaroide') { const it = items[0]; return `<div class="wl-layer"><div class="wl-pol" style="--ar:${AR[it.ratio]};--rot:${S.mi % 2 ? 1.6 : -1.6}deg"><div class="wl-ph"><img src="${A.photo(it.seed, it.ratio)}" alt="Foto de ${esc(it.autor)}"></div><p class="wl-cap"><b>${esc(it.autor)}</b><span>${when(it)}</span></p></div></div>`; }
       if (m === 'colagem') { const sl = SLOTS[Math.min(5, n)]; return `<div class="wl-layer"><img class="wl-col-bd" src="${A.photo(items[0].seed, items[0].ratio)}" alt="" aria-hidden="true"><div class="wl-col">${items.map((it, i) => `<div class="wl-item" style="--x:${sl[i][0]}%;--y:${sl[i][1]}%;--h:${sl[i][2]};--rot:${sl[i][3]}deg;--ar:${AR[it.ratio]};--i:${i}"><img src="${A.photo(it.seed, it.ratio)}" alt="Foto de ${esc(it.autor)}"><span class="wl-cap2" aria-hidden="true">${esc(it.autor)}</span></div>`).join('')}</div></div>`; }
-      const cols = m === 'dump' ? 3 : Math.max(1, Math.ceil(n / 2)); const rows = Math.ceil(n / cols);
+      const cols = m === 'dump' ? Math.ceil(n / 2) : Math.max(1, Math.ceil(n / 2)); const rows = Math.ceil(n / cols);
       return `<div class="wl-layer"><div class="wl-grid ${m === 'dump' ? 'wl-dump' : ''}" style="--cols:${cols};--rows:${rows}">${items.map((it, i) => fig(it, i, m === 'dump' ? 90 : 160)).join('')}</div></div>`;
     };
-    const NEED = { polaroide: 1, mural: 6, colagem: 5, dump: 9 };
+    const NEED = { polaroide: 1, mural: 8, colagem: 5, dump: 10 };
     const swap = (inner) => {
       scene.querySelectorAll('.wl-layer,.wl-state').forEach((o) => { o.classList.add('wl-out'); setTimeout(() => o.remove(), 800); });
       const d = document.createElement('div'); d.className = 'wl-fade'; d.innerHTML = inner; const el = d.firstElementChild; el.classList.add('wl-in'); scene.append(el); return el;
