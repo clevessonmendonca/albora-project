@@ -303,6 +303,18 @@ details.hc-fold.ds-fold:not(.in){margin-top:var(--space-2);padding:var(--space-1
   .hc-ed-l{padding-bottom:var(--space-16)}
 }
 
+/* v302 — Ajustes mobile first: lista agrupada com ícone e descrição (sem item falsamente selecionado) */
+.hc-aj-nav a{align-items:center;gap:var(--space-4);min-height:64px;padding-block:var(--space-3)}
+.hc-aj-nav a::before{display:none}
+.hc-aj-nav .aj-i{display:grid;place-items:center;flex:none;width:40px;height:40px;border-radius:var(--r-2);background:var(--surface-2);color:var(--fg)}
+.hc-aj-nav .aj-t{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1} .hc-aj-nav .aj-t b{font-weight:600} .hc-aj-nav .aj-t small{font-size:var(--fs-xs);color:var(--fg-3);line-height:1.3}
+@media(max-width:999px){
+  .hc-aj:not(.has-sec) .hc-aj-nav{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);overflow:hidden;margin-top:var(--space-4)}
+  .hc-aj:not(.has-sec) .hc-aj-nav a+a{border-top:1px solid var(--line-2)}
+  .hc-aj-nav a.is-sel{background:none}
+}
+@media(min-width:1000px){.hc-aj-nav a{min-height:48px;gap:var(--space-3)}.hc-aj-nav .aj-t small{display:none}.hc-aj-nav .aj-i{width:32px;height:32px}}
+
 `;
   document.head.append(css);
 
@@ -580,6 +592,7 @@ ${sec('hc-c-wa', 'Mensagem para o grupo', '', `<div class="hc-wa"><div class="fi
   /* =====================================================================
      AJUSTES  /h/e/:id/ajustes[/:section]
      ===================================================================== */
+  const AJ_DESC = { evento: 'Nome, data, local e capa', privacidade: 'Consentimento e regras de uso das fotos', equipe: 'Quem ajuda a organizar a festa', exportar: 'Baixar as fotos ou apagar tudo', plano: 'Plano do evento e faturas' };
   const SECS = [['evento', 'Evento', 'calendar'], ['privacidade', 'Privacidade e consentimento', 'shield'], ['equipe', 'Equipe', 'users'], ['exportar', 'Exportar e apagar', 'download'], ['plano', 'Plano e cobrança', 'wallet']];
   const retDates = (id) => { const d = new Date(dataEv(id) + 'T12:00:00'); const f = (n) => new Date(d.getTime() + n * 86400000).toISOString().slice(0, 10); return [f(330), f(365)]; };
 
@@ -668,7 +681,7 @@ ${sec('hc-c-wa', 'Mensagem para o grupo', '', `<div class="hc-wa"><div class="fi
     const meta = SECS.find((s) => s[0] === act);
     if (!meta) return { title: 'Ajustes', html: A.hostShell(ctx, { section: 'ajustes' }, A.emptyState({ icon: 'warn', title: 'Essa seção não existe', body: 'Escolha uma das seções dos ajustes.', cta: `<a class="btn btn-line" href="${baseOf(id)}/ajustes">Voltar aos ajustes</a>` })) };
     const body = { evento: eventoPanel, privacidade: privacidadePanel, equipe: equipePanel, exportar: exportarPanel, plano: planoPanel }[act](id);
-    const list = `<nav class="hc-aj-nav" aria-label="Seções dos ajustes">${SECS.map(([k, l]) => `<a href="${baseOf(id)}/ajustes/${k}" ${act === k && cur ? 'aria-current="page"' : ''} ${act === k && !cur ? 'class="is-sel"' : ''}>${l}<span class="chev">${A.icon('chevron', 16)}</span></a>`).join('')}</nav>`;
+    const list = `<nav class="hc-aj-nav" aria-label="Seções dos ajustes">${SECS.map(([k, l, ic]) => `<a href="${baseOf(id)}/ajustes/${k}" ${act === k && cur ? 'aria-current="page"' : ''} ${act === k && !cur ? 'class="is-sel"' : ''}><span class="aj-i" aria-hidden="true">${A.icon(ic, 20)}</span><span class="aj-t"><b>${l}</b><small>${AJ_DESC[k] || ''}</small></span><span class="chev">${A.icon('chevron', 16)}</span></a>`).join('')}</nav>`;
     const panel = `<section class="hc-aj-panel" aria-labelledby="hc-aj-h"><a class="btn btn-quiet btn-sm hc-aj-back" href="${baseOf(id)}/ajustes">${A.icon('back', 16)} Ajustes</a><h2 class="hc-h1" id="hc-aj-h">${meta[1]}</h2>${A.stateful({ ok: body, empty: body, loading: A.skel(4, 64) })}</section>`;
     return { title: meta[1] + ' · Ajustes', html: A.hostShell(ctx, { section: 'ajustes' }, `<div class="hc-aj ${cur ? 'has-sec' : ''}"><div class="hc-aj-side"><h1 class="hc-h2">Ajustes</h1><p class="hc-note hc-gap-2">Dados do evento, privacidade, equipe e exportação.</p>${list}</div>${panel}</div>`) };
   };
