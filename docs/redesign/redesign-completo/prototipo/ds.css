@@ -516,3 +516,7 @@ h1[tabindex="-1"]:focus,#main[tabindex="-1"]:focus{outline:none}
 .inv-act{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3)}
 .inv-act .btn{border-radius:var(--r-pill)}
 @media(max-width:600px){.inv-act{position:sticky;bottom:0;z-index:2;margin:0 calc(-1 * var(--space-5));padding:var(--space-3) var(--space-5) calc(var(--space-3) + env(safe-area-inset-bottom));background:var(--elev-3);border-top:1px solid var(--line-2)}.inv-act .btn-lg{flex:1 1 100%}.inv-act .btn-quiet{flex:1 1 40%}}
+
+/* v266 — onda 0: canvas neutro (sem âmbar) que segue o tema, claro e escuro */
+@media(min-width:901px){.app{--canvas:color-mix(in srgb,var(--fg) 5%,var(--bg))}}
+@media(max-width:900px){.tabbar button[aria-current]{color:var(--fg)}.tabbar button[aria-current] svg{color:var(--ac)}}
