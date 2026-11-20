@@ -322,6 +322,27 @@
 .vd-priv-s p{margin:0;max-width:62ch;line-height:1.6}
 .vd-priv-n{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:var(--surface-2);font:600 var(--fs-xs) var(--font-body)}
 @media(max-width:600px){.vd-priv-toc{flex-direction:row;overflow-x:auto;padding-bottom:var(--space-2)}.vd-priv-toc .t-label{display:none}.vd-priv-toc button{flex:none;white-space:nowrap;border:1px solid var(--line-2)}}
+/* v243 — eventos do fornecedor em galeria de cartões com capa (alternável para tabela) */
+.vd-bar2{display:flex;align-items:center;justify-content:space-between;gap:var(--space-3);flex-wrap:wrap}
+.vd-view{display:inline-flex;padding:var(--space-1);background:var(--surface-2);border-radius:var(--r-pill)}
+.vd-view button{display:grid;place-items:center;min-width:44px;min-height:44px;border:0;border-radius:var(--r-pill);background:none;color:var(--fg-2);cursor:pointer}
+@media(max-width:600px){.vd-evc-cv{aspect-ratio:16/10}}
+.vd-view button[aria-pressed=true]{background:var(--bg);color:var(--fg);box-shadow:var(--elev-1)}
+.vd-evg{display:grid;grid-template-columns:repeat(auto-fill,minmax(16rem,1fr));gap:var(--space-4)}
+.vd-evc{display:flex;flex-direction:column;padding:0;text-align:left;font:inherit;color:inherit;text-decoration:none;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);overflow:hidden;cursor:pointer;transition:transform var(--dur-2) var(--ease),box-shadow var(--dur-2) var(--ease)}
+@media(hover:hover){.vd-evc:hover{transform:translateY(-3px);box-shadow:0 18px 36px -14px color-mix(in srgb,var(--tinta) 28%,transparent)}}
+@media(prefers-reduced-motion:reduce){.vd-evc{transition:none}.vd-evc:hover{transform:none}}
+.vd-evc:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+.vd-evc-cv{position:relative;display:block;aspect-ratio:4/3;background:linear-gradient(135deg,color-mix(in srgb,var(--ac) 22%,var(--surface-2)),var(--surface-2));overflow:hidden}
+.vd-evc-cv img{width:100%;height:100%;object-fit:cover;display:block}
+.vd-evc-m{position:absolute;inset:0;display:grid;place-items:center;font:350 var(--fs-hero) var(--font-display);color:var(--fg-2)}
+.vd-evc-cv .vd-fase{position:absolute;left:var(--space-3);top:var(--space-3);padding:var(--space-1) var(--space-3);border-radius:var(--r-pill);background:var(--bg);box-shadow:0 2px 10px color-mix(in srgb,var(--tinta) 22%,transparent)}
+.vd-evc-b{display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-4) var(--space-5) var(--space-5)}
+.vd-evc-n{font:400 var(--fs-xl)/1.2 var(--font-display)}
+.vd-evc-s{display:flex;gap:var(--space-4);margin-top:var(--space-2);font-size:var(--fs-sm);color:var(--fg-2)} .vd-evc-s b{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
+/* v243 — clientes e equipe em grade de cartões no desktop */
+@media(min-width:1100px){.app .vd-directory .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)}.app .vd-directory .list>.li{margin:0}}
+@media(min-width:1500px){.app .vd-directory .list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 /* v205 — cadastro do fornecedor: formulário em cartão, etapas em pílula */
 .vd-steps{padding:var(--space-3) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);margin-bottom:var(--space-6)}
 .vd-steps ol li{padding:var(--space-1) var(--space-3);border-radius:var(--r-pill)}
@@ -523,6 +544,12 @@ main.page form[data-draft] .btn[type=submit]{min-height:48px;padding-inline:var(
     const { l, cl } = filtrados(vid);
     if (!l.length) return `<div class="empty">${ic('search', 40)}<h3 class="t-title">Nenhum evento com esses filtros</h3><p>Tente outra busca ou veja todos os eventos.</p><button class="btn btn-line" data-act="vd-limpar">Limpar filtros</button></div>`;
     const th = (k, label, cls = '') => { const on = FE.ord === k; return `<th scope="col" class="${cls}" aria-sort="${on ? (FE.dir > 0 ? 'ascending' : 'descending') : 'none'}"><button data-act="vd-ord" data-k="${k}">${label}${on ? ic('chevdown', 12, 'd' + (FE.dir > 0 ? ' up' : '')) : ''}</button></th>`; };
+    if (FE.view !== 'tabela') return `<p class="t-small" role="status" aria-live="polite">${l.length} ${l.length === 1 ? 'evento' : 'eventos'}</p><div class="vd-evg">${l.map((e) => {
+      const f = faseOf(e); const hev = e.ref ? A.data.events.find((x) => x.id === e.ref) : null;
+      const cover = hev && hev.capa ? `<img src="${esc(hev.capa)}" alt="" style="${A.hero ? A.hero.fotoStyle(hev.id) : ''}">` : `<span class="vd-evc-m">${esc(ini(e.nome))}</span>`;
+      const body = `<span class="vd-evc-cv" aria-hidden="true">${cover}<span class="vd-fase" data-f="${f}"><i></i>${FASE[f][0]}</span></span><span class="vd-evc-b"><b class="vd-evc-n">${esc(e.nome)}</b><span class="t-small">${esc(cl(e.cliente) || 'Sem cliente')} · ${esc(dataOf(e))}</span><span class="vd-evc-s"><span><b>${A.pt(e.esperados)}</b> convidados</span><span><b>${e.fotos ? A.pt(e.fotos) : '—'}</b> fotos</span></span></span>`;
+      return e.ref ? `<a class="vd-evc" href="${A.hostBase(e.ref)}/hoje">${body}</a>` : `<button class="vd-evc" data-act="vd-evt" data-id="${e.id}">${body}</button>`;
+    }).join('')}</div>`;
     return `<p class="t-small" role="status" aria-live="polite">${l.length} ${l.length === 1 ? 'evento' : 'eventos'}</p><div class="table-wrap"><table class="table vd-ev"><caption class="sr-only">Eventos dos clientes. Use os títulos das colunas para ordenar.</caption><thead><tr>${th('nome', 'Evento')}${th('cliente', 'Cliente', 'vd-hs')}${th('data', 'Data', 'vd-hs')}<th scope="col">Situação</th>${th('convidados', 'Convidados', 'num vd-hs')}${th('fotos', 'Fotos', 'num vd-hs')}</tr></thead><tbody>${l.map((e) => {
       const f = faseOf(e); const fl = FASE[f][0];
       const nome = e.ref ? `<a class="vd-nm" href="${A.hostBase(e.ref)}/hoje">${esc(e.nome)}</a>` : `<button class="vd-nm" data-act="vd-evt" data-id="${e.id}">${esc(e.nome)}</button>`;
@@ -535,6 +562,7 @@ main.page form[data-draft] .btn[type=submit]{min-height:48px;padding-inline:var(
   A.inputs['vd-busca'] = (el) => { FE.q = el.value; refreshEv(); };
   A.inputs['vd-filtro'] = (el) => { FE[el.dataset.k] = el.value; if (el.dataset.k === 'ord') FE.dir = (el.value === 'convidados' || el.value === 'fotos') ? -1 : 1; refreshEv(); };
   A.acts['vd-fase'] = (el) => { FE.fase = el.dataset.v; refreshEv(); };
+  A.acts['vd-view'] = (el) => { FE.view = el.dataset.v; A.$$('[data-act=vd-view]').forEach((b) => b.setAttribute('aria-pressed', String(b === el))); refreshEv(); };
   A.acts['vd-limpar'] = () => { Object.assign(FE, { q: '', fase: 'todos', cliente: '', ord: 'data', dir: 1 }); A.render(); };
   A.acts['vd-evt'] = (el) => {
     const vid = FE.vid; const e = (V().eventos[vid] || []).find((x) => x.id === el.dataset.id); if (!e) return; const c = V().clientes[vid].find((x) => x.id === e.cliente); const f = faseOf(e);
@@ -550,7 +578,7 @@ main.page form[data-draft] .btn[type=submit]{min-height:48px;padding-inline:var(
     const kp = (l, n, sub) => `<div class="vd-kpi"><span class="vd-kpi-l">${l}</span><b class="vd-kpi-n">${n}</b><span class="vd-kpi-s">${sub}</span></div>`;
     const pl = plano(v.plano), nAt = ativos(v.id), somaF = todos.reduce((a, e) => a + e.fotos, 0), somaC = todos.reduce((a, e) => a + (e.esperados || 0), 0);
     const kpis = `<div class="vd-kpis">${kp('Eventos ativos', nAt, pl.eventos == null ? 'sem limite no plano ' + pl.nome : 'de ' + pl.eventos + ' no plano ' + pl.nome)}${kp('Ao vivo', cont('durante'), cont('durante') ? 'acontecendo agora' : 'nenhum agora')}${kp('Fotos recebidas', A.pt(somaF), 'em ' + todos.length + ' eventos')}${kp('Convidados esperados', A.pt(somaC), 'somando a carteira')}</div>`;
-    const ok = () => `${aviso}${bannerLimite(v)}${kpis}<div class="vd-tools"><label class="search">${ic('search', 18)}<input type="search" placeholder="Buscar evento ou cliente" aria-label="Buscar evento ou cliente" value="${esc(FE.q)}" data-input="vd-busca"></label><select class="select" aria-label="Filtrar por cliente" data-change="vd-filtro" data-k="cliente"><option value="">Todos os clientes</option>${s.clientes[v.id].map((c) => `<option value="${c.id}" ${FE.cliente === c.id ? 'selected' : ''}>${esc(c.nome)}</option>`).join('')}</select><select class="select vd-sort-sm" id="vd-ord-sm" aria-label="Ordenar por" data-change="vd-filtro" data-k="ord">${[['data', 'Data'], ['nome', 'Nome'], ['cliente', 'Cliente'], ['convidados', 'Convidados'], ['fotos', 'Fotos']].map(([k, l]) => `<option value="${k}" ${FE.ord === k ? 'selected' : ''}>Ordenar: ${l}</option>`).join('')}</select></div><div class="vd-fases" role="group" aria-label="Situação">${[['todos', 'Todos'], ['antes', 'Preparando'], ['durante', 'Ao vivo'], ['depois', 'Encerrados']].map(([k, l]) => `<button data-act="vd-fase" data-v="${k}" aria-pressed="${FE.fase === k}">${l}<span class="n">${cont(k)}</span></button>`).join('')}</div><div id="vd-lista">${listaEventos(v.id)}</div>`;
+    const ok = () => `${aviso}${bannerLimite(v)}${kpis}<div class="vd-tools"><label class="search">${ic('search', 18)}<input type="search" placeholder="Buscar evento ou cliente" aria-label="Buscar evento ou cliente" value="${esc(FE.q)}" data-input="vd-busca"></label><select class="select" aria-label="Filtrar por cliente" data-change="vd-filtro" data-k="cliente"><option value="">Todos os clientes</option>${s.clientes[v.id].map((c) => `<option value="${c.id}" ${FE.cliente === c.id ? 'selected' : ''}>${esc(c.nome)}</option>`).join('')}</select><select class="select vd-sort-sm" id="vd-ord-sm" aria-label="Ordenar por" data-change="vd-filtro" data-k="ord">${[['data', 'Data'], ['nome', 'Nome'], ['cliente', 'Cliente'], ['convidados', 'Convidados'], ['fotos', 'Fotos']].map(([k, l]) => `<option value="${k}" ${FE.ord === k ? 'selected' : ''}>Ordenar: ${l}</option>`).join('')}</select></div><div class="vd-bar2"><div class="vd-fases" role="group" aria-label="Situação">${[['todos', 'Todos'], ['antes', 'Preparando'], ['durante', 'Ao vivo'], ['depois', 'Encerrados']].map(([k, l]) => `<button data-act="vd-fase" data-v="${k}" aria-pressed="${FE.fase === k}">${l}<span class="n">${cont(k)}</span></button>`).join('')}</div><div class="vd-view" role="group" aria-label="Modo de exibição"><button data-act="vd-view" data-v="cards" aria-pressed="${FE.view !== 'tabela'}" aria-label="Cartões">${ic('grid', 18)}</button><button data-act="vd-view" data-v="tabela" aria-pressed="${FE.view === 'tabela'}" aria-label="Tabela">${ic('list', 18)}</button></div></div><div id="vd-lista">${listaEventos(v.id)}</div>`;
     const empty = A.emptyState({ art: 'none', icon: 'calendar', title: 'Seus clientes ainda não têm eventos aqui', body: 'Crie o primeiro e mande o link para o cliente acompanhar.', cta: '<button class="btn btn-accent" data-act="vd-novo-evento">Criar evento para um cliente</button>' });
     return shell(ctx, { section: 'eventos', title: 'Eventos', lead: 'Os eventos dos seus clientes, num lugar só.', actions: '<button class="btn btn-accent" data-act="vd-novo-evento">' + ic('plus', 18) + ' Criar evento para um cliente</button>' }, A.stateful({ ok, empty, isEmpty: () => !todos.length }));
   });
