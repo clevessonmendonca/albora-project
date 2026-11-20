@@ -286,6 +286,30 @@
 .app .hv-rev .hv-cover{width:100%;max-width:15rem;margin:0}
 .app .hv-rev .hv-cover img{aspect-ratio:4/5;object-fit:cover;width:100%}
 @media(min-width:760px){.app .hv-rev{grid-template-columns:15rem minmax(0,1fr)}}
+/* v243 — Fotos em masonry estilo Pinterest: colunas, proporções reais, cantos grandes */
+.hv-grid{display:block;column-width:210px;column-gap:var(--space-3);grid-template-columns:none}
+@media(max-width:600px){.hv-grid{column-count:2;column-width:auto;column-gap:var(--space-2)}}
+.hv-grid>.hv-tile{display:block;break-inside:avoid;margin:0 0 var(--space-3);border-radius:var(--r-3);aspect-ratio:3/4;transition:transform var(--dur-2) var(--ease),box-shadow var(--dur-2) var(--ease)}
+@media(max-width:600px){.hv-grid>.hv-tile{margin-bottom:var(--space-2);border-radius:var(--r-2)}}
+.hv-grid>.hv-tile.w2{grid-column:auto;aspect-ratio:4/3}
+.hv-grid>.hv-tile.r-p:nth-child(3n){aspect-ratio:2/3}
+.hv-grid>.hv-tile.r-p:nth-child(4n+2){aspect-ratio:4/5}
+.hv-grid>.hv-tile.r-l{aspect-ratio:4/3}
+@media(hover:hover){.hv-grid>.hv-tile:hover{transform:translateY(-2px);box-shadow:0 14px 28px -10px color-mix(in srgb,var(--tinta) 30%,transparent)}}
+@media(prefers-reduced-motion:reduce){.hv-grid>.hv-tile{transition:none}.hv-grid>.hv-tile:hover{transform:none}}
+
+/* v243 — Hoje (durante) em painel de duas colunas: ao vivo e fila à esquerda, controles em cartões à direita */
+.hv-dash{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-5);align-items:start}
+@media(min-width:1180px){.hv-dash{grid-template-columns:minmax(0,1fr) 23rem;gap:var(--space-6)}.hv-dash-side{position:sticky;top:var(--space-16)}}
+.hv-dash-main,.hv-dash-side{display:flex;flex-direction:column;gap:var(--space-5);min-width:0}
+.hv-dash-side>*{margin:0;padding:var(--space-4) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hv-dash-side>details{padding:var(--space-2) var(--space-5)}
+.hv-dash .hv-live .hv-bn{font-size:clamp(var(--fs-xl),2.4vw,var(--fs-hero));white-space:nowrap}
+.hv-dash-main>.hv-sec{padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);margin:0}
+
+/* v243 — Convidados em grade de duas colunas no desktop */
+@media(min-width:1100px){.app .list:has(>.hv-gr){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2) var(--space-3)}.app .list:has(>.hv-gr)>.hv-gr{margin:0}}
+
 `;
   const st = document.createElement('style'); st.id = 'hv-style'; st.textContent = css; document.head.append(st);
 
@@ -435,7 +459,7 @@
   }
   const tile = (id, p, sel, ids) => {
     const nome = gname(id, p.autor); const lab = `${nome}, ${hhmm(p.ck)}, ${LBL[p.status].toLowerCase()}`;
-    return `<div class="hv-tile ${p.ratio === 'l' ? 'w2' : ''} ${p.status === 'oculta' ? 'oc' : ''} ${sel ? 'selected' : ''}" data-pid="${p.id}"><button class="hv-open" data-act="hv-open" data-id="${p.id}" data-fk="o-${p.id}" aria-label="Abrir foto de ${E(lab)}">${A.img(p.n, p.ratio, '')}</button><button class="hv-sel" data-act="hv-sel" data-id="${p.id}" data-fk="s-${p.id}" aria-pressed="${sel}" aria-label="Selecionar foto de ${E(nome)}"><span>${A.icon('check', 14)}</span></button>${p.status !== 'aprovada' ? `<span class="hv-tag">${LBL[p.status]}</span>` : ''}${p.status === 'revisar' ? `<div class="hv-qk"><button class="hv-qkb ok" data-act="hv-ap" data-id="${p.id}" data-fk="qa-${p.id}" aria-label="Aprovar foto de ${E(nome)}">${A.icon('check', 20)}</button><button class="hv-qkb" data-act="hv-oc" data-id="${p.id}" data-fk="qo2-${p.id}" aria-label="Ocultar foto de ${E(nome)}">${A.icon('eyeoff', 20)}</button></div>` : p.status === 'oculta' ? `<div class="hv-qk"><button class="hv-qkb ok" data-act="hv-rs1" data-id="${p.id}" data-fk="qr-${p.id}" aria-label="Restaurar foto de ${E(nome)}">${A.icon('undo', 20)}</button></div>` : ''}</div>`;
+    return `<div class="hv-tile ${p.ratio === 'l' ? 'w2' : ''} r-${p.ratio} ${p.status === 'oculta' ? 'oc' : ''} ${sel ? 'selected' : ''}" data-pid="${p.id}"><button class="hv-open" data-act="hv-open" data-id="${p.id}" data-fk="o-${p.id}" aria-label="Abrir foto de ${E(lab)}">${A.img(p.n, p.ratio, '')}</button><button class="hv-sel" data-act="hv-sel" data-id="${p.id}" data-fk="s-${p.id}" aria-pressed="${sel}" aria-label="Selecionar foto de ${E(nome)}"><span>${A.icon('check', 14)}</span></button>${p.status !== 'aprovada' ? `<span class="hv-tag">${LBL[p.status]}</span>` : ''}${p.status === 'revisar' ? `<div class="hv-qk"><button class="hv-qkb ok" data-act="hv-ap" data-id="${p.id}" data-fk="qa-${p.id}" aria-label="Aprovar foto de ${E(nome)}">${A.icon('check', 20)}</button><button class="hv-qkb" data-act="hv-oc" data-id="${p.id}" data-fk="qo2-${p.id}" aria-label="Ocultar foto de ${E(nome)}">${A.icon('eyeoff', 20)}</button></div>` : p.status === 'oculta' ? `<div class="hv-qk"><button class="hv-qkb ok" data-act="hv-rs1" data-id="${p.id}" data-fk="qr-${p.id}" aria-label="Restaurar foto de ${E(nome)}">${A.icon('undo', 20)}</button></div>` : ''}</div>`;
   };
   const EXTRAS = ['telao', 'missao', 'convidado'];
   function exHtml(id) {
@@ -755,7 +779,7 @@
     const open = gateOpen(id), pub = published(id), pn = panic(id).on;
     const head = `<div class="flex between flex-wrap" style="margin-bottom:var(--space-6);gap:12px;align-items:flex-end"><h1 class="t-display">Festa ao vivo</h1><p class="t-small" style="max-width:38ch">${couple ? 'Modo Acompanhar: você vê tudo e aprova fotos. Para pausar a festa, fale com quem organiza.' : 'As fotos chegam sozinhas. Você só decide o que aparece.'}</p></div>`;
     const rules = `<details class="hv-det hv-sec ds-fold sem-borda" ${RULES_OPEN ? 'open' : ''}><summary><span class="grow">Regras da festa <span class="t-small">· interação ${pn ? 'fechada pela pausa' : open ? 'aberta' : 'fechada'}${pub ? '' : ' · rascunho'}</span></span></summary><div class="ds-fold-b">${rulesHtml(id, couple)}</div></details>`;
-    return `<div id="hv-panic">${panicBanner(id, couple)}</div>${head}<div id="hv-live" class="hv-live">${liveHtml(id)}</div><p class="sr-only" id="hv-say" aria-live="polite"></p>${ctrlHtml(id, couple)}<section class="hv-sec" id="hv-queue">${queueHtml(id, couple)}</section>${rules}${couple || pn ? '' : riskHtml(id)}`;
+    return `<div id="hv-panic">${panicBanner(id, couple)}</div>${head}<div class="hv-dash"><div class="hv-dash-main"><div id="hv-live" class="hv-live">${liveHtml(id)}</div><p class="sr-only" id="hv-say" aria-live="polite"></p><section class="hv-sec" id="hv-queue">${queueHtml(id, couple)}</section></div><aside class="hv-dash-side" aria-label="Controles da festa">${ctrlHtml(id, couple)}${rules}${couple || pn ? '' : riskHtml(id)}</aside></div>`;
   }
   function drawLive(id) {
     if (A.sim().state !== 'ok' || !A.$('#hv-live')) return;

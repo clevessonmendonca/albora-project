@@ -477,3 +477,23 @@ h1[tabindex="-1"]:focus,#main[tabindex="-1"]:focus{outline:none}
 .toast .toast-i{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--papel) 16%,transparent);color:var(--papel)}
 .toasts .toast.bad{background:var(--brasa);border-color:transparent}
 .toast button{border-radius:var(--r-pill);text-decoration:none;padding:0 var(--space-4);background:color-mix(in srgb,var(--papel) 16%,transparent)}
+
+/* v243 — shell estilo Arc: canvas quente, sidebar solta e conteúdo em ilha arredondada (só desktop) */
+@media(min-width:901px){
+  .app{--canvas:color-mix(in srgb,var(--ambar) 9%,var(--surface-2));background:var(--canvas);grid-template-columns:256px minmax(0,1fr);padding:0}
+  .app .rail{border-right:0;background:transparent;padding:var(--space-5) var(--space-3) var(--space-4)}
+  .app .rail .brand{padding:0 var(--space-3)}
+  .app .ctx{background:var(--bg);box-shadow:var(--elev-1);border:1px solid var(--line-2);border-radius:var(--r-3);padding:var(--space-3)}
+  .app .ctx .avatar{border-radius:var(--r-2)}
+  .app .nav{gap:2px}
+  .app .nav a,.app .nav button{min-height:44px;border-radius:var(--r-2);font-weight:500}
+  .app .nav a:hover,.app .nav button:hover{background:color-mix(in srgb,var(--bg) 60%,transparent)}
+  .app .nav a[aria-current="page"]{background:var(--bg);color:var(--fg);box-shadow:0 1px 2px color-mix(in srgb,var(--tinta) 10%,transparent),0 0 0 1px var(--line-2)}
+  .app .nav-group{margin:var(--space-5) 0 var(--space-1);padding:0 var(--space-3);color:var(--fg-3)}
+  .app>.main{margin:var(--space-2) var(--space-2) var(--space-2) 0;min-height:calc(100dvh - var(--space-4));background:var(--bg);border:1px solid var(--line-2);border-radius:var(--r-4);box-shadow:0 1px 3px color-mix(in srgb,var(--tinta) 6%,transparent),0 12px 32px -12px color-mix(in srgb,var(--tinta) 14%,transparent);overflow:clip}
+  .app>.main .topbar{background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);border-radius:var(--r-4) var(--r-4) 0 0;padding:var(--space-3) var(--space-6)}
+  .app>.main .page.wide{max-width:min(96rem,100%)}
+}
+@media(min-width:901px) and (max-width:1180px){
+  .app{grid-template-columns:72px minmax(0,1fr)}
+}
