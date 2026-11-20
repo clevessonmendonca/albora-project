@@ -301,6 +301,27 @@
 .vd-cards15 li{display:flex;flex-direction:column;gap:var(--space-3);padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
 .vd-cards15 li>span{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--ac);color:var(--on-ac)}
 .vd-cards15 p{margin:0;font-size:var(--fs-md);line-height:1.5}
+/* v230 — privacidade: três promessas, índice fixo e seções em cartão */
+.vd-doc.vd-priv{max-width:72rem}
+.vd-priv-h{display:flex;flex-direction:column;gap:var(--space-3);margin-bottom:var(--space-8)} .vd-priv-h .t-lead{margin:0;max-width:56ch}
+.vd-doc .vd-priv-p{list-style:none;margin:0 0 var(--space-10);padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-4)}
+@media(min-width:760px){.vd-doc .vd-priv-p{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.vd-priv-p li{display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.vd-priv-p li>span{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--ac);color:var(--on-ac);margin-bottom:var(--space-2)}
+.vd-priv-p p{margin:0;color:var(--fg-2);font-size:var(--fs-sm)}
+.vd-priv-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-6);align-items:start}
+@media(min-width:900px){.vd-priv-grid{grid-template-columns:16rem minmax(0,1fr);gap:var(--space-10)}}
+.vd-priv-toc{display:flex;flex-direction:column;gap:var(--space-1)}
+@media(min-width:900px){.vd-priv-toc{position:sticky;top:var(--space-6)}}
+.vd-priv-toc .t-label{margin-bottom:var(--space-2)}
+.vd-priv-toc button{min-height:44px;padding:0 var(--space-4);text-align:left;background:none;border:0;border-radius:var(--r-pill);color:var(--fg-2);font:inherit;font-size:var(--fs-sm);cursor:pointer}
+.vd-priv-toc button:hover{background:var(--surface-2);color:var(--fg)}
+.vd-priv-body{display:flex;flex-direction:column;gap:var(--space-4)}
+.vd-priv-s{padding:var(--space-6);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);scroll-margin-top:var(--space-6)}
+.vd-priv-s h2{display:flex;align-items:center;gap:var(--space-3);margin:0 0 var(--space-3);font:400 var(--fs-xl)/1.2 var(--font-display)}
+.vd-priv-s p{margin:0;max-width:62ch;line-height:1.6}
+.vd-priv-n{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:var(--surface-2);font:600 var(--fs-xs) var(--font-body)}
+@media(max-width:600px){.vd-priv-toc{flex-direction:row;overflow-x:auto;padding-bottom:var(--space-2)}.vd-priv-toc .t-label{display:none}.vd-priv-toc button{flex:none;white-space:nowrap;border:1px solid var(--line-2)}}
 /* v205 — cadastro do fornecedor: formulário em cartão, etapas em pílula */
 .vd-steps{padding:var(--space-3) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);margin-bottom:var(--space-6)}
 .vd-steps ol li{padding:var(--space-1) var(--space-3);border-radius:var(--r-pill)}
@@ -729,7 +750,7 @@ main.page form[data-draft] .btn{border-radius:var(--r-pill)}
   const secoes = [['Quem controla o quê', 'O Albora cuida da plataforma; quem organiza a festa decide quem participa e o que aparece no telão e no álbum. Cada evento é isolado dos demais.'], ['O que o convidado envia', 'Fotos e vídeos, o primeiro nome e o consentimento. Não pedimos cadastro, senha, e-mail nem telefone.'], ['Sessão e aparelho', 'O convidado é identificado por um token do aparelho, válido para um único evento. Ele não funciona em outros eventos nem pode ser transferido.'], ['O que removemos na origem', 'A localização (GPS) e os demais metadados da foto são removidos no próprio celular, antes do envio.'], ['Consentimento', 'O convidado aceita antes de tirar a primeira foto. O aceite é guardado com versão e data.'], ['Remoção', 'O convidado pode apagar as próprias fotos e revogar o consentimento pelo perfil, a qualquer momento.'], ['Retenção', 'No dia 330 após a festa o anfitrião recebe a exportação para a nuvem dele; no dia 365 tudo é apagado.'], ['App do convidado', 'O app é opcional e o convite aparece só depois da primeira foto. O pareamento usa um código de quatro dígitos.'], ['Anfitrião e fornecedor', 'O fornecedor vê números agregados da carteira e os eventos dos clientes que ele criou. Fotos de convidados nunca viram material de marketing.'], ['Contato', `Dúvidas e pedidos sobre seus dados: ${D.legal.contato}.`]];
   A.route('/p/privacidade', () => {
     A.applyEvent(null);
-    return { title: 'Privacidade', html: pub(`<div class="vd-doc"><h1 class="t-display">Privacidade</h1><p class="t-lead" style="margin-top:var(--space-3)">Resumo claro do que acontece com as fotos e os dados de quem vai à festa.</p><p class="t-small" style="margin-top:var(--space-2)">Atualizado em ${fmtD(D.legal.atualizado)} · consentimento versão ${D.legal.versao}</p><nav class="vd-toc" style="margin-top:var(--space-6)" aria-label="Nesta página">${secoes.map(([t], i) => `<button type="button" data-act="p-ancora" data-id="s${i}">${esc(t)}</button>`).join('')}</nav>${secoes.map(([t, c], i) => `<h2 id="s${i}" tabindex="-1">${esc(t)}</h2><p>${esc(c)}</p>`).join('')}<p class="t-small" style="margin-top:var(--space-8)">Esta é a versão resumida do protótipo; o texto jurídico completo fica na versão final.</p></div>`) };
+    return { title: 'Privacidade', html: pub(`<div class="vd-doc vd-priv"><header class="vd-priv-h"><span class="vd-eyebrow">Privacidade</span><h1 class="t-display">O que acontece com as suas fotos e dados</h1><p class="t-lead">Resumo claro do que acontece com as fotos e os dados de quem vai à festa.</p><p class="t-small">Atualizado em ${fmtD(D.legal.atualizado)} · consentimento versão ${D.legal.versao}</p></header><ul class="vd-priv-p"><li><span aria-hidden="true">${ic('lock', 22)}</span><b>Sem cadastro</b><p>Não pedimos cadastro, senha, e-mail nem telefone ao convidado.</p></li><li><span aria-hidden="true">${ic('shield', 22)}</span><b>GPS removido no celular</b><p>A localização e os demais metadados saem da foto antes do envio.</p></li><li><span aria-hidden="true">${ic('trash', 22)}</span><b>Você apaga quando quiser</b><p>Pelo perfil, o convidado apaga as próprias fotos e revoga o consentimento.</p></li></ul><div class="vd-priv-grid"><nav class="vd-priv-toc" aria-label="Nesta página"><b class="t-label">Nesta página</b>${secoes.map(([t], i) => `<button type="button" data-act="p-ancora" data-id="s${i}">${esc(t)}</button>`).join('')}</nav><div class="vd-priv-body">${secoes.map(([t, c], i) => `<section class="vd-priv-s"><h2 id="s${i}" tabindex="-1"><span class="vd-priv-n" aria-hidden="true">${i + 1}</span>${esc(t)}</h2><p>${esc(c)}</p></section>`).join('')}<p class="t-small">Esta é a versão resumida do protótipo; o texto jurídico completo fica na versão final.</p></div></div></div>`) };
   });
   A.acts['p-ancora'] = (el) => { const t = document.getElementById(el.dataset.id); if (t) { t.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); t.focus({ preventScroll: true }); } };
   A.route('/p/15-anos', () => {
