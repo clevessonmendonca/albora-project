@@ -333,6 +333,23 @@ ${[[9, 900], [10, 1060], [13, 1300]].map(([k, w]) => `@container cxt (min-width:
 .cx-fila>li{padding:var(--space-3) var(--space-4);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-3)}
 .cx-fila>li:hover:not(:focus-within){background:var(--surface-2)}
 .cx .table-wrap{border-radius:var(--r-3)}
+/* v255 — listas do console estilo Linear: filtros em segmentos, linhas densas com hover, cabeçalho fixo */
+.cx-filt .ds-fold-b{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3)}
+.cx-fg{display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-1) var(--space-1) var(--space-1) var(--space-3);background:var(--surface-2);border-radius:var(--r-pill);max-width:100%}
+.cx-fg>.t-small{color:var(--fg-3);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em}
+.cx-fg .chips{display:inline-flex;flex-wrap:wrap;gap:2px}
+.cx-fg .chip{min-width:44px;min-height:44px;padding:0 var(--space-3);border:0;background:none;border-radius:var(--r-pill);font-size:var(--fs-sm);color:var(--fg-2)}
+.cx-fg .chip[aria-pressed=true]{background:var(--bg);color:var(--fg);box-shadow:var(--elev-1)}
+.cx .table-wrap{border:1px solid var(--line-2);border-radius:var(--r-4);background:var(--surface);overflow:clip}
+.cx .table-wrap thead th{background:var(--surface-2);font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;color:var(--fg-2);border-bottom:1px solid var(--line-2)}
+.cx .table-wrap tbody tr{border-bottom:1px solid var(--line-2)} .cx .table-wrap tbody tr:last-child{border-bottom:0}
+@media(min-width:901px){.cx .table-wrap tbody tr:hover{background:var(--bg)}}
+.cx-tool .search{border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line-2)}
+.cx-figs{gap:var(--space-3);border:0;margin-bottom:var(--space-6)}
+.cx-figs>div{min-width:9rem;margin:0;padding:var(--space-4) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.cx-figs dd{font:350 var(--fs-display)/1 var(--font-display)}
+.cx-2p .cx-vz{padding:var(--space-6);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);min-height:16rem}
+@media(min-width:1100px){.cx-2p .cx-vz{position:sticky;top:var(--space-16)}}
 .cx-login{background:radial-gradient(ellipse at 50% 0,color-mix(in srgb,var(--ac) 12%,transparent),transparent 60%)}
 .cx-login>div{padding:var(--space-8);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);box-shadow:var(--elev-2)}
 .cx-login .btn{border-radius:var(--r-pill)}
