@@ -146,6 +146,17 @@ body.wall-mode .proto-bar{opacity:0;transition:opacity var(--dur-2)} body.wall-m
 @media(max-width:479px){.wl-code{letter-spacing:.08em;padding-left:.08em}}
 @media(max-height:499px){.wl-screen{place-items:start center}.wl-open{width:clamp(72px,14vmin,120px)}}
 .wl-state .wl-meta{margin-top:calc(var(--space-2) * -1)}
+/* v222 — colagem: polaroides maiores com nome e brilho da cor do evento */
+.wl-col::before{content:"";position:absolute;inset:-15%;background:radial-gradient(ellipse at 50% 50%,color-mix(in srgb,var(--ac) 26%,transparent),transparent 62%);pointer-events:none}
+.wl-col .wl-item{display:flex;flex-direction:column;padding:clamp(var(--space-1),1.1vmin,var(--space-3)) clamp(var(--space-1),1.1vmin,var(--space-3)) 0;border-radius:var(--r-1)}
+.wl-col .wl-item{max-width:34cqw}
+.wl-col .wl-item:nth-child(2){z-index:0}
+.wl-col .wl-item:not(:nth-child(2)){z-index:1}
+.wl-col .wl-item img{flex:1;min-height:0;width:100%;height:auto;object-fit:contain}
+.wl-cap2{flex:none;padding:1.1vmin 0 1.3vmin;color:var(--tinta);font:500 clamp(var(--fs-sm),2vmin,var(--fs-lg))/1 var(--font-display);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* v224 — colagem: fundo ambiente desfocado (como Fotos/Memórias) e fita nas polaroides */
+.wl-col-bd{position:absolute;left:-6%;top:-6%;width:112%;height:112%;object-fit:cover;filter:blur(64px) saturate(1.25) brightness(.55);opacity:.8;pointer-events:none}
+.wl-col .wl-item::before{content:"";position:absolute;top:calc(-1 * clamp(var(--space-2),1.4vmin,var(--space-4)));left:50%;width:clamp(48px,9vmin,120px);height:clamp(var(--space-3),2.6vmin,var(--space-6));translate:-50% 0;rotate:calc(var(--rot) * -2);background:color-mix(in srgb,var(--ambar) 38%,var(--papel) 62%);opacity:.85;border-radius:2px}
 @media(prefers-reduced-motion:reduce){.wl-pol,.wl-cell,.wl-col .wl-item,.wl-in,.wl-state .arc .sun{animation:none!important}}
 /* sem cursor o :hover gruda depois do toque: devolve o valor base */
 @media(hover:none){
@@ -244,8 +255,8 @@ body.wall-mode .proto-bar{opacity:0;transition:opacity var(--dur-2)} body.wall-m
   /* ---------- /t/display ---------- */
   const AR = { p: 0.8, l: 1.5, s: 1 };
   const SLOTS = {
-    1: [[50, 50, 70, -2]], 2: [[32, 50, 56, -3], [68, 50, 56, 2]], 3: [[24, 46, 50, -4], [50, 56, 54, 2], [76, 42, 48, 4]],
-    4: [[26, 34, 42, -3], [72, 32, 44, 3], [32, 72, 44, 2], [70, 70, 42, -2]], 5: [[22, 32, 40, -4], [50, 56, 46, 2], [78, 30, 40, 4], [26, 74, 38, 3], [74, 74, 38, -3]],
+    1: [[50, 50, 70, -2]], 2: [[32, 50, 56, -3], [68, 50, 56, 2]], 3: [[22, 46, 62, -4], [50, 56, 68, 2], [78, 42, 60, 4]],
+    4: [[26, 33, 54, -3], [72, 32, 56, 3], [30, 74, 52, 2], [72, 72, 52, -2]], 5: [[19, 28, 50, -4], [50, 52, 62, 2], [81, 28, 50, 4], [22, 76, 44, 3], [78, 75, 46, -3]],
   };
   const guestOf = (id) => A.data.guests.find((g) => g.id === id);
   const toItem = (p) => ({ id: p.id, seed: p.id, ratio: p.ratio || 'p', autor: (guestOf(p.autor) || {}).primeiro || 'Convidado', min: p.min == null ? 5 : p.min, nova: false });
@@ -300,7 +311,7 @@ body.wall-mode .proto-bar{opacity:0;transition:opacity var(--dur-2)} body.wall-m
     const sceneHtml = (m, items) => {
       const n = items.length;
       if (m === 'polaroide') { const it = items[0]; return `<div class="wl-layer"><div class="wl-pol" style="--ar:${AR[it.ratio]};--rot:${S.mi % 2 ? 1.6 : -1.6}deg"><div class="wl-ph"><img src="${A.photo(it.seed, it.ratio)}" alt="Foto de ${esc(it.autor)}"></div><p class="wl-cap"><b>${esc(it.autor)}</b><span>${when(it)}</span></p></div></div>`; }
-      if (m === 'colagem') { const sl = SLOTS[Math.min(5, n)]; return `<div class="wl-layer"><div class="wl-col">${items.map((it, i) => `<div class="wl-item" style="--x:${sl[i][0]}%;--y:${sl[i][1]}%;--h:${sl[i][2]};--rot:${sl[i][3]}deg;--ar:${AR[it.ratio]};--i:${i}"><img src="${A.photo(it.seed, it.ratio)}" alt="Foto de ${esc(it.autor)}"></div>`).join('')}</div></div>`; }
+      if (m === 'colagem') { const sl = SLOTS[Math.min(5, n)]; return `<div class="wl-layer"><img class="wl-col-bd" src="${A.photo(items[0].seed, items[0].ratio)}" alt="" aria-hidden="true"><div class="wl-col">${items.map((it, i) => `<div class="wl-item" style="--x:${sl[i][0]}%;--y:${sl[i][1]}%;--h:${sl[i][2]};--rot:${sl[i][3]}deg;--ar:${AR[it.ratio]};--i:${i}"><img src="${A.photo(it.seed, it.ratio)}" alt="Foto de ${esc(it.autor)}"><span class="wl-cap2" aria-hidden="true">${esc(it.autor)}</span></div>`).join('')}</div></div>`; }
       const cols = m === 'dump' ? 3 : Math.max(1, Math.ceil(n / 2)); const rows = Math.ceil(n / cols);
       return `<div class="wl-layer"><div class="wl-grid ${m === 'dump' ? 'wl-dump' : ''}" style="--cols:${cols};--rows:${rows}">${items.map((it, i) => fig(it, i, m === 'dump' ? 90 : 160)).join('')}</div></div>`;
     };
