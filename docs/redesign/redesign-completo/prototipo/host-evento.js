@@ -329,6 +329,17 @@
   .hv-ck{flex-wrap:wrap} .hv-ck>.grow{flex:1 1 0;min-width:10rem} .hv-ck>.flex{flex:1 1 100%;padding-left:calc(20px + var(--space-3))}
 }
 
+/* v280 — revisão por deslizar: cartão acompanha o dedo, rótulos Aprovar/Ocultar aparecem conforme o arrasto */
+.hv-lb-img{position:relative;touch-action:pan-y;--sw:0;will-change:transform}
+.hv-sw{position:absolute;top:var(--space-5);padding:var(--space-2) var(--space-4);border-radius:var(--r-pill);font:700 var(--fs-md) var(--font-body);letter-spacing:.04em;text-transform:uppercase;opacity:0;pointer-events:none;border:2px solid currentColor;background:color-mix(in srgb,var(--noite) 55%,transparent)}
+.hv-sw-ap{left:var(--space-5);color:var(--positivo);rotate:-8deg} .hv-sw-oc{right:var(--space-5);color:var(--crit-text);rotate:8deg}
+.hv-lb-img[data-dir=ap] .hv-sw-ap{opacity:var(--sw)} .hv-lb-img[data-dir=oc] .hv-sw-oc{opacity:var(--sw)}
+.hv-sw-hint{display:none;margin:0;text-align:center;font-size:var(--fs-xs);color:var(--fg-3)}
+@media(pointer:coarse){.hv-sw-hint{display:block}}
+
+.hv-flag{padding:var(--space-2) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hv-flag>summary{min-height:44px;display:flex;align-items:center}
+
 `;
   const st = document.createElement('style'); st.id = 'hv-style'; st.textContent = css; document.head.append(st);
 
@@ -504,7 +515,7 @@
   function resHtml(id) {
     const v = vs(id), l = filtered(id), sel = SEL(id);
     let flagged = '';
-    if (v.f === 'revisar') { const fc = flaggedComments(id); if (fc.length) flagged = `<section class="hv-sec" aria-label="Comentários para revisar"><span class="t-label">Comentários denunciados (${fc.length})${fc.length > 3 ? ' · mostrando 3' : ''}</span>${fc.slice(0, 3).map((c) => `<div class="hv-cm"><div class="grow"><b>${E(c.autor)}</b> <span class="t-small">na foto de ${E(gname(id, c.photo.autor))}</span><div>${E(c.texto)}</div></div><button class="btn btn-sm btn-line" data-act="hv-cmkeep" data-id="${c.photo.id}" data-c="${c.id}" data-fk="ck-${c.id}">Manter</button><button class="btn btn-sm btn-danger" data-act="hv-cmrm" data-id="${c.photo.id}" data-c="${c.id}" data-fk="cr-${c.id}">Remover</button></div>`).join('')}</section>`; }
+    if (v.f === 'revisar') { const fc = flaggedComments(id); if (fc.length) flagged = `<details class="hv-sec hv-flag ds-fold sem-borda" ${matchMedia('(min-width:901px)').matches ? 'open' : ''} aria-label="Comentários para revisar"><summary><span class="t-label">Comentários denunciados (${fc.length})${fc.length > 3 ? ' · mostrando 3' : ''}</span></summary><div class="ds-fold-b">${fc.slice(0, 3).map((c) => `<div class="hv-cm"><div class="grow"><b>${E(c.autor)}</b> <span class="t-small">na foto de ${E(gname(id, c.photo.autor))}</span><div>${E(c.texto)}</div></div><button class="btn btn-sm btn-line" data-act="hv-cmkeep" data-id="${c.photo.id}" data-c="${c.id}" data-fk="ck-${c.id}">Manter</button><button class="btn btn-sm btn-danger" data-act="hv-cmrm" data-id="${c.photo.id}" data-c="${c.id}" data-fk="cr-${c.id}">Remover</button></div>`).join('')}</div></details>`; }
     if (!l.length) { const fila = v.f === 'revisar' && !v.q; return flagged + A.emptyState({ icon: fila ? 'check' : v.q ? 'search' : 'image', title: fila ? 'Fila limpa' : v.q ? `Nenhuma foto para “${v.q.trim().slice(0, 40)}”` : 'Nenhuma foto com esse filtro', body: fila ? 'Nada esperando revisão. Quando chegar algo suspeito, o número aparece no menu.' : v.q ? 'Confira a escrita do nome, da missão ou do motivo. As fotos continuam todas aqui.' : 'Neste filtro ainda não há fotos. Volte para Todas para ver o álbum inteiro.', cta: fila ? '' : `<button class="btn btn-line" data-act="hv-clear" data-fk="clr">Limpar busca e filtros</button>` }); }
     if (v.view === 'lista') return flagged + `<div class="list" role="list">${l.map((p) => { const nome = gname(id, p.autor); return `<div class="li" role="listitem" data-pid="${p.id}"><button class="hv-thumb hv-open" data-act="hv-open" data-id="${p.id}" data-fk="o-${p.id}" aria-label="Abrir foto de ${E(nome)}, ${hhmm(p.ck)}">${A.img(p.n, p.ratio, '')}</button><div class="grow"><b>${E(nome)}</b><div class="t-small">${hhmm(p.ck)} · ${p.missao ? E(mtitle(p.missao)) : 'Foto livre'}${p.motivo ? ' · ' + E(p.motivo) : ''}</div></div>${badge(p.status)}<div class="flex hide-sm" style="gap:4px">${p.status !== 'aprovada' ? `<button class="btn btn-sm btn-line" data-act="hv-ap1" data-id="${p.id}" data-fk="a-${p.id}">Aprovar</button>` : ''}${p.status !== 'oculta' ? `<button class="btn btn-sm btn-quiet" data-act="hv-oc1" data-id="${p.id}" data-fk="h-${p.id}">Ocultar</button>` : `<button class="btn btn-sm btn-quiet" data-act="hv-rs1" data-id="${p.id}" data-fk="r-${p.id}">Restaurar</button>`}</div><button class="hv-sel" style="position:static;color:var(--fg);opacity:1" data-act="hv-sel" data-id="${p.id}" data-fk="s-${p.id}" aria-pressed="${sel.has(p.id)}" aria-label="Selecionar foto de ${E(nome)}"><span style="border-color:var(--fg-3)">${A.icon('check', 14)}</span></button></div>`; }).join('')}</div>`;
     return flagged + `<div class="hv-grid ${sel.size ? 'hv-selmode' : ''}">${l.map((p) => tile(id, p, sel.has(p.id))).join('')}</div>`;
@@ -584,7 +595,7 @@
     const wasOpen = !!A.$('.hv-lb-cm[open]', LB.api.el);
     const pri = p.status === 'revisar' ? `<button class="btn btn-primary" data-act="hv-lbact" data-a="ap" data-fk="l-ap">${A.icon('check', 16)} Aprovar <span class="kbd">A</span></button>` : p.status === 'oculta' ? `<button class="btn btn-primary" data-act="hv-lbact" data-a="rs" data-fk="l-rs">${A.icon('undo', 16)} Restaurar</button>` : '';
     const meta = [hhmm(p.ck) + (agoOf(p) ? ' · ' + agoOf(p) : ''), p.missao ? mtitle(p.missao) : 'Foto livre', `${p.curtidas} ${plural(p.curtidas, 'reação', 'reações')}`, p.status === 'aprovada' && p.telao ? 'No telão' : ''].filter(Boolean).map(E).join(' · ');
-    A.$('#hv-lb-body', LB.api.el).innerHTML = `<div class="hv-lb"><div class="hv-lb-stage"><button class="hv-lb-nav pv" data-act="hv-lbnav" data-d="-1" data-fk="l-pv" ${LB.i === 0 ? 'disabled' : ''} aria-label="Foto anterior (seta para a esquerda)">${A.icon('chevleft', 26)}</button><div class="hv-lb-img">${A.img(p.n, p.ratio, `Foto de ${nome} (ilustração do protótipo)`)}</div><button class="hv-lb-nav nx" data-act="hv-lbnav" data-d="1" data-fk="l-nx" ${LB.i >= LB.ids.length - 1 ? 'disabled' : ''} aria-label="Próxima foto (seta para a direita)">${A.icon('chevron', 26)}</button></div><div class="hv-lb-bar"><div class="hv-lb-who"><span class="flex" style="gap:var(--space-3)"><button class="link" data-act="hv-lbact" data-a="gu" data-fk="l-gu">${E(nome)}</button>${badge(p.status)}</span><span class="t-small">${meta}${g && g.oculto ? ' · nome oculto no telão' : ''}${p.motivo ? ' · motivo da revisão: ' + E(p.motivo) : ''}</span></div><div class="hv-lb-act">${pri}${p.status !== 'oculta' ? `<button class="btn btn-line" data-act="hv-lbact" data-a="oc" data-fk="l-oc">${A.icon('eyeoff', 16)} Ocultar <span class="kbd">R</span></button>` : ''}${p.status === 'aprovada' ? `<button class="btn btn-quiet" data-act="hv-lbact" data-a="tl" data-fk="l-tl">${A.icon('tv', 16)} ${p.telao ? 'Tirar do telão' : 'Pôr no telão'}</button>` : ''}<button class="btn btn-quiet" data-act="hv-lbact" data-a="dl" data-fk="l-dl">${A.icon('download', 16)} Baixar</button>${role === 'couple' ? '' : `<span class="hv-lb-risk"><button class="btn btn-quiet" data-act="hv-lbmore" data-fk="l-more" aria-haspopup="menu" aria-label="Mais ações">${A.icon('more', 18)}</button></span>`}</div>${cm.length ? `<details class="hv-lb-cm ds-fold" ${wasOpen ? 'open' : ''}><summary>${cm.length} ${plural(cm.length, 'comentário', 'comentários')}</summary><div class="ds-fold-b">${cm.map((c) => `<div class="hv-cm"><div class="grow"><b>${E(c.autor)}</b>${c.flag ? ' <span class="badge warn">Denunciado</span>' : ''}<div>${E(c.texto)}</div></div><button class="btn btn-sm btn-quiet" data-act="hv-lbcm" data-c="${c.id}" data-fk="lc-${c.id}" aria-label="Remover comentário de ${E(c.autor)}">${A.icon('trash', 16)}</button></div>`).join('')}</div></details>` : ''}</div></div>`;
+    A.$('#hv-lb-body', LB.api.el).innerHTML = `<div class="hv-lb"><div class="hv-lb-stage"><button class="hv-lb-nav pv" data-act="hv-lbnav" data-d="-1" data-fk="l-pv" ${LB.i === 0 ? 'disabled' : ''} aria-label="Foto anterior (seta para a esquerda)">${A.icon('chevleft', 26)}</button><div class="hv-lb-img" data-rv="${p.status === 'revisar' ? '1' : ''}">${A.img(p.n, p.ratio, `Foto de ${nome} (ilustração do protótipo)`)}${p.status === 'revisar' ? '<span class="hv-sw hv-sw-ap" aria-hidden="true">Aprovar</span><span class="hv-sw hv-sw-oc" aria-hidden="true">Ocultar</span>' : ''}</div><button class="hv-lb-nav nx" data-act="hv-lbnav" data-d="1" data-fk="l-nx" ${LB.i >= LB.ids.length - 1 ? 'disabled' : ''} aria-label="Próxima foto (seta para a direita)">${A.icon('chevron', 26)}</button></div>${p.status === 'revisar' ? '<p class="hv-sw-hint">Deslize para a direita para aprovar e para a esquerda para ocultar.</p>' : ''}<div class="hv-lb-bar"><div class="hv-lb-who"><span class="flex" style="gap:var(--space-3)"><button class="link" data-act="hv-lbact" data-a="gu" data-fk="l-gu">${E(nome)}</button>${badge(p.status)}</span><span class="t-small">${meta}${g && g.oculto ? ' · nome oculto no telão' : ''}${p.motivo ? ' · motivo da revisão: ' + E(p.motivo) : ''}</span></div><div class="hv-lb-act">${pri}${p.status !== 'oculta' ? `<button class="btn btn-line" data-act="hv-lbact" data-a="oc" data-fk="l-oc">${A.icon('eyeoff', 16)} Ocultar <span class="kbd">R</span></button>` : ''}${p.status === 'aprovada' ? `<button class="btn btn-quiet" data-act="hv-lbact" data-a="tl" data-fk="l-tl">${A.icon('tv', 16)} ${p.telao ? 'Tirar do telão' : 'Pôr no telão'}</button>` : ''}<button class="btn btn-quiet" data-act="hv-lbact" data-a="dl" data-fk="l-dl">${A.icon('download', 16)} Baixar</button>${role === 'couple' ? '' : `<span class="hv-lb-risk"><button class="btn btn-quiet" data-act="hv-lbmore" data-fk="l-more" aria-haspopup="menu" aria-label="Mais ações">${A.icon('more', 18)}</button></span>`}</div>${cm.length ? `<details class="hv-lb-cm ds-fold" ${wasOpen ? 'open' : ''}><summary>${cm.length} ${plural(cm.length, 'comentário', 'comentários')}</summary><div class="ds-fold-b">${cm.map((c) => `<div class="hv-cm"><div class="grow"><b>${E(c.autor)}</b>${c.flag ? ' <span class="badge warn">Denunciado</span>' : ''}<div>${E(c.texto)}</div></div><button class="btn btn-sm btn-quiet" data-act="hv-lbcm" data-c="${c.id}" data-fk="lc-${c.id}" aria-label="Remover comentário de ${E(c.autor)}">${A.icon('trash', 16)}</button></div>`).join('')}</div></details>` : ''}</div></div>`;
   }
   function lbRefresh() { if (LB && LB.api.el.isConnected) { const a = document.activeElement, fk = a && LB.api.el.contains(a) ? a.dataset.fk : null; lbDraw(); if (fk && LB) { const n = LB.api.el.querySelector(`[data-fk="${fk}"]`); if (n && !n.disabled) n.focus(); } } }
   function lbAct(a) {
@@ -606,6 +617,32 @@
     if (!ids.includes(el.dataset.id)) ids = [el.dataset.id, ...ids];
     openLB(id, ids, el.dataset.id);
   };
+
+  /* revisão por deslizar: direita aprova, esquerda oculta (só fotos em revisão); nas outras, navega. Botões e teclado continuam */
+  (() => {
+    let st = null; const TH = 90, EDGE = 24;
+    const reset = (el) => { el.style.transition = 'transform .18s ease'; el.style.transform = ''; el.style.setProperty('--sw', '0'); setTimeout(() => { el.style.transition = ''; }, 200); };
+    document.addEventListener('pointerdown', (e) => {
+      const el = e.target.closest && e.target.closest('.hv-lb-img'); if (!el || !LB || e.button > 0) return;
+      if (e.clientX < EDGE || e.clientX > innerWidth - EDGE) return;
+      st = { el, x: e.clientX, y: e.clientY, dx: 0, lock: false, id: e.pointerId };
+    });
+    document.addEventListener('pointermove', (e) => {
+      if (!st || e.pointerId !== st.id) return; const dx = e.clientX - st.x, dy = e.clientY - st.y;
+      if (!st.lock) { if (Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx)) { st = null; return; } if (Math.abs(dx) > 8) { st.lock = true; try { st.el.setPointerCapture(e.pointerId); } catch (_) { /* sem captura */ } } else return; }
+      st.dx = dx; const rv = st.el.dataset.rv === '1'; st.el.style.transform = `translateX(${dx}px) rotate(${dx / 24}deg)`; st.el.style.setProperty('--sw', rv ? String(Math.min(1, Math.abs(dx) / TH)) : '0'); st.el.dataset.dir = dx > 0 ? 'ap' : 'oc';
+    });
+    const end = (e) => {
+      if (!st || e.pointerId !== st.id) return; const { el, dx } = st; st = null; if (!el.isConnected) return;
+      const rv = el.dataset.rv === '1';
+      if (Math.abs(dx) >= TH) {
+        if (rv) { el.style.transition = 'transform .16s ease,opacity .16s ease'; el.style.transform = `translateX(${dx > 0 ? 140 : -140}%) rotate(${dx > 0 ? 18 : -18}deg)`; el.style.opacity = '0'; setTimeout(() => lbAct(dx > 0 ? 'ap' : 'oc'), 150); return; }
+        LB.i = Math.min(LB.ids.length - 1, Math.max(0, LB.i + (dx < 0 ? 1 : -1))); lbRefresh(); return;
+      }
+      reset(el);
+    };
+    document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
+  })();
   A.acts['hv-lbact'] = (el) => lbAct(el.dataset.a);
   A.acts['hv-lbmore'] = (el) => { const m = A.menu(el, [{ label: 'Remover esta foto de vez', icon: 'trash', danger: 1, onClick: () => lbAct('rm') }]); m.style.zIndex = 130; };
   A.acts['hv-lbnav'] = (el) => { if (!LB) return; LB.i = Math.min(LB.ids.length - 1, Math.max(0, LB.i + +el.dataset.d)); lbRefresh(); };
