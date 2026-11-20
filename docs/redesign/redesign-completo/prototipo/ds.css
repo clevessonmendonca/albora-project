@@ -497,3 +497,22 @@ h1[tabindex="-1"]:focus,#main[tabindex="-1"]:focus{outline:none}
 @media(min-width:901px) and (max-width:1180px){
   .app{grid-template-columns:72px minmax(0,1fr)}
 }
+
+/* v262 — convidar pessoas: formulário, prévia do convite e do e-mail (anfitrião envia pelo próprio app) */
+.inv{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-5)}
+@media(min-width:760px){.inv{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-6)}.inv-act,.inv>details{grid-column:1/-1}}
+.inv-prev{display:flex;flex-direction:column;gap:var(--space-3);min-width:0}
+.inv-card{display:flex;flex-direction:column;gap:var(--space-2);align-items:center;text-align:center;padding:var(--space-5);background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.inv-cv{display:block;width:100%;aspect-ratio:16/9;border-radius:var(--r-3);overflow:hidden;background:var(--surface)}
+.inv-cv img{width:100%;height:100%;object-fit:cover;display:block}
+.inv-mono{display:grid;place-items:center;width:100%;height:100%;font:350 var(--fs-hero) var(--font-display)}
+.inv-t{font:400 var(--fs-xl)/1.2 var(--font-display)}
+.inv-go{pointer-events:none;margin-top:var(--space-2)}
+.inv-ml{margin-top:var(--space-2)}
+.inv-mail{display:flex;flex-direction:column;gap:var(--space-2);padding:var(--space-4);background:var(--bg);border:1px solid var(--line-2);border-radius:var(--r-3)}
+.inv-mh{display:flex;gap:var(--space-3);align-items:baseline;padding-bottom:var(--space-2);border-bottom:1px solid var(--line-2);min-width:0}
+.inv-mh .t-small{flex:none;min-width:3.5rem}.inv-mh b{font-weight:500;min-width:0;overflow-wrap:anywhere}
+.inv-mb{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:var(--fs-sm);line-height:1.5;color:var(--fg-2)}
+.inv-act{display:flex;flex-wrap:wrap;gap:var(--space-2) var(--space-3)}
+.inv-act .btn{border-radius:var(--r-pill)}
+@media(max-width:600px){.inv-act{position:sticky;bottom:0;z-index:2;margin:0 calc(-1 * var(--space-5));padding:var(--space-3) var(--space-5) calc(var(--space-3) + env(safe-area-inset-bottom));background:var(--elev-3);border-top:1px solid var(--line-2)}.inv-act .btn-lg{flex:1 1 100%}.inv-act .btn-quiet{flex:1 1 40%}}

@@ -949,7 +949,8 @@
     if (ctx.q.aba) v.gtab = ctx.q.aba === 'numeros' ? 'numeros' : 'lista';
     const imp = canImport() ? `<button class="btn ${antes ? 'btn-primary' : 'btn-line'}" data-act="hv-importar" data-fk="imp">${A.icon('upload', 18)} Importar lista</button>` : '';
     const exp = gs.length ? `<button class="btn btn-quiet" data-act="hv-export" aria-haspopup="menu" data-fk="exp">${A.icon('download', 18)} Exportar</button>` : '';
-    const actions = gs.length && A.sim().state === 'ok' ? imp + exp : '';
+    const inv = `<button class="btn btn-accent" data-act="invite">${A.icon('send', 18)} Convidar pessoas</button>`;
+    const actions = A.sim().state === 'ok' ? inv + (gs.length ? imp + exp : '') : '';
     const content = `<div id="hv-gbody">${guestContent(id)}</div>`;
     CUR = { kind: 'convidados', id, draw: drawGuests(id) };
     return { title: 'Convidados', html: A.hostShell(ctx, { section: 'convidados', title: 'Convidados', actions, pageClass: 'hv-pg' }, content), after: () => { refreshBadge(); if (ctx.q.g && model(id).gmap[ctx.q.g]) openGuest(id, ctx.q.g); if (ctx.q.importar && A.sim().state === 'ok' && canImport()) { history.replaceState(null, '', location.pathname + location.search + '#/h/e/' + id + '/convidados'); A.acts['hv-importar'](); } } };
