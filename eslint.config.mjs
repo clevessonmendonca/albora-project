@@ -23,6 +23,8 @@ export default tseslint.config(
       ".github/**",
       ".agents/**",
       ".impeccable/**",
+      // Protótipo HTML/JS sem build, validado por docs/redesign/redesign-completo/prototipo/tools/lint.mjs (tokens e espaçamento); não é código de produto.
+      "docs/redesign/**/prototipo/**",
     ],
   },
   js.configs.recommended,
