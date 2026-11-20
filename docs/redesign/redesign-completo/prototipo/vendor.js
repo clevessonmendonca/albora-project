@@ -261,6 +261,20 @@
 .vd-fases button{border-radius:var(--r-pill)}
 .vd-tools{flex-wrap:wrap}.vd-tools .select{box-sizing:border-box;max-width:100%}
 @media(max-width:600px){.vd-fases{flex-wrap:wrap}}
+/* v217 — Marca e Cobrança em cartões */
+.vd-card{display:flex;flex-direction:column;gap:var(--space-5);padding:var(--space-6);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.vd-card-h{margin:0;font:400 var(--fs-xl)/1.2 var(--font-display)}
+.vd-card .input,.vd-card .select,.vd-card .textarea{background:var(--bg)}
+.vd-savebar{position:sticky;bottom:var(--space-4);z-index:2;justify-content:space-between;padding:var(--space-3) var(--space-4);background:var(--bg);border:1px solid var(--line-2);border-radius:var(--r-pill);box-shadow:var(--elev-2)}
+.vd-savebar .btn{border-radius:var(--r-pill)}
+.vd-plan2{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-6);padding:var(--space-6);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);margin:0 0 var(--space-8)}
+.vd-plan2 h2{margin:var(--space-2) 0 0;font:350 var(--fs-hero)/1 var(--font-display);letter-spacing:-.01em}
+.vd-plan-d{display:grid;grid-template-columns:repeat(3,auto);gap:var(--space-8);margin:0}
+.vd-plan-d dt{font-size:var(--fs-sm);color:var(--fg-2)} .vd-plan-d dd{margin:var(--space-1) 0 0;font:400 var(--fs-xl)/1.2 var(--font-display);font-variant-numeric:tabular-nums} .vd-plan-d small{font:400 var(--fs-sm) var(--font-body);color:var(--fg-2)}
+.vd-plan2 .badge{margin-left:var(--space-2);border-radius:var(--r-pill)}
+@media(max-width:700px){.vd-plan-d{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-4)}.vd-plan2{padding:var(--space-5)}}
+.vd-pl .btn,.vd-pl .atual{border-radius:var(--r-pill)}
+.app .list .li{border-radius:var(--r-3)}
 /* v205 — cadastro do fornecedor: formulário em cartão, etapas em pílula */
 .vd-steps{padding:var(--space-3) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);margin-bottom:var(--space-6)}
 .vd-steps ol li{padding:var(--space-1) var(--space-3);border-radius:var(--r-pill)}
@@ -568,7 +582,8 @@ main.page form[data-draft] .btn{border-radius:var(--r-pill)}
       if (sb.cancelando) avisos.push(`<div class="banner">${ic('info', 18)}<span class="grow">O cancelamento está agendado. O portal funciona até ${fmtD(sb.proxima)} e depois para de renovar.</span><button class="btn btn-sm btn-line" data-act="vd-desfazer-cancel">Desfazer cancelamento</button></div>`);
       if (sb.mudanca) avisos.push(`<div class="banner">${ic('info', 18)}<span class="grow">Mudança para o plano ${plano(sb.mudanca).nome} agendada para ${fmtD(sb.proxima)}.</span><button class="btn btn-sm btn-line" data-act="vd-desfazer-mudanca">Desfazer</button></div>`);
       topo = avisos.join('');
-      topo += `<div class="vd-plan"><h2>Plano ${p.nome}</h2><p>${A.brl(p.preco)} por mês · próxima cobrança em ${sb.proxima ? fmtD(sb.proxima) : '—'} · ${sb.forma === 'pix' ? 'PIX' : 'cartão'}</p></div>`;
+      const stb = { active: ['Ativo', 'ok'], overdue: ['Atrasado', 'bad'], pending: ['Pendente', 'warn'] }[sb.status] || ['Ativo', 'ok'];
+      topo += `<div class="vd-plan vd-plan2"><div class="vd-plan-m"><span class="vd-kpi-l">Seu plano <span class="badge ${stb[1]}">${stb[0]}</span></span><h2>Plano ${p.nome}</h2></div><dl class="vd-plan-d"><div><dt>Valor</dt><dd>${A.brl(p.preco)}<small> /mês</small></dd></div><div><dt>Próxima cobrança</dt><dd>${sb.proxima ? fmtD(sb.proxima) : '—'}</dd></div><div><dt>Pagamento</dt><dd>${sb.forma === 'pix' ? 'PIX' : 'Cartão'}</dd></div></dl></div>`;
     }
     const cta = (pl) => (sb.status === 'none' || sb.status === 'canceled') ? `<a class="btn ${pl.id === v.plano ? 'btn-accent' : 'btn-line'}" href="#/f/${v.id}/checkout?plano=${pl.id}">Assinar ${pl.nome}</a>` : pl.id === v.plano ? '<span class="atual">Plano atual</span>' : `<button class="btn btn-line" data-act="vd-trocar" data-p="${pl.id}">Mudar para ${pl.nome}</button>`;
     const faturas = A.stateful({ ok: () => `<div class="list">${fat.map((f) => { const [l, c] = FATURA[f.status] || ['Em análise', 'warn']; return `<div class="li"><span class="grow"><b class="t-h">Mensalidade Albora · ${plano(f.plano).nome}</b><span class="t-small" style="display:block">Vencimento ${fmtD(f.venc)}</span></span><span class="badge ${c}">${l}</span><span class="t-mono">${A.brl(f.valor)}</span><button class="btn btn-quiet btn-sm" data-act="vd-recibo" aria-label="Abrir recibo de ${fmtD(f.venc)}">Abrir recibo</button></div>`; }).join('')}</div>`, isEmpty: () => !fat.length, empty: A.emptyState({ art: 'none', icon: 'wallet', title: 'Nenhuma cobrança ainda', body: 'As mensalidades aparecem aqui depois da primeira cobrança.' }), error: A.errorState({ title: 'O histórico não carregou', body: 'Sua assinatura não foi afetada. Tente de novo em instantes.' }) });
@@ -636,7 +651,7 @@ main.page form[data-draft] .btn{border-radius:var(--r-pill)}
     if (papel() !== 'admin') return negado(ctx, v, 'marca', 'Marca', 'alteram a marca');
     const p = plano(v.plano);
     const seloSw = p.selo ? `<div class="field"><span class="lbl">Selo "com Albora"</span><p class="t-small">Aparece no rodapé do portal e dos eventos. Só o plano Agency pode ocultar. <a href="#/f/${v.id}/cobranca">Ver planos</a></p></div>` : `<div class="field"><span class="lbl">Selo "com Albora"</span><p class="t-small">Oculto: seu plano Agency tem marca própria completa.</p></div>`;
-    const form = `<form class="stack-5" data-submit="vd-marca" novalidate>${A.field({ name: 'nome', label: 'Nome que aparece no portal', value: v.nome, required: true, extra: 'maxlength="120" data-input="vd-brand"' })}${colorField(v.cor, v.tema)}${temaField(v.tema)}${estiloField(v.estilo)}${logoField(v.logo)}<input type="hidden" name="descricao" value="${esc(v.descricao)}">${seloSw}<div class="flex"><button class="btn btn-primary" type="submit">Salvar marca</button><button class="btn btn-quiet" type="button" data-act="vd-marca-descartar">Descartar mudanças</button></div></form>`;
+    const form = `<form class="stack-5" data-submit="vd-marca" novalidate><section class="vd-card"><h2 class="vd-card-h">Identidade</h2>${A.field({ name: 'nome', label: 'Nome que aparece no portal', value: v.nome, required: true, extra: 'maxlength="120" data-input="vd-brand"' })}${logoField(v.logo)}</section><section class="vd-card"><h2 class="vd-card-h">Cores</h2>${colorField(v.cor, v.tema)}${temaField(v.tema)}</section><section class="vd-card"><h2 class="vd-card-h">Tipografia e selo</h2>${estiloField(v.estilo)}${seloSw}</section><input type="hidden" name="descricao" value="${esc(v.descricao)}"><div class="flex vd-savebar"><button class="btn btn-primary" type="submit">Salvar marca</button><button class="btn btn-quiet" type="button" data-act="vd-marca-descartar">Descartar mudanças</button></div></form>`;
     return { ...shell(ctx, { section: 'marca', title: 'Marca', lead: 'Cor, fundo, logo e estilo que seus clientes veem.', actions: `<a class="btn btn-line" href="#/f/v/${esc(v.slug)}">${ic('globe', 16)} Ver portal público</a>` }, `<div class="split"><div>${form}</div><div class="aside">${brandPreview(v, p.selo)}</div></div>`), after: () => { const f = $('form[data-submit=vd-marca]'); if (f) paint(f); } };
   });
   A.acts['vd-marca-descartar'] = () => { A.render(); A.toast('Mudanças descartadas.'); };
