@@ -7,3 +7,9 @@
 .st-photo-library{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.st-photo-library button{border:0;padding:0;background:var(--bg)}.st-photo-library img{display:block;width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px}
 .st-layer{display:flex;align-items:center;gap:10px}.st-layer svg,.st-actions svg,.st-toolbar svg{flex-shrink:0}.st-layer span{min-width:0}.st-panel summary svg{vertical-align:middle;margin-right:4px}.st-toolbar>.btn span{white-space:normal}.st-editor .st-panel-close{align-items:center;gap:8px}
 .st-panel summary svg{display:inline-block}.st-panel-open .st-panel-close{display:flex}.st-panel-close{position:sticky;top:0;background:var(--bg);z-index:1}.st-layer span{flex:1}.st-panel .st-actions{margin-top:16px}
+
+/* v297 — Convidar pessoas ao lado de Copiar link */
+.st-gh-act{display:inline-flex;flex-wrap:wrap;gap:var(--space-2)}
+.st-gh-act .btn{border-radius:var(--r-pill)}
+@media(max-width:600px){.st-gallery-head{flex-wrap:wrap;gap:var(--space-3)}}
+.st-project>a{display:inline-flex;align-items:center;min-height:44px}

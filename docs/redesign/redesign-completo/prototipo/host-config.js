@@ -297,6 +297,12 @@ details.hc-fold.ds-fold:not(.in){margin-top:var(--space-2);padding:var(--space-1
 .hc-plan2-l li>span{display:grid;place-items:center;flex:none;width:24px;height:24px;border-radius:50%;background:var(--ac);color:var(--on-ac)}
 .hc-plan2-f .btn{border-radius:var(--r-pill)}
 
+/* v295 — Estilo mobile first: "Ver como fica" vira botão flutuante sempre à mão acima da barra inferior */
+@media(max-width:999px){
+  .hc-prevbtn{position:fixed;left:50%;translate:-50% 0;bottom:calc(var(--tabbar-h) + var(--space-5) + env(safe-area-inset-bottom));z-index:25;margin:0;min-height:48px;padding:0 var(--space-6);border-radius:var(--r-pill);background:var(--ac);border-color:var(--ac);color:var(--on-ac);font-weight:600;box-shadow:0 10px 28px -6px color-mix(in srgb,var(--tinta) 40%,transparent)}
+  .hc-ed-l{padding-bottom:var(--space-16)}
+}
+
 `;
   document.head.append(css);
 
@@ -437,7 +443,7 @@ ${r.audio ? `<div class="flex"><span class="badge ok">Áudio de ${r.audio} s gra
     const est = A.data.estilos.find((x) => x.id === e.estilo) || A.data.estilos[0]; const m = ESTILO_MAP[est.id];
     const cust = `<div class="hc-pal"><button type="button" class="hc-pal-i" aria-pressed="${!!e.custom}" data-act="hc-custom" data-k="cmb-x" ${dis}><span class="hc-dots" aria-hidden="true"><i id="hc-cdot" style="background:${esc(e.customCor)}"></i></span>Cor personalizada<span class="hc-pip" aria-hidden="true"></span></button></div>${e.custom ? `<div class="field hc-corf"><label for="hc-cor">Escolha a cor</label><input id="hc-cor" class="hc-cor" type="color" value="${esc(e.customCor)}" data-input="hc-cor" aria-describedby="hc-ctr" ${dis}></div>` : ''}`;
     const fino = `${cust}<dl class="hc-kv hc-gap-5"><dt>Fonte</dt><dd>${esc(est.fonte)}, do estilo ${esc(est.nome)}</dd><dt>Cantos</dt><dd>${parseInt(m.r, 10) ? parseInt(m.r, 10) + ' px' : 'retos'}, do estilo ${esc(est.nome)}</dd></dl><p class="hc-note">Para mudar a fonte e os cantos, escolha outro estilo acima.</p><div id="hc-ctr" class="hc-gap-5" aria-live="polite">${sealHtml(id)}</div>`;
-    return sec('hc-s-id', 'Estilo', 'Comece por aqui: escolha um estilo pronto e veja a prévia ao lado. Cores e ajuste fino são opcionais e ficam logo abaixo.',
+    return sec('hc-s-id', 'Estilo', 'Comece por aqui: escolha um estilo pronto e veja a prévia a qualquer momento. Cores e ajuste fino são opcionais e ficam logo abaixo.',
       `<div class="hc-specs" role="radiogroup" aria-label="Estilo">${specs}</div>
 ${fold({ id: 'hc-f-cor', title: 'Cores', lvl: 3, inner: true, sum: `<span id="hc-cor-sum" class="flex">${corSum(id)}</span>`, body: `<p class="hc-sec-p">A cor aparece nos botões e destaques que o convidado vê. O Albora ajusta o tom sozinho para a leitura ficar boa.</p><div class="hc-pal" role="radiogroup" aria-label="Paleta de cores">${pal}</div>` })}
 ${fold({ id: 'hc-f-fino', title: 'Ajuste fino', lvl: 3, inner: true, open: !!e.custom, sum: `<span id="hc-seal-line">${sealLine(id)}</span>`, body: fino })}
