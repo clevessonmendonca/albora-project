@@ -320,6 +320,27 @@ ${[[9, 900], [10, 1060], [13, 1300]].map(([k, w]) => `@container cxt (min-width:
 .cx-fila>li:hover:not(:focus-within){background:none}
 .cx .table:not(.cx-led) tbody tr:hover{background:none}
 }
+/* v240 — console: KPIs em cartão e fila de atenção em linhas-cartão */
+.cx-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3);margin:0 0 var(--space-6)}
+@media(min-width:900px){.cx-kpis{grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--space-4)}}
+.cx-kpi{display:flex;flex-direction:column;gap:var(--space-1);padding:var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.cx-kpi.bad{border-color:color-mix(in srgb,var(--crit-text) 35%,var(--line-2))}
+.cx-kpi-l{font-size:var(--fs-sm);color:var(--fg-2)}
+.cx-kpi-n{font:350 clamp(var(--fs-xl),2.6vw,var(--fs-display))/1 var(--font-display);font-variant-numeric:tabular-nums;letter-spacing:-.02em;white-space:nowrap}
+.cx-kpi.bad .cx-kpi-s{color:var(--crit-text)}
+.cx-kpi-s{font-size:var(--fs-xs);color:var(--fg-3)}
+.cx-fila{display:flex;flex-direction:column;gap:var(--space-2);border-top:0}
+.cx-fila>li{padding:var(--space-3) var(--space-4);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-3)}
+.cx-fila>li:hover:not(:focus-within){background:var(--surface-2)}
+.cx .table-wrap{border-radius:var(--r-3)}
+.cx-login{background:radial-gradient(ellipse at 50% 0,color-mix(in srgb,var(--ac) 12%,transparent),transparent 60%)}
+.cx-login>div{padding:var(--space-8);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);box-shadow:var(--elev-2)}
+.cx-login .btn{border-radius:var(--r-pill)}
+.cx-login .input{box-sizing:border-box;min-height:52px;padding:var(--space-3) var(--space-4);background:var(--bg);border:1px solid var(--line);border-radius:var(--r-3);font-style:normal}
+.cx-login .input:focus{outline:0;border-color:var(--ac);box-shadow:0 0 0 3px color-mix(in srgb,var(--ac) 25%,transparent)}
+.cx-login .chip{border-radius:var(--r-pill)}
+@media(max-width:600px){.cx-login>div{padding:var(--space-5)}}
+
 `;
   document.head.appendChild(css);
 
@@ -622,8 +643,11 @@ ${[[9, 900], [10, 1060], [13, 1300]].map(([k, w]) => `@container cxt (min-width:
     const sec = (t, h, extra = '') => `<section class="cx-sec"><div class="flex between flex-wrap" style="align-items:baseline;margin-bottom:var(--space-3)"><h2 style="margin:0">${t}</h2>${extra}</div>${h}</section>`;
     const row = (l, v, n, cls = '') => `<tr class="${cls}"><th scope="row" style="font-weight:400;color:var(--fg);font-size:var(--fs-sm);letter-spacing:0">${l}</th><td>${v}</td><td class="t-small">${n}</td></tr>`;
     const pct = (a, b, i) => (b ? (i === 1 ? (a / b).toFixed(1).replace('.', ',') + ' evento por conta' : Math.round((a / b) * 100) + '% do passo anterior') : '');
+    const kp = (l, v, sub, bad) => `<div class="cx-kpi${bad ? ' bad' : ''}"><span class="cx-kpi-l">${l}</span><b class="cx-kpi-n">${v}</b><span class="cx-kpi-s">${sub}</span></div>`;
+    const urg = fila.filter((x) => x.sev === 0).length;
+    const kpis = `<div class="cx-kpis" role="group" aria-label="Resumo da plataforma">${kp('Pedem atenção', fila.length, urg ? urg + (urg === 1 ? ' urgente' : ' urgentes') : 'nada urgente', urg > 0)}${kp('Receita recorrente', A.brl(mrr), 'valor de hoje')}${kp('Eventos ativos', ev.filter((e) => e.status === 'ativo').length, 'publicados e em andamento')}${kp('Convidados', A.pt(conv), (p === 'hoje' ? 'hoje' : 'nos últimos ' + dias + ' dias') + ' · ' + janela.length + ' eventos')}</div>`;
     const html = `<div class="sr-only" aria-live="polite">${fila.length} ${fila.length === 1 ? 'item pede' : 'itens pedem'} atenção.</div>
-${sec('Precisa de atenção agora', A.stateful({ isEmpty: () => !fila.length, empty: vazio({ title: 'Nada urgente agora', body: 'Nenhum prazo estourado, nenhuma falha aberta e nenhum pedido esperando a sua decisão.' }), ok: () => `<ol class="cx-fila" aria-label="Itens por urgência, do mais urgente para o menos">${top.map((x, i) => `<li><a href="${x.href}"><span class="n" aria-hidden="true">${i + 1}</span><span class="w"><b>${bd(x.sev === 0 ? 'bad' : 'warn', x.sev === 0 ? 'Urgente' : 'Atenção')} ${esc(x.txt)}</b><span class="t-small">${esc(x.tipo)}${x.sub ? ' · ' + esc(x.sub) : ''}</span></span><span class="p">${esc(x.quando)}<span class="t-small" style="display:block;line-height:1.25">${esc(x.resp)}</span></span><span aria-hidden="true">${A.icon('chevron', 16)}</span></a></li>`).join('')}</ol><p class="cx-areas t-small">${fila.length > TOP ? `Mostrando ${TOP} de ${fila.length}. ` : ''}Por área: ${Object.keys(nArea).map((k) => `<a class="cx-lk" href="${areaHref[k]}">${AREA[k]} ${nArea[k]}</a>`).join(' · ')}</p>` }), `<span class="t-small hide-sm">Ordem: urgentes primeiro, depois o que está atrasado há mais tempo</span>`)}
+${kpis}${sec('Precisa de atenção agora', A.stateful({ isEmpty: () => !fila.length, empty: vazio({ title: 'Nada urgente agora', body: 'Nenhum prazo estourado, nenhuma falha aberta e nenhum pedido esperando a sua decisão.' }), ok: () => `<ol class="cx-fila" aria-label="Itens por urgência, do mais urgente para o menos">${top.map((x, i) => `<li><a href="${x.href}"><span class="n" aria-hidden="true">${i + 1}</span><span class="w"><b>${bd(x.sev === 0 ? 'bad' : 'warn', x.sev === 0 ? 'Urgente' : 'Atenção')} ${esc(x.txt)}</b><span class="t-small">${esc(x.tipo)}${x.sub ? ' · ' + esc(x.sub) : ''}</span></span><span class="p">${esc(x.quando)}<span class="t-small" style="display:block;line-height:1.25">${esc(x.resp)}</span></span><span aria-hidden="true">${A.icon('chevron', 16)}</span></a></li>`).join('')}</ol><p class="cx-areas t-small">${fila.length > TOP ? `Mostrando ${TOP} de ${fila.length}. ` : ''}Por área: ${Object.keys(nArea).map((k) => `<a class="cx-lk" href="${areaHref[k]}">${AREA[k]} ${nArea[k]}</a>`).join(' · ')}</p>` }), `<span class="t-small hide-sm">Ordem: urgentes primeiro, depois o que está atrasado há mais tempo</span>`)}
 ${sec('Leituras', A.stateful({ empty: vazio({ title: 'Sem dados para ler ainda', body: 'As leituras aparecem quando houver contas, assinaturas e eventos.' }), ok: () => `<div class="table-wrap"><table class="table cx-led"><caption class="sr-only">Indicadores da plataforma</caption><thead><tr><th scope="col">Leitura</th><th scope="col" class="num">Valor</th><th scope="col">Como ler</th></tr></thead><tbody>
 ${row('Receita recorrente (MRR)', A.brl(mrr), 'Valor de hoje, não muda com o período')}${row('Cancelamentos (30 dias)', churn.toString().replace('.', ',') + '%', `≈ aproximado: ${canc} de ${base} assinaturas`)}${row('Eventos ativos', ev.filter((e) => e.status === 'ativo').length, 'Publicados e ainda sem terminar')}${row('Convidados', A.pt(conv), (p === 'hoje' ? 'Hoje' : 'Nos últimos ' + dias + ' dias') + ' · ' + janela.length + ' eventos')}${row('Participação média', med == null ? '—' : med + '%', serie.length ? `<span class="cx-spark cx-hist" role="img" aria-label="Participação dos últimos ${serie.length} eventos, de ${Math.min(...serie.map((e) => e.part))}% a ${Math.max(...serie.map((e) => e.part))}%">${serie.map((e) => `<i style="height:${e.part}%" title="${esc(e.titulo)}: ${e.part}%"></i>`).join('')}</span>Quem enviou ao menos uma foto, entre quem entrou. Últimos ${serie.length} eventos, do mais antigo ao mais recente.` : 'Sem eventos com dados ainda.')}
 ${funil.map((f, i) => row(i ? '&nbsp;&nbsp;' + f[0] : f[0], f[1], (i ? pct(f[1], funil[i - 1][1], i) : 'Início do funil') + (i === perda.i ? ` · <b class="crit">${A.icon('warn', 14)} maior perda (${perda.pct}% não seguem)</b>` : ''), i === 0 ? 'sep' : '')).join('')}</tbody></table></div><details class="ds-fold sem-borda" style="margin-top:var(--space-3)"><summary>Como a participação é calculada</summary><div class="ds-fold-b"><p class="t-small" style="max-width:62ch">Para cada evento: convidados que enviaram pelo menos uma foto, divididos pelos convidados que entraram pelo link ou QR. A média do período ignora eventos que ainda não aconteceram.</p></div></details>` }), `<div class="chips" aria-label="Período das leituras">${periodChips}</div>`)}
