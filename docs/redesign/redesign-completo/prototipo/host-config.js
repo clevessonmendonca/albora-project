@@ -285,6 +285,18 @@ details.hc-fold.ds-fold>summary>.hc-h2{font:400 var(--fs-xl)/1.25 var(--font-dis
 .hc-cor{border-radius:var(--r-3)}
 details.hc-fold.ds-fold:not(.in){margin-top:var(--space-2);padding:var(--space-1) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
 .hc-mis{padding:var(--space-3) var(--space-4);margin-bottom:var(--space-2);border:1px solid var(--line-2);border-radius:var(--r-3);background:var(--bg)}
+/* v237 — Plano nos Ajustes: resumo estilo Stripe */
+.hc-plan2{display:flex;flex-direction:column;gap:var(--space-6)}
+.hc-plan2-h{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:var(--space-4);padding-bottom:var(--space-5);border-bottom:1px solid var(--line-2)}
+.hc-plan2-k{font-size:var(--fs-sm);color:var(--fg-2)}
+.hc-plan2-n{margin:var(--space-1) 0 0;font:350 var(--fs-hero)/1 var(--font-display);letter-spacing:-.01em}
+.hc-plan2-p{display:flex;flex-direction:column;align-items:flex-end} .hc-plan2-p b{font:350 var(--fs-xl)/1.1 var(--font-display);font-variant-numeric:tabular-nums} .hc-plan2-p small{font-size:var(--fs-sm);color:var(--fg-2)}
+.hc-plan2-l{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-3)}
+@media(min-width:760px){.hc-plan2-l{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.hc-plan2-l li{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-3) var(--space-4);background:var(--bg);border:1px solid var(--line-2);border-radius:var(--r-3);font-size:var(--fs-sm)}
+.hc-plan2-l li>span{display:grid;place-items:center;flex:none;width:24px;height:24px;border-radius:50%;background:var(--ac);color:var(--on-ac)}
+.hc-plan2-f .btn{border-radius:var(--r-pill)}
+
 `;
   document.head.append(css);
 
@@ -643,7 +655,7 @@ ${sec('hc-c-wa', 'Mensagem para o grupo', '', `<div class="hc-wa"><div class="fi
   A.acts['hc-livro-dl'] = () => A.toast('Baixaria o livro em PDF (simulado).');
   A.acts['hc-apagar'] = async () => { const id = curId(); const ev = evOf(id); const ok = await A.confirm({ title: `Apagar “${ev.nome}”?`, body: '<p>Fotos, missões, recado, convidados e equipe são apagados de vez. O link e o QR param de funcionar. Não existe como recuperar.</p>', confirm: 'Apagar para sempre', danger: true, type: 'apagar' }); if (!ok) return; A.toast('Simulado: no protótipo nada foi apagado. Na versão real o evento sumiria agora.', { ms: 5000 }); location.hash = '#/h'; };
 
-  const planoPanel = (id) => { const ev = evOf(id); const p = A.data.planos.find((x) => x.id === ev.plano) || A.data.planos[0]; return `<div class="stack stack-3 hc-plan"><div><h3 class="hc-h1">${esc(p.nome)}</h3><p class="t-lead hc-gap-2">${p.preco ? A.brl(p.preco) + ' por evento' : 'Sem custo'}</p></div><ul class="stack stack-2 hc-bul">${p.itens.map((i) => `<li>${esc(i)}</li>`).join('')}</ul><div><a class="btn btn-primary" href="#/h/plano">Ver plano e cobrança</a></div></div>`; };
+  const planoPanel = (id) => { const ev = evOf(id); const p = A.data.planos.find((x) => x.id === ev.plano) || A.data.planos[0]; return `<div class="hc-plan2"><div class="hc-plan2-h"><div><span class="hc-plan2-k">Plano deste evento</span><h3 class="hc-plan2-n">${esc(p.nome)}</h3></div><div class="hc-plan2-p"><b>${p.preco ? A.brl(p.preco) : 'R$ 0'}</b><small>${p.preco ? 'pagamento único' : 'sem custo'}</small></div></div><ul class="hc-plan2-l">${p.itens.map((i) => `<li><span aria-hidden="true">${A.icon('check', 14)}</span>${esc(i)}</li>`).join('')}</ul><div class="hc-plan2-f"><a class="btn btn-primary" href="#/h/plano">Ver plano e cobrança</a></div></div>`; };
 
   const ajRender = (ctx, section) => {
     const id = ctx.params.id; S.set('hc:last', id); const cur = section || null; const act = cur || 'evento';
