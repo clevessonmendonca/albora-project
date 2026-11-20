@@ -275,6 +275,23 @@
 @media(max-width:700px){.vd-plan-d{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-4)}.vd-plan2{padding:var(--space-5)}}
 .vd-pl .btn,.vd-pl .atual{border-radius:var(--r-pill)}
 .app .list .li{border-radius:var(--r-3)}
+/* v218 — Clientes e equipe: abas em pílula, busca em pílula, linhas em cartão */
+.app .vd-tabs{display:inline-flex;gap:var(--space-1);padding:var(--space-1);background:var(--surface-2);border:0;border-radius:var(--r-pill);margin-bottom:var(--space-6)}
+.vd-tabs a{display:inline-flex;align-items:center;gap:var(--space-2);min-height:44px;padding:0 var(--space-5);border:0;border-radius:var(--r-pill);color:var(--fg-2);font-weight:500;text-decoration:none}
+.vd-tabs a::after,.vd-tabs a::before{display:none}
+.vd-tabs a[aria-current=page]{background:var(--bg);color:var(--fg);box-shadow:var(--elev-1);border:0}
+.vd-tabs .n{font-size:var(--fs-xs);padding:0 var(--space-2);border-radius:var(--r-pill);background:var(--surface-2);color:var(--fg-2)}
+.vd-directory .input[type=search]{background:var(--bg);border:1px solid var(--line-2);border-radius:var(--r-pill);padding-inline:var(--space-5)}
+.vd-directory .select{border-radius:var(--r-pill);background:var(--surface);border:1px solid var(--line-2)}
+.vd-directory .list{display:flex;flex-direction:column;gap:var(--space-2)}
+.vd-directory .li{padding:var(--space-4) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-3)}
+.vd-directory .li .avatar{width:44px;height:44px;border-radius:50%;background:color-mix(in srgb,var(--ac) 16%,var(--surface-2));color:var(--fg);font-weight:600}
+.vd-directory .li{flex-wrap:wrap}
+.vd-directory .li .select{box-sizing:border-box;max-width:100%;min-width:min(150px,100%);padding:var(--space-2) var(--space-4);font-size:var(--fs-sm)}
+.vd-directory .li .btn{border-radius:var(--r-pill)}
+.vd-panel{border-radius:var(--r-4);padding:var(--space-6);background:var(--surface);border:1px solid var(--line-2);margin-bottom:var(--space-6)}
+.vd-panel .btn{border-radius:var(--r-pill)}
+.vd-panel .input,.vd-panel .select{background:var(--bg)}
 /* v205 — cadastro do fornecedor: formulário em cartão, etapas em pílula */
 .vd-steps{padding:var(--space-3) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);margin-bottom:var(--space-6)}
 .vd-steps ol li{padding:var(--space-1) var(--space-3);border-radius:var(--r-pill)}
@@ -506,7 +523,7 @@ main.page form[data-draft] .btn{border-radius:var(--r-pill)}
   window.addEventListener('beforeunload', (e) => { if (settingsDrafts.size) { e.preventDefault(); e.returnValue = ''; } });
 
   /* ---------- /f/:vid/equipe e clientes ---------- */
-  const abas = (v, a) => `<nav class="vd-tabs" aria-label="Clientes e equipe"><a href="#/f/${v.id}/equipe?aba=equipe" ${a === 'equipe' ? 'aria-current="page"' : ''}>Equipe</a><a href="#/f/${v.id}/equipe?aba=clientes" ${a === 'clientes' ? 'aria-current="page"' : ''}>Clientes</a></nav>`;
+  const abas = (v, a) => { const s = V(); const ne = (s.equipe[v.id] || []).length + (s.convites[v.id] || []).length, nc = (s.clientes[v.id] || []).length; return `<nav class="vd-tabs" aria-label="Clientes e equipe"><a href="#/f/${v.id}/equipe?aba=equipe" ${a === 'equipe' ? 'aria-current="page"' : ''}>Equipe<span class="n">${ne}</span></a><a href="#/f/${v.id}/equipe?aba=clientes" ${a === 'clientes' ? 'aria-current="page"' : ''}>Clientes<span class="n">${nc}</span></a></nav>`; };
   const pageEquipe = (ctx, v) => {
     const aba = ctx.params.aba || ctx.q.aba || 'equipe'; const s = V(); const adm = papel() === 'admin'; const p = plano(v.plano);
     let corpo;
