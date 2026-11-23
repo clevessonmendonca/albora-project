@@ -355,6 +355,14 @@
 /* v400 — varredura: faixa ao vivo cabe na coluna do painel (desktop) */
 @media(min-width:901px){.hv-dash .hv-live{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-6)}.hv-dash .hv-live>*{min-width:0}.hv-dash .hv-last-in,.hv-dash .hv-last-in img{max-width:100%}.hv-dash .hv-live .hv-bn{flex-wrap:wrap;min-width:0}}
 
+/* v420 — ficha do convidado como inspetor à direita no desktop; no celular continua folha */
+@media(min-width:1100px){
+  .modal.hv-insp{left:auto;right:var(--space-3);top:var(--space-3);bottom:auto;transform:none;width:26rem;max-height:calc(100dvh - var(--space-6));height:auto;border-radius:var(--r-4);animation:hv-insp-in .24s var(--ease)}
+  .modal.hv-insp .hv-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@keyframes hv-insp-in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.modal.hv-insp{animation:none}}
+
 `;
   const st = document.createElement('style'); st.id = 'hv-style'; st.textContent = css; document.head.append(st);
 
@@ -1141,7 +1149,7 @@
   /* ficha do convidado (sheet) */
   let GS = null;
   function openGuest(id, gid) {
-    const api = A.sheet({ title: gname(id, gid), label: 'Ficha do convidado', body: '<div id="hv-gs"></div>' }); GS = { id, gid, api }; api.onClose = () => { GS = null; redraw(); }; drawGuestSheet();
+    const api = A.sheet({ title: gname(id, gid), label: 'Ficha do convidado', body: '<div id="hv-gs"></div>' }); api.el.classList.add('hv-insp'); GS = { id, gid, api }; api.onClose = () => { GS = null; redraw(); }; drawGuestSheet();
   }
   function drawGuestSheet() {
     if (!GS || !GS.api.el.isConnected) return; const { id, gid } = GS, g = model(id).gmap[gid]; if (!g) return;
