@@ -357,9 +357,16 @@
 
 /* v420 — ficha do convidado como inspetor à direita no desktop; no celular continua folha */
 @media(min-width:1100px){
-  .modal.hv-insp{left:auto;right:var(--space-3);top:var(--space-3);bottom:auto;transform:none;width:26rem;max-height:calc(100dvh - var(--space-6));height:auto;border-radius:var(--r-4);animation:hv-insp-in var(--dur-2) var(--ease)}
+  .modal.hv-insp{left:auto;right:var(--space-2);top:var(--space-2);bottom:var(--space-2);transform:none;width:26rem;max-height:none;height:auto;border:1px solid var(--line-2);box-shadow:0 1px 3px color-mix(in srgb,var(--tinta) 6%,transparent);border-radius:var(--r-4);animation:hv-insp-in var(--dur-2) var(--ease)}
   .modal.hv-insp .hv-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
+@media(min-width:1100px){
+  .hv-insp-scrim{display:none}
+  body:has(.modal.hv-insp) .app>.main{margin-right:calc(26rem + var(--space-4));transition:margin var(--dur-2) var(--ease)}
+  body:has(.modal.hv-insp) .topbar{padding-right:var(--space-5)}
+  body:has(.modal.hv-insp) .app .list:has(>.hv-gr){grid-template-columns:minmax(0,1fr)}
+}
+@media(prefers-reduced-motion:reduce){body:has(.modal.hv-insp) .app>.main{transition:none}}
 @keyframes hv-insp-in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.modal.hv-insp{animation:none}}
 
@@ -1149,7 +1156,8 @@
   /* ficha do convidado (sheet) */
   let GS = null;
   function openGuest(id, gid) {
-    const api = A.sheet({ title: gname(id, gid), label: 'Ficha do convidado', body: '<div id="hv-gs"></div>' }); api.el.classList.add('hv-insp'); GS = { id, gid, api }; api.onClose = () => { GS = null; redraw(); }; drawGuestSheet();
+    if (GS && GS.api.el.isConnected) GS.api.close();
+    const api = A.sheet({ title: gname(id, gid), label: 'Ficha do convidado', body: '<div id="hv-gs"></div>' }); api.el.classList.add('hv-insp'); const sc = api.el.previousElementSibling; if (sc && sc.classList.contains('scrim')) sc.classList.add('hv-insp-scrim'); GS = { id, gid, api }; api.onClose = () => { GS = null; redraw(); }; drawGuestSheet();
   }
   function drawGuestSheet() {
     if (!GS || !GS.api.el.isConnected) return; const { id, gid } = GS, g = model(id).gmap[gid]; if (!g) return;
