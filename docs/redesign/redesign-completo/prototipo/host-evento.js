@@ -352,6 +352,9 @@
 .modal .hv-grid{display:grid;column-width:auto;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:var(--space-2)}
 .modal .hv-grid>.hv-tile{margin:0;aspect-ratio:4/5!important}
 
+/* v400 — varredura: faixa ao vivo cabe na coluna do painel (desktop) */
+@media(min-width:901px){.hv-dash .hv-live{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--space-6)}.hv-dash .hv-live>*{min-width:0}.hv-dash .hv-last-in,.hv-dash .hv-last-in img{max-width:100%}.hv-dash .hv-live .hv-bn{flex-wrap:wrap;min-width:0}}
+
 `;
   const st = document.createElement('style'); st.id = 'hv-style'; st.textContent = css; document.head.append(st);
 

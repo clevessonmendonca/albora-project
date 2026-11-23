@@ -315,6 +315,12 @@ details.hc-fold.ds-fold:not(.in){margin-top:var(--space-2);padding:var(--space-1
 }
 @media(min-width:1000px){.hc-aj-nav a{min-height:48px;gap:var(--space-3)}.hc-aj-nav .aj-t small{display:none}.hc-aj-nav .aj-i{width:32px;height:32px}}
 
+/* v400 — varredura: título de Ajustes quebra em vez de estourar; linha do Drive quebra no celular */
+.hc-aj-nav .aj-t,.hc-aj-nav .aj-t b{min-width:0;overflow-wrap:anywhere}
+.hc-row{flex-wrap:wrap;min-width:0}
+.hc-row>*{min-width:0;max-width:100%}
+.hc-row .btn{max-width:100%;white-space:normal;text-align:center;height:auto;min-height:44px;line-height:1.25;padding-block:var(--space-2)}
+
 `;
   document.head.append(css);
 
