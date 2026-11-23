@@ -357,7 +357,7 @@
 
 /* v420 — ficha do convidado como inspetor à direita no desktop; no celular continua folha */
 @media(min-width:1100px){
-  .modal.hv-insp{left:auto;right:var(--space-3);top:var(--space-3);bottom:auto;transform:none;width:26rem;max-height:calc(100dvh - var(--space-6));height:auto;border-radius:var(--r-4);animation:hv-insp-in .24s var(--ease)}
+  .modal.hv-insp{left:auto;right:var(--space-3);top:var(--space-3);bottom:auto;transform:none;width:26rem;max-height:calc(100dvh - var(--space-6));height:auto;border-radius:var(--r-4);animation:hv-insp-in var(--dur-2) var(--ease)}
   .modal.hv-insp .hv-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @keyframes hv-insp-in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
