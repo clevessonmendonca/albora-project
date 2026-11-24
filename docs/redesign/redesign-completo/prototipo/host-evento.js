@@ -377,6 +377,30 @@
 @keyframes hv-insp-in{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.modal.hv-insp{animation:none}}
 
+/* v610 — Convidados: busca e ordenação ficam fixas sob o cabeçalho ao rolar a lista (celular) */
+@media(max-width:900px){#hv-p .hv-tools{position:sticky;top:var(--hv-top,68px);z-index:15;padding:var(--space-2) 0;background:var(--bg);border-bottom:1px solid var(--line-2)}}
+@media(max-width:900px){#hv-p .hv-tools{flex-wrap:nowrap;gap:var(--space-3)} #hv-p .hv-tools .search{min-width:0;flex:1 1 auto} #hv-p .hv-tools label:has(.select),#hv-p .hv-tools .field{flex:0 0 auto;margin:0} #hv-p .hv-tools .select{min-width:0;width:7rem} #hv-p .hv-tools .field>label,#hv-p .hv-tools label:has(.select)>span:first-child{font-size:var(--fs-xs)}}
+
+/* v615 — passos do "depois" em acordeão (um por vez no celular; todos abertos no desktop) */
+.app details.hv-acc.hv-step{display:block;padding:var(--space-2) var(--space-5)}
+.hv-acc>.hv-step-s{display:flex;align-items:center;gap:var(--space-3);min-height:44px;list-style:none;cursor:pointer}
+.hv-acc>.hv-step-s::-webkit-details-marker{display:none}
+.hv-acc>.hv-step-s h3{margin:0;flex:1}
+.hv-acc>.hv-step-s::after{content:"";width:10px;height:10px;border-right:2px solid var(--fg-3);border-bottom:2px solid var(--fg-3);rotate:45deg;transition:rotate var(--dur-1) var(--ease);margin-right:var(--space-1)}
+.hv-acc[open]>.hv-step-s::after{rotate:225deg}
+.hv-acc>.hv-step-b{padding:var(--space-3) 0 0 calc(var(--space-8) + var(--space-3))}
+@media(min-width:901px){.hv-acc>.hv-step-s{pointer-events:none;cursor:default}.hv-acc>.hv-step-s::after{display:none}}
+
+/* v620 — "durante": controles da festa recolhidos no celular (abertos e fixos no desktop) */
+.hv-dash-side>.hv-sidebox{border:0;padding:0;background:none;border-radius:0}
+.hv-sidebox-b>*{margin:0;padding:var(--space-4) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}
+.hv-sidebox-b>details{padding:var(--space-2) var(--space-5)}
+.hv-sidebox-s{display:flex;flex-direction:column;gap:2px;min-height:44px;justify-content:center;cursor:pointer;list-style:none}
+.hv-sidebox-s::-webkit-details-marker{display:none}
+.hv-sidebox-b{display:flex;flex-direction:column;gap:var(--space-4);padding-top:var(--space-4)}
+@media(min-width:901px){.hv-sidebox-s{display:none}.hv-sidebox-b{padding-top:0}}
+@media(max-width:900px){.hv-dash-side{padding:0;border:0;background:none}.hv-dash-side>.hv-sidebox{padding:var(--space-3) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4)}.hv-sidebox-b>*{padding:var(--space-3) 0;background:none;border:0;border-radius:0;border-top:1px solid var(--line-2)}.hv-sidebox-b>details{padding:var(--space-1) 0}}
+
 `;
   const st = document.createElement('style'); st.id = 'hv-style'; st.textContent = css; document.head.append(st);
 
@@ -872,7 +896,7 @@
     const open = gateOpen(id), pub = published(id), pn = panic(id).on;
     const head = `<div class="flex between flex-wrap" style="margin-bottom:var(--space-6);gap:12px;align-items:flex-end"><h1 class="t-display">Festa ao vivo</h1><p class="t-small" style="max-width:38ch">${couple ? 'Modo Acompanhar: você vê tudo e aprova fotos. Para pausar a festa, fale com quem organiza.' : 'As fotos chegam sozinhas. Você só decide o que aparece.'}</p></div>`;
     const rules = `<details class="hv-det hv-sec ds-fold sem-borda" ${RULES_OPEN ? 'open' : ''}><summary><span class="grow">Regras da festa <span class="t-small">· interação ${pn ? 'fechada pela pausa' : open ? 'aberta' : 'fechada'}${pub ? '' : ' · rascunho'}</span></span></summary><div class="ds-fold-b">${rulesHtml(id, couple)}</div></details>`;
-    return `<div id="hv-panic">${panicBanner(id, couple)}</div>${head}<div class="hv-dash"><div class="hv-dash-main"><div id="hv-live" class="hv-live">${liveHtml(id)}</div><p class="sr-only" id="hv-say" aria-live="polite"></p><section class="hv-sec" id="hv-queue">${queueHtml(id, couple)}</section></div><aside class="hv-dash-side" aria-label="Controles da festa">${ctrlHtml(id, couple)}${rules}${couple || pn ? '' : riskHtml(id)}</aside></div>`;
+    return `<div id="hv-panic">${panicBanner(id, couple)}</div>${head}<div class="hv-dash"><div class="hv-dash-main"><div id="hv-live" class="hv-live">${liveHtml(id)}</div><p class="sr-only" id="hv-say" aria-live="polite"></p><section class="hv-sec" id="hv-queue">${queueHtml(id, couple)}</section></div><aside class="hv-dash-side" aria-label="Controles da festa"><details class="hv-sidebox" ${matchMedia('(max-width:900px)').matches ? '' : 'open'}><summary class="hv-sidebox-s"><b class="t-h">Controles da festa</b><span class="t-small">telão, regras e pausa</span></summary><div class="hv-sidebox-b">${ctrlHtml(id, couple)}${rules}${couple || pn ? '' : riskHtml(id)}</div></details></aside></div>`;
   }
   function drawLive(id) {
     if (A.sim().state !== 'ok' || !A.$('#hv-live')) return;
@@ -906,11 +930,12 @@
     const cover = best ? `<div class="hv-cover"><button data-act="hv-reviver" data-fk="rev-cover" aria-label="Assistir o Reviver, a noite em capítulos">${A.img(best.n, best.ratio === 'l' ? 'p' : best.ratio, 'Capa do álbum: a foto mais curtida da festa (ilustração do protótipo)')}<span class="hv-play" aria-hidden="true">${A.icon('play', 24)}</span></button></div>` : '';
     const hero = `<section class="hv-rev" aria-label="Reviver">${cover}<div class="stack"><h1 class="hv-big">As fotos são de vocês.</h1><p class="t-lead" style="max-width:46ch">${s.noAr} ${plural(s.noAr, 'foto', 'fotos')} de ${s.foto} ${plural(s.foto, 'pessoa', 'pessoas')} · ${E(A.when(id).label.toLowerCase())}. Assista a noite em capítulos e depois decida o que entregar.</p><div class="hv-row"><button class="btn btn-primary btn-lg" data-act="hv-reviver" data-fk="rev">${A.icon('play', 18)} Assistir o Reviver</button><a class="btn btn-quiet" href="${base(id)}/fotos?f=aprovadas">Ver o álbum final</a></div></div></section>`;
     if (couple) return pend + hero + `<section class="hv-sec"><div class="flex between" style="align-items:flex-start;gap:16px"><div><h3 class="t-h">Cápsula de memória</h3><p class="t-small">Guardar meus destaques para a lembrança anual.</p></div>${sw(d.cap, 'hv-cap', 'Guardar meus destaques para a lembrança anual', 'sw-cap')}</div></section><p class="t-small">Entrega aos convidados, livro e exportação ficam com quem organiza. Para ver tudo, ligue “Ver painel completo”.</p>`;
-    const step = (n, title, body) => `<section class="hv-sec hv-step"><span class="hv-stn" aria-hidden="true">${n}</span><div class="stack-3"><h3 class="t-h">${title}</h3>${body}</div></section>`;
+    const mob = matchMedia('(max-width:900px)').matches;
+    const step = (n, title, body, acc = true) => (acc ? `<details class="hv-sec hv-step hv-acc" ${mob ? 'name="hv-steps"' : ''} ${!mob || n === '1' ? 'open' : ''}><summary class="hv-step-s"><span class="hv-stn" aria-hidden="true">${n}</span><h3 class="t-h">${title}</h3></summary><div class="stack-3 hv-step-b">${body}</div></details>` : `<section class="hv-sec hv-step"><span class="hv-stn" aria-hidden="true">${n}</span><div class="stack-3"><h3 class="t-h">${title}</h3>${body}</div></section>`);
     const entrega = step('1', 'Entregar as fotos aos convidados', `<div class="flex between" style="gap:16px"><p class="t-small">Cada convidado recebe um link com as fotos dele e as da festa.</p>${canExp ? sw(d.entrega, 'hv-entrega', 'Liberar entrega das fotos', 'sw-ent') : ''}</div>${d.entrega ? `<div class="hv-row"><button class="btn btn-line btn-sm" data-act="hv-enviar" data-fk="enviar" ${canExp ? '' : 'disabled'}>${A.icon('send', 16)} Enviar agora</button><span class="t-small" aria-live="polite">${d.enviado ? `${d.enviado} enviadas · simulado: WhatsApp e e-mail dependem de integração` : 'Ainda não enviou.'}</span></div>` : ''}${lock}`);
     const album = step('2', 'Álbum final', `<p class="t-small">${s.noAr} ${plural(s.noAr, 'foto aprovada', 'fotos aprovadas')}, ${s.destaques} ${plural(s.destaques, 'destacada', 'destacadas')} pelos convidados.</p><div class="hv-row"><a class="btn btn-line btn-sm" href="${base(id)}/fotos?f=aprovadas">Abrir em Fotos</a><button class="btn btn-line btn-sm" data-act="hv-zip" data-fk="zip" ${canExp ? '' : 'disabled'}>${A.icon('download', 16)} Baixar tudo (ZIP)</button></div>`);
     const livro = step('3', 'Livro em PDF', d.livro ? `<p class="t-small">Livro pronto, formato A4. Simulado: o PDF real é gerado pelo servidor.</p><div class="hv-row"><button class="btn btn-line btn-sm" data-act="hv-bookdl" data-fk="bookdl">${A.icon('download', 16)} Baixar PDF</button><button class="btn btn-quiet btn-sm" data-act="hv-book" data-fk="book" ${canExp ? '' : 'disabled'}>Gerar de novo</button></div>` : `<p class="t-small">Monta as melhores fotos em páginas, para imprimir.</p><div class="hv-row"><button class="btn btn-line btn-sm" data-act="hv-book" data-fk="book" ${canExp ? '' : 'disabled'}>Gerar livro (simulado)</button></div>`);
-    const cap = step('5', 'Cápsula de memória', `<div class="flex between" style="gap:16px"><p class="t-small">Guardar meus destaques para a lembrança anual. Dá para desligar quando quiser, sem perguntas.</p>${sw(d.cap, 'hv-cap', 'Guardar meus destaques para a lembrança anual', 'sw-cap')}</div>`);
+    const cap = step('5', 'Cápsula de memória', `<div class="flex between" style="gap:16px"><p class="t-small">Guardar meus destaques para a lembrança anual. Dá para desligar quando quiser, sem perguntas.</p>${sw(d.cap, 'hv-cap', 'Guardar meus destaques para a lembrança anual', 'sw-cap')}</div>`, false);
     const th = d.thanks ? `<p class="t-small">Agradecimento enviado ${E(d.thanks.quando)}: “${E(d.thanks.txt)}”</p><button class="btn btn-quiet btn-sm" data-act="hv-thanks" data-fk="thx">Escrever outro</button>` : `<p class="t-small">Uma mensagem sua para todos que entraram na festa.</p><button class="btn btn-line btn-sm" data-act="hv-thanks" data-fk="thx">Escrever agradecimento</button>`;
     const thanks = step('4', 'Agradecer aos convidados', th);
     const exportDay = 330, delDay = 365, pct = Math.min(100, Math.round((day / delDay) * 100));
