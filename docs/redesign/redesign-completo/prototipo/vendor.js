@@ -343,6 +343,12 @@
 /* v243 — clientes e equipe em grade de cartões no desktop */
 @media(min-width:1100px){.app .vd-directory .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-3)}.app .vd-directory .list>.li{margin:0}}
 @media(min-width:1500px){.app .vd-directory .list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* v500 — varredura: seletor de papel cabe na linha no celular */
+.vd-directory .li{flex-wrap:wrap}
+.vd-directory .li .ds-sel,.vd-directory .li .select{min-width:min(10.5rem,100%);max-width:100%;flex:0 0 auto}
+@media(max-width:600px){.vd-directory .li .ds-sel,.vd-directory .li .select{flex:1 1 100%;width:100%}}
+.vd-pl dt,.vd-pl dd{min-width:0;overflow-wrap:anywhere}
+.vd-pl dl{column-gap:var(--space-3)}
 /* v205 — cadastro do fornecedor: formulário em cartão, etapas em pílula */
 .vd-steps{padding:var(--space-3) var(--space-5);background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-4);margin-bottom:var(--space-6)}
 .vd-steps ol li{padding:var(--space-1) var(--space-3);border-radius:var(--r-pill)}
