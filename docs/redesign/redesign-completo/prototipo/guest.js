@@ -868,6 +868,8 @@
   .gx-priv2 li{display:flex;align-items:center;gap:var(--space-3);padding:var(--space-2) 0;font-size:var(--fs-xs);line-height:1.35;color:var(--fg-2)}
   .gx-priv2 li+li{border-top:1px solid var(--line-2)}
   .gx-priv2 li>span{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:50%;background:color-mix(in srgb,var(--ac) 22%,transparent);color:var(--fg)}
+  /* v600 — varredura: player de áudio do Recado não herda o selo de 24 px do play das fotos */
+  .stack>.gx-play,.gx-pad .gx-play{position:static;display:flex;width:100%;height:auto;border-radius:var(--r-3)}
   `; document.head.append(stl2);
 
   /* ---------------------------------------------------------------- store helpers */
